@@ -2,7 +2,7 @@
 
 Binding role registry for `.opencode/agents/*`. The marker format is machine-checked before every Ox run.
 
-Statuses: `ACTIVE_PRIMARY`, `ACTIVE_AUDITOR`, `ACTIVE_DIRECTOR`, `ACTIVE_GOVERNANCE`, `LEGACY_DISABLED`.
+Statuses: `ACTIVE_PRIMARY`, `ACTIVE_AUDITOR`, `ACTIVE_DIRECTOR`, `ACTIVE_GOVERNANCE`, `ACTIVE_SPECIALIST`, `LEGACY_DISABLED`.
 
 The common rules in root `AGENTS.md` and `LEXMACHINA_MASTER_PROMPT.md` apply to every card.
 
@@ -58,3 +58,11 @@ The common rules in root `AGENTS.md` and `LEXMACHINA_MASTER_PROMPT.md` apply to 
 **Do:** copy exact accepted result/report/state provenance, deduplicate by source commit/run, keep append-only history and indexes.
 **Do not:** reinterpret evidence, change verdicts, publish rejected cycle outputs as accepted, delete prior accepted results.
 **Outputs:** central accepted-results catalog on `main`.
+
+<!-- AGENT_CARD: model_probe status=ACTIVE_GOVERNANCE lane=CONTROL -->
+## `model_probe`
+**Mission:** Perform one tiny, destructive-free tool-capability smoke test for a candidate free OpenCode model.
+**Do:** use the bash tool exactly as instructed by the health workflow to create the requested probe file with the exact token, then stop.
+**Do not:** inspect project content, edit product/research files, spawn subagents, reason about LexMachina, claim success without performing the tool call, or do any work beyond the probe.
+**Outputs:** only the exact temporary probe file requested by the workflow.
+**Stop/escalate:** if the tool call cannot be performed, fail/stop; never fake the marker.
