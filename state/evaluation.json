@@ -4,15 +4,20 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": true,
-  "accepted_run_id": "eval_real_tfidf_20260826",
+  "accepted_run_id": "eval_cycle_4_20260826_225741",
   "accepted_commit": null,
   "evidence_refs": [
     "evaluation/results/real_corpus_tfidf_baseline_results.json",
+    "evaluation/results/cycle_4_new_benchmarks_results.json",
+    "evaluation/results/cycle_4_combined_results.json",
     "evaluation/results/synthetic_evaluation_results.json",
     "evaluation/results/synthetic_ground_truth.json",
+    "evaluation/reports/evaluation_cycle_4_report.md",
     "evaluation/reports/evaluation_cycle_3_report.md",
     "evaluation/reports/evaluation_cycle_2_repair_report.md",
-    "evaluation/data/real_corpus.py"
+    "evaluation/data/real_corpus.py",
+    "evaluation/tests/citation_proximity.py",
+    "evaluation/tests/legal_area_clustering.py"
   ],
   "next_recommendation": "CONTINUE",
   "metrics_summary": {
@@ -60,24 +65,58 @@
       "num_decisions": 1200,
       "num_branches": 4,
       "note": "Real BGer corpus. Moderate purity (0.47-0.65) but near-zero NMI (0.01-0.03). Clusters capture some legal structure but primarily separate by language, not legal area."
+    },
+    "citation_proximity": {
+      "status": "FAILED",
+      "auc_roc": 0.6354,
+      "positive_mean_sim": 0.1867,
+      "negative_mean_sim": 0.1269,
+      "mean_similarity_gap": 0.0598,
+      "num_positive_pairs": 300,
+      "num_negative_pairs": 300,
+      "mean_shared_citations": 1.2733,
+      "max_shared_citations": 6,
+      "note": "Real BGer corpus. TF-IDF captures some citation-relevant similarity (AUC 0.64) but below 0.7 threshold. Shared-citation pairs have slightly higher similarity (0.19 vs 0.13) but gap is small. Legal representations should achieve AUC > 0.75."
+    },
+    "legal_area_clustering": {
+      "status": "FAILED",
+      "best_nmi": 0.0487,
+      "best_purity": 0.7046,
+      "nmi_at_true_k": 0.0283,
+      "purity_at_true_k": 0.4153,
+      "num_decisions": 400,
+      "num_branches": 4,
+      "branch_distribution": {
+        "strafrecht": 306,
+        "zivilrecht": 311,
+        "oeffentliches_recht": 293,
+        "sozialversicherungsrecht": 290
+      },
+      "note": "Real BGer corpus. Near-zero NMI (0.05) confirms TF-IDF clusters by language not legal area. Purity increases with more clusters (0.42 at k=4 to 0.70 at k=12) because language separation creates internally pure but legally meaningless clusters. Legal representations should achieve NMI > 0.3 AND purity > 0.7."
     }
   },
   "required_fixes_addressed": [
     "Created real_corpus.py adapter to load canonical JSONL from corpus lane",
     "Built TF-IDF baseline representations (full, reasoning, legal-only modes)",
-    "Ran all 5 benchmarks on real 1,200 BGer decisions (2020-2024)",
+    "Ran all 5 original benchmarks on real 1,200 BGer decisions (2020-2024)",
     "Established baseline metrics: AUC 0.95, resistance 0.01, separation -0.24, drift 0.87, purity 0.65",
-    "Preserved synthetic results as historical reference",
-    "Generated machine-readable results and human-readable report"
+    "Implemented citation_proximity benchmark (shared-citation heritage as weak supervision)",
+    "Implemented legal_area_clustering benchmark (branch metadata, independent of Jurivoc)",
+    "Ran new benchmarks on TF-IDF baseline: citation AUC 0.64, clustering NMI 0.05",
+    "Preserved negative results: cited_laws field empty, citation-law benchmark cancelled",
+    "Generated machine-readable results and human-readable reports for all cycles"
   ],
   "baselines_established": {
-    "tfidf_full": {
-      "neighbor_relevance_auc": 0.9519,
+    "tfidf_reasoning": {
+      "neighbor_relevance_auc": 0.9462,
       "boilerplate_resistance": 0.0113,
       "multilingual_separation": -0.2374,
       "corpus_stability_drift": 0.8733,
       "hierarchy_purity": 0.6482,
-      "hierarchy_nmi": 0.0283
+      "hierarchy_nmi": 0.0283,
+      "citation_proximity_auc": 0.6354,
+      "legal_area_nmi": 0.0487,
+      "legal_area_purity": 0.7046
     },
     "targets_for_legal_distance_lane": {
       "neighbor_relevance_auc": ">0.95",
@@ -85,7 +124,25 @@
       "multilingual_separation": ">0.1",
       "corpus_stability_drift": "<0.3",
       "hierarchy_purity": ">0.7",
-      "hierarchy_nmi": ">0.3"
+      "hierarchy_nmi": ">0.3",
+      "citation_proximity_auc": ">0.75",
+      "legal_area_nmi": ">0.3",
+      "legal_area_purity": ">0.7"
     }
-  }
+  },
+  "benchmarks_available": [
+    "neighbor_relevance (citation-based, AUC-ROC)",
+    "boilerplate_resistance (perturbation stability)",
+    "multilingual_invariance (cross-language similarity)",
+    "corpus_stability (position drift under growth)",
+    "hierarchy_coherence (Jurivoc purity + NMI)",
+    "citation_proximity (shared-citation heritage, AUC-ROC)",
+    "legal_area_clustering (branch NMI + purity)"
+  ],
+  "cycle_history": [
+    {"cycle": 1, "run_id": "synthetic_eval_20260826", "status": "COMPLETED", "tier": "EXPLORATORY"},
+    {"cycle": 2, "run_id": "eval_repair_20260826", "status": "COMPLETED", "tier": "REPRODUCED"},
+    {"cycle": 3, "run_id": "eval_real_tfidf_20260826", "status": "COMPLETED", "tier": "REPRODUCED"},
+    {"cycle": 4, "run_id": "eval_cycle_4_20260826_225741", "status": "COMPLETED", "tier": "REPRODUCED"}
+  ]
 }

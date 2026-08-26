@@ -7,6 +7,8 @@ from .boilerplate_resistance import BoilerplateResistanceTest
 from .multilingual_invariance import MultilingualInvarianceTest
 from .stability import CorpusStabilityTest
 from .hierarchy_coherence import HierarchyCoherenceTest
+from .citation_proximity import CitationProximityBenchmark
+from .legal_area_clustering import LegalAreaClusteringBenchmark
 
 __all__ = [
     "NeighborRelevanceTest",
@@ -14,4 +16,6 @@ __all__ = [
     "MultilingualInvarianceTest",
     "CorpusStabilityTest",
     "HierarchyCoherenceTest",
+    "CitationProximityBenchmark",
+    "LegalAreaClusteringBenchmark",
 ]

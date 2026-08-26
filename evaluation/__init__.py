@@ -9,6 +9,8 @@ from .tests.boilerplate_resistance import BoilerplateResistanceTest
 from .tests.multilingual_invariance import MultilingualInvarianceTest
 from .tests.stability import CorpusStabilityTest
 from .tests.hierarchy_coherence import HierarchyCoherenceTest
+from .tests.citation_proximity import CitationProximityBenchmark
+from .tests.legal_area_clustering import LegalAreaClusteringBenchmark
 
 __all__ = [
     "BenchmarkHarness",
@@ -18,4 +20,6 @@ __all__ = [
     "MultilingualInvarianceTest",
     "CorpusStabilityTest",
     "HierarchyCoherenceTest",
+    "CitationProximityBenchmark",
+    "LegalAreaClusteringBenchmark",
 ]
