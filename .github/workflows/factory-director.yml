@@ -163,3 +163,34 @@ jobs:
           else
             echo "Director proposal blocked; accepted main direction remains authoritative. Supervisor may request a fresh autonomous Director pass if unresolved work remains."
           fi
+
+  resilience:
+    needs: [propose, audit, integrate]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+      - name: Keep control plane alive
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROPOSE_RESULT: ${{ needs.propose.result }}
+          AUDIT_RESULT: ${{ needs.audit.result }}
+          INTEGRATE_RESULT: ${{ needs.integrate.result }}
+        run: |
+          set -euo pipefail
+          echo "Director finalizer: propose=$PROPOSE_RESULT audit=$AUDIT_RESULT integrate=$INTEGRATE_RESULT"
+          if [[ "$PROPOSE_RESULT" != success || "$AUDIT_RESULT" == failure || "$AUDIT_RESULT" == cancelled || "$INTEGRATE_RESULT" == failure || "$INTEGRATE_RESULT" == cancelled ]]; then
+            others=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow factory-director.yml --limit 30 --json databaseId,status | jq --argjson self "$GITHUB_RUN_ID" '[.[] | select(.databaseId != $self) | select(.status=="queued" or .status=="in_progress" or .status=="requested" or .status=="waiting" or .status=="pending")] | length')
+            if [[ "$others" -eq 0 ]]; then
+              gh workflow run factory-director.yml --repo "$GITHUB_REPOSITORY" --ref main
+              echo "Fresh Director recovery dispatched."
+            else
+              echo "Another Director run is already active/queued; no duplicate recovery dispatched."
+            fi
+          fi
+          gh workflow run factory-supervisor.yml --repo "$GITHUB_REPOSITORY" --ref main
+          echo "Supervisor explicitly awakened by Director finalizer."
