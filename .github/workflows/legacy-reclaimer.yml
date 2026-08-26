@@ -1,0 +1,23 @@
+name: LEX Legacy Slot Reclaimer
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/legacy-reclaimer.yml'
+
+permissions:
+  contents: read
+
+# One-shot migration device: use the exact legacy Core concurrency group so
+# GitHub cancels the pre-control-epoch run before allocating a runner here.
+concurrency:
+  group: lex-core-legal-distance
+  cancel-in-progress: true
+
+jobs:
+  reclaim:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - run: echo 'Legacy legal-distance slot reclaimed; this workflow is disposable.'
