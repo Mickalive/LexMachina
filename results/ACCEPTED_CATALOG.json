@@ -1,0 +1,197 @@
+{
+  "entries": [
+    {
+      "path": "results/accepted-state/corpus.json",
+      "state": {
+        "lane": "corpus",
+        "direction_version": 1,
+        "evidence_tier": "REPRODUCED",
+        "cycle_status": "COMPLETED",
+        "continue_recommended": false,
+        "accepted_run_id": "corpus_run_20260826_002",
+        "accepted_commit": null,
+        "evidence_refs": [
+          "corpus/acquisition/raw/yearly/bger_2020.jsonl",
+          "corpus/acquisition/raw/yearly/bger_2021.jsonl",
+          "corpus/acquisition/raw/yearly/bger_2022.jsonl",
+          "corpus/acquisition/raw/yearly/bger_2023.jsonl",
+          "corpus/acquisition/raw/yearly/bger_2024.jsonl",
+          "corpus/normalization/canonical/bger_2020.jsonl",
+          "corpus/normalization/canonical/bger_2021.jsonl",
+          "corpus/normalization/canonical/bger_2022.jsonl",
+          "corpus/normalization/canonical/bger_2023.jsonl",
+          "corpus/normalization/canonical/bger_2024.jsonl",
+          "corpus/acquisition/raw/bger_eval_sample.jsonl",
+          "corpus/normalization/canonical/bger_eval_sample.jsonl",
+          "corpus/normalization/canonical/bger_eval_balanced.jsonl",
+          "corpus/normalization/canonical/bger_eval_structure.jsonl",
+          "corpus/normalization/canonical/citation_graph.json",
+          "corpus/schema/decision_schema.json",
+          "corpus/acquisition/opencaselaw_client.py",
+          "corpus/normalization/normalize.py",
+          "corpus/tests/test_pipeline.py"
+        ],
+        "next_recommendation": "PIVOT_WITHIN_MISSION",
+        "metrics": {
+          "raw_decisions_acquired": 350,
+          "canonical_decisions_normalized": 350,
+          "deduplication_skipped": 0,
+          "language_distribution": {
+            "de": 165,
+            "fr": 75,
+            "it": 10
+          },
+          "year_distribution": {
+            "2020": 50,
+            "2021": 50,
+            "2022": 50,
+            "2023": 50,
+            "2024": 150
+          },
+          "court_distribution": {
+            "bger": 350
+          },
+          "branch_distribution": {
+            "oeffentliches_recht": 93,
+            "strafrecht": 53,
+            "zivilrecht": 56,
+            "sozialversicherungsrecht": 48
+          },
+          "source": "opencaselaw_api",
+          "source_version": "opencaselaw_api_2026-08-26_yearly",
+          "api_rate_limit_rps": 5.0,
+          "acquisition_time_seconds": 60,
+          "validation_failures": 0,
+          "structural_coverage": {
+            "sachverhalt": 63,
+            "erwaegungen": 89,
+            "dispositiv": 99
+          },
+          "citation_graph_edges": 2105,
+          "citation_graph_nodes_cited": 1628,
+          "evaluation_samples": {
+            "balanced": 73,
+            "structure_rich": 89,
+            "full_eval": 100
+          },
+          "parquet_bulk_size_mb": 765,
+          "parquet_bulk_validated": true
+        },
+        "notes": "Successfully scaled acquisition to yearly-representative coverage (2020-2024), added structural segmentation (Sachverhalt, Erwägungen, Dispositiv) via /api/structure endpoint, built citation graph from cited_decisions field (2,105 edges), created evaluation-ready stratified samples, and validated Parquet bulk-download path (765 MB BGer dataset). Pipeline ready for full corpus production via Parquet ingestion."
+      }
+    },
+    {
+      "path": "results/accepted-state/evaluation.json",
+      "state": {
+        "lane": "evaluation",
+        "direction_version": 1,
+        "evidence_tier": "EXPLORATORY",
+        "cycle_status": "COMPLETED",
+        "continue_recommended": true,
+        "accepted_run_id": "eval_run_002_repair",
+        "accepted_commit": null,
+        "evidence_refs": [
+          "evaluation/results/synthetic_evaluation_results.json",
+          "evaluation/results/synthetic_ground_truth.json",
+          "evaluation/reports/evaluation_cycle_1_report.md",
+          "evaluation/reports/evaluation_cycle_2_repair_report.md"
+        ],
+        "next_recommendation": "CONTINUE",
+        "metrics_summary": {
+          "neighbor_relevance": {
+            "status": "PASSED",
+            "auc_roc": 0.9559,
+            "mrr": 0.1606,
+            "precision_at_10": 0.0556,
+            "recall_at_10": 0.4815,
+            "note": "Tautological on synthetic oracle embeddings (constructed from Jurivoc centers)"
+          },
+          "boilerplate_resistance": {
+            "status": "FAILED",
+            "resistance_score": 0.1402,
+            "mean_stability": 0.1402,
+            "std_stability": 0.0427,
+            "num_test_decisions": 100,
+            "baseline_tfidf": 0.35,
+            "note": "Now measures actual perturbation sensitivity via TF-IDF text embeddings. TF-IDF baseline shows low resistance (0.14) as expected - boilerplate injection significantly changes embedding. Good legal embeddings should achieve >0.7."
+          },
+          "multilingual_invariance": {
+            "status": "FAILED",
+            "cross_lang_mean_similarity": 0.3973,
+            "invariance_score": 0.3973,
+            "separation_from_same_lang": 0.3818,
+            "num_cross_lang_pairs": 150,
+            "num_multilingual_dockets": 50,
+            "baseline_random": 0.15,
+            "note": "Fixed multilingual coverage (was 1 docket, now 50). Synthetic embeddings have independent noise for parallel versions, yielding ~0.4 similarity (above random 0.15 but below strong multilingual model threshold 0.7). Correctly detects lack of cross-language alignment."
+          },
+          "corpus_stability": {
+            "status": "PASSED",
+            "mean_position_drift": -9.9e-09,
+            "note": "Tautological - static pre-computed embeddings never change. Drift ~0 by construction. Test infrastructure works; needs learned embeddings for meaningful measurement."
+          },
+          "hierarchy_coherence": {
+            "status": "PASSED",
+            "mean_jurivoc_purity": 0.5119,
+            "mean_nmi": 0.818,
+            "hierarchy_consistency": 1.0,
+            "note": "Meaningful but oracle-dependent: embeddings constructed from Jurivoc centers. Shows clustering method recovers structure when embeddings have legal structure."
+          }
+        },
+        "required_fixes_addressed": [
+          "Implemented actual boilerplate perturbation measurement (was hardcoded 0.5 placeholder)",
+          "Connected boilerplate injection to text embedding function (TF-IDF)",
+          "Fixed multilingual coverage by adding docket_number to ground truth decision_metadata (50 dockets vs 1)",
+          "Replaced hand-set baseline constants with documented calibration notes"
+        ]
+      }
+    },
+    {
+      "path": "results/accepted-state/fractal-map.json",
+      "state": {
+        "lane": "fractal-map",
+        "direction_version": 1,
+        "evidence_tier": "EXPLORATORY",
+        "cycle_status": "COMPLETED",
+        "continue_recommended": false,
+        "accepted_run_id": "fractal_map_run_20260826_001",
+        "evidence_refs": [
+          "results/fractal_map/baseline/embeddings.npy",
+          "results/fractal_map/baseline/projection_2d.npy",
+          "results/fractal_map/baseline/metadata.json",
+          "results/fractal_map/hierarchical/leiden_multi_resolution.json",
+          "results/fractal_map/hierarchical/agglomerative_multi_resolution_with_coherence.json",
+          "results/fractal_map/hierarchical/hdbscan_multi_resolution_with_coherence.json",
+          "results/fractal_map/hierarchical/multiscale_global_umap.json",
+          "results/fractal_map/hierarchical/hierarchical_zoom_umap.json",
+          "results/fractal_map/hierarchical/local_umap_samples.json",
+          "results/fractal_map/evaluation/evaluation_results.json"
+        ],
+        "next_recommendation": "PIVOT_WITHIN_MISSION",
+        "notes": "Flat-map baseline established but embeddings are language-dominated. Legal-area purity max 0.58 (at cost of 1.0 language purity). Fractal hierarchy consistent (NMI 0.79-0.91) but splits follow language, not law. Pivot to legal-distance lane for legally-structured representations before further fractal-map cycles."
+      }
+    },
+    {
+      "path": "results/accepted-state/legal-distance.json",
+      "state": {
+        "lane": "legal-distance",
+        "evidence_tier": "UNTESTED",
+        "cycle_status": "INITIALIZED",
+        "continue_recommended": true,
+        "accepted_run_id": null,
+        "accepted_commit": null
+      }
+    },
+    {
+      "path": "results/accepted-state/product.json",
+      "state": {
+        "lane": "product",
+        "evidence_tier": "UNTESTED",
+        "cycle_status": "INITIALIZED",
+        "continue_recommended": true,
+        "accepted_run_id": null,
+        "accepted_commit": null
+      }
+    }
+  ]
+}

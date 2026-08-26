@@ -1,0 +1,63 @@
+{
+  "lane": "evaluation",
+  "direction_version": 1,
+  "evidence_tier": "EXPLORATORY",
+  "cycle_status": "COMPLETED",
+  "continue_recommended": true,
+  "accepted_run_id": "eval_run_002_repair",
+  "accepted_commit": null,
+  "evidence_refs": [
+    "evaluation/results/synthetic_evaluation_results.json",
+    "evaluation/results/synthetic_ground_truth.json",
+    "evaluation/reports/evaluation_cycle_1_report.md",
+    "evaluation/reports/evaluation_cycle_2_repair_report.md"
+  ],
+  "next_recommendation": "CONTINUE",
+  "metrics_summary": {
+    "neighbor_relevance": {
+      "status": "PASSED",
+      "auc_roc": 0.9559,
+      "mrr": 0.1606,
+      "precision_at_10": 0.0556,
+      "recall_at_10": 0.4815,
+      "note": "Tautological on synthetic oracle embeddings (constructed from Jurivoc centers)"
+    },
+    "boilerplate_resistance": {
+      "status": "FAILED",
+      "resistance_score": 0.1402,
+      "mean_stability": 0.1402,
+      "std_stability": 0.0427,
+      "num_test_decisions": 100,
+      "baseline_tfidf": 0.35,
+      "note": "Now measures actual perturbation sensitivity via TF-IDF text embeddings. TF-IDF baseline shows low resistance (0.14) as expected - boilerplate injection significantly changes embedding. Good legal embeddings should achieve >0.7."
+    },
+    "multilingual_invariance": {
+      "status": "FAILED",
+      "cross_lang_mean_similarity": 0.3973,
+      "invariance_score": 0.3973,
+      "separation_from_same_lang": 0.3818,
+      "num_cross_lang_pairs": 150,
+      "num_multilingual_dockets": 50,
+      "baseline_random": 0.15,
+      "note": "Fixed multilingual coverage (was 1 docket, now 50). Synthetic embeddings have independent noise for parallel versions, yielding ~0.4 similarity (above random 0.15 but below strong multilingual model threshold 0.7). Correctly detects lack of cross-language alignment."
+    },
+    "corpus_stability": {
+      "status": "PASSED",
+      "mean_position_drift": -9.9e-09,
+      "note": "Tautological - static pre-computed embeddings never change. Drift ~0 by construction. Test infrastructure works; needs learned embeddings for meaningful measurement."
+    },
+    "hierarchy_coherence": {
+      "status": "PASSED",
+      "mean_jurivoc_purity": 0.5119,
+      "mean_nmi": 0.8180,
+      "hierarchy_consistency": 1.0,
+      "note": "Meaningful but oracle-dependent: embeddings constructed from Jurivoc centers. Shows clustering method recovers structure when embeddings have legal structure."
+    }
+  },
+  "required_fixes_addressed": [
+    "Implemented actual boilerplate perturbation measurement (was hardcoded 0.5 placeholder)",
+    "Connected boilerplate injection to text embedding function (TF-IDF)",
+    "Fixed multilingual coverage by adding docket_number to ground truth decision_metadata (50 dockets vs 1)",
+    "Replaced hand-set baseline constants with documented calibration notes"
+  ]
+}
