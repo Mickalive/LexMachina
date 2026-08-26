@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-# Bootstrap invariant: a persistent lab/cycle branch must never keep executing an
-# obsolete launcher. Re-exec the exact current wrapper from main when it differs.
+# Bootstrap invariant: persistent lab/cycle branches never execute an obsolete
+# launcher. Re-exec the exact current wrapper from main when it differs.
 if [[ "${LEX_WRAPPER_REEXEC:-0}" != "1" ]]; then
   LATEST_WRAPPER="$(mktemp)"
   if git fetch -q origin main 2>/dev/null && git show origin/main:.github/scripts/run-ox-with-retry.sh > "$LATEST_WRAPPER" 2>/dev/null; then
@@ -39,7 +39,7 @@ stage_control(){
   local ref="origin/main"
   if ! git fetch -q origin main; then echo "::warning::main refresh failed; using workflow checkout"; ref="${GITHUB_SHA:-HEAD}"; fi
   rm -rf /tmp/lex_control; mkdir -p /tmp/lex_control
-  for p in AGENTS.md LEXMACHINA_MASTER_PROMPT.md ARCHITECTURE.md docs/RESEARCH_PROTOCOL.md docs/agents/AGENT_CARDS.md state/factory_direction.json state/frontier_portfolio.json; do
+  for p in AGENTS.md LEXMACHINA_MASTER_PROMPT.md ARCHITECTURE.md docs/RESEARCH_PROTOCOL.md docs/agents/AGENT_CARDS.md state/factory_direction.json state/frontier_portfolio.json state/model_health.json; do
     if git cat-file -e "$ref:$p" 2>/dev/null; then mkdir -p "/tmp/lex_control/$(dirname "$p")"; git show "$ref:$p" > "/tmp/lex_control/$p"; fi
   done
   if git cat-file -e "$ref:directives/lanes" 2>/dev/null; then git archive "$ref" directives/lanes | tar -x -C /tmp/lex_control; fi
@@ -61,9 +61,37 @@ validate_registry(){
   echo "LEX_AGENT_CARD_OK agent=$requested"
 }
 
-for arg in "$@"; do if [[ "$arg" == REPAIR\ * || "$arg" == *" REPAIR "* ]]; then REPAIR_INTENT=true; break; fi; done
+resolve_model_args(){
+  local health="/tmp/lex_control/state/model_health.json" resolved healthy fallback i
+  [[ -f "$health" ]] || { echo "::error::LEX_MODEL_HEALTH_MISSING" >&2; return 76; }
+  healthy=$(jq -r '.healthy // false' "$health" 2>/dev/null || echo false)
+  resolved=$(jq -r '.resolved_model // empty' "$health" 2>/dev/null || true)
+  fallback=$(jq -r '.using_fallback // false' "$health" 2>/dev/null || echo false)
+  if [[ "$healthy" != true || -z "$resolved" ]]; then
+    echo "::error::LEX_NO_HEALTHY_FREE_TOOL_MODEL; model-health workflow must pass before agent work is dispatched." >&2
+    return 76
+  fi
+  for ((i=0; i<${#RUN_ARGS[@]}; i++)); do
+    if [[ "${RUN_ARGS[$i]}" == "--model" && $((i+1)) -lt ${#RUN_ARGS[@]} ]]; then
+      echo "LEX_MODEL_RESOLVED requested=${RUN_ARGS[$((i+1))]} resolved=$resolved fallback=$fallback"
+      RUN_ARGS[$((i+1))]="$resolved"
+      return 0
+    elif [[ "${RUN_ARGS[$i]}" == --model=* ]]; then
+      echo "LEX_MODEL_RESOLVED requested=${RUN_ARGS[$i]#--model=} resolved=$resolved fallback=$fallback"
+      RUN_ARGS[$i]="--model=$resolved"
+      return 0
+    fi
+  done
+  # All autonomous substantive runs should name a model explicitly. Refuse silent defaults.
+  echo "::error::LEX_MODEL_ARGUMENT_MISSING" >&2
+  return 77
+}
+
+RUN_ARGS=("$@")
+for arg in "${RUN_ARGS[@]}"; do if [[ "$arg" == REPAIR\ * || "$arg" == *" REPAIR "* ]]; then REPAIR_INTENT=true; break; fi; done
 [[ "${LEX_REQUIRE_DELTA:-0}" == 1 ]] && REPAIR_INTENT=true
-stage_control; START_HEAD=$(git rev-parse HEAD 2>/dev/null || echo ""); validate_registry "$@" || exit $?
+stage_control; START_HEAD=$(git rev-parse HEAD 2>/dev/null || echo ""); validate_registry "${RUN_ARGS[@]}" || exit $?
+resolve_model_args || exit $?
 
 run_once(){
   : >"$LOG"; rm -f "$STALL_FLAG"; local wd="${GITHUB_WORKSPACE:-$PWD}"
@@ -74,13 +102,13 @@ run_once(){
 
 attempt=1
 while ((attempt<=MAX_ATTEMPTS)); do
-  echo "LEX_OX_ATTEMPT=$attempt/$MAX_ATTEMPTS"; run_once "$@"; rc=$?
+  echo "LEX_OX_ATTEMPT=$attempt/$MAX_ATTEMPTS"; run_once "${RUN_ARGS[@]}"; rc=$?
   if [[ "$rc" -eq 0 ]]; then
     restore_overlay || exit 1
     if [[ "$REPAIR_INTENT" == true ]]; then cur=$(git rev-parse HEAD 2>/dev/null || echo ""); delta=$(git status --porcelain 2>/dev/null || true); if [[ "$cur" == "$START_HEAD" && -z "$delta" ]]; then echo "::error::LEX_ZERO_DELTA_REPAIR"; exit 67; fi; fi
     exit 0
   fi
-  if [[ "$rc" -eq 75 ]] || grep -Eiq "$NETWORK_RE" "$LOG"; then if ((attempt<MAX_ATTEMPTS)); then echo "::warning::Transient Ox failure; retrying"; sleep "$RETRY_DELAY"; attempt=$((attempt+1)); continue; fi; restore_overlay || true; exit 75; fi
-  echo "Ox failed without transient signature (rc=$rc)" >&2; restore_overlay || true; exit "$rc"
+  if [[ "$rc" -eq 75 ]] || grep -Eiq "$NETWORK_RE" "$LOG"; then if ((attempt<MAX_ATTEMPTS)); then echo "::warning::Transient Ox/OpenCode failure; retrying"; sleep "$RETRY_DELAY"; attempt=$((attempt+1)); continue; fi; restore_overlay || true; exit 75; fi
+  echo "OpenCode failed without transient signature (rc=$rc)" >&2; restore_overlay || true; exit "$rc"
 done
 restore_overlay || true; exit 75
