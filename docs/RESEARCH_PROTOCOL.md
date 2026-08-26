@@ -15,3 +15,8 @@ Every research cycle answers one bounded question that can change a product or r
 Preferred baselines include whole-document generic embedding, legal embedding/Isaacus-style baseline where accessible, lexical retrieval, citation-only, norms-only and simple hybrids before complex learned methods.
 
 Core evaluation families: Jurivoc/human-index agreement where available; nearest-neighbor legal relevance; known-lineage recovery; no-explicit-citation lineage recovery; boilerplate resistance; multilingual invariance; corpus-scale stability; hierarchy coherence; and human preference.
+
+## Mandatory accepted-state fields
+Every core research lane must keep `state/<lane>.json` machine-readable and set at least: `lane`, `direction_version`, `evidence_tier`, `cycle_status`, `continue_recommended`, `accepted_run_id` (or proposed run id before audit), `evidence_refs`, and `next_recommendation`. `continue_recommended=true` means another cycle under the SAME factory-direction question has a concrete discriminating purpose; it is not a generic request to keep running. When no additional same-question cycle is justified, set it false so the Factory Director can decide the successor question.
+
+Frontier states must analogously preserve `team_id`, `charter_version`, `evidence_tier`, `cycle_status`, `continue_recommended`, provenance/evidence references and the charter stop/promote recommendation.
