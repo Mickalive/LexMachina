@@ -9,6 +9,7 @@ on:
     paths:
       - 'state/factory_direction.json'
       - 'state/frontier_portfolio.json'
+      - 'state/model_health.json'
       - 'state/blockers/**'
       - '.github/workflows/factory-supervisor.yml'
 
@@ -35,6 +36,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+
+          # Never create a storm of known-dead agent runs. Model Health performs
+          # an actual tool side-effect probe and writes this state. As soon as a
+          # free candidate passes, its state push wakes this Supervisor instantly.
+          if [[ "$(jq -r '.healthy // false' state/model_health.json 2>/dev/null || echo false)" != true ]]; then
+            echo "Factory agent dispatch paused: no tool-capable free OpenCode model has passed health probe."
+            exit 0
+          fi
+          echo "Factory model: $(jq -r '.resolved_model' state/model_health.json) (fallback=$(jq -r '.using_fallback' state/model_health.json))"
 
           commit_blockers() {
             if ! git diff --quiet -- state/blockers 2>/dev/null || [[ -n "$(git ls-files --others --exclude-standard state/blockers 2>/dev/null)" ]]; then
@@ -69,7 +79,6 @@ jobs:
               continue
             fi
 
-            # Respect an accepted no-more-identical-cycle recommendation for research lanes.
             if [[ "$lane" != product ]] && git ls-remote --exit-code --heads origin "refs/heads/lab/$lane" >/dev/null 2>&1; then
               raw=$(gh api "repos/${GITHUB_REPOSITORY}/contents/state/${lane}.json?ref=lab/${lane}" --jq '.content' 2>/dev/null | tr -d '\n' | base64 -d 2>/dev/null || true)
               if [[ -n "$raw" ]] && [[ "$(jq -r '.continue_recommended // true' <<<"$raw")" == false ]] && [[ "$(jq -r '.direction_version // -1' <<<"$raw")" == "$v" ]]; then
@@ -92,7 +101,6 @@ jobs:
             echo "$lane: dispatched direction v$v"
           done
 
-          portfolio_v=$(jq -r '.version' state/frontier_portfolio.json)
           jq -c '.teams[] | select(.status=="RUN")' state/frontier_portfolio.json | while IFS= read -r item; do
             team=$(jq -r .team_id <<<"$item"); ver=$(jq -r .charter_version <<<"$item")
             [[ "$team" =~ ^[a-z0-9][a-z0-9-]{1,62}$ ]] || continue
