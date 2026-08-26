@@ -1,0 +1,163 @@
+{
+  "run_id": "eval_real_tfidf_20260826_224152",
+  "timestamp": "2026-08-26T22:41:52.354549+00:00",
+  "lane": "evaluation",
+  "direction_version": 1,
+  "representation": "tfidf_baseline",
+  "corpus_source": "/tmp/lex_accepted/corpus/corpus/normalization/canonical/",
+  "corpus_schema": "/tmp/lex_accepted/corpus/corpus/schema/decision_schema.json",
+  "benchmarks": {
+    "neighbor_relevance_full_tfidf": {
+      "status": "PASSED",
+      "metrics": {
+        "auc_roc": 0.9519436792164065,
+        "mrr": 0.6126124418453188,
+        "pos_mean_sim": 0.5813027789270637,
+        "neg_mean_sim": 0.13052884746352306,
+        "pos_pairs": 99,
+        "neg_pairs": 99,
+        "precision@1": 0.5037593984962406,
+        "precision@3": 0.2531328320802005,
+        "precision@5": 0.17744360902255638,
+        "precision@10": 0.09548872180451128
+      },
+      "baseline_comparison": {
+        "auc_roc_random": 0.5,
+        "auc_roc_tfidf_legal": "~0.7-0.8",
+        "auc_roc_legal_bert": "~0.8-0.9",
+        "note": "Citation pairs as weak supervision. AUC>0.7 = above random."
+      },
+      "duration_seconds": 0.6960902214050293
+    },
+    "neighbor_relevance_reasoning_tfidf": {
+      "status": "PASSED",
+      "metrics": {
+        "auc_roc": 0.9462299765330069,
+        "mrr": 0.5861203616503906,
+        "pos_mean_sim": 0.5618387867103923,
+        "neg_mean_sim": 0.12721684210312864,
+        "pos_pairs": 99,
+        "neg_pairs": 99,
+        "precision@1": 0.48872180451127817,
+        "precision@3": 0.24060150375939848,
+        "precision@5": 0.16090225563909774,
+        "precision@10": 0.0894736842105263
+      },
+      "baseline_comparison": {
+        "auc_roc_random": 0.5,
+        "auc_roc_tfidf_legal": "~0.7-0.8",
+        "auc_roc_legal_bert": "~0.8-0.9",
+        "note": "Citation pairs as weak supervision. AUC>0.7 = above random."
+      },
+      "duration_seconds": 1.4205610752105713
+    },
+    "boilerplate_resistance": {
+      "status": "FAILED",
+      "metrics": {
+        "resistance_score": 0.011309343576431274,
+        "mean_stability": 0.011309343576431274,
+        "std_stability": 0.013180180498706515,
+        "min_stability": 0.0013143420219421387,
+        "max_stability": 0.07082933187484741,
+        "num_test_decisions": 80
+      },
+      "baseline_comparison": {
+        "tfidf_baseline": 0.01,
+        "sbert_baseline": "~0.5-0.7",
+        "target_legal_structured": ">0.7",
+        "note": "TF-IDF is very sensitive to boilerplate (low resistance). Good legal embeddings should resist boilerplate."
+      },
+      "duration_seconds": 0.6355180740356445
+    },
+    "multilingual_invariance": {
+      "status": "FAILED",
+      "metrics": {
+        "cross_lang_mean_similarity": 0.02680940906459,
+        "same_lang_diff_area_mean": 0.2642439172999694,
+        "separation": -0.23743450823537937,
+        "num_cross_lang_pairs": 1200,
+        "num_same_lang_pairs": 101,
+        "fraction_above_threshold_0.7": NaN
+      },
+      "baseline_comparison": {
+        "random_baseline": 0.0,
+        "tfidf_baseline": "~0.0 (language-specific)",
+        "multilingual_model": ">0.7",
+        "note": "TF-IDF is language-specific; cross-language similarity is near zero. Strong multilingual models should achieve >0.7."
+      },
+      "duration_seconds": 0.16723346710205078
+    },
+    "corpus_stability": {
+      "status": "FAILED",
+      "metrics": {
+        "mean_position_drift": 0.8733186618240042,
+        "std_drift": 0.038263642940868293,
+        "num_anchor_decisions": 20,
+        "corpus_sizes_tested": [
+          200,
+          400,
+          600,
+          800,
+          1200
+        ]
+      },
+      "baseline_comparison": {
+        "static_embeddings": 0.0,
+        "retrained_tfidf": "~0.3-0.5",
+        "target": "<0.3",
+        "note": "Drift measured by retraining TF-IDF on growing subsets. Static pre-computed embeddings have drift ~0."
+      },
+      "duration_seconds": 13.733180046081543
+    },
+    "hierarchy_coherence": {
+      "status": "FAILED",
+      "metrics": {
+        "n_clusters_4": {
+          "purity": 0.47202808743428376,
+          "nmi": 0.011513828442701575,
+          "num_clusters": 4
+        },
+        "n_clusters_8": {
+          "purity": 0.6221879964076955,
+          "nmi": 0.019288460282963875,
+          "num_clusters": 8
+        },
+        "n_clusters_12": {
+          "purity": 0.6481843903225304,
+          "nmi": 0.028304176561696235,
+          "num_clusters": 12
+        },
+        "best_purity": 0.6481843903225304,
+        "best_nmi": 0.028304176561696235,
+        "num_decisions": 1200,
+        "num_branches": 4
+      },
+      "baseline_comparison": {
+        "random_purity": 0.25,
+        "random_nmi": 0.0,
+        "tfidf_expected_purity": "~0.4-0.6",
+        "legal_embedding_expected": ">0.7",
+        "note": "Legal branch as weak supervision. TF-IDF primarily separates by language, not legal area."
+      },
+      "duration_seconds": 11.487945318222046
+    }
+  },
+  "provenance": {
+    "corpus_size": 1200,
+    "language_distribution": {
+      "fr": 403,
+      "de": 735,
+      "it": 62
+    },
+    "year_distribution": {
+      "2024": 1000,
+      "2020": 50,
+      "2021": 50,
+      "2022": 50,
+      "2023": 50
+    },
+    "legal_area_count": 108,
+    "citation_pairs_in_corpus": 99,
+    "negative_pairs": 99
+  }
+}

@@ -1,63 +1,91 @@
 {
   "lane": "evaluation",
   "direction_version": 1,
-  "evidence_tier": "EXPLORATORY",
+  "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": true,
-  "accepted_run_id": "eval_run_002_repair",
+  "accepted_run_id": "eval_real_tfidf_20260826",
   "accepted_commit": null,
   "evidence_refs": [
+    "evaluation/results/real_corpus_tfidf_baseline_results.json",
     "evaluation/results/synthetic_evaluation_results.json",
     "evaluation/results/synthetic_ground_truth.json",
-    "evaluation/reports/evaluation_cycle_1_report.md",
-    "evaluation/reports/evaluation_cycle_2_repair_report.md"
+    "evaluation/reports/evaluation_cycle_3_report.md",
+    "evaluation/reports/evaluation_cycle_2_repair_report.md",
+    "evaluation/data/real_corpus.py"
   ],
   "next_recommendation": "CONTINUE",
   "metrics_summary": {
     "neighbor_relevance": {
       "status": "PASSED",
-      "auc_roc": 0.9559,
-      "mrr": 0.1606,
-      "precision_at_10": 0.0556,
-      "recall_at_10": 0.4815,
-      "note": "Tautological on synthetic oracle embeddings (constructed from Jurivoc centers)"
+      "auc_roc_full_tfidf": 0.9519,
+      "auc_roc_reasoning_tfidf": 0.9462,
+      "mrr_full": 0.6126,
+      "mrr_reasoning": 0.5861,
+      "precision_at_1_full": 0.5038,
+      "precision_at_5_full": 0.1774,
+      "precision_at_10_full": 0.0955,
+      "num_citation_pairs": 99,
+      "note": "Real BGer corpus. Citation pairs as weak supervision. TF-IDF strongly separates citing decisions (AUC > 0.95). Full TF-IDF slightly outperforms reasoning-only, suggesting shared boilerplate helps citation matching."
     },
     "boilerplate_resistance": {
       "status": "FAILED",
-      "resistance_score": 0.1402,
-      "mean_stability": 0.1402,
-      "std_stability": 0.0427,
-      "num_test_decisions": 100,
-      "baseline_tfidf": 0.35,
-      "note": "Now measures actual perturbation sensitivity via TF-IDF text embeddings. TF-IDF baseline shows low resistance (0.14) as expected - boilerplate injection significantly changes embedding. Good legal embeddings should achieve >0.7."
+      "resistance_score": 0.0113,
+      "mean_stability": 0.0113,
+      "std_stability": 0.0132,
+      "num_test_decisions": 80,
+      "note": "Real BGer corpus. TF-IDF is catastrophically sensitive to boilerplate (0.01 resistance). Adding ~100 words of standard BGer procedural text changes embedding by 99%. Legal representations must achieve >0.5."
     },
     "multilingual_invariance": {
       "status": "FAILED",
-      "cross_lang_mean_similarity": 0.3973,
-      "invariance_score": 0.3973,
-      "separation_from_same_lang": 0.3818,
-      "num_cross_lang_pairs": 150,
-      "num_multilingual_dockets": 50,
-      "baseline_random": 0.15,
-      "note": "Fixed multilingual coverage (was 1 docket, now 50). Synthetic embeddings have independent noise for parallel versions, yielding ~0.4 similarity (above random 0.15 but below strong multilingual model threshold 0.7). Correctly detects lack of cross-language alignment."
+      "cross_lang_mean_similarity": 0.0268,
+      "same_lang_diff_area_mean": 0.2642,
+      "separation": -0.2374,
+      "num_cross_lang_pairs": 1200,
+      "num_same_lang_pairs": 101,
+      "note": "Real BGer corpus. TF-IDF is completely language-specific. Cross-language same-branch pairs have near-zero similarity (0.03). Negative separation means language dominates over legal content."
     },
     "corpus_stability": {
-      "status": "PASSED",
-      "mean_position_drift": -9.9e-09,
-      "note": "Tautological - static pre-computed embeddings never change. Drift ~0 by construction. Test infrastructure works; needs learned embeddings for meaningful measurement."
+      "status": "FAILED",
+      "mean_position_drift": 0.8733,
+      "std_drift": 0.0383,
+      "num_anchor_decisions": 20,
+      "corpus_sizes_tested": [200, 400, 600, 800, 1200],
+      "note": "Real BGer corpus. TF-IDF retrained on growing subsets has very high drift (0.87). Vocabulary shift with new documents dramatically repositions existing decisions."
     },
     "hierarchy_coherence": {
-      "status": "PASSED",
-      "mean_jurivoc_purity": 0.5119,
-      "mean_nmi": 0.8180,
-      "hierarchy_consistency": 1.0,
-      "note": "Meaningful but oracle-dependent: embeddings constructed from Jurivoc centers. Shows clustering method recovers structure when embeddings have legal structure."
+      "status": "FAILED",
+      "best_purity": 0.6482,
+      "best_nmi": 0.0283,
+      "num_decisions": 1200,
+      "num_branches": 4,
+      "note": "Real BGer corpus. Moderate purity (0.47-0.65) but near-zero NMI (0.01-0.03). Clusters capture some legal structure but primarily separate by language, not legal area."
     }
   },
   "required_fixes_addressed": [
-    "Implemented actual boilerplate perturbation measurement (was hardcoded 0.5 placeholder)",
-    "Connected boilerplate injection to text embedding function (TF-IDF)",
-    "Fixed multilingual coverage by adding docket_number to ground truth decision_metadata (50 dockets vs 1)",
-    "Replaced hand-set baseline constants with documented calibration notes"
-  ]
+    "Created real_corpus.py adapter to load canonical JSONL from corpus lane",
+    "Built TF-IDF baseline representations (full, reasoning, legal-only modes)",
+    "Ran all 5 benchmarks on real 1,200 BGer decisions (2020-2024)",
+    "Established baseline metrics: AUC 0.95, resistance 0.01, separation -0.24, drift 0.87, purity 0.65",
+    "Preserved synthetic results as historical reference",
+    "Generated machine-readable results and human-readable report"
+  ],
+  "baselines_established": {
+    "tfidf_full": {
+      "neighbor_relevance_auc": 0.9519,
+      "boilerplate_resistance": 0.0113,
+      "multilingual_separation": -0.2374,
+      "corpus_stability_drift": 0.8733,
+      "hierarchy_purity": 0.6482,
+      "hierarchy_nmi": 0.0283
+    },
+    "targets_for_legal_distance_lane": {
+      "neighbor_relevance_auc": ">0.95",
+      "boilerplate_resistance": ">0.5",
+      "multilingual_separation": ">0.1",
+      "corpus_stability_drift": "<0.3",
+      "hierarchy_purity": ">0.7",
+      "hierarchy_nmi": ">0.3"
+    }
+  }
 }

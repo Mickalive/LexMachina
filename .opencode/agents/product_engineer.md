@@ -5,6 +5,8 @@ permission:
   edit: allow
   bash: allow
   question: deny
+  external_directory:
+    "/tmp/lex_*": allow
 permissions:
   - action: subagent
     resource: "*"
