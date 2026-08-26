@@ -19,7 +19,8 @@ REAL="${OPENCODE_BIN:-$HOME/.opencode/bin/opencode}"
 MAX_ATTEMPTS="${OX_MAX_ATTEMPTS:-8}"
 RETRY_DELAY="${OX_RETRY_DELAY_SECONDS:-90}"
 STALL_SECONDS="${OX_NETWORK_STALL_SECONDS:-420}"
-LOG="$(mktemp)"; STALL_FLAG="$(mktemp)"
+WORK_QUANTUM_SECONDS="${LEX_AGENT_QUANTUM_SECONDS:-2700}"
+LOG="$(mktemp)"; STALL_FLAG="$(mktemp)"; QUANTUM_FLAG="$(mktemp)"
 CHILD_PID=""; MONITOR_PID=""; START_HEAD=""; REPAIR_INTENT=false; OVERLAY=false
 NETWORK_RE='(network_error|NetworkError|network error|fetch failed|APIConnectionError|ECONNRESET|ECONNREFUSED|EAI_AGAIN|ENETUNREACH|ENOTFOUND|ETIMEDOUT|timed out|timeout|socket hang up|connection (reset|refused|closed|error)|upstream.*(reset|closed|unavailable|error)|HTTP[^0-9]*(429|500|502|503|504)|status[^0-9]*(429|500|502|503|504)|too many requests|rate.?limit|service unavailable|bad gateway|gateway timeout|temporar(y|ily) unavailable|TLS|SSL.*error|Unexpected server error|internal server error)'
 
@@ -32,7 +33,7 @@ restore_overlay() {
   done
   OVERLAY=false
 }
-cleanup(){ [[ -n "$MONITOR_PID" ]] && kill "$MONITOR_PID" 2>/dev/null || true; [[ -n "$CHILD_PID" ]] && kill "$CHILD_PID" 2>/dev/null || true; restore_overlay || true; rm -f "$LOG" "$STALL_FLAG"; }
+cleanup(){ [[ -n "$MONITOR_PID" ]] && kill "$MONITOR_PID" 2>/dev/null || true; [[ -n "$CHILD_PID" ]] && kill "$CHILD_PID" 2>/dev/null || true; restore_overlay || true; rm -f "$LOG" "$STALL_FLAG" "$QUANTUM_FLAG"; }
 trap cleanup EXIT INT TERM
 
 stage_control(){
@@ -82,7 +83,6 @@ resolve_model_args(){
       return 0
     fi
   done
-  # All autonomous substantive runs should name a model explicitly. Refuse silent defaults.
   echo "::error::LEX_MODEL_ARGUMENT_MISSING" >&2
   return 77
 }
@@ -94,19 +94,36 @@ stage_control; START_HEAD=$(git rev-parse HEAD 2>/dev/null || echo ""); validate
 resolve_model_args || exit $?
 
 run_once(){
-  : >"$LOG"; rm -f "$STALL_FLAG"; local wd="${GITHUB_WORKSPACE:-$PWD}"
-  (cd "$wd" || exit 70; "$REAL" "$@") > >(tee -a "$LOG") 2> >(tee -a "$LOG" >&2) & CHILD_PID=$!
+  : >"$LOG"; rm -f "$STALL_FLAG" "$QUANTUM_FLAG"; local wd="${GITHUB_WORKSPACE:-$PWD}"
+  (
+    cd "$wd" || exit 70
+    timeout --signal=TERM --kill-after=30 "$WORK_QUANTUM_SECONDS" "$REAL" "$@"
+    rc=$?
+    if [[ "$rc" -eq 124 || "$rc" -eq 137 || "$rc" -eq 143 ]]; then
+      echo "LEX_WORK_QUANTUM_EXPIRED seconds=$WORK_QUANTUM_SECONDS" >&2
+      touch "$QUANTUM_FLAG"
+    fi
+    exit "$rc"
+  ) > >(tee -a "$LOG") 2> >(tee -a "$LOG" >&2) & CHILD_PID=$!
   (local size=0 last now cur; last=$(date +%s); while kill -0 "$CHILD_PID" 2>/dev/null; do sleep 15; cur=$(wc -c <"$LOG" 2>/dev/null || echo 0); now=$(date +%s); if [[ "$cur" -ne "$size" ]]; then size="$cur"; last="$now"; elif (( now-last >= STALL_SECONDS )); then if grep -Eiq "$NETWORK_RE" "$LOG"; then echo "LEX_NETWORK_STALL" >&2; touch "$STALL_FLAG"; kill "$CHILD_PID" 2>/dev/null || true; sleep 5; kill -9 "$CHILD_PID" 2>/dev/null || true; exit 0; fi; last="$now"; fi; done) & MONITOR_PID=$!
-  wait "$CHILD_PID"; local rc=$?; kill "$MONITOR_PID" 2>/dev/null || true; wait "$MONITOR_PID" 2>/dev/null || true; CHILD_PID=""; MONITOR_PID=""; [[ -f "$STALL_FLAG" ]] && return 75; return "$rc"
+  wait "$CHILD_PID"; local rc=$?; kill "$MONITOR_PID" 2>/dev/null || true; wait "$MONITOR_PID" 2>/dev/null || true; CHILD_PID=""; MONITOR_PID=""
+  [[ -f "$STALL_FLAG" ]] && return 75
+  [[ -f "$QUANTUM_FLAG" ]] && return 78
+  return "$rc"
 }
 
 attempt=1
 while ((attempt<=MAX_ATTEMPTS)); do
-  echo "LEX_OX_ATTEMPT=$attempt/$MAX_ATTEMPTS"; run_once "${RUN_ARGS[@]}"; rc=$?
+  echo "LEX_OX_ATTEMPT=$attempt/$MAX_ATTEMPTS quantum=${WORK_QUANTUM_SECONDS}s"; run_once "${RUN_ARGS[@]}"; rc=$?
   if [[ "$rc" -eq 0 ]]; then
     restore_overlay || exit 1
     if [[ "$REPAIR_INTENT" == true ]]; then cur=$(git rev-parse HEAD 2>/dev/null || echo ""); delta=$(git status --porcelain 2>/dev/null || true); if [[ "$cur" == "$START_HEAD" && -z "$delta" ]]; then echo "::error::LEX_ZERO_DELTA_REPAIR"; exit 67; fi; fi
     exit 0
+  fi
+  if [[ "$rc" -eq 78 ]]; then
+    echo "::warning::Agent work quantum expired; preserving workspace for workflow snapshot/resume." >&2
+    restore_overlay || true
+    exit 78
   fi
   if [[ "$rc" -eq 75 ]] || grep -Eiq "$NETWORK_RE" "$LOG"; then if ((attempt<MAX_ATTEMPTS)); then echo "::warning::Transient Ox/OpenCode failure; retrying"; sleep "$RETRY_DELAY"; attempt=$((attempt+1)); continue; fi; restore_overlay || true; exit 75; fi
   echo "OpenCode failed without transient signature (rc=$rc)" >&2; restore_overlay || true; exit "$rc"
