@@ -84,7 +84,11 @@ def node2vec_embeddings(G, dimensions=64, walk_length=40, num_walks=10,
                             num_walks=num_walks, p=p, q=q, workers=workers,
                             quiet=True)
         model = node2vec.fit(window=10, min_count=1, batch_words=4)
-        return model
+        # Extract embedding matrix and vocab dict to match manual_node2vec interface
+        nodes = list(G.nodes())
+        vocab = {n: i for i, n in enumerate(nodes)}
+        emb_matrix = np.stack([model.wv[n] for n in nodes])
+        return emb_matrix, vocab
     except ImportError:
         logger.warning("node2vec not available, using manual random walks + skipgram")
         return manual_node2vec(G, dimensions, walk_length, num_walks, p, q)
