@@ -10,6 +10,7 @@ on:
       - "LEX Frontier Team"
       - "LEX Factory Director"
       - "LEX Free Model Health"
+      - "LEX Factory Housekeeper"
     types: [completed]
   push:
     branches: [main]
@@ -17,11 +18,13 @@ on:
       - 'state/factory_direction.json'
       - 'state/frontier_portfolio.json'
       - 'state/model_health.json'
+      - 'state/control_epoch.json'
       - 'state/blockers/**'
       - '.github/workflows/factory-supervisor.yml'
       - '.github/workflows/core-lane.yml'
       - '.github/workflows/frontier-team.yml'
       - '.github/workflows/factory-director.yml'
+      - '.github/workflows/factory-housekeeper.yml'
 
 permissions:
   actions: write
@@ -49,6 +52,8 @@ jobs:
           TRIGGER_CONCLUSION: ${{ github.event.workflow_run.conclusion || '' }}
         run: |
           set -euo pipefail
+          CONTROL_EPOCH=$(jq -r '.started_at // "1970-01-01T00:00:00Z"' state/control_epoch.json 2>/dev/null || echo '1970-01-01T00:00:00Z')
+          echo "Control epoch starts at $CONTROL_EPOCH"
 
           active_count() {
             local workflow="$1" prefix="${2:-}"
@@ -58,8 +63,8 @@ jobs:
 
           consecutive_failures() {
             local workflow="$1" prefix="$2"
-            gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --limit 100 --json displayTitle,status,conclusion \
-              | jq --arg p "$prefix" '[.[] | select(.displayTitle|startswith($p)) | select(.status=="completed")] | reduce .[] as $r ({n:0,stop:false}; if .stop then . elif ($r.conclusion=="success") then .stop=true else .n += 1 end) | .n'
+            gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --limit 100 --json displayTitle,status,conclusion,createdAt \
+              | jq --arg p "$prefix" --arg epoch "$CONTROL_EPOCH" '[.[] | select(.createdAt >= $epoch) | select(.displayTitle|startswith($p)) | select(.status=="completed")] | reduce .[] as $r ({n:0,stop:false}; if .stop then . elif ($r.conclusion=="success") then .stop=true else .n += 1 end) | .n'
           }
 
           ensure_model_health() {
@@ -80,8 +85,6 @@ jobs:
             fi
           }
 
-          # Provider/model trouble is operational, never a reason to ask the user.
-          # Keep probing until some explicitly free tool-capable model works again.
           if [[ "$(jq -r '.healthy // false' state/model_health.json 2>/dev/null || echo false)" != true ]]; then
             echo "::warning::No healthy free tool-capable model. Recovery probe will keep running."
             ensure_model_health
@@ -98,9 +101,6 @@ jobs:
           FRONTIER_RUN_DESIRED=$(jq '[.teams[] | select(.status=="RUN")] | length' state/frontier_portfolio.json)
           FRONTIER_HUMAN=$(jq '[.teams[] | select(.status=="HUMAN_DECISION_REQUIRED")] | length' state/frontier_portfolio.json)
 
-          # Any completed Core/Frontier cycle is new evidence worth one Director pass.
-          # Director completion itself does not recursively summon another Director
-          # unless unresolved state below proves there is still nowhere productive to go.
           case "$TRIGGER_WORKFLOW" in
             "LEX Core Lane"|"LEX Frontier Team") NEED_DIRECTOR=1 ;;
           esac
@@ -140,7 +140,7 @@ jobs:
 
             fails=$(consecutive_failures core-lane.yml "$prefix")
             if (( fails >= 2 )); then
-              echo "::warning::$lane has $fails consecutive operational workflow failures; retrying instead of blocking."
+              echo "::warning::$lane has $fails consecutive post-epoch operational workflow failures; retrying instead of blocking."
               NEED_HEALTH=1
               NEED_DIRECTOR=1
             fi
@@ -177,7 +177,7 @@ jobs:
             [[ "$(active_count frontier-team.yml "$prefix")" -eq 0 ]] || { echo "Frontier $team already active"; continue; }
             fails=$(consecutive_failures frontier-team.yml "$prefix")
             if (( fails >= 2 )); then
-              echo "::warning::Frontier $team has $fails consecutive operational failures; retrying, not blocking."
+              echo "::warning::Frontier $team has $fails consecutive post-epoch operational failures; retrying, not blocking."
               echo NEED_HEALTH > /tmp/lex_need_health_frontier
               echo NEED_DIRECTOR > /tmp/lex_need_director_frontier
             fi
@@ -189,9 +189,6 @@ jobs:
           [[ -f /tmp/lex_need_director_frontier ]] && NEED_DIRECTOR=1
           [[ -f /tmp/lex_need_health_frontier ]] && NEED_HEALTH=1
 
-          # Silent idleness is illegal. If nothing is designated RUN and there is
-          # no explicit owner decision outstanding, wake the Director to find the
-          # next useful experiment/build step rather than letting the factory die.
           if (( CORE_RUN_DESIRED + FRONTIER_RUN_DESIRED == 0 && CORE_HUMAN + FRONTIER_HUMAN == 0 )); then
             echo "::warning::No RUN work and no human-decision gate: Director must create the next productive move."
             NEED_DIRECTOR=1
@@ -200,4 +197,4 @@ jobs:
           (( NEED_HEALTH == 0 )) || ensure_model_health
           (( NEED_DIRECTOR == 0 )) || ensure_director
 
-          echo "Supervisor pass complete: operational failures retry automatically; only explicit HUMAN_DECISION_REQUIRED state can justify idleness."
+          echo "Supervisor pass complete: pre-epoch failures ignored; operational failures retry automatically; only explicit HUMAN_DECISION_REQUIRED state can justify idleness."
