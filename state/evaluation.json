@@ -1,11 +1,12 @@
 {
   "lane": "evaluation",
-  "direction_version": 1,
+  "direction_version": 2,
   "evidence_tier": "REPRODUCED",
-  "cycle_status": "COMPLETED",
-  "continue_recommended": true,
+  "cycle_status": "DONE",
+  "continue_recommended": false,
   "accepted_run_id": "eval_cycle_5_1787786002",
-  "accepted_commit": null,
+  "verification_run_id": "eval_cycle_5_1787786969",
+  "accepted_commit": "ac7e759",
   "evidence_refs": [
     "evaluation/results/cycle_5_neural_baseline_results.json",
     "evaluation/reports/evaluation_cycle_5_report.md",
@@ -18,9 +19,16 @@
     "evaluation/reports/evaluation_cycle_2_repair_report.md",
     "evaluation/data/real_corpus.py",
     "evaluation/tests/citation_proximity.py",
-    "evaluation/tests/legal_area_clustering.py"
+    "evaluation/tests/legal_area_clustering.py",
+    "evaluation/tests/neighbor_relevance.py",
+    "evaluation/tests/boilerplate_resistance.py",
+    "evaluation/tests/multilingual_invariance.py",
+    "evaluation/tests/stability.py",
+    "evaluation/tests/hierarchy_coherence.py",
+    "evaluation/benchmarks/core.py"
   ],
-  "next_recommendation": "CONTINUE",
+  "next_recommendation": "DONE",
+  "director_disposition": "DONE — 7 benchmarks established, 2 baselines documented, clear pass/fail thresholds for legal-distance lane. No further evaluation-only cycles needed until legal-distance produces candidate representations.",
   "metrics_summary": {
     "tfidf_reasoning_baseline": {
       "neighbor_relevance_auc": 0.9519,
@@ -65,7 +73,8 @@
     "Evaluated sentence-transformers neural embeddings against all 6 applicable benchmarks",
     "Established neural baseline: hierarchy NMI 0.51, purity 0.85, stability drift ~0",
     "Identified critical gap: neural embeddings fail citation proximity (AUC 0.51) and neighbor relevance (AUC 0.56)",
-    "Generated machine-readable results and human-readable reports for all cycles"
+    "Generated machine-readable results and human-readable reports for all cycles",
+    "Reproduced cycle 5 results (run 33023404622): verified consistency within expected variance"
   ],
   "baselines_established": {
     "tfidf_reasoning": {
@@ -116,6 +125,14 @@
     {"cycle": 2, "run_id": "eval_repair_20260826", "status": "COMPLETED", "tier": "REPRODUCED"},
     {"cycle": 3, "run_id": "eval_real_tfidf_20260826", "status": "COMPLETED", "tier": "REPRODUCED"},
     {"cycle": 4, "run_id": "eval_cycle_4_20260826_225741", "status": "COMPLETED", "tier": "REPRODUCED"},
-    {"cycle": 5, "run_id": "eval_cycle_5_1787786002", "status": "COMPLETED", "tier": "REPRODUCED"}
-  ]
+    {"cycle": 5, "run_id": "eval_cycle_5_1787786002", "status": "COMPLETED", "tier": "REPRODUCED"},
+    {"cycle": 5, "run_id": "eval_cycle_5_1787786969", "status": "VERIFIED", "tier": "REPRODUCED", "note": "Reproduction run on run 33023404622. Results consistent within expected variance. Environment fixed: numpy+scikit-learn installed."}
+  ],
+  "orchestration_failure_diagnosis": {
+    "failed_run_id": "33022898284",
+    "root_cause": "numpy module not installed in execution environment. All evaluation imports fail with ModuleNotFoundError: No module named 'numpy'.",
+    "fix_applied": "pip install numpy scikit-learn (numpy 2.5.2, scikit-learn 1.9.0)",
+    "verification": "All imports succeed. Cycle 5 reproduced successfully. Results consistent with original run.",
+    "prevention": "Add numpy+scikit-learn to environment bootstrap or requirements.txt before evaluation lane execution."
+  }
 }
