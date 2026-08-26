@@ -1,0 +1,164 @@
+name: LEX Factory Director
+run-name: Factory Director repair${{ inputs.repair_round || 0 }}
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+    inputs:
+      repair_from_run_id:
+        required: false
+        type: string
+        default: ""
+      repair_round:
+        required: false
+        type: number
+        default: 0
+
+permissions:
+  contents: write
+  actions: read
+
+env:
+  LEX_MODEL: opencode/x-preview-f-free
+
+concurrency:
+  group: lex-factory-director
+  cancel-in-progress: false
+
+jobs:
+  propose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Mount accepted factory evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/lex_accepted/core /tmp/lex_accepted/frontier
+          for lane in corpus legal-distance fractal-map evaluation product; do
+            br="lab/$lane"
+            if git ls-remote --exit-code --heads origin "refs/heads/$br" >/dev/null 2>&1; then
+              git fetch origin "$br:refs/remotes/origin/$br"
+              git worktree add --detach "/tmp/lex_accepted/core/$lane" "origin/$br" || true
+            fi
+          done
+          git ls-remote --heads origin 'refs/heads/lab/frontier/*' | while read -r sha ref; do
+            team="${ref#refs/heads/lab/frontier/}"
+            git fetch origin "$ref:refs/remotes/origin/lab/frontier/$team"
+            git worktree add --detach "/tmp/lex_accepted/frontier/$team" "origin/lab/frontier/$team" || true
+          done
+      - name: Restore exact rejected proposal for repair
+        if: ${{ inputs.repair_from_run_id != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          P="cycle/director/${{ inputs.repair_from_run_id }}/proposal"; A="cycle/director/${{ inputs.repair_from_run_id }}/audit"
+          git fetch origin "$P:refs/remotes/origin/$P" "$A:refs/remotes/origin/$A"
+          git switch -C director-repair "origin/$P"
+          git worktree add --detach /tmp/lex_prior_audit "origin/$A"
+      - name: Install Ox/OpenCode
+        run: curl --retry 5 --retry-all-errors --retry-delay 15 -fsSL https://opencode.ai/install | bash
+      - name: Direct factory
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPAIR_FROM: ${{ inputs.repair_from_run_id }}
+          ROUND: ${{ inputs.repair_round || 0 }}
+        run: |
+          set -euo pipefail
+          mkdir -p reports/director
+          REPAIR=""
+          if [[ -n "$REPAIR_FROM" ]]; then REPAIR="REPAIR exact rejected Director proposal ${REPAIR_FROM}, round ${ROUND}; read /tmp/lex_prior_audit and fix every required_fixes item without broadening mission or laundering unaccepted evidence."; export LEX_REQUIRE_DELTA=1; fi
+          bash .github/scripts/run-ox-with-retry.sh run --model "$LEX_MODEL" --agent factory_director \
+            "Direct LexMachina factory run=${GITHUB_RUN_ID}. Read /tmp/lex_control/AGENTS.md, Main Prompt, Architecture, current state/factory_direction.json, state/frontier_portfolio.json, state/blockers if present, and all ACCEPTED evidence under /tmp/lex_accepted. You may inspect GitHub workflow status/log summaries with gh when operational evidence matters. Keep means broad but mission fixed. Update ONLY state/factory_direction.json, state/frontier_portfolio.json and reports/director/RUN_${GITHUB_RUN_ID}.md. Increment factory_direction.version ONLY if a core lane status/question/priority materially changes. Increment frontier_portfolio.version ONLY if its portfolio materially changes. A Frontier team is justified only by concrete accepted evidence or a concrete product bottleneck; each RUN entry must contain team_id, charter_version, status, product_capability, question, hypothesis, why_now, non_duplication, dependencies, acceptance_test, stop_promote_rule. More credible independent paths may justify more teams. No curiosity teams. ${REPAIR}"
+      - name: Enforce Director scope and validate state
+        shell: bash
+        run: |
+          set -euo pipefail
+          BAD=""; while IFS= read -r line; do p="${line:3}"; case "$p" in state/factory_direction.json|state/frontier_portfolio.json|reports/director/*|"") ;; *) BAD+="$p\n";; esac; done < <(git status --porcelain -uall)
+          [[ -z "$BAD" ]] || { echo -e "::error::Director crossed protected scope:\n$BAD"; exit 4; }
+          jq -e '.version and .mission and .lanes.corpus and .lanes["legal-distance"] and .lanes["fractal-map"] and .lanes.evaluation and .lanes.product' state/factory_direction.json >/dev/null
+          jq -e '.version and (.teams|type=="array") and all(.teams[]; (.team_id and .charter_version and .status))' state/frontier_portfolio.json >/dev/null
+          jq -e 'all(.teams[] | select(.status=="RUN"); (.product_capability and .question and .hypothesis and .why_now and .non_duplication and .dependencies and .acceptance_test and .stop_promote_rule))' state/frontier_portfolio.json >/dev/null
+      - name: Persist Director proposal
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          BR="cycle/director/${GITHUB_RUN_ID}/proposal"; ATT="${BR}-attempt-${GITHUB_RUN_ATTEMPT}"
+          git config user.name "lex-factory-director"; git config user.email "lex-director@autonomous.local"
+          git switch -C "$BR"; git add state/factory_direction.json state/frontier_portfolio.json reports/director; git commit -m "Factory Director proposal ${GITHUB_RUN_ID}" || true
+          git push --force origin "HEAD:refs/heads/$ATT"; git push --force origin "HEAD:refs/heads/$BR"
+
+  audit:
+    needs: propose
+    if: needs.propose.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    outputs:
+      gate: ${{ steps.gate.outputs.gate }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Mount proposal and accepted evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          P="cycle/director/${GITHUB_RUN_ID}/proposal"; git fetch origin "$P:refs/remotes/origin/$P"; git worktree add --detach /tmp/lex_director_proposal "origin/$P"
+          mkdir -p /tmp/lex_accepted/core /tmp/lex_accepted/frontier
+          for lane in corpus legal-distance fractal-map evaluation product; do br="lab/$lane"; if git ls-remote --exit-code --heads origin "refs/heads/$br" >/dev/null 2>&1; then git fetch origin "$br:refs/remotes/origin/$br"; git worktree add --detach "/tmp/lex_accepted/core/$lane" "origin/$br" || true; fi; done
+          git ls-remote --heads origin 'refs/heads/lab/frontier/*' | while read -r sha ref; do team="${ref#refs/heads/lab/frontier/}"; git fetch origin "$ref:refs/remotes/origin/lab/frontier/$team"; git worktree add --detach "/tmp/lex_accepted/frontier/$team" "origin/lab/frontier/$team" || true; done
+      - name: Install Ox/OpenCode
+        run: curl --retry 5 --retry-all-errors --retry-delay 15 -fsSL https://opencode.ai/install | bash
+      - name: Audit Director proposal
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p results/audit/director reports/audit/director
+          bash .github/scripts/run-ox-with-retry.sh run --model "$LEX_MODEL" --agent independent_auditor \
+            "Audit Factory Director proposal run=${GITHUB_RUN_ID} at /tmp/lex_director_proposal against fixed Main Prompt and ACCEPTED evidence at /tmp/lex_accepted. Attack mission drift, curiosity/frontier proliferation, duplicated teams, unaccepted-evidence laundering, stale blocked questions, product starvation, fake parallelism, weak acceptance tests and unjustified lane pauses. Write ONLY reports/audit/director/CYCLE_${GITHUB_RUN_ID}.md and results/audit/director/CYCLE_${GITHUB_RUN_ID}_GATE.json with gate PASS|REVISE|BLOCKED, safe_to_integrate, required_fixes, claim_ceiling, evidence_summary."
+      - name: Validate and persist audit
+        id: gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          BAD=""; while IFS= read -r line; do p="${line:3}"; case "$p" in results/audit/director/*|reports/audit/director/*|"") ;; *) BAD+="$p\n";; esac; done < <(git status --porcelain -uall); [[ -z "$BAD" ]] || { echo -e "$BAD"; exit 4; }
+          F="results/audit/director/CYCLE_${GITHUB_RUN_ID}_GATE.json"; jq -e '.gate=="PASS" or .gate=="REVISE" or .gate=="BLOCKED"' "$F" >/dev/null; echo "gate=$(jq -r .gate "$F")" >> "$GITHUB_OUTPUT"
+          BR="cycle/director/${GITHUB_RUN_ID}/audit"; git config user.name "lex-director-auditor"; git config user.email "lex-audit@autonomous.local"; git switch -C "$BR"; git add results/audit/director reports/audit/director; git commit -m "audit Director ${GITHUB_RUN_ID}"; git push --force origin "HEAD:refs/heads/$BR"
+
+  integrate:
+    needs: audit
+    if: always() && needs.audit.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Integrate or repair direction
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GATE: ${{ needs.audit.outputs.gate }}
+          ROUND: ${{ inputs.repair_round || 0 }}
+        run: |
+          set -euo pipefail
+          P="cycle/director/${GITHUB_RUN_ID}/proposal"; A="cycle/director/${GITHUB_RUN_ID}/audit"; git fetch origin "$P:refs/remotes/origin/$P" "$A:refs/remotes/origin/$A"
+          if [[ "$GATE" == PASS ]]; then
+            git checkout "origin/$P" -- state/factory_direction.json state/frontier_portfolio.json reports/director
+            git checkout "origin/$A" -- results/audit/director reports/audit/director
+            git config user.name "lex-director-integrator"; git config user.email "lex-director@autonomous.local"; git add state/factory_direction.json state/frontier_portfolio.json reports/director results/audit/director reports/audit/director; git commit -m "direction: accept Director run ${GITHUB_RUN_ID}" || exit 0
+            for i in 1 2 3 4 5 6; do if git pull --rebase origin main && git push origin HEAD:main; then exit 0; fi; git rebase --abort 2>/dev/null || true; git reset --hard origin/main; git checkout "origin/$P" -- state/factory_direction.json state/frontier_portfolio.json reports/director; git checkout "origin/$A" -- results/audit/director reports/audit/director; git add -A; git commit -m "direction: accept Director run ${GITHUB_RUN_ID}" || true; sleep $((i*3)); done; exit 1
+          elif [[ "$GATE" == REVISE ]]; then
+            gh workflow run factory-director.yml --repo "$GITHUB_REPOSITORY" --ref main -f repair_from_run_id="${GITHUB_RUN_ID}" -f repair_round="$((ROUND+1))"
+          else
+            echo "Director proposal blocked; accepted main direction remains authoritative."
+          fi
