@@ -1,0 +1,135 @@
+name: LEX Factory Housekeeper
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'state/control_epoch.json'
+      - '.github/workflows/factory-housekeeper.yml'
+
+permissions:
+  actions: write
+  contents: write
+
+concurrency:
+  group: lex-factory-housekeeper
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Prune obsolete runs, stale blockers, and old cycle branches
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          REPO="$GITHUB_REPOSITORY"
+          KEEP_PER_WORKFLOW=8
+          MIN_RUN_AGE_SECONDS=$((6*3600))
+          BRANCH_RETENTION_SECONDS=$((24*3600))
+          NOW=$(date -u +%s)
+
+          echo '--- active canonical workflow ids ---'
+          gh api --paginate "repos/$REPO/actions/workflows?per_page=100" --jq '.workflows[] | [.id,.name,.path] | @tsv' | tee /tmp/lex_active_workflows.tsv
+          cut -f1 /tmp/lex_active_workflows.tsv | sort -u > /tmp/lex_active_workflow_ids
+
+          echo '--- workflow runs newest first ---'
+          gh api --paginate "repos/$REPO/actions/runs?per_page=100" --jq '.workflow_runs[] | [.id,.workflow_id,.status,.created_at,.name] | @tsv' > /tmp/lex_runs.tsv
+          awk -F '\t' '$3 != "completed" {print $1}' /tmp/lex_runs.tsv > /tmp/lex_active_run_ids
+
+          declare -A kept
+          while IFS=$'\t' read -r run_id workflow_id status created_at name; do
+            [[ "$run_id" == "$GITHUB_RUN_ID" ]] && continue
+            [[ "$status" == completed ]] || continue
+
+            if ! grep -qx "$workflow_id" /tmp/lex_active_workflow_ids; then
+              echo "Deleting completed run $run_id from obsolete workflow: $name"
+              gh api -X DELETE "repos/$REPO/actions/runs/$run_id" || true
+              continue
+            fi
+
+            n=${kept[$workflow_id]:-0}
+            created_epoch=$(date -u -d "$created_at" +%s 2>/dev/null || echo "$NOW")
+            age=$((NOW-created_epoch))
+            if (( n < KEEP_PER_WORKFLOW || age < MIN_RUN_AGE_SECONDS )); then
+              kept[$workflow_id]=$((n+1))
+              continue
+            fi
+
+            echo "Deleting superseded completed run $run_id ($name, age=${age}s)"
+            gh api -X DELETE "repos/$REPO/actions/runs/$run_id" || true
+          done < /tmp/lex_runs.tsv
+
+          echo '--- stale blocker cleanup ---'
+          changed=0
+          for lane in corpus legal-distance fractal-map evaluation product; do
+            f="state/blockers/$lane.json"
+            [[ -f "$f" ]] || continue
+            current_q=$(jq -r --arg lane "$lane" '.lanes[$lane].question // ""' state/factory_direction.json)
+            current_hash=$(printf '%s' "$current_q" | sha256sum | awk '{print $1}')
+            blocker_hash=$(jq -r '.question_hash // ""' "$f")
+            if [[ "$blocker_hash" != "$current_hash" ]]; then
+              echo "Removing stale blocker $f"
+              rm -f "$f"
+              changed=1
+            fi
+          done
+
+          if [[ -d state/blockers/frontier ]]; then
+            for f in state/blockers/frontier/*.json; do
+              [[ -f "$f" ]] || continue
+              team=$(basename "$f" .json)
+              current_ver=$(jq -r --arg t "$team" '.teams[] | select(.team_id==$t) | .charter_version' state/frontier_portfolio.json 2>/dev/null | head -n1)
+              blocker_ver=$(jq -r '.charter_version // -1' "$f")
+              if [[ -z "$current_ver" || "$current_ver" != "$blocker_ver" ]]; then
+                echo "Removing stale frontier blocker $f"
+                rm -f "$f"
+                changed=1
+              fi
+            done
+          fi
+
+          if (( changed == 1 )); then
+            git config user.name 'lex-housekeeper'
+            git config user.email 'lex-housekeeper@autonomous.local'
+            git add -A state/blockers
+            git commit -m 'cleanup: remove stale factory blockers' || true
+            for i in 1 2 3 4 5; do
+              git pull --rebase origin main && git push origin HEAD:main && break || { git rebase --abort 2>/dev/null || true; sleep $((i*3)); }
+            done
+          fi
+
+          echo '--- old cycle branch cleanup ---'
+          git ls-remote --heads origin 'refs/heads/cycle/*' | while read -r sha ref; do
+            branch="${ref#refs/heads/}"
+            run_id=$(sed -nE 's#.*\/([0-9]{8,})\/.*#\1#p' <<<"$branch" | head -n1)
+            if [[ -n "$run_id" ]] && grep -qx "$run_id" /tmp/lex_active_run_ids; then
+              echo "Keeping active cycle branch $branch"
+              continue
+            fi
+            if [[ -n "$run_id" ]] && grep -Rqs -- "$run_id" state/blockers 2>/dev/null; then
+              echo "Keeping blocker-referenced cycle branch $branch"
+              continue
+            fi
+            commit_date=$(gh api "repos/$REPO/commits/$sha" --jq '.commit.committer.date' 2>/dev/null || true)
+            [[ -n "$commit_date" ]] || continue
+            commit_epoch=$(date -u -d "$commit_date" +%s 2>/dev/null || echo "$NOW")
+            age=$((NOW-commit_epoch))
+            if (( age >= BRANCH_RETENTION_SECONDS )); then
+              echo "Deleting stale cycle branch $branch (age=${age}s)"
+              git push origin --delete "$branch" || true
+            fi
+          done
+
+          echo 'Housekeeping complete.'
