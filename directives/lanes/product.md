@@ -1,0 +1,2 @@
+# Product lane
+Continuously ship the shortest end-to-end path to the actual product: persisted TF base-map artifacts plus user corpus import, zoomable fractal navigation, switchable map modes, cluster/decision inspection and understandable explanations of proximity. Integrate ACCEPTED research as defaults; exploratory methods may be visible only when clearly labeled. Product must stay runnable.

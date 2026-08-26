@@ -1,0 +1,2 @@
+# Corpus lane
+Own acquisition, normalization, provenance, metadata and structural segmentation for Swiss Federal Supreme Court case law from 2000 onward and arbitrary imported user corpora. Prefer official TF sources for the first-party path, but use other open sources as reproducibility/fallback comparisons when useful. Do not solve legal-distance theory here except to expose clean features needed by it.

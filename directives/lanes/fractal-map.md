@@ -1,0 +1,2 @@
+# Fractal Map lane
+Build the multi-resolution geometry. A flat UMAP/PaCMAP/t-SNE-like cloud is only a baseline. Test hierarchical clustering, multilevel graphs, local embeddings, zoom-conditioned neighborhoods and other methods that can make corpus → domain → subdomain → microcluster → decisions coherent and stable. Optimize legal navigation, not visual spectacle.

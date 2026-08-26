@@ -1,0 +1,2 @@
+# Evaluation lane
+Be adversarial. Build benchmarks capable of falsifying attractive maps. Exploit TF/Jurivoc intellectual indexing where available as imperfect human supervision, plus known lineages and jurist relevance tests. Measure boilerplate leakage, cross-language behavior, neighbor quality, hierarchy coherence and scale stability. Never optimize the benchmark to favor current architecture.

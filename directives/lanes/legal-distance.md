@@ -1,0 +1,2 @@
+# Legal Distance lane
+Discover what makes two decisions legally near. Strongly baseline against simple whole-document semantic embeddings and prior art. Test segmented/multi-view features, legally active norms, precedents, doctrine, issues, reasoning, facts and outcomes. Explicitly attack procedural boilerplate and multilingual confounding. Preserve separable views when a single distance destroys useful information.
