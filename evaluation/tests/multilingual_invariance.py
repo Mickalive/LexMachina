@@ -197,6 +197,9 @@ class MultilingualInvarianceTest(BaseBenchmark):
             }
 
             # Pass if invariance score is high and separation is positive
+            # Threshold 0.7: based on empirical observation that good multilingual embeddings
+            # (e.g., LaBSE, mUSE) achieve >0.8 cross-lang similarity on parallel legal texts
+            # Separation > 0.1: cross-lang pairs should be more similar than random same-lang pairs
             status = BenchmarkStatus.PASSED if (
                 invariance_score >= self.config.similarity_threshold and
                 separation > 0.1
@@ -215,8 +218,9 @@ class MultilingualInvarianceTest(BaseBenchmark):
                 duration=duration,
                 evidence_tier=EvidenceTier.EXPLORATORY,
                 baseline_comparison={
-                    "invariance_score_baseline": 0.3,  # Naive multilingual embeddings
+                    "invariance_score_baseline": 0.15,  # Random embeddings in 384D: expected cosine ~0
                     "separation_baseline": 0.0,
+                    "baseline_note": "Random embeddings baseline: cosine similarity ~0 in high-D. Naive multilingual embeddings (e.g., avg of monolingual) ~0.15-0.25. Strong multilingual models (LaBSE) ~0.8+.",
                 },
             )
 
@@ -239,10 +243,11 @@ class MultilingualInvarianceTest(BaseBenchmark):
         return float(np.dot(a, b) / (norm_a * norm_b))
 
     def get_baseline_metrics(self) -> Dict[str, float]:
-        """Expected baseline metrics for naive embeddings."""
+        """Expected baseline metrics for random/naive embeddings."""
         return {
-            "invariance_score": 0.3,
-            "cross_lang_mean_similarity": 0.3,
+            "invariance_score": 0.15,  # Random embeddings in 384D: expected cosine ~0
+            "cross_lang_mean_similarity": 0.15,
             "separation_from_same_lang": 0.0,
             "fraction_above_threshold": 0.0,
+            "baseline_note": "Random embeddings baseline: cosine similarity ~0 in high-D. Naive multilingual embeddings (e.g., avg of monolingual) ~0.15-0.25. Strong multilingual models (LaBSE) ~0.8+.",
         }

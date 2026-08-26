@@ -375,6 +375,7 @@ class SyntheticCorpusGenerator:
                     "language": d.language,
                     "chamber": d.chamber,
                     "outcome": d.outcome,
+                    "docket_number": d.docket_number,
                 }
                 for did, d in self.decisions.items()
             },

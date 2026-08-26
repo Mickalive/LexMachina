@@ -205,6 +205,8 @@ class NeighborRelevanceTest(BaseBenchmark):
             }
 
             # Determine pass/fail based on AUC > baseline (0.5 random)
+            # Baseline AUC=0.5 is exact for random embeddings
+            # Pass threshold: AUC > 0.55 (significantly above random, minimal useful signal)
             baseline_auc = 0.5
             auc = metrics.get("auc_roc", 0.5)
             status = BenchmarkStatus.PASSED if auc > baseline_auc + 0.05 else BenchmarkStatus.FAILED
@@ -215,7 +217,10 @@ class NeighborRelevanceTest(BaseBenchmark):
                 details=details,
                 duration=duration,
                 evidence_tier=EvidenceTier.EXPLORATORY,
-                baseline_comparison={"auc_roc_baseline": baseline_auc},
+                baseline_comparison={
+                    "auc_roc_baseline": baseline_auc,
+                    "baseline_note": "Random embeddings: AUC-ROC = 0.5 exactly. TF-IDF on legal text: ~0.6-0.7. Legal-BERT/SBERT: ~0.8-0.9.",
+                },
             )
 
         except Exception as e:
@@ -314,4 +319,5 @@ class NeighborRelevanceTest(BaseBenchmark):
         for k in self.config.k_values:
             baselines[f"precision@{k}"] = 0.01  # Very low for random
             baselines[f"recall@{k}"] = 0.01
+        baselines["baseline_note"] = "Random embeddings: AUC-ROC = 0.5 exactly, precision@k ~ 0. TF-IDF on legal text: AUC ~0.6-0.7. Legal-BERT/SBERT: AUC ~0.8-0.9."
         return baselines

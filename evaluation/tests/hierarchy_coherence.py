@@ -175,6 +175,8 @@ class HierarchyCoherenceTest(BaseBenchmark):
                     metrics[f"level_{i}_{k}"] = v
 
             # Pass if mean purity > 0.5 and hierarchy is consistent
+            # Baseline: random clustering purity ~1/num_clusters (0.1-0.2 for 5-10 clusters)
+            # Good legal structure recovery: purity > 0.4, NMI > 0.5
             status = BenchmarkStatus.PASSED if (
                 mean_purity > 0.4 and hierarchy_consistency > 0.5
             ) else BenchmarkStatus.FAILED
@@ -194,8 +196,9 @@ class HierarchyCoherenceTest(BaseBenchmark):
                 duration=duration,
                 evidence_tier=EvidenceTier.EXPLORATORY,
                 baseline_comparison={
-                    "mean_jurivoc_purity_baseline": 0.2,  # Random clustering
-                    "hierarchy_consistency_baseline": 0.3,
+                    "mean_jurivoc_purity_baseline": 0.15,  # Random clustering with ~7 clusters
+                    "hierarchy_consistency_baseline": 0.1,  # Random hierarchy
+                    "baseline_note": "Random clustering purity ~1/num_clusters (~0.1-0.2). TF-IDF + agglomerative: purity ~0.3-0.4. Legal embeddings + agglomerative: purity ~0.5-0.7. Hierarchy consistency: random ~0.1, structured >0.5.",
                 },
             )
 
@@ -383,6 +386,7 @@ class HierarchyCoherenceTest(BaseBenchmark):
     def get_baseline_metrics(self) -> Dict[str, float]:
         """Expected baseline metrics for random hierarchy."""
         return {
-            "mean_jurivoc_purity": 0.2,
-            "hierarchy_consistency": 0.3,
+            "mean_jurivoc_purity": 0.15,
+            "hierarchy_consistency": 0.1,
+            "baseline_note": "Random clustering purity ~1/num_clusters (~0.1-0.2). TF-IDF + agglomerative: purity ~0.3-0.4. Legal embeddings + agglomerative: purity ~0.5-0.7. Hierarchy consistency: random ~0.1, structured >0.5.",
         }
