@@ -57,8 +57,8 @@ jobs:
 
           active_count() {
             local workflow="$1" prefix="${2:-}"
-            gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --limit 100 --json displayTitle,status \
-              | jq --arg p "$prefix" '[.[] | select(($p=="") or (.displayTitle|startswith($p))) | select(.status=="queued" or .status=="in_progress" or .status=="requested" or .status=="waiting" or .status=="pending")] | length'
+            gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --limit 100 --json displayTitle,status,createdAt \
+              | jq --arg p "$prefix" --arg epoch "$CONTROL_EPOCH" '[.[] | select(.createdAt >= $epoch) | select(($p=="") or (.displayTitle|startswith($p))) | select(.status=="queued" or .status=="in_progress" or .status=="requested" or .status=="waiting" or .status=="pending")] | length'
           }
 
           consecutive_failures() {
@@ -71,6 +71,18 @@ jobs:
             local workflow="$1" prefix="$2"
             gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --limit 100 --json databaseId,displayTitle,status,conclusion \
               | jq -r --arg p "$prefix" '[.[] | select(.displayTitle|startswith($p)) | select(.status=="completed")][0] as $r | if ($r != null and ($r.conclusion=="failure" or $r.conclusion=="cancelled" or $r.conclusion=="timed_out" or $r.conclusion=="stale" or $r.conclusion=="action_required")) then ($r.databaseId|tostring) else "" end'
+          }
+
+          cancel_legacy_active() {
+            echo "Scanning for pre-epoch active runs that could falsely occupy capacity..."
+            gh run list --repo "$GITHUB_REPOSITORY" --limit 100 --json databaseId,displayTitle,status,createdAt \
+              | jq -r --arg epoch "$CONTROL_EPOCH" '.[] | select(.createdAt < $epoch) | select(.status=="queued" or .status=="in_progress" or .status=="requested" or .status=="waiting" or .status=="pending") | select((.displayTitle|startswith("Core ")) or (.displayTitle|startswith("Frontier ")) or (.displayTitle|startswith("Factory Director")) or (.displayTitle|startswith("LEX Free Model Health"))) | [.databaseId,.displayTitle] | @tsv' \
+              | while IFS=$'\t' read -r id title; do
+                  [[ -n "$id" ]] || continue
+                  [[ "$id" == "$GITHUB_RUN_ID" ]] && continue
+                  echo "Cancelling legacy active run $id: $title"
+                  gh run cancel "$id" --repo "$GITHUB_REPOSITORY" || true
+                done
           }
 
           ensure_model_health() {
@@ -90,6 +102,8 @@ jobs:
               echo "Factory Director already active."
             fi
           }
+
+          cancel_legacy_active
 
           if [[ "$(jq -r '.healthy // false' state/model_health.json 2>/dev/null || echo false)" != true ]]; then
             echo "::warning::No healthy free tool-capable model. Recovery probe will keep running."
@@ -142,11 +156,8 @@ jobs:
             fi
 
             prefix="Core ${lane} dirV${DIRV} "
-            [[ "$(active_count core-lane.yml "$prefix")" -eq 0 ]] || { echo "$lane: already active/queued"; continue; }
+            [[ "$(active_count core-lane.yml "$prefix")" -eq 0 ]] || { echo "$lane: already active/queued in current control epoch"; continue; }
 
-            # If the latest terminal run failed operationally and its producer
-            # snapshot survived, resume that exact work before launching anything
-            # fresh. This also salvages pre-epoch useful work.
             resume_id=$(latest_operational_failure core-lane.yml "$prefix")
             if [[ -n "$resume_id" ]] && git ls-remote --exit-code --heads origin "refs/heads/cycle/core/${lane}/${resume_id}/team" >/dev/null 2>&1; then
               gh workflow run core-lane.yml --repo "$GITHUB_REPOSITORY" --ref main \
@@ -191,7 +202,7 @@ jobs:
             fi
 
             prefix="Frontier ${team} v${ver} "
-            [[ "$(active_count frontier-team.yml "$prefix")" -eq 0 ]] || { echo "Frontier $team already active"; continue; }
+            [[ "$(active_count frontier-team.yml "$prefix")" -eq 0 ]] || { echo "Frontier $team already active in current epoch"; continue; }
             fails=$(consecutive_failures frontier-team.yml "$prefix")
             if (( fails >= 2 )); then
               echo "::warning::Frontier $team has $fails consecutive post-epoch operational failures; retrying, not blocking."
@@ -214,4 +225,4 @@ jobs:
           (( NEED_HEALTH == 0 )) || ensure_model_health
           (( NEED_DIRECTOR == 0 )) || ensure_director
 
-          echo "Supervisor pass complete: failed snapshots are resumed before fresh work; pre-epoch failures do not poison health counters; only explicit HUMAN_DECISION_REQUIRED state can justify idleness."
+          echo "Supervisor pass complete: legacy active runs cancelled; failed snapshots resumed before fresh work; only explicit HUMAN_DECISION_REQUIRED state can justify idleness."
