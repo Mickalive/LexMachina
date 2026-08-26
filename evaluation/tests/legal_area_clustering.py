@@ -209,7 +209,7 @@ class LegalAreaClusteringBenchmark(BaseBenchmark):
                 "purity_at_true_k": purity_at_true,
                 "num_decisions": len(valid_ids),
                 "num_branches": n_true_branches,
-                "branch_distribution": {b: len(ids) for b, ids in valid_branches.items()},
+                "branch_distribution": dict(Counter(sampled_labels[did] for did in valid_ids)),
             }
 
             # Add per-level metrics

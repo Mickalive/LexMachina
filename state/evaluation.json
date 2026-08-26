@@ -43,16 +43,16 @@
       "note": "TF-IDF reasoning-only baseline on 1,200 BGer decisions. Fails all legal-quality metrics."
     },
     "neural_multilingual_baseline": {
-      "citation_proximity_auc": 0.5102,
+      "citation_proximity_auc": 0.5737,
       "legal_area_nmi": 0.0572,
       "legal_area_purity": 0.8763,
       "multilingual_separation": -0.0548,
       "corpus_stability_drift": 2.98e-08,
       "hierarchy_nmi": 0.5147,
       "hierarchy_purity": 0.8504,
-      "neighbor_relevance_auc": 0.5564,
+      "neighbor_relevance_auc": 0.5174,
       "neighbor_relevance_mrr": 0.0701,
-      "note": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2 (768-dim) on 1,000 BGer decisions. Beats TF-IDF on hierarchy, purity, stability. Fails citation proximity and neighbor relevance."
+      "note": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2 (768-dim) on 1,000 BGer decisions. Beats TF-IDF on hierarchy, purity, stability. Fails citation proximity and neighbor relevance. Values updated from verification run (eval_cycle_5_1787786969)."
     },
     "comparison": {
       "neural_wins": ["hierarchy_nmi", "hierarchy_purity", "corpus_stability_drift", "legal_area_purity", "multilingual_separation", "legal_area_nmi"],
@@ -74,7 +74,9 @@
     "Established neural baseline: hierarchy NMI 0.51, purity 0.85, stability drift ~0",
     "Identified critical gap: neural embeddings fail citation proximity (AUC 0.51) and neighbor relevance (AUC 0.56)",
     "Generated machine-readable results and human-readable reports for all cycles",
-    "Reproduced cycle 5 results (run 33023404622): verified consistency within expected variance"
+    "Reproduced cycle 5 results (run 33023404622): verified consistency within expected variance",
+    "Fixed branch_distribution labeling in run_cycle_5.py and legal_area_clustering.py: sampled subset distribution instead of full embedding set",
+    "Updated state metrics_summary and baselines_established with verification values (citation AUC 0.5737, neighbor AUC 0.5174)"
   ],
   "baselines_established": {
     "tfidf_reasoning": {
@@ -89,13 +91,13 @@
       "legal_area_purity": 0.7046
     },
     "neural_multilingual": {
-      "neighbor_relevance_auc": 0.5564,
+      "neighbor_relevance_auc": 0.5174,
       "boilerplate_resistance": "SKIPPED (requires model inference)",
       "multilingual_separation": -0.0548,
       "corpus_stability_drift": 2.98e-08,
       "hierarchy_purity": 0.8504,
       "hierarchy_nmi": 0.5147,
-      "citation_proximity_auc": 0.5102,
+      "citation_proximity_auc": 0.5737,
       "legal_area_nmi": 0.0572,
       "legal_area_purity": 0.8763
     },
@@ -126,7 +128,8 @@
     {"cycle": 3, "run_id": "eval_real_tfidf_20260826", "status": "COMPLETED", "tier": "REPRODUCED"},
     {"cycle": 4, "run_id": "eval_cycle_4_20260826_225741", "status": "COMPLETED", "tier": "REPRODUCED"},
     {"cycle": 5, "run_id": "eval_cycle_5_1787786002", "status": "COMPLETED", "tier": "REPRODUCED"},
-    {"cycle": 5, "run_id": "eval_cycle_5_1787786969", "status": "VERIFIED", "tier": "REPRODUCED", "note": "Reproduction run on run 33023404622. Results consistent within expected variance. Environment fixed: numpy+scikit-learn installed."}
+    {"cycle": 5, "run_id": "eval_cycle_5_1787786969", "status": "VERIFIED", "tier": "REPRODUCED", "note": "Reproduction run on run 33023404622. Results consistent within expected variance. Environment fixed: numpy+scikit-learn installed."},
+    {"cycle": 6, "run_id": "eval_repair_33023404622_r2", "status": "COMPLETED", "tier": "REPRODUCED", "note": "Repair round 2: fixed branch_distribution labeling (recurring defect from CYCLE_33021088981). Updated state metrics with verification values."}
   ],
   "orchestration_failure_diagnosis": {
     "failed_run_id": "33022898284",

@@ -425,7 +425,7 @@ def benchmark_legal_area_clustering(
         "language_purity": lang_purity,
         "num_decisions": len(valid_ids),
         "num_branches": n_true,
-        "branch_distribution": {b: len(ids) for b, ids in valid_branches.items()},
+        "branch_distribution": dict(Counter(sampled_labels[did] for did in valid_ids)),
         "level_metrics": all_level_metrics,
         "duration_seconds": duration,
     }
