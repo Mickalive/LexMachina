@@ -67,6 +67,12 @@ jobs:
               | jq --arg p "$prefix" --arg epoch "$CONTROL_EPOCH" '[.[] | select(.createdAt >= $epoch) | select(.displayTitle|startswith($p)) | select(.status=="completed")] | reduce .[] as $r ({n:0,stop:false}; if .stop then . elif ($r.conclusion=="success") then .stop=true else .n += 1 end) | .n'
           }
 
+          latest_operational_failure() {
+            local workflow="$1" prefix="$2"
+            gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --limit 100 --json databaseId,displayTitle,status,conclusion \
+              | jq -r --arg p "$prefix" '[.[] | select(.displayTitle|startswith($p)) | select(.status=="completed")][0] as $r | if ($r != null and ($r.conclusion=="failure" or $r.conclusion=="cancelled" or $r.conclusion=="timed_out" or $r.conclusion=="stale" or $r.conclusion=="action_required")) then ($r.databaseId|tostring) else "" end'
+          }
+
           ensure_model_health() {
             if [[ "$(active_count model-health.yml)" -eq 0 ]]; then
               gh workflow run model-health.yml --repo "$GITHUB_REPOSITORY" --ref main
@@ -138,6 +144,17 @@ jobs:
             prefix="Core ${lane} dirV${DIRV} "
             [[ "$(active_count core-lane.yml "$prefix")" -eq 0 ]] || { echo "$lane: already active/queued"; continue; }
 
+            # If the latest terminal run failed operationally and its producer
+            # snapshot survived, resume that exact work before launching anything
+            # fresh. This also salvages pre-epoch useful work.
+            resume_id=$(latest_operational_failure core-lane.yml "$prefix")
+            if [[ -n "$resume_id" ]] && git ls-remote --exit-code --heads origin "refs/heads/cycle/core/${lane}/${resume_id}/team" >/dev/null 2>&1; then
+              gh workflow run core-lane.yml --repo "$GITHUB_REPOSITORY" --ref main \
+                -f lane="$lane" -f direction_version="$DIRV" -f resume_from_run_id="$resume_id" -f repair_round=0
+              echo "$lane: resumed operationally failed snapshot $resume_id"
+              continue
+            fi
+
             fails=$(consecutive_failures core-lane.yml "$prefix")
             if (( fails >= 2 )); then
               echo "::warning::$lane has $fails consecutive post-epoch operational workflow failures; retrying instead of blocking."
@@ -197,4 +214,4 @@ jobs:
           (( NEED_HEALTH == 0 )) || ensure_model_health
           (( NEED_DIRECTOR == 0 )) || ensure_director
 
-          echo "Supervisor pass complete: pre-epoch failures ignored; operational failures retry automatically; only explicit HUMAN_DECISION_REQUIRED state can justify idleness."
+          echo "Supervisor pass complete: failed snapshots are resumed before fresh work; pre-epoch failures do not poison health counters; only explicit HUMAN_DECISION_REQUIRED state can justify idleness."
