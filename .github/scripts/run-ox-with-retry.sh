@@ -1,6 +1,20 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
+# Bootstrap invariant: a persistent lab/cycle branch must never keep executing an
+# obsolete launcher. Re-exec the exact current wrapper from main when it differs.
+if [[ "${LEX_WRAPPER_REEXEC:-0}" != "1" ]]; then
+  LATEST_WRAPPER="$(mktemp)"
+  if git fetch -q origin main 2>/dev/null && git show origin/main:.github/scripts/run-ox-with-retry.sh > "$LATEST_WRAPPER" 2>/dev/null; then
+    if ! cmp -s "$0" "$LATEST_WRAPPER"; then
+      chmod +x "$LATEST_WRAPPER"
+      export LEX_WRAPPER_REEXEC=1
+      exec bash "$LATEST_WRAPPER" "$@"
+    fi
+  fi
+  rm -f "$LATEST_WRAPPER"
+fi
+
 REAL="${OPENCODE_BIN:-$HOME/.opencode/bin/opencode}"
 MAX_ATTEMPTS="${OX_MAX_ATTEMPTS:-8}"
 RETRY_DELAY="${OX_RETRY_DELAY_SECONDS:-90}"
