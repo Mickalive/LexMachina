@@ -6,6 +6,7 @@
   "continue_recommended": false,
   "accepted_run_id": "fractal_map_run_20260826_001",
   "accepted_commit": null,
+  "repair_run_ids": ["33020090957", "33020622379"],
   "evidence_refs": [
     "results/fractal_map/baseline/embeddings.npy",
     "results/fractal_map/baseline/projection_2d.npy",
@@ -33,7 +34,9 @@
     "reports/fractal_map/cycle_report.md",
     "reports/fractal_map/section_embedding_experiment_report.md",
     "reports/audit/fractal-map/CYCLE_33020090957.md",
-    "results/audit/fractal-map/CYCLE_33020090957_GATE.json"
+    "results/audit/fractal-map/CYCLE_33020090957_GATE.json",
+    "reports/audit/fractal-map/CYCLE_33020622379.md",
+    "results/audit/fractal-map/CYCLE_33020622379_GATE.json"
   ],
   "next_recommendation": "PIVOT_WITHIN_MISSION",
   "metrics_summary": {
@@ -67,5 +70,5 @@
     }
   },
   "critical_finding": "All tested representations are dominated by language (DE/FR/IT), not legal content. The fractal hierarchy is consistent (NMI 0.79-0.91) but splits follow language boundaries. The product question 'do structured sections improve legal coherence?' is answered: only for facts/outcome (marginally), not for reasoning. Legal-distance lane must produce legal-specific embeddings before fractal-map can produce a law map rather than a language map.",
-  "notes": "Prior run 33017027741 completed all experiments and wrote reports but failed to create state/fractal-map.json (orchestration failure). Repair run 33020090957 verified result integrity (purity recomputation matches stored values exactly), wrote the missing state file, and confirmed the snapshot is audit-ready. Audit written (CYCLE_33020090957.md) with PASS verdict. All experimental artifacts from run 33017027741 are preserved unchanged."
+  "notes": "Prior run 33017027741 completed all experiments and wrote reports but failed to create state/fractal-map.json (orchestration failure). First repair run 33020090957 verified result integrity (purity recomputation matches stored values exactly), wrote the missing state file, and confirmed the snapshot is audit-ready. Second repair run 33020622379 diagnosed 'lane crossed protected scope' failure from run 33020332703 (researcher committed .opencode/agents/* changes outside lane scope), unstaged out-of-scope changes, verified all artifacts intact, and wrote audit gate. All experimental artifacts from run 33017027741 are preserved unchanged."
 }
