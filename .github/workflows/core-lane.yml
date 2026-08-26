@@ -1,0 +1,265 @@
+name: LEX Core Lane
+run-name: Core ${{ inputs.lane }} dirV${{ inputs.direction_version }} repair${{ inputs.repair_round }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: "corpus | legal-distance | fractal-map | evaluation | product"
+        required: true
+        type: string
+      direction_version:
+        description: "Factory direction version used for this cycle"
+        required: true
+        type: number
+      repair_from_run_id:
+        description: "Rejected run to repair; empty = fresh cycle"
+        required: false
+        type: string
+        default: ""
+      repair_round:
+        description: "Same-cycle repair round"
+        required: false
+        type: number
+        default: 0
+
+permissions:
+  contents: write
+  actions: write
+
+env:
+  LEX_MODEL: opencode/x-preview-f-free
+
+concurrency:
+  group: lex-core-${{ inputs.lane }}
+  cancel-in-progress: false
+
+jobs:
+  team:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Validate lane and initialize accepted branch
+        shell: bash
+        env:
+          LANE: ${{ inputs.lane }}
+          REPAIR_FROM: ${{ inputs.repair_from_run_id }}
+        run: |
+          set -euo pipefail
+          case "$LANE" in corpus|legal-distance|fractal-map|evaluation|product) ;; *) echo "::error::invalid lane $LANE"; exit 2;; esac
+          if [[ -n "$REPAIR_FROM" ]]; then
+            TEAM="cycle/core/${LANE}/${REPAIR_FROM}/team"
+            AUDIT="cycle/core/${LANE}/${REPAIR_FROM}/audit"
+            git fetch origin "$TEAM:refs/remotes/origin/$TEAM" "$AUDIT:refs/remotes/origin/$AUDIT"
+            git switch -C repair-base "origin/$TEAM"
+            git worktree add --detach /tmp/lex_prior_audit "origin/$AUDIT"
+          else
+            BR="lab/$LANE"
+            if git ls-remote --exit-code --heads origin "refs/heads/$BR" >/dev/null 2>&1; then
+              git fetch origin "$BR:refs/remotes/origin/$BR"
+              git switch -C "$BR" "origin/$BR"
+            else
+              git switch -C "$BR" origin/main
+              mkdir -p "results/$LANE" "reports/$LANE" "tests/$LANE" state
+              printf '{"lane":"%s","evidence_tier":"UNTESTED","cycle_status":"INITIALIZED","continue_recommended":true,"accepted_run_id":null,"accepted_commit":null}\n' "$LANE" > "state/$LANE.json"
+              git config user.name "lex-bootstrap"
+              git config user.email "lex-bootstrap@autonomous.local"
+              git add "results/$LANE" "reports/$LANE" "tests/$LANE" "state/$LANE.json" || true
+              git commit -m "bootstrap $LANE lane" || true
+              git push origin "HEAD:refs/heads/$BR"
+            fi
+          fi
+
+      - name: Mount accepted peer evidence
+        shell: bash
+        env:
+          LANE: ${{ inputs.lane }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/lex_accepted
+          for peer in corpus legal-distance fractal-map evaluation product; do
+            [[ "$peer" == "$LANE" ]] && continue
+            br="lab/$peer"
+            if git ls-remote --exit-code --heads origin "refs/heads/$br" >/dev/null 2>&1; then
+              git fetch origin "$br:refs/remotes/origin/$br"
+              git worktree add --detach "/tmp/lex_accepted/$peer" "origin/$br" || true
+            fi
+          done
+          mkdir -p /tmp/lex_accepted/frontier
+          git ls-remote --heads origin 'refs/heads/lab/frontier/*' | while read -r sha ref; do
+            team="${ref#refs/heads/lab/frontier/}"
+            git fetch origin "$ref:refs/remotes/origin/lab/frontier/$team"
+            git worktree add --detach "/tmp/lex_accepted/frontier/$team" "origin/lab/frontier/$team" || true
+          done
+
+      - name: Install Ox/OpenCode
+        shell: bash
+        run: curl --retry 5 --retry-all-errors --retry-delay 15 -fsSL https://opencode.ai/install | bash
+
+      - name: Run lane cycle
+        shell: bash
+        env:
+          LANE: ${{ inputs.lane }}
+          DIRECTION_VERSION: ${{ inputs.direction_version }}
+          REPAIR_FROM: ${{ inputs.repair_from_run_id }}
+          REPAIR_ROUND: ${{ inputs.repair_round }}
+        run: |
+          set -euo pipefail
+          AGENT="lane_researcher"
+          [[ "$LANE" == product ]] && AGENT="product_engineer"
+          REPAIR=""
+          if [[ -n "$REPAIR_FROM" ]]; then
+            REPAIR="REPAIR exact rejected cycle ${REPAIR_FROM}, round ${REPAIR_ROUND}. Read /tmp/lex_prior_audit and fix every required_fixes item without weakening frozen baselines, data, metrics, success rules or scope. A zero-delta repair is invalid."
+            export LEX_REQUIRE_DELTA=1
+          fi
+          bash .github/scripts/run-ox-with-retry.sh run --model "$LEX_MODEL" --agent "$AGENT" \
+            "LexMachina lane=${LANE}; factory direction version=${DIRECTION_VERSION}; GitHub run=${GITHUB_RUN_ID}. Read /tmp/lex_control/AGENTS.md, /tmp/lex_control/LEXMACHINA_MASTER_PROMPT.md, /tmp/lex_control/ARCHITECTURE.md, /tmp/lex_control/docs/RESEARCH_PROTOCOL.md, /tmp/lex_control/state/factory_direction.json and /tmp/lex_control/directives/lanes/${LANE}.md. Relevant ACCEPTED peers are mounted under /tmp/lex_accepted. Execute real work toward the exact current lane question. No token thrift: use as many useful fresh-context subagents and discriminating experiments as justified, but do not drift from the final product. ${REPAIR}"
+
+      - name: Enforce lane write scope
+        shell: bash
+        env:
+          LANE: ${{ inputs.lane }}
+        run: |
+          set -euo pipefail
+          case "$LANE" in
+            corpus) CODE='corpus' ;;
+            legal-distance) CODE='legal_distance' ;;
+            fractal-map) CODE='fractal_map' ;;
+            evaluation) CODE='evaluation' ;;
+            product) CODE='product' ;;
+          esac
+          BAD=""
+          while IFS= read -r line; do
+            p="${line:3}"
+            case "$p" in
+              "$CODE"/*|"tests/$LANE"/*|"results/$LANE"/*|"reports/$LANE"/*|"state/$LANE.json"|"data/$LANE"/*|"") ;;
+              *) BAD+="$p\n" ;;
+            esac
+          done < <(git status --porcelain -uall)
+          if [[ -n "$BAD" ]]; then echo -e "::error::lane crossed protected scope:\n$BAD"; exit 3; fi
+
+      - name: Persist team snapshot
+        if: always()
+        shell: bash
+        env:
+          LANE: ${{ inputs.lane }}
+        run: |
+          set -euo pipefail
+          BR="cycle/core/${LANE}/${GITHUB_RUN_ID}/team"
+          ATT="${BR}-attempt-${GITHUB_RUN_ATTEMPT}"
+          git config user.name "lex-${LANE}-team"
+          git config user.email "lex-team@autonomous.local"
+          git switch -C "$BR"
+          git add -A
+          git commit -m "$LANE cycle ${GITHUB_RUN_ID} repair ${{ inputs.repair_round }}" || true
+          git push --force origin "HEAD:refs/heads/$ATT"
+          git push --force origin "HEAD:refs/heads/$BR"
+
+  audit:
+    needs: team
+    if: needs.team.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    outputs:
+      gate: ${{ steps.gate.outputs.gate }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Checkout accepted base and mount team
+        shell: bash
+        env:
+          LANE: ${{ inputs.lane }}
+        run: |
+          set -euo pipefail
+          ACC="lab/$LANE"; TEAM="cycle/core/${LANE}/${GITHUB_RUN_ID}/team"
+          git fetch origin "$ACC:refs/remotes/origin/$ACC" "$TEAM:refs/remotes/origin/$TEAM"
+          git switch -C audit-base "origin/$ACC"
+          git worktree add --detach /tmp/lex_team "origin/$TEAM"
+      - name: Install Ox/OpenCode
+        run: curl --retry 5 --retry-all-errors --retry-delay 15 -fsSL https://opencode.ai/install | bash
+      - name: Independent audit
+        shell: bash
+        env:
+          LANE: ${{ inputs.lane }}
+        run: |
+          set -euo pipefail
+          mkdir -p "results/audit/$LANE" "reports/audit/$LANE"
+          bash .github/scripts/run-ox-with-retry.sh run --model "$LEX_MODEL" --agent independent_auditor \
+            "Audit LexMachina lane=${LANE}, run=${GITHUB_RUN_ID}, repair round=${{ inputs.repair_round }}. Producer workspace=/tmp/lex_team. Current checkout is untouched accepted base. Read mounted control plane. Independently recompute and attack the work. Write ONLY reports/audit/${LANE}/CYCLE_${GITHUB_RUN_ID}.md and results/audit/${LANE}/CYCLE_${GITHUB_RUN_ID}_GATE.json. Gate JSON MUST contain gate=PASS|REVISE|BLOCKED, safe_to_integrate boolean, required_fixes array, claim_ceiling string, and evidence_summary. Honest negative/null work can PASS. If the same repair pathology is recurring, use BLOCKED rather than infinite REVISE."
+      - name: Enforce audit scope and read gate
+        id: gate
+        shell: bash
+        env:
+          LANE: ${{ inputs.lane }}
+        run: |
+          set -euo pipefail
+          BAD=""
+          while IFS= read -r line; do p="${line:3}"; case "$p" in "results/audit/$LANE"/*|"reports/audit/$LANE"/*|"") ;; *) BAD+="$p\n";; esac; done < <(git status --porcelain -uall)
+          [[ -z "$BAD" ]] || { echo -e "::error::auditor crossed scope:\n$BAD"; exit 3; }
+          F="results/audit/$LANE/CYCLE_${GITHUB_RUN_ID}_GATE.json"
+          jq -e '.gate=="PASS" or .gate=="REVISE" or .gate=="BLOCKED"' "$F" >/dev/null
+          echo "gate=$(jq -r .gate "$F")" >> "$GITHUB_OUTPUT"
+      - name: Persist audit snapshot
+        shell: bash
+        env:
+          LANE: ${{ inputs.lane }}
+        run: |
+          set -euo pipefail
+          BR="cycle/core/${LANE}/${GITHUB_RUN_ID}/audit"
+          git config user.name "lex-independent-auditor"
+          git config user.email "lex-audit@autonomous.local"
+          git switch -C "$BR"
+          git add "results/audit/$LANE" "reports/audit/$LANE"
+          git commit -m "audit $LANE cycle ${GITHUB_RUN_ID}"
+          git push --force origin "HEAD:refs/heads/$BR"
+
+  integrate:
+    needs: audit
+    if: always() && needs.audit.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Promote, repair, or block
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LANE: ${{ inputs.lane }}
+          GATE: ${{ needs.audit.outputs.gate }}
+          ROUND: ${{ inputs.repair_round }}
+          DIRV: ${{ inputs.direction_version }}
+        run: |
+          set -euo pipefail
+          TEAM="cycle/core/${LANE}/${GITHUB_RUN_ID}/team"; AUD="cycle/core/${LANE}/${GITHUB_RUN_ID}/audit"; ACC="lab/$LANE"
+          git fetch origin "$TEAM:refs/remotes/origin/$TEAM" "$AUD:refs/remotes/origin/$AUD" "$ACC:refs/remotes/origin/$ACC"
+          if [[ "$GATE" == PASS ]]; then
+            OLD=$(git rev-parse "origin/$ACC")
+            git switch -C promote "origin/$TEAM"
+            git checkout "origin/$AUD" -- "results/audit/$LANE" "reports/audit/$LANE"
+            git config user.name "lex-integrator"; git config user.email "lex-integrator@autonomous.local"
+            git add "results/audit/$LANE" "reports/audit/$LANE"
+            git commit -m "accept $LANE cycle ${GITHUB_RUN_ID}" || true
+            git push --force-with-lease="refs/heads/$ACC:$OLD" origin "HEAD:refs/heads/$ACC"
+            echo "Accepted $LANE cycle."
+          elif [[ "$GATE" == REVISE ]]; then
+            NEXT=$((ROUND+1))
+            gh workflow run core-lane.yml --repo "$GITHUB_REPOSITORY" --ref main -f lane="$LANE" -f direction_version="$DIRV" -f repair_from_run_id="${GITHUB_RUN_ID}" -f repair_round="$NEXT"
+            echo "Dispatched same-cycle repair $NEXT."
+          else
+            mkdir -p state/blockers
+            HASH=$(jq -r --arg lane "$LANE" '.lanes[$lane].question // ""' state/factory_direction.json | sha256sum | awk '{print $1}')
+            jq -n --arg lane "$LANE" --argjson dirv "$DIRV" --arg run "$GITHUB_RUN_ID" --arg hash "$HASH" '{lane:$lane,direction_version:$dirv,blocked_by_run:$run,question_hash:$hash,reason:"AUDIT_BLOCKED"}' > "state/blockers/$LANE.json"
+            git config user.name "lex-integrator"; git config user.email "lex-integrator@autonomous.local"
+            git add "state/blockers/$LANE.json"; git commit -m "block $LANE after audit ${GITHUB_RUN_ID}"
+            for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || { git rebase --abort 2>/dev/null || true; sleep $((i*3)); }; done
+          fi
