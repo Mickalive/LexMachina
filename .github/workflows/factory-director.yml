@@ -17,7 +17,7 @@ on:
 
 permissions:
   contents: write
-  actions: read
+  actions: write
 
 env:
   LEX_MODEL: opencode/x-preview-f-free
@@ -75,7 +75,7 @@ jobs:
           REPAIR=""
           if [[ -n "$REPAIR_FROM" ]]; then REPAIR="REPAIR exact rejected Director proposal ${REPAIR_FROM}, round ${ROUND}; read /tmp/lex_prior_audit and fix every required_fixes item without broadening mission or laundering unaccepted evidence."; export LEX_REQUIRE_DELTA=1; fi
           bash .github/scripts/run-ox-with-retry.sh run --model "$LEX_MODEL" --agent factory_director \
-            "Direct LexMachina factory run=${GITHUB_RUN_ID}. Read /tmp/lex_control/AGENTS.md, Main Prompt, Architecture, current state/factory_direction.json, state/frontier_portfolio.json, state/blockers if present, and all ACCEPTED evidence under /tmp/lex_accepted. You may inspect GitHub workflow status/log summaries with gh when operational evidence matters. Keep means broad but mission fixed. Update ONLY state/factory_direction.json, state/frontier_portfolio.json and reports/director/RUN_${GITHUB_RUN_ID}.md. Increment factory_direction.version ONLY if a core lane status/question/priority materially changes. Increment frontier_portfolio.version ONLY if its portfolio materially changes. A Frontier team is justified only by concrete accepted evidence or a concrete product bottleneck; each RUN entry must contain team_id, charter_version, status, product_capability, question, hypothesis, why_now, non_duplication, dependencies, acceptance_test, stop_promote_rule. More credible independent paths may justify more teams. No curiosity teams. ${REPAIR}"
+            "Direct LexMachina factory run=${GITHUB_RUN_ID}. Read /tmp/lex_control/AGENTS.md, Main Prompt, Architecture, current state/factory_direction.json, state/frontier_portfolio.json, state/blockers if present, and all ACCEPTED evidence under /tmp/lex_accepted. You may inspect GitHub workflow status/log summaries with gh when operational evidence matters. Keep means broad but mission fixed. Update ONLY state/factory_direction.json, state/frontier_portfolio.json and reports/director/RUN_${GITHUB_RUN_ID}.md. Increment factory_direction.version ONLY if a core lane status/question/priority materially changes. Increment frontier_portfolio.version ONLY if its portfolio materially changes. A Frontier team is justified only by concrete accepted evidence or a concrete product bottleneck; each RUN entry must contain team_id, charter_version, status, product_capability, question, hypothesis, why_now, non_duplication, dependencies, acceptance_test, stop_promote_rule. More credible independent paths may justify more teams. No curiosity teams. Operational failures, exhausted approaches, audit blockers and model/provider hiccups are YOUR responsibility to route around autonomously: change question, kill/recharter a team, choose another accepted path, or keep productive lanes moving. Use lane status HUMAN_DECISION_REQUIRED only when a genuine product/mission/external choice cannot be resolved from evidence or autonomous experimentation and truly requires the repository owner; never use it for technical failures, repeated crashes, weak results, or scientific dead ends. ${REPAIR}"
       - name: Enforce Director scope and validate state
         shell: bash
         run: |
@@ -83,6 +83,7 @@ jobs:
           BAD=""; while IFS= read -r line; do p="${line:3}"; case "$p" in state/factory_direction.json|state/frontier_portfolio.json|reports/director/*|"") ;; *) BAD+="$p\n";; esac; done < <(git status --porcelain -uall)
           [[ -z "$BAD" ]] || { echo -e "::error::Director crossed protected scope:\n$BAD"; exit 4; }
           jq -e '.version and .mission and .lanes.corpus and .lanes["legal-distance"] and .lanes["fractal-map"] and .lanes.evaluation and .lanes.product' state/factory_direction.json >/dev/null
+          jq -e 'all(.lanes[]; (.status=="RUN" or .status=="PAUSE" or .status=="HUMAN_DECISION_REQUIRED"))' state/factory_direction.json >/dev/null
           jq -e '.version and (.teams|type=="array") and all(.teams[]; (.team_id and .charter_version and .status))' state/frontier_portfolio.json >/dev/null
           jq -e 'all(.teams[] | select(.status=="RUN"); (.product_capability and .question and .hypothesis and .why_now and .non_duplication and .dependencies and .acceptance_test and .stop_promote_rule))' state/frontier_portfolio.json >/dev/null
       - name: Persist Director proposal
@@ -123,7 +124,7 @@ jobs:
           set -euo pipefail
           mkdir -p results/audit/director reports/audit/director
           bash .github/scripts/run-ox-with-retry.sh run --model "$LEX_MODEL" --agent independent_auditor \
-            "Audit Factory Director proposal run=${GITHUB_RUN_ID} at /tmp/lex_director_proposal against fixed Main Prompt and ACCEPTED evidence at /tmp/lex_accepted. Attack mission drift, curiosity/frontier proliferation, duplicated teams, unaccepted-evidence laundering, stale blocked questions, product starvation, fake parallelism, weak acceptance tests and unjustified lane pauses. Write ONLY reports/audit/director/CYCLE_${GITHUB_RUN_ID}.md and results/audit/director/CYCLE_${GITHUB_RUN_ID}_GATE.json with gate PASS|REVISE|BLOCKED, safe_to_integrate, required_fixes, claim_ceiling, evidence_summary."
+            "Audit Factory Director proposal run=${GITHUB_RUN_ID} at /tmp/lex_director_proposal against fixed Main Prompt and ACCEPTED evidence at /tmp/lex_accepted. Attack mission drift, curiosity/frontier proliferation, duplicated teams, unaccepted-evidence laundering, stale blocked questions, product starvation, fake parallelism, weak acceptance tests and unjustified lane pauses. HUMAN_DECISION_REQUIRED is valid only for an unavoidable owner-level choice, never an operational failure, weak result or scientific dead end. Write ONLY reports/audit/director/CYCLE_${GITHUB_RUN_ID}.md and results/audit/director/CYCLE_${GITHUB_RUN_ID}_GATE.json with gate PASS|REVISE|BLOCKED, safe_to_integrate, required_fixes, claim_ceiling, evidence_summary."
       - name: Validate and persist audit
         id: gate
         shell: bash
@@ -160,5 +161,5 @@ jobs:
           elif [[ "$GATE" == REVISE ]]; then
             gh workflow run factory-director.yml --repo "$GITHUB_REPOSITORY" --ref main -f repair_from_run_id="${GITHUB_RUN_ID}" -f repair_round="$((ROUND+1))"
           else
-            echo "Director proposal blocked; accepted main direction remains authoritative."
+            echo "Director proposal blocked; accepted main direction remains authoritative. Supervisor may request a fresh autonomous Director pass if unresolved work remains."
           fi
