@@ -1,0 +1,63 @@
+name: LEX Accepted Results Publisher
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: lex-results-publisher
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Mirror exact accepted lane outputs to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p results/accepted-state
+          for lane in corpus legal-distance fractal-map evaluation product; do
+            br="lab/$lane"
+            if git ls-remote --exit-code --heads origin "refs/heads/$br" >/dev/null 2>&1; then
+              git fetch origin "$br:refs/remotes/origin/$br"
+              git cat-file -e "origin/$br:results/$lane" 2>/dev/null && git checkout "origin/$br" -- "results/$lane" || true
+              git cat-file -e "origin/$br:results/audit/$lane" 2>/dev/null && git checkout "origin/$br" -- "results/audit/$lane" || true
+              if git cat-file -e "origin/$br:state/$lane.json" 2>/dev/null; then git show "origin/$br:state/$lane.json" > "results/accepted-state/$lane.json"; fi
+            fi
+          done
+          mkdir -p results/frontier results/audit/frontier results/accepted-state/frontier
+          git ls-remote --heads origin 'refs/heads/lab/frontier/*' | while read -r sha ref; do
+            team="${ref#refs/heads/lab/frontier/}"; git fetch origin "$ref:refs/remotes/origin/lab/frontier/$team"
+            git cat-file -e "origin/lab/frontier/$team:results/frontier/$team" 2>/dev/null && git checkout "origin/lab/frontier/$team" -- "results/frontier/$team" || true
+            git cat-file -e "origin/lab/frontier/$team:results/audit/frontier/$team" 2>/dev/null && git checkout "origin/lab/frontier/$team" -- "results/audit/frontier/$team" || true
+            if git cat-file -e "origin/lab/frontier/$team:state/frontier/$team.json" 2>/dev/null; then git show "origin/lab/frontier/$team:state/frontier/$team.json" > "results/accepted-state/frontier/$team.json"; fi
+          done
+          python - <<'PY'
+          import json, pathlib
+          root=pathlib.Path('results/accepted-state')
+          entries=[]
+          for p in sorted(root.rglob('*.json')):
+              try: state=json.loads(p.read_text())
+              except Exception: continue
+              entries.append({'path':str(p).replace('\\','/'),'state':state})
+          pathlib.Path('results/ACCEPTED_CATALOG.json').write_text(json.dumps({'entries':entries},ensure_ascii=False,indent=2)+'\n')
+          PY
+          git config user.name "lex-results-publisher"; git config user.email "lex-results@autonomous.local"
+          git add results
+          git diff --cached --quiet && { echo "No accepted-result delta"; exit 0; }
+          git commit -m "results: publish accepted lab catalog ${GITHUB_RUN_ID}"
+          for i in 1 2 3 4 5 6; do
+            if git pull --rebase origin main && git push origin HEAD:main; then exit 0; fi
+            git rebase --abort 2>/dev/null || true; sleep $((i*3))
+          done
+          exit 1
