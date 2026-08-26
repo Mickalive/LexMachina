@@ -19,10 +19,13 @@ on:
       - 'state/model_health.json'
       - 'state/blockers/**'
       - '.github/workflows/factory-supervisor.yml'
+      - '.github/workflows/core-lane.yml'
+      - '.github/workflows/frontier-team.yml'
+      - '.github/workflows/factory-director.yml'
 
 permissions:
   actions: write
-  contents: write
+  contents: read
 
 concurrency:
   group: lex-factory-supervisor
@@ -31,100 +34,157 @@ concurrency:
 jobs:
   dispatch:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
         with:
           ref: main
           fetch-depth: 0
-      - name: Fill useful factory capacity
+
+      - name: Keep useful factory capacity alive
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          TRIGGER_WORKFLOW: ${{ github.event.workflow_run.name || '' }}
+          TRIGGER_CONCLUSION: ${{ github.event.workflow_run.conclusion || '' }}
         run: |
           set -euo pipefail
 
-          # Never create a storm of known-dead agent runs. Model Health performs
-          # an actual tool side-effect probe and writes this state. As soon as a
-          # free candidate passes, its state push wakes this Supervisor instantly.
+          active_count() {
+            local workflow="$1" prefix="${2:-}"
+            gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --limit 100 --json displayTitle,status \
+              | jq --arg p "$prefix" '[.[] | select(($p=="") or (.displayTitle|startswith($p))) | select(.status=="queued" or .status=="in_progress" or .status=="requested" or .status=="waiting" or .status=="pending")] | length'
+          }
+
+          consecutive_failures() {
+            local workflow="$1" prefix="$2"
+            gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --limit 100 --json displayTitle,status,conclusion \
+              | jq --arg p "$prefix" '[.[] | select(.displayTitle|startswith($p)) | select(.status=="completed")] | reduce .[] as $r ({n:0,stop:false}; if .stop then . elif ($r.conclusion=="success") then .stop=true else .n += 1 end) | .n'
+          }
+
+          ensure_model_health() {
+            if [[ "$(active_count model-health.yml)" -eq 0 ]]; then
+              gh workflow run model-health.yml --repo "$GITHUB_REPOSITORY" --ref main
+              echo "Model health probe dispatched."
+            else
+              echo "Model health probe already active."
+            fi
+          }
+
+          ensure_director() {
+            if [[ "$(active_count factory-director.yml)" -eq 0 ]]; then
+              gh workflow run factory-director.yml --repo "$GITHUB_REPOSITORY" --ref main
+              echo "Factory Director dispatched."
+            else
+              echo "Factory Director already active."
+            fi
+          }
+
+          # A dead/free-model provider is an operational condition, never a human
+          # decision. Keep probing until a free tool-capable model returns.
           if [[ "$(jq -r '.healthy // false' state/model_health.json 2>/dev/null || echo false)" != true ]]; then
-            echo "Factory agent dispatch paused: no tool-capable free OpenCode model has passed health probe."
+            echo "::warning::No healthy free tool-capable model. Recovery probe will keep running."
+            ensure_model_health
             exit 0
           fi
           echo "Factory model: $(jq -r '.resolved_model' state/model_health.json) (fallback=$(jq -r '.using_fallback' state/model_health.json))"
 
-          commit_blockers() {
-            if ! git diff --quiet -- state/blockers 2>/dev/null || [[ -n "$(git ls-files --others --exclude-standard state/blockers 2>/dev/null)" ]]; then
-              git config user.name "lex-factory-supervisor"; git config user.email "lex-supervisor@autonomous.local"
-              git add state/blockers
-              git commit -m "supervisor: persist repeated operational blocker" || return 0
-              for i in 1 2 3 4 5; do if git pull --rebase origin main && git push origin HEAD:main; then break; fi; git rebase --abort 2>/dev/null || true; sleep $((i*2)); done
-            fi
-          }
+          NEED_DIRECTOR=0
+          NEED_HEALTH=0
+          DIRV=$(jq -r '.version' state/factory_direction.json)
 
-          core_active() {
-            local lane="$1" v="$2" prefix="Core ${lane} dirV${v} "
-            gh run list --repo "$GITHUB_REPOSITORY" --workflow core-lane.yml --limit 100 --json displayTitle,status \
-              | jq --arg p "$prefix" '[.[] | select(.displayTitle|startswith($p)) | select(.status=="queued" or .status=="in_progress" or .status=="requested" or .status=="waiting" or .status=="pending")] | length'
-          }
-
-          repeated_core_failure() {
-            local lane="$1" v="$2" prefix="Core ${lane} dirV${v} "
-            gh run list --repo "$GITHUB_REPOSITORY" --workflow core-lane.yml --limit 100 --json displayTitle,status,conclusion,createdAt \
-              | jq --arg p "$prefix" '[.[] | select(.displayTitle|startswith($p)) | select(.status=="completed")][0:3] as $r | (($r|length)>=3 and all($r[]; (.conclusion!="success")))'
-          }
+          # Any completed Core/Frontier cycle is new operational/scientific evidence
+          # worth letting the Director inspect once. Director completion itself does
+          # not recursively trigger another Director unless unresolved state below does.
+          case "$TRIGGER_WORKFLOW" in
+            "LEX Core Lane"|"LEX Frontier Team") NEED_DIRECTOR=1 ;;
+          esac
 
           for lane in corpus legal-distance fractal-map evaluation product; do
             status=$(jq -r --arg lane "$lane" '.lanes[$lane].status // "PAUSE"' state/factory_direction.json)
+            if [[ "$status" == "HUMAN_DECISION_REQUIRED" ]]; then
+              echo "::warning::$lane explicitly requires human decision; this lane alone is paused."
+              continue
+            fi
             [[ "$status" == RUN ]] || { echo "$lane: $status"; continue; }
-            v=$(jq -r '.version' state/factory_direction.json)
+
             q=$(jq -r --arg lane "$lane" '.lanes[$lane].question // ""' state/factory_direction.json)
             qhash=$(printf '%s' "$q" | sha256sum | awk '{print $1}')
-
-            if [[ -f "state/blockers/$lane.json" ]] && [[ "$(jq -r '.question_hash // ""' "state/blockers/$lane.json")" == "$qhash" ]]; then
-              echo "$lane: blocked for current question; Director must change the question or status."
+            blocker="state/blockers/$lane.json"
+            if [[ -f "$blocker" ]] && [[ "$(jq -r '.question_hash // ""' "$blocker")" == "$qhash" ]]; then
+              if [[ "$(jq -r '.requires_human // false' "$blocker")" == true ]]; then
+                echo "::warning::$lane has HUMAN_DECISION_REQUIRED blocker; lane paused pending user decision."
+              else
+                echo "$lane: current question is scientifically/structurally blocked; Director must redirect it."
+                NEED_DIRECTOR=1
+              fi
               continue
             fi
 
-            if [[ "$lane" != product ]] && git ls-remote --exit-code --heads origin "refs/heads/lab/$lane" >/dev/null 2>&1; then
+            if git ls-remote --exit-code --heads origin "refs/heads/lab/$lane" >/dev/null 2>&1; then
               raw=$(gh api "repos/${GITHUB_REPOSITORY}/contents/state/${lane}.json?ref=lab/${lane}" --jq '.content' 2>/dev/null | tr -d '\n' | base64 -d 2>/dev/null || true)
-              if [[ -n "$raw" ]] && [[ "$(jq -r '.continue_recommended // true' <<<"$raw")" == false ]] && [[ "$(jq -r '.direction_version // -1' <<<"$raw")" == "$v" ]]; then
-                echo "$lane: accepted state says no further identical cycle under direction v$v."
+              if [[ -n "$raw" ]] && [[ "$(jq -r '.continue_recommended // true' <<<"$raw")" == false ]] && [[ "$(jq -r '.direction_version // -1' <<<"$raw")" == "$DIRV" ]]; then
+                echo "$lane: same-direction work exhausted; asking Director for a new move."
+                NEED_DIRECTOR=1
                 continue
               fi
             fi
 
-            active=$(core_active "$lane" "$v")
-            [[ "$active" -eq 0 ]] || { echo "$lane: already active/queued"; continue; }
+            prefix="Core ${lane} dirV${DIRV} "
+            [[ "$(active_count core-lane.yml "$prefix")" -eq 0 ]] || { echo "$lane: already active/queued"; continue; }
 
-            if [[ "$(repeated_core_failure "$lane" "$v")" == true ]]; then
-              mkdir -p state/blockers
-              jq -n --arg lane "$lane" --argjson v "$v" --arg hash "$qhash" '{lane:$lane,direction_version:$v,question_hash:$hash,reason:"THREE_CONSECUTIVE_OPERATIONAL_FAILURES"}' > "state/blockers/$lane.json"
-              echo "::warning::$lane blocked after three consecutive operational failures under same direction."
-              continue
+            fails=$(consecutive_failures core-lane.yml "$prefix")
+            if (( fails >= 2 )); then
+              echo "::warning::$lane has $fails consecutive operational workflow failures; retrying instead of blocking."
+              NEED_HEALTH=1
+              NEED_DIRECTOR=1
             fi
 
-            gh workflow run core-lane.yml --repo "$GITHUB_REPOSITORY" --ref main -f lane="$lane" -f direction_version="$v" -f repair_round=0
-            echo "$lane: dispatched direction v$v"
+            gh workflow run core-lane.yml --repo "$GITHUB_REPOSITORY" --ref main \
+              -f lane="$lane" -f direction_version="$DIRV" -f repair_round=0
+            echo "$lane: dispatched direction v$DIRV"
           done
 
           jq -c '.teams[] | select(.status=="RUN")' state/frontier_portfolio.json | while IFS= read -r item; do
             team=$(jq -r .team_id <<<"$item"); ver=$(jq -r .charter_version <<<"$item")
             [[ "$team" =~ ^[a-z0-9][a-z0-9-]{1,62}$ ]] || continue
-            if [[ -f "state/blockers/frontier/$team.json" ]] && [[ "$(jq -r '.charter_version // -1' "state/blockers/frontier/$team.json")" == "$ver" ]]; then echo "Frontier $team v$ver blocked"; continue; fi
+            blocker="state/blockers/frontier/$team.json"
+            if [[ -f "$blocker" ]] && [[ "$(jq -r '.charter_version // -1' "$blocker")" == "$ver" ]]; then
+              if [[ "$(jq -r '.requires_human // false' "$blocker")" == true ]]; then
+                echo "::warning::Frontier $team v$ver requires human decision; this team alone is paused."
+              else
+                echo "Frontier $team v$ver blocked under current charter; Director must redirect/kill/recharter it."
+              fi
+              echo NEED_DIRECTOR > /tmp/lex_need_director_frontier
+              continue
+            fi
 
             if git ls-remote --exit-code --heads origin "refs/heads/lab/frontier/$team" >/dev/null 2>&1; then
               raw=$(gh api "repos/${GITHUB_REPOSITORY}/contents/state/frontier/${team}.json?ref=lab/frontier/${team}" --jq '.content' 2>/dev/null | tr -d '\n' | base64 -d 2>/dev/null || true)
-              if [[ -n "$raw" ]] && [[ "$(jq -r '.charter_version // -1' <<<"$raw")" == "$ver" ]] && [[ "$(jq -r '.continue_recommended // true' <<<"$raw")" == false ]]; then echo "Frontier $team v$ver completed its same-charter work; awaiting Director."; continue; fi
+              if [[ -n "$raw" ]] && [[ "$(jq -r '.charter_version // -1' <<<"$raw")" == "$ver" ]] && [[ "$(jq -r '.continue_recommended // true' <<<"$raw")" == false ]]; then
+                echo "Frontier $team v$ver exhausted same-charter work; awaiting Director."
+                echo NEED_DIRECTOR > /tmp/lex_need_director_frontier
+                continue
+              fi
             fi
 
             prefix="Frontier ${team} v${ver} "
-            active=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow frontier-team.yml --limit 100 --json displayTitle,status | jq --arg p "$prefix" '[.[] | select(.displayTitle|startswith($p)) | select(.status=="queued" or .status=="in_progress" or .status=="requested" or .status=="waiting" or .status=="pending")] | length')
-            [[ "$active" -eq 0 ]] || { echo "Frontier $team already active"; continue; }
-            failed=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow frontier-team.yml --limit 100 --json displayTitle,status,conclusion | jq --arg p "$prefix" '[.[] | select(.displayTitle|startswith($p)) | select(.status=="completed")][0:3] as $r | (($r|length)>=3 and all($r[]; (.conclusion!="success")))')
-            if [[ "$failed" == true ]]; then mkdir -p state/blockers/frontier; jq -n --arg team "$team" --argjson ver "$ver" '{team_id:$team,charter_version:$ver,reason:"THREE_CONSECUTIVE_OPERATIONAL_FAILURES"}' > "state/blockers/frontier/$team.json"; echo "::warning::Frontier $team blocked after repeated operational failure"; continue; fi
-            gh workflow run frontier-team.yml --repo "$GITHUB_REPOSITORY" --ref main -f team_id="$team" -f charter_version="$ver" -f repair_round=0
+            [[ "$(active_count frontier-team.yml "$prefix")" -eq 0 ]] || { echo "Frontier $team already active"; continue; }
+            fails=$(consecutive_failures frontier-team.yml "$prefix")
+            if (( fails >= 2 )); then
+              echo "::warning::Frontier $team has $fails consecutive operational failures; retrying, not blocking."
+              echo NEED_HEALTH > /tmp/lex_need_health_frontier
+              echo NEED_DIRECTOR > /tmp/lex_need_director_frontier
+            fi
+            gh workflow run frontier-team.yml --repo "$GITHUB_REPOSITORY" --ref main \
+              -f team_id="$team" -f charter_version="$ver" -f repair_round=0
             echo "Frontier $team v$ver dispatched"
           done
 
-          commit_blockers
+          [[ -f /tmp/lex_need_director_frontier ]] && NEED_DIRECTOR=1
+          [[ -f /tmp/lex_need_health_frontier ]] && NEED_HEALTH=1
+
+          (( NEED_HEALTH == 0 )) || ensure_model_health
+          (( NEED_DIRECTOR == 0 )) || ensure_director
+
+          echo "Supervisor pass complete: operational failures retry automatically; only explicit HUMAN_DECISION_REQUIRED state pauses work."
