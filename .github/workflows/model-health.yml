@@ -1,0 +1,133 @@
+name: LEX Free Model Health
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/model-health.yml'
+      - '.opencode/agents/model_probe.md'
+      - 'docs/agents/AGENT_CARDS.md'
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: lex-free-model-health
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Install current OpenCode
+        shell: bash
+        run: curl --retry 5 --retry-all-errors --retry-delay 15 -fsSL https://opencode.ai/install | bash
+
+      - name: Discover and tool-probe free models
+        id: probe
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p /tmp/lex_model_health
+          MODELS_LOG=/tmp/lex_model_health/models.txt
+          if ! opencode models > "$MODELS_LOG" 2>&1; then
+            echo "::warning::opencode models failed"
+            cat "$MODELS_LOG" || true
+          fi
+
+          # Ox is always first. Remaining candidates are explicitly listed by
+          # OpenCode Zen as free at the time this policy was authored. Never
+          # auto-fall back to a paid model.
+          CANDIDATES=(
+            'opencode/x-preview-f-free'
+            'opencode/ox-alpha-free'
+            'opencode/nemotron-3-ultra-free'
+            'opencode/nemotron-3.5-lightning-free'
+            'opencode/mimo-v2.5-free'
+            'opencode/hy3-free'
+            'opencode/big-pickle'
+            'opencode/muse-spark-1.2-contributor-free'
+          )
+
+          RESULTS=/tmp/lex_model_health/results.jsonl
+          : > "$RESULTS"
+          RESOLVED=''
+          PREFERRED='opencode/x-preview-f-free'
+
+          for model in "${CANDIDATES[@]}"; do
+            # Avoid burning time on aliases absent from the actual installed catalog.
+            if ! grep -Fq "$model" "$MODELS_LOG"; then
+              jq -nc --arg m "$model" '{model:$m,catalog_present:false,tool_probe:"SKIPPED_ABSENT"}' >> "$RESULTS"
+              continue
+            fi
+
+            MARKER="/tmp/lex_model_health/marker_${GITHUB_RUN_ID}_$(echo "$model" | tr '/.-' '___')"
+            rm -f "$MARKER"
+            LOG="/tmp/lex_model_health/probe_$(echo "$model" | tr '/.-' '___').log"
+
+            echo "Probing $model with a real bash-tool side effect"
+            set +e
+            timeout 150 opencode run --model "$model" --agent model_probe \
+              "Use the bash tool exactly once to run: printf 'LEX_MODEL_TOOL_OK' > '$MARKER'. Do not merely print the token. After the file exists, stop." \
+              >"$LOG" 2>&1
+            rc=$?
+            set -e
+
+            if [[ "$rc" -eq 0 && -f "$MARKER" && "$(cat "$MARKER" 2>/dev/null)" == 'LEX_MODEL_TOOL_OK' ]]; then
+              jq -nc --arg m "$model" --argjson rc "$rc" '{model:$m,catalog_present:true,tool_probe:"PASS",exit_code:$rc}' >> "$RESULTS"
+              RESOLVED="$model"
+              break
+            else
+              # Preserve only compact diagnostics in state; full workflow logs remain in Actions.
+              diag=$(tail -n 20 "$LOG" 2>/dev/null | tr '\n' ' ' | cut -c1-1500)
+              jq -nc --arg m "$model" --argjson rc "$rc" --arg d "$diag" '{model:$m,catalog_present:true,tool_probe:"FAIL",exit_code:$rc,diagnostic:$d}' >> "$RESULTS"
+            fi
+          done
+
+          NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          jq -s --arg preferred "$PREFERRED" --arg resolved "$RESOLVED" --arg now "$NOW" --arg run "$GITHUB_RUN_ID" '
+            {
+              policy_version:1,
+              preferred_model:$preferred,
+              resolved_model:(if $resolved=="" then null else $resolved end),
+              healthy:($resolved!=""),
+              using_fallback:($resolved!="" and $resolved!=$preferred),
+              free_only:true,
+              last_checked_at:$now,
+              last_checked_run_id:$run,
+              status:(if $resolved=="" then "NO_TOOL_CAPABLE_FREE_MODEL" elif $resolved==$preferred then "OX_HEALTHY" else "FREE_FALLBACK_ACTIVE" end),
+              probe_results:.
+            }' "$RESULTS" > /tmp/model_health.json
+
+          cat /tmp/model_health.json
+          echo "resolved=$RESOLVED" >> "$GITHUB_OUTPUT"
+
+      - name: Publish model-health state to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp /tmp/model_health.json state/model_health.json
+          git config user.name "lex-model-health"
+          git config user.email "lex-model-health@autonomous.local"
+          git add state/model_health.json
+          git diff --cached --quiet && { echo 'No model-health delta'; exit 0; }
+          git commit -m "control: refresh free model health ${GITHUB_RUN_ID}"
+          for i in 1 2 3 4 5 6; do
+            if git pull --rebase origin main && git push origin HEAD:main; then exit 0; fi
+            git rebase --abort 2>/dev/null || true
+            git reset --hard origin/main
+            cp /tmp/model_health.json state/model_health.json
+            git add state/model_health.json
+            git commit -m "control: refresh free model health ${GITHUB_RUN_ID}" || true
+            sleep $((i*3))
+          done
+          exit 1
