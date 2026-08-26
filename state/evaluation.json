@@ -4,14 +4,15 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": true,
-  "accepted_run_id": "eval_cycle_4_20260826_225741",
+  "accepted_run_id": "eval_cycle_5_1787786002",
   "accepted_commit": null,
   "evidence_refs": [
+    "evaluation/results/cycle_5_neural_baseline_results.json",
+    "evaluation/reports/evaluation_cycle_5_report.md",
+    "evaluation/run_cycle_5.py",
     "evaluation/results/real_corpus_tfidf_baseline_results.json",
     "evaluation/results/cycle_4_new_benchmarks_results.json",
     "evaluation/results/cycle_4_combined_results.json",
-    "evaluation/results/synthetic_evaluation_results.json",
-    "evaluation/results/synthetic_ground_truth.json",
     "evaluation/reports/evaluation_cycle_4_report.md",
     "evaluation/reports/evaluation_cycle_3_report.md",
     "evaluation/reports/evaluation_cycle_2_repair_report.md",
@@ -21,78 +22,34 @@
   ],
   "next_recommendation": "CONTINUE",
   "metrics_summary": {
-    "neighbor_relevance": {
-      "status": "PASSED",
-      "auc_roc_full_tfidf": 0.9519,
-      "auc_roc_reasoning_tfidf": 0.9462,
-      "mrr_full": 0.6126,
-      "mrr_reasoning": 0.5861,
-      "precision_at_1_full": 0.5038,
-      "precision_at_5_full": 0.1774,
-      "precision_at_10_full": 0.0955,
-      "num_citation_pairs": 99,
-      "note": "Real BGer corpus. Citation pairs as weak supervision. TF-IDF strongly separates citing decisions (AUC > 0.95). Full TF-IDF slightly outperforms reasoning-only, suggesting shared boilerplate helps citation matching."
+    "tfidf_reasoning_baseline": {
+      "neighbor_relevance_auc": 0.9519,
+      "boilerplate_resistance": 0.0113,
+      "multilingual_separation": -0.2374,
+      "corpus_stability_drift": 0.8733,
+      "hierarchy_purity": 0.6482,
+      "hierarchy_nmi": 0.0283,
+      "citation_proximity_auc": 0.6354,
+      "legal_area_nmi": 0.0487,
+      "legal_area_purity": 0.7046,
+      "note": "TF-IDF reasoning-only baseline on 1,200 BGer decisions. Fails all legal-quality metrics."
     },
-    "boilerplate_resistance": {
-      "status": "FAILED",
-      "resistance_score": 0.0113,
-      "mean_stability": 0.0113,
-      "std_stability": 0.0132,
-      "num_test_decisions": 80,
-      "note": "Real BGer corpus. TF-IDF is catastrophically sensitive to boilerplate (0.01 resistance). Adding ~100 words of standard BGer procedural text changes embedding by 99%. Legal representations must achieve >0.5."
+    "neural_multilingual_baseline": {
+      "citation_proximity_auc": 0.5102,
+      "legal_area_nmi": 0.0572,
+      "legal_area_purity": 0.8763,
+      "multilingual_separation": -0.0548,
+      "corpus_stability_drift": 2.98e-08,
+      "hierarchy_nmi": 0.5147,
+      "hierarchy_purity": 0.8504,
+      "neighbor_relevance_auc": 0.5564,
+      "neighbor_relevance_mrr": 0.0701,
+      "note": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2 (768-dim) on 1,000 BGer decisions. Beats TF-IDF on hierarchy, purity, stability. Fails citation proximity and neighbor relevance."
     },
-    "multilingual_invariance": {
-      "status": "FAILED",
-      "cross_lang_mean_similarity": 0.0268,
-      "same_lang_diff_area_mean": 0.2642,
-      "separation": -0.2374,
-      "num_cross_lang_pairs": 1200,
-      "num_same_lang_pairs": 101,
-      "note": "Real BGer corpus. TF-IDF is completely language-specific. Cross-language same-branch pairs have near-zero similarity (0.03). Negative separation means language dominates over legal content."
-    },
-    "corpus_stability": {
-      "status": "FAILED",
-      "mean_position_drift": 0.8733,
-      "std_drift": 0.0383,
-      "num_anchor_decisions": 20,
-      "corpus_sizes_tested": [200, 400, 600, 800, 1200],
-      "note": "Real BGer corpus. TF-IDF retrained on growing subsets has very high drift (0.87). Vocabulary shift with new documents dramatically repositions existing decisions."
-    },
-    "hierarchy_coherence": {
-      "status": "FAILED",
-      "best_purity": 0.6482,
-      "best_nmi": 0.0283,
-      "num_decisions": 1200,
-      "num_branches": 4,
-      "note": "Real BGer corpus. Moderate purity (0.47-0.65) but near-zero NMI (0.01-0.03). Clusters capture some legal structure but primarily separate by language, not legal area."
-    },
-    "citation_proximity": {
-      "status": "FAILED",
-      "auc_roc": 0.6354,
-      "positive_mean_sim": 0.1867,
-      "negative_mean_sim": 0.1269,
-      "mean_similarity_gap": 0.0598,
-      "num_positive_pairs": 300,
-      "num_negative_pairs": 300,
-      "mean_shared_citations": 1.2733,
-      "max_shared_citations": 6,
-      "note": "Real BGer corpus. TF-IDF captures some citation-relevant similarity (AUC 0.64) but below 0.7 threshold. Shared-citation pairs have slightly higher similarity (0.19 vs 0.13) but gap is small. Legal representations should achieve AUC > 0.75."
-    },
-    "legal_area_clustering": {
-      "status": "FAILED",
-      "best_nmi": 0.0487,
-      "best_purity": 0.7046,
-      "nmi_at_true_k": 0.0283,
-      "purity_at_true_k": 0.4153,
-      "num_decisions": 400,
-      "num_branches": 4,
-      "branch_distribution": {
-        "strafrecht": 306,
-        "zivilrecht": 311,
-        "oeffentliches_recht": 293,
-        "sozialversicherungsrecht": 290
-      },
-      "note": "Real BGer corpus. Near-zero NMI (0.05) confirms TF-IDF clusters by language not legal area. Purity increases with more clusters (0.42 at k=4 to 0.70 at k=12) because language separation creates internally pure but legally meaningless clusters. Legal representations should achieve NMI > 0.3 AND purity > 0.7."
+    "comparison": {
+      "neural_wins": ["hierarchy_nmi", "hierarchy_purity", "corpus_stability_drift", "legal_area_purity", "multilingual_separation", "legal_area_nmi"],
+      "tfidf_wins": ["citation_proximity_auc", "neighbor_relevance_auc"],
+      "critical_finding": "Neural embeddings have very high cross-language similarity (0.87) but negative separation (-0.05), meaning language still dominates over legal area. However, the hierarchy is much more coherent (NMI 0.51 vs 0.03) and clusters are purer (0.88 vs 0.70). The product can use neural embeddings as a starting point, but legal-specific fine-tuning is needed to improve citation proximity and multilingual separation."
     }
   },
   "required_fixes_addressed": [
@@ -104,6 +61,10 @@
     "Implemented legal_area_clustering benchmark (branch metadata, independent of Jurivoc)",
     "Ran new benchmarks on TF-IDF baseline: citation AUC 0.64, clustering NMI 0.05",
     "Preserved negative results: cited_laws field empty, citation-law benchmark cancelled",
+    "Built evaluation harness for pre-computed embeddings (not just TF-IDF)",
+    "Evaluated sentence-transformers neural embeddings against all 6 applicable benchmarks",
+    "Established neural baseline: hierarchy NMI 0.51, purity 0.85, stability drift ~0",
+    "Identified critical gap: neural embeddings fail citation proximity (AUC 0.51) and neighbor relevance (AUC 0.56)",
     "Generated machine-readable results and human-readable reports for all cycles"
   ],
   "baselines_established": {
@@ -118,16 +79,27 @@
       "legal_area_nmi": 0.0487,
       "legal_area_purity": 0.7046
     },
+    "neural_multilingual": {
+      "neighbor_relevance_auc": 0.5564,
+      "boilerplate_resistance": "SKIPPED (requires model inference)",
+      "multilingual_separation": -0.0548,
+      "corpus_stability_drift": 2.98e-08,
+      "hierarchy_purity": 0.8504,
+      "hierarchy_nmi": 0.5147,
+      "citation_proximity_auc": 0.5102,
+      "legal_area_nmi": 0.0572,
+      "legal_area_purity": 0.8763
+    },
     "targets_for_legal_distance_lane": {
-      "neighbor_relevance_auc": ">0.95",
-      "boilerplate_resistance": ">0.5",
-      "multilingual_separation": ">0.1",
-      "corpus_stability_drift": "<0.3",
-      "hierarchy_purity": ">0.7",
-      "hierarchy_nmi": ">0.3",
       "citation_proximity_auc": ">0.75",
       "legal_area_nmi": ">0.3",
-      "legal_area_purity": ">0.7"
+      "legal_area_purity": ">0.7",
+      "multilingual_separation": ">0.1",
+      "corpus_stability_drift": "<0.3",
+      "hierarchy_nmi": ">0.3",
+      "hierarchy_purity": ">0.7",
+      "neighbor_relevance_auc": ">0.95",
+      "boilerplate_resistance": ">0.5"
     }
   },
   "benchmarks_available": [
@@ -143,6 +115,7 @@
     {"cycle": 1, "run_id": "synthetic_eval_20260826", "status": "COMPLETED", "tier": "EXPLORATORY"},
     {"cycle": 2, "run_id": "eval_repair_20260826", "status": "COMPLETED", "tier": "REPRODUCED"},
     {"cycle": 3, "run_id": "eval_real_tfidf_20260826", "status": "COMPLETED", "tier": "REPRODUCED"},
-    {"cycle": 4, "run_id": "eval_cycle_4_20260826_225741", "status": "COMPLETED", "tier": "REPRODUCED"}
+    {"cycle": 4, "run_id": "eval_cycle_4_20260826_225741", "status": "COMPLETED", "tier": "REPRODUCED"},
+    {"cycle": 5, "run_id": "eval_cycle_5_1787786002", "status": "COMPLETED", "tier": "REPRODUCED"}
   ]
 }

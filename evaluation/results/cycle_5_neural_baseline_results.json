@@ -1,0 +1,212 @@
+{
+  "run_id": "eval_cycle_5_1787786002",
+  "lane": "evaluation",
+  "direction_version": 1,
+  "cycle": 5,
+  "evidence_tier": "REPRODUCED",
+  "representation": {
+    "model": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+    "dim": 768,
+    "n_decisions": 1000,
+    "source": "fractal-map/baseline/embeddings.npy"
+  },
+  "benchmarks": {
+    "citation_proximity": {
+      "status": "FAILED",
+      "auc_roc": 0.5101500000000001,
+      "positive_mean_sim": 0.8944566705822945,
+      "negative_mean_sim": 0.8930875042080879,
+      "mean_similarity_gap": 0.0013691663742065874,
+      "num_positive_pairs": 200,
+      "num_negative_pairs": 200,
+      "num_unique_decisions": 528,
+      "mean_shared_citations": 1.285,
+      "max_shared_citations": 5,
+      "duration_seconds": 1.1370623111724854
+    },
+    "legal_area_clustering": {
+      "status": "FAILED",
+      "best_nmi": 0.057202805967373926,
+      "best_purity": 0.8762886597938144,
+      "nmi_at_true_k": 0.03375640053817484,
+      "purity_at_true_k": 0.8136456211812627,
+      "language_purity": 0.7828411405295316,
+      "num_decisions": 500,
+      "num_branches": 4,
+      "branch_distribution": {
+        "strafrecht": 271,
+        "zivilrecht": 263,
+        "oeffentliches_recht": 203,
+        "sozialversicherungsrecht": 263
+      },
+      "level_metrics": [
+        {
+          "n_clusters": 4,
+          "nmi": 0.03375640053817484,
+          "purity": 0.8136456211812627
+        },
+        {
+          "n_clusters": 6,
+          "nmi": 0.05361477795814379,
+          "purity": 0.8762886597938144
+        },
+        {
+          "n_clusters": 8,
+          "nmi": 0.04373843405581555,
+          "purity": 0.8191964285714286
+        },
+        {
+          "n_clusters": 12,
+          "nmi": 0.057202805967373926,
+          "purity": 0.8138616557734205
+        }
+      ],
+      "duration_seconds": 0.341017484664917
+    },
+    "multilingual_invariance": {
+      "status": "FAILED",
+      "cross_lang_mean_similarity": 0.8686180140078068,
+      "cross_lang_std_similarity": 0.0299887226368674,
+      "cross_lang_min_similarity": 0.7450026869773865,
+      "cross_lang_max_similarity": 0.949729859828949,
+      "same_lang_mean_similarity": 0.9234200094640255,
+      "same_lang_std_similarity": 0.020113254890199016,
+      "separation": -0.054801995456218666,
+      "num_cross_lang_pairs": 1200,
+      "num_same_lang_pairs": 1200,
+      "duration_seconds": 0.01879572868347168
+    },
+    "hierarchy_coherence": {
+      "status": "PASSED",
+      "best_nmi": 0.5146753294287948,
+      "best_purity": 0.8504462794671537,
+      "mean_nmi_with_prev": 0.6568380987414625,
+      "num_decisions": 500,
+      "num_labeled_areas": 76,
+      "level_results": [
+        {
+          "n_clusters": 4,
+          "nmi": 0.05964400484151557,
+          "purity": 0.43119438740588634,
+          "nmi_with_prev": 0.0
+        },
+        {
+          "n_clusters": 8,
+          "nmi": 0.3485441613060686,
+          "purity": 0.5790856256367509,
+          "nmi_with_prev": 0.2958801690735286
+        },
+        {
+          "n_clusters": 16,
+          "nmi": 0.4211067930402675,
+          "purity": 0.6880845532705937,
+          "nmi_with_prev": 0.8795834248063522
+        },
+        {
+          "n_clusters": 32,
+          "nmi": 0.5146753294287948,
+          "purity": 0.8504462794671537,
+          "nmi_with_prev": 0.7950507023445065
+        }
+      ],
+      "duration_seconds": 0.21075105667114258
+    },
+    "neighbor_relevance": {
+      "status": "FAILED",
+      "auc_roc": 0.5564,
+      "positive_mean_sim": 0.8978329768776894,
+      "negative_mean_sim": 0.8897579437494278,
+      "mean_similarity_gap": 0.008075033128261522,
+      "mrr": 0.07007158501285785,
+      "num_citation_pairs": 200,
+      "num_negative_pairs": 200,
+      "num_unique_decisions": 537,
+      "duration_seconds": 0.044603824615478516
+    },
+    "corpus_stability": {
+      "status": "PASSED",
+      "mean_position_drift": 2.9802322387695312e-08,
+      "std_drift": 5.495276723678641e-08,
+      "num_anchor_decisions": 20,
+      "corpus_sizes_tested": [
+        200,
+        400,
+        600,
+        800,
+        1000
+      ],
+      "duration_seconds": 0.0010786056518554688
+    }
+  },
+  "comparison_with_tfidf": {
+    "neighbor_relevance_auc": {
+      "tfidf": 0.9519,
+      "neural": 0.5564
+    },
+    "boilerplate_resistance": {
+      "tfidf": 0.0113,
+      "neural": "SKIPPED (requires model inference)"
+    },
+    "multilingual_separation": {
+      "tfidf": -0.2374,
+      "neural": -0.054801995456218666
+    },
+    "corpus_stability_drift": {
+      "tfidf": 0.8733,
+      "neural": 2.9802322387695312e-08
+    },
+    "hierarchy_purity": {
+      "tfidf": 0.6482,
+      "neural": 0.8504462794671537
+    },
+    "hierarchy_nmi": {
+      "tfidf": 0.0283,
+      "neural": 0.5146753294287948
+    },
+    "citation_proximity_auc": {
+      "tfidf": 0.6354,
+      "neural": 0.5101500000000001
+    },
+    "legal_area_nmi": {
+      "tfidf": 0.0487,
+      "neural": 0.057202805967373926
+    },
+    "legal_area_purity": {
+      "tfidf": 0.7046,
+      "neural": 0.8762886597938144
+    }
+  },
+  "baselines_established": {
+    "tfidf_reasoning": {
+      "neighbor_relevance_auc": 0.9519,
+      "boilerplate_resistance": 0.0113,
+      "multilingual_separation": -0.2374,
+      "corpus_stability_drift": 0.8733,
+      "hierarchy_purity": 0.6482,
+      "hierarchy_nmi": 0.0283,
+      "citation_proximity_auc": 0.6354,
+      "legal_area_nmi": 0.0487,
+      "legal_area_purity": 0.7046
+    },
+    "neural_multilingual": {
+      "citation_proximity_auc": 0.5101500000000001,
+      "legal_area_nmi": 0.057202805967373926,
+      "legal_area_purity": 0.8762886597938144,
+      "multilingual_separation": -0.054801995456218666,
+      "corpus_stability_drift": 2.9802322387695312e-08,
+      "hierarchy_nmi": 0.5146753294287948,
+      "hierarchy_purity": 0.8504462794671537,
+      "neighbor_relevance_auc": 0.5564
+    }
+  },
+  "targets_for_legal_distance_lane": {
+    "citation_proximity_auc": ">0.75",
+    "legal_area_nmi": ">0.3",
+    "legal_area_purity": ">0.7",
+    "multilingual_separation": ">0.1",
+    "corpus_stability_drift": "<0.3",
+    "hierarchy_nmi": ">0.3",
+    "hierarchy_purity": ">0.7",
+    "neighbor_relevance_auc": ">0.95"
+  }
+}
