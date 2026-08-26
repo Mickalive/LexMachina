@@ -1,0 +1,191 @@
+name: LEX Frontier Team
+run-name: Frontier ${{ inputs.team_id }} v${{ inputs.charter_version }} repair${{ inputs.repair_round }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      team_id:
+        required: true
+        type: string
+      charter_version:
+        required: true
+        type: number
+      repair_from_run_id:
+        required: false
+        type: string
+        default: ""
+      repair_round:
+        required: false
+        type: number
+        default: 0
+
+permissions:
+  contents: write
+  actions: write
+
+env:
+  LEX_MODEL: opencode/x-preview-f-free
+
+concurrency:
+  group: lex-frontier-${{ inputs.team_id }}
+  cancel-in-progress: false
+
+jobs:
+  team:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Validate charter and initialize branch
+        shell: bash
+        env:
+          TEAM: ${{ inputs.team_id }}
+          VER: ${{ inputs.charter_version }}
+          REPAIR_FROM: ${{ inputs.repair_from_run_id }}
+        run: |
+          set -euo pipefail
+          [[ "$TEAM" =~ ^[a-z0-9][a-z0-9-]{1,62}$ ]] || { echo "::error::invalid team id"; exit 2; }
+          jq --arg team "$TEAM" --argjson ver "$VER" '.teams[] | select(.team_id==$team and .charter_version==$ver and .status=="RUN")' state/frontier_portfolio.json > /tmp/frontier_charter.json
+          test -s /tmp/frontier_charter.json || { echo "::error::exact executable charter missing"; exit 3; }
+          jq -e '.product_capability and .question and .hypothesis and .why_now and .non_duplication and .acceptance_test and .stop_promote_rule' /tmp/frontier_charter.json >/dev/null
+          if [[ -n "$REPAIR_FROM" ]]; then
+            TBR="cycle/frontier/${TEAM}/${REPAIR_FROM}/team"; ABR="cycle/frontier/${TEAM}/${REPAIR_FROM}/audit"
+            git fetch origin "$TBR:refs/remotes/origin/$TBR" "$ABR:refs/remotes/origin/$ABR"
+            git switch -C repair-base "origin/$TBR"
+            git worktree add --detach /tmp/lex_prior_audit "origin/$ABR"
+          else
+            BR="lab/frontier/$TEAM"
+            if git ls-remote --exit-code --heads origin "refs/heads/$BR" >/dev/null 2>&1; then
+              git fetch origin "$BR:refs/remotes/origin/$BR"; git switch -C "$BR" "origin/$BR"
+            else
+              git switch -C "$BR" origin/main
+              mkdir -p "frontier/$TEAM" "tests/frontier/$TEAM" "results/frontier/$TEAM" "reports/frontier/$TEAM" "state/frontier"
+              jq -n --arg team "$TEAM" --argjson ver "$VER" '{team_id:$team,charter_version:$ver,evidence_tier:"UNTESTED",cycle_status:"INITIALIZED",continue_recommended:true,accepted_run_id:null,accepted_commit:null}' > "state/frontier/$TEAM.json"
+              git config user.name "lex-frontier-bootstrap"; git config user.email "lex-frontier@autonomous.local"
+              git add "frontier/$TEAM" "tests/frontier/$TEAM" "results/frontier/$TEAM" "reports/frontier/$TEAM" "state/frontier/$TEAM.json" || true
+              git commit -m "bootstrap Frontier $TEAM" || true
+              git push origin "HEAD:refs/heads/$BR"
+            fi
+          fi
+      - name: Mount accepted evidence
+        shell: bash
+        env:
+          TEAM: ${{ inputs.team_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/lex_accepted/core /tmp/lex_accepted/frontier
+          for lane in corpus legal-distance fractal-map evaluation product; do
+            br="lab/$lane"; if git ls-remote --exit-code --heads origin "refs/heads/$br" >/dev/null 2>&1; then git fetch origin "$br:refs/remotes/origin/$br"; git worktree add --detach "/tmp/lex_accepted/core/$lane" "origin/$br" || true; fi
+          done
+          git ls-remote --heads origin 'refs/heads/lab/frontier/*' | while read -r sha ref; do peer="${ref#refs/heads/lab/frontier/}"; [[ "$peer" == "$TEAM" ]] && continue; git fetch origin "$ref:refs/remotes/origin/lab/frontier/$peer"; git worktree add --detach "/tmp/lex_accepted/frontier/$peer" "origin/lab/frontier/$peer" || true; done
+      - name: Install Ox/OpenCode
+        run: curl --retry 5 --retry-all-errors --retry-delay 15 -fsSL https://opencode.ai/install | bash
+      - name: Execute Frontier charter
+        shell: bash
+        env:
+          TEAM: ${{ inputs.team_id }}
+          VER: ${{ inputs.charter_version }}
+          REPAIR_FROM: ${{ inputs.repair_from_run_id }}
+          ROUND: ${{ inputs.repair_round }}
+        run: |
+          set -euo pipefail
+          REPAIR=""
+          if [[ -n "$REPAIR_FROM" ]]; then REPAIR="REPAIR exact rejected cycle ${REPAIR_FROM}, round ${ROUND}; read /tmp/lex_prior_audit and fix all required_fixes without weakening the charter or frozen evaluation."; export LEX_REQUIRE_DELTA=1; fi
+          bash .github/scripts/run-ox-with-retry.sh run --model "$LEX_MODEL" --agent frontier_researcher \
+            "Run LexMachina Frontier team=${TEAM}, charter v${VER}, GitHub run=${GITHUB_RUN_ID}. Exact charter=/tmp/frontier_charter.json. Read /tmp/lex_control/AGENTS.md and Main Prompt. Accepted evidence=/tmp/lex_accepted. Execute only this charter. Use as many useful subagents/experiments as the concrete path justifies; no token thrift, no mission drift. Your state/frontier/${TEAM}.json MUST retain charter_version and set continue_recommended true only if another cycle under the SAME charter is specifically justified. ${REPAIR}"
+      - name: Enforce team scope
+        shell: bash
+        env:
+          TEAM: ${{ inputs.team_id }}
+        run: |
+          set -euo pipefail
+          BAD=""; while IFS= read -r line; do p="${line:3}"; case "$p" in "frontier/$TEAM"/*|"tests/frontier/$TEAM"/*|"results/frontier/$TEAM"/*|"reports/frontier/$TEAM"/*|"state/frontier/$TEAM.json"|"data/frontier/$TEAM"/*|"") ;; *) BAD+="$p\n";; esac; done < <(git status --porcelain -uall)
+          [[ -z "$BAD" ]] || { echo -e "::error::Frontier crossed scope:\n$BAD"; exit 4; }
+      - name: Persist team snapshot
+        if: always()
+        shell: bash
+        env:
+          TEAM: ${{ inputs.team_id }}
+        run: |
+          set -euo pipefail
+          BR="cycle/frontier/${TEAM}/${GITHUB_RUN_ID}/team"; ATT="${BR}-attempt-${GITHUB_RUN_ATTEMPT}"
+          git config user.name "lex-frontier-$TEAM"; git config user.email "lex-frontier@autonomous.local"
+          git switch -C "$BR"; git add -A; git commit -m "Frontier $TEAM v${{ inputs.charter_version }} run ${GITHUB_RUN_ID}" || true
+          git push --force origin "HEAD:refs/heads/$ATT"; git push --force origin "HEAD:refs/heads/$BR"
+
+  audit:
+    needs: team
+    if: needs.team.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    outputs:
+      gate: ${{ steps.gate.outputs.gate }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Mount accepted base and team
+        shell: bash
+        env:
+          TEAM: ${{ inputs.team_id }}
+        run: |
+          set -euo pipefail
+          ACC="lab/frontier/$TEAM"; TBR="cycle/frontier/${TEAM}/${GITHUB_RUN_ID}/team"
+          git fetch origin "$ACC:refs/remotes/origin/$ACC" "$TBR:refs/remotes/origin/$TBR"
+          git switch -C audit-base "origin/$ACC"; git worktree add --detach /tmp/lex_team "origin/$TBR"
+          git show origin/main:state/frontier_portfolio.json | jq --arg team "$TEAM" --argjson ver '${{ inputs.charter_version }}' '.teams[] | select(.team_id==$team and .charter_version==$ver)' > /tmp/frontier_charter.json
+      - name: Install Ox/OpenCode
+        run: curl --retry 5 --retry-all-errors --retry-delay 15 -fsSL https://opencode.ai/install | bash
+      - name: Audit Frontier
+        shell: bash
+        env:
+          TEAM: ${{ inputs.team_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p "results/audit/frontier/$TEAM" "reports/audit/frontier/$TEAM"
+          bash .github/scripts/run-ox-with-retry.sh run --model "$LEX_MODEL" --agent independent_auditor \
+            "Audit Frontier team=${TEAM}, charter=/tmp/frontier_charter.json, run=${GITHUB_RUN_ID}, producer=/tmp/lex_team. Enforce exact charter and strongest relevant baseline/null. Write ONLY reports/audit/frontier/${TEAM}/CYCLE_${GITHUB_RUN_ID}.md and results/audit/frontier/${TEAM}/CYCLE_${GITHUB_RUN_ID}_GATE.json containing gate PASS|REVISE|BLOCKED, safe_to_integrate, required_fixes, claim_ceiling, evidence_summary. Recurring repair pathology must become BLOCKED rather than infinite REVISE."
+      - name: Validate and persist audit
+        id: gate
+        shell: bash
+        env:
+          TEAM: ${{ inputs.team_id }}
+        run: |
+          set -euo pipefail
+          BAD=""; while IFS= read -r line; do p="${line:3}"; case "$p" in "results/audit/frontier/$TEAM"/*|"reports/audit/frontier/$TEAM"/*|"") ;; *) BAD+="$p\n";; esac; done < <(git status --porcelain -uall); [[ -z "$BAD" ]] || { echo -e "$BAD"; exit 4; }
+          F="results/audit/frontier/$TEAM/CYCLE_${GITHUB_RUN_ID}_GATE.json"; jq -e '.gate=="PASS" or .gate=="REVISE" or .gate=="BLOCKED"' "$F" >/dev/null; echo "gate=$(jq -r .gate "$F")" >> "$GITHUB_OUTPUT"
+          BR="cycle/frontier/${TEAM}/${GITHUB_RUN_ID}/audit"; git config user.name "lex-frontier-auditor"; git config user.email "lex-audit@autonomous.local"; git switch -C "$BR"; git add "results/audit/frontier/$TEAM" "reports/audit/frontier/$TEAM"; git commit -m "audit Frontier $TEAM ${GITHUB_RUN_ID}"; git push --force origin "HEAD:refs/heads/$BR"
+
+  integrate:
+    needs: audit
+    if: always() && needs.audit.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Promote, repair, or block Frontier
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TEAM: ${{ inputs.team_id }}
+          VER: ${{ inputs.charter_version }}
+          GATE: ${{ needs.audit.outputs.gate }}
+          ROUND: ${{ inputs.repair_round }}
+        run: |
+          set -euo pipefail
+          TBR="cycle/frontier/${TEAM}/${GITHUB_RUN_ID}/team"; ABR="cycle/frontier/${TEAM}/${GITHUB_RUN_ID}/audit"; ACC="lab/frontier/$TEAM"
+          git fetch origin "$TBR:refs/remotes/origin/$TBR" "$ABR:refs/remotes/origin/$ABR" "$ACC:refs/remotes/origin/$ACC"
+          if [[ "$GATE" == PASS ]]; then
+            OLD=$(git rev-parse "origin/$ACC"); git switch -C promote "origin/$TBR"; git checkout "origin/$ABR" -- "results/audit/frontier/$TEAM" "reports/audit/frontier/$TEAM"; git config user.name "lex-integrator"; git config user.email "lex-integrator@autonomous.local"; git add "results/audit/frontier/$TEAM" "reports/audit/frontier/$TEAM"; git commit -m "accept Frontier $TEAM ${GITHUB_RUN_ID}" || true; git push --force-with-lease="refs/heads/$ACC:$OLD" origin "HEAD:refs/heads/$ACC"
+          elif [[ "$GATE" == REVISE ]]; then
+            gh workflow run frontier-team.yml --repo "$GITHUB_REPOSITORY" --ref main -f team_id="$TEAM" -f charter_version="$VER" -f repair_from_run_id="${GITHUB_RUN_ID}" -f repair_round="$((ROUND+1))"
+          else
+            mkdir -p state/blockers/frontier; jq -n --arg team "$TEAM" --argjson ver "$VER" --arg run "$GITHUB_RUN_ID" '{team_id:$team,charter_version:$ver,blocked_by_run:$run,reason:"AUDIT_BLOCKED"}' > "state/blockers/frontier/$TEAM.json"; git config user.name "lex-integrator"; git config user.email "lex-integrator@autonomous.local"; git add "state/blockers/frontier/$TEAM.json"; git commit -m "block Frontier $TEAM v$VER"; for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || { git rebase --abort 2>/dev/null || true; sleep $((i*3)); }; done
+          fi
