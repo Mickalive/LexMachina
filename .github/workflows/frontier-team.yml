@@ -14,6 +14,11 @@ on:
         required: false
         type: string
         default: ""
+      resume_from_run_id:
+        description: "Operationally failed Frontier run whose team snapshot must be resumed"
+        required: false
+        type: string
+        default: ""
       repair_round:
         required: false
         type: number
@@ -39,15 +44,17 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-      - name: Validate charter and initialize branch
+      - name: Validate charter and initialize working base
         shell: bash
         env:
           TEAM: ${{ inputs.team_id }}
           VER: ${{ inputs.charter_version }}
           REPAIR_FROM: ${{ inputs.repair_from_run_id }}
+          RESUME_FROM: ${{ inputs.resume_from_run_id }}
         run: |
           set -euo pipefail
           [[ "$TEAM" =~ ^[a-z0-9][a-z0-9-]{1,62}$ ]] || { echo "::error::invalid team id"; exit 2; }
+          [[ -z "$REPAIR_FROM" || -z "$RESUME_FROM" ]] || { echo "::error::repair_from and resume_from are mutually exclusive"; exit 2; }
           jq --arg team "$TEAM" --argjson ver "$VER" '.teams[] | select(.team_id==$team and .charter_version==$ver and .status=="RUN")' state/frontier_portfolio.json > /tmp/frontier_charter.json
           test -s /tmp/frontier_charter.json || { echo "::error::exact executable charter missing"; exit 3; }
           jq -e '.product_capability and .question and .hypothesis and .why_now and .non_duplication and .acceptance_test and .stop_promote_rule' /tmp/frontier_charter.json >/dev/null
@@ -56,6 +63,11 @@ jobs:
             git fetch origin "$TBR:refs/remotes/origin/$TBR" "$ABR:refs/remotes/origin/$ABR"
             git switch -C repair-base "origin/$TBR"
             git worktree add --detach /tmp/lex_prior_audit "origin/$ABR"
+          elif [[ -n "$RESUME_FROM" ]]; then
+            TBR="cycle/frontier/${TEAM}/${RESUME_FROM}/team"
+            git fetch origin "$TBR:refs/remotes/origin/$TBR"
+            git switch -C operational-resume "origin/$TBR"
+            echo "Resuming persisted Frontier snapshot from run $RESUME_FROM"
           else
             BR="lab/frontier/$TEAM"
             if git ls-remote --exit-code --heads origin "refs/heads/$BR" >/dev/null 2>&1; then
@@ -76,7 +88,7 @@ jobs:
           TEAM: ${{ inputs.team_id }}
         run: |
           set -euo pipefail
-          mkdir -p /tmp/lex_accepted/core /tmp/lex_accepted/frontier
+          rm -rf /tmp/lex_accepted; mkdir -p /tmp/lex_accepted/core /tmp/lex_accepted/frontier
           for lane in corpus legal-distance fractal-map evaluation product; do
             br="lab/$lane"; if git ls-remote --exit-code --heads origin "refs/heads/$br" >/dev/null 2>&1; then git fetch origin "$br:refs/remotes/origin/$br"; git worktree add --detach "/tmp/lex_accepted/core/$lane" "origin/$br" || true; fi
           done
@@ -89,13 +101,25 @@ jobs:
           TEAM: ${{ inputs.team_id }}
           VER: ${{ inputs.charter_version }}
           REPAIR_FROM: ${{ inputs.repair_from_run_id }}
+          RESUME_FROM: ${{ inputs.resume_from_run_id }}
           ROUND: ${{ inputs.repair_round }}
         run: |
           set -euo pipefail
-          REPAIR=""
-          if [[ -n "$REPAIR_FROM" ]]; then REPAIR="REPAIR exact rejected cycle ${REPAIR_FROM}, round ${ROUND}; read /tmp/lex_prior_audit and fix all required_fixes without weakening the charter or frozen evaluation."; export LEX_REQUIRE_DELTA=1; fi
+          MODE=""
+          if [[ -n "$REPAIR_FROM" ]]; then
+            MODE="REPAIR exact rejected cycle ${REPAIR_FROM}, round ${ROUND}; read /tmp/lex_prior_audit and fix all required_fixes without weakening the charter or frozen evaluation."
+            export LEX_REQUIRE_DELTA=1
+          elif [[ -n "$RESUME_FROM" ]]; then
+            MODE="OPERATIONAL RESUME from persisted Frontier producer snapshot ${RESUME_FROM}. Preserve valid completed work, diagnose the operational failure, and finish or verify the charter without restarting from scratch."
+          fi
           bash .github/scripts/run-ox-with-retry.sh run --model "$LEX_MODEL" --agent frontier_researcher \
-            "Run LexMachina Frontier team=${TEAM}, charter v${VER}, GitHub run=${GITHUB_RUN_ID}. Exact charter=/tmp/frontier_charter.json. Read /tmp/lex_control/AGENTS.md and Main Prompt. Accepted evidence=/tmp/lex_accepted. Execute only this charter. Use as many useful subagents/experiments as the concrete path justifies; no token thrift, no mission drift. Your state/frontier/${TEAM}.json MUST retain charter_version and set continue_recommended true only if another cycle under the SAME charter is specifically justified. ${REPAIR}"
+            "Run LexMachina Frontier team=${TEAM}, charter v${VER}, GitHub run=${GITHUB_RUN_ID}. Exact charter=/tmp/frontier_charter.json. Read /tmp/lex_control/AGENTS.md and Main Prompt. Accepted evidence=/tmp/lex_accepted. Execute only this charter. Use as many useful subagents/experiments as the concrete path justifies; no token thrift, no mission drift. Your state/frontier/${TEAM}.json MUST retain charter_version and set continue_recommended true only if another cycle under the SAME charter is specifically justified. ${MODE}"
+      - name: Clean generated junk
+        if: always()
+        shell: bash
+        run: |
+          find . -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null || true
+          find . -type f \( -name '*.pyc' -o -name '*.pyo' \) -delete 2>/dev/null || true
       - name: Enforce team scope
         shell: bash
         env:
@@ -187,5 +211,41 @@ jobs:
           elif [[ "$GATE" == REVISE ]]; then
             gh workflow run frontier-team.yml --repo "$GITHUB_REPOSITORY" --ref main -f team_id="$TEAM" -f charter_version="$VER" -f repair_from_run_id="${GITHUB_RUN_ID}" -f repair_round="$((ROUND+1))"
           else
-            mkdir -p state/blockers/frontier; jq -n --arg team "$TEAM" --argjson ver "$VER" --arg run "$GITHUB_RUN_ID" '{team_id:$team,charter_version:$ver,blocked_by_run:$run,reason:"AUDIT_BLOCKED"}' > "state/blockers/frontier/$TEAM.json"; git config user.name "lex-integrator"; git config user.email "lex-integrator@autonomous.local"; git add "state/blockers/frontier/$TEAM.json"; git commit -m "block Frontier $TEAM v$VER"; for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || { git rebase --abort 2>/dev/null || true; sleep $((i*3)); }; done
+            mkdir -p state/blockers/frontier; jq -n --arg team "$TEAM" --argjson ver "$VER" --arg run "$GITHUB_RUN_ID" '{team_id:$team,charter_version:$ver,blocked_by_run:$run,reason:"AUDIT_BLOCKED",requires_human:false}' > "state/blockers/frontier/$TEAM.json"; git config user.name "lex-integrator"; git config user.email "lex-integrator@autonomous.local"; git add "state/blockers/frontier/$TEAM.json"; git commit -m "block Frontier $TEAM v$VER"; for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || { git rebase --abort 2>/dev/null || true; sleep $((i*3)); }; done
           fi
+
+  resilience:
+    needs: [team, audit, integrate]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Recover Frontier chain and wake supervisor
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TEAM: ${{ inputs.team_id }}
+          VER: ${{ inputs.charter_version }}
+          ROUND: ${{ inputs.repair_round }}
+          TEAM_RESULT: ${{ needs.team.result }}
+          AUDIT_RESULT: ${{ needs.audit.result }}
+          INTEGRATE_RESULT: ${{ needs.integrate.result }}
+        run: |
+          set -euo pipefail
+          echo "Frontier finalizer: team=$TEAM_RESULT audit=$AUDIT_RESULT integrate=$INTEGRATE_RESULT"
+          if [[ "$TEAM_RESULT" != success || "$AUDIT_RESULT" == failure || "$AUDIT_RESULT" == cancelled || "$INTEGRATE_RESULT" == failure || "$INTEGRATE_RESULT" == cancelled ]]; then
+            SNAP="cycle/frontier/${TEAM}/${GITHUB_RUN_ID}/team"
+            if git ls-remote --exit-code --heads origin "refs/heads/$SNAP" >/dev/null 2>&1; then
+              gh workflow run frontier-team.yml --repo "$GITHUB_REPOSITORY" --ref main -f team_id="$TEAM" -f charter_version="$VER" -f resume_from_run_id="$GITHUB_RUN_ID" -f repair_round="$ROUND"
+              echo "Frontier operational recovery dispatched from $SNAP"
+            else
+              gh workflow run frontier-team.yml --repo "$GITHUB_REPOSITORY" --ref main -f team_id="$TEAM" -f charter_version="$VER" -f repair_round="$ROUND"
+              echo "Frontier operational recovery dispatched fresh because no snapshot survived."
+            fi
+          fi
+          gh workflow run factory-supervisor.yml --repo "$GITHUB_REPOSITORY" --ref main
+          echo "Supervisor explicitly awakened by Frontier finalizer."
