@@ -13,7 +13,12 @@ on:
         required: true
         type: number
       repair_from_run_id:
-        description: "Rejected run to repair; empty = fresh cycle"
+        description: "Rejected audited run to repair; empty = not an audit repair"
+        required: false
+        type: string
+        default: ""
+      resume_from_run_id:
+        description: "Operationally failed run whose persisted team snapshot must be resumed"
         required: false
         type: string
         default: ""
@@ -44,20 +49,28 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Validate lane and initialize accepted branch
+      - name: Validate lane and initialize working base
         shell: bash
         env:
           LANE: ${{ inputs.lane }}
           REPAIR_FROM: ${{ inputs.repair_from_run_id }}
+          RESUME_FROM: ${{ inputs.resume_from_run_id }}
         run: |
           set -euo pipefail
           case "$LANE" in corpus|legal-distance|fractal-map|evaluation|product) ;; *) echo "::error::invalid lane $LANE"; exit 2;; esac
+          [[ -z "$REPAIR_FROM" || -z "$RESUME_FROM" ]] || { echo "::error::repair_from and resume_from are mutually exclusive"; exit 2; }
+
           if [[ -n "$REPAIR_FROM" ]]; then
             TEAM="cycle/core/${LANE}/${REPAIR_FROM}/team"
             AUDIT="cycle/core/${LANE}/${REPAIR_FROM}/audit"
             git fetch origin "$TEAM:refs/remotes/origin/$TEAM" "$AUDIT:refs/remotes/origin/$AUDIT"
             git switch -C repair-base "origin/$TEAM"
             git worktree add --detach /tmp/lex_prior_audit "origin/$AUDIT"
+          elif [[ -n "$RESUME_FROM" ]]; then
+            TEAM="cycle/core/${LANE}/${RESUME_FROM}/team"
+            git fetch origin "$TEAM:refs/remotes/origin/$TEAM"
+            git switch -C operational-resume "origin/$TEAM"
+            echo "Resuming persisted producer snapshot from operationally failed run $RESUME_FROM"
           else
             BR="lab/$LANE"
             if git ls-remote --exit-code --heads origin "refs/heads/$BR" >/dev/null 2>&1; then
@@ -81,7 +94,7 @@ jobs:
           LANE: ${{ inputs.lane }}
         run: |
           set -euo pipefail
-          mkdir -p /tmp/lex_accepted
+          rm -rf /tmp/lex_accepted; mkdir -p /tmp/lex_accepted
           for peer in corpus legal-distance fractal-map evaluation product; do
             [[ "$peer" == "$LANE" ]] && continue
             br="lab/$peer"
@@ -107,18 +120,28 @@ jobs:
           LANE: ${{ inputs.lane }}
           DIRECTION_VERSION: ${{ inputs.direction_version }}
           REPAIR_FROM: ${{ inputs.repair_from_run_id }}
+          RESUME_FROM: ${{ inputs.resume_from_run_id }}
           REPAIR_ROUND: ${{ inputs.repair_round }}
         run: |
           set -euo pipefail
           AGENT="lane_researcher"
           [[ "$LANE" == product ]] && AGENT="product_engineer"
-          REPAIR=""
+          MODE=""
           if [[ -n "$REPAIR_FROM" ]]; then
-            REPAIR="REPAIR exact rejected cycle ${REPAIR_FROM}, round ${REPAIR_ROUND}. Read /tmp/lex_prior_audit and fix every required_fixes item without weakening frozen baselines, data, metrics, success rules or scope. A zero-delta repair is invalid."
+            MODE="REPAIR exact rejected cycle ${REPAIR_FROM}, round ${REPAIR_ROUND}. Read /tmp/lex_prior_audit and fix every required_fixes item without weakening frozen baselines, data, metrics, success rules or scope. A zero-delta repair is invalid."
             export LEX_REQUIRE_DELTA=1
+          elif [[ -n "$RESUME_FROM" ]]; then
+            MODE="OPERATIONAL RESUME from persisted producer snapshot of run ${RESUME_FROM}. Preserve all valid completed work. Diagnose the orchestration/validation failure, finish or verify the lane deliverable, and make the snapshot audit-ready. Do not restart from scratch merely because the prior workflow failed."
           fi
           bash .github/scripts/run-ox-with-retry.sh run --model "$LEX_MODEL" --agent "$AGENT" \
-            "LexMachina lane=${LANE}; factory direction version=${DIRECTION_VERSION}; GitHub run=${GITHUB_RUN_ID}. Read /tmp/lex_control/AGENTS.md, /tmp/lex_control/LEXMACHINA_MASTER_PROMPT.md, /tmp/lex_control/ARCHITECTURE.md, /tmp/lex_control/docs/RESEARCH_PROTOCOL.md, /tmp/lex_control/state/factory_direction.json and /tmp/lex_control/directives/lanes/${LANE}.md. Relevant ACCEPTED peers are mounted under /tmp/lex_accepted. Execute real work toward the exact current lane question. No token thrift: use as many useful fresh-context subagents and discriminating experiments as justified, but do not drift from the final product. ${REPAIR}"
+            "LexMachina lane=${LANE}; factory direction version=${DIRECTION_VERSION}; GitHub run=${GITHUB_RUN_ID}. Read /tmp/lex_control/AGENTS.md, /tmp/lex_control/LEXMACHINA_MASTER_PROMPT.md, /tmp/lex_control/ARCHITECTURE.md, /tmp/lex_control/docs/RESEARCH_PROTOCOL.md, /tmp/lex_control/state/factory_direction.json and /tmp/lex_control/directives/lanes/${LANE}.md. Relevant ACCEPTED peers are mounted under /tmp/lex_accepted. Execute real work toward the exact current lane question. No token thrift: use as many useful fresh-context subagents and discriminating experiments as justified, but do not drift from the final product. ${MODE}"
+
+      - name: Clean generated junk
+        if: always()
+        shell: bash
+        run: |
+          find . -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null || true
+          find . -type f \( -name '*.pyc' -o -name '*.pyo' \) -delete 2>/dev/null || true
 
       - name: Enforce lane write scope
         shell: bash
@@ -138,6 +161,7 @@ jobs:
             p="${line:3}"
             case "$p" in
               "$CODE"/*|"tests/$LANE"/*|"results/$LANE"/*|"reports/$LANE"/*|"state/$LANE.json"|"data/$LANE"/*|"") ;;
+              requirements.txt|pyproject.toml|uv.lock) [[ "$LANE" == product ]] || BAD+="$p\n" ;;
               *) BAD+="$p\n" ;;
             esac
           done < <(git status --porcelain -uall)
@@ -258,8 +282,53 @@ jobs:
           else
             mkdir -p state/blockers
             HASH=$(jq -r --arg lane "$LANE" '.lanes[$lane].question // ""' state/factory_direction.json | sha256sum | awk '{print $1}')
-            jq -n --arg lane "$LANE" --argjson dirv "$DIRV" --arg run "$GITHUB_RUN_ID" --arg hash "$HASH" '{lane:$lane,direction_version:$dirv,blocked_by_run:$run,question_hash:$hash,reason:"AUDIT_BLOCKED"}' > "state/blockers/$LANE.json"
+            jq -n --arg lane "$LANE" --argjson dirv "$DIRV" --arg run "$GITHUB_RUN_ID" --arg hash "$HASH" '{lane:$lane,direction_version:$dirv,blocked_by_run:$run,question_hash:$hash,reason:"AUDIT_BLOCKED",requires_human:false}' > "state/blockers/$LANE.json"
             git config user.name "lex-integrator"; git config user.email "lex-integrator@autonomous.local"
             git add "state/blockers/$LANE.json"; git commit -m "block $LANE after audit ${GITHUB_RUN_ID}"
             for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && break || { git rebase --abort 2>/dev/null || true; sleep $((i*3)); }; done
           fi
+
+  resilience:
+    needs: [team, audit, integrate]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Recover failed chain and wake supervisor
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LANE: ${{ inputs.lane }}
+          DIRV: ${{ inputs.direction_version }}
+          ROUND: ${{ inputs.repair_round }}
+          TEAM_RESULT: ${{ needs.team.result }}
+          AUDIT_RESULT: ${{ needs.audit.result }}
+          INTEGRATE_RESULT: ${{ needs.integrate.result }}
+        run: |
+          set -euo pipefail
+          echo "Core finalizer: team=$TEAM_RESULT audit=$AUDIT_RESULT integrate=$INTEGRATE_RESULT"
+
+          # A workflow-level operational failure must never strand a lane. Reuse
+          # the persisted producer snapshot whenever it exists so useful work is
+          # not thrown away merely because validation/audit/integration crashed.
+          if [[ "$TEAM_RESULT" != success || "$AUDIT_RESULT" == failure || "$AUDIT_RESULT" == cancelled || "$INTEGRATE_RESULT" == failure || "$INTEGRATE_RESULT" == cancelled ]]; then
+            SNAP="cycle/core/${LANE}/${GITHUB_RUN_ID}/team"
+            if git ls-remote --exit-code --heads origin "refs/heads/$SNAP" >/dev/null 2>&1; then
+              gh workflow run core-lane.yml --repo "$GITHUB_REPOSITORY" --ref main \
+                -f lane="$LANE" -f direction_version="$DIRV" -f resume_from_run_id="$GITHUB_RUN_ID" -f repair_round="$ROUND"
+              echo "Operational recovery dispatched from snapshot $SNAP"
+            else
+              gh workflow run core-lane.yml --repo "$GITHUB_REPOSITORY" --ref main \
+                -f lane="$LANE" -f direction_version="$DIRV" -f repair_round="$ROUND"
+              echo "Operational recovery dispatched fresh because no producer snapshot survived."
+            fi
+          fi
+
+          # Never rely on workflow_run/schedule to notice completion. Every core
+          # cycle explicitly wakes the global supervisor.
+          gh workflow run factory-supervisor.yml --repo "$GITHUB_REPOSITORY" --ref main
+          echo "Supervisor explicitly awakened."
