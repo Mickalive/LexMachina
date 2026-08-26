@@ -1,0 +1,166 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://lexmachina.ch/schema/decision/v1.json",
+  "title": "LexMachina Canonical Decision Schema v1",
+  "description": "Canonical schema for Swiss Federal Supreme Court (BGer) decisions from 2000 onward. Derived from OpenCaseLaw corpus with provenance tracking.",
+  "type": "object",
+  "required": [
+    "decision_id",
+    "court",
+    "docket_number",
+    "decision_date",
+    "language",
+    "full_text",
+    "provenance"
+  ],
+  "properties": {
+    "decision_id": {
+      "type": "string",
+      "description": "Stable unique identifier from source (e.g., bge_BGE_140_III_86 or bger_5A_617_2025 or bger_1C_408_2025_d20241220)",
+      "pattern": "^[a-z]+_[A-Za-z0-9_./-]+$"
+    },
+    "court": {
+      "type": "string",
+      "enum": ["bge", "bger", "bvger", "bstger", "bpatger", "bge_historical", "bge_egmr"],
+      "description": "Court identifier. 'bge' = published leading decisions (BGE), 'bger' = all Federal Supreme Court decisions"
+    },
+    "docket_number": {
+      "type": "string",
+      "description": "Official docket number (e.g., 5A_617/2025, BGE 140 III 86)"
+    },
+    "decision_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of decision (YYYY-MM-DD)"
+    },
+    "publication_date": {
+      "type": ["string", "null"],
+      "format": "date",
+      "description": "Date of publication if different from decision date"
+    },
+    "language": {
+      "type": "string",
+      "enum": ["de", "fr", "it", "rm", "en"],
+      "description": "Decision language"
+    },
+    "title": {
+      "type": ["string", "null"],
+      "description": "Short title/summary from source"
+    },
+    "legal_area": {
+      "type": ["string", "null"],
+      "description": "Legal area classification (e.g., 'Zivilrecht', 'Strafrecht', 'Verwaltungsrecht')"
+    },
+    "chamber": {
+      "type": ["string", "null"],
+      "description": "Court chamber/division (e.g., 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII')"
+    },
+    "branch": {
+      "type": ["string", "null"],
+      "enum": ["zivilrecht", "strafrecht", "oeffentliches_recht", "sozialversicherungsrecht", "null"],
+      "description": "Legal branch"
+    },
+    "proceeding_type": {
+      "type": ["string", "null"],
+      "description": "Type of proceeding (e.g., 'Beschwerde in Zivilsachen', 'Beschwerde in Strafsachen')"
+    },
+    "regeste": {
+      "type": ["string", "null"],
+      "description": "Official headnote/regeste (BGer/BVGer/BStGer)"
+    },
+    "abstract_de": {
+      "type": ["string", "null"],
+      "description": "German abstract if available"
+    },
+    "abstract_fr": {
+      "type": ["string", "null"],
+      "description": "French abstract if available"
+    },
+    "abstract_it": {
+      "type": ["string", "null"],
+      "description": "Italian abstract if available"
+    },
+    "full_text": {
+      "type": "string",
+      "description": "Complete decision text",
+      "minLength": 1
+    },
+    "text_length": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Character count of full_text"
+    },
+    "outcome": {
+      "type": ["string", "null"],
+      "enum": ["gutgeheissen", "abgewiesen", "teilweise_gutgeheissen", "erledigt", "nichteintreten", "zurueckgewiesen", "null"],
+      "description": "Decision outcome"
+    },
+    "decision_type": {
+      "type": ["string", "null"],
+      "enum": ["Leitentscheid", "Endentscheid", "Zwischenentscheid", "Verfahrensentscheid", "null"],
+      "description": "Type of decision"
+    },
+    "bge_reference": {
+      "type": ["string", "null"],
+      "description": "BGE citation if published in official collection (e.g., 'BGE 140 III 86')"
+    },
+    "cited_decisions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of cited decision identifiers/docket numbers"
+    },
+    "cited_laws": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of cited statute articles (e.g., 'Art. 41 OR', 'Art. 8 ZGB')"
+    },
+    "judges": {
+      "type": ["array", "null"],
+      "items": { "type": "string" },
+      "description": "Names of judges on the panel"
+    },
+    "source_url": {
+      "type": ["string", "null"],
+      "format": "uri",
+      "description": "Original source URL"
+    },
+    "pdf_url": {
+      "type": ["string", "null"],
+      "format": "uri",
+      "description": "PDF download URL if available"
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["source", "acquired_at", "source_version", "content_hash"],
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": ["opencaselaw_api", "opencaselaw_parquet", "zenodo_scd", "bger_official"],
+          "description": "Source system"
+        },
+        "acquired_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of acquisition"
+        },
+        "source_version": {
+          "type": "string",
+          "description": "Version identifier of source (e.g., OpenCaseLaw dataset date, Zenodo record version)"
+        },
+        "content_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 hash of full_text for deduplication/integrity"
+        },
+        "api_endpoint": {
+          "type": ["string", "null"],
+          "description": "API endpoint used if applicable"
+        },
+        "raw_metadata": {
+          "type": "object",
+          "description": "Original raw metadata from source for audit trail"
+        }
+      }
+    }
+  }
+}
