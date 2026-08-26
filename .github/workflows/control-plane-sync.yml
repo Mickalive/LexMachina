@@ -1,0 +1,58 @@
+name: LEX Control Plane Sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/scripts/run-ox-with-retry.sh'
+      - '.github/workflows/control-plane-sync.yml'
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: lex-control-plane-sync
+  cancel-in-progress: false
+
+jobs:
+  sync-launcher:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Reconcile launcher on every persistent lab branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp .github/scripts/run-ox-with-retry.sh /tmp/current-lex-wrapper.sh
+          git ls-remote --heads origin 'refs/heads/lab/*' | while read -r sha ref; do
+            br="${ref#refs/heads/}"
+            safe="${br//\//__}"
+            git fetch origin "$ref:refs/remotes/origin/$br"
+            rm -rf "/tmp/lex-sync-$safe"
+            git worktree add --detach "/tmp/lex-sync-$safe" "origin/$br"
+            pushd "/tmp/lex-sync-$safe" >/dev/null
+            mkdir -p .github/scripts
+            cp /tmp/current-lex-wrapper.sh .github/scripts/run-ox-with-retry.sh
+            chmod +x .github/scripts/run-ox-with-retry.sh
+            if [[ -n "$(git status --porcelain -- .github/scripts/run-ox-with-retry.sh)" ]]; then
+              git config user.name "lex-control-plane-sync"
+              git config user.email "lex-control@autonomous.local"
+              git add .github/scripts/run-ox-with-retry.sh
+              git commit -m "control: sync current Ox launcher from main"
+              for i in 1 2 3 4; do
+                if git push origin "HEAD:refs/heads/$br"; then break; fi
+                git fetch origin "$br:refs/remotes/origin/$br"
+                git rebase "origin/$br" || { git rebase --abort || true; exit 1; }
+                sleep $((i*2))
+              done
+            fi
+            popd >/dev/null
+            git worktree remove --force "/tmp/lex-sync-$safe" || true
+          done
