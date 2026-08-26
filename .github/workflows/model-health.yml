@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: lex-free-model-health
@@ -44,9 +45,6 @@ jobs:
             cat "$MODELS_LOG" || true
           fi
 
-          # Ox is always first. Remaining candidates are explicitly listed by
-          # OpenCode Zen as free at the time this policy was authored. Never
-          # auto-fall back to a paid model.
           CANDIDATES=(
             'opencode/x-preview-f-free'
             'opencode/ox-alpha-free'
@@ -64,7 +62,6 @@ jobs:
           PREFERRED='opencode/x-preview-f-free'
 
           for model in "${CANDIDATES[@]}"; do
-            # Avoid burning time on aliases absent from the actual installed catalog.
             if ! grep -Fq "$model" "$MODELS_LOG"; then
               jq -nc --arg m "$model" '{model:$m,catalog_present:false,tool_probe:"SKIPPED_ABSENT"}' >> "$RESULTS"
               continue
@@ -87,7 +84,6 @@ jobs:
               RESOLVED="$model"
               break
             else
-              # Preserve only compact diagnostics in state; full workflow logs remain in Actions.
               diag=$(tail -n 20 "$LOG" 2>/dev/null | tr '\n' ' ' | cut -c1-1500)
               jq -nc --arg m "$model" --argjson rc "$rc" --arg d "$diag" '{model:$m,catalog_present:true,tool_probe:"FAIL",exit_code:$rc,diagnostic:$d}' >> "$RESULTS"
             fi
@@ -131,3 +127,20 @@ jobs:
             sleep $((i*3))
           done
           exit 1
+
+  resilience:
+    needs: probe
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Wake supervisor regardless of probe outcome
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROBE_RESULT: ${{ needs.probe.result }}
+        run: |
+          set -euo pipefail
+          echo "Model-health finalizer: probe=$PROBE_RESULT"
+          gh workflow run factory-supervisor.yml --repo "$GITHUB_REPOSITORY" --ref main
+          echo "Supervisor explicitly awakened by model-health finalizer."
