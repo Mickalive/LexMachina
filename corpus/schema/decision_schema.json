@@ -129,6 +129,79 @@
       "format": "uri",
       "description": "PDF download URL if available"
     },
+    "sachverhalt": {
+      "type": ["string", "null"],
+      "description": "Facts section (Sachverhalt) extracted from structured API"
+    },
+    "erwaegungen": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "properties": {
+          "e_number": { "type": "string" },
+          "depth": { "type": "integer" },
+          "parent": { "type": ["string", "null"] },
+          "text": { "type": "string" },
+          "text_chars": { "type": "integer" }
+        }
+      },
+      "description": "Reasoning paragraphs (Erwägungen) with structure"
+    },
+    "dispositiv": {
+      "type": ["string", "null"],
+      "description": "Disposition/orders section (Dispositiv)"
+    },
+    "dispositiv_orders": {
+      "type": ["array", "null"],
+      "items": { "type": "string" },
+      "description": "Individual orders from Dispositiv"
+    },
+    "preparatory_materials": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "properties": {
+          "law": { "type": "string" },
+          "article": { "type": "string" },
+          "sr_number": { "type": "string" },
+          "bbl_citations": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "description": "Cited laws with legislative history (Botschaft) references"
+    },
+    "outgoing_citations": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "properties": {
+          "target_decision_id": { "type": "string" },
+          "target_ref": { "type": "string" },
+          "target_type": { "type": "string" },
+          "docket_number": { "type": "string" },
+          "court": { "type": "string" },
+          "decision_date": { "type": "string", "format": "date" },
+          "mention_count": { "type": "integer" },
+          "confidence_score": { "type": "number" }
+        }
+      },
+      "description": "Outgoing citations to other decisions with confidence scores"
+    },
+    "incoming_citations": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "properties": {
+          "source_decision_id": { "type": "string" },
+          "target_ref": { "type": "string" },
+          "docket_number": { "type": "string" },
+          "court": { "type": "string" },
+          "decision_date": { "type": "string", "format": "date" },
+          "mention_count": { "type": "integer" },
+          "confidence_score": { "type": "number" }
+        }
+      },
+      "description": "Incoming citations from other decisions with confidence scores"
+    },
     "provenance": {
       "type": "object",
       "required": ["source", "acquired_at", "source_version", "content_hash"],

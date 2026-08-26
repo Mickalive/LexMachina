@@ -22,9 +22,12 @@ class NormalizationStats:
     validation_errors: int = 0
     deduplicated: int = 0
     missing_full_text: int = 0
+    missing_structure: int = 0
+    missing_citations: int = 0
     by_language: Dict[str, int] = None
     by_year: Dict[str, int] = None
     by_court: Dict[str, int] = None
+    by_branch: Dict[str, int] = None
 
     def __post_init__(self):
         if self.by_language is None:
@@ -33,6 +36,8 @@ class NormalizationStats:
             self.by_year = {}
         if self.by_court is None:
             self.by_court = {}
+        if self.by_branch is None:
+            self.by_branch = {}
 
 
 class DecisionNormalizer:
@@ -110,6 +115,70 @@ class DecisionNormalizer:
             return "null"
         return self.DECISION_TYPE_MAP.get(dtype, "null")
 
+    def _normalize_erwaegungen(self, erwaegungen: Optional[List[Dict]]) -> Optional[List[Dict]]:
+        """Normalize Erwägungen structure from API format to canonical format."""
+        if not erwaegungen:
+            return None
+        normalized = []
+        for e in erwaegungen:
+            normalized.append({
+                "e_number": e.get("e_number"),
+                "depth": e.get("depth", 1),
+                "parent": e.get("parent"),
+                "text": e.get("text_excerpt") or e.get("text", ""),
+                "text_chars": e.get("text_chars", len(e.get("text_excerpt", "") or e.get("text", "")))
+            })
+        return normalized
+
+    def _normalize_citations(self, citations: Optional[List[Dict]]) -> Optional[List[Dict]]:
+        """Normalize citations to canonical format."""
+        if not citations:
+            return None
+        normalized = []
+        for c in citations:
+            normalized.append({
+                "target_decision_id": c.get("target_decision_id"),
+                "target_ref": c.get("target_ref"),
+                "target_type": c.get("target_type"),
+                "docket_number": c.get("docket_number"),
+                "court": c.get("court"),
+                "decision_date": c.get("decision_date"),
+                "mention_count": c.get("mention_count", 1),
+                "confidence_score": c.get("confidence_score", 1.0)
+            })
+        return normalized
+
+    def _normalize_incoming_citations(self, citations: Optional[List[Dict]]) -> Optional[List[Dict]]:
+        """Normalize incoming citations to canonical format."""
+        if not citations:
+            return None
+        normalized = []
+        for c in citations:
+            normalized.append({
+                "source_decision_id": c.get("source_decision_id"),
+                "target_ref": c.get("target_ref"),
+                "docket_number": c.get("docket_number"),
+                "court": c.get("court"),
+                "decision_date": c.get("decision_date"),
+                "mention_count": c.get("mention_count", 1),
+                "confidence_score": c.get("confidence_score", 1.0)
+            })
+        return normalized
+
+    def _normalize_preparatory_materials(self, materials: Optional[List[Dict]]) -> Optional[List[Dict]]:
+        """Normalize preparatory materials (Botschaft references)."""
+        if not materials:
+            return None
+        normalized = []
+        for m in materials:
+            normalized.append({
+                "law": m.get("law"),
+                "article": m.get("article"),
+                "sr_number": m.get("sr_number"),
+                "bbl_citations": m.get("bbl_citations", [])
+            })
+        return normalized
+
     def normalize(self, raw: DecisionRaw, source_version: str) -> Optional[Dict[str, Any]]:
         """Convert DecisionRaw to canonical schema. Returns None if should be skipped."""
         # Skip if no full text
@@ -132,6 +201,16 @@ class DecisionNormalizer:
         cited_decisions = self._parse_list_field(raw.cited_decisions)
         cited_laws = self._parse_list_field(raw.cited_laws)
         judges = self._parse_list_field(raw.judges)
+
+        # Normalize structural fields
+        erwaegungen = self._normalize_erwaegungen(raw.erwaegungen)
+        outgoing_citations = self._normalize_citations(raw.outgoing_citations)
+        incoming_citations = self._normalize_incoming_citations(raw.incoming_citations)
+        preparatory_materials = self._normalize_preparatory_materials(raw.preparatory_materials)
+
+        # Track missing data for stats
+        has_structure = bool(raw.sachverhalt or raw.erwaegungen or raw.dispositiv)
+        has_citations = bool(raw.outgoing_citations or raw.incoming_citations)
 
         # Build canonical decision
         canonical = {
@@ -160,6 +239,13 @@ class DecisionNormalizer:
             "judges": judges,
             "source_url": raw.source_url,
             "pdf_url": raw.pdf_url,
+            "sachverhalt": raw.sachverhalt,
+            "erwaegungen": erwaegungen,
+            "dispositiv": raw.dispositiv,
+            "dispositiv_orders": raw.dispositiv_orders,
+            "preparatory_materials": preparatory_materials,
+            "outgoing_citations": outgoing_citations,
+            "incoming_citations": incoming_citations,
             "provenance": {
                 "source": "opencaselaw_api",
                 "acquired_at": datetime.now(timezone.utc).isoformat(),
@@ -175,7 +261,13 @@ class DecisionNormalizer:
                     "raw_outcome": raw.outcome,
                     "raw_decision_type": raw.decision_type,
                     "raw_cited_decisions": raw.cited_decisions,
-                    "raw_cited_laws": raw.cited_laws
+                    "raw_cited_laws": raw.cited_laws,
+                    "has_structure": has_structure,
+                    "has_citations": has_citations,
+                    "raw_sachverhalt_chars": len(raw.sachverhalt) if raw.sachverhalt else 0,
+                    "raw_erwaegungen_count": len(raw.erwaegungen) if raw.erwaegungen else 0,
+                    "raw_outgoing_citations": len(raw.outgoing_citations) if raw.outgoing_citations else 0,
+                    "raw_incoming_citations": len(raw.incoming_citations) if raw.incoming_citations else 0
                 }
             }
         }
@@ -240,6 +332,9 @@ def write_canonical_decisions(
             court = decision.get("court", "unknown")
             stats.by_court[court] = stats.by_court.get(court, 0) + 1
 
+            branch = decision.get("branch", "unknown")
+            stats.by_branch[branch] = stats.by_branch.get(branch, 0) + 1
+
     return stats
 
 
@@ -269,6 +364,7 @@ def run_normalization(
     print(f"  By language: {stats.by_language}")
     print(f"  By year: {dict(sorted(stats.by_year.items()))}")
     print(f"  By court: {stats.by_court}")
+    print(f"  By branch: {stats.by_branch}")
 
     return stats
 
