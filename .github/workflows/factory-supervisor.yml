@@ -80,8 +80,8 @@ jobs:
             fi
           }
 
-          # A dead/free-model provider is an operational condition, never a human
-          # decision. Keep probing until a free tool-capable model returns.
+          # Provider/model trouble is operational, never a reason to ask the user.
+          # Keep probing until some explicitly free tool-capable model works again.
           if [[ "$(jq -r '.healthy // false' state/model_health.json 2>/dev/null || echo false)" != true ]]; then
             echo "::warning::No healthy free tool-capable model. Recovery probe will keep running."
             ensure_model_health
@@ -93,9 +93,14 @@ jobs:
           NEED_HEALTH=0
           DIRV=$(jq -r '.version' state/factory_direction.json)
 
-          # Any completed Core/Frontier cycle is new operational/scientific evidence
-          # worth letting the Director inspect once. Director completion itself does
-          # not recursively trigger another Director unless unresolved state below does.
+          CORE_RUN_DESIRED=$(jq '[.lanes[] | select(.status=="RUN")] | length' state/factory_direction.json)
+          CORE_HUMAN=$(jq '[.lanes[] | select(.status=="HUMAN_DECISION_REQUIRED")] | length' state/factory_direction.json)
+          FRONTIER_RUN_DESIRED=$(jq '[.teams[] | select(.status=="RUN")] | length' state/frontier_portfolio.json)
+          FRONTIER_HUMAN=$(jq '[.teams[] | select(.status=="HUMAN_DECISION_REQUIRED")] | length' state/frontier_portfolio.json)
+
+          # Any completed Core/Frontier cycle is new evidence worth one Director pass.
+          # Director completion itself does not recursively summon another Director
+          # unless unresolved state below proves there is still nowhere productive to go.
           case "$TRIGGER_WORKFLOW" in
             "LEX Core Lane"|"LEX Frontier Team") NEED_DIRECTOR=1 ;;
           esac
@@ -184,7 +189,15 @@ jobs:
           [[ -f /tmp/lex_need_director_frontier ]] && NEED_DIRECTOR=1
           [[ -f /tmp/lex_need_health_frontier ]] && NEED_HEALTH=1
 
+          # Silent idleness is illegal. If nothing is designated RUN and there is
+          # no explicit owner decision outstanding, wake the Director to find the
+          # next useful experiment/build step rather than letting the factory die.
+          if (( CORE_RUN_DESIRED + FRONTIER_RUN_DESIRED == 0 && CORE_HUMAN + FRONTIER_HUMAN == 0 )); then
+            echo "::warning::No RUN work and no human-decision gate: Director must create the next productive move."
+            NEED_DIRECTOR=1
+          fi
+
           (( NEED_HEALTH == 0 )) || ensure_model_health
           (( NEED_DIRECTOR == 0 )) || ensure_director
 
-          echo "Supervisor pass complete: operational failures retry automatically; only explicit HUMAN_DECISION_REQUIRED state pauses work."
+          echo "Supervisor pass complete: operational failures retry automatically; only explicit HUMAN_DECISION_REQUIRED state can justify idleness."
