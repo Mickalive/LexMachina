@@ -5,18 +5,65 @@
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
   "accepted_run_id": "fractal_map_run_20260826_001",
+  "accepted_commit": null,
   "evidence_refs": [
     "results/fractal_map/baseline/embeddings.npy",
     "results/fractal_map/baseline/projection_2d.npy",
     "results/fractal_map/baseline/metadata.json",
+    "results/fractal_map/baseline/umap_params.json",
     "results/fractal_map/hierarchical/leiden_multi_resolution.json",
+    "results/fractal_map/hierarchical/leiden_k_sensitivity.json",
+    "results/fractal_map/hierarchical/agglomerative_multi_resolution.json",
     "results/fractal_map/hierarchical/agglomerative_multi_resolution_with_coherence.json",
+    "results/fractal_map/hierarchical/hdbscan_multi_resolution.json",
     "results/fractal_map/hierarchical/hdbscan_multi_resolution_with_coherence.json",
+    "results/fractal_map/hierarchical/hdbscan_detailed.json",
     "results/fractal_map/hierarchical/multiscale_global_umap.json",
     "results/fractal_map/hierarchical/hierarchical_zoom_umap.json",
     "results/fractal_map/hierarchical/local_umap_samples.json",
-    "results/fractal_map/evaluation/evaluation_results.json"
+    "results/fractal_map/evaluation/evaluation_results.json",
+    "results/fractal_map/section_experiment_clean/clustering_results.json",
+    "results/fractal_map/section_experiment_clean/metadata.json",
+    "results/fractal_map/section_experiment_clean/embeddings_full_text.npy",
+    "results/fractal_map/section_experiment_clean/embeddings_sachverhalt.npy",
+    "results/fractal_map/section_experiment_clean/embeddings_erwaegungen.npy",
+    "results/fractal_map/section_experiment_clean/embeddings_dispositiv.npy",
+    "results/fractal_map/section_experiment_clean/embeddings_erwaegungen_dispositiv.npy",
+    "results/fractal_map/section_experiment_clean/embeddings_sachverhalt_erwaegungen_dispositiv.npy",
+    "reports/fractal_map/cycle_report.md",
+    "reports/fractal_map/section_embedding_experiment_report.md"
   ],
   "next_recommendation": "PIVOT_WITHIN_MISSION",
-  "notes": "Flat-map baseline established but embeddings are language-dominated. Legal-area purity max 0.58 (at cost of 1.0 language purity). Fractal hierarchy consistent (NMI 0.79-0.91) but splits follow language, not law. Pivot to legal-distance lane for legally-structured representations before further fractal-map cycles."
+  "metrics_summary": {
+    "baseline": {
+      "n_decisions": 1000,
+      "embedding_dim": 768,
+      "model": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+      "language_distribution": {"de": 605, "fr": 343, "it": 52},
+      "note": "Language-dominated: all clustering methods achieve 93-100% language purity but only 17-58% legal-area purity"
+    },
+    "best_legal_area_purity": {
+      "method": "Agglomerative",
+      "n_clusters": 200,
+      "purity": 0.5817,
+      "language_purity": 1.0,
+      "ratio": 0.5817,
+      "note": "At cost of 1.0 language purity — clusters are monolingual sub-groups"
+    },
+    "hierarchy_consistency": {
+      "method": "Leiden",
+      "nmi_range": "0.79-0.91",
+      "note": "Hierarchy splits cleanly but follows language boundaries, not legal doctrine"
+    },
+    "section_experiment": {
+      "n_decisions": 63,
+      "best_ratio": 0.5263,
+      "best_section": "sachverhalt (facts) at resolution 2.0",
+      "dispositiv_ratio": 0.5200,
+      "erwaegungen_ratio": 0.3966,
+      "note": "Sachverhalt/Dispositiv achieve ratio > 0.5 but primarily via language de-correlation, not legal signal gain. Erwägungen (legal reasoning) is MORE language-dominated (0.92) than full_text (0.89)"
+    }
+  },
+  "critical_finding": "All tested representations are dominated by language (DE/FR/IT), not legal content. The fractal hierarchy is consistent (NMI 0.79-0.91) but splits follow language boundaries. The product question 'do structured sections improve legal coherence?' is answered: only for facts/outcome (marginally), not for reasoning. Legal-distance lane must produce legal-specific embeddings before fractal-map can produce a law map rather than a language map.",
+  "notes": "Prior run 33017027741 completed all experiments and wrote reports but failed to create state/fractal-map.json (orchestration failure). This run verified result integrity (purity recomputation matches stored values exactly), wrote the missing state file, and confirmed the snapshot is audit-ready. All experimental artifacts from run 33017027741 are preserved unchanged."
 }

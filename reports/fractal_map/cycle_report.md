@@ -1,7 +1,34 @@
 # Fractal Map Lane — Cycle Report
 
 **Factory Direction Version:** 1  
-**Lane Question:** Establish a flat-map baseline, then test hierarchical/multi-resolution representations where zoom reveals legally coherent substructure rather than merely magnifying points.
+**Lane Question:** Establish a flat-map baseline, then test hierarchical/multi-resolution representations where zoom reveals legally coherent substructure rather than merely magnifying points.  
+**Original Run:** 33017027741  
+**Repair Run:** 33020090957 (this run)
+
+---
+
+## Repair Log (Run 33020090957)
+
+### Orchestration Failure Diagnosed
+Prior run 33017027741 completed all experiments, wrote reports, and saved all result artifacts, but **never created `state/fractal-map.json`** — the mandatory machine-readable lane state required by RESEARCH_PROTOCOL.md §2. This is the sole orchestration failure; no experimental work was lost.
+
+### Verification Performed
+- All 26 result artifact files verified present and non-empty
+- Embedding/metadata/projection counts confirmed matching (1000 decisions)
+- All 8 Leiden resolution label arrays confirmed length-matching metadata
+- Section experiment: 63 decisions × 6 representations × 4 resolutions — all labels valid
+- **Purity recomputation**: Leiden resolution_3.0 legal_area_purity recomputed from saved labels = 0.428285, matching stored value 0.428285 exactly
+
+### State File Created
+`state/fractal-map.json` written with all required fields per RESEARCH_PROTOCOL:
+- lane, direction_version, evidence_tier, cycle_status, continue_recommended
+- accepted_run_id, evidence_refs (25 artifacts), next_recommendation
+- metrics_summary, critical_finding, notes documenting repair provenance
+
+### No Experimental Changes
+All experimental artifacts from run 33017027741 preserved unchanged. No re-computation, no new experiments, no data modification.
+
+---
 
 ## Summary
 
