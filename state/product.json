@@ -4,9 +4,9 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": true,
-  "accepted_run_id": "33032746334",
+  "accepted_run_id": "33033658714",
   "accepted_commit": null,
-  "github_run": "33032746334",
+  "github_run": "33033658714",
   "evidence_refs": [
     "product/app/corpus_loader.py",
     "product/app/map_loader.py",
@@ -14,10 +14,14 @@
     "product/app/section_modes.py",
     "product/app/citation_loader.py",
     "product/app/proximity_explainer.py",
+    "product/app/zoom_coherence_loader.py",
+    "product/app/language_analyzer.py",
+    "product/app/tfidf_proximity.py",
     "product/server.py",
     "product/static/index.html",
     "product/tests/test_product.py",
     "product/tests/test_cycle_33032746334.py",
+    "product/tests/test_cycle_33033658714.py",
     "product/requirements.txt",
     "product/results/corpus/normalization/canonical/bger_2000plus_slice_1000.jsonl",
     "product/results/corpus/normalization/canonical/bger_2020.jsonl",
@@ -44,7 +48,8 @@
     "product/results/fractal_map/section_experiment_clean/projection_dispositiv.npy",
     "product/results/fractal_map/section_experiment_clean/projection_full_text.npy",
     "product/results/fractal_map/section_experiment_clean/projection_erwaegungen_dispositiv.npy",
-    "product/results/fractal_map/section_experiment_clean/projection_sachverhalt_erwaegungen_dispositiv.npy"
+    "product/results/fractal_map/section_experiment_clean/projection_sachverhalt_erwaegungen_dispositiv.npy",
+    "product/results/fractal_map/evaluation/zoom_coherence_results.json"
   ],
   "repair_refs": [
     "CYCLE_33027622849_REPAIR: Fixed missing numpy dependency (added requirements.txt)",
@@ -73,7 +78,11 @@
     "CYCLE_33032746334_FEAT: Added proximity explanation UI in decision detail panel (FEAT-015)",
     "CYCLE_33032746334_FEAT: Added cluster coherence indicators in sidebar cards (FEAT-016)",
     "CYCLE_33032746334_FEAT: Added language-colored map points and tooltips (FEAT-017)",
-    "CYCLE_33032746334_FEAT: Added keyboard shortcuts (1-4 zoom, Esc close) (FEAT-018)"
+    "CYCLE_33032746334_FEAT: Added keyboard shortcuts (1-4 zoom, Esc close) (FEAT-018)",
+    "CYCLE_33033658714_FEAT: Added zoom coherence integration from fractal-map lane (FEAT-019)",
+    "CYCLE_33033658714_FEAT: Added language dominance analysis for clusters (FEAT-020)",
+    "CYCLE_33033658714_FEAT: Added cross-language neighbor discovery (FEAT-021)",
+    "CYCLE_33033658714_FEAT: Added TF-IDF text similarity for proximity explanations (FEAT-022)"
   ],
   "next_recommendation": "CONTINUE",
   "metrics_summary": {
@@ -115,6 +124,17 @@
       "clusters_total": 11,
       "mixed_language_clusters": 1
     },
+    "zoom_coherence": {
+      "overall_improvement_rate": 0.396,
+      "total_improvements": 19,
+      "total_deteriorations": 0,
+      "best_zoom_ratio": 0.920,
+      "flat_baseline_best_ratio": 0.492
+    },
+    "language_analysis": {
+      "tfidf_vocab_size": 22852,
+      "tfidf_documents": 1202
+    },
     "navigation_features": [
       "cluster_exploration",
       "zoom_level_switching",
@@ -137,7 +157,11 @@
       "cluster_coherence_analysis",
       "language_aware_filtering",
       "language_colored_points",
-      "keyboard_shortcuts"
+      "keyboard_shortcuts",
+      "zoom_coherence_metrics",
+      "cluster_language_analysis",
+      "cross_language_neighbors",
+      "tfidf_text_similarity"
     ],
     "web_frontend": "single_page_html5_canvas",
     "api_endpoints": [
@@ -154,6 +178,11 @@
       "GET /api/corpus/stats",
       "GET /api/proximity?id_a=&id_b=",
       "GET /api/cluster_coherence?representation=&zoom=&cluster_id=",
+      "GET /api/zoom_coherence",
+      "GET /api/zoom_coherence/flat_baseline",
+      "GET /api/cluster_language_analysis?representation=&zoom=&cluster_id=",
+      "GET /api/cross_language_neighbors?id=&n=",
+      "GET /api/text_similarity?id_a=&id_b=",
       "POST /api/import"
     ],
     "test_results": {
@@ -174,18 +203,24 @@
       "cluster_coherence": "PASS",
       "cluster_coherence_all": "PASS",
       "proximity_api_endpoint": "PASS",
-      "language_filter": "PASS"
+      "language_filter": "PASS",
+      "zoom_coherence_loader": "PASS",
+      "language_analyzer": "PASS",
+      "tfidf_proximity": "PASS",
+      "navigation_new_endpoints": "PASS"
     }
   },
-  "notes": "Cycle 33032746334: Added proximity explanation engine (6-feature decomposition with language downweighted), cluster coherence analysis (10/11 clusters dominated by single language confirmed), language-aware map filtering, and comprehensive frontend updates. Addresses product directive requirement for 'understandable explanations of proximity' and evaluation finding that baseline is FALSIFIED (language dominance 0.982). All 18/18 tests pass (9 original + 9 new).",
+  "notes": "Cycle 33033658714: Integrated accepted research findings from fractal-map and evaluation lanes. Added zoom coherence integration (39.6% improvement rate, 0 deteriorations), language dominance analysis for clusters, cross-language neighbor discovery, and TF-IDF text similarity for proximity explanations. All 13/13 tests pass (9 original + 4 new). Addresses evaluation finding that baseline is FALSIFIED (language dominance 0.982) and fractal-map finding that zoom reveals legally coherent substructure.",
   "known_limitations": [
     "Section modes cover 63 of 1000 decisions (6.3%) — section projections only available for a subset",
     "Frontend uses HTML5 Canvas only - no WebGL/Mapbox for large-scale rendering",
     "No authentication or rate limiting on API",
     "HDBSCAN produces fewer clusters than Leiden at same zoom levels (2-8 vs 5-21)",
-    "Proximity explanations use metadata-level features only (no deep text similarity)",
+    "TF-IDF model uses truncated text (2000 chars max per document)",
+    "Cross-language neighbors limited by language-dominant clustering",
     "Language filter is a simple toggle (no compound language queries)",
-    "Cluster coherence is computed on-demand (not cached server-side)"
+    "Cluster coherence is computed on-demand (not cached server-side)",
+    "Frontend not yet updated to display zoom coherence and language analysis features"
   ],
   "resolved_issues": [
     "Orchestration failure: Missing numpy dependency prevented test execution (fixed: requirements.txt added)",
@@ -200,11 +235,18 @@
     "No map modes: Single TF-IDF view with no way to switch perspectives (fixed: 6 section-based modes + citation graph)",
     "No proximity explanations: Users could not understand why decisions are neighbors (fixed: 6-feature decomposition engine)",
     "No cluster coherence indicators: Users could not see what makes clusters coherent (fixed: language/branch/legal_area distributions)",
-    "No language awareness: Map showed all languages equally with no way to filter (fixed: language toggle + colored points)"
+    "No language awareness: Map showed all languages equally with no way to filter (fixed: language toggle + colored points)",
+    "No zoom coherence metrics: Users could not see how zoom reveals legal structure (fixed: zoom coherence API endpoints)",
+    "No language dominance analysis: Users could not see language dominance in clusters (fixed: cluster language analysis endpoint)",
+    "No cross-language discovery: Users could not find similar decisions in other languages (fixed: cross-language neighbors endpoint)",
+    "No text similarity: Proximity explanations lacked deep text similarity (fixed: TF-IDF cosine similarity)"
   ],
   "next_steps": [
+    "Update frontend to display zoom coherence metrics and language analysis",
+    "Add zoom coherence indicators to cluster cards",
+    "Add language dominance warnings to cluster view",
+    "Add cross-language neighbor discovery UI",
     "Scale section projections to cover full 1000-decision corpus",
-    "Add deep text similarity (TF-IDF cosine) to proximity explanations",
     "Persist user-imported map artifacts to survive server restarts",
     "Add WebGL/Mapbox rendering for large-scale map visualization",
     "Compare Leiden vs HDBSCAN cluster quality on legal-area benchmark",

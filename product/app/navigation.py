@@ -16,6 +16,9 @@ from .map_loader import MapLoader
 from .section_modes import SectionModeLoader
 from .citation_loader import CitationLoader
 from .proximity_explainer import ProximityExplainer
+from .zoom_coherence_loader import ZoomCoherenceLoader
+from .language_analyzer import LanguageAnalyzer
+from .tfidf_proximity import TFIDFProximity
 
 
 class NavigationAPI:
@@ -41,6 +44,9 @@ class NavigationAPI:
             str(Path(results_dir) / "citation_graph" / "citation_graph.json")
         )
         self.proximity_explainer = ProximityExplainer(self.corpus)
+        self.zoom_coherence = ZoomCoherenceLoader(results_dir)
+        self.language_analyzer = LanguageAnalyzer()
+        self.tfidf_proximity = TFIDFProximity()
         self._initialized = False
         self._map_meta_cache: Dict[str, Dict] = {}
 
@@ -62,6 +68,12 @@ class NavigationAPI:
         map_count = self.map_loader.load()
         section_count = self.section_modes.load()
         citation_loaded = self.citation_loader.load()
+        zoom_coherence_loaded = self.zoom_coherence.load()
+        
+        # Build TF-IDF model from corpus
+        corpus_decisions = self.corpus.get_all_decisions()
+        if corpus_decisions:
+            self.tfidf_proximity.build_from_corpus(corpus_decisions)
 
         self._initialized = True
 
@@ -71,6 +83,8 @@ class NavigationAPI:
             "maps_loaded": map_count,
             "section_modes_loaded": section_count,
             "citation_graph_loaded": citation_loaded,
+            "zoom_coherence_loaded": zoom_coherence_loaded,
+            "tfidf_model_built": self.tfidf_proximity._built,
             "representations": self.map_loader.get_available_representations(),
             "languages": self.corpus.languages,
             "branches": self.corpus.branches,
@@ -683,3 +697,108 @@ class NavigationAPI:
             "language_filter": list(filter_set) if filter_set else None,
             "map_mode": None,
         }
+
+    def get_zoom_coherence_summary(self) -> Dict[str, Any]:
+        """Get zoom coherence summary from fractal-map experiment results."""
+        if not self._initialized:
+            return {"error": "Not initialized"}
+        return self.zoom_coherence.get_summary()
+
+    def get_zoom_coherence_flat_baseline(self) -> Dict[str, Any]:
+        """Get flat baseline metrics at different resolutions."""
+        if not self._initialized:
+            return {"error": "Not initialized"}
+        return self.zoom_coherence.get_flat_baseline()
+
+    def get_cluster_language_analysis(
+        self,
+        representation: str,
+        zoom_level: int,
+        cluster_id: int,
+    ) -> Dict[str, Any]:
+        """Analyze language dominance for a specific cluster."""
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        zl = self.map_loader.get_zoom_level(representation, zoom_level)
+        if not zl:
+            return {"error": "Zoom level not found"}
+
+        cluster = zl.clusters.get(cluster_id)
+        if not cluster:
+            return {"error": "Cluster not found"}
+
+        # Get decisions in this cluster
+        decisions = []
+        for did in cluster.decision_ids:
+            summary = self.corpus.get_summary(did)
+            if summary:
+                decisions.append(summary)
+
+        return self.language_analyzer.analyze_cluster_language_dominance(
+            decisions, cluster_id
+        )
+
+    def get_cross_language_neighbors(
+        self,
+        decision_id: str,
+        n_neighbors: int = 10,
+    ) -> Dict[str, Any]:
+        """Find cross-language neighbors for a decision."""
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        summary = self.corpus.get_summary(decision_id)
+        if not summary:
+            return {"error": f"Decision {decision_id} not found"}
+
+        decision_language = summary.get("language", "unknown")
+        
+        # Get all positions
+        positions = self.map_loader.get_positions("concat_center_tfidf")
+        
+        # Build corpus summaries dict
+        corpus_ids = set(self.corpus.get_all_ids())
+        corpus_summaries = {}
+        for did in corpus_ids:
+            s = self.corpus.get_summary(did)
+            if s:
+                corpus_summaries[did] = s
+
+        # Find neighbors (same language and cross-language)
+        same_lang_neighbors = self.language_analyzer.find_cross_language_neighbors(
+            decision_id, decision_language, positions, corpus_summaries,
+            n_neighbors=n_neighbors, same_language_only=True
+        )
+        
+        cross_lang_neighbors = self.language_analyzer.find_cross_language_neighbors(
+            decision_id, decision_language, positions, corpus_summaries,
+            n_neighbors=n_neighbors, same_language_only=False
+        )
+
+        return {
+            "decision_id": decision_id,
+            "decision_language": decision_language,
+            "same_language_neighbors": same_lang_neighbors,
+            "cross_language_neighbors": [n for n in cross_lang_neighbors if n["is_cross_language"]][:n_neighbors],
+            "all_neighbors": cross_lang_neighbors[:n_neighbors],
+        }
+
+    def get_text_similarity(
+        self,
+        decision_id_a: str,
+        decision_id_b: str,
+    ) -> Dict[str, Any]:
+        """Get text-based similarity between two decisions using TF-IDF."""
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        corpus_summaries = {}
+        for did in self.corpus.get_all_ids():
+            s = self.corpus.get_summary(did)
+            if s:
+                corpus_summaries[did] = s
+
+        return self.tfidf_proximity.get_similarity_explanation(
+            decision_id_a, decision_id_b, corpus_summaries
+        )

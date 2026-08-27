@@ -161,6 +161,10 @@ class CorpusLoader:
         """Return summaries of all decisions."""
         return [d.to_summary() for d in self.decisions.values()]
 
+    def get_all_decisions(self) -> List[Dict]:
+        """Return full details of all decisions (for TF-IDF model building)."""
+        return [d.to_full() for d in self.decisions.values()]
+
     def get_by_language(self, language: str) -> List[Dict]:
         """Get decisions filtered by language."""
         return [d.to_summary() for d in self.decisions.values() if d.language == language]

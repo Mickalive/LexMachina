@@ -87,6 +87,24 @@ class ProductHandler(SimpleHTTPRequestHandler):
             zoom = int(params.get("zoom", ["1"])[0])
             cid = int(params.get("cluster_id", ["0"])[0])
             self._json_response(get_nav_api().get_cluster_coherence(rep, zoom, cid))
+        # New endpoints for this cycle
+        elif path == "/api/zoom_coherence":
+            self._json_response(get_nav_api().get_zoom_coherence_summary())
+        elif path == "/api/zoom_coherence/flat_baseline":
+            self._json_response(get_nav_api().get_zoom_coherence_flat_baseline())
+        elif path == "/api/cluster_language_analysis":
+            rep = params.get("representation", ["concat_center_tfidf"])[0]
+            zoom = int(params.get("zoom", ["1"])[0])
+            cid = int(params.get("cluster_id", ["0"])[0])
+            self._json_response(get_nav_api().get_cluster_language_analysis(rep, zoom, cid))
+        elif path == "/api/cross_language_neighbors":
+            did = params.get("id", [""])[0]
+            n = int(params.get("n", ["10"])[0])
+            self._json_response(get_nav_api().get_cross_language_neighbors(did, n))
+        elif path == "/api/text_similarity":
+            id_a = params.get("id_a", [""])[0]
+            id_b = params.get("id_b", [""])[0]
+            self._json_response(get_nav_api().get_text_similarity(id_a, id_b))
         # Static files
         elif path == "/" or path == "/index.html":
             self._serve_file("static/index.html", "text/html")
@@ -206,7 +224,8 @@ def run_server(port=8080):
     print(f"Initializing LexMachina navigation...")
     nav = get_nav_api()
     print(f"Loaded {nav.corpus.size} decisions, {len(nav.map_loader.get_available_representations())} maps, "
-          f"{len(nav.section_modes.modes)} section modes, citation graph: {nav.citation_loader.get_stats()}")
+          f"{len(nav.section_modes.modes)} section modes, citation graph: {nav.citation_loader.get_stats()}, "
+          f"zoom coherence: {nav.zoom_coherence._loaded}, TF-IDF model: {nav.tfidf_proximity._built}")
 
     server = HTTPServer(("0.0.0.0", port), ProductHandler)
     print(f"LexMachina server running on http://localhost:{port}")
