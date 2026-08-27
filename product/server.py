@@ -142,6 +142,21 @@ class ProductHandler(SimpleHTTPRequestHandler):
             year_start = int(params["year_start"][0]) if "year_start" in params else None
             year_end = int(params["year_end"][0]) if "year_end" in params else None
             self._json_response(get_nav_api().get_temporal_map_data(rep, zoom, year_start, year_end))
+        # Map export endpoints
+        elif path == "/api/map/export":
+            default_rep = get_default_representation()
+            rep = params.get("representation", [default_rep])[0]
+            zoom = int(params.get("zoom", ["1"])[0])
+            fmt = params.get("format", ["json"])[0]
+            include_meta = params.get("include_metadata", ["true"])[0].lower() == "true"
+            self._json_response(get_nav_api().export_map_data(rep, zoom, fmt, include_meta))
+        elif path == "/api/cluster/export":
+            default_rep = get_default_representation()
+            rep = params.get("representation", [default_rep])[0]
+            zoom = int(params.get("zoom", ["1"])[0])
+            cid = int(params.get("cluster_id", ["0"])[0])
+            fmt = params.get("format", ["json"])[0]
+            self._json_response(get_nav_api().export_cluster_decisions(rep, zoom, cid, fmt))
         # Static files
         elif path == "/" or path == "/index.html":
             self._serve_file("static/index.html", "text/html")

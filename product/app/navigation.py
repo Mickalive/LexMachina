@@ -7,9 +7,13 @@ Supports multi-view navigation via section-based map modes and
 citation graph integration.
 """
 import json
+import os
 from collections import Counter
 from typing import Dict, List, Optional, Tuple, Any
 from pathlib import Path
+
+import numpy as np
+from sentence_transformers import SentenceTransformer
 
 from .corpus_loader import CorpusLoader
 from .map_loader import MapLoader
@@ -32,7 +36,11 @@ class NavigationAPI:
     - Statistics and metadata
     - Multi-view map modes (section-based projections)
     - Citation graph navigation
+    - User corpus import with map position computation
     """
+
+    # Embedding model used by the fractal-map baseline
+    EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
 
     def __init__(self, corpus_dir: str, results_dir: str):
         self.corpus = CorpusLoader(corpus_dir)
@@ -50,6 +58,13 @@ class NavigationAPI:
         self.tfidf_proximity = TFIDFProximity()
         self._initialized = False
         self._map_meta_cache: Dict[str, Dict] = {}
+        
+        # User import map artifacts
+        self._base_embeddings: Optional[np.ndarray] = None
+        self._base_decision_ids: List[str] = []
+        self._embedding_model: Optional[SentenceTransformer] = None
+        self._import_positions_file: Optional[Path] = None
+        self._imported_positions: Dict[str, Dict] = {}  # decision_id -> {x, y, cluster, zoom_level, representation}
 
     def _get_map_decision_meta(self, decision_id: str) -> Dict:
         """Get metadata for a map decision not in the corpus (from baseline metadata)."""
@@ -76,6 +91,14 @@ class NavigationAPI:
         if corpus_decisions:
             self.tfidf_proximity.build_from_corpus(corpus_decisions)
 
+        # Load base embeddings for user import position computation
+        self._load_base_embeddings()
+        
+        # Set up user import positions file
+        self._import_positions_file = Path(self.map_loader.results_dir) / "user_imports" / "imported_positions.jsonl"
+        self._import_positions_file.parent.mkdir(parents=True, exist_ok=True)
+        self._load_imported_positions()
+
         self._initialized = True
 
         return {
@@ -89,7 +112,177 @@ class NavigationAPI:
             "representations": self.map_loader.get_available_representations(),
             "languages": self.corpus.languages,
             "branches": self.corpus.branches,
+            "user_import_positions": len(self._imported_positions),
         }
+
+    def _load_base_embeddings(self) -> None:
+        """Load base corpus embeddings for k-NN search during user imports."""
+        try:
+            embeddings_path = Path(self.map_loader.results_dir) / "baseline" / "embeddings.npy"
+            metadata_path = Path(self.map_loader.results_dir) / "baseline" / "metadata.json"
+            
+            if embeddings_path.exists() and metadata_path.exists():
+                self._base_embeddings = np.load(embeddings_path)
+                with open(metadata_path, "r") as f:
+                    metadata = json.load(f)
+                self._base_decision_ids = [m["decision_id"] for m in metadata]
+                
+                # Load embedding model for new imports
+                self._embedding_model = SentenceTransformer(self.EMBEDDING_MODEL)
+        except Exception as e:
+            # Don't fail initialization if embeddings can't be loaded
+            self._base_embeddings = None
+            self._base_decision_ids = []
+            self._embedding_model = None
+
+    def _load_imported_positions(self) -> None:
+        """Load previously computed import positions from disk."""
+        if not self._import_positions_file or not self._import_positions_file.exists():
+            return
+        
+        try:
+            with open(self._import_positions_file, "r") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    record = json.loads(line)
+                    did = record.get("decision_id")
+                    if did:
+                        self._imported_positions[did] = record
+        except Exception:
+            pass
+
+    def _save_imported_position(self, record: Dict) -> None:
+        """Persist an imported decision's map position to disk."""
+        if not self._import_positions_file:
+            return
+        
+        try:
+            with open(self._import_positions_file, "a") as f:
+                f.write(json.dumps(record, ensure_ascii=False) + "\n")
+        except Exception:
+            pass
+
+    def _compute_import_positions(
+        self,
+        imported_decisions: List[Dict],
+        representation: str = "debiased_citation_blended",
+        zoom_level: int = 1,
+    ) -> List[Dict]:
+        """
+        Compute map positions for newly imported decisions using k-NN in embedding space.
+        
+        For each imported decision:
+        1. Compute its embedding using the same model as the base corpus
+        2. Find k nearest neighbors in the base corpus embedding space
+        3. Assign to the majority cluster of neighbors
+        4. Position near the centroid of neighbors with small jitter
+        5. Persist the position for future loads
+        
+        Returns list of position records for the imported decisions.
+        """
+        if self._base_embeddings is None or len(self._base_embeddings) == 0:
+            return []
+        if not self._embedding_model:
+            return []
+        
+        # Get base map data for cluster assignments and positions
+        zl = self.map_loader.get_zoom_level(representation, zoom_level)
+        if not zl:
+            return []
+        
+        base_positions = zl.positions
+        base_cluster_assignments = zl.cluster_assignments
+        
+        # Prepare texts for imported decisions
+        texts = []
+        for d in imported_decisions:
+            text = d.get("full_text", "")
+            if not text:
+                text = f"{d.get('title', '')} {d.get('legal_area', '')}"
+            texts.append(text)
+        
+        # Compute embeddings for imported decisions
+        try:
+            import_embeddings = self._embedding_model.encode(texts, convert_to_numpy=True, show_progress_bar=False)
+        except Exception:
+            return []
+        
+        results = []
+        for i, decision in enumerate(imported_decisions):
+            did = decision.get("decision_id", "")
+            if not did:
+                continue
+            
+            # Skip if already have a persisted position
+            if did in self._imported_positions:
+                continue
+            
+            emb = import_embeddings[i]
+            
+            # Find k nearest neighbors in base embedding space (cosine similarity)
+            # Normalize embeddings for cosine similarity
+            emb_norm = emb / (np.linalg.norm(emb) + 1e-8)
+            base_norms = np.linalg.norm(self._base_embeddings, axis=1, keepdims=True)
+            base_norms[base_norms == 0] = 1
+            base_normalized = self._base_embeddings / base_norms
+            
+            # Cosine similarities
+            similarities = base_normalized @ emb_norm
+            
+            # Get top k neighbors
+            k = 5
+            top_k_indices = np.argpartition(similarities, -k)[-k:]
+            top_k_indices = top_k_indices[np.argsort(similarities[top_k_indices])[::-1]]
+            
+            # Get neighbor info
+            neighbor_clusters = []
+            neighbor_positions = []
+            for idx in top_k_indices:
+                neighbor_did = self._base_decision_ids[idx]
+                if neighbor_did in base_cluster_assignments:
+                    neighbor_clusters.append(base_cluster_assignments[neighbor_did])
+                if neighbor_did in base_positions:
+                    neighbor_positions.append(base_positions[neighbor_did])
+            
+            if not neighbor_clusters:
+                continue
+            
+            # Assign to majority cluster
+            from collections import Counter
+            cluster_counter = Counter(neighbor_clusters)
+            assigned_cluster = cluster_counter.most_common(1)[0][0]
+            
+            # Position: centroid of neighbor positions with small jitter
+            if neighbor_positions:
+                centroid_x = np.mean([p[0] for p in neighbor_positions])
+                centroid_y = np.mean([p[1] for p in neighbor_positions])
+                # Add small jitter to avoid exact overlap
+                jitter_scale = 0.01
+                x = centroid_x + np.random.normal(0, jitter_scale)
+                y = centroid_y + np.random.normal(0, jitter_scale)
+            else:
+                x, y = 0.0, 0.0
+            
+            # Build position record
+            record = {
+                "decision_id": did,
+                "x": float(x),
+                "y": float(y),
+                "cluster": int(assigned_cluster),
+                "zoom_level": zoom_level,
+                "representation": representation,
+                "neighbor_count": len(neighbor_clusters),
+                "assigned_via": "knn_embedding",
+            }
+            
+            # Persist
+            self._imported_positions[did] = record
+            self._save_imported_position(record)
+            results.append(record)
+        
+        return results
 
     def get_overview(self) -> Dict[str, Any]:
         """Get high-level overview of the map."""
@@ -172,7 +365,27 @@ class NavigationAPI:
                 "branch": (summary.get("branch") if summary else meta.get("branch", "unknown")),
                 "legal_area": (summary.get("legal_area") if summary else meta.get("legal_area", "unknown")),
                 "has_corpus": did in corpus_ids,
+                "is_imported": False,
             })
+
+        # Add imported decision positions for this representation and zoom level
+        for did, pos_record in self._imported_positions.items():
+            if pos_record.get("representation") == representation and pos_record.get("zoom_level") == zoom_level:
+                summary = self.corpus.get_summary(did)
+                meta = {}
+                if not summary:
+                    meta = self._get_map_decision_meta(did)
+                positions.append({
+                    "decision_id": did,
+                    "x": pos_record["x"],
+                    "y": pos_record["y"],
+                    "cluster": pos_record["cluster"],
+                    "language": (summary.get("language") if summary else meta.get("language", "unknown")),
+                    "branch": (summary.get("branch") if summary else meta.get("branch", "unknown")),
+                    "legal_area": (summary.get("legal_area") if summary else meta.get("legal_area", "unknown")),
+                    "has_corpus": did in corpus_ids,
+                    "is_imported": True,
+                })
 
         return {
             "representation": representation,
@@ -438,12 +651,30 @@ class NavigationAPI:
 
         Accepts a list of JSONL-style decision records. Validates the schema,
         persists to a user-import directory, and reloads the corpus index.
+        Computes map positions for imported decisions using k-NN in embedding space.
         Returns import statistics.
         """
         if not self._initialized:
             return {"error": "Not initialized"}
 
         result = self.corpus.import_records(records)
+        
+        # Compute map positions for newly imported decisions
+        if result.get("imported", 0) > 0:
+            # Get the imported decision records (those with imported_ids)
+            imported_ids = result.get("imported_ids", [])
+            imported_decisions = []
+            for did in imported_ids:
+                d = self.corpus.get(did)
+                if d:
+                    imported_decisions.append(d.to_full())
+            
+            # Compute positions for the default representation at zoom level 1
+            default_rep = "debiased_citation_blended"
+            position_results = self._compute_import_positions(imported_decisions, default_rep, 1)
+            result["map_positions_computed"] = len(position_results)
+            result["default_representation"] = default_rep
+        
         return result
 
     def get_corpus_stats(self) -> Dict[str, Any]:
@@ -922,3 +1153,172 @@ class NavigationAPI:
         return self.tfidf_proximity.get_similarity_explanation(
             decision_id_a, decision_id_b, corpus_summaries
         )
+
+    def export_map_data(
+        self,
+        representation: str = "debiased_citation_blended",
+        zoom_level: int = 1,
+        format: str = "json",
+        include_metadata: bool = True,
+    ) -> Dict[str, Any]:
+        """Export map data for external use.
+
+        Args:
+            representation: Map representation to export
+            zoom_level: Zoom level to export
+            format: Export format ("json" or "csv")
+            include_metadata: Whether to include decision metadata in export
+
+        Returns:
+            Export data or error info
+        """
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        zl = self.map_loader.get_zoom_level(representation, zoom_level)
+        if not zl:
+            return {"error": f"Zoom level {zoom_level} not available for {representation}"}
+
+        # Build export data
+        corpus_ids = set(self.corpus.get_all_ids())
+        positions = zl.positions
+        cluster_assignments = zl.cluster_assignments
+
+        # Collect all data
+        export_rows = []
+        for did, (x, y) in positions.items():
+            summary = self.corpus.get_summary(did)
+            meta = {}
+            if not summary:
+                meta = self._get_map_decision_meta(did)
+
+            row = {
+                "decision_id": did,
+                "x": round(x, 6),
+                "y": round(y, 6),
+                "cluster": cluster_assignments.get(did, -1),
+                "language": summary.get("language") if summary else meta.get("language", "unknown"),
+                "branch": summary.get("branch") if summary else meta.get("branch", "unknown"),
+                "legal_area": summary.get("legal_area") if summary else meta.get("legal_area", "unknown"),
+                "has_corpus": did in corpus_ids,
+            }
+
+            if include_metadata and summary:
+                row.update({
+                    "docket_number": summary.get("docket_number", ""),
+                    "decision_date": summary.get("decision_date", ""),
+                    "title": summary.get("title", ""),
+                    "chamber": summary.get("chamber", ""),
+                    "outcome": summary.get("outcome", ""),
+                    "text_length": summary.get("text_length", 0),
+                })
+
+            export_rows.append(row)
+
+        # Build cluster summaries
+        clusters = []
+        for cid, cluster in zl.clusters.items():
+            clusters.append({
+                "cluster_id": cid,
+                "size": cluster.size,
+                "centroid_x": round(cluster.centroid_x, 6),
+                "centroid_y": round(cluster.centroid_y, 6),
+            })
+
+        export_data = {
+            "representation": representation,
+            "zoom_level": zoom_level,
+            "n_clusters": zl.n_clusters,
+            "n_decisions": zl.n_decisions,
+            "clusters": clusters,
+            "positions": export_rows,
+        }
+
+        if format == "json":
+            return {"format": "json", "data": export_data}
+        elif format == "csv":
+            # Generate CSV content
+            import csv
+            import io
+            output = io.StringIO()
+            if export_rows:
+                fieldnames = list(export_rows[0].keys())
+                writer = csv.DictWriter(output, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(export_rows)
+            return {"format": "csv", "data": output.getvalue()}
+        else:
+            return {"error": f"Unsupported format: {format}. Use 'json' or 'csv'."}
+
+    def export_cluster_decisions(
+        self,
+        representation: str,
+        zoom_level: int,
+        cluster_id: int,
+        format: str = "json",
+    ) -> Dict[str, Any]:
+        """Export all decisions in a specific cluster."""
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        zl = self.map_loader.get_zoom_level(representation, zoom_level)
+        if not zl:
+            return {"error": f"Zoom level {zoom_level} not available for {representation}"}
+
+        cluster = zl.clusters.get(cluster_id)
+        if not cluster:
+            return {"error": f"Cluster {cluster_id} not found"}
+
+        corpus_ids = set(self.corpus.get_all_ids())
+        export_rows = []
+
+        for did in cluster.decision_ids:
+            summary = self.corpus.get_summary(did)
+            meta = self._get_map_decision_meta(did) if not summary else {}
+            x, y = zl.positions.get(did, (0, 0))
+
+            row = {
+                "decision_id": did,
+                "x": round(x, 6),
+                "y": round(y, 6),
+                "cluster": cluster_id,
+                "language": summary.get("language") if summary else meta.get("language", "unknown"),
+                "branch": summary.get("branch") if summary else meta.get("branch", "unknown"),
+                "legal_area": summary.get("legal_area") if summary else meta.get("legal_area", "unknown"),
+                "has_corpus": did in corpus_ids,
+            }
+            if summary:
+                row.update({
+                    "docket_number": summary.get("docket_number", ""),
+                    "decision_date": summary.get("decision_date", ""),
+                    "title": summary.get("title", ""),
+                    "chamber": summary.get("chamber", ""),
+                    "outcome": summary.get("outcome", ""),
+                })
+            export_rows.append(row)
+
+        if format == "json":
+            return {
+                "format": "json",
+                "data": {
+                    "representation": representation,
+                    "zoom_level": zoom_level,
+                    "cluster_id": cluster_id,
+                    "cluster_size": cluster.size,
+                    "centroid_x": round(cluster.centroid_x, 6),
+                    "centroid_y": round(cluster.centroid_y, 6),
+                    "decisions": export_rows,
+                }
+            }
+        elif format == "csv":
+            import csv
+            import io
+            output = io.StringIO()
+            if export_rows:
+                fieldnames = list(export_rows[0].keys())
+                writer = csv.DictWriter(output, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(export_rows)
+            return {"format": "csv", "data": output.getvalue()}
+        else:
+            return {"error": f"Unsupported format: {format}. Use 'json' or 'csv'."}

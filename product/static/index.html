@@ -279,6 +279,16 @@
                 <span class="imported-badge">IMPORTED</span>
                 <div class="imported-count" id="imported-count-text"></div>
             </div>
+            <div id="export-box" style="padding: 8px 16px; border-bottom: 1px solid #2a2a3a;">
+                <label style="font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">Export Map</label>
+                <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
+                    <button id="export-map-json" style="padding: 6px 8px; background: #1a1a2a; border: 1px solid #333; border-radius: 4px; color: #7c8aff; cursor: pointer; font-size: 11px;">Export Map (JSON)</button>
+                    <button id="export-map-csv" style="padding: 6px 8px; background: #1a1a2a; border: 1px solid #333; border-radius: 4px; color: #7c8aff; cursor: pointer; font-size: 11px;">Export Map (CSV)</button>
+                    <button id="export-cluster-json" style="padding: 6px 8px; background: #1a1a2a; border: 1px solid #333; border-radius: 4px; color: #51cf66; cursor: pointer; font-size: 11px;">Export Selected Cluster (JSON)</button>
+                    <button id="export-cluster-csv" style="padding: 6px 8px; background: #1a1a2a; border: 1px solid #333; border-radius: 4px; color: #51cf66; cursor: pointer; font-size: 11px;">Export Selected Cluster (CSV)</button>
+                </div>
+                <div id="export-status" style="font-size: 10px; color: #666; margin-top: 4px;"></div>
+            </div>
             <div id="cluster-list">
                 <div id="loading">Loading map data...</div>
             </div>
@@ -1282,6 +1292,92 @@
             status.textContent = `Parse error: ${err.message}`;
         }
     });
+
+    // === NEW: Map Export Handlers ===
+    function downloadFile(content, filename, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    async function handleExportMap(format) {
+        const status = document.getElementById('export-status');
+        status.style.color = '#888';
+        status.textContent = `Exporting map as ${format.toUpperCase()}...`;
+
+        try {
+            const rep = currentMode ? 'concat_center_tfidf' : currentRep;
+            const resp = await fetch(`${API}/api/map/export?representation=${rep}&zoom=${currentZoom}&format=${format}&include_metadata=true`);
+            const result = await resp.json();
+
+            if (result.error) {
+                status.style.color = '#ff6b6b';
+                status.textContent = `Export failed: ${result.error}`;
+            } else if (result.format === 'json') {
+                const filename = `lexmachina_map_${rep}_zoom${currentZoom}.json`;
+                downloadFile(JSON.stringify(result.data, null, 2), filename, 'application/json');
+                status.style.color = '#51cf66';
+                status.textContent = `Exported ${result.data.n_decisions} decisions, ${result.data.n_clusters} clusters to ${filename}`;
+            } else if (result.format === 'csv') {
+                const filename = `lexmachina_map_${rep}_zoom${currentZoom}.csv`;
+                downloadFile(result.data, filename, 'text/csv');
+                const rowCount = result.data.split('\n').length - 1;
+                status.style.color = '#51cf66';
+                status.textContent = `Exported ${rowCount} decisions to ${filename}`;
+            }
+        } catch (err) {
+            status.style.color = '#ff6b6b';
+            status.textContent = `Export failed: ${err.message}`;
+        }
+    }
+
+    async function handleExportCluster(format) {
+        const status = document.getElementById('export-status');
+        if (selectedCluster === null) {
+            status.style.color = '#ff922b';
+            status.textContent = 'No cluster selected. Click a cluster in the list first.';
+            return;
+        }
+
+        status.style.color = '#888';
+        status.textContent = `Exporting cluster ${selectedCluster} as ${format.toUpperCase()}...`;
+
+        try {
+            const rep = currentMode ? 'concat_center_tfidf' : currentRep;
+            const resp = await fetch(`${API}/api/cluster/export?representation=${rep}&zoom=${currentZoom}&cluster_id=${selectedCluster}&format=${format}`);
+            const result = await resp.json();
+
+            if (result.error) {
+                status.style.color = '#ff6b6b';
+                status.textContent = `Export failed: ${result.error}`;
+            } else if (result.format === 'json') {
+                const filename = `lexmachina_cluster${selectedCluster}_${rep}_zoom${currentZoom}.json`;
+                downloadFile(JSON.stringify(result.data, null, 2), filename, 'application/json');
+                status.style.color = '#51cf66';
+                status.textContent = `Exported cluster ${selectedCluster} (${result.data.cluster_size} decisions) to ${filename}`;
+            } else if (result.format === 'csv') {
+                const filename = `lexmachina_cluster${selectedCluster}_${rep}_zoom${currentZoom}.csv`;
+                downloadFile(result.data, filename, 'text/csv');
+                const rowCount = result.data.split('\n').length - 1;
+                status.style.color = '#51cf66';
+                status.textContent = `Exported ${rowCount} decisions to ${filename}`;
+            }
+        } catch (err) {
+            status.style.color = '#ff6b6b';
+            status.textContent = `Export failed: ${err.message}`;
+        }
+    }
+
+    document.getElementById('export-map-json').addEventListener('click', () => handleExportMap('json'));
+    document.getElementById('export-map-csv').addEventListener('click', () => handleExportMap('csv'));
+    document.getElementById('export-cluster-json').addEventListener('click', () => handleExportCluster('json'));
+    document.getElementById('export-cluster-csv').addEventListener('click', () => handleExportCluster('csv'));
 
     // === NEW: Update imported info display ===
     function updateImportedInfo() {
