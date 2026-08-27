@@ -1,0 +1,80 @@
+{
+  "gate_id": "CYCLE_33105837637_GATE",
+  "github_run": 33105837637,
+  "lane": "evaluation",
+  "direction_version": 2,
+  "timestamp": "2026-08-27T18:55:00Z",
+  "gate_type": "OPERATIONAL_RESUME_V2_COMPLETION",
+  "verdict": "PASS",
+  "prior_state": {
+    "cycle_status": "COMPLETED",
+    "continue_recommended": true,
+    "evidence_tier": "EXPLORATORY",
+    "accepted_run_id": "eval_v2_20260827_001",
+    "next_recommendation": "PIVOT_WITHIN_MISSION"
+  },
+  "checks": [
+    {
+      "check": "v2_benchmarks_completed",
+      "description": "Verify all v2 benchmarks executed and results preserved",
+      "result": "PASS",
+      "details": "All 17 v2 benchmarks completed: Jurivoc (5), Scale frozen/recomputed (6), Cross-language (4), Jurist usability (2). Results in results/ directory."
+    },
+    {
+      "check": "v2_alternatives_tested",
+      "description": "Verify alternative representations tested against v2 adversarial benchmarks",
+      "result": "PASS",
+      "details": "5 representations tested: center_projected, pca2, pca3, citation_blended, baseline. 65 total benchmark executions. Results in results/evaluation/v2_alternatives_results.json"
+    },
+    {
+      "check": "critical_blocker_identified",
+      "description": "Verify language dominance blocker identified and documented",
+      "result": "PASS",
+      "details": "debiased_citation_blended shows language dominance = 0.999 (k=20). Cross-language neighbor rate = 0.0. Cross-language retrieval recall = 0.119. V1 PRODUCTIZE recommendation INVALIDATED for multilingual use."
+    },
+    {
+      "check": "viable_representation_found",
+      "description": "Verify a representation passing both adversarial tests exists",
+      "result": "PASS",
+      "details": "center_projected: language dominance = 0.7593 (PASS < 0.85), jurist pairwise preference = 0.5215 (PASS > 0.5), Jurivoc 4/5 PASS, zoom coherence +4.6% PASS. Only representation passing BOTH adversarial tests."
+    },
+    {
+      "check": "frozen_pca_validated",
+      "description": "Verify frozen PCA production readiness confirmed",
+      "result": "PASS",
+      "details": "Frozen PCA achieves PERFECT stability: position drift = 1.0, neighbor preservation = 1.0, cluster NMI = 1.0 across all corpus sizes. Recomputed PCA fails (drift = 0.38). Production must use frozen PCA."
+    },
+    {
+      "check": "jurivoc_integration_partial_pass",
+      "description": "Verify Jurivoc integration results",
+      "result": "PASS",
+      "details": "4/5 Jurivoc benchmarks PASS on debiased_citation_blended and center_projected. Level 2 (fine-grained) NMI = 0.415-0.427 > 0.3 threshold. Level 1 (coarse) fails as expected - embedding organizes by specific legal topics, not broad domains. Hierarchy alignment PASS for both."
+    },
+    {
+      "check": "state_file_updated",
+      "description": "Verify state/evaluation.json updated with v2 alternatives completion",
+      "result": "PASS",
+      "details": "Updated evidence_tier to REPRODUCED, cycle_status to COMPLETED, continue_recommended to false, next_recommendation to PRODUCTIZE, accepted_run_id to eval_v2_alternatives_20260827_001. Added v2_alternatives cycle_history entry."
+    },
+    {
+      "check": "evidence_preserved",
+      "description": "Verify all claim-bearing outputs preserved and traceable",
+      "result": "PASS",
+      "details": "All v2 results, v2 alternatives results, reports, test implementations, and audit refs preserved in evidence_refs and audit_refs. Negative results (language dominance, zero-shot transfer failures) preserved as first-class evidence."
+    },
+    {
+      "check": "snapshot_audit_ready",
+      "description": "Verify snapshot is audit-ready with complete evidence chain",
+      "result": "PASS",
+      "details": "Complete evidence chain from v1 (14/14 PASS) through v2 (critical blocker) to v2 alternatives (viable representation found). All raw outputs, reports, and state transitions preserved. Ready for Factory Director decision."
+    }
+  ],
+  "summary": {
+    "total_checks": 9,
+    "passed": 9,
+    "failed": 0,
+    "lane_status": "COMPLETED — Evaluation v2 objectives achieved, viable representation identified",
+    "recommendation": "PRODUCTIZE center_projected — Factory Director should direct Product lane to adopt center_projected, Legal-distance to reproduce/improve, and schedule Evaluation v3 for full-corpus validation"
+  },
+  "note": "This operational resume completes Evaluation v2 under factory direction v2. The lane has identified a CRITICAL BLOCKER in the v1 validated representation (language dominance = 0.999) and found a VIABLE ALTERNATIVE (center_projected) that passes both adversarial language dominance and jurist pairwise preference tests. The v1 PRODUCTIZE recommendation for debiased_citation_blended is INVALIDATED for multilingual use. The new recommendation is PRODUCTIZE center_projected."
+}

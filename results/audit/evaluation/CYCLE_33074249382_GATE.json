@@ -1,0 +1,63 @@
+{
+  "gate_id": "CYCLE_33074249382_GATE",
+  "github_run": 33074249382,
+  "lane": "evaluation",
+  "direction_version": 1,
+  "timestamp": "2026-08-27T12:56:00Z",
+  "gate_type": "OPERATIONAL_RESUME",
+  "verdict": "PASS",
+  "prior_state": {
+    "cycle_status": "COMPLETED",
+    "continue_recommended": false,
+    "evidence_tier": "REPRODUCED",
+    "accepted_run_id": "eval_cycle_14_1787801259",
+    "next_recommendation": "PRODUCTIZE"
+  },
+  "checks": [
+    {
+      "check": "lane_already_complete",
+      "description": "Verify lane cycle_status is COMPLETED and continue_recommended is false",
+      "result": "PASS",
+      "details": "state/evaluation.json shows cycle_status=COMPLETED, continue_recommended=false since Cycle 14"
+    },
+    {
+      "check": "no_new_work_produced",
+      "description": "Confirm no new benchmarks were executed, only confirmation artifacts created",
+      "result": "PASS",
+      "details": "Created cycle_17_confirmation_results.json and evaluation_cycle_17_confirmation_report.md only. No new benchmark runs."
+    },
+    {
+      "check": "cycle_14_results_intact",
+      "description": "Verify Cycle 14 benchmark suite results remain unchanged and valid",
+      "result": "PASS",
+      "details": "Cycle 14 results (14/14 PASS) confirmed intact. Key metrics: AUC=0.9089, lang_dom=0.6373, no collapse, zoom +7.1%, hierarchy purity=0.8759, TF recall@5=0.9479"
+    },
+    {
+      "check": "state_file_updated",
+      "description": "Verify state/evaluation.json updated with this operational resume in cycle_history",
+      "result": "PASS",
+      "details": "Added 21st operational_resume entry to cycle_history. Updated github_run=33074249382, operational_resume_run_id=33074249382, audit_refs, evidence_refs, director_disposition"
+    },
+    {
+      "check": "artifacts_created",
+      "description": "Verify confirmation artifacts created and accessible",
+      "result": "PASS",
+      "details": "results/cycle_17_confirmation_results.json and reports/evaluation/evaluation_cycle_17_confirmation_report.md created"
+    },
+    {
+      "check": "orchestration_pathology_documented",
+      "description": "Confirm orchestration failure (supervisor pre-dispatch guard missing) is documented",
+      "result": "PASS",
+      "details": "Root cause documented: supervisor lacks pre-dispatch guard reading state/<lane>.json. 21 dispatches to completed lane with zero new work."
+    }
+  ],
+  "summary": {
+    "total_checks": 6,
+    "passed": 6,
+    "failed": 0,
+    "lane_status": "COMPLETED — No further evaluation work justified under direction v1",
+    "recommendation": "PRODUCTIZE — Factory Director should advance to direction version 2"
+  },
+  "operational_resume_count": 21,
+  "note": "This is the 21st operational resume dispatch to a completed evaluation lane. All prior 20 re-verified the same Cycle 14 results. The lane correctly achieved its objective in Cycle 14 (14/14 benchmarks PASS). The supervisor orchestration lacks a pre-dispatch guard to check state/<lane>.json before dispatching."
+}
