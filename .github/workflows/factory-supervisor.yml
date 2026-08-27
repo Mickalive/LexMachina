@@ -25,6 +25,7 @@ on:
       - '.github/workflows/frontier-team.yml'
       - '.github/workflows/factory-director.yml'
       - '.github/workflows/factory-housekeeper.yml'
+      - '.github/scripts/run-ox-with-retry.sh'
 
 permissions:
   actions: write
@@ -53,7 +54,8 @@ jobs:
         run: |
           set -euo pipefail
           CONTROL_EPOCH=$(jq -r '.started_at // "1970-01-01T00:00:00Z"' state/control_epoch.json 2>/dev/null || echo '1970-01-01T00:00:00Z')
-          echo "Control epoch starts at $CONTROL_EPOCH"
+          STALE_JOB_SECONDS=3300
+          echo "Control epoch starts at $CONTROL_EPOCH; stale job threshold=${STALE_JOB_SECONDS}s"
 
           active_count() {
             local workflow="$1" prefix="${2:-}"
@@ -85,6 +87,30 @@ jobs:
                 done
           }
 
+          cancel_stale_agent_jobs() {
+            local now id title job_name started start_epoch age workflow
+            now=$(date -u +%s)
+            echo "Scanning current-epoch agent jobs for hard staleness..."
+            for workflow in core-lane.yml frontier-team.yml factory-director.yml; do
+              gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --limit 100 --json databaseId,displayTitle,status,createdAt \
+                | jq -r --arg epoch "$CONTROL_EPOCH" '.[] | select(.createdAt >= $epoch) | select(.status=="in_progress") | [.databaseId,.displayTitle] | @tsv' \
+                | while IFS=$'\t' read -r id title; do
+                    [[ -n "$id" ]] || continue
+                    while IFS=$'\t' read -r job_name started; do
+                      [[ -n "$started" && "$started" != null ]] || continue
+                      start_epoch=$(date -u -d "$started" +%s 2>/dev/null || echo "$now")
+                      age=$((now-start_epoch))
+                      echo "Agent job age: run=$id job=$job_name age=${age}s title=$title"
+                      if (( age > STALE_JOB_SECONDS )); then
+                        echo "::warning::Cancelling stale agent run $id ($title), in-progress job '$job_name' age=${age}s > ${STALE_JOB_SECONDS}s"
+                        gh run cancel "$id" --repo "$GITHUB_REPOSITORY" || true
+                        break
+                      fi
+                    done < <(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${id}/jobs?per_page=100" --jq '.jobs[] | select(.status=="in_progress") | [.name,.started_at] | @tsv' 2>/dev/null || true)
+                  done
+            done
+          }
+
           ensure_model_health() {
             if [[ "$(active_count model-health.yml)" -eq 0 ]]; then
               gh workflow run model-health.yml --repo "$GITHUB_REPOSITORY" --ref main
@@ -104,6 +130,7 @@ jobs:
           }
 
           cancel_legacy_active
+          cancel_stale_agent_jobs
 
           if [[ "$(jq -r '.healthy // false' state/model_health.json 2>/dev/null || echo false)" != true ]]; then
             echo "::warning::No healthy free tool-capable model. Recovery probe will keep running."
@@ -225,4 +252,4 @@ jobs:
           (( NEED_HEALTH == 0 )) || ensure_model_health
           (( NEED_DIRECTOR == 0 )) || ensure_director
 
-          echo "Supervisor pass complete: legacy active runs cancelled; failed snapshots resumed before fresh work; only explicit HUMAN_DECISION_REQUIRED state can justify idleness."
+          echo "Supervisor pass complete: legacy/stale agent runs reaped; failed snapshots resumed before fresh work; only explicit HUMAN_DECISION_REQUIRED state can justify idleness."
