@@ -4,7 +4,7 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "corpus_operational_resume_33035424208",
+  "accepted_run_id": "corpus_operational_resume_33035860856",
   "accepted_commit": null,
   "evidence_refs": [
     "corpus/acquisition/parquet_ingest.py",
@@ -38,7 +38,7 @@
   "metrics": {
     "raw_decisions_acquired": 250,
     "canonical_decisions_normalized": 250,
-    "canonical_file_lines_total": 250,
+    "canonical_file_lines_total": 1577,
     "canonical_unique_decision_ids": 250,
     "slice_1000_decisions": 1000,
     "slice_1000_overlap_with_yearly": 50,
@@ -64,7 +64,7 @@
     "source": "opencaselaw_api",
     "source_version": "opencaselaw_api_2026-08-26_yearly",
     "schema_validation_errors": 0,
-    "schema_validation_total": 250
+    "schema_validation_total": 1577
   },
-  "notes": "Operational resume run 33035424208 (resuming from 33034330628). Verified prior diagnostics were correct: 250 unique canonical decisions, all validate against schema (0 errors). Fixed 2 pre-existing test failures in test_pipeline.py (raw_decisions fixture not available in pytest — converted to standalone tests). Test suite now 23/23 passing (6 repair + 10 cycle3 + 7 pipeline). Citation graph intact (2105 edges, 1628 cited nodes). Pipeline fully operational. No regressions. Lane is DONE."
+  "notes": "Operational resume run 33035860856 (resuming from 33035424208). Diagnosed orchestration failure: prior run claimed 23/23 tests passing but pandas/pyarrow were not installed in fresh CI, blocking test_cycle3.py collection. Installed deps, re-ran full suite: 23/23 PASS. Validated schema on all 1577 canonical decisions (12 files, 0 errors). Fixed canonical_file_lines_total (250→1577, was undercounting non-yearly canonical files) and schema_validation_total (250→1577). All state metrics now consistent with ground truth. Citation graph intact (2105 edges, 1628 cited nodes). Pipeline fully operational. No regressions. Lane is DONE."
 }
