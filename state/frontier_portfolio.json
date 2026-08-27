@@ -1,5 +1,25 @@
 {
-  "version": 1,
-  "teams": [],
+  "version": 2,
+  "teams": [
+    {
+      "team_id": "frontier_metric_learning_jurivoc",
+      "charter_version": 1,
+      "status": "RUN",
+      "product_capability": "Learned legal distance metric that optimizes nearest-neighbor retrieval for jurist usefulness, exposed as a selectable map mode alongside the validated debiased_citation_blended baseline",
+      "question": "Does a supervised metric learning approach (Mahalanobis/linear metric) trained on Jurivoc descriptors and TF branch/legal_area metadata as weak supervision, fusing the validated debiased_citation_blended baseline with legal-specific signals (sachverhalt TF-IDF, erwaegungen TF-IDF, norm/article embeddings, citation role weights), produce legally more useful nearest neighbors than the unsupervised debiased_citation_blended baseline?",
+      "hypothesis": "A metric learned from Jurivoc/TF weak labels will optimally weight complementary legal signals (facts for legal_area coherence, reasoning for citation proximity, norms for doctrinal proximity, citation roles for precedent proximity) and suppress boilerplate, beating the unsupervised baseline on jurist proxy benchmarks (branch_knn, legal_area_clustering, citation_heritage, tf_metadata_human_indexing) while maintaining zoom_coherence and multilingual_invariance.",
+      "why_now": "CONCRETE EVIDENCE: (1) Evaluation cycle 14 FREEZES debiased_citation_blended (n_pca=1, alpha=0.7) as validated baseline: 14/14 benchmarks PASS (citation_heritage AUC 0.9089, legal_area purity 0.8863, zoom_coherence +7.1%, branch_knn@1 0.8088, tf_metadata recall@1 0.8088). (2) Cycles 6/7 reveal COMPLEMENTARY signal strengths: section_sachverhalt wins legal_area (NMI 0.4782, purity 0.8571); section_erwaegungen wins citation_proximity (AUC 0.6562); language_debiased_pca2 wins citation_graph (AUC 0.7046) and legal_area (NMI 0.4373). (3) Corpus provides weak supervision: Jurivoc descriptors + TF branch/legal_area metadata on 1000+ decisions. (4) Fractal-map validated (hierarchical Leiden nesting=1.0, purity=0.9634) provides evaluation harness. (5) Statute extractor maps 43 laws; citation graph has 2105 refs.",
+      "non_duplication": "Core legal-distance lane performs UNSUPERVISED signal ablation (systematic combination/weighting of legal signals against frozen baseline). This team pursues SUPERVISED METRIC LEARNING on weak labels (Jurivoc/TF metadata) - fundamentally different methodology. Core lane asks 'which signals help?'; this team asks 'what learned metric optimally fuses signals for jurist proxy objectives?'. Independent path: metric learning vs. signal ablation.",
+      "dependencies": [
+        "evaluation/cycle_14_results.json (frozen baseline embeddings + benchmark harness)",
+        "corpus/normalization/canonical/bger_2000plus_slice_1000.jsonl (decisions with Jurivoc/TF metadata)",
+        "corpus/normalization/statute_extractor.py (43 laws mapped)",
+        "fractal-map/hierarchical_leiden_results.json (validated map structure for zoom_coherence eval)",
+        "legal_distance/ baseline implementation (debiased_citation_blended n_pca=1 alpha=0.7)"
+      ],
+      "acceptance_test": "On the frozen 1000-decision evaluation sample: (1) Learned metric achieves >=5% relative improvement over debiased_citation_blended baseline on at least 3 of 4 primary jurist proxies: branch_knn@1, legal_area_clustering purity, citation_heritage AUC, tf_metadata_human_indexing recall@1. (2) No regression on zoom_coherence (improvement_rate >= 0.5) or multilingual_invariance (separation >= 0.04). (3) Boilerplate_resistance_real_corpus PASS (text_emb_correlation <= 0.2). (4) Metric is serializable and loadable in product for map mode switching.",
+      "stop_promote_rule": "PROMOTE to product integration if acceptance_test passes AND metric generalizes to held-out 2024 test slice (temporal_stability mean_knn_score >= 0.75). PAUSE if no improvement after 3 architecture variants (linear, diagonal, low-rank Mahalanobis). TERMINATE if learned metric collapses (collapse_check FAIL) or violates multilingual_invariance. SUPERSEDED by charter_version+1 if evidence warrants hypothesis change."
+    }
+  ],
   "policy": "Create specialized teams only for concrete product-relevant hypotheses or bottlenecks. Parallelism should grow with credible independent paths, not curiosity."
 }
