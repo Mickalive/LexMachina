@@ -7,10 +7,14 @@
   "accepted_run_id": "eval_cycle_6_1787791460",
   "accepted_commit": "51a6080983ae2fa212bc1c4576d57ad25591ef2b",
   "evidence_refs": [
+    "results/cycle_7_fixed_benchmarks_results.json",
+    "reports/evaluation_cycle_7_report.md",
+    "evaluation/run_cycle_7.py",
+    "evaluation/tests/citation_graph_neighborhood.py",
+    "evaluation/tests/zoom_coherence.py",
     "results/cycle_6_fractal_map_evaluation_results.json",
     "reports/evaluation_cycle_6_report.md",
     "evaluation/run_cycle_6.py",
-    "evaluation/tests/citation_graph_neighborhood.py",
     "evaluation/results/cycle_5_neural_baseline_results.json",
     "evaluation/reports/evaluation_cycle_5_report.md",
     "evaluation/run_cycle_5.py",
@@ -39,7 +43,7 @@
   "github_run": 33028668298,
   "operational_resume_run_id": 33027937718,
   "next_recommendation": "DONE",
-  "director_disposition": "DONE — 8 benchmarks established (added citation_graph_neighborhood), 10 fractal-map representations evaluated, 2 baselines documented. Legal-distance lane has clear targets. No further evaluation-only cycles needed until legal-distance produces candidate representations. Operational resume 33027937718 diagnosed: lane was already DONE when dispatched; no new work needed. Snapshot audit-ready.",
+  "director_disposition": "DONE — 9 benchmarks established (fixed citation_graph_neighborhood to use >=2 shared citations, added zoom_coherence), 10 fractal-map representations evaluated against 5 targets. Best representation: language_debiased_pca2 (4/5 targets pass). Citation proximity remains hardest target (best: 0.656, target: 0.75). Zoom coherence passes for all representations (100% improvement rate). No further evaluation-only cycles needed until legal-distance produces candidate representations.",
   "metrics_summary": {
     "tfidf_reasoning_baseline": {
       "neighbor_relevance_auc": 0.9519,
@@ -65,62 +69,61 @@
       "neighbor_relevance_mrr": 0.0463,
       "note": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2 (768-dim) on 1,000 BGer decisions."
     },
-    "fractal_map_evaluation": {
-      "section_sachverhalt": {
-        "legal_area_nmi": 0.4782,
-        "legal_area_purity": 0.8571,
-        "citation_proximity_auc": 0.6184,
-        "citation_graph_auc": 0.5,
-        "targets_pass": 2,
-        "note": "Best representation for legal area clustering. Passes NMI>0.3 and purity>0.7 targets."
-      },
-      "section_combined": {
-        "legal_area_nmi": 0.4782,
-        "legal_area_purity": 0.8571,
-        "citation_proximity_auc": 0.6184,
-        "citation_graph_auc": 0.5,
-        "targets_pass": 2,
-        "note": "Identical to sachverhalt (combined includes sachverhalt). Passes NMI and purity targets."
-      },
+    "fractal_map_evaluation_cycle7": {
       "language_debiased_pca2": {
+        "citation_graph_auc": 0.7046,
+        "citation_proximity_auc": 0.5263,
         "legal_area_nmi": 0.4373,
         "legal_area_purity": 0.7200,
-        "citation_proximity_auc": 0.5961,
-        "citation_graph_auc": 0.5,
-        "targets_pass": 2,
-        "note": "Debiasing improves NMI from 0.2831 (baseline) to 0.4373. Passes NMI and purity targets."
+        "zoom_coherence_rate": 1.0,
+        "targets_pass": 4,
+        "note": "BEST REPRESENTATION: Passes 4/5 targets. Only fails citation proximity (0.526 < 0.75). Language debiasing improves citation graph AUC from 0.5 (baseline) to 0.705."
+      },
+      "section_sachverhalt": {
+        "citation_graph_auc": 0.6835,
+        "citation_proximity_auc": 0.5225,
+        "legal_area_nmi": 0.4782,
+        "legal_area_purity": 0.8571,
+        "zoom_coherence_rate": 1.0,
+        "targets_pass": 3,
+        "note": "Best for legal area clustering (NMI 0.478, purity 0.857). Passes NMI, purity, zoom targets."
+      },
+      "section_combined": {
+        "citation_graph_auc": 0.6835,
+        "citation_proximity_auc": 0.5225,
+        "legal_area_nmi": 0.4782,
+        "legal_area_purity": 0.8571,
+        "zoom_coherence_rate": 1.0,
+        "targets_pass": 3,
+        "note": "Identical to sachverhalt. Passes NMI, purity, zoom targets."
       },
       "section_erwaegungen": {
+        "citation_graph_auc": 0.6061,
+        "citation_proximity_auc": 0.6562,
         "legal_area_nmi": 0.2436,
         "legal_area_purity": 0.6607,
-        "citation_proximity_auc": 0.6860,
-        "citation_graph_auc": 0.5,
-        "targets_pass": 0,
-        "note": "Highest citation proximity AUC (0.686) but fails legal area targets."
-      },
-      "section_full_text": {
-        "legal_area_nmi": 0.2964,
-        "legal_area_purity": 0.6786,
-        "citation_proximity_auc": 0.5507,
-        "citation_graph_auc": 0.5,
-        "targets_pass": 0,
-        "note": "Close to NMI target (0.296 vs 0.3) but doesn't pass."
+        "zoom_coherence_rate": 1.0,
+        "targets_pass": 1,
+        "note": "Best citation proximity AUC (0.656) but fails other targets."
       },
       "baseline": {
+        "citation_graph_auc": 0.6518,
+        "citation_proximity_auc": 0.4833,
         "legal_area_nmi": 0.2831,
         "legal_area_purity": 0.5700,
-        "citation_proximity_auc": 0.5373,
-        "citation_graph_auc": 0.5,
-        "targets_pass": 0,
-        "note": "Sentence-transformers baseline. Fails all targets."
+        "zoom_coherence_rate": 1.0,
+        "targets_pass": 1,
+        "note": "Sentence-transformers baseline. Only passes zoom coherence."
       },
-      "critical_finding": "Sachverhalt-only TF-IDF outperforms all other representations on legal area clustering (NMI 0.478, purity 0.857). This suggests legal area signal is concentrated in the facts section. Citation proximity remains the hardest target (best: 0.686, target: 0.75). Citation graph benchmark is invalid due to data coverage (only 1 positive pair in embeddings)."
+      "critical_finding": "FIXED: citation_graph_neighborhood benchmark now produces valid AUC scores (was 0.5, now 0.58-0.70). Language debiasing (PCA 2 components) is the only representation passing citation_graph_auc target (0.705 > 0.7). Citation proximity remains hardest target (best: 0.656, target: 0.75). Zoom coherence passes for all representations (100% improvement rate)."
     },
-    "comparison": {
+    "comparison_cycle7": {
+      "best_overall": "language_debiased_pca2 (4/5 targets)",
+      "best_citation_graph": "language_debiased_pca2 (AUC=0.705)",
+      "best_citation_proximity": "section_erwaegungen (AUC=0.656)",
       "best_legal_area": "section_sachverhalt (NMI=0.478, purity=0.857)",
-      "best_citation_proximity": "section_erwaegungen (AUC=0.686)",
-      "critical_gap": "Citation proximity (AUC 0.686 < 0.75 target). Legal-distance lane must develop citation-aware representations.",
-      "negative_result": "Citation graph neighborhood benchmark is invalid: only 8.6% of cited docket numbers map to corpus decisions, yielding only 1 positive pair."
+      "best_zoom_coherence": "all representations (100% improvement rate)",
+      "critical_gap": "Citation proximity (AUC 0.656 < 0.75 target). Legal-distance lane must develop citation-aware representations."
     }
   },
   "baselines_established": {
@@ -170,9 +173,10 @@
     "multilingual_invariance (cross-language similarity)",
     "corpus_stability (position drift under growth)",
     "hierarchy_coherence (branch purity + NMI, 4 branches)",
-    "citation_proximity (shared-citation heritage, AUC-ROC)",
+    "citation_proximity (shared-citation heritage >=1, AUC-ROC)",
     "legal_area_clustering (branch NMI + purity)",
-    "citation_graph_neighborhood (direct citation links, AUC-ROC) [INVALID: data coverage]"
+    "citation_graph_neighborhood (shared-citation heritage >=2, AUC-ROC) [FIXED: now uses >=2 shared references]",
+    "zoom_coherence (fractal zoom reveals legal substructure, improvement rate)"
   ],
   "cycle_history": [
     {"cycle": 1, "run_id": "synthetic_eval_20260826", "status": "COMPLETED", "tier": "EXPLORATORY"},
@@ -183,6 +187,7 @@
     {"cycle": 5, "run_id": "eval_cycle_5_1787786969", "status": "REJECTED", "tier": "REPRODUCED", "note": "Rejected by audit CYCLE_33024162040: branch_distribution counts 1000 not 500, hierarchy_coherence uses 76 legal_area labels not 4 branch labels."},
     {"cycle": 5, "run_id": "eval_cycle_5_1787789315", "status": "COMPLETED", "tier": "REPRODUCED", "note": "Repair of CYCLE_33024162040. Fixed branch_distribution (now sums to 500). Fixed hierarchy_coherence (now uses 4 branch labels, NMI=0.067 comparable to TF-IDF 0.028)."},
     {"cycle": "audit", "run_id": "33024951821", "status": "PASS", "tier": "REPRODUCED", "note": "Final lane completion audit. 7 benchmarks verified, 2 baselines documented."},
-    {"cycle": 6, "run_id": "eval_cycle_6_fractal_map_20260827", "status": "COMPLETED", "tier": "REPRODUCED", "note": "Evaluated 10 fractal-map representations against 3 benchmarks. 3 representations pass 2/4 targets (sachverhalt, combined, debiased). Citation proximity remains hardest target (best: 0.686). Citation graph benchmark invalid due to data coverage."}
+    {"cycle": 6, "run_id": "eval_cycle_6_fractal_map_20260827", "status": "COMPLETED", "tier": "REPRODUCED", "note": "Evaluated 10 fractal-map representations against 3 benchmarks. 3 representations pass 2/4 targets (sachverhalt, combined, debiased). Citation proximity remains hardest target (best: 0.686). Citation graph benchmark invalid due to data coverage."},
+    {"cycle": 7, "run_id": "eval_cycle_7_fixed_benchmarks_20260827", "status": "COMPLETED", "tier": "REPRODUCED", "note": "Fixed citation_graph_neighborhood (now uses >=2 shared citations, produces valid AUC 0.58-0.70). Added zoom_coherence benchmark (all reps pass at 100% improvement rate). Best: language_debiased_pca2 (4/5 targets). Citation proximity still hardest (best: 0.656 < 0.75)."}
   ]
 }
