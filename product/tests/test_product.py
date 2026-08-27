@@ -282,11 +282,18 @@ def test_corpus_import():
     assert result2["imported"] == 0, f"Duplicates should be skipped, got {result2['imported']}"
     print(f"  Duplicate skip: {result2['skipped']} skipped")
     
-    # Search should find imported decisions (with high enough limit)
-    results = api.search_decisions("Strafrecht", limit=50)
+    # Search should find imported decisions (use unique docket number for reliable match)
+    results = api.search_decisions("TEST-PROD-001", limit=10)
     imported_found = [r for r in results if r["decision_id"].startswith("test_product")]
     print(f"  Search found {len(imported_found)} imported decisions")
     assert len(imported_found) >= 1, "Expected to find imported decision in search"
+    
+    # Verify corpus-map coverage stats
+    stats = api.get_corpus_stats()
+    coverage = stats["map_coverage"]
+    print(f"  Map coverage: {coverage['corpus_with_map_position']}/{coverage['total_map_positions']} corpus decisions on map")
+    assert coverage["total_map_positions"] == 1000, "Expected 1000 map positions"
+    assert coverage["corpus_with_map_position"] > 0, "Expected some corpus decisions on map"
     
     print("  PASS\n")
     return True

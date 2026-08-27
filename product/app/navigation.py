@@ -276,9 +276,21 @@ class NavigationAPI:
         if not self._initialized:
             return {"error": "Not initialized"}
 
+        # Compute corpus-map coverage
+        corpus_ids = set(self.corpus.get_all_ids())
+        map_positions = self.map_loader.get_positions("concat_center_tfidf")
+        map_ids = set(map_positions.keys())
+        mapped_count = len(corpus_ids & map_ids)
+
         return {
             "total_decisions": self.corpus.size,
             "languages": self.corpus.languages,
             "branches": self.corpus.branches,
             "user_imports": self.corpus.user_import_count,
+            "map_coverage": {
+                "corpus_with_map_position": mapped_count,
+                "corpus_without_map_position": len(corpus_ids - map_ids),
+                "map_positions_without_corpus": len(map_ids - corpus_ids),
+                "total_map_positions": len(map_ids),
+            },
         }
