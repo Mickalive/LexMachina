@@ -299,6 +299,128 @@ def test_corpus_import():
     return True
 
 
+def test_section_modes():
+    """Test section-based map modes (multi-view navigation)."""
+    print("=== Test: Section Modes ===")
+    
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+    
+    # Verify section modes loaded
+    modes = api.section_modes.get_available_modes()
+    print(f"  Section modes: {len(modes)}")
+    assert len(modes) == 6, f"Expected 6 section modes, got {len(modes)}"
+    
+    for mode in modes:
+        print(f"    {mode['name']}: {mode['label']} ({mode['n_decisions']} decisions)")
+        assert mode["n_decisions"] > 0, f"Mode {mode['name']} has no decisions"
+    
+    # Test getting map data for a section mode
+    mode_data = api.get_map_data(map_mode="erwaegungen")
+    print(f"  erwaegungen mode: {mode_data['map_mode']['section_decisions']} section decisions, "
+          f"{mode_data['map_mode']['total_positions']} total positions")
+    assert "map_mode" in mode_data, "Expected map_mode in response"
+    assert mode_data["map_mode"]["name"] == "erwaegungen"
+    assert mode_data["n_decisions"] == 63, f"Expected 63 section decisions"
+    assert len(mode_data["positions"]) > 63, "Expected background positions"
+    
+    # Test another section mode
+    mode_data2 = api.get_map_data(map_mode="sachverhalt")
+    assert mode_data2["map_mode"]["name"] == "sachverhalt"
+    print(f"  sachverhalt mode: {mode_data2['map_mode']['section_decisions']} section decisions")
+    
+    # Verify clustering data is available
+    cluster = api.section_modes.get_clustering("erwaegungen", 1.0)
+    assert cluster is not None, "Expected clustering data for erwaegungen"
+    print(f"  erwaegungen clustering: {cluster['n_clusters']} clusters, "
+          f"legal_area_purity={cluster['coherence']['legal_area_purity']:.3f}")
+    
+    print("  PASS\n")
+    return True
+
+
+def test_citations():
+    """Test citation graph integration."""
+    print("=== Test: Citations ===")
+    
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+    
+    # Verify citation graph loaded
+    stats = api.citation_loader.get_stats()
+    print(f"  Citation graph: {stats['n_decisions_with_citations']} decisions with citations, "
+          f"{stats['total_citation_edges']} edges")
+    assert stats["n_decisions_with_citations"] > 0, "Expected some citations"
+    
+    # Test citation lookup for a decision with known citations
+    # Find a decision that has citations
+    test_decision = None
+    for did in list(api.citation_loader.graph.outgoing.keys())[:10]:
+        if did in api.corpus.decisions:
+            test_decision = did
+            break
+    
+    if test_decision:
+        outgoing = api.citation_loader.get_outgoing(test_decision)
+        print(f"  {test_decision}: {len(outgoing)} outgoing citations")
+        assert len(outgoing) > 0, "Expected outgoing citations"
+        
+        # Test get_citations API
+        citations = api.get_citations(test_decision)
+        assert "outgoing" in citations, "Expected outgoing in citations"
+        assert "incoming" in citations, "Expected incoming in citations"
+        print(f"  get_citations: {citations['counts']['outgoing']} out, {citations['counts']['incoming']} in")
+    
+    # Test decision with citation connections
+    test_decision2 = "bger_4A_562_2020"  # Known to have citations
+    decision = api.get_decision(test_decision2)
+    if "citations" in decision:
+        print(f"  Decision citations: {decision['citations']['counts']['outgoing']} out, "
+              f"{decision['citations']['counts']['incoming']} in")
+        assert "outgoing" in decision["citations"]
+        assert "incoming" in decision["citations"]
+    
+    print("  PASS\n")
+    return True
+
+
+def test_map_modes_api():
+    """Test the map modes API endpoint."""
+    print("=== Test: Map Modes API ===")
+    
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+    
+    # Test get_map_modes
+    modes = api.get_map_modes()
+    print(f"  Total map modes: {len(modes)}")
+    
+    # Separate by type
+    base_modes = [m for m in modes if m["type"] == "representation"]
+    section_modes = [m for m in modes if m["type"] == "section_view"]
+    print(f"  Base modes: {len(base_modes)}")
+    print(f"  Section modes: {len(section_modes)}")
+    
+    assert len(base_modes) >= 3, "Expected at least 3 base modes"
+    assert len(section_modes) == 6, "Expected 6 section modes"
+    
+    # Verify each mode has required fields
+    for mode in modes:
+        assert "name" in mode, f"Mode missing name"
+        assert "label" in mode, f"Mode {mode['name']} missing label"
+        assert "type" in mode, f"Mode {mode['name']} missing type"
+        assert "n_decisions" in mode, f"Mode {mode['name']} missing n_decisions"
+    
+    print("  PASS\n")
+    return True
+
+
 if __name__ == "__main__":
     results = []
     results.append(("Corpus Loader", test_corpus_loader()))
@@ -307,6 +429,9 @@ if __name__ == "__main__":
     results.append(("End-to-End", test_end_to_end()))
     results.append(("HDBSCAN", test_hdbscan()))
     results.append(("Corpus Import", test_corpus_import()))
+    results.append(("Section Modes", test_section_modes()))
+    results.append(("Citations", test_citations()))
+    results.append(("Map Modes API", test_map_modes_api()))
     
     print("=" * 50)
     print("RESULTS:")

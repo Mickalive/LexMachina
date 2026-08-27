@@ -88,6 +88,10 @@
                 <div class="subtitle">Google Maps of Law — Swiss Federal Supreme Court</div>
             </div>
             <div id="controls">
+                <label>Map Mode</label>
+                <select id="mode-select">
+                    <option value="">Standard (TF-IDF)</option>
+                </select>
                 <label>Representation</label>
                 <select id="rep-select">
                     <option value="concat_center_tfidf">Concat + Center TF-IDF (best)</option>
@@ -144,8 +148,10 @@
     let currentData = null;
     let currentZoom = 1;
     let currentRep = 'concat_center_tfidf';
+    let currentMode = '';
     let hoveredPoint = null;
     let selectedCluster = null;
+    let mapModes = [];
 
     // Color palette for clusters
     const COLORS = [
@@ -161,14 +167,42 @@
             const resp = await fetch(`${API}/api/overview`);
             const data = await resp.json();
             updateStatsBar(data);
+            await loadMapModes();
             await loadMap();
         } catch (e) {
             document.getElementById('cluster-list').innerHTML = '<div style="padding:16px;color:#ff6b6b;">Error loading data</div>';
         }
     }
 
+    async function loadMapModes() {
+        try {
+            const resp = await fetch(`${API}/api/map_modes`);
+            mapModes = await resp.json();
+            const select = document.getElementById('mode-select');
+            select.innerHTML = '<option value="">Standard (TF-IDF)</option>';
+            mapModes.forEach(mode => {
+                const opt = document.createElement('option');
+                opt.value = mode.type === 'section_view' ? mode.name : '';
+                opt.textContent = mode.type === 'section_view' ? `${mode.label} (${mode.n_decisions}d)` : mode.label;
+                if (mode.type === 'representation') {
+                    // Already have representation select
+                    return;
+                }
+                select.appendChild(opt);
+            });
+        } catch (e) {
+            console.error('Failed to load map modes:', e);
+        }
+    }
+
     async function loadMap() {
-        const resp = await fetch(`${API}/api/map?representation=${currentRep}&zoom=${currentZoom}`);
+        let url;
+        if (currentMode) {
+            url = `${API}/api/map?mode=${currentMode}&zoom=${currentZoom}`;
+        } else {
+            url = `${API}/api/map?representation=${currentRep}&zoom=${currentZoom}`;
+        }
+        const resp = await fetch(url);
         currentData = await resp.json();
         renderClusterList();
         renderMap();
@@ -270,15 +304,20 @@
             ctx.stroke();
         });
 
-        // Draw points
+        // Draw points - highlight section data points, dim background
         positions.forEach(p => {
             const sx = (p.x - xMin) * scale + offsetX;
             const sy = (p.y - yMin) * scale + offsetY;
             const color = COLORS[p.cluster % COLORS.length];
+            
+            // In section mode, differentiate section data from background
+            const isSectionData = p.has_section_data !== false;
+            const radius = isSectionData ? 4 : 2;
+            const alpha = isSectionData ? 'ff' : '40';
 
             ctx.beginPath();
-            ctx.arc(sx, sy, 3, 0, Math.PI * 2);
-            ctx.fillStyle = color;
+            ctx.arc(sx, sy, radius, 0, Math.PI * 2);
+            ctx.fillStyle = color + alpha;
             ctx.fill();
 
             // Highlight on hover
@@ -307,6 +346,22 @@
             ctx.textAlign = 'center';
             ctx.fillText(`C${cid} (${points.length})`, cx, cy - 10);
         });
+
+        // Show mode info overlay if in section mode
+        if (currentData.map_mode) {
+            ctx.fillStyle = 'rgba(18, 18, 26, 0.8)';
+            ctx.fillRect(canvas.width - 280, 16, 264, 60);
+            ctx.strokeStyle = '#7c8aff';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(canvas.width - 280, 16, 264, 60);
+            ctx.fillStyle = '#7c8aff';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(currentData.map_mode.label, canvas.width - 270, 35);
+            ctx.fillStyle = '#888';
+            ctx.font = '10px sans-serif';
+            ctx.fillText(`${currentData.map_mode.section_decisions} section decisions · ${currentData.map_mode.total_positions} total`, canvas.width - 270, 52);
+        }
     }
 
     function selectCluster(clusterId) {
@@ -392,6 +447,30 @@
             `;
         }
 
+        // Citation connections
+        if (decision.citations) {
+            const cit = decision.citations;
+            if (cit.outgoing.length > 0 || cit.incoming.length > 0) {
+                html += `<div class="field"><div class="field-label">Citation Connections</div>`;
+                if (cit.outgoing.length > 0) {
+                    html += `<div class="field-value" style="font-size:10px;margin-bottom:4px;"><strong>Cites:</strong> ${cit.outgoing.slice(0, 5).map(r => r.reference || r.decision_id || r).join(', ')}${cit.outgoing.length > 5 ? '...' : ''}</div>`;
+                }
+                if (cit.incoming.length > 0) {
+                    html += `<div class="field-value" style="font-size:10px;"><strong>Cited by:</strong> ${cit.incoming.slice(0, 5).map(d => d.decision_id || d).join(', ')}${cit.incoming.length > 5 ? '...' : ''}</div>`;
+                }
+                html += `</div>`;
+            }
+        }
+
+        // Map cluster memberships
+        if (decision.map_clusters && decision.map_clusters.length > 0) {
+            html += `<div class="field"><div class="field-label">Map Cluster Memberships</div>`;
+            decision.map_clusters.forEach(mc => {
+                html += `<div class="field-value" style="font-size:10px;">${mc.representation} zoom ${mc.zoom_level}: Cluster ${mc.cluster_id}</div>`;
+            });
+            html += `</div>`;
+        }
+
         // Neighbors
         const neighborsResp = await fetch(`${API}/api/neighbors?id=${decisionId}&representation=${currentRep}&zoom=${currentZoom}&n=8`);
         const neighbors = await neighborsResp.json();
@@ -468,6 +547,17 @@
     });
 
     // Controls
+    document.getElementById('mode-select').addEventListener('change', (e) => {
+        currentMode = e.target.value;
+        if (currentMode) {
+            // Disable rep-select when using section mode
+            document.getElementById('rep-select').disabled = true;
+        } else {
+            document.getElementById('rep-select').disabled = false;
+        }
+        loadMap();
+    });
+
     document.getElementById('rep-select').addEventListener('change', (e) => {
         currentRep = e.target.value;
         loadMap();

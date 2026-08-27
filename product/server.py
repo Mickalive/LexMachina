@@ -46,7 +46,10 @@ class ProductHandler(SimpleHTTPRequestHandler):
         elif path == "/api/map":
             rep = params.get("representation", ["concat_center_tfidf"])[0]
             zoom = int(params.get("zoom", ["1"])[0])
-            self._json_response(get_nav_api().get_map_data(rep, zoom))
+            mode = params.get("mode", [None])[0]
+            self._json_response(get_nav_api().get_map_data(rep, zoom, map_mode=mode))
+        elif path == "/api/map_modes":
+            self._json_response(get_nav_api().get_map_modes())
         elif path == "/api/cluster":
             rep = params.get("representation", ["concat_center_tfidf"])[0]
             zoom = int(params.get("zoom", ["1"])[0])
@@ -55,6 +58,11 @@ class ProductHandler(SimpleHTTPRequestHandler):
         elif path == "/api/decision":
             did = params.get("id", [""])[0]
             self._json_response(get_nav_api().get_decision(did))
+        elif path == "/api/citations":
+            did = params.get("id", [""])[0]
+            direction = params.get("direction", ["both"])[0]
+            limit = int(params.get("limit", ["50"])[0])
+            self._json_response(get_nav_api().get_citations(did, direction, limit))
         elif path == "/api/search":
             q = params.get("q", [""])[0]
             limit = int(params.get("limit", ["20"])[0])
@@ -188,7 +196,8 @@ def run_server(port=8080):
     """Start the product server."""
     print(f"Initializing LexMachina navigation...")
     nav = get_nav_api()
-    print(f"Loaded {nav.corpus.size} decisions, {len(nav.map_loader.get_available_representations())} maps")
+    print(f"Loaded {nav.corpus.size} decisions, {len(nav.map_loader.get_available_representations())} maps, "
+          f"{len(nav.section_modes.modes)} section modes, citation graph: {nav.citation_loader.get_stats()}")
 
     server = HTTPServer(("0.0.0.0", port), ProductHandler)
     print(f"LexMachina server running on http://localhost:{port}")

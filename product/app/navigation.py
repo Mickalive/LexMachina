@@ -2,6 +2,9 @@
 LexMachina Navigation API
 Provides the navigation interface for exploring the case-law map.
 Connects corpus data with map artifacts for interactive exploration.
+
+Supports multi-view navigation via section-based map modes and
+citation graph integration.
 """
 import json
 from typing import Dict, List, Optional, Tuple, Any
@@ -9,6 +12,8 @@ from pathlib import Path
 
 from .corpus_loader import CorpusLoader
 from .map_loader import MapLoader
+from .section_modes import SectionModeLoader
+from .citation_loader import CitationLoader
 
 
 class NavigationAPI:
@@ -20,11 +25,19 @@ class NavigationAPI:
     - Decision inspection with full text
     - Search across the corpus
     - Statistics and metadata
+    - Multi-view map modes (section-based projections)
+    - Citation graph navigation
     """
 
     def __init__(self, corpus_dir: str, results_dir: str):
         self.corpus = CorpusLoader(corpus_dir)
         self.map_loader = MapLoader(results_dir)
+        self.section_modes = SectionModeLoader(
+            str(Path(results_dir) / "section_experiment_clean")
+        )
+        self.citation_loader = CitationLoader(
+            str(Path(results_dir) / "citation_graph" / "citation_graph.json")
+        )
         self._initialized = False
         self._map_meta_cache: Dict[str, Dict] = {}
 
@@ -44,6 +57,8 @@ class NavigationAPI:
         """Load all data and return initialization status."""
         corpus_count = self.corpus.load()
         map_count = self.map_loader.load()
+        section_count = self.section_modes.load()
+        citation_loaded = self.citation_loader.load()
 
         self._initialized = True
 
@@ -51,6 +66,8 @@ class NavigationAPI:
             "status": "ready",
             "corpus_decisions": corpus_count,
             "maps_loaded": map_count,
+            "section_modes_loaded": section_count,
+            "citation_graph_loaded": citation_loaded,
             "representations": self.map_loader.get_available_representations(),
             "languages": self.corpus.languages,
             "branches": self.corpus.branches,
@@ -78,14 +95,23 @@ class NavigationAPI:
         self,
         representation: str = "concat_center_tfidf",
         zoom_level: int = 1,
+        map_mode: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Get map data for rendering at a specific zoom level.
+        
+        When map_mode is provided (e.g., "sachverhalt", "erwaegungen"), returns
+        positions from the section-based projection for the subset of decisions
+        that have section data, with background positions from the main map.
         
         Returns positions, cluster assignments, and cluster summaries.
         """
         if not self._initialized:
             return {"error": "Not initialized"}
+
+        # If a section mode is requested, return section-based positions
+        if map_mode:
+            return self._get_section_mode_map(map_mode, zoom_level)
 
         zl = self.map_loader.get_zoom_level(representation, zoom_level)
         if not zl:
@@ -137,6 +163,109 @@ class NavigationAPI:
             "n_decisions": zl.n_decisions,
             "clusters": cluster_summaries,
             "positions": positions,
+            "map_mode": None,
+        }
+
+    def _get_section_mode_map(
+        self, mode_name: str, zoom_level: int = 1
+    ) -> Dict[str, Any]:
+        """Get map data for a section-based mode."""
+        mode = self.section_modes.get_mode(mode_name)
+        if not mode:
+            return {"error": f"Section mode '{mode_name}' not available"}
+
+        # Get the base map for cluster info
+        zl = self.map_loader.get_zoom_level("concat_center_tfidf", zoom_level)
+
+        # Build cluster summaries from section clustering
+        cluster_summaries = []
+        resolution = float(zoom_level) if zoom_level > 0 else 0.5
+        section_cluster = self.section_modes.get_clustering(mode_name, resolution)
+        if section_cluster:
+            labels = section_cluster.get("labels", [])
+            n_clusters = section_cluster.get("n_clusters", 0)
+            # Group decisions by cluster
+            cluster_groups = {}
+            for idx, label in enumerate(labels):
+                if idx < len(mode.decision_ids):
+                    did = mode.decision_ids[idx]
+                    if label not in cluster_groups:
+                        cluster_groups[label] = []
+                    cluster_groups[label].append(did)
+            for cid, dids in cluster_groups.items():
+                sample_decisions = []
+                for did in dids[:5]:
+                    summary = self.corpus.get_summary(did)
+                    if summary:
+                        sample_decisions.append(summary)
+                # Compute centroid
+                xs = [mode.positions[did][0] for did in dids if did in mode.positions]
+                ys = [mode.positions[did][1] for did in dids if did in mode.positions]
+                centroid_x = sum(xs) / len(xs) if xs else 0
+                centroid_y = sum(ys) / len(ys) if ys else 0
+                cluster_summaries.append({
+                    "cluster_id": cid,
+                    "size": len(dids),
+                    "centroid_x": centroid_x,
+                    "centroid_y": centroid_y,
+                    "sample_decisions": sample_decisions,
+                })
+
+        # Build position data for section mode decisions
+        positions = []
+        corpus_ids = set(self.corpus.get_all_ids())
+        for did in mode.decision_ids:
+            if did not in mode.positions:
+                continue
+            x, y = mode.positions[did]
+            summary = self.corpus.get_summary(did)
+            meta = self._get_map_decision_meta(did)
+            positions.append({
+                "decision_id": did,
+                "x": x,
+                "y": y,
+                "cluster": -1,  # Will be set from section clustering
+                "language": (summary.get("language") if summary else meta.get("language", "unknown")),
+                "branch": (summary.get("branch") if summary else meta.get("branch", "unknown")),
+                "legal_area": (summary.get("legal_area") if summary else meta.get("legal_area", "unknown")),
+                "has_corpus": did in corpus_ids,
+                "has_section_data": True,
+            })
+
+        # Also include background positions from main map for context
+        if zl:
+            section_ids = set(mode.decision_ids)
+            for did, (x, y) in zl.positions.items():
+                if did not in section_ids:
+                    summary = self.corpus.get_summary(did)
+                    meta = self._get_map_decision_meta(did)
+                    positions.append({
+                        "decision_id": did,
+                        "x": x,
+                        "y": y,
+                        "cluster": -1,
+                        "language": (summary.get("language") if summary else meta.get("language", "unknown")),
+                        "branch": (summary.get("branch") if summary else meta.get("branch", "unknown")),
+                        "legal_area": (summary.get("legal_area") if summary else meta.get("legal_area", "unknown")),
+                        "has_corpus": did in corpus_ids,
+                        "has_section_data": False,
+                    })
+
+        info = self.section_modes.MODE_INFO.get(mode_name, {})
+        return {
+            "representation": f"section_{mode_name}",
+            "zoom_level": zoom_level,
+            "n_clusters": len(cluster_summaries),
+            "n_decisions": mode.n_decisions,
+            "clusters": cluster_summaries,
+            "positions": positions,
+            "map_mode": {
+                "name": mode_name,
+                "label": info.get("label", mode_name),
+                "description": info.get("description", ""),
+                "section_decisions": mode.n_decisions,
+                "total_positions": len(positions),
+            },
         }
 
     def get_cluster_detail(
@@ -174,7 +303,7 @@ class NavigationAPI:
         }
 
     def get_decision(self, decision_id: str) -> Dict[str, Any]:
-        """Get full details of a specific decision."""
+        """Get full details of a specific decision, including citation connections."""
         if not self._initialized:
             return {"error": "Not initialized"}
 
@@ -194,7 +323,34 @@ class NavigationAPI:
                         "cluster_id": zl.cluster_assignments[decision_id],
                     })
 
+        # Add section mode clusters
+        for mode_name in self.section_modes.get_available_modes():
+            mode = self.section_modes.get_mode(mode_name["name"])
+            if mode and decision_id in mode.positions:
+                resolution = 1.0
+                section_cluster = self.section_modes.get_clustering(mode_name["name"], resolution)
+                if section_cluster:
+                    labels = section_cluster.get("labels", [])
+                    idx = mode.decision_ids.index(decision_id) if decision_id in mode.decision_ids else -1
+                    if 0 <= idx < len(labels):
+                        clusters.append({
+                            "representation": f"section_{mode_name['name']}",
+                            "zoom_level": int(resolution),
+                            "cluster_id": labels[idx],
+                        })
+
         decision["map_clusters"] = clusters
+
+        # Add citation connections
+        outgoing = self.citation_loader.get_outgoing(decision_id)
+        incoming = self.citation_loader.get_incoming(decision_id)
+        citation_counts = self.citation_loader.get_citation_count(decision_id)
+        decision["citations"] = {
+            "outgoing": outgoing,
+            "incoming": incoming[:20],  # Limit incoming for response size
+            "counts": citation_counts,
+        }
+
         return decision
 
     def search_decisions(self, query: str, limit: int = 20) -> List[Dict]:
@@ -294,3 +450,66 @@ class NavigationAPI:
                 "total_map_positions": len(map_ids),
             },
         }
+
+    def get_map_modes(self) -> List[Dict[str, Any]]:
+        """Get available map modes (section-based views)."""
+        if not self._initialized:
+            return []
+
+        # Base representation modes
+        base_modes = [
+            {
+                "name": rep,
+                "label": rep.replace("_", " ").title(),
+                "description": f"Standard embedding projection: {rep}",
+                "type": "representation",
+                "n_decisions": self.map_loader.get_stats(rep).get("n_decisions", 0),
+            }
+            for rep in self.map_loader.get_available_representations()
+        ]
+
+        # Section-based modes
+        section_modes = self.section_modes.get_available_modes()
+
+        return base_modes + section_modes
+
+    def get_citations(
+        self, decision_id: str, direction: str = "both", limit: int = 50
+    ) -> Dict[str, Any]:
+        """Get citation connections for a decision.
+        
+        Args:
+            decision_id: The decision to get citations for
+            direction: "outgoing", "incoming", or "both"
+            limit: Maximum results per direction
+        """
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        result = {"decision_id": decision_id}
+
+        if direction in ("outgoing", "both"):
+            outgoing_refs = self.citation_loader.get_outgoing(decision_id)[:limit]
+            outgoing_decisions = []
+            for ref in outgoing_refs:
+                # Try to resolve reference to a corpus decision
+                summary = self.corpus.get_summary(ref)
+                if summary:
+                    outgoing_decisions.append(summary)
+                else:
+                    outgoing_decisions.append({"reference": ref, "in_corpus": False})
+            result["outgoing"] = outgoing_decisions
+
+        if direction in ("incoming", "both"):
+            incoming_ids = self.citation_loader.get_incoming(decision_id)[:limit]
+            incoming_decisions = []
+            for did in incoming_ids:
+                summary = self.corpus.get_summary(did)
+                if summary:
+                    incoming_decisions.append(summary)
+                else:
+                    incoming_decisions.append({"decision_id": did, "in_corpus": False})
+            result["incoming"] = incoming_decisions
+
+        result["counts"] = self.citation_loader.get_citation_count(decision_id)
+        return result
