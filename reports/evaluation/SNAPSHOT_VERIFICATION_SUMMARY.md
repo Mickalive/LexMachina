@@ -2,7 +2,7 @@
 
 **Lane:** evaluation  
 **Factory Direction Version:** 1  
-**GitHub Run:** 33059002142 (operational resume)  
+**GitHub Run:** 33065078996 (operational resume)  
 **Date:** 2026-08-27  
 **Status:** AUDIT-READY — PRODUCTIZE RECOMMENDED
 
@@ -27,8 +27,8 @@ The evaluation lane has **completed its mission** under factory direction versio
 | `evidence_tier` | REPRODUCED |
 | `accepted_run_id` | eval_cycle_14_1787801259 |
 | `next_recommendation` | PRODUCTIZE |
-| `operational_resume_run_id` | 33059002142 |
-| `github_run` | 33059002142 |
+| `operational_resume_run_id` | 33065078996 |
+| `github_run` | 33065078996 |
 
 ---
 
@@ -59,6 +59,7 @@ All claim-bearing outputs are preserved and traceable:
 
 ### Results (machine-readable)
 - `results/cycle_14_results.json` — Full benchmark results with raw metrics
+- `results/cycle_15_confirmation_results.json` — Confirmation run artifacts
 - `results/cycle_13_results.json` — Parameter sensitivity (12/12 combinations pass)
 - `results/cycle_12_results.json` — Breakthrough: debiased_citation_blended achieves BOTH success criteria
 - `results/cycle_11_results.json` — Critical negative: naive PCA debiasing COLLAPSES representation
@@ -75,6 +76,7 @@ All claim-bearing outputs are preserved and traceable:
 
 ### Reports (human-readable)
 - `reports/evaluation/evaluation_cycle_14_report.md` — Cycle 14 full report
+- `reports/evaluation/evaluation_cycle_15_confirmation_report.md` — Confirmation report
 - `reports/evaluation/evaluation_cycle_13_report.md` — Parameter sensitivity report
 - `reports/evaluation/evaluation_cycle_12_report.md` — Breakthrough report
 - `reports/evaluation/evaluation_cycle_11_report.md` — Collapse diagnosis report
@@ -103,9 +105,9 @@ All claim-bearing outputs are preserved and traceable:
 - `evaluation/benchmarks/core.py` — Core benchmark framework with Jurivoc loader
 
 ### Audit Trail (complete)
-- `results/audit/evaluation/CYCLE_33059002142_GATE.json` — Latest audit gate: **PASS**
-- `reports/audit/evaluation/CYCLE_33059002142.md` — Latest audit report
-- 33 total audit gates from 33024162040 through 33059002142 (all PASS except one FAILED dispatch-to-DONE)
+- `results/audit/evaluation/CYCLE_33065078996_GATE.json` — Latest audit gate: **PASS**
+- `reports/audit/evaluation/CYCLE_33065078996.md` — Latest audit report
+- 34 total audit gates from 33024162040 through 33065078996 (all PASS except one FAILED dispatch-to-DONE)
 
 ---
 
@@ -113,7 +115,7 @@ All claim-bearing outputs are preserved and traceable:
 
 **Root Cause:** Factory supervisor lacks pre-dispatch guard reading `state/<lane>.json` before dispatching work.
 
-**Symptom:** 18 "operational resume" dispatches to evaluation lane despite `cycle_status=COMPLETED` and `continue_recommended=false` since run 33027937718.
+**Symptom:** 19 "operational resume" dispatches to evaluation lane despite `cycle_status=COMPLETED` and `continue_recommended=false` since run 33027937718.
 
 **Impact:** Wasted compute cycles; no new evaluation work produced; lane correctly refuses work each time.
 
@@ -125,7 +127,7 @@ if state.get("cycle_status") == "COMPLETED" and state.get("continue_recommended"
     BLOCK dispatch — lane is complete
 ```
 
-**Documentation:** All 18 occurrences documented in `state/evaluation.json` cycle_history and audit reports.
+**Documentation:** All 19 occurrences documented in `state/evaluation.json` cycle_history and audit reports.
 
 ---
 
@@ -154,7 +156,9 @@ This representation:
 
 ---
 
-**Verification:** This snapshot is audit-ready. All claim-bearing results are frozen, traceable, and have passed independent audit gates. Negative results (cycle 11 collapse) are preserved as first-class evidence.
+## Verification
+
+This snapshot is audit-ready. All claim-bearing results are frozen, traceable, and have passed independent audit gates. Negative results (cycle 11 collapse) are preserved as first-class evidence.
 
 **Auditor:** LEXMACHINA INDEPENDENT AUDITOR  
 **Gate:** PASS  
