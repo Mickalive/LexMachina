@@ -3,11 +3,12 @@
   "direction_version": 1,
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
-  "continue_recommended": true,
+  "continue_recommended": false,
   "accepted_run_id": "hierarchical_leiden_20260827_005356",
   "accepted_commit": null,
   "repair_run_ids": ["33020090957", "33020622379", "33021595718"],
-  "github_run": "33027907385",
+  "verification_run_ids": ["33028489959"],
+  "github_run": "33028489959",
   "evidence_refs": [
     "results/fractal_map/hierarchical_map/hierarchical_map_results.json",
     "results/fractal_map/hierarchical_map/cluster_assignments.json",
@@ -28,7 +29,7 @@
     "results/fractal_map/baseline/metadata.json",
     "results/fractal_map/language_debiasing/embeddings_center_projected.npy"
   ],
-  "next_recommendation": "CONTINUE",
+  "next_recommendation": "PRODUCTIZE",
   "metrics_summary": {
     "hierarchical_leiden_experiment": {
       "best_config": "coarse_0.5_fine_3.0",
@@ -72,8 +73,20 @@
         "improvement_vs_concat_pct": 35.3,
         "note": "Hierarchical Leiden achieves 21% higher purity than evaluation lane baseline and 35% higher than concat representation."
       }
+    },
+    "verification_run_33028489959": {
+      "artifact_integrity": "PASS (18/18 refs present)",
+      "label_metadata_consistency": "PASS (1000 == 1000)",
+      "flat_purity_recomputation": "PASS (all 7 resolutions exact match)",
+      "coarse_purity_recomputation": "PASS (exact match)",
+      "nesting_consistency": "PASS (all 6 consecutive pairs = 1.0)",
+      "sub_cluster_size_check": "PASS (127 sub-clusters sum to 1000)",
+      "parent_child_consistency": "PASS (all 127 sub-clusters valid parent)",
+      "zoom_purity_improvement": "10.1% (0.8749 -> 0.9634)",
+      "overall_reproducibility": "PASS",
+      "note": "Full reproducibility verification in run 33028489959. All metrics recomputed from saved labels match reported values exactly. No data drift, no artifact corruption."
     }
   },
-  "critical_finding": "POSITIVE RESULT VALIDATES FRACTAL MAP ARCHITECTURE: Hierarchical Leiden (Leiden within parent clusters at finer resolutions) achieves BOTH perfect nesting (1.0) AND higher branch purity (0.9634) than flat Leiden (0.8947), agglomerative (0.786), and evaluation baselines (0.795). The product should use hierarchical Leiden with coarse_res=0.5, sub_res=3.0. This is the first REPRODUCED evidence that zoom reveals legally coherent substructure in a product-ready hierarchical format.",
-  "notes": "Cycle hierarchical_leiden_20260827_005356: (1) Built hierarchical Leiden: run Leiden within parent clusters at finer resolutions, guaranteeing nesting by construction. (2) Tested 3 configs: coarse_0.25_fine_3.0 (purity=0.962), coarse_0.5_fine_3.0 (purity=0.963), coarse_0.5_fine_2.0 (purity=0.963). (3) Best config: coarse_0.5_fine_3.0, purity=0.9634, nesting=1.0. (4) Comparison: flat Leiden mean_purity=0.895, agglomerative purity=0.786, eval baseline purity=0.795. (5) Hierarchical Leiden beats ALL baselines on BOTH metrics. (6) Product implication: Use hierarchical Leiden for the fractal map. Coarse level identifies language/legal domain, fine level identifies specific sub-areas. (7) Evidence tier upgraded to REPRODUCED: results are deterministic (seed=42), reproducible across runs, and validated against independent evaluation lane benchmarks."
+  "critical_finding": "POSITIVE RESULT VALIDATES FRACTAL MAP ARCHITECTURE: Hierarchical Leiden (Leiden within parent clusters at finer resolutions) achieves BOTH perfect nesting (1.0) AND higher branch purity (0.9634) than flat Leiden (0.8947), agglomerative (0.786), and evaluation baselines (0.795). The product should use hierarchical Leiden with coarse_res=0.5, sub_res=3.0. This is the first REPRODUCED evidence that zoom reveals legally coherent substructure in a product-ready hierarchical format. Verified reproducible in run 33028489959.",
+  "notes": "Cycle hierarchical_leiden_20260827_005356: (1) Built hierarchical Leiden: run Leiden within parent clusters at finer resolutions, guaranteeing nesting by construction. (2) Tested 3 configs: coarse_0.25_fine_3.0 (purity=0.962), coarse_0.5_fine_3.0 (purity=0.963), coarse_0.5_fine_2.0 (purity=0.963). (3) Best config: coarse_0.5_fine_3.0, purity=0.9634, nesting=1.0. (4) Comparison: flat Leiden mean_purity=0.895, agglomerative purity=0.786, eval baseline purity=0.795. (5) Hierarchical Leiden beats ALL baselines on BOTH metrics. (6) Product implication: Use hierarchical Leiden for the fractal map. Coarse level identifies language/legal domain, fine level identifies specific sub-areas. (7) Evidence tier REPRODUCED: results are deterministic (seed=42), reproducible across runs, validated against independent evaluation lane benchmarks. (8) Verification run 33028489959: Full reproducibility check PASSED. All 18 evidence refs present, all label arrays consistent, all purity recomputations exact match, nesting=1.0 at all resolution pairs, zoom purity improvement=10.1%. (9) Orchestration fix: prior state had continue_recommended=true and next_recommendation=CONTINUE despite PASS verdict. Corrected to continue_recommended=false, next_recommendation=PRODUCTIZE. The lane question is answered: hierarchical/multi-resolution representations DO reveal legally coherent substructure."
 }
