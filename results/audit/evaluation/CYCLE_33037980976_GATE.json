@@ -1,0 +1,116 @@
+{
+  "gate": "PASS",
+  "run_id": 33037980976,
+  "github_run": 33037980976,
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Evaluation infrastructure executes and discriminates on real corpus data. Two strong baselines established: TF-IDF reasoning-only (fails all legal-quality metrics: boilerplate resistance 0.01, multilingual separation -0.24, hierarchy NMI 0.03, citation proximity AUC 0.64) and sentence-transformers multilingual (passes corpus stability, improves legal-area purity 0.88, hierarchy NMI 0.067, multilingual separation -0.06; fails citation proximity AUC 0.50, neighbor relevance AUC 0.58). Legal-distance lane must beat both baselines on citation proximity (>0.75), multilingual separation (>0.1), legal-area NMI (>0.3), and neighbor relevance (>0.95). Boilerplate resistance untested for neural baseline.",
+  "evidence_summary": {
+    "cycles_audited": [1, 2, 3, 4, 5],
+    "files_produced": [
+      "evaluation/reports/evaluation_cycle_1_report.md",
+      "evaluation/reports/evaluation_cycle_2_repair_report.md",
+      "evaluation/reports/evaluation_cycle_3_report.md",
+      "evaluation/reports/evaluation_cycle_4_report.md",
+      "evaluation/reports/evaluation_cycle_5_report.md",
+      "evaluation/results/synthetic_evaluation_results.json",
+      "evaluation/results/synthetic_ground_truth.json",
+      "evaluation/results/real_corpus_tfidf_baseline_results.json",
+      "evaluation/results/cycle_4_new_benchmarks_results.json",
+      "evaluation/results/cycle_4_combined_results.json",
+      "evaluation/results/cycle_5_neural_baseline_results.json",
+      "evaluation/benchmarks/core.py",
+      "evaluation/benchmarks/synthetic_supervision.py",
+      "evaluation/benchmarks/jurivoc_loader.py",
+      "evaluation/tests/neighbor_relevance.py",
+      "evaluation/tests/boilerplate_resistance.py",
+      "evaluation/tests/multilingual_invariance.py",
+      "evaluation/tests/stability.py",
+      "evaluation/tests/hierarchy_coherence.py",
+      "evaluation/tests/citation_proximity.py",
+      "evaluation/tests/legal_area_clustering.py",
+      "evaluation/data/synthetic.py",
+      "evaluation/data/real_corpus.py",
+      "evaluation/run_evaluation.py"
+    ],
+    "representations_tested": {
+      "cycle_1_2": "Synthetic oracle embeddings (Jurivoc centers + noise, 384-dim)",
+      "cycle_3_4": "TF-IDF reasoning-only (10K features, 1-2 grams, sublinear TF)",
+      "cycle_5": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2 (768-dim, pre-computed)"
+    },
+    "benchmark_results_summary": {
+      "cycle_1_synthetic_oracle": {
+        "neighbor_relevance": {"status": "PASSED", "auc_roc": 0.9559, "note": "Tautological — embeddings built from Jurivoc centers"},
+        "boilerplate_resistance": {"status": "FAILED", "resistance": 0.5, "note": "Placeholder — fixed in Cycle 2"},
+        "multilingual_invariance": {"status": "FAILED", "invariance": 0.004, "note": "Correctly detects no cross-lang alignment"},
+        "corpus_stability": {"status": "PASSED", "drift": 0.0, "note": "Tautological — static embeddings"},
+        "hierarchy_coherence": {"status": "PASSED", "purity": 0.512, "nmi": 0.797, "note": "Tautological — embeddings from Jurivoc centers"}
+      },
+      "cycle_2_repair": {
+        "neighbor_relevance": {"status": "PASSED", "auc_roc": 0.9559, "note": "Tautological"},
+        "boilerplate_resistance": {"status": "FAILED", "resistance": 0.1402, "note": "Now measures actual TF-IDF perturbation"},
+        "multilingual_invariance": {"status": "FAILED", "invariance": 0.3973, "note": "50 dockets, 150 pairs; synthetic quirk: separation positive for wrong reason"},
+        "corpus_stability": {"status": "PASSED", "drift": 0.0, "note": "Tautological"},
+        "hierarchy_coherence": {"status": "PASSED", "purity": 0.512, "nmi": 0.818, "note": "Tautological"}
+      },
+      "cycle_3_tfidf_real": {
+        "neighbor_relevance": {"status": "PASSED", "auc_roc": 0.9519, "note": "Inflated by boilerplate (full > reasoning-only)"},
+        "boilerplate_resistance": {"status": "FAILED", "resistance": 0.0113, "note": "Catastrophic — TF-IDF extremely sensitive"},
+        "multilingual_invariance": {"status": "FAILED", "separation": -0.2374, "note": "Language dominates over legal content"},
+        "corpus_stability": {"status": "FAILED", "drift": 0.8733, "note": "Retrained TF-IDF vocabulary shifts"},
+        "hierarchy_coherence": {"status": "FAILED", "nmi": 0.0283, "purity": 0.4720, "note": "Language purity 0.99, legal-area purity 0.43"}
+      },
+      "cycle_4_new_benchmarks": {
+        "citation_proximity": {"status": "FAILED", "auc_roc": 0.6354, "note": "TF-IDF doesn't capture citation heritage"},
+        "legal_area_clustering": {"status": "FAILED", "nmi": 0.0487, "purity": 0.7046, "note": "Language dominates clustering"}
+      },
+      "cycle_5_neural": {
+        "citation_proximity": {"status": "FAILED", "auc_roc": 0.5004, "note": "Neural loses to TF-IDF (0.6354)"},
+        "legal_area_clustering": {"status": "FAILED", "nmi": 0.0572, "purity": 0.8763, "note": "Neural beats TF-IDF on purity, not NMI"},
+        "multilingual_invariance": {"status": "FAILED", "separation": -0.0555, "note": "Language dominance reduced but still negative"},
+        "hierarchy_coherence": {"status": "FAILED", "nmi": 0.0672, "purity": 0.8333, "note": "Neural beats TF-IDF on both"},
+        "neighbor_relevance": {"status": "FAILED", "auc_roc": 0.5780, "note": "Neural loses to TF-IDF (0.9519)"},
+        "corpus_stability": {"status": "PASSED", "drift": 0.0, "note": "Static pre-computed embeddings"},
+        "boilerplate_resistance": {"status": "SKIPPED", "note": "Requires model inference on arbitrary text"}
+      }
+    },
+    "success_criteria_results": {
+      "cycle_3_tfidf": {"passed": 1, "failed": 4, "skipped": 0},
+      "cycle_4_new": {"passed": 0, "failed": 2, "skipped": 0},
+      "cycle_5_neural": {"passed": 1, "failed": 5, "skipped": 1}
+    },
+    "critical_findings": {
+      "positive": [
+        "Evaluation infrastructure functional and discriminating on real corpus",
+        "TF-IDF baseline establishes clear floors for all 7 benchmarks",
+        "Neural embeddings beat TF-IDF on legal-area purity, hierarchy NMI/purity, multilingual separation, corpus stability",
+        "Boilerplate confounding identified: TF-IDF AUC inflated by procedural text",
+        "Cycle 5 repairs (branch_distribution, hierarchy labels) verified and working"
+      ],
+      "negative": [
+        "Synthetic oracle results (Cycles 1-2) are tautological — bounded in claim ceiling",
+        "TF-IDF fails catastrophically on boilerplate resistance (0.01), multilingual (-0.24), stability (0.87), hierarchy NMI (0.03)",
+        "Neural embeddings lose to TF-IDF on citation proximity (0.50 vs 0.64) and neighbor relevance (0.58 vs 0.95)",
+        "Neural multilingual separation still negative (-0.06) — language not fully removed",
+        "Boilerplate resistance untested for neural baseline (structural gap)",
+        "Real Jurivoc/TF weak supervision path unexercised (SSL issues)"
+      ],
+      "tradeoffs": [
+        "Neural improves legal-area purity (0.88 vs 0.70) but NMI remains low (0.06 vs 0.03)",
+        "Neural reduces language dominance (-0.06 vs -0.24) but doesn't achieve positive separation",
+        "TF-IDF wins on citation/neighbor relevance due to shared boilerplate/vocabulary"
+      ]
+    },
+    "cross_cycle_consistency": {
+      "tfidf_neural_comparison": "All deltas attributable to genuine representation differences. No internal inconsistencies.",
+      "cycle_5_repairs": "Both required fixes from prior rejection (33024162040 R3) verified in output"
+    },
+    "known_defects_carried_forward": [
+      {"id": "synthetic_oracle_tautology", "severity": "low", "status": "BOUNDED_IN_CLAIM_CEILING", "cycles": [1, 2]},
+      {"id": "boilerplate_test_representation_mismatch", "severity": "low", "status": "DOCUMENTED", "cycles": [2]},
+      {"id": "multilingual_synthetic_quirk", "severity": "low", "status": "GENERATOR_LIMITATION", "cycles": [1, 2]},
+      {"id": "boilerplate_resistance_neural_gap", "severity": "medium", "status": "STRUCTURAL_GAP", "cycles": [5]},
+      {"id": "jurivoc_sparql_ssl", "severity": "low", "status": "ENVIRONMENTAL", "cycles": [1, 2]}
+    ]
+  }
+}
