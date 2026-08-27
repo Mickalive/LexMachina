@@ -1,0 +1,67 @@
+{
+  "gate": "PASS",
+  "run_id": "33032746334",
+  "repair_round": 0,
+  "repaired_cycle": null,
+  "lane": "product",
+  "auditor": "LEXMACHINA_INDEPENDENT_AUDITOR",
+  "model": "opencode/mimo-v2.5-free",
+  "timestamp": "2026-08-27T02:45:00Z",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "REPRODUCED",
+  "evidence_summary": {
+    "tests": "PASS — 18/18 tests independently verified (9 original + 9 new: proximity_explainer_basic, proximity_explainer_cross_branch, proximity_explainer_language_warning, proximity_explainer_missing, proximity_feature_weights, cluster_coherence, cluster_coherence_all, proximity_api_endpoint, language_filter)",
+    "corpus": "PASS — 1200 canonical + 2 test imports = 1202 decisions; languages de=736 fr=404 it=62; 4 branches verified",
+    "map": "PASS — 1000 positions, 100% map-corpus coverage, Leiden 5/11/16/21 clusters, HDBSCAN 2/2/3/8 clusters",
+    "proximity_explainer": "PASS — 6-feature decomposition (language=0.15, branch=0.25, legal_area=0.20, citation_overlap=0.20, text_length=0.05, date_proximity=0.15); weights sum to 1.0; language intentionally downweighted from known 0.982 dominance",
+    "cluster_coherence": "PASS — 10/11 clusters language-dominated at zoom 1; purity scores 0.456-0.815; cluster 7 is only non-language-dominated cluster (purity=0.456)",
+    "language_filter": "PASS — 605 visible (de) + 395 hidden = 1000 total; all visible are de, all hidden are not de",
+    "api": "PASS — 13 endpoints (2 new: /api/proximity, /api/cluster_coherence)",
+    "frontend": "PASS — Language-colored map points, proximity explanation panel, cluster coherence indicators, keyboard shortcuts",
+    "backward_compatible": "PASS — All pre-existing endpoints and behavior unchanged",
+    "leakage": "CLEAN — No state overwrite, no benchmark gaming, no post-hoc metrics",
+    "honest_negatives": "CLEAN — Proximity uses metadata only (documented limitation); language dominance visible but not resolved; section modes cover 6.3%"
+  },
+  "findings": [
+    {
+      "id": "F-001",
+      "severity": "minor",
+      "title": "Missing cycle report",
+      "detail": "Producer did not write reports/product/CYCLE_33032746334.md. State and code are complete but human-readable report is absent.",
+      "impact": "Documentation gap only. Code and state provide sufficient evidence for audit.",
+      "fix_required": false
+    },
+    {
+      "id": "F-002",
+      "severity": "informational",
+      "title": "Proximity explanations use metadata only",
+      "detail": "6-feature decomposition uses language, branch, legal_area, citation_overlap, text_length, date_proximity. No deep text similarity (TF-IDF cosine, semantic embeddings).",
+      "impact": "Explanations are interpretable but shallow. State correctly documents this and lists deep text similarity as next step.",
+      "fix_required": false
+    },
+    {
+      "id": "F-003",
+      "severity": "informational",
+      "title": "Language dominance visible but not resolved",
+      "detail": "Proximity explainer correctly identifies and warns about language dominance (0.982 baseline), but the underlying map still clusters primarily by language. Diagnostic tool, not remedial.",
+      "impact": "Users understand WHY proximity is language-driven but cannot yet switch to language-invariant view. Section modes partially address but cover 6.3%.",
+      "fix_required": false
+    }
+  ],
+  "zero_delta_satisfied": true,
+  "zero_delta_evidence": "All pre-existing functionality preserved. 7 feature additions with verified behavioral difference. 9 new tests added, all 18/18 pass. No existing tests broken.",
+  "repair_history": {
+    "previous_repairs": [
+      "CYCLE_33027622849_REPAIR: Fixed missing numpy dependency",
+      "CYCLE_33027622849_REPAIR: Fixed corpus-map mismatch",
+      "CYCLE_33027622849_REPAIR: Integrated Leiden cluster assignments",
+      "CYCLE_33027622849_REPAIR: Added has_corpus flag",
+      "CYCLE_33030231013_REPAIR: Fixed server.py path bug (FIX-001)",
+      "CYCLE_33030231013_REPAIR: Fixed n_clusters metadata (FIX-002)",
+      "CYCLE_33030449356_FIX: Fixed server.py _serve_file path bug (FIX-003)"
+    ],
+    "recurring_pathology": false,
+    "pathology_note": "No repairs needed in this cycle. Previous repairs were for concrete path bugs and missing dependencies. No systematic issue."
+  }
+}
