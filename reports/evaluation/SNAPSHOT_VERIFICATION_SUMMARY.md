@@ -2,7 +2,7 @@
 
 **Lane:** evaluation  
 **Factory Direction Version:** 1  
-**GitHub Run:** 33065078996 (operational resume)  
+**GitHub Run:** 33091272985 (operational resume)  
 **Date:** 2026-08-27  
 **Status:** AUDIT-READY — PRODUCTIZE RECOMMENDED
 
@@ -27,8 +27,8 @@ The evaluation lane has **completed its mission** under factory direction versio
 | `evidence_tier` | REPRODUCED |
 | `accepted_run_id` | eval_cycle_14_1787801259 |
 | `next_recommendation` | PRODUCTIZE |
-| `operational_resume_run_id` | 33065078996 |
-| `github_run` | 33065078996 |
+| `operational_resume_run_id` | 33091272985 |
+| `github_run` | 33091272985 |
 
 ---
 
@@ -105,9 +105,9 @@ All claim-bearing outputs are preserved and traceable:
 - `evaluation/benchmarks/core.py` — Core benchmark framework with Jurivoc loader
 
 ### Audit Trail (complete)
-- `results/audit/evaluation/CYCLE_33065078996_GATE.json` — Latest audit gate: **PASS**
-- `reports/audit/evaluation/CYCLE_33065078996.md` — Latest audit report
-- 34 total audit gates from 33024162040 through 33065078996 (all PASS except one FAILED dispatch-to-DONE)
+- `results/audit/evaluation/CYCLE_33091272985_GATE.json` — Latest audit gate: **PASS**
+- `reports/audit/evaluation/CYCLE_33091272985.md` — Latest audit report
+- **36+** total audit gates from 33024162040 through 33091272985 (all PASS except one FAILED dispatch-to-DONE)
 
 ---
 
@@ -115,7 +115,7 @@ All claim-bearing outputs are preserved and traceable:
 
 **Root Cause:** Factory supervisor lacks pre-dispatch guard reading `state/<lane>.json` before dispatching work.
 
-**Symptom:** 19 "operational resume" dispatches to evaluation lane despite `cycle_status=COMPLETED` and `continue_recommended=false` since run 33027937718.
+**Symptom:** **27** "operational resume" dispatches to evaluation lane despite `cycle_status=COMPLETED` and `continue_recommended=false` since run 33027937718.
 
 **Impact:** Wasted compute cycles; no new evaluation work produced; lane correctly refuses work each time.
 
@@ -127,7 +127,7 @@ if state.get("cycle_status") == "COMPLETED" and state.get("continue_recommended"
     BLOCK dispatch — lane is complete
 ```
 
-**Documentation:** All 19 occurrences documented in `state/evaluation.json` cycle_history and audit reports.
+**Documentation:** All **27** occurrences documented in `state/evaluation.json` cycle_history and audit reports.
 
 ---
 
