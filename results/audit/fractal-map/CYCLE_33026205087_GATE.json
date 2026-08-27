@@ -1,0 +1,53 @@
+{
+  "lane": "fractal-map",
+  "cycle_id": "CYCLE_resolution_dependent_selector_20260827",
+  "run_id": "resolution_dependent_selector_20260827_001757",
+  "direction_version": 1,
+  "github_run": "33026205087",
+  "verdict": "PASS",
+  "evidence_tier": "EXPLORATORY",
+  "timestamp": "2026-08-27T00:17:57Z",
+  "hypothesis": "The resolution-dependent representation selector (baseline at domain level, center-projected at subdomain, concat at microcluster) outperforms single-representation strategies in average legal purity across zoom levels.",
+  "frozen_sample": "1000 BGer decisions (2020-2024) with extractable reasoning sections",
+  "frozen_metric": "Average legal purity, average language purity, average ratio across zoom levels (0.5, 1.0, 2.0, 3.0)",
+  "success_rule": "Resolution-dependent achieves higher average legal purity or ratio than concat",
+  "result": {
+    "baseline_avg_legal_purity": 0.349,
+    "baseline_avg_ratio": 0.355,
+    "concat_avg_legal_purity": 0.389,
+    "concat_avg_ratio": 0.418,
+    "resolution_dependent_avg_legal_purity": 0.347,
+    "resolution_dependent_avg_ratio": 0.403,
+    "resolution_dependent_wins": false,
+    "success_achieved": false
+  },
+  "artifacts_verified": [
+    "results/fractal_map/evaluation/resolution_dependent_results.json",
+    "fractal_map/evaluation/resolution_dependent_selector.py",
+    "results/fractal_map/baseline/embeddings.npy",
+    "results/fractal_map/language_debiasing/embeddings_center_projected.npy",
+    "results/fractal_map/combined_debiasing_tfidf/combined_results.json"
+  ],
+  "quantitative_claims_verified": [
+    "Concat avg legal purity 0.389 vs baseline 0.349 (+11.5%)",
+    "Concat avg ratio 0.418 vs baseline 0.355 (+17.7%)",
+    "Resolution-dependent avg legal purity 0.347 vs concat 0.389 (-10.8%)",
+    "Resolution-dependent avg ratio 0.403 vs concat 0.418 (-3.6%)",
+    "Resolution-dependent does NOT outperform concat on any metric"
+  ],
+  "scope_violations": "none",
+  "negative_results_preserved": [
+    "Resolution-dependent strategy is INFERIOR to concat on both legal purity and ratio",
+    "The hypothesis that baseline at domain level provides better cross-language navigation is falsified — concat's legal discrimination outweighs baseline's cross-language advantage even at coarse zoom levels",
+    "Resolution-dependent zoom_0 (baseline) has avg legal purity 0.325 vs concat zoom_0 0.389 — baseline is worse even at domain level",
+    "Resolution-dependent zoom_1 (center-projected) has avg legal purity 0.304 vs concat zoom_1 0.389 — center-projected is worse at subdomain level"
+  ],
+  "recommendation": "CONTINUE",
+  "next_priorities": [
+    "Test concat at all zoom levels with boilerplate resistance benchmark",
+    "Test stability under corpus growth (concat vs baseline drift)",
+    "Build interactive zoom UI prototype with concat at all zoom levels",
+    "Test with legal-specific embeddings from legal-distance lane when available",
+    "Explore whether concat's cross-language weakness can be mitigated with language-specific TF-IDF variants"
+  ]
+}

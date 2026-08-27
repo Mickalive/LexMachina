@@ -4,10 +4,10 @@
   "evidence_tier": "EXPLORATORY",
   "cycle_status": "COMPLETED",
   "continue_recommended": true,
-  "accepted_run_id": "fractal_map_concat_benchmark_v2_20260827_001132",
+  "accepted_run_id": "resolution_dependent_selector_20260827_001757",
   "accepted_commit": null,
   "repair_run_ids": ["33020090957", "33020622379", "33021595718"],
-  "github_run": "33025621869",
+  "github_run": "33026205087",
   "evidence_refs": [
     "results/fractal_map/baseline/embeddings.npy",
     "results/fractal_map/baseline/projection_2d.npy",
@@ -48,6 +48,7 @@
     "results/fractal_map/zoom_api/sample_inspections.json",
     "results/fractal_map/zoom_api/coherence_test_results.json",
     "results/fractal_map/evaluation/concat_benchmark_results_v2.json",
+    "results/fractal_map/evaluation/resolution_dependent_results.json",
     "fractal_map/experiments/language_debiasing.py",
     "fractal_map/experiments/citation_embeddings.py",
     "fractal_map/experiments/reasoning_tfidf.py",
@@ -60,6 +61,7 @@
     "fractal_map/evaluation/evaluate.py",
     "fractal_map/evaluation/concat_benchmark.py",
     "fractal_map/evaluation/concat_benchmark_v2.py",
+    "fractal_map/evaluation/resolution_dependent_selector.py",
     "fractal_map/baseline/flat_map_baseline.py",
     "fractal_map/hierarchical/graph_clustering.py",
     "fractal_map/hierarchical/hierarchical_clustering.py",
@@ -72,73 +74,45 @@
     "reports/fractal_map/combined_cycle_report.md",
     "reports/fractal_map/zoom_api_cycle_report.md",
     "reports/fractal_map/concat_benchmark_cycle_report.md",
+    "reports/fractal_map/resolution_dependent_cycle_report.md",
     "results/audit/fractal-map/CYCLE_33020090957_GATE.json",
     "results/audit/fractal-map/CYCLE_33020622379_GATE.json",
     "results/audit/fractal-map/CYCLE_33021595718_GATE.json",
     "results/audit/fractal-map/CYCLE_combined_20260826_GATE.json",
     "results/audit/fractal-map/CYCLE_33023738893_GATE.json",
-    "results/audit/fractal-map/CYCLE_33025621869_GATE.json"
+    "results/audit/fractal-map/CYCLE_33025621869_GATE.json",
+    "results/audit/fractal-map/CYCLE_33026205087_GATE.json"
   ],
   "next_recommendation": "CONTINUE",
   "metrics_summary": {
-    "unified_comparison_resolution_1": {
-      "baseline_aligned": {"legal_purity": 0.350, "language_purity": 0.964, "ratio": 0.363},
-      "center_projected_aligned": {"legal_purity": 0.330, "language_purity": 0.750, "ratio": 0.440},
-      "tfidf_erwaegungen": {"legal_purity": 0.385, "language_purity": 0.986, "ratio": 0.390},
-      "tfidf_center_projected": {"legal_purity": 0.377, "language_purity": 0.967, "ratio": 0.389},
-      "tfidf_pca2": {"legal_purity": 0.375, "language_purity": 0.986, "ratio": 0.381},
-      "concat_center_tfidf": {"legal_purity": 0.394, "language_purity": 0.986, "ratio": 0.400},
-      "concat_pca_tfidf": {"legal_purity": 0.418, "language_purity": 0.986, "ratio": 0.423}
+    "resolution_dependent_experiment": {
+      "baseline_avg_legal_purity": 0.349,
+      "baseline_avg_ratio": 0.355,
+      "concat_avg_legal_purity": 0.389,
+      "concat_avg_ratio": 0.418,
+      "resolution_dependent_avg_legal_purity": 0.347,
+      "resolution_dependent_avg_ratio": 0.403,
+      "winner": "concat",
+      "note": "NEGATIVE RESULT: Resolution-dependent strategy does NOT outperform concat. Concat is better at all zoom levels."
     },
-    "unified_comparison_resolution_3": {
-      "baseline_aligned": {"legal_purity": 0.441, "language_purity": 0.984, "ratio": 0.448},
-      "center_projected_aligned": {"legal_purity": 0.381, "language_purity": 0.763, "ratio": 0.500},
-      "tfidf_erwaegungen": {"legal_purity": 0.469, "language_purity": 0.986, "ratio": 0.476},
-      "concat_center_tfidf": {"legal_purity": 0.504, "language_purity": 0.986, "ratio": 0.511},
-      "concat_pca_tfidf": {"legal_purity": 0.491, "language_purity": 1.000, "ratio": 0.491}
+    "concat_benchmark_results": {
+      "nmi_baseline": 0.055,
+      "nmi_concat": 0.108,
+      "nmi_improvement_pct": 96.2,
+      "purity_baseline": 0.821,
+      "purity_concat": 0.726,
+      "purity_change_pct": -11.5,
+      "cross_lang_baseline": 0.862,
+      "cross_lang_concat": 0.038,
+      "note": "Concat nearly doubles NMI but destroys cross-language invariance"
     },
     "best_ratio": {
       "method": "concat_center_tfidf",
-      "ratio": 0.511,
+      "ratio": 0.484,
       "resolution": 3.0,
-      "note": "FIRST representation to achieve ratio >0.5. Legal purity (0.504) exceeds language purity (0.986). 42% improvement over baseline (0.363)."
-    },
-    "best_legal_purity": {
-      "method": "concat_center_tfidf",
-      "purity": 0.504,
-      "resolution": 3.0,
-      "note": "Highest absolute legal purity achieved. 15% improvement over baseline (0.441 at res 3.0)."
-    },
-    "hierarchy_consistency": {
-      "concat_center_tfidf_nmi_range": "0.87-0.93",
-      "baseline_nmi_range": "0.73-0.91",
-      "note": "Concatenated representation maintains or improves hierarchy consistency"
-    },
-    "zoom_api_coherence": {
-      "cluster_nesting": 0.978,
-      "legal_area_weighted_purity": 0.336,
-      "language_weighted_purity": 0.964,
-      "nmi_avg": 0.695,
-      "note": "Multi-resolution hierarchy is coherent with 97.8% cluster nesting and improving legal purity across zoom levels"
-    },
-    "formal_benchmark_results": {
-      "legal_area_clustering": {
-        "nmi_baseline": 0.055, "nmi_concat": 0.108, "nmi_improvement_pct": 96.2,
-        "purity_baseline": 0.821, "purity_concat": 0.726, "purity_change_pct": -11.5,
-        "note": "Concat nearly doubles NMI (alignment with legal branches) but purity drops as a trade-off"
-      },
-      "multilingual_invariance": {
-        "cross_lang_baseline": 0.862, "cross_lang_concat": 0.038,
-        "separation_baseline": -0.048, "separation_concat": -0.170,
-        "note": "NEGATIVE: TF-IDF component destroys cross-language invariance. Concat is intra-language only."
-      },
-      "hierarchy_coherence": {
-        "nesting_baseline": 1.0, "nesting_concat": 1.0,
-        "purity_baseline": 0.795, "purity_concat": 0.712,
-        "note": "Perfect nesting maintained. Purity drops due to TF-IDF language specificity."
-      }
+      "note": "Highest ratio achieved at finest resolution"
     }
   },
-  "critical_finding": "BREAKTHROUGH with TRADE-OFF: The concat_center_tfidf representation achieves the first ratio >0.5 in the fractal-map internal evaluation and nearly doubles NMI (+96.2%) on formal legal-area clustering benchmarks. However, the TF-IDF Erwaegungen component destroys cross-language invariance (cross-lang similarity drops from 0.862 to 0.038). This means concat is a powerful INTRA-LANGUAGE legal navigation tool but NOT suitable for cross-language legal navigation. Product implication: use baseline (sentence-transformer) for cross-language navigation, concat for intra-language deep legal navigation.",
-  "notes": "Cycle 33025621869 (operational resume + benchmark evaluation): (1) Diagnosed state gap from run 33024933343 — state file had not been updated with that run's completion. (2) Ran concat_center_tfidf through formal evaluation benchmarks: legal_area_clustering (NMI +96.2%, purity -11.5%), multilingual_invariance (cross-lang drops from 0.862 to 0.038 — NEGATIVE), hierarchy_coherence (nesting perfect, purity -10.5%). (3) KEY INSIGHT: The concat representation is a dual-nature tool — excellent for intra-language legal navigation but poor for cross-language. This justifies a resolution-dependent representation strategy: baseline at domain level (cross-language), concat at microcluster level (intra-language legal detail). All artifacts verified. Audit gate written."
+  "critical_finding": "NEGATIVE RESULT FALSIFIES HYPOTHESIS: The resolution-dependent representation selector (baseline at domain, center-projected at subdomain, concat at microcluster) does NOT outperform using concat at all zoom levels. Concat achieves higher average legal purity (0.389 vs 0.347) and higher average ratio (0.418 vs 0.403). The product architecture should use concat at ALL zoom levels for intra-language legal navigation, with baseline ONLY for cross-language mode (separate product mode, not a zoom level).",
+  "notes": "Cycle 33026205087 (operational resume + resolution-dependent experiment): (1) Diagnosed prior run 33025621869 completed successfully with PASS verdict and updated state. (2) Built and ran resolution-dependent representation selector experiment testing three strategies: baseline, concat, and resolution-dependent (baseline at zoom 0, center-projected at zoom 1, concat at zoom 2). (3) NEGATIVE RESULT: Resolution-dependent does NOT outperform concat. Concat wins on both avg legal purity (0.389 vs 0.347) and avg ratio (0.418 vs 0.403). (4) Product implication: Use concat at ALL zoom levels for intra-language legal navigation. Use baseline ONLY for cross-language mode. (5) All artifacts verified. Audit gate written."
 }
