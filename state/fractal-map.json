@@ -4,9 +4,9 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "hierarchical_leiden_20260827_005356",
+  "accepted_run_id": "hierarchical_leiden_20260827_181419",
   "accepted_commit": null,
-  "github_run": "33100450037",
+  "github_run": "33101336412",
   "factory_direction_version": 2,
   "evidence_refs": [
     "fractal_map/hierarchical/hierarchical_leiden.py",
@@ -50,14 +50,14 @@
   "metrics_summary": {
     "hierarchical_leiden_experiment": {
       "verdict": "PASS",
-      "hierarchical_purity": 0.9634173192573424,
+      "hierarchical_purity": 0.9561351138684238,
       "hierarchical_nesting": 1.0,
-      "flat_mean_purity": 0.8946883120050731,
-      "purity_improvement_pct": 7.68,
-      "coarse_resolution": 0.5,
+      "flat_mean_purity": 0.8829426672472117,
+      "purity_improvement_pct": 8.29,
+      "coarse_resolution": 0.25,
       "sub_resolution": 3.0,
-      "n_coarse_clusters": 8,
-      "n_fine_clusters": 127,
+      "n_coarse_clusters": 4,
+      "n_fine_clusters": 77,
       "representation": "concat_center_tfidf",
       "corpus": "1000 BGer decisions (2020-2024)"
     },
@@ -81,24 +81,33 @@
       "coarse_0.5_improvement_rate": 0.393
     },
     "baseline_comparison": {
-      "flat_leiden_mean_purity": 0.8946883120050731,
-      "flat_leiden_mean_nesting": 0.600158329324996,
+      "flat_leiden_mean_purity": 0.8829426672472117,
+      "flat_leiden_mean_nesting": 0.5932191590086326,
       "agglomerative_purity": 0.786,
       "evaluation_baseline_purity": 0.795,
       "concat_baseline_purity": 0.712
     },
     "hierarchical_leiden_best": {
-      "config": "coarse_0.5_fine_3.0",
-      "coarse_purity": 0.874884494027496,
-      "hierarchical_purity": 0.9634173192573424,
+      "config": "coarse_0.25_fine_3.0",
+      "coarse_purity": 0.6352458575349491,
+      "hierarchical_purity": 0.9561351138684238,
       "nesting_score": 1.0,
-      "n_fine_clusters": 127
+      "n_fine_clusters": 77
+    },
+    "hierarchical_leiden_persisted": {
+      "config": "coarse_0.5_fine_3.0",
+      "coarse_purity": 0.864221,
+      "hierarchical_purity": 0.949075,
+      "nesting_score": 1.0,
+      "n_fine_clusters": 98,
+      "note": "Persisted artifacts use this config (product integration). Differs from experimental best due to igraph version sensitivity."
     }
   },
-  "notes": "Hierarchical Leiden validated: perfect nesting (1.0) and higher branch purity (0.963) than all baselines. Zoom within language-homogeneous clusters reveals legally coherent substructure. Fractal map architecture validated. Productization for v2: expose full resolution ladder (7 resolutions), cluster metadata with legal coherence per level, and validate actionable substructure at each zoom level. Product integration artifacts created: 7-resolution ladder with legal metadata, parent-child zoom navigation, decision-to-cluster index, and hierarchical Leiden (98 clusters, purity 0.949, nesting 1.0).",
+  "notes": "Hierarchical Leiden validated: perfect nesting (1.0) and higher branch purity than all baselines. Current experimental best: coarse_0.25_fine_3.0 (77 clusters, purity 0.956). Persisted product artifacts use coarse_0.5_fine_3.0 (98 clusters, purity 0.949) due to igraph version sensitivity; key invariants preserved (nesting=1.0, purity>0.94). Fractal map architecture validated. Productization for v2: expose full resolution ladder (7 resolutions), cluster metadata with legal coherence per level, and validate actionable substructure at each zoom level. Product integration artifacts created: 7-resolution ladder with legal metadata, parent-child zoom navigation, decision-to-cluster index, and hierarchical Leiden (98 clusters, purity 0.949, nesting 1.0).",
   "known_limitations": [
-    "igraph version sensitivity: re-running with different igraph version produces different cluster counts (98 vs 127) but key invariants preserved (nesting=1.0, purity>0.94)",
-    "Nesting computed differently for flat vs hierarchical: flat nesting=0.60 across resolution pairs, hierarchical nesting=1.0 by construction",
+    "igraph version sensitivity: re-running with different igraph version produces different cluster counts and best config (77 vs 98 vs 127) but key invariants preserved (nesting=1.0, purity>0.94)",
+    "Experimental best config (coarse_0.25_fine_3.0, 77 clusters) differs from persisted config (coarse_0.5_fine_3.0, 98 clusters). Product integration uses persisted config.",
+    "Nesting computed differently for flat vs hierarchical: flat nesting=0.59 across resolution pairs, hierarchical nesting=1.0 by construction",
     "Purity recomputation requires corpus branch labels from /tmp/lex_accepted/corpus/",
     "Corpus scope: validated on 1000 decisions (2020-2024). Full TF 2000+ corpus requires corpus lane completion."
   ],
@@ -111,7 +120,8 @@
     "Cluster metadata API with legal coherence metrics at each zoom level built",
     "Zoom coherence validated: 59.2% improvement rate, hierarchical Leiden beats flat best by +0.037",
     "Decision-to-cluster index created for fast product lookup",
-    "Integration specification generated for product lane handoff"
+    "Integration specification generated for product lane handoff",
+    "State file updated to match current experimental results (run 33101336412)"
   ],
   "next_steps": [
     "Product lane consumes artifacts from results/fractal_map/product_integration/",
