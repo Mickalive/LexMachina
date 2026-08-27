@@ -78,6 +78,15 @@ class ProductHandler(SimpleHTTPRequestHandler):
             self._json_response(get_nav_api().get_zoom_levels(rep))
         elif path == "/api/corpus/stats":
             self._json_response(get_nav_api().get_corpus_stats())
+        elif path == "/api/proximity":
+            id_a = params.get("id_a", [""])[0]
+            id_b = params.get("id_b", [""])[0]
+            self._json_response(get_nav_api().get_proximity_explanation(id_a, id_b))
+        elif path == "/api/cluster_coherence":
+            rep = params.get("representation", ["concat_center_tfidf"])[0]
+            zoom = int(params.get("zoom", ["1"])[0])
+            cid = int(params.get("cluster_id", ["0"])[0])
+            self._json_response(get_nav_api().get_cluster_coherence(rep, zoom, cid))
         # Static files
         elif path == "/" or path == "/index.html":
             self._serve_file("static/index.html", "text/html")

@@ -11,7 +11,7 @@
         #app { display: flex; height: 100vh; }
         
         /* Sidebar */
-        #sidebar { width: 320px; background: #12121a; border-right: 1px solid #2a2a3a; display: flex; flex-direction: column; z-index: 10; }
+        #sidebar { width: 340px; background: #12121a; border-right: 1px solid #2a2a3a; display: flex; flex-direction: column; z-index: 10; }
         #sidebar-header { padding: 16px; border-bottom: 1px solid #2a2a3a; }
         #sidebar-header h1 { font-size: 18px; color: #7c8aff; font-weight: 600; }
         #sidebar-header .subtitle { font-size: 11px; color: #666; margin-top: 4px; }
@@ -20,6 +20,15 @@
         #controls label { font-size: 11px; color: #888; display: block; margin-bottom: 4px; }
         #controls select, #controls input { width: 100%; padding: 6px 8px; background: #1a1a2a; border: 1px solid #333; border-radius: 4px; color: #e0e0e0; font-size: 12px; margin-bottom: 8px; }
         #controls select:focus, #controls input:focus { outline: none; border-color: #7c8aff; }
+        
+        /* Language filter */
+        #lang-filter { padding: 10px 16px; border-bottom: 1px solid #2a2a3a; }
+        #lang-filter label.title { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: block; }
+        .lang-toggles { display: flex; gap: 6px; flex-wrap: wrap; }
+        .lang-btn { padding: 4px 10px; background: #1a1a2a; border: 1px solid #333; border-radius: 12px; color: #888; cursor: pointer; font-size: 11px; transition: all 0.15s; }
+        .lang-btn:hover { border-color: #7c8aff; color: #e0e0e0; }
+        .lang-btn.active { background: #7c8aff; color: white; border-color: #7c8aff; }
+        .lang-btn .lang-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
         
         #search-box { padding: 12px 16px; border-bottom: 1px solid #2a2a3a; }
         #search-box input { width: 100%; padding: 8px 10px; background: #1a1a2a; border: 1px solid #333; border-radius: 4px; color: #e0e0e0; font-size: 12px; }
@@ -34,6 +43,9 @@
         .cluster-card .cluster-size { font-size: 11px; color: #888; }
         .cluster-card .cluster-samples { font-size: 11px; color: #999; margin-top: 6px; line-height: 1.4; }
         .cluster-card .sample-id { color: #aaa; }
+        .cluster-card .cluster-coherence { font-size: 10px; color: #666; margin-top: 4px; padding-top: 4px; border-top: 1px solid #2a2a3a; }
+        .cluster-card .coherence-bar { display: inline-block; height: 4px; border-radius: 2px; margin-right: 2px; vertical-align: middle; }
+        .cluster-card .coherence-warn { color: #ff922b; font-size: 9px; margin-top: 2px; }
         
         /* Map area */
         #map-container { flex: 1; position: relative; }
@@ -44,7 +56,7 @@
         #stats-bar span { color: #7c8aff; font-weight: 600; }
         
         /* Decision detail panel */
-        #detail-panel { position: absolute; top: 16px; right: 16px; width: 380px; max-height: calc(100vh - 32px); background: rgba(18, 18, 26, 0.95); border: 1px solid #2a2a3a; border-radius: 8px; overflow-y: auto; z-index: 20; display: none; }
+        #detail-panel { position: absolute; top: 16px; right: 16px; width: 400px; max-height: calc(100vh - 32px); background: rgba(18, 18, 26, 0.95); border: 1px solid #2a2a3a; border-radius: 8px; overflow-y: auto; z-index: 20; display: none; }
         #detail-panel.visible { display: block; }
         #detail-panel .panel-header { padding: 14px 16px; border-bottom: 1px solid #2a2a3a; display: flex; justify-content: space-between; align-items: center; }
         #detail-panel .panel-header h2 { font-size: 14px; color: #7c8aff; }
@@ -55,9 +67,28 @@
         #detail-panel .field-label { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
         #detail-panel .field-value { font-size: 12px; color: #ccc; margin-top: 2px; }
         #detail-panel .neighbors-list { margin-top: 12px; }
-        #detail-panel .neighbor-item { padding: 6px 0; border-bottom: 1px solid #1a1a2a; font-size: 11px; cursor: pointer; }
+        #detail-panel .neighbor-item { padding: 6px 0; border-bottom: 1px solid #1a1a2a; font-size: 11px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         #detail-panel .neighbor-item:hover { color: #7c8aff; }
-        #detail-panel .neighbor-dist { color: #666; float: right; }
+        #detail-panel .neighbor-dist { color: #666; font-size: 10px; }
+        #detail-panel .neighbor-info { flex: 1; }
+        #detail-panel .neighbor-id { color: #aaa; }
+        #detail-panel .neighbor-meta { color: #666; font-size: 9px; }
+        
+        /* Proximity explanation */
+        .proximity-box { background: #1a1a2a; border: 1px solid #2a2a3a; border-radius: 6px; padding: 10px 12px; margin-top: 8px; }
+        .proximity-box .prox-title { font-size: 11px; font-weight: 600; color: #7c8aff; margin-bottom: 6px; }
+        .proximity-box .prox-score { font-size: 20px; font-weight: 700; color: #e0e0e0; }
+        .proximity-box .prox-score-label { font-size: 9px; color: #666; text-transform: uppercase; }
+        .prox-feature { display: flex; align-items: center; margin: 4px 0; font-size: 10px; }
+        .prox-feature .prox-feat-name { width: 90px; color: #888; }
+        .prox-feature .prox-feat-bar { flex: 1; height: 4px; background: #2a2a3a; border-radius: 2px; margin: 0 8px; position: relative; }
+        .prox-feature .prox-feat-fill { height: 100%; border-radius: 2px; position: absolute; top: 0; left: 0; }
+        .prox-feature .prox-feat-val { width: 30px; text-align: right; color: #999; }
+        .prox-feature .prox-match { color: #51cf66; }
+        .prox-feature .prox-mismatch { color: #ff6b6b; }
+        .prox-warning { background: rgba(255, 146, 43, 0.1); border: 1px solid rgba(255, 146, 43, 0.3); border-radius: 4px; padding: 6px 8px; margin-top: 6px; font-size: 10px; color: #ff922b; }
+        .prox-suggestion { font-size: 10px; color: #666; margin-top: 4px; }
+        .prox-suggestion em { color: #7c8aff; font-style: normal; }
         
         /* Zoom controls */
         #zoom-controls { position: absolute; top: 16px; left: 16px; z-index: 5; display: flex; gap: 4px; }
@@ -72,6 +103,11 @@
         #tooltip { position: absolute; background: rgba(18, 18, 26, 0.95); border: 1px solid #333; border-radius: 4px; padding: 8px 10px; font-size: 11px; pointer-events: none; z-index: 30; display: none; max-width: 300px; }
         #tooltip .tip-id { color: #7c8aff; font-weight: 600; }
         #tooltip .tip-info { color: #999; margin-top: 2px; }
+        #tooltip .tip-lang { display: inline-block; padding: 1px 5px; border-radius: 3px; font-size: 9px; margin-left: 4px; }
+        
+        /* Keyboard hints */
+        #kbd-hints { position: absolute; bottom: 16px; right: 16px; background: rgba(18, 18, 26, 0.8); border: 1px solid #2a2a3a; border-radius: 4px; padding: 6px 10px; font-size: 9px; color: #555; z-index: 5; }
+        #kbd-hints kbd { background: #2a2a3a; padding: 1px 4px; border-radius: 2px; color: #888; }
         
         /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
@@ -106,6 +142,10 @@
                     <option value="3">Detail</option>
                 </select>
             </div>
+            <div id="lang-filter">
+                <label class="title">Language Filter</label>
+                <div class="lang-toggles" id="lang-toggles"></div>
+            </div>
             <div id="search-box">
                 <input type="text" id="search-input" placeholder="Search decisions...">
             </div>
@@ -132,6 +172,9 @@
             </div>
             <div id="stats-bar"></div>
             <div id="tooltip"></div>
+            <div id="kbd-hints">
+                <kbd>Click</kbd> inspect &middot; <kbd>Esc</kbd> close &middot; <kbd>1-4</kbd> zoom
+            </div>
         </div>
         <div id="detail-panel">
             <div class="panel-header">
@@ -152,6 +195,13 @@
     let hoveredPoint = null;
     let selectedCluster = null;
     let mapModes = [];
+    let activeLanguages = new Set(['de', 'fr', 'it']);
+    let allLanguages = ['de', 'fr', 'it'];
+    let overviewData = null;
+    let clusterCoherenceCache = {};
+
+    // Language colors for map rendering
+    const LANG_COLORS = { de: '#4dabf7', fr: '#ffd43b', it: '#51cf66', unknown: '#666' };
 
     // Color palette for clusters
     const COLORS = [
@@ -165,13 +215,39 @@
     async function init() {
         try {
             const resp = await fetch(`${API}/api/overview`);
-            const data = await resp.json();
-            updateStatsBar(data);
+            overviewData = await resp.json();
+            updateStatsBar(overviewData);
+            buildLangFilter(overviewData.languages);
             await loadMapModes();
             await loadMap();
         } catch (e) {
             document.getElementById('cluster-list').innerHTML = '<div style="padding:16px;color:#ff6b6b;">Error loading data</div>';
         }
+    }
+
+    function buildLangFilter(languages) {
+        const container = document.getElementById('lang-toggles');
+        allLanguages = Object.keys(languages).sort();
+        container.innerHTML = allLanguages.map(lang => {
+            const color = LANG_COLORS[lang] || LANG_COLORS.unknown;
+            return `<button class="lang-btn active" data-lang="${lang}">
+                <span class="lang-dot" style="background:${color}"></span>${lang} (${languages[lang]})
+            </button>`;
+        }).join('');
+
+        container.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const lang = btn.dataset.lang;
+                if (activeLanguages.has(lang)) {
+                    activeLanguages.delete(lang);
+                    btn.classList.remove('active');
+                } else {
+                    activeLanguages.add(lang);
+                    btn.classList.add('active');
+                }
+                renderMap();
+            });
+        });
     }
 
     async function loadMapModes() {
@@ -184,10 +260,7 @@
                 const opt = document.createElement('option');
                 opt.value = mode.type === 'section_view' ? mode.name : '';
                 opt.textContent = mode.type === 'section_view' ? `${mode.label} (${mode.n_decisions}d)` : mode.label;
-                if (mode.type === 'representation') {
-                    // Already have representation select
-                    return;
-                }
+                if (mode.type === 'representation') return;
                 select.appendChild(opt);
             });
         } catch (e) {
@@ -204,6 +277,7 @@
         }
         const resp = await fetch(url);
         currentData = await resp.json();
+        clusterCoherenceCache = {};
         renderClusterList();
         renderMap();
     }
@@ -213,13 +287,37 @@
         bar.innerHTML = `<span>${data.total_decisions}</span> decisions · <span>${data.representations.length}</span> maps · Languages: ${Object.entries(data.languages).map(([k,v]) => `<span>${k}</span>:${v}`).join(' ')}`;
     }
 
-    function renderClusterList() {
+    async function getClusterCoherence(clusterId) {
+        if (clusterCoherenceCache[clusterId]) return clusterCoherenceCache[clusterId];
+        try {
+            const rep = currentMode ? 'concat_center_tfidf' : currentRep;
+            const resp = await fetch(`${API}/api/cluster_coherence?representation=${rep}&zoom=${currentZoom}&cluster_id=${clusterId}`);
+            const data = await resp.json();
+            clusterCoherenceCache[clusterId] = data;
+            return data;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function renderCoherenceBar(distribution, total) {
+        if (!distribution || total === 0) return '';
+        const entries = Object.entries(distribution).sort((a, b) => b[1] - a[1]);
+        return entries.map(([key, count]) => {
+            const pct = (count / total * 100).toFixed(0);
+            const color = LANG_COLORS[key] || COLORS[Math.abs(key.charCodeAt(0)) % COLORS.length];
+            return `<span class="coherence-bar" style="width:${Math.max(pct, 3)}px;background:${color}" title="${key}: ${count} (${pct}%)"></span>`;
+        }).join('');
+    }
+
+    async function renderClusterList() {
         const list = document.getElementById('cluster-list');
         if (!currentData || !currentData.clusters) {
             list.innerHTML = '<div style="padding:16px;color:#666;">No data</div>';
             return;
         }
 
+        // Show loading state
         list.innerHTML = currentData.clusters.map(c => `
             <div class="cluster-card ${selectedCluster === c.cluster_id ? 'active' : ''}" 
                  onclick="selectCluster(${c.cluster_id})" data-cluster="${c.cluster_id}">
@@ -232,8 +330,30 @@
                         `<div class="sample-id">${d.decision_id}</div>`
                     ).join('')}
                 </div>
+                <div class="cluster-coherence" id="coherence-${c.cluster_id}">Loading...</div>
             </div>
         `).join('');
+
+        // Load coherence data for each cluster
+        for (const c of currentData.clusters) {
+            const coherence = await getClusterCoherence(c.cluster_id);
+            const el = document.getElementById(`coherence-${c.cluster_id}`);
+            if (el && coherence && !coherence.error) {
+                const langBar = renderCoherenceBar(coherence.language_distribution, coherence.size);
+                const branchBar = renderCoherenceBar(coherence.branch_distribution, coherence.size);
+                el.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px;">
+                        <span style="width:50px;">Lang:</span>${langBar}
+                    </div>
+                    <div style="display:flex;align-items:center;gap:4px;">
+                        <span style="width:50px;">Branch:</span>${branchBar}
+                    </div>
+                    ${coherence.coherence_warning ? `<div class="coherence-warn">⚠ ${coherence.coherence_warning}</div>` : ''}
+                `;
+            } else {
+                el.innerHTML = '';
+            }
+        }
     }
 
     function renderMap() {
@@ -251,7 +371,10 @@
         const positions = currentData.positions;
         if (positions.length === 0) return;
 
-        // Compute bounds
+        // Filter by active languages
+        const visiblePositions = positions.filter(p => activeLanguages.has(p.language));
+
+        // Compute bounds from ALL positions (stable view)
         let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
         positions.forEach(p => {
             if (p.x < xMin) xMin = p.x;
@@ -270,12 +393,11 @@
         const offsetX = (canvas.width - xRange * scale) / 2;
         const offsetY = (canvas.height - yRange * scale) / 2;
 
-        // Store transform for hit testing
         canvas._transform = { xMin, yMin, scale, offsetX, offsetY };
 
-        // Draw cluster hulls (convex hull approximation)
+        // Draw cluster hulls from visible positions
         const clusters = {};
-        positions.forEach(p => {
+        visiblePositions.forEach(p => {
             if (!clusters[p.cluster]) clusters[p.cluster] = [];
             clusters[p.cluster].push(p);
         });
@@ -287,7 +409,6 @@
             ctx.strokeStyle = color + '30';
             ctx.lineWidth = 1;
 
-            // Simple bounding box as hull
             let cxMin = Infinity, cxMax = -Infinity, cyMin = Infinity, cyMax = -Infinity;
             points.forEach(p => {
                 const sx = (p.x - xMin) * scale + offsetX;
@@ -304,26 +425,42 @@
             ctx.stroke();
         });
 
-        // Draw points - highlight section data points, dim background
+        // Draw dimmed background positions (filtered out)
         positions.forEach(p => {
+            if (activeLanguages.has(p.language)) return;
             const sx = (p.x - xMin) * scale + offsetX;
             const sy = (p.y - yMin) * scale + offsetY;
-            const color = COLORS[p.cluster % COLORS.length];
+            ctx.beginPath();
+            ctx.arc(sx, sy, 1.5, 0, Math.PI * 2);
+            ctx.fillStyle = '#1a1a2a';
+            ctx.fill();
+        });
+
+        // Draw visible points with language-colored rings
+        visiblePositions.forEach(p => {
+            const sx = (p.x - xMin) * scale + offsetX;
+            const sy = (p.y - yMin) * scale + offsetY;
+            const clusterColor = COLORS[p.cluster % COLORS.length];
+            const langColor = LANG_COLORS[p.language] || LANG_COLORS.unknown;
             
-            // In section mode, differentiate section data from background
             const isSectionData = p.has_section_data !== false;
-            const radius = isSectionData ? 4 : 2;
-            const alpha = isSectionData ? 'ff' : '40';
+            const radius = isSectionData ? 4 : 2.5;
+
+            // Outer ring = language, inner fill = cluster
+            ctx.beginPath();
+            ctx.arc(sx, sy, radius + 1.5, 0, Math.PI * 2);
+            ctx.fillStyle = langColor + '60';
+            ctx.fill();
 
             ctx.beginPath();
             ctx.arc(sx, sy, radius, 0, Math.PI * 2);
-            ctx.fillStyle = color + alpha;
+            ctx.fillStyle = clusterColor + 'cc';
             ctx.fill();
 
             // Highlight on hover
             if (hoveredPoint && hoveredPoint.decision_id === p.decision_id) {
                 ctx.beginPath();
-                ctx.arc(sx, sy, 8, 0, Math.PI * 2);
+                ctx.arc(sx, sy, 9, 0, Math.PI * 2);
                 ctx.strokeStyle = '#fff';
                 ctx.lineWidth = 2;
                 ctx.stroke();
@@ -344,7 +481,7 @@
             ctx.fillStyle = color;
             ctx.font = 'bold 11px sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(`C${cid} (${points.length})`, cx, cy - 10);
+            ctx.fillText(`C${cid} (${points.length})`, cx, cy - 12);
         });
 
         // Show mode info overlay if in section mode
@@ -367,18 +504,13 @@
     function selectCluster(clusterId) {
         selectedCluster = clusterId;
         renderClusterList();
-        
-        // Highlight cluster in map
-        const canvas = document.getElementById('map-canvas');
-        const ctx = canvas.getContext('2d');
         renderMap();
 
-        // Find cluster center
         const cluster = currentData.clusters.find(c => c.cluster_id === clusterId);
         if (cluster) {
-            // Draw highlight ring
-            const transform = canvas._transform;
+            const transform = document.getElementById('map-canvas')._transform;
             if (transform) {
+                const ctx = document.getElementById('map-canvas').getContext('2d');
                 const sx = (cluster.centroid_x - transform.xMin) * transform.scale + transform.offsetX;
                 const sy = (cluster.centroid_y - transform.yMin) * transform.scale + transform.offsetY;
                 ctx.beginPath();
@@ -402,6 +534,7 @@
 
         title.textContent = decision.decision_id;
         
+        const langColor = LANG_COLORS[decision.language] || LANG_COLORS.unknown;
         let html = `
             <div class="field">
                 <div class="field-label">Docket Number</div>
@@ -413,7 +546,7 @@
             </div>
             <div class="field">
                 <div class="field-label">Language</div>
-                <div class="field-value">${decision.language}</div>
+                <div class="field-value"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${langColor};margin-right:4px;vertical-align:middle;"></span>${decision.language.toUpperCase()}</div>
             </div>
             <div class="field">
                 <div class="field-label">Branch</div>
@@ -471,23 +604,74 @@
             html += `</div>`;
         }
 
-        // Neighbors
+        // Neighbors with proximity explanations
         const neighborsResp = await fetch(`${API}/api/neighbors?id=${decisionId}&representation=${currentRep}&zoom=${currentZoom}&n=8`);
         const neighbors = await neighborsResp.json();
         
         if (neighbors.length > 0) {
-            html += `<div class="field"><div class="field-label">Nearest Neighbors</div><div class="neighbors-list">`;
-            neighbors.forEach(n => {
+            html += `<div class="field"><div class="field-label">Nearest Neighbors (with proximity analysis)</div><div class="neighbors-list">`;
+            for (const n of neighbors) {
+                const nLangColor = LANG_COLORS[n.language] || LANG_COLORS.unknown;
                 html += `<div class="neighbor-item" onclick="showDecision('${n.decision_id}')">
-                    ${n.decision_id}
+                    <div class="neighbor-info">
+                        <div class="neighbor-id"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${nLangColor};margin-right:3px;vertical-align:middle;"></span>${n.decision_id}</div>
+                        <div class="neighbor-meta">${n.language} · ${n.branch || ''} · ${n.decision_date}</div>
+                    </div>
                     <span class="neighbor-dist">${n.distance}</span>
                 </div>`;
-            });
+            }
             html += `</div></div>`;
+
+            // Show proximity explanation for first neighbor
+            if (neighbors.length > 0) {
+                const proxResp = await fetch(`${API}/api/proximity?id_a=${decisionId}&id_b=${neighbors[0].decision_id}`);
+                const prox = await proxResp.json();
+                if (!prox.error) {
+                    html += renderProximityExplanation(prox);
+                }
+            }
         }
 
         body.innerHTML = html;
         panel.classList.add('visible');
+    }
+
+    function renderProximityExplanation(prox) {
+        if (!prox || prox.error) return '';
+        
+        let html = `<div class="proximity-box">
+            <div class="prox-title">Proximity Explanation</div>
+            <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px;">
+                <div class="prox-score">${(prox.proximity_score * 100).toFixed(0)}%</div>
+                <div class="prox-score-label">similarity</div>
+            </div>`;
+
+        if (prox.feature_contributions) {
+            prox.feature_contributions.forEach(f => {
+                const pct = (f.contribution / f.weight * 100).toFixed(0);
+                const barColor = f.match ? '#51cf66' : '#ff6b6b';
+                const matchClass = f.match ? 'prox-match' : 'prox-mismatch';
+                const matchIcon = f.match ? '✓' : '✗';
+                html += `<div class="prox-feature">
+                    <span class="prox-feat-name">${f.feature.replace('_', ' ')}</span>
+                    <div class="prox-feat-bar"><div class="prox-feat-fill" style="width:${pct}%;background:${barColor}"></div></div>
+                    <span class="prox-feat-val ${matchClass}">${matchIcon} ${pct}%</span>
+                </div>`;
+            });
+        }
+
+        if (prox.warnings && prox.warnings.length > 0) {
+            prox.warnings.forEach(w => {
+                html += `<div class="prox-warning">⚠ ${w}</div>`;
+            });
+        }
+
+        if (prox.suggested_views && prox.suggested_views.length > 0) {
+            html += `<div class="prox-suggestion">${prox.suggested_views.map(v => `→ ${v}`).join('<br>')}</div>`;
+        }
+
+        html += `<div style="font-size:9px;color:#555;margin-top:6px;">${prox.summary || ''}</div></div>`;
+        return html;
     }
 
     function closeDetail() {
@@ -504,10 +688,10 @@
         const transform = canvas._transform;
         if (!transform) return;
 
-        // Find closest point
         let closest = null;
         let minDist = 15;
         currentData.positions.forEach(p => {
+            if (!activeLanguages.has(p.language)) return;
             const sx = (p.x - transform.xMin) * transform.scale + transform.offsetX;
             const sy = (p.y - transform.yMin) * transform.scale + transform.offsetY;
             const dist = Math.sqrt((mx - sx) ** 2 + (my - sy) ** 2);
@@ -520,7 +704,12 @@
         const tooltip = document.getElementById('tooltip');
         if (closest) {
             hoveredPoint = closest;
-            tooltip.innerHTML = `<div class="tip-id">${closest.decision_id}</div><div class="tip-info">Cluster ${closest.cluster} · ${closest.language} · ${closest.branch}</div>`;
+            const langColor = LANG_COLORS[closest.language] || LANG_COLORS.unknown;
+            tooltip.innerHTML = `<div class="tip-id">${closest.decision_id}</div>
+                <div class="tip-info">
+                    <span class="tip-lang" style="background:${langColor}30;color:${langColor}">${closest.language}</span>
+                    Cluster ${closest.cluster} · ${closest.branch || ''}
+                </div>`;
             tooltip.style.display = 'block';
             tooltip.style.left = (e.clientX + 12) + 'px';
             tooltip.style.top = (e.clientY - 10) + 'px';
@@ -550,7 +739,6 @@
     document.getElementById('mode-select').addEventListener('change', (e) => {
         currentMode = e.target.value;
         if (currentMode) {
-            // Disable rep-select when using section mode
             document.getElementById('rep-select').disabled = true;
         } else {
             document.getElementById('rep-select').disabled = false;
@@ -566,7 +754,6 @@
     document.getElementById('zoom-select').addEventListener('change', (e) => {
         currentZoom = parseInt(e.target.value);
         loadMap();
-        // Update zoom buttons
         document.querySelectorAll('.zoom-btn').forEach(btn => {
             btn.classList.toggle('active', parseInt(btn.dataset.zoom) === currentZoom);
         });
@@ -582,6 +769,18 @@
         });
     });
 
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+        if (e.key === 'Escape') closeDetail();
+        if (e.key >= '1' && e.key <= '4') {
+            currentZoom = parseInt(e.key) - 1;
+            document.getElementById('zoom-select').value = currentZoom;
+            document.querySelectorAll('.zoom-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.zoom) === currentZoom));
+            loadMap();
+        }
+    });
+
     // Search
     let searchTimeout;
     document.getElementById('search-input').addEventListener('input', (e) => {
@@ -595,15 +794,16 @@
             const resp = await fetch(`${API}/api/search?q=${encodeURIComponent(q)}&limit=20`);
             const results = await resp.json();
             const list = document.getElementById('cluster-list');
-            list.innerHTML = results.map(d => `
-                <div class="cluster-card" onclick="showDecision('${d.decision_id}')">
+            list.innerHTML = results.map(d => {
+                const langColor = LANG_COLORS[d.language] || LANG_COLORS.unknown;
+                return `<div class="cluster-card" onclick="showDecision('${d.decision_id}')">
                     <div class="cluster-header">
-                        <span class="cluster-id" style="font-size:11px;">${d.decision_id}</span>
+                        <span class="cluster-id" style="font-size:11px;"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${langColor};margin-right:3px;vertical-align:middle;"></span>${d.decision_id}</span>
                         <span class="cluster-size">${d.language}</span>
                     </div>
                     <div class="cluster-samples">${d.branch || ''} · ${d.decision_date}</div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }, 300);
     });
 
@@ -639,7 +839,6 @@
             } else {
                 status.style.color = '#51cf66';
                 status.textContent = `Imported ${result.imported} decisions (${result.skipped} skipped). Total: ${result.total_decisions}`;
-                // Reload map to include new data
                 await loadMap();
             }
         } catch (err) {
@@ -647,7 +846,6 @@
             status.textContent = `Upload failed: ${err.message}`;
         }
 
-        // Reset file input
         e.target.value = '';
     });
 

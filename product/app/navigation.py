@@ -7,6 +7,7 @@ Supports multi-view navigation via section-based map modes and
 citation graph integration.
 """
 import json
+from collections import Counter
 from typing import Dict, List, Optional, Tuple, Any
 from pathlib import Path
 
@@ -14,6 +15,7 @@ from .corpus_loader import CorpusLoader
 from .map_loader import MapLoader
 from .section_modes import SectionModeLoader
 from .citation_loader import CitationLoader
+from .proximity_explainer import ProximityExplainer
 
 
 class NavigationAPI:
@@ -38,6 +40,7 @@ class NavigationAPI:
         self.citation_loader = CitationLoader(
             str(Path(results_dir) / "citation_graph" / "citation_graph.json")
         )
+        self.proximity_explainer = ProximityExplainer(self.corpus)
         self._initialized = False
         self._map_meta_cache: Dict[str, Dict] = {}
 
@@ -513,3 +516,170 @@ class NavigationAPI:
 
         result["counts"] = self.citation_loader.get_citation_count(decision_id)
         return result
+
+    def get_proximity_explanation(
+        self, decision_id_a: str, decision_id_b: str
+    ) -> Dict[str, Any]:
+        """Explain why two decisions are spatially close on the map."""
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        # Get distance from map positions
+        positions = self.map_loader.get_positions("concat_center_tfidf")
+        pos_a = positions.get(decision_id_a)
+        pos_b = positions.get(decision_id_b)
+
+        if pos_a is None or pos_b is None:
+            return {"error": "One or both decisions not found on the map"}
+
+        distance = ((pos_a[0] - pos_b[0]) ** 2 + (pos_a[1] - pos_b[1]) ** 2) ** 0.5
+
+        return self.proximity_explainer.explain(
+            decision_id_a, decision_id_b, distance
+        )
+
+    def get_cluster_coherence(
+        self,
+        representation: str,
+        zoom_level: int,
+        cluster_id: int,
+    ) -> Dict[str, Any]:
+        """Compute coherence summary for a cluster showing attribute distributions."""
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        zl = self.map_loader.get_zoom_level(representation, zoom_level)
+        if not zl:
+            return {"error": "Zoom level not found"}
+
+        cluster = zl.clusters.get(cluster_id)
+        if not cluster:
+            return {"error": "Cluster not found"}
+
+        # Gather metadata for all decisions in the cluster
+        languages = []
+        branches = []
+        legal_areas = []
+        for did in cluster.decision_ids:
+            summary = self.corpus.get_summary(did)
+            if summary:
+                languages.append(summary.get("language", "unknown"))
+                branches.append(summary.get("branch") or "unknown")
+                legal_areas.append(summary.get("legal_area") or "unknown")
+
+        if not languages:
+            return {
+                "cluster_id": cluster_id,
+                "size": cluster.size,
+                "language_distribution": {},
+                "branch_distribution": {},
+                "legal_area_distribution": {},
+                "dominant_language": None,
+                "dominant_branch": None,
+                "purity_score": 0.0,
+                "coherence_warning": "No corpus decisions found in cluster",
+            }
+
+        lang_counter = Counter(languages)
+        branch_counter = Counter(branches)
+        legal_counter = Counter(legal_areas)
+
+        dominant_language = lang_counter.most_common(1)[0][0]
+        dominant_branch = branch_counter.most_common(1)[0][0]
+
+        # Purity score: fraction of the most common value across all dimensions
+        total = len(languages)
+        lang_purity = lang_counter.most_common(1)[0][1] / total
+        branch_purity = branch_counter.most_common(1)[0][1] / total
+        legal_purity = legal_counter.most_common(1)[0][1] / total
+        purity_score = (lang_purity + branch_purity + legal_purity) / 3.0
+
+        # Generate coherence warning if dominated by a single attribute
+        coherence_warning = None
+        if lang_purity > 0.9:
+            coherence_warning = f"cluster dominated by single language: {dominant_language}"
+        elif branch_purity > 0.9:
+            coherence_warning = f"cluster dominated by single branch: {dominant_branch}"
+        elif purity_score > 0.85:
+            coherence_warning = "cluster highly homogeneous across all attributes"
+
+        return {
+            "cluster_id": cluster_id,
+            "size": cluster.size,
+            "language_distribution": dict(lang_counter),
+            "branch_distribution": dict(branch_counter),
+            "legal_area_distribution": dict(legal_counter),
+            "dominant_language": dominant_language,
+            "dominant_branch": dominant_branch,
+            "purity_score": round(purity_score, 3),
+            "coherence_warning": coherence_warning,
+        }
+
+    def get_map_data_with_language_filter(
+        self,
+        representation: str,
+        zoom_level: int,
+        languages: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        """Get map data with language filtering.
+
+        Returns all positions but marks filtered-out ones with filtered_out: true.
+        """
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        zl = self.map_loader.get_zoom_level(representation, zoom_level)
+        if not zl:
+            return {"error": f"Zoom level {zoom_level} not available for {representation}"}
+
+        filter_set = set(languages) if languages else None
+
+        # Build cluster summaries with decision info
+        cluster_summaries = []
+        for cid, cluster in zl.clusters.items():
+            sample_decisions = []
+            for did in cluster.decision_ids[:5]:
+                summary = self.corpus.get_summary(did)
+                if summary:
+                    sample_decisions.append(summary)
+            cluster_summaries.append({
+                "cluster_id": cid,
+                "size": cluster.size,
+                "centroid_x": cluster.centroid_x,
+                "centroid_y": cluster.centroid_y,
+                "sample_decisions": sample_decisions,
+            })
+
+        # Build position data with filtering flag
+        positions = []
+        corpus_ids = set(self.corpus.get_all_ids())
+        for did, (x, y) in zl.positions.items():
+            summary = self.corpus.get_summary(did)
+            meta = {}
+            if not summary:
+                meta = self._get_map_decision_meta(did)
+            lang = summary.get("language") if summary else meta.get("language", "unknown")
+            filtered_out = filter_set is not None and lang not in filter_set
+
+            positions.append({
+                "decision_id": did,
+                "x": x,
+                "y": y,
+                "cluster": zl.cluster_assignments.get(did, -1),
+                "language": lang,
+                "branch": (summary.get("branch") if summary else meta.get("branch", "unknown")),
+                "legal_area": (summary.get("legal_area") if summary else meta.get("legal_area", "unknown")),
+                "has_corpus": did in corpus_ids,
+                "filtered_out": filtered_out,
+            })
+
+        return {
+            "representation": representation,
+            "zoom_level": zoom_level,
+            "n_clusters": zl.n_clusters,
+            "n_decisions": zl.n_decisions,
+            "clusters": cluster_summaries,
+            "positions": positions,
+            "language_filter": list(filter_set) if filter_set else None,
+            "map_mode": None,
+        }
