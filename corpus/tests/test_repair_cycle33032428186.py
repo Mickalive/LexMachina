@@ -106,9 +106,9 @@ def test_moot_outcome_mapping():
 
 
 def test_state_metrics_consistency():
-    """OPTIONAL FIX: Verify state metrics are internally consistent."""
+    """OPTIONAL FIX: Verify state metrics are internally consistent (updated for repair round 1)."""
     print("\n" + "=" * 60)
-    print("TEST: State metrics internal consistency")
+    print("TEST: State metrics internal consistency (yearly-core vs all)")
     print("=" * 60)
 
     with open("state/corpus.json", "r") as f:
@@ -116,41 +116,78 @@ def test_state_metrics_consistency():
 
     metrics = state["metrics"]
 
-    # language_distribution should sum to canonical_decisions_normalized
-    lang_sum = sum(metrics["language_distribution"].values())
-    canonical = metrics["canonical_decisions_normalized"]
-    assert lang_sum == canonical, (
-        f"language_distribution sum ({lang_sum}) != "
-        f"canonical_decisions_normalized ({canonical})"
+    # Verify yearly-core metrics consistency (sum to 250)
+    canonical_yearly = metrics["canonical_decisions_normalized_yearly_core"]
+    lang_sum_yearly = sum(metrics["language_distribution_yearly_core"].values())
+    year_sum_yearly = sum(metrics["year_distribution_yearly_core"].values())
+    court_sum_yearly = sum(metrics["court_distribution_yearly_core"].values())
+    branch_sum_yearly = sum(metrics["branch_distribution_yearly_core"].values())
+
+    assert lang_sum_yearly == canonical_yearly, (
+        f"language_distribution_yearly_core sum ({lang_sum_yearly}) != "
+        f"canonical_decisions_normalized_yearly_core ({canonical_yearly})"
+    )
+    assert year_sum_yearly == canonical_yearly, (
+        f"year_distribution_yearly_core sum ({year_sum_yearly}) != "
+        f"canonical_decisions_normalized_yearly_core ({canonical_yearly})"
+    )
+    assert court_sum_yearly == canonical_yearly, (
+        f"court_distribution_yearly_core sum ({court_sum_yearly}) != "
+        f"canonical_decisions_normalized_yearly_core ({canonical_yearly})"
+    )
+    assert branch_sum_yearly == canonical_yearly, (
+        f"branch_distribution_yearly_core sum ({branch_sum_yearly}) != "
+        f"canonical_decisions_normalized_yearly_core ({canonical_yearly})"
     )
 
-    # year_distribution should sum to canonical_decisions_normalized
-    year_sum = sum(metrics["year_distribution"].values())
-    assert year_sum == canonical, (
-        f"year_distribution sum ({year_sum}) != "
-        f"canonical_decisions_normalized ({canonical})"
+    # Verify full-corpus metrics consistency (sum to 1577)
+    total_all = metrics["canonical_file_lines_total_all"]
+    lang_sum_all = sum(metrics["language_distribution_all"].values())
+    year_sum_all = sum(metrics["year_distribution_all"].values())
+    court_sum_all = sum(metrics["court_distribution_all"].values())
+
+    assert lang_sum_all == total_all, (
+        f"language_distribution_all sum ({lang_sum_all}) != "
+        f"canonical_file_lines_total_all ({total_all})"
+    )
+    assert year_sum_all == total_all, (
+        f"year_distribution_all sum ({year_sum_all}) != "
+        f"canonical_file_lines_total_all ({total_all})"
+    )
+    assert court_sum_all == total_all, (
+        f"court_distribution_all sum ({court_sum_all}) != "
+        f"canonical_file_lines_total_all ({total_all})"
     )
 
-    # court_distribution should sum to canonical_decisions_normalized
-    court_sum = sum(metrics["court_distribution"].values())
-    assert court_sum == canonical, (
-        f"court_distribution sum ({court_sum}) != "
-        f"canonical_decisions_normalized ({canonical})"
-    )
+    # Verify unique ID counts
+    assert metrics["canonical_unique_decision_ids_yearly_core"] == 250
+    assert metrics["canonical_unique_decision_ids_all"] == 1215
+    assert metrics["total_unique_across_all_canonical"] == 1215
+    assert metrics["slice_1000_decisions"] == 1000
+    assert metrics["slice_1000_overlap_with_yearly"] == 50
 
-    # branch_distribution should sum to canonical_decisions_normalized
-    branch_sum = sum(metrics["branch_distribution"].values())
-    assert branch_sum == canonical, (
-        f"branch_distribution sum ({branch_sum}) != "
-        f"canonical_decisions_normalized ({canonical})"
-    )
+    # Verify parquet metrics corrected
+    assert metrics["parquet_validated"] is False
+    assert "parquet_file_size_mb" not in metrics
+    assert "parquet_total_rows_estimate" not in metrics
+    assert "parquet_sample_loaded" not in metrics
 
-    print(f"  canonical_decisions_normalized: {canonical}")
-    print(f"  language_distribution sum: {lang_sum}")
-    print(f"  year_distribution sum: {year_sum}")
-    print(f"  court_distribution sum: {court_sum}")
-    print(f"  branch_distribution sum: {branch_sum}")
-    print("✓ State metrics are consistent")
+    # Verify citation graph metrics corrected
+    assert metrics["citation_graph_edges"] == 0
+    assert metrics["citation_graph_nodes_cited"] == 0
+
+    print(f"  canonical_decisions_normalized_yearly_core: {canonical_yearly}")
+    print(f"  language_distribution_yearly_core sum: {lang_sum_yearly}")
+    print(f"  year_distribution_yearly_core sum: {year_sum_yearly}")
+    print(f"  court_distribution_yearly_core sum: {court_sum_yearly}")
+    print(f"  branch_distribution_yearly_core sum: {branch_sum_yearly}")
+    print(f"  canonical_file_lines_total_all: {total_all}")
+    print(f"  language_distribution_all sum: {lang_sum_all}")
+    print(f"  year_distribution_all sum: {year_sum_all}")
+    print(f"  court_distribution_all sum: {court_sum_all}")
+    print(f"  parquet_validated: {metrics['parquet_validated']}")
+    print(f"  citation_graph_edges: {metrics['citation_graph_edges']}")
+    print("✓ State metrics are consistent (yearly-core and all populations separated)")
     return True
 
 
