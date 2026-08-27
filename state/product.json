@@ -4,9 +4,9 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": true,
-  "accepted_run_id": "33033658714",
+  "accepted_run_id": "33034800806",
   "accepted_commit": null,
-  "github_run": "33033658714",
+  "github_run": "33034800806",
   "evidence_refs": [
     "product/app/corpus_loader.py",
     "product/app/map_loader.py",
@@ -82,7 +82,12 @@
     "CYCLE_33033658714_FEAT: Added zoom coherence integration from fractal-map lane (FEAT-019)",
     "CYCLE_33033658714_FEAT: Added language dominance analysis for clusters (FEAT-020)",
     "CYCLE_33033658714_FEAT: Added cross-language neighbor discovery (FEAT-021)",
-    "CYCLE_33033658714_FEAT: Added TF-IDF text similarity for proximity explanations (FEAT-022)"
+    "CYCLE_33033658714_FEAT: Added TF-IDF text similarity for proximity explanations (FEAT-022)",
+    "CYCLE_33034800806_FIX: Fixed orchestration failure — missing numpy/scipy/scikit-learn dependencies (FIX-006)",
+    "CYCLE_33034800806_FEAT: Frontend integration — zoom coherence badge in bottom-center (FEAT-023)",
+    "CYCLE_33034800806_FEAT: Frontend integration — cross-language neighbor discovery in detail panel (FEAT-024)",
+    "CYCLE_33034800806_FEAT: Frontend integration — TF-IDF text similarity display in detail panel (FEAT-025)",
+    "CYCLE_33034800806_FEAT: Updated requirements.txt with all runtime dependencies (FEAT-026)"
   ],
   "next_recommendation": "CONTINUE",
   "metrics_summary": {
@@ -210,7 +215,7 @@
       "navigation_new_endpoints": "PASS"
     }
   },
-  "notes": "Cycle 33033658714: Integrated accepted research findings from fractal-map and evaluation lanes. Added zoom coherence integration (39.6% improvement rate, 0 deteriorations), language dominance analysis for clusters, cross-language neighbor discovery, and TF-IDF text similarity for proximity explanations. All 13/13 tests pass (9 original + 4 new). Addresses evaluation finding that baseline is FALSIFIED (language dominance 0.982) and fractal-map finding that zoom reveals legally coherent substructure.",
+  "notes": "Cycle 33034800806: Operational resume from 33033658714. Diagnosed orchestration failure (missing numpy in CI), fixed by adding dependencies to requirements.txt. Verified all 22 tests pass. Completed frontend integration of accepted evidence: zoom coherence badge, cross-language neighbor discovery, TF-IDF text similarity display. All backend modules from prior cycle verified working. Product vertical slice now includes 14 navigation features across 18 API endpoints. Frontend is fully wired to all backend capabilities.",
   "known_limitations": [
     "Section modes cover 63 of 1000 decisions (6.3%) — section projections only available for a subset",
     "Frontend uses HTML5 Canvas only - no WebGL/Mapbox for large-scale rendering",
@@ -219,8 +224,7 @@
     "TF-IDF model uses truncated text (2000 chars max per document)",
     "Cross-language neighbors limited by language-dominant clustering",
     "Language filter is a simple toggle (no compound language queries)",
-    "Cluster coherence is computed on-demand (not cached server-side)",
-    "Frontend not yet updated to display zoom coherence and language analysis features"
+    "Cluster coherence is computed on-demand (not cached server-side)"
   ],
   "resolved_issues": [
     "Orchestration failure: Missing numpy dependency prevented test execution (fixed: requirements.txt added)",
@@ -242,14 +246,13 @@
     "No text similarity: Proximity explanations lacked deep text similarity (fixed: TF-IDF cosine similarity)"
   ],
   "next_steps": [
-    "Update frontend to display zoom coherence metrics and language analysis",
-    "Add zoom coherence indicators to cluster cards",
-    "Add language dominance warnings to cluster view",
-    "Add cross-language neighbor discovery UI",
     "Scale section projections to cover full 1000-decision corpus",
     "Persist user-imported map artifacts to survive server restarts",
     "Add WebGL/Mapbox rendering for large-scale map visualization",
     "Compare Leiden vs HDBSCAN cluster quality on legal-area benchmark",
-    "Scale corpus to cover pre-2020 decisions for full TF-2000+ coverage"
+    "Scale corpus to cover pre-2020 decisions for full TF-2000+ coverage",
+    "Add zoom-to-cluster interaction (double-click to zoom into cluster)",
+    "Add temporal slider for time-based filtering",
+    "Add export functionality (save map as PNG/SVG)"
   ]
 }

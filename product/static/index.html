@@ -108,6 +108,26 @@
         /* Keyboard hints */
         #kbd-hints { position: absolute; bottom: 16px; right: 16px; background: rgba(18, 18, 26, 0.8); border: 1px solid #2a2a3a; border-radius: 4px; padding: 6px 10px; font-size: 9px; color: #555; z-index: 5; }
         #kbd-hints kbd { background: #2a2a3a; padding: 1px 4px; border-radius: 2px; color: #888; }
+
+        /* Zoom coherence badge */
+        #zoom-coherence-badge { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); background: rgba(18, 18, 26, 0.9); border: 1px solid #2a2a3a; border-radius: 6px; padding: 8px 14px; font-size: 10px; color: #888; z-index: 5; display: flex; gap: 12px; align-items: center; }
+        #zoom-coherence-badge .zc-label { color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+        #zoom-coherence-badge .zc-value { color: #51cf66; font-weight: 600; }
+        #zoom-coherence-badge .zc-warn { color: #ff922b; }
+
+        /* Cross-language neighbors section */
+        .cross-lang-section { margin-top: 12px; border-top: 1px solid #2a2a3a; padding-top: 10px; }
+        .cross-lang-section .section-title { font-size: 11px; font-weight: 600; color: #7c8aff; margin-bottom: 6px; }
+        .cross-lang-item { padding: 4px 0; font-size: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .cross-lang-item .cl-id { color: #aaa; }
+        .cross-lang-item .cl-badge { padding: 1px 5px; border-radius: 3px; font-size: 9px; }
+
+        /* Text similarity box */
+        .text-sim-box { background: #1a1a2a; border: 1px solid #2a2a3a; border-radius: 6px; padding: 10px 12px; margin-top: 8px; }
+        .text-sim-box .ts-title { font-size: 11px; font-weight: 600; color: #7c8aff; margin-bottom: 6px; }
+        .text-sim-box .ts-score { font-size: 18px; font-weight: 700; color: #e0e0e0; }
+        .text-sim-box .ts-terms { font-size: 10px; color: #888; margin-top: 4px; }
+        .text-sim-box .ts-term { display: inline-block; padding: 1px 5px; background: #2a2a3a; border-radius: 3px; margin: 2px; font-size: 9px; color: #ccc; }
         
         /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
@@ -175,6 +195,12 @@
             <div id="kbd-hints">
                 <kbd>Click</kbd> inspect &middot; <kbd>Esc</kbd> close &middot; <kbd>1-4</kbd> zoom
             </div>
+            <div id="zoom-coherence-badge" style="display:none;">
+                <div><span class="zc-label">Zoom Coherence:</span> <span class="zc-value" id="zc-rate">--</span></div>
+                <div><span class="zc-label">Improvements:</span> <span id="zc-improvements">--</span></div>
+                <div><span class="zc-label">Best Zoom Ratio:</span> <span class="zc-value" id="zc-best-ratio">--</span></div>
+                <div><span class="zc-label">Flat Baseline:</span> <span id="zc-flat-ratio">--</span></div>
+            </div>
         </div>
         <div id="detail-panel">
             <div class="panel-header">
@@ -220,8 +246,28 @@
             buildLangFilter(overviewData.languages);
             await loadMapModes();
             await loadMap();
+            await loadZoomCoherence();
         } catch (e) {
             document.getElementById('cluster-list').innerHTML = '<div style="padding:16px;color:#ff6b6b;">Error loading data</div>';
+        }
+    }
+
+    async function loadZoomCoherence() {
+        try {
+            const resp = await fetch(`${API}/api/zoom_coherence`);
+            const data = await resp.json();
+            if (data && data.overall_improvement_rate !== undefined) {
+                const badge = document.getElementById('zoom-coherence-badge');
+                badge.style.display = 'flex';
+                document.getElementById('zc-rate').textContent = (data.overall_improvement_rate * 100).toFixed(1) + '%';
+                document.getElementById('zc-improvements').textContent = data.total_improvements + ' (' + data.total_deteriorations + ' det.)';
+                document.getElementById('zc-best-ratio').textContent = data.best_zoom_ratio ? data.best_zoom_ratio.toFixed(3) : '--';
+                if (data.flat_baseline_best_ratio) {
+                    document.getElementById('zc-flat-ratio').textContent = data.flat_baseline_best_ratio.toFixed(3);
+                }
+            }
+        } catch (e) {
+            console.warn('Zoom coherence data not available:', e);
         }
     }
 
@@ -629,8 +675,41 @@
                 if (!prox.error) {
                     html += renderProximityExplanation(prox);
                 }
+
+                // Text similarity from TF-IDF
+                try {
+                    const tsResp = await fetch(`${API}/api/text_similarity?id_a=${decisionId}&id_b=${neighbors[0].decision_id}`);
+                    const ts = await tsResp.json();
+                    if (!ts.error && ts.text_similarity !== undefined) {
+                        html += `<div class="text-sim-box">
+                            <div class="ts-title">Text Similarity (TF-IDF)</div>
+                            <div class="ts-score">${(ts.text_similarity * 100).toFixed(1)}%</div>`;
+                        if (ts.top_shared_terms && ts.top_shared_terms.length > 0) {
+                            html += `<div class="ts-terms">Shared terms: ${ts.top_shared_terms.slice(0, 8).map(t => `<span class="ts-term">${t.term}</span>`).join('')}</div>`;
+                        }
+                        html += `</div>`;
+                    }
+                } catch (tsErr) { /* text similarity not available */ }
             }
         }
+
+        // Cross-language neighbors
+        try {
+            const clResp = await fetch(`${API}/api/cross_language_neighbors?id=${decisionId}&n=5`);
+            const clData = await clResp.json();
+            if (!clData.error && clData.cross_language_neighbors && clData.cross_language_neighbors.length > 0) {
+                html += `<div class="cross-lang-section">
+                    <div class="section-title">Cross-Language Neighbors</div>`;
+                for (const cl of clData.cross_language_neighbors.slice(0, 5)) {
+                    const clLangColor = LANG_COLORS[cl.language] || LANG_COLORS.unknown;
+                    html += `<div class="cross-lang-item" onclick="showDecision('${cl.decision_id}')" style="cursor:pointer;">
+                        <span class="cl-id"><span class="cl-badge" style="background:${clLangColor}30;color:${clLangColor}">${cl.language}</span> ${cl.decision_id}</span>
+                        <span style="color:#666;">dist: ${cl.distance}</span>
+                    </div>`;
+                }
+                html += `</div>`;
+            }
+        } catch (clErr) { /* cross-language neighbors not available */ }
 
         body.innerHTML = html;
         panel.classList.add('visible');
