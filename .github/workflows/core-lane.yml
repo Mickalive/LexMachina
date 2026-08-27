@@ -42,7 +42,9 @@ concurrency:
 jobs:
   team:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    # Wrapper quantum is 45m. This independent GitHub ceiling prevents a leaked
+    # descendant/process-tree bug from ever occupying a lane indefinitely.
+    timeout-minutes: 65
     steps:
       - uses: actions/checkout@v6
         with:
@@ -188,7 +190,7 @@ jobs:
     needs: team
     if: needs.team.result == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 300
+    timeout-minutes: 65
     outputs:
       gate: ${{ steps.gate.outputs.gate }}
     steps:
@@ -312,9 +314,6 @@ jobs:
           set -euo pipefail
           echo "Core finalizer: team=$TEAM_RESULT audit=$AUDIT_RESULT integrate=$INTEGRATE_RESULT"
 
-          # A workflow-level operational failure must never strand a lane. Reuse
-          # the persisted producer snapshot whenever it exists so useful work is
-          # not thrown away merely because validation/audit/integration crashed.
           if [[ "$TEAM_RESULT" != success || "$AUDIT_RESULT" == failure || "$AUDIT_RESULT" == cancelled || "$INTEGRATE_RESULT" == failure || "$INTEGRATE_RESULT" == cancelled ]]; then
             SNAP="cycle/core/${LANE}/${GITHUB_RUN_ID}/team"
             if git ls-remote --exit-code --heads origin "refs/heads/$SNAP" >/dev/null 2>&1; then
@@ -328,7 +327,5 @@ jobs:
             fi
           fi
 
-          # Never rely on workflow_run/schedule to notice completion. Every core
-          # cycle explicitly wakes the global supervisor.
           gh workflow run factory-supervisor.yml --repo "$GITHUB_REPOSITORY" --ref main
           echo "Supervisor explicitly awakened."
