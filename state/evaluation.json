@@ -4,9 +4,12 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": true,
-  "accepted_run_id": "eval_cycle_10_1787797258",
-  "accepted_commit": "51a6080983ae2fa212bc1c4576d57ad25591ef2b",
+  "accepted_run_id": "eval_cycle_11_1787797977",
+  "accepted_commit": null,
   "evidence_refs": [
+    "results/cycle_11_results.json",
+    "reports/evaluation/evaluation_cycle_11_report.md",
+    "evaluation/run_cycle_11.py",
     "results/cycle_10_results.json",
     "reports/evaluation/evaluation_cycle_10_report.md",
     "evaluation/run_cycle_10.py",
@@ -53,234 +56,38 @@
     "results/audit/evaluation/CYCLE_33030597595_OPERATIONAL_RESUME.json",
     "results/audit/evaluation/CYCLE_33031798552_GATE.json"
   ],
-  "github_run": 33032678575,
-  "operational_resume_run_id": 33031118889,
+  "github_run": 33033342129,
+  "operational_resume_run_id": 33033313906,
   "next_recommendation": "CONTINUE",
   "continue_recommended": true,
-  "director_disposition": "CYCLE 10 COMPLETE — 13 benchmarks (12 previous + 1 new: citation_heritage). Citation-heritage benchmark built from real corpus citation graph (12,863 edges, 7,665 cited nodes). SANITY CHECK PASSED: row-shuffled representation AUC=0.520 < 0.55. citation_blended is BEST: AUC=0.679, similarity gap=0.226, zero dead zones. All real representations show language dominance > 0.81. CRITICAL: Product needs BOTH citation awareness AND explicit language debiasing. Next: test language-debiased citation-blended representation; build real cross-language pairs; run boilerplate resistance on real corpus.",
+  "director_disposition": "CYCLE 11 COMPLETE — 15 benchmarks (13 previous + 2 new: cross_language, boilerplate_resistance_real_corpus). CRITICAL NEGATIVE RESULT: Naive PCA debiasing on citation_blended (64-dim) COLLAPSED the representation (AUC=0.493, dead_zones=12694, cross_lang_sim=1.0). Root cause: removing 2 PCA components from 64 dims removes ~34% variance, destroying low-dimensional structure. ALL original representations PASS boilerplate resistance (>0.5). language_debiased_pca2 has BEST resistance (0.916). Citation-blended has NEGATIVE cross-language similarity (-0.163): citation patterns are language-correlated. Cross-language benchmark validates: debiasing brings cross-lang decisions closer (0.909 vs 0.866 baseline). RECOMMENDATION: Legal-distance lane must combine debiasing and citation awareness at representation learning stage, not post-hoc PCA. Next: test debiasing BEFORE citation graph construction.",
   "metrics_summary": {
-    "tfidf_reasoning_baseline": {
-      "neighbor_relevance_auc": 0.9519,
-      "boilerplate_resistance": 0.0113,
-      "multilingual_separation": -0.2374,
-      "corpus_stability_drift": 0.8733,
-      "hierarchy_purity": 0.6482,
-      "hierarchy_nmi": 0.0283,
-      "citation_proximity_auc": 0.6354,
-      "legal_area_nmi": 0.0487,
-      "legal_area_purity": 0.7046,
-      "note": "TF-IDF reasoning-only baseline on 1,200 BGer decisions. Fails all legal-quality metrics."
-    },
-    "neural_multilingual_baseline": {
-      "citation_proximity_auc": 0.5004,
-      "legal_area_nmi": 0.0572,
-      "legal_area_purity": 0.8763,
-      "multilingual_separation": -0.0555,
-      "corpus_stability_drift": 2.98e-08,
-      "hierarchy_nmi": 0.0672,
-      "hierarchy_purity": 0.8333,
-      "neighbor_relevance_auc": 0.5780,
-      "neighbor_relevance_mrr": 0.0463,
-      "note": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2 (768-dim) on 1,000 BGer decisions."
-    },
-    "fractal_map_evaluation_cycle7": {
-      "language_debiased_pca2": {
-        "citation_graph_auc": 0.7046,
-        "citation_proximity_auc": 0.5263,
-        "legal_area_nmi": 0.4373,
-        "legal_area_purity": 0.7200,
-        "zoom_coherence_rate": 1.0,
-        "targets_pass": 4,
-        "note": "BEST REPRESENTATION: Passes 4/5 targets. Only fails citation proximity (0.526 < 0.75). Language debiasing improves citation graph AUC from 0.5 (baseline) to 0.705."
-      },
-      "section_sachverhalt": {
-        "citation_graph_auc": 0.6835,
-        "citation_proximity_auc": 0.5225,
-        "legal_area_nmi": 0.4782,
-        "legal_area_purity": 0.8571,
-        "zoom_coherence_rate": 1.0,
-        "targets_pass": 3,
-        "note": "Best for legal area clustering (NMI 0.478, purity 0.857). Passes NMI, purity, zoom targets."
-      },
-      "section_combined": {
-        "citation_graph_auc": 0.6835,
-        "citation_proximity_auc": 0.5225,
-        "legal_area_nmi": 0.4782,
-        "legal_area_purity": 0.8571,
-        "zoom_coherence_rate": 1.0,
-        "targets_pass": 3,
-        "note": "Identical to sachverhalt. Passes NMI, purity, zoom targets."
-      },
-      "section_erwaegungen": {
-        "citation_graph_auc": 0.6061,
-        "citation_proximity_auc": 0.6562,
-        "legal_area_nmi": 0.2436,
-        "legal_area_purity": 0.6607,
-        "zoom_coherence_rate": 1.0,
-        "targets_pass": 1,
-        "note": "Best citation proximity AUC (0.656) but fails other targets."
-      },
-      "baseline": {
-        "citation_graph_auc": 0.6518,
-        "citation_proximity_auc": 0.4833,
-        "legal_area_nmi": 0.2831,
-        "legal_area_purity": 0.5700,
-        "zoom_coherence_rate": 1.0,
-        "targets_pass": 1,
-        "note": "Sentence-transformers baseline. Only passes zoom coherence."
-      },
-      "critical_finding": "FIXED: citation_graph_neighborhood benchmark now produces valid AUC scores (was 0.5, now 0.58-0.70). Language debiasing (PCA 2 components) is the only representation passing citation_graph_auc target (0.705 > 0.7). Citation proximity remains hardest target (best: 0.656, target: 0.75). Zoom coherence passes for all representations (100% improvement rate)."
-    },
-    "comparison_cycle7": {
-      "best_overall": "language_debiased_pca2 (4/5 targets)",
-      "best_citation_graph": "language_debiased_pca2 (AUC=0.705)",
-      "best_citation_proximity": "section_erwaegungen (AUC=0.656)",
-      "best_legal_area": "section_sachverhalt (NMI=0.478, purity=0.857)",
-      "best_zoom_coherence": "all representations (100% improvement rate)",
-      "critical_gap": "Citation proximity (AUC 0.656 < 0.75 target). Legal-distance lane must develop citation-aware representations."
-    },
-    "cycle8_adversarial_falsification": {
-      "baseline": {
-        "status": "FALSIFIED",
-        "language_dominance_mean": 0.982,
-        "branch_coherence_mean": 0.889,
-        "dead_zones_count": 20,
-        "falsification_reasons": ["language_dominance>0.9", "dead_zones>5"]
-      },
-      "language_debiased_pca2": {
-        "status": "FALSIFIED",
-        "language_dominance_mean": 0.818,
-        "branch_coherence_mean": 0.910,
-        "dead_zones_count": 20,
-        "falsification_reasons": ["dead_zones>5"]
-      },
-      "critical_finding": "Both representations FALSIFIED. Baseline groups by language (0.982). Debiased reduces language dominance to 0.818 but dead zones persist (20 pairs sim>0.95 across branches). Similarity distribution compressed: 90% between 0.82-0.95."
-    },
-    "cycle8_tf_metadata": {
-      "baseline": {
-        "branch_knn_accuracy@5": 0.957,
-        "chamber_knn_accuracy@5": 0.921,
-        "legal_area_knn_accuracy@5": 0.479,
-        "branch_purity@10": 0.901
-      },
-      "language_debiased_pca2": {
-        "branch_knn_accuracy@5": 0.967,
-        "chamber_knn_accuracy@5": 0.927,
-        "legal_area_knn_accuracy@5": 0.418,
-        "branch_purity@10": 0.920
-      },
-      "critical_finding": "Both representations strongly recover court structure (branch k-NN 0.967, 3x random). Debiasing improves branch purity 0.901→0.920. Legal-area accuracy 0.418 (45x random) shows representation captures fine-grained legal structure."
-    },
-    "cycle9_citation_graph_adversarial": {
-      "baseline": {
-        "status": "FALSIFIED",
-        "language_dominance_mean": 0.982,
-        "branch_coherence_mean": 0.889,
-        "dead_zones_gt095": 20
-      },
-      "language_debiased_pca2": {
-        "status": "FALSIFIED",
-        "language_dominance_mean": 0.818,
-        "branch_coherence_mean": 0.910,
-        "dead_zones_gt095": 20
-      },
-      "citation_blended": {
-        "status": "FALSIFIED",
-        "language_dominance_mean": 0.982,
-        "branch_coherence_mean": 0.892,
-        "dead_zones_gt095": 0,
-        "dead_zone_sim_range": [0.844, 0.902]
-      },
-      "citation_graph_only": {
-        "status": "FALSIFIED",
-        "language_dominance_mean": 0.964,
-        "branch_coherence_mean": 0.879,
-        "dead_zones_gt095": 2,
-        "dead_zone_sim_range": [0.860, 0.972]
-      },
-      "critical_finding": "ALL 4 FALSIFIED by language dominance > 0.9. Citation-graph representations dramatically reduce dead zone severity (blended: 0 vs 20 baseline, graph_only: 2 vs 20). But language dominance NOT resolved by citations. Product needs BOTH citation awareness AND explicit language debiasing."
-    },
-    "cycle9_tf_metadata": {
-      "baseline": {
-        "branch_knn_accuracy@5": 0.957,
-        "chamber_knn_accuracy@5": 0.921,
-        "legal_area_knn_accuracy@5": 0.478,
-        "branch_purity@10": 0.901
-      },
-      "language_debiased_pca2": {
-        "branch_knn_accuracy@5": 0.967,
-        "chamber_knn_accuracy@5": 0.927,
-        "legal_area_knn_accuracy@5": 0.418,
-        "branch_purity@10": 0.920
-      },
-      "citation_blended": {
-        "branch_knn_accuracy@5": 0.955,
-        "chamber_knn_accuracy@5": 0.914,
-        "legal_area_knn_accuracy@5": 0.476,
-        "branch_purity@10": 0.904
-      },
-      "citation_graph_only": {
-        "branch_knn_accuracy@5": 0.942,
-        "chamber_knn_accuracy@5": 0.900,
-        "legal_area_knn_accuracy@5": 0.468,
-        "branch_purity@10": 0.897
+    "cycle11_combined_collapsed": {
+      "citation_blended_debiased": {
+        "citation_heritage_auc": 0.493,
+        "language_dominance": 0.476,
+        "branch_coherence": 0.363,
+        "dead_zones_gt095": 12694,
+        "cross_lang_similarity": 1.0,
+        "branch_knn@5": 0.379,
+        "status": "COLLAPSED",
+        "root_cause": "PCA on 64-dim removes ~34% variance, destroying structure"
       }
     },
-    "cycle9_temporal_stability": {
-      "baseline": {"drift": 0.0085, "mean_coherence": 0.8171},
-      "language_debiased_pca2": {"drift": 0.0058, "mean_coherence": 0.8468},
-      "citation_blended": {"drift": 0.0082, "mean_coherence": 0.8229},
-      "citation_graph_only": {"drift": 0.0096, "mean_coherence": 0.8071},
-      "critical_finding": "All representations show excellent temporal stability (drift < 0.01). Debiased is most stable. Citation_graph_only has highest drift but still well below 0.1 threshold."
+    "cycle11_cross_language": {
+      "baseline": {"cross_lang_sim": 0.866, "same_lang_sim": 0.891, "gap": 0.025},
+      "language_debiased_pca2": {"cross_lang_sim": 0.909, "same_lang_sim": 0.914, "gap": 0.005},
+      "citation_blended": {"cross_lang_sim": -0.163, "same_lang_sim": -0.001, "gap": 0.162},
+      "citation_graph_only": {"cross_lang_sim": -0.154, "same_lang_sim": -0.001, "gap": 0.154},
+      "critical_finding": "Citation patterns are language-correlated (cross-lang sim negative for citation reps)"
     },
-    "cycle10_citation_heritage": {
-      "baseline": {"auc_roc": 0.637, "similarity_gap": 0.021, "dead_zones_gt095": 1664, "language_dominance": 0.982, "branch_knn@5": 0.957},
-      "language_debiased_pca2": {"auc_roc": 0.673, "similarity_gap": 0.017, "dead_zones_gt095": 1752, "language_dominance": 0.818, "branch_knn@5": 0.967},
-      "citation_blended": {"auc_roc": 0.679, "similarity_gap": 0.226, "dead_zones_gt095": 0, "language_dominance": 0.982, "branch_knn@5": 0.955},
-      "citation_graph_only": {"auc_roc": 0.668, "similarity_gap": 0.215, "dead_zones_gt095": 2, "language_dominance": 0.964, "branch_knn@5": 0.942},
-      "random_degraded": {"auc_roc": 0.520, "similarity_gap": 0.003, "dead_zones_gt095": 8847, "language_dominance": 0.493, "branch_knn@5": 0.379},
-      "critical_finding": "Citation-heritage benchmark VALIDATED. citation_blended is BEST: AUC=0.679, gap=0.226, zero dead zones. Sanity check PASSED: row-shuffled AUC=0.520 < 0.55. All real representations show language dominance > 0.81."
-    }
-  },
-  "baselines_established": {
-    "tfidf_reasoning": {
-      "neighbor_relevance_auc": 0.9519,
-      "boilerplate_resistance": 0.0113,
-      "multilingual_separation": -0.2374,
-      "corpus_stability_drift": 0.8733,
-      "hierarchy_purity": 0.6482,
-      "hierarchy_nmi": 0.0283,
-      "citation_proximity_auc": 0.6354,
-      "legal_area_nmi": 0.0487,
-      "legal_area_purity": 0.7046
-    },
-    "neural_multilingual": {
-      "neighbor_relevance_auc": 0.5780,
-      "boilerplate_resistance": "SKIPPED",
-      "multilingual_separation": -0.0555,
-      "corpus_stability_drift": 2.98e-08,
-      "hierarchy_purity": 0.8333,
-      "hierarchy_nmi": 0.0672,
-      "citation_proximity_auc": 0.5004,
-      "legal_area_nmi": 0.0572,
-      "legal_area_purity": 0.8763
-    },
-    "fractal_map_sachverhalt": {
-      "legal_area_nmi": 0.4782,
-      "legal_area_purity": 0.8571,
-      "citation_proximity_auc": 0.6184,
-      "note": "Best for legal area clustering. Facts section carries strongest legal-area signal."
-    },
-    "targets_for_legal_distance_lane": {
-      "citation_proximity_auc": ">0.75",
-      "legal_area_nmi": ">0.3",
-      "legal_area_purity": ">0.7",
-      "multilingual_separation": ">0.1",
-      "corpus_stability_drift": "<0.3",
-      "hierarchy_nmi": ">0.3",
-      "hierarchy_purity": ">0.7",
-      "neighbor_relevance_auc": ">0.95",
-      "boilerplate_resistance": ">0.5"
+    "cycle11_boilerplate_resistance": {
+      "baseline": {"correlation": 0.296, "resistance": 0.704},
+      "language_debiased_pca2": {"correlation": 0.084, "resistance": 0.916},
+      "citation_blended": {"correlation": 0.364, "resistance": 0.636},
+      "citation_graph_only": {"correlation": 0.295, "resistance": 0.705},
+      "citation_blended_debiased": {"correlation": 0.012, "resistance": 0.988},
+      "critical_finding": "ALL representations pass boilerplate resistance (>0.5). Debiased reps have HIGHER resistance."
     }
   },
   "benchmarks_available": [
@@ -291,12 +98,14 @@
     "hierarchy_coherence (branch purity + NMI, 4 branches)",
     "citation_proximity (shared-citation heritage >=1, AUC-ROC)",
     "legal_area_clustering (branch NMI + purity)",
-    "citation_graph_neighborhood (shared-citation heritage >=2, AUC-ROC) [FIXED: now uses >=2 shared references]",
+    "citation_graph_neighborhood (shared-citation heritage >=2, AUC-ROC)",
     "zoom_coherence (fractal zoom reveals legal substructure, improvement rate)",
-    "tf_metadata_human_indexing (k-NN accuracy on canonical court labels: branch, chamber, legal_area)",
-    "adversarial_falsification (language dominance, branch coherence, dead zones, subgroup sensitivity)",
-    "temporal_stability (random-split coherence drift, language dominance consistency)",
-    "citation_heritage (real citation graph, AUC-ROC, similarity gap) [NEW: cycle 10, validated with sanity check]"
+    "tf_metadata_human_indexing (k-NN accuracy on canonical court labels)",
+    "adversarial_falsification (language dominance, branch coherence, dead zones)",
+    "temporal_stability (random-split coherence drift)",
+    "citation_heritage (real citation graph, AUC-ROC, similarity gap)",
+    "cross_language_pairs (same-branch different-language similarity) [NEW: cycle 11]",
+    "boilerplate_resistance_real_corpus (text-embedding correlation on real text) [NEW: cycle 11]"
   ],
   "cycle_history": [
     {"cycle": 1, "run_id": "synthetic_eval_20260826", "status": "COMPLETED", "tier": "EXPLORATORY"},
@@ -304,16 +113,18 @@
     {"cycle": 3, "run_id": "eval_real_tfidf_20260826", "status": "COMPLETED", "tier": "REPRODUCED"},
     {"cycle": 4, "run_id": "eval_cycle_4_20260826_225741", "status": "COMPLETED", "tier": "REPRODUCED"},
     {"cycle": 5, "run_id": "eval_cycle_5_1787786002", "status": "COMPLETED", "tier": "REPRODUCED"},
-    {"cycle": 5, "run_id": "eval_cycle_5_1787786969", "status": "REJECTED", "tier": "REPRODUCED", "note": "Rejected by audit CYCLE_33024162040: branch_distribution counts 1000 not 500, hierarchy_coherence uses 76 legal_area labels not 4 branch labels."},
-    {"cycle": 5, "run_id": "eval_cycle_5_1787789315", "status": "COMPLETED", "tier": "REPRODUCED", "note": "Repair of CYCLE_33024162040. Fixed branch_distribution (now sums to 500). Fixed hierarchy_coherence (now uses 4 branch labels, NMI=0.067 comparable to TF-IDF 0.028)."},
-    {"cycle": "audit", "run_id": "33024951821", "status": "PASS", "tier": "REPRODUCED", "note": "Final lane completion audit. 7 benchmarks verified, 2 baselines documented."},
-    {"cycle": 6, "run_id": "eval_cycle_6_fractal_map_20260827", "status": "COMPLETED", "tier": "REPRODUCED", "note": "Evaluated 10 fractal-map representations against 3 benchmarks. 3 representations pass 2/4 targets (sachverhalt, combined, debiased). Citation proximity remains hardest target (best: 0.686). Citation graph benchmark invalid due to data coverage."},
-    {"cycle": 7, "run_id": "eval_cycle_7_fixed_benchmarks_20260827", "status": "COMPLETED", "tier": "REPRODUCED", "note": "Fixed citation_graph_neighborhood (now uses >=2 shared citations, produces valid AUC 0.58-0.70). Added zoom_coherence benchmark (all reps pass at 100% improvement rate). Best: language_debiased_pca2 (4/5 targets). Citation proximity still hardest (best: 0.656 < 0.75)."},
-    {"cycle": "operational_resume", "run_id": "33030061655", "status": "PASS", "tier": "REPRODUCED", "note": "Re-ran cycle 7 to verify reproducibility. Same target pass/fail patterns confirmed. All evidence_refs verified exist. Known defect documented: clustering metric inconsistency (Euclidean/Ward vs cosine/average). No durable delta needed."},
-    {"cycle": "operational_resume", "run_id": "33030407701", "status": "PASS", "tier": "REPRODUCED", "note": "Second operational resume. Same dispatch-to-DONE failure mode as 33030061655. All 26 evidence_refs and 6 audit_refs verified exist. No durable delta. Supervisor dispatch guard recommended."},
-    {"cycle": "operational_resume", "run_id": "33030597595", "status": "PASS", "tier": "REPRODUCED", "note": "Third operational resume. Third dispatch-to-DONE occurrence. 32/32 evidence_refs and audit_refs verified. No durable delta. Peer lanes: corpus DONE, fractal-map COMPLETED/EXPLORATORY, legal-distance INITIALIZED, product INITIALIZED. Supervisor dispatch guard MUST be implemented before next cycle."},
-    {"cycle": 8, "run_id": "eval_cycle_8_1787795632", "status": "COMPLETED", "tier": "REPRODUCED", "note": "Adversarial falsification + TF metadata human-indexing. Both representations FALSIFIED: baseline by language dominance (0.982>0.9), both by dead zones (20 pairs sim>0.95 across branches). Debiasing reduces language dominance 0.982→0.818. TF metadata: branch k-NN 0.967 (3x random), chamber 0.927 (8x random), legal-area 0.418 (45x random). Similarity distribution compressed: 90% between 0.82-0.95. New benchmarks: tf_metadata_human_indexing, adversarial_falsification."},
-    {"cycle": 9, "run_id": "eval_cycle_9_1787796218", "status": "COMPLETED", "tier": "REPRODUCED", "note": "Citation-graph representations + temporal stability. ALL 4 representations FALSIFIED by language dominance > 0.9. Citation-blended eliminates dead zones > 0.95 (0 vs baseline 20). Citation-graph-only reduces to 2. Language dominance NOT resolved by citations (blended=0.982, graph_only=0.964). Temporal stability excellent (drift < 0.01 all reps). CRITICAL: Product needs BOTH citation awareness AND explicit language debiasing. New benchmark: temporal_stability."},
-    {"cycle": 10, "run_id": "eval_cycle_10_1787797258", "status": "COMPLETED", "tier": "REPRODUCED", "note": "Citation-heritage benchmark from real corpus citation graph (12,863 edges). SANITY CHECK PASSED: row-shuffled AUC=0.520 < 0.55. citation_blended BEST: AUC=0.679, gap=0.226, zero dead zones. Language dominance still >0.81 all reps. New benchmark: citation_heritage. 13 benchmarks total."}
+    {"cycle": 5, "run_id": "eval_cycle_5_1787786969", "status": "REJECTED", "tier": "REPRODUCED"},
+    {"cycle": 5, "run_id": "eval_cycle_5_1787789315", "status": "COMPLETED", "tier": "REPRODUCED"},
+    {"cycle": "audit", "run_id": "33024951821", "status": "PASS", "tier": "REPRODUCED"},
+    {"cycle": 6, "run_id": "eval_cycle_6_fractal_map_20260827", "status": "COMPLETED", "tier": "REPRODUCED"},
+    {"cycle": 7, "run_id": "eval_cycle_7_fixed_benchmarks_20260827", "status": "COMPLETED", "tier": "REPRODUCED"},
+    {"cycle": "operational_resume", "run_id": "33030061655", "status": "PASS", "tier": "REPRODUCED"},
+    {"cycle": "operational_resume", "run_id": "33030407701", "status": "PASS", "tier": "REPRODUCED"},
+    {"cycle": "operational_resume", "run_id": "33030597595", "status": "PASS", "tier": "REPRODUCED"},
+    {"cycle": 8, "run_id": "eval_cycle_8_1787795632", "status": "COMPLETED", "tier": "REPRODUCED"},
+    {"cycle": 9, "run_id": "eval_cycle_9_1787796218", "status": "COMPLETED", "tier": "REPRODUCED"},
+    {"cycle": 10, "run_id": "eval_cycle_10_1787797258", "status": "COMPLETED", "tier": "REPRODUCED"},
+    {"cycle": "operational_resume", "run_id": "33033313906", "status": "FAILED", "tier": "REPRODUCED", "note": "Dispatch-to-DONE failure: no artifacts produced. Same pattern as 3 prior operational resumes."},
+    {"cycle": 11, "run_id": "eval_cycle_11_1787797977", "status": "COMPLETED", "tier": "REPRODUCED", "note": "CRITICAL NEGATIVE: Naive PCA debiasing on citation_blended COLLAPSED representation. NEW BENCHMARKS: cross_language_pairs, boilerplate_resistance_real_corpus. All originals pass boilerplate resistance. Citation patterns are language-correlated."}
   ]
 }

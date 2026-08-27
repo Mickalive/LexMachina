@@ -1,0 +1,657 @@
+{
+  "run_id": "eval_cycle_11_1787797977",
+  "timestamp": "2026-08-27T02:32:58Z",
+  "cycle": 11,
+  "hypothesis": "A representation that combines BOTH citation awareness (from citation-blended) AND explicit language debiasing (from PCA2) will outperform either technique alone. Cross-language pairs should show meaningful similarity. Boilerplate resistance should be > 0.5 on real corpus.",
+  "frozen_sample": "1000 BGer decisions (2020-2024) from fractal-map baseline",
+  "frozen_metrics": [
+    "citation_heritage_auc_roc",
+    "citation_heritage_similarity_gap",
+    "language_dominance_mean",
+    "branch_coherence_mean",
+    "branch_knn_accuracy@5",
+    "dead_zones_gt095",
+    "cross_lang_mean_similarity",
+    "cross_same_gap",
+    "text_embedding_correlation"
+  ],
+  "success_rule": "Combined representation has language_dominance < 0.85 AND citation_heritage AUC > 0.65; cross-language pairs show meaningful similarity; boilerplate resistance > 0.5 on real corpus.",
+  "representations": {
+    "baseline": {
+      "citation_heritage": {
+        "representation": "baseline",
+        "status": "PASSED",
+        "falsified": false,
+        "falsification_reasons": [],
+        "num_positive_pairs": 4999,
+        "num_negative_pairs": 9998,
+        "auc_roc": 0.6421,
+        "positive_mean_similarity": 0.9127,
+        "negative_mean_similarity": 0.8911,
+        "similarity_gap": 0.0215,
+        "precision_at_k": {
+          "precision@1": 0.0203,
+          "precision@5": 0.0763,
+          "precision@10": 0.1262,
+          "precision@20": 0.1975,
+          "precision@50": 0.315
+        },
+        "nn_citation_rate": 0.2032,
+        "subgroup_analysis": {
+          "shared>=1": {
+            "count": 4999,
+            "mean_similarity": 0.9127,
+            "std_similarity": 0.047
+          },
+          "shared>=2": {
+            "count": 4999,
+            "mean_similarity": 0.9127,
+            "std_similarity": 0.047
+          },
+          "shared>=3": {
+            "count": 2817,
+            "mean_similarity": 0.9265,
+            "std_similarity": 0.0438
+          },
+          "shared>=5": {
+            "count": 635,
+            "mean_similarity": 0.953,
+            "std_similarity": 0.0294
+          }
+        },
+        "duration": 1.1991660594940186
+      },
+      "adversarial": {
+        "representation": "baseline",
+        "status": "FALSIFIED",
+        "falsified": true,
+        "falsification_reasons": [
+          "Language dominance 0.982 > 0.9",
+          "1664 pairs with sim>0.95 across branches"
+        ],
+        "language_dominance_mean": 0.9821,
+        "branch_coherence_mean": 0.8892,
+        "dead_zones_gt095": 1664,
+        "dead_zones_total": 3557,
+        "duration": 0.09927654266357422
+      },
+      "tf_metadata": {
+        "representation": "baseline",
+        "num_decisions": 999,
+        "branch_knn": {
+          "knn_accuracy@1": 0.97,
+          "knn_accuracy@3": 0.959,
+          "knn_accuracy@5": 0.957,
+          "knn_accuracy@10": 0.955,
+          "random_baseline": 0.3333
+        },
+        "chamber_knn": {
+          "knn_accuracy@1": 0.9369,
+          "knn_accuracy@3": 0.9199,
+          "knn_accuracy@5": 0.9209,
+          "knn_accuracy@10": 0.9109,
+          "random_baseline": 0.1111
+        },
+        "legal_area_knn": {
+          "knn_accuracy@1": 0.4615,
+          "knn_accuracy@3": 0.4374,
+          "knn_accuracy@5": 0.4785,
+          "knn_accuracy@10": 0.4775,
+          "random_baseline": 0.01
+        },
+        "summary": {
+          "branch_knn_accuracy@5": 0.957,
+          "chamber_knn_accuracy@5": 0.9209,
+          "legal_area_knn_accuracy@5": 0.4785
+        },
+        "duration": 0.30824971199035645
+      },
+      "cross_language": {
+        "representation": "baseline",
+        "num_cross_lang_pairs": 2000,
+        "cross_lang_mean_similarity": 0.866,
+        "cross_lang_std_similarity": 0.0304,
+        "cross_lang_median_similarity": 0.8676,
+        "same_lang_mean_similarity": 0.8911,
+        "same_lang_std_similarity": 0.0415,
+        "cross_same_gap": 0.0251,
+        "cross_lang_paired_t": 21.8047,
+        "cross_lang_paired_p": 0.0,
+        "duration": 0.014219999313354492
+      }
+    },
+    "language_debiased_pca2": {
+      "citation_heritage": {
+        "representation": "language_debiased_pca2",
+        "status": "PASSED",
+        "falsified": false,
+        "falsification_reasons": [],
+        "num_positive_pairs": 4999,
+        "num_negative_pairs": 9998,
+        "auc_roc": 0.678,
+        "positive_mean_similarity": 0.932,
+        "negative_mean_similarity": 0.9143,
+        "similarity_gap": 0.0177,
+        "precision_at_k": {
+          "precision@1": 0.0199,
+          "precision@5": 0.0735,
+          "precision@10": 0.1205,
+          "precision@20": 0.1862,
+          "precision@50": 0.3107
+        },
+        "nn_citation_rate": 0.1992,
+        "subgroup_analysis": {
+          "shared>=1": {
+            "count": 4999,
+            "mean_similarity": 0.932,
+            "std_similarity": 0.0319
+          },
+          "shared>=2": {
+            "count": 4999,
+            "mean_similarity": 0.932,
+            "std_similarity": 0.0319
+          },
+          "shared>=3": {
+            "count": 2817,
+            "mean_similarity": 0.9392,
+            "std_similarity": 0.0303
+          },
+          "shared>=5": {
+            "count": 635,
+            "mean_similarity": 0.9561,
+            "std_similarity": 0.023
+          }
+        },
+        "duration": 1.2047178745269775
+      },
+      "adversarial": {
+        "representation": "language_debiased_pca2",
+        "status": "FALSIFIED",
+        "falsified": true,
+        "falsification_reasons": [
+          "1752 pairs with sim>0.95 across branches"
+        ],
+        "language_dominance_mean": 0.8182,
+        "branch_coherence_mean": 0.9105,
+        "dead_zones_gt095": 1752,
+        "dead_zones_total": 2954,
+        "duration": 0.1001591682434082
+      },
+      "tf_metadata": {
+        "representation": "language_debiased_pca2",
+        "num_decisions": 999,
+        "branch_knn": {
+          "knn_accuracy@1": 0.974,
+          "knn_accuracy@3": 0.967,
+          "knn_accuracy@5": 0.967,
+          "knn_accuracy@10": 0.962,
+          "random_baseline": 0.3333
+        },
+        "chamber_knn": {
+          "knn_accuracy@1": 0.9449,
+          "knn_accuracy@3": 0.9329,
+          "knn_accuracy@5": 0.9269,
+          "knn_accuracy@10": 0.9229,
+          "random_baseline": 0.1111
+        },
+        "legal_area_knn": {
+          "knn_accuracy@1": 0.4294,
+          "knn_accuracy@3": 0.3974,
+          "knn_accuracy@5": 0.4184,
+          "knn_accuracy@10": 0.4154,
+          "random_baseline": 0.01
+        },
+        "summary": {
+          "branch_knn_accuracy@5": 0.967,
+          "chamber_knn_accuracy@5": 0.9269,
+          "legal_area_knn_accuracy@5": 0.4184
+        },
+        "duration": 0.30733513832092285
+      },
+      "cross_language": {
+        "representation": "language_debiased_pca2",
+        "num_cross_lang_pairs": 2000,
+        "cross_lang_mean_similarity": 0.9088,
+        "cross_lang_std_similarity": 0.0294,
+        "cross_lang_median_similarity": 0.914,
+        "same_lang_mean_similarity": 0.9142,
+        "same_lang_std_similarity": 0.0288,
+        "cross_same_gap": 0.0053,
+        "cross_lang_paired_t": 5.8825,
+        "cross_lang_paired_p": 0.0,
+        "duration": 0.013571739196777344
+      }
+    },
+    "citation_blended": {
+      "citation_heritage": {
+        "representation": "citation_blended",
+        "status": "PASSED",
+        "falsified": false,
+        "falsification_reasons": [],
+        "num_positive_pairs": 4999,
+        "num_negative_pairs": 9998,
+        "auc_roc": 0.6804,
+        "positive_mean_similarity": 0.227,
+        "negative_mean_similarity": 0.0001,
+        "similarity_gap": 0.2269,
+        "precision_at_k": {
+          "precision@1": 0.0191,
+          "precision@5": 0.0745,
+          "precision@10": 0.1259,
+          "precision@20": 0.1996,
+          "precision@50": 0.3207
+        },
+        "nn_citation_rate": 0.1912,
+        "subgroup_analysis": {
+          "shared>=1": {
+            "count": 4999,
+            "mean_similarity": 0.227,
+            "std_similarity": 0.3704
+          },
+          "shared>=2": {
+            "count": 4999,
+            "mean_similarity": 0.227,
+            "std_similarity": 0.3704
+          },
+          "shared>=3": {
+            "count": 2817,
+            "mean_similarity": 0.336,
+            "std_similarity": 0.3443
+          },
+          "shared>=5": {
+            "count": 635,
+            "mean_similarity": 0.5337,
+            "std_similarity": 0.2554
+          }
+        },
+        "duration": 1.2099461555480957
+      },
+      "adversarial": {
+        "representation": "citation_blended",
+        "status": "FALSIFIED",
+        "falsified": true,
+        "falsification_reasons": [
+          "Language dominance 0.982 > 0.9"
+        ],
+        "language_dominance_mean": 0.9817,
+        "branch_coherence_mean": 0.8922,
+        "dead_zones_gt095": 0,
+        "dead_zones_total": 3435,
+        "duration": 0.10349416732788086
+      },
+      "tf_metadata": {
+        "representation": "citation_blended",
+        "num_decisions": 999,
+        "branch_knn": {
+          "knn_accuracy@1": 0.968,
+          "knn_accuracy@3": 0.96,
+          "knn_accuracy@5": 0.955,
+          "knn_accuracy@10": 0.956,
+          "random_baseline": 0.3333
+        },
+        "chamber_knn": {
+          "knn_accuracy@1": 0.9269,
+          "knn_accuracy@3": 0.9219,
+          "knn_accuracy@5": 0.9139,
+          "knn_accuracy@10": 0.9089,
+          "random_baseline": 0.1111
+        },
+        "legal_area_knn": {
+          "knn_accuracy@1": 0.4484,
+          "knn_accuracy@3": 0.4515,
+          "knn_accuracy@5": 0.4765,
+          "knn_accuracy@10": 0.4785,
+          "random_baseline": 0.01
+        },
+        "summary": {
+          "branch_knn_accuracy@5": 0.955,
+          "chamber_knn_accuracy@5": 0.9139,
+          "legal_area_knn_accuracy@5": 0.4765
+        },
+        "duration": 0.308685302734375
+      },
+      "cross_language": {
+        "representation": "citation_blended",
+        "num_cross_lang_pairs": 2000,
+        "cross_lang_mean_similarity": -0.1625,
+        "cross_lang_std_similarity": 0.204,
+        "cross_lang_median_similarity": -0.1873,
+        "same_lang_mean_similarity": -0.0009,
+        "same_lang_std_similarity": 0.2866,
+        "cross_same_gap": 0.1617,
+        "cross_lang_paired_t": 20.1767,
+        "cross_lang_paired_p": 0.0,
+        "duration": 0.018085479736328125
+      }
+    },
+    "citation_graph_only": {
+      "citation_heritage": {
+        "representation": "citation_graph_only",
+        "status": "PASSED",
+        "falsified": false,
+        "falsification_reasons": [],
+        "num_positive_pairs": 4999,
+        "num_negative_pairs": 9998,
+        "auc_roc": 0.6692,
+        "positive_mean_similarity": 0.2161,
+        "negative_mean_similarity": 0.0001,
+        "similarity_gap": 0.216,
+        "precision_at_k": {
+          "precision@1": 0.0189,
+          "precision@5": 0.074,
+          "precision@10": 0.1242,
+          "precision@20": 0.1961,
+          "precision@50": 0.3096
+        },
+        "nn_citation_rate": 0.1892,
+        "subgroup_analysis": {
+          "shared>=1": {
+            "count": 4999,
+            "mean_similarity": 0.2161,
+            "std_similarity": 0.37
+          },
+          "shared>=2": {
+            "count": 4999,
+            "mean_similarity": 0.2161,
+            "std_similarity": 0.37
+          },
+          "shared>=3": {
+            "count": 2817,
+            "mean_similarity": 0.3235,
+            "std_similarity": 0.349
+          },
+          "shared>=5": {
+            "count": 635,
+            "mean_similarity": 0.5181,
+            "std_similarity": 0.2797
+          }
+        },
+        "duration": 1.16963529586792
+      },
+      "adversarial": {
+        "representation": "citation_graph_only",
+        "status": "FALSIFIED",
+        "falsified": true,
+        "falsification_reasons": [
+          "Language dominance 0.964 > 0.9"
+        ],
+        "language_dominance_mean": 0.964,
+        "branch_coherence_mean": 0.8788,
+        "dead_zones_gt095": 2,
+        "dead_zones_total": 3749,
+        "duration": 0.10486268997192383
+      },
+      "tf_metadata": {
+        "representation": "citation_graph_only",
+        "num_decisions": 999,
+        "branch_knn": {
+          "knn_accuracy@1": 0.955,
+          "knn_accuracy@3": 0.9489,
+          "knn_accuracy@5": 0.9419,
+          "knn_accuracy@10": 0.9469,
+          "random_baseline": 0.3333
+        },
+        "chamber_knn": {
+          "knn_accuracy@1": 0.9129,
+          "knn_accuracy@3": 0.9039,
+          "knn_accuracy@5": 0.8999,
+          "knn_accuracy@10": 0.8899,
+          "random_baseline": 0.1111
+        },
+        "legal_area_knn": {
+          "knn_accuracy@1": 0.4364,
+          "knn_accuracy@3": 0.4354,
+          "knn_accuracy@5": 0.4675,
+          "knn_accuracy@10": 0.4675,
+          "random_baseline": 0.01
+        },
+        "summary": {
+          "branch_knn_accuracy@5": 0.9419,
+          "chamber_knn_accuracy@5": 0.8999,
+          "legal_area_knn_accuracy@5": 0.4675
+        },
+        "duration": 0.30106210708618164
+      },
+      "cross_language": {
+        "representation": "citation_graph_only",
+        "num_cross_lang_pairs": 2000,
+        "cross_lang_mean_similarity": -0.1541,
+        "cross_lang_std_similarity": 0.2069,
+        "cross_lang_median_similarity": -0.1776,
+        "same_lang_mean_similarity": -0.0006,
+        "same_lang_std_similarity": 0.2832,
+        "cross_same_gap": 0.1535,
+        "cross_lang_paired_t": 19.2187,
+        "cross_lang_paired_p": 0.0,
+        "duration": 0.018381595611572266
+      }
+    },
+    "citation_blended_debiased": {
+      "citation_heritage": {
+        "representation": "citation_blended_debiased",
+        "status": "FALSIFIED",
+        "falsified": true,
+        "falsification_reasons": [
+          "AUC-ROC 0.493 < 0.5: citation pairs less similar than random",
+          "Negative similarity gap -0.0000: citation pairs less similar than random"
+        ],
+        "num_positive_pairs": 4999,
+        "num_negative_pairs": 9998,
+        "auc_roc": 0.4933,
+        "positive_mean_similarity": 1.0,
+        "negative_mean_similarity": 1.0,
+        "similarity_gap": -0.0,
+        "precision_at_k": {
+          "precision@1": 0.0001,
+          "precision@5": 0.0026,
+          "precision@10": 0.0066,
+          "precision@20": 0.0164,
+          "precision@50": 0.0444
+        },
+        "nn_citation_rate": 0.002,
+        "subgroup_analysis": {
+          "shared>=1": {
+            "count": 4999,
+            "mean_similarity": 1.0,
+            "std_similarity": 0.0
+          },
+          "shared>=2": {
+            "count": 4999,
+            "mean_similarity": 1.0,
+            "std_similarity": 0.0
+          },
+          "shared>=3": {
+            "count": 2817,
+            "mean_similarity": 1.0,
+            "std_similarity": 0.0
+          },
+          "shared>=5": {
+            "count": 635,
+            "mean_similarity": 1.0,
+            "std_similarity": 0.0
+          }
+        },
+        "duration": 1.0090253353118896
+      },
+      "adversarial": {
+        "representation": "citation_blended_debiased",
+        "status": "FALSIFIED",
+        "falsified": true,
+        "falsification_reasons": [
+          "12694 pairs with sim>0.95 across branches"
+        ],
+        "language_dominance_mean": 0.4758,
+        "branch_coherence_mean": 0.3632,
+        "dead_zones_gt095": 12694,
+        "dead_zones_total": 12694,
+        "duration": 0.11427521705627441
+      },
+      "tf_metadata": {
+        "representation": "citation_blended_debiased",
+        "num_decisions": 999,
+        "branch_knn": {
+          "knn_accuracy@1": 0.3784,
+          "knn_accuracy@3": 0.3784,
+          "knn_accuracy@5": 0.3794,
+          "knn_accuracy@10": 0.4094,
+          "random_baseline": 0.3333
+        },
+        "chamber_knn": {
+          "knn_accuracy@1": 0.1141,
+          "knn_accuracy@3": 0.1221,
+          "knn_accuracy@5": 0.1441,
+          "knn_accuracy@10": 0.1131,
+          "random_baseline": 0.1111
+        },
+        "legal_area_knn": {
+          "knn_accuracy@1": 0.02,
+          "knn_accuracy@3": 0.04,
+          "knn_accuracy@5": 0.044,
+          "knn_accuracy@10": 0.0661,
+          "random_baseline": 0.01
+        },
+        "summary": {
+          "branch_knn_accuracy@5": 0.3794,
+          "chamber_knn_accuracy@5": 0.1441,
+          "legal_area_knn_accuracy@5": 0.044
+        },
+        "duration": 0.2667863368988037
+      },
+      "cross_language": {
+        "representation": "citation_blended_debiased",
+        "num_cross_lang_pairs": 2000,
+        "cross_lang_mean_similarity": 1.0,
+        "cross_lang_std_similarity": 0.0,
+        "cross_lang_median_similarity": 1.0,
+        "same_lang_mean_similarity": 1.0,
+        "same_lang_std_similarity": 0.0,
+        "cross_same_gap": -0.0,
+        "cross_lang_paired_t": -0.6514,
+        "cross_lang_paired_p": 0.514758,
+        "duration": 0.013519763946533203
+      }
+    }
+  },
+  "comparison": {
+    "citation_heritage_auc": {
+      "baseline": 0.6421,
+      "language_debiased_pca2": 0.678,
+      "citation_blended": 0.6804,
+      "citation_graph_only": 0.6692,
+      "citation_blended_debiased": 0.4933
+    },
+    "citation_heritage_gap": {
+      "baseline": 0.0215,
+      "language_debiased_pca2": 0.0177,
+      "citation_blended": 0.2269,
+      "citation_graph_only": 0.216,
+      "citation_blended_debiased": -0.0
+    },
+    "adversarial_status": {
+      "baseline": "FALSIFIED",
+      "language_debiased_pca2": "FALSIFIED",
+      "citation_blended": "FALSIFIED",
+      "citation_graph_only": "FALSIFIED",
+      "citation_blended_debiased": "FALSIFIED"
+    },
+    "language_dominance": {
+      "baseline": 0.9821,
+      "language_debiased_pca2": 0.8182,
+      "citation_blended": 0.9817,
+      "citation_graph_only": 0.964,
+      "citation_blended_debiased": 0.4758
+    },
+    "branch_coherence": {
+      "baseline": 0.8892,
+      "language_debiased_pca2": 0.9105,
+      "citation_blended": 0.8922,
+      "citation_graph_only": 0.8788,
+      "citation_blended_debiased": 0.3632
+    },
+    "dead_zones_gt095": {
+      "baseline": 1664,
+      "language_debiased_pca2": 1752,
+      "citation_blended": 0,
+      "citation_graph_only": 2,
+      "citation_blended_debiased": 12694
+    },
+    "branch_knn_accuracy": {
+      "baseline": 0.957,
+      "language_debiased_pca2": 0.967,
+      "citation_blended": 0.955,
+      "citation_graph_only": 0.9419,
+      "citation_blended_debiased": 0.3794
+    },
+    "cross_lang_mean_similarity": {
+      "baseline": 0.866,
+      "language_debiased_pca2": 0.9088,
+      "citation_blended": -0.1625,
+      "citation_graph_only": -0.1541,
+      "citation_blended_debiased": 1.0
+    },
+    "cross_same_gap": {
+      "baseline": 0.0251,
+      "language_debiased_pca2": 0.0053,
+      "citation_blended": 0.1617,
+      "citation_graph_only": 0.1535,
+      "citation_blended_debiased": -0.0
+    }
+  },
+  "boilerplate_resistance": {
+    "results": {
+      "baseline": {
+        "num_decisions": 299,
+        "text_embedding_correlation": 0.2956,
+        "correlation_p_value": 0.0,
+        "mean_embedding_similarity": 0.8936,
+        "mean_text_similarity": 0.2361,
+        "resistance_score": 0.7044
+      },
+      "language_debiased_pca2": {
+        "num_decisions": 299,
+        "text_embedding_correlation": 0.0838,
+        "correlation_p_value": 0.061092,
+        "mean_embedding_similarity": 0.9146,
+        "mean_text_similarity": 0.2361,
+        "resistance_score": 0.9162
+      },
+      "citation_blended": {
+        "num_decisions": 299,
+        "text_embedding_correlation": 0.3639,
+        "correlation_p_value": 0.0,
+        "mean_embedding_similarity": 0.0405,
+        "mean_text_similarity": 0.2361,
+        "resistance_score": 0.6361
+      },
+      "citation_graph_only": {
+        "num_decisions": 299,
+        "text_embedding_correlation": 0.2946,
+        "correlation_p_value": 0.0,
+        "mean_embedding_similarity": 0.0431,
+        "mean_text_similarity": 0.2361,
+        "resistance_score": 0.7054
+      },
+      "citation_blended_debiased": {
+        "num_decisions": 299,
+        "text_embedding_correlation": 0.012,
+        "correlation_p_value": 0.788964,
+        "mean_embedding_similarity": 1.0,
+        "mean_text_similarity": 0.2361,
+        "resistance_score": 0.988
+      }
+    },
+    "duration": 4.4613566398620605,
+    "sample_size": 100
+  },
+  "key_findings": [
+    "Combined representation language dominance: 0.476 PASS (< 0.85 target)",
+    "Combined representation citation heritage AUC: 0.493 FAIL (> 0.65 target)",
+    "Language dominance improvement: 0.982 -> 0.476 (delta=0.506)",
+    "Cross-language gap (same - cross): -0.0000 NEEDS INVESTIGATION",
+    "Boilerplate resistance (baseline): correlation=0.2956, resistance=0.7044 PASS (> 0.5 target)",
+    "Boilerplate resistance (language_debiased_pca2): correlation=0.0838, resistance=0.9162 PASS (> 0.5 target)",
+    "Boilerplate resistance (citation_blended): correlation=0.3639, resistance=0.6361 PASS (> 0.5 target)",
+    "Boilerplate resistance (citation_graph_only): correlation=0.2946, resistance=0.7054 PASS (> 0.5 target)",
+    "Boilerplate resistance (citation_blended_debiased): correlation=0.0120, resistance=0.9880 PASS (> 0.5 target)"
+  ]
+}
