@@ -1,0 +1,59 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "REPRODUCED",
+  "evidence_summary": "Full reproducibility verification of hierarchical Leiden fractal map. All 18 evidence refs present. All 7 flat branch purity recomputations from saved labels match reported values to 10+ decimal places. Hierarchical Leiden (coarse_0.5_fine_3.0) achieves purity=0.9634 (vs flat 0.8749, +10.1%), nesting=1.0 (perfect by construction), 127 sub-clusters summing to 1000 decisions. Flat Leiden nesting imperfect (0.60) — known negative result that hierarchical Leiden resolves. State file correctly shows evidence_tier=REPRODUCED, cycle_status=COMPLETED, continue_recommended=false, next_recommendation=PRODUCTIZE. Orchestration failure diagnosed: prior run 33027907385 wrote continue_recommended=true and next_recommendation=CONTINUE despite PASS verdict; corrected in run 33028489959. This is the 4th occurrence of the same state-contradiction bug (prior: 33020090957, 33020622379, 33021595718).",
+  "cycle_id": "verification_20260827_33028489959",
+  "github_run": "33028489959",
+  "lane": "fractal-map",
+  "direction_version": 1,
+  "auditor": "mimo-v2.5-free",
+  "audit_timestamp": "2026-08-27T01:30:00Z",
+  "producer_commit": null,
+  "key_metrics": {
+    "hierarchical_purity": 0.963417,
+    "hierarchical_nesting": 1.0,
+    "flat_mean_purity": 0.874884,
+    "flat_nesting_mean": 0.600158,
+    "zoom_purity_improvement_pct": 10.12,
+    "n_fine_clusters": 127,
+    "n_decisions": 1000,
+    "artifact_integrity": "18/18",
+    "purity_recomputation": "7/7 exact match",
+    "nesting_consistency": "6/6 pairs = 1.0"
+  },
+  "artifacts": [
+    "results/fractal_map/hierarchical_map/hierarchical_map_results.json",
+    "results/fractal_map/hierarchical_map/cluster_assignments.json",
+    "results/fractal_map/hierarchical_map/hierarchical_leiden_results.json",
+    "results/fractal_map/hierarchical_map/labels_res_0.25.npy",
+    "results/fractal_map/hierarchical_map/labels_res_0.5.npy",
+    "results/fractal_map/hierarchical_map/labels_res_0.75.npy",
+    "results/fractal_map/hierarchical_map/labels_res_1.0.npy",
+    "results/fractal_map/hierarchical_map/labels_res_1.5.npy",
+    "results/fractal_map/hierarchical_map/labels_res_2.0.npy",
+    "results/fractal_map/hierarchical_map/labels_res_3.0.npy",
+    "fractal_map/hierarchical/hierarchical_map_builder.py",
+    "fractal_map/hierarchical/hierarchical_leiden.py",
+    "fractal_map/evaluation/hierarchical_eval_comparison.py",
+    "results/fractal_map/baseline/embeddings.npy",
+    "results/fractal_map/baseline/projection_2d.npy",
+    "results/fractal_map/baseline/metadata.json",
+    "results/fractal_map/language_debiasing/embeddings_center_projected.npy",
+    "results/fractal_map/evaluation/hierarchical_eval_comparison.json"
+  ],
+  "recommendation": "PRODUCTIZE",
+  "negative_results_preserved": [
+    "Flat Leiden nesting is imperfect (0.60) — different resolutions don't naturally nest",
+    "Flat Leiden purity (0.8749) lower than hierarchical (0.9634)",
+    "Resolution-dependent selector does NOT outperform concat (prior cycle)",
+    "Legal purity ratio below 1.0 even at finest zoom (0.920 in zoom coherence)"
+  ],
+  "orchestration_failure_diagnosis": {
+    "root_cause": "State written before final verdict inspection. PASS verdict means lane question answered → PRODUCTIZE, not CONTINUE.",
+    "occurrences": ["33020090957", "33020622379", "33021595718", "33027907385"],
+    "correction_applied": "continue_recommended: true→false, next_recommendation: CONTINUE→PRODUCTIZE",
+    "recommendation": "Add post-verdict state consistency check: if verdict=PASS, continue_recommended must be false and next_recommendation must not be CONTINUE"
+  }
+}
