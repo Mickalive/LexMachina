@@ -1,0 +1,49 @@
+{
+  "run_id": "corpus_operational_resume_33035424208",
+  "resumed_from": "33034330628",
+  "cycle": "operational_resume",
+  "lane": "corpus",
+  "direction_version": 1,
+  "github_run": 33035424208,
+  "gate": "PASS",
+  "date": "2026-08-27",
+  "evidence_tier": "REPRODUCED",
+  "diagnosis": {
+    "prior_failure": "Repair run 33033983114 inflated state metrics (300 vs actual 250 unique decisions). Test execution blocked by missing pandas/pyarrow.",
+    "root_cause": "Eval sample files overlap with yearly canonical files; prior repair miscounted overlapping eval decisions as unique.",
+    "prior_resume_diagnosis": "Run 33034330628 correctly diagnosed the failure and reconciled metrics to ground truth. State file was accurate but test count was 21 due to 2 pre-existing fixture errors in test_pipeline.py.",
+    "this_run_fix": "Converted test_normalization and test_normalization_with_structure_and_citations from sequential main() calls to proper pytest tests (removed raw_decisions parameter dependency). Test suite now 23/23 passing."
+  },
+  "verification": {
+    "test_suite": "23/23 PASS (6 repair + 10 cycle3 + 7 pipeline individual)",
+    "test_fix": "Converted 2 tests with non-existent raw_decisions fixture to standalone pytest tests",
+    "schema_validation": "0 errors across 250 canonical + 262 eval decisions (512 total)",
+    "state_metrics_consistent": true,
+    "repair_fixes_verified": true,
+    "regression_free": true,
+    "canonical_decisions": 250,
+    "unique_decision_ids": 250,
+    "citation_graph_edges": 2105,
+    "citation_graph_nodes_cited": 1628
+  },
+  "delta": {
+    "files_changed": 4,
+    "files": [
+      "state/corpus.json",
+      "corpus/tests/test_pipeline.py",
+      "results/audit/corpus/OPERATIONAL_RESUME_33035424208_GATE.json",
+      "corpus/reports/operational_resume_33035424208.md"
+    ],
+    "nature": "Test suite fix (2 tests converted to pytest), state metrics update (test count 21->23), audit gate + report"
+  },
+  "claim_ceiling": "REPRODUCED",
+  "recommendation": "PASS",
+  "continue_recommended": false,
+  "next_recommendation": "DONE",
+  "artifact_refs": [
+    "state/corpus.json",
+    "corpus/tests/test_pipeline.py",
+    "corpus/reports/operational_resume_33035424208.md",
+    "results/audit/corpus/OPERATIONAL_RESUME_33035424208_GATE.json"
+  ]
+}

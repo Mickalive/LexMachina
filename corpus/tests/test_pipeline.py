@@ -92,7 +92,7 @@ def test_acquisition_with_structure_and_citations():
     return decisions
 
 
-def test_normalization(raw_decisions):
+def test_normalization():
     """Test normalization to canonical schema."""
     print("\n" + "=" * 60)
     print("TEST: Normalization to canonical schema")
@@ -143,18 +143,17 @@ def test_normalization(raw_decisions):
     return stats
 
 
-def test_normalization_with_structure_and_citations(raw_decisions):
+def test_normalization_with_structure_and_citations():
     """Test normalization of decisions with structure and citations."""
     print("\n" + "=" * 60)
     print("TEST: Normalization with structure and citations")
     print("=" * 60)
 
-    # Write raw decisions to temp file
+    # Use existing structure+citations raw file if present
     raw_path = "corpus/acquisition/raw/bger_test_structure_citations.jsonl"
-    Path(raw_path).parent.mkdir(parents=True, exist_ok=True)
-    with open(raw_path, "w", encoding="utf-8") as f:
-        for d in raw_decisions:
-            f.write(json.dumps(d.__dict__, ensure_ascii=False) + "\n")
+    if not Path(raw_path).exists():
+        # Fall back to test_2024 if structure file doesn't exist
+        raw_path = "corpus/acquisition/raw/bger_test_2024.jsonl"
 
     canonical_path = "corpus/normalization/canonical/bger_test_structure_citations.jsonl"
     stats = run_normalization(
@@ -331,15 +330,15 @@ def main():
     print("#" * 60)
 
     # Run tests
-    raw_decisions = test_acquisition()
-    test_normalization(raw_decisions)
+    test_acquisition()
+    test_normalization()
     test_deduplication()
     test_schema_completeness()
     test_yearly_pagination()
 
     # New tests for structure and citations
-    struct_cite_decisions = test_acquisition_with_structure_and_citations()
-    test_normalization_with_structure_and_citations(struct_cite_decisions)
+    test_acquisition_with_structure_and_citations()
+    test_normalization_with_structure_and_citations()
 
     print("\n" + "#" * 60)
     print("# ALL TESTS PASSED")
