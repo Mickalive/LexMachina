@@ -7,12 +7,13 @@ and reproducible. Run as: python -m pytest tests/fractal_map/test_verify.py -v
 """
 
 import json
+import os
 import numpy as np
 import pytest
 from pathlib import Path
 from collections import Counter
 
-BASE = Path("/home/runner/work/LexMachina/LexMachina")
+BASE = Path(os.environ.get("LEXMACHINA_BASE", str(Path(__file__).resolve().parents[2])))
 RESULTS_DIR = BASE / "results/fractal_map"
 HIERARCHICAL_DIR = RESULTS_DIR / "hierarchical_map"
 STATE_FILE = BASE / "state/fractal-map.json"
