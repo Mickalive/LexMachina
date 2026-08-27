@@ -1,0 +1,77 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    {
+      "id": "state_continue_recommended_inconsistency",
+      "severity": "medium",
+      "description": "state/evaluation.json has continue_recommended=false but next_recommendation=CONTINUE and director_disposition says CONTINUE. These should be consistent.",
+      "location": "state/evaluation.json",
+      "repair": "Set continue_recommended=true to match next_recommendation=CONTINUE"
+    }
+  ],
+  "claim_ceiling": "Cycles 8+9 complete. 12 benchmarks established (9 prior + tf_metadata_human_indexing, adversarial_falsification, temporal_stability). ALL 4 representations FALSIFIED by language dominance > 0.9. Citation-blended eliminates dead zones > 0.95 (0 vs baseline 20). Citation-graph-only reduces to 2. Language dominance NOT resolved by citations (blended=0.982, graph_only=0.964). Temporal stability excellent (drift < 0.01 all reps). Product needs BOTH citation awareness AND explicit language debiasing. Honest negative results: no representation passes all adversarial tests.",
+  "evidence_summary": {
+    "new_benchmarks": 3,
+    "new_benchmark_names": ["tf_metadata_human_indexing", "adversarial_falsification", "temporal_stability"],
+    "representations_tested": {
+      "cycle_8": ["baseline", "language_debiased_pca2"],
+      "cycle_9": ["baseline", "language_debiased_pca2", "citation_blended", "citation_graph_only"]
+    },
+    "key_falsifications": {
+      "baseline": ["language_dominance 0.982 > 0.9", "20 dead zones > 0.95 sim across branches"],
+      "language_debiased_pca2": ["20 dead zones > 0.95 sim across branches"],
+      "citation_blended": ["language_dominance 0.982 > 0.9"],
+      "citation_graph_only": ["language_dominance 0.964 > 0.9"]
+    },
+    "dead_zones_resolved": {
+      "baseline": 20,
+      "citation_blended": 0,
+      "citation_graph_only": 2
+    },
+    "temporal_stability_drift": {
+      "baseline": 0.0085,
+      "language_debiased_pca2": 0.0058,
+      "citation_blended": 0.0082,
+      "citation_graph_only": 0.0096
+    },
+    "tf_metadata_branch_knn": {
+      "baseline": 0.957,
+      "language_debiased_pca2": 0.967,
+      "citation_blended": 0.955,
+      "citation_graph_only": 0.942
+    },
+    "files_produced": [
+      "evaluation/run_cycle_8.py",
+      "results/cycle_8_results.json",
+      "reports/evaluation/evaluation_cycle_8_report.md",
+      "evaluation/run_cycle_9.py",
+      "results/cycle_9_results.json",
+      "reports/evaluation/evaluation_cycle_9_report.md"
+    ]
+  },
+  "known_defects": [
+    {
+      "id": "dispatch_to_done_pathology",
+      "severity": "critical",
+      "description": "5th dispatch to evaluation lane. Supervisor lacks pre-dispatch guard for lane completion status.",
+      "location": "factory supervisor (external)",
+      "repair_required": true
+    },
+    {
+      "id": "state_file_inconsistency",
+      "severity": "medium",
+      "description": "continue_recommended=false but next_recommendation=CONTINUE",
+      "location": "state/evaluation.json",
+      "repair_required": true
+    },
+    {
+      "id": "clustering_metric_inconsistency",
+      "severity": "low",
+      "description": "Cross-cycle NMI/purity not comparable due to Euclidean/Ward vs cosine/average difference",
+      "location": "evaluation/run_cycle_7.py",
+      "repair_required": false
+    }
+  ],
+  "audit_history_position": "First independent audit of evaluation lane producing new work (cycles 8+9). Prior audits were operational resumes of DONE lane."
+}

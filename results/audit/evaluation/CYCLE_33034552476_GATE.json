@@ -1,0 +1,63 @@
+{
+  "gate": "PASS",
+  "run_id": 33034552476,
+  "github_run": 33034552476,
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Cycle 13 complete. Parameter sensitivity grid search over n_pca_components ∈ {1,2,3,5} × alpha ∈ {0.3,0.5,0.7} = 12 combinations. ALL 12/12 meet both success criteria (language_dominance < 0.85, citation_heritage_AUC > 0.65). ZERO collapses. AUC range: 0.9058–0.9098 (max delta 0.004). Language dominance range: 0.630–0.639. Branch kNN range: 0.789–0.818. Best by AUC: n_pca=1, alpha=0.7 (0.9098). Best by branch kNN: n_pca=5, alpha=0.7 (0.8178). Approach is robust across entire tested parameter space. Recommended product default: n_pca=1, alpha=0.7. Trade-off: branch_kNN drops from 0.957 (baseline) to 0.813 (debiased_citation_blended), accepted as citation-awareness priority. Cross-language negative gap (-0.043) flagged for investigation. All representations fail adversarial falsification on dead_zones criterion (not in success rule). Boilerplate resistance scores > 0.9 for debiased representations are partially inflated by the degenerate-case metric (known defect).",
+  "evidence_summary": {
+    "cycles_audited": [12, 13],
+    "files_produced": [
+      "evaluation/run_cycle_12.py",
+      "evaluation/run_cycle_13.py",
+      "results/cycle_12_results.json",
+      "results/cycle_13_results.json",
+      "reports/evaluation/evaluation_cycle_12_report.md",
+      "reports/evaluation/evaluation_cycle_13_report.md",
+      "state/evaluation.json"
+    ],
+    "representations_tested": {
+      "cycle_12": ["baseline", "language_debiased_pca2", "citation_blended", "citation_graph_only", "debiased_baseline_64", "debiased_citation_blended", "debiased_citation_graph_only"],
+      "cycle_13": ["debiased_citation_blended (12 parameter combinations)"]
+    },
+    "success_criteria_results": {
+      "cycle_12_debiased_citation_blended": {
+        "language_dominance": 0.630,
+        "language_dominance_target": 0.85,
+        "language_dominance_status": "PASS",
+        "citation_heritage_auc": 0.910,
+        "citation_heritage_auc_target": 0.65,
+        "citation_heritage_auc_status": "PASS",
+        "collapse_mean_similarity": 0.138,
+        "collapse_threshold": 0.99,
+        "collapse_status": "PASS"
+      },
+      "cycle_13_grid": {
+        "total_combinations": 12,
+        "pass_rate": "12/12",
+        "auc_range": {"min": 0.9058, "max": 0.9098, "delta": 0.004},
+        "lang_dom_range": {"min": 0.630, "max": 0.639, "delta": 0.009},
+        "collapses": 0
+      }
+    },
+    "critical_findings": {
+      "breakthrough": "Debiased-before-citation avoids dimensional collapse (cycle 11 collapsed, cycle 12 does not)",
+      "robustness": "12/12 parameter combinations pass both criteria with AUC range 0.004",
+      "tradeoff": "Branch kNN drops 15% (0.957→0.813) as citation-awareness cost",
+      "negative_finding": "Cross-language gap is negative (-0.043): cross-language pairs slightly more similar",
+      "adversarial_status": "All representations falsified on dead_zones criterion (not in success rule)"
+    },
+    "cross_cycle_consistency": {
+      "baseline_auc_cycle11": 0.6421,
+      "baseline_auc_cycle12": 0.6442,
+      "delta": 0.0021,
+      "assessment": "Within expected stochastic variation"
+    },
+    "dispatch_pathology": {
+      "occurrence": 5,
+      "latest_run": "33033313906",
+      "status": "FAILED",
+      "note": "External to evaluation lane. Pre-dispatch guard recommendation carried forward."
+    }
+  }
+}

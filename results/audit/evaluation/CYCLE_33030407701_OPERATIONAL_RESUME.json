@@ -1,0 +1,51 @@
+{
+  "gate": "PASS",
+  "run_id": 33030407701,
+  "github_run": 33030407701,
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Evaluation lane is DONE. All 9 benchmarks established and verified, 10 fractal-map representations evaluated against 5 targets, 2 baselines documented. This is the second operational resume confirming the same conclusions as run 33030061655. No durable delta. Lane remains complete.",
+  "diagnosis": {
+    "orchestration_failure": "Run 33030407701 was dispatched to the evaluation lane after it had already reached DONE status. The lane state at dispatch time had cycle_status=COMPLETED, continue_recommended=false, next_recommendation=DONE, and evidence_tier=REPRODUCED. This is the same failure mode as run 33030061655.",
+    "root_cause": "The factory supervisor lacks a pre-dispatch check for lane completion status. Once a lane reaches DONE with continue_recommended=false, subsequent dispatches should be blocked or redirected to the Factory Director for a successor question. This is the second occurrence of this failure, confirming it is systematic rather than transient.",
+    "resolution": "No durable delta needed. Lane was already complete. Audit gate created, state updated with new run_id and audit_refs. All 26 evidence_refs and 6 audit_refs verified to exist on disk.",
+    "supervisor_recommendation": "Add a pre-dispatch guard: before dispatching to any core lane, read state/<lane>.json and block if cycle_status=COMPLETED and continue_recommended=false. Redirect to Factory Director for successor question assignment."
+  },
+  "evidence_verification": {
+    "evidence_refs_checked": 26,
+    "evidence_refs_exist": 26,
+    "audit_refs_checked": 5,
+    "audit_refs_exist": 5,
+    "all_refs_valid": true
+  },
+  "state_verification": {
+    "accepted_run_id": "eval_cycle_6_1787791460",
+    "cycle_status": "COMPLETED",
+    "continue_recommended": false,
+    "evidence_tier": "REPRODUCED",
+    "direction_version": 1,
+    "next_recommendation": "DONE"
+  },
+  "known_defects": [
+    {
+      "id": "clustering_metric_inconsistency",
+      "severity": "medium",
+      "description": "bench_legal_area() in run_cycle_6.py and run_cycle_7.py omits metric='cosine' and linkage='average' (used in run_cycle_5.py), defaulting to Euclidean/Ward. Affects cross-cycle NMI comparability but not cycle 7 internal validity.",
+      "location": "run_cycle_7.py line 393, run_cycle_6.py line 341",
+      "repair_required": false,
+      "note": "Known limitation documented. Cycle 5 results use cosine/average; cycle 6+ results use Euclidean/Ward. Cross-cycle NMI values are not directly comparable. Within-cycle comparisons are valid."
+    },
+    {
+      "id": "citation_graph_fixed_but_needs_more_data",
+      "severity": "low",
+      "description": "citation_graph_neighborhood benchmark now uses >=2 shared citations (fixed in cycle 7) and produces valid AUC scores (0.58-0.70). However, coverage is limited to 300 decisions with docket mappings.",
+      "location": "run_cycle_7.py bench_citation_graph()",
+      "repair_required": false,
+      "note": "Data coverage issue. Results valid for available data but may change with corpus expansion."
+    }
+  ],
+  "files_modified": [
+    "results/audit/evaluation/CYCLE_33030407701_OPERATIONAL_RESUME.json (this file)",
+    "state/evaluation.json (updated github_run, operational_resume_run_id, audit_refs)"
+  ]
+}

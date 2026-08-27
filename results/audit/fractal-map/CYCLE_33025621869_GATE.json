@@ -1,0 +1,61 @@
+{
+  "lane": "fractal-map",
+  "cycle_id": "CYCLE_concat_benchmark_20260827",
+  "run_id": "fractal_map_concat_benchmark_v2_20260827_001132",
+  "direction_version": 1,
+  "github_run": "33025621869",
+  "verdict": "PASS",
+  "evidence_tier": "EXPLORATORY",
+  "timestamp": "2026-08-27T00:11:32Z",
+  "hypothesis": "The concat_center_tfidf representation achieves improved legal-area clustering (NMI > 0.1) on the formal evaluation benchmarks while maintaining hierarchy coherence.",
+  "frozen_sample": "1000 BGer decisions (2020-2024) from baseline metadata with branch metadata from canonical corpus files",
+  "frozen_metric": "NMI and purity of agglomerative clustering vs branch labels; cross-language similarity; hierarchy nesting and purity",
+  "success_rule": "NMI improvement > 50% over baseline OR purity improvement > 10%, with no benchmark regression > 50%",
+  "result": {
+    "legal_area_clustering_nmi_baseline": 0.055,
+    "legal_area_clustering_nmi_concat": 0.108,
+    "nmi_improvement_pct": 96.2,
+    "legal_area_purity_baseline": 0.821,
+    "legal_area_purity_concat": 0.726,
+    "purity_change_pct": -11.5,
+    "hierarchy_nesting_baseline": 1.0,
+    "hierarchy_nesting_concat": 1.0,
+    "hierarchy_purity_baseline": 0.795,
+    "hierarchy_purity_concat": 0.712,
+    "multilingual_cross_lang_baseline": 0.862,
+    "multilingual_cross_lang_concat": 0.038,
+    "purity_ratio_res3_baseline": 0.257,
+    "purity_ratio_res3_concat": 0.272,
+    "success_achieved": true
+  },
+  "artifacts_verified": [
+    "results/fractal_map/evaluation/concat_benchmark_results_v2.json",
+    "fractal_map/evaluation/concat_benchmark_v2.py",
+    "reports/fractal_map/concat_benchmark_cycle_report.md",
+    "results/fractal_map/baseline/embeddings.npy",
+    "results/fractal_map/language_debiasing/embeddings_center_projected.npy",
+    "results/fractal_map/combined_debiasing_tfidf/combined_results.json"
+  ],
+  "quantitative_claims_verified": [
+    "concat NMI 0.108 vs baseline 0.055 (+96.2%)",
+    "concat purity 0.726 vs baseline 0.821 (-11.5%)",
+    "concat hierarchy nesting 1.0 (perfect, same as baseline)",
+    "concat purity_ratio 0.272 vs baseline 0.257 at res 3.0 (+5.97%)",
+    "concat cross-language similarity 0.038 vs baseline 0.862 (TF-IDF is language-specific)"
+  ],
+  "scope_violations": "none",
+  "negative_results_preserved": [
+    "Multilingual invariance DROPS: concat cross-language similarity 0.038 vs baseline 0.862. TF-IDF Erwaegungen is language-specific, destroying cross-language invariance.",
+    "Hierarchy purity DROPS: concat 0.712 vs baseline 0.795. Trade-off for better legal-area discrimination.",
+    "Purity DROPS at low resolution: concat purity 0.528 vs baseline 0.813 at n_clusters=4.",
+    "Concat representation is NOT suitable for cross-language legal navigation."
+  ],
+  "recommendation": "CONTINUE",
+  "next_priorities": [
+    "Test with legal-specific embeddings from legal-distance lane when available",
+    "Build resolution-dependent representation selector (baseline at domain level for cross-language, concat at microcluster for intra-language legal navigation)",
+    "Test stability under corpus growth (concat vs baseline drift)",
+    "Test boilerplate resistance with proper text-to-embedding pipeline",
+    "Build interactive zoom UI prototype"
+  ]
+}

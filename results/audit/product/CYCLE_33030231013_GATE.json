@@ -1,0 +1,43 @@
+{
+  "gate": "PASS",
+  "run_id": "33030231013",
+  "repair_round": 1,
+  "repaired_cycle": "33029508756",
+  "lane": "product",
+  "auditor": "lexmachina-independent-auditor",
+  "timestamp": "2026-08-27T00:00:00Z",
+  "safe_to_integrate": true,
+  "required_fixes_applied": [
+    {
+      "id": "FIX-001",
+      "file": "product/server.py",
+      "line": 27,
+      "description": "server.py uses Path(__file__).parent.parent which resolves to workspace root instead of product directory. Server fails to find corpus and fractal_map data.",
+      "fix_applied": "Changed Path(__file__).parent.parent to Path(__file__).parent",
+      "severity": "moderate",
+      "verified": true,
+      "verification": "parent resolves to product/ where results/ exists; old path resolved to . where results/ does not exist"
+    },
+    {
+      "id": "FIX-002",
+      "file": "product/app/map_loader.py",
+      "line": 258,
+      "description": "n_clusters field in ZoomLevel uses value from unified_results.json (8,14,22,25) instead of actual Leiden cluster count (5,11,16,21).",
+      "fix_applied": "Changed n_clusters=res_data.get('n_clusters', len(clusters)) to n_clusters=len(clusters)",
+      "severity": "low",
+      "verified": true,
+      "verification": "Zoom levels now report 5/11/16/21 matching actual Leiden labels"
+    }
+  ],
+  "claim_ceiling": "REPRODUCED",
+  "evidence_summary": {
+    "tests": "PASS — 4/4 smoke tests independently verified",
+    "server_path": "PASS — FIX-001 resolves correctly, old path would crash",
+    "n_clusters_metadata": "PASS — FIX-002 reports 5/11/16/21 matching Leiden labels",
+    "corpus_load": "PASS — 250 decisions, 3 languages, 4 branches",
+    "map_load": "PASS — 2 representations, 4 zoom levels, 1000 positions",
+    "navigation_api": "PASS — full flow functional",
+    "leakage": "CLEAN — no state overwrite, no benchmark gaming"
+  },
+  "notes": "Both one-line fixes applied and verified. Zero-delta constraint satisfied: two concrete line changes with measured behavioral difference. Product vertical slice now runnable end-to-end."
+}

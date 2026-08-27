@@ -1,0 +1,50 @@
+{
+  "lane": "fractal-map",
+  "cycle_id": "CYCLE_combined_20260826",
+  "run_id": "fractal_map_combined_20260826",
+  "direction_version": 1,
+  "github_run": "33023738893",
+  "verdict": "PASS",
+  "evidence_tier": "EXPLORATORY",
+  "timestamp": "2026-08-26T23:45:00Z",
+  "hypothesis": "Combining language-center projection with Erwaegungen TF-IDF achieves ratio > 0.5",
+  "frozen_sample": "857 BGer decisions with extractable Erwaegungen from bger_2000plus_slice_1000.jsonl",
+  "frozen_metric": "legal_area_purity / language_purity at Leiden resolution 3.0",
+  "success_rule": "ratio > 0.5",
+  "result": {
+    "concat_center_tfidf_ratio": 0.511,
+    "concat_center_tfidf_legal_purity": 0.504,
+    "concat_center_tfidf_language_purity": 0.986,
+    "success_achieved": true
+  },
+  "artifacts_verified": [
+    "results/fractal_map/combined_debiasing_tfidf/combined_results.json",
+    "results/fractal_map/combined_debiasing_tfidf/bilinear_weights.npy",
+    "results/fractal_map/unified_evaluation/unified_results.json",
+    "fractal_map/experiments/combined_debiasing_tfidf.py",
+    "fractal_map/evaluation/unified_evaluation_v2.py",
+    "reports/fractal_map/combined_cycle_report.md"
+  ],
+  "quantitative_claims_verified": [
+    "concat_center_tfidf ratio 0.511 at res 3.0",
+    "concat_center_tfidf legal_purity 0.504 at res 3.0",
+    "center_projected ratio 0.500 at res 3.0",
+    "tfidf_erwaegungen legal_purity 0.469 at res 3.0",
+    "hierarchy NMI 0.87-0.93 for concatenated representation"
+  ],
+  "scope_violations": "none",
+  "negative_results_preserved": [
+    "Center-projection in TF-IDF space ineffective (ratio 0.389 vs 0.390)",
+    "PCA in TF-IDF space ineffective (ratio 0.381 vs 0.390)",
+    "Bilinear debiasing marginal improvement (ratio 0.378 vs 0.390)",
+    "No method achieves ratio >0.5 at resolution 1.0"
+  ],
+  "recommendation": "CONTINUE",
+  "next_priorities": [
+    "Weighted concatenation optimization",
+    "Resolution-dependent representation selection",
+    "Test with legal-specific embeddings from legal-distance lane",
+    "Build zoom-conditioned neighborhood API",
+    "Stability test under corpus growth"
+  ]
+}

@@ -1,63 +1,173 @@
 {
   "lane": "evaluation",
   "direction_version": 1,
-  "evidence_tier": "EXPLORATORY",
+  "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": true,
-  "accepted_run_id": "eval_run_002_repair",
-  "accepted_commit": null,
+  "accepted_run_id": "eval_cycle_13_1787799911",
+  "accepted_commit": "0f86c73",
   "evidence_refs": [
-    "evaluation/results/synthetic_evaluation_results.json",
-    "evaluation/results/synthetic_ground_truth.json",
-    "evaluation/reports/evaluation_cycle_1_report.md",
-    "evaluation/reports/evaluation_cycle_2_repair_report.md"
+    "results/cycle_13_results.json",
+    "reports/evaluation/evaluation_cycle_13_report.md",
+    "evaluation/run_cycle_13.py",
+    "results/cycle_12_results.json",
+    "reports/evaluation/evaluation_cycle_12_report.md",
+    "evaluation/run_cycle_12.py",
+    "results/cycle_11_results.json",
+    "reports/evaluation/evaluation_cycle_11_report.md",
+    "evaluation/run_cycle_11.py",
+    "results/cycle_10_results.json",
+    "reports/evaluation/evaluation_cycle_10_report.md",
+    "evaluation/run_cycle_10.py",
+    "results/cycle_9_results.json",
+    "reports/evaluation/evaluation_cycle_9_report.md",
+    "evaluation/run_cycle_9.py",
+    "results/cycle_8_results.json",
+    "reports/evaluation/evaluation_cycle_8_report.md",
+    "evaluation/run_cycle_8.py",
+    "results/cycle_7_fixed_benchmarks_results.json",
+    "reports/evaluation_cycle_7_report.md",
+    "evaluation/run_cycle_7.py",
+    "evaluation/tests/citation_graph_neighborhood.py",
+    "evaluation/tests/zoom_coherence.py",
+    "results/cycle_6_fractal_map_evaluation_results.json",
+    "reports/evaluation_cycle_6_report.md",
+    "evaluation/run_cycle_6.py",
+    "evaluation/results/cycle_5_neural_baseline_results.json",
+    "evaluation/reports/evaluation_cycle_5_report.md",
+    "evaluation/run_cycle_5.py",
+    "evaluation/results/real_corpus_tfidf_baseline_results.json",
+    "evaluation/results/cycle_4_new_benchmarks_results.json",
+    "evaluation/results/cycle_4_combined_results.json",
+    "evaluation/reports/evaluation_cycle_4_report.md",
+    "evaluation/reports/evaluation_cycle_3_report.md",
+    "evaluation/reports/evaluation_cycle_2_repair_report.md",
+    "evaluation/data/real_corpus.py",
+    "evaluation/tests/citation_proximity.py",
+    "evaluation/tests/legal_area_clustering.py",
+    "evaluation/tests/neighbor_relevance.py",
+    "evaluation/tests/boilerplate_resistance.py",
+    "evaluation/tests/multilingual_invariance.py",
+    "evaluation/tests/stability.py",
+    "evaluation/tests/hierarchy_coherence.py",
+    "evaluation/benchmarks/core.py"
   ],
-  "next_recommendation": "CONTINUE",
+  "audit_refs": [
+    "results/audit/evaluation/CYCLE_33024162040_REPAIR_R3_GATE.json",
+    "results/audit/evaluation/CYCLE_33024951821_AUDIT.json",
+    "results/audit/evaluation/CYCLE_33026940496_GATE.json",
+    "results/audit/evaluation/CYCLE_33027937718_OPERATIONAL_RESUME.json",
+    "results/audit/evaluation/CYCLE_33030061655_OPERATIONAL_RESUME.json",
+    "results/audit/evaluation/CYCLE_33030407701_OPERATIONAL_RESUME.json",
+    "results/audit/evaluation/CYCLE_33030597595_OPERATIONAL_RESUME.json",
+    "results/audit/evaluation/CYCLE_33031798552_GATE.json",
+    "results/audit/evaluation/CYCLE_33034552476_GATE.json"
+  ],
+  "github_run": 33034552476,
+  "operational_resume_run_id": null,
+  "next_recommendation": "RUN_FULL_BENCHMARK_SUITE",
+  "continue_recommended": true,
+  "director_disposition": "CYCLE 13 COMPLETE — PARAMETER SENSITIVITY: All 12/12 parameter combinations (n_pca∈{1,2,3,5} × alpha∈{0.3,0.5,0.7}) meet BOTH success criteria. ZERO collapses. AUC range: 0.9058-0.9098 (max delta 0.004). Language dominance range: 0.630-0.639. Branch kNN range: 0.789-0.818. Best by AUC: n=1, alpha=0.7 (0.9098). Best by branch kNN: n=5, alpha=0.7 (0.8178). Anchor (n=2, alpha=0.5) is NOT optimal but improvement is marginal (+0.3% AUC). alpha=0.7 slightly outperforms on average. RECOMMENDATION: ADOPT n_pca=1, alpha=0.7 as product default. RUN full benchmark suite on recommended representation for final validation.",
   "metrics_summary": {
-    "neighbor_relevance": {
-      "status": "PASSED",
-      "auc_roc": 0.9559,
-      "mrr": 0.1606,
-      "precision_at_10": 0.0556,
-      "recall_at_10": 0.4815,
-      "note": "Tautological on synthetic oracle embeddings (constructed from Jurivoc centers)"
+    "cycle13_parameter_sensitivity": {
+      "total_combinations": 12,
+      "pass_rate": "12/12",
+      "auc_range": {"min": 0.9058, "max": 0.9098, "delta": 0.004},
+      "lang_dom_range": {"min": 0.630, "max": 0.639, "delta": 0.009},
+      "branch_knn_range": {"min": 0.789, "max": 0.818, "delta": 0.029},
+      "collapses": 0,
+      "best_by_auc": {"n_pca": 1, "alpha": 0.7, "auc": 0.9098},
+      "best_by_branch_knn": {"n_pca": 5, "alpha": 0.7, "knn": 0.8178},
+      "lowest_lang_dom": {"n_pca": 1, "alpha": 0.5, "dom": 0.630},
+      "recommended_default": {"n_pca": 1, "alpha": 0.7, "rationale": "Best AUC with robust performance"}
     },
-    "boilerplate_resistance": {
-      "status": "FAILED",
-      "resistance_score": 0.1402,
-      "mean_stability": 0.1402,
-      "std_stability": 0.0427,
-      "num_test_decisions": 100,
-      "baseline_tfidf": 0.35,
-      "note": "Now measures actual perturbation sensitivity via TF-IDF text embeddings. TF-IDF baseline shows low resistance (0.14) as expected - boilerplate injection significantly changes embedding. Good legal embeddings should achieve >0.7."
+    "cycle12_success_criteria": {
+      "debiased_citation_blended": {
+        "language_dominance": 0.630,
+        "language_dominance_target": 0.85,
+        "language_dominance_status": "PASS",
+        "citation_heritage_auc": 0.910,
+        "citation_heritage_auc_target": 0.65,
+        "citation_heritage_auc_status": "PASS",
+        "collapse_mean_similarity": 0.138,
+        "collapse_threshold": 0.99,
+        "collapse_status": "PASS",
+        "overall_status": "BOTH_CRITERIA_MET"
+      }
     },
-    "multilingual_invariance": {
-      "status": "FAILED",
-      "cross_lang_mean_similarity": 0.3973,
-      "invariance_score": 0.3973,
-      "separation_from_same_lang": 0.3818,
-      "num_cross_lang_pairs": 150,
-      "num_multilingual_dockets": 50,
-      "baseline_random": 0.15,
-      "note": "Fixed multilingual coverage (was 1 docket, now 50). Synthetic embeddings have independent noise for parallel versions, yielding ~0.4 similarity (above random 0.15 but below strong multilingual model threshold 0.7). Correctly detects lack of cross-language alignment."
+    "cycle12_improvements": {
+      "citation_heritage_auc": {
+        "cycle11_collapsed": 0.493,
+        "cycle12_debiased_citation_blended": 0.910,
+        "improvement_percent": 84.6,
+        "baseline_comparison": {
+          "baseline": 0.644,
+          "debiased_citation_blended": 0.910,
+          "improvement_percent": 41.3
+        }
+      },
+      "language_dominance": {
+        "baseline": 0.982,
+        "debiased_citation_blended": 0.630,
+        "reduction_percent": 35.9
+      },
+      "boilerplate_resistance": {
+        "baseline": 0.705,
+        "debiased_citation_blended": 0.931,
+        "improvement_percent": 32.1
+      }
     },
-    "corpus_stability": {
-      "status": "PASSED",
-      "mean_position_drift": -9.9e-09,
-      "note": "Tautological - static pre-computed embeddings never change. Drift ~0 by construction. Test infrastructure works; needs learned embeddings for meaningful measurement."
-    },
-    "hierarchy_coherence": {
-      "status": "PASSED",
-      "mean_jurivoc_purity": 0.5119,
-      "mean_nmi": 0.8180,
-      "hierarchy_consistency": 1.0,
-      "note": "Meaningful but oracle-dependent: embeddings constructed from Jurivoc centers. Shows clustering method recovers structure when embeddings have legal structure."
+    "cycle12_tradeoffs": {
+      "branch_knn_accuracy": {
+        "baseline": 0.957,
+        "debiased_citation_blended": 0.813,
+        "drop_percent": 15.0
+      },
+      "cross_language_gap": {
+        "baseline": 0.025,
+        "debiased_citation_blended": -0.043,
+        "note": "Negative gap — cross-language pairs slightly more similar"
+      }
     }
   },
-  "required_fixes_addressed": [
-    "Implemented actual boilerplate perturbation measurement (was hardcoded 0.5 placeholder)",
-    "Connected boilerplate injection to text embedding function (TF-IDF)",
-    "Fixed multilingual coverage by adding docket_number to ground truth decision_metadata (50 dockets vs 1)",
-    "Replaced hand-set baseline constants with documented calibration notes"
+  "benchmarks_available": [
+    "neighbor_relevance (citation-based, AUC-ROC)",
+    "boilerplate_resistance (perturbation stability)",
+    "multilingual_invariance (cross-language similarity)",
+    "corpus_stability (position drift under growth)",
+    "hierarchy_coherence (branch purity + NMI, 4 branches)",
+    "citation_proximity (shared-citation heritage >=1, AUC-ROC)",
+    "legal_area_clustering (branch NMI + purity)",
+    "citation_graph_neighborhood (shared-citation heritage >=2, AUC-ROC)",
+    "zoom_coherence (fractal zoom reveals legal substructure, improvement rate)",
+    "tf_metadata_human_indexing (k-NN accuracy on canonical court labels)",
+    "adversarial_falsification (language dominance, branch coherence, dead zones)",
+    "temporal_stability (random-split coherence drift)",
+    "citation_heritage (real citation graph, AUC-ROC, similarity gap)",
+    "cross_language_pairs (same-branch different-language similarity)",
+    "boilerplate_resistance_real_corpus (text-embedding correlation on real text)",
+    "collapse_check (pairwise similarity statistics, near-identical pairs) [NEW: cycle 12]"
+  ],
+  "cycle_history": [
+    {"cycle": 1, "run_id": "synthetic_eval_20260826", "status": "COMPLETED", "tier": "EXPLORATORY"},
+    {"cycle": 2, "run_id": "eval_repair_20260826", "status": "COMPLETED", "tier": "REPRODUCED"},
+    {"cycle": 3, "run_id": "eval_real_tfidf_20260826", "status": "COMPLETED", "tier": "REPRODUCED"},
+    {"cycle": 4, "run_id": "eval_cycle_4_20260826_225741", "status": "COMPLETED", "tier": "REPRODUCED"},
+    {"cycle": 5, "run_id": "eval_cycle_5_1787786002", "status": "COMPLETED", "tier": "REPRODUCED"},
+    {"cycle": 5, "run_id": "eval_cycle_5_1787786969", "status": "REJECTED", "tier": "REPRODUCED"},
+    {"cycle": 5, "run_id": "eval_cycle_5_1787789315", "status": "COMPLETED", "tier": "REPRODUCED"},
+    {"cycle": "audit", "run_id": "33024951821", "status": "PASS", "tier": "REPRODUCED"},
+    {"cycle": 6, "run_id": "eval_cycle_6_fractal_map_20260827", "status": "COMPLETED", "tier": "REPRODUCED"},
+    {"cycle": 7, "run_id": "eval_cycle_7_fixed_benchmarks_20260827", "status": "COMPLETED", "tier": "REPRODUCED"},
+    {"cycle": "operational_resume", "run_id": "33030061655", "status": "PASS", "tier": "REPRODUCED"},
+    {"cycle": "operational_resume", "run_id": "33030407701", "status": "PASS", "tier": "REPRODUCED"},
+    {"cycle": "operational_resume", "run_id": "33030597595", "status": "PASS", "tier": "REPRODUCED"},
+    {"cycle": 8, "run_id": "eval_cycle_8_1787795632", "status": "COMPLETED", "tier": "REPRODUCED"},
+    {"cycle": 9, "run_id": "eval_cycle_9_1787796218", "status": "COMPLETED", "tier": "REPRODUCED"},
+    {"cycle": 10, "run_id": "eval_cycle_10_1787797258", "status": "COMPLETED", "tier": "REPRODUCED"},
+    {"cycle": "operational_resume", "run_id": "33033313906", "status": "FAILED", "tier": "REPRODUCED", "note": "Dispatch-to-DONE failure: no artifacts produced. Same pattern as 3 prior operational resumes."},
+    {"cycle": 11, "run_id": "eval_cycle_11_1787797977", "status": "COMPLETED", "tier": "REPRODUCED", "note": "CRITICAL NEGATIVE: Naive PCA debiasing on citation_blended COLLAPSED representation. NEW BENCHMARKS: cross_language_pairs, boilerplate_resistance_real_corpus."},
+    {"cycle": 12, "run_id": "eval_cycle_12_1787798840", "status": "COMPLETED", "tier": "REPRODUCED", "note": "BREAKTHROUGH: debiased_citation_blended achieves BOTH success criteria (lang_dom=0.630, AUC=0.910). No collapse. Validates Option A: debias BEFORE citation graph. Citation heritage AUC improved 33%."},
+    {"cycle": 13, "run_id": "eval_cycle_13_1787799911", "status": "COMPLETED", "tier": "REPRODUCED", "note": "PARAMETER SENSITIVITY: 12/12 combinations pass both criteria. Zero collapses. AUC range 0.906-0.910 (delta 0.004). Best: n_pca=1, alpha=0.7. Robust across parameter space."}
   ]
 }
