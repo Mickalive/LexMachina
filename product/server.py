@@ -14,10 +14,12 @@ import threading
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.navigation import NavigationAPI
+from app.evaluation_loader import EvaluationLoader
 
 
 # Global navigation API instance
 _nav_api = None
+_eval_loader = None
 
 
 def get_nav_api() -> NavigationAPI:
@@ -30,6 +32,17 @@ def get_nav_api() -> NavigationAPI:
         _nav_api = NavigationAPI(corpus_dir, results_dir)
         _nav_api.initialize()
     return _nav_api
+
+
+def get_eval_loader() -> EvaluationLoader:
+    """Get or initialize the evaluation loader."""
+    global _eval_loader
+    if _eval_loader is None:
+        base_dir = Path(__file__).parent
+        results_dir = str(base_dir / "results" / "fractal_map")
+        _eval_loader = EvaluationLoader(results_dir)
+        _eval_loader.load()
+    return _eval_loader
 
 
 class ProductHandler(SimpleHTTPRequestHandler):
@@ -105,6 +118,16 @@ class ProductHandler(SimpleHTTPRequestHandler):
             id_a = params.get("id_a", [""])[0]
             id_b = params.get("id_b", [""])[0]
             self._json_response(get_nav_api().get_text_similarity(id_a, id_b))
+        elif path == "/api/evaluation/benchmarks":
+            self._json_response(get_eval_loader().get_benchmarks())
+        elif path == "/api/evaluation/representation_quality":
+            self._json_response(get_eval_loader().get_representation_quality())
+        elif path == "/api/map/temporal":
+            rep = params.get("representation", ["concat_center_tfidf"])[0]
+            zoom = int(params.get("zoom", ["1"])[0])
+            year_start = int(params["year_start"][0]) if "year_start" in params else None
+            year_end = int(params["year_end"][0]) if "year_end" in params else None
+            self._json_response(get_nav_api().get_temporal_map_data(rep, zoom, year_start, year_end))
         # Static files
         elif path == "/" or path == "/index.html":
             self._serve_file("static/index.html", "text/html")

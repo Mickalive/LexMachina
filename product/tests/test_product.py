@@ -323,8 +323,8 @@ def test_section_modes():
           f"{mode_data['map_mode']['total_positions']} total positions")
     assert "map_mode" in mode_data, "Expected map_mode in response"
     assert mode_data["map_mode"]["name"] == "erwaegungen"
-    assert mode_data["n_decisions"] == 63, f"Expected 63 section decisions"
-    assert len(mode_data["positions"]) > 63, "Expected background positions"
+    assert mode_data["n_decisions"] >= 63, f"Expected at least 63 decisions, got {mode_data['n_decisions']}"
+    assert len(mode_data["positions"]) > mode_data["map_mode"]["section_decisions"], "Expected more total positions than section decisions"
     
     # Test another section mode
     mode_data2 = api.get_map_data(map_mode="sachverhalt")

@@ -134,6 +134,88 @@
         ::-webkit-scrollbar-track { background: #0a0a0f; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #444; }
+
+        /* === NEW: Temporal Slider === */
+        #temporal-section { padding: 10px 16px; border-bottom: 1px solid #2a2a3a; }
+        #temporal-section label.title { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: block; }
+        .temporal-range-container { position: relative; height: 28px; margin: 8px 0 4px; }
+        .temporal-range-container input[type="range"] {
+            position: absolute; width: 100%; top: 0; height: 28px;
+            background: none; pointer-events: none; -webkit-appearance: none; appearance: none; margin: 0; padding: 0;
+        }
+        .temporal-range-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 14px; height: 14px; border-radius: 50%;
+            background: #7c8aff; border: 2px solid #0d0d14;
+            cursor: pointer; pointer-events: auto;
+            position: relative; z-index: 2; margin-top: -5px;
+        }
+        .temporal-range-container input[type="range"]::-moz-range-thumb {
+            width: 14px; height: 14px; border-radius: 50%;
+            background: #7c8aff; border: 2px solid #0d0d14;
+            cursor: pointer; pointer-events: auto;
+        }
+        .temporal-range-container input[type="range"]::-webkit-slider-runnable-track {
+            height: 4px; background: #2a2a3a; border-radius: 2px;
+        }
+        .temporal-range-container input[type="range"]::-moz-range-track {
+            height: 4px; background: #2a2a3a; border-radius: 2px;
+        }
+        .temporal-track-fill {
+            position: absolute; top: 12px; height: 4px; background: #7c8aff; border-radius: 2px; pointer-events: none; z-index: 1;
+        }
+        .temporal-labels { display: flex; justify-content: space-between; font-size: 10px; color: #666; }
+        .temporal-current { text-align: center; font-size: 11px; color: #7c8aff; font-weight: 600; margin-top: 4px; }
+
+        /* === NEW: Imported Corpus Info === */
+        #imported-info { padding: 8px 16px; border-bottom: 1px solid #2a2a3a; display: none; }
+        #imported-info.visible { display: block; }
+        .imported-badge {
+            display: inline-block; padding: 2px 8px; border-radius: 10px;
+            background: rgba(204, 93, 232, 0.15); border: 1px solid rgba(204, 93, 232, 0.3);
+            color: #cc5de8; font-size: 10px; font-weight: 600; margin-bottom: 4px;
+        }
+        .imported-count { font-size: 10px; color: #888; }
+
+        /* === NEW: Evaluation Badge === */
+        #eval-badge {
+            position: absolute; top: 16px; right: 16px; z-index: 15;
+            background: rgba(18, 18, 26, 0.92); border: 1px solid #2a2a3a; border-radius: 6px;
+            padding: 6px 12px; font-size: 11px; color: #888;
+            cursor: default; transition: all 0.2s;
+        }
+        #eval-badge:hover { border-color: #7c8aff; }
+        #eval-badge .eval-label { color: #666; }
+        #eval-badge .eval-value { font-weight: 600; }
+        #eval-badge .eval-high { color: #51cf66; }
+        #eval-badge .eval-med { color: #ffd43b; }
+        #eval-badge .eval-low { color: #ff6b6b; }
+        #eval-tooltip {
+            position: absolute; top: 100%; right: 0; margin-top: 6px;
+            background: rgba(18, 18, 26, 0.97); border: 1px solid #333; border-radius: 6px;
+            padding: 10px 12px; width: 260px; font-size: 10px; color: #999;
+            display: none; z-index: 16; line-height: 1.5;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+        }
+        #eval-badge:hover #eval-tooltip { display: block; }
+        #eval-tooltip .et-title { color: #7c8aff; font-weight: 600; margin-bottom: 6px; font-size: 11px; }
+        #eval-tooltip .et-row { display: flex; justify-content: space-between; padding: 2px 0; }
+        #eval-tooltip .et-metric { color: #ccc; }
+        #eval-tooltip .et-val { color: #51cf66; font-weight: 600; }
+
+        /* === NEW: Breadcrumb Trail === */
+        #breadcrumb {
+            position: absolute; top: 60px; left: 16px; z-index: 5;
+            background: rgba(18, 18, 26, 0.92); border: 1px solid #2a2a3a; border-radius: 6px;
+            padding: 6px 12px; font-size: 11px; color: #888;
+            display: none; align-items: center; gap: 4px;
+            transition: opacity 0.2s;
+        }
+        #breadcrumb.visible { display: flex; }
+        .bc-segment { cursor: pointer; color: #7c8aff; }
+        .bc-segment:hover { text-decoration: underline; }
+        .bc-sep { color: #444; }
+        .bc-current { color: #e0e0e0; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -166,6 +248,18 @@
                 <label class="title">Language Filter</label>
                 <div class="lang-toggles" id="lang-toggles"></div>
             </div>
+            <div id="temporal-section">
+                <label class="title">Year Range</label>
+                <div class="temporal-range-container">
+                    <div class="temporal-track-fill" id="temporal-track-fill"></div>
+                    <input type="range" id="year-start" min="2000" max="2024" value="2000" step="1">
+                    <input type="range" id="year-end" min="2000" max="2024" value="2024" step="1">
+                </div>
+                <div class="temporal-labels">
+                    <span>2000</span><span>2006</span><span>2012</span><span>2018</span><span>2024</span>
+                </div>
+                <div class="temporal-current" id="temporal-current">2000 — 2024</div>
+            </div>
             <div id="search-box">
                 <input type="text" id="search-input" placeholder="Search decisions...">
             </div>
@@ -177,6 +271,10 @@
                     <button id="import-paste-btn" style="padding: 6px 8px; background: #1a1a2a; border: 1px solid #333; border-radius: 4px; color: #888; cursor: pointer; font-size: 11px;">Paste</button>
                 </div>
                 <div id="import-status" style="font-size: 10px; color: #666; margin-top: 4px;"></div>
+            </div>
+            <div id="imported-info">
+                <span class="imported-badge">IMPORTED</span>
+                <div class="imported-count" id="imported-count-text"></div>
             </div>
             <div id="cluster-list">
                 <div id="loading">Loading map data...</div>
@@ -190,10 +288,23 @@
                 <button class="zoom-btn" data-zoom="2">Micro</button>
                 <button class="zoom-btn" data-zoom="3">Detail</button>
             </div>
+            <div id="breadcrumb"></div>
             <div id="stats-bar"></div>
+            <div id="eval-badge">
+                <span class="eval-label">Map Quality: </span><span class="eval-value" id="eval-level">--</span>
+                <div id="eval-tooltip">
+                    <div class="et-title">Map Quality Metrics</div>
+                    <div class="et-row"><span class="et-metric">Zoom Coherence</span><span class="et-val" id="et-zc">--</span></div>
+                    <div class="et-row"><span class="et-metric">Best Ratio</span><span class="et-val" id="et-br">--</span></div>
+                    <div class="et-row"><span class="et-metric">Improvements</span><span class="et-val" id="et-imp">--</span></div>
+                    <div style="margin-top:6px;color:#666;line-height:1.4;">
+                        <strong style="color:#888;">How it works:</strong> Zoom coherence measures whether zooming into a cluster produces more focused, coherent sub-groups. A ratio > 0.3 indicates the map organizes decisions into meaningful hierarchical clusters.
+                    </div>
+                </div>
+            </div>
             <div id="tooltip"></div>
             <div id="kbd-hints">
-                <kbd>Click</kbd> inspect &middot; <kbd>Esc</kbd> close &middot; <kbd>1-4</kbd> zoom
+                <kbd>Click</kbd> inspect &middot; <kbd>Esc</kbd> close &middot; <kbd>1-4</kbd> zoom &middot; <kbd>Dbl-click</kbd> zoom to cluster
             </div>
             <div id="zoom-coherence-badge" style="display:none;">
                 <div><span class="zc-label">Zoom Coherence:</span> <span class="zc-value" id="zc-rate">--</span></div>
@@ -237,6 +348,21 @@
         '#a9e34b', '#ffa94d', '#74c0fc', '#b2f2bb', '#f783ac',
     ];
 
+    // === NEW: Imported corpus tracking ===
+    let importedDecisionIds = new Set();
+    let importedCount = 0;
+
+    // === NEW: Temporal filter state ===
+    let yearStart = 2000;
+    let yearEnd = 2024;
+
+    // === NEW: Zoom breadcrumb / navigation stack ===
+    let zoomStack = []; // Array of {zoom, clusterId, label}
+    let clusterBounds = {}; // Cached cluster bounds for double-click zoom
+
+    // === NEW: Temporal decision date cache (did -> year) ===
+    let decisionYearCache = {};
+
     // Initialize
     async function init() {
         try {
@@ -247,6 +373,7 @@
             await loadMapModes();
             await loadMap();
             await loadZoomCoherence();
+            await loadImportedCount();
         } catch (e) {
             document.getElementById('cluster-list').innerHTML = '<div style="padding:16px;color:#ff6b6b;">Error loading data</div>';
         }
@@ -265,9 +392,42 @@
                 if (data.flat_baseline_best_ratio) {
                     document.getElementById('zc-flat-ratio').textContent = data.flat_baseline_best_ratio.toFixed(3);
                 }
+
+                // === NEW: Populate evaluation badge ===
+                const rate = data.overall_improvement_rate || 0;
+                const evalLevel = document.getElementById('eval-level');
+                if (rate > 0.3) {
+                    evalLevel.textContent = 'High';
+                    evalLevel.className = 'eval-value eval-high';
+                } else if (rate > 0.15) {
+                    evalLevel.textContent = 'Medium';
+                    evalLevel.className = 'eval-value eval-med';
+                } else {
+                    evalLevel.textContent = 'Low';
+                    evalLevel.className = 'eval-value eval-low';
+                }
+                document.getElementById('et-zc').textContent = (rate * 100).toFixed(1) + '%';
+                document.getElementById('et-br').textContent = data.best_zoom_ratio ? data.best_zoom_ratio.toFixed(3) : '--';
+                document.getElementById('et-imp').textContent = data.total_improvements || '--';
             }
         } catch (e) {
             console.warn('Zoom coherence data not available:', e);
+        }
+    }
+
+    // === NEW: Load imported corpus count ===
+    async function loadImportedCount() {
+        try {
+            const resp = await fetch(`${API}/api/corpus/stats`);
+            const stats = await resp.json();
+            if (stats && stats.user_imports > 0) {
+                importedCount = stats.user_imports;
+                const info = document.getElementById('imported-info');
+                info.classList.add('visible');
+                document.getElementById('imported-count-text').textContent = `${stats.user_imports} user-imported decisions on map`;
+            }
+        } catch (e) {
+            // Stats endpoint not available, ignore
         }
     }
 
@@ -324,6 +484,7 @@
         const resp = await fetch(url);
         currentData = await resp.json();
         clusterCoherenceCache = {};
+        clusterBounds = {};
         renderClusterList();
         renderMap();
     }
@@ -363,7 +524,6 @@
             return;
         }
 
-        // Show loading state
         list.innerHTML = currentData.clusters.map(c => `
             <div class="cluster-card ${selectedCluster === c.cluster_id ? 'active' : ''}" 
                  onclick="selectCluster(${c.cluster_id})" data-cluster="${c.cluster_id}">
@@ -380,7 +540,6 @@
             </div>
         `).join('');
 
-        // Load coherence data for each cluster
         for (const c of currentData.clusters) {
             const coherence = await getClusterCoherence(c.cluster_id);
             const el = document.getElementById(`coherence-${c.cluster_id}`);
@@ -394,7 +553,7 @@
                     <div style="display:flex;align-items:center;gap:4px;">
                         <span style="width:50px;">Branch:</span>${branchBar}
                     </div>
-                    ${coherence.coherence_warning ? `<div class="coherence-warn">⚠ ${coherence.coherence_warning}</div>` : ''}
+                    ${coherence.coherence_warning ? `<div class="coherence-warn">\u26a0 ${coherence.coherence_warning}</div>` : ''}
                 `;
             } else {
                 el.innerHTML = '';
@@ -417,10 +576,8 @@
         const positions = currentData.positions;
         if (positions.length === 0) return;
 
-        // Filter by active languages
         const visiblePositions = positions.filter(p => activeLanguages.has(p.language));
 
-        // Compute bounds from ALL positions (stable view)
         let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
         positions.forEach(p => {
             if (p.x < xMin) xMin = p.x;
@@ -441,14 +598,13 @@
 
         canvas._transform = { xMin, yMin, scale, offsetX, offsetY };
 
-        // Draw cluster hulls from visible positions
         const clusters = {};
         visiblePositions.forEach(p => {
             if (!clusters[p.cluster]) clusters[p.cluster] = [];
             clusters[p.cluster].push(p);
         });
 
-        // Draw cluster backgrounds
+        // Draw cluster backgrounds and cache bounds for double-click zoom
         Object.entries(clusters).forEach(([cid, points]) => {
             const color = COLORS[parseInt(cid) % COLORS.length];
             ctx.fillStyle = color + '10';
@@ -464,6 +620,15 @@
                 if (sy < cyMin) cyMin = sy;
                 if (sy > cyMax) cyMax = sy;
             });
+
+            // === NEW: Cache cluster bounds for double-click detection ===
+            clusterBounds[cid] = {
+                screenXMin: cxMin - 8, screenYMin: cyMin - 8,
+                screenXMax: cxMax + 8, screenYMax: cyMax + 8,
+                worldCx: points.reduce((s, p) => s + p.x, 0) / points.length,
+                worldCy: points.reduce((s, p) => s + p.y, 0) / points.length,
+                count: points.length
+            };
 
             ctx.beginPath();
             ctx.roundRect(cxMin - 8, cyMin - 8, cxMax - cxMin + 16, cyMax - cyMin + 16, 8);
@@ -482,7 +647,7 @@
             ctx.fill();
         });
 
-        // Draw visible points with language-colored rings
+        // Draw visible points
         visiblePositions.forEach(p => {
             const sx = (p.x - xMin) * scale + offsetX;
             const sy = (p.y - yMin) * scale + offsetY;
@@ -490,18 +655,38 @@
             const langColor = LANG_COLORS[p.language] || LANG_COLORS.unknown;
             
             const isSectionData = p.has_section_data !== false;
+            const isImported = importedDecisionIds.has(p.decision_id);
             const radius = isSectionData ? 4 : 2.5;
 
-            // Outer ring = language, inner fill = cluster
-            ctx.beginPath();
-            ctx.arc(sx, sy, radius + 1.5, 0, Math.PI * 2);
-            ctx.fillStyle = langColor + '60';
-            ctx.fill();
+            if (isImported) {
+                // === NEW: Diamond marker for imported decisions ===
+                const size = radius + 3;
+                ctx.save();
+                ctx.translate(sx, sy);
+                ctx.rotate(Math.PI / 4);
+                // Outer glow
+                ctx.fillStyle = '#cc5de850';
+                ctx.fillRect(-size - 1, -size - 1, (size + 1) * 2, (size + 1) * 2);
+                // Diamond fill
+                ctx.fillStyle = '#cc5de8cc';
+                ctx.fillRect(-size, -size, size * 2, size * 2);
+                // Language ring
+                ctx.strokeStyle = langColor + '80';
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(-size, -size, size * 2, size * 2);
+                ctx.restore();
+            } else {
+                // Outer ring = language, inner fill = cluster
+                ctx.beginPath();
+                ctx.arc(sx, sy, radius + 1.5, 0, Math.PI * 2);
+                ctx.fillStyle = langColor + '60';
+                ctx.fill();
 
-            ctx.beginPath();
-            ctx.arc(sx, sy, radius, 0, Math.PI * 2);
-            ctx.fillStyle = clusterColor + 'cc';
-            ctx.fill();
+                ctx.beginPath();
+                ctx.arc(sx, sy, radius, 0, Math.PI * 2);
+                ctx.fillStyle = clusterColor + 'cc';
+                ctx.fill();
+            }
 
             // Highlight on hover
             if (hoveredPoint && hoveredPoint.decision_id === p.decision_id) {
@@ -530,7 +715,6 @@
             ctx.fillText(`C${cid} (${points.length})`, cx, cy - 12);
         });
 
-        // Show mode info overlay if in section mode
         if (currentData.map_mode) {
             ctx.fillStyle = 'rgba(18, 18, 26, 0.8)';
             ctx.fillRect(canvas.width - 280, 16, 264, 60);
@@ -567,6 +751,129 @@
             }
         }
     }
+
+    // === NEW: Double-click zoom-to-cluster ===
+    document.getElementById('map-canvas').addEventListener('dblclick', (e) => {
+        if (!currentData || !currentData.positions) return;
+        const canvas = e.target;
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+
+        // Find which cluster hull was double-clicked
+        let hitCluster = null;
+        let smallestArea = Infinity;
+        for (const [cid, bounds] of Object.entries(clusterBounds)) {
+            if (mx >= bounds.screenXMin && mx <= bounds.screenXMax &&
+                my >= bounds.screenYMin && my <= bounds.screenYMax) {
+                const area = (bounds.screenXMax - bounds.screenXMin) * (bounds.screenYMax - bounds.screenYMin);
+                if (area < smallestArea) {
+                    smallestArea = area;
+                    hitCluster = cid;
+                }
+            }
+        }
+
+        if (hitCluster && currentZoom < 3) {
+            const bounds = clusterBounds[hitCluster];
+            const clusterLabel = `Cluster ${hitCluster}`;
+            const zoomNames = ['Domain', 'Subdomain', 'Microcluster', 'Detail'];
+
+            // Push current state to breadcrumb stack
+            zoomStack.push({
+                zoom: currentZoom,
+                clusterId: selectedCluster,
+                label: zoomNames[currentZoom]
+            });
+
+            // Increase zoom level
+            currentZoom = Math.min(currentZoom + 1, 3);
+            document.getElementById('zoom-select').value = currentZoom;
+            document.querySelectorAll('.zoom-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.zoom) === currentZoom));
+
+            // Select the cluster and re-render
+            selectedCluster = parseInt(hitCluster);
+            loadMap();
+            updateBreadcrumb();
+        }
+    });
+
+    // === NEW: Breadcrumb management ===
+    function updateBreadcrumb() {
+        const bc = document.getElementById('breadcrumb');
+        if (zoomStack.length === 0) {
+            bc.classList.remove('visible');
+            return;
+        }
+
+        const zoomNames = ['Domain', 'Subdomain', 'Microcluster', 'Detail'];
+        let html = '';
+
+        zoomStack.forEach((entry, i) => {
+            html += `<span class="bc-segment" data-index="${i}">${entry.label}${entry.clusterId != null ? ' > C' + entry.clusterId : ''}</span>`;
+            html += `<span class="bc-sep"> / </span>`;
+        });
+
+        html += `<span class="bc-current">${zoomNames[currentZoom]}${selectedCluster != null ? ' > C' + selectedCluster : ''}</span>`;
+
+        bc.innerHTML = html;
+        bc.classList.add('visible');
+
+        // Add click handlers for breadcrumb segments
+        bc.querySelectorAll('.bc-segment').forEach(seg => {
+            seg.addEventListener('click', () => {
+                const idx = parseInt(seg.dataset.index);
+                zoomToBreadcrumbIndex(idx);
+            });
+        });
+    }
+
+    function zoomToBreadcrumbIndex(index) {
+        if (index < 0 || index >= zoomStack.length) return;
+        const entry = zoomStack[index];
+        zoomStack = zoomStack.slice(0, index);
+        currentZoom = entry.zoom;
+        selectedCluster = entry.clusterId;
+        document.getElementById('zoom-select').value = currentZoom;
+        document.querySelectorAll('.zoom-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.zoom) === currentZoom));
+        loadMap();
+        updateBreadcrumb();
+    }
+
+    // === NEW: Temporal slider logic ===
+    const yearStartEl = document.getElementById('year-start');
+    const yearEndEl = document.getElementById('year-end');
+    const temporalCurrent = document.getElementById('temporal-current');
+    const trackFill = document.getElementById('temporal-track-fill');
+
+    function updateTemporalTrack() {
+        const min = parseInt(yearStartEl.min);
+        const max = parseInt(yearStartEl.max);
+        const range = max - min;
+        const leftPct = ((parseInt(yearStartEl.value) - min) / range) * 100;
+        const rightPct = ((parseInt(yearEndEl.value) - min) / range) * 100;
+        trackFill.style.left = leftPct + '%';
+        trackFill.style.width = (rightPct - leftPct) + '%';
+    }
+
+    function handleTemporalChange() {
+        let start = parseInt(yearStartEl.value);
+        let end = parseInt(yearEndEl.value);
+        if (start > end) {
+            // Swap if crossing
+            [start, end] = [end, start];
+            yearStartEl.value = start;
+            yearEndEl.value = end;
+        }
+        yearStart = start;
+        yearEnd = end;
+        temporalCurrent.textContent = `${yearStart} \u2014 ${yearEnd}`;
+        updateTemporalTrack();
+        renderMap();
+    }
+
+    yearStartEl.addEventListener('input', handleTemporalChange);
+    yearEndEl.addEventListener('input', handleTemporalChange);
 
     async function showDecision(decisionId) {
         const resp = await fetch(`${API}/api/decision?id=${decisionId}`);
@@ -626,7 +933,6 @@
             `;
         }
 
-        // Citation connections
         if (decision.citations) {
             const cit = decision.citations;
             if (cit.outgoing.length > 0 || cit.incoming.length > 0) {
@@ -641,7 +947,6 @@
             }
         }
 
-        // Map cluster memberships
         if (decision.map_clusters && decision.map_clusters.length > 0) {
             html += `<div class="field"><div class="field-label">Map Cluster Memberships</div>`;
             decision.map_clusters.forEach(mc => {
@@ -650,7 +955,6 @@
             html += `</div>`;
         }
 
-        // Neighbors with proximity explanations
         const neighborsResp = await fetch(`${API}/api/neighbors?id=${decisionId}&representation=${currentRep}&zoom=${currentZoom}&n=8`);
         const neighbors = await neighborsResp.json();
         
@@ -668,7 +972,6 @@
             }
             html += `</div></div>`;
 
-            // Show proximity explanation for first neighbor
             if (neighbors.length > 0) {
                 const proxResp = await fetch(`${API}/api/proximity?id_a=${decisionId}&id_b=${neighbors[0].decision_id}`);
                 const prox = await proxResp.json();
@@ -676,7 +979,6 @@
                     html += renderProximityExplanation(prox);
                 }
 
-                // Text similarity from TF-IDF
                 try {
                     const tsResp = await fetch(`${API}/api/text_similarity?id_a=${decisionId}&id_b=${neighbors[0].decision_id}`);
                     const ts = await tsResp.json();
@@ -693,7 +995,6 @@
             }
         }
 
-        // Cross-language neighbors
         try {
             const clResp = await fetch(`${API}/api/cross_language_neighbors?id=${decisionId}&n=5`);
             const clData = await clResp.json();
@@ -730,7 +1031,7 @@
                 const pct = (f.contribution / f.weight * 100).toFixed(0);
                 const barColor = f.match ? '#51cf66' : '#ff6b6b';
                 const matchClass = f.match ? 'prox-match' : 'prox-mismatch';
-                const matchIcon = f.match ? '✓' : '✗';
+                const matchIcon = f.match ? '\u2713' : '\u2717';
                 html += `<div class="prox-feature">
                     <span class="prox-feat-name">${f.feature.replace('_', ' ')}</span>
                     <div class="prox-feat-bar"><div class="prox-feat-fill" style="width:${pct}%;background:${barColor}"></div></div>
@@ -741,12 +1042,12 @@
 
         if (prox.warnings && prox.warnings.length > 0) {
             prox.warnings.forEach(w => {
-                html += `<div class="prox-warning">⚠ ${w}</div>`;
+                html += `<div class="prox-warning">\u26a0 ${w}</div>`;
             });
         }
 
         if (prox.suggested_views && prox.suggested_views.length > 0) {
-            html += `<div class="prox-suggestion">${prox.suggested_views.map(v => `→ ${v}`).join('<br>')}</div>`;
+            html += `<div class="prox-suggestion">${prox.suggested_views.map(v => `\u2192 ${v}`).join('<br>')}</div>`;
         }
 
         html += `<div style="font-size:9px;color:#555;margin-top:6px;">${prox.summary || ''}</div></div>`;
@@ -784,7 +1085,8 @@
         if (closest) {
             hoveredPoint = closest;
             const langColor = LANG_COLORS[closest.language] || LANG_COLORS.unknown;
-            tooltip.innerHTML = `<div class="tip-id">${closest.decision_id}</div>
+            const importedTag = importedDecisionIds.has(closest.decision_id) ? ' <span style="color:#cc5de8;font-weight:600;">IMPORTED</span>' : '';
+            tooltip.innerHTML = `<div class="tip-id">${closest.decision_id}${importedTag}</div>
                 <div class="tip-info">
                     <span class="tip-lang" style="background:${langColor}30;color:${langColor}">${closest.language}</span>
                     Cluster ${closest.cluster} · ${closest.branch || ''}
@@ -836,6 +1138,9 @@
         document.querySelectorAll('.zoom-btn').forEach(btn => {
             btn.classList.toggle('active', parseInt(btn.dataset.zoom) === currentZoom);
         });
+        // === NEW: Reset breadcrumb on manual zoom change ===
+        zoomStack = [];
+        updateBreadcrumb();
     });
 
     document.querySelectorAll('.zoom-btn').forEach(btn => {
@@ -845,6 +1150,8 @@
             document.querySelectorAll('.zoom-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             loadMap();
+            zoomStack = [];
+            updateBreadcrumb();
         });
     });
 
@@ -857,6 +1164,8 @@
             document.getElementById('zoom-select').value = currentZoom;
             document.querySelectorAll('.zoom-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.zoom) === currentZoom));
             loadMap();
+            zoomStack = [];
+            updateBreadcrumb();
         }
     });
 
@@ -918,6 +1227,12 @@
             } else {
                 status.style.color = '#51cf66';
                 status.textContent = `Imported ${result.imported} decisions (${result.skipped} skipped). Total: ${result.total_decisions}`;
+                // === NEW: Track imported IDs from import result ===
+                if (result.imported_ids) {
+                    result.imported_ids.forEach(id => importedDecisionIds.add(id));
+                }
+                importedCount += result.imported;
+                updateImportedInfo();
                 await loadMap();
             }
         } catch (err) {
@@ -951,6 +1266,11 @@
                 } else {
                     status.style.color = '#51cf66';
                     status.textContent = `Imported ${result.imported} decisions. Total: ${result.total_decisions}`;
+                    if (result.imported_ids) {
+                        result.imported_ids.forEach(id => importedDecisionIds.add(id));
+                    }
+                    importedCount += result.imported;
+                    updateImportedInfo();
                     loadMap();
                 }
             });
@@ -959,6 +1279,18 @@
             status.textContent = `Parse error: ${err.message}`;
         }
     });
+
+    // === NEW: Update imported info display ===
+    function updateImportedInfo() {
+        const info = document.getElementById('imported-info');
+        if (importedCount > 0) {
+            info.classList.add('visible');
+            document.getElementById('imported-count-text').textContent = `${importedCount} user-imported decisions on map`;
+        }
+    }
+
+    // === NEW: Initialize temporal slider ===
+    updateTemporalTrack();
 
     // Boot
     init();

@@ -38,7 +38,8 @@ class NavigationAPI:
         self.corpus = CorpusLoader(corpus_dir)
         self.map_loader = MapLoader(results_dir)
         self.section_modes = SectionModeLoader(
-            str(Path(results_dir) / "section_experiment_clean")
+            section_dir=str(Path(results_dir) / "section_scaled"),
+            fallback_dir=str(Path(results_dir) / "section_experiment_clean"),
         )
         self.citation_loader = CitationLoader(
             str(Path(results_dir) / "citation_graph" / "citation_graph.json")
@@ -280,7 +281,8 @@ class NavigationAPI:
                 "name": mode_name,
                 "label": info.get("label", mode_name),
                 "description": info.get("description", ""),
-                "section_decisions": mode.n_decisions,
+                "section_decisions": mode.n_section_decisions,
+                "baseline_decisions": mode.n_baseline_decisions,
                 "total_positions": len(positions),
             },
         }
@@ -783,6 +785,124 @@ class NavigationAPI:
             "cross_language_neighbors": [n for n in cross_lang_neighbors if n["is_cross_language"]][:n_neighbors],
             "all_neighbors": cross_lang_neighbors[:n_neighbors],
         }
+
+    def get_temporal_map_data(
+        self,
+        representation: str = "concat_center_tfidf",
+        zoom_level: int = 1,
+        year_start: Optional[int] = None,
+        year_end: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Get map data filtered to decisions within a year range.
+
+        Returns positions with year metadata for each decision, cluster summaries
+        computed from the filtered subset, and temporal distribution statistics.
+        """
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        zl = self.map_loader.get_zoom_level(representation, zoom_level)
+        if not zl:
+            return {"error": f"Zoom level {zoom_level} not available for {representation}"}
+
+        corpus_ids = set(self.corpus.get_all_ids())
+        year_counts: Dict[int, int] = {}
+        filtered_positions = []
+        all_positions = []
+
+        for did, (x, y) in zl.positions.items():
+            summary = self.corpus.get_summary(did)
+            meta = self._get_map_decision_meta(did)
+            decision_date = (
+                summary.get("decision_date", "") if summary
+                else meta.get("decision_date", "")
+            )
+            year = self._extract_year(decision_date)
+
+            pos_entry = {
+                "decision_id": did,
+                "x": x,
+                "y": y,
+                "cluster": zl.cluster_assignments.get(did, -1),
+                "language": (summary.get("language") if summary else meta.get("language", "unknown")),
+                "branch": (summary.get("branch") if summary else meta.get("branch", "unknown")),
+                "legal_area": (summary.get("legal_area") if summary else meta.get("legal_area", "unknown")),
+                "has_corpus": did in corpus_ids,
+                "year": year,
+            }
+
+            all_positions.append(pos_entry)
+
+            # Apply year filter
+            if year_start is not None and year is not None and year < year_start:
+                continue
+            if year_end is not None and year is not None and year > year_end:
+                continue
+
+            filtered_positions.append(pos_entry)
+            if year is not None:
+                year_counts[year] = year_counts.get(year, 0) + 1
+
+        # Build cluster summaries from filtered positions
+        cluster_ids_in_filtered = set(p["cluster"] for p in filtered_positions if p["cluster"] >= 0)
+        cluster_summaries = []
+        for cid in sorted(cluster_ids_in_filtered):
+            members = [p for p in filtered_positions if p["cluster"] == cid]
+            sample_decisions = []
+            for p in members[:5]:
+                summary = self.corpus.get_summary(p["decision_id"])
+                if summary:
+                    sample_decisions.append(summary)
+            xs = [p["x"] for p in members]
+            ys = [p["y"] for p in members]
+            cluster_summaries.append({
+                "cluster_id": cid,
+                "size": len(members),
+                "centroid_x": sum(xs) / len(xs) if xs else 0,
+                "centroid_y": sum(ys) / len(ys) if ys else 0,
+                "sample_decisions": sample_decisions,
+            })
+
+        # Compute temporal stats
+        years_sorted = sorted(year_counts.keys())
+        temporal_stats = {
+            "total_positions": len(all_positions),
+            "filtered_positions": len(filtered_positions),
+            "year_range": {
+                "min": years_sorted[0] if years_sorted else None,
+                "max": years_sorted[-1] if years_sorted else None,
+            },
+            "year_distribution": year_counts,
+            "filter_applied": {
+                "year_start": year_start,
+                "year_end": year_end,
+            },
+        }
+
+        return {
+            "representation": representation,
+            "zoom_level": zoom_level,
+            "n_clusters": len(cluster_summaries),
+            "n_decisions": len(filtered_positions),
+            "clusters": cluster_summaries,
+            "positions": filtered_positions,
+            "temporal_stats": temporal_stats,
+            "map_mode": None,
+        }
+
+    @staticmethod
+    def _extract_year(decision_date: str) -> Optional[int]:
+        """Extract a 4-digit year from a decision date string."""
+        if not decision_date:
+            return None
+        # Handle ISO format (YYYY-MM-DD) or plain YYYY
+        try:
+            year = int(decision_date[:4])
+            if 1900 <= year <= 2100:
+                return year
+        except (ValueError, IndexError):
+            pass
+        return None
 
     def get_text_similarity(
         self,

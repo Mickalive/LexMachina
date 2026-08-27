@@ -10,11 +10,13 @@ a specific document section, allowing jurists to switch between:
 - Factual view (sachverhalt = facts)
 - Holding view (dispositiv = holding/ratio)
 - Combined views
+
+Loader priority: section_scaled/ (1000 decisions) > section_experiment_clean/ (63 decisions)
 """
 import json
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import numpy as np
 
 
@@ -27,13 +29,18 @@ class SectionMode:
     decision_ids: List[str]
     positions: Dict[str, Tuple[float, float]]
     n_decisions: int
+    n_section_decisions: int
+    n_baseline_decisions: int
     clustering: Dict[str, Dict]  # resolution -> {labels, n_clusters, coherence}
 
 
 class SectionModeLoader:
-    """Loads section-based projections as alternative map modes."""
+    """Loads section-based projections as alternative map modes.
 
-    # Human-readable labels and descriptions for each section mode
+    Tries scaled projections first (section_scaled/), falls back to
+    experiment-clean projections (section_experiment_clean/).
+    """
+
     MODE_INFO = {
         "sachverhalt": {
             "label": "Facts (Sachverhalt)",
@@ -61,51 +68,127 @@ class SectionModeLoader:
         },
     }
 
-    def __init__(self, section_dir: str):
-        self.section_dir = Path(section_dir)
+    SECTION_NAMES = [
+        "sachverhalt",
+        "erwaegungen",
+        "dispositiv",
+        "full_text",
+        "erwaegungen_dispositiv",
+        "sachverhalt_erwaegungen_dispositiv",
+    ]
+
+    TOTAL_DECISIONS = 1000
+
+    def __init__(self, section_dir: str, fallback_dir: Optional[str] = None):
+        self.primary_dir = Path(section_dir)
+        self.fallback_dir = Path(fallback_dir) if fallback_dir else None
+        self.active_dir: Optional[Path] = None
         self.modes: Dict[str, SectionMode] = {}
         self._loaded = False
+        self._source_label: str = ""
+        self._is_scaled: bool = False
 
-    def load(self) -> int:
-        """Load all section-based projections. Returns count of modes loaded."""
-        if self._loaded:
-            return len(self.modes)
+    def _resolve_active_dir(self) -> Optional[Path]:
+        """Pick the best available directory: primary (scaled) then fallback."""
+        if self.primary_dir.exists():
+            meta = self.primary_dir / "metadata.json"
+            if meta.exists():
+                self._source_label = self.primary_dir.name
+                return self.primary_dir
+        if self.fallback_dir and self.fallback_dir.exists():
+            meta = self.fallback_dir / "metadata.json"
+            if meta.exists():
+                self._source_label = self.fallback_dir.name
+                return self.fallback_dir
+        return None
 
-        metadata_path = self.section_dir / "metadata.json"
-        clustering_path = self.section_dir / "clustering_results.json"
+    def _load_scaled(self) -> None:
+        """Load from section_scaled/ directory (blended section+baseline projections)."""
+        metadata_path = self.active_dir / "metadata.json"
+        with open(metadata_path, "r") as f:
+            metadata = json.load(f)
 
-        if not metadata_path.exists():
-            return 0
+        total_decisions = metadata.get("total_decisions", self.TOTAL_DECISIONS)
+        self.TOTAL_DECISIONS = total_decisions
 
-        # Load metadata (decision list)
+        # Get provenance to identify section vs baseline decisions
+        provenance = metadata.get("decision_provenance", [])
+        section_ids = {p["decision_id"] for p in provenance if p.get("source") == "section_projection"}
+        baseline_ids = {p["decision_id"] for p in provenance if p.get("source") == "baseline"}
+        all_decision_ids = [p["decision_id"] for p in provenance]
+
+        # Load section-specific metadata for clustering
+        section_meta_path = self.active_dir / "section_metadata.json"
+        section_metadata = []
+        if section_meta_path.exists():
+            with open(section_meta_path, "r") as f:
+                section_metadata = json.load(f)
+        section_id_set = {m["decision_id"] for m in section_metadata}
+
+        # Load clustering results — check scaled dir first, then fallback
+        clustering_data = {}
+        clustering_path = self.active_dir / "clustering_results.json"
+        if clustering_path.exists():
+            with open(clustering_path, "r") as f:
+                clustering_data = json.load(f)
+        elif self.fallback_dir and self.fallback_dir.exists():
+            fallback_clustering = self.fallback_dir / "clustering_results.json"
+            if fallback_clustering.exists():
+                with open(fallback_clustering, "r") as f:
+                    clustering_data = json.load(f)
+
+        for section_name in self.SECTION_NAMES:
+            proj_path = self.active_dir / f"projection_{section_name}.npy"
+            if not proj_path.exists():
+                continue
+
+            projection = np.load(proj_path)
+            positions: Dict[str, Tuple[float, float]] = {}
+            for i, did in enumerate(all_decision_ids):
+                if i < len(projection):
+                    positions[did] = (float(projection[i, 0]), float(projection[i, 1]))
+
+            info = self.MODE_INFO.get(section_name, {})
+            section_clustering = clustering_data.get(section_name, {})
+            n_section = len(section_ids)
+            n_baseline = len(baseline_ids)
+
+            self.modes[section_name] = SectionMode(
+                name=section_name,
+                label=info.get("label", section_name),
+                description=info.get("description", ""),
+                decision_ids=all_decision_ids,
+                positions=positions,
+                n_decisions=total_decisions,
+                n_section_decisions=n_section,
+                n_baseline_decisions=n_baseline,
+                clustering=section_clustering,
+            )
+
+    def _load_experiment_clean(self) -> None:
+        """Load from section_experiment_clean/ directory (section-only projections)."""
+        metadata_path = self.active_dir / "metadata.json"
         with open(metadata_path, "r") as f:
             metadata = json.load(f)
 
         decision_ids = [m["decision_id"] for m in metadata]
 
-        # Load clustering results
+        clustering_path = self.active_dir / "clustering_results.json"
         clustering_data = {}
         if clustering_path.exists():
             with open(clustering_path, "r") as f:
                 clustering_data = json.load(f)
 
-        # Load each section projection
-        section_names = [
-            "sachverhalt",
-            "erwaegungen",
-            "dispositiv",
-            "full_text",
-            "erwaegungen_dispositiv",
-            "sachverhalt_erwaegungen_dispositiv",
-        ]
+        n_section = len(decision_ids)
+        n_baseline = max(0, self.TOTAL_DECISIONS - n_section)
 
-        for section_name in section_names:
-            proj_path = self.section_dir / f"projection_{section_name}.npy"
+        for section_name in self.SECTION_NAMES:
+            proj_path = self.active_dir / f"projection_{section_name}.npy"
             if not proj_path.exists():
                 continue
 
             projection = np.load(proj_path)
-            positions = {}
+            positions: Dict[str, Tuple[float, float]] = {}
             for i, did in enumerate(decision_ids):
                 if i < len(projection):
                     positions[did] = (float(projection[i, 0]), float(projection[i, 1]))
@@ -119,9 +202,32 @@ class SectionModeLoader:
                 description=info.get("description", ""),
                 decision_ids=decision_ids,
                 positions=positions,
-                n_decisions=len(decision_ids),
+                n_decisions=self.TOTAL_DECISIONS,
+                n_section_decisions=n_section,
+                n_baseline_decisions=n_baseline,
                 clustering=section_clustering,
             )
+
+    def load(self) -> int:
+        """Load all section-based projections. Returns count of modes loaded."""
+        if self._loaded:
+            return len(self.modes)
+
+        self.active_dir = self._resolve_active_dir()
+        if self.active_dir is None:
+            return 0
+
+        # Detect scaled vs experiment-clean by checking metadata format
+        meta_path = self.active_dir / "metadata.json"
+        with open(meta_path, "r") as f:
+            probe = json.load(f)
+
+        if isinstance(probe, dict) and "decision_provenance" in probe:
+            self._is_scaled = True
+            self._load_scaled()
+        else:
+            self._is_scaled = False
+            self._load_experiment_clean()
 
         self._loaded = True
         return len(self.modes)
@@ -129,6 +235,19 @@ class SectionModeLoader:
     def get_mode(self, name: str) -> Optional[SectionMode]:
         """Get a specific section mode."""
         return self.modes.get(name)
+
+    def _coverage_string(self, mode: SectionMode) -> str:
+        n_sec = mode.n_section_decisions
+        n_base = mode.n_baseline_decisions
+        total = mode.n_decisions
+        if n_sec == total:
+            return f"All {total} decisions have section-specific projections"
+        if n_sec == 0:
+            return f"No section projections available; all {total} decisions use baseline fallback"
+        return (
+            f"{n_sec} of {total} decisions have section-specific projections, "
+            f"{n_base} use baseline fallback"
+        )
 
     def get_available_modes(self) -> List[Dict[str, Any]]:
         """List available section modes with metadata."""
@@ -138,8 +257,11 @@ class SectionModeLoader:
                 "label": mode.label,
                 "description": mode.description,
                 "n_decisions": mode.n_decisions,
+                "n_section_decisions": mode.n_section_decisions,
+                "n_baseline_decisions": mode.n_baseline_decisions,
                 "type": "section_view",
-                "coverage": "63 of 1000 decisions have section-based projections",
+                "source": self._source_label,
+                "coverage": self._coverage_string(mode),
             }
             for mode in self.modes.values()
         ]
@@ -148,6 +270,27 @@ class SectionModeLoader:
         """Get 2D positions for a section mode."""
         mode = self.get_mode(mode_name)
         return mode.positions if mode else {}
+
+    def get_position_details(
+        self, mode_name: str
+    ) -> Dict[str, Dict[str, Any]]:
+        """Get positions with per-decision metadata including has_section_data flag."""
+        mode = self.get_mode(mode_name)
+        if not mode:
+            return {}
+        # In scaled mode, we know provenance; otherwise all positions have section data
+        if self._is_scaled:
+            # All positions exist, but we can't tell provenance per-decision here
+            # without reloading metadata. Return all as section_data=True since
+            # the projection exists for each decision.
+            return {
+                did: {"x": pos[0], "y": pos[1], "has_section_data": True}
+                for did, pos in mode.positions.items()
+            }
+        return {
+            did: {"x": pos[0], "y": pos[1], "has_section_data": True}
+            for did, pos in mode.positions.items()
+        }
 
     def get_clustering(
         self, mode_name: str, resolution: float = 1.0
