@@ -255,7 +255,7 @@ class MapLoader:
 
             zoom_levels[zoom_level] = ZoomLevel(
                 level=zoom_level,
-                n_clusters=res_data.get("n_clusters", len(clusters)),
+                n_clusters=len(clusters),
                 clusters=clusters,
                 positions=positions,
                 cluster_assignments=cluster_assignments,

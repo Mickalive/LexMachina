@@ -24,7 +24,7 @@ def get_nav_api() -> NavigationAPI:
     """Get or initialize the navigation API."""
     global _nav_api
     if _nav_api is None:
-        base_dir = Path(__file__).parent.parent
+        base_dir = Path(__file__).parent
         corpus_dir = str(base_dir / "results" / "corpus" / "normalization" / "canonical")
         results_dir = str(base_dir / "results" / "fractal_map")
         _nav_api = NavigationAPI(corpus_dir, results_dir)

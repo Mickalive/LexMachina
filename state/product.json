@@ -4,9 +4,9 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": true,
-  "accepted_run_id": "product_v1_repair_20260827",
+  "accepted_run_id": "33030231013",
   "accepted_commit": null,
-  "github_run": "33028551401",
+  "github_run": "33030231013",
   "evidence_refs": [
     "product/app/corpus_loader.py",
     "product/app/map_loader.py",
@@ -33,7 +33,9 @@
     "CYCLE_33027622849_REPAIR: Fixed missing numpy dependency (added requirements.txt)",
     "CYCLE_33027622849_REPAIR: Fixed corpus-map mismatch (now shows all 1000 map positions, enriches from corpus when available)",
     "CYCLE_33027622849_REPAIR: Integrated Leiden cluster assignments (was spatial grid clustering)",
-    "CYCLE_33027622849_REPAIR: Added has_corpus flag to positions for transparency"
+    "CYCLE_33027622849_REPAIR: Added has_corpus flag to positions for transparency",
+    "CYCLE_33030231013_REPAIR: Fixed server.py path bug — Path(__file__).parent.parent → Path(__file__).parent (FIX-001)",
+    "CYCLE_33030231013_REPAIR: Fixed n_clusters metadata — res_data.get('n_clusters', len(clusters)) → len(clusters) (FIX-002)"
   ],
   "next_recommendation": "CONTINUE",
   "metrics_summary": {
@@ -77,7 +79,7 @@
       "end_to_end": "PASS"
     }
   },
-  "notes": "Repaired vertical slice from run 33027622849. Fixed 4 issues: (1) Added requirements.txt for numpy dependency. (2) Fixed corpus-map mismatch: now shows all 1000 map positions with has_corpus flag indicating which 50 have full text. (3) Integrated actual Leiden community detection cluster assignments (5-21 clusters across 4 zoom levels) instead of spatial grid clustering (136 clusters). (4) Both concat_center_tfidf and baseline representations now use Leiden clusters. Architecture ready for TF base map and user imports.",
+  "notes": "Repaired vertical slice from cycle 33029508756 (repair round 1, cycle 33030231013). Two one-line fixes: (1) server.py path bug — Path(__file__).parent.parent resolved to workspace root, now correctly resolves to product/ directory. (2) n_clusters metadata — was using inflated values from unified_results.json (8,14,22,25), now uses actual Leiden cluster counts (5,11,16,21). All 4/4 smoke tests pass. Architecture ready for TF base map and user imports.",
   "known_limitations": [
     "Corpus (250 decisions) covers only 5% of map (1000 decisions) - 950 decisions shown without full text",
     "No persistence of computed artifacts - recomputation required on each startup",
@@ -87,7 +89,9 @@
   "resolved_issues": [
     "Orchestration failure: Missing numpy dependency prevented test execution (fixed: requirements.txt added)",
     "Corpus-map mismatch: Only 50 of 1000 map positions had corpus text (fixed: shows all 1000, has_corpus flag)",
-    "Wrong cluster assignments: Spatial grid clustering produced 136 clusters at zoom 0 (fixed: Leiden gives 5)"
+    "Wrong cluster assignments: Spatial grid clustering produced 136 clusters at zoom 0 (fixed: Leiden gives 5)",
+    "Server path bug: Path(__file__).parent.parent resolved to workspace root, server could not start (fixed: Path(__file__).parent)",
+    "n_clusters metadata: Reported inflated cluster counts (8,14,22,25) instead of actual Leiden counts (5,11,16,21) (fixed: use len(clusters))"
   ],
   "next_steps": [
     "Scale corpus to cover more of the 1000-decision map (acquire 2015-2019 decisions)",
