@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LexMachina — Google Maps of Law</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0a0f; color: #e0e0e0; overflow: hidden; }
+        
+        #app { display: flex; height: 100vh; }
+        
+        /* Sidebar */
+        #sidebar { width: 320px; background: #12121a; border-right: 1px solid #2a2a3a; display: flex; flex-direction: column; z-index: 10; }
+        #sidebar-header { padding: 16px; border-bottom: 1px solid #2a2a3a; }
+        #sidebar-header h1 { font-size: 18px; color: #7c8aff; font-weight: 600; }
+        #sidebar-header .subtitle { font-size: 11px; color: #666; margin-top: 4px; }
+        
+        #controls { padding: 12px 16px; border-bottom: 1px solid #2a2a3a; }
+        #controls label { font-size: 11px; color: #888; display: block; margin-bottom: 4px; }
+        #controls select, #controls input { width: 100%; padding: 6px 8px; background: #1a1a2a; border: 1px solid #333; border-radius: 4px; color: #e0e0e0; font-size: 12px; margin-bottom: 8px; }
+        #controls select:focus, #controls input:focus { outline: none; border-color: #7c8aff; }
+        
+        #search-box { padding: 12px 16px; border-bottom: 1px solid #2a2a3a; }
+        #search-box input { width: 100%; padding: 8px 10px; background: #1a1a2a; border: 1px solid #333; border-radius: 4px; color: #e0e0e0; font-size: 12px; }
+        #search-box input:focus { outline: none; border-color: #7c8aff; }
+        
+        #cluster-list { flex: 1; overflow-y: auto; padding: 8px; }
+        .cluster-card { background: #1a1a2a; border: 1px solid #2a2a3a; border-radius: 6px; padding: 10px 12px; margin-bottom: 6px; cursor: pointer; transition: all 0.15s; }
+        .cluster-card:hover { border-color: #7c8aff; background: #1e1e30; }
+        .cluster-card.active { border-color: #7c8aff; background: #1e1e30; }
+        .cluster-card .cluster-header { display: flex; justify-content: space-between; align-items: center; }
+        .cluster-card .cluster-id { font-size: 13px; font-weight: 600; color: #7c8aff; }
+        .cluster-card .cluster-size { font-size: 11px; color: #888; }
+        .cluster-card .cluster-samples { font-size: 11px; color: #999; margin-top: 6px; line-height: 1.4; }
+        .cluster-card .sample-id { color: #aaa; }
+        
+        /* Map area */
+        #map-container { flex: 1; position: relative; }
+        #map-canvas { width: 100%; height: 100%; background: #0d0d14; }
+        
+        /* Stats bar */
+        #stats-bar { position: absolute; bottom: 16px; left: 16px; background: rgba(18, 18, 26, 0.9); border: 1px solid #2a2a3a; border-radius: 6px; padding: 10px 14px; font-size: 11px; color: #888; z-index: 5; }
+        #stats-bar span { color: #7c8aff; font-weight: 600; }
+        
+        /* Decision detail panel */
+        #detail-panel { position: absolute; top: 16px; right: 16px; width: 380px; max-height: calc(100vh - 32px); background: rgba(18, 18, 26, 0.95); border: 1px solid #2a2a3a; border-radius: 8px; overflow-y: auto; z-index: 20; display: none; }
+        #detail-panel.visible { display: block; }
+        #detail-panel .panel-header { padding: 14px 16px; border-bottom: 1px solid #2a2a3a; display: flex; justify-content: space-between; align-items: center; }
+        #detail-panel .panel-header h2 { font-size: 14px; color: #7c8aff; }
+        #detail-panel .close-btn { background: none; border: none; color: #666; cursor: pointer; font-size: 18px; }
+        #detail-panel .close-btn:hover { color: #e0e0e0; }
+        #detail-panel .panel-body { padding: 14px 16px; }
+        #detail-panel .field { margin-bottom: 10px; }
+        #detail-panel .field-label { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+        #detail-panel .field-value { font-size: 12px; color: #ccc; margin-top: 2px; }
+        #detail-panel .neighbors-list { margin-top: 12px; }
+        #detail-panel .neighbor-item { padding: 6px 0; border-bottom: 1px solid #1a1a2a; font-size: 11px; cursor: pointer; }
+        #detail-panel .neighbor-item:hover { color: #7c8aff; }
+        #detail-panel .neighbor-dist { color: #666; float: right; }
+        
+        /* Zoom controls */
+        #zoom-controls { position: absolute; top: 16px; left: 16px; z-index: 5; display: flex; gap: 4px; }
+        .zoom-btn { padding: 6px 12px; background: rgba(18, 18, 26, 0.9); border: 1px solid #2a2a3a; border-radius: 4px; color: #888; cursor: pointer; font-size: 12px; }
+        .zoom-btn:hover { border-color: #7c8aff; color: #e0e0e0; }
+        .zoom-btn.active { background: #7c8aff; color: white; border-color: #7c8aff; }
+        
+        /* Loading */
+        #loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 14px; color: #666; }
+        
+        /* Tooltip */
+        #tooltip { position: absolute; background: rgba(18, 18, 26, 0.95); border: 1px solid #333; border-radius: 4px; padding: 8px 10px; font-size: 11px; pointer-events: none; z-index: 30; display: none; max-width: 300px; }
+        #tooltip .tip-id { color: #7c8aff; font-weight: 600; }
+        #tooltip .tip-info { color: #999; margin-top: 2px; }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0f; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div id="sidebar">
+            <div id="sidebar-header">
+                <h1>LexMachina</h1>
+                <div class="subtitle">Google Maps of Law — Swiss Federal Supreme Court</div>
+            </div>
+            <div id="controls">
+                <label>Representation</label>
+                <select id="rep-select">
+                    <option value="concat_center_tfidf">Concat + Center TF-IDF (best)</option>
+                    <option value="baseline">Baseline (semantic)</option>
+                </select>
+                <label>Zoom Level</label>
+                <select id="zoom-select">
+                    <option value="0">Domain (few clusters)</option>
+                    <option value="1" selected>Subdomain</option>
+                    <option value="2">Microcluster</option>
+                    <option value="3">Detail</option>
+                </select>
+            </div>
+            <div id="search-box">
+                <input type="text" id="search-input" placeholder="Search decisions...">
+            </div>
+            <div id="cluster-list">
+                <div id="loading">Loading map data...</div>
+            </div>
+        </div>
+        <div id="map-container">
+            <canvas id="map-canvas"></canvas>
+            <div id="zoom-controls">
+                <button class="zoom-btn active" data-zoom="0">Domain</button>
+                <button class="zoom-btn" data-zoom="1">Subdomain</button>
+                <button class="zoom-btn" data-zoom="2">Micro</button>
+                <button class="zoom-btn" data-zoom="3">Detail</button>
+            </div>
+            <div id="stats-bar"></div>
+            <div id="tooltip"></div>
+        </div>
+        <div id="detail-panel">
+            <div class="panel-header">
+                <h2 id="detail-title">Decision</h2>
+                <button class="close-btn" onclick="closeDetail()">&times;</button>
+            </div>
+            <div class="panel-body" id="detail-body"></div>
+        </div>
+    </div>
+
+    <script>
+    // LexMachina Navigation Client
+    const API = '';
+    let currentData = null;
+    let currentZoom = 1;
+    let currentRep = 'concat_center_tfidf';
+    let hoveredPoint = null;
+    let selectedCluster = null;
+
+    // Color palette for clusters
+    const COLORS = [
+        '#7c8aff', '#ff6b6b', '#51cf66', '#ffd43b', '#cc5de8',
+        '#20c997', '#ff922b', '#4dabf7', '#e599f7', '#69db7c',
+        '#fcc419', '#ff8787', '#748ffc', '#63e6be', '#da77f2',
+        '#a9e34b', '#ffa94d', '#74c0fc', '#b2f2bb', '#f783ac',
+    ];
+
+    // Initialize
+    async function init() {
+        try {
+            const resp = await fetch(`${API}/api/overview`);
+            const data = await resp.json();
+            updateStatsBar(data);
+            await loadMap();
+        } catch (e) {
+            document.getElementById('cluster-list').innerHTML = '<div style="padding:16px;color:#ff6b6b;">Error loading data</div>';
+        }
+    }
+
+    async function loadMap() {
+        const resp = await fetch(`${API}/api/map?representation=${currentRep}&zoom=${currentZoom}`);
+        currentData = await resp.json();
+        renderClusterList();
+        renderMap();
+    }
+
+    function updateStatsBar(data) {
+        const bar = document.getElementById('stats-bar');
+        bar.innerHTML = `<span>${data.total_decisions}</span> decisions · <span>${data.representations.length}</span> maps · Languages: ${Object.entries(data.languages).map(([k,v]) => `<span>${k}</span>:${v}`).join(' ')}`;
+    }
+
+    function renderClusterList() {
+        const list = document.getElementById('cluster-list');
+        if (!currentData || !currentData.clusters) {
+            list.innerHTML = '<div style="padding:16px;color:#666;">No data</div>';
+            return;
+        }
+
+        list.innerHTML = currentData.clusters.map(c => `
+            <div class="cluster-card ${selectedCluster === c.cluster_id ? 'active' : ''}" 
+                 onclick="selectCluster(${c.cluster_id})" data-cluster="${c.cluster_id}">
+                <div class="cluster-header">
+                    <span class="cluster-id">Cluster ${c.cluster_id}</span>
+                    <span class="cluster-size">${c.size} decisions</span>
+                </div>
+                <div class="cluster-samples">
+                    ${c.sample_decisions.slice(0, 3).map(d => 
+                        `<div class="sample-id">${d.decision_id}</div>`
+                    ).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderMap() {
+        const canvas = document.getElementById('map-canvas');
+        const ctx = canvas.getContext('2d');
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+
+        ctx.fillStyle = '#0d0d14';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (!currentData || !currentData.positions) return;
+
+        const positions = currentData.positions;
+        if (positions.length === 0) return;
+
+        // Compute bounds
+        let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
+        positions.forEach(p => {
+            if (p.x < xMin) xMin = p.x;
+            if (p.x > xMax) xMax = p.x;
+            if (p.y < yMin) yMin = p.y;
+            if (p.y > yMax) yMax = p.y;
+        });
+
+        const padding = 60;
+        const xRange = xMax - xMin || 1;
+        const yRange = yMax - yMin || 1;
+        const scale = Math.min(
+            (canvas.width - 2 * padding) / xRange,
+            (canvas.height - 2 * padding) / yRange
+        );
+        const offsetX = (canvas.width - xRange * scale) / 2;
+        const offsetY = (canvas.height - yRange * scale) / 2;
+
+        // Store transform for hit testing
+        canvas._transform = { xMin, yMin, scale, offsetX, offsetY };
+
+        // Draw cluster hulls (convex hull approximation)
+        const clusters = {};
+        positions.forEach(p => {
+            if (!clusters[p.cluster]) clusters[p.cluster] = [];
+            clusters[p.cluster].push(p);
+        });
+
+        // Draw cluster backgrounds
+        Object.entries(clusters).forEach(([cid, points]) => {
+            const color = COLORS[parseInt(cid) % COLORS.length];
+            ctx.fillStyle = color + '10';
+            ctx.strokeStyle = color + '30';
+            ctx.lineWidth = 1;
+
+            // Simple bounding box as hull
+            let cxMin = Infinity, cxMax = -Infinity, cyMin = Infinity, cyMax = -Infinity;
+            points.forEach(p => {
+                const sx = (p.x - xMin) * scale + offsetX;
+                const sy = (p.y - yMin) * scale + offsetY;
+                if (sx < cxMin) cxMin = sx;
+                if (sx > cxMax) cxMax = sx;
+                if (sy < cyMin) cyMin = sy;
+                if (sy > cyMax) cyMax = sy;
+            });
+
+            ctx.beginPath();
+            ctx.roundRect(cxMin - 8, cyMin - 8, cxMax - cxMin + 16, cyMax - cyMin + 16, 8);
+            ctx.fill();
+            ctx.stroke();
+        });
+
+        // Draw points
+        positions.forEach(p => {
+            const sx = (p.x - xMin) * scale + offsetX;
+            const sy = (p.y - yMin) * scale + offsetY;
+            const color = COLORS[p.cluster % COLORS.length];
+
+            ctx.beginPath();
+            ctx.arc(sx, sy, 3, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+
+            // Highlight on hover
+            if (hoveredPoint && hoveredPoint.decision_id === p.decision_id) {
+                ctx.beginPath();
+                ctx.arc(sx, sy, 8, 0, Math.PI * 2);
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        });
+
+        // Draw cluster labels
+        Object.entries(clusters).forEach(([cid, points]) => {
+            const color = COLORS[parseInt(cid) % COLORS.length];
+            let cx = 0, cy = 0;
+            points.forEach(p => {
+                cx += (p.x - xMin) * scale + offsetX;
+                cy += (p.y - yMin) * scale + offsetY;
+            });
+            cx /= points.length;
+            cy /= points.length;
+
+            ctx.fillStyle = color;
+            ctx.font = 'bold 11px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`C${cid} (${points.length})`, cx, cy - 10);
+        });
+    }
+
+    function selectCluster(clusterId) {
+        selectedCluster = clusterId;
+        renderClusterList();
+        
+        // Highlight cluster in map
+        const canvas = document.getElementById('map-canvas');
+        const ctx = canvas.getContext('2d');
+        renderMap();
+
+        // Find cluster center
+        const cluster = currentData.clusters.find(c => c.cluster_id === clusterId);
+        if (cluster) {
+            // Draw highlight ring
+            const transform = canvas._transform;
+            if (transform) {
+                const sx = (cluster.centroid_x - transform.xMin) * transform.scale + transform.offsetX;
+                const sy = (cluster.centroid_y - transform.yMin) * transform.scale + transform.offsetY;
+                ctx.beginPath();
+                ctx.arc(sx, sy, 20, 0, Math.PI * 2);
+                ctx.strokeStyle = COLORS[clusterId % COLORS.length];
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
+        }
+    }
+
+    async function showDecision(decisionId) {
+        const resp = await fetch(`${API}/api/decision?id=${decisionId}`);
+        const decision = await resp.json();
+        
+        if (decision.error) return;
+
+        const panel = document.getElementById('detail-panel');
+        const title = document.getElementById('detail-title');
+        const body = document.getElementById('detail-body');
+
+        title.textContent = decision.decision_id;
+        
+        let html = `
+            <div class="field">
+                <div class="field-label">Docket Number</div>
+                <div class="field-value">${decision.docket_number}</div>
+            </div>
+            <div class="field">
+                <div class="field-label">Date</div>
+                <div class="field-value">${decision.decision_date}</div>
+            </div>
+            <div class="field">
+                <div class="field-label">Language</div>
+                <div class="field-value">${decision.language}</div>
+            </div>
+            <div class="field">
+                <div class="field-label">Branch</div>
+                <div class="field-value">${decision.branch || 'N/A'}</div>
+            </div>
+            <div class="field">
+                <div class="field-label">Chamber</div>
+                <div class="field-value">${decision.chamber || 'N/A'}</div>
+            </div>
+            <div class="field">
+                <div class="field-label">Outcome</div>
+                <div class="field-value">${decision.outcome || 'N/A'}</div>
+            </div>
+        `;
+
+        if (decision.sachverhalt) {
+            html += `
+                <div class="field">
+                    <div class="field-label">Facts (Sachverhalt)</div>
+                    <div class="field-value" style="max-height:150px;overflow-y:auto;font-size:11px;line-height:1.5;">${decision.sachverhalt.substring(0, 1000)}${decision.sachverhalt.length > 1000 ? '...' : ''}</div>
+                </div>
+            `;
+        }
+
+        if (decision.cited_decisions && decision.cited_decisions.length > 0) {
+            html += `
+                <div class="field">
+                    <div class="field-label">Cited Decisions (${decision.cited_decisions.length})</div>
+                    <div class="field-value" style="font-size:10px;">${decision.cited_decisions.slice(0, 10).join(', ')}${decision.cited_decisions.length > 10 ? '...' : ''}</div>
+                </div>
+            `;
+        }
+
+        // Neighbors
+        const neighborsResp = await fetch(`${API}/api/neighbors?id=${decisionId}&representation=${currentRep}&zoom=${currentZoom}&n=8`);
+        const neighbors = await neighborsResp.json();
+        
+        if (neighbors.length > 0) {
+            html += `<div class="field"><div class="field-label">Nearest Neighbors</div><div class="neighbors-list">`;
+            neighbors.forEach(n => {
+                html += `<div class="neighbor-item" onclick="showDecision('${n.decision_id}')">
+                    ${n.decision_id}
+                    <span class="neighbor-dist">${n.distance}</span>
+                </div>`;
+            });
+            html += `</div></div>`;
+        }
+
+        body.innerHTML = html;
+        panel.classList.add('visible');
+    }
+
+    function closeDetail() {
+        document.getElementById('detail-panel').classList.remove('visible');
+    }
+
+    // Canvas mouse events
+    document.getElementById('map-canvas').addEventListener('mousemove', (e) => {
+        if (!currentData || !currentData.positions) return;
+        const canvas = e.target;
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        const transform = canvas._transform;
+        if (!transform) return;
+
+        // Find closest point
+        let closest = null;
+        let minDist = 15;
+        currentData.positions.forEach(p => {
+            const sx = (p.x - transform.xMin) * transform.scale + transform.offsetX;
+            const sy = (p.y - transform.yMin) * transform.scale + transform.offsetY;
+            const dist = Math.sqrt((mx - sx) ** 2 + (my - sy) ** 2);
+            if (dist < minDist) {
+                minDist = dist;
+                closest = p;
+            }
+        });
+
+        const tooltip = document.getElementById('tooltip');
+        if (closest) {
+            hoveredPoint = closest;
+            tooltip.innerHTML = `<div class="tip-id">${closest.decision_id}</div><div class="tip-info">Cluster ${closest.cluster} · ${closest.language} · ${closest.branch}</div>`;
+            tooltip.style.display = 'block';
+            tooltip.style.left = (e.clientX + 12) + 'px';
+            tooltip.style.top = (e.clientY - 10) + 'px';
+            canvas.style.cursor = 'pointer';
+            renderMap();
+        } else {
+            hoveredPoint = null;
+            tooltip.style.display = 'none';
+            canvas.style.cursor = 'default';
+            renderMap();
+        }
+    });
+
+    document.getElementById('map-canvas').addEventListener('click', (e) => {
+        if (hoveredPoint) {
+            showDecision(hoveredPoint.decision_id);
+        }
+    });
+
+    document.getElementById('map-canvas').addEventListener('mouseleave', () => {
+        hoveredPoint = null;
+        document.getElementById('tooltip').style.display = 'none';
+        renderMap();
+    });
+
+    // Controls
+    document.getElementById('rep-select').addEventListener('change', (e) => {
+        currentRep = e.target.value;
+        loadMap();
+    });
+
+    document.getElementById('zoom-select').addEventListener('change', (e) => {
+        currentZoom = parseInt(e.target.value);
+        loadMap();
+        // Update zoom buttons
+        document.querySelectorAll('.zoom-btn').forEach(btn => {
+            btn.classList.toggle('active', parseInt(btn.dataset.zoom) === currentZoom);
+        });
+    });
+
+    document.querySelectorAll('.zoom-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentZoom = parseInt(btn.dataset.zoom);
+            document.getElementById('zoom-select').value = currentZoom;
+            document.querySelectorAll('.zoom-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            loadMap();
+        });
+    });
+
+    // Search
+    let searchTimeout;
+    document.getElementById('search-input').addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(async () => {
+            const q = e.target.value.trim();
+            if (q.length < 2) {
+                renderClusterList();
+                return;
+            }
+            const resp = await fetch(`${API}/api/search?q=${encodeURIComponent(q)}&limit=20`);
+            const results = await resp.json();
+            const list = document.getElementById('cluster-list');
+            list.innerHTML = results.map(d => `
+                <div class="cluster-card" onclick="showDecision('${d.decision_id}')">
+                    <div class="cluster-header">
+                        <span class="cluster-id" style="font-size:11px;">${d.decision_id}</span>
+                        <span class="cluster-size">${d.language}</span>
+                    </div>
+                    <div class="cluster-samples">${d.branch || ''} · ${d.decision_date}</div>
+                </div>
+            `).join('');
+        }, 300);
+    });
+
+    // Resize handler
+    window.addEventListener('resize', () => renderMap());
+
+    // Boot
+    init();
+    </script>
+</body>
+</html>

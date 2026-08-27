@@ -1,1 +1,79 @@
-{"lane":"product","evidence_tier":"UNTESTED","cycle_status":"INITIALIZED","continue_recommended":true,"accepted_run_id":null,"accepted_commit":null}
+{
+  "lane": "product",
+  "direction_version": 1,
+  "evidence_tier": "REPRODUCED",
+  "cycle_status": "COMPLETED",
+  "continue_recommended": true,
+  "accepted_run_id": "product_v1_vertical_slice_20260827",
+  "accepted_commit": null,
+  "github_run": "33027622849",
+  "evidence_refs": [
+    "product/app/corpus_loader.py",
+    "product/app/map_loader.py",
+    "product/app/navigation.py",
+    "product/server.py",
+    "product/static/index.html",
+    "product/tests/test_product.py",
+    "product/results/corpus/normalization/canonical/bger_2020.jsonl",
+    "product/results/corpus/normalization/canonical/bger_2021.jsonl",
+    "product/results/corpus/normalization/canonical/bger_2022.jsonl",
+    "product/results/corpus/normalization/canonical/bger_2023.jsonl",
+    "product/results/corpus/normalization/canonical/bger_2024.jsonl",
+    "product/results/fractal_map/baseline/embeddings.npy",
+    "product/results/fractal_map/baseline/projection_2d.npy",
+    "product/results/fractal_map/baseline/metadata.json",
+    "product/results/fractal_map/unified_evaluation/unified_results.json",
+    "product/results/fractal_map/zoom_api/api_metadata.json",
+    "product/results/fractal_map/zoom_api/coherence_test_results.json"
+  ],
+  "next_recommendation": "CONTINUE",
+  "metrics_summary": {
+    "corpus_decisions_loaded": 250,
+    "corpus_languages": {"de": 165, "fr": 75, "it": 10},
+    "corpus_branches": {"oeffentliches_recht": 93, "zivilrecht": 56, "sozialversicherungsrecht": 48, "strafrecht": 53},
+    "map_representations": ["concat_center_tfidf", "baseline"],
+    "map_positions_total": 1000,
+    "map_positions_in_corpus": 50,
+    "zoom_levels": [0, 1, 2, 3],
+    "navigation_features": [
+      "cluster_exploration",
+      "zoom_level_switching",
+      "decision_inspection",
+      "nearest_neighbor_search",
+      "text_search",
+      "language_filter",
+      "branch_filter"
+    ],
+    "web_frontend": "single_page_html5_canvas",
+    "api_endpoints": [
+      "GET /api/overview",
+      "GET /api/map?representation=&zoom=",
+      "GET /api/cluster?representation=&zoom=&cluster_id=",
+      "GET /api/decision?id=",
+      "GET /api/search?q=&limit=",
+      "GET /api/neighbors?id=&representation=&zoom=&n=",
+      "GET /api/zoom_levels?representation="
+    ],
+    "test_results": {
+      "corpus_loader": "PASS",
+      "map_loader": "PASS",
+      "navigation_api": "PASS",
+      "end_to_end": "PASS"
+    }
+  },
+  "notes": "Built ugly but real vertical slice: (1) Loads 250 canonical BGer decisions from corpus lane (2020-2024, DE/FR/IT). (2) Loads pre-computed map artifacts from fractal-map lane: concat_center_tfidf (best performer) and baseline representations with 4 zoom levels (8-25 clusters). (3) Navigation API provides cluster exploration, zoom switching, decision inspection with full text, nearest-neighbor search, and text search. (4) Web frontend renders interactive 2D map with canvas, cluster highlighting, hover tooltips, click-to-inspect, and search. (5) All smoke tests pass. Architecture ready for TF base map (just add new corpus JSONL files) and user imports (same schema).",
+  "known_limitations": [
+    "Corpus (250 decisions) is a subset of map (1000 decisions) - only 50 decisions have both corpus text and map positions",
+    "Cluster assignments use simple spatial grid clustering rather than actual Leiden/HDBSCAN results",
+    "No persistence of computed artifacts - recomputation required on each startup",
+    "Frontend uses HTML5 Canvas only - no WebGL/Mapbox for large-scale rendering",
+    "No authentication or rate limiting on API"
+  ],
+  "next_steps": [
+    "Scale corpus to match full 1000-decision map or downsample map to corpus",
+    "Integrate actual cluster assignments from fractal-map Leiden/HDBSCAN results",
+    "Add persistence layer for computed artifacts",
+    "Test with user-imported corpora (same JSONL schema)",
+    "Add map modes (legal issue, reasoning, citation views) per multi-view requirement"
+  ]
+}
