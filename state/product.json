@@ -4,9 +4,9 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": true,
-  "accepted_run_id": "product_v1_vertical_slice_20260827",
+  "accepted_run_id": "product_v1_repair_20260827",
   "accepted_commit": null,
-  "github_run": "33027622849",
+  "github_run": "33028551401",
   "evidence_refs": [
     "product/app/corpus_loader.py",
     "product/app/map_loader.py",
@@ -14,6 +14,7 @@
     "product/server.py",
     "product/static/index.html",
     "product/tests/test_product.py",
+    "product/requirements.txt",
     "product/results/corpus/normalization/canonical/bger_2020.jsonl",
     "product/results/corpus/normalization/canonical/bger_2021.jsonl",
     "product/results/corpus/normalization/canonical/bger_2022.jsonl",
@@ -24,7 +25,15 @@
     "product/results/fractal_map/baseline/metadata.json",
     "product/results/fractal_map/unified_evaluation/unified_results.json",
     "product/results/fractal_map/zoom_api/api_metadata.json",
-    "product/results/fractal_map/zoom_api/coherence_test_results.json"
+    "product/results/fractal_map/zoom_api/coherence_test_results.json",
+    "product/results/fractal_map/hierarchical/leiden_multi_resolution.json",
+    "product/results/fractal_map/hierarchical/hdbscan_multi_resolution.json"
+  ],
+  "repair_refs": [
+    "CYCLE_33027622849_REPAIR: Fixed missing numpy dependency (added requirements.txt)",
+    "CYCLE_33027622849_REPAIR: Fixed corpus-map mismatch (now shows all 1000 map positions, enriches from corpus when available)",
+    "CYCLE_33027622849_REPAIR: Integrated Leiden cluster assignments (was spatial grid clustering)",
+    "CYCLE_33027622849_REPAIR: Added has_corpus flag to positions for transparency"
   ],
   "next_recommendation": "CONTINUE",
   "metrics_summary": {
@@ -35,6 +44,12 @@
     "map_positions_total": 1000,
     "map_positions_in_corpus": 50,
     "zoom_levels": [0, 1, 2, 3],
+    "leiden_clusters_per_zoom": {
+      "zoom_0": 5,
+      "zoom_1": 11,
+      "zoom_2": 16,
+      "zoom_3": 21
+    },
     "navigation_features": [
       "cluster_exploration",
       "zoom_level_switching",
@@ -42,7 +57,8 @@
       "nearest_neighbor_search",
       "text_search",
       "language_filter",
-      "branch_filter"
+      "branch_filter",
+      "corpus_coverage_flag"
     ],
     "web_frontend": "single_page_html5_canvas",
     "api_endpoints": [
@@ -61,19 +77,23 @@
       "end_to_end": "PASS"
     }
   },
-  "notes": "Built ugly but real vertical slice: (1) Loads 250 canonical BGer decisions from corpus lane (2020-2024, DE/FR/IT). (2) Loads pre-computed map artifacts from fractal-map lane: concat_center_tfidf (best performer) and baseline representations with 4 zoom levels (8-25 clusters). (3) Navigation API provides cluster exploration, zoom switching, decision inspection with full text, nearest-neighbor search, and text search. (4) Web frontend renders interactive 2D map with canvas, cluster highlighting, hover tooltips, click-to-inspect, and search. (5) All smoke tests pass. Architecture ready for TF base map (just add new corpus JSONL files) and user imports (same schema).",
+  "notes": "Repaired vertical slice from run 33027622849. Fixed 4 issues: (1) Added requirements.txt for numpy dependency. (2) Fixed corpus-map mismatch: now shows all 1000 map positions with has_corpus flag indicating which 50 have full text. (3) Integrated actual Leiden community detection cluster assignments (5-21 clusters across 4 zoom levels) instead of spatial grid clustering (136 clusters). (4) Both concat_center_tfidf and baseline representations now use Leiden clusters. Architecture ready for TF base map and user imports.",
   "known_limitations": [
-    "Corpus (250 decisions) is a subset of map (1000 decisions) - only 50 decisions have both corpus text and map positions",
-    "Cluster assignments use simple spatial grid clustering rather than actual Leiden/HDBSCAN results",
+    "Corpus (250 decisions) covers only 5% of map (1000 decisions) - 950 decisions shown without full text",
     "No persistence of computed artifacts - recomputation required on each startup",
     "Frontend uses HTML5 Canvas only - no WebGL/Mapbox for large-scale rendering",
     "No authentication or rate limiting on API"
   ],
+  "resolved_issues": [
+    "Orchestration failure: Missing numpy dependency prevented test execution (fixed: requirements.txt added)",
+    "Corpus-map mismatch: Only 50 of 1000 map positions had corpus text (fixed: shows all 1000, has_corpus flag)",
+    "Wrong cluster assignments: Spatial grid clustering produced 136 clusters at zoom 0 (fixed: Leiden gives 5)"
+  ],
   "next_steps": [
-    "Scale corpus to match full 1000-decision map or downsample map to corpus",
-    "Integrate actual cluster assignments from fractal-map Leiden/HDBSCAN results",
+    "Scale corpus to cover more of the 1000-decision map (acquire 2015-2019 decisions)",
     "Add persistence layer for computed artifacts",
     "Test with user-imported corpora (same JSONL schema)",
-    "Add map modes (legal issue, reasoning, citation views) per multi-view requirement"
+    "Add map modes (legal issue, reasoning, citation views) per multi-view requirement",
+    "Integrate HDBSCAN clusters as alternative to Leiden for comparison"
   ]
 }

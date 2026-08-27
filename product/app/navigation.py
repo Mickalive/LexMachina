@@ -26,6 +26,19 @@ class NavigationAPI:
         self.corpus = CorpusLoader(corpus_dir)
         self.map_loader = MapLoader(results_dir)
         self._initialized = False
+        self._map_meta_cache: Dict[str, Dict] = {}
+
+    def _get_map_decision_meta(self, decision_id: str) -> Dict:
+        """Get metadata for a map decision not in the corpus (from baseline metadata)."""
+        if not self._map_meta_cache:
+            import json as _json
+            meta_path = Path(self.map_loader.results_dir) / "baseline" / "metadata.json"
+            if meta_path.exists():
+                with open(meta_path, "r") as f:
+                    meta_list = _json.load(f)
+                for m in meta_list:
+                    self._map_meta_cache[m["decision_id"]] = m
+        return self._map_meta_cache.get(decision_id, {})
 
     def initialize(self) -> Dict[str, Any]:
         """Load all data and return initialization status."""
@@ -96,21 +109,25 @@ class NavigationAPI:
                 "sample_decisions": sample_decisions,
             })
 
-        # Build position data for all decisions (only those in corpus)
+        # Build position data for ALL map decisions (show full map, enrich from corpus when available)
         positions = []
         corpus_ids = set(self.corpus.get_all_ids())
         for did, (x, y) in zl.positions.items():
-            if did not in corpus_ids:
-                continue
             summary = self.corpus.get_summary(did)
+            meta = {}
+            # Extract basic metadata from map metadata if not in corpus
+            if not summary:
+                # Try to get metadata from the map metadata file
+                meta = self._get_map_decision_meta(did)
             positions.append({
                 "decision_id": did,
                 "x": x,
                 "y": y,
                 "cluster": zl.cluster_assignments.get(did, -1),
-                "language": summary.get("language", "unknown") if summary else "unknown",
-                "branch": summary.get("branch", "unknown") if summary else "unknown",
-                "legal_area": summary.get("legal_area", "unknown") if summary else "unknown",
+                "language": (summary.get("language") if summary else meta.get("language", "unknown")),
+                "branch": (summary.get("branch") if summary else meta.get("branch", "unknown")),
+                "legal_area": (summary.get("legal_area") if summary else meta.get("legal_area", "unknown")),
+                "has_corpus": did in corpus_ids,
             })
 
         return {

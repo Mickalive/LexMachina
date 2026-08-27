@@ -70,6 +70,7 @@ class MapLoader:
         """Load the concat_center_tfidf representation (best performer)."""
         baseline_dir = self.results_dir / "baseline"
         zoom_api_dir = self.results_dir / "zoom_api"
+        hierarchical_dir = self.results_dir / "hierarchical"
 
         if not (baseline_dir / "metadata.json").exists():
             return
@@ -88,6 +89,31 @@ class MapLoader:
         with open(zoom_api_dir / "api_metadata.json", "r") as f:
             api_meta = json.load(f)
 
+        # Load Leiden cluster assignments (actual clustering results)
+        leiden_assignments = {}
+        leiden_path = hierarchical_dir / "leiden_multi_resolution.json"
+        if leiden_path.exists():
+            with open(leiden_path, "r") as f:
+                leiden_data = json.load(f)
+            # Build mapping: decision_index -> decision_id
+            index_to_id = {v: k for k, v in api_meta.get("decision_index", {}).items()}
+            # Leiden data uses resolution_X.X keys; map each to an integer zoom level
+            for leiden_key, leiden_result in leiden_data.items():
+                if not leiden_key.startswith("resolution_"):
+                    continue
+                resolution_val = float(leiden_key.replace("resolution_", ""))
+                zoom_level = int(resolution_val)
+                labels = leiden_result.get("labels", [])
+                assignments = {}
+                for idx, label in enumerate(labels):
+                    did = index_to_id.get(idx)
+                    if did:
+                        assignments[did] = label
+                # Store with the resolution_X.X key for direct lookup
+                leiden_assignments[leiden_key] = assignments
+                # Also store with zoom_level int key for fallback matching
+                leiden_assignments[str(zoom_level)] = assignments
+
         # Build zoom levels from the unified evaluation results
         unified_path = self.results_dir / "unified_evaluation" / "unified_results.json"
         if unified_path.exists():
@@ -102,11 +128,13 @@ class MapLoader:
                 projection=projection,
                 concat_data=concat_data,
                 api_meta=api_meta,
+                leiden_assignments=leiden_assignments,
             )
 
     def _load_baseline(self) -> None:
         """Load the baseline representation for comparison."""
         baseline_dir = self.results_dir / "baseline"
+        hierarchical_dir = self.results_dir / "hierarchical"
 
         if not (baseline_dir / "metadata.json").exists():
             return
@@ -116,6 +144,28 @@ class MapLoader:
 
         decision_ids = [m["decision_id"] for m in metadata]
         projection = np.load(baseline_dir / "projection_2d.npy")
+
+        # Load Leiden assignments (same clustering applies to all representations)
+        leiden_assignments = {}
+        leiden_path = hierarchical_dir / "leiden_multi_resolution.json"
+        if leiden_path.exists():
+            with open(leiden_path, "r") as f:
+                leiden_data = json.load(f)
+            # Build index->id mapping from baseline metadata
+            index_to_id = {i: m["decision_id"] for i, m in enumerate(metadata)}
+            for leiden_key, leiden_result in leiden_data.items():
+                if not leiden_key.startswith("resolution_"):
+                    continue
+                resolution_val = float(leiden_key.replace("resolution_", ""))
+                zoom_level = int(resolution_val)
+                labels = leiden_result.get("labels", [])
+                assignments = {}
+                for idx, label in enumerate(labels):
+                    did = index_to_id.get(idx)
+                    if did:
+                        assignments[did] = label
+                leiden_assignments[leiden_key] = assignments
+                leiden_assignments[str(zoom_level)] = assignments
 
         unified_path = self.results_dir / "unified_evaluation" / "unified_results.json"
         if unified_path.exists():
@@ -129,6 +179,7 @@ class MapLoader:
                 projection=projection,
                 concat_data=baseline_data,
                 api_meta=None,
+                leiden_assignments=leiden_assignments,
             )
 
     def _build_zoom_levels(
@@ -138,8 +189,13 @@ class MapLoader:
         projection: np.ndarray,
         concat_data: Dict,
         api_meta: Optional[Dict],
+        leiden_assignments: Optional[Dict[str, Dict[str, int]]] = None,
     ) -> None:
-        """Build zoom levels from unified evaluation data."""
+        """Build zoom levels from unified evaluation data.
+
+        Uses actual Leiden cluster assignments when available, falling back
+        to spatial grid clustering as a last resort.
+        """
         zoom_levels = {}
 
         # Create position mapping
@@ -148,6 +204,11 @@ class MapLoader:
             if i < len(projection):
                 positions[did] = (float(projection[i, 0]), float(projection[i, 1]))
 
+        # Map resolution values to zoom_api zoom_levels
+        # api_meta cluster_counts uses zoom_api level keys ('0','1','2')
+        # while unified_results uses resolution_X.X format
+        api_zoom_levels = api_meta.get("zoom_levels", []) if api_meta else []
+
         # Build zoom levels from resolution data
         for res_str, res_data in concat_data.items():
             if not res_str.startswith("resolution_"):
@@ -155,11 +216,21 @@ class MapLoader:
             resolution = float(res_str.replace("resolution_", ""))
             zoom_level = int(resolution)
 
-            # Generate cluster assignments using simple spatial clustering
-            # (In production, these would come from the actual clustering algorithms)
-            cluster_assignments = self._assign_clusters_spatial(
-                positions, resolution
-            )
+            # Try to use Leiden cluster assignments
+            cluster_assignments = None
+            if leiden_assignments:
+                # Direct lookup by resolution key (e.g., "resolution_0.5")
+                if res_str in leiden_assignments:
+                    cluster_assignments = leiden_assignments[res_str]
+                # Fallback: lookup by zoom_level integer
+                elif str(zoom_level) in leiden_assignments:
+                    cluster_assignments = leiden_assignments[str(zoom_level)]
+
+            if cluster_assignments is None:
+                # Last resort: spatial grid clustering
+                cluster_assignments = self._assign_clusters_spatial(
+                    positions, resolution
+                )
 
             # Build cluster info
             clusters = {}
