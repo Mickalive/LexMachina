@@ -1,37 +1,34 @@
 {
   "lane": "evaluation",
   "direction_version": 2,
-  "evidence_tier": "UNTESTED",
-  "cycle_status": "IN_PROGRESS",
+  "evidence_tier": "EXPLORATORY",
+  "cycle_status": "COMPLETED",
   "continue_recommended": true,
-  "accepted_run_id": null,
+  "accepted_run_id": "eval_v2_20260827_001",
   "accepted_commit": null,
   "evidence_refs": [
-    "results/cycle_14_results.json",
-    "reports/evaluation/evaluation_cycle_14_report.md",
-    "evaluation/run_cycle_14.py",
-    "evaluation/benchmarks/specification.json",
-    "evaluation/benchmarks/core.py",
-    "evaluation/tests/citation_proximity.py",
-    "evaluation/tests/legal_area_clustering.py",
-    "evaluation/tests/neighbor_relevance.py",
-    "evaluation/tests/boilerplate_resistance.py",
-    "evaluation/tests/multilingual_invariance.py",
-    "evaluation/tests/stability.py",
-    "evaluation/tests/hierarchy_coherence.py",
-    "evaluation/tests/citation_graph_neighborhood.py",
-    "evaluation/tests/zoom_coherence.py",
-    "evaluation/data/real_corpus.py"
+    "results/jurivoc_benchmark_results.json",
+    "results/scale_benchmark_frozen_results.json",
+    "results/scale_benchmark_results.json",
+    "results/cross_language_benchmark_results.json",
+    "results/jurist_usability_results.json",
+    "reports/evaluation/evaluation_v2_report.md",
+    "evaluation/tests/jurivoc_benchmarks.py",
+    "evaluation/tests/scale_benchmarks_frozen.py",
+    "evaluation/tests/cross_language_benchmarks.py",
+    "evaluation/tests/jurist_usability.py",
+    "evaluation/benchmarks/jurivoc_loader.py",
+    "evaluation/benchmarks/specification.json"
   ],
   "audit_refs": [
     "results/audit/evaluation/CYCLE_33091272985_GATE.json",
     "reports/audit/evaluation/CYCLE_33091272985.md"
   ],
-  "github_run": 33094108918,
+  "github_run": 33103209897,
   "operational_resume_run_id": "33091272985",
-  "next_recommendation": "CONTINUE",
+  "next_recommendation": "PIVOT_WITHIN_MISSION",
   "continue_recommended": true,
-  "director_disposition": "FACTORY DIRECTION v2 ACTIVE — Evaluation lane v1 COMPLETE (14/14 benchmarks PASS on debiased_citation_blended n_pca=1 alpha=0.7). v2 question: Extend evaluation to v2: jurist usability studies, Jurivoc descriptor integration, scale benchmarks for full corpus, and adversarial tests for representation stability under corpus growth and cross-language transfer. Starting v2 cycle.",
+  "director_disposition": "FACTORY DIRECTION v2 COMPLETE — Evaluation v2 executed. CRITICAL BLOCKER: Language dominance = 0.999 (representation is a language map, not a legal map). Frozen PCA achieves PERFECT stability (1.0 position similarity). Jurivoc integration 4/5 PASS. Jurist usability simulation 2/4 PASS. v1 PRODUCTIZE recommendation INVALIDATED for multilingual use. Legal-distance lane must fix language dominance.",
   "metrics_summary": {
     "v1_final": {
       "cycle14_full_benchmark_suite": {
@@ -53,12 +50,85 @@
         "recommended_parameters": {"n_pca": 1, "alpha": 0.7}
       }
     },
+    "v2_results": {
+      "jurivoc_descriptor_integration": {
+        "total_benchmarks": 5,
+        "passed": 4,
+        "failed": 1,
+        "all_passed": false,
+        "descriptor_recovery_l1_nmi": 0.2640,
+        "descriptor_recovery_l2_nmi": 0.4149,
+        "knn_purity_l1": 0.6620,
+        "knn_purity_l2": 0.5012,
+        "hierarchy_alignment_separation": 0.1130,
+        "status": "PARTIAL_PASS"
+      },
+      "scale_benchmarks_frozen_pca": {
+        "position_drift_mean_sim": 1.0,
+        "neighbor_preservation_k10": 1.0,
+        "cluster_nmi_k10": 1.0,
+        "status": "PERFECT_PASS",
+        "note": "Frozen PCA (production mode) achieves perfect stability across all corpus sizes"
+      },
+      "scale_benchmarks_recomputed_pca": {
+        "position_drift_mean_sim": 0.3813,
+        "neighbor_preservation_k10": 0.7886,
+        "cluster_nmi_k10": 0.7517,
+        "status": "FAIL",
+        "note": "Recomputed PCA (dev mode) shows massive position drift - not suitable for persistent artifacts"
+      },
+      "cross_language_transfer": {
+        "total_benchmarks": 4,
+        "passed": 2,
+        "failed": 2,
+        "all_passed": false,
+        "zero_shot_nmi": 0.3899,
+        "in_domain_nmi": 0.7807,
+        "transfer_gap": 0.3908,
+        "language_specific_mean_nmi": 0.6379,
+        "language_specific_std_nmi": 0.0513,
+        "adversarial_language_dominance": 0.99905,
+        "cross_language_neighbor_rate": 0.0,
+        "status": "CATASTROPHIC_FAILURE",
+        "note": "Language dominance 0.999 means representation encodes language, not legal content"
+      },
+      "jurist_usability_simulation": {
+        "total_benchmarks": 4,
+        "passed": 2,
+        "failed": 2,
+        "all_passed": false,
+        "pairwise_preference_legal_rate": 0.4515,
+        "cluster_coherence_branch_purity": 0.9035,
+        "cluster_coherence_language_purity": 0.7472,
+        "zoom_improvement_pct": 7.1,
+        "cross_language_recall_at_10": 0.1194,
+        "status": "PARTIAL_PASS",
+        "note": "Clusters have legal coherence but language dominates neighbor retrieval"
+      },
+      "v2_overall": {
+        "total_v2_benchmarks": 17,
+        "passed": 12,
+        "failed": 5,
+        "critical_failures": 3,
+        "critical_failure_details": [
+          "Language dominance = 0.999 (threshold < 0.5)",
+          "Cross-language neighbor rate = 0.0 (threshold > 0.2)",
+          "Cross-language retrieval recall = 0.119 (threshold > 0.2)"
+        ],
+        "major_positive_findings": [
+          "Frozen PCA achieves perfect corpus growth stability",
+          "Jurivoc Level 2 descriptor recovery NMI = 0.415",
+          "Hierarchical zoom coherence validated (+7.1%)",
+          "Zero-shot cross-language transfer NMI = 0.390"
+        ]
+      }
+    },
     "v2_objectives": {
-      "jurist_usability_studies": "NOT_STARTED",
-      "jurivoc_descriptor_integration": "NOT_STARTED",
-      "scale_benchmarks_full_corpus": "NOT_STARTED",
-      "adversarial_corpus_growth_stability": "NOT_STARTED",
-      "adversarial_cross_language_transfer": "NOT_STARTED"
+      "jurist_usability_studies": "COMPLETED_SIMULATION",
+      "jurivoc_descriptor_integration": "COMPLETED",
+      "scale_benchmarks_full_corpus": "COMPLETED",
+      "adversarial_corpus_growth_stability": "COMPLETED",
+      "adversarial_cross_language_transfer": "COMPLETED"
     }
   },
   "benchmarks_available": [
@@ -79,15 +149,17 @@
     "boilerplate_resistance_real_corpus (text-embedding correlation on real text)",
     "collapse_check (pairwise similarity statistics, near-identical pairs)"
   ],
-  "v2_new_benchmarks_planned": [
-    "jurivoc_descriptor_recovery (descriptor-level NMI/purity)",
-    "jurivoc_hierarchy_alignment (multi-level Jurivoc taxonomy coherence)",
-    "scale_benchmark_1000_to_full (position drift from 1k to full corpus)",
-    "scale_benchmark_representation_stability (embedding quality vs corpus size)",
-    "adversarial_corpus_growth (neighbor preservation under incremental growth)",
-    "adversarial_cross_language_transfer (zero-shot cross-lang neighbor quality)",
-    "jurist_pairwise_preference (map neighbor preference vs baseline)",
-    "jurist_cluster_coherence_rating (human cluster quality assessment)"
+  "v2_new_benchmarks_implemented": [
+    "jurivoc_descriptor_recovery (descriptor-level NMI/purity) - 4/5 PASS",
+    "jurivoc_hierarchy_alignment (multi-level Jurivoc taxonomy coherence) - PASS",
+    "scale_benchmark_frozen_pca (position drift from subset to full corpus) - PERFECT",
+    "scale_benchmark_recomputed_pca (embedding quality vs corpus size) - FAIL",
+    "adversarial_corpus_growth (neighbor preservation under incremental growth) - PASS (frozen)",
+    "adversarial_cross_language_transfer (zero-shot cross-lang neighbor quality) - 2/4 PASS",
+    "jurist_pairwise_preference (map neighbor preference vs baseline) - FAIL",
+    "jurist_cluster_coherence_rating (human cluster quality assessment) - PASS",
+    "jurist_zoom_task (navigation at multiple resolutions) - PASS",
+    "jurist_cross_language_retrieval (cross-language legal equivalent search) - FAIL"
   ],
   "cycle_history": [
     {"cycle": 1, "run_id": "synthetic_eval_20260826", "status": "COMPLETED", "tier": "EXPLORATORY"},
@@ -132,6 +204,7 @@
     {"cycle": "operational_resume", "run_id": "33086453011", "status": "PASS", "tier": "REPRODUCED", "note": "Verification run (25th occurrence)."},
     {"cycle": "operational_resume", "run_id": "33088488477", "status": "PASS", "tier": "REPRODUCED", "note": "CONFIRMATION RUN: Re-executed full cycle 14 suite — 14/14 PASS (26th occurrence)."},
     {"cycle": "operational_resume", "run_id": "33091272985", "status": "PASS", "tier": "REPRODUCED", "note": "CONFIRMATION RUN: Verified cycle 14 suite 14/14 PASS (27th occurrence). Orchestration pathology documented."},
-    {"cycle": "v2_init", "run_id": "eval_v2_init_33094108918", "status": "IN_PROGRESS", "tier": "UNTESTED", "note": "FACTORY DIRECTION v2: Starting evaluation v2 — Jurivoc integration, scale benchmarks, adversarial stability tests, jurist usability framework."}
+    {"cycle": "v2_init", "run_id": "eval_v2_init_33094108918", "status": "IN_PROGRESS", "tier": "UNTESTED", "note": "FACTORY DIRECTION v2: Starting evaluation v2 — Jurivoc integration, scale benchmarks, adversarial stability tests, jurist usability framework."},
+    {"cycle": "v2_complete", "run_id": "eval_v2_20260827_001", "status": "COMPLETED", "tier": "EXPLORATORY", "note": "V2 COMPLETE: 17 benchmarks run. CRITICAL BLOCKER: language dominance = 0.999. Frozen PCA perfect stability. Jurivoc 4/5 PASS. Jurist simulation 2/4 PASS. RECOMMENDATION: PIVOT_WITHIN_MISSION - legal-distance must fix language dominance."}
   ]
 }
