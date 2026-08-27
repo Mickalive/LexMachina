@@ -1,0 +1,70 @@
+{
+  "run_id": "v2_verification_20260827",
+  "timestamp": "2026-08-27T23:30:00Z",
+  "direction_version": 4,
+  "frozen_sample": "1000 BGer decisions (2020-2024) from canonical slice",
+  "representations_tested": [
+    "debiased_citation_blended",
+    "center_projected"
+  ],
+  "benchmarks": {
+    "adversarial_language_dominance": {
+      "debiased_citation_blended": {
+        "mean_language_dominance": 0.58,
+        "std_language_dominance": 0.24278591392418133,
+        "max_language_dominance": 1.0,
+        "k": 20,
+        "threshold": 0.85,
+        "status": "PASS",
+        "note": "Lower is better - language should not dominate neighbors"
+      },
+      "center_projected": {
+        "mean_language_dominance": 0.7593,
+        "std_language_dominance": 0.23424028261594973,
+        "max_language_dominance": 1.0,
+        "k": 20,
+        "threshold": 0.85,
+        "status": "PASS",
+        "note": "Lower is better - language should not dominate neighbors"
+      }
+    },
+    "jurist_pairwise_preference": {
+      "debiased_citation_blended": {
+        "status": "PASS",
+        "total_decisions": 1000,
+        "legal_relevant_only": 302,
+        "language_artifact_only": 186,
+        "both_available": 382,
+        "neither_available": 130,
+        "legal_neighbor_rate": 0.526,
+        "language_neighbor_rate": 0.344,
+        "jurist_would_succeed_rate": 0.526,
+        "jurist_forced_wrong_rate": 0.344,
+        "threshold": 0.5,
+        "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+      },
+      "center_projected": {
+        "status": "FAIL",
+        "total_decisions": 1000,
+        "legal_relevant_only": 364,
+        "language_artifact_only": 157,
+        "both_available": 153,
+        "neither_available": 326,
+        "legal_neighbor_rate": 0.451,
+        "language_neighbor_rate": 0.223,
+        "jurist_would_succeed_rate": 0.451,
+        "jurist_forced_wrong_rate": 0.223,
+        "threshold": 0.5,
+        "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+      }
+    }
+  },
+  "v2_findings_confirmed": false,
+  "key_v2_findings": {
+    "debiased_citation_blended_language_dominance": 0.58,
+    "debiased_citation_blended_jurist_rate": 0.526,
+    "center_projected_language_dominance": 0.7593,
+    "center_projected_jurist_rate": 0.451,
+    "center_projected_unique_pass_both": false
+  }
+}
