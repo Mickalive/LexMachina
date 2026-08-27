@@ -3,7 +3,7 @@
   "direction_version": 1,
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
-  "continue_recommended": true,
+  "continue_recommended": false,
   "accepted_run_id": "33035450227",
   "accepted_commit": null,
   "github_run": "33035450227",
@@ -117,12 +117,12 @@
     "CYCLE_33036994560_FEAT: Integrated hierarchical Leiden (REPRODUCED fractal map architecture) as default map representation with 3 zoom levels (5→8→27 clusters) (FEAT-037)",
     "CYCLE_33036994560_FEAT: Added test_hierarchical_leiden test for validated fractal map representation (FEAT-038)"
   ],
-  "next_recommendation": "CONTINUE",
+  "next_recommendation": "PRODUCTIZE",
   "metrics_summary": {
     "corpus_decisions_loaded": 1202,
     "corpus_languages": {"de": 736, "fr": 404, "it": 62},
     "corpus_branches": {"oeffentliches_recht": 293, "zivilrecht": 312, "sozialversicherungsrecht": 290, "strafrecht": 307},
-    "map_representations": ["concat_center_tfidf", "baseline", "hdbscan", "hierarchical_leiden"],
+    "map_representations": ["concat_center_tfidf", "baseline", "hdbscan", "hierarchical_leiden", "true_hierarchical_leiden", "debiased_citation_blended"],
     "map_positions_total": 1000,
     "map_positions_in_corpus": 1000,
     "corpus_map_coverage": "100%",
@@ -144,6 +144,15 @@
       "zoom_1": 8,
       "zoom_2": 27
     },
+    "true_hierarchical_leiden_clusters_per_zoom": {
+      "zoom_0": 5,
+      "zoom_1": 89
+    },
+    "true_hierarchical_leiden_config": "coarse_0.5_sub_3.0",
+    "true_hierarchical_leiden_nesting_score": 1.0,
+    "true_hierarchical_leiden_nesting_verified": 1.0,
+    "true_hierarchical_leiden_hierarchical_purity": 0.9445,
+    "true_hierarchical_leiden_coarse_purity": 0.5707,
     "hierarchical_leiden_config": "coarse_0.5_fine_3.0",
     "hierarchical_leiden_hierarchical_purity": 0.9634,
     "hierarchical_leiden_nesting_score": 1.0,
@@ -220,7 +229,8 @@
       "temporal_slider",
       "imported_corpus_markers",
       "evaluation_quality_badge",
-      "cluster_breadcrumb"
+      "cluster_breadcrumb",
+      "true_hierarchical_leiden"
     ],
     "web_frontend": "single_page_html5_canvas",
     "api_endpoints": [
@@ -274,12 +284,13 @@
       "evaluation_loader": "PASS",
       "temporal_filtering": "PASS",
       "section_modes_scaled": "PASS",
-      "hierarchical_leiden": "PASS"
+      "hierarchical_leiden": "PASS",
+      "true_hierarchical_leiden": "PASS"
     },
-    "total_tests": 91,
-    "tests_passed": 91
+    "total_tests": 92,
+    "tests_passed": 92
   },
-  "notes": "Cycle 33035450227: Scaled section projections from 63 to 1000 decisions using blended section+baseline approach. Added evaluation_loader.py to surface accepted evaluation benchmarks. Added temporal filtering endpoint. Added 5 frontend enhancements: zoom-to-cluster, temporal slider, imported corpus markers, evaluation quality badge, cluster breadcrumb. All 90 tests pass (22 original + 68 new). Product now has 22 API endpoints, 33 navigation features, and full evaluation benchmark integration.\n\nCycle 33036994560: Integrated hierarchical Leiden (REPRODUCED fractal map architecture) as default map representation. Hierarchical Leiden achieves perfect nesting (1.0) and higher branch purity (0.963) than flat Leiden (0.875), agglomerative (0.786), and evaluation baselines (0.795). This validates the fractal map architecture where zoom reveals legally coherent substructure. Added 3 zoom levels (5→8→27 clusters). Default representation changed from concat_center_tfidf to hierarchical_leiden. All 91 tests pass.",
+  "notes": "Cycle 33035450227: Scaled section projections from 63 to 1000 decisions using blended section+baseline approach. Added evaluation_loader.py to surface accepted evaluation benchmarks. Added temporal filtering endpoint. Added 5 frontend enhancements: zoom-to-cluster, temporal slider, imported corpus markers, evaluation quality badge, cluster breadcrumb. All 90 tests pass (22 original + 68 new). Product now has 22 API endpoints, 33 navigation features, and full evaluation benchmark integration.\n\nCycle 33036994560: Integrated hierarchical Leiden (REPRODUCED fractal map architecture) as default map representation. Hierarchical Leiden achieves perfect nesting (1.0) and higher branch purity (0.963) than flat Leiden (0.875), agglomerative (0.786), and evaluation baselines (0.795). This validates the fractal map architecture where zoom reveals legally coherent substructure. Added 3 zoom levels (5→8→27 clusters). Default representation changed from concat_center_tfidf to hierarchical_leiden. All 91 tests pass.\n\nCycle 33039540805 (operational resume): Diagnosed orchestration failure — product lane remained at CONTINUE despite all dependent lanes (corpus, fractal-map, evaluation) reaching PRODUCTIZE. Updated product state to PRODUCTIZE. All 91 tests pass. Product integrates REPRODUCED evidence from all core lanes: corpus (TF-2000+ acquisition/normalization), fractal-map (hierarchical Leiden with perfect nesting), evaluation (debiased_citation_blended with 14/14 benchmarks PASS). Vertical slice complete: corpus import/load, map computation/load, zoom/navigation, cluster/decision inspection, multi-view modes, citation graph, proximity explanation, evaluation benchmark integration.\n\nCycle 33042399533 (current): Added true_hierarchical_leiden representation running actual hierarchical Leiden algorithm (Leiden within parent clusters at finer resolution). Achieves perfect nesting (1.0 verified) with 89 fine clusters nested in 5 coarse clusters (using baseline embeddings). Hierarchical purity 0.9445 > flat Leiden mean purity 0.895. Validates fractal map architecture. Now 6 map representations available. All 92 tests pass.",
   "known_limitations": [
     "Section modes: 63 decisions use section-specific projections, 937 use baseline fallback (blended approach)",
     "Frontend uses HTML5 Canvas only - no WebGL/Mapbox for large-scale rendering",
@@ -309,7 +320,6 @@
     "Add compound language queries (e.g., de+fr mixed searches)",
     "Add citation-proximity clustering as alternative map mode",
     "Cache cluster coherence computations server-side",
-    "Load true hierarchical Leiden assignments (127 fine clusters nested in 8 coarse) from hierarchical_leiden_results.json for perfect nesting",
-    "Expose multiple map modes for hierarchical zoom: coarse (5), intermediate (8), fine (27), and true hierarchical (127)"
+    "Run true hierarchical Leiden on concat_center_tfidf embeddings (match fractal-map validation) for 127 fine clusters in 8 coarse"
   ]
 }
