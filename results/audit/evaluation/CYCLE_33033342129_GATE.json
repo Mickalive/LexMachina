@@ -1,0 +1,76 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    {
+      "id": "boilerplate_resistance_degenerate_case",
+      "severity": "low",
+      "description": "The boilerplate_resistance_real_corpus metric (resistance_score = 1.0 - abs(correlation)) is uninformative for collapsed representations. citation_blended_debiased scores 0.988 resistance despite being completely collapsed (all similarities = 1.0). A minimum embedding variance threshold should gate this metric.",
+      "location": "evaluation/run_cycle_11.py, run_boilerplate_resistance_on_real_corpus()",
+      "repair": "Add variance gate: if embedding variance < threshold, mark resistance as DEGENERATE rather than computing a score."
+    }
+  ],
+  "claim_ceiling": "Cycles 10+11 complete. 15 benchmarks established (13 prior + cross_language_pairs, boilerplate_resistance_real_corpus). citation-heritage benchmark VALIDATED: discrimination between real (AUC 0.64-0.68) and random (0.52). citation_blended remains BEST representation (AUC 0.680, zero dead zones). CRITICAL NEGATIVE: naive PCA debiasing on 64-dim citation_blended COLLAPSES the representation (AUC 0.493, all similarities = 1.0). Root cause: removing 2 PCA components from 64 dims deletes ~34% variance. Cross-language benchmark validates: citation patterns are language-correlated (cross-lang sim = -0.163 for blended). All original representations PASS boilerplate resistance on real corpus (>0.5). language_debiased_pca2 has BEST resistance (0.916). Honest negative result: no existing combination strategy achieves both low language dominance AND high citation heritage AUC. Product needs debiasing+citation combined at representation learning stage, not post-hoc PCA.",
+  "evidence_summary": {
+    "new_benchmarks": 2,
+    "new_benchmark_names": ["cross_language_pairs", "boilerplate_resistance_real_corpus"],
+    "total_benchmarks": 15,
+    "representations_tested": {
+      "cycle_10": ["baseline", "language_debiased_pca2", "citation_blended", "citation_graph_only", "random_degraded"],
+      "cycle_11": ["baseline", "language_debiased_pca2", "citation_blended", "citation_graph_only", "citation_blended_debiased"]
+    },
+    "critical_falsification": {
+      "citation_blended_debiased": {
+        "status": "COLLAPSED",
+        "citation_heritage_auc": 0.493,
+        "language_dominance": 0.476,
+        "branch_coherence": 0.363,
+        "dead_zones_gt095": 12694,
+        "branch_knn_accuracy@5": 0.379,
+        "root_cause": "PCA on 64-dim removes ~34% variance, destroying structure"
+      }
+    },
+    "citation_heritage_auc": {
+      "baseline": 0.642,
+      "language_debiased_pca2": 0.678,
+      "citation_blended": 0.680,
+      "citation_graph_only": 0.669,
+      "random_degraded": 0.520,
+      "citation_blended_debiased": 0.493
+    },
+    "cross_language_similarity": {
+      "baseline": 0.866,
+      "language_debiased_pca2": 0.909,
+      "citation_blended": -0.163,
+      "citation_graph_only": -0.154,
+      "citation_blended_debiased": 1.0
+    },
+    "boilerplate_resistance_real_corpus": {
+      "baseline": 0.704,
+      "language_debiased_pca2": 0.916,
+      "citation_blended": 0.636,
+      "citation_graph_only": 0.705,
+      "citation_blended_debiased": 0.988
+    },
+    "sanity_check": {
+      "random_degraded_auc": 0.520,
+      "threshold": 0.55,
+      "passed": true
+    },
+    "dispatch_pathology": {
+      "occurrence": 5,
+      "latest_run": "33033313906",
+      "status": "FAILED",
+      "note": "4th dispatch-to-DONE failed (partially validates guard recommendation). Supervisor-level defect persists."
+    },
+    "files_produced": [
+      "evaluation/run_cycle_10.py",
+      "evaluation/run_cycle_11.py",
+      "results/cycle_10_results.json",
+      "results/cycle_11_results.json",
+      "reports/evaluation/evaluation_cycle_10_report.md",
+      "reports/evaluation/evaluation_cycle_11_report.md",
+      "state/evaluation.json"
+    ]
+  }
+}
