@@ -504,6 +504,98 @@ def test_hierarchical_leiden():
     return True
 
 
+def test_true_hierarchical_leiden():
+    """Test TRUE hierarchical Leiden representation (validated fractal map architecture).
+
+    True hierarchical Leiden runs Leiden within parent clusters at finer resolution,
+    guaranteeing perfect nesting (1.0) by construction. This validates the fractal
+    map architecture where zoom reveals legally coherent substructure.
+
+    Note: This runs on baseline embeddings (not concat_center_tfidf), so exact cluster
+    counts may differ from fractal-map lane validation (which got 8 coarse, 127 fine).
+    The key property is perfect nesting (1.0) by construction.
+    """
+    print("=== Test: True Hierarchical Leiden ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    # Verify true_hierarchical_leiden is available
+    reps = api.map_loader.get_available_representations()
+    assert "true_hierarchical_leiden" in reps, f"true_hierarchical_leiden not in representations: {reps}"
+    print(f"  Available representations: {reps}")
+
+    # Test true_hierarchical_leiden at each zoom level
+    zoom_levels = api.get_zoom_levels("true_hierarchical_leiden")
+    print(f"  Zoom levels: {zoom_levels}")
+    # True hierarchical Leiden has 2 zoom levels: coarse and fine
+    assert len(zoom_levels) == 2, f"Expected 2 zoom levels, got {len(zoom_levels)}"
+
+    # Zoom 0: coarse clusters
+    map_data = api.get_map_data("true_hierarchical_leiden", 0)
+    n_coarse = map_data["n_clusters"]
+    assert map_data["n_decisions"] == 1000
+    print(f"  Zoom 0 (coarse): {n_coarse} clusters, {map_data['n_decisions']} decisions")
+
+    # Zoom 1: fine clusters (nested within coarse)
+    map_data = api.get_map_data("true_hierarchical_leiden", 1)
+    n_fine = map_data["n_clusters"]
+    assert map_data["n_decisions"] == 1000
+    print(f"  Zoom 1 (fine): {n_fine} clusters, {map_data['n_decisions']} decisions")
+
+    # Verify PERFECT nesting: each fine cluster maps to exactly one coarse cluster
+    zl_0 = api.map_loader.get_zoom_level("true_hierarchical_leiden", 0)
+    zl_1 = api.map_loader.get_zoom_level("true_hierarchical_leiden", 1)
+
+    nesting_consistent = 0
+    total_fine_clusters = len(zl_1.clusters)
+    for fine_cid, fine_cluster in zl_1.clusters.items():
+        if not fine_cluster.decision_ids:
+            continue
+        first_did = fine_cluster.decision_ids[0]
+        coarse_cid = zl_0.cluster_assignments.get(first_did)
+        if coarse_cid is not None:
+            all_same = all(zl_0.cluster_assignments.get(did) == coarse_cid
+                          for did in fine_cluster.decision_ids)
+            if all_same:
+                nesting_consistent += 1
+
+    nesting_rate = nesting_consistent / total_fine_clusters if total_fine_clusters > 0 else 0
+    print(f"  Nesting consistency: {nesting_consistent}/{total_fine_clusters} = {nesting_rate:.4f}")
+    # True hierarchical Leiden guarantees perfect nesting by construction
+    assert nesting_rate == 1.0, f"True hierarchical Leiden should have perfect nesting (1.0), got {nesting_rate}"
+
+    # Verify metadata reports expected metrics
+    map_state = api.map_loader.get_map("true_hierarchical_leiden")
+    metadata = map_state.metadata
+    assert metadata.get("nesting_score") == 1.0, "Metadata should report nesting_score=1.0"
+    assert metadata.get("nesting_verified") == 1.0, "Metadata should report nesting_verified=1.0"
+    assert metadata.get("coarse_clusters") == n_coarse, "Metadata coarse_clusters should match zoom 0"
+    assert metadata.get("fine_clusters") == n_fine, "Metadata fine_clusters should match zoom 1"
+    assert metadata.get("hierarchical_purity", 0) > 0.8, f"Expected hierarchical_purity > 0.8, got {metadata.get('hierarchical_purity')}"
+    print(f"  Metadata: coarse={metadata.get('coarse_clusters')}, fine={metadata.get('fine_clusters')}, "
+          f"hierarchical_purity={metadata.get('hierarchical_purity'):.4f}, "
+          f"coarse_purity={metadata.get('coarse_purity'):.4f}")
+
+    # Test neighbors with true_hierarchical_leiden
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "true_hierarchical_leiden", 1, 5)
+    print(f"  Neighbors of {did}: {len(neighbors)} found")
+    assert len(neighbors) > 0, "Expected neighbors"
+
+    # Verify map modes includes true_hierarchical_leiden
+    modes = api.get_map_modes()
+    thl_mode = next((m for m in modes if m["name"] == "true_hierarchical_leiden"), None)
+    assert thl_mode is not None, "true_hierarchical_leiden not in map modes"
+    assert thl_mode["label"] == "True Hierarchical Leiden"
+    print(f"  Map mode label: {thl_mode['label']}")
+
+    print("  PASS\n")
+    return True
+
+
 if __name__ == "__main__":
     results = []
     results.append(("Corpus Loader", test_corpus_loader()))
@@ -516,6 +608,7 @@ if __name__ == "__main__":
     results.append(("Citations", test_citations()))
     results.append(("Map Modes API", test_map_modes_api()))
     results.append(("Hierarchical Leiden", test_hierarchical_leiden()))
+    results.append(("True Hierarchical Leiden", test_true_hierarchical_leiden()))
     
     print("=" * 50)
     print("RESULTS:")

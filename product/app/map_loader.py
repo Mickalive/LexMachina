@@ -47,8 +47,9 @@ class MapState:
 class MapLoader:
     """Loads and manages map artifacts from the fractal-map lane."""
 
-    def __init__(self, results_dir: str):
+    def __init__(self, results_dir: str, corpus_dir: Optional[str] = None):
         self.results_dir = Path(results_dir)
+        self.corpus_dir = Path(corpus_dir) if corpus_dir else None
         self.maps: Dict[str, MapState] = {}
         self._loaded = False
 
@@ -568,7 +569,25 @@ class MapLoader:
         embeddings = baseline_emb
 
         # Load branch metadata for purity computation
-        corpus_dir = Path("/tmp/lex_accepted/corpus/corpus/normalization/canonical")
+        if self.corpus_dir is None:
+            # Try to infer from results_dir structure
+            corpus_dir = self.results_dir.parent / "corpus" / "normalization" / "canonical"
+        else:
+            corpus_dir = self.corpus_dir
+        
+        if not corpus_dir.exists():
+            # Fallback: try common locations
+            fallback_paths = [
+                Path("/tmp/lex_accepted/corpus/corpus/normalization/canonical"),
+                Path("/home/runner/work/LexMachina/LexMachina/product/results/corpus/normalization/canonical"),
+            ]
+            for fb in fallback_paths:
+                if fb.exists():
+                    corpus_dir = fb
+                    break
+            else:
+                corpus_dir = self.results_dir.parent / "corpus" / "normalization" / "canonical"
+        
         id_to_idx = {m['decision_id']: i for i, m in enumerate(metadata)}
         branch_map = {}
         for year_file in sorted(corpus_dir.glob("bger_20*.jsonl")):

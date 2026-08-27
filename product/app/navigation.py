@@ -36,7 +36,7 @@ class NavigationAPI:
 
     def __init__(self, corpus_dir: str, results_dir: str):
         self.corpus = CorpusLoader(corpus_dir)
-        self.map_loader = MapLoader(results_dir)
+        self.map_loader = MapLoader(results_dir, corpus_dir=corpus_dir)
         self.section_modes = SectionModeLoader(
             section_dir=str(Path(results_dir) / "section_scaled"),
             fallback_dir=str(Path(results_dir) / "section_experiment_clean"),
