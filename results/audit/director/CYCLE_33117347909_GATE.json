@@ -1,0 +1,97 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Legal-distance lane has been RUN/UNTESTED for >=5 director cycles — structural stall requiring human/structural resolution (deadline, resource allocation, HUMAN_DECISION_REQUIRED escalation, or status change)",
+    "Frontier acceptance test references ambiguous zoom_coherence metric (evaluation improvement_pct=7.1% vs fractal-map improvement_rate=0.396) with threshold >=0.5 exceeding validated baseline — clarify in charter v2",
+    "Frontier dependency path 'legal_distance/ baseline implementation' should reference 'evaluation/ cycle_14 frozen baseline' to avoid confusion"
+  ],
+  "claim_ceiling": "REPRODUCED: validated baseline ready for productization (Evaluation v1: 14/14 benchmarks PASS on frozen debiased_citation_blended n_pca=1 alpha=0.7). Fractal-map architecture validated (hierarchical Leiden nesting=1.0, hierarchical_purity=0.949, zoom_coherence +7.1%). Product vertical slice operational (91/91 tests, 22 endpoints, 6 section modes scaled to 1000). Corpus 1000-decision working slice REPRODUCED. Legal-distance UNTESTED — critical gap. Frontier charter is a hypothesis with explicit acceptance criteria, not a claim.",
+  "evidence_summary": {
+    "evaluation_v1": {
+      "status": "CLOSED",
+      "tier": "REPRODUCED",
+      "frozen_baseline": "debiased_citation_blended (n_pca=1, alpha=0.7)",
+      "benchmarks": "14/14 PASS",
+      "key_metrics": {
+        "citation_heritage_auc": 0.9089,
+        "legal_area_purity": 0.8863,
+        "zoom_coherence_improvement_pct": 7.1,
+        "branch_knn_at_1": 0.8088,
+        "tf_metadata_recall_at_1": 0.8088,
+        "multilingual_invariance_separation": 0.0482,
+        "temporal_stability_std": 0.0134,
+        "boilerplate_resistance_correlation": 0.1355
+      }
+    },
+    "fractal_map": {
+      "status": "VALIDATED",
+      "tier": "REPRODUCED",
+      "method": "Hierarchical Leiden (coarse_0.5_fine_3.0)",
+      "key_metrics": {
+        "hierarchical_nesting": 1.0,
+        "hierarchical_purity": 0.949,
+        "flat_leiden_mean_purity": 0.883,
+        "agglomerative_purity": 0.786,
+        "eval_baseline_purity": 0.795,
+        "zoom_coherence_improvement_rate": 0.396,
+        "zoom_purity_improvement_pct": 7.1
+      },
+      "product_integration": "Default map representation (7-resolution ladder 0.25->3.0, 98 fine clusters in 5 coarse)"
+    },
+    "product": {
+      "status": "OPERATIONAL",
+      "tier": "REPRODUCED",
+      "metrics": {
+        "total_tests": 91,
+        "api_endpoints": 22,
+        "navigation_features": 33,
+        "map_positions": 1000,
+        "hierarchical_leiden_default": true,
+        "section_modes": 6,
+        "section_coverage": "63/1000 decisions with section projections, 937 baseline fallback",
+        "citation_graph_edges": 2105,
+        "user_corpus_import": true,
+        "evaluation_benchmark_endpoints": true
+      }
+    },
+    "corpus": {
+      "status": "REPRODUCED_COMPLETED",
+      "tier": "REPRODUCED",
+      "metrics": {
+        "canonical_decisions_total": 1577,
+        "unique_decisions": 1215,
+        "working_slice_1000": 1000,
+        "yearly_core_250": 250,
+        "languages": {"de": 975, "fr": 530, "it": 72},
+        "statute_extractor_laws_mapped": 50,
+        "user_import_formats": ["jsonl", "json", "text"],
+        "schema_validation": "1577/1577 PASS",
+        "citation_refs_text": 2105,
+        "citation_unique_targets": 1628,
+        "gap": "Pre-2020 decisions not yet acquired (TF-2000+ incomplete)"
+      }
+    },
+    "legal_distance": {
+      "status": "UNTESTED",
+      "tier": "UNTESTED",
+      "gap": "Core lane RUN priority 1 but zero accepted evidence across multiple epochs. State file shows INITIALIZED. Critical blocker for product legal-distance signal integration.",
+      "core_lane_question": "Test which legally structured signals improve nearest-neighbor legal relevance over validated debiased_citation_blended baseline while suppressing procedural boilerplate"
+    },
+    "frontier_portfolio": {
+      "version": 2,
+      "teams": [
+        {
+          "team_id": "frontier_metric_learning_jurivoc",
+          "charter_version": 1,
+          "status": "RUN",
+          "methodology": "SUPERVISED METRIC LEARNING on Jurivoc/TF weak labels",
+          "non_duplication": "Core legal-distance = UNSUPERVISED signal ablation; Frontier = SUPERVISED METRIC LEARNING — independent path",
+          "acceptance_test": ">=5% relative improvement on >=3/4 primary jurist proxies (branch_knn@1, legal_area_purity, citation_heritage_AUC, tf_metadata_recall@1); no regression on zoom_coherence (improvement_rate >=0.5) or multilingual_invariance (separation >=0.04); boilerplate_resistance PASS; metric serializable",
+          "stop_promote_rule": "PROMOTE if acceptance_test passes + temporal_stability mean_knn_score >=0.75 on held-out 2024; PAUSE after 3 architecture variants; TERMINATE if collapse_check FAIL or multilingual_invariance violated"
+        }
+      ],
+      "policy": "Create specialized teams only for concrete product-relevant hypotheses or bottlenecks. Parallelism should grow with credible independent paths, not curiosity."
+    }
+  }
+}
