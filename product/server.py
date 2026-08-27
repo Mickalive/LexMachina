@@ -57,14 +57,14 @@ class ProductHandler(SimpleHTTPRequestHandler):
         if path == "/api/overview":
             self._json_response(get_nav_api().get_overview())
         elif path == "/api/map":
-            rep = params.get("representation", ["concat_center_tfidf"])[0]
+            rep = params.get("representation", ["hierarchical_leiden"])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             mode = params.get("mode", [None])[0]
             self._json_response(get_nav_api().get_map_data(rep, zoom, map_mode=mode))
         elif path == "/api/map_modes":
             self._json_response(get_nav_api().get_map_modes())
         elif path == "/api/cluster":
-            rep = params.get("representation", ["concat_center_tfidf"])[0]
+            rep = params.get("representation", ["hierarchical_leiden"])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             cid = int(params.get("cluster_id", ["0"])[0])
             self._json_response(get_nav_api().get_cluster_detail(rep, zoom, cid))
@@ -82,12 +82,12 @@ class ProductHandler(SimpleHTTPRequestHandler):
             self._json_response(get_nav_api().search_decisions(q, limit))
         elif path == "/api/neighbors":
             did = params.get("id", [""])[0]
-            rep = params.get("representation", ["concat_center_tfidf"])[0]
+            rep = params.get("representation", ["hierarchical_leiden"])[0]
             zoom = int(params.get("zoom", ["2"])[0])
             n = int(params.get("n", ["10"])[0])
             self._json_response(get_nav_api().get_neighbors(did, rep, zoom, n))
         elif path == "/api/zoom_levels":
-            rep = params.get("representation", ["concat_center_tfidf"])[0]
+            rep = params.get("representation", ["hierarchical_leiden"])[0]
             self._json_response(get_nav_api().get_zoom_levels(rep))
         elif path == "/api/corpus/stats":
             self._json_response(get_nav_api().get_corpus_stats())
@@ -96,7 +96,7 @@ class ProductHandler(SimpleHTTPRequestHandler):
             id_b = params.get("id_b", [""])[0]
             self._json_response(get_nav_api().get_proximity_explanation(id_a, id_b))
         elif path == "/api/cluster_coherence":
-            rep = params.get("representation", ["concat_center_tfidf"])[0]
+            rep = params.get("representation", ["hierarchical_leiden"])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             cid = int(params.get("cluster_id", ["0"])[0])
             self._json_response(get_nav_api().get_cluster_coherence(rep, zoom, cid))
@@ -249,6 +249,9 @@ def run_server(port=8080):
     print(f"Loaded {nav.corpus.size} decisions, {len(nav.map_loader.get_available_representations())} maps, "
           f"{len(nav.section_modes.modes)} section modes, citation graph: {nav.citation_loader.get_stats()}, "
           f"zoom coherence: {nav.zoom_coherence._loaded}, TF-IDF model: {nav.tfidf_proximity._built}")
+    print(f"Available representations: {nav.map_loader.get_available_representations()}")
+    for rep in nav.map_loader.get_available_representations():
+        print(f"  {rep}: zoom levels = {nav.map_loader.get_zoom_levels(rep)}")
 
     server = HTTPServer(("0.0.0.0", port), ProductHandler)
     print(f"LexMachina server running on http://localhost:{port}")

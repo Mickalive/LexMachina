@@ -111,7 +111,7 @@ class NavigationAPI:
 
     def get_map_data(
         self,
-        representation: str = "concat_center_tfidf",
+        representation: str = "hierarchical_leiden",
         zoom_level: int = 1,
         map_mode: Optional[str] = None,
     ) -> Dict[str, Any]:
@@ -398,7 +398,7 @@ class NavigationAPI:
     def get_neighbors(
         self,
         decision_id: str,
-        representation: str = "concat_center_tfidf",
+        representation: str = "hierarchical_leiden",
         zoom_level: int = 2,
         n: int = 10,
     ) -> List[Dict]:
@@ -540,8 +540,8 @@ class NavigationAPI:
         if not self._initialized:
             return {"error": "Not initialized"}
 
-        # Get distance from map positions
-        positions = self.map_loader.get_positions("concat_center_tfidf")
+        # Get distance from map positions (default to hierarchical_leiden)
+        positions = self.map_loader.get_positions("hierarchical_leiden")
         pos_a = positions.get(decision_id_a)
         pos_b = positions.get(decision_id_b)
 
@@ -756,8 +756,8 @@ class NavigationAPI:
 
         decision_language = summary.get("language", "unknown")
         
-        # Get all positions
-        positions = self.map_loader.get_positions("concat_center_tfidf")
+        # Get all positions (default to hierarchical_leiden)
+        positions = self.map_loader.get_positions("hierarchical_leiden")
         
         # Build corpus summaries dict
         corpus_ids = set(self.corpus.get_all_ids())
@@ -788,7 +788,7 @@ class NavigationAPI:
 
     def get_temporal_map_data(
         self,
-        representation: str = "concat_center_tfidf",
+        representation: str = "hierarchical_leiden",
         zoom_level: int = 1,
         year_start: Optional[int] = None,
         year_end: Optional[int] = None,
