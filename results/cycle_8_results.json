@@ -1,0 +1,1352 @@
+{
+  "run_id": "eval_cycle_8_1787795632",
+  "timestamp": "2026-08-27T01:53:52Z",
+  "cycle": 8,
+  "hypothesis": "Adversarial testing reveals hidden weaknesses in current representations. TF metadata benchmark tests finer-grained human indexing than branch-only.",
+  "frozen_sample": "1000 BGer decisions (2020-2024) from fractal-map baseline",
+  "frozen_metrics": [
+    "branch_knn_accuracy@5",
+    "chamber_knn_accuracy@5",
+    "language_dominance_mean",
+    "branch_coherence_mean",
+    "falsification_status"
+  ],
+  "success_rule": "Adversarial degradation < 20% on neighbor quality; branch k-NN accuracy > 0.5 for TF metadata benchmark",
+  "representations": [
+    {
+      "name": "baseline",
+      "description": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2 (768-dim)",
+      "tf_metadata": {
+        "representation": "baseline",
+        "num_decisions": 999,
+        "branch_distribution": {
+          "strafrecht": 271,
+          "zivilrecht": 262,
+          "oeffentliches_recht": 466
+        },
+        "branch_knn": {
+          "knn_accuracy@1": 0.97,
+          "knn_accuracy@3": 0.959,
+          "knn_accuracy@5": 0.957,
+          "knn_accuracy@10": 0.955,
+          "random_baseline": 0.3333
+        },
+        "chamber_knn": {
+          "knn_accuracy@1": 0.9369,
+          "knn_accuracy@3": 0.9199,
+          "knn_accuracy@5": 0.9209,
+          "knn_accuracy@10": 0.9109,
+          "random_baseline": 0.1111
+        },
+        "legal_area_knn": {
+          "knn_accuracy@1": 0.4615,
+          "knn_accuracy@3": 0.4374,
+          "knn_accuracy@5": 0.4785,
+          "knn_accuracy@10": 0.4775,
+          "random_baseline": 0.01
+        },
+        "branch_purity_at_k": {
+          "mean_purity@5": 0.9417,
+          "mean_purity@10": 0.9012,
+          "mean_purity@20": 0.8323,
+          "mean_purity@50": 0.6973
+        },
+        "cross_branch_confusion": {
+          "oeffentliches_recht": {
+            "count": 466,
+            "mean_same_label_fraction@10": 0.8702
+          },
+          "strafrecht": {
+            "count": 271,
+            "mean_same_label_fraction@10": 0.9232
+          },
+          "zivilrecht": {
+            "count": 262,
+            "mean_same_label_fraction@10": 0.8878
+          }
+        },
+        "summary": {
+          "branch_knn_accuracy@5": 0.957,
+          "chamber_knn_accuracy@5": 0.9209,
+          "legal_area_knn_accuracy@5": 0.4785,
+          "branch_purity@10": 0.9012,
+          "branch_pass": true,
+          "any_pass": true
+        },
+        "duration": 0.4977071285247803
+      },
+      "adversarial": {
+        "representation": "baseline",
+        "num_decisions": 999,
+        "status": "FALSIFIED",
+        "falsified": true,
+        "falsification_reasons": [
+          "Language dominance 0.982 > 0.9: representation groups by language, not legal content",
+          "20 pairs with similarity > 0.95 across different branches: dead zones in embedding space"
+        ],
+        "language_dominance": {
+          "mean": 0.9821,
+          "std": 0.0927,
+          "median": 1.0
+        },
+        "branch_coherence": {
+          "mean": 0.8892,
+          "std": 0.1785,
+          "median": 1.0
+        },
+        "worst_cases": [
+          {
+            "index": 903,
+            "branch": "oeffentliches_recht",
+            "language": "fr",
+            "branch_coherence@10": 0.0,
+            "neighbor_branches": [
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht"
+            ]
+          },
+          {
+            "index": 921,
+            "branch": "oeffentliches_recht",
+            "language": "it",
+            "branch_coherence@10": 0.1,
+            "neighbor_branches": [
+              "zivilrecht",
+              "strafrecht",
+              "strafrecht",
+              "zivilrecht",
+              "strafrecht",
+              "strafrecht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "zivilrecht",
+              "zivilrecht"
+            ]
+          },
+          {
+            "index": 981,
+            "branch": "oeffentliches_recht",
+            "language": "it",
+            "branch_coherence@10": 0.1,
+            "neighbor_branches": [
+              "zivilrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "oeffentliches_recht"
+            ]
+          },
+          {
+            "index": 217,
+            "branch": "oeffentliches_recht",
+            "language": "fr",
+            "branch_coherence@10": 0.2,
+            "neighbor_branches": [
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht"
+            ]
+          },
+          {
+            "index": 772,
+            "branch": "strafrecht",
+            "language": "fr",
+            "branch_coherence@10": 0.2,
+            "neighbor_branches": [
+              "zivilrecht",
+              "strafrecht",
+              "strafrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "zivilrecht"
+            ]
+          },
+          {
+            "index": 486,
+            "branch": "oeffentliches_recht",
+            "language": "fr",
+            "branch_coherence@10": 0.2,
+            "neighbor_branches": [
+              "zivilrecht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "zivilrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "strafrecht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "strafrecht"
+            ]
+          },
+          {
+            "index": 147,
+            "branch": "zivilrecht",
+            "language": "de",
+            "branch_coherence@10": 0.2,
+            "neighbor_branches": [
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "zivilrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "zivilrecht"
+            ]
+          },
+          {
+            "index": 271,
+            "branch": "oeffentliches_recht",
+            "language": "it",
+            "branch_coherence@10": 0.2,
+            "neighbor_branches": [
+              "strafrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "strafrecht",
+              "oeffentliches_recht",
+              "zivilrecht",
+              "zivilrecht"
+            ]
+          },
+          {
+            "index": 918,
+            "branch": "oeffentliches_recht",
+            "language": "fr",
+            "branch_coherence@10": 0.2,
+            "neighbor_branches": [
+              "strafrecht",
+              "zivilrecht",
+              "strafrecht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "zivilrecht",
+              "oeffentliches_recht"
+            ]
+          },
+          {
+            "index": 864,
+            "branch": "oeffentliches_recht",
+            "language": "fr",
+            "branch_coherence@10": 0.2,
+            "neighbor_branches": [
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "oeffentliches_recht"
+            ]
+          },
+          {
+            "index": 4,
+            "branch": "oeffentliches_recht",
+            "language": "fr",
+            "branch_coherence@10": 0.2,
+            "neighbor_branches": [
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "oeffentliches_recht"
+            ]
+          },
+          {
+            "index": 793,
+            "branch": "zivilrecht",
+            "language": "de",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "strafrecht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "zivilrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "strafrecht"
+            ]
+          },
+          {
+            "index": 303,
+            "branch": "zivilrecht",
+            "language": "de",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "zivilrecht",
+              "zivilrecht",
+              "zivilrecht"
+            ]
+          },
+          {
+            "index": 633,
+            "branch": "oeffentliches_recht",
+            "language": "de",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "zivilrecht",
+              "strafrecht",
+              "strafrecht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht"
+            ]
+          },
+          {
+            "index": 214,
+            "branch": "oeffentliches_recht",
+            "language": "de",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "zivilrecht",
+              "zivilrecht",
+              "strafrecht",
+              "strafrecht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "strafrecht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "oeffentliches_recht"
+            ]
+          },
+          {
+            "index": 737,
+            "branch": "oeffentliches_recht",
+            "language": "de",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "zivilrecht",
+              "strafrecht",
+              "strafrecht",
+              "zivilrecht",
+              "strafrecht",
+              "oeffentliches_recht",
+              "strafrecht"
+            ]
+          },
+          {
+            "index": 535,
+            "branch": "oeffentliches_recht",
+            "language": "fr",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "oeffentliches_recht",
+              "strafrecht",
+              "strafrecht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "oeffentliches_recht",
+              "strafrecht"
+            ]
+          },
+          {
+            "index": 545,
+            "branch": "oeffentliches_recht",
+            "language": "fr",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "zivilrecht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "zivilrecht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "strafrecht",
+              "zivilrecht",
+              "oeffentliches_recht"
+            ]
+          },
+          {
+            "index": 392,
+            "branch": "zivilrecht",
+            "language": "de",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "strafrecht",
+              "zivilrecht",
+              "strafrecht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "zivilrecht",
+              "strafrecht",
+              "strafrecht"
+            ]
+          },
+          {
+            "index": 567,
+            "branch": "oeffentliches_recht",
+            "language": "it",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "strafrecht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "strafrecht",
+              "zivilrecht",
+              "strafrecht",
+              "strafrecht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "oeffentliches_recht"
+            ]
+          }
+        ],
+        "dead_zones": [
+          {
+            "i": 743,
+            "j": 903,
+            "similarity": 0.982,
+            "branch_i": "strafrecht",
+            "branch_j": "oeffentliches_recht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 903,
+            "j": 743,
+            "similarity": 0.982,
+            "branch_i": "oeffentliches_recht",
+            "branch_j": "strafrecht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 384,
+            "j": 903,
+            "similarity": 0.981,
+            "branch_i": "strafrecht",
+            "branch_j": "oeffentliches_recht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 903,
+            "j": 384,
+            "similarity": 0.981,
+            "branch_i": "oeffentliches_recht",
+            "branch_j": "strafrecht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 200,
+            "j": 601,
+            "similarity": 0.9793,
+            "branch_i": "strafrecht",
+            "branch_j": "zivilrecht",
+            "lang_i": "de",
+            "lang_j": "de"
+          },
+          {
+            "i": 601,
+            "j": 200,
+            "similarity": 0.9793,
+            "branch_i": "zivilrecht",
+            "branch_j": "strafrecht",
+            "lang_i": "de",
+            "lang_j": "de"
+          },
+          {
+            "i": 151,
+            "j": 903,
+            "similarity": 0.9776,
+            "branch_i": "strafrecht",
+            "branch_j": "oeffentliches_recht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 903,
+            "j": 151,
+            "similarity": 0.9776,
+            "branch_i": "oeffentliches_recht",
+            "branch_j": "strafrecht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 903,
+            "j": 964,
+            "similarity": 0.9771,
+            "branch_i": "oeffentliches_recht",
+            "branch_j": "strafrecht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 964,
+            "j": 903,
+            "similarity": 0.9771,
+            "branch_i": "strafrecht",
+            "branch_j": "oeffentliches_recht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 326,
+            "j": 547,
+            "similarity": 0.976,
+            "branch_i": "oeffentliches_recht",
+            "branch_j": "strafrecht",
+            "lang_i": "de",
+            "lang_j": "de"
+          },
+          {
+            "i": 547,
+            "j": 326,
+            "similarity": 0.976,
+            "branch_i": "strafrecht",
+            "branch_j": "oeffentliches_recht",
+            "lang_i": "de",
+            "lang_j": "de"
+          },
+          {
+            "i": 786,
+            "j": 994,
+            "similarity": 0.9756,
+            "branch_i": "strafrecht",
+            "branch_j": "oeffentliches_recht",
+            "lang_i": "de",
+            "lang_j": "de"
+          },
+          {
+            "i": 994,
+            "j": 786,
+            "similarity": 0.9756,
+            "branch_i": "oeffentliches_recht",
+            "branch_j": "strafrecht",
+            "lang_i": "de",
+            "lang_j": "de"
+          },
+          {
+            "i": 637,
+            "j": 903,
+            "similarity": 0.9752,
+            "branch_i": "strafrecht",
+            "branch_j": "oeffentliches_recht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 903,
+            "j": 637,
+            "similarity": 0.9752,
+            "branch_i": "oeffentliches_recht",
+            "branch_j": "strafrecht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 95,
+            "j": 179,
+            "similarity": 0.9751,
+            "branch_i": "oeffentliches_recht",
+            "branch_j": "strafrecht",
+            "lang_i": "de",
+            "lang_j": "de"
+          },
+          {
+            "i": 179,
+            "j": 95,
+            "similarity": 0.9751,
+            "branch_i": "strafrecht",
+            "branch_j": "oeffentliches_recht",
+            "lang_i": "de",
+            "lang_j": "de"
+          },
+          {
+            "i": 70,
+            "j": 707,
+            "similarity": 0.975,
+            "branch_i": "strafrecht",
+            "branch_j": "oeffentliches_recht",
+            "lang_i": "de",
+            "lang_j": "de"
+          },
+          {
+            "i": 381,
+            "j": 671,
+            "similarity": 0.975,
+            "branch_i": "zivilrecht",
+            "branch_j": "oeffentliches_recht",
+            "lang_i": "de",
+            "lang_j": "de"
+          }
+        ],
+        "subgroup_sensitivity": {
+          "oeffentliches_recht": {
+            "count": 466,
+            "mean_coherence@10": 0.8702,
+            "std_coherence@10": 0.1986,
+            "min_coherence@10": 0.0
+          },
+          "strafrecht": {
+            "count": 271,
+            "mean_coherence@10": 0.9232,
+            "std_coherence@10": 0.1281,
+            "min_coherence@10": 0.2
+          },
+          "zivilrecht": {
+            "count": 262,
+            "mean_coherence@10": 0.8878,
+            "std_coherence@10": 0.1806,
+            "min_coherence@10": 0.2
+          }
+        },
+        "similarity_distribution": {
+          "mean": 0.8914,
+          "std": 0.0424,
+          "min": 0.684,
+          "max": 0.9999,
+          "p5": 0.8197,
+          "p25": 0.8615,
+          "p50": 0.8919,
+          "p75": 0.9271,
+          "p95": 0.9533
+        },
+        "duration": 0.178924560546875
+      }
+    },
+    {
+      "name": "language_debiased_pca2",
+      "description": "Baseline with language-component removed via PCA (2-dim)",
+      "tf_metadata": {
+        "representation": "language_debiased_pca2",
+        "num_decisions": 999,
+        "branch_distribution": {
+          "strafrecht": 271,
+          "zivilrecht": 262,
+          "oeffentliches_recht": 466
+        },
+        "branch_knn": {
+          "knn_accuracy@1": 0.974,
+          "knn_accuracy@3": 0.967,
+          "knn_accuracy@5": 0.967,
+          "knn_accuracy@10": 0.962,
+          "random_baseline": 0.3333
+        },
+        "chamber_knn": {
+          "knn_accuracy@1": 0.9449,
+          "knn_accuracy@3": 0.9329,
+          "knn_accuracy@5": 0.9269,
+          "knn_accuracy@10": 0.9229,
+          "random_baseline": 0.1111
+        },
+        "legal_area_knn": {
+          "knn_accuracy@1": 0.4294,
+          "knn_accuracy@3": 0.3974,
+          "knn_accuracy@5": 0.4184,
+          "knn_accuracy@10": 0.4154,
+          "random_baseline": 0.01
+        },
+        "branch_purity_at_k": {
+          "mean_purity@5": 0.951,
+          "mean_purity@10": 0.9201,
+          "mean_purity@20": 0.8589,
+          "mean_purity@50": 0.7407
+        },
+        "cross_branch_confusion": {
+          "oeffentliches_recht": {
+            "count": 466,
+            "mean_same_label_fraction@10": 0.9112
+          },
+          "strafrecht": {
+            "count": 271,
+            "mean_same_label_fraction@10": 0.9266
+          },
+          "zivilrecht": {
+            "count": 262,
+            "mean_same_label_fraction@10": 0.8927
+          }
+        },
+        "summary": {
+          "branch_knn_accuracy@5": 0.967,
+          "chamber_knn_accuracy@5": 0.9269,
+          "legal_area_knn_accuracy@5": 0.4184,
+          "branch_purity@10": 0.9201,
+          "branch_pass": true,
+          "any_pass": true
+        },
+        "duration": 0.5022332668304443
+      },
+      "adversarial": {
+        "representation": "language_debiased_pca2",
+        "num_decisions": 999,
+        "status": "FALSIFIED",
+        "falsified": true,
+        "falsification_reasons": [
+          "20 pairs with similarity > 0.95 across different branches: dead zones in embedding space"
+        ],
+        "language_dominance": {
+          "mean": 0.8182,
+          "std": 0.2803,
+          "median": 1.0
+        },
+        "branch_coherence": {
+          "mean": 0.9105,
+          "std": 0.1631,
+          "median": 1.0
+        },
+        "worst_cases": [
+          {
+            "index": 903,
+            "branch": "oeffentliches_recht",
+            "language": "fr",
+            "branch_coherence@10": 0.0,
+            "neighbor_branches": [
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht"
+            ]
+          },
+          {
+            "index": 114,
+            "branch": "strafrecht",
+            "language": "fr",
+            "branch_coherence@10": 0.0,
+            "neighbor_branches": [
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht"
+            ]
+          },
+          {
+            "index": 772,
+            "branch": "strafrecht",
+            "language": "fr",
+            "branch_coherence@10": 0.1,
+            "neighbor_branches": [
+              "zivilrecht",
+              "strafrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "zivilrecht"
+            ]
+          },
+          {
+            "index": 800,
+            "branch": "zivilrecht",
+            "language": "fr",
+            "branch_coherence@10": 0.2,
+            "neighbor_branches": [
+              "oeffentliches_recht",
+              "strafrecht",
+              "strafrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "oeffentliches_recht",
+              "oeffentliches_recht"
+            ]
+          },
+          {
+            "index": 807,
+            "branch": "zivilrecht",
+            "language": "fr",
+            "branch_coherence@10": 0.2,
+            "neighbor_branches": [
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "zivilrecht",
+              "oeffentliches_recht"
+            ]
+          },
+          {
+            "index": 638,
+            "branch": "zivilrecht",
+            "language": "fr",
+            "branch_coherence@10": 0.2,
+            "neighbor_branches": [
+              "strafrecht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "strafrecht",
+              "zivilrecht",
+              "strafrecht",
+              "strafrecht",
+              "zivilrecht",
+              "strafrecht",
+              "strafrecht"
+            ]
+          },
+          {
+            "index": 303,
+            "branch": "zivilrecht",
+            "language": "de",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "zivilrecht",
+              "zivilrecht",
+              "zivilrecht"
+            ]
+          },
+          {
+            "index": 424,
+            "branch": "zivilrecht",
+            "language": "fr",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "zivilrecht",
+              "oeffentliches_recht"
+            ]
+          },
+          {
+            "index": 486,
+            "branch": "oeffentliches_recht",
+            "language": "fr",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "oeffentliches_recht",
+              "zivilrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "zivilrecht",
+              "strafrecht",
+              "zivilrecht"
+            ]
+          },
+          {
+            "index": 96,
+            "branch": "oeffentliches_recht",
+            "language": "fr",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "zivilrecht",
+              "oeffentliches_recht",
+              "zivilrecht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "zivilrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "zivilrecht"
+            ]
+          },
+          {
+            "index": 147,
+            "branch": "zivilrecht",
+            "language": "de",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "strafrecht",
+              "strafrecht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "zivilrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "zivilrecht",
+              "zivilrecht"
+            ]
+          },
+          {
+            "index": 286,
+            "branch": "oeffentliches_recht",
+            "language": "de",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "zivilrecht",
+              "strafrecht",
+              "oeffentliches_recht"
+            ]
+          },
+          {
+            "index": 271,
+            "branch": "oeffentliches_recht",
+            "language": "it",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "zivilrecht",
+              "zivilrecht",
+              "strafrecht",
+              "strafrecht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "zivilrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "oeffentliches_recht"
+            ]
+          },
+          {
+            "index": 633,
+            "branch": "oeffentliches_recht",
+            "language": "de",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "zivilrecht",
+              "strafrecht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht"
+            ]
+          },
+          {
+            "index": 547,
+            "branch": "strafrecht",
+            "language": "de",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "strafrecht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "strafrecht"
+            ]
+          },
+          {
+            "index": 460,
+            "branch": "oeffentliches_recht",
+            "language": "it",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "strafrecht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "zivilrecht",
+              "strafrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "oeffentliches_recht"
+            ]
+          },
+          {
+            "index": 981,
+            "branch": "oeffentliches_recht",
+            "language": "it",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "oeffentliches_recht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "oeffentliches_recht"
+            ]
+          },
+          {
+            "index": 214,
+            "branch": "oeffentliches_recht",
+            "language": "de",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "strafrecht",
+              "oeffentliches_recht"
+            ]
+          },
+          {
+            "index": 624,
+            "branch": "oeffentliches_recht",
+            "language": "it",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "strafrecht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "zivilrecht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "zivilrecht",
+              "strafrecht",
+              "strafrecht",
+              "oeffentliches_recht"
+            ]
+          },
+          {
+            "index": 567,
+            "branch": "oeffentliches_recht",
+            "language": "it",
+            "branch_coherence@10": 0.3,
+            "neighbor_branches": [
+              "strafrecht",
+              "oeffentliches_recht",
+              "strafrecht",
+              "strafrecht",
+              "strafrecht",
+              "zivilrecht",
+              "strafrecht",
+              "zivilrecht",
+              "oeffentliches_recht",
+              "oeffentliches_recht"
+            ]
+          }
+        ],
+        "dead_zones": [
+          {
+            "i": 743,
+            "j": 903,
+            "similarity": 0.9817,
+            "branch_i": "strafrecht",
+            "branch_j": "oeffentliches_recht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 903,
+            "j": 743,
+            "similarity": 0.9817,
+            "branch_i": "oeffentliches_recht",
+            "branch_j": "strafrecht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 384,
+            "j": 903,
+            "similarity": 0.9811,
+            "branch_i": "strafrecht",
+            "branch_j": "oeffentliches_recht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 903,
+            "j": 384,
+            "similarity": 0.9811,
+            "branch_i": "oeffentliches_recht",
+            "branch_j": "strafrecht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 200,
+            "j": 601,
+            "similarity": 0.9777,
+            "branch_i": "strafrecht",
+            "branch_j": "zivilrecht",
+            "lang_i": "de",
+            "lang_j": "de"
+          },
+          {
+            "i": 601,
+            "j": 200,
+            "similarity": 0.9777,
+            "branch_i": "zivilrecht",
+            "branch_j": "strafrecht",
+            "lang_i": "de",
+            "lang_j": "de"
+          },
+          {
+            "i": 151,
+            "j": 903,
+            "similarity": 0.9772,
+            "branch_i": "strafrecht",
+            "branch_j": "oeffentliches_recht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 903,
+            "j": 151,
+            "similarity": 0.9772,
+            "branch_i": "oeffentliches_recht",
+            "branch_j": "strafrecht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 903,
+            "j": 964,
+            "similarity": 0.977,
+            "branch_i": "oeffentliches_recht",
+            "branch_j": "strafrecht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 964,
+            "j": 903,
+            "similarity": 0.977,
+            "branch_i": "strafrecht",
+            "branch_j": "oeffentliches_recht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 326,
+            "j": 547,
+            "similarity": 0.9765,
+            "branch_i": "oeffentliches_recht",
+            "branch_j": "strafrecht",
+            "lang_i": "de",
+            "lang_j": "de"
+          },
+          {
+            "i": 547,
+            "j": 326,
+            "similarity": 0.9765,
+            "branch_i": "strafrecht",
+            "branch_j": "oeffentliches_recht",
+            "lang_i": "de",
+            "lang_j": "de"
+          },
+          {
+            "i": 637,
+            "j": 903,
+            "similarity": 0.9749,
+            "branch_i": "strafrecht",
+            "branch_j": "oeffentliches_recht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 903,
+            "j": 637,
+            "similarity": 0.9749,
+            "branch_i": "oeffentliches_recht",
+            "branch_j": "strafrecht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 510,
+            "j": 903,
+            "similarity": 0.9747,
+            "branch_i": "strafrecht",
+            "branch_j": "oeffentliches_recht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 903,
+            "j": 510,
+            "similarity": 0.9747,
+            "branch_i": "oeffentliches_recht",
+            "branch_j": "strafrecht",
+            "lang_i": "fr",
+            "lang_j": "fr"
+          },
+          {
+            "i": 32,
+            "j": 381,
+            "similarity": 0.9743,
+            "branch_i": "oeffentliches_recht",
+            "branch_j": "zivilrecht",
+            "lang_i": "de",
+            "lang_j": "de"
+          },
+          {
+            "i": 381,
+            "j": 32,
+            "similarity": 0.9743,
+            "branch_i": "zivilrecht",
+            "branch_j": "oeffentliches_recht",
+            "lang_i": "de",
+            "lang_j": "de"
+          },
+          {
+            "i": 786,
+            "j": 994,
+            "similarity": 0.9743,
+            "branch_i": "strafrecht",
+            "branch_j": "oeffentliches_recht",
+            "lang_i": "de",
+            "lang_j": "de"
+          },
+          {
+            "i": 994,
+            "j": 786,
+            "similarity": 0.9743,
+            "branch_i": "oeffentliches_recht",
+            "branch_j": "strafrecht",
+            "lang_i": "de",
+            "lang_j": "de"
+          }
+        ],
+        "subgroup_sensitivity": {
+          "oeffentliches_recht": {
+            "count": 466,
+            "mean_coherence@10": 0.9112,
+            "std_coherence@10": 0.1627,
+            "min_coherence@10": 0.0
+          },
+          "strafrecht": {
+            "count": 271,
+            "mean_coherence@10": 0.9266,
+            "std_coherence@10": 0.1359,
+            "min_coherence@10": 0.0
+          },
+          "zivilrecht": {
+            "count": 262,
+            "mean_coherence@10": 0.8927,
+            "std_coherence@10": 0.1861,
+            "min_coherence@10": 0.2
+          }
+        },
+        "similarity_distribution": {
+          "mean": 0.9143,
+          "std": 0.0289,
+          "min": 0.7174,
+          "max": 0.9999,
+          "p5": 0.8599,
+          "p25": 0.8978,
+          "p50": 0.9188,
+          "p75": 0.935,
+          "p95": 0.9533
+        },
+        "duration": 0.17570734024047852
+      }
+    }
+  ],
+  "comparison": {
+    "tf_metadata": {
+      "baseline_branch_knn@5": 0.957,
+      "debiased_branch_knn@5": 0.967,
+      "baseline_chamber_knn@5": 0.9209,
+      "debiased_chamber_knn@5": 0.9269,
+      "baseline_purity@10": 0.9012,
+      "debiased_purity@10": 0.9201
+    },
+    "adversarial": {
+      "baseline_status": "FALSIFIED",
+      "debiased_status": "FALSIFIED",
+      "baseline_lang_dominance": 0.9821,
+      "debiased_lang_dominance": 0.8182,
+      "baseline_branch_coherence": 0.8892,
+      "debiased_branch_coherence": 0.9105
+    }
+  }
+}
