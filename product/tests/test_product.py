@@ -254,6 +254,7 @@ def test_corpus_import():
             "full_text": "Dies ist ein Testentscheid uber das Strafrecht im Produkttest.",
             "branch": "strafrecht",
             "legal_area": "Strafrecht",
+            "provenance": {"source": "user_upload"},
         },
         {
             "decision_id": "test_product_002",
@@ -264,6 +265,7 @@ def test_corpus_import():
             "full_text": "Ceci est un arret de test en droit civil pour le produit.",
             "branch": "zivilrecht",
             "legal_area": "Zivilrecht",
+            "provenance": {"source": "user_upload"},
         },
     ]
     

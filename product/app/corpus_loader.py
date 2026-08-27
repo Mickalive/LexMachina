@@ -6,8 +6,12 @@ a clean interface for product use.
 import json
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, Iterator
+from typing import Dict, List, Optional, Iterator, Tuple
 from dataclasses import dataclass, field, asdict
+from datetime import datetime, timezone
+import hashlib
+
+from .schema_validator import SchemaValidator, ValidationResult
 
 
 @dataclass
@@ -67,6 +71,7 @@ class CorpusLoader:
         self._loaded = False
         self._user_import_count = 0
         self._user_import_dir = self.corpus_dir.parent / "user_imports"
+        self._schema_validator = SchemaValidator()
 
     def load(self) -> int:
         """Load all JSONL files from corpus_dir and user imports. Returns count of loaded decisions."""
@@ -199,7 +204,7 @@ class CorpusLoader:
         """Number of decisions loaded from user imports."""
         return self._user_import_count
 
-    def import_records(self, records: List[Dict]) -> Dict:
+    def import_records(self, records: List[Dict], strict_validation: bool = False) -> Dict:
         """Import user records into the corpus.
 
         Validates each record against the canonical schema, persists to
@@ -215,27 +220,34 @@ class CorpusLoader:
         imported = 0
         skipped = 0
         errors = []
+        warnings = []
         imported_ids = []
 
         for i, record in enumerate(records):
-            # Validate required fields
-            decision_id = record.get("decision_id", "")
-            if not decision_id:
-                errors.append(f"Record {i}: missing decision_id")
+            # Validate against schema
+            result: ValidationResult = self._schema_validator.validate(record, strict=strict_validation)
+            
+            if not result.valid:
+                errors.append(f"Record {i} ({record.get('decision_id', 'unknown')}): {'; '.join(result.errors)}")
                 skipped += 1
                 continue
 
+            if result.warnings:
+                warnings.append(f"Record {i} ({record.get('decision_id', 'unknown')}): {'; '.join(result.warnings)}")
+
+            decision_id = result.normalized_record["decision_id"]
             if decision_id in self.decisions:
                 skipped += 1
                 continue
 
-            decision = self._parse_record(record)
+            # Create decision from normalized record
+            decision = self._parse_record(result.normalized_record)
             if decision:
                 self.decisions[decision.decision_id] = decision
                 imported_ids.append(decision.decision_id)
                 imported += 1
             else:
-                errors.append(f"Record {i}: failed to parse")
+                errors.append(f"Record {i} ({decision_id}): failed to parse normalized record")
                 skipped += 1
 
         # Persist imported records
@@ -273,9 +285,10 @@ class CorpusLoader:
         return {
             "imported": imported,
             "skipped": skipped,
-            "errors": errors[:10],  # Limit error output
+            "errors": errors[:20],
+            "warnings": warnings[:20],
             "total_decisions": self.size,
-            "imported_ids": imported_ids[:20],  # Limit output
+            "imported_ids": imported_ids[:50],
         }
 
     def load_user_imports(self) -> int:
@@ -291,3 +304,13 @@ class CorpusLoader:
 
         self._user_import_count += count
         return count
+
+    def get_corpus_stats(self) -> Dict:
+        """Get detailed corpus statistics including coverage."""
+        return {
+            "total_decisions": self.size,
+            "languages": self.languages,
+            "branches": self.branches,
+            "user_imports": self._user_import_count,
+            "canonical_decisions": self.size - self._user_import_count,
+        }
