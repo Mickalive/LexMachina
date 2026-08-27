@@ -1,0 +1,36 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Multilingual neural baseline (sentence-transformers/paraphrase-multilingual-mpnet-base-v2) establishes a second reference point across 7 benchmarks on 1,000 real BGer decisions. Neural model passes corpus stability, fails citation proximity, legal-area clustering, multilingual invariance, neighbor relevance, and hierarchy coherence (against 4 branch labels). TF-IDF and neural embeddings show complementary strengths. All hierarchy_coherence NMI values now directly comparable (both use 4 branch labels).",
+  "evidence_summary": "Repair round 3 fully addresses both required fixes from audit CYCLE_33024162040. (1) branch_distribution now counts sampled decisions (500), not full embedding index (1000); sums to 500, balanced at 125 per branch across 4 branches. (2) hierarchy_coherence now uses 4 branch labels (matching TF-IDF methodology); NMI=0.067 vs TF-IDF 0.0283, directly comparable. All 7 benchmarks execute correctly on 1,000 real BGer decisions. Internal consistency verified: branch_distribution sum matches num_decisions, best_nmi/purity match max of level values, multilingual separation = cross_lang_mean - same_lang_mean, citation similarity gap = positive_mean - negative_mean, corpus stability drift ≈0 (static embeddings). Cross-file consistency: all 18 state evidence_refs exist, baselines match comparison values, TF-IDF values match cycle 4. Additional fix: same branch_distribution correction applied to evaluation/tests/legal_area_clustering.py (test code path, does not affect cycle 5 results). Honest negative results preserved: citation proximity AUC 0.500 (FAILED), legal-area NMI 0.057 (FAILED), multilingual separation -0.055 (FAILED), neighbor relevance AUC 0.578 (FAILED), hierarchy NMI 0.067 (FAILED, target >0.3). No data leakage, benchmark gaming, post-hoc metrics, weak baselines, boilerplate confounding, visual-prettiness bias, or unsupported claims detected.",
+  "repair_verification": [
+    {
+      "id": "branch_distribution_recurring",
+      "status": "FIXED",
+      "verification": "branch_distribution now sums to 500 (matching num_decisions=500). Previously summed to 1000 (full embedding index). Balanced at 125 per branch across 4 branches.",
+      "code_location": "evaluation/run_cycle_5.py line 428"
+    },
+    {
+      "id": "hierarchy_coherence_label_mismatch",
+      "status": "FIXED",
+      "verification": "hierarchy_coherence now uses 4 branch labels (matching TF-IDF methodology). NMI=0.067 (was 0.515 against 76 legal_area labels). Both baselines now directly comparable.",
+      "code_location": "evaluation/run_cycle_5.py lines 579-620"
+    }
+  ],
+  "additional_fixes": [
+    {
+      "id": "test_code_path_branch_distribution",
+      "status": "FIXED",
+      "verification": "evaluation/tests/legal_area_clustering.py updated with same branch_distribution fix. Does not affect cycle 5 results (run_cycle_5.py has inline implementation). Valid improvement for future test runs.",
+      "code_location": "evaluation/tests/legal_area_clustering.py line 212"
+    }
+  ],
+  "files_modified": [
+    "evaluation/run_cycle_5.py (inline benchmark implementations with both repairs)",
+    "evaluation/results/cycle_5_neural_baseline_results.json (generated results)",
+    "evaluation/reports/evaluation_cycle_5_report.md (report with repair provenance)",
+    "evaluation/tests/legal_area_clustering.py (additional test code fix)",
+    "state/evaluation.json (updated metrics, baselines, cycle history)"
+  ]
+}
