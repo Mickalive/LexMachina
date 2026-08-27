@@ -487,7 +487,7 @@ def test_schema_completeness_extended():
     
     # Provenance source enum should include user_upload
     source_enum = properties.get("provenance", {}).get("properties", {}).get("source", {}).get("enum", [])
-    # Note: user_upload is added at runtime, not in schema enum
+    assert "user_upload" in source_enum, f"provenance.source enum missing 'user_upload', got {source_enum}"
     
     print("  All required fields present")
     print("✓ Extended schema completeness test passed")

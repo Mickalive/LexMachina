@@ -69,6 +69,8 @@ class DecisionNormalizer:
         "dismissed": "abgewiesen",
         "approved": "gutgeheissen",
         "partially_approved": "teilweise_gutgeheissen",
+        "partial_approval": "teilweise_gutgeheissen",
+        "moot": "erledigt",
         "null": "null"
     }
 

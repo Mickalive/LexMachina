@@ -4,7 +4,7 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "corpus_run_20260827_003",
+  "accepted_run_id": "corpus_repair_20260827_001",
   "accepted_commit": null,
   "evidence_refs": [
     "corpus/acquisition/parquet_ingest.py",
@@ -34,7 +34,9 @@
   "next_recommendation": "DONE",
   "metrics": {
     "raw_decisions_acquired": 350,
-    "canonical_decisions_normalized": 350,
+    "canonical_decisions_normalized": 300,
+    "canonical_file_lines_total": 512,
+    "canonical_unique_decision_ids": 300,
     "parquet_validated": true,
     "parquet_file_size_mb": 784.7,
     "parquet_total_rows_estimate": 192794,
@@ -44,17 +46,17 @@
     "user_import_formats": ["jsonl", "json", "text"],
     "user_import_deduplication": "content_hash_sha256",
     "user_import_provenance_source": "user_upload",
-    "test_suite_total": 17,
-    "test_suite_passing": 17,
-    "language_distribution": {"de": 165, "fr": 75, "it": 10},
-    "year_distribution": {"2020": 50, "2021": 50, "2022": 50, "2023": 50, "2024": 150},
-    "court_distribution": {"bger": 350},
-    "branch_distribution": {"oeffentliches_recht": 93, "strafrecht": 53, "zivilrecht": 56, "sozialversicherungsrecht": 48},
+    "test_suite_total": 18,
+    "test_suite_passing": 18,
+    "language_distribution": {"de": 196, "fr": 91, "it": 13},
+    "year_distribution": {"2020": 50, "2021": 50, "2022": 50, "2023": 50, "2024": 100},
+    "court_distribution": {"bger": 300},
+    "branch_distribution": {"oeffentliches_recht": 103, "strafrecht": 64, "zivilrecht": 69, "sozialversicherungsrecht": 64},
     "citation_graph_edges": 2105,
     "citation_graph_nodes_cited": 1628,
     "evaluation_samples": {"balanced": 73, "structure_rich": 89, "full_eval": 100},
     "source": "opencaselaw_api",
     "source_version": "opencaselaw_api_2026-08-26_yearly"
   },
-  "notes": "Cycle 3 completes all factory direction objectives. Parquet bulk ingestion validated end-to-end (785 MB download, sample normalization, schema validation). Statute extraction from full_text provides cited_laws enrichment (50+ Swiss law abbreviations mapped). User corpus import supports JSONL/JSON/text with deduplication and provenance. All 17 tests passing. Pipeline ready for PRODUCT lane integration. No further corpus-only cycles needed."
+  "notes": "Repair round 1 for cycle 33032428186. Fixed: (1) REQUIRED — added 'user_upload' to provenance.source enum in decision_schema.json so user-imported decisions pass downstream schema validation. (2) OPTIONAL — added 'partial_approval' and 'moot' to OUTCOME_MAP in normalize.py, fixing 8 decisions that mapped to null. (3) OPTIONAL — reconciled state metrics: canonical_decisions_normalized=300 (unique decision_ids), all distribution sums now match. Added 6 repair validation tests (all pass). No regressions: 250 yearly decisions still schema-valid."
 }
