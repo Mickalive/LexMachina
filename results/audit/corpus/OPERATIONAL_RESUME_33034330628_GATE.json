@@ -1,0 +1,42 @@
+{
+  "run_id": "corpus_operational_resume_33034330628",
+  "resumed_from": "33033983114",
+  "cycle": "operational_resume",
+  "lane": "corpus",
+  "direction_version": 1,
+  "github_run": 33034330628,
+  "gate": "PASS",
+  "date": "2026-08-27",
+  "evidence_tier": "REPRODUCED",
+  "diagnosis": {
+    "prior_failure": "Missing pandas/pyarrow dependencies blocked test execution in repair run. State metrics incorrectly inflated (300 vs actual 250 unique decisions).",
+    "root_cause": "Eval sample files overlap with yearly canonical files. Prior repair counted overlapping eval decisions as unique, inflating the total.",
+    "fixes_applied": [
+      "Installed pandas+pyarrow to enable full test suite execution",
+      "Reconciled state metrics to ground truth: canonical_decisions_normalized=250 (was 300)",
+      "Corrected all distribution sums to match 250 unique yearly decisions",
+      "Added slice_1000_decisions and total_unique_across_all_canonical to state for transparency"
+    ]
+  },
+  "verification": {
+    "test_suite": "21/21 PASS (6 repair + 10 cycle3 + 5 pipeline individual)",
+    "schema_validation": "0 errors across 250 canonical + 262 eval decisions",
+    "state_metrics_consistent": true,
+    "repair_fixes_verified": true,
+    "regression_free": true
+  },
+  "delta": {
+    "files_changed": 2,
+    "files": ["state/corpus.json", "corpus/reports/operational_resume_33034330628.md"],
+    "nature": "State metrics correction + audit report"
+  },
+  "claim_ceiling": "REPRODUCED",
+  "recommendation": "PASS",
+  "continue_recommended": false,
+  "next_recommendation": "DONE",
+  "artifact_refs": [
+    "state/corpus.json",
+    "corpus/reports/operational_resume_33034330628.md",
+    "results/audit/corpus/OPERATIONAL_RESUME_33034330628_GATE.json"
+  ]
+}

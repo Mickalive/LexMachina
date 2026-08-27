@@ -1,0 +1,71 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Cycle 14 complete. FULL BENCHMARK SUITE: 14/14 benchmarks PASSED on recommended representation (n_pca=1, alpha=0.7). Citation heritage AUC=0.9102 (threshold >0.65). Language dominance=0.6406 (threshold <0.85). No dimensional collapse (mean_sim=0.1364). Zoom coherence: 7.1% improvement. Hierarchy purity: 0.8759. Branch kNN@5: 0.8128. Temporal stability: std=0.0132. TF metadata recall@5: 0.9489. RECOMMENDATION: PRODUCTIZE — representation is validated for product default. The dispatch-to-DONE pathology (10 occurrences) persists externally; evaluation lane work is complete.",
+  "evidence_summary": {
+    "run_type": "operational_resume",
+    "run_id": "33039266006",
+    "cycle_audited": 14,
+    "benchmarks_passed": 14,
+    "benchmarks_total": 14,
+    "files_verified": [
+      "evaluation/run_cycle_14.py",
+      "results/cycle_14_results.json",
+      "reports/evaluation/evaluation_cycle_14_report.md",
+      "state/evaluation.json"
+    ],
+    "key_metrics": {
+      "citation_heritage_auc": 0.9102,
+      "language_dominance": 0.6406,
+      "branch_knn_5": 0.8128,
+      "collapse_mean_similarity": 0.1364,
+      "zoom_improvement_pct": 7.1,
+      "hierarchy_purity": 0.8759,
+      "temporal_stability_std": 0.0132,
+      "tf_metadata_recall_5": 0.9489
+    },
+    "pathology_documented": "dispatch_to_done_10th_occurrence",
+    "supervisor_guard_missing": true
+  },
+  "run_id": "33039266006",
+  "lane": "evaluation",
+  "run_type": "operational_resume",
+  "timestamp": "2026-08-27T04:30:00Z",
+  "audit_gate": "PASS",
+  "gate_reason": "Evaluation lane correctly complete. No new evaluation work produced. Prior cycle 14 validated with 14/14 benchmarks PASS. Operational resume correctly diagnoses orchestration failure (10th occurrence).",
+  "producer_workspace": "/tmp/lex_team",
+  "accepted_base": "/home/runner/work/LexMachina/LexMachina",
+  "files_verified": [
+    "evaluation/run_cycle_14.py",
+    "results/cycle_14_results.json",
+    "reports/evaluation/evaluation_cycle_14_report.md",
+    "state/evaluation.json"
+  ],
+  "files_modified": [
+    "state/evaluation.json"
+  ],
+  "files_added": [
+    "results/audit/evaluation/CYCLE_33039266006_GATE.json",
+    "reports/audit/evaluation/CYCLE_33039266006.md"
+  ],
+  "state_before": {
+    "cycle_status": "COMPLETED",
+    "continue_recommended": false,
+    "accepted_run_id": "eval_cycle_14_1787801259",
+    "evidence_tier": "REPRODUCED",
+    "next_recommendation": "PRODUCTIZE",
+    "operational_resume_run_id": "33037689669"
+  },
+  "state_after": {
+    "cycle_status": "COMPLETED",
+    "continue_recommended": false,
+    "accepted_run_id": "eval_cycle_14_1787801259",
+    "evidence_tier": "REPRODUCED",
+    "next_recommendation": "PRODUCTIZE",
+    "operational_resume_run_id": "33039266006"
+  },
+  "diagnosis": "10th occurrence of dispatch-to-DONE pathology: supervisor dispatched operational resume to evaluation lane despite cycle_status=COMPLETED and continue_recommended=false since run 33036139776. Lane correctly refuses new work. Root cause: supervisor lacks pre-dispatch guard reading state/<lane>.json. Documented occurrences: 33027937718, 33030061655, 33030407701, 33030597595, 33033313906 (FAILED), 33036602765, 33037053005, 33037356706, 33037689669, 33039266006 (THIS RUN).",
+  "required_external_fix": "Add guard in factory supervisor: before dispatching, read state/<lane>.json and block if cycle_status=COMPLETED and continue_recommended=false.",
+  "auditor": "LEXMACHINA INDEPENDENT AUDITOR"
+}

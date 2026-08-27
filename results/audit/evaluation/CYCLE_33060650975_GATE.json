@@ -1,0 +1,86 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Cycle 14 re-verified: 14/14 benchmarks PASS on debiased_citation_blended (n_pca=1, alpha=0.7). AUC=0.9089 (>0.65), lang_dom=0.6373 (<0.85), no collapse (mean_sim=0.1331), zoom +7.1%, hierarchy purity=0.8759, kNN@5=0.7908, temporal std=0.0108, TF recall@5=0.9479. RECOMMENDATION: PRODUCTIZE. 19th dispatch-to-DONE occurrence confirms supervisor guard missing externally.",
+  "evidence_summary": {
+    "run_type": "operational_resume",
+    "run_id": "33060650975",
+    "cycle_reverified": 14,
+    "new_cycle14_run_id": "eval_cycle_14_1787820618",
+    "benchmarks_passed": 14,
+    "benchmarks_total": 14,
+    "files_verified": [
+      "evaluation/run_cycle_14.py",
+      "results/cycle_14_results.json",
+      "state/evaluation.json",
+      "reports/evaluation/SNAPSHOT_VERIFICATION_SUMMARY.md"
+    ],
+    "key_metrics": {
+      "citation_heritage_auc": 0.9089,
+      "language_dominance": 0.6373,
+      "branch_knn_5": 0.7908,
+      "collapse_mean_similarity": 0.1331,
+      "zoom_improvement_pct": 7.1,
+      "hierarchy_purity": 0.8759,
+      "temporal_stability_std": 0.0108,
+      "tf_metadata_recall_5": 0.9479
+    },
+    "variance_from_prior_run": {
+      "citation_heritage_auc_delta": 0.0059,
+      "language_dominance_delta": 0.0076,
+      "branch_knn_5_delta": -0.012,
+      "collapse_mean_similarity_delta": -0.0043,
+      "temporal_stability_std_delta": -0.0102,
+      "tf_metadata_recall_5_delta": -0.0061,
+      "attribution": "node2vec stochasticity (expected)"
+    },
+    "pathology_documented": "dispatch_to_done_19th_occurrence",
+    "supervisor_guard_missing": true,
+    "operational_resume_count": 19
+  },
+  "run_id": "33060650975",
+  "lane": "evaluation",
+  "run_type": "operational_resume",
+  "timestamp": "2026-08-27T10:21:43Z",
+  "audit_gate": "PASS",
+  "gate_reason": "Evaluation lane correctly complete. Re-verification confirms all 14 benchmarks PASS within expected stochastic variance. No new evaluation work produced. Operational resume correctly diagnoses orchestration pathology (19th occurrence). Prior cycle 14 results validated. Safe to integrate.",
+  "producer_workspace": "/tmp/lex_team",
+  "accepted_base": "/home/runner/work/LexMachina/LexMachina",
+  "files_verified": [
+    "evaluation/run_cycle_14.py",
+    "results/cycle_14_results.json",
+    "state/evaluation.json",
+    "reports/evaluation/SNAPSHOT_VERIFICATION_SUMMARY.md"
+  ],
+  "files_modified": [
+    "results/cycle_14_results.json",
+    "state/evaluation.json"
+  ],
+  "files_added": [
+    "reports/evaluation/SNAPSHOT_VERIFICATION_SUMMARY.md",
+    "reports/audit/evaluation/CYCLE_33060650975.md",
+    "results/audit/evaluation/CYCLE_33060650975_GATE.json"
+  ],
+  "state_before": {
+    "cycle_status": "COMPLETED",
+    "continue_recommended": false,
+    "accepted_run_id": "eval_cycle_14_1787801259",
+    "evidence_tier": "REPRODUCED",
+    "next_recommendation": "PRODUCTIZE",
+    "operational_resume_run_id": "33043285021",
+    "github_run": 33043285021
+  },
+  "state_after": {
+    "cycle_status": "COMPLETED",
+    "continue_recommended": false,
+    "accepted_run_id": "eval_cycle_14_1787801259",
+    "evidence_tier": "REPRODUCED",
+    "next_recommendation": "PRODUCTIZE",
+    "operational_resume_run_id": "33059002142",
+    "github_run": 33059002142
+  },
+  "diagnosis": "19th occurrence of dispatch-to-DONE pathology: supervisor dispatched operational resume to evaluation lane despite cycle_status=COMPLETED and continue_recommended=false since run 33027937718. Lane correctly refuses substantive work. This run re-ran Cycle 14 (eval_cycle_14_1787820618) — all 14 benchmarks PASS (AUC=0.9089, lang_dom=0.6373, kNN@5=0.7908, no collapse, zoom +7.1%, hierarchy purity=0.8759, TF recall@5=0.9479). Metrics within expected variance from node2vec stochasticity. Root cause: supervisor lacks pre-dispatch guard reading state/<lane>.json. Documented occurrences: 33027937718, 33030061655, 33030407701, 33030597595, 33033313906 (FAILED), 33036602765, 33037053005, 33037356706, 33037689669, 33039266006, 33040012843, 33041841486, 33042449592, 33042930409, 33043285021, 33043795588, 33054758260, 33059002142, 33060650975 (THIS RUN).",
+  "required_external_fix": "Add guard in factory supervisor: before dispatching, read state/<lane>.json and block if cycle_status=COMPLETED and continue_recommended=false.",
+  "auditor": "LEXMACHINA INDEPENDENT AUDITOR"
+}

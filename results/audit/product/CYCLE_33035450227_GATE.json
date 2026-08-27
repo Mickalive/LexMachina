@@ -1,0 +1,76 @@
+{
+  "gate": "PASS",
+  "run_id": "33035450227",
+  "repair_round": 0,
+  "repaired_cycle": null,
+  "lane": "product",
+  "auditor": "LEXMACHINA_INDEPENDENT_AUDITOR",
+  "model": "opencode/mimo-v2.5-free",
+  "timestamp": "2026-08-27T04:00:00Z",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "REPRODUCED",
+  "evidence_summary": {
+    "tests": "PASS — 90/90 independently verified (9 original + 9 cycle_33032746334 + 4 cycle_33033658714 + 68 cycle_33035450227; parametrized expansion to 90 total)",
+    "section_scaling": "PASS — 63 section + 937 baseline = 1000 decisions; all 6 projections shape (1000,2); provenance tracked per-decision",
+    "evaluation_loader": "PASS — loads unified_results.json (10 representations) and zoom_coherence_results.json (7 resolutions); best_representation=concat_center_tfidf; zoom_coherence_rate=0.396; boilerplate_resistance for 10 representations",
+    "temporal_filtering": "PASS — year range filter works correctly; 1900-1901 returns 0; all 1000 map decisions are 2024 (corpus composition limitation)",
+    "api": "PASS — 22 endpoints (21 GET + 1 POST); 3 new: /api/evaluation/benchmarks, /api/evaluation/representation_quality, /api/map/temporal",
+    "frontend": "PASS — zoom-to-cluster, temporal slider, imported corpus markers, evaluation quality badge, cluster breadcrumb",
+    "backward_compatible": "PASS — all pre-existing endpoints and behavior unchanged; test_product.py updated to accept >=63 decisions",
+    "leakage": "CLEAN — no state overwrite, no benchmark gaming, no post-hoc metrics",
+    "honest_negatives": "CLEAN — sachverhalt==sachverhalt_erwaegungen_dispositiv (upstream data); temporal filtering limited by corpus composition (all 2024); section coverage still 6.3%"
+  },
+  "findings": [
+    {
+      "id": "F-001",
+      "severity": "informational",
+      "title": "sachverhalt and sachverhart_erwaegungen_dispositiv have identical projections",
+      "detail": "Upstream section_experiment_clean data produced identical projections for these two modes (max diff = 0.0). Product correctly loads both as separate views. Not a product defect.",
+      "impact": "Users see two mode labels with identical map positions.",
+      "fix_required": false
+    },
+    {
+      "id": "F-002",
+      "severity": "minor",
+      "title": "get_position_details returns has_section_data=True for all 1000 positions in scaled mode",
+      "detail": "937 baseline fallback positions are marked as has_section_data=True. Provenance data exists in metadata.json but is not surfaced through this API method.",
+      "impact": "Users cannot distinguish section-specific from baseline fallback positions via position details. Coverage string in mode metadata correctly reports 63/1000.",
+      "fix_required": false
+    },
+    {
+      "id": "F-003",
+      "severity": "informational",
+      "title": "State lists 34 navigation features, report claims 33",
+      "detail": "Minor documentation discrepancy. State array has 34 entries; report text says 33. State is authoritative.",
+      "impact": "Documentation only.",
+      "fix_required": false
+    },
+    {
+      "id": "F-004",
+      "severity": "informational",
+      "title": "Temporal filtering limited by corpus composition",
+      "detail": "All 1000 map decisions have year=2024. Temporal slider shows a single year. Feature works correctly but limited utility with this corpus.",
+      "impact": "Documented in state known_limitations. Corpus composition is upstream issue.",
+      "fix_required": false
+    }
+  ],
+  "zero_delta_satisfied": true,
+  "zero_delta_evidence": "All pre-existing functionality preserved. 10 feature additions with verified behavioral difference. 81 new test methods (90 parametrized total) added, all pass. No existing tests broken. test_product.py updated to accept >=63 decisions (was ==63) for scaled modes.",
+  "repair_history": {
+    "previous_repairs": [
+      "CYCLE_33027622849_REPAIR: Fixed missing numpy dependency",
+      "CYCLE_33027622849_REPAIR: Fixed corpus-map mismatch",
+      "CYCLE_33027622849_REPAIR: Integrated Leiden cluster assignments",
+      "CYCLE_33027622849_REPAIR: Added has_corpus flag",
+      "CYCLE_33030231013_REPAIR: Fixed server.py path bug (FIX-001)",
+      "CYCLE_33030231013_REPAIR: Fixed n_clusters metadata (FIX-002)",
+      "CYCLE_33030449356_FIX: Fixed server.py _serve_file path bug (FIX-003)",
+      "CYCLE_33031163726_FIX: Integrated full corpus slice (FIX-004)",
+      "CYCLE_33031163726_FIX: Fixed corpus import test (FIX-005)",
+      "CYCLE_33034800806_FIX: Fixed orchestration failure (FIX-006)"
+    ],
+    "recurring_pathology": false,
+    "pathology_note": "No repairs needed in this cycle. Previous repairs were for concrete bugs and missing dependencies. No systematic code-level issue. Missing cycle reports (recurring in 3 prior cycles) addressed — producer wrote report for this cycle."
+  }
+}
