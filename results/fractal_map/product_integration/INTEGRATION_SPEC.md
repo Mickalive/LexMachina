@@ -1,6 +1,6 @@
 # Fractal Map Lane — Product Integration Specification
 
-**Generated:** 2026-08-27T17:56:34.008097
+**Generated:** 2026-08-27T19:24:13.179480
 **Lane:** fractal-map
 **Evidence Tier:** REPRODUCED
 **Status:** PRODUCTIZE
