@@ -4,9 +4,9 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": true,
-  "accepted_run_id": "33030231013",
+  "accepted_run_id": "33030449356",
   "accepted_commit": null,
-  "github_run": "33030231013",
+  "github_run": "33030449356",
   "evidence_refs": [
     "product/app/corpus_loader.py",
     "product/app/map_loader.py",
@@ -35,14 +35,19 @@
     "CYCLE_33027622849_REPAIR: Integrated Leiden cluster assignments (was spatial grid clustering)",
     "CYCLE_33027622849_REPAIR: Added has_corpus flag to positions for transparency",
     "CYCLE_33030231013_REPAIR: Fixed server.py path bug — Path(__file__).parent.parent → Path(__file__).parent (FIX-001)",
-    "CYCLE_33030231013_REPAIR: Fixed n_clusters metadata — res_data.get('n_clusters', len(clusters)) → len(clusters) (FIX-002)"
+    "CYCLE_33030231013_REPAIR: Fixed n_clusters metadata — res_data.get('n_clusters', len(clusters)) → len(clusters) (FIX-002)",
+    "CYCLE_33030449356_FIX: Fixed server.py _serve_file path bug — parent.parent → parent for static file serving (FIX-003)",
+    "CYCLE_33030449356_FEAT: Added user corpus import (POST /api/import) with JSONL upload and paste support (FEAT-001)",
+    "CYCLE_33030449356_FEAT: Integrated HDBSCAN clustering as alternative to Leiden (FEAT-002)",
+    "CYCLE_33030449356_FEAT: Added corpus stats endpoint (GET /api/corpus/stats) (FEAT-003)",
+    "CYCLE_33030449356_FEAT: Updated frontend with corpus import UI (FEAT-004)"
   ],
   "next_recommendation": "CONTINUE",
   "metrics_summary": {
     "corpus_decisions_loaded": 250,
     "corpus_languages": {"de": 165, "fr": 75, "it": 10},
     "corpus_branches": {"oeffentliches_recht": 93, "zivilrecht": 56, "sozialversicherungsrecht": 48, "strafrecht": 53},
-    "map_representations": ["concat_center_tfidf", "baseline"],
+    "map_representations": ["concat_center_tfidf", "baseline", "hdbscan"],
     "map_positions_total": 1000,
     "map_positions_in_corpus": 50,
     "zoom_levels": [0, 1, 2, 3],
@@ -52,6 +57,12 @@
       "zoom_2": 16,
       "zoom_3": 21
     },
+    "hdbscan_clusters_per_zoom": {
+      "zoom_0": 2,
+      "zoom_1": 2,
+      "zoom_2": 3,
+      "zoom_3": 8
+    },
     "navigation_features": [
       "cluster_exploration",
       "zoom_level_switching",
@@ -60,7 +71,10 @@
       "text_search",
       "language_filter",
       "branch_filter",
-      "corpus_coverage_flag"
+      "corpus_coverage_flag",
+      "user_corpus_import",
+      "hdbscan_clustering",
+      "corpus_stats"
     ],
     "web_frontend": "single_page_html5_canvas",
     "api_endpoints": [
@@ -70,34 +84,41 @@
       "GET /api/decision?id=",
       "GET /api/search?q=&limit=",
       "GET /api/neighbors?id=&representation=&zoom=&n=",
-      "GET /api/zoom_levels?representation="
+      "GET /api/zoom_levels?representation=",
+      "GET /api/corpus/stats",
+      "POST /api/import"
     ],
     "test_results": {
       "corpus_loader": "PASS",
       "map_loader": "PASS",
       "navigation_api": "PASS",
-      "end_to_end": "PASS"
+      "end_to_end": "PASS",
+      "hdbscan": "PASS",
+      "corpus_import": "PASS"
     }
   },
-  "notes": "Repaired vertical slice from cycle 33029508756 (repair round 1, cycle 33030231013). Two one-line fixes: (1) server.py path bug — Path(__file__).parent.parent resolved to workspace root, now correctly resolves to product/ directory. (2) n_clusters metadata — was using inflated values from unified_results.json (8,14,22,25), now uses actual Leiden cluster counts (5,11,16,21). All 4/4 smoke tests pass. Architecture ready for TF base map and user imports.",
+  "notes": "Cycle 33030449356: Extended vertical slice with 3 new features and 1 bug fix. (1) Fixed server.py _serve_file path bug — was using parent.parent (workspace root) instead of parent (product dir), causing static files to return 404. (2) Added user corpus import via POST /api/import — accepts JSONL file upload or JSON array body, validates schema, persists to user_imports/ directory, reloads corpus index. (3) Integrated HDBSCAN clustering as alternative to Leiden — maps min_cluster_size_5/10/20/30 to zoom levels 0-3, handles noise points by nearest-centroid assignment. (4) Added corpus stats endpoint and frontend import UI. All 6/6 smoke tests pass.",
   "known_limitations": [
     "Corpus (250 decisions) covers only 5% of map (1000 decisions) - 950 decisions shown without full text",
-    "No persistence of computed artifacts - recomputation required on each startup",
+    "No persistence of computed map artifacts - recomputation required on each startup",
     "Frontend uses HTML5 Canvas only - no WebGL/Mapbox for large-scale rendering",
-    "No authentication or rate limiting on API"
+    "No authentication or rate limiting on API",
+    "HDBSCAN produces fewer clusters than Leiden at same zoom levels (2-8 vs 5-21)"
   ],
   "resolved_issues": [
     "Orchestration failure: Missing numpy dependency prevented test execution (fixed: requirements.txt added)",
     "Corpus-map mismatch: Only 50 of 1000 map positions had corpus text (fixed: shows all 1000, has_corpus flag)",
     "Wrong cluster assignments: Spatial grid clustering produced 136 clusters at zoom 0 (fixed: Leiden gives 5)",
     "Server path bug: Path(__file__).parent.parent resolved to workspace root, server could not start (fixed: Path(__file__).parent)",
-    "n_clusters metadata: Reported inflated cluster counts (8,14,22,25) instead of actual Leiden counts (5,11,16,21) (fixed: use len(clusters))"
+    "n_clusters metadata: Reported inflated cluster counts (8,14,22,25) instead of actual Leiden counts (5,11,16,21) (fixed: use len(clusters))",
+    "Static file serving: _serve_file used parent.parent causing 404 for all static assets (fixed: use parent)",
+    "No user import capability: Users could not add their own corpora (fixed: POST /api/import with JSONL support)"
   ],
   "next_steps": [
     "Scale corpus to cover more of the 1000-decision map (acquire 2015-2019 decisions)",
-    "Add persistence layer for computed artifacts",
-    "Test with user-imported corpora (same JSONL schema)",
+    "Add persistence layer for computed artifacts (avoid recomputation on restart)",
     "Add map modes (legal issue, reasoning, citation views) per multi-view requirement",
-    "Integrate HDBSCAN clusters as alternative to Leiden for comparison"
+    "Compare Leiden vs HDBSCAN cluster quality on legal-area benchmark",
+    "Add WebGL/Mapbox rendering for large-scale map visualization"
   ]
 }

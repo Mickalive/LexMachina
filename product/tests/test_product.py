@@ -186,12 +186,120 @@ def test_end_to_end():
     return True
 
 
+def test_hdbscan():
+    """Test HDBSCAN clustering as alternative to Leiden."""
+    print("=== Test: HDBSCAN Clustering ===")
+    
+    base_dir = Path(__file__).parent.parent
+    corpus_dir = str(base_dir / "results" / "corpus" / "normalization" / "canonical")
+    results_dir = str(base_dir / "results" / "fractal_map")
+    
+    api = NavigationAPI(corpus_dir, results_dir)
+    api.initialize()
+    
+    # Verify HDBSCAN is available
+    reps = api.map_loader.get_available_representations()
+    assert "hdbscan" in reps, f"hdbscan not in representations: {reps}"
+    print(f"  Available: {reps}")
+    
+    # Test HDBSCAN at each zoom level
+    for zoom in [0, 1, 2, 3]:
+        map_data = api.get_map_data("hdbscan", zoom)
+        n_clusters = len(map_data.get("clusters", []))
+        n_positions = len(map_data.get("positions", []))
+        print(f"  HDBSCAN Zoom {zoom}: {n_clusters} clusters, {n_positions} positions")
+        assert n_positions == 1000, f"Expected 1000 positions, got {n_positions}"
+    
+    # Verify different cluster counts from Leiden
+    leiden_data = api.get_map_data("concat_center_tfidf", 1)
+    hdbscan_data = api.get_map_data("hdbscan", 1)
+    leiden_clusters = len(leiden_data.get("clusters", []))
+    hdbscan_clusters = len(hdbscan_data.get("clusters", []))
+    print(f"  Leiden zoom 1: {leiden_clusters} clusters")
+    print(f"  HDBSCAN zoom 1: {hdbscan_clusters} clusters")
+    
+    print("  PASS\n")
+    return True
+
+
+def test_corpus_import():
+    """Test user corpus import functionality."""
+    print("=== Test: Corpus Import ===")
+    
+    base_dir = Path(__file__).parent.parent
+    corpus_dir = str(base_dir / "results" / "corpus" / "normalization" / "canonical")
+    results_dir = str(base_dir / "results" / "fractal_map")
+    
+    # Clean any previous user imports for idempotent test
+    import shutil
+    user_import_dir = Path(corpus_dir).parent / "user_imports"
+    if user_import_dir.exists():
+        shutil.rmtree(user_import_dir)
+    
+    api = NavigationAPI(corpus_dir, results_dir)
+    api.initialize()
+    
+    initial_count = api.corpus.size
+    initial_user_imports = api.corpus.user_import_count
+    print(f"  Initial: {initial_count} decisions, {initial_user_imports} user imports")
+    
+    # Import test records
+    test_records = [
+        {
+            "decision_id": "test_product_001",
+            "court": "bger",
+            "docket_number": "TEST-PROD-001",
+            "decision_date": "2024-01-15",
+            "language": "de",
+            "full_text": "Dies ist ein Testentscheid uber das Strafrecht im Produkttest.",
+            "branch": "strafrecht",
+            "legal_area": "Strafrecht",
+        },
+        {
+            "decision_id": "test_product_002",
+            "court": "bger",
+            "docket_number": "TEST-PROD-002",
+            "decision_date": "2024-02-20",
+            "language": "fr",
+            "full_text": "Ceci est un arret de test en droit civil pour le produit.",
+            "branch": "zivilrecht",
+            "legal_area": "Zivilrecht",
+        },
+    ]
+    
+    result = api.import_corpus(test_records)
+    print(f"  Imported: {result['imported']}, Skipped: {result['skipped']}")
+    assert result["imported"] == 2, f"Expected 2 imported, got {result['imported']}"
+    assert api.corpus.size == initial_count + 2
+    
+    # Verify corpus stats
+    stats = api.get_corpus_stats()
+    print(f"  Total: {stats['total_decisions']}, User imports: {stats['user_imports']}")
+    assert stats["user_imports"] == initial_user_imports + 2
+    
+    # Duplicate import should skip
+    result2 = api.import_corpus(test_records)
+    assert result2["imported"] == 0, f"Duplicates should be skipped, got {result2['imported']}"
+    print(f"  Duplicate skip: {result2['skipped']} skipped")
+    
+    # Search should find imported decisions (with high enough limit)
+    results = api.search_decisions("Strafrecht", limit=50)
+    imported_found = [r for r in results if r["decision_id"].startswith("test_product")]
+    print(f"  Search found {len(imported_found)} imported decisions")
+    assert len(imported_found) >= 1, "Expected to find imported decision in search"
+    
+    print("  PASS\n")
+    return True
+
+
 if __name__ == "__main__":
     results = []
     results.append(("Corpus Loader", test_corpus_loader()))
     results.append(("Map Loader", test_map_loader()))
     results.append(("Navigation API", test_navigation_api()))
     results.append(("End-to-End", test_end_to_end()))
+    results.append(("HDBSCAN", test_hdbscan()))
+    results.append(("Corpus Import", test_corpus_import()))
     
     print("=" * 50)
     print("RESULTS:")

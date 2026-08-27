@@ -257,3 +257,28 @@ class NavigationAPI:
                 neighbors.append(summary)
 
         return neighbors
+
+    def import_corpus(self, records: List[Dict]) -> Dict[str, Any]:
+        """Import user corpus records into the navigation index.
+
+        Accepts a list of JSONL-style decision records. Validates the schema,
+        persists to a user-import directory, and reloads the corpus index.
+        Returns import statistics.
+        """
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        result = self.corpus.import_records(records)
+        return result
+
+    def get_corpus_stats(self) -> Dict[str, Any]:
+        """Get corpus statistics including user-imported records."""
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        return {
+            "total_decisions": self.corpus.size,
+            "languages": self.corpus.languages,
+            "branches": self.corpus.branches,
+            "user_imports": self.corpus.user_import_count,
+        }

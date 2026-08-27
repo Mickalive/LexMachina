@@ -68,6 +68,8 @@ class ProductHandler(SimpleHTTPRequestHandler):
         elif path == "/api/zoom_levels":
             rep = params.get("representation", ["concat_center_tfidf"])[0]
             self._json_response(get_nav_api().get_zoom_levels(rep))
+        elif path == "/api/corpus/stats":
+            self._json_response(get_nav_api().get_corpus_stats())
         # Static files
         elif path == "/" or path == "/index.html":
             self._serve_file("static/index.html", "text/html")
@@ -77,6 +79,84 @@ class ProductHandler(SimpleHTTPRequestHandler):
             self._serve_file(f"static{path}", "text/css")
         else:
             self.send_error(404)
+
+    def do_POST(self):
+        parsed = urlparse(self.path)
+        path = parsed.path
+
+        if path == "/api/import":
+            self._handle_import()
+        else:
+            self.send_error(404)
+
+    def _handle_import(self):
+        """Handle corpus import via multipart form upload or JSON body."""
+        content_type = self.headers.get("Content-Type", "")
+
+        if "multipart/form-data" in content_type:
+            self._handle_multipart_import(content_type)
+        elif "application/json" in content_type:
+            self._handle_json_import()
+        else:
+            self._json_response({"error": "Expected Content-Type: multipart/form-data or application/json"}, 400)
+
+    def _handle_json_import(self):
+        """Import corpus from JSON body (array of decision records)."""
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(content_length)
+            records = json.loads(body.decode("utf-8"))
+
+            if not isinstance(records, list):
+                records = [records]
+
+            result = get_nav_api().import_corpus(records)
+            self._json_response(result)
+        except Exception as e:
+            self._json_response({"error": str(e)}, 500)
+
+    def _handle_multipart_import(self, content_type):
+        """Import corpus from multipart file upload."""
+        try:
+            # Parse boundary
+            boundary = content_type.split("boundary=")[1].strip()
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(content_length)
+
+            # Simple multipart parser for file uploads
+            parts = body.split(f"--{boundary}".encode())
+            records = []
+
+            for part in parts:
+                if b"filename=" in part:
+                    # Extract file content
+                    header_end = part.find(b"\r\n\r\n")
+                    if header_end == -1:
+                        continue
+                    file_content = part[header_end + 4:]
+                    # Remove trailing boundary marker
+                    if file_content.endswith(b"\r\n"):
+                        file_content = file_content[:-2]
+                    if file_content.endswith(b"--"):
+                        file_content = file_content[:-2]
+
+                    # Parse JSONL
+                    for line in file_content.decode("utf-8").split("\n"):
+                        line = line.strip()
+                        if line:
+                            try:
+                                records.append(json.loads(line))
+                            except json.JSONDecodeError:
+                                continue
+
+            if not records:
+                self._json_response({"error": "No valid records found in upload"}, 400)
+                return
+
+            result = get_nav_api().import_corpus(records)
+            self._json_response(result)
+        except Exception as e:
+            self._json_response({"error": str(e)}, 500)
 
     def _json_response(self, data, status=200):
         """Send a JSON response."""
@@ -88,7 +168,7 @@ class ProductHandler(SimpleHTTPRequestHandler):
 
     def _serve_file(self, filepath, content_type):
         """Serve a static file."""
-        base_dir = Path(__file__).parent.parent
+        base_dir = Path(__file__).parent
         full_path = base_dir / filepath
         if full_path.exists():
             self.send_response(200)

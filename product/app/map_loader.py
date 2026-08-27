@@ -63,6 +63,9 @@ class MapLoader:
         # Load baseline for comparison
         self._load_baseline()
 
+        # Load HDBSCAN variant for comparison
+        self._load_hdbscan_variant()
+
         self._loaded = True
         return len(self.maps)
 
@@ -180,6 +183,145 @@ class MapLoader:
                 concat_data=baseline_data,
                 api_meta=None,
                 leiden_assignments=leiden_assignments,
+            )
+
+    def _load_hdbscan_variant(self) -> None:
+        """Load HDBSCAN clustering as alternative to Leiden.
+
+        HDBSCAN produces different cluster shapes (non-convex) and handles noise.
+        Maps min_cluster_size configs to zoom levels for comparison with Leiden.
+        """
+        baseline_dir = self.results_dir / "baseline"
+        hierarchical_dir = self.results_dir / "hierarchical"
+
+        hdbscan_path = hierarchical_dir / "hdbscan_multi_resolution.json"
+        if not hdbscan_path.exists():
+            return
+
+        if not (baseline_dir / "metadata.json").exists():
+            return
+
+        with open(baseline_dir / "metadata.json", "r") as f:
+            metadata = json.load(f)
+
+        decision_ids = [m["decision_id"] for m in metadata]
+        projection = np.load(baseline_dir / "projection_2d.npy")
+
+        with open(hdbscan_path, "r") as f:
+            hdbscan_data = json.load(f)
+
+        # Create position mapping
+        positions = {}
+        for i, did in enumerate(decision_ids):
+            if i < len(projection):
+                positions[did] = (float(projection[i, 0]), float(projection[i, 1]))
+
+        # Map HDBSCAN configs to zoom levels (fewer clusters = coarser zoom)
+        # min_cluster_size_50 (0 clusters) → skip
+        # min_cluster_size_30 (2 clusters) → zoom 0
+        # min_cluster_size_20 (2 clusters) → zoom 1
+        # min_cluster_size_10 (3 clusters) → zoom 2
+        # min_cluster_size_5 (8 clusters) → zoom 3
+        zoom_mapping = {
+            "min_cluster_size_30": 0,
+            "min_cluster_size_20": 1,
+            "min_cluster_size_10": 2,
+            "min_cluster_size_5": 3,
+        }
+
+        zoom_levels = {}
+        for config_key, zoom_level in zoom_mapping.items():
+            if config_key not in hdbscan_data:
+                continue
+
+            result = hdbscan_data[config_key]
+            labels = result.get("labels", [])
+            n_clusters = result.get("n_clusters", 0)
+
+            if n_clusters == 0:
+                continue
+
+            # Build assignments, handling noise (-1) by assigning to nearest cluster
+            raw_assignments = {}
+            noise_indices = []
+            for idx, label in enumerate(labels):
+                did = decision_ids[idx] if idx < len(decision_ids) else None
+                if did:
+                    if label == -1:
+                        noise_indices.append(idx)
+                    else:
+                        raw_assignments[did] = label
+
+            # Assign noise points to nearest non-noise cluster centroid
+            if noise_indices:
+                # Compute centroids from non-noise points
+                cluster_points = {}
+                for did, cid in raw_assignments.items():
+                    if cid not in cluster_points:
+                        cluster_points[cid] = []
+                    cluster_points[cid].append(positions.get(did, (0, 0)))
+
+                centroids = {}
+                for cid, pts in cluster_points.items():
+                    xs = [p[0] for p in pts]
+                    ys = [p[1] for p in pts]
+                    centroids[cid] = (sum(xs) / len(xs), sum(ys) / len(ys))
+
+                # Assign noise to nearest centroid
+                for idx in noise_indices:
+                    did = decision_ids[idx] if idx < len(decision_ids) else None
+                    if did and did in positions:
+                        pos = positions[did]
+                        best_cid = 0
+                        best_dist = float("inf")
+                        for cid, centroid in centroids.items():
+                            dist = ((pos[0] - centroid[0]) ** 2 + (pos[1] - centroid[1]) ** 2) ** 0.5
+                            if dist < best_dist:
+                                best_dist = dist
+                                best_cid = cid
+                        raw_assignments[did] = best_cid
+
+            # Build cluster info
+            clusters = {}
+            for did, cid in raw_assignments.items():
+                if cid not in clusters:
+                    clusters[cid] = ClusterInfo(
+                        cluster_id=cid,
+                        zoom_level=zoom_level,
+                        decision_ids=[],
+                        size=0,
+                    )
+                clusters[cid].decision_ids.append(did)
+                clusters[cid].size += 1
+
+            # Compute centroids
+            for cid, cluster in clusters.items():
+                xs = [positions[did][0] for did in cluster.decision_ids if did in positions]
+                ys = [positions[did][1] for did in cluster.decision_ids if did in positions]
+                if xs and ys:
+                    cluster.centroid_x = sum(xs) / len(xs)
+                    cluster.centroid_y = sum(ys) / len(ys)
+
+            zoom_levels[zoom_level] = ZoomLevel(
+                level=zoom_level,
+                n_clusters=len(clusters),
+                clusters=clusters,
+                positions=positions,
+                cluster_assignments=raw_assignments,
+                n_decisions=len(decision_ids),
+            )
+
+        if zoom_levels:
+            self.maps["hdbscan"] = MapState(
+                representation="hdbscan",
+                n_decisions=len(decision_ids),
+                zoom_levels=zoom_levels,
+                metadata={
+                    "n_decisions": len(decision_ids),
+                    "n_zoom_levels": len(zoom_levels),
+                    "clustering_method": "hdbscan",
+                    "note": "HDBSCAN with noise-to-nearest-centroid assignment",
+                },
             )
 
     def _build_zoom_levels(

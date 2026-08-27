@@ -65,15 +65,20 @@ class CorpusLoader:
         self.corpus_dir = Path(corpus_dir)
         self.decisions: Dict[str, Decision] = {}
         self._loaded = False
+        self._user_import_count = 0
+        self._user_import_dir = self.corpus_dir.parent / "user_imports"
 
     def load(self) -> int:
-        """Load all JSONL files from corpus_dir. Returns count of loaded decisions."""
+        """Load all JSONL files from corpus_dir and user imports. Returns count of loaded decisions."""
         if self._loaded:
             return len(self.decisions)
 
         jsonl_files = sorted(self.corpus_dir.glob("*.jsonl"))
         for jsonl_file in jsonl_files:
             self._load_jsonl(jsonl_file)
+
+        # Also load any previously imported user corpus
+        self.load_user_imports()
 
         self._loaded = True
         return len(self.decisions)
@@ -184,3 +189,101 @@ class CorpusLoader:
             b = d.branch or "unknown"
             counts[b] = counts.get(b, 0) + 1
         return counts
+
+    @property
+    def user_import_count(self) -> int:
+        """Number of decisions loaded from user imports."""
+        return self._user_import_count
+
+    def import_records(self, records: List[Dict]) -> Dict:
+        """Import user records into the corpus.
+
+        Validates each record against the canonical schema, persists to
+        a user-import JSONL file, and loads into the in-memory index.
+        Returns import statistics.
+        """
+        if not self._loaded:
+            self.load()
+
+        # Ensure user import directory exists
+        self._user_import_dir.mkdir(parents=True, exist_ok=True)
+
+        imported = 0
+        skipped = 0
+        errors = []
+        imported_ids = []
+
+        for i, record in enumerate(records):
+            # Validate required fields
+            decision_id = record.get("decision_id", "")
+            if not decision_id:
+                errors.append(f"Record {i}: missing decision_id")
+                skipped += 1
+                continue
+
+            if decision_id in self.decisions:
+                skipped += 1
+                continue
+
+            decision = self._parse_record(record)
+            if decision:
+                self.decisions[decision.decision_id] = decision
+                imported_ids.append(decision.decision_id)
+                imported += 1
+            else:
+                errors.append(f"Record {i}: failed to parse")
+                skipped += 1
+
+        # Persist imported records
+        if imported > 0:
+            import_file = self._user_import_dir / "user_corpus.jsonl"
+            with open(import_file, "a", encoding="utf-8") as f:
+                for did in imported_ids:
+                    d = self.decisions[did]
+                    record = {
+                        "decision_id": d.decision_id,
+                        "court": d.court,
+                        "docket_number": d.docket_number,
+                        "decision_date": d.decision_date,
+                        "language": d.language,
+                        "full_text": d.full_text,
+                        "title": d.title,
+                        "legal_area": d.legal_area,
+                        "branch": d.branch,
+                        "chamber": d.chamber,
+                        "outcome": d.outcome,
+                        "decision_type": d.decision_type,
+                        "bge_reference": d.bge_reference,
+                        "cited_decisions": d.cited_decisions,
+                        "cited_laws": d.cited_laws,
+                        "sachverhalt": d.sachverhalt,
+                        "erwaegungen": d.erwaegungen,
+                        "dispositiv": d.dispositiv,
+                        "text_length": d.text_length,
+                        "provenance": {**d.provenance, "source": "user_import"},
+                    }
+                    f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+        self._user_import_count += imported
+
+        return {
+            "imported": imported,
+            "skipped": skipped,
+            "errors": errors[:10],  # Limit error output
+            "total_decisions": self.size,
+            "imported_ids": imported_ids[:20],  # Limit output
+        }
+
+    def load_user_imports(self) -> int:
+        """Load previously imported user corpus files."""
+        if not self._user_import_dir.exists():
+            return 0
+
+        count = 0
+        for jsonl_file in self._user_import_dir.glob("*.jsonl"):
+            before = len(self.decisions)
+            self._load_jsonl(jsonl_file)
+            count += len(self.decisions) - before
+
+        self._user_import_count += count
+        return count

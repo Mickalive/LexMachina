@@ -92,6 +92,7 @@
                 <select id="rep-select">
                     <option value="concat_center_tfidf">Concat + Center TF-IDF (best)</option>
                     <option value="baseline">Baseline (semantic)</option>
+                    <option value="hdbscan">HDBSCAN clustering</option>
                 </select>
                 <label>Zoom Level</label>
                 <select id="zoom-select">
@@ -103,6 +104,15 @@
             </div>
             <div id="search-box">
                 <input type="text" id="search-input" placeholder="Search decisions...">
+            </div>
+            <div id="import-box" style="padding: 8px 16px; border-bottom: 1px solid #2a2a3a;">
+                <label style="font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">Import Corpus</label>
+                <div style="display: flex; gap: 6px; margin-top: 4px;">
+                    <input type="file" id="import-file" accept=".jsonl,.json" style="display:none;">
+                    <button id="import-btn" style="flex:1; padding: 6px 8px; background: #1a1a2a; border: 1px solid #333; border-radius: 4px; color: #7c8aff; cursor: pointer; font-size: 11px;">Upload JSONL</button>
+                    <button id="import-paste-btn" style="padding: 6px 8px; background: #1a1a2a; border: 1px solid #333; border-radius: 4px; color: #888; cursor: pointer; font-size: 11px;">Paste</button>
+                </div>
+                <div id="import-status" style="font-size: 10px; color: #666; margin-top: 4px;"></div>
             </div>
             <div id="cluster-list">
                 <div id="loading">Loading map data...</div>
@@ -509,6 +519,79 @@
 
     // Resize handler
     window.addEventListener('resize', () => renderMap());
+
+    // Corpus import
+    document.getElementById('import-btn').addEventListener('click', () => {
+        document.getElementById('import-file').click();
+    });
+
+    document.getElementById('import-file').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const status = document.getElementById('import-status');
+        status.style.color = '#888';
+        status.textContent = `Uploading ${file.name}...`;
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const resp = await fetch(`${API}/api/import`, {
+                method: 'POST',
+                body: formData
+            });
+            const result = await resp.json();
+
+            if (result.error) {
+                status.style.color = '#ff6b6b';
+                status.textContent = `Error: ${result.error}`;
+            } else {
+                status.style.color = '#51cf66';
+                status.textContent = `Imported ${result.imported} decisions (${result.skipped} skipped). Total: ${result.total_decisions}`;
+                // Reload map to include new data
+                await loadMap();
+            }
+        } catch (err) {
+            status.style.color = '#ff6b6b';
+            status.textContent = `Upload failed: ${err.message}`;
+        }
+
+        // Reset file input
+        e.target.value = '';
+    });
+
+    document.getElementById('import-paste-btn').addEventListener('click', () => {
+        const json = prompt('Paste JSONL records (one JSON object per line):');
+        if (!json) return;
+
+        const status = document.getElementById('import-status');
+        status.style.color = '#888';
+        status.textContent = 'Importing...';
+
+        try {
+            const records = json.split('\n').filter(l => l.trim()).map(l => JSON.parse(l));
+            fetch(`${API}/api/import`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(records)
+            })
+            .then(r => r.json())
+            .then(result => {
+                if (result.error) {
+                    status.style.color = '#ff6b6b';
+                    status.textContent = `Error: ${result.error}`;
+                } else {
+                    status.style.color = '#51cf66';
+                    status.textContent = `Imported ${result.imported} decisions. Total: ${result.total_decisions}`;
+                    loadMap();
+                }
+            });
+        } catch (err) {
+            status.style.color = '#ff6b6b';
+            status.textContent = `Parse error: ${err.message}`;
+        }
+    });
 
     // Boot
     init();

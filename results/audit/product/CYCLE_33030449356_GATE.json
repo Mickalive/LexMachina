@@ -1,0 +1,59 @@
+{
+  "gate": "PASS",
+  "run_id": "33030449356",
+  "repair_round": 0,
+  "repaired_cycle": null,
+  "lane": "product",
+  "auditor": "lexmachina-product-engineer",
+  "timestamp": "2026-08-27T00:00:00Z",
+  "safe_to_integrate": true,
+  "fixes_applied": [
+    {
+      "id": "FIX-003",
+      "file": "product/server.py",
+      "line": 171,
+      "description": "_serve_file used Path(__file__).parent.parent which resolves to workspace root instead of product directory. Static files return 404.",
+      "fix_applied": "Changed to Path(__file__).parent",
+      "severity": "high",
+      "verified": true,
+      "verification": "parent resolves to product/ where static/ exists; old path resolved to workspace root where static/ does not exist"
+    }
+  ],
+  "features_added": [
+    {
+      "id": "FEAT-001",
+      "name": "User Corpus Import",
+      "files": ["product/app/corpus_loader.py", "product/app/navigation.py", "product/server.py"],
+      "endpoint": "POST /api/import",
+      "verified": true
+    },
+    {
+      "id": "FEAT-002",
+      "name": "HDBSCAN Clustering",
+      "files": ["product/app/map_loader.py"],
+      "representation": "hdbscan",
+      "verified": true
+    },
+    {
+      "id": "FEAT-003",
+      "name": "Corpus Stats Endpoint",
+      "endpoint": "GET /api/corpus/stats",
+      "verified": true
+    },
+    {
+      "id": "FEAT-004",
+      "name": "Frontend Import UI",
+      "files": ["product/static/index.html"],
+      "verified": true
+    }
+  ],
+  "claim_ceiling": "REPRODUCED",
+  "evidence_summary": {
+    "tests": "PASS — 6/6 smoke tests independently verified",
+    "static_file_serving": "PASS — FIX-003 resolves correctly, frontend loads",
+    "corpus_import": "PASS — import, dedup, persistence, search all verified",
+    "hdbscan": "PASS — 4 zoom levels, different cluster counts from Leiden",
+    "leakage": "CLEAN — no state overwrite, no benchmark gaming"
+  },
+  "notes": "All 4 new features/fixes applied and verified. Zero-delta constraint satisfied: one bug fix + three feature additions with measured behavioral difference. Product vertical slice now supports user corpus import, HDBSCAN clustering, and serves static files correctly."
+}
