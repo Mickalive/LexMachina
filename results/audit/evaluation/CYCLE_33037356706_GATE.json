@@ -1,0 +1,42 @@
+{
+  "run_id": "33037356706",
+  "lane": "evaluation",
+  "run_type": "operational_resume",
+  "timestamp": "2026-08-27T03:45:00Z",
+  "audit_gate": "PASS",
+  "gate_reason": "Evaluation lane correctly complete. No new evaluation work produced. Prior cycle 14 validated with 14/14 benchmarks PASS. Operational resume correctly diagnoses orchestration failure (8th occurrence).",
+  "producer_workspace": "/home/runner/work/LexMachina/LexMachina",
+  "accepted_base": "/home/runner/work/LexMachina/LexMachina",
+  "files_verified": [
+    "evaluation/run_cycle_14.py",
+    "results/cycle_14_results.json",
+    "reports/evaluation/evaluation_cycle_14_report.md",
+    "state/evaluation.json"
+  ],
+  "files_modified": [
+    "state/evaluation.json"
+  ],
+  "files_added": [
+    "results/audit/evaluation/CYCLE_33037356706_GATE.json",
+    "reports/audit/evaluation/CYCLE_33037356706.md"
+  ],
+  "state_before": {
+    "cycle_status": "COMPLETED",
+    "continue_recommended": false,
+    "accepted_run_id": "eval_cycle_14_1787801259",
+    "evidence_tier": "REPRODUCED",
+    "next_recommendation": "PRODUCTIZE",
+    "operational_resume_run_id": "33037053005"
+  },
+  "state_after": {
+    "cycle_status": "COMPLETED",
+    "continue_recommended": false,
+    "accepted_run_id": "eval_cycle_14_1787801259",
+    "evidence_tier": "REPRODUCED",
+    "next_recommendation": "PRODUCTIZE",
+    "operational_resume_run_id": "33037356706"
+  },
+  "diagnosis": "8th occurrence of dispatch-to-DONE pathology: supervisor dispatched operational resume to evaluation lane despite cycle_status=COMPLETED and continue_recommended=false since run 33036139776. Lane correctly refuses new work. Root cause: supervisor lacks pre-dispatch guard reading state/<lane>.json. Documented occurrences: 33027937718, 33030061655, 33030407701, 33030597595, 33033313906 (FAILED), 33036602765, 33037053005, 33037356706 (THIS RUN).",
+  "required_external_fix": "Add guard in factory supervisor: before dispatching, read state/<lane>.json and block if cycle_status=COMPLETED and continue_recommended=false.",
+  "auditor": "LEXMACHINA INDEPENDENT AUDITOR"
+}
