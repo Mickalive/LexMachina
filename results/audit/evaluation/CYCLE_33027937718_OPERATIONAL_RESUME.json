@@ -1,0 +1,33 @@
+{
+  "gate": "PASS",
+  "run_id": 33027937718,
+  "github_run": 33028668298,
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Evaluation lane is DONE. All 8 benchmarks established (7 valid + 1 invalid citation_graph_neighborhood), 10 fractal-map representations evaluated, 2 baselines documented. No further evaluation-only cycles needed until legal-distance produces candidate representations.",
+  "diagnosis": {
+    "orchestration_failure": "Run 33027937718 was dispatched to the evaluation lane after it had already reached DONE status. The supervisor dispatched to a lane whose state already had cycle_status=COMPLETED, continue_recommended=false, and next_recommendation=DONE. The branch was created but no commits were made because there was no work to do.",
+    "root_cause": "The factory supervisor lacks a check for lane completion status before dispatching. Once a lane reaches DONE with continue_recommended=false, subsequent dispatches should be blocked or redirected to the Factory Director for a successor question.",
+    "resolution": "No durable delta needed. Lane was already complete. Snapshot made audit-ready by: (1) setting accepted_commit to HEAD, (2) adding github_run and operational_resume_run_id to state, (3) adding this audit gate to audit_refs, (4) updating director_disposition to note the operational resume."
+  },
+  "evidence_verification": {
+    "evidence_refs_checked": 22,
+    "evidence_refs_exist": 22,
+    "audit_refs_checked": 3,
+    "audit_refs_exist": 3,
+    "all_refs_valid": true
+  },
+  "state_verification": {
+    "accepted_run_id": "eval_cycle_6_1787791460",
+    "accepted_commit": "51a6080983ae2fa212bc1c4576d57ad25591ef2b",
+    "cycle_status": "COMPLETED",
+    "continue_recommended": false,
+    "evidence_tier": "REPRODUCED",
+    "direction_version": 1,
+    "next_recommendation": "DONE"
+  },
+  "files_modified": [
+    "results/audit/evaluation/CYCLE_33027937718_OPERATIONAL_RESUME.json (this file)",
+    "state/evaluation.json (added accepted_commit, github_run, operational_resume_run_id, updated audit_refs and director_disposition)"
+  ]
+}
