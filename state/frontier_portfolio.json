@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "teams": [
     {
       "team_id": "frontier_metric_learning_jurivoc",
@@ -15,9 +15,9 @@
         "corpus/normalization/canonical/bger_2000plus_slice_1000.jsonl (decisions with Jurivoc/TF metadata)",
         "corpus/normalization/statute_extractor.py (43 laws mapped)",
         "fractal-map/hierarchical_leiden_results.json (validated map structure for zoom_coherence eval)",
-        "legal_distance/ baseline implementation (debiased_citation_blended n_pca=1 alpha=0.7)"
+        "evaluation/cycle_14 frozen baseline (debiased_citation_blended n_pca=1 alpha=0.7)"
       ],
-      "acceptance_test": "On the frozen 1000-decision evaluation sample: (1) Learned metric achieves >=5% relative improvement over debiased_citation_blended baseline on at least 3 of 4 primary jurist proxies: branch_knn@1, legal_area_clustering purity, citation_heritage AUC, tf_metadata_human_indexing recall@1. (2) No regression on zoom_coherence (improvement_rate >= 0.5) or multilingual_invariance (separation >= 0.04). (3) Boilerplate_resistance_real_corpus PASS (text_emb_correlation <= 0.2). (4) Metric is serializable and loadable in product for map mode switching.",
+      "acceptance_test": "On the frozen 1000-decision evaluation sample: (1) Learned metric achieves >=5% relative improvement over debiased_citation_blended baseline on at least 3 of 4 primary jurist proxies: branch_knn@1, legal_area_clustering purity, citation_heritage AUC, tf_metadata_human_indexing recall@1. (2) No regression on zoom_coherence (improvement_rate >= 0.39, aligned to validated fractal-map baseline 0.3964) or multilingual_invariance (separation >= 0.04). (3) Boilerplate_resistance_real_corpus PASS (text_emb_correlation <= 0.2). (4) Metric is serializable and loadable in product for map mode switching.",
       "stop_promote_rule": "PROMOTE to product integration if acceptance_test passes AND metric generalizes to held-out 2024 test slice (temporal_stability mean_knn_score >= 0.75). PAUSE if no improvement after 3 architecture variants (linear, diagonal, low-rank Mahalanobis). TERMINATE if learned metric collapses (collapse_check FAIL) or violates multilingual_invariance. SUPERSEDED by charter_version+1 if evidence warrants hypothesis change."
     }
   ],
