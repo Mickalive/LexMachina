@@ -45,6 +45,13 @@ def get_eval_loader() -> EvaluationLoader:
     return _eval_loader
 
 
+def get_default_representation() -> str:
+    """Get the default representation (evaluation-validated debiased_citation_blended)."""
+    # The evaluation lane recommends debiased_citation_blended (n_pca=1, alpha=0.7)
+    # with 14/14 benchmarks PASSED as the default product representation.
+    return "debiased_citation_blended"
+
+
 class ProductHandler(SimpleHTTPRequestHandler):
     """HTTP handler for the LexMachina product."""
 
@@ -57,14 +64,16 @@ class ProductHandler(SimpleHTTPRequestHandler):
         if path == "/api/overview":
             self._json_response(get_nav_api().get_overview())
         elif path == "/api/map":
-            rep = params.get("representation", ["hierarchical_leiden"])[0]
+            default_rep = get_default_representation()
+            rep = params.get("representation", [default_rep])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             mode = params.get("mode", [None])[0]
             self._json_response(get_nav_api().get_map_data(rep, zoom, map_mode=mode))
         elif path == "/api/map_modes":
             self._json_response(get_nav_api().get_map_modes())
         elif path == "/api/cluster":
-            rep = params.get("representation", ["hierarchical_leiden"])[0]
+            default_rep = get_default_representation()
+            rep = params.get("representation", [default_rep])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             cid = int(params.get("cluster_id", ["0"])[0])
             self._json_response(get_nav_api().get_cluster_detail(rep, zoom, cid))
@@ -82,12 +91,14 @@ class ProductHandler(SimpleHTTPRequestHandler):
             self._json_response(get_nav_api().search_decisions(q, limit))
         elif path == "/api/neighbors":
             did = params.get("id", [""])[0]
-            rep = params.get("representation", ["hierarchical_leiden"])[0]
+            default_rep = get_default_representation()
+            rep = params.get("representation", [default_rep])[0]
             zoom = int(params.get("zoom", ["2"])[0])
             n = int(params.get("n", ["10"])[0])
             self._json_response(get_nav_api().get_neighbors(did, rep, zoom, n))
         elif path == "/api/zoom_levels":
-            rep = params.get("representation", ["hierarchical_leiden"])[0]
+            default_rep = get_default_representation()
+            rep = params.get("representation", [default_rep])[0]
             self._json_response(get_nav_api().get_zoom_levels(rep))
         elif path == "/api/corpus/stats":
             self._json_response(get_nav_api().get_corpus_stats())
@@ -96,7 +107,8 @@ class ProductHandler(SimpleHTTPRequestHandler):
             id_b = params.get("id_b", [""])[0]
             self._json_response(get_nav_api().get_proximity_explanation(id_a, id_b))
         elif path == "/api/cluster_coherence":
-            rep = params.get("representation", ["hierarchical_leiden"])[0]
+            default_rep = get_default_representation()
+            rep = params.get("representation", [default_rep])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             cid = int(params.get("cluster_id", ["0"])[0])
             self._json_response(get_nav_api().get_cluster_coherence(rep, zoom, cid))
@@ -106,7 +118,8 @@ class ProductHandler(SimpleHTTPRequestHandler):
         elif path == "/api/zoom_coherence/flat_baseline":
             self._json_response(get_nav_api().get_zoom_coherence_flat_baseline())
         elif path == "/api/cluster_language_analysis":
-            rep = params.get("representation", ["concat_center_tfidf"])[0]
+            default_rep = get_default_representation()
+            rep = params.get("representation", [default_rep])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             cid = int(params.get("cluster_id", ["0"])[0])
             self._json_response(get_nav_api().get_cluster_language_analysis(rep, zoom, cid))
@@ -123,7 +136,8 @@ class ProductHandler(SimpleHTTPRequestHandler):
         elif path == "/api/evaluation/representation_quality":
             self._json_response(get_eval_loader().get_representation_quality())
         elif path == "/api/map/temporal":
-            rep = params.get("representation", ["concat_center_tfidf"])[0]
+            default_rep = get_default_representation()
+            rep = params.get("representation", [default_rep])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             year_start = int(params["year_start"][0]) if "year_start" in params else None
             year_end = int(params["year_end"][0]) if "year_end" in params else None
@@ -246,12 +260,14 @@ def run_server(port=8080):
     """Start the product server."""
     print(f"Initializing LexMachina navigation...")
     nav = get_nav_api()
+    default_rep = get_default_representation()
     print(f"Loaded {nav.corpus.size} decisions, {len(nav.map_loader.get_available_representations())} maps, "
           f"{len(nav.section_modes.modes)} section modes, citation graph: {nav.citation_loader.get_stats()}, "
           f"zoom coherence: {nav.zoom_coherence._loaded}, TF-IDF model: {nav.tfidf_proximity._built}")
     print(f"Available representations: {nav.map_loader.get_available_representations()}")
     for rep in nav.map_loader.get_available_representations():
         print(f"  {rep}: zoom levels = {nav.map_loader.get_zoom_levels(rep)}")
+    print(f"Default representation: {default_rep} (evaluation-validated: 14/14 benchmarks PASS)")
 
     server = HTTPServer(("0.0.0.0", port), ProductHandler)
     print(f"LexMachina server running on http://localhost:{port}")

@@ -69,6 +69,9 @@ class MapLoader:
         # Load hierarchical Leiden (validated fractal map architecture - REPRODUCED)
         self._load_hierarchical_leiden()
 
+        # Load debiased_citation_blended (validated evaluation default - REPRODUCED, 14/14 PASS)
+        self._load_debiased_citation_blended()
+
         self._loaded = True
         return len(self.maps)
 
@@ -498,6 +501,228 @@ class MapLoader:
                 "note": "Hierarchical Leiden: REPRODUCED evidence for fractal map. Perfect nesting (1.0), branch purity 0.963 > flat Leiden 0.875.",
             },
         )
+
+    def _load_debiased_citation_blended(self) -> None:
+        """Load the debiased_citation_blended representation (REPRODUCED - evaluation default).
+
+        This is the evaluation lane's recommended default: n_pca=1, alpha=0.7.
+        Achieves 14/14 benchmark PASS:
+        - Citation heritage AUC: 0.9102 (threshold >0.65)
+        - Language dominance: 0.6406 (threshold <0.85)
+        - No dimensional collapse (mean similarity: 0.1364)
+        - Branch kNN@5: 0.8128
+        - Zoom coherence: 7.1% improvement
+        - Hierarchy purity: 0.8759
+        - TF metadata recall@5: 0.9489
+        """
+        baseline_dir = self.results_dir / "baseline"
+        citation_graph_path = self.results_dir / "citation_graph" / "citation_graph.json"
+
+        if not (baseline_dir / "metadata.json").exists():
+            return
+        if not (baseline_dir / "embeddings.npy").exists():
+            return
+        if not citation_graph_path.exists():
+            return
+
+        with open(baseline_dir / "metadata.json", "r") as f:
+            metadata = json.load(f)
+
+        decision_ids = [m["decision_id"] for m in metadata]
+        n_decisions = len(decision_ids)
+        baseline_768 = np.load(baseline_dir / "embeddings.npy")
+
+        # Load citation graph
+        with open(citation_graph_path, "r") as f:
+            citation_data = json.load(f)
+
+        # Build citations dict: decision_id -> list of cited decision_ids
+        # The citation graph has "outgoing" key with source -> list of targets
+        citations = {}
+        for source, targets in citation_data.get("outgoing", {}).items():
+            if source and targets:
+                citations[source] = targets
+
+        # Create debiased_citation_blended representation
+        emb, creation_info = self._create_debiased_citation_blended(
+            baseline_768, metadata, citations,
+            n_pca_components=1, alpha=0.7, dims=64
+        )
+
+        # Create 2D projection using PCA
+        from sklearn.decomposition import PCA
+        pca_2d = PCA(n_components=2, random_state=42)
+        projection_2d = pca_2d.fit_transform(emb)
+
+        # Use Leiden cluster assignments from hierarchical_map (same as other representations)
+        hierarchical_map_dir = self.results_dir / "hierarchical_map"
+        leiden_assignments = {}
+        if (hierarchical_map_dir / "leiden_multi_resolution.json").exists():
+            with open(hierarchical_map_dir / "leiden_multi_resolution.json", "r") as f:
+                leiden_data = json.load(f)
+            index_to_id = {i: m["decision_id"] for i, m in enumerate(metadata)}
+            for leiden_key, leiden_result in leiden_data.items():
+                if not leiden_key.startswith("resolution_"):
+                    continue
+                resolution_val = float(leiden_key.replace("resolution_", ""))
+                zoom_level = int(resolution_val)
+                labels = leiden_result.get("labels", [])
+                assignments = {}
+                for idx, label in enumerate(labels):
+                    did = index_to_id.get(idx)
+                    if did:
+                        assignments[did] = label
+                leiden_assignments[leiden_key] = assignments
+                leiden_assignments[str(zoom_level)] = assignments
+
+        # Build zoom levels using the unified evaluation structure
+        unified_path = self.results_dir / "unified_evaluation" / "unified_results.json"
+        concat_data = {}
+        if unified_path.exists():
+            with open(unified_path, "r") as f:
+                unified = json.load(f)
+            # Use concat_center_tfidf structure for zoom levels (resolution levels match)
+            concat_data = unified.get("concat_center_tfidf", {})
+
+        self._build_zoom_levels(
+            representation="debiased_citation_blended",
+            decision_ids=decision_ids,
+            projection=projection_2d,
+            concat_data=concat_data,
+            api_meta=None,
+            leiden_assignments=leiden_assignments,
+        )
+
+        # Update metadata with creation info
+        if "debiased_citation_blended" in self.maps:
+            self.maps["debiased_citation_blended"].metadata.update({
+                "n_pca_components": creation_info.get("n_pca_components", 1),
+                "alpha": creation_info.get("alpha", 0.7),
+                "variance_removed_by_debiasing": creation_info.get("variance_removed_by_debiasing", 0.2421),
+                "pca_64_explained_variance": creation_info.get("pca_64_explained_variance", 1.0),
+                "in_graph_decisions": creation_info.get("in_graph_decisions", 997),
+                "clustering_method": "debiased_citation_blended + Leiden",
+                "benchmark_status": "14/14 PASS",
+                "citation_heritage_auc": 0.9102,
+                "language_dominance": 0.6406,
+                "note": "Evaluation default: 14/14 benchmarks PASSED. n_pca=1, alpha=0.7. RECOMMENDED FOR PRODUCTIZE.",
+            })
+
+    def _create_debiased_citation_blended(
+        self,
+        baseline_768: np.ndarray,
+        metadata: List[Dict],
+        citations: Dict[str, List[str]],
+        n_pca_components: int = 1,
+        alpha: float = 0.7,
+        dims: int = 64,
+    ) -> Tuple[np.ndarray, Dict]:
+        """Create debiased citation blended representation (same as evaluation cycle 14)."""
+        import networkx as nx
+        from scipy.sparse import lil_matrix
+        from sklearn.decomposition import PCA, TruncatedSVD
+        import time
+
+        start = time.time()
+
+        # Step 1: PCA debiasing on 768-dim baseline
+        pca_debias = PCA(n_components=n_pca_components, random_state=42)
+        pca_debias.fit(baseline_768)
+        variance_removed = float(np.sum(pca_debias.explained_variance_ratio_))
+
+        projected = pca_debias.transform(baseline_768)
+        debiased_projected = projected.copy()
+        debiased_projected[:, :n_pca_components] = 0
+        debiased_768 = pca_debias.inverse_transform(debiased_projected)
+
+        # Rescale to preserve original norm
+        orig_norms = np.linalg.norm(baseline_768, axis=1, keepdims=True)
+        debiased_norms = np.linalg.norm(debiased_768, axis=1, keepdims=True)
+        debiased_norms[debiased_norms == 0] = 1
+        debiased_768 = debiased_768 * (orig_norms / debiased_norms)
+
+        # Step 2: PCA project debiased 768-dim to 64-dim
+        pca_64 = PCA(n_components=dims, random_state=42)
+        debiased_64 = pca_64.fit_transform(debiased_768)
+        explained_64 = float(np.sum(pca_64.explained_variance_ratio_))
+
+        # Step 3: Build citation graph from debiased baseline
+        id_to_idx = {m.get("decision_id", ""): i for i, m in enumerate(metadata)}
+
+        G = nx.DiGraph()
+        for source_id, targets in citations.items():
+            for target in targets:
+                G.add_edge(source_id, target)
+
+        baseline_nodes = set(id_to_idx.keys())
+        graph_nodes = set(G.nodes())
+        common_nodes = baseline_nodes & graph_nodes
+
+        G_undirected = G.to_undirected()
+        walk_length = 20
+        num_walks = 5
+
+        walks = []
+        nodes = list(G_undirected.nodes())
+        for _ in range(num_walks):
+            np.random.shuffle(nodes)
+            for node in nodes:
+                walk = [node]
+                for _ in range(walk_length - 1):
+                    current = walk[-1]
+                    neighbors = list(G_undirected.neighbors(current))
+                    if not neighbors:
+                        break
+                    next_node = np.random.choice(neighbors)
+                    walk.append(next_node)
+                walks.append(walk)
+
+        vocab = {n: i for i, n in enumerate(nodes)}
+        cooccur = lil_matrix((len(nodes), len(nodes)))
+
+        for walk in walks:
+            for i, node in enumerate(walk):
+                for j in range(max(0, i - 5), min(len(walk), i + 6)):
+                    if i != j:
+                        cooccur[vocab[node], vocab[walk[j]]] += 1
+
+        cooccur = cooccur.tocsr()
+
+        svd = TruncatedSVD(n_components=dims, random_state=42)
+        node_embeddings = svd.fit_transform(cooccur)
+
+        norms = np.linalg.norm(node_embeddings, axis=1, keepdims=True)
+        norms[norms == 0] = 1
+        node_embeddings = node_embeddings / norms
+
+        # Step 4: Blend
+        graph_embeddings = np.zeros((len(metadata), dims))
+        in_graph_mask = np.zeros(len(metadata), dtype=bool)
+
+        for node in common_nodes:
+            idx = id_to_idx[node]
+            node_idx = vocab[node]
+            graph_embeddings[idx] = node_embeddings[node_idx]
+            in_graph_mask[idx] = True
+
+        debiased_citation_blended = np.copy(debiased_64)
+        for i in range(len(metadata)):
+            if in_graph_mask[i]:
+                debiased_citation_blended[i] = alpha * debiased_64[i] + (1 - alpha) * graph_embeddings[i]
+
+        duration = time.time() - start
+
+        info = {
+            "n_pca_components": n_pca_components,
+            "alpha": alpha,
+            "variance_removed_by_debiasing": round(variance_removed, 4),
+            "pca_64_explained_variance": round(explained_64, 4),
+            "in_graph_decisions": int(np.sum(in_graph_mask)),
+            "total_decisions": len(metadata),
+            "creation_duration": round(duration, 2),
+        }
+
+        return debiased_citation_blended, info
 
     def _build_zoom_levels(
         self,
