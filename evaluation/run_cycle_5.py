@@ -569,19 +569,21 @@ def benchmark_hierarchy_coherence(
     random_seed: int = 42,
 ) -> Dict[str, Any]:
     """
-    Hierarchy coherence: test Leiden-like multi-resolution clustering stability.
-    Uses Jurivoc/legal_area labels from metadata as ground truth.
+    Hierarchy coherence: test multi-resolution clustering stability.
+    Uses branch labels (4 branches) from corpus as ground truth,
+    matching the TF-IDF baseline methodology for fair comparison.
     """
     start_time = time.time()
     random.seed(random_seed)
     
-    # Use decisions with legal_area labels
+    # Use decisions with branch labels (4 branches), matching TF-IDF methodology
     labeled_decisions = []
     for meta in embedding_metadata:
         did = meta["decision_id"]
-        legal_area = meta.get("legal_area")
-        if legal_area and len(legal_area) > 3:
-            labeled_decisions.append((did, legal_area))
+        corpus_data = corpus.get(did, {})
+        branch = corpus_data.get("branch") or meta.get("branch")
+        if branch and branch != "null":
+            labeled_decisions.append((did, branch))
     
     if len(labeled_decisions) < 50:
         return {"status": "FAILED", "error": f"Insufficient labeled decisions: {len(labeled_decisions)}"}
@@ -593,11 +595,11 @@ def benchmark_hierarchy_coherence(
     # Get embeddings
     embeddings = {}
     labels = {}
-    for did, area in labeled_decisions:
+    for did, branch in labeled_decisions:
         emb = rep_fn(did)
         if emb is not None:
             embeddings[did] = emb
-            labels[did] = area
+            labels[did] = branch
     
     valid_ids = list(embeddings.keys())
     if len(valid_ids) < 30:
@@ -611,11 +613,11 @@ def benchmark_hierarchy_coherence(
     norms[norms == 0] = 1
     normalized = embedding_matrix / norms
     
-    # Multi-resolution clustering
+    # Multi-resolution clustering (matching TF-IDF resolutions: 4, 8, 12)
     from sklearn.cluster import AgglomerativeClustering
     from sklearn.metrics import normalized_mutual_info_score
     
-    resolutions = [4, 8, 16, 32]
+    resolutions = [4, 8, 12]
     level_results = []
     prev_labels = None
     
@@ -650,12 +652,15 @@ def benchmark_hierarchy_coherence(
     
     duration = time.time() - start_time
     
+    n_true_branches = len(set(true_labels))
+    
     return {
         "status": "PASSED" if max(nmi_values) > 0.3 else "FAILED",
         "best_nmi": max(nmi_values) if nmi_values else 0,
         "best_purity": max(l["purity"] for l in level_results) if level_results else 0,
         "mean_nmi_with_prev": float(np.mean(nmi_prev_values)) if nmi_prev_values else 0,
         "num_decisions": len(valid_ids),
+        "num_branches": n_true_branches,
         "num_labeled_areas": len(set(true_labels)),
         "level_results": level_results,
         "duration_seconds": duration,
@@ -1149,11 +1154,14 @@ def generate_report(output: Dict, comparison: Dict) -> str:
 
 ### 2.4 Hierarchy Coherence — {hc.get('status', 'ERROR')}
 
+*Methodology: Both TF-IDF and Neural tested against 4 branch labels (strafrecht, zivilrecht, oeffentliches_recht, sozialversicherungsrecht). Directly comparable.*
+
 | Metric | Value | TF-IDF Baseline |
 |--------|-------|-----------------|
 | Best NMI | {fmt(hc_nmi)} | 0.0283 |
 | Best Purity | {fmt(hc_purity)} | 0.6482 |
 | Mean NMI with prev | {fmt(hc.get('mean_nmi_with_prev'))} | N/A |
+| Num branches | {hc.get('num_branches', 'N/A')} | 4 |
 
 ### 2.5 Neighbor Relevance — {nr.get('status', 'ERROR')}
 

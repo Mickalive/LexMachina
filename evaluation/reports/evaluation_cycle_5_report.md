@@ -1,9 +1,9 @@
 # Evaluation Cycle Report — Neural Embedding Baseline
 
-**Run ID:** eval_cycle_5_1787786969
+**Run ID:** eval_cycle_5_1787789315
 **Lane:** evaluation
 **Direction version:** 1
-**Date:** 2026-08-26
+**Date:** 2026-08-27
 **Evidence tier:** REPRODUCED
 
 ---
@@ -28,12 +28,12 @@
 
 | Metric | Value | TF-IDF Baseline |
 |--------|-------|-----------------|
-| AUC-ROC | 0.5737 | 0.6354 |
-| Positive mean sim | 0.9038 | 0.1867 |
+| AUC-ROC | 0.5004 | 0.6354 |
+| Positive mean sim | 0.8930 | 0.1867 |
 | Negative mean sim | 0.8931 | 0.1269 |
-| Similarity gap | 0.0107 | 0.0598 |
+| Similarity gap | -0.0001 | 0.0598 |
 | Num citation pairs | 200 | 300 |
-| Mean shared citations | 1.39 | 1.27 |
+| Mean shared citations | 1.37 | 1.27 |
 
 ### 2.2 Legal-Area Clustering — FAILED
 
@@ -49,25 +49,28 @@
 
 | Metric | Value | TF-IDF Baseline |
 |--------|-------|-----------------|
-| Cross-lang mean sim | 0.8683 | 0.0268 |
-| Same-lang mean sim | 0.9237 | 0.2642 |
-| Separation | -0.0554 | -0.2374 |
+| Cross-lang mean sim | 0.8681 | 0.0268 |
+| Same-lang mean sim | 0.9236 | 0.2642 |
+| Separation | -0.0555 | -0.2374 |
 | Num cross-lang pairs | 1200 | 1200 |
 
-### 2.4 Hierarchy Coherence — PASSED
+### 2.4 Hierarchy Coherence — FAILED
+
+*Methodology: Both TF-IDF and Neural tested against 4 branch labels (strafrecht, zivilrecht, oeffentliches_recht, sozialversicherungsrecht). Directly comparable.*
 
 | Metric | Value | TF-IDF Baseline |
 |--------|-------|-----------------|
-| Best NMI | 0.5147 | 0.0283 |
-| Best Purity | 0.8504 | 0.6482 |
-| Mean NMI with prev | 0.6568 | N/A |
+| Best NMI | 0.0672 | 0.0283 |
+| Best Purity | 0.8333 | 0.6482 |
+| Mean NMI with prev | 0.5583 | N/A |
+| Num branches | 4 | 4 |
 
 ### 2.5 Neighbor Relevance — FAILED
 
 | Metric | Value | TF-IDF Baseline |
 |--------|-------|-----------------|
-| AUC-ROC | 0.5174 | 0.9519 |
-| MRR | 0.0404 | 0.6126 |
+| AUC-ROC | 0.5780 | 0.9519 |
+| MRR | 0.0463 | 0.6126 |
 | Num citation pairs | 200 | 99 |
 
 ### 2.6 Corpus Stability — PASSED
@@ -89,23 +92,23 @@ TF-IDF baseline: 0.0113 (FAILED). Legal-distance lane must test this with their 
 
 | Benchmark | TF-IDF | Neural | Winner | Target |
 |-----------|--------|--------|--------|--------|
-| Citation Proximity AUC | 0.6354 | 0.5737 | TF-IDF | >0.75 |
+| Citation Proximity AUC | 0.6354 | 0.5004 | TF-IDF | >0.75 |
 | Legal-Area NMI | 0.0487 | 0.0572 | Neural | >0.3 |
 | Legal-Area Purity | 0.7046 | 0.8763 | Neural | >0.7 |
-| Multilingual Separation | -0.2374 | -0.0554 | Neural | >0.1 |
+| Multilingual Separation | -0.2374 | -0.0555 | Neural | >0.1 |
 | Corpus Stability Drift | 0.8733 | 0.0000 | Neural | <0.3 |
-| Hierarchy NMI | 0.0283 | 0.5147 | Neural | >0.3 |
-| Hierarchy Purity | 0.6482 | 0.8504 | Neural | >0.7 |
-| Neighbor Relevance AUC | 0.9519 | 0.5174 | TF-IDF | >0.95 |
+| Hierarchy NMI | 0.0283 | 0.0672 | Neural | >0.3 |
+| Hierarchy Purity | 0.6482 | 0.8333 | Neural | >0.7 |
+| Neighbor Relevance AUC | 0.9519 | 0.5780 | TF-IDF | >0.95 |
 
 ---
 
 ## 4. Interpretation
 
 **Key finding:** The sentence-transformers multilingual embedding shows a mixed picture:
-- **BEATS TF-IDF on:** Legal-area purity (0.8763 vs 0.7046), hierarchy NMI (0.5147 vs 0.0283), hierarchy purity (0.8504 vs 0.6482), corpus stability (0.0000 vs 0.8733), multilingual separation (-0.0554 vs -0.2374)
-- **LOSES to TF-IDF on:** Citation proximity AUC (0.5737 vs 0.6354), neighbor relevance AUC (0.5174 vs 0.9519)
-- **Critical insight:** Neural embeddings achieve very high cross-language similarity (0.8683) but still have negative separation (-0.0554), meaning they group by language more than legal area. However, the language dominance is significantly reduced compared to TF-IDF.
+- **BEATS TF-IDF on:** Legal-area purity (0.8763 vs 0.7046), hierarchy NMI (0.0672 vs 0.0283), hierarchy purity (0.8333 vs 0.6482), corpus stability (0.0000 vs 0.8733), multilingual separation (-0.0555 vs -0.2374)
+- **LOSES to TF-IDF on:** Citation proximity AUC (0.5004 vs 0.6354), neighbor relevance AUC (0.5780 vs 0.9519)
+- **Critical insight:** Neural embeddings achieve very high cross-language similarity (0.8681) but still have negative separation (-0.0555), meaning they group by language more than legal area. However, the language dominance is significantly reduced compared to TF-IDF.
 
 ---
 
@@ -123,7 +126,15 @@ The legal-distance lane should:
 
 ---
 
-## 6. Files Produced
+## 6. Repair Provenance
+
+This cycle repairs rejected cycle 33024162040 (round 3). Two required fixes applied:
+
+1. **branch_distribution_recurring** (low severity): Fixed branch_distribution in `benchmark_legal_area_clustering` to count only sampled decisions (500) instead of full embedding index (1000). The previous code used `{b: len(ids) for b, ids in valid_branches.items()}` which counted all decisions per branch. Fixed to `dict(Counter(sampled_labels[did] for did in valid_ids))`. Result: branch_distribution now sums to 500 (matching num_decisions), balanced at 125 per branch.
+
+2. **hierarchy_coherence_label_mismatch** (medium severity): Fixed hierarchy_coherence to use branch labels (4 branches) instead of legal_area labels (76 unique), matching TF-IDF baseline methodology. Previous NMI=0.515 was against 76 legal_area labels; corrected NMI=0.067 is against 4 branch labels. Both TF-IDF and Neural now use identical label sets, making NMI values directly comparable.
+
+## 7. Files Produced
 
 - `evaluation/results/cycle_5_neural_baseline_results.json` — Machine-readable results
 - `evaluation/reports/evaluation_cycle_5_report.md` — This report

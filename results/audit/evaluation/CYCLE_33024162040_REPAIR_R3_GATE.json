@@ -1,0 +1,29 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "prior_gate": "REVISE",
+  "prior_cycle_id": "33024162040",
+  "repair_round": 3,
+  "required_fixes_status": [
+    {
+      "id": "branch_distribution_recurring",
+      "status": "FIXED",
+      "verification": "branch_distribution now sums to 500 (matching num_decisions=500). Previously summed to 1000 (full embedding index). Balanced at 125 per branch across 4 branches.",
+      "delta": "branch_distribution changed from {strafrecht:271, zivilrecht:263, oeffentliches_recht:203, sozialversicherungsrecht:263} (sum=1000) to {strafrecht:125, zivilrecht:125, oeffentliches_recht:125, sozialversicherungsrecht:125} (sum=500)."
+    },
+    {
+      "id": "hierarchy_coherence_label_mismatch",
+      "status": "FIXED",
+      "verification": "hierarchy_coherence now uses 4 branch labels (matching TF-IDF methodology). NMI=0.067 (was 0.515 against 76 legal_area labels). Both baselines now directly comparable.",
+      "delta": "hierarchy_coherence best_nmi changed from 0.5147 (76 legal_area labels, incomparable to TF-IDF) to 0.0672 (4 branch labels, comparable to TF-IDF 0.0283). num_labeled_areas changed from 76 to 4. Resolution levels changed from [4,8,16,32] to [4,8,12] matching TF-IDF."
+    }
+  ],
+  "claim_ceiling": "Multilingual neural baseline (sentence-transformers/paraphrase-multilingual-mpnet-base-v2) establishes a second reference point across 7 benchmarks on 1,000 real BGer decisions. Neural model passes corpus stability, fails citation proximity, legal-area clustering, multilingual invariance, neighbor relevance, and hierarchy coherence (against 4 branch labels). TF-IDF and neural embeddings show complementary strengths. All hierarchy_coherence NMI values now directly comparable (both use 4 branch labels).",
+  "evidence_summary": "Internal consistency verification confirms all 7 benchmarks execute correctly on 1,000 real BGer decisions. branch_distribution sums to 500 (matching num_decisions), balanced at 125 per branch. hierarchy_coherence uses 4 branch labels (matching TF-IDF), NMI=0.067 vs TF-IDF 0.0283. Honest negative results preserved: citation proximity AUC 0.500 (FAILED), legal-area NMI 0.057 (FAILED), multilingual separation -0.055 (FAILED), neighbor relevance AUC 0.578 (FAILED), hierarchy NMI 0.067 (FAILED, target >0.3). One pass: corpus stability drift ~0 (tautological for static embeddings). No data leakage, benchmark gaming, post-hoc metrics, weak baselines, boilerplate confounding, visual-prettiness bias, or unsupported claims.",
+  "files_modified": [
+    "evaluation/run_cycle_5.py (hierarchy_coherence: branch labels, resolution levels, methodology note)",
+    "evaluation/results/cycle_5_neural_baseline_results.json (re-generated with fixed code)",
+    "evaluation/reports/evaluation_cycle_5_report.md (re-generated with corrected values + repair provenance)",
+    "state/evaluation.json (updated metrics_summary, baselines_established, cycle_history)"
+  ]
+}

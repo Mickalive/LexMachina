@@ -1,12 +1,11 @@
 {
   "lane": "evaluation",
-  "direction_version": 2,
+  "direction_version": 1,
   "evidence_tier": "REPRODUCED",
-  "cycle_status": "DONE",
+  "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "eval_cycle_5_1787786002",
-  "verification_run_id": "eval_cycle_5_1787786969",
-  "accepted_commit": "ac7e759",
+  "accepted_run_id": "eval_cycle_5_1787789315",
+  "accepted_commit": null,
   "evidence_refs": [
     "evaluation/results/cycle_5_neural_baseline_results.json",
     "evaluation/reports/evaluation_cycle_5_report.md",
@@ -43,21 +42,21 @@
       "note": "TF-IDF reasoning-only baseline on 1,200 BGer decisions. Fails all legal-quality metrics."
     },
     "neural_multilingual_baseline": {
-      "citation_proximity_auc": 0.5737,
+      "citation_proximity_auc": 0.5004,
       "legal_area_nmi": 0.0572,
       "legal_area_purity": 0.8763,
-      "multilingual_separation": -0.0548,
+      "multilingual_separation": -0.0555,
       "corpus_stability_drift": 2.98e-08,
-      "hierarchy_nmi": 0.5147,
-      "hierarchy_purity": 0.8504,
-      "neighbor_relevance_auc": 0.5174,
-      "neighbor_relevance_mrr": 0.0701,
-      "note": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2 (768-dim) on 1,000 BGer decisions. Beats TF-IDF on hierarchy, purity, stability. Fails citation proximity and neighbor relevance. Values updated from verification run (eval_cycle_5_1787786969)."
+      "hierarchy_nmi": 0.0672,
+      "hierarchy_purity": 0.8333,
+      "neighbor_relevance_auc": 0.5780,
+      "neighbor_relevance_mrr": 0.0463,
+      "note": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2 (768-dim) on 1,000 BGer decisions. Hierarchy coherence tested against 4 branch labels (matching TF-IDF methodology). Beats TF-IDF on hierarchy purity, corpus stability, multilingual separation. Fails citation proximity, neighbor relevance, legal-area clustering, multilingual invariance."
     },
     "comparison": {
-      "neural_wins": ["hierarchy_nmi", "hierarchy_purity", "corpus_stability_drift", "legal_area_purity", "multilingual_separation", "legal_area_nmi"],
+      "neural_wins": ["hierarchy_purity", "corpus_stability_drift", "legal_area_purity", "multilingual_separation", "legal_area_nmi", "hierarchy_nmi"],
       "tfidf_wins": ["citation_proximity_auc", "neighbor_relevance_auc"],
-      "critical_finding": "Neural embeddings have very high cross-language similarity (0.87) but negative separation (-0.05), meaning language still dominates over legal area. However, the hierarchy is much more coherent (NMI 0.51 vs 0.03) and clusters are purer (0.88 vs 0.70). The product can use neural embeddings as a starting point, but legal-specific fine-tuning is needed to improve citation proximity and multilingual separation."
+      "critical_finding": "Neural embeddings have very high cross-language similarity (0.87) but negative separation (-0.06), meaning language still dominates over legal area. Hierarchy coherence NMI=0.067 (vs TF-IDF 0.028) shows modest improvement but both fail the >0.3 target. Citation proximity and neighbor relevance remain the critical gaps for legal-specific representations."
     }
   },
   "required_fixes_addressed": [
@@ -71,16 +70,15 @@
     "Preserved negative results: cited_laws field empty, citation-law benchmark cancelled",
     "Built evaluation harness for pre-computed embeddings (not just TF-IDF)",
     "Evaluated sentence-transformers neural embeddings against all 6 applicable benchmarks",
-    "Established neural baseline: hierarchy NMI 0.51, purity 0.85, stability drift ~0",
-    "Identified critical gap: neural embeddings fail citation proximity (AUC 0.51) and neighbor relevance (AUC 0.56)",
+    "Established neural baseline with corrected hierarchy NMI 0.067 (branch labels, comparable to TF-IDF)",
+    "Identified critical gap: neural embeddings fail citation proximity (AUC 0.50) and neighbor relevance (AUC 0.58)",
     "Generated machine-readable results and human-readable reports for all cycles",
-    "Reproduced cycle 5 results (run 33023404622): verified consistency within expected variance",
-    "Fixed branch_distribution labeling in run_cycle_5.py and legal_area_clustering.py: sampled subset distribution instead of full embedding set",
-    "Updated state metrics_summary and baselines_established with verification values (citation AUC 0.5737, neighbor AUC 0.5174)"
+    "REPAIR CYCLE_33024162040: Fixed branch_distribution to count only sampled decisions (500) not full index (1000)",
+    "REPAIR CYCLE_33024162040: Fixed hierarchy_coherence to use 4 branch labels (matching TF-IDF methodology), NMI now directly comparable"
   ],
   "baselines_established": {
     "tfidf_reasoning": {
-      "neighbor_relevance_auc": 0.9462,
+      "neighbor_relevance_auc": 0.9519,
       "boilerplate_resistance": 0.0113,
       "multilingual_separation": -0.2374,
       "corpus_stability_drift": 0.8733,
@@ -91,15 +89,16 @@
       "legal_area_purity": 0.7046
     },
     "neural_multilingual": {
-      "neighbor_relevance_auc": 0.5174,
+      "neighbor_relevance_auc": 0.5780,
       "boilerplate_resistance": "SKIPPED (requires model inference)",
-      "multilingual_separation": -0.0548,
+      "multilingual_separation": -0.0555,
       "corpus_stability_drift": 2.98e-08,
-      "hierarchy_purity": 0.8504,
-      "hierarchy_nmi": 0.5147,
-      "citation_proximity_auc": 0.5737,
+      "hierarchy_purity": 0.8333,
+      "hierarchy_nmi": 0.0672,
+      "citation_proximity_auc": 0.5004,
       "legal_area_nmi": 0.0572,
-      "legal_area_purity": 0.8763
+      "legal_area_purity": 0.8763,
+      "note": "Hierarchy coherence NMI tested against 4 branch labels (comparable to TF-IDF). Previous NMI=0.515 was against 76 legal_area labels (incomparable)."
     },
     "targets_for_legal_distance_lane": {
       "citation_proximity_auc": ">0.75",
@@ -118,7 +117,7 @@
     "boilerplate_resistance (perturbation stability)",
     "multilingual_invariance (cross-language similarity)",
     "corpus_stability (position drift under growth)",
-    "hierarchy_coherence (Jurivoc purity + NMI)",
+    "hierarchy_coherence (branch purity + NMI, 4 branches)",
     "citation_proximity (shared-citation heritage, AUC-ROC)",
     "legal_area_clustering (branch NMI + purity)"
   ],
@@ -128,14 +127,7 @@
     {"cycle": 3, "run_id": "eval_real_tfidf_20260826", "status": "COMPLETED", "tier": "REPRODUCED"},
     {"cycle": 4, "run_id": "eval_cycle_4_20260826_225741", "status": "COMPLETED", "tier": "REPRODUCED"},
     {"cycle": 5, "run_id": "eval_cycle_5_1787786002", "status": "COMPLETED", "tier": "REPRODUCED"},
-    {"cycle": 5, "run_id": "eval_cycle_5_1787786969", "status": "VERIFIED", "tier": "REPRODUCED", "note": "Reproduction run on run 33023404622. Results consistent within expected variance. Environment fixed: numpy+scikit-learn installed."},
-    {"cycle": 6, "run_id": "eval_repair_33023404622_r2", "status": "COMPLETED", "tier": "REPRODUCED", "note": "Repair round 2: fixed branch_distribution labeling (recurring defect from CYCLE_33021088981). Updated state metrics with verification values."}
-  ],
-  "orchestration_failure_diagnosis": {
-    "failed_run_id": "33022898284",
-    "root_cause": "numpy module not installed in execution environment. All evaluation imports fail with ModuleNotFoundError: No module named 'numpy'.",
-    "fix_applied": "pip install numpy scikit-learn (numpy 2.5.2, scikit-learn 1.9.0)",
-    "verification": "All imports succeed. Cycle 5 reproduced successfully. Results consistent with original run.",
-    "prevention": "Add numpy+scikit-learn to environment bootstrap or requirements.txt before evaluation lane execution."
-  }
+    {"cycle": 5, "run_id": "eval_cycle_5_1787786969", "status": "REJECTED", "tier": "REPRODUCED", "note": "Rejected by audit CYCLE_33024162040: branch_distribution counts 1000 not 500, hierarchy_coherence uses 76 legal_area labels not 4 branch labels."},
+    {"cycle": 5, "run_id": "eval_cycle_5_1787789315", "status": "COMPLETED", "tier": "REPRODUCED", "note": "Repair of CYCLE_33024162040. Fixed branch_distribution (now sums to 500). Fixed hierarchy_coherence (now uses 4 branch labels, NMI=0.067 comparable to TF-IDF 0.028)."}
+  ]
 }
