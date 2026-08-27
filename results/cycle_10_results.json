@@ -1,0 +1,531 @@
+{
+  "run_id": "eval_cycle_10_1787797258",
+  "timestamp": "2026-08-27T02:20:58Z",
+  "cycle": 10,
+  "hypothesis": "Citation-heritage benchmark built from real corpus citation graph discriminates between representations. Deliberately degraded representation should fail all benchmarks.",
+  "frozen_sample": "1000 BGer decisions (2020-2024) from fractal-map baseline",
+  "frozen_metrics": [
+    "citation_heritage_auc_roc",
+    "citation_heritage_similarity_gap",
+    "language_dominance_mean",
+    "branch_coherence_mean",
+    "branch_knn_accuracy@5",
+    "dead_zones_gt095"
+  ],
+  "success_rule": "Citation-heritage AUC > 0.6 on at least one representation; random-degraded AUC < 0.55; dead zone count discriminating",
+  "citation_graph_stats": {
+    "decisions_with_citations": 997,
+    "cited_nodes": 7665,
+    "edges": 12863,
+    "citation_pairs_at_least_1": 5000
+  },
+  "representations": {
+    "baseline": {
+      "citation_heritage": {
+        "representation": "baseline",
+        "status": "PASSED",
+        "falsified": false,
+        "falsification_reasons": [],
+        "num_positive_pairs": 4999,
+        "num_negative_pairs": 9998,
+        "auc_roc": 0.6367,
+        "positive_mean_similarity": 0.9119,
+        "negative_mean_similarity": 0.8912,
+        "similarity_gap": 0.0208,
+        "precision_at_k": {
+          "precision@1": 0.0203,
+          "precision@5": 0.0766,
+          "precision@10": 0.1259,
+          "precision@20": 0.1964,
+          "precision@50": 0.3137
+        },
+        "nn_citation_rate": 0.2032,
+        "subgroup_analysis": {
+          "shared>=1": {
+            "count": 4999,
+            "mean_similarity": 0.9119,
+            "std_similarity": 0.0475
+          },
+          "shared>=2": {
+            "count": 4999,
+            "mean_similarity": 0.9119,
+            "std_similarity": 0.0475
+          },
+          "shared>=3": {
+            "count": 2817,
+            "mean_similarity": 0.9265,
+            "std_similarity": 0.0438
+          },
+          "shared>=5": {
+            "count": 635,
+            "mean_similarity": 0.953,
+            "std_similarity": 0.0294
+          }
+        },
+        "duration": 1.3394498825073242
+      },
+      "adversarial": {
+        "representation": "baseline",
+        "status": "FALSIFIED",
+        "falsified": true,
+        "falsification_reasons": [
+          "Language dominance 0.982 > 0.9",
+          "1664 pairs with sim>0.95 across branches"
+        ],
+        "language_dominance_mean": 0.9821,
+        "branch_coherence_mean": 0.8892,
+        "dead_zones_gt095": 1664,
+        "dead_zones_total": 3557,
+        "duration": 0.13015246391296387
+      },
+      "tf_metadata": {
+        "representation": "baseline",
+        "num_decisions": 999,
+        "branch_knn": {
+          "knn_accuracy@1": 0.97,
+          "knn_accuracy@3": 0.959,
+          "knn_accuracy@5": 0.957,
+          "knn_accuracy@10": 0.955,
+          "random_baseline": 0.3333
+        },
+        "chamber_knn": {
+          "knn_accuracy@1": 0.9369,
+          "knn_accuracy@3": 0.9199,
+          "knn_accuracy@5": 0.9209,
+          "knn_accuracy@10": 0.9109,
+          "random_baseline": 0.1111
+        },
+        "legal_area_knn": {
+          "knn_accuracy@1": 0.4615,
+          "knn_accuracy@3": 0.4374,
+          "knn_accuracy@5": 0.4785,
+          "knn_accuracy@10": 0.4775,
+          "random_baseline": 0.01
+        },
+        "summary": {
+          "branch_knn_accuracy@5": 0.957,
+          "chamber_knn_accuracy@5": 0.9209,
+          "legal_area_knn_accuracy@5": 0.4785
+        },
+        "duration": 0.3365752696990967
+      }
+    },
+    "language_debiased_pca2": {
+      "citation_heritage": {
+        "representation": "language_debiased_pca2",
+        "status": "PASSED",
+        "falsified": false,
+        "falsification_reasons": [],
+        "num_positive_pairs": 4999,
+        "num_negative_pairs": 9998,
+        "auc_roc": 0.6734,
+        "positive_mean_similarity": 0.9314,
+        "negative_mean_similarity": 0.9143,
+        "similarity_gap": 0.0171,
+        "precision_at_k": {
+          "precision@1": 0.0199,
+          "precision@5": 0.074,
+          "precision@10": 0.1209,
+          "precision@20": 0.1864,
+          "precision@50": 0.3102
+        },
+        "nn_citation_rate": 0.1992,
+        "subgroup_analysis": {
+          "shared>=1": {
+            "count": 4999,
+            "mean_similarity": 0.9314,
+            "std_similarity": 0.0327
+          },
+          "shared>=2": {
+            "count": 4999,
+            "mean_similarity": 0.9314,
+            "std_similarity": 0.0327
+          },
+          "shared>=3": {
+            "count": 2817,
+            "mean_similarity": 0.9392,
+            "std_similarity": 0.0303
+          },
+          "shared>=5": {
+            "count": 635,
+            "mean_similarity": 0.9561,
+            "std_similarity": 0.023
+          }
+        },
+        "duration": 1.3370826244354248
+      },
+      "adversarial": {
+        "representation": "language_debiased_pca2",
+        "status": "FALSIFIED",
+        "falsified": true,
+        "falsification_reasons": [
+          "1752 pairs with sim>0.95 across branches"
+        ],
+        "language_dominance_mean": 0.8182,
+        "branch_coherence_mean": 0.9105,
+        "dead_zones_gt095": 1752,
+        "dead_zones_total": 2954,
+        "duration": 0.10460019111633301
+      },
+      "tf_metadata": {
+        "representation": "language_debiased_pca2",
+        "num_decisions": 999,
+        "branch_knn": {
+          "knn_accuracy@1": 0.974,
+          "knn_accuracy@3": 0.967,
+          "knn_accuracy@5": 0.967,
+          "knn_accuracy@10": 0.962,
+          "random_baseline": 0.3333
+        },
+        "chamber_knn": {
+          "knn_accuracy@1": 0.9449,
+          "knn_accuracy@3": 0.9329,
+          "knn_accuracy@5": 0.9269,
+          "knn_accuracy@10": 0.9229,
+          "random_baseline": 0.1111
+        },
+        "legal_area_knn": {
+          "knn_accuracy@1": 0.4294,
+          "knn_accuracy@3": 0.3974,
+          "knn_accuracy@5": 0.4184,
+          "knn_accuracy@10": 0.4154,
+          "random_baseline": 0.01
+        },
+        "summary": {
+          "branch_knn_accuracy@5": 0.967,
+          "chamber_knn_accuracy@5": 0.9269,
+          "legal_area_knn_accuracy@5": 0.4184
+        },
+        "duration": 0.3348569869995117
+      }
+    },
+    "citation_blended": {
+      "citation_heritage": {
+        "representation": "citation_blended",
+        "status": "PASSED",
+        "falsified": false,
+        "falsification_reasons": [],
+        "num_positive_pairs": 4999,
+        "num_negative_pairs": 9998,
+        "auc_roc": 0.679,
+        "positive_mean_similarity": 0.2256,
+        "negative_mean_similarity": 0.0001,
+        "similarity_gap": 0.2255,
+        "precision_at_k": {
+          "precision@1": 0.0192,
+          "precision@5": 0.0749,
+          "precision@10": 0.1259,
+          "precision@20": 0.1985,
+          "precision@50": 0.3192
+        },
+        "nn_citation_rate": 0.1922,
+        "subgroup_analysis": {
+          "shared>=1": {
+            "count": 4999,
+            "mean_similarity": 0.2256,
+            "std_similarity": 0.3714
+          },
+          "shared>=2": {
+            "count": 4999,
+            "mean_similarity": 0.2256,
+            "std_similarity": 0.3714
+          },
+          "shared>=3": {
+            "count": 2817,
+            "mean_similarity": 0.336,
+            "std_similarity": 0.3443
+          },
+          "shared>=5": {
+            "count": 635,
+            "mean_similarity": 0.5337,
+            "std_similarity": 0.2554
+          }
+        },
+        "duration": 1.3387866020202637
+      },
+      "adversarial": {
+        "representation": "citation_blended",
+        "status": "FALSIFIED",
+        "falsified": true,
+        "falsification_reasons": [
+          "Language dominance 0.982 > 0.9"
+        ],
+        "language_dominance_mean": 0.9817,
+        "branch_coherence_mean": 0.8922,
+        "dead_zones_gt095": 0,
+        "dead_zones_total": 3435,
+        "duration": 0.12621283531188965
+      },
+      "tf_metadata": {
+        "representation": "citation_blended",
+        "num_decisions": 999,
+        "branch_knn": {
+          "knn_accuracy@1": 0.968,
+          "knn_accuracy@3": 0.96,
+          "knn_accuracy@5": 0.955,
+          "knn_accuracy@10": 0.956,
+          "random_baseline": 0.3333
+        },
+        "chamber_knn": {
+          "knn_accuracy@1": 0.9269,
+          "knn_accuracy@3": 0.9219,
+          "knn_accuracy@5": 0.9139,
+          "knn_accuracy@10": 0.9089,
+          "random_baseline": 0.1111
+        },
+        "legal_area_knn": {
+          "knn_accuracy@1": 0.4484,
+          "knn_accuracy@3": 0.4515,
+          "knn_accuracy@5": 0.4765,
+          "knn_accuracy@10": 0.4785,
+          "random_baseline": 0.01
+        },
+        "summary": {
+          "branch_knn_accuracy@5": 0.955,
+          "chamber_knn_accuracy@5": 0.9139,
+          "legal_area_knn_accuracy@5": 0.4765
+        },
+        "duration": 0.3343017101287842
+      }
+    },
+    "citation_graph_only": {
+      "citation_heritage": {
+        "representation": "citation_graph_only",
+        "status": "PASSED",
+        "falsified": false,
+        "falsification_reasons": [],
+        "num_positive_pairs": 4999,
+        "num_negative_pairs": 9998,
+        "auc_roc": 0.6678,
+        "positive_mean_similarity": 0.2147,
+        "negative_mean_similarity": 0.0001,
+        "similarity_gap": 0.2146,
+        "precision_at_k": {
+          "precision@1": 0.019,
+          "precision@5": 0.0744,
+          "precision@10": 0.1242,
+          "precision@20": 0.195,
+          "precision@50": 0.3082
+        },
+        "nn_citation_rate": 0.1902,
+        "subgroup_analysis": {
+          "shared>=1": {
+            "count": 4999,
+            "mean_similarity": 0.2147,
+            "std_similarity": 0.371
+          },
+          "shared>=2": {
+            "count": 4999,
+            "mean_similarity": 0.2147,
+            "std_similarity": 0.371
+          },
+          "shared>=3": {
+            "count": 2817,
+            "mean_similarity": 0.3235,
+            "std_similarity": 0.349
+          },
+          "shared>=5": {
+            "count": 635,
+            "mean_similarity": 0.5181,
+            "std_similarity": 0.2797
+          }
+        },
+        "duration": 1.3009648323059082
+      },
+      "adversarial": {
+        "representation": "citation_graph_only",
+        "status": "FALSIFIED",
+        "falsified": true,
+        "falsification_reasons": [
+          "Language dominance 0.964 > 0.9"
+        ],
+        "language_dominance_mean": 0.964,
+        "branch_coherence_mean": 0.8788,
+        "dead_zones_gt095": 2,
+        "dead_zones_total": 3749,
+        "duration": 0.10841870307922363
+      },
+      "tf_metadata": {
+        "representation": "citation_graph_only",
+        "num_decisions": 999,
+        "branch_knn": {
+          "knn_accuracy@1": 0.955,
+          "knn_accuracy@3": 0.9489,
+          "knn_accuracy@5": 0.9419,
+          "knn_accuracy@10": 0.9469,
+          "random_baseline": 0.3333
+        },
+        "chamber_knn": {
+          "knn_accuracy@1": 0.9129,
+          "knn_accuracy@3": 0.9039,
+          "knn_accuracy@5": 0.8999,
+          "knn_accuracy@10": 0.8899,
+          "random_baseline": 0.1111
+        },
+        "legal_area_knn": {
+          "knn_accuracy@1": 0.4364,
+          "knn_accuracy@3": 0.4354,
+          "knn_accuracy@5": 0.4675,
+          "knn_accuracy@10": 0.4675,
+          "random_baseline": 0.01
+        },
+        "summary": {
+          "branch_knn_accuracy@5": 0.9419,
+          "chamber_knn_accuracy@5": 0.8999,
+          "legal_area_knn_accuracy@5": 0.4675
+        },
+        "duration": 0.3250901699066162
+      }
+    },
+    "random_degraded": {
+      "citation_heritage": {
+        "representation": "random_degraded",
+        "status": "PASSED",
+        "falsified": false,
+        "falsification_reasons": [],
+        "num_positive_pairs": 4999,
+        "num_negative_pairs": 9998,
+        "auc_roc": 0.5204,
+        "positive_mean_similarity": 0.8938,
+        "negative_mean_similarity": 0.8913,
+        "similarity_gap": 0.0025,
+        "precision_at_k": {
+          "precision@1": 0.0009,
+          "precision@5": 0.0048,
+          "precision@10": 0.0095,
+          "precision@20": 0.0191,
+          "precision@50": 0.0467
+        },
+        "nn_citation_rate": 0.009,
+        "subgroup_analysis": {
+          "shared>=1": {
+            "count": 4999,
+            "mean_similarity": 0.8938,
+            "std_similarity": 0.0432
+          },
+          "shared>=2": {
+            "count": 4999,
+            "mean_similarity": 0.8938,
+            "std_similarity": 0.0432
+          },
+          "shared>=3": {
+            "count": 2817,
+            "mean_similarity": 0.8924,
+            "std_similarity": 0.044
+          },
+          "shared>=5": {
+            "count": 635,
+            "mean_similarity": 0.8956,
+            "std_similarity": 0.0411
+          }
+        },
+        "duration": 1.3381242752075195
+      },
+      "adversarial": {
+        "representation": "random_degraded",
+        "status": "FALSIFIED",
+        "falsified": true,
+        "falsification_reasons": [
+          "8847 pairs with sim>0.95 across branches"
+        ],
+        "language_dominance_mean": 0.493,
+        "branch_coherence_mean": 0.3622,
+        "dead_zones_gt095": 8847,
+        "dead_zones_total": 12744,
+        "duration": 0.1328275203704834
+      },
+      "tf_metadata": {
+        "representation": "random_degraded",
+        "num_decisions": 999,
+        "branch_knn": {
+          "knn_accuracy@1": 0.3383,
+          "knn_accuracy@3": 0.3584,
+          "knn_accuracy@5": 0.3794,
+          "knn_accuracy@10": 0.3924,
+          "random_baseline": 0.3333
+        },
+        "chamber_knn": {
+          "knn_accuracy@1": 0.1181,
+          "knn_accuracy@3": 0.1231,
+          "knn_accuracy@5": 0.1281,
+          "knn_accuracy@10": 0.1231,
+          "random_baseline": 0.1111
+        },
+        "legal_area_knn": {
+          "knn_accuracy@1": 0.042,
+          "knn_accuracy@3": 0.048,
+          "knn_accuracy@5": 0.0601,
+          "knn_accuracy@10": 0.0611,
+          "random_baseline": 0.01
+        },
+        "summary": {
+          "branch_knn_accuracy@5": 0.3794,
+          "chamber_knn_accuracy@5": 0.1281,
+          "legal_area_knn_accuracy@5": 0.0601
+        },
+        "duration": 0.3351740837097168
+      }
+    }
+  },
+  "comparison": {
+    "citation_heritage_auc": {
+      "baseline": 0.6367,
+      "language_debiased_pca2": 0.6734,
+      "citation_blended": 0.679,
+      "citation_graph_only": 0.6678,
+      "random_degraded": 0.5204
+    },
+    "citation_heritage_gap": {
+      "baseline": 0.0208,
+      "language_debiased_pca2": 0.0171,
+      "citation_blended": 0.2255,
+      "citation_graph_only": 0.2146,
+      "random_degraded": 0.0025
+    },
+    "adversarial_status": {
+      "baseline": "FALSIFIED",
+      "language_debiased_pca2": "FALSIFIED",
+      "citation_blended": "FALSIFIED",
+      "citation_graph_only": "FALSIFIED",
+      "random_degraded": "FALSIFIED"
+    },
+    "language_dominance": {
+      "baseline": 0.9821,
+      "language_debiased_pca2": 0.8182,
+      "citation_blended": 0.9817,
+      "citation_graph_only": 0.964,
+      "random_degraded": 0.493
+    },
+    "branch_coherence": {
+      "baseline": 0.8892,
+      "language_debiased_pca2": 0.9105,
+      "citation_blended": 0.8922,
+      "citation_graph_only": 0.8788,
+      "random_degraded": 0.3622
+    },
+    "dead_zones_gt095": {
+      "baseline": 1664,
+      "language_debiased_pca2": 1752,
+      "citation_blended": 0,
+      "citation_graph_only": 2,
+      "random_degraded": 8847
+    },
+    "branch_knn_accuracy": {
+      "baseline": 0.957,
+      "language_debiased_pca2": 0.967,
+      "citation_blended": 0.955,
+      "citation_graph_only": 0.9419,
+      "random_degraded": 0.3794
+    }
+  },
+  "key_findings": [
+    "SANITY CHECK PASSED: Random-degraded AUC 0.520 < 0.55",
+    "Citation heritage AUC (baseline): 0.637",
+    "Citation heritage AUC (language_debiased_pca2): 0.673",
+    "Citation heritage AUC (citation_blended): 0.679",
+    "Citation heritage AUC (citation_graph_only): 0.668",
+    "BEST citation heritage: citation_blended (AUC=0.679)",
+    "Dead zones: baseline=1664, debiased=1752, blended=0, graph_only=2, degraded=8847",
+    "Language dominance: baseline=0.982, degraded=0.493"
+  ]
+}
