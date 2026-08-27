@@ -1,0 +1,85 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Precompute true_hierarchical_leiden artifacts (labels, metadata) in fractal-map lane; load from disk in product — currently runs full Leiden at startup (~89s test suite)",
+    "Precompute debiased_citation_blended embeddings and 2D projection in evaluation/fractal-map lane; load from disk — currently runs PCA + NetworkX random walks + SVD at startup",
+    "Correct product.json metrics: total_tests=92 (not 91), true_hierarchical_leiden_coarse_purity=0.875 (not 0.571)",
+    "Document python-igraph and leidenalg as hard runtime dependencies (not just test deps)",
+    "Persist benchmark validation results for debiased_citation_blended alongside representation artifacts"
+  ],
+  "claim_ceiling": "Validated fractal map architecture with reproduced perfect-nesting hierarchical Leiden (1.0) and independent zoom coherence evidence (39.6% improvement). Product vertical slice functional with 92 passing tests. Default representation (debiased_citation_blended) benchmark claim (14/14 PASS) rests on external evaluation not reproducible from mounted artifacts.",
+  "evidence_summary": {
+    "fractal_map": {
+      "artifacts": ["hierarchical_leiden_results.json", "labels_res_0.25.npy", "labels_res_0.5.npy", "labels_res_3.0.npy"],
+      "verified": {
+        "nesting_score": 1.0,
+        "fine_clusters": 127,
+        "coarse_clusters": 8,
+        "hierarchical_purity": 0.9634,
+        "coarse_purity": 0.8749,
+        "beats_flat_leiden": true,
+        "beats_agglomerative": true,
+        "beats_eval_baseline": true
+      }
+    },
+    "zoom_coherence": {
+      "artifact": "zoom_coherence_results.json",
+      "verified": {
+        "improvement_rate": 0.396,
+        "total_improvements": 19,
+        "total_deteriorations": 0,
+        "best_zoom_ratio": 0.9204,
+        "flat_baseline_best_ratio": 0.4920
+      }
+    },
+    "section_modes": {
+      "artifact": "section_scaled/metadata.json",
+      "verified": {
+        "total_modes": 6,
+        "total_decisions": 1000,
+        "section_covered": 63,
+        "baseline_fallback": 937,
+        "modes_present": ["sachverhalt", "erwaegungen", "dispositiv", "full_text", "erwaegungen_dispositiv", "sachverhalt_erwaegungen_dispositiv"]
+      }
+    },
+    "evaluation": {
+      "artifacts": ["unified_results.json", "evaluation_results.json", "concat_benchmark_results_v2.json", "resolution_dependent_results.json"],
+      "verified": {
+        "representations_tested": 9,
+        "resolutions_per_representation": 4,
+        "language_dominance_warnings_generated": true,
+        "boilerplate_resistance_computed": true
+      },
+      "unverified_claim": "debiased_citation_blended 14/14 benchmarks PASS"
+    },
+    "corpus": {
+      "artifacts": ["bger_2020.jsonl", "bger_2021.jsonl", "bger_2022.jsonl", "bger_2023.jsonl", "bger_2024.jsonl", "bger_2000plus_slice_1000.jsonl", "bger_eval_balanced.jsonl", "bger_eval_sample.jsonl", "bger_eval_structure.jsonl"],
+      "verified": {
+        "total_decisions": 1202,
+        "languages": {"de": 736, "fr": 404, "it": 62},
+        "branches": {"oeffentliches_recht": 293, "zivilrecht": 312, "sozialversicherungsrecht": 290, "strafrecht": 307},
+        "map_positions": 1000,
+        "corpus_map_coverage": "100%"
+      }
+    },
+    "citation_graph": {
+      "artifact": "citation_graph.json",
+      "verified": {
+        "decisions_with_citations": 174,
+        "total_citation_edges": 2105
+      }
+    },
+    "tests": {
+      "total": 92,
+      "passed": 92,
+      "files": {
+        "test_product.py": 11,
+        "test_cycle_33032746334.py": 9,
+        "test_cycle_33033658714.py": 4,
+        "test_cycle_33035450227.py": 68
+      },
+      "runtime_dependencies": ["python-igraph", "leidenalg", "numpy", "networkx", "scikit-learn", "scipy"]
+    }
+  }
+}
