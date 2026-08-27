@@ -4,9 +4,13 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "eval_cycle_5_1787789315",
-  "accepted_commit": "560774f",
+  "accepted_run_id": "eval_cycle_6_fractal_map_20260827",
+  "accepted_commit": null,
   "evidence_refs": [
+    "evaluation/results/cycle_6_fractal_map_evaluation_results.json",
+    "evaluation/reports/evaluation_cycle_6_report.md",
+    "evaluation/run_cycle_6.py",
+    "evaluation/tests/citation_graph_neighborhood.py",
     "evaluation/results/cycle_5_neural_baseline_results.json",
     "evaluation/reports/evaluation_cycle_5_report.md",
     "evaluation/run_cycle_5.py",
@@ -31,7 +35,7 @@
     "results/audit/evaluation/CYCLE_33024951821_AUDIT.json"
   ],
   "next_recommendation": "DONE",
-  "director_disposition": "DONE — 7 benchmarks established, 2 baselines documented, clear pass/fail thresholds for legal-distance lane. No further evaluation-only cycles needed until legal-distance produces candidate representations.",
+  "director_disposition": "DONE — 8 benchmarks established (added citation_graph_neighborhood), 10 fractal-map representations evaluated, 2 baselines documented. Legal-distance lane has clear targets. No further evaluation-only cycles needed until legal-distance produces candidate representations.",
   "metrics_summary": {
     "tfidf_reasoning_baseline": {
       "neighbor_relevance_auc": 0.9519,
@@ -55,31 +59,66 @@
       "hierarchy_purity": 0.8333,
       "neighbor_relevance_auc": 0.5780,
       "neighbor_relevance_mrr": 0.0463,
-      "note": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2 (768-dim) on 1,000 BGer decisions. Hierarchy coherence tested against 4 branch labels (matching TF-IDF methodology). Beats TF-IDF on hierarchy purity, corpus stability, multilingual separation. Fails citation proximity, neighbor relevance, legal-area clustering, multilingual invariance."
+      "note": "sentence-transformers/paraphrase-multilingual-mpnet-base-v2 (768-dim) on 1,000 BGer decisions."
+    },
+    "fractal_map_evaluation": {
+      "section_sachverhalt": {
+        "legal_area_nmi": 0.4782,
+        "legal_area_purity": 0.8571,
+        "citation_proximity_auc": 0.6184,
+        "citation_graph_auc": 0.5,
+        "targets_pass": 2,
+        "note": "Best representation for legal area clustering. Passes NMI>0.3 and purity>0.7 targets."
+      },
+      "section_combined": {
+        "legal_area_nmi": 0.4782,
+        "legal_area_purity": 0.8571,
+        "citation_proximity_auc": 0.6184,
+        "citation_graph_auc": 0.5,
+        "targets_pass": 2,
+        "note": "Identical to sachverhalt (combined includes sachverhalt). Passes NMI and purity targets."
+      },
+      "language_debiased_pca2": {
+        "legal_area_nmi": 0.4373,
+        "legal_area_purity": 0.7200,
+        "citation_proximity_auc": 0.5961,
+        "citation_graph_auc": 0.5,
+        "targets_pass": 2,
+        "note": "Debiasing improves NMI from 0.2831 (baseline) to 0.4373. Passes NMI and purity targets."
+      },
+      "section_erwaegungen": {
+        "legal_area_nmi": 0.2436,
+        "legal_area_purity": 0.6607,
+        "citation_proximity_auc": 0.6860,
+        "citation_graph_auc": 0.5,
+        "targets_pass": 0,
+        "note": "Highest citation proximity AUC (0.686) but fails legal area targets."
+      },
+      "section_full_text": {
+        "legal_area_nmi": 0.2964,
+        "legal_area_purity": 0.6786,
+        "citation_proximity_auc": 0.5507,
+        "citation_graph_auc": 0.5,
+        "targets_pass": 0,
+        "note": "Close to NMI target (0.296 vs 0.3) but doesn't pass."
+      },
+      "baseline": {
+        "legal_area_nmi": 0.2831,
+        "legal_area_purity": 0.5700,
+        "citation_proximity_auc": 0.5373,
+        "citation_graph_auc": 0.5,
+        "targets_pass": 0,
+        "note": "Sentence-transformers baseline. Fails all targets."
+      },
+      "critical_finding": "Sachverhalt-only TF-IDF outperforms all other representations on legal area clustering (NMI 0.478, purity 0.857). This suggests legal area signal is concentrated in the facts section. Citation proximity remains the hardest target (best: 0.686, target: 0.75). Citation graph benchmark is invalid due to data coverage (only 1 positive pair in embeddings)."
     },
     "comparison": {
-      "neural_wins": ["hierarchy_purity", "corpus_stability_drift", "legal_area_purity", "multilingual_separation", "legal_area_nmi", "hierarchy_nmi"],
-      "tfidf_wins": ["citation_proximity_auc", "neighbor_relevance_auc"],
-      "critical_finding": "Neural embeddings have very high cross-language similarity (0.87) but negative separation (-0.06), meaning language still dominates over legal area. Hierarchy coherence NMI=0.067 (vs TF-IDF 0.028) shows modest improvement but both fail the >0.3 target. Citation proximity and neighbor relevance remain the critical gaps for legal-specific representations."
+      "best_legal_area": "section_sachverhalt (NMI=0.478, purity=0.857)",
+      "best_citation_proximity": "section_erwaegungen (AUC=0.686)",
+      "critical_gap": "Citation proximity (AUC 0.686 < 0.75 target). Legal-distance lane must develop citation-aware representations.",
+      "negative_result": "Citation graph neighborhood benchmark is invalid: only 8.6% of cited docket numbers map to corpus decisions, yielding only 1 positive pair."
     }
   },
-  "required_fixes_addressed": [
-    "Created real_corpus.py adapter to load canonical JSONL from corpus lane",
-    "Built TF-IDF baseline representations (full, reasoning, legal-only modes)",
-    "Ran all 5 original benchmarks on real 1,200 BGer decisions (2020-2024)",
-    "Established baseline metrics: AUC 0.95, resistance 0.01, separation -0.24, drift 0.87, purity 0.65",
-    "Implemented citation_proximity benchmark (shared-citation heritage as weak supervision)",
-    "Implemented legal_area_clustering benchmark (branch metadata, independent of Jurivoc)",
-    "Ran new benchmarks on TF-IDF baseline: citation AUC 0.64, clustering NMI 0.05",
-    "Preserved negative results: cited_laws field empty, citation-law benchmark cancelled",
-    "Built evaluation harness for pre-computed embeddings (not just TF-IDF)",
-    "Evaluated sentence-transformers neural embeddings against all 6 applicable benchmarks",
-    "Established neural baseline with corrected hierarchy NMI 0.067 (branch labels, comparable to TF-IDF)",
-    "Identified critical gap: neural embeddings fail citation proximity (AUC 0.50) and neighbor relevance (AUC 0.58)",
-    "Generated machine-readable results and human-readable reports for all cycles",
-    "REPAIR CYCLE_33024162040: Fixed branch_distribution to count only sampled decisions (500) not full index (1000)",
-    "REPAIR CYCLE_33024162040: Fixed hierarchy_coherence to use 4 branch labels (matching TF-IDF methodology), NMI now directly comparable"
-  ],
   "baselines_established": {
     "tfidf_reasoning": {
       "neighbor_relevance_auc": 0.9519,
@@ -94,15 +133,20 @@
     },
     "neural_multilingual": {
       "neighbor_relevance_auc": 0.5780,
-      "boilerplate_resistance": "SKIPPED (requires model inference)",
+      "boilerplate_resistance": "SKIPPED",
       "multilingual_separation": -0.0555,
       "corpus_stability_drift": 2.98e-08,
       "hierarchy_purity": 0.8333,
       "hierarchy_nmi": 0.0672,
       "citation_proximity_auc": 0.5004,
       "legal_area_nmi": 0.0572,
-      "legal_area_purity": 0.8763,
-      "note": "Hierarchy coherence NMI tested against 4 branch labels (comparable to TF-IDF). Previous NMI=0.515 was against 76 legal_area labels (incomparable)."
+      "legal_area_purity": 0.8763
+    },
+    "fractal_map_sachverhalt": {
+      "legal_area_nmi": 0.4782,
+      "legal_area_purity": 0.8571,
+      "citation_proximity_auc": 0.6184,
+      "note": "Best for legal area clustering. Facts section carries strongest legal-area signal."
     },
     "targets_for_legal_distance_lane": {
       "citation_proximity_auc": ">0.75",
@@ -123,7 +167,8 @@
     "corpus_stability (position drift under growth)",
     "hierarchy_coherence (branch purity + NMI, 4 branches)",
     "citation_proximity (shared-citation heritage, AUC-ROC)",
-    "legal_area_clustering (branch NMI + purity)"
+    "legal_area_clustering (branch NMI + purity)",
+    "citation_graph_neighborhood (direct citation links, AUC-ROC) [INVALID: data coverage]"
   ],
   "cycle_history": [
     {"cycle": 1, "run_id": "synthetic_eval_20260826", "status": "COMPLETED", "tier": "EXPLORATORY"},
@@ -133,6 +178,7 @@
     {"cycle": 5, "run_id": "eval_cycle_5_1787786002", "status": "COMPLETED", "tier": "REPRODUCED"},
     {"cycle": 5, "run_id": "eval_cycle_5_1787786969", "status": "REJECTED", "tier": "REPRODUCED", "note": "Rejected by audit CYCLE_33024162040: branch_distribution counts 1000 not 500, hierarchy_coherence uses 76 legal_area labels not 4 branch labels."},
     {"cycle": 5, "run_id": "eval_cycle_5_1787789315", "status": "COMPLETED", "tier": "REPRODUCED", "note": "Repair of CYCLE_33024162040. Fixed branch_distribution (now sums to 500). Fixed hierarchy_coherence (now uses 4 branch labels, NMI=0.067 comparable to TF-IDF 0.028)."},
-    {"cycle": "audit", "run_id": "33024951821", "status": "PASS", "tier": "REPRODUCED", "note": "Final lane completion audit. 7 benchmarks verified, 2 baselines documented, state file complete, all evidence refs present. Synthetic validation confirmed infrastructure works."}
+    {"cycle": "audit", "run_id": "33024951821", "status": "PASS", "tier": "REPRODUCED", "note": "Final lane completion audit. 7 benchmarks verified, 2 baselines documented."},
+    {"cycle": 6, "run_id": "eval_cycle_6_fractal_map_20260827", "status": "COMPLETED", "tier": "REPRODUCED", "note": "Evaluated 10 fractal-map representations against 3 benchmarks. 3 representations pass 2/4 targets (sachverhalt, combined, debiased). Citation proximity remains hardest target (best: 0.686). Citation graph benchmark invalid due to data coverage."}
   ]
 }

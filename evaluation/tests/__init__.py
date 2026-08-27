@@ -9,6 +9,7 @@ from .stability import CorpusStabilityTest
 from .hierarchy_coherence import HierarchyCoherenceTest
 from .citation_proximity import CitationProximityBenchmark
 from .legal_area_clustering import LegalAreaClusteringBenchmark
+from .citation_graph_neighborhood import CitationGraphNeighborhoodBenchmark
 
 __all__ = [
     "NeighborRelevanceTest",
@@ -18,4 +19,5 @@ __all__ = [
     "HierarchyCoherenceTest",
     "CitationProximityBenchmark",
     "LegalAreaClusteringBenchmark",
+    "CitationGraphNeighborhoodBenchmark",
 ]
