@@ -1,0 +1,84 @@
+{
+  "gate": "PASS",
+  "run_id": "33034800806",
+  "repair_round": 0,
+  "repaired_cycle": null,
+  "lane": "product",
+  "auditor": "LEXMACHINA_INDEPENDENT_AUDITOR",
+  "model": "opencode/mimo-v2.5-free",
+  "timestamp": "2026-08-27T03:30:00Z",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "REPRODUCED",
+  "evidence_summary": {
+    "tests": "PASS — 22/22 tests independently verified (9 original + 9 from cycle 33032746334 + 4 from cycle 33033658714: zoom_coherence_loader, language_analyzer, tfidf_proximity, navigation_new_endpoints)",
+    "corpus": "PASS — 1202 canonical decisions; languages de=736 fr=404 it=62; 4 branches verified",
+    "map": "PASS — 1000 positions, 100% map-corpus coverage, Leiden 5/11/16/21 clusters, HDBSCAN 2/2/3/8 clusters",
+    "zoom_coherence": "PASS — 39.6% improvement rate (19/48 clusters), zero deteriorations, best zoom ratio 0.920 vs flat baseline 0.492. Hypothesis partially supported on frozen 1000-decision sample",
+    "tfidf_proximity": "PASS — 22852-term vocab, 1202 documents, cosine similarity functional. Text similarity 0.0947 between sample pair (honest low score on truncated text)",
+    "language_analysis": "PASS — Cluster 0 dominance=0.989 (fr), warning correctly generated. Cross-language neighbors=0 (honest negative: language-dominated geometry prevents cross-language spatial proximity)",
+    "api": "PASS — 18 endpoints (5 new: /api/zoom_coherence, /api/zoom_coherence/flat_baseline, /api/cluster_language_analysis, /api/cross_language_neighbors, /api/text_similarity)",
+    "frontend": "PASS — Zoom coherence badge, cross-language neighbor display, TF-IDF text similarity box with shared terms",
+    "backward_compatible": "PASS — All pre-existing endpoints and behavior unchanged",
+    "leakage": "CLEAN — No state overwrite, no benchmark gaming, no post-hoc metrics, zoom coherence data timestamped from fractal-map lane",
+    "honest_negatives": "CLEAN — Cross-language neighbors=0 (language dominance prevents discovery); text similarity low on truncated TF-IDF (documented limitation); zoom coherence 39.6% < majority threshold (honestly reported)"
+  },
+  "findings": [
+    {
+      "id": "F-001",
+      "severity": "minor",
+      "title": "Missing cycle report (recurring)",
+      "detail": "Producer did not write reports/product/CYCLE_33034800806.md or reports/product/CYCLE_33033658714.md. This is the third consecutive cycle with a missing report.",
+      "impact": "Documentation gap only. Code, tests, and state provide sufficient evidence for audit.",
+      "fix_required": false
+    },
+    {
+      "id": "F-002",
+      "severity": "informational",
+      "title": "Cross-language neighbors: honest negative result",
+      "detail": "Cross-language neighbor discovery returns 0 for all tested decisions. Language dominance (0.982) means all spatially nearest neighbors are same-language. Feature works correctly; underlying representation is the constraint.",
+      "impact": "Users cannot discover cross-language neighbors via spatial proximity. State correctly documents this limitation.",
+      "fix_required": false
+    },
+    {
+      "id": "F-003",
+      "severity": "informational",
+      "title": "TF-IDF text similarity uses truncated text",
+      "detail": "TF-IDF model uses text truncated to 2000 chars per document. Similarity scores are lower than full-text would produce.",
+      "impact": "Text similarity is a rough approximation. State correctly documents this.",
+      "fix_required": false
+    },
+    {
+      "id": "F-004",
+      "severity": "informational",
+      "title": "Corpus summaries rebuilt per API call",
+      "detail": "get_cross_language_neighbors and get_text_similarity rebuild the full corpus_summaries dict on every call (O(n) for 1000+ decisions). Not cached.",
+      "impact": "Minor performance overhead (~10ms estimated). Not a correctness issue.",
+      "fix_required": false
+    },
+    {
+      "id": "F-005",
+      "severity": "informational",
+      "title": "TF-IDF shared terms reverse lookup is O(n)",
+      "detail": "In tfidf_proximity.py line 171, token-for-index reverse lookup iterates entire vocab dict per shared term. ~685K iterations for typical query.",
+      "impact": "Sub-millisecond in practice. Not a functional issue.",
+      "fix_required": false
+    }
+  ],
+  "zero_delta_satisfied": true,
+  "zero_delta_evidence": "All pre-existing functionality preserved. 4 feature additions (zoom coherence badge, cross-language neighbors, TF-IDF similarity, requirements.txt update) with verified behavioral difference. 4 new tests added, all 22/22 pass. No existing tests broken.",
+  "repair_history": {
+    "previous_repairs": [
+      "CYCLE_33027622849_REPAIR: Fixed missing numpy dependency",
+      "CYCLE_33027622849_REPAIR: Fixed corpus-map mismatch",
+      "CYCLE_33027622849_REPAIR: Integrated Leiden cluster assignments",
+      "CYCLE_33027622849_REPAIR: Added has_corpus flag",
+      "CYCLE_33030231013_REPAIR: Fixed server.py path bug (FIX-001)",
+      "CYCLE_33030231013_REPAIR: Fixed n_clusters metadata (FIX-002)",
+      "CYCLE_33030449356_FIX: Fixed server.py _serve_file path bug (FIX-003)",
+      "CYCLE_33034800806_FIX: Fixed orchestration failure — missing dependencies (FIX-006)"
+    ],
+    "recurring_pathology": false,
+    "pathology_note": "Missing cycle reports recur (3 consecutive cycles) but this is a documentation process issue, not a code defect. No code-level recurring pathology. FIX-006 (missing dependencies) is a different class from prior path bugs — it was a CI environment issue, not a code bug."
+  }
+}
