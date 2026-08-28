@@ -173,16 +173,22 @@ class NavigationAPI:
     def _get_default_representation(self) -> str:
         """Get the default representation for map navigation.
         
-        Factory direction v6: center_projected_hierarchical is the DEFAULT map mode.
-        It uses center_projected embeddings (the ONLY representation passing BOTH 
-        adversarial language dominance <0.85 AND jurist pairwise preference >0.5)
-        with true hierarchical Leiden clustering (nesting=1.0, 108 fine clusters 
-        nested in 8 coarse, branch purity=0.9638, 7-resolution ladder).
+        Factory direction v6 (CRITICAL FIX per evaluation v6): 
+        center_projected_64dim_hierarchical is the DEFAULT map mode.
         
-        The raw center_projected embeddings are available as a separate mode for
-        comparison, but map navigation should use the hierarchical version.
+        Evaluation v6 finding: 768-dim center_projected FAILS jurist pairwise (0.491).
+        Evaluation v3 validation: 64-dim frozen PCA center_projected PASSES BOTH 
+        adversarial gates (language dominance 0.766 < 0.85, jurist pairwise 0.512 > 0.5).
+        
+        This representation uses:
+        - 64-dim frozen PCA of center_projected embeddings (language-debiased)
+        - Hierarchical Leiden clustering (nesting=1.0, purity=0.9718)
+        - 2-resolution ladder: zoom 0 (7 coarse) → zoom 1 (108 fine)
+        - Coarse purity: 0.9761, Hierarchical purity: 0.9718
+        
+        The 768-dim center_projected_hierarchical is available as LEGACY mode for comparison.
         """
-        return "center_projected_hierarchical"
+        return "center_projected_64dim_hierarchical"
 
     def _load_imported_positions(self) -> None:
         """Load previously computed import positions from disk."""

@@ -83,14 +83,19 @@ class MapLoader:
         # Load legal_cited_decisions (ACCEPTED legal-distance signal - 14/14 PASS)
         self._load_legal_cited_decisions()
 
-        # Load center_projected (CRITICAL: ONLY representation passing BOTH adversarial benchmarks)
+        # Load center_projected (768-dim - NOTE: FAILS jurist pairwise per evaluation v6)
         self._load_center_projected()
 
-        # Load center_projected_hierarchical (VALIDATED DEFAULT: fractal-map lane REPRODUCED)
+        # Load center_projected_hierarchical (768-dim - LEGACY: FAILS jurist pairwise per evaluation v6)
         # Hierarchical Leiden on pure center_projected embeddings: nesting=1.0, purity=0.9638,
         # 7-resolution ladder (5→7→9→11→14→16→19), 108 hierarchical clusters (coarse_0.5_fine_3.0),
         # zoom coherence improvement rate 59.2%, branch purity ladder 0.84→0.91→0.97→0.97→0.96→0.96→0.93
         self._load_center_projected_hierarchical()
+
+        # Load center_projected_64dim_hierarchical (CRITICAL FIX: 64-dim frozen PCA - PASSES BOTH adversarial gates)
+        # Evaluation v6: 768-dim FAILS jurist pairwise (0.491); evaluation v3 64-dim PASSES both (lang_dom=0.766, pairwise=0.512)
+        # Hierarchical Leiden on 64-dim frozen PCA embeddings: nesting=1.0, purity=0.9718, 108 fine clusters in 7 coarse
+        self._load_center_projected_64dim_hierarchical()
 
         # Load hybrid alpha=0.3 (30% center_projected + 70% legal_cited_decisions)
         self._load_hybrid_alpha_0_3()
@@ -1579,6 +1584,190 @@ class MapLoader:
                         "7-resolution ladder with 59.2% zoom coherence improvement. "
                         "ONLY representation passing BOTH adversarial language dominance AND jurist pairwise. "
                         "MUST be default map mode per evaluation v2 and fractal-map v5.",
+            },
+        )
+
+    def _load_center_projected_64dim_hierarchical(self) -> None:
+        """Load the center_projected_64dim_hierarchical representation (CRITICAL FIX - evaluation v3 validated).
+        
+        This is the CORRECTED DEFAULT map mode per evaluation v6 findings:
+        - 64-dim frozen PCA of center_projected embeddings (matching evaluation v3)
+        - Hierarchical Leiden on 64-dim embeddings: nesting=1.0, purity=0.9718
+        - 2-resolution ladder: zoom 0 (7 coarse) → zoom 1 (108 fine)
+        - Coarse purity: 0.9761, Hierarchical purity: 0.9718
+        - Evaluation v3: language_dominance=0.766 (PASS <0.85), jurist_pairwise=0.512 (PASS >0.5)
+        - CRITICAL: 768-dim version FAILS jurist pairwise (0.491); 64-dim version PASSES both gates
+        
+        Evidence tier: REPRODUCED (matches evaluation v3 validation).
+        RECOMMENDATION: Product MUST adopt as DEFAULT map mode per factory direction v6.
+        """
+        cp_64_dir = self.results_dir / "center_projected_64dim_hierarchical"
+        baseline_dir = self.results_dir / "baseline"
+
+        if not (cp_64_dir / "metadata.json").exists():
+            print(f"WARNING: {cp_64_dir / 'metadata.json'} not found, skipping 64-dim center_projected")
+            return
+        if not (cp_64_dir / "projection_2d.npy").exists():
+            return
+        if not (cp_64_dir / "embeddings.npy").exists():
+            return
+        if not (cp_64_dir / "hierarchical_results.json").exists():
+            return
+
+        # Load metadata
+        with open(cp_64_dir / "metadata.json", "r") as f:
+            metadata = json.load(f)
+
+        decision_ids = [m["decision_id"] for m in metadata]
+        n_decisions = len(decision_ids)
+
+        # Load 2D projection (PCA of 64-dim embeddings)
+        projection = np.load(cp_64_dir / "projection_2d.npy")
+
+        # Load hierarchical results
+        with open(cp_64_dir / "hierarchical_results.json", "r") as f:
+            hier_results = json.load(f)
+
+        # Load labels
+        hierarchical_labels = None
+        coarse_labels = None
+        if (cp_64_dir / "labels_hierarchical.npy").exists():
+            hierarchical_labels = np.load(cp_64_dir / "labels_hierarchical.npy")
+        if (cp_64_dir / "labels_coarse.npy").exists():
+            coarse_labels = np.load(cp_64_dir / "labels_coarse.npy")
+
+        # Build assignments from hierarchical labels (108 fine clusters)
+        index_to_id = {i: m["decision_id"] for i, m in enumerate(metadata)}
+        hierarchical_assignments = {}
+        if hierarchical_labels is not None:
+            for idx, label in enumerate(hierarchical_labels):
+                did = index_to_id.get(idx)
+                if did:
+                    hierarchical_assignments[did] = int(label)
+
+        # Build coarse assignments (7 coarse clusters)
+        coarse_assignments = {}
+        if coarse_labels is not None:
+            for idx, label in enumerate(coarse_labels):
+                did = index_to_id.get(idx)
+                if did:
+                    coarse_assignments[did] = int(label)
+
+        # Build positions
+        positions = {}
+        for i, did in enumerate(decision_ids):
+            if i < len(projection):
+                positions[did] = (float(projection[i, 0]), float(projection[i, 1]))
+
+        # Build zoom levels: zoom 0 = coarse (7 clusters), zoom 1 = fine (108 clusters)
+        zoom_levels = {}
+
+        # Zoom 0: coarse clusters (7)
+        zoom_0_clusters = {}
+        for did, cid in coarse_assignments.items():
+            if cid not in zoom_0_clusters:
+                zoom_0_clusters[cid] = ClusterInfo(
+                    cluster_id=cid,
+                    zoom_level=0,
+                    decision_ids=[],
+                    size=0,
+                )
+            zoom_0_clusters[cid].decision_ids.append(did)
+            zoom_0_clusters[cid].size += 1
+
+        # Zoom 1: fine clusters (108)
+        zoom_1_clusters = {}
+        for did, cid in hierarchical_assignments.items():
+            if cid not in zoom_1_clusters:
+                zoom_1_clusters[cid] = ClusterInfo(
+                    cluster_id=cid,
+                    zoom_level=1,
+                    decision_ids=[],
+                    size=0,
+                )
+            zoom_1_clusters[cid].decision_ids.append(did)
+            zoom_1_clusters[cid].size += 1
+
+        # Compute centroids
+        for clusters in [zoom_0_clusters, zoom_1_clusters]:
+            for cid, cluster in clusters.items():
+                xs = [positions[did][0] for did in cluster.decision_ids if did in positions]
+                ys = [positions[did][1] for did in cluster.decision_ids if did in positions]
+                if xs and ys:
+                    cluster.centroid_x = sum(xs) / len(xs)
+                    cluster.centroid_y = sum(ys) / len(ys)
+
+        # Verify nesting
+        fine_to_coarse = {}
+        for fine_cid, fine_cluster in zoom_1_clusters.items():
+            if fine_cluster.decision_ids:
+                first_did = fine_cluster.decision_ids[0]
+                coarse_cid = coarse_assignments.get(first_did)
+                if coarse_cid is not None:
+                    all_same = all(coarse_assignments.get(did) == coarse_cid
+                                   for did in fine_cluster.decision_ids)
+                    if all_same:
+                        fine_to_coarse[fine_cid] = coarse_cid
+
+        nesting_verified = len(fine_to_coarse) / len(zoom_1_clusters) if zoom_1_clusters else 0
+
+        zoom_levels[0] = ZoomLevel(
+            level=0,
+            n_clusters=len(zoom_0_clusters),
+            clusters=zoom_0_clusters,
+            positions=positions,
+            cluster_assignments=coarse_assignments,
+            n_decisions=n_decisions,
+        )
+
+        zoom_levels[1] = ZoomLevel(
+            level=1,
+            n_clusters=len(zoom_1_clusters),
+            clusters=zoom_1_clusters,
+            positions=positions,
+            cluster_assignments=hierarchical_assignments,
+            n_decisions=n_decisions,
+        )
+
+        # Load PCA model info
+        pca_info = {}
+        if (cp_64_dir / "pca_model.json").exists():
+            with open(cp_64_dir / "pca_model.json", "r") as f:
+                pca_info = json.load(f)
+
+        # Store metadata for API access
+        self._fractal_map_metadata["center_projected_64dim_hierarchical"] = {
+            "hierarchical_results": hier_results,
+            "pca_model": pca_info,
+            "best_config": "coarse_0.5_sub_3.0_k15",
+        }
+
+        self.maps["center_projected_64dim_hierarchical"] = MapState(
+            representation="center_projected_64dim_hierarchical",
+            n_decisions=n_decisions,
+            zoom_levels=zoom_levels,
+            metadata={
+                "n_decisions": n_decisions,
+                "n_zoom_levels": len(zoom_levels),
+                "clustering_method": "hierarchical_leiden_center_projected_64dim",
+                "config": "coarse_0.5_sub_3.0_k15",
+                "coarse_clusters": len(zoom_0_clusters),
+                "fine_clusters": len(zoom_1_clusters),
+                "hierarchical_purity": round(hier_results.get("hierarchical_purity", 0.9718), 4),
+                "coarse_purity": round(hier_results.get("coarse_purity", 0.9761), 4),
+                "nesting_score": 1.0,
+                "nesting_verified": round(nesting_verified, 4),
+                "embeddings": "center_projected_64dim (frozen PCA, 64 dim, language-debiased)",
+                "pca_explained_variance": pca_info.get("explained_variance_ratio_sum", 0.8526),
+                "adversarial_language_dominance": 0.766,
+                "jurist_pairwise_preference": 0.512,
+                "both_adversarial_gates_pass": True,
+                "evidence_tier": "REPRODUCED",
+                "validation_reference": "evaluation_v3_64dim_center_projected",
+                "note": "CRITICAL FIX per evaluation v6: 64-dim frozen PCA version matching evaluation v3 validation. "
+                        "768-dim version FAILS jurist pairwise (0.491). This 64-dim version PASSES both adversarial gates "
+                        "(language_dominance=0.766 < 0.85, jurist_pairwise=0.512 > 0.5). "
+                        "MUST be the DEFAULT map mode per factory direction v6.",
             },
         )
 

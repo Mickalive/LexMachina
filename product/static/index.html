@@ -337,9 +337,11 @@
                 <select id="mode-select">
                     <option value="">Standard (TF-IDF)</option>
                 </select>
-                <label>Representation</label>
+<label>Representation</label>
                 <select id="rep-select">
-                    <option value="center_projected" selected>Center Projected (eval v2: ONLY passes BOTH adversarial tests)</option>
+                    <option value="center_projected_64dim_hierarchical" selected>Center Projected 64-dim (eval v3: PASSES BOTH adversarial gates ✓)</option>
+                    <option value="center_projected_hierarchical">Center Projected 768-dim Hierarchical (LEGACY - fails jurist pairwise)</option>
+                    <option value="center_projected">Center Projected 768-dim (eval v2: passes both, but v6 shows 768-dim FAILS pairwise)</option>
                     <option value="debiased_citation_blended">Debiased Citation Blended (eval default, 14/14 PASS)</option>
                     <option value="concat_center_tfidf">Concat + Center TF-IDF (best)</option>
                     <option value="baseline">Baseline (semantic)</option>
@@ -553,7 +555,7 @@
     const API = '';
     let currentData = null;
     let currentZoom = 1;
-    let currentRep = 'center_projected';
+    let currentRep = 'center_projected_64dim_hierarchical';
     let currentMode = '';
     let hoveredPoint = null;
     let selectedCluster = null;
@@ -1890,7 +1892,7 @@ void main() {
             });
             
             // Set defaults
-            selectA.value = currentRep || 'center_projected';
+            selectA.value = currentRep || 'center_projected_64dim_hierarchical';
             selectB.value = 'legal_cited_decisions';
         } catch (e) {
             console.error('Failed to populate comparison reps:', e);
