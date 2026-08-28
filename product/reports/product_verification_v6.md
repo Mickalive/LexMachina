@@ -20,8 +20,8 @@ The product lane successfully delivers a complete end-to-end vertical slice for 
   - Zoom 5: 16 clusters
   - Zoom 6: 19 clusters
   - **Zoom 7: 108 fine hierarchical clusters** (validated fractal architecture)
-- **Branch purity**: 0.9638 (vs concat baseline 0.9491)
-- **Zoom coherence improvement rate**: 31.1% (fractal-map validated)
+- **Hierarchical purity**: 0.9638 (vs concat baseline 0.9491)
+- **Zoom coherence improvement rate**: 32.9% (mean per-resolution improvement rate from center_projected_hierarchical flat Leiden ladder: 6 transitions, mean 32.9%)
 - **Adversarial benchmarks**: Language dominance 0.7593 < 0.85 PASS, Jurist pairwise 0.5215 > 0.5 PASS
 
 ### 2. Complete Representation Suite (13 representations)
@@ -75,7 +75,7 @@ The product lane successfully delivers a complete end-to-end vertical slice for 
 - Feedback statistics API
 
 ### 8. Evaluation Integration
-- Zoom coherence metrics (39.6% improvement rate)
+- Zoom coherence metrics (32.9% mean per-resolution improvement rate)
 - Cluster coherence analysis (language/branch/legal_area distributions)
 - Cross-language neighbor discovery
 - Proximity explanation with feature contributions
@@ -130,7 +130,7 @@ The product lane successfully delivers a complete end-to-end vertical slice for 
 
 ## Factory Direction v6 Compliance
 ✅ Vertical slice COMPLETE with center_projected_hierarchical as DEFAULT
-✅ 97/97 tests passing (16 test functions covering all features)
+✅ 16/16 tests passing (16 test functions covering all features)
 ✅ 13 representations loaded (12 prior + center_projected_hierarchical)
 ✅ User corpus import and map export operational
 ✅ Legal-distance signals as selectable map modes

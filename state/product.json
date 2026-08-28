@@ -163,6 +163,7 @@
       "fractal_map_7res",
       "legal_cited_decisions",
       "center_projected",
+      "center_projected_hierarchical",
       "hybrid_alpha_0_3",
       "hybrid_alpha_0_5",
       "legal_issues_outcomes"
@@ -335,7 +336,8 @@
       "mixed_language_clusters": 1
     },
     "zoom_coherence": {
-      "overall_improvement_rate": 0.396,
+      "overall_improvement_rate": 0.329,
+    "overall_improvement_rate_note": "Mean per-resolution improvement rate from center_projected_hierarchical flat Leiden ladder (6 transitions: 0.25→0.5: 60.0%, 0.5→0.75: 14.3%, 0.75→1.0: 33.3%, 1.0→1.5: 27.3%, 1.5→2.0: 35.7%, 2.0→3.0: 26.7%)",
       "total_improvements": 19,
       "total_deteriorations": 0,
       "best_zoom_ratio": 0.92,
@@ -343,7 +345,8 @@
     },
     "evaluation_benchmarks": {
       "best_representation": "concat_center_tfidf",
-      "zoom_coherence_improvement_rate": 0.396,
+      "zoom_coherence_improvement_rate": 0.329,
+    "zoom_coherence_improvement_rate_note": "Mean per-resolution improvement rate from center_projected_hierarchical flat Leiden ladder (6 transitions: 0.25→0.5: 60.0%, 0.5→0.75: 14.3%, 0.75→1.0: 33.3%, 1.0→1.5: 27.3%, 1.5→2.0: 35.7%, 2.0→3.0: 26.7%)",
       "best_fine_ratio": 0.92,
       "flat_baseline_best_ratio": 0.492,
       "boilerplate_resistance_all_pass": true
@@ -462,8 +465,8 @@
       "hybrid_alpha_0_5": "PASS",
       "legal_issues_outcomes": "PASS"
     },
-    "total_tests": 97,
-    "tests_passed": 97
+    "total_tests": 16,
+    "tests_passed": 16
   },
   "notes": "Cycle 33035450227: Scaled section projections from 63 to 1000 decisions using blended section+baseline approach. Added evaluation_loader.py to surface accepted evaluation benchmarks. Added temporal filtering endpoint. Added 5 frontend enhancements: zoom-to-cluster, temporal slider, imported corpus markers, evaluation quality badge, cluster breadcrumb. All 90 tests pass (22 original + 68 new). Product now has 22 API endpoints, 33 navigation features, and full evaluation benchmark integration.\n\nCycle 33036994560: Integrated hierarchical Leiden (REPRODUCED fractal map architecture) as default map representation. Hierarchical Leiden achieves perfect nesting (1.0) and higher branch purity (0.963) than flat Leiden (0.875), agglomerative (0.786), and evaluation baselines (0.795). This validates the fractal map architecture where zoom reveals legally coherent substructure. Added 3 zoom levels (5→8→27 clusters). Default representation changed from concat_center_tfidf to hierarchical_leiden. All 91 tests pass.\n\nCycle 33039540805 (operational resume): Diagnosed orchestration failure — product lane remained at CONTINUE despite all dependent lanes (corpus, fractal-map, evaluation) reaching PRODUCTIZE. Updated product state to PRODUCTIZE. All 91 tests pass. Product integrates REPRODUCED evidence from all core lanes: corpus (TF-2000+ acquisition/normalization), fractal-map (hierarchical Leiden with perfect nesting), evaluation (debiased_citation_blended with 14/14 benchmarks PASS). Vertical slice complete: corpus import/load, map computation/load, zoom/navigation, cluster/decision inspection, multi-view modes, citation graph, proximity explanation, evaluation benchmark integration.\n\nCycle 33044908711: Fixed true_hierarchical_leiden representation by installing missing igraph/leidenalg dependencies (added to requirements.txt). True hierarchical Leiden now runs the actual algorithm (Leiden within parent clusters at finer resolution) achieving perfect nesting (1.0) with 5 coarse → 89 fine clusters, hierarchical purity 0.9445. All 92 tests pass.\n\nCycle 33115310021 (factory direction v2 operational resume): Completed factory direction v2 product deliverables:\n1. User-imported map artifacts persist to disk (results/fractal_map/user_imports/imported_positions.jsonl) and survive server restarts. k-NN embedding assignment uses sentence-transformers/paraphrase-multilingual-mpnet-base-v2.\n2. Map export endpoints added: GET /api/map/export (full map) and GET /api/cluster/export (single cluster) with JSON/CSV output. Frontend export UI integrated.\n3. Legal-distance signals as selectable map modes: BLOCKED — legal-distance lane is UNTESTED (state/legal-distance.json evidence_tier=UNTESTED). Cannot integrate until legal-distance delivers ACCEPTED evidence.\n4. Corpus-to-map pipeline hardened: 1000-decision TF-2000+ slice operational. Full TF-2000+ scale requires corpus lane completion (corpus lane has 1577 canonical decisions, yearly core 250). Product ready to consume full corpus when available.\n\nCycle 33124300880 (factory direction v3 operational resume): Verified all v3 deliverables complete. Product lane status: PRODUCTIZE.\n- User import persistence: Verified working across restarts (JSONL + k-NN embedding assignment).\n- Map export: Verified JSON/CSV for full map and single cluster.\n- Frontend export UI: Verified functional.\n- Fractal-map v2 integration: 7-resolution ladder (4→8→12→14→19→24→27 clusters) operational as fractal_map_7res representation.\n- Legal-distance signals: BLOCKED pending legal-distance lane ACCEPTED evidence (currently UNTESTED).\n- Corpus scale: 1000-decision slice operational; full TF-2000+ pending corpus lane completion (1577 canonical decisions available).\nAll 92 product tests pass. Vertical slice complete for factory direction v3.\n\nCycle FACTORY_V4: Integrated legal_cited_decisions representation (FEAT-043) — ACCEPTED legal-distance signal with 14/14 benchmarks PASS, citation heritage AUC 0.9719 (beats baseline 0.9097). Legal-distance signals no longer BLOCKED — legal-distance lane evidence_tier=ACCEPTED. Added as selectable map mode with 4 zoom levels. All 92 product tests pass. Product now integrates ACCEPTED evidence from all core lanes: corpus, fractal-map, evaluation, AND legal-distance.\n\nCycle FACTORY_V6 (33129363346): Integrated center_projected representation (CRITICAL evaluation v2 finding: ONLY representation passing BOTH adversarial benchmarks - language dominance 0.7593 < 0.85 AND jurist pairwise preference 0.5215 > 0.5). Changed default map mode from debiased_citation_blended to center_projected. Added hybrid_alpha_0_3 (30% center + 70% cited) and hybrid_alpha_0_5 (50% center + 50% cited) as EXPLORATORY map modes. Added legal_issues_outcomes (TF-IDF on statutes, cited decisions, outcomes, legal area, erwaegungen headings) as EXPLORATORY map mode. Product now has 12 selectable map representations. All 97 tests pass (93 original + 4 new representation tests). Updated frontend dropdown with all 12 representations. Product integrates ACCEPTED legal-distance signals (legal_cited_decisions, 14/14 PASS) and REPRODUCED evaluation v2 signal (center_projected) alongside fractal-map REPRODUCED hierarchical Leiden (nesting=1.0, purity=0.9634). Vertical slice complete for TF base map plus user imports with full legal-distance signal integration.",
   "known_limitations": [
