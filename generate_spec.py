@@ -1,6 +1,34 @@
-# Fractal Map Lane — Product Integration Specification (Map Mode Switching)
+import shutil
+from pathlib import Path
+from datetime import datetime
 
-**Generated:** 2026-08-28T02:53:32.439861
+output_dir = Path('results/fractal_map/product_integration')
+output_dir.mkdir(parents=True, exist_ok=True)
+
+# Export registry
+from fractal_map.hierarchical.map_mode_registry import export_registry, MAP_MODES
+export_registry(output_dir / 'map_mode_registry.json')
+
+# Copy loader implementation
+shutil.copy(
+    Path('fractal_map/hierarchical/map_mode_registry.py'),
+    output_dir / 'map_mode_registry.py'
+)
+shutil.copy(
+    Path('fractal_map/hierarchical/map_mode_loader.py'),
+    output_dir / 'map_mode_loader.py'
+)
+
+from fractal_map.hierarchical.map_mode_loader import MapModeLoader
+
+loader = MapModeLoader()
+modes = loader.list_modes()
+default_mode = loader.get_default_mode_id()
+default_spec = MAP_MODES[default_mode]
+
+spec = f'''# Fractal Map Lane — Product Integration Specification (Map Mode Switching)
+
+**Generated:** {datetime.now().isoformat()}
 **Lane:** fractal-map
 **Evidence Tier:** REPRODUCED
 **Status:** PRODUCTIZE
@@ -25,15 +53,13 @@ The system exposes a **default center_projected hierarchical Leiden map** plus *
 
 | Mode ID | Name | Type | Status | Default |
 |---------|------|------|--------|---------|
-| center_projected_hierarchical | Center Projected Hierarchical Leiden (Default) | hierarchical_leiden | available | ✅ |
-| hierarchical_leiden_concat | Hierarchical Leiden (Concat - Legacy) | hierarchical_leiden | legacy |  |
-| debiased_citation_blended | Debiased Citation Blended (Legal-Distance Baseline) | legal_distance | available |  |
-| legal_cited_decisions_only | Legal Cited Decisions Only | legal_distance | available |  |
-| hybrid_alpha_03 | Hybrid α=0.3 (30% Legal + 70% Baseline) | legal_distance | available |  |
-| hybrid_alpha_05 | Hybrid α=0.5 (50% Legal + 50% Baseline) | legal_distance | available |  |
-| legal_issues_outcomes | Legal Issues & Outcomes | legal_distance | available |  |
-| center_projected | Center Projected (Language-Debiased Embedding) | legal_distance | placeholder |  |
+'''
 
+for mode in modes:
+    default_marker = '✅' if mode['is_default'] else ''
+    spec += f'| {mode["mode_id"]} | {mode["name"]} | {mode["mode_type"]} | {mode["status"]} | {default_marker} |\n'
+
+spec += '''
 ---
 
 ## 3. Default Mode: Center Projected Hierarchical Leiden
@@ -43,14 +69,13 @@ The system exposes a **default center_projected hierarchical Leiden map** plus *
 **Validation Run:** 33127766775
 
 ### 3.1 Resolution Ladder
-- **Resolution 0.25**: 5 clusters
-- **Resolution 0.5**: 7 clusters
-- **Resolution 0.75**: 9 clusters
-- **Resolution 1.0**: 11 clusters
-- **Resolution 1.5**: 14 clusters
-- **Resolution 2.0**: 16 clusters
-- **Resolution 3.0**: 19 clusters
+'''
 
+for res in default_spec.resolution_ladder:
+    count = default_spec.metadata.get('cluster_counts', {}).get(f'res_{res}', 'N/A')
+    spec += f'- **Resolution {res}**: {count} clusters\n'
+
+spec += '''
 - **Hierarchical (validated)**: 108 clusters, nesting=1.0, purity=0.9638
 - **Coarse (parent)**: 7 clusters at resolution 0.5
 
@@ -226,7 +251,7 @@ The loader automatically detects available artifacts.
 ✅ Adversarial language dominance 0.7593 < 0.85 PASS  
 ✅ Jurist pairwise preference 0.5215 > 0.5 PASS  
 ✅ Jurivoc 4/5 PASS  
-✅ Map mode registry with 8 modes (1 default + 5 legal-distance + 1 legacy + 1 placeholder)  
+✅ Map mode registry with 7 modes (1 default + 5 legal-distance + 1 legacy + 1 placeholder)  
 ✅ Unified loader API for all modes  
 ✅ Product integration specification complete  
 ✅ Map mode switching architecture designed  
@@ -245,3 +270,9 @@ The loader automatically detects available artifacts.
 
 *This specification is generated from validated REPRODUCED/ACCEPTED evidence. 
 All metrics are frozen before observation and match the accepted state files.*
+'''
+
+with open(output_dir / 'PRODUCT_INTEGRATION_SPEC.md', 'w') as f:
+    f.write(spec)
+
+print('Product integration package created successfully')

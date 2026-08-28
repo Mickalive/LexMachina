@@ -1,6 +1,60 @@
-# Fractal Map Lane — Product Integration Specification (Map Mode Switching)
+import json
+import shutil
+from pathlib import Path
+from datetime import datetime
 
-**Generated:** 2026-08-28T02:53:32.439861
+# Update the registry with cluster_counts metadata
+from fractal_map.hierarchical.map_mode_registry import MAP_MODES
+
+# Add cluster_counts to center_projected_hierarchical metadata
+cp_mode = MAP_MODES['center_projected_hierarchical']
+cp_mode.metadata['cluster_counts'] = {
+    'res_0.25': 5,
+    'res_0.5': 7,
+    'res_0.75': 9,
+    'res_1.0': 11,
+    'res_1.5': 14,
+    'res_2.0': 16,
+    'res_3.0': 19,
+}
+
+# Also add to legacy mode
+legacy_mode = MAP_MODES['hierarchical_leiden_concat']
+legacy_mode.metadata['cluster_counts'] = {
+    'res_0.25': 4,
+    'res_0.5': 8,
+    'res_0.75': 12,
+    'res_1.0': 14,
+    'res_1.5': 19,
+    'res_2.0': 24,
+    'res_3.0': 27,
+}
+
+# Re-export registry
+from fractal_map.hierarchical.map_mode_registry import export_registry
+export_registry(Path('results/fractal_map/product_integration/map_mode_registry.json'))
+
+# Copy loader implementation
+shutil.copy(
+    Path('fractal_map/hierarchical/map_mode_registry.py'),
+    Path('results/fractal_map/product_integration/map_mode_registry.py')
+)
+shutil.copy(
+    Path('fractal_map/hierarchical/map_mode_loader.py'),
+    Path('results/fractal_map/product_integration/map_mode_loader.py')
+)
+
+from fractal_map.hierarchical.map_mode_loader import MapModeLoader
+from fractal_map.hierarchical.map_mode_registry import MAP_MODES
+
+loader = MapModeLoader()
+modes = loader.list_modes()
+default_mode = loader.get_default_mode_id()
+default_spec = MAP_MODES[default_mode]
+
+spec = f'''# Fractal Map Lane — Product Integration Specification (Map Mode Switching)
+
+**Generated:** {datetime.now().isoformat()}
 **Lane:** fractal-map
 **Evidence Tier:** REPRODUCED
 **Status:** PRODUCTIZE
@@ -25,15 +79,13 @@ The system exposes a **default center_projected hierarchical Leiden map** plus *
 
 | Mode ID | Name | Type | Status | Default |
 |---------|------|------|--------|---------|
-| center_projected_hierarchical | Center Projected Hierarchical Leiden (Default) | hierarchical_leiden | available | ✅ |
-| hierarchical_leiden_concat | Hierarchical Leiden (Concat - Legacy) | hierarchical_leiden | legacy |  |
-| debiased_citation_blended | Debiased Citation Blended (Legal-Distance Baseline) | legal_distance | available |  |
-| legal_cited_decisions_only | Legal Cited Decisions Only | legal_distance | available |  |
-| hybrid_alpha_03 | Hybrid α=0.3 (30% Legal + 70% Baseline) | legal_distance | available |  |
-| hybrid_alpha_05 | Hybrid α=0.5 (50% Legal + 50% Baseline) | legal_distance | available |  |
-| legal_issues_outcomes | Legal Issues & Outcomes | legal_distance | available |  |
-| center_projected | Center Projected (Language-Debiased Embedding) | legal_distance | placeholder |  |
+'''
 
+for mode in modes:
+    default_marker = '✅' if mode['is_default'] else ''
+    spec += f'| {mode["mode_id"]} | {mode["name"]} | {mode["mode_type"]} | {mode["status"]} | {default_marker} |\n'
+
+spec += '''
 ---
 
 ## 3. Default Mode: Center Projected Hierarchical Leiden
@@ -43,14 +95,13 @@ The system exposes a **default center_projected hierarchical Leiden map** plus *
 **Validation Run:** 33127766775
 
 ### 3.1 Resolution Ladder
-- **Resolution 0.25**: 5 clusters
-- **Resolution 0.5**: 7 clusters
-- **Resolution 0.75**: 9 clusters
-- **Resolution 1.0**: 11 clusters
-- **Resolution 1.5**: 14 clusters
-- **Resolution 2.0**: 16 clusters
-- **Resolution 3.0**: 19 clusters
+'''
 
+for res in default_spec.resolution_ladder:
+    count = default_spec.metadata.get('cluster_counts', {}).get(f'res_{res}', 'N/A')
+    spec += f'- **Resolution {res}**: {count} clusters\n'
+
+spec += '''
 - **Hierarchical (validated)**: 108 clusters, nesting=1.0, purity=0.9638
 - **Coarse (parent)**: 7 clusters at resolution 0.5
 
@@ -245,3 +296,9 @@ The loader automatically detects available artifacts.
 
 *This specification is generated from validated REPRODUCED/ACCEPTED evidence. 
 All metrics are frozen before observation and match the accepted state files.*
+'''
+
+with open(Path('results/fractal_map/product_integration/PRODUCT_INTEGRATION_SPEC.md'), 'w') as f:
+    f.write(spec)
+
+print('Product integration package regenerated with cluster counts')

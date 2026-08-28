@@ -16,6 +16,7 @@ from collections import Counter
 BASE = Path(os.environ.get("LEXMACHINA_BASE", str(Path(__file__).resolve().parents[2])))
 RESULTS_DIR = BASE / "results/fractal_map"
 HIERARCHICAL_DIR = RESULTS_DIR / "hierarchical_map"
+HIERARCHICAL_CP_DIR = RESULTS_DIR / "hierarchical_map_center_projected"
 STATE_FILE = BASE / "state/fractal-map.json"
 
 RESOLUTIONS = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0]
@@ -76,26 +77,46 @@ class TestArtifactIntegrity:
     """Test that all evidence artifacts exist and have correct shapes."""
 
     @pytest.mark.parametrize("res", RESOLUTIONS)
-    def test_label_array_exists(self, res):
-        path = HIERARCHICAL_DIR / f"labels_res_{res}.npy"
+    def test_label_array_exists_cp(self, res):
+        """Test center_projected label arrays exist."""
+        path = HIERARCHICAL_CP_DIR / f"labels_res_{res}.npy"
         assert path.exists(), f"Missing label array: labels_res_{res}.npy"
 
     @pytest.mark.parametrize("res", RESOLUTIONS)
-    def test_label_array_size(self, res):
-        path = HIERARCHICAL_DIR / f"labels_res_{res}.npy"
+    def test_label_array_size_cp(self, res):
+        """Test center_projected label arrays have correct size."""
+        path = HIERARCHICAL_CP_DIR / f"labels_res_{res}.npy"
         arr = np.load(path)
         assert len(arr) == 1000, f"labels_res_{res}.npy has {len(arr)} labels, expected 1000"
 
-    def test_hierarchical_leiden_results_exists(self):
-        path = HIERARCHICAL_DIR / "hierarchical_leiden_results.json"
+    def test_hierarchical_best_exists_cp(self):
+        """Test hierarchical best labels exist for center_projected."""
+        path = HIERARCHICAL_CP_DIR / "labels_hierarchical_best.npy"
+        assert path.exists(), "Missing labels_hierarchical_best.npy"
+        arr = np.load(path)
+        assert len(arr) == 1000
+
+    def test_coarse_labels_exists_cp(self):
+        """Test coarse labels exist for center_projected."""
+        path = HIERARCHICAL_CP_DIR / "labels_coarse_0.5.npy"
+        assert path.exists(), "Missing labels_coarse_0.5.npy"
+        arr = np.load(path)
+        assert len(arr) == 1000
+
+    def test_center_projected_results_exists(self):
+        path = HIERARCHICAL_CP_DIR / "center_projected_hierarchical_results.json"
         assert path.exists()
 
-    def test_cluster_assignments_exists(self):
-        path = HIERARCHICAL_DIR / "cluster_assignments.json"
+    def test_hierarchical_map_results_exists(self):
+        path = HIERARCHICAL_CP_DIR / "hierarchical_map_results.json"
         assert path.exists()
 
-    def test_cluster_assignments_size(self):
-        ca = load_json("results/fractal_map/hierarchical_map/cluster_assignments.json")
+    def test_cluster_assignments_exists_cp(self):
+        path = HIERARCHICAL_CP_DIR / "cluster_assignments.json"
+        assert path.exists()
+
+    def test_cluster_assignments_size_cp(self):
+        ca = load_json("results/fractal_map/hierarchical_map_center_projected/cluster_assignments.json")
         for res in RESOLUTIONS:
             key = f"res_{res}"
             assert key in ca, f"Missing key {key} in cluster_assignments.json"
@@ -103,42 +124,42 @@ class TestArtifactIntegrity:
 
 
 class TestHierarchicalLeiden:
-    """Test that hierarchical Leiden achieves target metrics."""
+    """Test that hierarchical Leiden achieves target metrics on center_projected."""
 
     @pytest.fixture(autouse=True)
     def load_data(self):
-        self.hl_results = load_json("results/fractal_map/hierarchical_map/hierarchical_leiden_results.json")
+        self.cp_results = load_json("results/fractal_map/hierarchical_map_center_projected/center_projected_hierarchical_results.json")
         self.state = load_json("state/fractal-map.json")
 
     def test_best_config_exists(self):
-        best = self.hl_results.get("best_config")
-        assert best is not None, "No best_config in hierarchical_leiden_results.json"
-        assert best in self.hl_results.get("hierarchical_results", {}), f"Best config {best} not in results"
+        best = self.cp_results.get("best_config")
+        assert best is not None, "No best_config in center_projected_hierarchical_results.json"
+        assert best in self.cp_results.get("hierarchical_results", {}), f"Best config {best} not in results"
 
     def test_hierarchical_purity(self):
-        best = self.hl_results["best_config"]
-        purity = self.hl_results["hierarchical_results"][best]["hierarchical_purity"]
+        best = self.cp_results["best_config"]
+        purity = self.cp_results["hierarchical_results"][best]["hierarchical_purity"]
         assert purity > 0.95, f"Hierarchical purity {purity:.6f} below 0.95 threshold"
 
     def test_hierarchical_nesting(self):
-        best = self.hl_results["best_config"]
-        nesting = self.hl_results["hierarchical_results"][best]["nesting_score"]
+        best = self.cp_results["best_config"]
+        nesting = self.cp_results["hierarchical_results"][best]["nesting_score"]
         assert nesting == 1.0, f"Hierarchical nesting {nesting:.6f} != 1.0"
 
     def test_sub_cluster_count(self):
-        best = self.hl_results["best_config"]
-        n_fine = self.hl_results["hierarchical_results"][best]["n_fine_clusters"]
+        best = self.cp_results["best_config"]
+        n_fine = self.cp_results["hierarchical_results"][best]["n_fine_clusters"]
         assert n_fine > 0, f"Zero fine clusters"
 
     def test_sub_cluster_sizes_sum_to_1000(self):
-        best = self.hl_results["best_config"]
-        cluster_info = self.hl_results["hierarchical_results"][best]["cluster_info"]
+        best = self.cp_results["best_config"]
+        cluster_info = self.cp_results["hierarchical_results"][best]["cluster_info"]
         total = sum(c["size"] for c in cluster_info.values())
         assert total == 1000, f"Sub-cluster sizes sum to {total}, expected 1000"
 
     def test_valid_parents(self):
-        best = self.hl_results["best_config"]
-        cluster_info = self.hl_results["hierarchical_results"][best]["cluster_info"]
+        best = self.cp_results["best_config"]
+        cluster_info = self.cp_results["hierarchical_results"][best]["cluster_info"]
         for cid, info in cluster_info.items():
             assert 0 <= info["coarse_id"] <= 7, f"Cluster {cid} has invalid coarse_id {info['coarse_id']}"
 
@@ -149,7 +170,7 @@ class TestMetricConsistency:
     @pytest.fixture(autouse=True)
     def load_data(self):
         self.state = load_json("state/fractal-map.json")
-        self.hl_results = load_json("results/fractal_map/hierarchical_map/hierarchical_leiden_results.json")
+        self.cp_results = load_json("results/fractal_map/hierarchical_map_center_projected/center_projected_hierarchical_results.json")
 
     def test_state_evidence_tier(self):
         assert self.state["evidence_tier"] == "REPRODUCED"
@@ -164,16 +185,74 @@ class TestMetricConsistency:
         assert self.state["next_recommendation"] == "PRODUCTIZE"
 
     def test_state_verdict_pass(self):
-        verdict = self.state["metrics_summary"]["hierarchical_leiden_experiment"]["verdict"]
+        verdict = self.state["metrics_summary"]["center_projected_hierarchical_experiment"]["verdict"]
         assert verdict == "PASS"
 
     def test_state_hierarchical_purity_matches(self):
-        # State reports hierarchical_purity_global for coarse_0.5_fine_3.0 (product integration config)
-        state_purity = self.state["metrics_summary"]["hierarchical_leiden_experiment"]["hierarchical_purity_global"]
-        state_best_config = self.state["metrics_summary"]["hierarchical_leiden_experiment"]["best_config"]
-        recomputed = self.hl_results["hierarchical_results"][state_best_config]["hierarchical_purity"]
+        state_purity = self.state["metrics_summary"]["center_projected_hierarchical_experiment"]["hierarchical_purity_global"]
+        state_best_config = self.state["metrics_summary"]["center_projected_hierarchical_experiment"]["best_config"]
+        recomputed = self.cp_results["hierarchical_results"][state_best_config]["hierarchical_purity"]
         assert abs(state_purity - recomputed) < 1e-6, f"State {state_purity} != recomputed {recomputed} for config {state_best_config}"
 
     def test_zoom_improvement_positive(self):
-        improvement = self.state["metrics_summary"]["hierarchical_leiden_experiment"]["purity_improvement_vs_flat_pct"]
+        improvement = self.state["metrics_summary"]["center_projected_hierarchical_experiment"]["purity_improvement_vs_flat_pct"]
         assert improvement > 0, f"Zoom improvement {improvement}% is not positive"
+
+    def test_default_mode_is_center_projected(self):
+        """Verify center_projected_hierarchical is the default mode."""
+        default_mode = self.state["map_modes"]["default"]["mode_id"]
+        assert default_mode == "center_projected_hierarchical"
+
+    def test_center_projected_purity_beats_concat(self):
+        """Verify center_projected hierarchical purity > concat baseline."""
+        cp_purity = self.state["validation_metrics"]["center_projected_hierarchical"]["hierarchical_purity_global"]
+        concat_purity = self.state["validation_metrics"]["hierarchical_leiden_concat_legacy"]["hierarchical_purity_global"]
+        assert cp_purity > concat_purity, f"center_projected ({cp_purity}) not better than concat ({concat_purity})"
+
+
+class TestLegacyConcatPreserved:
+    """Test that legacy concat artifacts are preserved."""
+
+    @pytest.mark.parametrize("res", RESOLUTIONS)
+    def test_legacy_label_array_exists(self, res):
+        path = HIERARCHICAL_DIR / f"labels_res_{res}.npy"
+        assert path.exists(), f"Missing legacy label array: labels_res_{res}.npy"
+
+    def test_legacy_hierarchical_best_exists(self):
+        path = HIERARCHICAL_DIR / "labels_hierarchical_best.npy"
+        assert path.exists(), "Missing legacy labels_hierarchical_best.npy"
+
+    def test_legacy_coarse_labels_exists(self):
+        path = HIERARCHICAL_DIR / "labels_coarse_0.5.npy"
+        assert path.exists(), "Missing legacy labels_coarse_0.5.npy"
+
+    def test_legacy_results_exist(self):
+        assert (HIERARCHICAL_DIR / "hierarchical_leiden_results.json").exists()
+        assert (HIERARCHICAL_DIR / "hierarchical_map_results.json").exists()
+
+
+class TestLegalDistanceModes:
+    """Test that legal-distance modes are properly integrated."""
+
+    @pytest.fixture(autouse=True)
+    def load_data(self):
+        self.state = load_json("state/fractal-map.json")
+
+    def test_five_legal_distance_modes_available(self):
+        ld_modes = self.state["map_modes"]["legal_distance_modes"]
+        assert "debiased_citation_blended" in ld_modes
+        assert "legal_cited_decisions_only" in ld_modes
+        assert "hybrid_alpha_03" in ld_modes
+        assert "hybrid_alpha_05" in ld_modes
+        assert "legal_issues_outcomes" in ld_modes
+
+    def test_legal_distance_modes_accepted_tier(self):
+        ld_modes = self.state["map_modes"]["legal_distance_modes"]
+        for mode_id, mode_info in ld_modes.items():
+            if mode_id != "center_projected":
+                assert mode_info["evidence_tier"] == "ACCEPTED"
+
+    def test_legacy_mode_preserved(self):
+        legacy = self.state["map_modes"]["legacy_modes"]
+        assert "hierarchical_leiden_concat" in legacy
+        assert legacy["hierarchical_leiden_concat"]["status"] == "legacy"

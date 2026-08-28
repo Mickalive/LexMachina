@@ -13,7 +13,7 @@ from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
 import logging
 
-from map_mode_registry import (
+from .map_mode_registry import (
     MAP_MODES, MapModeSpec, MapModeType, MapModeStatus,
     get_default_mode, get_mode, get_all_modes, get_legal_distance_modes
 )
