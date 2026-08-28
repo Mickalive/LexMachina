@@ -159,7 +159,7 @@ def compute_cluster_metadata(labels, metadata):
     return cluster_info
 
 
-def compute_zoom_coherence(hierarchy_labels, hierarchy_info, metadata):
+def compute_zoom_coherence(hierarchy_labels, hierarchy_info, metadata, min_cluster_size=3):
     resolutions = sorted(hierarchy_labels.keys())
     zoom_coherence = {}
     
@@ -178,7 +178,13 @@ def compute_zoom_coherence(hierarchy_labels, hierarchy_info, metadata):
         
         for coarse_id in unique_coarse:
             coarse_mask = coarser_labels == coarse_id
-            coarse_branches = [metadata[i].get('branch') for i in np.where(coarse_mask)[0]]
+            coarse_indices = np.where(coarse_mask)[0]
+            
+            # Skip coarse clusters smaller than min_cluster_size
+            if len(coarse_indices) < min_cluster_size:
+                continue
+            
+            coarse_branches = [metadata[i].get('branch') for i in coarse_indices]
             coarse_branches = [b for b in coarse_branches if b and b != 'null']
             
             if not coarse_branches:
@@ -203,7 +209,13 @@ def compute_zoom_coherence(hierarchy_labels, hierarchy_info, metadata):
             child_purities = []
             for child_id in child_clusters:
                 child_mask = finer_labels == child_id
-                child_branches = [metadata[i].get('branch') for i in np.where(child_mask)[0]]
+                child_indices = np.where(child_mask)[0]
+                
+                # Skip fine clusters smaller than min_cluster_size
+                if len(child_indices) < min_cluster_size:
+                    continue
+                    
+                child_branches = [metadata[i].get('branch') for i in child_indices]
                 child_branches = [b for b in child_branches if b and b != 'null']
                 
                 if child_branches:
@@ -245,13 +257,19 @@ def build_decision_clusters(hierarchy_labels, metadata):
     return decision_clusters
 
 
-def compute_branch_purity_at_res(labels, metadata):
-    """Compute mean branch purity at a single resolution."""
+def compute_branch_purity_at_res(labels, metadata, min_cluster_size=3):
+    """Compute mean branch purity at a single resolution, excluding small clusters."""
     unique_labels = np.unique(labels[labels != -1])
     purities = []
     for label in unique_labels:
         mask = labels == label
-        cluster_branches = [metadata[i].get('branch') for i in np.where(mask)[0]]
+        indices = np.where(mask)[0]
+        
+        # Skip clusters smaller than min_cluster_size
+        if len(indices) < min_cluster_size:
+            continue
+            
+        cluster_branches = [metadata[i].get('branch') for i in indices]
         cluster_branches = [b for b in cluster_branches if b and b != 'null']
         if cluster_branches:
             most_common = Counter(cluster_branches).most_common(1)[0][1]
@@ -301,7 +319,7 @@ def main():
     
     # 5. Zoom coherence
     logger.info("\n5. Computing zoom coherence...")
-    zoom_coherence = compute_zoom_coherence(hierarchy_labels, hierarchy_info, metadata)
+    zoom_coherence = compute_zoom_coherence(hierarchy_labels, hierarchy_info, metadata, min_cluster_size=3)
     for key, zc in zoom_coherence.items():
         logger.info(f"   {key}: mean_improvement={zc['mean_improvement']:.4f}, improvement_rate={zc['improvement_rate']:.3f}")
     
@@ -317,12 +335,13 @@ def main():
     hierarchical_labels_arr = np.full(len(center_emb), -1, dtype=int)
     sub_cluster_id = 0
     cluster_info_hier = {}
+    min_cluster_size = 3
     
     for coarse_id in unique_coarse:
         mask = coarse_labels == coarse_id
         indices = np.where(mask)[0]
         
-        if len(indices) < 20:
+        if len(indices) < min_cluster_size:
             hierarchical_labels_arr[indices] = sub_cluster_id
             cluster_info_hier[sub_cluster_id] = {
                 'coarse_id': int(coarse_id), 'sub_id': 0,
@@ -338,28 +357,40 @@ def main():
         for sub_id in unique_sub:
             sub_mask = sub_labels == sub_id
             global_indices = indices[sub_mask]
-            hierarchical_labels_arr[global_indices] = sub_cluster_id
-            cluster_info_hier[sub_cluster_id] = {
-                'coarse_id': int(coarse_id), 'sub_id': int(sub_id),
-                'size': int(len(global_indices)), 'too_small': False,
-            }
+            
+            if len(global_indices) < min_cluster_size:
+                cluster_info_hier[sub_cluster_id] = {
+                    'coarse_id': int(coarse_id), 'sub_id': int(sub_id),
+                    'size': int(len(global_indices)), 'too_small': True,
+                }
+            else:
+                hierarchical_labels_arr[global_indices] = sub_cluster_id
+                cluster_info_hier[sub_cluster_id] = {
+                    'coarse_id': int(coarse_id), 'sub_id': int(sub_id),
+                    'size': int(len(global_indices)), 'too_small': False,
+                }
             sub_cluster_id += 1
     
     logger.info(f"   Hierarchical clusters: {sub_cluster_id}")
     
-    # Compute hierarchical branch purity
+    # Compute hierarchical branch purity with min_cluster_size filter
     unique_hier = np.unique(hierarchical_labels_arr[hierarchical_labels_arr != -1])
     hier_purities = []
     for label in unique_hier:
         mask = hierarchical_labels_arr == label
-        cluster_branches = [metadata[i].get('branch') for i in np.where(mask)[0]]
+        indices = np.where(mask)[0]
+        
+        if len(indices) < min_cluster_size:
+            continue
+            
+        cluster_branches = [metadata[i].get('branch') for i in indices]
         cluster_branches = [b for b in cluster_branches if b and b != 'null']
         if cluster_branches:
             most_common = Counter(cluster_branches).most_common(1)[0][1]
             hier_purities.append(most_common / len(cluster_branches))
     
     hier_purity = float(np.mean(hier_purities)) if hier_purities else 0
-    logger.info(f"   Hierarchical branch purity: {hier_purity:.4f}")
+    logger.info(f"   Hierarchical branch purity: {hier_purity:.4f} (min_cluster_size={min_cluster_size})")
     
     # Coarse labels for product
     coarse_labels_05, _ = leiden_clustering(center_emb, resolution=0.5)
@@ -393,7 +424,7 @@ def main():
     # Compute branch coherence per level
     branch_coherence = {}
     for res in RESOLUTIONS:
-        purity = compute_branch_purity_at_res(hierarchy_labels[res], metadata)
+        purity = compute_branch_purity_at_res(hierarchy_labels[res], metadata, min_cluster_size=3)
         n_clusters = len(np.unique(hierarchy_labels[res][hierarchy_labels[res] != -1]))
         branch_coherence[f"res_{res}"] = {
             'mean_branch_purity': purity,

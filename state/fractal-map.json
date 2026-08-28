@@ -4,9 +4,9 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "center_projected_hierarchical_v6_33139587950",
-  "github_run": "33139587950",
-  "timestamp": "2026-08-28T03:45:00Z",
+  "accepted_run_id": "center_projected_hierarchical_v6_repair_33207149474",
+  "github_run": "33207149474",
+  "timestamp": "2026-08-28T20:35:00Z",
   "evidence_refs": [
     "results/fractal_map/hierarchical_map_center_projected/center_projected_hierarchical_results.json",
     "results/fractal_map/hierarchical_map_center_projected/hierarchical_map_results.json",
@@ -58,25 +58,27 @@
   ],
 "key_findings": [
     "FACTORY DIRECTION v6 COMPLETE: center_projected_hierarchical is now DEFAULT map mode (replacing concat-based hierarchical_leiden)",
-    "Center Projected Hierarchical Leiden achieves hierarchical purity 0.9638 (+0.0148 vs concat baseline 0.9491)",
+    "Center Projected Hierarchical Leiden achieves hierarchical purity 0.9571 (+0.0080 vs concat baseline 0.9491, min_cluster_size=3)",
     "Perfect nesting (1.0) guaranteed by hierarchical construction; 7-resolution ladder: 5\u21927\u21929\u219211\u219214\u219216\u219219 clusters",
-    "108 hierarchical clusters (coarse_0.5_fine_3.0) with branch purity 0.9638",
-    "Zoom coherence improvement rate: 63.0% validated using hierarchical_zoom_validation methodology (68 improvements, 11 deteriorations, 29 no-change at sub-cluster level); CONCAT BASELINE BEATEN (59.2%); branch purity ladder: 0.840\u21920.912\u21920.972\u21920.965\u21920.964\u21920.955\u21920.929",
-    "Evaluation v2: center_projected is ONLY representation passing BOTH adversarial language dominance (0.7593 < 0.85) AND jurist pairwise preference (0.5215 > 0.5)",
-    "Jurivoc hierarchy alignment: 4/5 PASS; concat baseline (0.9491 purity, 98 clusters) preserved as LEGACY mode for comparison",
+    "108 hierarchical clusters (coarse_0.5_fine_3.0) with branch purity 0.9571",
+    "Zoom coherence improvement rate: 31.1% validated using per-resolution-step methodology (19/61 parent clusters improve); concat baseline 59.2% on different hierarchical_zoom_validation methodology; branch purity ladder: 0.840\u21920.912\u21920.972\u21920.965\u21920.964\u21920.955\u21920.929",
+    "Evaluation v2: center_projected is ONLY representation passing BOTH adversarial language dominance (0.7593 < 0.85) AND jurist pairwise preference (0.5215 > 0.5) — source: evaluation_v2_cycle_33137354250 (carried forward)",
+    "Jurivoc hierarchy alignment: 4/5 PASS — source: evaluation_v2_cycle_33137354250 (carried forward); concat baseline (0.9491 purity, 98 clusters) preserved as LEGACY mode for comparison",
     "Map mode registry complete with 8 modes: 1 default (center_projected_hierarchical) + 5 legal-distance ACCEPTED + 1 legacy + 1 placeholder",
     "5 legal-distance modes at ACCEPTED tier: debiased_citation_blended, legal_cited_decisions_only, hybrid_alpha_03, hybrid_alpha_05, legal_issues_outcomes",
+    "Hybrid modes (alpha_03, alpha_05) and legal_issues_outcomes marked with warnings for failed adversarial_falsification / multilingual_invariance benchmarks",
     "Unified loader API implemented for all modes with full artifact loading",
     "Product integration specification complete with map mode switching architecture",
-    "All factory direction v6 requirements satisfied: resolution ladder exposed, cluster metadata available, legal coherence at each zoom level documented, default map structure integrated with legal-distance selectable modes"
+    "All factory direction v6 requirements satisfied: resolution ladder exposed, cluster metadata available, legal coherence at each zoom level documented, default map structure integrated with legal-distance selectable modes",
+    "Minimum cluster size filter (min_size=3) applied to purity metrics to avoid singleton inflation"
   ],
   "validation_metrics": {
     "center_projected_hierarchical": {
       "nesting_score": 1.0,
-      "hierarchical_purity_global": 0.9638472023157695,
-      "hierarchical_purity_local": 0.9638,
-      "flat_mean_purity": 0.9341034737421106,
-      "zoom_coherence_improvement_rate": 0.630,
+      "hierarchical_purity_global": 0.9571,
+      "hierarchical_purity_local": 0.9571,
+      "flat_mean_purity": 0.9341,
+      "zoom_coherence_improvement_rate": 0.311,
       "resolution_ladder": [
         0.25,
         0.5,
@@ -90,12 +92,13 @@
       "n_decisions": 1000,
       "corpus": "BGer 2020-2024 (1000 decisions)",
       "evidence_tier": "REPRODUCED",
-      "validation_run": "33127766775",
+      "validation_run": "33207149474",
       "embeddings": "center_projected (768 dim, pure, no TF-IDF)",
       "adversarial_language_dominance": 0.7593,
       "jurist_pairwise_preference": 0.5215,
       "jurivoc_benchmarks_passed": 4,
-      "jurivoc_benchmarks_total": 5
+      "jurivoc_benchmarks_total": 5,
+      "purity_min_cluster_size": 3
     },
     "hierarchical_leiden_concat_legacy": {
       "nesting_score": 1.0,
@@ -146,19 +149,22 @@
         "status": "available",
         "evidence_tier": "ACCEPTED",
         "benchmarks_passed": 13,
-        "benchmarks_total": 14
+        "benchmarks_total": 14,
+        "warnings": ["fails adversarial_falsification benchmark"]
       },
       "hybrid_alpha_05": {
         "status": "available",
         "evidence_tier": "ACCEPTED",
         "benchmarks_passed": 13,
-        "benchmarks_total": 14
+        "benchmarks_total": 14,
+        "warnings": ["fails adversarial_falsification benchmark"]
       },
       "legal_issues_outcomes": {
         "status": "available",
         "evidence_tier": "ACCEPTED",
         "benchmarks_passed": 10,
-        "benchmarks_total": 14
+        "benchmarks_total": 14,
+        "warnings": ["fails adversarial_falsification benchmark", "fails multilingual_invariance benchmark", "fails citation_heritage threshold", "fails tf_metadata_human_indexing threshold"]
       },
       "center_projected": {
         "status": "placeholder",
@@ -183,15 +189,16 @@
     "center_projected_hierarchical_experiment": {
       "verdict": "PASS",
       "best_config": "coarse_0.5_fine_3.0",
-      "hierarchical_purity_global": 0.9638472023157695,
+      "hierarchical_purity_global": 0.9570933829681662,
       "flat_mean_purity": 0.9341034737421106,
-      "purity_improvement_vs_flat_pct": 3.18,
-      "purity_improvement_vs_concat_baseline_pct": 1.55,
+      "purity_improvement_vs_flat_pct": 2.46,
+      "purity_improvement_vs_concat_baseline_pct": 0.84,
       "n_fine_clusters": 108,
       "nesting_score": 1.0,
-      "zoom_coherence_improvement_rate": 0.630,
+      "zoom_coherence_improvement_rate": 0.311,
       "concat_baseline_zoom_coherence": 0.592,
-      "zoom_coherence_improvement_vs_concat_pct": 3.8
+      "zoom_coherence_methodology": "per-resolution-step (19/61 parents improve)",
+      "purity_min_cluster_size": 3
     }
   }
 }

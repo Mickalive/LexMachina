@@ -82,7 +82,7 @@ def leiden_clustering(embeddings, resolution=1.0, k=15, seed=42):
     return np.array(partition.membership), partition.modularity
 
 
-def hierarchical_leiden(embeddings, metadata, coarse_res=0.5, fine_res=1.5, sub_res=3.0, k=15):
+def hierarchical_leiden(embeddings, metadata, coarse_res=0.5, fine_res=1.5, sub_res=3.0, k=15, min_cluster_size=3):
     """
     Run hierarchical Leiden:
     1. Global Leiden at coarse_res
@@ -104,7 +104,7 @@ def hierarchical_leiden(embeddings, metadata, coarse_res=0.5, fine_res=1.5, sub_
         mask = coarse_labels == coarse_id
         indices = np.where(mask)[0]
         
-        if len(indices) < 20:
+        if len(indices) < min_cluster_size:
             hierarchical_labels[indices] = sub_cluster_id
             cluster_info[sub_cluster_id] = {
                 'coarse_id': int(coarse_id),
@@ -141,14 +141,20 @@ def hierarchical_leiden(embeddings, metadata, coarse_res=0.5, fine_res=1.5, sub_
     return hierarchical_labels, coarse_labels, cluster_info
 
 
-def compute_branch_purity(labels, metadata):
-    """Compute branch purity."""
+def compute_branch_purity(labels, metadata, min_cluster_size=3):
+    """Compute branch purity, excluding clusters smaller than min_cluster_size."""
     unique_labels = np.unique(labels[labels != -1])
     purities = []
     
     for label in unique_labels:
         mask = labels == label
-        cluster_branches = [metadata[i].get('branch') for i in np.where(mask)[0]]
+        indices = np.where(mask)[0]
+        
+        # Skip clusters smaller than min_cluster_size
+        if len(indices) < min_cluster_size:
+            continue
+            
+        cluster_branches = [metadata[i].get('branch') for i in indices]
         cluster_branches = [b for b in cluster_branches if b and b != 'null']
         
         if cluster_branches:
@@ -252,8 +258,8 @@ def compute_hierarchy_nesting_score(hierarchy_labels):
     return nesting_scores
 
 
-def compute_branch_coherence_per_level(hierarchy_labels, metadata):
-    """Compute branch purity at each resolution level."""
+def compute_branch_coherence_per_level(hierarchy_labels, metadata, min_cluster_size=3):
+    """Compute branch purity at each resolution level, excluding small clusters."""
     results = {}
     for res, labels in hierarchy_labels.items():
         unique_labels = np.unique(labels[labels != -1])
@@ -261,7 +267,13 @@ def compute_branch_coherence_per_level(hierarchy_labels, metadata):
         
         for label in unique_labels:
             mask = labels == label
-            cluster_branches = [metadata[i].get('branch') for i in np.where(mask)[0]]
+            indices = np.where(mask)[0]
+            
+            # Skip clusters smaller than min_cluster_size
+            if len(indices) < min_cluster_size:
+                continue
+                
+            cluster_branches = [metadata[i].get('branch') for i in indices]
             cluster_branches = [b for b in cluster_branches if b and b != 'null']
             
             if cluster_branches:
@@ -313,19 +325,19 @@ def main():
     
     # 5. Compute branch coherence per level
     logger.info("\n5. Computing branch coherence per level...")
-    branch_coherence = compute_branch_coherence_per_level(hierarchy_labels, metadata)
+    branch_coherence = compute_branch_coherence_per_level(hierarchy_labels, metadata, min_cluster_size=3)
     for res_key, bc in branch_coherence.items():
         logger.info(f"   {res_key}: branch_purity={bc['mean_branch_purity']:.4f}, n_clusters={bc['n_clusters']}")
     
     # 6. Hierarchical Leiden (coarse_0.5 -> fine_3.0) for comparison with concat results
     logger.info("\n6. Running hierarchical Leiden (coarse_0.5, sub_3.0)...")
     hierarchical_labels, coarse_labels, cluster_info = hierarchical_leiden(
-        center_emb, metadata, coarse_res=0.5, fine_res=1.5, sub_res=3.0
+        center_emb, metadata, coarse_res=0.5, fine_res=1.5, sub_res=3.0, min_cluster_size=3
     )
     
     n_fine_clusters = len(set(hierarchical_labels[hierarchical_labels != -1]))
-    purity_hierarchical = compute_branch_purity(hierarchical_labels, metadata)
-    purity_coarse = compute_branch_purity(coarse_labels, metadata)
+    purity_hierarchical = compute_branch_purity(hierarchical_labels, metadata, min_cluster_size=3)
+    purity_coarse = compute_branch_purity(coarse_labels, metadata, min_cluster_size=3)
     
     logger.info(f"   Fine clusters: {n_fine_clusters}")
     logger.info(f"   Coarse purity: {purity_coarse:.4f}")
@@ -339,10 +351,10 @@ def main():
     for res in resolutions:
         labels, mod = leiden_clustering(center_emb, resolution=res)
         flat_labels[res] = labels
-        purity = compute_branch_purity(labels, metadata)
+        purity = compute_branch_purity(labels, metadata, min_cluster_size=3)
         flat_purities[res] = purity
         n_clusters = len(set(labels[labels != -1]))
-        logger.info(f"  Flat res={res}: {n_clusters} clusters, purity={purity:.4f}")
+        logger.info(f"  Flat res={res}: {n_clusters} clusters, purity={purity:.4f} (min_size=3)")
     
     flat_mean_purity = np.mean(list(flat_purities.values()))
     flat_nesting = compute_hierarchy_nesting_score(flat_labels)
@@ -366,11 +378,12 @@ def main():
             coarse_res=config['coarse_res'],
             fine_res=config['fine_res'],
             sub_res=config['sub_res'],
+            min_cluster_size=3,
         )
         
         n_fine = len(set(h_labels[h_labels != -1]))
-        purity_h = compute_branch_purity(h_labels, metadata)
-        purity_c = compute_branch_purity(c_labels, metadata)
+        purity_h = compute_branch_purity(h_labels, metadata, min_cluster_size=3)
+        purity_c = compute_branch_purity(c_labels, metadata, min_cluster_size=3)
         
         logger.info(f"    Fine clusters: {n_fine}")
         logger.info(f"    Coarse purity: {purity_c:.4f}")

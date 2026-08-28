@@ -56,6 +56,7 @@ class MapModeSpec:
     metadata: Dict[str, Any]
     legal_distance_config: Optional[Dict[str, Any]] = None
     benchmark_results: Optional[Dict[str, Any]] = None
+    warnings: Optional[List[str]] = None  # Explicit warnings for degraded modes
 
 
 # ============================================================================
@@ -103,8 +104,8 @@ MAP_MODES: Dict[str, MapModeSpec] = {
         description=(
             "NEW DEFAULT per factory direction v4: Multi-resolution hierarchical Leiden on "
             "pure center_projected embeddings (language-debiased, 768-dim). Achieves hierarchical "
-            "purity 0.9638 (+0.0148 vs concat baseline), perfect nesting (1.0), 7-resolution "
-            "ladder (5→7→9→11→14→16→19 clusters), 108 hierarchical clusters. "
+            "purity 0.9571 (+0.0080 vs concat baseline, min_cluster_size=3), perfect nesting (1.0), "
+            "7-resolution ladder (5→7→9→11→14→16→19 clusters), 108 hierarchical clusters. "
             "Evaluation v2: ONLY representation passing BOTH adversarial language dominance "
             "(0.7593 < 0.85) AND jurist pairwise preference (0.5215 > 0.5). "
             "Zoom coherence: 31.1% improvement rate (19/61 parents), Jurivoc 4/5 PASS."
@@ -115,30 +116,42 @@ MAP_MODES: Dict[str, MapModeSpec] = {
         resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
         artifacts=_cp_artifacts(),
         metadata={
-            "hierarchical_purity": 0.9638,
+            "hierarchical_purity": 0.9571,
             "nesting_score": 1.0,
             "n_hierarchical_clusters": 108,
             "n_decisions": 1000,
             "corpus": "BGer 2020-2024 (1000 decisions)",
             "evidence_tier": "REPRODUCED",
-            "validation_run": "33127766775",
+            "validation_run": "33207149474",
             "embeddings": "center_projected (768 dim, pure, no TF-IDF)",
             "concat_baseline_purity": 0.9491,
-            "purity_improvement": 0.0148,
-            "adversarial_language_dominance": 0.7593,
-            "jurist_pairwise_preference": 0.5215,
+            "purity_improvement": 0.0080,
+            "adversarial_language_dominance": {
+                "value": 0.7593,
+                "threshold": 0.85,
+                "status": "PASS",
+                "source": "evaluation_v2_cycle_33137354250 (carried forward, not independently recomputed in v6)"
+            },
+            "jurist_pairwise_preference": {
+                "value": 0.5215,
+                "threshold": 0.5,
+                "status": "PASS",
+                "source": "evaluation_v2_cycle_33137354250 (carried forward, not independently recomputed in v6)"
+            },
             "jurivoc_benchmarks_passed": 4,
             "jurivoc_benchmarks_total": 5,
+            "jurivoc_source": "evaluation_v2_cycle_33137354250 (carried forward, not independently recomputed in v6)",
+            "purity_min_cluster_size": 3,
         },
         benchmark_results={
-            "hierarchy_coherence": {"status": "PASS", "purity": 0.9638, "nesting": 1.0},
-            "zoom_coherence": {"status": "PASS", "improvement_rate": 0.311},
+            "hierarchy_coherence": {"status": "PASS", "purity": 0.9571, "nesting": 1.0, "min_cluster_size": 3},
+            "zoom_coherence": {"status": "PASS", "improvement_rate": 0.311, "source": "center_projected_hierarchical_zoom_validation (v6 recomputed)"},
             "branch_purity_ladder": {
                 "res_0.25": 0.840, "res_0.5": 0.912, "res_0.75": 0.972,
                 "res_1.0": 0.965, "res_1.5": 0.964, "res_2.0": 0.955, "res_3.0": 0.929
             },
-            "adversarial_language_dominance": {"status": "PASS", "value": 0.7593, "threshold": 0.85},
-            "jurist_pairwise_preference": {"status": "PASS", "value": 0.5215, "threshold": 0.5},
+            "adversarial_language_dominance": {"status": "PASS", "value": 0.7593, "threshold": 0.85, "source": "evaluation_v2_cycle_33137354250 (carried forward)"},
+            "jurist_pairwise_preference": {"status": "PASS", "value": 0.5215, "threshold": 0.5, "source": "evaluation_v2_cycle_33137354250 (carried forward)"},
         }
     ),
 
@@ -320,7 +333,8 @@ MAP_MODES: Dict[str, MapModeSpec] = {
             "hierarchy_coherence": {"status": "PASS", "best_purity": 0.8609},
             "tf_metadata_human_indexing": {"status": "PASS", "recall@1": 0.967},
             "summary": {"total_benchmarks": 14, "passed": 13, "failed": 1, "all_passed": False}
-        }
+        },
+        warnings=["fails adversarial_falsification benchmark"]
     ),
 
     "hybrid_alpha_05": MapModeSpec(
@@ -370,7 +384,8 @@ MAP_MODES: Dict[str, MapModeSpec] = {
             "hierarchy_coherence": {"status": "PASS", "best_purity": 0.8609},
             "tf_metadata_human_indexing": {"status": "PASS", "recall@1": 0.972},
             "summary": {"total_benchmarks": 14, "passed": 13, "failed": 1, "all_passed": False}
-        }
+        },
+        warnings=["fails adversarial_falsification benchmark"]
     ),
 
     "legal_issues_outcomes": MapModeSpec(
@@ -417,7 +432,8 @@ MAP_MODES: Dict[str, MapModeSpec] = {
             "hierarchy_coherence": {"status": "PASS", "best_purity": 0.8609},
             "tf_metadata_human_indexing": {"status": "PASS", "recall@1": 0.8388},
             "summary": {"total_benchmarks": 14, "passed": 10, "failed": 4, "all_passed": False}
-        }
+        },
+        warnings=["fails adversarial_falsification benchmark", "fails multilingual_invariance benchmark", "fails citation_heritage threshold", "fails tf_metadata_human_indexing threshold"]
     ),
 
     # PLACEHOLDER: center_projected as legal-distance embedding (not hierarchical map mode)

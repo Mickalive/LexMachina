@@ -4,7 +4,7 @@
     "center_projected_hierarchical": {
       "mode_id": "center_projected_hierarchical",
       "name": "Center Projected Hierarchical Leiden (Default)",
-      "description": "NEW DEFAULT per factory direction v4: Multi-resolution hierarchical Leiden on pure center_projected embeddings (language-debiased, 768-dim). Achieves hierarchical purity 0.9638 (+0.0148 vs concat baseline), perfect nesting (1.0), 7-resolution ladder (5\u21927\u21929\u219211\u219214\u219216\u219219 clusters), 108 hierarchical clusters. Evaluation v2: ONLY representation passing BOTH adversarial language dominance (0.7593 < 0.85) AND jurist pairwise preference (0.5215 > 0.5). Zoom coherence validated, Jurivoc 4/5 PASS.",
+      "description": "NEW DEFAULT per factory direction v4: Multi-resolution hierarchical Leiden on pure center_projected embeddings (language-debiased, 768-dim). Achieves hierarchical purity 0.9571 (+0.0080 vs concat baseline, min_cluster_size=3), perfect nesting (1.0), 7-resolution ladder (5\u21927\u21929\u219211\u219214\u219216\u219219 clusters), 108 hierarchical clusters. Evaluation v2: ONLY representation passing BOTH adversarial language dominance (0.7593 < 0.85) AND jurist pairwise preference (0.5215 > 0.5). Zoom coherence: 31.1% improvement rate (19/61 parents), Jurivoc 4/5 PASS.",
       "mode_type": "hierarchical_leiden",
       "status": "available",
       "is_default": true,
@@ -22,7 +22,6 @@
         "zoom_mappings": "results/fractal_map/hierarchical_map_center_projected/zoom_mappings.json",
         "zoom_coherence": "results/fractal_map/hierarchical_map_center_projected/zoom_coherence.json",
         "decision_clusters": "results/fractal_map/hierarchical_map_center_projected/decision_clusters.json",
-        "integration_summary": "results/fractal_map/product_integration/integration_summary.json",
         "labels_res_0.25": "results/fractal_map/hierarchical_map_center_projected/labels_res_0.25.npy",
         "labels_res_0.5": "results/fractal_map/hierarchical_map_center_projected/labels_res_0.5.npy",
         "labels_res_0.75": "results/fractal_map/hierarchical_map_center_projected/labels_res_0.75.npy",
@@ -34,31 +33,45 @@
         "labels_coarse_0.5": "results/fractal_map/hierarchical_map_center_projected/labels_coarse_0.5.npy"
       },
       "metadata": {
-        "hierarchical_purity": 0.9638,
+        "hierarchical_purity": 0.9571,
         "nesting_score": 1.0,
         "n_hierarchical_clusters": 108,
         "n_decisions": 1000,
         "corpus": "BGer 2020-2024 (1000 decisions)",
         "evidence_tier": "REPRODUCED",
-        "validation_run": "33127766775",
+        "validation_run": "33207149474",
         "embeddings": "center_projected (768 dim, pure, no TF-IDF)",
         "concat_baseline_purity": 0.9491,
-        "purity_improvement": 0.0148,
-        "adversarial_language_dominance": 0.7593,
-        "jurist_pairwise_preference": 0.5215,
+        "purity_improvement": 0.008,
+        "adversarial_language_dominance": {
+          "value": 0.7593,
+          "threshold": 0.85,
+          "status": "PASS",
+          "source": "evaluation_v2_cycle_33137354250 (carried forward, not independently recomputed in v6)"
+        },
+        "jurist_pairwise_preference": {
+          "value": 0.5215,
+          "threshold": 0.5,
+          "status": "PASS",
+          "source": "evaluation_v2_cycle_33137354250 (carried forward, not independently recomputed in v6)"
+        },
         "jurivoc_benchmarks_passed": 4,
-        "jurivoc_benchmarks_total": 5
+        "jurivoc_benchmarks_total": 5,
+        "jurivoc_source": "evaluation_v2_cycle_33137354250 (carried forward, not independently recomputed in v6)",
+        "purity_min_cluster_size": 3
       },
       "legal_distance_config": null,
       "benchmark_results": {
         "hierarchy_coherence": {
           "status": "PASS",
-          "purity": 0.9638,
-          "nesting": 1.0
+          "purity": 0.9571,
+          "nesting": 1.0,
+          "min_cluster_size": 3
         },
         "zoom_coherence": {
           "status": "PASS",
-          "improvement_rate": 0.630
+          "improvement_rate": 0.311,
+          "source": "center_projected_hierarchical_zoom_validation (v6 recomputed)"
         },
         "branch_purity_ladder": {
           "res_0.25": 0.84,
@@ -72,14 +85,17 @@
         "adversarial_language_dominance": {
           "status": "PASS",
           "value": 0.7593,
-          "threshold": 0.85
+          "threshold": 0.85,
+          "source": "evaluation_v2_cycle_33137354250 (carried forward)"
         },
         "jurist_pairwise_preference": {
           "status": "PASS",
           "value": 0.5215,
-          "threshold": 0.5
+          "threshold": 0.5,
+          "source": "evaluation_v2_cycle_33137354250 (carried forward)"
         }
-      }
+      },
+      "warnings": null
     },
     "hierarchical_leiden_concat": {
       "mode_id": "hierarchical_leiden_concat",
@@ -143,7 +159,8 @@
           "res_2.0": 0.899,
           "res_3.0": 0.912
         }
-      }
+      },
+      "warnings": null
     },
     "debiased_citation_blended": {
       "mode_id": "debiased_citation_blended",
@@ -216,7 +233,8 @@
           "failed": 0,
           "all_passed": true
         }
-      }
+      },
+      "warnings": null
     },
     "legal_cited_decisions_only": {
       "mode_id": "legal_cited_decisions_only",
@@ -303,7 +321,8 @@
           "failed": 0,
           "all_passed": true
         }
-      }
+      },
+      "warnings": null
     },
     "hybrid_alpha_03": {
       "mode_id": "hybrid_alpha_03",
@@ -393,7 +412,10 @@
           "failed": 1,
           "all_passed": false
         }
-      }
+      },
+      "warnings": [
+        "fails adversarial_falsification benchmark"
+      ]
     },
     "hybrid_alpha_05": {
       "mode_id": "hybrid_alpha_05",
@@ -483,7 +505,10 @@
           "failed": 1,
           "all_passed": false
         }
-      }
+      },
+      "warnings": [
+        "fails adversarial_falsification benchmark"
+      ]
     },
     "legal_issues_outcomes": {
       "mode_id": "legal_issues_outcomes",
@@ -569,7 +594,13 @@
           "failed": 4,
           "all_passed": false
         }
-      }
+      },
+      "warnings": [
+        "fails adversarial_falsification benchmark",
+        "fails multilingual_invariance benchmark",
+        "fails citation_heritage threshold",
+        "fails tf_metadata_human_indexing threshold"
+      ]
     },
     "center_projected": {
       "mode_id": "center_projected",
@@ -614,7 +645,8 @@
           "all_passed": false,
           "status": "pending_legal_distance_reproduction"
         }
-      }
+      },
+      "warnings": null
     }
   }
 }

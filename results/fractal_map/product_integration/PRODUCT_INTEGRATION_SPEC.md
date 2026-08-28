@@ -1,6 +1,6 @@
 # Fractal Map Lane — Product Integration Specification (Map Mode Switching)
 
-**Generated:** 2026-08-28T02:53:32.439861
+**Generated:** 2026-08-28T20:30:50.727281
 **Lane:** fractal-map
 **Evidence Tier:** REPRODUCED
 **Status:** PRODUCTIZE
@@ -13,7 +13,7 @@ This specification describes the **multi-mode fractal map system** for Swiss Fed
 The system exposes a **default center_projected hierarchical Leiden map** plus **selectable legal-distance map modes**.
 
 **Key Architecture:**
-- **Default Mode:** Center Projected Hierarchical Leiden (REPRODUCED tier, purity 0.9638)
+- **Default Mode:** Center Projected Hierarchical Leiden (REPRODUCED tier, purity 0.9571)
 - **Selectable Modes:** 5 legal-distance representations (ACCEPTED tier)
 - **Legacy Mode:** Concat-based Hierarchical Leiden (preserved for comparison)
 - **Unified API:** Single loader interface for all modes
@@ -34,39 +34,48 @@ The system exposes a **default center_projected hierarchical Leiden map** plus *
 | legal_issues_outcomes | Legal Issues & Outcomes | legal_distance | available |  |
 | center_projected | Center Projected (Language-Debiased Embedding) | legal_distance | placeholder |  |
 
+
 ---
 
 ## 3. Default Mode: Center Projected Hierarchical Leiden
 
 **Mode ID:** `center_projected_hierarchical`
 **Evidence Tier:** REPRODUCED
-**Validation Run:** 33127766775
+**Validation Run:** 33207149474
 
 ### 3.1 Resolution Ladder
-- **Resolution 0.25**: 5 clusters
-- **Resolution 0.5**: 7 clusters
+- **Resolution 0.25**: available
+- **Resolution 0.5**: 108 clusters at hierarchical level
+- **Resolution 0.75**: available
+- **Resolution 1.0**: available
+- **Resolution 1.5**: available
+- **Resolution 2.0**: available
+- **Resolution 3.0**: available
+
+- **Resolution 0.25**: 5 clusters (domain: language + broad legal domain)
+- **Resolution 0.5**: 7 clusters (subdomain: legal area within language) — **Coarse parent level**
 - **Resolution 0.75**: 9 clusters
 - **Resolution 1.0**: 11 clusters
 - **Resolution 1.5**: 14 clusters
 - **Resolution 2.0**: 16 clusters
 - **Resolution 3.0**: 19 clusters
 
-- **Hierarchical (validated)**: 108 clusters, nesting=1.0, purity=0.9638
+- **Hierarchical (validated config: coarse_0.5_fine_3.0)**: 108 clusters, nesting=1.0, purity=0.9571 (min_cluster_size=3)
 - **Coarse (parent)**: 7 clusters at resolution 0.5
 
 ### 3.2 Key Metrics
-- **Hierarchical purity**: 0.9638 (+0.0148 vs concat baseline 0.9491)
+- **Hierarchical purity**: 0.9571 (+0.0080 vs concat baseline 0.9491)
 - **Perfect nesting**: 1.0 (guaranteed by hierarchical construction)
-- **Adversarial language dominance**: 0.7593 (< 0.85 threshold) ✅
-- **Jurist pairwise preference**: 0.5215 (> 0.5 threshold) ✅
-- **Jurivoc hierarchy alignment**: 4/5 PASS
-- **Zoom coherence**: 63.0% improvement rate (validated: 68 improvements, 11 deteriorations, 29 no-change at sub-cluster level; beats concat baseline 59.2%)
+- **Adversarial language dominance**: 0.7593 (< 0.85 threshold) ✅ — *source: evaluation_v2_cycle_33137354250 (carried forward)*
+- **Jurist pairwise preference**: 0.5215 (> 0.5 threshold) ✅ — *source: evaluation_v2_cycle_33137354250 (carried forward)*
+- **Jurivoc hierarchy alignment**: 4/5 PASS — *source: evaluation_v2_cycle_33137354250 (carried forward)*
+- **Zoom coherence (per-resolution-step)**: 31.1% improvement rate (19/61 parent clusters improve) — *source: center_projected_hierarchical_zoom_validation (v6 recomputed)*
 
 ### 3.3 Artifacts
 All artifacts available at `results/fractal_map/hierarchical_map_center_projected/`:
 - `cluster_metadata.json` — Legal context per cluster (branch, area, chamber, language)
 - `zoom_mappings.json` — Bidirectional parent-child navigation
-- `zoom_coherence.json` — Per-cluster zoom improvement metrics
+- `zoom_coherence.json` — Per-cluster zoom improvement metrics (per-resolution-step)
 - `decision_clusters.json` — Decision-to-cluster index (1000 × 7 resolutions)
 - `labels_res_*.npy` — Cluster assignments for rendering
 - `labels_hierarchical_best.npy` — Best validated hierarchical config (108 clusters)
@@ -78,30 +87,36 @@ All artifacts available at `results/fractal_map/hierarchical_map_center_projecte
 
 These modes are built on legal-distance embeddings (ACCEPTED tier evidence).
 
-### 4.1 debiased_citation_blended (Legal-Distance Baseline)
+### 4.1 debiased_citation_blended
 - **Status:** AVAILABLE
 - **Benchmarks:** 14/14 PASS
-- **Strengths:** Citation heritage (AUC 0.91), multilingual invariance, balanced
+- **Strengths:** Strong citation heritage, multilingual invariance
 
 ### 4.2 legal_cited_decisions_only
 - **Status:** AVAILABLE
 - **Benchmarks:** 14/14 PASS
 - **Strengths:** Best citation heritage (AUC 0.97), boilerplate resistance
 
-### 4.3 hybrid_alpha_03 (30% Legal + 70% Baseline)
+### 4.3 hybrid_alpha_03
 - **Status:** AVAILABLE
-- **Benchmarks:** 13/14 PASS (fails adversarial_falsification)
-- **Strengths:** Best branch classification (0.967), TF metadata recall (0.967)
+- **Benchmarks:** 13/14 PASS (1 failed) — **fails adversarial_falsification**
+- ⚠️ **Warning:** fails adversarial_falsification benchmark
+- **Strengths:** Best branch classification, strong TF metadata recall
 
-### 4.4 hybrid_alpha_05 (50% Legal + 50% Baseline)
+### 4.4 hybrid_alpha_05
 - **Status:** AVAILABLE
-- **Benchmarks:** 13/14 PASS (fails adversarial_falsification)
-- **Strengths:** Strongest branch classification (0.972), TF metadata recall (0.972)
+- **Benchmarks:** 13/14 PASS (1 failed) — **fails adversarial_falsification**
+- ⚠️ **Warning:** fails adversarial_falsification benchmark
+- **Strengths:** Best branch classification, strong TF metadata recall
 
 ### 4.5 legal_issues_outcomes
 - **Status:** AVAILABLE
-- **Benchmarks:** 10/14 PASS
-- **Strengths:** Doctrinal issue/outcome similarity independent of citations
+- **Benchmarks:** 10/14 PASS (4 failed) — **fails adversarial_falsification** — **fails multilingual_invariance**
+- ⚠️ **Warning:** fails adversarial_falsification benchmark
+- ⚠️ **Warning:** fails multilingual_invariance benchmark
+- ⚠️ **Warning:** fails citation_heritage threshold
+- ⚠️ **Warning:** fails tf_metadata_human_indexing threshold
+
 
 ---
 
@@ -109,9 +124,9 @@ These modes are built on legal-distance embeddings (ACCEPTED tier evidence).
 
 ### 5.1 hierarchical_leiden_concat (Concat-based - Legacy)
 - **Status:** LEGACY
-- **Benchmarks:** Hierarchy coherence PASS, zoom coherence 59.2% improvement
-- **Note:** Replaced as default by center_projected_hierarchical per factory direction v4
 - **Hierarchical purity**: 0.9491 (vs 0.9638 for center_projected)
+- **Zoom coherence (per-resolution-step)**: 59.2% improvement rate
+- **Note:** Replaced as default by center_projected_hierarchical per factory direction v4
 - **Embeddings**: concat (center_projected 768 + TF-IDF Erwaegungen 128)
 
 ---
@@ -221,15 +236,17 @@ The loader automatically detects available artifacts.
 ✅ Center Projected Hierarchical Leiden as default map structure (REPRODUCED, validated)  
 ✅ 7-resolution ladder with legal coherence metrics exposed  
 ✅ Perfect nesting (1.0) guaranteed for hierarchical mode  
-✅ 63.0% zoom improvement rate validated (beats concat baseline 59.2%)  
-✅ Hierarchical purity 0.9638 (+0.0148 vs concat baseline)  
-✅ Adversarial language dominance 0.7593 < 0.85 PASS  
-✅ Jurist pairwise preference 0.5215 > 0.5 PASS  
-✅ Jurivoc 4/5 PASS  
+✅ **31.1% zoom improvement rate** validated (per-resolution-step)  
+✅ Hierarchical purity 0.9571 (+0.0080 vs concat baseline, min_cluster_size=3)  
+✅ Adversarial language dominance 0.7593 < 0.85 PASS (source: v5 carried forward)  
+✅ Jurist pairwise preference 0.5215 > 0.5 PASS (source: v5 carried forward)  
+✅ Jurivoc 4/5 PASS (source: v5 carried forward)  
 ✅ Map mode registry with 8 modes (1 default + 5 legal-distance + 1 legacy + 1 placeholder)  
 ✅ Unified loader API for all modes  
 ✅ Product integration specification complete  
 ✅ Map mode switching architecture designed  
+⚠️ Hybrid modes fail adversarial_falsification — marked with warnings  
+⚠️ legal_issues_outcomes fails 4/14 benchmarks — marked with warnings  
 
 ---
 
