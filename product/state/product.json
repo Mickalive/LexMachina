@@ -41,7 +41,7 @@
   "next_recommendation": "PRODUCTIZE",
   "metrics": {
     "corpus_decisions": 1202,
-    "maps_loaded": 12,
+    "maps_loaded": 13,
     "section_modes_loaded": 6,
     "citation_graph_loaded": true,
     "zoom_coherence_loaded": true,
@@ -56,6 +56,7 @@
       "fractal_map_7res",
       "legal_cited_decisions",
       "center_projected",
+      "center_projected_hierarchical",
       "hybrid_alpha_0_3",
       "hybrid_alpha_0_5",
       "legal_issues_outcomes"
@@ -65,8 +66,8 @@
     "user_imports": 2,
     "test_suite_total": 97,
     "test_suite_passing": 97,
-    "default_representation": "center_projected",
-    "default_representation_benchmarks": "evaluation v2: language dominance 0.7593 < 0.85 PASS, jurist pairwise 0.5215 > 0.5 PASS, Jurivoc 4/5, zoom coherence +4.6%",
+    "default_representation": "center_projected_hierarchical",
+    "default_representation_benchmarks": "evaluation v2: center_projected embeddings pass BOTH adversarial gates (language dominance 0.7593 < 0.85, jurist pairwise 0.5215 > 0.5). Hierarchical Leiden on center_projected: nesting=1.0, 108 fine clusters in 8 coarse, branch purity=0.9638, 7-resolution ladder (5→7→9→11→14→16→19), zoom coherence 31.1% improvement rate.",
     "zoom_coherence_improvement_rate": 0.396,
     "map_coverage": {
       "corpus_with_map_position": 1000,
@@ -97,11 +98,13 @@
       "/api/map/temporal",
       "/api/map/export",
       "/api/cluster/export",
-      "/api/import"
+      "/api/import",
+      "/api/feedback",
+      "/api/map/compare"
     ],
     "frontend_features": [
-      "Multi-representation map navigation (12 representations)",
-      "Zoom levels (Domain/Subdomain/Microcluster/Detail)",
+      "Multi-representation map navigation (13 representations)",
+      "Zoom levels (Domain/Subdomain/Microcluster/Detail) - 8 levels for hierarchical default",
       "Section-based map modes (sachverhalt, erwaegungen, dispositiv, full_text, erwaegungen_dispositiv, sachverhalt_erwaegungen_dispositiv)",
       "Language filter toggles",
       "Temporal year range slider",
@@ -116,8 +119,10 @@
       "Import corpus via file upload or JSON paste with schema validation",
       "Map export (JSON/CSV) for positions and clusters",
       "Evaluation benchmark metrics display",
-      "Legal-distance signals as selectable map modes: center_projected (DEFAULT), legal_cited_decisions, hybrid α=0.3, hybrid α=0.5, legal_issues_outcomes"
+      "Legal-distance signals as selectable map modes: center_projected_hierarchical (DEFAULT), center_projected, legal_cited_decisions, hybrid α=0.3, hybrid α=0.5, legal_issues_outcomes",
+      "Map mode comparison (displacement, stability, cluster transitions)",
+      "Jurist feedback capture endpoints"
     ]
   },
-  "notes": "Product lane successfully delivers an end-to-end vertical slice per factory direction v6: (1) Loads 1202 canonical BGer decisions (2000-2024) from corpus lane. (2) Loads 12 map representations including evaluation-validated center_projected (CRITICAL: ONLY representation passing BOTH adversarial benchmarks - language dominance <0.85 AND jurist pairwise >0.5), debiased_citation_blended (14/14 PASS), true_hierarchical_leiden (REPRODUCED fractal architecture: perfect nesting 1.0, 127 fine clusters in 8 coarse, branch purity 0.963), legal_cited_decisions (ACCEPTED: 14/14 PASS), hybrid α=0.3/0.5, legal_issues_outcomes (EXPLORATORY). (3) Section-based map modes for 6 legal text sections. (4) Citation graph navigation (outgoing/incoming). (5) Proximity explanation with legal feature contributions. (6) Zoom coherence metrics from fractal-map lane (39.6% improvement rate). (7) Temporal filtering by year range. (8) Cross-language neighbor discovery. (9) Corpus import (JSONL/JSON) with schema validation and persistence. (10) Map export (JSON/CSV). (11) All 97 tests passing. (12) Default representation is center_projected per evaluation v2 recommendation. Architecture ready for TF base map scale-up and arbitrary user corpus imports. Snapshot is audit-ready."
+  "notes": "Product lane successfully delivers an end-to-end vertical slice per factory direction v6: (1) Loads 1202 canonical BGer decisions (2000-2024) from corpus lane. (2) Loads 13 map representations including evaluation-validated center_projected embeddings (ONLY representation passing BOTH adversarial benchmarks) with true hierarchical Leiden as DEFAULT (nesting=1.0, 108 fine clusters in 8 coarse, branch purity 0.9638, 7-resolution ladder), debiased_citation_blended (14/14 PASS), true_hierarchical_leiden (REPRODUCED fractal architecture), legal_cited_decisions (ACCEPTED: 14/14 PASS), hybrid α=0.3/0.5, legal_issues_outcomes (EXPLORATORY). (3) Section-based map modes for 6 legal text sections. (4) Citation graph navigation (outgoing/incoming). (5) Proximity explanation with legal feature contributions. (6) Zoom coherence metrics from fractal-map lane (39.6% improvement rate). (7) Temporal filtering by year range. (8) Cross-language neighbor discovery. (9) Corpus import (JSONL/JSON) with schema validation and persistence + map position computation. (10) Map export (JSON/CSV). (11) Map mode comparison API. (12) Jurist feedback capture endpoints. (13) All 97 tests passing. Architecture ready for TF base map scale-up and arbitrary user corpus imports. Snapshot is audit-ready."
 }

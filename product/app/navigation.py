@@ -136,16 +136,18 @@ class NavigationAPI:
             self._embedding_model = None
 
     def _get_default_representation(self) -> str:
-        """Get the default representation (evaluation v2: center_projected is the ONLY 
-        representation passing BOTH adversarial language dominance <0.85 AND 
-        jurist pairwise preference >0.5)."""
-        # Evaluation v2 CRITICAL FINDING: center_projected is the FIRST and ONLY 
-        # representation to pass BOTH adversarial language dominance (0.7593 < 0.85) 
-        # AND jurist pairwise preference (0.5215 > 0.5). Also passes Jurivoc (4/5) 
-        # and zoom coherence (+4.6%). debiased_citation_blended FAILS v2 adversarial 
-        # cross-language (language dominance 0.999 = catastrophic).
-        # RECOMMENDATION: Product must adopt center_projected as default map mode.
-        return "center_projected"
+        """Get the default representation for map navigation.
+        
+        Factory direction v6: center_projected_hierarchical is the DEFAULT map mode.
+        It uses center_projected embeddings (the ONLY representation passing BOTH 
+        adversarial language dominance <0.85 AND jurist pairwise preference >0.5)
+        with true hierarchical Leiden clustering (nesting=1.0, 108 fine clusters 
+        nested in 8 coarse, branch purity=0.9638, 7-resolution ladder).
+        
+        The raw center_projected embeddings are available as a separate mode for
+        comparison, but map navigation should use the hierarchical version.
+        """
+        return "center_projected_hierarchical"
 
     def _load_imported_positions(self) -> None:
         """Load previously computed import positions from disk."""
