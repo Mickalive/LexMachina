@@ -1,0 +1,64 @@
+{
+  "audit_gate_id": "CYCLE_operational_resume_33135281890_GATE",
+  "github_run": "33135281890",
+  "lane": "fractal-map",
+  "direction_version": 6,
+  "timestamp": "2026-08-28T02:30:00Z",
+  "prior_run_id": "operational_resume_v6_33134755365",
+  "prior_github_run": "33134755365",
+  "state_before": {
+    "evidence_tier": "REPRODUCED",
+    "cycle_status": "COMPLETED",
+    "continue_recommended": false,
+    "next_recommendation": "PRODUCTIZE",
+    "accepted_run_id": "operational_resume_v6_33134755365",
+    "github_run": "33134755365"
+  },
+  "state_after": {
+    "evidence_tier": "REPRODUCED",
+    "cycle_status": "COMPLETED",
+    "continue_recommended": false,
+    "next_recommendation": "PRODUCTIZE",
+    "accepted_run_id": "operational_resume_v6_33135281890",
+    "github_run": "33135281890"
+  },
+  "delta": {
+    "github_run_updated": "33134755365 -> 33135281890",
+    "accepted_run_id_updated": "operational_resume_v6_33134755365 -> operational_resume_v6_33135281890",
+    "timestamp_updated": "2026-08-28T02:15:00Z -> 2026-08-28T02:30:00Z",
+    "evidence_refs_added": ["results/fractal_map/audit/CYCLE_operational_resume_33135281890_GATE.json"],
+    "scientific_work": "NONE - orchestration resume only"
+  },
+  "verification": {
+    "tests_run": 30,
+    "tests_passed": 30,
+    "tests_failed": 0,
+    "test_suite": "tests/fractal_map/test_verify.py",
+    "all_pass": true
+  },
+  "orchestration_pathology": {
+    "recurring": true,
+    "description": "Supervisor dispatched operational resume to already-COMPLETED lane with continue_recommended=false",
+    "root_cause": "Missing pre-dispatch guard reading state/<lane>.json before supervisor dispatch",
+    "impact": "Zero new scientific work; only metadata synchronization and audit verification",
+    "classification": "Orchestration inefficiency, NOT scientific failure",
+    "recommendation": "Add pre-dispatch guard: skip dispatch when cycle_status=COMPLETED and continue_recommended=false"
+  },
+  "lane_deliverable_status": {
+    "v6_question": "Productize the validated multi-resolution hierarchical Leiden map (nesting=1.0, purity=0.9634, zoom_coherence +7.68%): expose resolution ladder, cluster metadata, legal coherence at each zoom level in product; integrate as default map structure with legal-distance selectable modes. NOTE: Current product uses hierarchical_leiden on debiased_citation_blended embeddings; must support center_projected embeddings when legal-distance reproduces it.",
+    "status": "COMPLETE",
+    "evidence_tier": "REPRODUCED",
+    "artifacts_verified": [
+      "7-resolution hierarchical Leiden map (res_0.25 through res_3.0 + hierarchical_best + coarse_0.5)",
+      "Perfect nesting (1.0) guaranteed by construction",
+      "Branch purity 0.949 global / 0.9634 local",
+      "Zoom coherence improvement rate 59.2%",
+      "Map mode registry with 7 modes (1 default + 5 legal-distance ACCEPTED + 1 center_projected placeholder)",
+      "Product integration package (10 core artifacts + specification)",
+      "Unified loader API for all modes"
+    ],
+    "pending_dependency": "center_projected activation requires legal-distance lane reproduction (legal-distance status=RUN)"
+  },
+  "audit_verdict": "PASS",
+  "audit_notes": "Fractal-map lane v6 deliverable complete and audit-ready. No new scientific work performed or required. This operational resume synchronizes metadata to current github_run and documents recurring orchestration pathology."
+}
