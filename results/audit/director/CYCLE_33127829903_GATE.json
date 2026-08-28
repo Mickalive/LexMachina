@@ -1,0 +1,121 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "REPRODUCED: Validated components ready for productization. Evaluation v1: 13/14 benchmarks PASS + 1 stochastic failure on frozen debiased_citation_blended (n_pca=1, alpha=0.7) — citation_heritage AUC 0.9067, legal_area purity 0.8863, zoom_coherence +7.1%, branch_knn@5 0.8068, multilingual separation 0.0556, temporal stability std 0.0171. Fractal-map: Hierarchical Leiden nesting=1.0, hierarchical_purity=0.9561 (coarse_0.25_fine_3.0), zoom_coherence_improvement_rate=0.396 (39.6% improvement rate, 19↑ 0↓). Product vertical slice: 11/11 tests PASS, 68/68 cycle tests PASS, 21 endpoints, 4 map representations × 1000 positions, user import + k-NN + export functional. Corpus: 1,577 schema-valid decisions (1,215 unique), 1000-decision slice 2000+, 250 yearly core 2020-2024, 85 laws mapped — gap: pre-2020 decisions not yet acquired for full TF 2000+. Legal-distance: ACCEPTED for completed unsupervised ablation question (baseline & cited_decisions_only both 14/14 PASS; hybrids α=0.3/0.5 13/14 PASS; legal text signals FAIL multilingual/adversarial); UNTESTED for 5 pivot questions (scale, embeddings, roles, jurist eval, benchmark refinement). Frontier: Hypothesis with explicit acceptance criteria (supervised metric learning on Jurivoc/TF weak labels).",
+  "evidence_summary": {
+    "evaluation_v1": {
+      "status": "CLOSED",
+      "tier": "REPRODUCED",
+      "frozen_baseline": "debiased_citation_blended (n_pca=1, alpha=0.7)",
+      "benchmarks_pass": 13,
+      "benchmarks_total": 14,
+      "stochastic_failure": "boilerplate_resistance_real_corpus (correlation=0.0901 vs threshold 0.1; passes at 0.1235 with fixed seed)",
+      "key_metrics": {
+        "citation_heritage_auc": 0.9067,
+        "legal_area_purity": 0.8863,
+        "zoom_coherence_improvement_pct": 7.1,
+        "branch_knn_at_5": 0.8068,
+        "multilingual_invariance_separation": 0.0556,
+        "temporal_stability_std": 0.0171,
+        "boilerplate_resistance_correlation": 0.0901
+      }
+    },
+    "fractal_map": {
+      "status": "VALIDATED",
+      "tier": "REPRODUCED",
+      "method": "Hierarchical Leiden (coarse=0.25, sub=3.0)",
+      "key_metrics": {
+        "hierarchical_nesting": 1.0,
+        "hierarchical_purity": 0.9561,
+        "flat_leiden_mean_purity": 0.8829,
+        "purity_improvement_pct": 8.3,
+        "zoom_coherence_improvement_rate": 0.3964,
+        "zoom_improvements": 19,
+        "zoom_deteriorations": 0,
+        "best_zoom_ratio": 0.920,
+        "flat_baseline_zoom_ratio": 0.492
+      },
+      "product_integration": "6 artifacts created: cluster_metadata (7 resolutions + hierarchical), zoom_mappings (7 parent-child), zoom_coherence, decision_clusters, integration_summary, INTEGRATION_SPEC.md"
+    },
+    "product": {
+      "status": "OPERATIONAL",
+      "tier": "REPRODUCED",
+      "metrics": {
+        "product_tests_pass": 11,
+        "product_tests_total": 11,
+        "cycle_tests_pass": 68,
+        "cycle_tests_total": 68,
+        "api_endpoints": 21,
+        "map_representations": 4,
+        "map_positions": 1000,
+        "hierarchical_leiden_default": true,
+        "user_corpus_import": true,
+        "map_export_json_csv": true,
+        "persisted_import_positions": 4
+      }
+    },
+    "corpus": {
+      "status": "REPRODUCED_COMPLETED",
+      "tier": "REPRODUCED",
+      "metrics": {
+        "canonical_decisions_total": 1577,
+        "unique_decisions": 1215,
+        "working_slice_1000": 1000,
+        "yearly_core_250_2020_2024": 250,
+        "languages": {
+          "de": 975,
+          "fr": 530,
+          "it": 72
+        },
+        "branches": {
+          "oeffentliches_recht": 93,
+          "zivilrecht": 56,
+          "sozialversicherungsrecht": 48,
+          "strafrecht": 53
+        },
+        "statute_extractor_laws_mapped": 85,
+        "statute_references": 14000,
+        "parquet_bulk_mb": 784.7,
+        "parquet_rows": 174000,
+        "user_import_prototype": true,
+        "gap": "Pre-2020 decisions not yet acquired (TF-2000+ incomplete)"
+      }
+    },
+    "legal_distance": {
+      "status": "RUN (pivoted)",
+      "tier": "ACCEPTED (completed question) / UNTESTED (pivot questions)",
+      "completed_question": "Unsupervised signal ablation against frozen baseline",
+      "key_results": {
+        "baseline_debiased_citation_blended": "14/14 PASS",
+        "legal_cited_decisions_only": "14/14 PASS (ties baseline, best boilerplate resistance 0.088)",
+        "hybrid_alpha_03": "13/14 PASS (branch_knn@5 0.962, tf_metadata_recall@1 0.967, legal_area NMI 0.83)",
+        "hybrid_alpha_05": "13/14 PASS (branch_knn@5 0.955, tf_metadata_recall@1 0.972, legal_area NMI 0.78)",
+        "legal_text_signals": "FAIL multilingual_invariance (negative separation) and adversarial_falsification (lang_dom 0.90-0.99)",
+        "effective_discriminating_benchmarks": "11/14 (3 diagnostic-only, 1 duplicate)"
+      },
+      "pivot_questions": [
+        "Scale test: validate cited_decisions_only and hybrids on full TF 2000+ corpus",
+        "Legal embeddings: test Isaacus/Legal-BERT for multilingual invariance of legal signals",
+        "Citation role modeling: distinguish/follow/overrule roles vs simple citation lists",
+        "Jurist pairwise evaluation of hybrid map modes vs baseline",
+        "Benchmark refinement: replace duplicate/non-discriminating benchmarks with jurist-usefulness proxies"
+      ]
+    },
+    "frontier_portfolio": {
+      "version": 3,
+      "teams": [
+        {
+          "team_id": "frontier_metric_learning_jurivoc",
+          "charter_version": 1,
+          "status": "RUN",
+          "methodology": "SUPERVISED METRIC LEARNING on Jurivoc/TF weak labels",
+          "non_duplication": "Core legal-distance = UNSUPERVISED signal ablation; Frontier = SUPERVISED METRIC LEARNING — independent path",
+          "acceptance_test": ">=5% relative improvement on >=3/4 primary jurist proxies (branch_knn@1, legal_area_purity, citation_heritage_AUC, tf_metadata_recall@1); no regression on zoom_coherence (improvement_rate >= 0.39, aligned to validated fractal-map baseline 0.3964) or multilingual_invariance (separation >= 0.04); boilerplate_resistance PASS (text_emb_correlation <= 0.2); metric serializable",
+          "stop_promote_rule": "PROMOTE if acceptance_test passes + temporal_stability mean_knn_score >= 0.75 on held-out 2024; PAUSE after 3 architecture variants no improvement; TERMINATE if collapse_check FAIL or multilingual_invariance violated"
+        }
+      ],
+      "policy": "Create specialized teams only for concrete product-relevant hypotheses or bottlenecks. Parallelism should grow with credible independent paths, not curiosity."
+    }
+  }
+}
