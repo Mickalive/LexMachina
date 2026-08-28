@@ -1,0 +1,406 @@
+{
+  "variant": "erwaegungen_tfidf",
+  "n_decisions": 1199,
+  "embedding_dim": 128,
+  "cross_language": {
+    "cross_language_neighbor_quality": {
+      "cross_lang_same_branch_mean": 0.023436196830692247,
+      "same_lang_same_branch_mean": 0.7180984153461217,
+      "cross_branch_mean": 0.258465387823186,
+      "invariance_gap": 0.6946622185154295,
+      "separation": -0.23502919099249375,
+      "k": 10
+    },
+    "zero_shot_transfer": {
+      "pairwise_results": {
+        "fr->fr": {
+          "train_lang": "fr",
+          "test_lang": "fr",
+          "zero_shot": false,
+          "nmi": 0.26093840596571594,
+          "ari": 0.1894460731690764,
+          "test_size": 402
+        },
+        "fr->de": {
+          "train_lang": "fr",
+          "test_lang": "de",
+          "zero_shot": true,
+          "nmi": 0.19683134685134443,
+          "ari": 0.1508431425660232,
+          "test_size": 735
+        },
+        "fr->it": {
+          "train_lang": "fr",
+          "test_lang": "it",
+          "zero_shot": true,
+          "nmi": 0.29530933034541634,
+          "ari": 0.0988163714880151,
+          "test_size": 62
+        },
+        "de->fr": {
+          "train_lang": "de",
+          "test_lang": "fr",
+          "zero_shot": true,
+          "nmi": 0.2672816567747876,
+          "ari": 0.21926571238894063,
+          "test_size": 402
+        },
+        "de->de": {
+          "train_lang": "de",
+          "test_lang": "de",
+          "zero_shot": false,
+          "nmi": 0.47561563817951796,
+          "ari": 0.3559026999440576,
+          "test_size": 735
+        },
+        "de->it": {
+          "train_lang": "de",
+          "test_lang": "it",
+          "zero_shot": true,
+          "nmi": 0.2586989651318161,
+          "ari": 0.07323882236535458,
+          "test_size": 62
+        },
+        "it->fr": {
+          "train_lang": "it",
+          "test_lang": "fr",
+          "zero_shot": true,
+          "nmi": 0.28169320165976247,
+          "ari": 0.2087353853617568,
+          "test_size": 402
+        },
+        "it->de": {
+          "train_lang": "it",
+          "test_lang": "de",
+          "zero_shot": true,
+          "nmi": 0.25362318079756646,
+          "ari": 0.1618387894339677,
+          "test_size": 735
+        },
+        "it->it": {
+          "train_lang": "it",
+          "test_lang": "it",
+          "zero_shot": false,
+          "nmi": 0.2559599915028473,
+          "ari": 0.0896369058318595,
+          "test_size": 62
+        }
+      },
+      "zero_shot_mean_nmi": 0.2589062802601156,
+      "in_domain_mean_nmi": 0.33083801188269374,
+      "transfer_gap": 0.07193173162257815,
+      "status": "PASS"
+    },
+    "language_specific_quality": {
+      "per_language": {
+        "fr": {
+          "n_decisions": 402,
+          "branch_nmi": 0.4123164046018737,
+          "branch_ari": 0.25839436323138587,
+          "n_branches": 4
+        },
+        "de": {
+          "n_decisions": 735,
+          "branch_nmi": 0.5321963732120191,
+          "branch_ari": 0.3773208438555617,
+          "n_branches": 4
+        },
+        "it": {
+          "n_decisions": 62,
+          "branch_nmi": 0.33411089718564463,
+          "branch_ari": 0.08589409667272449,
+          "n_branches": 4
+        }
+      },
+      "mean_nmi": 0.42620789166651246,
+      "std_nmi": 0.0814624412957657,
+      "min_nmi": 0.33411089718564463,
+      "max_nmi": 0.5321963732120191,
+      "status": "PASS"
+    },
+    "adversarial_language_dominance": {
+      "mean_language_dominance": 0.9042118432026688,
+      "std_language_dominance": 0.23586164890540331,
+      "max_language_dominance": 1.0,
+      "k": 20,
+      "threshold": 0.85,
+      "status": "FAIL",
+      "note": "Lower is better - language should not dominate neighbors"
+    },
+    "summary": {
+      "total_benchmarks": 4,
+      "passed": 2,
+      "failed": 2,
+      "all_passed": false
+    }
+  },
+  "jurist_usability": {
+    "pairwise_preference": {
+      "status": "FAIL",
+      "total_decisions": 1199,
+      "legal_relevant_only": 25,
+      "language_artifact_only": 552,
+      "both_available": 99,
+      "neither_available": 523,
+      "legal_neighbor_rate": 0.1034,
+      "language_neighbor_rate": 0.543,
+      "jurist_would_succeed_rate": 0.1034,
+      "jurist_forced_wrong_rate": 0.4604,
+      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+    },
+    "cluster_coherence_rating": {
+      "status": "PASS",
+      "n_clusters": 16,
+      "mean_branch_purity": 0.7636,
+      "branch_nmi": 0.2628,
+      "mean_language_purity": 0.9712,
+      "cluster_purities": [
+        0.9091,
+        0.4889,
+        0.5649,
+        0.95,
+        0.9688,
+        0.9571,
+        0.9487,
+        0.4848,
+        1.0,
+        0.9804,
+        0.6615,
+        0.392,
+        0.411,
+        1.0,
+        0.5,
+        1.0
+      ],
+      "cluster_sizes": [
+        88,
+        180,
+        154,
+        20,
+        64,
+        140,
+        78,
+        66,
+        27,
+        51,
+        65,
+        125,
+        73,
+        27,
+        20,
+        21
+      ],
+      "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+    },
+    "cross_language_retrieval": {
+      "status": "FAIL",
+      "mean_cross_language_recall_at_k": 0.0349,
+      "k": 10,
+      "n_queries": 1199,
+      "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+    }
+  },
+  "jurivoc": {
+    "jurivoc_descriptor_recovery_l1": {
+      "status": "FAIL",
+      "nmi": 0.13919406192151382,
+      "ari": 0.08963642367715005,
+      "n_clusters": 6,
+      "n_decisions": 1000,
+      "level": 1,
+      "threshold_nmi": 0.3
+    },
+    "jurivoc_descriptor_recovery_l2": {
+      "status": "PASS",
+      "nmi": 0.3090515768172636,
+      "ari": 0.11175661188155211,
+      "n_clusters": 17,
+      "n_decisions": 1000,
+      "level": 2,
+      "threshold_nmi": 0.3
+    },
+    "jurivoc_knn_purity_l1": {
+      "status": "PASS",
+      "purity": 0.5884000000000001,
+      "k": 10,
+      "n_decisions": 1000,
+      "level": 1,
+      "threshold_purity": 0.4
+    },
+    "jurivoc_knn_purity_l2": {
+      "status": "PASS",
+      "purity": 0.4446,
+      "k": 10,
+      "n_decisions": 1000,
+      "level": 2,
+      "threshold_purity": 0.4
+    },
+    "jurivoc_hierarchy_alignment": {
+      "status": "FAIL",
+      "same_parent_mean_sim": 0.22975750642983722,
+      "diff_parent_mean_sim": 0.19787275755153072,
+      "separation": 0.0318847488783065,
+      "n_same_pairs": 25308,
+      "n_diff_pairs": 99442,
+      "threshold_separation": 0.05
+    },
+    "summary": {
+      "total_benchmarks": 5,
+      "passed": 3,
+      "failed": 2,
+      "all_passed": false
+    }
+  },
+  "scale_stability": {
+    "corpus_sizes": [
+      200,
+      400,
+      600,
+      800,
+      1000
+    ],
+    "max_size": 1200,
+    "method": "frozen_pca_fit_on_full",
+    "growth_steps": [
+      {
+        "corpus_size": 200,
+        "representation_shape": [
+          200,
+          64
+        ],
+        "vs_full_position_drift": {
+          "mean_cosine_similarity": 1.0,
+          "std_cosine_similarity": 2.00302203186772e-16,
+          "min_cosine_similarity": 0.9999999999999996,
+          "pct_below_0.9": 0.0,
+          "pct_below_0.8": 0.0,
+          "pct_below_0.5": 0.0
+        },
+        "vs_full_neighbor_preservation_k10": {
+          "mean_preservation_rate": 0.1555,
+          "std_preservation_rate": 0.12070521943975744,
+          "min_preservation_rate": 0.0,
+          "pct_above_0.5": 1.5,
+          "pct_above_0.8": 0.0
+        },
+        "vs_full_cluster_stability_k10": {
+          "nmi": 1.0,
+          "ari": 1.0,
+          "n_clusters": 10
+        }
+      },
+      {
+        "corpus_size": 400,
+        "representation_shape": [
+          400,
+          64
+        ],
+        "vs_full_position_drift": {
+          "mean_cosine_similarity": 1.0,
+          "std_cosine_similarity": 1.8816560816901409e-16,
+          "min_cosine_similarity": 0.9999999999999996,
+          "pct_below_0.9": 0.0,
+          "pct_below_0.8": 0.0,
+          "pct_below_0.5": 0.0
+        },
+        "vs_full_neighbor_preservation_k10": {
+          "mean_preservation_rate": 0.277,
+          "std_preservation_rate": 0.17441616897524154,
+          "min_preservation_rate": 0.0,
+          "pct_above_0.5": 2.75,
+          "pct_above_0.8": 0.0
+        },
+        "vs_full_cluster_stability_k10": {
+          "nmi": 1.0,
+          "ari": 1.0,
+          "n_clusters": 10
+        }
+      },
+      {
+        "corpus_size": 600,
+        "representation_shape": [
+          600,
+          64
+        ],
+        "vs_full_position_drift": {
+          "mean_cosine_similarity": 1.0,
+          "std_cosine_similarity": 1.9095620862839644e-16,
+          "min_cosine_similarity": 0.9999999999999996,
+          "pct_below_0.9": 0.0,
+          "pct_below_0.8": 0.0,
+          "pct_below_0.5": 0.0
+        },
+        "vs_full_neighbor_preservation_k10": {
+          "mean_preservation_rate": 0.4246666666666667,
+          "std_preservation_rate": 0.2223920462206826,
+          "min_preservation_rate": 0.0,
+          "pct_above_0.5": 31.833333333333336,
+          "pct_above_0.8": 0.16666666666666669
+        },
+        "vs_full_cluster_stability_k10": {
+          "nmi": 1.0,
+          "ari": 1.0,
+          "n_clusters": 10
+        }
+      },
+      {
+        "corpus_size": 800,
+        "representation_shape": [
+          800,
+          64
+        ],
+        "vs_full_position_drift": {
+          "mean_cosine_similarity": 1.0,
+          "std_cosine_similarity": 1.9972446271838717e-16,
+          "min_cosine_similarity": 0.9999999999999993,
+          "pct_below_0.9": 0.0,
+          "pct_below_0.8": 0.0,
+          "pct_below_0.5": 0.0
+        },
+        "vs_full_neighbor_preservation_k10": {
+          "mean_preservation_rate": 0.6015,
+          "std_preservation_rate": 0.20862106796773905,
+          "min_preservation_rate": 0.2,
+          "pct_above_0.5": 70.0,
+          "pct_above_0.8": 7.000000000000001
+        },
+        "vs_full_cluster_stability_k10": {
+          "nmi": 1.0,
+          "ari": 1.0,
+          "n_clusters": 10
+        }
+      },
+      {
+        "corpus_size": 1000,
+        "representation_shape": [
+          1000,
+          64
+        ],
+        "vs_full_position_drift": {
+          "mean_cosine_similarity": 1.0,
+          "std_cosine_similarity": 1.9544340394344006e-16,
+          "min_cosine_similarity": 0.9999999999999992,
+          "pct_below_0.9": 0.0,
+          "pct_below_0.8": 0.0,
+          "pct_below_0.5": 0.0
+        },
+        "vs_full_neighbor_preservation_k10": {
+          "mean_preservation_rate": 0.7217,
+          "std_preservation_rate": 0.3163528251809995,
+          "min_preservation_rate": 0.0,
+          "pct_above_0.5": 84.39999999999999,
+          "pct_above_0.8": 44.6
+        },
+        "vs_full_cluster_stability_k10": {
+          "nmi": 1.0,
+          "ari": 1.0,
+          "n_clusters": 10
+        }
+      }
+    ]
+  },
+  "boilerplate_resistance": {
+    "status": "SKIP",
+    "reason": "Full decision text not available in expanded slice metadata. Requires corpus text for perturbation test."
+  }
+}

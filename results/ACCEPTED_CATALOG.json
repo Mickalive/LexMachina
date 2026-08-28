@@ -125,36 +125,53 @@
         "direction_version": 6,
         "evidence_tier": "REPRODUCED",
         "cycle_status": "COMPLETED",
-        "continue_recommended": true,
-        "accepted_run_id": "eval_v4_20260828",
+        "continue_recommended": false,
+        "accepted_run_id": "eval_v6_20260828",
+        "accepted_commit": "HEAD",
         "evidence_refs": [
+          "results/evaluation/v3_evaluation_results.json",
           "results/evaluation/v4_evaluation_results.json",
+          "results/evaluation/v5_evaluation_results.json",
+          "results/evaluation/v6_signal_ablation/v6_signal_ablation_adversarial_results.json",
+          "evaluation/run_v3_evaluation.py",
           "evaluation/run_v4_evaluation.py",
+          "evaluation/run_v6_signal_ablation_adversarial.py",
           "evaluation/tests/cross_language_benchmarks.py",
           "evaluation/tests/jurist_usability.py",
           "evaluation/tests/jurivoc_benchmarks.py",
-          "evaluation/tests/scale_benchmarks_frozen.py"
+          "evaluation/tests/scale_benchmarks_frozen.py",
+          "evaluation/tests/boilerplate_resistance.py"
         ],
-        "next_recommendation": "CONTINUE — Evaluation v4 validates center_projected as the ONLY representation passing BOTH adversarial gates on expanded 1,200-decision slice. Key findings: (1) center_projected boilerplate resistance PASSES (correlation=0.126 in 0.1-0.4 range); (2) Legal embeddings (multilingual_e5_small, paraphrase_multilingual_minilm, xlm_roberta_base) all FAIL adversarial language dominance (0.999, ~0.99, ~0.99 > 0.85) despite strong Jurivoc recovery (multilingual_e5_small: 4/5 PASS) and zero-shot transfer; (3) Citation role embeddings (6 roles) are DEGENERATE — all 6 produce identical failed results (0/5 Jurivoc, 0/4 cross-language quality, collapsed clusters); (4) center_projected remains UNBEATEN on the dual adversarial gate (language_dominance < 0.85 AND jurist_pairwise > 0.5). Next cycle: test frontier_metric_learning_jurivoc supervised metric learning against center_projected; test signal ablation variants on center_projected via adversarial benchmarks; maintain frozen seed=42 harness for regression testing.",
+        "next_recommendation": "EVALUATION V6 SIGNAL ABLATION VALIDATION COMPLETE — center_projected baseline (768-dim) validated on expanded 1,200-decision slice with frozen global seed=42. NO signal ablation variant passes BOTH adversarial gates (language_dominance < 0.85 AND jurist_pairwise > 0.5). citation_weights passes both gates but is DEGENERATE (single cluster, Jurivoc NMI=0.0, branch_purity=0.474). center_projected 768-dim: lang_dom=0.774 (PASS), pairwise=0.491 (FAIL, borderline). Best hybrid: hybrid_erwaegungen_03 (lang_dom=0.810 PASS, pairwise=0.420 FAIL). Legal-distance v5 signal ablation zoom-coherence winner (sachverhalt_tfidf) FAILS jurist pairwise (0.269) despite passing language dominance. erwaegungen_tfidf FAILS language dominance (0.904). norm_embeddings FAILS jurist pairwise (0.273). ALL erwaegungen combinations FAIL language dominance (>0.85). Two factory_direction v6 validation dependencies RESOLVED AS NEGATIVE: (1) Signal ablation variants tested adversarially — none beat center_projected on both gates; (2) Frontier metric_learning_jurivoc validation — no team dispatched, frontier directory empty. RECOMMENDATION: Factory Director should acknowledge evaluation v6 complete. Legal-distance must either improve center_projected baseline (64-dim PCA version passed both gates in v3) or develop new signal combinations. Fractal-map should use 64-dim center_projected (v3 version) not 768-dim. Successor evaluation question should focus on improving jurist pairwise preference for center_projected or testing new hybrid formulations.",
         "critical_findings": {
-          "center_projected_boilerplate_resistance": "PASS — text_embedding_correlation=0.126 (within 0.1-0.4 range). Confirms center_projected is boilerplate resistant while capturing legal content.",
-          "legal_embeddings_adversarial_gates": "ALL FAIL language dominance gate — multilingual_e5_small: 0.999, paraphrase_multilingual_minilm: ~0.99, xlm_roberta_base: ~0.99 (all > 0.85 threshold). Despite strong Jurivoc recovery (multilingual_e5_small: 4/5 PASS, NMI_l1=0.346, NMI_l2=0.502) and zero-shot cross-language transfer PASS, language dominance makes them unsuitable as default map mode.",
-          "citation_role_embeddings_degenerate": "ALL 6 ROLES IDENTICAL FAILURES — overruling, distinguishing, following, all_weighted, citing, criticizing produce identical results: 0/5 Jurivoc PASS (NMI=0.0), 1/4 cross-language PASS (only language_dominance), 3/4 jurist_usability PASS (misleading — both_available=797 indicates collapsed representation), branch_purity=0.467. Citation roles alone without semantic blending are useless for legal navigation.",
-          "center_projected_unbeaten": "CONFIRMED — center_projected remains the ONLY representation passing BOTH adversarial gates (language_dominance=0.766 < 0.85, jurist_pairwise=0.512 > 0.5) on 1,200 decisions. Also passes boilerplate resistance, scale stability (perfect position drift), Jurivoc hierarchy alignment (separation=0.113 > 0.05)."
+          "center_projected_768dim_adversarial_validation": "PASSES language_dominance=0.774 (<0.85) but FAILS jurist_pairwise=0.491 (>0.5 threshold) — BORDERLINE. Note: v3 64-dim center_projected PASSED pairwise=0.512. The 768-dim version underperforms on jurist usability.",
+          "signal_ablation_adversarial_validation": "NO variant beats center_projected on both adversarial gates. citation_weights passes both but degenerate (single cluster, Jurivoc NMI=0.0). sachverhalt_tfidf (v5 zoom winner): lang_dom=0.770 PASS, pairwise=0.269 FAIL. erwaegungen_tfidf: lang_dom=0.904 FAIL. All erwaegungen combinations FAIL language dominance (>0.85). hybrid_erwaegungen_03 best hybrid: lang_dom=0.810 PASS, pairwise=0.420 FAIL.",
+          "legal_embeddings_all_fail_adversarial": "multilingual_e5_small (lang_dom=0.999), paraphrase_multilingual_minilm (0.972), xlm_roberta_base (0.999) — all >0.85 threshold despite multilingual_e5_small achieving Jurivoc L2 NMI=0.502.",
+          "citation_roles_degenerate": "All 6 roles (overruling, distinguishing, following, all_weighted, citing, criticizing) produce IDENTICAL embeddings: single cluster (branch_purity=0.467, branch_nmi=0.0), Jurivoc NMI=0.0, useless standalone without semantic blending.",
+          "center_projected_64dim_vs_768dim": "CRITICAL: v3 used 64-dim center_projected (PCA-reduced) which PASSED both gates (lang_dom=0.766, pairwise=0.512). v6 evaluates 768-dim pre-PCA version which FAILS pairwise (0.491). Fractal-map and product MUST use 64-dim frozen PCA version.",
+          "frontier_metric_learning_validation": "BLOCKED — No frontier_metric_learning_jurivoc team dispatched; frontier directory empty in both accepted and workspace.",
+          "boilerplate_resistance": "SKIPPED — Full decision text not available in expanded slice metadata.",
+          "scale_stability_frozen_pca": "PERFECT position drift (mean cosine=1.0) for all non-degenerate variants. Citation weights FAILS scale stability (mean cosine=0.0)."
         },
-        "verdict": "center_projected validated as frozen baseline representation on expanded 1,200-decision slice with frozen global seed=42. Passes both adversarial gates, boilerplate resistance, scale stability, Jurivoc hierarchy alignment. Legal embeddings fail language dominance gate despite strong legal concept capture. Citation role embeddings are degenerate without semantic blending. Evaluation harness frozen for regression testing.",
         "completed_objectives": {
-          "1_boilerplate_resistance_on_center_projected": "COMPLETED — PASS (correlation=0.126 in target range 0.1-0.4)",
-          "2_legal_embeddings_adversarial_validation": "COMPLETED — All 3 FAIL language dominance gate (>0.85); multilingual_e5_small best on Jurivoc (4/5) and zero-shot transfer but unusable as default",
-          "3_citation_role_embeddings_validation": "COMPLETED — All 6 roles degenerate (identical failures); 0/5 Jurivoc, collapsed clusters, useless standalone",
-          "4_center_projected_baseline_reconfirmation": "COMPLETED — Only representation passing BOTH adversarial gates on 1200 decisions",
-          "5_freeze_evaluation_harness": "COMPLETED — Global seed=42, all benchmarks deterministic"
+          "1_center_projected_adversarial_validation": "COMPLETED — 768-dim version passes language dominance, fails jurist pairwise (borderline). 64-dim version (v3) passes both.",
+          "2_signal_ablation_adversarial_validation": "COMPLETED — 15 variants tested on expanded 1,200 slice. None beats center_projected on both adversarial gates. citation_weights passes both but degenerate.",
+          "3_legal_embeddings_adversarial_validation": "COMPLETED (from v3/v4) — All 3 FAIL language dominance gate (>0.85)",
+          "4_citation_role_embeddings_validation": "COMPLETED (from v3/v4) — All 6 roles degenerate (identical failures)",
+          "5_boilerplate_resistance_on_center_projected": "SKIPPED — Requires full decision text from corpus lane",
+          "6_scale_stability_frozen_pca": "COMPLETED — PERFECT for non-degenerate variants (mean cosine=1.0)",
+          "7_jurivoc_hierarchy_alignment": "COMPLETED — center_projected 64-dim PASSES (separation=0.113), 768-dim FAILS (0.096)",
+          "8_freeze_evaluation_harness": "COMPLETED — Global seed=42, all benchmarks deterministic"
+        },
+        "blocked_objectives": {
+          "9_frontier_metric_learning_validation": "BLOCKED — No frontier_metric_learning_jurivoc team dispatched; frontier directory empty."
         },
         "audit_notes": {
-          "orchestration_note": "Evaluation v4 executed successfully testing 10 alternative representations (3 legal embeddings, 6 citation roles) plus boilerplate resistance on center_projected and multilingual_e5_small. All prior evidence preserved.",
-          "evidence_preservation": "Raw outputs saved to results/evaluation/v4_evaluation_results.json. Negative results (legal embeddings language dominance FAIL, citation roles degenerate) preserved as first-class evidence.",
-          "validation_gap": "Frontier metric_learning_jurivoc supervised metric learning results not yet available for comparison. Signal ablation variants on center_projected not yet tested via adversarial benchmarks (legal-distance v5 signal ablation only measured zoom coherence).",
-          "reproducibility": "Frozen global seed=42 ensures deterministic re-runs. All benchmark thresholds pre-declared."
+          "orchestration_note": "Evaluation v6 executed successfully after fixing cross-language benchmark API mismatch. Core baseline validation complete. Signal ablation validation complete with negative result. Frontier validation blocked on upstream (no team dispatched).",
+          "evidence_preservation": "All raw outputs preserved: v3_evaluation_results.json, v4_evaluation_results.json, v5_evaluation_results.json, v6_signal_ablation_adversarial_results.json. Negative results (signal ablation variants fail adversarial gates, citation_weights degenerate, 768-dim center_projected fails jurist pairwise) preserved as first-class evidence.",
+          "critical_discrepancy": "v3 evaluation used 64-dim center_projected (PCA output) which PASSES both adversarial gates. v6 evaluates 768-dim pre-PCA version which FAILS jurist pairwise. This is a material difference — fractal-map and product must use the 64-dim frozen PCA version validated in v3.",
+          "reproducibility": "Frozen global seed=42 ensures deterministic re-runs. All benchmark thresholds pre-declared in v3/v4/v6 scripts.",
+          "recommendation": "Factory Director should: (a) acknowledge evaluation v6 complete with negative signal ablation result, (b) direct legal-distance to either improve 64-dim center_projected baseline or develop new signal combinations that pass both adversarial gates, (c) direct fractal-map to use 64-dim center_projected (v3 version), (d) either dispatch frontier_metric_learning_jurivoc team or remove from factory direction, (e) define successor evaluation question focusing on improving jurist pairwise for center_projected or testing new hybrid formulations."
         }
       }
     },
@@ -361,15 +378,21 @@
         "evidence_tier": "REPRODUCED",
         "cycle_status": "COMPLETED",
         "continue_recommended": true,
-        "accepted_run_id": "v6_center_projected_reproduction_20260828",
+        "accepted_run_id": "v6_repair_20260828",
         "accepted_commit": "HEAD",
         "evidence_refs": [
           "legal_distance/results/v5/center_projected/v2_benchmark_results.json",
           "legal_distance/results/v5/center_projected_full/metadata.json",
           "legal_distance/results/v5/signal_ablation_center_projected/v4_signal_ablation_center_projected_all_results.json",
-          "legal_distance/results/v5/scale_test_center_projected/scale_test_center_projected_all_results.json"
+          "legal_distance/results/v5/scale_test_center_projected/scale_test_center_projected_all_results.json",
+          "legal_distance/results/v6/citation_id_resolution/citation_to_decision_id.json",
+          "legal_distance/results/v6/citation_id_resolution/resolution_stats.json",
+          "legal_distance/experiments/v6_citation_id_resolution.py",
+          "legal_distance/experiments/v6_finetune_multilingual_e5.py",
+          "legal_distance/reports/finetune_gpu_limitation.md",
+          "legal_distance/reports/v6_repair_report.md"
         ],
-        "next_recommendation": "CONTINUE — Execute jurist pairwise evaluation (framework ready, needs 5-10 Swiss jurists); integrate citation role embeddings once citation ID resolution pipeline ready; test multilingual-e5-small fine-tuning on Swiss legal corpus for multilingual invariance; maintain refined 16-benchmark suite with adversarial gates as primary evaluation"
+        "next_recommendation": "CONTINUE — 2/6 objectives COMPLETED (center_projected reproduction, scale test on center_projected, benchmark refinement); 4 PARTIAL: (1) multilingual-e5-small fine-tuning BLOCKED on GPU — code complete, needs GPU runner; (2) citation role integration — ID resolution pipeline BUILT (1,124/8,480 resolved), needs full 192k corpus for connectivity; (3) jurist pairwise evaluation — framework ready, needs 5-10 Swiss jurists recruitment; (4) frontier metric_learning_jurivoc must beat center_projected on adversarial benchmarks. Maintain refined 16-benchmark suite with adversarial gates as primary evaluation."
       }
     },
     {
@@ -539,6 +562,7 @@
             "fractal_map_7res",
             "legal_cited_decisions",
             "center_projected",
+            "center_projected_hierarchical",
             "hybrid_alpha_0_3",
             "hybrid_alpha_0_5",
             "legal_issues_outcomes"
@@ -711,7 +735,8 @@
             "mixed_language_clusters": 1
           },
           "zoom_coherence": {
-            "overall_improvement_rate": 0.396,
+            "overall_improvement_rate": 0.329,
+            "overall_improvement_rate_note": "Mean per-resolution improvement rate from center_projected_hierarchical flat Leiden ladder (6 transitions: 0.25→0.5: 60.0%, 0.5→0.75: 14.3%, 0.75→1.0: 33.3%, 1.0→1.5: 27.3%, 1.5→2.0: 35.7%, 2.0→3.0: 26.7%)",
             "total_improvements": 19,
             "total_deteriorations": 0,
             "best_zoom_ratio": 0.92,
@@ -719,7 +744,8 @@
           },
           "evaluation_benchmarks": {
             "best_representation": "concat_center_tfidf",
-            "zoom_coherence_improvement_rate": 0.396,
+            "zoom_coherence_improvement_rate": 0.329,
+            "zoom_coherence_improvement_rate_note": "Mean per-resolution improvement rate from center_projected_hierarchical flat Leiden ladder (6 transitions: 0.25→0.5: 60.0%, 0.5→0.75: 14.3%, 0.75→1.0: 33.3%, 1.0→1.5: 27.3%, 1.5→2.0: 35.7%, 2.0→3.0: 26.7%)",
             "best_fine_ratio": 0.92,
             "flat_baseline_best_ratio": 0.492,
             "boilerplate_resistance_all_pass": true
@@ -838,8 +864,8 @@
             "hybrid_alpha_0_5": "PASS",
             "legal_issues_outcomes": "PASS"
           },
-          "total_tests": 97,
-          "tests_passed": 97
+          "total_tests": 16,
+          "tests_passed": 16
         },
         "notes": "Cycle 33035450227: Scaled section projections from 63 to 1000 decisions using blended section+baseline approach. Added evaluation_loader.py to surface accepted evaluation benchmarks. Added temporal filtering endpoint. Added 5 frontend enhancements: zoom-to-cluster, temporal slider, imported corpus markers, evaluation quality badge, cluster breadcrumb. All 90 tests pass (22 original + 68 new). Product now has 22 API endpoints, 33 navigation features, and full evaluation benchmark integration.\n\nCycle 33036994560: Integrated hierarchical Leiden (REPRODUCED fractal map architecture) as default map representation. Hierarchical Leiden achieves perfect nesting (1.0) and higher branch purity (0.963) than flat Leiden (0.875), agglomerative (0.786), and evaluation baselines (0.795). This validates the fractal map architecture where zoom reveals legally coherent substructure. Added 3 zoom levels (5→8→27 clusters). Default representation changed from concat_center_tfidf to hierarchical_leiden. All 91 tests pass.\n\nCycle 33039540805 (operational resume): Diagnosed orchestration failure — product lane remained at CONTINUE despite all dependent lanes (corpus, fractal-map, evaluation) reaching PRODUCTIZE. Updated product state to PRODUCTIZE. All 91 tests pass. Product integrates REPRODUCED evidence from all core lanes: corpus (TF-2000+ acquisition/normalization), fractal-map (hierarchical Leiden with perfect nesting), evaluation (debiased_citation_blended with 14/14 benchmarks PASS). Vertical slice complete: corpus import/load, map computation/load, zoom/navigation, cluster/decision inspection, multi-view modes, citation graph, proximity explanation, evaluation benchmark integration.\n\nCycle 33044908711: Fixed true_hierarchical_leiden representation by installing missing igraph/leidenalg dependencies (added to requirements.txt). True hierarchical Leiden now runs the actual algorithm (Leiden within parent clusters at finer resolution) achieving perfect nesting (1.0) with 5 coarse → 89 fine clusters, hierarchical purity 0.9445. All 92 tests pass.\n\nCycle 33115310021 (factory direction v2 operational resume): Completed factory direction v2 product deliverables:\n1. User-imported map artifacts persist to disk (results/fractal_map/user_imports/imported_positions.jsonl) and survive server restarts. k-NN embedding assignment uses sentence-transformers/paraphrase-multilingual-mpnet-base-v2.\n2. Map export endpoints added: GET /api/map/export (full map) and GET /api/cluster/export (single cluster) with JSON/CSV output. Frontend export UI integrated.\n3. Legal-distance signals as selectable map modes: BLOCKED — legal-distance lane is UNTESTED (state/legal-distance.json evidence_tier=UNTESTED). Cannot integrate until legal-distance delivers ACCEPTED evidence.\n4. Corpus-to-map pipeline hardened: 1000-decision TF-2000+ slice operational. Full TF-2000+ scale requires corpus lane completion (corpus lane has 1577 canonical decisions, yearly core 250). Product ready to consume full corpus when available.\n\nCycle 33124300880 (factory direction v3 operational resume): Verified all v3 deliverables complete. Product lane status: PRODUCTIZE.\n- User import persistence: Verified working across restarts (JSONL + k-NN embedding assignment).\n- Map export: Verified JSON/CSV for full map and single cluster.\n- Frontend export UI: Verified functional.\n- Fractal-map v2 integration: 7-resolution ladder (4→8→12→14→19→24→27 clusters) operational as fractal_map_7res representation.\n- Legal-distance signals: BLOCKED pending legal-distance lane ACCEPTED evidence (currently UNTESTED).\n- Corpus scale: 1000-decision slice operational; full TF-2000+ pending corpus lane completion (1577 canonical decisions available).\nAll 92 product tests pass. Vertical slice complete for factory direction v3.\n\nCycle FACTORY_V4: Integrated legal_cited_decisions representation (FEAT-043) — ACCEPTED legal-distance signal with 14/14 benchmarks PASS, citation heritage AUC 0.9719 (beats baseline 0.9097). Legal-distance signals no longer BLOCKED — legal-distance lane evidence_tier=ACCEPTED. Added as selectable map mode with 4 zoom levels. All 92 product tests pass. Product now integrates ACCEPTED evidence from all core lanes: corpus, fractal-map, evaluation, AND legal-distance.\n\nCycle FACTORY_V6 (33129363346): Integrated center_projected representation (CRITICAL evaluation v2 finding: ONLY representation passing BOTH adversarial benchmarks - language dominance 0.7593 < 0.85 AND jurist pairwise preference 0.5215 > 0.5). Changed default map mode from debiased_citation_blended to center_projected. Added hybrid_alpha_0_3 (30% center + 70% cited) and hybrid_alpha_0_5 (50% center + 50% cited) as EXPLORATORY map modes. Added legal_issues_outcomes (TF-IDF on statutes, cited decisions, outcomes, legal area, erwaegungen headings) as EXPLORATORY map mode. Product now has 12 selectable map representations. All 97 tests pass (93 original + 4 new representation tests). Updated frontend dropdown with all 12 representations. Product integrates ACCEPTED legal-distance signals (legal_cited_decisions, 14/14 PASS) and REPRODUCED evaluation v2 signal (center_projected) alongside fractal-map REPRODUCED hierarchical Leiden (nesting=1.0, purity=0.9634). Vertical slice complete for TF base map plus user imports with full legal-distance signal integration.",
         "known_limitations": [

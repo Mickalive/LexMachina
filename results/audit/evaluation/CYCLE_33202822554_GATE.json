@@ -1,0 +1,13 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "v7: Apply frozen PCA pipeline consistently to ALL benchmarks for center_projected baseline (currently adversarial gates test raw 768-dim, scale_stability tests 64-dim frozen PCA)",
+    "v7: Add boilerplate resistance benchmark (requires corpus lane to provide full decision text for expanded slice)",
+    "v7: Resolve frontier_metric_learning_jurivoc dependency (dispatch team with charter or remove from factory direction)",
+    "v7: Test improved jurist pairwise for center_projected (target: 0.512 → 0.65+ while maintaining language_dominance < 0.85)",
+    "v7: Test new signal combinations (e.g., sachverhalt + outcome + legal_area; supervised metric learning if frontier delivers)"
+  ],
+  "claim_ceiling": "No signal ablation variant from legal-distance v5 beats center_projected (64-dim frozen PCA) on both adversarial gates (language_dominance < 0.85 AND jurist_pairwise > 0.5) on expanded 1,200-decision slice. center_projected 64-dim remains the validated baseline (v3: language_dom=0.766, pairwise=0.512). Citation_weights alone passes both gates but is degenerate (single cluster, zero Jurivoc recovery, zero scale stability). Erwaegungen-dominated variants fail language dominance (>0.85). All non-degenerate variants show perfect scale stability (position_drift cosine=1.0).",
+  "evidence_summary": "Audited 15 variants × 4 adversarial benchmark suites (cross-language, jurist_usability, jurivoc, scale_stability) on expanded 1,200-decision slice with frozen seed 42. Spot-verified baseline_center_projected metrics: language_dominance=0.7738, jurist_pairwise=0.4912, jurivoc_l2_nmi=0.4298, hierarchy_sep=0.0956, scale_stability neighbor_preservation@1000=0.8255 — all match reported values within floating-point precision. Confirmed critical 64-dim vs 768-dim discrepancy: v3 (64-dim PCA) passes both adversarial gates (0.766, 0.512); v6 (768-dim raw) fails pairwise (0.491). All 15 variant result files preserved. No data fabrication, no benchmark weakening, no selective reporting. Negative result honestly represented and preserved as first-class evidence per Research Protocol."
+}
