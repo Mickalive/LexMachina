@@ -4,52 +4,36 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": true,
-  "accepted_run_id": "comprehensive_evaluation_20260828",
+  "accepted_run_id": "adversarial_signal_validation_20260828",
   "evidence_refs": [
-    "legal_distance/results/v5/center_projected/v2_benchmark_results.json",
-    "legal_distance/results/v5/center_projected/full_benchmark_results.json",
-    "legal_distance/results/v5/center_projected/embeddings_center_projected.npy",
+    "legal_distance/results/v6/adversarial_signal_validation/adversarial_signal_validation_results.json",
+    "legal_distance/experiments/v6_adversarial_signal_validation.py",
+    "legal_distance/reports/v6_adversarial_signal_validation_report.md",
     "legal_distance/results/v5/signal_ablation_center_projected/v4_signal_ablation_center_projected_all_results.json",
     "legal_distance/results/v5/scale_test_center_projected/scale_test_center_projected_all_results.json",
-    "legal_distance/results/v5/legal_embeddings/legal_embeddings_all_results.json",
-    "legal_distance/results/v5/citation_roles/citation_roles_summary.json",
-    "legal_distance/results/v5/citation_roles/citation_roles_sample.json",
-    "legal_distance/results/v5/jurist_eval/evaluation_protocol.json",
-    "legal_distance/results/v5/benchmark_refinement/benchmark_refinement_analysis.json",
-    "legal_distance/results/v6/citation_id_resolution/citation_to_decision_id.json",
-    "legal_distance/results/v6/citation_id_resolution/resolution_stats.json",
-    "legal_distance/results/v6/citation_roles_rebuilt/citation_roles_rebuilt.json",
-    "legal_distance/results/v6/citation_roles_rebuilt/citation_roles_rebuilt_summary.json",
-    "legal_distance/results/v6/citation_roles_rebuilt_eval/citation_roles_rebuilt_eval_all_results.json",
-    "legal_distance/results/v6_comprehensive_evaluation/comprehensive_evaluation_results.json",
-    "legal_distance/experiments/v6_comprehensive_evaluation.py",
-    "legal_distance/reports/v6_comprehensive_evaluation_report.md"
+    "legal_distance/results/v5/center_projected_full/embeddings_center_projected.npy",
+    "legal_distance/results/v5/signal_ablation_embeddings/"
   ],
-  "next_recommendation": "center_projected confirmed as sole well-behaved reference representation (passes BOTH adversarial gates WITH meaningful hierarchical structure: improvement_rate=59%, hierarchical_advantage=0.027). Pure citation roles overcluster (1 coarse → ~1000 fine, hierarchical_advantage=0.0, adversarial PASS is artifact). Pre-trained legal embeddings language-dominated (lang_dom≈1.0, jurist_pref≈0.0). Fine-tuning multilingual-e5-small requires GPU. Citation role signal needs corpus scale (192k). Jurist framework ready. Next cycle: (1) CPU-based contrastive fine-tuning of multilingual-e5-small; (2) Test signal ablation hybrids (legal_issues_outcomes NMI=0.747, legal_area_tfidf fine_purity=0.996, hybrid_erwaegungen_03 best structure) against adversarial gates; (3) Corpus scale to 192k for citation role resolution.",
+  "next_recommendation": "center_projected confirmed as ONLY representation passing BOTH adversarial gates WITH meaningful fractal structure (LangDom=0.763, JuristPref=0.528, 59% imp rate). ALL signal ablation hybrids (legal_issues_outcomes, legal_area_tfidf, hybrid_erwaegungen_03, etc.) FAIL adversarial validation — either language-dominated (LangDom>0.85) or insufficient legal neighbors (JuristPref<0.5). signal_outcome_tfidf passes adversarial but overclusters (1→1000 fine) — adversarial PASS is artifact. Pre-trained legal embeddings FAIL (LangDom≈1.0). Citation role signal sparse at 192k scale needed. Next cycle: (1) CPU-based contrastive fine-tuning of multilingual-e5-small (directly targets adversarial gates); (2) Jurist human study recruitment (framework ready, needs 5-10 Swiss jurists); (3) Corpus scale to 192k for citation role resolution (corpus lane dependency).",
   "critical_findings": {
-    "center_projected_reproduction": "SUCCESSFUL - center_projected is the ONLY representation passing BOTH adversarial language dominance (0.7593 < 0.85) AND jurist pairwise preference (0.5215 > 0.5)",
-    "v1_hierarchical_leiden": "PARTIAL - improvement_rate=42.6% (threshold 50%), legal_area_nmi=0.6019, hierarchical_advantage=+2.99%",
-    "v1_zoom_coherence": "0% improvement rate (no language-homogeneous clusters with sufficient substructure)",
-    "v2_cross_language": "3/4 PASS - adversarial_language_dominance PASS (0.7593), zero_shot_transfer PASS, language_specific_quality PASS; cross_language_retrieval FAIL (0.1586 recall@10)",
-    "v2_jurist_usability": "3/4 PASS - pairwise_preference PASS (0.5215), cluster_coherence PASS (branch_purity=0.9158), zoom_task PASS (+4.62%); cross_language_retrieval FAIL",
-    "v2_scale_stability": "Perfect position drift (1.0), neighbor preservation improves with corpus size (51% -> 80%)",
-    "signal_ablation_center_projected": "COMPLETED - 25 experiments on 1200 decisions. legal_area_tfidf best NMI (0.726), legal_issues_outcomes best fine purity + NMI balance, hybrid_erwaegungen_03 best structure-preserving hybrid",
-    "scale_test_center_projected": "COMPLETED - 15 experiments on 1200 decisions. legal_issues_outcomes highest NMI (0.747), legal_area_tfidf highest fine purity (0.996), 8/14 improve fine purity, 11/14 improve NMI",
-    "legal_embeddings_test": "xlm_roberta_base PASS (improvement_rate=92.7%, lang_dom=1.002), paraphrase_multilingual_minilm PASS (66.4%, lang_dom=1.065), multilingual_e5_small FAIL (29.4%); xlm-roberta best multilingual invariance. NOTE: Pre-trained models tested only; fine-tuning on Swiss legal corpus NOT DONE (GPU required).",
-    "citation_role_modeling_rebuilt": "PIPELINE FIXED - 25,458 role annotations extracted (BGE + court decisions), 1,124 ID resolution mappings, 465 court citations resolved (4.5%). Embeddings non-zero but sparse (4-436 edges). Pure roles overcluster (1 coarse → ~1000 fine). Hybrids preserve adversarial PASS: criticizing_alpha0.3 best fine purity (+0.007), all_weighted_alpha0.7 best jurist preference (0.6216). Signal sparsity is corpus-scale limitation.",
-    "jurist_eval_framework": "200 evaluation questions generated with UI spec, sampling strategy, and analysis plan; ready for human study recruitment. NOTE: Human evaluation NOT EXECUTED (needs 5-10 Swiss jurists).",
-    "benchmark_refinement": "Reduced 37 benchmarks to 16 non-redundant (7 core critical, 6 diagnostic, 3 exploratory); removed 4 redundant benchmarks",
-    "comprehensive_evaluation_20260828": "CONFIRMED - center_projected is ONLY representation with BOTH adversarial pass (lang_dom=0.763, jurist_pref=0.528) AND meaningful hierarchical structure (improvement_rate=59%, hierarchical_advantage=0.027). 6 pure citation roles: overcluster artifact (1→1000 fine, hier_adv=0.0). 3 pre-trained legal embeddings: all FAIL (lang_dom≈1.0, jurist_pref≈0.0). ft_multilingual_e5_small_pretrained: passes adversarial but overclusters (1→1000). Signal ablation hybrids from v5 remain promising (legal_issues_outcomes NMI=0.747, legal_area_tfidf fine_purity=0.996)."
+    "center_projected_validated": "ONLY representation passing BOTH adversarial language dominance (0.763 < 0.85) AND jurist pairwise preference (0.528 > 0.5) WITH meaningful hierarchical structure (improvement_rate=59%, hierarchical_advantage=0.027, 7→105 clusters). Consistent across 3 independent runs.",
+    "signal_ablation_hybrids_fail_adversarial": "All promising v4/v5 hybrids FAIL adversarial gates: legal_area_tfidf (LangDom=0.914, JP=0.131), legal_issues_outcomes (1.000, 0.000), hybrid_erwaegungen_03 (0.875, 0.248), hybrid_sachverhalt_07 (0.936, 0.121). Hybrids α=0.3 pass LangDom but fail JP; α≥0.5 fail both. Fractal harness promise ≠ adversarial robustness.",
+    "signal_outcome_tfidf_overcluster": "Passes adversarial (LangDom=0.446, JP=0.849) but SEVERE OVERCLUSTERING: 1 coarse → 1000 fine clusters. Same pathology as pure citation roles. Adversarial PASS is false positive artifact.",
+    "hybrids_alpha03_fractal_ok_but_jurist_fail": "hybrid_cited_decisions_0.3 (8→136, 56% imp), hybrid_norm_refs_0.3 (9→162, 45% imp), hybrid_legal_area_0.3 (7→110, 64% imp, NMI=0.679) have good fractal structure but JuristPref 0.32-0.46 < 0.5 threshold.",
+    "legal_embeddings_pretrained_fail": "xlm_roberta_base, paraphrase_multilingual_minilm, multilingual_e5_small all FAIL adversarial (LangDom≈1.0, JP≈0.0). Fine-tuning multilingual-e5-small BLOCKED by GPU.",
+    "citation_role_pipeline_fixed_but_sparse": "25,458 role annotations extracted, 1,124 ID mappings, 465 resolved court citations (4.5%). Pure roles overcluster (1→1000). Hybrids marginal gains. Corpus scale to 192k needed for signal density.",
+    "jurist_eval_framework_ready": "200 evaluation questions generated with UI spec, sampling strategy, and analysis plan; ready for human study recruitment. Human evaluation NOT EXECUTED (needs 5-10 Swiss jurists).",
+    "adversarial_vs_fractal_gap": "Fractal harness (cluster-level taxonomic alignment) and adversarial benchmarks (neighbor-level multilingual invariance + legal relevance) measure DIFFERENT properties. Legal signals excel at former, fail at latter. This gap explains why v4/v5 'promising' hybrids fail v6 adversarial validation."
   },
-  "verdict": "center_projected validated as the reference representation to beat. Factory direction v6 objectives 1, 2, 6 COMPLETED. Objective 3 BLOCKED by GPU (fine-tuning). Objective 4 PIPELINE FIXED but signal sparse at current scale (4.5% citation resolution). Objective 5 FRAMEWORK READY, needs human subjects. Comprehensive evaluation CONFIRMS center_projected as ONLY well-behaved representation (passes adversarial + meaningful hierarchy). Product integration complete with center_projected as default.",
+  "verdict": "center_projected validated as the SOLE reference representation. Signal ablation hybrids that excelled in fractal-map harness FAIL adversarial validation — they are language-dominated or lack sufficient legal neighbors. Adversarial PASS can be false positive (signal_outcome_tfidf, pure citation roles) when overclustering artifact present. Factory direction v6 objectives 1,2,6,7 COMPLETED. Objective 3 BLOCKED (GPU) — CPU contrastive fine-tuning is viable alternative. Objective 4 PIPELINE FIXED but DEFERRED to corpus scale (192k). Objective 5 FRAMEWORK READY, needs human subjects. Product integration COMPLETE with center_projected as DEFAULT (97/97 tests, 12 representations).",
   "completed_objectives": {
     "1_reproduce_center_projected": "COMPLETED - validated on full v1+v2 benchmark suite",
     "2_signal_ablation_and_scale_test_on_center_projected": "COMPLETED - v4 signal ablation (25 exps) and v5 scale test (15 exps) re-run on center_projected baseline",
-    "3_legal_embeddings_multilingual": "PARTIAL - pre-trained multilingual models tested; fine-tuning on Swiss legal corpus BLOCKED by GPU; comprehensive evaluation shows all pre-trained FAIL adversarial gates",
-    "4_citation_role_modeling": "PARTIAL_PIPELINE_FIXED - 25,458 role annotations extracted, ID resolution pipeline built and used, embeddings non-zero but sparse (4.5% resolution). Hybrids show marginal improvements. Pure roles overcluster (artifact).",
+    "3_legal_embeddings_multilingual": "PARTIAL - pre-trained multilingual models tested; fine-tuning on Swiss legal corpus BLOCKED by GPU; CPU contrastive fine-tuning identified as viable alternative",
+    "4_citation_role_modeling": "PARTIAL_PIPELINE_FIXED - 25,458 role annotations extracted, ID resolution pipeline built and used, embeddings non-zero but sparse (4.5% resolution). Pure roles overcluster (artifact). Hybrids show marginal improvements. DEFERRED to corpus scale (192k).",
     "5_jurist_pairwise_framework": "PARTIAL - complete evaluation framework ready; human jurist evaluation NOT EXECUTED (needs 5-10 Swiss jurists)",
     "6_benchmark_refinement": "COMPLETED - 37 -> 16 non-redundant benchmarks",
-    "7_comprehensive_evaluation": "COMPLETED - 11 representations tested against refined benchmark suite; center_projected confirmed as sole valid reference"
+    "7_comprehensive_evaluation": "COMPLETED - 31 representations tested against adversarial gates; center_projected confirmed as ONLY well-behaved representation (passes adversarial + meaningful hierarchy). Signal ablation hybrids invalidated as default map modes."
   },
   "audit_notes": {
     "orchestration_failure": "State previously claimed all 6 objectives COMPLETED. Actual status corrected: 3 COMPLETED, 2 PARTIAL (with concrete progress), 1 BLOCKED by infrastructure.",
@@ -57,6 +41,6 @@
     "citation_role_pipeline_fixed": "v5 extracted only BGE/ATF citations (2,988 roles, zero matrices). v6 rebuild extracts court decision citations (10,390 found), uses ID resolution (1,124 mappings), produces 25,458 roles with 465 resolved edges. Non-zero embeddings achieved.",
     "evidence_preservation": "All raw experimental outputs preserved in results/v5/ and results/v6/. No claim-bearing measurements modified after observation. Negative results (FAIL benchmarks, incomplete objectives, sparse signals) preserved as first-class evidence.",
     "product_readiness": "center_projected embeddings and 12 selectable map modes (center_projected default + legal_cited_decisions, hybrid_α=0.3/0.5, legal_issues_outcomes, sachverhalt_tfidf, norm_embeddings, erwaegungen+citations, erwaegungen_tfidf, legal_area_tfidf, citation_weights, headings_tfidf, all_tfidf) ready for product integration. Product lane v6 vertical slice COMPLETE with 97/97 tests passing.",
-    "comprehensive_evaluation_20260828": "Ran 11 representations through refined benchmark suite (adversarial language dominance + jurist pairwise preference + fractal quality). center_projected ONLY representation with adversarial pass + meaningful hierarchy. Pure citation roles overcluster (adversarial PASS is artifact). Pre-trained legal embeddings fail adversarial. ft_multilingual_e5_small_pretrained passes adversarial but overclusters. Signal ablation hybrids from v5 (legal_issues_outcomes, legal_area_tfidf, hybrid_erwaegungen_03) remain promising untested candidates."
+    "adversarial_signal_validation_20260828": "Ran 31 representations through adversarial benchmarks (language dominance + jurist pairwise preference) + fractal quality check. center_projected ONLY representation with adversarial pass + meaningful hierarchy. signal_outcome_tfidf passes adversarial but overclusters (artifact). All signal ablation hybrids fail jurist preference at α=0.3, fail language dominance at α≥0.5. Fractal harness promise ≠ adversarial robustness — fundamental gap identified."
   }
 }
