@@ -83,6 +83,18 @@ class MapLoader:
         # Load legal_cited_decisions (ACCEPTED legal-distance signal - 14/14 PASS)
         self._load_legal_cited_decisions()
 
+        # Load center_projected (CRITICAL: ONLY representation passing BOTH adversarial benchmarks)
+        self._load_center_projected()
+
+        # Load hybrid alpha=0.3 (30% center_projected + 70% legal_cited_decisions)
+        self._load_hybrid_alpha_0_3()
+
+        # Load hybrid alpha=0.5 (50% center_projected + 50% legal_cited_decisions)
+        self._load_hybrid_alpha_0_5()
+
+        # Load legal_issues_outcomes (legal-specific signal from legal_signals)
+        self._load_legal_issues_outcomes()
+
         self._loaded = True
         return len(self.maps)
 
@@ -1218,6 +1230,404 @@ class MapLoader:
                 "citation_heritage_auc": 0.9719,
                 "note": "Legal-distance signal (ACCEPTED): TF-IDF on cited decisions only. "
                         "Passes ALL 14 evaluation benchmarks. Best for citation-proximity navigation.",
+})
+
+    def _load_center_projected(self) -> None:
+        """Load the center_projected representation (CRITICAL - evaluation v2 finding).
+
+        This is the FIRST and ONLY representation to pass BOTH adversarial benchmarks:
+        - Language dominance: 0.7593 < 0.85 threshold (PASS)
+        - Jurist pairwise preference: 0.5215 > 0.5 threshold (PASS)
+        - Also passes Jurivoc (4/5) and zoom coherence (+4.6%)
+
+        The center_projected embedding removes the first PCA component (language)
+        from the 768-dim baseline embeddings, achieving language-invariant legal geometry.
+
+        Evidence tier: REPRODUCED (evaluation v2). RECOMMENDATION: Product must adopt
+        as default map mode; legal-distance must reproduce/improve on center_projected.
+        """
+        baseline_dir = self.results_dir / "baseline"
+        debiasing_dir = self.results_dir / "language_debiasing"
+        hierarchical_dir = self.results_dir / "hierarchical"
+
+        if not (baseline_dir / "metadata.json").exists():
+            return
+        if not (debiasing_dir / "embeddings_center_projected.npy").exists():
+            return
+
+        # Load metadata (same decision order as baseline)
+        with open(baseline_dir / "metadata.json", "r") as f:
+            metadata = json.load(f)
+
+        decision_ids = [m["decision_id"] for m in metadata]
+        n_decisions = len(decision_ids)
+
+        # Load center_projected embeddings (768-dim, language-debiased)
+        center_emb = np.load(debiasing_dir / "embeddings_center_projected.npy")
+
+        # Create 2D projection using PCA
+        from sklearn.decomposition import PCA
+        pca_2d = PCA(n_components=2, random_state=42)
+        projection_2d = pca_2d.fit_transform(center_emb)
+
+        # Load Leiden cluster assignments (same clustering as other representations)
+        leiden_assignments = {}
+        leiden_path = hierarchical_dir / "leiden_multi_resolution.json"
+        if leiden_path.exists():
+            with open(leiden_path, "r") as f:
+                leiden_data = json.load(f)
+            index_to_id = {i: m["decision_id"] for i, m in enumerate(metadata)}
+            for leiden_key, leiden_result in leiden_data.items():
+                if not leiden_key.startswith("resolution_"):
+                    continue
+                resolution_val = float(leiden_key.replace("resolution_", ""))
+                zoom_level = int(resolution_val)
+                labels = leiden_result.get("labels", [])
+                assignments = {}
+                for idx, label in enumerate(labels):
+                    did = index_to_id.get(idx)
+                    if did:
+                        assignments[did] = label
+                leiden_assignments[leiden_key] = assignments
+                leiden_assignments[str(zoom_level)] = assignments
+
+        # Build zoom levels using unified evaluation structure
+        unified_path = self.results_dir / "unified_evaluation" / "unified_results.json"
+        concat_data = {}
+        if unified_path.exists():
+            with open(unified_path, "r") as f:
+                unified = json.load(f)
+            concat_data = unified.get("concat_center_tfidf", {})
+
+        self._build_zoom_levels(
+            representation="center_projected",
+            decision_ids=decision_ids,
+            projection=projection_2d,
+            concat_data=concat_data,
+            api_meta=None,
+            leiden_assignments=leiden_assignments,
+        )
+
+        # Update metadata with evaluation v2 results
+        if "center_projected" in self.maps:
+            self.maps["center_projected"].metadata.update({
+                "clustering_method": "center_projected (language-debiased) + Leiden",
+                "signal_source": "center_projected_pca1_removed",
+                "evidence_tier": "REPRODUCED",
+                "evaluation_v2_results": {
+                    "language_dominance": 0.7593,
+                    "language_dominance_threshold": 0.85,
+                    "language_dominance_pass": True,
+                    "jurist_pairwise_preference": 0.5215,
+                    "jurist_pairwise_threshold": 0.5,
+                    "jurist_pairwise_pass": True,
+                    "jurivoc_score": 4,
+                    "jurivoc_max": 5,
+                    "zoom_coherence_improvement": 0.046,
+                },
+                "note": "CRITICAL: ONLY representation passing BOTH adversarial benchmarks "
+                        "(language dominance <0.85 AND jurist pairwise >0.5). "
+                        "Evaluation v2 RECOMMENDATION: Adopt as default map mode.",
+            })
+
+    def _create_hybrid_embedding(
+        self,
+        center_emb: np.ndarray,
+        cited_emb: np.ndarray,
+        alpha: float,
+        dims: int = 64,
+    ) -> np.ndarray:
+        """Create hybrid embedding by blending center_projected and legal_cited_decisions.
+
+        Both embeddings are projected to `dims` dimensions via PCA, then blended:
+        hybrid = alpha * center_projected + (1 - alpha) * legal_cited_decisions
+        """
+        from sklearn.decomposition import PCA
+
+        # Project center_projected (768-dim) to dims
+        pca_center = PCA(n_components=dims, random_state=42)
+        center_proj = pca_center.fit_transform(center_emb)
+
+        # Project legal_cited_decisions (4615-dim TF-IDF) to dims
+        # Use TruncatedSVD for sparse TF-IDF
+        from sklearn.decomposition import TruncatedSVD
+        svd_cited = TruncatedSVD(n_components=dims, random_state=42)
+        cited_proj = svd_cited.fit_transform(cited_emb)
+
+        # Normalize both to unit norm
+        center_norm = np.linalg.norm(center_proj, axis=1, keepdims=True)
+        center_norm[center_norm == 0] = 1
+        center_proj = center_proj / center_norm
+
+        cited_norm = np.linalg.norm(cited_proj, axis=1, keepdims=True)
+        cited_norm[cited_norm == 0] = 1
+        cited_proj = cited_proj / cited_norm
+
+        # Blend: alpha * center + (1-alpha) * cited
+        hybrid = alpha * center_proj + (1 - alpha) * cited_proj
+
+        # Renormalize
+        hybrid_norm = np.linalg.norm(hybrid, axis=1, keepdims=True)
+        hybrid_norm[hybrid_norm == 0] = 1
+        hybrid = hybrid / hybrid_norm
+
+        return hybrid
+
+    def _load_hybrid_alpha(self, alpha: float, name: str, description: str) -> None:
+        """Load a hybrid representation blending center_projected and legal_cited_decisions.
+
+        Args:
+            alpha: Weight for center_projected (0.3 or 0.5)
+            name: Representation name (e.g., "hybrid_alpha_0_3")
+            description: Human-readable description
+        """
+        baseline_dir = self.results_dir / "baseline"
+        debiasing_dir = self.results_dir / "language_debiasing"
+        legal_dir = self.results_dir / "legal_cited_decisions"
+        hierarchical_dir = self.results_dir / "hierarchical"
+
+        if not (baseline_dir / "metadata.json").exists():
+            return
+        if not (debiasing_dir / "embeddings_center_projected.npy").exists():
+            return
+        if not (legal_dir / "embeddings.npy").exists():
+            return
+
+        # Load metadata (same decision order)
+        with open(baseline_dir / "metadata.json", "r") as f:
+            metadata = json.load(f)
+
+        decision_ids = [m["decision_id"] for m in metadata]
+        n_decisions = len(decision_ids)
+
+        # Load embeddings
+        center_emb = np.load(debiasing_dir / "embeddings_center_projected.npy")
+        cited_emb = np.load(legal_dir / "embeddings.npy")
+
+        # Create hybrid embedding
+        hybrid_emb = self._create_hybrid_embedding(center_emb, cited_emb, alpha, dims=64)
+
+        # Create 2D projection
+        from sklearn.decomposition import PCA
+        pca_2d = PCA(n_components=2, random_state=42)
+        projection_2d = pca_2d.fit_transform(hybrid_emb)
+
+        # Load Leiden cluster assignments
+        leiden_assignments = {}
+        leiden_path = hierarchical_dir / "leiden_multi_resolution.json"
+        if leiden_path.exists():
+            with open(leiden_path, "r") as f:
+                leiden_data = json.load(f)
+            index_to_id = {i: m["decision_id"] for i, m in enumerate(metadata)}
+            for leiden_key, leiden_result in leiden_data.items():
+                if not leiden_key.startswith("resolution_"):
+                    continue
+                resolution_val = float(leiden_key.replace("resolution_", ""))
+                zoom_level = int(resolution_val)
+                labels = leiden_result.get("labels", [])
+                assignments = {}
+                for idx, label in enumerate(labels):
+                    did = index_to_id.get(idx)
+                    if did:
+                        assignments[did] = label
+                leiden_assignments[leiden_key] = assignments
+                leiden_assignments[str(zoom_level)] = assignments
+
+        # Build zoom levels
+        unified_path = self.results_dir / "unified_evaluation" / "unified_results.json"
+        concat_data = {}
+        if unified_path.exists():
+            with open(unified_path, "r") as f:
+                unified = json.load(f)
+            concat_data = unified.get("concat_center_tfidf", {})
+
+        self._build_zoom_levels(
+            representation=name,
+            decision_ids=decision_ids,
+            projection=projection_2d,
+            concat_data=concat_data,
+            api_meta=None,
+            leiden_assignments=leiden_assignments,
+        )
+
+        # Update metadata
+        if name in self.maps:
+            self.maps[name].metadata.update({
+                "clustering_method": f"hybrid (center_projected + legal_cited_decisions, alpha={alpha}) + Leiden",
+                "signal_source": f"center_projected_alpha_{alpha}_legal_cited_alpha_{1-alpha}",
+                "evidence_tier": "EXPLORATORY",
+                "alpha": alpha,
+                "center_projected_weight": alpha,
+                "legal_cited_decisions_weight": 1 - alpha,
+                "note": description,
+            })
+
+    def _load_hybrid_alpha_0_3(self) -> None:
+        """Load hybrid representation with alpha=0.3 (30% center_projected, 70% legal_cited).
+
+        This hybrid favors citation-proximity (legal_cited_decisions) while retaining
+        some language-invariant legal geometry from center_projected.
+        """
+        self._load_hybrid_alpha(
+            alpha=0.3,
+            name="hybrid_alpha_0_3",
+            description="Hybrid: 30% center_projected (language-invariant) + 70% legal_cited_decisions (citation-proximity). EXPLORATORY."
+        )
+
+    def _load_hybrid_alpha_0_5(self) -> None:
+        """Load hybrid representation with alpha=0.5 (50% center_projected, 50% legal_cited).
+
+        Equal blend of language-invariant legal geometry and citation-proximity signals.
+        """
+        self._load_hybrid_alpha(
+            alpha=0.5,
+            name="hybrid_alpha_0_5",
+            description="Hybrid: 50% center_projected (language-invariant) + 50% legal_cited_decisions (citation-proximity). EXPLORATORY."
+        )
+
+    def _load_legal_issues_outcomes(self) -> None:
+        """Load legal_issues_outcomes representation from legal_signals_1000.jsonl.
+
+        This representation captures legal issues (statutes, cited decisions) and outcomes
+        as a TF-IDF or semantic embedding, providing a legal-specific view distinct from
+        generic semantic similarity or citation-only proximity.
+
+        Evidence tier: EXPLORATORY (new signal from legal-distance lane v6).
+        """
+        baseline_dir = self.results_dir / "baseline"
+        legal_signals_path = self.results_dir / "legal_signals_1000.jsonl"
+        hierarchical_dir = self.results_dir / "hierarchical"
+
+        if not (baseline_dir / "metadata.json").exists():
+            return
+        if not legal_signals_path.exists():
+            return
+
+        # Load baseline metadata for decision order
+        with open(baseline_dir / "metadata.json", "r") as f:
+            metadata = json.load(f)
+
+        decision_ids = [m["decision_id"] for m in metadata]
+        n_decisions = len(decision_ids)
+        id_to_idx = {did: i for i, did in enumerate(decision_ids)}
+
+        # Load legal signals and build text corpus for TF-IDF
+        # Combine: statutes, cited_decisions, legal_area, outcome, erwaegungen_headings
+        legal_texts = []
+        for m in metadata:
+            did = m["decision_id"]
+            # We'll load from legal_signals file
+            legal_texts.append("")  # Placeholder
+
+        # Load legal signals data
+        signals_map = {}
+        with open(legal_signals_path, "r") as f:
+            for line in f:
+                if line.strip():
+                    d = json.loads(line)
+                    signals_map[d["decision_id"]] = d
+
+        # Build legal text for each decision
+        texts = []
+        for did in decision_ids:
+            sig = signals_map.get(did, {})
+            parts = []
+            # Statutes cited
+            statutes = sig.get("statutes", [])
+            if statutes:
+                parts.extend(statutes)
+            # Cited decisions
+            cited = sig.get("cited_decisions", [])
+            if cited:
+                parts.extend(cited)
+            # Legal area
+            la = sig.get("legal_area", "")
+            if la:
+                parts.append(la)
+            # Outcome
+            outcome = sig.get("outcome", "")
+            if outcome:
+                parts.append(outcome)
+            # Erwaegungen headings (legal issues)
+            headings = sig.get("erwaegungen_headings", [])
+            if headings:
+                parts.extend(headings)
+            texts.append(" ".join(parts) if parts else did)
+
+        # Create TF-IDF embedding
+        from sklearn.feature_extraction.text import TfidfVectorizer
+        vectorizer = TfidfVectorizer(
+            max_features=5000,
+            min_df=2,
+            max_df=0.95,
+            ngram_range=(1, 2),
+            sublinear_tf=True,
+        )
+        tfidf_emb = vectorizer.fit_transform(texts).toarray()
+
+        # Project to 64 dims for consistency
+        from sklearn.decomposition import TruncatedSVD
+        svd = TruncatedSVD(n_components=64, random_state=42)
+        legal_emb_64 = svd.fit_transform(tfidf_emb)
+
+        # Normalize
+        norms = np.linalg.norm(legal_emb_64, axis=1, keepdims=True)
+        norms[norms == 0] = 1
+        legal_emb_64 = legal_emb_64 / norms
+
+        # Create 2D projection
+        from sklearn.decomposition import PCA
+        pca_2d = PCA(n_components=2, random_state=42)
+        projection_2d = pca_2d.fit_transform(legal_emb_64)
+
+        # Load Leiden cluster assignments
+        leiden_assignments = {}
+        leiden_path = hierarchical_dir / "leiden_multi_resolution.json"
+        if leiden_path.exists():
+            with open(leiden_path, "r") as f:
+                leiden_data = json.load(f)
+            index_to_id = {i: m["decision_id"] for i, m in enumerate(metadata)}
+            for leiden_key, leiden_result in leiden_data.items():
+                if not leiden_key.startswith("resolution_"):
+                    continue
+                resolution_val = float(leiden_key.replace("resolution_", ""))
+                zoom_level = int(resolution_val)
+                labels = leiden_result.get("labels", [])
+                assignments = {}
+                for idx, label in enumerate(labels):
+                    did = index_to_id.get(idx)
+                    if did:
+                        assignments[did] = label
+                leiden_assignments[leiden_key] = assignments
+                leiden_assignments[str(zoom_level)] = assignments
+
+        # Build zoom levels
+        unified_path = self.results_dir / "unified_evaluation" / "unified_results.json"
+        concat_data = {}
+        if unified_path.exists():
+            with open(unified_path, "r") as f:
+                unified = json.load(f)
+            concat_data = unified.get("concat_center_tfidf", {})
+
+        self._build_zoom_levels(
+            representation="legal_issues_outcomes",
+            decision_ids=decision_ids,
+            projection=projection_2d,
+            concat_data=concat_data,
+            api_meta=None,
+            leiden_assignments=leiden_assignments,
+        )
+
+        # Update metadata
+        if "legal_issues_outcomes" in self.maps:
+            self.maps["legal_issues_outcomes"].metadata.update({
+                "clustering_method": "legal_issues_outcomes (TF-IDF on statutes+cited+outcomes+legal_area) + Leiden",
+                "signal_source": "statutes_cited_outcomes_legal_area_erwaegungen_headings",
+                "evidence_tier": "EXPLORATORY",
+                "tfidf_features": len(vectorizer.vocabulary_),
+                "svd_dims": 64,
+                "note": "Legal-specific signal: TF-IDF on statutes, cited decisions, outcomes, legal area, and erwaegungen headings. "
+                        "Captures legal issues and outcomes proximity. EXPLORATORY - not yet benchmarked.",
             })
 
     def _create_debiased_citation_blended(

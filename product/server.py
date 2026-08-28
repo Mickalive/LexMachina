@@ -46,10 +46,16 @@ def get_eval_loader() -> EvaluationLoader:
 
 
 def get_default_representation() -> str:
-    """Get the default representation (evaluation-validated debiased_citation_blended)."""
-    # The evaluation lane recommends debiased_citation_blended (n_pca=1, alpha=0.7)
-    # with 14/14 benchmarks PASSED as the default product representation.
-    return "debiased_citation_blended"
+    """Get the default representation (evaluation v2: center_projected is the ONLY 
+    representation passing BOTH adversarial language dominance <0.85 AND 
+    jurist pairwise preference >0.5)."""
+    # Evaluation v2 CRITICAL FINDING: center_projected is the FIRST and ONLY 
+    # representation to pass BOTH adversarial language dominance (0.7593 < 0.85) 
+    # AND jurist pairwise preference (0.5215 > 0.5). Also passes Jurivoc (4/5) 
+    # and zoom coherence (+4.6%). debiased_citation_blended FAILS v2 adversarial 
+    # cross-language (language dominance 0.999 = catastrophic).
+    # RECOMMENDATION: Product must adopt center_projected as default map mode.
+    return "center_projected"
 
 
 class ProductHandler(SimpleHTTPRequestHandler):

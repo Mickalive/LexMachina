@@ -232,13 +232,17 @@
                 </select>
                 <label>Representation</label>
                 <select id="rep-select">
-                    <option value="debiased_citation_blended" selected>Debiased Citation Blended (eval default, 14/14 PASS)</option>
+                    <option value="center_projected" selected>Center Projected (eval v2: ONLY passes BOTH adversarial tests)</option>
+                    <option value="debiased_citation_blended">Debiased Citation Blended (eval default, 14/14 PASS)</option>
                     <option value="concat_center_tfidf">Concat + Center TF-IDF (best)</option>
                     <option value="baseline">Baseline (semantic)</option>
                     <option value="hdbscan">HDBSCAN clustering</option>
                     <option value="hierarchical_leiden">Hierarchical Leiden (flat multi-res)</option>
                     <option value="true_hierarchical_leiden">True Hierarchical Leiden (perfect nesting)</option>
                     <option value="legal_cited_decisions">Legal Cited Decisions (legal-distance ACCEPTED, 14/14 PASS, AUC 0.97)</option>
+                    <option value="hybrid_alpha_0_3">Hybrid α=0.3 (30% center + 70% cited)</option>
+                    <option value="hybrid_alpha_0_5">Hybrid α=0.5 (50% center + 50% cited)</option>
+                    <option value="legal_issues_outcomes">Legal Issues & Outcomes (EXPLORATORY)</option>
                 </select>
                 <label>Zoom Level</label>
                 <select id="zoom-select">
@@ -341,7 +345,7 @@
     const API = '';
     let currentData = null;
     let currentZoom = 1;
-    let currentRep = 'debiased_citation_blended';
+    let currentRep = 'center_projected';
     let currentMode = '';
     let hoveredPoint = null;
     let selectedCluster = null;

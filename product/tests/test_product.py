@@ -669,6 +669,217 @@ def test_legal_cited_decisions():
     return True
 
 
+def test_center_projected():
+    """Test center_projected representation (CRITICAL - evaluation v2 finding).
+
+    This is the ONLY representation passing BOTH adversarial benchmarks:
+    - Language dominance: 0.7593 < 0.85 threshold (PASS)
+    - Jurist pairwise preference: 0.5215 > 0.5 threshold (PASS)
+    - Also passes Jurivoc (4/5) and zoom coherence (+4.6%)
+
+    Evidence tier: REPRODUCED (evaluation v2).
+    """
+    print("=== Test: Center Projected (eval v2 critical finding) ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    # Verify center_projected is available
+    reps = api.map_loader.get_available_representations()
+    assert "center_projected" in reps, f"center_projected not in representations: {reps}"
+    print(f"  Available representations: {reps}")
+
+    # Test center_projected at each zoom level
+    zoom_levels_data = api.get_zoom_levels("center_projected")
+    zoom_levels = [z["level"] for z in zoom_levels_data]
+    print(f"  Zoom levels: {zoom_levels}")
+    assert len(zoom_levels) == 4, f"Expected 4 zoom levels, got {len(zoom_levels)}"
+
+    for zl in zoom_levels:
+        map_data = api.get_map_data("center_projected", zl)
+        assert map_data["n_decisions"] == 1000
+        print(f"  Zoom {zl}: {map_data['n_clusters']} clusters, {map_data['n_decisions']} decisions")
+
+    # Verify metadata reports evaluation v2 results
+    map_state = api.map_loader.get_map("center_projected")
+    metadata = map_state.metadata
+    assert metadata.get("evidence_tier") == "REPRODUCED", f"Expected evidence_tier=REPRODUCED, got {metadata.get('evidence_tier')}"
+    eval_results = metadata.get("evaluation_v2_results", {})
+    assert eval_results.get("language_dominance_pass") == True, "Expected language_dominance_pass=True"
+    assert eval_results.get("jurist_pairwise_pass") == True, "Expected jurist_pairwise_pass=True"
+    print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}, language_dom_pass={eval_results.get('language_dominance_pass')}, jurist_pass={eval_results.get('jurist_pairwise_pass')}")
+
+    # Test neighbors with center_projected
+    zl_0 = api.map_loader.get_zoom_level("center_projected", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "center_projected", 1, 5)
+    print(f"  Neighbors of {did}: {len(neighbors)} found")
+    assert len(neighbors) > 0, "Expected neighbors"
+
+    # Verify map modes includes center_projected
+    modes = api.get_map_modes()
+    cp_mode = next((m for m in modes if m["name"] == "center_projected"), None)
+    assert cp_mode is not None, "center_projected not in map modes"
+    print(f"  Map mode label: {cp_mode['label']}")
+
+    print("  PASS\n")
+    return True
+
+
+def test_hybrid_alpha_0_3():
+    """Test hybrid_alpha_0_3 representation (30% center_projected + 70% legal_cited_decisions).
+
+    This hybrid favors citation-proximity (legal_cited_decisions) while retaining
+    some language-invariant legal geometry from center_projected.
+
+    Evidence tier: EXPLORATORY.
+    """
+    print("=== Test: Hybrid Alpha 0.3 (30% center + 70% cited) ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    # Verify hybrid_alpha_0_3 is available
+    reps = api.map_loader.get_available_representations()
+    assert "hybrid_alpha_0_3" in reps, f"hybrid_alpha_0_3 not in representations: {reps}"
+    print(f"  Available representations: {reps}")
+
+    # Test hybrid_alpha_0_3 at each zoom level
+    zoom_levels_data = api.get_zoom_levels("hybrid_alpha_0_3")
+    zoom_levels = [z["level"] for z in zoom_levels_data]
+    print(f"  Zoom levels: {zoom_levels}")
+    assert len(zoom_levels) == 4, f"Expected 4 zoom levels, got {len(zoom_levels)}"
+
+    for zl in zoom_levels:
+        map_data = api.get_map_data("hybrid_alpha_0_3", zl)
+        assert map_data["n_decisions"] == 1000
+        print(f"  Zoom {zl}: {map_data['n_clusters']} clusters, {map_data['n_decisions']} decisions")
+
+    # Verify metadata
+    map_state = api.map_loader.get_map("hybrid_alpha_0_3")
+    metadata = map_state.metadata
+    assert metadata.get("alpha") == 0.3, f"Expected alpha=0.3, got {metadata.get('alpha')}"
+    assert metadata.get("center_projected_weight") == 0.3
+    assert metadata.get("legal_cited_decisions_weight") == 0.7
+    assert metadata.get("evidence_tier") == "EXPLORATORY"
+    print(f"  Metadata: alpha={metadata.get('alpha')}, center_weight={metadata.get('center_projected_weight')}, cited_weight={metadata.get('legal_cited_decisions_weight')}, evidence_tier={metadata.get('evidence_tier')}")
+
+    # Test neighbors
+    zl_0 = api.map_loader.get_zoom_level("hybrid_alpha_0_3", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "hybrid_alpha_0_3", 1, 5)
+    print(f"  Neighbors of {did}: {len(neighbors)} found")
+    assert len(neighbors) > 0, "Expected neighbors"
+
+    print("  PASS\n")
+    return True
+
+
+def test_hybrid_alpha_0_5():
+    """Test hybrid_alpha_0_5 representation (50% center_projected + 50% legal_cited_decisions).
+
+    Equal blend of language-invariant legal geometry and citation-proximity signals.
+
+    Evidence tier: EXPLORATORY.
+    """
+    print("=== Test: Hybrid Alpha 0.5 (50% center + 50% cited) ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    # Verify hybrid_alpha_0_5 is available
+    reps = api.map_loader.get_available_representations()
+    assert "hybrid_alpha_0_5" in reps, f"hybrid_alpha_0_5 not in representations: {reps}"
+    print(f"  Available representations: {reps}")
+
+    # Test hybrid_alpha_0_5 at each zoom level
+    zoom_levels_data = api.get_zoom_levels("hybrid_alpha_0_5")
+    zoom_levels = [z["level"] for z in zoom_levels_data]
+    print(f"  Zoom levels: {zoom_levels}")
+    assert len(zoom_levels) == 4, f"Expected 4 zoom levels, got {len(zoom_levels)}"
+
+    for zl in zoom_levels:
+        map_data = api.get_map_data("hybrid_alpha_0_5", zl)
+        assert map_data["n_decisions"] == 1000
+        print(f"  Zoom {zl}: {map_data['n_clusters']} clusters, {map_data['n_decisions']} decisions")
+
+    # Verify metadata
+    map_state = api.map_loader.get_map("hybrid_alpha_0_5")
+    metadata = map_state.metadata
+    assert metadata.get("alpha") == 0.5, f"Expected alpha=0.5, got {metadata.get('alpha')}"
+    assert metadata.get("center_projected_weight") == 0.5
+    assert metadata.get("legal_cited_decisions_weight") == 0.5
+    assert metadata.get("evidence_tier") == "EXPLORATORY"
+    print(f"  Metadata: alpha={metadata.get('alpha')}, center_weight={metadata.get('center_projected_weight')}, cited_weight={metadata.get('legal_cited_decisions_weight')}, evidence_tier={metadata.get('evidence_tier')}")
+
+    # Test neighbors
+    zl_0 = api.map_loader.get_zoom_level("hybrid_alpha_0_5", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "hybrid_alpha_0_5", 1, 5)
+    print(f"  Neighbors of {did}: {len(neighbors)} found")
+    assert len(neighbors) > 0, "Expected neighbors"
+
+    print("  PASS\n")
+    return True
+
+
+def test_legal_issues_outcomes():
+    """Test legal_issues_outcomes representation (legal-specific signal from legal_signals).
+
+    This representation captures legal issues (statutes, cited decisions) and outcomes
+    as a TF-IDF embedding, providing a legal-specific view distinct from
+    generic semantic similarity or citation-only proximity.
+
+    Evidence tier: EXPLORATORY (new signal from legal-distance lane v6).
+    """
+    print("=== Test: Legal Issues & Outcomes (EXPLORATORY) ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    # Verify legal_issues_outcomes is available
+    reps = api.map_loader.get_available_representations()
+    assert "legal_issues_outcomes" in reps, f"legal_issues_outcomes not in representations: {reps}"
+    print(f"  Available representations: {reps}")
+
+    # Test legal_issues_outcomes at each zoom level
+    zoom_levels_data = api.get_zoom_levels("legal_issues_outcomes")
+    zoom_levels = [z["level"] for z in zoom_levels_data]
+    print(f"  Zoom levels: {zoom_levels}")
+    assert len(zoom_levels) == 4, f"Expected 4 zoom levels, got {len(zoom_levels)}"
+
+    for zl in zoom_levels:
+        map_data = api.get_map_data("legal_issues_outcomes", zl)
+        assert map_data["n_decisions"] == 1000
+        print(f"  Zoom {zl}: {map_data['n_clusters']} clusters, {map_data['n_decisions']} decisions")
+
+    # Verify metadata
+    map_state = api.map_loader.get_map("legal_issues_outcomes")
+    metadata = map_state.metadata
+    assert metadata.get("evidence_tier") == "EXPLORATORY", f"Expected evidence_tier=EXPLORATORY, got {metadata.get('evidence_tier')}"
+    assert metadata.get("signal_source") == "statutes_cited_outcomes_legal_area_erwaegungen_headings"
+    assert "tfidf_features" in metadata
+    print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}, signal_source={metadata.get('signal_source')}, tfidf_features={metadata.get('tfidf_features')}")
+
+    # Test neighbors
+    zl_0 = api.map_loader.get_zoom_level("legal_issues_outcomes", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "legal_issues_outcomes", 1, 5)
+    print(f"  Neighbors of {did}: {len(neighbors)} found")
+    assert len(neighbors) > 0, "Expected neighbors"
+
+    print("  PASS\n")
+    return True
+
+
 if __name__ == "__main__":
     results = []
     results.append(("Corpus Loader", test_corpus_loader()))
@@ -683,6 +894,10 @@ if __name__ == "__main__":
     results.append(("Hierarchical Leiden", test_hierarchical_leiden()))
     results.append(("True Hierarchical Leiden", test_true_hierarchical_leiden()))
     results.append(("Legal Cited Decisions", test_legal_cited_decisions()))
+    results.append(("Center Projected (eval v2)", test_center_projected()))
+    results.append(("Hybrid Alpha 0.3", test_hybrid_alpha_0_3()))
+    results.append(("Hybrid Alpha 0.5", test_hybrid_alpha_0_5()))
+    results.append(("Legal Issues & Outcomes", test_legal_issues_outcomes()))
     
     print("=" * 50)
     print("RESULTS:")
