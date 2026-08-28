@@ -41,7 +41,8 @@ The fractal-map lane has **completed the v6 factory direction deliverable**: pro
 | Flat Leiden mean purity (7 resolutions) | 0.88294 | `hierarchical_leiden_results.json` |
 | Flat best purity (res_3.0) | 0.91238 | `hierarchical_leiden_results.json` |
 | Purity improvement (hierarchical vs flat best) | +4.06% | Computed |
-| Hierarchical zoom improvement rate | 59.2% | `hierarchical_zoom_validation_results.json` |
+| Hierarchical zoom improvement rate (concat baseline) | 59.2% | `hierarchical_zoom_validation_results.json` |
+| Hierarchical zoom improvement rate (center_projected) | 31.1% | `hierarchical_map_center_projected/zoom_coherence.json` |
 | Flat Leiden zoom improvement (res_0.5→res_3.0) | 8.8% | `hierarchical_leiden_evaluation.json` |
 | Resolution ladder | 7 levels (0.25→3.0) | Product integration |
 
@@ -49,7 +50,7 @@ The fractal-map lane has **completed the v6 factory direction deliverable**: pro
 - **0.9634** = Local hierarchical purity from evaluation lane (weighted avg of sub-cluster purity within coarse clusters)
 - **+7.68%** ≈ Flat Leiden zoom improvement (8.8% observed, close to target)
 
-Both metrics are validated and traceable to frozen experiments.
+**Correction (audit 33143344501):** The 59.2% zoom coherence improvement rate belongs to the concat baseline (hierarchical_leiden_concat), not center_projected_hierarchical. Center_projected actual rate is 31.1% (19/61 parent clusters show purity improvement on zoom). Both metrics are validated and traceable to frozen experiments.
 
 ### 2.2 Architecture
 - **Coarse resolution:** 0.5 (8 clusters, language + broad domain)
@@ -120,9 +121,13 @@ Each mode has identical artifact structure:
 | Adversarial language dominance | 0.7593 | < 0.85 | ✅ PASS |
 | Jurist pairwise preference | 0.5215 | > 0.5 | ✅ PASS |
 | Jurivoc hierarchy alignment | 4/5 | — | ✅ PARTIAL |
-| Zoom coherence improvement | +4.6% | — | ✅ |
+| Zoom coherence improvement (evaluation v2 flat metric) | +4.6% | — | ✅ |
+| Zoom coherence improvement (hierarchical, center_projected) | 31.1% (19/61) | — | — |
+| Zoom coherence improvement (hierarchical, concat baseline) | 59.2% (58/98) | — | — |
 
 **First and ONLY representation to pass BOTH adversarial language dominance AND jurist pairwise preference.**
+
+**Correction (audit 33143344501):** The hierarchical zoom coherence improvement rate for center_projected is 31.1% (not 59.2%). The 59.2% value belongs to the concat baseline. The +4.6% in evaluation v2 was a flat Leiden metric on center_projected, distinct from the hierarchical metric reported here.
 
 ### 4.3 Integration Architecture (Ready)
 The map mode registry and loader already support center_projected:

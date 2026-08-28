@@ -107,7 +107,7 @@ MAP_MODES: Dict[str, MapModeSpec] = {
             "ladder (5→7→9→11→14→16→19 clusters), 108 hierarchical clusters. "
             "Evaluation v2: ONLY representation passing BOTH adversarial language dominance "
             "(0.7593 < 0.85) AND jurist pairwise preference (0.5215 > 0.5). "
-            "Zoom coherence validated, Jurivoc 4/5 PASS."
+            "Zoom coherence: 31.1% improvement rate (19/61 parents), Jurivoc 4/5 PASS."
         ),
         mode_type=MapModeType.HIERARCHICAL_LEIDEN,
         status=MapModeStatus.AVAILABLE,
@@ -132,7 +132,7 @@ MAP_MODES: Dict[str, MapModeSpec] = {
         },
         benchmark_results={
             "hierarchy_coherence": {"status": "PASS", "purity": 0.9638, "nesting": 1.0},
-            "zoom_coherence": {"status": "PASS", "improvement_rate": 0.592},
+            "zoom_coherence": {"status": "PASS", "improvement_rate": 0.311},
             "branch_purity_ladder": {
                 "res_0.25": 0.840, "res_0.5": 0.912, "res_0.75": 0.972,
                 "res_1.0": 0.965, "res_1.5": 0.964, "res_2.0": 0.955, "res_3.0": 0.929
