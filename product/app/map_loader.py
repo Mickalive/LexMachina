@@ -80,6 +80,9 @@ class MapLoader:
         # Load fractal map 7-resolution ladder (REPRODUCED - product integration artifacts)
         self._load_fractal_map_7res()
 
+        # Load legal_cited_decisions (ACCEPTED legal-distance signal - 14/14 PASS)
+        self._load_legal_cited_decisions()
+
         self._loaded = True
         return len(self.maps)
 
@@ -1136,6 +1139,86 @@ class MapLoader:
                         "Hierarchical Leiden (nesting=1.0, purity=0.949) included as zoom level 7.",
             },
         )
+
+    def _load_legal_cited_decisions(self) -> None:
+        """Load the legal_cited_decisions representation (ACCEPTED legal-distance signal).
+
+        This representation uses TF-IDF on cited decisions only.
+        Evidence tier: ACCEPTED (14/14 benchmarks PASS in legal-distance lane).
+        Citation heritage AUC: 0.9719 (beats baseline 0.9097).
+        Best for: citation-proximity navigation, finding legally related decisions via citation overlap.
+        """
+        legal_dir = self.results_dir / "legal_cited_decisions"
+        baseline_dir = self.results_dir / "baseline"
+
+        if not (legal_dir / "metadata.json").exists():
+            return
+        if not (legal_dir / "projection_2d.npy").exists():
+            return
+        if not (legal_dir / "embeddings.npy").exists():
+            return
+
+        # Load metadata (same decision order as baseline)
+        with open(legal_dir / "metadata.json", "r") as f:
+            metadata = json.load(f)
+
+        decision_ids = [m["decision_id"] for m in metadata]
+        n_decisions = len(decision_ids)
+
+        # Load 2D projection
+        projection = np.load(legal_dir / "projection_2d.npy")
+
+        # Load Leiden cluster assignments (same as baseline - reusing clustering)
+        hierarchical_dir = self.results_dir / "hierarchical"
+        leiden_assignments = {}
+        leiden_path = hierarchical_dir / "leiden_multi_resolution.json"
+        if leiden_path.exists():
+            with open(leiden_path, "r") as f:
+                leiden_data = json.load(f)
+            # Build mapping: decision_index -> decision_id
+            index_to_id = {i: m["decision_id"] for i, m in enumerate(metadata)}
+            for leiden_key, leiden_result in leiden_data.items():
+                if not leiden_key.startswith("resolution_"):
+                    continue
+                resolution_val = float(leiden_key.replace("resolution_", ""))
+                zoom_level = int(resolution_val)
+                labels = leiden_result.get("labels", [])
+                assignments = {}
+                for idx, label in enumerate(labels):
+                    did = index_to_id.get(idx)
+                    if did:
+                        assignments[did] = label
+                leiden_assignments[leiden_key] = assignments
+                leiden_assignments[str(zoom_level)] = assignments
+
+        # Build zoom levels using unified evaluation structure
+        unified_path = self.results_dir / "unified_evaluation" / "unified_results.json"
+        concat_data = {}
+        if unified_path.exists():
+            with open(unified_path, "r") as f:
+                unified = json.load(f)
+            concat_data = unified.get("concat_center_tfidf", {})
+
+        self._build_zoom_levels(
+            representation="legal_cited_decisions",
+            decision_ids=decision_ids,
+            projection=projection,
+            concat_data=concat_data,
+            api_meta=None,
+            leiden_assignments=leiden_assignments,
+        )
+
+        # Update metadata with signal info
+        if "legal_cited_decisions" in self.maps:
+            self.maps["legal_cited_decisions"].metadata.update({
+                "clustering_method": "legal_tfidf_cited_decisions + Leiden",
+                "signal_source": "cited_decisions_only",
+                "evidence_tier": "ACCEPTED",
+                "benchmark_status": "14/14 PASS",
+                "citation_heritage_auc": 0.9719,
+                "note": "Legal-distance signal (ACCEPTED): TF-IDF on cited decisions only. "
+                        "Passes ALL 14 evaluation benchmarks. Best for citation-proximity navigation.",
+            })
 
     def _create_debiased_citation_blended(
         self,

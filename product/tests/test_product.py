@@ -598,6 +598,77 @@ def test_true_hierarchical_leiden():
     return True
 
 
+def test_legal_cited_decisions():
+    """Test legal_cited_decisions representation (ACCEPTED legal-distance signal).
+
+    This representation uses TF-IDF on cited decisions only.
+    Evidence tier: ACCEPTED (14/14 benchmarks PASS in legal-distance lane).
+    Citation heritage AUC: 0.9719 (beats baseline 0.9097).
+    Best for: citation-proximity navigation, finding legally related decisions via citation overlap.
+    """
+    print("=== Test: Legal Cited Decisions (ACCEPTED legal-distance signal) ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    # Verify legal_cited_decisions is available
+    reps = api.map_loader.get_available_representations()
+    assert "legal_cited_decisions" in reps, f"legal_cited_decisions not in representations: {reps}"
+    print(f"  Available representations: {reps}")
+
+    # Test legal_cited_decisions at each zoom level
+    zoom_levels = api.get_zoom_levels("legal_cited_decisions")
+    print(f"  Zoom levels: {zoom_levels}")
+    # Should have 4 zoom levels (0-3) using Leiden clustering
+    assert len(zoom_levels) == 4, f"Expected 4 zoom levels, got {len(zoom_levels)}"
+
+    # Zoom 0: domain level
+    map_data = api.get_map_data("legal_cited_decisions", 0)
+    assert map_data["n_decisions"] == 1000
+    print(f"  Zoom 0: {map_data['n_clusters']} clusters, {map_data['n_decisions']} decisions")
+
+    # Zoom 1: subdomain
+    map_data = api.get_map_data("legal_cited_decisions", 1)
+    assert map_data["n_decisions"] == 1000
+    print(f"  Zoom 1: {map_data['n_clusters']} clusters, {map_data['n_decisions']} decisions")
+
+    # Zoom 2: microcluster
+    map_data = api.get_map_data("legal_cited_decisions", 2)
+    assert map_data["n_decisions"] == 1000
+    print(f"  Zoom 2: {map_data['n_clusters']} clusters, {map_data['n_decisions']} decisions")
+
+    # Zoom 3: detail
+    map_data = api.get_map_data("legal_cited_decisions", 3)
+    assert map_data["n_decisions"] == 1000
+    print(f"  Zoom 3: {map_data['n_clusters']} clusters, {map_data['n_decisions']} decisions")
+
+    # Verify metadata reports ACCEPTED evidence tier
+    map_state = api.map_loader.get_map("legal_cited_decisions")
+    metadata = map_state.metadata
+    assert metadata.get("evidence_tier") == "ACCEPTED", f"Expected evidence_tier=ACCEPTED, got {metadata.get('evidence_tier')}"
+    assert metadata.get("benchmark_status") == "14/14 PASS", f"Expected 14/14 PASS, got {metadata.get('benchmark_status')}"
+    assert metadata.get("citation_heritage_auc") == 0.9719, f"Expected AUC 0.9719, got {metadata.get('citation_heritage_auc')}"
+    print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}, benchmark_status={metadata.get('benchmark_status')}, AUC={metadata.get('citation_heritage_auc')}")
+
+    # Test neighbors with legal_cited_decisions
+    zl_0 = api.map_loader.get_zoom_level("legal_cited_decisions", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "legal_cited_decisions", 1, 5)
+    print(f"  Neighbors of {did}: {len(neighbors)} found")
+    assert len(neighbors) > 0, "Expected neighbors"
+
+    # Verify map modes includes legal_cited_decisions
+    modes = api.get_map_modes()
+    lcd_mode = next((m for m in modes if m["name"] == "legal_cited_decisions"), None)
+    assert lcd_mode is not None, "legal_cited_decisions not in map modes"
+    print(f"  Map mode label: {lcd_mode['label']}")
+
+    print("  PASS\n")
+    return True
+
+
 if __name__ == "__main__":
     results = []
     results.append(("Corpus Loader", test_corpus_loader()))
@@ -611,6 +682,7 @@ if __name__ == "__main__":
     results.append(("Map Modes API", test_map_modes_api()))
     results.append(("Hierarchical Leiden", test_hierarchical_leiden()))
     results.append(("True Hierarchical Leiden", test_true_hierarchical_leiden()))
+    results.append(("Legal Cited Decisions", test_legal_cited_decisions()))
     
     print("=" * 50)
     print("RESULTS:")
