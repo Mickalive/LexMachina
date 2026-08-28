@@ -5,17 +5,18 @@
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
   "accepted_run_id": "eval_v6_20260828_33215725413",
-  "evidence_refs": [
-    "results/evaluation/v3_evaluation_results.json",
-    "results/evaluation/v6_signal_ablation/v6_signal_ablation_adversarial_results.json",
-    "results/evaluation/v6_signal_ablation/v6_baseline_center_projected_results.json",
-    "results/evaluation/v6_signal_ablation/v6_boilerplate_resistance_results.json",
-    "reports/evaluation/v3_evaluation_report.md",
-    "reports/evaluation/v6_final_verification_report.md",
-    "reports/evaluation/evaluation_v6_completion_report.md",
-    "reports/evaluation/v3_frozen_benchmark_spec.md",
-    "reports/evaluation/v6_boilerplate_resistance_report.md"
-  ],
+"evidence_refs": [
+      "results/evaluation/v3_evaluation_results.json",
+      "results/evaluation/v6_signal_ablation/v6_signal_ablation_adversarial_results.json",
+      "results/evaluation/v6_signal_ablation/v6_baseline_center_projected_results.json",
+      "results/evaluation/v6_signal_ablation/v6_boilerplate_resistance_results.json",
+      "reports/evaluation/v3_evaluation_report.md",
+      "reports/evaluation/v6_final_verification_report.md",
+      "reports/evaluation/evaluation_v6_completion_report.md",
+      "reports/evaluation/v3_frozen_benchmark_spec.md",
+      "reports/evaluation/v6_boilerplate_resistance_report.md",
+      "reports/evaluation/evaluation_v3_final_verification.md"
+    ],
   "next_recommendation": "PRODUCTIZE",
   "summary": {
     "baseline_representation": "center_projected",
@@ -98,7 +99,7 @@
       "best_variant": "citation_weights",
       "best_variant_degenerate": true,
       "no_variant_beats_baseline_on_both_gates": true,
-      "note": "All 15 signal ablation variants fail at least one adversarial gate. Citation_weights passes both gates but is degenerate (single cluster, Jurivoc NMI=0.0). The 64-dim center_projected remains the only valid representation passing both gates."
+      "note": "All 15 signal ablation variants fail at least one adversarial gate. Citation_weights passes both gates but is degenerate (single cluster, Jurivoc NMI=0.0). The 64-dim center_projected remains the only valid representation passing both gates. CRITICAL BUG: v6 signal ablation validation (run_v6_signal_ablation_adversarial.py) compared 768-dim baseline against 64-dim hybrids, invalidating direct comparison. v3 evaluation (64-dim baseline) is the authoritative result."
     },
     "legal_embeddings_validation": {
       "multilingual_e5_small": {"language_dominance": 0.999, "jurivoc_l2_nmi": 0.502, "status": "FAIL"},
@@ -132,7 +133,8 @@
       "debiased_citation_blended_invalidated_for_multilingual": true,
       "signal_ablation_results_validated": true,
       "boilerplate_resistance_completed": true,
-      "metric_learning_frontier_not_yet_available": true
+      "metric_learning_frontier_not_yet_available": true,
+      "v6_signal_ablation_dimension_bug": "Baseline 768-dim vs hybrids 64-dim; v3 evaluation 64-dim is authoritative"
     }
   }
 }
