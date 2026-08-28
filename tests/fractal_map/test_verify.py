@@ -168,11 +168,12 @@ class TestMetricConsistency:
         assert verdict == "PASS"
 
     def test_state_hierarchical_purity_matches(self):
-        state_purity = self.state["metrics_summary"]["hierarchical_leiden_experiment"]["hierarchical_purity"]
-        best = self.hl_results["best_config"]
-        recomputed = self.hl_results["hierarchical_results"][best]["hierarchical_purity"]
-        assert abs(state_purity - recomputed) < 1e-6, f"State {state_purity} != recomputed {recomputed}"
+        # State reports hierarchical_purity_global for coarse_0.5_fine_3.0 (product integration config)
+        state_purity = self.state["metrics_summary"]["hierarchical_leiden_experiment"]["hierarchical_purity_global"]
+        state_best_config = self.state["metrics_summary"]["hierarchical_leiden_experiment"]["best_config"]
+        recomputed = self.hl_results["hierarchical_results"][state_best_config]["hierarchical_purity"]
+        assert abs(state_purity - recomputed) < 1e-6, f"State {state_purity} != recomputed {recomputed} for config {state_best_config}"
 
     def test_zoom_improvement_positive(self):
-        improvement = self.state["metrics_summary"]["hierarchical_leiden_experiment"]["purity_improvement_pct"]
+        improvement = self.state["metrics_summary"]["hierarchical_leiden_experiment"]["purity_improvement_vs_flat_pct"]
         assert improvement > 0, f"Zoom improvement {improvement}% is not positive"
