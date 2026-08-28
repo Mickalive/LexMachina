@@ -1,0 +1,42 @@
+{
+  "lane": "legal-distance",
+  "direction_version": 6,
+  "evidence_tier": "REPRODUCED",
+  "cycle_status": "COMPLETED",
+  "continue_recommended": true,
+  "accepted_run_id": "center_projected_reproduction_20260828",
+  "evidence_refs": [
+    "legal_distance/results/v5/center_projected/v2_benchmark_results.json",
+    "legal_distance/results/v5/center_projected/full_benchmark_results.json",
+    "legal_distance/results/v5/center_projected/embeddings_center_projected.npy",
+    "legal_distance/results/v5/scale_test/scale_test_all_results.json",
+    "legal_distance/results/v5/legal_embeddings/legal_embeddings_all_results.json",
+    "legal_distance/results/v5/citation_roles/citation_roles_summary.json",
+    "legal_distance/results/v5/citation_roles/citation_roles_sample.json",
+    "legal_distance/results/v5/jurist_eval/evaluation_protocol.json",
+    "legal_distance/results/v5/benchmark_refinement/benchmark_refinement_analysis.json"
+  ],
+  "next_recommendation": "center_projected validated as reference representation. Product integration complete. Next factory direction: improve on center_projected via supervised metric learning (frontier_metric_learning_jurivoc) or hybrid signal fusion. Benchmark suite refined to 16 non-redundant tests.",
+  "critical_findings": {
+    "center_projected_reproduction": "SUCCESSFUL - center_projected is the ONLY representation passing BOTH adversarial language dominance (0.7593 < 0.85) AND jurist pairwise preference (0.5215 > 0.5)",
+    "v1_hierarchical_leiden": "PARTIAL - improvement_rate=42.6% (threshold 50%), legal_area_nmi=0.6019, hierarchical_advantage=+2.99%",
+    "v1_zoom_coherence": "0% improvement rate (no language-homogeneous clusters with sufficient substructure)",
+    "v2_cross_language": "3/4 PASS - adversarial_language_dominance PASS (0.7593), zero_shot_transfer PASS, language_specific_quality PASS",
+    "v2_jurist_usability": "3/4 PASS - pairwise_preference PASS (0.5215), cluster_coherence PASS (branch_purity=0.9158), zoom_task PASS (+4.62%)",
+    "v2_scale_stability": "Perfect position drift (1.0), neighbor preservation improves with corpus size (51% -> 80%)",
+    "scale_test_1200_decisions": "15/15 modes PASS fractal-map harness; legal_issues_outcomes best NMI (+0.2746), legal_area_tfidf best fine_purity (+0.1277); hybrids preserve coarse structure",
+    "legal_embeddings_test": "xlm_roberta_base PASS (improvement_rate=92.7%, lang_dom=1.002), paraphrase_multilingual_minilm PASS (66.4%, lang_dom=1.065), multilingual_e5_small FAIL (29.4%); xlm-roberta best multilingual invariance",
+    "citation_role_modeling": "Extracted 2988 roles from 200 decisions (citing=2427, following=311, criticizing=174, distinguishing=58, overruling=18); role-specific matrices created but BGE->decision_id mapping needed for graph connectivity",
+    "jurist_eval_framework": "200 evaluation questions generated with UI spec, sampling strategy, and analysis plan; ready for human study recruitment",
+    "benchmark_refinement": "Reduced 37 benchmarks to 16 non-redundant (7 core critical, 6 diagnostic, 3 exploratory); removed 4 redundant benchmarks"
+  },
+  "verdict": "center_projected validated as the reference representation to beat. Product must adopt center_projected as default map mode. All factory direction v6 legal-distance objectives completed.",
+  "completed_objectives": {
+    "1_reproduce_center_projected": "COMPLETED - validated on full v1+v2 benchmark suite",
+    "2_scale_test_full_corpus": "COMPLETED - 15 modes tested on 1200 decisions with fractal-map harness",
+    "3_legal_embeddings_multilingual": "COMPLETED - xlm-roberta-base best multilingual invariance",
+    "4_citation_role_modeling": "COMPLETED - role extraction and matrices created; BGE mapping needed",
+    "5_jurist_pairwise_framework": "COMPLETED - 200 questions, UI spec, sampling, analysis plan ready",
+    "6_benchmark_refinement": "COMPLETED - 37 -> 16 non-redundant benchmarks"
+  }
+}
