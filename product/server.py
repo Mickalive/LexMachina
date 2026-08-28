@@ -5,10 +5,15 @@ Minimal Flask/HTTP server for the case-law map navigation.
 import json
 import os
 import sys
+import time
+import hashlib
+import threading
 from pathlib import Path
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
-import threading
+from collections import OrderedDict
+from functools import wraps
+from typing import Tuple, Dict, Optional, Any, List
 
 # Add parent to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -20,6 +25,163 @@ from app.evaluation_loader import EvaluationLoader
 # Global navigation API instance
 _nav_api = None
 _eval_loader = None
+_server_start_time = time.time()
+
+# Rate limiting
+_rate_limit_store = {}
+_rate_limit_lock = threading.Lock()
+DEFAULT_RATE_LIMIT = 100  # requests per window
+RATE_LIMIT_WINDOW = 60  # seconds
+
+# Caching
+_cache_store = {}
+_cache_lock = threading.Lock()
+CACHE_TTL = 300  # 5 minutes default
+
+
+class RateLimiter:
+    """Simple in-memory rate limiter."""
+    
+    def __init__(self, max_requests: int = DEFAULT_RATE_LIMIT, window_seconds: int = RATE_LIMIT_WINDOW):
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+    
+    def check_rate_limit(self, client_id: str) -> Tuple[bool, Dict]:
+        """Check if client is within rate limit. Returns (allowed, info_dict)."""
+        now = time.time()
+        with _rate_limit_lock:
+            if client_id not in _rate_limit_store:
+                _rate_limit_store[client_id] = []
+            
+            # Clean old entries
+            cutoff = now - self.window_seconds
+            _rate_limit_store[client_id] = [
+                t for t in _rate_limit_store[client_id] if t > cutoff
+            ]
+            
+            current_count = len(_rate_limit_store[client_id])
+            allowed = current_count < self.max_requests
+            
+            if allowed:
+                _rate_limit_store[client_id].append(now)
+            
+            return allowed, {
+                "limit": self.max_requests,
+                "remaining": max(0, self.max_requests - current_count - (1 if allowed else 0)),
+                "reset": int(now + self.window_seconds),
+                "retry_after": self.window_seconds if not allowed else 0
+            }
+
+
+class ResponseCache:
+    """Simple in-memory response cache with TTL."""
+    
+    def __init__(self, default_ttl: int = CACHE_TTL):
+        self.default_ttl = default_ttl
+    
+    def get(self, key: str) -> Optional[Any]:
+        with _cache_lock:
+            if key in _cache_store:
+                entry = _cache_store[key]
+                if time.time() < entry['expires']:
+                    return entry['data']
+                else:
+                    del _cache_store[key]
+        return None
+    
+    def set(self, key: str, data: Any, ttl: int = None) -> None:
+        with _cache_lock:
+            ttl = ttl or self.default_ttl
+            _cache_store[key] = {
+                'data': data,
+                'expires': time.time() + ttl
+            }
+    
+    def invalidate(self, pattern: str = None) -> None:
+        with _cache_lock:
+            if pattern is None:
+                _cache_store.clear()
+            else:
+                keys_to_delete = [k for k in _cache_store.keys() if pattern in k]
+                for k in keys_to_delete:
+                    del _cache_store[k]
+
+
+# Global instances
+_rate_limiter = RateLimiter()
+_response_cache = ResponseCache()
+
+
+def get_client_id(handler) -> str:
+    """Extract client identifier for rate limiting."""
+    # Use IP address as client ID
+    return handler.client_address[0]
+
+
+def rate_limited(max_requests: int = DEFAULT_RATE_LIMIT):
+    """Decorator for rate limiting endpoints."""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            client_id = get_client_id(self)
+            limiter = RateLimiter(max_requests)
+            allowed, info = limiter.check_rate_limit(client_id)
+            
+            # Add rate limit headers
+            self.send_header("X-RateLimit-Limit", str(info["limit"]))
+            self.send_header("X-RateLimit-Remaining", str(info["remaining"]))
+            self.send_header("X-RateLimit-Reset", str(info["reset"]))
+            
+            if not allowed:
+                self.send_header("Retry-After", str(info["retry_after"]))
+                self._json_response({
+                    "error": "Rate limit exceeded",
+                    "retry_after": info["retry_after"]
+                }, 429)
+                return
+            
+            return func(self, *args, **kwargs)
+        return wrapper
+    return decorator
+
+
+def cached(ttl: int = CACHE_TTL, key_prefix: str = ""):
+    """Decorator for caching endpoint responses."""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            # Build cache key from path and query params
+            cache_key = f"{key_prefix}:{self.path}"
+            cached_data = _response_cache.get(cache_key)
+            
+            if cached_data is not None:
+                self.send_header("X-Cache", "HIT")
+                self._json_response(cached_data)
+                return
+            
+            self.send_header("X-Cache", "MISS")
+            # Call original function but capture response
+            # We need to override _json_response to capture the data
+            original_json_response = self._json_response
+            captured_data = {}
+            
+            def capture_json_response(data, status=200):
+                captured_data['data'] = data
+                captured_data['status'] = status
+                original_json_response(data, status)
+            
+            self._json_response = capture_json_response
+            try:
+                func(self, *args, **kwargs)
+            finally:
+                self._json_response = original_json_response
+            
+            # Cache successful responses
+            if captured_data.get('status', 200) == 200:
+                _response_cache.set(cache_key, captured_data['data'], ttl)
+        
+        return wrapper
+    return decorator
 
 
 def get_nav_api() -> NavigationAPI:
@@ -175,6 +337,43 @@ class ProductHandler(SimpleHTTPRequestHandler):
             rep_b = params.get("rep_b", ["legal_cited_decisions"])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             self._json_response(get_nav_api().compare_maps(rep_a, rep_b, zoom))
+        
+        # WebGL rendering data endpoint
+        elif path == "/api/webgl/data":
+            default_rep = get_default_representation()
+            rep = params.get("representation", [default_rep])[0]
+            zoom_level = int(params.get("zoom", ["1"])[0])
+            mode = params.get("mode", [None])[0]
+            self._json_response(get_nav_api().get_webgl_data(rep, zoom_level, map_mode=mode))
+        
+        # Health check endpoint
+        elif path == "/api/health":
+            self._json_response({
+                "status": "healthy",
+                "timestamp": time.time(),
+                "version": "6.0",
+                "corpus_decisions": get_nav_api().corpus.size,
+                "maps_loaded": len(get_nav_api().map_loader.get_available_representations()),
+                "uptime_seconds": time.time() - _server_start_time
+            })
+        
+        # Cache management endpoints
+        elif path == "/api/cache/stats":
+            with _cache_lock:
+                self._json_response({
+                    "entries": len(_cache_store),
+                    "keys": list(_cache_store.keys())[:20]
+                })
+        elif path == "/api/cache/clear":
+            _response_cache.invalidate()
+            self._json_response({"status": "cache cleared"})
+        
+        # Rate limit status
+        elif path == "/api/rate_limit/status":
+            client_id = get_client_id(self)
+            allowed, info = _rate_limiter.check_rate_limit(client_id)
+            self._json_response(info)
+        
         # Static files
         elif path == "/" or path == "/index.html":
             self._serve_file("static/index.html", "text/html")

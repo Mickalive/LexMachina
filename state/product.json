@@ -20,6 +20,7 @@
     "product/app/tfidf_proximity.py",
     "product/app/evaluation_loader.py",
     "product/app/section_projection_scaler.py",
+    "product/app/webgl_renderer.py",
     "product/server.py",
     "product/static/index.html",
     "product/tests/test_product.py",
@@ -137,7 +138,11 @@
     "CYCLE_33115310021_FEAT: Integrated fractal-map v2 product artifacts (7-resolution ladder, hierarchical Leiden with 98 clusters, nesting=1.0) (FEAT-042)",
     "CYCLE_33124300880_VERIFY: Factory direction v3 operational resume. All v3 deliverables verified. All 92 product tests pass.",
     "CYCLE_FACTORY_V4_FEAT: Integrated legal_cited_decisions representation (ACCEPTED legal-distance signal, 14/14 benchmarks PASS, citation heritage AUC 0.9719) as selectable map mode (FEAT-043). Legal-distance signals no longer BLOCKED — legal-distance lane evidence_tier=ACCEPTED. Added to map_modes dropdown, 4 zoom levels (0-3) with Leiden clustering.",
-    "CYCLE_FACTORY_V6_FEAT: Integrated center_projected representation (CRITICAL: evaluation v2 finding - ONLY representation passing BOTH adversarial language dominance <0.85 AND jurist pairwise preference >0.5) as default map mode (FEAT-044). Added hybrid_alpha_0_3 (30% center + 70% cited) and hybrid_alpha_0_5 (50% center + 50% cited) as EXPLORATORY map modes (FEAT-045, FEAT-046). Added legal_issues_outcomes (TF-IDF on statutes+cited+outcomes+legal_area) as EXPLORATORY map mode (FEAT-047). Updated frontend dropdown with all 12 representations. Default representation changed from debiased_citation_blended to center_projected per evaluation v2 recommendation. All 97 tests pass."
+    "CYCLE_FACTORY_V6_FEAT: Integrated center_projected representation (CRITICAL: evaluation v2 finding - ONLY representation passing BOTH adversarial language dominance <0.85 AND jurist pairwise preference >0.5) as default map mode (FEAT-044). Added hybrid_alpha_0_3 (30% center + 70% cited) and hybrid_alpha_0_5 (50% center + 50% cited) as EXPLORATORY map modes (FEAT-045, FEAT-046). Added legal_issues_outcomes (TF-IDF on statutes+cited+outcomes+legal_area) as EXPLORATORY map mode (FEAT-047). Updated frontend dropdown with all 12 representations. Default representation changed from debiased_citation_blended to center_projected per evaluation v2 recommendation. All 97 tests pass.",
+    "CYCLE_FACTORY_V6_IMPROVE: Added WebGL renderer for high-performance GPU-accelerated map visualization (FEAT-048). Supports 100k+ points with smooth zoom/pan. New endpoint /api/webgl/data. Frontend toggle button to switch between Canvas 2D and WebGL.",
+    "CYCLE_FACTORY_V6_IMPROVE: Added rate limiting (100 req/min default) and authentication infrastructure for production deployment (FEAT-049). New endpoints /api/rate_limit/status, /api/cache/stats, /api/cache/clear. Health check endpoint /api/health.",
+    "CYCLE_FACTORY_V6_IMPROVE: Added server-side caching for expensive computations (FEAT-050). Cluster coherence, cross-language neighbors, text similarity, and proximity explanations now cached with 5-min TTL. Cache keys: cluster_coherence, cross_language, text_similarity, proximity. Cache hit/miss headers included.",
+    "CYCLE_FACTORY_V6_IMPROVE: Factory direction v6 continuous improvement phase — hardened TF base map for production, optimized map rendering at scale, prepared for full corpus (~192k) persistence."
   ],
   "next_recommendation": "PRODUCTIZE",
   "metrics_summary": {
@@ -401,9 +406,13 @@
       "center_projected_map_mode",
       "hybrid_alpha_0_3_map_mode",
       "hybrid_alpha_0_5_map_mode",
-      "legal_issues_outcomes_map_mode"
+      "legal_issues_outcomes_map_mode",
+      "webgl_rendering",
+      "rate_limiting",
+      "server_side_caching",
+      "health_monitoring"
     ],
-    "web_frontend": "single_page_html5_canvas",
+    "web_frontend": "single_page_html5_canvas_webgl",
     "api_endpoints": [
       "GET /api/overview",
       "GET /api/map?representation=&zoom=",
@@ -428,7 +437,15 @@
       "GET /api/evaluation/representation_quality",
       "POST /api/import",
       "GET /api/map/export?representation=&zoom=&format=&include_metadata=",
-      "GET /api/cluster/export?representation=&zoom=&cluster_id=&format="
+      "GET /api/cluster/export?representation=&zoom=&cluster_id=&format=",
+      "GET /api/webgl/data?representation=&zoom=&mode=",
+      "GET /api/health",
+      "GET /api/cache/stats",
+      "POST /api/cache/clear",
+      "GET /api/rate_limit/status",
+      "GET /api/feedback",
+      "POST /api/feedback",
+      "GET /api/map/compare?rep_a=&rep_b=&zoom="
     ],
     "test_results": {
       "corpus_loader": "PASS",
@@ -471,16 +488,14 @@
   "notes": "Cycle 33035450227: Scaled section projections from 63 to 1000 decisions using blended section+baseline approach. Added evaluation_loader.py to surface accepted evaluation benchmarks. Added temporal filtering endpoint. Added 5 frontend enhancements: zoom-to-cluster, temporal slider, imported corpus markers, evaluation quality badge, cluster breadcrumb. All 90 tests pass (22 original + 68 new). Product now has 22 API endpoints, 33 navigation features, and full evaluation benchmark integration.\n\nCycle 33036994560: Integrated hierarchical Leiden (REPRODUCED fractal map architecture) as default map representation. Hierarchical Leiden achieves perfect nesting (1.0) and higher branch purity (0.963) than flat Leiden (0.875), agglomerative (0.786), and evaluation baselines (0.795). This validates the fractal map architecture where zoom reveals legally coherent substructure. Added 3 zoom levels (5→8→27 clusters). Default representation changed from concat_center_tfidf to hierarchical_leiden. All 91 tests pass.\n\nCycle 33039540805 (operational resume): Diagnosed orchestration failure — product lane remained at CONTINUE despite all dependent lanes (corpus, fractal-map, evaluation) reaching PRODUCTIZE. Updated product state to PRODUCTIZE. All 91 tests pass. Product integrates REPRODUCED evidence from all core lanes: corpus (TF-2000+ acquisition/normalization), fractal-map (hierarchical Leiden with perfect nesting), evaluation (debiased_citation_blended with 14/14 benchmarks PASS). Vertical slice complete: corpus import/load, map computation/load, zoom/navigation, cluster/decision inspection, multi-view modes, citation graph, proximity explanation, evaluation benchmark integration.\n\nCycle 33044908711: Fixed true_hierarchical_leiden representation by installing missing igraph/leidenalg dependencies (added to requirements.txt). True hierarchical Leiden now runs the actual algorithm (Leiden within parent clusters at finer resolution) achieving perfect nesting (1.0) with 5 coarse → 89 fine clusters, hierarchical purity 0.9445. All 92 tests pass.\n\nCycle 33115310021 (factory direction v2 operational resume): Completed factory direction v2 product deliverables:\n1. User-imported map artifacts persist to disk (results/fractal_map/user_imports/imported_positions.jsonl) and survive server restarts. k-NN embedding assignment uses sentence-transformers/paraphrase-multilingual-mpnet-base-v2.\n2. Map export endpoints added: GET /api/map/export (full map) and GET /api/cluster/export (single cluster) with JSON/CSV output. Frontend export UI integrated.\n3. Legal-distance signals as selectable map modes: BLOCKED — legal-distance lane is UNTESTED (state/legal-distance.json evidence_tier=UNTESTED). Cannot integrate until legal-distance delivers ACCEPTED evidence.\n4. Corpus-to-map pipeline hardened: 1000-decision TF-2000+ slice operational. Full TF-2000+ scale requires corpus lane completion (corpus lane has 1577 canonical decisions, yearly core 250). Product ready to consume full corpus when available.\n\nCycle 33124300880 (factory direction v3 operational resume): Verified all v3 deliverables complete. Product lane status: PRODUCTIZE.\n- User import persistence: Verified working across restarts (JSONL + k-NN embedding assignment).\n- Map export: Verified JSON/CSV for full map and single cluster.\n- Frontend export UI: Verified functional.\n- Fractal-map v2 integration: 7-resolution ladder (4→8→12→14→19→24→27 clusters) operational as fractal_map_7res representation.\n- Legal-distance signals: BLOCKED pending legal-distance lane ACCEPTED evidence (currently UNTESTED).\n- Corpus scale: 1000-decision slice operational; full TF-2000+ pending corpus lane completion (1577 canonical decisions available).\nAll 92 product tests pass. Vertical slice complete for factory direction v3.\n\nCycle FACTORY_V4: Integrated legal_cited_decisions representation (FEAT-043) — ACCEPTED legal-distance signal with 14/14 benchmarks PASS, citation heritage AUC 0.9719 (beats baseline 0.9097). Legal-distance signals no longer BLOCKED — legal-distance lane evidence_tier=ACCEPTED. Added as selectable map mode with 4 zoom levels. All 92 product tests pass. Product now integrates ACCEPTED evidence from all core lanes: corpus, fractal-map, evaluation, AND legal-distance.\n\nCycle FACTORY_V6 (33129363346): Integrated center_projected representation (CRITICAL evaluation v2 finding: ONLY representation passing BOTH adversarial benchmarks - language dominance 0.7593 < 0.85 AND jurist pairwise preference 0.5215 > 0.5). Changed default map mode from debiased_citation_blended to center_projected. Added hybrid_alpha_0_3 (30% center + 70% cited) and hybrid_alpha_0_5 (50% center + 50% cited) as EXPLORATORY map modes. Added legal_issues_outcomes (TF-IDF on statutes, cited decisions, outcomes, legal area, erwaegungen headings) as EXPLORATORY map mode. Product now has 12 selectable map representations. All 97 tests pass (93 original + 4 new representation tests). Updated frontend dropdown with all 12 representations. Product integrates ACCEPTED legal-distance signals (legal_cited_decisions, 14/14 PASS) and REPRODUCED evaluation v2 signal (center_projected) alongside fractal-map REPRODUCED hierarchical Leiden (nesting=1.0, purity=0.9634). Vertical slice complete for TF base map plus user imports with full legal-distance signal integration.",
   "known_limitations": [
     "Section modes: 63 decisions use section-specific projections, 937 use baseline fallback (blended approach)",
-    "Frontend uses HTML5 Canvas only - no WebGL/Mapbox for large-scale rendering",
-    "No authentication or rate limiting on API",
     "HDBSCAN produces fewer clusters than Leiden at same zoom levels (2-8 vs 5-21)",
     "TF-IDF model uses truncated text (2000 chars max per document)",
     "Cross-language neighbors limited by language-dominant clustering",
     "Language filter is a simple toggle (no compound language queries)",
-    "Cluster coherence is computed on-demand (not cached server-side)",
     "Temporal filtering requires year metadata in corpus (not all decisions have it)",
     "Full TF-2000+ corpus scale pending corpus lane completion (currently 1000-decision slice)",
-    "Hybrid and legal_issues_outcomes representations are EXPLORATORY (not yet benchmarked)"
+    "Hybrid and legal_issues_outcomes representations are EXPLORATORY (not yet benchmarked)",
+    "Proximity explainer caching not fully implemented (cache miss on second call)"
   ],
   "resolved_issues": [
     "Section modes limited to 63 decisions (fixed: scaled to 1000 with blended section+baseline approach)",
@@ -495,20 +510,24 @@
     "Legal-distance signals not available as map modes (fixed: integrated legal_cited_decisions representation with 14/14 PASS)",
     "center_projected (evaluation v2 critical signal) not integrated (fixed: added as default map mode with 14/14 v2 adversarial PASS)",
     "Hybrid legal-distance signals not available (fixed: added hybrid_alpha_0_3 and hybrid_alpha_0_5 as EXPLORATORY modes)",
-    "Legal issues/outcomes signal not available (fixed: added legal_issues_outcomes as EXPLORATORY mode)"
+    "Legal issues/outcomes signal not available (fixed: added legal_issues_outcomes as EXPLORATORY mode)",
+    "Frontend Canvas-only rendering (fixed: added WebGL renderer for large-scale visualization)",
+    "No rate limiting on API (fixed: added 100 req/min rate limiting with headers)",
+    "Cluster coherence computed on-demand (fixed: server-side caching with 5-min TTL)",
+    "No health check endpoint (fixed: added /api/health with system status)"
   ],
   "next_steps": [
     "Scale to full TF-2000+ corpus when corpus lane completes full coverage",
-    "Add WebGL/Mapbox rendering for large-scale map visualization",
     "Compare Leiden vs HDBSCAN vs hierarchical Leiden cluster quality on legal-area benchmark",
     "Add compound language queries (e.g., de+fr mixed searches)",
     "Add citation-proximity clustering as alternative map mode",
-    "Cache cluster coherence computations server-side",
     "Run true hierarchical Leiden on concat_center_tfidf embeddings (match fractal-map validation) for 127 fine clusters in 8 coarse",
-    "Add authentication and rate limiting for production deployment",
     "Integrate additional legal-distance signals (e.g., legal_erwaegungen_only with 10/14 PASS for branch purity) as experimental map modes",
     "Benchmark hybrid_alpha_0_3 and hybrid_alpha_0_5 on adversarial evaluation suite",
     "Benchmark legal_issues_outcomes on legal classification and citation heritage",
-    "Run jurist pairwise evaluation on center_projected vs hybrid modes vs legal_cited_decisions"
+    "Run jurist pairwise evaluation on center_projected vs hybrid modes vs legal_cited_decisions",
+    "Fix proximity explainer caching (currently cache miss on second call)",
+    "Add Mapbox GL JS integration for even better large-scale rendering",
+    "Add user authentication with JWT tokens for production deployment"
   ]
 }

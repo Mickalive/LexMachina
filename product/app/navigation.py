@@ -8,6 +8,7 @@ citation graph integration.
 """
 import json
 import os
+import time
 from collections import Counter
 from typing import Dict, List, Optional, Tuple, Any
 from pathlib import Path
@@ -59,6 +60,14 @@ class NavigationAPI:
         self._initialized = False
         self._map_meta_cache: Dict[str, Dict] = {}
         
+        # Server-side caching for expensive computations
+        self._cluster_coherence_cache: Dict[str, Dict] = {}
+        self._cross_language_cache: Dict[str, Dict] = {}
+        self._text_similarity_cache: Dict[str, Dict] = {}
+        self._proximity_cache: Dict[str, Dict] = {}
+        self._cache_ttl = 300  # 5 minutes
+        self._cache_timestamps: Dict[str, float] = {}
+        
         # User import map artifacts
         self._base_embeddings: Optional[np.ndarray] = None
         self._base_decision_ids: List[str] = []
@@ -77,6 +86,32 @@ class NavigationAPI:
                 for m in meta_list:
                     self._map_meta_cache[m["decision_id"]] = m
         return self._map_meta_cache.get(decision_id, {})
+
+    def _get_cache_key(self, prefix: str, *args) -> str:
+        """Generate a cache key from prefix and arguments."""
+        return f"{prefix}:{':'.join(str(a) for a in args)}"
+
+    def _is_cache_valid(self, key: str) -> bool:
+        """Check if cache entry is still valid."""
+        if key not in self._cache_timestamps:
+            return False
+        return (time.time() - self._cache_timestamps[key]) < self._cache_ttl
+
+    def _set_cache(self, cache_dict: Dict, key: str, value: Dict) -> None:
+        """Set cache entry with timestamp."""
+        cache_dict[key] = value
+        self._cache_timestamps[key] = time.time()
+
+    def _get_cache(self, cache_dict: Dict, key: str) -> Optional[Dict]:
+        """Get cache entry if valid."""
+        if self._is_cache_valid(key):
+            return cache_dict.get(key)
+        # Clean up expired entry
+        if key in cache_dict:
+            del cache_dict[key]
+        if key in self._cache_timestamps:
+            del self._cache_timestamps[key]
+        return None
 
     def initialize(self) -> Dict[str, Any]:
         """Load all data and return initialization status."""
@@ -787,9 +822,20 @@ class NavigationAPI:
     def get_proximity_explanation(
         self, decision_id_a: str, decision_id_b: str
     ) -> Dict[str, Any]:
-        """Explain why two decisions are spatially close on the map."""
+        """Explain why two decisions are spatially close on the map.
+        
+        Uses server-side caching to avoid recomputing for the same pair.
+        """
         if not self._initialized:
             return {"error": "Not initialized"}
+
+        # Check cache (order-independent key)
+        pair = tuple(sorted([decision_id_a, decision_id_b]))
+        cache_key = self._get_cache_key("proximity", pair[0], pair[1])
+        cached = self._get_cache(self._proximity_cache, cache_key)
+        if cached is not None:
+            cached["cached"] = True
+            return cached
 
         # Get distance from map positions (use evaluation-validated default)
         default_rep = self._get_default_representation()
@@ -802,9 +848,13 @@ class NavigationAPI:
 
         distance = ((pos_a[0] - pos_b[0]) ** 2 + (pos_a[1] - pos_b[1]) ** 2) ** 0.5
 
-        return self.proximity_explainer.explain(
+        result = self.proximity_explainer.explain(
             decision_id_a, decision_id_b, distance
         )
+        
+        # Cache the result
+        self._set_cache(self._proximity_cache, cache_key, result)
+        return result
 
     def get_cluster_coherence(
         self,
@@ -812,9 +862,19 @@ class NavigationAPI:
         zoom_level: int,
         cluster_id: int,
     ) -> Dict[str, Any]:
-        """Compute coherence summary for a cluster showing attribute distributions."""
+        """Compute coherence summary for a cluster showing attribute distributions.
+        
+        Uses server-side caching to avoid recomputing for the same cluster.
+        """
         if not self._initialized:
             return {"error": "Not initialized"}
+
+        # Check cache
+        cache_key = self._get_cache_key("cluster_coherence", representation, zoom_level, cluster_id)
+        cached = self._get_cache(self._cluster_coherence_cache, cache_key)
+        if cached is not None:
+            cached["cached"] = True
+            return cached
 
         zl = self.map_loader.get_zoom_level(representation, zoom_level)
         if not zl:
@@ -836,7 +896,7 @@ class NavigationAPI:
                 legal_areas.append(summary.get("legal_area") or "unknown")
 
         if not languages:
-            return {
+            result = {
                 "cluster_id": cluster_id,
                 "size": cluster.size,
                 "language_distribution": {},
@@ -847,6 +907,8 @@ class NavigationAPI:
                 "purity_score": 0.0,
                 "coherence_warning": "No corpus decisions found in cluster",
             }
+            self._set_cache(self._cluster_coherence_cache, cache_key, result)
+            return result
 
         lang_counter = Counter(languages)
         branch_counter = Counter(branches)
@@ -871,7 +933,7 @@ class NavigationAPI:
         elif purity_score > 0.85:
             coherence_warning = "cluster highly homogeneous across all attributes"
 
-        return {
+        result = {
             "cluster_id": cluster_id,
             "size": cluster.size,
             "language_distribution": dict(lang_counter),
@@ -882,6 +944,10 @@ class NavigationAPI:
             "purity_score": round(purity_score, 3),
             "coherence_warning": coherence_warning,
         }
+        
+        # Cache the result
+        self._set_cache(self._cluster_coherence_cache, cache_key, result)
+        return result
 
     def get_map_data_with_language_filter(
         self,
@@ -998,9 +1064,19 @@ class NavigationAPI:
         decision_id: str,
         n_neighbors: int = 10,
     ) -> Dict[str, Any]:
-        """Find cross-language neighbors for a decision."""
+        """Find cross-language neighbors for a decision.
+        
+        Uses server-side caching to avoid recomputing for the same decision.
+        """
         if not self._initialized:
             return {"error": "Not initialized"}
+
+        # Check cache
+        cache_key = self._get_cache_key("cross_language", decision_id, n_neighbors)
+        cached = self._get_cache(self._cross_language_cache, cache_key)
+        if cached is not None:
+            cached["cached"] = True
+            return cached
 
         summary = self.corpus.get_summary(decision_id)
         if not summary:
@@ -1030,13 +1106,17 @@ class NavigationAPI:
             n_neighbors=n_neighbors, same_language_only=False
         )
 
-        return {
+        result = {
             "decision_id": decision_id,
             "decision_language": decision_language,
             "same_language_neighbors": same_lang_neighbors,
             "cross_language_neighbors": [n for n in cross_lang_neighbors if n["is_cross_language"]][:n_neighbors],
             "all_neighbors": cross_lang_neighbors[:n_neighbors],
         }
+        
+        # Cache the result
+        self._set_cache(self._cross_language_cache, cache_key, result)
+        return result
 
     def get_temporal_map_data(
         self,
@@ -1163,9 +1243,20 @@ class NavigationAPI:
         decision_id_a: str,
         decision_id_b: str,
     ) -> Dict[str, Any]:
-        """Get text-based similarity between two decisions using TF-IDF."""
+        """Get text-based similarity between two decisions using TF-IDF.
+        
+        Uses server-side caching to avoid recomputing for the same pair.
+        """
         if not self._initialized:
             return {"error": "Not initialized"}
+
+        # Check cache (order-independent key)
+        pair = tuple(sorted([decision_id_a, decision_id_b]))
+        cache_key = self._get_cache_key("text_similarity", pair[0], pair[1])
+        cached = self._get_cache(self._text_similarity_cache, cache_key)
+        if cached is not None:
+            cached["cached"] = True
+            return cached
 
         corpus_summaries = {}
         for did in self.corpus.get_all_ids():
@@ -1173,9 +1264,13 @@ class NavigationAPI:
             if s:
                 corpus_summaries[did] = s
 
-        return self.tfidf_proximity.get_similarity_explanation(
+        result = self.tfidf_proximity.get_similarity_explanation(
             decision_id_a, decision_id_b, corpus_summaries
         )
+        
+        # Cache the result
+        self._set_cache(self._text_similarity_cache, cache_key, result)
+        return result
 
     def export_map_data(
         self,
@@ -1524,4 +1619,141 @@ class NavigationAPI:
             "cluster_changes": cluster_changes,
             "cluster_transitions": {f"{a}->{b}": count for (a, b), count in transitions.most_common(20)},
             "decisions": comparison,
+        }
+
+    def get_webgl_data(
+        self,
+        representation: str,
+        zoom_level: int,
+        map_mode: str = None
+    ) -> Dict[str, Any]:
+        """Get WebGL-optimized rendering data for a map representation.
+        
+        Returns flat arrays for positions, colors, radii, imported flags
+        suitable for direct upload to GPU buffers.
+        """
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        if map_mode:
+            map_data = self.get_map_data(map_mode=map_mode, zoom_level=zoom_level)
+        else:
+            map_data = self.get_map_data(representation=representation, zoom_level=zoom_level)
+
+        positions = map_data.get('positions', [])
+        clusters = map_data.get('clusters', [])
+
+        # Get imported decision IDs
+        imported_ids = set(self._imported_positions.keys())
+
+        # Color palettes
+        LANG_COLORS = {'de': '#4dabf7', 'fr': '#ffd43b', 'it': '#51cf66', 'unknown': '#666'}
+        COLORS = [
+            '#7c8aff', '#ff6b6b', '#51cf66', '#ffd43b', '#cc5de8',
+            '#20c997', '#ff922b', '#4dabf7', '#e599f7', '#69db7c',
+            '#fcc419', '#ff8787', '#748ffc', '#63e6be', '#da77f2',
+            '#a9e34b', '#ffa94d', '#74c0fc', '#b2f2bb', '#f783ac',
+        ]
+
+        # Helper to convert hex to RGBA
+        def hex_to_rgba(hex_color: str, alpha: float = 1.0):
+            hex_color = hex_color.lstrip('#')
+            if len(hex_color) == 3:
+                hex_color = ''.join([c*2 for c in hex_color])
+            r = int(hex_color[0:2], 16) / 255.0
+            g = int(hex_color[2:4], 16) / 255.0
+            b = int(hex_color[4:6], 16) / 255.0
+            return (r, g, b, alpha)
+
+        n_points = len(positions)
+        
+        # Pre-allocate arrays
+        positions_array = []
+        colors_array = []
+        radii_array = []
+        imported_array = []
+
+        # Cluster color map
+        cluster_color_map = {}
+        for i, cluster in enumerate(clusters):
+            cid = cluster['cluster_id']
+            color_hex = COLORS[i % len(COLORS)]
+            cluster_color_map[cid] = hex_to_rgba(color_hex, 0.8)
+
+        # Fill arrays
+        for p in positions:
+            # Position (world coordinates)
+            positions_array.append(p['x'])
+            positions_array.append(p['y'])
+            
+            # Color (cluster color)
+            cid = p.get('cluster', 0)
+            r, g, b, a = cluster_color_map.get(cid, (0.5, 0.5, 0.5, 0.8))
+            colors_array.extend([r, g, b, a])
+            
+            # Radius
+            is_section = p.get('has_section_data', True)
+            radii_array.append(4.0 if is_section else 2.5)
+            
+            # Imported flag
+            imported_array.append(1.0 if p.get('decision_id') in imported_ids else 0.0)
+
+        # Prepare cluster hulls (simplified bounding boxes for now)
+        cluster_hulls = []
+        cluster_points = {}
+        for p in positions:
+            cid = p.get('cluster', 0)
+            if cid not in cluster_points:
+                cluster_points[cid] = []
+            cluster_points[cid].append((p['x'], p['y']))
+
+        for i, cluster in enumerate(clusters):
+            cid = cluster['cluster_id']
+            if cid in cluster_points and len(cluster_points[cid]) >= 3:
+                points = cluster_points[cid]
+                # Simple bounding box as hull approximation
+                xs = [p[0] for p in points]
+                ys = [p[1] for p in points]
+                hull = [
+                    (min(xs), min(ys)),
+                    (max(xs), min(ys)),
+                    (max(xs), max(ys)),
+                    (min(xs), max(ys)),
+                ]
+                color_hex = COLORS[i % len(COLORS)]
+                r, g, b, a = hex_to_rgba(color_hex, 0.1)
+                cluster_hulls.append({
+                    'cluster_id': cid,
+                    'points': hull,
+                    'color': [r, g, b, a]
+                })
+
+        # Build transform info
+        if positions:
+            x_min = min(p['x'] for p in positions)
+            x_max = max(p['x'] for p in positions)
+            y_min = min(p['y'] for p in positions)
+            y_max = max(p['y'] for p in positions)
+        else:
+            x_min = x_max = y_min = y_max = 0
+
+        return {
+            'points': {
+                'positions': positions_array,
+                'colors': colors_array,
+                'radii': radii_array,
+                'imported': imported_array,
+                'count': n_points
+            },
+            'clusters': clusters,
+            'hulls': cluster_hulls,
+            'transform': {
+                'xMin': x_min,
+                'xMax': x_max,
+                'yMin': y_min,
+                'yMax': y_max,
+                'scale': 1.0,
+                'offsetX': 0,
+                'offsetY': 0
+            }
         }

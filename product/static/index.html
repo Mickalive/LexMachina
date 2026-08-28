@@ -595,6 +595,261 @@
     let webglBuffers = null;
     let webglShaderProgram = null;
 
+    // === WebGL Renderer Class ===
+    class WebGLRenderer {
+        constructor(canvas) {
+            this.canvas = canvas;
+            this.gl = canvas.getContext('webgl2', { 
+                alpha: true, 
+                antialias: true,
+                preserveDrawingBuffer: true
+            });
+            
+            if (!this.gl) {
+                console.error('WebGL2 not supported, falling back to Canvas 2D');
+                return null;
+            }
+            
+            this.initShaders();
+            this.initBuffers();
+            return this;
+        }
+        
+        initShaders() {
+            const gl = this.gl;
+            
+            // Point rendering program
+            const vsSource = `#version 300 es
+attribute vec2 a_position;
+attribute vec4 a_color;
+attribute float a_radius;
+attribute float a_is_imported;
+uniform vec2 u_resolution;
+uniform vec2 u_translation;
+uniform float u_scale;
+uniform float u_point_size_multiplier;
+varying vec4 v_color;
+varying float v_radius;
+varying float v_is_imported;
+
+void main() {
+    vec2 position = (a_position + u_translation) * u_scale;
+    vec2 clipSpace = (position / u_resolution) * 2.0 - 1.0;
+    clipSpace.y = -clipSpace.y;
+    gl_Position = vec4(clipSpace, 0.0, 1.0);
+    v_color = a_color;
+    v_radius = a_radius * u_point_size_multiplier;
+    v_is_imported = a_is_imported;
+    gl_PointSize = v_radius * 2.0;
+}
+`;
+            const fsSource = `#version 300 es
+precision highp float;
+
+varying vec4 v_color;
+varying float v_radius;
+varying float v_is_imported;
+
+void main() {
+    vec2 center = gl_PointCoord - 0.5;
+    float dist = length(center);
+    float alpha = 1.0;
+    if (v_is_imported > 0.5) {
+        float diamond_dist = max(abs(center.x), abs(center.y));
+        alpha = smoothstep(0.5, 0.45, diamond_dist);
+    } else {
+        alpha = smoothstep(v_radius / 2.0, v_radius / 2.0 - 1.0, dist * 2.0 * v_radius);
+    }
+    gl_FragColor = vec4(v_color.rgb, v_color.a * alpha);
+    if (gl_FragColor.a < 0.01) {
+        discard;
+    }
+}
+`;
+            
+            this.pointProgram = this.createProgram(vsSource, fsSource);
+            if (!this.pointProgram) return;
+            
+            // Cluster hull program
+            const clusterVsSource = `#version 300 es
+attribute vec2 a_position;
+uniform vec2 u_resolution;
+uniform vec2 u_translation;
+uniform float u_scale;
+
+void main() {
+    vec2 position = (a_position + u_translation) * u_scale;
+    vec2 clipSpace = (position / u_resolution) * 2.0 - 1.0;
+    clipSpace.y = -clipSpace.y;
+    gl_Position = vec4(clipSpace, 0.0, 1.0);
+}
+`;
+            const clusterFsSource = `#version 300 es
+precision highp float;
+uniform vec4 u_color;
+uniform float u_alpha;
+
+void main() {
+    gl_FragColor = vec4(u_color.rgb, u_alpha);
+}
+`;
+            
+            this.clusterProgram = this.createProgram(clusterVsSource, clusterFsSource);
+        }
+        
+        createProgram(vsSource, fsSource) {
+            const gl = this.gl;
+            const vertexShader = this.createShader(gl.VERTEX_SHADER, vsSource);
+            const fragmentShader = this.createShader(gl.FRAGMENT_SHADER, fsSource);
+            
+            if (!vertexShader || !fragmentShader) return null;
+            
+            const program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+            
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                console.error('Program link error:', gl.getProgramInfoLog(program));
+                return null;
+            }
+            
+            return program;
+        }
+        
+        createShader(type, source) {
+            const gl = this.gl;
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error('Shader compile error:', gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            
+            return shader;
+        }
+        
+        initBuffers() {
+            const gl = this.gl;
+            
+            // Point buffers
+            this.pointPositionBuffer = gl.createBuffer();
+            this.pointColorBuffer = gl.createBuffer();
+            this.pointRadiusBuffer = gl.createBuffer();
+            this.pointImportedBuffer = gl.createBuffer();
+            
+            // Cluster buffers
+            this.clusterPositionBuffer = gl.createBuffer();
+        }
+        
+        uploadPointData(positions, colors, radii, importedFlags) {
+            const gl = this.gl;
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.pointPositionBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.DYNAMIC_DRAW);
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.pointColorBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.DYNAMIC_DRAW);
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.pointRadiusBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(radii), gl.DYNAMIC_DRAW);
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.pointImportedBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(importedFlags), gl.DYNAMIC_DRAW);
+            
+            this.pointCount = positions.length / 2;
+        }
+        
+        uploadClusterHull(hullPoints) {
+            const gl = this.gl;
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.clusterPositionBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(hullPoints), gl.DYNAMIC_DRAW);
+            this.clusterCount = hullPoints.length / 2;
+        }
+        
+        render(transform, pointSizeMultiplier = 1.0) {
+            const gl = this.gl;
+            if (!this.pointProgram || !this.clusterProgram) return;
+            
+            gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+            gl.clearColor(0.05, 0.05, 0.08, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+            
+            // Render cluster hulls first (behind points)
+            this.renderClusterHulls(transform);
+            
+            // Render points
+            this.renderPoints(transform, pointSizeMultiplier);
+        }
+        
+        renderPoints(transform, pointSizeMultiplier) {
+            const gl = this.gl;
+            const program = this.pointProgram;
+            gl.useProgram(program);
+            
+            const uResolution = gl.getUniformLocation(program, 'u_resolution');
+            const uTranslation = gl.getUniformLocation(program, 'u_translation');
+            const uScale = gl.getUniformLocation(program, 'u_scale');
+            const uPointSizeMult = gl.getUniformLocation(program, 'u_point_size_multiplier');
+            
+            gl.uniform2f(uResolution, this.canvas.width, this.canvas.height);
+            gl.uniform2f(uTranslation, transform.translationX, transform.translationY);
+            gl.uniform1f(uScale, transform.scale);
+            gl.uniform1f(uPointSizeMult, pointSizeMultiplier);
+            
+            const aPosition = gl.getAttribLocation(program, 'a_position');
+            const aColor = gl.getAttribLocation(program, 'a_color');
+            const aRadius = gl.getAttribLocation(program, 'a_radius');
+            const aImported = gl.getAttribLocation(program, 'a_is_imported');
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.pointPositionBuffer);
+            gl.enableVertexAttribArray(aPosition);
+            gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.pointColorBuffer);
+            gl.enableVertexAttribArray(aColor);
+            gl.vertexAttribPointer(aColor, 4, gl.FLOAT, false, 0, 0);
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.pointRadiusBuffer);
+            gl.enableVertexAttribArray(aRadius);
+            gl.vertexAttribPointer(aRadius, 1, gl.FLOAT, false, 0, 0);
+            
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.pointImportedBuffer);
+            gl.enableVertexAttribArray(aImported);
+            gl.vertexAttribPointer(aImported, 1, gl.FLOAT, false, 0, 0);
+            
+            gl.drawArrays(gl.POINTS, 0, this.pointCount);
+        }
+        
+        renderClusterHulls(transform) {
+            const gl = this.gl;
+            // Simplified: render cluster bounding boxes
+            // In a full implementation, we'd upload per-cluster hulls
+        }
+        
+        resize(width, height) {
+            this.canvas.width = width;
+            this.canvas.height = height;
+        }
+        
+        destroy() {
+            const gl = this.gl;
+            if (this.pointProgram) gl.deleteProgram(this.pointProgram);
+            if (this.clusterProgram) gl.deleteProgram(this.clusterProgram);
+            if (this.pointPositionBuffer) gl.deleteBuffer(this.pointPositionBuffer);
+            if (this.pointColorBuffer) gl.deleteBuffer(this.pointColorBuffer);
+            if (this.pointRadiusBuffer) gl.deleteBuffer(this.pointRadiusBuffer);
+            if (this.pointImportedBuffer) gl.deleteBuffer(this.pointImportedBuffer);
+            if (this.clusterPositionBuffer) gl.deleteBuffer(this.clusterPositionBuffer);
+        }
+    }
+
     // Initialize
     async function init() {
         try {
@@ -1814,6 +2069,121 @@
         if (importedCount > 0) {
             info.classList.add('visible');
             document.getElementById('imported-count-text').textContent = `${importedCount} user-imported decisions on map`;
+        }
+    }
+
+    // === NEW: WebGL Renderer Toggle ===
+    async function toggleRenderer() {
+        const btn = document.getElementById('renderer-toggle');
+        const canvas = document.getElementById('map-canvas');
+        
+        if (!useWebGL) {
+            // Initialize WebGL
+            webglRenderer = new WebGLRenderer(canvas);
+            if (!webglRenderer || !webglRenderer.gl) {
+                alert('WebGL2 not supported in this browser. Falling back to Canvas 2D.');
+                return;
+            }
+            useWebGL = true;
+            btn.classList.add('active');
+            btn.textContent = 'Canvas 2D';
+            await loadMapWebGL();
+        } else {
+            // Switch back to Canvas 2D
+            useWebGL = false;
+            if (webglRenderer) {
+                webglRenderer.destroy();
+                webglRenderer = null;
+            }
+            btn.classList.remove('active');
+            btn.textContent = 'WebGL';
+            renderMap();  // Use Canvas 2D renderer
+        }
+    }
+
+    async function loadMapWebGL() {
+        let url;
+        if (currentMode) {
+            url = `${API}/api/webgl/data?mode=${currentMode}&zoom=${currentZoom}`;
+        } else {
+            url = `${API}/api/webgl/data?representation=${currentRep}&zoom=${currentZoom}`;
+        }
+        
+        try {
+            const resp = await fetch(url);
+            const webglData = await resp.json();
+            
+            if (webglData.error) {
+                console.error('WebGL data error:', webglData.error);
+                useWebGL = false;
+                document.getElementById('renderer-toggle').classList.remove('active');
+                document.getElementById('renderer-toggle').textContent = 'WebGL';
+                renderMap();
+                return;
+            }
+            
+            // Store data for rendering
+            currentData = {
+                positions: [],  // Will be reconstructed from webglData
+                clusters: webglData.clusters,
+                map_mode: webglData.map_mode
+            };
+            
+            // Reconstruct positions array for cluster list and other features
+            const points = webglData.points;
+            if (points && points.positions && points.count > 0) {
+                currentData.positions = [];
+                for (let i = 0; i < points.count; i++) {
+                    currentData.positions.push({
+                        x: points.positions[i * 2],
+                        y: points.positions[i * 2 + 1],
+                        cluster: 0,  // Will be set below
+                        decision_id: `point_${i}`,
+                        language: 'de',
+                        has_section_data: points.radii[i] > 3
+                    });
+                }
+                
+                // Assign clusters based on hull data or distribute evenly
+                // For simplicity, we'll assign based on the cluster hulls
+                // This is a simplified approach - in production, the server should return cluster assignments
+                const hulls = webglData.hulls || [];
+                const clusters = webglData.clusters || [];
+                
+                // For now, render cluster list from webglData.clusters
+                renderClusterList();
+                
+                // Render with WebGL
+                if (webglRenderer && webglRenderer.gl) {
+                    const transform = webglData.transform || {};
+                    const scale = canvas.width / Math.max(transform.xMax - transform.xMin, transform.yMax - transform.yMin) * 0.8;
+                    const translationX = -(transform.xMax + transform.xMin) / 2;
+                    const translationY = -(transform.yMax + transform.yMin) / 2;
+                    
+                    webglRenderer.uploadPointData(
+                        points.positions,
+                        points.colors,
+                        points.radii,
+                        points.imported
+                    );
+                    
+                    webglRenderer.render({
+                        translationX: translationX,
+                        translationY: translationY,
+                        scale: scale
+                    });
+                }
+            }
+            
+            clusterCoherenceCache = {};
+            clusterBounds = {};
+            
+        } catch (e) {
+            console.error('Failed to load WebGL data:', e);
+            useWebGL = false;
+            document.getElementById('renderer-toggle').classList.remove('active');
+            document.getElementById('renderer-toggle').textContent = 'WebGL';
+            renderMap();
         }
     }
 
