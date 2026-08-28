@@ -4,7 +4,7 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": true,
-  "accepted_run_id": "v6_citation_role_integration_20260828",
+  "accepted_run_id": "v6_citation_role_fixed_eval_20260828",
   "accepted_commit": "HEAD",
   "evidence_refs": [
     "legal_distance/results/v5/center_projected/v2_benchmark_results.json",
@@ -14,12 +14,20 @@
     "legal_distance/results/v6/citation_id_resolution/citation_to_decision_id.json",
     "legal_distance/results/v6/citation_id_resolution/resolution_stats.json",
     "legal_distance/results/v6/citation_role_integration/citation_role_integration_all_results.json",
+    "legal_distance/results/v6/citation_roles_fixed/citation_role_following_fixed.npy",
+    "legal_distance/results/v6/citation_roles_fixed/citation_role_citing_fixed.npy",
+    "legal_distance/results/v6/citation_roles_fixed/citation_role_all_weighted_fixed.npy",
+    "legal_distance/results/v6/citation_roles_fixed/citation_roles_fixed_summary.json",
+    "legal_distance/results/v6/citation_role_fixed_eval/citation_role_fixed_eval_all_results.json",
     "legal_distance/experiments/v6_citation_id_resolution.py",
     "legal_distance/experiments/v6_finetune_multilingual_e5.py",
     "legal_distance/experiments/v6_citation_role_integration.py",
+    "legal_distance/experiments/v6_fix_citation_roles.py",
+    "legal_distance/experiments/v6_eval_fixed_citation_roles.py",
     "legal_distance/reports/finetune_gpu_limitation.md",
     "legal_distance/reports/v6_repair_report.md",
-    "legal_distance/reports/v6_citation_role_integration_report.md"
+    "legal_distance/reports/v6_citation_role_integration_report.md",
+    "legal_distance/reports/v6_citation_role_fix_report.md"
   ],
-  "next_recommendation": "CONTINUE — 2/6 objectives COMPLETED (center_projected reproduction validated on v1+v2 benchmarks, scale test on center_projected, benchmark refinement); 4 PARTIAL: (1) multilingual-e5-small fine-tuning BLOCKED on GPU — code complete in v6_finetune_multilingual_e5.py, needs GPU runner; (2) citation role integration — NEGATIVE RESULT: 2,988 role annotations extracted but ALL 6 role embeddings are ZERO matrices due to citation format mismatch (BGE/ATF vs internal decision_ids); v6 ID resolution pipeline built but only resolves court decision citations (1,124/5,828), not BGE/ATF (2,180). Fix: re-run embedding construction using resolved court decision citations (Option C in report); (3) jurist pairwise evaluation — framework ready in results/v5/jurist_eval/, needs 5-10 Swiss jurists recruitment; (4) frontier metric_learning_jurivoc not yet chartered — must beat center_projected on adversarial benchmarks. Maintain refined 16-benchmark suite with adversarial gates as primary evaluation."
+  "next_recommendation": "CONTINUE — 3/6 objectives COMPLETED (center_projected reproduction validated, scale test on center_projected, benchmark refinement); Citation role integration PARTIALLY FIXED: 3/6 role embeddings now non-zero (following, citing, all_weighted) using resolved court decision citations; hybrids with center_projected @ alpha=0.3 PASS both adversarial gates AND improve NMI (+0.004 to +0.012) while preserving hierarchical structure; 3 PARTIAL: (1) multilingual-e5-small fine-tuning BLOCKED on GPU — code complete, needs GPU runner; (2) jurist pairwise evaluation — framework ready, needs 5-10 Swiss jurists recruitment; (3) frontier metric_learning_jurivoc not yet chartered — must beat center_projected on adversarial benchmarks. Remaining citation roles (distinguishing, overruling, criticizing) need BGE/ATF resolution or full corpus scale-up."
 }
