@@ -1,0 +1,32 @@
+{
+  "primary_metric": "pairwise_preference_rate",
+  "definition": "Proportion of times mode A preferred over mode B when both retrieved as neighbors",
+  "comparisons": [
+    "Each legal-signal mode vs baseline",
+    "Best single signals vs each other",
+    "Hybrid modes vs their component signals"
+  ],
+  "statistical_tests": {
+    "binomial_test": "Test if preference rate != 0.5 (no preference)",
+    "mcnemar_test": "Compare paired preferences across modes",
+    "bootstrap_ci": "95% CI for preference rates (10000 resamples)"
+  },
+  "secondary_metrics": [
+    "Confidence-weighted preference",
+    "Agreement rate among jurists (Fleiss' kappa)",
+    "Per-category preference (fact/legal/statute/precedent/outcome)",
+    "Cross-language preference consistency"
+  ],
+  "subgroup_analyses": [
+    "By jurist expertise level",
+    "By anchor decision branch",
+    "By anchor decision language",
+    "By question category"
+  ],
+  "success_criteria": {
+    "min_preference_rate": 0.55,
+    "min_statistical_significance": 0.05,
+    "min_jurist_agreement": 0.6,
+    "min_sample_per_comparison": 30
+  }
+}
