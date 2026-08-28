@@ -4,47 +4,51 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "eval_v5_20260828",
+  "accepted_run_id": "eval_v6_20260828",
   "accepted_commit": "HEAD",
   "evidence_refs": [
     "results/evaluation/v3_evaluation_results.json",
     "results/evaluation/v4_evaluation_results.json",
     "results/evaluation/v5_evaluation_results.json",
+    "results/evaluation/v6_signal_ablation/v6_signal_ablation_adversarial_results.json",
     "evaluation/run_v3_evaluation.py",
     "evaluation/run_v4_evaluation.py",
+    "evaluation/run_v6_signal_ablation_adversarial.py",
     "evaluation/tests/cross_language_benchmarks.py",
     "evaluation/tests/jurist_usability.py",
     "evaluation/tests/jurivoc_benchmarks.py",
     "evaluation/tests/scale_benchmarks_frozen.py",
     "evaluation/tests/boilerplate_resistance.py"
   ],
-  "next_recommendation": "EVALUATION V3 BASELINE VALIDATION COMPLETE — center_projected validated as ONLY representation passing BOTH adversarial gates (language_dominance=0.766 < 0.85, jurist_pairwise=0.512 > 0.5) on 1,200 decisions. Also passes boilerplate resistance (correlation=0.126), scale stability (perfect frozen PCA), Jurivoc hierarchy alignment (separation=0.113). Legal embeddings (3 models) all FAIL language dominance gate despite strong Jurivoc recovery. Citation role embeddings (6 roles) ALL DEGENERATE (identical failures, NMI=0.0). Two factory_direction v6 validation dependencies BLOCKED: (1) Signal ablation variant adversarial validation — legal-distance v5 produced zoom coherence results but did NOT persist embeddings (.npy files); (2) Frontier metric_learning_jurivoc validation — no frontier team dispatched, frontier directory empty. RECOMMENDATION: Factory Director must either coordinate legal-distance to persist signal ablation embeddings, dispatch frontier_metric_learning_jurivoc team, or define successor evaluation question acknowledging baseline validation complete.",
+  "next_recommendation": "EVALUATION V6 SIGNAL ABLATION VALIDATION COMPLETE — center_projected baseline (768-dim) validated on expanded 1,200-decision slice with frozen global seed=42. NO signal ablation variant passes BOTH adversarial gates (language_dominance < 0.85 AND jurist_pairwise > 0.5). citation_weights passes both gates but is DEGENERATE (single cluster, Jurivoc NMI=0.0, branch_purity=0.474). center_projected 768-dim: lang_dom=0.774 (PASS), pairwise=0.491 (FAIL, borderline). Best hybrid: hybrid_erwaegungen_03 (lang_dom=0.810 PASS, pairwise=0.420 FAIL). Legal-distance v5 signal ablation zoom-coherence winner (sachverhalt_tfidf) FAILS jurist pairwise (0.269) despite passing language dominance. erwaegungen_tfidf FAILS language dominance (0.904). norm_embeddings FAILS jurist pairwise (0.273). ALL erwaegungen combinations FAIL language dominance (>0.85). Two factory_direction v6 validation dependencies RESOLVED AS NEGATIVE: (1) Signal ablation variants tested adversarially — none beat center_projected on both gates; (2) Frontier metric_learning_jurivoc validation — no team dispatched, frontier directory empty. RECOMMENDATION: Factory Director should acknowledge evaluation v6 complete. Legal-distance must either improve center_projected baseline (64-dim PCA version passed both gates in v3) or develop new signal combinations. Fractal-map should use 64-dim center_projected (v3 version) not 768-dim. Successor evaluation question should focus on improving jurist pairwise preference for center_projected or testing new hybrid formulations.",
   "critical_findings": {
-    "center_projected_baseline_validated": "PASSES 7/8 adversarial benchmarks: language_dominance=0.766 (PASS), jurist_pairwise=0.512 (PASS), jurivoc_hierarchy=0.113 (PASS), boilerplate_resistance=0.126 (PASS), scale_stability_frozen_pca=1.0 (PERFECT), jurivoc_l2_nmi=0.441 (PASS), cluster_coherence=0.873 (PASS), zoom_task=+4.6% (PASS). Only FAIL: cross_language_retrieval=0.156 < 0.2.",
-    "legal_embeddings_all_fail_adversarial": "multilingual_e5_small (lang_dom=0.999), paraphrase_multilingual_minilm (0.972), xlm_roberta_base (0.999) — all > 0.85 threshold despite multilingual_e5_small achieving Jurivoc L2 NMI=0.502 and zero-shot transfer PASS.",
+    "center_projected_768dim_adversarial_validation": "PASSES language_dominance=0.774 (<0.85) but FAILS jurist_pairwise=0.491 (>0.5 threshold) — BORDERLINE. Note: v3 64-dim center_projected PASSED pairwise=0.512. The 768-dim version underperforms on jurist usability.",
+    "signal_ablation_adversarial_validation": "NO variant beats center_projected on both adversarial gates. citation_weights passes both but degenerate (single cluster, Jurivoc NMI=0.0). sachverhalt_tfidf (v5 zoom winner): lang_dom=0.770 PASS, pairwise=0.269 FAIL. erwaegungen_tfidf: lang_dom=0.904 FAIL. All erwaegungen combinations FAIL language dominance (>0.85). hybrid_erwaegungen_03 best hybrid: lang_dom=0.810 PASS, pairwise=0.420 FAIL.",
+    "legal_embeddings_all_fail_adversarial": "multilingual_e5_small (lang_dom=0.999), paraphrase_multilingual_minilm (0.972), xlm_roberta_base (0.999) — all >0.85 threshold despite multilingual_e5_small achieving Jurivoc L2 NMI=0.502.",
     "citation_roles_degenerate": "All 6 roles (overruling, distinguishing, following, all_weighted, citing, criticizing) produce IDENTICAL embeddings: single cluster (branch_purity=0.467, branch_nmi=0.0), Jurivoc NMI=0.0, useless standalone without semantic blending.",
-    "signal_ablation_validation_blocked": "Legal-distance v5 tested 24 variants with fractal-map harness (zoom coherence). Best: sachverhalt_tfidf (fine_purity=0.986, NMI=0.659). But embeddings NOT saved as .npy — cannot run adversarial benchmarks.",
-    "frontier_metric_learning_blocked": "No frontier_metric_learning_jurivoc team dispatched. Frontier directory empty."
+    "center_projected_64dim_vs_768dim": "CRITICAL: v3 used 64-dim center_projected (PCA-reduced) which PASSED both gates (lang_dom=0.766, pairwise=0.512). v6 evaluates 768-dim pre-PCA version which FAILS pairwise (0.491). Fractal-map and product MUST use 64-dim frozen PCA version.",
+    "frontier_metric_learning_validation": "BLOCKED — No frontier_metric_learning_jurivoc team dispatched; frontier directory empty in both accepted and workspace.",
+    "boilerplate_resistance": "SKIPPED — Full decision text not available in expanded slice metadata.",
+    "scale_stability_frozen_pca": "PERFECT position drift (mean cosine=1.0) for all non-degenerate variants. Citation weights FAILS scale stability (mean cosine=0.0)."
   },
-  "verdict": "center_projected validated as frozen baseline on expanded 1,200-decision slice with frozen global seed=42. Passes both adversarial gates, boilerplate resistance, scale stability, Jurivoc hierarchy alignment. Legal embeddings fail language dominance gate. Citation role embeddings degenerate. Signal ablation and frontier metric learning validations BLOCKED on upstream dependencies.",
   "completed_objectives": {
-    "1_center_projected_adversarial_validation": "COMPLETED - Only representation passing BOTH adversarial gates on 1200 decisions",
-    "2_legal_embeddings_adversarial_validation": "COMPLETED - All 3 FAIL language dominance gate (>0.85)",
-    "3_citation_role_embeddings_validation": "COMPLETED - All 6 roles degenerate (identical failures)",
-    "4_boilerplate_resistance_on_center_projected": "COMPLETED - PASS (correlation=0.126 in target range 0.1-0.4)",
-    "5_scale_stability_frozen_pca": "COMPLETED - PERFECT position drift (mean cosine=1.0)",
-    "6_jurivoc_hierarchy_alignment": "COMPLETED - PASS (separation=0.113 > 0.05)",
-    "7_freeze_evaluation_harness": "COMPLETED - Global seed=42, all benchmarks deterministic"
+    "1_center_projected_adversarial_validation": "COMPLETED — 768-dim version passes language dominance, fails jurist pairwise (borderline). 64-dim version (v3) passes both.",
+    "2_signal_ablation_adversarial_validation": "COMPLETED — 15 variants tested on expanded 1,200 slice. None beats center_projected on both adversarial gates. citation_weights passes both but degenerate.",
+    "3_legal_embeddings_adversarial_validation": "COMPLETED (from v3/v4) — All 3 FAIL language dominance gate (>0.85)",
+    "4_citation_role_embeddings_validation": "COMPLETED (from v3/v4) — All 6 roles degenerate (identical failures)",
+    "5_boilerplate_resistance_on_center_projected": "SKIPPED — Requires full decision text from corpus lane",
+    "6_scale_stability_frozen_pca": "COMPLETED — PERFECT for non-degenerate variants (mean cosine=1.0)",
+    "7_jurivoc_hierarchy_alignment": "COMPLETED — center_projected 64-dim PASSES (separation=0.113), 768-dim FAILS (0.096)",
+    "8_freeze_evaluation_harness": "COMPLETED — Global seed=42, all benchmarks deterministic"
   },
   "blocked_objectives": {
-    "8_signal_ablation_adversarial_validation": "BLOCKED - Legal-distance v5 signal ablation embeddings not persisted as .npy files. Only fractal-map zoom coherence results available.",
-    "9_frontier_metric_learning_validation": "BLOCKED - No frontier_metric_learning_jurivoc team dispatched; frontier directory empty."
+    "9_frontier_metric_learning_validation": "BLOCKED — No frontier_metric_learning_jurivoc team dispatched; frontier directory empty."
   },
   "audit_notes": {
-    "orchestration_note": "Evaluation v3/v4 executed successfully. Core baseline validation COMPLETE. Two validation dependencies from factory_direction v6 question remain blocked on upstream lanes.",
-    "evidence_preservation": "All raw outputs preserved: v3_evaluation_results.json, v4_evaluation_results.json, v5_evaluation_results.json. Negative results (legal embeddings language dominance FAIL, citation roles degenerate) preserved as first-class evidence.",
-    "validation_gap": "Factory direction v6 asks evaluation to validate signal ablation variants and frontier metric learning via adversarial benchmarks. Neither dependency has produced consumable embedding artifacts.",
-    "reproducibility": "Frozen global seed=42 ensures deterministic re-runs. All benchmark thresholds pre-declared in v3/v4 scripts.",
-    "recommendation": "Factory Director should either: (a) coordinate with legal-distance to persist signal ablation embeddings, (b) dispatch frontier_metric_learning_jurivoc team, or (c) update factory direction to reflect that evaluation v3 baseline validation is complete and remaining validations require upstream delivery."
+    "orchestration_note": "Evaluation v6 executed successfully after fixing cross-language benchmark API mismatch. Core baseline validation complete. Signal ablation validation complete with negative result. Frontier validation blocked on upstream (no team dispatched).",
+    "evidence_preservation": "All raw outputs preserved: v3_evaluation_results.json, v4_evaluation_results.json, v5_evaluation_results.json, v6_signal_ablation_adversarial_results.json. Negative results (signal ablation variants fail adversarial gates, citation_weights degenerate, 768-dim center_projected fails jurist pairwise) preserved as first-class evidence.",
+    "critical_discrepancy": "v3 evaluation used 64-dim center_projected (PCA output) which PASSES both adversarial gates. v6 evaluates 768-dim pre-PCA version which FAILS jurist pairwise. This is a material difference — fractal-map and product must use the 64-dim frozen PCA version validated in v3.",
+    "reproducibility": "Frozen global seed=42 ensures deterministic re-runs. All benchmark thresholds pre-declared in v3/v4/v6 scripts.",
+    "recommendation": "Factory Director should: (a) acknowledge evaluation v6 complete with negative signal ablation result, (b) direct legal-distance to either improve 64-dim center_projected baseline or develop new signal combinations that pass both adversarial gates, (c) direct fractal-map to use 64-dim center_projected (v3 version), (d) either dispatch frontier_metric_learning_jurivoc team or remove from factory direction, (e) define successor evaluation question focusing on improving jurist pairwise for center_projected or testing new hybrid formulations."
   }
 }
