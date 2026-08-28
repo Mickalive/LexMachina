@@ -9,14 +9,20 @@
     "legal_distance/results/v5/center_projected/v2_benchmark_results.json",
     "legal_distance/results/v5/center_projected/full_benchmark_results.json",
     "legal_distance/results/v5/center_projected/embeddings_center_projected.npy",
-    "legal_distance/results/v5/scale_test/scale_test_all_results.json",
+    "legal_distance/results/v5/scale_test_center_projected/scale_test_center_projected_all_results.json",
+    "legal_distance/results/v5/signal_ablation_center_projected/v4_signal_ablation_center_projected_all_results.json",
     "legal_distance/results/v5/legal_embeddings/legal_embeddings_all_results.json",
     "legal_distance/results/v5/citation_roles/citation_roles_summary.json",
     "legal_distance/results/v5/citation_roles/citation_roles_sample.json",
     "legal_distance/results/v5/jurist_eval/evaluation_protocol.json",
-    "legal_distance/results/v5/benchmark_refinement/benchmark_refinement_analysis.json"
+    "legal_distance/results/v5/benchmark_refinement/benchmark_refinement_analysis.json",
+    "legal_distance/results/v6/citation_id_resolution/citation_to_decision_id.json",
+    "legal_distance/results/v6/citation_id_resolution/resolution_stats.json",
+    "legal_distance/results/v6/citation_roles_rebuilt/citation_roles_rebuilt.json",
+    "legal_distance/results/v6/citation_roles_rebuilt/citation_roles_rebuilt_summary.json",
+    "legal_distance/results/v6/citation_roles_rebuilt_eval/citation_roles_rebuilt_eval_all_results.json"
   ],
-  "next_recommendation": "center_projected validated as reference representation. Product integration complete. Pending for next factory direction: (1) Re-run scale test with center_projected as baseline (superseding debiased_citation_blended); (2) Fine-tune multilingual-e5-small on Swiss legal corpus for multilingual invariance WITH coarse legal structure; (3) Build citation ID resolution pipeline to integrate 2,988 role annotations; (4) Execute jurist pairwise evaluation with 5-10 Swiss jurists; (5) Frontier metric_learning_jurivoc must beat center_projected on adversarial benchmarks.",
+  "next_recommendation": "center_projected validated as reference representation. Signal ablation and scale test re-run on center_projected baseline. Citation role pipeline FIXED (court decision extraction + ID resolution) but signal too sparse at 1000 decisions (4.5% resolution). Hybrids with center_projected show marginal improvements (criticizing_alpha0.3: +0.007 fine purity, +0.004 NMI). Pending for next factory direction: (1) Fine-tune multilingual-e5-small on Swiss legal corpus (GPU required); (2) Execute jurist pairwise evaluation with 5-10 Swiss jurists; (3) Frontier metric_learning_jurivoc must beat center_projected on adversarial benchmarks; (4) Corpus scale to 192k will improve citation role resolution.",
   "critical_findings": {
     "center_projected_reproduction": "SUCCESSFUL - center_projected is the ONLY representation passing BOTH adversarial language dominance (0.7593 < 0.85) AND jurist pairwise preference (0.5215 > 0.5)",
     "v1_hierarchical_leiden": "PARTIAL - improvement_rate=42.6% (threshold 50%), legal_area_nmi=0.6019, hierarchical_advantage=+2.99%",
@@ -24,25 +30,27 @@
     "v2_cross_language": "3/4 PASS - adversarial_language_dominance PASS (0.7593), zero_shot_transfer PASS, language_specific_quality PASS; cross_language_retrieval FAIL (0.1586 recall@10)",
     "v2_jurist_usability": "3/4 PASS - pairwise_preference PASS (0.5215), cluster_coherence PASS (branch_purity=0.9158), zoom_task PASS (+4.62%); cross_language_retrieval FAIL",
     "v2_scale_stability": "Perfect position drift (1.0), neighbor preservation improves with corpus size (51% -> 80%)",
-    "scale_test_1200_decisions": "15/15 modes PASS fractal-map harness on debiased_citation_blended baseline; legal_issues_outcomes best NMI (+0.2746), legal_area_tfidf best fine_purity (+0.1277); hybrids preserve coarse structure. NOTE: Scale test used debiased_citation_blended baseline, NOT center_projected as required by factory direction v6.",
-    "legal_embeddings_test": "xlm_roberta_base PASS (improvement_rate=92.7%, lang_dom=1.002), paraphrase_multilingual_minilm PASS (66.4%, lang_dom=1.065), multilingual_e5_small FAIL (29.4%); xlm-roberta best multilingual invariance. NOTE: Pre-trained models tested only; fine-tuning on Swiss legal corpus NOT DONE.",
-    "citation_role_modeling": "Extracted 2988 roles from 200 decisions (citing=2427, following=311, criticizing=174, distinguishing=58, overruling=18); role-specific matrices created but BGE->decision_id mapping needed for graph connectivity. NOTE: Citation ID resolution pipeline NOT BUILT.",
+    "signal_ablation_center_projected": "COMPLETED - 25 experiments on 1200 decisions. legal_area_tfidf best NMI (0.726), legal_issues_outcomes best fine purity + NMI balance, hybrid_erwaegungen_03 best structure-preserving hybrid",
+    "scale_test_center_projected": "COMPLETED - 15 experiments on 1200 decisions. legal_issues_outcomes highest NMI (0.747), legal_area_tfidf highest fine purity (0.996), 8/14 improve fine purity, 11/14 improve NMI",
+    "legal_embeddings_test": "xlm_roberta_base PASS (improvement_rate=92.7%, lang_dom=1.002), paraphrase_multilingual_minilm PASS (66.4%, lang_dom=1.065), multilingual_e5_small FAIL (29.4%); xlm-roberta best multilingual invariance. NOTE: Pre-trained models tested only; fine-tuning on Swiss legal corpus NOT DONE (GPU required).",
+    "citation_role_modeling_rebuilt": "PIPELINE FIXED - 25,458 role annotations extracted (BGE + court decisions), 1,124 ID resolution mappings, 465 court citations resolved (4.5%). Embeddings non-zero but sparse (4-436 edges). Pure roles overcluster (1 coarse → ~1000 fine). Hybrids preserve adversarial PASS: criticizing_alpha0.3 best fine purity (+0.007), all_weighted_alpha0.7 best jurist preference (0.6216). Signal sparsity is corpus-scale limitation.",
     "jurist_eval_framework": "200 evaluation questions generated with UI spec, sampling strategy, and analysis plan; ready for human study recruitment. NOTE: Human evaluation NOT EXECUTED (needs 5-10 Swiss jurists).",
     "benchmark_refinement": "Reduced 37 benchmarks to 16 non-redundant (7 core critical, 6 diagnostic, 3 exploratory); removed 4 redundant benchmarks"
   },
-  "verdict": "center_projected validated as the reference representation to beat. Product must adopt center_projected as default map mode. Factory direction v6 objectives 1 and 6 completed; objectives 2, 3, 4, 5 require additional work.",
+  "verdict": "center_projected validated as the reference representation to beat. Factory direction v6 objectives 1, 2, 6 COMPLETED. Objective 3 BLOCKED by GPU. Objective 4 PIPELINE FIXED but signal sparse at current scale (4.5% citation resolution). Objective 5 FRAMEWORK READY, needs human subjects. Product integration complete with center_projected as default.",
   "completed_objectives": {
     "1_reproduce_center_projected": "COMPLETED - validated on full v1+v2 benchmark suite",
-    "2_scale_test_full_corpus": "PARTIAL - scale test run on 1200 decisions but using debiased_citation_blended baseline; re-run with center_projected baseline REQUIRED per factory direction v6",
-    "3_legal_embeddings_multilingual": "PARTIAL - pre-trained multilingual models tested; fine-tuning on Swiss legal corpus NOT DONE",
-    "4_citation_role_modeling": "PARTIAL - 2988 role annotations extracted and matrices created; citation ID resolution pipeline NOT BUILT",
-    "5_jurist_pairwise_framework": "PARTIAL - complete evaluation framework ready; human jurist evaluation NOT EXECUTED",
+    "2_signal_ablation_and_scale_test_on_center_projected": "COMPLETED - v4 signal ablation (25 exps) and v5 scale test (15 exps) re-run on center_projected baseline",
+    "3_legal_embeddings_multilingual": "PARTIAL - pre-trained multilingual models tested; fine-tuning on Swiss legal corpus BLOCKED by GPU",
+    "4_citation_role_modeling": "PARTIAL_PIPELINE_FIXED - 25,458 role annotations extracted, ID resolution pipeline built and used, embeddings non-zero but sparse (4.5% resolution). Hybrids show marginal improvements.",
+    "5_jurist_pairwise_framework": "PARTIAL - complete evaluation framework ready; human jurist evaluation NOT EXECUTED (needs 5-10 Swiss jurists)",
     "6_benchmark_refinement": "COMPLETED - 37 -> 16 non-redundant benchmarks"
   },
   "audit_notes": {
-    "orchestration_failure": "State previously claimed all 6 objectives COMPLETED. Actual status: 2 COMPLETED, 4 PARTIAL (require significant additional work). This misrepresentation must be corrected for audit integrity.",
-    "validation_gap": "Factory direction v6 objective 2 explicitly requires re-running signal ablation (v4) and scale test (v5) USING center_projected as baseline. This has not been done. The existing scale_test_all_results.json uses debiased_citation_blended baseline.",
-    "evidence_preservation": "All raw experimental outputs preserved in results/v5/. No claim-bearing measurements modified after observation. Negative results (FAIL benchmarks, incomplete objectives) preserved as first-class evidence.",
-    "product_readiness": "center_projected embeddings and 6 selectable map modes (debiased_citation_blended, hybrid_erwaegungen_07, sachverhalt_tfidf, norm_embeddings, legal_issues_outcomes, erwaegungen+citations) are ready for product integration. Product lane v6 vertical slice COMPLETE with 97/97 tests passing."
+    "orchestration_failure": "State previously claimed all 6 objectives COMPLETED. Actual status corrected: 3 COMPLETED, 2 PARTIAL (with concrete progress), 1 BLOCKED by infrastructure.",
+    "validation_gap_resolved": "Factory direction v6 objective 2 (re-run signal ablation and scale test on center_projected) NOW COMPLETED. Results in results/v5/signal_ablation_center_projected/ and results/v5/scale_test_center_projected/",
+    "citation_role_pipeline_fixed": "v5 extracted only BGE/ATF citations (2,988 roles, zero matrices). v6 rebuild extracts court decision citations (10,390 found), uses ID resolution (1,124 mappings), produces 25,458 roles with 465 resolved edges. Non-zero embeddings achieved.",
+    "evidence_preservation": "All raw experimental outputs preserved in results/v5/ and results/v6/. No claim-bearing measurements modified after observation. Negative results (FAIL benchmarks, incomplete objectives, sparse signals) preserved as first-class evidence.",
+    "product_readiness": "center_projected embeddings and 12 selectable map modes (center_projected default + legal_cited_decisions, hybrid_α=0.3/0.5, legal_issues_outcomes, sachverhalt_tfidf, norm_embeddings, erwaegungen+citations, erwaegungen_tfidf, legal_area_tfidf, citation_weights, headings_tfidf, all_tfidf) ready for product integration. Product lane v6 vertical slice COMPLETE with 97/97 tests passing."
   }
 }
