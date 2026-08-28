@@ -489,6 +489,51 @@
           "all_passed": false
         }
       }
+    },
+    "center_projected": {
+      "mode_id": "center_projected",
+      "name": "Center Projected (Language-Debiased)",
+      "description": "Language-debiased representation: PCA-1 projection of multilingual embeddings removing language-dominant component. The ONLY v2 representation to pass BOTH adversarial language dominance (<0.85) AND jurist pairwise preference (>0.5). Achieves 4/5 Jurivoc benchmarks, zoom coherence +4.6%. Awaiting legal-distance full benchmark suite reproduction per factory direction v6.",
+      "mode_type": "legal_distance",
+      "status": "placeholder",
+      "is_default": false,
+      "resolution_ladder": [
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.5,
+        2.0,
+        3.0
+      ],
+      "artifacts": {},
+      "metadata": {
+        "representation": "center_projected",
+        "evidence_tier": "EXPLORATORY",
+        "note": "Requires legal-distance reproduction on full v1+v2 benchmark suite before product integration",
+        "adversarial_language_dominance": 0.7593,
+        "jurist_pairwise_preference": 0.5215,
+        "jurivoc_benchmarks_passed": 4,
+        "jurivoc_benchmarks_total": 5,
+        "zoom_coherence_improvement_pct": 4.6
+      },
+      "legal_distance_config": {
+        "type": "embedding_projection",
+        "config": {
+          "base_embedding": "multilingual_e5_small",
+          "n_pca_components": 1,
+          "projection_method": "center_projected"
+        }
+      },
+      "benchmark_results": {
+        "summary": {
+          "total_benchmarks": 14,
+          "passed": 0,
+          "failed": 0,
+          "all_passed": false,
+          "status": "pending_validation"
+        }
+      }
     }
   }
 }
