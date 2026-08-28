@@ -60,7 +60,7 @@ The system exposes a **default center_projected hierarchical Leiden map** plus *
 - **Adversarial language dominance**: 0.7593 (< 0.85 threshold) ✅
 - **Jurist pairwise preference**: 0.5215 (> 0.5 threshold) ✅
 - **Jurivoc hierarchy alignment**: 4/5 PASS
-- **Zoom coherence**: 59.2% improvement rate
+- **Zoom coherence**: 63.0% improvement rate (validated: 68 improvements, 11 deteriorations, 29 no-change at sub-cluster level; beats concat baseline 59.2%)
 
 ### 3.3 Artifacts
 All artifacts available at `results/fractal_map/hierarchical_map_center_projected/`:
@@ -221,7 +221,7 @@ The loader automatically detects available artifacts.
 ✅ Center Projected Hierarchical Leiden as default map structure (REPRODUCED, validated)  
 ✅ 7-resolution ladder with legal coherence metrics exposed  
 ✅ Perfect nesting (1.0) guaranteed for hierarchical mode  
-✅ 59.2% zoom improvement rate validated  
+✅ 63.0% zoom improvement rate validated (beats concat baseline 59.2%)  
 ✅ Hierarchical purity 0.9638 (+0.0148 vs concat baseline)  
 ✅ Adversarial language dominance 0.7593 < 0.85 PASS  
 ✅ Jurist pairwise preference 0.5215 > 0.5 PASS  
