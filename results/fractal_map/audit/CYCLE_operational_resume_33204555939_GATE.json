@@ -1,0 +1,129 @@
+{
+  "lane": "fractal-map",
+  "direction_version": 6,
+  "run_id": "operational_resume_33204555939",
+  "github_run": "33204555939",
+  "timestamp": "2026-08-28T19:55:00Z",
+  "evidence_tier": "REPRODUCED",
+  "cycle_status": "COMPLETED",
+  "continue_recommended": false,
+  "next_recommendation": "PRODUCTIZE",
+  "gate": "PASS",
+  "audit_summary": "Operational resume 33204555939 completes accepted branch mirroring and final audit-readiness verification for factory direction v6. Prior operational resume 33204143000 reported mirroring COMPLETE but /tmp/lex_accepted/state/fractal_map.json and /tmp/lex_accepted/results/fractal_map/ did not exist. This run fixes the orchestration gap: created /tmp/lex_accepted/state/, mirrored state/fractal-map.json → /tmp/lex_accepted/state/fractal_map.json, and mirrored all 5 fractal-map result artifact directories (hierarchical_map_center_projected, hierarchical_map, product_integration, legal_distance_modes, evaluation) to /tmp/lex_accepted/results/fractal_map/. All 48 verification tests PASS. State file consistent with direction_version=6. Lane deliverable (center_projected_hierarchical as DEFAULT map mode) remains COMPLETE and REPRODUCED. Snapshot is audit-ready for promotion.",
+  "factory_direction_question": "REPRODUCE validated hierarchical Leiden map (nesting=1.0, purity=0.949, zoom_coherence 59.2% improvement rate) on center_projected embeddings as new default input. Current validation used debiased_citation_blended/concat_center_tfidf. Expose resolution ladder, cluster metadata, legal coherence at each zoom level in product; integrate as default map structure with legal-distance selectable modes.",
+  "orchestration_diagnosis": {
+    "pathology": "Accepted branch mirroring reported COMPLETE in run 33204143000 but artifacts missing from /tmp/lex_accepted",
+    "root_cause": "Audit gate written before mirroring execution completed; gap detected in operational resume 33204555939",
+    "classification": "Orchestration completeness gap, NOT scientific failure",
+    "fix_applied": "Created /tmp/lex_accepted/state/ and /tmp/lex_accepted/results/fractal_map/; mirrored state file and 5 result directories (42 artifacts); re-verified all 48 tests pass; created this audit gate atomically with mirroring",
+    "recommendation": "Future operational resumes must execute mirroring BEFORE writing audit gate; add mirroring verification to CI gate"
+  },
+  "accepted_branch_mirroring": {
+    "state_file": "/tmp/lex_accepted/state/fractal_map.json",
+    "results_mirrored": "/tmp/lex_accepted/results/fractal_map/",
+    "artifacts_mirrored": [
+      "hierarchical_map_center_projected",
+      "hierarchical_map (legacy)",
+      "product_integration",
+      "legal_distance_modes",
+      "evaluation"
+    ],
+    "status": "COMPLETE",
+    "verified_files": 42,
+    "state_file_verified_identical": true
+  },
+  "verification_results": {
+    "total_tests": 48,
+    "passed": 48,
+    "failed": 0,
+    "test_categories": {
+      "TestArtifactIntegrity": 18,
+      "TestHierarchicalLeiden": 6,
+      "TestMetricConsistency": 7,
+      "TestLegacyConcatPreserved": 10,
+      "TestLegalDistanceModes": 3
+    }
+  },
+  "deliverables_reverified": {
+    "hierarchical_leiden_on_center_projected": {
+      "status": "VERIFIED",
+      "hierarchical_purity": 0.9638472023157695,
+      "nesting_score": 1.0,
+      "n_hierarchical_clusters": 108,
+      "resolution_ladder": [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+      "cluster_counts": [5, 7, 9, 11, 14, 16, 19],
+      "zoom_coherence_improvement_rate": 0.630,
+      "evidence_tier": "REPRODUCED"
+    },
+    "default_mode_updated": {
+      "status": "VERIFIED",
+      "default_mode_id": "center_projected_hierarchical",
+      "replaces": "hierarchical_leiden_concat (legacy)"
+    },
+    "resolution_ladder_exposed": {
+      "status": "VERIFIED",
+      "levels": 7
+    },
+    "cluster_metadata_legal_coherence": {
+      "status": "VERIFIED",
+      "location": "results/fractal_map/hierarchical_map_center_projected/cluster_metadata.json"
+    },
+    "legal_distance_selectable_modes": {
+      "status": "VERIFIED",
+      "count": 5,
+      "modes": ["debiased_citation_blended", "legal_cited_decisions_only", "hybrid_alpha_03", "hybrid_alpha_05", "legal_issues_outcomes"],
+      "evidence_tier": "ACCEPTED"
+    },
+    "product_integration_artifacts": {
+      "status": "VERIFIED",
+      "location": "results/fractal_map/product_integration/"
+    }
+  },
+  "key_metrics": {
+    "center_projected_hierarchical": {
+      "hierarchical_purity_global": 0.9638472023157695,
+      "hierarchical_purity_local": 0.9638,
+      "flat_mean_purity": 0.9341034737421106,
+      "purity_improvement_vs_flat_pct": 3.18,
+      "purity_improvement_vs_concat_baseline_pct": 1.55,
+      "nesting_score": 1.0,
+      "n_hierarchical_clusters": 108,
+      "adversarial_language_dominance": 0.7593,
+      "jurist_pairwise_preference": 0.5215,
+      "jurivoc_benchmarks_passed": 4,
+      "jurivoc_benchmarks_total": 5
+    }
+  },
+  "negative_results_preserved": [
+    "Flat Leiden nesting imperfect (mean ~0.50 across resolution ladder)",
+    "Some clusters already homogeneous at coarse resolution (no zoom improvement expected)",
+    "igraph version sensitivity: cluster counts vary but key invariants preserved (nesting=1.0, purity>0.94)",
+    "Legal_issues_outcomes fails multilingual_invariance and adversarial_falsification benchmarks",
+    "Hybrid modes fail adversarial_falsification benchmark"
+  ],
+  "factory_direction_v6_requirements_satisfied": {
+    "reproduce_hierarchical_leiden_on_center_projected": true,
+    "expose_resolution_ladder": true,
+    "cluster_metadata_legal_coherence": true,
+    "integrate_as_default_map_structure": true,
+    "legal_distance_selectable_modes": true
+  },
+  "evidence_traceability": {
+    "primary_results": "results/fractal_map/hierarchical_map_center_projected/center_projected_hierarchical_results.json",
+    "map_mode_registry": "results/fractal_map/product_integration/map_mode_registry.json",
+    "product_integration_spec": "results/fractal_map/product_integration/PRODUCT_INTEGRATION_SPEC.md",
+    "legal_distance_modes": "results/fractal_map/legal_distance_modes/",
+    "loader_api": "results/fractal_map/product_integration/map_mode_loader.py",
+    "accepted_branch_state": "/tmp/lex_accepted/state/fractal_map.json",
+    "accepted_branch_results": "/tmp/lex_accepted/results/fractal_map/",
+    "state_file": "state/fractal-map.json",
+    "audit_trail": [
+      "results/fractal_map/audit/CYCLE_center_projected_hierarchical_v5_33137354250_GATE.json",
+      "results/fractal_map/audit/CYCLE_center_projected_hierarchical_v6_33139587950_GATE.json",
+      "results/fractal_map/audit/CYCLE_operational_resume_33203199224_GATE.json",
+      "results/fractal_map/audit/CYCLE_operational_resume_33203842997_GATE.json",
+      "results/fractal_map/audit/CYCLE_operational_resume_33204143000_GATE.json",
+      "results/fractal_map/audit/CYCLE_operational_resume_33204555939_GATE.json"
+    ]
+  }
+}
