@@ -86,6 +86,12 @@ class MapLoader:
         # Load center_projected (CRITICAL: ONLY representation passing BOTH adversarial benchmarks)
         self._load_center_projected()
 
+        # Load center_projected_hierarchical (VALIDATED DEFAULT: fractal-map lane REPRODUCED)
+        # Hierarchical Leiden on pure center_projected embeddings: nesting=1.0, purity=0.9638,
+        # 7-resolution ladder (5→7→9→11→14→16→19), 108 hierarchical clusters (coarse_0.5_fine_3.0),
+        # zoom coherence improvement rate 59.2%, branch purity ladder 0.84→0.91→0.97→0.97→0.96→0.96→0.93
+        self._load_center_projected_hierarchical()
+
         # Load hybrid alpha=0.3 (30% center_projected + 70% legal_cited_decisions)
         self._load_hybrid_alpha_0_3()
 
@@ -1329,6 +1335,252 @@ class MapLoader:
                         "(language dominance <0.85 AND jurist pairwise >0.5). "
                         "Evaluation v2 RECOMMENDATION: Adopt as default map mode.",
             })
+
+    def _load_center_projected_hierarchical(self) -> None:
+        """Load the center_projected_hierarchical representation (VALIDATED DEFAULT - fractal-map lane REPRODUCED).
+
+        This is the FRACTAL-MAP LANE VALIDATED DEFAULT map mode:
+        - Hierarchical Leiden on pure center_projected embeddings (768-dim, language-debiased)
+        - Perfect nesting (1.0) by construction
+        - Hierarchical purity: 0.9638 (beats concat baseline 0.9491)
+        - 7-resolution ladder: 0.25 (5) → 0.5 (7) → 0.75 (9) → 1.0 (11) → 1.5 (14) → 2.0 (16) → 3.0 (19)
+        - Best config: coarse_0.5_fine_3.0 with 108 hierarchical clusters (8 coarse → 108 fine)
+        - Coarse purity: 0.9123, Fine purity: 0.9638
+        - Zoom coherence improvement rate: 59.2%
+        - Branch purity ladder: 0.840 → 0.912 → 0.972 → 0.965 → 0.964 → 0.955 → 0.929
+        - Evaluation v2: center_projected passes BOTH adversarial benchmarks
+          (language dominance 0.7593 < 0.85, jurist pairwise 0.5215 > 0.5)
+        - Jurivoc hierarchy alignment: 4/5 PASS
+
+        Evidence tier: REPRODUCED (fractal-map lane validation run 33137354250).
+        RECOMMENDATION: Product MUST adopt as DEFAULT map mode.
+        """
+        cp_hier_dir = self.results_dir / "center_projected_hierarchical"
+        baseline_dir = self.results_dir / "baseline"
+
+        if not (cp_hier_dir / "metadata.json").exists():
+            return
+        if not (cp_hier_dir / "projection_2d.npy").exists():
+            return
+        if not (cp_hier_dir / "embeddings.npy").exists():
+            return
+        if not (cp_hier_dir / "center_projected_hierarchical_results.json").exists():
+            return
+
+        # Load metadata (same decision order as baseline)
+        with open(cp_hier_dir / "metadata.json", "r") as f:
+            metadata = json.load(f)
+
+        decision_ids = [m["decision_id"] for m in metadata]
+        n_decisions = len(decision_ids)
+
+        # Load 2D projection (PCA of center_projected embeddings)
+        projection = np.load(cp_hier_dir / "projection_2d.npy")
+
+        # Load hierarchical Leiden results
+        with open(cp_hier_dir / "center_projected_hierarchical_results.json", "r") as f:
+            hier_results = json.load(f)
+
+        # Load label arrays for each resolution
+        resolution_keys = ["0.25", "0.5", "0.75", "1.0", "1.5", "2.0", "3.0"]
+        resolution_to_zoom = {
+            "0.25": 0, "0.5": 1, "0.75": 2, "1.0": 3,
+            "1.5": 4, "2.0": 5, "3.0": 6
+        }
+
+        labels_by_resolution = {}
+        for res_key in resolution_keys:
+            label_file = cp_hier_dir / f"labels_res_{res_key}.npy"
+            if label_file.exists():
+                labels_by_resolution[res_key] = np.load(label_file)
+
+        # Load hierarchical labels (best config: coarse_0.5_fine_3.0)
+        hierarchical_labels = None
+        coarse_labels = None
+        if (cp_hier_dir / "labels_hierarchical_best.npy").exists():
+            hierarchical_labels = np.load(cp_hier_dir / "labels_hierarchical_best.npy")
+        if (cp_hier_dir / "labels_coarse_0.5.npy").exists():
+            coarse_labels = np.load(cp_hier_dir / "labels_coarse_0.5.npy")
+
+        # Load cluster metadata and zoom mappings
+        cluster_metadata = {}
+        if (cp_hier_dir / "cluster_metadata.json").exists():
+            with open(cp_hier_dir / "cluster_metadata.json", "r") as f:
+                cluster_metadata = json.load(f)
+
+        zoom_mappings = {}
+        if (cp_hier_dir / "zoom_mappings.json").exists():
+            with open(cp_hier_dir / "zoom_mappings.json", "r") as f:
+                zoom_mappings = json.load(f)
+
+        zoom_coherence = {}
+        if (cp_hier_dir / "zoom_coherence.json").exists():
+            with open(cp_hier_dir / "zoom_coherence.json", "r") as f:
+                zoom_coherence = json.load(f)
+
+        # Load decision clusters
+        decision_clusters = {}
+        if (cp_hier_dir / "decision_clusters.json").exists():
+            with open(cp_hier_dir / "decision_clusters.json", "r") as f:
+                decision_clusters = json.load(f)
+
+        # Load cluster assignments from hierarchical results (best config)
+        best_config = hier_results.get("hierarchical_results", {}).get("coarse_0.5_fine_3.0", {})
+        cluster_info = best_config.get("cluster_info", {})
+
+        # Build assignments from hierarchical labels (108 fine clusters)
+        index_to_id = {i: m["decision_id"] for i, m in enumerate(metadata)}
+        hierarchical_assignments = {}
+        if hierarchical_labels is not None:
+            for idx, label in enumerate(hierarchical_labels):
+                did = index_to_id.get(idx)
+                if did:
+                    hierarchical_assignments[did] = int(label)
+
+        # Build coarse assignments (8 coarse clusters)
+        coarse_assignments = {}
+        if coarse_labels is not None:
+            for idx, label in enumerate(coarse_labels):
+                did = index_to_id.get(idx)
+                if did:
+                    coarse_assignments[did] = int(label)
+
+        # Build zoom levels from flat multi-resolution labels (7 resolution levels)
+        positions = {}
+        for i, did in enumerate(decision_ids):
+            if i < len(projection):
+                positions[did] = (float(projection[i, 0]), float(projection[i, 1]))
+
+        zoom_levels = {}
+
+        # Flat resolution levels (0-6)
+        for res_key, zoom_level in resolution_to_zoom.items():
+            labels = labels_by_resolution.get(res_key)
+            if labels is None:
+                continue
+
+            cluster_assignments = {}
+            for idx, label in enumerate(labels):
+                did = index_to_id.get(idx)
+                if did:
+                    cluster_assignments[did] = int(label)
+
+            # Build cluster info from metadata
+            meta_key = f"res_{res_key}"
+            res_metadata = cluster_metadata.get(meta_key, {})
+            clusters = {}
+            for cid_str, cluster_data in res_metadata.items():
+                cid = int(cid_str)
+                decision_indices = cluster_data.get("decision_indices", [])
+                decision_ids_in_cluster = [decision_ids[i] for i in decision_indices if i < len(decision_ids)]
+
+                clusters[cid] = ClusterInfo(
+                    cluster_id=cid,
+                    zoom_level=zoom_level,
+                    decision_ids=decision_ids_in_cluster,
+                    size=cluster_data.get("size", 0),
+                    centroid_x=0.0,
+                    centroid_y=0.0,
+                    legal_area_label=cluster_data.get("dominant_area"),
+                    language_label=cluster_data.get("dominant_lang"),
+                )
+
+            # Compute centroids
+            for cid, cluster in clusters.items():
+                xs = [positions[did][0] for did in cluster.decision_ids if did in positions]
+                ys = [positions[did][1] for did in cluster.decision_ids if did in positions]
+                if xs and ys:
+                    cluster.centroid_x = sum(xs) / len(xs)
+                    cluster.centroid_y = sum(ys) / len(ys)
+
+            zoom_levels[zoom_level] = ZoomLevel(
+                level=zoom_level,
+                n_clusters=len(clusters),
+                clusters=clusters,
+                positions=positions,
+                cluster_assignments=cluster_assignments,
+                n_decisions=n_decisions,
+            )
+
+        # Add hierarchical level (zoom 7) with 108 fine clusters nested in 8 coarse
+        if hierarchical_assignments:
+            hierarchical_clusters = {}
+            for did, cid in hierarchical_assignments.items():
+                if cid not in hierarchical_clusters:
+                    hierarchical_clusters[cid] = ClusterInfo(
+                        cluster_id=cid,
+                        zoom_level=7,
+                        decision_ids=[],
+                        size=0,
+                    )
+                hierarchical_clusters[cid].decision_ids.append(did)
+                hierarchical_clusters[cid].size += 1
+
+            for cid, cluster in hierarchical_clusters.items():
+                xs = [positions[did][0] for did in cluster.decision_ids if did in positions]
+                ys = [positions[did][1] for did in cluster.decision_ids if did in positions]
+                if xs and ys:
+                    cluster.centroid_x = sum(xs) / len(xs)
+                    cluster.centroid_y = sum(ys) / len(ys)
+
+            zoom_levels[7] = ZoomLevel(
+                level=7,
+                n_clusters=len(hierarchical_clusters),
+                clusters=hierarchical_clusters,
+                positions=positions,
+                cluster_assignments=hierarchical_assignments,
+                n_decisions=n_decisions,
+            )
+
+        # Store fractal map metadata for API access
+        self._fractal_map_metadata["center_projected_hierarchical"] = {
+            "cluster_metadata": cluster_metadata,
+            "zoom_mappings": zoom_mappings,
+            "decision_clusters": decision_clusters,
+            "zoom_coherence": zoom_coherence,
+            "hierarchical_results": hier_results,
+            "best_config": "coarse_0.5_fine_3.0",
+        }
+
+        self.maps["center_projected_hierarchical"] = MapState(
+            representation="center_projected_hierarchical",
+            n_decisions=n_decisions,
+            zoom_levels=zoom_levels,
+            metadata={
+                "n_decisions": n_decisions,
+                "n_zoom_levels": len(zoom_levels),
+                "clustering_method": "hierarchical_leiden_center_projected",
+                "config": "coarse_0.5_fine_3.0",
+                "resolutions": resolution_keys,
+                "coarse_clusters": 8,
+                "fine_clusters": 108,
+                "hierarchical_purity": 0.9638,
+                "coarse_purity": 0.9123,
+                "nesting_score": 1.0,
+                "zoom_coherence_improvement_rate": 0.592,
+                "branch_purity_ladder": {
+                    "0.25": 0.8405,
+                    "0.5": 0.9123,
+                    "0.75": 0.9719,
+                    "1.0": 0.9651,
+                    "1.5": 0.9643,
+                    "2.0": 0.9554,
+                    "3.0": 0.9292,
+                },
+                "evidence_tier": "REPRODUCED",
+                "validation_run": "33137354250",
+                "embeddings": "center_projected (768 dim, pure, no TF-IDF)",
+                "adversarial_language_dominance": 0.7593,
+                "jurist_pairwise_preference": 0.5215,
+                "jurivoc_benchmarks_passed": 4,
+                "jurivoc_benchmarks_total": 5,
+                "note": "VALIDATED DEFAULT (fractal-map lane): Hierarchical Leiden on pure center_projected. "
+                        "Perfect nesting (1.0), hierarchical purity 0.9638 > concat baseline 0.9491. "
+                        "7-resolution ladder with 59.2% zoom coherence improvement. "
+                        "ONLY representation passing BOTH adversarial language dominance AND jurist pairwise. "
+                        "MUST be default map mode per evaluation v2 and fractal-map v5.",
+            },
+        )
 
     def _create_hybrid_embedding(
         self,
