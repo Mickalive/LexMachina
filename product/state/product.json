@@ -1,10 +1,10 @@
 {
   "lane": "product",
-  "direction_version": 1,
+  "direction_version": 6,
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "product_cycle_33035450227",
+  "accepted_run_id": "product_cycle_33132341210",
   "accepted_commit": "HEAD",
   "evidence_refs": [
     "product/app/navigation.py",
@@ -18,6 +18,7 @@
     "product/app/tfidf_proximity.py",
     "product/app/section_projection_scaler.py",
     "product/app/evaluation_loader.py",
+    "product/app/schema_validator.py",
     "product/server.py",
     "product/static/index.html",
     "product/tests/test_product.py",
@@ -30,6 +31,9 @@
     "product/results/fractal_map/citation_graph",
     "product/results/fractal_map/section_scaled",
     "product/results/fractal_map/unified_evaluation",
+    "product/results/fractal_map/legal_cited_decisions",
+    "product/results/fractal_map/legal_signals_1000.jsonl",
+    "product/results/fractal_map/product_integration",
     "product/results/corpus/normalization/canonical",
     "product/reports/product_cycle_report.md",
     "product/reports/cycle_report_20260827_product.md"
@@ -37,7 +41,7 @@
   "next_recommendation": "PRODUCTIZE",
   "metrics": {
     "corpus_decisions": 1202,
-    "maps_loaded": 6,
+    "maps_loaded": 12,
     "section_modes_loaded": 6,
     "citation_graph_loaded": true,
     "zoom_coherence_loaded": true,
@@ -48,15 +52,21 @@
       "hdbscan",
       "hierarchical_leiden",
       "true_hierarchical_leiden",
-      "debiased_citation_blended"
+      "debiased_citation_blended",
+      "fractal_map_7res",
+      "legal_cited_decisions",
+      "center_projected",
+      "hybrid_alpha_0_3",
+      "hybrid_alpha_0_5",
+      "legal_issues_outcomes"
     ],
     "languages": {"fr": 404, "de": 736, "it": 62},
     "branches": {"strafrecht": 307, "zivilrecht": 312, "oeffentliches_recht": 293, "sozialversicherungsrecht": 290},
     "user_imports": 2,
-    "test_suite_total": 92,
-    "test_suite_passing": 92,
-    "default_representation": "debiased_citation_blended",
-    "default_representation_benchmarks": "14/14 PASS",
+    "test_suite_total": 97,
+    "test_suite_passing": 97,
+    "default_representation": "center_projected",
+    "default_representation_benchmarks": "evaluation v2: language dominance 0.7593 < 0.85 PASS, jurist pairwise 0.5215 > 0.5 PASS, Jurivoc 4/5, zoom coherence +4.6%",
     "zoom_coherence_improvement_rate": 0.396,
     "map_coverage": {
       "corpus_with_map_position": 1000,
@@ -85,10 +95,12 @@
       "/api/evaluation/benchmarks",
       "/api/evaluation/representation_quality",
       "/api/map/temporal",
+      "/api/map/export",
+      "/api/cluster/export",
       "/api/import"
     ],
     "frontend_features": [
-      "Multi-representation map navigation",
+      "Multi-representation map navigation (12 representations)",
       "Zoom levels (Domain/Subdomain/Microcluster/Detail)",
       "Section-based map modes (sachverhalt, erwaegungen, dispositiv, full_text, erwaegungen_dispositiv, sachverhalt_erwaegungen_dispositiv)",
       "Language filter toggles",
@@ -101,9 +113,11 @@
       "Zoom coherence evaluation badge",
       "Breadcrumb navigation for zoom history",
       "Double-click zoom-to-cluster",
-      "Import corpus via file upload or JSON paste",
-      "Evaluation benchmark metrics display"
+      "Import corpus via file upload or JSON paste with schema validation",
+      "Map export (JSON/CSV) for positions and clusters",
+      "Evaluation benchmark metrics display",
+      "Legal-distance signals as selectable map modes: center_projected (DEFAULT), legal_cited_decisions, hybrid α=0.3, hybrid α=0.5, legal_issues_outcomes"
     ]
   },
-  "notes": "Product lane successfully delivers an end-to-end vertical slice: (1) Loads 1202 canonical BGer decisions (2000-2024) from corpus lane. (2) Loads 6 map representations including evaluation-validated debiased_citation_blended (14/14 benchmarks PASS), true_hierarchical_leiden (REPRODUCED fractal architecture: perfect nesting 1.0, 127 fine clusters in 8 coarse, branch purity 0.963), and baseline variants. (3) Section-based map modes for 6 legal text sections. (4) Citation graph navigation (outgoing/incoming). (5) Proximity explanation with legal feature contributions. (6) Zoom coherence metrics from fractal-map lane (39.6% improvement rate). (7) Temporal filtering by year range. (8) Cross-language neighbor discovery. (9) Corpus import (JSONL/JSON) with persistence. (10) 92/92 tests passing. Architecture ready for TF base map scale-up and arbitrary user corpus imports. Default representation debiased_citation_blended is evaluation-validated. Snapshot is audit-ready."
+  "notes": "Product lane successfully delivers an end-to-end vertical slice per factory direction v6: (1) Loads 1202 canonical BGer decisions (2000-2024) from corpus lane. (2) Loads 12 map representations including evaluation-validated center_projected (CRITICAL: ONLY representation passing BOTH adversarial benchmarks - language dominance <0.85 AND jurist pairwise >0.5), debiased_citation_blended (14/14 PASS), true_hierarchical_leiden (REPRODUCED fractal architecture: perfect nesting 1.0, 127 fine clusters in 8 coarse, branch purity 0.963), legal_cited_decisions (ACCEPTED: 14/14 PASS), hybrid α=0.3/0.5, legal_issues_outcomes (EXPLORATORY). (3) Section-based map modes for 6 legal text sections. (4) Citation graph navigation (outgoing/incoming). (5) Proximity explanation with legal feature contributions. (6) Zoom coherence metrics from fractal-map lane (39.6% improvement rate). (7) Temporal filtering by year range. (8) Cross-language neighbor discovery. (9) Corpus import (JSONL/JSON) with schema validation and persistence. (10) Map export (JSON/CSV). (11) All 97 tests passing. (12) Default representation is center_projected per evaluation v2 recommendation. Architecture ready for TF base map scale-up and arbitrary user corpus imports. Snapshot is audit-ready."
 }

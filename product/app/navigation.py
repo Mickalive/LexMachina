@@ -135,6 +135,18 @@ class NavigationAPI:
             self._base_decision_ids = []
             self._embedding_model = None
 
+    def _get_default_representation(self) -> str:
+        """Get the default representation (evaluation v2: center_projected is the ONLY 
+        representation passing BOTH adversarial language dominance <0.85 AND 
+        jurist pairwise preference >0.5)."""
+        # Evaluation v2 CRITICAL FINDING: center_projected is the FIRST and ONLY 
+        # representation to pass BOTH adversarial language dominance (0.7593 < 0.85) 
+        # AND jurist pairwise preference (0.5215 > 0.5). Also passes Jurivoc (4/5) 
+        # and zoom coherence (+4.6%). debiased_citation_blended FAILS v2 adversarial 
+        # cross-language (language dominance 0.999 = catastrophic).
+        # RECOMMENDATION: Product must adopt center_projected as default map mode.
+        return "center_projected"
+
     def _load_imported_positions(self) -> None:
         """Load previously computed import positions from disk."""
         if not self._import_positions_file or not self._import_positions_file.exists():
@@ -167,9 +179,11 @@ class NavigationAPI:
     def _compute_import_positions(
         self,
         imported_decisions: List[Dict],
-        representation: str = "debiased_citation_blended",
+        representation: Optional[str] = None,
         zoom_level: int = 1,
     ) -> List[Dict]:
+        if representation is None:
+            representation = self._get_default_representation()
         """
         Compute map positions for newly imported decisions using k-NN in embedding space.
         
@@ -304,10 +318,12 @@ class NavigationAPI:
 
     def get_map_data(
         self,
-        representation: str = "debiased_citation_blended",
+        representation: Optional[str] = None,
         zoom_level: int = 1,
         map_mode: Optional[str] = None,
     ) -> Dict[str, Any]:
+        if representation is None:
+            representation = self._get_default_representation()
         """
         Get map data for rendering at a specific zoom level.
         
@@ -611,10 +627,12 @@ class NavigationAPI:
     def get_neighbors(
         self,
         decision_id: str,
-        representation: str = "debiased_citation_blended",
+        representation: Optional[str] = None,
         zoom_level: int = 2,
         n: int = 10,
     ) -> List[Dict]:
+        if representation is None:
+            representation = self._get_default_representation()
         """Get nearest neighbors of a decision based on spatial proximity."""
         if not self._initialized:
             return []
@@ -670,7 +688,7 @@ class NavigationAPI:
                     imported_decisions.append(d.to_full())
             
             # Compute positions for the default representation at zoom level 1
-            default_rep = "debiased_citation_blended"
+            default_rep = self._get_default_representation()
             position_results = self._compute_import_positions(imported_decisions, default_rep, 1)
             result["map_positions_computed"] = len(position_results)
             result["default_representation"] = default_rep
@@ -772,7 +790,8 @@ class NavigationAPI:
             return {"error": "Not initialized"}
 
         # Get distance from map positions (use evaluation-validated default)
-        positions = self.map_loader.get_positions("debiased_citation_blended")
+        default_rep = self._get_default_representation()
+        positions = self.map_loader.get_positions(default_rep)
         pos_a = positions.get(decision_id_a)
         pos_b = positions.get(decision_id_b)
 
@@ -1019,11 +1038,13 @@ class NavigationAPI:
 
     def get_temporal_map_data(
         self,
-        representation: str = "debiased_citation_blended",
+        representation: Optional[str] = None,
         zoom_level: int = 1,
         year_start: Optional[int] = None,
         year_end: Optional[int] = None,
     ) -> Dict[str, Any]:
+        if representation is None:
+            representation = self._get_default_representation()
         """Get map data filtered to decisions within a year range.
 
         Returns positions with year metadata for each decision, cluster summaries
@@ -1156,11 +1177,13 @@ class NavigationAPI:
 
     def export_map_data(
         self,
-        representation: str = "debiased_citation_blended",
+        representation: Optional[str] = None,
         zoom_level: int = 1,
         format: str = "json",
         include_metadata: bool = True,
     ) -> Dict[str, Any]:
+        if representation is None:
+            representation = self._get_default_representation()
         """Export map data for external use.
 
         Args:
