@@ -13,7 +13,7 @@ from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
 import logging
 
-from .map_mode_registry import (
+from map_mode_registry import (
     MAP_MODES, MapModeSpec, MapModeType, MapModeStatus,
     get_default_mode, get_mode, get_all_modes, get_legal_distance_modes
 )
@@ -238,7 +238,7 @@ def create_product_integration_package(output_dir: Path) -> None:
     
     # 1. Export map mode registry
     registry_path = output_dir / "map_mode_registry.json"
-    from .map_mode_registry import export_registry
+    from map_mode_registry import export_registry
     export_registry(registry_path)
     
     # 2. Create unified loader module
@@ -293,7 +293,7 @@ Usage:
 
 def generate_product_integration_spec(loader: MapModeLoader) -> str:
     """Generate product integration specification from current MAP_MODES registry."""
-    from .map_mode_registry import MAP_MODES, get_default_mode
+    from map_mode_registry import MAP_MODES, get_default_mode
     from datetime import datetime
     
     default_mode = get_default_mode()
