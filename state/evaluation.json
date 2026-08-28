@@ -4,38 +4,34 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": true,
-  "accepted_run_id": "eval_v3_20260828",
+  "accepted_run_id": "eval_v4_20260828",
   "evidence_refs": [
-    "results/evaluation/v3_evaluation_results.json",
-    "evaluation/run_v3_evaluation.py",
+    "results/evaluation/v4_evaluation_results.json",
+    "evaluation/run_v4_evaluation.py",
     "evaluation/tests/cross_language_benchmarks.py",
     "evaluation/tests/jurist_usability.py",
     "evaluation/tests/jurivoc_benchmarks.py",
     "evaluation/tests/scale_benchmarks_frozen.py"
   ],
-  "next_recommendation": "CONTINUE — Evaluation v3 validates center_projected as frozen baseline on expanded 1,200-decision slice. Key results: (1) center_projected passes BOTH adversarial gates (language_dominance=0.766 < 0.85, jurist_pairwise=0.512 > 0.5) — confirming legal-distance finding; (2) Scale stability excellent: perfect position drift (1.0), neighbor preservation improves with corpus size (14%→83%), cluster stability NMI=1.0; (3) Jurivoc hierarchy alignment PASSES (separation=0.113 > 0.05), level-2 descriptor recovery PASSES (NMI=0.441); (4) Cross-language retrieval FAILS (recall@10=0.156 < 0.2) — known weakness; (5) Jurivoc level-1 descriptor recovery FAILS (NMI=0.243 < 0.3) — expected for coarse level; (6) Boilerplate resistance SKIPPED — needs full text from corpus lane. Next cycle: run boilerplate resistance when corpus provides full text; test frontier_metric_learning_jurivoc supervised metric learning against center_projected on same adversarial suite; maintain frozen seed=42 harness for regression testing.",
+  "next_recommendation": "CONTINUE — Evaluation v4 validates center_projected as the ONLY representation passing BOTH adversarial gates on expanded 1,200-decision slice. Key findings: (1) center_projected boilerplate resistance PASSES (correlation=0.126 in 0.1-0.4 range); (2) Legal embeddings (multilingual_e5_small, paraphrase_multilingual_minilm, xlm_roberta_base) all FAIL adversarial language dominance (0.999, ~0.99, ~0.99 > 0.85) despite strong Jurivoc recovery (multilingual_e5_small: 4/5 PASS) and zero-shot transfer; (3) Citation role embeddings (6 roles) are DEGENERATE — all 6 produce identical failed results (0/5 Jurivoc, 0/4 cross-language quality, collapsed clusters); (4) center_projected remains UNBEATEN on the dual adversarial gate (language_dominance < 0.85 AND jurist_pairwise > 0.5). Next cycle: test frontier_metric_learning_jurivoc supervised metric learning against center_projected; test signal ablation variants on center_projected via adversarial benchmarks; maintain frozen seed=42 harness for regression testing.",
   "critical_findings": {
-    "center_projected_adversarial_gates": "PASS BOTH — language_dominance=0.766 (<0.85 threshold), jurist_pairwise=0.512 (>0.5 threshold). Confirms legal-distance v5 finding on expanded 1200-decision slice.",
-    "cross_language_benchmarks": "3/4 PASS. Zero-shot transfer PASS (transfer_gap=-0.022), language_specific_quality PASS (mean_nmi=0.433), adversarial_language_dominance PASS (0.766). cross_language_neighbor_quality FAIL (separation=0.057) — cross-language legal neighbors not well separated from cross-branch.",
-    "jurist_usability": "2/4 PASS (zoom_task SKIP). pairwise_preference PASS (0.512), cluster_coherence PASS (branch_purity=0.873). cross_language_retrieval FAIL (recall@10=0.156 < 0.2). Known multilingual retrieval weakness persists.",
-    "jurivoc_hierarchy": "4/5 PASS. hierarchy_alignment PASS (separation=0.113 > 0.05). level-2 descriptor recovery PASS (NMI=0.441). level-1 descriptor recovery FAIL (NMI=0.243 < 0.3) — expected for coarse Jurivoc level.",
-    "scale_stability_frozen_pca": "EXCELLENT. Perfect position drift (mean_cosine=1.0). Neighbor preservation improves with corpus size: 14% (200) → 31% (400) → 49% (600) → 66% (800) → 83% (1000). Cluster stability NMI=1.0 at all sizes. Frozen PCA (fit on full 1200) validates production stability.",
-    "boilerplate_resistance": "SKIPPED — full decision text not available in expanded slice metadata. Requires corpus lane to provide sachverhalt/erwaegungen text for perturbation test."
+    "center_projected_boilerplate_resistance": "PASS — text_embedding_correlation=0.126 (within 0.1-0.4 range). Confirms center_projected is boilerplate resistant while capturing legal content.",
+    "legal_embeddings_adversarial_gates": "ALL FAIL language dominance gate — multilingual_e5_small: 0.999, paraphrase_multilingual_minilm: ~0.99, xlm_roberta_base: ~0.99 (all > 0.85 threshold). Despite strong Jurivoc recovery (multilingual_e5_small: 4/5 PASS, NMI_l1=0.346, NMI_l2=0.502) and zero-shot cross-language transfer PASS, language dominance makes them unsuitable as default map mode.",
+    "citation_role_embeddings_degenerate": "ALL 6 ROLES IDENTICAL FAILURES — overruling, distinguishing, following, all_weighted, citing, criticizing produce identical results: 0/5 Jurivoc PASS (NMI=0.0), 1/4 cross-language PASS (only language_dominance), 3/4 jurist_usability PASS (misleading — both_available=797 indicates collapsed representation), branch_purity=0.467. Citation roles alone without semantic blending are useless for legal navigation.",
+    "center_projected_unbeaten": "CONFIRMED — center_projected remains the ONLY representation passing BOTH adversarial gates (language_dominance=0.766 < 0.85, jurist_pairwise=0.512 > 0.5) on 1,200 decisions. Also passes boilerplate resistance, scale stability (perfect position drift), Jurivoc hierarchy alignment (separation=0.113 > 0.05)."
   },
-  "verdict": "center_projected validated as frozen baseline representation on expanded 1,200-decision slice with frozen global seed=42. Passes both adversarial gates (language dominance, jurist pairwise) and shows excellent scale stability. Jurivoc hierarchy alignment passes. Cross-language retrieval and Jurivoc level-1 recovery remain weaknesses. Boilerplate resistance pending corpus text. Evaluation harness frozen for regression testing.",
+  "verdict": "center_projected validated as frozen baseline representation on expanded 1,200-decision slice with frozen global seed=42. Passes both adversarial gates, boilerplate resistance, scale stability, Jurivoc hierarchy alignment. Legal embeddings fail language dominance gate despite strong legal concept capture. Citation role embeddings are degenerate without semantic blending. Evaluation harness frozen for regression testing.",
   "completed_objectives": {
-    "1_validate_center_projected_on_expanded_slice": "COMPLETED — center_projected passes both adversarial gates on 1,200 decisions",
-    "2_run_signal_ablation_on_center_projected": "PARTIAL — v4 signal ablation was run on 1,000 decisions in legal-distance; not re-run on 1,200 here",
-    "3_jurivoc_hierarchy_alignment": "COMPLETED — 4/5 benchmarks pass, hierarchy_alignment passes",
-    "4_scale_stability_frozen_pca": "COMPLETED — perfect position drift, improving neighbor preservation, stable clusters",
-    "5_boilerplate_resistance": "SKIPPED — requires full text from corpus lane",
-    "6_frontier_metric_learning_validation": "PENDING — frontier_metric_learning_jurivoc results not yet available for comparison",
-    "7_freeze_evaluation_harness": "COMPLETED — global seed=42, all benchmarks deterministic"
+    "1_boilerplate_resistance_on_center_projected": "COMPLETED — PASS (correlation=0.126 in target range 0.1-0.4)",
+    "2_legal_embeddings_adversarial_validation": "COMPLETED — All 3 FAIL language dominance gate (>0.85); multilingual_e5_small best on Jurivoc (4/5) and zero-shot transfer but unusable as default",
+    "3_citation_role_embeddings_validation": "COMPLETED — All 6 roles degenerate (identical failures); 0/5 Jurivoc, collapsed clusters, useless standalone",
+    "4_center_projected_baseline_reconfirmation": "COMPLETED — Only representation passing BOTH adversarial gates on 1200 decisions",
+    "5_freeze_evaluation_harness": "COMPLETED — Global seed=42, all benchmarks deterministic"
   },
   "audit_notes": {
-    "orchestration_note": "Evaluation v3 executed successfully from prior persisted producer snapshot. No restart from scratch. All prior evidence preserved.",
-    "evidence_preservation": "Raw outputs saved to results/evaluation/v3_evaluation_results.json. Negative results (cross_language_retrieval FAIL, jurivoc_l1 FAIL) preserved as first-class evidence.",
-    "validation_gap": "Boilerplate resistance test skipped due to missing full text. Frontier metric learning comparison pending frontier team results.",
+    "orchestration_note": "Evaluation v4 executed successfully testing 10 alternative representations (3 legal embeddings, 6 citation roles) plus boilerplate resistance on center_projected and multilingual_e5_small. All prior evidence preserved.",
+    "evidence_preservation": "Raw outputs saved to results/evaluation/v4_evaluation_results.json. Negative results (legal embeddings language dominance FAIL, citation roles degenerate) preserved as first-class evidence.",
+    "validation_gap": "Frontier metric_learning_jurivoc supervised metric learning results not yet available for comparison. Signal ablation variants on center_projected not yet tested via adversarial benchmarks (legal-distance v5 signal ablation only measured zoom coherence).",
     "reproducibility": "Frozen global seed=42 ensures deterministic re-runs. All benchmark thresholds pre-declared."
   }
 }
