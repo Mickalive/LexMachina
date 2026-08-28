@@ -1,0 +1,60 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "ACCEPTED (v3, v4) / REPRODUCED (v5 pending jurist evaluation)",
+  "evidence_summary": {
+    "direction_v3_legal_signals": {
+      "corpus": "1,000 Swiss Federal Supreme Court decisions (2000+ slice), trilingual",
+      "baseline": "debiased_citation_blended (n_pca=1, alpha=0.7) — 14/14 PASS validated in evaluation lane v1",
+      "experiments": 11,
+      "benchmarks": "14 total, 11 effectively discriminating (3 diagnostic-only, 1 duplicate)",
+      "critical_bug_fixes": 2,
+      "verified_pass_counts": {
+        "baseline_debiased_citation_blended": "14/14",
+        "legal_cited_decisions_only": "14/14 (ties baseline, best boilerplate resistance 0.088)",
+        "hybrid_legal03_baseline07": "13/14 (fails adversarial_falsification)",
+        "hybrid_legal05_baseline05": "13/14 (fails adversarial_falsification)",
+        "hybrid_legal07_baseline03": "10/14",
+        "legal_issues_outcomes": "12/14 (passes multilingual_invariance, fails adversarial_falsification)",
+        "other_legal_tfidf": "8-10/14 (systematic multilingual + boilerplate failures)"
+      },
+      "key_finding": "legal_cited_decisions_only ties baseline as general-purpose legal distance; legal signals improve legal classification but degrade multilingual/adversarial robustness; hybrids α=0.3–0.5 maximize legal metrics but fail language dominance"
+    },
+    "direction_v4_signal_ablation": {
+      "corpus": "Same 1,000-decision slice",
+      "harness": "Validated fractal-map (hierarchical Leiden at res=0.5/3.0, zoom coherence)",
+      "experiments": 25,
+      "success_criteria": "Frozen before observation: fine_purity > 0.850, improvement_rate > 50%, legal_area_NMI > 0.512",
+      "verified_best_signals": {
+        "sachverhalt_tfidf": "fine=0.986, NMI=0.683 (best balanced)",
+        "norm_embeddings": "fine=0.974, NMI=0.632 (cross-lingual via multilingual transformer)",
+        "erwaegungen_tfidf": "fine=0.966, NMI=0.651 (best coarse preservation)",
+        "legal_area_tfidf": "fine=0.998, NMI=0.751 (metadata-dependent)"
+      },
+      "overclustering_flags": "citation_weights, outcome_tfidf, headings_tfidf (fine clusters ≈ decisions)",
+      "best_combination": "erwaegungen+citations (fine=0.971, NMI=0.656)",
+      "best_hybrid": "hybrid_erwaegungen_07 (fine=0.915, NMI=0.620, coarse=0.657)",
+      "signal_dilution": "all_tfidf (6 signals) degrades fine_purity to 0.838 < baseline"
+    },
+    "direction_v5_pivot": {
+      "objectives_completed": 5,
+      "scale_test": "1,200 decisions (not full 2000+); all v4 modes generalize; hybrid_erwaegungen_07 improves coarse (+0.039) + fine (+0.047); legal_issues_outcomes NMI=0.786",
+      "legal_embeddings": "3 models tested on 1,000 decisions: multilingual-e5-small (perfect cross-lang=1.0, lang_dom=1.034, zoom_impr=29%); xlm-roberta-base (zoom_impr=93%, coarse=0.490, lang_dom=1.002); paraphrase-multilingual-MiniLM-L12-v2 (reference)",
+      "citation_roles": "2,988 annotations from 200 decisions (citing/following/criticizing/distinguishing/overruling); 6 role-specific 64-dim matrices; blocked by citation ID mismatch",
+      "jurist_evaluation": "Complete protocol (200 questions, UI, sampling, analysis plan); NOT EXECUTED — needs 5-10 Swiss jurists, 600 responses",
+      "benchmark_refinement": "37 → 16 benchmarks (removed 4 redundant); Tier 1 Core: 7 (adversarial_language_dominance, jurist_pairwise_preference, jurivoc_l2_nmi, zoom_coherence_improvement_rate, citation_heritage_auc, legal_area_classification, scale_stability_frozen_pca)",
+      "evidence_tier": "REPRODUCED (intermediate) → ACCEPTED after jurist evaluation",
+      "continue_recommended": true
+    },
+    "audit_checks": {
+      "leakage": "None — unsupervised representations, frozen benchmarks, no metadata leakage except explicitly flagged legal_area_tfidf",
+      "duplicate_benchmarks": "citation_proximity ≡ citation_heritage identified and documented",
+      "non_discriminating_benchmarks": "3 diagnostic benchmarks (hierarchy_coherence, legal_area_clustering, zoom_coherence) produce identical results across all experiments — correctly excluded",
+      "weak_baselines": "Baseline validated independently (evaluation lane v1, 14/14 PASS)",
+      "prettiness_as_quality": "No — negative results (multilingual failures, overclustering, ID mismatch, unexecuted jurist eval) honestly reported",
+      "unsupported_claims": "v5 'full corpus' = 1,200 not 2000+ (corrected in audit); embeddings tested on 1,000 not 1,200; benchmark refinement not yet validated as gate",
+      "negative_results_preserved": "All failures (adversarial_falsification, multilingual_invariance, overclustering, signal dilution, ID mismatch) preserved in reports and raw data"
+    }
+  }
+}
