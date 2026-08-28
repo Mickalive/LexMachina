@@ -1345,3 +1345,181 @@ class NavigationAPI:
             return {"format": "csv", "data": output.getvalue()}
         else:
             return {"error": f"Unsupported format: {format}. Use 'json' or 'csv'."}
+
+    def submit_feedback(
+        self,
+        feedback_type: str,
+        payload: Dict[str, Any],
+        jurist_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Submit jurist feedback for evaluation purposes.
+        
+        Args:
+            feedback_type: Type of feedback (e.g., "pairwise_preference", "cluster_quality", "map_mode_rating")
+            payload: Feedback data specific to the type
+            jurist_id: Optional anonymized jurist identifier
+            
+        Returns:
+            Status of feedback submission
+        """
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        import time
+        from pathlib import Path
+        
+        # Feedback storage directory
+        feedback_dir = Path(self.map_loader.results_dir) / "jurist_feedback"
+        feedback_dir.mkdir(parents=True, exist_ok=True)
+        feedback_file = feedback_dir / "feedback.jsonl"
+
+        # Build feedback record
+        record = {
+            "timestamp": time.time(),
+            "iso_timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "feedback_type": feedback_type,
+            "jurist_id": jurist_id or "anonymous",
+            "payload": payload,
+        }
+
+        # Persist to JSONL
+        try:
+            with open(feedback_file, "a", encoding="utf-8") as f:
+                f.write(json.dumps(record, ensure_ascii=False) + "\n")
+        except Exception as e:
+            return {"error": f"Failed to persist feedback: {e}"}
+
+        return {
+            "status": "accepted",
+            "feedback_id": f"{feedback_type}_{int(time.time())}",
+            "message": "Feedback recorded successfully",
+        }
+
+    def get_feedback_stats(self) -> Dict[str, Any]:
+        """Get statistics about collected jurist feedback."""
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        from pathlib import Path
+        feedback_dir = Path(self.map_loader.results_dir) / "jurist_feedback"
+        feedback_file = feedback_dir / "feedback.jsonl"
+
+        if not feedback_file.exists():
+            return {"total_feedback": 0, "by_type": {}, "by_jurist": {}}
+
+        counts_by_type = Counter()
+        counts_by_jurist = Counter()
+        total = 0
+
+        try:
+            with open(feedback_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        record = json.loads(line)
+                        total += 1
+                        counts_by_type[record.get("feedback_type", "unknown")] += 1
+                        counts_by_jurist[record.get("jurist_id", "anonymous")] += 1
+                    except json.JSONDecodeError:
+                        continue
+        except Exception:
+            pass
+
+        return {
+            "total_feedback": total,
+            "by_type": dict(counts_by_type),
+            "by_jurist": dict(counts_by_jurist),
+        }
+
+    def compare_maps(
+        self,
+        representation_a: str,
+        representation_b: str,
+        zoom_level: int = 1,
+    ) -> Dict[str, Any]:
+        """Compare two map representations side by side.
+        
+        Returns aligned cluster data showing which decisions move between clusters
+        when switching representations, enabling users to understand map mode differences.
+        """
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        zl_a = self.map_loader.get_zoom_level(representation_a, zoom_level)
+        zl_b = self.map_loader.get_zoom_level(representation_b, zoom_level)
+
+        if not zl_a:
+            return {"error": f"Zoom level {zoom_level} not available for {representation_a}"}
+        if not zl_b:
+            return {"error": f"Zoom level {zoom_level} not available for {representation_b}"}
+
+        # Get positions and cluster assignments for both
+        pos_a = zl_a.positions
+        pos_b = zl_b.positions
+        cluster_a = zl_a.cluster_assignments
+        cluster_b = zl_b.cluster_assignments
+
+        # Find common decisions
+        common_decisions = set(pos_a.keys()) & set(pos_b.keys())
+
+        # Build comparison data for common decisions
+        comparison = []
+        for did in common_decisions:
+            ca = cluster_a.get(did, -1)
+            cb = cluster_b.get(did, -1)
+            if ca >= 0 and cb >= 0:
+                x_a, y_a = pos_a[did]
+                x_b, y_b = pos_b[did]
+                
+                # Get decision summary for metadata
+                summary = self.corpus.get_summary(did)
+                meta = {}
+                if not summary:
+                    meta = self._get_map_decision_meta(did)
+                
+                comparison.append({
+                    "decision_id": did,
+                    "cluster_a": ca,
+                    "cluster_b": cb,
+                    "x_a": round(x_a, 6),
+                    "y_a": round(y_a, 6),
+                    "x_b": round(x_b, 6),
+                    "y_b": round(y_b, 6),
+                    "displacement": round(((x_a - x_b) ** 2 + (y_a - y_b) ** 2) ** 0.5, 6),
+                    "language": summary.get("language") if summary else meta.get("language", "unknown"),
+                    "branch": summary.get("branch") if summary else meta.get("branch", "unknown"),
+                    "legal_area": summary.get("legal_area") if summary else meta.get("legal_area", "unknown"),
+                })
+
+        # Compute aggregate statistics
+        total = len(comparison)
+        if total == 0:
+            return {"error": "No common decisions found between representations"}
+
+        # Cluster transition matrix
+        transitions = Counter()
+        for c in comparison:
+            transitions[(c["cluster_a"], c["cluster_b"])] += 1
+
+        # Average displacement
+        avg_displacement = sum(c["displacement"] for c in comparison) / total
+        max_displacement = max(c["displacement"] for c in comparison)
+
+        # Decisions that changed clusters
+        cluster_changes = sum(1 for c in comparison if c["cluster_a"] != c["cluster_b"])
+        stability_rate = 1.0 - (cluster_changes / total) if total > 0 else 0.0
+
+        return {
+            "representation_a": representation_a,
+            "representation_b": representation_b,
+            "zoom_level": zoom_level,
+            "n_common_decisions": total,
+            "stability_rate": round(stability_rate, 4),
+            "avg_displacement": round(avg_displacement, 6),
+            "max_displacement": round(max_displacement, 6),
+            "cluster_changes": cluster_changes,
+            "cluster_transitions": {f"{a}->{b}": count for (a, b), count in transitions.most_common(20)},
+            "decisions": comparison,
+        }

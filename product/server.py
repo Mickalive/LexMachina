@@ -163,6 +163,16 @@ class ProductHandler(SimpleHTTPRequestHandler):
             cid = int(params.get("cluster_id", ["0"])[0])
             fmt = params.get("format", ["json"])[0]
             self._json_response(get_nav_api().export_cluster_decisions(rep, zoom, cid, fmt))
+        elif path == "/api/feedback":
+            # GET returns feedback stats
+            self._json_response(get_nav_api().get_feedback_stats())
+        elif path == "/api/map/compare":
+            # Map mode comparison endpoint
+            default_rep = get_default_representation()
+            rep_a = params.get("rep_a", [default_rep])[0]
+            rep_b = params.get("rep_b", ["legal_cited_decisions"])[0]
+            zoom = int(params.get("zoom", ["1"])[0])
+            self._json_response(get_nav_api().compare_maps(rep_a, rep_b, zoom))
         # Static files
         elif path == "/" or path == "/index.html":
             self._serve_file("static/index.html", "text/html")
@@ -179,8 +189,32 @@ class ProductHandler(SimpleHTTPRequestHandler):
 
         if path == "/api/import":
             self._handle_import()
+        elif path == "/api/feedback":
+            self._handle_feedback()
         else:
             self.send_error(404)
+
+    def _handle_feedback(self):
+        """Handle jurist feedback submission."""
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(content_length)
+            data = json.loads(body.decode("utf-8"))
+
+            feedback_type = data.get("feedback_type", "")
+            payload = data.get("payload", {})
+            jurist_id = data.get("jurist_id", None)
+
+            if not feedback_type:
+                self._json_response({"error": "feedback_type is required"}, 400)
+                return
+
+            result = get_nav_api().submit_feedback(feedback_type, payload, jurist_id)
+            self._json_response(result)
+        except json.JSONDecodeError:
+            self._json_response({"error": "Invalid JSON"}, 400)
+        except Exception as e:
+            self._json_response({"error": str(e)}, 500)
 
     def _handle_import(self):
         """Handle corpus import via multipart form upload or JSON body."""

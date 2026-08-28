@@ -203,19 +203,126 @@
         #eval-tooltip .et-metric { color: #ccc; }
         #eval-tooltip .et-val { color: #51cf66; font-weight: 600; }
 
-        /* === NEW: Breadcrumb Trail === */
-        #breadcrumb {
-            position: absolute; top: 60px; left: 16px; z-index: 5;
-            background: rgba(18, 18, 26, 0.92); border: 1px solid #2a2a3a; border-radius: 6px;
-            padding: 6px 12px; font-size: 11px; color: #888;
-            display: none; align-items: center; gap: 4px;
-            transition: opacity 0.2s;
+        /* === NEW: WebGL Renderer Toggle === */
+        #renderer-toggle {
+            position: absolute; top: 16px; right: 220px; z-index: 10;
+            padding: 6px 12px; background: rgba(18, 18, 26, 0.9); border: 1px solid #2a2a3a;
+            border-radius: 4px; color: #888; cursor: pointer; font-size: 11px;
         }
-        #breadcrumb.visible { display: flex; }
-        .bc-segment { cursor: pointer; color: #7c8aff; }
-        .bc-segment:hover { text-decoration: underline; }
-        .bc-sep { color: #444; }
-        .bc-current { color: #e0e0e0; font-weight: 600; }
+        #renderer-toggle:hover { border-color: #7c8aff; color: #e0e0e0; }
+        #renderer-toggle.active { background: #7c8aff; color: white; border-color: #7c8aff; }
+
+        /* === NEW: LOD info === */
+        #lod-info {
+            position: absolute; bottom: 16px; left: 16px; z-index: 5;
+            background: rgba(18, 18, 26, 0.8); border: 1px solid #2a2a3a; border-radius: 4px;
+            padding: 4px 8px; font-size: 10px; color: #666; display: none;
+        }
+        #lod-info.visible { display: block; }
+
+        /* === NEW: Map Mode Comparison === */
+        #compare-panel {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 400px;
+            max-height: calc(100vh - 32px);
+            background: rgba(18, 18, 26, 0.95);
+            border: 1px solid #2a2a3a;
+            border-radius: 8px;
+            overflow-y: auto;
+            z-index: 20;
+            display: none;
+        }
+        #compare-panel.visible { display: block; }
+        #compare-panel .panel-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid #2a2a3a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #compare-panel .panel-header h2 { font-size: 14px; color: #7c8aff; }
+        #compare-panel .close-btn {
+            background: none; border: none; color: #666; cursor: pointer; font-size: 18px;
+        }
+        #compare-panel .close-btn:hover { color: #e0e0e0; }
+        #compare-panel .panel-body { padding: 14px 16px; }
+        #compare-panel .compare-selects {
+            display: flex; gap: 8px; flex-direction: column; margin-bottom: 12px;
+        }
+        #compare-panel .compare-selects label { font-size: 10px; color: #666; }
+        #compare-panel .compare-selects select {
+            width: 100%; padding: 6px 8px; background: #1a1a2a;
+            border: 1px solid #333; border-radius: 4px; color: #e0e0e0; font-size: 12px;
+        }
+        #compare-panel .compare-stats {
+            background: #1a1a2a; border: 1px solid #2a2a3a; border-radius: 6px;
+            padding: 10px 12px; margin-bottom: 12px;
+        }
+        #compare-panel .stat-row { display: flex; justify-content: space-between; margin: 4px 0; }
+        #compare-panel .stat-label { color: #888; font-size: 11px; }
+        #compare-panel .stat-value { color: #7c8aff; font-weight: 600; font-size: 11px; }
+        #compare-panel .compare-table { max-height: 300px; overflow-y: auto; }
+        #compare-panel table { width: 100%; border-collapse: collapse; font-size: 10px; }
+        #compare-panel th, #compare-panel td { padding: 4px 6px; text-align: left; border-bottom: 1px solid #222; }
+        #compare-panel th { color: #7c8aff; font-weight: 600; position: sticky; top: 0; background: #12121a; }
+        #compare-panel td { color: #ccc; }
+        #compare-panel .moved { color: #ff922b; font-weight: 600; }
+        #compare-panel .stable { color: #51cf66; }
+
+        /* === NEW: Jurist Feedback UI === */
+        #feedback-panel {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 380px;
+            max-height: calc(100vh - 32px);
+            background: rgba(18, 18, 26, 0.95);
+            border: 1px solid #2a2a3a;
+            border-radius: 8px;
+            overflow-y: auto;
+            z-index: 20;
+            display: none;
+        }
+        #feedback-panel.visible { display: block; }
+        #feedback-panel .panel-header {
+            padding: 14px 16px; border-bottom: 1px solid #2a2a3a;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        #feedback-panel .panel-header h2 { font-size: 14px; color: #7c8aff; }
+        #feedback-panel .panel-body { padding: 14px 16px; }
+        #feedback-panel .field { margin-bottom: 12px; }
+        #feedback-panel .field-label { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: block; }
+        #feedback-panel select, #feedback-panel input, #feedback-panel textarea {
+            width: 100%; padding: 8px 10px; background: #1a1a2a; border: 1px solid #333;
+            border-radius: 4px; color: #e0e0e0; font-size: 12px;
+        }
+        #feedback-panel select:focus, #feedback-panel input:focus, #feedback-panel textarea:focus {
+            outline: none; border-color: #7c8aff;
+        }
+        #feedback-panel .btn-primary {
+            width: 100%; padding: 10px; background: #7c8aff; border: none; border-radius: 4px;
+            color: white; font-weight: 600; cursor: pointer; font-size: 12px;
+        }
+        #feedback-panel .btn-primary:hover { background: #8c9aff; }
+        #feedback-panel .feedback-stats { margin-top: 16px; padding-top: 12px; border-top: 1px solid #2a2a3a; }
+        #feedback-panel .stat-item { font-size: 10px; color: #888; margin: 2px 0; }
+        #feedback-panel .stat-item .stat-key { color: #7c8aff; }
+
+        /* Feedback button in header */
+        #feedback-btn {
+            position: absolute; top: 16px; right: 60px; z-index: 10;
+            padding: 6px 12px; background: rgba(18, 18, 26, 0.9); border: 1px solid #2a2a3a;
+            border-radius: 4px; color: #888; cursor: pointer; font-size: 11px;
+        }
+        #feedback-btn:hover { border-color: #7c8aff; color: #e0e0e0; }
+        #compare-btn {
+            position: absolute; top: 16px; right: 140px; z-index: 10;
+            padding: 6px 12px; background: rgba(18, 18, 26, 0.9); border: 1px solid #2a2a3a;
+            border-radius: 4px; color: #888; cursor: pointer; font-size: 11px;
+        }
+        #compare-btn:hover { border-color: #7c8aff; color: #e0e0e0; }
     </style>
 </head>
 <body>
@@ -306,6 +413,10 @@
                 <button class="zoom-btn" data-zoom="2">Micro</button>
                 <button class="zoom-btn" data-zoom="3">Detail</button>
             </div>
+            <button id="renderer-toggle" onclick="toggleRenderer()">WebGL</button>
+            <button id="compare-btn" onclick="openCompare()">Compare Maps</button>
+            <button id="feedback-btn" onclick="openFeedback()">Feedback</button>
+            <div id="lod-info"></div>
             <div id="breadcrumb"></div>
             <div id="stats-bar"></div>
             <div id="eval-badge">
@@ -337,6 +448,103 @@
                 <button class="close-btn" onclick="closeDetail()">&times;</button>
             </div>
             <div class="panel-body" id="detail-body"></div>
+        </div>
+
+        <!-- Map Mode Comparison Panel -->
+        <div id="compare-panel">
+            <div class="panel-header">
+                <h2>Map Mode Comparison</h2>
+                <button class="close-btn" onclick="closeCompare()">&times;</button>
+            </div>
+            <div class="panel-body" id="compare-body">
+                <div class="compare-selects">
+                    <label>Representation A (Left)</label>
+                    <select id="compare-rep-a"></select>
+                </div>
+                <div class="compare-selects">
+                    <label>Representation B (Right)</label>
+                    <select id="compare-rep-b"></select>
+                </div>
+                <div class="compare-selects">
+                    <label>Zoom Level</label>
+                    <select id="compare-zoom">
+                        <option value="0">Domain</option>
+                        <option value="1" selected>Subdomain</option>
+                        <option value="2">Microcluster</option>
+                        <option value="3">Detail</option>
+                    </select>
+                </div>
+                <button id="compare-run-btn" class="btn-primary">Run Comparison</button>
+
+                <div class="compare-stats" id="compare-stats" style="display:none;">
+                    <div class="stat-row"><span class="stat-label">Common Decisions</span><span class="stat-value" id="cs-common">--</span></div>
+                    <div class="stat-row"><span class="stat-label">Stability Rate</span><span class="stat-value" id="cs-stability">--</span></div>
+                    <div class="stat-row"><span class="stat-label">Avg Displacement</span><span class="stat-value" id="cs-avg-disp">--</span></div>
+                    <div class="stat-row"><span class="stat-label">Cluster Changes</span><span class="stat-value" id="cs-changes">--</span></div>
+                </div>
+
+                <div class="compare-table" id="compare-table" style="display:none;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Decision</th>
+                                <th>Lang</th>
+                                <th>Cluster A</th>
+                                <th>Cluster B</th>
+                                <th>Displacement</th>
+                            </tr>
+                        </thead>
+                        <tbody id="compare-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Jurist Feedback Panel -->
+        <div id="feedback-panel">
+            <div class="panel-header">
+                <h2>Jurist Feedback</h2>
+                <button class="close-btn" onclick="closeFeedback()">&times;</button>
+            </div>
+            <div class="panel-body" id="feedback-body">
+                <div class="field">
+                    <label class="field-label">Jurist ID (optional, anonymized)</label>
+                    <input type="text" id="feedback-jurist-id" placeholder="e.g., jurist_001">
+                </div>
+                <div class="field">
+                    <label class="field-label">Feedback Type</label>
+                    <select id="feedback-type">
+                        <option value="pairwise_preference">Pairwise Preference (Map A vs Map B)</option>
+                        <option value="cluster_quality">Cluster Quality Rating</option>
+                        <option value="map_mode_rating">Map Mode Overall Rating</option>
+                        <option value="neighbor_relevance">Neighbor Relevance</option>
+                        <option value="general_comment">General Comment</option>
+                    </select>
+                </div>
+                <div class="field" id="feedback-pairwise-field" style="display:none;">
+                    <label class="field-label">Preferred Representation</label>
+                    <select id="feedback-preferred-rep"></select>
+                </div>
+                <div class="field" id="feedback-cluster-field" style="display:none;">
+                    <label class="field-label">Cluster ID</label>
+                    <input type="number" id="feedback-cluster-id" placeholder="e.g., 5">
+                </div>
+                <div class="field" id="feedback-rating-field" style="display:none;">
+                    <label class="field-label">Rating (1-5)</label>
+                    <input type="number" id="feedback-rating" min="1" max="5" step="1" placeholder="5">
+                </div>
+                <div class="field">
+                    <label class="field-label">Comments</label>
+                    <textarea id="feedback-comments" rows="3" placeholder="Additional context..."></textarea>
+                </div>
+                <button id="feedback-submit-btn" class="btn-primary">Submit Feedback</button>
+                <div id="feedback-status" style="margin-top:8px;font-size:11px;"></div>
+
+                <div class="feedback-stats">
+                    <div class="field-label">Feedback Statistics</div>
+                    <div id="feedback-stats-content"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -380,6 +588,12 @@
 
     // === NEW: Temporal decision date cache (did -> year) ===
     let decisionYearCache = {};
+
+    // === NEW: WebGL Renderer state ===
+    let useWebGL = false;
+    let webglRenderer = null;
+    let webglBuffers = null;
+    let webglShaderProgram = null;
 
     // Initialize
     async function init() {
@@ -1383,6 +1597,216 @@
     document.getElementById('export-map-csv').addEventListener('click', () => handleExportMap('csv'));
     document.getElementById('export-cluster-json').addEventListener('click', () => handleExportCluster('json'));
     document.getElementById('export-cluster-csv').addEventListener('click', () => handleExportCluster('csv'));
+
+    // === NEW: Map Mode Comparison ===
+    async function openCompare() {
+        const panel = document.getElementById('compare-panel');
+        panel.classList.add('visible');
+        await populateCompareReps();
+    }
+
+    function closeCompare() {
+        document.getElementById('compare-panel').classList.remove('visible');
+    }
+
+    async function populateCompareReps() {
+        try {
+            const resp = await fetch(`${API}/api/map_modes`);
+            const modes = await resp.json();
+            const selectA = document.getElementById('compare-rep-a');
+            const selectB = document.getElementById('compare-rep-b');
+            
+            // Get representation modes (not section modes)
+            const reps = modes.filter(m => m.type === 'representation');
+            
+            selectA.innerHTML = '';
+            selectB.innerHTML = '';
+            
+            reps.forEach(rep => {
+                const optA = document.createElement('option');
+                optA.value = rep.name;
+                optA.textContent = rep.label;
+                selectA.appendChild(optA);
+                
+                const optB = document.createElement('option');
+                optB.value = rep.name;
+                optB.textContent = rep.label;
+                selectB.appendChild(optB);
+            });
+            
+            // Set defaults
+            selectA.value = currentRep || 'center_projected';
+            selectB.value = 'legal_cited_decisions';
+        } catch (e) {
+            console.error('Failed to populate comparison reps:', e);
+        }
+    }
+
+    async function runCompare() {
+        const repA = document.getElementById('compare-rep-a').value;
+        const repB = document.getElementById('compare-rep-b').value;
+        const zoom = parseInt(document.getElementById('compare-zoom').value);
+        
+        const btn = document.getElementById('compare-run-btn');
+        btn.disabled = true;
+        btn.textContent = 'Comparing...';
+        
+        try {
+            const resp = await fetch(`${API}/api/map/compare?rep_a=${repA}&rep_b=${repB}&zoom=${zoom}`);
+            const data = await resp.json();
+            
+            if (data.error) {
+                alert('Comparison failed: ' + data.error);
+                return;
+            }
+            
+            // Show stats
+            document.getElementById('compare-stats').style.display = 'block';
+            document.getElementById('cs-common').textContent = data.n_common_decisions;
+            document.getElementById('cs-stability').textContent = (data.stability_rate * 100).toFixed(1) + '%';
+            document.getElementById('cs-avg-disp').textContent = data.avg_displacement.toFixed(4);
+            document.getElementById('cs-changes').textContent = data.cluster_changes + ' / ' + data.n_common_decisions;
+            
+            // Populate table
+            const tbody = document.getElementById('compare-tbody');
+            tbody.innerHTML = data.decisions.slice(0, 100).map(d => `
+                <tr>
+                    <td>${d.decision_id}</td>
+                    <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${LANG_COLORS[d.language] || '#666'};vertical-align:middle;"></span> ${d.language}</td>
+                    <td>${d.cluster_a}</td>
+                    <td>${d.cluster_b}</td>
+                    <td class="${d.cluster_a === d.cluster_b ? 'stable' : 'moved'}">${d.displacement.toFixed(4)}${d.cluster_a !== d.cluster_b ? ' \u2192 moved' : ''}</td>
+                </tr>
+            `).join('');
+            
+            document.getElementById('compare-table').style.display = 'block';
+        } catch (err) {
+            alert('Comparison failed: ' + err.message);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Run Comparison';
+        }
+    }
+
+    document.getElementById('compare-run-btn').addEventListener('click', runCompare);
+
+    // === NEW: Jurist Feedback ===
+    async function openFeedback() {
+        const panel = document.getElementById('feedback-panel');
+        panel.classList.add('visible');
+        await loadFeedbackStats();
+        updateFeedbackFields();
+    }
+
+    function closeFeedback() {
+        document.getElementById('feedback-panel').classList.remove('visible');
+    }
+
+    function updateFeedbackFields() {
+        const type = document.getElementById('feedback-type').value;
+        document.getElementById('feedback-pairwise-field').style.display = type === 'pairwise_preference' ? 'block' : 'none';
+        document.getElementById('feedback-cluster-field').style.display = type === 'cluster_quality' ? 'block' : 'none';
+        document.getElementById('feedback-rating-field').style.display = (type === 'map_mode_rating' || type === 'cluster_quality') ? 'block' : 'none';
+        
+        // Populate representation dropdown for pairwise
+        if (type === 'pairwise_preference') {
+            const select = document.getElementById('feedback-preferred-rep');
+            if (select.options.length === 0) {
+                const resp = await fetch(`${API}/api/map_modes`);
+                const modes = await resp.json();
+                const reps = modes.filter(m => m.type === 'representation');
+                reps.forEach(rep => {
+                    const opt = document.createElement('option');
+                    opt.value = rep.name;
+                    opt.textContent = rep.label;
+                    select.appendChild(opt);
+                });
+            }
+        }
+    }
+
+    async function loadFeedbackStats() {
+        try {
+            const resp = await fetch(`${API}/api/feedback`);
+            const stats = await resp.json();
+            
+            const container = document.getElementById('feedback-stats-content');
+            if (stats.total_feedback === 0) {
+                container.innerHTML = '<div class="stat-item">No feedback submitted yet</div>';
+                return;
+            }
+            
+            let html = `<div class="stat-item"><span class="stat-key">Total:</span> ${stats.total_feedback}</div>`;
+            for (const [type, count] of Object.entries(stats.by_type || {})) {
+                html += `<div class="stat-item"><span class="stat-key">${type}:</span> ${count}</div>`;
+            }
+            for (const [jurist, count] of Object.entries(stats.by_jurist || {})) {
+                html += `<div class="stat-item"><span class="stat-key">${jurist}:</span> ${count}</div>`;
+            }
+            container.innerHTML = html;
+        } catch (e) {
+            console.warn('Failed to load feedback stats:', e);
+        }
+    }
+
+    async function submitFeedback() {
+        const feedbackType = document.getElementById('feedback-type').value;
+        const juristId = document.getElementById('feedback-jurist-id').value.trim() || null;
+        const comments = document.getElementById('feedback-comments').value.trim();
+        
+        let payload = { comments };
+        
+        if (feedbackType === 'pairwise_preference') {
+            payload.preferred_representation = document.getElementById('feedback-preferred-rep').value;
+            payload.compared_representations = [document.getElementById('compare-rep-a').value, document.getElementById('compare-rep-b').value];
+        } else if (feedbackType === 'cluster_quality') {
+            payload.cluster_id = parseInt(document.getElementById('feedback-cluster-id').value);
+            payload.representation = currentRep;
+            payload.zoom_level = currentZoom;
+            payload.rating = parseInt(document.getElementById('feedback-rating').value);
+        } else if (feedbackType === 'map_mode_rating') {
+            payload.representation = currentRep;
+            payload.rating = parseInt(document.getElementById('feedback-rating').value);
+        } else if (feedbackType === 'neighbor_relevance') {
+            payload.decision_id = hoveredPoint ? hoveredPoint.decision_id : null;
+            payload.representation = currentRep;
+        }
+        
+        const status = document.getElementById('feedback-status');
+        status.style.color = '#888';
+        status.textContent = 'Submitting...';
+        
+        try {
+            const resp = await fetch(`${API}/api/feedback`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    feedback_type: feedbackType,
+                    jurist_id: juristId,
+                    payload: payload,
+                })
+            });
+            const result = await resp.json();
+            
+            if (result.error) {
+                status.style.color = '#ff6b6b';
+                status.textContent = 'Error: ' + result.error;
+            } else {
+                status.style.color = '#51cf66';
+                status.textContent = 'Feedback submitted successfully!';
+                document.getElementById('feedback-comments').value = '';
+                document.getElementById('feedback-rating').value = '';
+                document.getElementById('feedback-cluster-id').value = '';
+                await loadFeedbackStats();
+            }
+        } catch (err) {
+            status.style.color = '#ff6b6b';
+            status.textContent = 'Submission failed: ' + err.message;
+        }
+    }
+
+    document.getElementById('feedback-type').addEventListener('change', updateFeedbackFields);
+    document.getElementById('feedback-submit-btn').addEventListener('click', submitFeedback);
 
     // === NEW: Update imported info display ===
     function updateImportedInfo() {
