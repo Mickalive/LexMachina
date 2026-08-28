@@ -1,0 +1,65 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "ACCEPTED",
+  "evidence_summary": {
+    "corpus": {
+      "tier": "REPRODUCED",
+      "scale": "1,577 schema-valid decisions (1000 slice + 250 yearly core 2020-2024)",
+      "unique_decisions": 1215,
+      "parquet_size_mb": 784.7,
+      "statute_extractor_laws": 50,
+      "gap": "Full 2000-2024 coverage not yet achieved (~1000/1215 unique)"
+    },
+    "legal_distance": {
+      "tier": "ACCEPTED",
+      "v1_baseline": "debiased_citation_blended (n_pca=1, alpha=0.7) — 14/14 PASS",
+      "v3_unsupervised_ablation": "COMPLETE — signal ablation answered: legal_cited_decisions_only 14/14 PASS; hybrids α=0.3/0.5 13/14 PASS (branch_knn 0.96, tf_metadata 0.97) but fail adversarial_falsification; legal signals degrade multilingual invariance",
+      "pivot_required": "Reproduce center_projected (only v2 representation passing BOTH adversarial language dominance <0.85 AND jurist pairwise >0.5)"
+    },
+    "fractal_map": {
+      "tier": "REPRODUCED",
+      "algorithm": "Hierarchical Leiden",
+      "nesting_score": 1.0,
+      "hierarchical_purity": 0.9634,
+      "zoom_coherence_improvement_rate": 0.3964,
+      "configurations": ["coarse_0.25_fine_3.0 (77 fine in 4 coarse)", "coarse_0.5_fine_3.0 (98 fine in 8 coarse)"],
+      "product_artifacts": 6,
+      "status": "Ready for product exposure as default map structure"
+    },
+    "evaluation": {
+      "tier": "REPRODUCED",
+      "v1_final": "14/14 PASS — frozen baseline established",
+      "v2_results": "17 benchmarks, 12 PASS, 5 FAIL, 3 CRITICAL",
+      "critical_finding": "center_projected is FIRST and ONLY representation passing BOTH adversarial language dominance (0.7593 < 0.85) AND jurist pairwise preference (0.5215 > 0.5). Also passes Jurivoc (4/5) and zoom coherence (+4.6%). debiased_citation_blended FAILS v2 adversarial cross-language (language dominance 0.999 = catastrophic). Frozen PCA achieves perfect corpus growth stability (position drift = 1.0).",
+      "verification_runs": 42,
+      "orchestration_pathology": "42+ operational resumes dispatched to COMPLETED lane due to missing supervisor pre-dispatch guard. No further v2 work justified.",
+      "v3_question_frozen": "Validate legal-distance unsupervised signal ablation results and frontier_metric_learning_jurivoc supervised metric learning results on FULL CORPUS (2000-2024) using adversarial benchmarks (language dominance, jurist pairwise, Jurivoc hierarchy alignment, scale stability, boilerplate resistance). Center_projected is the default reference representation to beat."
+    },
+    "product": {
+      "tier": "REPRODUCED",
+      "tests": "92/92 PASS",
+      "map_representations": 6,
+      "navigation_features": 33,
+      "api_endpoints": 22,
+      "hierarchical_leiden": "Coarse 5 → Fine 89 clusters, nesting=1.0, hierarchical_purity=0.945",
+      "section_modes": 6,
+      "gap": "Must integrate center_projected embeddings and legal-distance selectable modes; persist user map artifacts; add export"
+    },
+    "frontier": {
+      "portfolio_version": 3,
+      "teams": 1,
+      "team": {
+        "team_id": "frontier_metric_learning_jurivoc",
+        "charter_version": 1,
+        "status": "RUN",
+        "methodology": "SUPERVISED metric learning (Mahalanobis) on Jurivoc/TF weak labels",
+        "signals_to_fuse": ["debiased_citation_blended baseline", "sachverhalt TF-IDF", "erwaegungen TF-IDF", "norm embeddings", "citation role weights"],
+        "acceptance_test": "≥5% relative improvement over debiased_citation_blended on ≥3/4 jurist proxies; no regression on zoom_coherence (≥0.39) or multilingual_invariance (≥0.04); boilerplate_resistance PASS; serializable; meets/exceeds center_projected on adversarial_language_dominance (<0.85) AND jurist_pairwise_preference (>0.5)",
+        "stop_promote_rule": "PROMOTE if acceptance_test passes + temporal_stability ≥0.75 on held-out 2024 slice; PAUSE after 3 architecture variants; TERMINATE if collapse or multilingual violation",
+        "non_duplication": "Core legal-distance = UNSUPERVISED signal ablation; this team = SUPERVISED metric learning on weak labels — methodologically independent"
+      }
+    }
+  }
+}
