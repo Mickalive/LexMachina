@@ -4,10 +4,15 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "eval_v3_33216867703",
+  "accepted_run_id": "eval_v6_20260828_33215725413",
   "evidence_refs": [
     "results/evaluation/v3_evaluation_results.json",
-    "reports/evaluation/v3_evaluation_report.md"
+    "results/evaluation/v6_signal_ablation/v6_signal_ablation_adversarial_results.json",
+    "results/evaluation/v6_signal_ablation/v6_baseline_center_projected_results.json",
+    "reports/evaluation/v3_evaluation_report.md",
+    "reports/evaluation/v6_final_verification_report.md",
+    "reports/evaluation/evaluation_v6_completion_report.md",
+    "reports/evaluation/v3_frozen_benchmark_spec.md"
   ],
   "next_recommendation": "PRODUCTIZE",
   "summary": {
@@ -16,13 +21,13 @@
     "global_seed": 42,
     "critical_adversarial_tests": {
       "adversarial_language_dominance": {
-        "mean": 0.7659583333333334,
+        "mean": 0.766,
         "threshold": 0.85,
         "status": "PASS",
         "note": "Lower is better - language should not dominate neighbors"
       },
       "jurist_pairwise_preference": {
-        "legal_neighbor_rate": 0.5121,
+        "legal_neighbor_rate": 0.512,
         "threshold": 0.5,
         "status": "PASS",
         "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
@@ -73,6 +78,39 @@
         "status": "SKIP",
         "reason": "Full decision text not available in expanded slice metadata"
       }
+    },
+    "signal_ablation_validation": {
+      "variants_tested": 17,
+      "center_projected_64dim": {
+        "language_dominance": 0.766,
+        "jurist_pairwise": 0.512,
+        "both_gates_pass": true
+      },
+      "center_projected_768dim": {
+        "language_dominance": 0.774,
+        "jurist_pairwise": 0.491,
+        "both_gates_pass": false
+      },
+      "best_variant": "citation_weights",
+      "best_variant_degenerate": true,
+      "no_variant_beats_baseline_on_both_gates": true,
+      "note": "All 15 signal ablation variants fail at least one adversarial gate. Citation_weights passes both gates but is degenerate (single cluster, Jurivoc NMI=0.0). The 64-dim center_projected remains the only valid representation passing both gates."
+    },
+    "legal_embeddings_validation": {
+      "multilingual_e5_small": {"language_dominance": 0.999, "jurivoc_l2_nmi": 0.502, "status": "FAIL"},
+      "paraphrase_multilingual_minilm": {"language_dominance": 0.972, "status": "FAIL"},
+      "xlm_roberta_base": {"language_dominance": 1.000, "status": "FAIL"},
+      "note": "All legal embeddings fail language dominance gate (>0.85). Language dominates neighbors despite good Jurivoc scores."
+    },
+    "citation_role_validation": {
+      "roles_tested": 6,
+      "status": "DEGENERATE",
+      "note": "All 6 annotated roles (overruling, distinguishing, following, all_weighted, citing, criticizing) produce identical embeddings - single cluster, zero legal signal without semantic blending."
+    },
+    "frontier_metric_learning_validation": {
+      "status": "BLOCKED",
+      "reason": "No frontier_metric_learning_jurivoc team dispatched; frontier directory empty",
+      "required": "Factory Director must dispatch team or remove from factory direction"
     },
     "validation_against_factory_direction": {
       "center_projected_validated_as_default": true,
