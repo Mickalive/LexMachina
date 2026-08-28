@@ -23,9 +23,9 @@ Added 5 new map representations to the product, all loading successfully:
 |---|---|---|---|
 | **center_projected** | REPRODUCED (eval v2) | lang_dom=0.7593 PASS, jurist_pairwise=0.5215 PASS, Jurivoc 4/5 | **DEFAULT** - Only representation passing BOTH adversarial benchmarks |
 | **legal_cited_decisions** | ACCEPTED | 14/14 PASS, citation_heritage_AUC=0.9719 | TF-IDF on cited decisions only |
-| **hybrid_alpha_0_3** | EXPLORATORY | 13/14 PASS | 30% center_projected + 70% legal_cited_decisions |
-| **hybrid_alpha_0_5** | EXPLORATORY | 13/14 PASS | 50% center_projected + 50% legal_cited_decisions |
-| **legal_issues_outcomes** | EXPLORATORY | Hierarchical advantage 0.154 | TF-IDF on statutes, cited decisions, outcomes, legal area, erwaegungen headings |
+| **hybrid_alpha_0_3** | EXPLORATORY | Not benchmarked | 30% center_projected + 70% legal_cited_decisions |
+| **hybrid_alpha_0_5** | EXPLORATORY | Not benchmarked | 50% center_projected + 50% legal_cited_decisions |
+| **legal_issues_outcomes** | EXPLORATORY | Not benchmarked | TF-IDF on statutes, cited decisions, outcomes, legal area, erwaegungen headings |
 
 Total representations: **12** (was 6)
 
