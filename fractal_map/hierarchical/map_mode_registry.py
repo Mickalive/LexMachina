@@ -94,6 +94,16 @@ def _ld_artifacts(mode_id: str) -> Dict[str, str]:
     }
     for res in [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0]:
         artifacts[f"labels_res_{res}"] = f"{base}/labels_res_{res}.npy"
+    
+    # v7 hierarchical Leiden modes have hierarchical_best and coarse labels
+    v7_hierarchical_modes = [
+        "linear_metric_epoch4", "mahalanobis_metric_epoch4", 
+        "cited_decisions_tfidf", "hybrid_cited_0.3"
+    ]
+    if mode_id in v7_hierarchical_modes:
+        artifacts["labels_hierarchical_best"] = f"{base}/labels_hierarchical_best.npy"
+        artifacts["labels_coarse_0.5"] = f"{base}/labels_coarse_0.5.npy"
+    
     return artifacts
 
 
