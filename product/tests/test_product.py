@@ -621,28 +621,43 @@ def test_legal_cited_decisions():
     # Test legal_cited_decisions at each zoom level
     zoom_levels = api.get_zoom_levels("legal_cited_decisions")
     print(f"  Zoom levels: {zoom_levels}")
-    # Should have 4 zoom levels (0-3) using Leiden clustering
-    assert len(zoom_levels) == 4, f"Expected 4 zoom levels, got {len(zoom_levels)}"
+    # Should have 7 zoom levels (0-6) using fractal-map validated 7-resolution ladder
+    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
 
-    # Zoom 0: domain level
+    # Zoom 0: domain level (resolution 0.25)
     map_data = api.get_map_data("legal_cited_decisions", 0)
     assert map_data["n_decisions"] == 1000
     print(f"  Zoom 0: {map_data['n_clusters']} clusters, {map_data['n_decisions']} decisions")
 
-    # Zoom 1: subdomain
+    # Zoom 1: subdomain (resolution 0.5)
     map_data = api.get_map_data("legal_cited_decisions", 1)
     assert map_data["n_decisions"] == 1000
     print(f"  Zoom 1: {map_data['n_clusters']} clusters, {map_data['n_decisions']} decisions")
 
-    # Zoom 2: microcluster
+    # Zoom 2: (resolution 0.75)
     map_data = api.get_map_data("legal_cited_decisions", 2)
     assert map_data["n_decisions"] == 1000
     print(f"  Zoom 2: {map_data['n_clusters']} clusters, {map_data['n_decisions']} decisions")
 
-    # Zoom 3: detail
+    # Zoom 3: (resolution 1.0)
     map_data = api.get_map_data("legal_cited_decisions", 3)
     assert map_data["n_decisions"] == 1000
     print(f"  Zoom 3: {map_data['n_clusters']} clusters, {map_data['n_decisions']} decisions")
+
+    # Zoom 4: (resolution 1.5)
+    map_data = api.get_map_data("legal_cited_decisions", 4)
+    assert map_data["n_decisions"] == 1000
+    print(f"  Zoom 4: {map_data['n_clusters']} clusters, {map_data['n_decisions']} decisions")
+
+    # Zoom 5: (resolution 2.0)
+    map_data = api.get_map_data("legal_cited_decisions", 5)
+    assert map_data["n_decisions"] == 1000
+    print(f"  Zoom 5: {map_data['n_clusters']} clusters, {map_data['n_decisions']} decisions")
+
+    # Zoom 6: detail (resolution 3.0)
+    map_data = api.get_map_data("legal_cited_decisions", 6)
+    assert map_data["n_decisions"] == 1000
+    print(f"  Zoom 6: {map_data['n_clusters']} clusters, {map_data['n_decisions']} decisions")
 
     # Verify metadata reports ACCEPTED evidence tier
     map_state = api.map_loader.get_map("legal_cited_decisions")
@@ -836,7 +851,8 @@ def test_legal_issues_outcomes():
     as a TF-IDF embedding, providing a legal-specific view distinct from
     generic semantic similarity or citation-only proximity.
 
-    Evidence tier: EXPLORATORY (new signal from legal-distance lane v6).
+    Evidence tier: ACCEPTED (legal-distance lane v6) with warnings (fails 4/14 benchmarks:
+    adversarial_falsification, multilingual_invariance, citation_heritage, tf_metadata_human_indexing).
     """
     print("=== Test: Legal Issues & Outcomes (EXPLORATORY) ===")
 
@@ -854,20 +870,27 @@ def test_legal_issues_outcomes():
     zoom_levels_data = api.get_zoom_levels("legal_issues_outcomes")
     zoom_levels = [z["level"] for z in zoom_levels_data]
     print(f"  Zoom levels: {zoom_levels}")
-    assert len(zoom_levels) == 4, f"Expected 4 zoom levels, got {len(zoom_levels)}"
+    # Should have 7 zoom levels (0-6) using fractal-map validated 7-resolution ladder
+    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
 
     for zl in zoom_levels:
         map_data = api.get_map_data("legal_issues_outcomes", zl)
         assert map_data["n_decisions"] == 1000
         print(f"  Zoom {zl}: {map_data['n_clusters']} clusters, {map_data['n_decisions']} decisions")
 
-    # Verify metadata
-    map_state = api.map_loader.get_map("legal_issues_outcomes")
-    metadata = map_state.metadata
-    assert metadata.get("evidence_tier") == "EXPLORATORY", f"Expected evidence_tier=EXPLORATORY, got {metadata.get('evidence_tier')}"
-    assert metadata.get("signal_source") == "statutes_cited_outcomes_legal_area_erwaegungen_headings"
-    assert "tfidf_features" in metadata
-    print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}, signal_source={metadata.get('signal_source')}, tfidf_features={metadata.get('tfidf_features')}")
+# Verify metadata
+        map_state = api.map_loader.get_map("legal_issues_outcomes")
+        metadata = map_state.metadata
+        # Fractal-map lane validates this as ACCEPTED (with warnings for 4 failed benchmarks)
+        assert metadata.get("evidence_tier") == "ACCEPTED", f"Expected evidence_tier=ACCEPTED, got {metadata.get('evidence_tier')}"
+        assert metadata.get("signal_source") == "statutes_cited_outcomes_legal_area_erwaegungen_headings"
+        assert "tfidf_features" in metadata
+        print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}, signal_source={metadata.get('signal_source')}, tfidf_features={metadata.get('tfidf_features')}")
+        
+        # Verify warnings are present
+        warnings = metadata.get("warnings", [])
+        assert len(warnings) >= 4, f"Expected at least 4 warnings, got {warnings}"
+        print(f"  Warnings: {warnings}")
 
     # Test neighbors
     zl_0 = api.map_loader.get_zoom_level("legal_issues_outcomes", 0)

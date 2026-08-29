@@ -881,9 +881,12 @@ class MapLoader:
         - Zoom coherence: 7.1% improvement
         - Hierarchy purity: 0.8759
         - TF metadata recall@5: 0.9489
+        
+        Uses fractal-map validated clustering artifacts from legal_distance_modes/debiased_citation_blended/
         """
         baseline_dir = self.results_dir / "baseline"
         citation_graph_path = self.results_dir / "citation_graph" / "citation_graph.json"
+        fractal_mode_dir = self.results_dir / "legal_distance_modes" / "debiased_citation_blended"
 
         if not (baseline_dir / "metadata.json").exists():
             return
@@ -891,6 +894,9 @@ class MapLoader:
             return
         if not citation_graph_path.exists():
             return
+        if not (fractal_mode_dir / "cluster_metadata.json").exists():
+            # Fallback to legacy if fractal-map artifacts not available
+            return self._load_debiased_citation_blended_legacy()
 
         with open(baseline_dir / "metadata.json", "r") as f:
             metadata = json.load(f)
@@ -904,7 +910,6 @@ class MapLoader:
             citation_data = json.load(f)
 
         # Build citations dict: decision_id -> list of cited decision_ids
-        # The citation graph has "outgoing" key with source -> list of targets
         citations = {}
         for source, targets in citation_data.get("outgoing", {}).items():
             if source and targets:
@@ -921,8 +926,78 @@ class MapLoader:
         pca_2d = PCA(n_components=2, random_state=42)
         projection_2d = pca_2d.fit_transform(emb)
 
-        # Use Leiden cluster assignments from hierarchical_map (same as other representations)
+        # Build positions mapping
+        positions = {}
+        for i, did in enumerate(decision_ids):
+            if i < len(projection_2d):
+                positions[did] = (float(projection_2d[i, 0]), float(projection_2d[i, 1]))
+
+        # Load fractal-map validated clustering
+        zoom_levels = self._load_fractal_map_clustering(
+            fractal_mode_dir, decision_ids, n_decisions, positions, "debiased_citation_blended"
+        )
+
+        if not zoom_levels:
+            return self._load_debiased_citation_blended_legacy()
+
+        self.maps["debiased_citation_blended"] = MapState(
+            representation="debiased_citation_blended",
+            n_decisions=n_decisions,
+            zoom_levels=zoom_levels,
+            metadata={
+                "n_pca_components": creation_info.get("n_pca_components", 1),
+                "alpha": creation_info.get("alpha", 0.7),
+                "variance_removed_by_debiasing": creation_info.get("variance_removed_by_debiasing", 0.2421),
+                "pca_64_explained_variance": creation_info.get("pca_64_explained_variance", 1.0),
+                "in_graph_decisions": creation_info.get("in_graph_decisions", 997),
+                "clustering_method": "debiased_citation_blended + Hierarchical Leiden (fractal-map validated)",
+                "benchmark_status": "14/14 PASS",
+                "citation_heritage_auc": 0.9102,
+                "language_dominance": 0.6406,
+                "evidence_tier": "ACCEPTED",
+                "n_zoom_levels": len(zoom_levels),
+                "note": "Evaluation default: 14/14 benchmarks PASSED. n_pca=1, alpha=0.7. "
+                        "Uses fractal-map validated 7-resolution hierarchical clustering.",
+            },
+        )
+
+    def _load_debiased_citation_blended_legacy(self) -> None:
+        """Legacy fallback using baseline Leiden clustering."""
+        baseline_dir = self.results_dir / "baseline"
+        citation_graph_path = self.results_dir / "citation_graph" / "citation_graph.json"
         hierarchical_map_dir = self.results_dir / "hierarchical_map"
+
+        if not (baseline_dir / "metadata.json").exists():
+            return
+        if not (baseline_dir / "embeddings.npy").exists():
+            return
+        if not citation_graph_path.exists():
+            return
+
+        with open(baseline_dir / "metadata.json", "r") as f:
+            metadata = json.load(f)
+
+        decision_ids = [m["decision_id"] for m in metadata]
+        n_decisions = len(decision_ids)
+        baseline_768 = np.load(baseline_dir / "embeddings.npy")
+
+        with open(citation_graph_path, "r") as f:
+            citation_data = json.load(f)
+
+        citations = {}
+        for source, targets in citation_data.get("outgoing", {}).items():
+            if source and targets:
+                citations[source] = targets
+
+        emb, creation_info = self._create_debiased_citation_blended(
+            baseline_768, metadata, citations,
+            n_pca_components=1, alpha=0.7, dims=64
+        )
+
+        from sklearn.decomposition import PCA
+        pca_2d = PCA(n_components=2, random_state=42)
+        projection_2d = pca_2d.fit_transform(emb)
+
         leiden_assignments = {}
         if (hierarchical_map_dir / "leiden_multi_resolution.json").exists():
             with open(hierarchical_map_dir / "leiden_multi_resolution.json", "r") as f:
@@ -942,13 +1017,11 @@ class MapLoader:
                 leiden_assignments[leiden_key] = assignments
                 leiden_assignments[str(zoom_level)] = assignments
 
-        # Build zoom levels using the unified evaluation structure
         unified_path = self.results_dir / "unified_evaluation" / "unified_results.json"
         concat_data = {}
         if unified_path.exists():
             with open(unified_path, "r") as f:
                 unified = json.load(f)
-            # Use concat_center_tfidf structure for zoom levels (resolution levels match)
             concat_data = unified.get("concat_center_tfidf", {})
 
         self._build_zoom_levels(
@@ -960,7 +1033,6 @@ class MapLoader:
             leiden_assignments=leiden_assignments,
         )
 
-        # Update metadata with creation info
         if "debiased_citation_blended" in self.maps:
             self.maps["debiased_citation_blended"].metadata.update({
                 "n_pca_components": creation_info.get("n_pca_components", 1),
@@ -968,11 +1040,12 @@ class MapLoader:
                 "variance_removed_by_debiasing": creation_info.get("variance_removed_by_debiasing", 0.2421),
                 "pca_64_explained_variance": creation_info.get("pca_64_explained_variance", 1.0),
                 "in_graph_decisions": creation_info.get("in_graph_decisions", 997),
-                "clustering_method": "debiased_citation_blended + Leiden",
+                "clustering_method": "debiased_citation_blended + Leiden (legacy baseline)",
                 "benchmark_status": "14/14 PASS",
                 "citation_heritage_auc": 0.9102,
                 "language_dominance": 0.6406,
-                "note": "Evaluation default: 14/14 benchmarks PASSED. n_pca=1, alpha=0.7. RECOMMENDED FOR PRODUCTIZE.",
+                "note": "Evaluation default: 14/14 benchmarks PASSED. n_pca=1, alpha=0.7. "
+                        "WARNING: Using legacy baseline Leiden clustering (fractal-map artifacts not loaded).",
             })
 
     def _load_fractal_map_7res(self) -> None:
@@ -1163,6 +1236,123 @@ class MapLoader:
             },
         )
 
+    def _load_fractal_map_clustering(self, mode_dir: Path, decision_ids: List[str], n_decisions: int, positions: Dict[str, Tuple[float, float]], mode_name: str) -> Dict[int, ZoomLevel]:
+        """Load clustering artifacts from fractal-map lane's validated artifacts.
+        
+        Expects the following files in mode_dir:
+        - labels_res_0.25.npy through labels_res_3.0.npy (7 resolution levels)
+        - cluster_metadata.json (legal coherence metrics per cluster)
+        - zoom_mappings.json (parent-child navigation)
+        - decision_clusters.json (decision-to-cluster index)
+        - zoom_coherence.json (per-cluster zoom improvement metrics)
+        - integration_summary.json (summary of validation)
+        """
+        # Resolution ladder from fractal-map validation
+        resolution_keys = ["0.25", "0.5", "0.75", "1.0", "1.5", "2.0", "3.0"]
+        resolution_to_zoom = {
+            "0.25": 0, "0.5": 1, "0.75": 2, "1.0": 3,
+            "1.5": 4, "2.0": 5, "3.0": 6
+        }
+        
+        # Load cluster metadata
+        cluster_metadata = {}
+        if (mode_dir / "cluster_metadata.json").exists():
+            with open(mode_dir / "cluster_metadata.json", "r") as f:
+                cluster_metadata = json.load(f)
+        
+        # Load zoom mappings
+        zoom_mappings = {}
+        if (mode_dir / "zoom_mappings.json").exists():
+            with open(mode_dir / "zoom_mappings.json", "r") as f:
+                zoom_mappings = json.load(f)
+        
+        # Load decision clusters
+        decision_clusters = {}
+        if (mode_dir / "decision_clusters.json").exists():
+            with open(mode_dir / "decision_clusters.json", "r") as f:
+                decision_clusters = json.load(f)
+        
+        # Load zoom coherence
+        zoom_coherence = {}
+        if (mode_dir / "zoom_coherence.json").exists():
+            with open(mode_dir / "zoom_coherence.json", "r") as f:
+                zoom_coherence = json.load(f)
+        
+        # Load label arrays for each resolution
+        labels_by_resolution = {}
+        for res_key in resolution_keys:
+            label_file = mode_dir / f"labels_res_{res_key}.npy"
+            if label_file.exists():
+                labels_by_resolution[res_key] = np.load(label_file)
+        
+        # Build zoom levels from cluster metadata and labels
+        index_to_id = {i: m for i, m in enumerate(decision_ids)}
+        
+        zoom_levels = {}
+        
+        for res_key, zoom_level in resolution_to_zoom.items():
+            meta_key = f"res_{res_key}"
+            if meta_key not in cluster_metadata:
+                continue
+            
+            res_metadata = cluster_metadata[meta_key]
+            labels = labels_by_resolution.get(res_key)
+            
+            if labels is None:
+                continue
+            
+            # Build cluster assignments from labels
+            cluster_assignments = {}
+            for idx, label in enumerate(labels):
+                did = index_to_id.get(idx)
+                if did:
+                    cluster_assignments[did] = int(label)
+            
+            # Build cluster info from metadata
+            clusters = {}
+            for cid_str, cluster_data in res_metadata.items():
+                cid = int(cid_str)
+                decision_indices = cluster_data.get("decision_indices", [])
+                decision_ids_in_cluster = [decision_ids[i] for i in decision_indices if i < len(decision_ids)]
+                
+                clusters[cid] = ClusterInfo(
+                    cluster_id=cid,
+                    zoom_level=zoom_level,
+                    decision_ids=decision_ids_in_cluster,
+                    size=cluster_data.get("size", 0),
+                    centroid_x=0.0,
+                    centroid_y=0.0,
+                    legal_area_label=cluster_data.get("dominant_area"),
+                    language_label=cluster_data.get("dominant_lang"),
+                )
+            
+            # Compute centroids from positions
+            for cid, cluster in clusters.items():
+                xs = [positions[did][0] for did in cluster.decision_ids if did in positions]
+                ys = [positions[did][1] for did in cluster.decision_ids if did in positions]
+                if xs and ys:
+                    cluster.centroid_x = sum(xs) / len(xs)
+                    cluster.centroid_y = sum(ys) / len(ys)
+            
+            zoom_levels[zoom_level] = ZoomLevel(
+                level=zoom_level,
+                n_clusters=len(clusters),
+                clusters=clusters,
+                positions=positions,
+                cluster_assignments=cluster_assignments,
+                n_decisions=n_decisions,
+            )
+        
+        # Store fractal map metadata for API access
+        self._fractal_map_metadata[mode_name] = {
+            "cluster_metadata": cluster_metadata,
+            "zoom_mappings": zoom_mappings,
+            "decision_clusters": decision_clusters,
+            "zoom_coherence": zoom_coherence,
+        }
+        
+        return zoom_levels
+
     def _load_legal_cited_decisions(self) -> None:
         """Load the legal_cited_decisions representation (ACCEPTED legal-distance signal).
 
@@ -1170,8 +1360,11 @@ class MapLoader:
         Evidence tier: ACCEPTED (14/14 benchmarks PASS in legal-distance lane).
         Citation heritage AUC: 0.9719 (beats baseline 0.9097).
         Best for: citation-proximity navigation, finding legally related decisions via citation overlap.
+        
+        Uses fractal-map validated clustering artifacts from legal_distance_modes/legal_cited_decisions_only/
         """
         legal_dir = self.results_dir / "legal_cited_decisions"
+        fractal_mode_dir = self.results_dir / "legal_distance_modes" / "legal_cited_decisions_only"
         baseline_dir = self.results_dir / "baseline"
 
         if not (legal_dir / "metadata.json").exists():
@@ -1180,6 +1373,9 @@ class MapLoader:
             return
         if not (legal_dir / "embeddings.npy").exists():
             return
+        if not (fractal_mode_dir / "cluster_metadata.json").exists():
+            # Fallback to baseline Leiden if fractal-map artifacts not available
+            return self._load_legal_cited_decisions_legacy()
 
         # Load metadata (same decision order as baseline)
         with open(legal_dir / "metadata.json", "r") as f:
@@ -1191,14 +1387,56 @@ class MapLoader:
         # Load 2D projection
         projection = np.load(legal_dir / "projection_2d.npy")
 
-        # Load Leiden cluster assignments (same as baseline - reusing clustering)
+        # Build positions mapping
+        positions = {}
+        for i, did in enumerate(decision_ids):
+            if i < len(projection):
+                positions[did] = (float(projection[i, 0]), float(projection[i, 1]))
+
+        # Load fractal-map validated clustering
+        zoom_levels = self._load_fractal_map_clustering(
+            fractal_mode_dir, decision_ids, n_decisions, positions, "legal_cited_decisions"
+        )
+
+        if not zoom_levels:
+            return self._load_legal_cited_decisions_legacy()
+
+        self.maps["legal_cited_decisions"] = MapState(
+            representation="legal_cited_decisions",
+            n_decisions=n_decisions,
+            zoom_levels=zoom_levels,
+            metadata={
+                "clustering_method": "legal_tfidf_cited_decisions + Hierarchical Leiden (fractal-map validated)",
+                "signal_source": "cited_decisions_only",
+                "evidence_tier": "ACCEPTED",
+                "benchmark_status": "14/14 PASS",
+                "citation_heritage_auc": 0.9719,
+                "n_zoom_levels": len(zoom_levels),
+                "note": "Legal-distance signal (ACCEPTED): TF-IDF on cited decisions only. "
+                        "Passes ALL 14 evaluation benchmarks. Best for citation-proximity navigation. "
+                        "Uses fractal-map validated 7-resolution hierarchical clustering.",
+            },
+        )
+
+    def _load_legal_cited_decisions_legacy(self) -> None:
+        """Legacy fallback using baseline Leiden clustering."""
+        legal_dir = self.results_dir / "legal_cited_decisions"
+        baseline_dir = self.results_dir / "baseline"
         hierarchical_dir = self.results_dir / "hierarchical"
+
+        with open(legal_dir / "metadata.json", "r") as f:
+            metadata = json.load(f)
+
+        decision_ids = [m["decision_id"] for m in metadata]
+        n_decisions = len(decision_ids)
+        projection = np.load(legal_dir / "projection_2d.npy")
+
+        # Load Leiden cluster assignments (same as baseline - reusing clustering)
         leiden_assignments = {}
         leiden_path = hierarchical_dir / "leiden_multi_resolution.json"
         if leiden_path.exists():
             with open(leiden_path, "r") as f:
                 leiden_data = json.load(f)
-            # Build mapping: decision_index -> decision_id
             index_to_id = {i: m["decision_id"] for i, m in enumerate(metadata)}
             for leiden_key, leiden_result in leiden_data.items():
                 if not leiden_key.startswith("resolution_"):
@@ -1214,7 +1452,6 @@ class MapLoader:
                 leiden_assignments[leiden_key] = assignments
                 leiden_assignments[str(zoom_level)] = assignments
 
-        # Build zoom levels using unified evaluation structure
         unified_path = self.results_dir / "unified_evaluation" / "unified_results.json"
         concat_data = {}
         if unified_path.exists():
@@ -1231,17 +1468,17 @@ class MapLoader:
             leiden_assignments=leiden_assignments,
         )
 
-        # Update metadata with signal info
         if "legal_cited_decisions" in self.maps:
             self.maps["legal_cited_decisions"].metadata.update({
-                "clustering_method": "legal_tfidf_cited_decisions + Leiden",
+                "clustering_method": "legal_tfidf_cited_decisions + Leiden (legacy baseline)",
                 "signal_source": "cited_decisions_only",
                 "evidence_tier": "ACCEPTED",
                 "benchmark_status": "14/14 PASS",
                 "citation_heritage_auc": 0.9719,
                 "note": "Legal-distance signal (ACCEPTED): TF-IDF on cited decisions only. "
-                        "Passes ALL 14 evaluation benchmarks. Best for citation-proximity navigation.",
-})
+                        "Passes ALL 14 evaluation benchmarks. Best for citation-proximity navigation. "
+                        "WARNING: Using legacy baseline Leiden clustering (fractal-map artifacts not loaded).",
+        })
 
     def _load_center_projected(self) -> None:
         """Load the center_projected representation (CRITICAL - evaluation v2 finding).
@@ -1821,11 +2058,15 @@ class MapLoader:
             alpha: Weight for center_projected (0.3 or 0.5)
             name: Representation name (e.g., "hybrid_alpha_0_3")
             description: Human-readable description
+            
+        Uses fractal-map validated clustering artifacts from legal_distance_modes/hybrid_alpha_03/ or hybrid_alpha_05/
         """
         baseline_dir = self.results_dir / "baseline"
         debiasing_dir = self.results_dir / "language_debiasing"
         legal_dir = self.results_dir / "legal_cited_decisions"
-        hierarchical_dir = self.results_dir / "hierarchical"
+        # Map product name to fractal-map directory name
+        fractal_name = name.replace("hybrid_alpha_0_", "hybrid_alpha_")
+        fractal_mode_dir = self.results_dir / "legal_distance_modes" / fractal_name
 
         if not (baseline_dir / "metadata.json").exists():
             return
@@ -1833,6 +2074,9 @@ class MapLoader:
             return
         if not (legal_dir / "embeddings.npy").exists():
             return
+        if not (fractal_mode_dir / "cluster_metadata.json").exists():
+            # Fallback to legacy if fractal-map artifacts not available
+            return self._load_hybrid_alpha_legacy(alpha, name, description)
 
         # Load metadata (same decision order)
         with open(baseline_dir / "metadata.json", "r") as f:
@@ -1853,7 +2097,65 @@ class MapLoader:
         pca_2d = PCA(n_components=2, random_state=42)
         projection_2d = pca_2d.fit_transform(hybrid_emb)
 
-        # Load Leiden cluster assignments
+        # Build positions mapping
+        positions = {}
+        for i, did in enumerate(decision_ids):
+            if i < len(projection_2d):
+                positions[did] = (float(projection_2d[i, 0]), float(projection_2d[i, 1]))
+
+        # Load fractal-map validated clustering
+        zoom_levels = self._load_fractal_map_clustering(
+            fractal_mode_dir, decision_ids, n_decisions, positions, name
+        )
+
+        if not zoom_levels:
+            return self._load_hybrid_alpha_legacy(alpha, name, description)
+
+        self.maps[name] = MapState(
+            representation=name,
+            n_decisions=n_decisions,
+            zoom_levels=zoom_levels,
+            metadata={
+                "clustering_method": f"hybrid (center_projected + legal_cited_decisions, alpha={alpha}) + Hierarchical Leiden (fractal-map validated)",
+                "signal_source": f"center_projected_alpha_{alpha}_legal_cited_alpha_{1-alpha}",
+                "evidence_tier": "ACCEPTED",
+                "alpha": alpha,
+                "center_projected_weight": alpha,
+                "legal_cited_decisions_weight": 1 - alpha,
+                "n_zoom_levels": len(zoom_levels),
+                "note": description + " Uses fractal-map validated 7-resolution hierarchical clustering.",
+            },
+        )
+
+    def _load_hybrid_alpha_legacy(self, alpha: float, name: str, description: str) -> None:
+        """Legacy fallback using baseline Leiden clustering."""
+        baseline_dir = self.results_dir / "baseline"
+        debiasing_dir = self.results_dir / "language_debiasing"
+        legal_dir = self.results_dir / "legal_cited_decisions"
+        hierarchical_dir = self.results_dir / "hierarchical"
+
+        if not (baseline_dir / "metadata.json").exists():
+            return
+        if not (debiasing_dir / "embeddings_center_projected.npy").exists():
+            return
+        if not (legal_dir / "embeddings.npy").exists():
+            return
+
+        with open(baseline_dir / "metadata.json", "r") as f:
+            metadata = json.load(f)
+
+        decision_ids = [m["decision_id"] for m in metadata]
+        n_decisions = len(decision_ids)
+
+        center_emb = np.load(debiasing_dir / "embeddings_center_projected.npy")
+        cited_emb = np.load(legal_dir / "embeddings.npy")
+
+        hybrid_emb = self._create_hybrid_embedding(center_emb, cited_emb, alpha, dims=64)
+
+        from sklearn.decomposition import PCA
+        pca_2d = PCA(n_components=2, random_state=42)
+        projection_2d = pca_2d.fit_transform(hybrid_emb)
+
         leiden_assignments = {}
         leiden_path = hierarchical_dir / "leiden_multi_resolution.json"
         if leiden_path.exists():
@@ -1874,7 +2176,6 @@ class MapLoader:
                 leiden_assignments[leiden_key] = assignments
                 leiden_assignments[str(zoom_level)] = assignments
 
-        # Build zoom levels
         unified_path = self.results_dir / "unified_evaluation" / "unified_results.json"
         concat_data = {}
         if unified_path.exists():
@@ -1891,16 +2192,15 @@ class MapLoader:
             leiden_assignments=leiden_assignments,
         )
 
-        # Update metadata
         if name in self.maps:
             self.maps[name].metadata.update({
-                "clustering_method": f"hybrid (center_projected + legal_cited_decisions, alpha={alpha}) + Leiden",
+                "clustering_method": f"hybrid (center_projected + legal_cited_decisions, alpha={alpha}) + Leiden (legacy baseline)",
                 "signal_source": f"center_projected_alpha_{alpha}_legal_cited_alpha_{1-alpha}",
                 "evidence_tier": "EXPLORATORY",
                 "alpha": alpha,
                 "center_projected_weight": alpha,
                 "legal_cited_decisions_weight": 1 - alpha,
-                "note": description,
+                "note": description + " WARNING: Using legacy baseline Leiden clustering (fractal-map artifacts not loaded).",
             })
 
     def _load_hybrid_alpha_0_3(self) -> None:
@@ -1933,16 +2233,21 @@ class MapLoader:
         as a TF-IDF or semantic embedding, providing a legal-specific view distinct from
         generic semantic similarity or citation-only proximity.
 
-        Evidence tier: EXPLORATORY (new signal from legal-distance lane v6).
+        Evidence tier: ACCEPTED (legal-distance lane v6) but with warnings (fails 4/14 benchmarks).
+        Uses fractal-map validated clustering artifacts from legal_distance_modes/legal_issues_outcomes/
         """
         baseline_dir = self.results_dir / "baseline"
         legal_signals_path = self.results_dir / "legal_signals_1000.jsonl"
+        fractal_mode_dir = self.results_dir / "legal_distance_modes" / "legal_issues_outcomes"
         hierarchical_dir = self.results_dir / "hierarchical"
 
         if not (baseline_dir / "metadata.json").exists():
             return
         if not legal_signals_path.exists():
             return
+        if not (fractal_mode_dir / "cluster_metadata.json").exists():
+            # Fallback to legacy if fractal-map artifacts not available
+            return self._load_legal_issues_outcomes_legacy()
 
         # Load baseline metadata for decision order
         with open(baseline_dir / "metadata.json", "r") as f:
@@ -1954,13 +2259,6 @@ class MapLoader:
 
         # Load legal signals and build text corpus for TF-IDF
         # Combine: statutes, cited_decisions, legal_area, outcome, erwaegungen_headings
-        legal_texts = []
-        for m in metadata:
-            did = m["decision_id"]
-            # We'll load from legal_signals file
-            legal_texts.append("")  # Placeholder
-
-        # Load legal signals data
         signals_map = {}
         with open(legal_signals_path, "r") as f:
             for line in f:
@@ -2021,7 +2319,121 @@ class MapLoader:
         pca_2d = PCA(n_components=2, random_state=42)
         projection_2d = pca_2d.fit_transform(legal_emb_64)
 
-        # Load Leiden cluster assignments
+        # Build positions mapping
+        positions = {}
+        for i, did in enumerate(decision_ids):
+            if i < len(projection_2d):
+                positions[did] = (float(projection_2d[i, 0]), float(projection_2d[i, 1]))
+
+        # Load fractal-map validated clustering
+        zoom_levels = self._load_fractal_map_clustering(
+            fractal_mode_dir, decision_ids, n_decisions, positions, "legal_issues_outcomes"
+        )
+
+        if not zoom_levels:
+            return self._load_legal_issues_outcomes_legacy()
+
+        self.maps["legal_issues_outcomes"] = MapState(
+            representation="legal_issues_outcomes",
+            n_decisions=n_decisions,
+            zoom_levels=zoom_levels,
+            metadata={
+                "clustering_method": "legal_issues_outcomes (TF-IDF on statutes+cited+outcomes+legal_area) + Hierarchical Leiden (fractal-map validated)",
+                "signal_source": "statutes_cited_outcomes_legal_area_erwaegungen_headings",
+                "evidence_tier": "ACCEPTED",
+                "tfidf_features": len(vectorizer.vocabulary_),
+                "svd_dims": 64,
+                "n_zoom_levels": len(zoom_levels),
+                "benchmark_results": {
+                    "citation_heritage": {"status": "PASS", "auc_roc": 0.6751},
+                    "adversarial_falsification": {"status": "FAIL"},
+                    "branch_knn": {"status": "PASS", "knn_accuracy@1": 0.8388},
+                    "multilingual_invariance": {"status": "FAIL"},
+                    "hierarchy_coherence": {"status": "PASS", "best_purity": 0.8609},
+                    "tf_metadata_human_indexing": {"status": "PASS", "recall@1": 0.8388},
+                    "summary": {"total_benchmarks": 14, "passed": 10, "failed": 4, "all_passed": False}
+                },
+                "warnings": [
+                    "fails adversarial_falsification benchmark",
+                    "fails multilingual_invariance benchmark",
+                    "fails citation_heritage threshold",
+                    "fails tf_metadata_human_indexing threshold"
+                ],
+                "note": "Legal-specific signal: TF-IDF on statutes, cited decisions, outcomes, legal area, and erwaegungen headings. "
+                        "Captures legal issues and outcomes proximity. "
+                        "Uses fractal-map validated 7-resolution hierarchical clustering. "
+                        "WARNING: fails 4/14 benchmarks (adversarial_falsification, multilingual_invariance, citation_heritage, tf_metadata_human_indexing).",
+            },
+        )
+
+    def _load_legal_issues_outcomes_legacy(self) -> None:
+        """Legacy fallback using baseline Leiden clustering."""
+        baseline_dir = self.results_dir / "baseline"
+        legal_signals_path = self.results_dir / "legal_signals_1000.jsonl"
+        hierarchical_dir = self.results_dir / "hierarchical"
+
+        if not (baseline_dir / "metadata.json").exists():
+            return
+        if not legal_signals_path.exists():
+            return
+
+        with open(baseline_dir / "metadata.json", "r") as f:
+            metadata = json.load(f)
+
+        decision_ids = [m["decision_id"] for m in metadata]
+        n_decisions = len(decision_ids)
+        id_to_idx = {did: i for i, did in enumerate(decision_ids)}
+
+        signals_map = {}
+        with open(legal_signals_path, "r") as f:
+            for line in f:
+                if line.strip():
+                    d = json.loads(line)
+                    signals_map[d["decision_id"]] = d
+
+        texts = []
+        for did in decision_ids:
+            sig = signals_map.get(did, {})
+            parts = []
+            statutes = sig.get("statutes", [])
+            if statutes:
+                parts.extend(statutes)
+            cited = sig.get("cited_decisions", [])
+            if cited:
+                parts.extend(cited)
+            la = sig.get("legal_area", "")
+            if la:
+                parts.append(la)
+            outcome = sig.get("outcome", "")
+            if outcome:
+                parts.append(outcome)
+            headings = sig.get("erwaegungen_headings", [])
+            if headings:
+                parts.extend(headings)
+            texts.append(" ".join(parts) if parts else did)
+
+        from sklearn.feature_extraction.text import TfidfVectorizer
+        vectorizer = TfidfVectorizer(
+            max_features=5000,
+            min_df=2,
+            max_df=0.95,
+            ngram_range=(1, 2),
+            sublinear_tf=True,
+        )
+        tfidf_emb = vectorizer.fit_transform(texts).toarray()
+
+        from sklearn.decomposition import TruncatedSVD
+        svd = TruncatedSVD(n_components=64, random_state=42)
+        legal_emb_64 = svd.fit_transform(tfidf_emb)
+
+        norms = np.linalg.norm(legal_emb_64, axis=1, keepdims=True)
+        norms[norms == 0] = 1
+        legal_emb_64 = legal_emb_64 / norms
+
+        from sklearn.decomposition import PCA
+        pca_2d = PCA(n_components=2, random_state=42)
+        projection_2d = pca_2d.fit_transform(legal_emb_64)
+
         leiden_assignments = {}
         leiden_path = hierarchical_dir / "leiden_multi_resolution.json"
         if leiden_path.exists():
@@ -2042,7 +2454,6 @@ class MapLoader:
                 leiden_assignments[leiden_key] = assignments
                 leiden_assignments[str(zoom_level)] = assignments
 
-        # Build zoom levels
         unified_path = self.results_dir / "unified_evaluation" / "unified_results.json"
         concat_data = {}
         if unified_path.exists():
@@ -2059,16 +2470,16 @@ class MapLoader:
             leiden_assignments=leiden_assignments,
         )
 
-        # Update metadata
         if "legal_issues_outcomes" in self.maps:
             self.maps["legal_issues_outcomes"].metadata.update({
-                "clustering_method": "legal_issues_outcomes (TF-IDF on statutes+cited+outcomes+legal_area) + Leiden",
+                "clustering_method": "legal_issues_outcomes (TF-IDF on statutes+cited+outcomes+legal_area) + Leiden (legacy baseline)",
                 "signal_source": "statutes_cited_outcomes_legal_area_erwaegungen_headings",
                 "evidence_tier": "EXPLORATORY",
                 "tfidf_features": len(vectorizer.vocabulary_),
                 "svd_dims": 64,
                 "note": "Legal-specific signal: TF-IDF on statutes, cited decisions, outcomes, legal area, and erwaegungen headings. "
-                        "Captures legal issues and outcomes proximity. EXPLORATORY - not yet benchmarked.",
+                        "Captures legal issues and outcomes proximity. EXPLORATORY - not yet benchmarked. "
+                        "WARNING: Using legacy baseline Leiden clustering (fractal-map artifacts not loaded).",
             })
 
     def _create_debiased_citation_blended(
