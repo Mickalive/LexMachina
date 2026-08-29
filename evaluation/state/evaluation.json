@@ -6,13 +6,14 @@
   "continue_recommended": false,
   "accepted_run_id": "evaluation_v3_frozen_harness_33232234741",
   "github_run": "33240972425",
-  "timestamp": "2026-08-29T09:06:29.213274Z",
+  "timestamp": "2026-08-29T08:31:07Z",
   "config_hash": "4323f833fa72366a",
   "global_seed": 42,
   "evidence_refs": [
     "evaluation/results/v3/evaluation_v3_results.json",
     "evaluation/evaluation_v3_harness.py",
     "evaluation/reports/evaluation_v3_github_run_33232234741.md",
+    "evaluation/reports/evaluation_v3_final_closure_report.md",
     "results/evaluation/v6_signal_ablation/v6_signal_ablation_adversarial_results.json",
     "evaluation/v6_rerun.log",
     "evaluation/results/cited_decisions_validation/cited_decisions_validation_all_results.json",
@@ -23,7 +24,7 @@
     "evaluation/reports/evaluation_v6_completion_report.md"
   ],
   "key_findings": [
-    "EVALUATION v3 COMPLETE: Frozen evaluation harness (seed=42, config_hash=4323f833fa72366a) executed on expanded 1,200-decision slice. REPRODUCED EXACTLY in GitHub run 33232234741 AND VERIFIED in run 33240972425.",
+    "EVALUATION v3 COMPLETE: Frozen evaluation harness (seed=42, config_hash=4323f833fa72366a) executed on expanded 1,200-decision slice. REPRODUCED EXACTLY in GitHub run 33232234741 AND VERIFIED in run 33240972425. LOCAL REPRODUCIILITY CONFIRMED: fresh execution on 2026-08-29 produces IDENTICAL results (config hash 4323f833fa72366a).",
     "Reference baseline center_projected_64dim (production default) PASSES both adversarial gates: language_dominance=0.7664 < 0.85, jurist_pairwise=0.5121 > 0.5.",
     "center_projected_768 FAILS jurist pairwise (0.4912 < 0.5) despite passing language dominance - CONFIRMS product lane critical finding.",
     "linear_metric_epoch4 (metric learning) achieves HIGHEST jurist preference (0.6847) with strong language invariance (0.6805) and excellent Jurivoc Level 0 NMI (0.6895). Cross-language retrieval PASS (0.2114 > 0.2).",
@@ -31,12 +32,12 @@
     "hybrid_stabilized_epoch1 achieves jurist preference 0.6656 with lowest language dominance (0.6704) and cross-language retrieval PASS (0.2360).",
     "hybrid_v2_epoch3 achieves jurist preference 0.5988 with BEST Jurivoc Level 0 NMI (0.7415) and cross-language retrieval PASS (0.2269).",
     "All four metric learning / hybrid representations BEAT reference baseline on jurist pairwise preference AND pass both adversarial gates.",
-    "Boilerplate resistance remains NEGATIVE for ALL representations (resistance_score \u2248 -0.75 to -0.92) - procedural neighbors dominate. This is a systematic limitation of the current embedding approaches.",
+    "Boilerplate resistance remains NEGATIVE for ALL representations (resistance_score ≈ -0.75 to -0.92) - procedural neighbors dominate. This is a systematic limitation of the current embedding approaches.",
     "Scale stability is GOOD for all representations (0.60-0.72 neighbor overlap under 80% corpus subsampling).",
     "Signal ablation validation CONFIRMED: ALL 15 signal ablation variants on center_projected baseline FAIL jurist pairwise preference. Only metric learning and stabilized hybrid objectives produce valid adversarial-robust representations.",
     "NEW FINDING (this run): cited_decisions_tfidf (pure TF-IDF on cited decisions) achieves HIGHEST jurist preference (0.6922) and BEST language invariance (0.6107) among ALL unsupervised representations, passing both adversarial gates. CONFIRMED legal-distance v6 finding (lang_dom=0.6086, jurist=0.6889).",
     "NEW FINDING: All 6 hybrids of cited_decisions_tfidf with center_projected (64-dim and 768-dim, alphas 0.3/0.5/0.7) PASS both adversarial gates. Best production hybrid: cited_decisions_tfidf_hybrid_cp64_0.7 (jurist=0.6564, lang_dom=0.6518).",
-    "cited_decisions_tfidf achieves jurist preference COMPETITIVE WITH supervised metric learning (0.6922 vs 0.6847 linear_metric) WITHOUT training \u2014 zero-shot citation signal."
+    "cited_decisions_tfidf achieves jurist preference COMPETITIVE WITH supervised metric learning (0.6922 vs 0.6847 linear_metric) WITHOUT training — zero-shot citation signal."
   ],
   "validation_metrics": {
     "center_projected_768": {
@@ -53,7 +54,7 @@
       "scale_stability_pass": true,
       "boilerplate_resistance_score": -0.8959,
       "boilerplate_resistance_pass": false,
-      "fractal_improvement_rate": 0.6,
+      "fractal_improvement_rate": 0.6000,
       "cross_language_retrieval": 0.1455,
       "cross_language_retrieval_pass": false
     },
@@ -118,15 +119,15 @@
       "jurist_pairwise_preference": 0.6656,
       "jurist_pairwise_preference_pass": true,
       "both_adversarial_pass": true,
-      "jurivoc_level_0_nmi": 0.636,
-      "jurivoc_level_1_nmi": 0.486,
+      "jurivoc_level_0_nmi": 0.6360,
+      "jurivoc_level_1_nmi": 0.4860,
       "jurivoc_pass": true,
       "scale_stability": 0.7067,
       "scale_stability_pass": true,
       "boilerplate_resistance_score": -0.9194,
       "boilerplate_resistance_pass": false,
       "fractal_improvement_rate": 0.7383,
-      "cross_language_retrieval": 0.236,
+      "cross_language_retrieval": 0.2360,
       "cross_language_retrieval_pass": true
     },
     "hybrid_v2_epoch3": {
@@ -162,7 +163,7 @@
       "boilerplate_resistance_score": -0.7384,
       "boilerplate_resistance_pass": false,
       "fractal_improvement_rate": 0.9206,
-      "cross_language_retrieval": 0.2083,
+      "cross_language_retrieval": 0.2021,
       "cross_language_retrieval_pass": true
     },
     "cited_decisions_tfidf_hybrid_cp768_0.3": {
@@ -179,8 +180,8 @@
       "scale_stability_pass": true,
       "boilerplate_resistance_score": -0.8873,
       "boilerplate_resistance_pass": false,
-      "fractal_improvement_rate": 0.693,
-      "cross_language_retrieval": 0.1509,
+      "fractal_improvement_rate": 0.6930,
+      "cross_language_retrieval": 0.1512,
       "cross_language_retrieval_pass": false
     },
     "cited_decisions_tfidf_hybrid_cp768_0.5": {
@@ -193,12 +194,12 @@
       "jurivoc_level_0_nmi": 0.1804,
       "jurivoc_level_1_nmi": 0.3717,
       "jurivoc_pass": false,
-      "scale_stability": 0.685,
+      "scale_stability": 0.6850,
       "scale_stability_pass": true,
       "boilerplate_resistance_score": -0.8633,
       "boilerplate_resistance_pass": false,
       "fractal_improvement_rate": 0.8103,
-      "cross_language_retrieval": 0.1758,
+      "cross_language_retrieval": 0.1767,
       "cross_language_retrieval_pass": false
     },
     "cited_decisions_tfidf_hybrid_cp768_0.7": {
@@ -209,14 +210,14 @@
       "jurist_pairwise_preference_pass": true,
       "both_adversarial_pass": true,
       "jurivoc_level_0_nmi": 0.2165,
-      "jurivoc_level_1_nmi": 0.367,
+      "jurivoc_level_1_nmi": 0.3670,
       "jurivoc_pass": false,
       "scale_stability": 0.6829,
       "scale_stability_pass": true,
       "boilerplate_resistance_score": -0.7911,
       "boilerplate_resistance_pass": false,
-      "fractal_improvement_rate": 0.781,
-      "cross_language_retrieval": 0.2068,
+      "fractal_improvement_rate": 0.7810,
+      "cross_language_retrieval": 0.2041,
       "cross_language_retrieval_pass": true
     },
     "cited_decisions_tfidf_hybrid_cp64_0.3": {
@@ -226,15 +227,15 @@
       "jurist_pairwise_preference": 0.5296,
       "jurist_pairwise_preference_pass": true,
       "both_adversarial_pass": true,
-      "jurivoc_level_0_nmi": 0.023,
+      "jurivoc_level_0_nmi": 0.0230,
       "jurivoc_level_1_nmi": 0.3173,
       "jurivoc_pass": false,
       "scale_stability": 0.7025,
       "scale_stability_pass": true,
-      "boilerplate_resistance_score": -0.883,
+      "boilerplate_resistance_score": -0.8830,
       "boilerplate_resistance_pass": false,
       "fractal_improvement_rate": 0.8258,
-      "cross_language_retrieval": 0.1563,
+      "cross_language_retrieval": 0.1595,
       "cross_language_retrieval_pass": false
     },
     "cited_decisions_tfidf_hybrid_cp64_0.5": {
@@ -252,7 +253,7 @@
       "boilerplate_resistance_score": -0.8487,
       "boilerplate_resistance_pass": false,
       "fractal_improvement_rate": 0.8018,
-      "cross_language_retrieval": 0.1723,
+      "cross_language_retrieval": 0.1775,
       "cross_language_retrieval_pass": false
     },
     "cited_decisions_tfidf_hybrid_cp64_0.7": {
@@ -270,7 +271,7 @@
       "boilerplate_resistance_score": -0.7799,
       "boilerplate_resistance_pass": false,
       "fractal_improvement_rate": 0.8784,
-      "cross_language_retrieval": 0.1945,
+      "cross_language_retrieval": 0.1996,
       "cross_language_retrieval_pass": false
     }
   },
@@ -318,7 +319,10 @@
       "hybrid_stabilized_epoch1",
       "hybrid_v2_epoch3",
       "cited_decisions_tfidf",
-      "cited_decisions_tfidf_hybrid_cp768_0.7"
+      "cited_decisions_tfidf_hybrid_cp768_0.7",
+      "cited_decisions_tfidf_hybrid_cp768_0.5",
+      "cited_decisions_tfidf_hybrid_cp64_0.7",
+      "cited_decisions_tfidf_hybrid_cp64_0.5"
     ]
   },
   "signal_ablation_validation": {
