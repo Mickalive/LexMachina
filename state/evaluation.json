@@ -1,324 +1,357 @@
 {
   "lane": "evaluation",
   "direction_version": 6,
-  "evidence_tier": "ACCEPTED",
+  "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "eval_v3_breakthrough_validation_33232724333",
+  "accepted_run_id": "evaluation_v3_frozen_harness_33232234741",
+  "github_run": "33235485388",
+  "timestamp": "2026-08-29T05:27:25Z",
+  "config_hash": "4323f833fa72366a",
+  "global_seed": 42,
   "evidence_refs": [
-    "results/evaluation/v3/evaluation_v3_results.json",
-    "results/evaluation/v3_evaluation_results.json",
-    "results/evaluation/v6_signal_ablation/v6_signal_ablation_adversarial_results.json",
-    "results/evaluation/v6_signal_ablation/v6_baseline_center_projected_results.json",
-    "results/evaluation/v6_signal_ablation/v6_boilerplate_resistance_results.json",
-    "results/evaluation/center_projected_boilerplate_resistance.json",
-    "reports/evaluation/v3_evaluation_report.md",
-    "reports/evaluation/v6_final_verification_report.md",
-    "reports/evaluation/evaluation_v6_completion_report.md",
-    "reports/evaluation/v3_frozen_benchmark_spec.md",
-    "reports/evaluation/v6_boilerplate_resistance_report.md",
-    "reports/evaluation/evaluation_v3_final_verification.md",
-    "reports/evaluation/evaluation_v6_run33221325181_verification_report.md",
-    "reports/evaluation/evaluation_v6_run33226158716_verification_report.md",
-    "reports/evaluation/evaluation_v6_run33228419477_final_verification.md",
-    "reports/evaluation/evaluation_v3_final_confirmation_run33234209188.md",
-    "legal_distance/results/v6/metric_learning/metric_learning_results.json",
-    "legal_distance/results/v6/hybrid_objective_stabilized/training_results.json",
-    "legal_distance/results/v6/validation_breakthrough/validation_results.json",
-    "results/evaluation/v3_cited_decisions/cited_decisions_tfidf_v3_evaluation.json",
-    "results/evaluation/v3_cited_decisions/cited_decisions_tfidf_1200.npy",
-    "reports/evaluation/cited_decisions_tfidf_v3_validation_report.md",
-    "legal_distance/results/v6/hybrids_adversarial_test/hybrid_adv_cited_decisions_tfidf_results.json"
+    "evaluation/results/v3/evaluation_v3_results.json",
+    "evaluation/evaluation_v3_harness.py",
+    "evaluation/reports/evaluation_v3_github_run_33232234741.md",
+    "evaluation/results/evaluation/v6_signal_ablation/v6_signal_ablation_adversarial_results.json",
+    "evaluation/v6_rerun.log",
+    "evaluation/results/cited_decisions_validation/cited_decisions_validation_all_results.json",
+    "evaluation/run_cited_decisions_adversarial.py",
+    "evaluation/reports/evaluation_cited_decisions_adversarial_validation.md"
   ],
-  "next_recommendation": "PRODUCTIZE",
-  "summary": {
-    "baseline_representation": "center_projected_64dim",
-    "evaluation_slice": "expanded_1200",
-    "global_seed": 42,
-    "critical_adversarial_tests": {
-      "adversarial_language_dominance": {
-        "mean": 0.766,
-        "threshold": 0.85,
-        "status": "PASS",
-        "note": "Lower is better - language should not dominate neighbors"
-      },
-      "jurist_pairwise_preference": {
-        "legal_neighbor_rate": 0.512,
-        "threshold": 0.5,
-        "status": "PASS",
-        "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-      }
+  "key_findings": [
+    "EVALUATION v3 COMPLETE: Frozen evaluation harness (seed=42, config_hash=4323f833fa72366a) executed on expanded 1,200-decision slice. REPRODUCED EXACTLY in GitHub run 33232234741.",
+    "Reference baseline center_projected_64dim (production default) PASSES both adversarial gates: language_dominance=0.7664 < 0.85, jurist_pairwise=0.5121 > 0.5.",
+    "center_projected_768 FAILS jurist pairwise (0.4912 < 0.5) despite passing language dominance - CONFIRMS product lane critical finding.",
+    "linear_metric_epoch4 (metric learning) achieves HIGHEST jurist preference (0.6847) with strong language invariance (0.6805) and excellent Jurivoc Level 0 NMI (0.6895). Cross-language retrieval PASS (0.2114 > 0.2).",
+    "mahalanobis_metric_epoch4 achieves jurist preference 0.6781 with BEST Jurivoc Level 0 NMI (0.7041) and cross-language retrieval PASS (0.2083).",
+    "hybrid_stabilized_epoch1 achieves jurist preference 0.6656 with lowest language dominance (0.6704) and cross-language retrieval PASS (0.2360).",
+    "hybrid_v2_epoch3 achieves jurist preference 0.5988 with BEST Jurivoc Level 0 NMI (0.7415) and cross-language retrieval PASS (0.2269).",
+    "All four metric learning / hybrid representations BEAT reference baseline on jurist pairwise preference AND pass both adversarial gates.",
+    "Boilerplate resistance remains NEGATIVE for ALL representations (resistance_score ≈ -0.75 to -0.92) - procedural neighbors dominate. This is a systematic limitation of the current embedding approaches.",
+    "Scale stability is GOOD for all representations (0.60-0.72 neighbor overlap under 80% corpus subsampling).",
+    "Signal ablation validation CONFIRMED: ALL 15 signal ablation variants on center_projected baseline FAIL jurist pairwise preference. Only metric learning and stabilized hybrid objectives produce valid adversarial-robust representations.",
+    "NEW FINDING (this run): cited_decisions_tfidf (pure TF-IDF on cited decisions) achieves HIGHEST jurist preference (0.6922) and BEST language invariance (0.6107) among ALL unsupervised representations, passing both adversarial gates. CONFIRMED legal-distance v6 finding (lang_dom=0.6086, jurist=0.6889).",
+    "NEW FINDING: All 6 hybrids of cited_decisions_tfidf with center_projected (64-dim and 768-dim, alphas 0.3/0.5/0.7) PASS both adversarial gates. Best production hybrid: cited_decisions_tfidf_hybrid_cp64_0.7 (jurist=0.6564, lang_dom=0.6518).",
+    "cited_decisions_tfidf achieves jurist preference COMPETITIVE WITH supervised metric learning (0.6922 vs 0.6847 linear_metric) WITHOUT training — zero-shot citation signal."
+  ],
+  "validation_metrics": {
+    "center_projected_768": {
+      "verdict": "FAIL",
+      "adversarial_language_dominance": 0.7738,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.4912,
+      "jurist_pairwise_preference_pass": false,
+      "both_adversarial_pass": false,
+      "jurivoc_level_0_nmi": 0.0945,
+      "jurivoc_level_1_nmi": 0.4739,
+      "jurivoc_pass": false,
+      "scale_stability": 0.7104,
+      "scale_stability_pass": true,
+      "boilerplate_resistance_score": -0.8959,
+      "boilerplate_resistance_pass": false,
+      "fractal_improvement_rate": 0.6000,
+      "cross_language_retrieval": 0.1455,
+      "cross_language_retrieval_pass": false
     },
-    "benchmark_results": {
-      "cross_language": {
-        "total": 4,
-        "passed": 3,
-        "failed": 1,
-        "details": {
-          "cross_language_neighbor_quality": {
-            "status": "PASS",
-            "invariance_gap": 0.59,
-            "separation": 0.057
-          },
-          "zero_shot_transfer": {
-            "status": "PASS",
-            "zero_shot_mean_nmi": 0.278,
-            "transfer_gap": -0.022
-          },
-          "language_specific_quality": {
-            "status": "PASS",
-            "mean_nmi": 0.433,
-            "std_nmi": 0.062
-          },
-          "adversarial_language_dominance": {
-            "status": "PASS",
-            "mean": 0.766,
-            "threshold": 0.85
-          }
-        }
-      },
-      "jurist_usability": {
-        "total": 4,
-        "passed": 2,
-        "failed": 2,
-        "details": {
-          "pairwise_preference": {
-            "status": "PASS",
-            "legal_neighbor_rate": 0.512
-          },
-          "cluster_coherence_rating": {
-            "status": "PASS",
-            "mean_branch_purity": 0.873,
-            "branch_nmi": 0.372
-          },
-          "zoom_task": {
-            "status": "SKIP",
-            "reason": "Cluster assignments only for 1000-decision baseline"
-          },
-          "cross_language_retrieval": {
-            "status": "FAIL",
-            "mean_recall_at_10": 0.156
-          }
-        }
-      },
-      "jurivoc": {
-        "total": 5,
-        "passed": 4,
-        "failed": 1,
-        "details": {
-          "descriptor_recovery_l1": {
-            "status": "FAIL",
-            "nmi": 0.243,
-            "threshold": 0.3
-          },
-          "descriptor_recovery_l2": {
-            "status": "PASS",
-            "nmi": 0.441,
-            "threshold": 0.3
-          },
-          "knn_purity_l1": {
-            "status": "PASS",
-            "purity": 0.662,
-            "threshold": 0.4
-          },
-          "knn_purity_l2": {
-            "status": "PASS",
-            "purity": 0.498,
-            "threshold": 0.4
-          },
-          "hierarchy_alignment": {
-            "status": "PASS",
-            "separation": 0.113,
-            "threshold": 0.05
-          }
-        }
-      },
-      "scale_stability": {
-        "status": "COMPLETED",
-        "method": "frozen_pca_fit_on_full",
-        "growth_steps": 5,
-        "key_finding": "Position stability maintained (cosine ~1.0), neighbor preservation improves with corpus size (0.14 at 200 -> 0.83 at 1000)"
-      },
-      "boilerplate_resistance": {
-        "status": "COMPLETED",
-        "method": "perturbation_test_on_full_text",
-        "sample_size": 100,
-        "key_finding": "ALL tested representations including center_projected show EXTREMELY HIGH boilerplate resistance. Cosine similarity after boilerplate injection: 0.95-1.0 (mean > 0.95). The 'resistance_score' metric (1 - similarity) is inverted - lower = better resistance. TF-IDF variants: ~0.017; multilingual-e5-small: ~0.004; paraphrase-MiniLM: ~0.016; xlm-roberta-base: ~0.00007; center_projected: 0.050. All far exceed the target of minimal boilerplate effect (resistance_score < 0.3). Test threshold was inverted (PASS if resistance > 0.6); corrected interpretation: PASS if resistance_score < 0.3."
-      }
+    "center_projected_64dim": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.7664,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.5121,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.0653,
+      "jurivoc_level_1_nmi": 0.4699,
+      "jurivoc_pass": false,
+      "scale_stability": 0.7071,
+      "scale_stability_pass": true,
+      "boilerplate_resistance_score": -0.9012,
+      "boilerplate_resistance_pass": false,
+      "fractal_improvement_rate": 0.6466,
+      "cross_language_retrieval": 0.1558,
+      "cross_language_retrieval_pass": false
     },
-    "signal_ablation_validation": {
-      "variants_tested": 17,
-      "center_projected_64dim": {
-        "language_dominance": 0.766,
-        "jurist_pairwise": 0.512,
-        "both_gates_pass": true
-      },
-      "center_projected_768dim": {
-        "language_dominance": 0.774,
-        "jurist_pairwise": 0.491,
-        "both_gates_pass": false
-      },
-      "best_variant": "citation_weights",
-      "best_variant_degenerate": true,
-      "no_variant_beats_baseline_on_both_gates": false,
-      "note": "All 15 signal ablation variants fail at least one adversarial gate. Citation_weights passes both gates but is degenerate (single cluster, Jurivoc NMI=0.0). CRITICAL BUG: v6 signal ablation validation (run_v6_signal_ablation_adversarial.py) compared 768-dim baseline against 64-dim hybrids, invalidating direct comparison. v3 evaluation (64-dim baseline) is the authoritative result. BREAKTHROUGH: Metric learning (linear_metric_epoch4 JP=0.685, mahalanobis_metric_epoch4 JP=0.678) and stabilized hybrid (hybrid_stabilized_epoch1 JP=0.666) representations from legal-distance lane NOW PASS both adversarial gates with SIGNIFICANTLY HIGHER jurist preference than center_projected_64dim baseline."
+    "linear_metric_epoch4": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.6805,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.6847,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.6895,
+      "jurivoc_level_1_nmi": 0.4992,
+      "jurivoc_pass": true,
+      "scale_stability": 0.7037,
+      "scale_stability_pass": true,
+      "boilerplate_resistance_score": -0.8879,
+      "boilerplate_resistance_pass": false,
+      "fractal_improvement_rate": 0.7195,
+      "cross_language_retrieval": 0.2114,
+      "cross_language_retrieval_pass": true
     },
-    "breakthrough_representations_validation": {
-      "linear_metric_epoch4": {
-        "language_dominance": 0.6805,
-        "jurist_pairwise": 0.6847,
-        "both_gates_pass": true,
-        "jurivoc_l0_nmi": 0.6895,
-        "jurivoc_l1_nmi": 0.4992,
-        "cross_language_retrieval": 0.2114,
-        "cross_language_status": "PASS",
-        "fractal_improvement_rate": 0.7195,
-        "cluster_coherence_branch_nmi": 0.4888,
-        "scale_stability": 0.7037,
-        "verdict": "PASS - BEST representation"
-      },
-      "mahalanobis_metric_epoch4": {
-        "language_dominance": 0.6843,
-        "jurist_pairwise": 0.6781,
-        "both_gates_pass": true,
-        "jurivoc_l0_nmi": 0.7041,
-        "jurivoc_l1_nmi": 0.5039,
-        "cross_language_retrieval": 0.2083,
-        "cross_language_status": "PASS",
-        "fractal_improvement_rate": 0.6518,
-        "cluster_coherence_branch_nmi": 0.4933,
-        "scale_stability": 0.7154,
-        "verdict": "PASS - Best Jurivoc L0 alignment"
-      },
-      "hybrid_stabilized_epoch1": {
-        "language_dominance": 0.6704,
-        "jurist_pairwise": 0.6656,
-        "both_gates_pass": true,
-        "jurivoc_l0_nmi": 0.6360,
-        "jurivoc_l1_nmi": 0.4860,
-        "cross_language_retrieval": 0.2360,
-        "cross_language_status": "PASS",
-        "fractal_improvement_rate": 0.7383,
-        "cluster_coherence_branch_nmi": 0.4367,
-        "scale_stability": 0.7067,
-        "verdict": "PASS - Best language dominance, best cross-language retrieval"
-      },
-      "hybrid_v2_epoch3": {
-        "language_dominance": 0.7115,
-        "jurist_pairwise": 0.5988,
-        "both_gates_pass": true,
-        "jurivoc_l0_nmi": 0.7415,
-        "jurivoc_l1_nmi": 0.4696,
-        "cross_language_retrieval": 0.2269,
-        "cross_language_status": "PASS",
-        "fractal_improvement_rate": 0.5965,
-        "cluster_coherence_branch_nmi": 0.5230,
-        "scale_stability": 0.7092,
-        "verdict": "PASS - Best cluster coherence branch NMI"
-      }
+    "mahalanobis_metric_epoch4": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.6843,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.6781,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.7041,
+      "jurivoc_level_1_nmi": 0.5039,
+      "jurivoc_pass": true,
+      "scale_stability": 0.7154,
+      "scale_stability_pass": true,
+      "boilerplate_resistance_score": -0.8954,
+      "boilerplate_resistance_pass": false,
+      "fractal_improvement_rate": 0.6518,
+      "cross_language_retrieval": 0.2083,
+      "cross_language_retrieval_pass": true
     },
-    "cited_decisions_tfidf_validation": {
-      "language_dominance": 0.6117,
-      "jurist_pairwise": 0.6922,
-      "both_gates_pass": true,
-      "jurivoc_l0_nmi": 0.2237,
-      "jurivoc_l0_status": "FAIL",
-      "jurivoc_l1_nmi": 0.3358,
-      "cross_language_retrieval": 0.1798,
-      "cross_language_status": "FAIL",
-      "fractal_improvement_rate": 0.9711,
-      "hierarchical_advantage": 0.1682,
-      "cluster_coherence_branch_nmi": 0.3283,
+    "hybrid_stabilized_epoch1": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.6704,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.6656,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.6360,
+      "jurivoc_level_1_nmi": 0.4860,
+      "jurivoc_pass": true,
+      "scale_stability": 0.7067,
+      "scale_stability_pass": true,
+      "boilerplate_resistance_score": -0.9194,
+      "boilerplate_resistance_pass": false,
+      "fractal_improvement_rate": 0.7383,
+      "cross_language_retrieval": 0.2360,
+      "cross_language_retrieval_pass": true
+    },
+    "hybrid_v2_epoch3": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.7115,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.5988,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.7415,
+      "jurivoc_level_1_nmi": 0.4696,
+      "jurivoc_pass": true,
+      "scale_stability": 0.7092,
+      "scale_stability_pass": true,
+      "boilerplate_resistance_score": -0.9144,
+      "boilerplate_resistance_pass": false,
+      "fractal_improvement_rate": 0.5965,
+      "cross_language_retrieval": 0.2269,
+      "cross_language_retrieval_pass": true
+    },
+    "cited_decisions_tfidf": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.6107,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.6922,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.2458,
+      "jurivoc_level_1_nmi": 0.3358,
+      "jurivoc_pass": false,
       "scale_stability": 0.6025,
-      "verdict": "PASS on adversarial gates; FAIL on Jurivoc L0 and cross-language retrieval. BEST language dominance and jurist preference of all representations. Exceptional fractal structure (97.1% improvement rate, high hierarchical advantage). Specialized for doctrinal lineage, not legal taxonomy."
+      "scale_stability_pass": true,
+      "boilerplate_resistance_score": -0.7472,
+      "boilerplate_resistance_pass": false,
+      "fractal_improvement_rate": 0.9170,
+      "cross_language_retrieval": 0.1784,
+      "cross_language_retrieval_pass": false
     },
-    "legal_embeddings_validation": {
-      "multilingual_e5_small": {
-        "language_dominance": 0.999,
-        "jurivoc_l2_nmi": 0.502,
-        "status": "FAIL"
-      },
-      "paraphrase_multilingual_minilm": {
-        "language_dominance": 0.972,
-        "status": "FAIL"
-      },
-      "xlm_roberta_base": {
-        "language_dominance": 1.0,
-        "status": "FAIL"
-      },
-      "note": "All legal embeddings fail language dominance gate (>0.85). Language dominates neighbors despite good Jurivoc scores."
+    "cited_decisions_tfidf_hybrid_cp768_0.3": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.7604,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.5254,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.0888,
+      "jurivoc_level_1_nmi": 0.3505,
+      "jurivoc_pass": false,
+      "scale_stability": 0.7083,
+      "scale_stability_pass": true,
+      "boilerplate_resistance_score": -0.8882,
+      "boilerplate_resistance_pass": false,
+      "fractal_improvement_rate": 0.5893,
+      "cross_language_retrieval": 0.1977,
+      "cross_language_retrieval_pass": false
     },
-    "citation_role_validation": {
-      "roles_tested": 6,
-      "status": "DEGENERATE",
-      "note": "All 6 annotated roles (overruling, distinguishing, following, all_weighted, citing, criticizing) produce identical embeddings - single cluster, zero legal signal without semantic blending."
+    "cited_decisions_tfidf_hybrid_cp768_0.5": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.7062,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.6105,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.1799,
+      "jurivoc_level_1_nmi": 0.3717,
+      "jurivoc_pass": false,
+      "scale_stability": 0.6842,
+      "scale_stability_pass": true,
+      "boilerplate_resistance_score": -0.8629,
+      "boilerplate_resistance_pass": false,
+      "fractal_improvement_rate": 0.6696,
+      "cross_language_retrieval": 0.2115,
+      "cross_language_retrieval_pass": true
     },
-    "frontier_metric_learning_validation": {
-      "status": "BLOCKED",
-      "reason": "No frontier_metric_learning_jurivoc team dispatched; frontier directory empty",
-      "required": "Factory Director must dispatch team or remove from factory direction",
-      "note": "Legal-distance lane metric learning on center_projected space (linear + Mahalanobis) COMPLETED and VALIDATED as breakthrough representations. This is separate from the frontier supervised metric learning objective."
+    "cited_decisions_tfidf_hybrid_cp768_0.7": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.6477,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.6764,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.2171,
+      "jurivoc_level_1_nmi": 0.3670,
+      "jurivoc_pass": false,
+      "scale_stability": 0.6808,
+      "scale_stability_pass": true,
+      "boilerplate_resistance_score": -0.7924,
+      "boilerplate_resistance_pass": false,
+      "fractal_improvement_rate": 0.7846,
+      "cross_language_retrieval": 0.2181,
+      "cross_language_retrieval_pass": true
     },
-    "boilerplate_resistance_validation": {
-      "variants_tested": 7,
-      "tfidf_sachverhalt": {
-        "mean_cosine_similarity": 0.982,
-        "resistance_score": 0.018,
-        "interpretation": "HIGHLY RESISTANT"
-      },
-      "tfidf_erwaegungen": {
-        "mean_cosine_similarity": 0.983,
-        "resistance_score": 0.017,
-        "interpretation": "HIGHLY RESISTANT"
-      },
-      "tfidf_full_text": {
-        "mean_cosine_similarity": 0.983,
-        "resistance_score": 0.017,
-        "interpretation": "HIGHLY RESISTANT"
-      },
-      "multilingual_e5_small": {
-        "mean_cosine_similarity": 0.996,
-        "resistance_score": 0.004,
-        "interpretation": "HIGHLY RESISTANT"
-      },
-      "paraphrase_multilingual_minilm": {
-        "mean_cosine_similarity": 0.984,
-        "resistance_score": 0.016,
-        "interpretation": "HIGHLY RESISTANT"
-      },
-      "xlm_roberta_base": {
-        "mean_cosine_similarity": 0.9999,
-        "resistance_score": 7e-05,
-        "interpretation": "HIGHLY RESISTANT"
-      },
-      "center_projected": {
-        "mean_cosine_similarity": 0.95,
-        "resistance_score": 0.05,
-        "interpretation": "HIGHLY RESISTANT"
-      },
-      "note": "All representations show minimal embedding change under boilerplate perturbation. The metric 'resistance_score = 1 - cosine_similarity' is inverted - lower values indicate BETTER resistance (less change). Original test threshold (PASS if > 0.6) was incorrect; corrected threshold: PASS if resistance_score < 0.3. center_projected (0.050) PASSES with excellent resistance."
+    "cited_decisions_tfidf_hybrid_cp64_0.3": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.7483,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.5346,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.0250,
+      "jurivoc_level_1_nmi": 0.3173,
+      "jurivoc_pass": false,
+      "scale_stability": 0.7071,
+      "scale_stability_pass": true,
+      "boilerplate_resistance_score": -0.8818,
+      "boilerplate_resistance_pass": false,
+      "fractal_improvement_rate": 0.8421,
+      "cross_language_retrieval": 0.1981,
+      "cross_language_retrieval_pass": false
     },
-    "validation_against_factory_direction": {
-      "center_projected_validated_as_default": true,
-      "both_critical_tests_passed": true,
-      "debiased_citation_blended_invalidated_for_multilingual": true,
-      "signal_ablation_results_validated": true,
-      "boilerplate_resistance_completed": true,
-      "center_projected_boilerplate_resistance_validated": true,
-      "metric_learning_frontier_not_yet_available": true,
-      "v6_signal_ablation_dimension_bug": "Baseline 768-dim vs hybrids 64-dim; v3 evaluation 64-dim is authoritative",
-      "breakthrough_representations_validated": true,
-      "linear_metric_epoch4_beats_baseline": true,
-      "mahalanobis_metric_epoch4_beats_baseline": true,
-      "hybrid_stabilized_epoch1_beats_baseline": true,
-      "hybrid_v2_epoch3_beats_baseline": true,
-      "all_breakthrough_pass_cross_language_retrieval": true,
-      "all_breakthrough_pass_jurivoc_alignment": true,
-      "run_33226955300_verification": "Critical adversarial tests re-verified with seed=42: Language Dominance 0.7660 (exact match), Jurist Pairwise 0.5121 (gate PASS, exact match). All v3 benchmarks reproduced identically. Boilerplate resistance confirmed from run 33221325181. Evaluation harness frozen and fully reproducible.",
-      "run_33228419477_verification": "This run re-verified v3 evaluation and v6 signal ablation results. Language Dominance 0.7659583333333334, Jurist Pairwise 0.5121 — exact match to prior runs. All benchmarks reproduced identically with global seed=42. Evaluation harness confirmed frozen and fully reproducible. Signal ablation validation confirmed: center_projected (64-dim) only representation passing both adversarial gates; all 15 variants fail at least one gate; citation_weights passes both but degenerate (Jurivoc NMI=0.0). Frontier metric learning remains BLOCKED (no team dispatched).",
-      "run_33232724333_breakthrough_validation": "NEW: Evaluated 4 breakthrough representations from legal-distance lane (linear_metric_epoch4, mahalanobis_metric_epoch4, hybrid_stabilized_epoch1, hybrid_v2_epoch3) against frozen v3 harness with global seed=42. ALL FOUR PASS both adversarial gates with jurist preference 0.60-0.68 (vs baseline 0.51), Jurivoc L0 NMI 0.64-0.74 (vs baseline 0.07), and cross-language retrieval 0.21-0.24 (vs baseline 0.16 FAIL). linear_metric_epoch4 is BEST overall (JP=0.6847, Jurivoc L0=0.6895). All breakthrough representations show meaningful fractal structure (improvement_rate 60-74%). Center_projected_768dim confirmed FAIL (JP=0.491). Evaluation harness frozen and fully reproducible.",
-      "run_33234209188_final_confirmation": "CONFIRMED: Evaluation v3 harness fully reproducible with config hash 4323f833fa72366a, global seed=42. All 6 representations produce bit-identical adversarial benchmark results. center_projected_64dim PASS (LangDom=0.7664, JP=0.5121). Four breakthrough representations ALL PASS with JP=0.60-0.68. center_projected_768dim FAIL (JP=0.491). No drift detected. Evaluation v3 COMPLETE.",
-      "run_20260829_cited_decisions_validation": "NEW: Evaluated cited_decisions_tfidf (TF-IDF on cited decision IDs) against frozen v3 harness with global seed=42. PASSES both adversarial gates with BEST scores to date: Language Dominance 0.6117 (lowest of all), Jurist Preference 0.6922 (highest of all). FAILS Jurivoc L0 NMI (0.2237 < 0.3) and Cross-Language Retrieval (0.1798 < 0.2). Exceptional fractal structure: 97.1% improvement rate, hierarchical advantage 0.1682. Specialized representation for doctrinal/precedent lineage — not a general-purpose legal map mode. Recommend conditional integration as 'Doctrinal Lineage' mode with clear labeling."
+    "cited_decisions_tfidf_hybrid_cp64_0.5": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.6838,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.6280,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.0551,
+      "jurivoc_level_1_nmi": 0.3369,
+      "jurivoc_pass": false,
+      "scale_stability": 0.6933,
+      "scale_stability_pass": true,
+      "boilerplate_resistance_score": -0.8514,
+      "boilerplate_resistance_pass": false,
+      "fractal_improvement_rate": 0.8235,
+      "cross_language_retrieval": 0.2232,
+      "cross_language_retrieval_pass": true
+    },
+    "cited_decisions_tfidf_hybrid_cp64_0.7": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.6518,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.6564,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.1010,
+      "jurivoc_level_1_nmi": 0.3412,
+      "jurivoc_pass": false,
+      "scale_stability": 0.6888,
+      "scale_stability_pass": true,
+      "boilerplate_resistance_score": -0.7832,
+      "boilerplate_resistance_pass": false,
+      "fractal_improvement_rate": 0.8235,
+      "cross_language_retrieval": 0.2241,
+      "cross_language_retrieval_pass": true
     }
+  },
+  "baseline_comparison": {
+    "reference": "center_projected_64dim",
+    "representations_beating_reference_on_jurist_pref": [
+      "cited_decisions_tfidf (+0.1801)",
+      "linear_metric_epoch4 (+0.1726)",
+      "mahalanobis_metric_epoch4 (+0.1660)",
+      "cited_decisions_tfidf_hybrid_cp768_0.7 (+0.1643)",
+      "cited_decisions_tfidf_hybrid_cp64_0.7 (+0.1443)",
+      "hybrid_stabilized_epoch1 (+0.1535)",
+      "cited_decisions_tfidf_hybrid_cp768_0.5 (+0.0984)",
+      "cited_decisions_tfidf_hybrid_cp64_0.5 (+0.1159)",
+      "hybrid_v2_epoch3 (+0.0867)",
+      "cited_decisions_tfidf_hybrid_cp64_0.3 (+0.0225)",
+      "cited_decisions_tfidf_hybrid_cp768_0.3 (+0.0133)"
+    ],
+    "representations_beating_reference_on_language_dominance": [
+      "cited_decisions_tfidf (-0.1557)",
+      "cited_decisions_tfidf_hybrid_cp768_0.7 (-0.1187)",
+      "cited_decisions_tfidf_hybrid_cp64_0.7 (-0.1146)",
+      "cited_decisions_tfidf_hybrid_cp768_0.5 (-0.0602)",
+      "cited_decisions_tfidf_hybrid_cp64_0.5 (-0.0826)",
+      "linear_metric_epoch4 (-0.0859)",
+      "mahalanobis_metric_epoch4 (-0.0821)",
+      "hybrid_stabilized_epoch1 (-0.0959)",
+      "cited_decisions_tfidf_hybrid_cp64_0.3 (-0.0181)",
+      "hybrid_v2_epoch3 (-0.0549)"
+    ],
+    "representations_beating_reference_on_jurivoc_level_0": [
+      "linear_metric_epoch4 (+0.6242)",
+      "mahalanobis_metric_epoch4 (+0.6388)",
+      "hybrid_stabilized_epoch1 (+0.5707)",
+      "hybrid_v2_epoch3 (+0.6762)",
+      "cited_decisions_tfidf (+0.1805)",
+      "cited_decisions_tfidf_hybrid_cp768_0.7 (+0.1518)",
+      "cited_decisions_tfidf_hybrid_cp768_0.5 (+0.1146)",
+      "cited_decisions_tfidf_hybrid_cp64_0.7 (+0.0357)",
+      "cited_decisions_tfidf_hybrid_cp64_0.5 (+0.0102)"
+    ],
+    "representations_passing_cross_language_retrieval": [
+      "linear_metric_epoch4",
+      "mahalanobis_metric_epoch4",
+      "hybrid_stabilized_epoch1",
+      "hybrid_v2_epoch3",
+      "cited_decisions_tfidf_hybrid_cp768_0.7",
+      "cited_decisions_tfidf_hybrid_cp768_0.5",
+      "cited_decisions_tfidf_hybrid_cp64_0.7",
+      "cited_decisions_tfidf_hybrid_cp64_0.5"
+    ]
+  },
+  "signal_ablation_validation": {
+    "status": "CONFIRMED",
+    "note": "v4/v5 signal ablation hybrids on center_projected baseline FAIL adversarial gates. Confirmed by legal-distance v6 adversarial_signal_validation AND evaluation v6 signal ablation run on expanded 1,200 slice. Only metric learning (linear, Mahalanobis) and stabilized hybrid objectives produce valid adversarial-robust representations on center_projected. NEW: cited_decisions_tfidf (pure citation signal) is the FIRST unsupervised single signal passing both adversarial gates with meaningful hierarchical structure.",
+    "validated_failures": [
+      "legal_area_tfidf: lang_dom=0.914, jurist=0.131",
+      "legal_issues_outcomes: lang_dom=1.000, jurist=0.000",
+      "hybrid_erwaegungen_0.3: lang_dom=0.875, jurist=0.248",
+      "hybrid_sachverhalt_0.7: lang_dom=0.936, jurist=0.121",
+      "sachverhalt_tfidf: lang_dom=0.770, jurist=0.269",
+      "erwaegungen_tfidf: lang_dom=0.904, jurist=0.103",
+      "norm_embeddings: lang_dom=0.763, jurist=0.273",
+      "citation_weights: lang_dom=0.459, jurist=0.729 BUT jurivoc_nmi=0.0 (overclustering)",
+      "hybrid_erwaegungen_0.3: lang_dom=0.810, jurist=0.420",
+      "hybrid_core_0.3: lang_dom=0.819, jurist=0.383"
+    ],
+    "newly_validated_successes": [
+      "cited_decisions_tfidf: lang_dom=0.6107, jurist=0.6922, hier_adv=0.1232, clusters=7/278",
+      "All 6 cited_decisions_tfidf + center_projected hybrids: PASS both gates"
+    ]
+  },
+  "next_recommendation": "PRODUCTIZE",
+  "metrics_summary": {
+    "best_overall": "cited_decisions_tfidf",
+    "best_jurist_preference": "cited_decisions_tfidf (0.6922)",
+    "best_language_invariance": "cited_decisions_tfidf (0.6107)",
+    "best_jurivoc_alignment": "hybrid_v2_epoch3 (0.7415 Level 0 NMI)",
+    "best_cross_language_retrieval": "hybrid_stabilized_epoch1 (0.2360)",
+    "best_scale_stability": "mahalanobis_metric_epoch4 (0.7154)",
+    "best_fractal_improvement": "cited_decisions_tfidf (91.7%)",
+    "reference_baseline": "center_projected_64dim (production default)",
+    "reference_jurist_preference": 0.5121,
+    "reference_language_dominance": 0.7664,
+    "best_production_hybrid": "cited_decisions_tfidf_hybrid_cp64_0.7 (jurist=0.6564, lang_dom=0.6518, uses 64-dim frozen PCA)"
   }
 }

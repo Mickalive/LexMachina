@@ -41,6 +41,10 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import normalize
 import hashlib
 
+# Module-level logger
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+logger = logging.getLogger(__name__)
+
 # ============================================================
 # FROZEN CONFIGURATION - DO NOT MODIFY AFTER FREEZE
 # ============================================================
@@ -969,6 +973,4 @@ def main():
     return all_results, config_hash
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
-    logger = logging.getLogger(__name__)
     main()
