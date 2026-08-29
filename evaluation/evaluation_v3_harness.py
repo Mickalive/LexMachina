@@ -24,6 +24,16 @@ Representations tested:
 - mahalanobis_metric_epoch4 (best Mahalanobis, JP=0.678)
 - hybrid_stabilized_epoch1 (best stabilized hybrid, JP=0.666)
 - hybrid_v2_epoch3 (best hybrid v2, JP=0.599)
+
+CONFIGURATION:
+Paths are configurable via:
+1. Environment variable LEX_ACCEPTED_ROOT (default: /tmp/lex_accepted)
+2. Config file: evaluation/config/evaluation_v3_config.json
+3. Local fallback paths for metadata
+
+For independent reproduction outside CI:
+- Set LEX_ACCEPTED_ROOT to point to accepted lane artifacts
+- Or run regeneration scripts per config file instructions
 """
 
 import json
@@ -34,12 +44,13 @@ from typing import Dict, List, Any, Tuple, Optional
 from collections import Counter, defaultdict
 import sys
 import time
+import os
+import hashlib
 from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics import normalized_mutual_info_score
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import normalize
-import hashlib
 
 # Module-level logger
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
@@ -64,17 +75,78 @@ K_NEIGHBORS_JURIST = 10
 K_NEIGHBORS_CROSS_LANG = 10
 N_CLUSTERS_COHERENCE = 16
 
-# Paths (frozen)
-METADATA_PATH = Path("/tmp/lex_accepted/legal-distance/legal_distance/results/v5/center_projected_full/metadata.json")
-CP_768_PATH = Path("/tmp/lex_accepted/legal-distance/legal_distance/results/v5/center_projected_full/embeddings_center_projected.npy")
-CP_64_PATH = Path("/tmp/lex_accepted/legal-distance/legal_distance/results/v5/center_projected_full/embeddings_center_projected_64.npy")
-LINEAR_METRIC_PATH = Path("/tmp/lex_accepted/legal-distance/legal_distance/results/v6/metric_learning/best_linear_embeddings.npy")
-MAHALANOBIS_METRIC_PATH = Path("/tmp/lex_accepted/legal-distance/legal_distance/results/v6/metric_learning/best_mahalanobis_embeddings.npy")
-HYBRID_STABILIZED_PATH = Path("/tmp/lex_accepted/legal-distance/legal_distance/results/v6/hybrid_objective_stabilized/best_embeddings.npy")
-HYBRID_V2_PATH = Path("/tmp/lex_accepted/legal-distance/legal_distance/results/v6/hybrid_objective_v2/best_embeddings.npy")
+# Configurable paths with environment variable and local fallbacks
+LEX_ACCEPTED_ROOT = Path(os.environ.get("LEX_ACCEPTED_ROOT", "/tmp/lex_accepted"))
+REPO_ROOT = Path("/home/runner/work/LexMachina/LexMachina")
 
-OUTPUT_DIR = Path("/home/runner/work/LexMachina/LexMachina/evaluation/results/v3")
+def load_config() -> Dict:
+    """Load evaluation configuration from JSON file."""
+    config_path = REPO_ROOT / "evaluation/config/evaluation_v3_config.json"
+    if config_path.exists():
+        with open(config_path) as f:
+            return json.load(f)
+    logger.warning(f"Config file not found at {config_path}, using defaults")
+    return {}
+
+CONFIG = load_config()
+
+def resolve_path(path_template: str, fallback: Optional[str] = None) -> Path:
+    """Resolve a path template with environment variables and fallbacks."""
+    # Replace ${LEX_ACCEPTED_ROOT} with actual value
+    resolved = path_template.replace("${LEX_ACCEPTED_ROOT}", str(LEX_ACCEPTED_ROOT))
+    path = Path(resolved)
+    
+    if path.exists():
+        return path
+    
+    if fallback:
+        fallback_path = REPO_ROOT / fallback
+        if fallback_path.exists():
+            logger.info(f"Using fallback path: {fallback_path}")
+            return fallback_path
+    
+    return path  # Return original for clear error message
+
+# Resolve all paths
+METADATA_PATH = resolve_path(
+    CONFIG.get("paths", {}).get("metadata", {}).get("primary", "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v5/center_projected_full/metadata.json"),
+    CONFIG.get("paths", {}).get("metadata", {}).get("fallback_local")
+)
+
+CP_768_PATH = resolve_path(
+    CONFIG.get("paths", {}).get("center_projected_768", {}).get("primary", "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v5/center_projected_full/embeddings_center_projected.npy")
+)
+
+CP_64_PATH = resolve_path(
+    CONFIG.get("paths", {}).get("center_projected_64", {}).get("primary", "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v5/center_projected_full/embeddings_center_projected_64.npy")
+)
+
+LINEAR_METRIC_PATH = resolve_path(
+    CONFIG.get("paths", {}).get("linear_metric_epoch4", {}).get("primary", "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v6/metric_learning/best_linear_embeddings.npy")
+)
+
+MAHALANOBIS_METRIC_PATH = resolve_path(
+    CONFIG.get("paths", {}).get("mahalanobis_metric_epoch4", {}).get("primary", "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v6/metric_learning/best_mahalanobis_embeddings.npy")
+)
+
+HYBRID_STABILIZED_PATH = resolve_path(
+    CONFIG.get("paths", {}).get("hybrid_stabilized_epoch1", {}).get("primary", "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v6/hybrid_objective_stabilized/best_embeddings.npy")
+)
+
+HYBRID_V2_PATH = resolve_path(
+    CONFIG.get("paths", {}).get("hybrid_v2_epoch3", {}).get("primary", "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v6/hybrid_objective_v2/best_embeddings.npy")
+)
+
+OUTPUT_DIR = REPO_ROOT / "evaluation/results/v3"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+# Source run IDs for config hash
+SOURCE_RUN_IDS = CONFIG.get("source_run_ids", {
+    "center_projected_v5": "v5_center_projected_full",
+    "metric_learning_v6": "v6_metric_learning",
+    "hybrid_stabilized_v6": "v6_hybrid_objective_stabilized",
+    "hybrid_v2_v6": "v6_hybrid_objective_v2"
+})
 
 # ============================================================
 # UTILITY FUNCTIONS (frozen implementations)
@@ -85,7 +157,14 @@ def set_global_seed(seed: int = GLOBAL_SEED):
     np.random.seed(seed)
 
 def get_config_hash() -> str:
-    """Generate hash of frozen configuration for audit trail."""
+    """Generate hash of frozen configuration for audit trail.
+    
+    Includes:
+    - Harness version, seed, factory direction
+    - Adversarial thresholds and benchmark parameters
+    - Source run IDs for provenance
+    - Embedding file hashes (when files exist) for data integrity
+    """
     config = {
         "version": EVALUATION_VERSION,
         "seed": GLOBAL_SEED,
@@ -101,8 +180,32 @@ def get_config_hash() -> str:
             "k_jurist": K_NEIGHBORS_JURIST,
             "k_cross_lang": K_NEIGHBORS_CROSS_LANG,
             "n_clusters": N_CLUSTERS_COHERENCE
-        }
+        },
+        "source_run_ids": SOURCE_RUN_IDS,
+        "embedding_file_hashes": {}
     }
+    
+    # Include embedding file hashes for data integrity verification
+    embedding_paths = {
+        "center_projected_768": CP_768_PATH,
+        "center_projected_64": CP_64_PATH,
+        "linear_metric_epoch4": LINEAR_METRIC_PATH,
+        "mahalanobis_metric_epoch4": MAHALANOBIS_METRIC_PATH,
+        "hybrid_stabilized_epoch1": HYBRID_STABILIZED_PATH,
+        "hybrid_v2_epoch3": HYBRID_V2_PATH,
+    }
+    
+    for name, path in embedding_paths.items():
+        if path.exists():
+            try:
+                with open(path, 'rb') as f:
+                    file_hash = hashlib.sha256(f.read()).hexdigest()[:16]
+                config["embedding_file_hashes"][name] = file_hash
+            except Exception:
+                config["embedding_file_hashes"][name] = "unreadable"
+        else:
+            config["embedding_file_hashes"][name] = "missing"
+    
     config_str = json.dumps(config, sort_keys=True)
     return hashlib.sha256(config_str.encode()).hexdigest()[:16]
 
@@ -140,9 +243,23 @@ def assign_branch(chamber: str) -> str:
     return "unknown"
 
 def load_evaluation_metadata() -> List[Dict]:
-    """Load metadata from fractal-map baseline (1200 decisions)."""
-    with open(METADATA_PATH, 'r') as f:
-        metadata = json.load(f)
+    """Load metadata from fractal-map baseline (1200 decisions).
+    
+    Supports both JSON array (from accepted lane) and JSONL (local fallback) formats.
+    """
+    if not METADATA_PATH.exists():
+        _raise_missing_metadata_error()
+    
+    # Detect format by extension
+    if METADATA_PATH.suffix == '.jsonl':
+        metadata = []
+        with open(METADATA_PATH, 'r') as f:
+            for line in f:
+                if line.strip():
+                    metadata.append(json.loads(line))
+    else:
+        with open(METADATA_PATH, 'r') as f:
+            metadata = json.load(f)
     
     for meta in metadata:
         chamber = meta.get("chamber", "")
@@ -151,6 +268,31 @@ def load_evaluation_metadata() -> List[Dict]:
             meta['language'] = meta.get('language', 'de')
     
     return metadata
+
+
+def _raise_missing_metadata_error():
+    """Raise informative error with reproduction instructions for missing metadata."""
+    primary_path = CONFIG.get("paths", {}).get("metadata", {}).get("primary", "").replace("${LEX_ACCEPTED_ROOT}", str(LEX_ACCEPTED_ROOT))
+    fallback_path = CONFIG.get("paths", {}).get("metadata", {}).get("fallback_local", "")
+    regen_instruction = CONFIG.get("regeneration_instructions", {}).get("metadata", "")
+    
+    error_msg = (
+        f"\n{'='*80}\n"
+        f"ERROR: Evaluation metadata not found!\n"
+        f"{'='*80}\n"
+        f"Expected at: {primary_path}\n"
+        f"Local fallback: {REPO_ROOT / fallback_path if fallback_path else 'N/A'}\n\n"
+        f"REPRODUCTION INSTRUCTIONS:\n"
+        f"1. Ensure LEX_ACCEPTED_ROOT environment variable points to accepted lane artifacts\n"
+        f"   (default: /tmp/lex_accepted, set via: export LEX_ACCEPTED_ROOT=/path/to/accepted)\n"
+        f"2. Or run the regeneration script:\n"
+        f"   {regen_instruction}\n"
+        f"3. For full end-to-end reproduction, run legal-distance pipeline first:\n"
+        f"   {CONFIG.get('regeneration_instructions', {}).get('center_projected', '')}\n"
+        f"{'='*80}"
+    )
+    logger.error(error_msg)
+    raise FileNotFoundError(error_msg)
 
 def prepare_metadata(metadata: List[Dict]) -> Tuple[np.ndarray, np.ndarray, np.ndarray, List[int]]:
     """Extract branch, language, chamber from metadata."""
@@ -416,11 +558,11 @@ def simulate_cross_language_retrieval(
 
 def load_jurivoc_hierarchy() -> Dict:
     """Load Jurivoc hierarchy data if available, otherwise return synthetic."""
-    # Try to load from accepted corpus
+    # Configurable paths
     jurivoc_paths = [
-        Path("/tmp/lex_accepted/corpus/results/jurivoc/hierarchy.json"),
-        Path("/tmp/lex_accepted/corpus/jurivoc_hierarchy.json"),
-        Path("/home/runner/work/LexMachina/LexMachina/corpus/results/jurivoc/hierarchy.json"),
+        Path(os.environ.get("LEX_JURIVOC_PATH", str(LEX_ACCEPTED_ROOT / "corpus/results/jurivoc/hierarchy.json"))),
+        Path(LEX_ACCEPTED_ROOT / "corpus/jurivoc_hierarchy.json"),
+        Path(REPO_ROOT / "corpus/results/jurivoc/hierarchy.json"),
     ]
     
     for path in jurivoc_paths:
@@ -626,12 +768,18 @@ def compute_boilerplate_resistance(embeddings: np.ndarray, metadata: List[Dict])
 # FRACTAL QUALITY (frozen - hierarchical Leiden)
 # ============================================================
 
-sys.path.insert(0, '/tmp/lex_accepted/fractal-map/fractal_map/hierarchical')
+# Configurable path for hierarchical Leiden module
+FRACTAL_MAP_PATH = Path(os.environ.get(
+    "LEX_FRACTAL_MAP_PATH", 
+    str(LEX_ACCEPTED_ROOT / "fractal-map/fractal_map/hierarchical")
+))
+sys.path.insert(0, str(FRACTAL_MAP_PATH))
 try:
     from hierarchical_leiden import hierarchical_leiden, compute_branch_purity
     HAS_HIERARCHICAL_LEIDEN = True
 except ImportError:
     HAS_HIERARCHICAL_LEIDEN = False
+    logger.warning(f"hierarchical_leiden module not found at {FRACTAL_MAP_PATH}. Fractal benchmarks will use fallback.")
     def hierarchical_leiden(*args, **kwargs):
         return None, None, {}
     def compute_branch_purity(labels, metadata):
@@ -824,6 +972,39 @@ def evaluate_representation(name: str, embeddings: np.ndarray, metadata: List[Di
         'both_adversarial_pass': both_adv_pass,
     }
 
+def _get_reproduction_instructions(name: str, path: Path) -> str:
+    """Generate clear reproduction instructions for missing embedding files."""
+    regen = CONFIG.get("regeneration_instructions", {})
+    
+    instructions = {
+        'center_projected_768': regen.get("center_projected", "Run legal-distance v5 pipeline"),
+        'center_projected_64dim': regen.get("center_projected", "Run legal-distance v5 pipeline"),
+        'linear_metric_epoch4': regen.get("metric_learning", "Run legal-distance v6 metric learning"),
+        'mahalanobis_metric_epoch4': regen.get("metric_learning", "Run legal-distance v6 metric learning"),
+        'hybrid_stabilized_epoch1': regen.get("hybrid_objectives", "Run legal-distance v6 hybrid objectives"),
+        'hybrid_v2_epoch3': regen.get("hybrid_objectives", "Run legal-distance v6 hybrid objectives"),
+    }
+    
+    base_instruction = instructions.get(name, "Run appropriate legal-distance pipeline")
+    
+    return (
+        f"\n{'='*80}\n"
+        f"ERROR: Embedding file not found for {name}\n"
+        f"Expected at: {path}\n"
+        f"LEX_ACCEPTED_ROOT: {LEX_ACCEPTED_ROOT}\n\n"
+        f"REPRODUCTION INSTRUCTIONS:\n"
+        f"1. Ensure LEX_ACCEPTED_ROOT points to accepted lane artifacts:\n"
+        f"   export LEX_ACCEPTED_ROOT=/path/to/accepted  (default: /tmp/lex_accepted)\n"
+        f"2. Run the regeneration pipeline:\n"
+        f"   {base_instruction}\n"
+        f"3. For full end-to-end reproduction from raw corpus:\n"
+        f"   - Run corpus lane to acquire/normalize decisions\n"
+        f"   - Run legal-distance v5 for center_projected embeddings\n"
+        f"   - Run legal-distance v6 for metric learning and hybrid objectives\n"
+        f"{'='*80}"
+    )
+
+
 def main():
     set_global_seed(GLOBAL_SEED)
     
@@ -834,12 +1015,17 @@ def main():
     logger.info(f"Config hash: {config_hash}")
     logger.info(f"Global seed: {GLOBAL_SEED}")
     logger.info(f"Factory direction: v{FACTORY_DIRECTION_VERSION}")
+    logger.info(f"LEX_ACCEPTED_ROOT: {LEX_ACCEPTED_ROOT}")
     logger.info("=" * 70)
     
     # Load metadata
     logger.info("\n1. Loading evaluation metadata...")
-    metadata = load_evaluation_metadata()
-    logger.info(f"Loaded metadata for {len(metadata)} decisions")
+    try:
+        metadata = load_evaluation_metadata()
+        logger.info(f"Loaded metadata for {len(metadata)} decisions from {METADATA_PATH}")
+    except FileNotFoundError as e:
+        logger.error(str(e))
+        return {}, config_hash
     
     # Define representations to test (frozen list)
     representations = {
@@ -851,6 +1037,22 @@ def main():
         'hybrid_v2_epoch3': HYBRID_V2_PATH,
     }
     
+    # Verify all paths exist before starting
+    missing_paths = []
+    for name, path in representations.items():
+        if not path.exists():
+            missing_paths.append((name, path))
+    
+    if missing_paths:
+        logger.error(f"\n{'!'*80}")
+        logger.error(f"MISSING EMBEDDING FILES: {len(missing_paths)} representation(s) not found")
+        logger.error(f"{'!'*80}")
+        for name, path in missing_paths:
+            logger.error(_get_reproduction_instructions(name, path))
+        logger.error(f"\nSet LEX_ACCEPTED_ROOT or run regeneration pipelines before proceeding.")
+        logger.error(f"{'!'*80}\n")
+        # Continue anyway to show which ones work
+    
     # Load and evaluate each
     logger.info("\n2. Loading representations and running evaluations...")
     all_results = {}
@@ -858,7 +1060,11 @@ def main():
     for name, path in representations.items():
         if not path.exists():
             logger.warning(f"  {name}: NOT FOUND at {path}")
-            all_results[name] = {'error': f'File not found: {path}', 'verdict': 'ERROR'}
+            all_results[name] = {
+                'error': f'File not found: {path}',
+                'verdict': 'ERROR',
+                'reproduction_instructions': _get_reproduction_instructions(name, path)
+            }
             continue
         
         try:
