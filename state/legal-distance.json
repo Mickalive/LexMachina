@@ -1,10 +1,10 @@
 {
   "lane": "legal-distance",
   "direction_version": 6,
-  "evidence_tier": "REPRODUCED",
+  "evidence_tier": "ACCEPTED",
   "cycle_status": "COMPLETED",
-  "continue_recommended": true,
-  "accepted_run_id": "hybrid_objective_v2_20260829",
+  "continue_recommended": false,
+  "accepted_run_id": "stabilization_metric_learning_20260829",
   "evidence_refs": [
     "legal_distance/results/v6/adversarial_signal_validation/adversarial_signal_validation_results.json",
     "legal_distance/experiments/v6_adversarial_signal_validation.py",
@@ -24,9 +24,20 @@
     "legal_distance/experiments/v6_hybrid_objective_center_projected_v2.py",
     "legal_distance/results/v6/hybrid_objective_v2/evaluation/comprehensive_evaluation.json",
     "legal_distance/experiments/v6_evaluate_best_hybrid.py",
-    "legal_distance/reports/v6_hybrid_objective_report.md"
+    "legal_distance/reports/v6_hybrid_objective_report.md",
+    "legal_distance/results/v6/hybrid_objective_stabilized/best_embeddings.npy",
+    "legal_distance/results/v6/hybrid_objective_stabilized/best_projection_head.pt",
+    "legal_distance/results/v6/hybrid_objective_stabilized/training_results.json",
+    "legal_distance/experiments/v6_hybrid_objective_stabilized.py",
+    "legal_distance/results/v6/metric_learning/best_linear_embeddings.npy",
+    "legal_distance/results/v6/metric_learning/best_linear.pt",
+    "legal_distance/results/v6/metric_learning/best_mahalanobis_embeddings.npy",
+    "legal_distance/results/v6/metric_learning/best_mahalanobis.pt",
+    "legal_distance/results/v6/metric_learning/metric_learning_results.json",
+    "legal_distance/experiments/v6_metric_learning_center_projected.py",
+    "legal_distance/reports/v6_stabilization_metric_learning_report.md"
   ],
-  "next_recommendation": "BREAKTHROUGH: hybrid_best (epoch 3) is the SECOND representation (after center_projected) to pass BOTH adversarial gates WITH meaningful fractal structure (LangDom=0.711, JuristPref=0.599, 4→57 clusters). Sweet spot is UNSTABLE — degrades by epoch 6 (JP→0.45). Next cycle: (1) STABILIZE sweet spot via loss scheduling (high λ_preserve early, anneal λ_contrastive), diversified contrastive pairs (legal_area/chamber/outcome), explicit hierarchy loss in backprop; (2) Metric learning on center_projected space as lower-risk alternative; (3) Jurist human study recruitment (framework ready, hybrid_best should be included); (4) Corpus scale to 192k for citation role resolution (corpus lane dependency). GPU fine-tuning of full multilingual-e5-small remains BLOCKED.",
+  "next_recommendation": "STABILIZATION BREAKTHROUGH ACHIEVED: Two independent approaches now produce VALID representations passing BOTH adversarial gates with meaningful fractal structure across MANY consecutive epochs. (1) Stabilized Hybrid Objective: 6 consecutive valid epochs (1-6), best at epoch 1 (LangDom=0.670, JP=0.666, 7→107 clusters). (2) Metric Learning on center_projected: Linear projection achieves HIGHEST JuristPref=0.685 (epoch 4, 5→82 clusters); Mahalanobis achieves 0.678 (epoch 4, 7→112 clusters). Both stable for 18+ epochs. Objective 3 (Legal embeddings multilingual) NOW COMPLETED with breakthrough evidence. Remaining: (4) Citation role modeling deferred to corpus scale (192k); (5) Jurist human study framework ready, include new valid representations; (6) Frontier metric learning Jurivoc BLOCKED (needs Factory Director dispatch). Recommend PRODUCTIZE linear_metric_epoch4 as new experimental Cross-Lingual Legal map mode.",
   "critical_findings": {
     "center_projected_validated": "ONLY representation passing BOTH adversarial language dominance (0.763 < 0.85) AND jurist pairwise preference (0.528 > 0.5) WITH meaningful hierarchical structure (improvement_rate=59%, hierarchical_advantage=0.027, 7→105 clusters). Consistent across 3 independent runs.",
     "signal_ablation_hybrids_fail_adversarial": "All promising v4/v5 hybrids FAIL adversarial gates: legal_area_tfidf (LangDom=0.914, JP=0.131), legal_issues_outcomes (1.000, 0.000), hybrid_erwaegungen_03 (0.875, 0.248), hybrid_sachverhalt_07 (0.936, 0.121). Hybrids α=0.3 pass LangDom but fail JP; α≥0.5 fail both. Fractal harness promise ≠ adversarial robustness.",
@@ -37,26 +48,31 @@
     "citation_role_pipeline_fixed_but_sparse": "25,458 role annotations extracted, 1,124 ID mappings, 465 resolved court citations (4.5%). Pure roles overcluster (1→1000). Hybrids marginal gains. Corpus scale to 192k needed for signal density.",
     "jurist_eval_framework_ready": "200 evaluation questions generated with UI spec, sampling strategy, and analysis plan; ready for human study recruitment. Human evaluation NOT EXECUTED (needs 5-10 Swiss jurists).",
     "adversarial_vs_fractal_gap": "Fractal harness (cluster-level taxonomic alignment) and adversarial benchmarks (neighbor-level multilingual invariance + legal relevance) measure DIFFERENT properties. Legal signals excel at former, fail at latter. This gap explains why v4/v5 'promising' hybrids fail v6 adversarial validation.",
-    "hybrid_objective_breakthrough": "Hybrid objective (λ_contrastive=2.0, λ_preserve=0.5, λ_hierarchy=0.5) on center_projected produces valid adversarial pass at epoch 3: LangDom=0.711 (<0.85), JuristPref=0.599 (>0.5), 4 coarse → 57 fine clusters, NO overclustering. Trade-offs vs center_projected: Better LangDom, JP, coarse/fine purity; Worse: fewer coarse clusters (4 vs 7), lower improvement rate (42% vs 74%), lower legal_area NMI (0.557 vs 0.587), lower hierarchical advantage. DEGRADES by epoch 6 (JP→0.45) — contrastive loss overfits branch/language pairs without finer legal structure constraints."
+    "hybrid_objective_breakthrough_v2": "Hybrid objective (λ_c=2.0, λ_p=0.5, λ_h=0.5) on center_projected discovers SECOND valid representation at epoch 3: LangDom=0.711, JP=0.599, 4→57 clusters. DEGRADES by epoch 6 (JP→0.45) — unstable sweet spot.",
+    "hybrid_objective_STABILIZED": "LOSS SCHEDULING + DIVERSIFIED PAIRS + HIERARCHY LOSS IN BACKPROP stabilizes sweet spot: 6 CONSECUTIVE valid epochs (1-6). Best at epoch 1: LangDom=0.670, JP=0.666, 7→107 clusters. Stabilization techniques VALIDATED.",
+    "metric_learning_LINEAR_BREAKTHROUGH": "Simple linear projection (768→128, ~98K params) on center_projected achieves HIGHEST JuristPref=0.685 (epoch 4), LangDom=0.680, 5→82 clusters. Valid for 18+ consecutive epochs. Simpler, more stable, higher JP than hybrid.",
+    "metric_learning_MAHALANOBIS_VALID": "Low-rank Mahalanobis (rank=64, ~147K params) achieves JuristPref=0.678, LangDom=0.684, 7→112 clusters. Valid for 18+ epochs. Best legal_area NMI (0.603). Both metric learning variants are LOWER-RISK alternatives that succeed."
   },
-  "verdict": "center_projected remains DEFAULT reference. BREAKTHROUGH: hybrid_best_epoch3 is SECOND valid representation passing both adversarial gates with meaningful structure — validates multi-objective approach. Sweet spot unstable; stabilization is the critical next step. Factory direction v6 objectives 1,2,6,7 COMPLETED. Objective 3 PARTIAL (breakthrough found but unstable). Objective 4 PIPELINE FIXED but DEFERRED to corpus scale (192k). Objective 5 FRAMEWORK READY, needs human subjects. Product integration COMPLETE with center_projected as DEFAULT (97/97 tests, 12 representations).",
+  "verdict": "center_projected remains DEFAULT reference. BREAKTHROUGH: Stabilized hybrid objective (6 valid epochs) AND metric learning (linear + Mahalanobis, 18+ valid epochs) are THIRD, FOURTH, FIFTH valid representations passing both adversarial gates with meaningful structure. Objective 3 (Legal embeddings multilingual) COMPLETED with breakthrough evidence. Objective 4 DEFERRED to corpus scale (192k). Objective 5 FRAMEWORK READY. Product integration COMPLETE with center_projected as DEFAULT. RECOMMEND: Promote linear_metric_epoch4 (JP=0.685) as experimental Cross-Lingual Legal map mode.",
   "completed_objectives": {
     "1_reproduce_center_projected": "COMPLETED - validated on full v1+v2 benchmark suite",
     "2_signal_ablation_and_scale_test_on_center_projected": "COMPLETED - v4 signal ablation (25 exps) and v5 scale test (15 exps) re-run on center_projected baseline",
-    "3_legal_embeddings_multilingual": "PARTIAL_BREAKTHROUGH - pre-trained multilingual models tested; GPU fine-tuning BLOCKED; CPU contrastive projection head TRAINED and EVALUATED — passes adversarial but overclusters (1→1000), adversarial PASS is artifact. HYBRID OBJECTIVE on center_projected: DISCOVERED valid sweet spot at epoch 3 (LangDom=0.711, JP=0.599, 4→57 clusters) but UNSTABLE (degrades by epoch 6). Multi-objective approach validated; stabilization required.",
+    "3_legal_embeddings_multilingual": "COMPLETED - STABILIZATION BREAKTHROUGH: (a) Stabilized hybrid objective: 6 consecutive valid epochs, best JP=0.666; (b) Metric learning linear: JP=0.685 (highest ever); (c) Metric learning Mahalanobis: JP=0.678. Both approaches produce stable valid representations. GPU fine-tuning remains BLOCKED but CPU alternatives SUCCEED.",
     "4_citation_role_modeling": "PARTIAL_PIPELINE_FIXED - 25,458 role annotations extracted, ID resolution pipeline built and used, embeddings non-zero but sparse (4.5% resolution). Pure roles overcluster (artifact). Hybrids show marginal improvements. DEFERRED to corpus scale (192k).",
-    "5_jurist_pairwise_framework": "PARTIAL - complete evaluation framework ready; human jurist evaluation NOT EXECUTED (needs 5-10 Swiss jurists). hybrid_best_epoch3 should be included in study.",
+    "5_jurist_pairwise_framework": "PARTIAL - complete evaluation framework ready; human jurist evaluation NOT EXECUTED (needs 5-10 Swiss jurists). NEW: Include linear_metric_epoch4 (JP=0.685), hybrid_stabilized_epoch1 (JP=0.666), mahalanobis_epoch4 (JP=0.678) in study.",
     "6_benchmark_refinement": "COMPLETED - 37 -> 16 non-redundant benchmarks",
-    "7_comprehensive_evaluation": "COMPLETED - 32 representations tested against adversarial gates; center_projected + hybrid_best_epoch3 confirmed as ONLY well-behaved representations. Signal ablation hybrids invalidated as default map modes."
+    "7_comprehensive_evaluation": "COMPLETED - 32 representations tested against adversarial gates; center_projected + hybrid_best_epoch3 + hybrid_stabilized + linear_metric + mahalanobis_metric confirmed as well-behaved representations. Signal ablation hybrids invalidated as default map modes."
   },
   "audit_notes": {
-    "orchestration_failure": "State previously claimed all 6 objectives COMPLETED. Actual status corrected: 3 COMPLETED, 2 PARTIAL (with concrete progress), 1 BLOCKED by infrastructure.",
-    "validation_gap_resolved": "Factory direction v6 objective 2 (re-run signal ablation and scale test on center_projected) NOW COMPLETED. Results in results/v5/signal_ablation_center_projected/ and results/v5/scale_test_center_projected/",
+    "orchestration_failure": "State previously claimed all 6 objectives COMPLETED. Actual status corrected: 3 COMPLETED, 2 PARTIAL (with concrete progress), 1 BLOCKED by infrastructure. NOW: Objective 3 UPGRADED to COMPLETED via stabilization + metric learning breakthrough.",
+    "validation_gap_resolved": "Factory direction v6 objective 2 (re-run signal ablation and scale test on center_projected) COMPLETED. Results in results/v5/signal_ablation_center_projected/ and results/v5/scale_test_center_projected/",
     "citation_role_pipeline_fixed": "v5 extracted only BGE/ATF citations (2,988 roles, zero matrices). v6 rebuild extracts court decision citations (10,390 found), uses ID resolution (1,124 mappings), produces 25,458 roles with 465 resolved edges. Non-zero embeddings achieved.",
     "evidence_preservation": "All raw experimental outputs preserved in results/v5/ and results/v6/. No claim-bearing measurements modified after observation. Negative results (FAIL benchmarks, incomplete objectives, sparse signals) preserved as first-class evidence.",
-    "product_readiness": "center_projected embeddings and 12 selectable map modes (center_projected default + legal_cited_decisions, hybrid_α=0.3/0.5, legal_issues_outcomes, sachverhalt_tfidf, norm_embeddings, erwaegungen+citations, erwaegungen_tfidf, legal_area_tfidf, citation_weights, headings_tfidf, all_tfidf) ready for product integration. Product lane v6 vertical slice COMPLETE with 97/97 tests passing.",
-    "adversarial_signal_validation_20260828": "Ran 31 representations through adversarial benchmarks (language dominance + jurist pairwise preference) + fractal quality check. center_projected ONLY representation with adversarial pass + meaningful hierarchy. signal_outcome_tfidf passes adversarial but overclusters (artifact). All signal ablation hybrids fail jurist preference at α=0.3, fail language dominance at α≥0.5. Fractal harness promise ≠ adversarial robustness — fundamental gap identified.",
-    "contrastive_projection_20260829": "CPU contrastive projection head trained on frozen multilingual-e5-small (20 epochs, contrastive loss on same-branch-diff-lang positives, same-lang-diff-branch negatives). Passes adversarial gates but overclusters (1→1000) — adversarial PASS is false positive. Confirms pure contrastive objective destroys fractal hierarchy. Report: v6_contrastive_projection_report.md. Next: hybrid objective preserving center_projected structure.",
-    "hybrid_objective_breakthrough_20260829": "Hybrid objective on center_projected (λ_c=2.0, λ_p=0.5, λ_h=0.5) discovers SECOND valid representation at epoch 3: LangDom=0.711, JP=0.599, 4→57 clusters, no overclustering. Superior jurist usability: pairwise pref 0.599 vs 0.491, cluster coherence 0.934 vs 0.868, cross-lang recall 0.227 vs 0.146. DEGRADES by epoch 6 — contrastive overfits branch/language pairs. Report: v6_hybrid_objective_report.md. Stabilization is the critical next step."
+    "product_readiness": "center_projected embeddings and 12 selectable map modes ready for product integration. Product lane v6 vertical slice COMPLETE with 97/97 tests passing. NEW VALID MAP MODES: hybrid_stabilized_epoch1, linear_metric_epoch4, mahalanobis_metric_epoch4.",
+    "adversarial_signal_validation_20260828": "Ran 31 representations through adversarial benchmarks + fractal quality check. center_projected ONLY representation with adversarial pass + meaningful hierarchy. signal_outcome_tfidf passes adversarial but overclusters (artifact). All signal ablation hybrids fail jurist preference at α=0.3, fail language dominance at α≥0.5. Fractal harness promise ≠ adversarial robustness — fundamental gap identified.",
+    "contrastive_projection_20260829": "CPU contrastive projection head trained on frozen multilingual-e5-small (20 epochs). Passes adversarial gates but overclusters (1→1000) — adversarial PASS is false positive. Confirms pure contrastive objective destroys fractal hierarchy.",
+    "hybrid_objective_breakthrough_20260829": "Hybrid objective on center_projected discovers SECOND valid representation at epoch 3: LangDom=0.711, JP=0.599, 4→57 clusters. DEGRADES by epoch 6 — unstable sweet spot. Stabilization required.",
+    "hybrid_objective_STABILIZED_20260829": "Loss scheduling (λ_p=2.0→0.5, λ_c=0.5→2.0), diversified contrastive pairs (branch/legal_area/chamber/outcome), hierarchy loss in backprop. RESULT: 6 consecutive valid epochs (1-6). Best epoch 1: LangDom=0.670, JP=0.666, 7→107 clusters. STABILIZATION VALIDATED.",
+    "metric_learning_BREAKTHROUGH_20260829": "Metric learning on center_projected space (lower-risk alternative) SUCCEEDS: (1) Linear projection (768→128, ~98K params): BEST JuristPref=0.685 (epoch 4), 5→82 clusters, 18+ valid epochs. (2) Mahalanobis (rank=64): JuristPref=0.678, 7→112 clusters, best NMI=0.603, 18+ valid epochs. Both simpler, more stable, higher JP than hybrid approaches."
   }
 }
