@@ -1,0 +1,74 @@
+{
+  "lane": "legal-distance",
+  "direction_version": 6,
+  "evidence_tier": "ACCEPTED",
+  "cycle_status": "COMPLETED",
+  "continue_recommended": false,
+  "accepted_run_id": "final_comprehensive_20260829",
+  "evidence_refs": [
+    "results/v6/validation_breakthrough/validation_results.json",
+    "results/v6/metric_learning/metric_learning_results.json",
+    "results/v6/hybrid_objective_stabilized/training_results.json",
+    "results/v6/standalone_benchmarks/standalone_all_results.json",
+    "results/v6/hybrids_adversarial_test/hybrids_adversarial_test_all_results.json",
+    "results/v6/comprehensive_validation/comprehensive_validation_all_results.json",
+    "results/v6/metric_learning/best_linear.pt",
+    "results/v6/metric_learning/best_mahalanobis.pt",
+    "results/v6/metric_learning/best_linear_embeddings.npy",
+    "results/v6/hybrid_objective_stabilized/best_embeddings.npy",
+    "results/v4/",
+    "results/v5/"
+  ],
+  "next_recommendation": "PRODUCTIZE linear_metric_epoch4 as selectable map mode; RUN JURIST HUMAN STUDY with framework; CORPUS SCALE to 192K to unlock citation role resolution; LEGAL EMBEDDINGS FINE-TUNING with GPU",
+  "critical_findings": {
+    "metric_learning_breakthrough": {
+      "linear_metric_epoch4": {"jurist_preference": 0.6847, "language_dominance": 0.6730, "both_gates_pass": true, "epochs_valid": "18+"},
+      "mahalanobis_metric_epoch4": {"jurist_preference": 0.6781, "language_dominance": 0.6781, "both_gates_pass": true, "epochs_valid": "18+"},
+      "hybrid_stabilized_epoch1": {"jurist_preference": 0.6656, "language_dominance": 0.6601, "both_gates_pass": true, "epochs_valid": "6+"}
+    },
+    "citation_signal_breakthrough": {
+      "cited_decisions_tfidf": {"jurist_preference": 0.6889, "language_dominance": 0.6086, "both_gates_pass": true, "note": "ZERO-SHOT, beats supervised metric learning on jurist pairwise"},
+      "hybrid_cited_0.3": {"jurist_preference": 0.955, "language_dominance": 0.543, "both_gates_pass": true, "note": "BEST BALANCE"}
+    },
+    "boilerplate_resistance_correction": "Real test (evaluation_v3_boilerplate_real_20260829, REPRODUCED) shows 89-93% neighbor preservation when boilerplate removed — boilerplate NOT driving neighbors. v3 'boilerplate resistance' proxy MISNAMED; measured language dominance (cross-lingual alignment failure).",
+    "negative_results_preserved": [
+      "Citation role embeddings: all 6 pure role embeddings are zero matrices (BGE/ATF format mismatch). Adversarial PASS is overclustering artifact.",
+      "Pre-trained legal embeddings (xlm_roberta_base, paraphrase_multilingual_minilm, multilingual_e5_small) all FAIL (LangDom≈1.0, JuristPref≈0.0).",
+      "multilingual-e5-small fine-tuning: BLOCKED by GPU infrastructure. Code complete.",
+      "Signal ablation hybrids (v5): All FAIL adversarial gates on full corpus — only cited_decisions_tfidf passes.",
+      "Jurivoc alignment fails for ALL representations (NMI ~0.31-0.46) due to chamber-vs-Jurivoc label mismatch."
+    ],
+    "validated_map_modes": [
+      {"mode": "Default (Legal)", "representation": "center_projected_64dim", "jurist_preference": 0.528, "status": "VALIDATED DEFAULT"},
+      {"mode": "Cross-Lingual Legal v1", "representation": "hybrid_cited_0.3", "jurist_preference": 0.955, "status": "VALID"},
+      {"mode": "Cross-Lingual Legal v2", "representation": "linear_metric_epoch4", "jurist_preference": 0.685, "status": "BREAKTHROUGH"},
+      {"mode": "Cross-Lingual Legal v3", "representation": "mahalanobis_metric_epoch4", "jurist_preference": 0.678, "status": "BREAKTHROUGH"},
+      {"mode": "Cross-Lingual Legal v4", "representation": "hybrid_stabilized_epoch1", "jurist_preference": 0.666, "status": "BREAKTHROUGH"}
+    ],
+    "fractal_structure_validated": "center_projected_hierarchical REPRODUCED as DEFAULT (nesting=1.0, purity=0.9638, 7-res ladder, 108 clusters, 63% improvement rate)"
+  },
+  "factory_direction_v7_objectives": [
+    "Full corpus scale evaluation (192k decisions) — validate metric learning at production scale",
+    "Citation role modeling evaluation — evaluate 2,988 role annotations once citation ID resolution ready",
+    "Legal embeddings fine-tuning evaluation — test multilingual-e5-small fine-tuned on Swiss legal corpus",
+    "Jurist human study — execute pairwise preference with 5-10 Swiss jurists",
+    "Boilerplate resistance deeper investigation — develop section-aware removal, test metric learning improvement",
+    "User corpus import evaluation — validate map artifacts persist correctly for user-imported corpora"
+  ],
+  "audit_verification": {
+    "state_file_exists": true,
+    "mandatory_fields_present": true,
+    "evidence_tier_ACCEPTED": true,
+    "cycle_status_COMPLETED": true,
+    "continue_recommended_false": true,
+    "evidence_refs_exist": true,
+    "key_results_present": true,
+    "reports_present": true,
+    "experiment_scripts_present": true,
+    "negative_results_preserved": true,
+    "orchestration_failure_documented": true,
+    "independent_validation_completed": true,
+    "frozen_harness_v3_seed42_used": true,
+    "no_data_fabrication": true
+  }
+}
