@@ -122,6 +122,59 @@ class TestArtifactIntegrity:
             assert key in ca, f"Missing key {key} in cluster_assignments.json"
             assert len(ca[key]) == 1000, f"cluster_assignments[{key}] has {len(ca[key])} entries, expected 1000"
 
+    # V9 hybrid mode artifact integrity tests
+    V9_MODES = [
+        "cited_decisions_tfidf_hybrid_cp64_0.3",
+        "cited_decisions_tfidf_hybrid_cp64_0.5",
+        "cited_decisions_tfidf_hybrid_cp64_0.7",
+        "cited_decisions_tfidf_hybrid_cp768_0.3",
+        "cited_decisions_tfidf_hybrid_cp768_0.5",
+        "cited_decisions_tfidf_hybrid_cp768_0.7",
+    ]
+
+    @pytest.mark.parametrize("mode_id", V9_MODES)
+    def test_v9_label_arrays_exist(self, mode_id):
+        """Test v9 hybrid mode label arrays exist."""
+        for res in RESOLUTIONS:
+            path = RESULTS_DIR / "legal_distance_modes" / mode_id / f"labels_res_{res}.npy"
+            assert path.exists(), f"Missing label array for {mode_id}: labels_res_{res}.npy"
+
+    @pytest.mark.parametrize("mode_id", V9_MODES)
+    def test_v9_label_arrays_size(self, mode_id):
+        """Test v9 hybrid mode label arrays have correct size."""
+        for res in RESOLUTIONS:
+            path = RESULTS_DIR / "legal_distance_modes" / mode_id / f"labels_res_{res}.npy"
+            arr = np.load(path)
+            assert len(arr) == 1000, f"{mode_id} labels_res_{res}.npy has {len(arr)} labels, expected 1000"
+
+    @pytest.mark.parametrize("mode_id", V9_MODES)
+    def test_v9_hierarchical_labels_exist(self, mode_id):
+        """Test v9 hybrid mode hierarchical labels exist."""
+        path = RESULTS_DIR / "legal_distance_modes" / mode_id / "labels_hierarchical_best.npy"
+        assert path.exists(), f"Missing labels_hierarchical_best.npy for {mode_id}"
+        arr = np.load(path)
+        assert len(arr) == 1000
+
+    @pytest.mark.parametrize("mode_id", V9_MODES)
+    def test_v9_coarse_labels_exist(self, mode_id):
+        """Test v9 hybrid mode coarse labels exist."""
+        path = RESULTS_DIR / "legal_distance_modes" / mode_id / "labels_coarse_0.5.npy"
+        assert path.exists(), f"Missing labels_coarse_0.5.npy for {mode_id}"
+        arr = np.load(path)
+        assert len(arr) == 1000
+
+    @pytest.mark.parametrize("mode_id", V9_MODES)
+    def test_v9_hierarchical_map_results_exist(self, mode_id):
+        """Test v9 hybrid mode hierarchical results exist."""
+        path = RESULTS_DIR / "legal_distance_modes" / mode_id / "hierarchical_map_results.json"
+        assert path.exists(), f"Missing hierarchical_map_results.json for {mode_id}"
+
+    @pytest.mark.parametrize("mode_id", V9_MODES)
+    def test_v9_integration_summary_exist(self, mode_id):
+        """Test v9 hybrid mode integration summary exists."""
+        path = RESULTS_DIR / "legal_distance_modes" / mode_id / "integration_summary.json"
+        assert path.exists(), f"Missing integration_summary.json for {mode_id}"
+
 
 class TestHierarchicalLeiden:
     """Test that hierarchical Leiden achieves target metrics on center_projected."""
@@ -271,6 +324,46 @@ class TestLegalDistanceModes:
         for mode_id in v7_modes:
             mode_info = ld_modes[mode_id]
             assert mode_info.get("adversarial_both_pass") is True, f"{mode_id} does not pass both adversarial gates"
+
+    def test_v9_cited_decisions_hybrid_modes_available(self):
+        """Test that v9 cited_decisions_tfidf hybrid modes are available."""
+        ld_modes = self.state["map_modes"]["legal_distance_modes"]
+        v9_modes = [
+            "cited_decisions_tfidf_hybrid_cp64_0.3",
+            "cited_decisions_tfidf_hybrid_cp64_0.5",
+            "cited_decisions_tfidf_hybrid_cp64_0.7",
+            "cited_decisions_tfidf_hybrid_cp768_0.3",
+            "cited_decisions_tfidf_hybrid_cp768_0.5",
+            "cited_decisions_tfidf_hybrid_cp768_0.7",
+        ]
+        for mode_id in v9_modes:
+            assert mode_id in ld_modes, f"Missing v9 mode: {mode_id}"
+
+    def test_v9_modes_pass_both_adversarial_gates(self):
+        """Test that all v9 modes pass both adversarial gates."""
+        ld_modes = self.state["map_modes"]["legal_distance_modes"]
+        v9_modes = [
+            "cited_decisions_tfidf_hybrid_cp64_0.3",
+            "cited_decisions_tfidf_hybrid_cp64_0.5",
+            "cited_decisions_tfidf_hybrid_cp64_0.7",
+            "cited_decisions_tfidf_hybrid_cp768_0.3",
+            "cited_decisions_tfidf_hybrid_cp768_0.5",
+            "cited_decisions_tfidf_hybrid_cp768_0.7",
+        ]
+        for mode_id in v9_modes:
+            mode_info = ld_modes[mode_id]
+            assert mode_info.get("adversarial_both_pass") is True, f"{mode_id} does not pass both adversarial gates"
+            assert mode_info.get("evidence_tier") == "ACCEPTED", f"{mode_id} evidence tier not ACCEPTED"
+
+    def test_total_modes_count(self):
+        """Test total mode count is 18 (1 default + 15 available legal-distance + 1 legacy + 1 placeholder)."""
+        ld_modes = self.state["map_modes"]["legal_distance_modes"]
+        # 5 v6 + 4 v7 + 6 v9 = 15 available legal-distance modes
+        # 1 placeholder (center_projected) = 16 total legal-distance modes
+        available_count = sum(1 for m in ld_modes.values() if m.get("status") == "available")
+        placeholder_count = sum(1 for m in ld_modes.values() if m.get("status") == "placeholder")
+        assert available_count == 15, f"Expected 15 available legal-distance modes, got {available_count}"
+        assert placeholder_count == 1, f"Expected 1 placeholder legal-distance mode, got {placeholder_count}"
 
     def test_legacy_mode_preserved(self):
         legacy = self.state["map_modes"]["legacy_modes"]
