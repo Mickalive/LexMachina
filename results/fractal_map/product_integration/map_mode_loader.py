@@ -8,15 +8,14 @@ map modes (hierarchical Leiden default + legal-distance modes).
 
 import json
 import numpy as np
-import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
 import logging
+import sys
 
-# Add the current directory to path for imports
-_registry_dir = Path(__file__).parent
-sys.path.insert(0, str(_registry_dir))
+# Add the hierarchical directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent))
 
 from map_mode_registry import (
     MAP_MODES, MapModeSpec, MapModeType, MapModeStatus,
@@ -243,7 +242,7 @@ def create_product_integration_package(output_dir: Path) -> None:
     
     # 1. Export map mode registry
     registry_path = output_dir / "map_mode_registry.json"
-    from map_mode_registry import export_registry
+    from .map_mode_registry import export_registry
     export_registry(registry_path)
     
     # 2. Create unified loader module
@@ -298,7 +297,7 @@ Usage:
 
 def generate_product_integration_spec(loader: MapModeLoader) -> str:
     """Generate product integration specification from current MAP_MODES registry."""
-    from map_mode_registry import MAP_MODES, get_default_mode
+    from .map_mode_registry import MAP_MODES, get_default_mode
     from datetime import datetime
     
     default_mode = get_default_mode()
