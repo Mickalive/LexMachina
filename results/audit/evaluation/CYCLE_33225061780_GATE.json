@@ -1,0 +1,20 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "center_projected (64-dim, frozen PCA, seed 42) passes all 3 critical adversarial tests (language dominance 0.766 < 0.85, jurist pairwise 0.512 > 0.5, boilerplate resistance 0.050 < 0.3); no signal ablation variant beats baseline on both gates; v6 dimension mismatch bug identified and reported; frontier metric_learning_jurivoc blocked upstream; all negative results honestly preserved",
+  "evidence_summary": {
+    "audited_run": "33221325181 (latest actual; requested 33225061780 does not exist)",
+    "v3_reproduction": "exact match to 6 decimals on 6 key metrics",
+    "signal_ablation": "17 variants tested; only 64-dim center_projected passes both adversarial gates; citation_weights passes both but degenerate (single cluster, Jurivoc NMI=0.0); 768-dim baseline fails jurist pairwise (0.491)",
+    "boilerplate_resistance": "center_projected resistance_score=0.050 (threshold <0.3); all 7 representations pass; threshold inversion corrected",
+    "jurivoc": "L1 recovery FAIL (0.243 < 0.3); L2 recovery PASS (0.441); k-NN purity PASS both levels; hierarchy alignment PASS",
+    "cross_language": "neighbor quality PASS; zero-shot transfer PASS; language-specific quality PASS; adversarial language dominance PASS; retrieval FAIL (recall@10=0.156 < 0.2)",
+    "jurist_usability": "pairwise PASS (0.512); cluster coherence PASS (branch_purity=0.873); zoom SKIP; cross-language retrieval FAIL",
+    "legal_embeddings": "all 3 fail language dominance (e5-small: 0.999, MiniLM: 0.972, xlm-r: 1.000)",
+    "citation_roles": "all 6 degenerate (single cluster, zero legal signal)",
+    "frontier_metric_learning": "BLOCKED - no team dispatched",
+    "reproducibility": "seed=42 deterministic across all benchmarks",
+    "honest_negative_reporting": "all failures (Jurivoc L1, cross-lang retrieval, signal ablation variants, legal embeddings, citation roles) explicitly documented with FAIL status"
+  }
+}

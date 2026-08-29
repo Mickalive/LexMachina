@@ -1,0 +1,50 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "NEGATIVE RESULT — Citation role embeddings not viable with current citation resolution coverage. Highest supported claim: 2,988 multilingual citation role annotations extracted successfully; embedding construction blocked by BGE/ATF citation format mismatch; partial fix possible using 1,124 resolved court decision citations (Option C).",
+  "evidence_summary": {
+    "cycle_id": "33207280215",
+    "lane": "legal-distance",
+    "direction_version": 6,
+    "repair_round": 0,
+    "primary_artifacts": [
+      "legal_distance/experiments/v6_citation_role_integration.py",
+      "legal_distance/results/v6/citation_role_integration/citation_role_integration_all_results.json",
+      "legal_distance/reports/v6_citation_role_integration_report.md",
+      "legal_distance/experiments/v6_citation_id_resolution.py",
+      "legal_distance/results/v6/citation_id_resolution/citation_to_decision_id.json",
+      "legal_distance/results/v6/citation_id_resolution/resolution_stats.json",
+      "state/legal-distance.json"
+    ],
+    "key_findings": [
+      "2,988 citation role annotations extracted (v5) — valid multilingual annotations across 6 roles",
+      "Citation ID resolution pipeline built (v6) — resolves 1,124/5,828 court decision citations (19.3%)",
+      "BGE/ATF citations (2,180) UNRESOLVED — format mismatch with internal decision_ids",
+      "All 6 role embeddings (following, distinguishing, overruling, criticizing, citing, all_weighted) are ZERO matrices (1000×64)",
+      "Adversarial benchmark scores on zero matrices are artifacts (lang_dom=0.4326, jurist_pref=0.8488) — not meaningful",
+      "Fractal-map results show overclustering artifact (1 coarse → 1000 fine clusters)",
+      "Hybrids with center_projected collapse to baseline (zero matrices contribute nothing)",
+      "Negative result honestly documented with specific fix path (Option C: re-run with resolved court citations)"
+    ],
+    "objective_status": {
+      "1_reproduce_center_projected": "COMPLETED",
+      "2_scale_test_on_center_projected": "COMPLETED",
+      "3_finetune_multilingual_e5_small": "PARTIAL — GPU blocked, code complete",
+      "4_citation_role_integration": "PARTIAL — NEGATIVE RESULT: zero embeddings due to BGE/ATF format mismatch",
+      "5_jurist_pairwise_evaluation": "PARTIAL — framework ready, human study not executed",
+      "6_benchmark_refinement": "COMPLETED"
+    },
+    "negative_results_preserved": [
+      "All 6 role embeddings = zero matrices",
+      "Adversarial benchmark artifacts on degenerate inputs",
+      "Fractal-map overclustering artifact",
+      "BGE/ATF citation resolution gap (2,180 citations)",
+      "multilingual-e5-small fine-tuning GPU blocker (prior cycle)",
+      "Jurist evaluation not executed (prior cycle)"
+    ],
+    "no_leakage_no_gaming": true,
+    "state_file_updated_accurately": true,
+    "recurring_repair_pathology": false
+  }
+}
