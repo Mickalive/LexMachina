@@ -1,6 +1,6 @@
 # Fractal Map Lane — Product Integration Specification (Map Mode Switching)
 
-**Generated:** 2026-08-29T10:41:55.632273
+**Generated:** 2026-08-29T12:53:22.249420
 **Lane:** fractal-map
 **Evidence Tier:** REPRODUCED
 **Status:** PRODUCTIZE
