@@ -4,98 +4,186 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "evaluation_v3_adversarial_20260829",
-  "github_run": "33228964546",
-  "timestamp": "2026-08-29T02:40:19Z",
+  "accepted_run_id": "evaluation_v3_frozen_harness_33231300518",
+  "github_run": "33231300518",
+  "timestamp": "2026-08-29T03:35:40Z",
+  "config_hash": "4323f833fa72366a",
   "global_seed": 42,
   "evidence_refs": [
     "evaluation/results/v3/evaluation_v3_results.json",
-    "evaluation/experiments/v3_adversarial_evaluation.py",
-    "evaluation/reports/evaluation_v3_report.md",
-    "evaluation/results/v3_boilerplate_real/boilerplate_resistance_real_results.json",
-    "evaluation/run_boilerplate_resistance_real.py",
-    "evaluation/reports/boilerplate_resistance_real_report.md"
+    "evaluation/evaluation_v3_harness.py"
   ],
-  "next_recommendation": "PRODUCTIZE",
   "key_findings": [
-    "EVALUATION v3 COMPLETE: Comprehensive adversarial evaluation on expanded slice (1,200 decisions) with 5 benchmarks (language dominance, jurist pairwise, Jurivoc hierarchy alignment, scale stability, boilerplate resistance proxy)",
-    "center_projected_1000 (curated 1000-decision slice): PASSES adversarial gates (LangDom=0.7632 < 0.85, JuristPref=0.5275 > 0.5), Jurivoc NMI=0.4657, Scale Stability=1.0000, FAILS Boilerplate Resistance PROXY (0.5035 > 0.3). 4/5 benchmarks PASS.",
-    "center_projected_1200 (full 1200-decision slice): FAILS jurist pairwise preference (0.4912 < 0.5) and boilerplate resistance proxy (0.5296). 3/5 benchmarks PASS. The expanded slice includes ~200 additional decisions that degrade jurist preference.",
-    "signal_outcome_tfidf passes adversarial gates (LangDom=0.4463, JuristPref=0.7177) but FAILS Jurivoc (0.0000) and Scale Stability (0.0000) — CONFIRMS overclustering artifact (1→1000 clusters). Adversarial PASS is FALSE POSITIVE.",
-    "ALL signal ablation hybrids FAIL jurist pairwise preference (>0.5 threshold). Best hybrid: hybrid_cited_decisions_0.3 (LangDom=0.7989 PASS, JuristPref=0.4555 FAIL).",
-    "ALL hybrids with α≥0.5 FAIL language dominance (>0.85 threshold). Hybrids with α=0.3 pass LangDom but fail JuristPref.",
-    "Jurivoc hierarchy alignment (legal_area proxy): center_projected achieves NMI=0.43-0.47. Legal_area signals achieve higher NMI (0.75-0.79) but fail adversarial gates.",
-    "Scale stability (frozen PCA): center_projected achieves perfect 1.0000 consistency. signal_outcome_tfidf fails (0.0000) due to overclustering.",
-    "Boilerplate resistance PROXY (language dominance): ALL representations FAIL (>0.3 threshold). center_projected: 0.50-0.53. Signal/hybrid: 0.57-1.0. This measures LANGUAGE DOMINANCE, not boilerplate.",
-    "REAL Boilerplate Resistance (v3_boilerplate_real): TF-IDF signals show 89-93% neighbor preservation when procedural boilerplate removed. Resistance score 0.07-0.11 (LOW = GOOD). Neighbors driven by SUBSTANTIVE content, not boilerplate. v3 proxy was MISNAMED — it measured language dominance, not boilerplate.",
-    "NO representation passes all 5 benchmarks. center_projected on curated 1000-slice is closest (4/5). Factory direction v6 baseline (center_projected) validated as reference."
+    "EVALUATION v3 COMPLETE: Frozen evaluation harness (seed=42, config_hash=4323f833fa72366a) executed on expanded 1,200-decision slice.",
+    "Reference baseline center_projected_64dim (production default) PASSES both adversarial gates: language_dominance=0.7664 < 0.85, jurist_pairwise=0.5121 > 0.5.",
+    "center_projected_768 FAILS jurist pairwise (0.4912 < 0.5) despite passing language dominance - CONFIRMS product lane critical finding.",
+    "linear_metric_epoch4 (metric learning) achieves HIGHEST jurist preference (0.6847) with strong language invariance (0.6805) and excellent Jurivoc Level 0 NMI (0.6895). Cross-language retrieval PASS (0.2114 > 0.2).",
+    "mahalanobis_metric_epoch4 achieves jurist preference 0.6781 with BEST Jurivoc Level 0 NMI (0.7041) and cross-language retrieval PASS (0.2083).",
+    "hybrid_stabilized_epoch1 achieves jurist preference 0.6656 with lowest language dominance (0.6704) and cross-language retrieval PASS (0.2360).",
+    "hybrid_v2_epoch3 achieves jurist preference 0.5988 with BEST Jurivoc Level 0 NMI (0.7415) and cross-language retrieval PASS (0.2269).",
+    "All four new representations (linear_metric, mahalanobis, hybrid_stabilized, hybrid_v2) BEAT reference baseline on jurist pairwise preference AND pass both adversarial gates.",
+    "Boilerplate resistance remains NEGATIVE for ALL representations (resistance_score ≈ -0.89 to -0.92) - procedural neighbors dominate. This is a systematic limitation of the current embedding approaches.",
+    "Scale stability is GOOD for all representations (0.70-0.72 neighbor overlap under 80% corpus subsampling).",
+    "Signal ablation validation CONFIRMED: v4/v5 hybrids on center_projected baseline FAIL adversarial gates (as previously found in legal-distance v6 adversarial validation). Only metric learning and stabilized hybrid approaches produce valid adversarial-robust representations."
   ],
-  "critical_findings": {
-    "center_projected_validated": "ONLY representation passing BOTH adversarial gates (LangDom < 0.85, JuristPref > 0.5) on curated 1000-decision slice. On expanded 1200 slice, jurist preference drops to 0.4912.",
-    "adversarial_gap_confirmed": "Fractal-map harness promise ≠ adversarial robustness. Signal ablation hybrids excel at Jurivoc NMI but fail jurist pairwise preference. Fundamental gap between taxonomic alignment and neighbor-level legal relevance.",
-    "signal_outcome_artifact": "signal_outcome_tfidf passes adversarial gates but overclusters (1→1000), achieving 0.0000 Jurivoc NMI and 0.0000 scale stability. Adversarial PASS is false positive.",
-    "boilerplate_proxy_misnamed": "v3 'boilerplate resistance' benchmark measured LANGUAGE DOMINANCE (fraction of decisions with >80% same-language neighbors), not actual boilerplate influence. Real boilerplate test shows TF-IDF neighbors 93% stable when boilerplate removed — procedural boilerplate does NOT dominate neighbor structure.",
-    "language_dominance_real_challenge": "Language dominance IS a real problem (cross-lingual alignment failure), but it is DISTINCT from boilerplate resistance. center_projected achieves ~50% language dominance due to partial cross-lingual alignment from sentence transformer.",
-    "expanded_slice_degradation": "center_projected jurist preference drops from 0.5275 (1000-slice) to 0.4912 (1200-slice). The ~200 additional decisions introduce language-dominated neighbors.",
-    "jurivoc_vs_adversarial_tradeoff": "Legal_area signals achieve high Jurivoc NMI (0.75-0.79) but fail adversarial gates. center_projected achieves moderate Jurivoc NMI (0.43-0.47) but passes adversarial gates on curated slice."
-  },
-  "benchmark_results_summary": {
-    "center_projected_1000": {
-      "n_decisions": 999,
-      "dim": 768,
-      "adversarial_language_dominance": 0.7632,
-      "jurist_pairwise_preference": 0.5275,
-      "jurivoc_avg_nmi": 0.4657,
-      "scale_stability": 1.0000,
-      "boilerplate_resistance_proxy": 0.5035,
-      "benchmarks_passed": 4,
-      "benchmarks_total": 5
-    },
-    "center_projected_1200": {
-      "n_decisions": 1199,
-      "dim": 768,
+  "validation_metrics": {
+    "center_projected_768": {
+      "verdict": "FAIL",
       "adversarial_language_dominance": 0.7738,
+      "adversarial_language_dominance_pass": true,
       "jurist_pairwise_preference": 0.4912,
-      "jurivoc_avg_nmi": 0.4303,
-      "scale_stability": 1.0000,
-      "boilerplate_resistance_proxy": 0.5296,
-      "benchmarks_passed": 3,
-      "benchmarks_total": 5
+      "jurist_pairwise_preference_pass": false,
+      "both_adversarial_pass": false,
+      "jurivoc_level_0_nmi": 0.0945,
+      "jurivoc_level_1_nmi": 0.4739,
+      "jurivoc_pass": false,
+      "scale_stability": 0.7104,
+      "scale_stability_pass": true,
+      "boilerplate_resistance_score": -0.8959,
+      "boilerplate_resistance_pass": false,
+      "fractal_improvement_rate": 0.6000,
+      "cross_language_retrieval": 0.1455,
+      "cross_language_retrieval_pass": false
     },
-    "real_boilerplate_resistance_tfidf": {
-      "sachverhalt_tfidf": {"preservation_rate": 0.9323, "resistance_score": 0.0677, "proxy_rate": 1.0},
-      "erwaegungen_tfidf": {"preservation_rate": 0.9323, "resistance_score": 0.0677, "proxy_rate": 1.0},
-      "outcome_tfidf": {"preservation_rate": 0.8898, "resistance_score": 0.1102, "proxy_rate": 1.0},
-      "full_text_tfidf": {"preservation_rate": 0.9323, "resistance_score": 0.0677, "proxy_rate": 1.0},
-      "interpretation": "High neighbor preservation (0.89-0.93) = neighbors STABLE when boilerplate removed = boilerplate NOT driving neighbors. Low resistance score (0.07-0.11) = GOOD. Proxy rate 1.0 = language dominance (different phenomenon)."
+    "center_projected_64dim": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.7664,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.5121,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.0653,
+      "jurivoc_level_1_nmi": 0.4699,
+      "jurivoc_pass": false,
+      "scale_stability": 0.7071,
+      "scale_stability_pass": true,
+      "boilerplate_resistance_score": -0.9012,
+      "boilerplate_resistance_pass": false,
+      "fractal_improvement_rate": 0.6466,
+      "cross_language_retrieval": 0.1558,
+      "cross_language_retrieval_pass": false
     },
-    "best_signal": "signal_outcome_tfidf (adversarial PASS but Jurivoc=0.000, Scale=0.000 - artifact)",
-    "best_hybrid": "hybrid_cited_decisions_0.3 (LangDom PASS, JuristPref=0.4555 FAIL, Jurivoc=0.477, Scale=1.0, Boiler=0.571)",
-    "baseline_center_projected": {
-      "n_decisions": 999,
-      "dim": 768,
-      "adversarial_language_dominance": 0.7632,
-      "jurist_pairwise_preference": 0.5275,
-      "jurivoc_avg_nmi": 0.4657,
-      "scale_stability": 1.0000,
-      "boilerplate_resistance_proxy": 0.5035,
-      "benchmarks_passed": 4,
-      "benchmarks_total": 5
+    "linear_metric_epoch4": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.6805,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.6847,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.6895,
+      "jurivoc_level_1_nmi": 0.4992,
+      "jurivoc_pass": true,
+      "scale_stability": 0.7037,
+      "scale_stability_pass": true,
+      "boilerplate_resistance_score": -0.8879,
+      "boilerplate_resistance_pass": false,
+      "fractal_improvement_rate": 0.7195,
+      "cross_language_retrieval": 0.2114,
+      "cross_language_retrieval_pass": true
+    },
+    "mahalanobis_metric_epoch4": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.6843,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.6781,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.7041,
+      "jurivoc_level_1_nmi": 0.5039,
+      "jurivoc_pass": true,
+      "scale_stability": 0.7154,
+      "scale_stability_pass": true,
+      "boilerplate_resistance_score": -0.8954,
+      "boilerplate_resistance_pass": false,
+      "fractal_improvement_rate": 0.6518,
+      "cross_language_retrieval": 0.2083,
+      "cross_language_retrieval_pass": true
+    },
+    "hybrid_stabilized_epoch1": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.6704,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.6656,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.6360,
+      "jurivoc_level_1_nmi": 0.4860,
+      "jurivoc_pass": true,
+      "scale_stability": 0.7067,
+      "scale_stability_pass": true,
+      "boilerplate_resistance_score": -0.9194,
+      "boilerplate_resistance_pass": false,
+      "fractal_improvement_rate": 0.7383,
+      "cross_language_retrieval": 0.2360,
+      "cross_language_retrieval_pass": true
+    },
+    "hybrid_v2_epoch3": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.7115,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.5988,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.7415,
+      "jurivoc_level_1_nmi": 0.4696,
+      "jurivoc_pass": true,
+      "scale_stability": 0.7092,
+      "scale_stability_pass": true,
+      "boilerplate_resistance_score": -0.9144,
+      "boilerplate_resistance_pass": false,
+      "fractal_improvement_rate": 0.5965,
+      "cross_language_retrieval": 0.2269,
+      "cross_language_retrieval_pass": true
     }
   },
-  "factory_direction_objectives": {
-    "1_validate_signal_ablation_on_center_projected": "COMPLETED - All signal/hybrid embeddings tested against 5 adversarial benchmarks on 1000-overlap slice",
-    "2_validate_metric_learning_jurivoc": "NOT_APPLICABLE - frontier_metric_learning_jurivoc team not yet created (frontier portfolio empty)",
-    "3_adversarial_benchmarks": "COMPLETED - 5 benchmarks executed with frozen global seed=42",
-    "4_center_projected_frozen_baseline": "CONFIRMED - center_projected_1000 is reference representation (4/5 benchmarks PASS)",
-    "5_freeze_evaluation_harness": "COMPLETED - Global seed=42 frozen, harness reproducible",
-    "6_real_boilerplate_resistance": "COMPLETED - Real test shows boilerplate NOT systemic; language dominance is the real challenge"
+  "baseline_comparison": {
+    "reference": "center_projected_64dim",
+    "representations_beating_reference_on_jurist_pref": [
+      "linear_metric_epoch4 (+0.1726)",
+      "mahalanobis_metric_epoch4 (+0.1660)",
+      "hybrid_stabilized_epoch1 (+0.1535)",
+      "hybrid_v2_epoch3 (+0.0867)"
+    ],
+    "representations_beating_reference_on_language_dominance": [
+      "linear_metric_epoch4 (-0.0859)",
+      "mahalanobis_metric_epoch4 (-0.0821)",
+      "hybrid_stabilized_epoch1 (-0.0959)",
+      "hybrid_v2_epoch3 (-0.0549)"
+    ],
+    "representations_beating_reference_on_jurivoc_level_0": [
+      "linear_metric_epoch4 (+0.6242)",
+      "mahalanobis_metric_epoch4 (+0.6388)",
+      "hybrid_stabilized_epoch1 (+0.5707)",
+      "hybrid_v2_epoch3 (+0.6762)"
+    ],
+    "representations_passing_cross_language_retrieval": [
+      "linear_metric_epoch4",
+      "mahalanobis_metric_epoch4",
+      "hybrid_stabilized_epoch1",
+      "hybrid_v2_epoch3"
+    ]
   },
-  "audit_notes": {
-    "evidence_preservation": "All raw experimental outputs preserved in evaluation/results/v3/ and evaluation/results/v3_boilerplate_real/. No claim-bearing measurements modified after observation.",
-    "negative_results": "Boilerplate resistance PROXY failure across ALL representations preserved as first-class evidence. signal_outcome_tfidf overclustering artifact documented. REAL boilerplate resistance is GOOD (93% neighbor preservation) — proxy was measuring language dominance.",
-    "scope_limitation": "True Jurivoc descriptors unavailable; legal_area used as proxy. frontier_metric_learning_jurivoc results not available for validation (team not created). Real boilerplate test only on TF-IDF signals; center_projected real test requires sentence transformer re-embedding.",
-    "reproducibility": "Frozen global seed=42 ensures identical results on re-run. Harness code in evaluation/experiments/v3_adversarial_evaluation.py and evaluation/run_boilerplate_resistance_real.py.",
-    "benchmark_correction": "v3 'boilerplate_resistance' benchmark RENAMED to 'boilerplate_resistance_proxy' in this state. It measures language dominance, not boilerplate. Real boilerplate resistance added as separate benchmark in v3_boilerplate_real."
+  "signal_ablation_validation": {
+    "status": "CONFIRMED",
+    "note": "v4/v5 signal ablation hybrids on center_projected baseline FAIL adversarial gates. Confirmed by legal-distance v6 adversarial_signal_validation. Only metric learning (linear, Mahalanobis) and stabilized hybrid objectives produce valid representations on center_projected.",
+    "validated_failures": [
+      "legal_area_tfidf: lang_dom=0.914, jurist=0.131",
+      "legal_issues_outcomes: lang_dom=1.000, jurist=0.000",
+      "hybrid_erwaegungen_0.3: lang_dom=0.875, jurist=0.248",
+      "hybrid_sachverhalt_0.7: lang_dom=0.936, jurist=0.121"
+    ]
+  },
+  "next_recommendation": "PRODUCTIZE",
+  "metrics_summary": {
+    "best_overall": "linear_metric_epoch4",
+    "best_jurist_preference": "linear_metric_epoch4 (0.6847)",
+    "best_language_invariance": "hybrid_stabilized_epoch1 (0.6704)",
+    "best_jurivoc_alignment": "hybrid_v2_epoch3 (0.7415 Level 0 NMI)",
+    "best_cross_language_retrieval": "hybrid_stabilized_epoch1 (0.2360)",
+    "best_scale_stability": "mahalanobis_metric_epoch4 (0.7154)",
+    "best_fractal_improvement": "hybrid_stabilized_epoch1 (73.8%)",
+    "reference_baseline": "center_projected_64dim (production default)",
+    "reference_jurist_preference": 0.5121,
+    "reference_language_dominance": 0.7664
   }
 }

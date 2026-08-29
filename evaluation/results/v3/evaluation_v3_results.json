@@ -1,3200 +1,728 @@
 {
-  "center_projected_1200": {
-    "name": "center_projected_1200",
-    "n_decisions": 1199,
-    "embedding_dim": 768,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.7737698081734778,
-      "std_language_dominance": 0.23720389639070508,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "PASS",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 1199,
-      "legal_relevant_only": 408,
-      "language_artifact_only": 244,
-      "both_available": 181,
-      "neither_available": 366,
-      "legal_neighbor_rate": 0.4912,
-      "language_neighbor_rate": 0.3545,
-      "jurist_would_succeed_rate": 0.4912,
-      "jurist_forced_wrong_rate": 0.2035,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.23259772597517275,
-          "ari": 0.048107125639538006
-        },
-        "n_clusters_10": {
-          "nmi": 0.35146358802850547,
-          "ari": 0.07904216390384428
-        },
-        "n_clusters_15": {
-          "nmi": 0.4536305427642702,
-          "ari": 0.12536500858672173
-        },
-        "n_clusters_20": {
-          "nmi": 0.48034050773944015,
-          "ari": 0.13925426582892836
-        },
-        "n_clusters_30": {
-          "nmi": 0.5168419876089508,
-          "ari": 0.13837683687826813
-        },
-        "n_clusters_50": {
-          "nmi": 0.5469349130343453,
-          "ari": 0.12309972184800508
-        }
+  "center_projected_768": {
+    "name": "center_projected_768",
+    "embedding_shape": [
+      1200,
+      768
+    ],
+    "duration_seconds": 2.107024908065796,
+    "adversarial": {
+      "adversarial_language_dominance": {
+        "mean_language_dominance": 0.7737698081734778,
+        "std_language_dominance": 0.23720389639070508,
+        "max_language_dominance": 1.0,
+        "k": 20,
+        "threshold": 0.85,
+        "status": "PASS",
+        "note": "Lower is better - language should not dominate neighbors"
       },
-      "avg_nmi": 0.4303015441917808,
-      "avg_ari": 0.1088741871142176,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
+      "jurist_pairwise_preference": {
+        "status": "FAIL",
+        "total_decisions": 1199,
+        "legal_relevant_only": 408,
+        "language_artifact_only": 244,
+        "both_available": 181,
+        "neither_available": 366,
+        "legal_neighbor_rate": 0.4912,
+        "language_neighbor_rate": 0.3545,
+        "jurist_would_succeed_rate": 0.4912,
+        "jurist_forced_wrong_rate": 0.2035,
+        "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+      },
+      "both_pass": false,
+      "language_dominance_score": 0.7737698081734778,
+      "jurist_preference_rate": 0.4912
     },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
+    "jurivoc_alignment": {
+      "level_0_nmi": 0.09454171662098472,
+      "level_1_nmi": 0.4738760013144427,
+      "nesting_score": 0.7890260346613887,
+      "status": "FAIL",
+      "note": "Jurivoc proxy: Level 0 = 4 branches, Level 1 = 16 legal areas. Higher NMI = better alignment with legal taxonomy."
+    },
+    "scale_stability": {
+      "mean_neighbor_overlap": 0.7104166666666667,
+      "std_neighbor_overlap": 0.11445447299642288,
+      "n_test_points": 240,
       "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
+      "note": "Scale stability: fraction of top-10 neighbors preserved when corpus reduced to 80%. Higher = more stable."
     },
     "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.5296080066722268,
-      "k": 20,
-      "threshold": 0.3,
+      "boilerplate_neighbor_rate": 0.9479405910274078,
+      "legal_neighbor_rate": 0.05205940897259225,
+      "resistance_score": -0.8958811820548156,
+      "total_comparisons": 6531,
       "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
+      "note": "Boilerplate resistance: legal_neighbor_rate - boilerplate_neighbor_rate. Positive = legally relevant neighbors dominate over procedural neighbors."
     },
-    "all_benchmarks_pass": false,
-    "n_passed": 3,
-    "n_total": 5
+    "fractal": {
+      "n_coarse": 7,
+      "n_fine": 100,
+      "coarse_purity": 0.8279715625192038,
+      "fine_purity": 0.9381112519570725,
+      "overall_improvement": 0.11013968943786867,
+      "improvement_rate": 0.6,
+      "legal_area_nmi": 0.587248484471056,
+      "flat_purity": 0.9066021609264339,
+      "hierarchical_advantage": 0.03150909103063859,
+      "cluster_coherence": {
+        "status": "PASS",
+        "n_clusters": 16,
+        "mean_branch_purity": 0.8539,
+        "branch_nmi": 0.3663,
+        "mean_language_purity": 0.6909,
+        "cluster_purities": [
+          1.0,
+          0.8427,
+          0.9375,
+          0.9703,
+          0.975,
+          0.525,
+          0.8182,
+          0.3516,
+          0.964,
+          0.9167,
+          0.9783,
+          0.9474,
+          0.961,
+          0.9167,
+          0.9855,
+          0.5733
+        ],
+        "cluster_sizes": [
+          42,
+          89,
+          64,
+          101,
+          40,
+          80,
+          88,
+          91,
+          111,
+          36,
+          46,
+          95,
+          77,
+          96,
+          69,
+          75
+        ],
+        "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+      },
+      "cross_language_retrieval": {
+        "status": "FAIL",
+        "mean_cross_language_recall_at_k": 0.1455,
+        "k": 10,
+        "n_queries": 1199,
+        "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+      }
+    },
+    "verdict": "FAIL",
+    "both_adversarial_pass": false
   },
-  "center_projected_128_1200": {
-    "name": "center_projected_128_1200",
-    "n_decisions": 1199,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.7724770642201835,
-      "std_language_dominance": 0.2368593912896217,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "PASS",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 1199,
-      "legal_relevant_only": 415,
-      "language_artifact_only": 239,
-      "both_available": 179,
-      "neither_available": 366,
-      "legal_neighbor_rate": 0.4954,
-      "language_neighbor_rate": 0.3486,
-      "jurist_would_succeed_rate": 0.4954,
-      "jurist_forced_wrong_rate": 0.1993,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.22667607827075859,
-          "ari": 0.04867901175058476
-        },
-        "n_clusters_10": {
-          "nmi": 0.3887077022061667,
-          "ari": 0.1094454627250531
-        },
-        "n_clusters_15": {
-          "nmi": 0.4524422932505663,
-          "ari": 0.1317832595553028
-        },
-        "n_clusters_20": {
-          "nmi": 0.47838517844972217,
-          "ari": 0.13367564893901876
-        },
-        "n_clusters_30": {
-          "nmi": 0.5018864169269635,
-          "ari": 0.13178947409641695
-        },
-        "n_clusters_50": {
-          "nmi": 0.5439393591009005,
-          "ari": 0.12525122048845386
-        }
+  "center_projected_64dim": {
+    "name": "center_projected_64dim",
+    "embedding_shape": [
+      1200,
+      64
+    ],
+    "duration_seconds": 0.7105870246887207,
+    "adversarial": {
+      "adversarial_language_dominance": {
+        "mean_language_dominance": 0.7663886572143453,
+        "std_language_dominance": 0.23683072660799276,
+        "max_language_dominance": 1.0,
+        "k": 20,
+        "threshold": 0.85,
+        "status": "PASS",
+        "note": "Lower is better - language should not dominate neighbors"
       },
-      "avg_nmi": 0.43200617136751296,
-      "avg_ari": 0.11343734625913836,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
+      "jurist_pairwise_preference": {
+        "status": "PASS",
+        "total_decisions": 1199,
+        "legal_relevant_only": 430,
+        "language_artifact_only": 220,
+        "both_available": 184,
+        "neither_available": 365,
+        "legal_neighbor_rate": 0.5121,
+        "language_neighbor_rate": 0.3369,
+        "jurist_would_succeed_rate": 0.5121,
+        "jurist_forced_wrong_rate": 0.1835,
+        "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+      },
+      "both_pass": true,
+      "language_dominance_score": 0.7663886572143453,
+      "jurist_preference_rate": 0.5121
     },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
+    "jurivoc_alignment": {
+      "level_0_nmi": 0.065286628706986,
+      "level_1_nmi": 0.46989701598480993,
+      "nesting_score": 0.8477997434959159,
+      "status": "FAIL",
+      "note": "Jurivoc proxy: Level 0 = 4 branches, Level 1 = 16 legal areas. Higher NMI = better alignment with legal taxonomy."
+    },
+    "scale_stability": {
+      "mean_neighbor_overlap": 0.7070833333333333,
+      "std_neighbor_overlap": 0.12003399402761798,
+      "n_test_points": 240,
       "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
+      "note": "Scale stability: fraction of top-10 neighbors preserved when corpus reduced to 80%. Higher = more stable."
     },
     "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.5237698081734778,
-      "k": 20,
-      "threshold": 0.3,
+      "boilerplate_neighbor_rate": 0.9506060606060606,
+      "legal_neighbor_rate": 0.04939393939393939,
+      "resistance_score": -0.9012121212121211,
+      "total_comparisons": 6600,
       "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
+      "note": "Boilerplate resistance: legal_neighbor_rate - boilerplate_neighbor_rate. Positive = legally relevant neighbors dominate over procedural neighbors."
     },
-    "all_benchmarks_pass": false,
-    "n_passed": 3,
-    "n_total": 5
+    "fractal": {
+      "n_coarse": 8,
+      "n_fine": 116,
+      "coarse_purity": 0.8480653466360484,
+      "fine_purity": 0.9498086740587928,
+      "overall_improvement": 0.10174332742274439,
+      "improvement_rate": 0.646551724137931,
+      "legal_area_nmi": 0.5867642606971067,
+      "flat_purity": 0.9116977357028554,
+      "hierarchical_advantage": 0.038110938355937374,
+      "cluster_coherence": {
+        "status": "PASS",
+        "n_clusters": 16,
+        "mean_branch_purity": 0.8614,
+        "branch_nmi": 0.3732,
+        "mean_language_purity": 0.6975,
+        "cluster_purities": [
+          0.9605,
+          0.9886,
+          0.95,
+          0.3864,
+          0.525,
+          0.8636,
+          0.9753,
+          0.8302,
+          0.9481,
+          0.6036,
+          0.9175,
+          0.9545,
+          0.9794,
+          0.9524,
+          1.0,
+          0.9474
+        ],
+        "cluster_sizes": [
+          76,
+          88,
+          60,
+          88,
+          80,
+          44,
+          81,
+          53,
+          77,
+          111,
+          97,
+          66,
+          97,
+          42,
+          45,
+          95
+        ],
+        "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+      },
+      "cross_language_retrieval": {
+        "status": "FAIL",
+        "mean_cross_language_recall_at_k": 0.1558,
+        "k": 10,
+        "n_queries": 1199,
+        "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+      }
+    },
+    "verdict": "PASS",
+    "both_adversarial_pass": true
   },
-  "center_projected_1000": {
-    "name": "center_projected_1000",
-    "n_decisions": 999,
-    "embedding_dim": 768,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.763163163163163,
-      "std_language_dominance": 0.23627363296406656,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "PASS",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "PASS",
-      "total_decisions": 999,
-      "legal_relevant_only": 394,
-      "language_artifact_only": 149,
-      "both_available": 133,
-      "neither_available": 323,
-      "legal_neighbor_rate": 0.5275,
-      "language_neighbor_rate": 0.2823,
-      "jurist_would_succeed_rate": 0.5275,
-      "jurist_forced_wrong_rate": 0.1491,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.2812482247297886,
-          "ari": 0.05569024750814298
-        },
-        "n_clusters_10": {
-          "nmi": 0.4193647080136896,
-          "ari": 0.12086244209025158
-        },
-        "n_clusters_15": {
-          "nmi": 0.48050782881045667,
-          "ari": 0.15112050031929872
-        },
-        "n_clusters_20": {
-          "nmi": 0.5050046623183281,
-          "ari": 0.14926757676651434
-        },
-        "n_clusters_30": {
-          "nmi": 0.5393434434731021,
-          "ari": 0.15582007369953008
-        },
-        "n_clusters_50": {
-          "nmi": 0.568922808684957,
-          "ari": 0.1353198217804951
-        }
+  "linear_metric_epoch4": {
+    "name": "linear_metric_epoch4",
+    "embedding_shape": [
+      1200,
+      128
+    ],
+    "duration_seconds": 0.6751480102539062,
+    "adversarial": {
+      "adversarial_language_dominance": {
+        "mean_language_dominance": 0.6805254378648874,
+        "std_language_dominance": 0.21769657931547517,
+        "max_language_dominance": 1.0,
+        "k": 20,
+        "threshold": 0.85,
+        "status": "PASS",
+        "note": "Lower is better - language should not dominate neighbors"
       },
-      "avg_nmi": 0.46573194600505374,
-      "avg_ari": 0.1280134436940388,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
+      "jurist_pairwise_preference": {
+        "status": "PASS",
+        "total_decisions": 1199,
+        "legal_relevant_only": 681,
+        "language_artifact_only": 94,
+        "both_available": 140,
+        "neither_available": 284,
+        "legal_neighbor_rate": 0.6847,
+        "language_neighbor_rate": 0.1952,
+        "jurist_would_succeed_rate": 0.6847,
+        "jurist_forced_wrong_rate": 0.0784,
+        "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+      },
+      "both_pass": true,
+      "language_dominance_score": 0.6805254378648874,
+      "jurist_preference_rate": 0.6847
     },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
+    "jurivoc_alignment": {
+      "level_0_nmi": 0.689513904537796,
+      "level_1_nmi": 0.49921397958748703,
+      "nesting_score": 0.9345645595356447,
       "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
+      "note": "Jurivoc proxy: Level 0 = 4 branches, Level 1 = 16 legal areas. Higher NMI = better alignment with legal taxonomy."
+    },
+    "scale_stability": {
+      "mean_neighbor_overlap": 0.7037499999999999,
+      "std_neighbor_overlap": 0.12393924923122619,
+      "n_test_points": 240,
+      "status": "PASS",
+      "note": "Scale stability: fraction of top-10 neighbors preserved when corpus reduced to 80%. Higher = more stable."
     },
     "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.5035035035035035,
-      "k": 20,
-      "threshold": 0.3,
+      "boilerplate_neighbor_rate": 0.9439496314496314,
+      "legal_neighbor_rate": 0.05605036855036855,
+      "resistance_score": -0.8878992628992628,
+      "total_comparisons": 6512,
       "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
+      "note": "Boilerplate resistance: legal_neighbor_rate - boilerplate_neighbor_rate. Positive = legally relevant neighbors dominate over procedural neighbors."
     },
-    "all_benchmarks_pass": false,
-    "n_passed": 4,
-    "n_total": 5
+    "fractal": {
+      "n_coarse": 5,
+      "n_fine": 82,
+      "coarse_purity": 0.9646144922073265,
+      "fine_purity": 0.9698716062707028,
+      "overall_improvement": 0.005257114063376256,
+      "improvement_rate": 0.7195121951219512,
+      "legal_area_nmi": 0.592106780611599,
+      "flat_purity": 0.9573572391877664,
+      "hierarchical_advantage": 0.012514367082936406,
+      "cluster_coherence": {
+        "status": "PASS",
+        "n_clusters": 16,
+        "mean_branch_purity": 0.9489,
+        "branch_nmi": 0.4888,
+        "mean_language_purity": 0.6417,
+        "cluster_purities": [
+          0.9706,
+          0.88,
+          0.9403,
+          0.9433,
+          0.9937,
+          0.8958,
+          0.9796,
+          1.0,
+          0.9394,
+          0.9412,
+          1.0,
+          0.9857,
+          0.8305,
+          0.96,
+          0.9231,
+          1.0
+        ],
+        "cluster_sizes": [
+          136,
+          50,
+          67,
+          141,
+          159,
+          96,
+          49,
+          22,
+          66,
+          51,
+          79,
+          70,
+          59,
+          75,
+          39,
+          41
+        ],
+        "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+      },
+      "cross_language_retrieval": {
+        "status": "PASS",
+        "mean_cross_language_recall_at_k": 0.2114,
+        "k": 10,
+        "n_queries": 1199,
+        "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+      }
+    },
+    "verdict": "PASS",
+    "both_adversarial_pass": true
   },
-  "signal_sachverhalt_tfidf": {
-    "name": "signal_sachverhalt_tfidf",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.8007007007007007,
-      "std_language_dominance": 0.2692805628541365,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "PASS",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 13,
-      "language_artifact_only": 422,
-      "both_available": 237,
-      "neither_available": 327,
-      "legal_neighbor_rate": 0.2503,
-      "language_neighbor_rate": 0.6597,
-      "jurist_would_succeed_rate": 0.2503,
-      "jurist_forced_wrong_rate": 0.4224,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.3458912317504175,
-          "ari": 0.09322497461275293
-        },
-        "n_clusters_10": {
-          "nmi": 0.40852346904312653,
-          "ari": 0.07029774007256345
-        },
-        "n_clusters_15": {
-          "nmi": 0.4584448816538603,
-          "ari": 0.07246752287467806
-        },
-        "n_clusters_20": {
-          "nmi": 0.4754603124567608,
-          "ari": 0.06850287527531479
-        },
-        "n_clusters_30": {
-          "nmi": 0.49748689658140277,
-          "ari": 0.05732627778121529
-        },
-        "n_clusters_50": {
-          "nmi": 0.4924126136406078,
-          "ari": 0.03834677149177286
-        }
+  "mahalanobis_metric_epoch4": {
+    "name": "mahalanobis_metric_epoch4",
+    "embedding_shape": [
+      1200,
+      128
+    ],
+    "duration_seconds": 0.7201540470123291,
+    "adversarial": {
+      "adversarial_language_dominance": {
+        "mean_language_dominance": 0.684278565471226,
+        "std_language_dominance": 0.21814318196804394,
+        "max_language_dominance": 1.0,
+        "k": 20,
+        "threshold": 0.85,
+        "status": "PASS",
+        "note": "Lower is better - language should not dominate neighbors"
       },
-      "avg_nmi": 0.4463699008543627,
-      "avg_ari": 0.06669436035138289,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
+      "jurist_pairwise_preference": {
+        "status": "PASS",
+        "total_decisions": 1199,
+        "legal_relevant_only": 672,
+        "language_artifact_only": 99,
+        "both_available": 141,
+        "neither_available": 287,
+        "legal_neighbor_rate": 0.6781,
+        "language_neighbor_rate": 0.2002,
+        "jurist_would_succeed_rate": 0.6781,
+        "jurist_forced_wrong_rate": 0.0826,
+        "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+      },
+      "both_pass": true,
+      "language_dominance_score": 0.684278565471226,
+      "jurist_preference_rate": 0.6781
     },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
+    "jurivoc_alignment": {
+      "level_0_nmi": 0.7040533552265104,
+      "level_1_nmi": 0.503916406632479,
+      "nesting_score": 0.9387837575296794,
       "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
+      "note": "Jurivoc proxy: Level 0 = 4 branches, Level 1 = 16 legal areas. Higher NMI = better alignment with legal taxonomy."
+    },
+    "scale_stability": {
+      "mean_neighbor_overlap": 0.7154166666666666,
+      "std_neighbor_overlap": 0.11461817652051917,
+      "n_test_points": 240,
+      "status": "PASS",
+      "note": "Scale stability: fraction of top-10 neighbors preserved when corpus reduced to 80%. Higher = more stable."
     },
     "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.6386386386386387,
-      "k": 20,
-      "threshold": 0.3,
+      "boilerplate_neighbor_rate": 0.9476951730560298,
+      "legal_neighbor_rate": 0.0523048269439702,
+      "resistance_score": -0.8953903461120596,
+      "total_comparisons": 6443,
       "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
+      "note": "Boilerplate resistance: legal_neighbor_rate - boilerplate_neighbor_rate. Positive = legally relevant neighbors dominate over procedural neighbors."
     },
-    "all_benchmarks_pass": false,
-    "n_passed": 3,
-    "n_total": 5
+    "fractal": {
+      "n_coarse": 7,
+      "n_fine": 112,
+      "coarse_purity": 0.9622958043679416,
+      "fine_purity": 0.9650838076075112,
+      "overall_improvement": 0.0027880032395696253,
+      "improvement_rate": 0.6517857142857143,
+      "legal_area_nmi": 0.5944371846014008,
+      "flat_purity": 0.9543190314418931,
+      "hierarchical_advantage": 0.010764776165618106,
+      "cluster_coherence": {
+        "status": "PASS",
+        "n_clusters": 16,
+        "mean_branch_purity": 0.9492,
+        "branch_nmi": 0.4933,
+        "mean_language_purity": 0.6755,
+        "cluster_purities": [
+          0.9899,
+          0.7831,
+          0.8704,
+          0.9612,
+          0.9916,
+          0.9804,
+          0.9452,
+          0.875,
+          1.0,
+          1.0,
+          0.9412,
+          0.9048,
+          1.0,
+          0.9697,
+          0.9744,
+          1.0
+        ],
+        "cluster_sizes": [
+          99,
+          83,
+          54,
+          103,
+          119,
+          102,
+          73,
+          96,
+          60,
+          105,
+          51,
+          21,
+          89,
+          33,
+          39,
+          73
+        ],
+        "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+      },
+      "cross_language_retrieval": {
+        "status": "PASS",
+        "mean_cross_language_recall_at_k": 0.2083,
+        "k": 10,
+        "n_queries": 1199,
+        "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+      }
+    },
+    "verdict": "PASS",
+    "both_adversarial_pass": true
   },
-  "signal_erwaegungen_tfidf": {
-    "name": "signal_erwaegungen_tfidf",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.9033533533533534,
-      "std_language_dominance": 0.23819740609531584,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 40,
-      "language_artifact_only": 364,
-      "both_available": 77,
-      "neither_available": 518,
-      "legal_neighbor_rate": 0.1171,
-      "language_neighbor_rate": 0.4414,
-      "jurist_would_succeed_rate": 0.1171,
-      "jurist_forced_wrong_rate": 0.3644,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.3546203046253684,
-          "ari": 0.12283744500442643
-        },
-        "n_clusters_10": {
-          "nmi": 0.4345844422094913,
-          "ari": 0.13118899915922952
-        },
-        "n_clusters_15": {
-          "nmi": 0.4567897537582249,
-          "ari": 0.11658720228549509
-        },
-        "n_clusters_20": {
-          "nmi": 0.5146179447375117,
-          "ari": 0.16380292236722738
-        },
-        "n_clusters_30": {
-          "nmi": 0.5389076178750787,
-          "ari": 0.1457378918087397
-        },
-        "n_clusters_50": {
-          "nmi": 0.5666533639956205,
-          "ari": 0.13038947637903806
-        }
+  "hybrid_stabilized_epoch1": {
+    "name": "hybrid_stabilized_epoch1",
+    "embedding_shape": [
+      1200,
+      128
+    ],
+    "duration_seconds": 0.7223126888275146,
+    "adversarial": {
+      "adversarial_language_dominance": {
+        "mean_language_dominance": 0.6704336947456214,
+        "std_language_dominance": 0.25371201565557927,
+        "max_language_dominance": 1.0,
+        "k": 20,
+        "threshold": 0.85,
+        "status": "PASS",
+        "note": "Lower is better - language should not dominate neighbors"
       },
-      "avg_nmi": 0.47769557120021583,
-      "avg_ari": 0.13509065616735938,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
+      "jurist_pairwise_preference": {
+        "status": "PASS",
+        "total_decisions": 1199,
+        "legal_relevant_only": 670,
+        "language_artifact_only": 64,
+        "both_available": 128,
+        "neither_available": 337,
+        "legal_neighbor_rate": 0.6656,
+        "language_neighbor_rate": 0.1601,
+        "jurist_would_succeed_rate": 0.6656,
+        "jurist_forced_wrong_rate": 0.0534,
+        "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+      },
+      "both_pass": true,
+      "language_dominance_score": 0.6704336947456214,
+      "jurist_preference_rate": 0.6656
     },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
+    "jurivoc_alignment": {
+      "level_0_nmi": 0.6359604293979528,
+      "level_1_nmi": 0.48599945999076943,
+      "nesting_score": 0.9003802037982244,
       "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
+      "note": "Jurivoc proxy: Level 0 = 4 branches, Level 1 = 16 legal areas. Higher NMI = better alignment with legal taxonomy."
+    },
+    "scale_stability": {
+      "mean_neighbor_overlap": 0.7066666666666667,
+      "std_neighbor_overlap": 0.11918706119187418,
+      "n_test_points": 240,
+      "status": "PASS",
+      "note": "Scale stability: fraction of top-10 neighbors preserved when corpus reduced to 80%. Higher = more stable."
     },
     "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.8448448448448449,
-      "k": 20,
-      "threshold": 0.3,
+      "boilerplate_neighbor_rate": 0.9596958174904943,
+      "legal_neighbor_rate": 0.0403041825095057,
+      "resistance_score": -0.9193916349809885,
+      "total_comparisons": 6575,
       "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
+      "note": "Boilerplate resistance: legal_neighbor_rate - boilerplate_neighbor_rate. Positive = legally relevant neighbors dominate over procedural neighbors."
     },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
+    "fractal": {
+      "n_coarse": 7,
+      "n_fine": 107,
+      "coarse_purity": 0.9367224401894095,
+      "fine_purity": 0.9660892283292806,
+      "overall_improvement": 0.029366788139871036,
+      "improvement_rate": 0.7383177570093458,
+      "legal_area_nmi": 0.578763522244067,
+      "flat_purity": 0.9457403847706989,
+      "hierarchical_advantage": 0.020348843558581686,
+      "cluster_coherence": {
+        "status": "PASS",
+        "n_clusters": 16,
+        "mean_branch_purity": 0.9152,
+        "branch_nmi": 0.4367,
+        "mean_language_purity": 0.6438,
+        "cluster_purities": [
+          0.9571,
+          0.9825,
+          0.8364,
+          0.9577,
+          0.9863,
+          0.9694,
+          0.96,
+          0.5301,
+          0.9873,
+          0.9722,
+          0.9709,
+          0.7917,
+          1.0,
+          0.9737,
+          1.0,
+          0.7679
+        ],
+        "cluster_sizes": [
+          70,
+          114,
+          55,
+          71,
+          73,
+          98,
+          75,
+          83,
+          79,
+          36,
+          103,
+          96,
+          45,
+          76,
+          70,
+          56
+        ],
+        "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+      },
+      "cross_language_retrieval": {
+        "status": "PASS",
+        "mean_cross_language_recall_at_k": 0.236,
+        "k": 10,
+        "n_queries": 1199,
+        "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+      }
+    },
+    "verdict": "PASS",
+    "both_adversarial_pass": true
   },
-  "signal_legal_area_tfidf": {
-    "name": "signal_legal_area_tfidf",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.9137137137137137,
-      "std_language_dominance": 0.19733490108267066,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 99,
-      "language_artifact_only": 420,
-      "both_available": 31,
-      "neither_available": 449,
-      "legal_neighbor_rate": 0.1301,
-      "language_neighbor_rate": 0.4515,
-      "jurist_would_succeed_rate": 0.1301,
-      "jurist_forced_wrong_rate": 0.4204,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.5132480249261121,
-          "ari": 0.15606152742282298
-        },
-        "n_clusters_10": {
-          "nmi": 0.61203473906857,
-          "ari": 0.18088007459389177
-        },
-        "n_clusters_15": {
-          "nmi": 0.7199502591244584,
-          "ari": 0.29273472832601516
-        },
-        "n_clusters_20": {
-          "nmi": 0.8425782934070947,
-          "ari": 0.6432692166768654
-        },
-        "n_clusters_30": {
-          "nmi": 0.885803705046978,
-          "ari": 0.696979818378409
-        },
-        "n_clusters_50": {
-          "nmi": 0.9534934420063089,
-          "ari": 0.9173352639260453
-        }
+  "hybrid_v2_epoch3": {
+    "name": "hybrid_v2_epoch3",
+    "embedding_shape": [
+      1200,
+      128
+    ],
+    "duration_seconds": 0.6815836429595947,
+    "adversarial": {
+      "adversarial_language_dominance": {
+        "mean_language_dominance": 0.7114678899082568,
+        "std_language_dominance": 0.26599744854100854,
+        "max_language_dominance": 1.0,
+        "k": 20,
+        "threshold": 0.85,
+        "status": "PASS",
+        "note": "Lower is better - language should not dominate neighbors"
       },
-      "avg_nmi": 0.7545180772632537,
-      "avg_ari": 0.4812101048873416,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
+      "jurist_pairwise_preference": {
+        "status": "PASS",
+        "total_decisions": 1199,
+        "legal_relevant_only": 682,
+        "language_artifact_only": 56,
+        "both_available": 36,
+        "neither_available": 425,
+        "legal_neighbor_rate": 0.5988,
+        "language_neighbor_rate": 0.0767,
+        "jurist_would_succeed_rate": 0.5988,
+        "jurist_forced_wrong_rate": 0.0467,
+        "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+      },
+      "both_pass": true,
+      "language_dominance_score": 0.7114678899082568,
+      "jurist_preference_rate": 0.5988
     },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
+    "jurivoc_alignment": {
+      "level_0_nmi": 0.7414921974289812,
+      "level_1_nmi": 0.46964574616047994,
+      "nesting_score": 0.936336004976244,
       "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
+      "note": "Jurivoc proxy: Level 0 = 4 branches, Level 1 = 16 legal areas. Higher NMI = better alignment with legal taxonomy."
+    },
+    "scale_stability": {
+      "mean_neighbor_overlap": 0.7091666666666666,
+      "std_neighbor_overlap": 0.10645486784966149,
+      "n_test_points": 240,
+      "status": "PASS",
+      "note": "Scale stability: fraction of top-10 neighbors preserved when corpus reduced to 80%. Higher = more stable."
     },
     "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.8518518518518519,
-      "k": 20,
-      "threshold": 0.3,
+      "boilerplate_neighbor_rate": 0.9571956769055745,
+      "legal_neighbor_rate": 0.04280432309442549,
+      "resistance_score": -0.914391353811149,
+      "total_comparisons": 7032,
       "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
+      "note": "Boilerplate resistance: legal_neighbor_rate - boilerplate_neighbor_rate. Positive = legally relevant neighbors dominate over procedural neighbors."
     },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "signal_legal_issues_tfidf": {
-    "name": "signal_legal_issues_tfidf",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 1.0,
-      "std_language_dominance": 0.0,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 0,
-      "language_artifact_only": 529,
-      "both_available": 0,
-      "neither_available": 470,
-      "legal_neighbor_rate": 0.0,
-      "language_neighbor_rate": 0.5295,
-      "jurist_would_succeed_rate": 0.0,
-      "jurist_forced_wrong_rate": 0.5295,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.3859238385079623,
-          "ari": 0.12220462906735431
-        },
-        "n_clusters_10": {
-          "nmi": 0.44718448185471615,
-          "ari": 0.13781572920648608
-        },
-        "n_clusters_15": {
-          "nmi": 0.46724582459677066,
-          "ari": 0.13419064584399584
-        },
-        "n_clusters_20": {
-          "nmi": 0.5033506527863739,
-          "ari": 0.15263923986365519
-        },
-        "n_clusters_30": {
-          "nmi": 0.5546644904698399,
-          "ari": 0.16993302828444
-        },
-        "n_clusters_50": {
-          "nmi": 0.5941922619387832,
-          "ari": 0.16460001348733697
-        }
+    "fractal": {
+      "n_coarse": 4,
+      "n_fine": 57,
+      "coarse_purity": 0.9622704081818076,
+      "fine_purity": 0.9591896479681089,
+      "overall_improvement": -0.003080760213698741,
+      "improvement_rate": 0.5964912280701754,
+      "legal_area_nmi": 0.5566468059952466,
+      "flat_purity": 0.9619866459583647,
+      "hierarchical_advantage": -0.0027969979902557895,
+      "cluster_coherence": {
+        "status": "PASS",
+        "n_clusters": 16,
+        "mean_branch_purity": 0.9495,
+        "branch_nmi": 0.523,
+        "mean_language_purity": 0.712,
+        "cluster_purities": [
+          0.9333,
+          0.9091,
+          0.9846,
+          0.9853,
+          0.68,
+          0.9535,
+          1.0,
+          0.9706,
+          0.9845,
+          0.9308,
+          1.0,
+          0.9762,
+          0.9846,
+          0.9375,
+          0.9733,
+          0.9882
+        ],
+        "cluster_sizes": [
+          30,
+          22,
+          65,
+          136,
+          25,
+          86,
+          48,
+          102,
+          129,
+          159,
+          34,
+          42,
+          130,
+          32,
+          75,
+          85
+        ],
+        "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
       },
-      "avg_nmi": 0.49209359169240763,
-      "avg_ari": 0.14689721429221142,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 1.0,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "signal_outcome_tfidf": {
-    "name": "signal_outcome_tfidf",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.4462962962962963,
-      "std_language_dominance": 0.09576255407548066,
-      "max_language_dominance": 0.5,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "PASS",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "PASS",
-      "total_decisions": 999,
-      "legal_relevant_only": 52,
-      "language_artifact_only": 282,
-      "both_available": 665,
-      "neither_available": 0,
-      "legal_neighbor_rate": 0.7177,
-      "language_neighbor_rate": 0.9479,
-      "jurist_would_succeed_rate": 0.7177,
-      "jurist_forced_wrong_rate": 0.2823,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.0,
-          "ari": 0.0
-        },
-        "n_clusters_10": {
-          "nmi": 0.0,
-          "ari": 0.0
-        },
-        "n_clusters_15": {
-          "nmi": 0.0,
-          "ari": 0.0
-        },
-        "n_clusters_20": {
-          "nmi": 0.0,
-          "ari": 0.0
-        },
-        "n_clusters_30": {
-          "nmi": 0.0,
-          "ari": 0.0
-        },
-        "n_clusters_50": {
-          "nmi": 0.0,
-          "ari": 0.0
-        }
-      },
-      "avg_nmi": 0.0,
-      "avg_ari": 0.0,
-      "status": "FAIL",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 0.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "FAIL",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.0,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "PASS",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 3,
-    "n_total": 5
-  },
-  "signal_headings_tfidf": {
-    "name": "signal_headings_tfidf",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 1.0,
-      "std_language_dominance": 0.0,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 0,
-      "language_artifact_only": 643,
-      "both_available": 0,
-      "neither_available": 356,
-      "legal_neighbor_rate": 0.0,
-      "language_neighbor_rate": 0.6436,
-      "jurist_would_succeed_rate": 0.0,
-      "jurist_forced_wrong_rate": 0.6436,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.38195306815151076,
-          "ari": 0.11741094324162688
-        },
-        "n_clusters_10": {
-          "nmi": 0.4450267435642877,
-          "ari": 0.12244232452458714
-        },
-        "n_clusters_15": {
-          "nmi": 0.4917496370476853,
-          "ari": 0.1765712453852151
-        },
-        "n_clusters_20": {
-          "nmi": 0.4964944491876702,
-          "ari": 0.1631647149506421
-        },
-        "n_clusters_30": {
-          "nmi": 0.5225154335926033,
-          "ari": 0.15301157408452046
-        },
-        "n_clusters_50": {
-          "nmi": 0.5581528979375121,
-          "ari": 0.13870585659058446
-        }
-      },
-      "avg_nmi": 0.4826487049135449,
-      "avg_ari": 0.14521777646286269,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 1.0,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "signal_norm_embeddings": {
-    "name": "signal_norm_embeddings",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.98003003003003,
-      "std_language_dominance": 0.06413433020941678,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 28,
-      "language_artifact_only": 437,
-      "both_available": 27,
-      "neither_available": 507,
-      "legal_neighbor_rate": 0.0551,
-      "language_neighbor_rate": 0.4645,
-      "jurist_would_succeed_rate": 0.0551,
-      "jurist_forced_wrong_rate": 0.4374,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.40367243456228097,
-          "ari": 0.10592624666069388
-        },
-        "n_clusters_10": {
-          "nmi": 0.4570471251348418,
-          "ari": 0.1530472392716885
-        },
-        "n_clusters_15": {
-          "nmi": 0.5164457545001325,
-          "ari": 0.2019612106552043
-        },
-        "n_clusters_20": {
-          "nmi": 0.5135550373915776,
-          "ari": 0.18312250596271346
-        },
-        "n_clusters_30": {
-          "nmi": 0.5524428488132578,
-          "ari": 0.20752358070100402
-        },
-        "n_clusters_50": {
-          "nmi": 0.5725131844722081,
-          "ari": 0.17420638590509122
-        }
-      },
-      "avg_nmi": 0.5026127308123831,
-      "avg_ari": 0.17096452819273258,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.965965965965966,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "signal_cited_decisions_tfidf": {
-    "name": "signal_cited_decisions_tfidf",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.8561561561561561,
-      "std_language_dominance": 0.25779079839159313,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 88,
-      "language_artifact_only": 438,
-      "both_available": 156,
-      "neither_available": 317,
-      "legal_neighbor_rate": 0.2442,
-      "language_neighbor_rate": 0.5946,
-      "jurist_would_succeed_rate": 0.2442,
-      "jurist_forced_wrong_rate": 0.4384,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.3400441781837504,
-          "ari": 0.0913406629151485
-        },
-        "n_clusters_10": {
-          "nmi": 0.3641441145637053,
-          "ari": 0.10466874482215738
-        },
-        "n_clusters_15": {
-          "nmi": 0.4251415651287505,
-          "ari": 0.11932954763306548
-        },
-        "n_clusters_20": {
-          "nmi": 0.4438810312861084,
-          "ari": 0.10716391766873964
-        },
-        "n_clusters_30": {
-          "nmi": 0.4655052910332411,
-          "ari": 0.12343861281430744
-        },
-        "n_clusters_50": {
-          "nmi": 0.4974437616571307,
-          "ari": 0.10436063274204331
-        }
-      },
-      "avg_nmi": 0.42269332364211437,
-      "avg_ari": 0.10838368643257697,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.7837837837837838,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "signal_erwaegungen+citations": {
-    "name": "signal_erwaegungen+citations",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.9328328328328328,
-      "std_language_dominance": 0.21202131053081028,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 43,
-      "language_artifact_only": 498,
-      "both_available": 47,
-      "neither_available": 411,
-      "legal_neighbor_rate": 0.0901,
-      "language_neighbor_rate": 0.5455,
-      "jurist_would_succeed_rate": 0.0901,
-      "jurist_forced_wrong_rate": 0.4985,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.3667946416886213,
-          "ari": 0.12395000067375016
-        },
-        "n_clusters_10": {
-          "nmi": 0.41456948858702036,
-          "ari": 0.11667652398602753
-        },
-        "n_clusters_15": {
-          "nmi": 0.47320898494712055,
-          "ari": 0.1553749540769154
-        },
-        "n_clusters_20": {
-          "nmi": 0.4954868875054186,
-          "ari": 0.16425122291744373
-        },
-        "n_clusters_30": {
-          "nmi": 0.5192880592506143,
-          "ari": 0.15157989973059252
-        },
-        "n_clusters_50": {
-          "nmi": 0.5520584703247621,
-          "ari": 0.1402851335460916
-        }
-      },
-      "avg_nmi": 0.4702344220505928,
-      "avg_ari": 0.14201962248847017,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.9049049049049049,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "signal_sachverhalt+erwaegungen": {
-    "name": "signal_sachverhalt+erwaegungen",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.9404404404404404,
-      "std_language_dominance": 0.16522259140600937,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 1,
-      "language_artifact_only": 423,
-      "both_available": 77,
-      "neither_available": 498,
-      "legal_neighbor_rate": 0.0781,
-      "language_neighbor_rate": 0.5005,
-      "jurist_would_succeed_rate": 0.0781,
-      "jurist_forced_wrong_rate": 0.4234,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.3698811621167742,
-          "ari": 0.1294821685911217
-        },
-        "n_clusters_10": {
-          "nmi": 0.44912153138960637,
-          "ari": 0.14157658513792906
-        },
-        "n_clusters_15": {
-          "nmi": 0.48051098319089014,
-          "ari": 0.14467661377091043
-        },
-        "n_clusters_20": {
-          "nmi": 0.524008209121034,
-          "ari": 0.17860208370659314
-        },
-        "n_clusters_30": {
-          "nmi": 0.5704059604904036,
-          "ari": 0.1923519607663142
-        },
-        "n_clusters_50": {
-          "nmi": 0.5985565972285267,
-          "ari": 0.1779131636336944
-        }
-      },
-      "avg_nmi": 0.4987474072562059,
-      "avg_ari": 0.16076709593442715,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.8838838838838838,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "signal_sachverhalt+norms": {
-    "name": "signal_sachverhalt+norms",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.9942442442442443,
-      "std_language_dominance": 0.041305090665913376,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 2,
-      "language_artifact_only": 458,
-      "both_available": 2,
-      "neither_available": 537,
-      "legal_neighbor_rate": 0.004,
-      "language_neighbor_rate": 0.4605,
-      "jurist_would_succeed_rate": 0.004,
-      "jurist_forced_wrong_rate": 0.4585,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.38138238937134555,
-          "ari": 0.10537118391209181
-        },
-        "n_clusters_10": {
-          "nmi": 0.4347908534358976,
-          "ari": 0.14010292649267994
-        },
-        "n_clusters_15": {
-          "nmi": 0.4897753880340168,
-          "ari": 0.16705548873127196
-        },
-        "n_clusters_20": {
-          "nmi": 0.51615982935872,
-          "ari": 0.1879533540731629
-        },
-        "n_clusters_30": {
-          "nmi": 0.5471995384740169,
-          "ari": 0.19054182888902507
-        },
-        "n_clusters_50": {
-          "nmi": 0.5939179266772953,
-          "ari": 0.18234243443499165
-        }
-      },
-      "avg_nmi": 0.4938709875585487,
-      "avg_ari": 0.16222786942220388,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.98998998998999,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "signal_erwaegungen+norms": {
-    "name": "signal_erwaegungen+norms",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.9976976976976978,
-      "std_language_dominance": 0.030669942126693998,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 0,
-      "language_artifact_only": 413,
-      "both_available": 3,
-      "neither_available": 583,
-      "legal_neighbor_rate": 0.003,
-      "language_neighbor_rate": 0.4164,
-      "jurist_would_succeed_rate": 0.003,
-      "jurist_forced_wrong_rate": 0.4134,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.39396544142531126,
-          "ari": 0.1322141205188459
-        },
-        "n_clusters_10": {
-          "nmi": 0.4339336994598946,
-          "ari": 0.12894434914984343
-        },
-        "n_clusters_15": {
-          "nmi": 0.5143982634471498,
-          "ari": 0.1902250361285335
-        },
-        "n_clusters_20": {
-          "nmi": 0.5188195302904005,
-          "ari": 0.1790059408951251
-        },
-        "n_clusters_30": {
-          "nmi": 0.549476744152482,
-          "ari": 0.18357560944305848
-        },
-        "n_clusters_50": {
-          "nmi": 0.5897467499297422,
-          "ari": 0.1882857227452658
-        }
-      },
-      "avg_nmi": 0.5000567381174967,
-      "avg_ari": 0.16704179648011205,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.995995995995996,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "signal_erwaegungen+doctrine": {
-    "name": "signal_erwaegungen+doctrine",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 1.0,
-      "std_language_dominance": 0.0,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 0,
-      "language_artifact_only": 564,
-      "both_available": 0,
-      "neither_available": 435,
-      "legal_neighbor_rate": 0.0,
-      "language_neighbor_rate": 0.5646,
-      "jurist_would_succeed_rate": 0.0,
-      "jurist_forced_wrong_rate": 0.5646,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.38682531616744237,
-          "ari": 0.13003542720489455
-        },
-        "n_clusters_10": {
-          "nmi": 0.4418407100675339,
-          "ari": 0.14437816961474628
-        },
-        "n_clusters_15": {
-          "nmi": 0.45768950190076885,
-          "ari": 0.1400068397540965
-        },
-        "n_clusters_20": {
-          "nmi": 0.5017930550288077,
-          "ari": 0.16170363791331568
-        },
-        "n_clusters_30": {
-          "nmi": 0.5301497214476527,
-          "ari": 0.15868786808879357
-        },
-        "n_clusters_50": {
-          "nmi": 0.590867669590458,
-          "ari": 0.18370150089712925
-        }
-      },
-      "avg_nmi": 0.48486099570044394,
-      "avg_ari": 0.15308557391216263,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 1.0,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "signal_legal_issues_outcomes": {
-    "name": "signal_legal_issues_outcomes",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 1.0,
-      "std_language_dominance": 0.0,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 0,
-      "language_artifact_only": 629,
-      "both_available": 0,
-      "neither_available": 370,
-      "legal_neighbor_rate": 0.0,
-      "language_neighbor_rate": 0.6296,
-      "jurist_would_succeed_rate": 0.0,
-      "jurist_forced_wrong_rate": 0.6296,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.3857187837747335,
-          "ari": 0.1223097440848406
-        },
-        "n_clusters_10": {
-          "nmi": 0.44895873444036416,
-          "ari": 0.1514309349287171
-        },
-        "n_clusters_15": {
-          "nmi": 0.4764275284571571,
-          "ari": 0.16589016250488586
-        },
-        "n_clusters_20": {
-          "nmi": 0.49299789894954965,
-          "ari": 0.1464814141078826
-        },
-        "n_clusters_30": {
-          "nmi": 0.530235178343351,
-          "ari": 0.15777600811832182
-        },
-        "n_clusters_50": {
-          "nmi": 0.5707649605419286,
-          "ari": 0.15331306759986324
-        }
-      },
-      "avg_nmi": 0.4841838474178473,
-      "avg_ari": 0.1495335552240852,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 1.0,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "signal_sachverhalt": {
-    "name": "signal_sachverhalt",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.8007007007007007,
-      "std_language_dominance": 0.2692805628541365,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "PASS",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 13,
-      "language_artifact_only": 422,
-      "both_available": 237,
-      "neither_available": 327,
-      "legal_neighbor_rate": 0.2503,
-      "language_neighbor_rate": 0.6597,
-      "jurist_would_succeed_rate": 0.2503,
-      "jurist_forced_wrong_rate": 0.4224,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.3458912317504175,
-          "ari": 0.09322497461275293
-        },
-        "n_clusters_10": {
-          "nmi": 0.40852346904312653,
-          "ari": 0.07029774007256345
-        },
-        "n_clusters_15": {
-          "nmi": 0.4584448816538603,
-          "ari": 0.07246752287467806
-        },
-        "n_clusters_20": {
-          "nmi": 0.4754603124567608,
-          "ari": 0.06850287527531479
-        },
-        "n_clusters_30": {
-          "nmi": 0.49748689658140277,
-          "ari": 0.05732627778121529
-        },
-        "n_clusters_50": {
-          "nmi": 0.4924126136406078,
-          "ari": 0.03834677149177286
-        }
-      },
-      "avg_nmi": 0.4463699008543627,
-      "avg_ari": 0.06669436035138289,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.6386386386386387,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 3,
-    "n_total": 5
-  },
-  "signal_erwaegungen": {
-    "name": "signal_erwaegungen",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.9033533533533534,
-      "std_language_dominance": 0.23819740609531584,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 40,
-      "language_artifact_only": 364,
-      "both_available": 77,
-      "neither_available": 518,
-      "legal_neighbor_rate": 0.1171,
-      "language_neighbor_rate": 0.4414,
-      "jurist_would_succeed_rate": 0.1171,
-      "jurist_forced_wrong_rate": 0.3644,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.3546203046253684,
-          "ari": 0.12283744500442643
-        },
-        "n_clusters_10": {
-          "nmi": 0.4345844422094913,
-          "ari": 0.13118899915922952
-        },
-        "n_clusters_15": {
-          "nmi": 0.4567897537582249,
-          "ari": 0.11658720228549509
-        },
-        "n_clusters_20": {
-          "nmi": 0.5146179447375117,
-          "ari": 0.16380292236722738
-        },
-        "n_clusters_30": {
-          "nmi": 0.5389076178750787,
-          "ari": 0.1457378918087397
-        },
-        "n_clusters_50": {
-          "nmi": 0.5666533639956205,
-          "ari": 0.13038947637903806
-        }
-      },
-      "avg_nmi": 0.47769557120021583,
-      "avg_ari": 0.13509065616735938,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.8448448448448449,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "signal_legal_area": {
-    "name": "signal_legal_area",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.9137137137137137,
-      "std_language_dominance": 0.19733490108267066,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 99,
-      "language_artifact_only": 420,
-      "both_available": 31,
-      "neither_available": 449,
-      "legal_neighbor_rate": 0.1301,
-      "language_neighbor_rate": 0.4515,
-      "jurist_would_succeed_rate": 0.1301,
-      "jurist_forced_wrong_rate": 0.4204,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.5132480249261121,
-          "ari": 0.15606152742282298
-        },
-        "n_clusters_10": {
-          "nmi": 0.61203473906857,
-          "ari": 0.18088007459389177
-        },
-        "n_clusters_15": {
-          "nmi": 0.7199502591244584,
-          "ari": 0.29273472832601516
-        },
-        "n_clusters_20": {
-          "nmi": 0.8425782934070947,
-          "ari": 0.6432692166768654
-        },
-        "n_clusters_30": {
-          "nmi": 0.885803705046978,
-          "ari": 0.696979818378409
-        },
-        "n_clusters_50": {
-          "nmi": 0.9534934420063089,
-          "ari": 0.9173352639260453
-        }
-      },
-      "avg_nmi": 0.7545180772632537,
-      "avg_ari": 0.4812101048873416,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.8518518518518519,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "signal_legal_issues": {
-    "name": "signal_legal_issues",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 1.0,
-      "std_language_dominance": 0.0,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 0,
-      "language_artifact_only": 529,
-      "both_available": 0,
-      "neither_available": 470,
-      "legal_neighbor_rate": 0.0,
-      "language_neighbor_rate": 0.5295,
-      "jurist_would_succeed_rate": 0.0,
-      "jurist_forced_wrong_rate": 0.5295,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.3859238385079623,
-          "ari": 0.12220462906735431
-        },
-        "n_clusters_10": {
-          "nmi": 0.44718448185471615,
-          "ari": 0.13781572920648608
-        },
-        "n_clusters_15": {
-          "nmi": 0.46724582459677066,
-          "ari": 0.13419064584399584
-        },
-        "n_clusters_20": {
-          "nmi": 0.5033506527863739,
-          "ari": 0.15263923986365519
-        },
-        "n_clusters_30": {
-          "nmi": 0.5546644904698399,
-          "ari": 0.16993302828444
-        },
-        "n_clusters_50": {
-          "nmi": 0.5941922619387832,
-          "ari": 0.16460001348733697
-        }
-      },
-      "avg_nmi": 0.49209359169240763,
-      "avg_ari": 0.14689721429221142,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 1.0,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "signal_outcome": {
-    "name": "signal_outcome",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.4462962962962963,
-      "std_language_dominance": 0.09576255407548066,
-      "max_language_dominance": 0.5,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "PASS",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "PASS",
-      "total_decisions": 999,
-      "legal_relevant_only": 52,
-      "language_artifact_only": 282,
-      "both_available": 665,
-      "neither_available": 0,
-      "legal_neighbor_rate": 0.7177,
-      "language_neighbor_rate": 0.9479,
-      "jurist_would_succeed_rate": 0.7177,
-      "jurist_forced_wrong_rate": 0.2823,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.0,
-          "ari": 0.0
-        },
-        "n_clusters_10": {
-          "nmi": 0.0,
-          "ari": 0.0
-        },
-        "n_clusters_15": {
-          "nmi": 0.0,
-          "ari": 0.0
-        },
-        "n_clusters_20": {
-          "nmi": 0.0,
-          "ari": 0.0
-        },
-        "n_clusters_30": {
-          "nmi": 0.0,
-          "ari": 0.0
-        },
-        "n_clusters_50": {
-          "nmi": 0.0,
-          "ari": 0.0
-        }
-      },
-      "avg_nmi": 0.0,
-      "avg_ari": 0.0,
-      "status": "FAIL",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 0.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "FAIL",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.0,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "PASS",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 3,
-    "n_total": 5
-  },
-  "signal_headings": {
-    "name": "signal_headings",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 1.0,
-      "std_language_dominance": 0.0,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 0,
-      "language_artifact_only": 643,
-      "both_available": 0,
-      "neither_available": 356,
-      "legal_neighbor_rate": 0.0,
-      "language_neighbor_rate": 0.6436,
-      "jurist_would_succeed_rate": 0.0,
-      "jurist_forced_wrong_rate": 0.6436,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.38195306815151076,
-          "ari": 0.11741094324162688
-        },
-        "n_clusters_10": {
-          "nmi": 0.4450267435642877,
-          "ari": 0.12244232452458714
-        },
-        "n_clusters_15": {
-          "nmi": 0.4917496370476853,
-          "ari": 0.1765712453852151
-        },
-        "n_clusters_20": {
-          "nmi": 0.4964944491876702,
-          "ari": 0.1631647149506421
-        },
-        "n_clusters_30": {
-          "nmi": 0.5225154335926033,
-          "ari": 0.15301157408452046
-        },
-        "n_clusters_50": {
-          "nmi": 0.5581528979375121,
-          "ari": 0.13870585659058446
-        }
-      },
-      "avg_nmi": 0.4826487049135449,
-      "avg_ari": 0.14521777646286269,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 1.0,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "signal_cited_decisions": {
-    "name": "signal_cited_decisions",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.8561561561561561,
-      "std_language_dominance": 0.25779079839159313,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 88,
-      "language_artifact_only": 438,
-      "both_available": 156,
-      "neither_available": 317,
-      "legal_neighbor_rate": 0.2442,
-      "language_neighbor_rate": 0.5946,
-      "jurist_would_succeed_rate": 0.2442,
-      "jurist_forced_wrong_rate": 0.4384,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.3400441781837504,
-          "ari": 0.0913406629151485
-        },
-        "n_clusters_10": {
-          "nmi": 0.3641441145637053,
-          "ari": 0.10466874482215738
-        },
-        "n_clusters_15": {
-          "nmi": 0.4251415651287505,
-          "ari": 0.11932954763306548
-        },
-        "n_clusters_20": {
-          "nmi": 0.4438810312861084,
-          "ari": 0.10716391766873964
-        },
-        "n_clusters_30": {
-          "nmi": 0.4655052910332411,
-          "ari": 0.12343861281430744
-        },
-        "n_clusters_50": {
-          "nmi": 0.4974437616571307,
-          "ari": 0.10436063274204331
-        }
-      },
-      "avg_nmi": 0.42269332364211437,
-      "avg_ari": 0.10838368643257697,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.7837837837837838,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "signal_norm_refs": {
-    "name": "signal_norm_refs",
-    "n_decisions": 999,
-    "embedding_dim": 128,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.98003003003003,
-      "std_language_dominance": 0.06413433020941678,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 28,
-      "language_artifact_only": 437,
-      "both_available": 27,
-      "neither_available": 507,
-      "legal_neighbor_rate": 0.0551,
-      "language_neighbor_rate": 0.4645,
-      "jurist_would_succeed_rate": 0.0551,
-      "jurist_forced_wrong_rate": 0.4374,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.40367243456228097,
-          "ari": 0.10592624666069388
-        },
-        "n_clusters_10": {
-          "nmi": 0.4570471251348418,
-          "ari": 0.1530472392716885
-        },
-        "n_clusters_15": {
-          "nmi": 0.5164457545001325,
-          "ari": 0.2019612106552043
-        },
-        "n_clusters_20": {
-          "nmi": 0.5135550373915776,
-          "ari": 0.18312250596271346
-        },
-        "n_clusters_30": {
-          "nmi": 0.5524428488132578,
-          "ari": 0.20752358070100402
-        },
-        "n_clusters_50": {
-          "nmi": 0.5725131844722081,
-          "ari": 0.17420638590509122
-        }
-      },
-      "avg_nmi": 0.5026127308123831,
-      "avg_ari": 0.17096452819273258,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.965965965965966,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "hybrid_erwaegungen_0.3": {
-    "name": "hybrid_erwaegungen_0.3",
-    "n_decisions": 999,
-    "embedding_dim": 768,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.8749749749749749,
-      "std_language_dominance": 0.20641458610216987,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 171,
-      "language_artifact_only": 226,
-      "both_available": 77,
-      "neither_available": 525,
-      "legal_neighbor_rate": 0.2482,
-      "language_neighbor_rate": 0.3033,
-      "jurist_would_succeed_rate": 0.2482,
-      "jurist_forced_wrong_rate": 0.2262,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.29745008562310105,
-          "ari": 0.0662774760677632
-        },
-        "n_clusters_10": {
-          "nmi": 0.4229589708135587,
-          "ari": 0.1273254109479499
-        },
-        "n_clusters_15": {
-          "nmi": 0.4969942507848547,
-          "ari": 0.1618437809812432
-        },
-        "n_clusters_20": {
-          "nmi": 0.5455175745301455,
-          "ari": 0.190382294060148
-        },
-        "n_clusters_30": {
-          "nmi": 0.5821846603427485,
-          "ari": 0.19646295493730603
-        },
-        "n_clusters_50": {
-          "nmi": 0.6059363068047522,
-          "ari": 0.16821390722419516
-        }
-      },
-      "avg_nmi": 0.49184030814986013,
-      "avg_ari": 0.15175097070310092,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.7827827827827828,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "hybrid_erwaegungen_0.5": {
-    "name": "hybrid_erwaegungen_0.5",
-    "n_decisions": 999,
-    "embedding_dim": 768,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.93998998998999,
-      "std_language_dominance": 0.17424195866684913,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 66,
-      "language_artifact_only": 244,
-      "both_available": 32,
-      "neither_available": 657,
-      "legal_neighbor_rate": 0.0981,
-      "language_neighbor_rate": 0.2763,
-      "jurist_would_succeed_rate": 0.0981,
-      "jurist_forced_wrong_rate": 0.2442,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.3603555233685944,
-          "ari": 0.11623373806898653
-        },
-        "n_clusters_10": {
-          "nmi": 0.46607198380498804,
-          "ari": 0.17183511239274255
-        },
-        "n_clusters_15": {
-          "nmi": 0.5275504773053246,
-          "ari": 0.19191404158876657
-        },
-        "n_clusters_20": {
-          "nmi": 0.563997388202254,
-          "ari": 0.2237561966012922
-        },
-        "n_clusters_30": {
-          "nmi": 0.6065880487884844,
-          "ari": 0.23042553901023394
-        },
-        "n_clusters_50": {
-          "nmi": 0.6300343276289039,
-          "ari": 0.18925186914914935
-        }
-      },
-      "avg_nmi": 0.5257662915164248,
-      "avg_ari": 0.18723608280186185,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.8888888888888888,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "hybrid_erwaegungen_0.7": {
-    "name": "hybrid_erwaegungen_0.7",
-    "n_decisions": 999,
-    "embedding_dim": 768,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.9372372372372372,
-      "std_language_dominance": 0.16894767856608045,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 67,
-      "language_artifact_only": 276,
-      "both_available": 37,
-      "neither_available": 619,
-      "legal_neighbor_rate": 0.1041,
-      "language_neighbor_rate": 0.3133,
-      "jurist_would_succeed_rate": 0.1041,
-      "jurist_forced_wrong_rate": 0.2763,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.35406726858703497,
-          "ari": 0.12336922020332451
-        },
-        "n_clusters_10": {
-          "nmi": 0.47482514964997935,
-          "ari": 0.20057499458511147
-        },
-        "n_clusters_15": {
-          "nmi": 0.5024712181967617,
-          "ari": 0.17411658922554865
-        },
-        "n_clusters_20": {
-          "nmi": 0.5401527990282452,
-          "ari": 0.1855287594429275
-        },
-        "n_clusters_30": {
-          "nmi": 0.5918232062409339,
-          "ari": 0.20809997575995054
-        },
-        "n_clusters_50": {
-          "nmi": 0.6229121732356551,
-          "ari": 0.20819490652918696
-        }
-      },
-      "avg_nmi": 0.5143753024897684,
-      "avg_ari": 0.1833140742910083,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.8728728728728729,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "hybrid_sachverhalt_0.3": {
-    "name": "hybrid_sachverhalt_0.3",
-    "n_decisions": 999,
-    "embedding_dim": 768,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.8536036036036037,
-      "std_language_dominance": 0.2021952272853244,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 212,
-      "language_artifact_only": 189,
-      "both_available": 110,
-      "neither_available": 488,
-      "legal_neighbor_rate": 0.3223,
-      "language_neighbor_rate": 0.2993,
-      "jurist_would_succeed_rate": 0.3223,
-      "jurist_forced_wrong_rate": 0.1892,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.2879446645613066,
-          "ari": 0.05907480922440698
-        },
-        "n_clusters_10": {
-          "nmi": 0.4097237108584116,
-          "ari": 0.1078752893824082
-        },
-        "n_clusters_15": {
-          "nmi": 0.4927881739662615,
-          "ari": 0.1587879535738817
-        },
-        "n_clusters_20": {
-          "nmi": 0.5217058151866788,
-          "ari": 0.1670777160188626
-        },
-        "n_clusters_30": {
-          "nmi": 0.5615525009000859,
-          "ari": 0.17487314234862705
-        },
-        "n_clusters_50": {
-          "nmi": 0.5996820918271746,
-          "ari": 0.17057790956349975
-        }
-      },
-      "avg_nmi": 0.47889949288331984,
-      "avg_ari": 0.13971113668528104,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.7067067067067067,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "hybrid_sachverhalt_0.5": {
-    "name": "hybrid_sachverhalt_0.5",
-    "n_decisions": 999,
-    "embedding_dim": 768,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.9370870870870872,
-      "std_language_dominance": 0.16301839902859205,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 78,
-      "language_artifact_only": 263,
-      "both_available": 48,
-      "neither_available": 610,
-      "legal_neighbor_rate": 0.1261,
-      "language_neighbor_rate": 0.3113,
-      "jurist_would_succeed_rate": 0.1261,
-      "jurist_forced_wrong_rate": 0.2633,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.3157209368590272,
-          "ari": 0.10683450370940713
-        },
-        "n_clusters_10": {
-          "nmi": 0.4266599703933737,
-          "ari": 0.1473256533662022
-        },
-        "n_clusters_15": {
-          "nmi": 0.5103616259979655,
-          "ari": 0.1801165013152134
-        },
-        "n_clusters_20": {
-          "nmi": 0.5538169934166927,
-          "ari": 0.20480147900662823
-        },
-        "n_clusters_30": {
-          "nmi": 0.6039831164004499,
-          "ari": 0.21678053894998262
-        },
-        "n_clusters_50": {
-          "nmi": 0.6181107214571654,
-          "ari": 0.1780200725225247
-        }
-      },
-      "avg_nmi": 0.5047755607541123,
-      "avg_ari": 0.17231312481165972,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.8858858858858859,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "hybrid_sachverhalt_0.7": {
-    "name": "hybrid_sachverhalt_0.7",
-    "n_decisions": 999,
-    "embedding_dim": 768,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.9362862862862862,
-      "std_language_dominance": 0.17095715390293767,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 67,
-      "language_artifact_only": 317,
-      "both_available": 54,
-      "neither_available": 561,
-      "legal_neighbor_rate": 0.1211,
-      "language_neighbor_rate": 0.3714,
-      "jurist_would_succeed_rate": 0.1211,
-      "jurist_forced_wrong_rate": 0.3173,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.31440403427783215,
-          "ari": 0.10025543712533513
-        },
-        "n_clusters_10": {
-          "nmi": 0.42308992408753116,
-          "ari": 0.13220941171839337
-        },
-        "n_clusters_15": {
-          "nmi": 0.5028137628631882,
-          "ari": 0.1827581236360786
-        },
-        "n_clusters_20": {
-          "nmi": 0.5523333877984334,
-          "ari": 0.19740497502492926
-        },
-        "n_clusters_30": {
-          "nmi": 0.6123590990814475,
-          "ari": 0.24947143762057308
-        },
-        "n_clusters_50": {
-          "nmi": 0.6268283906909643,
-          "ari": 0.21032407983413384
-        }
-      },
-      "avg_nmi": 0.5053047664665661,
-      "avg_ari": 0.17873724415990722,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.8788788788788788,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "hybrid_norm_refs_0.3": {
-    "name": "hybrid_norm_refs_0.3",
-    "n_decisions": 999,
-    "embedding_dim": 768,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.833983983983984,
-      "std_language_dominance": 0.20412106494160917,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "PASS",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 279,
-      "language_artifact_only": 167,
-      "both_available": 113,
-      "neither_available": 440,
-      "legal_neighbor_rate": 0.3924,
-      "language_neighbor_rate": 0.2803,
-      "jurist_would_succeed_rate": 0.3924,
-      "jurist_forced_wrong_rate": 0.1672,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.2991867072107563,
-          "ari": 0.0653351562855463
-        },
-        "n_clusters_10": {
-          "nmi": 0.4217296499861087,
-          "ari": 0.10884088105541209
-        },
-        "n_clusters_15": {
-          "nmi": 0.4978943120203462,
-          "ari": 0.15996988586995498
-        },
-        "n_clusters_20": {
-          "nmi": 0.5120726377863819,
-          "ari": 0.1617689136216032
-        },
-        "n_clusters_30": {
-          "nmi": 0.5509707805993616,
-          "ari": 0.17197605282823109
-        },
-        "n_clusters_50": {
-          "nmi": 0.5984554421965729,
-          "ari": 0.16576659234401125
-        }
-      },
-      "avg_nmi": 0.48005158829992123,
-      "avg_ari": 0.1389429136674598,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.6486486486486487,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 3,
-    "n_total": 5
-  },
-  "hybrid_norm_refs_0.5": {
-    "name": "hybrid_norm_refs_0.5",
-    "n_decisions": 999,
-    "embedding_dim": 768,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.966866866866867,
-      "std_language_dominance": 0.07495940371627027,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 57,
-      "language_artifact_only": 306,
-      "both_available": 41,
-      "neither_available": 595,
-      "legal_neighbor_rate": 0.0981,
-      "language_neighbor_rate": 0.3473,
-      "jurist_would_succeed_rate": 0.0981,
-      "jurist_forced_wrong_rate": 0.3063,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.39372387626006217,
-          "ari": 0.10398897954802917
-        },
-        "n_clusters_10": {
-          "nmi": 0.4735054515200138,
-          "ari": 0.1553047801317645
-        },
-        "n_clusters_15": {
-          "nmi": 0.5513357748912854,
-          "ari": 0.19864817497544657
-        },
-        "n_clusters_20": {
-          "nmi": 0.5916244306577585,
-          "ari": 0.22657506051242657
-        },
-        "n_clusters_30": {
-          "nmi": 0.5996385714678976,
-          "ari": 0.2149363034685418
-        },
-        "n_clusters_50": {
-          "nmi": 0.6292993414136513,
-          "ari": 0.2060345107670339
-        }
-      },
-      "avg_nmi": 0.5398545743684448,
-      "avg_ari": 0.18424796823387377,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.9419419419419419,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "hybrid_norm_refs_0.7": {
-    "name": "hybrid_norm_refs_0.7",
-    "n_decisions": 999,
-    "embedding_dim": 768,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.9771771771771772,
-      "std_language_dominance": 0.07127214995353119,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 30,
-      "language_artifact_only": 389,
-      "both_available": 33,
-      "neither_available": 547,
-      "legal_neighbor_rate": 0.0631,
-      "language_neighbor_rate": 0.4224,
-      "jurist_would_succeed_rate": 0.0631,
-      "jurist_forced_wrong_rate": 0.3894,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.401732997310296,
-          "ari": 0.1060051245086967
-        },
-        "n_clusters_10": {
-          "nmi": 0.4884065495850171,
-          "ari": 0.16801070422771686
-        },
-        "n_clusters_15": {
-          "nmi": 0.512779455142167,
-          "ari": 0.1817348140027209
-        },
-        "n_clusters_20": {
-          "nmi": 0.5234703295152275,
-          "ari": 0.1828368859820041
-        },
-        "n_clusters_30": {
-          "nmi": 0.5722233482263832,
-          "ari": 0.21016984649086098
-        },
-        "n_clusters_50": {
-          "nmi": 0.5890662812143395,
-          "ari": 0.17054360012500153
-        }
-      },
-      "avg_nmi": 0.5146131601655718,
-      "avg_ari": 0.16988349588950016,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.95995995995996,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "hybrid_legal_area_0.3": {
-    "name": "hybrid_legal_area_0.3",
-    "n_decisions": 999,
-    "embedding_dim": 768,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.8431431431431431,
-      "std_language_dominance": 0.21373163486548455,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "PASS",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 237,
-      "language_artifact_only": 146,
-      "both_available": 82,
-      "neither_available": 534,
-      "legal_neighbor_rate": 0.3193,
-      "language_neighbor_rate": 0.2282,
-      "jurist_would_succeed_rate": 0.3193,
-      "jurist_forced_wrong_rate": 0.1461,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.3118652322332588,
-          "ari": 0.06548578383356442
-        },
-        "n_clusters_10": {
-          "nmi": 0.45437848324450947,
-          "ari": 0.1255195330753719
-        },
-        "n_clusters_15": {
-          "nmi": 0.5146266978354712,
-          "ari": 0.18814557175492153
-        },
-        "n_clusters_20": {
-          "nmi": 0.5803204866062681,
-          "ari": 0.22022524885624598
-        },
-        "n_clusters_30": {
-          "nmi": 0.6125196312595776,
-          "ari": 0.23347594818346454
-        },
-        "n_clusters_50": {
-          "nmi": 0.667093091034605,
-          "ari": 0.2524990127244328
-        }
-      },
-      "avg_nmi": 0.5234672703689484,
-      "avg_ari": 0.18089184973800018,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.6926926926926927,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 3,
-    "n_total": 5
-  },
-  "hybrid_legal_area_0.5": {
-    "name": "hybrid_legal_area_0.5",
-    "n_decisions": 999,
-    "embedding_dim": 768,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.9126626626626627,
-      "std_language_dominance": 0.18779665838938547,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 110,
-      "language_artifact_only": 217,
-      "both_available": 39,
-      "neither_available": 633,
-      "legal_neighbor_rate": 0.1491,
-      "language_neighbor_rate": 0.2563,
-      "jurist_would_succeed_rate": 0.1491,
-      "jurist_forced_wrong_rate": 0.2172,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.4873419123663748,
-          "ari": 0.17619589683895284
-        },
-        "n_clusters_10": {
-          "nmi": 0.667064798956089,
-          "ari": 0.4046362449486684
-        },
-        "n_clusters_15": {
-          "nmi": 0.7500192122557092,
-          "ari": 0.4270391905462971
-        },
-        "n_clusters_20": {
-          "nmi": 0.8428162615894846,
-          "ari": 0.7107469769338293
-        },
-        "n_clusters_30": {
-          "nmi": 0.8802431653083126,
-          "ari": 0.707889791301667
-        },
-        "n_clusters_50": {
-          "nmi": 0.8981173402046353,
-          "ari": 0.6060015732723465
-        }
-      },
-      "avg_nmi": 0.7542671151134342,
-      "avg_ari": 0.5054182789736269,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.8378378378378378,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "hybrid_legal_area_0.7": {
-    "name": "hybrid_legal_area_0.7",
-    "n_decisions": 999,
-    "embedding_dim": 768,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.9179679679679679,
-      "std_language_dominance": 0.17928222748523356,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 70,
-      "language_artifact_only": 265,
-      "both_available": 49,
-      "neither_available": 615,
-      "legal_neighbor_rate": 0.1191,
-      "language_neighbor_rate": 0.3143,
-      "jurist_would_succeed_rate": 0.1191,
-      "jurist_forced_wrong_rate": 0.2653,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.5366616331772959,
-          "ari": 0.18511211269739017
-        },
-        "n_clusters_10": {
-          "nmi": 0.702319939376351,
-          "ari": 0.34768627498796795
-        },
-        "n_clusters_15": {
-          "nmi": 0.7924688302301908,
-          "ari": 0.5291093345912397
-        },
-        "n_clusters_20": {
-          "nmi": 0.853671772144902,
-          "ari": 0.6962351542144012
-        },
-        "n_clusters_30": {
-          "nmi": 0.9157836161594678,
-          "ari": 0.8743629352254989
-        },
-        "n_clusters_50": {
-          "nmi": 0.9469337610843396,
-          "ari": 0.8122322596089877
-        }
-      },
-      "avg_nmi": 0.7913065920287577,
-      "avg_ari": 0.5741230118875809,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.8618618618618619,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "hybrid_cited_decisions_0.3": {
-    "name": "hybrid_cited_decisions_0.3",
-    "n_decisions": 999,
-    "embedding_dim": 768,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.7989489489489491,
-      "std_language_dominance": 0.22303843287410205,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "PASS",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 323,
-      "language_artifact_only": 144,
-      "both_available": 132,
-      "neither_available": 400,
-      "legal_neighbor_rate": 0.4555,
-      "language_neighbor_rate": 0.2763,
-      "jurist_would_succeed_rate": 0.4555,
-      "jurist_forced_wrong_rate": 0.1441,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.2918420488729053,
-          "ari": 0.06201192305503633
-        },
-        "n_clusters_10": {
-          "nmi": 0.4212833251812048,
-          "ari": 0.12210006059819195
-        },
-        "n_clusters_15": {
-          "nmi": 0.491291809504582,
-          "ari": 0.15090969184942157
-        },
-        "n_clusters_20": {
-          "nmi": 0.5198564003086765,
-          "ari": 0.1629330319764725
-        },
-        "n_clusters_30": {
-          "nmi": 0.5462964959619424,
-          "ari": 0.16042904015028744
-        },
-        "n_clusters_50": {
-          "nmi": 0.5902978544880925,
-          "ari": 0.15878076386759749
-        }
-      },
-      "avg_nmi": 0.47681132238623386,
-      "avg_ari": 0.1361940852495012,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.5705705705705706,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 3,
-    "n_total": 5
-  },
-  "hybrid_cited_decisions_0.5": {
-    "name": "hybrid_cited_decisions_0.5",
-    "n_decisions": 999,
-    "embedding_dim": 768,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.8758758758758759,
-      "std_language_dominance": 0.1970467864357429,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 196,
-      "language_artifact_only": 208,
-      "both_available": 112,
-      "neither_available": 483,
-      "legal_neighbor_rate": 0.3083,
-      "language_neighbor_rate": 0.3203,
-      "jurist_would_succeed_rate": 0.3083,
-      "jurist_forced_wrong_rate": 0.2082,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.33324670885673296,
-          "ari": 0.1025992132532921
-        },
-        "n_clusters_10": {
-          "nmi": 0.43343439345991347,
-          "ari": 0.13042956988648277
-        },
-        "n_clusters_15": {
-          "nmi": 0.5174998492850146,
-          "ari": 0.1714898481116338
-        },
-        "n_clusters_20": {
-          "nmi": 0.5362151405049952,
-          "ari": 0.1772016312137061
-        },
-        "n_clusters_30": {
-          "nmi": 0.5747315167336287,
-          "ari": 0.19362970952524147
-        },
-        "n_clusters_50": {
-          "nmi": 0.5886764650117859,
-          "ari": 0.16510291695215681
-        }
-      },
-      "avg_nmi": 0.49730067897534513,
-      "avg_ari": 0.1567421481570855,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.7797797797797797,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "hybrid_cited_decisions_0.7": {
-    "name": "hybrid_cited_decisions_0.7",
-    "n_decisions": 999,
-    "embedding_dim": 768,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.8899399399399399,
-      "std_language_dominance": 0.19503701144200458,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "FAIL",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "FAIL",
-      "total_decisions": 999,
-      "legal_relevant_only": 98,
-      "language_artifact_only": 369,
-      "both_available": 169,
-      "neither_available": 363,
-      "legal_neighbor_rate": 0.2673,
-      "language_neighbor_rate": 0.5385,
-      "jurist_would_succeed_rate": 0.2673,
-      "jurist_forced_wrong_rate": 0.3694,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.33009155851569405,
-          "ari": 0.09372228630226306
-        },
-        "n_clusters_10": {
-          "nmi": 0.4325426629927609,
-          "ari": 0.14012150473623428
-        },
-        "n_clusters_15": {
-          "nmi": 0.4496337145607042,
-          "ari": 0.1640382283194053
-        },
-        "n_clusters_20": {
-          "nmi": 0.4849379998215051,
-          "ari": 0.16494873079093872
-        },
-        "n_clusters_30": {
-          "nmi": 0.5190887220406469,
-          "ari": 0.17068381072176828
-        },
-        "n_clusters_50": {
-          "nmi": 0.55348345533287,
-          "ari": 0.1554477682416156
-        }
-      },
-      "avg_nmi": 0.4616296855440302,
-      "avg_ari": 0.1481603881853709,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.7957957957957958,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 2,
-    "n_total": 5
-  },
-  "baseline_center_projected": {
-    "name": "baseline_center_projected",
-    "n_decisions": 999,
-    "embedding_dim": 768,
-    "adversarial_language_dominance": {
-      "mean_language_dominance": 0.763163163163163,
-      "std_language_dominance": 0.23627363296406656,
-      "max_language_dominance": 1.0,
-      "k": 20,
-      "threshold": 0.85,
-      "status": "PASS",
-      "note": "Lower is better - language should not dominate neighbors"
-    },
-    "jurist_pairwise_preference": {
-      "status": "PASS",
-      "total_decisions": 999,
-      "legal_relevant_only": 394,
-      "language_artifact_only": 149,
-      "both_available": 133,
-      "neither_available": 323,
-      "legal_neighbor_rate": 0.5275,
-      "language_neighbor_rate": 0.2823,
-      "jurist_would_succeed_rate": 0.5275,
-      "jurist_forced_wrong_rate": 0.1491,
-      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
-    },
-    "jurivoc_hierarchy_alignment": {
-      "per_resolution": {
-        "n_clusters_5": {
-          "nmi": 0.2812482247297886,
-          "ari": 0.05569024750814298
-        },
-        "n_clusters_10": {
-          "nmi": 0.4193647080136896,
-          "ari": 0.12086244209025158
-        },
-        "n_clusters_15": {
-          "nmi": 0.48050782881045667,
-          "ari": 0.15112050031929872
-        },
-        "n_clusters_20": {
-          "nmi": 0.5050046623183281,
-          "ari": 0.14926757676651434
-        },
-        "n_clusters_30": {
-          "nmi": 0.5393434434731021,
-          "ari": 0.15582007369953008
-        },
-        "n_clusters_50": {
-          "nmi": 0.568922808684957,
-          "ari": 0.1353198217804951
-        }
-      },
-      "avg_nmi": 0.46573194600505374,
-      "avg_ari": 0.1280134436940388,
-      "status": "PASS",
-      "note": "NMI with legal_area (proxy for Jurivoc). Higher = better alignment with human legal taxonomy."
-    },
-    "scale_stability_frozen_pca": {
-      "mean_cosine_similarity": 1.0,
-      "std_cosine_similarity": 0.0,
-      "subsample_frac": 0.8,
-      "n_trials": 10,
-      "pca_dims": 64,
-      "status": "PASS",
-      "note": "Frozen PCA projection consistency under subsampling. Higher = more stable."
-    },
-    "boilerplate_resistance": {
-      "boilerplate_dominated_rate": 0.5035035035035035,
-      "k": 20,
-      "threshold": 0.3,
-      "status": "FAIL",
-      "note": "Fraction of decisions with >80% same-language neighbors. Lower = less boilerplate-driven."
-    },
-    "all_benchmarks_pass": false,
-    "n_passed": 4,
-    "n_total": 5
+      "cross_language_retrieval": {
+        "status": "PASS",
+        "mean_cross_language_recall_at_k": 0.2269,
+        "k": 10,
+        "n_queries": 1199,
+        "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+      }
+    },
+    "verdict": "PASS",
+    "both_adversarial_pass": true
   }
 }
