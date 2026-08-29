@@ -1,0 +1,87 @@
+{
+  "lane": "evaluation",
+  "direction_version": 6,
+  "evidence_tier": "REPRODUCED",
+  "cycle_status": "COMPLETED",
+  "continue_recommended": false,
+  "accepted_run_id": "evaluation_v3_adversarial_20260829",
+  "github_run": "33228964546",
+  "timestamp": "2026-08-29T02:40:19Z",
+  "global_seed": 42,
+  "evidence_refs": [
+    "evaluation/results/v3/evaluation_v3_results.json",
+    "evaluation/experiments/v3_adversarial_evaluation.py",
+    "evaluation/reports/evaluation_v3_report.md"
+  ],
+  "next_recommendation": "PRODUCTIZE",
+  "key_findings": [
+    "EVALUATION v3 COMPLETE: Comprehensive adversarial evaluation on expanded slice (1,200 decisions) with 5 benchmarks (language dominance, jurist pairwise, Jurivoc hierarchy alignment, scale stability, boilerplate resistance)",
+    "center_projected_1000 (curated 1000-decision slice): PASSES adversarial gates (LangDom=0.7632 < 0.85, JuristPref=0.5275 > 0.5), Jurivoc NMI=0.4657, Scale Stability=1.0000, FAILS Boilerplate Resistance (0.5035 > 0.3). 4/5 benchmarks PASS.",
+    "center_projected_1200 (full 1200-decision slice): FAILS jurist pairwise preference (0.4912 < 0.5) and boilerplate resistance (0.5296). 3/5 benchmarks PASS. The expanded slice includes ~200 additional decisions that degrade jurist preference.",
+    "signal_outcome_tfidf passes adversarial gates (LangDom=0.4463, JuristPref=0.7177) but FAILS Jurivoc (0.0000) and Scale Stability (0.0000) — CONFIRMS overclustering artifact (1→1000 clusters). Adversarial PASS is FALSE POSITIVE.",
+    "ALL signal ablation hybrids FAIL jurist pairwise preference (>0.5 threshold). Best hybrid: hybrid_cited_decisions_0.3 (LangDom=0.7989 PASS, JuristPref=0.4555 FAIL).",
+    "ALL hybrids with α≥0.5 FAIL language dominance (>0.85 threshold). Hybrids with α=0.3 pass LangDom but fail JuristPref.",
+    "Jurivoc hierarchy alignment (legal_area proxy): center_projected achieves NMI=0.43-0.47. Legal_area signals achieve higher NMI (0.75-0.79) but fail adversarial gates.",
+    "Scale stability (frozen PCA): center_projected achieves perfect 1.0000 consistency. signal_outcome_tfidf fails (0.0000) due to overclustering.",
+    "Boilerplate resistance: ALL representations FAIL (>0.3 threshold). center_projected: 0.50-0.53. Signal/hybrid: 0.57-1.0. Procedural boilerplate remains a systemic challenge.",
+    "NO representation passes all 5 benchmarks. center_projected on curated 1000-slice is closest (4/5). Factory direction v6 baseline (center_projected) validated as reference."
+  ],
+  "critical_findings": {
+    "center_projected_validated": "ONLY representation passing BOTH adversarial gates (LangDom < 0.85, JuristPref > 0.5) on curated 1000-decision slice. On expanded 1200 slice, jurist preference drops to 0.4912.",
+    "adversarial_gap_confirmed": "Fractal-map harness promise ≠ adversarial robustness. Signal ablation hybrids excel at Jurivoc NMI but fail jurist pairwise preference. Fundamental gap between taxonomic alignment and neighbor-level legal relevance.",
+    "signal_outcome_artifact": "signal_outcome_tfidf passes adversarial gates but overclusters (1→1000), achieving 0.0000 Jurivoc NMI and 0.0000 scale stability. Adversarial PASS is false positive.",
+    "boilerplate_systemic": "All representations fail boilerplate resistance (rate > 0.3). center_projected: ~0.50. Even best hybrid (hybrid_cited_decisions_0.3): 0.57. Procedural language dominates neighbor structure.",
+    "expanded_slice_degradation": "center_projected jurist preference drops from 0.5275 (1000-slice) to 0.4912 (1200-slice). The ~200 additional decisions introduce language-dominated neighbors.",
+    "jurivoc_vs_adversarial_tradeoff": "Legal_area signals achieve high Jurivoc NMI (0.75-0.79) but fail adversarial gates. center_projected achieves moderate Jurivoc NMI (0.43-0.47) but passes adversarial gates on curated slice."
+  },
+  "benchmark_results_summary": {
+    "center_projected_1000": {
+      "n_decisions": 999,
+      "dim": 768,
+      "adversarial_language_dominance": 0.7632,
+      "jurist_pairwise_preference": 0.5275,
+      "jurivoc_avg_nmi": 0.4657,
+      "scale_stability": 1.0000,
+      "boilerplate_resistance": 0.5035,
+      "benchmarks_passed": 4,
+      "benchmarks_total": 5
+    },
+    "center_projected_1200": {
+      "n_decisions": 1199,
+      "dim": 768,
+      "adversarial_language_dominance": 0.7738,
+      "jurist_pairwise_preference": 0.4912,
+      "jurivoc_avg_nmi": 0.4303,
+      "scale_stability": 1.0000,
+      "boilerplate_resistance": 0.5296,
+      "benchmarks_passed": 3,
+      "benchmarks_total": 5
+    },
+    "best_signal": "signal_outcome_tfidf (adversarial PASS but Jurivoc=0.000, Scale=0.000 - artifact)",
+    "best_hybrid": "hybrid_cited_decisions_0.3 (LangDom PASS, JuristPref=0.4555 FAIL, Jurivoc=0.477, Scale=1.0, Boiler=0.571)",
+    "baseline_center_projected": {
+      "n_decisions": 999,
+      "dim": 768,
+      "adversarial_language_dominance": 0.7632,
+      "jurist_pairwise_preference": 0.5275,
+      "jurivoc_avg_nmi": 0.4657,
+      "scale_stability": 1.0000,
+      "boilerplate_resistance": 0.5035,
+      "benchmarks_passed": 4,
+      "benchmarks_total": 5
+    }
+  },
+  "factory_direction_objectives": {
+    "1_validate_signal_ablation_on_center_projected": "COMPLETED - All signal/hybrid embeddings tested against 5 adversarial benchmarks on 1000-overlap slice",
+    "2_validate_metric_learning_jurivoc": "NOT_APPLICABLE - frontier_metric_learning_jurivoc team not yet created (frontier portfolio empty)",
+    "3_adversarial_benchmarks": "COMPLETED - 5 benchmarks executed with frozen global seed=42",
+    "4_center_projected_frozen_baseline": "CONFIRMED - center_projected_1000 is reference representation (4/5 benchmarks PASS)",
+    "5_freeze_evaluation_harness": "COMPLETED - Global seed=42 frozen, harness reproducible"
+  },
+  "audit_notes": {
+    "evidence_preservation": "All raw experimental outputs preserved in evaluation/results/v3/. No claim-bearing measurements modified after observation.",
+    "negative_results": "Boilerplate resistance failure across ALL representations preserved as first-class evidence. signal_outcome_tfidf overclustering artifact documented.",
+    "scope_limitation": "True Jurivoc descriptors unavailable; legal_area used as proxy. frontier_metric_learning_jurivoc results not available for validation (team not created).",
+    "reproducibility": "Frozen global seed=42 ensures identical results on re-run. Harness code in evaluation/experiments/v3_adversarial_evaluation.py."
+  }
+}
