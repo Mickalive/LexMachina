@@ -1,9 +1,9 @@
 {
   "lane": "evaluation",
-  "direction_version": 6,
+  "direction_version": 8,
   "evidence_tier": "ACCEPTED",
-  "cycle_status": "COMPLETED",
-  "continue_recommended": false,
+  "cycle_status": "RUN",
+  "continue_recommended": true,
   "accepted_run_id": "evaluation_v3_frozen_harness_33232234741",
   "github_run": "33240972425",
   "timestamp": "2026-08-29T17:27:26.636816+00:00",
@@ -40,7 +40,8 @@
     "Boilerplate resistance NEGATIVE for ALL representations (resistance_score -0.74 to -0.92) \u2014 systematic limitation. Real boilerplate signals show 100% boilerplate-dominated neighbors.",
     "Signal ablation CONFIRMED: All v4/v5 signal ablation hybrids FAIL adversarial gates. Only metric learning, stabilized hybrids, and cited_decisions_tfidf produce valid representations.",
     "All 6 cited_decisions_tfidf + center_projected hybrids PASS both adversarial gates.",
-    "11 of 13 representations BEAT reference on jurist pairwise preference."
+    "11 of 13 representations BEAT reference on jurist pairwise preference.",
+    "EVALUATION v8 STARTED: New cycle per factory direction v8 \u2014 (1) Citation role modeling evaluation (alpha-blended embeddings from legal-distance v6), (2) Legal embeddings fine-tuning evaluation (multilingual-e5-small pretrained baseline), (3) Deeper boilerplate resistance investigation (section-aware, metric learning comparison), (4) Full corpus scale evaluation framework preparation, (5) User corpus import evaluation."
   ],
   "validation_metrics": {
     "center_projected_768": {
@@ -348,7 +349,7 @@
       "All 6 cited_decisions_tfidf + center_projected hybrids: PASS both gates"
     ]
   },
-  "next_recommendation": "PRODUCTIZE",
+  "next_recommendation": "CONTINUE",
   "metrics_summary": {
     "best_overall": "cited_decisions_tfidf",
     "best_jurist_preference": "cited_decisions_tfidf (0.6922)",
@@ -364,31 +365,34 @@
   },
   "external_dependencies": {
     "center_projected_768dim": {
-      "path": "/tmp/lex_accepted/legal-distance/legal_distance/results/v5/center_projected_full/embeddings_center_projected.npy",
+      "path": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v5/center_projected_full/embeddings_center_projected.npy",
       "description": "768-dim center-projected embeddings (full dimensionality) from legal-distance v5",
       "source_lane": "legal-distance",
-      "source_run": "v5_center_projected_full"
+      "source_run": "v5_center_projected_full",
+      "config_reference": "evaluation/config/evaluation_v3_config.json paths.center_projected_768"
     },
     "center_projected_64dim": {
-      "path": "/tmp/lex_accepted/legal-distance/legal_distance/results/v5/center_projected_full/embeddings_center_projected_64.npy",
+      "path": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v5/center_projected_full/embeddings_center_projected_64.npy",
       "description": "64-dim frozen PCA of center-projected embeddings (production default)",
       "source_lane": "legal-distance",
-      "source_run": "v5_center_projected_full"
+      "source_run": "v5_center_projected_full",
+      "config_reference": "evaluation/config/evaluation_v3_config.json paths.center_projected_64"
     },
     "center_projected_128dim": {
-      "path": "/tmp/lex_accepted/legal-distance/legal_distance/results/v5/center_projected_full/embeddings_center_projected_128.npy",
+      "path": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v5/center_projected_full/embeddings_center_projected_128.npy",
       "description": "128-dim PCA of center-projected embeddings",
       "source_lane": "legal-distance",
       "source_run": "v5_center_projected_full"
     },
     "metric_learning_embeddings": {
-      "linear_metric_epoch4": "/tmp/lex_accepted/legal-distance/legal_distance/results/v6/metric_learning/best_linear_embeddings.npy",
-      "mahalanobis_metric_epoch4": "/tmp/lex_accepted/legal-distance/legal_distance/results/v6/metric_learning/best_mahalanobis_embeddings.npy",
-      "hybrid_stabilized_epoch1": "/tmp/lex_accepted/legal-distance/legal_distance/results/v6/hybrid_objective_stabilized/best_embeddings.npy",
-      "hybrid_v2_epoch3": "/tmp/lex_accepted/legal-distance/legal_distance/results/v6/hybrid_objective_v2/best_embeddings.npy",
+      "linear_metric_epoch4": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v6/metric_learning/best_linear_embeddings.npy",
+      "mahalanobis_metric_epoch4": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v6/metric_learning/best_mahalanobis_embeddings.npy",
+      "hybrid_stabilized_epoch1": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v6/hybrid_objective_stabilized/best_embeddings.npy",
+      "hybrid_v2_epoch3": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v6/hybrid_objective_v2/best_embeddings.npy",
       "description": "Supervised metric learning embeddings from legal-distance v6 (require external reference embeddings for independent reproduction)",
       "source_lane": "legal-distance",
-      "source_run": "v6_metric_learning"
+      "source_run": "v6_metric_learning",
+      "config_reference": "evaluation/config/evaluation_v3_config.json paths.linear_metric_epoch4, mahalanobis_metric_epoch4, hybrid_stabilized_epoch1, hybrid_v2_epoch3"
     },
     "cited_decisions_tfidf_parameters": {
       "note": "TF-IDF/SVD construction parameters for cited_decisions_tfidf representation",
@@ -402,6 +406,13 @@
       "n_components": 128,
       "frozen_in_config_hash": false,
       "recommendation": "Consider freezing these parameters in future harness config_hash for cited_decisions_tfidf reproducibility"
+    },
+    "regeneration_pathway": {
+      "documented_in": "evaluation/config/evaluation_v3_config.json regeneration_instructions",
+      "metadata": "python evaluation/create_expanded_slice.py --output evaluation/data/bger_expanded_1200_metadata.jsonl --size 1200",
+      "center_projected": "python legal_distance/run_v5_center_projected.py --slice-size 1200 --output-dir legal_distance/results/v5/center_projected_full",
+      "metric_learning": "python legal_distance/run_metric_learning.py --base-embeddings legal_distance/results/v5/center_projected_full/embeddings_center_projected.npy --output-dir legal_distance/results/v6/metric_learning",
+      "hybrid_objectives": "python legal_distance/run_hybrid_objectives.py --base-embeddings legal_distance/results/v5/center_projected_full/embeddings_center_projected.npy --output-dir legal_distance/results/v6"
     }
   }
 }
