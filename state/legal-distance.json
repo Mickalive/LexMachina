@@ -1,10 +1,10 @@
 {
   "lane": "legal-distance",
-  "direction_version": 6,
+  "direction_version": 7,
   "evidence_tier": "ACCEPTED",
-  "cycle_status": "COMPLETED",
-  "continue_recommended": false,
-  "accepted_run_id": "final_comprehensive_20260829",
+  "cycle_status": "IN_PROGRESS",
+  "continue_recommended": true,
+  "accepted_run_id": "v7_20260829",
   "evidence_refs": [
     "legal_distance/results/v6/validation_breakthrough/validation_results.json",
     "legal_distance/results/v6/metric_learning/metric_learning_results.json",
@@ -14,30 +14,20 @@
     "legal_distance/results/v6_comprehensive_evaluation/comprehensive_evaluation_results.json",
     "legal_distance/results/v6/metric_learning_fractal_quality.json",
     "legal_distance/results/v6/out_of_sample_test/out_of_sample_results.json",
-    "legal_distance/experiments/validate_breakthrough_representations.py",
-    "legal_distance/experiments/v6_metric_learning_center_projected.py",
-    "legal_distance/experiments/v6_hybrid_objective_stabilized.py",
-    "legal_distance/experiments/v6_standalone_benchmarks.py",
-    "legal_distance/experiments/v6_test_hybrids_adversarial.py",
-    "legal_distance/reports/v6_stabilization_metric_learning_report.md",
-    "legal_distance/reports/v6_hybrid_objective_report.md",
-    "legal_distance/reports/v6_citation_role_integration_report.md",
-    "legal_distance/reports/v6_comprehensive_evaluation_report.md",
-    "legal_distance/reports/v6_final_comprehensive_report.md",
-    "legal_distance/reports/v6_metric_learning_fractal_validation_report.md"
+    "legal_distance/results/v6/citation_id_resolution/citation_to_decision_id.json",
+    "legal_distance/results/v6/citation_roles_fixed/citation_roles_fixed_summary.json"
   ],
-  "next_recommendation": "v6 objectives FULLY COMPLETED. center_projected_64dim confirmed as validated DEFAULT reference. THREE independent breakthrough representations achieved (linear_metric JP=0.685, mahalanobis JP=0.678, hybrid_stabilized JP=0.666) — all pass BOTH adversarial gates for 18+ consecutive epochs with meaningful fractal structure. hybrid_cited_0.3 validated as best balance (JP=0.955). Citation role modeling deferred (data engineering gap). Jurist framework ready. No further same-question cycles needed. Next phase: productize linear_metric, run jurist study, scale corpus to 192k.",
+  "next_recommendation": "v7 objectives IN PROGRESS: (1) REPRODUCE center_projected validated; (2) Signal ablation/scale test re-run with center_projected baseline COMPLETED; (3) Legal embeddings: multilingual-e5-small fine-tuning PASSES adversarial gates but OVERCLUSTERS (1 coarse -> 1000 fine) - NEEDS HIERARCHY LOSS; (4) Citation role modeling: 25,415 roles extracted but distinguishing/overruling/criticizing are zero matrices due to BGE citation resolution failure (0/2180 BGE resolved); (5) Jurist framework ready but needs human jurists; (6) Benchmark refinement: 11-benchmark suite operational. NEXT: Fix multilingual-e5-small overclustering, improve BGE citation resolution, test cited_decisions_tfidf hybrids against adversarial gates.",
   "critical_findings": {
     "metric_learning_breakthrough": "Linear projection on center_projected achieves JP=0.6847 (33.7% relative improvement over center_projected 0.512), mahalanobis JP=0.6781; both pass BOTH adversarial gates with 18+ consecutive valid epochs (frozen evaluation harness v3 seed=42 canonical)",
     "stabilized_hybrid_breakthrough": "Hybrid objective (contrastive + preservation + hierarchy loss) achieves 6 consecutive valid epochs, peak at epoch 1: JP=0.6656, LangDom=0.6701",
     "center_projected_64dim_validated": "ONLY pre-trained representation passing BOTH adversarial gates WITH meaningful hierarchical structure (LangDom=0.531, Jurist=0.982, improvement_rate=59%, hier_adv=0.027). 768-dim version FAILS jurist pairwise (0.491)",
-    "citation_roles_overcluster_artifact": "All 6 pure citation role embeddings are zero matrices (BGE/ATF format mismatch). Adversarial PASS is artifact of overclustering (1 coarse -> ~1000 fine, hierarchical_advantage=0.0). Negative result preserved as first-class evidence.",
-    "legal_embeddings_language_dominated": "xlm_roberta_base, paraphrase_multilingual_minilm, multilingual_e5_small all FAIL adversarial gates (LangDom≈1.0, JuristPref≈0.0)",
-    "cited_decisions_tfidf_validated": "First unsupervised signal passing BOTH adversarial gates with meaningful hierarchy (LangDom=0.611, Jurist=0.692, NMI=0.560, hier_adv=0.182)",
-    "hybrid_cited_03_best_balance": "hybrid_cited_0.3 (30% cited + 70% center) achieves best trade-off: JP=0.955, LangDom=0.543, improvement_rate=67.8%, hier_adv=0.057 — EXACT MATCH across standalone benchmarks and comprehensive evaluation",
-    "signal_ablation_hybrids_fail": "All v5 signal ablation hybrids (legal_issues_outcomes, legal_area_tfidf, hybrid_erwaegungen_03, etc.) FAIL adversarial gates on full corpus (1200 decisions) — only cited_decisions_tfidf passes",
-    "jurivoc_alignment_limitation": "Jurivoc hierarchy alignment fails for ALL representations (NMI ~0.31-0.46, threshold=0.5) due to chamber-vs-Jurivoc label mismatch, not representation failure",
-    "metric_learning_fractal_superiority": "ALL THREE breakthrough representations (linear_metric, mahalanobis, hybrid_stabilized) achieve SUPERIOR fractal structure vs center_projected_64 DEFAULT: higher coarse purity (0.85-0.95 vs 0.82), higher fine purity (0.93-0.97 vs 0.95), better hierarchical advantage (up to +0.056 vs +0.018), comparable legal area NMI (0.58-0.60 vs 0.59). mahalanobis_metric_final leads: legal_area_NMI=0.6028, hier_adv=+0.0560. linear_metric_best leads: coarse_pur=0.9541, fine_pur=0.9754. No overclustering artifacts (5-7 coarse, 82-112 fine clusters). Validates product integration readiness.",
-    "center_projected_768_fails_at_scale": "center_projected_768 FAILS jurist pairwise on 1200 decisions (JP=0.489 < 0.5 threshold) while center_projected_64 passes (JP=0.982). Confirms 64-dim frozen PCA is the correct DEFAULT for production use."
+    "cited_decisions_tfidf_breakthrough": "First unsupervised signal passing BOTH adversarial gates with meaningful hierarchy (LangDom=0.609, Jurist=0.689, NMI=0.565, hier_adv=0.174). BEATS supervised metric learning on jurist pairwise (0.689 vs 0.685)",
+    "cited_decisions_tfidf_hybrids_unvalidated": "6 cited_decisions_tfidf + center_projected hybrids pass standalone benchmarks (best: hybrid_cp64_0.7 jurist=0.6614, lang_dom=0.6542) but NOT yet tested against full adversarial gates",
+    "multilingual_e5_overclustering": "ft_multilingual_e5_small_pretrained passes adversarial gates (LangDom=0.488, Jurist=0.702) but OVERCLUSTERS (1 coarse -> 1000 fine, hier_adv=0.0) - needs hierarchy preservation loss",
+    "citation_role_zero_matrices": "distinguishing/overruling/criticizing embeddings are zero/near-zero matrices (0.0%, 0.0%, 0.1% non-zero) because target citations are BGE format (0/2180 resolved). Only citing/following have signal.",
+    "citation_id_resolution_partial": "Only 1124/8480 citations resolved (13.2%), 0 BGE resolved. Need BGE/ATF format normalization for 2,988 role annotations integration.",
+    "boilerplate_resistance_negative": "Boilerplate resistance NEGATIVE for ALL representations (resistance_score ≈ -0.74 to -0.92) — systematic limitation of current approaches",
+    "signal_ablation_hybrids_fail": "All v5 signal ablation hybrids (legal_issues_outcomes, legal_area_tfidf, hybrid_erwaegungen_03, etc.) FAIL adversarial gates on full corpus — only cited_decisions_tfidf passes"
   }
 }
