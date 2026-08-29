@@ -21,6 +21,8 @@ import sys
 
 # Add paths
 sys.path.insert(0, '/tmp/lex_accepted/evaluation/evaluation/tests')
+sys.path.insert(0, '/tmp/lex_accepted/evaluation/evaluation')
+sys.path.insert(0, '/tmp/lex_accepted/evaluation')
 sys.path.insert(0, '/tmp/lex_accepted/evaluation/evaluation/data')
 
 from cross_language_benchmarks import (
