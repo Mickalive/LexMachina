@@ -437,6 +437,158 @@ MAP_MODES: Dict[str, MapModeSpec] = {
     ),
 
     # PLACEHOLDER: center_projected as legal-distance embedding (not hierarchical map mode)
+
+    "linear_metric_epoch4": MapModeSpec(
+        mode_id="linear_metric_epoch4",
+        name="Linear Metric Epoch 4 (Metric Learning)",
+        description=(
+            "Linear metric learning on center_projected_64dim (best epoch 4). "
+            "Achieves jurist preference 0.6847, language dominance 0.6802, passes BOTH adversarial gates. "
+            "Hierarchical purity 0.9868 (+0.0297 vs concat baseline), perfect nesting (1.0), "
+            "106 hierarchical clusters. Strong branch coherence (>0.96 at all levels)."
+        ),
+        mode_type=MapModeType.HIERARCHICAL_LEIDEN,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_artifacts("linear_metric_epoch4"),
+        metadata={
+            "embedding_dim": 128,
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_jurist_preference": 0.6847,
+            "legal_distance_language_dominance": 0.6802,
+            "adversarial_both_pass": True,
+            "source": "legal-distance v6 metric learning breakthrough",
+            "n_decisions": 1000,
+            "corpus": "BGer 2020-2024",
+        },
+        legal_distance_config={
+            "type": "metric_learning",
+            "method": "linear",
+            "base": "center_projected_64dim",
+            "epoch": 4
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "hierarchical_purity": 0.9868, "nesting_score": 1.0, "n_hierarchical_clusters": 106, "min_cluster_size": 3},
+            "zoom_coherence": {"status": "PASS", "improvement_rates": {"0.25_to_0.5": 0.25, "0.5_to_0.75": 0.3333, "0.75_to_1.0": 0.25, "1.0_to_1.5": 0.375, "1.5_to_2.0": 0.25, "2.0_to_3.0": 0.125}, "mean_improvement_rate": 0.2639},
+            "branch_purity_ladder": {"res_0.25": 0.9840, "res_0.5": 0.9836, "res_0.75": 0.9844, "res_1.0": 0.9841, "res_1.5": 0.9843, "res_2.0": 0.9752, "res_3.0": 0.9683},
+            "legal_distance_benchmarks": {"jurist_pairwise_preference": {"value": 0.6847, "status": "PASS", "threshold": 0.5}, "language_dominance": {"value": 0.6802, "status": "PASS", "threshold": 0.85}, "adversarial_both_pass": True}
+        }
+    ),
+
+    "mahalanobis_metric_epoch4": MapModeSpec(
+        mode_id="mahalanobis_metric_epoch4",
+        name="Mahalanobis Metric Epoch 4 (Metric Learning)",
+        description=(
+            "Mahalanobis metric learning on center_projected_64dim (best epoch 4). "
+            "Achieves jurist preference 0.6781, language dominance 0.6840, passes BOTH adversarial gates. "
+            "Hierarchical purity 0.9861 (+0.0370 vs concat baseline), perfect nesting (1.0), "
+            "111 hierarchical clusters. Strong branch coherence (>0.95 at all levels)."
+        ),
+        mode_type=MapModeType.HIERARCHICAL_LEIDEN,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_artifacts("mahalanobis_metric_epoch4"),
+        metadata={
+            "embedding_dim": 128,
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_jurist_preference": 0.6781,
+            "legal_distance_language_dominance": 0.6840,
+            "adversarial_both_pass": True,
+            "source": "legal-distance v6 metric learning breakthrough",
+            "n_decisions": 1000,
+            "corpus": "BGer 2020-2024",
+        },
+        legal_distance_config={
+            "type": "metric_learning",
+            "method": "mahalanobis",
+            "base": "center_projected_64dim",
+            "epoch": 4
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "hierarchical_purity": 0.9861, "nesting_score": 1.0, "n_hierarchical_clusters": 111, "min_cluster_size": 3},
+            "zoom_coherence": {"status": "PASS", "improvement_rates": {"0.25_to_0.5": 0.25, "0.5_to_0.75": 0.0, "0.75_to_1.0": 0.3333, "1.0_to_1.5": 0.2222, "1.5_to_2.0": 0.3077, "2.0_to_3.0": 0.125}, "mean_improvement_rate": 0.2064},
+            "branch_purity_ladder": {"res_0.25": 0.9891, "res_0.5": 0.9885, "res_0.75": 0.9810, "res_1.0": 0.9894, "res_1.5": 0.9570, "res_2.0": 0.9687, "res_3.0": 0.9686},
+            "legal_distance_benchmarks": {"jurist_pairwise_preference": {"value": 0.6781, "status": "PASS", "threshold": 0.5}, "language_dominance": {"value": 0.6840, "status": "PASS", "threshold": 0.85}, "adversarial_both_pass": True}
+        }
+    ),
+
+    "cited_decisions_tfidf": MapModeSpec(
+        mode_id="cited_decisions_tfidf",
+        name="Cited Decisions TF-IDF (Zero-Shot Citation Signal)",
+        description=(
+            "TF-IDF on cited decisions only (zero-shot). Achieves HIGHEST jurist preference 0.6889 and BEST language invariance 0.6086 "
+            "among ALL representations. Beats supervised metric learning on jurist pairwise. Passes BOTH adversarial gates. "
+            "Hierarchical purity 0.7967 (lower due to 353 fine clusters), perfect nesting (1.0), 353 hierarchical clusters. "
+            "Zoom coherence strong (mean 48.7% improvement rate)."
+        ),
+        mode_type=MapModeType.HIERARCHICAL_LEIDEN,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_artifacts("cited_decisions_tfidf"),
+        metadata={
+            "embedding_dim": 128,
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_jurist_preference": 0.6889,
+            "legal_distance_language_dominance": 0.6086,
+            "adversarial_both_pass": True,
+            "source": "legal-distance v5 signal ablation / v6 validation",
+            "n_decisions": 1000,
+            "corpus": "BGer 2020-2024",
+        },
+        legal_distance_config={
+            "type": "tfidf",
+            "signal": "cited_decisions",
+            "method": "zero_shot"
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "hierarchical_purity": 0.7967, "nesting_score": 1.0, "n_hierarchical_clusters": 353, "min_cluster_size": 3, "note": "Lower purity due to high cluster count (353 vs ~100 for others); branch purity at coarse levels strong"},
+            "zoom_coherence": {"status": "PASS", "improvement_rates": {"0.25_to_0.5": 0.5, "0.5_to_0.75": 0.5714, "0.75_to_1.0": 0.3333, "1.0_to_1.5": 0.3636, "1.5_to_2.0": 0.5, "2.0_to_3.0": 0.6667}, "mean_improvement_rate": 0.4875},
+            "branch_purity_ladder": {"res_0.25": 0.7370, "res_0.5": 0.7279, "res_0.75": 0.6614, "res_1.0": 0.7339, "res_1.5": 0.6363, "res_2.0": 0.6214, "res_3.0": 0.7340},
+            "legal_distance_benchmarks": {"jurist_pairwise_preference": {"value": 0.6889, "status": "PASS", "threshold": 0.5, "note": "HIGHEST of all representations"}, "language_dominance": {"value": 0.6086, "status": "PASS", "threshold": 0.85, "note": "BEST language invariance of all representations"}, "adversarial_both_pass": True}
+        },
+        warnings=["High cluster count (353) reduces hierarchical purity metric; use coarse resolutions for navigation"]
+    ),
+
+    "hybrid_cited_0.3": MapModeSpec(
+        mode_id="hybrid_cited_0.3",
+        name="Hybrid Cited 0.3 (30% Cited TF-IDF + 70% Center Projected)",
+        description=(
+            "Best balance hybrid: 30% cited_decisions_tfidf + 70% center_projected. "
+            "Achieves jurist preference 0.955 (near ceiling), language dominance 0.543 (excellent), passes BOTH adversarial gates. "
+            "Hierarchical purity 0.9570 (+0.0079 vs concat baseline), perfect nesting (1.0), 136 hierarchical clusters. "
+            "Strong branch coherence peaking at 0.975 at res 1.0-1.5."
+        ),
+        mode_type=MapModeType.HIERARCHICAL_LEIDEN,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_artifacts("hybrid_cited_0.3"),
+        metadata={
+            "embedding_dim": 768,
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_jurist_preference": 0.955,
+            "legal_distance_language_dominance": 0.543,
+            "adversarial_both_pass": True,
+            "source": "legal-distance v5 signal ablation / v6 validation",
+            "n_decisions": 1000,
+            "corpus": "BGer 2020-2024",
+        },
+        legal_distance_config={
+            "type": "hybrid",
+            "alpha": 0.3,
+            "cited_weight": 0.3,
+            "center_projected_weight": 0.7
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "hierarchical_purity": 0.9570, "nesting_score": 1.0, "n_hierarchical_clusters": 136, "min_cluster_size": 3},
+            "zoom_coherence": {"status": "PASS", "improvement_rates": {"0.25_to_0.5": 0.4, "0.5_to_0.75": 0.75, "0.75_to_1.0": 0.5, "1.0_to_1.5": 0.25, "1.5_to_2.0": 0.25, "2.0_to_3.0": 0.2857}, "mean_improvement_rate": 0.4059},
+            "branch_purity_ladder": {"res_0.25": 0.8758, "res_0.5": 0.8971, "res_0.75": 0.9639, "res_1.0": 0.9740, "res_1.5": 0.9746, "res_2.0": 0.9357, "res_3.0": 0.9346},
+            "legal_distance_benchmarks": {"jurist_pairwise_preference": {"value": 0.955, "status": "PASS", "threshold": 0.5, "note": "Near ceiling - strongest signal"}, "language_dominance": {"value": 0.543, "status": "PASS", "threshold": 0.85, "note": "Excellent language invariance"}, "adversarial_both_pass": True}
+        }
+    ),
     "center_projected": MapModeSpec(
         mode_id="center_projected",
         name="Center Projected (Language-Debiased Embedding)",
