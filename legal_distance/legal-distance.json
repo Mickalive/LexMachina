@@ -4,7 +4,7 @@
   "evidence_tier": "ACCEPTED",
   "cycle_status": "RUN",
   "continue_recommended": true,
-  "accepted_run_id": "cross_lingual_alignment_20260829",
+  "accepted_run_id": "outcome_cited_hybrids_20260829",
   "evidence_refs": [
     "results/v6/validation_breakthrough/validation_results.json",
     "results/v6/metric_learning/metric_learning_results.json",
@@ -21,10 +21,15 @@
     "results/v7/cross_lingual_alignment/cited_decisions_tfidf_joint_pca_eval.json",
     "results/v7/cross_lingual_alignment/cited_decisions_tfidf_cca_eval.json",
     "results/v7/cross_lingual_alignment/cited_decisions_tfidf_mean_center_eval.json",
+    "results/v7/outcome_cited_hybrids/outcome_cited_hybrids_validation_all_results.json",
+    "results/v7/outcome_cited_hybrids/outcome_tfidf.npy",
+    "results/v7/outcome_cited_hybrids/cited_decisions_tfidf.npy",
+    "results/v7/outcome_cited_hybrids/cited_decisions_tfidf_outcome_hybrid_0.5.npy",
+    "results/v7/outcome_cited_hybrids/cited_decisions_tfidf_outcome_hybrid_0.7.npy",
     "results/v4/",
     "results/v5/"
   ],
-  "next_recommendation": "CROSS-LINGUAL: cited_decisions_tfidf achieves LangDom=0.6107 (target <0.6) — near-optimal without GPU fine-tuning; citation-based signals are inherently language-invariant. NEW: outcome_tfidf achieves LangDom=0.4458, JuristPref=0.8488 but fractal collapse — explore cited_decisions_tfidf + outcome_tfidf hybrids. JURIST STUDY: framework ready, needs 5-10 Swiss jurists. CITATION ROLES: blocked on BGE/ATF resolution (corpus lane dependency — 0/2180 BGE resolved). METRIC LEARNING: productize linear_metric_epoch4, mahalanobis_metric_epoch4, hybrid_stabilized_epoch1 as selectable map modes.",
+  "next_recommendation": "CROSS-LINGUAL BREAKTHROUGH: cited_decisions_tfidf + outcome_tfidf hybrids achieve LangDom < 0.5 (target <0.6) with JuristPref ~0.8 AND robust fractal structure (improvement_rate 84-89%). Best: hybrid_0.5 (LangDom=0.4911, JuristPref=0.7990, imp_rate=84.9%) and hybrid_0.7 (LangDom=0.4907, JuristPref=0.7907, imp_rate=89.4%). These ZERO-SHOT hybrids beat metric learning on both adversarial gates WITHOUT GPU. Productize as 'Doctrinal Lineage + Outcome' map modes. JURIST STUDY: framework ready, needs 5-10 Swiss jurists. CITATION ROLES: blocked on BGE/ATF resolution (corpus lane dependency — 0/2180 BGE resolved). METRIC LEARNING: productize linear_metric_epoch4, mahalanobis_metric_epoch4, hybrid_stabilized_epoch1 as selectable map modes.",
   "critical_findings": {
     "metric_learning_breakthrough": {
       "linear_metric_epoch4": {"jurist_preference": 0.6847, "language_dominance": 0.6730, "both_gates_pass": true, "epochs_valid": "18+"},
@@ -36,16 +41,23 @@
       "hybrid_cited_cp64_0.7": {"jurist_preference": 0.6564, "language_dominance": 0.6518, "both_gates_pass": true, "note": "Best production hybrid per factory direction v8"},
       "hybrid_cited_cp768_0.7": {"jurist_preference": 0.6764, "language_dominance": 0.6477, "both_gates_pass": true}
     },
+    "outcome_cited_hybrids_breakthrough": {
+      "outcome_tfidf": {"lang_dom": 0.4548, "jurist_pref": 0.8324, "both_gates_pass": true, "note": "BEST cross-lingual alignment but fractal collapse (n_fine=1200, each decision own cluster)"},
+      "cited_decisions_tfidf_outcome_hybrid_0.3": {"lang_dom": 0.5026, "jurist_pref": 0.7673, "both_gates_pass": true, "imp_rate": 0.892, "note": "Good balance, 89.2% fractal improvement"},
+      "cited_decisions_tfidf_outcome_hybrid_0.5": {"lang_dom": 0.4911, "jurist_pref": 0.7990, "both_gates_pass": true, "imp_rate": 0.849, "note": "BEST PRODUCTION HYBRID — LangDom < 0.5, JuristPref ~0.8, strong fractal"},
+      "cited_decisions_tfidf_outcome_hybrid_0.7": {"lang_dom": 0.4907, "jurist_pref": 0.7907, "both_gates_pass": true, "imp_rate": 0.894, "note": "Best fractal quality (89.4%), LangDom < 0.5"},
+      "conclusion": "ZERO-SHOT hybrids achieve LangDom < 0.5 (target <0.6) with JuristPref ~0.8 AND robust fractal structure (84-89% improvement). Combines citation language-invariance with outcome cross-lingual alignment. NO GPU REQUIRED. Ready for productization as 'Doctrinal Lineage + Outcome' map modes."
+    },
     "cross_lingual_alignment_experiments": {
       "cited_decisions_tfidf_original": {"lang_dom": 0.6107, "jurist_pref": 0.6922, "verdict": "PASS", "note": "Baseline - already near target <0.6 (1200 decisions)"},
       "procrustes_same_branch_pairs": {"lang_dom": 0.6799, "jurist_pref": 0.6981, "verdict": "PASS", "note": "Degrades LangDom — cited decisions already language-invariant"},
       "cca_reconstructed": {"lang_dom": 0.8889, "jurist_pref": 0.2168, "verdict": "FAIL", "note": "Destroys legal structure"},
       "joint_pca_64d": {"lang_dom": 0.6233, "jurist_pref": 0.6589, "verdict": "PASS", "note": "Slight degradation"},
       "mean_centering_per_language": {"lang_dom": 0.6595, "jurist_pref": 0.5997, "verdict": "PASS", "note": "Moderate degradation"},
-      "conclusion": "cited_decisions_tfidf is inherently cross-lingual (BGE/ATF citations use language-neutral format); post-hoc alignment adds noise. Target LangDom <0.6 requires GPU fine-tuning or full-corpus citation graph methods."
+      "conclusion": "cited_decisions_tfidf is inherently cross-lingual (BGE/ATF citations use language-neutral format); post-hoc alignment adds noise. OUTCOME HYBRIDS ACHIEVE TARGET <0.6 WITHOUT GPU."
     },
     "section_specific_signals": {
-      "outcome_tfidf": {"lang_dom": 0.4458, "jurist_pref": 0.8488, "verdict": "PASS", "note": "BEST cross-lingual alignment but fractal collapse (1 coarse cluster)"},
+      "outcome_tfidf": {"lang_dom": 0.4548, "jurist_pref": 0.8324, "verdict": "PASS", "note": "BEST cross-lingual alignment but fractal collapse (n_fine=1200)"},
       "cited_decisions_tfidf_1000": {"lang_dom": 0.8545, "jurist_pref": 0.2573, "verdict": "FAIL", "note": "1000-dec subset; 1200-dec version achieves 0.6107"},
       "sachverhalt_tfidf": {"lang_dom": 0.8006, "jurist_pref": 0.2853, "verdict": "FAIL", "note": "Fails jurist gate"},
       "erwaegungen_tfidf": {"lang_dom": 0.9033, "jurist_pref": 0.1391, "verdict": "FAIL", "note": "Fails both gates"},
@@ -53,7 +65,7 @@
       "headings_tfidf": {"lang_dom": 1.0000, "jurist_pref": 0.0000, "verdict": "FAIL", "note": "Language-dominated"},
       "cited_decisions_raw": {"lang_dom": 0.8561, "jurist_pref": 0.2573, "verdict": "FAIL", "note": "No TF-IDF weighting"},
       "norm_embeddings": {"lang_dom": 0.9800, "jurist_pref": 0.0551, "verdict": "FAIL", "note": "Language-dominated"},
-      "insight": "outcome_tfidf achieves best LangDom (0.4458) and JuristPref (0.8488) but lacks fractal structure. Text-based signals are language-dominated; citation/outcome signals are language-invariant but need combination for fractal quality."
+      "insight": "outcome_tfidf achieves best LangDom (0.4548) and JuristPref (0.8324) but lacks fractal structure. Text-based signals are language-dominated; citation/outcome signals are language-invariant but need combination for fractal quality."
     },
     "boilerplate_resistance_correction": "Real test (evaluation_v3_boilerplate_real_20260829, REPRODUCED) shows 89-93% neighbor preservation when boilerplate removed — boilerplate NOT driving neighbors. v3 'boilerplate resistance' proxy MISNAMED; measured language dominance (cross-lingual alignment failure).",
     "negative_results_preserved": [
@@ -62,19 +74,22 @@
       "multilingual-e5-small fine-tuning: BLOCKED by GPU infrastructure. Code complete in v6_finetune_multilingual_e5.py.",
       "Signal ablation hybrids (v5): All FAIL adversarial gates on full corpus — only cited_decisions_tfidf passes.",
       "Jurivoc alignment fails for ALL representations (NMI ~0.31-0.46) due to chamber-vs-Jurivoc label mismatch.",
-      "Cross-lingual alignment post-hoc methods (Procrustes, CCA, joint PCA, mean-centering) all DEGRADE cited_decisions_tfidf performance."
+      "Cross-lingual alignment post-hoc methods (Procrustes, CCA, joint PCA, mean-centering) all DEGRADE cited_decisions_tfidf performance.",
+      "outcome_tfidf alone has fractal collapse (n_fine=1200) — requires combination with citation signal for multi-resolution mapping."
     ],
     "validated_map_modes": [
       {"mode": "Default (Legal)", "representation": "center_projected_64dim", "jurist_preference": 0.528, "status": "VALIDATED DEFAULT"},
       {"mode": "Cross-Lingual Legal v1", "representation": "hybrid_cited_0.3", "jurist_preference": 0.955, "status": "VALID"},
       {"mode": "Cross-Lingual Legal v2", "representation": "linear_metric_epoch4", "jurist_preference": 0.685, "status": "BREAKTHROUGH"},
       {"mode": "Cross-Lingual Legal v3", "representation": "mahalanobis_metric_epoch4", "jurist_preference": 0.678, "status": "BREAKTHROUGH"},
-      {"mode": "Cross-Lingual Legal v4", "representation": "hybrid_stabilized_epoch1", "jurist_preference": 0.666, "status": "BREAKTHROUGH"}
+      {"mode": "Cross-Lingual Legal v4", "representation": "hybrid_stabilized_epoch1", "jurist_preference": 0.666, "status": "BREAKTHROUGH"},
+      {"mode": "Doctrinal Lineage + Outcome v1", "representation": "cited_decisions_tfidf_outcome_hybrid_0.5", "jurist_preference": 0.7990, "lang_dom": 0.4911, "status": "BREAKTHROUGH - ZERO-SHOT, LangDom<0.5"},
+      {"mode": "Doctrinal Lineage + Outcome v2", "representation": "cited_decisions_tfidf_outcome_hybrid_0.7", "jurist_preference": 0.7907, "lang_dom": 0.4907, "status": "BREAKTHROUGH - ZERO-SHOT, best fractal"}
     ],
-    "fractal_structure_validated": "center_projected_hierarchical REPRODUCED as DEFAULT (nesting=1.0, purity=0.9638, 7-res ladder, 108 clusters, 63% improvement rate)"
+    "fractal_structure_validated": "center_projected_hierarchical REPRODUCED as DEFAULT (nesting=1.0, purity=0.9638, 7-res ladder, 108 clusters, 63% improvement rate). New hybrids show 84-89% fractal improvement rate with LangDom < 0.5."
   },
   "factory_direction_v9_objectives": [
-    "Cross-lingual alignment / language dominance: cited_decisions_tfidf achieves best LangDom=0.6086; target <0.6. Test multilingual-e5-small fine-tuning on Swiss legal corpus for multilingual invariance WITH coarse legal structure (GPU required; code ready from v6).",
+    "Cross-lingual alignment / language dominance: ACHIEVED — cited_decisions_tfidf + outcome_tfidf hybrids achieve LangDom=0.49 (target <0.6) with JuristPref=0.80 ZERO-SHOT, NO GPU REQUIRED. Productize as selectable map modes.",
     "Citation role modeling: integrate 2,988 role annotations once citation ID resolution pipeline ready (corpus lane dependency — 0/2180 BGE resolved).",
     "Execute jurist pairwise evaluation of hybrid map modes vs center_projected baseline (framework ready from v5, needs 5-10 Swiss jurists).",
     "Benchmark refinement: maintain refined 16-benchmark suite with adversarial gates as primary."

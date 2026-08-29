@@ -1,0 +1,121 @@
+{
+  "name": "center_projected_768",
+  "embedding_shape": [
+    1200,
+    768
+  ],
+  "duration_seconds": 2.1981987953186035,
+  "adversarial": {
+    "adversarial_language_dominance": {
+      "mean_language_dominance": 0.7737698081734778,
+      "std_language_dominance": 0.23720389639070508,
+      "max_language_dominance": 1.0,
+      "k": 20,
+      "threshold": 0.85,
+      "status": "PASS",
+      "note": "Lower is better - language should not dominate neighbors"
+    },
+    "jurist_pairwise_preference": {
+      "status": "FAIL",
+      "total_decisions": 1199,
+      "legal_relevant_only": 408,
+      "language_artifact_only": 244,
+      "both_available": 181,
+      "neither_available": 366,
+      "legal_neighbor_rate": 0.4912,
+      "language_neighbor_rate": 0.3545,
+      "jurist_would_succeed_rate": 0.4912,
+      "jurist_forced_wrong_rate": 0.2035,
+      "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+    },
+    "both_pass": false,
+    "language_dominance_score": 0.7737698081734778,
+    "jurist_preference_rate": 0.4912
+  },
+  "jurivoc_alignment": {
+    "level_0_nmi": 0.09454171662098472,
+    "level_1_nmi": 0.4738760013144427,
+    "nesting_score": 0.7890260346613887,
+    "status": "FAIL",
+    "note": "Jurivoc proxy: Level 0 = 4 branches, Level 1 = 16 legal areas. Higher NMI = better alignment with legal taxonomy."
+  },
+  "scale_stability": {
+    "mean_neighbor_overlap": 0.7104166666666667,
+    "std_neighbor_overlap": 0.11445447299642288,
+    "n_test_points": 240,
+    "status": "PASS",
+    "note": "Scale stability: fraction of top-10 neighbors preserved when corpus reduced to 80%. Higher = more stable."
+  },
+  "boilerplate_resistance": {
+    "boilerplate_neighbor_rate": 0.9479405910274078,
+    "legal_neighbor_rate": 0.05205940897259225,
+    "resistance_score": -0.8958811820548156,
+    "total_comparisons": 6531,
+    "status": "FAIL",
+    "note": "Boilerplate resistance: legal_neighbor_rate - boilerplate_neighbor_rate. Positive = legally relevant neighbors dominate over procedural neighbors."
+  },
+  "fractal": {
+    "n_coarse": 7,
+    "n_fine": 100,
+    "coarse_purity": 0.8279715625192038,
+    "fine_purity": 0.9381112519570725,
+    "overall_improvement": 0.11013968943786867,
+    "improvement_rate": 0.6,
+    "legal_area_nmi": 0.587248484471056,
+    "flat_purity": 0.9066021609264339,
+    "hierarchical_advantage": 0.03150909103063859,
+    "cluster_coherence": {
+      "status": "PASS",
+      "n_clusters": 16,
+      "mean_branch_purity": 0.8539,
+      "branch_nmi": 0.3663,
+      "mean_language_purity": 0.6909,
+      "cluster_purities": [
+        1.0,
+        0.8427,
+        0.9375,
+        0.9703,
+        0.975,
+        0.525,
+        0.8182,
+        0.3516,
+        0.964,
+        0.9167,
+        0.9783,
+        0.9474,
+        0.961,
+        0.9167,
+        0.9855,
+        0.5733
+      ],
+      "cluster_sizes": [
+        42,
+        89,
+        64,
+        101,
+        40,
+        80,
+        88,
+        91,
+        111,
+        36,
+        46,
+        95,
+        77,
+        96,
+        69,
+        75
+      ],
+      "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+    },
+    "cross_language_retrieval": {
+      "status": "FAIL",
+      "mean_cross_language_recall_at_k": 0.1455,
+      "k": 10,
+      "n_queries": 1199,
+      "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+    }
+  },
+  "verdict": "FAIL",
+  "both_adversarial_pass": false
+}
