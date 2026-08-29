@@ -4,17 +4,20 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "evaluation_v3_frozen_harness_33231300518",
-  "github_run": "33231300518",
-  "timestamp": "2026-08-29T03:35:40Z",
+  "accepted_run_id": "evaluation_v3_frozen_harness_33232234741",
+  "github_run": "33232234741",
+  "timestamp": "2026-08-29T03:51:52Z",
   "config_hash": "4323f833fa72366a",
   "global_seed": 42,
   "evidence_refs": [
     "evaluation/results/v3/evaluation_v3_results.json",
-    "evaluation/evaluation_v3_harness.py"
+    "evaluation/evaluation_v3_harness.py",
+    "evaluation/reports/evaluation_v3_github_run_33232234741.md",
+    "evaluation/results/evaluation/v6_signal_ablation/v6_signal_ablation_adversarial_results.json",
+    "evaluation/v6_rerun.log"
   ],
   "key_findings": [
-    "EVALUATION v3 COMPLETE: Frozen evaluation harness (seed=42, config_hash=4323f833fa72366a) executed on expanded 1,200-decision slice.",
+    "EVALUATION v3 COMPLETE: Frozen evaluation harness (seed=42, config_hash=4323f833fa72366a) executed on expanded 1,200-decision slice. REPRODUCED EXACTLY in GitHub run 33232234741.",
     "Reference baseline center_projected_64dim (production default) PASSES both adversarial gates: language_dominance=0.7664 < 0.85, jurist_pairwise=0.5121 > 0.5.",
     "center_projected_768 FAILS jurist pairwise (0.4912 < 0.5) despite passing language dominance - CONFIRMS product lane critical finding.",
     "linear_metric_epoch4 (metric learning) achieves HIGHEST jurist preference (0.6847) with strong language invariance (0.6805) and excellent Jurivoc Level 0 NMI (0.6895). Cross-language retrieval PASS (0.2114 > 0.2).",
@@ -24,7 +27,7 @@
     "All four new representations (linear_metric, mahalanobis, hybrid_stabilized, hybrid_v2) BEAT reference baseline on jurist pairwise preference AND pass both adversarial gates.",
     "Boilerplate resistance remains NEGATIVE for ALL representations (resistance_score ≈ -0.89 to -0.92) - procedural neighbors dominate. This is a systematic limitation of the current embedding approaches.",
     "Scale stability is GOOD for all representations (0.70-0.72 neighbor overlap under 80% corpus subsampling).",
-    "Signal ablation validation CONFIRMED: v4/v5 hybrids on center_projected baseline FAIL adversarial gates (as previously found in legal-distance v6 adversarial validation). Only metric learning and stabilized hybrid approaches produce valid adversarial-robust representations."
+    "Signal ablation validation CONFIRMED by v6 adversarial run: ALL 15 signal ablation variants on center_projected baseline FAIL jurist pairwise preference. Only citation_weights passes both gates but has Jurivoc NMI=0.0 (overclustering artifact). Only metric learning and stabilized hybrid objectives produce valid adversarial-robust representations."
   ],
   "validation_metrics": {
     "center_projected_768": {
@@ -165,12 +168,18 @@
   },
   "signal_ablation_validation": {
     "status": "CONFIRMED",
-    "note": "v4/v5 signal ablation hybrids on center_projected baseline FAIL adversarial gates. Confirmed by legal-distance v6 adversarial_signal_validation. Only metric learning (linear, Mahalanobis) and stabilized hybrid objectives produce valid representations on center_projected.",
+    "note": "v4/v5 signal ablation hybrids on center_projected baseline FAIL adversarial gates. Confirmed by legal-distance v6 adversarial_signal_validation AND evaluation v6 signal ablation run on expanded 1,200 slice. Only metric learning (linear, Mahalanobis) and stabilized hybrid objectives produce valid representations on center_projected.",
     "validated_failures": [
       "legal_area_tfidf: lang_dom=0.914, jurist=0.131",
       "legal_issues_outcomes: lang_dom=1.000, jurist=0.000",
       "hybrid_erwaegungen_0.3: lang_dom=0.875, jurist=0.248",
-      "hybrid_sachverhalt_0.7: lang_dom=0.936, jurist=0.121"
+      "hybrid_sachverhalt_0.7: lang_dom=0.936, jurist=0.121",
+      "sachverhalt_tfidf: lang_dom=0.770, jurist=0.269",
+      "erwaegungen_tfidf: lang_dom=0.904, jurist=0.103",
+      "norm_embeddings: lang_dom=0.763, jurist=0.273",
+      "citation_weights: lang_dom=0.459, jurist=0.729 BUT jurivoc_nmi=0.0 (overclustering)",
+      "hybrid_erwaegungen_0.3: lang_dom=0.810, jurist=0.420",
+      "hybrid_core_0.3: lang_dom=0.819, jurist=0.383"
     ]
   },
   "next_recommendation": "PRODUCTIZE",
