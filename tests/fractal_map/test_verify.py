@@ -246,11 +246,31 @@ class TestLegalDistanceModes:
         assert "hybrid_alpha_05" in ld_modes
         assert "legal_issues_outcomes" in ld_modes
 
+    def test_v7_metric_learning_modes_available(self):
+        """Test that v7 metric learning modes are available."""
+        ld_modes = self.state["map_modes"]["legal_distance_modes"]
+        assert "linear_metric_epoch4" in ld_modes
+        assert "mahalanobis_metric_epoch4" in ld_modes
+
+    def test_v7_citation_signal_modes_available(self):
+        """Test that v7 citation signal modes are available."""
+        ld_modes = self.state["map_modes"]["legal_distance_modes"]
+        assert "cited_decisions_tfidf" in ld_modes
+        assert "hybrid_cited_0.3" in ld_modes
+
     def test_legal_distance_modes_accepted_tier(self):
         ld_modes = self.state["map_modes"]["legal_distance_modes"]
         for mode_id, mode_info in ld_modes.items():
             if mode_id != "center_projected":
                 assert mode_info["evidence_tier"] == "ACCEPTED"
+
+    def test_v7_modes_pass_both_adversarial_gates(self):
+        """Test that all v7 modes pass both adversarial gates."""
+        ld_modes = self.state["map_modes"]["legal_distance_modes"]
+        v7_modes = ["linear_metric_epoch4", "mahalanobis_metric_epoch4", "cited_decisions_tfidf", "hybrid_cited_0.3"]
+        for mode_id in v7_modes:
+            mode_info = ld_modes[mode_id]
+            assert mode_info.get("adversarial_both_pass") is True, f"{mode_id} does not pass both adversarial gates"
 
     def test_legacy_mode_preserved(self):
         legacy = self.state["map_modes"]["legacy_modes"]
