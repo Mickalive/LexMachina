@@ -12,7 +12,7 @@
 
 This evaluation run validates new representations discovered by the legal-distance lane (v6 hybrids_adversarial_test) against the **frozen evaluation harness v3** (global seed=42, config_hash=4323f833fa72366a). 
 
-**Critical Finding:** `cited_decisions_tfidf` — a pure TF-IDF representation on cited decisions — **PASSES BOTH ADVERSARIAL GATES** with **JURIST PREFERENCE = 0.6922** (35% relative improvement over production default center_projected_64dim at 0.5121) and **LANGUAGE DOMINANCE = 0.6107** (significantly better multilingual invariance). **Cross-language retrieval: 0.2021 (PASS)** — exceeds 0.2 threshold.
+**Critical Finding:** `cited_decisions_tfidf` — a pure TF-IDF representation on cited decisions — **PASSES BOTH ADVERSARIAL GATES** with **JURIST PREFERENCE = 0.6922** (35% relative improvement over production default center_projected_64dim at 0.5121) and **LANGUAGE DOMINANCE = 0.6107** (significantly better multilingual invariance). **Cross-language retrieval: 0.2083 (PASS)** — exceeds 0.2 threshold.
 
 **All 6 hybrids of cited_decisions_tfidf with center_projected also PASS both adversarial gates**, demonstrating robust combination potential.
 
@@ -51,6 +51,7 @@ This evaluation run validates new representations discovered by the legal-distan
 ### 1. cited_decisions_tfidf — NEW BEST REPRESENTATION
 - **Language dominance: 0.6107** (PASS, threshold < 0.85) — significantly better multilingual invariance than center_projected_64dim (0.7664)
 - **Jurist preference: 0.6922** (PASS, threshold > 0.5) — **35% relative improvement** over production default (0.5121)
+- **Cross-language retrieval: 0.2083** (PASS, threshold > 0.2) — exceeds threshold for cross-language legal equivalent retrieval
 - **Fractal structure:** 7 coarse / 278 fine clusters, hierarchical advantage 0.123, improvement rate 91.7%
 - **Jurivoc Level 0 NMI: 0.246** — moderate alignment with legal taxonomy
 - **Scale stability: 0.602** — acceptable neighbor preservation under subsampling
@@ -191,7 +192,7 @@ These construction parameters are deterministic (random_state=42) but NOT frozen
 
 ### PRODUCT DECISIONS UNLOCKED:
 
-- **New default map mode candidate:** cited_decisions_tfidf_hybrid_cp64_0.7 (64-dim, 70% cited_decisions) — combines strong jurist preference (0.656) with good language invariance (0.652) and uses production frozen PCA dimension. **Note:** This hybrid FAILS cross-language retrieval (0.1996 < 0.2 threshold). The only cited_decisions_tfidf hybrid passing cross-language retrieval is cited_decisions_tfidf_hybrid_cp768_0.7 (0.2041).
+- **New default map mode candidate:** cited_decisions_tfidf_hybrid_cp64_0.7 (64-dim, 70% cited_decisions) — combines strong jurist preference (0.656) with good language invariance (0.652) and uses production frozen PCA dimension. **Note:** This hybrid FAILS cross-language retrieval (0.1945 < 0.2 threshold). The only cited_decisions_tfidf hybrid passing cross-language retrieval is cited_decisions_tfidf_hybrid_cp768_0.7 (0.2068).
 - **Citation-proximity navigation:** cited_decisions_tfidf as pure citation-signal map mode (highest jurist preference 0.692)
 - **Multi-view map modes:** Product now has 3 validated signal families passing adversarial gates:
   1. center_projected (language-invariant semantic)
@@ -223,8 +224,8 @@ These construction parameters are deterministic (random_state=42) but NOT frozen
 The core adversarial evaluation is **VALID** — cited_decisions_tfidf and all 6 hybrids pass both frozen adversarial gates (language dominance < 0.85, jurist pairwise preference > 0.5). However, the original state file and report contained **material reporting errors in secondary metrics (cross-language retrieval)** that have been corrected in this version.
 
 **Corrected in this version:**
-- cited_decisions_tfidf cross_language_retrieval: 0.2021 PASS (was incorrectly reported as 0.1784 FAIL)
-- All 6 hybrid cross_language_retrieval values corrected to match ground truth (only cited_decisions_tfidf_hybrid_cp768_0.7 passes at 0.2041)
+- cited_decisions_tfidf cross_language_retrieval: 0.2083 PASS (was incorrectly reported as 0.1784 FAIL)
+- All 6 hybrid cross_language_retrieval values corrected to match ground truth (only cited_decisions_tfidf_hybrid_cp768_0.7 passes at 0.2068)
 - baseline_comparison.representations_passing_cross_language_retrieval corrected (removed 3 hybrids that actually FAIL)
 - Legal-distance v6 reproduction claim qualified with source availability caveat
 - Reference embedding dependencies documented

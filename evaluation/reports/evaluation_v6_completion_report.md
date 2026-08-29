@@ -103,19 +103,19 @@ All 15 signal ablation variants on center_projected baseline **FAIL** jurist pai
 ### 7. **Scale Stability: GOOD**
 All representations show 0.60-0.72 neighbor overlap under 80% corpus subsampling — stable geometry under corpus growth.
 
-### 8. **Cross-Language Retrieval: Metric Learning + Hybrids PASS**
+### 8. **Cross-Language Retrieval: Metric Learning + One Hybrid PASS**
 | Representation | Cross-Lang Recall@10 | Threshold (0.2) |
 |---|---|---|
 | hybrid_stabilized_epoch1 | 0.2360 | ✅ PASS |
 | hybrid_v2_epoch3 | 0.2269 | ✅ PASS |
 | linear_metric_epoch4 | 0.2114 | ✅ PASS |
 | mahalanobis_metric_epoch4 | 0.2083 | ✅ PASS |
-| cited_decisions_tfidf_hybrid_cp64_0.7 | 0.2241 | ✅ PASS |
-| cited_decisions_tfidf_hybrid_cp64_0.5 | 0.2232 | ✅ PASS |
-| cited_decisions_tfidf_hybrid_cp768_0.7 | 0.2181 | ✅ PASS |
-| cited_decisions_tfidf_hybrid_cp768_0.5 | 0.2115 | ✅ PASS |
+| cited_decisions_tfidf | 0.2083 | ✅ PASS |
+| cited_decisions_tfidf_hybrid_cp768_0.7 | 0.2068 | ✅ PASS |
+| cited_decisions_tfidf_hybrid_cp64_0.7 | 0.1945 | ❌ FAIL |
+| cited_decisions_tfidf_hybrid_cp768_0.5 | 0.1758 | ❌ FAIL |
+| cited_decisions_tfidf_hybrid_cp64_0.5 | 0.1723 | ❌ FAIL |
 | center_projected_64dim | 0.1558 | ❌ FAIL |
-| cited_decisions_tfidf | 0.1784 | ❌ FAIL |
 
 ---
 
