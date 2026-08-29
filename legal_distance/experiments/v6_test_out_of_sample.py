@@ -413,14 +413,14 @@ def main():
     # Linear model
     linear_model = SimpleLinearHead(input_dim=768, output_dim=128)
     linear_state = torch.load(LINEAR_MODEL_PATH, map_location=DEVICE)
-    linear_model.load_state_dict(linear_state)
-    logger.info("  Loaded linear projection model")
+    linear_model.load_state_dict(linear_state['model_state'])
+    logger.info("  Loaded linear projection model (epoch %s)", linear_state.get('epoch', 'unknown'))
     
     # Mahalanobis model
     mahalanobis_model = MetricLearningHead(input_dim=768, output_dim=128, rank=64)
     mahalanobis_state = torch.load(MAHALANOBIS_MODEL_PATH, map_location=DEVICE)
-    mahalanobis_model.load_state_dict(mahalanobis_state)
-    logger.info("  Loaded Mahalanobis model")
+    mahalanobis_model.load_state_dict(mahalanobis_state['model_state'])
+    logger.info("  Loaded Mahalanobis model (epoch %s)", mahalanobis_state.get('epoch', 'unknown'))
     
     # Hybrid model (different architecture - need to check)
     # The hybrid model uses a different architecture. Let's skip for now or load differently.
