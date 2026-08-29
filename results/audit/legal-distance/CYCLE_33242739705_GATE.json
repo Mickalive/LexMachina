@@ -1,0 +1,14 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Clarify epoch count in state file: change '18+ consecutive epochs' to '10 consecutive valid epochs (linear/mahalanobis), 6 (hybrid_stabilized)'",
+    "Remove 'EXACT MATCH' claim for hybrid_cited_0.3 cross-evaluation consistency",
+    "Document evaluation subset rationale (999 vs 1200, cached vs fresh) in methodology appendix",
+    "Add harness version hash to frozen evaluation metadata for true reproducibility",
+    "Complete or archive v6_finetune_multilingual_e5_cpu_reduced.py run (generate results or document as abandoned)",
+    "Execute v6_test_out_of_sample.py to validate out-of-sample generalization (productization prerequisite)"
+  ],
+  "claim_ceiling": "ACCEPTED",
+  "evidence_summary": "Core v6 results bit-for-bit identical to previously audited and accepted state (CYCLE_33239499746). Six representations pass both adversarial gates with meaningful fractal structure: center_projected_64dim (DEFAULT, JP=0.982), linear_metric_epoch4 (JP=0.685), mahalanobis_metric_epoch4 (JP=0.678), hybrid_stabilized_epoch1 (JP=0.666), cited_decisions_tfidf (JP=0.616), hybrid_cited_0.3 (JP=0.955). Negative results preserved: citation role overclustering artifacts, pretrained legal embeddings language-dominated, v5 signal ablation hybrids fail on full corpus. Two new experiment scripts added (CPU-reduced finetune, out-of-sample generalization test) but neither has produced complete results — code is sound but execution incomplete. No regressions, no unsupported claims, no leakage detected."
+}
