@@ -499,7 +499,7 @@ def test_hierarchical_leiden():
     modes = api.get_map_modes()
     hl_mode = next((m for m in modes if m["name"] == "hierarchical_leiden"), None)
     assert hl_mode is not None, "hierarchical_leiden not in map modes"
-    assert hl_mode["label"] == "Hierarchical Leiden"
+    assert hl_mode["label"] == "Multi-Resolution Leiden (Flat)"
     print(f"  Map mode label: {hl_mode['label']}")
     
     print("  PASS\n")
@@ -591,7 +591,7 @@ def test_true_hierarchical_leiden():
     modes = api.get_map_modes()
     thl_mode = next((m for m in modes if m["name"] == "true_hierarchical_leiden"), None)
     assert thl_mode is not None, "true_hierarchical_leiden not in map modes"
-    assert thl_mode["label"] == "True Hierarchical Leiden"
+    assert thl_mode["label"] == "True Hierarchical Leiden (127 clusters)"
     print(f"  Map mode label: {thl_mode['label']}")
 
     print("  PASS\n")

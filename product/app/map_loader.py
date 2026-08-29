@@ -106,6 +106,17 @@ class MapLoader:
         # Load legal_issues_outcomes (legal-specific signal from legal_signals)
         self._load_legal_issues_outcomes()
 
+        # Load new ACCEPTED representations from legal-distance lane (factory direction v9)
+        self._load_linear_metric_best()
+        self._load_mahalanobis_best()
+        self._load_cited_decisions_tfidf()
+        self._load_hybrid_cited_decisions_0_3()
+        self._load_hybrid_cited_decisions_0_5()
+        self._load_hybrid_cited_decisions_0_7()
+        self._load_cited_decisions_tfidf_hybrid_cp64_0_3()
+        self._load_cited_decisions_tfidf_hybrid_cp64_0_5()
+        self._load_cited_decisions_tfidf_hybrid_cp64_0_7()
+
         self._loaded = True
         return len(self.maps)
 
@@ -2829,3 +2840,319 @@ class MapLoader:
             Dict with coherence metrics for each coarse cluster
         """
         return self._fractal_map_metadata.get("zoom_coherence", {}).get(mapping_key, {})
+
+    def _load_fractal_map_clustering_for_representation(self, mode_dir: Path, decision_ids: List[str], n_decisions: int, positions: Dict[str, Tuple[float, float]], mode_name: str, projection_2d: np.ndarray = None) -> Dict[int, ZoomLevel]:
+        """Load clustering artifacts from fractal-map lane's validated artifacts for a new representation.
+        
+        This is a simplified version of _load_fractal_map_clustering that works with
+        the new representations built by build_all_representations.py which have:
+        - labels_res_0.25.npy through labels_res_3.0.npy (7 resolution levels)
+        - cluster_metadata.json
+        - zoom_mappings.json
+        - decision_clusters.json
+        - zoom_coherence.json
+        - metadata.json
+        """
+        resolution_keys = ["0.25", "0.5", "0.75", "1.0", "1.5", "2.0", "3.0"]
+        resolution_to_zoom = {
+            "0.25": 0, "0.5": 1, "0.75": 2, "1.0": 3,
+            "1.5": 4, "2.0": 5, "3.0": 6
+        }
+        
+        # Load cluster metadata
+        cluster_metadata = {}
+        if (mode_dir / "cluster_metadata.json").exists():
+            with open(mode_dir / "cluster_metadata.json", "r") as f:
+                cluster_metadata = json.load(f)
+        
+        # Load zoom mappings
+        zoom_mappings = {}
+        if (mode_dir / "zoom_mappings.json").exists():
+            with open(mode_dir / "zoom_mappings.json", "r") as f:
+                zoom_mappings = json.load(f)
+        
+        # Load decision clusters
+        decision_clusters = {}
+        if (mode_dir / "decision_clusters.json").exists():
+            with open(mode_dir / "decision_clusters.json", "r") as f:
+                decision_clusters = json.load(f)
+        
+        # Load zoom coherence
+        zoom_coherence = {}
+        if (mode_dir / "zoom_coherence.json").exists():
+            with open(mode_dir / "zoom_coherence.json", "r") as f:
+                zoom_coherence = json.load(f)
+        
+        # Load label arrays for each resolution
+        labels_by_resolution = {}
+        for res_key in resolution_keys:
+            label_file = mode_dir / f"labels_res_{res_key}.npy"
+            if label_file.exists():
+                labels_by_resolution[res_key] = np.load(label_file)
+        
+        # Build zoom levels from cluster metadata and labels
+        index_to_id = {i: m for i, m in enumerate(decision_ids)}
+        
+        zoom_levels = {}
+        
+        for res_key, zoom_level in resolution_to_zoom.items():
+            meta_key = f"res_{res_key}"
+            if meta_key not in cluster_metadata:
+                continue
+            
+            res_metadata = cluster_metadata[meta_key]
+            labels = labels_by_resolution.get(res_key)
+            
+            if labels is None:
+                continue
+            
+            # Build cluster assignments from labels
+            cluster_assignments = {}
+            for idx, label in enumerate(labels):
+                did = index_to_id.get(idx)
+                if did:
+                    cluster_assignments[did] = int(label)
+            
+            # Build cluster info from metadata
+            clusters = {}
+            for cid_str, cluster_data in res_metadata.items():
+                cid = int(cid_str)
+                decision_indices = cluster_data.get("decision_indices", [])
+                decision_ids_in_cluster = [decision_ids[i] for i in decision_indices if i < len(decision_ids)]
+                
+                clusters[cid] = ClusterInfo(
+                    cluster_id=cid,
+                    zoom_level=zoom_level,
+                    decision_ids=decision_ids_in_cluster,
+                    size=cluster_data.get("size", 0),
+                    centroid_x=0.0,
+                    centroid_y=0.0,
+                    legal_area_label=cluster_data.get("dominant_area"),
+                    language_label=cluster_data.get("dominant_lang"),
+                )
+            
+            # Compute centroids from positions
+            for cid, cluster in clusters.items():
+                xs = [positions[did][0] for did in cluster.decision_ids if did in positions]
+                ys = [positions[did][1] for did in cluster.decision_ids if did in positions]
+                if xs and ys:
+                    cluster.centroid_x = sum(xs) / len(xs)
+                    cluster.centroid_y = sum(ys) / len(ys)
+            
+            zoom_levels[zoom_level] = ZoomLevel(
+                level=zoom_level,
+                n_clusters=len(clusters),
+                clusters=clusters,
+                positions=positions,
+                cluster_assignments=cluster_assignments,
+                n_decisions=n_decisions,
+            )
+        
+        # Store fractal map metadata for API access
+        self._fractal_map_metadata[mode_name] = {
+            "cluster_metadata": cluster_metadata,
+            "zoom_mappings": zoom_mappings,
+            "decision_clusters": decision_clusters,
+            "zoom_coherence": zoom_coherence,
+        }
+        
+        return zoom_levels
+
+    def _load_new_representation(self, name: str, display_name: str, description: str, evidence_tier: str, benchmark_results: Dict, zoom_levels: int = 7) -> None:
+        """Generic loader for new representations built by build_all_representations.py."""
+        rep_dir = self.results_dir / name
+        baseline_dir = self.results_dir / "baseline"
+        
+        if not (rep_dir / "metadata.json").exists():
+            return
+        if not (rep_dir / "projection_2d.npy").exists():
+            return
+        if not (rep_dir / "embeddings.npy").exists():
+            return
+        if not (baseline_dir / "metadata.json").exists():
+            return
+        
+        # Load metadata (same decision order as baseline)
+        with open(baseline_dir / "metadata.json", "r") as f:
+            metadata = json.load(f)
+        
+        decision_ids = [m["decision_id"] for m in metadata]
+        n_decisions = len(decision_ids)
+        
+        # Load 2D projection
+        projection = np.load(rep_dir / "projection_2d.npy")
+        
+        # Build positions mapping
+        positions = {}
+        for i, did in enumerate(decision_ids):
+            if i < len(projection):
+                positions[did] = (float(projection[i, 0]), float(projection[i, 1]))
+        
+        # Load fractal-map validated clustering
+        zoom_levels_dict = self._load_fractal_map_clustering_for_representation(
+            rep_dir, decision_ids, n_decisions, positions, name
+        )
+        
+        if not zoom_levels_dict:
+            return
+        
+        # Load representation-specific metadata
+        with open(rep_dir / "metadata.json", "r") as f:
+            rep_metadata = json.load(f)
+        
+        self.maps[name] = MapState(
+            representation=name,
+            n_decisions=n_decisions,
+            zoom_levels=zoom_levels_dict,
+            metadata={
+                "display_name": display_name,
+                "description": description,
+                "evidence_tier": evidence_tier,
+                "benchmark_results": benchmark_results,
+                "clustering_method": "Hierarchical Leiden (coarse_0.5_fine_3.0) - fractal-map validated",
+                "config": "coarse_0.5_fine_3.0_k15",
+                "n_zoom_levels": len(zoom_levels_dict),
+                "note": description + f" Uses fractal-map validated {len(zoom_levels_dict)}-resolution hierarchical clustering.",
+            },
+        )
+
+    def _load_linear_metric_best(self) -> None:
+        """Load linear metric learning representation (ACCEPTED - evaluation v3).
+        
+        Best epoch 4: JP=0.6847, LangDom=0.6802, both gates PASS.
+        Coarse purity: 0.9541, Fine purity: 0.9754, Legal area NMI: 0.5921.
+        """
+        self._load_new_representation(
+            name="linear_metric_best",
+            display_name="Cross-Lingual Legal (Linear Metric)",
+            description="Linear metric learning on center_projected (epoch 4 best): improves cross-lingual alignment while preserving legal structure. JP=0.6847, LangDom=0.6802.",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "jurist_pairwise": 0.6847,
+                "language_dominance": 0.6802,
+                "both_gates_pass": True,
+            }
+        )
+
+    def _load_mahalanobis_best(self) -> None:
+        """Load mahalanobis metric learning representation (ACCEPTED - evaluation v3).
+        
+        Best epoch 4: JP=0.6781, LangDom=0.6840, both gates PASS.
+        Coarse purity: 0.9392, Fine purity: 0.9746, Legal area NMI: 0.5944.
+        """
+        self._load_new_representation(
+            name="mahalanobis_best",
+            display_name="Cross-Lingual Legal (Mahalanobis Metric)",
+            description="Mahalanobis metric learning on center_projected (epoch 4 best): learns a full metric for language-invariant legal proximity. JP=0.6781, LangDom=0.6840.",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "jurist_pairwise": 0.6781,
+                "language_dominance": 0.6840,
+                "both_gates_pass": True,
+            }
+        )
+
+    def _load_cited_decisions_tfidf(self) -> None:
+        """Load cited_decisions_tfidf representation (ACCEPTED - evaluation v3).
+        
+        Zero-shot TF-IDF on cited decisions only: JP=0.6889, LangDom=0.6117, both gates PASS.
+        BEST zero-shot representation. Best for citation-proximity navigation.
+        """
+        self._load_new_representation(
+            name="cited_decisions_tfidf",
+            display_name="Doctrinal Lineage (Cited Decisions TF-IDF)",
+            description="TF-IDF on cited decisions only (zero-shot): captures doctrinal lineage via citation overlap. JP=0.6889, LangDom=0.6117. BEST zero-shot representation.",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "jurist_pairwise": 0.6889,
+                "language_dominance": 0.6117,
+                "both_gates_pass": True,
+            }
+        )
+
+    def _load_hybrid_cited_decisions_0_3(self) -> None:
+        """Load hybrid alpha=0.3 (30% center_projected, 70% cited_decisions)."""
+        self._load_new_representation(
+            name="hybrid_cited_decisions_0.3",
+            display_name="Citation-Proximity Blend (α=0.3)",
+            description="Hybrid: 30% center_projected (language-invariant) + 70% cited_decisions_tfidf (citation-proximity). JP=0.5254, LangDom=0.7604.",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "jurist_pairwise": 0.5254,
+                "language_dominance": 0.7604,
+                "both_gates_pass": True,
+            }
+        )
+
+    def _load_hybrid_cited_decisions_0_5(self) -> None:
+        """Load hybrid alpha=0.5 (50% center_projected, 50% cited_decisions)."""
+        self._load_new_representation(
+            name="hybrid_cited_decisions_0.5",
+            display_name="Balanced Citation-Legal Blend (α=0.5)",
+            description="Hybrid: 50% center_projected (language-invariant) + 50% cited_decisions_tfidf (citation-proximity). JP=0.6105, LangDom=0.7062.",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "jurist_pairwise": 0.6105,
+                "language_dominance": 0.7062,
+                "both_gates_pass": True,
+            }
+        )
+
+    def _load_hybrid_cited_decisions_0_7(self) -> None:
+        """Load hybrid alpha=0.7 (70% center_projected, 30% cited_decisions)."""
+        self._load_new_representation(
+            name="hybrid_cited_decisions_0.7",
+            display_name="Legal-Invariant Blend (α=0.7)",
+            description="Hybrid: 70% center_projected (language-invariant) + 30% cited_decisions_tfidf (citation-proximity). JP=0.6764, LangDom=0.6477.",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "jurist_pairwise": 0.6764,
+                "language_dominance": 0.6477,
+                "both_gates_pass": True,
+            }
+        )
+
+    def _load_cited_decisions_tfidf_hybrid_cp64_0_3(self) -> None:
+        """Load cp64 hybrid alpha=0.3 (30% center_projected_64dim, 70% cited_decisions_tfidf)."""
+        self._load_new_representation(
+            name="cited_decisions_tfidf_hybrid_cp64_0.3",
+            display_name="Production Hybrid CP64 (α=0.3)",
+            description="Hybrid: 30% center_projected_64dim + 70% cited_decisions_tfidf (PCA-64D). JP=0.5346, LangDom=0.7483.",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "jurist_pairwise": 0.5346,
+                "language_dominance": 0.7483,
+                "both_gates_pass": True,
+            }
+        )
+
+    def _load_cited_decisions_tfidf_hybrid_cp64_0_5(self) -> None:
+        """Load cp64 hybrid alpha=0.5 (50% center_projected_64dim, 50% cited_decisions_tfidf)."""
+        self._load_new_representation(
+            name="cited_decisions_tfidf_hybrid_cp64_0.5",
+            display_name="Production Hybrid CP64 (α=0.5)",
+            description="Hybrid: 50% center_projected_64dim + 50% cited_decisions_tfidf (PCA-64D). JP=0.6280, LangDom=0.6838.",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "jurist_pairwise": 0.6280,
+                "language_dominance": 0.6838,
+                "both_gates_pass": True,
+            }
+        )
+
+    def _load_cited_decisions_tfidf_hybrid_cp64_0_7(self) -> None:
+        """Load cp64 hybrid alpha=0.7 (70% center_projected_64dim, 30% cited_decisions_tfidf).
+        
+        BEST production hybrid per factory direction v9.
+        """
+        self._load_new_representation(
+            name="cited_decisions_tfidf_hybrid_cp64_0.7",
+            display_name="BEST Production Hybrid CP64 (α=0.7)",
+            description="Hybrid: 70% center_projected_64dim + 30% cited_decisions_tfidf (PCA-64D). JP=0.6614, LangDom=0.6518. BEST production hybrid per factory direction.",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "jurist_pairwise": 0.6614,
+                "language_dominance": 0.6518,
+                "both_gates_pass": True,
+            }
+        )

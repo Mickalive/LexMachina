@@ -763,18 +763,54 @@ class NavigationAPI:
         }
 
     def get_map_modes(self) -> List[Dict[str, Any]]:
-        """Get available map modes (section-based views)."""
+        """Get available map modes (section-based views and representations)."""
         if not self._initialized:
             return []
+
+        # Display names for representations
+        display_names = {
+            "concat_center_tfidf": "Combined Legal + Semantic",
+            "baseline": "Semantic Embedding (Baseline)",
+            "hdbscan": "HDBSCAN Clustering",
+            "hierarchical_leiden": "Multi-Resolution Leiden (Flat)",
+            "true_hierarchical_leiden": "True Hierarchical Leiden (127 clusters)",
+            "fractal_map_7res": "7-Resolution Fractal Map",
+            "debiased_citation_blended": "Citation-Blended (Eval Default)",
+            "legal_cited_decisions": "Doctrinal Lineage (Cited TF-IDF)",
+            "center_projected": "Language-Debiased (768-dim)",
+            "center_projected_hierarchical": "Language-Debiased Hierarchical (768-dim)",
+            "center_projected_64dim_hierarchical": "Language-Debiased Hierarchical (64-dim) ★ DEFAULT",
+            "hybrid_alpha_0_3": "Hybrid: Citation + Legal (30/70)",
+            "hybrid_alpha_0_5": "Hybrid: Citation + Legal (50/50)",
+            "legal_issues_outcomes": "Legal Issues & Outcomes",
+            "linear_metric_best": "Cross-Lingual Legal (Linear Metric)",
+            "mahalanobis_best": "Cross-Lingual Legal (Mahalanobis Metric)",
+            "cited_decisions_tfidf": "Doctrinal Lineage (Cited Decisions TF-IDF)",
+            "hybrid_cited_decisions_0.3": "Citation-Proximity Blend (α=0.3)",
+            "hybrid_cited_decisions_0.5": "Balanced Citation-Legal Blend (α=0.5)",
+            "hybrid_cited_decisions_0.7": "Legal-Invariant Blend (α=0.7)",
+            "cited_decisions_tfidf_hybrid_cp64_0.3": "Production Hybrid CP64 (α=0.3)",
+            "cited_decisions_tfidf_hybrid_cp64_0.5": "Production Hybrid CP64 (α=0.5)",
+            "cited_decisions_tfidf_hybrid_cp64_0.7": "BEST Production Hybrid CP64 (α=0.7) ★",
+        }
+
+        # Evidence tier info
+        evidence_tiers = {}
+        for rep in self.map_loader.get_available_representations():
+            m = self.map_loader.get_map(rep)
+            if m:
+                evidence_tiers[rep] = m.metadata.get("evidence_tier", "UNKNOWN")
 
         # Base representation modes
         base_modes = [
             {
                 "name": rep,
-                "label": rep.replace("_", " ").title(),
-                "description": f"Standard embedding projection: {rep}",
+                "label": display_names.get(rep, rep.replace("_", " ").title()),
+                "description": self._get_representation_description(rep),
                 "type": "representation",
+                "evidence_tier": evidence_tiers.get(rep, "UNKNOWN"),
                 "n_decisions": self.map_loader.get_stats(rep).get("n_decisions", 0),
+                "zoom_levels": len(self.map_loader.get_zoom_levels(rep)),
             }
             for rep in self.map_loader.get_available_representations()
         ]
@@ -783,6 +819,35 @@ class NavigationAPI:
         section_modes = self.section_modes.get_available_modes()
 
         return base_modes + section_modes
+
+    def _get_representation_description(self, rep: str) -> str:
+        """Get description for a representation."""
+        descriptions = {
+            "concat_center_tfidf": "Combined language-debiased semantic + TF-IDF on Erwaegungen sections. Baseline best performer.",
+            "baseline": "Raw multilingual semantic embeddings (paraphrase-multilingual-mpnet-base-v2).",
+            "hdbscan": "Density-based clustering (HDBSCAN) with varying min_cluster_size. Handles noise.",
+            "hierarchical_leiden": "Flat multi-resolution Leiden at resolutions 0.25→3.0. Not true hierarchical.",
+            "true_hierarchical_leiden": "TRUE hierarchical Leiden: coarse (res=0.5) then fine (res=3.0) within parents. Nesting=1.0, 127 fine clusters in 8 coarse. Branch purity 0.963 > flat Leiden 0.875.",
+            "fractal_map_7res": "7-resolution ladder (0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0) with legal coherence metrics. Hierarchical Leiden included as level 7.",
+            "debiased_citation_blended": "Evaluation default (14/14 PASS). PCA debiasing (n_pca=1) + citation graph embeddings (α=0.7). Citation heritage AUC 0.9102.",
+            "legal_cited_decisions": "ACCEPTED legal-distance signal (14/14 PASS). TF-IDF on cited decisions only. Citation heritage AUC 0.9719. Best for citation-proximity.",
+            "center_projected": "Language-debiased by removing 1st PCA component. Evaluation v2: ONLY passes BOTH adversarial gates (lang_dom=0.759, pairwise=0.522).",
+            "center_projected_hierarchical": "Hierarchical Leiden on pure center_projected. Nesting=1.0, purity=0.9638, 108 fine clusters in 7 coarse. LEGACY: 768-dim.",
+            "center_projected_64dim_hierarchical": "DEFAULT map mode. 64-dim frozen PCA of center_projected. Nesting=1.0, purity=0.9718. Evaluation v3: lang_dom=0.766, pairwise=0.512. BOTH gates PASS.",
+            "hybrid_alpha_0_3": "Hybrid: 30% center_projected + 70% legal_cited_decisions. EXPLORATORY.",
+            "hybrid_alpha_0_5": "Hybrid: 50% center_projected + 50% legal_cited_decisions. EXPLORATORY.",
+            "legal_issues_outcomes": "Legal-specific TF-IDF on statutes+cited+outcomes+legal_area. ACCEPTED with warnings (fails 4/14).",
+            "linear_metric_best": "ACCEPTED. Linear metric learning on center_projected (epoch 4). JP=0.6847, LangDom=0.680. Improves cross-lingual alignment.",
+            "mahalanobis_best": "ACCEPTED. Mahalanobis metric learning on center_projected (epoch 4). JP=0.6781, LangDom=0.684. Learns full metric.",
+            "cited_decisions_tfidf": "ACCEPTED. Zero-shot TF-IDF on cited decisions only. JP=0.6889, LangDom=0.612. BEST zero-shot representation.",
+            "hybrid_cited_decisions_0.3": "ACCEPTED. 30% center_projected + 70% cited_decisions_tfidf. JP=0.525, LangDom=0.760.",
+            "hybrid_cited_decisions_0.5": "ACCEPTED. 50% center_projected + 50% cited_decisions_tfidf. JP=0.611, LangDom=0.706.",
+            "hybrid_cited_decisions_0.7": "ACCEPTED. 70% center_projected + 30% cited_decisions_tfidf. JP=0.676, LangDom=0.648.",
+            "cited_decisions_tfidf_hybrid_cp64_0.3": "ACCEPTED. 30% center_projected_64dim + 70% cited_decisions_tfidf (PCA-64D). JP=0.535, LangDom=0.748.",
+            "cited_decisions_tfidf_hybrid_cp64_0.5": "ACCEPTED. 50% center_projected_64dim + 50% cited_decisions_tfidf (PCA-64D). JP=0.628, LangDom=0.684.",
+            "cited_decisions_tfidf_hybrid_cp64_0.7": "ACCEPTED. BEST production hybrid per factory direction. 70% center_projected_64dim + 30% cited_decisions_tfidf (PCA-64D). JP=0.661, LangDom=0.652.",
+        }
+        return descriptions.get(rep, f"Representation: {rep}")
 
     def get_citations(
         self, decision_id: str, direction: str = "both", limit: int = 50
