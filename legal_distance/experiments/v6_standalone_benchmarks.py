@@ -24,6 +24,20 @@ logger = logging.getLogger(__name__)
 OUTPUT_DIR = Path("/home/runner/work/LexMachina/LexMachina/legal_distance/results/v6/standalone_benchmarks")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+# Cached embeddings path for reproducibility
+CACHED_ST_EMBEDDINGS_FILE = Path("/home/runner/work/LexMachina/LexMachina/legal_distance/results/v6/cached_embeddings/st_embeddings_1200_paraphrase-multilingual-MiniLM-L12-v2_erwaegungen_2000.npy")
+
+def load_cached_st_embeddings() -> np.ndarray:
+    """Load pre-computed sentence transformer embeddings for reproducibility."""
+    if not CACHED_ST_EMBEDDINGS_FILE.exists():
+        raise FileNotFoundError(
+            f"Cached embeddings not found at {CACHED_ST_EMBEDDINGS_FILE}. "
+            f"Run cache_st_embeddings.py first."
+        )
+    embeddings = np.load(CACHED_ST_EMBEDDINGS_FILE)
+    logger.info(f"Loaded cached ST embeddings: {embeddings.shape}")
+    return embeddings
+
 # Chamber to branch mapping
 CHAMBER_TO_BRANCH = {
     "I. Öffentlich-rechtliche Abteilung": "oeffentliches_recht",
@@ -569,8 +583,7 @@ def jurivoc_hierarchy_alignment(embeddings: np.ndarray, metadata: List[Dict]) ->
 # ============================================================
 
 def load_canonical_corpus() -> Tuple[np.ndarray, List[Dict]]:
-    """Load the 1200-decision expanded corpus with sentence transformer embeddings."""
-    from sentence_transformers import SentenceTransformer
+    """Load the 1200-decision expanded corpus with CACHED sentence transformer embeddings for reproducibility."""
     
     corpus = []
     with open("/tmp/lex_accepted/evaluation/evaluation/data/bger_expanded_1200.jsonl", 'r', encoding='utf-8') as f:
@@ -586,9 +599,11 @@ def load_canonical_corpus() -> Tuple[np.ndarray, List[Dict]]:
         if 'branch' not in m:
             m['branch'] = assign_branch(m.get('chamber', ''))
     
-    model = SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
-    texts = [d.get('erwaegungen_text', '')[:2000] for d in corpus]
-    embeddings = model.encode(texts, show_progress_bar=True, batch_size=32)
+    # Load cached embeddings for reproducibility
+    embeddings = load_cached_st_embeddings()
+    
+    # Verify alignment
+    assert len(corpus) == embeddings.shape[0], f"Corpus size ({len(corpus)}) != embeddings size ({embeddings.shape[0]})"
     
     return embeddings, metadata
 

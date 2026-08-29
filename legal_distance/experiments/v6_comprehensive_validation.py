@@ -47,17 +47,21 @@ EXPANDED_METADATA_FILE = Path("/tmp/lex_accepted/evaluation/evaluation/data/bger
 BASELINE_EMBEDDINGS_FILE = Path("/tmp/lex_accepted/fractal-map/results/fractal_map/baseline/embeddings.npy")
 BASELINE_METADATA_FILE = Path("/tmp/lex_accepted/fractal-map/results/fractal_map/baseline/metadata.json")
 SIGNALS_FILE_V2 = Path("/home/runner/work/LexMachina/LexMachina/legal_distance/results/legal_signals_1000_v2.jsonl")
+CACHED_ST_EMBEDDINGS_FILE = Path("/home/runner/work/LexMachina/LexMachina/legal_distance/results/v6/cached_embeddings/st_embeddings_1200_paraphrase-multilingual-MiniLM-L12-v2_erwaegungen_2000.npy")
 OUTPUT_DIR = Path("/home/runner/work/LexMachina/LexMachina/legal_distance/results/v6/comprehensive_validation")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-# Load multilingual sentence transformer
-try:
-    from sentence_transformers import SentenceTransformer
-    EMBEDDING_MODEL = SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
-    logger.info("Loaded sentence transformer for embeddings")
-except ImportError:
-    EMBEDDING_MODEL = None
-    logger.warning("sentence_transformers not available")
+# Load cached sentence transformer embeddings for reproducibility
+def load_cached_st_embeddings() -> np.ndarray:
+    """Load pre-computed sentence transformer embeddings for reproducibility."""
+    if not CACHED_ST_EMBEDDINGS_FILE.exists():
+        raise FileNotFoundError(
+            f"Cached embeddings not found at {CACHED_ST_EMBEDDINGS_FILE}. "
+            f"Run cache_st_embeddings.py first."
+        )
+    embeddings = np.load(CACHED_ST_EMBEDDINGS_FILE)
+    logger.info(f"Loaded cached ST embeddings: {embeddings.shape}")
+    return embeddings
 
 # Chamber to branch mapping
 CHAMBER_TO_BRANCH = {
@@ -148,23 +152,8 @@ def create_center_projected(embeddings: np.ndarray, metadata: List[Dict]) -> np.
 
 
 def compute_sentence_transformer_embeddings(corpus: List[Dict]) -> np.ndarray:
-    """Compute sentence transformer embeddings for the corpus."""
-    if EMBEDDING_MODEL is None:
-        raise RuntimeError("sentence_transformers not available")
-    
-    # Combine title + erwaegungen_text for embedding
-    texts = []
-    for d in corpus:
-        # Use the first part of erwaegungen_text as representative
-        text = d.get('erwaegungen_text', '')[:2000]  # Limit length
-        if not text:
-            text = d.get('decision_id', '')
-        texts.append(text)
-    
-    logger.info(f"Computing embeddings for {len(texts)} decisions...")
-    embeddings = EMBEDDING_MODEL.encode(texts, show_progress_bar=True, batch_size=32)
-    logger.info(f"Embeddings shape: {embeddings.shape}")
-    return embeddings
+    """Load pre-computed sentence transformer embeddings for reproducibility."""
+    return load_cached_st_embeddings()
 
 
 def build_cited_decisions_tfidf(signals: Dict[str, Any], metadata: List[Dict], max_features: int = 5000) -> np.ndarray:
