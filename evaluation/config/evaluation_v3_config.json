@@ -1,0 +1,71 @@
+{
+  "version": "v3",
+  "description": "Evaluation v3 harness configuration - paths configurable via environment variables or this config file",
+  "factory_direction_version": 6,
+  "global_seed": 42,
+  "paths": {
+    "metadata": {
+      "primary": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v5/center_projected_full/metadata.json",
+      "fallback_local": "evaluation/data/bger_expanded_1200_metadata.jsonl",
+      "description": "1200-decision expanded slice metadata. Primary from accepted lane, fallback to local JSONL."
+    },
+    "center_projected_768": {
+      "primary": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v5/center_projected_full/embeddings_center_projected.npy",
+      "description": "768-dim center-projected embeddings (reference baseline)"
+    },
+    "center_projected_64": {
+      "primary": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v5/center_projected_full/embeddings_center_projected_64.npy",
+      "description": "64-dim frozen PCA of center-projected embeddings (production default)"
+    },
+    "linear_metric_epoch4": {
+      "primary": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v6/metric_learning/best_linear_embeddings.npy",
+      "description": "Best linear projection metric learning embeddings (JP=0.6847)"
+    },
+    "mahalanobis_metric_epoch4": {
+      "primary": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v6/metric_learning/best_mahalanobis_embeddings.npy",
+      "description": "Best Mahalanobis metric learning embeddings (JP=0.6781)"
+    },
+    "hybrid_stabilized_epoch1": {
+      "primary": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v6/hybrid_objective_stabilized/best_embeddings.npy",
+      "description": "Best stabilized hybrid objective embeddings (JP=0.6656)"
+    },
+    "hybrid_v2_epoch3": {
+      "primary": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v6/hybrid_objective_v2/best_embeddings.npy",
+      "description": "Best hybrid v2 objective embeddings (JP=0.5988)"
+    },
+    "fractal_map_hierarchical": {
+      "primary": "${LEX_ACCEPTED_ROOT}/fractal-map/fractal_map/hierarchical",
+      "env_var": "LEX_FRACTAL_MAP_PATH",
+      "description": "Hierarchical Leiden module for fractal quality benchmarks"
+    },
+    "jurivoc_hierarchy": {
+      "primary": "${LEX_ACCEPTED_ROOT}/corpus/results/jurivoc/hierarchy.json",
+      "env_var": "LEX_JURIVOC_PATH",
+      "description": "Jurivoc hierarchy JSON for alignment evaluation"
+    }
+  },
+  "adversarial_thresholds": {
+    "language_dominance": 0.85,
+    "jurist_pairwise": 0.5,
+    "cross_lang_recall": 0.2,
+    "cluster_coherence": 0.7
+  },
+  "benchmark_parameters": {
+    "k_neighbors_lang_dom": 20,
+    "k_neighbors_jurist": 10,
+    "k_neighbors_cross_lang": 10,
+    "n_clusters_coherence": 16
+  },
+  "source_run_ids": {
+    "center_projected_v5": "v5_center_projected_full",
+    "metric_learning_v6": "v6_metric_learning",
+    "hybrid_stabilized_v6": "v6_hybrid_objective_stabilized",
+    "hybrid_v2_v6": "v6_hybrid_objective_v2"
+  },
+  "regeneration_instructions": {
+    "metadata": "Run: python evaluation/create_expanded_slice.py --output evaluation/data/bger_expanded_1200_metadata.jsonl --size 1200",
+    "center_projected": "Run legal-distance lane v5 pipeline: python legal_distance/run_v5_center_projected.py --slice-size 1200 --output-dir legal_distance/results/v5/center_projected_full",
+    "metric_learning": "Run legal-distance lane v6 metric learning: python legal_distance/run_metric_learning.py --base-embeddings legal_distance/results/v5/center_projected_full/embeddings_center_projected.npy --output-dir legal_distance/results/v6/metric_learning",
+    "hybrid_objectives": "Run legal-distance lane v6 hybrid objectives: python legal_distance/run_hybrid_objectives.py --base-embeddings legal_distance/results/v5/center_projected_full/embeddings_center_projected.npy --output-dir legal_distance/results/v6"
+  }
+}
