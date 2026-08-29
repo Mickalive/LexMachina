@@ -1,0 +1,94 @@
+{
+  "lane": "fractal-map",
+  "direction_version": 7,
+  "github_run": "33267271679",
+  "timestamp": "2026-08-29T18:15:00Z",
+  "audit_verdict": "PASS",
+  "operational_resume_from": "33266824102",
+  "verification": {
+    "tests_total": 48,
+    "tests_passed": 48,
+    "tests_failed": 0,
+    "test_file": "tests/fractal_map/test_verify.py"
+  },
+  "loader_api": {
+    "modes_tested": 12,
+    "modes_passed": 12,
+    "modes": [
+      "center_projected_hierarchical (default)",
+      "hierarchical_leiden_concat (legacy)",
+      "debiased_citation_blended",
+      "legal_cited_decisions_only",
+      "hybrid_alpha_03",
+      "hybrid_alpha_05",
+      "legal_issues_outcomes",
+      "linear_metric_epoch4",
+      "mahalanobis_metric_epoch4",
+      "cited_decisions_tfidf",
+      "hybrid_cited_0.3",
+      "center_projected (placeholder)"
+    ]
+  },
+  "mirroring": {
+    "path": "/tmp/lex_accepted/fractal_map/",
+    "artifacts": 345,
+    "state_file_synced": true
+  },
+  "v7_requirements": {
+    "center_projected_hierarchical_default": {
+      "status": "SATISFIED",
+      "nesting": 1.0,
+      "purity": 0.9571,
+      "zoom_coherence_per_fine_cluster": 0.6296,
+      "resolution_ladder": 7,
+      "n_hierarchical_clusters": 108
+    },
+    "linear_metric_epoch4": {
+      "status": "SATISFIED",
+      "hierarchical_purity": 0.9868,
+      "n_hierarchical_clusters": 106,
+      "jurist_preference": 0.6847,
+      "language_dominance": 0.6802,
+      "adversarial_both_pass": true
+    },
+    "mahalanobis_metric_epoch4": {
+      "status": "SATISFIED",
+      "hierarchical_purity": 0.9861,
+      "n_hierarchical_clusters": 111,
+      "jurist_preference": 0.6781,
+      "language_dominance": 0.684,
+      "adversarial_both_pass": true
+    },
+    "cited_decisions_tfidf": {
+      "status": "SATISFIED",
+      "hierarchical_purity": 0.7967,
+      "n_hierarchical_clusters": 353,
+      "jurist_preference": 0.6889,
+      "language_dominance": 0.6086,
+      "adversarial_both_pass": true,
+      "note": "Highest jurist preference and best language invariance of ALL representations"
+    },
+    "hybrid_cited_0.3": {
+      "status": "SATISFIED",
+      "hierarchical_purity": 0.9570,
+      "n_hierarchical_clusters": 136,
+      "jurist_preference": 0.955,
+      "language_dominance": 0.543,
+      "adversarial_both_pass": true,
+      "note": "Best balance hybrid; jurist preference near ceiling"
+    },
+    "resolution_ladder_exposed": true,
+    "cluster_metadata_available": true,
+    "legal_coherence_at_zoom": true,
+    "default_map_structure_integrated": true,
+    "legal_distance_selectable_modes": 9
+  },
+  "known_limitations": [
+    "Boilerplate resistance NEGATIVE for ALL representations (systematic limitation)",
+    "cited_decisions_tfidf high cluster count (353) reduces hierarchical purity metric despite best JP/lang_dom",
+    "Full corpus scaling (192k decisions) not yet performed; current validation on 1000-decision slice",
+    "hybrid_alpha_03, hybrid_alpha_05 fail adversarial_falsification benchmark",
+    "legal_issues_outcomes fails multilingual_invariance and adversarial_falsification benchmarks"
+  ],
+  "recommendation": "PRODUCTIZE"
+}
