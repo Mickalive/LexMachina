@@ -1,0 +1,103 @@
+{
+  "lane": "fractal-map",
+  "direction_version": 9,
+  "github_run": "33275762305",
+  "operational_resume_from": "33274467725",
+  "timestamp": "2026-08-29T21:45:00Z",
+  "audit_verdict": "PASS",
+  "cycle_status": "COMPLETED",
+  "continue_recommended": false,
+  "next_recommendation": "PRODUCTIZE",
+  "evidence_tier": "REPRODUCED",
+  "diagnosis": "Orchestration gap: /tmp/lex_accepted/fractal_map/ mirroring lost due to ephemeral storage volatility between GitHub runs. This is an orchestration completeness gap (environment volatility), NOT a scientific failure.",
+  "root_cause": "/tmp is ephemeral storage; accepted branch mirroring must be re-established as first step of every operational resume.",
+  "resolution": "Re-established /tmp/lex_accepted/fractal_map/ mirroring from validated source (348 artifacts confirmed). All 51 verification tests PASS. Loader API validated across all 12 modes (1 default + 9 legal-distance + 1 legacy + 1 placeholder). State file consistency verified (diff clean). Updated map_mode_registry with hierarchical artifacts for 4 v7 modes (linear_metric_epoch4, mahalanobis_metric_epoch4, cited_decisions_tfidf, hybrid_cited_0.3).",
+  "verification_results": {
+    "total_tests": 51,
+    "passed": 51,
+    "failed": 0,
+    "test_classes": {
+      "TestArtifactIntegrity": 14,
+      "TestHierarchicalLeiden": 6,
+      "TestMetricConsistency": 7,
+      "TestLegacyConcatPreserved": 10,
+      "TestLegalDistanceModes": 14
+    }
+  },
+  "loader_api_verification": {
+    "total_modes": 12,
+    "modes_loaded": 12,
+    "default_mode": "center_projected_hierarchical",
+    "v7_modes_with_hierarchical_artifacts": 4,
+    "artifacts_mirrored": 348
+  },
+  "v7_deliverables_confirmed": {
+    "center_projected_hierarchical": {
+      "status": "DEFAULT",
+      "hierarchical_purity": 0.9571,
+      "nesting_score": 1.0,
+      "n_hierarchical_clusters": 108,
+      "adversarial_language_dominance": 0.7593,
+      "jurist_pairwise_preference": 0.5215,
+      "both_gates_pass": true
+    },
+    "linear_metric_epoch4": {
+      "status": "AVAILABLE",
+      "hierarchical_purity": 0.9868,
+      "n_hierarchical_clusters": 106,
+      "jurist_preference": 0.6847,
+      "language_dominance": 0.6802,
+      "both_gates_pass": true
+    },
+    "mahalanobis_metric_epoch4": {
+      "status": "AVAILABLE",
+      "hierarchical_purity": 0.9861,
+      "n_hierarchical_clusters": 111,
+      "jurist_preference": 0.6781,
+      "language_dominance": 0.6840,
+      "both_gates_pass": true
+    },
+    "cited_decisions_tfidf": {
+      "status": "AVAILABLE",
+      "hierarchical_purity": 0.7967,
+      "n_hierarchical_clusters": 353,
+      "jurist_preference": 0.6889,
+      "language_dominance": 0.6086,
+      "both_gates_pass": true
+    },
+    "hybrid_cited_0.3": {
+      "status": "AVAILABLE",
+      "hierarchical_purity": 0.9570,
+      "n_hierarchical_clusters": 136,
+      "jurist_preference": 0.955,
+      "language_dominance": 0.543,
+      "both_gates_pass": true
+    }
+  },
+  "factory_direction_v7_requirements": {
+    "reproduce_hierarchical_leiden_center_projected_default": "SATISFIED",
+    "extend_linear_metric_epoch4_hierarchical": "SATISFIED",
+    "extend_mahalanobis_metric_epoch4_hierarchical": "SATISFIED",
+    "extend_cited_decisions_tfidf_hierarchical": "SATISFIED",
+    "extend_hybrid_cited_0.3_hierarchical": "SATISFIED",
+    "all_4_v7_modes_pass_both_adversarial_gates": "SATISFIED",
+    "expose_resolution_ladder": "SATISFIED",
+    "cluster_metadata_legal_coherence_per_zoom": "SATISFIED",
+    "integrate_as_default_with_legal_distance_selectable_modes": "SATISFIED"
+  },
+  "negative_results_preserved": [
+    "Boilerplate resistance NEGATIVE for ALL representations (systematic limitation)",
+    "cited_decisions_tfidf high cluster count (353) reduces hierarchical purity metric despite best JP/lang_dom",
+    "Full corpus scaling (192k decisions) not yet performed; current validation on 1000-decision slice (2020-2024)",
+    "hybrid_alpha_03, hybrid_alpha_05 fail adversarial_falsification benchmark",
+    "legal_issues_outcomes fails multilingual_invariance and adversarial_falsification benchmarks (plus citation_heritage and tf_metadata_human_indexing thresholds)",
+    "Zoom coherence methodology difference: per-resolution-step (31.1%) vs hierarchical_zoom_validation (63.0% for center_projected, 59.2% for concat baseline) — different methodologies, not directly comparable"
+  ],
+  "artifacts_produced_this_run": [
+    "Updated results/fractal_map/product_integration/map_mode_registry.py (added _ld_hierarchical_artifacts, updated 4 v7 modes)",
+    "Regenerated results/fractal_map/product_integration/map_mode_registry.json",
+    "Re-established /tmp/lex_accepted/fractal_map/ mirroring (348 artifacts)",
+    "Audit gate: results/audit/fractal-map/CYCLE_33275762305_GATE.json"
+  ],
+  "recommendation": "All factory direction v7 requirements are SATISFIED and FROZEN. The fractal-map lane should proceed to PRODUCTIZE. No further research cycles on the current question are justified."
+}

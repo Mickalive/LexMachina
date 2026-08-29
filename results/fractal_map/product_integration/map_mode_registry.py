@@ -83,7 +83,7 @@ def _cp_artifacts() -> Dict[str, str]:
 
 
 def _ld_artifacts(mode_id: str) -> Dict[str, str]:
-    """Generate artifact paths for a legal-distance mode."""
+    """Generate artifact paths for a legal-distance mode (flat resolutions only)."""
     base = f"{LEGAL_DISTANCE_ARTIFACTS_BASE}/{mode_id}"
     artifacts = {
         "cluster_metadata": f"{base}/cluster_metadata.json",
@@ -94,6 +94,15 @@ def _ld_artifacts(mode_id: str) -> Dict[str, str]:
     }
     for res in [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0]:
         artifacts[f"labels_res_{res}"] = f"{base}/labels_res_{res}.npy"
+    return artifacts
+
+
+def _ld_hierarchical_artifacts(mode_id: str) -> Dict[str, str]:
+    """Generate artifact paths for a legal-distance mode WITH hierarchical Leiden results."""
+    artifacts = _ld_artifacts(mode_id)
+    base = f"{LEGAL_DISTANCE_ARTIFACTS_BASE}/{mode_id}"
+    artifacts["labels_hierarchical_best"] = f"{base}/labels_hierarchical_best.npy"
+    artifacts["labels_coarse_0.5"] = f"{base}/labels_coarse_0.5.npy"
     return artifacts
 
 
@@ -451,7 +460,7 @@ MAP_MODES: Dict[str, MapModeSpec] = {
         status=MapModeStatus.AVAILABLE,
         is_default=False,
         resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
-        artifacts=_ld_artifacts("linear_metric_epoch4"),
+        artifacts=_ld_hierarchical_artifacts("linear_metric_epoch4"),
         metadata={
             "embedding_dim": 128,
             "evidence_tier": "ACCEPTED",
@@ -489,7 +498,7 @@ MAP_MODES: Dict[str, MapModeSpec] = {
         status=MapModeStatus.AVAILABLE,
         is_default=False,
         resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
-        artifacts=_ld_artifacts("mahalanobis_metric_epoch4"),
+        artifacts=_ld_hierarchical_artifacts("mahalanobis_metric_epoch4"),
         metadata={
             "embedding_dim": 128,
             "evidence_tier": "ACCEPTED",
@@ -527,7 +536,7 @@ MAP_MODES: Dict[str, MapModeSpec] = {
         status=MapModeStatus.AVAILABLE,
         is_default=False,
         resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
-        artifacts=_ld_artifacts("cited_decisions_tfidf"),
+        artifacts=_ld_hierarchical_artifacts("cited_decisions_tfidf"),
         metadata={
             "embedding_dim": 128,
             "evidence_tier": "ACCEPTED",
@@ -565,7 +574,7 @@ MAP_MODES: Dict[str, MapModeSpec] = {
         status=MapModeStatus.AVAILABLE,
         is_default=False,
         resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
-        artifacts=_ld_artifacts("hybrid_cited_0.3"),
+        artifacts=_ld_hierarchical_artifacts("hybrid_cited_0.3"),
         metadata={
             "embedding_dim": 768,
             "evidence_tier": "ACCEPTED",
