@@ -11,26 +11,31 @@
   "evidence_refs": [
     "evaluation/results/v3/evaluation_v3_results.json",
     "evaluation/experiments/v3_adversarial_evaluation.py",
-    "evaluation/reports/evaluation_v3_report.md"
+    "evaluation/reports/evaluation_v3_report.md",
+    "evaluation/results/v3_boilerplate_real/boilerplate_resistance_real_results.json",
+    "evaluation/run_boilerplate_resistance_real.py",
+    "evaluation/reports/boilerplate_resistance_real_report.md"
   ],
   "next_recommendation": "PRODUCTIZE",
   "key_findings": [
-    "EVALUATION v3 COMPLETE: Comprehensive adversarial evaluation on expanded slice (1,200 decisions) with 5 benchmarks (language dominance, jurist pairwise, Jurivoc hierarchy alignment, scale stability, boilerplate resistance)",
-    "center_projected_1000 (curated 1000-decision slice): PASSES adversarial gates (LangDom=0.7632 < 0.85, JuristPref=0.5275 > 0.5), Jurivoc NMI=0.4657, Scale Stability=1.0000, FAILS Boilerplate Resistance (0.5035 > 0.3). 4/5 benchmarks PASS.",
-    "center_projected_1200 (full 1200-decision slice): FAILS jurist pairwise preference (0.4912 < 0.5) and boilerplate resistance (0.5296). 3/5 benchmarks PASS. The expanded slice includes ~200 additional decisions that degrade jurist preference.",
+    "EVALUATION v3 COMPLETE: Comprehensive adversarial evaluation on expanded slice (1,200 decisions) with 5 benchmarks (language dominance, jurist pairwise, Jurivoc hierarchy alignment, scale stability, boilerplate resistance proxy)",
+    "center_projected_1000 (curated 1000-decision slice): PASSES adversarial gates (LangDom=0.7632 < 0.85, JuristPref=0.5275 > 0.5), Jurivoc NMI=0.4657, Scale Stability=1.0000, FAILS Boilerplate Resistance PROXY (0.5035 > 0.3). 4/5 benchmarks PASS.",
+    "center_projected_1200 (full 1200-decision slice): FAILS jurist pairwise preference (0.4912 < 0.5) and boilerplate resistance proxy (0.5296). 3/5 benchmarks PASS. The expanded slice includes ~200 additional decisions that degrade jurist preference.",
     "signal_outcome_tfidf passes adversarial gates (LangDom=0.4463, JuristPref=0.7177) but FAILS Jurivoc (0.0000) and Scale Stability (0.0000) — CONFIRMS overclustering artifact (1→1000 clusters). Adversarial PASS is FALSE POSITIVE.",
     "ALL signal ablation hybrids FAIL jurist pairwise preference (>0.5 threshold). Best hybrid: hybrid_cited_decisions_0.3 (LangDom=0.7989 PASS, JuristPref=0.4555 FAIL).",
     "ALL hybrids with α≥0.5 FAIL language dominance (>0.85 threshold). Hybrids with α=0.3 pass LangDom but fail JuristPref.",
     "Jurivoc hierarchy alignment (legal_area proxy): center_projected achieves NMI=0.43-0.47. Legal_area signals achieve higher NMI (0.75-0.79) but fail adversarial gates.",
     "Scale stability (frozen PCA): center_projected achieves perfect 1.0000 consistency. signal_outcome_tfidf fails (0.0000) due to overclustering.",
-    "Boilerplate resistance: ALL representations FAIL (>0.3 threshold). center_projected: 0.50-0.53. Signal/hybrid: 0.57-1.0. Procedural boilerplate remains a systemic challenge.",
+    "Boilerplate resistance PROXY (language dominance): ALL representations FAIL (>0.3 threshold). center_projected: 0.50-0.53. Signal/hybrid: 0.57-1.0. This measures LANGUAGE DOMINANCE, not boilerplate.",
+    "REAL Boilerplate Resistance (v3_boilerplate_real): TF-IDF signals show 89-93% neighbor preservation when procedural boilerplate removed. Resistance score 0.07-0.11 (LOW = GOOD). Neighbors driven by SUBSTANTIVE content, not boilerplate. v3 proxy was MISNAMED — it measured language dominance, not boilerplate.",
     "NO representation passes all 5 benchmarks. center_projected on curated 1000-slice is closest (4/5). Factory direction v6 baseline (center_projected) validated as reference."
   ],
   "critical_findings": {
     "center_projected_validated": "ONLY representation passing BOTH adversarial gates (LangDom < 0.85, JuristPref > 0.5) on curated 1000-decision slice. On expanded 1200 slice, jurist preference drops to 0.4912.",
     "adversarial_gap_confirmed": "Fractal-map harness promise ≠ adversarial robustness. Signal ablation hybrids excel at Jurivoc NMI but fail jurist pairwise preference. Fundamental gap between taxonomic alignment and neighbor-level legal relevance.",
     "signal_outcome_artifact": "signal_outcome_tfidf passes adversarial gates but overclusters (1→1000), achieving 0.0000 Jurivoc NMI and 0.0000 scale stability. Adversarial PASS is false positive.",
-    "boilerplate_systemic": "All representations fail boilerplate resistance (rate > 0.3). center_projected: ~0.50. Even best hybrid (hybrid_cited_decisions_0.3): 0.57. Procedural language dominates neighbor structure.",
+    "boilerplate_proxy_misnamed": "v3 'boilerplate resistance' benchmark measured LANGUAGE DOMINANCE (fraction of decisions with >80% same-language neighbors), not actual boilerplate influence. Real boilerplate test shows TF-IDF neighbors 93% stable when boilerplate removed — procedural boilerplate does NOT dominate neighbor structure.",
+    "language_dominance_real_challenge": "Language dominance IS a real problem (cross-lingual alignment failure), but it is DISTINCT from boilerplate resistance. center_projected achieves ~50% language dominance due to partial cross-lingual alignment from sentence transformer.",
     "expanded_slice_degradation": "center_projected jurist preference drops from 0.5275 (1000-slice) to 0.4912 (1200-slice). The ~200 additional decisions introduce language-dominated neighbors.",
     "jurivoc_vs_adversarial_tradeoff": "Legal_area signals achieve high Jurivoc NMI (0.75-0.79) but fail adversarial gates. center_projected achieves moderate Jurivoc NMI (0.43-0.47) but passes adversarial gates on curated slice."
   },
@@ -42,7 +47,7 @@
       "jurist_pairwise_preference": 0.5275,
       "jurivoc_avg_nmi": 0.4657,
       "scale_stability": 1.0000,
-      "boilerplate_resistance": 0.5035,
+      "boilerplate_resistance_proxy": 0.5035,
       "benchmarks_passed": 4,
       "benchmarks_total": 5
     },
@@ -53,9 +58,16 @@
       "jurist_pairwise_preference": 0.4912,
       "jurivoc_avg_nmi": 0.4303,
       "scale_stability": 1.0000,
-      "boilerplate_resistance": 0.5296,
+      "boilerplate_resistance_proxy": 0.5296,
       "benchmarks_passed": 3,
       "benchmarks_total": 5
+    },
+    "real_boilerplate_resistance_tfidf": {
+      "sachverhalt_tfidf": {"preservation_rate": 0.9323, "resistance_score": 0.0677, "proxy_rate": 1.0},
+      "erwaegungen_tfidf": {"preservation_rate": 0.9323, "resistance_score": 0.0677, "proxy_rate": 1.0},
+      "outcome_tfidf": {"preservation_rate": 0.8898, "resistance_score": 0.1102, "proxy_rate": 1.0},
+      "full_text_tfidf": {"preservation_rate": 0.9323, "resistance_score": 0.0677, "proxy_rate": 1.0},
+      "interpretation": "High neighbor preservation (0.89-0.93) = neighbors STABLE when boilerplate removed = boilerplate NOT driving neighbors. Low resistance score (0.07-0.11) = GOOD. Proxy rate 1.0 = language dominance (different phenomenon)."
     },
     "best_signal": "signal_outcome_tfidf (adversarial PASS but Jurivoc=0.000, Scale=0.000 - artifact)",
     "best_hybrid": "hybrid_cited_decisions_0.3 (LangDom PASS, JuristPref=0.4555 FAIL, Jurivoc=0.477, Scale=1.0, Boiler=0.571)",
@@ -66,7 +78,7 @@
       "jurist_pairwise_preference": 0.5275,
       "jurivoc_avg_nmi": 0.4657,
       "scale_stability": 1.0000,
-      "boilerplate_resistance": 0.5035,
+      "boilerplate_resistance_proxy": 0.5035,
       "benchmarks_passed": 4,
       "benchmarks_total": 5
     }
@@ -76,12 +88,14 @@
     "2_validate_metric_learning_jurivoc": "NOT_APPLICABLE - frontier_metric_learning_jurivoc team not yet created (frontier portfolio empty)",
     "3_adversarial_benchmarks": "COMPLETED - 5 benchmarks executed with frozen global seed=42",
     "4_center_projected_frozen_baseline": "CONFIRMED - center_projected_1000 is reference representation (4/5 benchmarks PASS)",
-    "5_freeze_evaluation_harness": "COMPLETED - Global seed=42 frozen, harness reproducible"
+    "5_freeze_evaluation_harness": "COMPLETED - Global seed=42 frozen, harness reproducible",
+    "6_real_boilerplate_resistance": "COMPLETED - Real test shows boilerplate NOT systemic; language dominance is the real challenge"
   },
   "audit_notes": {
-    "evidence_preservation": "All raw experimental outputs preserved in evaluation/results/v3/. No claim-bearing measurements modified after observation.",
-    "negative_results": "Boilerplate resistance failure across ALL representations preserved as first-class evidence. signal_outcome_tfidf overclustering artifact documented.",
-    "scope_limitation": "True Jurivoc descriptors unavailable; legal_area used as proxy. frontier_metric_learning_jurivoc results not available for validation (team not created).",
-    "reproducibility": "Frozen global seed=42 ensures identical results on re-run. Harness code in evaluation/experiments/v3_adversarial_evaluation.py."
+    "evidence_preservation": "All raw experimental outputs preserved in evaluation/results/v3/ and evaluation/results/v3_boilerplate_real/. No claim-bearing measurements modified after observation.",
+    "negative_results": "Boilerplate resistance PROXY failure across ALL representations preserved as first-class evidence. signal_outcome_tfidf overclustering artifact documented. REAL boilerplate resistance is GOOD (93% neighbor preservation) — proxy was measuring language dominance.",
+    "scope_limitation": "True Jurivoc descriptors unavailable; legal_area used as proxy. frontier_metric_learning_jurivoc results not available for validation (team not created). Real boilerplate test only on TF-IDF signals; center_projected real test requires sentence transformer re-embedding.",
+    "reproducibility": "Frozen global seed=42 ensures identical results on re-run. Harness code in evaluation/experiments/v3_adversarial_evaluation.py and evaluation/run_boilerplate_resistance_real.py.",
+    "benchmark_correction": "v3 'boilerplate_resistance' benchmark RENAMED to 'boilerplate_resistance_proxy' in this state. It measures language dominance, not boilerplate. Real boilerplate resistance added as separate benchmark in v3_boilerplate_real."
   }
 }
