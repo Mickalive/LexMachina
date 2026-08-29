@@ -233,6 +233,32 @@ def get_default_representation() -> str:
 class ProductHandler(SimpleHTTPRequestHandler):
     """HTTP handler for the LexMachina product."""
 
+    def _handle_cached(self, cache_key: str, func, ttl: int = CACHE_TTL):
+        """Handle cached endpoint with X-Cache header."""
+        cached_data = _response_cache.get(cache_key)
+        if cached_data is not None:
+            self.send_header("X-Cache", "HIT")
+            self._json_response(cached_data)
+            return
+        
+        self.send_header("X-Cache", "MISS")
+        original_json_response = self._json_response
+        captured_data = {}
+        
+        def capture_json_response(data, status=200):
+            captured_data['data'] = data
+            captured_data['status'] = status
+            original_json_response(data, status)
+        
+        self._json_response = capture_json_response
+        try:
+            func()
+        finally:
+            self._json_response = original_json_response
+        
+        if captured_data.get('status', 200) == 200:
+            _response_cache.set(cache_key, captured_data['data'], ttl)
+
     def do_GET(self):
         parsed = urlparse(self.path)
         path = parsed.path
@@ -283,16 +309,19 @@ class ProductHandler(SimpleHTTPRequestHandler):
         elif path == "/api/proximity":
             id_a = params.get("id_a", [""])[0]
             id_b = params.get("id_b", [""])[0]
-            self._json_response(get_nav_api().get_proximity_explanation(id_a, id_b))
+            self._handle_cached(f"proximity:{id_a}:{id_b}", 
+                lambda: self._json_response(get_nav_api().get_proximity_explanation(id_a, id_b)))
         elif path == "/api/cluster_coherence":
             default_rep = get_default_representation()
             rep = params.get("representation", [default_rep])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             cid = int(params.get("cluster_id", ["0"])[0])
-            self._json_response(get_nav_api().get_cluster_coherence(rep, zoom, cid))
+            self._handle_cached(f"cluster_coherence:{rep}:{zoom}:{cid}",
+                lambda: self._json_response(get_nav_api().get_cluster_coherence(rep, zoom, cid)))
         # New endpoints for this cycle
         elif path == "/api/zoom_coherence":
-            self._json_response(get_nav_api().get_zoom_coherence_summary())
+            self._handle_cached("zoom_coherence:summary",
+                lambda: self._json_response(get_nav_api().get_zoom_coherence_summary()))
         elif path == "/api/zoom_coherence/flat_baseline":
             self._json_response(get_nav_api().get_zoom_coherence_flat_baseline())
         elif path == "/api/cluster_language_analysis":
@@ -300,15 +329,18 @@ class ProductHandler(SimpleHTTPRequestHandler):
             rep = params.get("representation", [default_rep])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             cid = int(params.get("cluster_id", ["0"])[0])
-            self._json_response(get_nav_api().get_cluster_language_analysis(rep, zoom, cid))
+            self._handle_cached(f"cluster_language:{rep}:{zoom}:{cid}",
+                lambda: self._json_response(get_nav_api().get_cluster_language_analysis(rep, zoom, cid)))
         elif path == "/api/cross_language_neighbors":
             did = params.get("id", [""])[0]
             n = int(params.get("n", ["10"])[0])
-            self._json_response(get_nav_api().get_cross_language_neighbors(did, n))
+            self._handle_cached(f"cross_language:{did}:{n}",
+                lambda: self._json_response(get_nav_api().get_cross_language_neighbors(did, n)))
         elif path == "/api/text_similarity":
             id_a = params.get("id_a", [""])[0]
             id_b = params.get("id_b", [""])[0]
-            self._json_response(get_nav_api().get_text_similarity(id_a, id_b))
+            self._handle_cached(f"text_similarity:{id_a}:{id_b}",
+                lambda: self._json_response(get_nav_api().get_text_similarity(id_a, id_b)))
         elif path == "/api/evaluation/benchmarks":
             self._json_response(get_eval_loader().get_benchmarks())
         elif path == "/api/evaluation/representation_quality":
