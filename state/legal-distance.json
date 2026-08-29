@@ -1,21 +1,21 @@
 {
   "lane": "legal-distance",
   "direction_version": 6,
-  "evidence_tier": "REPRODUCED",
+  "evidence_tier": "ACCEPTED",
   "cycle_status": "COMPLETED",
   "continue_recommended": true,
-  "accepted_run_id": "hybrids_adversarial_test_20260829",
+  "accepted_run_id": "comprehensive_validation_20260829",
   "evidence_refs": [
-    "legal_distance/results/v6/hybrids_adversarial_test/hybrids_adversarial_test_all_results.json",
-    "legal_distance/experiments/v6_test_hybrids_adversarial.py",
-    "legal_distance/reports/v6_hybrids_adversarial_test_report.md"
+    "legal_distance/results/v6/comprehensive_validation/comprehensive_validation_all_results.json",
+    "legal_distance/experiments/v6_comprehensive_validation.py",
+    "reports/legal-distance/v6_comprehensive_validation_report.md"
   ],
-  "next_recommendation": "center_projected jurist preference discrepancy must be resolved. cited_decisions_tfidf is a NEW candidate passing BOTH adversarial gates with meaningful hierarchical structure. Next cycle: (1) Fix metadata alignment for adversarial benchmarks; (2) Validate cited_decisions_tfidf on full 16-benchmark suite; (3) Test cited_decisions_tfidf hybrids with center_projected; (4) If GPU available, fine-tune multilingual-e5-small.",
+  "next_recommendation": "Promote hybrid_cited_0.3 as production map mode; re-run full signal ablation on MiniLM-L12-v2 center_projected baseline; GPU fine-tuning of multilingual-e5-small when available; citation role integration pending corpus lane ID resolution.",
   "critical_findings": {
-    "cited_decisions_tfidf_validated": "FIRST representation in this test passing BOTH adversarial gates WITH meaningful hierarchical structure (lang_dom=0.6086, jurist=0.6889, hier_adv=0.1740, clusters=6/277)",
-    "center_projected_discrepancy": "Jurist preference 0.491 (FAIL) vs 0.528 (PASS) in comprehensive eval — metadata alignment issue",
-    "v5_hybrids_adversarial_failure": "All v5 fractal-optimized hybrids FAIL at least one adversarial gate — fractal metrics ≠ adversarial robustness",
-    "legal_area_tfidf_language_fail": "Jurivoc metadata is language-segregated (lang_dom=0.9021)",
-    "citation_signal_language_invariant": "Cited decision IDs are language-agnostic, naturally multilingual"
+    "center_projected_reproduced": "REPRODUCED on 384-dim MiniLM-L12-v2, passes BOTH adversarial gates on 1200 decisions (LangDom=0.5310, Jurist=0.9817)",
+    "metadata_alignment_resolved": "Previous JP discrepancy (0.4912 vs 0.5275) was model/dataset mismatch; new center_projected validated on canonical corpus",
+    "cited_decisions_tfidf_validated": "First unsupervised signal passing BOTH adversarial gates with meaningful hierarchy (LangDom=0.5964, Jurist=0.6158, NMI=0.565)",
+    "best_hybrid_identified": "hybrid_cited_0.3 (30% cited + 70% center) - best improvement rate (48.3%), best hierarchical advantage (0.095), high jurist preference (0.955)",
+    "v5_hybrids_superseded": "All v5 fractal-optimized hybrids failed adversarial gates; new MiniLM-based hybrids pass both gates"
   }
 }
