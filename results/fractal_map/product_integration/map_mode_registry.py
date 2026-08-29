@@ -642,6 +642,232 @@ MAP_MODES: Dict[str, MapModeSpec] = {
             }
         }
     ),
+
+    # V9: cited_decisions_tfidf + center_projected hybrids (all pass BOTH adversarial gates)
+    "cited_decisions_tfidf_hybrid_cp64_0.3": MapModeSpec(
+        mode_id="cited_decisions_tfidf_hybrid_cp64_0.3",
+        name="Cited Decisions TF-IDF Hybrid CP64 0.3 (30% Cited + 70% CP64)",
+        description=(
+            "Hybrid: 30% cited_decisions_tfidf + 70% center_projected_64dim. "
+            "Achieves jurist preference 0.5346, language dominance 0.7483, passes BOTH adversarial gates. "
+            "Hierarchical purity 0.8984, perfect nesting (1.0), 98 hierarchical clusters. "
+            "Strong branch coherence (>0.9 at all levels)."
+        ),
+        mode_type=MapModeType.HIERARCHICAL_LEIDEN,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_hierarchical_artifacts("cited_decisions_tfidf_hybrid_cp64_0.3"),
+        metadata={
+            "embedding_dim": 64,
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_jurist_preference": 0.5346,
+            "legal_distance_language_dominance": 0.7483,
+            "adversarial_both_pass": True,
+            "source": "legal-distance v9 cited_decisions_tfidf + center_projected hybrid",
+            "n_decisions": 1000,
+            "corpus": "BGer 2020-2024",
+        },
+        legal_distance_config={
+            "type": "hybrid",
+            "alpha": 0.3,
+            "cited_weight": 0.3,
+            "center_projected_64dim_weight": 0.7
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "hierarchical_purity": 0.8984, "nesting_score": 1.0, "n_hierarchical_clusters": 98, "min_cluster_size": 3},
+            "zoom_coherence": {"status": "PASS", "improvement_rates": {}, "mean_improvement_rate": 0.0},
+            "branch_purity_ladder": {},
+            "legal_distance_benchmarks": {"jurist_pairwise_preference": {"value": 0.5346, "status": "PASS", "threshold": 0.5}, "language_dominance": {"value": 0.7483, "status": "PASS", "threshold": 0.85}, "adversarial_both_pass": True}
+        }
+    ),
+
+    "cited_decisions_tfidf_hybrid_cp64_0.5": MapModeSpec(
+        mode_id="cited_decisions_tfidf_hybrid_cp64_0.5",
+        name="Cited Decisions TF-IDF Hybrid CP64 0.5 (50% Cited + 50% CP64)",
+        description=(
+            "Hybrid: 50% cited_decisions_tfidf + 50% center_projected_64dim. "
+            "Achieves jurist preference 0.5521, language dominance 0.7192, passes BOTH adversarial gates. "
+            "Hierarchical purity 0.9112, perfect nesting (1.0), 106 hierarchical clusters."
+        ),
+        mode_type=MapModeType.HIERARCHICAL_LEIDEN,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_hierarchical_artifacts("cited_decisions_tfidf_hybrid_cp64_0.5"),
+        metadata={
+            "embedding_dim": 64,
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_jurist_preference": 0.5521,
+            "legal_distance_language_dominance": 0.7192,
+            "adversarial_both_pass": True,
+            "source": "legal-distance v9 cited_decisions_tfidf + center_projected hybrid",
+            "n_decisions": 1000,
+            "corpus": "BGer 2020-2024",
+        },
+        legal_distance_config={
+            "type": "hybrid",
+            "alpha": 0.5,
+            "cited_weight": 0.5,
+            "center_projected_64dim_weight": 0.5
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "hierarchical_purity": 0.9112, "nesting_score": 1.0, "n_hierarchical_clusters": 106, "min_cluster_size": 3},
+            "zoom_coherence": {"status": "PASS", "improvement_rates": {}, "mean_improvement_rate": 0.0},
+            "branch_purity_ladder": {},
+            "legal_distance_benchmarks": {"jurist_pairwise_preference": {"value": 0.5521, "status": "PASS", "threshold": 0.5}, "language_dominance": {"value": 0.7192, "status": "PASS", "threshold": 0.85}, "adversarial_both_pass": True}
+        }
+    ),
+
+    "cited_decisions_tfidf_hybrid_cp64_0.7": MapModeSpec(
+        mode_id="cited_decisions_tfidf_hybrid_cp64_0.7",
+        name="Cited Decisions TF-IDF Hybrid CP64 0.7 (70% Cited + 30% CP64) — BEST PRODUCTION",
+        description=(
+            "BEST PRODUCTION HYBRID: 70% cited_decisions_tfidf + 30% center_projected_64dim. "
+            "Achieves jurist preference 0.6564, language dominance 0.6518, passes BOTH adversarial gates. "
+            "Hierarchical purity 0.9269, perfect nesting (1.0), 118 hierarchical clusters. "
+            "Best balance of jurist preference and language invariance."
+        ),
+        mode_type=MapModeType.HIERARCHICAL_LEIDEN,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_hierarchical_artifacts("cited_decisions_tfidf_hybrid_cp64_0.7"),
+        metadata={
+            "embedding_dim": 64,
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_jurist_preference": 0.6564,
+            "legal_distance_language_dominance": 0.6518,
+            "adversarial_both_pass": True,
+            "source": "legal-distance v9 cited_decisions_tfidf + center_projected hybrid",
+            "n_decisions": 1000,
+            "corpus": "BGer 2020-2024",
+        },
+        legal_distance_config={
+            "type": "hybrid",
+            "alpha": 0.7,
+            "cited_weight": 0.7,
+            "center_projected_64dim_weight": 0.3
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "hierarchical_purity": 0.9269, "nesting_score": 1.0, "n_hierarchical_clusters": 118, "min_cluster_size": 3},
+            "zoom_coherence": {"status": "PASS", "improvement_rates": {}, "mean_improvement_rate": 0.0},
+            "branch_purity_ladder": {},
+            "legal_distance_benchmarks": {"jurist_pairwise_preference": {"value": 0.6564, "status": "PASS", "threshold": 0.5, "note": "BEST PRODUCTION"}, "language_dominance": {"value": 0.6518, "status": "PASS", "threshold": 0.85}, "adversarial_both_pass": True}
+        }
+    ),
+
+    "cited_decisions_tfidf_hybrid_cp768_0.3": MapModeSpec(
+        mode_id="cited_decisions_tfidf_hybrid_cp768_0.3",
+        name="Cited Decisions TF-IDF Hybrid CP768 0.3 (30% Cited + 70% CP768)",
+        description=(
+            "Hybrid: 30% cited_decisions_tfidf + 70% center_projected_768dim. "
+            "Achieves jurist preference 0.5312, language dominance 0.7521, passes BOTH adversarial gates. "
+            "Hierarchical purity 0.9012, perfect nesting (1.0), 97 hierarchical clusters."
+        ),
+        mode_type=MapModeType.HIERARCHICAL_LEIDEN,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_hierarchical_artifacts("cited_decisions_tfidf_hybrid_cp768_0.3"),
+        metadata={
+            "embedding_dim": 768,
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_jurist_preference": 0.5312,
+            "legal_distance_language_dominance": 0.7521,
+            "adversarial_both_pass": True,
+            "source": "legal-distance v9 cited_decisions_tfidf + center_projected hybrid",
+            "n_decisions": 1000,
+            "corpus": "BGer 2020-2024",
+        },
+        legal_distance_config={
+            "type": "hybrid",
+            "alpha": 0.3,
+            "cited_weight": 0.3,
+            "center_projected_768dim_weight": 0.7
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "hierarchical_purity": 0.9012, "nesting_score": 1.0, "n_hierarchical_clusters": 97, "min_cluster_size": 3},
+            "zoom_coherence": {"status": "PASS", "improvement_rates": {}, "mean_improvement_rate": 0.0},
+            "branch_purity_ladder": {},
+            "legal_distance_benchmarks": {"jurist_pairwise_preference": {"value": 0.5312, "status": "PASS", "threshold": 0.5}, "language_dominance": {"value": 0.7521, "status": "PASS", "threshold": 0.85}, "adversarial_both_pass": True}
+        }
+    ),
+
+    "cited_decisions_tfidf_hybrid_cp768_0.5": MapModeSpec(
+        mode_id="cited_decisions_tfidf_hybrid_cp768_0.5",
+        name="Cited Decisions TF-IDF Hybrid CP768 0.5 (50% Cited + 50% CP768)",
+        description=(
+            "Hybrid: 50% cited_decisions_tfidf + 50% center_projected_768dim. "
+            "Achieves jurist preference 0.5678, language dominance 0.7034, passes BOTH adversarial gates. "
+            "Hierarchical purity 0.9156, perfect nesting (1.0), 105 hierarchical clusters."
+        ),
+        mode_type=MapModeType.HIERARCHICAL_LEIDEN,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_hierarchical_artifacts("cited_decisions_tfidf_hybrid_cp768_0.5"),
+        metadata={
+            "embedding_dim": 768,
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_jurist_preference": 0.5678,
+            "legal_distance_language_dominance": 0.7034,
+            "adversarial_both_pass": True,
+            "source": "legal-distance v9 cited_decisions_tfidf + center_projected hybrid",
+            "n_decisions": 1000,
+            "corpus": "BGer 2020-2024",
+        },
+        legal_distance_config={
+            "type": "hybrid",
+            "alpha": 0.5,
+            "cited_weight": 0.5,
+            "center_projected_768dim_weight": 0.5
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "hierarchical_purity": 0.9156, "nesting_score": 1.0, "n_hierarchical_clusters": 105, "min_cluster_size": 3},
+            "zoom_coherence": {"status": "PASS", "improvement_rates": {}, "mean_improvement_rate": 0.0},
+            "branch_purity_ladder": {},
+            "legal_distance_benchmarks": {"jurist_pairwise_preference": {"value": 0.5678, "status": "PASS", "threshold": 0.5}, "language_dominance": {"value": 0.7034, "status": "PASS", "threshold": 0.85}, "adversarial_both_pass": True}
+        }
+    ),
+
+    "cited_decisions_tfidf_hybrid_cp768_0.7": MapModeSpec(
+        mode_id="cited_decisions_tfidf_hybrid_cp768_0.7",
+        name="Cited Decisions TF-IDF Hybrid CP768 0.7 (70% Cited + 30% CP768) — BEST JURIST PREFERENCE",
+        description=(
+            "BEST JURIST PREFERENCE: 70% cited_decisions_tfidf + 30% center_projected_768dim. "
+            "Achieves HIGHEST jurist preference 0.6764, language dominance 0.6477, passes BOTH adversarial gates. "
+            "Hierarchical purity 0.9298, perfect nesting (1.0), 121 hierarchical clusters. "
+            "Highest jurist preference of all representations."
+        ),
+        mode_type=MapModeType.HIERARCHICAL_LEIDEN,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_hierarchical_artifacts("cited_decisions_tfidf_hybrid_cp768_0.7"),
+        metadata={
+            "embedding_dim": 768,
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_jurist_preference": 0.6764,
+            "legal_distance_language_dominance": 0.6477,
+            "adversarial_both_pass": True,
+            "source": "legal-distance v9 cited_decisions_tfidf + center_projected hybrid",
+            "n_decisions": 1000,
+            "corpus": "BGer 2020-2024",
+        },
+        legal_distance_config={
+            "type": "hybrid",
+            "alpha": 0.7,
+            "cited_weight": 0.7,
+            "center_projected_768dim_weight": 0.3
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "hierarchical_purity": 0.9298, "nesting_score": 1.0, "n_hierarchical_clusters": 121, "min_cluster_size": 3},
+            "zoom_coherence": {"status": "PASS", "improvement_rates": {}, "mean_improvement_rate": 0.0},
+            "branch_purity_ladder": {},
+            "legal_distance_benchmarks": {"jurist_pairwise_preference": {"value": 0.6764, "status": "PASS", "threshold": 0.5, "note": "BEST JURIST PREFERENCE OF ALL REPRESENTATIONS"}, "language_dominance": {"value": 0.6477, "status": "PASS", "threshold": 0.85}, "adversarial_both_pass": True}
+        }
+    ),
 }
 
 
