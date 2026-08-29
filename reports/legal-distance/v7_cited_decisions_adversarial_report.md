@@ -1,7 +1,7 @@
 # Legal Distance Lane v7 - Cited Decisions TF-IDF Adversarial Validation Report
 
 **Date**: 2026-08-29  
-**Factory Direction**: v8 (from factory_direction.json)  
+**Factory Direction**: v7  
 **Evidence Tier**: REPRODUCED  
 **Frozen Harness**: evaluation_v3 (seed=42, config_hash=1674829901d55e83)
 
@@ -102,6 +102,21 @@ All representations **FAIL** (resistance_score ≈ -0.74 to -0.90). This confirm
 ### Cross-Language Retrieval
 Only `cited_decisions_tfidf_hybrid_cp768_0.7` and `cited_decisions_tfidf` PASS (recall@10 > 0.2).
 
+### Cross-Lingual Alignment Experiments
+
+Four post-hoc cross-lingual alignment methods were tested on `cited_decisions_tfidf` to evaluate if explicit alignment improves language invariance:
+
+| Method | LangDom | JuristPref | Both Gates | Verdict |
+|---|---|---|---|---|
+| Procrustes (same branch pairs) | 0.7121 | 0.3603 | ❌ FAIL | **Destroys jurist signal** |
+| CCA Reconstructed | 0.8889 | 0.2168 | ❌ FAIL | **Destroys legal structure** |
+| **Joint PCA (64d)** | **0.6233** | **0.6589** | ✅ **PASS** | **PASS but DEGRADES** vs unaligned baseline (LangDom +0.0126, JP -0.0333) |
+| **Mean Centering (per language)** | **0.6595** | **0.5997** | ✅ **PASS** | **PASS but DEGRADES** vs unaligned baseline (LangDom +0.0488, JP -0.0925) |
+
+**Baseline (unaligned cited_decisions_tfidf)**: LangDom=0.6107, JuristPref=0.6922
+
+**Critical Conclusion**: `cited_decisions_tfidf` is **inherently cross-lingual** because BGE/ATF citations use language-neutral identifiers. Post-hoc alignment methods (Procrustes, CCA) **destroy** legal structure. Joint PCA and Mean Centering pass both gates but **degrade Jurist Preference by 0.0333 and 0.0925 respectively** — they add noise rather than improve alignment. The unaligned baseline remains superior.
+
 ---
 
 ## Product Decisions
@@ -177,7 +192,7 @@ All 6 hybrids pass both adversarial gates. Recommended for production map modes:
 ```json
 {
   "lane": "legal-distance",
-  "direction_version": 8,
+  "direction_version": 7,
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": true,

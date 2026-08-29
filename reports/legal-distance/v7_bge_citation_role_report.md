@@ -1,7 +1,7 @@
 # Legal Distance Lane v7 - BGE/ATF Citation Resolution & Role Embeddings Report
 
 **Date**: 2026-08-29  
-**Factory Direction**: v8  
+**Factory Direction**: v7  
 **Evidence Tier**: REPRODUCED  
 **Frozen Harness**: evaluation_v3 (seed=42, config_hash=1674829901d55e83)
 
@@ -73,9 +73,9 @@ This cycle addresses two critical v7/v8 objectives:
 
 1. **citing role hybrids**: Strongest signal, PASS at all alphas. Best jurist preference at α=0.3 (0.5363).
 2. **following role hybrids**: PASS at all alphas. Similar performance to citing.
-3. **criticizing role hybrids**: PASS at α=0.3, 0.5 but FAIL at 0.7. Marginal signal (174 annotations).
+3. **criticizing role hybrids**: PASS at α=0.3, 0.5 but FAIL at 0.7. Marginal signal (174 annotations). **criticizing_alpha0.3 achieves JP=0.5004, barely passing the 0.5000 threshold. Recommend α=0.3 as maximum for production use.**
 4. **distinguishing/overruling hybrids**: FAIL at all alphas. Too sparse (58/18 annotations) to meaningfully modulate center_projected.
-4. **center_projected_768 baseline**: FAILS jurist pairwise (0.4912), confirming metadata alignment issue.
+5. **center_projected_768 baseline**: FAILS jurist pairwise (0.4912), confirming metadata alignment issue.
 
 ### Fractal Map Quality (Selected)
 
@@ -101,6 +101,21 @@ This cycle addresses two critical v7/v8 objectives:
 | Unique BGE refs in corpus | 1,573 |
 | Unique ATF refs in corpus | 1,104 |
 | Target decisions with roles | 146 |
+
+---
+
+## Citation Graph Connectivity Metrics
+
+The `role_graph.json` reveals the structural connectivity of the resolved role annotations:
+
+| Metric | Value |
+|---|---|
+| Target decisions with roles | 146 |
+| Total role annotations (edges) | 2,988 |
+| Average degree (roles per target) | 20.47 |
+| Targets with multiple role types | 83/146 (56.8%) |
+
+This connectivity confirms the citation graph is sufficiently dense for graph-based methods (GraphSAGE, Node2Vec, graph embeddings) and precedent relationship modeling.
 
 ---
 
@@ -185,7 +200,7 @@ Distinguishing (58) and overruling (18) annotations are too sparse for meaningfu
 ```json
 {
   "lane": "legal-distance",
-  "direction_version": 8,
+  "direction_version": 7,
   "evidence_tier": "ACCEPTED",
   "cycle_status": "COMPLETED",
   "continue_recommended": true,
