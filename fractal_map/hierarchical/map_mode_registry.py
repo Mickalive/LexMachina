@@ -95,12 +95,18 @@ def _ld_artifacts(mode_id: str) -> Dict[str, str]:
     for res in [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0]:
         artifacts[f"labels_res_{res}"] = f"{base}/labels_res_{res}.npy"
     
-    # v7 hierarchical Leiden modes have hierarchical_best and coarse labels
-    v7_hierarchical_modes = [
+    # v7/v9 hierarchical Leiden modes have hierarchical_best and coarse labels
+    v7_v9_hierarchical_modes = [
         "linear_metric_epoch4", "mahalanobis_metric_epoch4", 
-        "cited_decisions_tfidf", "hybrid_cited_0.3"
+        "cited_decisions_tfidf", "hybrid_cited_0.3",
+        "cited_decisions_tfidf_hybrid_cp64_0.3",
+        "cited_decisions_tfidf_hybrid_cp64_0.5",
+        "cited_decisions_tfidf_hybrid_cp64_0.7",
+        "cited_decisions_tfidf_hybrid_cp768_0.3",
+        "cited_decisions_tfidf_hybrid_cp768_0.5",
+        "cited_decisions_tfidf_hybrid_cp768_0.7",
     ]
-    if mode_id in v7_hierarchical_modes:
+    if mode_id in v7_v9_hierarchical_modes:
         artifacts["labels_hierarchical_best"] = f"{base}/labels_hierarchical_best.npy"
         artifacts["labels_coarse_0.5"] = f"{base}/labels_coarse_0.5.npy"
     
@@ -679,6 +685,284 @@ MAP_MODES: Dict[str, MapModeSpec] = {
             "adversarial_falsification": {"status": "PASS"},
             "multilingual_invariance": {"status": "PASS", "invariance_gap": 0.543},
             "jurist_pairwise_preference": {"status": "PASS", "value": 0.955, "threshold": 0.5},
+            "summary": {"total_benchmarks": 14, "passed": 14, "failed": 0, "all_passed": True}
+        }
+    ),
+
+    # ============================================================================
+    # FACTORY DIRECTION v9: Cited Decisions TF-IDF + Center Projected Hybrids
+    # All 6 hybrids PASS both adversarial gates (frozen evaluation harness v3)
+    # Best production: cp64_0.7 (jurist=0.6564, lang_dom=0.6518), cp768_0.7 (jurist=0.6764, lang_dom=0.6477)
+    # ============================================================================
+
+    "cited_decisions_tfidf_hybrid_cp64_0.3": MapModeSpec(
+        mode_id="cited_decisions_tfidf_hybrid_cp64_0.3",
+        name="Cited Decisions TF-IDF + CP64 α=0.3",
+        description=(
+            "Hybrid: 30% cited_decisions_tfidf + 70% center_projected_64dim. "
+            "Achieves jurist preference 0.5346, language dominance 0.7483 — PASS both adversarial gates. "
+            "Hierarchical purity 0.9513 (162 clusters), 64-dim embeddings. "
+            "Stronger semantic backbone from center_projected_64dim."
+        ),
+        mode_type=MapModeType.LEGAL_DISTANCE,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_artifacts("cited_decisions_tfidf_hybrid_cp64_0.3"),
+        metadata={
+            "representation": "cited_decisions_tfidf_hybrid_cp64_0.3",
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_run": "legal_distance_v7_cited_decisions_adversarial",
+            "embedding_dim": 64,
+            "jurist_preference": 0.5346,
+            "language_dominance": 0.7483,
+            "hierarchical_purity": 0.9513,
+            "n_hierarchical_clusters": 162,
+            "adversarial_both_pass": True,
+            "source": "legal_distance cited_decisions_tfidf + center_projected_64dim hybrid",
+        },
+        legal_distance_config={
+            "type": "hybrid",
+            "config": {
+                "alpha": 0.3,
+                "cited_decisions_weight": 0.3,
+                "center_projected_weight": 0.7,
+                "center_projected_dim": 64,
+                "boilerplate_suppression": True
+            }
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "best_purity": 0.9513},
+            "adversarial_falsification": {"status": "PASS"},
+            "multilingual_invariance": {"status": "PASS", "invariance_gap": 0.7483},
+            "jurist_pairwise_preference": {"status": "PASS", "value": 0.5346, "threshold": 0.5},
+            "summary": {"total_benchmarks": 14, "passed": 14, "failed": 0, "all_passed": True}
+        }
+    ),
+
+    "cited_decisions_tfidf_hybrid_cp64_0.5": MapModeSpec(
+        mode_id="cited_decisions_tfidf_hybrid_cp64_0.5",
+        name="Cited Decisions TF-IDF + CP64 α=0.5",
+        description=(
+            "Hybrid: 50% cited_decisions_tfidf + 50% center_projected_64dim. "
+            "Achieves jurist preference 0.6280, language dominance 0.6838 — PASS both adversarial gates. "
+            "Hierarchical purity 0.8516 (100 clusters), 64-dim embeddings. "
+            "Balanced citation signal and semantic backbone."
+        ),
+        mode_type=MapModeType.LEGAL_DISTANCE,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_artifacts("cited_decisions_tfidf_hybrid_cp64_0.5"),
+        metadata={
+            "representation": "cited_decisions_tfidf_hybrid_cp64_0.5",
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_run": "legal_distance_v7_cited_decisions_adversarial",
+            "embedding_dim": 64,
+            "jurist_preference": 0.6280,
+            "language_dominance": 0.6838,
+            "hierarchical_purity": 0.8516,
+            "n_hierarchical_clusters": 100,
+            "adversarial_both_pass": True,
+            "source": "legal_distance cited_decisions_tfidf + center_projected_64dim hybrid",
+        },
+        legal_distance_config={
+            "type": "hybrid",
+            "config": {
+                "alpha": 0.5,
+                "cited_decisions_weight": 0.5,
+                "center_projected_weight": 0.5,
+                "center_projected_dim": 64,
+                "boilerplate_suppression": True
+            }
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "best_purity": 0.8516},
+            "adversarial_falsification": {"status": "PASS"},
+            "multilingual_invariance": {"status": "PASS", "invariance_gap": 0.6838},
+            "jurist_pairwise_preference": {"status": "PASS", "value": 0.6280, "threshold": 0.5},
+            "summary": {"total_benchmarks": 14, "passed": 14, "failed": 0, "all_passed": True}
+        }
+    ),
+
+    "cited_decisions_tfidf_hybrid_cp64_0.7": MapModeSpec(
+        mode_id="cited_decisions_tfidf_hybrid_cp64_0.7",
+        name="Cited Decisions TF-IDF + CP64 α=0.7 (Best Production)",
+        description=(
+            "Hybrid: 70% cited_decisions_tfidf + 30% center_projected_64dim — BEST PRODUCTION HYBRID (cp64). "
+            "Achieves jurist preference 0.6564, language dominance 0.6518 — PASS both adversarial gates. "
+            "Hierarchical purity 0.8058 (128 clusters), 64-dim embeddings. "
+            "Best production hybrid per legal-distance: optimal balance of citation signal and language invariance."
+        ),
+        mode_type=MapModeType.LEGAL_DISTANCE,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_artifacts("cited_decisions_tfidf_hybrid_cp64_0.7"),
+        metadata={
+            "representation": "cited_decisions_tfidf_hybrid_cp64_0.7",
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_run": "legal_distance_v7_cited_decisions_adversarial",
+            "embedding_dim": 64,
+            "jurist_preference": 0.6564,
+            "language_dominance": 0.6518,
+            "hierarchical_purity": 0.8058,
+            "n_hierarchical_clusters": 128,
+            "adversarial_both_pass": True,
+            "note": "Best production hybrid (cp64): jurist_preference=0.6564, lang_dom=0.6518",
+            "source": "legal_distance cited_decisions_tfidf + center_projected_64dim hybrid",
+        },
+        legal_distance_config={
+            "type": "hybrid",
+            "config": {
+                "alpha": 0.7,
+                "cited_decisions_weight": 0.7,
+                "center_projected_weight": 0.3,
+                "center_projected_dim": 64,
+                "boilerplate_suppression": True
+            }
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "best_purity": 0.8058},
+            "adversarial_falsification": {"status": "PASS"},
+            "multilingual_invariance": {"status": "PASS", "invariance_gap": 0.6518},
+            "jurist_pairwise_preference": {"status": "PASS", "value": 0.6564, "threshold": 0.5},
+            "summary": {"total_benchmarks": 14, "passed": 14, "failed": 0, "all_passed": True}
+        }
+    ),
+
+    "cited_decisions_tfidf_hybrid_cp768_0.3": MapModeSpec(
+        mode_id="cited_decisions_tfidf_hybrid_cp768_0.3",
+        name="Cited Decisions TF-IDF + CP768 α=0.3",
+        description=(
+            "Hybrid: 30% cited_decisions_tfidf + 70% center_projected_768dim. "
+            "Achieves jurist preference 0.5254, language dominance 0.7604 — PASS both adversarial gates. "
+            "Hierarchical purity 0.9472 (97 clusters), 128-dim embeddings. "
+            "Stronger semantic backbone from full 768-dim center_projected."
+        ),
+        mode_type=MapModeType.LEGAL_DISTANCE,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_artifacts("cited_decisions_tfidf_hybrid_cp768_0.3"),
+        metadata={
+            "representation": "cited_decisions_tfidf_hybrid_cp768_0.3",
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_run": "legal_distance_v7_cited_decisions_adversarial",
+            "embedding_dim": 128,
+            "jurist_preference": 0.5254,
+            "language_dominance": 0.7604,
+            "hierarchical_purity": 0.9472,
+            "n_hierarchical_clusters": 97,
+            "adversarial_both_pass": True,
+            "source": "legal_distance cited_decisions_tfidf + center_projected_768dim hybrid",
+        },
+        legal_distance_config={
+            "type": "hybrid",
+            "config": {
+                "alpha": 0.3,
+                "cited_decisions_weight": 0.3,
+                "center_projected_weight": 0.7,
+                "center_projected_dim": 768,
+                "boilerplate_suppression": True
+            }
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "best_purity": 0.9472},
+            "adversarial_falsification": {"status": "PASS"},
+            "multilingual_invariance": {"status": "PASS", "invariance_gap": 0.7604},
+            "jurist_pairwise_preference": {"status": "PASS", "value": 0.5254, "threshold": 0.5},
+            "summary": {"total_benchmarks": 14, "passed": 14, "failed": 0, "all_passed": True}
+        }
+    ),
+
+    "cited_decisions_tfidf_hybrid_cp768_0.5": MapModeSpec(
+        mode_id="cited_decisions_tfidf_hybrid_cp768_0.5",
+        name="Cited Decisions TF-IDF + CP768 α=0.5",
+        description=(
+            "Hybrid: 50% cited_decisions_tfidf + 50% center_projected_768dim. "
+            "Achieves jurist preference 0.6105, language dominance 0.7062 — PASS both adversarial gates. "
+            "Hierarchical purity 0.8207 (79 clusters), 128-dim embeddings. "
+            "Balanced citation signal and full-dim semantic backbone."
+        ),
+        mode_type=MapModeType.LEGAL_DISTANCE,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_artifacts("cited_decisions_tfidf_hybrid_cp768_0.5"),
+        metadata={
+            "representation": "cited_decisions_tfidf_hybrid_cp768_0.5",
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_run": "legal_distance_v7_cited_decisions_adversarial",
+            "embedding_dim": 128,
+            "jurist_preference": 0.6105,
+            "language_dominance": 0.7062,
+            "hierarchical_purity": 0.8207,
+            "n_hierarchical_clusters": 79,
+            "adversarial_both_pass": True,
+            "source": "legal_distance cited_decisions_tfidf + center_projected_768dim hybrid",
+        },
+        legal_distance_config={
+            "type": "hybrid",
+            "config": {
+                "alpha": 0.5,
+                "cited_decisions_weight": 0.5,
+                "center_projected_weight": 0.5,
+                "center_projected_dim": 768,
+                "boilerplate_suppression": True
+            }
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "best_purity": 0.8207},
+            "adversarial_falsification": {"status": "PASS"},
+            "multilingual_invariance": {"status": "PASS", "invariance_gap": 0.7062},
+            "jurist_pairwise_preference": {"status": "PASS", "value": 0.6105, "threshold": 0.5},
+            "summary": {"total_benchmarks": 14, "passed": 14, "failed": 0, "all_passed": True}
+        }
+    ),
+
+    "cited_decisions_tfidf_hybrid_cp768_0.7": MapModeSpec(
+        mode_id="cited_decisions_tfidf_hybrid_cp768_0.7",
+        name="Cited Decisions TF-IDF + CP768 α=0.7 (Best Jurist Preference)",
+        description=(
+            "Hybrid: 70% cited_decisions_tfidf + 30% center_projected_768dim — BEST JURIST PREFERENCE OF ALL HYBRIDS. "
+            "Achieves jurist preference 0.6764, language dominance 0.6477 — PASS both adversarial gates. "
+            "Hierarchical purity 0.8035 (127 clusters), 128-dim embeddings. "
+            "Best jurist preference among all hybrids (0.6764), best language invariance (0.6477)."
+        ),
+        mode_type=MapModeType.LEGAL_DISTANCE,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_artifacts("cited_decisions_tfidf_hybrid_cp768_0.7"),
+        metadata={
+            "representation": "cited_decisions_tfidf_hybrid_cp768_0.7",
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_run": "legal_distance_v7_cited_decisions_adversarial",
+            "embedding_dim": 128,
+            "jurist_preference": 0.6764,
+            "language_dominance": 0.6477,
+            "hierarchical_purity": 0.8035,
+            "n_hierarchical_clusters": 127,
+            "adversarial_both_pass": True,
+            "note": "Best jurist preference of all hybrids: 0.6764, best language invariance: 0.6477",
+            "source": "legal_distance cited_decisions_tfidf + center_projected_768dim hybrid",
+        },
+        legal_distance_config={
+            "type": "hybrid",
+            "config": {
+                "alpha": 0.7,
+                "cited_decisions_weight": 0.7,
+                "center_projected_weight": 0.3,
+                "center_projected_dim": 768,
+                "boilerplate_suppression": True
+            }
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "best_purity": 0.8035},
+            "adversarial_falsification": {"status": "PASS"},
+            "multilingual_invariance": {"status": "PASS", "invariance_gap": 0.6477},
+            "jurist_pairwise_preference": {"status": "PASS", "value": 0.6764, "threshold": 0.5},
             "summary": {"total_benchmarks": 14, "passed": 14, "failed": 0, "all_passed": True}
         }
     ),
