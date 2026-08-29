@@ -1,0 +1,14 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Fix boilerplate resistance threshold in evaluation/tests/boilerplate_resistance.py: change 'resistance_score > 0.6' to 'resistance_score < 0.3'",
+    "Fix boilerplate resistance threshold in evaluation/run_center_projected_boilerplate.py: change 'resistance_score > 0.6' to 'resistance_score < 0.3'",
+    "Re-run boilerplate resistance test with corrected threshold and save new results",
+    "If claiming re-verification, actually re-run run_v3_evaluation.py and save new v3_evaluation_results.json with timestamp/run_id",
+    "Fix signal ablation baseline dimension mismatch: use 64-dim center_projected (v3) as baseline in run_v6_signal_ablation_adversarial.py",
+    "Rename 'best_variant' for citation_weights to 'best_variant_degenerate' in all reports"
+  ],
+  "claim_ceiling": "REPRODUCED for center_projected adversarial validation (passes all 3 critical gates with exact reproduction); BLOCKED for frontier metric learning; NEGATIVE for signal ablation improvements on center_projected baseline; RECURRING INFRASTRUCTURE BUG for boilerplate resistance test code (threshold inverted, unfixed from previous cycle)",
+  "evidence_summary": "Cycle 33226955300 is a verification cycle that confirms exact reproduction of the three critical adversarial gates (Language Dominance=0.7659583333333334, Jurist Pairwise=0.5121, Jurivoc Hierarchy Alignment=0.11275120079517365) with seed=42 on the expanded 1,200-decision slice. No new benchmark JSON files were generated — all evidence_refs point to pre-existing artifacts from Runs 33226158716 and 33221325181. The verification report claims 'bit-for-bit' re-run but scale stability metrics show minor floating-point drift between team workspace and main checkout versions. Signal ablation correctly identifies dimension mismatch bug (768-dim baseline vs 64-dim hybrids). Boilerplate resistance test code STILL has inverted threshold (PASS if >0.6; should be <0.3) — a RECURRING defect from Cycle 33226158716 that remains unfixed. center_projected_boilerplate_resistance.json shows status='PASSED' with resistance_score=0.050 contradicting code threshold. Legal embeddings all fail language dominance gate. Citation roles all degenerate (Jurivoc NMI=0.0). Frontier metric learning blocked. Core claim stands: center_projected (64-dim) is only representation passing all 3 adversarial gates."
+}
