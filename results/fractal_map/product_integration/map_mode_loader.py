@@ -8,10 +8,15 @@ map modes (hierarchical Leiden default + legal-distance modes).
 
 import json
 import numpy as np
+import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
 import logging
+
+# Add the current directory to path for imports
+_registry_dir = Path(__file__).parent
+sys.path.insert(0, str(_registry_dir))
 
 from map_mode_registry import (
     MAP_MODES, MapModeSpec, MapModeType, MapModeStatus,
