@@ -116,6 +116,7 @@ class MapLoader:
         self._load_cited_decisions_tfidf_hybrid_cp64_0_3()
         self._load_cited_decisions_tfidf_hybrid_cp64_0_5()
         self._load_cited_decisions_tfidf_hybrid_cp64_0_7()
+        self._load_hybrid_stabilized_best()
 
         self._loaded = True
         return len(self.maps)
@@ -3153,6 +3154,25 @@ class MapLoader:
             benchmark_results={
                 "jurist_pairwise": 0.6614,
                 "language_dominance": 0.6518,
+                "both_gates_pass": True,
+            }
+        )
+
+    def _load_hybrid_stabilized_best(self) -> None:
+        """Load hybrid_stabilized_epoch1 representation (ACCEPTED - evaluation v3).
+        
+        Best epoch 1: JP=0.6656, LangDom=0.6704, both gates PASS.
+        Stabilized hybrid objective (contrastive + preservation + hierarchy loss).
+        Coarse purity: 0.9387, Fine purity: 0.9731, Legal area NMI: 0.5892.
+        """
+        self._load_new_representation(
+            name="hybrid_stabilized_best",
+            display_name="Cross-Lingual Legal (Stabilized Hybrid)",
+            description="Stabilized hybrid metric learning on center_projected (epoch 1 best): contrastive + preservation + hierarchy loss for robust cross-lingual alignment. JP=0.6656, LangDom=0.6704.",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "jurist_pairwise": 0.6656,
+                "language_dominance": 0.6704,
                 "both_gates_pass": True,
             }
         )
