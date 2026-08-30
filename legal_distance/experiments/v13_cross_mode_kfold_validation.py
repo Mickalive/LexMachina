@@ -1065,20 +1065,36 @@ def main():
     best_baseline_jp = aggregated[best_baseline_name]['mean_jp']
     best_baseline_std = aggregated[best_baseline_name]['std_jp']
 
+    # Compute PAIRED deltas for each combination vs best baseline
+    # Frozen success rule requires std(combo_jp_i - baseline_jp_i) < 0.03
+    # NOT std(combo_jp_i) < 0.03
+    best_baseline_fold_jps = aggregated[best_baseline_name]['fold_jps']
+
     combination_names = [r for r in representations if not r.startswith('baseline')]
+    paired_delta_stds = {}
+    for combo_name in combination_names:
+        combo_fold_jps = aggregated[combo_name]['fold_jps']
+        paired_deltas = [combo_fold_jps[i] - best_baseline_fold_jps[i] for i in range(N_FOLDS)]
+        paired_delta_stds[combo_name] = {
+            'paired_deltas': paired_deltas,
+            'paired_delta_mean': np.mean(paired_deltas),
+            'paired_delta_std': np.std(paired_deltas),
+        }
+
     for combo_name in sorted(combination_names, key=lambda r: aggregated[r]['mean_jp'], reverse=True):
         delta_jp = aggregated[combo_name]['mean_jp'] - best_baseline_jp
-        delta_std = np.sqrt(aggregated[combo_name]['std_jp']**2 + best_baseline_std**2)
+        pds = paired_delta_stds[combo_name]
         a = aggregated[combo_name]
-        logger.info(f"  {combo_name:<35} mean_JP={a['mean_jp']:.4f} (Δ={delta_jp:+.4f} ± {delta_std:.4f}) "
+        logger.info(f"  {combo_name:<35} mean_JP={a['mean_jp']:.4f} (Δ={delta_jp:+.4f}, paired_delta_std={pds['paired_delta_std']:.4f}) "
                      f"mean_CI={a['mean_ci']:.4f} passes={a['n_pass']}/{N_FOLDS}")
 
-    # Find best stable combination
+    # Find best stable combination using PAIRED delta std (frozen success rule)
     best_combo_name = None
     best_delta = -999
     for combo_name in combination_names:
         delta_jp = aggregated[combo_name]['mean_jp'] - best_baseline_jp
-        if delta_jp > SUCCESS_RULE['min_mean_jp_delta'] and aggregated[combo_name]['std_jp'] < SUCCESS_RULE['max_jp_delta_std']:
+        paired_std = paired_delta_stds[combo_name]['paired_delta_std']
+        if delta_jp > SUCCESS_RULE['min_mean_jp_delta'] and paired_std < SUCCESS_RULE['max_jp_delta_std']:
             if delta_jp > best_delta:
                 best_delta = delta_jp
                 best_combo_name = combo_name
@@ -1092,14 +1108,20 @@ def main():
 
     if best_combo_name:
         a = aggregated[best_combo_name]
+        pds = paired_delta_stds[best_combo_name]
         logger.info(f"\n  >>> SUCCESS: {best_combo_name} achieves stable improvement <<<")
         logger.info(f"      Mean JP: {a['mean_jp']:.4f} (Δ={best_delta:+.4f} over {best_baseline_name})")
-        logger.info(f"      JP std: {a['std_jp']:.4f} (< {SUCCESS_RULE['max_jp_delta_std']} threshold)")
+        logger.info(f"      Paired delta std: {pds['paired_delta_std']:.4f} (< {SUCCESS_RULE['max_jp_delta_std']} threshold)")
         logger.info(f"      Passes: {a['n_pass']}/{N_FOLDS}")
         tradeoff_status = "PARTIALLY_BROKEN"
     else:
         logger.info(f"\n  >>> FAILURE: No combination achieves stable improvement over {best_baseline_name} <<<")
         logger.info(f"      Best baseline {best_baseline_name}: JP={best_baseline_jp:.4f}")
+        # Report the closest combo for diagnostics
+        closest_name = max(combination_names, key=lambda r: aggregated[r]['mean_jp'] - best_baseline_jp)
+        closest_pds = paired_delta_stds[closest_name]
+        closest_delta = aggregated[closest_name]['mean_jp'] - best_baseline_jp
+        logger.info(f"      Closest combo {closest_name}: Δ={closest_delta:+.4f}, paired_delta_std={closest_pds['paired_delta_std']:.4f} (threshold {SUCCESS_RULE['max_jp_delta_std']})")
         tradeoff_status = "FUNDAMENTAL"
 
     # ======================================================================
@@ -1128,7 +1150,13 @@ def main():
             'mean_jp': aggregated[best_combo_name]['mean_jp'] if best_combo_name else None,
             'std_jp': aggregated[best_combo_name]['std_jp'] if best_combo_name else None,
             'mean_delta_jp': best_delta if best_combo_name else None,
+            'paired_delta_std': paired_delta_stds[best_combo_name]['paired_delta_std'] if best_combo_name else None,
         },
+        'paired_delta_analysis': {name: {
+            'paired_deltas': paired_delta_stds[name]['paired_deltas'],
+            'paired_delta_mean': paired_delta_stds[name]['paired_delta_mean'],
+            'paired_delta_std': paired_delta_stds[name]['paired_delta_std'],
+        } for name in combination_names},
         'fold_results': {name: {
             'fold_jps': [r['holdout_adversarial']['jurist_preference_rate'] for r in fold_results[name]],
             'fold_lds': [r['holdout_adversarial']['language_dominance_score'] for r in fold_results[name]],
