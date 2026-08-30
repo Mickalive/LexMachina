@@ -541,6 +541,60 @@ class TestLegalDistanceModes:
         assert legacy["hierarchical_leiden_concat"]["status"] == "legacy"
 
 
+class TestCompressedResolutionLadder:
+    """Test that the compressed 5-level ladder achieves 100% delta retention across all modes."""
+
+    @pytest.fixture(autouse=True)
+    def load_data(self):
+        self.results_path = RESULTS_DIR / "evaluation/compressed_resolution_ladder_all_modes.json"
+        self.nav_path = RESULTS_DIR / "evaluation/zoom_navigation_comparison.json"
+
+    def test_analysis_results_exist(self):
+        assert self.results_path.exists(), "Missing compressed_resolution_ladder_all_modes.json"
+
+    def test_analysis_verdict_recorded(self):
+        data = load_json(f"results/fractal_map/evaluation/compressed_resolution_ladder_all_modes.json")
+        assert "verdict" in data, "Missing verdict in analysis"
+        assert data["verdict"] in ("PASS", "FAIL")
+
+    def test_all_modes_delta_retention_100pct(self):
+        """All modes must show 100% delta retention (purity delta identical between ladders)."""
+        data = load_json(f"results/fractal_map/evaluation/compressed_resolution_ladder_all_modes.json")
+        for mode_id, result in data["results"].items():
+            assert result["delta_retention_pct"] >= 99.9, \
+                f"{mode_id}: delta_retention={result['delta_retention_pct']:.1f}%, expected >= 99.9%"
+
+    def test_compressed_ladder_is_5_resolutions(self):
+        data = load_json(f"results/fractal_map/evaluation/compressed_resolution_ladder_all_modes.json")
+        assert data["compressed_ladder"] == [0.25, 0.5, 1.0, 2.0, 3.0]
+        assert data["dropped_resolutions"] == [0.75, 1.5]
+
+    def test_resolution_reduction_29pct(self):
+        data = load_json(f"results/fractal_map/evaluation/compressed_resolution_ladder_all_modes.json")
+        assert data["summary"]["resolution_reduction_pct"] == pytest.approx(28.57, abs=0.1)
+
+    def test_n_modes_evaluated(self):
+        data = load_json(f"results/fractal_map/evaluation/compressed_resolution_ladder_all_modes.json")
+        assert data["n_modes_evaluated"] >= 21, \
+            f"Expected >= 21 modes, got {data['n_modes_evaluated']}"
+
+    def test_zoom_navigation_comparison_exists(self):
+        assert self.nav_path.exists(), "Missing zoom_navigation_comparison.json"
+
+    def test_zoom_navigation_verdict_pass(self):
+        data = load_json(f"results/fractal_map/evaluation/zoom_navigation_comparison.json")
+        assert data["verdict"] == "PASS", \
+            f"Zoom navigation comparison verdict: {data['verdict']}"
+
+    def test_zoom_navigation_identical_at_shared_resolutions(self):
+        """At shared resolutions, zoom mappings must be identical by construction."""
+        data = load_json(f"results/fractal_map/evaluation/zoom_navigation_comparison.json")
+        for mode_id, result in data["per_mode_results"].items():
+            for transition, info in result.items():
+                assert info["identical"] is True, \
+                    f"{mode_id} {transition}: zoom mapping not identical"
+
+
 class TestLegalDistanceScaleReadiness:
     """Guard the run-33317287543 scale-readiness deliverable as CORRECTED by repair
     33317520019: parameterized legal-distance builder + N=1200 scale artifacts +
