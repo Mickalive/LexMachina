@@ -1,0 +1,71 @@
+{
+  "cycle_id": "33340773498",
+  "run_id": "33340773498",
+  "github_run": "33340773498",
+  "lane": "fractal-map",
+  "direction_version": 10,
+  "timestamp": "2026-08-30T23:30:00Z",
+  "prior_run": "33340442507",
+  "cycle_type": "operational_resume",
+  "evidence_tier": "ACCEPTED",
+  "cycle_status": "BLOCKED",
+  "continue_recommended": false,
+  "verdict": "PASS",
+  "orchestration_fix": {
+    "root_cause": "Control plane /tmp/lex_control/state/factory_direction.json had fractal-map.status=RUN while both workspace copies (state/factory_direction.json and state/fractal-map.json) correctly showed BLOCKED. The 41-cycle re-dispatch loop was caused by the supervisor reading the ephemeral control-plane copy which was never updated from RUN to BLOCKED. Prior fix attempts (runs 33323379652-33340442507) applied the fix to /tmp/lex_control/state/factory_direction.json but it did not persist across runs because /tmp is ephemeral. The workspace state/factory_direction.json was already correct.",
+    "fix_applied": "Corrected control plane /tmp/lex_control/state/factory_direction.json fractal-map.status from RUN to BLOCKED. Updated director_note to document the fix and current state.",
+    "fix_file": "/tmp/lex_control/state/factory_direction.json",
+    "fix_cycle": "33340773498",
+    "prevention": "Both copies (workspace and control plane) now consistent at BLOCKED. The fundamental issue is that the supervisor reads /tmp/lex_control/state/factory_direction.json which is a stale copy of the workspace state. The workspace state was already correct. The Factory Director should update the supervisor dispatch logic to read workspace state/fractal-map.json cycle_status instead of control plane factory_direction.json status, OR ensure the control plane copy is refreshed from workspace state at the start of each supervisor run.",
+    "cycle_count_documented": 41,
+    "first_cycle_reported": "33323379652"
+  },
+  "verification": {
+    "tests_passed": 175,
+    "tests_total": 175,
+    "test_duration_seconds": 1.23,
+    "artifacts_total": 626,
+    "artifacts_last_run": 625,
+    "artifacts_delta": 1,
+    "modes_available": 21,
+    "modes_files_per_mode": 16,
+    "validation_metrics_entries": 6
+  },
+  "artifact_integrity": {
+    "legal_distance_modes": {
+      "total_modes": 21,
+      "files_per_mode": 16,
+      "all_consistent": true,
+      "modes": [
+        "cited_decisions_tfidf", "cited_decisions_tfidf_hybrid_cp64_0.3",
+        "cited_decisions_tfidf_hybrid_cp64_0.5", "cited_decisions_tfidf_hybrid_cp64_0.7",
+        "cited_decisions_tfidf_hybrid_cp768_0.3", "cited_decisions_tfidf_hybrid_cp768_0.5",
+        "cited_decisions_tfidf_hybrid_cp768_0.7", "cited_decisions_tfidf_outcome_hybrid_0.5",
+        "cited_decisions_tfidf_outcome_hybrid_0.7", "citing_alpha0.3",
+        "criticizing_alpha0.3", "debiased_citation_blended", "following_alpha0.3",
+        "hybrid_alpha_03", "hybrid_alpha_05", "hybrid_cited_0.3",
+        "hybrid_stabilized_epoch1", "legal_cited_decisions_only",
+        "legal_issues_outcomes", "linear_metric_epoch4", "mahalanobis_metric_epoch4"
+      ]
+    },
+    "center_projected_hierarchical": "verified_by_tests",
+    "product_integration": "verified_by_tests",
+    "legacy_concat": "preserved_by_tests",
+    "scalability_validation": "PASS_192k_extrapolation_5.6min_1.0GB",
+    "compressed_resolution_ladder": "5_level_identical_quality_0_loss",
+    "zoom_quality_diagnostic": "citation_role_views_dominate_ZQ_0.5401"
+  },
+  "state_consistency": {
+    "local_state_fractal_map": "BLOCKED_continue_recommended=false",
+    "local_factory_direction": "v10_fractal_map_BLOCKED",
+    "control_plane_factory_direction": "v10_fractal_map_BLOCKED_FIXED_THIS_CYCLE",
+    "all_consistent": true
+  },
+  "no_regression": true,
+  "scientific_regressions": 0,
+  "cycles_since_last_new_science": 3,
+  "last_new_science_cycle": "33339495531_compressed_resolution_ladder",
+  "blocked_on": "corpus lane full 192k acquisition",
+  "resume_guard": "DO NOT DISPATCH THIS LANE until corpus lane delivers 192k",
+  "next_recommendation": "BLOCKED. Awaiting corpus lane 192k delivery. When ready: (1) use compressed 5-level ladder [0.25, 0.5, 1.0, 2.0, 3.0], (2) run build_parameterized_legal_distance_map.py --corpus-size 192000, (3) test citation role zoom quality at 192k, (4) implement multi-view zoom UI with citation role views for navigation."
+}
