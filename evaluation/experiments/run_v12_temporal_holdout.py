@@ -684,13 +684,15 @@ def main():
     logger.info("TEMPORAL vs RANDOM CV COMPARISON")
     logger.info(f"{'='*100}")
 
-    # Known random CV values from v12 results
+    # Known random 5-fold CV values from v12 cross_mode_cv aggregated results
+    # Source: results/evaluation/v12_cross_mode_cv/v12_cross_mode_cv_latest.json
+    # These are 5-fold MEANS, not individual fold values.
     random_cv_jps = {
-        'center_projected_64dim': 0.7992,
-        'citation_tfidf': 0.7333,
-        'cited_outcome_hybrid_0.5': 0.7250,
-        'cited_outcome_hybrid_0.7': 0.7417,
-        'linear_citation_ridge': 0.860,
+        'center_projected_64dim': 0.7992,   # jurist_pref_mean (5-fold)
+        'citation_tfidf': 0.7850,           # jurist_pref_mean (5-fold)
+        'cited_outcome_hybrid_0.5': 0.7800, # jurist_pref_mean (5-fold)
+        'cited_outcome_hybrid_0.7': 0.7750, # jurist_pref_mean (5-fold)
+        'linear_citation_ridge': 0.8600,    # 5-fold mean across fold_results
     }
 
     logger.info(f"\n{'Representation':<35} {'Random CV JP':>12} {'Temporal JP':>12} {'Delta':>8}")

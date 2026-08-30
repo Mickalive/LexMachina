@@ -1,0 +1,88 @@
+{
+  "gate": "PASS",
+  "cycle_id": "33339846824",
+  "repair_round": 1,
+  "lane": "evaluation",
+  "safe_to_integrate": true,
+  "repaired_fixes": [
+    {
+      "id": "F-1",
+      "severity": "medium",
+      "status": "REPAIRED",
+      "file": "evaluation/experiments/run_v12_temporal_holdout.py",
+      "lines": "688-694",
+      "description": "Hardcoded random_cv_jps dict used fold-1 values instead of proper 5-fold CV means. Fixed citation_tfidf 0.7333→0.7850, cited_outcome_hybrid_0.5 0.7250→0.7800, cited_outcome_hybrid_0.7 0.7417→0.7750. Added source comment referencing v12_cross_mode_cv_latest.json.",
+      "repair": "Replaced hardcoded values with correct 5-fold CV means from v12 cross_mode_cv aggregated results. Re-ran experiment (eval_v12_temporal_1788131137). All 10 tests PASS."
+    },
+    {
+      "id": "F-2",
+      "severity": "low",
+      "status": "REPAIRED",
+      "file": "reports/evaluation/evaluation_v12_temporal_holdout_33339846824.md",
+      "description": "Report comparison table used incorrect baselines, leading to false claim that cited_outcome_hybrid_0.5 IMPROVES on temporal holdout.",
+      "repair": "Updated comparison table with corrected deltas. All representations now show degradation (correct). Removed false improvement claim. Corrected Key Findings point 4 and Product Implications point 3. Updated Negative Results section with correct baseline values."
+    }
+  ],
+  "claim_ceiling": "VERIFIED: v12 cross-mode combinations generalize to temporal holdout. Best combination (linear_hybrid05_concat JP=0.8375) beats best baseline (center_projected_64dim JP=0.7750) by +0.0625. Temporal degradation minimal (+0.0308 for ridge). All 9 representations pass both adversarial gates on temporal test set. Core finding ACCEPTED. CORRECTED: Individual representation temporal comparison deltas are now correct (all show degradation). cited_outcome_hybrid_0.5 temporal improvement claim REMOVED (was false).",
+  "evidence_summary": {
+    "cycle_type": "temporal_holdout",
+    "repair_round": 1,
+    "experiment_integrity": {
+      "temporal_split_correct": true,
+      "no_data_leakage": true,
+      "config_hash_consistent": true,
+      "seed_42": true,
+      "canonical_1200_corpus": true
+    },
+    "core_finding": {
+      "v12_combinations_generalize": true,
+      "best_combo": "linear_hybrid05_concat JP=0.8375",
+      "best_baseline": "center_projected_64dim JP=0.7750",
+      "temporal_improvement": 0.0625,
+      "temporal_degradation_ridge": 0.0308,
+      "all_pass_adversarial_gates": true,
+      "verdict": "REPLICATED",
+      "arithmetic_verified": true
+    },
+    "corrected_comparison": {
+      "center_projected_64dim": {
+        "random_cv_jp": 0.7992,
+        "temporal_jp": 0.7750,
+        "delta": -0.0242
+      },
+      "citation_tfidf": {
+        "random_cv_jp": 0.7850,
+        "temporal_jp": 0.7542,
+        "delta": -0.0308
+      },
+      "cited_outcome_hybrid_0.5": {
+        "random_cv_jp": 0.7800,
+        "temporal_jp": 0.7542,
+        "delta": -0.0258
+      },
+      "cited_outcome_hybrid_0.7": {
+        "random_cv_jp": 0.7750,
+        "temporal_jp": 0.7375,
+        "delta": -0.0375
+      },
+      "linear_citation_ridge": {
+        "random_cv_jp": 0.8600,
+        "temporal_jp": 0.8292,
+        "delta": -0.0308
+      }
+    },
+    "tests": {
+      "test_file": "tests/evaluation/test_v12_temporal_holdout.py",
+      "total": 10,
+      "passed": 10,
+      "status": "ALL_PASS"
+    },
+    "negative_results_preserved": 11,
+    "no_benchmark_gaming": true,
+    "no_prettiness_as_quality": true,
+    "no_self_audit_violation": true,
+    "no_frozen_baselines_weakened": true,
+    "no_data_leakage": true,
+    "provenance_clean": true
+  }
+}
