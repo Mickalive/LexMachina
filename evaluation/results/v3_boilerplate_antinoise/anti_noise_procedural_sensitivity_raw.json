@@ -1,0 +1,104 @@
+{
+  "experiment": "anti_noise_procedural_sensitivity",
+  "factory_direction_version": 10,
+  "evaluation_version": "v3_boilerplate_antinoise",
+  "global_seed": 42,
+  "sample": "bger_expanded_1200.jsonl",
+  "n_decisions": 1200,
+  "hypothesis": "Accepted 'boilerplate does not drive neighbors' conclusion is fragile under anti-noise procedural-reasoning removal (delta>=0.08 = fragile).",
+  "success_rule": {
+    "delta": "shallow_preservation - aggressive_preservation",
+    "control_delta": "shallow_preservation - control(equal_volume)_preservation",
+    "fragile_threshold": 0.08,
+    "note": "delta>=0.08 AND procedural_delta > control_delta + 0.03 => conclusion FRAGILE specifically due to procedural-passage removal (anti-noise leak). If delta<0.08 OR procedural_delta <= control_delta + 0.03 => ROBUST / volume-driven, not procedural-specific."
+  },
+  "tiers": {
+    "shallow_accepted": {
+      "removal_pct_mean": 5.877429868755875,
+      "mean_preservation_rate": 0.9325,
+      "neighbor_preservation": {
+        "mean_preservation_rate": 0.9325,
+        "std_preservation_rate": 0.05051814855409224,
+        "min_preservation_rate": 0.7,
+        "max_preservation_rate": 1.0,
+        "k": 20,
+        "n_decisions": 1200,
+        "note": "Lower preservation = higher boilerplate resistance (neighbors change when boilerplate removed)"
+      }
+    },
+    "deep_target_15": {
+      "target_removal_fraction": 0.15,
+      "removal_pct_mean": 26.47510069521672,
+      "mean_preservation_rate": 0.7095,
+      "neighbor_preservation": {
+        "mean_preservation_rate": 0.7095,
+        "std_preservation_rate": 0.19973252948213852,
+        "min_preservation_rate": 0.0,
+        "max_preservation_rate": 1.0,
+        "k": 20,
+        "n_decisions": 1200,
+        "note": "Lower preservation = higher boilerplate resistance (neighbors change when boilerplate removed)"
+      },
+      "control": {
+        "removal_pct_mean": 25.441455751479737,
+        "mean_preservation_rate": 0.7220416666666667,
+        "neighbor_preservation": {
+          "mean_preservation_rate": 0.7220416666666667,
+          "std_preservation_rate": 0.21794398729311673,
+          "min_preservation_rate": 0.0,
+          "max_preservation_rate": 1.0,
+          "k": 20,
+          "n_decisions": 1200,
+          "note": "Lower preservation = higher boilerplate resistance (neighbors change when boilerplate removed)"
+        }
+      }
+    },
+    "deep_target_25": {
+      "target_removal_fraction": 0.25,
+      "removal_pct_mean": 30.238921961806458,
+      "mean_preservation_rate": 0.6834583333333333,
+      "neighbor_preservation": {
+        "mean_preservation_rate": 0.6834583333333333,
+        "std_preservation_rate": 0.20167867991078173,
+        "min_preservation_rate": 0.0,
+        "max_preservation_rate": 1.0,
+        "k": 20,
+        "n_decisions": 1200,
+        "note": "Lower preservation = higher boilerplate resistance (neighbors change when boilerplate removed)"
+      },
+      "control": {
+        "removal_pct_mean": 34.88702901116899,
+        "mean_preservation_rate": 0.68,
+        "neighbor_preservation": {
+          "mean_preservation_rate": 0.68,
+          "std_preservation_rate": 0.21720765793743707,
+          "min_preservation_rate": 0.0,
+          "max_preservation_rate": 1.0,
+          "k": 20,
+          "n_decisions": 1200,
+          "note": "Lower preservation = higher boilerplate resistance (neighbors change when boilerplate removed)"
+        }
+      },
+      "per_language": {
+        "de": {
+          "n": 735,
+          "mean_preservation_rate": 0.6528571428571429
+        },
+        "fr": {
+          "n": 403,
+          "mean_preservation_rate": 0.7271712158808932
+        },
+        "it": {
+          "n": 62,
+          "mean_preservation_rate": 0.8104838709677417
+        }
+      }
+    }
+  },
+  "interpretation": "ROBUST (or volume-driven, not procedural-specific): either deep removal kept preservation high (<0.08 drop) OR the drop is matched by the equal-volume content-neutral control (not specifically procedural). The anti-noise principle is verified satisfied for this corpus.",
+  "recommendation": "KEEP: retain shallow real-boilerplate protocol as canonical; anti-noise principle verified satisfied for the 1200-slice.",
+  "delta": 0.24904166666666672,
+  "control_delta": 0.25249999999999995,
+  "procedural_specific_excess": -0.00345833333333323,
+  "fragile": false
+}
