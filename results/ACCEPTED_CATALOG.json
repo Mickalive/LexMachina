@@ -122,16 +122,32 @@
       "path": "results/accepted-state/evaluation.json",
       "state": {
         "lane": "evaluation",
-        "direction_version": 9,
+        "direction_version": 10,
         "evidence_tier": "ACCEPTED",
         "cycle_status": "COMPLETED",
         "continue_recommended": false,
-        "accepted_run_id": "evaluation_v9_comprehensive_fixed_33293139498",
-        "github_run": "33293139498",
-        "previous_audit_run": "33285651854",
-        "timestamp": "2026-08-30T04:55:00.000000+00:00",
+        "accepted_run_id": "evaluation_v10_audit_ready_33305332122",
+        "github_run": "33305332122",
+        "previous_audit_run": "33299401770",
+        "timestamp": "2026-08-30T12:00:00.000000+00:00",
         "config_hash": "4323f833fa72366a",
         "global_seed": 42,
+        "factory_direction_v10_alignment": {
+          "v9_objectives_completed": 4,
+          "v9_objectives_total": 6,
+          "completed_objectives": [
+            "Citation role modeling evaluation (2,988 annotations, 8/9 role hybrids PASS adversarial gates)",
+            "Legal embeddings fine-tuning evaluation (multilingual_e5_small_pretrained tested, BEST adversarial scores but catastrophic hierarchy collapse)",
+            "Cross-lingual alignment deeper investigation (52 representations tested, proc_pairs LOSSLESS for cited_decisions_tfidf)",
+            "User corpus import evaluation (45/45 tests PASS)"
+          ],
+          "blocked_objectives": [
+            "Full corpus scale evaluation (192k) — pending corpus lane OpenCaseLaw bulk ingestion",
+            "Jurist human study — framework ready, needs 5-10 Swiss jurists"
+          ],
+          "boilerplate_resistance_correction": "REPRODUCED: Real test shows 89-93% neighbor preservation when boilerplate removed — boilerplate NOT driving neighbors. v3 'boilerplate_resistance' proxy MISNAMED; measured language dominance (cross-lingual alignment failure). SYSTEMIC CHALLENGE IS CROSS-LINGUAL ALIGNMENT / LANGUAGE DOMINANCE, NOT BOILERPLATE. Target LangDom < 0.6 ACHIEVED by zero-shot hybrids.",
+          "next_steps": "When dependencies resolve — full corpus adversarial evaluation at 192k scale, multilingual-e5-small fine-tuned evaluation with hierarchy loss (GPU), jurist human study execution, section-specific cross-lingual evaluation (needs sachverhalt/erwaegungen/dispositiv from full corpus)"
+        },
         "evidence_refs": [
           "evaluation/results/v3/evaluation_v3_results.json",
           "evaluation/evaluation_v3_harness.py",
@@ -173,7 +189,12 @@
           "product/app/schema_validator.py",
           "product/app/corpus_loader.py",
           "product/app/navigation.py",
-          "product/server.py"
+          "product/server.py",
+          "tests/evaluation/test_frozen_harness_v3_reproducibility.py",
+          "tests/evaluation/test_cross_lingual_alignment_v10.py",
+          "tests/evaluation/test_boilerplate_resistance_real.py",
+          "reports/evaluation/evaluation_v9_verification_33299401770.md",
+          "evaluation/results/v3_extended/evaluation_v9_comprehensive_results.json"
         ],
         "key_findings": [
           "EVALUATION v3+ COMPLETED: Frozen evaluation harness (seed=42, config_hash=4323f833fa72366a) executed on expanded 1,200-decision slice. REPRODUCED EXACTLY in GitHub run 33232234741 AND VERIFIED in run 33240972425. LOCAL REPRODUCIBILITY CONFIRMED. Integration of cited_decisions_tfidf results completed in operational resume 33265417443.",
@@ -196,7 +217,8 @@
           "EVALUATION v9 COMPLETED (outcome-cited hybrids): 5 v7 outcome-cited hybrids PASS both adversarial gates, beating production baseline on jurist preference (0.76-0.80 vs 0.51) and language dominance (0.49-0.51 vs 0.77). Best 2-dim hybrid: cited_decisions_tfidf_outcome_hybrid_0.7 (jurist=0.790, lang_dom=0.492). Outcome-only embeddings overfit adversarial proxies (Jurivoc L0=0.005, scale=0.0). 128-dim cited_decisions_tfidf remains only unsupervised representation passing cluster coherence.",
           "EVALUATION v10 COMPLETED (cross-lingual alignment deeper investigation — Factory Direction v8 Objective 5): 52 representations evaluated on frozen harness v3. Proc Pairs alignment is LOSSLESS for cited_decisions_tfidf (identical metrics to base). Joint PCA reduces Jurivoc L0 by 48% (0.254→0.133). Mean Center improves scale stability (0.615) but fails cross-lang retrieval (0.185). Single Procrustes CATASTROPHIC (jurist=0.361, cross-lang=0.086). Section-specific embeddings (sachverhalt, erwaegungen, dispositiv) UNAVAILABLE in metadata — BLOCKED on corpus lane. Outcome-only embeddings overfit (Jurivoc L0≈0.007, scale=0.0). Best 64-dim hybrid: cited_decisions_tfidf_proc_pairs_hybrid_cdtf64_0.7 (jurist=0.695, lang_dom=0.608). 128-dim cited_decisions_tfidf + Proc Pairs remain ONLY unsupervised representations with production-viable legal structure (cluster coherence PASS).",
           "EVALUATION v9 COMPREHENSIVE COMPLETED (Factory Direction v9): All 9 breakthrough representations from legal-distance v8 fractal validation PASS both adversarial gates on frozen harness v3. Metric Learning family (3): linear_metric_epoch4, mahalanobis_metric_epoch4, hybrid_stabilized_epoch1 — HIGH PURITY pattern. Citation/Outcome family (3): cited_decisions_tfidf, cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7 — HIGH ADVANTAGE pattern. Cross-lingual alignment (3): cited_decisions_tfidf_proc_pairs (FRESH computation, LOSSLESS), cited_decisions_tfidf_joint_pca, cited_decisions_tfidf_mean_center. FAILED: cited_decisions_tfidf_procrustes, cited_decisions_tfidf_cca, center_projected_768. TWO DESIGN PATTERNS validated for product map modes: High-Purity (Metric Learning) vs High-Advantage (Citation/Outcome). FIXED: proc_pairs now computed fresh (matching v10 methodology) achieving true lossless alignment (LangDom 0.6103 vs base 0.6100, Jurist 0.6839 vs base 0.6889), resolving audit discrepancy from stale pre-saved embedding.",
-          "USER CORPUS IMPORT EVALUATION COMPLETED (Factory Direction v9 Objective 6): All 45 tests PASS (100% pass rate). Schema validation robustness validated (24 tests: valid/invalid/edge cases, strict/lenient modes, provenance handling, batch validation). Map artifact persistence validated (import, persist, reload, consistency, export with documented limitation). Incremental updates validated (multiple imports, duplicates, position computation, cumulative counts). Recomputation triggers validated (zoom levels, representations, cache invalidation). Product integration validated (search, clusters, citations; neighbor search/proximity/temporal use base corpus only — documented known limitations). Factory Direction v9 Objective 6 FULLY ACHIEVED."
+          "USER CORPUS IMPORT EVALUATION COMPLETED (Factory Direction v9 Objective 6): All 45 tests PASS (100% pass rate). Schema validation robustness validated (24 tests: valid/invalid/edge cases, strict/lenient modes, provenance handling, batch validation). Map artifact persistence validated (import, persist, reload, consistency, export with documented limitation). Incremental updates validated (multiple imports, duplicates, position computation, cumulative counts). Recomputation triggers validated (zoom levels, representations, cache invalidation). Product integration validated (search, clusters, citations; neighbor search/proximity/temporal use base corpus only — documented known limitations). Factory Direction v9 Objective 6 FULLY ACHIEVED.",
+          "VERIFICATION RUN 33299401770 CONFIRMED: Evaluation v9 comprehensive REPRODUCED locally on frozen harness v3 (seed=42, config_hash=4323f833fa72366a). All 9 breakthrough representations PASS both adversarial gates. Fresh proc_pairs computation CONFIRMED LOSSLESS (LangDom=0.6100, Jurist=0.6889, identical to base cited_decisions_tfidf). All 3 evaluation tests PASS (frozen harness reproducibility, cross-lingual alignment, boilerplate resistance real). Factory Direction v9 Objectives 2, 5, 6 COMPLETE; Objectives 1, 3, 4 BLOCKED on dependencies."
         ],
         "validation_metrics": {
           "center_projected_768": {
@@ -838,140 +860,44 @@
       "path": "results/accepted-state/fractal-map.json",
       "state": {
         "lane": "fractal-map",
-        "direction_version": 6,
+        "direction_version": 10,
         "evidence_tier": "REPRODUCED",
         "cycle_status": "COMPLETED",
         "continue_recommended": false,
-        "accepted_run_id": "center_projected_hierarchical_v6_final_audit_33236617727",
-        "github_run": "33236617727",
-        "timestamp": "2026-08-29T05:43:00Z",
-        "operational_resume_from": "33236199189",
+        "accepted_run_id": "v10_operational_resume_33306550005",
+        "github_run": "33306550005",
+        "timestamp": "2026-08-30T10:31:00Z",
+        "operational_resume_from": "33306333071",
+        "previous_accepted_run": "33306333071",
+        "next_recommendation": "PRODUCTIZE. BLOCKED on corpus lane for 192k scaling. Current 1000-decision slice validated with 24 map modes across 4 design patterns (DEFAULT, HIGH-PURITY, HIGH-ADVANTAGE, CITATION ROLE). When corpus lane delivers full 192k: (a) run build_parameterized_map.py --corpus-size 192000; (b) validate zoom coherence at full scale; (c) update map mode registry with actual corpus size; (d) run verification tests at 192k.",
         "evidence_refs": [
+          "results/audit/fractal-map/CYCLE_33306550005_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_33306550005_AUDIT.md",
+          "results/fractal_map/evaluation/snapshot_verify_33306550005.json",
+          "results/audit/fractal-map/CYCLE_33306333071_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_33306333071_AUDIT.md",
+          "results/audit/fractal-map/CYCLE_33306129382_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_33306129382_AUDIT.md",
+          "results/audit/fractal-map/CYCLE_33305918697_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_33305918697_AUDIT.md",
+          "results/audit/fractal-map/CYCLE_33302779949_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_33302779949_AUDIT.md",
           "results/fractal_map/hierarchical_map_center_projected/center_projected_hierarchical_results.json",
-          "results/fractal_map/hierarchical_map_center_projected/hierarchical_map_results.json",
-          "results/fractal_map/hierarchical_map/hierarchical_leiden_results.json",
-          "results/fractal_map/hierarchical_map/hierarchical_map_results.json",
-          "results/fractal_map/product_integration/PRODUCT_INTEGRATION_SPEC.md",
           "results/fractal_map/product_integration/map_mode_registry.json",
           "results/fractal_map/product_integration/integration_summary.json",
-          "results/fractal_map/product_integration/cluster_metadata.json",
-          "results/fractal_map/product_integration/zoom_mappings.json",
-          "results/fractal_map/product_integration/zoom_coherence.json",
-          "results/fractal_map/product_integration/decision_clusters.json",
-          "results/fractal_map/product_integration/map_mode_loader.py",
-          "results/fractal_map/product_integration/map_mode_registry.py",
-          "results/fractal_map/product_integration/product_map_loader.py",
-          "results/fractal_map/hierarchical_map_center_projected/labels_res_0.25.npy",
-          "results/fractal_map/hierarchical_map_center_projected/labels_res_0.5.npy",
-          "results/fractal_map/hierarchical_map_center_projected/labels_res_0.75.npy",
-          "results/fractal_map/hierarchical_map_center_projected/labels_res_1.0.npy",
-          "results/fractal_map/hierarchical_map_center_projected/labels_res_1.5.npy",
-          "results/fractal_map/hierarchical_map_center_projected/labels_res_2.0.npy",
-          "results/fractal_map/hierarchical_map_center_projected/labels_res_3.0.npy",
-          "results/fractal_map/hierarchical_map_center_projected/labels_hierarchical_best.npy",
-          "results/fractal_map/hierarchical_map_center_projected/labels_coarse_0.5.npy",
-          "results/fractal_map/hierarchical_map/labels_res_0.25.npy",
-          "results/fractal_map/hierarchical_map/labels_res_0.5.npy",
-          "results/fractal_map/hierarchical_map/labels_res_0.75.npy",
-          "results/fractal_map/hierarchical_map/labels_res_1.0.npy",
-          "results/fractal_map/hierarchical_map/labels_res_1.5.npy",
-          "results/fractal_map/hierarchical_map/labels_res_2.0.npy",
-          "results/fractal_map/hierarchical_map/labels_res_3.0.npy",
-          "results/fractal_map/hierarchical_map/labels_hierarchical_best.npy",
-          "results/fractal_map/hierarchical_map/labels_coarse_0.5.npy",
-          "results/fractal_map/legal_distance_modes/debiased_citation_blended/",
-          "results/fractal_map/legal_distance_modes/legal_cited_decisions_only/",
-          "results/fractal_map/legal_distance_modes/hybrid_alpha_03/",
-          "results/fractal_map/legal_distance_modes/hybrid_alpha_05/",
-          "results/fractal_map/legal_distance_modes/legal_issues_outcomes/",
-          "results/fractal_map/evaluation/center_projected_hierarchical_zoom_validation_results.json",
-          "results/fractal_map/evaluation/hierarchical_zoom_validation_results.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33132507730_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33132986797_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33133395447_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33134184565_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33134755365_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33135281890_GATE.json",
-          "results/fractal_map/audit/CYCLE_center_projected_hierarchical_v5_33137354250_GATE.json",
-          "results/fractal_map/audit/CYCLE_center_projected_hierarchical_v6_33139587950_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33207149474_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33209861284_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33211353804_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33212512155_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33213824979_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33214267286_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33214779571_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33215480822_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33216227907_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33217119966_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33217485684_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33218009833_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33218436430_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33219321753_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33219756003_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33220329566_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33220832573_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33221047209_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33221501951_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33221891157_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33223636901_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33225637938_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33226326798_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33227285587_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33227679784_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33228049965_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33228532093_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33228749922_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33229228285_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33229470857_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33229937391_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33230223024_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33230536289_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33230827762_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33231303119_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33231560478_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33231826326_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33232058188_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33232552056_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33233108902_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33234274417_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33234534147_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33235819831_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33236199189_FINAL_AUDIT_GATE.json",
-          "results/fractal_map/audit/CYCLE_operational_resume_33236617727_FINAL_AUDIT_GATE.json",
-          "reports/fractal_map/OPERATIONAL_RESUME_33228532093_FINAL_AUDIT.md",
-          "reports/fractal_map/OPERATIONAL_RESUME_33230536289_FINAL_AUDIT.md",
-          "reports/fractal_map/OPERATIONAL_RESUME_33228749922_FINAL_AUDIT.md",
-          "reports/fractal_map/AUDIT_READY_SNAPSHOT_v6_FINAL.md",
-          "reports/fractal_map/OPERATIONAL_RESUME_33229470857_FINAL_AUDIT.md",
-          "reports/fractal_map/OPERATIONAL_RESUME_33229937391_FINAL_AUDIT.md",
-          "reports/fractal_map/OPERATIONAL_RESUME_33234274417_FINAL_AUDIT.md",
-          "reports/fractal_map/OPERATIONAL_RESUME_33234534147_FINAL_AUDIT.md",
-          "reports/fractal_map/OPERATIONAL_RESUME_33235819831_FINAL_AUDIT.md",
-          "reports/fractal_map/OPERATIONAL_RESUME_33236199189_FINAL_AUDIT.md",
-          "reports/fractal_map/OPERATIONAL_RESUME_33236617727_FINAL_AUDIT.md"
+          "results/fractal_map/scalability/scalability_profile_results.json",
+          "results/fractal_map/scalability/synthetic_scalability_results.json",
+          "fractal_map/hierarchical/build_parameterized_map.py",
+          "fractal_map/hierarchical/scalability_profiler.py",
+          "reports/fractal_map/SCALABILITY_ANALYSIS_33302799149.md"
         ],
         "key_findings": [
-          "FACTORY DIRECTION v6 COMPLETE: center_projected_hierarchical is now DEFAULT map mode (replacing concat-based hierarchical_leiden)",
-          "Center Projected Hierarchical Leiden achieves hierarchical purity 0.9571 (+0.0080 vs concat baseline 0.9491, min_cluster_size=3)",
-          "Perfect nesting (1.0) guaranteed by hierarchical construction; 7-resolution ladder: 5→7→9→11→14→16→19 clusters",
-          "108 hierarchical clusters (coarse_0.5_fine_3.0) with branch purity 0.9571",
-          "Zoom coherence improvement rate: 62.96% validated using per-resolution-step methodology (68/108 fine clusters improve); concat baseline 59.2% on different hierarchical_zoom_validation methodology; branch purity ladder: 0.840→0.912→0.972→0.965→0.964→0.955→0.929",
-          "Evaluation v2: center_projected is ONLY representation passing BOTH adversarial language dominance (0.7593 < 0.85) AND jurist pairwise preference (0.5215 > 0.5) — source: evaluation_v2_cycle_33137354250 (carried forward)",
-          "Jurivoc hierarchy alignment: 4/5 PASS — source: evaluation_v2_cycle_33137354250 (carried forward); concat baseline (0.9491 purity, 98 clusters) preserved as LEGACY mode for comparison",
-          "Map mode registry complete with 8 modes: 1 default (center_projected_hierarchical) + 5 legal-distance ACCEPTED + 1 legacy + 1 placeholder",
-          "5 legal-distance modes at ACCEPTED tier: debiased_citation_blended, legal_cited_decisions_only, hybrid_alpha_03, hybrid_alpha_05, legal_issues_outcomes",
-          "Hybrid modes (alpha_03, alpha_05) and legal_issues_outcomes marked with warnings for failed adversarial_falsification / multilingual_invariance benchmarks",
-          "Unified loader API implemented for all modes with full artifact loading",
-          "Product integration specification complete with map mode switching architecture",
-          "All factory direction v6 requirements satisfied: resolution ladder exposed, cluster metadata available, legal coherence at each zoom level documented, default map structure integrated with legal-distance selectable modes",
-          "Minimum cluster size filter (min_size=3) applied to purity metrics to avoid singleton inflation",
-          "Orchestration gap diagnosed: /tmp/lex_accepted/fractal_map/ mirroring lost due to ephemeral storage volatility between GitHub runs; re-established in run 33234274417 with 286 artifacts verified",
-          "Operational resume 33234274417: Re-established /tmp/lex_accepted/fractal_map/ mirroring (286 artifacts), re-ran all 48 verification tests (all PASS), confirmed loader API functional across all 8 modes including zoom mappings/coherence/decision clusters/cluster metadata, verified state file consistency between repo and accepted branch (diff clean), snapshot fully audit-ready",
-          "Run 33234534147: Verified /tmp/lex_accepted/fractal_map/ mirroring persists (365 artifacts), all 48 verification tests PASS, loader API validated across all 8 modes (default + 5 legal-distance ACCEPTED + 1 legacy + 1 placeholder), state file updated for current run, snapshot audit-ready for factory direction v6 completion",
-          "Run 33235819831: Verified /tmp/lex_accepted/fractal_map/ mirroring persists (260 artifacts), all 48 verification tests PASS, loader API validated across all 8 modes, state file updated, snapshot audit-ready",
-          "CURRENT RUN 33236199189: Re-established /tmp/lex_accepted/fractal_map/ mirroring (261 artifacts), all 48 verification tests PASS, loader API validated across all 8 modes (default + 5 legal-distance ACCEPTED + 1 legacy + 1 placeholder), state file updated for current run, snapshot audit-ready for factory direction v6 completion. Orchestration gap diagnosis confirmed and fix re-applied.",
-          "CURRENT RUN 33236617727: Re-established /tmp/lex_accepted/fractal_map/ mirroring (262 artifacts), all 48 verification tests PASS, loader API validated across all 8 modes (default + 5 legal-distance ACCEPTED + 1 legacy + 1 placeholder), state file updated for current run, snapshot audit-ready for factory direction v6 completion. Orchestration gap fix re-applied and verified persistent."
+          "RUN 33306550005: Operational resume from run 33306333071. VERIFIED: 128/128 pytest tests PASS; 545 artifacts verified; 24 modes loaded from both workspace and re-established mirror; default mode metrics (nesting=1.0, purity=0.9571, 108 clusters, 1000 decisions) reproduce from on-disk JSON. Mirror re-established from workspace (ephemeral storage volatility systemic — same pathology as runs 33304077155, 33305918697, 33306129382, 33306333071). Snapshot verification PASS. AUDIT GATE: PASS.",
+          "SCALABILITY ANALYSIS (RUN 33302799149): Hierarchical Leiden scales LINEARLY to 192k decisions (3.4 min estimated, 1.0 GB memory). Parameterized builder (build_parameterized_map.py) ready for arbitrary corpus sizes. No infrastructure changes required. BLOCKER: corpus lane must deliver full 192k corpus.",
+          "ALL 12 breakthrough representations VALIDATED with two design patterns: (a) HIGH-PURITY (Metric Learning): linear_metric_epoch4 (Fine=0.9754, NMI=0.5921, ImpRate=75.6%), mahalanobis_metric_epoch4 (Fine=0.9746, NMI=0.5944, ImpRate=71.4%), hybrid_stabilized_epoch1 (Fine=0.9638, NMI=0.5788, ImpRate=73.8%); (b) HIGH-ADVANTAGE (Citation/Outcome): cited_decisions_tfidf (ImpRate=97.1%, HierAdv=+0.1415), cited_outcome_hybrid_0.5 (ImpRate=86.8%, HierAdv=+0.2918, BEST PRODUCTION), cited_outcome_hybrid_0.7 (ImpRate=90.3%, HierAdv=+0.3703, BEST FRACTAL); (c) CITATION ROLE VIEWS: following_alpha0.3 (ImpRate=82.2%, Fine=0.9501), criticizing_alpha0.3 (Fine=0.9619, HierAdv=+0.0815), citing_alpha0.3 (ImpRate=66.9%).",
+          "center_projected_hierarchical REPRODUCED as DEFAULT (nesting=1.0, purity=0.9571/0.9718, 7-resolution ladder, 108 clusters). Product integration COMPLETE: 24 representations across 4 design patterns (DEFAULT, HIGH-PURITY, HIGH-ADVANTAGE, CITATION ROLE) operational.",
+          "Cross-lingual target LangDom < 0.6 ACHIEVED via zero-shot cited_decisions_tfidf_outcome_hybrid_0.5 (LangDom=0.4911, JP=0.7990, NO GPU). GPU fine-tuning now OPTIONAL enhancement.",
+          "Boilerplate resistance correction CONFIRMED: 89-93% neighbor preservation when boilerplate removed — boilerplate NOT driving neighbors. Systemic challenge is cross-lingual alignment / language dominance."
         ],
         "validation_metrics": {
           "center_projected_hierarchical": {
@@ -979,7 +905,7 @@
             "hierarchical_purity_global": 0.9571,
             "hierarchical_purity_local": 0.9571,
             "flat_mean_purity": 0.9341,
-            "zoom_coherence_improvement_rate": 0.6296,
+            "zoom_coherence_improvement_rate": 0.311,
             "resolution_ladder": [
               0.25,
               0.5,
@@ -993,7 +919,7 @@
             "n_decisions": 1000,
             "corpus": "BGer 2020-2024 (1000 decisions)",
             "evidence_tier": "REPRODUCED",
-            "validation_run": "33236617727",
+            "validation_run": "33243676197",
             "embeddings": "center_projected (768 dim, pure, no TF-IDF)",
             "adversarial_language_dominance": 0.7593,
             "jurist_pairwise_preference": 0.5215,
@@ -1003,11 +929,10 @@
           },
           "hierarchical_leiden_concat_legacy": {
             "nesting_score": 1.0,
-            "hierarchical_purity_global": 0.9490748223452176,
+            "hierarchical_purity_global": 0.9491,
             "hierarchical_purity_local": 0.9634,
-            "flat_mean_purity": 0.8829426672472117,
+            "flat_mean_purity": 0.8829,
             "zoom_coherence_improvement_rate": 0.592,
-            "flat_leiden_zoom_improvement_pct": 8.8,
             "resolution_ladder": [
               0.25,
               0.5,
@@ -1076,6 +1001,168 @@
                 "fails tf_metadata_human_indexing threshold"
               ]
             },
+            "linear_metric_epoch4": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 14,
+              "benchmarks_total": 14,
+              "jurist_preference": 0.6847,
+              "language_dominance": 0.6802,
+              "hierarchical_purity": 0.9868,
+              "adversarial_both_pass": true
+            },
+            "mahalanobis_metric_epoch4": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 14,
+              "benchmarks_total": 14,
+              "jurist_preference": 0.6781,
+              "language_dominance": 0.684,
+              "hierarchical_purity": 0.9861,
+              "adversarial_both_pass": true
+            },
+            "cited_decisions_tfidf": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 14,
+              "benchmarks_total": 14,
+              "jurist_preference": 0.6889,
+              "language_dominance": 0.6086,
+              "hierarchical_purity": 0.7967,
+              "adversarial_both_pass": true
+            },
+            "hybrid_cited_0.3": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 14,
+              "benchmarks_total": 14,
+              "jurist_preference": 0.955,
+              "language_dominance": 0.543,
+              "hierarchical_purity": 0.957,
+              "adversarial_both_pass": true
+            },
+            "cited_decisions_tfidf_hybrid_cp64_0.3": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 14,
+              "benchmarks_total": 14,
+              "jurist_preference": 0.5346,
+              "language_dominance": 0.7483,
+              "adversarial_both_pass": true
+            },
+            "cited_decisions_tfidf_hybrid_cp64_0.5": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 14,
+              "benchmarks_total": 14,
+              "jurist_preference": 0.5521,
+              "language_dominance": 0.7192,
+              "adversarial_both_pass": true
+            },
+            "cited_decisions_tfidf_hybrid_cp64_0.7": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 14,
+              "benchmarks_total": 14,
+              "jurist_preference": 0.6564,
+              "language_dominance": 0.6518,
+              "adversarial_both_pass": true,
+              "note": "Best production hybrid (cp64)"
+            },
+            "cited_decisions_tfidf_hybrid_cp768_0.3": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 14,
+              "benchmarks_total": 14,
+              "jurist_preference": 0.5312,
+              "language_dominance": 0.7521,
+              "adversarial_both_pass": true
+            },
+            "cited_decisions_tfidf_hybrid_cp768_0.5": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 14,
+              "benchmarks_total": 14,
+              "jurist_preference": 0.5678,
+              "language_dominance": 0.7034,
+              "adversarial_both_pass": true
+            },
+            "cited_decisions_tfidf_hybrid_cp768_0.7": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 14,
+              "benchmarks_total": 14,
+              "jurist_preference": 0.6764,
+              "language_dominance": 0.6477,
+              "adversarial_both_pass": true,
+              "note": "Best jurist preference of all hybrids"
+            },
+            "hybrid_stabilized_epoch1": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 14,
+              "benchmarks_total": 14,
+              "jurist_preference": 0.6656,
+              "language_dominance": 0.66,
+              "hierarchical_purity": 0.9638,
+              "adversarial_both_pass": true,
+              "note": "HIGH PURITY pattern (Fine=0.9638, ImpRate=73.8%)"
+            },
+            "cited_decisions_tfidf_outcome_hybrid_0.5": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 14,
+              "benchmarks_total": 14,
+              "jurist_preference": 0.799,
+              "language_dominance": 0.4911,
+              "hierarchical_purity": 0.868,
+              "adversarial_both_pass": true,
+              "note": "BEST PRODUCTION (HierAdv=+0.2918, LangDom=0.4911, JP=0.7990)"
+            },
+            "cited_decisions_tfidf_outcome_hybrid_0.7": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 14,
+              "benchmarks_total": 14,
+              "jurist_preference": 0.7907,
+              "language_dominance": 0.4907,
+              "hierarchical_purity": 0.903,
+              "adversarial_both_pass": true,
+              "note": "BEST FRACTAL (HierAdv=+0.3703, ImpRate=90.3%)"
+            },
+            "following_alpha0.3": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 14,
+              "benchmarks_total": 14,
+              "jurist_preference": 0.5188,
+              "language_dominance": 0.753,
+              "hierarchical_purity": 0.9501,
+              "adversarial_both_pass": true,
+              "note": "Citation Role - HIGH ADVANTAGE (Fine=0.9501, ImpRate=82.2%)"
+            },
+            "criticizing_alpha0.3": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 14,
+              "benchmarks_total": 14,
+              "jurist_preference": 0.5004,
+              "language_dominance": 0.7676,
+              "hierarchical_purity": 0.9619,
+              "adversarial_both_pass": true,
+              "note": "Citation Role - HIGH ADVANTAGE (Fine=0.9619, HierAdv=+0.0815)"
+            },
+            "citing_alpha0.3": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 14,
+              "benchmarks_total": 14,
+              "jurist_preference": 0.5363,
+              "language_dominance": 0.7414,
+              "hierarchical_purity": 0.9203,
+              "adversarial_both_pass": true,
+              "note": "Citation Role (ImpRate=66.9%)"
+            },
             "center_projected": {
               "status": "placeholder",
               "evidence_tier": "ACCEPTED",
@@ -1094,7 +1181,6 @@
           "legal_distance_reproduction": "center_projected embeddings require legal-distance lane reproduction on full v1+v2 benchmark suite for legal-distance mode integration",
           "full_corpus_scale": "Current validation on 1000 decisions (2020-2024); full 2000-2024 corpus scaling needed per corpus lane"
         },
-        "next_recommendation": "PRODUCTIZE",
         "metrics_summary": {
           "center_projected_hierarchical_experiment": {
             "verdict": "PASS",
@@ -1105,23 +1191,29 @@
             "purity_improvement_vs_concat_baseline_pct": 0.84,
             "n_fine_clusters": 108,
             "nesting_score": 1.0,
-            "zoom_coherence_improvement_rate": 0.6296,
+            "zoom_coherence_improvement_rate": 0.311,
             "concat_baseline_zoom_coherence": 0.5918,
-            "zoom_coherence_methodology": "per-resolution-step (68/108 fine clusters improve)",
+            "zoom_coherence_methodology": "per-resolution-step (19/61 fine clusters improve)",
             "purity_min_cluster_size": 3
           }
-        }
+        },
+        "operational_resume_id": "33306550005",
+        "audit_status": "PASS",
+        "artifacts_verified": 545,
+        "tests_passed": 128,
+        "modes_loaded": 24,
+        "snapshot_verification": "results/fractal_map/evaluation/snapshot_verify_33306550005.json"
       }
     },
     {
       "path": "results/accepted-state/legal-distance.json",
       "state": {
         "lane": "legal-distance",
-        "direction_version": 9,
+        "direction_version": 10,
         "evidence_tier": "REPRODUCED",
         "cycle_status": "COMPLETED",
-        "continue_recommended": true,
-        "accepted_run_id": "holdout_metric_learning_20260830",
+        "continue_recommended": false,
+        "accepted_run_id": "out_of_sample_metric_learning_20260830",
         "evidence_refs": [
           "legal_distance/results/v6/validation_breakthrough/validation_results.json",
           "legal_distance/results/v6/metric_learning/metric_learning_results.json",
@@ -1151,9 +1243,13 @@
           "reports/legal-distance/v8_holdout_zero_shot_validation_fixed_report.md",
           "legal_distance/experiments/v9_holdout_metric_learning.py",
           "legal_distance/results/v9/holdout_metric_learning/holdout_metric_learning_validation.json",
-          "reports/legal-distance/v9_holdout_metric_learning_report.md"
+          "reports/legal-distance/v9_holdout_metric_learning_report.md",
+          "legal_distance/experiments/v10_out_of_sample_metric_learning.py",
+          "legal_distance/results/v10/out_of_sample_metric_learning/out_of_sample_metric_learning_validation.json",
+          "legal_distance/results/v10/out_of_sample_metric_learning/training_logs.json",
+          "reports/legal-distance/v10_out_of_sample_metric_learning_report.md"
         ],
-        "next_recommendation": "METRIC LEARNING HOLDOUT VALIDATION COMPLETED: (1) linear_metric_epoch4 achieves BEST holdout JuristPref (0.6050) and LangDom (0.5795) with 34.95% citation-independent retrieval — SOLVES cite-indep gap; (2) ALL metric learning representations achieve 34-37% cite-indep retrieval (target 15%) — 2.5x zero-shot hybrids; (3) JuristPref > 0.7 target MISSED by ALL representations on holdout (best 0.605); (4) Two-map-mode trade-off CONFIRMED on holdout: Metric Learning (High-Purity, cite-indep) vs Citation/Outcome (High-Advantage, cross-lingual). REMAINING: True out-of-sample metric learning retrain on 1000; jurist human study; 192k scale test; hierarchy-preserving multilingual-e5 fine-tuning.",
+        "next_recommendation": "OOS METRIC LEARNING VALIDATION COMPLETED: (1) OOS training PASSES adversarial gates on holdout — linear JP=0.525, mahalanobis JP=0.530, both LangDom<0.61; (2) Pre-training leakage quantified: v9 pre-trained JP=0.605 vs OOS JP=0.525 (+8% inflation); (3) CiteIndep robust: OOS 36.8-36.9% vs v9 34.0-35.0%; (4) JuristPref > 0.7 target NOT MET by ANY representation (true OOS ceiling ~0.53); (5) Two-map-mode trade-off CONFIRMED with OOS evidence: Metric Learning (High-Purity, JP=0.525, CiteIndep=37%) vs Citation/Outcome (High-Advantage, JP=0.585, CiteIndep=14%). REMAINING: True OOS retrain for hybrid_stabilized; jurist human study; 192k scale test; hierarchy-preserving multilingual-e5 fine-tuning. RECOMMENDATION: CONTINUE is NOT recommended under same factory-direction question — all actionable v10 objectives completed or blocked on dependencies. Factory Director should decide successor question.",
         "critical_findings": {
           "metric_learning_breakthrough": "Linear projection on center_projected achieves JP=0.6847 (33.7% relative improvement over center_projected 0.512), mahalanobis JP=0.6781; both pass BOTH adversarial gates with 18+ consecutive valid epochs (frozen evaluation harness v3 seed=42 canonical)",
           "stabilized_hybrid_breakthrough": "Hybrid objective (contrastive + preservation + hierarchy loss) achieves 6 consecutive valid epochs, peak at epoch 1: JP=0.6656, LangDom=0.6701",
@@ -1173,8 +1269,14 @@
           "linear_metric_best_holdout_jp": "linear_metric_epoch4 achieves 0.605 JuristPref on holdout — best of all representations tested, improves over train (0.532)",
           "mahalanobis_strong_holdout": "mahalanobis_metric_epoch4 achieves 0.585 JP + 0.581 LangDom on holdout — balanced performance",
           "hybrid_stabilized_cite_indep_best": "hybrid_stabilized_epoch1 achieves 36.95% cite-indep retrieval (best overall) but fails LangDom target (0.605) and has lowest JP (0.515)",
-          "jurist_pref_ceiling": "NO representation achieves JuristPref > 0.7 on holdout — systematic ceiling at ~0.605",
-          "two_mode_tradeoff_holdout_confirmed": "Metric Learning (High-Purity): JP=0.605, CiteIndep=35%, LangDom=0.58 vs Citation/Outcome (High-Advantage): JP=0.585, CiteIndep=14%, LangDom=0.51"
+          "jurist_pref_ceiling": "NO representation achieves JuristPref > 0.7 on holdout — systematic ceiling at ~0.605 (v9 pre-trained) or ~0.53 (true OOS)",
+          "two_mode_tradeoff_holdout_confirmed": "Metric Learning (High-Purity): JP=0.605, CiteIndep=35%, LangDom=0.58 vs Citation/Outcome (High-Advantage): JP=0.585, CiteIndep=14%, LangDom=0.51",
+          "oos_training_passes_adversarial": "BOTH linear (JP=0.525, LD=0.607) and mahalanobis (JP=0.530, LD=0.605) PASS adversarial gates on holdout when trained ONLY on 1000 train decisions — TRUE OOS generalization confirmed",
+          "pre_training_leakage_quantified": "v9 pre-trained JP=0.605 vs OOS JP=0.525 — +8% inflation from data leakage. This quantifies the generalization gap between leakage-contaminated and true OOS evaluation",
+          "cite_indep_robust_across_regimes": "CiteIndep 35-37% consistent across OOS and v9 pre-trained, far exceeding 15% target and 13-14% zero-shot hybrids",
+          "true_oos_jp_ceiling": "True OOS JuristPref ceiling is ~0.53, not ~0.60 as v9 suggested. JuristPref > 0.7 requires fundamentally new approaches (not just more training data)",
+          "center_projected_fails_holdout": "center_projected baseline FAILS jurist gate on holdout (JP=0.385 < 0.5), confirming metric learning is necessary for legal navigation",
+          "two_mode_tradeoff_oos_confirmed": "Metric Learning OOS: JP=0.525, CiteIndep=37%, LD=0.61 vs Citation/Outcome: JP=0.585, CiteIndep=14%, LD=0.51"
         }
       }
     },
@@ -1182,14 +1284,14 @@
       "path": "results/accepted-state/product.json",
       "state": {
         "lane": "product",
-        "direction_version": 9,
+        "direction_version": 10,
         "evidence_tier": "REPRODUCED",
-        "cycle_status": "RUN",
+        "cycle_status": "COMPLETED",
         "continue_recommended": true,
-        "accepted_run_id": "33289058512",
+        "accepted_run_id": "33304668621",
         "accepted_commit": null,
-        "github_run": "33289058512",
-        "factory_direction_version": 9,
+        "github_run": "33304668621",
+        "factory_direction_version": 10,
         "evidence_refs": [
           "product/app/corpus_loader.py",
           "product/app/map_loader.py",
@@ -1209,6 +1311,7 @@
           "product/tests/test_cycle_33032746334.py",
           "product/tests/test_cycle_33033658714.py",
           "product/tests/test_cycle_33035450227.py",
+          "product/tests/test_cycle_33304668621.py",
           "product/requirements.txt",
           "product/build_legal_cited_representation.py",
           "product/results/corpus/normalization/canonical/bger_2000plus_slice_1000.jsonl",
@@ -1348,7 +1451,12 @@
           "CYCLE_FACTORY_V6_IMPROVE: Factory direction v6 continuous improvement phase — hardened TF base map for production, optimized map rendering at scale, prepared for full corpus (~192k) persistence.",
           "CYCLE_FACTORY_V6_CRITICAL_FIX: Fixed center_projected default map mode to use 64-dim frozen PCA (evaluation v3 validated) instead of 768-dim (evaluation v6 shows FAILS jurist pairwise 0.491). Added center_projected_64dim_hierarchical as DEFAULT representation (FEAT-051). Hierarchical Leiden on 64-dim: nesting=1.0, purity=0.9718, 108 fine clusters in 7 coarse. Both adversarial gates PASS: language_dominance=0.766 (<0.85), jurist_pairwise=0.512 (>0.5). Updated map_loader, navigation, server, and frontend.",
           "CYCLE_FACTORY_V6_ORCHESTRATION_FIX: Corrected lane state mismatch — factory direction v6 specifies product status=RUN (continuous improvement) but lane state showed COMPLETED with continue_recommended=false. Fixed: cycle_status=RUN, continue_recommended=true, next_recommendation=CONTINUE. Vertical slice COMPLETE per v6 deliverables; continuous improvement phase now active for production hardening, scale optimization, and 192k corpus preparation.",
-          "CYCLE_FACTORY_V9_FEAT: Integrated Citation Role Views (following_alpha0.3, criticizing_alpha0.3, citing_alpha0.3) as selectable map modes (FEAT-052). ACCEPTED per legal-distance v6: 3 roles validated (following, criticizing, overruling) with both adversarial gates PASS. Added to map_modes dropdown with optgroup, 7 zoom levels each. Exposes CITATION ROLE VIEWS design pattern per factory direction v9. Total representations: 27 (14 ACCEPTED, 3 REPRODUCED, 3 EXPLORATORY, 7 legacy). Map mode comparison UI and WebGL rendering operational."
+          "CYCLE_FACTORY_V9_FEAT: Integrated Citation Role Views (following_alpha0.3, criticizing_alpha0.3, citing_alpha0.3) as selectable map modes (FEAT-052). ACCEPTED per legal-distance v6: 3 roles validated (following, criticizing, overruling) with both adversarial gates PASS. Added to map_modes dropdown with optgroup, 7 zoom levels each. Exposes CITATION ROLE VIEWS design pattern per factory direction v9. Total representations: 27 (14 ACCEPTED, 3 REPRODUCED, 3 EXPLORATORY, 7 legacy). Map mode comparison UI and WebGL rendering operational.",
+          "CYCLE_33303560323_V10_VERIFY: Factory direction v10 operational resume from persisted snapshot of run 33301679509. DIAGNOSED: run 33301679509 was a no-op (orchestrator created branches but agent never executed — zero commits, zero artifacts). All prior product artifacts from cycle 33289058512/33286841197 fully preserved. Verified: 241/241 tests PASS (32 core product + 81 supporting + 128 fractal-map verification). All 6 v10 representations (cited_decisions_tfidf_outcome_hybrid_0.5, cited_decisions_tfidf_outcome_hybrid_0.7, following_alpha0.3, criticizing_alpha0.3, citing_alpha0.3) fully integrated in map_loader.py with artifacts present. 29+ representations across 4 design patterns (DEFAULT, HIGH-PURITY, HIGH-ADVANTAGE, CITATION ROLE) operational. Updated state to direction_version 10, cycle_status=COMPLETED, next_recommendation=PRODUCTIZE.",
+          "CYCLE_33304668621_FIX: Fixed server-level proximity caching bug — replaced fragile capture-pattern monkey-patching with robust compute-cache-send pattern in _handle_cached(). All 6 cached endpoints (proximity, cluster_coherence, zoom_coherence, cluster_language, cross_language, text_similarity) now correctly cache and return cached results on repeated calls. Proximity caching verified: second call returns cached=True, reverse order also cached. (FIX-007)",
+          "CYCLE_33304668621_FEAT: Multi-representation user corpus import — imported decisions now get map positions computed for ALL 29 available representations (not just default). Changed _imported_positions key from decision_id to (decision_id, representation) compound key. import_corpus iterates all representations, computing positions at each representation's first available zoom level. Verified: 2 imported decisions get positions in 29 representations (58 total position records). (FEAT-053)",
+          "CYCLE_33304668621_FEAT: Added representation validation endpoint (GET /api/representations/validate). Tests all loaded representations for health: zoom-level data integrity, cluster assignment coverage, metadata completeness (evidence_tier), and cluster detail accessibility. Returns per-representation status (PASS/WARN/FAIL) with issue details. Default representation (center_projected_64dim_hierarchical) verified PASS. (FEAT-054)",
+          "CYCLE_33304668621_FEAT: Added map data pagination support (GET /api/map?limit=N&offset=M). Enables large-scale rendering by returning position subsets while always returning full cluster summaries. Returns pagination metadata (total, offset, limit, returned, has_more). Tested: no overlap between pages, correct has_more flag, empty page for out-of-bounds offset. Critical for 192k corpus scale. (FEAT-055)"
         ],
         "next_recommendation": "CONTINUE",
         "metrics_summary": {
@@ -1671,7 +1779,11 @@
             "webgl_rendering",
             "rate_limiting",
             "server_side_caching",
-            "health_monitoring"
+            "health_monitoring",
+            "multi_representation_user_import",
+            "representation_validation",
+            "map_pagination",
+            "proximity_caching"
           ],
           "web_frontend": "single_page_html5_canvas_webgl",
           "api_endpoints": [
@@ -1706,7 +1818,9 @@
             "GET /api/rate_limit/status",
             "GET /api/feedback",
             "POST /api/feedback",
-            "GET /api/map/compare?rep_a=&rep_b=&zoom="
+            "GET /api/map/compare?rep_a=&rep_b=&zoom=",
+            "GET /api/representations/validate",
+            "GET /api/map?representation=&zoom=&limit=&offset="
           ],
           "test_results": {
             "test_product.py": {
@@ -1749,12 +1863,18 @@
               "evaluation_loader": "PASS (10 tests)",
               "temporal_filtering": "PASS (10 tests)",
               "section_modes_scaled": "PASS (21 tests)"
+            },
+            "test_cycle_33304668621.py": {
+              "multi_representation_import": "PASS",
+              "validate_representations": "PASS",
+              "map_pagination": "PASS",
+              "proximity_caching": "PASS"
             }
           },
-          "total_tests": 97,
-          "tests_passed": 97
+          "total_tests": 111,
+          "tests_passed": 111
         },
-        "notes": "Cycle 33035450227: Scaled section projections from 63 to 1000 decisions using blended section+baseline approach. Added evaluation_loader.py to surface accepted evaluation benchmarks. Added temporal filtering endpoint. Added 5 frontend enhancements: zoom-to-cluster, temporal slider, imported corpus markers, evaluation quality badge, cluster breadcrumb. All 90 tests pass (22 original + 68 new). Product now has 22 API endpoints, 33 navigation features, and full evaluation benchmark integration.\n\nCycle 33036994560: Integrated hierarchical Leiden (REPRODUCED fractal map architecture) as default map representation. Hierarchical Leiden achieves perfect nesting (1.0) and higher branch purity (0.963) than flat Leiden (0.875), agglomerative (0.786), and evaluation baselines (0.795). This validates the fractal map architecture where zoom reveals legally coherent substructure. Added 3 zoom levels (5→8→27 clusters). Default representation changed from concat_center_tfidf to hierarchical_leiden. All 91 tests pass.\n\nCycle 33039540805 (operational resume): Diagnosed orchestration failure — product lane remained at CONTINUE despite all dependent lanes (corpus, fractal-map, evaluation) reaching PRODUCTIZE. Updated product state to PRODUCTIZE. All 91 tests pass. Product integrates REPRODUCED evidence from all core lanes: corpus (TF-2000+ acquisition/normalization), fractal-map (hierarchical Leiden with perfect nesting), evaluation (debiased_citation_blended with 14/14 benchmarks PASS). Vertical slice complete: corpus import/load, map computation/load, zoom/navigation, cluster/decision inspection, multi-view modes, citation graph, proximity explanation, evaluation benchmark integration.\n\nCycle 33044908711: Fixed true_hierarchical_leiden representation by installing missing igraph/leidenalg dependencies (added to requirements.txt). True hierarchical Leiden now runs the actual algorithm (Leiden within parent clusters at finer resolution) achieving perfect nesting (1.0).\n\nCycle 33115310021 (factory direction v6): Integrated center_projected as DEFAULT map mode per evaluation v2 (only representation passing BOTH adversarial benchmarks: language_dominance=0.7593<0.85, jurist_pairwise=0.5215>0.5). Added legal_cited_decisions (ACCEPTED, 14/14 PASS), hybrid_alpha_0_3, hybrid_alpha_0_5, legal_issues_outcomes as EXPLORATORY modes. User corpus import persistence and map export functional. 97/97 tests pass.\n\nCycle 33139587950 (factory direction v6 CRITICAL FIX): Fixed center_projected default map mode per evaluation v6 findings. Evaluation v6 revealed 768-dim center_projected FAILS jurist pairwise (0.491), while evaluation v3 validated 64-dim frozen PCA PASSES both adversarial gates (lang_dom=0.766, pairwise=0.512). Created center_projected_64dim_hierarchical with frozen PCA (64 dim, 85.26% variance), hierarchical Leiden (nesting=1.0, purity=0.9718, 108 fine/7 coarse). Updated map_loader, navigation, server, frontend. DEFAULT representation changed from center_projected_hierarchical (768-dim, LEGACY) to center_projected_64dim_hierarchical. All tests pass.\n\nCycle 33203449759 (factory direction v6 continuous improvement): Production hardening - WebGL renderer (100k+ points), rate limiting (100 req/min), server-side caching (5-min TTL), health check endpoint, feedback capture, map comparison API. All 97 tests pass.\n\nCycle 33226863400 / 33228343816: AUDIT_BLOCKED cleared. Independent audit PASS. 14 representations loaded, center_projected_64dim_hierarchical DEFAULT with verified adversarial gates (language_dominance=0.766<0.85, jurist_pairwise=0.512>0.5). All 97 tests pass. Product lane audit-ready per factory direction v6.\n\nCycle 33258997637 (operational resume v6): Diagnosed orchestration/validation failure — factory direction v6 specifies product status=RUN (continuous improvement phase) but lane state showed COMPLETED with continue_recommended=false, next_recommendation=PRODUCTIZE. Fixed lane state: cycle_status=RUN, continue_recommended=true, next_recommendation=CONTINUE. Vertical slice COMPLETE per v6 deliverables; continuous improvement phase now active for production hardening at scale, map rendering optimization, and full corpus (~192k) map persistence preparation. All 97 tests pass, 14 representations operational.",
+        "notes": "Cycle 33304668621: Production hardening for 192k scale. (1) FIXED proximity explainer caching bug — replaced fragile capture-pattern with robust compute-cache-send pattern. (2) MULTI-REPRESENTATION USER IMPORT — imported decisions get positions for ALL 29 representations via compound key (decision_id, representation). (3) REPRESENTATION VALIDATION ENDPOINT — GET /api/representations/validate tests all representations health. 24 PASS, 5 WARN, 0 FAIL. (4) MAP PAGINATION — limit/offset on GET /api/map for large-scale rendering. (5) ALL 111 tests PASS. 30 API endpoints (was 29). 53 navigation features (was 48).",
         "known_limitations": [
           "Section modes: 63 decisions use section-specific projections, 937 use baseline fallback (blended approach)",
           "HDBSCAN produces fewer clusters than Leiden at same zoom levels (2-8 vs 5-21)",
@@ -1764,7 +1884,7 @@
           "Temporal filtering requires year metadata in corpus (not all decisions have it)",
           "Full TF-2000+ corpus scale pending corpus lane completion (currently 1000-decision slice)",
           "Hybrid and legal_issues_outcomes representations are EXPLORATORY (not yet benchmarked)",
-          "Proximity explainer caching not fully implemented (cache miss on second call) - TO BE FIXED"
+          "Full TF-2000+ corpus scale pending corpus lane completion (currently 1000-decision slice)"
         ],
         "resolved_issues": [
           "Section modes limited to 63 decisions (fixed: scaled to 1000 with blended section+baseline approach)",
@@ -1784,21 +1904,23 @@
           "No rate limiting on API (fixed: added 100 req/min rate limiting with headers)",
           "Cluster coherence computed on-demand (fixed: server-side caching with 5-min TTL)",
           "No health check endpoint (fixed: added /api/health with system status)",
-          "center_projected 768-dim FAILS jurist pairwise per evaluation v6 (fixed: 64-dim frozen PCA center_projected_64dim_hierarchical PASSES both adversarial gates per evaluation v3)"
+          "center_projected 768-dim FAILS jurist pairwise per evaluation v6 (fixed: 64-dim frozen PCA center_projected_64dim_hierarchical PASSES both adversarial gates per evaluation v3)",
+          "Server-level proximity caching broken — cache miss on second call due to fragile capture pattern (fixed: replaced with robust compute-cache-send pattern in _handle_cached())",
+          "User import computed positions only for default representation (fixed: now computes positions for ALL 29 representations with compound key (decision_id, representation))",
+          "No representation health validation endpoint (fixed: added GET /api/representations/validate with per-representation status/issues/zoom-level checks)",
+          "Map endpoint returned all positions at once — not scalable for 192k corpus (fixed: added limit/offset pagination with has_more metadata)"
         ],
         "next_steps": [
           "Scale to full TF-2000+ corpus when corpus lane completes full coverage",
-          "Compare Leiden vs HDBSCAN vs hierarchical Leiden cluster quality on legal-area benchmark",
           "Add compound language queries (e.g., de+fr mixed searches)",
           "Add citation-proximity clustering as alternative map mode",
-          "Run true hierarchical Leiden on concat_center_tfidf embeddings (match fractal-map validation) for 127 fine clusters in 8 coarse",
-          "Integrate additional legal-distance signals (e.g., legal_erwaegungen_only with 10/14 PASS for branch purity) as experimental map modes",
-          "Benchmark hybrid_alpha_0_3 and hybrid_alpha_0_5 on adversarial evaluation suite",
-          "Benchmark legal_issues_outcomes on legal classification and citation heritage",
-          "Run jurist pairwise evaluation on center_projected vs hybrid modes vs legal_cited_decisions",
-          "Fix proximity explainer caching (currently cache miss on second call)",
+          "Run jurist pairwise evaluation on 4 design patterns (DEFAULT, HIGH-PURITY, HIGH-ADVANTAGE, CITATION ROLE)",
+          "Integrate representation validation into health monitoring (auto-check on startup)",
           "Add Mapbox GL JS integration for even better large-scale rendering",
-          "Add user authentication with JWT tokens for production deployment"
+          "Add user authentication with JWT tokens for production deployment",
+          "Optimize WebGL rendering for 192k corpus scale (frustum culling, level-of-detail)",
+          "Add incremental map updates when corpus lane delivers full 192k corpus",
+          "Benchmark hybrid_alpha_0_3 and hybrid_alpha_0_5 on adversarial evaluation suite"
         ]
       }
     }
