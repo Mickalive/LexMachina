@@ -97,7 +97,10 @@
     "evaluation/experiments/run_debiased_cb_variant_comparison.py",
     "evaluation/results/debiased_citation_blended_cross_validation/debiased_cb_crossval_1788107759_results.json",
     "evaluation/results/debiased_citation_blended_cross_validation/dcbl_variants_1788107832_variant_comparison.json",
-    "reports/evaluation/evaluation_debiased_cb_cross_validation_33322534441.md"
+    "reports/evaluation/evaluation_debiased_cb_cross_validation_33322534441.md",
+    "evaluation/experiments/evaluate_v12_cross_mode_cv.py",
+    "results/evaluation/v12_cross_mode_cv/v12_cross_mode_cv_eval_v12_cv_1788127322.json",
+    "results/evaluation/v12_cross_mode_cv/REPORT.md"
   ],
   "key_findings": [
     "EVALUATION v3+ COMPLETED: Frozen evaluation harness (seed=42, config_hash=4323f833fa72366a) executed on expanded 1,200-decision slice. REPRODUCED EXACTLY in GitHub run 33232234741 AND VERIFIED in run 33240972425. LOCAL REPRODUCIBILITY CONFIRMED. Integration of cited_decisions_tfidf results completed in operational resume 33265417443.",
@@ -126,7 +129,8 @@
     "ANTI-NOISE PROCEDURAL SENSITIVITY OF REAL-BOILERPLATE CONCLUSION (Factory Direction v10, evaluation_anti_noise_procedural_sensitivity_33318520605): NEGATIVE finding — the accepted 'boilerplate does not drive neighbors' conclusion is ROBUST to the anti-noise concern. Deep removal of routine procedural reasoning passages (~26-30% text) drops k-NN preservation substantially (shallow 0.9325 -> deep 0.6835, delta=0.249), BUT removing the SAME volume of substantive (lowest-procedural) content drops it just as much (control delta=0.2525); procedural-specific excess = -0.0035 (< 0.03 frozen threshold). The drop is a bulk-removal / TF-IDF+SVD refit artifact, NOT a procedural anti-noise leak. A no-control initial pass falsely declared FRAGILE (delta=0.249); the mandatory equal-volume control reversed it. Procedural passages are NOT disproportionately responsible for neighbor structure on the 1200-slice. Shallow real-boilerplate protocol remains canonical at slice level. Re-run this sensitivity design at 192k corpus scale when corpus lane delivers.",
     "V11 OOS HYBRID_STABILIZED CROSS-VALIDATION ON CANONICAL FROZEN HARNESS v3 (Factory Direction v10, evaluation_v11_cross_validation_33319724787): CONFIRMED — Both v11 OOS models (hierarchy + no-hierarchy arms) PASS both adversarial gates on full 1200-decision slice. Hierarchy: LangDom=0.7157, JP=0.5975; No-hierarchy: LangDom=0.7074, JP=0.5967. Hierarchy loss effect on canonical full slice: ΔJP=+0.0008 (essentially zero, NOT load-bearing). v11 report hierarchy effect (+0.030 on 200 holdout) was inflated by small-sample noise. NEGATIVE: v11 OOS models are WORSE than metric learning baselines on canonical benchmark (JP=0.597 vs linear 0.685, mahalanobis 0.678). The 'roughly tied' conclusion from 200 holdout does NOT transfer to 1200-slice. Hierarchy arm has better Jurivoc L0 (0.5205 vs 0.4771) but WORSE fractal ImpRate (67.8% vs 86.0%). JuristPref > 0.7 factory target NOT MET by any v11 representation (ceiling ~0.60). Product integration gap audit: 3 of 8 'in product but not evaluated' are FALSE GAPS (evaluated in cited_decisions_validation); CRITICAL: cited_decisions_tfidf_outcome_hybrid_0.5 (JP=0.7965) and _0.7 (JP=0.7898) remain BEST representations and are NOT in product map modes.",
     "DEBIASED_CITATION_BLENDED FALSIFIED ON CANONICAL FROZEN HARNESS v3 (Factory Direction v10, evaluation_debiased_cb_cross_validation_33322534441): FALSIFICATION — debiased_citation_blended from fractal-map lane (cycles 12-14, PRODUCTIZE recommendation) FAILS canonical adversarial gates at ALL PCA dimensionalities (64, 128, 768). 768-dim: LangDom=0.7877 PASS, Jurist=0.4660 FAIL. 128-dim: LangDom=0.7891 PASS, Jurist=0.4850 FAIL. 64-dim: LangDom=0.7815 PASS, Jurist=0.4970 FAIL. Control: cited_decisions_tfidf on same 1000 decisions: LangDom=0.6176 PASS, Jurist=0.6430 PASS. Cycle 14 report's 'language_dominance' (0.6406) is MISLABELED — actually measures branch_coherence, not language dominance. Canonical harness language dominance (0.7877) is a different, more stringent test. Cross-language recall is excellent (0.4660 — best in class) but does not translate to jurist preference. Product implication: debiased_citation_blended should NOT be adopted as product default. Consider as secondary cross-language navigation mode only.",
-    "CITATION ROLE EMBEDDINGS ON FROZEN HARNESS v3 (Factory Direction v10, NEW CYCLE): ALL FOUR citation role embeddings from legal-distance v5 (citing, following, criticizing, all_weighted, 999 decisions, 64-dim) PASS both adversarial gates with very high jurist preference (0.8488) but ZERO jurivoc alignment (L0 NMI=0.0), zero scale stability (0.0), and negative boilerplate resistance (-0.555). This extends the established citation-signal pattern (previously documented for cited_decisions_tfidf: jurist=0.6922) to pure citation role signals, confirming that citation heritage is a dominant jurist-preference signal even in the absence of semantic legal structure. Alpha blends of citation roles with center_projected_64 (alphas 0.3/0.5/0.7) maintain both adversarial gate passage (lang_dom~0.51, jurist~0.77). Sparse role failures replicate: distinguishing (too few annotations) and overruling FAIL jurist gate. ALL role hybrids validated on frozen harness v3: PASS adversarial gates at low alpha; distinguishing/overruling too sparse. Negative result: pure citation role signals lack legal structure (jurivoc=0.0, scale=0.0) despite strong jurist preference."
+    "CITATION ROLE EMBEDDINGS ON FROZEN HARNESS v3 (Factory Direction v10, NEW CYCLE): ALL FOUR citation role embeddings from legal-distance v5 (citing, following, criticizing, all_weighted, 999 decisions, 64-dim) PASS both adversarial gates with very high jurist preference (0.8488) but ZERO jurivoc alignment (L0 NMI=0.0), zero scale stability (0.0), and negative boilerplate resistance (-0.555). This extends the established citation-signal pattern (previously documented for cited_decisions_tfidf: jurist=0.6922) to pure citation role signals, confirming that citation heritage is a dominant jurist-preference signal even in the absence of semantic legal structure. Alpha blends of citation roles with center_projected_64 (alphas 0.3/0.5/0.7) maintain both adversarial gate passage (lang_dom~0.51, jurist~0.77). Sparse role failures replicate: distinguishing (too few annotations) and overruling FAIL jurist gate. ALL role hybrids validated on frozen harness v3: PASS adversarial gates at low alpha; distinguishing/overruling too sparse. Negative result: pure citation role signals lack legal structure (jurivoc=0.0, scale=0.0) despite strong jurist preference.",
+    "V12 CROSS-MODE COMBINATION FALSIFIED ON CANONICAL FROZEN HARNESS v3 (Factory Direction v10, evaluation_v12_cross_mode_cv_20260830): FALSIFICATION — v12 claimed +0.035 JP improvement from cross-mode combination does NOT replicate under 5-fold cross-validation on 1000-decision canonical corpus. Instead, ALL combinations DEGRADE performance: mean ΔJP = -0.262 (0/5 positive folds). Citation-only dominates: cited_outcome_hybrid_0.5 (JP=0.822, LD=0.503), citation_tfidf (JP=0.809, LD=0.508), cited_outcome_hybrid_0.7 (JP=0.821, LD=0.510) all PASS adversarial gates on all 5 folds. center_projected_64dim FAILS adversarial gates on 5-fold splits (JP=0.165, LD=0.932) — language dominance signal in center_projected_64dim is noise, not signal. All combination strategies (linear_citation_concat JP=0.244, linear_hybrid05_concat JP=0.250, linear_citation_w3070 JP=0.570, linear_citation_pca128 JP=0.252, linear_citation_ridge JP=0.355) perform worse than citation-only baselines. Product implication: v12 combination hypotheses CLOSED. Question shifts to whether citation-only should replace center_projected_64dim as production default."
   ],
   "validation_metrics": {
     "center_projected_768": {
@@ -636,6 +640,92 @@
       "both_adversarial_pass": false,
       "source": "cross_validated_on_canonical_frozen_harness_v3",
       "source_lane": "fractal-map"
+    },
+    "v12_citation_only_baselines": {
+      "cited_outcome_hybrid_0.5": {
+        "verdict": "PASS",
+        "jurist_pref_mean": 0.822,
+        "jurist_pref_std": 0.0196,
+        "langdom_mean": 0.5026,
+        "langdom_std": 0.013,
+        "adv_pass_rate": 1.0,
+        "source": "5_fold_cv_on_canonical_frozen_harness_v3",
+        "source_lane": "evaluation",
+        "source_run": "v12_cross_mode_cv_20260830"
+      },
+      "cited_outcome_hybrid_0.7": {
+        "verdict": "PASS",
+        "jurist_pref_mean": 0.821,
+        "jurist_pref_std": 0.0252,
+        "langdom_mean": 0.5104,
+        "langdom_std": 0.0114,
+        "adv_pass_rate": 1.0,
+        "source": "5_fold_cv_on_canonical_frozen_harness_v3",
+        "source_lane": "evaluation",
+        "source_run": "v12_cross_mode_cv_20260830"
+      },
+      "citation_tfidf": {
+        "verdict": "PASS",
+        "jurist_pref_mean": 0.809,
+        "jurist_pref_std": 0.0211,
+        "langdom_mean": 0.508,
+        "langdom_std": 0.0117,
+        "adv_pass_rate": 1.0,
+        "source": "5_fold_cv_on_canonical_frozen_harness_v3",
+        "source_lane": "evaluation",
+        "source_run": "v12_cross_mode_cv_20260830"
+      },
+      "center_projected_64dim_5fold": {
+        "verdict": "FAIL",
+        "jurist_pref_mean": 0.165,
+        "jurist_pref_std": 0.0446,
+        "langdom_mean": 0.9322,
+        "langdom_std": 0.0113,
+        "adv_pass_rate": 0.0,
+        "source": "5_fold_cv_on_canonical_frozen_harness_v3",
+        "source_lane": "evaluation",
+        "source_run": "v12_cross_mode_cv_20260830",
+        "critical_note": "center_projected_64dim FAILS adversarial gates on fresh 5-fold splits despite passing static 80/10/10 holdout (JP=0.512). Language dominance is the dominant signal, not legal structure."
+      }
+    },
+    "v12_combination_strategies": {
+      "linear_citation_concat": {
+        "verdict": "FAIL",
+        "jurist_pref_mean": 0.244,
+        "langdom_mean": 0.8988,
+        "adv_pass_rate": 0.0,
+        "delta_vs_best_baseline": -0.588
+      },
+      "linear_hybrid05_concat": {
+        "verdict": "FAIL",
+        "jurist_pref_mean": 0.25,
+        "langdom_mean": 0.898,
+        "adv_pass_rate": 0.0,
+        "delta_vs_best_baseline": -0.582
+      },
+      "linear_citation_w3070": {
+        "verdict": "PASS_ON_4_OF_5_FOLDS",
+        "jurist_pref_mean": 0.57,
+        "jurist_pref_std": 0.0748,
+        "langdom_mean": 0.7297,
+        "adv_pass_rate": 0.8,
+        "delta_vs_best_baseline": -0.262,
+        "note": "Best combination but still worse than citation-only baselines"
+      },
+      "linear_citation_pca128": {
+        "verdict": "FAIL",
+        "jurist_pref_mean": 0.252,
+        "langdom_mean": 0.8992,
+        "adv_pass_rate": 0.0,
+        "delta_vs_best_baseline": -0.58
+      },
+      "linear_citation_ridge": {
+        "verdict": "FAIL",
+        "jurist_pref_mean": 0.355,
+        "langdom_mean": 0.8242,
+        "adv_pass_rate": 0.0,
+        "delta_vs_best_baseline": -0.477
+      }
     }
   },
   "baseline_comparison": {
@@ -742,6 +832,31 @@
     ]
   },
   "next_recommendation": "CONTINUE_WITHIN_MISSION_ON_CORPUS_DELIVERY",
+  "v12_cross_mode_cv_falsification": {
+    "status": "FALSIFIED",
+    "claim": "v12 cross-mode combination JP improvement (+0.035) replicates across 5 folds",
+    "observed_mean_improvement": -0.262,
+    "observed_std": 0.0749,
+    "positive_folds": 0,
+    "total_folds": 5,
+    "verdict": "FALSIFIED — v12 improvement does not replicate. Combinations are WORSE than citation-only baselines.",
+    "key_findings": [
+      "Citation-only dominates: cited_outcome_hybrid_0.5 JP=0.822, citation_tfidf JP=0.809, cited_outcome_hybrid_0.7 JP=0.821",
+      "center_projected_64dim FAILS on5-fold splits: JP=0.165, LD=0.932 (far below adversarial thresholds)",
+      "All combination strategies WORSE than citation-only baselines (ΔJP = -0.26 to -0.59)",
+      "Combining language-dependent (center_projected_64dim) with language-independent (citation) representations introduces noise, not signal",
+      "v12 combination hypotheses are CLOSED — all five strategies tested and falsified"
+    ],
+    "product_implication": "Citation-only representations dominate. The question shifts from 'how to combine modes' to 'should citation-only replace center_projected_64dim as production default'.",
+    "experiment_script": "evaluation/experiments/evaluate_v12_cross_mode_cv.py",
+    "results_file": "results/evaluation/v12_cross_mode_cv/v12_cross_mode_cv_eval_v12_cv_1788127322.json",
+    "config": {
+      "seed": 42,
+      "config_hash": "4323f833fa72366a",
+      "n_folds": 5,
+      "corpus": "1000 BGer decisions (2020-2024), canonical fractal-map baseline"
+    }
+  },
   "metrics_summary": {
     "best_overall_adversarial": "cited_decisions_tfidf_outcome_hybrid_0.7 (jurist=0.7898, lang_dom=0.4922)",
     "best_jurist_preference": "multilingual_e5_small_pretrained (0.8498) — BUT catastrophic hierarchy collapse",
@@ -750,7 +865,16 @@
     "best_cross_language_retrieval": "hybrid_stabilized_epoch1 (0.2360)",
     "best_scale_stability": "mahalanobis_metric_epoch4 (0.7154)",
     "best_fractal_improvement": "cited_decisions_tfidf (92.3%)",
-    "best_production_viable": "cited_decisions_tfidf_outcome_hybrid_0.7 (BEST PRODUCTION: jurist=0.790, lang_dom=0.492, hier_adv=0.274) OR cited_decisions_tfidf_proc_pairs (LOSSLESS cross-lingual: jurist=0.684, lang_dom=0.610, jurivoc_l0=0.257)",
+    "best_production_viable": "cited_outcome_hybrid_0.5 (BEST OVERALL on 5-fold CV: JP=0.822, LD=0.503, AdvPass=100%) — FALSIFIES v12 combination hypothesis, citation-only dominates",
+    "v12_cv_falsification_summary": {
+      "status": "FALSIFIED",
+      "claimed_improvement": "+0.035 JP",
+      "observed_mean_improvement": "-0.262 JP",
+      "positive_folds": "0/5",
+      "citation_only_dominates": "cited_outcome_hybrid_0.5 JP=0.822, citation_tfidf JP=0.809, cited_outcome_hybrid_0.7 JP=0.821",
+      "center_projected_64dim_5fold_failure": "JP=0.165, LD=0.932 (FAILS both adversarial gates on fresh splits)",
+      "combination_strategies_all_worse": "Best combo (w3070) JP=0.570 vs citation-only JP=0.822"
+    },
     "reference_baseline": "center_projected_64dim (production default)",
     "reference_jurist_preference": 0.5121,
     "reference_language_dominance": 0.7664,
