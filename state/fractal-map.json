@@ -5,13 +5,13 @@
   "cycle_status": "BLOCKED",
   "continue_recommended": false,
   "accepted_run_id": "33319197061",
-  "github_run": "33328367943",
-  "timestamp": "2026-08-30T18:38:39Z",
+  "github_run": "33329575625",
+  "timestamp": "2026-08-30T19:15:00Z",
   "previous_accepted_run": "33319197061",
   "blocked_on": "corpus lane: full 192k acquisition/normalization required before fractal-map scaling",
   "blocked_since": "33323379652",
   "resume_guard": "DO NOT DISPATCH THIS LANE until factory_direction.json marks corpus lane as DELIVERED (status=DONE with full 192k corpus available). The fractal-map lane is COMPLETE at current 1000-decision scale. All 24 representations across 4 design patterns are validated and product-ready. When corpus delivers: run build_parameterized_legal_distance_map.py at --corpus-size 192000 on accepted embeddings; re-validate nesting/zoom at full scale; refresh registry. Recommend outcome_hybrid_0.5 as DEFAULT at scale.",
-  "next_recommendation": "BLOCKED. All 21 legal-distance modes artifact-complete (611 artifacts verified). 175/175 tests PASS. Lane is DONE at current scale. Awaiting corpus lane full 192k delivery. ORCHESTRATION FIX NEEDED: Factory Director should update factory_direction.json lanes.fractal-map.status from RUN to BLOCKED to prevent unnecessary re-dispatch. When corpus delivers: (1) run build_parameterized_legal_distance_map.py --corpus-size 192000, (2) re-validate nesting/zoom at full scale, (3) refresh product registry, (4) recommend outcome_hybrid_0.5 as DEFAULT at scale.",
+  "next_recommendation": "BLOCKED. All 21 legal-distance modes artifact-complete (611 artifacts verified). 175/175 tests PASS. Lane is DONE at current scale. Awaiting corpus lane full 192k delivery. ORCHESTRATION FIX NEEDED: Factory Director should update factory_direction.json lanes.fractal-map.status from RUN to BLOCKED to prevent unnecessary re-dispatch. The 24-cycle resume loop (now 26 including this run) was caused by this status mismatch. When corpus delivers: (1) run build_parameterized_legal_distance_map.py --corpus-size 192000, (2) re-validate nesting/zoom at full scale, (3) refresh product registry, (4) recommend outcome_hybrid_0.5 as DEFAULT at scale. FINAL_AUDIT_SNAPSHOT_v10_33329575625.md created as audit-ready deliverable.",
   "evidence_refs": [
     "results/fractal_map/evaluation/verify_outcome_hybrid_integration_33307151666.json",
     "results/fractal_map/evaluation/artifact_audit_33316273550.json",
@@ -39,9 +39,12 @@
     "results/fractal_map/audit/CYCLE_operational_resume_33323379652_GATE.json",
     "reports/fractal_map/OPERATIONAL_RESUME_33323379652_VERIFICATION.md",
     "results/fractal_map/audit/CYCLE_operational_resume_33328367943_GATE.json",
-    "reports/fractal_map/OPERATIONAL_RESUME_33328367943_AUDIT.md"
+    "reports/fractal_map/OPERATIONAL_RESUME_33328367943_AUDIT.md",
+    "results/fractal_map/audit/CYCLE_operational_resume_33329575625_GATE.json",
+    "reports/fractal_map/FINAL_AUDIT_SNAPSHOT_v10_33329575625.md"
   ],
   "key_findings": [
+    "RUN 33329575625: OPERATIONAL RESUME from persisted producer snapshot of run 33328367943. **24th occurrence of systemic ephemeral-storage gap** diagnosed and corrected: state file had stale `github_run: \"33328367943\"` and `operational_resume_id: \"33328367943\"` (updated to 33329575625). **No scientific regressions** — 175/175 pytest tests PASS (1.42s), 611 artifacts verified, 21 legal-distance modes artifact-complete, all 4 validation_metrics entries present, all key product modes validated. Prior repair chain confirmed stable across 26 resume cycles. Created FINAL_AUDIT_SNAPSHOT_v10_33329575625.md as audit-ready deliverable.",
     "RUN 33328367943: OPERATIONAL RESUME from persisted producer snapshot of run 33323379652. **23rd occurrence of systemic ephemeral-storage gap** diagnosed and corrected: state file had stale `github_run: \"33323379652\"` and `operational_resume_id: \"33323379652\"` (updated to 33328367943). **No scientific regressions** — 175/175 pytest tests PASS (1.35s), 611 artifacts verified (609 + 1 new gate JSON from prior run + 1 new gate JSON from this run), 21 legal-distance modes artifact-complete, all 4 validation_metrics entries present, all key product modes validated. Prior repair chain confirmed stable across 25 resume cycles.",
     "RUN 33323379652: OPERATIONAL RESUME from 33323160624. Verified: 175/175 tests PASS (1.31s, full deps), 609 artifacts intact, 21 legal-distance modes artifact-complete, 4 validation_metrics entries preserved. ORCHESTRATION FAILURE ROOT CAUSE IDENTIFIED: factory_direction.json has fractal-map.status=RUN while state has cycle_status=BLOCKED. The supervisor dispatcher checks factory direction and re-dispatches, ignoring lane BLOCKED status. The 22-cycle resume loop was caused by this status mismatch. BLOCKED+resume_guard fix is holding but is a workaround; proper fix is to update factory_direction.json. No scientific regressions. No new scientific work possible (only 192k scaling next, blocked on corpus).",
     "RUN 33323160624: OPERATIONAL RESUME from 33322901712. Verified: 175/175 tests PASS (1.31s, full deps including igraph/leidenalg/sklearn), 607 artifacts intact, 21 legal-distance modes artifact-complete, 4 validation_metrics entries preserved. Prior orchestration loop fix (BLOCKED status + resume_guard) is holding. No scientific regressions. Lane remains BLOCKED on corpus lane for 192k scaling.",
@@ -172,7 +175,7 @@
       "purity_min_cluster_size": 3
     }
   },
-  "operational_resume_id": "33328367943",
+  "operational_resume_id": "33329575625",
   "repair_of": null,
   "repair_round": 0,
   "audit_status": "PASS",
