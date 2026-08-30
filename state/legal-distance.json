@@ -1,10 +1,10 @@
 {
   "lane": "legal-distance",
-  "direction_version": 7,
-  "evidence_tier": "ACCEPTED",
+  "direction_version": 8,
+  "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": true,
-  "accepted_run_id": "v7_bge_citation_role_20260829",
+  "accepted_run_id": "holdout_zero_shot_validation_fixed_20260830",
   "evidence_refs": [
     "legal_distance/results/v6/validation_breakthrough/validation_results.json",
     "legal_distance/results/v6/metric_learning/metric_learning_results.json",
@@ -28,9 +28,12 @@
     "legal_distance/experiments/v7_bge_citation_resolution.py",
     "legal_distance/experiments/v7_citation_role_embeddings.py",
     "reports/legal-distance/v7_cited_decisions_adversarial_report.md",
-    "reports/legal-distance/v7_bge_citation_role_report.md"
+    "reports/legal-distance/v7_bge_citation_role_report.md",
+    "legal_distance/experiments/v8_holdout_zero_shot_validation_fixed.py",
+    "legal_distance/results/v8/holdout_zero_shot_validation_fixed/holdout_zero_shot_validation_fixed.json",
+    "reports/legal-distance/v8_holdout_zero_shot_validation_fixed_report.md"
   ],
-  "next_recommendation": "v7/v8 objectives COMPLETED: (1) cited_decisions_tfidf VALIDATED on frozen harness v3 (LangDom=0.6107, Jurist=0.6922); (2) All 6 cited_tfidf + center_projected hybrids PASS both adversarial gates; (3) center_projected_64dim confirmed as production baseline; (4) BGE/ATF citation resolution FIXED - 100% of 2,988 role annotations resolved (was 0%); (5) Role hybrid embeddings TESTED - citing/following/criticizing PASS adversarial gates, distinguishing/overruling too sparse. REMAINING: Fix multilingual-e5-small overclustering (needs GPU + hierarchy loss); execute jurist human study; scale stability test on 192k decisions.",
+  "next_recommendation": "v8 HOLDOUT VALIDATION FIXED & COMPLETED: (1) Data leakage FIXED - TF-IDF/SVD now fit ONLY on train (1000), holdout (200) transformed out-of-sample; (2) All 4 zero-shot hybrids PASS both adversarial gates on TRUE holdout (LangDom ~0.51, JP ~0.53-0.59); (3) Factory targets MISSED: JuristPref > 0.7 not met (best 0.585), Citation-independent retrieval > 15% not met (best 14.05%); (4) center_projected_64dim FAILS jurist gate on holdout (0.385) - not robust out-of-sample; (5) Two-map-mode trade-off CONFIRMED: citation signals (low LangDom, mod JP, NO cross-citation retrieval) vs semantic (higher LangDom, FAIL JP, YES cross-citation retrieval 37%). REMAINING: metric learning fine-tuning with hierarchy loss to beat JP=0.585; jurist human study; 192k scale test; section-specific embeddings for cross-lingual coherence.",
   "critical_findings": {
     "metric_learning_breakthrough": "Linear projection on center_projected achieves JP=0.6847 (33.7% relative improvement over center_projected 0.512), mahalanobis JP=0.6781; both pass BOTH adversarial gates with 18+ consecutive valid epochs (frozen evaluation harness v3 seed=42 canonical)",
     "stabilized_hybrid_breakthrough": "Hybrid objective (contrastive + preservation + hierarchy loss) achieves 6 consecutive valid epochs, peak at epoch 1: JP=0.6656, LangDom=0.6701",
@@ -41,6 +44,10 @@
     "citation_role_hybrids_evaluated": "15 role hybrids tested on frozen harness v3. citing/following PASS at all alphas; criticizing PASS at α=0.3,0.5; distinguishing/overruling FAIL (too sparse: 58/18 annotations). Best production role hybrids: citing_alpha0.3 (LangDom=0.7414, Jurist=0.5363), following_alpha0.3 (LangDom=0.7530, Jurist=0.5188)",
     "multilingual_e5_overclustering": "ft_multilingual_e5_small_pretrained passes adversarial gates (LangDom=0.488, Jurist=0.702) but OVERCLUSTERS (1 coarse -> 1000 fine, hier_adv=0.0) - needs hierarchy preservation loss",
     "boilerplate_resistance_negative": "Boilerplate resistance NEGATIVE for ALL representations (resistance_score ≈ -0.74 to -0.92) — confirms v6 finding that proxy measures language dominance/cross-lingual alignment failure, not procedural boilerplate",
-    "signal_ablation_hybrids_fail": "All v5 signal ablation hybrids (legal_issues_outcomes, legal_area_tfidf, hybrid_erwaegungen_03, etc.) FAIL adversarial gates on full corpus — only cited_decisions_tfidf passes"
+    "signal_ablation_hybrids_fail": "All v5 signal ablation hybrids (legal_issues_outcomes, legal_area_tfidf, hybrid_erwaegungen_03, etc.) FAIL adversarial gates on full corpus — only cited_decisions_tfidf passes",
+    "holdout_validation_fixed": "Data leakage in v8 holdout validation FIXED. Train-only TF-IDF/SVD fitting now validates true out-of-sample generalization. All 4 zero-shot hybrids PASS adversarial gates on holdout (LangDom ~0.51, JP ~0.53-0.59). Leakage impact minimal: LangDom +0.005, JP +0.015-0.020 vs leaky results.",
+    "factory_targets_missed_on_holdout": "JuristPref target (>0.7) missed by all zero-shot hybrids on true holdout (best: cited_outcome_hybrid_0.7 at 0.585). Citation-independent retrieval target (15%) missed by citation signals (best: 14.05%). center_projected FAILS jurist gate on holdout (0.385).",
+    "two_mode_tradeoff_confirmed_holdout": "Fundamental trade-off persists on TRUE holdout: Citation-based signals (LangDom=0.51, JP=0.58, CiteIndep=14%) vs Semantic embeddings (LangDom=0.73, JP=0.39, CiteIndep=37%). Both map modes needed; do not collapse to single default.",
+    "language_artifacts_persist_on_holdout": "Despite LangDom ~0.51 passing 0.85 threshold, language neighbor rates remain 90-93% on holdout — confirms cross-lingual alignment is the systemic challenge, not boilerplate."
   }
 }
