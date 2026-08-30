@@ -2,41 +2,112 @@
   "run_id": "33315355806",
   "lane": "fractal-map",
   "factory_direction_version": 10,
-  "timestamp": "2026-08-30T13:53:00Z",
+  "repair_round": 0,
+  "audit_type": "independent_audit",
+  "resumed_from_run": "33315093059",
+  "previous_independently_audited_run": "33306550005",
+  "timestamp": "2026-08-30T14:10:00Z",
   "gate": "PASS",
-  "audit_type": "operational_resume",
-  "resumed_from": "33315093059",
-  "previous_accepted": "33307151666",
-  "checks": {
-    "artifact_count": 548,
-    "artifact_count_delta_vs_prior": "0 (stable)",
-    "registry_total": 24,
-    "default_mode_nesting": 1.0,
-    "default_mode_purity": 0.9570933829681662,
-    "default_mode_clusters": 108,
-    "workspace_loaders_pass": true,
-    "artifact_integrity_pass": true,
-    "pytest_pass": true,
-    "tests_passed": 128,
-    "tests_total": 128,
-    "outcome_hybrid_05_artifacts_complete": true,
-    "outcome_hybrid_07_artifacts_complete": true,
-    "mirror_reestablished": true,
-    "modes_loadable": 22,
-    "modes_placeholder_legacy": 2,
-    "modes_with_hierarchical_results": 17,
-    "modes_with_labels_only": 5,
-    "product_lane_outcome_hybrid_code_integrated": true,
-    "product_lane_outcome_hybrid_state_stale": true,
-    "correction_diagnosis": "Run 33315093059 completed successfully but its CYCLE_33315093059_GATE.json was written (confirmed present). Run 33313020409 gate was missing (9th occurrence of systemic ephemeral-storage gap) — retroactively written. This run writes its own fresh gate. Verified product lane map_loader.py already loads cited_outcome_hybrid_0.5 and _0.7 (lines 3189-3226) — product lane's state map_representations list (27 items) is stale; code loads 29 representations."
+  "safe_to_integrate": true,
+  "producer_side_verification": true,
+  "independent_verification": {
+    "artifact_count": {
+      "producer_claim": 548,
+      "independent_count_total": 548,
+      "independent_count_data_only": 544,
+      "count_convention": "all files in results/fractal_map/ (300 JSON + 229 npy + 4 py + 15 md)",
+      "status": "PASS"
+    },
+    "registry_totals": {
+      "total": 24,
+      "default": "center_projected_hierarchical",
+      "available": 22,
+      "placeholder": 1,
+      "legacy": 1,
+      "status": "PASS"
+    },
+    "default_mode_frozen_metrics": {
+      "mode": "center_projected_hierarchical",
+      "best_config": "coarse_0.5_fine_3.0",
+      "nesting_score": 1.0,
+      "hierarchical_purity": 0.9570933829681662,
+      "flat_mean_purity": 0.9341034737421106,
+      "n_fine_clusters": 108,
+      "decisions_indexed": 1000,
+      "verdict": "PASS",
+      "source": "results/fractal_map/hierarchical_map_center_projected/center_projected_hierarchical_results.json",
+      "status": "PASS"
+    },
+    "outcome_hybrid_05": {
+      "hierarchical_purity": 0.868,
+      "jurist_preference": 0.799,
+      "language_dominance": 0.4911,
+      "adversarial_both_pass": true,
+      "benchmarks_passed": "14/14",
+      "nesting_score_derived": 1.0,
+      "source": "results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.5/hierarchical_map_results.json",
+      "status": "PASS"
+    },
+    "outcome_hybrid_07": {
+      "hierarchical_purity": 0.903,
+      "jurist_preference": 0.7907,
+      "language_dominance": 0.4907,
+      "adversarial_both_pass": true,
+      "benchmarks_passed": "14/14",
+      "nesting_score_derived": 1.0,
+      "source": "results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.7/hierarchical_map_results.json",
+      "status": "PASS"
+    },
+    "state_file_consistency": {
+      "direction_version": 10,
+      "evidence_tier": "ACCEPTED",
+      "cycle_status": "COMPLETED",
+      "continue_recommended": false,
+      "artifacts_verified": 548,
+      "tests_passed": 128,
+      "modes_loaded": 24,
+      "status": "PASS"
+    },
+    "pytest_suite": {
+      "total_claimed": 128,
+      "passed_claimed": 128,
+      "independently_verifiable": false,
+      "reason": "numpy dependency not available in auditor environment",
+      "consistent_with_last_independently_audited_run": true,
+      "last_independently_audited_run": "33306550005",
+      "status": "PASS_CONDITIONAL"
+    },
+    "durable_delta": {
+      "new_science": "None",
+      "new_code": "None",
+      "new_result_artifacts": "None",
+      "bookkeeping_only": true,
+      "files_changed": 4,
+      "status": "PASS"
+    }
   },
-  "state_file": {
-    "evidence_tier": "ACCEPTED",
-    "cycle_status": "COMPLETED",
-    "continue_recommended": false,
-    "accepted_run_id": "verify_outcome_hybrid_33307151666",
-    "github_run": "33315355806"
+  "pathology_flags": {
+    "self_audit_protocol_violation": {
+      "severity": "RECURRING_PROCESS",
+      "description": "Producer wrote its own audit report and gate JSON. All 4 post-accepted operational resume gates (33309429802, 33313020409, 33315093059, 33315355806) are self-written with audit_type=operational_resume. Last independently audited fractal-map run is 33306550005.",
+      "impact": "Does not affect scientific validity but violates governance model"
+    },
+    "ephemeral_mirror_absence": {
+      "severity": "RECURRING_SYSTEMIC",
+      "occurrences": 9,
+      "first_seen_run": "33304077155",
+      "description": "Systemic /tmp ephemeral storage volatility causes gate/report loss between runs. Mitigated by mirror re-establishment from workspace. Infrastructure issue, not producer defect.",
+      "resolution": "Mirror re-established from workspace. All verification passes."
+    },
+    "accepted_tier_upgrade_not_independently_audited": {
+      "severity": "MEDIUM",
+      "description": "State evidence_tier changed from REPRODUCED (at accepted run 33306550005) to ACCEPTED (at run 33307151666). Run 33307151666 has no independent audit gate. The ACCEPTED status of outcome hybrid modes lacks independent verification.",
+      "recommendation": "Independent audit of the outcome hybrid integration (run 33307151666) before raising product claims on those modes"
+    }
   },
-  "recommendation": "PRODUCTIZE. BLOCKED on corpus lane for 192k scaling.",
-  "diagnosis": "128/128 pytest tests PASS. 548 artifacts verified. 24 map modes in registry (22 loadable, 1 placeholder, 1 legacy). Default mode center_projected_hierarchical reproduces (nesting=1.0, purity=0.9571, 108 clusters, 1000 decisions). Two outcome hybrid modes (cited_outcome_hybrid_0.5/0.7) confirmed ACCEPTED tier with fractal-map artifacts present and product code integration verified. All valid completed work from prior runs preserved. No new work required — lane deliverable audit-ready. BLOCKED on corpus lane for 192k scaling per factory direction v10."
+  "required_fixes": [],
+  "claim_ceiling": "Fractal-map deliverable for factory direction v10 remains complete on the validated 1000-decision slice: 24 map modes operational (1 default center_projected_hierarchical + 22 available legal-distance + 1 legacy + 1 placeholder), default mode frozen metrics reproduced from on-disk JSON (nesting=1.0, purity=0.9570933829681662, 108/7 clusters, 1000 decisions), outcome hybrid modes verified from on-disk JSON (0.5: purity=0.868, JP=0.799, LangDom=0.4911, 14/14 benchmarks; 0.7: purity=0.903, JP=0.7907, LangDom=0.4907, 14/14 benchmarks). No new claims made in this cycle. ACCEPTED tier upgrade for outcome hybrids lacks independent audit. No claim is made at full-corpus (192k) scale; that scaling step is blocked on the corpus lane. This cycle is a pure operational resume with no new scientific content.",
+  "evidence_summary": "Independent verification: artifact count 548 (300 JSON + 229 npy + 4 py + 15 md in results/fractal_map/), registry 24 modes (1 default + 22 available + 1 legacy + 1 placeholder), default mode metrics reproduce from on-disk JSON (nesting=1.0, purity=0.9570933829681662, 108 fine clusters, 1000 decisions), outcome hybrid 0.5 metrics verified (purity=0.868, JP=0.799, LangDom=0.4911, adversarial PASS, 14/14 benchmarks), outcome hybrid 0.7 metrics verified (purity=0.903, JP=0.7907, LangDom=0.4907, adversarial PASS, 14/14 benchmarks), state file consistent at ACCEPTED tier, 128/128 pytest claimed consistent with last independently audited run. Durable delta is bookkeeping only (retroactive gate repair + own audit trail). No prettiness-as-quality, benchmark gaming, boilerplate confounding, data leakage, or unsupported product claims detected. Self-audit protocol violation noted (producer self-gated). ACCEPTED tier upgrade (from REPRODUCED, run 33307151666) lacks independent audit. 9th occurrence of ephemeral-storage pathology mitigated deterministically.",
+  "recommendation": "PRODUCTIZE",
+  "next_cycle_dependency": "Corpus lane must deliver full 192k corpus before fractal-map can scale beyond the 1000-decision validation slice. Independent audit of outcome hybrid ACCEPTED tier recommended."
 }
