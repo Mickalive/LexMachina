@@ -1,0 +1,169 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Fix representation count: Change '11 representations passing BOTH adversarial gates' to '10 representations passing BOTH adversarial gates' (linear_metric_epoch4, mahalanobis_metric_epoch4, hybrid_stabilized_epoch1, cited_decisions_tfidf, cited_decisions_tfidf_outcome_hybrid_0.5, cited_decisions_tfidf_outcome_hybrid_0.7, cited_decisions_tfidf_proc_pairs, cited_decisions_tfidf_joint_pca, cited_decisions_tfidf_mean_center, center_projected_64dim)",
+    "Fix test count: Change '97/97 tests PASS' to '16/16 test functions PASS (97 assertions)' per product_verification_v6.md",
+    "Fix endpoint count: Change '22 API endpoints' to '24 API endpoints' per product_verification_v6.md",
+    "Clarify fractal quality claim: Change 'ALL 12 breakthrough representations PASS fractal quality' to 'ALL 12 breakthrough representations PASS adversarial gates; 10/12 PASS cluster_coherence; 2 (outcome hybrids) have lower branch purity (~0.62) but high hierarchical_advantage (+0.29, +0.37) and ImpRate (87%, 90%)'",
+    "Naming consistency: Use 'center_projected_hierarchical' (per fractal-map results) vs 'center_projected_64dim_hierarchical' (per product) consistently — confirm they refer to the same artifact"
+  ],
+  "claim_ceiling": {
+    "validated": [
+      "Fractal hierarchical map with 7-resolution ladder (nesting=1.0, 108 fine clusters) REPRODUCED",
+      "Two validated design patterns for map modes: High-Purity (Metric Learning: Fine=0.97+, ImpRate=71-76%) vs High-Advantage (Citation/Outcome: HierAdv=+0.14 to +0.37, ImpRate=87-97%) + Citation Role Views",
+      "Cross-lingual alignment target LangDom < 0.6 ACHIEVED via zero-shot hybrid (0.4911) — NO GPU required",
+      "Citation role modeling UNLOCKED at current slice scale (2,988 annotations, 100% resolved via BGE/ATF, 3 roles PASS adversarial gates)",
+      "User corpus import: schema validation, artifact persistence, incremental updates, recomputation triggers — 45/45 PASS",
+      "Product vertical slice: 14 map modes, 24 endpoints, DEFAULT REPRODUCED (center_projected_hierarchical)",
+      "Boilerplate resistance proxy in v3 MISNAMED — measured language dominance, not boilerplate (CORRECTED in boilerplate_real REPRODUCED: 89-93% neighbor preservation)"
+    ],
+    "not_yet_achieved": [
+      "Full corpus scale (192k decisions) — critical path dependency on Corpus lane",
+      "Jurist human validation — framework ready (200 questions, UI, sampling, analysis), recruitment blocked",
+      "True out-of-sample metric learning retrain on 1000 decisions — tests generalization beyond holdout",
+      "Section-specific embeddings (sachverhalt/erwaegungen/dispositiv) — blocked on corpus lane metadata extraction",
+      "CPU LoRA fine-tuning of multilingual-e5-small with hierarchy loss — frontier recharter initiated, no results yet"
+    ]
+  },
+  "evidence_summary": {
+    "corpus": {
+      "tier": "REPRODUCED",
+      "decisions": 1577,
+      "unique_decisions": 1215,
+      "tests_pass": "23/23",
+      "statute_extractor_laws": 50,
+      "user_import_prototype": "operational"
+    },
+    "legal_distance_v9_holdout": {
+      "tier": "ACCEPTED",
+      "linear_metric_epoch4": {
+        "holdout_jurist_preference": 0.605,
+        "holdout_language_dominance": 0.5795,
+        "citation_independent_retrieval": 0.3495
+      },
+      "all_metric_learning_cite_indep_range": "34-37%",
+      "cite_indep_target": 0.15,
+      "jurist_preference_ceiling_holdout": 0.605,
+      "two_mode_tradeoff_confirmed": true,
+      "high_purity_metric_learning": {
+        "jurist_preference": 0.605,
+        "cite_indep": 0.35,
+        "language_dominance": 0.58
+      },
+      "high_advantage_citation_outcome": {
+        "jurist_preference": 0.585,
+        "cite_indep": 0.14,
+        "language_dominance": 0.51
+      },
+      "boilerplate_correction": {
+        "neighbor_preservation": "89-93%",
+        "boilerplate_is_driver": false,
+        "language_dominance_is_systemic_challenge": true
+      },
+      "citation_role_modeling": {
+        "annotations": 2988,
+        "bge_atf_resolution": "100%",
+        "roles_validated": ["citing", "following", "criticizing"],
+        "adversarial_gates": "PASS"
+      },
+      "multilingual_e5_small_pretrained": {
+        "language_dominance": 0.4877,
+        "jurist_preference": 0.7017,
+        "hierarchy_collapse": "CATASTROPHIC (1 coarse -> 1000 fine)"
+      }
+    },
+    "fractal_map_v8": {
+      "tier": "REPRODUCED",
+      "default_representation": "center_projected_hierarchical",
+      "nesting": 1.0,
+      "purity_coarse_fine": [0.9571, 0.9718],
+      "resolution_ladder": 7,
+      "fine_clusters": 108,
+      "design_patterns": {
+        "high_purity_metric_learning": {
+          "representations": ["linear_metric_epoch4", "mahalanobis_metric_epoch4", "hybrid_stabilized_epoch1"],
+          "fine_purity_range": "0.9638-0.9754",
+          "improvement_rate_range": "71.4%-75.6%"
+        },
+        "high_advantage_citation_outcome": {
+          "representations": ["cited_decisions_tfidf", "cited_outcome_hybrid_0.5", "cited_outcome_hybrid_0.7"],
+          "hierarchical_advantage_range": "+0.1415 to +0.3703",
+          "improvement_rate_range": "86.8%-97.1%"
+        },
+        "citation_role_views": {
+          "representations": ["following_alpha0.3", "criticizing_alpha0.3", "citing_alpha0.3"],
+          "improvement_rate_range": "66.9%-82.2%"
+        }
+      }
+    },
+    "evaluation_v9_v10": {
+      "tier": "ACCEPTED",
+      "frozen_harness_v3": {
+        "seed": 42,
+        "config_hash": "4323f833fa72366a",
+        "reproduced_exactly": true
+      },
+      "representations_evaluated": 13,
+      "both_adversarial_pass": 10,
+      "reference_baseline_center_projected_64dim": {
+        "language_dominance": 0.7664,
+        "jurist_preference": 0.5121
+      },
+      "best_production": {
+        "representation": "cited_decisions_tfidf_outcome_hybrid_0.7",
+        "jurist_preference": 0.7898,
+        "language_dominance": 0.4922,
+        "hierarchical_advantage": 0.274
+      },
+      "best_cross_lingual_lossless": {
+        "representation": "cited_decisions_tfidf_proc_pairs",
+        "identical_metrics_to_base": true,
+        "jurivoc_l0_nmi": 0.313,
+        "cross_lingual_recall": 0.2083
+      },
+      "citation_role_hybrids_tested": 15,
+      "roles_passing_adversarial": ["citing", "following", "criticizing"],
+      "multilingual_e5_small_pretrained": {
+        "adversarial_gates": "PASS",
+        "hierarchy_collapse": "CATASTROPHIC"
+      },
+      "user_corpus_import": {
+        "tests_total": 45,
+        "tests_passed": 45,
+        "pass_rate": 1.0,
+        "factory_direction_v9_objective_6": "MET"
+      }
+    },
+    "product_v6": {
+      "tier": "REPRODUCED",
+      "test_functions_pass": "16/16",
+      "assertions_pass": "97/97",
+      "api_endpoints": 24,
+      "representations": 14,
+      "default_representation": "center_projected_64dim_hierarchical",
+      "default_metrics": {
+        "nesting": 1.0,
+        "purity": [0.9571, 0.9718],
+        "fine_clusters": 108,
+        "coarse_clusters": 7,
+        "adversarial_gates": "BOTH PASS"
+      },
+      "map_mode_design_patterns": 3,
+      "map_modes_total": 14,
+      "features_operational": ["WebGL rendering", "rate limiting", "caching", "health monitoring", "user import/export", "map mode comparison UI"]
+    },
+    "frontier_metric_learning_jurivoc": {
+      "version": 3,
+      "status": "PAUSED",
+      "pause_justification": "Core lane metric learning breakthrough (linear JP=0.6847, mahalanobis JP=0.6781) AND zero-shot cited_decisions_tfidf_outcome_hybrid_0.5 (JP=0.7990, LangDom=0.4911) jointly achieve AND EXCEED primary product capability",
+      "recharter_trigger": "Only if Jurivoc-supervised multi-signal fusion shows credible gains beyond ALL current baselines (including zero-shot hybrids at JP=0.7990, LangDom=0.4911)"
+    },
+    "frontier_crosslingual_alignment": {
+      "version": 3,
+      "status": "PAUSED",
+      "pause_justification": "GPU unavailable >2 director review cycles. CPU-feasible LoRA/distillation recharter path INITIATED.",
+      "recharter_trigger": "RESUME when CPU variant demonstrates measurable progress on adversarial gates WITHOUT hierarchy collapse, or GPU becomes available. Must beat zero-shot hybrid (LangDom=0.4911, JP=0.7990)."
+    }
+  }
+}
