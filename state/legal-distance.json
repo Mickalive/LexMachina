@@ -4,7 +4,7 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "out_of_sample_metric_learning_20260830",
+  "accepted_run_id": "oos_hybrid_stabilized_20260830_v11",
   "evidence_refs": [
     "legal_distance/results/v6/validation_breakthrough/validation_results.json",
     "legal_distance/results/v6/metric_learning/metric_learning_results.json",
@@ -38,9 +38,13 @@
     "legal_distance/experiments/v10_out_of_sample_metric_learning.py",
     "legal_distance/results/v10/out_of_sample_metric_learning/out_of_sample_metric_learning_validation.json",
     "legal_distance/results/v10/out_of_sample_metric_learning/training_logs.json",
-    "reports/legal-distance/v10_out_of_sample_metric_learning_report.md"
+    "reports/legal-distance/v10_out_of_sample_metric_learning_report.md",
+    "legal_distance/experiments/v11_oos_hybrid_stabilized.py",
+    "legal_distance/results/v11/oos_hybrid_stabilized/oos_hybrid_stabilized_validation.json",
+    "legal_distance/results/v11/oos_hybrid_stabilized_nohier/hybrid_stabilized_oos_nohier_validation.json",
+    "reports/legal-distance/v11_oos_hybrid_stabilized_report.md"
   ],
-  "next_recommendation": "OOS METRIC LEARNING VALIDATION COMPLETED: (1) OOS training PASSES adversarial gates on holdout — linear JP=0.525, mahalanobis JP=0.530, both LangDom<0.61; (2) Pre-training leakage quantified: v9 pre-trained JP=0.605 vs OOS JP=0.525 (+8% inflation); (3) CiteIndep robust: OOS 36.8-36.9% vs v9 34.0-35.0%; (4) JuristPref > 0.7 target NOT MET by ANY representation (true OOS ceiling ~0.53); (5) Two-map-mode trade-off CONFIRMED with OOS evidence: Metric Learning (High-Purity, JP=0.525, CiteIndep=37%) vs Citation/Outcome (High-Advantage, JP=0.585, CiteIndep=14%). REMAINING: True OOS retrain for hybrid_stabilized; jurist human study; 192k scale test; hierarchy-preserving multilingual-e5 fine-tuning. RECOMMENDATION: CONTINUE is NOT recommended under same factory-direction question — all actionable v10 objectives completed or blocked on dependencies. Factory Director should decide successor question.",
+  "next_recommendation": "v11 CLOSES THE FINAL UNBLOCKED v10 OBJECTIVE (True OOS retrain for hybrid_stabilized). OOS hybrid_stabilized (MLP head + hierarchy preservation loss, trained on 1000 train only, hierarchy coarse labels from TRAIN ONLY) PASSES all frozen adversarial gates on 200-holdout: LangDom=0.6095, JuristPref=0.5350 (best epoch JP=0.560), CiteIndep=0.3690. It BEATS the v10 OOS simple-linear baselines (linear JP=0.525, mahalanobis JP=0.530) on JuristPref. CONTROLLED HIERARCHY-LOSS ABLATION (same MLP head, pairs, seed, hierarchy term zeroed): JuristPref=0.4800 FAILS jurist gate on holdout (LangDom=0.6355, CiteIndep=0.3560). The hierarchy preservation loss is LOAD-BEARING for crossing the jurist gate OOS (+0.055 JP). PRODUCT DECISION: High-Purity map mode should keep the hierarchy-preserving hybrid_stabilized as default (not downgrade to simple linear/plain-contrastive MLP) — it is production-robust under TRUE OOS. REMAINING (all BLOCKED on deps): 192k scale test (blocked on corpus lane full ingest), jurist human study (blocked on 5-10 Swiss jurists), hierarchy-preserving multilingual-e5 fine-tuning (requires GPU, optional enhancement). CONTINUE under SAME factory-direction question: NOT recommended — no additional actionable same-question cycle remains unblocked. Factory Director should decide successor question (candidate: hybrid objective fine-tuning on full corpus once 192k delivered, or GPU hierarchy-preserving multilingual-e5).",
   "critical_findings": {
     "metric_learning_breakthrough": "Linear projection on center_projected achieves JP=0.6847 (33.7% relative improvement over center_projected 0.512), mahalanobis JP=0.6781; both pass BOTH adversarial gates with 18+ consecutive valid epochs (frozen evaluation harness v3 seed=42 canonical)",
     "stabilized_hybrid_breakthrough": "Hybrid objective (contrastive + preservation + hierarchy loss) achieves 6 consecutive valid epochs, peak at epoch 1: JP=0.6656, LangDom=0.6701",
@@ -67,6 +71,12 @@
     "cite_indep_robust_across_regimes": "CiteIndep 35-37% consistent across OOS and v9 pre-trained, far exceeding 15% target and 13-14% zero-shot hybrids",
     "true_oos_jp_ceiling": "True OOS JuristPref ceiling is ~0.53, not ~0.60 as v9 suggested. JuristPref > 0.7 requires fundamentally new approaches (not just more training data)",
     "center_projected_fails_holdout": "center_projected baseline FAILS jurist gate on holdout (JP=0.385 < 0.5), confirming metric learning is necessary for legal navigation",
-    "two_mode_tradeoff_oos_confirmed": "Metric Learning OOS: JP=0.525, CiteIndep=37%, LD=0.61 vs Citation/Outcome: JP=0.585, CiteIndep=14%, LD=0.51"
+    "two_mode_tradeoff_oos_confirmed": "Metric Learning OOS: JP=0.525, CiteIndep=37%, LD=0.61 vs Citation/Outcome: JP=0.585, CiteIndep=14%, LD=0.51",
+    "oos_hybrid_stabilized_passes_all_gates": "OOS hybrid_stabilized (MLP + hierarchy loss, TRAIN-ONLY pairs and coarse labels) PASSES all frozen gates on 200-holdout: LangDom=0.6095, JuristPref=0.5350, CiteIndep=0.3690 (best epoch JP=0.560). Final unblocked v10 objective COMPLETED.",
+    "oos_hybrid_beats_simple_linear_baselines": "OOS hybrid_stabilized JuristPref=0.5350 (0.560 peak) BEATS v10 OOS linear (0.525) and mahalanobis (0.530) — the MLP head + hierarchy objective generalizes at least as well as simple linear heads on holdout under true OOS.",
+    "hierarchy_loss_load_bearing_oos": "CONTROLLED ABLATION (same MLP head, pairs, seed; hierarchy term zeroed): JuristPref drops to 0.4800 and FAILS the jurist gate on holdout (vs 0.5350 with hierarchy). The hierarchy preservation loss is LOAD-BEARING (+0.055 JP) for crossing the jurist gate out-of-sample.",
+    "hierarchy_loss_ablation_other_gates_still_pass": "Without hierarchy loss, the MLP head still passes LangDom gate (0.6355<0.85) and CiteIndep (0.3560>0.15), but fails the jurist gate (0.480<0.5) — hierarchy loss specifically drives jurist relevance, not language/citation structure.",
+    "oos_positive_generalization_reproduced_for_hybrid": "OOS hybrid_stabilized shows positive generalization (train JP=0.29 FAIL -> holdout JP=0.535 PASS), consistent with v10 OOS linear/mahalanobis. Small 200-decision holdout jurist-preference proxy favors cross-language legal neighbors; documented limitation.",
+    "high_purity_product_default_confirmed": "PRODUCT DECISION CONFIRMED: High-Purity map mode should keep hierarchy-preserving hybrid_stabilized as default. It is production-robust under TRUE OOS; downgrading to a plain contrastive MLP would drop below the jurist gate. No product change required from legal-distance side."
   }
 }

@@ -1,0 +1,336 @@
+{
+  "run_id": "oos_hybrid_stabilized_20260830_v11",
+  "direction_version": 10,
+  "corpus": "1200 BGer decisions, 1000 train / 200 holdout",
+  "frozen_harness": {
+    "config_hash": "1674829901d55e83",
+    "seed": 42
+  },
+  "success_rule": {
+    "langdom_target": 0.6,
+    "langdom_gate": 0.85,
+    "jurist_pref_target": 0.7,
+    "jurist_pref_gate": 0.5,
+    "citation_independent_recall_target": 0.15
+  },
+  "verdict": "PASS",
+  "best_epoch": 36,
+  "n_ref_coarse_labels": 7,
+  "results": {
+    "center_projected_baseline": {
+      "name": "center_projected_baseline",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 768,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.7626,
+          "std_language_dominance": 0.23682533648239582,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "FAIL",
+          "total_decisions": 1000,
+          "legal_relevant_only": 141,
+          "language_artifact_only": 479,
+          "both_available": 253,
+          "neither_available": 127,
+          "legal_neighbor_rate": 0.394,
+          "language_neighbor_rate": 0.732,
+          "jurist_would_succeed_rate": 0.394,
+          "jurist_forced_wrong_rate": 0.479
+        },
+        "both_pass": false,
+        "language_dominance_score": 0.7626,
+        "jurist_preference_rate": 0.394
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.7254999999999999,
+          "std_language_dominance": 0.27554446102217334,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "FAIL",
+          "total_decisions": 200,
+          "legal_relevant_only": 26,
+          "language_artifact_only": 110,
+          "both_available": 51,
+          "neither_available": 13,
+          "legal_neighbor_rate": 0.385,
+          "language_neighbor_rate": 0.805,
+          "jurist_would_succeed_rate": 0.385,
+          "jurist_forced_wrong_rate": 0.55
+        },
+        "both_pass": false,
+        "language_dominance_score": 0.7254999999999999,
+        "jurist_preference_rate": 0.385
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.457,
+        "citation_independent_retrieval_rate": 0.3695,
+        "status": "PASS"
+      }
+    },
+    "hybrid_stabilized_oos": {
+      "name": "hybrid_stabilized_oos",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 128,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.77275,
+          "std_language_dominance": 0.24990985874910976,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "FAIL",
+          "total_decisions": 1000,
+          "legal_relevant_only": 177,
+          "language_artifact_only": 392,
+          "both_available": 113,
+          "neither_available": 318,
+          "legal_neighbor_rate": 0.29,
+          "language_neighbor_rate": 0.505,
+          "jurist_would_succeed_rate": 0.29,
+          "jurist_forced_wrong_rate": 0.392
+        },
+        "both_pass": false,
+        "language_dominance_score": 0.77275,
+        "jurist_preference_rate": 0.29
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.6095,
+          "std_language_dominance": 0.2643099506261541,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 43,
+          "language_artifact_only": 88,
+          "both_available": 64,
+          "neither_available": 5,
+          "legal_neighbor_rate": 0.535,
+          "language_neighbor_rate": 0.76,
+          "jurist_would_succeed_rate": 0.535,
+          "jurist_forced_wrong_rate": 0.44
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.6095,
+        "jurist_preference_rate": 0.535
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.447,
+        "citation_independent_retrieval_rate": 0.369,
+        "status": "PASS"
+      }
+    }
+  },
+  "training_log": [
+    {
+      "epoch": 3,
+      "loss": 0.5234085614719088,
+      "lambda_c": 0.5,
+      "lambda_p": 2.0,
+      "lambda_h": 0.5,
+      "holdout_jp": 0.47,
+      "holdout_ld": 0.64875,
+      "both_pass_holdout": false,
+      "hierarchy_loss": 0.00594348693266511
+    },
+    {
+      "epoch": 6,
+      "loss": 0.8384937128377339,
+      "lambda_c": 1.0,
+      "lambda_p": 1.0,
+      "lambda_h": 0.5,
+      "holdout_jp": 0.495,
+      "holdout_ld": 0.63975,
+      "both_pass_holdout": false,
+      "hierarchy_loss": 0.005998867563903332
+    },
+    {
+      "epoch": 9,
+      "loss": 0.742943834927347,
+      "lambda_c": 1.0,
+      "lambda_p": 1.0,
+      "lambda_h": 0.5,
+      "holdout_jp": 0.525,
+      "holdout_ld": 0.61275,
+      "both_pass_holdout": true,
+      "hierarchy_loss": 0.006121867336332798
+    },
+    {
+      "epoch": 12,
+      "loss": 1.4415812151772636,
+      "lambda_c": 2.0,
+      "lambda_p": 0.5,
+      "lambda_h": 0.5,
+      "holdout_jp": 0.5,
+      "holdout_ld": 0.6227499999999999,
+      "both_pass_holdout": false,
+      "hierarchy_loss": 0.005868478678166866
+    },
+    {
+      "epoch": 15,
+      "loss": 1.2808389623486807,
+      "lambda_c": 2.0,
+      "lambda_p": 0.5,
+      "lambda_h": 0.5,
+      "holdout_jp": 0.48,
+      "holdout_ld": 0.613,
+      "both_pass_holdout": false,
+      "hierarchy_loss": 0.006100794766098261
+    },
+    {
+      "epoch": 18,
+      "loss": 1.2072861837962316,
+      "lambda_c": 2.0,
+      "lambda_p": 0.5,
+      "lambda_h": 0.5,
+      "holdout_jp": 0.535,
+      "holdout_ld": 0.6015,
+      "both_pass_holdout": true,
+      "hierarchy_loss": 0.006038089748471975
+    },
+    {
+      "epoch": 21,
+      "loss": 1.1634180146077322,
+      "lambda_c": 2.0,
+      "lambda_p": 0.5,
+      "lambda_h": 0.5,
+      "holdout_jp": 0.54,
+      "holdout_ld": 0.61175,
+      "both_pass_holdout": true,
+      "hierarchy_loss": 0.006089396774768829
+    },
+    {
+      "epoch": 24,
+      "loss": 1.1319850281117454,
+      "lambda_c": 2.0,
+      "lambda_p": 0.5,
+      "lambda_h": 0.5,
+      "holdout_jp": 0.51,
+      "holdout_ld": 0.6102500000000001,
+      "both_pass_holdout": true,
+      "hierarchy_loss": 0.006019733380526304
+    },
+    {
+      "epoch": 27,
+      "loss": 1.1078151272875922,
+      "lambda_c": 2.0,
+      "lambda_p": 0.5,
+      "lambda_h": 0.5,
+      "holdout_jp": 0.525,
+      "holdout_ld": 0.61875,
+      "both_pass_holdout": true,
+      "hierarchy_loss": 0.00599749106913805
+    },
+    {
+      "epoch": 30,
+      "loss": 1.0967144374809568,
+      "lambda_c": 2.0,
+      "lambda_p": 0.5,
+      "lambda_h": 0.5,
+      "holdout_jp": 0.545,
+      "holdout_ld": 0.612,
+      "both_pass_holdout": true,
+      "hierarchy_loss": 0.00621553510427475
+    },
+    {
+      "epoch": 33,
+      "loss": 1.0767584074111212,
+      "lambda_c": 2.0,
+      "lambda_p": 0.5,
+      "lambda_h": 0.5,
+      "holdout_jp": 0.5,
+      "holdout_ld": 0.6094999999999999,
+      "both_pass_holdout": false,
+      "hierarchy_loss": 0.006041581742465496
+    },
+    {
+      "epoch": 36,
+      "loss": 1.0686595231767684,
+      "lambda_c": 2.0,
+      "lambda_p": 0.5,
+      "lambda_h": 0.5,
+      "holdout_jp": 0.56,
+      "holdout_ld": 0.60675,
+      "both_pass_holdout": true,
+      "hierarchy_loss": 0.006227073725312948
+    },
+    {
+      "epoch": 39,
+      "loss": 1.0549183920735405,
+      "lambda_c": 2.0,
+      "lambda_p": 0.5,
+      "lambda_h": 0.5,
+      "holdout_jp": 0.53,
+      "holdout_ld": 0.6097499999999999,
+      "both_pass_holdout": true,
+      "hierarchy_loss": 0.006326086353510618
+    },
+    {
+      "epoch": 42,
+      "loss": 1.0444470109447601,
+      "lambda_c": 2.0,
+      "lambda_p": 0.5,
+      "lambda_h": 0.5,
+      "holdout_jp": 0.545,
+      "holdout_ld": 0.61475,
+      "both_pass_holdout": true,
+      "hierarchy_loss": 0.005978782195597887
+    },
+    {
+      "epoch": 45,
+      "loss": 1.0316704029128665,
+      "lambda_c": 2.0,
+      "lambda_p": 0.5,
+      "lambda_h": 0.5,
+      "holdout_jp": 0.55,
+      "holdout_ld": 0.61225,
+      "both_pass_holdout": true,
+      "hierarchy_loss": 0.006244254764169455
+    },
+    {
+      "epoch": 48,
+      "loss": 1.0237680063361214,
+      "lambda_c": 2.0,
+      "lambda_p": 0.5,
+      "lambda_h": 0.5,
+      "holdout_jp": 0.525,
+      "holdout_ld": 0.62775,
+      "both_pass_holdout": true,
+      "hierarchy_loss": 0.0060847848653793335
+    },
+    {
+      "epoch": 50,
+      "loss": 1.0216818430594035,
+      "lambda_c": 2.0,
+      "lambda_p": 0.5,
+      "lambda_h": 0.5,
+      "holdout_jp": 0.535,
+      "holdout_ld": 0.6095,
+      "both_pass_holdout": true,
+      "hierarchy_loss": 0.006109502632170916
+    }
+  ]
+}
