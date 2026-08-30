@@ -1,0 +1,36 @@
+{
+  "run_id": "fractal_map_audit_33316273550",
+  "github_run": "33316273550",
+  "lane": "fractal-map",
+  "direction_version": 10,
+  "timestamp": "2026-08-30T15:30:00Z",
+  "gate": "PASS",
+  "frozen_sample": "1000 BGer decisions (2020-2024), 24 map modes",
+  "frozen_metric": "artifact_completeness, nesting_score, zoom_coherence, hierarchical_purity, registry_consistency, test_suite",
+  "success_rule": "128/128 tests PASS, all key modes artifact-complete and metric-consistent, outcome hybrid modes verified",
+  "cycle_type": "audit_resume",
+  "tests_passed": 128,
+  "tests_total": 128,
+  "artifacts_verified": 548,
+  "modes_loaded": 24,
+  "verification_results": {
+    "test_suite": {"pass": true, "n_passed": 128, "n_total": 128},
+    "artifact_completeness": {"pass": true, "n_complete": 23, "n_total": 24, "gap": "center_projected (placeholder by design)"},
+    "outcome_hybrid_gate": {"pass": true, "mode_0.5": {"nesting": 1.0, "zoom_coherence_ir": 0.1944, "purity": 0.868}, "mode_0.7": {"nesting": 1.0, "zoom_coherence_ir": 0.2759, "purity": 0.903}},
+    "registry_crosscheck": {"total_available": 22, "consistent": 11, "discrepant": 11, "key_product_modes_consistent": true}
+  },
+  "discrepancies": {
+    "nature": "Registry vs on-disk purity/cluster_count mismatches in 11 older modes (5 v6 baselines + 6 v9 cp-hybrids)",
+    "root_cause": "v6 baselines share best_purity=0.8609 benchmark reference in registry; cp-hybrids rebuilt with different parameters than registry snapshot",
+    "blocking": false,
+    "affected_modes": ["debiased_citation_blended", "hybrid_alpha_03", "hybrid_alpha_05", "legal_cited_decisions_only", "legal_issues_outcomes", "cited_decisions_tfidf_hybrid_cp64_0.3", "cited_decisions_tfidf_hybrid_cp64_0.5", "cited_decisions_tfidf_hybrid_cp64_0.7", "cited_decisions_tfidf_hybrid_cp768_0.3", "cited_decisions_tfidf_hybrid_cp768_0.5", "cited_decisions_tfidf_hybrid_cp768_0.7"],
+    "unaffected_key_modes": ["center_projected_hierarchical", "linear_metric_epoch4", "mahalanobis_metric_epoch4", "cited_decisions_tfidf", "hybrid_cited_0.3", "cited_decisions_tfidf_outcome_hybrid_0.5", "cited_decisions_tfidf_outcome_hybrid_0.7", "following_alpha0.3", "criticizing_alpha0.3", "citing_alpha0.3", "hybrid_stabilized_epoch1"]
+  },
+  "scalability_assessment": {
+    "parameterized_builder": "supports center_projected_hierarchical only",
+    "linearity_validated_to": "20k (synthetic), 1k (real data)",
+    "192k_projection": "10.5 min k-NN + 1.1 min hierarchical, 11.9 GB memory (UNVALIDATED extrapolation)",
+    "gap": "No 50k/100k intermediate measurement; builder does not support legal-distance modes"
+  },
+  "recommendation": "PRODUCTIZE. All key product modes verified consistent. Discrepancies in older modes are cosmetic. BLOCKED on corpus lane for 192k scaling."
+}

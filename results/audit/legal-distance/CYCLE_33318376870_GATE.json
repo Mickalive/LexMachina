@@ -1,0 +1,39 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "FULLY SUPPORTED for all v11 OOS hybrid_stabilized claims (selection-on-test fixed, hierarchy effect +0.030 JP, both arms pass gates, comparison vs v10 baselines roughly tied, JuristPref>0.7 unmet); PARTIALLY SUPPORTED for lane-state evidence_refs (6/49 broken report paths — pre-existing metadata issue, not data integrity)",
+  "evidence_summary": {
+    "run_type": "repair_round_1",
+    "run_id": "oos_hybrid_stabilized_fixed_selection_20260830_v11",
+    "prior_audit": "CYCLE_33317369483 (Gate: REVISE, 3 required_fixes)",
+    "factory_direction_version": 10,
+    "evidence_tier": "REPRODUCED",
+    "scientific_work_sound": true,
+    "repair_genuine": true,
+    "core_claims_verified": [
+      "OOS hybrid_stabilized PASSES all frozen gates on clean holdout (LangDom=0.6015, JP=0.5350, CiteIndep=0.3640, both-pass=True)",
+      "No-hierarchy arm also passes all gates (LangDom=0.6412, JP=0.5050, CiteIndep=0.3350, both-pass=True)",
+      "Hierarchy-loss effect on clean OOS = +0.030 JP (0.535 vs 0.505); both arms pass jurist gate; NOT load-bearing",
+      "Comparison vs v10 OOS baselines: hybrid 0.535 vs linear 0.525 / mahalanobis 0.530 — roughly tied within 200-decision noise floor",
+      "JuristPref > 0.7 factory target NOT MET by any representation (true OOS ceiling ~0.53)",
+      "Selection-on-test-set defect FIXED: code selects on TRAIN JP, evaluates holdout once",
+      "Missing v11 report produced at required path",
+      "Claims tempered: product decision downgraded from CONFIRMED default to RECOMMENDATION"
+    ],
+    "required_fixes_applied": {
+      "fix_1_selection_on_train": "VERIFIED: corrected code selects on train JP, both arms re-run, clean OOS numbers (hier JP=0.535, nohier JP=0.505)",
+      "fix_2_missing_report": "VERIFIED: reports/legal-distance/v11_oos_hybrid_stabilized_report.md exists (268 lines)",
+      "fix_3_claims_tempered": "VERIFIED: product decision → recommendation; hierarchy effect corrected +0.055 → +0.030; baseline comparison downgraded to roughly tied"
+    },
+    "gate_logic_consistent": true,
+    "negative_results_preserved": true,
+    "no_data_fabrication": true,
+    "provenance_preserved": true,
+    "rejected_results_archived": true,
+    "root_evidence_refs_resolve": "39/39 (100%)",
+    "lane_evidence_refs_resolve": "43/49 (88%) — 6 pre-existing broken report paths (not new)",
+    "training_trajectory_consistent": "Both arms selected epoch 3; train JP declining after; early stopping at epoch 18",
+    "recurring_pathology": "NONE — selection-on-holdout was one-time defect, now corrected"
+  }
+}

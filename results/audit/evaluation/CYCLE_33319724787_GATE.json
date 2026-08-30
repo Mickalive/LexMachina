@@ -1,0 +1,43 @@
+{
+  "gate": "PASS",
+  "cycle_id": "33319724787",
+  "repair_round": 0,
+  "lane": "evaluation",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "CROSS_VALIDATED_NEGATIVE: v11 OOS hybrid_stabilized models PASS both adversarial gates on canonical 1200-decision frozen harness v3 (hierarchy: LangDom=0.7157, JP=0.5975; no-hierarchy: LangDom=0.7074, JP=0.5967). Hierarchy loss effect is NOT load-bearing (ΔJP=+0.0008). v11 models are WORSE than metric learning baselines on canonical benchmark (JP=0.597 vs linear 0.685, mahalanobis 0.678). JuristPref > 0.7 factory target NOT MET by v11 (ceiling ~0.60). Metric learning baselines remain superior for High-Purity map mode.",
+  "evidence_summary": {
+    "experiment": "v11 OOS hybrid_stabilized cross-validation on canonical frozen harness v3",
+    "finding": "CONFIRMED: v11 models PASS adversarial gates on full 1200-decision slice. NEGATIVE: hierarchy loss not load-bearing, v11 worse than metric learning baselines.",
+    "both_v11_arms_pass_adversarial": true,
+    "hierarchy_arm": {"langdom": 0.7157, "jurist_pref": 0.5975, "jurivoc_l0": 0.5205, "fractal_imprate": 0.678},
+    "no_hierarchy_arm": {"langdom": 0.7074, "jurist_pref": 0.5967, "jurivoc_l0": 0.4771, "fractal_imprate": 0.860},
+    "hierarchy_loss_effect_canonical": "+0.0008 JP (NOT load-bearing)",
+    "baseline_768": {"langdom": 0.7733, "jurist_pref": 0.4900, "verdict": "FAIL"},
+    "vs_metric_learning": "v11 JP=0.597 vs linear 0.685, mahalanobis 0.678 (v11 WORSE)",
+    "vs_production_baseline": "v11 JP=0.597 vs cp64 0.512 (v11 BETTER by +0.085)",
+    "arithmetic_verified": true,
+    "provenance_clean": true,
+    "no_benchmark_gaming": true,
+    "no_prettiness_as_quality": true,
+    "state_consistent": true,
+    "regression_tests_pass": "9/9",
+    "no_self_audit_violation": true,
+    "metric_implementation_caveat": "v11 script uses inline simulate_pairwise_preference() rather than frozen harness v3 implementation. Baseline JP discrepancy: 0.4900 vs 0.4912 (delta 0.0012, < 0.2%). Does not affect any verdict.",
+    "missing_metrics_in_v11_json": ["boilerplate_resistance_score", "cross_language_retrieval"],
+    "negative_results_honestly_reported": [
+      "Hierarchy loss NOT load-bearing (ΔJP=+0.0008)",
+      "v11 WORSE than metric learning baselines (0.597 vs 0.685)",
+      "No-hierarchy arm BETTER fractal quality (86.0% vs 67.8%)",
+      "JuristPref > 0.7 NOT MET by v11 (ceiling ~0.60)",
+      "legal_cited_decisions representation has no adversarial evaluation"
+    ],
+    "prior_audit_pathology": "none — first-time audit, repair round 0",
+    "state_refs_verified": [
+      "evaluation/experiments/run_v11_cross_validation.py",
+      "evaluation/results/v11_cross_validation/v11_cross_validation_results.json",
+      "tests/evaluation/test_v11_cross_validation.py",
+      "reports/evaluation/evaluation_v11_cross_validation_33319724787.md"
+    ]
+  }
+}

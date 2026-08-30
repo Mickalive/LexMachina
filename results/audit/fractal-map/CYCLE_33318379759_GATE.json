@@ -1,0 +1,80 @@
+{
+  "run_id": "fractal_map_audit_33318379759",
+  "github_run": "33318379759",
+  "lane": "fractal-map",
+  "direction_version": 10,
+  "timestamp": "2026-08-30T23:55:00Z",
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "repair_of": "33317520019",
+  "repair_round": 1,
+  "frozen_sample": "1000 BGer decisions (2020-2024), 24 map modes, N=1200 same-domain superset extension",
+  "frozen_metric": "artifact_completeness, nesting_score, zoom_coherence (honest single-convention), hierarchical_purity, provenance purity, byte-exact builder reproduction, registry_consistency, test_suite",
+  "success_rule": "135/135 tests PASS; all four required fixes independently verified; provenance purity=1.0 from committed cache; byte-exact N=1000 verified; state file corrected; no SCALE-ROBUST or 0.234/0.265 false claims remain in state",
+  "cycle_type": "repair_audit",
+  "tests_passed": 135,
+  "tests_total": 135,
+  "artifacts_verified": 548,
+  "modes_loaded": 24,
+  "required_fixes": [],
+  "fix_verification": {
+    "fix_1_mode07_baseline": {
+      "status": "VERIFIED",
+      "independent_recompute": true,
+      "mode_0.5_direction": "IMPROVED",
+      "mode_0.5_n1000_pta": 0.1802,
+      "mode_0.5_n1200_pta": 0.2500,
+      "mode_0.7_direction": "IMPROVED",
+      "mode_0.7_n1000_pta": 0.2115,
+      "mode_0.7_n1200_pta": 0.2414,
+      "convention": "per-transition-average (identical for both N=1000 and N=1200)"
+    },
+    "fix_2_scale_reframe": {
+      "status": "VERIFIED",
+      "verdict": "CONSISTENCY_EXTENSION_NOT_SCALE_READY",
+      "no_scale_robust_in_state": true,
+      "no_192k_readiness_claim": true,
+      "explicit_unvalidated": true
+    },
+    "fix_3_provenance": {
+      "status": "VERIFIED",
+      "source_cache_committed": true,
+      "independent_purity_recompute": true,
+      "purity_all_resolutions": 1.0,
+      "byte_exact_n1000": true,
+      "evidence_files_committed": [
+        "results/fractal_map/evaluation/scale_readiness_independent_recompute_33317520019.json",
+        "results/fractal_map/evaluation/byte_exact_n1000_verify_33317520019.json",
+        "results/fractal_map/scalability/legal_distance/source_cache/cited_decisions_tfidf_outcome_hybrid_0.5.npy",
+        "results/fractal_map/scalability/legal_distance/source_cache/cited_decisions_tfidf_outcome_hybrid_0.7.npy"
+      ]
+    },
+    "fix_4_state_file": {
+      "status": "VERIFIED",
+      "key_findings_corrected": true,
+      "next_recommendation_corrected": true,
+      "no_false_scale_robust": true,
+      "no_false_0_234_0_265": true,
+      "honest_recompute_values": true,
+      "audit_status": "REVISE_ADDRESSED",
+      "repair_metadata_present": true
+    }
+  },
+  "verification_results": {
+    "test_suite": {"pass": true, "n_passed": 135, "n_total": 135},
+    "provenance_independent_recompute": {"pass": true, "mode_0.5_purity_1_0": true, "mode_0.7_purity_1_0": true},
+    "byte_exact_builder": {"pass": true, "mode_0.5_all_9_exact": true, "mode_0.7_all_9_exact": true},
+    "scale_claim_honest": {"pass": true, "verdict": "CONSISTENCY_EXTENSION_NOT_SCALE_READY"},
+    "state_file_corrected": {"pass": true, "no_overclaimed_scale": true}
+  },
+  "non_blocking_findings": [
+    {
+      "file": "reports/fractal_map/OPERATIONAL_RESUME_33317287543_WEBSITE.md",
+      "issue": "Contains old 'SCALE-ROBUST' verdict and mode-0.7 values (0.234, 0.265) in comparison table; pre-repair website summary not updated",
+      "severity": "cosmetic",
+      "recommendation": "Update in future pass to avoid confusion"
+    }
+  ],
+  "claim_ceiling": "VERIFIED: Parameterized legal-distance builder coherent; N=1200 outcome-hybrid maps internally consistent (nesting=1.0, 32/32 fine clusters, hierarchical_best==res_3.0); provenance purity=1.0 independently verified from committed cache at all resolutions for both modes; byte-exact N=1000 reproduction of all 9 label arrays for both modes; 135/135 tests pass. HONEST SCALE: N=1200 is +20% same-domain consistency extension; both modes improve zoom under single convention (0.5: 0.180→0.250; 0.7: 0.212→0.241); NO 50k/100k/192k measurement exists; 192k readiness UNVALIDATED extrapolation. BLOCKED on corpus lane for true 192k build.",
+  "evidence_summary": "Four repair fixes independently verified: (1) mode-0.7 baseline corrected via honest single-convention per-transition-average recompute (both modes IMPROVED); (2) scale claim reframed from SCALE-ROBUST to CONSISTENCY_EXTENSION_NOT_SCALE_READY; (3) source embedding cache committed and provenance purity=1.0 + byte-exact N=1000 independently verified; (4) state file corrected to remove false assertions. 135/135 tests pass. Non-blocking: WEBSITE.md summary not updated with corrected values."
+}

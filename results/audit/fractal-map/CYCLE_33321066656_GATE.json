@@ -1,0 +1,44 @@
+{
+  "run_id": "33321066656",
+  "lane": "fractal-map",
+  "direction_version": 10,
+  "timestamp": "2026-08-30T16:30:00Z",
+  "gate_type": "CYCLE",
+  "cycle_type": "operational_resume",
+  "verdict": "PASS",
+  "evidence_tier": "ACCEPTED",
+  "tests_passed": 175,
+  "tests_total": 175,
+  "tests_regression": "NONE (1 regression diagnosed and repaired — missing hierarchical_leiden_concat_legacy validation_metrics entry restored)",
+  "artifacts_verified": true,
+  "artifact_count": 603,
+  "modes_complete": 21,
+  "summary": "Operational resume from persisted snapshot of run 33320855593. DIAGNOSED AND REPAIRED new validation regression: test_center_projected_purity_beats_concat failed because state/validation_metrics was missing 'hierarchical_leiden_concat_legacy' entry (16th occurrence of systemic ephemeral-storage gap — this time a validation_metrics entry was lost during a prior state update). REPAIR: restored hierarchical_leiden_concat_legacy entry from hierarchical_leiden_results.json (hierarchical_purity_global=0.956135). All 175/175 tests PASS (1.20s), 603 artifacts verified, 21 legal-distance modes artifact-complete. Prior repair chain confirmed stable across 6 resume cycles. Snapshot audit-ready.",
+  "diagnosis": {
+    "new_regression_diagnosed": "test_center_projected_purity_beats_concat FAILED (KeyError: 'hierarchical_leiden_concat_legacy') — state/fractal-map.json validation_metrics was missing the legacy concat baseline entry that the test expects. This is the 16th occurrence of the systemic ephemeral-storage gap pattern: a prior run's state update (to correct github_run/operational_resume_id) accidentally dropped the hierarchical_leiden_concat_legacy entry from validation_metrics.",
+    "repair_action": "Restored validation_metrics.hierarchical_leiden_concat_legacy from hierarchical_leiden_results.json (best config: coarse_0.25_fine_3.0, hierarchical_purity_global=0.9561351138684238). center_projected_hierarchical purity (0.95709) correctly beats legacy concat (0.95614) — no scientific impact.",
+    "prior_repair_chain_stable": "Run 33319678879 diagnosed and repaired original orchestration gap + validation failure. Runs 33320159055, 33320387509, 33320637563, 33320855593 confirmed stable. This run confirms stability across 6 resume cycles — no regressions beyond the diagnosed state-gap repair.",
+    "no_new_failures": "175/175 tests PASS, 603 artifacts, 21 modes complete. No scientific regressions."
+  },
+  "repair_actions": [
+    "Restored validation_metrics.hierarchical_leiden_concat_legacy entry in state/fractal-map.json (hierarchical_purity_global=0.9561351138684238 from hierarchical_leiden_results.json best config)",
+    "Updated github_run from 33320855593 to 33321066656 in state/fractal-map.json",
+    "Updated operational_resume_id from 33320855593 to 33321066656 in state/fractal-map.json",
+    "Updated timestamp in state/fractal-map.json",
+    "Added key finding documenting this verification and repair cycle"
+  ],
+  "blockers": ["corpus lane: 192k full corpus delivery required for next scaling step"],
+  "recommendation": "PRODUCTIZE",
+  "continue_recommended": false,
+  "evidence_refs": [
+    "state/fractal-map.json",
+    "tests/fractal_map/test_verify.py",
+    "tests/requirements.txt",
+    "results/fractal_map/hierarchical_map/hierarchical_leiden_results.json",
+    "results/audit/fractal-map/CYCLE_33320855593_GATE.json",
+    "results/audit/fractal-map/CYCLE_33320637563_GATE.json",
+    "results/audit/fractal-map/CYCLE_33320387509_GATE.json",
+    "results/audit/fractal-map/CYCLE_33320159055_GATE.json",
+    "results/audit/fractal-map/CYCLE_33319678879_GATE.json"
+  ]
+}
