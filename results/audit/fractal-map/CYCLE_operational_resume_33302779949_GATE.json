@@ -1,0 +1,82 @@
+{
+  "run_id": "33302779949",
+  "lane": "fractal-map",
+  "factory_direction_version": 10,
+  "audit_type": "operational_resume",
+  "resumed_from_run": "33300128591",
+  "previous_accepted_run": "33300128591",
+  "timestamp": "2026-08-30T09:04:12Z",
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "producer_side_verification": true,
+  "diagnosis": {
+    "issue": "Run 33300128591 left the persisted producer snapshot non-audit-ready: state/fractal-map.json was NOT updated (still direction_version 9, accepted_run_id v9_operational_resume_33299796013) while the mounted factory direction is v10, and the /tmp/lex_accepted/fractal_map/ self-mirror was absent at resume time (ephemeral per-run storage).",
+    "root_cause": [
+      "Zero-durable-delta repair in run 33300128591 (committed only report + gate JSON; violated architecture invariant 'a repair cannot succeed with zero durable delta').",
+      "Independent audit+integrate gate has produced no audit branch and no promotion to lab/fractal-map since cycle 33237943664, leaving all completed v9/v10 cycles (incl. 33296262656..33300128591) unpromoted on cycle branches.",
+      "/tmp/lex_accepted/fractal_map/ is ephemeral per-GitHub-run storage and must be re-established every run."
+    ],
+    "resolution": [
+      "Re-ran the full verification suite: 128/128 pytest tests PASS (tests/fractal_map/test_verify.py).",
+      "Wrote and executed fractal_map/evaluation/snapshot_verify_33302779949.py: registry totals (24 modes: 1 default + 21 available legal-distance + 1 legacy + 1 placeholder), artifact-integrity checks for every declared artifact of all 24 modes, MapModeLoader + ProductMapLoader end-to-end 24/24 on BOTH the workspace base and the mirror.",
+      "Re-established /tmp/lex_accepted/fractal_map/ mirror (542 files incl. this run's verification JSON; 541 immutable evidence artifacts preserved).",
+      "Updated state/fractal-map.json to direction_version 10 with accepted_run_id v10_operational_resume_33302779949 and appended evidence refs/key findings (history preserved)."
+    ]
+  },
+  "verification_results": {
+    "pytest_tests_fractal_map": {"tests": 128, "passed": 128, "failed": 0},
+    "snapshot_verify_33302779949": {
+      "artifact_count_541": true,
+      "registry_totals": true,
+      "artifacts_declared_load": true,
+      "loaders": true,
+      "default_mode_frozen_metrics": true,
+      "all_pass": true
+    },
+    "artifact_count": 541,
+    "mirror_artifacts": 542
+  },
+  "loader_validation": {
+    "workspace:MapModeLoader": {"modes_tested": 24, "loaded": 24},
+    "workspace:ProductMapLoader": {"modes_tested": 24, "loaded": 24},
+    "mirror:MapModeLoader": {"modes_tested": 24, "loaded": 24},
+    "mirror:ProductMapLoader": {"modes_tested": 24, "loaded": 24}
+  },
+  "adversarial_gate_validation_from_frozen_state": {
+    "v7_metric_learning": {"modes": ["linear_metric_epoch4", "mahalanobis_metric_epoch4"], "both_gates": 2, "status": "PASS"},
+    "v7_citation_signal": {"modes": ["cited_decisions_tfidf", "hybrid_cited_0.3"], "both_gates": 2, "status": "PASS"},
+    "v9_cp_hybrids": {"modes": 6, "both_gates": 6, "status": "PASS"},
+    "v9_breakthrough_high_purity": {"modes": ["hybrid_stabilized_epoch1"], "both_gates": 1, "status": "PASS"},
+    "v9_breakthrough_high_advantage_citation_outcome": {"modes": ["cited_decisions_tfidf_outcome_hybrid_0.5", "cited_decisions_tfidf_outcome_hybrid_0.7"], "both_gates": 2, "status": "PASS"},
+    "v9_breakthrough_high_advantage_citation_role": {"modes": ["following_alpha0.3", "criticizing_alpha0.3", "citing_alpha0.3"], "both_gates": 3, "status": "PASS"}
+  },
+  "default_mode_frozen_metrics": {
+    "mode": "center_projected_hierarchical",
+    "best_config": "coarse_0.5_fine_3.0",
+    "nesting_score": 1.0,
+    "hierarchical_purity": 0.9571,
+    "n_fine_clusters": 108,
+    "n_coarse_clusters": 7,
+    "decisions_indexed": 1000,
+    "resolution_ladder": [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+    "zoom_coherence_improvement_rate": 0.6296,
+    "adversarial_language_dominance": 0.7593,
+    "jurist_pairwise_preference": 0.5215,
+    "jurivoc_benchmarks_passed": 4,
+    "jurivoc_benchmarks_total": 5
+  },
+  "factory_direction_v10_validation": {
+    "all_12_breakthrough_representations_validated": true,
+    "two_design_patterns_exposed_as_map_modes": true,
+    "product_integration_24_modes_4_patterns": true,
+    "next_step": "Scale fractal map to full corpus (192k) once corpus lane delivers"
+  },
+  "required_fixes": [],
+  "claim_ceiling": "Fractal-map deliverable for factory direction v10 is complete on the validated 1000-decision slice: all 12 breakthrough representations validated (two design patterns), default center_projected_hierarchical REPRODUCED (nesting=1.0, purity=0.9571), 24 map modes operational via unified loaders, adversarial gates PASS. No claim is made at full-corpus (192k) scale; that scaling step is blocked on the corpus lane.",
+  "evidence_summary": "Executable verification this run: pytest tests/fractal_map/test_verify.py (128/128 PASS) and fractal_map/evaluation/snapshot_verify_33302779949.py (all checks PASS on workspace base and /tmp/lex_accepted/fractal_map mirror). 541 immutable artifacts under results/fractal_map preserved. Cross-lane numbers carried from ACCEPTED legal-distance evidence (CYCLE_33281008655: LangDom=0.4911, JP=0.7990 for cited_decisions_tfidf_outcome_hybrid_0.5; CYCLE_33286030000: HierAdv=+0.3703 for cited_decisions_tfidf_outcome_hybrid_0.7) and control-plane direction v10.",
+  "mirroring_verified": true,
+  "artifacts_verified": 541,
+  "tests_passed": 128,
+  "modes_loaded": 24,
+  "recommendation": "PRODUCTIZE"
+}
