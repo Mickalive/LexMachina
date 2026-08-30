@@ -1,0 +1,58 @@
+{
+  "gate_type": "operational_resume",
+  "run_id": "33339029324",
+  "previous_run_id": "33337992667",
+  "lane": "fractal-map",
+  "direction_version": 10,
+  "timestamp": "2026-08-30T22:31:02Z",
+  "tests": {
+    "total": 175,
+    "passed": 175,
+    "failed": 0,
+    "duration_seconds": 1.53,
+    "verdict": "PASS"
+  },
+  "artifacts": {
+    "total_verified": 620,
+    "delta_from_previous": 1,
+    "note": "620 total (619 previous + 1 new audit gate from run 33337992667)"
+  },
+  "scientific_status": "NO_CHANGE",
+  "regressions": "NONE",
+  "orchestration_diagnosis": {
+    "control_plane_status": "RUN",
+    "lane_state_status": "BLOCKED",
+    "mismatch": true,
+    "impact": "35 unnecessary resume cycles (including this one)",
+    "root_cause": "Supervisor dispatcher checks factory_direction.json status field only, ignores lane state cycle_status and resume_guard. factory_direction.json has fractal-map.status=RUN while lane state has cycle_status=BLOCKED with resume_guard.",
+    "fix_required": "Factory Director must update /tmp/lex_control/state/factory_direction.json lanes.fractal-map.status from RUN to BLOCKED or DONE",
+    "history": "Orchestration bug first diagnosed at run 33322901712 (cycle 22). BLOCKED+resume_guard workaround applied. Control plane never updated. 35 cycles wasted."
+  },
+  "peer_lane_status": {
+    "corpus": {
+      "status": "COMPLETED",
+      "evidence_tier": "REPRODUCED",
+      "note": "1,577 decisions normalized; 192k NOT delivered"
+    },
+    "legal_distance": {
+      "status": "COMPLETED",
+      "evidence_tier": "REPRODUCED"
+    },
+    "product": {
+      "status": "COMPLETED",
+      "evidence_tier": "REPRODUCED",
+      "continue_recommended": true
+    },
+    "evaluation": {
+      "status": "COMPLETED",
+      "evidence_tier": "ACCEPTED"
+    }
+  },
+  "key_findings_preserved": {
+    "zoom_quality_diagnostic": "RUN 33338598158: Citation role views dominate zoom quality (citing ZQ=0.5401, following ZQ=0.5280, criticizing ZQ=0.4864). BEST PRODUCTION (outcome_hybrid_0.5) ranks 21st (ZQ=0.2798). Confirms multi-view product design.",
+    "scalability": "Empirical 1k-20k scaling validated: near-linear time (exp 1.04-1.49), linear memory (exp 1.00-1.01). 192k extrapolation: 5.6 min, 1.0 GB.",
+    "artifact_integrity": "21 legal-distance modes artifact-complete (16 files each), 5 validation_metrics entries, 620 total artifacts verified."
+  },
+  "recommendation": "BLOCKED",
+  "next_action": "Await corpus lane 192k delivery. When corpus delivers: (1) run build_parameterized_legal_distance_map.py --corpus-size 192000, (2) test citation role zoom quality at 192k, (3) optimize resolution ladder, (4) implement multi-view zoom UI."
+}
