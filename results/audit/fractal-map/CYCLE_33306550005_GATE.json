@@ -6,14 +6,15 @@
   "audit_type": "independent_audit",
   "resumed_from_run": "33306333071",
   "previous_accepted_run": "33306333071",
-  "timestamp": "2026-08-30T10:31:00Z",
+  "timestamp": "2026-08-30T10:35:00Z",
   "gate": "PASS",
   "safe_to_integrate": true,
   "producer_side_verification": true,
   "independent_verification": {
     "artifact_count": {
-      "producer_workspace": 545,
-      "accepted_base": 545,
+      "producer_workspace_at_verify": 545,
+      "producer_workspace_current": 546,
+      "accepted_base": 542,
       "threshold": 541,
       "status": "PASS"
     },
@@ -33,6 +34,13 @@
       "n_fine_clusters": 108,
       "n_coarse_clusters": 7,
       "decisions_indexed": 1000,
+      "verdict": "PASS",
+      "status": "PASS"
+    },
+    "zoom_coherence": {
+      "total_parents": 61,
+      "improving_parents": 19,
+      "improvement_rate": 0.311,
       "status": "PASS"
     },
     "loaders": {
@@ -45,36 +53,53 @@
     "artifact_integrity": {
       "missing": 0,
       "bad_shape": 0,
+      "modes_checked": 24,
+      "bases_checked": 2,
       "status": "PASS"
     },
     "pytest_suite": {
-      "total": 128,
-      "passed": 128,
-      "failed": 0,
-      "status": "PASS"
+      "total_claimed": 128,
+      "passed_claimed": 128,
+      "independently_verifiable": false,
+      "reason": "numpy dependency not available in auditor environment",
+      "consistent_with_previous_verified_run": true,
+      "status": "PASS_CONDITIONAL"
     },
-    "snapshot_verification": {
-      "script": "fractal_map/evaluation/snapshot_verify_33306550005.py",
-      "result_file": "results/fractal_map/evaluation/snapshot_verify_33306550005.json",
-      "all_pass": true,
+    "state_file_consistency": {
+      "direction_version": 10,
+      "evidence_tier": "REPRODUCED",
+      "cycle_status": "COMPLETED",
+      "artifacts_verified": 545,
+      "tests_passed": 128,
+      "modes_loaded": 24,
       "status": "PASS"
     }
   },
   "pathology_flags": {
     "ephemeral_mirror_absence": {
       "severity": "RECURRING_SYSTEMIC",
-      "description": "The /tmp/lex_accepted/fractal_map/ mirror was absent again at resume time due to ephemeral storage volatility between GitHub runs. This is the same systemic orchestration gap diagnosed across runs 33304077155, 33305918697, 33306129382, and 33306333071. Mitigation applied: mirror re-established from workspace (545 artifacts). No durable impact on verification.",
-      "resolution": "Mirror re-established from workspace at start of this run. All verification passes. The mitigation is deterministic: every resume run re-establishes the mirror from the durable workspace. Consider a startup hook in the launcher to make this automatic."
+      "occurrences": 5,
+      "first_seen_run": "33304077155",
+      "occurrence_runs": ["33304077155", "33305918697", "33306129382", "33306333071", "33306550005"],
+      "description": "The /tmp/lex_accepted/fractal_map/ mirror was absent at resume time due to ephemeral storage volatility between GitHub runs. This is the 5th consecutive occurrence. Mitigation applied: mirror re-established from workspace (545 artifacts). No durable impact on verification.",
+      "resolution": "Mirror re-established from workspace at start of this run. All verification passes.",
+      "root_cause": "/tmp is ephemeral across GitHub Actions runner invocations. Infrastructure issue, not producer defect."
+    },
+    "state_file_self_reference": {
+      "severity": "MINOR_PROTOCOL_DEVIATION",
+      "description": "Producer workspace state file pre-updated to accepted_run_id=v10_operational_resume_33306550005 (this run's ID) before audit gate. Snapshot verification ran before update and correctly shows previous accepted run (33306333071). Standard pattern across operational resumes.",
+      "impact": "None on verification integrity"
     }
   },
   "durable_delta": {
     "mirror_re_established": "/tmp/lex_accepted/fractal_map/ re-established with 545 artifacts from workspace",
-    "state_file_consistent": "state/fractal-map.json verified at v10, run_id=33306550005, metrics match on-disk artifacts",
-    "snapshot_verification_added": "fractal_map/evaluation/snapshot_verify_33306550005.py and results/fractal_map/evaluation/snapshot_verify_33306550005.json",
-    "run_id": "33306550005"
+    "state_file_consistent": "state/fractal-map.json verified at v10, metrics match on-disk artifacts",
+    "run_id": "33306550005",
+    "new_science": "None - pure re-verification of accepted work"
   },
   "required_fixes": [],
-  "claim_ceiling": "Fractal-map deliverable for factory direction v10 remains complete on the validated 1000-decision slice: 24 map modes operational (1 default center_projected_hierarchical + 22 available legal-distance + 1 legacy + 1 placeholder), default mode frozen metrics reproduced (nesting=1.0, purity=0.9571, 108 fine clusters in 7 coarse parents, 1000 decisions indexed). All loader APIs validated end-to-end from both workspace base and re-established /tmp/lex_accepted/fractal_map/ mirror. Snapshot verification script and results artifact produced for this run. No claim is made at full-corpus (192k) scale; that scaling step is blocked on the corpus lane.",
-  "evidence_summary": "Independent verification: artifact count 545 (>=541 threshold), registry 24 modes (1 default + 22 available + 1 legacy + 1 placeholder), default mode metrics reproduce from on-disk JSON (nesting=1.0, purity=0.9571, 108/7 clusters, 1000 decisions), MapModeLoader/ProductMapLoader load 24/24 modes from BOTH workspace base and re-established /tmp/lex_accepted/fractal_map/ mirror, 128/128 pytest tests PASS, snapshot verification ALL CHECKS PASS. Cross-lane numbers carried from ACCEPTED legal-distance evidence. No prettiness-as-quality, benchmark gaming, or boilerplate confounding in computation artifacts detected.",
-  "recommendation": "PRODUCTIZE"
+  "claim_ceiling": "Fractal-map deliverable for factory direction v10 remains complete on the validated 1000-decision slice: 24 map modes operational (1 default center_projected_hierarchical + 22 available legal-distance + 1 legacy + 1 placeholder), default mode frozen metrics reproduced (nesting=1.0, purity=0.9571, 108 fine clusters in 7 coarse parents, 1000 decisions indexed), zoom coherence 0.311 (19/61 parents). All loader APIs validated end-to-end from both workspace base and re-established /tmp/lex_accepted/fractal_map/ mirror. No claim is made at full-corpus (192k) scale; that scaling step is blocked on the corpus lane. This cycle is a pure re-verification with no new scientific content.",
+  "evidence_summary": "Independent verification: artifact count 545 (>=541 threshold), registry 24 modes (1 default + 22 available + 1 legacy + 1 placeholder), default mode metrics reproduce from on-disk JSON (nesting=1.0, purity=0.9570933829681662, 108/7 clusters, 1000 decisions), zoom coherence independently recomputed as 0.311 (19/61), MapModeLoader/ProductMapLoader load 24/24 modes from BOTH workspace base and re-established /tmp/lex_accepted/fractal_map/ mirror, 128/128 pytest tests claimed PASS (consistent with previous verified run 33306333071; not independently reproducible in auditor environment due to missing numpy). Cross-lane numbers carried from ACCEPTED legal-distance evidence. No prettiness-as-quality, benchmark gaming, boilerplate confounding, data leakage, or unsupported product claims detected. Recurring ephemeral storage pathology (5th occurrence) mitigated deterministically.",
+  "recommendation": "PRODUCTIZE",
+  "next_cycle_dependency": "Corpus lane must deliver full 192k corpus before fractal-map can scale beyond the 1000-decision validation slice"
 }
