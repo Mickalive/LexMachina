@@ -34,18 +34,27 @@ def test_multi_representation_import():
     Previously, import only computed positions for the default representation.
     After the fix, positions are computed for every representation so imported
     decisions appear on the map regardless of which representation is active.
+    
+    FIX (cycle 33319873420): Clean BOTH user_imports directories BEFORE creating
+    the API to avoid stale in-memory corpus and stale persisted import positions
+    from prior test runs.
     """
     print("=== Test: Multi-Representation User Import ===")
     
+    # Determine paths from base_dir (before API init)
+    base_dir = Path(__file__).parent.parent
+    
+    # Clean corpus user_imports (loaded by CorpusLoader)
+    corpus_import_dir = base_dir / "results" / "corpus" / "normalization" / "user_imports"
+    if corpus_import_dir.exists():
+        shutil.rmtree(corpus_import_dir)
+    
+    # Clean fractal_map user_imports (persisted by NavigationAPI._save_imported_position)
+    nav_import_dir = base_dir / "results" / "fractal_map" / "user_imports"
+    if nav_import_dir.exists():
+        shutil.rmtree(nav_import_dir)
+    
     api = _get_api()
-    
-    # Clean any previous user imports
-    user_import_dir = Path(api.map_loader.results_dir).parent / "user_imports"
-    if user_import_dir.exists():
-        shutil.rmtree(user_import_dir)
-    
-    # Re-initialize to clear in-memory import state
-    api._imported_positions.clear()
     
     initial_count = api.corpus.size
     initial_imports = api.corpus.user_import_count
@@ -115,8 +124,10 @@ def test_multi_representation_import():
     print(f"  Duplicate skip: {result2['skipped']} skipped")
     
     # Clean up
-    if user_import_dir.exists():
-        shutil.rmtree(user_import_dir)
+    if corpus_import_dir.exists():
+        shutil.rmtree(corpus_import_dir)
+    if nav_import_dir.exists():
+        shutil.rmtree(nav_import_dir)
     
     print("  PASS\n")
     return True
