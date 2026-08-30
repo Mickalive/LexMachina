@@ -1,0 +1,81 @@
+{
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    {
+      "id": "F-1",
+      "severity": "HIGH",
+      "file": "results/audit/evaluation/CYCLE_33315590732_GATE.json",
+      "description": "Producer created self-audit gate JSON. Violates independent_auditor card (AGENTS.md): producer cannot audit its own work. Must be removed before integration.",
+      "same_cycle_repairable": true,
+      "repair_action": "delete file"
+    },
+    {
+      "id": "F-2",
+      "severity": "LOW",
+      "file": "state/evaluation.json",
+      "description": "New factory direction objective (7) 'Product integration verification' added without factory director authorization. Move to advisory recommendation in report, not state.",
+      "same_cycle_repairable": true,
+      "repair_action": "remove objective (7) from state, keep as report recommendation"
+    }
+  ],
+  "claim_ceiling": "adversarial_gates_consistent_gap_analysis_unverifiable_product_cross_reference",
+  "evidence_summary": {
+    "cycle_type": "product_integration_verification",
+    "new_evaluation_data": false,
+    "new_verification_protocol": true,
+    "git_diff_files_changed": 7,
+    "git_diff_insertions": 1252,
+    "git_diff_deletions": 2,
+    "adversarial_gate_consistency": {
+      "all_24_representations_verified": true,
+      "pass_count": 20,
+      "fail_count": 4,
+      "pass_rate": "83.3%",
+      "values_match_accepted_state": true,
+      "no_fabrication_detected": true
+    },
+    "product_cross_reference": {
+      "product_representations_claimed": 27,
+      "product_representations_verifiable": false,
+      "reason": "No product.json found in accepted base, producer workspace, or /tmp/lex_accepted. Count derived from director note text only.",
+      "gap_analysis_reliable": false,
+      "best_hybrids_flagged_correctly": true
+    },
+    "regression_tests": {
+      "total": 3,
+      "passing": 3,
+      "failing": 0,
+      "new_test_added": "test_product_integration_v11.py (5/5 tests)",
+      "note": "Re-verification of prior tests; new test verifies verification output"
+    },
+    "violations": {
+      "self_audit_gate": {
+        "present": true,
+        "file": "results/audit/evaluation/CYCLE_33315590732_GATE.json",
+        "violation": "Producer cannot produce audit gates (AGENTS.md independent_auditor card)",
+        "severity": "HIGH"
+      },
+      "scope_creep": {
+        "present": true,
+        "description": "New factory direction objective (7) added without director authorization",
+        "severity": "LOW"
+      }
+    },
+    "negative_results_honestly_reported": [
+      "4 FAIL representations correctly identified (center_projected_768, procrustes, CCA, criticizing_alpha0.7)",
+      "8 product representations lack adversarial validation",
+      "BEST hybrids not yet in product map_representations"
+    ],
+    "state_changes": {
+      "key_findings": "+1 new finding (product integration verification)",
+      "evidence_refs": "+2 new refs (script, results file)",
+      "no_evidence_weakened": true,
+      "no_evidence_removed": true
+    },
+    "recurring_no_op_pattern": {
+      "count": 6,
+      "note": "Cycle 33315590732 breaks no-op pattern with actual new work (product integration verification)"
+    }
+  }
+}

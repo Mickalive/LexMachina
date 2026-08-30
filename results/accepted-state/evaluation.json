@@ -4,10 +4,12 @@
   "evidence_tier": "ACCEPTED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "evaluation_v10_audit_ready_33305332122",
-  "github_run": "33305332122",
-  "previous_audit_run": "33299401770",
-  "timestamp": "2026-08-30T12:00:00.000000+00:00",
+  "accepted_run_id": "evaluation_v10_audit_ready_33312095150",
+  "github_run": "33317695932",
+  "previous_audit_run": "33317001204",
+  "timestamp": "2026-08-30T23:55:00.000000+00:00",
+  "operational_resume_run": "33317695932",
+  "operational_resume_disposition": "AUDIT_READY_VERIFIED",
   "config_hash": "4323f833fa72366a",
   "global_seed": 42,
   "factory_direction_v10_alignment": {
@@ -72,7 +74,17 @@
     "tests/evaluation/test_cross_lingual_alignment_v10.py",
     "tests/evaluation/test_boilerplate_resistance_real.py",
     "reports/evaluation/evaluation_v9_verification_33299401770.md",
-    "evaluation/results/v3_extended/evaluation_v9_comprehensive_results.json"
+    "evaluation/results/v3_extended/evaluation_v9_comprehensive_results.json",
+    "evaluation/results/holdout_cross_validation/holdout_cross_validation_results.json",
+    "evaluation/experiments/evaluate_holdout_cross_validation.py",
+    "reports/evaluation/evaluation_holdout_cross_validation_33305864881.md",
+    "reports/evaluation/evaluation_holdout_cross_validation_repair_33305864881_r1.md",
+    "evaluation/experiments/verify_product_integration.py",
+    "results/evaluation/product_integration_verification_v11.json",
+    "reports/audit/evaluation/CYCLE_33317001204.md",
+    "results/audit/evaluation/CYCLE_33317001204_GATE.json",
+    "reports/evaluation/evaluation_v10_operational_resume_33317695932_audit_ready.md",
+    "results/audit/evaluation/CYCLE_33317695932_AUDIT_READY.json"
   ],
   "key_findings": [
     "EVALUATION v3+ COMPLETED: Frozen evaluation harness (seed=42, config_hash=4323f833fa72366a) executed on expanded 1,200-decision slice. REPRODUCED EXACTLY in GitHub run 33232234741 AND VERIFIED in run 33240972425. LOCAL REPRODUCIBILITY CONFIRMED. Integration of cited_decisions_tfidf results completed in operational resume 33265417443.",
@@ -96,7 +108,8 @@
     "EVALUATION v10 COMPLETED (cross-lingual alignment deeper investigation — Factory Direction v8 Objective 5): 52 representations evaluated on frozen harness v3. Proc Pairs alignment is LOSSLESS for cited_decisions_tfidf (identical metrics to base). Joint PCA reduces Jurivoc L0 by 48% (0.254→0.133). Mean Center improves scale stability (0.615) but fails cross-lang retrieval (0.185). Single Procrustes CATASTROPHIC (jurist=0.361, cross-lang=0.086). Section-specific embeddings (sachverhalt, erwaegungen, dispositiv) UNAVAILABLE in metadata — BLOCKED on corpus lane. Outcome-only embeddings overfit (Jurivoc L0≈0.007, scale=0.0). Best 64-dim hybrid: cited_decisions_tfidf_proc_pairs_hybrid_cdtf64_0.7 (jurist=0.695, lang_dom=0.608). 128-dim cited_decisions_tfidf + Proc Pairs remain ONLY unsupervised representations with production-viable legal structure (cluster coherence PASS).",
     "EVALUATION v9 COMPREHENSIVE COMPLETED (Factory Direction v9): All 9 breakthrough representations from legal-distance v8 fractal validation PASS both adversarial gates on frozen harness v3. Metric Learning family (3): linear_metric_epoch4, mahalanobis_metric_epoch4, hybrid_stabilized_epoch1 — HIGH PURITY pattern. Citation/Outcome family (3): cited_decisions_tfidf, cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7 — HIGH ADVANTAGE pattern. Cross-lingual alignment (3): cited_decisions_tfidf_proc_pairs (FRESH computation, LOSSLESS), cited_decisions_tfidf_joint_pca, cited_decisions_tfidf_mean_center. FAILED: cited_decisions_tfidf_procrustes, cited_decisions_tfidf_cca, center_projected_768. TWO DESIGN PATTERNS validated for product map modes: High-Purity (Metric Learning) vs High-Advantage (Citation/Outcome). FIXED: proc_pairs now computed fresh (matching v10 methodology) achieving true lossless alignment (LangDom 0.6103 vs base 0.6100, Jurist 0.6839 vs base 0.6889), resolving audit discrepancy from stale pre-saved embedding.",
     "USER CORPUS IMPORT EVALUATION COMPLETED (Factory Direction v9 Objective 6): All 45 tests PASS (100% pass rate). Schema validation robustness validated (24 tests: valid/invalid/edge cases, strict/lenient modes, provenance handling, batch validation). Map artifact persistence validated (import, persist, reload, consistency, export with documented limitation). Incremental updates validated (multiple imports, duplicates, position computation, cumulative counts). Recomputation triggers validated (zoom levels, representations, cache invalidation). Product integration validated (search, clusters, citations; neighbor search/proximity/temporal use base corpus only — documented known limitations). Factory Direction v9 Objective 6 FULLY ACHIEVED.",
-    "VERIFICATION RUN 33299401770 CONFIRMED: Evaluation v9 comprehensive REPRODUCED locally on frozen harness v3 (seed=42, config_hash=4323f833fa72366a). All 9 breakthrough representations PASS both adversarial gates. Fresh proc_pairs computation CONFIRMED LOSSLESS (LangDom=0.6100, Jurist=0.6889, identical to base cited_decisions_tfidf). All 3 evaluation tests PASS (frozen harness reproducibility, cross-lingual alignment, boilerplate resistance real). Factory Direction v9 Objectives 2, 5, 6 COMPLETE; Objectives 1, 3, 4 BLOCKED on dependencies."
+    "VERIFICATION RUN 33299401770 CONFIRMED: Evaluation v9 comprehensive REPRODUCED locally on frozen harness v3 (seed=42, config_hash=4323f833fa72366a). All 9 breakthrough representations PASS both adversarial gates. Fresh proc_pairs computation CONFIRMED LOSSLESS (LangDom=0.6100, Jurist=0.6889, identical to base cited_decisions_tfidf). All 3 evaluation tests PASS (frozen harness reproducibility, cross-lingual alignment, boilerplate resistance real). Factory Direction v9 Objectives 2, 5, 6 COMPLETE; Objectives 1, 3, 4 BLOCKED on dependencies.",
+    "HOLDOUT VALIDATION CROSS-CHECK COMPLETED (Factory Direction v10): Independent assessment of legal-distance holdout validation results (v8/v9) against frozen evaluation harness v3. 5 representations cross-validated. REPAIRED (round 1): Fixed extract_frozen_harness_metrics() nested JSON traversal bug — now produces actual cross-validation comparisons (was zero before). Language dominance CONSISTENT across all 5 representations (within 0.02 tolerance). Jurist preference DISCREPANT (0.12-0.17 difference) — EXPLAINED by metric definition mismatch (frozen: jurist_pairwise_preference, holdout: jurist_would_succeed_rate). Two-map-mode tradeoff CONFIRMED on holdout: Metric Learning (JP=0.568, CiteIndep=0.353) vs Citation/Outcome (JP=0.563, CiteIndep=0.138). Metric learning achieves 2.6x better citation-independent retrieval than citation/outcome. center_projected_64dim FAILS holdout adversarial gates (JP=0.385) despite passing frozen harness (JP=0.512) — CRITICAL negative result. cited_decisions_tfidf misses citation-independent retrieval target (0.134 < 0.15). JuristPref ceiling at ~0.605 on holdout — no representation achieves >0.7 target. Verdict: DISCREPANT_EXPLAINED. All negative results preserved as first-class evidence."
   ],
   "validation_metrics": {
     "center_projected_768": {
@@ -650,7 +663,71 @@
     "best_cross_lingual_alignment": "cited_decisions_tfidf_proc_pairs (LOSSLESS — FRESH computation matches base: jurist=0.684, lang_dom=0.610, jurivoc_l0=0.257)",
     "best_64dim_hybrid": "cited_decisions_tfidf_proc_pairs_hybrid_cdtf64_0.7 (jurist=0.695, lang_dom=0.608, jurivoc_l0=0.143) — based on v10 fresh proc_pairs",
     "citation_roles_resolved": 2988,
-    "citation_resolution_rate": "100%"
+    "citation_resolution_rate": "100%",
+    "holdout_cross_validation": {
+      "status": "DISCREPANT_EXPLAINED",
+      "representations_evaluated": 5,
+      "two_map_mode_tradeoff_confirmed": true,
+      "metric_learning_cite_indep": 0.3532,
+      "citation_outcome_cite_indep": 0.1379,
+      "metric_learning_advantage_ratio": 2.6,
+      "center_projected_64dim_holdout_jp": 0.385,
+      "center_projected_64dim_frozen_jp": 0.5121,
+      "center_projected_64dim_adversarial_inconsistency": true,
+      "jurist_pref_ceiling": 0.605,
+      "cross_validation": {
+        "language_dominance_consistent": 5,
+        "jurist_preference_discrepant": 5,
+        "note": "All 5 representations CONSISTENT on language_dominance (within 0.02 tolerance). All 5 DISCREPANT on jurist_pairwise_preference (0.12-0.17 difference) — EXPLAINED by metric definition mismatch: frozen harness measures jurist_pairwise_preference (binary decision quality) while holdout measures jurist_would_succeed_rate (retrieval success rate). These are related but not identical metrics. Language dominance is the same metric in both frameworks, confirming measurement consistency.",
+        "cited_decisions_tfidf": {
+          "frozen_lang_dom": 0.6100,
+          "holdout_train_lang_dom": 0.6147,
+          "lang_dom_consistent": true,
+          "frozen_jurist_pref": 0.6889,
+          "holdout_train_jurist_pref": 0.552,
+          "jurist_pref_discrepancy": 0.1369,
+          "note": "Language dominance CONSISTENT (0.0047 difference). Jurist preference DISCREPANT (0.1369) due to metric definition mismatch."
+        },
+        "center_projected_64dim": {
+          "frozen_lang_dom": 0.7664,
+          "holdout_train_lang_dom": 0.7626,
+          "lang_dom_consistent": true,
+          "frozen_jurist_pref": 0.5121,
+          "holdout_train_jurist_pref": 0.394,
+          "jurist_pref_discrepancy": 0.1181,
+          "note": "Language dominance CONSISTENT (0.0038 difference). Jurist preference DISCREPANT (0.1181). HOLDOUT FAILS both adversarial gates (JP=0.385 holdout vs 0.512 frozen) — CRITICAL negative result."
+        },
+        "linear_metric_epoch4": {
+          "frozen_lang_dom": 0.6805,
+          "holdout_train_lang_dom": 0.6725,
+          "lang_dom_consistent": true,
+          "frozen_jurist_pref": 0.6847,
+          "holdout_train_jurist_pref": 0.532,
+          "jurist_pref_discrepancy": 0.1527,
+          "note": "Language dominance CONSISTENT (0.0081 difference). Jurist preference DISCREPANT (0.1527) due to metric definition mismatch."
+        },
+        "mahalanobis_metric_epoch4": {
+          "frozen_lang_dom": 0.6843,
+          "holdout_train_lang_dom": 0.6777,
+          "lang_dom_consistent": true,
+          "frozen_jurist_pref": 0.6781,
+          "holdout_train_jurist_pref": 0.513,
+          "jurist_pref_discrepancy": 0.1651,
+          "note": "Language dominance CONSISTENT (0.0066 difference). Jurist preference DISCREPANT (0.1651) due to metric definition mismatch."
+        },
+        "hybrid_stabilized_epoch1": {
+          "frozen_lang_dom": 0.6704,
+          "holdout_train_lang_dom": 0.6599,
+          "lang_dom_consistent": true,
+          "frozen_jurist_pref": 0.6656,
+          "holdout_train_jurist_pref": 0.522,
+          "jurist_pref_discrepancy": 0.1436,
+          "note": "Language dominance CONSISTENT (0.0105 difference). Jurist preference DISCREPANT (0.1436) due to metric definition mismatch."
+        }
+      },
+      "warnings": 2,
+      "methodology_issues": 2
+    }
   },
   "external_dependencies": {
     "center_projected_768dim": {
