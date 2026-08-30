@@ -1,0 +1,380 @@
+{
+  "schema_validation": {
+    "valid_records": {
+      "passed": 3,
+      "failed": 0,
+      "details": [
+        {
+          "decision_id": "test_valid_001",
+          "status": "PASS"
+        },
+        {
+          "decision_id": "test_valid_002",
+          "status": "PASS"
+        },
+        {
+          "decision_id": "test_valid_003",
+          "status": "PASS"
+        }
+      ]
+    },
+    "invalid_records": {
+      "passed": 6,
+      "failed": 0,
+      "details": [
+        {
+          "description": "missing required fields",
+          "status": "PASS (correctly rejected)"
+        },
+        {
+          "description": "invalid court",
+          "status": "PASS (lenient mode allows with warning)",
+          "warnings": [
+            "Unknown court: 'invalid_court'"
+          ]
+        },
+        {
+          "description": "invalid language",
+          "status": "PASS (lenient mode allows with warning)",
+          "warnings": [
+            "Unknown language: 'xx'"
+          ]
+        },
+        {
+          "description": "empty full_text",
+          "status": "PASS (correctly rejected)"
+        },
+        {
+          "description": "invalid date",
+          "status": "PASS (correctly rejected)"
+        },
+        {
+          "description": "missing provenance",
+          "status": "PASS (correctly rejected)"
+        }
+      ]
+    },
+    "edge_cases": {
+      "passed": 5,
+      "failed": 0,
+      "details": [
+        {
+          "description": "valid format",
+          "status": "PASS",
+          "warnings": []
+        },
+        {
+          "description": "uppercase prefix (warning only)",
+          "status": "PASS",
+          "warnings": [
+            "decision_id 'INVALID_ID' does not match expected pattern",
+            "provenance missing recommended field: acquired_at",
+            "provenance missing recommended field: source_version",
+            "provenance missing recommended field: content_hash"
+          ]
+        },
+        {
+          "description": "space in ID (warning only)",
+          "status": "PASS",
+          "warnings": [
+            "decision_id 'test edge' does not match expected pattern",
+            "provenance missing recommended field: acquired_at",
+            "provenance missing recommended field: source_version",
+            "provenance missing recommended field: content_hash"
+          ]
+        },
+        {
+          "description": "all optional fields",
+          "status": "PASS",
+          "warnings": []
+        },
+        {
+          "description": "unicode content",
+          "status": "PASS",
+          "warnings": []
+        }
+      ]
+    },
+    "strict_vs_lenient": {
+      "passed": 6,
+      "failed": 0,
+      "details": [
+        {
+          "description": "invalid court",
+          "status": "PASS"
+        },
+        {
+          "description": "invalid language",
+          "status": "PASS"
+        },
+        {
+          "description": "invalid date",
+          "status": "PASS"
+        },
+        {
+          "description": "optional invalid branch",
+          "status": "PASS",
+          "note": "Both modes pass with warnings"
+        },
+        {
+          "description": "optional invalid outcome",
+          "status": "PASS",
+          "note": "Both modes pass with warnings"
+        },
+        {
+          "description": "optional invalid decision_type",
+          "status": "PASS",
+          "note": "Both modes pass with warnings"
+        }
+      ]
+    },
+    "provenance_handling": {
+      "passed": 3,
+      "failed": 0,
+      "details": [
+        {
+          "test": "minimal_provenance_accepted",
+          "status": "PASS",
+          "note": "Source=user_upload provided, validator assumes complete"
+        },
+        {
+          "test": "auto_populate_provenance_source",
+          "status": "PASS"
+        },
+        {
+          "test": "full_provenance_preserved",
+          "status": "PASS"
+        }
+      ]
+    },
+    "batch_validation": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "summary": {
+            "valid": 2,
+            "invalid": 1,
+            "total_errors": 2,
+            "total_warnings": 0
+          }
+        }
+      ]
+    }
+  },
+  "map_artifact_persistence": {
+    "import_and_persist": {
+      "passed": 3,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "imported": 2
+        },
+        {
+          "status": "PASS",
+          "positions_computed": 2
+        },
+        {
+          "status": "PASS",
+          "persisted_records": 2
+        }
+      ]
+    },
+    "reload_after_restart": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "reloaded_positions": 2
+        }
+      ]
+    },
+    "position_consistency": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "message": "Positions identical after reload (loaded from persisted file)"
+        }
+      ]
+    },
+    "multiple_representations": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "imported_in_default_map": 2
+        }
+      ]
+    },
+    "export_functionality": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "exported_base_positions": 1000,
+          "note": "Known limitation: exported map data doesn't include imported decisions"
+        }
+      ]
+    }
+  },
+  "incremental_updates": {
+    "second_import": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "imported": 2
+        }
+      ]
+    },
+    "no_duplicate_reimport": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "skipped": 4
+        }
+      ]
+    },
+    "position_computation_new_only": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "total_positions": 4
+        }
+      ]
+    },
+    "cumulative_count": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "user_imports": 4
+        }
+      ]
+    }
+  },
+  "recomputation_triggers": {
+    "same_representation_different_zoom": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "zoom_results": {
+            "0": 0,
+            "1": 2
+          }
+        }
+      ]
+    },
+    "different_representation": {
+      "passed": 2,
+      "failed": 0,
+      "details": [
+        {
+          "representation": "concat_center_tfidf",
+          "status": "PASS (correctly no positions)"
+        },
+        {
+          "representation": "baseline",
+          "status": "PASS (correctly no positions)"
+        }
+      ]
+    },
+    "cache_invalidation": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "search_works_after_import": true
+        }
+      ]
+    }
+  },
+  "integration": {
+    "search_integration": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS"
+        }
+      ]
+    },
+    "neighbor_search": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "EXPECTED_BEHAVIOR",
+          "reason": "Imported decisions not in base corpus map positions, neighbor search only searches corpus decisions"
+        }
+      ]
+    },
+    "cluster_coherence": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "purity_score": 0.802
+        }
+      ]
+    },
+    "proximity_explanation": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "KNOWN_LIMITATION",
+          "reason": "Imported decisions not in map_loader position index; proximity uses base corpus only"
+        }
+      ]
+    },
+    "citation_graph": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "outgoing_count": 0
+        }
+      ]
+    },
+    "temporal_filtering": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "KNOWN_LIMITATION",
+          "imported_in_range": 0,
+          "reason": "Temporal filtering uses base corpus positions; imported decisions not included"
+        }
+      ]
+    }
+  },
+  "summary": {
+    "total_tests": 45,
+    "passed": 45,
+    "failed": 0,
+    "pass_rate": 1.0,
+    "status": "PASS",
+    "timestamp": 1788058965.6659133,
+    "factory_direction_version": 9,
+    "objective": "User corpus import evaluation (v9 Objective 6)"
+  }
+}

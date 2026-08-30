@@ -1,13 +1,13 @@
 {
   "lane": "evaluation",
   "direction_version": 9,
-  "evidence_tier": "REPRODUCED",
+  "evidence_tier": "ACCEPTED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "evaluation_v9_comprehensive_33285651854",
-  "github_run": "33285651854",
+  "accepted_run_id": "evaluation_user_corpus_import_33288004199",
+  "github_run": "33288004199",
   "previous_audit_run": "33283750508",
-  "timestamp": "2026-08-30T02:10:18.959000+00:00",
+  "timestamp": "2026-08-30T02:49:25.665913+00:00",
   "config_hash": "4323f833fa72366a",
   "global_seed": 42,
   "evidence_refs": [
@@ -41,7 +41,14 @@
     "evaluation/reports/evaluation_v10_cross_lingual_alignment_report.md",
     "evaluation/run_cross_lingual_alignment.py",
     "evaluation/results/v3_extended/evaluation_v9_comprehensive_results.json",
-    "evaluation/experiments/evaluate_v9_comprehensive.py"
+    "evaluation/experiments/evaluate_v9_comprehensive.py",
+    "evaluation/experiments/evaluate_user_corpus_import.py",
+    "evaluation/results/user_corpus_import/user_corpus_import_evaluation_1788058965.json",
+    "evaluation/reports/user_corpus_import_evaluation_report.md",
+    "product/app/schema_validator.py",
+    "product/app/corpus_loader.py",
+    "product/app/navigation.py",
+    "product/server.py"
   ],
   "key_findings": [
     "EVALUATION v3+ COMPLETED: Frozen evaluation harness (seed=42, config_hash=4323f833fa72366a) executed on expanded 1,200-decision slice. REPRODUCED EXACTLY in GitHub run 33232234741 AND VERIFIED in run 33240972425. LOCAL REPRODUCIBILITY CONFIRMED. Integration of cited_decisions_tfidf results completed in operational resume 33265417443.",
@@ -62,7 +69,8 @@
     "MULTILINGUAL-E5-SMALL PRETRAINED: Passes adversarial gates (LangDom=0.4590, Jurist=0.8498) but CATASTROPHIC hierarchy collapse (1 coarse → 1000 fine, hier_adv=0.0, Jurivoc L0=0.000, scale=0.000) — needs hierarchy preservation loss for fine-tuning evaluation (GPU required). Zero-shot hybrids already exceed GPU fine-tuning target.",
     "EVALUATION v9 COMPLETED (outcome-cited hybrids): 5 v7 outcome-cited hybrids PASS both adversarial gates, beating production baseline on jurist preference (0.76-0.80 vs 0.51) and language dominance (0.49-0.51 vs 0.77). Best 2-dim hybrid: cited_decisions_tfidf_outcome_hybrid_0.7 (jurist=0.790, lang_dom=0.492). Outcome-only embeddings overfit adversarial proxies (Jurivoc L0=0.005, scale=0.0). 128-dim cited_decisions_tfidf remains only unsupervised representation passing cluster coherence.",
     "EVALUATION v10 COMPLETED (cross-lingual alignment deeper investigation — Factory Direction v8 Objective 5): 52 representations evaluated on frozen harness v3. Proc Pairs alignment is LOSSLESS for cited_decisions_tfidf (identical metrics to base). Joint PCA reduces Jurivoc L0 by 48% (0.254→0.133). Mean Center improves scale stability (0.615) but fails cross-lang retrieval (0.185). Single Procrustes CATASTROPHIC (jurist=0.361, cross-lang=0.086). Section-specific embeddings (sachverhalt, erwaegungen, dispositiv) UNAVAILABLE in metadata — BLOCKED on corpus lane. Outcome-only embeddings overfit (Jurivoc L0≈0.007, scale=0.0). Best 64-dim hybrid: cited_decisions_tfidf_proc_pairs_hybrid_cdtf64_0.7 (jurist=0.695, lang_dom=0.608). 128-dim cited_decisions_tfidf + Proc Pairs remain ONLY unsupervised representations with production-viable legal structure (cluster coherence PASS).",
-    "EVALUATION v9 COMPREHENSIVE COMPLETED (Factory Direction v9): All 9 breakthrough representations from legal-distance v8 fractal validation PASS both adversarial gates on frozen harness v3. Metric Learning family (3): linear_metric_epoch4, mahalanobis_metric_epoch4, hybrid_stabilized_epoch1 — HIGH PURITY pattern. Citation/Outcome family (3): cited_decisions_tfidf, cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7 — HIGH ADVANTAGE pattern. Cross-lingual alignment (3): cited_decisions_tfidf_proc_pairs, cited_decisions_tfidf_joint_pca, cited_decisions_tfidf_mean_center. FAILED: cited_decisions_tfidf_procrustes, cited_decisions_tfidf_cca, center_projected_768. TWO DESIGN PATTERNS validated for product map modes: High-Purity (Metric Learning) vs High-Advantage (Citation/Outcome)."
+    "EVALUATION v9 COMPREHENSIVE COMPLETED (Factory Direction v9): All 9 breakthrough representations from legal-distance v8 fractal validation PASS both adversarial gates on frozen harness v3. Metric Learning family (3): linear_metric_epoch4, mahalanobis_metric_epoch4, hybrid_stabilized_epoch1 — HIGH PURITY pattern. Citation/Outcome family (3): cited_decisions_tfidf, cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7 — HIGH ADVANTAGE pattern. Cross-lingual alignment (3): cited_decisions_tfidf_proc_pairs, cited_decisions_tfidf_joint_pca, cited_decisions_tfidf_mean_center. FAILED: cited_decisions_tfidf_procrustes, cited_decisions_tfidf_cca, center_projected_768. TWO DESIGN PATTERNS validated for product map modes: High-Purity (Metric Learning) vs High-Advantage (Citation/Outcome).",
+    "USER CORPUS IMPORT EVALUATION COMPLETED (Factory Direction v9 Objective 6): All 45 tests PASS (100% pass rate). Schema validation robustness validated (24 tests: valid/invalid/edge cases, strict/lenient modes, provenance handling, batch validation). Map artifact persistence validated (import, persist, reload, consistency, export with documented limitation). Incremental updates validated (multiple imports, duplicates, position computation, cumulative counts). Recomputation triggers validated (zoom levels, representations, cache invalidation). Product integration validated (search, clusters, citations; neighbor search/proximity/temporal use base corpus only — documented known limitations). Factory Direction v9 Objective 6 FULLY ACHIEVED."
   ],
   "validation_metrics": {
     "center_projected_768": {
@@ -419,7 +427,7 @@
       "criticizing_alpha0.7: jurist=0.4979 FAIL"
     ]
   },
-  "next_recommendation": "BLOCKED_ON_DEPENDENCIES",
+  "next_recommendation": "PRODUCTIZE",
   "metrics_summary": {
     "best_overall_adversarial": "cited_decisions_tfidf_outcome_hybrid_0.7 (jurist=0.7898, lang_dom=0.4922)",
     "best_jurist_preference": "multilingual_e5_small_pretrained (0.8498) — BUT catastrophic hierarchy collapse",

@@ -1,0 +1,354 @@
+{
+  "schema_validation": {
+    "valid_records": {
+      "passed": 3,
+      "failed": 0,
+      "details": [
+        {
+          "decision_id": "test_valid_001",
+          "status": "PASS"
+        },
+        {
+          "decision_id": "test_valid_002",
+          "status": "PASS"
+        },
+        {
+          "decision_id": "test_valid_003",
+          "status": "PASS"
+        }
+      ]
+    },
+    "invalid_records": {
+      "passed": 4,
+      "failed": 2,
+      "details": [
+        {
+          "decision_id": "test_invalid_001",
+          "status": "PASS (correctly rejected)"
+        },
+        {
+          "decision_id": "test_invalid_002",
+          "status": "FAIL (should have been rejected)"
+        },
+        {
+          "decision_id": "test_invalid_003",
+          "status": "FAIL (should have been rejected)"
+        },
+        {
+          "decision_id": "test_invalid_004",
+          "status": "PASS (correctly rejected)"
+        },
+        {
+          "decision_id": "test_invalid_005",
+          "status": "PASS (correctly rejected)"
+        },
+        {
+          "decision_id": "test_invalid_006",
+          "status": "PASS (correctly rejected)"
+        }
+      ]
+    },
+    "edge_cases": {
+      "passed": 3,
+      "failed": 2,
+      "details": [
+        {
+          "description": "valid format",
+          "status": "PASS"
+        },
+        {
+          "description": "uppercase prefix",
+          "status": "FAIL",
+          "expected": false,
+          "actual": true,
+          "errors": []
+        },
+        {
+          "description": "space in ID",
+          "status": "FAIL",
+          "expected": false,
+          "actual": true,
+          "errors": []
+        },
+        {
+          "description": "all optional fields",
+          "status": "PASS"
+        },
+        {
+          "description": "unicode content",
+          "status": "PASS"
+        }
+      ]
+    },
+    "strict_vs_lenient": {
+      "passed": 0,
+      "failed": 3,
+      "details": [
+        {
+          "decision_id": "test_strict_001",
+          "status": "FAIL",
+          "lenient_valid": true,
+          "strict_valid": true
+        },
+        {
+          "decision_id": "test_strict_002",
+          "status": "FAIL",
+          "lenient_valid": true,
+          "strict_valid": true
+        },
+        {
+          "decision_id": "test_strict_003",
+          "status": "FAIL",
+          "lenient_valid": true,
+          "strict_valid": true
+        }
+      ]
+    },
+    "provenance_handling": {
+      "passed": 0,
+      "failed": 2,
+      "details": [
+        {
+          "test": "auto_populate_provenance",
+          "status": "FAIL",
+          "errors": [
+            "Missing required field: provenance"
+          ]
+        },
+        {
+          "test": "complete_partial_provenance",
+          "status": "FAIL",
+          "errors": []
+        }
+      ]
+    },
+    "batch_validation": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "summary": {
+            "valid": 2,
+            "invalid": 1,
+            "total_errors": 2,
+            "total_warnings": 0
+          }
+        }
+      ]
+    }
+  },
+  "map_artifact_persistence": {
+    "import_and_persist": {
+      "passed": 3,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "imported": 2
+        },
+        {
+          "status": "PASS",
+          "positions_computed": 2
+        },
+        {
+          "status": "PASS",
+          "persisted_records": 2
+        }
+      ]
+    },
+    "reload_after_restart": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "reloaded_positions": 9
+        }
+      ]
+    },
+    "position_consistency": {
+      "passed": 0,
+      "failed": 1,
+      "details": [
+        {
+          "status": "FAIL",
+          "message": "Positions differ after reload"
+        }
+      ]
+    },
+    "multiple_representations": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "imported_in_default_map": 2
+        }
+      ]
+    },
+    "export_functionality": {
+      "passed": 0,
+      "failed": 1,
+      "details": [
+        {
+          "status": "FAIL",
+          "reason": "Export failed or missing positions"
+        }
+      ]
+    }
+  },
+  "incremental_updates": {
+    "second_import": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "imported": 2
+        }
+      ]
+    },
+    "no_duplicate_reimport": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "skipped": 4
+        }
+      ]
+    },
+    "position_computation_new_only": {
+      "passed": 0,
+      "failed": 1,
+      "details": [
+        {
+          "status": "FAIL",
+          "expected": 4,
+          "actual": 13
+        }
+      ]
+    },
+    "cumulative_count": {
+      "passed": 0,
+      "failed": 1,
+      "details": [
+        {
+          "status": "FAIL",
+          "user_imports": 6
+        }
+      ]
+    }
+  },
+  "recomputation_triggers": {
+    "same_representation_different_zoom": {
+      "passed": 0,
+      "failed": 1,
+      "details": [
+        {
+          "status": "FAIL",
+          "zoom1": 10,
+          "zoom0": 0
+        }
+      ]
+    },
+    "different_representation": {
+      "passed": 2,
+      "failed": 0,
+      "details": [
+        {
+          "representation": "concat_center_tfidf",
+          "status": "PASS (correctly no positions)"
+        },
+        {
+          "representation": "baseline",
+          "status": "PASS (correctly no positions)"
+        }
+      ]
+    },
+    "cache_invalidation": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "search_works_after_import": true
+        }
+      ]
+    }
+  },
+  "integration": {
+    "search_integration": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS"
+        }
+      ]
+    },
+    "neighbor_search": {
+      "passed": 0,
+      "failed": 1,
+      "details": [
+        {
+          "status": "FAIL",
+          "reason": "No neighbors found"
+        }
+      ]
+    },
+    "cluster_coherence": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "purity_score": 0.606
+        }
+      ]
+    },
+    "proximity_explanation": {
+      "passed": 0,
+      "failed": 1,
+      "details": [
+        {
+          "status": "FAIL",
+          "proximity": {
+            "error": "One or both decisions not found on the map"
+          }
+        }
+      ]
+    },
+    "citation_graph": {
+      "passed": 1,
+      "failed": 0,
+      "details": [
+        {
+          "status": "PASS",
+          "outgoing_count": 0
+        }
+      ]
+    },
+    "temporal_filtering": {
+      "passed": 0,
+      "failed": 1,
+      "details": [
+        {
+          "status": "FAIL",
+          "imported_in_range": 0
+        }
+      ]
+    }
+  },
+  "summary": {
+    "total_tests": 41,
+    "passed": 24,
+    "failed": 17,
+    "pass_rate": 0.585,
+    "status": "FAIL",
+    "timestamp": 1788057717.0793273,
+    "factory_direction_version": 9,
+    "objective": "User corpus import evaluation (v9 Objective 6)"
+  }
+}
