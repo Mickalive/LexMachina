@@ -2,7 +2,7 @@
   "gate": "PASS",
   "safe_to_integrate": true,
   "required_fixes": [],
-  "claim_ceiling": "REPRODUCED — all v11 OOS metrics independently verified; v12 fabrication repairs complete; provenance corrected; no remaining defects",
+  "claim_ceiling": "REPRODUCED — all v11 OOS metrics independently verified against raw JSON; v12 fabrication repairs complete; provenance corrected; state files synced; 38/38 evidence_refs resolve; no remaining defects; no recurring pathology",
   "evidence_summary": {
     "run_type": "operational_resume_final_verification",
     "run_id": 33322051360,
@@ -25,23 +25,25 @@
     "product_claims_tempered": true,
     "v12_fabrication_repairs_complete": true,
     "provenance_corrected": true,
+    "recurring_pathology": "NONE — all defects one-time, correctly fixed",
     "repair_chain": [
       {"cycle": 33317369483, "round": 1, "issue": "selection-on-test-set", "gate": "PASS"},
       {"cycle": 33319192228, "round": 0, "issue": "5 fabricated claims in v12 report", "gate": "REVISE"},
       {"cycle": 33320019882, "round": 1, "issue": "2 minor factual errors", "gate": "REVISE"},
       {"cycle": 33320763913, "round": 2, "issue": "factual errors + lane state desync + dedup refs", "gate": "PASS"},
-      {"cycle": 33320990287, "round": 3, "issue": "line 79 provenance attribution", "gate": "PASS"}
+      {"cycle": 33320990287, "round": 3, "issue": "line 79 provenance attribution", "gate": "PASS"},
+      {"cycle": 33322051360, "round": 3, "issue": "final verification — all repairs confirmed", "gate": "PASS"}
     ]
   },
   "attack_results": {
-    "leakage": "PASS — TRAIN-only selection, holdout evaluated once",
-    "frozen_baselines": "PASS — config_hash, seed, thresholds unchanged",
-    "benchmark_gaming": "PASS — no weakening, no post-hoc changes",
-    "fabrication": "PASS — all v12 fabricated claims corrected, none reintroduced",
+    "leakage": "PASS — TRAIN-only selection, holdout evaluated once, no holdout metrics in training logs",
+    "frozen_baselines": "PASS — config_hash=1674829901d55e83, seed=42, all thresholds unchanged from v6-v10",
+    "benchmark_gaming": "PASS — no weakening, no post-hoc metric changes, success rules unchanged",
+    "fabrication": "PASS — all v12 fabricated claims (JP=0.7990, LD=0.4911, HierAdv=+0.3703) corrected, none reintroduced",
     "provenance": "PASS — 38/38 refs resolve, archives preserved, line 79 attribution corrected",
-    "negative_results": "PASS — JP>0.7 unmet, center_projected fails OOS, noise floor documented",
-    "product_claims": "PASS — recommendation, not decision",
-    "state_consistency": "PASS — control plane and lane-internal state byte-identical"
+    "negative_results": "PASS — JP>0.7 unmet (ceiling ~0.53), center_projected fails OOS (0.385), noise floor documented",
+    "product_claims": "PASS — recommendation, not decision; hybrid_stabilized described as candidate",
+    "state_consistency": "PASS — control plane and lane-internal state byte-identical (8 fields verified)"
   },
   "lane_completion": {
     "objectives_closed": 4,
