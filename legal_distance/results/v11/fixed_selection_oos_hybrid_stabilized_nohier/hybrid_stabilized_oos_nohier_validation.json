@@ -1,0 +1,221 @@
+{
+  "run_id": "hybrid_stabilized_oos_nohier_20260830_v11",
+  "direction_version": 10,
+  "repair_note": "Cycle 33317369483 REPAIR: checkpoint selection moved from HOLD-OUT to TRAIN set (fixes selection-on-test-set defect). Holdout evaluated ONCE on the train-selected model.",
+  "selection_on": "TRAIN",
+  "corpus": "1200 BGer decisions, 1000 train / 200 holdout",
+  "frozen_harness": {
+    "config_hash": "1674829901d55e83",
+    "seed": 42
+  },
+  "success_rule": {
+    "langdom_target": 0.6,
+    "langdom_gate": 0.85,
+    "jurist_pref_target": 0.7,
+    "jurist_pref_gate": 0.5,
+    "citation_independent_recall_target": 0.15
+  },
+  "hierarchy_loss_enabled": false,
+  "verdict": "PASS",
+  "best_epoch": 3,
+  "best_train_jp": 0.507,
+  "best_train_ld": 0.6948499999999999,
+  "n_ref_coarse_labels": 7,
+  "results": {
+    "center_projected_baseline": {
+      "name": "center_projected_baseline",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 768,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.7626,
+          "std_language_dominance": 0.23682533648239582,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "FAIL",
+          "total_decisions": 1000,
+          "legal_relevant_only": 141,
+          "language_artifact_only": 479,
+          "both_available": 253,
+          "neither_available": 127,
+          "legal_neighbor_rate": 0.394,
+          "language_neighbor_rate": 0.732,
+          "jurist_would_succeed_rate": 0.394,
+          "jurist_forced_wrong_rate": 0.479
+        },
+        "both_pass": false,
+        "language_dominance_score": 0.7626,
+        "jurist_preference_rate": 0.394
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.7254999999999999,
+          "std_language_dominance": 0.27554446102217334,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "FAIL",
+          "total_decisions": 200,
+          "legal_relevant_only": 26,
+          "language_artifact_only": 110,
+          "both_available": 51,
+          "neither_available": 13,
+          "legal_neighbor_rate": 0.385,
+          "language_neighbor_rate": 0.805,
+          "jurist_would_succeed_rate": 0.385,
+          "jurist_forced_wrong_rate": 0.55
+        },
+        "both_pass": false,
+        "language_dominance_score": 0.7254999999999999,
+        "jurist_preference_rate": 0.385
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.457,
+        "citation_independent_retrieval_rate": 0.3695,
+        "status": "PASS"
+      }
+    },
+    "hybrid_stabilized_oos_nohier": {
+      "name": "hybrid_stabilized_oos_nohier",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 128,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.7399,
+          "std_language_dominance": 0.2521665917602885,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "FAIL",
+          "total_decisions": 1000,
+          "legal_relevant_only": 232,
+          "language_artifact_only": 318,
+          "both_available": 132,
+          "neither_available": 318,
+          "legal_neighbor_rate": 0.364,
+          "language_neighbor_rate": 0.45,
+          "jurist_would_succeed_rate": 0.364,
+          "jurist_forced_wrong_rate": 0.318
+        },
+        "both_pass": false,
+        "language_dominance_score": 0.7399,
+        "jurist_preference_rate": 0.364
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.64125,
+          "std_language_dominance": 0.2855449833213674,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 43,
+          "language_artifact_only": 83,
+          "both_available": 58,
+          "neither_available": 16,
+          "legal_neighbor_rate": 0.505,
+          "language_neighbor_rate": 0.705,
+          "jurist_would_succeed_rate": 0.505,
+          "jurist_forced_wrong_rate": 0.415
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.64125,
+        "jurist_preference_rate": 0.505
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.427,
+        "citation_independent_retrieval_rate": 0.335,
+        "status": "PASS"
+      }
+    }
+  },
+  "training_log": [
+    {
+      "epoch": 3,
+      "loss": 0.5186098170658898,
+      "lambda_c": 0.5,
+      "lambda_p": 2.0,
+      "lambda_h": 0.5,
+      "train_jp": 0.507,
+      "train_ld": 0.6948499999999999,
+      "both_pass_train": true,
+      "hierarchy_loss": 0.0
+    },
+    {
+      "epoch": 6,
+      "loss": 0.8334762118165455,
+      "lambda_c": 1.0,
+      "lambda_p": 1.0,
+      "lambda_h": 0.5,
+      "train_jp": 0.497,
+      "train_ld": 0.70365,
+      "both_pass_train": false,
+      "hierarchy_loss": 0.0
+    },
+    {
+      "epoch": 9,
+      "loss": 0.7419451160563363,
+      "lambda_c": 1.0,
+      "lambda_p": 1.0,
+      "lambda_h": 0.5,
+      "train_jp": 0.436,
+      "train_ld": 0.7215499999999999,
+      "both_pass_train": false,
+      "hierarchy_loss": 0.0
+    },
+    {
+      "epoch": 12,
+      "loss": 1.4299780021584223,
+      "lambda_c": 2.0,
+      "lambda_p": 0.5,
+      "lambda_h": 0.5,
+      "train_jp": 0.415,
+      "train_ld": 0.7233499999999999,
+      "both_pass_train": false,
+      "hierarchy_loss": 0.0
+    },
+    {
+      "epoch": 15,
+      "loss": 1.2618788934889293,
+      "lambda_c": 2.0,
+      "lambda_p": 0.5,
+      "lambda_h": 0.5,
+      "train_jp": 0.39,
+      "train_ld": 0.7317,
+      "both_pass_train": false,
+      "hierarchy_loss": 0.0
+    },
+    {
+      "epoch": 18,
+      "loss": 1.1927324363163538,
+      "lambda_c": 2.0,
+      "lambda_p": 0.5,
+      "lambda_h": 0.5,
+      "train_jp": 0.364,
+      "train_ld": 0.7399,
+      "both_pass_train": false,
+      "hierarchy_loss": 0.0
+    }
+  ],
+  "archived_rejected_prior": "legal_distance/results/v11/_archived_SELECTION_ON_HOLDOUT_REJECTED_20260830"
+}
