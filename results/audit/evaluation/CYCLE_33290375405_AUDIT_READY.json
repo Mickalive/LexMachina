@@ -1,0 +1,19 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "STRONG for all v9 evaluation objectives completed (4/6 completed, 2 blocked on external dependencies) — Full adversarial validation on frozen harness v3 (seed=42, config_hash=4323f833fa72366a); 11 representations validated passing both adversarial gates; citation role modeling (2,988 annotations) evaluated; cross-lingual alignment winner (proc_pairs) identified; multilingual-e5-small pretrained baseline evaluated; user corpus import schema/persistence/incremental/recomputation validated; boilerplate resistance real test reproduced; all negative results preserved.",
+  "evidence_summary": "EVALUATION v9 COMPLETE: Factory direction v9 objectives status: (1) Full corpus scale evaluation — BLOCKED (corpus lane pending 192k delivery). (2) Citation role modeling evaluation — COMPLETED: 2,988 role annotations 100% resolved via BGE/ATF pipeline, 15 role hybrids tested on frozen harness v3, citing_alpha0.3 and following_alpha0.3 PASS adversarial gates. (3) Legal embeddings fine-tuning evaluation — COMPLETED (pretrained): multilingual-e5-small pretrained achieves BEST adversarial scores (LangDom=0.4877, Jurist=0.7017) but CATASTROPHICALLY fails structural benchmarks (Jurivoc L0=0.0000, Scale=0.033, overclusters 1→1000) — confirms need for hierarchy preservation loss in fine-tuning (GPU required). (4) Jurist human study — BLOCKED (framework ready, needs 5-10 Swiss jurists). (5) Cross-lingual alignment deeper investigation — COMPLETED: 5 methods tested on cited_decisions_tfidf, proc_pairs WINNER (LangDom=0.6799, Jurist=0.6981, Jurivoc L0=0.3133 PASS, Cross-lang=0.2083 PASS, Scale=0.6296 PASS, Fractal=81.25%). (6) User corpus import evaluation — COMPLETED: 45/45 tests PASS (schema validation 24, map persistence 5, incremental updates 4, recomputation triggers 4, integration 8 with 5 documented KNOWN_LIMITATIONs). Total 11 representations passing both adversarial gates (7 original + 4 cross-lingual variants). Boilerplate resistance real test REPRODUCED: 89-93% neighbor preservation — boilerplate NOT the driver, language dominance IS the systemic challenge. All negative results preserved as first-class evidence. Frozen harness v3 independently reproduced in GitHub runs 33232234741, 33240972425, 33277737480, 33280056286. No leakage, benchmark gaming, weak baselines, or prettiness-as-quality detected. State file corrected: continue_recommended=false, next_recommendation=BLOCKED_ON_DEPENDENCIES.",
+  "orchestration_failure_diagnosis": "Prior state file (commit 02198283a1916248cf407a2fc356dde4ecbc7145, run 33289813156) had continue_recommended=true and next_recommendation=CONTINUE despite evaluation_v9_completion_report.md correctly stating continue_recommended=false and next_recommendation=BLOCKED_ON_DEPENDENCIES. Discrepancy caused by state file not being updated to match completion report. Fixed in this audit cycle.",
+  "state_correction": {
+    "field": "continue_recommended",
+    "old_value": true,
+    "new_value": false,
+    "reason": "No additional same-question cycle has concrete discriminating purpose; remaining v9 objectives blocked on external dependencies"
+  },
+  "audit_ready": true,
+  "run_id": "33290375405",
+  "lane": "evaluation",
+  "direction_version": 9,
+  "timestamp": "2026-08-30T03:30:00.000000+00:00"
+}
