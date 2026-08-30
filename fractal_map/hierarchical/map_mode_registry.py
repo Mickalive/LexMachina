@@ -63,8 +63,9 @@ class MapModeSpec:
 # MAP MODE REGISTRY
 # ============================================================================
 
-CENTER_PROJECTED_ARTIFACTS_BASE = "results/fractal_map/hierarchical_map_center_projected"
-LEGAL_DISTANCE_ARTIFACTS_BASE = "results/fractal_map/legal_distance_modes"
+# Paths are relative to the fractal_map results root (e.g., /tmp/lex_accepted/fractal_map/ or results/fractal_map/)
+CENTER_PROJECTED_ARTIFACTS_BASE = "hierarchical_map_center_projected"
+LEGAL_DISTANCE_ARTIFACTS_BASE = "legal_distance_modes"
 
 def _cp_artifacts() -> Dict[str, str]:
     """Generate artifact paths for center_projected hierarchical map."""
@@ -186,20 +187,20 @@ MAP_MODES: Dict[str, MapModeSpec] = {
         is_default=False,
         resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
         artifacts={
-            "cluster_metadata": "results/fractal_map/product_integration/cluster_metadata.json",
-            "zoom_mappings": "results/fractal_map/product_integration/zoom_mappings.json",
-            "zoom_coherence": "results/fractal_map/product_integration/zoom_coherence.json",
-            "decision_clusters": "results/fractal_map/product_integration/decision_clusters.json",
-            "integration_summary": "results/fractal_map/product_integration/integration_summary.json",
-            "labels_res_0.25": "results/fractal_map/hierarchical_map/labels_res_0.25.npy",
-            "labels_res_0.5": "results/fractal_map/hierarchical_map/labels_res_0.5.npy",
-            "labels_res_0.75": "results/fractal_map/hierarchical_map/labels_res_0.75.npy",
-            "labels_res_1.0": "results/fractal_map/hierarchical_map/labels_res_1.0.npy",
-            "labels_res_1.5": "results/fractal_map/hierarchical_map/labels_res_1.5.npy",
-            "labels_res_2.0": "results/fractal_map/hierarchical_map/labels_res_2.0.npy",
-            "labels_res_3.0": "results/fractal_map/hierarchical_map/labels_res_3.0.npy",
-            "labels_hierarchical_best": "results/fractal_map/hierarchical_map/labels_hierarchical_best.npy",
-            "labels_coarse_0.5": "results/fractal_map/hierarchical_map/labels_coarse_0.5.npy",
+            "cluster_metadata": "product_integration/cluster_metadata.json",
+            "zoom_mappings": "product_integration/zoom_mappings.json",
+            "zoom_coherence": "product_integration/zoom_coherence.json",
+            "decision_clusters": "product_integration/decision_clusters.json",
+            "integration_summary": "product_integration/integration_summary.json",
+            "labels_res_0.25": "hierarchical_map/labels_res_0.25.npy",
+            "labels_res_0.5": "hierarchical_map/labels_res_0.5.npy",
+            "labels_res_0.75": "hierarchical_map/labels_res_0.75.npy",
+            "labels_res_1.0": "hierarchical_map/labels_res_1.0.npy",
+            "labels_res_1.5": "hierarchical_map/labels_res_1.5.npy",
+            "labels_res_2.0": "hierarchical_map/labels_res_2.0.npy",
+            "labels_res_3.0": "hierarchical_map/labels_res_3.0.npy",
+            "labels_hierarchical_best": "hierarchical_map/labels_hierarchical_best.npy",
+            "labels_coarse_0.5": "hierarchical_map/labels_coarse_0.5.npy",
         },
         metadata={
             "hierarchical_purity": 0.9491,
