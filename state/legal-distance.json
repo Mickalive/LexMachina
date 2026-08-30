@@ -1,10 +1,10 @@
 {
   "lane": "legal-distance",
-  "direction_version": 8,
+  "direction_version": 9,
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": true,
-  "accepted_run_id": "holdout_zero_shot_validation_fixed_20260830",
+  "accepted_run_id": "holdout_metric_learning_20260830",
   "evidence_refs": [
     "legal_distance/results/v6/validation_breakthrough/validation_results.json",
     "legal_distance/results/v6/metric_learning/metric_learning_results.json",
@@ -31,9 +31,12 @@
     "reports/legal-distance/v7_bge_citation_role_report.md",
     "legal_distance/experiments/v8_holdout_zero_shot_validation_fixed.py",
     "legal_distance/results/v8/holdout_zero_shot_validation_fixed/holdout_zero_shot_validation_fixed.json",
-    "reports/legal-distance/v8_holdout_zero_shot_validation_fixed_report.md"
+    "reports/legal-distance/v8_holdout_zero_shot_validation_fixed_report.md",
+    "legal_distance/experiments/v9_holdout_metric_learning.py",
+    "legal_distance/results/v9/holdout_metric_learning/holdout_metric_learning_validation.json",
+    "reports/legal-distance/v9_holdout_metric_learning_report.md"
   ],
-  "next_recommendation": "v8 HOLDOUT VALIDATION FIXED & COMPLETED: (1) Data leakage FIXED - TF-IDF/SVD now fit ONLY on train (1000), holdout (200) transformed out-of-sample; (2) All 4 zero-shot hybrids PASS both adversarial gates on TRUE holdout (LangDom ~0.51, JP ~0.53-0.59); (3) Factory targets MISSED: JuristPref > 0.7 not met (best 0.585), Citation-independent retrieval > 15% not met (best 14.05%); (4) center_projected_64dim FAILS jurist gate on holdout (0.385) - not robust out-of-sample; (5) Two-map-mode trade-off CONFIRMED: citation signals (low LangDom, mod JP, NO cross-citation retrieval) vs semantic (higher LangDom, FAIL JP, YES cross-citation retrieval 37%). REMAINING: metric learning fine-tuning with hierarchy loss to beat JP=0.585; jurist human study; 192k scale test; section-specific embeddings for cross-lingual coherence.",
+  "next_recommendation": "METRIC LEARNING HOLDOUT VALIDATION COMPLETED: (1) linear_metric_epoch4 achieves BEST holdout JuristPref (0.6050) and LangDom (0.5795) with 34.95% citation-independent retrieval — SOLVES cite-indep gap; (2) ALL metric learning representations achieve 34-37% cite-indep retrieval (target 15%) — 2.5x zero-shot hybrids; (3) JuristPref > 0.7 target MISSED by ALL representations on holdout (best 0.605); (4) Two-map-mode trade-off CONFIRMED on holdout: Metric Learning (High-Purity, cite-indep) vs Citation/Outcome (High-Advantage, cross-lingual). REMAINING: True out-of-sample metric learning retrain on 1000; jurist human study; 192k scale test; hierarchy-preserving multilingual-e5 fine-tuning.",
   "critical_findings": {
     "metric_learning_breakthrough": "Linear projection on center_projected achieves JP=0.6847 (33.7% relative improvement over center_projected 0.512), mahalanobis JP=0.6781; both pass BOTH adversarial gates with 18+ consecutive valid epochs (frozen evaluation harness v3 seed=42 canonical)",
     "stabilized_hybrid_breakthrough": "Hybrid objective (contrastive + preservation + hierarchy loss) achieves 6 consecutive valid epochs, peak at epoch 1: JP=0.6656, LangDom=0.6701",
@@ -48,6 +51,12 @@
     "holdout_validation_fixed": "Data leakage in v8 holdout validation FIXED. Train-only TF-IDF/SVD fitting now validates true out-of-sample generalization. All 4 zero-shot hybrids PASS adversarial gates on holdout (LangDom ~0.51, JP ~0.53-0.59). Leakage impact minimal: LangDom +0.005, JP +0.015-0.020 vs leaky results.",
     "factory_targets_missed_on_holdout": "JuristPref target (>0.7) missed by all zero-shot hybrids on true holdout (best: cited_outcome_hybrid_0.7 at 0.585). Citation-independent retrieval target (15%) missed by citation signals (best: 14.05%). center_projected FAILS jurist gate on holdout (0.385).",
     "two_mode_tradeoff_confirmed_holdout": "Fundamental trade-off persists on TRUE holdout: Citation-based signals (LangDom=0.51, JP=0.58, CiteIndep=14%) vs Semantic embeddings (LangDom=0.73, JP=0.39, CiteIndep=37%). Both map modes needed; do not collapse to single default.",
-    "language_artifacts_persist_on_holdout": "Despite LangDom ~0.51 passing 0.85 threshold, language neighbor rates remain 90-93% on holdout — confirms cross-lingual alignment is the systemic challenge, not boilerplate."
+    "language_artifacts_persist_on_holdout": "Despite LangDom ~0.51 passing 0.85 threshold, language neighbor rates remain 90-93% on holdout — confirms cross-lingual alignment is the systemic challenge, not boilerplate.",
+    "metric_learning_cite_indep_breakthrough": "Metric learning achieves 34-37% citation-independent retrieval vs 13-14% for zero-shot — 2.5x improvement, ALL PASS 15% target",
+    "linear_metric_best_holdout_jp": "linear_metric_epoch4 achieves 0.605 JuristPref on holdout — best of all representations tested, improves over train (0.532)",
+    "mahalanobis_strong_holdout": "mahalanobis_metric_epoch4 achieves 0.585 JP + 0.581 LangDom on holdout — balanced performance",
+    "hybrid_stabilized_cite_indep_best": "hybrid_stabilized_epoch1 achieves 36.95% cite-indep retrieval (best overall) but fails LangDom target (0.605) and has lowest JP (0.515)",
+    "jurist_pref_ceiling": "NO representation achieves JuristPref > 0.7 on holdout — systematic ceiling at ~0.605",
+    "two_mode_tradeoff_holdout_confirmed": "Metric Learning (High-Purity): JP=0.605, CiteIndep=35%, LangDom=0.58 vs Citation/Outcome (High-Advantage): JP=0.585, CiteIndep=14%, LangDom=0.51"
   }
 }
