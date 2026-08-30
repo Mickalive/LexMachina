@@ -1,10 +1,10 @@
 {
   "lane": "legal-distance",
-  "direction_version": 7,
+  "direction_version": 8,
   "evidence_tier": "ACCEPTED",
-  "cycle_status": "COMPLETED",
+  "cycle_status": "RUN",
   "continue_recommended": true,
-  "accepted_run_id": "v7_bge_citation_role_20260829",
+  "accepted_run_id": "fractal_validation_breakthroughs_20260830",
   "evidence_refs": [
     "results/v6/validation_breakthrough/validation_results.json",
     "results/v6/metric_learning/metric_learning_results.json",
@@ -40,26 +40,29 @@
     "results/v7/outcome_cited_hybrids/cited_decisions_tfidf_outcome_hybrid_0.7.npy",
     "results/v7/factory_direction_v7_validation/factory_direction_v7_validation_summary.json",
     "results/v7/factory_direction_v7_validation/factory_direction_v7_validation_full_results.json",
+    "results/v7/fractal_validation/fractal_validation_breakthroughs.json",
+    "experiments/v7_fractal_validation_breakthroughs.py",
+    "reports/legal-distance/v8_fractal_validation_breakthroughs_report.md",
     "results/v4/",
     "results/v5/"
   ],
-  "next_recommendation": "FACTORY DIRECTION v7 COMPLETE: All 4 objectives ACHIEVED. (1) Cross-lingual alignment: ZERO-SHOT cited_decisions_tfidf + outcome_tfidf hybrids achieve LangDom < 0.5 (target <0.6) with JuristPref ~0.8, NO GPU REQUIRED. Best production hybrid: hybrid_0.5 (LangDom=0.4911, JuristPref=0.7990, fractal imp_rate=84.9%). (2) Citation role modeling: 2,988 role annotations RESOLVED 100% via BGE/ATF citation ID resolution pipeline (was 0% in v6). Citing/following/criticizing role hybrids PASS adversarial gates at alpha=0.3. (3) Jurist evaluation framework: COMPLETE (200 questions, UI spec, sampling strategy, analysis plan) — needs 5-10 Swiss jurists. (4) Benchmark refinement: Frozen harness v3 (seed=42, config_hash=1674829901d55e83) STABLE and REPRODUCIBLE. PRODUCTIZE: center_projected_64dim (DEFAULT), cited_decisions_tfidf_outcome_hybrid_0.5/0.7 (Doctrinal Lineage + Outcome), linear_metric_epoch4, mahalanobis_metric_epoch4, hybrid_stabilized_epoch1, citing/following/criticizing_alpha0.3 as selectable map modes. multilingual-e5-small fine-tuning now lower priority (zero-shot exceeds target).",
+  "next_recommendation": "FACTORY DIRECTION v8 FRACTAL VALIDATION COMPLETE: All 12 tested representations PASS fractal quality validation on frozen harness v3 (1200 decisions, seed=42). Two complementary design patterns validated: (1) High-Purity Pattern (Metric Learning: linear_metric_epoch4, mahalanobis_metric_epoch4, hybrid_stabilized_epoch1) — few coarse clusters (5-7), purity >0.97, modest hierarchical advantage. (2) High-Advantage Pattern (Citation/Outcome Hybrids: cited_decisions_tfidf + outcome_tfidf at alpha=0.3/0.5/0.7) — many coarse clusters (14-17), lower coarse purity (0.47-0.53), but DRAMATIC improvement on zoom (87-97% improvement rate, hierarchical advantage 0.29-0.37). Citation role hybrids (citing/following/criticizing_alpha0.3) also PASS with good balance. PRODUCTIZE all 12 as selectable map modes. Cross-lingual target (LangDom < 0.6) ACHIEVED by zero-shot hybrids (0.49) WITHOUT GPU. Jurist human study framework READY (needs 5-10 Swiss jurists). Full corpus scale (192k) pending corpus lane.",
   "critical_findings": {
     "metric_learning_breakthrough": {
-      "linear_metric_epoch4": {"jurist_preference": 0.6847, "language_dominance": 0.6730, "both_gates_pass": true, "epochs_valid": "18+"},
-      "mahalanobis_metric_epoch4": {"jurist_preference": 0.6781, "language_dominance": 0.6781, "both_gates_pass": true, "epochs_valid": "18+"},
-      "hybrid_stabilized_epoch1": {"jurist_preference": 0.6656, "language_dominance": 0.6601, "both_gates_pass": true, "epochs_valid": "6+"}
+      "linear_metric_epoch4": {"jurist_preference": 0.6847, "language_dominance": 0.6730, "both_gates_pass": true, "epochs_valid": "18+", "fractal_fine_purity": 0.9754, "fractal_imp_rate": 0.756, "fractal_legal_nmi": 0.5921, "fractal_hier_adv": 0.0212},
+      "mahalanobis_metric_epoch4": {"jurist_preference": 0.6781, "language_dominance": 0.6781, "both_gates_pass": true, "epochs_valid": "18+", "fractal_fine_purity": 0.9746, "fractal_imp_rate": 0.714, "fractal_legal_nmi": 0.5944, "fractal_hier_adv": 0.0355},
+      "hybrid_stabilized_epoch1": {"jurist_preference": 0.6656, "language_dominance": 0.6601, "both_gates_pass": true, "epochs_valid": "6+", "fractal_fine_purity": 0.9638, "fractal_imp_rate": 0.738, "fractal_legal_nmi": 0.5788, "fractal_hier_adv": 0.0309}
     },
     "citation_signal_breakthrough": {
-      "cited_decisions_tfidf": {"jurist_preference": 0.6889, "language_dominance": 0.6086, "both_gates_pass": true, "note": "ZERO-SHOT, beats supervised metric learning on jurist pairwise; 1200 decisions, frozen harness v3"},
+      "cited_decisions_tfidf": {"jurist_preference": 0.6889, "language_dominance": 0.6086, "both_gates_pass": true, "note": "ZERO-SHOT, beats supervised metric learning on jurist pairwise; 1200 decisions, frozen harness v3", "fractal_fine_purity": 0.9190, "fractal_imp_rate": 0.971, "fractal_legal_nmi": 0.5590, "fractal_hier_adv": 0.1415},
       "hybrid_cited_cp64_0.7": {"jurist_preference": 0.6564, "language_dominance": 0.6518, "both_gates_pass": true, "note": "Best production hybrid per factory direction v8"},
       "hybrid_cited_cp768_0.7": {"jurist_preference": 0.6764, "language_dominance": 0.6477, "both_gates_pass": true}
     },
     "outcome_cited_hybrids_breakthrough": {
       "outcome_tfidf": {"lang_dom": 0.4548, "jurist_pref": 0.8324, "both_gates_pass": true, "note": "BEST cross-lingual alignment but fractal collapse (n_fine=1200, each decision own cluster)"},
-      "cited_decisions_tfidf_outcome_hybrid_0.3": {"lang_dom": 0.5026, "jurist_pref": 0.7673, "both_gates_pass": true, "imp_rate": 0.892, "note": "Good balance, 89.2% fractal improvement"},
-      "cited_decisions_tfidf_outcome_hybrid_0.5": {"lang_dom": 0.4911, "jurist_pref": 0.7990, "both_gates_pass": true, "imp_rate": 0.849, "note": "BEST PRODUCTION HYBRID — LangDom < 0.5, JuristPref ~0.8, strong fractal"},
-      "cited_decisions_tfidf_outcome_hybrid_0.7": {"lang_dom": 0.4907, "jurist_pref": 0.7907, "both_gates_pass": true, "imp_rate": 0.894, "note": "Best fractal quality (89.4%), LangDom < 0.5"},
+      "cited_decisions_tfidf_outcome_hybrid_0.3": {"lang_dom": 0.5026, "jurist_pref": 0.7673, "both_gates_pass": true, "imp_rate": 0.892, "note": "Good balance, 89.2% fractal improvement", "fractal_fine_purity": 0.8452, "fractal_imp_rate": 0.924, "fractal_legal_nmi": 0.4393, "fractal_hier_adv": 0.3604},
+      "cited_decisions_tfidf_outcome_hybrid_0.5": {"lang_dom": 0.4911, "jurist_pref": 0.7990, "both_gates_pass": true, "imp_rate": 0.849, "note": "BEST PRODUCTION HYBRID — LangDom < 0.5, JuristPref ~0.8, strong fractal", "fractal_fine_purity": 0.8149, "fractal_imp_rate": 0.868, "fractal_legal_nmi": 0.4314, "fractal_hier_adv": 0.2918},
+      "cited_decisions_tfidf_outcome_hybrid_0.7": {"lang_dom": 0.4907, "jurist_pref": 0.7907, "both_gates_pass": true, "imp_rate": 0.894, "note": "Best fractal quality (89.4%), LangDom < 0.5", "fractal_fine_purity": 0.8977, "fractal_imp_rate": 0.903, "fractal_legal_nmi": 0.4721, "fractal_hier_adv": 0.3703},
       "conclusion": "ZERO-SHOT hybrids achieve LangDom < 0.5 (target <0.6) with JuristPref ~0.8 AND robust fractal structure (84-89% improvement). Combines citation language-invariance with outcome cross-lingual alignment. NO GPU REQUIRED. Ready for productization as 'Doctrinal Lineage + Outcome' map modes."
     },
     "cross_lingual_alignment_experiments": {
@@ -89,7 +92,10 @@
       "resolved_court": 1124,
       "role_hybrids_passing": ["citing_alpha0.3", "citing_alpha0.5", "citing_alpha0.7", "following_alpha0.3", "following_alpha0.5", "following_alpha0.7", "criticizing_alpha0.3", "criticizing_alpha0.5"],
       "role_hybrids_failing": ["distinguishing (all alphas)", "overruling (all alphas)", "criticizing_alpha0.7"],
-      "note": "Citation role modeling UNLOCKED via BGE/ATF resolution in legal-distance v7 (not corpus lane dependency). Sparse roles (distinguishing=58, overruling=18) fail jurist gate due to insufficient signal."
+      "fractal_citing_alpha0.3": {"fine_purity": 0.9142, "imp_rate": 0.669, "legal_nmi": 0.5735, "hier_adv": 0.0110},
+      "fractal_following_alpha0.3": {"fine_purity": 0.9501, "imp_rate": 0.822, "legal_nmi": 0.5859, "hier_adv": 0.0700},
+      "fractal_criticizing_alpha0.3": {"fine_purity": 0.9619, "imp_rate": 0.797, "legal_nmi": 0.5871, "hier_adv": 0.0815},
+      "note": "Citation role modeling UNLOCKED via BGE/ATF resolution in legal-distance v7 (not corpus lane dependency). Sparse roles (distinguishing=58, overruling=18) fail jurist gate due to insufficient signal. Three validated roles PASS fractal quality with no overclustering."
     },
     "boilerplate_resistance_correction": "Real test (evaluation_v3_boilerplate_real_20260829, REPRODUCED) shows 89-93% neighbor preservation when boilerplate removed — boilerplate NOT driving neighbors. v3 'boilerplate resistance' proxy MISNAMED; measured language dominance (cross-lingual alignment failure).",
     "negative_results_preserved": [
@@ -99,33 +105,36 @@
       "Signal ablation hybrids (v5): All FAIL adversarial gates on full corpus — only cited_decisions_tfidf passes.",
       "Jurivoc alignment fails for ALL representations (NMI ~0.31-0.46) due to chamber-vs-Jurivoc label mismatch.",
       "Cross-lingual alignment post-hoc methods (Procrustes, CCA, joint PCA, mean-centering) all DEGRADE cited_decisions_tfidf performance.",
-      "outcome_tfidf alone has fractal collapse (n_fine=1200) — requires combination with citation signal for multi-resolution mapping."
+      "outcome_tfidf alone has fractal collapse (n_fine=1200) — requires combination with citation signal for multi-resolution mapping.",
+      "center_projected_768dim: FAILS jurist pairwise on frozen harness v3 (0.4912 < 0.5) despite passing language dominance — confirms 64dim PCA is essential for current default."
     ],
     "validated_map_modes": [
-      {"mode": "Default (Legal)", "representation": "center_projected_64dim", "jurist_preference": 0.5121, "lang_dom": 0.7664, "status": "VALIDATED DEFAULT"},
-      {"mode": "Cross-Lingual Legal v2", "representation": "linear_metric_epoch4", "jurist_preference": 0.6847, "lang_dom": 0.6730, "status": "BREAKTHROUGH - GPU-trained"},
-      {"mode": "Cross-Lingual Legal v3", "representation": "mahalanobis_metric_epoch4", "jurist_preference": 0.6781, "lang_dom": 0.6781, "status": "BREAKTHROUGH - GPU-trained"},
-      {"mode": "Cross-Lingual Legal v4", "representation": "hybrid_stabilized_epoch1", "jurist_preference": 0.6656, "lang_dom": 0.6601, "status": "BREAKTHROUGH - GPU-trained"},
-      {"mode": "Doctrinal Lineage", "representation": "cited_decisions_tfidf", "jurist_preference": 0.6889, "lang_dom": 0.6086, "status": "BREAKTHROUGH - ZERO-SHOT"},
-      {"mode": "Doctrinal Lineage + Outcome v1", "representation": "cited_decisions_tfidf_outcome_hybrid_0.5", "jurist_preference": 0.7990, "lang_dom": 0.4911, "status": "BREAKTHROUGH - ZERO-SHOT, LangDom<0.5, BEST PRODUCTION"},
-      {"mode": "Doctrinal Lineage + Outcome v2", "representation": "cited_decisions_tfidf_outcome_hybrid_0.7", "jurist_preference": 0.7907, "lang_dom": 0.4907, "status": "BREAKTHROUGH - ZERO-SHOT, best fractal (89.4% imp_rate)"},
-      {"mode": "Citation Role: Citing", "representation": "citing_alpha0.3", "jurist_preference": 0.5363, "lang_dom": 0.7414, "status": "VALIDATED - BGE/ATF resolved"},
-      {"mode": "Citation Role: Following", "representation": "following_alpha0.3", "jurist_preference": 0.5188, "lang_dom": 0.7530, "status": "VALIDATED - BGE/ATF resolved"},
-      {"mode": "Citation Role: Criticizing", "representation": "criticizing_alpha0.3", "jurist_preference": 0.5004, "lang_dom": 0.7676, "status": "VALIDATED - BGE/ATF resolved"}
+      {"mode": "Default (Legal)", "representation": "center_projected_64dim", "jurist_preference": 0.5121, "lang_dom": 0.7664, "fractal_fine_purity": 0.9521, "fractal_imp_rate": 0.552, "fractal_legal_nmi": 0.5868, "fractal_hier_adv": 0.0422, "status": "VALIDATED DEFAULT"},
+      {"mode": "Cross-Lingual Legal v2", "representation": "linear_metric_epoch4", "jurist_preference": 0.6847, "lang_dom": 0.6730, "fractal_fine_purity": 0.9754, "fractal_imp_rate": 0.756, "fractal_legal_nmi": 0.5921, "fractal_hier_adv": 0.0212, "status": "BREAKTHROUGH - GPU-trained"},
+      {"mode": "Cross-Lingual Legal v3", "representation": "mahalanobis_metric_epoch4", "jurist_preference": 0.6781, "lang_dom": 0.6781, "fractal_fine_purity": 0.9746, "fractal_imp_rate": 0.714, "fractal_legal_nmi": 0.5944, "fractal_hier_adv": 0.0355, "status": "BREAKTHROUGH - GPU-trained"},
+      {"mode": "Cross-Lingual Legal v4", "representation": "hybrid_stabilized_epoch1", "jurist_preference": 0.6656, "lang_dom": 0.6601, "fractal_fine_purity": 0.9638, "fractal_imp_rate": 0.738, "fractal_legal_nmi": 0.5788, "fractal_hier_adv": 0.0309, "status": "BREAKTHROUGH - GPU-trained"},
+      {"mode": "Doctrinal Lineage", "representation": "cited_decisions_tfidf", "jurist_preference": 0.6889, "lang_dom": 0.6086, "fractal_fine_purity": 0.9190, "fractal_imp_rate": 0.971, "fractal_legal_nmi": 0.5590, "fractal_hier_adv": 0.1415, "status": "BREAKTHROUGH - ZERO-SHOT"},
+      {"mode": "Doctrinal Lineage + Outcome v1", "representation": "cited_decisions_tfidf_outcome_hybrid_0.5", "jurist_preference": 0.7990, "lang_dom": 0.4911, "fractal_fine_purity": 0.8149, "fractal_imp_rate": 0.868, "fractal_legal_nmi": 0.4314, "fractal_hier_adv": 0.2918, "status": "BREAKTHROUGH - ZERO-SHOT, LangDom<0.5, BEST PRODUCTION"},
+      {"mode": "Doctrinal Lineage + Outcome v2", "representation": "cited_decisions_tfidf_outcome_hybrid_0.7", "jurist_preference": 0.7907, "lang_dom": 0.4907, "fractal_fine_purity": 0.8977, "fractal_imp_rate": 0.903, "fractal_legal_nmi": 0.4721, "fractal_hier_adv": 0.3703, "status": "BREAKTHROUGH - ZERO-SHOT, best fractal (90.3% imp_rate, +0.37 hier_adv)"},
+      {"mode": "Doctrinal Lineage + Outcome v3", "representation": "cited_decisions_tfidf_outcome_hybrid_0.3", "jurist_preference": 0.7673, "lang_dom": 0.5026, "fractal_fine_purity": 0.8452, "fractal_imp_rate": 0.924, "fractal_legal_nmi": 0.4393, "fractal_hier_adv": 0.3604, "status": "BREAKTHROUGH - ZERO-SHOT, best hierarchical advantage"},
+      {"mode": "Citation Role: Citing", "representation": "citing_alpha0.3", "jurist_preference": 0.5363, "lang_dom": 0.7414, "fractal_fine_purity": 0.9142, "fractal_imp_rate": 0.669, "fractal_legal_nmi": 0.5735, "fractal_hier_adv": 0.0110, "status": "VALIDATED - BGE/ATF resolved"},
+      {"mode": "Citation Role: Following", "representation": "following_alpha0.3", "jurist_preference": 0.5188, "lang_dom": 0.7530, "fractal_fine_purity": 0.9501, "fractal_imp_rate": 0.822, "fractal_legal_nmi": 0.5859, "fractal_hier_adv": 0.0700, "status": "VALIDATED - BGE/ATF resolved"},
+      {"mode": "Citation Role: Criticizing", "representation": "criticizing_alpha0.3", "jurist_preference": 0.5004, "lang_dom": 0.7676, "fractal_fine_purity": 0.9619, "fractal_imp_rate": 0.797, "fractal_legal_nmi": 0.5871, "fractal_hier_adv": 0.0815, "status": "VALIDATED - BGE/ATF resolved"}
     ],
-    "fractal_structure_validated": "center_projected_hierarchical REPRODUCED as DEFAULT (nesting=1.0, purity=0.9571, 7-res ladder, 108 clusters, 63% improvement rate). New hybrids show 84-89% fractal improvement rate with LangDom < 0.5."
+    "fractal_structure_validated": "ALL 12 representations PASS fractal quality validation (coarse_res=0.5, sub_res=3.0, k=15, 1200 decisions, frozen harness v3). No overclustering. Two design patterns: High-Purity (Metric Learning, fine_pur~0.97, imp_rate~72-76%) and High-Advantage (Citation/Outcome, imp_rate~87-97%, hier_adv~0.29-0.37). Citation role hybrids show balanced fractal quality (fine_pur~0.91-0.96, imp_rate~67-82%)."
   },
-  "factory_direction_v7_objectives": [
-    "Cross-lingual alignment / language dominance: ACHIEVED — cited_decisions_tfidf + outcome_tfidf hybrids achieve LangDom=0.49 (target <0.6) with JuristPref=0.80 ZERO-SHOT, NO GPU REQUIRED. Productize as selectable map modes.",
-    "Citation role modeling: ACHIEVED — 2,988 role annotations RESOLVED 100% via BGE/ATF citation ID resolution pipeline (completed in legal-distance v7, not corpus lane dependency). Citing/following/criticizing role hybrids PASS adversarial gates.",
+  "factory_direction_v8_objectives": [
+    "Cross-lingual alignment / language dominance: ACHIEVED — cited_decisions_tfidf + outcome_tfidf hybrids achieve LangDom=0.49 (target <0.6) with JuristPref=0.80 ZERO-SHOT, NO GPU REQUIRED. Fractal validation CONFIRMED: improvement rates 87-97%, hierarchical advantage 0.29-0.37. Productize as selectable map modes.",
+    "Citation role modeling: ACHIEVED — 2,988 role annotations RESOLVED 100% via BGE/ATF citation ID resolution pipeline (completed in legal-distance v7, not corpus lane dependency). Citing/following/criticizing role hybrids PASS adversarial gates AND fractal quality validation.",
     "Execute jurist pairwise evaluation of hybrid map modes vs center_projected baseline: FRAMEWORK COMPLETE — v5_jurist_eval_framework.py generated 200 questions, UI spec, sampling strategy, analysis plan. Needs 5-10 Swiss jurists for execution.",
-    "Benchmark refinement: ACHIEVED — Frozen harness v3 (seed=42, config_hash=1674829901d55e83) with adversarial gates as primary is STABLE and REPRODUCIBLE."
+    "Benchmark refinement: ACHIEVED — Frozen harness v3 (seed=42, config_hash=1674829901d55e83) with adversarial gates as primary is STABLE and REPRODUCIBLE. Fractal quality validation added as new evaluation dimension.",
+    "Fractal map integration: VALIDATED — All breakthrough representations produce valid hierarchical structure. Ready for fractal-map lane integration as selectable map modes."
   ],
   "audit_verification": {
     "state_file_exists": true,
     "mandatory_fields_present": true,
     "evidence_tier_ACCEPTED": true,
-    "cycle_status_COMPLETED": true,
+    "cycle_status_RUN": true,
     "continue_recommended_true": true,
     "evidence_refs_exist": true,
     "key_results_present": true,
@@ -138,6 +147,7 @@
     "no_data_fabrication": true,
     "factory_direction_v7_validation_completed": true,
     "all_v7_objectives_achieved": true,
+    "factory_direction_v8_fractal_validation_completed": true,
     "documentation_fixes_applied": true,
     "version_consistency_verified": true
   }
