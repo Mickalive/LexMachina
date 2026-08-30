@@ -792,6 +792,9 @@ class NavigationAPI:
             "cited_decisions_tfidf_hybrid_cp64_0.3": "Production Hybrid CP64 (α=0.3)",
             "cited_decisions_tfidf_hybrid_cp64_0.5": "Production Hybrid CP64 (α=0.5)",
             "cited_decisions_tfidf_hybrid_cp64_0.7": "BEST Production Hybrid CP64 (α=0.7) ★",
+            # NEW: Cited Outcome Hybrids (BEST PRODUCTION/FRACTAL - factory direction v9)
+            "cited_outcome_hybrid_0.5": "BEST PRODUCTION: Citation + Outcome (α=0.5) ★ JP=0.799, LangDom=0.491",
+            "cited_outcome_hybrid_0.7": "BEST FRACTAL: Citation + Outcome (α=0.7) ★ HierAdv=+0.370",
             # Citation Role Views (ACCEPTED - legal-distance v6)
             "following_alpha0.3": "Citation Role: Following (α=0.3) ★",
             "criticizing_alpha0.3": "Citation Role: Criticizing (α=0.3) ★",
@@ -854,6 +857,9 @@ class NavigationAPI:
             "following_alpha0.3": "ACCEPTED. Citation role: Following (precedent extension). Hybrid 30% center_projected_64dim + 70% following signal. JP=0.5485, LangDom=0.7529. Fine purity=0.9672.",
             "criticizing_alpha0.3": "ACCEPTED. Citation role: Criticizing (precedent criticism). Hybrid 30% center_projected_64dim + 70% criticizing signal. JP=0.5485, LangDom=0.7529. Fine purity=0.9672.",
             "citing_alpha0.3": "ACCEPTED. Citation role: Overruling (precedent reversal). Hybrid 30% center_projected_64dim + 70% overruling signal. JP=0.5485, LangDom=0.7529. Fine purity=0.9672.",
+            # NEW: Cited Outcome Hybrids (ACCEPTED - factory direction v9)
+            "cited_outcome_hybrid_0.5": "ACCEPTED. BEST PRODUCTION hybrid per factory direction v9. 50% cited_decisions_tfidf + 50% outcome signal. JP=0.7990, LangDom=0.4911. Both adversarial gates PASS. LangDom < 0.6 target ACHIEVED.",
+            "cited_outcome_hybrid_0.7": "ACCEPTED. BEST FRACTAL hybrid per factory direction v9. 70% cited_decisions_tfidf + 30% outcome signal. HierAdv=+0.3703. Both adversarial gates PASS.",
         }
         return descriptions.get(rep, f"Representation: {rep}")
 

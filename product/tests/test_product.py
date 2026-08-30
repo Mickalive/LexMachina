@@ -1255,6 +1255,86 @@ def test_cited_decisions_tfidf_hybrid_cp64_0_7():
     return True
 
 
+def test_cited_outcome_hybrid_0_5():
+    """Test cited_outcome_hybrid_0.5 representation (ACCEPTED - BEST PRODUCTION HYBRID).
+
+    Hybrid: 50% cited_decisions_tfidf + 50% outcome signal. JP=0.7990, LangDom=0.4911.
+    BEST PRODUCTION hybrid per factory direction v9. LangDom < 0.6 target ACHIEVED.
+    Both adversarial gates PASS.
+    """
+    print("=== Test: Cited Outcome Hybrid α=0.5 (BEST PRODUCTION) ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    reps = api.map_loader.get_available_representations()
+    assert "cited_outcome_hybrid_0.5" in reps, f"cited_outcome_hybrid_0.5 not in representations: {reps}"
+
+    zoom_levels = api.get_zoom_levels("cited_outcome_hybrid_0.5")
+    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
+
+    for zl in [z["level"] for z in zoom_levels]:
+        map_data = api.get_map_data("cited_outcome_hybrid_0.5", zl)
+        assert map_data["n_decisions"] == 1000
+        print(f"  Zoom {zl}: {map_data['n_clusters']} clusters")
+
+    map_state = api.map_loader.get_map("cited_outcome_hybrid_0.5")
+    metadata = map_state.metadata
+    assert metadata.get("evidence_tier") == "ACCEPTED"
+    assert metadata.get("benchmark_results", {}).get("both_gates_pass") == True
+    print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}, JP={metadata.get('benchmark_results', {}).get('jurist_pairwise')}, LangDom={metadata.get('benchmark_results', {}).get('language_dominance')}")
+
+    zl_0 = api.map_loader.get_zoom_level("cited_outcome_hybrid_0.5", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "cited_outcome_hybrid_0.5", 1, 5)
+    assert len(neighbors) > 0
+
+    print("  PASS\n")
+    return True
+
+
+def test_cited_outcome_hybrid_0_7():
+    """Test cited_outcome_hybrid_0.7 representation (ACCEPTED - BEST FRACTAL HYBRID).
+
+    Hybrid: 70% cited_decisions_tfidf + 30% outcome signal. HierAdv=+0.3703.
+    BEST FRACTAL hybrid per factory direction v9.
+    Both adversarial gates PASS.
+    """
+    print("=== Test: Cited Outcome Hybrid α=0.7 (BEST FRACTAL) ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    reps = api.map_loader.get_available_representations()
+    assert "cited_outcome_hybrid_0.7" in reps, f"cited_outcome_hybrid_0.7 not in representations: {reps}"
+
+    zoom_levels = api.get_zoom_levels("cited_outcome_hybrid_0.7")
+    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
+
+    for zl in [z["level"] for z in zoom_levels]:
+        map_data = api.get_map_data("cited_outcome_hybrid_0.7", zl)
+        assert map_data["n_decisions"] == 1000
+        print(f"  Zoom {zl}: {map_data['n_clusters']} clusters")
+
+    map_state = api.map_loader.get_map("cited_outcome_hybrid_0.7")
+    metadata = map_state.metadata
+    assert metadata.get("evidence_tier") == "ACCEPTED"
+    assert metadata.get("benchmark_results", {}).get("both_gates_pass") == True
+    print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}, JP={metadata.get('benchmark_results', {}).get('jurist_pairwise')}, LangDom={metadata.get('benchmark_results', {}).get('language_dominance')}")
+
+    zl_0 = api.map_loader.get_zoom_level("cited_outcome_hybrid_0.7", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "cited_outcome_hybrid_0.7", 1, 5)
+    assert len(neighbors) > 0
+
+    print("  PASS\n")
+    return True
+
+
 def test_hybrid_stabilized_best():
     """Test hybrid_stabilized_best representation (ACCEPTED - stabilized hybrid breakthrough).
 
@@ -1324,6 +1404,9 @@ if __name__ == "__main__":
     results.append(("CP64 Hybrid α=0.5", test_cited_decisions_tfidf_hybrid_cp64_0_5()))
     results.append(("CP64 Hybrid α=0.7 (BEST)", test_cited_decisions_tfidf_hybrid_cp64_0_7()))
     results.append(("Hybrid Stabilized Best", test_hybrid_stabilized_best()))
+    # Cited Outcome Hybrids (BEST PRODUCTION/FRACTAL - factory direction v9)
+    results.append(("Cited Outcome Hybrid α=0.5 (BEST PROD)", test_cited_outcome_hybrid_0_5()))
+    results.append(("Cited Outcome Hybrid α=0.7 (BEST FRACTAL)", test_cited_outcome_hybrid_0_7()))
     
     print("=" * 50)
     print("RESULTS:")

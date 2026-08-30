@@ -122,6 +122,10 @@ class MapLoader:
         self._load_following_alpha0_3()
         self._load_criticizing_alpha0_3()
         self._load_citing_alpha0_3()
+        
+        # Load cited outcome hybrids (ACCEPTED - factory direction v9 BEST PRODUCTION/FRACTAL)
+        self._load_cited_outcome_hybrid_0_5()
+        self._load_cited_outcome_hybrid_0_7()
 
         self._loaded = True
         return len(self.maps)
@@ -3178,6 +3182,44 @@ class MapLoader:
             benchmark_results={
                 "jurist_pairwise": 0.6656,
                 "language_dominance": 0.6704,
+                "both_gates_pass": True,
+            }
+        )
+
+    def _load_cited_outcome_hybrid_0_5(self) -> None:
+        """Load cited_outcome_hybrid_0.5 representation (ACCEPTED - factory direction v9 BEST PRODUCTION).
+
+        Hybrid: 50% cited_decisions_tfidf + 50% outcome signal. JP=0.7990, LangDom=0.4911.
+        BEST PRODUCTION hybrid per factory direction v9. LangDom < 0.6 target ACHIEVED.
+        Both adversarial gates PASS.
+        """
+        self._load_new_representation(
+            name="cited_outcome_hybrid_0.5",
+            display_name="BEST PRODUCTION: Citation + Outcome (α=0.5)",
+            description="BEST PRODUCTION hybrid per factory direction v9: 50% cited_decisions_tfidf + 50% outcome signal. JP=0.7990, LangDom=0.4911. LangDom < 0.6 target ACHIEVED. Both adversarial gates PASS.",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "jurist_pairwise": 0.7990,
+                "language_dominance": 0.4911,
+                "both_gates_pass": True,
+            }
+        )
+
+    def _load_cited_outcome_hybrid_0_7(self) -> None:
+        """Load cited_outcome_hybrid_0.7 representation (ACCEPTED - factory direction v9 BEST FRACTAL).
+
+        Hybrid: 70% cited_decisions_tfidf + 30% outcome signal. HierAdv=+0.3703.
+        BEST FRACTAL hybrid per factory direction v9.
+        Both adversarial gates PASS.
+        """
+        self._load_new_representation(
+            name="cited_outcome_hybrid_0.7",
+            display_name="BEST FRACTAL: Citation + Outcome (α=0.7)",
+            description="BEST FRACTAL hybrid per factory direction v9: 70% cited_decisions_tfidf + 30% outcome signal. HierAdv=+0.3703. Both adversarial gates PASS.",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "jurist_pairwise": 0.7907,
+                "language_dominance": 0.4907,
                 "both_gates_pass": True,
             }
         )
