@@ -165,45 +165,124 @@ def load_holdout_results() -> Dict[str, Dict]:
 # ============================================================
 
 def extract_frozen_harness_metrics(rep_data: Dict) -> Dict:
-    """Extract metrics from frozen harness v3 results."""
+    """Extract metrics from frozen harness v3 results.
+    
+    Handles two formats:
+    - Flat (state/evaluation.json validation_metrics): top-level keys like
+      "adversarial_language_dominance", "jurist_pairwise_preference"
+    - Nested (v3 results JSON files): metrics under sub-objects like
+      rep_data["adversarial"]["adversarial_language_dominance"]["mean_language_dominance"]
+    """
     metrics = {}
     
-    # Adversarial metrics
-    if "adversarial_language_dominance" in rep_data:
+    # --- Adversarial metrics ---
+    # Flat format (state/evaluation.json validation_metrics)
+    if "adversarial_language_dominance" in rep_data and isinstance(rep_data["adversarial_language_dominance"], (int, float)):
         metrics["lang_dom"] = rep_data["adversarial_language_dominance"]
-    elif "language_dominance" in rep_data:
+    elif "language_dominance" in rep_data and isinstance(rep_data["language_dominance"], (int, float)):
         metrics["lang_dom"] = rep_data["language_dominance"]
+    # Nested format (v3 results JSON)
+    elif "adversarial" in rep_data:
+        adv = rep_data["adversarial"]
+        if isinstance(adv, dict):
+            if "adversarial_language_dominance" in adv:
+                ald = adv["adversarial_language_dominance"]
+                if isinstance(ald, dict):
+                    metrics["lang_dom"] = ald.get("mean_language_dominance")
+                elif isinstance(ald, (int, float)):
+                    metrics["lang_dom"] = ald
+            elif "language_dominance_score" in adv:
+                metrics["lang_dom"] = adv["language_dominance_score"]
     
-    if "jurist_pairwise_preference" in rep_data:
+    # Flat format
+    if "jurist_pairwise_preference" in rep_data and isinstance(rep_data["jurist_pairwise_preference"], (int, float)):
         metrics["jurist_pref"] = rep_data["jurist_pairwise_preference"]
+    elif "jurist_preference_rate" in rep_data and isinstance(rep_data["jurist_preference_rate"], (int, float)):
+        metrics["jurist_pref"] = rep_data["jurist_preference_rate"]
+    # Nested format
+    elif "adversarial" in rep_data and isinstance(rep_data["adversarial"], dict):
+        adv = rep_data["adversarial"]
+        if "jurist_pairwise_preference" in adv:
+            jp = adv["jurist_pairwise_preference"]
+            if isinstance(jp, dict):
+                metrics["jurist_pref"] = jp.get("jurist_would_succeed_rate")
+            elif isinstance(jp, (int, float)):
+                metrics["jurist_pref"] = jp
     
-    # Jurivoc metrics
-    if "jurivoc_level_0_nmi" in rep_data:
+    # --- Jurivoc metrics ---
+    # Flat format
+    if "jurivoc_level_0_nmi" in rep_data and isinstance(rep_data["jurivoc_level_0_nmi"], (int, float)):
         metrics["jurivoc_l0"] = rep_data["jurivoc_level_0_nmi"]
-    if "jurivoc_level_1_nmi" in rep_data:
+    # Nested format
+    elif "jurivoc_alignment" in rep_data and isinstance(rep_data["jurivoc_alignment"], dict):
+        jurivoc = rep_data["jurivoc_alignment"]
+        if "level_0_nmi" in jurivoc:
+            metrics["jurivoc_l0"] = jurivoc["level_0_nmi"]
+    
+    # Flat format
+    if "jurivoc_level_1_nmi" in rep_data and isinstance(rep_data["jurivoc_level_1_nmi"], (int, float)):
         metrics["jurivoc_l1"] = rep_data["jurivoc_level_1_nmi"]
+    # Nested format
+    elif "jurivoc_alignment" in rep_data and isinstance(rep_data["jurivoc_alignment"], dict):
+        jurivoc = rep_data["jurivoc_alignment"]
+        if "level_1_nmi" in jurivoc:
+            metrics["jurivoc_l1"] = jurivoc["level_1_nmi"]
     
-    # Scale stability
-    if "scale_stability" in rep_data:
+    # --- Scale stability ---
+    # Flat format
+    if "scale_stability" in rep_data and isinstance(rep_data["scale_stability"], (int, float)):
         metrics["scale_stability"] = rep_data["scale_stability"]
+    # Nested format
+    elif "scale_stability" in rep_data and isinstance(rep_data["scale_stability"], dict):
+        scale = rep_data["scale_stability"]
+        if "mean_neighbor_overlap" in scale:
+            metrics["scale_stability"] = scale["mean_neighbor_overlap"]
     
-    # Boilerplate resistance
-    if "boilerplate_resistance_score" in rep_data:
+    # --- Boilerplate resistance ---
+    # Flat format
+    if "boilerplate_resistance_score" in rep_data and isinstance(rep_data["boilerplate_resistance_score"], (int, float)):
         metrics["boilerplate_resistance"] = rep_data["boilerplate_resistance_score"]
+    # Nested format
+    elif "boilerplate_resistance" in rep_data and isinstance(rep_data["boilerplate_resistance"], dict):
+        bp = rep_data["boilerplate_resistance"]
+        if "resistance_score" in bp:
+            metrics["boilerplate_resistance"] = bp["resistance_score"]
     
-    # Fractal improvement
-    if "fractal_improvement_rate" in rep_data:
+    # --- Fractal improvement ---
+    # Flat format
+    if "fractal_improvement_rate" in rep_data and isinstance(rep_data["fractal_improvement_rate"], (int, float)):
         metrics["fractal_improvement"] = rep_data["fractal_improvement_rate"]
+    # Nested format
+    elif "fractal" in rep_data and isinstance(rep_data["fractal"], dict):
+        frac = rep_data["fractal"]
+        if "improvement_rate" in frac:
+            metrics["fractal_improvement"] = frac["improvement_rate"]
     
-    # Cross-language retrieval
-    if "cross_language_retrieval" in rep_data:
+    # --- Cross-language retrieval ---
+    # Flat format
+    if "cross_language_retrieval" in rep_data and isinstance(rep_data["cross_language_retrieval"], (int, float)):
         metrics["cross_lang_retrieval"] = rep_data["cross_language_retrieval"]
+    # Nested format
+    elif "fractal" in rep_data and isinstance(rep_data["fractal"], dict):
+        frac = rep_data["fractal"]
+        if "cross_language_retrieval" in frac:
+            cr = frac["cross_language_retrieval"]
+            if isinstance(cr, dict):
+                metrics["cross_lang_retrieval"] = cr.get("mean_cross_language_recall_at_k")
+            elif isinstance(cr, (int, float)):
+                metrics["cross_lang_retrieval"] = cr
     
-    # Verdict
+    # --- Verdict ---
+    # Flat format
     if "verdict" in rep_data:
         metrics["verdict"] = rep_data["verdict"]
     elif "both_adversarial_pass" in rep_data:
         metrics["verdict"] = "PASS" if rep_data["both_adversarial_pass"] else "FAIL"
+    # Nested format
+    elif "adversarial" in rep_data and isinstance(rep_data["adversarial"], dict):
+        adv = rep_data["adversarial"]
+        if "both_pass" in adv:
+            metrics["verdict"] = "PASS" if adv["both_pass"] else "FAIL"
     
     return metrics
 
@@ -253,8 +332,8 @@ def cross_validate_metrics(frozen: Dict, holdout: Dict) -> Dict:
     """Cross-validate frozen harness and holdout metrics."""
     analysis = {
         "representation": None,
-        "frozen_harness_metrics": {},
-        "holdout_metrics": {},
+        "frozen_harness_metrics": dict(frozen),  # Populate from input
+        "holdout_metrics": dict(holdout),         # Populate from input
         "discrepancies": [],
         "consistencies": [],
         "warnings": [],
