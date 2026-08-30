@@ -5,8 +5,8 @@
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
   "accepted_run_id": "33319197061",
-  "github_run": "33320855593",
-  "timestamp": "2026-08-30T15:55:00Z",
+  "github_run": "33321066656",
+  "timestamp": "2026-08-30T16:30:00Z",
   "previous_accepted_run": "33319197061",
   "next_recommendation": "PRODUCTIZE. All 21 legal-distance modes artifact-complete (603 artifacts verified, run 33320855593). 175/175 tests PASS. Prior orchestration/validation repair (run 33319678879) confirmed stable — no regressions across 5 resume cycles (33319678879→33320159055→33320387509→33320637563→33320855593). BLOCKED on corpus lane for 192k scaling. When corpus delivers: run build_parameterized_legal_distance_map.py at --corpus-size 192000 on accepted embeddings; re-validate nesting/zoom at full scale; refresh registry. Recommend outcome_hybrid_0.5 as DEFAULT at scale.",
   "evidence_refs": [
@@ -45,9 +45,12 @@
     "results/audit/fractal-map/CYCLE_33320637563_GATE.json",
     "reports/fractal_map/OPERATIONAL_RESUME_33320637563_AUDIT.md",
     "results/audit/fractal-map/CYCLE_33320855593_GATE.json",
-    "reports/fractal_map/OPERATIONAL_RESUME_33320855593_AUDIT.md"
+    "results/audit/fractal-map/CYCLE_33321066656_GATE.json",
+    "reports/fractal_map/OPERATIONAL_RESUME_33320855593_AUDIT.md",
+    "reports/fractal_map/OPERATIONAL_RESUME_33321066656_AUDIT.md"
   ],
   "key_findings": [
+    "RUN 33321066656: OPERATIONAL RESUME from persisted snapshot of run 33320855593. DIAGNOSED AND REPAIRED new validation regression: test_center_projected_purity_beats_concat failed because state/validation_metrics was missing 'hierarchical_leiden_concat_legacy' entry (16th occurrence of systemic ephemeral-storage gap, this time losing a validation_metrics entry during a prior state update). REPAIR: restored hierarchical_leiden_concat_legacy validation_metrics entry from hierarchical_leiden_results.json (hierarchical_purity_global=0.956135). VERIFIED: 175/175 pytest tests PASS (1.20s); 603 artifacts confirmed; 21 legal-distance modes artifact-complete; all key product modes validated. Prior orchestration/validation repair chain (33319678879→33320159055→33320387509→33320637563→33320855593→33321066656) confirmed stable across 6 resume cycles — no regressions. Snapshot audit-ready. RECOMMENDATION: PRODUCTIZE. BLOCKED on corpus lane for 192k scaling.",
     "RUN 33320855593: OPERATIONAL RESUME from persisted snapshot of run 33320637563. VERIFIED: 175/175 pytest tests PASS (1.47s); 603 artifacts confirmed; 21 legal-distance modes artifact-complete; all key product modes validated. Prior orchestration/validation repair chain (33319678879→33320159055→33320387509→33320637563→33320855593) confirmed stable across 5 resume cycles — no regressions. 15th occurrence of systemic ephemeral-storage gap corrected (github_run/operational_resume_id updated). Snapshot audit-ready. RECOMMENDATION: PRODUCTIZE. BLOCKED on corpus lane for 192k scaling.",
     "RUN 33320637563: OPERATIONAL RESUME from persisted snapshot of run 33320387509. VERIFIED: 175/175 pytest tests PASS (1.38s); 603 artifacts confirmed; 21 legal-distance modes artifact-complete; all key product modes validated. Prior orchestration/validation repair chain (33319678879→33320159055→33320387509→33320637563) confirmed stable across 4 resume cycles — no regressions. 14th occurrence of systemic ephemeral-storage gap corrected (github_run/operational_resume_id updated). Snapshot audit-ready. RECOMMENDATION: PRODUCTIZE. BLOCKED on corpus lane for 192k scaling.",
     "RUN 33320387509: OPERATIONAL RESUME from persisted snapshot of run 33320159055. VERIFIED: 175/175 pytest tests PASS (1.40s); 603 artifacts confirmed; 21 legal-distance modes artifact-complete; all key product modes validated. Prior orchestration/validation repair chain (33319678879→33320159055→33320387509) confirmed stable across 3 resume cycles — no regressions. 13th occurrence of systemic ephemeral-storage gap corrected (github_run/operational_resume_id updated). Snapshot audit-ready. RECOMMENDATION: PRODUCTIZE. BLOCKED on corpus lane for 192k scaling.",
@@ -107,6 +110,21 @@
       "jurivoc_benchmarks_passed": 4,
       "jurivoc_benchmarks_total": 5,
       "purity_min_cluster_size": 3
+    },
+    "hierarchical_leiden_concat_legacy": {
+      "hierarchical_purity_global": 0.9561351138684238,
+      "hierarchical_purity_local": 0.9561351138684238,
+      "flat_mean_purity": 0.864221026375896,
+      "nesting_score": 1.0,
+      "n_hierarchical_clusters": 77,
+      "n_decisions": 1000,
+      "corpus": "BGer 2020-2024 (1000 decisions)",
+      "evidence_tier": "REPRODUCED",
+      "validation_run": "hierarchical_leiden_20260827_181419",
+      "embeddings": "concat_center_tfidf (768 dim)",
+      "best_config": "coarse_0.25_fine_3.0",
+      "purity_min_cluster_size": 3,
+      "note": "Legacy concat baseline. Preserved for comparison with center_projected_hierarchical (which achieves 0.9571 vs 0.9561)."
     }
   },
   "map_modes": {
@@ -164,7 +182,7 @@
       "purity_min_cluster_size": 3
     }
   },
-  "operational_resume_id": "33320855593",
+  "operational_resume_id": "33321066656",
   "repair_of": null,
   "repair_round": 0,
   "audit_status": "PASS",
