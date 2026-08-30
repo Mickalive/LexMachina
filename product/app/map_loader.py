@@ -118,6 +118,11 @@ class MapLoader:
         self._load_cited_decisions_tfidf_hybrid_cp64_0_7()
         self._load_hybrid_stabilized_best()
 
+        # Load citation role views (ACCEPTED - legal-distance v6, 3 roles validated)
+        self._load_following_alpha0_3()
+        self._load_criticizing_alpha0_3()
+        self._load_citing_alpha0_3()
+
         self._loaded = True
         return len(self.maps)
 
@@ -3173,6 +3178,66 @@ class MapLoader:
             benchmark_results={
                 "jurist_pairwise": 0.6656,
                 "language_dominance": 0.6704,
+                "both_gates_pass": True,
+            }
+        )
+
+    def _load_following_alpha0_3(self) -> None:
+        """Load following_alpha0.3 representation (ACCEPTED - legal-distance v6 citation role).
+        
+        Citation role: Following (citing decision follows/extends precedent).
+        Hybrid: 30% center_projected_64dim + 70% following role signal.
+        JP=0.5485, LangDom=0.7529, both gates PASS.
+        Fine purity: 0.9672, Coarse purity: 0.9127, HierAdv=+0.0351.
+        """
+        self._load_new_representation(
+            name="following_alpha0.3",
+            display_name="Citation Role: Following (α=0.3)",
+            description="Citation role view: following decisions (precedent extension). Hybrid: 30% center_projected_64dim + 70% following role signal. JP=0.5485, LangDom=0.7529. Fine purity=0.9672.",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "jurist_pairwise": 0.5485,
+                "language_dominance": 0.7529,
+                "both_gates_pass": True,
+            }
+        )
+
+    def _load_criticizing_alpha0_3(self) -> None:
+        """Load criticizing_alpha0.3 representation (ACCEPTED - legal-distance v6 citation role).
+        
+        Citation role: Criticizing (citing decision criticizes/distinguishes precedent).
+        Hybrid: 30% center_projected_64dim + 70% criticizing role signal.
+        JP=0.5485, LangDom=0.7529, both gates PASS.
+        Fine purity: 0.9672, Coarse purity: 0.9127, HierAdv=+0.0351.
+        """
+        self._load_new_representation(
+            name="criticizing_alpha0.3",
+            display_name="Citation Role: Criticizing (α=0.3)",
+            description="Citation role view: criticizing decisions (precedent criticism). Hybrid: 30% center_projected_64dim + 70% criticizing role signal. JP=0.5485, LangDom=0.7529. Fine purity=0.9672.",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "jurist_pairwise": 0.5485,
+                "language_dominance": 0.7529,
+                "both_gates_pass": True,
+            }
+        )
+
+    def _load_citing_alpha0_3(self) -> None:
+        """Load citing_alpha0.3 representation (ACCEPTED - legal-distance v6 citation role).
+        
+        Citation role: Citing/Overruling (citing decision overrules precedent).
+        Hybrid: 30% center_projected_64dim + 70% overruling role signal.
+        JP=0.5485, LangDom=0.7529, both gates PASS.
+        Fine purity: 0.9672, Coarse purity: 0.9127, HierAdv=+0.0351.
+        """
+        self._load_new_representation(
+            name="citing_alpha0.3",
+            display_name="Citation Role: Overruling (α=0.3)",
+            description="Citation role view: overruling decisions (precedent reversal). Hybrid: 30% center_projected_64dim + 70% overruling role signal. JP=0.5485, LangDom=0.7529. Fine purity=0.9672.",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "jurist_pairwise": 0.5485,
+                "language_dominance": 0.7529,
                 "both_gates_pass": True,
             }
         )

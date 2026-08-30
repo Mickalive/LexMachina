@@ -792,6 +792,10 @@ class NavigationAPI:
             "cited_decisions_tfidf_hybrid_cp64_0.3": "Production Hybrid CP64 (α=0.3)",
             "cited_decisions_tfidf_hybrid_cp64_0.5": "Production Hybrid CP64 (α=0.5)",
             "cited_decisions_tfidf_hybrid_cp64_0.7": "BEST Production Hybrid CP64 (α=0.7) ★",
+            # Citation Role Views (ACCEPTED - legal-distance v6)
+            "following_alpha0.3": "Citation Role: Following (α=0.3) ★",
+            "criticizing_alpha0.3": "Citation Role: Criticizing (α=0.3) ★",
+            "citing_alpha0.3": "Citation Role: Overruling (α=0.3) ★",
         }
 
         # Evidence tier info
@@ -846,6 +850,10 @@ class NavigationAPI:
             "cited_decisions_tfidf_hybrid_cp64_0.3": "ACCEPTED. 30% center_projected_64dim + 70% cited_decisions_tfidf (PCA-64D). JP=0.535, LangDom=0.748.",
             "cited_decisions_tfidf_hybrid_cp64_0.5": "ACCEPTED. 50% center_projected_64dim + 50% cited_decisions_tfidf (PCA-64D). JP=0.628, LangDom=0.684.",
             "cited_decisions_tfidf_hybrid_cp64_0.7": "ACCEPTED. BEST production hybrid per factory direction. 70% center_projected_64dim + 30% cited_decisions_tfidf (PCA-64D). JP=0.661, LangDom=0.652.",
+            # Citation Role Views (ACCEPTED - legal-distance v6)
+            "following_alpha0.3": "ACCEPTED. Citation role: Following (precedent extension). Hybrid 30% center_projected_64dim + 70% following signal. JP=0.5485, LangDom=0.7529. Fine purity=0.9672.",
+            "criticizing_alpha0.3": "ACCEPTED. Citation role: Criticizing (precedent criticism). Hybrid 30% center_projected_64dim + 70% criticizing signal. JP=0.5485, LangDom=0.7529. Fine purity=0.9672.",
+            "citing_alpha0.3": "ACCEPTED. Citation role: Overruling (precedent reversal). Hybrid 30% center_projected_64dim + 70% overruling signal. JP=0.5485, LangDom=0.7529. Fine purity=0.9672.",
         }
         return descriptions.get(rep, f"Representation: {rep}")
 
