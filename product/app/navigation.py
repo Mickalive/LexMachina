@@ -73,7 +73,7 @@ class NavigationAPI:
         self._base_decision_ids: List[str] = []
         self._embedding_model: Optional[SentenceTransformer] = None
         self._import_positions_file: Optional[Path] = None
-        self._imported_positions: Dict[str, Dict] = {}  # decision_id -> {x, y, cluster, zoom_level, representation}
+        self._imported_positions: Dict[Tuple[str, str], Dict] = {}  # (decision_id, representation) -> {x, y, cluster, zoom_level, representation}
 
     def _get_map_decision_meta(self, decision_id: str) -> Dict:
         """Get metadata for a map decision not in the corpus (from baseline metadata)."""
@@ -203,8 +203,9 @@ class NavigationAPI:
                         continue
                     record = json.loads(line)
                     did = record.get("decision_id")
+                    rep = record.get("representation", "")
                     if did:
-                        self._imported_positions[did] = record
+                        self._imported_positions[(did, rep)] = record
         except Exception:
             pass
 
@@ -272,8 +273,8 @@ class NavigationAPI:
             if not did:
                 continue
             
-            # Skip if already have a persisted position
-            if did in self._imported_positions:
+            # Skip if already have a persisted position for this representation
+            if (did, representation) in self._imported_positions:
                 continue
             
             emb = import_embeddings[i]
@@ -335,7 +336,7 @@ class NavigationAPI:
             }
             
             # Persist
-            self._imported_positions[did] = record
+            self._imported_positions[(did, representation)] = record
             self._save_imported_position(record)
             results.append(record)
         
@@ -364,6 +365,8 @@ class NavigationAPI:
         representation: Optional[str] = None,
         zoom_level: int = 1,
         map_mode: Optional[str] = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
     ) -> Dict[str, Any]:
         if representation is None:
             representation = self._get_default_representation()
@@ -373,6 +376,8 @@ class NavigationAPI:
         When map_mode is provided (e.g., "sachverhalt", "erwaegungen"), returns
         positions from the section-based projection for the subset of decisions
         that have section data, with background positions from the main map.
+        
+        Supports pagination via limit/offset for large-scale rendering.
         
         Returns positions, cluster assignments, and cluster summaries.
         """
@@ -428,23 +433,39 @@ class NavigationAPI:
             })
 
         # Add imported decision positions for this representation and zoom level
-        for did, pos_record in self._imported_positions.items():
+        for (key_did, key_rep), pos_record in self._imported_positions.items():
             if pos_record.get("representation") == representation and pos_record.get("zoom_level") == zoom_level:
-                summary = self.corpus.get_summary(did)
+                summary = self.corpus.get_summary(key_did)
                 meta = {}
                 if not summary:
-                    meta = self._get_map_decision_meta(did)
+                    meta = self._get_map_decision_meta(key_did)
                 positions.append({
-                    "decision_id": did,
+                    "decision_id": key_did,
                     "x": pos_record["x"],
                     "y": pos_record["y"],
                     "cluster": pos_record["cluster"],
                     "language": (summary.get("language") if summary else meta.get("language", "unknown")),
                     "branch": (summary.get("branch") if summary else meta.get("branch", "unknown")),
                     "legal_area": (summary.get("legal_area") if summary else meta.get("legal_area", "unknown")),
-                    "has_corpus": did in corpus_ids,
+                    "has_corpus": key_did in corpus_ids,
                     "is_imported": True,
                 })
+
+        # Apply pagination if requested (for large-scale rendering)
+        total_positions = len(positions)
+        paginated_positions = positions
+        pagination = None
+        if limit is not None or offset is not None:
+            start = offset or 0
+            end = start + (limit or total_positions)
+            paginated_positions = positions[start:end]
+            pagination = {
+                "total": total_positions,
+                "offset": start,
+                "limit": limit or total_positions,
+                "returned": len(paginated_positions),
+                "has_more": end < total_positions,
+            }
 
         return {
             "representation": representation,
@@ -452,8 +473,9 @@ class NavigationAPI:
             "n_clusters": zl.n_clusters,
             "n_decisions": zl.n_decisions,
             "clusters": cluster_summaries,
-            "positions": positions,
+            "positions": paginated_positions,
             "map_mode": None,
+            "pagination": pagination,
         }
 
     def _get_section_mode_map(
@@ -730,10 +752,28 @@ class NavigationAPI:
                 if d:
                     imported_decisions.append(d.to_full())
             
-            # Compute positions for the default representation at zoom level 1
+            # Compute positions for ALL available representations
             default_rep = self._get_default_representation()
-            position_results = self._compute_import_positions(imported_decisions, default_rep, 1)
-            result["map_positions_computed"] = len(position_results)
+            all_representations = self.map_loader.get_available_representations()
+            representations_positioned = []
+            total_positions = 0
+            
+            for rep in all_representations:
+                zoom_levels = self.map_loader.get_zoom_levels(rep)
+                if not zoom_levels:
+                    continue
+                first_zl = zoom_levels[0]
+                position_results = self._compute_import_positions(imported_decisions, rep, first_zl)
+                if position_results:
+                    total_positions += len(position_results)
+                    representations_positioned.append({
+                        "representation": rep,
+                        "zoom_level": first_zl,
+                        "positions_computed": len(position_results),
+                    })
+            
+            result["map_positions_computed"] = total_positions
+            result["representations_positioned"] = representations_positioned
             result["default_representation"] = default_rep
         
         return result
@@ -1706,6 +1746,117 @@ class NavigationAPI:
             "decisions": comparison,
         }
 
+    def validate_representations(self) -> Dict[str, Any]:
+        """Validate all loaded representations and report their status.
+        
+        Tests each representation by:
+        1. Verifying it loads without errors
+        2. Checking it has positions at all zoom levels
+        3. Verifying cluster assignments are valid
+        4. Checking metadata has required fields (evidence_tier, etc.)
+        
+        Returns a validation report per representation.
+        """
+        if not self._initialized:
+            return {"error": "Not initialized"}
+        
+        results = {}
+        all_reps = self.map_loader.get_available_representations()
+        
+        for rep in all_reps:
+            rep_result = {
+                "status": "PASS",
+                "zoom_levels": {},
+                "issues": [],
+                "metadata": {},
+            }
+            
+            try:
+                map_state = self.map_loader.get_map(rep)
+                if not map_state:
+                    rep_result["status"] = "FAIL"
+                    rep_result["issues"].append("Map state not loaded")
+                    results[rep] = rep_result
+                    continue
+                
+                # Check required metadata fields
+                meta = map_state.metadata
+                rep_result["metadata"] = {
+                    "evidence_tier": meta.get("evidence_tier", "UNKNOWN"),
+                    "n_decisions": map_state.n_decisions,
+                    "n_zoom_levels": len(map_state.zoom_levels),
+                }
+                
+                if "evidence_tier" not in meta:
+                    rep_result["issues"].append("Missing evidence_tier in metadata")
+                
+                # Test each zoom level
+                for zl_level in self.map_loader.get_zoom_levels(rep):
+                    zl = self.map_loader.get_zoom_level(rep, zl_level)
+                    if not zl:
+                        rep_result["status"] = "FAIL"
+                        rep_result["issues"].append(f"Zoom level {zl_level} returned None")
+                        continue
+                    
+                    zl_info = {
+                        "n_clusters": zl.n_clusters,
+                        "n_decisions": zl.n_decisions,
+                        "n_positions": len(zl.positions),
+                        "has_assignments": len(zl.cluster_assignments) > 0,
+                    }
+                    
+                    # Validate: positions should match decision count
+                    if zl.n_decisions > 0 and len(zl.positions) != zl.n_decisions:
+                        rep_result["issues"].append(
+                            f"Zoom {zl_level}: positions ({len(zl.positions)}) != "
+                            f"decisions ({zl.n_decisions})"
+                        )
+                    
+                    # Validate: assignments should cover all positions
+                    if len(zl.positions) > 0 and len(zl.cluster_assignments) < len(zl.positions):
+                        rep_result["issues"].append(
+                            f"Zoom {zl_level}: assignments ({len(zl.cluster_assignments)}) < "
+                            f"positions ({len(zl.positions)})"
+                        )
+                    
+                    # Validate: clusters should not be empty
+                    if zl.n_clusters == 0 and zl.n_decisions > 0:
+                        rep_result["issues"].append(f"Zoom {zl_level}: 0 clusters but {zl.n_decisions} decisions")
+                    
+                    # Try getting cluster detail
+                    try:
+                        if zl.clusters:
+                            first_cid = list(zl.clusters.keys())[0]
+                            detail = self.get_cluster_detail(rep, zl_level, first_cid)
+                            if "error" in detail:
+                                rep_result["issues"].append(f"Zoom {zl_level}: cluster detail error: {detail['error']}")
+                    except Exception as e:
+                        rep_result["issues"].append(f"Zoom {zl_level}: cluster detail exception: {e}")
+                    
+                    rep_result["zoom_levels"][zl_level] = zl_info
+                
+                if rep_result["issues"]:
+                    rep_result["status"] = "WARN"
+                
+            except Exception as e:
+                rep_result["status"] = "FAIL"
+                rep_result["issues"].append(f"Exception during validation: {e}")
+            
+            results[rep] = rep_result
+        
+        # Summary
+        passing = sum(1 for r in results.values() if r["status"] == "PASS")
+        warnings = sum(1 for r in results.values() if r["status"] == "WARN")
+        failing = sum(1 for r in results.values() if r["status"] == "FAIL")
+        
+        return {
+            "total_representations": len(all_reps),
+            "passing": passing,
+            "warnings": warnings,
+            "failing": failing,
+            "representations": results,
+        }
+
     def get_webgl_data(
         self,
         representation: str,
@@ -1729,7 +1880,7 @@ class NavigationAPI:
         clusters = map_data.get('clusters', [])
 
         # Get imported decision IDs
-        imported_ids = set(self._imported_positions.keys())
+        imported_ids = set(key[0] for key in self._imported_positions.keys())
 
         # Color palettes
         LANG_COLORS = {'de': '#4dabf7', 'fr': '#ffd43b', 'it': '#51cf66', 'unknown': '#666'}

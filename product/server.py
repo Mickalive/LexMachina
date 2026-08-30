@@ -234,7 +234,11 @@ class ProductHandler(SimpleHTTPRequestHandler):
     """HTTP handler for the LexMachina product."""
 
     def _handle_cached(self, cache_key: str, func, ttl: int = CACHE_TTL):
-        """Handle cached endpoint with X-Cache header."""
+        """Handle cached endpoint with X-Cache header.
+        
+        func must return the data dict (not send it). The result is cached
+        before being sent to the client, avoiding capture-pattern timing issues.
+        """
         cached_data = _response_cache.get(cache_key)
         if cached_data is not None:
             self.send_header("X-Cache", "HIT")
@@ -242,22 +246,9 @@ class ProductHandler(SimpleHTTPRequestHandler):
             return
         
         self.send_header("X-Cache", "MISS")
-        original_json_response = self._json_response
-        captured_data = {}
-        
-        def capture_json_response(data, status=200):
-            captured_data['data'] = data
-            captured_data['status'] = status
-            original_json_response(data, status)
-        
-        self._json_response = capture_json_response
-        try:
-            func()
-        finally:
-            self._json_response = original_json_response
-        
-        if captured_data.get('status', 200) == 200:
-            _response_cache.set(cache_key, captured_data['data'], ttl)
+        data = func()
+        _response_cache.set(cache_key, data, ttl)
+        self._json_response(data)
 
     def do_GET(self):
         parsed = urlparse(self.path)
@@ -272,7 +263,9 @@ class ProductHandler(SimpleHTTPRequestHandler):
             rep = params.get("representation", [default_rep])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             mode = params.get("mode", [None])[0]
-            self._json_response(get_nav_api().get_map_data(rep, zoom, map_mode=mode))
+            limit = int(params.get("limit", ["0"])[0]) if "limit" in params else None
+            offset = int(params.get("offset", ["0"])[0]) if "offset" in params else None
+            self._json_response(get_nav_api().get_map_data(rep, zoom, map_mode=mode, limit=limit, offset=offset))
         elif path == "/api/map_modes":
             self._json_response(get_nav_api().get_map_modes())
         elif path == "/api/cluster":
@@ -309,19 +302,19 @@ class ProductHandler(SimpleHTTPRequestHandler):
         elif path == "/api/proximity":
             id_a = params.get("id_a", [""])[0]
             id_b = params.get("id_b", [""])[0]
-            self._handle_cached(f"proximity:{id_a}:{id_b}", 
-                lambda: self._json_response(get_nav_api().get_proximity_explanation(id_a, id_b)))
+            self._handle_cached(f"proximity:{id_a}:{id_b}",
+                lambda: get_nav_api().get_proximity_explanation(id_a, id_b))
         elif path == "/api/cluster_coherence":
             default_rep = get_default_representation()
             rep = params.get("representation", [default_rep])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             cid = int(params.get("cluster_id", ["0"])[0])
             self._handle_cached(f"cluster_coherence:{rep}:{zoom}:{cid}",
-                lambda: self._json_response(get_nav_api().get_cluster_coherence(rep, zoom, cid)))
+                lambda: get_nav_api().get_cluster_coherence(rep, zoom, cid))
         # New endpoints for this cycle
         elif path == "/api/zoom_coherence":
             self._handle_cached("zoom_coherence:summary",
-                lambda: self._json_response(get_nav_api().get_zoom_coherence_summary()))
+                lambda: get_nav_api().get_zoom_coherence_summary())
         elif path == "/api/zoom_coherence/flat_baseline":
             self._json_response(get_nav_api().get_zoom_coherence_flat_baseline())
         elif path == "/api/cluster_language_analysis":
@@ -330,17 +323,17 @@ class ProductHandler(SimpleHTTPRequestHandler):
             zoom = int(params.get("zoom", ["1"])[0])
             cid = int(params.get("cluster_id", ["0"])[0])
             self._handle_cached(f"cluster_language:{rep}:{zoom}:{cid}",
-                lambda: self._json_response(get_nav_api().get_cluster_language_analysis(rep, zoom, cid)))
+                lambda: get_nav_api().get_cluster_language_analysis(rep, zoom, cid))
         elif path == "/api/cross_language_neighbors":
             did = params.get("id", [""])[0]
             n = int(params.get("n", ["10"])[0])
             self._handle_cached(f"cross_language:{did}:{n}",
-                lambda: self._json_response(get_nav_api().get_cross_language_neighbors(did, n)))
+                lambda: get_nav_api().get_cross_language_neighbors(did, n))
         elif path == "/api/text_similarity":
             id_a = params.get("id_a", [""])[0]
             id_b = params.get("id_b", [""])[0]
             self._handle_cached(f"text_similarity:{id_a}:{id_b}",
-                lambda: self._json_response(get_nav_api().get_text_similarity(id_a, id_b)))
+                lambda: get_nav_api().get_text_similarity(id_a, id_b))
         elif path == "/api/evaluation/benchmarks":
             self._json_response(get_eval_loader().get_benchmarks())
         elif path == "/api/evaluation/representation_quality":
@@ -370,6 +363,8 @@ class ProductHandler(SimpleHTTPRequestHandler):
         elif path == "/api/feedback":
             # GET returns feedback stats
             self._json_response(get_nav_api().get_feedback_stats())
+        elif path == "/api/representations/validate":
+            self._json_response(get_nav_api().validate_representations())
         elif path == "/api/map/compare":
             # Map mode comparison endpoint
             default_rep = get_default_representation()
