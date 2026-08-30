@@ -4,13 +4,16 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "v10_operational_resume_33306333071",
-  "github_run": "33306333071",
-  "timestamp": "2026-08-30T10:30:00Z",
-  "operational_resume_from": "33306129382",
-  "previous_accepted_run": "33306129382",
+  "accepted_run_id": "v10_operational_resume_33306550005",
+  "github_run": "33306550005",
+  "timestamp": "2026-08-30T10:31:00Z",
+  "operational_resume_from": "33306333071",
+  "previous_accepted_run": "33306333071",
   "next_recommendation": "PRODUCTIZE. BLOCKED on corpus lane for 192k scaling. Current 1000-decision slice validated with 24 map modes across 4 design patterns (DEFAULT, HIGH-PURITY, HIGH-ADVANTAGE, CITATION ROLE). When corpus lane delivers full 192k: (a) run build_parameterized_map.py --corpus-size 192000; (b) validate zoom coherence at full scale; (c) update map mode registry with actual corpus size; (d) run verification tests at 192k.",
   "evidence_refs": [
+    "results/audit/fractal-map/CYCLE_33306550005_GATE.json",
+    "reports/fractal_map/OPERATIONAL_RESUME_33306550005_AUDIT.md",
+    "results/fractal_map/evaluation/snapshot_verify_33306550005.json",
     "results/audit/fractal-map/CYCLE_33306333071_GATE.json",
     "reports/fractal_map/OPERATIONAL_RESUME_33306333071_AUDIT.md",
     "results/audit/fractal-map/CYCLE_33306129382_GATE.json",
@@ -29,7 +32,7 @@
     "reports/fractal_map/SCALABILITY_ANALYSIS_33302799149.md"
   ],
   "key_findings": [
-    "RUN 33306333071: Operational resume from run 33306129382. VERIFIED: 128/128 pytest tests PASS; 545 artifacts verified; 24 modes loaded from both workspace and re-established mirror; default mode metrics (nesting=1.0, purity=0.9571, 108 clusters, 1000 decisions) reproduce from on-disk JSON. Mirror re-established from workspace (ephemeral storage volatility systemic). State file updated. AUDIT GATE: PASS.",
+    "RUN 33306550005: Operational resume from run 33306333071. VERIFIED: 128/128 pytest tests PASS; 545 artifacts verified; 24 modes loaded from both workspace and re-established mirror; default mode metrics (nesting=1.0, purity=0.9571, 108 clusters, 1000 decisions) reproduce from on-disk JSON. Mirror re-established from workspace (ephemeral storage volatility systemic — same pathology as runs 33304077155, 33305918697, 33306129382, 33306333071). Snapshot verification PASS. AUDIT GATE: PASS.",
     "SCALABILITY ANALYSIS (RUN 33302799149): Hierarchical Leiden scales LINEARLY to 192k decisions (3.4 min estimated, 1.0 GB memory). Parameterized builder (build_parameterized_map.py) ready for arbitrary corpus sizes. No infrastructure changes required. BLOCKER: corpus lane must deliver full 192k corpus.",
     "ALL 12 breakthrough representations VALIDATED with two design patterns: (a) HIGH-PURITY (Metric Learning): linear_metric_epoch4 (Fine=0.9754, NMI=0.5921, ImpRate=75.6%), mahalanobis_metric_epoch4 (Fine=0.9746, NMI=0.5944, ImpRate=71.4%), hybrid_stabilized_epoch1 (Fine=0.9638, NMI=0.5788, ImpRate=73.8%); (b) HIGH-ADVANTAGE (Citation/Outcome): cited_decisions_tfidf (ImpRate=97.1%, HierAdv=+0.1415), cited_outcome_hybrid_0.5 (ImpRate=86.8%, HierAdv=+0.2918, BEST PRODUCTION), cited_outcome_hybrid_0.7 (ImpRate=90.3%, HierAdv=+0.3703, BEST FRACTAL); (c) CITATION ROLE VIEWS: following_alpha0.3 (ImpRate=82.2%, Fine=0.9501), criticizing_alpha0.3 (Fine=0.9619, HierAdv=+0.0815), citing_alpha0.3 (ImpRate=66.9%).",
     "center_projected_hierarchical REPRODUCED as DEFAULT (nesting=1.0, purity=0.9571/0.9718, 7-resolution ladder, 108 clusters). Product integration COMPLETE: 24 representations across 4 design patterns (DEFAULT, HIGH-PURITY, HIGH-ADVANTAGE, CITATION ROLE) operational.",
@@ -127,9 +130,10 @@
       "purity_min_cluster_size": 3
     }
   },
-  "operational_resume_id": "33306333071",
+  "operational_resume_id": "33306550005",
   "audit_status": "PASS",
   "artifacts_verified": 545,
   "tests_passed": 128,
-  "modes_loaded": 24
+  "modes_loaded": 24,
+  "snapshot_verification": "results/fractal_map/evaluation/snapshot_verify_33306550005.json"
 }
