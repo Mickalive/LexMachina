@@ -1,6 +1,6 @@
 # Legal-Distance Map Mode: cited_decisions_tfidf_outcome_hybrid_0.7
 
-**Generated:** 2026-08-30T01:58:26.193239+00:00
+**Generated:** 2026-08-30T02:21:56.608201+00:00
 **Lane:** fractal-map (legal-distance integration)
 **Evidence Tier:** ACCEPTED (legal-distance) / PRODUCTIZE (fractal-map integration)
 **Status:** BUILT

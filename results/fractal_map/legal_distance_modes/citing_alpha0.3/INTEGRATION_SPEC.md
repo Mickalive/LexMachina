@@ -1,6 +1,6 @@
 # Legal-Distance Map Mode: citing_alpha0.3
 
-**Generated:** 2026-08-30T01:58:30.477128+00:00
+**Generated:** 2026-08-30T02:21:59.585975+00:00
 **Lane:** fractal-map (legal-distance integration)
 **Evidence Tier:** ACCEPTED (legal-distance) / PRODUCTIZE (fractal-map integration)
 **Status:** BUILT

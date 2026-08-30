@@ -1,6 +1,6 @@
 # Legal-Distance Map Mode: criticizing_alpha0.3
 
-**Generated:** 2026-08-30T01:58:28.844228+00:00
+**Generated:** 2026-08-30T02:21:58.459789+00:00
 **Lane:** fractal-map (legal-distance integration)
 **Evidence Tier:** ACCEPTED (legal-distance) / PRODUCTIZE (fractal-map integration)
 **Status:** BUILT

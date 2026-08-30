@@ -50,7 +50,7 @@ class MapModeLoader:
     placeholder infrastructure for legal-distance modes.
     """
     
-    def __init__(self, base_path: Path = Path(".")):
+    def __init__(self, base_path: Path = Path("results/fractal_map")):
         self.base_path = base_path
         self._cache: Dict[str, MapArtifacts] = {}
     

@@ -1,6 +1,6 @@
 # Legal-Distance Map Mode: hybrid_stabilized_epoch1
 
-**Generated:** 2026-08-30T01:58:24.701847+00:00
+**Generated:** 2026-08-30T02:21:55.580888+00:00
 **Lane:** fractal-map (legal-distance integration)
 **Evidence Tier:** ACCEPTED (legal-distance) / PRODUCTIZE (fractal-map integration)
 **Status:** BUILT

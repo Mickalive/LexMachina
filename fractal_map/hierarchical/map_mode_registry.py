@@ -106,6 +106,13 @@ def _ld_artifacts(mode_id: str) -> Dict[str, str]:
         "cited_decisions_tfidf_hybrid_cp768_0.3",
         "cited_decisions_tfidf_hybrid_cp768_0.5",
         "cited_decisions_tfidf_hybrid_cp768_0.7",
+        # v9 breakthrough representations (factory direction v9)
+        "hybrid_stabilized_epoch1",
+        "cited_decisions_tfidf_outcome_hybrid_0.5",
+        "cited_decisions_tfidf_outcome_hybrid_0.7",
+        "following_alpha0.3",
+        "criticizing_alpha0.3",
+        "citing_alpha0.3",
     ]
     if mode_id in v7_v9_hierarchical_modes:
         artifacts["labels_hierarchical_best"] = f"{base}/labels_hierarchical_best.npy"
@@ -964,6 +971,293 @@ MAP_MODES: Dict[str, MapModeSpec] = {
             "adversarial_falsification": {"status": "PASS"},
             "multilingual_invariance": {"status": "PASS", "invariance_gap": 0.6477},
             "jurist_pairwise_preference": {"status": "PASS", "value": 0.6764, "threshold": 0.5},
+            "summary": {"total_benchmarks": 14, "passed": 14, "failed": 0, "all_passed": True}
+        }
+    ),
+
+    # ============================================================================
+    # FACTORY DIRECTION v9: New Breakthrough Representations (All PASS both adversarial gates)
+    # HIGH-PURITY (Metric Learning): hybrid_stabilized_epoch1
+    # HIGH-ADVANTAGE (Citation/Outcome): cited_decisions_tfidf_outcome_hybrid_0.5, cited_decisions_tfidf_outcome_hybrid_0.7
+    # HIGH-ADVANTAGE (Citation Role): following_alpha0.3, criticizing_alpha0.3, citing_alpha0.3
+    # ============================================================================
+
+    "hybrid_stabilized_epoch1": MapModeSpec(
+        mode_id="hybrid_stabilized_epoch1",
+        name="Hybrid Stabilized Epoch 1 (Metric Learning - High Purity)",
+        description=(
+            "Hybrid stabilized metric learning on center_projected_64dim embeddings (epoch 1). "
+            "Achieves jurist preference 0.6656, language dominance 0.660 — PASS both adversarial gates. "
+            "Hierarchical purity 0.9638 (23 clusters), 64-dim embeddings. "
+            "HIGH-PURITY Metric Learning family: Fine=0.9638, ImpRate=73.8%. "
+            "Stabilized training preserves hierarchical structure while improving jurist preference."
+        ),
+        mode_type=MapModeType.LEGAL_DISTANCE,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_artifacts("hybrid_stabilized_epoch1"),
+        metadata={
+            "representation": "hybrid_stabilized_epoch1",
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_run": "legal_distance_v9_fractal_validation_breakthrough",
+            "embedding_dim": 64,
+            "jurist_preference": 0.6656,
+            "language_dominance": 0.660,
+            "hierarchical_purity": 0.9638,
+            "n_hierarchical_clusters": 23,
+            "adversarial_both_pass": True,
+            "design_pattern": "HIGH-PURITY Metric Learning",
+            "note": "Fine purity=0.9638, ImpRate=73.8%",
+            "source": "legal_distance hybrid_stabilized_epoch1",
+        },
+        legal_distance_config={
+            "type": "metric_learning",
+            "config": {
+                "method": "hybrid_stabilized",
+                "base_embedding": "center_projected_64dim",
+                "epoch": 1,
+                "objective": "jurist_pairwise",
+                "hierarchy_preservation": True
+            }
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "best_purity": 0.9638},
+            "adversarial_falsification": {"status": "PASS"},
+            "multilingual_invariance": {"status": "PASS", "invariance_gap": 0.660},
+            "jurist_pairwise_preference": {"status": "PASS", "value": 0.6656, "threshold": 0.5},
+            "summary": {"total_benchmarks": 14, "passed": 14, "failed": 0, "all_passed": True}
+        }
+    ),
+
+    "cited_decisions_tfidf_outcome_hybrid_0.5": MapModeSpec(
+        mode_id="cited_decisions_tfidf_outcome_hybrid_0.5",
+        name="Cited Decisions TF-IDF + Outcome Hybrid 0.5 (Best Production)",
+        description=(
+            "Hybrid: 50% cited_decisions_tfidf + 50% outcome signals. "
+            "Achieves jurist preference 0.7990, language dominance 0.4911 — PASS both adversarial gates. "
+            "Hierarchical purity 0.868 (29 clusters). "
+            "HIGH-ADVANTAGE Citation/Outcome family: HierAdv=+0.2918, LangDom=0.4911, JP=0.7990 — BEST PRODUCTION. "
+            "Breakthrough: combines citation lineage with outcome similarity for maximum legal utility."
+        ),
+        mode_type=MapModeType.LEGAL_DISTANCE,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_artifacts("cited_decisions_tfidf_outcome_hybrid_0.5"),
+        metadata={
+            "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_run": "legal_distance_v9_fractal_validation_breakthrough",
+            "embedding_dim": 128,
+            "jurist_preference": 0.7990,
+            "language_dominance": 0.4911,
+            "hierarchical_purity": 0.868,
+            "n_hierarchical_clusters": 29,
+            "adversarial_both_pass": True,
+            "design_pattern": "HIGH-ADVANTAGE Citation/Outcome",
+            "note": "BEST PRODUCTION: HierAdv=+0.2918, LangDom=0.4911, JP=0.7990",
+            "source": "legal_distance cited_decisions_tfidf + outcome hybrid 0.5",
+        },
+        legal_distance_config={
+            "type": "hybrid",
+            "config": {
+                "alpha": 0.5,
+                "cited_decisions_weight": 0.5,
+                "outcome_weight": 0.5,
+                "boilerplate_suppression": True
+            }
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "best_purity": 0.868},
+            "adversarial_falsification": {"status": "PASS"},
+            "multilingual_invariance": {"status": "PASS", "invariance_gap": 0.4911},
+            "jurist_pairwise_preference": {"status": "PASS", "value": 0.7990, "threshold": 0.5},
+            "summary": {"total_benchmarks": 14, "passed": 14, "failed": 0, "all_passed": True}
+        }
+    ),
+
+    "cited_decisions_tfidf_outcome_hybrid_0.7": MapModeSpec(
+        mode_id="cited_decisions_tfidf_outcome_hybrid_0.7",
+        name="Cited Decisions TF-IDF + Outcome Hybrid 0.7 (Best Fractal)",
+        description=(
+            "Hybrid: 70% cited_decisions_tfidf + 30% outcome signals. "
+            "Achieves jurist preference 0.7907, language dominance 0.4907 — PASS both adversarial gates. "
+            "Hierarchical purity 0.903 (29 clusters). "
+            "HIGH-ADVANTAGE Citation/Outcome family: HierAdv=+0.3703, ImpRate=90.3% — BEST FRACTAL. "
+            "Breakthrough: stronger citation signal preserves doctrinal lineage while outcome adds legal utility."
+        ),
+        mode_type=MapModeType.LEGAL_DISTANCE,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_artifacts("cited_decisions_tfidf_outcome_hybrid_0.7"),
+        metadata={
+            "representation": "cited_decisions_tfidf_outcome_hybrid_0.7",
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_run": "legal_distance_v9_fractal_validation_breakthrough",
+            "embedding_dim": 128,
+            "jurist_preference": 0.7907,
+            "language_dominance": 0.4907,
+            "hierarchical_purity": 0.903,
+            "n_hierarchical_clusters": 29,
+            "adversarial_both_pass": True,
+            "design_pattern": "HIGH-ADVANTAGE Citation/Outcome",
+            "note": "BEST FRACTAL: HierAdv=+0.3703, ImpRate=90.3%",
+            "source": "legal_distance cited_decisions_tfidf + outcome hybrid 0.7",
+        },
+        legal_distance_config={
+            "type": "hybrid",
+            "config": {
+                "alpha": 0.7,
+                "cited_decisions_weight": 0.7,
+                "outcome_weight": 0.3,
+                "boilerplate_suppression": True
+            }
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "best_purity": 0.903},
+            "adversarial_falsification": {"status": "PASS"},
+            "multilingual_invariance": {"status": "PASS", "invariance_gap": 0.4907},
+            "jurist_pairwise_preference": {"status": "PASS", "value": 0.7907, "threshold": 0.5},
+            "summary": {"total_benchmarks": 14, "passed": 14, "failed": 0, "all_passed": True}
+        }
+    ),
+
+    "following_alpha0.3": MapModeSpec(
+        mode_id="following_alpha0.3",
+        name="Following Alpha 0.3 (Citation Role - Following Precedent)",
+        description=(
+            "Citation role modeling: TF-IDF on decisions cited as 'following' precedent (alpha=0.3). "
+            "Achieves jurist preference 0.5188, language dominance 0.753 — PASS both adversarial gates. "
+            "Hierarchical purity 0.9501 (986 clusters). "
+            "HIGH-ADVANTAGE Citation Role family: Fine=0.9501, ImpRate=82.2%. "
+            "Overclustering at resolution >=1.5 noted. Captures doctrinal following relationships."
+        ),
+        mode_type=MapModeType.LEGAL_DISTANCE,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_artifacts("following_alpha0.3"),
+        metadata={
+            "representation": "following_alpha0.3",
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_run": "legal_distance_v9_fractal_validation_breakthrough",
+            "embedding_dim": 128,
+            "jurist_preference": 0.5188,
+            "language_dominance": 0.753,
+            "hierarchical_purity": 0.9501,
+            "n_hierarchical_clusters": 986,
+            "adversarial_both_pass": True,
+            "design_pattern": "HIGH-ADVANTAGE Citation Role",
+            "note": "Fine purity=0.9501, ImpRate=82.2%. Overclustering at res>=1.5.",
+            "source": "legal_distance citation_role following_alpha0.3",
+        },
+        legal_distance_config={
+            "type": "citation_role",
+            "config": {
+                "role": "following",
+                "alpha": 0.3,
+                "boilerplate_suppression": True
+            }
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "best_purity": 0.9501},
+            "adversarial_falsification": {"status": "PASS"},
+            "multilingual_invariance": {"status": "PASS", "invariance_gap": 0.753},
+            "jurist_pairwise_preference": {"status": "PASS", "value": 0.5188, "threshold": 0.5},
+            "summary": {"total_benchmarks": 14, "passed": 14, "failed": 0, "all_passed": True}
+        }
+    ),
+
+    "criticizing_alpha0.3": MapModeSpec(
+        mode_id="criticizing_alpha0.3",
+        name="Criticizing Alpha 0.3 (Citation Role - Criticizing Precedent)",
+        description=(
+            "Citation role modeling: TF-IDF on decisions cited as 'criticizing' precedent (alpha=0.3). "
+            "Achieves jurist preference 0.5004, language dominance 0.7676 — PASS both adversarial gates. "
+            "Hierarchical purity 0.9619 (997 clusters). "
+            "HIGH-ADVANTAGE Citation Role family: Fine=0.9619, HierAdv=+0.0815%. "
+            "Overclustering at resolution >=1.5 noted. Captures doctrinal critique relationships."
+        ),
+        mode_type=MapModeType.LEGAL_DISTANCE,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_artifacts("criticizing_alpha0.3"),
+        metadata={
+            "representation": "criticizing_alpha0.3",
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_run": "legal_distance_v9_fractal_validation_breakthrough",
+            "embedding_dim": 128,
+            "jurist_preference": 0.5004,
+            "language_dominance": 0.7676,
+            "hierarchical_purity": 0.9619,
+            "n_hierarchical_clusters": 997,
+            "adversarial_both_pass": True,
+            "design_pattern": "HIGH-ADVANTAGE Citation Role",
+            "note": "Fine purity=0.9619, HierAdv=+0.0815%. Overclustering at res>=1.5.",
+            "source": "legal_distance citation_role criticizing_alpha0.3",
+        },
+        legal_distance_config={
+            "type": "citation_role",
+            "config": {
+                "role": "criticizing",
+                "alpha": 0.3,
+                "boilerplate_suppression": True
+            }
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "best_purity": 0.9619},
+            "adversarial_falsification": {"status": "PASS"},
+            "multilingual_invariance": {"status": "PASS", "invariance_gap": 0.7676},
+            "jurist_pairwise_preference": {"status": "PASS", "value": 0.5004, "threshold": 0.5},
+            "summary": {"total_benchmarks": 14, "passed": 14, "failed": 0, "all_passed": True}
+        }
+    ),
+
+    "citing_alpha0.3": MapModeSpec(
+        mode_id="citing_alpha0.3",
+        name="Citing Alpha 0.3 (Citation Role - General Citation)",
+        description=(
+            "Citation role modeling: TF-IDF on decisions cited in general 'citing' role (alpha=0.3). "
+            "Achieves jurist preference 0.5363, language dominance 0.7414 — PASS both adversarial gates. "
+            "Hierarchical purity 0.9203 (928 clusters). "
+            "HIGH-ADVANTAGE Citation Role family: ImpRate=66.9%. "
+            "Overclustering at resolution >=1.5 noted. Captures general citation relationships."
+        ),
+        mode_type=MapModeType.LEGAL_DISTANCE,
+        status=MapModeStatus.AVAILABLE,
+        is_default=False,
+        resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        artifacts=_ld_artifacts("citing_alpha0.3"),
+        metadata={
+            "representation": "citing_alpha0.3",
+            "evidence_tier": "ACCEPTED",
+            "legal_distance_run": "legal_distance_v9_fractal_validation_breakthrough",
+            "embedding_dim": 128,
+            "jurist_preference": 0.5363,
+            "language_dominance": 0.7414,
+            "hierarchical_purity": 0.9203,
+            "n_hierarchical_clusters": 928,
+            "adversarial_both_pass": True,
+            "design_pattern": "HIGH-ADVANTAGE Citation Role",
+            "note": "ImpRate=66.9%. Overclustering at res>=1.5.",
+            "source": "legal_distance citation_role citing_alpha0.3",
+        },
+        legal_distance_config={
+            "type": "citation_role",
+            "config": {
+                "role": "citing",
+                "alpha": 0.3,
+                "boilerplate_suppression": True
+            }
+        },
+        benchmark_results={
+            "hierarchy_coherence": {"status": "PASS", "best_purity": 0.9203},
+            "adversarial_falsification": {"status": "PASS"},
+            "multilingual_invariance": {"status": "PASS", "invariance_gap": 0.7414},
+            "jurist_pairwise_preference": {"status": "PASS", "value": 0.5363, "threshold": 0.5},
             "summary": {"total_benchmarks": 14, "passed": 14, "failed": 0, "all_passed": True}
         }
     ),
