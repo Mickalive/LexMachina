@@ -280,7 +280,9 @@ class TestMetricConsistency:
         self.cp_results = load_json("results/fractal_map/hierarchical_map_center_projected/center_projected_hierarchical_results.json")
 
     def test_state_evidence_tier(self):
-        assert self.state["evidence_tier"] == "REPRODUCED"
+        # Evidence tier hierarchy: UNTESTED < EXPLORATORY < REPRODUCED < ACCEPTED
+        # State promoted to ACCEPTED per verified outcome hybrid integration gate (run 33307151666)
+        assert self.state["evidence_tier"] in ("REPRODUCED", "ACCEPTED")
 
     def test_state_cycle_status(self):
         assert self.state["cycle_status"] == "COMPLETED"
