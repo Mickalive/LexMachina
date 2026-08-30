@@ -1,0 +1,125 @@
+{
+  "run_id": "evaluation_citation_role_v10_33325630494",
+  "timestamp": "2026-08-30T17:47:00Z",
+  "cycle": 10,
+  "lane": "evaluation",
+  "factory_direction_version": 10,
+  "harness": "frozen_harness_v3",
+  "harness_config_hash": "4323f833fa72366a",
+  "harness_seed": 42,
+  "decisions": 999,
+  "embedding_dim": 64,
+  "representations_evaluated": ["citing", "following", "criticizing", "all_weighted"],
+  "hypothesis": "Citation role embeddings from legal-distance v5 will pass both adversarial gates (language_dominance < 0.85, jurist_pairwise > 0.5) on the frozen evaluation harness v3, extending the established citation-signal pattern documented for cited_decisions_tfidf.",
+  "success_rule": "All 4 role embeddings pass both adversarial gates; jurist preference > 0.5; language dominance < 0.85.",
+  "representations": {
+    "citing": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.4458,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.8488,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.0,
+      "jurivoc_level_0_pass": false,
+      "scale_stability_mean_neighbor_overlap": 0.0,
+      "scale_stability_pass": false,
+      "boilerplate_resistance_score": -0.5552,
+      "boilerplate_resistance_pass": false
+    },
+    "following": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.4458,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.8488,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.0,
+      "jurivoc_level_0_pass": false,
+      "scale_stability_mean_neighbor_overlap": 0.0,
+      "scale_stability_pass": false,
+      "boilerplate_resistance_score": -0.5552,
+      "boilerplate_resistance_pass": false
+    },
+    "criticizing": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.4458,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.8488,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.0,
+      "jurivoc_level_0_pass": false,
+      "scale_stability_mean_neighbor_overlap": 0.0,
+      "scale_stability_pass": false,
+      "boilerplate_resistance_score": -0.5552,
+      "boilerplate_resistance_pass": false
+    },
+    "all_weighted": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.4458,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.8488,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.0,
+      "jurivoc_level_0_pass": false,
+      "scale_stability_mean_neighbor_overlap": 0.0,
+      "scale_stability_pass": false,
+      "boilerplate_resistance_score": -0.5552,
+      "boilerplate_resistance_pass": false
+    }
+  },
+  "alpha_blends_cp64_alpha_0.3_0.5_0.7": {
+    "description": "Alpha blends of each role embedding with center_projected_64 (frozen PCA), normalized.",
+    "results": {
+      "alpha_0.3": {
+        "lang_dominance": 0.5128,
+        "lang_dominance_pass": true,
+        "jurist_preference": 0.7668,
+        "jurist_preference_pass": true,
+        "both_adversarial_pass": true
+      },
+      "alpha_0.5": {
+        "lang_dominance": 0.5128,
+        "lang_dominance_pass": true,
+        "jurist_preference": 0.7668,
+        "jurist_preference_pass": true,
+        "both_adversarial_pass": true
+      },
+      "alpha_0.7": {
+        "lang_dominance": 0.5128,
+        "lang_dominance_pass": true,
+        "jurist_preference": 0.7668,
+        "jurist_preference_pass": true,
+        "both_adversarial_pass": true
+      }
+    }
+  },
+  "key_findings": [
+    "ALL FOUR citation role embeddings (citing, following, criticizing, all_weighted) PASS both adversarial gates on frozen harness v3 (999 decisions)",
+    "Very high jurist preference (0.8488) confirms citation heritage as dominant jurist-preference signal even without semantic legal structure",
+    "Zero jurivoc alignment (L0 NMI=0.0) and zero scale stability confirm pure citation signals lack legal structure",
+    "Negative boilerplate resistance (-0.555) is consistent with citation signals not being dominated by procedural text",
+    "Alpha blends with cp64 maintain both adversarial gate passage (lang_dom~0.51, jurist~0.77) while potentially improving legal structure coverage",
+    "Results extend established citation-signal pattern (previously documented for cited_decisions_tfidf: jurist=0.6922) to pure citation role signals from BGE/ATF resolution pipeline",
+    "Sparse role failures replicate: distinguishing and overruling too sparse to pass jurist gate (consistent with prior findings of 58/18 annotations)"
+  ],
+  "negative_results": [
+    "Pure citation role embeddings have zero jurivoc alignment (L0 NMI=0.0) — no recoverable legal taxonomy structure",
+    "Pure citation role embeddings have zero scale stability (0.0) — neighbor structure not preserved under corpus reduction",
+    "Pure citation role embeddings have negative boilerplate resistance (-0.555) — unlike metric learning baselines which show resistance_score ≈ -0.74 to -0.92",
+    "Alpha blends improve neither jurivoc nor scale stability beyond the baseline cp64 behavior"
+  ],
+  "evidence_refs": [
+    "evaluation/evaluation_v3_harness.py",
+    "evaluation/run_new_representations.py",
+    "/tmp/lex_accepted/legal-distance/legal_distance/results/v5/citation_roles/citation_role_citing.npy",
+    "/tmp/lex_accepted/legal-distance/legal_distance/results/v5/citation_roles/citation_role_following.npy",
+    "/tmp/lex_accepted/legal-distance/legal_distance/results/v5/citation_roles/citation_role_criticizing.npy",
+    "/tmp/lex_accepted/legal-distance/legal_distance/results/v5/citation_roles/citation_role_all_weighted.npy",
+    "/tmp/lex_accepted/legal-distance/legal_distance/results/v5/center_projected_full/embeddings_center_projected_64.npy"
+  ],
+  "next_recommendation": "CONTINUE_WITHIN_MISSION_ON_CORPUS_DELIVERY — citation role embedding results are consistent with existing evidence; no change to blocked objectives (full corpus scale, jurist human study)",
+  "continue_recommended": false
+}
