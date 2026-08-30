@@ -22,6 +22,17 @@ STATE_FILE = BASE / "state/fractal-map.json"
 RESOLUTIONS = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0]
 
 
+def _leiden_deps_available():
+    """Check if optional Leiden recompute dependencies are installed."""
+    try:
+        import igraph  # noqa: F401
+        import leidenalg  # noqa: F401
+        import sklearn.neighbors  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
 def load_json(path):
     with open(BASE / path) as f:
         return json.load(f)
@@ -599,6 +610,10 @@ class TestLegalDistanceScaleReadiness:
             p = self.SOURCE_CACHE / f"cited_decisions_tfidf_outcome_hybrid_{mode}.npy"
             assert p.exists(), f"Missing committed source cache {p.name}"
 
+    @pytest.mark.skipif(
+        not _leiden_deps_available(),
+        reason="igraph/leidenalg/sklearn not installed"
+    )
     def test_provenance_reproduced_by_recompute(self):
         # RECOMPUTE-based guard: re-run Leiden slice-before-cluster on the COMMITTED
         # cache at res_1.0 for one mode and require matched purity == 1.0.

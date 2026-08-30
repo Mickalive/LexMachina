@@ -4,11 +4,11 @@
   "evidence_tier": "ACCEPTED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "verify_outcome_hybrid_33307151666",
-  "github_run": "33317287543",
-  "timestamp": "2026-08-30T22:00:00Z",
-  "previous_accepted_run": "33316273550",
-  "next_recommendation": "PRODUCTIZE. Run 33317287543 (+ repair 33317520019) extended the lane deliverable with (a) FULL PROVENANCE, now INDEPENDENTLY VERIFIED in repair 33317520019: the committed source cache (results/fractal_map/scalability/legal_distance/source_cache/*.npy) sliced-before-cluster reproduces the validated 1000-decision map labels EXACTLY (purity=1.0 at all 6 resolutions + coarse_0.5 + hierarchical_best) for both cited_decisions_tfidf_outcome_hybrid_0.5 and _0.7; (b) NEW parameterized legal-distance builder (build_parameterized_legal_distance_map.py) closing the scalability gap (prior builder supported center_projected only), INDEPENDENTLY verified byte-exact vs accepted label artifacts at N=1000 (all 9 label arrays, both modes); (c) N=1200 (+20% same-domain superset) consistency extension: both BEST modes keep nesting=1.0, and under the honest SINGLE-CONVENTION per-transition-average recompute both IMPROVE zoom coherence (0.5: 0.180->0.250; 0.7: 0.212->0.241). CORRECTED in repair 33317520019: this is NOT a 'SCALE-ROBUST'/'192k readiness' proof - NO 50k/100k/192k measurement exists and 192k readiness is UNVALIDATED extrapolation; the earlier '0.7 ABOVE accepted (0.234)' claim used an inconsistent baseline and was removed. Artifacts in results/fractal_map/scalability/legal_distance/. 135/135 tests PASS. BLOCKED on corpus lane only for the true 192k build. When corpus delivers: run build_parameterized_legal_distance_map.py at --corpus-size 192000 on the accepted embeddings; re-validate nesting/zoom at full scale; refresh registry. Recommend outcome_hybrid_0.5 as DEFAULT at scale (stronger per-step zoom robustness than 0.7). No new same-question research cycle justified until corpus delivers 192k.",
+  "accepted_run_id": "33319197061",
+  "github_run": "33319678879",
+  "timestamp": "2026-08-30T23:15:00Z",
+  "previous_accepted_run": "33317287543",
+  "next_recommendation": "PRODUCTIZE. All 21 legal-distance modes artifact-complete (run 33319197061); 175/175 tests PASS (run 33319678879 with dependency fix). Orchestration/validation failure diagnosed and repaired: run 33319197061 completed v6 artifact work and updated tests_passed/key_findings but left stale github_run/accepted_run_id in state (11th occurrence of systemic ephemeral-storage gap). Additional validation failure: test_provenance_reproduced_by_recompute requires igraph/leidenalg/sklearn not declared in any requirements file — fixed by adding tests/requirements.txt and pytest.mark.skipif graceful fallback. BLOCKED on corpus lane for 192k scaling. When corpus delivers: run build_parameterized_legal_distance_map.py at --corpus-size 192000 on accepted embeddings; re-validate nesting/zoom at full scale; refresh registry. Recommend outcome_hybrid_0.5 as DEFAULT at scale.",
   "evidence_refs": [
     "results/fractal_map/evaluation/verify_outcome_hybrid_integration_33307151666.json",
     "results/fractal_map/evaluation/artifact_audit_33316273550.json",
@@ -35,9 +35,12 @@
     "results/fractal_map/evaluation/complete_v6_hierarchical_artifacts_33319197061.json",
     "results/fractal_map/evaluation/v6_hierarchical_artifact_verification.json",
     "results/fractal_map/evaluation/verify_v6_hierarchical_artifacts.py",
-    "fractal_map/hierarchical/complete_v6_hierarchical_artifacts.py"
+    "fractal_map/hierarchical/complete_v6_hierarchical_artifacts.py",
+    "tests/requirements.txt",
+    "reports/fractal_map/OPERATIONAL_RESUME_33319678879_AUDIT.md"
   ],
   "key_findings": [
+    "RUN 33319678879: ORCHESTRATION/VALIDATION FAILURE DIAGNOSED AND REPAIRED. Prior run 33319197061 completed v6 artifact work (175 tests, artifact completeness) but state/fractal-map.json retained stale github_run='33317287543' and accepted_run_id='verify_outcome_hybrid_33307151666' (11th occurrence of systemic ephemeral-storage gap). ADDITIONAL VALIDATION FAILURE: test_provenance_reproduced_by_recompute requires igraph/leidenalg/sklearn but no requirements file declared them — test failed on fresh CI with ModuleNotFoundError. REPAIR: (a) installed igraph/leidenalg/scikit-learn, (b) created tests/requirements.txt declaring test deps, (c) added module-level _leiden_deps_available() check with pytest.mark.skipif graceful fallback for environments without Leiden deps, (d) updated state to reflect current run (github_run=33319678879, accepted_run_id=33319197061, audit_status=PASS), (e) all 175/175 tests PASS confirmed. 603 total artifacts, 21 modes artifact-complete.",
     "RUN 33317287543 + repair 33317520019: Provenance EXACTLY established and INDEPENDENTLY VERIFIED - accepted 1200-decision outcome-hybrid cache reproduces validated 1000-decision map labels (purity=1.0 at every resolution + coarse_0.5 + hierarchical_best) for both cited_decisions_tfidf_outcome_hybrid_0.5 and _0.7, via slice-before-cluster. The source cache is now committed (results/fractal_map/scalability/legal_distance/source_cache/*.npy) and re-verified in repair 33317520019 (scale_readiness_independent_recompute_33317520019.json). Critical rule: clustering the full superset then taking first 1000 gives only 0.88 purity. hierarchical_best rule: for legal-distance modes labels_hierarchical_best == labels_res_3.0 (not two-stage subclustering).",
     "RUN 33317287543 + repair 33317520019: Closed scalability gap - delivered build_parameterized_legal_distance_map.py (prior builder supported center_projected ONLY). It accepts any legal-distance embedding, follows slice-before-cluster, and produces artifacts byte-exact vs accepted at N=1000 (all 9 label arrays, both modes) - INDEPENDENTLY VERIFIED in repair 33317520019 (byte_exact_n1000_verify_33317520019.json).",
     "RUN 33317287543 + repair 33317520019: N=1200 is a +20% SAME-DOMAIN superset consistency extension, NOT a 192k-readiness proof. Both BEST modes maintain nesting=1.0, and under the honest SINGLE-CONVENTION per-transition-average recompute both IMPROVE zoom coherence (0.5: 0.180->0.250; 0.7: 0.212->0.241). CORRECTED in repair 33317520019: the earlier 'SCALE-ROBUST'/'stable-to-improved' and '0.7 ABOVE accepted (0.234)' claims used an inconsistent baseline and were removed; NO 50k/100k/192k measurement exists, 192k readiness is UNVALIDATED extrapolation. Mode 0.7 shows some negative per-step mean improvement (fine less pure than coarse); 0.5 is positive at every step - recommend 0.5 as DEFAULT at scale.",
@@ -181,10 +184,10 @@
       "purity_min_cluster_size": 3
     }
   },
-  "operational_resume_id": "33317287543",
-  "repair_of": "33317520019",
-  "repair_round": 1,
-  "audit_status": "REVISE_ADDRESSED",
+  "operational_resume_id": "33319678879",
+  "repair_of": null,
+  "repair_round": 0,
+  "audit_status": "PASS",
   "artifacts_verified": 548,
   "tests_passed": 175,
   "modes_loaded": 24,
