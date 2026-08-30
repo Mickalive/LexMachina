@@ -5,11 +5,11 @@
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
   "accepted_run_id": "evaluation_v10_audit_ready_33321946599",
-  "github_run": "33322534441",
-  "previous_audit_run": "33321015564",
-  "timestamp": "2026-08-30T20:30:00.000000+00:00",
-  "operational_resume_run": "33322534441",
-  "operational_resume_disposition": "CROSS_VALIDATION_COMPLETE",
+  "github_run": "33339172198",
+  "previous_audit_run": "33338605760",
+  "timestamp": "2026-08-30T22:45:00.000000+00:00",
+  "operational_resume_run": "33339172198",
+  "operational_resume_disposition": "BLOCKED_ON_DEPENDENCIES_VERIFIED_WITH_TEST_EXPANSION",
   "config_hash": "4323f833fa72366a",
   "global_seed": 42,
   "factory_direction_v10_alignment": {
@@ -97,7 +97,13 @@
     "evaluation/experiments/run_debiased_cb_variant_comparison.py",
     "evaluation/results/debiased_citation_blended_cross_validation/debiased_cb_crossval_1788107759_results.json",
     "evaluation/results/debiased_citation_blended_cross_validation/dcbl_variants_1788107832_variant_comparison.json",
-    "reports/evaluation/evaluation_debiased_cb_cross_validation_33322534441.md"
+    "reports/evaluation/evaluation_debiased_cb_cross_validation_33322534441.md",
+    "evaluation/experiments/evaluate_v12_cross_mode_cv.py",
+    "results/evaluation/v12_cross_mode_cv/v12_cross_mode_cv_eval_v12_cv_1788128447.json",
+    "reports/evaluation/evaluation_repair_33337788256_r1.md",
+    "results/audit/evaluation/CYCLE_33337788256_r1_GATE.json",
+    "tests/evaluation/test_v12_cross_mode_cv.py",
+    "reports/evaluation/evaluation_v10_operational_resume_33339172198.md"
   ],
   "key_findings": [
     "EVALUATION v3+ COMPLETED: Frozen evaluation harness (seed=42, config_hash=4323f833fa72366a) executed on expanded 1,200-decision slice. REPRODUCED EXACTLY in GitHub run 33232234741 AND VERIFIED in run 33240972425. LOCAL REPRODUCIBILITY CONFIRMED. Integration of cited_decisions_tfidf results completed in operational resume 33265417443.",
@@ -126,7 +132,8 @@
     "ANTI-NOISE PROCEDURAL SENSITIVITY OF REAL-BOILERPLATE CONCLUSION (Factory Direction v10, evaluation_anti_noise_procedural_sensitivity_33318520605): NEGATIVE finding — the accepted 'boilerplate does not drive neighbors' conclusion is ROBUST to the anti-noise concern. Deep removal of routine procedural reasoning passages (~26-30% text) drops k-NN preservation substantially (shallow 0.9325 -> deep 0.6835, delta=0.249), BUT removing the SAME volume of substantive (lowest-procedural) content drops it just as much (control delta=0.2525); procedural-specific excess = -0.0035 (< 0.03 frozen threshold). The drop is a bulk-removal / TF-IDF+SVD refit artifact, NOT a procedural anti-noise leak. A no-control initial pass falsely declared FRAGILE (delta=0.249); the mandatory equal-volume control reversed it. Procedural passages are NOT disproportionately responsible for neighbor structure on the 1200-slice. Shallow real-boilerplate protocol remains canonical at slice level. Re-run this sensitivity design at 192k corpus scale when corpus lane delivers.",
     "V11 OOS HYBRID_STABILIZED CROSS-VALIDATION ON CANONICAL FROZEN HARNESS v3 (Factory Direction v10, evaluation_v11_cross_validation_33319724787): CONFIRMED — Both v11 OOS models (hierarchy + no-hierarchy arms) PASS both adversarial gates on full 1200-decision slice. Hierarchy: LangDom=0.7157, JP=0.5975; No-hierarchy: LangDom=0.7074, JP=0.5967. Hierarchy loss effect on canonical full slice: ΔJP=+0.0008 (essentially zero, NOT load-bearing). v11 report hierarchy effect (+0.030 on 200 holdout) was inflated by small-sample noise. NEGATIVE: v11 OOS models are WORSE than metric learning baselines on canonical benchmark (JP=0.597 vs linear 0.685, mahalanobis 0.678). The 'roughly tied' conclusion from 200 holdout does NOT transfer to 1200-slice. Hierarchy arm has better Jurivoc L0 (0.5205 vs 0.4771) but WORSE fractal ImpRate (67.8% vs 86.0%). JuristPref > 0.7 factory target NOT MET by any v11 representation (ceiling ~0.60). Product integration gap audit: 3 of 8 'in product but not evaluated' are FALSE GAPS (evaluated in cited_decisions_validation); CRITICAL: cited_decisions_tfidf_outcome_hybrid_0.5 (JP=0.7965) and _0.7 (JP=0.7898) remain BEST representations and are NOT in product map modes.",
     "DEBIASED_CITATION_BLENDED FALSIFIED ON CANONICAL FROZEN HARNESS v3 (Factory Direction v10, evaluation_debiased_cb_cross_validation_33322534441): FALSIFICATION — debiased_citation_blended from fractal-map lane (cycles 12-14, PRODUCTIZE recommendation) FAILS canonical adversarial gates at ALL PCA dimensionalities (64, 128, 768). 768-dim: LangDom=0.7877 PASS, Jurist=0.4660 FAIL. 128-dim: LangDom=0.7891 PASS, Jurist=0.4850 FAIL. 64-dim: LangDom=0.7815 PASS, Jurist=0.4970 FAIL. Control: cited_decisions_tfidf on same 1000 decisions: LangDom=0.6176 PASS, Jurist=0.6430 PASS. Cycle 14 report's 'language_dominance' (0.6406) is MISLABELED — actually measures branch_coherence, not language dominance. Canonical harness language dominance (0.7877) is a different, more stringent test. Cross-language recall is excellent (0.4660 — best in class) but does not translate to jurist preference. Product implication: debiased_citation_blended should NOT be adopted as product default. Consider as secondary cross-language navigation mode only.",
-    "CITATION ROLE EMBEDDINGS ON FROZEN HARNESS v3 (Factory Direction v10, NEW CYCLE): ALL FOUR citation role embeddings from legal-distance v5 (citing, following, criticizing, all_weighted, 999 decisions, 64-dim) PASS both adversarial gates with very high jurist preference (0.8488) but ZERO jurivoc alignment (L0 NMI=0.0), zero scale stability (0.0), and negative boilerplate resistance (-0.555). This extends the established citation-signal pattern (previously documented for cited_decisions_tfidf: jurist=0.6922) to pure citation role signals, confirming that citation heritage is a dominant jurist-preference signal even in the absence of semantic legal structure. Alpha blends of citation roles with center_projected_64 (alphas 0.3/0.5/0.7) maintain both adversarial gate passage (lang_dom~0.51, jurist~0.77). Sparse role failures replicate: distinguishing (too few annotations) and overruling FAIL jurist gate. ALL role hybrids validated on frozen harness v3: PASS adversarial gates at low alpha; distinguishing/overruling too sparse. Negative result: pure citation role signals lack legal structure (jurivoc=0.0, scale=0.0) despite strong jurist preference."
+    "CITATION ROLE EMBEDDINGS ON FROZEN HARNESS v3 (Factory Direction v10, NEW CYCLE): ALL FOUR citation role embeddings from legal-distance v5 (citing, following, criticizing, all_weighted, 999 decisions, 64-dim) PASS both adversarial gates with very high jurist preference (0.8488) but ZERO jurivoc alignment (L0 NMI=0.0), zero scale stability (0.0), and negative boilerplate resistance (-0.555). This extends the established citation-signal pattern (previously documented for cited_decisions_tfidf: jurist=0.6922) to pure citation role signals, confirming that citation heritage is a dominant jurist-preference signal even in the absence of semantic legal structure. Alpha blends of citation roles with center_projected_64 (alphas 0.3/0.5/0.7) maintain both adversarial gate passage (lang_dom~0.51, jurist~0.77). Sparse role failures replicate: distinguishing (too few annotations) and overruling FAIL jurist gate. ALL role hybrids validated on frozen harness v3: PASS adversarial gates at low alpha; distinguishing/overruling too sparse. Negative result: pure citation role signals lack legal structure (jurivoc=0.0, scale=0.0) despite strong jurist preference.",
+    "V12 CROSS-MODE COMBINATION REPAIR ON CANONICAL FROZEN HARNESS v3 (Factory Direction v10, repair_33337788256_r1): REPAIRED corpus mismatch defect from audit 33337788256. v12 experiment now uses canonical 1200-decision expanded slice (evaluation/data/bger_expanded_1200.jsonl) with canonical metadata and embeddings from accepted lane. Results REPLICATE v12 finding with stronger improvement on canonical corpus: mean ΔJP=+0.043 (exceeds claimed +0.035), 4/5 folds positive, all folds pass adversarial gates. Best combination: linear_citation_ridge (JP=0.860). center_projected_64dim performs normally on canonical corpus (JP=0.799) vs catastrophic failure on 1000-decision corpus (JP=0.165) — prior failure was small-pool bias artifact. Config hash 4323f833fa72366a now consistent with actual data. All 10 previous negative results preserved. Prior FALSIFICATION on 1000-decision corpus superseded by canonical result."
   ],
   "validation_metrics": {
     "center_projected_768": {
@@ -948,6 +955,21 @@
       "hybrid_objectives": "python legal_distance/run_hybrid_objectives.py --base-embeddings legal_distance/results/v5/center_projected_full/embeddings_center_projected.npy --output-dir legal_distance/results/v6",
       "citation_role_embeddings": "python legal_distance/experiments/v7_citation_role_embeddings.py --output-dir legal_distance/results/v7/citation_role_embeddings",
       "citation_role_embeddings_frozen_harness": "python evaluation/experiments/run_citation_roles_on_frozen_harness.py"
+    },
+    "v12_cross_mode_cv_canonical": {
+      "script": "evaluation/experiments/evaluate_v12_cross_mode_cv.py",
+      "results": "results/evaluation/v12_cross_mode_cv/v12_cross_mode_cv_eval_v12_cv_1788128447.json",
+      "repair_report": "reports/evaluation/evaluation_repair_33337788256_r1.md",
+      "audit_gate": "results/audit/evaluation/CYCLE_33337788256_r1_GATE.json",
+      "corpus": "evaluation/data/bger_expanded_1200.jsonl (1200 decisions, canonical)",
+      "metadata": "evaluation/data/bger_expanded_1200_metadata.jsonl",
+      "embeddings": "/tmp/lex_accepted/legal-distance/legal_distance/results/v5/center_projected_full/embeddings_center_projected_64.npy",
+      "config_hash": "4323f833fa72366a",
+      "verdict": "REPLICATED",
+      "mean_improvement": 0.0433,
+      "positive_folds": "4/5",
+      "best_combination": "linear_citation_ridge JP=0.860",
+      "description": "v12 cross-mode combination validated on canonical frozen harness v3 after corpus mismatch repair. Prior FALSIFICATION on 1000-decision corpus superseded."
     }
   }
 }
