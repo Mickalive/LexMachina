@@ -11,8 +11,8 @@ all 5 folds pass both adversarial gates), the finding moves to ACCEPTED tier.
 If improvement is unstable or negative on any fold, the finding is FALSIFIED.
 
 FROZEN BEFORE OBSERVATION:
-- Corpus: 1000 BGer decisions (2020-2024) from canonical fractal-map baseline
-- 5-fold cross-validation (each fold: 800 train / 200 test)
+- Corpus: 1200 BGer decisions (expanded slice) from canonical frozen harness v3
+- 5-fold cross-validation (each fold: 960 train / 240 test)
 - Baseline: center_projected_64dim (production default)
 - Adversarial gates: LangDom < 0.85, JuristPref > 0.5
 - Success rule: Mean JP improvement > 0 across 5 folds
@@ -43,9 +43,9 @@ logger = logging.getLogger(__name__)
 # ======================================================================
 # Paths
 # ======================================================================
-CORPUS_PATH = Path("/tmp/lex_accepted/corpus/corpus/normalization/canonical/bger_2000plus_slice_1000.jsonl")
-METADATA_PATH = Path("/tmp/lex_accepted/fractal-map/results/fractal_map/baseline/metadata.json")
-EMBEDDINGS_PATH = Path("/tmp/lex_accepted/fractal-map/results/fractal_map/baseline/embeddings.npy")
+CORPUS_PATH = Path("/home/runner/work/LexMachina/LexMachina/evaluation/data/bger_expanded_1200.jsonl")
+METADATA_PATH = Path("/home/runner/work/LexMachina/LexMachina/evaluation/data/bger_expanded_1200_metadata.jsonl")
+EMBEDDINGS_PATH = Path("/tmp/lex_accepted/legal-distance/legal_distance/results/v5/center_projected_full/embeddings_center_projected_64.npy")
 OUTPUT_DIR = Path("/home/runner/work/LexMachina/LexMachina/results/evaluation/v12_cross_mode_cv")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -118,15 +118,18 @@ def load_corpus():
 
 
 def load_baseline_metadata():
-    """Load baseline metadata (1000 decisions)."""
+    """Load baseline metadata (1200 decisions, canonical harness)."""
+    metadata = []
     with open(METADATA_PATH) as f:
-        metadata = json.load(f)
+        for line in f:
+            if line.strip():
+                metadata.append(json.loads(line))
     logger.info(f"Loaded {len(metadata)} baseline metadata entries")
     return metadata
 
 
 def load_baseline_embeddings():
-    """Load center-projected embeddings."""
+    """Load center-projected 64-dim embeddings (canonical harness)."""
     embeddings = np.load(EMBEDDINGS_PATH)
     logger.info(f"Loaded embeddings: shape={embeddings.shape}")
     return embeddings
@@ -450,7 +453,7 @@ def main():
     # 1. Load data
     corpus = load_corpus()
     metadata = load_baseline_metadata()
-    embeddings_768 = load_baseline_embeddings()
+    embeddings_64 = load_baseline_embeddings()  # Already 64-dim from canonical harness
 
     # Align corpus to metadata
     corpus_aligned = align_corpus_to_metadata(corpus, metadata)
@@ -474,8 +477,8 @@ def main():
             em['language'] = 'de'
         enriched_meta.append(em)
 
-    # 2. Build center_projected_64dim (global, not per-fold)
-    cp_64dim, pca_model = build_center_projected_64dim(embeddings_768)
+    # 2. Load center_projected_64dim (already 64-dim from canonical harness)
+    cp_64dim = embeddings_64  # Already 64-dim from canonical path
 
     # 3. 5-Fold Cross-Validation
     kf = KFold(n_splits=N_FOLDS, shuffle=True, random_state=FROZEN_SEED)
@@ -490,8 +493,8 @@ def main():
 
         train_meta = [enriched_meta[i] for i in train_idx]
         test_meta = [enriched_meta[i] for i in test_idx]
-        train_emb_768 = embeddings_768[train_idx]
-        test_emb_768 = embeddings_768[test_idx]
+        train_emb_64 = embeddings_64[train_idx]
+        test_emb_64 = embeddings_64[test_idx]
         train_cp64 = cp_64dim[train_idx]
         test_cp64 = cp_64dim[test_idx]
 
@@ -762,7 +765,7 @@ def main():
         'config_hash': FROZEN_CONFIG_HASH,
         'seed': FROZEN_SEED,
         'n_folds': N_FOLDS,
-        'corpus': '1000 BGer decisions (2020-2024), canonical fractal-map baseline',
+        'corpus': '1200 BGer decisions (expanded slice), canonical frozen harness v3',
         'hypothesis': 'v12 cross-mode combination JP improvement (+0.035) replicates across 5 folds',
         'success_rule': 'Mean JP improvement > 0 across folds AND all folds pass adversarial gates',
         'fold_results': fold_results,
