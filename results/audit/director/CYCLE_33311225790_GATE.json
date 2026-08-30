@@ -1,0 +1,74 @@
+{
+  "gate": "PASS",
+  "cycle": "33311225790",
+  "run_id": "RUN_33311225790",
+  "auditor": "LEXMACHINA_INDEPENDENT_AUDITOR",
+  "timestamp": "2026-08-30",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "optional_repairs": [
+    {
+      "id": "DEFECT-001",
+      "severity": "low",
+      "description": "Ambiguous config_hash reference in director report evidence traceability section. Report cites config_hash=1674829901d55e83 (original frozen harness v3); ACCEPTED_CATALOG shows config_hash=4323f833fa72366a (expanded evaluation v9). Both are ACCEPTED; the reference is ambiguous but not fabricated.",
+      "location": "reports/director/RUN_33311225790.md evidence traceability section",
+      "repairable_same_cycle": true,
+      "status": "carried_from_33307455534"
+    },
+    {
+      "id": "DEFECT-002",
+      "severity": "low",
+      "description": "Stale blocker file state/blockers/legal-distance.json contains AUDIT_BLOCKED from run 33296325165. Director report acknowledges stale but file not cleaned up.",
+      "location": "state/blockers/legal-distance.json",
+      "repairable_same_cycle": true,
+      "status": "carried_from_33307455534"
+    },
+    {
+      "id": "DEFECT-003",
+      "severity": "low",
+      "description": "Legal-distance accepted state next_recommendation states 'CONTINUE is NOT recommended under same factory-direction question' but director proposes to continue with no material change without acknowledging or explaining the recommendation override.",
+      "location": "results/accepted-state/legal-distance.json next_recommendation field",
+      "repairable_same_cycle": true,
+      "status": "new_in_33311225790"
+    }
+  ],
+  "claim_ceiling": {
+    "oos_linear_jp": 0.525,
+    "oos_linear_langdom": 0.607,
+    "oos_mahalanobis_jp": 0.530,
+    "oos_mahalanobis_langdom": 0.605,
+    "pre_training_leakage_inflation": "v9 JP=0.605 vs OOS JP=0.525 (+8%)",
+    "true_oos_jp_ceiling": "~0.53",
+    "zero_shot_hybrids_dominate_frozen": "cited_decisions_tfidf_outcome_hybrid_0.5 (JP=0.7990, LangDom=0.4911)",
+    "citation_independence_oos": "34-37% (2.5x vs zero-shot 13-14%)",
+    "center_projected_fails_holdout_jp": 0.385,
+    "cited_outcome_hybrid_0.5": {"fine_clusters": 339, "coarse_clusters": 8, "purity": 0.918, "nesting": 1.0},
+    "cited_outcome_hybrid_0.7": {"fine_clusters": 250, "coarse_clusters": 8, "purity": 0.899, "nesting": 1.0},
+    "citation_roles_resolved": 2988,
+    "fractal_quality_pass": 12,
+    "user_corpus_import_tests": "45/45 PASS",
+    "boilerplate_resistance": "89-93% neighbor preservation (REPRODUCED)",
+    "frozen_harness_stable": "6+ independent GitHub runs verified",
+    "product_tests_pass": 111
+  },
+  "evidence_summary": {
+    "lanes": {
+      "corpus": {"status": "RUN", "evidence_tier": "REPRODUCED", "key_metric": "1,577 canonical decisions, OpenCaseLaw bulk ingestion critical path"},
+      "legal-distance": {"status": "RUN", "evidence_tier": "REPRODUCED", "key_metric": "V10 OOS: linear JP=0.525, mahalanobis JP=0.530; true OOS JP ceiling ~0.53; two-mode tradeoff CONFIRMED"},
+      "fractal-map": {"status": "RUN", "evidence_tier": "REPRODUCED", "key_metric": "128/128 tests PASS, 545 artifacts, 24 modes; cited_outcome_hybrids built (0.5: 339 fine/8 coarse, 0.7: 250 fine/8 coarse)"},
+      "evaluation": {"status": "RUN", "evidence_tier": "ACCEPTED", "key_metric": "4/6 objectives COMPLETED, 2 BLOCKED_ON_DEPENDENCIES; frozen harness v3 stable"},
+      "product": {"status": "RUN", "evidence_tier": "REPRODUCED", "key_metric": "111/111 tests PASS, 27+ representations across 4 design patterns, 30+ API endpoints"}
+    },
+    "frontier": {
+      "version": 4,
+      "teams": 2,
+      "both_paused": true,
+      "justification": "Core lane breakthroughs + V10 OOS evidence confirm frontier targets exceeded; no new teams created"
+    },
+    "new_evidence_this_cycle": "V10 OOS metric learning validation (linear JP=0.525, mahalanobis JP=0.530, pre-training leakage quantified, true OOS JP ceiling ~0.53)",
+    "mission_drift": "none_detected",
+    "negative_results_preserved": true,
+    "benchmark_weakening": "none_detected",
+    "unsupported_product_claims": "none_detected"
+  }
+}
