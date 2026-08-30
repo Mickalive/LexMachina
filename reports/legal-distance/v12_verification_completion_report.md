@@ -76,7 +76,7 @@ The original report claimed values for `cited_outcome_hybrid_0.5` and `cited_out
 
 The value JP=0.7990 does not appear in any v8 validation file. The value LangDom=0.4911 does not appear in any v8 validation file. The HierAdv value +0.3703 for cited_outcome_hybrid_0.7 is not present in the v8 holdout adversarial results (the field `hierarchical_advantage` does not appear in the holdout adversarial JSON for this representation).
 
-**Note:** The values 0.4911 and 0.7990 may originate from factory direction metadata or earlier non-holdout evaluations, but they do not match the verified holdout results. The factory direction v10 text in `state/factory_direction.json` references these values but they are not reproducible from the holdout validation artifacts.
+**Note:** The values 0.4911 and 0.7990 do not appear in any v8 holdout validation artifact and their exact provenance could not be traced to a specific evaluation result file within the repository. The verified holdout values for cited_outcome_hybrid_0.5 are LangDom=0.511 and JP=0.580 (from the fixed-selection holdout validation at `v8/holdout_zero_shot_validation_fixed/holdout_zero_shot_validation_fixed.json`).
 
 ### 2.5 v10 Objective Closure Assessment
 
@@ -129,6 +129,7 @@ This report is repair round 1 of cycle 33319192228. The following fabricated cla
 | 3 | Product integration claims (map_loader.py, index.html, product/ artifacts, 159 tests) | Marked **UNVERIFIED** — files do not exist in workspace |
 | 4 | cited_outcome_hybrid_0.5: "LangDom=0.4911, JP=0.7990" | Corrected to **LD=0.511, JP=0.580** (verified holdout) |
 | 5 | Lane state desync not acknowledged | **Acknowledged** with corrective action |
+| 6 | Line 79 attributed values 0.4911/0.7990 to `factory_direction.json` | Removed attribution; stated provenance untraceable to evaluation artifacts (repair round 3, cycle 33320990287) |
 
 ## 5. Files Produced
 
@@ -138,11 +139,11 @@ This report is repair round 1 of cycle 33319192228. The following fabricated cla
 
 ## 6. Sign-Off
 
-**Producer**: LexMachina Legal Distance Lane (repair cycle 33319192228, round 1)  
-**Verification**: All 39 evidence_refs exist; cross-lane state facts verified from existing files; product integration UNVERIFIED; metric values corrected to holdout-verified values; lane state desync acknowledged.  
+**Producer**: LexMachina Legal Distance Lane (repair cycle 33319192228, round 1; line 79 corrected in repair cycle 33320990287 round 3)  
+**Verification**: All 39 evidence_refs exist; cross-lane state facts verified from existing files; product integration UNVERIFIED; metric values corrected to holdout-verified values; lane state desync acknowledged; line 79 attribution to factory_direction.json removed (provenance of 0.4911/0.7990 values untraceable to specific evaluation artifacts).  
 **Integrity**: No data fabrication; no benchmark weakening; no post-hoc metric changes. All fabricated claims from original report removed or corrected.  
 **Status**: LANE COMPLETE — awaiting Factory Director successor question.
 
 ---
 
-*End of Report — v10 Completion Verification (Repaired)*
+*End of Report — v10 Completion Verification (Repaired, line 79 corrected R3)*
