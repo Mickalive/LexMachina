@@ -1,0 +1,61 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Evaluation lane deliverable is COMPLETE and AUDIT-READY under Factory Direction v10; 4 of 6 objectives COMPLETED, 2 BLOCKED on external dependencies (corpus 192k ingestion, GPU fine-tuning, jurist recruitment). Frozen adversarial harness v3 (seed=42, config_hash=4323f833fa72366a) reproduced with 20/20 regression tests PASS. 29 validation metrics: 22 PASS, 7 expected FAIL. All negative results preserved as first-class evidence per Research Protocol.",
+  "evidence_summary": {
+    "frozen_harness_integrity": {
+      "config_hash": "4323f833fa72366a",
+      "global_seed": 42,
+      "thresholds_unchanged": true,
+      "benchmark_params_unchanged": true,
+      "verified_by": "test_frozen_harness_v3_reproducibility.py"
+    },
+    "regression_tests": {
+      "total": 20,
+      "passed": 20,
+      "failed": 0,
+      "duration_seconds": 0.82,
+      "modules": [
+        "test_anti_noise_procedural_sensitivity.py (3)",
+        "test_boilerplate_resistance_real.py (1)",
+        "test_cross_lingual_alignment_v10.py (1)",
+        "test_frozen_harness_v3_reproducibility.py (1)",
+        "test_product_integration_v11.py (5)",
+        "test_v11_cross_validation.py (8)"
+      ]
+    },
+    "validation_metrics": {
+      "representations_evaluated": 29,
+      "adversarial_gate_pass": 22,
+      "adversarial_gate_fail": 7,
+      "failures_expected": 7,
+      "unexpected_failures": 0
+    },
+    "negative_results_preserved": 10,
+    "key_falsifications": [
+      "debiased_citation_blended FAILS at ALL PCA dims (64/128/768) on canonical harness",
+      "center_projected_64dim FAILS holdout adversarial gates (JP=0.385) despite passing frozen harness (JP=0.512)",
+      "multilingual_e5_small_pretrained: catastrophic hierarchy collapse (Jurivoc L0=0.0, scale=0.0)",
+      "V11 hierarchy loss effect ΔJP=+0.0008 (NOT load-bearing; report claimed +0.030 on 200 holdout)",
+      "Procrustes/CCA alignment CATASTROPHIC for cited_decisions_tfidf",
+      "JuristPref ceiling ~0.605 on holdout — no representation achieves >0.7 factory target"
+    ],
+    "design_patterns_validated": 2,
+    "factory_direction_v10_objectives": {
+      "completed": 4,
+      "blocked": 2,
+      "blockers": [
+        "corpus lane: OpenCaseLaw bulk ingestion (192k scale)",
+        "GPU availability for fine-tuning with hierarchy loss",
+        "jurist recruitment (5-10 Swiss jurists)"
+      ]
+    },
+    "state_consistency": {
+      "state_file_matches_audit_snapshot": true,
+      "config_hash_match": true,
+      "seed_match": true,
+      "continue_recommended_false": true
+    }
+  }
+}
