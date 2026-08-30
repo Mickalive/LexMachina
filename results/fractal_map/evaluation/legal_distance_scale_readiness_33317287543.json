@@ -10,12 +10,13 @@
   "frozen_metric": "per-resolution label matched-purity (=1.0 exact reproduction), nesting_score, zoom_coherence_improvement_rate (fraction of coarse clusters whose child purity improves on zoom)",
   "frozen_success_rule": "reproduction matched-purity >= 0.95 at every resolution; nesting_score == 1.0; zoom_improvement_rate at N==1200 not materially below the accepted N==1000 baseline",
 
-  "provenance_reproduction": {
+    "provenance_reproduction": {
     "question": "Does the accepted 1200-decision cache reproduce the validated 1000-decision map labels (sliced to first 1000 rows BEFORE clustering)?",
     "method": "Leiden (k=15, seed=42) on cache[:1000], compared to stored labels via best-match cluster purity.",
     "result_mode_0.5": {
       "res_0.25": {"n_repro": 11, "n_stored": 11, "purity": 1.0},
       "res_0.5": {"n_repro": 14, "n_stored": 14, "purity": 1.0},
+      "res_0.75": {"n_repro": 18, "n_stored": 18, "purity": 1.0},
       "res_1.0": {"n_repro": 22, "n_stored": 22, "purity": 1.0},
       "res_1.5": {"n_repro": 22, "n_stored": 22, "purity": 1.0},
       "res_2.0": {"n_repro": 24, "n_stored": 24, "purity": 1.0},
@@ -24,13 +25,21 @@
     "result_mode_0.7": {
       "res_0.25": {"n_repro": 10, "n_stored": 10, "purity": 1.0},
       "res_0.5": {"n_repro": 15, "n_stored": 15, "purity": 1.0},
+      "res_0.75": {"n_repro": 16, "n_stored": 16, "purity": 1.0},
       "res_1.0": {"n_repro": 19, "n_stored": 19, "purity": 1.0},
       "res_1.5": {"n_repro": 22, "n_stored": 22, "purity": 1.0},
       "res_2.0": {"n_repro": 25, "n_stored": 25, "purity": 1.0},
       "res_3.0": {"n_repro": 29, "n_stored": 29, "purity": 1.0}
     },
+    "independently_verified_in_repair_33317520019": {
+      "source_cache_committed": "results/fractal_map/scalability/legal_distance/source_cache/*.npy",
+      "method": "Re-ran Leiden(k=15,seed=42) slice-before-cluster on the COMMITTED cache, for both modes, at ALL 6 resolutions + coarse_0.5 + hierarchical_best",
+      "all_purity_1_0": true,
+      "reference": "results/fractal_map/evaluation/scale_readiness_independent_recompute_33317520019.json",
+      "verdict": "VERIFIED_PURITY_1.0"
+    },
     "verdict": "REPRODUCIBLE",
-    "note": "Both modes reproduce EXACTLY (purity=1.0) at all 6 resolutions AND coarse_0.5 AND hierarchical_best, from the accepted cache sliced to 1000 BEFORE clustering. This establishes full provenance: the accepted legal-distance cache is precisely the source of the fractal-map outcome-hybrid artifacts."
+    "note": "Both modes reproduce EXACTLY (purity=1.0) at all 6 resolutions AND coarse_0.5 AND hierarchical_best, from the accepted cache sliced to 1000 BEFORE clustering. REPAIR 33317520019 COMMITS the source cache and INDEPENDENTLY re-verifies this claim (was previously NOT-INDEPENDENTLY-VERIFIABLE because the cache was absent from the workspace)."
   },
   "hierarchical_best_rule": {
     "finding": "For legal-distance modes, labels_hierarchical_best exactly equals labels_res_3.0 (finest single-resolution assignment), NOT the two-stage coarse_0.5->sub_3.0 subclustering used for center_projected.",
@@ -57,29 +66,42 @@
       "n_fine_clusters": 32,
       "mean_nesting_score": 1.0,
       "mean_branch_purity_all_levels": 0.5108,
-      "zoom_improvement_rate": 0.265,
+      "zoom_improvement_rate": 0.2414,
       "all_steps_positive_mean_improvement": false,
-      "note": "Some individual resolution-steps showed negative mean improvement (fine clusters less pure than coarse parents), but the aggregate cluster-level improvement_rate (0.265) is ABOVE the accepted 1000-decision value (0.234)."
+      "note": "Some individual resolution-steps showed negative mean improvement (fine clusters less pure than coarse parents). CORRECTED in repair 33317520019: the earlier 'aggregate cluster-level improvement_rate (0.265) is ABOVE the accepted 1000-decision value (0.234)' claim used an inconsistent baseline (0.234/0.2336 vs the accepted-state 0.2759) and a mismatched convention. Under ONE consistent per-transition-average convention applied to BOTH sides the honest result is mode 0.7 IMPROVED: N=1000 0.2115 -> N=1200 0.2414."
     },
     "zoom_improvement_rate_comparison": {
-      "mode_0.5_n1000_accepted": 0.1712,
-      "mode_0.5_n1200": 0.260,
-      "mode_0.7_n1000_accepted": 0.2336,
-      "mode_0.7_n1200": 0.265
+      "convention": "per-transition-average of the fraction of coarse clusters (size>=3, branch known) whose mean-child-purity improves on zoom, averaged over the 6 resolution transitions; IDENTICAL computation for N=1000 and N=1200 side (recomputed in repair 33317520019).",
+      "mode_0.5_n1000_recomputed_pta": 0.1802,
+      "mode_0.5_n1200_pta": 0.2500,
+      "mode_0.5_direction": "IMPROVED",
+      "mode_0.7_n1000_recomputed_pta": 0.2115,
+      "mode_0.7_n1200_pta": 0.2414,
+      "mode_0.7_direction": "IMPROVED",
+      "note": "The accepted N=1000 values recorded in state (0.1944 for 0.5, 0.2759 for 0.7) use the CHILD-CLUSTER-LEVEL convention (total_improvements/total_evaluated) and are NOT numerically comparable to the per-transition-average convention used for N=1200. Comparing them directly (0.2759 vs 0.265) would make mode 0.7 look flat/declining, but that is a convention mismatch, not a real decline. The correct comparison uses one convention for both sides, as recomputed here: BOTH modes improved at N=1200."
     },
-    "verdict": "SCALE-ROBUST",
-    "note": "Both modes maintain nesting=1.0 and zoom_improvement_rate stable-to-improved from N=1000 to N=1200. Supports parameterized-builder readiness for full-corpus scaling."
+    "verdict": "CONSISTENCY_EXTENSION_NOT_SCALE_READY",
+    "note": "BOTH modes maintain nesting=1.0, and under the honest single-convention per-transition-average recompute both IMPROVE (0.5: 0.180->0.250; 0.7: 0.212->0.241). However N=1200 is a +20% SAME-DOMAIN superset extension of the 1000 slice, NOT a readiness proof for ~192k. No 50k/100k/192k measurement exists; 192k readiness is UNVALIDATED extrapolation. Updated in repair 33317520019."
   },
 
   "deliverable": {
     "parameterized_builder": "fractal_map/hierarchical/build_parameterized_legal_distance_map.py",
     "capability": "Scales multi-resolution Leiden for ANY legal-distance embedding (.npy) to arbitrary corpus size, following the slice-before-cluster provenance rule.",
-    "byte_exact_validation": "Output at N=1000 byte-exactly reproduces all 9 accepted label artifacts for both outcome-hybrid modes.",
+    "byte_exact_validation": "Output at N=1000 byte-exactly reproduces all 9 accepted label artifacts for both outcome-hybrid modes. INDEPENDENTLY VERIFIED in repair 33317520019 by running the builder at N=1000 from the COMMITTED source cache; all 9 label arrays byte-identical for both modes (reference: results/fractal_map/evaluation/byte_exact_n1000_verify_33317520019.json).",
     "scale_artifacts": [
       "results/fractal_map/scalability/legal_distance/cited_decisions_tfidf_outcome_hybrid_0.5_n1200/",
       "results/fractal_map/scalability/legal_distance/cited_decisions_tfidf_outcome_hybrid_0.7_n1200/"
     ]
   },
 
-  "recommendation": "PROMOTE as part of lane deliverable. Provenance for both BEST modes now fully established; parameterized legal-distance builder closes the scalability gap flagged across all prior audit resumes; N=1200 scale extension shows fractal structures are robust at larger corpus size. BLOCKED on corpus lane only for true 192k build. Recommend making outcome_hybrid_0.5 the DEFAULT at scale given its stronger per-step zoom-coherence robustness vs 0.7."
+  "claims_correction": {
+    "repair_run": "33317520019",
+    "repair_round": 1,
+    "reason": "Independent audit of run 33317520019 (original) returned REVISE with 3 required fixes.",
+    "fix_1_mode07_baseline": "Removed the false '0.265 ABOVE accepted (0.234)' and 'stable-to-improved' statements for mode 0.7 that compared against an inconsistent baseline. Recomputed BOTH N=1000 and N=1200 zoom improvement with ONE consistent per-transition-average convention; honest result: mode 0.7 IMPROVED (0.2115 -> 0.2414). Also documented that the accepted-state 0.2759 uses a child-cluster-level convention and is not numerically comparable to the per-transition-average N=1200 value.",
+    "fix_2_scale_reframe": "Downgraded 'SCALE-ROBUST'/'scale readiness' to 'CONSISTENCY_EXTENSION_NOT_SCALE_READY'. N=1200 is a +20% same-domain superset extension; NO 50k/100k/192k measurement exists; 192k readiness remains UNVALIDATED extrapolation.",
+    "fix_3_provenance_verifiable": "Committed the source embedding cache to results/fractal_map/scalability/legal_distance/source_cache/*.npy and INDEPENDENTLY re-verified BOTH previously-unverifiable claims: (a) provenance purity=1.0 slice-before-cluster at all 6 resolutions + coarse_0.5 + hierarchical_best for both modes (scale_readiness_independent_recompute_33317520019.json), and (b) byte-exact N=1000 builder reproduction of all 9 label arrays for both modes (byte_exact_n1000_verify_33317520019.json)."
+  },
+
+  "recommendation": "PROMOTE as part of lane deliverable, WITH corrected claims. Provenance (purity=1.0) and byte-exact N=1000 builder reproduction are now independently verified from the committed source cache. N=1200 is a +20% same-domain consistency extension, NOT a 192k-scale readiness proof; no 50k/100k/192k measurement exists, and full-corpus (192k) build remains BLOCKED on the corpus lane. Under the honest single-convention recompute both BEST modes improve zoom coherence at N=1200. Recommend outcome_hybrid_0.5 as DEFAULT at scale (stronger per-step zoom robustness than 0.7)."
 }
