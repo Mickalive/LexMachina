@@ -87,9 +87,7 @@ The adversarial gate failure is NOT dimensionality-dependent. All three PCA vari
 | Citation Heritage AUC | 0.9102 | N/A | — | Not measured on canonical harness |
 | Cross-lang Recall | N/A | 0.4660 | — | Excellent (best in class) |
 
-**Critical discrepancy:** The cycle 14 "language dominance" (0.6406) is not the same metric as the canonical harness "language dominance" (0.7877). Cycle 14 uses a different implementation that conflates language and branch signals. The canonical harness language dominance measures pure language clustering in k-NN (are neighbors same language?), while cycle 14's "adversarial_falsification" measures branch coherence (are neighbors same branch?) — a different question entirely.
-
-**The cycle 14 report's adversarial_falsification benchmark is mislabeled.** It reports "language_dominance_mean" but actually measures "branch_coherence_mean" (0.7461). The canonical harness language dominance is a different, more stringent test.
+**Critical discrepancy:** The cycle 14 "language dominance" (0.6406) differs from the canonical harness "language dominance" (0.7877) due to different k values (k=10 in cycle 14 vs k=20 in canonical harness) and potentially different data alignment (cycle 14 uses 1000 BGer decisions; canonical harness uses 1000 fractal-map subset). Both measure the same metric (fraction of k-NN neighbors with same language) but with different parameters. The cycle 14 `adversarial_falsification` benchmark reports BOTH `language_dominance_mean` (0.6317) AND `branch_coherence_mean` (0.7468) — these are separate metrics, not conflated.
 
 ---
 
@@ -125,8 +123,8 @@ On the same 1000 decisions, `cited_decisions_tfidf` achieves:
 1. **debiased_citation_blended FAILS adversarial gates** at ALL PCA dimensionalities (64, 128, 768)
 2. **Language dominance 0.78-0.79** is too high — PCA debiasing is insufficient
 3. **Jurist preference 0.466-0.497** consistently below 0.50 threshold
-4. **Cycle 14 adversarial_falsification is mislabeled** — measures branch coherence, not language dominance
-5. **Cross-validation discrepancy:** Cycle 14's language dominance (0.6406) ≠ canonical harness (0.7877) — different metrics
+4. **Cycle 14 language_dominance (0.6317) differs from canonical harness (0.7877)** — different k values (k=10 vs k=20) and potentially different data alignment; both measure the same metric (fraction of k-NN neighbors with same language)
+5. **Cross-validation discrepancy:** Cycle 14's language dominance (0.6406) ≠ canonical harness (0.7877) — different k values and data alignment
 
 ---
 
@@ -151,9 +149,9 @@ On the same 1000 decisions, `cited_decisions_tfidf` achieves:
   "evidence_tier": "ACCEPTED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "debiased_cb_crossval_1788107759",
+  "accepted_run_id": "evaluation_v10_audit_ready_33321946599",
   "github_run": "33322534441",
-  "next_recommendation": "BLOCKED_ON_DEPENDENCIES"
+  "next_recommendation": "CONTINUE_WITHIN_MISSION_ON_CORPUS_DELIVERY"
 }
 ```
 
