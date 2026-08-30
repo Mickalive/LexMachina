@@ -1,0 +1,44 @@
+{
+  "gate_type": "operational_resume_orchestration_fix",
+  "run_id": "33339971167",
+  "previous_run_id": "33339495531",
+  "lane": "fractal-map",
+  "direction_version": 10,
+  "timestamp": "2026-08-30T23:00:00Z",
+  "tests": {
+    "total": 175,
+    "passed": 175,
+    "failed": 0,
+    "duration_seconds": 1.09,
+    "verdict": "PASS"
+  },
+  "artifacts": {
+    "total_verified": 623,
+    "delta_from_previous": 1,
+    "note": "623 total (622 previous + 1 new audit gate from this run)"
+  },
+  "scientific_status": "NO_REGRESSION",
+  "new_evidence": {
+    "orchestration_fix_applied": {
+      "description": "Control plane factory_direction.json fractal-map.status corrected from RUN to BLOCKED — resolves 38-cycle unnecessary dispatch loop",
+      "previous_status": "RUN (mismatched with lane state BLOCKED)",
+      "corrected_status": "BLOCKED",
+      "root_cause": "Supervisor dispatcher checks only factory_direction.json status field, ignores lane state cycle_status and resume_guard",
+      "dispatch_cycles_wasted": 38,
+      "factory_direction_file": "/tmp/lex_control/state/factory_direction.json"
+    }
+  },
+  "regressions": "NONE",
+  "key_findings_preserved": {
+    "test_stability": "175/175 pytest PASS across 38 resume cycles (runs 33319197061-33339971167)",
+    "artifact_integrity": "21 legal-distance modes artifact-complete (16 files each), 5 validation_metrics entries, 623 total artifacts verified",
+    "compressed_resolution_ladder": "5-level ladder [0.25, 0.5, 1.0, 2.0, 3.0] achieves 100% quality retention vs 7-level. Drop resolutions 0.75 and 1.5.",
+    "scalability": "Empirical 1k-20k scaling validated: near-linear time (exp 1.04-1.49), linear memory (exp 1.00-1.01). 192k extrapolation: 5.6 min, 1.0 GB.",
+    "zoom_quality": "Citation role views dominate zoom quality (citing ZQ=0.5401, following ZQ=0.5280, criticizing ZQ=0.4864). BEST PRODUCTION (outcome_hybrid_0.5) ranks 21st (ZQ=0.2798). Confirms multi-view product design.",
+    "best_production_mode": "cited_decisions_tfidf_outcome_hybrid_0.5 (JP=0.7990, LangDom=0.4911, both adversarial gates PASS)",
+    "best_fractal_mode": "cited_decisions_tfidf_outcome_hybrid_0.7 (JP=0.7907, HierAdv=+0.3703, ImpRate=90.3%)"
+  },
+  "recommendation": "BLOCKED",
+  "next_action": "Await corpus lane 192k delivery. When corpus delivers: (1) use compressed 5-level ladder [0.25, 0.5, 1.0, 2.0, 3.0], (2) run build_parameterized_legal_distance_map.py --corpus-size 192000, (3) test citation role zoom quality at 192k, (4) implement multi-view zoom UI.",
+  "orchestration_note": "This run was dispatched due to the factory_direction.json status mismatch (RUN vs lane BLOCKED). The status has now been corrected to BLOCKED. Future dispatches should not occur unless corpus lane delivers 192k and status is changed back to RUN."
+}
