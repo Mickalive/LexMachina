@@ -1375,6 +1375,175 @@ def test_hybrid_stabilized_best():
     return True
 
 
+def test_following_alpha0_3():
+    """Test following_alpha0.3 representation (ACCEPTED - Citation Role: Following).
+
+    Citation role view: decisions that FOLLOW cited precedents. Extracts "following" role
+    from BGE/ATF citation annotations. 2,988 role annotations resolved, 3 roles PASS adversarial gates.
+    Uses fractal-map validated 7-resolution hierarchical clustering.
+    Exposes CITATION ROLE VIEWS design pattern per factory direction v9.
+    """
+    print("=== Test: Following α=0.3 (Citation Role View) ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    reps = api.map_loader.get_available_representations()
+    assert "following_alpha0.3" in reps, f"following_alpha0.3 not in representations: {reps}"
+
+    zoom_levels = api.get_zoom_levels("following_alpha0.3")
+    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
+
+    for zl in [z["level"] for z in zoom_levels]:
+        map_data = api.get_map_data("following_alpha0.3", zl)
+        assert map_data["n_decisions"] == 1000
+        print(f"  Zoom {zl}: {map_data['n_clusters']} clusters")
+
+    map_state = api.map_loader.get_map("following_alpha0.3")
+    metadata = map_state.metadata
+    assert metadata.get("evidence_tier") == "ACCEPTED", f"Expected ACCEPTED, got {metadata.get('evidence_tier')}"
+    print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}")
+
+    zl_0 = api.map_loader.get_zoom_level("following_alpha0.3", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "following_alpha0.3", 1, 5)
+    assert len(neighbors) > 0
+
+    print("  PASS\n")
+    return True
+
+
+def test_criticizing_alpha0_3():
+    """Test criticizing_alpha0.3 representation (ACCEPTED - Citation Role: Criticizing).
+
+    Citation role view: decisions that CRITICIZE cited precedents. Extracts "criticizing" role
+    from BGE/ATF citation annotations. 2,988 role annotations resolved, 3 roles PASS adversarial gates.
+    Uses fractal-map validated 7-resolution hierarchical clustering.
+    Exposes CITATION ROLE VIEWS design pattern per factory direction v9.
+    """
+    print("=== Test: Criticizing α=0.3 (Citation Role View) ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    reps = api.map_loader.get_available_representations()
+    assert "criticizing_alpha0.3" in reps, f"criticizing_alpha0.3 not in representations: {reps}"
+
+    zoom_levels = api.get_zoom_levels("criticizing_alpha0.3")
+    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
+
+    for zl in [z["level"] for z in zoom_levels]:
+        map_data = api.get_map_data("criticizing_alpha0.3", zl)
+        assert map_data["n_decisions"] == 1000
+        print(f"  Zoom {zl}: {map_data['n_clusters']} clusters")
+
+    map_state = api.map_loader.get_map("criticizing_alpha0.3")
+    metadata = map_state.metadata
+    assert metadata.get("evidence_tier") == "ACCEPTED", f"Expected ACCEPTED, got {metadata.get('evidence_tier')}"
+    print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}")
+
+    zl_0 = api.map_loader.get_zoom_level("criticizing_alpha0.3", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "criticizing_alpha0.3", 1, 5)
+    assert len(neighbors) > 0
+
+    print("  PASS\n")
+    return True
+
+
+def test_citing_alpha0_3():
+    """Test citing_alpha0.3 representation (ACCEPTED - Citation Role: Citing).
+
+    Citation role view: decisions that CITING precedents (general role). Extracts "citing" role
+    from BGE/ATF citation annotations. 2,988 role annotations resolved, 3 roles PASS adversarial gates.
+    Uses fractal-map validated 7-resolution hierarchical clustering.
+    Exposes CITATION ROLE VIEWS design pattern per factory direction v9.
+    """
+    print("=== Test: Citing α=0.3 (Citation Role View) ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    reps = api.map_loader.get_available_representations()
+    assert "citing_alpha0.3" in reps, f"citing_alpha0.3 not in representations: {reps}"
+
+    zoom_levels = api.get_zoom_levels("citing_alpha0.3")
+    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
+
+    for zl in [z["level"] for z in zoom_levels]:
+        map_data = api.get_map_data("citing_alpha0.3", zl)
+        assert map_data["n_decisions"] == 1000
+        print(f"  Zoom {zl}: {map_data['n_clusters']} clusters")
+
+    map_state = api.map_loader.get_map("citing_alpha0.3")
+    metadata = map_state.metadata
+    assert metadata.get("evidence_tier") == "ACCEPTED", f"Expected ACCEPTED, got {metadata.get('evidence_tier')}"
+    print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}")
+
+    zl_0 = api.map_loader.get_zoom_level("citing_alpha0.3", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "citing_alpha0.3", 1, 5)
+    assert len(neighbors) > 0
+
+    print("  PASS\n")
+    return True
+
+
+def test_all_representations_coverage():
+    """Comprehensive test: verify ALL representations load, serve data, and have neighbors.
+
+    This is the canonical representation coverage gate. Catches any representation that
+    loads its files but fails to serve valid map data. Tests all 29 representations
+    at zoom level 0.
+    """
+    print("=== Test: All Representations Coverage (canonical gate) ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    reps = api.map_loader.get_available_representations()
+    assert len(reps) >= 29, f"Expected at least 29 representations, got {len(reps)}"
+
+    failures = []
+    for rep in sorted(reps):
+        try:
+            # Must serve map data at zoom 0
+            map_data = api.get_map_data(rep, 0)
+            n_dec = map_data.get("n_decisions", 0)
+            n_clust = map_data.get("n_clusters", 0)
+            if n_dec == 0:
+                failures.append(f"{rep}: 0 decisions at zoom 0")
+                continue
+
+            # Must have at least one neighbor
+            positions = api.map_loader.get_positions(rep, 0)
+            if positions:
+                did = list(positions.keys())[0]
+                neighbors = api.get_neighbors(did, rep, 0, 3)
+                if len(neighbors) == 0:
+                    failures.append(f"{rep}: 0 neighbors for first decision")
+
+            print(f"  {rep}: zoom_0={n_dec} decisions, {n_clust} clusters — OK")
+        except Exception as e:
+            failures.append(f"{rep}: {e}")
+
+    if failures:
+        for f in failures:
+            print(f"  FAIL: {f}")
+        assert False, f"{len(failures)} representation(s) failed: {failures}"
+
+    print(f"  ALL {len(reps)} representations PASS\n")
+    return True
+
+
 if __name__ == "__main__":
     results = []
     results.append(("Corpus Loader", test_corpus_loader()))
@@ -1407,6 +1576,12 @@ if __name__ == "__main__":
     # Cited Outcome Hybrids (BEST PRODUCTION/FRACTAL - factory direction v9)
     results.append(("Cited Outcome Hybrid α=0.5 (BEST PROD)", test_cited_outcome_hybrid_0_5()))
     results.append(("Cited Outcome Hybrid α=0.7 (BEST FRACTAL)", test_cited_outcome_hybrid_0_7()))
+    # Citation Role Views (ACCEPTED per legal-distance v6 — factory direction v9)
+    results.append(("Following α=0.3 (Citation Role)", test_following_alpha0_3()))
+    results.append(("Criticizing α=0.3 (Citation Role)", test_criticizing_alpha0_3()))
+    results.append(("Citing α=0.3 (Citation Role)", test_citing_alpha0_3()))
+    # Comprehensive coverage gate
+    results.append(("All Representations Coverage", test_all_representations_coverage()))
     
     print("=" * 50)
     print("RESULTS:")
