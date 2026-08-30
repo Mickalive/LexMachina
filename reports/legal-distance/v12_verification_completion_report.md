@@ -43,7 +43,7 @@ All 39 `evidence_refs` in `state/legal-distance.json` verified present on disk. 
 | Source File | Key Facts |
 |-------------|-----------|
 | `state/legal-distance.json` | lane=legal-distance, evidence_tier=REPRODUCED, cycle_status=COMPLETED, continue_recommended=false, accepted_run_id=oos_hybrid_stabilized_fixed_selection_20260830_v11 |
-| `state/factory_direction.json` | All 5 lanes listed as status=RUN, direction_version=10 |
+| `state/factory_direction.json` | All 5 lanes listed as status=RUN, version=1 |
 
 **No other lane state files exist** (`state/fractal-map.json`, `state/evaluation.json`, `state/product.json`, `state/corpus.json` are absent from the workspace). The `factory_direction.json` does not distinguish evidence_tier or continue_recommended per lane — it only lists status=RUN for all lanes.
 
