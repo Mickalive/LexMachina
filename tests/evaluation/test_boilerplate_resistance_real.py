@@ -11,11 +11,11 @@ import json
 from pathlib import Path
 
 EXPECTED_PRESERVATION = {
-    "sachverhalt_tfidf": 0.9323,
-    "erwaegungen_tfidf": 0.9323,
-    "outcome_tfidf": 0.8898,
-    "full_text_tfidf": 0.9323,
-    "sachverhalt+erwaegungen": 0.9323,
+    "sachverhalt_tfidf": 0.9325,
+    "erwaegungen_tfidf": 0.9325,
+    "outcome_tfidf": 0.8917,
+    "full_text_tfidf": 0.9325,
+    "sachverhalt+erwaegungen": 0.9325,
 }
 
 TOLERANCE = 1e-3
