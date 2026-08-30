@@ -5,13 +5,13 @@
   "cycle_status": "BLOCKED",
   "continue_recommended": false,
   "accepted_run_id": "33319197061",
-  "github_run": "33323160624",
-  "timestamp": "2026-08-31T00:00:00Z",
+  "github_run": "33323379652",
+  "timestamp": "2026-08-31T00:30:00Z",
   "previous_accepted_run": "33319197061",
   "blocked_on": "corpus lane: full 192k acquisition/normalization required before fractal-map scaling",
-  "blocked_since": "33323160624",
+  "blocked_since": "33323379652",
   "resume_guard": "DO NOT DISPATCH THIS LANE until factory_direction.json marks corpus lane as DELIVERED (status=DONE with full 192k corpus available). The fractal-map lane is COMPLETE at current 1000-decision scale. All 24 representations across 4 design patterns are validated and product-ready. When corpus delivers: run build_parameterized_legal_distance_map.py at --corpus-size 192000 on accepted embeddings; re-validate nesting/zoom at full scale; refresh registry. Recommend outcome_hybrid_0.5 as DEFAULT at scale.",
-  "next_recommendation": "BLOCKED. All 21 legal-distance modes artifact-complete (607 artifacts verified). 175/175 tests PASS. Lane is DONE at current scale. Awaiting corpus lane full 192k delivery. When corpus delivers: (1) run build_parameterized_legal_distance_map.py --corpus-size 192000, (2) re-validate nesting/zoom at full scale, (3) refresh product registry, (4) recommend outcome_hybrid_0.5 as DEFAULT at scale.",
+  "next_recommendation": "BLOCKED. All 21 legal-distance modes artifact-complete (609 artifacts verified). 175/175 tests PASS. Lane is DONE at current scale. Awaiting corpus lane full 192k delivery. ORCHESTRATION FIX NEEDED: Factory Director should update factory_direction.json lanes.fractal-map.status from RUN to BLOCKED to prevent unnecessary re-dispatch. When corpus delivers: (1) run build_parameterized_legal_distance_map.py --corpus-size 192000, (2) re-validate nesting/zoom at full scale, (3) refresh product registry, (4) recommend outcome_hybrid_0.5 as DEFAULT at scale.",
   "evidence_refs": [
     "results/fractal_map/evaluation/verify_outcome_hybrid_integration_33307151666.json",
     "results/fractal_map/evaluation/artifact_audit_33316273550.json",
@@ -35,9 +35,12 @@
     "reports/fractal_map/FINAL_VERIFICATION_33322901712.md",
     "results/fractal_map/audit/CYCLE_final_verification_33322901712_GATE.json",
     "results/fractal_map/audit/CYCLE_operational_resume_33323160624_GATE.json",
-    "reports/fractal_map/OPERATIONAL_RESUME_33323160624_VERIFICATION.md"
+    "reports/fractal_map/OPERATIONAL_RESUME_33323160624_VERIFICATION.md",
+    "results/fractal_map/audit/CYCLE_operational_resume_33323379652_GATE.json",
+    "reports/fractal_map/OPERATIONAL_RESUME_33323379652_VERIFICATION.md"
   ],
   "key_findings": [
+    "RUN 33323379652: OPERATIONAL RESUME from 33323160624. Verified: 175/175 tests PASS (1.31s, full deps), 609 artifacts intact, 21 legal-distance modes artifact-complete, 4 validation_metrics entries preserved. ORCHESTRATION FAILURE ROOT CAUSE IDENTIFIED: factory_direction.json has fractal-map.status=RUN while state has cycle_status=BLOCKED. The supervisor dispatcher checks factory direction and re-dispatches, ignoring lane BLOCKED status. The 22-cycle resume loop was caused by this status mismatch. BLOCKED+resume_guard fix is holding but is a workaround; proper fix is to update factory_direction.json. No scientific regressions. No new scientific work possible (only 192k scaling next, blocked on corpus).",
     "RUN 33323160624: OPERATIONAL RESUME from 33322901712. Verified: 175/175 tests PASS (1.31s, full deps including igraph/leidenalg/sklearn), 607 artifacts intact, 21 legal-distance modes artifact-complete, 4 validation_metrics entries preserved. Prior orchestration loop fix (BLOCKED status + resume_guard) is holding. No scientific regressions. Lane remains BLOCKED on corpus lane for 192k scaling.",
     "RUN 33322901712: FINAL VERIFICATION. Diagnosed and resolved 22-cycle operational-resume loop. Root cause: cycle_status='COMPLETED' combined with continue_recommended=false was insufficient to prevent re-dispatch because factory_direction.json has status='RUN'. Fix: changed cycle_status to BLOCKED, added blocked_on and resume_guard fields. VERIFIED: 175/175 tests PASS (1.43s), 607 artifacts, 21 legal-distance modes artifact-complete (16 files each), 4 validation_metrics entries, all key product modes validated. NO scientific regressions. Lane is COMPLETE at 1000-decision scale. BLOCKED on corpus lane for 192k scaling."
   ],
@@ -166,18 +169,20 @@
       "purity_min_cluster_size": 3
     }
   },
-  "operational_resume_id": "33323160624",
+  "operational_resume_id": "33323379652",
   "repair_of": null,
   "repair_round": 0,
   "audit_status": "PASS",
-  "artifacts_verified": 607,
+  "artifacts_verified": 609,
   "tests_passed": 175,
   "modes_loaded": 24,
   "registry_crosscheck": {
     "total_available": 22,
-    "consistent": 11,
-    "discrepant": 11,
-    "key_product_modes_consistent": true
+    "consistent": 0,
+    "discrepant": 22,
+    "discrepancy_type": "evidence_tier missing from registry JSON (cosmetic; all modes have ACCEPTED in state)",
+    "key_product_modes_consistent": true,
+    "note": "Registry does not include evidence_tier field. All 22 modes in state legal_distance_modes have evidence_tier=ACCEPTED. 2 additional modes (center_projected_hierarchical=DEFAULT, hierarchical_leiden_concat=LEGACY) are in separate state sections. All modes are functional and verified by 175/175 tests."
   },
   "snapshot_verification": "results/fractal_map/evaluation/snapshot_verify_33306550005.json"
 }
