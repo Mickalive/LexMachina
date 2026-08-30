@@ -4,10 +4,10 @@
   "evidence_tier": "ACCEPTED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "debiased_cb_crossval_1788107759",
+  "accepted_run_id": "evaluation_v10_audit_ready_33321946599",
   "github_run": "33322534441",
   "previous_audit_run": "33321015564",
-  "timestamp": "2026-08-30T16:36:02.788000+00:00",
+  "timestamp": "2026-08-30T20:30:00.000000+00:00",
   "operational_resume_run": "33322534441",
   "operational_resume_disposition": "CROSS_VALIDATION_COMPLETE",
   "config_hash": "4323f833fa72366a",
@@ -22,11 +22,11 @@
       "User corpus import evaluation (45/45 tests PASS)"
     ],
     "blocked_objectives": [
-      "Full corpus scale evaluation (192k) \u2014 pending corpus lane OpenCaseLaw bulk ingestion",
-      "Jurist human study \u2014 framework ready, needs 5-10 Swiss jurists"
+      "Full corpus scale evaluation (192k) — pending corpus lane OpenCaseLaw bulk ingestion",
+      "Jurist human study — framework ready, needs 5-10 Swiss jurists"
     ],
-    "boilerplate_resistance_correction": "REPRODUCED: Real test shows 89-93% neighbor preservation when boilerplate removed \u2014 boilerplate NOT driving neighbors. v3 'boilerplate_resistance' proxy MISNAMED; measured language dominance (cross-lingual alignment failure). SYSTEMIC CHALLENGE IS CROSS-LINGUAL ALIGNMENT / LANGUAGE DOMINANCE, NOT BOILERPLATE. Target LangDom < 0.6 ACHIEVED by zero-shot hybrids. SUPPLEMENT (anti_noise_procedural_sensitivity_33318520605, NEGATIVE): conclusion ROBUST under deeper procedural-reasoning removal; preservation drop at high removal is bulk-volume/SVD artifact, not procedural-specific (equal-volume substantive control matches).",
-    "next_steps": "When dependencies resolve \u2014 full corpus adversarial evaluation at 192k scale, multilingual-e5-small fine-tuned evaluation with hierarchy loss (GPU), jurist human study execution, section-specific cross-lingual evaluation (needs sachverhalt/erwaegungen/dispositiv from full corpus)"
+    "boilerplate_resistance_correction": "REPRODUCED: Real test shows 89-93% neighbor preservation when boilerplate removed — boilerplate NOT driving neighbors. v3 'boilerplate_resistance' proxy MISNAMED; measured language dominance (cross-lingual alignment failure). SYSTEMIC CHALLENGE IS CROSS-LINGUAL ALIGNMENT / LANGUAGE DOMINANCE, NOT BOILERPLATE. Target LangDom < 0.6 ACHIEVED by zero-shot hybrids. SUPPLEMENT (anti_noise_procedural_sensitivity_33318520605, NEGATIVE): conclusion ROBUST under deeper procedural-reasoning removal; preservation drop at high removal is bulk-volume/SVD artifact, not procedural-specific (equal-volume substantive control matches).",
+    "next_steps": "When dependencies resolve — full corpus adversarial evaluation at 192k scale, multilingual-e5-small fine-tuned evaluation with hierarchy loss (GPU), jurist human study execution, section-specific cross-lingual evaluation (needs sachverhalt/erwaegungen/dispositiv from full corpus)"
   },
   "evidence_refs": [
     "evaluation/results/v3/evaluation_v3_results.json",
@@ -88,33 +88,45 @@
     "evaluation/experiments/run_anti_noise_procedural_sensitivity.py",
     "evaluation/results/v3_boilerplate_antinoise/anti_noise_procedural_sensitivity_raw.json",
     "tests/evaluation/test_anti_noise_procedural_sensitivity.py",
-    "reports/evaluation/evaluation_anti_noise_procedural_sensitivity_33318520605.md"
+    "reports/evaluation/evaluation_anti_noise_procedural_sensitivity_33318520605.md",
+    "evaluation/experiments/run_v11_cross_validation.py",
+    "evaluation/results/v11_cross_validation/v11_cross_validation_results.json",
+    "tests/evaluation/test_v11_cross_validation.py",
+    "reports/evaluation/evaluation_v11_cross_validation_33319724787.md",
+    "evaluation/experiments/run_debiased_citation_blended_cross_validation.py",
+    "evaluation/experiments/run_debiased_cb_variant_comparison.py",
+    "evaluation/results/debiased_citation_blended_cross_validation/debiased_cb_crossval_1788107759_results.json",
+    "evaluation/results/debiased_citation_blended_cross_validation/dcbl_variants_1788107832_variant_comparison.json",
+    "reports/evaluation/evaluation_debiased_cb_cross_validation_33322534441.md"
   ],
   "key_findings": [
     "EVALUATION v3+ COMPLETED: Frozen evaluation harness (seed=42, config_hash=4323f833fa72366a) executed on expanded 1,200-decision slice. REPRODUCED EXACTLY in GitHub run 33232234741 AND VERIFIED in run 33240972425. LOCAL REPRODUCIBILITY CONFIRMED. Integration of cited_decisions_tfidf results completed in operational resume 33265417443.",
     "13 representations evaluated: 12 PASS, 1 FAIL (center_projected_768). All adversarial benchmarks frozen and reproducible.",
     "Reference baseline center_projected_64dim (production default) PASSES both adversarial gates: language_dominance=0.7664 < 0.85, jurist_pairwise=0.5121 > 0.5.",
     "center_projected_768 FAILS jurist pairwise (0.4912 < 0.5) despite passing language dominance.",
-    "BEST OVERALL: cited_decisions_tfidf achieves HIGHEST jurist preference (0.6922) and BEST language invariance (0.6107) among ALL unsupervised representations \u2014 zero-shot citation signal beats supervised metric learning on jurist pairwise.",
-    "BEST PRODUCTION HYBRID: cited_decisions_tfidf_hybrid_cp64_0.7 (jurist=0.6614, lang_dom=0.6542) \u2014 uses 64-dim frozen PCA.",
+    "BEST OVERALL: cited_decisions_tfidf achieves HIGHEST jurist preference (0.6922) and BEST language invariance (0.6107) among ALL unsupervised representations — zero-shot citation signal beats supervised metric learning on jurist pairwise.",
+    "BEST PRODUCTION HYBRID: cited_decisions_tfidf_hybrid_cp64_0.7 (jurist=0.6614, lang_dom=0.6542) — uses 64-dim frozen PCA.",
     "BEST JURIVOC ALIGNMENT: hybrid_v2_epoch3 (0.7415 Level 0 NMI).",
     "BEST CROSS-LANGUAGE: hybrid_stabilized_epoch1 (0.2360 recall@10).",
     "BEST SCALE STABILITY: mahalanobis_metric_epoch4 (0.7154).",
     "BEST FRACTAL IMPROVEMENT: cited_decisions_tfidf (92.1% improvement rate).",
-    "Boilerplate resistance NEGATIVE for ALL representations (resistance_score -0.74 to -0.92) \u2014 systematic limitation. Real boilerplate signals show 100% boilerplate-dominated neighbors. The v3 'boilerplate_resistance' proxy MISNAMED; measured language dominance (cross-lingual alignment failure), not procedural boilerplate. SYSTEMIC CHALLENGE IS CROSS-LINGUAL ALIGNMENT / LANGUAGE DOMINANCE, NOT BOILERPLATE. Target LangDom < 0.6 (cited_decisions_tfidf achieves 0.6107).",
+    "Boilerplate resistance NEGATIVE for ALL representations (resistance_score -0.74 to -0.92) — systematic limitation. Real boilerplate signals show 100% boilerplate-dominated neighbors. The v3 'boilerplate_resistance' proxy MISNAMED; measured language dominance (cross-lingual alignment failure), not procedural boilerplate. SYSTEMIC CHALLENGE IS CROSS-LINGUAL ALIGNMENT / LANGUAGE DOMINANCE, NOT BOILERPLATE. Target LangDom < 0.6 (cited_decisions_tfidf achieves 0.6107).",
     "Signal ablation CONFIRMED: All v4/v5 signal ablation hybrids FAIL adversarial gates. Only metric learning, stabilized hybrids, and cited_decisions_tfidf produce valid adversarial-robust representations.",
     "All 6 cited_decisions_tfidf + center_projected hybrids PASS both adversarial gates.",
     "11 of 13 representations BEAT reference on jurist pairwise preference.",
     "CITATION ROLE MODELING EVALUATION COMPLETED (legal-distance v7): 2,988 role annotations (overruling, distinguishing, following, criticizing, citing) RESOLVED 100% via BGE/ATF citation ID resolution pipeline (was 0% in v6). 15 role hybrids tested on frozen harness v3. citing/following/criticizing PASS at multiple alphas; distinguishing/overruling FAIL (too sparse: 58/18 annotations). Best production role hybrids: citing_alpha0.3 (LangDom=0.7414, Jurist=0.5363), following_alpha0.3 (LangDom=0.7530, Jurist=0.5188), criticizing_alpha0.3 (LangDom=0.7676, Jurist=0.5004).",
     "CITATION ROLE EVALUATION ON OFFICIAL FROZEN HARNESS v3 COMPLETED (Factory Direction v9 Objective 2): 9 role hybrids (citing_alpha0.3/0.5/0.7, following_alpha0.3/0.5/0.7, criticizing_alpha0.3/0.5/0.7) evaluated on frozen harness v3 (seed=42, config_hash=4323f833fa72366a). 8 PASS both adversarial gates; criticizing_alpha0.7 FAILS jurist pairwise (0.4979 < 0.5). citing_alpha0.3 is BEST role hybrid (LangDom=0.7414, Jurist=0.5363). Center_projected baseline (768-dim) FAILS jurist pairwise (0.4912). All role hybrids BEAT reference on jurist preference (+0.0092 to +0.0451) and language dominance (-0.0040 to -0.0324). Factory Direction v9 Objective 2 FULLY ACHIEVED.",
-    "MULTILINGUAL-E5-SMALL PRETRAINED: Passes adversarial gates (LangDom=0.4590, Jurist=0.8498) but CATASTROPHIC hierarchy collapse (1 coarse \u2192 1000 fine, hier_adv=0.0, Jurivoc L0=0.000, scale=0.000) \u2014 needs hierarchy preservation loss for fine-tuning evaluation (GPU required). Zero-shot hybrids already exceed GPU fine-tuning target.",
+    "MULTILINGUAL-E5-SMALL PRETRAINED: Passes adversarial gates (LangDom=0.4590, Jurist=0.8498) but CATASTROPHIC hierarchy collapse (1 coarse → 1000 fine, hier_adv=0.0, Jurivoc L0=0.000, scale=0.000) — needs hierarchy preservation loss for fine-tuning evaluation (GPU required). Zero-shot hybrids already exceed GPU fine-tuning target.",
     "EVALUATION v9 COMPLETED (outcome-cited hybrids): 5 v7 outcome-cited hybrids PASS both adversarial gates, beating production baseline on jurist preference (0.76-0.80 vs 0.51) and language dominance (0.49-0.51 vs 0.77). Best 2-dim hybrid: cited_decisions_tfidf_outcome_hybrid_0.7 (jurist=0.790, lang_dom=0.492). Outcome-only embeddings overfit adversarial proxies (Jurivoc L0=0.005, scale=0.0). 128-dim cited_decisions_tfidf remains only unsupervised representation passing cluster coherence.",
-    "EVALUATION v10 COMPLETED (cross-lingual alignment deeper investigation \u2014 Factory Direction v8 Objective 5): 52 representations evaluated on frozen harness v3. Proc Pairs alignment is LOSSLESS for cited_decisions_tfidf (identical metrics to base). Joint PCA reduces Jurivoc L0 by 48% (0.254\u21920.133). Mean Center improves scale stability (0.615) but fails cross-lang retrieval (0.185). Single Procrustes CATASTROPHIC (jurist=0.361, cross-lang=0.086). Section-specific embeddings (sachverhalt, erwaegungen, dispositiv) UNAVAILABLE in metadata \u2014 BLOCKED on corpus lane. Outcome-only embeddings overfit (Jurivoc L0\u22480.007, scale=0.0). Best 64-dim hybrid: cited_decisions_tfidf_proc_pairs_hybrid_cdtf64_0.7 (jurist=0.695, lang_dom=0.608). 128-dim cited_decisions_tfidf + Proc Pairs remain ONLY unsupervised representations with production-viable legal structure (cluster coherence PASS).",
-    "EVALUATION v9 COMPREHENSIVE COMPLETED (Factory Direction v9): All 9 breakthrough representations from legal-distance v8 fractal validation PASS both adversarial gates on frozen harness v3. Metric Learning family (3): linear_metric_epoch4, mahalanobis_metric_epoch4, hybrid_stabilized_epoch1 \u2014 HIGH PURITY pattern. Citation/Outcome family (3): cited_decisions_tfidf, cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7 \u2014 HIGH ADVANTAGE pattern. Cross-lingual alignment (3): cited_decisions_tfidf_proc_pairs (FRESH computation, LOSSLESS), cited_decisions_tfidf_joint_pca, cited_decisions_tfidf_mean_center. FAILED: cited_decisions_tfidf_procrustes, cited_decisions_tfidf_cca, center_projected_768. TWO DESIGN PATTERNS validated for product map modes: High-Purity (Metric Learning) vs High-Advantage (Citation/Outcome). FIXED: proc_pairs now computed fresh (matching v10 methodology) achieving true lossless alignment (LangDom 0.6103 vs base 0.6100, Jurist 0.6839 vs base 0.6889), resolving audit discrepancy from stale pre-saved embedding.",
-    "USER CORPUS IMPORT EVALUATION COMPLETED (Factory Direction v9 Objective 6): All 45 tests PASS (100% pass rate). Schema validation robustness validated (24 tests: valid/invalid/edge cases, strict/lenient modes, provenance handling, batch validation). Map artifact persistence validated (import, persist, reload, consistency, export with documented limitation). Incremental updates validated (multiple imports, duplicates, position computation, cumulative counts). Recomputation triggers validated (zoom levels, representations, cache invalidation). Product integration validated (search, clusters, citations; neighbor search/proximity/temporal use base corpus only \u2014 documented known limitations). Factory Direction v9 Objective 6 FULLY ACHIEVED.",
+    "EVALUATION v10 COMPLETED (cross-lingual alignment deeper investigation — Factory Direction v8 Objective 5): 52 representations evaluated on frozen harness v3. Proc Pairs alignment is LOSSLESS for cited_decisions_tfidf (identical metrics to base). Joint PCA reduces Jurivoc L0 by 48% (0.254→0.133). Mean Center improves scale stability (0.615) but fails cross-lang retrieval (0.185). Single Procrustes CATASTROPHIC (jurist=0.361, cross-lang=0.086). Section-specific embeddings (sachverhalt, erwaegungen, dispositiv) UNAVAILABLE in metadata — BLOCKED on corpus lane. Outcome-only embeddings overfit (Jurivoc L0≈0.007, scale=0.0). Best 64-dim hybrid: cited_decisions_tfidf_proc_pairs_hybrid_cdtf64_0.7 (jurist=0.695, lang_dom=0.608). 128-dim cited_decisions_tfidf + Proc Pairs remain ONLY unsupervised representations with production-viable legal structure (cluster coherence PASS).",
+    "EVALUATION v9 COMPREHENSIVE COMPLETED (Factory Direction v9): All 9 breakthrough representations from legal-distance v8 fractal validation PASS both adversarial gates on frozen harness v3. Metric Learning family (3): linear_metric_epoch4, mahalanobis_metric_epoch4, hybrid_stabilized_epoch1 — HIGH PURITY pattern. Citation/Outcome family (3): cited_decisions_tfidf, cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7 — HIGH ADVANTAGE pattern. Cross-lingual alignment (3): cited_decisions_tfidf_proc_pairs (FRESH computation, LOSSLESS), cited_decisions_tfidf_joint_pca, cited_decisions_tfidf_mean_center. FAILED: cited_decisions_tfidf_procrustes, cited_decisions_tfidf_cca, center_projected_768. TWO DESIGN PATTERNS validated for product map modes: High-Purity (Metric Learning) vs High-Advantage (Citation/Outcome). FIXED: proc_pairs now computed fresh (matching v10 methodology) achieving true lossless alignment (LangDom 0.6103 vs base 0.6100, Jurist 0.6839 vs base 0.6889), resolving audit discrepancy from stale pre-saved embedding.",
+    "USER CORPUS IMPORT EVALUATION COMPLETED (Factory Direction v9 Objective 6): All 45 tests PASS (100% pass rate). Schema validation robustness validated (24 tests: valid/invalid/edge cases, strict/lenient modes, provenance handling, batch validation). Map artifact persistence validated (import, persist, reload, consistency, export with documented limitation). Incremental updates validated (multiple imports, duplicates, position computation, cumulative counts). Recomputation triggers validated (zoom levels, representations, cache invalidation). Product integration validated (search, clusters, citations; neighbor search/proximity/temporal use base corpus only — documented known limitations). Factory Direction v9 Objective 6 FULLY ACHIEVED.",
     "VERIFICATION RUN 33299401770 CONFIRMED: Evaluation v9 comprehensive REPRODUCED locally on frozen harness v3 (seed=42, config_hash=4323f833fa72366a). All 9 breakthrough representations PASS both adversarial gates. Fresh proc_pairs computation CONFIRMED LOSSLESS (LangDom=0.6100, Jurist=0.6889, identical to base cited_decisions_tfidf). All 3 evaluation tests PASS (frozen harness reproducibility, cross-lingual alignment, boilerplate resistance real). Factory Direction v9 Objectives 2, 5, 6 COMPLETE; Objectives 1, 3, 4 BLOCKED on dependencies.",
-    "HOLDOUT VALIDATION CROSS-CHECK COMPLETED (Factory Direction v10): Independent assessment of legal-distance holdout validation results (v8/v9) against frozen evaluation harness v3. 5 representations cross-validated. REPAIRED (round 1): Fixed extract_frozen_harness_metrics() nested JSON traversal bug \u2014 now produces actual cross-validation comparisons (was zero before). Language dominance CONSISTENT across all 5 representations (within 0.02 tolerance). Jurist preference DISCREPANT (0.12-0.17 difference) \u2014 EXPLAINED by metric definition mismatch (frozen: jurist_pairwise_preference, holdout: jurist_would_succeed_rate). Two-map-mode tradeoff CONFIRMED on holdout: Metric Learning (JP=0.568, CiteIndep=0.353) vs Citation/Outcome (JP=0.563, CiteIndep=0.138). Metric learning achieves 2.6x better citation-independent retrieval than citation/outcome. center_projected_64dim FAILS holdout adversarial gates (JP=0.385) despite passing frozen harness (JP=0.512) \u2014 CRITICAL negative result. cited_decisions_tfidf misses citation-independent retrieval target (0.134 < 0.15). JuristPref ceiling at ~0.605 on holdout \u2014 no representation achieves >0.7 target. Verdict: DISCREPANT_EXPLAINED. All negative results preserved as first-class evidence.",
-    "ANTI-NOISE PROCEDURAL SENSITIVITY OF REAL-BOILERPLATE CONCLUSION (Factory Direction v10, evaluation_anti_noise_procedural_sensitivity_33318520605): NEGATIVE finding \u2014 the accepted 'boilerplate does not drive neighbors' conclusion is ROBUST to the anti-noise concern. Deep removal of routine procedural reasoning passages (~26-30% text) drops k-NN preservation substantially (shallow 0.9325 -> deep 0.6835, delta=0.249), BUT removing the SAME volume of substantive (lowest-procedural) content drops it just as much (control delta=0.2525); procedural-specific excess = -0.0035 (< 0.03 frozen threshold). The drop is a bulk-removal / TF-IDF+SVD refit artifact, NOT a procedural anti-noise leak. A no-control initial pass falsely declared FRAGILE (delta=0.249); the mandatory equal-volume control reversed it. Procedural passages are NOT disproportionately responsible for neighbor structure on the 1200-slice. Shallow real-boilerplate protocol remains canonical at slice level. Re-run this sensitivity design at 192k corpus scale when corpus lane delivers."
+    "HOLDOUT VALIDATION CROSS-CHECK COMPLETED (Factory Direction v10): Independent assessment of legal-distance holdout validation results (v8/v9) against frozen evaluation harness v3. 5 representations cross-validated. REPAIRED (round 1): Fixed extract_frozen_harness_metrics() nested JSON traversal bug — now produces actual cross-validation comparisons (was zero before). Language dominance CONSISTENT across all 5 representations (within 0.02 tolerance). Jurist preference DISCREPANT (0.12-0.17 difference) — EXPLAINED by metric definition mismatch (frozen: jurist_pairwise_preference, holdout: jurist_would_succeed_rate). Two-map-mode tradeoff CONFIRMED on holdout: Metric Learning (JP=0.568, CiteIndep=0.353) vs Citation/Outcome (JP=0.563, CiteIndep=0.138). Metric learning achieves 2.6x better citation-independent retrieval than citation/outcome. center_projected_64dim FAILS holdout adversarial gates (JP=0.385) despite passing frozen harness (JP=0.512) — CRITICAL negative result. cited_decisions_tfidf misses citation-independent retrieval target (0.134 < 0.15). JuristPref ceiling at ~0.605 on holdout — no representation achieves >0.7 target. Verdict: DISCREPANT_EXPLAINED. All negative results preserved as first-class evidence.",
+    "ANTI-NOISE PROCEDURAL SENSITIVITY OF REAL-BOILERPLATE CONCLUSION (Factory Direction v10, evaluation_anti_noise_procedural_sensitivity_33318520605): NEGATIVE finding — the accepted 'boilerplate does not drive neighbors' conclusion is ROBUST to the anti-noise concern. Deep removal of routine procedural reasoning passages (~26-30% text) drops k-NN preservation substantially (shallow 0.9325 -> deep 0.6835, delta=0.249), BUT removing the SAME volume of substantive (lowest-procedural) content drops it just as much (control delta=0.2525); procedural-specific excess = -0.0035 (< 0.03 frozen threshold). The drop is a bulk-removal / TF-IDF+SVD refit artifact, NOT a procedural anti-noise leak. A no-control initial pass falsely declared FRAGILE (delta=0.249); the mandatory equal-volume control reversed it. Procedural passages are NOT disproportionately responsible for neighbor structure on the 1200-slice. Shallow real-boilerplate protocol remains canonical at slice level. Re-run this sensitivity design at 192k corpus scale when corpus lane delivers.",
+    "V11 OOS HYBRID_STABILIZED CROSS-VALIDATION ON CANONICAL FROZEN HARNESS v3 (Factory Direction v10, evaluation_v11_cross_validation_33319724787): CONFIRMED — Both v11 OOS models (hierarchy + no-hierarchy arms) PASS both adversarial gates on full 1200-decision slice. Hierarchy: LangDom=0.7157, JP=0.5975; No-hierarchy: LangDom=0.7074, JP=0.5967. Hierarchy loss effect on canonical full slice: ΔJP=+0.0008 (essentially zero, NOT load-bearing). v11 report hierarchy effect (+0.030 on 200 holdout) was inflated by small-sample noise. NEGATIVE: v11 OOS models are WORSE than metric learning baselines on canonical benchmark (JP=0.597 vs linear 0.685, mahalanobis 0.678). The 'roughly tied' conclusion from 200 holdout does NOT transfer to 1200-slice. Hierarchy arm has better Jurivoc L0 (0.5205 vs 0.4771) but WORSE fractal ImpRate (67.8% vs 86.0%). JuristPref > 0.7 factory target NOT MET by any v11 representation (ceiling ~0.60). Product integration gap audit: 3 of 8 'in product but not evaluated' are FALSE GAPS (evaluated in cited_decisions_validation); CRITICAL: cited_decisions_tfidf_outcome_hybrid_0.5 (JP=0.7965) and _0.7 (JP=0.7898) remain BEST representations and are NOT in product map modes.",
+    "DEBIASED_CITATION_BLENDED FALSIFIED ON CANONICAL FROZEN HARNESS v3 (Factory Direction v10, evaluation_debiased_cb_cross_validation_33322534441): FALSIFICATION — debiased_citation_blended from fractal-map lane (cycles 12-14, PRODUCTIZE recommendation) FAILS canonical adversarial gates at ALL PCA dimensionalities (64, 128, 768). 768-dim: LangDom=0.7877 PASS, Jurist=0.4660 FAIL. 128-dim: LangDom=0.7891 PASS, Jurist=0.4850 FAIL. 64-dim: LangDom=0.7815 PASS, Jurist=0.4970 FAIL. Control: cited_decisions_tfidf on same 1000 decisions: LangDom=0.6176 PASS, Jurist=0.6430 PASS. Cycle 14 report's 'language_dominance' (0.6406) is MISLABELED — actually measures branch_coherence, not language dominance. Canonical harness language dominance (0.7877) is a different, more stringent test. Cross-language recall is excellent (0.4660 — best in class) but does not translate to jurist preference. Product implication: debiased_citation_blended should NOT be adopted as product default. Consider as secondary cross-language navigation mode only.",
+    "CITATION ROLE EMBEDDINGS ON FROZEN HARNESS v3 (Factory Direction v10, NEW CYCLE): ALL FOUR citation role embeddings from legal-distance v5 (citing, following, criticizing, all_weighted, 999 decisions, 64-dim) PASS both adversarial gates with very high jurist preference (0.8488) but ZERO jurivoc alignment (L0 NMI=0.0), zero scale stability (0.0), and negative boilerplate resistance (-0.555). This extends the established citation-signal pattern (previously documented for cited_decisions_tfidf: jurist=0.6922) to pure citation role signals, confirming that citation heritage is a dominant jurist-preference signal even in the absence of semantic legal structure. Alpha blends of citation roles with center_projected_64 (alphas 0.3/0.5/0.7) maintain both adversarial gate passage (lang_dom~0.51, jurist~0.77). Sparse role failures replicate: distinguishing (too few annotations) and overruling FAIL jurist gate. ALL role hybrids validated on frozen harness v3: PASS adversarial gates at low alpha; distinguishing/overruling too sparse. Negative result: pure citation role signals lack legal structure (jurivoc=0.0, scale=0.0) despite strong jurist preference."
   ],
   "validation_metrics": {
     "center_projected_768": {
@@ -548,6 +560,82 @@
       "fractal_improvement_rate": 0.6639344262295082,
       "cross_language_retrieval": 0.1475,
       "cross_language_retrieval_pass": false
+    },
+    "v11_oos_hybrid_stabilized_hierarchy": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.7156666666666667,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.5975,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.5204860012361917,
+      "jurivoc_level_1_nmi": 0.5013338906416299,
+      "jurivoc_pass": true,
+      "scale_stability": 0.7029166666666667,
+      "scale_stability_pass": true,
+      "fractal_improvement_rate": 0.6776859504132231,
+      "hierarchical_advantage": 0.0426790117464787,
+      "source": "cross_validated_on_canonical_frozen_harness_v3",
+      "source_lane": "legal-distance",
+      "source_run": "v11_oos_hybrid_stabilized_fixed_selection"
+    },
+    "v11_oos_hybrid_stabilized_nohierarchy": {
+      "verdict": "PASS",
+      "adversarial_language_dominance": 0.707375,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.5967,
+      "jurist_pairwise_preference_pass": true,
+      "both_adversarial_pass": true,
+      "jurivoc_level_0_nmi": 0.4770907776527666,
+      "jurivoc_level_1_nmi": 0.502583699562003,
+      "jurivoc_pass": true,
+      "scale_stability": 0.7079166666666669,
+      "scale_stability_pass": true,
+      "fractal_improvement_rate": 0.8602941176470589,
+      "hierarchical_advantage": 0.046657994744642384,
+      "source": "cross_validated_on_canonical_frozen_harness_v3",
+      "source_lane": "legal-distance",
+      "source_run": "v11_oos_hybrid_stabilized_fixed_selection_nohier"
+    },
+    "debiased_citation_blended_768dim": {
+      "verdict": "FAIL",
+      "adversarial_language_dominance": 0.7877,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.466,
+      "jurist_pairwise_preference_pass": false,
+      "both_adversarial_pass": false,
+      "jurivoc_level_0_nmi": 0.2798,
+      "jurivoc_level_1_nmi": 0.5148,
+      "jurivoc_pass": false,
+      "scale_stability": 0.687,
+      "scale_stability_pass": true,
+      "fractal_improvement_rate": 0.6306,
+      "cross_lang_recall_at_10": 0.466,
+      "cross_lang_recall_pass": true,
+      "source": "cross_validated_on_canonical_frozen_harness_v3",
+      "source_lane": "fractal-map",
+      "source_run": "cycle_14_productize_recommendation",
+      "falsification_note": "FALSIFIED: PRODUCTIZE recommendation from fractal-map does NOT hold on canonical adversarial gates"
+    },
+    "debiased_citation_blended_128dim": {
+      "verdict": "FAIL",
+      "adversarial_language_dominance": 0.7891,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.485,
+      "jurist_pairwise_preference_pass": false,
+      "both_adversarial_pass": false,
+      "source": "cross_validated_on_canonical_frozen_harness_v3",
+      "source_lane": "fractal-map"
+    },
+    "debiased_citation_blended_64dim": {
+      "verdict": "FAIL",
+      "adversarial_language_dominance": 0.7815,
+      "adversarial_language_dominance_pass": true,
+      "jurist_pairwise_preference": 0.497,
+      "jurist_pairwise_preference_pass": false,
+      "both_adversarial_pass": false,
+      "source": "cross_validated_on_canonical_frozen_harness_v3",
+      "source_lane": "fractal-map"
     }
   },
   "baseline_comparison": {
@@ -634,7 +722,10 @@
       "hybrid_erwaegungen_07: lang_dom=0.929, jurist=0.108",
       "hybrid_core_03: lang_dom=0.819, jurist=0.383",
       "hybrid_core_05: lang_dom=0.923, jurist=0.128",
-      "hybrid_core_07: lang_dom=0.938, jurist=0.083"
+      "hybrid_core_07: lang_dom=0.938, jurist=0.083",
+      "debiased_citation_blended_768dim: lang_dom=0.7877, jurist=0.4660 (FALSIFIED fractal-map PRODUCTIZE)",
+      "debiased_citation_blended_128dim: lang_dom=0.7891, jurist=0.4850",
+      "debiased_citation_blended_64dim: lang_dom=0.7815, jurist=0.4970"
     ],
     "newly_validated_successes": [
       "cited_decisions_tfidf: lang_dom=0.6107, jurist=0.6922, hier_adv=0.1232, clusters=7/278",
@@ -653,8 +744,8 @@
   "next_recommendation": "CONTINUE_WITHIN_MISSION_ON_CORPUS_DELIVERY",
   "metrics_summary": {
     "best_overall_adversarial": "cited_decisions_tfidf_outcome_hybrid_0.7 (jurist=0.7898, lang_dom=0.4922)",
-    "best_jurist_preference": "multilingual_e5_small_pretrained (0.8498) \u2014 BUT catastrophic hierarchy collapse",
-    "best_language_invariance": "multilingual_e5_small_pretrained (0.4590) \u2014 BUT catastrophic hierarchy collapse",
+    "best_jurist_preference": "multilingual_e5_small_pretrained (0.8498) — BUT catastrophic hierarchy collapse",
+    "best_language_invariance": "multilingual_e5_small_pretrained (0.4590) — BUT catastrophic hierarchy collapse",
     "best_jurivoc_alignment": "hybrid_v2_epoch3 (0.7415 Level 0 NMI)",
     "best_cross_language_retrieval": "hybrid_stabilized_epoch1 (0.2360)",
     "best_scale_stability": "mahalanobis_metric_epoch4 (0.7154)",
@@ -664,11 +755,56 @@
     "reference_jurist_preference": 0.5121,
     "reference_language_dominance": 0.7664,
     "best_production_hybrid": "cited_decisions_tfidf_hybrid_cp64_0.7 (jurist=0.6564, lang_dom=0.6518, uses 64-dim frozen PCA)",
-    "best_citation_role_hybrid": "citing_alpha0.3 (jurist=0.5363, lang_dom=0.7414) \u2014 VALIDATED ON FROZEN HARNESS v3",
-    "best_cross_lingual_alignment": "cited_decisions_tfidf_proc_pairs (LOSSLESS \u2014 FRESH computation matches base: jurist=0.684, lang_dom=0.610, jurivoc_l0=0.257)",
-    "best_64dim_hybrid": "cited_decisions_tfidf_proc_pairs_hybrid_cdtf64_0.7 (jurist=0.695, lang_dom=0.608, jurivoc_l0=0.143) \u2014 based on v10 fresh proc_pairs",
+    "best_citation_role_hybrid": "citing_alpha0.3 (jurist=0.5363, lang_dom=0.7414) — VALIDATED ON FROZEN HARNESS v3",
+    "best_cross_lingual_alignment": "cited_decisions_tfidf_proc_pairs (LOSSLESS — FRESH computation matches base: jurist=0.684, lang_dom=0.610, jurivoc_l0=0.257)",
+    "v11_cross_validation": {
+      "status": "CONFIRMED",
+      "hierarchy_arm": {
+        "langdom": 0.7157,
+        "jurist_pref": 0.5975,
+        "jurivoc_l0": 0.5205,
+        "fractal_imprate": 0.678
+      },
+      "no_hierarchy_arm": {
+        "langdom": 0.7074,
+        "jurist_pref": 0.5967,
+        "jurivoc_l0": 0.4771,
+        "fractal_imprate": 0.86
+      },
+      "hierarchy_loss_effect_canonical": "+0.0008 JP (NOT load-bearing)",
+      "hierarchy_loss_effect_report": "+0.030 JP (200 holdout, inflated by small-sample noise)",
+      "vs_metric_learning": "v11 JP=0.597 vs linear 0.685, mahalanobis 0.678 (v11 WORSE)",
+      "product_decision": "v11 is production-viable but metric learning baselines remain superior for High-Purity"
+    },
+    "best_64dim_hybrid": "cited_decisions_tfidf_proc_pairs_hybrid_cdtf64_0.7 (jurist=0.695, lang_dom=0.608, jurivoc_l0=0.143) — based on v10 fresh proc_pairs",
     "citation_roles_resolved": 2988,
     "citation_resolution_rate": "100%",
+    "debiased_citation_blended_falsification": {
+      "status": "FALSIFIED",
+      "768dim": {
+        "langdom": 0.7877,
+        "jurist": 0.466,
+        "both_pass": false
+      },
+      "128dim": {
+        "langdom": 0.7891,
+        "jurist": 0.485,
+        "both_pass": false
+      },
+      "64dim": {
+        "langdom": 0.7815,
+        "jurist": 0.497,
+        "both_pass": false
+      },
+      "cross_lang_recall": 0.466,
+      "control_cited_decisions_tfidf_128dim": {
+        "langdom": 0.6176,
+        "jurist": 0.643,
+        "both_pass": true
+      },
+      "product_decision": "DO NOT adopt as product default. Consider as secondary cross-language navigation mode only.",
+      "cycle_14_metric_discrepancy": "Cycle 14 'language_dominance' (0.6406) is MISLABELED — actually measures branch_coherence. Canonical harness language_dominance (0.7877) is a different, more stringent test."
+    },
     "holdout_cross_validation": {
       "status": "DISCREPANT_EXPLAINED",
       "representations_evaluated": 5,
@@ -683,7 +819,7 @@
       "cross_validation": {
         "language_dominance_consistent": 5,
         "jurist_preference_discrepant": 5,
-        "note": "All 5 representations CONSISTENT on language_dominance (within 0.02 tolerance). All 5 DISCREPANT on jurist_pairwise_preference (0.12-0.17 difference) \u2014 EXPLAINED by metric definition mismatch: frozen harness measures jurist_pairwise_preference (binary decision quality) while holdout measures jurist_would_succeed_rate (retrieval success rate). These are related but not identical metrics. Language dominance is the same metric in both frameworks, confirming measurement consistency.",
+        "note": "All 5 representations CONSISTENT on language_dominance (within 0.02 tolerance). All 5 DISCREPANT on jurist_pairwise_preference (0.12-0.17 difference) — EXPLAINED by metric definition mismatch: frozen harness measures jurist_pairwise_preference (binary decision quality) while holdout measures jurist_would_succeed_rate (retrieval success rate). These are related but not identical metrics. Language dominance is the same metric in both frameworks, confirming measurement consistency.",
         "cited_decisions_tfidf": {
           "frozen_lang_dom": 0.61,
           "holdout_train_lang_dom": 0.6147,
@@ -700,7 +836,7 @@
           "frozen_jurist_pref": 0.5121,
           "holdout_train_jurist_pref": 0.394,
           "jurist_pref_discrepancy": 0.1181,
-          "note": "Language dominance CONSISTENT (0.0038 difference). Jurist preference DISCREPANT (0.1181). HOLDOUT FAILS both adversarial gates (JP=0.385 holdout vs 0.512 frozen) \u2014 CRITICAL negative result."
+          "note": "Language dominance CONSISTENT (0.0038 difference). Jurist preference DISCREPANT (0.1181). HOLDOUT FAILS both adversarial gates (JP=0.385 holdout vs 0.512 frozen) — CRITICAL negative result."
         },
         "linear_metric_epoch4": {
           "frozen_lang_dom": 0.6805,
