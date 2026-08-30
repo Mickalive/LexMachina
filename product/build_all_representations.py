@@ -92,6 +92,16 @@ REPRESENTATIONS = {
             "both_gates_pass": True,
         }
     },
+    "hybrid_stabilized_best": {
+        "embeddings_path": PRODUCT_RESULTS / "hybrid_stabilized_best_embeddings.npy",
+        "evidence_tier": "ACCEPTED",
+        "description": "Stabilized hybrid metric learning (epoch 1): JP=0.6656, LangDom=0.6704",
+        "benchmark_results": {
+            "jurist_pairwise": 0.6656,
+            "language_dominance": 0.6704,
+            "both_gates_pass": True,
+        }
+    },
 }
 
 # Also need to build cp64 hybrids (center_projected_64dim + cited_decisions_tfidf)
