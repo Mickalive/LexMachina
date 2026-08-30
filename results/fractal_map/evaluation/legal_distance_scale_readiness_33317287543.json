@@ -1,0 +1,85 @@
+{
+  "run_id": "legal_distance_scale_readiness_33317287543",
+  "github_run": "33317287543",
+  "lane": "fractal-map",
+  "direction_version": 10,
+  "timestamp": "2026-08-30T18:20:00Z",
+  "cycle_type": "audit_resume_with_new_scale_evidence",
+  "frozen_before_inspection": true,
+  "frozen_hypothesis": "The accepted 1200-decision legal-distance outcome-hybrid embedding caches can (a) exactly reproduce the validated 1000-decision map artifacts and (b) serve as the source for a parameterized builder that maintains fractal structure at corpus sizes beyond 1000.",
+  "frozen_metric": "per-resolution label matched-purity (=1.0 exact reproduction), nesting_score, zoom_coherence_improvement_rate (fraction of coarse clusters whose child purity improves on zoom)",
+  "frozen_success_rule": "reproduction matched-purity >= 0.95 at every resolution; nesting_score == 1.0; zoom_improvement_rate at N==1200 not materially below the accepted N==1000 baseline",
+
+  "provenance_reproduction": {
+    "question": "Does the accepted 1200-decision cache reproduce the validated 1000-decision map labels (sliced to first 1000 rows BEFORE clustering)?",
+    "method": "Leiden (k=15, seed=42) on cache[:1000], compared to stored labels via best-match cluster purity.",
+    "result_mode_0.5": {
+      "res_0.25": {"n_repro": 11, "n_stored": 11, "purity": 1.0},
+      "res_0.5": {"n_repro": 14, "n_stored": 14, "purity": 1.0},
+      "res_1.0": {"n_repro": 22, "n_stored": 22, "purity": 1.0},
+      "res_1.5": {"n_repro": 22, "n_stored": 22, "purity": 1.0},
+      "res_2.0": {"n_repro": 24, "n_stored": 24, "purity": 1.0},
+      "res_3.0": {"n_repro": 29, "n_stored": 29, "purity": 1.0}
+    },
+    "result_mode_0.7": {
+      "res_0.25": {"n_repro": 10, "n_stored": 10, "purity": 1.0},
+      "res_0.5": {"n_repro": 15, "n_stored": 15, "purity": 1.0},
+      "res_1.0": {"n_repro": 19, "n_stored": 19, "purity": 1.0},
+      "res_1.5": {"n_repro": 22, "n_stored": 22, "purity": 1.0},
+      "res_2.0": {"n_repro": 25, "n_stored": 25, "purity": 1.0},
+      "res_3.0": {"n_repro": 29, "n_stored": 29, "purity": 1.0}
+    },
+    "verdict": "REPRODUCIBLE",
+    "note": "Both modes reproduce EXACTLY (purity=1.0) at all 6 resolutions AND coarse_0.5 AND hierarchical_best, from the accepted cache sliced to 1000 BEFORE clustering. This establishes full provenance: the accepted legal-distance cache is precisely the source of the fractal-map outcome-hybrid artifacts."
+  },
+  "hierarchical_best_rule": {
+    "finding": "For legal-distance modes, labels_hierarchical_best exactly equals labels_res_3.0 (finest single-resolution assignment), NOT the two-stage coarse_0.5->sub_3.0 subclustering used for center_projected.",
+    "mode_0.5": "hier_best == res_3.0 (exact)",
+    "mode_0.7": "hier_best == res_3.0 (exact)"
+  },
+  "superset_clustering_warning": {
+    "finding": "Clustering on the FULL 1200 superset then taking the first 1000 rows gives only 0.88 matched-purity (vs 1.00 when sliced BEFORE clustering).",
+    "rule": "The parameterized builder MUST slice the embedding to the map's decision subset BEFORE clustering.",
+    "mode_0.7_full1200_first1000_purity": 0.8804
+  },
+
+  "scale_extension_n1200": {
+    "question": "When built at the full 1200-decision cache size (new, unvalidated scale), do the BEST outcome-hybrid modes maintain fractal structure?",
+    "method": "Build via new build_parameterized_legal_distance_map.py at corpus-size=1200 using center_projected_full metadata (1200 decisions).",
+    "mode_0.5": {
+      "n_fine_clusters": 32,
+      "mean_nesting_score": 1.0,
+      "mean_branch_purity_all_levels": 0.5059,
+      "zoom_improvement_rate": 0.260,
+      "all_steps_positive_mean_improvement": true
+    },
+    "mode_0.7": {
+      "n_fine_clusters": 32,
+      "mean_nesting_score": 1.0,
+      "mean_branch_purity_all_levels": 0.5108,
+      "zoom_improvement_rate": 0.265,
+      "all_steps_positive_mean_improvement": false,
+      "note": "Some individual resolution-steps showed negative mean improvement (fine clusters less pure than coarse parents), but the aggregate cluster-level improvement_rate (0.265) is ABOVE the accepted 1000-decision value (0.234)."
+    },
+    "zoom_improvement_rate_comparison": {
+      "mode_0.5_n1000_accepted": 0.1712,
+      "mode_0.5_n1200": 0.260,
+      "mode_0.7_n1000_accepted": 0.2336,
+      "mode_0.7_n1200": 0.265
+    },
+    "verdict": "SCALE-ROBUST",
+    "note": "Both modes maintain nesting=1.0 and zoom_improvement_rate stable-to-improved from N=1000 to N=1200. Supports parameterized-builder readiness for full-corpus scaling."
+  },
+
+  "deliverable": {
+    "parameterized_builder": "fractal_map/hierarchical/build_parameterized_legal_distance_map.py",
+    "capability": "Scales multi-resolution Leiden for ANY legal-distance embedding (.npy) to arbitrary corpus size, following the slice-before-cluster provenance rule.",
+    "byte_exact_validation": "Output at N=1000 byte-exactly reproduces all 9 accepted label artifacts for both outcome-hybrid modes.",
+    "scale_artifacts": [
+      "results/fractal_map/scalability/legal_distance/cited_decisions_tfidf_outcome_hybrid_0.5_n1200/",
+      "results/fractal_map/scalability/legal_distance/cited_decisions_tfidf_outcome_hybrid_0.7_n1200/"
+    ]
+  },
+
+  "recommendation": "PROMOTE as part of lane deliverable. Provenance for both BEST modes now fully established; parameterized legal-distance builder closes the scalability gap flagged across all prior audit resumes; N=1200 scale extension shows fractal structures are robust at larger corpus size. BLOCKED on corpus lane only for true 192k build. Recommend making outcome_hybrid_0.5 the DEFAULT at scale given its stronger per-step zoom-coherence robustness vs 0.7."
+}

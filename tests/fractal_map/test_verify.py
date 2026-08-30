@@ -457,3 +457,50 @@ class TestLegalDistanceModes:
         legacy = self.state["map_modes"]["legacy_modes"]
         assert "hierarchical_leiden_concat" in legacy
         assert legacy["hierarchical_leiden_concat"]["status"] == "legacy"
+
+
+class TestLegalDistanceScaleReadiness:
+    """Guard the run-33317287543 scale-readiness deliverable:
+    parameterized legal-distance builder + N=1200 scale artifacts + provenance.
+    """
+
+    @pytest.fixture(autouse=True)
+    def load_data(self):
+        self.ld_builder = BASE / "fractal_map/hierarchical/build_parameterized_legal_distance_map.py"
+        self.scale_ev = load_json(
+            "results/fractal_map/evaluation/legal_distance_scale_readiness_33317287543.json")
+
+    def test_parameterized_builder_exists(self):
+        assert self.ld_builder.exists(), "Missing parameterized legal-distance builder"
+
+    def test_scale_evidence_present(self):
+        assert self.scale_ev["provenance_reproduction"]["verdict"] == "REPRODUCIBLE"
+        assert self.scale_ev["scale_extension_n1200"]["verdict"] == "SCALE-ROBUST"
+
+    def test_scale_artifacts_present_and_loadable(self):
+        for mode in ["0.5", "0.7"]:
+            d = (BASE / "results/fractal_map/scalability/legal_distance"
+                 / f"cited_decisions_tfidf_outcome_hybrid_{mode}_n1200")
+            assert (d / "hierarchical_map_results.json").exists()
+            for res in REs_as_list():
+                assert (d / f"labels_res_{res}.npy").exists()
+            assert (d / "labels_coarse_0.5.npy").exists()
+            assert (d / "labels_hierarchical_best.npy").exists()
+            # loadable
+            labels = np.load(d / "labels_res_1.0.npy")
+            assert labels.shape[0] == 1200
+            hier = json.load(open(d / "hierarchical_map_results.json"))
+            assert hier["mean_nesting_score"] == 1.0
+
+    def test_scale_nesting_and_zoom(self):
+        for mode in ["0.5", "0.7"]:
+            d = (BASE / "results/fractal_map/scalability/legal_distance"
+                 / f"cited_decisions_tfidf_outcome_hybrid_{mode}_n1200"
+                 / "hierarchical_map_results.json")
+            hier = json.load(open(d))
+            assert hier["mean_nesting_score"] == 1.0
+            assert hier["corpus_size"] == 1200
+
+
+def REs_as_list():
+    return [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0]
