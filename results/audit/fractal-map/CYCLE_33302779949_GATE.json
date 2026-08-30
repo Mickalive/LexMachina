@@ -1,0 +1,81 @@
+{
+  "run_id": "33302779949",
+  "lane": "fractal-map",
+  "factory_direction_version": 10,
+  "repair_round": 0,
+  "audit_type": "independent_audit",
+  "resumed_from_run": "33300128591",
+  "previous_accepted_run": "33300128591",
+  "timestamp": "2026-08-30T09:07:00Z",
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "producer_side_verification": true,
+  "independent_verification": {
+    "artifact_count": {
+      "producer_workspace": 542,
+      "accepted_base": 263,
+      "threshold": 541,
+      "status": "PASS"
+    },
+    "registry_totals": {
+      "total": 24,
+      "default": "center_projected_hierarchical",
+      "available": 22,
+      "placeholder": 1,
+      "legacy": 1,
+      "status": "PASS"
+    },
+    "default_mode_frozen_metrics": {
+      "mode": "center_projected_hierarchical",
+      "best_config": "coarse_0.5_fine_3.0",
+      "nesting_score": 1.0,
+      "hierarchical_purity": 0.9571,
+      "n_fine_clusters": 108,
+      "n_coarse_clusters": 7,
+      "decisions_indexed": 1000,
+      "n_label_arrays": 9,
+      "status": "PASS"
+    },
+    "loaders": {
+      "workspace_MapModeLoader": {"tested": 24, "loaded": 24, "failed": 0},
+      "workspace_ProductMapLoader": {"tested": 24, "loaded": 24, "failed": 0},
+      "status": "PASS"
+    },
+    "artifact_integrity": {
+      "missing": 0,
+      "bad_shape": 0,
+      "status": "PASS"
+    }
+  },
+  "pathology_flags": {
+    "operational_resume_bloat": {
+      "severity": "SEVERE",
+      "evidence_refs_count": 196,
+      "key_findings_count": 47,
+      "resume_self_report_findings": 28,
+      "resume_gate_jsons_in_audit_dir": 42,
+      "description": "28 of 47 key_findings are near-identical 'CURRENT RUN: Operational resume' boilerplate. State file has grown from 103 to 196 evidence_refs (+90%) through append-only resume self-reports. This is a systemic concern, not grounds for BLOCKED on this specific cycle."
+    },
+    "dual_state_file": {
+      "severity": "MODERATE",
+      "fractal_map_json_version": 10,
+      "fractal_underscore_map_json_version": 9,
+      "description": "Producer updated state/fractal-map.json to v10 but left state/fractal_map.json at v9. Pre-existing structural issue."
+    },
+    "no_promotion_since": {
+      "severity": "MODERATE",
+      "last_promoted_cycle": "33237943664",
+      "description": "Audit+integrate gate has produced no audit branch for fractal-map since cycle 33237943664. All v9/v10 work sits unpromoted on cycle branches."
+    }
+  },
+  "durable_delta": {
+    "state_bump": "v6→v10 in state/fractal-map.json with append-only evidence history",
+    "new_verification_script": "fractal_map/evaluation/snapshot_verify_33302779949.py",
+    "registry_expansion": "map_mode_registry.py expanded from 557 to 1337 lines with 16+ new legal-distance modes",
+    "artifact_delta": "+279 artifacts (263→542) for legal-distance mode subdirectories"
+  },
+  "required_fixes": [],
+  "claim_ceiling": "Fractal-map deliverable for factory direction v10 is complete on the validated 1000-decision slice: 24 map modes operational (1 default center_projected_hierarchical + 21 available legal-distance + 1 legacy + 1 placeholder), default mode frozen metrics reproduced (nesting=1.0, purity=0.9571, 108 fine clusters in 7 coarse parents, 1000 decisions indexed). All loader APIs validated end-to-end. No claim is made at full-corpus (192k) scale; that scaling step is blocked on the corpus lane.",
+  "evidence_summary": "Independent verification: artifact count 542 (≥541 threshold), registry 24 modes (1 default + 22 available + 1 legacy + 1 placeholder), default mode metrics reproduce from on-disk JSON (nesting=1.0, purity=0.957109, 108/7 clusters, 1000 decisions, 9 label arrays), MapModeLoader/ProductMapLoader load 24/24 modes from workspace base. Producer's snapshot_verify_33302779949.json confirms all checks PASS. Cross-lane numbers carried from ACCEPTED legal-distance evidence. No prettiness-as-quality, benchmark gaming, or boilerplate confounding in computation artifacts detected.",
+  "recommendation": "PRODUCTIZE"
+}
