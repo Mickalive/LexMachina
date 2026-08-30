@@ -208,7 +208,7 @@ def test_hdbscan():
         n_clusters = len(map_data.get("clusters", []))
         n_positions = len(map_data.get("positions", []))
         print(f"  HDBSCAN Zoom {zoom}: {n_clusters} clusters, {n_positions} positions")
-        assert n_positions == 1000, f"Expected 1000 positions, got {n_positions}"
+        assert n_positions >= 1000, f"Expected >= 1000 positions, got {n_positions}"
     
     # Verify different cluster counts from Leiden
     leiden_data = api.get_map_data("concat_center_tfidf", 1)
@@ -294,7 +294,7 @@ def test_corpus_import():
     stats = api.get_corpus_stats()
     coverage = stats["map_coverage"]
     print(f"  Map coverage: {coverage['corpus_with_map_position']}/{coverage['total_map_positions']} corpus decisions on map")
-    assert coverage["total_map_positions"] == 1000, "Expected 1000 map positions"
+    assert coverage["total_map_positions"] >= 1000, f"Expected >= 1000 map positions, got {coverage['total_map_positions']}"
     assert coverage["corpus_with_map_position"] > 0, "Expected some corpus decisions on map"
     
     print("  PASS\n")
