@@ -47,6 +47,54 @@ class MapState:
 class MapLoader:
     """Loads and manages map artifacts from the fractal-map lane."""
 
+    DESIGN_PATTERNS: Dict[str, str] = {
+        # DEFAULT
+        "center_projected_64dim_hierarchical": "DEFAULT",
+        # HIGH-PURITY
+        "linear_metric_best": "HIGH-PURITY",
+        "mahalanobis_best": "HIGH-PURITY",
+        "hybrid_stabilized_best": "HIGH-PURITY",
+        # HIGH-ADVANTAGE
+        "cited_decisions_tfidf": "HIGH-ADVANTAGE",
+        "cited_outcome_hybrid_0.5": "HIGH-ADVANTAGE",
+        "cited_outcome_hybrid_0.7": "HIGH-ADVANTAGE",
+        "hybrid_cited_decisions_0.3": "HIGH-ADVANTAGE",
+        "hybrid_cited_decisions_0.5": "HIGH-ADVANTAGE",
+        "hybrid_cited_decisions_0.7": "HIGH-ADVANTAGE",
+        "cited_decisions_tfidf_hybrid_cp64_0.3": "HIGH-ADVANTAGE",
+        "cited_decisions_tfidf_hybrid_cp64_0.5": "HIGH-ADVANTAGE",
+        "cited_decisions_tfidf_hybrid_cp64_0.7": "HIGH-ADVANTAGE",
+        # CITATION-ROLE
+        "following_alpha0.3": "CITATION-ROLE",
+        "criticizing_alpha0.3": "CITATION-ROLE",
+        "citing_alpha0.3": "CITATION-ROLE",
+        # LEGACY
+        "concat_center_tfidf": "LEGACY",
+        "baseline": "LEGACY",
+        "hdbscan": "LEGACY",
+        "hierarchical_leiden": "LEGACY",
+        "true_hierarchical_leiden": "LEGACY",
+        "debiased_citation_blended": "LEGACY",
+        "fractal_map_7res": "LEGACY",
+        "legal_cited_decisions": "LEGACY",
+        "center_projected": "LEGACY",
+        "center_projected_hierarchical": "LEGACY",
+        "hybrid_alpha_0_3": "LEGACY",
+        "hybrid_alpha_0_5": "LEGACY",
+        "legal_issues_outcomes": "LEGACY",
+    }
+
+    REPRESENTATION_PURPOSES: Dict[str, str] = {
+        "center_projected_64dim_hierarchical": "production",
+        "linear_metric_best": "citation_independent",
+        "cited_outcome_hybrid_0.5": "cross_lingual",
+        "cited_outcome_hybrid_0.7": "fractal_quality",
+        "cited_decisions_tfidf": "citation_proximity",
+        "following_alpha0.3": "following_precedent",
+        "criticizing_alpha0.3": "identifying_criticism",
+        "citing_alpha0.3": "citation_network",
+    }
+
     def __init__(self, results_dir: str, corpus_dir: Optional[str] = None):
         self.results_dir = Path(results_dir)
         self.corpus_dir = Path(corpus_dir) if corpus_dir else None
@@ -2797,6 +2845,57 @@ class MapLoader:
                 for level, zl in m.zoom_levels.items()
             },
         }
+
+    def get_representation_metadata(self, representation: str) -> Dict:
+        """Get metadata for a representation including design pattern and purpose.
+
+        Args:
+            representation: The representation name (e.g., "center_projected_64dim_hierarchical").
+
+        Returns:
+            Dict with representation, design_pattern, purpose, evidence_tier,
+            adversarial_metrics (if available), zoom_levels, and n_decisions.
+            Returns empty dict if representation not found.
+        """
+        m = self.get_map(representation)
+        if not m:
+            return {}
+
+        metadata = m.metadata if m.metadata else {}
+        benchmark_results = metadata.get("benchmark_results", {})
+
+        result: Dict[str, Any] = {
+            "representation": representation,
+            "design_pattern": self.DESIGN_PATTERNS.get(representation, "UNKNOWN"),
+            "purpose": self.REPRESENTATION_PURPOSES.get(representation, "general"),
+            "evidence_tier": metadata.get("evidence_tier", "UNKNOWN"),
+            "zoom_levels": sorted(m.zoom_levels.keys()) if m.zoom_levels else [],
+            "n_decisions": m.n_decisions,
+        }
+
+        # Include adversarial metrics if available
+        adversarial: Dict[str, Any] = {}
+        if "language_dominance" in benchmark_results:
+            adversarial["language_dominance"] = benchmark_results["language_dominance"]
+        if "jurist_pairwise" in benchmark_results:
+            adversarial["jurist_pairwise"] = benchmark_results["jurist_pairwise"]
+        if adversarial:
+            result["adversarial_metrics"] = adversarial
+
+        return result
+
+    def get_representations_by_pattern(self, pattern: str) -> List[str]:
+        """Get all representations matching a given design pattern.
+
+        Args:
+            pattern: Design pattern name (e.g., "DEFAULT", "HIGH-PURITY", "LEGACY").
+
+        Returns:
+            List of representation names matching the pattern, sorted alphabetically.
+        """
+        return sorted(
+            name for name, pat in self.DESIGN_PATTERNS.items() if pat == pattern
+        )
 
     def get_fractal_map_metadata(self) -> Dict[str, Any]:
         """Get the fractal map product integration metadata.

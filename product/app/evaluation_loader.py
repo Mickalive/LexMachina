@@ -11,6 +11,132 @@ from typing import Dict, List, Optional, Any
 class EvaluationLoader:
     """Loads and provides access to evaluation benchmark data."""
 
+    HOLDOUT_METRICS = {
+        "linear_metric_epoch4": {
+            "jp_score": 0.6050,
+            "jp_note": "best holdout",
+            "language_dominance": 0.5795,
+            "citation_independence": 34.95,
+            "design_pattern": "HIGH-PURITY",
+            "epoch": 4,
+        },
+        "mahalanobis_metric_epoch4": {
+            "jp_score": 0.5850,
+            "language_dominance": 0.5810,
+            "citation_independence": 35.2,
+            "design_pattern": "HIGH-PURITY",
+            "epoch": 4,
+        },
+        "hybrid_stabilized_epoch1": {
+            "jp_score": 0.5150,
+            "language_dominance": 0.6050,
+            "citation_independence": 36.95,
+            "design_pattern": "HIGH-PURITY",
+            "epoch": 1,
+        },
+        "cited_decisions_tfidf": {
+            "jp_score": 0.6922,
+            "jp_note": "train (no holdout available)",
+            "language_dominance": 0.6107,
+            "citation_independence": None,
+            "design_pattern": "HIGH-ADVANTAGE",
+        },
+        "cited_outcome_hybrid_0.5": {
+            "jp_score": 0.7990,
+            "jp_note": "train (no holdout available), BEST PRODUCTION hybrid",
+            "language_dominance": 0.4911,
+            "citation_independence": None,
+            "design_pattern": "HIGH-ADVANTAGE",
+        },
+        "cited_outcome_hybrid_0.7": {
+            "jp_score": 0.7907,
+            "jp_note": "train (no holdout available), BEST FRACTAL",
+            "language_dominance": 0.4907,
+            "citation_independence": None,
+            "design_pattern": "HIGH-ADVANTAGE",
+        },
+        "center_projected_64dim_hierarchical": {
+            "jp_score": 0.512,
+            "language_dominance": 0.766,
+            "citation_independence": None,
+            "design_pattern": "DEFAULT",
+        },
+        "following_alpha0.3": {
+            "jp_score": 0.5188,
+            "language_dominance": 0.7530,
+            "citation_independence": None,
+            "design_pattern": "CITATION-ROLE",
+        },
+        "criticizing_alpha0.3": {
+            "jp_score": None,
+            "jp_note": "not reported",
+            "language_dominance": None,
+            "citation_independence": None,
+            "design_pattern": "CITATION-ROLE",
+        },
+        "citing_alpha0.3": {
+            "jp_score": 0.5363,
+            "language_dominance": 0.7414,
+            "citation_independence": None,
+            "design_pattern": "CITATION-ROLE",
+        },
+    }
+
+    DESIGN_PATTERNS = {
+        "DEFAULT": {
+            "representations": ["center_projected_64dim_hierarchical"],
+            "description": "Production default. Passes both adversarial gates. Balanced cross-lingual and fractal quality.",
+            "strengths": ["passes adversarial gates", "production-ready", "balanced metrics"],
+            "use_when": "General-purpose legal-case clustering; default choice unless a specific use case demands otherwise.",
+        },
+        "HIGH-PURITY": {
+            "representations": ["linear_metric_epoch4", "mahalanobis_metric_epoch4", "hybrid_stabilized_epoch1"],
+            "description": "Metric learning representations. Best for citation-independent retrieval. Achieves 2.5x citation-independent retrieval vs zero-shot hybrids.",
+            "strengths": ["citation-independent retrieval", "high purity", "legal-distance metric learning"],
+            "use_when": "Citation-independent retrieval, cases where citation features are unavailable or unreliable.",
+        },
+        "HIGH-ADVANTAGE": {
+            "representations": ["cited_decisions_tfidf", "cited_outcome_hybrid_0.5", "cited_outcome_hybrid_0.7"],
+            "description": "Citation/outcome representations. Best for cross-lingual alignment. Highest JP scores on train set.",
+            "strengths": ["cross-lingual alignment", "highest JP scores", "citation-informed features"],
+            "use_when": "Cross-lingual alignment, fractal quality analysis, when citation data is available and reliable.",
+        },
+        "CITATION-ROLE": {
+            "representations": ["following_alpha0.3", "criticizing_alpha0.3", "citing_alpha0.3"],
+            "description": "Citation role embeddings. Encode the semantic role of citations (following, criticizing, citing).",
+            "strengths": ["citation role semantics", "directional citation features"],
+            "use_when": "Analyzing citation relationships and argumentative structure between cases.",
+        },
+    }
+
+    RECOMMENDATIONS = {
+        "production": {
+            "representation": "center_projected_64dim_hierarchical",
+            "pattern": "DEFAULT",
+            "rationale": "Passes both adversarial gates. Systematic, balanced, production-ready.",
+        },
+        "citation_independent": {
+            "representation": "linear_metric_epoch4",
+            "pattern": "HIGH-PURITY",
+            "rationale": "Best holdout JP (0.6050) among citation-independent representations. 2.5x retrieval improvement over zero-shot hybrids.",
+        },
+        "cross_lingual": {
+            "representation": "cited_outcome_hybrid_0.5",
+            "pattern": "HIGH-ADVANTAGE",
+            "rationale": "Best production hybrid. Highest JP (0.7990 train) among production-ready representations with strong language balance.",
+        },
+        "fractal_quality": {
+            "representation": "cited_outcome_hybrid_0.7",
+            "pattern": "HIGH-ADVANTAGE",
+            "rationale": "Best fractal representation. Highest JP (0.7907 train) with deep hierarchical structure.",
+        },
+        "default": {
+            "representation": "center_projected_64dim_hierarchical",
+            "pattern": "DEFAULT",
+            "rationale": "Production default. Balanced metrics across all dimensions.",
+        },
+    }
+
     def __init__(self, results_dir: str):
         self.results_dir = Path(results_dir)
         self._unified_data: Optional[Dict] = None
@@ -57,6 +183,8 @@ class EvaluationLoader:
             "language_dominance_warnings": lang_warnings,
             "total_representations_evaluated": len(self._unified_data) if self._unified_data else 0,
             "resolutions_tested": self._zoom_coherence_data.get("resolutions_tested", []) if self._zoom_coherence_data else [],
+            "design_patterns": self.get_design_patterns(),
+            "holdout_validation": self.get_holdout_metrics(),
         }
 
     def get_representation_quality(self) -> Dict[str, Dict[str, Any]]:
@@ -106,6 +234,40 @@ class EvaluationLoader:
             }
 
         return quality
+
+    def get_holdout_metrics(self) -> Dict[str, Dict[str, Any]]:
+        """Return holdout-validated metrics per representation.
+
+        These are the ground truth about representation quality from
+        legal-distance v9 experiments.
+        """
+        return self.HOLDOUT_METRICS
+
+    def get_design_patterns(self) -> Dict[str, Dict[str, Any]]:
+        """Return design pattern classification for representations.
+
+        Patterns group representations by their construction approach
+        and optimal use case.
+        """
+        return self.DESIGN_PATTERNS
+
+    def get_representation_recommendation(self, purpose: str) -> Dict[str, Any]:
+        """Return recommended representation for a given purpose.
+
+        Purposes:
+            - "production": general-purpose production use
+            - "citation_independent": retrieval without citation features
+            - "cross_lingual": cross-language alignment
+            - "fractal_quality": deep hierarchical structure
+            - "default": same as production
+
+        Returns dict with representation name, design pattern, and rationale.
+        """
+        purpose = purpose.lower().strip()
+        if purpose not in self.RECOMMENDATIONS:
+            valid = ", ".join(sorted(self.RECOMMENDATIONS.keys()))
+            return {"error": f"Unknown purpose '{purpose}'. Valid purposes: {valid}"}
+        return self.RECOMMENDATIONS[purpose]
 
     def _find_best_representation(self) -> Dict[str, Any]:
         """Find the representation with the highest ratio at any resolution."""

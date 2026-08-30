@@ -373,6 +373,19 @@ class ProductHandler(SimpleHTTPRequestHandler):
             zoom = int(params.get("zoom", ["1"])[0])
             self._json_response(get_nav_api().compare_maps(rep_a, rep_b, zoom))
         
+        # Design patterns endpoint
+        elif path == "/api/design_patterns":
+            self._json_response(get_nav_api().get_design_patterns())
+        
+        # Holdout metrics endpoint
+        elif path == "/api/evaluation/holdout":
+            self._json_response(get_nav_api().get_holdout_metrics())
+        
+        # Representation recommendation endpoint
+        elif path == "/api/recommendation":
+            purpose = params.get("purpose", ["default"])[0]
+            self._json_response(get_nav_api().get_representation_recommendation(purpose))
+        
         # WebGL rendering data endpoint
         elif path == "/api/webgl/data":
             default_rep = get_default_representation()

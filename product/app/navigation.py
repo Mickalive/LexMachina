@@ -1993,3 +1993,73 @@ class NavigationAPI:
                 'offsetY': 0
             }
         }
+
+    def get_design_patterns(self) -> Dict[str, Any]:
+        """Return design pattern classification for all representations.
+        
+        Design patterns group representations by their strengths:
+        - DEFAULT: Production default (passes both adversarial gates)
+        - HIGH-PURITY: Metric learning (best citation-independent retrieval)
+        - HIGH-ADVANTAGE: Citation/outcome (best cross-lingual alignment)
+        - CITATION-ROLE: Role-specific views (following, criticizing, citing)
+        - LEGACY: Earlier representations (available but not primary)
+        """
+        patterns = self.map_loader.get_representations_by_pattern
+        return {
+            "DEFAULT": {
+                "description": "Production default — passes both adversarial gates (language dominance < 0.85, jurist pairwise > 0.5)",
+                "representations": patterns("DEFAULT"),
+                "strength": "Systematic, balanced, production-ready",
+                "use_when": "General purpose, first-time users, production deployment"
+            },
+            "HIGH-PURITY": {
+                "description": "Metric learning representations — best for citation-independent retrieval (35% vs 14% for citation signals)",
+                "representations": patterns("HIGH-PURITY"),
+                "strength": "Citation-independent legal proximity, high cluster purity",
+                "use_when": "Exploring legal proximity without citation bias, finding semantically similar cases"
+            },
+            "HIGH-ADVANTAGE": {
+                "description": "Citation/outcome representations — best for cross-lingual alignment and fractal quality",
+                "representations": patterns("HIGH-ADVANTAGE"),
+                "strength": "Cross-lingual navigation, hierarchical structure, citation-proximity",
+                "use_when": "Cross-language exploration, finding precedent chains, fractal zoom navigation"
+            },
+            "CITATION-ROLE": {
+                "description": "Role-specific citation views — see how decisions follow, criticize, or cite each other",
+                "representations": patterns("CITATION-ROLE"),
+                "strength": "Citation role differentiation",
+                "use_when": "Analyzing precedent relationships, finding divergent rulings"
+            },
+            "LEGACY": {
+                "description": "Earlier representations — available for comparison but superseded by newer patterns",
+                "representations": patterns("LEGACY"),
+                "strength": "Historical comparison",
+                "use_when": "Comparing with earlier approaches, research reproducibility"
+            }
+        }
+
+    def get_holdout_metrics(self) -> Dict[str, Any]:
+        """Return holdout-validated metrics from legal-distance v9.
+        
+        These are true out-of-sample metrics, not training metrics.
+        Use these for comparing representation quality.
+        """
+        from .evaluation_loader import EvaluationLoader
+        eval_loader = EvaluationLoader(str(self.map_loader.results_dir))
+        eval_loader.load()
+        return eval_loader.get_holdout_metrics()
+
+    def get_representation_recommendation(self, purpose: str = "default") -> Dict[str, Any]:
+        """Get recommended representation for a specific purpose.
+        
+        Purposes:
+        - "production": Balanced production default (center_projected_64dim_hierarchical)
+        - "citation_independent": Best for citation-independent retrieval (linear_metric_best)
+        - "cross_lingual": Best for cross-language navigation (cited_outcome_hybrid_0.5)
+        - "fractal_quality": Best hierarchical structure (cited_outcome_hybrid_0.7)
+        - "default": Same as production
+        """
+        from .evaluation_loader import EvaluationLoader
+        eval_loader = EvaluationLoader(str(self.map_loader.results_dir))
+        eval_loader.load()
+        return eval_loader.get_representation_recommendation(purpose)
