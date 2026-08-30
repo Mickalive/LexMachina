@@ -5,10 +5,10 @@
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
   "accepted_run_id": "33319197061",
-  "github_run": "33320159055",
-  "timestamp": "2026-08-31T02:00:00Z",
+  "github_run": "33320387509",
+  "timestamp": "2026-08-30T12:00:00Z",
   "previous_accepted_run": "33317287543",
-  "next_recommendation": "PRODUCTIZE. All 21 legal-distance modes artifact-complete (603 artifacts verified, run 33320159055). 175/175 tests PASS. Orchestration/validation failures from run 33319678879 confirmed diagnosed and repaired — no regressions. Stale artifact count (548→603) corrected in this run. BLOCKED on corpus lane for 192k scaling. When corpus delivers: run build_parameterized_legal_distance_map.py at --corpus-size 192000 on accepted embeddings; re-validate nesting/zoom at full scale; refresh registry. Recommend outcome_hybrid_0.5 as DEFAULT at scale.",
+  "next_recommendation": "PRODUCTIZE. All 21 legal-distance modes artifact-complete (603 artifacts verified, run 33320387509). 175/175 tests PASS. Prior orchestration/validation repair (run 33319678879) confirmed stable — no regressions across 3 resume cycles (33319678879→33320159055→33320387509). BLOCKED on corpus lane for 192k scaling. When corpus delivers: run build_parameterized_legal_distance_map.py at --corpus-size 192000 on accepted embeddings; re-validate nesting/zoom at full scale; refresh registry. Recommend outcome_hybrid_0.5 as DEFAULT at scale.",
   "evidence_refs": [
     "results/fractal_map/evaluation/verify_outcome_hybrid_integration_33307151666.json",
     "results/fractal_map/evaluation/artifact_audit_33316273550.json",
@@ -39,9 +39,12 @@
     "tests/requirements.txt",
     "reports/fractal_map/OPERATIONAL_RESUME_33319678879_AUDIT.md",
     "results/audit/fractal-map/CYCLE_33320159055_GATE.json",
-    "reports/fractal_map/OPERATIONAL_RESUME_33320159055_AUDIT.md"
+    "reports/fractal_map/OPERATIONAL_RESUME_33320159055_AUDIT.md",
+    "results/audit/fractal-map/CYCLE_33320387509_GATE.json",
+    "reports/fractal_map/OPERATIONAL_RESUME_33320387509_AUDIT.md"
   ],
   "key_findings": [
+    "RUN 33320387509: OPERATIONAL RESUME from persisted snapshot of run 33320159055. VERIFIED: 175/175 pytest tests PASS (1.40s); 603 artifacts confirmed; 21 legal-distance modes artifact-complete; all key product modes validated. Prior orchestration/validation repair chain (33319678879→33320159055→33320387509) confirmed stable across 3 resume cycles — no regressions. 13th occurrence of systemic ephemeral-storage gap corrected (github_run/operational_resume_id updated). Snapshot audit-ready. RECOMMENDATION: PRODUCTIZE. BLOCKED on corpus lane for 192k scaling.",
     "RUN 33320159055: OPERATIONAL RESUME from persisted snapshot of run 33319678879. VERIFIED: 175/175 pytest tests PASS (1.39s); 603 artifacts confirmed (correcting stale count 548→603 in state file); 21 legal-distance modes artifact-complete; all key product modes validated. Prior orchestration/validation repair (run 33319678879) confirmed stable — no regressions. Stale artifacts_verified field (12th occurrence of systemic ephemeral-storage gap) corrected. Snapshot audit-ready. RECOMMENDATION: PRODUCTIZE. BLOCKED on corpus lane for 192k scaling.",
     "RUN 33319678879: ORCHESTRATION/VALIDATION FAILURE DIAGNOSED AND REPAIRED. Prior run 33319197061 completed v6 artifact work (175 tests, artifact completeness) but state/fractal-map.json retained stale github_run='33317287543' and accepted_run_id='verify_outcome_hybrid_33307151666' (11th occurrence of systemic ephemeral-storage gap). ADDITIONAL VALIDATION FAILURE: test_provenance_reproduced_by_recompute requires igraph/leidenalg/sklearn but no requirements file declared them — test failed on fresh CI with ModuleNotFoundError. REPAIR: (a) installed igraph/leidenalg/scikit-learn, (b) created tests/requirements.txt declaring test deps, (c) added module-level _leiden_deps_available() check with pytest.mark.skipif graceful fallback for environments without Leiden deps, (d) updated state to reflect current run (github_run=33319678879, accepted_run_id=33319197061, audit_status=PASS), (e) all 175/175 tests PASS confirmed. 603 total artifacts, 21 modes artifact-complete.",
     "RUN 33317287543 + repair 33317520019: Provenance EXACTLY established and INDEPENDENTLY VERIFIED - accepted 1200-decision outcome-hybrid cache reproduces validated 1000-decision map labels (purity=1.0 at every resolution + coarse_0.5 + hierarchical_best) for both cited_decisions_tfidf_outcome_hybrid_0.5 and _0.7, via slice-before-cluster. The source cache is now committed (results/fractal_map/scalability/legal_distance/source_cache/*.npy) and re-verified in repair 33317520019 (scale_readiness_independent_recompute_33317520019.json). Critical rule: clustering the full superset then taking first 1000 gives only 0.88 purity. hierarchical_best rule: for legal-distance modes labels_hierarchical_best == labels_res_3.0 (not two-stage subclustering).",
@@ -187,7 +190,7 @@
       "purity_min_cluster_size": 3
     }
   },
-  "operational_resume_id": "33320159055",
+  "operational_resume_id": "33320387509",
   "repair_of": null,
   "repair_round": 0,
   "audit_status": "PASS",
