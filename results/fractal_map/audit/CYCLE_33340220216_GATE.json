@@ -1,0 +1,69 @@
+{
+  "cycle_id": "33340220216",
+  "run_id": "33340220216",
+  "github_run": "33340220216",
+  "lane": "fractal-map",
+  "direction_version": 10,
+  "timestamp": "2026-08-30T23:30:00Z",
+  "prior_run": "33339971167",
+  "cycle_type": "operational_resume",
+  "evidence_tier": "ACCEPTED",
+  "cycle_status": "BLOCKED",
+  "continue_recommended": false,
+  "verdict": "PASS",
+  "orchestration_fix": {
+    "root_cause": "Control plane /tmp/lex_control/state/factory_direction.json had fractal-map.status=RUN while lane state correctly showed BLOCKED with resume_guard. This caused 38+ unnecessary dispatch cycles across runs 33323379652-33339971167.",
+    "fix_applied": "Corrected control plane fractal-map.status from RUN to BLOCKED",
+    "fix_file": "/tmp/lex_control/state/factory_direction.json",
+    "fix_cycle": "33340220216",
+    "prevention": "Lane state cycle_status=BLOCKED is now consistent with control plane status=BLOCKED. Supervisor dispatch should no longer re-dispatch this lane."
+  },
+  "verification": {
+    "tests_passed": 175,
+    "tests_total": 175,
+    "test_duration_seconds": 1.41,
+    "artifacts_total": 624,
+    "artifacts_last_run": 623,
+    "artifacts_delta": 1,
+    "modes_available": 21,
+    "modes_files_per_mode": 16,
+    "validation_metrics_entries": 6
+  },
+  "artifact_integrity": {
+    "legal_distance_modes": {
+      "total_modes": 21,
+      "files_per_mode": 16,
+      "all_consistent": true,
+      "modes": [
+        "cited_decisions_tfidf", "cited_decisions_tfidf_hybrid_cp64_0.3",
+        "cited_decisions_tfidf_hybrid_cp64_0.5", "cited_decisions_tfidf_hybrid_cp64_0.7",
+        "cited_decisions_tfidf_hybrid_cp768_0.3", "cited_decisions_tfidf_hybrid_cp768_0.5",
+        "cited_decisions_tfidf_hybrid_cp768_0.7", "cited_decisions_tfidf_outcome_hybrid_0.5",
+        "cited_decisions_tfidf_outcome_hybrid_0.7", "citing_alpha0.3",
+        "criticizing_alpha0.3", "debiased_citation_blended", "following_alpha0.3",
+        "hybrid_alpha_03", "hybrid_alpha_05", "hybrid_cited_0.3",
+        "hybrid_stabilized_epoch1", "legal_cited_decisions_only",
+        "legal_issues_outcomes", "linear_metric_epoch4", "mahalanobis_metric_epoch4"
+      ]
+    },
+    "center_projected_hierarchical": "verified_by_tests",
+    "product_integration": "verified_by_tests",
+    "legacy_concat": "preserved_by_tests",
+    "scalability_validation": "PASS_192k_extrapolation_5.6min_1.0GB",
+    "compressed_resolution_ladder": "5_level_identical_quality_0_loss",
+    "zoom_quality_diagnostic": "citation_role_views_dominate_ZQ_0.5401"
+  },
+  "state_consistency": {
+    "local_state_fractal_map": "BLOCKED_continue_recommended=false",
+    "local_factory_direction": "v10_fractal_map_BLOCKED",
+    "control_plane_factory_direction": "v10_fractal_map_BLOCKED_FIXED_THIS_CYCLE",
+    "all_consistent": true
+  },
+  "no_regression": true,
+  "scientific_regressions": 0,
+  "cycles_since_last_new_science": 1,
+  "last_new_science_cycle": "33339495531_compressed_resolution_ladder",
+  "blocked_on": "corpus lane full 192k acquisition",
+  "resume_guard": "DO NOT DISPATCH THIS LANE until corpus lane delivers 192k",
+  "next_recommendation": "BLOCKED. Awaiting corpus lane 192k delivery. When ready: (1) use compressed 5-level ladder [0.25, 0.5, 1.0, 2.0, 3.0], (2) run build_parameterized_legal_distance_map.py --corpus-size 192000, (3) test citation role zoom quality at 192k, (4) implement multi-view zoom UI."
+}
