@@ -59,7 +59,7 @@ The evaluation lane is **complete** with no new unblocked discriminating experim
 
 ---
 
-## 5. Validated Representation Landscape (29 representations, 4 design patterns)
+## 5. Validated Representation Landscape (26 representations, 4 design patterns)
 
 ### DEFAULT
 - center_projected_64dim_hierarchical (nesting=1.0, purity=0.9718, both gates PASS)
@@ -92,7 +92,7 @@ The evaluation lane is **complete** with no new unblocked discriminating experim
 3. CCA and single Procrustes catastrophic for cross-lingual alignment
 4. Distinguishing/overruling citation roles too sparse (58/18 annotations)
 5. Boilerplate resistance NEGATIVE for ALL representations (systemic language dominance)
-6. JuristPref > 0.7 target NOT MET by any representation on canonical benchmark
+6. JuristPref > 0.7 factory target NOT MET by any v11 representation (ceiling ~0.60). Outcome hybrids exceed 0.7 but are not production-ready (low Jurivoc alignment: L0=0.116/0.164)
 7. v11 hierarchy loss NOT load-bearing (ΔJP=+0.0008 on full slice)
 8. v11 models WORSE than metric learning baselines on canonical benchmark
 
