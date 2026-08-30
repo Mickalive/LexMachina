@@ -229,6 +229,76 @@ class TestArtifactIntegrity:
         path = RESULTS_DIR / "legal_distance_modes" / mode_id / "integration_summary.json"
         assert path.exists(), f"Missing integration_summary.json for {mode_id}"
 
+    # V6 baseline mode artifact integrity tests (completed by complete_v6_hierarchical_artifacts.py)
+    V6_BASELINE_MODES = [
+        "debiased_citation_blended",
+        "hybrid_alpha_03",
+        "hybrid_alpha_05",
+        "legal_cited_decisions_only",
+        "legal_issues_outcomes",
+    ]
+
+    @pytest.mark.parametrize("mode_id", V6_BASELINE_MODES)
+    def test_v6_baseline_label_arrays_exist(self, mode_id):
+        """Test v6 baseline mode label arrays exist."""
+        for res in RESOLUTIONS:
+            path = RESULTS_DIR / "legal_distance_modes" / mode_id / f"labels_res_{res}.npy"
+            assert path.exists(), f"Missing label array for {mode_id}: labels_res_{res}.npy"
+
+    @pytest.mark.parametrize("mode_id", V6_BASELINE_MODES)
+    def test_v6_baseline_label_arrays_size(self, mode_id):
+        """Test v6 baseline mode label arrays have correct size."""
+        for res in RESOLUTIONS:
+            path = RESULTS_DIR / "legal_distance_modes" / mode_id / f"labels_res_{res}.npy"
+            arr = np.load(path)
+            assert len(arr) == 1000, f"{mode_id} labels_res_{res}.npy has {len(arr)} labels, expected 1000"
+
+    @pytest.mark.parametrize("mode_id", V6_BASELINE_MODES)
+    def test_v6_baseline_hierarchical_labels_exist(self, mode_id):
+        """Test v6 baseline mode hierarchical labels exist."""
+        path = RESULTS_DIR / "legal_distance_modes" / mode_id / "labels_hierarchical_best.npy"
+        assert path.exists(), f"Missing labels_hierarchical_best.npy for {mode_id}"
+        arr = np.load(path)
+        assert len(arr) == 1000
+
+    @pytest.mark.parametrize("mode_id", V6_BASELINE_MODES)
+    def test_v6_baseline_coarse_labels_exist(self, mode_id):
+        """Test v6 baseline mode coarse labels exist."""
+        path = RESULTS_DIR / "legal_distance_modes" / mode_id / "labels_coarse_0.5.npy"
+        assert path.exists(), f"Missing labels_coarse_0.5.npy for {mode_id}"
+        arr = np.load(path)
+        assert len(arr) == 1000
+
+    @pytest.mark.parametrize("mode_id", V6_BASELINE_MODES)
+    def test_v6_baseline_hierarchical_map_results_exist(self, mode_id):
+        """Test v6 baseline mode hierarchical results exist."""
+        path = RESULTS_DIR / "legal_distance_modes" / mode_id / "hierarchical_map_results.json"
+        assert path.exists(), f"Missing hierarchical_map_results.json for {mode_id}"
+
+    @pytest.mark.parametrize("mode_id", V6_BASELINE_MODES)
+    def test_v6_baseline_nesting_perfect(self, mode_id):
+        """Test v6 baseline mode has perfect nesting (1.0) — legal-distance rule."""
+        path = RESULTS_DIR / "legal_distance_modes" / mode_id / "hierarchical_map_results.json"
+        data = load_json(f"results/fractal_map/legal_distance_modes/{mode_id}/hierarchical_map_results.json")
+        assert data["mean_nesting_score"] == 1.0, \
+            f"{mode_id} nesting {data['mean_nesting_score']} != 1.0"
+
+    @pytest.mark.parametrize("mode_id", V6_BASELINE_MODES)
+    def test_v6_baseline_hierarchical_best_equals_res_3(self, mode_id):
+        """Test that hierarchical_best == labels_res_3.0 (legal-distance rule)."""
+        hier_best = np.load(RESULTS_DIR / "legal_distance_modes" / mode_id / "labels_hierarchical_best.npy")
+        res_3 = np.load(RESULTS_DIR / "legal_distance_modes" / mode_id / "labels_res_3.0.npy")
+        assert np.array_equal(hier_best, res_3), \
+            f"{mode_id}: labels_hierarchical_best != labels_res_3.0"
+
+    @pytest.mark.parametrize("mode_id", V6_BASELINE_MODES)
+    def test_v6_baseline_coarse_equals_res_05(self, mode_id):
+        """Test that coarse_0.5 == labels_res_0.5."""
+        coarse = np.load(RESULTS_DIR / "legal_distance_modes" / mode_id / "labels_coarse_0.5.npy")
+        res_05 = np.load(RESULTS_DIR / "legal_distance_modes" / mode_id / "labels_res_0.5.npy")
+        assert np.array_equal(coarse, res_05), \
+            f"{mode_id}: labels_coarse_0.5 != labels_res_0.5"
+
 
 class TestHierarchicalLeiden:
     """Test that hierarchical Leiden achieves target metrics on center_projected."""
