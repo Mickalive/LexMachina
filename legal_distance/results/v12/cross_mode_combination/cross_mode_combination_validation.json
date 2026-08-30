@@ -1,0 +1,1667 @@
+{
+  "run_id": "v12_cross_mode_combination_20260830",
+  "direction_version": 10,
+  "hypothesis": "Combining citation-based + metric-learning OOS embeddings may break the JP ceiling of ~0.53",
+  "corpus": "1200 BGer decisions, 1000 train / 200 holdout",
+  "frozen_harness": {
+    "config_hash": "1674829901d55e83",
+    "seed": 42
+  },
+  "success_rule": {
+    "langdom_target": 0.6,
+    "langdom_gate": 0.85,
+    "jurist_pref_target": 0.7,
+    "jurist_pref_gate": 0.5,
+    "citation_independent_recall_target": 0.15
+  },
+  "results": {
+    "baseline_linear_oos": {
+      "name": "baseline_linear_oos",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 128,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.7106,
+          "std_language_dominance": 0.2416146518735981,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 270,
+          "language_artifact_only": 311,
+          "both_available": 272,
+          "neither_available": 147,
+          "legal_neighbor_rate": 0.542,
+          "language_neighbor_rate": 0.583,
+          "jurist_would_succeed_rate": 0.542,
+          "jurist_forced_wrong_rate": 0.311
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.7106,
+        "jurist_preference_rate": 0.542
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.6069999999999999,
+          "std_language_dominance": 0.26325083095785284,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 40,
+          "language_artifact_only": 85,
+          "both_available": 65,
+          "neither_available": 10,
+          "legal_neighbor_rate": 0.525,
+          "language_neighbor_rate": 0.75,
+          "jurist_would_succeed_rate": 0.525,
+          "jurist_forced_wrong_rate": 0.425
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.6069999999999999,
+        "jurist_preference_rate": 0.525
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.4155,
+        "citation_independent_retrieval_rate": 0.3475,
+        "status": "PASS"
+      }
+    },
+    "baseline_mahal_oos": {
+      "name": "baseline_mahal_oos",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 128,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.7117,
+          "std_language_dominance": 0.23969378381593462,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 247,
+          "language_artifact_only": 325,
+          "both_available": 291,
+          "neither_available": 137,
+          "legal_neighbor_rate": 0.538,
+          "language_neighbor_rate": 0.616,
+          "jurist_would_succeed_rate": 0.538,
+          "jurist_forced_wrong_rate": 0.325
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.7117,
+        "jurist_preference_rate": 0.538
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.605,
+          "std_language_dominance": 0.2598557292037257,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 43,
+          "language_artifact_only": 86,
+          "both_available": 63,
+          "neither_available": 8,
+          "legal_neighbor_rate": 0.53,
+          "language_neighbor_rate": 0.745,
+          "jurist_would_succeed_rate": 0.53,
+          "jurist_forced_wrong_rate": 0.43
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.605,
+        "jurist_preference_rate": 0.53
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.42,
+        "citation_independent_retrieval_rate": 0.3495,
+        "status": "PASS"
+      }
+    },
+    "baseline_hier_oos": {
+      "name": "baseline_hier_oos",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 128,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.74905,
+          "std_language_dominance": 0.2465899379536805,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "FAIL",
+          "total_decisions": 1000,
+          "legal_relevant_only": 227,
+          "language_artifact_only": 332,
+          "both_available": 132,
+          "neither_available": 309,
+          "legal_neighbor_rate": 0.359,
+          "language_neighbor_rate": 0.464,
+          "jurist_would_succeed_rate": 0.359,
+          "jurist_forced_wrong_rate": 0.332
+        },
+        "both_pass": false,
+        "language_dominance_score": 0.74905,
+        "jurist_preference_rate": 0.359
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.6015,
+          "std_language_dominance": 0.27234674589574226,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 44,
+          "language_artifact_only": 84,
+          "both_available": 63,
+          "neither_available": 9,
+          "legal_neighbor_rate": 0.535,
+          "language_neighbor_rate": 0.735,
+          "jurist_would_succeed_rate": 0.535,
+          "jurist_forced_wrong_rate": 0.42
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.6015,
+        "jurist_preference_rate": 0.535
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.456,
+        "citation_independent_retrieval_rate": 0.364,
+        "status": "PASS"
+      }
+    },
+    "baseline_nohier_oos": {
+      "name": "baseline_nohier_oos",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 128,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.7399,
+          "std_language_dominance": 0.2521665917602885,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "FAIL",
+          "total_decisions": 1000,
+          "legal_relevant_only": 232,
+          "language_artifact_only": 318,
+          "both_available": 132,
+          "neither_available": 318,
+          "legal_neighbor_rate": 0.364,
+          "language_neighbor_rate": 0.45,
+          "jurist_would_succeed_rate": 0.364,
+          "jurist_forced_wrong_rate": 0.318
+        },
+        "both_pass": false,
+        "language_dominance_score": 0.7399,
+        "jurist_preference_rate": 0.364
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.64125,
+          "std_language_dominance": 0.2855449833213674,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 43,
+          "language_artifact_only": 83,
+          "both_available": 58,
+          "neither_available": 16,
+          "legal_neighbor_rate": 0.505,
+          "language_neighbor_rate": 0.705,
+          "jurist_would_succeed_rate": 0.505,
+          "jurist_forced_wrong_rate": 0.415
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.64125,
+        "jurist_preference_rate": 0.505
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.427,
+        "citation_independent_retrieval_rate": 0.335,
+        "status": "PASS"
+      }
+    },
+    "baseline_citation_tfidf": {
+      "name": "baseline_citation_tfidf",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 128,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.6146999999999999,
+          "std_language_dominance": 0.23065972773763518,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 135,
+          "language_artifact_only": 375,
+          "both_available": 417,
+          "neither_available": 73,
+          "legal_neighbor_rate": 0.552,
+          "language_neighbor_rate": 0.792,
+          "jurist_would_succeed_rate": 0.552,
+          "jurist_forced_wrong_rate": 0.375
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.6146999999999999,
+        "jurist_preference_rate": 0.552
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.5195,
+          "std_language_dominance": 0.18926106308483,
+          "max_language_dominance": 0.9,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 15,
+          "language_artifact_only": 91,
+          "both_available": 90,
+          "neither_available": 4,
+          "legal_neighbor_rate": 0.525,
+          "language_neighbor_rate": 0.905,
+          "jurist_would_succeed_rate": 0.525,
+          "jurist_forced_wrong_rate": 0.455
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.5195,
+        "jurist_preference_rate": 0.525
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.3185,
+        "citation_independent_retrieval_rate": 0.134,
+        "status": "FAIL"
+      }
+    },
+    "baseline_hybrid05": {
+      "name": "baseline_hybrid05",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 130,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.57815,
+          "std_language_dominance": 0.21927169790011658,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 139,
+          "language_artifact_only": 319,
+          "both_available": 475,
+          "neither_available": 67,
+          "legal_neighbor_rate": 0.614,
+          "language_neighbor_rate": 0.794,
+          "jurist_would_succeed_rate": 0.614,
+          "jurist_forced_wrong_rate": 0.319
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.57815,
+        "jurist_preference_rate": 0.614
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.511,
+          "std_language_dominance": 0.18882266813070933,
+          "max_language_dominance": 0.9,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 12,
+          "language_artifact_only": 83,
+          "both_available": 104,
+          "neither_available": 1,
+          "legal_neighbor_rate": 0.58,
+          "language_neighbor_rate": 0.935,
+          "jurist_would_succeed_rate": 0.58,
+          "jurist_forced_wrong_rate": 0.415
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.511,
+        "jurist_preference_rate": 0.58
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.296,
+        "citation_independent_retrieval_rate": 0.1405,
+        "status": "FAIL"
+      }
+    },
+    "baseline_hybrid07": {
+      "name": "baseline_hybrid07",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 130,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.57585,
+          "std_language_dominance": 0.2175988913115138,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 132,
+          "language_artifact_only": 320,
+          "both_available": 482,
+          "neither_available": 66,
+          "legal_neighbor_rate": 0.614,
+          "language_neighbor_rate": 0.802,
+          "jurist_would_succeed_rate": 0.614,
+          "jurist_forced_wrong_rate": 0.32
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.57585,
+        "jurist_preference_rate": 0.614
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.51125,
+          "std_language_dominance": 0.18884103764807053,
+          "max_language_dominance": 0.9,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 12,
+          "language_artifact_only": 82,
+          "both_available": 105,
+          "neither_available": 1,
+          "legal_neighbor_rate": 0.585,
+          "language_neighbor_rate": 0.935,
+          "jurist_would_succeed_rate": 0.585,
+          "jurist_forced_wrong_rate": 0.41
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.51125,
+        "jurist_preference_rate": 0.585
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.2925,
+        "citation_independent_retrieval_rate": 0.1375,
+        "status": "FAIL"
+      }
+    },
+    "linear_citation_concat": {
+      "name": "linear_citation_concat",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 256,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.70055,
+          "std_language_dominance": 0.22504932237178588,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 267,
+          "language_artifact_only": 291,
+          "both_available": 295,
+          "neither_available": 147,
+          "legal_neighbor_rate": 0.562,
+          "language_neighbor_rate": 0.586,
+          "jurist_would_succeed_rate": 0.562,
+          "jurist_forced_wrong_rate": 0.291
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.70055,
+        "jurist_preference_rate": 0.562
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.5965,
+          "std_language_dominance": 0.25848162410508024,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 42,
+          "language_artifact_only": 81,
+          "both_available": 68,
+          "neither_available": 9,
+          "legal_neighbor_rate": 0.55,
+          "language_neighbor_rate": 0.745,
+          "jurist_would_succeed_rate": 0.55,
+          "jurist_forced_wrong_rate": 0.405
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.5965,
+        "jurist_preference_rate": 0.55
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.4435,
+        "citation_independent_retrieval_rate": 0.2755,
+        "status": "PASS"
+      }
+    },
+    "linear_hybrid05_concat": {
+      "name": "linear_hybrid05_concat",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 258,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.66365,
+          "std_language_dominance": 0.22656384861667583,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 317,
+          "language_artifact_only": 281,
+          "both_available": 310,
+          "neither_available": 92,
+          "legal_neighbor_rate": 0.627,
+          "language_neighbor_rate": 0.591,
+          "jurist_would_succeed_rate": 0.627,
+          "jurist_forced_wrong_rate": 0.281
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.66365,
+        "jurist_preference_rate": 0.627
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.60275,
+          "std_language_dominance": 0.2544699147247077,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 39,
+          "language_artifact_only": 91,
+          "both_available": 66,
+          "neither_available": 4,
+          "legal_neighbor_rate": 0.525,
+          "language_neighbor_rate": 0.785,
+          "jurist_would_succeed_rate": 0.525,
+          "jurist_forced_wrong_rate": 0.455
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.60275,
+        "jurist_preference_rate": 0.525
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.4325,
+        "citation_independent_retrieval_rate": 0.32,
+        "status": "PASS"
+      }
+    },
+    "mahal_citation_concat": {
+      "name": "mahal_citation_concat",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 256,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.6992,
+          "std_language_dominance": 0.22316890464399383,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 255,
+          "language_artifact_only": 304,
+          "both_available": 302,
+          "neither_available": 139,
+          "legal_neighbor_rate": 0.557,
+          "language_neighbor_rate": 0.606,
+          "jurist_would_succeed_rate": 0.557,
+          "jurist_forced_wrong_rate": 0.304
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.6992,
+        "jurist_preference_rate": 0.557
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.5975,
+          "std_language_dominance": 0.2592657902616541,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 43,
+          "language_artifact_only": 81,
+          "both_available": 66,
+          "neither_available": 10,
+          "legal_neighbor_rate": 0.545,
+          "language_neighbor_rate": 0.735,
+          "jurist_would_succeed_rate": 0.545,
+          "jurist_forced_wrong_rate": 0.405
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.5975,
+        "jurist_preference_rate": 0.545
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.447,
+        "citation_independent_retrieval_rate": 0.274,
+        "status": "PASS"
+      }
+    },
+    "mahal_hybrid05_concat": {
+      "name": "mahal_hybrid05_concat",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 258,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.6640499999999999,
+          "std_language_dominance": 0.22244122257351492,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 295,
+          "language_artifact_only": 277,
+          "both_available": 332,
+          "neither_available": 96,
+          "legal_neighbor_rate": 0.627,
+          "language_neighbor_rate": 0.609,
+          "jurist_would_succeed_rate": 0.627,
+          "jurist_forced_wrong_rate": 0.277
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.6640499999999999,
+        "jurist_preference_rate": 0.627
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.6075,
+          "std_language_dominance": 0.2565516517194929,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 40,
+          "language_artifact_only": 91,
+          "both_available": 64,
+          "neither_available": 5,
+          "legal_neighbor_rate": 0.52,
+          "language_neighbor_rate": 0.775,
+          "jurist_would_succeed_rate": 0.52,
+          "jurist_forced_wrong_rate": 0.455
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.6075,
+        "jurist_preference_rate": 0.52
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.428,
+        "citation_independent_retrieval_rate": 0.315,
+        "status": "PASS"
+      }
+    },
+    "hier_citation_concat": {
+      "name": "hier_citation_concat",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 256,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.7298,
+          "std_language_dominance": 0.23227561215073783,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "FAIL",
+          "total_decisions": 1000,
+          "legal_relevant_only": 288,
+          "language_artifact_only": 296,
+          "both_available": 169,
+          "neither_available": 247,
+          "legal_neighbor_rate": 0.457,
+          "language_neighbor_rate": 0.465,
+          "jurist_would_succeed_rate": 0.457,
+          "jurist_forced_wrong_rate": 0.296
+        },
+        "both_pass": false,
+        "language_dominance_score": 0.7298,
+        "jurist_preference_rate": 0.457
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.59875,
+          "std_language_dominance": 0.2660562675450439,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 42,
+          "language_artifact_only": 83,
+          "both_available": 70,
+          "neither_available": 5,
+          "legal_neighbor_rate": 0.56,
+          "language_neighbor_rate": 0.765,
+          "jurist_would_succeed_rate": 0.56,
+          "jurist_forced_wrong_rate": 0.415
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.59875,
+        "jurist_preference_rate": 0.56
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.4825,
+        "citation_independent_retrieval_rate": 0.3085,
+        "status": "PASS"
+      }
+    },
+    "hier_hybrid05_concat": {
+      "name": "hier_hybrid05_concat",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 258,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.6731500000000001,
+          "std_language_dominance": 0.22793985500565717,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 346,
+          "language_artifact_only": 285,
+          "both_available": 195,
+          "neither_available": 174,
+          "legal_neighbor_rate": 0.541,
+          "language_neighbor_rate": 0.48,
+          "jurist_would_succeed_rate": 0.541,
+          "jurist_forced_wrong_rate": 0.285
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.6731500000000001,
+        "jurist_preference_rate": 0.541
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.6004999999999999,
+          "std_language_dominance": 0.26424373218678243,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 42,
+          "language_artifact_only": 79,
+          "both_available": 75,
+          "neither_available": 4,
+          "legal_neighbor_rate": 0.585,
+          "language_neighbor_rate": 0.77,
+          "jurist_would_succeed_rate": 0.585,
+          "jurist_forced_wrong_rate": 0.395
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.6004999999999999,
+        "jurist_preference_rate": 0.585
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.4665,
+        "citation_independent_retrieval_rate": 0.3475,
+        "status": "PASS"
+      }
+    },
+    "linear_citation_w3070": {
+      "name": "linear_citation_w3070",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 256,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.6422,
+          "std_language_dominance": 0.23183865078972485,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 206,
+          "language_artifact_only": 320,
+          "both_available": 384,
+          "neither_available": 90,
+          "legal_neighbor_rate": 0.59,
+          "language_neighbor_rate": 0.704,
+          "jurist_would_succeed_rate": 0.59,
+          "jurist_forced_wrong_rate": 0.32
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.6422,
+        "jurist_preference_rate": 0.59
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.58175,
+          "std_language_dominance": 0.25437066949630804,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 40,
+          "language_artifact_only": 79,
+          "both_available": 78,
+          "neither_available": 3,
+          "legal_neighbor_rate": 0.59,
+          "language_neighbor_rate": 0.785,
+          "jurist_would_succeed_rate": 0.59,
+          "jurist_forced_wrong_rate": 0.395
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.58175,
+        "jurist_preference_rate": 0.59
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.43,
+        "citation_independent_retrieval_rate": 0.226,
+        "status": "PASS"
+      }
+    },
+    "linear_citation_w5050": {
+      "name": "linear_citation_w5050",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 256,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.70055,
+          "std_language_dominance": 0.22504932237178588,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 267,
+          "language_artifact_only": 291,
+          "both_available": 295,
+          "neither_available": 147,
+          "legal_neighbor_rate": 0.562,
+          "language_neighbor_rate": 0.586,
+          "jurist_would_succeed_rate": 0.562,
+          "jurist_forced_wrong_rate": 0.291
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.70055,
+        "jurist_preference_rate": 0.562
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.5965,
+          "std_language_dominance": 0.25848162410508024,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 42,
+          "language_artifact_only": 81,
+          "both_available": 68,
+          "neither_available": 9,
+          "legal_neighbor_rate": 0.55,
+          "language_neighbor_rate": 0.745,
+          "jurist_would_succeed_rate": 0.55,
+          "jurist_forced_wrong_rate": 0.405
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.5965,
+        "jurist_preference_rate": 0.55
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.4435,
+        "citation_independent_retrieval_rate": 0.2755,
+        "status": "PASS"
+      }
+    },
+    "linear_citation_w7030": {
+      "name": "linear_citation_w7030",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 256,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.71715,
+          "std_language_dominance": 0.2360474051964986,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 258,
+          "language_artifact_only": 320,
+          "both_available": 265,
+          "neither_available": 157,
+          "legal_neighbor_rate": 0.523,
+          "language_neighbor_rate": 0.585,
+          "jurist_would_succeed_rate": 0.523,
+          "jurist_forced_wrong_rate": 0.32
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.71715,
+        "jurist_preference_rate": 0.523
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.60625,
+          "std_language_dominance": 0.2620084683745928,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 41,
+          "language_artifact_only": 81,
+          "both_available": 68,
+          "neither_available": 10,
+          "legal_neighbor_rate": 0.545,
+          "language_neighbor_rate": 0.745,
+          "jurist_would_succeed_rate": 0.545,
+          "jurist_forced_wrong_rate": 0.405
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.60625,
+        "jurist_preference_rate": 0.545
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.418,
+        "citation_independent_retrieval_rate": 0.3175,
+        "status": "PASS"
+      }
+    },
+    "linear_hybrid05_w3070": {
+      "name": "linear_hybrid05_w3070",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 258,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.6161,
+          "std_language_dominance": 0.22303764256286426,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 235,
+          "language_artifact_only": 277,
+          "both_available": 406,
+          "neither_available": 82,
+          "legal_neighbor_rate": 0.641,
+          "language_neighbor_rate": 0.683,
+          "jurist_would_succeed_rate": 0.641,
+          "jurist_forced_wrong_rate": 0.277
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.6161,
+        "jurist_preference_rate": 0.641
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.5840000000000001,
+          "std_language_dominance": 0.2542518436511326,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 40,
+          "language_artifact_only": 77,
+          "both_available": 80,
+          "neither_available": 3,
+          "legal_neighbor_rate": 0.6,
+          "language_neighbor_rate": 0.785,
+          "jurist_would_succeed_rate": 0.6,
+          "jurist_forced_wrong_rate": 0.385
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.5840000000000001,
+        "jurist_preference_rate": 0.6
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.4205,
+        "citation_independent_retrieval_rate": 0.249,
+        "status": "PASS"
+      }
+    },
+    "linear_hybrid05_w5050": {
+      "name": "linear_hybrid05_w5050",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 258,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.66365,
+          "std_language_dominance": 0.22656384861667583,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 317,
+          "language_artifact_only": 281,
+          "both_available": 310,
+          "neither_available": 92,
+          "legal_neighbor_rate": 0.627,
+          "language_neighbor_rate": 0.591,
+          "jurist_would_succeed_rate": 0.627,
+          "jurist_forced_wrong_rate": 0.281
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.66365,
+        "jurist_preference_rate": 0.627
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.60275,
+          "std_language_dominance": 0.2544699147247077,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 39,
+          "language_artifact_only": 91,
+          "both_available": 66,
+          "neither_available": 4,
+          "legal_neighbor_rate": 0.525,
+          "language_neighbor_rate": 0.785,
+          "jurist_would_succeed_rate": 0.525,
+          "jurist_forced_wrong_rate": 0.455
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.60275,
+        "jurist_preference_rate": 0.525
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.4325,
+        "citation_independent_retrieval_rate": 0.32,
+        "status": "PASS"
+      }
+    },
+    "linear_hybrid05_w7030": {
+      "name": "linear_hybrid05_w7030",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 258,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.70185,
+          "std_language_dominance": 0.24081959534057854,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 278,
+          "language_artifact_only": 308,
+          "both_available": 284,
+          "neither_available": 130,
+          "legal_neighbor_rate": 0.562,
+          "language_neighbor_rate": 0.592,
+          "jurist_would_succeed_rate": 0.562,
+          "jurist_forced_wrong_rate": 0.308
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.70185,
+        "jurist_preference_rate": 0.562
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.60975,
+          "std_language_dominance": 0.26022574334604176,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 43,
+          "language_artifact_only": 81,
+          "both_available": 66,
+          "neither_available": 10,
+          "legal_neighbor_rate": 0.545,
+          "language_neighbor_rate": 0.735,
+          "jurist_would_succeed_rate": 0.545,
+          "jurist_forced_wrong_rate": 0.405
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.60975,
+        "jurist_preference_rate": 0.545
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.417,
+        "citation_independent_retrieval_rate": 0.333,
+        "status": "PASS"
+      }
+    },
+    "linear_citation_pca128": {
+      "name": "linear_citation_pca128",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 128,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.7039,
+          "std_language_dominance": 0.22598626064431437,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 267,
+          "language_artifact_only": 286,
+          "both_available": 295,
+          "neither_available": 152,
+          "legal_neighbor_rate": 0.562,
+          "language_neighbor_rate": 0.581,
+          "jurist_would_succeed_rate": 0.562,
+          "jurist_forced_wrong_rate": 0.286
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.7039,
+        "jurist_preference_rate": 0.562
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.58075,
+          "std_language_dominance": 0.25459170744547044,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 42,
+          "language_artifact_only": 79,
+          "both_available": 71,
+          "neither_available": 8,
+          "legal_neighbor_rate": 0.565,
+          "language_neighbor_rate": 0.75,
+          "jurist_would_succeed_rate": 0.565,
+          "jurist_forced_wrong_rate": 0.395
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.58075,
+        "jurist_preference_rate": 0.565
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.4415,
+        "citation_independent_retrieval_rate": 0.277,
+        "status": "PASS"
+      }
+    },
+    "mahal_citation_pca128": {
+      "name": "mahal_citation_pca128",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 128,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.7053499999999999,
+          "std_language_dominance": 0.224496943186316,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 261,
+          "language_artifact_only": 306,
+          "both_available": 285,
+          "neither_available": 148,
+          "legal_neighbor_rate": 0.546,
+          "language_neighbor_rate": 0.591,
+          "jurist_would_succeed_rate": 0.546,
+          "jurist_forced_wrong_rate": 0.306
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.7053499999999999,
+        "jurist_preference_rate": 0.546
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.5730000000000001,
+          "std_language_dominance": 0.24838679514016038,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 43,
+          "language_artifact_only": 79,
+          "both_available": 71,
+          "neither_available": 7,
+          "legal_neighbor_rate": 0.57,
+          "language_neighbor_rate": 0.75,
+          "jurist_would_succeed_rate": 0.57,
+          "jurist_forced_wrong_rate": 0.395
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.5730000000000001,
+        "jurist_preference_rate": 0.57
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.4445,
+        "citation_independent_retrieval_rate": 0.28,
+        "status": "PASS"
+      }
+    },
+    "linear_citation_ridge": {
+      "name": "linear_citation_ridge",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 257,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.6703000000000001,
+          "std_language_dominance": 0.23511254751714125,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 360,
+          "language_artifact_only": 243,
+          "both_available": 243,
+          "neither_available": 154,
+          "legal_neighbor_rate": 0.603,
+          "language_neighbor_rate": 0.486,
+          "jurist_would_succeed_rate": 0.603,
+          "jurist_forced_wrong_rate": 0.243
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.6703000000000001,
+        "jurist_preference_rate": 0.603
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.57325,
+          "std_language_dominance": 0.23663672052325269,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 36,
+          "language_artifact_only": 75,
+          "both_available": 83,
+          "neither_available": 6,
+          "legal_neighbor_rate": 0.595,
+          "language_neighbor_rate": 0.79,
+          "jurist_would_succeed_rate": 0.595,
+          "jurist_forced_wrong_rate": 0.375
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.57325,
+        "jurist_preference_rate": 0.595
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.367,
+        "citation_independent_retrieval_rate": 0.2325,
+        "status": "PASS"
+      }
+    },
+    "linear_citation_mlp": {
+      "name": "linear_citation_mlp",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 128,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.7241500000000001,
+          "std_language_dominance": 0.29099704036295626,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 574,
+          "language_artifact_only": 4,
+          "both_available": 3,
+          "neither_available": 419,
+          "legal_neighbor_rate": 0.577,
+          "language_neighbor_rate": 0.007,
+          "jurist_would_succeed_rate": 0.577,
+          "jurist_forced_wrong_rate": 0.004
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.7241500000000001,
+        "jurist_preference_rate": 0.577
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.532,
+          "std_language_dominance": 0.21852002196595166,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 61,
+          "language_artifact_only": 67,
+          "both_available": 63,
+          "neither_available": 9,
+          "legal_neighbor_rate": 0.62,
+          "language_neighbor_rate": 0.65,
+          "jurist_would_succeed_rate": 0.62,
+          "jurist_forced_wrong_rate": 0.335
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.532,
+        "jurist_preference_rate": 0.62
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.4435,
+        "citation_independent_retrieval_rate": 0.3455,
+        "status": "PASS"
+      }
+    },
+    "mahal_citation_mlp": {
+      "name": "mahal_citation_mlp",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 128,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.7565999999999999,
+          "std_language_dominance": 0.27712170611484044,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 563,
+          "language_artifact_only": 3,
+          "both_available": 5,
+          "neither_available": 429,
+          "legal_neighbor_rate": 0.568,
+          "language_neighbor_rate": 0.008,
+          "jurist_would_succeed_rate": 0.568,
+          "jurist_forced_wrong_rate": 0.003
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.7565999999999999,
+        "jurist_preference_rate": 0.568
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.52275,
+          "std_language_dominance": 0.21076037934108963,
+          "max_language_dominance": 0.95,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 61,
+          "language_artifact_only": 77,
+          "both_available": 54,
+          "neither_available": 8,
+          "legal_neighbor_rate": 0.575,
+          "language_neighbor_rate": 0.655,
+          "jurist_would_succeed_rate": 0.575,
+          "jurist_forced_wrong_rate": 0.385
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.52275,
+        "jurist_preference_rate": 0.575
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.435,
+        "citation_independent_retrieval_rate": 0.35,
+        "status": "PASS"
+      }
+    },
+    "hier_citation_mlp": {
+      "name": "hier_citation_mlp",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 128,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.77355,
+          "std_language_dominance": 0.2559939403579702,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 567,
+          "language_artifact_only": 6,
+          "both_available": 1,
+          "neither_available": 426,
+          "legal_neighbor_rate": 0.568,
+          "language_neighbor_rate": 0.007,
+          "jurist_would_succeed_rate": 0.568,
+          "jurist_forced_wrong_rate": 0.006
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.77355,
+        "jurist_preference_rate": 0.568
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.54425,
+          "std_language_dominance": 0.2207474518539229,
+          "max_language_dominance": 0.95,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 30,
+          "language_artifact_only": 76,
+          "both_available": 91,
+          "neither_available": 3,
+          "legal_neighbor_rate": 0.605,
+          "language_neighbor_rate": 0.835,
+          "jurist_would_succeed_rate": 0.605,
+          "jurist_forced_wrong_rate": 0.38
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.54425,
+        "jurist_preference_rate": 0.605
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.5025,
+        "citation_independent_retrieval_rate": 0.432,
+        "status": "PASS"
+      }
+    },
+    "linear_hybrid05_mlp": {
+      "name": "linear_hybrid05_mlp",
+      "n_train": 1000,
+      "n_holdout": 200,
+      "embedding_dim": 128,
+      "train_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.74065,
+          "std_language_dominance": 0.2909898237052286,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 1000,
+          "legal_relevant_only": 548,
+          "language_artifact_only": 6,
+          "both_available": 2,
+          "neither_available": 444,
+          "legal_neighbor_rate": 0.55,
+          "language_neighbor_rate": 0.008,
+          "jurist_would_succeed_rate": 0.55,
+          "jurist_forced_wrong_rate": 0.006
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.74065,
+        "jurist_preference_rate": 0.55
+      },
+      "holdout_adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.532,
+          "std_language_dominance": 0.2147114342553745,
+          "max_language_dominance": 0.95,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 200,
+          "legal_relevant_only": 37,
+          "language_artifact_only": 72,
+          "both_available": 85,
+          "neither_available": 6,
+          "legal_neighbor_rate": 0.61,
+          "language_neighbor_rate": 0.785,
+          "jurist_would_succeed_rate": 0.61,
+          "jurist_forced_wrong_rate": 0.36
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.532,
+        "jurist_preference_rate": 0.61
+      },
+      "citation_independent_retrieval": {
+        "total_queries": 200,
+        "k": 10,
+        "legal_retrieval_rate": 0.4225,
+        "citation_independent_retrieval_rate": 0.339,
+        "status": "PASS"
+      }
+    }
+  },
+  "summary": {
+    "best_baseline_jp": 0.585,
+    "best_combination_jp": 0.62,
+    "delta_jp": 0.03500000000000003,
+    "best_baseline_ld": 0.511,
+    "best_combination_ld": 0.52275,
+    "best_baseline_cite_indep": 0.364,
+    "best_combination_cite_indep": 0.432,
+    "tradeoff_broken": true
+  }
+}
