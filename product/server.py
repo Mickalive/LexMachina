@@ -285,7 +285,11 @@ class ProductHandler(SimpleHTTPRequestHandler):
         elif path == "/api/search":
             q = params.get("q", [""])[0]
             limit = int(params.get("limit", ["20"])[0])
-            self._json_response(get_nav_api().search_decisions(q, limit))
+            language = params.get("language", [None])[0]
+            self._json_response(get_nav_api().search_decisions(q, limit, language=language))
+        elif path == "/api/corpus/stats/languages":
+            self._handle_cached("corpus_stats_languages",
+                lambda: get_nav_api().get_language_stats(), ttl=600)
         elif path == "/api/neighbors":
             did = params.get("id", [""])[0]
             default_rep = get_default_representation()
@@ -372,7 +376,16 @@ class ProductHandler(SimpleHTTPRequestHandler):
             rep_b = params.get("rep_b", ["legal_cited_decisions"])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             self._json_response(get_nav_api().compare_maps(rep_a, rep_b, zoom))
-        
+        elif path == "/api/pattern_compare":
+            # Design-pattern side-by-side comparison
+            pattern_a = params.get("pattern_a", ["DEFAULT"])[0].upper()
+            pattern_b = params.get("pattern_b", ["HIGH-PURITY"])[0].upper()
+            zoom = int(params.get("zoom", ["1"])[0])
+            self._json_response(get_nav_api().compare_design_patterns(pattern_a, pattern_b, zoom))
+        elif path == "/api/health/startup_validation":
+            # Startup validation: health-check all loaded representations
+            self._json_response(get_nav_api().startup_validation())
+
         # Design patterns endpoint
         elif path == "/api/design_patterns":
             self._json_response(get_nav_api().get_design_patterns())

@@ -31,8 +31,11 @@
         .lang-btn .lang-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
         
         #search-box { padding: 12px 16px; border-bottom: 1px solid #2a2a3a; }
-        #search-box input { width: 100%; padding: 8px 10px; background: #1a1a2a; border: 1px solid #333; border-radius: 4px; color: #e0e0e0; font-size: 12px; }
+        #search-box .search-row { display: flex; gap: 6px; }
+        #search-box input { flex: 1; padding: 8px 10px; background: #1a1a2a; border: 1px solid #333; border-radius: 4px; color: #e0e0e0; font-size: 12px; }
         #search-box input:focus { outline: none; border-color: #7c8aff; }
+        #search-lang { padding: 7px 6px; background: #1a1a2a; border: 1px solid #333; border-radius: 4px; color: #e0e0e0; font-size: 11px; min-width: 68px; }
+        #search-lang:focus { outline: none; border-color: #7c8aff; }
         
         #cluster-list { flex: 1; overflow-y: auto; padding: 8px; }
         .cluster-card { background: #1a1a2a; border: 1px solid #2a2a3a; border-radius: 6px; padding: 10px 12px; margin-bottom: 6px; cursor: pointer; transition: all 0.15s; }
@@ -205,7 +208,7 @@
 
         /* === NEW: WebGL Renderer Toggle === */
         #renderer-toggle {
-            position: absolute; top: 16px; right: 220px; z-index: 10;
+            position: absolute; top: 16px; right: 250px; z-index: 10;
             padding: 6px 12px; background: rgba(18, 18, 26, 0.9); border: 1px solid #2a2a3a;
             border-radius: 4px; color: #888; cursor: pointer; font-size: 11px;
         }
@@ -312,7 +315,7 @@
 
         /* Feedback button in header */
         #feedback-btn {
-            position: absolute; top: 16px; right: 60px; z-index: 10;
+            position: absolute; top: 16px; right: 340px; z-index: 10;
             padding: 6px 12px; background: rgba(18, 18, 26, 0.9); border: 1px solid #2a2a3a;
             border-radius: 4px; color: #888; cursor: pointer; font-size: 11px;
         }
@@ -323,6 +326,88 @@
             border-radius: 4px; color: #888; cursor: pointer; font-size: 11px;
         }
         #compare-btn:hover { border-color: #7c8aff; color: #e0e0e0; }
+
+        /* === Split View === */
+        #split-view-btn {
+            position: absolute; top: 16px; right: 60px; z-index: 10;
+            padding: 6px 12px; background: rgba(18, 18, 26, 0.9); border: 1px solid #2a2a3a;
+            border-radius: 4px; color: #888; cursor: pointer; font-size: 11px;
+        }
+        #split-view-btn:hover { border-color: #7c8aff; color: #e0e0e0; }
+        #split-view-btn.active { background: #7c8aff; color: white; border-color: #7c8aff; }
+
+        #split-overlay {
+            position: absolute; inset: 0; z-index: 25;
+            display: none; background: #0a0a0f;
+        }
+        #split-overlay.visible { display: flex; flex-direction: column; }
+
+        #split-toolbar {
+            display: flex; align-items: center; gap: 10px; padding: 8px 14px;
+            background: #12121a; border-bottom: 1px solid #2a2a3a; min-height: 42px;
+        }
+        #split-toolbar label { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+        #split-toolbar select {
+            padding: 4px 8px; background: #1a1a2a; border: 1px solid #333;
+            border-radius: 4px; color: #e0e0e0; font-size: 11px;
+        }
+        #split-toolbar select:focus { outline: none; border-color: #7c8aff; }
+        #split-close-btn {
+            margin-left: auto; padding: 4px 10px; background: none;
+            border: 1px solid #333; border-radius: 4px; color: #888;
+            cursor: pointer; font-size: 11px;
+        }
+        #split-close-btn:hover { border-color: #ff6b6b; color: #ff6b6b; }
+        #split-run-btn {
+            padding: 5px 12px; background: #7c8aff; border: none;
+            border-radius: 4px; color: white; font-weight: 600; cursor: pointer; font-size: 11px;
+        }
+        #split-run-btn:hover { background: #8c9aff; }
+        #split-run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        #split-body {
+            flex: 1; display: flex; position: relative; overflow: hidden;
+        }
+        .split-pane {
+            flex: 1; position: relative; display: flex; flex-direction: column;
+            min-width: 0; overflow: hidden;
+        }
+        .split-pane-header {
+            padding: 6px 12px; background: #12121a; border-bottom: 1px solid #2a2a3a;
+            display: flex; align-items: center; gap: 10px; min-height: 32px;
+        }
+        .split-pane-header .sp-name { font-size: 12px; font-weight: 600; color: #7c8aff; }
+        .split-pane-header .sp-metric {
+            font-size: 10px; color: #888; padding: 2px 6px;
+            background: #1a1a2a; border-radius: 3px;
+        }
+        .split-pane-header .sp-metric .sp-val { color: #51cf66; font-weight: 600; }
+        .split-pane-body { flex: 1; position: relative; overflow: hidden; }
+        .split-pane-body canvas {
+            width: 100%; height: 100%; display: block; cursor: crosshair;
+        }
+
+        #split-divider {
+            width: 5px; background: #2a2a3a; cursor: col-resize;
+            position: relative; z-index: 26; flex-shrink: 0;
+            transition: background 0.15s;
+        }
+        #split-divider:hover, #split-divider.dragging { background: #7c8aff; }
+        #split-divider::after {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); width: 3px; height: 30px;
+            border-left: 1px solid #555; border-right: 1px solid #555;
+        }
+
+        #split-stats {
+            display: flex; align-items: center; gap: 16px; padding: 6px 14px;
+            background: #12121a; border-top: 1px solid #2a2a3a; font-size: 10px; color: #888;
+        }
+        #split-stats .ss-label { color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+        #split-stats .ss-val { color: #7c8aff; font-weight: 600; }
+
+        /* Split view highlight ring for cross-canvas selection */
+        .split-highlight { box-shadow: 0 0 0 2px #fff; }
     </style>
 </head>
 <body>
@@ -413,7 +498,19 @@
                 <div class="temporal-current" id="temporal-current">2000 — 2024</div>
             </div>
             <div id="search-box">
-                <input type="text" id="search-input" placeholder="Search decisions...">
+                <div class="search-row">
+                    <input type="text" id="search-input" placeholder="Search decisions...">
+                    <select id="search-lang">
+                        <option value="">All</option>
+                        <option value="de">DE only</option>
+                        <option value="fr">FR only</option>
+                        <option value="it">IT only</option>
+                        <option value="de+fr">DE+FR</option>
+                        <option value="de+it">DE+IT</option>
+                        <option value="fr+it">FR+IT</option>
+                        <option value="de+fr+it">All three</option>
+                    </select>
+                </div>
             </div>
             <div id="import-box" style="padding: 8px 16px; border-bottom: 1px solid #2a2a3a;">
                 <label style="font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">Import Corpus</label>
@@ -452,6 +549,7 @@
             </div>
             <button id="renderer-toggle" onclick="toggleRenderer()">WebGL</button>
             <button id="compare-btn" onclick="openCompare()">Compare Maps</button>
+            <button id="split-view-btn" onclick="openSplitView()">Split View</button>
             <button id="feedback-btn" onclick="openFeedback()">Feedback</button>
             <div id="lod-info"></div>
             <div id="breadcrumb"></div>
@@ -471,6 +569,53 @@
             <div id="tooltip"></div>
             <div id="kbd-hints">
                 <kbd>Click</kbd> inspect &middot; <kbd>Esc</kbd> close &middot; <kbd>1-4</kbd> zoom &middot; <kbd>Dbl-click</kbd> zoom to cluster
+            </div>
+            <div id="split-overlay">
+                <div id="split-toolbar">
+                    <label>Representation A</label>
+                    <select id="split-rep-a"></select>
+                    <label>Representation B</label>
+                    <select id="split-rep-b"></select>
+                    <label>Zoom</label>
+                    <select id="split-zoom">
+                        <option value="0">Domain</option>
+                        <option value="1" selected>Subdomain</option>
+                        <option value="2">Microcluster</option>
+                        <option value="3">Detail</option>
+                    </select>
+                    <button id="split-run-btn" onclick="runSplitComparison()">Compare</button>
+                    <button id="split-close-btn" onclick="closeSplitView()">Close Split View</button>
+                </div>
+                <div id="split-body">
+                    <div class="split-pane" id="split-pane-left">
+                        <div class="split-pane-header" id="split-header-left">
+                            <span class="sp-name" id="sp-name-left">Representation A</span>
+                            <span class="sp-metric">Clusters: <span class="sp-val" id="sp-clusters-left">--</span></span>
+                            <span class="sp-metric">Avg Disp: <span class="sp-val" id="sp-disp-left">--</span></span>
+                        </div>
+                        <div class="split-pane-body">
+                            <canvas id="split-canvas-left"></canvas>
+                        </div>
+                    </div>
+                    <div id="split-divider"></div>
+                    <div class="split-pane" id="split-pane-right">
+                        <div class="split-pane-header" id="split-header-right">
+                            <span class="sp-name" id="sp-name-right">Representation B</span>
+                            <span class="sp-metric">Clusters: <span class="sp-val" id="sp-clusters-right">--</span></span>
+                            <span class="sp-metric">Avg Disp: <span class="sp-val" id="sp-disp-right">--</span></span>
+                        </div>
+                        <div class="split-pane-body">
+                            <canvas id="split-canvas-right"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div id="split-stats">
+                    <span class="ss-label">Common:</span><span class="ss-val" id="ss-common">--</span>
+                    <span class="ss-label">Stability:</span><span class="ss-val" id="ss-stability">--</span>
+                    <span class="ss-label">Displacement:</span><span class="ss-val" id="ss-disp">--</span>
+                    <span class="ss-label">Cluster Changes:</span><span class="ss-val" id="ss-changes">--</span>
+                    <span class="ss-label" style="margin-left:auto;font-size:9px;color:#555;">Scroll to zoom &middot; Drag to pan &middot; Click to inspect</span>
+                </div>
             </div>
             <div id="zoom-coherence-badge" style="display:none;">
                 <div><span class="zc-label">Zoom Coherence:</span> <span class="zc-value" id="zc-rate">--</span></div>
@@ -1805,7 +1950,10 @@ void main() {
                 renderClusterList();
                 return;
             }
-            const resp = await fetch(`${API}/api/search?q=${encodeURIComponent(q)}&limit=20`);
+            const lang = document.getElementById('search-lang').value;
+            let url = `${API}/api/search?q=${encodeURIComponent(q)}&limit=20`;
+            if (lang) url += `&language=${encodeURIComponent(lang)}`;
+            const resp = await fetch(url);
             const results = await resp.json();
             const list = document.getElementById('cluster-list');
             list.innerHTML = results.map(d => {
@@ -1819,6 +1967,14 @@ void main() {
                 </div>`;
             }).join('');
         }, 300);
+    });
+
+    // Re-trigger search when language filter changes
+    document.getElementById('search-lang').addEventListener('change', () => {
+        const q = document.getElementById('search-input').value.trim();
+        if (q.length >= 2) {
+            document.getElementById('search-input').dispatchEvent(new Event('input'));
+        }
     });
 
     // Resize handler
@@ -2328,6 +2484,465 @@ void main() {
 
     // === NEW: Initialize temporal slider ===
     updateTemporalTrack();
+
+    // === NEW: Split View Comparison ===
+    let splitActive = false;
+    let splitDataA = null;
+    let splitDataB = null;
+    let splitRepA = 'center_projected_64dim_hierarchical';
+    let splitRepB = 'legal_cited_decisions';
+    let splitZoom = 1;
+
+    // Shared pan/zoom state for both canvases
+    let splitPanX = 0;
+    let splitPanY = 0;
+    let splitScale = 1;
+    let splitDragging = false;
+    let splitDragStartX = 0;
+    let splitDragStartY = 0;
+    let splitPanStartX = 0;
+    let splitPanStartY = 0;
+
+    // Highlighted decision (synced across both views)
+    let splitHighlightedDecision = null;
+
+    // Split divider drag state
+    let splitDividerDragging = false;
+    let splitBodyRect = null;
+    let splitLeftStartPct = 50;
+
+    // Cache transforms from both canvases for hit-testing
+    let splitTransformA = null;
+    let splitTransformB = null;
+
+    async function openSplitView() {
+        splitActive = true;
+        const overlay = document.getElementById('split-overlay');
+        overlay.classList.add('visible');
+        document.getElementById('split-view-btn').classList.add('active');
+
+        await populateSplitReps();
+        await runSplitComparison();
+    }
+
+    function closeSplitView() {
+        splitActive = false;
+        document.getElementById('split-overlay').classList.remove('visible');
+        document.getElementById('split-view-btn').classList.remove('active');
+        splitDataA = null;
+        splitDataB = null;
+        splitPanX = 0;
+        splitPanY = 0;
+        splitScale = 1;
+        splitHighlightedDecision = null;
+
+        // Restore normal map rendering
+        renderMap();
+    }
+
+    async function populateSplitReps() {
+        try {
+            const resp = await fetch(`${API}/api/map_modes`);
+            const modes = await resp.json();
+            const reps = modes.filter(m => m.type === 'representation');
+            const selA = document.getElementById('split-rep-a');
+            const selB = document.getElementById('split-rep-b');
+            selA.innerHTML = '';
+            selB.innerHTML = '';
+            reps.forEach(r => {
+                selA.appendChild(new Option(r.label, r.name));
+                selB.appendChild(new Option(r.label, r.name));
+            });
+            selA.value = splitRepA;
+            selB.value = splitRepB;
+        } catch (e) {
+            console.warn('Failed to load reps for split view:', e);
+        }
+    }
+
+    async function runSplitComparison() {
+        splitRepA = document.getElementById('split-rep-a').value;
+        splitRepB = document.getElementById('split-rep-b').value;
+        splitZoom = parseInt(document.getElementById('split-zoom').value);
+        splitPanX = 0;
+        splitPanY = 0;
+        splitScale = 1;
+
+        const btn = document.getElementById('split-run-btn');
+        btn.disabled = true;
+        btn.textContent = 'Loading...';
+
+        try {
+            // Fetch both maps in parallel
+            const [respA, respB, respCompare] = await Promise.all([
+                fetch(`${API}/api/map?representation=${splitRepA}&zoom=${splitZoom}`),
+                fetch(`${API}/api/map?representation=${splitRepB}&zoom=${splitZoom}`),
+                fetch(`${API}/api/map/compare?rep_a=${splitRepA}&rep_b=${splitRepB}&zoom=${splitZoom}`)
+            ]);
+            splitDataA = await respA.json();
+            splitDataB = await respB.json();
+            const compareData = await respCompare.json();
+
+            // Update stats bar
+            if (!compareData.error) {
+                document.getElementById('ss-common').textContent = compareData.n_common_decisions;
+                document.getElementById('ss-stability').textContent = (compareData.stability_rate * 100).toFixed(1) + '%';
+                document.getElementById('ss-disp').textContent = compareData.avg_displacement.toFixed(4);
+                document.getElementById('ss-changes').textContent = compareData.cluster_changes + ' / ' + compareData.n_common_decisions;
+            }
+
+            // Update pane headers
+            document.getElementById('sp-name-left').textContent = splitRepA;
+            document.getElementById('sp-name-right').textContent = splitRepB;
+            if (splitDataA.clusters) {
+                document.getElementById('sp-clusters-left').textContent = splitDataA.clusters.length;
+            }
+            if (splitDataB.clusters) {
+                document.getElementById('sp-clusters-right').textContent = splitDataB.clusters.length;
+            }
+
+            renderSplitMap();
+        } catch (e) {
+            console.error('Split comparison failed:', e);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Compare';
+        }
+    }
+
+    function renderSplitMap() {
+        if (!splitActive || !splitDataA || !splitDataB) return;
+        renderSplitPane('left', splitDataA);
+        renderSplitPane('right', splitDataB);
+    }
+
+    function renderSplitPane(side, data) {
+        const canvasId = `split-canvas-${side}`;
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+
+        ctx.fillStyle = '#0d0d14';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (!data || !data.positions || data.positions.length === 0) return;
+
+        const positions = data.positions;
+        const visiblePositions = positions.filter(p => activeLanguages.has(p.language));
+
+        // Compute bounding box
+        let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
+        positions.forEach(p => {
+            if (p.x < xMin) xMin = p.x;
+            if (p.x > xMax) xMax = p.x;
+            if (p.y < yMin) yMin = p.y;
+            if (p.y > yMax) yMax = p.y;
+        });
+
+        const padding = 40;
+        const xRange = xMax - xMin || 1;
+        const yRange = yMax - yMin || 1;
+
+        // Apply shared zoom/pan
+        const baseScale = Math.min(
+            (canvas.width - 2 * padding) / xRange,
+            (canvas.height - 2 * padding) / yRange
+        );
+        const scale = baseScale * splitScale;
+        const baseOffsetX = (canvas.width - xRange * baseScale) / 2;
+        const baseOffsetY = (canvas.height - yRange * baseScale) / 2;
+        const offsetX = baseOffsetX + splitPanX;
+        const offsetY = baseOffsetY + splitPanY;
+
+        const transform = { xMin, yMin, scale: baseScale, offsetX, offsetY, splitScale, splitPanX, splitPanY };
+        if (side === 'left') {
+            splitTransformA = transform;
+        } else {
+            splitTransformB = transform;
+        }
+        canvas._transform = transform;
+
+        // Group by cluster
+        const clusters = {};
+        visiblePositions.forEach(p => {
+            if (!clusters[p.cluster]) clusters[p.cluster] = [];
+            clusters[p.cluster].push(p);
+        });
+
+        // Draw cluster hulls
+        Object.entries(clusters).forEach(([cid, points]) => {
+            const color = COLORS[parseInt(cid) % COLORS.length];
+            let cxMin = Infinity, cxMax = -Infinity, cyMin = Infinity, cyMax = -Infinity;
+            points.forEach(p => {
+                const sx = (p.x - xMin) * baseScale * splitScale + offsetX;
+                const sy = (p.y - yMin) * baseScale * splitScale + offsetY;
+                if (sx < cxMin) cxMin = sx;
+                if (sx > cxMax) cxMax = sx;
+                if (sy < cyMin) cyMin = sy;
+                if (sy > cyMax) cyMax = sy;
+            });
+            ctx.fillStyle = color + '10';
+            ctx.strokeStyle = color + '30';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.roundRect(cxMin - 6, cyMin - 6, cxMax - cxMin + 12, cyMax - cyMin + 12, 6);
+            ctx.fill();
+            ctx.stroke();
+
+            // Cluster label
+            let cx = (cxMin + cxMax) / 2;
+            let cy = (cyMin + cyMax) / 2;
+            ctx.fillStyle = color;
+            ctx.font = 'bold 10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`C${cid} (${points.length})`, cx, cy - 10);
+        });
+
+        // Draw dimmed background positions
+        positions.forEach(p => {
+            if (activeLanguages.has(p.language)) return;
+            const sx = (p.x - xMin) * baseScale * splitScale + offsetX;
+            const sy = (p.y - yMin) * baseScale * splitScale + offsetY;
+            ctx.beginPath();
+            ctx.arc(sx, sy, 1.2, 0, Math.PI * 2);
+            ctx.fillStyle = '#1a1a2a';
+            ctx.fill();
+        });
+
+        // Draw visible points
+        visiblePositions.forEach(p => {
+            const sx = (p.x - xMin) * baseScale * splitScale + offsetX;
+            const sy = (p.y - yMin) * baseScale * splitScale + offsetY;
+            const clusterColor = COLORS[p.cluster % COLORS.length];
+            const langColor = LANG_COLORS[p.language] || LANG_COLORS.unknown;
+            const radius = 3;
+
+            // Highlight ring if this decision is selected in either view
+            const isHighlighted = splitHighlightedDecision && splitHighlightedDecision === p.decision_id;
+            if (isHighlighted) {
+                ctx.beginPath();
+                ctx.arc(sx, sy, 8, 0, Math.PI * 2);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            ctx.beginPath();
+            ctx.arc(sx, sy, radius + 1, 0, Math.PI * 2);
+            ctx.fillStyle = langColor + '50';
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(sx, sy, radius, 0, Math.PI * 2);
+            ctx.fillStyle = clusterColor + 'cc';
+            ctx.fill();
+        });
+
+        // Label indicating which side
+        ctx.fillStyle = 'rgba(18, 18, 26, 0.85)';
+        ctx.fillRect(8, 8, 140, 22);
+        ctx.fillStyle = '#7c8aff';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'left';
+        const label = side === 'left' ? 'A: ' + splitRepA : 'B: ' + splitRepB;
+        ctx.fillText(label.length > 22 ? label.substring(0, 20) + '..' : label, 14, 23);
+    }
+
+    // === Split View Mouse / Touch / Wheel ===
+    function setupSplitCanvasEvents(canvasId, side) {
+        const canvas = document.getElementById(canvasId);
+
+        // Wheel zoom (synced)
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            if (!splitDataA || !splitDataB) return;
+            const delta = e.deltaY > 0 ? 0.9 : 1.1;
+            const newScale = Math.max(0.2, Math.min(10, splitScale * delta));
+
+            // Zoom toward mouse position
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+
+            const scaleRatio = newScale / splitScale;
+            splitPanX = mx - scaleRatio * (mx - splitPanX);
+            splitPanY = my - scaleRatio * (my - splitPanY);
+            splitScale = newScale;
+
+            renderSplitMap();
+        }, { passive: false });
+
+        // Pan (synced)
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
+            splitDragging = true;
+            splitDragStartX = e.clientX;
+            splitDragStartY = e.clientY;
+            splitPanStartX = splitPanX;
+            splitPanStartY = splitPanY;
+            canvas.style.cursor = 'grabbing';
+        });
+
+        canvas.addEventListener('click', (e) => {
+            if (!splitDragging) return;
+            // Detect click vs drag (moved < 5px)
+            const dx = e.clientX - splitDragStartX;
+            const dy = e.clientY - splitDragStartY;
+            if (Math.sqrt(dx * dx + dy * dy) < 5) {
+                // Hit-test for decision click
+                handleSplitCanvasClick(e, canvas, side);
+            }
+        });
+
+        // Hover highlight
+        canvas.addEventListener('mousemove', (e) => {
+            if (splitDragging) {
+                const dx = e.clientX - splitDragStartX;
+                const dy = e.clientY - splitDragStartY;
+                splitPanX = splitPanStartX + dx;
+                splitPanY = splitPanStartY + dy;
+                renderSplitMap();
+                return;
+            }
+            // Hover tooltip
+            handleSplitCanvasHover(e, canvas, side);
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            splitDragging = false;
+            canvas.style.cursor = 'crosshair';
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            splitDragging = false;
+            canvas.style.cursor = 'crosshair';
+            document.getElementById('tooltip').style.display = 'none';
+        });
+    }
+
+    function handleSplitCanvasHover(e, canvas, side) {
+        const data = side === 'left' ? splitDataA : splitDataB;
+        const transform = side === 'left' ? splitTransformA : splitTransformB;
+        if (!data || !data.positions || !transform) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+
+        let closest = null;
+        let minDist = 12;
+        data.positions.forEach(p => {
+            if (!activeLanguages.has(p.language)) return;
+            const sx = (p.x - transform.xMin) * transform.scale * splitScale + transform.offsetX;
+            const sy = (p.y - transform.yMin) * transform.scale * splitScale + transform.offsetY;
+            const dist = Math.sqrt((mx - sx) ** 2 + (my - sy) ** 2);
+            if (dist < minDist) {
+                minDist = dist;
+                closest = p;
+            }
+        });
+
+        const tooltip = document.getElementById('tooltip');
+        if (closest) {
+            const langColor = LANG_COLORS[closest.language] || LANG_COLORS.unknown;
+            tooltip.innerHTML = `<div class="tip-id">${closest.decision_id}</div>
+                <div class="tip-info">
+                    <span class="tip-lang" style="background:${langColor}30;color:${langColor}">${closest.language}</span>
+                    Cluster ${closest.cluster} · ${closest.branch || ''}
+                </div>`;
+            tooltip.style.display = 'block';
+            tooltip.style.left = (e.clientX + 12) + 'px';
+            tooltip.style.top = (e.clientY - 10) + 'px';
+        } else {
+            tooltip.style.display = 'none';
+        }
+    }
+
+    function handleSplitCanvasClick(e, canvas, side) {
+        const data = side === 'left' ? splitDataA : splitDataB;
+        const transform = side === 'left' ? splitTransformA : splitTransformB;
+        if (!data || !data.positions || !transform) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+
+        let closest = null;
+        let minDist = 12;
+        data.positions.forEach(p => {
+            if (!activeLanguages.has(p.language)) return;
+            const sx = (p.x - transform.xMin) * transform.scale * splitScale + transform.offsetX;
+            const sy = (p.y - transform.yMin) * transform.scale * splitScale + transform.offsetY;
+            const dist = Math.sqrt((mx - sx) ** 2 + (my - sy) ** 2);
+            if (dist < minDist) {
+                minDist = dist;
+                closest = p;
+            }
+        });
+
+        if (closest) {
+            // Sync highlight across both views
+            splitHighlightedDecision = closest.decision_id;
+            renderSplitMap();
+            showDecision(closest.decision_id);
+        }
+    }
+
+    // Setup events for both split canvases
+    setupSplitCanvasEvents('split-canvas-left', 'left');
+    setupSplitCanvasEvents('split-canvas-right', 'right');
+
+    // === Split Divider Drag ===
+    (function() {
+        const divider = document.getElementById('split-divider');
+        const body = document.getElementById('split-body');
+        const paneL = document.getElementById('split-pane-left');
+        const paneR = document.getElementById('split-pane-right');
+
+        divider.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            splitDividerDragging = true;
+            splitBodyRect = body.getBoundingClientRect();
+            divider.classList.add('dragging');
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!splitDividerDragging || !splitBodyRect) return;
+            const x = e.clientX - splitBodyRect.left;
+            const pct = Math.max(20, Math.min(80, (x / splitBodyRect.width) * 100));
+            paneL.style.flex = 'none';
+            paneL.style.width = pct + '%';
+            paneR.style.flex = '1';
+            renderSplitMap();
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (splitDividerDragging) {
+                splitDividerDragging = false;
+                divider.classList.remove('dragging');
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+            }
+        });
+    })();
+
+    // Sync split view on window resize
+    window.addEventListener('resize', () => {
+        if (splitActive) renderSplitMap();
+    });
+
+    // Keyboard: Escape closes split view
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && splitActive) {
+            closeSplitView();
+            e.stopPropagation();
+        }
+    });
 
     // Boot
     init();

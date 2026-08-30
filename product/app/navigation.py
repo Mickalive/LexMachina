@@ -666,11 +666,69 @@ class NavigationAPI:
 
         return decision
 
-    def search_decisions(self, query: str, limit: int = 20) -> List[Dict]:
-        """Search decisions by text content."""
+    def search_decisions(
+        self, query: str, limit: int = 20, language: Optional[str] = None
+    ) -> List[Dict]:
+        """Search decisions by text content with optional language filtering.
+
+        Args:
+            query: Text search query
+            limit: Maximum results
+            language: Optional language filter. Supports:
+                - Single language: "de", "fr", "it"
+                - Compound (AND): "de+fr" (German AND French results)
+                - None: all languages
+        """
         if not self._initialized:
             return []
-        return self.corpus.search(query, limit)
+
+        results = self.corpus.search(query, limit)
+
+        if language is None:
+            return results
+
+        # Parse compound language (e.g. "de+fr")
+        target_langs = {lang.strip() for lang in language.split("+") if lang.strip()}
+        if not target_langs:
+            return results
+
+        return [r for r in results if r.get("language") in target_langs]
+
+    def get_language_stats(self) -> Dict[str, Any]:
+        """Get language statistics including per-language counts,
+        per-language-branch counts, and language distribution per year."""
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        lang_counts: Dict[str, int] = {}
+        lang_branch_counts: Dict[str, int] = {}
+        lang_year_counts: Dict[str, Dict[int, int]] = {}
+
+        for d in self.corpus.decisions.values():
+            lang = d.language
+            lang_counts[lang] = lang_counts.get(lang, 0) + 1
+
+            branch = d.branch or "unknown"
+            key = f"{lang}:{branch}"
+            lang_branch_counts[key] = lang_branch_counts.get(key, 0) + 1
+
+            year = self._extract_year(d.decision_date)
+            if year is not None:
+                if lang not in lang_year_counts:
+                    lang_year_counts[lang] = {}
+                lang_year_counts[lang][year] = lang_year_counts[lang].get(year, 0) + 1
+
+        # Convert year dicts to {year: count} sorted
+        year_distributions: Dict[str, Dict[int, int]] = {}
+        for lang, yd in lang_year_counts.items():
+            year_distributions[lang] = dict(sorted(yd.items()))
+
+        return {
+            "total": self.corpus.size,
+            "per_language": lang_counts,
+            "per_language_branch": lang_branch_counts,
+            "year_distribution": year_distributions,
+        }
 
     def get_zoom_levels(self, representation: str) -> List[Dict]:
         """Get available zoom levels for a representation."""
@@ -2063,3 +2121,227 @@ class NavigationAPI:
         eval_loader = EvaluationLoader(str(self.map_loader.results_dir))
         eval_loader.load()
         return eval_loader.get_representation_recommendation(purpose)
+
+    # ── Design-Pattern Side-by-Side Comparison ──────────────────────────
+
+    _HOLDOUT_TO_MAP_REP: Dict[str, str] = {
+        "linear_metric_epoch4": "linear_metric_best",
+        "mahalanobis_metric_epoch4": "mahalanobis_best",
+        "hybrid_stabilized_epoch1": "hybrid_stabilized_best",
+    }
+
+    def _select_best_representation(self, pattern: str) -> Optional[str]:
+        """Select the best representation for *pattern* by holdout JP score.
+
+        Falls back to the first loaded representation matching the pattern
+        when no holdout metrics are available.
+        """
+        from .evaluation_loader import EvaluationLoader
+
+        eval_loader = EvaluationLoader(str(self.map_loader.results_dir))
+        eval_loader.load()
+        holdout = eval_loader.get_holdout_metrics()
+
+        loaded_reps = set(self.map_loader.get_available_representations())
+
+        candidates = []
+        for rep_key, metrics in holdout.items():
+            if metrics.get("design_pattern") != pattern:
+                continue
+            jp = metrics.get("jp_score")
+            # Map holdout key to actual loaded representation name
+            actual_rep = self._HOLDOUT_TO_MAP_REP.get(rep_key, rep_key)
+            if actual_rep not in loaded_reps:
+                continue
+            candidates.append((jp if jp is not None else -1.0, actual_rep))
+
+        if candidates:
+            candidates.sort(key=lambda x: x[0], reverse=True)
+            return candidates[0][1]
+
+        # Fallback: first loaded rep that belongs to this pattern
+        for rep in loaded_reps:
+            pat = self.map_loader.DESIGN_PATTERNS.get(rep)
+            if pat == pattern:
+                return rep
+        return None
+
+    def compare_design_patterns(
+        self,
+        pattern_a: str,
+        pattern_b: str,
+        zoom_level: int = 1,
+    ) -> Dict[str, Any]:
+        """Side-by-side comparison of two design patterns.
+
+        For each pattern selects the best representation (by holdout JP),
+        then returns per-decision cluster membership in both representations
+        plus stability metrics.
+        """
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        VALID_PATTERNS = {"DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "CITATION-ROLE"}
+        if pattern_a not in VALID_PATTERNS:
+            return {"error": f"Invalid pattern_a '{pattern_a}'. Valid: {sorted(VALID_PATTERNS)}"}
+        if pattern_b not in VALID_PATTERNS:
+            return {"error": f"Invalid pattern_b '{pattern_b}'. Valid: {sorted(VALID_PATTERNS)}"}
+
+        rep_a = self._select_best_representation(pattern_a)
+        rep_b = self._select_best_representation(pattern_b)
+
+        if not rep_a:
+            return {"error": f"No loaded representation found for pattern '{pattern_a}'"}
+        if not rep_b:
+            return {"error": f"No loaded representation found for pattern '{pattern_b}'"}
+
+        zl_a = self.map_loader.get_zoom_level(rep_a, zoom_level)
+        zl_b = self.map_loader.get_zoom_level(rep_b, zoom_level)
+
+        if not zl_a:
+            return {"error": f"Zoom level {zoom_level} not available for {rep_a}"}
+        if not zl_b:
+            return {"error": f"Zoom level {zoom_level} not available for {rep_b}"}
+
+        # Gather holdout metadata for each representation
+        from .evaluation_loader import EvaluationLoader
+        eval_loader = EvaluationLoader(str(self.map_loader.results_dir))
+        eval_loader.load()
+        holdout = eval_loader.get_holdout_metrics()
+
+        def _holdout_for(rep: str) -> Dict[str, Any]:
+            # Reverse-map loaded rep name back to holdout key
+            rev = {v: k for k, v in self._HOLDOUT_TO_MAP_REP.items()}
+            key = rev.get(rep, rep)
+            return holdout.get(key, {})
+
+        meta_a = _holdout_for(rep_a)
+        meta_b = _holdout_for(rep_b)
+
+        # Common decisions
+        common = set(zl_a.positions.keys()) & set(zl_b.positions.keys())
+
+        decisions = []
+        same_cluster_count = 0
+        for did in common:
+            ca = zl_a.cluster_assignments.get(did, -1)
+            cb = zl_b.cluster_assignments.get(did, -1)
+            same = ca == cb and ca >= 0
+            if same:
+                same_cluster_count += 1
+            decisions.append({
+                "decision_id": did,
+                "cluster_a": ca,
+                "cluster_b": cb,
+                "same_cluster": same,
+            })
+
+        total = len(decisions)
+        stability_pct = round(same_cluster_count / total * 100, 2) if total else 0.0
+
+        # Highlight decisions that move
+        movers = [d for d in decisions if not d["same_cluster"]]
+
+        return {
+            "pattern_a": pattern_a,
+            "pattern_b": pattern_b,
+            "zoom_level": zoom_level,
+            "representation_a": {
+                "name": rep_a,
+                "holdout_jp": meta_a.get("jp_score"),
+                "language_dominance": meta_a.get("language_dominance"),
+                "cluster_count": zl_a.n_clusters,
+                "positions_count": len(zl_a.positions),
+            },
+            "representation_b": {
+                "name": rep_b,
+                "holdout_jp": meta_b.get("jp_score"),
+                "language_dominance": meta_b.get("language_dominance"),
+                "cluster_count": zl_b.n_clusters,
+                "positions_count": len(zl_b.positions),
+            },
+            "stability": {
+                "total_common_decisions": total,
+                "same_cluster_count": same_cluster_count,
+                "stability_percentage": stability_pct,
+                "movers_count": len(movers),
+            },
+            "decisions": decisions,
+            "movers": movers,
+        }
+
+    # ── Startup Validation ──────────────────────────────────────────────
+
+    def startup_validation(self) -> Dict[str, Any]:
+        """Validate all loaded representations at startup.
+
+        Checks:
+        - Zoom levels exist for each representation
+        - Positions are non-empty at each zoom level
+        - Clusters are non-empty at each zoom level
+
+        Returns per-representation PASS/WARN/FAIL with issue list and timing.
+        """
+        import time as _time
+
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        t0 = _time.time()
+        all_reps = self.map_loader.get_available_representations()
+        results: Dict[str, Dict[str, Any]] = {}
+
+        for rep in all_reps:
+            rep_start = _time.time()
+            issues: List[str] = []
+            status = "PASS"
+
+            map_state = self.map_loader.get_map(rep)
+            if not map_state:
+                results[rep] = {
+                    "status": "FAIL",
+                    "issues": ["Map state not loaded"],
+                    "elapsed_ms": round((_time.time() - rep_start) * 1000, 1),
+                }
+                continue
+
+            zoom_levels = self.map_loader.get_zoom_levels(rep)
+            if not zoom_levels:
+                status = "WARN"
+                issues.append("No zoom levels found")
+
+            for zl_level in zoom_levels:
+                zl = self.map_loader.get_zoom_level(rep, zl_level)
+                if not zl:
+                    status = "FAIL"
+                    issues.append(f"Zoom level {zl_level} returned None")
+                    continue
+
+                if len(zl.positions) == 0:
+                    status = "WARN" if status == "PASS" else status
+                    issues.append(f"Zoom {zl_level}: positions is empty")
+
+                if zl.n_clusters == 0:
+                    status = "WARN" if status == "PASS" else status
+                    issues.append(f"Zoom {zl_level}: clusters is empty (0 clusters)")
+
+            results[rep] = {
+                "status": status,
+                "issues": issues,
+                "zoom_levels_checked": zoom_levels,
+                "elapsed_ms": round((_time.time() - rep_start) * 1000, 1),
+            }
+
+        elapsed_total = round((_time.time() - t0) * 1000, 1)
+        passing = sum(1 for r in results.values() if r["status"] == "PASS")
+        warnings = sum(1 for r in results.values() if r["status"] == "WARN")
+        failing = sum(1 for r in results.values() if r["status"] == "FAIL")
+
+        return {
+            "total_representations": len(all_reps),
+            "passing": passing,
+            "warnings": warnings,
+            "failing": failing,
+            "representations": results,
+            "elapsed_ms": elapsed_total,
+        }
