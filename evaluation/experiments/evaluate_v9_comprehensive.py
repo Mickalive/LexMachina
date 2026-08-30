@@ -268,6 +268,79 @@ def simulate_pairwise_preference(
         "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
     }
 
+# ============================================================
+# CROSS-LINGUAL ALIGNMENT: Proc Pairs (fresh computation matching v10)
+# ============================================================
+
+def proc_pairs_alignment(embeddings: np.ndarray, metadata: List[Dict]) -> np.ndarray:
+    """Proc Pairs: Procrustes on language-paired decisions (same branch, different language).
+    Computed fresh to ensure lossless cross-lingual alignment (matching v10 methodology)."""
+    from scipy.linalg import orthogonal_procrustes
+    from collections import defaultdict
+    
+    # Split by language
+    lang_groups = defaultdict(list)
+    for i, meta in enumerate(metadata):
+        lang = meta.get('language', 'unknown')
+        lang_groups[lang].append(i)
+    
+    langs = list(lang_groups.keys())
+    if len(langs) < 2:
+        logger.warning("Need at least 2 languages for Proc Pairs")
+        return embeddings
+    
+    # Build pairs: same branch, different language
+    branches = [meta.get('branch', 'unknown') for meta in metadata]
+    paired_indices = []
+    
+    for lang_a in langs:
+        idx_a = np.array(lang_groups[lang_a])
+        branch_a = np.array([branches[i] for i in idx_a])
+        
+        for lang_b in langs:
+            if lang_a >= lang_b:
+                continue
+            idx_b = np.array(lang_groups[lang_b])
+            branch_b = np.array([branches[i] for i in idx_b])
+            
+            # Find common branches
+            common_branches = set(branch_a) & set(branch_b)
+            for br in common_branches:
+                idx_a_br = idx_a[branch_a == br]
+                idx_b_br = idx_b[branch_b == br]
+                n_pairs = min(len(idx_a_br), len(idx_b_br))
+                if n_pairs > 0:
+                    paired_indices.append((idx_a_br[:n_pairs], idx_b_br[:n_pairs]))
+    
+    if not paired_indices:
+        logger.warning("No language pairs found for Proc Pairs")
+        return embeddings
+    
+    # Concatenate all pairs
+    all_a = np.concatenate([p[0] for p in paired_indices])
+    all_b = np.concatenate([p[1] for p in paired_indices])
+    
+    if len(all_a) < 2:
+        logger.warning("Too few pairs for Proc Pairs")
+        return embeddings
+    
+    emb_a = embeddings[all_a]
+    emb_b = embeddings[all_b]
+    
+    # Procrustes on paired decisions
+    try:
+        R, scale = orthogonal_procrustes(emb_a, emb_b)
+        logger.info(f"Proc Pairs (fresh): {len(all_a)} pairs, Procrustes scale={scale:.4f}")
+    except Exception as e:
+        logger.warning(f"Proc Pairs Procrustes failed: {e}")
+        return embeddings
+    
+    # Apply to all embeddings
+    aligned = embeddings.copy()
+    aligned = aligned @ R
+    aligned = normalize(aligned, norm='l2', axis=1)
+    return aligned.astype(np.float32)
+
 def simulate_cluster_coherence_rating(
     embeddings: np.ndarray,
     branches: np.ndarray,
@@ -734,8 +807,8 @@ def main():
         # Citation Role family (3) - evaluated via role_hybrid_evaluation.json, embeddings may not be saved as .npy
         # We'll skip these as they're already validated in v7 evaluation
         
-        # Cross-lingual alignment variants (4) - from legal-distance v7
-        'cited_decisions_tfidf_proc_pairs': LEX_ACCEPTED_ROOT / "legal-distance/legal_distance/results/v7/cross_lingual_alignment/cited_decisions_tfidf_proc_pairs.npy",
+        # Cross-lingual alignment variants (5) - computed fresh for lossless alignment (proc_pairs) or loaded from legal-distance v7
+        # cited_decisions_tfidf_proc_pairs: COMPUTED FRESH from cited_decisions_tfidf base for lossless alignment (matching v10 methodology)
         'cited_decisions_tfidf_joint_pca': LEX_ACCEPTED_ROOT / "legal-distance/legal_distance/results/v7/cross_lingual_alignment/cited_decisions_tfidf_joint_pca.npy",
         'cited_decisions_tfidf_mean_center': LEX_ACCEPTED_ROOT / "legal-distance/legal_distance/results/v7/cross_lingual_alignment/cited_decisions_tfidf_mean_center.npy",
         'cited_decisions_tfidf_procrustes': LEX_ACCEPTED_ROOT / "legal-distance/legal_distance/results/v7/cross_lingual_alignment/cited_decisions_tfidf_procrustes.npy",
@@ -769,6 +842,7 @@ def main():
     # Load and evaluate each
     logger.info("\n2. Loading representations and running evaluations...")
     all_results = {}
+    cited_decisions_tfidf_embeddings = None
     
     # Evaluate 1200-decision representations
     for name, path in representations_1200.items():
@@ -783,6 +857,10 @@ def main():
             
             result = evaluate_representation(name, embeddings, metadata_1200)
             all_results[name] = result
+            
+            # Store cited_decisions_tfidf embeddings for fresh proc_pairs computation
+            if name == 'cited_decisions_tfidf':
+                cited_decisions_tfidf_embeddings = embeddings.copy()
             
             adv = result['adversarial']
             jurivoc = result['jurivoc_alignment']
@@ -805,6 +883,41 @@ def main():
             import traceback
             traceback.print_exc()
             all_results[name] = {'error': str(e), 'verdict': 'ERROR'}
+    
+    # Compute and evaluate proc_pairs FRESH from cited_decisions_tfidf base (matching v10 methodology)
+    # This ensures lossless cross-lingual alignment instead of using stale pre-saved embedding
+    if cited_decisions_tfidf_embeddings is not None:
+        logger.info("\n  Computing cited_decisions_tfidf_proc_pairs FRESH from base...")
+        try:
+            proc_pairs_embeddings = proc_pairs_alignment(cited_decisions_tfidf_embeddings, metadata_1200)
+            logger.info(f"  Computed fresh proc_pairs: {proc_pairs_embeddings.shape}")
+            
+            result = evaluate_representation('cited_decisions_tfidf_proc_pairs', proc_pairs_embeddings, metadata_1200)
+            all_results['cited_decisions_tfidf_proc_pairs'] = result
+            
+            adv = result['adversarial']
+            jurivoc = result['jurivoc_alignment']
+            scale = result['scale_stability']
+            boiler = result['boilerplate_resistance']
+            frac = result['fractal']
+            
+            logger.info(f"  cited_decisions_tfidf_proc_pairs (FRESH): verdict={result['verdict']}, "
+                       f"lang_dom={adv['language_dominance_score']:.4f} "
+                       f"({'PASS' if adv['adversarial_language_dominance']['status']=='PASS' else 'FAIL'}), "
+                       f"jurist_pref={adv['jurist_preference_rate']:.4f} "
+                       f"({'PASS' if adv['jurist_pairwise_preference']['status']=='PASS' else 'FAIL'}), "
+                       f"jurivoc_l0={jurivoc['level_0_nmi']:.4f}, "
+                       f"scale_stability={scale.get('mean_neighbor_overlap', 'N/A'):.4f}, "
+                       f"boilerplate_resist={boiler['resistance_score']:.4f}, "
+                       f"improvement_rate={frac.get('improvement_rate', 0):.2%}")
+            
+        except Exception as e:
+            logger.error(f"  cited_decisions_tfidf_proc_pairs (FRESH): ERROR - {e}")
+            import traceback
+            traceback.print_exc()
+            all_results['cited_decisions_tfidf_proc_pairs'] = {'error': str(e), 'verdict': 'ERROR'}
+    else:
+        logger.warning("  cited_decisions_tfidf embeddings not available, skipping fresh proc_pairs computation")
     
     # Evaluate 1000-decision representations
     for name, path in representations_1000.items():
