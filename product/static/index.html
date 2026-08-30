@@ -339,11 +339,12 @@
                 </select>
 <label>Representation</label>
                 <select id="rep-select">
-                    <option value="center_projected_64dim_hierarchical" selected>Center Projected 64-dim (eval v3: PASSES BOTH adversarial gates ✓)</option>
+                    <!-- DEFAULT: Center Projected 64-dim (evaluation v3 validated - PASSES BOTH adversarial gates) -->
+                    <option value="center_projected_64dim_hierarchical" selected>DEFAULT: Center Projected 64-dim (eval v3: PASSES BOTH adversarial gates ✓)</option>
                     <option value="center_projected_hierarchical">Center Projected 768-dim Hierarchical (LEGACY - fails jurist pairwise)</option>
                     <option value="center_projected">Center Projected 768-dim (eval v2: passes both, but v6 shows 768-dim FAILS pairwise)</option>
                     <option value="debiased_citation_blended">Debiased Citation Blended (eval default, 14/14 PASS)</option>
-                    <option value="concat_center_tfidf">Concat + Center TF-IDF (best)</option>
+                    <option value="concat_center_tfidf">Concat + Center TF-IDF (best legacy)</option>
                     <option value="baseline">Baseline (semantic)</option>
                     <option value="hdbscan">HDBSCAN clustering</option>
                     <option value="hierarchical_leiden">Hierarchical Leiden (flat multi-res)</option>
@@ -351,7 +352,26 @@
                     <option value="legal_cited_decisions">Legal Cited Decisions (legal-distance ACCEPTED, 14/14 PASS, AUC 0.97)</option>
                     <option value="hybrid_alpha_0_3">Hybrid α=0.3 (30% center + 70% cited)</option>
                     <option value="hybrid_alpha_0_5">Hybrid α=0.5 (50% center + 50% cited)</option>
-                    <option value="legal_issues_outcomes">Legal Issues & Outcomes (EXPLORATORY)</option>
+                    <option value="legal_issues_outcomes">Legal Issues & Outcomes (ACCEPTED w/ warnings)</option>
+                    <!-- NEW: Metric Learning representations (ACCEPTED - legal-distance v7/v8 breakthrough) -->
+                    <optgroup label="— Metric Learning (ACCEPTED) —">
+                        <option value="linear_metric_best">Cross-Lingual Legal (Linear Metric) — JP=0.6847, LangDom=0.6802</option>
+                        <option value="mahalanobis_best">Cross-Lingual Legal (Mahalanobis Metric) — JP=0.6781, LangDom=0.6840</option>
+                        <option value="hybrid_stabilized_best">Cross-Lingual Legal (Stabilized Hybrid) — JP=0.6656, LangDom=0.6704</option>
+                    </optgroup>
+                    <!-- NEW: Cited Decisions TF-IDF representations (ACCEPTED - zero-shot breakthrough) -->
+                    <optgroup label="— Doctrinal Lineage / Citation Signal (ACCEPTED) —">
+                        <option value="cited_decisions_tfidf">Doctrinal Lineage (Cited Decisions TF-IDF) — JP=0.6889, LangDom=0.6117 (BEST zero-shot)</option>
+                        <option value="hybrid_cited_decisions_0.3">Citation-Proximity Blend α=0.3 — JP=0.5254, LangDom=0.7604</option>
+                        <option value="hybrid_cited_decisions_0.5">Balanced Citation-Legal Blend α=0.5 — JP=0.6105, LangDom=0.7062</option>
+                        <option value="hybrid_cited_decisions_0.7">Legal-Invariant Blend α=0.7 — JP=0.6764, LangDom=0.6477</option>
+                    </optgroup>
+                    <!-- NEW: Production CP64 Hybrids (ACCEPTED - BEST production hybrid per factory direction v9) -->
+                    <optgroup label="— Production Hybrids CP64 (ACCEPTED) —">
+                        <option value="cited_decisions_tfidf_hybrid_cp64_0.3">Production Hybrid CP64 α=0.3 — JP=0.5346, LangDom=0.7483</option>
+                        <option value="cited_decisions_tfidf_hybrid_cp64_0.5">Production Hybrid CP64 α=0.5 — JP=0.6280, LangDom=0.6838</option>
+                        <option value="cited_decisions_tfidf_hybrid_cp64_0.7">BEST Production Hybrid CP64 α=0.7 — JP=0.6614, LangDom=0.6518</option>
+                    </optgroup>
                 </select>
                 <label>Zoom Level</label>
                 <select id="zoom-select">
@@ -860,6 +880,7 @@ void main() {
             updateStatsBar(overviewData);
             buildLangFilter(overviewData.languages);
             await loadMapModes();
+            await updateZoomLevelsForRep(currentRep);
             await loadMap();
             await loadZoomCoherence();
             await loadImportedCount();
@@ -901,6 +922,55 @@ void main() {
             }
         } catch (e) {
             console.warn('Zoom coherence data not available:', e);
+        }
+    }
+
+    // === NEW: Update zoom levels dropdown based on representation ===
+    async function updateZoomLevelsForRep(rep) {
+        try {
+            const resp = await fetch(`${API}/api/zoom_levels?representation=${rep}`);
+            const data = await resp.json();
+            if (data && data.zoom_levels) {
+                const zoomSelect = document.getElementById('zoom-select');
+                const currentZoomValue = currentZoom;
+                zoomSelect.innerHTML = '';
+                
+                // Map zoom level to label
+                const zoomLabels = {
+                    0: 'Domain (few clusters)',
+                    1: 'Subdomain',
+                    2: 'Microcluster',
+                    3: 'Detail',
+                    4: 'Detail+',
+                    5: 'Detail++',
+                    6: 'Detail+++',
+                    7: 'Hierarchical (108 clusters)'
+                };
+                
+                data.zoom_levels.forEach(level => {
+                    const opt = document.createElement('option');
+                    opt.value = level;
+                    opt.textContent = zoomLabels[level] || `Zoom ${level}`;
+                    zoomSelect.appendChild(opt);
+                });
+                
+                // Try to keep current zoom level, fallback to max available
+                if (data.zoom_levels.includes(currentZoomValue)) {
+                    currentZoom = currentZoomValue;
+                } else {
+                    currentZoom = Math.min(currentZoomValue, Math.max(...data.zoom_levels));
+                }
+                zoomSelect.value = currentZoom;
+                
+                // Also update zoom buttons
+                document.querySelectorAll('.zoom-btn').forEach(btn => {
+                    const btnZoom = parseInt(btn.dataset.zoom);
+                    btn.style.display = data.zoom_levels.includes(btnZoom) ? '' : 'none';
+                    btn.classList.toggle('active', btnZoom === currentZoom);
+                });
+            }
+        } catch (e) {
+            console.warn('Failed to load zoom levels for', rep, e);
         }
     }
 
@@ -1618,6 +1688,7 @@ void main() {
 
     document.getElementById('rep-select').addEventListener('change', (e) => {
         currentRep = e.target.value;
+        updateZoomLevelsForRep(currentRep);
         loadMap();
     });
 

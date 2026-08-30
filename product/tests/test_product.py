@@ -903,6 +903,398 @@ def test_legal_issues_outcomes():
     return True
 
 
+def test_linear_metric_best():
+    """Test linear_metric_best representation (ACCEPTED - metric learning breakthrough).
+
+    Linear metric learning on center_projected (epoch 4 best): JP=0.6847, LangDom=0.6802.
+    Both adversarial gates PASS. Best for cross-lingual legal navigation.
+    """
+    print("=== Test: Linear Metric Best (Metric Learning) ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    reps = api.map_loader.get_available_representations()
+    assert "linear_metric_best" in reps, f"linear_metric_best not in representations: {reps}"
+
+    zoom_levels = api.get_zoom_levels("linear_metric_best")
+    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
+
+    for zl in [z["level"] for z in zoom_levels]:
+        map_data = api.get_map_data("linear_metric_best", zl)
+        assert map_data["n_decisions"] == 1000
+        print(f"  Zoom {zl}: {map_data['n_clusters']} clusters")
+
+    map_state = api.map_loader.get_map("linear_metric_best")
+    metadata = map_state.metadata
+    assert metadata.get("evidence_tier") == "ACCEPTED"
+    assert metadata.get("benchmark_results", {}).get("both_gates_pass") == True
+    print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}, JP={metadata.get('benchmark_results', {}).get('jurist_pairwise')}, LangDom={metadata.get('benchmark_results', {}).get('language_dominance')}")
+
+    zl_0 = api.map_loader.get_zoom_level("linear_metric_best", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "linear_metric_best", 1, 5)
+    assert len(neighbors) > 0
+
+    print("  PASS\n")
+    return True
+
+
+def test_mahalanobis_best():
+    """Test mahalanobis_best representation (ACCEPTED - metric learning breakthrough).
+
+    Mahalanobis metric learning on center_projected (epoch 4 best): JP=0.6781, LangDom=0.6840.
+    Both adversarial gates PASS. Learns full metric for language-invariant legal proximity.
+    """
+    print("=== Test: Mahalanobis Metric Best (Metric Learning) ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    reps = api.map_loader.get_available_representations()
+    assert "mahalanobis_best" in reps, f"mahalanobis_best not in representations: {reps}"
+
+    zoom_levels = api.get_zoom_levels("mahalanobis_best")
+    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
+
+    for zl in [z["level"] for z in zoom_levels]:
+        map_data = api.get_map_data("mahalanobis_best", zl)
+        assert map_data["n_decisions"] == 1000
+        print(f"  Zoom {zl}: {map_data['n_clusters']} clusters")
+
+    map_state = api.map_loader.get_map("mahalanobis_best")
+    metadata = map_state.metadata
+    assert metadata.get("evidence_tier") == "ACCEPTED"
+    assert metadata.get("benchmark_results", {}).get("both_gates_pass") == True
+    print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}, JP={metadata.get('benchmark_results', {}).get('jurist_pairwise')}, LangDom={metadata.get('benchmark_results', {}).get('language_dominance')}")
+
+    zl_0 = api.map_loader.get_zoom_level("mahalanobis_best", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "mahalanobis_best", 1, 5)
+    assert len(neighbors) > 0
+
+    print("  PASS\n")
+    return True
+
+
+def test_cited_decisions_tfidf():
+    """Test cited_decisions_tfidf representation (ACCEPTED - zero-shot breakthrough).
+
+    Zero-shot TF-IDF on cited decisions only: JP=0.6889, LangDom=0.6117.
+    BEST zero-shot representation. Beats supervised metric learning on jurist pairwise.
+    Best for citation-proximity / doctrinal lineage navigation.
+    """
+    print("=== Test: Cited Decisions TF-IDF (Zero-Shot Breakthrough) ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    reps = api.map_loader.get_available_representations()
+    assert "cited_decisions_tfidf" in reps, f"cited_decisions_tfidf not in representations: {reps}"
+
+    zoom_levels = api.get_zoom_levels("cited_decisions_tfidf")
+    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
+
+    for zl in [z["level"] for z in zoom_levels]:
+        map_data = api.get_map_data("cited_decisions_tfidf", zl)
+        assert map_data["n_decisions"] == 1000
+        print(f"  Zoom {zl}: {map_data['n_clusters']} clusters")
+
+    map_state = api.map_loader.get_map("cited_decisions_tfidf")
+    metadata = map_state.metadata
+    assert metadata.get("evidence_tier") == "ACCEPTED"
+    assert metadata.get("benchmark_results", {}).get("both_gates_pass") == True
+    print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}, JP={metadata.get('benchmark_results', {}).get('jurist_pairwise')}, LangDom={metadata.get('benchmark_results', {}).get('language_dominance')}")
+
+    zl_0 = api.map_loader.get_zoom_level("cited_decisions_tfidf", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "cited_decisions_tfidf", 1, 5)
+    assert len(neighbors) > 0
+
+    print("  PASS\n")
+    return True
+
+
+def test_hybrid_cited_decisions_0_3():
+    """Test hybrid_cited_decisions_0.3 representation (ACCEPTED).
+
+    Hybrid: 30% center_projected + 70% cited_decisions_tfidf. JP=0.5254, LangDom=0.7604.
+    Favors citation-proximity while retaining some language-invariant geometry.
+    """
+    print("=== Test: Hybrid Cited Decisions α=0.3 ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    reps = api.map_loader.get_available_representations()
+    assert "hybrid_cited_decisions_0.3" in reps, f"hybrid_cited_decisions_0.3 not in representations: {reps}"
+
+    zoom_levels = api.get_zoom_levels("hybrid_cited_decisions_0.3")
+    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
+
+    for zl in [z["level"] for z in zoom_levels]:
+        map_data = api.get_map_data("hybrid_cited_decisions_0.3", zl)
+        assert map_data["n_decisions"] == 1000
+        print(f"  Zoom {zl}: {map_data['n_clusters']} clusters")
+
+    map_state = api.map_loader.get_map("hybrid_cited_decisions_0.3")
+    metadata = map_state.metadata
+    assert metadata.get("evidence_tier") == "ACCEPTED"
+    assert metadata.get("benchmark_results", {}).get("both_gates_pass") == True
+    print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}, JP={metadata.get('benchmark_results', {}).get('jurist_pairwise')}, LangDom={metadata.get('benchmark_results', {}).get('language_dominance')}")
+
+    zl_0 = api.map_loader.get_zoom_level("hybrid_cited_decisions_0.3", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "hybrid_cited_decisions_0.3", 1, 5)
+    assert len(neighbors) > 0
+
+    print("  PASS\n")
+    return True
+
+
+def test_hybrid_cited_decisions_0_5():
+    """Test hybrid_cited_decisions_0.5 representation (ACCEPTED).
+
+    Hybrid: 50% center_projected + 50% cited_decisions_tfidf. JP=0.6105, LangDom=0.7062.
+    Balanced blend of language-invariant legal geometry and citation-proximity.
+    """
+    print("=== Test: Hybrid Cited Decisions α=0.5 ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    reps = api.map_loader.get_available_representations()
+    assert "hybrid_cited_decisions_0.5" in reps, f"hybrid_cited_decisions_0.5 not in representations: {reps}"
+
+    zoom_levels = api.get_zoom_levels("hybrid_cited_decisions_0.5")
+    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
+
+    for zl in [z["level"] for z in zoom_levels]:
+        map_data = api.get_map_data("hybrid_cited_decisions_0.5", zl)
+        assert map_data["n_decisions"] == 1000
+        print(f"  Zoom {zl}: {map_data['n_clusters']} clusters")
+
+    map_state = api.map_loader.get_map("hybrid_cited_decisions_0.5")
+    metadata = map_state.metadata
+    assert metadata.get("evidence_tier") == "ACCEPTED"
+    assert metadata.get("benchmark_results", {}).get("both_gates_pass") == True
+    print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}, JP={metadata.get('benchmark_results', {}).get('jurist_pairwise')}, LangDom={metadata.get('benchmark_results', {}).get('language_dominance')}")
+
+    zl_0 = api.map_loader.get_zoom_level("hybrid_cited_decisions_0.5", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "hybrid_cited_decisions_0.5", 1, 5)
+    assert len(neighbors) > 0
+
+    print("  PASS\n")
+    return True
+
+
+def test_hybrid_cited_decisions_0_7():
+    """Test hybrid_cited_decisions_0.7 representation (ACCEPTED).
+
+    Hybrid: 70% center_projected + 30% cited_decisions_tfidf. JP=0.6764, LangDom=0.6477.
+    Favors language-invariant legal geometry with some citation-proximity signal.
+    """
+    print("=== Test: Hybrid Cited Decisions α=0.7 ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    reps = api.map_loader.get_available_representations()
+    assert "hybrid_cited_decisions_0.7" in reps, f"hybrid_cited_decisions_0.7 not in representations: {reps}"
+
+    zoom_levels = api.get_zoom_levels("hybrid_cited_decisions_0.7")
+    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
+
+    for zl in [z["level"] for z in zoom_levels]:
+        map_data = api.get_map_data("hybrid_cited_decisions_0.7", zl)
+        assert map_data["n_decisions"] == 1000
+        print(f"  Zoom {zl}: {map_data['n_clusters']} clusters")
+
+    map_state = api.map_loader.get_map("hybrid_cited_decisions_0.7")
+    metadata = map_state.metadata
+    assert metadata.get("evidence_tier") == "ACCEPTED"
+    assert metadata.get("benchmark_results", {}).get("both_gates_pass") == True
+    print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}, JP={metadata.get('benchmark_results', {}).get('jurist_pairwise')}, LangDom={metadata.get('benchmark_results', {}).get('language_dominance')}")
+
+    zl_0 = api.map_loader.get_zoom_level("hybrid_cited_decisions_0.7", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "hybrid_cited_decisions_0.7", 1, 5)
+    assert len(neighbors) > 0
+
+    print("  PASS\n")
+    return True
+
+
+def test_cited_decisions_tfidf_hybrid_cp64_0_3():
+    """Test cited_decisions_tfidf_hybrid_cp64_0.3 representation (ACCEPTED).
+
+    Hybrid: 30% center_projected_64dim + 70% cited_decisions_tfidf (PCA-64D). JP=0.5346, LangDom=0.7483.
+    Production hybrid using 64-dim frozen PCA center_projected.
+    """
+    print("=== Test: CP64 Hybrid α=0.3 ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    reps = api.map_loader.get_available_representations()
+    assert "cited_decisions_tfidf_hybrid_cp64_0.3" in reps, f"cited_decisions_tfidf_hybrid_cp64_0.3 not in representations: {reps}"
+
+    zoom_levels = api.get_zoom_levels("cited_decisions_tfidf_hybrid_cp64_0.3")
+    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
+
+    for zl in [z["level"] for z in zoom_levels]:
+        map_data = api.get_map_data("cited_decisions_tfidf_hybrid_cp64_0.3", zl)
+        assert map_data["n_decisions"] == 1000
+        print(f"  Zoom {zl}: {map_data['n_clusters']} clusters")
+
+    map_state = api.map_loader.get_map("cited_decisions_tfidf_hybrid_cp64_0.3")
+    metadata = map_state.metadata
+    assert metadata.get("evidence_tier") == "ACCEPTED"
+    assert metadata.get("benchmark_results", {}).get("both_gates_pass") == True
+    print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}, JP={metadata.get('benchmark_results', {}).get('jurist_pairwise')}, LangDom={metadata.get('benchmark_results', {}).get('language_dominance')}")
+
+    zl_0 = api.map_loader.get_zoom_level("cited_decisions_tfidf_hybrid_cp64_0.3", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "cited_decisions_tfidf_hybrid_cp64_0.3", 1, 5)
+    assert len(neighbors) > 0
+
+    print("  PASS\n")
+    return True
+
+
+def test_cited_decisions_tfidf_hybrid_cp64_0_5():
+    """Test cited_decisions_tfidf_hybrid_cp64_0.5 representation (ACCEPTED).
+
+    Hybrid: 50% center_projected_64dim + 50% cited_decisions_tfidf (PCA-64D). JP=0.6280, LangDom=0.6838.
+    Balanced production hybrid using 64-dim frozen PCA center_projected.
+    """
+    print("=== Test: CP64 Hybrid α=0.5 ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    reps = api.map_loader.get_available_representations()
+    assert "cited_decisions_tfidf_hybrid_cp64_0.5" in reps, f"cited_decisions_tfidf_hybrid_cp64_0.5 not in representations: {reps}"
+
+    zoom_levels = api.get_zoom_levels("cited_decisions_tfidf_hybrid_cp64_0.5")
+    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
+
+    for zl in [z["level"] for z in zoom_levels]:
+        map_data = api.get_map_data("cited_decisions_tfidf_hybrid_cp64_0.5", zl)
+        assert map_data["n_decisions"] == 1000
+        print(f"  Zoom {zl}: {map_data['n_clusters']} clusters")
+
+    map_state = api.map_loader.get_map("cited_decisions_tfidf_hybrid_cp64_0.5")
+    metadata = map_state.metadata
+    assert metadata.get("evidence_tier") == "ACCEPTED"
+    assert metadata.get("benchmark_results", {}).get("both_gates_pass") == True
+    print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}, JP={metadata.get('benchmark_results', {}).get('jurist_pairwise')}, LangDom={metadata.get('benchmark_results', {}).get('language_dominance')}")
+
+    zl_0 = api.map_loader.get_zoom_level("cited_decisions_tfidf_hybrid_cp64_0.5", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "cited_decisions_tfidf_hybrid_cp64_0.5", 1, 5)
+    assert len(neighbors) > 0
+
+    print("  PASS\n")
+    return True
+
+
+def test_cited_decisions_tfidf_hybrid_cp64_0_7():
+    """Test cited_decisions_tfidf_hybrid_cp64_0.7 representation (ACCEPTED - BEST PRODUCTION HYBRID).
+
+    Hybrid: 70% center_projected_64dim + 30% cited_decisions_tfidf (PCA-64D). JP=0.6614, LangDom=0.6518.
+    BEST production hybrid per factory direction v9. Uses 64-dim frozen PCA center_projected.
+    """
+    print("=== Test: CP64 Hybrid α=0.7 (BEST PRODUCTION HYBRID) ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    reps = api.map_loader.get_available_representations()
+    assert "cited_decisions_tfidf_hybrid_cp64_0.7" in reps, f"cited_decisions_tfidf_hybrid_cp64_0.7 not in representations: {reps}"
+
+    zoom_levels = api.get_zoom_levels("cited_decisions_tfidf_hybrid_cp64_0.7")
+    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
+
+    for zl in [z["level"] for z in zoom_levels]:
+        map_data = api.get_map_data("cited_decisions_tfidf_hybrid_cp64_0.7", zl)
+        assert map_data["n_decisions"] == 1000
+        print(f"  Zoom {zl}: {map_data['n_clusters']} clusters")
+
+    map_state = api.map_loader.get_map("cited_decisions_tfidf_hybrid_cp64_0.7")
+    metadata = map_state.metadata
+    assert metadata.get("evidence_tier") == "ACCEPTED"
+    assert metadata.get("benchmark_results", {}).get("both_gates_pass") == True
+    print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}, JP={metadata.get('benchmark_results', {}).get('jurist_pairwise')}, LangDom={metadata.get('benchmark_results', {}).get('language_dominance')}")
+
+    zl_0 = api.map_loader.get_zoom_level("cited_decisions_tfidf_hybrid_cp64_0.7", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "cited_decisions_tfidf_hybrid_cp64_0.7", 1, 5)
+    assert len(neighbors) > 0
+
+    print("  PASS\n")
+    return True
+
+
+def test_hybrid_stabilized_best():
+    """Test hybrid_stabilized_best representation (ACCEPTED - stabilized hybrid breakthrough).
+
+    Stabilized hybrid metric learning on center_projected (epoch 1 best): JP=0.6656, LangDom=0.6704.
+    Contrastive + preservation + hierarchy loss for robust cross-lingual alignment.
+    Both adversarial gates PASS.
+    """
+    print("=== Test: Hybrid Stabilized Best (Stabilized Hybrid) ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    reps = api.map_loader.get_available_representations()
+    assert "hybrid_stabilized_best" in reps, f"hybrid_stabilized_best not in representations: {reps}"
+
+    zoom_levels = api.get_zoom_levels("hybrid_stabilized_best")
+    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
+
+    for zl in [z["level"] for z in zoom_levels]:
+        map_data = api.get_map_data("hybrid_stabilized_best", zl)
+        assert map_data["n_decisions"] == 1000
+        print(f"  Zoom {zl}: {map_data['n_clusters']} clusters")
+
+    map_state = api.map_loader.get_map("hybrid_stabilized_best")
+    metadata = map_state.metadata
+    assert metadata.get("evidence_tier") == "ACCEPTED"
+    assert metadata.get("benchmark_results", {}).get("both_gates_pass") == True
+    print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}, JP={metadata.get('benchmark_results', {}).get('jurist_pairwise')}, LangDom={metadata.get('benchmark_results', {}).get('language_dominance')}")
+
+    zl_0 = api.map_loader.get_zoom_level("hybrid_stabilized_best", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "hybrid_stabilized_best", 1, 5)
+    assert len(neighbors) > 0
+
+    print("  PASS\n")
+    return True
+
+
 if __name__ == "__main__":
     results = []
     results.append(("Corpus Loader", test_corpus_loader()))
@@ -921,6 +1313,17 @@ if __name__ == "__main__":
     results.append(("Hybrid Alpha 0.3", test_hybrid_alpha_0_3()))
     results.append(("Hybrid Alpha 0.5", test_hybrid_alpha_0_5()))
     results.append(("Legal Issues & Outcomes", test_legal_issues_outcomes()))
+    # New ACCEPTED representations from legal-distance v7/v8 (factory direction v9)
+    results.append(("Linear Metric Best", test_linear_metric_best()))
+    results.append(("Mahalanobis Metric Best", test_mahalanobis_best()))
+    results.append(("Cited Decisions TF-IDF", test_cited_decisions_tfidf()))
+    results.append(("Hybrid Cited Decisions α=0.3", test_hybrid_cited_decisions_0_3()))
+    results.append(("Hybrid Cited Decisions α=0.5", test_hybrid_cited_decisions_0_5()))
+    results.append(("Hybrid Cited Decisions α=0.7", test_hybrid_cited_decisions_0_7()))
+    results.append(("CP64 Hybrid α=0.3", test_cited_decisions_tfidf_hybrid_cp64_0_3()))
+    results.append(("CP64 Hybrid α=0.5", test_cited_decisions_tfidf_hybrid_cp64_0_5()))
+    results.append(("CP64 Hybrid α=0.7 (BEST)", test_cited_decisions_tfidf_hybrid_cp64_0_7()))
+    results.append(("Hybrid Stabilized Best", test_hybrid_stabilized_best()))
     
     print("=" * 50)
     print("RESULTS:")
