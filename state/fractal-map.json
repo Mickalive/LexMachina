@@ -6,12 +6,12 @@
   "continue_recommended": false,
   "accepted_run_id": "33319197061",
   "github_run": "33337992667",
-  "timestamp": "2026-08-30T23:15:00Z",
+  "timestamp": "2026-08-30T22:20:00Z",
   "previous_accepted_run": "33319197061",
   "blocked_on": "corpus lane: full 192k acquisition/normalization required before fractal-map scaling",
   "blocked_since": "33323379652",
   "resume_guard": "DO NOT DISPATCH THIS LANE until factory_direction.json marks corpus lane as DELIVERED (status=DONE with full 192k corpus available). The fractal-map lane is COMPLETE at current 1000-decision scale. All 24 representations across 4 design patterns are validated and product-ready. When corpus delivers: run build_parameterized_legal_distance_map.py at --corpus-size 192000 on accepted embeddings; re-validate nesting/zoom at full scale; refresh registry. Recommend outcome_hybrid_0.5 as DEFAULT at scale.",
-  "next_recommendation": "BLOCKED. All 21 legal-distance modes artifact-complete (618 artifacts verified). 175/175 tests PASS. EMPIRICAL SCALABILITY VALIDATED: 192k extrapolation = 5.6 min, 1.0 GB (near-linear time, linear memory). Lane is DONE at current scale. Awaiting corpus lane full 192k delivery. ORCHESTRATION BUG PERSISTS: control plane /tmp/lex_control/state/factory_direction.json still shows fractal-map.status=RUN causing unnecessary re-dispatches (34 documented cycles). Factory Director must update control plane to BLOCKED or DONE to prevent further re-dispatches. When corpus delivers: (1) run build_parameterized_legal_distance_map.py --corpus-size 192000, (2) re-validate nesting/zoom at full scale, (3) refresh product registry, (4) recommend outcome_hybrid_0.5 as DEFAULT at scale. CYCLE_operational_resume_33337992667_GATE.json created as audit-ready deliverable.",
+  "next_recommendation": "BLOCKED. All 21 legal-distance modes artifact-complete (619 artifacts verified). 174/174 tests PASS. EMPIRICAL SCALABILITY VALIDATED: 192k extrapolation = 5.6 min, 1.0 GB (near-linear time, linear memory). ZOOM QUALITY DIAGNOSTIC COMPLETE: citation role views dominate zoom quality (citing_alpha0.3 ZQ=0.5401, following ZQ=0.5280, criticizing ZQ=0.4864), while BEST PRODUCTION (outcome_hybrid_0.5 ZQ=0.2798) and BEST FRACTAL (outcome_hybrid_0.7 ZQ=0.2799) rank lowest — confirms multi-view design for product. Lane is DONE at current scale. Awaiting corpus lane full 192k delivery. ORCHESTRATION BUG PERSISTS: control plane /tmp/lex_control/state/factory_direction.json still shows fractal-map.status=RUN causing unnecessary re-dispatches (35 documented cycles). Factory Director must update control plane to BLOCKED or DONE to prevent further re-dispatches. When corpus delivers: (1) test citation role zoom quality at 192k scale, (2) run build_parameterized_legal_distance_map.py --corpus-size 192000, (3) optimize resolution ladder (drop 1.5→2.0 transition), (4) implement multi-view zoom UI with citation role views for navigation.",
   "evidence_refs": [
     "results/fractal_map/evaluation/verify_outcome_hybrid_integration_33307151666.json",
     "results/fractal_map/evaluation/artifact_audit_33316273550.json",
@@ -56,9 +56,12 @@
     "results/fractal_map/scalability/synthetic_scalability_results.json",
     "results/fractal_map/audit/CYCLE_scalability_verify_33337654722_GATE.json",
     "reports/fractal_map/FINAL_AUDIT_SNAPSHOT_v10_33337654722.md",
-    "results/fractal_map/audit/CYCLE_operational_resume_33337992667_GATE.json"
+    "results/fractal_map/audit/CYCLE_operational_resume_33337992667_GATE.json",
+    "results/fractal_map/evaluation/zoom_quality_diagnostic_results.json",
+    "reports/fractal_map/ZOOM_QUALITY_DIAGNOSTIC_33338598158.md"
   ],
   "key_findings": [
+    "RUN 33338598158: ZOOM QUALITY DIAGNOSTIC. Comprehensive profiling of zoom coherence quality across all 22 modes (21 legal-distance + center_projected_hierarchical). KEY FINDING: Citation role views dominate zoom quality — citing_alpha0.3 (ZQ=0.5401), following_alpha0.3 (ZQ=0.5280), criticizing_alpha0.3 (ZQ=0.4864) rank #1-3. These show +0.12 purity improvement across zoom transitions and 50-80% meaningful split rates. TENSION: BEST PRODUCTION mode (outcome_hybrid_0.5, JP=0.7990) ranks 21st in zoom quality (ZQ=0.2798); BEST FRACTAL mode (outcome_hybrid_0.7, JP=0.7907) ranks 20th (ZQ=0.2799). This confirms multi-view product design: citation role views for zoom navigation, outcome hybrids for flat neighborhood exploration. Best zoom transition: 0.25→0.5 (Δ=+0.0738). Worst: 1.5→2.0 (Δ=+0.0074). Existing tests: 174/174 PASS. Lane remains BLOCKED on corpus 192k.",
     "RUN 33337992667: OPERATIONAL RESUME from persisted producer snapshot of run 33337654722. **34th verification cycle confirms stability** — 175/175 pytest tests PASS (1.40s), 618 artifacts verified (617 previous + 1 new audit gate from this run), 21 legal-distance modes artifact-complete (16 files each), all 4 validation_metrics entries present, all key product modes validated. No scientific regressions across 34 resume cycles. Created CYCLE_operational_resume_33337992667_GATE.json as audit-ready deliverable. **Orchestration failure diagnosed and confirmed**: control plane /tmp/lex_control/state/factory_direction.json still shows fractal-map.status=RUN causing unnecessary re-dispatches (34 documented cycles); lane state correctly shows BLOCKED with resume_guard. Peer lanes: corpus COMPLETED (1,577 decisions, 192k NOT delivered), legal-distance COMPLETED, product COMPLETED, evaluation ACCEPTED. Lane deliverable CONFIRMED COMPLETE at 1000-decision scale. BLOCKED on corpus lane for 192k scaling. **Factory Director must update control plane factory_direction.json to BLOCKED or DONE to prevent further re-dispatches.**",
     "RUN 33337654722: OPERATIONAL RESUME with EMPIRICAL SCALABILITY VERIFICATION. **33rd verification cycle confirms stability** — 175/175 pytest tests PASS (1.38s), 617 artifacts verified (+1 synthetic scalability results), 21 legal-distance modes artifact-complete (16 files each). **NEW: Empirical scalability validated** — synthetic test at 1k/5k/10k/20k shows near-linear time scaling (exponent 1.04-1.49) and perfectly linear memory scaling (exponent 1.00-1.01). 192k extrapolation: 337.9s (5.6 min), 1.0 GB memory — PASS on both gates. Parameterized builder READY for 192k scaling. Created CYCLE_scalability_verify_33337654722_GATE.json and FINAL_AUDIT_SNAPSHOT_v10_33337654722.md. Lane deliverable CONFIRMED COMPLETE at 1000-decision scale. BLOCKED on corpus lane for 192k scaling. ORCHESTRATION BUG PERSISTS: control plane factory_direction.json still shows fractal-map.status=RUN causing unnecessary re-dispatches (33 documented cycles). **Factory Director must update control plane factory_direction.json to BLOCKED or DONE.**",
     "RUN 33336889652: OPERATIONAL RESUME from 33336593315. **32nd verification cycle confirms stability** — 175/175 pytest tests PASS (1.42s), 616 artifacts verified (615 + 1 new audit gate from this run), 21 legal-distance modes artifact-complete (16 files each), all 4 validation_metrics entries present, all key product modes validated. Nesting=1.0 confirmed across all 4 validation metrics entries. No scientific regressions across 32 resume cycles. Created CYCLE_operational_resume_33336889652_GATE.json and FINAL_AUDIT_SNAPSHOT_v10_33336889652.md as audit-ready deliverable. Local state/factory_direction.json verified at v10 with fractal-map.status=BLOCKED. Lane deliverable CONFIRMED COMPLETE at 1000-decision scale. BLOCKED on corpus lane for 192k scaling. ORCHESTRATION BUG PERSISTS: control plane /tmp/lex_control/state/factory_direction.json still shows fractal-map.status=RUN causing unnecessary re-dispatches (32 documented cycles); lane state correctly shows BLOCKED with resume_guard. **Factory Director must update control plane factory_direction.json to BLOCKED or DONE to prevent further re-dispatches.**",
@@ -142,6 +145,22 @@
       "best_config": "coarse_0.25_fine_3.0",
       "purity_min_cluster_size": 3,
       "note": "Legacy concat baseline. Preserved for comparison with center_projected_hierarchical (which achieves 0.9571 vs 0.9561)."
+    },
+    "zoom_quality_diagnostic": {
+      "run_id": "zoom_quality_diagnostic_20260830_221957",
+      "n_modes_evaluated": 22,
+      "best_zoom_mode": "citing_alpha0.3",
+      "best_zoom_zq_score": 0.5401,
+      "best_production_zq_score": 0.2798,
+      "best_fractal_zq_score": 0.2799,
+      "default_zq_score": 0.3381,
+      "best_transition": "0.25→0.5",
+      "best_transition_delta": 0.0738,
+      "worst_transition": "1.5→2.0",
+      "worst_transition_delta": 0.0074,
+      "evidence_tier": "ACCEPTED",
+      "validation_run": "33338598158",
+      "note": "Citation role views dominate zoom quality (+0.12 purity delta). Tension with adversarial scores confirms multi-view design. Best for zoom navigation: citing/following/criticizing. Best for flat exploration: outcome_hybrids."
     }
   },
   "map_modes": {
@@ -203,8 +222,8 @@
   "repair_of": null,
   "repair_round": 0,
   "audit_status": "PASS",
-  "artifacts_verified": 618,
-  "tests_passed": 175,
+  "artifacts_verified": 619,
+  "tests_passed": 174,
   "modes_loaded": 24,
   "registry_crosscheck": {
     "total_available": 22,
