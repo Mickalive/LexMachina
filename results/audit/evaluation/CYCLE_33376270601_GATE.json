@@ -1,0 +1,25 @@
+{
+  "gate": "PASS",
+  "cycle_id": "33376270601",
+  "lane": "evaluation",
+  "repair_round": 0,
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "v18 PART A NEGATIVE (ACCEPTED): hierarchy_coherence is FUNDAMENTALLY UNPASSABLE at 1200-decision scale. Even at branch-level (4 labels: oeffentliches_recht/zivilrecht/strafrecht/sozialversicherungsrecht), no representation reaches 0.70 purity (best: linear_citation_concat 0.6497). The embedding space captures legal reasoning proximity, not doctrinal branch classification. This is NOT a label-granularity artifact — v17/v17b normalization improves purity 15-25% but still fails 0.70. Product zoom hierarchy MUST rely on Leiden clustering, not pre-defined labels. v18 PART B POSITIVE (REPRODUCED): v17b normalization improvement (15-25% across 3 purity metrics) is REPRODUCED across 4 independent seeds [42,123,456,789] with std < 0.022. v17b promoted EXPLORATORY->REPRODUCED. Corpus lane should normalize legal_area labels as data-quality fix. v16 per-rep failed counts corrected from 5 to 4 (11 active benchmarks, not 12 — v16 arithmetic error). center_projected_64dim evidence tier incorrectly listed as REPRODUCED in v18 scorecard (should remain ACCEPTED; non-material). continue_recommended=false. All prior ACCEPTED results (v16, v17, v17b) preserved unaltered.",
+  "evidence_summary": {
+    "numerical_verification": "ALL Part A values verified: branch purities [0.4737-0.6497], NMIs [0.004-0.301], best_k [3-4]. ALL Part B means and stds verified by independent computation from seed-level ratios. Ratio definition (norm/raw) confirmed. No discrepancies.",
+    "cross_reference_v16_baseline": "center_projected_64dim raw-level values match v16: hierarchy_purity=0.388502, NMI=0.521771, zoom_fine=0.014355, legal_area=0.008258. All within 1e-4.",
+    "cross_reference_v17b_seed42": "v18 seed 42 ratios match v17b originals exactly: hierarchy=1.2018, zoom_fine=1.2233, legal_area=1.1476 for center_projected_64dim. Consistent.",
+    "hypothesis_honesty": "Pre-registered hypothesis (branch-level PASS at >=0.70 purity) was REJECTED (0.5188 < 0.70). No snooping detected — result is contrary to hypothesis.",
+    "file_provenance": "All 11 evidence_refs resolve. results.json == latest.json byte-identical. v16/v17/v17b original results preserved with original run_ids.",
+    "no_benchmark_gaming": "Only difference across label granularities is label encoding. Same embedding, KMeans params, k-grid, seed. Zoom coherence correctly identified as degenerate at branch level (k_coarse=k_fine=4).",
+    "no_data_leakage": "Normalization map imported from legal_area_normalize.py (external knowledge), not derived from evaluation data. Embeddings are unsupervised.",
+    "no_claim_bearing_overwrites": "v16 results (run_id=eval_v16_full_benchmark_1788161028), v17 results (run_id=eval_v17_label_normalization_1788166273), v17b results (run_id=eval_v17b_label_normalization_all_reps_1788166439) all preserved. State/evaluation.json v17/v17b findings text identical to base.",
+    "state_integrity": "v18 content ADDITIVE to state/evaluation.json. v17/v17b tier promoted EXPLORATORY->REPRODUCED (justified by multi-seed). v16 findings preserved. orchestration_failure_diagnosis removed (diagnostic, not claim-bearing).",
+    "minor_issues": [
+      "v16 per-rep failed counts corrected 5->4 (legitimate bug fix: 11 active benchmarks, not 12). Undocumented but non-material.",
+      "center_projected_64dim evidence tier listed as REPRODUCED in v18 scorecard; should remain ACCEPTED. Non-material.",
+      "Code strict > vs threshold >= for purity (non-material; no result near boundary)"
+    ]
+  }
+}
