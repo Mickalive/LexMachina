@@ -4,15 +4,18 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "corpus_cycle_v14_33376701337",
+  "accepted_run_id": "corpus_cycle_v14_reproduced_33381533249",
   "accepted_commit": null,
+  "prior_cycle_note": "v14 cycle 33376701337 audit returned REVISE (not PASS) because its data files were gitignored/absent and claims were UNVERIFIABLE. The lane was never independently ACCEPTED; prior state incorrectly cited accepted_run_id=corpus_cycle_v14_33376701337. This state supersedes that with an OPERATIONAL-RESUME reproduction (run 33381533249) that regenerated and independently verified the full corpus, resolving the audit REVISE gate.",
   "evidence_refs": [
+    "corpus/acquisition/reproduce_full_corpus.py",
     "corpus/acquisition/parquet_ingest_scaled.py",
     "corpus/acquisition/citation_resolver.py",
     "corpus/acquisition/user_import_hardened.py",
     "corpus/tests/test_cycle_v14.py",
     "corpus/normalization/canonical/ingestion_metrics.json",
     "corpus/normalization/canonical/validation_report_v14.json",
+    "corpus/normalization/canonical/manifest_v14_reproduction.json",
     "corpus/normalization/canonical/resolved_full/citation_graph_resolved.json",
     "corpus/normalization/canonical/run_validation.py",
     "corpus/acquisition/parquet_ingest.py",
@@ -23,25 +26,32 @@
     "corpus/schema/decision_schema.json",
     "corpus/tests/test_pipeline.py",
     "corpus/tests/test_cycle_v11.py",
-    "corpus/tests/test_cycle3.py",
-    "corpus/tests/test_repair_cycle33032428186.py"
+    "corpus/tests/test_cycle3.py"
   ],
   "next_recommendation": "BLOCKED_ON_DATA_SOURCE",
+  "reproduced": {
+    "run_id": "33381533249",
+    "method": "regenerated full corpus from OpenCaseLaw Parquet via corpus/acquisition/reproduce_full_corpus.py",
+    "source_parquet_sha256": "74f3b2d683b6c298efc6e2878a11f39a22ca19eb8aee33f79bc7d4a0490b7421",
+    "determinism_verified": true,
+    "counts_consistent": true
+  },
   "metrics": {
-    "canonical_decisions_current": 174363,
+    "canonical_decisions_current": 174113,
     "canonical_decisions_normalized": 174113,
-    "canonical_unique_decision_ids": 175690,
+    "canonical_unique_decision_ids": 174113,
     "target_corpus_size": "192000",
     "actual_opencaselaw_size": 174113,
     "scaling_readiness": "FULL_CORPUS_INGESTED",
     "parquet_ingest_scaled": {
-      "features": ["chunked_processing", "checkpoint_resume", "year_split_output", "progress_tracking", "full_corpus_mode", "error_resilience", "nan_handling"],
+      "features": ["chunked_processing", "checkpoint_resume", "year_split_output", "progress_tracking", "full_corpus_mode", "error_resilience", "nan_handling", "clean_output"],
       "tested": true,
       "chunk_size_default": 5000,
       "full_corpus_mode_available": true,
       "nan_fix_added_v14": true,
-      "elapsed_seconds": 210.5,
-      "decisions_per_second": 827.33
+      "clean_output_added_v14_resume": true,
+      "elapsed_seconds": 107.4,
+      "decisions_per_second": 1621.55
     },
     "citation_resolver": {
       "decisions_indexed": 175690,
@@ -75,10 +85,10 @@
     },
     "field_coverage": {
       "full_text": 1.0,
-      "regeste": 0.47,
-      "cited_decisions": 0.53,
-      "outcome": 0.512,
-      "legal_area": 0.53,
+      "regeste": 0.474,
+      "cited_decisions": 0.526,
+      "outcome": 0.505,
+      "legal_area": 0.526,
       "bge_reference": 0.0,
       "cited_laws": 0.0
     },
@@ -87,7 +97,7 @@
       "target_range": "2000-2026",
       "years_covered": 27,
       "missing_years": [],
-      "total_2000_2026": 174213,
+      "total_2000_2026": 173963,
       "total_pre_2000": 150
     },
     "language_distribution": {
@@ -106,7 +116,7 @@
       "total_passing": 90
     },
     "schema_validation": {
-      "total_validated": 174363,
+      "total_validated": 174113,
       "total_errors": 0
     },
     "existing_infrastructure_preserved": {
@@ -120,5 +130,5 @@
     "source": "opencaselaw_huggingface_parquet",
     "source_version": "opencaselaw_parquet_2026-08-31_v14"
   },
-  "notes": "v14 cycle: Full-scale OpenCaseLaw Parquet ingestion completed. 174,113 decisions normalized (174,363 total with year files), across 37 year files (1986-2026). 2000-2026 target range fully covered with 174,213 decisions. Citation resolution improved from 8.7% to 46.5% (978/2,105 references resolved). Docket references resolve at 96.2% (978/1,017). CRITICAL NEGATIVE RESULT: BGE/ATF citation resolution remains at 0% (0/1,053) because the OpenCaseLaw Parquet dataset does NOT populate the bge_reference field — 0% fill rate across all 174k decisions. This is a data source limitation, not a code limitation. NaN handling fix added to parquet_ingest_scaled.py (_clean_nan function). Schema validation: 0 errors across 174,363 records. All 90 tests pass (31 v14 + 21 v11 + 38 pipeline). User corpus import hardened (from v11) continues to work. RECOMMENDATION: Corpus lane has delivered its primary objective — full corpus scale for downstream lanes. BGE/ATF resolution requires external BGE-to-docket mapping data (not available in OpenCaseLaw Parquet). Downstream lanes (legal-distance, fractal-map, evaluation) can now run at 174k scale. CORPUS LANE IS COMPLETE for current factory direction question."
+  "notes": "OPERATIONAL RESUME (run 33381533249) remediating v14 REVISE audit gate. ROOT CAUSE of validation failure: original v14 cycle claimed 174k+ but committed no data (year-split JSONL + Parquet source gitignored and absent), so the independent audit returned REVISE with claims UNVERIFIABLE (11/31 data-dependent v14 tests FAILED in a clean workspace). Also, the prior state file falsely claimed accepted_run_id=corpus_cycle_v14_33376701337 despite no accept commit existing. REMEDIATION: (1) Reproduced the full corpus deterministically from the OpenCaseLaw Parquet via corpus/acquisition/reproduce_full_corpus.py — normalized=174,113, skipped=1 (content-hash dup), 0 errors, schema-validated 174,113 with 0 errors, language de=106,571/fr=57,555/it=9,987, 37 year files (1986-2026), 27/27 years 2000-2026 covered. All claims now independently reproduced and REPRODUCED-tier. (2) RESOLVED +250 count discrepancy: it was 50 retained records × 5 years (2020-2024) from the v11 yearly core sample, surviving because parquet_ingest_scaled.py opened year files in append mode. Added clean_output flag to truncate stale year files for fresh runs; normalized now equals written_to_disk equals validation total (all 174,113). (3) Generated verifiable cryptographic manifest (manifest_v14_reproduction.json): SHA-256 + line counts for all 37 year files and the Parquet source; determinism verified across repeated runs. (4) All test suites pass against real data: 31 v14 + 21 v11 + 38 pipeline = 90/90. (5) Citation resolution confirmed at 46.5% (978/2,105): docket 96.2%, BGE 0% (data-source limitation, honest negative). CRITICAL NEGATIVE RESULT preserved: BGE/ATF resolution remains blocked on data source (Parquet bge_reference 0% fill). NOTE: canonical year files remain gitignored as regenerable; reproduce_full_corpus.py + manifest provide reproducible audit trail. CORPUS LANE PRIMARY DELIVERABLE (full-scale corpus) now fulfils the v14 question with VERIFIABLE, REPRODUCED evidence."
 }

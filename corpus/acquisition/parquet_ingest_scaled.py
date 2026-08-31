@@ -195,6 +195,7 @@ def parquet_to_canonical_scaled(
     chunk_size: int = 5000,
     parquet_url: str = "https://huggingface.co/datasets/voilaj/swiss-caselaw/resolve/main/bger.parquet",
     schema_path: str = "corpus/schema/decision_schema.json",
+    clean_output: bool = False,
 ) -> Dict[str, Any]:
     """
     Scaled Parquet ingestion with chunked processing, checkpoint/resume,
@@ -265,6 +266,17 @@ def parquet_to_canonical_scaled(
     # ── 6. Prepare year-based output handles ─────────────────────────
     os.makedirs(output_dir, exist_ok=True)
     year_handles: Dict[str, Any] = {}
+
+    if clean_output:
+        # Remove pre-existing year-split files so fresh runs produce only the
+        # records ingested in this run. Without this, `_get_year_handle` opens
+        # in append mode and silently retains stale records from prior runs,
+        # inflating validation/written_to_disk counts (e.g. the historic +250
+        # from 50 retained records in each of 2020-2024). See REVISE audit.
+        import glob as _glob
+        for stale in _glob.glob(os.path.join(output_dir, "bger_[0-9][0-9][0-9][0-9].jsonl")):
+            os.remove(stale)
+        print(f"[clean_output] Removed pre-existing year-split files in {output_dir}")
 
     def _get_year_handle(year: str) -> Any:
         if year not in year_handles:
@@ -493,6 +505,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--chunk-size", type=int, default=5000, help="Rows per chunk"
     )
+    parser.add_argument(
+        "--clean-output", action="store_true",
+        help="Remove pre-existing year-split files before a fresh full run "
+             "(prevents append-mode retention of stale records and count inflation)"
+    )
     args = parser.parse_args()
 
     mode = "FULL CORPUS" if args.full else f"SAMPLE ({args.sample} decisions)"
@@ -504,6 +521,7 @@ if __name__ == "__main__":
         full_corpus=args.full,
         sample_size=None if args.full else args.sample,
         chunk_size=args.chunk_size,
+        clean_output=args.clean_output,
     )
 
     # Persist final metrics
