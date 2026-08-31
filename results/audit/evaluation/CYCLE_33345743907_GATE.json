@@ -1,0 +1,129 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "repair_round": 1,
+  "prior_audit_run": "33339846824",
+  "repair_run": "eval_v12_temporal_1788131137",
+  "factory_direction_version": 10,
+  "required_fixes_resolved": [
+    {
+      "id": "FIX_1",
+      "severity": "MEDIUM",
+      "description": "Hardcoded random_cv_jps values in experiment code used fold-1 results instead of proper 5-fold CV means from v12_cross_mode_cv_latest.json",
+      "resolution": "Replaced hardcoded values with correct 5-fold CV means (citation_tfidf: 0.7850, cited_outcome_hybrid_0.5: 0.7800, cited_outcome_hybrid_0.7: 0.7750). Added source comment referencing results file.",
+      "same_cycle_repairable": true,
+      "effort": "LOW"
+    },
+    {
+      "id": "FIX_2",
+      "severity": "LOW",
+      "description": "Report comparison table propagated incorrect baseline values, creating false claim that cited_outcome_hybrid_0.5 improves on temporal holdout",
+      "resolution": "Updated report with corrected deltas, removed false improvement claim, updated key findings and product implications to reflect all individual representations degrade on temporal holdout.",
+      "same_cycle_repairable": true,
+      "effort": "LOW"
+    }
+  ],
+  "claim_ceiling": "V12 cross-mode combination hypothesis REPLICATED on canonical frozen harness v3 temporal holdout (linear_hybrid05_concat JP=0.8375 beats center_projected_64dim JP=0.7750 by +0.0625). Temporal degradation minimal (+0.0308 for ridge). All 9 representations pass both adversarial gates. All individual representations degrade on temporal vs random CV (negative deltas confirmed). Branch imbalance noted (sozialversicherungsrecht overrepresented in test). linear_hybrid05_concat identified as best temporal combination — should be tested as alternative production mode. Evidence tier: ACCEPTED.",
+  "evidence_summary": {
+    "corpus_fix": {
+      "status": "NOT_APPLICABLE",
+      "note": "Corpus unchanged (canonical 1200-decision expanded slice, config_hash=4323f833fa72366a)"
+    },
+    "random_cv_baseline_correction": {
+      "status": "VERIFIED",
+      "prior_values": {
+        "citation_tfidf": 0.7333,
+        "cited_outcome_hybrid_0.5": 0.7250,
+        "cited_outcome_hybrid_0.7": 0.7417,
+        "center_projected_64dim": 0.7992,
+        "linear_citation_ridge": 0.8600
+      },
+      "corrected_values": {
+        "citation_tfidf": 0.7850,
+        "cited_outcome_hybrid_0.5": 0.7800,
+        "cited_outcome_hybrid_0.7": 0.7750,
+        "center_projected_64dim": 0.7992,
+        "linear_citation_ridge": 0.8600
+      },
+      "source": "results/evaluation/v12_cross_mode_cv/v12_cross_mode_cv_latest.json (5-fold means)",
+      "independent_recomputation": "CONFIRMED — all 5 values match independent 5-fold mean calculation"
+    },
+    "temporal_holdout_results": {
+      "status": "REPLICATED",
+      "split": {
+        "train": "960 decisions (2020-12-28 to 2024-12-12)",
+        "test": "240 decisions (2024-12-12 to 2024-12-31)",
+        "temporal": true
+      },
+      "best_baseline": {
+        "name": "center_projected_64dim",
+        "jurist_pref": 0.7750
+      },
+      "best_combination": {
+        "name": "linear_hybrid05_concat",
+        "jurist_pref": 0.8375
+      },
+      "temporal_improvement": 0.0625,
+      "temporal_degradation_ridge": 0.0308,
+      "all_combinations_pass_adversarial": true,
+      "all_baselines_pass_adversarial": true,
+      "verdict": "REPLICATED",
+      "evidence_tier": "ACCEPTED"
+    },
+    "individual_representation_temporal_behavior": {
+      "status": "ALL_DEGRADE",
+      "deltas": {
+        "center_projected_64dim": -0.0242,
+        "citation_tfidf": -0.0308,
+        "cited_outcome_hybrid_0.5": -0.0258,
+        "cited_outcome_hybrid_0.7": -0.0375,
+        "linear_citation_ridge": -0.0308
+      },
+      "note": "All negative — no representation improves on temporal holdout vs random CV. Prior false claim removed."
+    },
+    "branch_imbalance": {
+      "status": "DOCUMENTED_NEGATIVE",
+      "train_distribution": {
+        "oeffentliches_recht": 260,
+        "zivilrecht": 245,
+        "sozialversicherungsrecht": 215,
+        "strafrecht": 240
+      },
+      "test_distribution": {
+        "oeffentliches_recht": 33,
+        "zivilrecht": 66,
+        "sozialversicherungsrecht": 75,
+        "strafrecht": 66
+      },
+      "note": "sozialversicherungsrecht overrepresented in test (75 vs ~54 expected). Known limitation of temporal splits on real court data."
+    },
+    "adversarial_gate_integrity": {
+      "config_hash_unchanged": true,
+      "seed_unchanged": true,
+      "thresholds_unchanged": true,
+      "corpus_unchanged": true,
+      "previous_results_preserved": true,
+      "all_negative_results_intact": true
+    },
+    "fabrication_check": "CLEAN — all raw result files exist, fold data consistent with aggregates",
+    "benchmark_gaming_check": "CLEAN — thresholds unchanged, metric definition identical to frozen harness v3",
+    "leakage_check": "CLEAN — TF-IDF/SVD fit on train only, ridge/PCA fit on train only, strict temporal split",
+    "test_suite": {
+      "total_tests": 10,
+      "passed": 10,
+      "failed": 0,
+      "details": [
+        "test_results_file_exists: PASS",
+        "test_config_hash_consistent: PASS",
+        "test_v12_hypothesis_replicates: PASS",
+        "test_all_combinations_pass_adversarial_gates: PASS",
+        "test_best_combination_beats_baseline: PASS",
+        "test_center_projected_normal_on_temporal: PASS",
+        "test_temporal_degradation_minimal: PASS",
+        "test_temporal_improvement_positive: PASS",
+        "test_split_is_temporal: PASS",
+        "test_train_test_sizes_reasonable: PASS"
+      ]
+    }
+  }
+}
