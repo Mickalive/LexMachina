@@ -1,18 +1,18 @@
 {
   "lane": "evaluation",
-  "direction_version": 12,
+  "direction_version": 13,
   "evidence_tier": "ACCEPTED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
   "accepted_run_id": "eval_v15b_cv_1788148695",
-  "github_run": "33362815185",
-  "previous_audit_run": "33356173706",
-  "timestamp": "2026-08-31T06:30:00.000000+00:00",
-  "operational_resume_run": "33358365961",
-  "operational_resume_disposition": "OPERATIONAL_RESUME_73_73_TESTS_PASS_STATE_CLEAN_AUDIT_READY_SNAPSHOT_CREATED",
+  "github_run": "33366040188",
+  "previous_audit_run": "33362815185",
+  "timestamp": "2026-08-31T12:00:00.000000+00:00",
+  "operational_resume_run": "33362815185",
+  "operational_resume_disposition": "OPERATIONAL_RESUME_73_73_TESTS_PASS_V13_ALIGNED_ORCHESTRATION_FAILURE_DIAGNOSED_AUDIT_READY",
   "config_hash": "4323f833fa72366a",
   "global_seed": 42,
-  "factory_direction_v12_alignment": {
+  "factory_direction_v13_alignment": {
     "v9_objectives_completed": 4,
     "v9_objectives_total": 6,
     "completed_objectives": [
@@ -142,8 +142,21 @@
     "evaluation/experiments/evaluate_v15_combinations_full_harness.py",
     "results/evaluation/v15_combinations_full_harness/v15_full_harness_latest.json",
     "tests/evaluation/test_v15_combinations_full_harness.py",
-    "reports/evaluation/evaluation_v15_full_harness_1788150697.md"
+    "reports/evaluation/evaluation_v15_full_harness_1788150697.md",
+    "reports/evaluation/evaluation_audit_ready_snapshot_33362815185.md",
+    "results/audit/evaluation/CYCLE_33362815185_AUDIT_READY.json",
+    "reports/evaluation/evaluation_audit_ready_snapshot_33366040188.md",
+    "results/audit/evaluation/CYCLE_33366040188_AUDIT_READY.json"
   ],
+  "orchestration_failure_diagnosis": {
+    "failure_type": "REDUNDANT_DISPATCH_PATTERN",
+    "description": "The evaluation lane entered a cycle of redundant operational resume / state-sync / audit-readiness dispatches when no new science was available. From run 33354034841 through 33362815185, seven consecutive cycles performed state synchronization and test verification without new experiments. Each cycle bumped direction_version or fixed stale state fields, but the core evidence remained unchanged. The factory direction listed evaluation as 'RUN' while the lane state correctly showed 'COMPLETED' with continue_recommended=false, creating a dispatch trigger mismatch.",
+    "root_cause": "The orchestrator dispatches evaluation cycles when factory_direction.evaluation.status='RUN', but the lane's continue_recommended=false and both dependencies (corpus 192k, jurist study) are BLOCKED. The factory direction should use status='BLOCKED_ON_DEPENDENCIES' instead of 'RUN' when no same-question cycles are justified.",
+    "resolution": "This cycle (33366040188) diagnoses and documents the pattern. The lane state now explicitly records the BLOCKED status and the orchestration failure. Future dispatches should respect continue_recommended=false and not re-dispatch until dependencies resolve.",
+    "affected_runs": ["33354034841", "33355160290", "33356173706", "33358365961", "33358950356", "33362815185", "33366040188"],
+    "wasted_cycles": 6,
+    "recommendation": "Factory Director should set evaluation lane status to 'BLOCKED_ON_DEPENDENCIES' until corpus 192k delivery or jurist recruitment unblocks new experiments. The continue_recommended=false flag should be respected by the dispatch system."
+  },
   "key_findings": [
     "EVALUATION v3+ COMPLETED: Frozen evaluation harness (seed=42, config_hash=4323f833fa72366a) executed on expanded 1,200-decision slice. REPRODUCED EXACTLY in GitHub run 33232234741 AND VERIFIED in run 33240972425. LOCAL REPRODUCIBILITY CONFIRMED. Integration of cited_decisions_tfidf results completed in operational resume 33265417443.",
     "13 representations evaluated: 12 PASS, 1 FAIL (center_projected_768). All adversarial benchmarks frozen and reproducible.",
@@ -176,7 +189,8 @@
     "V12 TEMPORAL HOLDOUT VALIDATION ON CANONICAL FROZEN HARNESS v3 (Factory Direction v10, eval_v12_temporal_1788131137): REPLICATED — v12 cross-mode combination generalizes to future decisions. Temporal split: first 80% by date (2020-12-28 to 2024-12-12, 960 decisions) → train, last 20% (2024-12-12 to 2024-12-31, 240 decisions) → test. Best combination on temporal holdout: linear_hybrid05_concat (JP=0.8375) beats best baseline center_projected_64dim (JP=0.7750) by +0.0625. Temporal degradation: linear_citation_ridge drops only +0.0308 from random CV (0.860) to temporal holdout (0.8292). All 5 combinations pass both adversarial gates on temporal test set. linear_hybrid05_concat is BEST on temporal holdout (not linear_citation_ridge), suggesting hybrid05 signal provides additional generalization benefit. CORRECTED (repair round 1, run 33340692528): All individual representations degrade on temporal holdout (corrected comparison: citation_tfidf -0.0308, cited_outcome_hybrid_0.5 -0.0258, cited_outcome_hybrid_0.7 -0.0375, center_projected_64dim -0.0242). Prior false claim about cited_outcome_hybrid_0.5 improving REMOVED (was artifact of hardcoded fold-1 baselines). Negative results: branch imbalance in temporal split (sozialversicherungsrecht overrepresented in test). Product implication: v12 cross-mode combinations are production-viable for future decisions; linear_hybrid05_concat should be tested as alternative production combination.",
     "V14 INDEPENDENT RERUN CONFIRMS V13 LINEAR_CITATION_CONCAT — EVIDENCE TIER PROMOTED TO ACCEPTED (Factory Direction v11, verify_v14_independent_rerun_1788147479): NEW ACCEPTED EVIDENCE — v14 from legal-distance lane (independent_seed=137, config_hash=1674829901d55e83) CONFIRMS v13's linear_citation_concat finding (mean_delta=+0.0392, paired_delta_std=0.0212, BOTH pass frozen success rule). Reproduction verdict: CONFIRMED. Tradeoff status: PARTIALLY_BROKEN (linear_citation_concat only stable winner). 3 INDEPENDENT EVALUATIONS converge: (1) v12 canonical CV (config_hash=4323f833fa72366a, seed=42): JP=0.838, delta=+0.043; (2) v13 kfold (config_hash=1674829901d55e83, seed=42): delta=+0.0275; (3) v14 independent rerun (config_hash=1674829901d55e83, seed=137): delta=+0.0392. All3 pass success rule (mean_delta>0.02 AND paired_std<0.03). Canonical v12 CV shows linear_citation_concat (JP=0.838) beats center_projected_64dim baseline (JP=0.799). Verification: 52/52 tests PASS (40 existing + 12 new). Product implication: linear_citation_concat is first supervised combination consistently beating baseline — candidate for product map mode integration.",
     "V15 COMBINATION VS HYBRID HEAD-TO-HEAD — NEW ACCEPTED FINDING (Factory Direction v11, eval_v15b_cv_1788148695): NEW ACCEPTED EVIDENCE — v15b 5-fold CV on canonical config (4323f833fa72366a, seed=42) directly compares combinations against best zero-shot hybrid cited_outcome_hybrid_0.5. ALL four combinations beat the hybrid: linear_citation_ridge (JP=0.860, std=0.042), linear_citation_concat (JP=0.838, std=0.030), linear_hybrid05_concat (JP=0.838, std=0.027), linear_citation_w3070 (JP=0.817, std=0.036). Best STABLE combination: linear_hybrid05_concat (lowest std=0.027, passes 0.03 threshold). NEW FINDING: linear_hybrid05_concat achieves SAME JP as linear_citation_concat with LOWER variance on canonical config. Full-slice evaluation (v15) gave misleading result (HYBRID_REMAINS_DOMINANT) due to information leakage from SVD fit on full data — 5-fold CV is the correct methodology. 64/64 tests PASS. Product decision: linear_citation_concat OR linear_hybrid05_concat should be integrated as product map mode. cited_outcome_hybrid_0.5 remains best for user-imported corpora (no branch metadata available).",
-    "V15 COMBINATIONS FULL ADVERSARIAL HARNESS — NEW ACCEPTED FINDING (Factory Direction v11, eval_v15_full_harness_1788150697): v15 combinations evaluated on COMPLETE v3 adversarial harness (5 benchmarks) on FULL corpus (production deployment). cited_outcome_hybrid_0.5 BEATS all combinations on 2 adversarial gates (LangDom: 0.575 vs 0.672+, JuristPref: 0.678 vs 0.640) — CONFIRMS v15 information leakage finding (SVD fit on full data favors hybrid). Combinations WIN on Jurivoc alignment (all PASS at 0.36-0.45 vs hybrid 0.28 FAIL). ALL pass Scale Stability (1.0). ALL combinations FAIL Boilerplate Resistance (0.30-0.47 vs hybrid 0.14 PASS). NO representation passes all 5 benchmarks. CRITICAL TRADEOFF: CV generalization (combos win) vs production deployment (hybrid wins 2 gates, combos win Jurivoc). 73/73 tests PASS (9 new). Product implication: keep hybrid as default, add combos as high-Jurivoc map modes with documented tradeoffs."
+    "V15 COMBINATIONS FULL ADVERSARIAL HARNESS — NEW ACCEPTED FINDING (Factory Direction v11, eval_v15_full_harness_1788150697): v15 combinations evaluated on COMPLETE v3 adversarial harness (5 benchmarks) on FULL corpus (production deployment). cited_outcome_hybrid_0.5 BEATS all combinations on 2 adversarial gates (LangDom: 0.575 vs 0.672+, JuristPref: 0.678 vs 0.640) — CONFIRMS v15 information leakage finding (SVD fit on full data favors hybrid). Combinations WIN on Jurivoc alignment (all PASS at 0.36-0.45 vs hybrid 0.28 FAIL). ALL pass Scale Stability (1.0). ALL combinations FAIL Boilerplate Resistance (0.30-0.47 vs hybrid 0.14 PASS). NO representation passes all 5 benchmarks. CRITICAL TRADEOFF: CV generalization (combos win) vs production deployment (hybrid wins 2 gates, combos win Jurivoc). 73/73 tests PASS (9 new). Product implication: keep hybrid as default, add combos as high-Jurivoc map modes with documented tradeoffs.",
+    "ORCHESTRATION FAILURE DIAGNOSED (Factory Direction v13, run 33366040188): Seven consecutive operational resume cycles (33354034841 through 33362815185) performed state synchronization and test verification without new science. Root cause: factory direction listed evaluation as 'RUN' while lane state correctly showed 'COMPLETED' with continue_recommended=false and both dependencies BLOCKED. The dispatch trigger mismatch caused redundant cycles. Resolution: lane state now explicitly records BLOCKED_ON_DEPENDENCIES status. Factory Director should set evaluation lane status to 'BLOCKED_ON_DEPENDENCIES' until corpus 192k delivery or jurist recruitment unblocks new experiments. All 73/73 tests verified PASS on this cycle. No regressions. No new evidence claimed."
   ],
   "validation_metrics": {
     "center_projected_768": {
