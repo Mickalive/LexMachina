@@ -12,6 +12,7 @@ import base64
 import hmac
 from pathlib import Path
 from http.server import HTTPServer, SimpleHTTPRequestHandler
+from socketserver import ThreadingMixIn
 from urllib.parse import urlparse, parse_qs
 from collections import OrderedDict
 from functools import wraps
@@ -107,6 +108,17 @@ class ResponseCache:
                 keys_to_delete = [k for k in _cache_store.keys() if pattern in k]
                 for k in keys_to_delete:
                     del _cache_store[k]
+
+
+# Threaded HTTP server for concurrent request handling
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    """HTTPServer subclass that handles requests in separate threads.
+    
+    Critical for 192k+ scale: allows concurrent API calls while one
+    request is computing expensive WebGL data or running searches.
+    """
+    daemon_threads = True
+    allow_reuse_address = True
 
 
 # Global instances
@@ -232,6 +244,9 @@ def get_default_representation() -> str:
 
 class ProductHandler(SimpleHTTPRequestHandler):
     """HTTP handler for the LexMachina product."""
+    
+    # Cached startup validation result (computed once on first /api/health call)
+    _startup_validation = None
 
     def _handle_cached(self, cache_key: str, func, ttl: int = CACHE_TTL):
         """Handle cached endpoint with X-Cache header.
@@ -410,18 +425,44 @@ class ProductHandler(SimpleHTTPRequestHandler):
             rep = params.get("representation", [default_rep])[0]
             zoom_level = int(params.get("zoom", ["1"])[0])
             mode = params.get("mode", [None])[0]
-            self._json_response(get_nav_api().get_webgl_data(rep, zoom_level, map_mode=mode))
+            # Viewport bbox for viewport culling (critical for 192k scale)
+            bbox = None
+            if "xMin" in params and "xMax" in params and "yMin" in params and "yMax" in params:
+                bbox = {
+                    'xMin': float(params["xMin"][0]),
+                    'yMin': float(params["yMin"][0]),
+                    'xMax': float(params["xMax"][0]),
+                    'yMax': float(params["yMax"][0]),
+                }
+            self._json_response(get_nav_api().get_webgl_data(rep, zoom_level, map_mode=mode, bbox=bbox))
         
         # Health check endpoint
         elif path == "/api/health":
-            self._json_response({
+            nav = get_nav_api()
+            health = {
                 "status": "healthy",
                 "timestamp": time.time(),
-                "version": "6.0",
-                "corpus_decisions": get_nav_api().corpus.size,
-                "maps_loaded": len(get_nav_api().map_loader.get_available_representations()),
-                "uptime_seconds": time.time() - _server_start_time
-            })
+                "version": "7.0",
+                "corpus_decisions": nav.corpus.size,
+                "maps_loaded": len(nav.map_loader.get_available_representations()),
+                "uptime_seconds": time.time() - _server_start_time,
+                "threaded_server": True,
+            }
+            # Include startup validation summary on first call (cached)
+            if ProductHandler._startup_validation is None:
+                try:
+                    ProductHandler._startup_validation = nav.startup_validation()
+                except Exception as e:
+                    ProductHandler._startup_validation = {"error": str(e)}
+            sv = ProductHandler._startup_validation
+            health["startup_validation"] = {
+                "total_representations": sv.get("total_representations", 0),
+                "passing": sv.get("passing", 0),
+                "warnings": sv.get("warnings", 0),
+                "failing": sv.get("failing", 0),
+                "elapsed_ms": sv.get("elapsed_ms", 0),
+            }
+            self._json_response(health)
         
         # Cache management endpoints
         elif path == "/api/cache/stats":
@@ -591,8 +632,8 @@ def run_server(port=8080):
         print(f"  {rep}: zoom levels = {nav.map_loader.get_zoom_levels(rep)}")
     print(f"Default representation: {default_rep} (evaluation-validated: 14/14 benchmarks PASS)")
 
-    server = HTTPServer(("0.0.0.0", port), ProductHandler)
-    print(f"LexMachina server running on http://localhost:{port}")
+    server = ThreadedHTTPServer(("0.0.0.0", port), ProductHandler)
+    print(f"LexMachina server running on http://localhost:{port} (threaded)")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

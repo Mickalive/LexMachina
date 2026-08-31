@@ -798,6 +798,11 @@ class NavigationAPI:
         Accepts a list of JSONL-style decision records. Validates the schema,
         persists to a user-import directory, and reloads the corpus index.
         Computes map positions for imported decisions using k-NN in embedding space.
+        
+        For batch imports (192k+ scale): processes representations incrementally
+        with progress tracking. Returns import statistics including per-representation
+        timing and success status.
+        
         Returns import statistics.
         """
         if not self._initialized:
@@ -807,7 +812,6 @@ class NavigationAPI:
         
         # Compute map positions for newly imported decisions
         if result.get("imported", 0) > 0:
-            # Get the imported decision records (those with imported_ids)
             imported_ids = result.get("imported_ids", [])
             imported_decisions = []
             for did in imported_ids:
@@ -815,28 +819,52 @@ class NavigationAPI:
                 if d:
                     imported_decisions.append(d.to_full())
             
-            # Compute positions for ALL available representations
+            # Compute positions for ALL available representations with progress
             default_rep = self._get_default_representation()
             all_representations = self.map_loader.get_available_representations()
             representations_positioned = []
             total_positions = 0
+            batch_start_time = time.time()
             
-            for rep in all_representations:
+            for rep_idx, rep in enumerate(all_representations):
+                rep_start = time.time()
                 zoom_levels = self.map_loader.get_zoom_levels(rep)
                 if not zoom_levels:
+                    representations_positioned.append({
+                        "representation": rep,
+                        "status": "skipped",
+                        "reason": "no_zoom_levels",
+                    })
                     continue
                 first_zl = zoom_levels[0]
                 position_results = self._compute_import_positions(imported_decisions, rep, first_zl)
+                rep_elapsed = time.time() - rep_start
+                
                 if position_results:
                     total_positions += len(position_results)
                     representations_positioned.append({
                         "representation": rep,
                         "zoom_level": first_zl,
                         "positions_computed": len(position_results),
+                        "elapsed_ms": round(rep_elapsed * 1000, 1),
+                        "status": "ok",
+                    })
+                else:
+                    representations_positioned.append({
+                        "representation": rep,
+                        "zoom_level": first_zl,
+                        "positions_computed": 0,
+                        "elapsed_ms": round(rep_elapsed * 1000, 1),
+                        "status": "no_positions",
+                        "reason": "no_embeddings_or_model",
                     })
             
             result["map_positions_computed"] = total_positions
             result["representations_positioned"] = representations_positioned
+            result["representations_total"] = len(all_representations)
+            result["representations_ok"] = sum(1 for r in representations_positioned if r.get("status") == "ok")
+            result["representations_skipped"] = sum(1 for r in representations_positioned if r.get("status") in ("skipped", "no_positions"))
+            result["batch_elapsed_ms"] = round((time.time() - batch_start_time) * 1000, 1)
             result["default_representation"] = default_rep
         
         return result
@@ -1924,12 +1952,24 @@ class NavigationAPI:
         self,
         representation: str,
         zoom_level: int,
-        map_mode: str = None
+        map_mode: str = None,
+        bbox: Optional[Dict[str, float]] = None,
     ) -> Dict[str, Any]:
         """Get WebGL-optimized rendering data for a map representation.
         
         Returns flat arrays for positions, colors, radii, imported flags
         suitable for direct upload to GPU buffers.
+        
+        For 192k+ scale: uses numpy vectorized ops and optional viewport
+        bbox filtering to minimize data transfer.
+        
+        Args:
+            representation: Map representation name
+            zoom_level: Zoom level
+            map_mode: Optional section mode override
+            bbox: Optional viewport bounding box {xMin, yMin, xMax, yMax}.
+                  When provided, only points inside the bbox are returned,
+                  dramatically reducing payload for large corpora.
         """
         if not self._initialized:
             return {"error": "Not initialized"}
@@ -1942,11 +1982,18 @@ class NavigationAPI:
         positions = map_data.get('positions', [])
         clusters = map_data.get('clusters', [])
 
+        if not positions:
+            return {
+                'points': {'positions': [], 'colors': [], 'radii': [], 'imported': [], 'count': 0},
+                'clusters': clusters,
+                'hulls': [],
+                'transform': {'xMin': 0, 'xMax': 0, 'yMin': 0, 'yMax': 0, 'scale': 1.0, 'offsetX': 0, 'offsetY': 0}
+            }
+
         # Get imported decision IDs
         imported_ids = set(key[0] for key in self._imported_positions.keys())
 
-        # Color palettes
-        LANG_COLORS = {'de': '#4dabf7', 'fr': '#ffd43b', 'it': '#51cf66', 'unknown': '#666'}
+        # Color palette (pre-computed as RGBA floats for vectorized lookup)
         COLORS = [
             '#7c8aff', '#ff6b6b', '#51cf66', '#ffd43b', '#cc5de8',
             '#20c997', '#ff922b', '#4dabf7', '#e599f7', '#69db7c',
@@ -1954,106 +2001,163 @@ class NavigationAPI:
             '#a9e34b', '#ffa94d', '#74c0fc', '#b2f2bb', '#f783ac',
         ]
 
-        # Helper to convert hex to RGBA
-        def hex_to_rgba(hex_color: str, alpha: float = 1.0):
-            hex_color = hex_color.lstrip('#')
-            if len(hex_color) == 3:
-                hex_color = ''.join([c*2 for c in hex_color])
-            r = int(hex_color[0:2], 16) / 255.0
-            g = int(hex_color[2:4], 16) / 255.0
-            b = int(hex_color[4:6], 16) / 255.0
-            return (r, g, b, alpha)
+        def hex_to_rgb(hex_color: str) -> Tuple[float, float, float]:
+            h = hex_color.lstrip('#')
+            if len(h) == 3:
+                h = ''.join([c*2 for c in h])
+            return (int(h[0:2], 16) / 255.0, int(h[2:4], 16) / 255.0, int(h[4:6], 16) / 255.0)
 
-        n_points = len(positions)
-        
-        # Pre-allocate arrays
-        positions_array = []
-        colors_array = []
-        radii_array = []
-        imported_array = []
-
-        # Cluster color map
-        cluster_color_map = {}
+        # Build cluster -> color RGBA map
+        cluster_color_rgba = {}
         for i, cluster in enumerate(clusters):
             cid = cluster['cluster_id']
-            color_hex = COLORS[i % len(COLORS)]
-            cluster_color_map[cid] = hex_to_rgba(color_hex, 0.8)
+            r, g, b = hex_to_rgb(COLORS[i % len(COLORS)])
+            cluster_color_rgba[cid] = (r, g, b, 0.8)
 
-        # Fill arrays
-        for p in positions:
-            # Position (world coordinates)
-            positions_array.append(p['x'])
-            positions_array.append(p['y'])
-            
-            # Color (cluster color)
+        # --- Build numpy arrays for all positions ---
+        n_total = len(positions)
+        xs = np.empty(n_total, dtype=np.float64)
+        ys = np.empty(n_total, dtype=np.float64)
+        decision_ids = []
+        cluster_ids = np.empty(n_total, dtype=np.int32)
+        has_section = np.empty(n_total, dtype=bool)
+
+        # Build cluster id index map
+        cluster_id_to_idx = {c['cluster_id']: i for i, c in enumerate(clusters)}
+        default_rgba = (0.5, 0.5, 0.5, 0.8)
+
+        for i, p in enumerate(positions):
+            xs[i] = p['x']
+            ys[i] = p['y']
+            decision_ids.append(p.get('decision_id', ''))
             cid = p.get('cluster', 0)
-            r, g, b, a = cluster_color_map.get(cid, (0.5, 0.5, 0.5, 0.8))
-            colors_array.extend([r, g, b, a])
-            
-            # Radius
-            is_section = p.get('has_section_data', True)
-            radii_array.append(4.0 if is_section else 2.5)
-            
-            # Imported flag
-            imported_array.append(1.0 if p.get('decision_id') in imported_ids else 0.0)
+            cluster_ids[i] = cid
+            has_section[i] = p.get('has_section_data', True)
 
-        # Prepare cluster hulls (simplified bounding boxes for now)
+        # --- Viewport culling ---
+        culled_mask = np.ones(n_total, dtype=bool)
+        if bbox and 'xMin' in bbox and 'xMax' in bbox and 'yMin' in bbox and 'yMax' in bbox:
+            x_min_v = bbox['xMin']
+            x_max_v = bbox['xMax']
+            y_min_v = bbox['yMin']
+            y_max_v = bbox['yMax']
+            culled_mask = (xs >= x_min_v) & (xs <= x_max_v) & (ys >= y_min_v) & (ys <= y_max_v)
+
+        n_culled = int(culled_mask.sum())
+
+        # If viewport culling removed too many points, we need cluster hulls
+        # for clusters that have ANY visible point (for context)
+        visible_cluster_ids = set(cluster_ids[culled_mask].tolist()) if n_culled < n_total else set()
+
+        # Apply mask
+        xs_v = xs[culled_mask]
+        ys_v = ys[culled_mask]
+        cluster_ids_v = cluster_ids[culled_mask]
+        has_section_v = has_section[culled_mask]
+        decision_ids_v = [decision_ids[i] for i in range(n_total) if culled_mask[i]]
+
+        # --- Vectorized color + radius assembly ---
+        positions_array = np.empty(n_culled * 2, dtype=np.float32)
+        positions_array[0::2] = xs_v
+        positions_array[1::2] = ys_v
+
+        colors_array = np.empty(n_culled * 4, dtype=np.float32)
+        radii_array = np.empty(n_culled, dtype=np.float32)
+        imported_array = np.zeros(n_culled, dtype=np.float32)
+
+        imported_set = imported_ids  # already a set
+
+        for j in range(n_culled):
+            cid = cluster_ids_v[j]
+            rgba = cluster_color_rgba.get(cid, default_rgba)
+            colors_array[j*4] = rgba[0]
+            colors_array[j*4+1] = rgba[1]
+            colors_array[j*4+2] = rgba[2]
+            colors_array[j*4+3] = rgba[3]
+            radii_array[j] = 4.0 if has_section_v[j] else 2.5
+            if decision_ids_v[j] in imported_set:
+                imported_array[j] = 1.0
+
+        # --- Cluster hulls (bounding boxes) ---
         cluster_hulls = []
-        cluster_points = {}
-        for p in positions:
-            cid = p.get('cluster', 0)
-            if cid not in cluster_points:
-                cluster_points[cid] = []
-            cluster_points[cid].append((p['x'], p['y']))
+        # Group culled positions by cluster
+        if n_culled > 0:
+            unique_clusters = np.unique(cluster_ids_v)
+            for cid in unique_clusters:
+                mask_c = cluster_ids_v == cid
+                cx = xs_v[mask_c]
+                cy = ys_v[mask_c]
+                if len(cx) >= 3:
+                    color_rgba = cluster_color_rgba.get(int(cid), default_rgba)
+                    cluster_hulls.append({
+                        'cluster_id': int(cid),
+                        'points': [
+                            [float(cx.min()), float(cy.min())],
+                            [float(cx.max()), float(cy.min())],
+                            [float(cx.max()), float(cy.max())],
+                            [float(cx.min()), float(cy.max())],
+                        ],
+                        'color': list(color_rgba[:3]) + [0.1]
+                    })
 
-        for i, cluster in enumerate(clusters):
-            cid = cluster['cluster_id']
-            if cid in cluster_points and len(cluster_points[cid]) >= 3:
-                points = cluster_points[cid]
-                # Simple bounding box as hull approximation
-                xs = [p[0] for p in points]
-                ys = [p[1] for p in points]
-                hull = [
-                    (min(xs), min(ys)),
-                    (max(xs), min(ys)),
-                    (max(xs), max(ys)),
-                    (min(xs), max(ys)),
-                ]
-                color_hex = COLORS[i % len(COLORS)]
-                r, g, b, a = hex_to_rgba(color_hex, 0.1)
-                cluster_hulls.append({
-                    'cluster_id': cid,
-                    'points': hull,
-                    'color': [r, g, b, a]
-                })
+        # For clusters that are NOT visible but have nearby points,
+        # add their bounding box hulls as "context hulls" (faded)
+        if visible_cluster_ids and clusters:
+            all_cluster_bboxes = {}
+            for i, cluster in enumerate(clusters):
+                cid = cluster['cluster_id']
+                if cid not in visible_cluster_ids:
+                    # Check if this cluster's centroid is near the viewport
+                    if bbox and 'xMin' in bbox:
+                        cx = cluster.get('centroid_x', 0)
+                        cy = cluster.get('centroid_y', 0)
+                        margin = max(bbox['xMax'] - bbox['xMin'], bbox['yMax'] - bbox['yMin']) * 0.1
+                        if (bbox['xMin'] - margin <= cx <= bbox['xMax'] + margin and
+                            bbox['yMin'] - margin <= cy <= bbox['yMax'] + margin):
+                            # Find this cluster's positions in the full (unculled) data
+                            c_mask = cluster_ids == cid
+                            if c_mask.sum() >= 3:
+                                color_rgba = cluster_color_rgba.get(cid, default_rgba)
+                                cluster_hulls.append({
+                                    'cluster_id': cid,
+                                    'points': [
+                                        [float(xs[c_mask].min()), float(ys[c_mask].min())],
+                                        [float(xs[c_mask].max()), float(ys[c_mask].min())],
+                                        [float(xs[c_mask].max()), float(ys[c_mask].max())],
+                                        [float(xs[c_mask].min()), float(ys[c_mask].max())],
+                                    ],
+                                    'color': list(color_rgba[:3]) + [0.04],
+                                    'context_only': True
+                                })
 
-        # Build transform info
-        if positions:
-            x_min = min(p['x'] for p in positions)
-            x_max = max(p['x'] for p in positions)
-            y_min = min(p['y'] for p in positions)
-            y_max = max(p['y'] for p in positions)
-        else:
-            x_min = x_max = y_min = y_max = 0
+        # Build transform from full data extents (not culled)
+        transform = {
+            'xMin': float(xs.min()),
+            'xMax': float(xs.max()),
+            'yMin': float(ys.min()),
+            'yMax': float(ys.max()),
+            'scale': 1.0,
+            'offsetX': 0,
+            'offsetY': 0
+        }
 
         return {
             'points': {
-                'positions': positions_array,
-                'colors': colors_array,
-                'radii': radii_array,
-                'imported': imported_array,
-                'count': n_points
+                'positions': positions_array.tolist(),
+                'colors': colors_array.tolist(),
+                'radii': radii_array.tolist(),
+                'imported': imported_array.tolist(),
+                'count': n_culled
             },
             'clusters': clusters,
             'hulls': cluster_hulls,
-            'transform': {
-                'xMin': x_min,
-                'xMax': x_max,
-                'yMin': y_min,
-                'yMax': y_max,
-                'scale': 1.0,
-                'offsetX': 0,
-                'offsetY': 0
+            'transform': transform,
+            'viewport_culling': {
+                'requested': bbox is not None,
+                'total_positions': n_total,
+                'visible_positions': n_culled,
+                'culled_count': n_total - n_culled,
+                'visible_clusters': len(visible_cluster_ids) if visible_cluster_ids else len(clusters),
             }
         }
 
