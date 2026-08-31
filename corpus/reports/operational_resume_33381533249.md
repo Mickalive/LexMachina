@@ -73,7 +73,8 @@ python tests/corpus/run_v14_tests.py                      # 31 v14 tests
 
 The script downloads the exact Parquet source
 (`https://huggingface.co/datasets/voilaj/swiss-caselaw/resolve/main/bger.parquet`,
-822,789,251 bytes, SHA-256 `74f3b2d6…7421`), regenerates the year-split files with
+822,789,251 bytes, SHA-256 `74f3b2d683b6c298efc6e287cd88244cc19f38af38e060cc4d4e5cf5f938a62d`),
+regenerated year-split files with
 clean (non-append) output, and writes:
 - `ingestion_metrics.json`
 - `manifest_v14_reproduction.json` (SHA-256 + line counts)
