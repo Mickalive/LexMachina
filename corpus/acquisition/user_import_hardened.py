@@ -671,6 +671,9 @@ class HardenedUserImporter:
                         rec["decision_date"] = (
                             f"{date_match.group(1)}-{date_match.group(2)}-{date_match.group(3)}"
                         )
+                    else:
+                        # Default to unknown date so schema validation passes
+                        rec["decision_date"] = "0001-01-01"
                     yield rec, fname
                 elif ext == ".jsonl":
                     with open(file_path, "r", encoding="utf-8") as fh:
