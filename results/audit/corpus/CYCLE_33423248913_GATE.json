@@ -1,0 +1,66 @@
+{
+  "gate": "PASS",
+  "cycle": "33423248913",
+  "lane": "corpus",
+  "repair_round": 0,
+  "safe_to_integrate": true,
+  "diagnosis": {
+    "orchestration_failure": {
+      "root_cause": "Test framework _record() silently logged FAIL without raising exceptions, causing pytest to report all 31 v14 tests as PASSED even when 10 had internal FAIL status",
+      "file": "corpus/tests/test_cycle_v14.py",
+      "function": "_record()",
+      "line": 28,
+      "fix": "Added 'raise AssertionError' on passed=False",
+      "evidence": "Pre-fix: 0 files found, pytest reported PASS. Post-fix: 31/31 PASS with real assertions."
+    },
+    "missing_data": {
+      "root_cause": "bger_YYYY.jsonl production files (174,113 decisions) are gitignored and absent from workspace after reset",
+      "fix": "Ran reproduce_full_corpus.py to download parquet and regenerate 37 year-split files",
+      "parquet_sha256": "74f3b2d683b6c298efc6e287cd88244cc19f38af38e060cc4d4e5cf5f938a62d"
+    }
+  },
+  "required_fixes_applied": [
+    {
+      "id": "F1",
+      "severity": "critical",
+      "file": "corpus/tests/test_cycle_v14.py",
+      "field": "_record()",
+      "fix_applied": "Added 'if not passed: raise AssertionError(f\"[FAIL] {name}{suffix}\")' to _record() function, preventing silent false-positives in pytest",
+      "delta_description": "Fixed test framework to actually fail when internal checks fail. Without this fix, pytest reported all tests as PASSED regardless of _record() status."
+    },
+    {
+      "id": "F2",
+      "severity": "high",
+      "file": "corpus/normalization/canonical/bger_*.jsonl",
+      "field": "production year-split files",
+      "fix_applied": "Regenerated 37 bger_YYYY.jsonl files from parquet source via reproduce_full_corpus.py",
+      "delta_description": "174,113 decisions normalized from bger.parquet, 0 errors, 37 year-split files with verified SHA-256 hashes."
+    }
+  ],
+  "claim_ceiling": "REPRODUCED — 174,113 BGer decisions with 60/60 offline tests genuinely PASS and 95.9% citation resolution confirmed. All prior false-positive claims corrected.",
+  "evidence_summary": {
+    "parquet_sha256_verified": true,
+    "parquet_sha256": "74f3b2d683b6c298efc6e287cd88244cc19f38af38e060cc4d4e5cf5f938a62d",
+    "decision_count": 174113,
+    "tests_60_of_60_offline_pass": true,
+    "test_framework_fixed": true,
+    "test_suite_pytest_independent": "60/60 PASS confirmed with fresh pytest install and fixed _record()",
+    "field_coverage_consistent": true,
+    "field_coverage_cited_decisions": 0.526,
+    "field_coverage_outcome": 0.505,
+    "citation_resolution_rate": 0.9591,
+    "ingestion_rate": 1426.83,
+    "no_baseline_weakening": true,
+    "no_fabrication": true,
+    "no_data_deletion": true,
+    "diff_minimality": "1 code file changed (test_cycle_v14.py: _record() fix), data regenerated from parquet, state updated, report written. No production pipeline code modified, no baselines weakened.",
+    "deterministic_reproduction_verified": true,
+    "consistency_checks": {
+      "lines_equals_normalized": true,
+      "lines_equals_manifest": true,
+      "manifest_equals_validated": true,
+      "all_errors_zero": true
+    }
+  },
+  "recommendation": "PASS — All required fixes applied and verified. Cycle 33423248913 is safe to integrate. Corpus lane COMPLETE, unblock dependent lanes."
+}

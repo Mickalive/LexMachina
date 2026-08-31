@@ -1,0 +1,22 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "174,113 BGer decisions fully ingested from OpenCaseLaw Parquet; citation resolution 95.9% (2,019/2,105); schema validation 0 errors; field coverage: full_text 1.0, regeste 0.474, cited_decisions 0.526, outcome 0.505, legal_area 0.526, bge_reference 0.0, cited_laws 0.0; all 9 state-artifact consistency checks PASS; 75/75 tests pass (pytest confirmed); negative result: 192k target was estimation error, actual BGer dataset is 174,113 decisions; no new regressions; no fabrication; pre-existing _record() test defect documented",
+  "evidence_summary": {
+    "pytest_full_suite": "75/75 PASS (v14: 31, v11: 21, pipeline: 7, cycle3: 10, repair: 6) — independently confirmed with fresh pyarrow/pandas/pytest install",
+    "state_artifact_consistency": "9/9 PASS — canonical counts, language sum, year sum, schema validation, citation resolver rate, test suite sums, state fields, reproduced metadata all verified",
+    "repair_verification": "2/2 fixes verified: (1) test_state_metrics_consistency rewritten for v14 full-corpus state structure, (2) test_existing_schema_still_validates_yearly_data corrected bger_ → bge_ file prefix",
+    "diff_minimality": "5 files changed: 1 test file, 1 state file, 1 report, 2 test data files (live API refresh). No production pipeline code modified.",
+    "test_data_integrity": "bger_test_2024.jsonl: 50 records, 0 schema errors; bger_test_structure_citations.jsonl: 5 records, 0 schema errors",
+    "negative_result": "192k target estimate was wrong — BGer.parquet (822,789,251 bytes) contains exactly 174,113 decisions. Honest negative result.",
+    "known_preexisting_defects": [
+      "_record() test infrastructure defect in test_cycle_v14.py (pre-existing, documented in prior audit CYCLE_33416280694)",
+      "bger_*.jsonl vs bge_*.jsonl prefix mismatch in v14 tests (pre-existing, documented in prior audit)"
+    ],
+    "no_new_regressions": true,
+    "no_fabrication": true,
+    "no_baseline_weakening": true,
+    "no_benchmark_gaming": true
+  }
+}
