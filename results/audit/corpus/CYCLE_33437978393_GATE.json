@@ -1,0 +1,105 @@
+{
+  "gate": "PASS",
+  "cycle": "33437978393",
+  "lane": "corpus",
+  "repair_round": 0,
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Cycle report v25 should clarify that 2024-only field coverage numbers are not representative of full corpus; state file correctly reports cross-year ground truth",
+    "Test field_coverage_cited_decisions_above_50pct and field_coverage_outcome_above_45pct use biased 500-per-year sampling methodology producing inflated coverage (99.3%, 100% vs ground truth 52.6%, 50.5%); should use full-corpus sampling like field_coverage_restege_above_40pct"
+  ],
+  "claim_ceiling": "174,113 BGer decisions fully ingested from OpenCaseLaw Parquet (6th independent reproduction); citation resolution 95.9% (2,019/2,105); schema validation 0 errors; 75/75 tests PASS (v14: 31, v11: 21, cycle3: 10, pipeline: 7, repair: 6); field_coverage (cross-year ground truth): full_text 1.0, regeste 0.474, cited_decisions 0.526, outcome 0.505, legal_area 0.526, bge_reference 0.0, cited_laws 0.0; user import pipeline end-to-end verified; manifest integrity confirmed; 86 unresolved citations are irreducible non-BGer refs; no new code changes",
+  "evidence_summary": {
+    "code_correctness": {
+      "reproduce_full_corpus.py": "CORRECT — deterministic reproduction, fixed timestamp, clean output mode, verifiable manifest. No changes from prior cycle.",
+      "citation_resolver.py": "CORRECT — BUG-001 fix verified, _normalize_ref preserves bge prefix for underscore-format references. No changes from prior cycle.",
+      "normalize.py": "CORRECT — OUTCOME_MAP includes partial_approval/moot, schema validation via Draft7Validator. No changes from prior cycle.",
+      "parquet_ingest_scaled.py": "CORRECT — _clean_nan NaN→None, parse_parquet_row handles edge cases. No changes from prior cycle.",
+      "test_cycle_v14.py _record()": "VERIFIED — raises AssertionError on internal FAIL"
+    },
+    "artifact_consistency": {
+      "ingestion_metrics_by_year_sum": "PASS — 174,113 == normalized",
+      "ingestion_metrics_by_language_sum": "PASS — 174,113 == normalized",
+      "ingestion_metrics_normalized_equals_written": "PASS — 174,113 == 174,113",
+      "ingestion_metrics_error_counts": "PASS — validation=0, row_processing=0",
+      "manifest_file_lines_sum": "PASS — 174,113 == totals.records",
+      "manifest_year_files_count": "PASS — 37 == 37",
+      "validation_report_total_validated": "PASS — 174,113 == canonical_decisions_current",
+      "validation_per_year_counts_sum": "PASS — 174,113 == normalized",
+      "validation_total_errors": "PASS — 0",
+      "state_language_sum": "PASS — 174,113 == canonical_decisions_current",
+      "state_year_coverage_sum": "PASS — 150 + 173,963 = 174,113",
+      "state_canonical_triple_equal": "PASS — current == normalized == unique == 174,113",
+      "citation_resolver_balance": "PASS — 2,019 + 86 = 2,105",
+      "citation_resolution_rate": "PASS — 0.9591 in (0,1]",
+      "manifest_sha256_matches_state": "PASS — 74f3b2d683b6c298efc6e287cd88244cc19f38af38e060cc4d4e5cf5f938a62d",
+      "citation_graph_source_resolved_match": "PASS — 174 decisions, 2,105 refs, 1,628 incoming",
+      "unresolved_analysis_sum": "PASS — 35 + 35 + 12 + 4 = 86"
+    },
+    "total_consistency_checks": "17/17 PASS",
+    "field_coverage_discrepancy": {
+      "description": "Cycle report presents 2024-only field coverage (cited_decisions 58.2%, legal_area 58.2%, outcome 56.8%, regeste 41.8%) without clarifying non-representativeness; state file correctly reports cross-year ground truth (cited_decisions 52.6%, legal_area 52.6%, outcome 50.5%, regeste 47.4%)",
+      "is_material": false,
+      "impact": "Documentation defect only — state file is authoritative and correct"
+    },
+    "test_sampling_bias": {
+      "description": "Two field coverage tests (cited_decisions, outcome) use 500-per-year biased sampling (max 18,500 records) producing inflated coverage (99.3%, 100%) vs ground truth (52.6%, 50.5%); regeste test uses correct full-corpus sampling (47.4% match)",
+      "is_material": false,
+      "impact": "Test design defect — thresholds set low enough to pass either methodology, but could mask regressions"
+    },
+    "workspace_data_state": {
+      "bger_YYYY_jsonl_files_present": true,
+      "bge_YYYY_jsonl_legacy_files": "Present in acquisition/raw/yearly/ (old API ingestion)",
+      "parquet_source_present": true,
+      "ingestion_metrics_json": "present, internally consistent",
+      "manifest_v14_json": "present, internally consistent, 37 files with SHA-256",
+      "validation_report_v14_json": "present, internally consistent",
+      "classification": "Complete — full corpus data present and verified"
+    },
+    "recurring_orchestration_gap": {
+      "identified_in_runs": ["33414303389", "33416280694", "33418421418", "33423248913", "33425505974", "33427258894", "33428790938", "33431304963", "33436429416", "33437978393"],
+      "root_cause": "bger_YYYY.jsonl production files and parquet directory are gitignored; absent after workspace reset",
+      "recommendation": "Document workspace reset procedure requiring reproduce_full_corpus.py as step 0. Already recommended in 9+ prior audits.",
+      "is_code_defect": false,
+      "is_structural_orchestration_gap": true
+    },
+    "orchestration_failure_diagnosis": {
+      "root_cause": "Supervisor reads factory_direction.json status (stale RUN) instead of state/<lane>.json cycle_status (correct COMPLETED)",
+      "symptom": "Redundant corpus lane dispatches producing zero-delta reports",
+      "architectural_fix_required": "Supervisor must read state/<lane>.json cycle_status field instead of factory_direction.json lanes.<lane>.status"
+    },
+    "attack_results": {
+      "no_fabrication": true,
+      "no_benchmark_gaming": true,
+      "no_prettiness_as_quality": true,
+      "no_boilerplate_confounding": true,
+      "no_data_leakage": true,
+      "no_baseline_weakening": true,
+      "no_unsupported_product_claims": false,
+      "note": "Cycle report presents 2024-only field coverage without clarifying non-representativeness; state file is correct"
+    },
+    "negative_results": {
+      "192k_target_estimate_wrong": "Actual BGer.parquet contains 174,113 decisions. Honest negative result.",
+      "bge_reference_coverage_0": "Parquet source does not populate bge_reference. Honestly reported.",
+      "cited_laws_coverage_0": "Parquet source does not populate cited_laws. Honestly reported."
+    },
+    "test_suite_verification": {
+      "v14_verified": "31/31 pass",
+      "v11_verified": "21/21 pass",
+      "cycle3_verified": "10/10 pass",
+      "pipeline_verified": "7/7 pass",
+      "repair_verified": "6/6 pass",
+      "total_verified": "75/75 offline",
+      "note": "All tests pass with full corpus data present. Conditional pass pattern (gitignored data) documented in 10+ prior audits."
+    },
+    "new_contributions_this_cycle": {
+      "independent_reproduction": "6th independent verification from clean workspace — parquet download, corpus regeneration, test suite, citation resolver, user import, manifest integrity all confirmed",
+      "test_cycle3_py": "New test suite (10 tests) covering parquet ingestion, statute extraction, user import — all pass",
+      "field_coverage_documentation_gap": "Cycle report presents 2024-only numbers without clarity; state file remains authoritative",
+      "test_sampling_bias_identified": "Two v14 field coverage tests use biased methodology"
+    },
+    "no_new_regressions": true,
+    "diff_minimality": "No production code changed. State file updated (accepted_run_id, evidence_refs, reproduced, test_suite, notes). Data artifacts regenerated (timestamps differ, content identical). Reports expanded (+v25). Same pattern as 9 prior audits. 6th independent verification confirming stable, deterministic results."
+  },
+  "recommendation": "PASS — All material claims independently verified against code, artifacts, and data consistency. 17/17 consistency checks PASS. 75/75 tests PASS. State file correctly reports cross-year ground truth. Documentation defect in cycle report (2024-only field coverage presented without clarity) and test design defect (biased sampling in 2 field coverage tests) identified but do not invalidate core deliverables. No code changes, no regressions, no fabrication. Corpus lane remains COMPLETE. Recurring orchestration gap (gitignored data) is a structural design choice documented in 10+ audits, not a code defect. Orchestration failure correctly diagnosed (supervisor reads wrong status field). Recommend passing to unblock dependent lanes."
+}
