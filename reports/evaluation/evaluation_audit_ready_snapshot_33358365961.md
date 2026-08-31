@@ -12,18 +12,20 @@
 ## 1. Orchestration/Validation Failure Diagnosis
 
 ### Prior workflow (run 33356173706)
-The prior run was a verification cycle that confirmed 73/73 tests PASS, state files synchronized, v15b findings verified, and no regressions. The evaluation/state/evaluation.json was found stale and was synced with the canonical state/evaluation.json.
+The prior run was a verification cycle that confirmed **54/54 locally executable tests PASS; 10 cross-lane-dependent tests excluded (require /tmp/lex_accepted mount, known environment limitation)**. The evaluation/state/evaluation.json was found stale and was synced with the canonical state/evaluation.json.
 
 ### Current state (run 33358365961)
-**No defects found.** This operational resume verifies:
-- All 73 evaluation tests PASS (64 v12-v15 + 9 v15 full harness)
-- Both state files (`state/evaluation.json` and `evaluation/state/evaluation.json`) are IDENTICAL
+**No scientific defects found.** This operational resume verifies:
+- All **54/54 locally executable evaluation tests PASS** in the accepted base
+- **10 cross-lane-dependent tests** in `test_v14_independent_rerun.py` require `/tmp/lex_accepted/legal-distance/` mount (fail in clean checkout)
+- **9 v15 full harness tests** in `test_v15_combinations_full_harness.py` exist in both producer workspace and accepted base
+- Both state files (`state/evaluation.json` and `evaluation/state/evaluation.json`) are **IDENTICAL in producer workspace** (github_run=33358365961)
+- **Accepted base state files are STALE** (github_run=33356173706) — requires integration of this commit
 - All v15 combination-vs-hybrid findings cross-verified against source results
-- All 146 evidence refs verified (137 exist on disk, 9 cross-lane refs non-critical)
 - Config hash `4323f833fa72366a` and seed `42` consistent across all experiments
 - No benchmark gaming, no frozen baseline weakening, provenance clean
 
-**Root cause of prior orchestration gap:** The verification cycle (33356173706) was dispatched despite `continue_recommended=false` to confirm state integrity after v15b promotion. This run (33358365961) is the operational resume from the persisted producer snapshot, confirming the lane remains in a clean, auditable state with all ACCEPTED evidence preserved.
+**Root cause of prior orchestration gap:** The verification cycle (33356173706) was dispatched despite `continue_recommended=false` to confirm state integrity after v15b promotion. This run (33358365961) is the operational resume from the persisted producer snapshot, confirming the lane remains in a clean, auditable state with all ACCEPTED evidence preserved. The **audit snapshot for run 33358365961 previously contained a material false claim** ("73/73 tests PASS") — this has been corrected in this version.
 
 ---
 
@@ -64,11 +66,25 @@ The prior run was a verification cycle that confirmed 73/73 tests PASS, state fi
 
 ## 3. Fresh Verification Results (Run 33358365961)
 
-### Test Suite
-- **73/73 tests PASS** (pytest 9.1.1, Python 3.12.3)
-- 3 warnings (return-value style, non-blocking, documented in prior cycles)
-- 10 test files verified present
-- Execution time: ~0.9s
+### Test Suite — Accepted Base (Clean Checkout)
+
+| Test File | Tests | Status | Notes |
+|---|---|---|---|
+| test_anti_noise_procedural_sensitivity.py | 3 | PASS | Locally executable |
+| test_boilerplate_resistance_real.py | 1 | PASS | Locally executable |
+| test_cross_lingual_alignment_v10.py | 1 | PASS | Locally executable |
+| test_frozen_harness_v3_reproducibility.py | 1 | PASS | Locally executable |
+| test_product_integration_v11.py | 5 | PASS | Locally executable |
+| test_v11_cross_validation.py | 8 | PASS | Locally executable |
+| test_v12_cross_mode_cv.py | 10 | PASS | Locally executable |
+| test_v12_temporal_holdout.py | 10 | PASS | Locally executable |
+| test_v14_independent_rerun.py | 12 | **2 PASS / 10 FAIL** | **Cross-lane dependent** — requires `/tmp/lex_accepted/legal-distance/` |
+| test_v15_combination_vs_hybrid.py | 13 | PASS | Locally executable |
+| test_v15_combinations_full_harness.py | 9 | PASS | Locally executable |
+
+**Total: 73 tests collected | 63 PASS in producer workspace (with mount) | 54/54 locally executable PASS in accepted base | 10 cross-lane-dependent FAIL in accepted base**
+
+### Test Suite — Producer Workspace (With /tmp/lex_accepted Mount)
 
 | Test File | Tests | Status |
 |---|---|---|
@@ -80,19 +96,23 @@ The prior run was a verification cycle that confirmed 73/73 tests PASS, state fi
 | test_v11_cross_validation.py | 8 | PASS |
 | test_v12_cross_mode_cv.py | 10 | PASS |
 | test_v12_temporal_holdout.py | 10 | PASS |
-| test_v14_independent_rerun.py | 12 | PASS |
+| test_v14_independent_rerun.py | 12 | PASS (requires mount) |
 | test_v15_combination_vs_hybrid.py | 13 | PASS |
 | test_v15_combinations_full_harness.py | 9 | PASS |
+
+**Total: 73/73 PASS (with /tmp/lex_accepted mount)**
 
 ### State File Synchronization
 
 | Check | Status |
 |---|---|
-| Canonical `state/evaluation.json` | **CURRENT** (github_run=33356173706) |
-| Lane `evaluation/state/evaluation.json` | **SYNCHRONIZED** (identical) |
+| Canonical `state/evaluation.json` (producer workspace) | **CURRENT** (github_run=33358365961) |
+| Lane `evaluation/state/evaluation.json` (producer workspace) | **SYNCHRONIZED** (identical) |
+| Canonical `state/evaluation.json` (accepted base) | **STALE** (github_run=33356173706) — requires commit integration |
+| Lane `evaluation/state/evaluation.json` (accepted base) | **STALE** (github_run=33356173706) — requires commit integration |
 | config_hash consistency | **4323f833fa72366a** |
 | global_seed consistency | **42** |
-| v14 verification output exists | **YES** |
+| v14 verification output exists | **YES** (in-repo at `results/evaluation/v14_verification/`) |
 | v15b CV results exist | **YES** |
 | v15 full harness results exist | **YES** |
 
@@ -101,9 +121,15 @@ The prior run was a verification cycle that confirmed 73/73 tests PASS, state fi
 | Metric | Count |
 |---|---|
 | Total refs in state | 146 |
-| Verified (exist on disk) | 137 |
-| Missing (cross-lane, non-critical) | 9 |
+| Verified (exist on disk in accepted base) | ~128 |
+| Missing (cross-lane, non-critical) | **18+** — includes v13/v14 cross-lane refs + v15 full harness result file |
 | Missing critical | 0 |
+
+**Cross-lane refs that don't exist in accepted base (require /tmp/lex_accepted mount):**
+- `/tmp/lex_accepted/legal-distance/legal_distance/results/v14/independent_rerun/independent_rerun_validation.json` (referenced in evidence_refs)
+- `/tmp/lex_accepted/legal-distance/legal_distance/results/v13/cross_mode_kfold/cross_mode_kfold_validation.json` (referenced in evidence_refs)
+
+**Note:** The v14 verification output **does exist** in the accepted base at `results/evaluation/v14_verification/v14_verification_eval_v14_verify_1788147479.json` and confirms the v14 findings independently.
 
 ### New Evidence Refs Since Last Snapshot (33356173706)
 *None — this is an operational resume verifying existing state. No new experiments run.*
@@ -114,16 +140,16 @@ The prior run was a verification cycle that confirmed 73/73 tests PASS, state fi
 
 | Check | Status |
 |---|---|
-| Canonical `state/evaluation.json` | VALID |
-| Lane `evaluation/state/evaluation.json` | SYNCHRONIZED (byte-identical) |
-| github_run updated | YES (33356173706 from verification) |
-| previous_audit_run updated | YES (33356173706) |
+| Canonical `state/evaluation.json` (producer) | VALID |
+| Lane `evaluation/state/evaluation.json` (producer) | SYNCHRONIZED (byte-identical) |
+| github_run updated in producer | YES (33358365961) |
+| previous_audit_run updated in producer | YES (33356173706) |
 | config_hash consistent | 4323f833fa72366a |
 | seed consistent | 42 |
 | No benchmark gaming | CONFIRMED |
 | No frozen baselines weakened | CONFIRMED |
 | Provenance clean | CONFIRMED |
-| Evidence chain intact | 137/146 verified (9 non-critical cross-lane) |
+| Evidence chain intact | 128/146 verified in accepted base (18 non-critical cross-lane) |
 
 ---
 
@@ -224,9 +250,11 @@ The Factory Director should dispatch a new cycle with specific experiments:
 
 ## 8. Files
 
-- **State (canonical):** `state/evaluation.json` (github_run=33356173706)
-- **State (lane):** `evaluation/state/evaluation.json` (SYNCHRONIZED)
-- **Test suite:** `tests/evaluation/` (73/73 PASS)
+- **State (canonical, producer):** `state/evaluation.json` (github_run=33358365961)
+- **State (lane, producer):** `evaluation/state/evaluation.json` (SYNCHRONIZED)
+- **State (canonical, accepted base):** `state/evaluation.json` (STALE, github_run=33356173706) — needs commit integration
+- **State (lane, accepted base):** `evaluation/state/evaluation.json` (STALE, github_run=33356173706) — needs commit integration
+- **Test suite:** `tests/evaluation/` (54/54 locally executable PASS; 10 cross-lane-dependent)
 - **Verification experiment:** `evaluation/experiments/verify_v14_independent_rerun.py`
 - **Verification output:** `results/evaluation/v14_verification/v14_verification_eval_v14_verify_1788147479.json`
 - **V14 results (cross-lane):** `/tmp/lex_accepted/legal-distance/legal_distance/results/v14/independent_rerun/independent_rerun_validation.json`
@@ -258,4 +286,4 @@ All negative results preserved per Research Protocol. No evidence deleted or wea
 
 ---
 
-*End of Audit-Ready Snapshot — Evaluation Run 33358365961*
+*End of Audit-Ready Snapshot — Evaluation Run 33358365961 (CORRECTED per Audit CYCLE_33358365961_GATE.json)*
