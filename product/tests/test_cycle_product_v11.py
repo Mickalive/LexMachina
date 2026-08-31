@@ -152,9 +152,9 @@ def test_search_with_language_filter():
 
 
 def test_search_with_compound_language():
-    """search_decisions with language='de+fr' returns German and French."""
+    """search_decisions with language='de,fr' returns German and French."""
     nav = _get_nav()
-    results = nav.search_decisions("recht", limit=30, language="de+fr")
+    results = nav.search_decisions("recht", limit=30, language="de,fr")
     for r in results:
         lang = r.get("language")
         assert lang in ("de", "fr"), f"Expected de or fr, got {lang}"

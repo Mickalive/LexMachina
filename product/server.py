@@ -240,15 +240,20 @@ class ProductHandler(SimpleHTTPRequestHandler):
         before being sent to the client, avoiding capture-pattern timing issues.
         """
         cached_data = _response_cache.get(cache_key)
-        if cached_data is not None:
-            self.send_header("X-Cache", "HIT")
-            self._json_response(cached_data)
-            return
+        cache_hit = cached_data is not None
+        if cache_hit:
+            data = cached_data
+        else:
+            data = func()
+            _response_cache.set(cache_key, data, ttl)
         
-        self.send_header("X-Cache", "MISS")
-        data = func()
-        _response_cache.set(cache_key, data, ttl)
-        self._json_response(data)
+        # Send response with X-Cache header
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("X-Cache", "HIT" if cache_hit else "MISS")
+        self.end_headers()
+        self.wfile.write(json.dumps(data, ensure_ascii=False).encode("utf-8"))
 
     def do_GET(self):
         parsed = urlparse(self.path)

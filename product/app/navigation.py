@@ -676,7 +676,7 @@ class NavigationAPI:
             limit: Maximum results
             language: Optional language filter. Supports:
                 - Single language: "de", "fr", "it"
-                - Compound (AND): "de+fr" (German AND French results)
+                - Compound (AND): "de,fr" (German AND French results)
                 - None: all languages
         """
         if not self._initialized:
@@ -687,8 +687,13 @@ class NavigationAPI:
         if language is None:
             return results
 
-        # Parse compound language (e.g. "de+fr")
-        target_langs = {lang.strip() for lang in language.split("+") if lang.strip()}
+        # Parse compound language (e.g. "de,fr" or "de+fr" or "de fr")
+        # Accept comma, plus, or space as separators
+        target_langs: set = set()
+        for part in language.replace("+", ",").replace(" ", ",").split(","):
+            lang = part.strip()
+            if lang:
+                target_langs.add(lang)
         if not target_langs:
             return results
 

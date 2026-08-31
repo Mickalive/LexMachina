@@ -6,7 +6,7 @@
   "continue_recommended": true,
   "accepted_run_id": "33314206764",
   "accepted_commit": null,
-  "github_run": "33330674167",
+  "github_run": "33342368249",
   "factory_direction_version": 10,
   "evidence_refs": [
     "product/app/corpus_loader.py",
@@ -29,6 +29,7 @@
     "product/tests/test_cycle_33035450227.py",
     "product/tests/test_cycle_33304668621.py",
     "product/tests/test_cycle_product_v10.py",
+    "product/tests/test_cycle_product_v11.py",
     "product/requirements.txt",
     "product/build_legal_cited_representation.py",
     "product/results/corpus/normalization/canonical/bger_2000plus_slice_1000.jsonl",
@@ -182,7 +183,12 @@
     "CYCLE_33314206764_FIX: Diagnosed orchestration/validation failure from prior run 33312140066 — missing sentence_transformers dependency caused ImportError in navigation.py import. Installed all requirements (pip install -r requirements.txt). (FIX-008)",
     "CYCLE_33314206764_FIX: Fixed test_product.py test_hdbscan assertion — imported positions from previous cycles persist on disk, causing HDBSCAN positions to be 1004 instead of 1000. Changed == 1000 to >= 1000 for robustness. (FIX-009)",
     "CYCLE_33314206764_VERIFY: Full verification of cited_outcome_hybrid_0.5 and 0.7 integration — artifacts present (18 files each), map_loader loads both, DESIGN_PATTERNS classifies as HIGH-ADVANTAGE, frontend dropdown includes both, 33+ test assertions cover them. ALL 29 representations load in 7.7s. All 159 tests PASS (32 core + 4 cycle_33304668621 + 42 v10 + 9 cycle_33032746334 + 4 cycle_33033658714 + 68 cycle_33035450227). (VERIFY-001)",
-    "CYCLE_33330674167_FIX: Corrected lane state mismatch — factory direction v10 specifies product status=RUN (continuous improvement) but lane state showed COMPLETED. Fixed: cycle_status=RUN to match factory_direction.json. All 159 tests PASS, 29 representations across 4 design patterns operational. Vertical slice COMPLETE per v10 deliverables; continuous improvement phase active for production hardening, 192k scale optimization, and jurist evaluation. (FIX-010)"
+    "CYCLE_33330674167_FIX: Corrected lane state mismatch — factory direction v10 specifies product status=RUN (continuous improvement) but lane state showed COMPLETED. Fixed: cycle_status=RUN to match factory_direction.json. All 159 tests PASS, 29 representations across 4 design patterns operational. Vertical slice COMPLETE per v10 deliverables; continuous improvement phase active for production hardening, 192k scale optimization, and jurist evaluation. (FIX-010)",
+    "CYCLE_33342368249_FIX: Operational resume from persisted snapshot of run 33339872999. DIAGNOSED: prior run successfully implemented compound language search, design pattern comparison, startup validation, and language statistics, but left cycle incomplete. FIXED: (1) compound language URL separator — '+' gets URL-decoded as space by parse_qs, changed to comma separator 'de,fr'; (2) _handle_cached method called send_header before send_response (invalid HTTP), fixed to send response with X-Cache header inline. ALL 179 tests PASS (32 core + 9 proximity + 4 zoom + 68 cycle_33035450227 + 4 multirep + 42 v10 + 20 v11). Server endpoints verified: /api/corpus/stats/languages, /api/pattern_compare, /api/health/startup_validation all functional. 29 representations across 4 design patterns operational. (FIX-011)",
+    "CYCLE_33342368249_FEAT: Design pattern side-by-side comparison (compare_design_patterns) — compares cluster assignments between any two design patterns (DEFAULT, HIGH-PURITY, HIGH-ADVANTAGE, CITATION-ROLE) with stability metrics and per-decision analysis. New endpoint: GET /api/pattern_compare. (FEAT-061)",
+    "CYCLE_33342368249_FEAT: Startup validation endpoint — health-checks all 29 loaded representations (zoom-level data integrity, cluster assignment coverage, metadata completeness) with per-representation PASS/WARN/FAIL status. New endpoint: GET /api/health/startup_validation. (FEAT-062)",
+    "CYCLE_33342368249_FEAT: Compound language search — search_decisions now supports multi-language filtering via comma-separated codes (e.g. 'de,fr'). Server endpoint: GET /api/search?q=...&language=de,fr. (FEAT-063)",
+    "CYCLE_33342368249_FEAT: Language statistics endpoint — per-language counts, per-language-branch counts, and year distribution per language. New endpoint: GET /api/corpus/stats/languages. (FEAT-064)"
   ],
   "next_recommendation": "CONTINUE",
   "metrics_summary": {
@@ -516,7 +522,11 @@
       "holdout_validated_metrics",
       "representation_recommendations",
       "pattern_grouped_dropdown",
-      "holdout_metrics_display"
+      "holdout_metrics_display",
+      "design_pattern_comparison",
+      "startup_validation",
+      "compound_language_search",
+      "language_statistics"
     ],
     "web_frontend": "single_page_html5_canvas_webgl",
     "api_endpoints": [
@@ -556,7 +566,11 @@
       "GET /api/map?representation=&zoom=&limit=&offset=",
       "GET /api/design_patterns",
       "GET /api/evaluation/holdout",
-      "GET /api/recommendation?purpose="
+      "GET /api/recommendation?purpose=",
+      "GET /api/pattern_compare?pattern_a=&pattern_b=&zoom=",
+      "GET /api/health/startup_validation",
+      "GET /api/corpus/stats/languages",
+      "GET /api/search?q=&limit=&language="
     ],
     "test_results": {
       "test_product.py": {
@@ -615,10 +629,10 @@
         "consistency_checks": "PASS (7 tests)"
       }
     },
-    "total_tests": 159,
-    "tests_passed": 159
+    "total_tests": 179,
+    "tests_passed": 179
   },
-  "notes": "Cycle 33314206764: ORCHESTRATION FAILURE DIAGNOSIS AND VERIFICATION. (1) DIAGNOSED prior run 33312140066 failure — missing sentence_transformers dependency caused ImportError in navigation.py, preventing any test collection. All requirements now installed. (2) FIXED test assertion regression — imported positions from previous cycles persist on disk (4 extra positions), causing HDBSCAN test to fail at == 1000. Changed to >= 1000 for robustness. (3) VERIFIED full integration of cited_outcome_hybrid_0.5 (BEST PRODUCTION, JP=0.7990, LangDom=0.4911) and cited_outcome_hybrid_0.7 (BEST FRACTAL, HierAdv=+0.3703) — all artifacts present, map_loader loads both, frontend includes both, tests cover both. (4) ALL 29 representations load successfully in 7.7s. (5) ALL 159 tests PASS across 6 test files. Product is audit-ready at factory direction v10. Cycle 33330674167: CORRECTED LANE STATE MISMATCH — factory direction v10 specifies product status=RUN (continuous improvement) but lane state showed COMPLETED. Fixed cycle_status=RUN to match factory_direction.json. All 159 tests PASS, 29 representations across 4 design patterns (DEFAULT, HIGH-PURITY, HIGH-ADVANTAGE, CITATION ROLE) operational. Vertical slice COMPLETE per v10 deliverables; continuous improvement phase active for production hardening, 192k scale optimization, and jurist evaluation.",
+  "notes": "Cycle 33342368249: OPERATIONAL RESUME from snapshot of run 33339872999. DIAGNOSED: prior run 33339872999 successfully implemented compound language search, design pattern comparison, startup validation, and language statistics (20 new tests in test_cycle_product_v11.py), but left cycle incomplete with no state update or report. FIXED two bugs in prior work: (1) compound language URL separator — '+' gets URL-decoded as space by parse_qs, changed to comma 'de,fr'; (2) _handle_cached called send_header before send_response (invalid HTTP sequence), fixed to inline headers. ALL 179 tests PASS (32 core + 9 proximity + 4 zoom + 68 cycle_33035450227 + 4 multirep + 42 v10 + 20 v11). Server endpoints verified: /api/corpus/stats/languages, /api/pattern_compare, /api/health/startup_validation all functional. 29 representations across 4 design patterns operational. Product is audit-ready at factory direction v10.",
   "known_limitations": [
     "Section modes: 63 decisions use section-specific projections, 937 use baseline fallback (blended approach)",
     "HDBSCAN produces fewer clusters than Leiden at same zoom levels (2-8 vs 5-21)",
