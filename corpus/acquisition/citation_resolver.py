@@ -38,14 +38,21 @@ class CitationResolver:
     def _normalize_ref(text: str) -> str:
         """Normalize a reference string for matching.
 
-        Strips prefixes, lowercases, replaces separators with underscores,
-        and collapses multiple underscores.
+        Strips prefixes (only when followed by a space, i.e. standard BGE
+        format like 'BGE 133 II 249'), lowercases, replaces separators
+        with underscores, and collapses multiple underscores.
+
+        BUG-001 FIX: Previously stripped 'bge_' prefix unconditionally,
+        which caused '_normalize_ref("BGE_133_II_249")' to return
+        "133_ii_249" instead of "bge_133_ii_249". Now only strips when
+        prefix is followed by a space (the standard BGE text format).
         """
-        s = text.strip().lower()
-        for prefix in ("bger_", "bge_"):
-            if s.startswith(prefix):
+        s = text.strip()
+        for prefix in ("BGER ", "BGE "):
+            if s.upper().startswith(prefix) and len(s) > len(prefix):
                 s = s[len(prefix):]
                 break
+        s = s.lower()
         s = re.sub(r"[\s/\-]+", "_", s)
         s = re.sub(r"_+", "_", s).strip("_")
         return s

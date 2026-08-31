@@ -2,8 +2,10 @@
 Comprehensive tests for corpus lane cycle v14 full-scale ingestion.
 
 Frozen hypothesis: The v14 pipeline ingested 174,113 decisions from HuggingFace
-Parquet, achieved 46.5% citation resolution (up from 8.74%), 0 schema validation
-errors, NaN handling works correctly, and year coverage 2000-2026 is complete.
+Parquet, achieved 95.9% citation resolution (corrected from false negative 46.5%),
+0 schema validation errors, NaN handling works correctly, and year coverage
+2000-2026 is complete. BUG-001 fixed: _normalize_ref no longer strips BGE prefix
+from underscore-format references.
 """
 import glob as globmod
 import json
