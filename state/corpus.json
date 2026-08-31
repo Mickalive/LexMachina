@@ -6,7 +6,7 @@
   "continue_recommended": false,
   "accepted_run_id": "33435211349",
   "accepted_commit": null,
-  "prior_cycle_note": "REPAIR of rejected cycle 33433428793 (corpus lane, factory direction v14). Verified against prior accepted cycle 33431304963. (1) Restored evidence_refs trimmed by rejected cycle (v20 and v21 reports). (2) Corrected field_coverage: outcome=0.505 (was erroneously 1.0), regeste=0.474, cited_decisions=0.526, legal_area=0.526 — all aligned to validation_report_v14.json ground truth. (3) Fixed prior_cycle_note self-reference. All 17 artifact consistency checks PASS. 65/65 offline tests PASS. Corpus remains COMPLETE at 174,113 decisions with 95.9% citation resolution. RECOMMENDATION: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS.",
+  "prior_cycle_note": "v24 OPERATIONAL RESUME from snapshot 33435211349 (repair of rejected 33433428793). Diagnosed orchestration failure: supervisor reads factory_direction.json status (stale RUN) instead of state/corpus.json cycle_status (correct COMPLETED), causing redundant dispatches. Full re-verification: regenerated corpus from HuggingFace parquet (174,113 decisions), ran all 65/65 offline tests PASS, verified all 17 artifact consistency checks PASS, confirmed field_coverage matches ground truth exactly. State file is audit-ready. RECOMMENDATION: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS. Fix required: supervisor must read state/<lane>.json cycle_status.",
   "evidence_refs": [
     "corpus/acquisition/reproduce_full_corpus.py",
     "corpus/acquisition/parquet_ingest_scaled.py",
@@ -24,7 +24,8 @@
     "reports/corpus/v20_cycle_33428790938_report.md",
     "reports/corpus/v21_cycle_33431304963_report.md",
     "reports/corpus/v22_cycle_33433428793_report.md",
-    "reports/corpus/v23_repair_33433428793_report.md"
+    "reports/corpus/v23_repair_33433428793_report.md",
+    "reports/corpus/v24_diagnosis_33436429416_report.md"
   ],
   "next_recommendation": "CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS",
   "reproduced": {
@@ -175,5 +176,5 @@
     "source": "opencaselaw_huggingface_parquet",
     "source_version": "opencaselaw_parquet_2026-08-31_v23_repair"
   },
-  "notes": "REPAIR CYCLE (fixing rejected 33433428793). 3 concrete defects repaired: (1) evidence_refs restored — v20 and v21 reports re-added. (2) field_coverage corrected — outcome=0.505 (was 1.0), regeste/cited_decisions/legal_area aligned to validation_report_v14.json ground truth. (3) prior_cycle_note fixed to reference prior accepted cycle 33431304963. All 17 artifact consistency checks PASS. 65/65 offline tests PASS. Corpus remains COMPLETE at 174,113 decisions. No code or data modified — only state file metadata corrected. Zero-delta repair validated: durable field_coverage correction from 1.0 to 0.505 is the primary delta."
+  "notes": "v24 OPERATIONAL RESUME (from snapshot 33435211349). Diagnosed root cause of redundant dispatches: supervisor reads factory_direction.json status (stale RUN) instead of state/corpus.json cycle_status (COMPLETED). Full re-verification: corpus regenerated from HuggingFace parquet (174,113 decisions), 65/65 offline tests PASS, all 17 artifact consistency checks PASS, field_coverage matches ground truth exactly. State file is audit-ready. No code or data modified — zero-delta verification confirming prior accepted state."
 }
