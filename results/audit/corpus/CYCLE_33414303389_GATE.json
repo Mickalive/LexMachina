@@ -1,0 +1,72 @@
+{
+  "cycle_id": "operational_resume_33414303389",
+  "prior_run_id": "33407532194",
+  "lane": "corpus",
+  "direction_version": 14,
+  "timestamp": "2026-08-31T16:45:00Z",
+  "verdict": "PASS",
+  "diagnosis": {
+    "failure_type": "orchestration-state-mismatch",
+    "description": "Ephemeral /tmp/lex_control/state/factory_direction.json shows corpus=RUN with original direction question (1,577 decisions) because the factory direction was never updated to reflect completion. This is the same systemic pathology documented 46+ times in fractal-map lane: supervisor reads ephemeral control plane copy which retains the original direction question, while workspace state/corpus.json correctly shows COMPLETED. The factory direction is a one-shot question directive, not a state-tracking mechanism. Prior run 33407532194 achieved PASS and updated workspace state but did not update the ephemeral control plane copy (which resets between runs anyway).",
+    "scope": "Ephemeral control plane state only — workspace artifacts fully consistent",
+    "prior_occurrences": 7,
+    "recommendation": "No workspace fix needed. Factory Director must update supervisor dispatch logic to read workspace state/<lane>.json cycle_status instead of ephemeral factory_direction.json status."
+  },
+  "verification_results": {
+    "state_artifact_consistency": {
+      "total_checks": 13,
+      "passed": 13,
+      "failed": 0,
+      "details": [
+        "parquet_ingest_scaled.elapsed_seconds: 208.1 == 208.1",
+        "parquet_ingest_scaled.decisions_per_second: 836.7 == 836.7",
+        "canonical_decisions_normalized: 174113 == 174113",
+        "schema_validation.total_validated: 174113 == 174113",
+        "schema_validation.total_errors: 0 == 0",
+        "field_coverage.full_text: 1.0 == 1.0",
+        "field_coverage.regeste: 0.474 == 0.474",
+        "field_coverage.cited_decisions: 0.526 == 0.526",
+        "field_coverage.outcome: 0.505 == 0.505",
+        "field_coverage.legal_area: 0.526 == 0.526",
+        "field_coverage.bge_reference: 0.0 == 0.0",
+        "field_coverage.cited_laws: 0.0 == 0.0",
+        "manifest.records: 174113 == 174113"
+      ]
+    },
+    "test_suite": {
+      "v14_tests": {"collected": 31, "passed": 31, "failed": 0},
+      "v11_tests": {"collected": 21, "passed": 21, "failed": 0},
+      "pipeline_tests": {"collected": 7, "passed": 7, "failed": 0},
+      "total": {"collected": 59, "passed": 59, "failed": 0}
+    },
+    "citation_resolution": {
+      "total_references": 2105,
+      "resolved": 2019,
+      "unresolved": 86,
+      "resolution_rate": 0.9591,
+      "by_method": {"exact_docket": 1705, "normalized_docket": 314, "unresolved": 86},
+      "by_type": {"bge": 1053, "docket": 1017, "other": 35},
+      "state_matches_artifacts": true
+    }
+  },
+  "fixes_applied": [
+    {
+      "fix": "No fixes needed — this is a verification-only resume",
+      "result": "All prior fixes from run 33407532194 confirmed stable"
+    }
+  ],
+  "evidence_tier": "REPRODUCED",
+  "cycle_status": "COMPLETED",
+  "continue_recommended": false,
+  "next_recommendation": "CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS",
+  "claim_ceiling": "Full OpenCaseLaw corpus (174,113 decisions) verified consistent across state, manifest, and metrics. Citation resolution at 95.9% (2,019/2,105). All 13 state-artifact consistency checks PASS. All 59 tests PASS. Orchestration failure diagnosed as ephemeral control plane state mismatch (same systemic pathology as fractal-map 46-cycle loop). No workspace fix needed — supervisor dispatch logic must be updated by Factory Director.",
+  "test_count_note": "Prior run reported 60 tests (31+21+8). Actual count is 59 (31+21+7). Pipeline test count was previously overcounted by 1 (sub-assertion or stale count). All tests pass regardless.",
+  "leakage_check": {
+    "test_data_in_production": false,
+    "hardcoded_secrets": false,
+    "benchmark_gaming": false,
+    "prettiness_as_quality": false,
+    "deleted_contrary_outputs": false,
+    "fabricated_metrics": false
+  }
+}

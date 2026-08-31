@@ -4,9 +4,9 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "operational_resume_33407532194",
-  "accepted_commit": "pending",
-  "prior_cycle_note": "Operational resume from run 33403074134 (repair 2). Run 33403074134 re-ran reproduce_full_corpus.py which updated ingestion_metrics.json timing (182.2s→actual varies by env) and manifest timestamps, but did NOT update state/corpus.json to match — the recurring state-drift pathology. This resume: (1) Re-ran reproduce_full_corpus.py from Parquet in clean workspace — 174,113 normalized, 0 errors, determinism verified. (2) Re-ran run_validation.py — validation_report_v14.json regenerated, field coverage confirmed unchanged (1000-record cross-year sample, seed=42). (3) Fixed state/corpus.json: parquet_ingest_scaled timing corrected to match fresh reproduce run (208.1s/836.7 dps). (4) Ran full test suite: 31 v14 + 21 v11 + 8 pipeline = 60/60 PASS. (5) State is now consistent with all file artifacts.",
+  "accepted_run_id": "operational_resume_33414303389",
+  "accepted_commit": "9619d7e",
+  "prior_cycle_note": "Operational resume from run 33407532194. Run 33407532194 achieved PASS with all 13 state-artifact consistency checks and 60/60 tests. This run (33414303389) verified: (1) 13/13 state-artifact consistency checks PASS (state values match ingestion_metrics.json, manifest, and validation_report). (2) 59/59 tests PASS (31 v14 + 21 v11 + 7 pipeline — pipeline count corrected from 8 to 7). (3) Citation resolution 95.9% (2,019/2,105) matches state claims. (4) Diagnosed orchestration failure: ephemeral /tmp/lex_control/state/factory_direction.json shows corpus=RUN because it retains original direction question; workspace state correctly shows COMPLETED. Same systemic pathology as fractal-map 46-cycle loop. No workspace fix needed — supervisor dispatch logic must be updated by Factory Director.",
   "evidence_refs": [
     "corpus/acquisition/reproduce_full_corpus.py",
     "corpus/acquisition/parquet_ingest_scaled.py",
@@ -29,11 +29,12 @@
     "corpus/tests/test_cycle3.py",
     "reports/corpus/v14_operational_resume_report.md",
     "reports/corpus/v14_repair_round2_report.md",
-    "reports/corpus/v14_resume_33407532194_report.md"
+    "reports/corpus/v14_resume_33407532194_report.md",
+    "reports/corpus/v14_verification_33414303389_report.md"
   ],
   "next_recommendation": "CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS",
   "reproduced": {
-    "run_id": "operational_resume_33407532194",
+    "run_id": "operational_resume_33414303389",
     "method": "regenerated full corpus from OpenCaseLaw Parquet via corpus/acquisition/reproduce_full_corpus.py (clean workspace verification)",
     "source_parquet_sha256": "74f3b2d683b6c298efc6e287cd88244cc19f38af38e060cc4d4e5cf5f938a62d",
     "determinism_verified": true,
@@ -119,12 +120,12 @@
       "v14_tests_passing": 31,
       "v11_tests_total": 21,
       "v11_tests_passing": 21,
-      "pipeline_tests_total": 8,
-      "pipeline_tests_passing": 8,
-      "total_tests": 60,
-      "total_passing": 60,
+      "pipeline_tests_total": 7,
+      "pipeline_tests_passing": 7,
+      "total_tests": 59,
+      "total_passing": 59,
       "verified_in_clean_workspace": true,
-      "note": "Pipeline test count corrected from 38 to 8 (prior count may have included sub-assertions). All 60 tests independently verified in clean workspace."
+      "note": "Pipeline test count corrected from 8 to 7 (run 33414303389 verification: pytest collected 7 tests in test_pipeline.py). All 59 tests independently verified in clean workspace."
     },
     "schema_validation": {
       "total_validated": 174113,
@@ -141,5 +142,5 @@
     "source": "opencaselaw_huggingface_parquet",
     "source_version": "opencaselaw_parquet_2026-08-31_v14_reproduced"
   },
-  "notes": "OPERATIONAL RESUME (run 33407532194) from run 33403074134. DIAGNOSIS: Run 33403074134 re-ran reproduce_full_corpus.py (updating ingestion_metrics.json timing and manifest timestamps) but did NOT update state/corpus.json — the recurring state-drift pathology identified in prior audits. CORRECTION: Fresh reproduce from Parquet in clean workspace verified: 174,113 normalized decisions, 0 errors, determinism verified (same Parquet SHA-256, same year file line counts). Validation report regenerated (validation_report_v14.json): 0 schema errors, field coverage confirmed unchanged. BUG-001 (citation_resolver _normalize_ref) preserved. State/corpus.json corrected: parquet_ingest_scaled timing updated (208.1s/836.7 dps), test count corrected (60 vs 90 — pipeline sub-assertion overcount), reproduced.run_id updated. All 60 tests PASS in clean workspace (31 v14 + 21 v11 + 8 pipeline). CORPUS LANE STATE IS NOW CONSISTENT WITH ALL FILE ARTIFACTS."
+  "notes": "VERIFICATION RUN (run 33414303389) from run 33407532194. PRIOR STATE: Run 33407532194 achieved PASS with all 13 state-artifact consistency checks and 60/60 tests. THIS RUN: (1) 13/13 state-artifact consistency checks PASS — state values match ingestion_metrics.json, manifest, and validation_report. (2) 59/59 tests PASS (31 v14 + 21 v11 + 7 pipeline). Pipeline count corrected from 8 to 7 (pytest collected 7, not 8). (3) Citation resolution 95.9% (2,019/2,105) verified against citation_graph_resolved.json — all metrics match. (4) ORCHESTRATION FAILURE DIAGNOSED: Ephemeral /tmp/lex_control/state/factory_direction.json shows corpus=RUN with original direction question (1,577 decisions) because the factory direction is a one-shot directive, not a state-tracking mechanism. Workspace state/corpus.json correctly shows COMPLETED with 174,113 decisions. Same systemic pathology as fractal-map 46-cycle unnecessary dispatch loop. No workspace fix needed — Factory Director must update supervisor dispatch logic. CORPUS LANE STATE IS CONSISTENT WITH ALL FILE ARTIFACTS."
 }
