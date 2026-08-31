@@ -17,8 +17,8 @@ from unittest.mock import patch, MagicMock
 import pytest
 import numpy as np
 
-# Add parent to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+# Add product dir to path (app/ lives under product/)
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.navigation import NavigationAPI
 

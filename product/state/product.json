@@ -2,11 +2,11 @@
   "lane": "product",
   "direction_version": 11,
   "evidence_tier": "REPRODUCED",
-  "cycle_status": "COMPLETED",
-  "continue_recommended": false,
-  "accepted_run_id": "33342368249",
+  "cycle_status": "RUN",
+  "continue_recommended": true,
+  "accepted_run_id": "33352185791",
   "accepted_commit": null,
-  "github_run": "33344807806",
+  "github_run": "33352185791",
   "factory_direction_version": 11,
   "evidence_refs": [
     "product/app/corpus_loader.py",
@@ -284,9 +284,16 @@
     "CYCLE_FACTORY_V6_INTEGRATION: Integrated fractal-map validated 7-resolution hierarchical clustering artifacts for all 5 legal-distance modes (FEAT-052). legal_cited_decisions, debiased_citation_blended, hybrid_alpha_03, hybrid_alpha_05, legal_issues_outcomes now use fractal-map's REPRODUCED/ACCEPTED clustering (7 zoom levels: resolutions 0.25→3.0) with cluster metadata, zoom mappings, zoom coherence, and decision clusters. Replaced baseline Leiden clustering with validated fractal-map artifacts. All 97 tests pass with updated zoom level expectations.",
     "CYCLE_FACTORY_V9_FEAT: Integrated 10 new ACCEPTED representations from legal-distance lane v7/v8 breakthrough (FEAT-053). Metric learning: linear_metric_best (JP=0.6847), mahalanobis_best (JP=0.6781), hybrid_stabilized_best (JP=0.6656) — all PASS both adversarial gates. Cited decisions TF-IDF: cited_decisions_tfidf (JP=0.6889, BEST zero-shot), hybrid_cited_decisions_0.3/0.5/0.7 (all PASS). Production CP64 hybrids: cited_decisions_tfidf_hybrid_cp64_0.3/0.5/0.7 (BEST α=0.7: JP=0.6614, LangDom=0.6518). All 10 use fractal-map validated 7-resolution hierarchical Leiden (nesting=1.0). Added build_all_representations.py for artifact generation. Updated frontend dropdown with optgroup categories and benchmark labels. Added dynamic zoom level updates per representation. Added 10 new test functions. Total: 24 representations, 26 tests passing.",
     "CYCLE_33286841197_VERIFY: Factory direction v9 operational resume. All 26 product tests PASS. Server starts and serves all 22+ API endpoints. Map mode comparison (GET /api/map/compare) functional. WebGL rendering endpoint (/api/webgl/data) operational. Jurist feedback endpoints (GET/POST /api/feedback) working. User corpus import with persisted k-NN positions operational. Map export (JSON/CSV) functional. 24 representations across 3 design patterns (DEFAULT, HIGH-PURITY, HIGH-ADVANTAGE, CITATION ROLE) available in UI. Default: center_projected_64dim_hierarchical (nesting=1.0, purity=0.9718, 108 fine in 7 coarse, BOTH adversarial gates PASS). Snapshot audit-ready.",
-    "CYCLE_33303560323_V10_VERIFY: Factory direction v10 operational resume. DIAGNOSED: prior run 33301679509 was a no-op (orchestrator created branches but agent never executed — zero commits, zero artifacts). All prior product artifacts fully preserved. Verified: 241/241 tests PASS (32 core + 81 supporting + 128 fractal-map verification). All 6 v10 representations (cited_decisions_tfidf_outcome_hybrid_0.5/0.7, following/criticizing/citing_alpha0.3) fully integrated in map_loader.py with artifacts present. 29+ representations across 4 design patterns (DEFAULT, HIGH-PURITY, HIGH-ADVANTAGE, CITATION ROLE) operational. Updated state to direction_version 10, PRODUCTIZE."
+    "CYCLE_33303560323_V10_VERIFY: Factory direction v10 operational resume. DIAGNOSED: prior run 33301679509 was a no-op (orchestrator created branches but agent never executed — zero commits, zero artifacts). All prior product artifacts fully preserved. Verified: 241/241 tests PASS (32 core + 81 supporting + 128 fractal-map verification). All 6 v10 representations (cited_decisions_tfidf_outcome_hybrid_0.5/0.7, following/criticizing/citing_alpha0.3) fully integrated in map_loader.py with artifacts present. 29+ representations across 4 design patterns (DEFAULT, HIGH-PURITY, HIGH-ADVANTAGE, CITATION ROLE) operational. Updated state to direction_version 10, PRODUCTIZE.",
+    "CYCLE_33344829960_FEAT: WebGL viewport culling with bbox filtering — get_webgl_data() now accepts optional bbox {xMin, yMin, xMax, yMax} for server-side point culling, reducing payload for large corpora. (FEAT-065)",
+    "CYCLE_33344829960_FEAT: Numpy-optimized WebGL data preparation — replaced per-point Python loops with vectorized numpy arrays for Float32Array-compatible GPU upload. (FEAT-066)",
+    "CYCLE_33344829960_FEAT: ThreadedHTTPServer for concurrent request handling — replaced HTTPServer with ThreadingMixIn subclass for 192k+ scale concurrent API calls. (FEAT-067)",
+    "CYCLE_33344829960_FEAT: Batch import progress tracking — import_corpus now returns per-representation timing, status, and aggregate batch_elapsed_ms for monitoring large imports. (FEAT-068)",
+    "CYCLE_33344829960_FEAT: Enhanced health endpoint with startup validation — GET /api/health now includes cached startup validation summary (total/passing/warnings/failing/elapsed_ms). (FEAT-069)",
+    "CYCLE_33348773537_FIX: Fixed test_cycle_product_scale.py import path — was using parent.parent.parent (workspace root) instead of parent.parent (product dir) for sys.path, causing ModuleNotFoundError: No module named 'app'. (FIX-012)",
+    "CYCLE_33352185791_VERIFY: Operational resume from persisted snapshot of run 33348773537. DIAGNOSED: run 33348773537 was a minimal repair (committed test user import files) but never completed the cycle — no state update, no report. Prior run 33344829960 had implemented viewport culling, threaded server, batch progress, and 14 scale tests but was also never finalized. FIXED: (1) repaired test import path, (2) verified ALL 193 tests PASS (32 core + 9 proximity + 4 zoom + 68 cycle_33035450227 + 4 multirep + 42 v10 + 20 v11 + 14 scale). 29 representations across 4 design patterns operational. 192k scale readiness: viewport culling, threaded server, batch progress tracking. (VERIFY-002)"
   ],
-  "next_recommendation": "Harden for 192k corpus scale — optimize WebGL rendering, validate all 29 representations on full 192k corpus, implement incremental map updates for user imports. Blocked on corpus lane 192k delivery (status=RUN, pending full acquisition). NEXT when corpus delivers: (1) validate all 29 representations on 192k, (2) optimize WebGL for 192k point density, (3) implement incremental map updates for user corpus imports.",
+  "next_recommendation": "Harden for 192k corpus scale — viewport culling and threaded server now operational, continue with incremental map updates for user imports. Blocked on corpus lane 192k delivery (status=RUN, pending full acquisition). NEXT when corpus delivers: (1) validate all 29 representations on 192k, (2) optimize WebGL for 192k point density, (3) implement incremental map updates for user corpus imports.",
   "metrics_summary": {
     "corpus_decisions_loaded": 1202,
     "corpus_languages": {
@@ -1041,11 +1048,39 @@
         "temporal_filtering": "PASS (10 tests)",
         "section_modes_scaled": "PASS (21 tests)"
       },
-      "total_tests": 107,
-      "tests_passed": 107
+      "test_cycle_product_v10.py": {
+        "design_patterns": "PASS (9 tests)",
+        "holdout_metrics": "PASS (7 tests)",
+        "recommendations": "PASS (8 tests)",
+        "navigation_endpoints": "PASS (7 tests)",
+        "representation_metadata": "PASS (4 tests)",
+        "consistency_checks": "PASS (7 tests)"
+      },
+      "test_cycle_33304668621.py": {
+        "multi_representation_import": "PASS",
+        "validate_representations": "PASS",
+        "map_pagination": "PASS",
+        "proximity_caching": "PASS"
+      },
+      "test_cycle_product_v11.py": {
+        "compare_design_patterns": "PASS (6 tests)",
+        "startup_validation": "PASS (5 tests)",
+        "search_language_filter": "PASS (4 tests)",
+        "language_statistics": "PASS (3 tests)",
+        "design_patterns_metadata": "PASS (2 tests)"
+      },
+      "test_cycle_product_scale.py": {
+        "webgl_viewport_culling": "PASS (6 tests)",
+        "webgl_numpy_optimization": "PASS (3 tests)",
+        "batch_import_progress": "PASS (1 test)",
+        "threaded_http_server": "PASS (2 tests)",
+        "health_endpoint_validation": "PASS (2 tests)"
+      },
+      "total_tests": 193,
+      "tests_passed": 193
     },
-    "total_tests": 107,
-    "tests_passed": 107
+    "total_tests": 193,
+    "tests_passed": 193
   },
   "notes": "Cycle 33035450227: Scaled section projections from 63 to 1000 decisions using blended section+baseline approach. Added evaluation_loader.py to surface accepted evaluation benchmarks. Added temporal filtering endpoint. Added 5 frontend enhancements: zoom-to-cluster, temporal slider, imported corpus markers, evaluation quality badge, cluster breadcrumb. All 90 tests pass (22 original + 68 new). Product now has 22 API endpoints, 33 navigation features, and full evaluation benchmark integration.\n\nCycle 33036994560: Integrated hierarchical Leiden (REPRODUCED fractal map architecture) as default map representation. Hierarchical Leiden achieves perfect nesting (1.0) and higher branch purity (0.963) than flat Leiden (0.875), agglomerative (0.786), and evaluation baselines (0.795). This validates the fractal map architecture where zoom reveals legally coherent substructure. Added 3 zoom levels (5→8→27 clusters). Default representation changed from concat_center_tfidf to hierarchical_leiden. All 91 tests pass.\n\nCycle 33039540805 (operational resume): Diagnosed orchestration failure — product lane remained at CONTINUE despite all dependent lanes (corpus, fractal-map, evaluation) reaching PRODUCTIZE. Updated product state to PRODUCTIZE. All 91 tests pass. Product integrates REPRODUCED evidence from all core lanes: corpus (TF-2000+ acquisition/normalization), fractal-map (hierarchical Leiden with perfect nesting), evaluation (debiased_citation_blended with 14/14 benchmarks PASS). Vertical slice complete: corpus import/load, map computation/load, zoom/navigation, cluster/decision inspection, multi-view modes, citation graph, proximity explanation, evaluation benchmark integration.\n\nCycle 33044908711: Fixed true_hierarchical_leiden representation by installing missing igraph/leidenalg dependencies (added to requirements.txt). True hierarchical Leiden now runs the actual algorithm (Leiden within parent clusters at finer resolution) achieving perfect nesting (1.0). All 92 tests pass.\n\nCycle 33115310021 (factory direction v4): Integrated legal_cited_decisions representation (ACCEPTED legal-distance signal, 14/14 PASS, citation heritage AUC 0.9719) as selectable map mode. User import persistence and map export endpoints added. Fractal-map v2 product artifacts integrated (7-resolution ladder, 98 clusters, nesting=1.0).\n\nCycle factory direction v6 (33285078279): CRITICAL FIX — center_projected_64dim_hierarchical promoted as DEFAULT (64-dim frozen PCA, evaluation v3 validated: both adversarial gates PASS). WebGL renderer, rate limiting, server-side caching, health monitoring added. Fractal-map validated 7-resolution clustering integrated for all 5 legal-distance modes. All 97 tests pass.\n\nCycle factory direction v9 (CURRENT): Integrated 10 new ACCEPTED representations from legal-distance lane v7/v8 breakthrough evidence. Metric learning: linear_metric_best (JP=0.6847), mahalanobis_best (JP=0.6781), hybrid_stabilized_best (JP=0.6656) — all PASS both adversarial gates. Cited decisions TF-IDF: cited_decisions_tfidf (JP=0.6889, BEST zero-shot), hybrid_cited_decisions_0.3/0.5/0.7 (all PASS). Production CP64 hybrids: cited_decisions_tfidf_hybrid_cp64_0.3/0.5/0.7 (BEST α=0.7: JP=0.6614, LangDom=0.6518). All 10 use fractal-map validated 7-resolution hierarchical Leiden (nesting=1.0). Added build_all_representations.py for artifact generation. Updated frontend dropdown with optgroup categories and benchmark labels. Added dynamic zoom level updates per representation via /api/zoom_levels endpoint. Added 10 new test functions. Total: 24 representations, 107 tests passing. Map mode comparison UI implemented (/api/map/compare endpoint). Factory direction v9 continuous improvement phase active: harden for 192k scale, optimize rendering, jurist evaluation preparation.",
   "known_limitations": [
