@@ -10,7 +10,7 @@ import json
 import os
 import time
 from collections import Counter
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Set, Tuple, Any
 from pathlib import Path
 
 import numpy as np
@@ -24,6 +24,7 @@ from .proximity_explainer import ProximityExplainer
 from .zoom_coherence_loader import ZoomCoherenceLoader
 from .language_analyzer import LanguageAnalyzer
 from .tfidf_proximity import TFIDFProximity
+from .spatial_index import SpatialIndex
 
 
 class NavigationAPI:
@@ -67,6 +68,9 @@ class NavigationAPI:
         self._proximity_cache: Dict[str, Dict] = {}
         self._cache_ttl = 300  # 5 minutes
         self._cache_timestamps: Dict[str, float] = {}
+        
+        # Spatial index for fast viewport queries (KD-tree)
+        self._spatial_indices: Dict[str, SpatialIndex] = {}  # representation -> SpatialIndex
         
         # User import map artifacts
         self._base_embeddings: Optional[np.ndarray] = None
@@ -134,6 +138,9 @@ class NavigationAPI:
         self._import_positions_file.parent.mkdir(parents=True, exist_ok=True)
         self._load_imported_positions()
 
+        # Build spatial indices for fast viewport queries
+        self._build_spatial_indices()
+
         self._initialized = True
 
         return {
@@ -169,6 +176,42 @@ class NavigationAPI:
             self._base_embeddings = None
             self._base_decision_ids = []
             self._embedding_model = None
+
+    def _build_spatial_indices(self) -> None:
+        """Build KD-tree spatial indices for fast viewport queries.
+        
+        Builds one SpatialIndex per representation for the default zoom level.
+        This enables O(sqrt(N) + k) viewport culling instead of O(N) brute-force.
+        """
+        import time as _time
+        t0 = _time.time()
+        count = 0
+        
+        for rep in self.map_loader.get_available_representations():
+            zl = self.map_loader.get_zoom_level(rep, 1)  # Default zoom level
+            if zl and zl.positions:
+                si = SpatialIndex()
+                si.build(zl.positions)
+                self._spatial_indices[rep] = si
+                count += 1
+        
+        elapsed = _time.time() - t0
+        if count > 0:
+            print(f"[SpatialIndex] Built {count} spatial indices in {elapsed:.3f}s")
+
+    def _get_spatial_index(self, representation: str) -> Optional[SpatialIndex]:
+        """Get or build spatial index for a representation."""
+        if representation in self._spatial_indices:
+            return self._spatial_indices[representation]
+        
+        # Build on demand if not pre-built
+        zl = self.map_loader.get_zoom_level(representation, 1)
+        if zl and zl.positions:
+            si = SpatialIndex()
+            si.build(zl.positions)
+            self._spatial_indices[representation] = si
+            return si
+        return None
 
     def _get_default_representation(self) -> str:
         """Get the default representation for map navigation.
@@ -1954,6 +1997,7 @@ class NavigationAPI:
         zoom_level: int,
         map_mode: str = None,
         bbox: Optional[Dict[str, float]] = None,
+        import_ids: Optional[Set[str]] = None,
     ) -> Dict[str, Any]:
         """Get WebGL-optimized rendering data for a map representation.
         
@@ -1990,8 +2034,11 @@ class NavigationAPI:
                 'transform': {'xMin': 0, 'xMax': 0, 'yMin': 0, 'yMax': 0, 'scale': 1.0, 'offsetX': 0, 'offsetY': 0}
             }
 
-        # Get imported decision IDs
-        imported_ids = set(key[0] for key in self._imported_positions.keys())
+        # Get imported decision IDs (caller override takes precedence)
+        if import_ids is not None:
+            imported_ids = import_ids
+        else:
+            imported_ids = set(key[0] for key in self._imported_positions.keys())
 
         # Color palette (pre-computed as RGBA floats for vectorized lookup)
         COLORS = [
@@ -2034,9 +2081,51 @@ class NavigationAPI:
             cluster_ids[i] = cid
             has_section[i] = p.get('has_section_data', True)
 
-        # --- Viewport culling ---
+        # --- LOD: Level-of-detail point decimation for 192k+ scale ---
+        n_total_pre_lod = n_total
+        LOD_LIMITS = {0: 15000, 1: 30000}
+        lod_limit = LOD_LIMITS.get(zoom_level)
+        if lod_limit and n_total > lod_limit:
+            grid_size = max(1, int(np.sqrt(n_total / lod_limit)))
+            x_min_range, x_max_range = xs.min(), xs.max()
+            y_min_range, y_max_range = ys.min(), ys.max()
+            x_range = x_max_range - x_min_range if x_max_range > x_min_range else 1.0
+            y_range = y_max_range - y_min_range if y_max_range > y_min_range else 1.0
+
+            grid_x = ((xs - x_min_range) / x_range * grid_size).astype(int)
+            grid_y = ((ys - y_min_range) / y_range * grid_size).astype(int)
+            grid_keys = grid_x * 100000 + grid_y
+
+            _, unique_indices = np.unique(grid_keys, return_index=True)
+            lod_mask = np.zeros(n_total, dtype=bool)
+            lod_mask[unique_indices] = True
+            n_after_lod = int(lod_mask.sum())
+        else:
+            lod_mask = np.ones(n_total, dtype=bool)
+            n_after_lod = n_total
+
+        # Apply LOD mask, then viewport culling
+        xs = xs[lod_mask]
+        ys = ys[lod_mask]
+        cluster_ids = cluster_ids[lod_mask]
+        has_section = has_section[lod_mask]
+        decision_ids = [decision_ids[i] for i in range(n_total_pre_lod) if lod_mask[i]]
+        n_total = len(xs)
+
+        # --- Viewport culling using KD-tree spatial index ---
         culled_mask = np.ones(n_total, dtype=bool)
-        if bbox and 'xMin' in bbox and 'xMax' in bbox and 'yMin' in bbox and 'yMax' in bbox:
+        visible_cluster_ids = set()
+        
+        spatial_index = self._spatial_indices.get(representation)
+        if spatial_index and bbox and 'xMin' in bbox and 'xMax' in bbox and 'yMin' in bbox and 'yMax' in bbox:
+            # Use KD-tree for fast viewport query (O(sqrt(N) + k) vs O(N))
+            visible_ids = spatial_index.range_query(
+                bbox['xMin'], bbox['yMin'], bbox['xMax'], bbox['yMax']
+            )
+            visible_set = set(visible_ids)
+            culled_mask = np.array([did in visible_set for did in decision_ids], dtype=bool)
+        elif bbox and 'xMin' in bbox and 'xMax' in bbox and 'yMin' in bbox and 'yMax' in bbox:
+            # Fallback: brute-force numpy boolean mask
             x_min_v = bbox['xMin']
             x_max_v = bbox['xMax']
             y_min_v = bbox['yMin']
@@ -2152,6 +2241,12 @@ class NavigationAPI:
             'clusters': clusters,
             'hulls': cluster_hulls,
             'transform': transform,
+            'lod_decimation': {
+                'applied': zoom_level in LOD_LIMITS and n_after_lod < n_total_pre_lod,
+                'original_count': n_total_pre_lod,
+                'decimated_count': n_after_lod,
+                'zoom_level': zoom_level,
+            },
             'viewport_culling': {
                 'requested': bbox is not None,
                 'total_positions': n_total,

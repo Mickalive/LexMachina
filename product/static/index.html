@@ -851,6 +851,19 @@ void main() {
             
             this.pointProgram = this.createProgram(vsSource, fsSource);
             if (!this.pointProgram) return;
+
+            this.pointUniformCache = {
+                u_resolution: this.gl.getUniformLocation(this.pointProgram, 'u_resolution'),
+                u_translation: this.gl.getUniformLocation(this.pointProgram, 'u_translation'),
+                u_scale: this.gl.getUniformLocation(this.pointProgram, 'u_scale'),
+                u_point_size_multiplier: this.gl.getUniformLocation(this.pointProgram, 'u_point_size_multiplier'),
+            };
+            this.pointAttribCache = {
+                a_position: this.gl.getAttribLocation(this.pointProgram, 'a_position'),
+                a_color: this.gl.getAttribLocation(this.pointProgram, 'a_color'),
+                a_radius: this.gl.getAttribLocation(this.pointProgram, 'a_radius'),
+                a_is_imported: this.gl.getAttribLocation(this.pointProgram, 'a_is_imported'),
+            };
             
             // Cluster hull program
             const clusterVsSource = `#version 300 es
@@ -925,22 +938,52 @@ void main() {
             
             // Cluster buffers
             this.clusterPositionBuffer = gl.createBuffer();
+
+            this._allocBytes = { position: 0, color: 0, radius: 0, imported: 0 };
         }
         
         uploadPointData(positions, colors, radii, importedFlags) {
             const gl = this.gl;
-            
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.pointPositionBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.DYNAMIC_DRAW);
-            
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.pointColorBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.DYNAMIC_DRAW);
-            
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.pointRadiusBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(radii), gl.DYNAMIC_DRAW);
-            
-            gl.bindBuffer(gl.ARRAY_BUFFER, this.pointImportedBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(importedFlags), gl.DYNAMIC_DRAW);
+            const posArr = new Float32Array(positions);
+            const colArr = new Float32Array(colors);
+            const radArr = new Float32Array(radii);
+            const impArr = new Float32Array(importedFlags);
+
+            if (posArr.byteLength <= this._allocBytes.position) {
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.pointPositionBuffer);
+                gl.bufferSubData(gl.ARRAY_BUFFER, 0, posArr);
+            } else {
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.pointPositionBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, posArr, gl.DYNAMIC_DRAW);
+                this._allocBytes.position = posArr.byteLength;
+            }
+
+            if (colArr.byteLength <= this._allocBytes.color) {
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.pointColorBuffer);
+                gl.bufferSubData(gl.ARRAY_BUFFER, 0, colArr);
+            } else {
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.pointColorBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, colArr, gl.DYNAMIC_DRAW);
+                this._allocBytes.color = colArr.byteLength;
+            }
+
+            if (radArr.byteLength <= this._allocBytes.radius) {
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.pointRadiusBuffer);
+                gl.bufferSubData(gl.ARRAY_BUFFER, 0, radArr);
+            } else {
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.pointRadiusBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, radArr, gl.DYNAMIC_DRAW);
+                this._allocBytes.radius = radArr.byteLength;
+            }
+
+            if (impArr.byteLength <= this._allocBytes.imported) {
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.pointImportedBuffer);
+                gl.bufferSubData(gl.ARRAY_BUFFER, 0, impArr);
+            } else {
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.pointImportedBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, impArr, gl.DYNAMIC_DRAW);
+                this._allocBytes.imported = impArr.byteLength;
+            }
             
             this.pointCount = positions.length / 2;
         }
@@ -973,38 +1016,30 @@ void main() {
         renderPoints(transform, pointSizeMultiplier) {
             const gl = this.gl;
             const program = this.pointProgram;
+            const uc = this.pointUniformCache;
+            const ac = this.pointAttribCache;
             gl.useProgram(program);
             
-            const uResolution = gl.getUniformLocation(program, 'u_resolution');
-            const uTranslation = gl.getUniformLocation(program, 'u_translation');
-            const uScale = gl.getUniformLocation(program, 'u_scale');
-            const uPointSizeMult = gl.getUniformLocation(program, 'u_point_size_multiplier');
-            
-            gl.uniform2f(uResolution, this.canvas.width, this.canvas.height);
-            gl.uniform2f(uTranslation, transform.translationX, transform.translationY);
-            gl.uniform1f(uScale, transform.scale);
-            gl.uniform1f(uPointSizeMult, pointSizeMultiplier);
-            
-            const aPosition = gl.getAttribLocation(program, 'a_position');
-            const aColor = gl.getAttribLocation(program, 'a_color');
-            const aRadius = gl.getAttribLocation(program, 'a_radius');
-            const aImported = gl.getAttribLocation(program, 'a_is_imported');
+            gl.uniform2f(uc.u_resolution, this.canvas.width, this.canvas.height);
+            gl.uniform2f(uc.u_translation, transform.translationX, transform.translationY);
+            gl.uniform1f(uc.u_scale, transform.scale);
+            gl.uniform1f(uc.u_point_size_multiplier, pointSizeMultiplier);
             
             gl.bindBuffer(gl.ARRAY_BUFFER, this.pointPositionBuffer);
-            gl.enableVertexAttribArray(aPosition);
-            gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(ac.a_position);
+            gl.vertexAttribPointer(ac.a_position, 2, gl.FLOAT, false, 0, 0);
             
             gl.bindBuffer(gl.ARRAY_BUFFER, this.pointColorBuffer);
-            gl.enableVertexAttribArray(aColor);
-            gl.vertexAttribPointer(aColor, 4, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(ac.a_color);
+            gl.vertexAttribPointer(ac.a_color, 4, gl.FLOAT, false, 0, 0);
             
             gl.bindBuffer(gl.ARRAY_BUFFER, this.pointRadiusBuffer);
-            gl.enableVertexAttribArray(aRadius);
-            gl.vertexAttribPointer(aRadius, 1, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(ac.a_radius);
+            gl.vertexAttribPointer(ac.a_radius, 1, gl.FLOAT, false, 0, 0);
             
             gl.bindBuffer(gl.ARRAY_BUFFER, this.pointImportedBuffer);
-            gl.enableVertexAttribArray(aImported);
-            gl.vertexAttribPointer(aImported, 1, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(ac.a_is_imported);
+            gl.vertexAttribPointer(ac.a_is_imported, 1, gl.FLOAT, false, 0, 0);
             
             gl.drawArrays(gl.POINTS, 0, this.pointCount);
         }
@@ -2403,7 +2438,17 @@ void main() {
         } else {
             url = `${API}/api/webgl/data?representation=${currentRep}&zoom=${currentZoom}`;
         }
-        
+
+        const canvas = document.getElementById('map-canvas');
+        if (canvas && canvas._transform) {
+            const t = canvas._transform;
+            const dataXMin = t.xMin - t.offsetX / t.scale;
+            const dataYMin = t.yMin - t.offsetY / t.scale;
+            const dataXMax = dataXMin + canvas.width / t.scale;
+            const dataYMax = dataYMin + canvas.height / t.scale;
+            url += `&xMin=${dataXMin}&yMin=${dataYMin}&xMax=${dataXMax}&yMax=${dataYMax}`;
+        }
+
         try {
             const resp = await fetch(url);
             const webglData = await resp.json();

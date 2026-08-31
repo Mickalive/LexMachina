@@ -23,11 +23,13 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.navigation import NavigationAPI
 from app.evaluation_loader import EvaluationLoader
+from app.import_manager import ImportManager
 
 
 # Global navigation API instance
 _nav_api = None
 _eval_loader = None
+_import_manager = None
 _server_start_time = time.time()
 
 # Rate limiting
@@ -221,6 +223,14 @@ def get_eval_loader() -> EvaluationLoader:
     return _eval_loader
 
 
+def get_import_manager() -> ImportManager:
+    """Get or initialize the import manager."""
+    global _import_manager
+    if _import_manager is None:
+        _import_manager = ImportManager(get_nav_api())
+    return _import_manager
+
+
 def get_default_representation() -> str:
     """Get the default representation for map navigation.
     
@@ -307,6 +317,19 @@ class ProductHandler(SimpleHTTPRequestHandler):
             limit = int(params.get("limit", ["20"])[0])
             language = params.get("language", [None])[0]
             self._json_response(get_nav_api().search_decisions(q, limit, language=language))
+        elif path == "/api/import/status":
+            job_id = params.get("job_id", [""])[0]
+            if not job_id:
+                self._json_response({"error": "job_id parameter required"}, 400)
+            else:
+                self._json_response(get_import_manager().get_status(job_id))
+        elif path == "/api/import/cancel":
+            job_id = params.get("job_id", [""])[0]
+            if not job_id:
+                self._json_response({"error": "job_id parameter required"}, 400)
+            else:
+                success = get_import_manager().cancel_import(job_id)
+                self._json_response({"cancelled": success, "job_id": job_id})
         elif path == "/api/corpus/stats/languages":
             self._handle_cached("corpus_stats_languages",
                 lambda: get_nav_api().get_language_stats(), ttl=600)
@@ -497,6 +520,8 @@ class ProductHandler(SimpleHTTPRequestHandler):
 
         if path == "/api/import":
             self._handle_import()
+        elif path == "/api/import/async":
+            self._handle_async_import()
         elif path == "/api/feedback":
             self._handle_feedback()
         else:
@@ -590,6 +615,29 @@ class ProductHandler(SimpleHTTPRequestHandler):
 
             result = get_nav_api().import_corpus(records)
             self._json_response(result)
+        except Exception as e:
+            self._json_response({"error": str(e)}, 500)
+
+    def _handle_async_import(self):
+        """Handle async corpus import via JSON body. Returns job_id for status polling."""
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(content_length)
+            records = json.loads(body.decode("utf-8"))
+
+            if not isinstance(records, list):
+                records = [records]
+
+            job_id = get_import_manager().submit_import(records)
+            self._json_response({
+                "job_id": job_id,
+                "status": "submitted",
+                "total_records": len(records),
+                "status_url": f"/api/import/status?job_id={job_id}",
+                "cancel_url": f"/api/import/cancel?job_id={job_id}",
+            })
+        except json.JSONDecodeError:
+            self._json_response({"error": "Invalid JSON"}, 400)
         except Exception as e:
             self._json_response({"error": str(e)}, 500)
 

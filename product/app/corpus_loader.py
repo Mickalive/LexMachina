@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 import hashlib
 
 from .schema_validator import SchemaValidator, ValidationResult
+from .inverted_index import InvertedIndex
 
 
 @dataclass
@@ -72,6 +73,8 @@ class CorpusLoader:
         self._user_import_count = 0
         self._user_import_dir = self.corpus_dir.parent / "user_imports"
         self._schema_validator = SchemaValidator()
+        self._search_index = InvertedIndex()
+        self._search_index_built = False
 
     def load(self) -> int:
         """Load all JSONL files from corpus_dir and user imports. Returns count of loaded decisions."""
@@ -85,8 +88,24 @@ class CorpusLoader:
         # Also load any previously imported user corpus
         self.load_user_imports()
 
+        # Build inverted index for fast search
+        self._build_search_index()
+
         self._loaded = True
         return len(self.decisions)
+
+    def _build_search_index(self) -> None:
+        """Build the inverted search index from loaded decisions."""
+        if self._search_index_built:
+            return
+        documents = {}
+        languages = {}
+        for did, d in self.decisions.items():
+            documents[did] = d.full_text or ""
+            languages[did] = d.language
+        if documents:
+            self._search_index.build(documents, languages)
+            self._search_index_built = True
 
     def _load_jsonl(self, filepath: Path) -> None:
         """Load a single JSONL file."""
@@ -145,8 +164,30 @@ class CorpusLoader:
         d = self.get(decision_id)
         return d.to_full() if d else None
 
-    def search(self, query: str, limit: int = 20) -> List[Dict]:
-        """Simple text search across decisions."""
+    def search(self, query: str, limit: int = 20, language: Optional[str] = None) -> List[Dict]:
+        """Fast text search across decisions using inverted index.
+        
+        Args:
+            query: Text search query
+            limit: Maximum results
+            language: Optional language filter (e.g. "de", "fr")
+        """
+        if not self._search_index_built:
+            # Fallback to linear scan if index not built
+            return self._search_linear(query, limit)
+        
+        results = self._search_index.search(query, limit=limit, language=language)
+        summaries = []
+        for doc_id, score in results:
+            d = self.decisions.get(doc_id)
+            if d:
+                summary = d.to_summary()
+                summary["search_score"] = round(score, 6)
+                summaries.append(summary)
+        return summaries
+
+    def _search_linear(self, query: str, limit: int = 20) -> List[Dict]:
+        """Fallback linear scan search."""
         query_lower = query.lower()
         results = []
         for d in self.decisions.values():
@@ -246,6 +287,13 @@ class CorpusLoader:
                 self.decisions[decision.decision_id] = decision
                 imported_ids.append(decision.decision_id)
                 imported += 1
+                # Update inverted index incrementally
+                if self._search_index_built:
+                    self._search_index.add_document(
+                        decision.decision_id,
+                        decision.full_text or "",
+                        decision.language,
+                    )
             else:
                 errors.append(f"Record {i} ({decision_id}): failed to parse normalized record")
                 skipped += 1
