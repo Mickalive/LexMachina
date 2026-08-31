@@ -1,0 +1,25 @@
+{
+  "gate": "PASS",
+  "cycle_id": "33374227571",
+  "lane": "evaluation",
+  "repair_round": 0,
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "v17 adversarial test SUPPORTED (with nuance): cross-lingual legal_area label normalization on IDENTICAL embedding+machinery improves all three hierarchy-family purity metrics (hierarchy +20.2%, zoom fine +22.3%, legal_area +14.8%), satisfying the >=20% success rule on 2/3 metrics. v16 'pure data granularity' attribution was a mis-diagnosis; dominant cause is un-normalized cross-lingual label duplication (105->54 valid labels, -48%). Normalization does NOT flip benchmarks to PASS (hierarchy purity 0.389->0.467, still < 0.7); residual fine granularity + coarse umbrella labels still cap purity. v17b confirms effect is uniform across all 6 representations; relative product ranking NOT distorted; linear_hybrid05_concat benefits most (+24.0% hier). EXPLORATORY tier (correctly labeled). continue_recommended=false. Prior v16 results (run 33366069802) remain ACCEPTED and unaltered.",
+  "evidence_summary": {
+    "v17_machinery_reproduction": "All 4 frozen v16 baseline values reproduced to <= 3e-7 (within claimed 1e-5 tolerance). Raw vs normalized comparison is machinery-fair.",
+    "v17_ratio_verification": "hierarchy=1.2018, zoom_fine=1.2233, legal=1.1476 independently recomputed from JSON, match claimed values exactly.",
+    "v17_success_rule": "Met on 2/3 metrics (hierarchy 1.2018 >= 1.20, zoom_fine 1.2233 >= 1.20). Legal 1.1476 < 1.20 does not meet threshold. success_rule_met_any=True verified.",
+    "v17b_uniformity": "All 6 representations show improvement (ratios 1.127-1.277). uniform_improvement_or_matching=True. No representation worsened by >10%.",
+    "v17b_v16_crossref": "All 6 representations' v17b raw values match v16 benchmark JSON within 4e-7. Product ranking preserved.",
+    "normalization_conservatism": "91-entry map merges only clear cross-lingual equivalents. Distinct topics remain distinct. Umbrella labels unchanged. Tests verify.",
+    "label_count_cosmetic_error": "state/evaluation.json claims 108 unique raw labels; actual count is 105 (metadata) or 104 (valid-only after benchmark filtering). Report text inherits the 108 figure. Non-material: core comparison uses benchmark-level counts (104->54).",
+    "hypothesis_frozen": "Hypothesis and success rule declared in script docstring before execution. Results saved atomically.",
+    "negative_results_preserved": "NMI decrease (0.5218->0.4881) and zoom improvement_pct worsening (-50.6%->-54.4%) both reported in detailed results. Normalization does NOT flip to PASS threshold: explicitly stated.",
+    "file_integrity": "v17 and v17b results JSONs byte-identical to their latest mirrors. All 7 state evidence references point to existing files. No claim-bearing results overwritten.",
+    "test_coverage": "v17: 9 tests (normalization map correctness, v16 reproduction, finding validation, honesty guard). v17b: 6 tests (all-reps presence, v16 raw reproduction, uniformity, per-rep improvement, product default materiality, area count). pytest unavailable in audit env but code inspection confirms test logic matches assertions.",
+    "no_benchmark_gaming": "Only difference between raw/normalized is label encoding. Same embedding, KMeans params, k-grid, seed, decision set.",
+    "no_data_leakage": "Normalization map hand-crafted from external Swiss legal terminology knowledge, not learned from evaluation data.",
+    "no_regressions": "v17/v17b are additive experiments; v16 ACCEPTED results remain intact."
+  }
+}
