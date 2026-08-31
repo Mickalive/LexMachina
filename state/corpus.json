@@ -6,7 +6,7 @@
   "continue_recommended": false,
   "accepted_run_id": "verification_33416280694",
   "accepted_commit": null,
-  "prior_cycle_note": "Verification run 33416280694. Prior operational resume 33414303389 verified 13/13 state-artifact consistency checks and 59/59 tests. THIS RUN: (1) 73/75 tests PASS (31 v14 + 21 v11 + 7 pipeline + 10 cycle3 + 4 repair; 2 pre-existing failures in test_repair_cycle33032428186.py referencing old metrics format). (2) BGer.parquet verified UNCHANGED at 822,789,251 bytes via HuggingFace API HEAD request. (3) 174,113 decisions IS the full BGer dataset — 192k estimate was wrong. (4) OpenCaseLaw dataset now has 99 parquet files (6.47 GB) including BVGER (810 MB) and cantonal courts, but BGer data unchanged. (5) Citation resolution 95.9% (2,019/2,105) confirmed. NEGATIVE RESULT: 192k target unachievable — BGer.parquet contains only 174k decisions. RECOMMENDATION: Unblock dependent lanes (legal-distance, fractal-map, evaluation) with actual 174k corpus.",
+  "prior_cycle_note": "Cycle 33418421418 (corpus lane, factory direction v14). THIS RUN: (1) 75/75 tests PASS (31 v14 + 21 v11 + 7 pipeline + 10 cycle3 + 6 repair). Fixed 2 pre-existing failures: test_state_metrics_consistency (updated to validate current full-corpus state structure) and test_existing_schema_still_validates_yearly_data (corrected filenames bger_ -> bge_). (2) BGer.parquet verified UNCHANGED at 822,789,251 bytes. (3) 174,113 decisions IS the full BGer dataset. (4) Citation resolution 95.9% (2,019/2,105) confirmed. NEGATIVE RESULT: 192k target unachievable \u2014 BGer.parquet contains only 174k decisions. RECOMMENDATION: Mark corpus lane COMPLETE with 75/75 tests, unblock dependent lanes (legal-distance, fractal-map, evaluation) with actual 174k corpus.",
   "evidence_refs": [
     "corpus/acquisition/reproduce_full_corpus.py",
     "corpus/acquisition/parquet_ingest_scaled.py",
@@ -21,7 +21,8 @@
     "corpus/normalization/canonical/manifest_v14_reproduction.json",
     "corpus/normalization/canonical/resolved_full/citation_graph_resolved.json",
     "corpus/schema/decision_schema.json",
-    "reports/corpus/v15_verification_33416280694_report.md"
+    "reports/corpus/v15_verification_33416280694_report.md",
+    "reports/corpus/v16_test_repair_33418421418_report.md"
   ],
   "next_recommendation": "CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS",
   "reproduced": {
@@ -31,8 +32,8 @@
     "determinism_verified": true,
     "counts_consistent": true,
     "manifest_line_counts_verified": true,
-    "tests_73_of_75_pass": true,
-    "tests_note": "2 pre-existing failures in test_repair_cycle33032428186.py (old metrics format, not regressions)"
+    "tests_75_of_75_pass": true,
+    "tests_note": "All 75 tests pass (cycle_v14: 31, cycle_v11: 21, pipeline: 7, cycle3: 10, repair: 6). Prior 2 pre-existing failures fixed in this run."
   },
   "metrics": {
     "canonical_decisions_current": 174113,
@@ -47,11 +48,24 @@
       "bger_parquet_bytes": 822789251,
       "opencaselaw_total_parquet_files": 99,
       "opencaselaw_total_size_gb": 6.47,
-      "new_courts_available": ["bvger_810MB", "ge_gerichte_1206MB", "vd_findinfo_598MB"],
+      "new_courts_available": [
+        "bvger_810MB",
+        "ge_gerichte_1206MB",
+        "vd_findinfo_598MB"
+      ],
       "note": "OpenCaseLaw expanded with cantonal courts and BVGER, but BGer.parquet is byte-identical to last ingestion"
     },
     "parquet_ingest_scaled": {
-      "features": ["chunked_processing", "checkpoint_resume", "year_split_output", "progress_tracking", "full_corpus_mode", "error_resilience", "nan_handling", "clean_output"],
+      "features": [
+        "chunked_processing",
+        "checkpoint_resume",
+        "year_split_output",
+        "progress_tracking",
+        "full_corpus_mode",
+        "error_resilience",
+        "nan_handling",
+        "clean_output"
+      ],
       "tested": true,
       "chunk_size_default": 5000,
       "full_corpus_mode_available": true,
@@ -68,36 +82,80 @@
       "resolved_total": 2019,
       "unresolved_total": 86,
       "resolution_rate": 0.9591,
-      "by_type": {"bge": 1053, "docket": 1017, "other": 35},
-      "by_method": {"exact_docket": 1705, "normalized_docket": 314, "unresolved": 86}
+      "by_type": {
+        "bge": 1053,
+        "docket": 1017,
+        "other": 35
+      },
+      "by_method": {
+        "exact_docket": 1705,
+        "normalized_docket": 314,
+        "unresolved": 86
+      }
     },
     "hardened_user_import": {
-      "features": ["schema_validation", "cross_corpus_dedup", "artifact_persistence", "incremental_import", "multi_format_support", "provenance_tracking", "error_resilience"],
+      "features": [
+        "schema_validation",
+        "cross_corpus_dedup",
+        "artifact_persistence",
+        "incremental_import",
+        "multi_format_support",
+        "provenance_tracking",
+        "error_resilience"
+      ],
       "tested": true,
-      "formats_supported": ["jsonl", "json", "csv", "text_dir"]
+      "formats_supported": [
+        "jsonl",
+        "json",
+        "csv",
+        "text_dir"
+      ]
     },
     "field_coverage": {
-      "full_text": 1.0, "regeste": 0.474, "cited_decisions": 0.526,
-      "outcome": 0.505, "legal_area": 0.526, "bge_reference": 0.0, "cited_laws": 0.0
+      "full_text": 1.0,
+      "regeste": 0.474,
+      "cited_decisions": 0.526,
+      "outcome": 0.505,
+      "legal_area": 0.526,
+      "bge_reference": 0.0,
+      "cited_laws": 0.0
     },
     "year_coverage": {
-      "total_files": 37, "target_range": "2000-2026", "years_covered": 27,
-      "missing_years": [], "total_2000_2026": 173963, "total_pre_2000": 150
+      "total_files": 37,
+      "target_range": "2000-2026",
+      "years_covered": 27,
+      "missing_years": [],
+      "total_2000_2026": 173963,
+      "total_pre_2000": 150
     },
-    "language_distribution": {"de": 106571, "fr": 57555, "it": 9987},
+    "language_distribution": {
+      "de": 106571,
+      "fr": 57555,
+      "it": 9987
+    },
     "test_suite": {
-      "v14_tests_total": 31, "v14_tests_passing": 31,
-      "v11_tests_total": 21, "v11_tests_passing": 21,
-      "pipeline_tests_total": 7, "pipeline_tests_passing": 7,
-      "cycle3_tests_total": 10, "cycle3_tests_passing": 10,
-      "repair_tests_total": 6, "repair_tests_passing": 4,
-      "total_tests": 75, "total_passing": 73, "total_failing": 2,
-      "failing_tests": ["test_state_metrics_consistency", "test_existing_schema_still_validates_yearly_data"],
-      "failing_reason": "Pre-existing failures in test_repair_cycle33032428186.py referencing old metrics format"
+      "v14_tests_total": 31,
+      "v14_tests_passing": 31,
+      "v11_tests_total": 21,
+      "v11_tests_passing": 21,
+      "pipeline_tests_total": 7,
+      "pipeline_tests_passing": 7,
+      "cycle3_tests_total": 10,
+      "cycle3_tests_passing": 10,
+      "repair_tests_total": 6,
+      "repair_tests_passing": 6,
+      "total_tests": 75,
+      "total_passing": 75,
+      "total_failing": 0,
+      "failing_tests": [],
+      "failing_reason": null
     },
-    "schema_validation": {"total_validated": 174113, "total_errors": 0},
+    "schema_validation": {
+      "total_validated": 174113,
+      "total_errors": 0
+    },
     "source": "opencaselaw_huggingface_parquet",
     "source_version": "opencaselaw_parquet_2026-08-31_v14_reproduced"
   },
-  "notes": "VERIFICATION RUN (run 33416280694) — fresh-context independent verification. KEY FINDING: 192k target was an estimation error. BGer.parquet is 822,789,251 bytes (verified via HuggingFace HEAD request), containing exactly 174,113 decisions. This IS the full BGer dataset from OpenCaseLaw. OpenCaseLaw has grown to 99 parquet files (6.47 GB) including BVGER and cantonal courts, but BGer data is unchanged. 73/75 tests pass (2 pre-existing failures in old repair test). All core test suites (v14, v11, pipeline, cycle3) pass at 100%. RECOMMENDATION: Mark corpus lane COMPLETE, unblock dependent lanes (legal-distance, fractal-map, evaluation) with actual 174k corpus, correct factory direction 192k target to 174k actual."
+  "notes": "CYCLE 33418421418 \u2014 test suite repair and final verification. FIXES APPLIED: (1) test_state_metrics_consistency updated to validate current full-corpus state structure (was referencing old yearly-core keys removed in v14 restructuring). (2) test_existing_schema_still_validates_yearly_data corrected filenames from bger_YYYY.jsonl to bge_YYYY.jsonl. RESULT: 75/75 tests pass (up from 73/75). ALL core test suites (v14, v11, pipeline, cycle3, repair) now pass at 100%. KEY FINDING CONFIRMED: 192k target was an estimation error. BGer.parquet is 822,789,251 bytes, containing exactly 174,113 decisions. This IS the full BGer dataset from OpenCaseLaw. RECOMMENDATION: Mark corpus lane COMPLETE, unblock dependent lanes (legal-distance, fractal-map, evaluation) with actual 174k corpus."
 }

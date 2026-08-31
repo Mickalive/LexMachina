@@ -106,9 +106,9 @@ def test_moot_outcome_mapping():
 
 
 def test_state_metrics_consistency():
-    """OPTIONAL FIX: Verify state metrics are internally consistent (updated for repair round 1)."""
+    """Verify state metrics are internally consistent (updated for v14 full-corpus structure)."""
     print("\n" + "=" * 60)
-    print("TEST: State metrics internal consistency (yearly-core vs all)")
+    print("TEST: State metrics internal consistency (full 174k corpus)")
     print("=" * 60)
 
     with open("state/corpus.json", "r") as f:
@@ -116,78 +116,54 @@ def test_state_metrics_consistency():
 
     metrics = state["metrics"]
 
-    # Verify yearly-core metrics consistency (sum to 250)
-    canonical_yearly = metrics["canonical_decisions_normalized_yearly_core"]
-    lang_sum_yearly = sum(metrics["language_distribution_yearly_core"].values())
-    year_sum_yearly = sum(metrics["year_distribution_yearly_core"].values())
-    court_sum_yearly = sum(metrics["court_distribution_yearly_core"].values())
-    branch_sum_yearly = sum(metrics["branch_distribution_yearly_core"].values())
+    # Verify state top-level fields
+    assert state["lane"] == "corpus"
+    assert state["direction_version"] == 14
+    assert state["evidence_tier"] in ("REPRODUCED", "ACCEPTED")
+    assert state["cycle_status"] == "COMPLETED"
 
-    assert lang_sum_yearly == canonical_yearly, (
-        f"language_distribution_yearly_core sum ({lang_sum_yearly}) != "
-        f"canonical_decisions_normalized_yearly_core ({canonical_yearly})"
+    # Verify canonical decision counts are consistent
+    canonical_current = metrics["canonical_decisions_current"]
+    canonical_normalized = metrics["canonical_decisions_normalized"]
+    canonical_unique = metrics["canonical_unique_decision_ids"]
+
+    assert canonical_current == canonical_normalized == canonical_unique, (
+        f"canonical counts inconsistent: current={canonical_current}, "
+        f"normalized={canonical_normalized}, unique={canonical_unique}"
     )
-    assert year_sum_yearly == canonical_yearly, (
-        f"year_distribution_yearly_core sum ({year_sum_yearly}) != "
-        f"canonical_decisions_normalized_yearly_core ({canonical_yearly})"
-    )
-    assert court_sum_yearly == canonical_yearly, (
-        f"court_distribution_yearly_core sum ({court_sum_yearly}) != "
-        f"canonical_decisions_normalized_yearly_core ({canonical_yearly})"
-    )
-    assert branch_sum_yearly == canonical_yearly, (
-        f"branch_distribution_yearly_core sum ({branch_sum_yearly}) != "
-        f"canonical_decisions_normalized_yearly_core ({canonical_yearly})"
+    assert canonical_current > 170000, (
+        f"Expected >170k decisions, got {canonical_current}"
     )
 
-    # Verify full-corpus metrics consistency (sum to 1577)
-    total_all = metrics["canonical_file_lines_total_all"]
-    lang_sum_all = sum(metrics["language_distribution_all"].values())
-    year_sum_all = sum(metrics["year_distribution_all"].values())
-    court_sum_all = sum(metrics["court_distribution_all"].values())
-
-    assert lang_sum_all == total_all, (
-        f"language_distribution_all sum ({lang_sum_all}) != "
-        f"canonical_file_lines_total_all ({total_all})"
-    )
-    assert year_sum_all == total_all, (
-        f"year_distribution_all sum ({year_sum_all}) != "
-        f"canonical_file_lines_total_all ({total_all})"
-    )
-    assert court_sum_all == total_all, (
-        f"court_distribution_all sum ({court_sum_all}) != "
-        f"canonical_file_lines_total_all ({total_all})"
+    # Verify language distribution sums to total
+    lang_sum = sum(metrics["language_distribution"].values())
+    assert lang_sum == canonical_current, (
+        f"language_distribution sum ({lang_sum}) != canonical_decisions_current ({canonical_current})"
     )
 
-    # Verify unique ID counts
-    assert metrics["canonical_unique_decision_ids_yearly_core"] == 250
-    assert metrics["canonical_unique_decision_ids_all"] == 1215
-    assert metrics["total_unique_across_all_canonical"] == 1215
-    assert metrics["slice_1000_decisions"] == 1000
-    assert metrics["slice_1000_overlap_with_yearly"] == 50
+    # Verify year coverage is consistent
+    year_cov = metrics["year_coverage"]
+    assert year_cov["total_2000_2026"] + year_cov["total_pre_2000"] == canonical_current, (
+        f"year_coverage totals ({year_cov['total_2000_2026']} + {year_cov['total_pre_2000']}) "
+        f"!= canonical_decisions_current ({canonical_current})"
+    )
 
-    # Verify parquet metrics corrected
-    assert metrics["parquet_validated"] is False
-    assert "parquet_file_size_mb" not in metrics
-    assert "parquet_total_rows_estimate" not in metrics
-    assert "parquet_sample_loaded" not in metrics
+    # Verify schema validation
+    sv = metrics["schema_validation"]
+    assert sv["total_validated"] == canonical_current
+    assert sv["total_errors"] == 0
 
-    # Verify citation graph metrics corrected
-    assert metrics["citation_graph_edges"] == 0
-    assert metrics["citation_graph_nodes_cited"] == 0
+    # Verify citation resolver exists and has valid rate
+    cr = metrics["citation_resolver"]
+    assert 0.0 < cr["resolution_rate"] <= 1.0
+    assert cr["resolved_total"] + cr["unresolved_total"] == cr["total_references_in_graph"]
 
-    print(f"  canonical_decisions_normalized_yearly_core: {canonical_yearly}")
-    print(f"  language_distribution_yearly_core sum: {lang_sum_yearly}")
-    print(f"  year_distribution_yearly_core sum: {year_sum_yearly}")
-    print(f"  court_distribution_yearly_core sum: {court_sum_yearly}")
-    print(f"  branch_distribution_yearly_core sum: {branch_sum_yearly}")
-    print(f"  canonical_file_lines_total_all: {total_all}")
-    print(f"  language_distribution_all sum: {lang_sum_all}")
-    print(f"  year_distribution_all sum: {year_sum_all}")
-    print(f"  court_distribution_all sum: {court_sum_all}")
-    print(f"  parquet_validated: {metrics['parquet_validated']}")
-    print(f"  citation_graph_edges: {metrics['citation_graph_edges']}")
-    print("✓ State metrics are consistent (yearly-core and all populations separated)")
+    print(f"  canonical_decisions_current: {canonical_current}")
+    print(f"  language_distribution sum: {lang_sum}")
+    print(f"  year_coverage total: {year_cov['total_2000_2026']} + {year_cov['total_pre_2000']}")
+    print(f"  schema_validation: {sv['total_validated']} validated, {sv['total_errors']} errors")
+    print(f"  citation_resolution_rate: {cr['resolution_rate']:.4f}")
+    print("✓ State metrics are consistent (full 174k corpus structure)")
     return True
 
 
@@ -204,11 +180,11 @@ def test_existing_schema_still_validates_yearly_data():
     total = 0
     errors_count = 0
     yearly_files = [
-        "corpus/normalization/canonical/bger_2020.jsonl",
-        "corpus/normalization/canonical/bger_2021.jsonl",
-        "corpus/normalization/canonical/bger_2022.jsonl",
-        "corpus/normalization/canonical/bger_2023.jsonl",
-        "corpus/normalization/canonical/bger_2024.jsonl",
+        "corpus/normalization/canonical/bge_2020.jsonl",
+        "corpus/normalization/canonical/bge_2021.jsonl",
+        "corpus/normalization/canonical/bge_2022.jsonl",
+        "corpus/normalization/canonical/bge_2023.jsonl",
+        "corpus/normalization/canonical/bge_2024.jsonl",
     ]
 
     for fpath in yearly_files:
