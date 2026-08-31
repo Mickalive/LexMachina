@@ -154,7 +154,7 @@ prior cycle.
 - `corpus/normalization/canonical/bger_YYYY.jsonl` (37 files, 1986–2026) — regenerated data (gitignored, regenerable)
 - `corpus/acquisition/parquet_ingest_scaled.py` — added `clean_output`/`--clean-output` (append-mode fix)
 - `state/corpus.json` — corrected, honest, REPRODUCED-tier state
-- `reports/corpus/operational_resume_33381533249.md` — this report
+- `corpus/reports/operational_resume_33381533249.md` — this report
 
 ---
 
