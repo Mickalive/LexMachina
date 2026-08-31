@@ -101,7 +101,13 @@ class CorpusLoader:
         documents = {}
         languages = {}
         for did, d in self.decisions.items():
-            documents[did] = d.full_text or ""
+            # Include full_text, docket_number, and title for comprehensive search
+            searchable_text = " ".join(filter(None, [
+                d.full_text or "",
+                d.docket_number or "",
+                d.title or "",
+            ]))
+            documents[did] = searchable_text
             languages[did] = d.language
         if documents:
             self._search_index.build(documents, languages)
@@ -287,13 +293,18 @@ class CorpusLoader:
                 self.decisions[decision.decision_id] = decision
                 imported_ids.append(decision.decision_id)
                 imported += 1
-                # Update inverted index incrementally
-                if self._search_index_built:
-                    self._search_index.add_document(
-                        decision.decision_id,
-                        decision.full_text or "",
-                        decision.language,
-                    )
+# Update inverted index incrementally
+            if self._search_index_built:
+                searchable_text = " ".join(filter(None, [
+                    decision.full_text or "",
+                    decision.docket_number or "",
+                    decision.title or "",
+                ]))
+                self._search_index.add_document(
+                    decision.decision_id,
+                    searchable_text,
+                    decision.language,
+                )
             else:
                 errors.append(f"Record {i} ({decision_id}): failed to parse normalized record")
                 skipped += 1
