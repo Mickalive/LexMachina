@@ -1,17 +1,20 @@
 {
   "lane": "corpus",
-  "direction_version": 11,
+  "direction_version": 14,
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "corpus_cycle_v11_20260831",
+  "accepted_run_id": "corpus_cycle_v14_33376701337",
   "accepted_commit": null,
   "evidence_refs": [
     "corpus/acquisition/parquet_ingest_scaled.py",
     "corpus/acquisition/citation_resolver.py",
     "corpus/acquisition/user_import_hardened.py",
-    "corpus/tests/test_cycle_v11.py",
-    "corpus/reports/cycle_report_v11_20260831.md",
+    "corpus/tests/test_cycle_v14.py",
+    "corpus/normalization/canonical/ingestion_metrics.json",
+    "corpus/normalization/canonical/validation_report_v14.json",
+    "corpus/normalization/canonical/resolved_full/citation_graph_resolved.json",
+    "corpus/normalization/canonical/run_validation.py",
     "corpus/acquisition/parquet_ingest.py",
     "corpus/acquisition/opencaselaw_client.py",
     "corpus/acquisition/user_import.py",
@@ -19,30 +22,48 @@
     "corpus/normalization/canonical/citation_graph.json",
     "corpus/schema/decision_schema.json",
     "corpus/tests/test_pipeline.py",
+    "corpus/tests/test_cycle_v11.py",
     "corpus/tests/test_cycle3.py",
     "corpus/tests/test_repair_cycle33032428186.py"
   ],
-  "next_recommendation": "DONE",
+  "next_recommendation": "BLOCKED_ON_DATA_SOURCE",
   "metrics": {
-    "canonical_decisions_current": 1577,
-    "canonical_unique_decision_ids": 1215,
+    "canonical_decisions_current": 174363,
+    "canonical_decisions_normalized": 174113,
+    "canonical_unique_decision_ids": 175690,
     "target_corpus_size": "192000",
-    "scaling_readiness": "pipeline_ready_needs_full_parquet_run",
+    "actual_opencaselaw_size": 174113,
+    "scaling_readiness": "FULL_CORPUS_INGESTED",
     "parquet_ingest_scaled": {
-      "features": ["chunked_processing", "checkpoint_resume", "year_split_output", "progress_tracking", "full_corpus_mode", "error_resilience"],
+      "features": ["chunked_processing", "checkpoint_resume", "year_split_output", "progress_tracking", "full_corpus_mode", "error_resilience", "nan_handling"],
       "tested": true,
       "chunk_size_default": 5000,
-      "full_corpus_mode_available": true
+      "full_corpus_mode_available": true,
+      "nan_fix_added_v14": true,
+      "elapsed_seconds": 210.5,
+      "decisions_per_second": 827.33
     },
     "citation_resolver": {
-      "decisions_indexed": 1577,
-      "docket_entries_indexed": 1215,
+      "decisions_indexed": 175690,
+      "docket_entries_indexed": 174529,
       "bge_entries_indexed": 0,
       "total_references_in_graph": 2105,
-      "resolved_docket_refs": 184,
-      "unresolved_bge_refs": 1053,
-      "resolution_rate_current": 0.0874,
-      "resolution_rate_note": "Low because bge_reference fields not populated in current corpus; full 192k corpus will dramatically improve resolution",
+      "resolved_total": 978,
+      "unresolved_total": 1127,
+      "resolution_rate": 0.4646,
+      "resolution_rate_note": "46.5% overall; docket refs resolve at 96.2% (978/1017); BGE refs resolve at 0% (0/1053) because OpenCaseLaw Parquet bge_reference field is empty across all 174k decisions",
+      "bge_reference_fill_rate": 0.0,
+      "bge_resolution_blocker": "Parquet dataset does not populate bge_reference field; BGE volume/page identifiers absent from structured data",
+      "by_type": {
+        "bge": 1053,
+        "docket": 1017,
+        "other": 35
+      },
+      "by_method": {
+        "exact_docket": 664,
+        "normalized_docket": 314,
+        "unresolved": 1127
+      },
       "resolution_methods": ["exact_docket", "normalized_docket", "exact_bge", "normalized_bge", "unresolved"]
     },
     "hardened_user_import": {
@@ -52,13 +73,41 @@
       "artifacts_persisted": ["manifest.json", "decision_index.json", "content_hash_index.json", "year_index.json"],
       "cross_corpus_dedup": true
     },
+    "field_coverage": {
+      "full_text": 1.0,
+      "regeste": 0.47,
+      "cited_decisions": 0.53,
+      "outcome": 0.512,
+      "legal_area": 0.53,
+      "bge_reference": 0.0,
+      "cited_laws": 0.0
+    },
+    "year_coverage": {
+      "total_files": 37,
+      "target_range": "2000-2026",
+      "years_covered": 27,
+      "missing_years": [],
+      "total_2000_2026": 174213,
+      "total_pre_2000": 150
+    },
+    "language_distribution": {
+      "de": 106571,
+      "fr": 57555,
+      "it": 9987
+    },
     "test_suite": {
+      "v14_tests_total": 31,
+      "v14_tests_passing": 31,
       "v11_tests_total": 21,
       "v11_tests_passing": 21,
-      "existing_tests_total": 38,
-      "existing_tests_passing": 38,
-      "total_tests": 59,
-      "total_passing": 59
+      "pipeline_tests_total": 38,
+      "pipeline_tests_passing": 38,
+      "total_tests": 90,
+      "total_passing": 90
+    },
+    "schema_validation": {
+      "total_validated": 174363,
+      "total_errors": 0
     },
     "existing_infrastructure_preserved": {
       "opencaselaw_client": true,
@@ -68,8 +117,8 @@
       "statute_extractor": true,
       "decision_schema": true
     },
-    "source": "opencaselaw_api",
-    "source_version": "opencaselaw_parquet_2026-08-31_v11"
+    "source": "opencaselaw_huggingface_parquet",
+    "source_version": "opencaselaw_parquet_2026-08-31_v14"
   },
-  "notes": "v11 cycle: built three new pipeline components for factory direction v11 question. (1) parquet_ingest_scaled.py: chunked Parquet ingestion with checkpoint/resume, year-split output, full_corpus mode — ready for 192k run. (2) citation_resolver.py: builds docket+BGE index from canonical corpus, resolves text refs to decision_ids; current 8.7% resolution rate expected since bge_reference fields not yet populated at 1,577 scale. (3) user_import_hardened.py: production-grade import with schema validation, cross-corpus dedup, 4 artifact types persisted. All 59 tests pass (21 v11 + 38 existing). Pipeline ready for full 192k Parquet ingestion run when HuggingFace dataset is downloaded."
+  "notes": "v14 cycle: Full-scale OpenCaseLaw Parquet ingestion completed. 174,113 decisions normalized (174,363 total with year files), across 37 year files (1986-2026). 2000-2026 target range fully covered with 174,213 decisions. Citation resolution improved from 8.7% to 46.5% (978/2,105 references resolved). Docket references resolve at 96.2% (978/1,017). CRITICAL NEGATIVE RESULT: BGE/ATF citation resolution remains at 0% (0/1,053) because the OpenCaseLaw Parquet dataset does NOT populate the bge_reference field — 0% fill rate across all 174k decisions. This is a data source limitation, not a code limitation. NaN handling fix added to parquet_ingest_scaled.py (_clean_nan function). Schema validation: 0 errors across 174,363 records. All 90 tests pass (31 v14 + 21 v11 + 38 pipeline). User corpus import hardened (from v11) continues to work. RECOMMENDATION: Corpus lane has delivered its primary objective — full corpus scale for downstream lanes. BGE/ATF resolution requires external BGE-to-docket mapping data (not available in OpenCaseLaw Parquet). Downstream lanes (legal-distance, fractal-map, evaluation) can now run at 174k scale. CORPUS LANE IS COMPLETE for current factory direction question."
 }

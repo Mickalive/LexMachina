@@ -41,8 +41,25 @@ def download_parquet(url: str, output_path: str, force: bool = False) -> str:
     return output_path
 
 
+def _clean_nan(row: Dict[str, Any]) -> Dict[str, Any]:
+    """Convert NaN/NaT values from pandas to None for schema validation."""
+    import math
+    cleaned = {}
+    for k, v in row.items():
+        if v is None:
+            cleaned[k] = None
+        elif isinstance(v, float) and math.isnan(v):
+            cleaned[k] = None
+        else:
+            cleaned[k] = v
+    return cleaned
+
+
 def parse_parquet_row(row: Dict[str, Any]) -> Dict[str, Any]:
     """Parse a single Parquet row into fields matching our raw schema."""
+    # Clean NaN values from pandas
+    row = _clean_nan(row)
+
     full_text = (
         row.get("text")
         or row.get("full_text")
@@ -90,6 +107,8 @@ def parse_parquet_row(row: Dict[str, Any]) -> Dict[str, Any]:
         "outcome": row.get("outcome"),
         "regeste": row.get("regeste"),
         "cited_decisions": row.get("cited_decisions"),
+        "citation_string_de": row.get("citation_string_de") or row.get("bge_reference"),
+        "canonical_url": row.get("url") or row.get("source_url") or f"bger://{decision_id}",
         "cited_laws": row.get("cited_laws"),
         "judges": row.get("judges"),
         "source_url": row.get("url") or row.get("source_url"),
@@ -280,8 +299,11 @@ def parquet_to_canonical_scaled(
         if chunk_idx in completed_chunks:
             continue
 
-        # Read row groups via pyarrow (memory-efficient)
-        table = pq.read_table(local_path, groups=rg_indices)
+        # Read row groups via pyarrow ParquetFile API (memory-efficient)
+        table = pq.read_table(local_path, filters=None)
+        # Read only specific row groups for this chunk
+        tables = [pf.read_row_group(i) for i in rg_indices]
+        table = pq.concat_tables(tables) if len(tables) > 1 else tables[0]
         chunk_df = table.to_pandas()
         chunk_rows = len(chunk_df)
         total_input_rows += chunk_rows
