@@ -42,7 +42,7 @@ Performed a fresh deterministic reproduction of the full 174,113-decision corpus
 | Language distribution | DE: 106,571 / FR: 57,555 / IT: 9,987 |
 | Schema validation | 0 errors |
 | Row processing errors | 0 |
-| Ingestion rate | ~837 decisions/second |
+| Ingestion rate | ~1,427 decisions/second |
 
 ### Citation Resolution (fresh run)
 
@@ -66,7 +66,7 @@ Performed a fresh deterministic reproduction of the full 174,113-decision corpus
 
 2. **Full BGer dataset:** The 174,113 count represents the complete Swiss Federal Supreme Court (BGer) dataset available in OpenCaseLaw's HuggingFace parquet. The original 192k target was an over-estimate; the actual dataset has 174k decisions.
 
-3. **Field coverage at scale:** Full text: 100%, regeste: 47.4%, cited_decisions: 99.3%, outcome: 100% (sampled from 2024).
+3. **Field coverage at scale:** Full text: 100%, regeste: 47.4%, cited_decisions: 52.6%, outcome: 50.5% (sampled from validation_report_v14.json, 1000-record cross-year sample).
 
 4. **All pipeline objectives from factory direction v14 achieved:**
    - Scale from 1,577 to full coverage ✓ (174,113 decisions)
