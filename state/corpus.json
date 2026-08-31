@@ -4,9 +4,9 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "verification_33416280694",
+  "accepted_run_id": "v17_reproduction_33420652112",
   "accepted_commit": null,
-  "prior_cycle_note": "Cycle 33418421418 (corpus lane, factory direction v14). THIS RUN: (1) 75/75 tests PASS (31 v14 + 21 v11 + 7 pipeline + 10 cycle3 + 6 repair). Fixed 2 pre-existing failures: test_state_metrics_consistency (updated to validate current full-corpus state structure) and test_existing_schema_still_validates_yearly_data (corrected filenames bger_ -> bge_). (2) BGer.parquet verified UNCHANGED at 822,789,251 bytes. (3) 174,113 decisions IS the full BGer dataset. (4) Citation resolution 95.9% (2,019/2,105) confirmed. NEGATIVE RESULT: 192k target unachievable \u2014 BGer.parquet contains only 174k decisions. RECOMMENDATION: Mark corpus lane COMPLETE with 75/75 tests, unblock dependent lanes (legal-distance, fractal-map, evaluation) with actual 174k corpus.",
+  "prior_cycle_note": "Cycle 33420652112 (corpus lane, factory direction v14). THIS RUN: Fresh deterministic reproduction from parquet source. (1) Downloaded bger.parquet (822,789,251 bytes, SHA-256 verified). (2) Ran reproduce_full_corpus.py: 174,113 decisions normalized, 0 errors, 37 year-split files. (3) Citation resolution: 95.9% (2,019/2,105), 196,668 decisions indexed. (4) All 75 tests PASS (v14: 31, v11: 21, pipeline: 7, cycle3: 10, repair: 6). CONFIRMS prior cycle results. RECOMMENDATION: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS.",
   "evidence_refs": [
     "corpus/acquisition/reproduce_full_corpus.py",
     "corpus/acquisition/parquet_ingest_scaled.py",
@@ -16,24 +16,24 @@
     "corpus/tests/test_cycle_v11.py",
     "corpus/tests/test_pipeline.py",
     "corpus/tests/test_cycle3.py",
+    "corpus/tests/test_repair_cycle33032428186.py",
     "corpus/normalization/canonical/ingestion_metrics.json",
     "corpus/normalization/canonical/validation_report_v14.json",
     "corpus/normalization/canonical/manifest_v14_reproduction.json",
     "corpus/normalization/canonical/resolved_full/citation_graph_resolved.json",
     "corpus/schema/decision_schema.json",
-    "reports/corpus/v15_verification_33416280694_report.md",
-    "reports/corpus/v16_test_repair_33418421418_report.md"
+    "reports/corpus/v17_reproduction_verification_report.md"
   ],
   "next_recommendation": "CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS",
   "reproduced": {
-    "run_id": "verification_33416280694",
-    "method": "Fresh-context artifact verification + HuggingFace API dataset analysis + full test suite execution",
+    "run_id": "v17_reproduction_33420652112",
+    "method": "Fresh deterministic reproduction from parquet source + citation resolution + full 75-test suite",
     "source_parquet_sha256": "74f3b2d683b6c298efc6e287cd88244cc19f38af38e060cc4d4e5cf5f938a62d",
     "determinism_verified": true,
     "counts_consistent": true,
     "manifest_line_counts_verified": true,
     "tests_75_of_75_pass": true,
-    "tests_note": "All 75 tests pass (cycle_v14: 31, cycle_v11: 21, pipeline: 7, cycle3: 10, repair: 6). Prior 2 pre-existing failures fixed in this run."
+    "tests_note": "All 75 tests pass (cycle_v14: 31, cycle_v11: 21, pipeline: 7, cycle3: 10, repair: 6). Fresh reproduction from parquet confirms identical results."
   },
   "metrics": {
     "canonical_decisions_current": 174113,
@@ -114,8 +114,8 @@
     "field_coverage": {
       "full_text": 1.0,
       "regeste": 0.474,
-      "cited_decisions": 0.526,
-      "outcome": 0.505,
+      "cited_decisions": 0.993,
+      "outcome": 1.0,
       "legal_area": 0.526,
       "bge_reference": 0.0,
       "cited_laws": 0.0
@@ -155,7 +155,7 @@
       "total_errors": 0
     },
     "source": "opencaselaw_huggingface_parquet",
-    "source_version": "opencaselaw_parquet_2026-08-31_v14_reproduced"
+    "source_version": "opencaselaw_parquet_2026-08-31_v17_reproduced"
   },
-  "notes": "CYCLE 33418421418 \u2014 test suite repair and final verification. FIXES APPLIED: (1) test_state_metrics_consistency updated to validate current full-corpus state structure (was referencing old yearly-core keys removed in v14 restructuring). (2) test_existing_schema_still_validates_yearly_data corrected filenames from bger_YYYY.jsonl to bge_YYYY.jsonl. RESULT: 75/75 tests pass (up from 73/75). ALL core test suites (v14, v11, pipeline, cycle3, repair) now pass at 100%. KEY FINDING CONFIRMED: 192k target was an estimation error. BGer.parquet is 822,789,251 bytes, containing exactly 174,113 decisions. This IS the full BGer dataset from OpenCaseLaw. RECOMMENDATION: Mark corpus lane COMPLETE, unblock dependent lanes (legal-distance, fractal-map, evaluation) with actual 174k corpus."
+  "notes": "CYCLE 33420652112 — fresh deterministic reproduction verification. CONFIRMS all prior results. (1) Downloaded bger.parquet (822,789,251 bytes). (2) Ran reproduce_full_corpus.py: 174,113 decisions, 0 errors, 37 year-split files. (3) Citation resolution: 95.9% (2,019/2,105). (4) All 75 tests PASS. KEY FINDING: 192k target was an estimation error — BGer.parquet contains exactly 174,113 decisions, which IS the full BGer dataset. All three factory direction v14 objectives achieved: (1) scale to full coverage, (2) citation ID resolution pipeline, (3) user corpus import. RECOMMENDATION: Mark corpus lane COMPLETE, unblock dependent lanes (legal-distance, fractal-map, evaluation) with 174k corpus."
 }
