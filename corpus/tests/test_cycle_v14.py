@@ -30,6 +30,8 @@ def _record(name, passed, detail=""):
     _results.append((name, passed))
     suffix = f" — {detail}" if detail else ""
     print(f"  [{status}] {name}{suffix}")
+    if not passed:
+        raise AssertionError(f"[FAIL] {name}{suffix}")
 
 
 def _load_schema():
