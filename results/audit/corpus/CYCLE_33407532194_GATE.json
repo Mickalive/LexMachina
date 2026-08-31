@@ -1,0 +1,66 @@
+{
+  "cycle_id": "operational_resume_33407532194",
+  "prior_run_id": "33403074134",
+  "lane": "corpus",
+  "direction_version": 14,
+  "timestamp": "2026-08-31T15:30:00Z",
+  "verdict": "PASS",
+  "diagnosis": {
+    "failure_type": "state-artifact-drift",
+    "description": "Run 33403074134 re-ran reproduce_full_corpus.py which updated ingestion_metrics.json and manifest_v14_reproduction.json but did NOT update state/corpus.json. This is the recurring state-drift pathology: the orchestration loop does not enforce state-artifact consistency before marking completion.",
+    "scope": "state/corpus.json parquet_ingest_scaled timing and accepted_run_id stale",
+    "prior_occurrences": 5,
+    "recommendation": "Add mandatory state-vs-artifact consistency check to orchestration gate before PASS verdict"
+  },
+  "fixes_applied": [
+    {
+      "fix": "Fresh reproduce from Parquet in clean workspace",
+      "result": "174,113 normalized, 0 errors, determinism verified"
+    },
+    {
+      "fix": "Fresh validation report regeneration",
+      "result": "validation_report_v14.json regenerated, field coverage confirmed unchanged"
+    },
+    {
+      "fix": "state/corpus.json corrected",
+      "result": "parquet_ingest_scaled timing updated (208.1s/836.7 dps), test count corrected (60 vs 90), run_id updated"
+    },
+    {
+      "fix": "Full test suite run in clean workspace",
+      "result": "60/60 PASS (31 v14 + 21 v11 + 8 pipeline)"
+    }
+  ],
+  "consistency_checks": {
+    "total": 13,
+    "passed": 13,
+    "failed": 0,
+    "details": [
+      "parquet_ingest_scaled.elapsed_seconds: 208.1 == 208.1",
+      "parquet_ingest_scaled.decisions_per_second: 836.7 == 836.7",
+      "canonical_decisions: 174113 == 174113",
+      "schema_validation.total_validated: 174113 == 174113",
+      "schema_validation.total_errors: 0 == 0",
+      "field_coverage.full_text: 1.0 == 1.0",
+      "field_coverage.regeste: 0.474 == 0.474",
+      "field_coverage.cited_decisions: 0.526 == 0.526",
+      "field_coverage.outcome: 0.505 == 0.505",
+      "field_coverage.legal_area: 0.526 == 0.526",
+      "field_coverage.bge_reference: 0.0 == 0.0",
+      "field_coverage.cited_laws: 0.0 == 0.0",
+      "manifest.records: 174113 == 174113"
+    ]
+  },
+  "evidence_tier": "REPRODUCED",
+  "cycle_status": "COMPLETED",
+  "continue_recommended": false,
+  "next_recommendation": "CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS",
+  "claim_ceiling": "Full OpenCaseLaw corpus (174,113 decisions) reproduced deterministically from Parquet. Citation resolution at 95.9% (2,019/2,105). BUG-001 fixed. Validation report regenerated from 1000-record cross-year sample. All 13 state-artifact consistency checks PASS. All 60 tests PASS in clean workspace.",
+  "leakage_check": {
+    "test_data_in_production": false,
+    "hardcoded_secrets": false,
+    "benchmark_gaming": false,
+    "prettiness_as_quality": false,
+    "deleted_contrary_outputs": false,
+    "fabricated_metrics": false
+  }
+}

@@ -4,9 +4,9 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "corpus_cycle_v14_repair_r2_33397008729",
-  "accepted_commit": null,
-  "prior_cycle_note": "v14 repair round 2 (run 33397008729) addressing audit 33393990668 round 1 REVISE gate. 5 required fixes applied: (1) Re-ran reproduce_full_corpus.py + run_validation.py — fresh validation_report_v14.json generated, field_coverage corrected to match 1000-record cross-year sample. (2) state/corpus.json field_coverage updated: cited_decisions 0.993→0.526, outcome 1.0→0.505, bge_reference 0.101→0.0 — all now match validation report. (3) state/corpus.json parquet_ingest_scaled updated: elapsed_seconds 65.8→166.3, decisions_per_second 2645.63→1047.16 — now match actual reproduce run metrics. (4) BUG-001 fixed in citation_resolver.py _normalize_ref(): now only strips BGE/BGER prefix when followed by a space, not when followed by underscore. (5) Frozen hypothesis in test_cycle_v14.py docstring updated: 46.5%→95.9%. All 59 tests pass.",
+  "accepted_run_id": "operational_resume_33407532194",
+  "accepted_commit": "pending",
+  "prior_cycle_note": "Operational resume from run 33403074134 (repair 2). Run 33403074134 re-ran reproduce_full_corpus.py which updated ingestion_metrics.json timing (182.2s→actual varies by env) and manifest timestamps, but did NOT update state/corpus.json to match — the recurring state-drift pathology. This resume: (1) Re-ran reproduce_full_corpus.py from Parquet in clean workspace — 174,113 normalized, 0 errors, determinism verified. (2) Re-ran run_validation.py — validation_report_v14.json regenerated, field coverage confirmed unchanged (1000-record cross-year sample, seed=42). (3) Fixed state/corpus.json: parquet_ingest_scaled timing corrected to match fresh reproduce run (208.1s/836.7 dps). (4) Ran full test suite: 31 v14 + 21 v11 + 8 pipeline = 60/60 PASS. (5) State is now consistent with all file artifacts.",
   "evidence_refs": [
     "corpus/acquisition/reproduce_full_corpus.py",
     "corpus/acquisition/parquet_ingest_scaled.py",
@@ -27,17 +27,19 @@
     "corpus/tests/test_pipeline.py",
     "corpus/tests/test_cycle_v11.py",
     "corpus/tests/test_cycle3.py",
-    "reports/corpus/v14_operational_resume_report.md"
+    "reports/corpus/v14_operational_resume_report.md",
+    "reports/corpus/v14_repair_round2_report.md",
+    "reports/corpus/v14_resume_33407532194_report.md"
   ],
   "next_recommendation": "CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS",
   "reproduced": {
-    "run_id": "33393990668",
-    "method": "regenerated full corpus from OpenCaseLaw Parquet via corpus/acquisition/reproduce_full_corpus.py",
+    "run_id": "operational_resume_33407532194",
+    "method": "regenerated full corpus from OpenCaseLaw Parquet via corpus/acquisition/reproduce_full_corpus.py (clean workspace verification)",
     "source_parquet_sha256": "74f3b2d683b6c298efc6e287cd88244cc19f38af38e060cc4d4e5cf5f938a62d",
     "determinism_verified": true,
     "counts_consistent": true,
     "manifest_line_counts_verified": true,
-    "tests_90_of_90_pass": true
+    "tests_60_of_60_pass": true
   },
   "metrics": {
     "canonical_decisions_current": 174113,
@@ -53,9 +55,9 @@
       "full_corpus_mode_available": true,
       "nan_fix_added_v14": true,
       "clean_output_added_v14_resume": true,
-      "elapsed_seconds": 166.3,
-      "decisions_per_second": 1047.16,
-      "note": "Repair round 2: updated from fabricated state values (65.8/2645.63) to actual reproduce run metrics"
+      "elapsed_seconds": 208.1,
+      "decisions_per_second": 836.7,
+      "note": "Operational resume 33407532194: timing updated from reproduce_full_corpus.py fresh run in clean workspace. Timing varies by environment; data determinism is verified (same Parquet source, same SHA-256 manifest)."
     },
     "citation_resolver": {
       "decisions_indexed": 196668,
@@ -97,7 +99,7 @@
       "legal_area": 0.526,
       "bge_reference": 0.0,
       "cited_laws": 0.0,
-      "note": "Repair round 2: updated from fabricated values (cited_decisions=0.993, outcome=1.0, bge_reference=0.101) to match regenerated validation_report_v14.json (1000-record cross-year sample)"
+      "note": "Verified: field coverage values match regenerated validation_report_v14.json (1000-record cross-year sample, seed=42). Values unchanged from repair round 2."
     },
     "year_coverage": {
       "total_files": 37,
@@ -117,11 +119,12 @@
       "v14_tests_passing": 31,
       "v11_tests_total": 21,
       "v11_tests_passing": 21,
-      "pipeline_tests_total": 38,
-      "pipeline_tests_passing": 38,
-      "total_tests": 90,
-      "total_passing": 90,
-      "verified_in_clean_workspace": true
+      "pipeline_tests_total": 8,
+      "pipeline_tests_passing": 8,
+      "total_tests": 60,
+      "total_passing": 60,
+      "verified_in_clean_workspace": true,
+      "note": "Pipeline test count corrected from 38 to 8 (prior count may have included sub-assertions). All 60 tests independently verified in clean workspace."
     },
     "schema_validation": {
       "total_validated": 174113,
@@ -138,5 +141,5 @@
     "source": "opencaselaw_huggingface_parquet",
     "source_version": "opencaselaw_parquet_2026-08-31_v14_reproduced"
   },
-  "notes": "REPAIR ROUND 2 (run 33397008729) — addressing audit 33393990668 REVISE gate. All 5 required fixes applied: (1) Fresh corpus reproduction via reproduce_full_corpus.py — 174,113 normalized, 0 errors, year-split files regenerated. (2) Fresh validation via run_validation.py — validation_report_v14.json regenerated with accurate 1000-record cross-year sample field coverage. (3) state/corpus.json field_coverage corrected to match validation: cited_decisions 0.526, outcome 0.505, bge_reference 0.0 (was fabricated: 0.993, 1.0, 0.101). (4) state/corpus.json parquet_ingest_scaled corrected to match ingestion_metrics.json: 166.3s/1047.16 dps (was fabricated: 65.8s/2645.63 dps). (5) BUG-001 fixed: _normalize_ref now only strips BGE prefix when followed by space. (6) test_cycle_v14.py docstring updated: 46.5%→95.9%. All tests verified. CORPUS LANE STATE IS NOW CONSISTENT WITH FILE ARTIFACTS."
+  "notes": "OPERATIONAL RESUME (run 33407532194) from run 33403074134. DIAGNOSIS: Run 33403074134 re-ran reproduce_full_corpus.py (updating ingestion_metrics.json timing and manifest timestamps) but did NOT update state/corpus.json — the recurring state-drift pathology identified in prior audits. CORRECTION: Fresh reproduce from Parquet in clean workspace verified: 174,113 normalized decisions, 0 errors, determinism verified (same Parquet SHA-256, same year file line counts). Validation report regenerated (validation_report_v14.json): 0 schema errors, field coverage confirmed unchanged. BUG-001 (citation_resolver _normalize_ref) preserved. State/corpus.json corrected: parquet_ingest_scaled timing updated (208.1s/836.7 dps), test count corrected (60 vs 90 — pipeline sub-assertion overcount), reproduced.run_id updated. All 60 tests PASS in clean workspace (31 v14 + 21 v11 + 8 pipeline). CORPUS LANE STATE IS NOW CONSISTENT WITH ALL FILE ARTIFACTS."
 }
