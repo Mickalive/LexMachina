@@ -1495,6 +1495,49 @@ def test_citing_alpha0_3():
     return True
 
 
+def test_linear_hybrid05_concat():
+    """Test linear_hybrid05_concat representation (v15b ACCEPTED - BEST STABLE combination).
+
+    Equal-weight concatenation of linear_metric_best (128D) + cited_outcome_hybrid_0.5 (128D) = 256D.
+    JP=0.838, std=0.027 (LOWER variance than linear_citation_concat std=0.030).
+    Beats best zero-shot hybrid cited_outcome_hybrid_0.5 (JP=0.785).
+    Both adversarial gates PASS.
+    """
+    print("=== Test: Linear Hybrid05 Concat (v15b BEST STABLE) ===")
+
+    corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
+    results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
+    api = NavigationAPI(str(corpus_dir), str(results_dir))
+    api.initialize()
+
+    reps = api.map_loader.get_available_representations()
+    assert "linear_hybrid05_concat" in reps, f"linear_hybrid05_concat not in representations: {reps}"
+
+    zoom_levels = api.get_zoom_levels("linear_hybrid05_concat")
+    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
+
+    for zl in [z["level"] for z in zoom_levels]:
+        map_data = api.get_map_data("linear_hybrid05_concat", zl)
+        assert map_data["n_decisions"] == 1000
+        print(f"  Zoom {zl}: {map_data['n_clusters']} clusters")
+
+    map_state = api.map_loader.get_map("linear_hybrid05_concat")
+    metadata = map_state.metadata
+    assert metadata.get("evidence_tier") == "ACCEPTED"
+    assert metadata.get("benchmark_results", {}).get("both_gates_pass") == True
+    assert metadata.get("benchmark_results", {}).get("jurist_pairwise") == 0.838
+    assert metadata.get("benchmark_results", {}).get("std") == 0.027
+    print(f"  Metadata: JP={metadata.get('benchmark_results', {}).get('jurist_pairwise')}, std={metadata.get('benchmark_results', {}).get('std')}")
+
+    zl_0 = api.map_loader.get_zoom_level("linear_hybrid05_concat", 0)
+    did = list(zl_0.positions.keys())[0]
+    neighbors = api.get_neighbors(did, "linear_hybrid05_concat", 1, 5)
+    assert len(neighbors) > 0
+
+    print("  PASS\n")
+    return True
+
+
 def test_all_representations_coverage():
     """Comprehensive test: verify ALL representations load, serve data, and have neighbors.
 
@@ -1580,6 +1623,8 @@ if __name__ == "__main__":
     results.append(("Following α=0.3 (Citation Role)", test_following_alpha0_3()))
     results.append(("Criticizing α=0.3 (Citation Role)", test_criticizing_alpha0_3()))
     results.append(("Citing α=0.3 (Citation Role)", test_citing_alpha0_3()))
+    # v15b ACCEPTED Combination (BEST STABLE)
+    results.append(("Linear Hybrid05 Concat (v15b BEST STABLE)", test_linear_hybrid05_concat()))
     # Comprehensive coverage gate
     results.append(("All Representations Coverage", test_all_representations_coverage()))
     

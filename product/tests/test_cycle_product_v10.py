@@ -18,10 +18,10 @@ from app.navigation import NavigationAPI
 # ---------------------------------------------------------------------------
 
 def test_design_patterns_all_five_exist():
-    """All 5 design pattern labels exist in MapLoader.DESIGN_PATTERNS."""
-    expected = {"DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "CITATION-ROLE", "LEGACY"}
+    """All 6 design pattern labels exist in MapLoader.DESIGN_PATTERNS (added COMBINATION per v15b ACCEPTED)."""
+    expected = {"DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "COMBINATION", "CITATION-ROLE", "LEGACY"}
     actual = set(MapLoader.DESIGN_PATTERNS.values())
-    assert expected == actual, f"Missing patterns: {expected - actual}"
+    assert expected == actual, f"Missing patterns: {expected - actual}, Extra: {actual - expected}"
 
 
 def test_design_patterns_default_representation():
@@ -376,7 +376,7 @@ def test_nav_get_representation_recommendation_invalid():
 def test_map_loader_metadata_has_design_pattern():
     """MapLoader.DESIGN_PATTERNS assigns a pattern to every representation."""
     for rep_name, pattern in MapLoader.DESIGN_PATTERNS.items():
-        assert pattern in {"DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "CITATION-ROLE", "LEGACY"}, (
+        assert pattern in {"DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "COMBINATION", "CITATION-ROLE", "LEGACY"}, (
             f"{rep_name} has unexpected pattern: {pattern}"
         )
 

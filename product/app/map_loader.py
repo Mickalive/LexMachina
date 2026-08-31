@@ -64,6 +64,8 @@ class MapLoader:
         "cited_decisions_tfidf_hybrid_cp64_0.3": "HIGH-ADVANTAGE",
         "cited_decisions_tfidf_hybrid_cp64_0.5": "HIGH-ADVANTAGE",
         "cited_decisions_tfidf_hybrid_cp64_0.7": "HIGH-ADVANTAGE",
+        # COMBINATION (v15b ACCEPTED)
+        "linear_hybrid05_concat": "COMBINATION",
         # CITATION-ROLE
         "following_alpha0.3": "CITATION-ROLE",
         "criticizing_alpha0.3": "CITATION-ROLE",
@@ -90,6 +92,7 @@ class MapLoader:
         "cited_outcome_hybrid_0.5": "cross_lingual",
         "cited_outcome_hybrid_0.7": "fractal_quality",
         "cited_decisions_tfidf": "citation_proximity",
+        "linear_hybrid05_concat": "best_stable_combination",
         "following_alpha0.3": "following_precedent",
         "criticizing_alpha0.3": "identifying_criticism",
         "citing_alpha0.3": "citation_network",
@@ -174,6 +177,9 @@ class MapLoader:
         # Load cited outcome hybrids (ACCEPTED - factory direction v9 BEST PRODUCTION/FRACTAL)
         self._load_cited_outcome_hybrid_0_5()
         self._load_cited_outcome_hybrid_0_7()
+
+        # Load v15b ACCEPTED combination (BEST STABLE combination, JP=0.838, std=0.027)
+        self._load_linear_hybrid05_concat()
 
         self._loaded = True
         return len(self.maps)
@@ -3379,6 +3385,27 @@ class MapLoader:
             benchmark_results={
                 "jurist_pairwise": 0.5485,
                 "language_dominance": 0.7529,
+                "both_gates_pass": True,
+            }
+        )
+
+    def _load_linear_hybrid05_concat(self) -> None:
+        """Load linear_hybrid05_concat (v15b ACCEPTED - BEST STABLE combination).
+
+        Equal-weight concatenation of linear_metric_best (128D) + cited_outcome_hybrid_0.5 (128D) = 256D.
+        JP=0.838, std=0.027 (LOWER variance than linear_citation_concat std=0.030).
+        Beats best zero-shot hybrid cited_outcome_hybrid_0.5 (JP=0.785).
+        Both adversarial gates PASS.
+        """
+        self._load_new_representation(
+            name="linear_hybrid05_concat",
+            display_name="BEST STABLE: Metric + Outcome Combo (v15b)",
+            description="v15b ACCEPTED BEST STABLE combination: equal-weight concatenation of linear_metric_best (128D) + cited_outcome_hybrid_0.5 (128D) = 256D. JP=0.838, std=0.027. Beats best zero-shot hybrid (JP=0.785). Lower variance than linear_citation_concat (std=0.030).",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "jurist_pairwise": 0.838,
+                "language_dominance": 0.672,
+                "std": 0.027,
                 "both_gates_pass": True,
             }
         )
