@@ -3,9 +3,9 @@
 ## Summary
 
 - **Total references**: 2105
-- **Resolved**: 184
-- **Unresolved**: 1921
-- **Resolution rate**: 8.7%
+- **Resolved**: 2019
+- **Unresolved**: 86
+- **Resolution rate**: 95.9%
 
 ## By Reference Type
 
@@ -19,9 +19,9 @@
 
 | Method | Count |
 |--------|-------|
-| exact_docket | 183 |
-| unresolved | 1921 |
-| normalized_docket | 1 |
+| exact_docket | 1705 |
+| unresolved | 86 |
+| normalized_docket | 314 |
 
 ## Source Decisions
 

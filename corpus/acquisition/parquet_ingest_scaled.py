@@ -69,8 +69,18 @@ def parse_parquet_row(row: Dict[str, Any]) -> Dict[str, Any]:
     )
 
     decision_id = row.get("id") or row.get("decision_id") or row.get("doc_id") or ""
-    if decision_id and not decision_id.startswith("bger_"):
-        decision_id = f"bger_{decision_id}"
+    court = row.get("court") or row.get("court_id") or "bger"
+    if court not in ("bge", "bger", "bvger", "bstger", "bpatger"):
+        court = "bger"
+
+    # Normalize decision_id: ensure proper prefix, replace spaces with underscores
+    if decision_id:
+        if court == "bge" and not decision_id.startswith("bge_"):
+            decision_id = f"bge_{decision_id}"
+        elif court != "bge" and not decision_id.startswith("bger_"):
+            decision_id = f"bger_{decision_id}"
+        # Replace spaces with underscores for schema compliance
+        decision_id = decision_id.replace(" ", "_")
 
     decision_date = row.get("date") or row.get("decision_date") or row.get("publication_date") or ""
     decision_date = str(decision_date)
@@ -89,9 +99,16 @@ def parse_parquet_row(row: Dict[str, Any]) -> Dict[str, Any]:
         }
         language = lang_map.get(str(language).lower(), "de")[:2]
 
-    court = row.get("court") or row.get("court_id") or "bger"
-    if court not in ("bge", "bger", "bvger", "bstger", "bpatger"):
-        court = "bger"
+    # Handle BGE docket_number: prefix with "BGE " for citation matching
+    docket_number = row.get("docket_number") or row.get("citation") or decision_id
+    if court == "bge" and docket_number and not docket_number.startswith("BGE "):
+        # BGE docket numbers are like "151 III 481" -> "BGE 151 III 481"
+        docket_number = f"BGE {docket_number}"
+
+    # For BGE court, the docket_number IS the bge_reference
+    bge_reference = row.get("bge_reference")
+    if court == "bge" and not bge_reference and docket_number and docket_number.startswith("BGE "):
+        bge_reference = docket_number
 
     return {
         "decision_id": str(decision_id),
@@ -100,15 +117,15 @@ def parse_parquet_row(row: Dict[str, Any]) -> Dict[str, Any]:
         "language": str(language)[:2],
         "title": row.get("title"),
         "full_text": str(full_text),
-        "docket_number": row.get("docket_number") or row.get("citation") or decision_id,
+        "docket_number": docket_number,
         "legal_area": row.get("legal_area") or row.get("branch"),
         "chamber": row.get("chamber"),
         "branch": row.get("branch"),
         "outcome": row.get("outcome"),
         "regeste": row.get("regeste"),
         "cited_decisions": row.get("cited_decisions"),
-        "citation_string_de": row.get("citation_string_de") or row.get("bge_reference"),
-        "canonical_url": row.get("url") or row.get("source_url") or f"bger://{decision_id}",
+        "citation_string_de": row.get("citation_string_de") or bge_reference,
+        "canonical_url": row.get("url") or row.get("source_url") or f"{court}://{decision_id}",
         "cited_laws": row.get("cited_laws"),
         "judges": row.get("judges"),
         "source_url": row.get("url") or row.get("source_url"),
@@ -119,7 +136,7 @@ def parse_parquet_row(row: Dict[str, Any]) -> Dict[str, Any]:
         "abstract_fr": row.get("abstract_fr"),
         "abstract_it": row.get("abstract_it"),
         "decision_type": row.get("decision_type"),
-        "bge_reference": row.get("bge_reference"),
+        "bge_reference": bge_reference,
         "sachverhalt": row.get("sachverhalt"),
         "erwaegungen": row.get("erwaegungen"),
         "dispositiv": row.get("dispositiv"),
