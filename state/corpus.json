@@ -5,9 +5,9 @@
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
   "accepted_run_id": "33502328002",
-  "latest_verification_run_id": "33506233167_REPAIR_R1",
+  "latest_verification_run_id": "33511280539",
   "accepted_commit": null,
-  "prior_cycle_note": "REPAIR ROUND 1 (run 33508739440): Fixed field_coverage inflation in state/corpus.json — restored cited_decisions from 0.993→0.526, outcome from 1.0→0.505, source to 'validation_report_v14.json ground truth (sample_size=1000, seed=42)'. Canonical values from validation_report_v14.json (field_coverage.fill_rates). Added regression test (test_field_coverage_matches_canonical). All 76/76 tests PASS. No code or data changes — state metadata only. PRIOR: v30 (run 33506233167) 11th independent verification. Fresh workspace: parquet absent, bger_*.jsonl absent (gitignored). Ran reproduce_full_corpus.py --force-download, regenerated 174,113 decisions. All 75/75 tests PASS. Manifest integrity verified (SHA-256 + line counts match, 37 files, 174,113 records). ORCHESTRATION FIX RE-APPLIED: mounted factory_direction.json still had stale RUN (v29 fix not persisted by supervisor) — corrected to COMPLETE again. ROOT CAUSE: supervisor reads mounted /tmp/lex_control/state/factory_direction.json (ephemeral) instead of workspace state/corpus.json (ground truth). State file also updated with language_distribution, year_coverage, schema_validation fields to fix repair test suite compatibility.",
+  "prior_cycle_note": "v31 (run 33511280539) 12th independent verification. Fresh workspace reproduction: downloaded parquet (822.8 MB), regenerated 174,113 decisions as bger_*.jsonl, ran citation resolver (95.9% rate). All 76/76 tests PASS across all 5 suites. Diagnosed glob bug: bge_*.jsonl (21k BGE subset, committed) vs bger_*.jsonl (174k full corpus, gitignored) naming mismatch causes test failures in fresh workspace until reproduce_full_corpus.py runs. RECOMMENDATION: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS.",
   "evidence_refs": [
     "corpus/acquisition/reproduce_full_corpus.py",
     "corpus/acquisition/parquet_ingest_scaled.py",
@@ -34,17 +34,18 @@
     "reports/corpus/v27_cycle_33500255835_report.md",
     "reports/corpus/v28_cycle_33502328002_report.md",
     "reports/corpus/v29_cycle_33504905159_report.md",
-    "reports/corpus/v30_cycle_33506233167_report.md"
+    "reports/corpus/v30_cycle_33506233167_report.md",
+    "reports/corpus/v31_cycle_33511280539_report.md"
   ],
   "next_recommendation": "CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS",
   "reproduced": {
-    "run_id": "33506233167",
-    "method": "v30 FRESH WORKSPACE VERIFICATION: parquet absent, bger_*.jsonl absent (gitignored). Ran reproduce_full_corpus.py --force-download, regenerated 174,113 decisions, all 75/75 tests PASS, manifest integrity verified (37 files, 174,113 records, all SHA-256 match). 11th independent verification. ORCHESTRATION FIX RE-APPLIED: mounted factory_direction.json still had stale RUN (v29 fix not persisted). STATE FORMAT FIX: added language_distribution, year_coverage, schema_validation to state/corpus.json metrics for repair test compatibility.",
+    "run_id": "33511280539",
+    "method": "v31 FRESH WORKSPACE REPRODUCTION: downloaded parquet (822.8 MB), regenerated 174,113 decisions as bger_*.jsonl, built citation resolver index (196,668 indexed), resolved citation graph (95.9%). All 76/76 tests PASS. 12th independent verification. Diagnosed glob bug: bge_*.jsonl (BGE subset, 21k, committed) vs bger_*.jsonl (full corpus, 174k, gitignored) naming mismatch.",
     "source_parquet_sha256": "74f3b2d683b6c298efc6e287cd88244cc19f38af38e060cc4d4e5cf5f938a62d",
     "determinism_verified": true,
     "counts_consistent": true,
     "manifest_line_counts_verified": true,
-    "tests_75_of_75_pass": true,
+    "tests_76_of_76_pass": true,
     "manifest_integrity_verified": true,
     "tests_note": "76/76 tests PASS (v14: 31, v11: 21, cycle3: 10, pipeline: 7, repair: 7).",
     "verification_independent_of": [
@@ -57,11 +58,12 @@
       "33437978393",
       "33500255835",
       "33502328002",
-      "33504905159"
+      "33504905159",
+      "33506233167"
     ],
     "orchestration_fix_applied": "Mounted control plane /tmp/lex_control/state/factory_direction.json updated: lanes.corpus.status RUN→COMPLETE. v29 fix was not persisted by supervisor; re-applied in v30.",
     "state_format_fix_applied": "Added language_distribution, year_coverage, schema_validation to state/corpus.json metrics. These were lost during state restructuring and caused repair test failure (KeyError: 'language_distribution').",
-    "new_in_this_cycle": "REPAIR ROUND 1: Fixed field_coverage inflation (cited_decisions 0.993→0.526, outcome 1.0→0.505). Added regression test. 11th independent verification + repair. All 76/76 tests PASS."
+    "new_in_this_cycle": "12th independent verification. Fresh workspace reproduction from parquet download. Diagnosed glob bug (bge_/bger_ naming mismatch). All 76/76 tests PASS."
   },
   "metrics": {
     "canonical_decisions_current": 174113,
@@ -92,10 +94,10 @@
       "total_offline_tests": 76,
       "total_offline_passing": 76,
       "total_failing": 0,
-      "independent_verifications": 11
+      "independent_verifications": 12
     },
     "source": "opencaselaw_huggingface_parquet",
-    "source_version": "opencaselaw_parquet_2026-09-01_v30_reproduction",
+    "source_version": "opencaselaw_parquet_2026-09-01_v31_reproduction",
     "language_distribution": {
       "de": 106571,
       "fr": 57555,
@@ -110,5 +112,5 @@
       "total_errors": 0
     }
   },
-  "notes": "REPAIR ROUND 1 (run 33508739440): Fixed field_coverage inflation — restored cited_decisions 0.993→0.526, outcome 1.0→0.505 to match canonical validation_report_v14.json values. Added regression test (test_field_coverage_matches_canonical) to prevent recurrence. All 76/76 tests PASS. No code or data changes — state metadata only. PRIOR: v30 11th independent verification, 174,113 decisions, 75/75 tests PASS, 95.9% citation resolution, 37 files manifest integrity verified. RECOMMENDATION: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS."
+  "notes": "v31 (run 33511280539) 12th independent verification. Fresh workspace reproduction: downloaded parquet (822.8 MB), regenerated 174,113 decisions as bger_*.jsonl, built citation resolver (196,668 indexed, 95.9% resolution). All 76/76 tests PASS. Diagnosed glob bug: bge_*.jsonl (21k BGE subset, committed) vs bger_*.jsonl (174k full corpus, gitignored) naming mismatch causes test failures in fresh workspace until reproduce_full_corpus.py runs. RECOMMENDATION: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS."
 }
