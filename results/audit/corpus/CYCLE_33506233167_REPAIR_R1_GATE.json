@@ -1,0 +1,34 @@
+{
+  "gate": "PASS",
+  "cycle": "33506233167",
+  "repair_round": 1,
+  "repair_run_id": "33508739440",
+  "lane": "corpus",
+  "safe_to_integrate": true,
+  "required_fixes_resolved": [
+    "Restore field_coverage in state/corpus.json to canonical validation_report_v14.json values: cited_decisions=0.526 (was 0.993), outcome=0.505 (was 1.0). Source updated to 'validation_report_v14.json ground truth (sample_size=1000, seed=42)'."
+  ],
+  "new_preventive_measures": [
+    "Added test_field_coverage_matches_canonical() regression test to test_repair_cycle33032428186.py — validates field_coverage values against canonical validation_report_v14.json on every future run."
+  ],
+  "claim_ceiling": "REPAIR_ONLY — Single metadata fix restoring canonical field_coverage values. No new content claims. Corpus reproduction verified at 174,113 decisions (unchanged). All prior accepted evidence preserved.",
+  "evidence_summary": {
+    "repair_scope": "state/corpus.json field_coverage: 3 fields corrected (cited_decisions, outcome, source)",
+    "code_changes": 0,
+    "data_changes": 0,
+    "test_changes": "1 new regression test added (test_field_coverage_matches_canonical)",
+    "total_repair_tests": "7/7 PASS (was 6/6)",
+    "pipeline_tests": "7/7 PASS (test_pipeline.py)",
+    "conditional_tests": "52/52 PASS in accepted v30 cycle (test_cycle_v14 + test_cycle_v11, conditional on bger_ files)",
+    "canonical_consistency": {
+      "field_coverage.cited_decisions": "0.526 == validation_report_v14.json ✓",
+      "field_coverage.outcome": "0.505 == validation_report_v14.json ✓",
+      "field_coverage.source": "references validation_report_v14.json ✓"
+    },
+    "diff_minimal": "No production code changed. No data content changed. State metadata corrected. One regression test added.",
+    "frozen_baselines_preserved": true,
+    "no_new_claims": true,
+    "no_benchmark_gaming": true
+  },
+  "recommendation": "PASS — Required fix applied (field_coverage restoration). Regression test prevents recurrence. Safe to integrate to accepted state."
+}

@@ -1,0 +1,74 @@
+{
+  "gate": "PASS",
+  "cycle": "33500255835",
+  "lane": "corpus",
+  "repair_round": 0,
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Factory Director must update factory_direction.json corpus lane status from RUN to COMPLETE",
+    "Factory Director must fix supervisor dispatch to read state/<lane>.json cycle_status instead of factory_direction.json status"
+  ],
+  "claim_ceiling": "NO_NEW_CLAIMS — Cycle 33500255835 produced no new material work. Corpus lane remains COMPLETE per accepted cycle 33437978393 (v25, 6th independent verification). This is the 8th independent verification confirming identical result. No code changes, no data changes, no regressions.",
+  "evidence_summary": {
+    "code_correctness": {
+      "reproduce_full_corpus.py": "CORRECT — deterministic reproduction, fixed timestamp, clean output mode, verifiable manifest. No changes from prior cycle.",
+      "citation_resolver.py": "CORRECT — 196,668 indexed, 95.9% resolution (2,019/2,105). No changes from prior cycle.",
+      "parquet_ingest_scaled.py": "CORRECT — _clean_nan NaN→None, parse_parquet_row handles edge cases. No changes from prior cycle.",
+      "normalize.py": "CORRECT — OUTCOME_MAP includes partial_approval/moot, schema validation via Draft7Validator. No changes from prior cycle.",
+      "test_cycle_v14.py _record()": "VERIFIED — raises AssertionError on internal FAIL"
+    },
+    "artifact_consistency": {
+      "metrics_normalized_written": "PASS — 174,113 == 174,113",
+      "metrics_normalized_validation": "PASS — 174,113 == 174,113",
+      "validation_errors_zero": "PASS — 0",
+      "manifest_records_normalized": "PASS — 174,113 == 174,113",
+      "manifest_year_files_37": "PASS — 37 == 37",
+      "by_year_sum": "PASS — 174,113 == 174,113",
+      "by_language_sum": "PASS — 106,571 + 57,555 + 9,987 = 174,113",
+      "vr_per_year_sum": "PASS — 174,113 == 174,113",
+      "pre_2000_150": "PASS — 150",
+      "parquet_sha256": "PASS — 74f3b2d683b6c298efc6e287cd88244cc19f38af38e060cc4d4e5cf5f938a62d",
+      "citation_balance": "PASS — 2,019 + 86 = 2,105",
+      "citation_rate_95pct": "PASS — 0.9591",
+      "error_rate_zero": "PASS — 0.0",
+      "fc_restege_40pct": "PASS — 0.474",
+      "fc_outcome_45pct": "PASS — 0.505",
+      "fc_cited_decisions_50pct": "PASS — 0.526"
+    },
+    "total_consistency_checks": "16/16 PASS",
+    "diff_minimality": "No production code changed. No data content changed. State file metadata updated (run_id, version counter, verification list). Ingestion metrics and manifest timestamps differ (runtime variance). Test data files regenerated from API (same line counts, different decisions). Zero material delta from accepted base.",
+    "recurring_orchestration_pathology": {
+      "identified_in_runs": ["33414303389", "33416280694", "33418421418", "33423248913", "33425505974", "33427258894", "33428790938", "33431304963", "33436429416", "33437978393", "33444189116", "33447964383", "33463723226", "33500255835"],
+      "total_redundant_dispatches": 14,
+      "root_cause": "Supervisor reads factory_direction.json status (stale RUN) instead of state/<lane>.json cycle_status (correct COMPLETED)",
+      "is_code_defect": false,
+      "is_structural_orchestration_gap": true,
+      "required_fix": "Factory Director must update factory_direction.json corpus status to COMPLETE and fix supervisor dispatch logic"
+    },
+    "attack_results": {
+      "no_fabrication": true,
+      "no_benchmark_gaming": true,
+      "no_prettiness_as_quality": true,
+      "no_boilerplate_confounding": true,
+      "no_data_leakage": true,
+      "no_baseline_weakening": true,
+      "no_unsupported_product_claims": true
+    },
+    "negative_results": {
+      "192k_target_estimate_wrong": "Actual BGer.parquet contains 174,113 decisions. Honest negative result.",
+      "bge_reference_coverage_0": "Parquet source does not populate bge_reference. Honestly reported.",
+      "cited_laws_coverage_0": "Parquet source does not populate cited_laws. Honestly reported."
+    },
+    "test_suite_verification": {
+      "v14_verified": "31/31 pass (conditional on bger_ files)",
+      "v11_verified": "21/21 pass (conditional on bger_ files)",
+      "cycle3_verified": "10/10 pass",
+      "pipeline_verified": "7/7 pass",
+      "repair_verified": "6/6 pass",
+      "total_verified": "75/75 offline",
+      "note": "All tests pass with full corpus data present (after reproduce_full_corpus.py). 8 of 31 v14 tests fail without bger_ files (documented orchestration gap)."
+    },
+    "new_contributions_this_cycle": "None — 8th independent verification, zero delta from accepted state"
+  },
+  "recommendation": "PASS — All material claims independently verified. 16/16 consistency checks PASS. 0 code changes, 0 data changes, 0 regressions, 0 fabrication. Corpus lane remains COMPLETE. This is the 8th independent verification confirming identical results. The recurring dispatch pathology (14 redundant cycles documented) must be fixed at the Factory Director level: update factory_direction.json corpus status to COMPLETE and fix supervisor to read state/<lane>.json cycle_status."
+}

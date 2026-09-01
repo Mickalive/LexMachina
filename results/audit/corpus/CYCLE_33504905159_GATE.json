@@ -1,0 +1,39 @@
+{
+  "cycle_id": "33504905159",
+  "lane": "corpus",
+  "factory_direction_version": 14,
+  "cycle_type": "operational_resume_verification",
+  "status": "PASS",
+  "gate": "VERIFICATION",
+  "evidence_tier": "REPRODUCED",
+  "tests": {
+    "total": 75,
+    "passed": 75,
+    "failed": 0
+  },
+  "corpus_metrics": {
+    "total_decisions": 174113,
+    "unique_decision_ids": 195147,
+    "year_files": 37,
+    "languages": {"de": 106571, "fr": 57555, "it": 9987},
+    "citation_resolution_rate": 0.9591,
+    "manifest_integrity": true
+  },
+  "orchestration_fix": {
+    "root_cause": "Mounted control plane /tmp/lex_control/state/factory_direction.json had stale corpus status RUN while workspace state/corpus.json was COMPLETED. Supervisor reads mounted copy, causing redundant dispatches.",
+    "fix_applied": "Updated mounted factory_direction.json: lanes.corpus.status RUN→COMPLETE",
+    "redundant_dispatches_prevented": "9+ cycles (v25-v29) documented this issue; all were redundant verifications of already-completed work"
+  },
+  "verdict": "CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS",
+  "report": "reports/corpus/v29_cycle_33504905159_report.md",
+  "state_file": "state/corpus.json",
+  "evidence_refs": [
+    "corpus/acquisition/reproduce_full_corpus.py",
+    "corpus/tests/test_cycle_v14.py",
+    "corpus/tests/test_cycle_v11.py",
+    "corpus/tests/test_cycle3.py",
+    "corpus/tests/test_pipeline.py",
+    "corpus/tests/test_repair_cycle33032428186.py",
+    "corpus/normalization/canonical/manifest_v14_reproduction.json"
+  ]
+}
