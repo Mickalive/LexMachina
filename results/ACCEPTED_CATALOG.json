@@ -8,9 +8,9 @@
         "evidence_tier": "REPRODUCED",
         "cycle_status": "COMPLETED",
         "continue_recommended": false,
-        "accepted_run_id": "33435211349",
+        "accepted_run_id": "33437978393",
         "accepted_commit": null,
-        "prior_cycle_note": "v24 OPERATIONAL RESUME from snapshot 33435211349 (repair of rejected 33433428793). Diagnosed orchestration failure: supervisor reads factory_direction.json status (stale RUN) instead of state/corpus.json cycle_status (correct COMPLETED), causing redundant dispatches. Full re-verification: regenerated corpus from HuggingFace parquet (174,113 decisions), ran all 65/65 offline tests PASS, verified all 17 artifact consistency checks PASS, confirmed field_coverage matches ground truth exactly. State file is audit-ready. RECOMMENDATION: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS. Fix required: supervisor must read state/<lane>.json cycle_status.",
+        "prior_cycle_note": "v25 INDEPENDENT REPRODUCTION from clean workspace (no parquet, no year files on disk). Successfully downloaded 822MB parquet from HuggingFace, regenerated 174,113 decisions in ~118s, verified all 75/75 tests PASS. Citation resolver: 196,668 indexed, 95.9% resolution (2,019/2,105). User import end-to-end verified. Manifest integrity: all 37 year files match SHA-256 and line counts. This is the 6th independent verification confirming the same result. State file is audit-ready. RECOMMENDATION: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS. Fix required: supervisor must read state/<lane>.json cycle_status.",
         "evidence_refs": [
           "corpus/acquisition/reproduce_full_corpus.py",
           "corpus/acquisition/parquet_ingest_scaled.py",
@@ -18,6 +18,7 @@
           "corpus/acquisition/user_import_hardened.py",
           "corpus/tests/test_cycle_v14.py",
           "corpus/tests/test_cycle_v11.py",
+          "corpus/tests/test_cycle3.py",
           "corpus/tests/test_pipeline.py",
           "corpus/tests/test_repair_cycle33032428186.py",
           "corpus/normalization/canonical/ingestion_metrics.json",
@@ -29,27 +30,30 @@
           "reports/corpus/v21_cycle_33431304963_report.md",
           "reports/corpus/v22_cycle_33433428793_report.md",
           "reports/corpus/v23_repair_33433428793_report.md",
-          "reports/corpus/v24_diagnosis_33436429416_report.md"
+          "reports/corpus/v24_diagnosis_33436429416_report.md",
+          "reports/corpus/v25_cycle_33437978393_report.md"
         ],
         "next_recommendation": "CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS",
         "reproduced": {
-          "run_id": "33435211349",
-          "method": "REPAIR of rejected cycle 33433428793: restored evidence_refs, corrected field_coverage (outcome 1.0→0.505), fixed prior_cycle_note self-reference. No code or data modified. 13/13 offline tests PASS.",
+          "run_id": "33437978393",
+          "method": "INDEPENDENT REPRODUCTION from clean workspace: downloaded 822MB parquet from HuggingFace, regenerated 174,113 decisions, all 75/75 tests PASS, citation resolver 95.9%, user import verified. 6th independent verification.",
           "source_parquet_sha256": "74f3b2d683b6c298efc6e287cd88244cc19f38af38e060cc4d4e5cf5f938a62d",
           "determinism_verified": true,
           "counts_consistent": true,
           "manifest_line_counts_verified": true,
-          "tests_65_of_65_offline_pass": true,
-          "tests_note": "65/65 offline tests PASS (v14: 31, v11: 21, repair: 6, pipeline: 7). Pipeline tests network-dependent but passed this run.",
+          "tests_75_of_75_pass": true,
+          "tests_note": "75/75 tests PASS (v14: 31, v11: 21, cycle3: 10, pipeline: 7, repair: 6).",
           "test_framework_fix": "_record() now raises AssertionError on internal FAIL, preventing silent false PASS in pytest",
           "verification_independent_of": [
             "33423248913",
             "33425505974",
             "33428790938",
-            "33431304963"
+            "33431304963",
+            "33435211349",
+            "33436429416"
           ],
           "orchestration_gap_diagnosed": "bger_YYYY.jsonl files (2.7 GB) and parquet dir (822 MB) are gitignored. After workspace reset, data must be regenerated from parquet via reproduce_full_corpus.py (~3 min). This is by design (regenerable data, repo size constraint), not a bug.",
-          "new_in_this_cycle": "User import pipeline end-to-end verification (3 test decisions, schema validation, artifact persistence all confirmed). Full corpus field coverage re-measured on bger_ files."
+          "new_in_this_cycle": "Full independent reproduction from clean workspace with no cached data. Verified parquet download, corpus regeneration, test suite, citation resolver, user import, and manifest integrity. All 6th independent verification."
         },
         "metrics": {
           "canonical_decisions_current": 174113,
@@ -87,8 +91,8 @@
             "full_corpus_mode_available": true,
             "nan_fix_added_v14": true,
             "clean_output_added_v14_resume": true,
-            "elapsed_seconds": 133.6,
-            "decisions_per_second": 1303.42
+            "elapsed_seconds": 118.4,
+            "decisions_per_second": 1470.56
           },
           "citation_resolver": {
             "decisions_indexed": 196668,
@@ -137,7 +141,7 @@
               "text_dir"
             ],
             "end_to_end_verified": true,
-            "end_to_end_run_id": "33433428793"
+            "end_to_end_run_id": "33437978393"
           },
           "field_coverage": {
             "full_text": 1.0,
@@ -168,12 +172,14 @@
             "v14_tests_passing": 31,
             "v11_tests_total": 21,
             "v11_tests_passing": 21,
+            "cycle3_tests_total": 10,
+            "cycle3_tests_passing": 10,
             "pipeline_tests_total": 7,
             "pipeline_tests_passing": 7,
             "repair_tests_total": 6,
             "repair_tests_passing": 6,
-            "total_offline_tests": 65,
-            "total_offline_passing": 65,
+            "total_offline_tests": 75,
+            "total_offline_passing": 75,
             "total_failing": 0,
             "failing_tests": [],
             "failing_reason": null
@@ -183,9 +189,9 @@
             "total_errors": 0
           },
           "source": "opencaselaw_huggingface_parquet",
-          "source_version": "opencaselaw_parquet_2026-08-31_v23_repair"
+          "source_version": "opencaselaw_parquet_2026-08-31_v25_reproduction"
         },
-        "notes": "v24 OPERATIONAL RESUME (from snapshot 33435211349). Diagnosed root cause of redundant dispatches: supervisor reads factory_direction.json status (stale RUN) instead of state/corpus.json cycle_status (COMPLETED). Full re-verification: corpus regenerated from HuggingFace parquet (174,113 decisions), 65/65 offline tests PASS, all 17 artifact consistency checks PASS, field_coverage matches ground truth exactly. State file is audit-ready. No code or data modified — zero-delta verification confirming prior accepted state."
+        "notes": "v25 INDEPENDENT REPRODUCTION from clean workspace (run 33437978393). 6th independent verification confirming same result. Parquet downloaded from HuggingFace (822MB), corpus regenerated (174,113 decisions, ~118s), all 75/75 tests PASS, citation resolver 95.9% (2,019/2,105), user import end-to-end verified, manifest integrity confirmed. State file is audit-ready. RECOMMENDATION: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS. Known issue: supervisor reads factory_direction.json status (stale RUN) instead of state/corpus.json cycle_status (COMPLETED), causing redundant dispatches."
       }
     },
     {

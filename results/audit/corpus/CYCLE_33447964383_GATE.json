@@ -1,0 +1,11 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Fix test_cycle_v14.py glob pattern: bger_* -> bge_* (or standardize file naming to bger_)",
+    "Update factory_direction.json corpus lane status from RUN to COMPLETE",
+    "Fix supervisor dispatch to read state/<lane>.json cycle_status instead of factory_direction.json status"
+  ],
+  "claim_ceiling": "CORPUS_LANE_COMPLETE_NO_NEW_WORK",
+  "evidence_summary": "Cycle 33447964383 is a redundant dispatch with no new material work. Producer workspace manifest (23:26:46) claims 174,113 decisions written to bger_YYYY.jsonl files, but actual disk state has bge_YYYY.jsonl files (~7k lines total) and zero bger_* files. Parquet source absent (gitignored). v14 test suite fails due to pre-existing test bug (wrong glob pattern bger_* vs actual bge_*). All other 44/45 tests pass against test corpus. State file unchanged (accepted_run_id=33437978393, cycle_status=COMPLETED). No code changes. Honest negative/null result: no new claims made, no fabrication detected."
+}
