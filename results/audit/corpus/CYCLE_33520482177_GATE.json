@@ -1,0 +1,55 @@
+{
+  "cycle_id": "33520482177",
+  "repair_round": 2,
+  "addressing_audit": "33519120485",
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "claim_ceiling": "REPAIR_ONLY — state metadata corrected to match validation ground truth; no new science, no new claims, no durable code change",
+  "required_fixes": [],
+  "resolved_fixes": [
+    {
+      "id": "field_coverage_fabrication",
+      "description": "Restored field_coverage in state/corpus.json to match validation_report_v14.json ground truth: cited_decisions 0.993→0.526, outcome 1.0→0.505",
+      "status": "RESOLVED",
+      "recurrence_count": 4,
+      "recurrence_note": "4th recurrence of identical defect (prior: 33397008729, 33420652112, 33435211349)"
+    }
+  ],
+  "recurring_defects": [
+    {
+      "id": "field_coverage_recurring",
+      "description": "field_coverage fabrication recurs on every fresh workspace reproduction cycle that independently computes coverage from local sample rather than loading validation_report_v14.json",
+      "occurrences": 4,
+      "recommendation": "Add regression test asserting state/corpus.json field_coverage matches validation_report_v14.json exact values"
+    },
+    {
+      "id": "supervisor_dispatch_pathology",
+      "description": "Supervisor reads ephemeral /tmp factory_direction.json instead of workspace state/<lane>.json, causing redundant resume dispatches on every mount",
+      "occurrences": "20+",
+      "recommendation": "Fix supervisor dispatch logic to read workspace state/<lane>.json cycle_status field"
+    }
+  ],
+  "evidence_summary": {
+    "field_coverage_cross_check": "PASS — all 7 fields match validation_report_v14.json ground truth exactly",
+    "no_code_changes": true,
+    "no_data_changes": true,
+    "no_test_logic_changes": true,
+    "accepted_base_already_correct": true,
+    "accepted_base_field_coverage": {
+      "cited_decisions": 0.526,
+      "outcome": 0.505
+    },
+    "pre_repair_field_coverage": {
+      "cited_decisions": 0.993,
+      "outcome": 1.0
+    },
+    "post_repair_field_coverage": {
+      "cited_decisions": 0.526,
+      "outcome": 0.505
+    },
+    "durable_delta_from_accepted_base": "zero (accepted base already has correct values)",
+    "redundant_dispatch_count": "20+",
+    "leakage_attack_results": "ALL CLEAN"
+  },
+  "timestamp": "2026-09-01T00:00:00Z"
+}
