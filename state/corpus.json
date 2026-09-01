@@ -4,9 +4,9 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "33500255835",
+  "accepted_run_id": "33502328002",
   "accepted_commit": null,
-  "prior_cycle_note": "v27 INDEPENDENT REPRODUCTION from clean workspace (no parquet, no year files on disk). Successfully downloaded 822MB parquet from HuggingFace, regenerated 174,113 decisions in ~120s, verified all 75/75 tests PASS. Citation resolver: 196,668 indexed, 95.9% resolution (2,019/2,105). Manifest integrity: all 37 year files match SHA-256 and line counts. This is the 8th independent verification confirming the same result. State file is audit-ready. RECOMMENDATION: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS. Fix required: supervisor must read state/<lane>.json cycle_status.",
+  "prior_cycle_note": "v28 (run 33502328002) Fresh workspace verification: parquet absent, bger_*.jsonl absent (gitignored). Diagnosed glob bug: bge_*.jsonl (21,034 records from older ingest_bge_parquet.py) coexist with bger_*.jsonl (174,113 records from reproduce_full_corpus.py) in same directory. Ran reproduce_full_corpus.py --force-download, regenerated 174,113 decisions. All 75/75 tests PASS. Citation resolver: 196,668 indexed, 95.9% resolution. No overlap between bge_ and bger_ decision_ids (21,034 + 174,113 = 195,147 unique). Generated citation_to_decision_id.json (1,546 entries) for legal-distance lane compatibility. 9th independent verification confirming identical result.",
   "evidence_refs": [
     "corpus/acquisition/reproduce_full_corpus.py",
     "corpus/acquisition/parquet_ingest_scaled.py",
@@ -21,6 +21,7 @@
     "corpus/normalization/canonical/validation_report_v14.json",
     "corpus/normalization/canonical/manifest_v14_reproduction.json",
     "corpus/normalization/canonical/resolved_full/citation_graph_resolved.json",
+    "corpus/normalization/canonical/resolved_full/citation_to_decision_id.json",
     "corpus/schema/decision_schema.json",
     "reports/corpus/v20_cycle_33428790938_report.md",
     "reports/corpus/v21_cycle_33431304963_report.md",
@@ -29,12 +30,13 @@
     "reports/corpus/v24_diagnosis_33436429416_report.md",
     "reports/corpus/v25_cycle_33437978393_report.md",
     "reports/corpus/v26_workspace_reproduction_report.md",
-    "reports/corpus/v27_cycle_33500255835_report.md"
+    "reports/corpus/v27_cycle_33500255835_report.md",
+    "reports/corpus/v28_cycle_33502328002_report.md"
   ],
   "next_recommendation": "CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS",
   "reproduced": {
-    "run_id": "33500255835",
-    "method": "INDEPENDENT REPRODUCTION from clean workspace: downloaded 822MB parquet from HuggingFace, regenerated 174,113 decisions, all 75/75 tests PASS, citation resolver 95.9%, manifest integrity verified. 8th independent verification.",
+    "run_id": "33502328002",
+    "method": "v28 FRESH WORKSPACE VERIFICATION: parquet absent, bger_*.jsonl absent (gitignored). Ran reproduce_full_corpus.py --force-download, regenerated 174,113 decisions, all 75/75 tests PASS, citation resolver 95.9%, manifest integrity verified. 9th independent verification.",
     "source_parquet_sha256": "74f3b2d683b6c298efc6e287cd88244cc19f38af38e060cc4d4e5cf5f938a62d",
     "determinism_verified": true,
     "counts_consistent": true,
@@ -42,9 +44,10 @@
     "tests_75_of_75_pass": true,
     "tests_note": "75/75 tests PASS (v14: 31, v11: 21, cycle3: 10, pipeline: 7, repair: 6).",
     "test_framework_fix": "_record() now raises AssertionError on internal FAIL, preventing silent false PASS in pytest",
-    "verification_independent_of": ["33423248913", "33425505974", "33428790938", "33431304963", "33435211349", "33436429416", "33437978393"],
+    "verification_independent_of": ["33423248913", "33425505974", "33428790938", "33431304963", "33435211349", "33436429416", "33437978393", "33500255835"],
     "orchestration_gap_diagnosed": "bger_YYYY.jsonl files (2.7 GB) and parquet dir (822 MB) are gitignored. After workspace reset, data must be regenerated from parquet via reproduce_full_corpus.py (~2 min). This is by design (regenerable data, repo size constraint), not a bug.",
-    "new_in_this_cycle": "Full independent reproduction from clean workspace with no cached data. Verified parquet download, corpus regeneration, test suite, citation resolver, and manifest integrity. 8th independent verification confirming identical result."
+    "glob_bug_diagnosed": "bge_*.jsonl (21,034 records from older ingest_bge_parquet.py) coexist with bger_*.jsonl (174,113 records from reproduce_full_corpus.py) in same directory. Tests only look for bger_ prefix. No overlap between decision_ids. Not a correctness issue but naming inconsistency.",
+    "new_in_this_cycle": "9th independent verification. Diagnosed glob bug (bge_/bger_ naming inconsistency). Generated citation_to_decision_id.json (1,546 entries) for legal-distance lane compatibility. Fresh workspace reproduction from clean state."
   },
   "metrics": {
     "canonical_decisions_current": 174113,
@@ -182,5 +185,5 @@
     "source": "opencaselaw_huggingface_parquet",
     "source_version": "opencaselaw_parquet_2026-09-01_v27_reproduction"
   },
-  "notes": "v27 INDEPENDENT REPRODUCTION from clean workspace (run 33500255835). 8th independent verification confirming same result. Parquet downloaded from HuggingFace (822MB), corpus regenerated (174,113 decisions, ~120s), all 75/75 tests PASS, citation resolver 95.9% (2,019/2,105), manifest integrity confirmed. State file is audit-ready. RECOMMENDATION: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS. Known issue: supervisor reads factory_direction.json status (stale RUN) instead of state/corpus.json cycle_status (COMPLETED), causing redundant dispatches."
+  "notes": "v28 (run 33502328002) 9th independent verification. Fresh workspace: parquet absent, bger_*.jsonl absent (gitignored). Diagnosed glob bug: bge_*.jsonl (21,034 records from older ingest_bge_parquet.py) coexist with bger_*.jsonl (174,113 records from reproduce_full_corpus.py). Ran reproduce_full_corpus.py, all 75/75 tests PASS, citation resolver 95.9%. Generated citation_to_decision_id.json (1,546 entries) for legal-distance lane. State file is audit-ready. RECOMMENDATION: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS. Known issues: (1) supervisor reads factory_direction.json status (stale RUN) instead of state/corpus.json cycle_status (COMPLETED), causing redundant dispatches; (2) bge_/bger_ naming inconsistency is cosmetic only."
 }
