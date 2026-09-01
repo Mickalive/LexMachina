@@ -1,9 +1,10 @@
 """
-Repair validation for rejected cycle 33032428186.
+Repair validation for rejected cycle 33032428186 + cycle 33506233167 round 1.
 Fixes applied:
 1. [REQUIRED] Add 'user_upload' to provenance.source enum in decision_schema.json
 2. [OPTIONAL] Add 'partial_approval' and 'moot' to OUTCOME_MAP in normalize.py
 3. [OPTIONAL] Reconcile state metrics (language_distribution, branch_distribution) with unique counts
+4. [REQUIRED] Restore field_coverage to canonical validation_report_v14.json values (cycle 33506233167 R1)
 """
 import json
 import jsonschema
@@ -167,6 +168,56 @@ def test_state_metrics_consistency():
     return True
 
 
+def test_field_coverage_matches_canonical():
+    """REQUIRED FIX (cycle 33506233167 R1): Verify field_coverage matches canonical validation_report_v14.json.
+
+    Prevents recurrence of state metadata inflation where cited_decisions was
+    reported as 0.993 instead of the canonical 0.526, and outcome as 1.0
+    instead of 0.505.
+    """
+    print("\n" + "=" * 60)
+    print("TEST: field_coverage matches canonical validation_report_v14.json")
+    print("=" * 60)
+
+    with open("state/corpus.json", "r") as f:
+        state = json.load(f)
+
+    with open("corpus/normalization/canonical/validation_report_v14.json", "r") as f:
+        vr = json.load(f)
+
+    fc = state["metrics"]["field_coverage"]
+    vr_rates = vr["field_coverage"]["fill_rates"]
+
+    # Canonical values from validation_report_v14.json (sample_size=1000, seed=42)
+    canonical_rates = {
+        "full_text": vr_rates["full_text"]["rate"],
+        "regeste": vr_rates["regeste"]["rate"],
+        "cited_decisions": vr_rates["cited_decisions"]["rate"],
+        "outcome": vr_rates["outcome"]["rate"],
+        "legal_area": vr_rates["legal_area"]["rate"],
+    }
+
+    # Verify each field_coverage value matches canonical ground truth
+    for field, expected_rate in canonical_rates.items():
+        actual_rate = fc.get(field)
+        assert actual_rate is not None, f"field_coverage missing field: {field}"
+        assert abs(actual_rate - expected_rate) < 0.001, (
+            f"field_coverage.{field} = {actual_rate} != canonical {expected_rate} "
+            f"(from validation_report_v14.json)"
+        )
+        print(f"  {field}: {actual_rate} == {expected_rate} ✓")
+
+    # Verify source identifies canonical provenance
+    assert "validation_report_v14.json" in fc.get("source", ""), (
+        f"field_coverage.source should reference validation_report_v14.json, "
+        f"got: {fc.get('source')}"
+    )
+    print(f"  source: {fc.get('source')} ✓")
+
+    print("✓ field_coverage matches canonical validation_report_v14.json")
+    return True
+
+
 def test_existing_schema_still_validates_yearly_data():
     """Regression: verify existing canonical data still validates."""
     print("\n" + "=" * 60)
@@ -216,6 +267,7 @@ def main():
     results["partial_approval_mapping"] = test_partial_approval_outcome_mapping()
     results["moot_mapping"] = test_moot_outcome_mapping()
     results["state_metrics"] = test_state_metrics_consistency()
+    results["field_coverage_canonical"] = test_field_coverage_matches_canonical()
     results["regression_yearly"] = test_existing_schema_still_validates_yearly_data()
 
     passed = sum(1 for v in results.values() if v)
