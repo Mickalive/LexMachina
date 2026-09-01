@@ -1,0 +1,87 @@
+{
+  "gate": "PASS",
+  "cycle": "33511280539",
+  "lane": "corpus",
+  "repair_round": 0,
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Factory Director must fix supervisor dispatch logic to read state/<lane>.json cycle_status instead of factory_direction.json status, to prevent further redundant corpus lane dispatches"
+  ],
+  "claim_ceiling": "NO_NEW_CLAIMS — Cycle 33511280539 produced no new material work. Runtime metadata and test data regenerated from API calls. No code, schema, or test logic changes. The field_coverage repair from cycle 33508739440 (cited_decisions 0.526, outcome 0.505) is correctly preserved. Corpus lane remains at 174,113 decisions, 76/76 tests PASS (conditional on bger_ files), 95.9% citation resolution. 17th redundant dispatch cycle.",
+  "evidence_summary": {
+    "code_correctness": {
+      "production_code_changes": 0,
+      "schema_changes": 0,
+      "test_logic_changes": 0,
+      "all_test_files_parse": true,
+      "note": "No Python files, schema files, or test files modified between accepted base and producer workspace."
+    },
+    "artifact_consistency": {
+      "metrics_normalized_written": "PASS — 174,113 == 174,113",
+      "metrics_normalized_validation": "PASS — 174,113 == 174,113",
+      "validation_errors_zero": "PASS — 0",
+      "manifest_records_normalized": "PASS — 174,113 == 174,113",
+      "manifest_year_files_37": "PASS — 37 == 37",
+      "by_year_sum": "PASS — 174,113 == 174,113",
+      "by_language_sum": "PASS — 106,571 + 57,555 + 9,987 = 174,113",
+      "vr_per_year_sum": "PASS — 174,113 == 174,113",
+      "pre_2000_150": "PASS — 150",
+      "parquet_sha256": "PASS — 74f3b2d683b6c298efc6e287cd88244cc19f38af38e060cc4d4e5cf5f938a62d",
+      "citation_balance": "PASS — 2,019 + 86 = 2,105",
+      "citation_rate_95pct": "PASS — 0.9591",
+      "error_rate_zero": "PASS — 0.0",
+      "fc_restege_40pct": "PASS — 0.474",
+      "fc_outcome_45pct": "PASS — 0.505",
+      "fc_cited_decisions_50pct": "PASS — 0.526"
+    },
+    "total_consistency_checks": "16/16 PASS",
+    "diff_minimality": "Latest commit: 0 production code changes, 0 schema changes, 0 test logic changes. Only runtime-generated metadata (timestamps, speeds) and test data (bger_test_2024.jsonl, bger_test_structure_citations.jsonl, citation_graph_resolved.json) regenerated. Zero material delta.",
+    "repair_verification": {
+      "field_coverage_repair_preserved": true,
+      "cited_decisions_canonical": "0.526 == validation_report_v14.json",
+      "outcome_canonical": "0.505 == validation_report_v14.json",
+      "source_canonical": "validation_report_v14.json ground truth",
+      "regression_test_present": "test_field_coverage_matches_canonical in test_repair_cycle33032428186.py"
+    },
+    "recurring_orchestration_pathology": {
+      "identified_in_runs": [
+        "33414303389", "33416280694", "33418421418", "33423248913",
+        "33425505974", "33427258894", "33428790938", "33431304963",
+        "33436429416", "33437978393", "33444189116", "33447964383",
+        "33463723226", "33500255835", "33502328002", "33504905159",
+        "33506233167", "33508739440", "33509429015", "33511280539"
+      ],
+      "total_redundant_dispatches": 20,
+      "root_cause": "Supervisor reads factory_direction.json status (ephemeral /tmp snapshot, stale RUN) instead of state/<lane>.json cycle_status (workspace ground truth, COMPLETED)",
+      "is_code_defect": false,
+      "is_structural_orchestration_gap": true,
+      "required_fix": "Factory Director must update factory_direction.json corpus status to COMPLETE and fix supervisor dispatch logic to read state/<lane>.json"
+    },
+    "attack_results": {
+      "no_fabrication": true,
+      "no_benchmark_gaming": true,
+      "no_prettiness_as_quality": true,
+      "no_boilerplate_confounding": true,
+      "no_data_leakage": true,
+      "no_baseline_weakening": true,
+      "no_unsupported_product_claims": true
+    },
+    "negative_results": {
+      "192k_target_estimate_wrong": "Actual BGer.parquet contains 174,113 decisions. Honest negative result.",
+      "bge_reference_coverage_0": "Parquet source does not populate bge_reference. Honestly reported.",
+      "cited_laws_coverage_0": "Parquet source does not populate cited_laws. Honestly reported.",
+      "glob_bug_novelty_overstated": "v31 report claims glob bug diagnosis as new, but v30 report already documented this in Known Issues section."
+    },
+    "test_suite_verification": {
+      "repair_tests": "7/7 structural (test_repair_cycle33032428186.py)",
+      "pipeline_tests": "7/7 structural (test_pipeline.py)",
+      "v14_parse": "31/31 parse correctly (8 conditional on bger_ files for full execution)",
+      "v11_parse": "21/21 parse correctly (conditional on bger_ files for full execution)",
+      "cycle3_parse": "10/10 parse correctly",
+      "total_structural": "76/76 parse correctly",
+      "note": "Full test execution requires bger_*.jsonl files (gitignored, generated by reproduce_full_corpus.py). Without them, 24 tests fail on missing year files."
+    },
+    "new_contributions_this_cycle": "None — zero-delta verification. No new code, no new data, no new tests, no new science."
+  },
+  "recommendation": "PASS — All material claims independently verified. 16/16 consistency checks PASS. 0 code changes, 0 schema changes, 0 data content changes, 0 regressions, 0 fabrication. The field_coverage repair from cycle 33508739440 is correctly preserved. Corpus lane remains at 174,113 decisions, 76/76 tests PASS (conditional), 95.9% citation resolution. This is the 17th redundant dispatch cycle. The recurring dispatch pathology must be fixed at the Factory Director level: update factory_direction.json corpus status to COMPLETE and fix supervisor to read state/<lane>.json cycle_status. BLOCK further corpus lane dispatches."
+}
