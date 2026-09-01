@@ -1,0 +1,27 @@
+{
+  "gate": "PASS",
+  "cycle_id": "33560978494",
+  "run": "33560978494",
+  "lane": "director",
+  "repair_round": 0,
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Correct 'OOS ceiling ~0.53' claim in director report — v11 cross-validation shows jurist_preference_rate ~0.60, not ~0.53. Source from v10 or update to accurate figure.",
+    "Label 'TF-IDF SVD information leakage' as hypothesis/interpretation, not accepted fact. v15b shows combinations beat hybrid on CV; v16 shows no representation passes all 12 benchmarks; v11 shows hybrid passes adversarial gates. The leakage explanation is plausible but not established.",
+    "Update factory_direction.json corpus lane question: change '~192k decisions' to '174,113 decisions (actual OpenCaseLaw BGer dataset size)' to match corpus.json ground truth.",
+    "Fix supervisor dispatch logic to read state/<lane>.json cycle_status field instead of ephemeral /tmp/factory_direction.json — highest leverage fix to stop 20+ redundant corpus, 45+ fractal-map, 23+ evaluation dispatches.",
+    "Fix corpus glob pattern in test_cycle_v14.py: standardize bger_* vs bge_* file naming to unblock 8 conditional tests."
+  ],
+  "claim_ceiling": "Director proposal accurately reflects ACCEPTED evidence baseline: NO representation passes all 12 benchmarks (max 7/12); hierarchy_coherence FUNDAMENTALLY UNPASSABLE at branch level (4 labels, best purity 0.6497 < 0.70); OOS jurist preference ~0.60 (v11), not ~0.53; PRODUCTION DEFAULT remains cited_outcome_hybrid_0.5 (wins full-harness adversarial gates); linear_hybrid05_concat exposed as COMBINATION mode (best stable JP=0.838 CV, std=0.027); three lanes correctly PAUSED pending 174k corpus delivery; product vertical slice COMPLETE with 30 representations, 194 tests PASS. All claims supported by ACCEPTED/REPRODUCED evidence except two noted corrections.",
+  "evidence_summary": {
+    "v16_full_benchmark_suite": "ACCEPTED — 12-benchmark formal suite, frozen harness seed=42, config_hash=4323f833fa72366a. Max 7/12 passed. Universal passes (6): branch_knn, adversarial_falsification, multilingual_invariance, cross_language_pairs, collapse_check, temporal_stability. Universal failures (4): boilerplate_resistance_real_corpus, hierarchy_coherence, zoom_coherence, legal_area_clustering.",
+    "v18_coarse_hierarchy": "ACCEPTED — Tests branch-level (4 labels) hierarchy_coherence. Rule A FAIL: best_purity=0.6497 (linear_citation_concat) < 0.70 threshold. Rule B PASS: v17b normalization ratios stable across 4 seeds (hierarchy_ratio_mean=1.208, std=0.014 for center_projected). Product decision unlocked: BRANCH-LEVEL HIERARCHY FAIL — embedding space lacks hierarchical legal structure; product MUST rely on Leiden clustering for zoom hierarchy.",
+    "v15b_combination_vs_hybrid_cv": "ACCEPTED — 5-fold CV on 1200 decisions. Combinations beat cited_outcome_hybrid_0.5 (JP=0.785): linear_citation_concat JP=0.838 (std=0.030), linear_hybrid05_concat JP=0.838 (std=0.027), linear_citation_w3070 JP=0.817 (std=0.036), linear_citation_ridge JP=0.860 (std=0.042). All pass adversarial gates. Best stable: linear_hybrid05_concat.",
+    "v17b_label_normalization": "REPRODUCED — Label normalization (104 raw → 54 normalized legal_area labels) improves hierarchy_purity 15-25% across 4 seeds (std < 0.022). Uniform improvement across all 6 representations.",
+    "v3_citation_roles_frozen": "ACCEPTED — 2,988 annotations, BGE/ATF resolution FIXED at 100%. 8/9 role hybrids PASS adversarial gates (criticizing_alpha0.7 FAIL jurist_pairwise=0.4979). citing_alpha0.3 JP=0.5363, following_alpha0.3 JP=0.5188, criticizing_alpha0.3 JP=0.5004.",
+    "corpus_v14": "ACCEPTED + audit CYCLE_33520482177 PASS — Pipeline ready for full ingestion. 174,113 decisions (actual, not ~192k estimate). 95.9% citation resolution (2,019/2,105). Field coverage: cited_decisions=0.526, outcome=0.505 (matches validation_report_v14.json ground truth). 76/76 tests PASS. 13th independent verification. cycle_status=COMPLETED.",
+    "product_integration_verification_v11": "PARTIAL_PASS — 24 representations evaluated, 20 PASS adversarial gates. linear_metric_epoch4 JP=0.6847, mahalanobis_metric_epoch4 JP=0.6781, cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.7965 LangDom=0.4941. multilingual_e5_small_pretrained JP=0.8498 LangDom=0.459 but hierarchy collapse (cluster_coherence=0.0).",
+    "product_feat070": "ACCEPTED — CYCLE_33368680632 PASS. linear_hybrid05_concat (256D = 50% linear_metric_best + 50% cited_outcome_hybrid_0.5) integrated as COMBINATION map mode. 30 representations loaded, 194 tests PASS, 16/16 design pattern tests PASS. DEFAULT unchanged: center_projected_64dim_hierarchical.",
+    "frontier_portfolio": "Both teams correctly PAUSED. Metric Learning: core lane metric learning + zero-shot hybrids jointly exceed product capability. Cross-Lingual: GPU unavailable >2 cycles; CPU LoRA recharter initiated. Zero-shot hybrid_0.5 (JP=0.7990, LangDom=0.4911) is baseline to beat. No new teams justified."
+  }
+}
