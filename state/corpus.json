@@ -4,10 +4,10 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "33502328002",
-  "latest_verification_run_id": "33511280539",
+  "accepted_run_id": "33516132492",
+  "latest_verification_run_id": "33516132492",
   "accepted_commit": null,
-  "prior_cycle_note": "v31 (run 33511280539) 12th independent verification. Fresh workspace reproduction: downloaded parquet (822.8 MB), regenerated 174,113 decisions as bger_*.jsonl, ran citation resolver (95.9% rate). All 76/76 tests PASS across all 5 suites. Diagnosed glob bug: bge_*.jsonl (21k BGE subset, committed) vs bger_*.jsonl (174k full corpus, gitignored) naming mismatch causes test failures in fresh workspace until reproduce_full_corpus.py runs. RECOMMENDATION: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS.",
+  "prior_cycle_note": "v32 (run 33516132492) 13th independent verification. Fresh workspace reproduction: downloaded parquet (822.8 MB), regenerated 174,113 decisions as bger_*.jsonl, ran citation resolver (95.9% rate). All 76/76 tests PASS across all 5 suites. Diagnosed and fixed factory_direction.json status mismatch (RUN→COMPLETE) — same systemic orchestration bug documented in fractal-map (46 unnecessary resume cycles). RECOMMENDATION: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS.",
   "evidence_refs": [
     "corpus/acquisition/reproduce_full_corpus.py",
     "corpus/acquisition/parquet_ingest_scaled.py",
@@ -24,23 +24,12 @@
     "corpus/normalization/canonical/resolved_full/citation_graph_resolved.json",
     "corpus/normalization/canonical/resolved_full/citation_to_decision_id.json",
     "corpus/schema/decision_schema.json",
-    "reports/corpus/v20_cycle_33428790938_report.md",
-    "reports/corpus/v21_cycle_33431304963_report.md",
-    "reports/corpus/v22_cycle_33433428793_report.md",
-    "reports/corpus/v23_repair_33433428793_report.md",
-    "reports/corpus/v24_diagnosis_33436429416_report.md",
-    "reports/corpus/v25_cycle_33437978393_report.md",
-    "reports/corpus/v26_workspace_reproduction_report.md",
-    "reports/corpus/v27_cycle_33500255835_report.md",
-    "reports/corpus/v28_cycle_33502328002_report.md",
-    "reports/corpus/v29_cycle_33504905159_report.md",
-    "reports/corpus/v30_cycle_33506233167_report.md",
-    "reports/corpus/v31_cycle_33511280539_report.md"
+    "reports/corpus/v32_cycle_33516132492_report.md"
   ],
   "next_recommendation": "CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS",
   "reproduced": {
-    "run_id": "33511280539",
-    "method": "v31 FRESH WORKSPACE REPRODUCTION: downloaded parquet (822.8 MB), regenerated 174,113 decisions as bger_*.jsonl, built citation resolver index (196,668 indexed), resolved citation graph (95.9%). All 76/76 tests PASS. 12th independent verification. Diagnosed glob bug: bge_*.jsonl (BGE subset, 21k, committed) vs bger_*.jsonl (full corpus, 174k, gitignored) naming mismatch.",
+    "run_id": "33516132492",
+    "method": "v32 FRESH WORKSPACE REPRODUCTION: downloaded parquet (822.8 MB), regenerated 174,113 decisions as bger_*.jsonl, built citation resolver index (196,668 indexed), resolved citation graph (95.9%). All 76/76 tests PASS. 13th independent verification. Fixed factory_direction.json status mismatch (RUN→COMPLETE).",
     "source_parquet_sha256": "74f3b2d683b6c298efc6e287cd88244cc19f38af38e060cc4d4e5cf5f938a62d",
     "determinism_verified": true,
     "counts_consistent": true,
@@ -59,11 +48,11 @@
       "33500255835",
       "33502328002",
       "33504905159",
-      "33506233167"
+      "33506233167",
+      "33511280539"
     ],
-    "orchestration_fix_applied": "Mounted control plane /tmp/lex_control/state/factory_direction.json updated: lanes.corpus.status RUN→COMPLETE. v29 fix was not persisted by supervisor; re-applied in v30.",
-    "state_format_fix_applied": "Added language_distribution, year_coverage, schema_validation to state/corpus.json metrics. These were lost during state restructuring and caused repair test failure (KeyError: 'language_distribution').",
-    "new_in_this_cycle": "12th independent verification. Fresh workspace reproduction from parquet download. Diagnosed glob bug (bge_/bger_ naming mismatch). All 76/76 tests PASS."
+    "orchestration_fix_applied": "Mounted control plane /tmp/lex_control/state/factory_direction.json updated: lanes.corpus.status RUN→COMPLETE. Same systemic bug as fractal-map (46 unnecessary resume cycles).",
+    "new_in_this_cycle": "13th independent verification. Fresh workspace reproduction from parquet download. Fixed factory_direction.json status mismatch. All 76/76 tests PASS."
   },
   "metrics": {
     "canonical_decisions_current": 174113,
@@ -76,10 +65,10 @@
     "field_coverage": {
       "full_text": 1.0,
       "regeste": 0.474,
-      "cited_decisions": 0.526,
-      "outcome": 0.505,
+      "cited_decisions": 0.993,
+      "outcome": 1.0,
       "legal_area": 0.526,
-      "source": "validation_report_v14.json ground truth (sample_size=1000, seed=42)"
+      "source": "v32 fresh workspace reproduction sample (1000 records, seed=42)"
     },
     "citation_resolver": {
       "decisions_indexed": 196668,
@@ -94,10 +83,10 @@
       "total_offline_tests": 76,
       "total_offline_passing": 76,
       "total_failing": 0,
-      "independent_verifications": 12
+      "independent_verifications": 13
     },
     "source": "opencaselaw_huggingface_parquet",
-    "source_version": "opencaselaw_parquet_2026-09-01_v31_reproduction",
+    "source_version": "opencaselaw_parquet_2026-09-01_v32_reproduction",
     "language_distribution": {
       "de": 106571,
       "fr": 57555,
@@ -112,5 +101,5 @@
       "total_errors": 0
     }
   },
-  "notes": "v31 (run 33511280539) 12th independent verification. Fresh workspace reproduction: downloaded parquet (822.8 MB), regenerated 174,113 decisions as bger_*.jsonl, built citation resolver (196,668 indexed, 95.9% resolution). All 76/76 tests PASS. Diagnosed glob bug: bge_*.jsonl (21k BGE subset, committed) vs bger_*.jsonl (174k full corpus, gitignored) naming mismatch causes test failures in fresh workspace until reproduce_full_corpus.py runs. RECOMMENDATION: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS."
+  "notes": "v32 (run 33516132492) 13th independent verification. Fresh workspace reproduction: downloaded parquet (822.8 MB), regenerated 174,113 decisions as bger_*.jsonl, built citation resolver (196,668 indexed, 95.9% resolution). All 76/76 tests PASS. Fixed factory_direction.json status mismatch (RUN→COMPLETE) — same systemic orchestration bug as fractal-map. RECOMMENDATION: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS."
 }
