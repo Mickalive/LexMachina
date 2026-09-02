@@ -67,6 +67,7 @@ class NavigationAPI:
         self._cross_language_cache: Dict[str, Dict] = {}
         self._text_similarity_cache: Dict[str, Dict] = {}
         self._proximity_cache: Dict[str, Dict] = {}
+        self._webgl_cache: Dict[str, Dict] = {}  # WebGL data cache
         self._cache_ttl = 300  # 5 minutes
         self._cache_timestamps: Dict[str, float] = {}
         
@@ -184,22 +185,36 @@ class NavigationAPI:
         
         Builds one SpatialIndex per representation for the default zoom level.
         This enables O(sqrt(N) + k) viewport culling instead of O(N) brute-force.
+        Tries to load from persisted artifacts for fast startup at 174k scale.
         """
         import time as _time
         t0 = _time.time()
         count = 0
+        loaded_from_disk = 0
+        
+        persist_dir = Path(self.map_loader.results_dir) / "spatial_indices"
+        persist_dir.mkdir(parents=True, exist_ok=True)
         
         for rep in self.map_loader.get_available_representations():
             zl = self.map_loader.get_zoom_level(rep, 1)  # Default zoom level
             if zl and zl.positions:
-                si = SpatialIndex()
-                si.build(zl.positions)
+                persist_path = persist_dir / f"spatial_{rep.replace('/', '_')}"
+                
+                # Try to load from disk first
+                si = SpatialIndex.load(persist_path)
+                if si is None:
+                    # Build and persist
+                    si = SpatialIndex(persist_path=persist_path)
+                    si.build(zl.positions)
+                else:
+                    loaded_from_disk += 1
+                
                 self._spatial_indices[rep] = si
                 count += 1
         
         elapsed = _time.time() - t0
         if count > 0:
-            print(f"[SpatialIndex] Built {count} spatial indices in {elapsed:.3f}s")
+            print(f"[SpatialIndex] Built/loaded {count} spatial indices ({loaded_from_disk} from disk) in {elapsed:.3f}s")
 
     def _get_spatial_index(self, representation: str) -> Optional[SpatialIndex]:
         """Get or build spatial index for a representation."""
@@ -209,8 +224,14 @@ class NavigationAPI:
         # Build on demand if not pre-built
         zl = self.map_loader.get_zoom_level(representation, 1)
         if zl and zl.positions:
-            si = SpatialIndex()
-            si.build(zl.positions)
+            persist_dir = Path(self.map_loader.results_dir) / "spatial_indices"
+            persist_path = persist_dir / f"spatial_{representation.replace('/', '_')}"
+            
+            si = SpatialIndex.load(persist_path)
+            if si is None:
+                si = SpatialIndex(persist_path=persist_path)
+                si.build(zl.positions)
+            
             self._spatial_indices[representation] = si
             return si
         return None
@@ -2012,8 +2033,9 @@ class NavigationAPI:
         Returns flat arrays for positions, colors, radii, imported flags
         suitable for direct upload to GPU buffers.
         
-        For 192k+ scale: uses numpy vectorized ops and optional viewport
-        bbox filtering to minimize data transfer.
+        For 174k+ scale: uses numpy vectorized ops, server-side caching,
+        optional viewport bbox filtering, and LOD decimation to minimize
+        data transfer.
         
         Args:
             representation: Map representation name
@@ -2029,6 +2051,17 @@ class NavigationAPI:
         """
         if not self._initialized:
             return {"error": "Not initialized"}
+
+        # Check cache for non-viewport requests (viewport requests are dynamic)
+        cache_key = None
+        if bbox is None:
+            mode_key = map_mode or representation
+            lod_key = lod_level if lod_level is not None else 2
+            cache_key = self._get_cache_key("webgl", mode_key, zoom_level, lod_key)
+            cached = self._get_cache(self._webgl_cache, cache_key)
+            if cached is not None:
+                cached["cached"] = True
+                return cached
 
         if map_mode:
             map_data = self.get_map_data(map_mode=map_mode, zoom_level=zoom_level)
@@ -2160,7 +2193,7 @@ class NavigationAPI:
                 "offsetY": 0,
             }
 
-            return {
+            result = {
                 "points": {
                     "positions": positions_array.tolist(),
                     "colors": colors_array.tolist(),
@@ -2187,7 +2220,13 @@ class NavigationAPI:
                 "lod_level": effective_lod,
             }
 
-        # --- LOD: Level-of-detail point decimation for 192k+ scale ---
+            # Cache non-viewport requests
+            if cache_key is not None:
+                self._set_cache(self._webgl_cache, cache_key, result)
+
+            return result
+
+        # --- LOD: Level-of-detail point decimation for 174k+ scale ---
         n_total_pre_lod = n_total
         LOD_LIMITS = {0: 15000, 1: 30000}
         lod_limit = LOD_LIMITS.get(zoom_level)
@@ -2336,7 +2375,7 @@ class NavigationAPI:
             'offsetY': 0
         }
 
-        return {
+        result = {
             'points': {
                 'positions': positions_array.tolist(),
                 'colors': colors_array.tolist(),
@@ -2362,6 +2401,12 @@ class NavigationAPI:
             },
             'lod_level': lod_level,
         }
+
+        # Cache non-viewport requests
+        if cache_key is not None:
+            self._set_cache(self._webgl_cache, cache_key, result)
+
+        return result
 
     def get_design_patterns(self) -> Dict[str, Any]:
         """Return design pattern classification for all representations.
