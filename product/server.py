@@ -21,15 +21,24 @@ from typing import Tuple, Dict, Optional, Any, List
 # Add parent to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+import logging
+
 from app.navigation import NavigationAPI
 from app.evaluation_loader import EvaluationLoader
 from app.import_manager import ImportManager
+from app.health_checker import RepresentationHealthChecker
+from app.incremental_updater import IncrementalUpdater
 
+
+logger = logging.getLogger("lexmachina.server")
 
 # Global navigation API instance
 _nav_api = None
+_nav_api_init_error = None
 _eval_loader = None
 _import_manager = None
+_incremental_updater = None
+_health_checker = RepresentationHealthChecker()
 _server_start_time = time.time()
 
 # Rate limiting
@@ -201,15 +210,37 @@ def cached(ttl: int = CACHE_TTL, key_prefix: str = ""):
 
 
 def get_nav_api() -> NavigationAPI:
-    """Get or initialize the navigation API."""
-    global _nav_api
-    if _nav_api is None:
-        base_dir = Path(__file__).parent
-        corpus_dir = str(base_dir / "results" / "corpus" / "normalization" / "canonical")
-        results_dir = str(base_dir / "results" / "fractal_map")
+    """Get or initialize the navigation API with graceful degradation.
+
+    If the full NavigationAPI fails to initialize (e.g. missing artifacts,
+    corrupt data), we log the failure and raise so callers can decide how
+    to handle it.  A partial-success path is *not* supported here because
+    NavigationAPI.__init__ is not incremental — but we make the server
+    tolerant of the failure.
+    """
+    global _nav_api, _nav_api_init_error
+    if _nav_api is not None:
+        return _nav_api
+
+    base_dir = Path(__file__).parent
+    corpus_dir = str(base_dir / "results" / "corpus" / "normalization" / "canonical")
+    results_dir = str(base_dir / "results" / "fractal_map")
+
+    try:
         _nav_api = NavigationAPI(corpus_dir, results_dir)
         _nav_api.initialize()
+        _nav_api_init_error = None
+    except Exception as e:
+        _nav_api_init_error = str(e)
+        logger.error("NavigationAPI initialization failed: %s", e)
+        raise
+
     return _nav_api
+
+
+def get_health_checker() -> RepresentationHealthChecker:
+    """Return the global health checker instance."""
+    return _health_checker
 
 
 def get_eval_loader() -> EvaluationLoader:
@@ -231,25 +262,26 @@ def get_import_manager() -> ImportManager:
     return _import_manager
 
 
+def get_incremental_updater() -> IncrementalUpdater:
+    """Get or initialize the incremental updater."""
+    global _incremental_updater
+    if _incremental_updater is None:
+        _incremental_updater = IncrementalUpdater(get_nav_api())
+    return _incremental_updater
+
+
 def get_default_representation() -> str:
     """Get the default representation for map navigation.
     
-    Factory direction v6 (CRITICAL FIX per evaluation v6): 
-    center_projected_64dim_hierarchical is the DEFAULT map mode.
+    Factory direction v15 (v15b-audit CRITICAL + v16 ACCEPTED):
+    cited_outcome_hybrid_0.5 is the PRODUCTION DEFAULT.
     
-    Evaluation v6 finding: 768-dim center_projected FAILS jurist pairwise (0.491).
-    Evaluation v3 validation: 64-dim frozen PCA center_projected PASSES BOTH 
-    adversarial gates (language dominance 0.766 < 0.85, jurist pairwise 0.512 > 0.5).
-    
-    This representation uses:
-    - 64-dim frozen PCA of center_projected embeddings (language-debiased)
-    - Hierarchical Leiden clustering (nesting=1.0, purity=0.9718)
-    - 2-resolution ladder: zoom 0 (7 coarse) → zoom 1 (108 fine)
-    - Coarse purity: 0.9761, Hierarchical purity: 0.9718
-    
-    The 768-dim center_projected_hierarchical is available as LEGACY mode for comparison.
+    v15b-audit CRITICAL: NO representation passes all benchmarks;
+    PRODUCTION DEFAULT is cited_outcome_hybrid_0.5 because it wins
+    full-harness LangDom/JuristPref/Boilerplate. Best for user-imported
+    corpora where branch metadata unavailable.
     """
-    return "center_projected_64dim_hierarchical"
+    return "cited_outcome_hybrid_0.5"
 
 
 class ProductHandler(SimpleHTTPRequestHandler):
@@ -295,7 +327,36 @@ class ProductHandler(SimpleHTTPRequestHandler):
             mode = params.get("mode", [None])[0]
             limit = int(params.get("limit", ["0"])[0]) if "limit" in params else None
             offset = int(params.get("offset", ["0"])[0]) if "offset" in params else None
-            self._json_response(get_nav_api().get_map_data(rep, zoom, map_mode=mode, limit=limit, offset=offset))
+            try:
+                nav = get_nav_api()
+                result = nav.get_map_data(rep, zoom, map_mode=mode, limit=limit, offset=offset)
+                # Graceful degradation: if the requested representation failed,
+                # return a clear error with available alternatives
+                if "error" in result:
+                    available = nav.map_loader.get_available_representations()
+                    # Build health info for the error response
+                    health_issues = {}
+                    for r in available:
+                        h = _health_checker.check_representation_health(r, nav.map_loader)
+                        if h["status"] != "healthy":
+                            health_issues[r] = h["status"]
+                    result["available_representations"] = available
+                    result["healthy_representations"] = [
+                        r for r in available
+                        if r not in health_issues
+                    ]
+                    result["degraded_representations"] = list(health_issues.keys())
+                    result["recommendation"] = (
+                        f"Try representation '{get_default_representation()}' which is the "
+                        "production default, or use /api/health/representations for full status."
+                    )
+                self._json_response(result)
+            except Exception as e:
+                self._json_response({
+                    "error": f"Map request failed: {e}",
+                    "available_representations": [],
+                    "recommendation": "The navigation API may not be fully initialized. Check /api/health.",
+                }, 500)
         elif path == "/api/map_modes":
             self._json_response(get_nav_api().get_map_modes())
         elif path == "/api/cluster":
@@ -428,6 +489,19 @@ class ProductHandler(SimpleHTTPRequestHandler):
         elif path == "/api/health/startup_validation":
             # Startup validation: health-check all loaded representations
             self._json_response(get_nav_api().startup_validation())
+        elif path == "/api/health/representations":
+            try:
+                nav = get_nav_api()
+                rep_health = _health_checker.get_health_summary(nav.map_loader)
+                self._json_response(rep_health)
+            except Exception as e:
+                self._json_response({
+                    "error": f"Representation health check failed: {e}",
+                    "total": 0,
+                    "healthy": 0,
+                    "degraded": 0,
+                    "failed": 0,
+                }, 500)
 
         # Design patterns endpoint
         elif path == "/api/design_patterns":
@@ -442,12 +516,34 @@ class ProductHandler(SimpleHTTPRequestHandler):
             purpose = params.get("purpose", ["default"])[0]
             self._json_response(get_nav_api().get_representation_recommendation(purpose))
         
+        # WebGL LOD info endpoint
+        elif path == "/api/webgl/lod":
+            from app.lod_manager import LODManager
+            lod_mgr = LODManager()
+            default_rep = get_default_representation()
+            rep = params.get("representation", [default_rep])[0]
+            # Get total point count for the representation
+            try:
+                nav = get_nav_api()
+                map_data = nav.get_map_data(representation=rep, zoom_level=1)
+                total_points = len(map_data.get("positions", []))
+            except Exception:
+                total_points = 0
+            info = lod_mgr.get_lod_info()
+            optimal = lod_mgr.get_optimal_detail_level(None, total_points)
+            info["total_points"] = total_points
+            info["optimal_level"] = optimal
+            self._json_response(info)
+        
         # WebGL rendering data endpoint
         elif path == "/api/webgl/data":
             default_rep = get_default_representation()
             rep = params.get("representation", [default_rep])[0]
             zoom_level = int(params.get("zoom", ["1"])[0])
             mode = params.get("mode", [None])[0]
+            # LOD level override (0=centroids, 1=super-clusters, 2+=full)
+            lod_param = params.get("lod_level", [None])[0]
+            lod_level = int(lod_param) if lod_param is not None else None
             # Viewport bbox for viewport culling (critical for 192k scale)
             bbox = None
             if "xMin" in params and "xMax" in params and "yMin" in params and "yMax" in params:
@@ -457,34 +553,69 @@ class ProductHandler(SimpleHTTPRequestHandler):
                     'xMax': float(params["xMax"][0]),
                     'yMax': float(params["yMax"][0]),
                 }
-            self._json_response(get_nav_api().get_webgl_data(rep, zoom_level, map_mode=mode, bbox=bbox))
+            self._json_response(get_nav_api().get_webgl_data(rep, zoom_level, map_mode=mode, bbox=bbox, lod_level=lod_level))
         
         # Health check endpoint
         elif path == "/api/health":
-            nav = get_nav_api()
+            try:
+                nav = get_nav_api()
+                nav_ok = True
+            except Exception as e:
+                nav_ok = False
+                nav = None
+
+            overall_status = "healthy"
             health = {
-                "status": "healthy",
+                "status": overall_status,
                 "timestamp": time.time(),
                 "version": "7.0",
-                "corpus_decisions": nav.corpus.size,
-                "maps_loaded": len(nav.map_loader.get_available_representations()),
                 "uptime_seconds": time.time() - _server_start_time,
                 "threaded_server": True,
+                "nav_api_initialized": nav_ok,
+                "nav_api_error": _nav_api_init_error,
             }
-            # Include startup validation summary on first call (cached)
-            if ProductHandler._startup_validation is None:
+            if nav_ok:
+                health["corpus_decisions"] = nav.corpus.size
+                health["maps_loaded"] = len(nav.map_loader.get_available_representations())
+
+                # Include startup validation summary on first call (cached)
+                if ProductHandler._startup_validation is None:
+                    try:
+                        ProductHandler._startup_validation = nav.startup_validation()
+                    except Exception as e:
+                        ProductHandler._startup_validation = {"error": str(e)}
+                sv = ProductHandler._startup_validation
+                health["startup_validation"] = {
+                    "total_representations": sv.get("total_representations", 0),
+                    "passing": sv.get("passing", 0),
+                    "warnings": sv.get("warnings", 0),
+                    "failing": sv.get("failing", 0),
+                    "elapsed_ms": sv.get("elapsed_ms", 0),
+                }
+
+                # Representation health summary
                 try:
-                    ProductHandler._startup_validation = nav.startup_validation()
+                    rep_summary = _health_checker.get_health_summary(nav.map_loader)
+                    health["representation_health"] = {
+                        "total": rep_summary["total"],
+                        "healthy": rep_summary["healthy"],
+                        "degraded": rep_summary["degraded"],
+                        "failed": rep_summary["failed"],
+                        "healthy_pct": rep_summary["healthy_pct"],
+                    }
+                    if rep_summary["degraded"] > 0 or rep_summary["failed"] > 0:
+                        overall_status = "degraded"
                 except Exception as e:
-                    ProductHandler._startup_validation = {"error": str(e)}
-            sv = ProductHandler._startup_validation
-            health["startup_validation"] = {
-                "total_representations": sv.get("total_representations", 0),
-                "passing": sv.get("passing", 0),
-                "warnings": sv.get("warnings", 0),
-                "failing": sv.get("failing", 0),
-                "elapsed_ms": sv.get("elapsed_ms", 0),
-            }
+                    health["representation_health"] = {"error": str(e)}
+                    overall_status = "degraded"
+            else:
+                overall_status = "failed"
+                health["corpus_decisions"] = 0
+                health["maps_loaded"] = 0
+                health["startup_validation"] = {"error": _nav_api_init_error}
+                health["representation_health"] = {"error": _nav_api_init_error}
+
+            health["status"] = overall_status
             self._json_response(health)
         
         # Cache management endpoints
@@ -503,7 +634,11 @@ class ProductHandler(SimpleHTTPRequestHandler):
             client_id = get_client_id(self)
             allowed, info = _rate_limiter.check_rate_limit(client_id)
             self._json_response(info)
-        
+
+        # Incremental update pending status
+        elif path == "/api/map/pending_updates":
+            self._json_response(get_incremental_updater().get_pending_updates())
+
         # Static files
         elif path == "/" or path == "/index.html":
             self._serve_file("static/index.html", "text/html")
@@ -524,6 +659,8 @@ class ProductHandler(SimpleHTTPRequestHandler):
             self._handle_async_import()
         elif path == "/api/feedback":
             self._handle_feedback()
+        elif path == "/api/map/incremental_update":
+            self._handle_incremental_update()
         else:
             self.send_error(404)
 
@@ -641,6 +778,33 @@ class ProductHandler(SimpleHTTPRequestHandler):
         except Exception as e:
             self._json_response({"error": str(e)}, 500)
 
+    def _handle_incremental_update(self):
+        """Handle incremental map update: add decisions to existing map."""
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(content_length)
+            data = json.loads(body.decode("utf-8"))
+
+            decision_ids = data.get("decision_ids", [])
+            representation = data.get("representation", None)
+            zoom_level = int(data.get("zoom_level", 1))
+
+            if not decision_ids:
+                self._json_response({"error": "decision_ids is required and must be non-empty"}, 400)
+                return
+
+            updater = get_incremental_updater()
+            result = updater.add_decisions_to_map(
+                decision_ids=decision_ids,
+                representation=representation,
+                zoom_level=zoom_level,
+            )
+            self._json_response(result)
+        except json.JSONDecodeError:
+            self._json_response({"error": "Invalid JSON"}, 400)
+        except Exception as e:
+            self._json_response({"error": str(e)}, 500)
+
     def _json_response(self, data, status=200):
         """Send a JSON response."""
         self.send_response(status)
@@ -678,7 +842,7 @@ def run_server(port=8080):
     print(f"Available representations: {nav.map_loader.get_available_representations()}")
     for rep in nav.map_loader.get_available_representations():
         print(f"  {rep}: zoom levels = {nav.map_loader.get_zoom_levels(rep)}")
-    print(f"Default representation: {default_rep} (evaluation-validated: 14/14 benchmarks PASS)")
+    print(f"Default representation: {default_rep} (PRODUCTION DEFAULT per v15b-audit: wins full-harness LangDom/JuristPref/Boilerplate)")
 
     server = ThreadedHTTPServer(("0.0.0.0", port), ProductHandler)
     print(f"LexMachina server running on http://localhost:{port} (threaded)")

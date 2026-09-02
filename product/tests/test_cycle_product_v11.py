@@ -113,10 +113,10 @@ def test_startup_validation_per_rep_status():
 
 
 def test_startup_validation_default_representation_passes():
-    """The DEFAULT representation (center_projected_64dim_hierarchical) passes validation."""
+    """The PRODUCTION DEFAULT representation (cited_outcome_hybrid_0.5) passes validation per v15b-audit."""
     nav = _get_nav()
     result = nav.startup_validation()
-    default = "center_projected_64dim_hierarchical"
+    default = "cited_outcome_hybrid_0.5"
     assert default in result["representations"], f"Default {default} not in validation results"
     assert result["representations"][default]["status"] == "PASS"
 
@@ -224,9 +224,9 @@ def test_design_patterns_count():
 
 
 def test_representation_purposes():
-    """REPRESENTATION_PURPOSES maps key representations to purposes."""
+    """REPRESENTATION_PURPOSES maps key representations to purposes (v15b-audit)."""
     purposes = MapLoader.REPRESENTATION_PURPOSES
-    assert "center_projected_64dim_hierarchical" in purposes
-    assert purposes["center_projected_64dim_hierarchical"] == "production"
     assert "cited_outcome_hybrid_0.5" in purposes
-    assert purposes["cited_outcome_hybrid_0.5"] == "cross_lingual"
+    assert purposes["cited_outcome_hybrid_0.5"] == "production"  # v15b-audit: PRODUCTION DEFAULT
+    assert "center_projected_64dim_hierarchical" in purposes
+    assert purposes["center_projected_64dim_hierarchical"] == "legacy_default"

@@ -43,23 +43,23 @@ class EvaluationLoader:
         },
         "cited_outcome_hybrid_0.5": {
             "jp_score": 0.7990,
-            "jp_note": "train (no holdout available), BEST PRODUCTION hybrid",
+            "jp_note": "train (no holdout available), PRODUCTION DEFAULT per v15b-audit",
             "language_dominance": 0.4911,
             "citation_independence": None,
-            "design_pattern": "HIGH-ADVANTAGE",
+            "design_pattern": "DEFAULT",
         },
         "cited_outcome_hybrid_0.7": {
             "jp_score": 0.7907,
             "jp_note": "train (no holdout available), BEST FRACTAL",
             "language_dominance": 0.4907,
             "citation_independence": None,
-            "design_pattern": "HIGH-ADVANTAGE",
+            "design_pattern": "DEFAULT",
         },
         "center_projected_64dim_hierarchical": {
             "jp_score": 0.512,
             "language_dominance": 0.766,
             "citation_independence": None,
-            "design_pattern": "DEFAULT",
+            "design_pattern": "LEGACY-DEFAULT",
         },
         "following_alpha0.3": {
             "jp_score": 0.5188,
@@ -84,10 +84,16 @@ class EvaluationLoader:
 
     DESIGN_PATTERNS = {
         "DEFAULT": {
+            "representations": ["cited_outcome_hybrid_0.5"],
+            "description": "PRODUCTION DEFAULT per v15b-audit CRITICAL. Wins full-harness LangDom/JuristPref/Boilerplate. Best for user-imported corpora where branch metadata unavailable.",
+            "strengths": ["full-harness winner", "LangDom/JuristPref/Boilerplate", "production-ready", "user-import ready"],
+            "use_when": "General-purpose legal-case clustering; default choice. Wins full-harness evaluation vs center_projected_64dim_hierarchical.",
+        },
+        "LEGACY-DEFAULT": {
             "representations": ["center_projected_64dim_hierarchical"],
-            "description": "Production default. Passes both adversarial gates. Balanced cross-lingual and fractal quality.",
-            "strengths": ["passes adversarial gates", "production-ready", "balanced metrics"],
-            "use_when": "General-purpose legal-case clustering; default choice unless a specific use case demands otherwise.",
+            "description": "LEGACY DEFAULT (factory direction v6). 64-dim frozen PCA. Both adversarial gates PASS. Replaced by cited_outcome_hybrid_0.5 per v15b-audit.",
+            "strengths": ["passes adversarial gates", "language-debiased", "balanced metrics"],
+            "use_when": "Legacy comparison; when language-debiased PCA embeddings are specifically needed.",
         },
         "HIGH-PURITY": {
             "representations": ["linear_metric_epoch4", "mahalanobis_metric_epoch4", "hybrid_stabilized_epoch1"],
@@ -111,9 +117,9 @@ class EvaluationLoader:
 
     RECOMMENDATIONS = {
         "production": {
-            "representation": "center_projected_64dim_hierarchical",
+            "representation": "cited_outcome_hybrid_0.5",
             "pattern": "DEFAULT",
-            "rationale": "Passes both adversarial gates. Systematic, balanced, production-ready.",
+            "rationale": "PRODUCTION DEFAULT per v15b-audit CRITICAL. Wins full-harness LangDom/JuristPref/Boilerplate. Best for user-imported corpora where branch metadata unavailable.",
         },
         "citation_independent": {
             "representation": "linear_metric_epoch4",
@@ -122,18 +128,23 @@ class EvaluationLoader:
         },
         "cross_lingual": {
             "representation": "cited_outcome_hybrid_0.5",
-            "pattern": "HIGH-ADVANTAGE",
-            "rationale": "Best production hybrid. Highest JP (0.7990 train) among production-ready representations with strong language balance.",
+            "pattern": "DEFAULT",
+            "rationale": "PRODUCTION DEFAULT per v15b-audit. Wins full-harness LangDom/JuristPref/Boilerplate.",
         },
         "fractal_quality": {
             "representation": "cited_outcome_hybrid_0.7",
-            "pattern": "HIGH-ADVANTAGE",
-            "rationale": "Best fractal representation. Highest JP (0.7907 train) with deep hierarchical structure.",
+            "pattern": "DEFAULT",
+            "rationale": "Best fractal representation. Highest JP (0.7907 train) with deep hierarchical structure. DEFAULT pattern per v15b-audit.",
         },
         "default": {
-            "representation": "center_projected_64dim_hierarchical",
+            "representation": "cited_outcome_hybrid_0.5",
             "pattern": "DEFAULT",
-            "rationale": "Production default. Balanced metrics across all dimensions.",
+            "rationale": "PRODUCTION DEFAULT per v15b-audit. Wins full-harness LangDom/JuristPref/Boilerplate.",
+        },
+        "best_stable_combination": {
+            "representation": "linear_hybrid05_concat",
+            "pattern": "COMBINATION",
+            "rationale": "v15b ACCEPTED: JP=0.838, std=0.027, BEST STABLE combination. Beats all zero-shot hybrids. For doctrinal/Jurivoc exploration.",
         },
     }
 

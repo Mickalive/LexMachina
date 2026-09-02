@@ -422,40 +422,43 @@
                 <select id="mode-select">
                     <option value="">Standard (TF-IDF)</option>
                 </select>
-<label>Representation</label>
+                <label>Representation</label>
                 <select id="rep-select">
-                    <!-- DEFAULT: Center Projected 64-dim (evaluation v3 validated - PASSES BOTH adversarial gates) -->
-                    <option value="center_projected_64dim_hierarchical" selected>★ DEFAULT: Center Projected 64-dim (holdout: LangDom=0.766, JP=0.512, BOTH PASS ✓)</option>
+                    <!-- PRODUCTION DEFAULT: cited_outcome_hybrid_0.5 (v15b-audit CRITICAL: wins full-harness LangDom/JuristPref/Boilerplate) -->
+                    <option value="cited_outcome_hybrid_0.5" selected>★ PRODUCTION DEFAULT: Citation+Outcome α=0.5 (JP=0.799, LangDom=0.491, v15b-audit)</option>
                     <!-- COMBINATION (v15b ACCEPTED) — BEST STABLE representation overall -->
-                    <optgroup label="🔗 COMBINATION (v15b ACCEPTED: beats all zero-shot hybrids)">
+                    <optgroup label="COMBINATION (v15b ACCEPTED: beats all zero-shot hybrids)">
                         <option value="linear_hybrid05_concat">★ BEST STABLE: Metric+Outcome Combo — JP=0.838, std=0.027 (v15b ACCEPTED)</option>
                     </optgroup>
                     <!-- HIGH-PURITY (Metric Learning) — factory direction v9 holdout: best citation-independent retrieval -->
-                    <optgroup label="🔬 HIGH-PURITY: Metric Learning (citation-independent, 35% cite-indep)">
+                    <optgroup label="HIGH-PURITY: Metric Learning (citation-independent, 35% cite-indep)">
                         <option value="linear_metric_best">★ BEST HOLDOUT: Linear Metric (epoch 4) — JP=0.605, LangDom=0.580, 35% cite-indep</option>
                         <option value="mahalanobis_best">Mahalanobis Metric (epoch 4) — JP=0.585, LangDom=0.581, 35% cite-indep</option>
                         <option value="hybrid_stabilized_best">Stabilized Hybrid (epoch 1) — JP=0.515, LangDom=0.605, 37% cite-indep</option>
                     </optgroup>
                     <!-- HIGH-ADVANTAGE (Citation/Outcome) — factory direction v9: cross-lingual alignment -->
-                    <optgroup label="⚖️ HIGH-ADVANTAGE: Citation/Outcome (cross-lingual, fractal)">
-                        <option value="cited_outcome_hybrid_0.5">★ BEST PRODUCTION: Citation+Outcome α=0.5 — JP=0.799*, LangDom=0.491</option>
+                    <optgroup label="HIGH-ADVANTAGE: Citation/Outcome (cross-lingual, fractal)">
                         <option value="cited_outcome_hybrid_0.7">★ BEST FRACTAL: Citation+Outcome α=0.7 — HierAdv=+0.370</option>
                         <option value="cited_decisions_tfidf">Doctrinal Lineage (Cited TF-IDF) — JP=0.692*, LangDom=0.611</option>
                     </optgroup>
                     <!-- Production CP64 Hybrids (ACCEPTED) -->
-                    <optgroup label="🏭 Production Hybrids CP64 (ACCEPTED)">
+                    <optgroup label="Production Hybrids CP64 (ACCEPTED)">
                         <option value="cited_decisions_tfidf_hybrid_cp64_0.7">BEST Production Hybrid CP64 α=0.7 — JP=0.661*, LangDom=0.652</option>
                         <option value="cited_decisions_tfidf_hybrid_cp64_0.5">Production Hybrid CP64 α=0.5 — JP=0.628*, LangDom=0.684</option>
                         <option value="cited_decisions_tfidf_hybrid_cp64_0.3">Production Hybrid CP64 α=0.3 — JP=0.535*, LangDom=0.748</option>
                     </optgroup>
                     <!-- CITATION ROLE VIEWS (ACCEPTED - legal-distance v6) -->
-                    <optgroup label="📚 CITATION ROLE VIEWS (precedent relationship analysis)">
+                    <optgroup label="CITATION ROLE VIEWS (precedent relationship analysis)">
                         <option value="following_alpha0.3">Following (precedent extension) — JP=0.519, LangDom=0.753</option>
                         <option value="criticizing_alpha0.3">Criticizing (precedent criticism) — role-separation view</option>
                         <option value="citing_alpha0.3">Citing (citation network) — JP=0.536, LangDom=0.741</option>
                     </optgroup>
+                    <!-- LEGACY DEFAULT (factory direction v6) -->
+                    <optgroup label="LEGACY DEFAULT (factory direction v6, replaced per v15b-audit)">
+                        <option value="center_projected_64dim_hierarchical">★ LEGACY DEFAULT: Center Projected 64-dim (eval v3: LangDom=0.766, JP=0.512)</option>
+                    </optgroup>
                     <!-- LEGACY (earlier representations) -->
-                    <optgroup label="📜 LEGACY (earlier representations, for comparison)">
+                    <optgroup label="LEGACY (earlier representations, for comparison)">
                         <option value="center_projected_hierarchical">Center Projected 768-dim Hierarchical (FAILS jurist pairwise)</option>
                         <option value="center_projected">Center Projected 768-dim (FAILS pairwise per eval v6)</option>
                         <option value="debiased_citation_blended">Debiased Citation Blended (eval default, 14/14 PASS)</option>
@@ -739,7 +742,7 @@
     const API = '';
     let currentData = null;
     let currentZoom = 1;
-    let currentRep = 'center_projected_64dim_hierarchical';
+    let currentRep = 'cited_outcome_hybrid_0.5';
     let currentMode = '';
     let hoveredPoint = null;
     let selectedCluster = null;
@@ -2225,7 +2228,7 @@ void main() {
             });
             
             // Set defaults
-            selectA.value = currentRep || 'center_projected_64dim_hierarchical';
+            selectA.value = currentRep || 'cited_outcome_hybrid_0.5';
             selectB.value = 'legal_cited_decisions';
         } catch (e) {
             console.error('Failed to populate comparison reps:', e);
@@ -2539,7 +2542,7 @@ void main() {
     let splitActive = false;
     let splitDataA = null;
     let splitDataB = null;
-    let splitRepA = 'center_projected_64dim_hierarchical';
+    let splitRepA = 'cited_outcome_hybrid_0.5';
     let splitRepB = 'legal_cited_decisions';
     let splitZoom = 1;
 

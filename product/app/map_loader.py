@@ -48,16 +48,17 @@ class MapLoader:
     """Loads and manages map artifacts from the fractal-map lane."""
 
     DESIGN_PATTERNS: Dict[str, str] = {
-        # DEFAULT
-        "center_projected_64dim_hierarchical": "DEFAULT",
+        # PRODUCTION DEFAULT (v15b-audit CRITICAL: wins full-harness LangDom/JuristPref/Boilerplate)
+        "cited_outcome_hybrid_0.5": "DEFAULT",
+        "cited_outcome_hybrid_0.7": "DEFAULT",
+        # LEGACY DEFAULT (factory direction v6, replaced by cited_outcome_hybrid_0.5 per v15b-audit)
+        "center_projected_64dim_hierarchical": "LEGACY-DEFAULT",
         # HIGH-PURITY
         "linear_metric_best": "HIGH-PURITY",
         "mahalanobis_best": "HIGH-PURITY",
         "hybrid_stabilized_best": "HIGH-PURITY",
         # HIGH-ADVANTAGE
         "cited_decisions_tfidf": "HIGH-ADVANTAGE",
-        "cited_outcome_hybrid_0.5": "HIGH-ADVANTAGE",
-        "cited_outcome_hybrid_0.7": "HIGH-ADVANTAGE",
         "hybrid_cited_decisions_0.3": "HIGH-ADVANTAGE",
         "hybrid_cited_decisions_0.5": "HIGH-ADVANTAGE",
         "hybrid_cited_decisions_0.7": "HIGH-ADVANTAGE",
@@ -87,10 +88,10 @@ class MapLoader:
     }
 
     REPRESENTATION_PURPOSES: Dict[str, str] = {
-        "center_projected_64dim_hierarchical": "production",
-        "linear_metric_best": "citation_independent",
-        "cited_outcome_hybrid_0.5": "cross_lingual",
+        "cited_outcome_hybrid_0.5": "production",
         "cited_outcome_hybrid_0.7": "fractal_quality",
+        "center_projected_64dim_hierarchical": "legacy_default",
+        "linear_metric_best": "citation_independent",
         "cited_decisions_tfidf": "citation_proximity",
         "linear_hybrid05_concat": "best_stable_combination",
         "following_alpha0.3": "following_precedent",

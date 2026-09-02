@@ -25,6 +25,7 @@ from .zoom_coherence_loader import ZoomCoherenceLoader
 from .language_analyzer import LanguageAnalyzer
 from .tfidf_proximity import TFIDFProximity
 from .spatial_index import SpatialIndex
+from .lod_manager import LODManager
 
 
 class NavigationAPI:
@@ -71,6 +72,7 @@ class NavigationAPI:
         
         # Spatial index for fast viewport queries (KD-tree)
         self._spatial_indices: Dict[str, SpatialIndex] = {}  # representation -> SpatialIndex
+        self.lod_manager = LODManager()
         
         # User import map artifacts
         self._base_embeddings: Optional[np.ndarray] = None
@@ -216,22 +218,25 @@ class NavigationAPI:
     def _get_default_representation(self) -> str:
         """Get the default representation for map navigation.
         
-        Factory direction v6 (CRITICAL FIX per evaluation v6): 
-        center_projected_64dim_hierarchical is the DEFAULT map mode.
+        Factory direction v15 (v15b-audit CRITICAL + v16 ACCEPTED):
+        cited_outcome_hybrid_0.5 is the PRODUCTION DEFAULT.
         
-        Evaluation v6 finding: 768-dim center_projected FAILS jurist pairwise (0.491).
-        Evaluation v3 validation: 64-dim frozen PCA center_projected PASSES BOTH 
-        adversarial gates (language dominance 0.766 < 0.85, jurist pairwise 0.512 > 0.5).
+        v15b-audit CRITICAL: NO representation passes all benchmarks;
+        PRODUCTION DEFAULT is cited_outcome_hybrid_0.5 because it wins
+        full-harness LangDom/JuristPref/Boilerplate. Hypothesis: SVD
+        information leakage may favor hybrid in production deployment.
+        Best for user-imported corpora where branch metadata unavailable.
         
         This representation uses:
-        - 64-dim frozen PCA of center_projected embeddings (language-debiased)
-        - Hierarchical Leiden clustering (nesting=1.0, purity=0.9718)
-        - 2-resolution ladder: zoom 0 (7 coarse) → zoom 1 (108 fine)
-        - Coarse purity: 0.9761, Hierarchical purity: 0.9718
+        - 50% cited_decisions_tfidf + 50% outcome signal
+        - JP=0.799 (train), LangDom=0.491, both adversarial gates PASS
+        - ACCEPTED evidence tier, production-viable
         
-        The 768-dim center_projected_hierarchical is available as LEGACY mode for comparison.
+        center_projected_64dim_hierarchical available as LEGACY mode for comparison.
+        linear_hybrid05_concat (JP=0.838, best stable combination) available as
+        COMBINATION mode for doctrinal/Jurivoc exploration.
         """
-        return "center_projected_64dim_hierarchical"
+        return "cited_outcome_hybrid_0.5"
 
     def _load_imported_positions(self) -> None:
         """Load previously computed import positions from disk."""
@@ -953,7 +958,7 @@ class NavigationAPI:
             "legal_cited_decisions": "Doctrinal Lineage (Cited TF-IDF)",
             "center_projected": "Language-Debiased (768-dim)",
             "center_projected_hierarchical": "Language-Debiased Hierarchical (768-dim)",
-            "center_projected_64dim_hierarchical": "Language-Debiased Hierarchical (64-dim) ★ DEFAULT",
+            "center_projected_64dim_hierarchical": "Language-Debiased Hierarchical (64-dim) ★ LEGACY DEFAULT",
             "hybrid_alpha_0_3": "Hybrid: Citation + Legal (30/70)",
             "hybrid_alpha_0_5": "Hybrid: Citation + Legal (50/50)",
             "legal_issues_outcomes": "Legal Issues & Outcomes",
@@ -1014,7 +1019,7 @@ class NavigationAPI:
             "legal_cited_decisions": "ACCEPTED legal-distance signal (14/14 PASS). TF-IDF on cited decisions only. Citation heritage AUC 0.9719. Best for citation-proximity.",
             "center_projected": "Language-debiased by removing 1st PCA component. Evaluation v2: ONLY passes BOTH adversarial gates (lang_dom=0.759, pairwise=0.522).",
             "center_projected_hierarchical": "Hierarchical Leiden on pure center_projected. Nesting=1.0, purity=0.9638, 108 fine clusters in 7 coarse. LEGACY: 768-dim.",
-            "center_projected_64dim_hierarchical": "DEFAULT map mode. 64-dim frozen PCA of center_projected. Nesting=1.0, purity=0.9718. Evaluation v3: lang_dom=0.766, pairwise=0.512. BOTH gates PASS.",
+            "center_projected_64dim_hierarchical": "LEGACY DEFAULT. 64-dim frozen PCA of center_projected. Nesting=1.0, purity=0.9718. Eval v3: lang_dom=0.766, pairwise=0.512. BOTH gates PASS. Replaced by cited_outcome_hybrid_0.5 per v15b-audit.",
             "hybrid_alpha_0_3": "Hybrid: 30% center_projected + 70% legal_cited_decisions. EXPLORATORY.",
             "hybrid_alpha_0_5": "Hybrid: 50% center_projected + 50% legal_cited_decisions. EXPLORATORY.",
             "legal_issues_outcomes": "Legal-specific TF-IDF on statutes+cited+outcomes+legal_area. ACCEPTED with warnings (fails 4/14).",
@@ -1032,7 +1037,7 @@ class NavigationAPI:
             "criticizing_alpha0.3": "ACCEPTED. Citation role: Criticizing (precedent criticism). Hybrid 30% center_projected_64dim + 70% criticizing signal. JP=0.5485, LangDom=0.7529. Fine purity=0.9672.",
             "citing_alpha0.3": "ACCEPTED. Citation role: Overruling (precedent reversal). Hybrid 30% center_projected_64dim + 70% overruling signal. JP=0.5485, LangDom=0.7529. Fine purity=0.9672.",
             # NEW: Cited Outcome Hybrids (ACCEPTED - factory direction v9)
-            "cited_outcome_hybrid_0.5": "ACCEPTED. BEST PRODUCTION hybrid per factory direction v9. 50% cited_decisions_tfidf + 50% outcome signal. JP=0.7990, LangDom=0.4911. Both adversarial gates PASS. LangDom < 0.6 target ACHIEVED.",
+            "cited_outcome_hybrid_0.5": "PRODUCTION DEFAULT per v15b-audit CRITICAL. Wins full-harness LangDom/JuristPref/Boilerplate. 50% cited_decisions_tfidf + 50% outcome signal. JP=0.7990, LangDom=0.4911. Both adversarial gates PASS. Best for user-imported corpora.",
             "cited_outcome_hybrid_0.7": "ACCEPTED. BEST FRACTAL hybrid per factory direction v9. 70% cited_decisions_tfidf + 30% outcome signal. HierAdv=+0.3703. Both adversarial gates PASS.",
         }
         return descriptions.get(rep, f"Representation: {rep}")
@@ -1998,6 +2003,7 @@ class NavigationAPI:
         map_mode: str = None,
         bbox: Optional[Dict[str, float]] = None,
         import_ids: Optional[Set[str]] = None,
+        lod_level: Optional[int] = None,
     ) -> Dict[str, Any]:
         """Get WebGL-optimized rendering data for a map representation.
         
@@ -2014,6 +2020,10 @@ class NavigationAPI:
             bbox: Optional viewport bounding box {xMin, yMin, xMax, yMax}.
                   When provided, only points inside the bbox are returned,
                   dramatically reducing payload for large corpora.
+            lod_level: Optional LOD level override.
+                       0 = cluster centroids only.
+                       1 = super-cluster centroids.
+                       None or 2 = full detail (current behavior).
         """
         if not self._initialized:
             return {"error": "Not initialized"}
@@ -2080,6 +2090,100 @@ class NavigationAPI:
             cid = p.get('cluster', 0)
             cluster_ids[i] = cid
             has_section[i] = p.get('has_section_data', True)
+
+        # --- LOD level override via LODManager ---
+        effective_lod = lod_level
+        if effective_lod is not None and effective_lod < 2 and n_total > 0:
+            positions_arr = np.column_stack((xs, ys))
+            lod_result = self.lod_manager.compute_lod_levels(
+                positions_arr, clusters, effective_lod
+            )
+            lod_points = lod_result["points"]
+            lod_n = lod_result["point_count"]
+            lod_sizes = lod_result["cluster_sizes"]
+
+            # Viewport culling on LOD-decimated points
+            if bbox and lod_n > 0:
+                culled_mask = self.lod_manager.cull_to_viewport(lod_points, bbox)
+                lod_points = lod_points[culled_mask]
+                lod_sizes = lod_sizes[culled_mask]
+                lod_n = int(lod_points.shape[0])
+
+            # Build flat arrays for WebGL
+            positions_array = np.empty(lod_n * 2, dtype=np.float32)
+            if lod_n > 0:
+                positions_array[0::2] = lod_points[:, 0]
+                positions_array[1::2] = lod_points[:, 1]
+
+            # Cluster color for each centroid/super-centroid
+            colors_array = np.empty(lod_n * 4, dtype=np.float32)
+            radii_array = np.empty(lod_n, dtype=np.float32)
+            imported_array = np.zeros(lod_n, dtype=np.float32)
+
+            imported_set = imported_ids
+            for j in range(lod_n):
+                # Assign color based on nearest cluster centroid
+                cx_val, cy_val = lod_points[j, 0], lod_points[j, 1]
+                best_cid = 0
+                best_dist = float("inf")
+                for cl in clusters:
+                    dx = cl["centroid_x"] - cx_val
+                    dy = cl["centroid_y"] - cy_val
+                    d = dx * dx + dy * dy
+                    if d < best_dist:
+                        best_dist = d
+                        best_cid = cl["cluster_id"]
+                rgba = cluster_color_rgba.get(best_cid, default_rgba)
+                colors_array[j * 4] = rgba[0]
+                colors_array[j * 4 + 1] = rgba[1]
+                colors_array[j * 4 + 2] = rgba[2]
+                colors_array[j * 4 + 3] = rgba[3]
+                # Radius from cluster size (scaled for visibility)
+                radii_array[j] = float(max(3.0, min(20.0, np.sqrt(lod_sizes[j]) * 2)))
+
+            n_culled = lod_n
+            n_total_pre_lod = n_total
+            n_after_lod = lod_n
+            cluster_hulls = []
+            visible_cluster_ids = set()
+
+            # Build transform from full data extents
+            transform = {
+                "xMin": float(xs.min()),
+                "xMax": float(xs.max()),
+                "yMin": float(ys.min()),
+                "yMax": float(ys.max()),
+                "scale": 1.0,
+                "offsetX": 0,
+                "offsetY": 0,
+            }
+
+            return {
+                "points": {
+                    "positions": positions_array.tolist(),
+                    "colors": colors_array.tolist(),
+                    "radii": radii_array.tolist(),
+                    "imported": imported_array.tolist(),
+                    "count": n_culled,
+                },
+                "clusters": clusters,
+                "hulls": cluster_hulls,
+                "transform": transform,
+                "lod_decimation": {
+                    "applied": True,
+                    "original_count": n_total_pre_lod,
+                    "decimated_count": n_after_lod,
+                    "zoom_level": zoom_level,
+                },
+                "viewport_culling": {
+                    "requested": bbox is not None,
+                    "total_positions": n_total_pre_lod,
+                    "visible_positions": n_culled,
+                    "culled_count": n_total_pre_lod - n_culled,
+                    "visible_clusters": len(clusters),
+                },
+                "lod_level": effective_lod,
+            }
 
         # --- LOD: Level-of-detail point decimation for 192k+ scale ---
         n_total_pre_lod = n_total
@@ -2253,7 +2357,8 @@ class NavigationAPI:
                 'visible_positions': n_culled,
                 'culled_count': n_total - n_culled,
                 'visible_clusters': len(visible_cluster_ids) if visible_cluster_ids else len(clusters),
-            }
+            },
+            'lod_level': lod_level,
         }
 
     def get_design_patterns(self) -> Dict[str, Any]:
@@ -2314,12 +2419,13 @@ class NavigationAPI:
     def get_representation_recommendation(self, purpose: str = "default") -> Dict[str, Any]:
         """Get recommended representation for a specific purpose.
         
-        Purposes:
-        - "production": Balanced production default (center_projected_64dim_hierarchical)
+        Factory direction v15 (v15b-audit CRITICAL):
+        - "production": PRODUCTION DEFAULT (cited_outcome_hybrid_0.5) — wins full-harness
         - "citation_independent": Best for citation-independent retrieval (linear_metric_best)
         - "cross_lingual": Best for cross-language navigation (cited_outcome_hybrid_0.5)
         - "fractal_quality": Best hierarchical structure (cited_outcome_hybrid_0.7)
         - "default": Same as production
+        - "best_stable_combination": linear_hybrid05_concat (JP=0.838, std=0.027)
         """
         from .evaluation_loader import EvaluationLoader
         eval_loader = EvaluationLoader(str(self.map_loader.results_dir))

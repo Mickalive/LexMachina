@@ -18,16 +18,22 @@ from app.navigation import NavigationAPI
 # ---------------------------------------------------------------------------
 
 def test_design_patterns_all_five_exist():
-    """All 6 design pattern labels exist in MapLoader.DESIGN_PATTERNS (added COMBINATION per v15b ACCEPTED)."""
-    expected = {"DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "COMBINATION", "CITATION-ROLE", "LEGACY"}
+    """All 7 design pattern labels exist in MapLoader.DESIGN_PATTERNS (added COMBINATION per v15b ACCEPTED, LEGACY-DEFAULT per v15b-audit)."""
+    expected = {"DEFAULT", "LEGACY-DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "COMBINATION", "CITATION-ROLE", "LEGACY"}
     actual = set(MapLoader.DESIGN_PATTERNS.values())
     assert expected == actual, f"Missing patterns: {expected - actual}, Extra: {actual - expected}"
 
 
 def test_design_patterns_default_representation():
-    """DEFAULT pattern maps to center_projected_64dim_hierarchical."""
-    pattern = MapLoader.DESIGN_PATTERNS["center_projected_64dim_hierarchical"]
+    """PRODUCTION DEFAULT maps to cited_outcome_hybrid_0.5 per v15b-audit CRITICAL."""
+    pattern = MapLoader.DESIGN_PATTERNS["cited_outcome_hybrid_0.5"]
     assert pattern == "DEFAULT"
+
+
+def test_design_patterns_legacy_default_representation():
+    """center_projected_64dim_hierarchical is LEGACY-DEFAULT per v15b-audit."""
+    pattern = MapLoader.DESIGN_PATTERNS["center_projected_64dim_hierarchical"]
+    assert pattern == "LEGACY-DEFAULT"
 
 
 def test_design_patterns_high_purity_representations():
@@ -39,11 +45,10 @@ def test_design_patterns_high_purity_representations():
 
 
 def test_design_patterns_high_advantage_representations():
-    """HIGH-ADVANTAGE pattern includes citation/outcome hybrids."""
+    """HIGH-ADVANTAGE pattern includes citation/outcome hybrids (cited_outcome_hybrid_0.5/0.7 now DEFAULT per v15b-audit)."""
     ha_reps = [k for k, v in MapLoader.DESIGN_PATTERNS.items() if v == "HIGH-ADVANTAGE"]
     assert "cited_decisions_tfidf" in ha_reps
-    assert "cited_outcome_hybrid_0.5" in ha_reps
-    assert "cited_outcome_hybrid_0.7" in ha_reps
+    # cited_outcome_hybrid_0.5 and 0.7 are now DEFAULT per v15b-audit CRITICAL
 
 
 def test_design_patterns_citation_role_representations():
@@ -70,10 +75,11 @@ def _make_map_loader_stub():
 
 
 def test_get_representations_by_pattern_default():
-    """get_representations_by_pattern returns correct list for DEFAULT."""
+    """get_representations_by_pattern returns correct list for DEFAULT (cited_outcome_hybrid_0.5 per v15b-audit)."""
     stub = _make_map_loader_stub()
     reps = stub.get_representations_by_pattern("DEFAULT")
-    assert "center_projected_64dim_hierarchical" in reps
+    assert "cited_outcome_hybrid_0.5" in reps
+    assert "center_projected_64dim_hierarchical" not in reps  # now LEGACY-DEFAULT
 
 
 def test_get_representations_by_pattern_high_purity():
@@ -88,7 +94,7 @@ def test_get_representations_by_pattern_high_purity():
 def test_get_representations_by_pattern_all_patterns():
     """Each design pattern yields at least one representation."""
     stub = _make_map_loader_stub()
-    for pattern in {"DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "CITATION-ROLE", "LEGACY"}:
+    for pattern in {"DEFAULT", "LEGACY-DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "CITATION-ROLE", "LEGACY"}:
         reps = stub.get_representations_by_pattern(pattern)
         assert len(reps) > 0, f"Pattern {pattern} has no representations"
 
@@ -100,9 +106,9 @@ def test_get_representations_by_pattern_all_patterns():
 def test_representation_purposes_covers_key_reps():
     """REPRESENTATION_PURPOSES maps key representations to valid purpose strings."""
     purposes = MapLoader.REPRESENTATION_PURPOSES
-    assert purposes["center_projected_64dim_hierarchical"] == "production"
+    assert purposes["cited_outcome_hybrid_0.5"] == "production"  # v15b-audit: PRODUCTION DEFAULT
+    assert purposes["center_projected_64dim_hierarchical"] == "legacy_default"
     assert purposes["linear_metric_best"] == "citation_independent"
-    assert purposes["cited_outcome_hybrid_0.5"] == "cross_lingual"
     assert purposes["cited_outcome_hybrid_0.7"] == "fractal_quality"
 
 
@@ -145,7 +151,7 @@ def test_holdout_metrics_have_design_pattern():
     for name, metrics in EvaluationLoader.HOLDOUT_METRICS.items():
         assert "design_pattern" in metrics, f"{name} missing design_pattern"
         assert metrics["design_pattern"] in {
-            "DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "CITATION-ROLE", "LEGACY"
+            "DEFAULT", "LEGACY-DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "CITATION-ROLE", "LEGACY"
         }
 
 
@@ -178,9 +184,10 @@ def test_holdout_metrics_loader_returns_same():
 # ---------------------------------------------------------------------------
 
 def test_eval_design_patterns_keys():
-    """EvaluationLoader.DESIGN_PATTERNS contains all 5 pattern keys."""
+    """EvaluationLoader.DESIGN_PATTERNS contains all 6 pattern keys (added LEGACY-DEFAULT per v15b-audit)."""
     dp = EvaluationLoader.DESIGN_PATTERNS
     assert "DEFAULT" in dp
+    assert "LEGACY-DEFAULT" in dp
     assert "HIGH-PURITY" in dp
     assert "HIGH-ADVANTAGE" in dp
     assert "CITATION-ROLE" in dp
@@ -188,8 +195,14 @@ def test_eval_design_patterns_keys():
 
 
 def test_eval_design_patterns_default_has_representations():
-    """DEFAULT pattern lists center_projected_64dim_hierarchical."""
+    """DEFAULT pattern lists cited_outcome_hybrid_0.5 (v15b-audit CRITICAL)."""
     reps = EvaluationLoader.DESIGN_PATTERNS["DEFAULT"]["representations"]
+    assert "cited_outcome_hybrid_0.5" in reps
+
+
+def test_eval_design_patterns_legacy_default_has_representations():
+    """LEGACY-DEFAULT pattern lists center_projected_64dim_hierarchical."""
+    reps = EvaluationLoader.DESIGN_PATTERNS["LEGACY-DEFAULT"]["representations"]
     assert "center_projected_64dim_hierarchical" in reps
 
 
@@ -218,9 +231,9 @@ def test_eval_design_patterns_loader_returns_same():
 # ---------------------------------------------------------------------------
 
 def test_recommendations_all_purposes():
-    """EvaluationLoader.RECOMMENDATIONS covers all 5 purposes."""
+    """EvaluationLoader.RECOMMENDATIONS covers all 6 purposes (added best_stable_combination per v15b)."""
     recs = EvaluationLoader.RECOMMENDATIONS
-    for purpose in ("production", "citation_independent", "cross_lingual", "fractal_quality", "default"):
+    for purpose in ("production", "citation_independent", "cross_lingual", "fractal_quality", "default", "best_stable_combination"):
         assert purpose in recs, f"Missing purpose: {purpose}"
 
 
@@ -250,20 +263,18 @@ def test_recommendations_citation_independent_uses_high_purity():
     assert rep in EvaluationLoader.HOLDOUT_METRICS or rep in MapLoader.DESIGN_PATTERNS
 
 
-def test_recommendations_cross_lingual_uses_high_advantage():
-    """cross_lingual recommendation uses a HIGH-ADVANTAGE representation."""
+def test_recommendations_cross_lingual_uses_default():
+    """cross_lingual recommendation uses PRODUCTION DEFAULT (cited_outcome_hybrid_0.5 per v15b-audit)."""
     rec = EvaluationLoader.RECOMMENDATIONS["cross_lingual"]
-    assert rec["pattern"] == "HIGH-ADVANTAGE"
-    rep = rec["representation"]
-    assert MapLoader.DESIGN_PATTERNS.get(rep) == "HIGH-ADVANTAGE"
+    assert rec["pattern"] == "DEFAULT"
+    assert rec["representation"] == "cited_outcome_hybrid_0.5"
 
 
-def test_recommendations_fractal_quality_uses_high_advantage():
-    """fractal_quality recommendation uses a HIGH-ADVANTAGE representation."""
+def test_recommendations_fractal_quality_uses_default():
+    """fractal_quality recommendation uses a DEFAULT representation (cited_outcome_hybrid_0.7 per v15b-audit)."""
     rec = EvaluationLoader.RECOMMENDATIONS["fractal_quality"]
-    assert rec["pattern"] == "HIGH-ADVANTAGE"
-    rep = rec["representation"]
-    assert MapLoader.DESIGN_PATTERNS.get(rep) == "HIGH-ADVANTAGE"
+    assert rec["pattern"] == "DEFAULT"
+    assert rec["representation"] == "cited_outcome_hybrid_0.7"
 
 
 def test_get_representation_recommendation_valid():
@@ -297,11 +308,11 @@ def _init_nav():
 
 
 def test_nav_get_design_patterns():
-    """NavigationAPI.get_design_patterns returns all 5 patterns with representations."""
+    """NavigationAPI.get_design_patterns returns all 7 patterns with representations."""
     api = _init_nav()
     patterns = api.get_design_patterns()
     assert isinstance(patterns, dict)
-    for name in ("DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "CITATION-ROLE", "LEGACY"):
+    for name in ("DEFAULT", "LEGACY-DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "CITATION-ROLE"):
         assert name in patterns, f"Missing pattern: {name}"
         assert "representations" in patterns[name], f"{name} missing representations"
         assert "description" in patterns[name], f"{name} missing description"
@@ -309,11 +320,11 @@ def test_nav_get_design_patterns():
 
 
 def test_nav_get_design_patterns_default_has_correct_rep():
-    """NavigationAPI design patterns DEFAULT contains center_projected_64dim_hierarchical."""
+    """NavigationAPI design patterns DEFAULT contains cited_outcome_hybrid_0.5 (v15b-audit)."""
     api = _init_nav()
     patterns = api.get_design_patterns()
     default_reps = patterns["DEFAULT"]["representations"]
-    assert "center_projected_64dim_hierarchical" in default_reps
+    assert "cited_outcome_hybrid_0.5" in default_reps
 
 
 def test_nav_get_holdout_metrics():
@@ -340,26 +351,26 @@ def test_nav_get_holdout_metrics_all_entries():
 
 
 def test_nav_get_representation_recommendation_production():
-    """NavigationAPI recommendation for production returns DEFAULT pattern."""
+    """NavigationAPI recommendation for production returns DEFAULT pattern (cited_outcome_hybrid_0.5 per v15b-audit)."""
     api = _init_nav()
     rec = api.get_representation_recommendation("production")
     assert rec["pattern"] == "DEFAULT"
-    assert rec["representation"] == "center_projected_64dim_hierarchical"
+    assert rec["representation"] == "cited_outcome_hybrid_0.5"
 
 
 def test_nav_get_representation_recommendation_cross_lingual():
-    """NavigationAPI recommendation for cross_lingual returns HIGH-ADVANTAGE."""
+    """NavigationAPI recommendation for cross_lingual returns DEFAULT (cited_outcome_hybrid_0.5 per v15b-audit)."""
     api = _init_nav()
     rec = api.get_representation_recommendation("cross_lingual")
-    assert rec["pattern"] == "HIGH-ADVANTAGE"
+    assert rec["pattern"] == "DEFAULT"
 
 
 def test_nav_get_representation_recommendation_default():
-    """NavigationAPI recommendation for default returns DEFAULT pattern."""
+    """NavigationAPI recommendation for default returns DEFAULT pattern (cited_outcome_hybrid_0.5 per v15b-audit)."""
     api = _init_nav()
     rec = api.get_representation_recommendation("default")
     assert rec["pattern"] == "DEFAULT"
-    assert rec["representation"] == "center_projected_64dim_hierarchical"
+    assert rec["representation"] == "cited_outcome_hybrid_0.5"
 
 
 def test_nav_get_representation_recommendation_invalid():
@@ -376,7 +387,7 @@ def test_nav_get_representation_recommendation_invalid():
 def test_map_loader_metadata_has_design_pattern():
     """MapLoader.DESIGN_PATTERNS assigns a pattern to every representation."""
     for rep_name, pattern in MapLoader.DESIGN_PATTERNS.items():
-        assert pattern in {"DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "COMBINATION", "CITATION-ROLE", "LEGACY"}, (
+        assert pattern in {"DEFAULT", "LEGACY-DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "COMBINATION", "CITATION-ROLE", "LEGACY"}, (
             f"{rep_name} has unexpected pattern: {pattern}"
         )
 
