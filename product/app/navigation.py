@@ -2366,8 +2366,10 @@ class NavigationAPI:
         
         Design patterns group representations by their strengths:
         - DEFAULT: Production default (passes both adversarial gates)
+        - LEGACY-DEFAULT: Previous production default (center_projected_64dim_hierarchical)
         - HIGH-PURITY: Metric learning (best citation-independent retrieval)
         - HIGH-ADVANTAGE: Citation/outcome (best cross-lingual alignment)
+        - COMBINATION: Best stable combination (linear_hybrid05_concat)
         - CITATION-ROLE: Role-specific views (following, criticizing, citing)
         - LEGACY: Earlier representations (available but not primary)
         """
@@ -2378,6 +2380,12 @@ class NavigationAPI:
                 "representations": patterns("DEFAULT"),
                 "strength": "Systematic, balanced, production-ready",
                 "use_when": "General purpose, first-time users, production deployment"
+            },
+            "LEGACY-DEFAULT": {
+                "description": "Previous production default (factory direction v6) — 64-dim frozen PCA center_projected with hierarchical Leiden. Nesting=1.0, purity=0.9718. Replaced by cited_outcome_hybrid_0.5 per v15b-audit.",
+                "representations": patterns("LEGACY-DEFAULT"),
+                "strength": "High cluster purity, validated hierarchical structure",
+                "use_when": "Comparing with previous default, doctrinal/Jurivoc exploration with known metadata"
             },
             "HIGH-PURITY": {
                 "description": "Metric learning representations — best for citation-independent retrieval (35% vs 14% for citation signals)",
@@ -2390,6 +2398,12 @@ class NavigationAPI:
                 "representations": patterns("HIGH-ADVANTAGE"),
                 "strength": "Cross-lingual navigation, hierarchical structure, citation-proximity",
                 "use_when": "Cross-language exploration, finding precedent chains, fractal zoom navigation"
+            },
+            "COMBINATION": {
+                "description": "Best stable combination (v15b ACCEPTED) — 256D concat of linear_metric_best (128D) + cited_outcome_hybrid_0.5 (128D). JP=0.838, std=0.027. Beats zero-shot hybrids on CV.",
+                "representations": patterns("COMBINATION"),
+                "strength": "Best stable combination across benchmarks, doctrinal/Jurivoc exploration",
+                "use_when": "Doctrinal exploration, Jurivoc hierarchy recovery, research comparison"
             },
             "CITATION-ROLE": {
                 "description": "Role-specific citation views — see how decisions follow, criticize, or cite each other",
