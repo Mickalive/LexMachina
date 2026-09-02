@@ -2262,7 +2262,13 @@ class NavigationAPI:
         visible_cluster_ids = set()
         
         spatial_index = self._spatial_indices.get(representation)
-        if spatial_index and bbox and 'xMin' in bbox and 'xMax' in bbox and 'yMin' in bbox and 'yMax' in bbox:
+        # Only use spatial index for zoom level 1 (where it was built from).
+        # For other zoom levels, fall back to brute-force to correctly handle
+        # imported positions which are not in the spatial index.
+        use_spatial_index = (spatial_index is not None and 
+                            zoom_level == 1 and
+                            bbox and 'xMin' in bbox and 'xMax' in bbox and 'yMin' in bbox and 'yMax' in bbox)
+        if use_spatial_index:
             # Use KD-tree for fast viewport query (O(sqrt(N) + k) vs O(N))
             visible_ids = spatial_index.range_query(
                 bbox['xMin'], bbox['yMin'], bbox['xMax'], bbox['yMax']
@@ -2270,7 +2276,7 @@ class NavigationAPI:
             visible_set = set(visible_ids)
             culled_mask = np.array([did in visible_set for did in decision_ids], dtype=bool)
         elif bbox and 'xMin' in bbox and 'xMax' in bbox and 'yMin' in bbox and 'yMax' in bbox:
-            # Fallback: brute-force numpy boolean mask
+            # Fallback: brute-force numpy boolean mask (handles imported positions correctly)
             x_min_v = bbox['xMin']
             x_max_v = bbox['xMax']
             y_min_v = bbox['yMin']
