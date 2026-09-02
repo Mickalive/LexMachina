@@ -995,6 +995,8 @@ class NavigationAPI:
                 "description": self._get_representation_description(rep),
                 "type": "representation",
                 "evidence_tier": evidence_tiers.get(rep, "UNKNOWN"),
+                "design_pattern": self.map_loader.get_representation_metadata(rep).get("design_pattern"),
+                "purpose": self.map_loader.get_representation_metadata(rep).get("purpose"),
                 "n_decisions": self.map_loader.get_stats(rep).get("n_decisions", 0),
                 "zoom_levels": len(self.map_loader.get_zoom_levels(rep)),
             }
@@ -2505,7 +2507,7 @@ class NavigationAPI:
         if not self._initialized:
             return {"error": "Not initialized"}
 
-        VALID_PATTERNS = {"DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "CITATION-ROLE"}
+        VALID_PATTERNS = {"DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "CITATION-ROLE", "COMBINATION"}
         if pattern_a not in VALID_PATTERNS:
             return {"error": f"Invalid pattern_a '{pattern_a}'. Valid: {sorted(VALID_PATTERNS)}"}
         if pattern_b not in VALID_PATTERNS:
