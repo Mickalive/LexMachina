@@ -827,7 +827,7 @@ class ProductHandler(SimpleHTTPRequestHandler):
         # Step 1: Generate synthetic 174k data
         t0 = _time.time()
         rng = _np.random.RandomState(42)
-        n_clusters = max(50, int(n_target ** 0.5) * 0.5)
+        n_clusters = int(max(50, int(n_target ** 0.5) * 0.5))
         centroids = rng.randn(n_clusters, 2) * 50.0
         points_per_cluster = n_target // n_clusters
         remainder = n_target - points_per_cluster * n_clusters
