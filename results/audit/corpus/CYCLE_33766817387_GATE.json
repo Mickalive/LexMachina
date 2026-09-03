@@ -1,0 +1,37 @@
+{
+  "cycle_id": "33766817387",
+  "repair_round": 0,
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "VERIFICATION_ONLY — 15th independent verification confirms accepted base accuracy; no new science, no new claims, no durable code/data change",
+  "evidence_summary": {
+    "field_coverage_cross_check": "PASS — all 7 fields match validation_report_v14.json ground truth exactly",
+    "no_code_changes": true,
+    "no_data_changes": true,
+    "no_test_logic_changes": true,
+    "accepted_base_already_correct": true,
+    "accepted_base_field_coverage": {
+      "cited_decisions": 0.526,
+      "outcome": 0.505
+    },
+    "producer_field_coverage": {
+      "cited_decisions": 0.526,
+      "outcome": 0.505
+    },
+    "durable_delta_from_accepted_base": "zero (accepted base already has correct values; only metadata tracking updated)",
+    "redundant_dispatch_count": "22+",
+    "leakage_attack_results": "ALL CLEAN",
+    "direction_version_change": "14 → 17 (metadata tracking)",
+    "independent_verifications_change": "14 → 15"
+  },
+  "recurring_defects": [
+    {
+      "id": "supervisor_dispatch_pathology",
+      "description": "Supervisor reads ephemeral /tmp factory_direction.json instead of workspace state/<lane>.json, causing redundant resume dispatches on every mount",
+      "occurrences": "22+",
+      "recommendation": "Fix supervisor dispatch logic to read workspace state/<lane>.json cycle_status field"
+    }
+  ],
+  "timestamp": "2026-09-03T00:00:00Z"
+}
