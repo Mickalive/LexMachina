@@ -812,7 +812,7 @@
         initShaders() {
             const gl = this.gl;
             
-            // Point rendering program
+            // Point rendering program with GPU frustum culling
             const vsSource = `#version 300 es
 attribute vec2 a_position;
 attribute vec4 a_color;
@@ -822,11 +822,35 @@ uniform vec2 u_resolution;
 uniform vec2 u_translation;
 uniform float u_scale;
 uniform float u_point_size_multiplier;
+uniform bool u_frustum_culling;
+uniform vec3 u_frustum_planes[4];  // ax + by + c >= 0 (world space)
 varying vec4 v_color;
 varying float v_radius;
 varying float v_is_imported;
 
 void main() {
+    // Frustum culling in world space (before transform)
+    if (u_frustum_culling) {
+        vec2 worldPos = a_position;
+        bool inside = true;
+        for (int i = 0; i < 4; i++) {
+            vec3 plane = u_frustum_planes[i];
+            if (plane.x * worldPos.x + plane.y * worldPos.y + plane.z < 0.0) {
+                inside = false;
+                break;
+            }
+        }
+        if (!inside) {
+            // Move vertex outside NDC viewport
+            gl_Position = vec4(2.0, 2.0, 0.0, 1.0);
+            gl_PointSize = 0.0;
+            v_color = vec4(0.0);
+            v_radius = 0.0;
+            v_is_imported = 0.0;
+            return;
+        }
+    }
+    
     vec2 position = (a_position + u_translation) * u_scale;
     vec2 clipSpace = (position / u_resolution) * 2.0 - 1.0;
     clipSpace.y = -clipSpace.y;
@@ -869,6 +893,13 @@ void main() {
                 u_translation: this.gl.getUniformLocation(this.pointProgram, 'u_translation'),
                 u_scale: this.gl.getUniformLocation(this.pointProgram, 'u_scale'),
                 u_point_size_multiplier: this.gl.getUniformLocation(this.pointProgram, 'u_point_size_multiplier'),
+                u_frustum_culling: this.gl.getUniformLocation(this.pointProgram, 'u_frustum_culling'),
+                u_frustum_planes: [
+                    this.gl.getUniformLocation(this.pointProgram, 'u_frustum_planes[0]'),
+                    this.gl.getUniformLocation(this.pointProgram, 'u_frustum_planes[1]'),
+                    this.gl.getUniformLocation(this.pointProgram, 'u_frustum_planes[2]'),
+                    this.gl.getUniformLocation(this.pointProgram, 'u_frustum_planes[3]'),
+                ],
             };
             this.pointAttribCache = {
                 a_position: this.gl.getAttribLocation(this.pointProgram, 'a_position'),
@@ -1035,7 +1066,7 @@ void main() {
             this.clusterCount = hullPoints.length / 2;
         }
         
-        render(transform, pointSizeMultiplier = 1.0) {
+        render(transform, pointSizeMultiplier = 1.0, frustumPlanes = null) {
             const gl = this.gl;
             if (!this.pointProgram || !this.clusterProgram) return;
             
@@ -1050,10 +1081,10 @@ void main() {
             this.renderClusterHulls(transform);
             
             // Render points
-            this.renderPoints(transform, pointSizeMultiplier);
+            this.renderPoints(transform, pointSizeMultiplier, frustumPlanes);
         }
         
-        renderPoints(transform, pointSizeMultiplier) {
+        renderPoints(transform, pointSizeMultiplier, frustumPlanes = null) {
             const gl = this.gl;
             const program = this.pointProgram;
             const uc = this.pointUniformCache;
@@ -1064,6 +1095,16 @@ void main() {
             gl.uniform2f(uc.u_translation, transform.translationX, transform.translationY);
             gl.uniform1f(uc.u_scale, transform.scale);
             gl.uniform1f(uc.u_point_size_multiplier, pointSizeMultiplier);
+            
+            // Frustum culling uniforms
+            if (frustumPlanes && uc.u_frustum_culling && uc.u_frustum_planes) {
+                gl.uniform1i(uc.u_frustum_culling, 1);
+                for (let i = 0; i < 4; i++) {
+                    gl.uniform3f(uc.u_frustum_planes[i], frustumPlanes[i][0], frustumPlanes[i][1], frustumPlanes[i][2]);
+                }
+            } else if (uc.u_frustum_culling) {
+                gl.uniform1i(uc.u_frustum_culling, 0);
+            }
             
             gl.bindBuffer(gl.ARRAY_BUFFER, this.pointPositionBuffer);
             gl.enableVertexAttribArray(ac.a_position);
@@ -1421,8 +1462,7 @@ void main() {
                     const scale = canvas.width / Math.max(transform.xMax - transform.xMin, transform.yMax - transform.yMin) * 0.8;
                     const translationX = -(transform.xMax + transform.xMin) / 2;
                     const translationY = -(transform.yMax + transform.yMin) / 2;
-
-                    webglRenderer.uploadPointData(
+webglRenderer.uploadPointData(
                         points.positions,
                         points.colors,
                         points.radii,
@@ -1433,7 +1473,8 @@ void main() {
                         translationX: translationX,
                         translationY: translationY,
                         scale: scale
-                    });
+                    }, 1.0, webglData.frustum_planes);
+
                 }
 
                 showLODBadge(lodLevel, points.count);
@@ -2758,24 +2799,24 @@ void main() {
                     const translationX = -(transform.xMax + transform.xMin) / 2;
                     const translationY = -(transform.yMax + transform.yMin) / 2;
                     
-                    webglRenderer.uploadPointData(
+webglRenderer.uploadPointData(
                         points.positions,
                         points.colors,
                         points.radii,
                         points.imported
                     );
-                    
+
                     webglRenderer.render({
                         translationX: translationX,
                         translationY: translationY,
                         scale: scale
-                    });
+                    }, 1.0, webglData.frustum_planes);
                 }
             }
-            
+
             clusterCoherenceCache = {};
             clusterBounds = {};
-            
+
         } catch (e) {
             console.error('Failed to load WebGL data:', e);
             useWebGL = false;

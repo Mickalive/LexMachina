@@ -2222,6 +2222,16 @@ class NavigationAPI:
                 "offsetY": 0,
             }
 
+            # Compute frustum planes for GPU-side culling (when viewport bbox provided)
+            frustum_planes = None
+            if bbox and 'xMin' in bbox and 'xMax' in bbox and 'yMin' in bbox and 'yMax' in bbox:
+                frustum_planes = [
+                    (1.0, 0.0, -bbox['xMin']),    # left: x - xMin >= 0
+                    (-1.0, 0.0, bbox['xMax']),    # right: -x + xMax >= 0
+                    (0.0, 1.0, -bbox['yMin']),    # bottom: y - yMin >= 0
+                    (0.0, -1.0, bbox['yMax']),    # top: -y + yMax >= 0
+                ]
+
             result = {
                 "points": {
                     "positions": positions_array.tolist(),
@@ -2236,6 +2246,8 @@ class NavigationAPI:
                 "clusters": clusters,
                 "hulls": cluster_hulls,
                 "transform": transform,
+                "frustum_planes": frustum_planes,
+                "viewport_bbox": bbox,
                 "lod_decimation": {
                     "applied": True,
                     "original_count": n_total_pre_lod,
@@ -2446,6 +2458,19 @@ class NavigationAPI:
             'offsetY': 0
         }
 
+        # Compute frustum planes for GPU-side culling (when viewport bbox provided)
+        frustum_planes = None
+        if bbox and 'xMin' in bbox and 'xMax' in bbox and 'yMin' in bbox and 'yMax' in bbox:
+            # Frustum planes in WORLD coordinate space: ax + by + c >= 0
+            # Planes: x >= xMin, x <= xMax, y >= yMin, y <= yMax
+            # Form: (a, b, c) where a*x + b*y + c >= 0 means inside
+            frustum_planes = [
+                (1.0, 0.0, -bbox['xMin']),    # left: x - xMin >= 0
+                (-1.0, 0.0, bbox['xMax']),    # right: -x + xMax >= 0
+                (0.0, 1.0, -bbox['yMin']),    # bottom: y - yMin >= 0
+                (0.0, -1.0, bbox['yMax']),    # top: -y + yMax >= 0
+            ]
+
         result = {
             'points': {
                 'positions': positions_array.tolist(),
@@ -2460,6 +2485,8 @@ class NavigationAPI:
             'clusters': clusters,
             'hulls': cluster_hulls,
             'transform': transform,
+            'frustum_planes': frustum_planes,
+            'viewport_bbox': bbox,
             'lod_decimation': {
                 'applied': zoom_level in LOD_LIMITS and n_after_lod < n_total_pre_lod,
                 'original_count': n_total_pre_lod,
