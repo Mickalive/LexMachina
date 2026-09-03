@@ -281,10 +281,13 @@ class SpatialIndex:
 
         if self._use_cKDTree and self._cKDTree is not None:
             # Use scipy's cKDTree for fast range queries
-            # Approximate rectangular query with circular query + filter
+            # Approximate rectangular query with circular query + filter.
+            # Use half-diagonal as radius so all bbox corners are included.
             cx = (x_min + x_max) / 2.0
             cy = (y_min + y_max) / 2.0
-            radius = max(x_max - cx, y_max - cy)
+            half_dx = (x_max - x_min) / 2.0
+            half_dy = (y_max - y_min) / 2.0
+            radius = np.sqrt(half_dx * half_dx + half_dy * half_dy)
             indices = self._cKDTree.query_ball_point([cx, cy], radius)
             if not indices:
                 return []

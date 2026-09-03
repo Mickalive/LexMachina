@@ -128,7 +128,7 @@ def test_lod_api_endpoint():
 
     # Validate structure
     assert "lod_levels" in data, "Missing 'lod_levels' key"
-    assert data["lod_levels"] == [0, 1, 2], f"Expected [0, 1, 2], got {data['lod_levels']}"
+    assert data["lod_levels"] == [0, 1, 2, 3], f"Expected [0, 1, 2, 3], got {data['lod_levels']}"
     assert "points_per_level" in data, "Missing 'points_per_level' key"
     assert "recommended_level" in data, "Missing 'recommended_level' key"
     assert "viewport_culling" in data, "Missing 'viewport_culling' key"
