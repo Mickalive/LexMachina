@@ -2108,25 +2108,27 @@ class NavigationAPI:
 
         # --- Build numpy arrays for all positions ---
         n_total = len(positions)
-        xs = np.empty(n_total, dtype=np.float64)
-        ys = np.empty(n_total, dtype=np.float64)
-        decision_ids = []
-        cluster_ids = np.empty(n_total, dtype=np.int32)
-        has_section = np.empty(n_total, dtype=bool)
 
         # Build cluster id index map
         cluster_id_to_idx = {c['cluster_id']: i for i, c in enumerate(clusters)}
         default_rgba = (0.5, 0.5, 0.5, 0.8)
 
         languages = []
-        for i, p in enumerate(positions):
-            xs[i] = p['x']
-            ys[i] = p['y']
-            decision_ids.append(p.get('decision_id', ''))
-            cid = p.get('cluster', 0)
-            cluster_ids[i] = cid
-            has_section[i] = p.get('has_section_data', True)
-            languages.append(p.get('language', 'unknown'))
+        # Vectorized extraction from positions list-of-dicts (174k-optimized)
+        if n_total > 0:
+            xs = np.array([p['x'] for p in positions], dtype=np.float64)
+            ys = np.array([p['y'] for p in positions], dtype=np.float64)
+            decision_ids = [p.get('decision_id', '') for p in positions]
+            cluster_ids = np.array([p.get('cluster', 0) for p in positions], dtype=np.int32)
+            has_section = np.array([p.get('has_section_data', True) for p in positions], dtype=bool)
+            languages = [p.get('language', 'unknown') for p in positions]
+        else:
+            xs = np.empty(0, dtype=np.float64)
+            ys = np.empty(0, dtype=np.float64)
+            decision_ids = []
+            cluster_ids = np.empty(0, dtype=np.int32)
+            has_section = np.empty(0, dtype=bool)
+            languages = []
 
         # --- LOD level override via LODManager ---
         effective_lod = lod_level
@@ -2163,28 +2165,45 @@ class NavigationAPI:
             lod_languages = []
 
             imported_set = imported_ids
-            for j in range(lod_n):
-                # Assign color based on nearest cluster centroid
-                cx_val, cy_val = lod_points[j, 0], lod_points[j, 1]
-                best_cid = 0
-                best_dist = float("inf")
-                for cl in clusters:
-                    dx = cl["centroid_x"] - cx_val
-                    dy = cl["centroid_y"] - cy_val
-                    d = dx * dx + dy * dy
-                    if d < best_dist:
-                        best_dist = d
-                        best_cid = cl["cluster_id"]
-                rgba = cluster_color_rgba.get(best_cid, default_rgba)
-                colors_array[j * 4] = rgba[0]
-                colors_array[j * 4 + 1] = rgba[1]
-                colors_array[j * 4 + 2] = rgba[2]
-                colors_array[j * 4 + 3] = rgba[3]
-                # Radius from cluster size (scaled for visibility)
-                radii_array[j] = float(max(3.0, min(20.0, np.sqrt(lod_sizes[j]) * 2)))
-                lod_cluster_ids[j] = best_cid
-                lod_decision_ids.append(f"lod_cluster_{best_cid}_{j}")
-                lod_languages.append('unknown')
+
+            # --- Vectorized LOD color assignment (174k-optimized) ---
+            # Build centroids array from clusters for vectorized distance computation
+            n_cl = len(clusters)
+            cl_centroids = np.empty((n_cl, 2), dtype=np.float64)
+            cl_cids = np.empty(n_cl, dtype=np.int32)
+            for idx_c, cl in enumerate(clusters):
+                cl_centroids[idx_c, 0] = cl["centroid_x"]
+                cl_centroids[idx_c, 1] = cl["centroid_y"]
+                cl_cids[idx_c] = cl["cluster_id"]
+
+            if lod_n > 0 and n_cl > 0:
+                # Compute distances from each LOD point to each cluster centroid: (lod_n, n_cl)
+                # Using broadcasting: (lod_n, 1, 2) - (1, n_cl, 2) -> (lod_n, n_cl, 2) -> sum -> (lod_n, n_cl)
+                diffs = lod_points[:, np.newaxis, :] - cl_centroids[np.newaxis, :, :]
+                dists_sq = np.sum(diffs * diffs, axis=2)  # (lod_n, n_cl)
+                nearest_idx = np.argmin(dists_sq, axis=1)  # (lod_n,)
+                lod_cluster_ids = cl_cids[nearest_idx]
+
+                # Vectorized RGBA lookup
+                LOD_COLOR_PALETTE = np.empty((len(COLORS), 4), dtype=np.float32)
+                for ci, hex_c in enumerate(COLORS):
+                    r, g, b = hex_to_rgb(hex_c)
+                    LOD_COLOR_PALETTE[ci] = [r, g, b, 0.8]
+                cid_to_color = {}
+                for idx_c, cl in enumerate(clusters):
+                    cid_to_color[cl["cluster_id"]] = idx_c % len(COLORS)
+                color_indices_lod = np.array([cid_to_color.get(int(c), 0) for c in lod_cluster_ids], dtype=np.int32)
+                colors_array = LOD_COLOR_PALETTE[color_indices_lod].ravel()
+
+                # Vectorized radius computation
+                radii_array = np.clip(np.sqrt(lod_sizes) * 2, 3.0, 20.0).astype(np.float32)
+            else:
+                lod_cluster_ids = np.zeros(lod_n, dtype=np.int32)
+                radii_array = np.full(lod_n, 5.0, dtype=np.float32)
+
+            # Build decision_ids and languages for LOD points
+            lod_decision_ids = [f"lod_cluster_{int(lod_cluster_ids[j])}_{j}" for j in range(lod_n)]
+            lod_languages = ['unknown'] * lod_n
 
             n_culled = lod_n
             n_total_pre_lod = n_total
@@ -2267,7 +2286,9 @@ class NavigationAPI:
         ys = ys[lod_mask]
         cluster_ids = cluster_ids[lod_mask]
         has_section = has_section[lod_mask]
-        decision_ids = [decision_ids[i] for i in range(n_total_pre_lod) if lod_mask[i]]
+        # Vectorized: extract decision_ids and languages using boolean mask
+        decision_ids_np = np.array(decision_ids)
+        decision_ids = decision_ids_np[lod_mask].tolist()
         n_total = len(xs)
 
         # --- Viewport culling using KD-tree spatial index ---
@@ -2287,7 +2308,11 @@ class NavigationAPI:
                 bbox['xMin'], bbox['yMin'], bbox['xMax'], bbox['yMax']
             )
             visible_set = set(visible_ids)
-            culled_mask = np.array([did in visible_set for did in decision_ids], dtype=bool)
+            # Vectorized set membership: convert visible_set to numpy array and use np.isin
+            visible_arr = np.array(list(visible_set))
+            decision_ids_arr = np.array(decision_ids)
+            visible_mask_1d = np.isin(decision_ids_arr, visible_arr)
+            culled_mask = visible_mask_1d
         elif bbox and 'xMin' in bbox and 'xMax' in bbox and 'yMin' in bbox and 'yMax' in bbox:
             # Fallback: brute-force numpy boolean mask (handles imported positions correctly)
             x_min_v = bbox['xMin']
@@ -2307,8 +2332,10 @@ class NavigationAPI:
         ys_v = ys[culled_mask]
         cluster_ids_v = cluster_ids[culled_mask]
         has_section_v = has_section[culled_mask]
-        decision_ids_v = [decision_ids[i] for i in range(n_total) if culled_mask[i]]
-        languages_v = [languages[i] for i in range(n_total) if culled_mask[i]]
+        # Vectorized extraction of decision_ids and languages via boolean mask
+        decision_ids_v_arr = np.array(decision_ids)
+        decision_ids_v = decision_ids_v_arr[culled_mask].tolist()
+        languages_v = np.array(languages)[culled_mask].tolist()
 
         # --- Vectorized color + radius assembly ---
         positions_array = np.empty(n_culled * 2, dtype=np.float32)
@@ -2321,16 +2348,40 @@ class NavigationAPI:
 
         imported_set = imported_ids  # already a set
 
-        for j in range(n_culled):
-            cid = cluster_ids_v[j]
-            rgba = cluster_color_rgba.get(cid, default_rgba)
-            colors_array[j*4] = rgba[0]
-            colors_array[j*4+1] = rgba[1]
-            colors_array[j*4+2] = rgba[2]
-            colors_array[j*4+3] = rgba[3]
-            radii_array[j] = 4.0 if has_section_v[j] else 2.5
-            if decision_ids_v[j] in imported_set:
-                imported_array[j] = 1.0
+        # --- Vectorized color + radius assembly (174k-optimized) ---
+        # Build cluster-id-to-color-index mapping for vectorized lookup
+        cid_to_color_idx = np.full(int(cluster_ids_v.max()) + 1 if n_culled > 0 else 0, -1, dtype=np.int32)
+        for idx_c, cl in enumerate(clusters):
+            cid_val = cl['cluster_id']
+            if cid_val < len(cid_to_color_idx):
+                cid_to_color_idx[cid_val] = idx_c % len(COLORS)
+
+        # Vectorized RGBA lookup via index array
+        default_color_idx = 0  # fallback index
+        safe_cids = np.clip(cluster_ids_v, 0, len(cid_to_color_idx) - 1) if n_culled > 0 else np.array([], dtype=np.int32)
+        color_indices = cid_to_color_idx[safe_cids] if n_culled > 0 else np.array([], dtype=np.int32)
+        color_indices[color_indices < 0] = default_color_idx
+
+        # Pre-compute COLOR_PALETTE as (N_COLORS, 4) float32 array
+        COLOR_PALETTE = np.empty((len(COLORS), 4), dtype=np.float32)
+        for ci, hex_c in enumerate(COLORS):
+            r, g, b = hex_to_rgb(hex_c)
+            COLOR_PALETTE[ci] = [r, g, b, 0.8]
+
+        if n_culled > 0:
+            colors_array = COLOR_PALETTE[color_indices].ravel()
+        # radii: vectorized
+        radii_array = np.where(has_section_v, 4.0, 2.5).astype(np.float32)
+        # imported: vectorized set membership
+        if imported_set:
+            imported_id_arr = np.array(list(imported_set))
+            # Build a set-check via broadcast for small sets, or vectorized for large
+            decision_ids_v_arr = np.array(decision_ids_v)
+            if len(imported_set) < 5000:
+                imported_array = np.isin(decision_ids_v_arr, imported_id_arr).astype(np.float32)
+            else:
+                imported_set_for_np = set(imported_id_arr.tolist())
+                imported_array = np.array([1.0 if did in imported_set_for_np else 0.0 for did in decision_ids_v], dtype=np.float32)
 
         # --- Cluster hulls (bounding boxes) ---
         cluster_hulls = []
