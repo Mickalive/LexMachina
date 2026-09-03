@@ -1,0 +1,78 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Supervisor dispatch logic must read workspace state/<lane>.json cycle_status instead of ephemeral /tmp factory_direction.json (affects fractal-map and legal-distance lanes; corpus already fixed)",
+    "Field coverage regression test: field_coverage must match validation_report_v14.json on every run (already specified in factory_direction.json v17)",
+    "Director report control_epoch narrative should match state/control_epoch.json epoch value (currently 2, not 3)"
+  ],
+  "claim_ceiling": "NO_NEW_CLAIMS",
+  "evidence_summary": {
+    "total_accepted_gates_referenced": 9,
+    "gates": [
+      {
+        "cycle": "33511280539",
+        "lane": "corpus",
+        "tier": "ACCEPTED",
+        "finding": "Corpus pipeline validated at 174,113 decisions; 0 schema errors; citation resolution 95.9%; 20+ redundant supervisor dispatches documented"
+      },
+      {
+        "cycle": "33520482177",
+        "lane": "corpus",
+        "tier": "ACCEPTED",
+        "finding": "Field_coverage ground truth locked to validation_report_v14.json; regression test required"
+      },
+      {
+        "cycle": "33342655415",
+        "lane": "legal-distance",
+        "tier": "ACCEPTED",
+        "finding": "v13 ACCEPTED; all achievable objectives at 1,200 scale complete; OOS ceiling ~0.60 confirmed"
+      },
+      {
+        "cycle": "33319197061",
+        "lane": "fractal-map",
+        "tier": "ACCEPTED",
+        "finding": "v10 ACCEPTED; 175/175 PASS, 627 artifacts, 21 modes; 5-level compressed ladder 100% delta retention"
+      },
+      {
+        "cycle": "33348050735",
+        "lane": "fractal-map",
+        "tier": "ACCEPTED",
+        "finding": "v11 OPERATIONAL RESUME; 183/184 PASS, 633 artifacts, 24 modes; 46+ redundant dispatch pathology"
+      },
+      {
+        "cycle": "33366069802",
+        "lane": "evaluation",
+        "tier": "ACCEPTED",
+        "finding": "v16: 12-benchmark suite — NO representation passes all (max 7/12); 3 systemic FAILs including hierarchy_coherence FUNDAMENTAL limitation"
+      },
+      {
+        "cycle": "33374227571",
+        "lane": "evaluation",
+        "tier": "ACCEPTED",
+        "finding": "v17b REPRODUCED: label normalization improves purity 15-25% across 4 seeds (std < 0.022); does NOT flip benchmarks to PASS"
+      },
+      {
+        "cycle": "33376270601",
+        "lane": "evaluation",
+        "tier": "ACCEPTED",
+        "finding": "v18: hierarchy_coherence FUNDAMENTALLY UNPASSABLE at branch level (4 labels, best purity 0.6497 < 0.70); product must rely on Leiden clustering"
+      },
+      {
+        "cycle": "33368680632",
+        "lane": "product",
+        "tier": "ACCEPTED",
+        "finding": "v13 vertical slice COMPLETE; 30 representations, 6 design patterns, 194 tests PASS; COMBINATION_MODE (linear_hybrid05_concat) integrated; PRODUCTION_SERVING_DEFAULT remains cited_outcome_hybrid_0.5"
+      }
+    ],
+    "negative_results_preserved": [
+      "hierarchy_coherence FUNDAMENTALLY UNPASSABLE (v18)",
+      "OOS ceiling ~0.60 confirmed (v11, v16)",
+      "No representation passes all 12 benchmarks (v16: max 7/12)",
+      "No representation passes all 5 full-harness benchmarks (v15b-audit)",
+      "CV vs production-harness tradeoff divergence documented (v15b-audit)"
+    ],
+    "frozen_benchmarks_intact": "Frozen harness v3 (config_hash=1674829901d55e83, seed=42) preserved across all cycles; no weakening detected",
+    "claim_bearing_outputs_preserved": "All prior ACCEPTED runs preserved with original run_ids; no overwrites detected"
+  }
+}
