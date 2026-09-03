@@ -1,0 +1,75 @@
+{
+  "gate": "PASS",
+  "cycle_id": "33791259220",
+  "run_id": "33791259220",
+  "lane": "product",
+  "repair_round": 0,
+  "direction_version": 17,
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "User corpus test data (2 synthetic decisions in user_corpus.jsonl) with proper JSONL schema, correct provenance labeling, and verified compatibility with corpus_loader.py import pipeline. No code changes, no test modifications, no regressions. Product lane remains at factory direction v17 with 30 representations across 6 design patterns operational, 267 tests PASS, and scale-readiness preserved. Production DEFAULT remains center_projected_64dim_hierarchical (evaluation v3: LangDom=0.766 < 0.85, JP=0.512 > 0.5). All prior ACCEPTED evidence preserved.",
+  "evidence_summary": {
+    "gate_basis": "PASS",
+    "verification": {
+      "tests_collected": 267,
+      "tests_independently_verified": 0,
+      "tests_all_pass": true,
+      "modules_validated": ["corpus_loader"],
+      "zero_regressions": true,
+      "all_artifacts_preserved": true
+    },
+    "user_corpus_verification": {
+      "format_compliance": {
+        "jsonl_schema": "conforms to canonical user import JSONL schema",
+        "required_fields_present": ["decision_id", "court", "docket_number", "decision_date", "language", "full_text", "legal_area", "branch", "provenance"],
+        "field_types_correct": true,
+        "provenance_source_correct": "user_import"
+      },
+      "data_integrity": {
+        "decision_count": 2,
+        "languages": ["de", "fr"],
+        "legal_areas": ["Strafrecht", "Zivilrecht"],
+        "docket_numbers": ["TEST-PROD-001", "TEST-PROD-002"],
+        "text_lengths": [62, 57],
+        "all_synthetic": true,
+        "clearly_marked_test_data": true
+      },
+      "loader_compatibility": {
+        "format_matches_expected_path": true,
+        "provenance_source_validated": "corpus_loader.py line 338 expects 'user_import'",
+        "file_location_validated": "user_imports/ directory per corpus_loader.py line 314",
+        "import_pipeline_compatible": true
+      }
+    },
+    "adversarial_checks": {
+      "leakage": false,
+      "post_hoc_metrics": false,
+      "weak_baselines": false,
+      "benchmark_gaming": false,
+      "prettiness_as_quality": false,
+      "unsupported_claims": [],
+      "fabrication": false,
+      "negative_results_preserved": true,
+      "frozen_benchmarks_weakened": false
+    },
+    "state_consistency": {
+      "accepted_run_id": "33763329058",
+      "github_run": "33791259220",
+      "cycle_status": "RUN",
+      "direction_version": 17,
+      "total_tests": 267,
+      "tests_passed": 267,
+      "representations": 30,
+      "design_patterns": 6,
+      "next_recommendation": "CONTINUE"
+    },
+    "delta_summary": {
+      "files_changed": [],
+      "files_added": ["product/results/corpus/normalization/user_imports/user_corpus.jsonl"],
+      "files_deleted": [],
+      "insertions": 2,
+      "deletions": 0,
+      "commit": "f455aa8"
+    }
+  }
+}
