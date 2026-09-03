@@ -784,6 +784,11 @@
     let webglBuffers = null;
     let webglShaderProgram = null;
 
+    // Main canvas pan/zoom state
+    let mainPanX = 0, mainPanY = 0, mainScale = 1.0;
+    let isDragging = false, dragStartX = 0, dragStartY = 0, dragStartPanX = 0, dragStartPanY = 0;
+    let wasDragged = false;
+
     // === WebGL Renderer Class ===
     class WebGLRenderer {
         constructor(canvas) {
@@ -956,6 +961,10 @@ void main() {
             const radArr = new Float32Array(radii);
             const impArr = new Float32Array(importedFlags);
 
+            // Store positions for hit-testing
+            this._positions = positions;
+            this._radii = radii;
+
             if (posArr.byteLength <= this._allocBytes.position) {
                 gl.bindBuffer(gl.ARRAY_BUFFER, this.pointPositionBuffer);
                 gl.bufferSubData(gl.ARRAY_BUFFER, 0, posArr);
@@ -993,6 +1002,30 @@ void main() {
             }
             
             this.pointCount = positions.length / 2;
+        }
+        
+        pickPoint(mx, my, transform) {
+            if (!this._positions || this.pointCount === 0) return null;
+            let closest = null;
+            let minDist = 15;
+            for (let i = 0; i < this.pointCount; i++) {
+                const px = this._positions[i * 2];
+                const py = this._positions[i * 2 + 1];
+                const sx = (px - transform.xMin) * transform.scale + transform.offsetX;
+                const sy = (py - transform.yMin) * transform.scale + transform.offsetY;
+                const dist = Math.sqrt((mx - sx) ** 2 + (my - sy) ** 2);
+                if (dist < minDist) {
+                    minDist = dist;
+                    closest = i;
+                }
+            }
+            if (closest === null) return null;
+            return {
+                index: closest,
+                x: this._positions[closest * 2],
+                y: this._positions[closest * 2 + 1],
+                radius: this._radii ? this._radii[closest] : 3
+            };
         }
         
         uploadClusterHull(hullPoints) {
@@ -1287,6 +1320,10 @@ void main() {
     }
 
     async function loadMap() {
+        if (useWebGL) {
+            await loadMapWithLOD();
+            return;
+        }
         let url;
         if (currentMode) {
             url = `${API}/api/map?mode=${currentMode}&zoom=${currentZoom}`;
@@ -1297,8 +1334,117 @@ void main() {
         currentData = await resp.json();
         clusterCoherenceCache = {};
         clusterBounds = {};
+        mainPanX = 0;
+        mainPanY = 0;
+        mainScale = 1.0;
         renderClusterList();
         renderMap();
+    }
+
+    // FEAT-077: Auto-LOD switching for WebGL mode
+    function computeLODLevel() {
+        if (mainScale < 0.5) return 0;      // Centroids only, fastest
+        if (mainScale < 1.5) return 1;      // Super-clusters
+        return 2;                            // Full detail
+    }
+
+    function getLODLabel(level) {
+        const labels = { 0: 'Centroids', 1: 'Super-Clusters', 2: 'Full Detail' };
+        return labels[level] || 'Full Detail';
+    }
+
+    function showLODBadge(lodLevel, pointCount) {
+        const badge = document.getElementById('lod-info');
+        badge.textContent = `LOD ${lodLevel}: ${getLODLabel(lodLevel)} (${pointCount} pts)`;
+        badge.classList.add('visible');
+        badge.style.display = 'block';
+    }
+
+    async function loadMapWithLOD() {
+        if (!useWebGL) return;
+
+        const lodLevel = computeLODLevel();
+        let url;
+        if (currentMode) {
+            url = `${API}/api/webgl/data?mode=${currentMode}&zoom=${currentZoom}&lod_level=${lodLevel}`;
+        } else {
+            url = `${API}/api/webgl/data?representation=${currentRep}&zoom=${currentZoom}&lod_level=${lodLevel}`;
+        }
+
+        const canvas = document.getElementById('map-canvas');
+        if (canvas && canvas._transform) {
+            const t = canvas._transform;
+            const dataXMin = t.xMin - t.offsetX / t.scale;
+            const dataYMin = t.yMin - t.offsetY / t.scale;
+            const dataXMax = dataXMin + canvas.width / t.scale;
+            const dataYMax = dataYMin + canvas.height / t.scale;
+            url += `&xMin=${dataXMin}&yMin=${dataYMin}&xMax=${dataXMax}&yMax=${dataYMax}`;
+        }
+
+        try {
+            const resp = await fetch(url);
+            const webglData = await resp.json();
+
+            if (webglData.error) {
+                console.error('WebGL LOD data error:', webglData.error);
+                showLODBadge(lodLevel, 0);
+                return;
+            }
+
+            currentData = {
+                positions: [],
+                clusters: webglData.clusters,
+                map_mode: webglData.map_mode
+            };
+
+            const points = webglData.points;
+            if (points && points.positions && points.count > 0) {
+                currentData.positions = [];
+                const realDecisionIds = points.decision_ids || [];
+                const realClusterIds = points.cluster_ids || [];
+                const realLanguages = points.languages || [];
+                for (let i = 0; i < points.count; i++) {
+                    currentData.positions.push({
+                        x: points.positions[i * 2],
+                        y: points.positions[i * 2 + 1],
+                        cluster: realClusterIds[i] !== undefined ? realClusterIds[i] : 0,
+                        decision_id: realDecisionIds[i] || `point_${i}`,
+                        language: realLanguages[i] || 'unknown',
+                        has_section_data: points.radii[i] > 3
+                    });
+                }
+
+                renderClusterList();
+
+                if (webglRenderer && webglRenderer.gl) {
+                    const transform = webglData.transform || {};
+                    const scale = canvas.width / Math.max(transform.xMax - transform.xMin, transform.yMax - transform.yMin) * 0.8;
+                    const translationX = -(transform.xMax + transform.xMin) / 2;
+                    const translationY = -(transform.yMax + transform.yMin) / 2;
+
+                    webglRenderer.uploadPointData(
+                        points.positions,
+                        points.colors,
+                        points.radii,
+                        points.imported
+                    );
+
+                    webglRenderer.render({
+                        translationX: translationX,
+                        translationY: translationY,
+                        scale: scale
+                    });
+                }
+
+                showLODBadge(lodLevel, points.count);
+            }
+
+            clusterCoherenceCache = {};
+            clusterBounds = {};
+
+        } catch (e) {
+            console.error('Failed to load LOD data:', e);
+        }
     }
 
     function updateStatsBar(data) {
@@ -1401,14 +1547,17 @@ void main() {
         const padding = 60;
         const xRange = xMax - xMin || 1;
         const yRange = yMax - yMin || 1;
-        const scale = Math.min(
+        const baseScale = Math.min(
             (canvas.width - 2 * padding) / xRange,
             (canvas.height - 2 * padding) / yRange
         );
-        const offsetX = (canvas.width - xRange * scale) / 2;
-        const offsetY = (canvas.height - yRange * scale) / 2;
+        const scale = baseScale * mainScale;
+        const baseOffsetX = (canvas.width - xRange * baseScale) / 2;
+        const baseOffsetY = (canvas.height - yRange * baseScale) / 2;
+        const offsetX = baseOffsetX + mainPanX;
+        const offsetY = baseOffsetY + mainPanY;
 
-        canvas._transform = { xMin, yMin, scale, offsetX, offsetY };
+        canvas._transform = { xMin, yMin, baseScale, scale, offsetX, offsetY, mainScale, mainPanX, mainPanY };
 
         const clusters = {};
         visiblePositions.forEach(p => {
@@ -1877,6 +2026,17 @@ void main() {
         const rect = canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
+
+        if (isDragging) {
+            const dx = e.clientX - dragStartX;
+            const dy = e.clientY - dragStartY;
+            if (Math.abs(dx) > 5 || Math.abs(dy) > 5) wasDragged = true;
+            mainPanX = dragStartPanX + dx;
+            mainPanY = dragStartPanY + dy;
+            renderMap();
+            return;
+        }
+
         const transform = canvas._transform;
         if (!transform) return;
 
@@ -1917,15 +2077,64 @@ void main() {
     });
 
     document.getElementById('map-canvas').addEventListener('click', (e) => {
-        if (hoveredPoint) {
+        if (hoveredPoint && !wasDragged) {
             showDecision(hoveredPoint.decision_id);
         }
     });
 
     document.getElementById('map-canvas').addEventListener('mouseleave', () => {
+        isDragging = false;
         hoveredPoint = null;
         document.getElementById('tooltip').style.display = 'none';
         renderMap();
+    });
+
+    // Main canvas pan/zoom: wheel zoom
+    let lastLODLevel = -1;
+    document.getElementById('map-canvas').addEventListener('wheel', (e) => {
+        e.preventDefault();
+        if (!currentData || !currentData.positions) return;
+        const delta = e.deltaY > 0 ? 0.9 : 1.1;
+        const newScale = Math.max(0.2, Math.min(10, mainScale * delta));
+
+        const canvas = e.target;
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+
+        const scaleRatio = newScale / mainScale;
+        mainPanX = mx - scaleRatio * (mx - mainPanX);
+        mainPanY = my - scaleRatio * (my - mainPanY);
+        mainScale = newScale;
+
+        if (useWebGL) {
+            const newLOD = computeLODLevel();
+            if (newLOD !== lastLODLevel) {
+                lastLODLevel = newLOD;
+                loadMapWithLOD();
+            } else {
+                renderMap();
+            }
+        } else {
+            renderMap();
+        }
+    }, { passive: false });
+
+    // Main canvas pan/zoom: drag to pan
+    document.getElementById('map-canvas').addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        isDragging = true;
+        wasDragged = false;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        dragStartPanX = mainPanX;
+        dragStartPanY = mainPanY;
+        e.target.style.cursor = 'grabbing';
+    });
+
+    document.getElementById('map-canvas').addEventListener('mouseup', () => {
+        isDragging = false;
+        document.getElementById('map-canvas').style.cursor = 'default';
     });
 
     // Controls
@@ -2059,6 +2268,25 @@ void main() {
                 importedCount += result.imported;
                 updateImportedInfo();
                 await loadMap();
+                // FEAT-076: Incremental import positioning
+                if (result.imported_ids && result.imported_ids.length > 0) {
+                    try {
+                        const incrResp = await fetch(`${API}/api/map/incremental_update`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                decision_ids: result.imported_ids,
+                                representation: currentRep,
+                                zoom_level: currentZoom
+                            })
+                        });
+                        const incrResult = await incrResp.json();
+                        await loadMap();
+                        status.textContent += ' — Incremental positioning applied';
+                    } catch (e) {
+                        console.warn('Incremental update failed:', e);
+                    }
+                }
             }
         } catch (err) {
             status.style.color = '#ff6b6b';
@@ -2084,7 +2312,7 @@ void main() {
                 body: JSON.stringify(records)
             })
             .then(r => r.json())
-            .then(result => {
+            .then(async result => {
                 if (result.error) {
                     status.style.color = '#ff6b6b';
                     status.textContent = `Error: ${result.error}`;
@@ -2096,7 +2324,26 @@ void main() {
                     }
                     importedCount += result.imported;
                     updateImportedInfo();
-                    loadMap();
+                    await loadMap();
+                    // FEAT-076: Incremental import positioning
+                    if (result.imported_ids && result.imported_ids.length > 0) {
+                        try {
+                            const incrResp = await fetch(`${API}/api/map/incremental_update`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    decision_ids: result.imported_ids,
+                                    representation: currentRep,
+                                    zoom_level: currentZoom
+                                })
+                            });
+                            const incrResult = await incrResp.json();
+                            await loadMap();
+                            status.textContent += ' — Incremental positioning applied';
+                        } catch (e) {
+                            console.warn('Incremental update failed:', e);
+                        }
+                    }
                 }
             });
         } catch (err) {
@@ -2481,13 +2728,16 @@ void main() {
             const points = webglData.points;
             if (points && points.positions && points.count > 0) {
                 currentData.positions = [];
+                const realDecisionIds = points.decision_ids || [];
+                const realClusterIds = points.cluster_ids || [];
+                const realLanguages = points.languages || [];
                 for (let i = 0; i < points.count; i++) {
                     currentData.positions.push({
                         x: points.positions[i * 2],
                         y: points.positions[i * 2 + 1],
-                        cluster: 0,  // Will be set below
-                        decision_id: `point_${i}`,
-                        language: 'de',
+                        cluster: realClusterIds[i] !== undefined ? realClusterIds[i] : 0,
+                        decision_id: realDecisionIds[i] || `point_${i}`,
+                        language: realLanguages[i] || 'unknown',
                         has_section_data: points.radii[i] > 3
                     });
                 }

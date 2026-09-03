@@ -2073,7 +2073,7 @@ class NavigationAPI:
 
         if not positions:
             return {
-                'points': {'positions': [], 'colors': [], 'radii': [], 'imported': [], 'count': 0},
+                'points': {'positions': [], 'colors': [], 'radii': [], 'imported': [], 'decision_ids': [], 'cluster_ids': [], 'languages': [], 'count': 0},
                 'clusters': clusters,
                 'hulls': [],
                 'transform': {'xMin': 0, 'xMax': 0, 'yMin': 0, 'yMax': 0, 'scale': 1.0, 'offsetX': 0, 'offsetY': 0}
@@ -2118,6 +2118,7 @@ class NavigationAPI:
         cluster_id_to_idx = {c['cluster_id']: i for i, c in enumerate(clusters)}
         default_rgba = (0.5, 0.5, 0.5, 0.8)
 
+        languages = []
         for i, p in enumerate(positions):
             xs[i] = p['x']
             ys[i] = p['y']
@@ -2125,6 +2126,7 @@ class NavigationAPI:
             cid = p.get('cluster', 0)
             cluster_ids[i] = cid
             has_section[i] = p.get('has_section_data', True)
+            languages.append(p.get('language', 'unknown'))
 
         # --- LOD level override via LODManager ---
         effective_lod = lod_level
@@ -2155,6 +2157,11 @@ class NavigationAPI:
             radii_array = np.empty(lod_n, dtype=np.float32)
             imported_array = np.zeros(lod_n, dtype=np.float32)
 
+            # Build decision_ids, cluster_ids, and languages for LOD points
+            lod_decision_ids = []
+            lod_cluster_ids = np.zeros(lod_n, dtype=np.int32)
+            lod_languages = []
+
             imported_set = imported_ids
             for j in range(lod_n):
                 # Assign color based on nearest cluster centroid
@@ -2175,6 +2182,9 @@ class NavigationAPI:
                 colors_array[j * 4 + 3] = rgba[3]
                 # Radius from cluster size (scaled for visibility)
                 radii_array[j] = float(max(3.0, min(20.0, np.sqrt(lod_sizes[j]) * 2)))
+                lod_cluster_ids[j] = best_cid
+                lod_decision_ids.append(f"lod_cluster_{best_cid}_{j}")
+                lod_languages.append('unknown')
 
             n_culled = lod_n
             n_total_pre_lod = n_total
@@ -2199,6 +2209,9 @@ class NavigationAPI:
                     "colors": colors_array.tolist(),
                     "radii": radii_array.tolist(),
                     "imported": imported_array.tolist(),
+                    "decision_ids": lod_decision_ids,
+                    "cluster_ids": lod_cluster_ids.tolist(),
+                    "languages": lod_languages,
                     "count": n_culled,
                 },
                 "clusters": clusters,
@@ -2295,6 +2308,7 @@ class NavigationAPI:
         cluster_ids_v = cluster_ids[culled_mask]
         has_section_v = has_section[culled_mask]
         decision_ids_v = [decision_ids[i] for i in range(n_total) if culled_mask[i]]
+        languages_v = [languages[i] for i in range(n_total) if culled_mask[i]]
 
         # --- Vectorized color + radius assembly ---
         positions_array = np.empty(n_culled * 2, dtype=np.float32)
@@ -2387,6 +2401,9 @@ class NavigationAPI:
                 'colors': colors_array.tolist(),
                 'radii': radii_array.tolist(),
                 'imported': imported_array.tolist(),
+                'decision_ids': decision_ids_v,
+                'cluster_ids': cluster_ids_v.tolist(),
+                'languages': languages_v,
                 'count': n_culled
             },
             'clusters': clusters,
