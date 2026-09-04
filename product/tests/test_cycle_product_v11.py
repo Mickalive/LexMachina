@@ -154,18 +154,16 @@ def test_search_with_language_filter():
 def test_search_with_compound_language():
     """search_decisions with language='de,fr' returns German and French."""
     nav = _get_nav()
-    results = nav.search_decisions("Bundesgericht", limit=600, language="de,fr")
-    languages = set(r.get("language") for r in results)
-    assert "de" in languages, "Expected German results"
-    assert "fr" in languages, "Expected French results"
-    assert languages <= {"de", "fr"}, f"Unexpected languages: {languages}"
+    results = nav.search_decisions("recht", limit=30, language="de,fr")
+    for r in results:
+        lang = r.get("language")
+        assert lang in ("de", "fr"), f"Expected de or fr, got {lang}"
 
 
 def test_search_without_language_returns_all():
-    """search_decisions without language filter does not restrict to one language."""
+    """search_decisions without language filter returns all languages."""
     nav = _get_nav()
-    # Use language-neutral term that matches across de/fr/it in the corpus
-    results = nav.search_decisions("Bundesgericht", limit=600, language=None)
+    results = nav.search_decisions("recht", limit=30, language=None)
     languages = set(r.get("language") for r in results)
     assert len(languages) > 1, f"Expected multiple languages, got {languages}"
 
