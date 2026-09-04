@@ -14,7 +14,6 @@ from typing import Dict, List, Optional, Set, Tuple, Any
 from pathlib import Path
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
 from .corpus_loader import CorpusLoader
 from .map_loader import MapLoader
@@ -78,7 +77,7 @@ class NavigationAPI:
         # User import map artifacts
         self._base_embeddings: Optional[np.ndarray] = None
         self._base_decision_ids: List[str] = []
-        self._embedding_model: Optional[SentenceTransformer] = None
+        self._embedding_model: Optional[Any] = None  # SentenceTransformer, loaded lazily
         self._import_positions_file: Optional[Path] = None
         self._imported_positions: Dict[Tuple[str, str], Dict] = {}  # (decision_id, representation) -> {x, y, cluster, zoom_level, representation}
 
@@ -172,8 +171,12 @@ class NavigationAPI:
                     metadata = json.load(f)
                 self._base_decision_ids = [m["decision_id"] for m in metadata]
                 
-                # Load embedding model for new imports
-                self._embedding_model = SentenceTransformer(self.EMBEDDING_MODEL)
+                # Load embedding model for new imports (lazy import to avoid heavy dependency)
+                try:
+                    from sentence_transformers import SentenceTransformer
+                    self._embedding_model = SentenceTransformer(self.EMBEDDING_MODEL)
+                except ImportError:
+                    self._embedding_model = None
         except Exception as e:
             # Don't fail initialization if embeddings can't be loaded
             self._base_embeddings = None
