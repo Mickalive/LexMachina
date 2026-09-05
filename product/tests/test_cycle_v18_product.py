@@ -41,6 +41,7 @@ def test_decision_to_full_truncation():
     # Should be truncated at 8000 chars
     assert len(full["full_text"]) <= 8000 + 20, "to_full() truncation limit should be ~8000"
     print("  PASS: to_full() truncation at 8000 chars")
+    return True
 
 
 def test_decision_to_full_raw_no_truncation():
@@ -58,6 +59,7 @@ def test_decision_to_full_raw_no_truncation():
     assert raw["full_text"] == long_text, "to_full_raw() must not truncate"
     assert len(raw["full_text"]) == 15000, "to_full_raw() should preserve full text"
     print("  PASS: to_full_raw() preserves untruncated text")
+    return True
 
 
 def test_corpus_loader_raw_accessor():
@@ -83,6 +85,7 @@ def test_corpus_loader_raw_accessor():
         print(f"  PASS: get_all_decisions_raw() returns untruncated text for {len(long_texts)} decisions")
     else:
         print("  PASS: All decisions have <= 2000 chars (truncation not testable at this scale)")
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -91,7 +94,7 @@ def test_corpus_loader_raw_accessor():
 
 def test_extract_year_from_decision_date():
     """Verify _extract_year handles various date formats."""
-    from product.app.navigation import NavigationAPI
+    from app.navigation import NavigationAPI
 
     # Valid formats
     assert NavigationAPI._extract_year("2024-01-15") == 2024
@@ -106,6 +109,7 @@ def test_extract_year_from_decision_date():
     assert NavigationAPI._extract_year("1899-01-01") is None  # out of range
 
     print("  PASS: _extract_year handles various date formats")
+    return True
 
 
 def test_temporal_fallback_to_year_field():
@@ -137,6 +141,7 @@ def test_temporal_fallback_to_year_field():
                      else meta_empty.get("decision_date", meta_empty.get("year", "")))
     assert decision_date == "", f"Expected empty string, got '{decision_date}'"
     print("  PASS: temporal fallback handles missing metadata gracefully")
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -196,6 +201,7 @@ def test_find_cross_language_neighbors_by_text():
     if it_neighbor:
         print(f"  Italian neighbor similarity: {it_neighbor['text_similarity']}")
     print("  PASS: TF-IDF text similarity finds cross-language neighbors correctly")
+    return True
 
 
 def test_cross_language_neighbors_sorted_by_similarity():
@@ -233,6 +239,7 @@ def test_cross_language_neighbors_sorted_by_similarity():
     print(f"  d2 (constitutional) similarity: {neighbors[0]['text_similarity']}")
     print(f"  d3 (cooking) similarity: {neighbors[1]['text_similarity']}")
     print("  PASS: Cross-language neighbors sorted by text similarity")
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -241,7 +248,7 @@ def test_cross_language_neighbors_sorted_by_similarity():
 
 def test_feedback_records_retrieval():
     """Verify feedback records can be retrieved with pagination."""
-    from product.app.navigation import NavigationAPI
+    from app.navigation import NavigationAPI
 
     corpus_dir = str(Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical")
     results_dir = str(Path(__file__).parent.parent / "results" / "fractal_map")
@@ -275,11 +282,12 @@ def test_feedback_records_retrieval():
         assert r["feedback_type"] == "pairwise_preference", "Type filter should work"
 
     print("  PASS: Feedback records retrieval with pagination and type filter")
+    return True
 
 
 def test_cluster_feedback_summary():
     """Verify cluster quality ratings are aggregated correctly."""
-    from product.app.navigation import NavigationAPI
+    from app.navigation import NavigationAPI
 
     corpus_dir = str(Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical")
     results_dir = str(Path(__file__).parent.parent / "results" / "fractal_map")
@@ -304,11 +312,12 @@ def test_cluster_feedback_summary():
     assert 3.0 <= cluster_info["average_rating"] <= 5.0, "Average should be between 3 and 5"
     print(f"  Cluster 42: n_ratings={cluster_info['n_ratings']}, avg={cluster_info['average_rating']}")
     print("  PASS: Cluster feedback summary aggregation")
+    return True
 
 
 def test_feedback_export():
     """Verify feedback export produces valid JSON and CSV."""
-    from product.app.navigation import NavigationAPI
+    from app.navigation import NavigationAPI
 
     corpus_dir = str(Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical")
     results_dir = str(Path(__file__).parent.parent / "results" / "fractal_map")
@@ -329,6 +338,7 @@ def test_feedback_export():
     assert "feedback_type" in csv_export["data"], "CSV should have headers"
     print(f"  Export: {json_export['count']} records in JSON and CSV")
     print("  PASS: Feedback export in JSON and CSV formats")
+    return True
 
 
 # ---------------------------------------------------------------------------
