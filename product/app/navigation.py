@@ -2033,6 +2033,8 @@ class NavigationAPI:
         bbox: Optional[Dict[str, float]] = None,
         import_ids: Optional[Set[str]] = None,
         lod_level: Optional[int] = None,
+        include_hulls: bool = True,
+        hull_detail: str = "bbox",  # "bbox" or "convex"
     ) -> Dict[str, Any]:
         """Get WebGL-optimized rendering data for a map representation.
         
@@ -2054,6 +2056,11 @@ class NavigationAPI:
                        0 = cluster centroids only.
                        1 = super-cluster centroids.
                        None or 2 = full detail (current behavior).
+            include_hulls: Whether to compute and return cluster hulls.
+                           Disable at 174k+ scale to reduce payload.
+            hull_detail: Hull detail level - "bbox" for bounding boxes
+                         (fast, low bandwidth), "convex" for convex hulls
+                         (slower, higher bandwidth). Default "bbox".
         """
         if not self._initialized:
             return {"error": "Not initialized"}
@@ -2404,10 +2411,10 @@ class NavigationAPI:
                 imported_set_for_np = set(imported_id_arr.tolist())
                 imported_array = np.array([1.0 if did in imported_set_for_np else 0.0 for did in decision_ids_v], dtype=np.float32)
 
-        # --- Cluster hulls (bounding boxes) ---
+        # --- Cluster hulls (optional, configurable detail) ---
         cluster_hulls = []
-        # Group culled positions by cluster
-        if n_culled > 0:
+        if include_hulls and n_culled > 0:
+            # Group culled positions by cluster
             unique_clusters = np.unique(cluster_ids_v)
             for cid in unique_clusters:
                 mask_c = cluster_ids_v == cid
@@ -2415,45 +2422,55 @@ class NavigationAPI:
                 cy = ys_v[mask_c]
                 if len(cx) >= 3:
                     color_rgba = cluster_color_rgba.get(int(cid), default_rgba)
-                    cluster_hulls.append({
-                        'cluster_id': int(cid),
-                        'points': [
+                    if hull_detail == "convex":
+                        # Compute convex hull using Graham scan (more detailed, slower)
+                        hull_points = self._compute_convex_hull(cx, cy)
+                    else:
+                        # Bounding box (fast, low bandwidth) - default
+                        hull_points = [
                             [float(cx.min()), float(cy.min())],
                             [float(cx.max()), float(cy.min())],
                             [float(cx.max()), float(cy.max())],
                             [float(cx.min()), float(cy.max())],
-                        ],
-                        'color': list(color_rgba[:3]) + [0.1]
+                        ]
+                    cluster_hulls.append({
+                        'cluster_id': int(cid),
+                        'points': hull_points,
+                        'color': list(color_rgba[:3]) + [0.1],
+                        'hull_type': hull_detail,
                     })
 
         # For clusters that are NOT visible but have nearby points,
         # add their bounding box hulls as "context hulls" (faded)
-        if visible_cluster_ids and clusters:
-            all_cluster_bboxes = {}
+        if include_hulls and visible_cluster_ids and clusters:
             for i, cluster in enumerate(clusters):
                 cid = cluster['cluster_id']
                 if cid not in visible_cluster_ids:
                     # Check if this cluster's centroid is near the viewport
                     if bbox and 'xMin' in bbox:
-                        cx = cluster.get('centroid_x', 0)
-                        cy = cluster.get('centroid_y', 0)
+                        cx_centroid = cluster.get('centroid_x', 0)
+                        cy_centroid = cluster.get('centroid_y', 0)
                         margin = max(bbox['xMax'] - bbox['xMin'], bbox['yMax'] - bbox['yMin']) * 0.1
-                        if (bbox['xMin'] - margin <= cx <= bbox['xMax'] + margin and
-                            bbox['yMin'] - margin <= cy <= bbox['yMax'] + margin):
+                        if (bbox['xMin'] - margin <= cx_centroid <= bbox['xMax'] + margin and
+                            bbox['yMin'] - margin <= cy_centroid <= bbox['yMax'] + margin):
                             # Find this cluster's positions in the full (unculled) data
                             c_mask = cluster_ids == cid
                             if c_mask.sum() >= 3:
                                 color_rgba = cluster_color_rgba.get(cid, default_rgba)
+                                # Always use bbox for context hulls (performance)
+                                cx_full = xs[c_mask]
+                                cy_full = ys[c_mask]
                                 cluster_hulls.append({
                                     'cluster_id': cid,
                                     'points': [
-                                        [float(xs[c_mask].min()), float(ys[c_mask].min())],
-                                        [float(xs[c_mask].max()), float(ys[c_mask].min())],
-                                        [float(xs[c_mask].max()), float(ys[c_mask].max())],
-                                        [float(xs[c_mask].min()), float(ys[c_mask].max())],
+                                        [float(cx_full.min()), float(cy_full.min())],
+                                        [float(cx_full.max()), float(cy_full.min())],
+                                        [float(cx_full.max()), float(cy_full.max())],
+                                        [float(cx_full.min()), float(cy_full.max())],
                                     ],
                                     'color': list(color_rgba[:3]) + [0.04],
-                                    'context_only': True
+                                    'context_only': True,
+                                    'hull_type': 'bbox',
                                 })
 
         # Build transform from full data extents (not culled)
@@ -2749,6 +2766,90 @@ class NavigationAPI:
             },
             "decisions": decisions,
             "movers": movers,
+        }
+
+    # ── LOD Recommendation ──────────────────────────────────────────────
+
+    def get_lod_recommendation(
+        self,
+        representation: Optional[str] = None,
+        zoom_level: int = 1,
+        bbox: Optional[Dict[str, float]] = None,
+    ) -> Dict[str, Any]:
+        """Get server-side LOD level recommendation for WebGL rendering.
+        
+        Returns the optimal LOD level and point count for the given
+        representation, zoom level, and optional viewport. This enables
+        the frontend to request the appropriate LOD level without
+        client-side computation.
+        
+        Args:
+            representation: Map representation (defaults to production default)
+            zoom_level: Current zoom level
+            bbox: Optional viewport bounding box for viewport-aware LOD
+            
+        Returns:
+            Dict with recommended LOD level, estimated point count, and metadata
+        """
+        if not self._initialized:
+            return {"error": "Not initialized"}
+        
+        if representation is None:
+            representation = self._get_default_representation()
+        
+        # Get total point count for this representation/zoom
+        zl = self.map_loader.get_zoom_level(representation, zoom_level)
+        if not zl:
+            return {"error": f"Zoom level {zoom_level} not available for {representation}"}
+        
+        total_points = len(zl.positions)
+        
+        # Use LODManager to get optimal detail level
+        data_extent = None
+        if total_points > 0:
+            positions_list = list(zl.positions.values())
+            xs = [p[0] for p in positions_list]
+            ys = [p[1] for p in positions_list]
+            data_extent = (min(xs), max(xs), min(ys), max(ys))
+        
+        optimal = self.lod_manager.get_optimal_detail_level(
+            viewport_bbox=bbox,
+            total_points=total_points,
+            data_extent=data_extent,
+            target_point_count=5000
+        )
+        
+        # Also compute LOD level based on zoom level as a simple heuristic
+        # This provides a fallback when viewport is not available
+        zoom_based_lod = 0
+        if zoom_level <= 0:
+            zoom_based_lod = 0
+        elif zoom_level == 1:
+            zoom_based_lod = 1
+        elif zoom_level == 2:
+            zoom_based_lod = 2 if total_points <= 50000 else 1
+        else:
+            zoom_based_lod = 3 if total_points <= 100000 else 2
+        
+        # Use the more conservative (lower detail) recommendation
+        recommended_lod = min(optimal["lod_level"], zoom_based_lod)
+        
+        return {
+            "representation": representation,
+            "zoom_level": zoom_level,
+            "total_points": total_points,
+            "viewport_bbox": bbox,
+            "recommended_lod_level": recommended_lod,
+            "viewport_aware_lod": optimal["lod_level"],
+            "zoom_based_lod": zoom_based_lod,
+            "estimated_visible_points": optimal["point_count"],
+            "target_point_count": 5000,
+            "data_extent": {
+                "x_min": data_extent[0] if data_extent else 0,
+                "x_max": data_extent[1] if data_extent else 0,
+                "y_min": data_extent[2] if data_extent else 0,
+                "y_max": data_extent[3] if data_extent else 0,
+            } if data_extent else None,
         }
 
     # ── Startup Validation ──────────────────────────────────────────────

@@ -535,6 +535,21 @@ class ProductHandler(SimpleHTTPRequestHandler):
             info["optimal_level"] = optimal
             self._json_response(info)
         
+        # WebGL LOD recommendation endpoint (server-side LOD auto-selection)
+        elif path == "/api/webgl/lod_recommendation":
+            default_rep = get_default_representation()
+            rep = params.get("representation", [default_rep])[0]
+            zoom_level = int(params.get("zoom", ["1"])[0])
+            bbox = None
+            if "xMin" in params and "xMax" in params and "yMin" in params and "yMax" in params:
+                bbox = {
+                    'xMin': float(params["xMin"][0]),
+                    'yMin': float(params["yMin"][0]),
+                    'xMax': float(params["xMax"][0]),
+                    'yMax': float(params["yMax"][0]),
+                }
+            self._json_response(get_nav_api().get_lod_recommendation(rep, zoom_level, bbox))
+        
         # WebGL rendering data endpoint
         elif path == "/api/webgl/data":
             default_rep = get_default_representation()
