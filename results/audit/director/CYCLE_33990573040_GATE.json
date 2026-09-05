@@ -1,0 +1,120 @@
+{
+  "cycle_id": "33990573040",
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    {
+      "id": "FIX-001",
+      "description": "Change fractal-map.status from PAUSE to BLOCKED in factory_direction.json with correct blocked_on reason",
+      "location": "state/factory_direction.json",
+      "field": "lanes.fractal-map.status",
+      "current_value": "PAUSE",
+      "required_value": "BLOCKED",
+      "evidence_ref": "results/accepted-state/fractal-map.json cycle_status=BLOCKED blocked_since=33323379652 resume_guard",
+      "severity": "CRITICAL"
+    },
+    {
+      "id": "FIX-002",
+      "description": "Update fractal-map.question to reference 174,113 decisions (actual) not 192k (legacy estimate) and match accepted-state resume_guard",
+      "location": "state/factory_direction.json",
+      "field": "lanes.fractal-map.question",
+      "evidence_ref": "results/accepted-state/corpus.json metrics.actual_opencaselaw_bger_size=174113; results/accepted-state/fractal-map.json blocked_on resume_guard",
+      "severity": "HIGH"
+    },
+    {
+      "id": "FIX-003",
+      "description": "Queue and dispatch first 1k-scale product cycle on one known_limitation (section-mode coverage, TF-IDF truncation, cross-language neighbors, temporal-filtering gaps, or jurist-feedback closure)",
+      "location": "Supervisor dispatch / product lane work queue",
+      "evidence_ref": "results/accepted-state/product.json known_limitations (5 items, all 1k-scale, no 174k dependency)",
+      "severity": "HIGH"
+    },
+    {
+      "id": "FIX-004",
+      "description": "Advance frontier portfolio: SUPERSEDE (charter_version+1 with new hypothesis) or TERMINATE both teams per stop_promote_rule conditions met 5+ cycles ago",
+      "location": "state/frontier_portfolio.json",
+      "field": "teams[*].status and teams[*].charter_version",
+      "evidence_ref": "frontier_portfolio.json v4: both teams PAUSED since RUN_33347338021; stop_promote_rule conditions met; no recharter",
+      "severity": "MEDIUM"
+    },
+    {
+      "id": "FIX-005",
+      "description": "Retire or redefine hierarchy_coherence, zoom_coherence, legal_area_clustering benchmarks in evaluation harness — they are FUNDAMENTALLY UNPASSABLE at 1200-decision scale",
+      "location": "Evaluation lane configuration / next evaluation dispatch",
+      "evidence_ref": "results/accepted-state/evaluation.json v18: hierarchy_coherence best_purity=0.6497 < 0.70 at branch level; next_recommendation explicitly says RETIRE or REDEFINE",
+      "severity": "HIGH"
+    },
+    {
+      "id": "FIX-006",
+      "description": "Verify state/blockers/product.json (stale AUDIT_BLOCKED from run 33973396199) cleaned by housekeeper after product question-hash change in v18",
+      "location": "state/blockers/",
+      "evidence_ref": "results/accepted-state/product.json notes stale blocker; housekeeper should remove on question-hash mismatch",
+      "severity": "LOW"
+    }
+  ],
+  "claim_ceiling": "Status accurately reported; no new scientific claims or product capabilities proposed. Ceiling: 'Factory stall acknowledged, structural defects identified, no new capabilities claimed.'",
+  "evidence_summary": {
+    "corpus": {
+      "tier": "REPRODUCED",
+      "scale": "174,113 decisions (full BGer 2000+)",
+      "key_metrics": "76/76 tests PASS, 15 independent verifications, field_coverage ground truth locked (validation_report_v14.json), citation ID resolution 95.9%",
+      "status": "COMPLETED / PAUSED (correct)"
+    },
+    "legal_distance": {
+      "tier": "REPRODUCED",
+      "scale": "1,200 decisions",
+      "key_metrics": "v13 kfold: linear_citation_concat REPRODUCED (mean_delta=+0.0275, paired_std=0.0164); v14 independent rerun CONFIRMED; v15b CV: linear_hybrid05_concat JP=0.838 std=0.027; v11 OOS: true JP ceiling ~0.53 < 0.7 target (negative result preserved)",
+      "status": "COMPLETED / PAUSED (correct)"
+    },
+    "fractal_map": {
+      "tier": "ACCEPTED",
+      "scale": "1,000 decisions",
+      "key_metrics": "v10: 175/175 tests, 627 artifacts, 21 modes; v11: 184/184 tests, 633 artifacts, 24 modes; compressed 5-level ladder [0.25,0.5,1.0,2.0,3.0] 100% delta retention; 174k scalability verified (est. 5-9 min, 1-2 GB)",
+      "status": "COMPLETE / BLOCKED (factory_direction.json says PAUSE — MISMATCH)"
+    },
+    "evaluation": {
+      "tier": "ACCEPTED",
+      "scale": "1,200 decisions",
+      "key_metrics": "v16: 12-benchmark suite, max 7/12 pass (NO representation passes all); v17b: label normalization REPRODUCED (4 seeds, 15-25% purity improvement); v18: hierarchy_coherence FUNDAMENTALLY UNPASSABLE at branch level (best 0.6497 < 0.70); benchmarks should be RETIRED",
+      "status": "COMPLETED / PAUSED (correct)"
+    },
+    "product": {
+      "tier": "ACCEPTED",
+      "scale": "1,000-1,200 decisions",
+      "key_metrics": "267 tests PASS, 30 representations, 6 design patterns, 40+ API endpoints; PRODUCTION_DEFAULT=cited_outcome_hybrid_0.5 (JP=0.7990, LangDom=0.4911); COMBINATION_MODE=linear_hybrid05_concat (JP=0.838, std=0.027); 174k simulation 16/16 PASS; 5 known_limitations at 1k-scale unblocked",
+      "status": "RUN (correct) but UNDISPATCHED (product starvation)"
+    },
+    "frontier_teams": {
+      "frontier_metric_learning_jurivoc": {
+        "charter_version": 3,
+        "status": "PAUSE",
+        "stop_promote_rule_met": true,
+        "cycles_stalled": "5+ director cycles since RUN_33347338021",
+        "baseline_to_beat": "cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.7990 LangDom=0.4911"
+      },
+      "frontier_crosslingual_alignment": {
+        "charter_version": 3,
+        "status": "PAUSE",
+        "stop_promote_rule_met": true,
+        "cycles_stalled": "5+ director cycles since RUN_33347338021",
+        "baseline_to_beat": "cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.7990 LangDom=0.4911"
+      }
+    },
+    "accepted_evidence_staging": {
+      "tmp_lex_accepted": "Empty by design — contains only fractal-map branch snapshot; ACCEPTED evidence for all lanes mirrored to main/results/accepted-state/ per ARCHITECTURE §53"
+    }
+  },
+  "audit_findings": {
+    "mission_drift": "OPERATIONAL STALL — factory idle (supervisor heartbeats only), waiting on external 174k compute/data budget instead of executing continuous improvement mandate",
+    "curiosity_frontier_proliferation": "STALE PORTFOLIO — 2 teams PAUSED 5+ cycles with no lifecycle progression (no SUPERSEDE/TERMINATE per charter ledger spec)",
+    "duplicated_teams": "NONE — teams pursue independent paths (supervised metric learning vs foundation model fine-tuning)",
+    "unaccepted_evidence_laundering": "NONE — proposal correctly cites only ACCEPTED/REPRODUCED evidence; but misuses evidence absence as operational excuse",
+    "stale_blocked_questions": "CRITICAL — fractal-map BLOCKED 46+ cycles but factory_direction.json says PAUSE (mismatch enables 46+ unnecessary supervisor re-dispatches)",
+    "product_starvation": "CONFIRMED — product RUN but 0 productive cycles dispatched since run 33814370025; 5 actionable 1k-scale known_limitations unworked",
+    "fake_parallelism": "CONFIRMED — 7 apparent workstreams, 0 actual dispatches; supervisor runs heartbeats only",
+    "weak_acceptance_tests": "SYSTEMIC — hierarchy_coherence/zoom_coherence/legal_area_clustering FUNDAMENTALLY UNPASSABLE (v18 ACCEPTED negative result); benchmarks test branch classification not legal proximity; must be RETIRED/REDEFINED",
+    "unjustified_lane_pauses": "1/5 — fractal-map PAUSE unjustified (should be BLOCKED); other 4 justified"
+  },
+  "human_decision_required": false,
+  "blocker_type": "OPERATIONAL_STRUCTURAL",
+  "next_audit_trigger": "After required_fixes applied and at least one productive product cycle dispatched"
+}
