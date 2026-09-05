@@ -13,6 +13,7 @@ import hashlib
 
 from .schema_validator import SchemaValidator, ValidationResult
 from .inverted_index import InvertedIndex
+from .section_extractor import extract_sections, ExtractedSections
 
 
 @dataclass
@@ -144,15 +145,37 @@ class CorpusLoader:
                     continue
 
     def _parse_record(self, record: Dict) -> Optional[Decision]:
-        """Parse a JSONL record into a Decision object."""
+        """Parse a JSONL record into a Decision object.
+        
+        Extracts sections (sachverhalt, erwaegungen, dispositiv) from full_text
+        if not already present in the record.
+        """
         try:
+            # Extract sections from full_text if not already present
+            full_text = record.get("full_text", "")
+            language = record.get("language", "de")
+            
+            sachverhalt = record.get("sachverhalt")
+            erwaegungen = record.get("erwaegungen")
+            dispositiv = record.get("dispositiv")
+            
+            # Auto-extract missing sections
+            if not sachverhalt or not erwaegungen or not dispositiv:
+                sections = extract_sections(full_text, language)
+                if not sachverhalt and sections.sachverhalt:
+                    sachverhalt = sections.sachverhalt
+                if not erwaegungen and sections.erwaegungen:
+                    erwaegungen = sections.erwaegungen
+                if not dispositiv and sections.dispositiv:
+                    dispositiv = sections.dispositiv
+            
             return Decision(
                 decision_id=record.get("decision_id", ""),
                 court=record.get("court", "bger"),
                 docket_number=record.get("docket_number", ""),
                 decision_date=record.get("decision_date", ""),
-                language=record.get("language", "de"),
-                full_text=record.get("full_text", ""),
+                language=language,
+                full_text=full_text,
                 title=record.get("title"),
                 legal_area=record.get("legal_area"),
                 branch=record.get("branch"),
@@ -162,10 +185,10 @@ class CorpusLoader:
                 bge_reference=record.get("bge_reference"),
                 cited_decisions=record.get("cited_decisions", []),
                 cited_laws=record.get("cited_laws", []),
-                sachverhalt=record.get("sachverhalt"),
-                erwaegungen=record.get("erwaegungen"),
-                dispositiv=record.get("dispositiv"),
-                text_length=record.get("text_length", len(record.get("full_text", ""))),
+                sachverhalt=sachverhalt,
+                erwaegungen=erwaegungen,
+                dispositiv=dispositiv,
+                text_length=record.get("text_length", len(full_text)),
                 provenance=record.get("provenance", {}),
             )
         except Exception:
