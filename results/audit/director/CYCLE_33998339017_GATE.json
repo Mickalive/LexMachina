@@ -1,0 +1,122 @@
+{
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "Fix fractal-map resume_guard and blocked_on: replace obsolete '192k' with '174,113 (actual full corpus size)' in accepted-state/fractal-map.json AND factory_direction.json fractal-map question",
+    "Align factory_direction.json lane statuses with accepted-state/*.json: corpus PAUSE→COMPLETED (or DELIVERED); legal-distance PAUSE→COMPLETED with explicit block condition; fractal-map PAUSE→BLOCKED with corrected condition; evaluation PAUSE→COMPLETED with BLOCKED_ON_DEPENDENCIES note; product RUN✓",
+    "Terminate or supersede stagnant frontier teams: both teams have 5+ stop_promote triggers with no new evidence (RUN_33347338021, 33414618122, 33452591777, 33576799321, 33981744279). Per portfolio policy, teams exhausting credible path should be TERMINATED (status=TERMINATE) or SUPERSEDED by new charter with new evidence. Keeping them PAUSED indefinitely violates 'Create specialized teams only for concrete product-relevant hypotheses or bottlenecks.'",
+    "Add canonical cross-reference for v15b results in factory_direction.json legal-distance question: explicitly note v15b CV results are evaluation-lane findings (CYCLE_33369137522_GATE.json), not legal-distance lane findings",
+    "Product lane: demonstrate concrete dispatch of at least one known_limitation item (section-mode coverage 63/1000, TF-IDF truncation 2000 chars, cross-language neighbors, temporal-filtering gaps, jurist-feedback closure) in current cycle, not just list as 'next_work'"
+  ],
+  "claim_ceiling": "Status confirmation + defect repair only. No new scientific claims, product capabilities, or mission changes. All assertions trace to ACCEPTED evidence at /tmp/lex_accepted. Negative results (true OOS JuristPref ceiling ~0.53 < 0.7 target; hierarchy_coherence FUNDAMENTALLY UNPASSABLE at branch level 0.6497 < 0.70; boilerplate_resistance_real_corpus universal FAIL) correctly preserved.",
+  "evidence_summary": {
+    "core_lanes": {
+      "corpus": {
+        "evidence_tier": "REPRODUCED",
+        "authoritative_status": "COMPLETED",
+        "factory_direction_status": "PAUSE (MISMATCH)",
+        "key_metrics": {
+          "canonical_decisions": 174113,
+          "citation_resolution_rate": 0.9591,
+          "field_coverage_verified": true,
+          "independent_verifications": 15,
+          "tests_passing": "76/76"
+        },
+        "block_condition": "NONE — DELIVERED at actual full corpus size (174,113 decisions)",
+        "accepted_gates": ["CYCLE_33511280539", "CYCLE_33520482177"]
+      },
+      "legal_distance": {
+        "evidence_tier": "ACCEPTED",
+        "authoritative_status": "COMPLETED",
+        "factory_direction_status": "PAUSE (MISMATCH)",
+        "key_findings": [
+          "All 1,200-scale objectives COMPLETED",
+          "True OOS JuristPref ceiling ~0.53 < 0.7 target (negative result preserved)",
+          "CV vs full-harness divergence documented (hybrid wins production, concat wins CV)",
+          "hierarchy_coherence FUNDAMENTALLY UNPASSABLE at branch level (best 0.6497)"
+        ],
+        "block_condition": "174k artifact publishing + embedding-compute budget",
+        "accepted_gates": ["CYCLE_33342655415"]
+      },
+      "fractal_map": {
+        "evidence_tier": "ACCEPTED",
+        "authoritative_status": "BLOCKED",
+        "factory_direction_status": "PAUSE (MISMATCH)",
+        "key_metrics": {
+          "tests": "184/184 PASS",
+          "artifacts_verified": 633,
+          "modes": 24,
+          "resolution_ladder": "5-level compressed [0.25, 0.5, 1.0, 2.0, 3.0] (29% reduction, 100% delta retention)",
+          "scalability_174k_estimate": "5-9 min, 1-2 GB"
+        },
+        "stale_blocked_on": "Still references '192k' — actual corpus is 174,113",
+        "accepted_gates": ["CYCLE_33319197061", "CYCLE_33348050735"]
+      },
+      "evaluation": {
+        "evidence_tier": "ACCEPTED",
+        "authoritative_status": "COMPLETED",
+        "factory_direction_status": "PAUSE (MISMATCH)",
+        "key_findings": [
+          "v16: max 7/12 benchmarks passed, 4 universal FAILs (boilerplate_resistance, hierarchy_coherence, zoom_coherence, legal_area_clustering)",
+          "v17b: label normalization +15-25% purity REPRODUCED across 4 seeds (std<0.022)",
+          "v18: hierarchy_coherence FUNDAMENTALLY UNPASSABLE at branch level (4 labels, best 0.6497)",
+          "4/6 v9 objectives COMPLETED; 2 BLOCKED on 174k + jurist study",
+          "Recommendation: RETIRE/REDEFINE hierarchy_coherence/zoom_coherence/legal_area_clustering benchmarks"
+        ],
+        "block_condition": "174k artifact publishing + jurist recruitment (external dependencies)",
+        "accepted_gates": ["CYCLE_33366069802", "CYCLE_33374227571", "CYCLE_33376270601"]
+      },
+      "product": {
+        "evidence_tier": "ACCEPTED",
+        "authoritative_status": "RUN",
+        "factory_direction_status": "RUN (MATCH)",
+        "key_metrics": {
+          "representations": 30,
+          "design_patterns": 6,
+          "tests": "267/267 PASS",
+          "api_endpoints": "40+",
+          "scale_simulation": "16/16 PASS at 174k synthetic"
+        },
+        "defaults": {
+          "PRODUCTION_SERVING_DEFAULT": "cited_outcome_hybrid_0.5 (JP=0.7990, LangDom=0.4911)",
+          "COMBINATION_MODE": "linear_hybrid05_concat (JP=0.838, std=0.027)",
+          "PRODUCT_CODE_DEFAULT": "center_projected_64dim_hierarchical (nesting=1.0, purity=0.9718)"
+        },
+        "last_feature_delta": "github run 33814370025 (WebGL GPU frustum culling + LOD at 174k)",
+        "zero_delta_cycles_since": 5,
+        "queued_1k_work": ["section-mode coverage 63/1000", "TF-IDF truncation 2000 chars", "cross-language neighbors", "temporal-filtering gaps", "jurist-feedback closure"],
+        "accepted_gates": ["CYCLE_33758875558"]
+      }
+    },
+    "frontier_portfolio": {
+      "version": 4,
+      "teams": [
+        {
+          "team_id": "frontier_metric_learning_jurivoc",
+          "charter_version": 3,
+          "status": "PAUSED",
+          "stop_promote_triggers": 5,
+          "last_trigger": "RUN_33981744279",
+          "baseline_to_beat": "cited_decisions_tfidf_outcome_hybrid_0.5 (JP=0.7990, LangDom=0.4911)",
+          "recommendation": "TERMINATE or SUPERSEDE — 5+ triggers with no new evidence exhausts credible path"
+        },
+        {
+          "team_id": "frontier_crosslingual_alignment",
+          "charter_version": 3,
+          "status": "PAUSED",
+          "stop_promote_triggers": 5,
+          "last_trigger": "RUN_33981744279",
+          "baseline_to_beat": "cited_decisions_tfidf_outcome_hybrid_0.5 (JP=0.7990, LangDom=0.4911)",
+          "recommendation": "TERMINATE or SUPERSEDE — 5+ triggers with no new evidence exhausts credible path"
+        }
+      ],
+      "policy_compliance": "Both teams created for concrete hypotheses with independent paths. No curiosity teams. BUT: keeping TERMINATED-eligible teams in PAUSED status indefinitely violates portfolio policy."
+    },
+    "factory_direction_version": 18,
+    "frontier_portfolio_version": 4,
+    "accepted_evidence_root": "/tmp/lex_accepted",
+    "proposal_root": "/tmp/lex_director_proposal",
+    "audit_date": "2026-09-05",
+    "auditor": "nemotron-3-ultra-free"
+  }
+}
