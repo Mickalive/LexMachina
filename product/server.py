@@ -477,6 +477,20 @@ class ProductHandler(SimpleHTTPRequestHandler):
         elif path == "/api/feedback":
             # GET returns feedback stats
             self._json_response(get_nav_api().get_feedback_stats())
+        elif path == "/api/feedback/records":
+            # GET returns paginated feedback records for browsing/export
+            limit = int(params.get("limit", ["50"])[0])
+            offset = int(params.get("offset", ["0"])[0])
+            feedback_type = params.get("type", [None])[0]
+            self._json_response(get_nav_api().get_feedback_records(limit=limit, offset=offset, feedback_type=feedback_type))
+        elif path == "/api/feedback/clusters":
+            # GET returns aggregated cluster quality ratings from feedback
+            cluster_id = int(params["cluster_id"][0]) if "cluster_id" in params else None
+            self._json_response(get_nav_api().get_cluster_feedback_summary(cluster_id=cluster_id))
+        elif path == "/api/feedback/export":
+            # GET returns all feedback records in exportable format
+            fmt = params.get("format", ["json"])[0]
+            self._json_response(get_nav_api().export_feedback(format=fmt))
         elif path == "/api/representations/validate":
             self._json_response(get_nav_api().validate_representations())
         elif path == "/api/map/compare":

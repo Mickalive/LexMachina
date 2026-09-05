@@ -2000,17 +2000,33 @@ webglRenderer.uploadPointData(
         try {
             const clResp = await fetch(`${API}/api/cross_language_neighbors?id=${decisionId}&n=5`);
             const clData = await clResp.json();
-            if (!clData.error && clData.cross_language_neighbors && clData.cross_language_neighbors.length > 0) {
-                html += `<div class="cross-lang-section">
-                    <div class="section-title">Cross-Language Neighbors</div>`;
-                for (const cl of clData.cross_language_neighbors.slice(0, 5)) {
-                    const clLangColor = LANG_COLORS[cl.language] || LANG_COLORS.unknown;
-                    html += `<div class="cross-lang-item" onclick="showDecision('${cl.decision_id}')" style="cursor:pointer;">
-                        <span class="cl-id"><span class="cl-badge" style="background:${clLangColor}30;color:${clLangColor}">${cl.language}</span> ${cl.decision_id}</span>
-                        <span style="color:#666;">dist: ${cl.distance}</span>
-                    </div>`;
+            if (!clData.error) {
+                // Method 1: Spatial cross-language neighbors (baseline)
+                if (clData.cross_language_neighbors && clData.cross_language_neighbors.length > 0) {
+                    html += `<div class="cross-lang-section">
+                        <div class="section-title">Cross-Language Neighbors (Spatial)</div>`;
+                    for (const cl of clData.cross_language_neighbors.slice(0, 5)) {
+                        const clLangColor = LANG_COLORS[cl.language] || LANG_COLORS.unknown;
+                        html += `<div class="cross-lang-item" onclick="showDecision('${cl.decision_id}')" style="cursor:pointer;">
+                            <span class="cl-id"><span class="cl-badge" style="background:${clLangColor}30;color:${clLangColor}">${cl.language}</span> ${cl.decision_id}</span>
+                            <span style="color:#666;">dist: ${cl.distance}</span>
+                        </div>`;
+                    }
+                    html += `</div>`;
                 }
-                html += `</div>`;
+                // Method 2: TF-IDF text similarity cross-language neighbors
+                if (clData.cross_language_by_text_similarity && clData.cross_language_by_text_similarity.length > 0) {
+                    html += `<div class="cross-lang-section">
+                        <div class="section-title">Cross-Language (by Legal Content)</div>`;
+                    for (const cl of clData.cross_language_by_text_similarity.slice(0, 5)) {
+                        const clLangColor = LANG_COLORS[cl.language] || LANG_COLORS.unknown;
+                        html += `<div class="cross-lang-item" onclick="showDecision('${cl.decision_id}')" style="cursor:pointer;">
+                            <span class="cl-id"><span class="cl-badge" style="background:${clLangColor}30;color:${clLangColor}">${cl.language}</span> ${cl.decision_id}</span>
+                            <span style="color:#666;">sim: ${cl.text_similarity}</span>
+                        </div>`;
+                    }
+                    html += `</div>`;
+                }
             }
         } catch (clErr) { /* cross-language neighbors not available */ }
 

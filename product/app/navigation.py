@@ -128,8 +128,8 @@ class NavigationAPI:
         citation_loaded = self.citation_loader.load()
         zoom_coherence_loaded = self.zoom_coherence.load()
         
-        # Build TF-IDF model from corpus
-        corpus_decisions = self.corpus.get_all_decisions()
+        # Build TF-IDF model from corpus (use untruncated text for better recall)
+        corpus_decisions = self.corpus.get_all_decisions_raw()
         if corpus_decisions:
             self.tfidf_proximity.build_from_corpus(corpus_decisions)
 
@@ -1352,8 +1352,14 @@ class NavigationAPI:
         n_neighbors: int = 10,
     ) -> Dict[str, Any]:
         """Find cross-language neighbors for a decision.
-        
-        Uses server-side caching to avoid recomputing for the same decision.
+
+        Uses TWO methods and returns both:
+        1. Spatial neighbors (same 2D map distance — baseline, language-dominated)
+        2. TF-IDF text similarity neighbors (topical — overcomes language clustering)
+
+        The text_similarity method returns cross-language neighbors ranked by
+        legal content similarity rather than spatial proximity, addressing the
+        known limitation that 2D map geometry is dominated by language.
         """
         if not self._initialized:
             return {"error": "Not initialized"}
@@ -1382,23 +1388,33 @@ class NavigationAPI:
             if s:
                 corpus_summaries[did] = s
 
-        # Find neighbors (same language and cross-language)
+        # Method 1: Spatial neighbors (baseline — language-dominated)
         same_lang_neighbors = self.language_analyzer.find_cross_language_neighbors(
             decision_id, decision_language, positions, corpus_summaries,
             n_neighbors=n_neighbors, same_language_only=True
         )
         
-        cross_lang_neighbors = self.language_analyzer.find_cross_language_neighbors(
+        spatial_cross = self.language_analyzer.find_cross_language_neighbors(
             decision_id, decision_language, positions, corpus_summaries,
             n_neighbors=n_neighbors, same_language_only=False
+        )
+        spatial_cross_lang = [n for n in spatial_cross if n["is_cross_language"]][:n_neighbors]
+
+        # Method 2: TF-IDF text similarity (overcomes language clustering)
+        text_cross_lang = self.language_analyzer.find_cross_language_neighbors_by_text(
+            decision_id, decision_language,
+            self.tfidf_proximity, corpus_summaries, positions,
+            n_neighbors=n_neighbors,
         )
 
         result = {
             "decision_id": decision_id,
             "decision_language": decision_language,
             "same_language_neighbors": same_lang_neighbors,
-            "cross_language_neighbors": [n for n in cross_lang_neighbors if n["is_cross_language"]][:n_neighbors],
-            "all_neighbors": cross_lang_neighbors[:n_neighbors],
+            "cross_language_neighbors": spatial_cross_lang,
+            "cross_language_by_text_similarity": text_cross_lang,
+            "all_neighbors": spatial_cross[:n_neighbors],
+            "method_note": "spatial neighbors use 2D map distance (language-dominated); text_similarity neighbors use TF-IDF topical similarity (language-invariant)",
         }
         
         # Cache the result
@@ -1434,9 +1450,11 @@ class NavigationAPI:
         for did, (x, y) in zl.positions.items():
             summary = self.corpus.get_summary(did)
             meta = self._get_map_decision_meta(did)
+            # Try corpus decision_date first, then map metadata fallback
+            # Map metadata stores year as 'year' field (not 'decision_date')
             decision_date = (
                 summary.get("decision_date", "") if summary
-                else meta.get("decision_date", "")
+                else meta.get("decision_date", meta.get("year", ""))
             )
             year = self._extract_year(decision_date)
 
@@ -1816,6 +1834,203 @@ class NavigationAPI:
             "by_type": dict(counts_by_type),
             "by_jurist": dict(counts_by_jurist),
         }
+
+    def get_feedback_records(
+        self,
+        limit: int = 50,
+        feedback_type: Optional[str] = None,
+        offset: int = 0,
+    ) -> Dict[str, Any]:
+        """Retrieve individual feedback records with pagination.
+
+        Closes the jurist-feedback loop by surfacing stored feedback for
+        browsing, export, and analysis.
+
+        Args:
+            limit: Maximum records to return (default 50)
+            feedback_type: Optional filter by feedback type
+            offset: Skip first N records for pagination
+
+        Returns:
+            Dict with paginated records and metadata
+        """
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        from pathlib import Path
+        feedback_dir = Path(self.map_loader.results_dir) / "jurist_feedback"
+        feedback_file = feedback_dir / "feedback.jsonl"
+
+        if not feedback_file.exists():
+            return {"total": 0, "records": [], "offset": offset, "limit": limit, "has_more": False}
+
+        records = []
+        total = 0
+
+        try:
+            with open(feedback_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        record = json.loads(line)
+                        total += 1
+                        # Apply type filter
+                        if feedback_type and record.get("feedback_type") != feedback_type:
+                            continue
+                        # Apply offset/limit
+                        if total <= offset:
+                            continue
+                        if len(records) >= limit:
+                            continue
+                        records.append(record)
+                    except json.JSONDecodeError:
+                        continue
+        except Exception:
+            pass
+
+        return {
+            "total": total,
+            "records": records,
+            "offset": offset,
+            "limit": limit,
+            "has_more": total > offset + limit,
+        }
+
+    def get_cluster_feedback_summary(
+        self,
+        cluster_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Get aggregated feedback ratings for clusters.
+
+        Surfaces cluster_quality feedback as cluster badges/tooltips on the map,
+        enabling jurists to see peer quality assessments.
+
+        Args:
+            cluster_id: Optional cluster ID to filter by. If None, returns all.
+
+        Returns:
+            Dict with per-cluster rating summaries
+        """
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        from pathlib import Path
+        feedback_dir = Path(self.map_loader.results_dir) / "jurist_feedback"
+        feedback_file = feedback_dir / "feedback.jsonl"
+
+        if not feedback_file.exists():
+            return {"clusters": {}, "total_ratings": 0}
+
+        # Aggregate cluster quality ratings
+        cluster_ratings: Dict[str, List[int]] = {}
+        cluster_counts: Dict[str, int] = {}
+
+        try:
+            with open(feedback_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        record = json.loads(line)
+                        if record.get("feedback_type") != "cluster_quality":
+                            continue
+                        payload = record.get("payload", {})
+                        cid = str(payload.get("cluster_id", ""))
+                        rating = payload.get("rating")
+                        if cid and rating is not None:
+                            if cluster_id is not None and cid != str(cluster_id):
+                                continue
+                            if cid not in cluster_ratings:
+                                cluster_ratings[cid] = []
+                            cluster_ratings[cid].append(int(rating))
+                            cluster_counts[cid] = cluster_counts.get(cid, 0) + 1
+                    except (json.JSONDecodeError, ValueError):
+                        continue
+        except Exception:
+            pass
+
+        # Compute per-cluster summaries
+        result_clusters = {}
+        for cid, ratings in cluster_ratings.items():
+            avg = sum(ratings) / len(ratings) if ratings else 0
+            result_clusters[cid] = {
+                "cluster_id": cid,
+                "n_ratings": len(ratings),
+                "average_rating": round(avg, 2),
+                "ratings": ratings,
+            }
+
+        return {
+            "clusters": result_clusters,
+            "total_ratings": sum(cluster_counts.values()),
+        }
+
+    def export_feedback(
+        self,
+        format: str = "json",
+    ) -> Dict[str, Any]:
+        """Export all feedback records for offline analysis.
+
+        Provides feedback export API for the evaluation lane and external
+        analysis workflows.
+
+        Args:
+            format: 'json' or 'csv'
+
+        Returns:
+            Dict with exported data and format info
+        """
+        if not self._initialized:
+            return {"error": "Not initialized"}
+
+        from pathlib import Path
+        import csv
+        import io
+
+        feedback_dir = Path(self.map_loader.results_dir) / "jurist_feedback"
+        feedback_file = feedback_dir / "feedback.jsonl"
+
+        if not feedback_file.exists():
+            return {"format": format, "data": "[]" if format == "json" else "", "count": 0}
+
+        records = []
+        try:
+            with open(feedback_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        records.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        continue
+        except Exception:
+            pass
+
+        if format == "csv":
+            if not records:
+                return {"format": "csv", "data": "", "count": 0}
+            output = io.StringIO()
+            # Flatten for CSV
+            flat_records = []
+            for r in records:
+                flat = {
+                    "timestamp": r.get("iso_timestamp", ""),
+                    "feedback_type": r.get("feedback_type", ""),
+                    "jurist_id": r.get("jurist_id", ""),
+                    "payload_json": json.dumps(r.get("payload", {}), ensure_ascii=False),
+                }
+                flat_records.append(flat)
+            fieldnames = list(flat_records[0].keys())
+            writer = csv.DictWriter(output, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(flat_records)
+            return {"format": "csv", "data": output.getvalue(), "count": len(records)}
+        else:
+            return {"format": "json", "data": json.dumps(records, ensure_ascii=False), "count": len(records)}
 
     def compare_maps(
         self,

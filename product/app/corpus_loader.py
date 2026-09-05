@@ -54,13 +54,28 @@ class Decision:
             "text_length": self.text_length,
         }
 
+    # Configurable API response truncation limit (chars)
+    FULL_TEXT_API_LIMIT = 8000
+
     def to_full(self) -> Dict:
-        """Return full decision details for inspection."""
+        """Return full decision details for inspection.
+
+        full_text is truncated to FULL_TEXT_API_LIMIT characters for API
+        responses.  For TF-IDF model building, use to_full_raw() instead.
+        """
         d = asdict(self)
-        # Truncate full_text for API responses
-        if len(d.get("full_text", "")) > 2000:
-            d["full_text"] = d["full_text"][:2000] + "... [truncated]"
+        if len(d.get("full_text", "")) > self.FULL_TEXT_API_LIMIT:
+            d["full_text"] = d["full_text"][:self.FULL_TEXT_API_LIMIT] + "... [truncated]"
         return d
+
+    def to_full_raw(self) -> Dict:
+        """Return full decision details with untruncated text.
+
+        Used by TF-IDF model building and other NLP consumers that need
+        the complete document text.  Do NOT use for API responses — use
+        to_full() instead.
+        """
+        return asdict(self)
 
 
 class CorpusLoader:
@@ -214,8 +229,16 @@ class CorpusLoader:
         return [d.to_summary() for d in self.decisions.values()]
 
     def get_all_decisions(self) -> List[Dict]:
-        """Return full details of all decisions (for TF-IDF model building)."""
+        """Return full details of all decisions with API-truncated text."""
         return [d.to_full() for d in self.decisions.values()]
+
+    def get_all_decisions_raw(self) -> List[Dict]:
+        """Return full details of all decisions with untruncated text.
+
+        Used by TF-IDF model building and other NLP consumers that need
+        the complete document text.  Trades memory for recall.
+        """
+        return [d.to_full_raw() for d in self.decisions.values()]
 
     def get_by_language(self, language: str) -> List[Dict]:
         """Get decisions filtered by language."""

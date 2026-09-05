@@ -70,7 +70,7 @@ class LanguageAnalyzer:
         n_neighbors: int = 10,
         same_language_only: bool = False,
     ) -> List[Dict[str, Any]]:
-        """Find neighbors of a decision, optionally filtering by language.
+        """Find neighbors of a decision using spatial (2D) distance.
 
         Args:
             decision_id: The target decision
@@ -116,6 +116,85 @@ class LanguageAnalyzer:
         neighbors.sort(key=lambda x: x["distance"])
 
         return neighbors[:n_neighbors]
+
+    def find_cross_language_neighbors_by_text(
+        self,
+        decision_id: str,
+        decision_language: str,
+        tfidf_model: Any,
+        corpus_summaries: Dict[str, Dict],
+        all_positions: Dict[str, Tuple[float, float]],
+        n_neighbors: int = 10,
+    ) -> List[Dict[str, Any]]:
+        """Find cross-language neighbors using TF-IDF text similarity.
+
+        Overcomes the language-dominant clustering problem by ranking
+        candidates by topical text similarity rather than 2D spatial
+        proximity (which is dominated by language).
+
+        Args:
+            decision_id: The target decision
+            decision_language: Language of the target decision
+            tfidf_model: TFIDFProximity instance with built model
+            corpus_summaries: Dict mapping decision_id -> summary dict
+            all_positions: Dict mapping decision_id -> (x, y) for position info
+            n_neighbors: Number of cross-language neighbors to return
+
+        Returns:
+            List of cross-language neighbor dicts ranked by text similarity
+        """
+        if not tfidf_model._built:
+            return []
+
+        # Get the target document's TF-IDF vector
+        target_vec = tfidf_model._tfidf_vectors.get(decision_id)
+        if not target_vec:
+            return []
+
+        # Compute text similarity against all other documents
+        candidates = []
+        for did, vec in tfidf_model._tfidf_vectors.items():
+            if did == decision_id:
+                continue
+
+            summary = corpus_summaries.get(did, {})
+            lang = summary.get("language", "unknown")
+
+            # Only cross-language candidates
+            if lang == decision_language:
+                continue
+
+            # Compute cosine similarity
+            dot_product = sum(
+                target_vec.get(idx, 0.0) * vec.get(idx, 0.0)
+                for idx in target_vec
+                if idx in vec
+            )
+            mag_target = sum(v ** 2 for v in target_vec.values()) ** 0.5
+            mag_candidate = sum(v ** 2 for v in vec.values()) ** 0.5
+
+            if mag_target == 0 or mag_candidate == 0:
+                continue
+
+            text_sim = dot_product / (mag_target * mag_candidate)
+
+            pos = all_positions.get(did, (0, 0))
+            candidates.append({
+                "decision_id": did,
+                "text_similarity": round(text_sim, 4),
+                "distance": round(1.0 - text_sim, 4),  # Invert for distance convention
+                "language": lang,
+                "is_cross_language": True,
+                "branch": summary.get("branch", "unknown"),
+                "legal_area": summary.get("legal_area", "unknown"),
+                "x": pos[0],
+                "y": pos[1],
+            })
+
+        # Sort by text similarity (highest first = lowest distance)
+        candidates.sort(key=lambda x: x["text_similarity"], reverse=True)
+
+        return candidates[:n_neighbors]
 
     def get_language_filter_recommendations(
         self,
