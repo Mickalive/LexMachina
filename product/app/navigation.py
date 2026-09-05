@@ -183,9 +183,12 @@ class NavigationAPI:
     def _build_spatial_indices(self) -> None:
         """Build KD-tree spatial indices for fast viewport queries.
         
-        Builds one SpatialIndex per representation for the default zoom level.
+        Builds one SpatialIndex per representation per zoom level.
         This enables O(sqrt(N) + k) viewport culling instead of O(N) brute-force.
         Tries to load from persisted artifacts for fast startup at 174k scale.
+        
+        For 174k scale: builds indices for ALL zoom levels to support
+        viewport culling at any zoom level.
         """
         import time as _time
         t0 = _time.time()
@@ -196,43 +199,46 @@ class NavigationAPI:
         persist_dir.mkdir(parents=True, exist_ok=True)
         
         for rep in self.map_loader.get_available_representations():
-            zl = self.map_loader.get_zoom_level(rep, 1)  # Default zoom level
-            if zl and zl.positions:
-                persist_path = persist_dir / f"spatial_{rep.replace('/', '_')}"
-                
-                # Try to load from disk first
-                si = SpatialIndex.load(persist_path)
-                if si is None:
-                    # Build and persist
-                    si = SpatialIndex(persist_path=persist_path)
-                    si.build(zl.positions)
-                else:
-                    loaded_from_disk += 1
-                
-                self._spatial_indices[rep] = si
-                count += 1
+            zoom_levels = self.map_loader.get_zoom_levels(rep)
+            for zl_num in zoom_levels:
+                zl = self.map_loader.get_zoom_level(rep, zl_num)
+                if zl and zl.positions:
+                    persist_path = persist_dir / f"spatial_{rep.replace('/', '_')}_z{zl_num}"
+                    
+                    # Try to load from disk first
+                    si = SpatialIndex.load(persist_path)
+                    if si is None:
+                        # Build and persist
+                        si = SpatialIndex(persist_path=persist_path)
+                        si.build(zl.positions)
+                    else:
+                        loaded_from_disk += 1
+                    
+                    self._spatial_indices[f"{rep}_z{zl_num}"] = si
+                    count += 1
         
         elapsed = _time.time() - t0
         if count > 0:
             print(f"[SpatialIndex] Built/loaded {count} spatial indices ({loaded_from_disk} from disk) in {elapsed:.3f}s")
 
-    def _get_spatial_index(self, representation: str) -> Optional[SpatialIndex]:
-        """Get or build spatial index for a representation."""
-        if representation in self._spatial_indices:
-            return self._spatial_indices[representation]
+    def _get_spatial_index(self, representation: str, zoom_level: int = 1) -> Optional[SpatialIndex]:
+        """Get or build spatial index for a representation at a specific zoom level."""
+        key = f"{representation}_z{zoom_level}"
+        if key in self._spatial_indices:
+            return self._spatial_indices[key]
         
         # Build on demand if not pre-built
-        zl = self.map_loader.get_zoom_level(representation, 1)
+        zl = self.map_loader.get_zoom_level(representation, zoom_level)
         if zl and zl.positions:
             persist_dir = Path(self.map_loader.results_dir) / "spatial_indices"
-            persist_path = persist_dir / f"spatial_{representation.replace('/', '_')}"
+            persist_path = persist_dir / f"spatial_{representation.replace('/', '_')}_z{zoom_level}"
             
             si = SpatialIndex.load(persist_path)
             if si is None:
                 si = SpatialIndex(persist_path=persist_path)
                 si.build(zl.positions)
             
-            self._spatial_indices[representation] = si
+            self._spatial_indices[key] = si
             return si
         return None
 
@@ -2272,8 +2278,14 @@ class NavigationAPI:
 
         # --- LOD: Level-of-detail point decimation for 174k+ scale ---
         n_total_pre_lod = n_total
-        LOD_LIMITS = {0: 15000, 1: 30000}
-        lod_limit = LOD_LIMITS.get(zoom_level)
+        # Automatic LOD limits per zoom level for 174k scale.
+        # Zoom 0: domain level (~5-10 clusters) → limit 15k (should never hit)
+        # Zoom 1: subdomain level (~10-50 clusters) → limit 30k  
+        # Zoom 2: microcluster level (~50-200 clusters) → limit 50k
+        # Zoom 3: detail level (~200-1000 clusters) → limit 75k
+        # Zoom 4+: fine detail → limit 100k
+        LOD_LIMITS = {0: 15000, 1: 30000, 2: 50000, 3: 75000, 4: 100000, 5: 100000, 6: 100000}
+        lod_limit = LOD_LIMITS.get(zoom_level, 100000)
         if lod_limit and n_total > lod_limit:
             grid_size = max(1, int(np.sqrt(n_total / lod_limit)))
             x_min_range, x_max_range = xs.min(), xs.max()
@@ -2307,12 +2319,9 @@ class NavigationAPI:
         culled_mask = np.ones(n_total, dtype=bool)
         visible_cluster_ids = set()
         
-        spatial_index = self._spatial_indices.get(representation)
-        # Only use spatial index for zoom level 1 (where it was built from).
-        # For other zoom levels, fall back to brute-force to correctly handle
-        # imported positions which are not in the spatial index.
-        use_spatial_index = (spatial_index is not None and 
-                            zoom_level == 1 and
+        # Use spatial index for the requested zoom level (built for all zoom levels now)
+        spatial_index = self._get_spatial_index(representation, zoom_level)
+        use_spatial_index = (spatial_index is not None and
                             bbox and 'xMin' in bbox and 'xMax' in bbox and 'yMin' in bbox and 'yMax' in bbox)
         if use_spatial_index:
             # Use KD-tree for fast viewport query (O(sqrt(N) + k) vs O(N))

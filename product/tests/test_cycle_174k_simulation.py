@@ -418,13 +418,18 @@ class TestFullScalePipeline:
         print(f"  {len(reps)} representations loaded")
 
         # Verify each representation has zoom levels and spatial index
+        # Now spatial indices are per-zoom-level (key format: rep_z{zoom})
         for rep in reps:
             zoom_levels = api.map_loader.get_zoom_levels(rep)
             assert len(zoom_levels) > 0, f"{rep} has no zoom levels"
-            # Check spatial index
-            si = api._spatial_indices.get(rep)
-            assert si is not None, f"{rep} has no spatial index"
-            assert si.size > 0, f"{rep} spatial index is empty"
+            # Check at least one spatial index exists for this representation
+            has_spatial_index = False
+            for zl in zoom_levels:
+                si = api._spatial_indices.get(f"{rep}_z{zl}")
+                if si is not None:
+                    assert si.size > 0, f"{rep}_z{zl} spatial index is empty"
+                    has_spatial_index = True
+            assert has_spatial_index, f"{rep} has no spatial index for any zoom level"
 
         print(f"  All {len(reps)} representations validated")
 
