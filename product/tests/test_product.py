@@ -52,7 +52,6 @@ def test_corpus_loader():
     print(f"  Search 'Recht': {len(results)} results")
     
     print("  PASS\n")
-    return True
 
 
 def test_map_loader():
@@ -87,7 +86,6 @@ def test_map_loader():
     assert len(positions) > 0, "No positions found"
     
     print("  PASS\n")
-    return True
 
 
 def test_navigation_api():
@@ -144,7 +142,6 @@ def test_navigation_api():
     print(f"  Zoom levels: {levels}")
     
     print("  PASS\n")
-    return True
 
 
 def test_end_to_end():
@@ -183,7 +180,6 @@ def test_end_to_end():
                 print(f"  4. Neighbors: {len(neighbors)}")
     
     print("  PASS\n")
-    return True
 
 
 def test_hdbscan():
@@ -219,7 +215,6 @@ def test_hdbscan():
     print(f"  HDBSCAN zoom 1: {hdbscan_clusters} clusters")
     
     print("  PASS\n")
-    return True
 
 
 def test_corpus_import():
@@ -298,7 +293,6 @@ def test_corpus_import():
     assert coverage["corpus_with_map_position"] > 0, "Expected some corpus decisions on map"
     
     print("  PASS\n")
-    return True
 
 
 def test_section_modes():
@@ -340,7 +334,6 @@ def test_section_modes():
           f"legal_area_purity={cluster['coherence']['legal_area_purity']:.3f}")
     
     print("  PASS\n")
-    return True
 
 
 def test_citations():
@@ -387,7 +380,6 @@ def test_citations():
         assert "incoming" in decision["citations"]
     
     print("  PASS\n")
-    return True
 
 
 def test_map_modes_api():
@@ -420,7 +412,6 @@ def test_map_modes_api():
         assert "n_decisions" in mode, f"Mode {mode['name']} missing n_decisions"
     
     print("  PASS\n")
-    return True
 
 
 def test_hierarchical_leiden():
@@ -503,7 +494,6 @@ def test_hierarchical_leiden():
     print(f"  Map mode label: {hl_mode['label']}")
     
     print("  PASS\n")
-    return True
 
 
 def test_true_hierarchical_leiden():
@@ -595,7 +585,6 @@ def test_true_hierarchical_leiden():
     print(f"  Map mode label: {thl_mode['label']}")
 
     print("  PASS\n")
-    return True
 
 
 def test_legal_cited_decisions():
@@ -681,7 +670,6 @@ def test_legal_cited_decisions():
     print(f"  Map mode label: {lcd_mode['label']}")
 
     print("  PASS\n")
-    return True
 
 
 def test_center_projected():
@@ -740,7 +728,6 @@ def test_center_projected():
     print(f"  Map mode label: {cp_mode['label']}")
 
     print("  PASS\n")
-    return True
 
 
 def test_hybrid_alpha_0_3():
@@ -791,7 +778,6 @@ def test_hybrid_alpha_0_3():
     assert len(neighbors) > 0, "Expected neighbors"
 
     print("  PASS\n")
-    return True
 
 
 def test_hybrid_alpha_0_5():
@@ -841,7 +827,6 @@ def test_hybrid_alpha_0_5():
     assert len(neighbors) > 0, "Expected neighbors"
 
     print("  PASS\n")
-    return True
 
 
 def test_legal_issues_outcomes():
@@ -900,7 +885,6 @@ def test_legal_issues_outcomes():
     assert len(neighbors) > 0, "Expected neighbors"
 
     print("  PASS\n")
-    return True
 
 
 def test_linear_metric_best():
@@ -939,7 +923,6 @@ def test_linear_metric_best():
     assert len(neighbors) > 0
 
     print("  PASS\n")
-    return True
 
 
 def test_mahalanobis_best():
@@ -978,7 +961,6 @@ def test_mahalanobis_best():
     assert len(neighbors) > 0
 
     print("  PASS\n")
-    return True
 
 
 def test_cited_decisions_tfidf():
@@ -1018,7 +1000,6 @@ def test_cited_decisions_tfidf():
     assert len(neighbors) > 0
 
     print("  PASS\n")
-    return True
 
 
 def test_hybrid_cited_decisions_0_3():
@@ -1057,7 +1038,6 @@ def test_hybrid_cited_decisions_0_3():
     assert len(neighbors) > 0
 
     print("  PASS\n")
-    return True
 
 
 def test_hybrid_cited_decisions_0_5():
@@ -1096,7 +1076,6 @@ def test_hybrid_cited_decisions_0_5():
     assert len(neighbors) > 0
 
     print("  PASS\n")
-    return True
 
 
 def test_hybrid_cited_decisions_0_7():
@@ -1135,7 +1114,6 @@ def test_hybrid_cited_decisions_0_7():
     assert len(neighbors) > 0
 
     print("  PASS\n")
-    return True
 
 
 def test_cited_decisions_tfidf_hybrid_cp64_0_3():
@@ -1174,7 +1152,6 @@ def test_cited_decisions_tfidf_hybrid_cp64_0_3():
     assert len(neighbors) > 0
 
     print("  PASS\n")
-    return True
 
 
 def test_cited_decisions_tfidf_hybrid_cp64_0_5():
@@ -1213,7 +1190,6 @@ def test_cited_decisions_tfidf_hybrid_cp64_0_5():
     assert len(neighbors) > 0
 
     print("  PASS\n")
-    return True
 
 
 def test_cited_decisions_tfidf_hybrid_cp64_0_7():
@@ -1252,7 +1228,6 @@ def test_cited_decisions_tfidf_hybrid_cp64_0_7():
     assert len(neighbors) > 0
 
     print("  PASS\n")
-    return True
 
 
 def test_cited_outcome_hybrid_0_5():
@@ -1292,7 +1267,6 @@ def test_cited_outcome_hybrid_0_5():
     assert len(neighbors) > 0
 
     print("  PASS\n")
-    return True
 
 
 def test_cited_outcome_hybrid_0_7():
@@ -1332,7 +1306,6 @@ def test_cited_outcome_hybrid_0_7():
     assert len(neighbors) > 0
 
     print("  PASS\n")
-    return True
 
 
 def test_hybrid_stabilized_best():
@@ -1372,7 +1345,6 @@ def test_hybrid_stabilized_best():
     assert len(neighbors) > 0
 
     print("  PASS\n")
-    return True
 
 
 def test_following_alpha0_3():
@@ -1412,7 +1384,6 @@ def test_following_alpha0_3():
     assert len(neighbors) > 0
 
     print("  PASS\n")
-    return True
 
 
 def test_criticizing_alpha0_3():
@@ -1452,7 +1423,6 @@ def test_criticizing_alpha0_3():
     assert len(neighbors) > 0
 
     print("  PASS\n")
-    return True
 
 
 def test_citing_alpha0_3():
@@ -1492,7 +1462,6 @@ def test_citing_alpha0_3():
     assert len(neighbors) > 0
 
     print("  PASS\n")
-    return True
 
 
 def test_linear_hybrid05_concat():
@@ -1535,7 +1504,6 @@ def test_linear_hybrid05_concat():
     assert len(neighbors) > 0
 
     print("  PASS\n")
-    return True
 
 
 def test_all_representations_coverage():
