@@ -40,8 +40,12 @@
     "product/tests/test_cycle_33660041466_lod.py",
     "product/tests/test_cycle_33660041466_incremental.py",
     "product/tests/test_cycle_174k_simulation.py",
+    "product/tests/test_cycle_v18_product.py",
+    "product/tests/test_cycle_33982486898.py",
     "product/reports/product/CYCLE_33733439851.md",
     "product/reports/product/CYCLE_33924749270_AUDIT_READY.md",
+    "product/reports/product/CYCLE_33989675812_REPORT.md",
+    "product/reports/product/AUDIT_VERIFICATION_v18_FINAL.md",
     "product/requirements.txt",
     "product/build_legal_cited_representation.py",
     "product/build_linear_hybrid05_concat.py",
@@ -736,22 +740,35 @@
         "webgl_payload_174k": "PASS",
         "full_pipeline_174k": "PASS",
         "representation_coverage": "PASS"
+      },
+      "test_cycle_v18_product.py": {
+        "decision_to_full_truncation": "PASS",
+        "decision_to_full_raw_no_truncation": "PASS",
+        "corpus_loader_raw_accessor": "PASS",
+        "extract_year_from_decision_date": "PASS",
+        "temporal_fallback_to_year_field": "PASS",
+        "find_cross_language_neighbors_by_text": "PASS",
+        "cross_language_neighbors_sorted_by_similarity": "PASS",
+        "feedback_records_retrieval": "PASS",
+        "cluster_feedback_summary": "PASS",
+        "feedback_export": "PASS"
+      },
+      "test_cycle_33982486898.py": {
+        "load_user_corpus_jsonl": "PASS",
+        "imported_positions_validity": "PASS",
+        "imported_positions_reproducibility": "PASS"
       }
     },
-    "total_tests": 43,
-    "tests_passed": 43
+    "total_tests": 280,
+    "tests_passed": 280
   },
   "notes": "Cycle 33733439851: OPERATIONAL RESUME from persisted producer snapshot. DIAGNOSED: prior runs 33702795036–33729376363 (10 cycles) were zero-delta no-ops — product lane in 174k hardening but corpus lane PAUSED at 1,200 scale. FIXED: Built 174k-scale simulation via synthetic upsampling, validating ALL scale-readiness infrastructure at 174,113-point target. FEAT-074: 16-test suite covering LOD Manager (4), Viewport Culling (3), Spatial Index (3), Inverted Index (2), WebGL Pipeline (2), Full Pipeline (2). FEAT-075: /api/scale_simulation endpoint with all_pass readiness boolean. VERIFIED: All 267 tests PASS (33 core + 163 cycle + 71 scale/simulation). Scale-readiness thresholds met: LOD < 2s, culling 8ms, spatial build < 5s, k-NN < 500ms, inverted build < 15s, WebGL arrays < 2s, payload ~6.6MB, full pipeline < 3s. Product infrastructure ready for 174k corpus delivery. BLOCKER: Corpus lane PAUSED — full-text embedding computation for 174k is downstream for legal-distance/fractal-map/evaluation lanes.",
   "known_limitations": [
     "Section modes: 63 decisions use section-specific projections, 937 use baseline fallback (blended approach)",
     "HDBSCAN produces fewer clusters than Leiden at same zoom levels (2-8 vs 5-21)",
-    "TF-IDF model uses truncated text (2000 chars max per document)",
-    "Cross-language neighbors limited by language-dominant clustering",
     "Language filter is a simple toggle (no compound language queries)",
-    "Temporal filtering requires year metadata in corpus (not all decisions have it)",
     "Full TF-2000+ corpus scale pending corpus lane completion (currently 1000-decision slice)",
     "Hybrid and legal_issues_outcomes representations are EXPLORATORY (not yet benchmarked)",
-    "Full TF-2000+ corpus scale pending corpus lane completion (currently 1000-decision slice)",
     "Incremental updates only work for decisions with text embeddings in the base corpus space",
     "LOD level 1 super-cluster merging uses greedy algorithm; may not be globally optimal"
   ],
@@ -785,7 +802,11 @@
     "No graceful degradation for failed representations (fixed: RepresentationHealthChecker with /api/health/representations, server returns alternatives)",
     "No level-of-detail for WebGL at 174k scale (fixed: LODManager with 3 levels, /api/webgl/lod, lod_level param on get_webgl_data)",
     "No incremental map updates for corpus growth (fixed: IncrementalUpdater with k-NN positioning, delta persistence, merge, /api/map/incremental_update)",
-    "true_hierarchical_leiden broken due to missing igraph/leidenalg (fixed: installed dependencies, 8 coarse / 89 fine clusters verified with nesting=1.0)"
+    "true_hierarchical_leiden broken due to missing igraph/leidenalg (fixed: installed dependencies, 8 coarse / 89 fine clusters verified with nesting=1.0)",
+    "TF-IDF model built from truncated text (2000 chars) — fixed: Decision.to_full_raw() and CorpusLoader.get_all_decisions_raw() for untruncated TF-IDF; API limit 2000->8000 (FEAT-078)",
+    "Temporal filtering metadata gap — fixed: fallback to map metadata 'year' field when decision_date unavailable (FEAT-079)",
+    "Cross-language neighbors limited by language-dominant clustering — fixed: TF-IDF text similarity for language-invariant neighbor discovery (FEAT-080)",
+    "Jurist feedback loop write-only — fixed: get_feedback_records(), get_cluster_feedback_summary(), export_feedback() with three new endpoints (FEAT-081)"
   ],
   "next_steps": [
     "Validate all 30 representations on full 174k corpus when corpus lane delivers embeddings (currently simulation-validated only)",
