@@ -1,0 +1,39 @@
+{
+  "cycle": "CYCLE_33979380708",
+  "subject": "Factory Director proposal RUN_33979380708 (factory_direction v17->v18, frontier_portfolio v4)",
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "Re-anchor the material factory_direction v17->v18 change (product RUN->PAUSE). The director cites results/audit/product/CYCLE_33973396199_GATE.json (gate=BLOCKED) as the driving 'NEW evidence this run'. That gate exists ONLY on unmerged branch origin/cycle/core/product/33973396199/audit; it is NOT in /tmp/lex_accepted, NOT in canonical results/audit/product/, NOT in results/ACCEPTED_CATALOG.json (grep count=0), and is NOT an ancestor of the control-plane HEAD (15f1bd7/4d38ffb). The mainline state/blockers/product.json (commit 892b7fb) was added WITHOUT its supporting gate/report. The accepted product lane state still reports cycle_status=RUN, continue_recommended=true, BLOCKED_ON_DEPENDENCIES. Correct the report and factory_direction v18 note to: (a) ground the product-pause on the PROMOTED dependency evidence (product accepted state: BLOCKED_ON_DEPENDENCIES for corpus delivery; product infrastructure READY - no actionable work until corpus 174k), and (b) explicitly disclose the CYCLE_33973396199 BLOCKED gate is pending promotion to the accepted catalog/control plane. Remove the assertion that this is 'ACCEPTED evidence'/'genuinely new operational evidence for this run' unless/until the gate is actually promoted.",
+    "Reconcile with accepted product state. /tmp/lex_accepted/core/product/product/state/product.json reports cycle_status=RUN, continue_recommended=true. The v18 increment and state/blockers/product.json ('AUDIT_BLOCKED' for run 33973396199) must either be accompanied by promoting the BLOCKED gate into results/ AND updating the accepted product state to PAUSE/BLOCKED, OR explicitly record the accepted-state discrepancy as pending-promotion. Do not let the control-plane direction and accepted lane state silently diverge.",
+    "Retain the substantively correct routing after re-anchoring: product PAUSE until corpus 174k delivers; .gitignore/user_imports structural fix and supervisor dispatch halt remain required-before-resume; no HUMAN_DECISION_REQUIRED is introduced. Verify the corrected report against the mounted control plane once the gate is promoted."
+  ],
+  "claim_ceiling": "No new product/research claims introduced. Product vertical slice remains at state verified by CYCLE_33924749270 (1000-decision scale; 174k infrastructure validated via simulation; 30 representations, 6 design patterns, 267+ tests PASS; production default cited_outcome_hybrid_0.5; COMBINATION_MODE linear_hybrid05_concat). The v17->v18 direction change must be re-grounded on promoted evidence before integration. Frontier teams remain PAUSED per ACCEPTED baselines (zero-shot hybrid cited_outcome_hybrid_0.5 JP=0.7990, LangDom=0.4911).",
+  "evidence_summary": {
+    "material_proposal_change": "factory_direction v17->v18: product lane RUN->PAUSE, attributed to product audit CYCLE_33973396199_GATE.json (BLOCKED). frontier_portfolio stays v4 (reconfirmation notes only).",
+    "provenance_check": {
+      "CYCLE_33973396199_GATE.json_in_accepted": false,
+      "CYCLE_33973396199_GATE.json_in_canonical_results_audit_product": false,
+      "CYCLE_33973396199_in_ACCEPTED_CATALOG_json": false,
+      "gate_ancestor_of_control_plane_HEAD": false,
+      "gate_branch": "origin/cycle/core/product/33973396199/audit (unmerged lab branch)",
+      "mainline_state_blockers_product_json": "present (892b7fb) but added WITHOUT supporting gate/report; references run 33973396199 AUDIT_BLOCKED requires_human=false",
+      "accepted_product_state": "cycle_status=RUN, continue_recommended=true, BLOCKED_ON_DEPENDENCIES for corpus delivery; no trace of 33973396199"
+    },
+    "verified_clean_vectors": {
+      "mission_drift": "none",
+      "frontier_proliferation": "none (2 teams, both PAUSED, stop_promote_rules from ACCEPTED baselines JP=0.7990/LangDom=0.4911)",
+      "duplicated_teams": "none (distinct methods/spaces)",
+      "stale_blocked_questions": "none (all blocks concrete/autonomous; jurist recruitment external)",
+      "product_starvation": "none (product has no actionable work until corpus 174k; accepted state BLOCKED_ON_DEPENDENCIES; .gitignore/supervisor fixes tracked as required-before-resume)",
+      "fake_parallelism": "none",
+      "weak_acceptance_tests": "none (frontier acceptance quantified/traceable to accepted baselines)",
+      "unjustified_lane_pauses": "none in substance (product pause justified by 174k dependency; only its stated audit basis needs re-anchoring)",
+      "HUMAN_DECISION_REQUIRED": "correctly none (all blockers operational/dependency; product block is orchestration/dependency, not an owner-level choice)"
+    },
+    "negative_findings_preserved": "hierarchy_coherence FUNDAMENTALLY UNPASSABLE (v18), boilerplate_resistance NEGATIVE, OOS ceiling ~0.60, recurring zero-delta product pathology - all preserved",
+    "assessment": "Material change anchored on an un-promoted, unmerged-branch audit gate treated as accepted decision-driving evidence while the accepted product state still reports RUN. Substantive routing (product PAUSE til corpus 174k) is correct and independently defensible; defect is provenance/state framing, same-cycle repairable. Gate=REVISE, safe_to_integrate=false pending required fixes 1-2.",
+    "date": "2026-09-05",
+    "auditor": "LEXMACHINA INDEPENDENT AUDITOR (big-pickle)"
+  }
+}
