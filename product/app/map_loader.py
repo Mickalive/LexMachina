@@ -105,82 +105,89 @@ class MapLoader:
         self.maps: Dict[str, MapState] = {}
         self._loaded = False
         self._fractal_map_metadata: Dict[str, Any] = {}
+        self._load_failures: Dict[str, str] = {}
+        self._REPR_METHODS: Dict[str, str] = {
+            "concat_center_tfidf": "_load_concat_center_tfidf",
+            "baseline": "_load_baseline",
+            "hdbscan": "_load_hdbscan_variant",
+            "hierarchical_leiden": "_load_hierarchical_leiden",
+            "true_hierarchical_leiden": "_load_true_hierarchical_leiden",
+            "debiased_citation_blended": "_load_debiased_citation_blended",
+            "fractal_map_7res": "_load_fractal_map_7res",
+            "legal_cited_decisions": "_load_legal_cited_decisions",
+            "center_projected": "_load_center_projected",
+            "center_projected_hierarchical": "_load_center_projected_hierarchical",
+            "center_projected_64dim_hierarchical": "_load_center_projected_64dim_hierarchical",
+            "hybrid_alpha_0_3": "_load_hybrid_alpha_0_3",
+            "hybrid_alpha_0_5": "_load_hybrid_alpha_0_5",
+            "legal_issues_outcomes": "_load_legal_issues_outcomes",
+            "linear_metric_best": "_load_linear_metric_best",
+            "mahalanobis_best": "_load_mahalanobis_best",
+            "cited_decisions_tfidf": "_load_cited_decisions_tfidf",
+            "hybrid_cited_decisions_0_3": "_load_hybrid_cited_decisions_0_3",
+            "hybrid_cited_decisions_0_5": "_load_hybrid_cited_decisions_0_5",
+            "hybrid_cited_decisions_0_7": "_load_hybrid_cited_decisions_0_7",
+            "cited_decisions_tfidf_hybrid_cp64_0_3": "_load_cited_decisions_tfidf_hybrid_cp64_0_3",
+            "cited_decisions_tfidf_hybrid_cp64_0_5": "_load_cited_decisions_tfidf_hybrid_cp64_0_5",
+            "cited_decisions_tfidf_hybrid_cp64_0_7": "_load_cited_decisions_tfidf_hybrid_cp64_0_7",
+            "hybrid_stabilized_best": "_load_hybrid_stabilized_best",
+            "following_alpha0.3": "_load_following_alpha0_3",
+            "criticizing_alpha0.3": "_load_criticizing_alpha0_3",
+            "citing_alpha0.3": "_load_citing_alpha0_3",
+            "cited_outcome_hybrid_0.5": "_load_cited_outcome_hybrid_0_5",
+            "cited_outcome_hybrid_0.7": "_load_cited_outcome_hybrid_0_7",
+            "linear_hybrid05_concat": "_load_linear_hybrid05_concat",
+        }
 
     def load(self) -> int:
         """Load all available map artifacts. Returns count of representations loaded."""
         if self._loaded:
             return len(self.maps)
 
-        # Load the concat_center_tfidf map (best from fractal-map evaluation)
-        self._load_concat_center_tfidf()
+        load_order = [
+            "_load_concat_center_tfidf",
+            "_load_baseline",
+            "_load_hdbscan_variant",
+            "_load_hierarchical_leiden",
+            "_load_true_hierarchical_leiden",
+            "_load_debiased_citation_blended",
+            "_load_fractal_map_7res",
+            "_load_legal_cited_decisions",
+            "_load_center_projected",
+            "_load_center_projected_hierarchical",
+            "_load_center_projected_64dim_hierarchical",
+            "_load_hybrid_alpha_0_3",
+            "_load_hybrid_alpha_0_5",
+            "_load_legal_issues_outcomes",
+            "_load_linear_metric_best",
+            "_load_mahalanobis_best",
+            "_load_cited_decisions_tfidf",
+            "_load_hybrid_cited_decisions_0_3",
+            "_load_hybrid_cited_decisions_0_5",
+            "_load_hybrid_cited_decisions_0_7",
+            "_load_cited_decisions_tfidf_hybrid_cp64_0_3",
+            "_load_cited_decisions_tfidf_hybrid_cp64_0_5",
+            "_load_cited_decisions_tfidf_hybrid_cp64_0_7",
+            "_load_hybrid_stabilized_best",
+            "_load_following_alpha0_3",
+            "_load_criticizing_alpha0_3",
+            "_load_citing_alpha0_3",
+            "_load_cited_outcome_hybrid_0_5",
+            "_load_cited_outcome_hybrid_0_7",
+            "_load_linear_hybrid05_concat",
+        ]
 
-        # Load baseline for comparison
-        self._load_baseline()
-
-        # Load HDBSCAN variant for comparison
-        self._load_hdbscan_variant()
-
-        # Load hierarchical Leiden (validated fractal map architecture - REPRODUCED)
-        self._load_hierarchical_leiden()
-
-        # Load true hierarchical Leiden (REPRODUCED - perfect nesting 1.0, 127 fine clusters)
-        self._load_true_hierarchical_leiden()
-
-        # Load debiased_citation_blended (validated evaluation default - REPRODUCED, 14/14 PASS)
-        self._load_debiased_citation_blended()
-
-        # Load fractal map 7-resolution ladder (REPRODUCED - product integration artifacts)
-        self._load_fractal_map_7res()
-
-        # Load legal_cited_decisions (ACCEPTED legal-distance signal - 14/14 PASS)
-        self._load_legal_cited_decisions()
-
-        # Load center_projected (768-dim - NOTE: FAILS jurist pairwise per evaluation v6)
-        self._load_center_projected()
-
-        # Load center_projected_hierarchical (768-dim - LEGACY: FAILS jurist pairwise per evaluation v6)
-        # Hierarchical Leiden on pure center_projected embeddings: nesting=1.0, purity=0.9638,
-        # 7-resolution ladder (5→7→9→11→14→16→19), 108 hierarchical clusters (coarse_0.5_fine_3.0),
-        # zoom coherence improvement rate 59.2%, branch purity ladder 0.84→0.91→0.97→0.97→0.96→0.96→0.93
-        self._load_center_projected_hierarchical()
-
-        # Load center_projected_64dim_hierarchical (CRITICAL FIX: 64-dim frozen PCA - PASSES BOTH adversarial gates)
-        # Evaluation v6: 768-dim FAILS jurist pairwise (0.491); evaluation v3 64-dim PASSES both (lang_dom=0.766, pairwise=0.512)
-        # Hierarchical Leiden on 64-dim frozen PCA embeddings: nesting=1.0, purity=0.9718, 108 fine clusters in 7 coarse
-        self._load_center_projected_64dim_hierarchical()
-
-        # Load hybrid alpha=0.3 (30% center_projected + 70% legal_cited_decisions)
-        self._load_hybrid_alpha_0_3()
-
-        # Load hybrid alpha=0.5 (50% center_projected + 50% legal_cited_decisions)
-        self._load_hybrid_alpha_0_5()
-
-        # Load legal_issues_outcomes (legal-specific signal from legal_signals)
-        self._load_legal_issues_outcomes()
-
-        # Load new ACCEPTED representations from legal-distance lane (factory direction v9)
-        self._load_linear_metric_best()
-        self._load_mahalanobis_best()
-        self._load_cited_decisions_tfidf()
-        self._load_hybrid_cited_decisions_0_3()
-        self._load_hybrid_cited_decisions_0_5()
-        self._load_hybrid_cited_decisions_0_7()
-        self._load_cited_decisions_tfidf_hybrid_cp64_0_3()
-        self._load_cited_decisions_tfidf_hybrid_cp64_0_5()
-        self._load_cited_decisions_tfidf_hybrid_cp64_0_7()
-        self._load_hybrid_stabilized_best()
-
-        # Load citation role views (ACCEPTED - legal-distance v6, 3 roles validated)
-        self._load_following_alpha0_3()
-        self._load_criticizing_alpha0_3()
-        self._load_citing_alpha0_3()
-        
-        # Load cited outcome hybrids (ACCEPTED - factory direction v9 BEST PRODUCTION/FRACTAL)
-        self._load_cited_outcome_hybrid_0_5()
-        self._load_cited_outcome_hybrid_0_7()
-
-        # Load v15b ACCEPTED combination (BEST STABLE combination, JP=0.838, std=0.027)
-        self._load_linear_hybrid05_concat()
+        for method_name in load_order:
+            # Find the repr name for this method
+            repr_name = next(
+                (name for name, m in self._REPR_METHODS.items() if m == method_name),
+                method_name,
+            )
+            try:
+                getattr(self, method_name)()
+            except Exception as e:
+                self._load_failures[repr_name] = f"{type(e).__name__}: {e}"
+                print(f"WARNING: Failed to load representation '{repr_name}': {e}")
 
         self._loaded = True
         return len(self.maps)
@@ -2827,8 +2834,45 @@ class MapLoader:
         return first_zl.positions
 
     def get_available_representations(self) -> List[str]:
-        """List available representation names."""
-        return list(self.maps.keys())
+        """List available representation names (excluding failed loads)."""
+        return [k for k in self.maps.keys() if k not in self._load_failures]
+
+    def get_load_report(self) -> Dict:
+        """Return a report of load results.
+
+        Returns:
+            Dict with keys: loaded, failed, failures, total.
+        """
+        return {
+            "loaded": len(self.maps),
+            "failed": len(self._load_failures),
+            "failures": dict(self._load_failures),
+            "total": len(self.maps) + len(self._load_failures),
+        }
+
+    def load_selected(self, names: List[str]) -> int:
+        """Load only the named representations (lazy/on-demand loading).
+
+        Args:
+            names: Representation names to load (must be keys in _REPR_METHODS).
+
+        Returns:
+            Count of representations loaded (including any previously loaded).
+        """
+        for name in names:
+            if name in self.maps or name in self._load_failures:
+                continue
+            method_name = self._REPR_METHODS.get(name)
+            if not method_name:
+                self._load_failures[name] = f"Unknown representation: {name}"
+                print(f"WARNING: Unknown representation '{name}', skipping.")
+                continue
+            try:
+                getattr(self, method_name)()
+            except Exception as e:
+                self._load_failures[name] = f"{type(e).__name__}: {e}"
+                print(f"WARNING: Failed to load representation '{name}': {e}")
+        return len(self.maps)
 
     def get_zoom_levels(self, representation: str) -> List[int]:
         """List available zoom levels for a representation."""

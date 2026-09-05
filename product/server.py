@@ -8,6 +8,7 @@ import sys
 import time
 import hashlib
 import threading
+import resource
 import base64
 import hmac
 from pathlib import Path
@@ -51,6 +52,8 @@ RATE_LIMIT_WINDOW = 60  # seconds
 _cache_store = {}
 _cache_lock = threading.Lock()
 CACHE_TTL = 300  # 5 minutes default
+_cache_hits = 0
+_cache_misses = 0
 
 
 class RateLimiter:
@@ -94,13 +97,16 @@ class ResponseCache:
         self.default_ttl = default_ttl
     
     def get(self, key: str) -> Optional[Any]:
+        global _cache_hits, _cache_misses
         with _cache_lock:
             if key in _cache_store:
                 entry = _cache_store[key]
                 if time.time() < entry['expires']:
+                    _cache_hits += 1
                     return entry['data']
                 else:
                     del _cache_store[key]
+        _cache_misses += 1
         return None
     
     def set(self, key: str, data: Any, ttl: int = None) -> None:
@@ -643,6 +649,14 @@ class ProductHandler(SimpleHTTPRequestHandler):
         elif path == "/api/scale_simulation":
             self._json_response(self._handle_scale_simulation(params))
 
+        # System stats (fast, no auth required)
+        elif path == "/api/system/stats":
+            self._json_response(self._handle_system_stats())
+
+        # Representations health (quick summary)
+        elif path == "/api/representations/health":
+            self._json_response(self._handle_representations_health())
+
         # Static files
         elif path == "/" or path == "/index.html":
             self._serve_file("static/index.html", "text/html")
@@ -943,6 +957,122 @@ class ProductHandler(SimpleHTTPRequestHandler):
             "factory_direction_version": 17,
             "note": "Scale simulation validates infrastructure readiness for 174k corpus. All timings measured on synthetic data upscaled from the 1,200-decision production corpus layout.",
         }
+
+    def _handle_system_stats(self):
+        """Return system statistics without heavy computation."""
+        import threading as _threading
+
+        # Memory via /proc/self/status (Linux, O(1))
+        memory = {"rss": 0.0, "vms": 0.0}
+        try:
+            status_path = "/proc/self/status"
+            with open(status_path, "r") as f:
+                for line in f:
+                    if line.startswith("VmRSS:"):
+                        memory["rss"] = float(line.split()[1])
+                    elif line.startswith("VmSize:"):
+                        memory["vms"] = float(line.split()[1])
+        except Exception:
+            try:
+                usage = resource.getrusage(resource.RUSAGE_SELF)
+                memory["rss"] = usage.ru_maxrss / 1024.0  # convert KB to MB
+            except Exception:
+                pass
+
+        # Representation counts
+        representations_loaded = 0
+        representations_failed = 0
+        load_failures = {}
+        try:
+            nav = get_nav_api()
+            available = nav.map_loader.get_available_representations()
+            representations_loaded = len(available)
+            # Check DESIGN_PATTERNS dict for all known reps, count loaded vs failed
+            all_known = set(nav.map_loader.DESIGN_PATTERNS.keys())
+            loaded_set = set(available)
+            representations_failed = len(all_known - loaded_set)
+            for rep in all_known - loaded_set:
+                load_failures[rep] = "not loaded"
+        except Exception:
+            pass
+
+        # Cache stats
+        with _cache_lock:
+            hits = _cache_hits
+            misses = _cache_misses
+            entries = len(_cache_store)
+        total = hits + misses
+        hit_rate = hits / total if total > 0 else 0.0
+
+        # Rate limit stats
+        with _rate_limit_lock:
+            active_clients = len(_rate_limit_store)
+            total_requests = sum(len(ts) for ts in _rate_limit_store.values())
+
+        # Corpus decisions
+        corpus_decisions = 0
+        try:
+            nav = get_nav_api()
+            corpus_decisions = nav.corpus.size
+        except Exception:
+            pass
+
+        return {
+            "uptime_seconds": round(time.time() - _server_start_time, 2),
+            "memory_mb": memory,
+            "representations_loaded": representations_loaded,
+            "representations_failed": representations_failed,
+            "load_failures": load_failures,
+            "cache_stats": {
+                "hits": hits,
+                "misses": misses,
+                "hit_rate": round(hit_rate, 4),
+                "entries": entries,
+            },
+            "rate_limit_stats": {
+                "active_clients": active_clients,
+                "total_requests_window": total_requests,
+            },
+            "corpus_decisions": corpus_decisions,
+            "thread_count": _threading.active_count(),
+        }
+
+    def _handle_representations_health(self):
+        """Quick per-representation status summary."""
+        result = {
+            "total": 0,
+            "loaded": 0,
+            "failed": 0,
+            "representations": {},
+        }
+        try:
+            nav = get_nav_api()
+            map_loader = nav.map_loader
+            loaded_reps = set(map_loader.get_available_representations())
+            all_known = list(map_loader.DESIGN_PATTERNS.keys())
+
+            result["total"] = len(all_known)
+            result["loaded"] = len(loaded_reps)
+            result["failed"] = len(all_known) - len(loaded_reps)
+
+            for rep in all_known:
+                if rep in loaded_reps:
+                    health = _health_checker.check_representation_health(rep, map_loader)
+                    result["representations"][rep] = {
+                        "status": "loaded" if health["status"] == "healthy" else health["status"],
+                        "design_pattern": map_loader.DESIGN_PATTERNS.get(rep, "UNKNOWN"),
+                        "error": "; ".join(health.get("issues", [])) if health.get("issues") else None,
+                    }
+                else:
+                    result["representations"][rep] = {
+                        "status": "failed",
+                        "design_pattern": map_loader.DESIGN_PATTERNS.get(rep, "UNKNOWN"),
+                        "error": "Representation not loaded",
+                    }
+        except Exception as e:
+            result["error"] = str(e)
+
+        return result
 
     def _json_response(self, data, status=200):
         """Send a JSON response."""
