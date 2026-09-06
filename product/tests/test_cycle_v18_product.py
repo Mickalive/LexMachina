@@ -1,12 +1,13 @@
 """
-LexMachina Product Tests — Cycle v18 (FEAT-078 through FEAT-081)
+LexMachina Product Tests — Cycle v18 (FEAT-078 through FEAT-082)
 
-Tests for four concrete 1k-scale NEXT items from factory direction v18:
+Tests for five concrete 1k-scale NEXT items from factory direction v18:
 
 FEAT-078: TF-IDF truncation fix — untruncated text for model building
 FEAT-079: Temporal-filtering metadata gap — map metadata 'year' field fallback
 FEAT-080: Cross-language neighbors by TF-IDF text similarity
 FEAT-081: Jurist-feedback loop closure — records, cluster summary, export
+FEAT-082: Section coverage expansion — 1150/1202 decisions (95.7%) vs previous 6.3%
 """
 import sys
 import json
@@ -342,6 +343,96 @@ def test_feedback_export():
 
 
 # ---------------------------------------------------------------------------
+# FEAT-082: Section coverage expansion
+# ---------------------------------------------------------------------------
+
+def test_section_coverage_expanded():
+    """Verify section modes now cover 1150/1202 decisions (95.7%) vs previous 63/1000 (6.3%)."""
+    from app.section_modes import SectionModeLoader
+    
+    loader = SectionModeLoader(
+        str(Path(__file__).parent.parent / "results" / "fractal_map" / "section_scaled"),
+        str(Path(__file__).parent.parent / "results" / "fractal_map" / "section_experiment_clean")
+    )
+    count = loader.load()
+    assert count == 6, f"Expected 6 section modes, got {count}"
+    
+    modes = loader.get_available_modes()
+    
+    # Verify source is section_scaled_v2 (highest priority)
+    for mode in modes:
+        assert mode["source"] == "section_scaled_v2", f"Mode {mode['name']} should load from section_scaled_v2"
+    
+    # Verify per-mode coverage (section decisions / total)
+    coverage = {m["name"]: m["n_section_decisions"] for m in modes}
+    assert coverage["sachverhalt"] == 507, f"sachverhalt: expected 507, got {coverage['sachverhalt']}"
+    assert coverage["erwaegungen"] == 822, f"erwaegungen: expected 822, got {coverage['erwaegungen']}"
+    assert coverage["dispositiv"] == 1089, f"dispositiv: expected 1089, got {coverage['dispositiv']}"
+    assert coverage["full_text"] == 1150, f"full_text: expected 1150, got {coverage['full_text']}"
+    assert coverage["erwaegungen_dispositiv"] == 1110, f"erwaegungen_dispositiv: expected 1110, got {coverage['erwaegungen_dispositiv']}"
+    assert coverage["sachverhalt_erwaegungen_dispositiv"] == 1150, f"sachverhalt_erwaegungen_dispositiv: expected 1150, got {coverage['sachverhalt_erwaegungen_dispositiv']}"
+    
+    # Verify blended projections have all 1202 decisions positioned
+    for mode in modes:
+        assert mode["n_decisions"] == 1202, f"Mode {mode['name']} should have 1202 total positions"
+        assert mode["n_baseline_decisions"] == 1202 - mode["n_section_decisions"]
+    
+    print(f"  Section coverage: {coverage}")
+    print("  PASS: Section modes cover 1150/1202 decisions (95.7% max)")
+    return True
+
+
+def test_section_clustering_with_coherence():
+    """Verify section modes have clustering with coherence metrics at 7 resolutions."""
+    from app.section_modes import SectionModeLoader
+    
+    loader = SectionModeLoader(
+        str(Path(__file__).parent.parent / "results" / "fractal_map" / "section_scaled"),
+        str(Path(__file__).parent.parent / "results" / "fractal_map" / "section_experiment_clean")
+    )
+    loader.load()
+    
+    for mode_name in ["sachverhalt", "erwaegungen", "dispositiv", "full_text", "erwaegungen_dispositiv", "sachverhalt_erwaegungen_dispositiv"]:
+        # Check clustering at multiple resolutions
+        for res in [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0]:
+            clustering = loader.get_clustering(mode_name, res)
+            assert clustering is not None, f"Mode {mode_name} missing clustering at resolution {res}"
+            assert "labels" in clustering, f"Mode {mode_name} clustering missing labels at resolution {res}"
+            assert "n_clusters" in clustering, f"Mode {mode_name} clustering missing n_clusters at resolution {res}"
+            assert "coherence" in clustering, f"Mode {mode_name} clustering missing coherence at resolution {res}"
+            assert "legal_area_purity" in clustering["coherence"], f"Mode {mode_name} coherence missing legal_area_purity at resolution {res}"
+            assert "language_purity" in clustering["coherence"], f"Mode {mode_name} coherence missing language_purity at resolution {res}"
+            assert "chamber_purity" in clustering["coherence"], f"Mode {mode_name} coherence missing chamber_purity at resolution {res}"
+            assert "legal_vs_language_ratio" in clustering["coherence"], f"Mode {mode_name} coherence missing legal_vs_language_ratio at resolution {res}"
+    
+    print("  PASS: All 6 section modes have clustering with coherence at 7 resolutions")
+    return True
+
+
+def test_section_blended_projections_exist():
+    """Verify blended projection files exist for all 6 section modes."""
+    from pathlib import Path
+    
+    section_dir = Path(__file__).parent.parent / "results" / "fractal_map" / "section_scaled_v2"
+    
+    for mode_name in ["sachverhalt", "erwaegungen", "dispositiv", "full_text", "erwaegungen_dispositiv", "sachverhalt_erwaegungen_dispositiv"]:
+        blended_path = section_dir / f"projection_{mode_name}_blended.npy"
+        assert blended_path.exists(), f"Missing blended projection: {blended_path}"
+        
+        # Verify shape
+        import numpy as np
+        proj = np.load(blended_path)
+        assert proj.shape == (1202, 2), f"Blended projection {mode_name} has wrong shape: {proj.shape}"
+        
+        # Verify non-zero positions exist (section decisions have projections)
+        non_zero = np.any(proj != 0, axis=1)
+        assert non_zero.sum() > 0, f"Blended projection {mode_name} has no non-zero positions"
+    
+    print("  PASS: All 6 blended projection files exist with correct shape")
+    return True
+
+
+# ---------------------------------------------------------------------------
 # Main runner
 # ---------------------------------------------------------------------------
 
@@ -361,6 +452,10 @@ if __name__ == "__main__":
         test_feedback_records_retrieval,
         test_cluster_feedback_summary,
         test_feedback_export,
+        # FEAT-082: Section coverage expansion
+        test_section_coverage_expanded,
+        test_section_clustering_with_coherence,
+        test_section_blended_projections_exist,
     ]
 
     passed = 0
