@@ -13,7 +13,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 RESULTS_DIR = Path(__file__).parent.parent / "results" / "fractal_map"
-SCALED_DIR = RESULTS_DIR / "section_scaled"
+SCALED_DIR = RESULTS_DIR / "section_scaled_v2"  # v18: primary dir is now section_scaled_v2 (expanded coverage)
 SECTION_CLEAN_DIR = RESULTS_DIR / "section_experiment_clean"
 CORPUS_DIR = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
 
@@ -25,6 +25,18 @@ SECTION_MODES = [
     "erwaegungen_dispositiv",
     "sachverhalt_erwaegungen_dispositiv",
 ]
+
+# v18 expected values for section_scaled_v2 (expanded coverage)
+EXPECTED_TOTAL_DECISIONS = 1202
+EXPECTED_SECTION_COVERED = 1150
+EXPECTED_PER_MODE = {
+    "sachverhalt": {"section": 507, "baseline": 695, "coverage_pct": 42.2},
+    "erwaegungen": {"section": 822, "baseline": 380, "coverage_pct": 68.4},
+    "dispositiv": {"section": 1089, "baseline": 113, "coverage_pct": 90.6},
+    "full_text": {"section": 1150, "baseline": 52, "coverage_pct": 95.7},
+    "erwaegungen_dispositiv": {"section": 1110, "baseline": 92, "coverage_pct": 92.3},
+    "sachverhalt_erwaegungen_dispositiv": {"section": 1150, "baseline": 52, "coverage_pct": 95.7},
+}
 
 
 class TestScaledSectionProjections:
@@ -45,22 +57,22 @@ class TestScaledSectionProjections:
         print("  PASS: metadata.json exists and is valid JSON")
 
     def test_metadata_total_decisions(self):
-        """Verify metadata reports 1000 total decisions."""
+        """Verify metadata reports 1202 total decisions (v18 expanded)."""
         with open(SCALED_DIR / "metadata.json") as f:
             meta = json.load(f)
-        assert meta["total_decisions"] == 1000, (
-            f"Expected 1000 total decisions, got {meta['total_decisions']}"
+        assert meta["total_decisions"] == EXPECTED_TOTAL_DECISIONS, (
+            f"Expected {EXPECTED_TOTAL_DECISIONS} total decisions, got {meta['total_decisions']}"
         )
-        print("  PASS: total_decisions = 1000")
+        print(f"  PASS: total_decisions = {EXPECTED_TOTAL_DECISIONS}")
 
     def test_metadata_section_covered_decisions(self):
-        """Verify metadata reports 63 section-covered decisions."""
+        """Verify metadata reports 1150 section-covered decisions (v18 expanded from 63)."""
         with open(SCALED_DIR / "metadata.json") as f:
             meta = json.load(f)
-        assert meta["section_covered_decisions"] == 63, (
-            f"Expected 63 section-covered decisions, got {meta['section_covered_decisions']}"
+        assert meta["section_covered_decisions"] == EXPECTED_SECTION_COVERED, (
+            f"Expected {EXPECTED_SECTION_COVERED} section-covered decisions, got {meta['section_covered_decisions']}"
         )
-        print("  PASS: section_covered_decisions = 63")
+        print(f"  PASS: section_covered_decisions = {EXPECTED_SECTION_COVERED}")
 
     def test_metadata_section_modes_present(self):
         """Verify all 6 section modes are listed in metadata."""
@@ -73,40 +85,41 @@ class TestScaledSectionProjections:
         print("  PASS: all 6 section modes present in metadata")
 
     def test_metadata_coverage_stats(self):
-        """Verify per-mode coverage stats (63 section, 937 baseline, 6.3%)."""
+        """Verify per-mode coverage stats (v18 expanded: up to 95.7% coverage)."""
         with open(SCALED_DIR / "metadata.json") as f:
             meta = json.load(f)
         for mode_name in SECTION_MODES:
             stats = meta["section_modes"][mode_name]
-            assert stats["total_decisions"] == 1000, (
-                f"{mode_name}: expected 1000 total, got {stats['total_decisions']}"
+            expected = EXPECTED_PER_MODE[mode_name]
+            assert stats["total_decisions"] == EXPECTED_TOTAL_DECISIONS, (
+                f"{mode_name}: expected {EXPECTED_TOTAL_DECISIONS} total, got {stats['total_decisions']}"
             )
-            assert stats["section_decisions"] == 63, (
-                f"{mode_name}: expected 63 section, got {stats['section_decisions']}"
+            assert stats["section_decisions"] == expected["section"], (
+                f"{mode_name}: expected {expected['section']} section, got {stats['section_decisions']}"
             )
-            assert stats["baseline_fallback"] == 937, (
-                f"{mode_name}: expected 937 baseline, got {stats['baseline_fallback']}"
+            assert stats["baseline_fallback"] == expected["baseline"], (
+                f"{mode_name}: expected {expected['baseline']} baseline, got {stats['baseline_fallback']}"
             )
-            assert stats["coverage_pct"] == 6.3, (
-                f"{mode_name}: expected 6.3% coverage, got {stats['coverage_pct']}"
+            assert stats["coverage_pct"] == expected["coverage_pct"], (
+                f"{mode_name}: expected {expected['coverage_pct']}% coverage, got {stats['coverage_pct']}"
             )
-        print("  PASS: per-mode coverage stats correct (63/937/6.3%)")
+        print(f"  PASS: per-mode coverage stats correct (v18 expanded)")
 
     def test_metadata_decision_provenance(self):
-        """Verify provenance array has 1000 entries with section/baseline sources."""
+        """Verify provenance array has 1202 entries with section/baseline sources."""
         with open(SCALED_DIR / "metadata.json") as f:
             meta = json.load(f)
         prov = meta["decision_provenance"]
-        assert len(prov) == 1000, f"Expected 1000 provenance entries, got {len(prov)}"
+        assert len(prov) == EXPECTED_TOTAL_DECISIONS, f"Expected {EXPECTED_TOTAL_DECISIONS} provenance entries, got {len(prov)}"
         sources = {p["source"] for p in prov}
         assert sources == {"section_projection", "baseline"}, (
             f"Unexpected sources: {sources}"
         )
         n_section = sum(1 for p in prov if p["source"] == "section_projection")
         n_baseline = sum(1 for p in prov if p["source"] == "baseline")
-        assert n_section == 63, f"Expected 63 section_projection, got {n_section}"
-        assert n_baseline == 937, f"Expected 937 baseline, got {n_baseline}"
-        print("  PASS: provenance has 1000 entries (63 section + 937 baseline)")
+        assert n_section == EXPECTED_SECTION_COVERED, f"Expected {EXPECTED_SECTION_COVERED} section_projection, got {n_section}"
+        assert n_baseline == EXPECTED_TOTAL_DECISIONS - EXPECTED_SECTION_COVERED, f"Expected {EXPECTED_TOTAL_DECISIONS - EXPECTED_SECTION_COVERED} baseline, got {n_baseline}"
+        print(f"  PASS: provenance has {EXPECTED_TOTAL_DECISIONS} entries ({EXPECTED_SECTION_COVERED} section + {EXPECTED_TOTAL_DECISIONS - EXPECTED_SECTION_COVERED} baseline)")
 
     @pytest.mark.parametrize("mode_name", SECTION_MODES)
     def test_projection_file_exists(self, mode_name):
@@ -117,10 +130,10 @@ class TestScaledSectionProjections:
 
     @pytest.mark.parametrize("mode_name", SECTION_MODES)
     def test_projection_shape(self, mode_name):
-        """Verify each projection has shape (1000, 2)."""
+        """Verify each projection has shape (1202, 2) for v18 expanded."""
         proj = np.load(SCALED_DIR / f"projection_{mode_name}.npy")
-        assert proj.shape == (1000, 2), (
-            f"{mode_name}: expected shape (1000, 2), got {proj.shape}"
+        assert proj.shape == (EXPECTED_TOTAL_DECISIONS, 2), (
+            f"{mode_name}: expected shape ({EXPECTED_TOTAL_DECISIONS}, 2), got {proj.shape}"
         )
         print(f"  PASS: projection_{mode_name}.npy shape = {proj.shape}")
 
@@ -134,26 +147,26 @@ class TestScaledSectionProjections:
         print(f"  PASS: projection_{mode_name}.npy dtype = {proj.dtype}")
 
     def test_baseline_projection_exists(self):
-        """Verify the baseline projection was copied to section_scaled."""
+        """Verify the baseline projection was copied to section_scaled_v2."""
         baseline_path = SCALED_DIR / "projection_baseline.npy"
         assert baseline_path.exists(), f"Baseline projection missing: {baseline_path}"
         proj = np.load(baseline_path)
-        assert proj.shape == (1000, 2), (
-            f"Baseline: expected shape (1000, 2), got {proj.shape}"
+        assert proj.shape == (EXPECTED_TOTAL_DECISIONS, 2), (
+            f"Baseline: expected shape ({EXPECTED_TOTAL_DECISIONS}, 2), got {proj.shape}"
         )
-        print("  PASS: projection_baseline.npy exists with shape (1000, 2)")
+        print(f"  PASS: projection_baseline.npy exists with shape ({EXPECTED_TOTAL_DECISIONS}, 2)")
 
     def test_section_metadata_copy_exists(self):
-        """Verify section_metadata.json was copied from section_experiment_clean."""
+        """Verify section_metadata.json was copied (v18 has 1150 entries)."""
         sec_meta_path = SCALED_DIR / "section_metadata.json"
         assert sec_meta_path.exists(), f"section_metadata.json missing: {sec_meta_path}"
         with open(sec_meta_path) as f:
             sec_meta = json.load(f)
         assert isinstance(sec_meta, list), "section_metadata.json should be a list"
-        assert len(sec_meta) == 63, (
-            f"Expected 63 section metadata entries, got {len(sec_meta)}"
+        assert len(sec_meta) == EXPECTED_SECTION_COVERED, (
+            f"Expected {EXPECTED_SECTION_COVERED} section metadata entries, got {len(sec_meta)}"
         )
-        print("  PASS: section_metadata.json has 63 entries")
+        print(f"  PASS: section_metadata.json has {EXPECTED_SECTION_COVERED} entries")
 
     def test_projections_not_all_zeros(self):
         """Verify that section-scaled projections differ from zero (are meaningful)."""
@@ -457,46 +470,48 @@ class TestSectionModes:
         print("  PASS: all 6 section modes loaded")
 
     def test_scaled_detection(self):
-        """Verify the loader detects scaled projections (section_scaled/)."""
+        """Verify the loader detects scaled projections (section_scaled_v2/)."""
         assert self.loader._is_scaled is True, (
-            "Should detect scaled projections from section_scaled/"
+            "Should detect scaled projections from section_scaled_v2/"
         )
-        assert self.loader._source_label == "section_scaled", (
-            f"Source label should be 'section_scaled', got '{self.loader._source_label}'"
+        assert self.loader._source_label == "section_scaled_v2", (
+            f"Source label should be 'section_scaled_v2', got '{self.loader._source_label}'"
         )
-        print("  PASS: scaled projection detection works")
+        print("  PASS: scaled projection detection works (v18: section_scaled_v2)")
 
-    def test_total_decisions_1000(self):
-        """Verify each mode reports 1000 total decisions."""
+    def test_total_decisions_1202(self):
+        """Verify each mode reports 1202 total decisions (v18 expanded)."""
         for mode_name, mode in self.loader.modes.items():
-            assert mode.n_decisions == 1000, (
-                f"{mode_name}: expected 1000 total, got {mode.n_decisions}"
+            assert mode.n_decisions == EXPECTED_TOTAL_DECISIONS, (
+                f"{mode_name}: expected {EXPECTED_TOTAL_DECISIONS} total, got {mode.n_decisions}"
             )
-        print("  PASS: all modes report 1000 total decisions")
+        print(f"  PASS: all modes report {EXPECTED_TOTAL_DECISIONS} total decisions")
 
     def test_section_decision_count(self):
-        """Verify each mode reports 63 section decisions."""
+        """Verify each mode reports per-mode section decisions (v18 expanded)."""
         for mode_name, mode in self.loader.modes.items():
-            assert mode.n_section_decisions == 63, (
-                f"{mode_name}: expected 63 section decisions, got {mode.n_section_decisions}"
+            expected = EXPECTED_PER_MODE[mode_name]
+            assert mode.n_section_decisions == expected["section"], (
+                f"{mode_name}: expected {expected['section']} section decisions, got {mode.n_section_decisions}"
             )
-        print("  PASS: all modes report 63 section decisions")
+        print(f"  PASS: all modes report correct per-mode section decisions (v18 expanded)")
 
     def test_baseline_decision_count(self):
-        """Verify each mode reports 937 baseline fallback decisions."""
+        """Verify each mode reports per-mode baseline fallback decisions (v18 expanded)."""
         for mode_name, mode in self.loader.modes.items():
-            assert mode.n_baseline_decisions == 937, (
-                f"{mode_name}: expected 937 baseline, got {mode.n_baseline_decisions}"
+            expected = EXPECTED_PER_MODE[mode_name]
+            assert mode.n_baseline_decisions == expected["baseline"], (
+                f"{mode_name}: expected {expected['baseline']} baseline, got {mode.n_baseline_decisions}"
             )
-        print("  PASS: all modes report 937 baseline decisions")
+        print(f"  PASS: all modes report correct per-mode baseline decisions (v18 expanded)")
 
     def test_position_count_per_mode(self):
-        """Verify each mode has exactly 1000 positions."""
+        """Verify each mode has 1202 positions (v18 expanded)."""
         for mode_name, mode in self.loader.modes.items():
-            assert len(mode.positions) == 1000, (
-                f"{mode_name}: expected 1000 positions, got {len(mode.positions)}"
+            assert len(mode.positions) == EXPECTED_TOTAL_DECISIONS, (
+                f"{mode_name}: expected {EXPECTED_TOTAL_DECISIONS} positions, got {len(mode.positions)}"
             )
-        print("  PASS: all modes have 1000 positions")
+        print(f"  PASS: all modes have {EXPECTED_TOTAL_DECISIONS} positions")
 
     @pytest.mark.parametrize("mode_name", SECTION_MODES)
     def test_mode_label_and_description(self, mode_name):
@@ -523,25 +538,26 @@ class TestSectionModes:
         print("  PASS: get_available_modes() returns complete metadata for all 6 modes")
 
     def test_coverage_string(self):
-        """Verify coverage string indicates section-specific projections."""
+        """Verify coverage string indicates expanded section-specific projections."""
         modes = self.loader.get_available_modes()
         for mode_info in modes:
             coverage = mode_info["coverage"]
-            assert "63" in coverage, (
-                f"{mode_info['name']}: coverage string should mention 63, got '{coverage}'"
+            expected = EXPECTED_PER_MODE[mode_info["name"]]
+            assert str(expected["section"]) in coverage, (
+                f"{mode_info['name']}: coverage string should mention {expected['section']}, got '{coverage}'"
             )
-            assert "1000" in coverage, (
-                f"{mode_info['name']}: coverage string should mention 1000, got '{coverage}'"
+            assert str(EXPECTED_TOTAL_DECISIONS) in coverage, (
+                f"{mode_info['name']}: coverage string should mention {EXPECTED_TOTAL_DECISIONS}, got '{coverage}'"
             )
-        print("  PASS: coverage strings mention 63 of 1000")
+        print(f"  PASS: coverage strings mention per-mode section counts of {EXPECTED_TOTAL_DECISIONS}")
 
     def test_get_positions(self):
         """Verify get_positions returns dict of (x, y) tuples."""
         for mode_name in SECTION_MODES:
             positions = self.loader.get_positions(mode_name)
             assert isinstance(positions, dict), f"{mode_name}: positions should be dict"
-            assert len(positions) == 1000, (
-                f"{mode_name}: expected 1000 positions, got {len(positions)}"
+            assert len(positions) == EXPECTED_TOTAL_DECISIONS, (
+                f"{mode_name}: expected {EXPECTED_TOTAL_DECISIONS} positions, got {len(positions)}"
             )
             # Spot-check first position
             first_did = list(positions.keys())[0]
@@ -549,14 +565,14 @@ class TestSectionModes:
             assert isinstance(pos, tuple) and len(pos) == 2, (
                 f"{mode_name}: position should be (x, y) tuple"
             )
-        print("  PASS: get_positions returns correct data for all modes")
+        print(f"  PASS: get_positions returns correct data for all modes ({EXPECTED_TOTAL_DECISIONS} positions)")
 
     def test_get_position_details(self):
         """Verify get_position_details includes has_section_data flag."""
         for mode_name in SECTION_MODES:
             details = self.loader.get_position_details(mode_name)
-            assert len(details) == 1000, (
-                f"{mode_name}: expected 1000 details, got {len(details)}"
+            assert len(details) == EXPECTED_TOTAL_DECISIONS, (
+                f"{mode_name}: expected {EXPECTED_TOTAL_DECISIONS} details, got {len(details)}"
             )
             for did, info in details.items():
                 assert "has_section_data" in info, (
@@ -565,7 +581,7 @@ class TestSectionModes:
                 assert "x" in info and "y" in info, (
                     f"{mode_name}/{did}: missing x/y coordinates"
                 )
-        print("  PASS: get_position_details has has_section_data for all positions")
+        print(f"  PASS: get_position_details has has_section_data for all {EXPECTED_TOTAL_DECISIONS} positions")
 
     def test_mode_names_match_modes_list(self):
         """Verify loaded mode names match the SECTION_NAMES constant."""
