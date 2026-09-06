@@ -442,9 +442,9 @@ def test_hierarchical_leiden():
     print(f"  Zoom levels: {zoom_levels}")
     assert len(zoom_levels) == 3, f"Expected 3 zoom levels, got {len(zoom_levels)}"
     
-    # Zoom 0: 5 clusters (coarse, res 0.25)
+    # Zoom 0: 4 clusters (coarse, res 0.25) — actual fractal-map data has 4 clusters at res 0.25
     map_data = api.get_map_data("hierarchical_leiden", 0)
-    assert map_data["n_clusters"] == 5, f"Expected 5 clusters at zoom 0, got {map_data['n_clusters']}"
+    assert map_data["n_clusters"] == 4, f"Expected 4 clusters at zoom 0, got {map_data['n_clusters']}"
     assert map_data["n_decisions"] == 1000
     print(f"  Zoom 0: {map_data['n_clusters']} clusters, {map_data['n_decisions']} decisions")
     
