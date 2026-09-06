@@ -1,0 +1,89 @@
+{
+  "run_id": "complete_v6_hierarchical_artifacts_33319197061",
+  "timestamp": "2026-08-30T22:00:00Z",
+  "direction_version": 10,
+  "lane": "fractal-map",
+  "hypothesis": "Five v6 baseline modes missing hierarchical artifacts can be derived from existing resolution labels without re-clustering, completing the fractal-map artifact set for all 21 legal-distance modes.",
+  "frozen_sample": "1000 decisions (BGer 2020-2024), 5 v6 baseline modes",
+  "frozen_metric": "Artifact completeness (10 required files per mode), nesting consistency, provenance rule (hierarchical_best == labels_res_3.0)",
+  "success_rule": "All 5 modes have labels_hierarchical_best.npy, labels_coarse_0.5.npy, and hierarchical_map_results.json; all 175 tests pass",
+  "method": "Derived missing artifacts from existing labels_res_*.npy using the legal-distance provenance rule (hierarchical_best := labels_res_3.0, coarse_0.5 := labels_res_0.5). Computed hierarchical_map_results.json with nesting, zoom coherence, and branch purity from resolution labels + baseline metadata. No re-clustering performed.",
+  "result": {
+    "modes_completed": 5,
+    "modes": {
+      "debiased_citation_blended": {
+        "n_fine_clusters": 19,
+        "n_coarse_clusters": 8,
+        "nesting_score": 1.0,
+        "hierarchical_purity": 0.9469,
+        "coarse_purity": 0.9748
+      },
+      "hybrid_alpha_03": {
+        "n_fine_clusters": 22,
+        "n_coarse_clusters": 7,
+        "nesting_score": 1.0,
+        "hierarchical_purity": 0.9270,
+        "coarse_purity": 0.7906
+      },
+      "hybrid_alpha_05": {
+        "n_fine_clusters": 24,
+        "n_coarse_clusters": 9,
+        "nesting_score": 1.0,
+        "hierarchical_purity": 0.8822,
+        "coarse_purity": 0.7567
+      },
+      "legal_cited_decisions_only": {
+        "n_fine_clusters": 195,
+        "n_coarse_clusters": 9,
+        "nesting_score": 1.0,
+        "hierarchical_purity": 0.7280,
+        "coarse_purity": 0.7380
+      },
+      "legal_issues_outcomes": {
+        "n_fine_clusters": 31,
+        "n_coarse_clusters": 6,
+        "nesting_score": 1.0,
+        "hierarchical_purity": 0.7420,
+        "coarse_purity": 0.6669
+      }
+    },
+    "verification": "ALL 5 modes independently verified (verify_v6_hierarchical_artifacts.py): provenance rule holds, metrics consistent, all 175 tests pass",
+    "total_artifact_complete_modes": 21,
+    "total_modes_with_hierarchical_artifacts": 25
+  },
+  "artifacts_produced": [
+    "fractal_map/hierarchical/complete_v6_hierarchical_artifacts.py",
+    "results/fractal_map/legal_distance_modes/debiased_citation_blended/labels_hierarchical_best.npy",
+    "results/fractal_map/legal_distance_modes/debiased_citation_blended/labels_coarse_0.5.npy",
+    "results/fractal_map/legal_distance_modes/debiased_citation_blended/hierarchical_map_results.json",
+    "results/fractal_map/legal_distance_modes/hybrid_alpha_03/labels_hierarchical_best.npy",
+    "results/fractal_map/legal_distance_modes/hybrid_alpha_03/labels_coarse_0.5.npy",
+    "results/fractal_map/legal_distance_modes/hybrid_alpha_03/hierarchical_map_results.json",
+    "results/fractal_map/legal_distance_modes/hybrid_alpha_05/labels_hierarchical_best.npy",
+    "results/fractal_map/legal_distance_modes/hybrid_alpha_05/labels_coarse_0.5.npy",
+    "results/fractal_map/legal_distance_modes/hybrid_alpha_05/hierarchical_map_results.json",
+    "results/fractal_map/legal_distance_modes/legal_cited_decisions_only/labels_hierarchical_best.npy",
+    "results/fractal_map/legal_distance_modes/legal_cited_decisions_only/labels_coarse_0.5.npy",
+    "results/fractal_map/legal_distance_modes/legal_cited_decisions_only/hierarchical_map_results.json",
+    "results/fractal_map/legal_distance_modes/legal_issues_outcomes/labels_hierarchical_best.npy",
+    "results/fractal_map/legal_distance_modes/legal_issues_outcomes/labels_coarse_0.5.npy",
+    "results/fractal_map/legal_distance_modes/legal_issues_outcomes/hierarchical_map_results.json",
+    "results/fractal_map/evaluation/verify_v6_hierarchical_artifacts.py",
+    "results/fractal_map/evaluation/v6_hierarchical_artifact_verification.json"
+  ],
+  "evidence_refs": [
+    "tests/fractal_map/test_verify.py (175/175 PASS)",
+    "results/fractal_map/evaluation/v6_hierarchical_artifact_verification.json"
+  ],
+  "key_findings": [
+    "5 v6 baseline modes (debiased_citation_blended, hybrid_alpha_03, hybrid_alpha_05, legal_cited_decisions_only, legal_issues_outcomes) were missing labels_hierarchical_best.npy, labels_coarse_0.5.npy, and hierarchical_map_results.json.",
+    "All 3 missing artifacts per mode were derived from existing labels_res_*.npy using the legal-distance provenance rule (hierarchical_best := labels_res_3.0) without re-clustering.",
+    "All 5 modes achieve perfect nesting (1.0), confirming the resolution ladder is consistent.",
+    "Branch purity varies across modes: debiased_citation_blended (0.947) highest, legal_issues_outcomes (0.742) lowest — reflects inherent representational quality differences.",
+    "After completion, all 21 legal-distance modes in results/fractal_map/legal_distance_modes/ are artifact-complete (10 required files each).",
+    "40 new tests added (8 per mode × 5 modes) covering artifact existence, size, provenance rule, and nesting; all 175 tests PASS.",
+    "NO new research claim — this is maintenance/completeness work. All metrics derived from existing accepted resolution labels."
+  ],
+  "next_recommendation": "PRODUCTIZE. All 21 legal-distance modes now have complete hierarchical artifacts. Lane remains BLOCKED on corpus lane for 192k scaling. No additional same-question research cycle justified until corpus delivers.",
+  "continue_recommended": false
+}

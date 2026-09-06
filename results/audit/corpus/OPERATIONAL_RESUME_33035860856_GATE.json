@@ -1,0 +1,51 @@
+{
+  "run_id": "corpus_operational_resume_33035860856",
+  "resumed_from": "33035424208",
+  "cycle": "operational_resume",
+  "lane": "corpus",
+  "direction_version": 1,
+  "github_run": 33035860856,
+  "gate": "PASS",
+  "date": "2026-08-27",
+  "evidence_tier": "REPRODUCED",
+  "diagnosis": {
+    "prior_failure": "Orchestration failure: prior run 33035424208 claimed 23/23 tests passing but pandas/pyarrow were not installed in fresh CI environment. test_cycle3.py (10 tests) could not even be collected — pytest collection error, not a test failure.",
+    "root_cause": "Missing dependencies not declared or installed in CI pipeline. Prior operational resume may have run in a pre-existing environment with pandas already present, producing an unverifiable gate.",
+    "this_run_fix": "Installed pandas==3.0.5 and pyarrow==25.0.1. Re-ran full test suite from clean state: 23/23 PASS. Validated schema on all 12 canonical JSONL files (1577 decisions, 0 errors). Fixed canonical_file_lines_total (250→1577) and schema_validation_total (250→1577) in state/corpus.json."
+  },
+  "verification": {
+    "test_suite": "23/23 PASS (6 repair + 10 cycle3 + 7 pipeline individual)",
+    "test_dependencies_verified": "pandas==3.0.5, pyarrow==25.0.1, jsonschema, pytest==9.1.1",
+    "schema_validation": "0 errors across 1577 decisions (12 canonical JSONL files)",
+    "state_metrics_consistent": true,
+    "repair_fixes_verified": true,
+    "regression_free": true,
+    "canonical_decisions_yearly": 250,
+    "canonical_file_lines_total": 1577,
+    "unique_decision_ids": 250,
+    "total_unique_across_all_canonical": 1215,
+    "citation_graph_edges": 2105,
+    "citation_graph_nodes_cited": 1628
+  },
+  "delta": {
+    "files_changed": 3,
+    "files": [
+      "state/corpus.json",
+      "results/audit/corpus/OPERATIONAL_RESUME_33035860856_GATE.json",
+      "corpus/reports/operational_resume_33035860856.md"
+    ],
+    "nature": "State metrics correction (canonical_file_lines_total 250→1577, schema_validation_total 250→1577), audit gate + report. No code changes — all prior test fixes from run 33035424208 preserved and verified."
+  },
+  "claim_ceiling": "REPRODUCED",
+  "recommendation": "PASS",
+  "continue_recommended": false,
+  "next_recommendation": "DONE",
+  "artifact_refs": [
+    "state/corpus.json",
+    "corpus/tests/test_pipeline.py",
+    "corpus/tests/test_cycle3.py",
+    "corpus/tests/test_repair_cycle33032428186.py",
+    "corpus/reports/operational_resume_33035860856.md",
+    "results/audit/corpus/OPERATIONAL_RESUME_33035860856_GATE.json"
+  ]
+}

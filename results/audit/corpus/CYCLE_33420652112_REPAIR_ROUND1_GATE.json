@@ -1,0 +1,43 @@
+{
+  "gate": "PASS",
+  "cycle": "33420652112",
+  "lane": "corpus",
+  "repair_round": 1,
+  "safe_to_integrate": true,
+  "required_fixes_applied": [
+    {
+      "id": "F1",
+      "severity": "high",
+      "file": "state/corpus.json",
+      "field": "metrics.field_coverage",
+      "fix_applied": "Updated field_coverage.cited_decisions from 0.993 to 0.526 and field_coverage.outcome from 1.0 to 0.505 to match validation_report_v14.json ground truth (1000-record cross-year sample).",
+      "delta_description": "Corrected inflated field_coverage values that did not match the authoritative validation_report_v14.json. Values now consistent with 1000-record cross-year sample: cited_decisions 526/1000=0.526, outcome 505/1000=0.505."
+    },
+    {
+      "id": "F4",
+      "severity": "low",
+      "file": "reports/corpus/v17_reproduction_verification_report.md",
+      "field": "line 45 ingestion rate",
+      "fix_applied": "Updated ingestion rate from ~837 decisions/second to ~1,427 decisions/second to match ingestion_metrics.json (1426.83 decisions/second). Also corrected field coverage line 69 from inflated 99.3%/100% to accurate 52.6%/50.5%.",
+      "delta_description": "Report text was copied from prior cycle; now matches actual reproduction metrics."
+    }
+  ],
+  "claim_ceiling": "REPRODUCED — 174,113 BGer decisions with 75/75 tests passing and 95.9% citation resolution confirmed. Field coverage claims now limited to validation_report_v14.json values (cited_decisions: 0.526, outcome: 0.505). Ingestion rate 1,427 decisions/second.",
+  "evidence_summary": {
+    "parquet_sha256_verified": true,
+    "parquet_sha256": "74f3b2d683b6c298efc6e287cd88244cc19f38af38e060cc4d4e5cf5f938a62d",
+    "decision_count": 174113,
+    "tests_75_of_75_pass": true,
+    "test_suite_pytest_independent": "75/75 PASS confirmed with fresh pytest install",
+    "field_coverage_now_consistent": true,
+    "field_coverage_cited_decisions": 0.526,
+    "field_coverage_outcome": 0.505,
+    "ingestion_rate_corrected": true,
+    "ingestion_rate_actual": 1426.83,
+    "no_baseline_weakening": true,
+    "no_fabrication": true,
+    "no_data_deletion": true,
+    "diff_minimality": "2 files changed: state/corpus.json (2 field values corrected), reports/corpus/v17_reproduction_verification_report.md (2 lines corrected). No production pipeline code, no tests, no data artifacts modified.",
+    "deterministic_reproduction_verified": true
+  }
+}

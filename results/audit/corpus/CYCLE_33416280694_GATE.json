@@ -1,0 +1,21 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "174,113 BGer decisions fully ingested from OpenCaseLaw Parquet; citation resolution 95.9% (2,019/2,105); schema validation 0 errors; field coverage: full_text 1.0, regeste 0.474, cited_decisions 0.526, outcome 0.505, legal_area 0.526, bge_reference 0.0, cited_laws 0.0; all 13 state-artifact consistency checks PASS; negative result: 192k target was estimation error, actual BGer dataset is 174,113 decisions",
+  "evidence_summary": {
+    "state_artifact_consistency": "13/13 PASS — all state values match ingestion_metrics.json, validation_report_v14.json, and manifest_v14_reproduction.json",
+    "citation_resolution": "95.9% (2,019/2,105) verified against resolved_full/citation_graph_resolved.json",
+    "test_suite_pytest": "73/75 PASS (2 pre-existing failures in test_repair_cycle33032428186.py referencing old metrics format)",
+    "test_suite_internal": "v14 tests: 21/31 pass internally when run without pytest (10 FAIL due to missing bger_*.jsonl files masked by _record() defect)",
+    "negative_result": "192k target estimate was wrong — BGer.parquet (822,789,251 bytes) contains exactly 174,113 decisions. Honest negative result.",
+    "manifest_integrity": "174,113 records, 37 year files, SHA-256 verified",
+    "known_preexisting_defects": [
+      "_record() test infrastructure defect (pre-existing, documented in prior audit CYCLE_33414303389)",
+      "bger_*.jsonl year-split files gitignored and absent (known, documented in prior audit)"
+    ],
+    "no_new_regressions": true,
+    "no_fabrication": true,
+    "no_baseline_weakening": true
+  }
+}

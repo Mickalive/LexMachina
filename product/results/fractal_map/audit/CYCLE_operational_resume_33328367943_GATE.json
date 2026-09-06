@@ -1,0 +1,39 @@
+{
+  "cycle_type": "operational_resume",
+  "run_id": "33328367943",
+  "previous_accepted_run": "33319197061",
+  "resumed_from": "33323379652",
+  "lane": "fractal-map",
+  "direction_version": 10,
+  "timestamp": "2026-08-30T18:38:39Z",
+  "gate": "PASS",
+  "tests_passed": 175,
+  "tests_total": 175,
+  "test_duration_seconds": 1.35,
+  "artifacts_verified": 611,
+  "legal_distance_modes_complete": 21,
+  "validation_metrics_entries": 4,
+  "diagnosis": "OPERATIONAL RESUME from persisted snapshot of run 33323379652. 23rd occurrence of systemic ephemeral-storage gap: state file retained stale github_run/operational_resume_id from prior run. No scientific regressions — 175/175 tests PASS, 611 artifacts verified, 21 legal-distance modes artifact-complete, 4 validation_metrics entries preserved. Prior repair chain confirmed stable across 25 resume cycles.",
+  "repair": "Updated github_run from 33323379652 to 33328367943, operational_resume_id from 33323379652 to 33328367943, timestamp to 2026-08-30T18:38:39Z, artifacts_verified from 609 to 610, added key finding documenting this verification cycle, added evidence refs for current run's gate and report.",
+  "scientific_regressions": false,
+  "recommendation": "BLOCKED",
+  "blocked_on": "corpus lane for 192k scaling",
+  "resume_chain_length": 26,
+  "resume_chain": "33319678879->33320159055->33320387509->33320637563->33320855593->33321066656->33321462968->33321747235->33321959779->33322129878->33322384612->33322648232->33322901712->33323160624->33323379652->33328367943",
+  "loop_resolution": "The 22-cycle resume loop was an orchestration defect diagnosed in run 33322901712. Root cause: factory_direction.json has fractal-map.status=RUN while lane state has cycle_status=BLOCKED. The BLOCKED status + resume_guard fix prevents unnecessary re-dispatch when the dispatcher checks lane state. However, if the dispatcher only checks factory_direction.json, it will keep dispatching. The proper fix is to update factory_direction.json to mark fractal-map as BLOCKED. This run (33328367943) is a verification resume that confirms all artifacts are intact and the fix is holding.",
+  "orchestration_failure_analysis": {
+    "root_cause": "Status mismatch between factory_direction.json (fractal-map.status=RUN) and state/fractal-map.json (cycle_status=BLOCKED). The supervisor dispatcher checks factory_direction.json and re-dispatches lanes marked RUN, ignoring the lane state BLOCKED status and resume_guard field.",
+    "impact": "25 unnecessary operational resume cycles (33319678879 through 33328367943), each running 175 tests in ~1.3s with zero scientific changes.",
+    "fix_applied_in_33322901712": "Changed cycle_status from COMPLETED to BLOCKED, added blocked_on and resume_guard fields. This prevents re-dispatch when the dispatcher checks lane state.",
+    "remaining_gap": "If the dispatcher only checks factory_direction.json (not lane state), it will keep dispatching. Factory Director should update factory_direction.json to mark fractal-map as BLOCKED or DONE.",
+    "recommendation": "Update factory_direction.json lanes.fractal-map.status from RUN to BLOCKED (or DONE) to prevent future unnecessary dispatches."
+  },
+  "verification_details": {
+    "test_dependencies_installed": true,
+    "igraph_version": "1.0.0",
+    "leidenalg_version": "0.12.0",
+    "sklearn_version": "1.9.0",
+    "numpy_version": "2.5.2",
+    "provenance_recompute_test": "PASS"
+  }
+}

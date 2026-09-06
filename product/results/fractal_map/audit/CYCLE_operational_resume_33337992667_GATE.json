@@ -1,0 +1,38 @@
+{
+  "gate_type": "operational_resume",
+  "run_id": "33337992667",
+  "previous_run_id": "33337654722",
+  "lane": "fractal-map",
+  "direction_version": 10,
+  "timestamp": "2026-08-30T23:15:00Z",
+  "tests": {
+    "total": 175,
+    "passed": 175,
+    "failed": 0,
+    "duration_seconds": 1.40,
+    "verdict": "PASS"
+  },
+  "artifacts": {
+    "total_verified": 618,
+    "delta_from_previous": 1,
+    "note": "618 total (617 previous + 1 new audit gate from this run)"
+  },
+  "scientific_status": "NO_CHANGE",
+  "regressions": "NONE",
+  "orchestration_diagnosis": {
+    "control_plane_status": "RUN",
+    "lane_state_status": "BLOCKED",
+    "mismatch": true,
+    "impact": "34 unnecessary resume cycles (including this one)",
+    "root_cause": "Supervisor dispatcher checks factory_direction.json status field only, ignores lane state cycle_status and resume_guard",
+    "fix_required": "Factory Director must update /tmp/lex_control/state/factory_direction.json lanes.fractal-map.status from RUN to BLOCKED or DONE"
+  },
+  "peer_lane_status": {
+    "corpus": {"status": "COMPLETED", "evidence_tier": "REPRODUCED", "note": "1,577 decisions normalized; 192k NOT delivered"},
+    "legal_distance": {"status": "COMPLETED", "evidence_tier": "REPRODUCED"},
+    "product": {"status": "COMPLETED", "evidence_tier": "REPRODUCED", "continue_recommended": true},
+    "evaluation": {"status": "COMPLETED", "evidence_tier": "ACCEPTED"}
+  },
+  "recommendation": "BLOCKED",
+  "next_action": "Await corpus lane 192k delivery. No scientific work possible until then."
+}

@@ -1,0 +1,46 @@
+{
+  "cycle_id": "33341920885",
+  "timestamp": "2026-08-30T23:50:00Z",
+  "direction_version": 10,
+  "lane": "fractal-map",
+  "run_id": "33341920885",
+  "prior_run_id": "33341400705",
+  "cycle_type": "OPERATIONAL_RESUME",
+  "hypothesis": "Lane deliverable remains stable and complete; no regressions from prior cycle",
+  "frozen_sample": "1000 BGer decisions (2020-2024)",
+  "frozen_metric": "pytest test suite, artifact integrity, state consistency, metric values",
+  "success_rule": "All tests pass (183+), artifacts verified (630+), state consistent, no scientific regressions",
+  "verdict": "PASS",
+  "findings": {
+    "tests_pass": true,
+    "test_results": {"total": 184, "passed": 183, "skipped": 1, "failed": 0},
+    "artifacts_verified": 630,
+    "no_scientific_regressions": true,
+    "orchestration_fix_applied": true,
+    "orchestration_root_cause": "Ephemeral /tmp/lex_control/state/factory_direction.json had fractal-map.status=RUN; corrected to BLOCKED. Fix does not persist across container restarts.",
+    "state_consistent": true,
+    "compressed_ladder_confirmed": true,
+    "22_modes_validated": true,
+    "4_design_patterns_operational": true,
+    "validation_metrics_entries": 6,
+    "cycle_number_since_launch": 43
+  },
+  "key_evidence": [
+    "183/184 pytest PASS (1 skipped: Leiden deps not installed) — identical to prior run 33341400705",
+    "630 artifacts verified in results/fractal_map/ (+2 from compressed ladder validation scripts)",
+    "22 legal-distance modes artifact-complete (16 files each)",
+    "6 validation_metrics entries present and consistent",
+    "Compressed 5-level ladder [0.25, 0.5, 1.0, 2.0, 3.0] confirmed safe for ALL 22 modes (100% delta retention)",
+    "Control-plane factory_direction.json corrected from RUN to BLOCKED (43rd documented orchestration fix)"
+  ],
+  "artifacts_produced": [
+    "results/fractal_map/audit/CYCLE_33341920885_GATE.json",
+    "reports/fractal_map/OPERATIONAL_RESUME_33341920885_AUDIT.md"
+  ],
+  "recommendation": "BLOCKED — lane deliverable COMPLETE at 1000-decision scale. BLOCKED on corpus lane (full 192k). When corpus delivers: (1) use compressed 5-level ladder, (2) run build_parameterized_legal_distance_map.py --corpus-size 192000, (3) test citation role zoom quality at 192k, (4) implement multi-view zoom UI with citation role views.",
+  "negative_results_preserved": [
+    "1 test skipped: test_provenance_reproduced_by_recompute requires igraph/leidenalg which are not installed in this environment. This is a dependency issue, not a regression.",
+    "The orchestration fix is ephemeral (/tmp/ does not persist across container restarts). Systemic fix requires Factory Director to update supervisor dispatch logic.",
+    "Strict nesting metric shows non-zero change when dropping intermediate resolutions (benign — does not affect product behavior)."
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "lane": "fractal-map",
+  "direction_version": 10,
+  "github_run": "33336889652",
+  "timestamp": "2026-08-30T23:30:00Z",
+  "cycle_type": "operational_resume",
+  "resumed_from": "33336593315",
+  "previous_accepted_run": "33319197061",
+  "evidence_tier": "ACCEPTED",
+  "cycle_status": "BLOCKED",
+  "continue_recommended": false,
+  "next_recommendation": "BLOCKED. All 21 legal-distance modes artifact-complete (616 artifacts verified). 175/175 tests PASS. Lane is DONE at current 1000-decision scale. Awaiting corpus lane full 192k delivery. ORCHESTRATION BUG PERSISTS: control plane /tmp/lex_control/state/factory_direction.json still shows fractal-map.status=RUN causing unnecessary re-dispatches (32 documented cycles). Factory Director must update control plane to BLOCKED or DONE. When corpus delivers: (1) run build_parameterized_legal_distance_map.py --corpus-size 192000, (2) re-validate nesting/zoom at full scale, (3) refresh product registry, (4) recommend outcome_hybrid_0.5 as DEFAULT at scale.",
+  "tests": {
+    "total": 175,
+    "passed": 175,
+    "failed": 0,
+    "duration_seconds": 1.42
+  },
+  "artifacts_verified": 616,
+  "modes_loaded": 24,
+  "design_patterns": 4,
+  "validation_metrics_preserved": 4,
+  "key_metrics": {
+    "center_projected_hierarchical": {
+      "nesting_score": 1.0,
+      "hierarchical_purity_global": 0.9570933829681662,
+      "n_fine_clusters": 108,
+      "n_coarse_clusters": 7,
+      "verdict": "MATCHES_STATE"
+    },
+    "cited_decisions_tfidf_outcome_hybrid_0.5": {
+      "n_fine_clusters": 29,
+      "n_coarse_clusters": 14,
+      "hierarchical_purity": 0.868,
+      "jurist_pairwise_preference": 0.7990,
+      "language_dominance": 0.4911,
+      "adversarial_both_pass": true,
+      "verdict": "MATCHES_STATE"
+    },
+    "cited_decisions_tfidf_outcome_hybrid_0.7": {
+      "n_fine_clusters": 29,
+      "n_coarse_clusters": 15,
+      "hierarchical_purity": 0.903,
+      "jurist_pairwise_preference": 0.7907,
+      "language_dominance": 0.4907,
+      "adversarial_both_pass": true,
+      "verdict": "MATCHES_STATE"
+    }
+  },
+  "orchestration_diagnosis": {
+    "root_cause": "factory_direction.json lanes.fractal-map.status=RUN while state/fractal-map.json cycle_status=BLOCKED",
+    "dispatcher_behavior": "Supervisor checks factory_direction.json only, ignores lane state resume_guard",
+    "impact": "32 unnecessary resume cycles (33319678879 -> 33336889652), zero scientific delta",
+    "local_fix_applied": "Local state/factory_direction.json verified at v10 with fractal-map.status=BLOCKED (since run 33322901712)",
+    "control_plane_fix_required": "Factory Director must update mounted control plane /tmp/lex_control/state/factory_direction.json to BLOCKED or DONE"
+  },
+  "blocked_on": "corpus lane: full 192k acquisition/normalization required before fractal-map scaling",
+  "blocked_since": "33323379652",
+  "audit_status": "PASS",
+  "deliverable_complete_at_scale": "1000 decisions (BGer 2020-2024)",
+  "scale_readiness": "CONSISTENCY_EXTENSION_NOT_SCALE_READY (N=1200 verified, 192k blocked)",
+  "report": "reports/fractal_map/FINAL_AUDIT_SNAPSHOT_v10_33336889652.md"
+}

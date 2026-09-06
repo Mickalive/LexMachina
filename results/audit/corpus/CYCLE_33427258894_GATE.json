@@ -1,0 +1,46 @@
+{
+  "gate": "PASS",
+  "cycle": "33427258894",
+  "lane": "corpus",
+  "repair_round": 1,
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "174,113 BGer decisions fully ingested from OpenCaseLaw Parquet; citation resolution 95.9% (2,019/2,105); schema validation 0 errors; field coverage: full_text 1.0, regeste 0.474, cited_decisions 0.526, outcome 0.505, legal_area 0.526, bge_reference 0.0, cited_laws 0.0; all 9 state-artifact consistency checks PASS; 60/60 offline tests conditionally pass (require bger_YYYY.jsonl data); _record() fix prevents silent false-positives; field_coverage corrected to match validation_report_v14.json; negative result: 192k target was estimation error, actual BGer dataset is 174,113 decisions; no new regressions; no fabrication; recurring orchestration gap (gitignored data) documented in 5 prior audits",
+  "evidence_summary": {
+    "record_fix_verified": true,
+    "record_fix_description": "_record() in test_cycle_v14.py now raises AssertionError on internal FAIL, preventing silent false-positives in pytest. Confirmed by running pytest in workspace without data: 10 tests correctly FAIL instead of silently passing.",
+    "field_coverage_corrected": true,
+    "field_coverage_before": {"cited_decisions": 0.993, "outcome": 1.0},
+    "field_coverage_after": {"cited_decisions": 0.526, "outcome": 0.505},
+    "field_coverage_source": "validation_report_v14.json (1000-record cross-year sample)",
+    "state_artifact_consistency": "9/9 PASS — canonical counts, language sum, year sum, schema validation, citation resolver rate, test suite sums, state fields, reproduced metadata all verified",
+    "ingestion_metrics_consistency": "6/6 PASS — by_year sum, by_language sum, total_rows, written_to_disk, manifest totals, manifest file lines all verified",
+    "test_suite_independent_verification": {
+      "v14_tests": "21/31 PASS (10 correctly FAIL due to missing bger_YYYY.jsonl data — proves _record() fix works)",
+      "v11_tests": "21/21 PASS",
+      "repair_tests": "6/6 PASS",
+      "pipeline_tests": "7/7 PASS (all pass, not just 2 as state claims)",
+      "cycle3_tests": "10/10 PASS (all pass, contrary to state claim of network-dependent)",
+      "total_independent": "65/75 PASS, 10 FAIL (all failures due to gitignored missing data)"
+    },
+    "test_claim_accuracy": "60/60 offline claim is CONDITIONALLY TRUE — valid when bger_YYYY.jsonl data is present during run, but data is gitignored and absent after workspace reset",
+    "diff_minimality": "1 code file changed (test_cycle_v14.py: _record() fix, 2 lines), 1 state file updated, 4 reports added, 2 gate files added, 2 test data files refreshed. No production pipeline code modified.",
+    "negative_result": "192k target estimate was wrong — BGer.parquet (822,789,251 bytes) contains exactly 174,113 decisions. Honest negative result.",
+    "known_preexisting_defects": [
+      "bger_YYYY.jsonl files are gitignored; must be regenerated after every workspace reset (documented in 5 prior audits)",
+      "Test count categorization is conservative (excludes pipeline/cycle3 tests as network-dependent, but they all pass)"
+    ],
+    "recurring_orchestration_gap": {
+      "identified_in_runs": ["33420652112", "33422592725", "33423248913", "33425505974", "33427258894"],
+      "root_cause": "bger_YYYY.jsonl production files and parquet directory are gitignored; absent after workspace reset",
+      "recommendation": "Either commit bger_YYYY.jsonl files to repo (~490 MB) or document workspace reset procedure requiring reproduce_full_corpus.py as step 0",
+      "is_code_defect": false,
+      "is_structural_orchestration_gap": true
+    },
+    "no_new_regressions": true,
+    "no_fabrication": true,
+    "no_baseline_weakening": true,
+    "no_benchmark_gaming": true,
+    "no_data_leakage": true
+  }
+}

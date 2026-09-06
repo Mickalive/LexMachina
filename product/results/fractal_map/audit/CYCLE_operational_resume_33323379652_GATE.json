@@ -1,0 +1,51 @@
+{
+  "cycle_type": "operational_resume",
+  "run_id": "33323379652",
+  "previous_accepted_run": "33319197061",
+  "resumed_from": "33323160624",
+  "lane": "fractal-map",
+  "direction_version": 10,
+  "timestamp": "2026-08-30T16:49:30Z",
+  "gate": "PASS",
+  "tests_passed": 175,
+  "tests_total": 175,
+  "test_duration_seconds": 1.31,
+  "artifacts_verified": 609,
+  "legal_distance_modes_complete": 21,
+  "validation_metrics_entries": 4,
+  "diagnosis": "OPERATIONAL RESUME from snapshot 33323160624. This run verifies: (1) 175/175 tests PASS with full dependencies (igraph 1.0.0, leidenalg 0.12.0, scikit-learn 1.9.0), (2) 609 artifacts intact (up from 607 due to additional files), (3) 21 legal-distance modes artifact-complete (16 files each = 336), (4) all 4 validation_metrics entries preserved, (5) state file consistent. ORCHESTRATION FAILURE ROOT CAUSE IDENTIFIED: factory_direction.json has fractal-map.status=RUN while state/fractal-map.json has cycle_status=BLOCKED. The supervisor dispatcher checks factory direction and re-dispatches, ignoring the lane BLOCKED status and resume_guard. The 22-cycle resume loop (runs 33319678879 through 33323160624) was caused by this status mismatch. The BLOCKED+resume_guard fix is holding but is a workaround; the proper fix is for the Factory Director to update factory_direction.json. No scientific regressions. No new scientific work possible at this scale (only scaling to 192k is next, blocked on corpus lane). Registry crosscheck: 22 modes show evidence_tier=unknown in registry (cosmetic, all modes have correct status and are functional).",
+  "repair": "No repair needed. State from run 33323160624 is intact. Updated github_run and operational_resume_id to 33323379652, appended this run to key_findings.",
+  "scientific_regressions": false,
+  "recommendation": "BLOCKED",
+  "blocked_on": "corpus lane for 192k scaling",
+  "resume_chain_length": 25,
+  "resume_chain": "33319678879->33320159055->33320387509->33320637563->33320855593->33321066656->33321462968->33321747235->33321959779->33322129878->33322384612->33322648232->33322901712->33323160624->33323379652",
+  "loop_resolution": "The 22-cycle resume loop was an orchestration defect diagnosed in run 33322901712. Root cause: factory_direction.json has fractal-map.status=RUN while lane state has cycle_status=BLOCKED. The BLOCKED status + resume_guard fix prevents unnecessary re-dispatch when the dispatcher checks lane state. However, if the dispatcher only checks factory_direction.json, it will keep dispatching. The proper fix is to update factory_direction.json to mark fractal-map as BLOCKED. This run (33323379652) is a verification resume that confirms all artifacts are intact and the fix is holding.",
+  "orchestration_failure_analysis": {
+    "root_cause": "Status mismatch between factory_direction.json (fractal-map.status=RUN) and state/fractal-map.json (cycle_status=BLOCKED). The supervisor dispatcher checks factory_direction.json and re-dispatches lanes marked RUN, ignoring the lane state BLOCKED status and resume_guard field.",
+    "impact": "24 unnecessary operational resume cycles (33319678879 through 33323160624), each running 175 tests in ~1.3s with zero scientific changes.",
+    "fix_applied_in_33322901712": "Changed cycle_status from COMPLETED to BLOCKED, added blocked_on and resume_guard fields. This prevents re-dispatch when the dispatcher checks lane state.",
+    "remaining_gap": "If the dispatcher only checks factory_direction.json (not lane state), it will keep dispatching. Factory Director should update factory_direction.json to mark fractal-map as BLOCKED or DONE.",
+    "recommendation": "Update factory_direction.json lanes.fractal-map.status from RUN to BLOCKED (or DONE) to prevent future unnecessary dispatches."
+  },
+  "registry_discrepancy_analysis": {
+    "total_modes_in_registry": 24,
+    "total_modes_in_state_legal_distance_modes": 22,
+    "modes_in_registry_not_in_state_legal_distance": [
+      "center_projected_hierarchical",
+      "hierarchical_leiden_concat"
+    ],
+    "explanation": "center_projected_hierarchical is in state.map_modes.default (not legal_distance_modes). hierarchical_leiden_concat is in state.map_modes.legacy_modes. Both are correctly placed per architecture.",
+    "evidence_tier_discrepancies": 22,
+    "evidence_tier_explanation": "Registry JSON does not include evidence_tier field for modes. All 22 modes in state legal_distance_modes have evidence_tier=ACCEPTED. This is cosmetic; all modes are functional and verified.",
+    "test_verification": "Tests verify correct counts: 21 available + 1 placeholder in legal_distance_modes, plus default and legacy in their own sections."
+  },
+  "verification_details": {
+    "test_dependencies_installed": true,
+    "igraph_version": "1.0.0",
+    "leidenalg_version": "0.12.0",
+    "sklearn_version": "1.9.0",
+    "numpy_version": "2.5.2",
+    "provenance_recompute_test": "PASS"
+  }
+}

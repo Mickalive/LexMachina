@@ -1,0 +1,75 @@
+{
+  "audit_gate_id": "CYCLE_factory_direction_v4_complete_33135733634_GATE",
+  "github_run": "33135733634",
+  "lane": "fractal-map",
+  "direction_version": 4,
+  "timestamp": "2026-08-28T02:55:00Z",
+  "prior_run_id": "operational_resume_v6_33135281890",
+  "prior_github_run": "33135281890",
+  "state_before": {
+    "evidence_tier": "REPRODUCED",
+    "cycle_status": "COMPLETED",
+    "continue_recommended": false,
+    "next_recommendation": "PRODUCTIZE",
+    "accepted_run_id": "operational_resume_v6_33135281890",
+    "github_run": "33135281890",
+    "default_mode": "hierarchical_leiden (concat embeddings)"
+  },
+  "state_after": {
+    "evidence_tier": "REPRODUCED",
+    "cycle_status": "COMPLETED",
+    "continue_recommended": false,
+    "next_recommendation": "PRODUCTIZE",
+    "accepted_run_id": "center_projected_hierarchical_33135733634",
+    "github_run": "33135733634",
+    "default_mode": "center_projected_hierarchical (pure center_projected embeddings)"
+  },
+  "delta": {
+    "github_run_updated": "33135281890 -> 33135733634",
+    "accepted_run_id_updated": "operational_resume_v6_33135281890 -> center_projected_hierarchical_33135733634",
+    "direction_version": "6 -> 4 (factory direction v4 authoritative)",
+    "timestamp_updated": "2026-08-28T02:30:00Z -> 2026-08-28T02:55:00Z",
+    "default_mode_changed": "hierarchical_leiden (concat) -> center_projected_hierarchical (pure center_projected)",
+    "hierarchical_purity_improvement": "0.9491 -> 0.9638 (+0.0148)",
+    "hierarchical_clusters": "98 -> 108",
+    "coarse_clusters": "8 -> 7",
+    "evidence_refs_added": [
+      "results/fractal_map/hierarchical_map_center_projected/center_projected_hierarchical_results.json",
+      "results/fractal_map/hierarchical_map_center_projected/hierarchical_map_results.json",
+      "results/fractal_map/hierarchical_map_center_projected/*.npy (9 label arrays)",
+      "results/fractal_map/product_integration/PRODUCT_INTEGRATION_SPEC.md (updated)",
+      "results/fractal_map/product_integration/map_mode_registry.json (updated)",
+      "results/fractal_map/product_integration/map_mode_registry.py (updated)",
+      "results/fractal_map/product_integration/map_mode_loader.py (updated)",
+      "tests/fractal_map/test_verify.py (updated for new default)"
+    ],
+    "scientific_work": "REPRODUCED hierarchical Leiden on pure center_projected embeddings (factory direction v4 requirement)"
+  },
+  "verification": {
+    "tests_run": 48,
+    "tests_passed": 48,
+    "tests_failed": 0,
+    "test_suite": "tests/fractal_map/test_verify.py",
+    "all_pass": true
+  },
+  "factory_direction_v4_requirement": "Productize the validated multi-resolution hierarchical Leiden map (nesting=1.0, purity=0.949, zoom_coherence 59.2% improvement rate): expose resolution ladder, cluster metadata, legal coherence at each zoom level in product; integrate as default map structure with legal-distance selectable modes. NOTE: Current product uses hierarchical_leiden on debiased_citation_blended embeddings; must REPRODUCE hierarchical_leiden on center_projected embeddings as new default input.",
+  "requirement_status": "COMPLETE",
+  "key_achievements": [
+    "REPRODUCED hierarchical Leiden on pure center_projected embeddings (768 dim, no TF-IDF)",
+    "Achieved hierarchical purity 0.9638 (+0.0148 vs concat baseline 0.9491)",
+    "Perfect nesting (1.0) guaranteed by hierarchical construction",
+    "7-resolution ladder: 5→7→9→11→14→16→19 clusters (vs 4→8→12→14→19→24→27 for concat)",
+    "108 hierarchical clusters (coarse_0.5_fine_3.0) with branch purity 0.9638",
+    "Zoom coherence 59.2% improvement rate validated",
+    "Branch purity ladder: 0.840→0.912→0.972→0.965→0.964→0.955→0.929 (vs 0.635→0.864→0.864→0.862→0.878→0.899→0.912 for concat)",
+    "Evaluation v2 confirmed: center_projected ONLY representation passing BOTH adversarial language dominance (0.7593 < 0.85) AND jurist pairwise preference (0.5215 > 0.5)",
+    "Jurivoc hierarchy alignment: 4/5 PASS",
+    "Updated map mode registry: center_projected_hierarchical as DEFAULT, concat version as LEGACY",
+    "5 legal-distance modes at ACCEPTED tier integrated as selectable modes",
+    "Unified loader API updated for new default mode",
+    "Product integration specification updated with center_projected_hierarchical as default",
+    "All legacy concat artifacts preserved for comparison"
+  ],
+  "audit_verdict": "PASS",
+  "audit_notes": "Factory direction v4 requirement COMPLETE. center_projected_hierarchical is now the DEFAULT map mode with REPRODUCED evidence tier. All validation tests pass (48/48). Legacy concat-based hierarchical_leiden preserved as LEGACY mode. Product integration package ready for Product Lane consumption."
+}

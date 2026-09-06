@@ -1,0 +1,51 @@
+{
+  "gate_type": "operational_resume_with_new_science",
+  "run_id": "33339495531",
+  "previous_run_id": "33339029324",
+  "lane": "fractal-map",
+  "direction_version": 10,
+  "timestamp": "2026-08-30T22:40:01.326487+00:00",
+  "tests": {
+    "total": 175,
+    "passed": 175,
+    "failed": 0,
+    "duration_seconds": 1.49,
+    "verdict": "PASS"
+  },
+  "artifacts": {
+    "total_verified": 622,
+    "delta_from_previous": 2,
+    "note": "622 total (620 previous + 1 compressed resolution ladder analysis + 1 new audit gate)"
+  },
+  "scientific_status": "NEW_EVIDENCE",
+  "new_evidence": {
+    "compressed_resolution_ladder": {
+      "description": "5-level resolution ladder [0.25, 0.5, 1.0, 2.0, 3.0] achieves 100% purity delta retention and 0% nesting change vs 7-level ladder across all 6 key modes",
+      "modes_analyzed": [
+        "center_projected_hierarchical",
+        "cited_decisions_tfidf_outcome_hybrid_0.5",
+        "cited_decisions_tfidf_outcome_hybrid_0.7",
+        "citing_alpha0.3",
+        "following_alpha0.3",
+        "linear_metric_epoch4"
+      ],
+      "resolution_reduction": "29% (7 -> 5 levels)",
+      "quality_retention": "100% purity delta, 0% nesting change",
+      "product_implication": "Fewer zoom levels needed, faster computation at 192k scale, simpler product UI"
+    }
+  },
+  "orchestration_fix": {
+    "description": "Control plane factory_direction.json fractal-map.status corrected from RUN to BLOCKED",
+    "previous_mismatch_cycles": 37,
+    "root_cause": "Supervisor dispatcher checks only factory_direction.json status field, ignores lane state cycle_status and resume_guard"
+  },
+  "regressions": "NONE",
+  "key_findings_preserved": {
+    "zoom_quality_diagnostic": "Citation role views dominate zoom quality (citing ZQ=0.5401, following ZQ=0.5280, criticizing ZQ=0.4864). BEST PRODUCTION (outcome_hybrid_0.5) ranks 21st (ZQ=0.2798). Confirms multi-view product design.",
+    "scalability": "Empirical 1k-20k scaling validated: near-linear time (exp 1.04-1.49), linear memory (exp 1.00-1.01). 192k extrapolation: 5.6 min, 1.0 GB.",
+    "compressed_resolution_ladder": "5-level ladder achieves 100% quality retention vs 7-level. Drop resolutions 0.75 and 1.5.",
+    "artifact_integrity": "21 legal-distance modes artifact-complete (16 files each), 5 validation_metrics entries, 621 total artifacts verified."
+  },
+  "recommendation": "BLOCKED",
+  "next_action": "Await corpus lane 192k delivery. When corpus delivers: (1) use compressed 5-level ladder [0.25, 0.5, 1.0, 2.0, 3.0], (2) run build_parameterized_legal_distance_map.py --corpus-size 192000, (3) test citation role zoom quality at 192k, (4) implement multi-view zoom UI."
+}

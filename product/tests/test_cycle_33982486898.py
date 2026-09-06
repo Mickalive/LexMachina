@@ -96,7 +96,11 @@ def _get_api():
 
 
 def _clean_all_imports(base_dir):
-    """Remove both user_imports directories for fully idempotent test execution."""
+    """Remove both user_imports directories for fully idempotent test execution.
+    
+    This removes BOTH the corpus and fractal_map user_imports directories.
+    Use this for tests that need a completely clean state.
+    """
     corpus_import_dir = base_dir / "results" / "corpus" / "normalization" / "user_imports"
     nav_import_dir = base_dir / "results" / "fractal_map" / "user_imports"
     if corpus_import_dir.exists():
@@ -104,6 +108,17 @@ def _clean_all_imports(base_dir):
     if nav_import_dir.exists():
         shutil.rmtree(nav_import_dir)
     return corpus_import_dir, nav_import_dir
+
+
+def _clean_fractal_map_only(base_dir):
+    """Remove only the fractal_map user_imports directory (runtime state).
+    
+    Preserves the corpus user_imports directory which contains the COMMITTED FIXTURE.
+    Use this for tests that need the committed fixture to persist.
+    """
+    nav_import_dir = base_dir / "results" / "fractal_map" / "user_imports"
+    if nav_import_dir.exists():
+        shutil.rmtree(nav_import_dir)
 
 
 def test_load_user_corpus_jsonl():
@@ -146,18 +161,29 @@ def test_load_user_corpus_jsonl():
     )
     print(f"  Committed fixture verified: {len(fixture_records)} records, IDs={fixture_ids}")
 
-    # Verify fixture records match the inline COMMITTED_RECORDS exactly
+    # Verify fixture records match the inline COMMITTED_RECORDS on core fields.
+    # The schema validator adds content_hash, acquired_at, source_version to provenance
+    # during normalization, so we compare core fields only.
     for committed, loaded in zip(COMMITTED_RECORDS, fixture_records):
-        assert committed == loaded, (
-            f"Committed record mismatch for {committed['decision_id']}: "
-            f"inline != file"
+        # Check core fields (excluding provenance extras added by schema_validator)
+        core_fields = ["decision_id", "court", "docket_number", "decision_date", 
+                       "language", "full_text", "title", "legal_area", "branch",
+                       "chamber", "outcome", "decision_type", "bge_reference",
+                       "cited_decisions", "cited_laws", "sachverhalt", 
+                       "erwaegungen", "dispositiv", "text_length"]
+        for field in core_fields:
+            assert committed.get(field) == loaded.get(field), (
+                f"Core field '{field}' mismatch for {committed['decision_id']}: "
+                f"expected {committed.get(field)}, got {loaded.get(field)}"
+            )
+        # Check provenance.source is user_import
+        assert loaded.get("provenance", {}).get("source") == "user_import", (
+            f"Decision {committed['decision_id']} provenance.source is not 'user_import'"
         )
-    print(f"  Inline fixture matches committed file byte-for-byte")
+    print(f"  Inline fixture matches committed file on core fields")
 
     # Clean fractal_map positions only (not corpus imports — we need the fixture)
-    nav_import_dir = base_dir / "results" / "fractal_map" / "user_imports"
-    if nav_import_dir.exists():
-        shutil.rmtree(nav_import_dir)
+    _clean_fractal_map_only(base_dir)
 
     # Initialize API — CorpusLoader.load() calls load_user_imports() which reads
     # the committed user_corpus.jsonl from the user_imports directory
@@ -210,8 +236,7 @@ def test_load_user_corpus_jsonl():
     print(f"  Both decisions found in search via docket_number")
 
     # Clean up fractal_map positions (preserving corpus imports for other tests)
-    if nav_import_dir.exists():
-        shutil.rmtree(nav_import_dir)
+    _clean_fractal_map_only(base_dir)
 
     print("  PASS\n")
     return True
