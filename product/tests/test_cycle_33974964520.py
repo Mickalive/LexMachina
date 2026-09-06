@@ -15,6 +15,11 @@ from pathlib import Path
 from app.map_loader import MapLoader
 from app.health_checker import RepresentationHealthChecker
 
+# Use product-relative paths like test_product.py does
+BASE_DIR = Path(__file__).parent.parent
+RESULTS_DIR = BASE_DIR / "results" / "fractal_map"
+CORPUS_DIR = BASE_DIR / "results" / "corpus" / "normalization" / "canonical"
+
 
 # ---------------------------------------------------------------------------
 # FEAT-078: MapLoader graceful degradation
@@ -25,16 +30,16 @@ class TestGracefulDegradation:
 
     def test_repr_methods_table_complete(self):
         """_REPR_METHODS should have exactly 30 entries."""
-        ml = MapLoader(Path("results/fractal_map"))
+        ml = MapLoader(RESULTS_DIR)
         assert len(ml._REPR_METHODS) == 30
 
     def test_load_failures_initially_empty(self):
-        ml = MapLoader(Path("results/fractal_map"))
+        ml = MapLoader(RESULTS_DIR)
         assert ml._load_failures == {}
 
     def test_load_all_succeeds(self):
         """All 30 representations should load without failure."""
-        ml = MapLoader(Path("results/fractal_map"))
+        ml = MapLoader(RESULTS_DIR)
         count = ml.load()
         report = ml.get_load_report()
         assert count == 30
@@ -43,13 +48,13 @@ class TestGracefulDegradation:
         assert report["failures"] == {}
 
     def test_get_available_representations(self):
-        ml = MapLoader(Path("results/fractal_map"))
+        ml = MapLoader(RESULTS_DIR)
         ml.load()
         avail = ml.get_available_representations()
         assert len(avail) == 30
 
     def test_load_report_has_required_keys(self):
-        ml = MapLoader(Path("results/fractal_map"))
+        ml = MapLoader(RESULTS_DIR)
         ml.load()
         report = ml.get_load_report()
         assert "loaded" in report
@@ -58,21 +63,21 @@ class TestGracefulDegradation:
         assert "total" in report
 
     def test_load_report_total_matches(self):
-        ml = MapLoader(Path("results/fractal_map"))
+        ml = MapLoader(RESULTS_DIR)
         ml.load()
         report = ml.get_load_report()
         assert report["total"] == report["loaded"] + report["failed"]
 
     def test_load_selected_single(self):
         """load_selected should load only named representations."""
-        ml = MapLoader(Path("results/fractal_map"))
+        ml = MapLoader(RESULTS_DIR)
         ml.load_selected(["baseline"])
         assert "baseline" in ml.maps
         assert len(ml.maps) == 1
         assert len(ml.get_available_representations()) == 1
 
     def test_load_selected_multiple(self):
-        ml = MapLoader(Path("results/fractal_map"))
+        ml = MapLoader(RESULTS_DIR)
         ml.load_selected(["baseline", "linear_hybrid05_concat"])
         assert len(ml.maps) == 2
         assert "baseline" in ml.maps
@@ -80,7 +85,7 @@ class TestGracefulDegradation:
 
     def test_load_selected_unknown_repr(self):
         """Unknown representation name should be recorded as failure, not crash."""
-        ml = MapLoader(Path("results/fractal_map"))
+        ml = MapLoader(RESULTS_DIR)
         ml.load_selected(["nonexistent_representation_xyz"])
         report = ml.get_load_report()
         assert report["failed"] == 1
@@ -88,7 +93,7 @@ class TestGracefulDegradation:
 
     def test_load_selected_idempotent(self):
         """Loading same representation twice should be a no-op."""
-        ml = MapLoader(Path("results/fractal_map"))
+        ml = MapLoader(RESULTS_DIR)
         ml.load_selected(["baseline"])
         count1 = len(ml.maps)
         ml.load_selected(["baseline"])
@@ -97,14 +102,14 @@ class TestGracefulDegradation:
 
     def test_load_returns_cached_on_second_call(self):
         """Second call to load() should return cached count."""
-        ml = MapLoader(Path("results/fractal_map"))
+        ml = MapLoader(RESULTS_DIR)
         count1 = ml.load()
         count2 = ml.load()
         assert count1 == count2 == 30
 
     def test_available_excludes_failures(self):
         """get_available_representations should not include failed loads."""
-        ml = MapLoader(Path("results/fractal_map"))
+        ml = MapLoader(RESULTS_DIR)
         ml.load_selected(["nonexistent_xyz", "baseline"])
         avail = ml.get_available_representations()
         assert "nonexistent_xyz" not in avail
@@ -216,8 +221,8 @@ class TestGracefulDegradationIntegration:
         """NavigationAPI should load all 30 representations."""
         from app.navigation import NavigationAPI
         nav = NavigationAPI(
-            results_dir=Path("results/fractal_map"),
-            corpus_dir=Path("results/corpus/normalization/canonical"),
+            results_dir=str(RESULTS_DIR),
+            corpus_dir=str(CORPUS_DIR),
         )
         nav.map_loader.load()
         report = nav.map_loader.get_load_report()
@@ -227,8 +232,8 @@ class TestGracefulDegradationIntegration:
     def test_nav_api_get_load_report(self):
         from app.navigation import NavigationAPI
         nav = NavigationAPI(
-            results_dir=Path("results/fractal_map"),
-            corpus_dir=Path("results/corpus/normalization/canonical"),
+            results_dir=str(RESULTS_DIR),
+            corpus_dir=str(CORPUS_DIR),
         )
         nav.map_loader.load()
         report = nav.map_loader.get_load_report()
