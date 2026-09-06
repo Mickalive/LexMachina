@@ -82,8 +82,17 @@ class Decision:
 class CorpusLoader:
     """Loads and indexes canonical JSONL corpus files."""
 
-    def __init__(self, corpus_dir: str):
+    def __init__(self, corpus_dir: str, file_pattern: str = "bger_2000plus_slice_1000.jsonl"):
+        """
+        Initialize the corpus loader.
+        
+        Args:
+            corpus_dir: Directory containing JSONL corpus files
+            file_pattern: Glob pattern for files to load. Defaults to the 1000-decision
+                slice file for product vertical slice at 1k scale. Use "*.jsonl" to load all.
+        """
         self.corpus_dir = Path(corpus_dir)
+        self.file_pattern = file_pattern
         self.decisions: Dict[str, Decision] = {}
         self._loaded = False
         self._user_import_count = 0
@@ -93,11 +102,11 @@ class CorpusLoader:
         self._search_index_built = False
 
     def load(self) -> int:
-        """Load all JSONL files from corpus_dir and user imports. Returns count of loaded decisions."""
+        """Load JSONL files matching file_pattern from corpus_dir and user imports. Returns count of loaded decisions."""
         if self._loaded:
             return len(self.decisions)
 
-        jsonl_files = sorted(self.corpus_dir.glob("*.jsonl"))
+        jsonl_files = sorted(self.corpus_dir.glob(self.file_pattern))
         for jsonl_file in jsonl_files:
             self._load_jsonl(jsonl_file)
 
