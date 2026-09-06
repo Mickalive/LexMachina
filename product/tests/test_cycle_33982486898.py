@@ -192,7 +192,8 @@ def test_load_user_corpus_jsonl():
     initial_count = api.corpus.size
     initial_user_imports = api.corpus.user_import_count
     print(f"  Initial: {initial_count} decisions, {initial_user_imports} user imports")
-    assert initial_count >= 1200, f"Expected >= 1200 decisions, got {initial_count}"
+    # Corpus loads 1000 from slice + 2 user imports = 1002
+    assert initial_count >= 1002, f"Expected >= 1002 decisions, got {initial_count}"
     assert initial_user_imports >= 2, (
         f"Expected >= 2 user imports from committed fixture, got {initial_user_imports}"
     )
