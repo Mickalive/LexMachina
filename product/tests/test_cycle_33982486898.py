@@ -400,13 +400,18 @@ def test_imported_positions_reproducibility():
     print(f"  Seed={FIXED_RNG_SEED}: {len(positions_42)} positions generated")
 
     # Verify structural validity
-    assert len(positions_42) == 58, f"Expected 58 positions (29 reps x 2 decisions), got {len(positions_42)}"
+    n_reps = len(positions_42) // len(EXPECTED_DECISION_IDS)
+    expected_positions = n_reps * len(EXPECTED_DECISION_IDS)
+    assert len(positions_42) == expected_positions, (
+        f"Expected {expected_positions} positions ({n_reps} reps x {len(EXPECTED_DECISION_IDS)} decisions), "
+        f"got {len(positions_42)}"
+    )
     for rec in positions_42:
         assert rec["decision_id"] in EXPECTED_DECISION_IDS
         assert math.isfinite(rec["x"]), f"x not finite: {rec['x']}"
         assert math.isfinite(rec["y"]), f"y not finite: {rec['y']}"
         assert rec["assigned_via"] == "knn_embedding"
-    print(f"  Structural validity: all 58 records finite, correct IDs, knn_embedding")
+    print(f"  Structural validity: all {expected_positions} records finite, correct IDs, knn_embedding")
 
     # Run with different seed (99) — should produce different positions
     positions_99 = run_import_with_seed(99)
@@ -438,7 +443,9 @@ def test_imported_positions_reproducibility():
         committed.sort(key=sort_key)
 
         # Structural match: same number of records, same decision_ids, same reps
-        assert len(committed) == 58, f"Committed has {len(committed)} records, expected 58 (29 reps x 2 decisions)"
+        assert len(committed) == expected_positions, (
+            f"Committed has {len(committed)} records, expected {expected_positions} ({n_reps} reps x {len(EXPECTED_DECISION_IDS)} decisions)"
+        )
         committed_ids = {r["decision_id"] for r in committed}
         committed_reps = {r["representation"] for r in committed}
         assert committed_ids == EXPECTED_DECISION_IDS, f"Committed IDs: {committed_ids}"
