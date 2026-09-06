@@ -37,8 +37,9 @@ class SectionMode:
 class SectionModeLoader:
     """Loads section-based projections as alternative map modes.
 
-    Tries scaled projections first (section_scaled/), falls back to
+    Tries scaled projections first (section_scaled_v2/, section_scaled/), falls back to
     experiment-clean projections (section_experiment_clean/).
+    Prefers blended projections (section + baseline fallback) when available.
     """
 
     MODE_INFO = {
@@ -80,21 +81,28 @@ class SectionModeLoader:
     TOTAL_DECISIONS = 1000
 
     def __init__(self, section_dir: str, fallback_dir: Optional[str] = None):
-        self.primary_dir = Path(section_dir)
+        # Support multiple primary directories in priority order
+        self.primary_dirs = [
+            Path(section_dir).parent / "section_scaled_v2",  # NEW: highest priority
+            Path(section_dir),  # original section_scaled/
+        ]
         self.fallback_dir = Path(fallback_dir) if fallback_dir else None
         self.active_dir: Optional[Path] = None
         self.modes: Dict[str, SectionMode] = {}
         self._loaded = False
         self._source_label: str = ""
         self._is_scaled: bool = False
+        self._use_blended: bool = False
+        self._provenance: Dict[str, str] = {}  # decision_id -> source ("section_projection" or "baseline")
 
     def _resolve_active_dir(self) -> Optional[Path]:
-        """Pick the best available directory: primary (scaled) then fallback."""
-        if self.primary_dir.exists():
-            meta = self.primary_dir / "metadata.json"
-            if meta.exists():
-                self._source_label = self.primary_dir.name
-                return self.primary_dir
+        """Pick the best available directory: primary dirs then fallback."""
+        for primary_dir in self.primary_dirs:
+            if primary_dir.exists():
+                meta = primary_dir / "metadata.json"
+                if meta.exists():
+                    self._source_label = primary_dir.name
+                    return primary_dir
         if self.fallback_dir and self.fallback_dir.exists():
             meta = self.fallback_dir / "metadata.json"
             if meta.exists():
@@ -103,7 +111,7 @@ class SectionModeLoader:
         return None
 
     def _load_scaled(self) -> None:
-        """Load from section_scaled/ directory (blended section+baseline projections)."""
+        """Load from section_scaled/ or section_scaled_v2/ directory (blended section+baseline projections)."""
         metadata_path = self.active_dir / "metadata.json"
         with open(metadata_path, "r") as f:
             metadata = json.load(f)
@@ -113,9 +121,25 @@ class SectionModeLoader:
 
         # Get provenance to identify section vs baseline decisions
         provenance = metadata.get("decision_provenance", [])
-        section_ids = {p["decision_id"] for p in provenance if p.get("source") == "section_projection"}
-        baseline_ids = {p["decision_id"] for p in provenance if p.get("source") == "baseline"}
         all_decision_ids = [p["decision_id"] for p in provenance]
+        
+        # Store provenance for get_position_details (section_projection if has ANY section)
+        self._provenance = {p["decision_id"]: p.get("source", "unknown") for p in provenance}
+        
+        # Per-mode section coverage from metadata
+        section_modes_meta = metadata.get("section_modes", {})
+        self._per_mode_section_counts = {}
+        for mode_name, mode_meta in section_modes_meta.items():
+            self._per_mode_section_counts[mode_name] = {
+                "section": mode_meta.get("section_decisions", 0),
+                "baseline": mode_meta.get("baseline_fallback", 0),
+            }
+        
+        # Per-mode provenance (NEW: from mode_provenance in metadata)
+        mode_provenance = metadata.get("mode_provenance", {})
+        self._mode_provenance = {}
+        for mode_name, prov in mode_provenance.items():
+            self._mode_provenance[mode_name] = prov
 
         # Load section-specific metadata for clustering
         section_meta_path = self.active_dir / "section_metadata.json"
@@ -137,8 +161,22 @@ class SectionModeLoader:
                 with open(fallback_clustering, "r") as f:
                     clustering_data = json.load(f)
 
+        # Check if blended projections are available
+        self._use_blended = any(
+            (self.active_dir / f"projection_{name}_blended.npy").exists()
+            for name in self.SECTION_NAMES
+        )
+
         for section_name in self.SECTION_NAMES:
-            proj_path = self.active_dir / f"projection_{section_name}.npy"
+            # Prefer blended projection (section where available, baseline elsewhere)
+            if self._use_blended:
+                proj_path = self.active_dir / f"projection_{section_name}_blended.npy"
+            else:
+                proj_path = self.active_dir / f"projection_{section_name}.npy"
+            
+            if not proj_path.exists():
+                # Fallback to non-blended
+                proj_path = self.active_dir / f"projection_{section_name}.npy"
             if not proj_path.exists():
                 continue
 
@@ -150,8 +188,14 @@ class SectionModeLoader:
 
             info = self.MODE_INFO.get(section_name, {})
             section_clustering = clustering_data.get(section_name, {})
-            n_section = len(section_ids)
-            n_baseline = len(baseline_ids)
+            
+            # Use per-mode counts if available, otherwise fall back to global
+            if section_name in self._per_mode_section_counts:
+                n_section = self._per_mode_section_counts[section_name]["section"]
+                n_baseline = self._per_mode_section_counts[section_name]["baseline"]
+            else:
+                n_section = len(section_ids)
+                n_baseline = len(baseline_ids)
 
             self.modes[section_name] = SectionMode(
                 name=section_name,
@@ -207,6 +251,9 @@ class SectionModeLoader:
                 n_baseline_decisions=n_baseline,
                 clustering=section_clustering,
             )
+        
+        # Store provenance for get_position_details
+        self._provenance = {did: "section_projection" for did in decision_ids}
 
     def load(self) -> int:
         """Load all section-based projections. Returns count of modes loaded."""
@@ -278,17 +325,26 @@ class SectionModeLoader:
         mode = self.get_mode(mode_name)
         if not mode:
             return {}
-        # In scaled mode, we know provenance; otherwise all positions have section data
-        if self._is_scaled:
-            # All positions exist, but we can't tell provenance per-decision here
-            # without reloading metadata. Return all as section_data=True since
-            # the projection exists for each decision.
+        
+        # Use per-mode provenance if available, otherwise fall back to global
+        if mode_name in self._mode_provenance:
+            prov = self._mode_provenance[mode_name]
             return {
-                did: {"x": pos[0], "y": pos[1], "has_section_data": True}
+                did: {
+                    "x": pos[0], 
+                    "y": pos[1], 
+                    "has_section_data": prov.get(did, "baseline") == "section_projection"
+                }
                 for did, pos in mode.positions.items()
             }
+        
+        # Fallback to global provenance
         return {
-            did: {"x": pos[0], "y": pos[1], "has_section_data": True}
+            did: {
+                "x": pos[0], 
+                "y": pos[1], 
+                "has_section_data": self._provenance.get(did, "baseline") == "section_projection"
+            }
             for did, pos in mode.positions.items()
         }
 

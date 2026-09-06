@@ -88,15 +88,21 @@ def get_section_text(decision: Dict, section_name: str) -> str:
     if section_name == "sachverhalt":
         return decision.get("sachverhalt", "") or ""
     elif section_name == "erwaegungen":
-        return decision.get("erwaegungen", "") or ""
+        erw = decision.get("erwaegungen")
+        if isinstance(erw, list):
+            return " ".join([e.get("text", "") for e in erw if e.get("text")])
+        return erw or ""
     elif section_name == "dispositiv":
         return decision.get("dispositiv", "") or ""
     elif section_name == "full_text":
         return decision.get("full_text", "") or ""
     elif section_name == "erwaegungen_dispositiv":
         parts = []
-        if decision.get("erwaegungen"):
-            parts.append(decision["erwaegungen"])
+        erw = decision.get("erwaegungen")
+        if isinstance(erw, list):
+            parts.append(" ".join([e.get("text", "") for e in erw if e.get("text")]))
+        elif erw:
+            parts.append(erw)
         if decision.get("dispositiv"):
             parts.append(decision["dispositiv"])
         return " ".join(parts)
@@ -104,8 +110,11 @@ def get_section_text(decision: Dict, section_name: str) -> str:
         parts = []
         if decision.get("sachverhalt"):
             parts.append(decision["sachverhalt"])
-        if decision.get("erwaegungen"):
-            parts.append(decision["erwaegungen"])
+        erw = decision.get("erwaegungen")
+        if isinstance(erw, list):
+            parts.append(" ".join([e.get("text", "") for e in erw if e.get("text")]))
+        elif erw:
+            parts.append(erw)
         if decision.get("dispositiv"):
             parts.append(decision["dispositiv"])
         return " ".join(parts)
@@ -145,11 +154,34 @@ def run() -> None:
     section_decision_ids = [d["decision_id"] for d in decisions_with_sections]
     
     decision_provenance = []
+    section_metadata = []  # NEW: track section metadata per decision
+    # Per-mode provenance: which decisions have which sections
+    mode_provenance = {mode: {} for mode in SECTION_MODES}
+    
     for did in all_decision_ids:
         if did in section_decision_ids:
             decision_provenance.append({"decision_id": did, "source": "section_projection"})
+            # Find the decision to get its metadata and per-section content
+            for d in decisions_with_sections:
+                if d["decision_id"] == did:
+                    section_metadata.append({
+                        "decision_id": d["decision_id"],
+                        "language": d.get("language", "de"),
+                        "legal_area": d.get("legal_area", ""),
+                        "year": d.get("decision_date", "")[:4] if d.get("decision_date") else "",
+                        "court": d.get("court", "bger"),
+                        "chamber": d.get("chamber", ""),
+                    })
+                    # Check each section mode for this decision
+                    for mode in SECTION_MODES:
+                        text = get_section_text(d, mode)
+                        has_content = bool(text and len(text.strip()) > 50)
+                        mode_provenance[mode][did] = "section_projection" if has_content else "baseline"
+                    break
         else:
             decision_provenance.append({"decision_id": did, "source": "baseline"})
+            for mode in SECTION_MODES:
+                mode_provenance[mode][did] = "baseline"
     
     mode_stats = {}
     
@@ -214,6 +246,12 @@ def run() -> None:
     # Load baseline projection for reference
     baseline_dir = Path(__file__).parent / "results" / "fractal_map" / "baseline"
     baseline_proj = np.load(baseline_dir / "projection_2d.npy")
+    
+    # If baseline has fewer decisions, pad it
+    if len(baseline_proj) < len(all_decision_ids):
+        padding = np.zeros((len(all_decision_ids) - len(baseline_proj), 2))
+        baseline_proj = np.vstack([baseline_proj, padding])
+    
     shutil.copy2(baseline_dir / "projection_2d.npy", OUTPUT_DIR / "projection_baseline.npy")
     
     # Build blended projections (section where available, baseline elsewhere)
@@ -240,11 +278,16 @@ def run() -> None:
         "section_covered_decisions": len(section_decision_ids),
         "section_modes": mode_stats,
         "decision_provenance": decision_provenance,
+        "mode_provenance": mode_provenance,  # NEW: per-mode provenance
         "generation_method": "TF-IDF (max_features=5000) -> SVD (128D) -> UMAP (2D, cosine)",
     }
     
     with open(OUTPUT_DIR / "metadata.json", "w") as f:
         json.dump(metadata, f, indent=2)
+    
+    # Write section metadata
+    with open(OUTPUT_DIR / "section_metadata.json", "w") as f:
+        json.dump(section_metadata, f, indent=2)
     
     print(f"\nDone. Output: {OUTPUT_DIR}")
     print(f"Total decisions: {len(all_decision_ids)}")
