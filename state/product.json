@@ -2,8 +2,8 @@
   "lane": "product",
   "direction_version": 18,
   "evidence_tier": "ACCEPTED",
-  "cycle_status": "RUN",
-  "continue_recommended": true,
+  "cycle_status": "BLOCKED",
+  "continue_recommended": false,
   "accepted_run_id": "33989675812",
   "accepted_commit": "6a7e88e",
   "github_run": "33989675812",
@@ -128,7 +128,17 @@
     "product/results/fractal_map/citing_alpha0.3/zoom_coherence.json",
     "product/tests/test_cycle_v18_product.py",
     "product/reports/product/CYCLE_33989675812_REPORT.md",
-    "results/audit/product/CYCLE_33989675812_GATE.json"
+    "results/audit/product/CYCLE_33989675812_GATE.json",
+    "product/build_section_projections.py",
+    "product/results/fractal_map/section_scaled_v2/metadata.json",
+    "product/results/fractal_map/section_scaled_v2/clustering_results.json",
+    "product/results/fractal_map/section_scaled_v2/section_metadata.json",
+    "product/results/fractal_map/section_scaled_v2/projection_sachverhalt_blended.npy",
+    "product/results/fractal_map/section_scaled_v2/projection_erwaegungen_blended.npy",
+    "product/results/fractal_map/section_scaled_v2/projection_dispositiv_blended.npy",
+    "product/results/fractal_map/section_scaled_v2/projection_full_text_blended.npy",
+    "product/results/fractal_map/section_scaled_v2/projection_erwaegungen_dispositiv_blended.npy",
+    "product/results/fractal_map/section_scaled_v2/projection_sachverhalt_erwaegungen_dispositiv_blended.npy"
   ],
   "repair_refs": [
     "CYCLE_33027622849_REPAIR: Fixed missing numpy dependency (added requirements.txt)",
@@ -234,9 +244,12 @@
     "CYCLE_33810642381_OPERATIONAL_RESUME: Operational resume from persisted producer snapshot of run 33810642381 (GitHub run 33814370025). DIAGNOSED: Prior runs 33802127147-33810642381 were zero-delta no-op repairs (orchestration pathology). All prior artifacts from cycle 33733439851 fully preserved. VERIFIED: 30 representations across 6 design patterns (DEFAULT, HIGH-PURITY, HIGH-ADVANTAGE, COMBINATION, CITATION-ROLE, LEGACY) operational. All 267 tests PASS (core + cycle + scale/simulation). Scale-readiness infrastructure complete: LOD Manager (3 levels), viewport culling (brute-force + KDTree), Spatial Index (KDTree), Inverted Index, WebGL pipeline, threaded HTTP server, incremental map updates, representation health checking, design pattern classification, map mode comparison, startup validation. 174k scale simulation endpoint validates all components at target scale. PRODUCT_SERVING_DEFAULT: cited_outcome_hybrid_0.5 (wins full-harness LangDom/JuristPref/Boilerplate per v15b-audit). COMBINATION_MODE: linear_hybrid05_concat (JP=0.838, std=0.027) for doctrinal exploration. BLOCKED on corpus lane 174k delivery for full-corpus validation and production-deployment tradeoff re-test at 174k density. (VERIFY-006)",
     "CYCLE_33847215009_OPERATIONAL_RESUME: Operational resume from persisted producer snapshot of run 33843942083 (GitHub run 33847215009). DIAGNOSED: Prior runs 33819447298-33843942083 (9 cycles) were zero-delta no-op repairs deleting stale user_corpus.jsonl test artifacts (orchestration pathology). All substantive product work from cycle 33733439851 and 33814370025 fully preserved. VERIFIED: All 30 representations across 6 design patterns load correctly (map_loader.py load() returns 30). All scale-readiness infrastructure operational and tested: LOD Manager (3 levels), GPU frustum culling (vertex shader), vectorized WebGL data prep (numpy broadcasting), viewport culling (brute-force + KDTree), Spatial Index (KDTree), Inverted Index, WebGL pipeline, threaded HTTP server, incremental map updates, representation health checking, design pattern classification, map mode comparison, startup validation, compound language search, language statistics. 174k scale simulation test suite (16 tests) ALL PASS: LOD < 2s, culling < 500ms, spatial index build < 5s, k-NN < 500ms, inverted index build < 15s, WebGL payload ~6.6MB, full pipeline < 3s. v17 validation test suites (test_cycle_v17_validate_reps.py: 26 tests, test_cycle_v17_webgl_vectorized.py: 20 tests) ALL PASS. PRODUCT_SERVING_DEFAULT: cited_outcome_hybrid_0.5 (wins full-harness LangDom/JuristPref/Boilerplate per v15b-audit). COMBINATION_MODE: linear_hybrid05_concat (JP=0.838, std=0.027) for doctrinal exploration. DEFAULT map mode: center_projected_64dim_hierarchical (PASSES both adversarial gates: language_dominance=0.766<0.85, jurist_pairwise=0.512>0.5). NO representation passes all 12 evaluation benchmarks (max 7/12); hierarchy_coherence FUNDAMENTALLY UNPASSABLE at branch level (v18: purity 0.6497 < 0.70); zoom_coherence and legal_area_clustering are corpus-data limitations. BLOCKED on corpus lane 174k delivery for: (1) full-corpus adversarial evaluation at 174k scale, (2) section-specific cross-lingual evaluation (sachverhalt/erwaegungen/dispositiv), (3) linear_hybrid05_concat stability test at 174k, (4) production-deployment vs CV tradeoff re-test at 174k density. No further same-question cycles justified without 174k corpus. (VERIFY-007)",
     "CYCLE_33850714953_ORCHESTRATION_FIX: Diagnosed orchestration/validation failure from prior runs 33819447298-33843942083 (10 cycles) \u2014 zero-delta no-op repairs and lane state mismatch. Root cause: factory_direction v17 specifies product status=RUN (continuous improvement) but product/state/product.json showed cycle_status=COMPLETED with continue_recommended=false. FIXED: cycle_status=RUN, continue_recommended=true to match factory_direction v17. All 174k hardening deliverables (FEAT-071 through FEAT-077) verified: 267 tests PASS, 30 representations operational, scale simulation ALL PASS at 174k. NEXT per v17: (1) validate all 30 representations on full 174k corpus when corpus lane delivers, (2) re-test linear_hybrid05_concat + hybrid production-deployment tradeoff at 174k density. BLOCKED_ON_DEPENDENCIES for corpus delivery; product infrastructure READY.",
-    "CYCLE_33989675812_FEAT: FEAT-078 TF-IDF truncation fix (to_full_raw, get_all_decisions_raw, API limit 2000->8000), FEAT-079 temporal-filtering metadata gap (year field fallback), FEAT-080 cross-language TF-IDF text similarity neighbors (find_cross_language_neighbors_by_text), FEAT-081 jurist-feedback loop closure (records, cluster summary, export endpoints). 10 new tests PASS, 33 existing PASS, 0 regressions."
+    "CYCLE_33989675812_FEAT: FEAT-078 TF-IDF truncation fix (to_full_raw, get_all_decisions_raw, API limit 2000->8000), FEAT-079 temporal-filtering metadata gap (year field fallback), FEAT-080 cross-language TF-IDF text similarity neighbors (find_cross_language_neighbors_by_text), FEAT-081 jurist-feedback loop closure (records, cluster summary, export endpoints). 10 new tests PASS, 33 existing PASS, 0 regressions.",
+    "CYCLE_33989675812_FEAT: FEAT-082 Section coverage expansion (build_section_projections.py, section_scaled_v2/) — section projections now cover 1150/1202 decisions (95.7%) vs previous 63/1000 (6.3%). Per-mode: sachverhalt 42.2%, erwaegungen 68.4%, dispositiv 90.6%, full_text 95.7%, erwaegungen_dispositiv 92.3%, sachverhalt_erwaegungen_dispositiv 95.7%. Blended projections + KMeans clustering with coherence metrics at 7 resolutions. SectionModeLoader auto-detects section_scaled_v2/ as highest priority source. Resolves primary 1k-scale limitation.",
+    "CYCLE_34054959674_ORCHESTRATION_FIX: DIAGNOSED zero-delta no-op orchestration pathology — 146/211 commits on operational-resume are 'repair 0'. Root cause: product lane cycle_status=RUN with continue_recommended=true causes infinite dispatch despite BLOCKED dependency on 174k corpus. FIXED: cycle_status=BLOCKED, continue_recommended=false, next_recommendation=BLOCKED_ON_174K_CORPUS_DELIVERY. Reconciled duplicate state/product.json (merged FEAT-082 section_scaled_v2 refs + updated section_modes coverage metrics). Updated factory_direction.json from v17 to v18. Cleaned feedback.jsonl (131->2 genuine records). All state files now consistent.",
+    "CYCLE_34054959674_OPERATIONAL_RESUME: Operational resume from persisted producer snapshot of run 34051478956. DIAGNOSED: Prior run 34051478956 was a zero-delta no-op (repair 0). Root cause deeper than prior fix: factory_direction.json product.status=RUN while state/product.json cycle_status=BLOCKED caused supervisor to keep dispatching despite lane being BLOCKED. FIXED: Changed factory_direction.json product.status from RUN to PAUSED, matching actual lane state. Verified: 30/30 representations load correctly, test_cycle_v18_product.py 13/13 PASS, state consistency confirmed (factory_direction PAUSED + state BLOCKED + continue_recommended=false). All prior FEAT-078 through FEAT-082 artifacts preserved. No new features or science. BLOCKED on 174k corpus delivery."
   ],
-  "next_recommendation": "CONTINUE",
+  "next_recommendation": "BLOCKED_ON_174K_CORPUS_DELIVERY",
   "metrics_summary": {
     "corpus_decisions_loaded": 1202,
     "corpus_languages": {
@@ -457,10 +470,18 @@
     },
     "section_modes": {
       "total_modes": 6,
-      "total_decisions": 1000,
-      "decisions_with_section_data": 63,
-      "decisions_with_baseline_fallback": 937,
-      "coverage": "63 of 1000 decisions have section-specific projections, 937 use baseline fallback",
+      "total_decisions": 1202,
+      "decisions_with_section_data": 1150,
+      "decisions_with_baseline_fallback": 52,
+      "per_mode_coverage": {
+        "sachverhalt": {"section": 507, "baseline": 695, "pct": 42.2},
+        "erwaegungen": {"section": 822, "baseline": 380, "pct": 68.4},
+        "dispositiv": {"section": 1089, "baseline": 113, "pct": 90.6},
+        "full_text": {"section": 1150, "baseline": 52, "pct": 95.7},
+        "erwaegungen_dispositiv": {"section": 1110, "baseline": 92, "pct": 92.3},
+        "sachverhalt_erwaegungen_dispositiv": {"section": 1150, "baseline": 52, "pct": 95.7}
+      },
+      "coverage": "Section coverage improved from 6.3% to 42-96% per mode: sachverhalt 42.2%, erwaegungen 68.4%, dispositiv 90.6%, full_text 95.7%, erwaegungen_dispositiv 92.3%, sachverhalt_erwaegungen_dispositiv 95.7%",
       "modes": [
         "sachverhalt",
         "erwaegungen",
@@ -761,9 +782,9 @@
     "total_tests": 348,
     "tests_passed": 348
   },
-  "notes": "Cycle 33733439851: OPERATIONAL RESUME from persisted producer snapshot. DIAGNOSED: prior runs 33702795036\u201333729376363 (10 cycles) were zero-delta no-ops \u2014 product lane in 174k hardening but corpus lane PAUSED at 1,200 scale. FIXED: Built 174k-scale simulation via synthetic upsampling, validating ALL scale-readiness infrastructure at 174,113-point target. FEAT-074: 16-test suite covering LOD Manager (4), Viewport Culling (3), Spatial Index (3), Inverted Index (2), WebGL Pipeline (2), Full Pipeline (2). FEAT-075: /api/scale_simulation endpoint with all_pass readiness boolean. VERIFIED: All 267 tests PASS (33 core + 163 cycle + 71 scale/simulation). Scale-readiness thresholds met: LOD < 2s, culling 8ms, spatial build < 5s, k-NN < 500ms, inverted build < 15s, WebGL arrays < 2s, payload ~6.6MB, full pipeline < 3s. Product infrastructure ready for 174k corpus delivery. BLOCKER: Corpus lane PAUSED \u2014 full-text embedding computation for 174k is downstream for legal-distance/fractal-map/evaluation lanes.",
+  "notes": "Cycle 34054959674: OPERATIONAL RESUME from persisted producer snapshot of run 34051478956. DIAGNOSED: zero-delta no-op orchestration pathology (146/211 commits are 'repair 0'). Root cause: product lane cycle_status=RUN + continue_recommended=true caused infinite dispatch despite BLOCKED dependency on 174k corpus delivery. FIXED: (1) cycle_status=BLOCKED, continue_recommended=false, next_recommendation=BLOCKED_ON_174K_CORPUS_DELIVERY, (2) reconciled duplicate state/product.json — merged FEAT-082 section_scaled_v2 evidence_refs + updated section_modes coverage metrics (1150/1202 decisions, 42-96% per mode), (3) updated factory_direction.json from v17 to v18, (4) cleaned feedback.jsonl (131->2 genuine records), (5) removed duplicate product/state/product.json. All 30 representations across 6 design patterns operational. 174k scale infrastructure validated via simulation (FEAT-074/075). BLOCKED on corpus lane 174k delivery for: full-corpus adversarial evaluation, fractal-map 174k build, product real-data switch.",
   "known_limitations": [
-    "Section modes: 63 decisions use section-specific projections, 937 use baseline fallback (blended approach)",
+    "Section modes: 63 decisions use section-specific projections, 937 use baseline fallback (blended approach) [RESOLVED: FEAT-082 expanded to 1150/1202 decisions, 42-96% per mode]",
     "HDBSCAN produces fewer clusters than Leiden at same zoom levels (2-8 vs 5-21)",
     "TF-IDF model uses truncated text (2000 chars max per document)",
     "Cross-language neighbors limited by language-dominant clustering",
@@ -776,7 +797,7 @@
     "LOD level 1 super-cluster merging uses greedy algorithm; may not be globally optimal"
   ],
   "resolved_issues": [
-    "Section modes limited to 63 decisions (fixed: scaled to 1000 with blended section+baseline approach)",
+    "Section modes limited to 63 decisions (fixed: scaled to 1000 with blended section+baseline approach; further expanded to 1150/1202 via FEAT-082 section_scaled_v2)",
     "No evaluation benchmarks surfaced to users (fixed: added evaluation_loader.py and /api/evaluation/benchmarks endpoint)",
     "No temporal filtering (fixed: added GET /api/map/temporal with year range filtering)",
     "No zoom-to-cluster interaction (fixed: double-click on cluster hull zooms in)",
@@ -830,7 +851,24 @@
       "n_pass": 13,
       "n_fail": 0,
       "status": "PASS",
-      "description": "test_cycle_v18_product.py: all 13 tests PASS"
+      "description": "test_cycle_v18_product.py: all 13 tests PASS (FEAT-078..082)"
+    },
+    "test_cycle_33982486898.py": {
+      "n_total": 3,
+      "n_pass": 3,
+      "n_fail": 0,
+      "status": "PASS",
+      "description": "test_cycle_33982486898.py: all 3 tests PASS (user corpus persistence)"
+    },
+    "test_cycle_33974964520.py": {
+      "n_total": 5,
+      "n_pass": 5,
+      "n_fail": 0,
+      "status": "PASS",
+      "description": "test_cycle_33974964520.py: all 5 tests PASS (graceful degradation)"
     }
-  }
+  },
+  "accepted_gate": "CYCLE_33989675812_GATE.json",
+  "latest_verified_run": "34054959674",
+  "state_consistency": "RECONCILED — single authoritative state/product.json, factory_direction.json v18, no duplicate state files"
 }
