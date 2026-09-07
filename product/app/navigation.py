@@ -172,13 +172,31 @@ class NavigationAPI:
                     metadata = json.load(f)
                 self._base_decision_ids = [m["decision_id"] for m in metadata]
                 
-                # Load embedding model for new imports
-                self._embedding_model = SentenceTransformer(self.EMBEDDING_MODEL)
+                # Embedding model will be loaded lazily on first use
+                self._embedding_model = None
         except Exception as e:
             # Don't fail initialization if embeddings can't be loaded
             self._base_embeddings = None
             self._base_decision_ids = []
             self._embedding_model = None
+
+    def _get_embedding_model(self) -> Optional[SentenceTransformer]:
+        """Get the embedding model, loading it lazily on first use.
+        
+        This avoids loading the ~400MB model at startup, which takes ~30s.
+        The model is only needed for user corpus imports and incremental updates.
+        """
+        if self._embedding_model is not None:
+            return self._embedding_model
+        
+        if self._base_embeddings is None or len(self._base_embeddings) == 0:
+            return None
+        
+        try:
+            self._embedding_model = SentenceTransformer(self.EMBEDDING_MODEL)
+            return self._embedding_model
+        except Exception:
+            return None
 
     def _build_spatial_indices(self) -> None:
         """Build KD-tree spatial indices for fast viewport queries.
@@ -311,7 +329,10 @@ class NavigationAPI:
         """
         if self._base_embeddings is None or len(self._base_embeddings) == 0:
             return []
-        if not self._embedding_model:
+        
+        # Get embedding model lazily
+        embedding_model = self._get_embedding_model()
+        if embedding_model is None:
             return []
         
         # Get base map data for cluster assignments and positions
@@ -332,7 +353,7 @@ class NavigationAPI:
         
         # Compute embeddings for imported decisions
         try:
-            import_embeddings = self._embedding_model.encode(texts, convert_to_numpy=True, show_progress_bar=False)
+            import_embeddings = embedding_model.encode(texts, convert_to_numpy=True, show_progress_bar=False)
         except Exception:
             return []
         

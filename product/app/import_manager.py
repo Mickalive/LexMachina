@@ -146,7 +146,6 @@ class ImportManager:
 
         try:
             validator = self._nav_api.corpus._schema_validator
-            embedding_model = self._nav_api._embedding_model
             base_embeddings = self._nav_api._base_embeddings
             base_decision_ids = self._nav_api._base_decision_ids
             import_positions_file = self._nav_api._import_positions_file
@@ -161,11 +160,8 @@ class ImportManager:
             base_positions = base_map.positions if base_map else {}
             base_cluster_assignments = base_map.cluster_assignments if base_map else {}
 
-            has_embeddings = (
-                base_embeddings is not None
-                and len(base_embeddings) > 0
-                and embedding_model is not None
-            )
+            # Check if base embeddings are available (model loads lazily when needed)
+            has_embeddings = base_embeddings is not None and len(base_embeddings) > 0
 
             # Process in batches
             records = job.records
@@ -208,13 +204,13 @@ class ImportManager:
                 # Yield control briefly to allow cancellation checks
                 time.sleep(0)
 
-            # Phase 2: Compute positions for all valid imported decisions
+# Phase 2: Compute positions for all valid imported decisions
             if not job.is_cancelled and has_embeddings and job.valid > 0:
-                self._compute_positions(job, embedding_model, base_embeddings,
-                                       base_decision_ids, base_positions,
-                                       base_cluster_assignments,
-                                       default_representation, zoom_level,
-                                       import_positions_file, imported_positions)
+                self._compute_positions(job, base_embeddings,
+                                        base_decision_ids, base_positions,
+                                        base_cluster_assignments,
+                                        default_representation, zoom_level,
+                                        import_positions_file, imported_positions)
 
             if job.is_cancelled:
                 job.status = "cancelled"
@@ -283,7 +279,6 @@ class ImportManager:
     def _compute_positions(
         self,
         job: ImportJob,
-        embedding_model,
         base_embeddings: np.ndarray,
         base_decision_ids: List[str],
         base_positions: Dict,
@@ -298,6 +293,11 @@ class ImportManager:
         Processes records in batches for memory efficiency and checks
         for cancellation between each batch.
         """
+        # Get embedding model lazily
+        embedding_model = self._nav_api._get_embedding_model()
+        if embedding_model is None:
+            return
+        
         # Read validated decisions from the already-persisted JSONL file
         # instead of loading all 192k full-text decisions into memory.
         imported_decisions: List[Dict] = []

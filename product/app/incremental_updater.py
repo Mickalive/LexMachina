@@ -67,11 +67,15 @@ class IncrementalUpdater:
             representation = self._nav_api._get_default_representation()
 
         nav = self._nav_api
-        embedding_model = nav._embedding_model
         base_embeddings = nav._base_embeddings
         base_decision_ids = nav._base_decision_ids
 
-        if embedding_model is None or base_embeddings is None or len(base_embeddings) == 0:
+        if base_embeddings is None or len(base_embeddings) == 0:
+            return {"added": 0, "clusters_affected": [], "positions_updated": 0}
+
+        # Get embedding model lazily
+        embedding_model = nav._get_embedding_model()
+        if embedding_model is None:
             return {"added": 0, "clusters_affected": [], "positions_updated": 0}
 
         zl = nav.map_loader.get_zoom_level(representation, zoom_level)
