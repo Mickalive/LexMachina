@@ -1,0 +1,149 @@
+{
+  "cycle_id": "34159642100",
+  "proposal_run_id": "34159642100",
+  "audit_timestamp": "2026-09-07T20:50:00Z",
+  "auditor_model": "opencode/nemotron-3-ultra-free",
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": {
+    "cited_outcome_hybrid_0.5_JP_holdout": "0.580 (ACCEPTED, v8 holdout data-leakage-fixed)",
+    "cited_outcome_hybrid_0.5_LangDom_holdout": "0.511 (ACCEPTED, v8 holdout data-leakage-fixed)",
+    "cited_outcome_hybrid_0.7_JP_holdout": "0.585 (ACCEPTED, v8 holdout data-leakage-fixed)",
+    "cited_outcome_hybrid_0.7_LangDom_holdout": "0.51125 (ACCEPTED, v8 holdout data-leakage-fixed)",
+    "linear_metric_epoch4_JP_frozen_harness": "0.6847 (ACCEPTED, v6 metric_learning seed=42)",
+    "linear_metric_epoch4_OOS_JP": "0.525 (ACCEPTED, v10 OOS metric_learning)",
+    "mahalanobis_metric_epoch4_OOS_JP": "0.530 (ACCEPTED, v10 OOS metric_learning)",
+    "hybrid_stabilized_OOS_JP": "0.535 (ACCEPTED, v11 OOS hybrid_stabilized train-selected)",
+    "linear_citation_concat_JP_CV_v14": "0.765 (EXPLORATORY, v14 self-verified, no independent audit)",
+    "linear_citation_concat_v13_JP_5fold_CV": "~0.63 (ACCEPTED, v13 CYCLE_33342655415_GATE.json PASS)",
+    "true_OOS_JP_ceiling": "~0.53 (ACCEPTED, v11 clean OOS)",
+    "factory_JP_target": ">0.7 — NOT MET by any representation on verified baselines",
+    "hierarchy_coherence": "FUNDAMENTALLY UNPASSABLE (ACCEPTED NEGATIVE, v18 best purity 0.6497 < 0.70 at branch level)",
+    "max_benchmark_passes": "7/12 (ACCEPTED, no representation passes all 12 evaluation benchmarks)",
+    "two_mode_tradeoff": "CONFIRMED — Metric Learning (High-Purity: JP~0.53, CiteIndep~35%) vs Citation/Outcome (High-Advantage: JP~0.58, CiteIndep~14%)"
+  },
+  "evidence_summary": {
+    "core_lanes": {
+      "corpus": {
+        "status": "PAUSE",
+        "evidence_tier": "REPRODUCED",
+        "accepted_run": "33516132492",
+        "verification_run": "33520482177 (15th independent)",
+        "key_fact": "174,113 decisions normalized, 76/76 tests PASS, 15 independent verifications, manifest integrity verified, field coverage ground-truthed",
+        "blocker": "174k artifacts not published to accepted mount (compute budget + publishing pipeline)"
+      },
+      "legal_distance": {
+        "status": "PAUSE",
+        "evidence_tier": "REPRODUCED",
+        "accepted_run": "oos_hybrid_stabilized_fixed_selection_20260830_v11",
+        "key_fact": "v13 ACCEPTED linear_citation_concat (5-fold CV); v14 EXPLORATORY (confirmed, tier corrected); zero-shot hybrids verified at JP=0.580/0.585 (corrected from fabricated 0.7990/0.7907); true OOS ceiling ~0.53",
+        "blocker": "174k artifacts required for full-scale adversarial evaluation"
+      },
+      "fractal_map": {
+        "status": "PAUSE",
+        "evidence_tier": "ACCEPTED",
+        "accepted_run": "33319197061",
+        "verification_run": "33348050735 (46th operational resume)",
+        "key_fact": "633 artifacts, 184/184 tests PASS, 24 representations across 4 design patterns, nesting=1.0, hierarchical_purity=0.9571, compressed 5-level ladder validated 100% delta retention, scalability validated 338s/1.0GB at 174k",
+        "blocker": "174k artifacts + compute budget for 192k scaling",
+        "contamination_note": "ACCEPTED evidence contains fabricated JP=0.7990/0.7907, LangDom=0.4911/0.4907, HierAdv=+0.3703 — contradicts legal-distance v8 holdout (JP=0.580/0.585, LangDom=0.511/0.51125). Immutable per Constitution §6. Does not affect structural validity."
+      },
+      "evaluation": {
+        "status": "PAUSE",
+        "evidence_tier": "ACCEPTED",
+        "accepted_run": "eval_v18_coarse_hierarchy_1788167865",
+        "key_fact": "v18 hierarchy_coherence NEGATIVE (fundamentally unpassable at 1200 scale, best purity 0.6497 < 0.70); v17b label normalization REPRODUCED (4 seeds, 15-25% improvement, std < 0.022); 6 universal passes, 4 universal failures, 1 conditional pass; hierarchy/zoom/legal_area benchmarks should be retired",
+        "blocker": "174k artifacts + jurist recruitment"
+      },
+      "product": {
+        "status": "PAUSE",
+        "evidence_tier": "ACCEPTED",
+        "accepted_run": "33989675812",
+        "key_fact": "30 representations across 6 design patterns, 267 tests PASS, 174k simulation validated (16 tests all pass thresholds), serving default cited_outcome_hybrid_0.5, COMBINATION mode linear_hybrid05_concat (JP=0.838, std=0.027), DEFAULT map mode center_projected_64dim_hierarchical (both adversarial gates PASS)",
+        "blocker": "174k corpus delivery for real-data integration"
+      }
+    },
+    "frontier_teams": {
+      "metric_learning_jurivoc": {
+        "status": "PAUSE",
+        "charter_version": 4,
+        "corrected_threshold": "JP > 0.580, LangDom < 0.511 (corrected from fabricated JP > 0.7990, LangDom < 0.4911)",
+        "accepted_evidence_dir": "EMPTY",
+        "methodology": "Supervised metric learning on Jurivoc/TF weak labels, fusing multiple signals in projected 64/128/768-dim space"
+      },
+      "crosslingual_alignment": {
+        "status": "PAUSE",
+        "charter_version": 4,
+        "corrected_threshold": "JP > 0.58, LangDom < 0.51 (corrected from fabricated JP > 0.8, LangDom < 0.49)",
+        "accepted_evidence_dir": "EMPTY",
+        "methodology": "CPU-feasible LoRA fine-tuning of multilingual-e5-small (native 384-dim) with hierarchy preservation loss"
+      }
+    },
+    "fabrication_correction": {
+      "source_identified": "v12_verification_completion_report.md lines 69-79,90",
+      "fabricated_values": {
+        "cited_outcome_hybrid_0.5_JP": "0.7990",
+        "cited_outcome_hybrid_0.5_LangDom": "0.4911",
+        "cited_outcome_hybrid_0.7_HierAdv": "+0.3703"
+      },
+      "corrected_values": {
+        "cited_outcome_hybrid_0.5_JP": "0.580 (v8 holdout)",
+        "cited_outcome_hybrid_0.5_LangDom": "0.511 (v8 holdout)",
+        "cited_outcome_hybrid_0.7_HierAdv": "UNVERIFIABLE (not in v8 adversarial results)"
+      },
+      "correction_provenance": "v8_holdout_zero_shot_validation_fixed_report.md",
+      "immutable_artifacts_contaminated": [
+        "results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.5/integration_summary.json",
+        "results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.5/INTEGRATION_SPEC.md",
+        "results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.7/integration_summary.json",
+        "results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.7/INTEGRATION_SPEC.md"
+      ],
+      "remediation_blocked_by": "Constitution §6 (ACCEPTED evidence immutable)"
+    },
+    "v14_tier_correction": {
+      "old_tier": "REPRODUCED",
+      "new_tier": "EXPLORATORY",
+      "rationale": "No independent audit gate in /tmp/lex_accepted/core/legal-distance/results/audit/legal-distance/ for v14",
+      "v13_status": "ACCEPTED — only independently audited evidence for cross-mode combinations (CYCLE_33342655415_GATE.json PASS)"
+    },
+    "operational_metrics": {
+      "consecutive_zero_delta_director_runs": "13+",
+      "total_director_runs": 132,
+      "factory_direction_version": 21,
+      "frontier_portfolio_version": 5,
+      "backoff_recommended": true
+    }
+  },
+  "attack_surface_results": {
+    "mission_drift": "PASS",
+    "curiosity_frontier_proliferation": "PASS",
+    "duplicated_teams": "PASS",
+    "unaccepted_evidence_laundering": "PASS",
+    "stale_blocked_questions": "PASS",
+    "product_starvation": "REAL_BUT_JUSTIFIED",
+    "fake_parallelism": "CORRECTED",
+    "weak_acceptance_tests": "CORRECTED",
+    "unjustified_lane_pauses": "PASS",
+    "human_decision_required_misuse": "PASS"
+  },
+  "structural_notes": {
+    "accepted_state_files_preserved": true,
+    "accepted_state_v14_discrepancy": "Accepted state files (results/accepted-state/legal-distance.json) correctly show v14 as REPRODUCED (historical record of prior acceptance). Forward-looking factory_direction.json correctly shows v14 as EXPLORATORY (tier corrected). No conflict.",
+    "operational_overhead": "132+ total director runs with 13+ consecutive zero-delta cycles. Backoff mechanism recommended post-integration.",
+    "recommendation": "After integration: (1) Initiate dedicated repair cycle for fractal-map ACCEPTED evidence contamination or seek owner authorization on main; (2) Implement Director dispatch backoff mechanism; (3) When 174k corpus delivers, simultaneously RESUME all 5 lanes per factory_direction.json v21 questions."
+  },
+  "negative_results_preserved": [
+    "Factory JP>0.7 target NOT MET by any representation on verified baselines",
+    "True OOS JP ceiling ~0.53 — no credible path to >0.7 from current approaches",
+    "Hierarchy coherence FUNDAMENTALLY UNPASSABLE at 1200-decision scale (best purity 0.6497 < 0.70)",
+    "Boilerplate resistance NEGATIVE for ALL representations (resistance_score ≈ -0.74 to -0.92)",
+    "Two-mode tradeoff persists — no single representation dominates on both JP and CiteIndep",
+    "MLP combinations unstable across v13/v14 (split-dependent noise)",
+    "v14 linear_hybrid05_concat FAILS stability criterion (paired_std=0.042 > 0.03) despite highest JP",
+    "v14 linear_hybrid05_w3070 CONSISTENT FAILURE (v13 paired_std=0.033, v14 paired_std=0.062)",
+    "No representation passes all 12 evaluation benchmarks (max 7/12)"
+  ],
+  "auditor": "LEXMACHINA INDEPENDENT AUDITOR (nemotron-3-ultra-free)",
+  "audit_report": "reports/audit/director/CYCLE_34159642100.md"
+}
