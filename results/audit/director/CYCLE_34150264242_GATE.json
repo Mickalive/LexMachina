@@ -1,0 +1,112 @@
+{
+  "cycle_id": "34150264242",
+  "proposal_run_id": "34150264242",
+  "audit_timestamp": "2026-09-07T18:15:00Z",
+  "auditor_model": "opencode/mimo-v2.5-free",
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": {
+    "linear_citation_concat": "EXPLORATORY (v14 self-verified: mean_delta=+0.0392, paired_std=0.0212; NOT independently audited)",
+    "linear_citation_concat_v13": "ACCEPTED (v13 5-fold CV: mean_delta=+0.0275, paired_std=0.0164, p=0.0285, d=1.50 — CYCLE_33342655415_GATE.json PASS)",
+    "cited_decisions_tfidf_outcome_hybrid_0.5": "ACCEPTED dominant baseline (JP=0.580, LangDom=0.511, v8 holdout data-leakage-fixed)",
+    "true_oos_jp_ceiling": "~0.53 (v11 clean OOS) — no representation achieves JP > 0.7 on true holdout",
+    "hierarchy_coherence": "NEGATIVE — FUNDAMENTALLY UNPASSABLE at 1200-decision scale (v18: best purity 0.6497 < 0.70)",
+    "max_benchmark_passes": "7/12 — no representation passes all 12 evaluation benchmarks",
+    "factory_jp_target": ">0.7 — NOT MET by any representation on verified baselines"
+  },
+  "evidence_summary": {
+    "core_lanes": {
+      "corpus": {
+        "status": "PAUSE",
+        "evidence_tier": "REPRODUCED",
+        "accepted_run": "33516132492",
+        "key_fact": "174,113 decisions normalized, 76/76 tests PASS, 15 independent verifications",
+        "blocker": "174k artifacts not published to accepted mount"
+      },
+      "legal_distance": {
+        "status": "PAUSE",
+        "evidence_tier": "REPRODUCED",
+        "accepted_run": "oos_hybrid_stabilized_fixed_selection_20260830_v11",
+        "key_fact": "v13 ACCEPTED linear_citation_concat; v14 EXPLORATORY (corrected from REPRODUCED); zero-shot hybrids verified at JP=0.580 (corrected from fabricated 0.7990)",
+        "blocker": "174k artifacts required for full-scale adversarial evaluation"
+      },
+      "fractal_map": {
+        "status": "PAUSE",
+        "evidence_tier": "ACCEPTED",
+        "accepted_run": "33319197061",
+        "key_fact": "633 artifacts, 184/184 tests, nesting=1.0, purity=0.9571 at 1200 scale",
+        "blocker": "174k artifacts + compute budget"
+      },
+      "evaluation": {
+        "status": "PAUSE",
+        "evidence_tier": "ACCEPTED",
+        "accepted_run": "eval_v18_coarse_hierarchy_1788167865",
+        "key_fact": "v18 hierarchy_coherence NEGATIVE; v17b label normalization REPRODUCED (4 seeds)",
+        "blocker": "174k artifacts + jurist recruitment"
+      },
+      "product": {
+        "status": "PAUSE",
+        "evidence_tier": "ACCEPTED",
+        "accepted_run": "33989675812",
+        "key_fact": "30 representations, 267 tests, 174k simulation validated, BLOCKED on real data",
+        "blocker": "174k corpus delivery"
+      }
+    },
+    "frontier_teams": {
+      "metric_learning_jurivoc": {
+        "status": "PAUSE",
+        "charter_version": 4,
+        "corrected_threshold": "JP > 0.580, LangDom < 0.511 (corrected from fabricated JP > 0.7990, LangDom < 0.4911)",
+        "accepted_evidence_dir": "EMPTY"
+      },
+      "crosslingual_alignment": {
+        "status": "PAUSE",
+        "charter_version": 4,
+        "corrected_threshold": "JP > 0.58, LangDom < 0.51 (corrected from fabricated JP > 0.8, LangDom < 0.49)",
+        "accepted_evidence_dir": "EMPTY"
+      }
+    },
+    "fabrication_correction": {
+      "source_identified": "v12_verification_completion_report.md lines 69-79,90",
+      "fabricated_values": {
+        "cited_outcome_hybrid_0.5_JP": "0.7990",
+        "cited_outcome_hybrid_0.5_LangDom": "0.4911",
+        "cited_outcome_hybrid_0.7_HierAdv": "+0.3703"
+      },
+      "corrected_values": {
+        "cited_outcome_hybrid_0.5_JP": "0.580 (v8 holdout)",
+        "cited_outcome_hybrid_0.5_LangDom": "0.511 (v8 holdout)",
+        "cited_outcome_hybrid_0.7_HierAdv": "UNVERIFIABLE (not in v8 adversarial results)"
+      },
+      "correction_provenance": "v8_holdout_zero_shot_validation_fixed_report.md"
+    },
+    "v14_tier_correction": {
+      "old_tier": "REPRODUCED",
+      "new_tier": "EXPLORATORY",
+      "rationale": "No independent audit gate in /tmp/lex_accepted/core/legal-distance/results/audit/legal-distance/ for v14",
+      "v13_status": "ACCEPTED — only independently audited evidence for cross-mode combinations (CYCLE_33342655415_GATE.json)"
+    },
+    "no_new_evidence_since_last_run": true,
+    "consecutive_zero_delta_runs": "13+",
+    "total_director_runs": 131
+  },
+  "attack_surface_results": {
+    "mission_drift": "PASS",
+    "curiosity_frontier_proliferation": "PASS",
+    "duplicated_teams": "PASS",
+    "unaccepted_evidence_laundering": "PASS",
+    "stale_blocked_questions": "PASS",
+    "product_starvation": "REAL_BUT_JUSTIFIED",
+    "fake_parallelism": "CORRECTED",
+    "weak_acceptance_tests": "CORRECTED",
+    "unjustified_lane_pauses": "PASS",
+    "human_decision_required_misuse": "PASS"
+  },
+  "structural_notes": {
+    "accepted_state_files_preserved": true,
+    "accepted_state_v14_discrepancy": "Accepted state files (results/accepted-state/legal-distance.json) still show v14 as REPRODUCED. This is correct — accepted state files are historical records of what was accepted in previous audit cycles. The proposal correctly modifies only forward-looking state files (factory_direction.json, frontier_portfolio.json).",
+    "operational_overhead": "131 total director runs with 13+ consecutive zero-delta cycles. Backoff mechanism recommended.",
+    "recommendation": "After integration, consider backoff mechanism: after N consecutive zero-delta runs, increase dispatch interval or require trigger event before re-dispatching."
+  }
+}
