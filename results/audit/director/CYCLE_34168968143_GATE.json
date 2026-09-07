@@ -1,0 +1,158 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": {
+    "cited_outcome_hybrid_0.5_jurist_pairwise": {
+      "value": 0.580,
+      "tier": "ACCEPTED",
+      "source": "v8 holdout (data-leakage-fixed)",
+      "note": "Fabricated value 0.7990 in ACCEPTED fractal-map artifacts"
+    },
+    "cited_outcome_hybrid_0.5_language_dominance": {
+      "value": 0.511,
+      "tier": "ACCEPTED",
+      "source": "v8 holdout (data-leakage-fixed)",
+      "note": "Fabricated value 0.4911 in ACCEPTED fractal-map artifacts"
+    },
+    "cited_outcome_hybrid_0.7_jurist_pairwise": {
+      "value": 0.585,
+      "tier": "ACCEPTED",
+      "source": "v8 holdout (data-leakage-fixed)",
+      "note": "Fabricated value 0.7907 in ACCEPTED fractal-map artifacts"
+    },
+    "cited_outcome_hybrid_0.7_language_dominance": {
+      "value": 0.51125,
+      "tier": "ACCEPTED",
+      "source": "v8 holdout (data-leakage-fixed)",
+      "note": "Fabricated value 0.4907 in ACCEPTED fractal-map artifacts"
+    },
+    "linear_metric_epoch4_jurist_pairwise": {
+      "value": 0.6847,
+      "tier": "ACCEPTED",
+      "source": "v9 pre-trained (frozen harness v3)"
+    },
+    "linear_metric_epoch4_oos_jurist_pairwise": {
+      "value": 0.525,
+      "tier": "ACCEPTED",
+      "source": "v10 OOS metric learning"
+    },
+    "mahalanobis_metric_epoch4_oos_jurist_pairwise": {
+      "value": 0.530,
+      "tier": "ACCEPTED",
+      "source": "v10 OOS metric learning"
+    },
+    "hybrid_stabilized_oos_jurist_pairwise": {
+      "value": 0.535,
+      "tier": "ACCEPTED",
+      "source": "v11 OOS (train-selected, corrected)"
+    },
+    "linear_citation_concat_jurist_pairwise": {
+      "value": 0.765,
+      "tier": "EXPLORATORY",
+      "source": "v14 independent rerun (seed=137, self-verified)"
+    },
+    "linear_citation_concat_v13_jurist_pairwise": {
+      "value": 0.63,
+      "tier": "ACCEPTED",
+      "source": "v13 5-fold CV (CYCLE_33342655415_GATE.json PASS)"
+    },
+    "true_oos_jurist_pairwise_ceiling": {
+      "value": 0.53,
+      "tier": "ACCEPTED",
+      "source": "v11 clean OOS, v10 OOS metric learning"
+    },
+    "factory_jurist_pairwise_target": {
+      "value": ">0.7",
+      "status": "NOT_MET",
+      "note": "No representation achieves >0.7 on holdout"
+    },
+    "hierarchy_coherence_branch_purity": {
+      "value": 0.6497,
+      "tier": "ACCEPTED_NEGATIVE",
+      "source": "v18 coarse hierarchy (best: linear_citation_concat)",
+      "note": "FUNDAMENTALLY UNPASSABLE at 1200-decision scale"
+    },
+    "fractal_map_contamination": {
+      "fabricated_values": ["JP=0.7990", "LangDom=0.4911", "HierAdv=+0.3703"],
+      "correct_values": {
+        "cited_outcome_hybrid_0.5": {
+          "JP": 0.580,
+          "LangDom": 0.511
+        },
+        "cited_outcome_hybrid_0.7": {
+          "JP": 0.585,
+          "LangDom": 0.51125
+        }
+      },
+      "status": "IDENTIFIED_REPAIR_BLOCKED",
+      "blocker": "Constitution §6: ACCEPTED evidence cannot be modified by Director",
+      "contaminated_artifacts": [
+        "/tmp/lex_accepted/core/fractal-map/results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.5/integration_summary.json",
+        "/tmp/lex_accepted/core/fractal-map/results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.5/INTEGRATION_SPEC.md",
+        "/tmp/lex_accepted/core/fractal-map/results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.7/integration_summary.json",
+        "/tmp/lex_accepted/core/fractal-map/results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.7/INTEGRATION_SPEC.md",
+        "/tmp/lex_accepted/core/fractal-map/results/fractal_map/product_integration/map_mode_registry.json",
+        "/tmp/lex_director_proposal/results/audit/fractal-map/CYCLE_33337992667_GATE.json (claim_ceiling field)"
+      ]
+    }
+  },
+  "evidence_summary": {
+    "accepted_evidence": [
+      "v8 holdout validation (data-leakage-fixed) — ground truth for all downstream claims",
+      "v9 metric learning breakthrough (linear/mahalanobis on center_projected)",
+      "v10 OOS metric learning (true out-of-sample)",
+      "v11 OOS hybrid_stabilized (train-selected, corrected)",
+      "v13 cross-mode combinations (5-fold CV, repair R1 corrected) — linear_citation_concat winner",
+      "v14 independent rerun (seed=137) CONFIRMS linear_citation_concat PASS frozen success rule",
+      "v15 full harness evaluation (production defaults)",
+      "v16 full benchmark suite (12 benchmarks) — 6 universal passes, 4 universal failures",
+      "v18 hierarchy coherence (coarse label) — ACCEPTED_NEGATIVE: FUNDAMENTALLY UNPASSABLE",
+      "v17b label normalization — REPRODUCED across 4 seeds (15-25% purity gains)",
+      "Citation role resolution (v7) — BGE/ATF 100% resolved (2,988 annotations)",
+      "Fractal-map hierarchical structure (nesting=1.0, purity=0.9571, compressed 5-level ladder) — VALID at 1000-decision scale"
+    ],
+    "reproduced_evidence": [
+      "v14 independent rerun (seed=137): linear_citation_concat PASS frozen success rule — EXPLORATORY tier (self-verified, requires independent audit gate for REPRODUCED→ACCEPTED promotion)",
+      "v17b label normalization: 4 seeds, std < 0.022 — REPRODUCED tier",
+      "Corpus lane: 174,113 decisions, 15 independent verifications, 76/76 tests PASS — REPRODUCED tier"
+    ],
+    "exploratory_evidence": [
+      "v15 Combination vs Hybrid — cross-mode combinations vs zero-shot hybrids, requires independent audit gate",
+      "v12 temporal holdout — linear_citation_concat temporal JP=0.8042 (different metric definition)"
+    ],
+    "corpus_lane": {
+      "status": "COMPLETED",
+      "evidence_tier": "REPRODUCED",
+      "decisions_ingested": 174113,
+      "independent_verifications": 15,
+      "tests_passing": "76/76",
+      "blocker": "174k artifact publishing + compute budget confirmation"
+    },
+    "frontier_teams": {
+      "frontier_metric_learning_jurivoc": "PAUSED (charter v4) — verified baseline JP=0.580 below factory target >0.7",
+      "frontier_crosslingual_alignment": "PAUSED (charter v4) — GPU unavailable, CPU LoRA progress not demonstrated"
+    },
+    "contamination_identified": {
+      "location": "/tmp/lex_accepted/core/fractal-map/state/fractal-map.json and related integration artifacts",
+      "fabricated_metrics": "JP=0.7990, LangDom=0.4911, HierAdv=+0.3703 for cited_decisions_tfidf_outcome_hybrid_0.5/0.7",
+      "verified_correction": "v8 holdout: JP=0.580/0.585, LangDom=0.511/0.51125",
+      "constitutional_block": "§6 prevents Director from modifying ACCEPTED evidence",
+      "audit_gate_failure": "CYCLE_33337992667_GATE.json reports fabricated_data_detected: false (false negative)"
+    },
+    "negative_results_preserved": [
+      "Factory JP>0.7 target NOT MET by any representation on verified holdout/OOS",
+      "hierarchy_coherence FUNDAMENTALLY UNPASSABLE at all label granularities (branch=4, normalized=55, raw=105)",
+      "boilerplate_resistance_real_corpus fails all representations — known systemic limitation from v3",
+      "center_projected_64dim FAILS holdout jurist gate (JP=0.385 < 0.5)",
+      "True OOS JuristPref ceiling ≈0.53, not ~0.60 as v9 suggested"
+    ],
+    "product_implications_unlocked": [
+      "Product zoom hierarchy must rely on Leiden clustering (already implemented), not legal-area labels",
+      "Corpus lane should normalize legal_area labels as data-quality fix (v17b REPRODUCED)",
+      "linear_citation_concat is BEST for branch-level structure (0.6497 purity) though still below 0.70",
+      "Two-map-mode tradeoff CONFIRMED on holdout: Citation-based (LangDom=0.51, JP=0.58, CiteIndep=14%) vs Semantic (LangDom=0.73, JP=0.39, CiteIndep=37%)",
+      "Fractal-map COMPLETE at 1000-decision scale; BLOCKED on corpus 192k for scaling"
+    ]
+  }
+}
