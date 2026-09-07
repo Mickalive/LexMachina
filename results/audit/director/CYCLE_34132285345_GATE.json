@@ -1,0 +1,73 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Director Report Line 29: Change 'first ACCEPTED evidence' to 'first REPRODUCED evidence' (tier accuracy)",
+    "Director Report Line 29: Correct CiteIndep claim — linear_citation_concat (0.3093) does NOT exceed metric-learning baseline linear_oos_refit (0.5050); it sacrifices CiteIndep for JP gain",
+    "Director Report Evidence Table Line 27: Change v13 tier from 'REPRODUCED' to 'EXPLORATORY' — only v14 independent rerun is REPRODUCED"
+  ],
+  "claim_ceiling": "REPRODUCED for linear_citation_concat combination; ACCEPTED for zero-shot cited_decisions_tfidf_outcome_hybrid_0.5 (JP=0.7990, LangDom=0.4911) as dominant production baseline",
+  "evidence_summary": {
+    "factory_direction_version": 20,
+    "frontier_portfolio_version": 4,
+    "core_lanes_status": "All 5 PAUSED at 1,200/174k scale, blocker=174k artifact publishing + compute budget",
+    "frontier_teams": [
+      {
+        "team_id": "frontier_metric_learning_jurivoc",
+        "charter_version": 3,
+        "status": "PAUSE",
+        "stop_promote_rule_active": true
+      },
+      {
+        "team_id": "frontier_crosslingual_alignment",
+        "charter_version": 3,
+        "status": "PAUSE",
+        "stop_promote_rule_active": true
+      }
+    ],
+    "accepted_evidence_cited": {
+      "v13_cross_mode_cv": {
+        "tier": "EXPLORATORY",
+        "finding": "linear_citation_concat passes frozen success rule (mean_delta=+0.0275, paired_delta_std=0.0164)",
+        "location": "/tmp/lex_accepted/core/legal-distance/legal_distance/reports/v13_cross_mode_kfold_report.md"
+      },
+      "v14_independent_rerun": {
+        "tier": "REPRODUCED",
+        "finding": "linear_citation_concat CONFIRMED under independent seeds (mean_delta=+0.0392, paired_delta_std=0.0212)",
+        "location": "/tmp/lex_accepted/core/legal-distance/legal_distance/reports/v14_independent_rerun_report.md"
+      },
+      "v7_zero_shot_hybrid": {
+        "tier": "ACCEPTED",
+        "finding": "cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.7990, LangDom=0.4911 — dominant production baseline",
+        "location": "/tmp/lex_accepted/core/legal-distance/..."
+      },
+      "v3_frozen_harness": {
+        "tier": "ACCEPTED",
+        "finding": "Frozen evaluation harness v3 (seed=42, config_hash=1674829901d55e83) with adversarial gates LangDom<0.85, JP>0.5",
+        "location": "/tmp/lex_accepted/core/evaluation/..."
+      },
+      "fractal_map_validation": {
+        "tier": "ACCEPTED",
+        "finding": "Hierarchical Leiden nesting=1.0, purity=0.9571 at 1,200 scale",
+        "location": "/tmp/lex_accepted/core/fractal-map/results/fractal_map/hierarchical_map/..."
+      },
+      "product_integration": {
+        "tier": "VERIFIED",
+        "finding": "54 API endpoints functional at 1,200 scale",
+        "location": "/tmp/lex_director_proposal/results/evaluation/product_integration_verification_v11.json"
+      }
+    },
+    "model_health": {
+      "active_model": "opencode/nemotron-3-ultra-free",
+      "status": "FREE_FALLBACK_ACTIVE",
+      "healthy": true
+    },
+    "human_decision_required": false,
+    "next_productive_move_when_blocker_resolves": [
+      "Legal-distance: full-corpus adversarial evaluation at 174k scale",
+      "Fractal-map: scale 29+ representations to 174k with 5-level resolution ladder",
+      "Evaluation: full 12-benchmark suite at 174k + jurist human study",
+      "Product: switch from synthetic to real 174k data with production defaults"
+    ]
+  }
+}
