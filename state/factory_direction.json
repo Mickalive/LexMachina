@@ -1,32 +1,32 @@
 {
-  "version": 22,
+  "version": 23,
   "mission": "Build a fractal Google Maps of law for Swiss Federal Supreme Court case law from 2000 onward plus user-imported corpora, beating simple semantic-map baselines in legal usefulness.",
   "lanes": {
     "corpus": {
-      "status": "PAUSE",
+      "status": "HUMAN_DECISION_REQUIRED",
       "priority": 1,
       "question": "Embedding compute budget confirmed: publish full 174,113-decision normalized corpus artifacts (parquet/JSONL) with schema validation (v14: 0 errors), citation ID resolution, and field coverage ground truth; enable downstream lanes to compute embeddings at full-corpus scale."
     },
     "legal-distance": {
-      "status": "PAUSE",
+      "status": "HUMAN_DECISION_REQUIRED",
       "priority": 1,
       "question": "When 174k artifacts published + compute budget confirmed: (1) run full-corpus adversarial evaluation at 174k scale on all production representations, (2) section-specific cross-lingual evaluation (sachverhalt/erwaegungen/dispositiv) at full corpus density, (3) scale linear_hybrid05_concat stability test at 174k, (4) re-test production-deployment vs CV tradeoff at 174k density to resolve TF-IDF SVD information-leakage hypothesis."
     },
     "fractal-map": {
-      "status": "PAUSE",
+      "status": "HUMAN_DECISION_REQUIRED",
       "priority": 1,
       "question": "When 174k artifacts published + compute budget confirmed: scale all 29+ validated representations to full 174k corpus using compressed 5-level resolution ladder [0.25, 0.5, 1.0, 2.0, 3.0], validate citation-role zoom quality at 174k, and implement multi-view zoom UI with citation role views per accepted fractal-map audit recommendation."
     },
     "evaluation": {
-      "status": "PAUSE",
+      "status": "HUMAN_DECISION_REQUIRED",
       "priority": 1,
       "question": "When 174k artifacts published + jurist recruitment complete: (1) run full 12-benchmark formal suite at 174k scale on all production representations, (2) execute jurist human study (framework ready, needs 5-10 Swiss jurists), (3) validate citation_heritage benchmark (requires 174k citation-ID resolution), (4) test whether v17b label normalization (15-25% purity gain, reproduced 4 seeds) generalizes to 174k fine-grained legal_area labels."
     },
     "product": {
-      "status": "PAUSE",
+      "status": "HUMAN_DECISION_REQUIRED",
       "priority": 1,
       "question": "When 174k corpus artifacts delivered: switch product from synthetic-scale simulation to real 174k data — wire production defaults to full-corpus artifacts, validate 54 API endpoints at 174k scale, and confirm section coverage, LOD/culling/WebGL pipeline performance at production load."
     }
   },
-  "director_note": "RUN_34187602693: All core lanes remain PAUSED on same blocker — 174k corpus artifacts validated (v14: 174,113 decisions, 0 schema errors, full 2000-2026 coverage) but embedding compute budget for 174k scale not confirmed. No core lane status/question/priority materially changed; factory_direction version remains 22. CONFIRMED EVIDENCE THIS RUN: (1) v14 independent rerun (seed=137) CONFIRMED linear_citation_concat REPRODUCED: mean_delta=+0.0392, paired_delta_std=0.0212, PASS frozen success rule (min_delta>=0.02, max_std<=0.03) — REPRODUCED tier. (2) v12 temporal holdout REPLICATED: linear_hybrid05_concat JP=0.8375 beats center_projected_64dim JP=0.7750 by +0.0625 on temporal test set — ACCEPTED tier. (3) Verified v8 holdout (data-leakage-fixed) baselines: cited_outcome_hybrid_0.5 holdout JP=0.580, LangDom=0.511; cited_outcome_hybrid_0.7 holdout JP=0.585, LangDom=0.51125. Both pass adversarial gates but do NOT meet factory JP>0.7 target. (4) True OOS JuristPref ceiling ≈0.53 (v11 clean OOS) CONFIRMED. Factory JP>0.7 target NOT met by any representation. (5) cited_decisions_tfidf zero-shot achieves JP=0.6922, LangDom=0.6107 on frozen harness — BEATS supervised metric learning on jurist pairwise. (6) CRITICAL CROSS-LANE FINDING PERSISTS: fractal-map ACCEPTED evidence STILL contains fabricated baseline values JP=0.7990 and LangDom=0.4911 (HierAdv=+0.3703 for α=0.7) in cited_decisions_tfidf_outcome_hybrid_0.5/0.7 integration_summary.json and INTEGRATION_SPEC.md — identified as fabricated in legal-distance v12 verification. ACCEPTED evidence artifacts — cannot be modified by Director per Constitution §6. Requires dedicated repair cycle or human intervention on main. (7) Two-mode tradeoff persists: all JP-winning combinations sacrifice CiteIndep (metric learning: CiteIndep=0.353; citation/outcome: CiteIndep=0.138). Frontier teams remain PAUSED — no representation achieves JP>0.7; zero-shot hybrids pass adversarial gates but do not meet product capability goal. Next productive unblock requires embedding compute budget for 174k scale OR fractal-map repair cycle completion."
+  "director_note": "RUN_34194207870: All core lanes escalated from PAUSE to HUMAN_DECISION_REQUIRED — 174k corpus artifacts validated (v14: 174,113 decisions, 0 schema errors, full 2000-2026 coverage) but embedding compute budget for 174k scale remains unconfirmed. This is an EXTERNAL RESOURCE DECISION requiring repository owner allocation. CONFIRMED EVIDENCE THIS RUN: (1) v14 independent rerun (seed=137) CONFIRMED linear_citation_concat REPRODUCED: mean_delta=+0.0392, paired_delta_std=0.0212, PASS frozen success rule (min_delta>=0.02, max_std<=0.03) — REPRODUCED tier. (2) v12 temporal holdout REPLICATED: linear_hybrid05_concat JP=0.8375 beats center_projected_64dim JP=0.7750 by +0.0625 on temporal test set — ACCEPTED tier. (3) Verified v8 holdout (data-leakage-fixed) baselines: cited_outcome_hybrid_0.5 holdout JP=0.580, LangDom=0.511; cited_outcome_hybrid_0.7 holdout JP=0.585, LangDom=0.51125. Both pass adversarial gates but do NOT meet factory JP>0.7 target. (4) True OOS JuristPref ceiling ≈0.53 (v11 clean OOS) CONFIRMED. Factory JP>0.7 target NOT met by any representation. (5) cited_decisions_tfidf zero-shot achieves JP=0.6922, LangDom=0.6107 on frozen harness — BEATS supervised metric learning on jurist pairwise. (6) CRITICAL CROSS-LANE FINDING PERSISTS: fractal-map ACCEPTED evidence STILL contains fabricated baseline values JP=0.7990 and LangDom=0.4911 (HierAdv=+0.3703 for α=0.7) in cited_decisions_tfidf_outcome_hybrid_0.5/0.7 integration_summary.json and INTEGRATION_SPEC.md — identified as fabricated in legal-distance v12 verification. ACCEPTED evidence artifacts — cannot be modified by Director per Constitution §6. Requires dedicated repair cycle or human intervention on main. (7) Two-mode tradeoff persists: all JP-winning combinations sacrifice CiteIndep (metric learning: CiteIndep=0.353; citation/outcome: CiteIndep=0.138). Frontier teams remain PAUSED — no representation achieves JP>0.7; zero-shot hybrids pass adversarial gates but do not meet product capability goal. factory_direction version incremented to 23 (lane status material change: PAUSE → HUMAN_DECISION_REQUIRED). frontier_portfolio version remains 6 (no material portfolio change)."
 }
