@@ -1,0 +1,104 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    {
+      "fix": "Repair fractal-map ACCEPTED evidence contamination",
+      "priority": "CRITICAL",
+      "owner": "human_or_dedicated_repair_cycle",
+      "description": "Regenerate integration_summary.json and INTEGRATION_SPEC.md for cited_decisions_tfidf_outcome_hybrid_0.5 and _0.7 with verified v8 holdout values (JP=0.580/0.585, LangDom=0.511/0.51125). Requires audit-gated cycle on lab/fractal-map or human intervention on main per Constitution §6.",
+      "artifacts": [
+        "/tmp/lex_accepted/core/fractal-map/results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.5/integration_summary.json",
+        "/tmp/lex_accepted/core/fractal-map/results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.5/INTEGRATION_SPEC.md",
+        "/tmp/lex_accepted/core/fractal-map/results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.7/integration_summary.json",
+        "/tmp/lex_accepted/core/fractal-map/results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.7/INTEGRATION_SPEC.md"
+      ],
+      "verified_replacement_values": {
+        "cited_decisions_tfidf_outcome_hybrid_0.5": {
+          "jurist_preference": 0.580,
+          "language_dominance": 0.511,
+          "hierarchical_advantage": "TBD_from_v8_holdout"
+        },
+        "cited_decisions_tfidf_outcome_hybrid_0.7": {
+          "jurist_preference": 0.585,
+          "language_dominance": 0.51125,
+          "hierarchical_advantage": "TBD_from_v8_holdout"
+        }
+      }
+    }
+  ],
+  "claim_ceiling": {
+    "max_verified_jurist_preference": 0.585,
+    "max_verified_language_dominance": 0.511,
+    "true_oos_jurist_pref_ceiling": 0.53,
+    "factory_jp_target": 0.7,
+    "factory_jp_target_met": false,
+    "highest_reproduced_jp": 0.6889,
+    "highest_reproduced_jp_mode": "cited_decisions_tfidf (v8 fractal-map audit)",
+    "stable_reproduced_jp": 0.765,
+    "stable_reproduced_jp_mode": "linear_citation_concat (v14 independent rerun, CV)",
+    "temporal_holdout_best_jp": 0.8375,
+    "temporal_holdout_best_mode": "linear_hybrid05_concat",
+    "note": "All verified JP values are from holdout/temporal evaluation. Frozen harness v3 values are higher but do not generalize (v11 holdout cross-validation confirmed discrepancies). Factory JP>0.7 target NOT MET by any representation under verified OOS conditions."
+  },
+  "evidence_summary": {
+    "corpus_v14": {
+      "status": "ACCEPTED",
+      "decisions": 174113,
+      "schema_errors": 0,
+      "year_coverage": "2000-2026",
+      "source": "/tmp/lex_accepted/core/corpus/corpus/normalization/canonical/validation_report_v14.json"
+    },
+    "v8_holdout_fixed": {
+      "status": "ACCEPTED",
+      "cited_outcome_hybrid_0.5": { "jurist_preference": 0.580, "language_dominance": 0.511, "both_gates_pass": true },
+      "cited_outcome_hybrid_0.7": { "jurist_preference": 0.585, "language_dominance": 0.51125, "both_gates_pass": true },
+      "source": "/tmp/lex_accepted/core/evaluation/evaluation/results/holdout_cross_validation/holdout_cross_validation_results.json"
+    },
+    "v14_independent_rerun": {
+      "status": "REPRODUCED",
+      "linear_citation_concat": { "mean_delta": 0.0392, "paired_delta_std": 0.0212, "success_rule": "PASS" },
+      "source": "/tmp/lex_accepted/core/evaluation/results/evaluation/v14_verification/v14_verification_eval_v14_verify_1788147479.json"
+    },
+    "v12_temporal_holdout": {
+      "status": "ACCEPTED",
+      "linear_hybrid05_concat": { "temporal_jp": 0.8375, "beats_center_projected_by": 0.0625, "replicates": true },
+      "source": "/tmp/lex_accepted/core/evaluation/reports/evaluation/evaluation_v12_temporal_holdout_33339846824.md"
+    },
+    "v17b_label_normalization": {
+      "status": "REPRODUCED",
+      "purity_gain": "15-25% across hierarchy/zoom/legal_area",
+      "seeds_reproduced": 4,
+      "source": "/tmp/lex_accepted/core/evaluation/results/evaluation/v17b_label_normalization_all_reps/v17b_label_normalization_all_reps_latest.json"
+    },
+    "v15_combination_vs_hybrid": {
+      "status": "ACCEPTED",
+      "verdict": "HYBRID_REMAINS_DOMINANT",
+      "best_hybrid_jp": 0.6942,
+      "combinations_beating_hybrid": 0,
+      "source": "/tmp/lex_accepted/core/evaluation/results/evaluation/v15_combination_vs_hybrid/v15_combination_vs_hybrid_latest.json"
+    },
+    "fractal_map_v8_audit": {
+      "status": "REPRODUCED",
+      "modes_tested": 12,
+      "tests_passed": 51,
+      "tests_failed": 0,
+      "default_mode": "center_projected_hierarchical",
+      "source": "/tmp/lex_accepted/core/fractal-map/results/fractal_map/audit/CYCLE_v8_33270668887_GATE.json"
+    },
+    "accepted_evidence_contamination": {
+      "status": "CONFIRMED",
+      "contaminated_artifacts": 4,
+      "fabricated_values": { "jp_0.5": 0.7990, "langdom_0.5": 0.4911, "jp_0.7": 0.7907, "langdom_0.7": 0.4907 },
+      "verified_values": { "jp_0.5": 0.580, "langdom_0.5": 0.511, "jp_0.7": 0.585, "langdom_0.7": 0.51125 },
+      "resolution_required": "dedicated_repair_cycle_or_human_intervention"
+    },
+    "frontier_teams": {
+      "frontier_metric_learning_jurivoc": { "status": "PAUSED", "charter_version": 5, "stop_promote_rule_active": true },
+      "frontier_crosslingual_alignment": { "status": "PAUSED", "charter_version": 5, "stop_promote_rule_active": true }
+    },
+    "factory_direction_version": 22,
+    "frontier_portfolio_version": 6,
+    "control_epoch": 2
+  }
+}
