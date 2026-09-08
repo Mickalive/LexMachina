@@ -1,0 +1,123 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Factory remains blocked on 174k embedding compute budget; all core lanes at HUMAN_DECISION_REQUIRED; verified evidence shows true OOS JuristPref ceiling ≈0.53 (factory JP>0.7 target unmet); linear_citation_concat REPRODUCED as stable cross-mode combination (mean_delta=+0.0392, paired_std=0.0212); linear_hybrid05_concat REPLICATED on temporal holdout (JP=0.8375 vs center_projected_64dim 0.7750, +0.0625); fractal-map ACCEPTED evidence contaminated with fabricated baselines (JP=0.7990/0.7907 vs verified 0.580/0.585) requiring dedicated repair cycle or human intervention on main per Constitution §6.",
+  "evidence_summary": {
+    "corpus_v14": {
+      "status": "REPRODUCED",
+      "decisions": 174113,
+      "schema_errors": 0,
+      "coverage": "2000-2026 full",
+      "citation_id_resolution": "complete",
+      "field_coverage": {
+        "full_text": 1.0,
+        "regeste": 0.474,
+        "cited_decisions": 0.526,
+        "outcome": 0.505,
+        "legal_area": 0.526
+      },
+      "independent_verifications": 15,
+      "source": "/tmp/lex_accepted/core/corpus/corpus/normalization/canonical/validation_report_v14.json",
+      "blocker": "embedding compute budget for 174k scale (external resource decision)"
+    },
+    "legal_distance": {
+      "v14_independent_rerun": {
+        "status": "REPRODUCED",
+        "finding": "linear_citation_concat mean_delta=+0.0392, paired_delta_std=0.0212, PASS frozen success rule (min_delta>=0.02, max_std<=0.03)",
+        "best_stable_combination": "linear_citation_concat (mean_JP=0.765)"
+      },
+      "v12_temporal_holdout": {
+        "status": "ACCEPTED",
+        "finding": "linear_hybrid05_concat JP=0.8375 beats center_projected_64dim JP=0.7750 by +0.0625 on temporal test set — REPLICATED"
+      },
+      "v8_holdout_zero_shot_fixed": {
+        "status": "ACCEPTED",
+        "verified_baselines_holdout": {
+          "cited_outcome_hybrid_0.5": {"JP": 0.580, "LangDom": 0.511},
+          "cited_outcome_hybrid_0.7": {"JP": 0.585, "LangDom": 0.51125},
+          "cited_decisions_tfidf": {"JP": 0.525, "LangDom": 0.5195},
+          "center_projected_64dim": {"JP": 0.385, "LangDom": 0.725}
+        },
+        "note": "All pass adversarial gates (LangDom<0.85, JP>0.5) but NONE meet factory JP>0.7 target",
+        "source": "/tmp/lex_accepted/core/legal-distance/legal_distance/results/v8/holdout_zero_shot_validation_fixed/holdout_zero_shot_validation_fixed.json"
+      },
+      "v11_clean_oos": {
+        "status": "ACCEPTED",
+        "finding": "True OOS JuristPref ceiling ~0.53 (holdout JP=0.535 for hybrid_stabilized); selection-on-test defect fixed; factory JP>0.7 target NOT met by any representation"
+      },
+      "zero_shot_cited_decisions_tfidf": {
+        "finding": "JP=0.6922, LangDom=0.6107 on frozen harness — BEATS supervised metric learning on jurist pairwise"
+      },
+      "tradeoff": "All JP-winning combinations sacrifice CiteIndep (metric learning: CiteIndep=0.353; citation/outcome: CiteIndep=0.138)"
+    },
+    "fractal_map": {
+      "critical_fabrication": {
+        "artifacts": [
+          "cited_decisions_tfidf_outcome_hybrid_0.5/integration_summary.json",
+          "cited_decisions_tfidf_outcome_hybrid_0.7/integration_summary.json"
+        ],
+        "fabricated_values": {"JP_0.5": 0.799, "LangDom_0.5": 0.4911, "JP_0.7": 0.7907, "LangDom_0.7": 0.4907, "HierAdv_0.5": 0.2918, "HierAdv_0.7": 0.3703},
+        "verified_values": {"JP_0.5": 0.580, "LangDom_0.5": 0.511, "JP_0.7": 0.585, "LangDom_0.7": 0.51125},
+        "discrepancy": "+0.219/0.206 JP inflation, -0.020/0.021 LangDom deflation",
+        "constitutional_constraint": "ACCEPTED tier — Director CANNOT modify per AGENTS.md §6",
+        "required_resolution": "Dedicated repair cycle or human intervention on main branch",
+        "source_verified": [
+          "/tmp/lex_accepted/core/fractal-map/results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.5/integration_summary.json",
+          "/tmp/lex_accepted/core/fractal-map/results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.7/integration_summary.json"
+        ]
+      },
+      "validated_structures": {
+        "hierarchical_leiden": {"nesting": 1.0, "purity": 0.9571},
+        "compressed_resolution_ladder": {"ladder": [0.25, 0.5, 1.0, 2.0, 3.0], "delta_retention_pct": 100.0, "modes_validated": 22},
+        "note": "Multiple legal-distance mode integrations with verified benchmarks unaffected by fabrication"
+      }
+    },
+    "evaluation": {
+      "frozen_harness_v3": {"config_hash": "1674829901d55e83", "seed": 42, "status": "IMMUTABLE BASELINE"},
+      "v18_coarse_hierarchy": {
+        "status": "ACCEPTED",
+        "finding": "hierarchy_coherence FUNDAMENTALLY UNPASSABLE at branch level (best purity 0.6497 < 0.70); embedding space captures legal reasoning proximity, not branch classification"
+      },
+      "v17b_label_normalization": {
+        "status": "REPRODUCED",
+        "finding": "15-25% purity improvement across 3 metrics, verified across 4 seeds (std < 0.022); corpus lane should normalize legal_area labels"
+      },
+      "12_benchmark_suite": "ready for 174k scale execution",
+      "jurist_study_framework": "ready, needs 5-10 Swiss jurists (external recruitment)"
+    },
+    "product": {
+      "api_endpoints": 54,
+      "tests_pass": 267,
+      "representations": 30,
+      "design_patterns": 6,
+      "status": "validated at synthetic scale, blocked on 174k embeddings for real-data validation"
+    },
+    "frontier_teams": {
+      "frontier_metric_learning_jurivoc": {
+        "charter_version": 5,
+        "status": "PAUSED",
+        "stop_rule_triggered": "verified baseline JP=0.580 BELOW factory JP>0.7 target; no representation achieves factory target; 3 architecture variants exhausted"
+      },
+      "frontier_crosslingual_alignment": {
+        "charter_version": 5,
+        "status": "PAUSED",
+        "stop_rule_triggered": "GPU unavailable >2 director cycles; CPU LoRA progress not demonstrated on adversarial gates without hierarchy collapse"
+      },
+      "policy_compliance": "Both teams correctly PAUSED per charters; no new teams created — no concrete evidence opens credible path toward JP>0.7"
+    },
+    "factory_direction": {
+      "version": 24,
+      "material_change_since_prior_run": false,
+      "lanes_all_human_decision_required": true,
+      "blocker": "174k embedding compute budget unconfirmed (external resource decision)"
+    },
+    "frontier_portfolio": {
+      "version": 6,
+      "material_change_since_prior_run": false,
+      "teams_paused": 2,
+      "stop_promote_rules_triggered": true,
+      "no_new_teams": true
+    }
+  }
+}
