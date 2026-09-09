@@ -1,0 +1,34 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "ACCEPTED",
+  "evidence_summary": {
+    "verified_claims": [
+      "Corpus normalization: 174,113 decisions, 0 schema errors, 2000-2026 coverage, 15x independent verification (REPRODUCED)",
+      "Baseline adversarial gates: center_projected_64dim LangDom=0.531, JP=0.512 (REPRODUCED on frozen harness v3)",
+      "Zero-shot citation signal: cited_decisions_tfidf JP=0.6922, LangDom=0.6107 (ACCEPTED)",
+      "Zero-shot citation+outcome holdout: cited_outcome_hybrid_0.5 JP=0.580, LangDom=0.511 (ACCEPTED, v8 data-leakage-fixed)",
+      "Static combination stability: linear_citation_concat mean_delta=+0.0392, paired_std=0.0212 (REPRODUCED, v14 independent seed=137)",
+      "Temporal generalization: linear_hybrid05_concat +0.0625 JP on temporal holdout (REPLICATED, v12)",
+      "Metric learning OOS: linear_metric_epoch4 JP=0.525, CiteIndep=37% (ACCEPTED)",
+      "Fractal hierarchy: true_hierarchical_leiden nesting=1.0, purity=0.9571 (ACCEPTED)",
+      "v17b label normalization: 15-25% purity gain across 4 seeds (REPRODUCED)",
+      "Product readiness: 30 representations, 6 design patterns, 267+ tests PASS, 174k simulation validated"
+    ],
+    "contaminated_evidence_documented_not_used": [
+      "ACCEPTED-tier fractal-map cited_decisions_tfidf_outcome_hybrid_0.5: fabricated JP=0.7990, LangDom=0.4911",
+      "ACCEPTED-tier fractal-map cited_decisions_tfidf_outcome_hybrid_0.7: fabricated JP=0.7907, LangDom=0.4907"
+    ],
+    "negative_results_honestly_represented": [
+      "Factory JP>0.7 target NOT MET by any representation (true OOS ceiling ≈0.53)",
+      "Hierarchy coherence at branch level: FAIL for all reps (best 0.6497 < 0.70) — FUNDAMENTALLY UNPASSABLE at 1200-decision scale",
+      "Citation-independent retrieval >15% for citation signals: FAIL (best 14.05%)",
+      "Cross-lingual alignment without hierarchy collapse: NOT ACHIEVED (multilingual-e5-small collapses hierarchy)"
+    ],
+    "external_blockers": [
+      "Embedding compute budget for 174k scale — repository owner resource decision",
+      "Fabricated evidence repair in ACCEPTED-tier artifacts — requires human intervention on main branch per Constitution §6"
+    ]
+  }
+}
