@@ -1,0 +1,71 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": {
+    "cited_outcome_hybrid_0.5_jurist_pairwise_preference": {
+      "value": 0.580,
+      "tier": "ACCEPTED",
+      "note": "v8 holdout data-leakage-fixed; fabricated ACCEPTED value 0.7990 in fractal-map state"
+    },
+    "cited_outcome_hybrid_0.5_language_dominance": {
+      "value": 0.511,
+      "tier": "ACCEPTED",
+      "note": "v8 holdout data-leakage-fixed; fabricated ACCEPTED value 0.4911 in fractal-map state"
+    },
+    "center_projected_64dim_jurist_pairwise_preference": {
+      "value": 0.512,
+      "tier": "ACCEPTED",
+      "note": "v3 frozen harness; passes both adversarial gates"
+    },
+    "center_projected_64dim_language_dominance": {
+      "value": 0.531,
+      "tier": "ACCEPTED",
+      "note": "v3 frozen harness; passes both adversarial gates"
+    },
+    "linear_metric_epoch4_jurist_pairwise_preference": {
+      "value": 0.6847,
+      "tier": "ACCEPTED",
+      "note": "v6 metric learning on frozen harness"
+    },
+    "mahalanobis_metric_epoch4_jurist_pairwise_preference": {
+      "value": 0.6781,
+      "tier": "ACCEPTED",
+      "note": "v6 metric learning on frozen harness"
+    },
+    "cited_decisions_tfidf_zero_shot_jurist_pairwise_preference": {
+      "value": 0.6922,
+      "tier": "REPRODUCED",
+      "note": "v6 legal-distance; beats supervised metric learning"
+    },
+    "true_oos_jurist_preference_ceiling": {
+      "value": 0.53,
+      "tier": "ACCEPTED",
+      "note": "v11 clean OOS; factory JP>0.7 target NOT MET by any representation"
+    },
+    "hierarchy_coherence_branch_level": {
+      "value": "FUNDAMENTALLY_UNPASSABLE",
+      "tier": "ACCEPTED_NEGATIVE",
+      "note": "v18 coarse hierarchy; best purity 0.6497 < 0.70 threshold"
+    },
+    "v17b_label_normalization_hierarchy_ratio": {
+      "value": 1.2082,
+      "tier": "REPRODUCED",
+      "note": "4 seeds [42,123,456,789]; 15-25% purity gain across 3 metrics"
+    }
+  },
+  "evidence_summary": {
+    "corpus_lane": "174,113 decisions normalized (v17), 15x independent REPRODUCED, 0 schema errors, full 2000-2026 coverage — artifacts DELIVERED, compute budget for 174k embeddings PENDING",
+    "legal_distance_lane": "All sub-questions COMPLETE or BLOCKED at current scale; verified v8 holdout baselines (JP=0.580, LangDom=0.511); center_projected_64dim ONLY pre-trained passing BOTH gates; cited_decisions_tfidf zero-shot JP=0.692 beats metric learning; 6 hybrids PASS both gates; v14 linear_citation_concat REPRODUCED (seed=137); v12 temporal holdout REPLICATED; true OOS ceiling ~0.53",
+    "fractal_map_lane": "Compressed 5-level ladder [0.25, 0.5, 1.0, 2.0, 3.0] validated for ALL 22 modes (100% delta retention, 0% nesting change); scalability validated 174k extrapolation 337.9s/1.0GB; CRITICAL: ACCEPTED artifacts contain fabricated JP=0.7990/0.7907, LangDom=0.4911/0.4907 — verified holdout JP=0.580/0.585, LangDom=0.511; product default uses fabricated metrics; REPAIR-BLOCKED per Constitution §6",
+    "evaluation_lane": "v18 coarse hierarchy NEGATIVE (FUNDAMENTALLY UNPASSABLE, best branch purity 0.6497); v17b label normalization REPRODUCED (4 seeds, 15-25% gain); 14/14 benchmarks PASS on debiased_citation_blended (27th resume); boilerplate_resistance_real_corpus persistent FAIL (measures language dominance, not boilerplate)",
+    "product_lane": "30 representations across 6 design patterns; 174k scale simulation ALL PASS (16 tests: LOD <2s, culling 8ms, WebGL ~6.6MB, full pipeline <3s); PRODUCT_SERVING_DEFAULT uses fabricated metrics — flagged for human correction",
+    "frontier_teams": "Both PAUSED per stop_promote_rules: metric_learning_jurivoc v5 (zero-shot hybrids JP=0.580 pass gates but miss JP>0.7); crosslingual_alignment v5 (GPU unavailable >2 cycles, CPU LoRA progress not demonstrated); no new teams created — no credible independent path toward JP>0.7"
+  },
+  "blocking_issues": [
+    "ACCEPTED-tier fractal-map artifacts contain fabricated jurist preference (0.7990/0.7907) and language dominance (0.4911/0.4907) values — verified holdout: JP=0.580/0.585, LangDom=0.511. Cannot be autonomously repaired per Constitution §6. Requires human intervention on main branch or dedicated repair cycle."
+  ],
+  "audit_cycle": "CYCLE_34445503604",
+  "auditor": "opencode/nemotron-3-ultra-free",
+  "timestamp": "2026-09-10T06:45:00Z"
+}
