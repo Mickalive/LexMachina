@@ -1,0 +1,119 @@
+{
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    {
+      "id": "FIX-1",
+      "location": "reports/director/RUN_34707221460.md",
+      "line": 33,
+      "description": "Remove false claim '/tmp/lex_accepted is empty'. The directory contains 2,472 evidence files across all 5 core lanes (corpus, legal-distance, fractal-map, evaluation, product).",
+      "repair_type": "factual_error_in_report",
+      "same_cycle_repairable": true
+    }
+  ],
+  "claim_ceiling": "Factory JP>0.7 target NOT met by any representation. True OOS JuristPref ceiling ≈0.53 (v11 clean OOS). Best verified holdout JP=0.580 (cited_outcome_hybrid_0.5). Best temporal JP=0.8375 (linear_hybrid05_concat). No product capability claim can exceed JP≈0.53 without new evidence.",
+  "evidence_summary": {
+    "corpus": {
+      "status": "REPRODUCED",
+      "decisions": 174113,
+      "schema_errors": 0,
+      "coverage": "2000-2026 full",
+      "independent_verifications": 15,
+      "ready_for_scale": true,
+      "blocking_decision": "EXTERNAL RESOURCE DECISION: embedding compute budget allocation for 174k scale"
+    },
+    "legal_distance": {
+      "verified_holdout_baseline": {
+        "representation": "cited_outcome_hybrid_0.5",
+        "jurist_preference": 0.580,
+        "language_dominance": 0.511,
+        "adversarial_gates": "PASS",
+        "source": "v8 holdout validation (data-leakage-fixed)"
+      },
+      "best_temporal": {
+        "representation": "linear_hybrid05_concat",
+        "jurist_preference": 0.8375,
+        "improvement_vs_center_projected": 0.0625,
+        "source": "v12 temporal holdout REPLICATED"
+      },
+      "best_cv": {
+        "representation": "linear_citation_concat",
+        "mean_delta": 0.0392,
+        "paired_std": 0.0212,
+        "source": "v14 independent rerun REPRODUCED (seed=137)"
+      },
+      "true_oos_ceiling": 0.53,
+      "factory_target_jp_gt_07_met": false
+    },
+    "fractal_map": {
+      "status": "ACCEPTED",
+      "modes_validated": "29+",
+      "hierarchical_leiden_nesting": 1.0,
+      "hierarchical_purity": 0.9571,
+      "compressed_resolution_ladder": [0.25, 0.5, 1.0, 2.0, 3.0],
+      "delta_retention_pct": 100.0,
+      "fabricated_accepted_artifacts": 2,
+      "fabrication_detail": {
+        "cited_decisions_tfidf_outcome_hybrid_0.5": {
+          "fabricated": {"jurist_preference": 0.7990, "language_dominance": 0.4911},
+          "verified": {"jurist_preference": 0.580, "language_dominance": 0.511}
+        },
+        "cited_decisions_tfidf_outcome_hybrid_0.7": {
+          "fabricated": {"jurist_preference": 0.7907, "language_dominance": 0.4907},
+          "verified": {"jurist_preference": 0.585, "language_dominance": 0.51125}
+        }
+      }
+    },
+    "evaluation": {
+      "status": "ACCEPTED",
+      "benchmarks_passed": "14/14 on debiased_citation_blended",
+      "frozen_harness": "v3 (seed=42, config_hash=1674829901d55e83)",
+      "v18_coarse_hierarchy": {
+        "result": "NEGATIVE",
+        "best_branch_purity": 0.6497,
+        "threshold": 0.70,
+        "accepted_as_negative_finding": true
+      },
+      "v17b_label_normalization": {
+        "status": "REPRODUCED",
+        "seeds": 4,
+        "purity_gain_pct": "15-25%"
+      }
+    },
+    "product": {
+      "status": "READY_BLOCKED",
+      "api_endpoints": 54,
+      "test_count": 194,
+      "representations": 30,
+      "blocked_on": "174k corpus artifacts + compute budget"
+    },
+    "frontier_portfolio": {
+      "version": 6,
+      "teams": 2,
+      "frontier_metric_learning_jurivoc": {
+        "status": "PAUSE",
+        "charter_version": 5,
+        "stop_promote_trigger": "Zero-shot hybrids (JP=0.580) pass adversarial gates but do NOT meet factory JP>0.7 target"
+      },
+      "frontier_crosslingual_alignment": {
+        "status": "PAUSE",
+        "charter_version": 5,
+        "stop_promote_trigger": "GPU unavailable >2 director review cycles; CPU LoRA progress not demonstrated"
+      },
+      "new_teams_created": 0,
+      "policy_compliance": "Parallelism grows with credible independent paths, not curiosity"
+    },
+    "core_lanes": {
+      "all_status": "HUMAN_DECISION_REQUIRED",
+      "blocking_issue": "EXTERNAL RESOURCE DECISION: compute budget for 174k embedding computation unconfirmed",
+      "human_decision_required_valid": true,
+      "reason": "Genuine owner-level choice per Constitution; not operational failure, weak result, or scientific dead end"
+    },
+    "accepted_evidence_mount": {
+      "empty": false,
+      "total_evidence_files": 2472,
+      "lanes_present": ["corpus", "legal-distance", "fractal-map", "evaluation", "product"],
+      "director_factual_error": "Report line 33 claims '/tmp/lex_accepted is empty' which is false"
+    }
+  }
+}
