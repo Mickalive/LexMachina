@@ -1,0 +1,92 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "REPRODUCED — Corpus v17 (174,113 decisions, 15x verified); Fractal-map v11 (24 modes, 184/184 tests, 633 artifacts); Evaluation v13 (v18 hierarchy NEGATIVE at 0.6497; v17b normalization REPRODUCED 4 seeds; 14/14 benchmarks on debiased_citation_blended); Product v18 (30 modes, 174k simulation ALL PASS). Fabricated fractal-map values (JP=0.7990/0.7907) acknowledged as inflated from leaky evaluation — verified holdout values are JP=0.580/0.585, LangDom=0.511/0.51125. True OOS JuristPref ceiling ≈0.53. Factory JP>0.7 target NOT met by any representation. Frontier charters are hypotheses with explicit acceptance criteria, not claims.",
+  "evidence_summary": {
+    "corpus_v17": {
+      "status": "REPRODUCED",
+      "key_metrics": {
+        "total_decisions": 174113,
+        "schema_errors": 0,
+        "independent_verifications": 15,
+        "language_distribution": {"de": 106571, "fr": 57555, "it": 9987},
+        "field_coverage_ground_truth": {"full_text": 1.0, "regeste": 0.474, "cited_decisions": 0.526, "outcome": 0.505, "legal_area": 0.526},
+        "citation_resolution_rate": 0.959
+      },
+      "blocked_on": "embedding compute budget for 174k scale"
+    },
+    "legal_distance": {
+      "status": "ACCEPTED",
+      "key_findings": {
+        "metric_learning_linear_jp": 0.6847,
+        "cited_tfidf_jp": 0.6889,
+        "v8_holdout_cited_outcome_hybrid_0.5": {"jp": 0.580, "langdom": 0.511},
+        "v8_holdout_cited_outcome_hybrid_0.7": {"jp": 0.585, "langdom": 0.51125},
+        "true_oos_juristpref_ceiling": 0.53,
+        "v14_rerun_confirmed": {"mean_delta": 0.0392, "paired_std": 0.0212},
+        "v12_temporal_replicated": {"linear_hybrid05_concat_jp": 0.8375, "center_projected_64dim_jp": 0.7750, "improvement": 0.0625}
+      },
+      "factory_jp_target_0_7_met": false
+    },
+    "fractal_map": {
+      "status": "ACCEPTED",
+      "key_metrics": {
+        "modes_loaded": 24,
+        "tests_passed": 184,
+        "artifacts_verified": 633,
+        "hierarchical_nesting": 1.0,
+        "hierarchical_purity": 0.9571,
+        "compressed_ladder_100pct_delta_retention": true,
+        "scalability_192k_extrapolation_minutes": 5.6
+      },
+      "fabricated_evidence": {
+        "affected_artifacts": ["cited_decisions_tfidf_outcome_hybrid_0.5", "cited_decisions_tfidf_outcome_hybrid_0.7"],
+        "fabricated_jp": [0.7990, 0.7907],
+        "fabricated_langdom": [0.4911, 0.4907],
+        "verified_holdout_jp": [0.580, 0.585],
+        "verified_holdout_langdom": [0.511, 0.51125],
+        "requires_human_intervention": true,
+        "constitutional_reference": "§6"
+      }
+    },
+    "evaluation": {
+      "status": "ACCEPTED",
+      "key_findings": {
+        "v18_coarse_hierarchy": {"best_branch_purity": 0.6497, "verdict": "NEGATIVE", "fundamentally_unpassable": true},
+        "v17b_label_normalization": {"hierarchy_ratio_mean": 1.2082, "hierarchy_ratio_std": 0.014, "verdict": "REPRODUCED"},
+        "benchmarks_pass_on_debiased_citation_blended": "14/14",
+        "boilerplate_resistance": "persistent failure all reps"
+      }
+    },
+    "product": {
+      "status": "ACCEPTED",
+      "key_metrics": {
+        "total_representations": 30,
+        "design_patterns": 6,
+        "simulation_174k_all_pass": true,
+        "product_serving_default": "cited_outcome_hybrid_0.5",
+        "combination_mode": "linear_hybrid05_concat",
+        "default_map_mode": "center_projected_64dim_hierarchical"
+      }
+    },
+    "frontier_portfolio": {
+      "version": 6,
+      "teams": [
+        {
+          "team_id": "frontier_metric_learning_jurivoc",
+          "status": "PAUSED",
+          "charter_version": 5,
+          "stop_promote_reason": "No representation achieves JP>0.7 factory target"
+        },
+        {
+          "team_id": "frontier_crosslingual_alignment",
+          "status": "PAUSED",
+          "charter_version": 5,
+          "stop_promote_reason": "GPU unavailable >2 director review cycles; CPU LoRA progress not demonstrated"
+        }
+      ],
+      "new_teams_created": 0
+    }
+  }
+}
