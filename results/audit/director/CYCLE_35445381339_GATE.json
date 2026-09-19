@@ -1,0 +1,70 @@
+{
+  "gate": "BLOCKED",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    {
+      "id": "fix_fabricated_evidence",
+      "description": "Remove fabricated jurist_pairwise_preference values (0.7990/0.7907) from ACCEPTED fractal-map artifacts for cited_decisions_tfidf_outcome_hybrid_0.5/0.7; replace with verified holdout values (0.580/0.585) or mark WITHDRAWN. Requires human intervention on main branch per Constitution §6 (cannot autonomously overwrite claim-bearing outputs).",
+      "severity": "BLOCKING",
+      "repairable_by_factory": false
+    },
+    {
+      "id": "fix_human_decision_required_misuse",
+      "description": "Reclassify all five core lanes from HUMAN_DECISION_REQUIRED to BLOCKED with blocked_on: 'embedding compute budget for 174k scale (external resource allocation)'. Reserve HUMAN_DECISION_REQUIRED for true owner-level choices (mission change, product pivot, shutdown) per Constitution §10.",
+      "severity": "BLOCKING",
+      "repairable_by_factory": true
+    },
+    {
+      "id": "fix_fractal_map_resume_guard",
+      "description": "Update fractal-map lane state blocked_on and resume_guard from stale 'full 192k acquisition/normalization' to actual dependency 'embedding compute budget for 174k scale'. Corpus lane is COMPLETED (174,113 decisions, 15× verified).",
+      "severity": "BLOCKING",
+      "repairable_by_factory": true
+    },
+    {
+      "id": "fix_supervisor_dispatch_logic",
+      "description": "Update supervisor dispatch logic to read workspace state/<lane>.json cycle_status instead of ephemeral /tmp/lex_control/state/factory_direction.json. Root cause of 46+ fractal-map and 15+ corpus unnecessary resume cycles documented since run 33340442507. Concrete same-cycle code repair.",
+      "severity": "BLOCKING",
+      "repairable_by_factory": true
+    },
+    {
+      "id": "fix_compute_budget_allocation",
+      "description": "External resource decision: allocate embedding compute budget for 174,113 decisions. Required before any lane can advance to full-corpus validation. Cannot be resolved by factory agents.",
+      "severity": "BLOCKING",
+      "repairable_by_factory": false
+    }
+  ],
+  "claim_ceiling": "A fractal case-law map for Swiss Federal Supreme Court decisions (2000-2026) with 30 selectable representations across 6 design patterns, validated at 1,000-decision scale with adversarial evaluation (6 universal passes, 4 universal failures), ready for 174,113-decision scaling pending compute budget allocation. True out-of-sample jurist pairwise preference ceiling ~0.53; factory JP>0.7 target not achieved by any representation. Hierarchy recovery from legal-area labels fundamentally unpassable at any granularity (v18 NEGATIVE). Two-mode tradeoff persists: Metric Learning (High-Purity: JP~0.53, CiteIndep~37%) vs Citation/Outcome (High-Advantage: JP~0.58, CiteIndep~14%). Boilerplate resistance universal failure (proxy measures language dominance).",
+  "evidence_summary": {
+    "core_lanes": {
+      "corpus": {"status": "COMPLETED", "evidence_tier": "REPRODUCED", "decisions": 174113, "verifications": 15, "schema_errors": 0},
+      "legal_distance": {"status": "COMPLETED", "evidence_tier": "REPRODUCED", "key_findings": ["linear_citation_concat REPRODUCED (v14, seed=137)", "linear_hybrid05_concat REPLICATED temporal (v12)", "true OOS JuristPref ceiling ~0.53"]},
+      "fractal_map": {"status": "BLOCKED", "evidence_tier": "ACCEPTED", "modes_validated": 22, "compressed_ladder": "5-level [0.25,0.5,1.0,2.0,3.0] 100% delta retention", "scalability": "192k ~5.6min/1.0GB", "fabricated_jp_values": {"cited_decisions_tfidf_outcome_hybrid_0.5": {"claimed": 0.7990, "verified": 0.580}, "cited_decisions_tfidf_outcome_hybrid_0.7": {"claimed": 0.7907, "verified": 0.585}}},
+      "evaluation": {"status": "COMPLETED", "evidence_tier": "ACCEPTED", "v18_hierarchy_coherence": "FAIL at branch level (best 0.6497 < 0.70) - FUNDAMENTALLY UNPASSABLE", "v17b_normalization": "REPRODUCED (15-25% purity gain, 4 seeds, std<0.022)"},
+      "product": {"status": "BLOCKED", "evidence_tier": "ACCEPTED", "representations": 30, "design_patterns": 6, "scale_readiness": "267 tests PASS at simulated 174k", "blocked_on": "174k corpus delivery (actually compute budget)"}
+    },
+    "frontier_teams": {
+      "frontier_metric_learning_jurivoc": {"status": "PAUSED", "charter_version": 5, "justification": "No JP>0.7 path; zero-shot hybrids pass adversarial gates but miss product target; v18 NEGATIVE confirms fundamental limitation"},
+      "frontier_crosslingual_alignment": {"status": "PAUSED", "charter_version": 5, "justification": "GPU unavailable >2 cycles; CPU LoRA progress not demonstrated; v18 NEGATIVE confirms hierarchy limitation"}
+    },
+    "orchestration_pathology": {
+      "fractal_map_resume_cycles": 46,
+      "corpus_resume_cycles": 15,
+      "root_cause": "Supervisor reads ephemeral /tmp/lex_control/state/factory_direction.json instead of workspace state",
+      "fix_documented_since": "run 33340442507",
+      "fix_applied": false
+    },
+    "negative_results_validated": [
+      "v18 hierarchy_coherence FAIL at branch level (4 labels) - embedding space captures legal reasoning proximity, not doctrinal classification",
+      "True OOS JuristPref ceiling ~0.53 (clean holdout, no leakage) - factory JP>0.7 target unmet",
+      "Boilerplate resistance universal failure - proxy measures cross-lingual alignment failure",
+      "No single representation dominates both JP and CiteIndep - two-mode tradeoff confirmed"
+    ],
+    "positive_results_validated": [
+      "v14 linear_citation_concat REPRODUCED across independent seeds (mean_delta=+0.0392, paired_std=0.0212)",
+      "v12 linear_hybrid05_concat temporal holdout REPLICATED (JP=0.8375 vs center_projected 0.7750)",
+      "v17b cross-lingual legal_area normalization REPRODUCED (15-25% purity gain, uniform across 6 representations, 4 seeds)",
+      "Product 174k scale-readiness infrastructure complete (LOD, culling, spatial index, WebGL, threaded server, incremental updates)",
+      "Corpus 174,113 decisions normalized, 0 schema errors, 15× independent verification"
+    ]
+  }
+}
