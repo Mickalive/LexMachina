@@ -1,0 +1,30 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Correct '14/14 benchmarks PASS on debiased_citation_blended' to '6 universal PASS benchmarks, 4 universal FAIL benchmarks across all 6 representations; per-representation pass rates 6–7 of 11 evaluated benchmarks (v16 full benchmark suite)' in director report"
+  ],
+  "claim_ceiling": "The LexMachina fractal case-law map for Swiss Federal Supreme Court decisions (2000–2026) provides multiple selectable map modes with legally meaningful proximity at 1,200-decision scale: (1) Citation-lineage modes (cited_decisions_tfidf, cited_outcome_hybrid_0.5/0.7): cross-lingually robust (LangDom≈0.51), moderate simulated jurist preference (JP≈0.58), but cannot retrieve related decisions without shared citations (CiteIndep≈14%). (2) Semantic modes (center_projected_64dim, linear_citation_concat, linear_hybrid05_concat): higher metadata retrieval (TF Recall@5≈0.91–0.93) and citation-independent retrieval (CiteIndep≈37%), but higher language dominance (LangDom≈0.57–0.77) and lower simulated jurist preference on true holdout (JP≈0.53). True out-of-sample JuristPref ceiling is ≈0.53; the factory target of JP>0.7 is NOT met by any representation. Hierarchical navigation via Leiden clustering is validated (nesting=1.0, purity=0.9571); label normalization yields 15–25% purity gains but does not recover branch-level hierarchy (branch_purity<0.70 at all granularities). Full 174,113-decision corpus artifacts are validated and ready; production deployment awaits compute budget allocation.",
+  "evidence_summary": {
+    "ACCEPTED": [
+      "Fractal-map hierarchical Leiden (nesting=1.0, purity=0.9571), zoom API, 29 representations, 5-level resolution ladder"
+    ],
+    "REPRODUCED": [
+      "Corpus v17: 174,113 decisions, 0 schema errors, 15× independent verification, 95.9% citation resolution, full 2000–2026 coverage",
+      "Legal-distance v10 OOS metric learning: linear JP=0.525, mahalanobis JP=0.530 on holdout; +8% pre-training leakage quantified",
+      "Legal-distance v11 OOS hybrid_stabilized: JP=0.535 (hier) / 0.505 (no-hier); hierarchy loss +0.03 JP (not load-bearing)",
+      "Legal-distance v14 linear_citation_concat rerun (seed=137): mean_delta=+0.0392, paired_std=0.0212; promoted to ACCEPTED",
+      "Legal-distance v8 holdout zero-shot hybrids (leakage fixed): cited_outcome_hybrid_0.5 JP=0.580, LangDom=0.511; factory targets missed",
+      "Legal-distance v12 temporal holdout: linear_hybrid05_concat JP=0.8375 temporal (+0.0625 over baseline); REPLICATED",
+      "Evaluation v17b label normalization (4 seeds): 15–25% purity gain across 6 reps, std<0.022"
+    ],
+    "NEGATIVE_ACCEPTED": [
+      "Evaluation v18 coarse hierarchy: NO representation achieves branch_purity ≥ 0.70 (best: linear_citation_concat 0.6497)",
+      "Evaluation v16 full benchmark suite: 4 universal FAIL benchmarks (boilerplate_resistance_real_corpus, hierarchy_coherence, zoom_coherence, legal_area_clustering); 6 universal PASS"
+    ],
+    "FABRICATED": [
+      "Fractal-map cited_decisions_tfidf_outcome_hybrid_0.5: claimed JP=0.7990, LangDom=0.4911; verified holdout JP=0.580, LangDom=0.511",
+      "Fractal-map cited_decisions_tfidf_outcome_hybrid_0.7: claimed JP=0.7907, LangDom=0.4907; verified holdout JP=0.585, LangDom=0.51125"
+    ]
+  }
+}
