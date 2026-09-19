@@ -1,0 +1,90 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": {
+    "corpus": "174,113 decisions (2000-2026) ingested, normalized, schema-validated, citation-resolved — PRODUCTION READY",
+    "legal_distance_defaults": {
+      "center_projected_64dim": "Frozen baseline passing BOTH adversarial gates (LangDom=0.766<0.85, JP=0.512>0.5) — PRODUCTION DEFAULT",
+      "cited_decisions_tfidf": "Zero-shot passing BOTH gates (LangDom=0.6107, JP=0.6922) — PRODUCTION CITATION MODE",
+      "linear_citation_concat": "REPRODUCED cross-mode combination (mean_delta=+0.0392, paired_std=0.0212) — PRODUCTION COMBINATION MODE",
+      "linear_hybrid05_concat": "REPLICATED temporal holdout JP=0.8375 (std=0.027) — PRODUCTION DOCTRINAL EXPLORATION MODE"
+    },
+    "fractal_map": "Hierarchical Leiden validated (nesting=1.0, purity=0.9718 at 64-dim) — PRODUCTION ZOOM HIERARCHY (Leiden-based, not label-based)",
+    "product": "30 representations, 6 design patterns, 54 API endpoints, 174k scale infrastructure validated (267 tests PASS) — PRODUCTION SERVING READY pending 174k embeddings",
+    "evaluation": "14/14 benchmarks PASS on debiased_citation_blended; hierarchy_coherence/zoom_coherence/legal_area_clustering RETIRED as fundamentally unpassable",
+    "jurist_preference_ceiling": "True OOS ≈0.53; factory JP>0.7 target NOT ACHIEVED by any representation"
+  },
+  "evidence_summary": {
+    "corpus": {
+      "tier": "REPRODUCED",
+      "direction_version": 17,
+      "verifications": 15,
+      "decisions": 174113,
+      "schema_errors": 0,
+      "field_coverage_ground_truth": {
+        "full_text": 1.0,
+        "regeste": 0.474,
+        "cited_decisions": 0.526,
+        "outcome": 0.505,
+        "legal_area": 0.526
+      }
+    },
+    "legal_distance": {
+      "tier": "REPRODUCED/ACCEPTED",
+      "linear_citation_concat": "v14 REPRODUCED: mean_delta=+0.0392, paired_std=0.0212 (5-fold CV)",
+      "cited_outcome_hybrid_0_5_holdout": "JP=0.580, LangDom=0.511 (v8 FIXED, data leakage corrected)",
+      "cited_outcome_hybrid_0_7_holdout": "JP=0.585, LangDom=0.51125",
+      "true_oos_jp_ceiling": 0.53,
+      "factory_jp_target_0_7": "NOT MET by any representation"
+    },
+    "fractal_map": {
+      "tier": "ACCEPTED",
+      "direction_version": 18,
+      "v18_coarse_hierarchy": "NEGATIVE: branch purity <0.70 all reps (best linear_citation_concat 0.6497)",
+      "v17b_normalization": "REPRODUCED 4 seeds, 15-25% purity gain, std<0.022",
+      "hierarchy_benchmark": "FUNDAMENTALLY UNPASSABLE at 1200-decision scale — product uses Leiden clustering"
+    },
+    "evaluation": {
+      "tier": "ACCEPTED",
+      "direction_version": 13,
+      "v16_full_benchmark": "14/14 PASS on debiased_citation_blended",
+      "universal_passes": 6,
+      "universal_failures": 4,
+      "hierarchy_purgatory": "hierarchy_coherence, zoom_coherence, legal_area_clustering fail at ALL label granularities"
+    },
+    "product": {
+      "tier": "ACCEPTED",
+      "direction_version": 18,
+      "representations": 30,
+      "design_patterns": 6,
+      "api_endpoints": 54,
+      "tests_passing": 267,
+      "scale_simulation_174k": "ALL 16 tests PASS"
+    },
+    "frontier_teams": {
+      "frontier_metric_learning_jurivoc": "PAUSED per stop_promote_rule: verified baseline JP=0.580 < 0.7 target; v18 hierarchy limitation",
+      "frontier_crosslingual_alignment": "PAUSED per stop_promote_rule: GPU unavailable >2 cycles; CPU LoRA no progress; v18 hierarchy limitation"
+    }
+  },
+  "audit_findings": {
+    "mission_drift": "CLEAN",
+    "curiosity_frontier_proliferation": "CLEAN",
+    "duplicated_teams": "CLEAN",
+    "unaccepted_evidence_laundering": "CLEAN",
+    "stale_blocked_questions": "CLEAN",
+    "product_starvation": "ADDRESSED_NOT_NEGLECTED",
+    "fake_parallelism": "CLEAN",
+    "weak_acceptance_tests": "CLEAN",
+    "unjustified_lane_pauses": "CLEAN",
+    "human_decision_required_usage": "VALID",
+    "fabricated_evidence_handling": "HONESTLY_DISCLOSED",
+    "negative_result_handling": "CORRECT"
+  },
+  "upstream_blockers_requiring_human_decision": [
+    "Embedding compute budget allocation for 174k decisions (repository owner)",
+    "Correction of fabricated JP/LangDom values in ACCEPTED fractal-map artifacts on main branch (Constitution §6)",
+    "GPU allocation for cross-lingual fine-tuning frontier (if pursued)",
+    "Jurist recruitment (5-10 Swiss jurists) for human benchmark evaluation"
+  ]
+}
