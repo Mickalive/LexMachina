@@ -1,0 +1,94 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "OWNER: Decide compute budget for 174k embedding computation (sole blocker for all lanes)",
+    "OWNER: Correct fabricated metrics in ACCEPTED fractal-map artifacts on main branch (Constitution §6): cited_decisions_tfidf_outcome_hybrid_0.5 JP 0.7990→0.580, LangDom 0.4911→0.511; cited_decisions_tfidf_outcome_hybrid_0.7 JP 0.7907→0.585, LangDom 0.4907→0.51125",
+    "ENGINEERING: Verify supervisor dispatch logic reads workspace state/factory_direction.json not ephemeral /tmp/lex_control/state/factory_direction.json (prevents 46+ unnecessary resume cycles at 174k scale)"
+  ],
+  "claim_ceiling": {
+    "true_oos_juristpref_ceiling": 0.53,
+    "factory_jp_07_target_met": false,
+    "best_verified_zero_shot_holdout": {
+      "representation": "cited_outcome_hybrid_0.7",
+      "jurist_pref": 0.585,
+      "langdom": 0.51125
+    },
+    "best_verified_metric_learning_holdout": {
+      "representation": "linear_metric_epoch4",
+      "jurist_pref": 0.605,
+      "langdom": 0.607
+    },
+    "best_temporal_stability": {
+      "representation": "linear_hybrid05_concat",
+      "jurist_pref": 0.8375,
+      "note": "stability concerns (paired_std > 0.03 in v13/v14 CV)"
+    },
+    "best_cross_mode_combination": {
+      "representation": "linear_citation_concat",
+      "mean_delta": 0.0392,
+      "paired_std": 0.0212,
+      "tier": "REPRODUCED"
+    },
+    "v18_coarse_hierarchy": "NEGATIVE (branch_purity < 0.70 all representations, best 0.6497 linear_citation_concat)",
+    "v17b_label_normalization": "15-25% purity gain (4 seeds, REPRODUCED, std < 0.022)"
+  },
+  "evidence_summary": {
+    "corpus": {
+      "decisions": 174113,
+      "schema_errors": 0,
+      "independent_verifications": 15,
+      "tier": "REPRODUCED",
+      "citation_resolution_rate": 0.959
+    },
+    "legal_distance": {
+      "metric_learning_breakthrough": "linear JP=0.6847, mahalanobis JP=0.6781 on frozen harness v3",
+      "cited_decisions_tfidf_zero_shot": "LangDom=0.6107, Jurist=0.6922 (beats supervised ML on jurist pairwise)",
+      "holdout_validation_fixed": "all 4 zero-shot hybrids PASS adversarial gates (LangDom~0.51, JP~0.53-0.59)",
+      "cross_mode_combinations": "linear_citation_concat REPRODUCED (v13 +0.0275, v14 +0.0392 mean_delta)",
+      "true_oos_ceiling": "~0.53 (v11 clean OOS hybrid_stabilized JP=0.5350)",
+      "factory_jp_07_target": "NOT MET by any representation",
+      "tier": "ACCEPTED/REPRODUCED (v6-v14)"
+    },
+    "fractal_map": {
+      "hierarchical_leiden": "nesting=1.0, purity=0.9571 on 1000-decision slice",
+      "modes_integrated": "29+ legal distance modes across 5 design patterns",
+      "resolution_ladder": "5-level [0.25, 0.5, 1.0, 2.0, 3.0] validated 100% delta retention",
+      "tier": "ACCEPTED",
+      "integrity_issue": "2 ACCEPTED artifacts contain fabricated JP/LangDom metrics (requires human fix on main)"
+    },
+    "evaluation": {
+      "frozen_harness_v3": "config_hash=4323f833fa72366a, seed=42",
+      "benchmarks_pass": "14/14 on debiased_citation_blended",
+      "universal_pass": 6,
+      "universal_fail": 4,
+      "hierarchy_purgatory": "hierarchy_coherence, zoom_coherence, legal_area_clustering fail at ALL label granularities",
+      "tier": "ACCEPTED"
+    },
+    "product": {
+      "tests_pass": 159,
+      "representations": 29,
+      "design_patterns": 5,
+      "api_endpoints": 22,
+      "scale_simulation": "ALL PASS at 174k (LOD<2s, culling<500ms, spatial<5s, WebGL<3s, payload~6.6MB)",
+      "status": "OPERATIONAL, BLOCKED on 174k corpus"
+    },
+    "frontier_teams": {
+      "frontier_metric_learning_jurivoc": "PAUSE (stop_promote: no JP>0.7, verified baseline JP=0.580 below target)",
+      "frontier_crosslingual_alignment": "PAUSE (stop_promote: GPU unavailable >2 cycles, CPU LoRA progress not shown, v18 NEGATIVE)",
+      "charters_grounded_in": "v6-v14 legal-distance accepted evidence",
+      "new_teams_justified": false
+    },
+    "integrity_issues": {
+      "fabricated_evidence_in_accepted_artifacts": 2,
+      "requires_human_on_main": true,
+      "constitution_section": 6,
+      "orchestration_pathology": "supervisor reads /tmp ephemeral control plane instead of workspace state/ (46+ unnecessary resumes)"
+    },
+    "operational_issues": {
+      "supervisor_dispatch_pathology": "reads /tmp instead of workspace state/",
+      "gpu_unavailable_cycles": ">2",
+      "model_provider": "FREE_FALLBACK_ACTIVE (nemotron-3-ultra-free)"
+    }
+  }
+}
