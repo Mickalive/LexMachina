@@ -702,7 +702,10 @@ def run_scalable_adversarial_benchmarks(
     
     Uses scalable NN backend but returns identical output format.
     """
-    from evaluation.evaluation_v3_harness import prepare_metadata
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent))
+    from evaluation_v3_harness import prepare_metadata
     
     branches, languages, chambers, valid_indices = prepare_metadata(metadata)
     rep_valid = embeddings[valid_indices]
@@ -736,7 +739,10 @@ def run_scalable_full_evaluation(
     
     Returns same format as evaluate_representation in frozen harness.
     """
-    from evaluation.evaluation_v3_harness import prepare_metadata, compute_jurivoc_alignment
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent))
+    from evaluation_v3_harness import prepare_metadata, compute_jurivoc_alignment
     
     branches, languages, chambers, valid_indices = prepare_metadata(metadata)
     rep_valid = embeddings[valid_indices]
