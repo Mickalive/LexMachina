@@ -5,7 +5,7 @@
   "cycle_status": "COMPLETED",
   "continue_recommended": true,
   "accepted_run_id": "eval_v16_full_benchmark_1790186662",
-  "github_run": "35894554340",
+  "github_run": "35917408050",
   "timestamp": "2026-09-23T20:13:51.775001Z",
   "config_hash": "4323f833fa72366a",
   "global_seed": 42,
@@ -73,6 +73,9 @@
   "frozen_harness_v3_reproduction": {
     "status": "VERIFIED",
     "config_hash": "a31c443a9b0e992e",
+    "verification_run_id": "eval_v3_verification_1790196451",
+    "github_run": "35917408050",
+    "verification_timestamp": "2026-09-23T20:47:15Z",
     "representations_tested": 6,
     "all_adversarial_benchmarks_pass": [
       "linear_metric_epoch4",
@@ -84,7 +87,15 @@
     "adversarial_benchmarks_fail": [
       "center_projected_768"
     ],
-    "reference_baseline": "center_projected_64dim (production default) - PASS both adversarial gates"
+    "reference_baseline": "center_projected_64dim (production default) - PASS both adversarial gates",
+    "verification_details": {
+      "linear_metric_epoch4": {"lang_dom": 0.6805, "jurist_pref": 0.6847, "jurivoc_l0": 0.6895, "scale_stability": 0.7037, "boilerplate_resist": -0.8879, "improvement_rate": 0.7195},
+      "mahalanobis_metric_epoch4": {"lang_dom": 0.6843, "jurist_pref": 0.6781, "jurivoc_l0": 0.7041, "scale_stability": 0.7154, "boilerplate_resist": -0.8954, "improvement_rate": 0.6518},
+      "hybrid_stabilized_epoch1": {"lang_dom": 0.6704, "jurist_pref": 0.6656, "jurivoc_l0": 0.6360, "scale_stability": 0.7067, "boilerplate_resist": -0.9194, "improvement_rate": 0.7383},
+      "hybrid_v2_epoch3": {"lang_dom": 0.7115, "jurist_pref": 0.5988, "jurivoc_l0": 0.7415, "scale_stability": 0.7092, "boilerplate_resist": -0.9144, "improvement_rate": 0.5965},
+      "center_projected_64dim": {"lang_dom": 0.7664, "jurist_pref": 0.5121, "jurivoc_l0": 0.0653, "scale_stability": 0.7071, "boilerplate_resist": -0.9012, "improvement_rate": 0.6466},
+      "center_projected_768": {"lang_dom": 0.7738, "jurist_pref": 0.4912, "jurivoc_l0": 0.0945, "scale_stability": 0.7104, "boilerplate_resist": -0.8959, "improvement_rate": 0.6000}
+    }
   },
   "full_corpus_evaluation_harness": {
     "status": "VALIDATED",
@@ -104,7 +115,12 @@
   "v17b_label_normalization": {
     "evidence_tier": "REPRODUCED",
     "finding": "Cross-lingual legal_area label normalization improves hierarchy-family purity metrics 15-25% across all 6 representations (uniform), linear_hybrid05_concat improves MOST (hier +24.0%, zoomfine +27.7%). Verified across 4 seeds [42, 123, 456, 789] with std < 0.022.",
-    "test_at_174k": "PENDING - requires 174k metadata with normalized legal_area labels from corpus lane"
+    "test_at_174k": "PENDING - requires 174k metadata with normalized legal_area labels from corpus lane",
+    "verification_run_id": "eval_v17b_label_normalization_all_reps_1790196494",
+    "github_run": "35917408050",
+    "verification_timestamp": "2026-09-23T20:48:23Z",
+    "uniform_improvement_confirmed": true,
+    "n_labels_normalized_1200": 788
   },
   "next_recommendation": "CONTINUE - Evaluation infrastructure (frozen harness v3, full corpus harness with HNSW, v16 12-benchmark suite, citation_heritage validation, v17b label normalization) is VALIDATED and READY for 174k scale. 174k metadata with normalized legal_area labels created. Awaiting legal-distance lane to deliver 174k production representations. When representations land: (1) Run full 12-benchmark suite at 174k on all production representations; (2) Execute citation_heritage benchmark using 174k citation resolution (804 positive pairs); (3) Test v17b label normalization generalization with 174k embeddings. This cycle validates infrastructure and 174k readiness; next cycle executes on 174k representations.",
   "evidence_refs": [
@@ -116,11 +132,13 @@
     "evaluation/experiments/legal_area_normalize.py",
     "results/evaluation/v16_full_benchmark_suite/v16_full_benchmark_results.json",
     "results/evaluation/v17b_label_normalization_all_reps/v17b_label_normalization_all_reps_results.json",
-    "/tmp/lex_accepted/corpus/corpus/normalization/canonical/metadata_174k.json",
+    "evaluation/results/v3/evaluation_v3_results.json",
     "/tmp/lex_accepted/corpus/corpus/normalization/canonical/resolved_full/citation_graph_resolved.json",
     "/tmp/lex_accepted/corpus/corpus/normalization/canonical/resolved_full/citation_resolution_report.md",
+    "/tmp/lex_accepted/corpus/corpus/normalization/canonical/resolved_full/citation_to_decision_id.json",
     "/tmp/lex_accepted/legal-distance/legal_distance/results/v5/center_projected_full/embeddings_center_projected_64.npy",
-    "/tmp/lex_accepted/legal-distance/legal_distance/results/v5/center_projected_full/metadata.json"
+    "/tmp/lex_accepted/legal-distance/legal_distance/results/v5/center_projected_full/metadata.json",
+    "reports/evaluation/EVALUATION_174K_READINESS_REPORT_20260923.md"
   ],
   "v17b_label_normalization_174k_analysis": {
     "total_decisions": 173963,
@@ -251,5 +269,22 @@
       "tf_metadata_human_indexing"
     ],
     "citation_heritage": "SKIPPED on 1200 slice (insufficient positive pairs) - NOW VALIDATED READY at 174k with 804 positive pairs"
+  },
+  "v25_verification_cycle": {
+    "github_run": "35917408050",
+    "timestamp": "2026-09-23T20:46:00Z",
+    "verifications_performed": [
+      "frozen_harness_v3_config_hash_match",
+      "v16_full_benchmark_suite_reproduction",
+      "v17b_label_normalization_all_reps_uniformity",
+      "citation_heritage_174k_infrastructure_check",
+      "full_corpus_harness_scaling_validation"
+    ],
+    "all_config_hashes_verified": true,
+    "results_archived": [
+      "evaluation/results/v3/evaluation_v3_results.json",
+      "results/evaluation/v16_full_benchmark_suite/v16_full_benchmark_results.json",
+      "results/evaluation/v17b_label_normalization_all_reps/v17b_label_normalization_all_reps_results.json"
+    ]
   }
 }
