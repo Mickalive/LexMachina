@@ -2,121 +2,58 @@
   "lane": "evaluation",
   "direction_version": 26,
   "evidence_tier": "REPRODUCED",
-  "cycle_status": "MONITORING_DEPENDENCIES",
+  "cycle_status": "COMPLETE",
   "continue_recommended": false,
-  "accepted_run_id": "eval_v25_174k_formal_suite_36013963912",
-  "last_accepted_run_id": "eval_v25_provenance_gate_36035803010",
-  "github_run": "36046637281",
-  "timestamp": "2026-09-24T19:20:00.000000Z",
-  "config_hash": "4323f833fa72366a",
-  "global_seed": 42,
-  "factory_direction_v26_question": "Run the machine-executable 174k formal suite autonomously as representations land: (1) full 12-benchmark formal suite at 174k scale on all production representations (frozen harness v3 thresholds unchanged); (2) validate citation_heritage benchmark using the published 174k citation-ID resolution (2,019/2,105 resolved); (3) test whether v17b label normalization (15-25% purity gain, REPRODUCED across 4 seeds) generalizes to 174k fine-grained legal_area labels.",
-  "v25_tfidf_question_status": "COMPLETED_REPRODUCED - 174k formal suite executed on all 8 TF-IDF-family representations (cited_decisions_tfidf, outcome_tfidf, regeste_tfidf, full_text_tfidf_light, cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7, regeste_full_text_hybrid_0.5, regeste_full_text_hybrid_0.7). Independent verification: bitwise-exact embedding rebuild from pinned parquet (7/7 conformance checks PASS). Provenance gate verified (12/12 pytest PASS). Citation heritage validated at 174k with 137,314 positive+negative pairs. v17b label normalization label-level confirmed at 174k (213→163 labels, 32 cross-lingual concepts). Full corpus adversarial evaluation (config hash 4047da047fb339c1) completed on 175,440 decisions: ALL 8 PASS both adversarial gates (language dominance <0.85, jurist preference >0.5). Best: full_text_tfidf_light (JP=0.804, LD=0.498).",
-  "v26_dependencies": {
-    "legal_distance_174k_dense_embeddings": "ACTIVE - Legal-distance gh run 35935612800 executing year-split CPU computation. Priority 2 dense embeddings awaited: center_projected_768dim, center_projected_64dim, linear_metric_epoch4, mahalanobis_metric_epoch4, hybrid_stabilized_epoch1. Priority 3 citation roles awaited: citing/following/criticizing/distinguishing/overruling_alpha0.3.",
-    "citation_heritage_174k_dense": "INFRASTRUCTURE READY - 137,314 positive + 137,314 negative pairs at full 174k scale. Citation resolution 95.9% (2,019/2,105). Benchmark executable when dense 174k embeddings available.",
-    "v17b_label_normalization_174k_dense": "LABEL LEVEL CONFIRMED - Clustering test PENDING dense 174k embeddings from legal-distance."
-  },
-  "infrastructure_status": {
-    "frozen_harness_v3": "OPERATIONAL (config hash a31c443a9b0e992e verified, exact reproduction confirmed)",
-    "scalable_nn_hnsw": "OPERATIONAL (hnswlib available, validated at 174k scale with 90k+ decisions)",
-    "full_corpus_harness": "VALIDATED at 1200 scale, exact adversarial match with frozen v3 (config hash 4047da047fb339c1)",
-    "v16_benchmark_suite": "IMPLEMENTED (12 benchmarks, frozen thresholds, config hash 4323f833fa72366a)",
-    "citation_heritage_174k": "READY (137,314 positive + 137,314 negative pairs at full 174k scale)",
-    "v17b_normalization_174k": "LABEL LEVEL CONFIRMED (213→163 labels, 32 cross-lingual canonical concepts), clustering test pending embeddings",
-    "distributed_evaluation": "SUPPORTED (model-level sharding via DistributedEvaluator)",
-    "auto_monitor_script": "OPERATIONAL (evaluation/monitor_and_evaluate_174k.py)"
-  },
-  "174k_corpus_readiness": {
-    "total_decisions": 173963,
-    "decisions_with_known_branch": 90632,
-    "decisions_with_legal_area": 91193,
-    "language_distribution": {
-      "de": 106501,
-      "fr": 57489,
-      "it": 9973
-    },
-    "branch_distribution_known": {
-      "oeffentliches_recht": 31284,
-      "zivilrecht": 25413,
-      "sozialversicherungsrecht": 17347,
-      "strafrecht": 16588
-    }
-  },
-  "monitor_check_20260924_192000": {
-    "script": "evaluation/monitor_and_evaluate_174k.py",
-    "legal_distance_watch_path": "/tmp/lex_accepted/legal-distance/legal_distance/results/v5",
-    "found_174k_representation_dirs": [],
-    "expected_representations_status": {
-      "priority_1_tfidf_signals": {
-        "cited_decisions_tfidf": false,
-        "outcome_tfidf": false,
-        "cited_outcome_hybrid_0.5": false,
-        "cited_outcome_hybrid_0.7": false,
-        "linear_citation_concat": false,
-        "linear_hybrid05_concat": false,
-        "linear_citation_w3070": false,
-        "linear_citation_ridge": false
-      },
-      "priority_2_dense_embeddings": {
-        "center_projected_768dim": false,
-        "center_projected_64dim": false,
-        "linear_metric_epoch4": false,
-        "mahalanobis_metric_epoch4": false,
-        "hybrid_stabilized_epoch1": false
-      },
-      "priority_3_citation_roles": {
-        "citation_role_citing_alpha0.3": false,
-        "citation_role_following_alpha0.3": false,
-        "citation_role_criticizing_alpha0.3": false,
-        "citation_role_distinguishing_alpha0.3": false,
-        "citation_role_overruling_alpha0.3": false
-      }
-    },
-    "note": "Priority 1 TF-IDF representations evaluated at 174k scale (175,440 decisions, 8/8 PASS both adversarial gates). Results in evaluation/results/full_corpus_174k_tfidf/. Monitor watches for Priority 2/3 dense representations from legal-distance."
-  },
-  "formal_suite_execution_20260924": {
-    "representations_evaluated": 8,
-    "all_passed_adversarial_gates": true,
-    "best_representation": "full_text_tfidf_light",
-    "best_jurist_preference": 0.8040,
-    "best_language_dominance": 0.4976,
-    "config_hash": "4047da047fb339c1",
-    "corpus_size": 175440,
-    "embedding_dim": 128,
-    "results_path": "evaluation/results/full_corpus_174k_tfidf/full_corpus_evaluation_results_worker0.json"
-  },
-  "negative_results_preserved": {
-    "boilerplate_resistance": "NEGATIVE (~ -0.9) - measures language dominance, not procedural boilerplate",
-    "hierarchy_coherence": "NEGATIVE - v18 confirmed fundamental branch-level limitation (purity ~0.65)",
-    "zoom_coherence": "NEGATIVE - no improvement from coarse to fine at branch level",
-    "legal_area_clustering": "NEGATIVE - fine-grained label granularity prevents purity > 0.5",
-    "citation_heritage_on_tfidf": "NEGATIVE (AUC=0.482) - TF-IDF cannot recover citation proximity at 174k scale (SUPERSEDED by frozen-protocol execution: cited_outcome_hybrid_0.5 AUC=0.919341 PASS)",
-    "center_projected_768": "FAILS jurist pairwise gate (0.4912 < 0.5) - confirmed across all verifications"
-  },
-  "production_decision_gates": {
-    "PRODUCT_SERVING_DEFAULT_cited_outcome_hybrid_0.5": "Must pass BOTH adversarial gates at 174k",
-    "COMBINATION_MODE_linear_hybrid05_concat": "Must pass BOTH adversarial gates + stability test at 174k",
-    "DEFAULT_map_mode_center_projected_64dim_hierarchical": "Validated PASS both gates at 1200, must re-verify at 174k"
-  },
-  "external_blockers": {
-    "jurist_human_study": "Framework ready, externally blocked (requires 5-10 Swiss jurists recruited by repository owner)"
-  },
-  "v17_label_normalization_findings": {
-    "evidence_tier": "REPRODUCED",
-    "multi_seed_verified": true,
-    "multi_seed_details": "v17 label normalization (15-25% purity gain) verified across 4 seeds at 1200 scale; 174k label-level confirmed (213->163 labels, 32 cross-lingual concepts)"
-  },
-  "v17b_label_normalization_all_reps_findings": {
-    "evidence_tier": "REPRODUCED",
-    "multi_seed_verified": true,
-    "multi_seed_details": "v17b generalization to 174k fine-grained legal_area labels confirmed at label level; 4-seed reproduction at 1200 scale; clustering test pending dense embeddings"
-  },
+  "accepted_run_id": "eval_v25_174k_formal_suite_36049075064",
   "evidence_refs": [
-    "evaluation/results/full_corpus_174k_tfidf/full_corpus_evaluation_results_worker0.json",
-    "evaluation/results/174k_citation_heritage/citation_pairs_174k_full.json",
-    "evaluation/results/174k_label_analysis/174k_legal_area_analysis.json",
-    "evaluation/results/v3/evaluation_v3_results.json"
+    "evaluation/reports/evaluation_v26_174k_formal_suite_report.md",
+    "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
+    "results/evaluation/v25_174k_formal_suite/results/cited_decisions_tfidf.json",
+    "results/evaluation/v25_174k_formal_suite/results/outcome_tfidf.json",
+    "results/evaluation/v25_174k_formal_suite/results/regeste_tfidf.json",
+    "results/evaluation/v25_174k_formal_suite/results/full_text_tfidf_light.json",
+    "results/evaluation/v25_174k_formal_suite/results/cited_outcome_hybrid_0.5.json",
+    "results/evaluation/v25_174k_formal_suite/results/cited_outcome_hybrid_0.7.json",
+    "results/evaluation/v25_174k_formal_suite/results/regeste_full_text_hybrid_0.5.json",
+    "results/evaluation/v25_174k_formal_suite/results/regeste_full_text_hybrid_0.7.json",
+    "results/evaluation/v25_174k_citation_heritage/cited_decisions_tfidf.json",
+    "results/evaluation/v25_174k_citation_heritage/cited_outcome_hybrid_0.5.json",
+    "results/evaluation/v25_174k_citation_heritage/cited_outcome_hybrid_0.7.json",
+    "results/evaluation/v25_174k_citation_heritage/outcome_tfidf.json",
+    "results/evaluation/v25_174k_citation_heritage/full_text_tfidf_light.json",
+    "results/evaluation/v25_174k_citation_heritage/regeste_full_text_hybrid_0.5.json",
+    "results/evaluation/v25_174k_citation_heritage/regeste_full_text_hybrid_0.7.json",
+    "results/evaluation/v25_174k_citation_heritage/regeste_tfidf.json",
+    "results/evaluation/v25_174k_v17b/cited_decisions_tfidf.json",
+    "results/evaluation/v25_174k_v17b/outcome_tfidf.json",
+    "results/evaluation/v25_174k_v17b/regeste_tfidf.json",
+    "results/evaluation/v25_174k_v17b/full_text_tfidf_light.json",
+    "results/evaluation/v25_174k_v17b/cited_outcome_hybrid_0.5.json",
+    "results/evaluation/v25_174k_v17b/cited_outcome_hybrid_0.7.json",
+    "results/evaluation/v25_174k_v17b/regeste_full_text_hybrid_0.5.json",
+    "results/evaluation/v25_174k_v17b/regeste_full_text_hybrid_0.7.json",
+    "evaluation/experiments/v25_174k_suite/protocol_v25_174k_suite.json",
+    "evaluation/data/174k/metadata_174k.json",
+    "evaluation/results/174k_citation_heritage/citation_pairs_174k_full.json"
   ],
-  "next_recommendation": "MONITORING_DEPENDENCIES - v25 TF-IDF question COMPLETED and REPRODUCED. All evaluation infrastructure FROZEN, VALIDATED, and AUDIT-READY. Awaiting legal-distance gh run 35935612800 completion and accepted state promotion of dense 174k representations (Priority 2: center_projected_64/768, linear_metric, mahalanobis, hybrid_stabilized; Priority 3: citation roles). When dense representations land in accepted state, execute 12-benchmark suite + citation heritage + v17b clustering test on them. No additional same-question cycle on TF-IDF representations justified. Factory Director to await legal-distance delivery in accepted state before authorizing next evaluation cycle on dense representations. continue_recommended=false for TF-IDF question; lane remains active for dense representation monitoring."
+  "next_recommendation": "No additional same-question cycle justified. All three machine-executable sub-questions of factory direction v26 answered with frozen, preserved evidence. Recommended successor questions: (1) legal-distance to deliver 174k dense embeddings (blocking dependency for fractal-map/product); (2) fractal-map to resume zoom-quality evaluation once dense embeddings land; (3) product to wire production defaults to full-corpus artifacts; (4) evaluation jurist human study (external dependency, framework ready).",
+  "summary": {
+    "subquestion_1_12_benchmark_suite": {
+      "status": "COMPLETE",
+      "representations_tested": 8,
+      "best_representation": "cited_decisions_tfidf (6/12 PASS)",
+      "key_finding": "No representation passes all 12 benchmarks at 174k. Citation-aware representations excel at citation_heritage (AUC > 0.91) and adversarial/multilingual but fail branch_knn, tf_metadata, boilerplate, temporal_stability, hierarchy_coherence. Full-text/regeste hybrids pass branch_knn, tf_metadata, boilerplate, temporal but fail adversarial (language dominance > 0.99) and multilingual. ALL fail hierarchy_coherence (max purity 0.465 vs 0.7 threshold) and legal_area_clustering."
+    },
+    "subquestion_2_citation_heritage": {
+      "status": "COMPLETE",
+      "pair_pool": "137,314 positive + 137,314 negative (frozen)",
+      "citation_resolution": "2,019/2,105 (95.9%)",
+      "results": "7/8 representations PASS (AUC-ROC ≥ 0.65). Top: cited_decisions_tfidf AUC=0.973, nn_citation_rate@10=0.487. Only regeste_tfidf FAILS (AUC=0.487). Citation structure strongly recovered by citation-aware representations."
+    },
+    "subquestion_3_v17b_normalization": {
+      "status": "COMPLETE",
+      "generalization_claim": "FAILS",
+      "reason": "4/8 representations worsen hierarchy_nmi by >10% (full_text_tfidf_light, regeste_full_text_hybrid_0.5/0.7: -27.6%; cited_outcome_hybrid_0.7: -10.8%). 1/8 worsens zoom_coherence by >10% (cited_outcome_hybrid_0.5: -16.1%). Success rule (no representation worsens >10% on any hierarchy-family metric) violated."
+    }
+  }
 }
