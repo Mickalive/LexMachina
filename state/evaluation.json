@@ -1,12 +1,13 @@
 {
   "lane": "evaluation",
   "direction_version": 25,
-  "evidence_tier": "ACCEPTED",
-  "cycle_status": "BLOCKED_ON_DEPENDENCIES",
+  "evidence_tier": "REPRODUCED",
+  "cycle_status": "AWAITING_AUDIT",
   "continue_recommended": false,
-  "accepted_run_id": "eval_v25_comprehensive_verification_35981467715",
-  "github_run": "35981467715",
-  "timestamp": "2026-09-24T09:45:00.000000Z",
+  "accepted_run_id": "eval_v25_174k_formal_suite_36013963912",
+  "last_accepted_run_id": "eval_v25_comprehensive_verification_35981467715",
+  "github_run": "36020066596",
+  "timestamp": "2026-09-24T16:00:00.000000Z",
   "config_hash": "4323f833fa72366a",
   "global_seed": 42,
   "factory_direction_v25_question": "Run the machine-executable 174k formal suite autonomously as representations land: (1) full 12-benchmark formal suite at 174k scale on all production representations (frozen harness v3 thresholds unchanged); (2) validate citation_heritage benchmark using the published 174k citation-ID resolution (2,019/2,105 resolved); (3) test whether v17b label normalization (15-25% purity gain, REPRODUCED across 4 seeds) generalizes to 174k fine-grained legal_area labels.",
@@ -135,7 +136,7 @@
     "uniform_improvement_confirmed": true,
     "n_labels_normalized_1200": 788
   },
-  "next_recommendation": "BLOCKED_ON_DEPENDENCIES - Evaluation infrastructure fully validated and ready for 174k execution. Awaiting legal-distance lane to: (1) regenerate year-split artifacts via reproduce_full_corpus.py (~100s), (2) compute CPU-cheap TF-IDF/citation/outcome signals at 174k (cited_decisions_tfidf, outcome_tfidf, cited_outcome_hybrid_0.5/0.7), (3) compute dense embeddings (center_projected_64, legal embeddings) year-split. When 174k representations land in accepted state, evaluation lane will execute: full 12-benchmark suite on all representations (frozen harness v3 thresholds), citation_heritage benchmark (804 positive pairs), v17b label normalization clustering test. Jurist human study remains externally blocked (requires 5-10 Swiss jurists).",
+  "next_recommendation": "AWAITING_AUDIT - v25 174k formal suite EXECUTED on all 8 TF-IDF-family representations (producer run 36013963912) and independently REPRODUCED (bitwise-exact embedding rebuild from pinned parquet, 7/7 conformance checks in tests/evaluation/test_v25_174k_suite_snapshot.py). Cycle evidence_tier=REPRODUCED. Factory Director to audit candidate eval_v25_174k_formal_suite_36013963912. Next evaluation cycle justified only after legal-distance lane delivers dense 174k representations (center_projected_64/768, linear_metric, mahalanobis, hybrid_stabilized, hybrid_v2) so the 12-benchmark suite and the DEFAULT_map_mode_center_projected_64dim_hierarchical production gate can be re-verified at 174k. Jurist human study remains externally blocked (requires 5-10 Swiss jurists).",
   "evidence_refs": [
     "evaluation/evaluation_v3_harness.py",
     "evaluation/scalable_nn.py",
@@ -153,7 +154,14 @@
     "/tmp/lex_accepted/legal-distance/legal_distance/results/v5/center_projected_full/metadata.json",
     "reports/evaluation/EVALUATION_174K_READINESS_REPORT_20260923.md",
     "evaluation/results/full_corpus_174k_tfidf/full_corpus_evaluation_results_worker0.json",
-    "results/evaluation/citation_heritage_174k.json"
+    "results/evaluation/citation_heritage_174k.json",
+    "results/evaluation/v25_174k_formal_suite/embeddings/build_manifest.json",
+    "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
+    "results/evaluation/v25_174k_citation_heritage/cited_outcome_hybrid_0.5.json",
+    "results/evaluation/v25_174k_v17b/cited_decisions_tfidf.json",
+    "results/evaluation/v25_174k_snapshot_verification/embedding_rebuild_verification.json",
+    "tests/evaluation/test_v25_174k_suite_snapshot.py",
+    "reports/evaluation/EVALUATION_V25_174K_SUITE_EXECUTION_VERIFICATION_36020066596.md"
   ],
   "v17b_label_normalization_174k_analysis": {
     "total_decisions": 173963,
@@ -1069,6 +1077,112 @@
         "jurist_human_study": "Framework ready, externally blocked (requires 5-10 Swiss jurists recruited by repository owner)"
       },
       "next_recommendation": "BLOCKED_ON_DEPENDENCIES - All evaluation infrastructure FROZEN, VALIDATED, and AUDIT-READY for 174k execution. Fresh verification confirms: 3 frozen config hashes match, citation heritage 137k full pairs ready, v17b label normalization at 174k confirmed (213->163 labels, 32 cross-lingual concepts), 174k metadata loaded (173,963 decisions), monitor script operational. Legal-distance gh run 35935612800 still active (no 174k representations in accepted state). No additional same-question cycle justified. Factory Director to await legal-distance delivery in accepted state before authorizing next evaluation cycle. Snapshot is audit-ready."
+    },
+    "v25_174k_formal_suite_execution_36013963912": {
+      "github_run": "36013963912",
+      "timestamp": "2026-09-24T15:30:00Z",
+      "cycle_status": "EXECUTED_REPRODUCED_AWAIT_AUDIT",
+      "evidence_tier": "REPRODUCED",
+      "producer_manifest": {
+        "run_id": "eval_v25_174k_embeddings_1790261893",
+        "github_run": "36013963912",
+        "timestamp": "2026-09-24T14:58:13Z",
+        "seed": 42,
+        "dim": 128,
+        "metadata_total": 173963,
+        "actual_n_rows": 173963,
+        "n_missing": 0,
+        "metadata_order_defined_by": "evaluation/data/174k/metadata_174k.json row order",
+        "corpus_source": "pinned parquet https://huggingface.co/datasets/voilaj/swiss-caselaw/resolve/main/bger.parquet",
+        "empty_row_counts": {
+          "cited_decisions_tfidf": 82780,
+          "outcome_tfidf": 85343,
+          "regeste_tfidf": 91200,
+          "full_text_tfidf_light": 0
+        }
+      },
+      "representations": [
+        "cited_decisions_tfidf",
+        "outcome_tfidf",
+        "regeste_tfidf",
+        "full_text_tfidf_light",
+        "cited_outcome_hybrid_0.5",
+        "cited_outcome_hybrid_0.7",
+        "regeste_full_text_hybrid_0.5",
+        "regeste_full_text_hybrid_0.7"
+      ],
+      "suite_12_benchmark_executed": {
+        "config_hash_suite_frozen": "4323f833fa72366a",
+        "n_rows": 173963,
+        "per_rep_pass_fail": {
+          "cited_decisions_tfidf": "6 PASS / 6 FAIL",
+          "outcome_tfidf": "3 PASS / 9 FAIL",
+          "regeste_tfidf": "5 PASS / 7 FAIL",
+          "full_text_tfidf_light": "7 PASS / 5 FAIL",
+          "cited_outcome_hybrid_0.5": "6 PASS / 6 FAIL",
+          "cited_outcome_hybrid_0.7": "6 PASS / 6 FAIL",
+          "regeste_full_text_hybrid_0.5": "7 PASS / 5 FAIL",
+          "regeste_full_text_hybrid_0.7": "7 PASS / 5 FAIL"
+        },
+        "all_thresholds_frozen_unchanged": true
+      },
+      "citation_heritage_validated": {
+        "pairs_file": "evaluation/results/174k_citation_heritage/citation_pairs_174k_full.json",
+        "pairs_pool": "137314 positive + 137314 negative, ALL resolvable to metadata IDs",
+        "resolution_note": "pair pool built from published 174k citation-ID resolution (2,019/2,105 resolved citation linkage)",
+        "independent_auc_recomputed": {
+          "cited_decisions_tfidf": "0.973104 PASS",
+          "outcome_tfidf": "0.718365 PASS (producer 0.720444, float32 loop noise)",
+          "regeste_tfidf": "0.486484 FAIL",
+          "full_text_tfidf_light": "0.843878 PASS",
+          "cited_outcome_hybrid_0.5": "0.919341 PASS",
+          "cited_outcome_hybrid_0.7": "0.960489 PASS",
+          "regeste_full_text_hybrid_0.5": "0.850500 PASS",
+          "regeste_full_text_hybrid_0.7": "0.865039 PASS"
+        },
+        "memorized_tfidf_row_order_break_fixed": true,
+        "old_claim_superseded": "NEGATIVE (AUC=0.482) recorded in v25_dependencies and in the v25_operational_resume_final_verification_35988508077 record was measured on an ad-hoc cycle-branch embedding with broken row alignment vs metadata_174k; frozen-protocol execution gives cited_outcome_hybrid_0.5 AUC=0.919341 PASS. Superseded by this record."
+      },
+      "v17b_174k_generalization": {
+        "labels_raw_unique": 214,
+        "labels_normalized_unique": 164,
+        "labels_changed_fraction": 0.493,
+        "unknown_legal_area_fraction": 0.476,
+        "canonical_concepts_multi_language": 33,
+        "success_rule": "no hierarchy-family purity metric worsened >10% relative to raw labels",
+        "result": "PASS for all 8 reps",
+        "nuances": {
+          "full_text_family": "purity ratio 1.000 (unchanged) but NMI drops 0.577->0.418 (hierarchy) and 0.600->0.454 (legal_area)",
+          "regeste_outcome_family": "gains come from degenerate zero-vector clustering (purity = label-frequency statistics; raw hier=zoom=area identical)",
+          "subsample_label_changes": "94.2% of hierarchy subsample labels changed for full_text_tfidf_light",
+          "1200_scale_uniform_15_25pct_gain_does_not_fully_generalize": true
+        }
+      },
+      "independent_verifications": {
+        "embedding_rebuild_from_pinned_parquet": "BITWISE EXACT (max_abs_diff=0.0 for all 8 npy) - provenance proven, row order = metadata order, pipeline deterministic",
+        "hybrid_reconstruction_from_saved_bases": "exact to float32 ulp (sklearn normalize semantics)",
+        "fixed_subsamples_seed42": "hierarchy_15000 (branch-stratified among known legal_area) and temporal_30000 reproduce exactly from metadata",
+        "suite_summary_vs_per_rep_files": "0 mismatches",
+        "dedicated_citation_heritage_files_vs_suite": "0 mismatches",
+        "frozen_harness_v3_reproduction_at_1200": "EXACT accepted baseline match (config hash a31c443a9b0e992e)",
+        "hnsw_neighborhood_recompute": "cited_decisions_tfidf and cited_outcome_hybrid_0.5 statuses unchanged (branch_knn FAIL 0.6333, adversarial PASS 0.85/0.3)",
+        "evidence_files": [
+          "tests/evaluation/test_v25_174k_suite_snapshot.py (7/7 conformance checks PASS)",
+          "results/evaluation/v25_174k_snapshot_verification/embedding_rebuild_verification.json",
+          "reports/evaluation/EVALUATION_V25_174K_SUITE_EXECUTION_VERIFICATION_36020066596.md"
+        ]
+      },
+      "diagnosis_of_36013963912_stranding": {
+        "snapshot_complete": true,
+        "no_audit_branch": "branch topology shows only cycle/core/evaluation/36013963912/team and team-attempt-1; no audit branch; audit/integrate workflow legs never ran",
+        "state_file_never_updated": "state/evaluation.json still held run 35988508077 entry (BLOCKED_ON_DEPENDENCIES) at time of this resume",
+        "consequence": "factory supervisor treated evaluation as accepting-no-further-cycles while 174k work sat unaccepted on the cycle branch",
+        "mitigation": "this resume verified the full snapshot (independent rebuild + conformance test), updated state, and prepares audit"
+      },
+      "external_blockers": {
+        "dense_representations_at_174k": "center_projected_64/768, linear_metric, mahalanobis, hybrid_stabilized, hybrid_v2 pending from legal-distance lane (suite at 174k executed on the 8 zero-shot TF-IDF-family representations available in accepted state)",
+        "jurist_human_study": "Framework ready, externally blocked (requires 5-10 Swiss jurists recruited by repository owner)"
+      },
+      "next_recommendation": "Factory Director should audit this cycle (candidate eval_v25_174k_formal_suite_36013963912) then authorize legal-distance lane to deliver dense 174k representations (center_projected_64/768, linear_metric, mahalanobis, hybrid_stabilized, hybrid_v2) so the 12-benchmark suite can be executed on them and the DEFAULT_map_mode_center_projected_64dim_hierarchical production gate re-verified at 174k. No additional same-question cycle on the 8 TF-IDF-family representations is justified (question fully answered at 174k). continue_recommended=false."
     }
   }
-}
