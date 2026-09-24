@@ -1,0 +1,57 @@
+{
+  "lane": "fractal-map",
+  "cycle_id": "operational_resume_35957746471",
+  "github_run": 35957746471,
+  "timestamp": "2026-09-24T05:00:00.000000+00:00",
+  "direction_version": 25,
+  "verification_type": "operational_resume",
+  "prior_producer_snapshot_run": 35956338254,
+  "tests": {
+    "total": 184,
+    "passed": 183,
+    "skipped": 1,
+    "failed": 0,
+    "duration_seconds": 0.31,
+    "all_pass": true
+  },
+  "artifacts_verified": 925,
+  "scientific_regressions": 0,
+  "lane_deliverable_status": "COMPLETE_TFIDF_COMPRESSED_LADDER",
+  "orchestration_failure": {
+    "diagnosed": true,
+    "root_cause": "Supervisor dispatch logic reads ephemeral /tmp/lex_control/state/factory_direction.json (v25, fractal-map.status=RUN) instead of workspace state/factory_direction.json (v10, fractal-map.status=COMPLETED_TFIDF)",
+    "cycles_wasted": 45,
+    "first_documented": "RUN 33339971167",
+    "last_documented": "RUN 35944858450",
+    "fix_required": "Factory Director must update supervisor dispatch logic to read workspace state instead of ephemeral control plane copy"
+  },
+  "blockers": {
+    "legal_distance_174k_dense_embeddings": {
+      "status": "RUN",
+      "github_run": 35935612800,
+      "note": "Year-split CPU execution actively executing"
+    },
+    "corpus_174k_metadata": {
+      "status": "PAUSE",
+      "note": "174k parquet on HuggingFace, not materialized locally as JSONL with branch/legal_area/chamber"
+    }
+  },
+  "tfidf_modes_complete": {
+    "at_174k": 2,
+    "at_21k_compressed": 6,
+    "total": 8,
+    "all_nesting_1_0": true,
+    "compressed_ladder": [0.25, 0.5, 1.0, 2.0, 3.0],
+    "resolution_reduction_pct": 29
+  },
+  "zoom_quality_diagnostic": {
+    "best_mode": "citing_alpha0.3",
+    "best_zq": 0.5401,
+    "citation_roles_dominate": true,
+    "multi_view_design_confirmed": true
+  },
+  "continue_recommended": false,
+  "next_recommendation": "BLOCKED: TF-IDF modes COMPLETE at compressed ladder (21k scale). Citation role modes (citing_alpha0.3, following_alpha0.3, criticizing_alpha0.3) and dense embedding modes await legal-distance 174k delivery. When legal-distance delivers 174k dense embeddings: (1) run build_parameterized_legal_distance_map_compressed.py for all dense modes, (2) validate citation-role zoom quality at 174k per zoom quality diagnostic (citing ZQ=0.5401, following ZQ=0.5280, criticizing ZQ=0.4864), (3) implement multi-view zoom UI with citation-role views. Multi-view design CONFIRMED: citation roles for zoom navigation, outcome hybrids for flat exploration.",
+  "audit_ready": true,
+  "gate_verdict": "PASS"
+}
