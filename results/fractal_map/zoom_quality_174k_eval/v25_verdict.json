@@ -1,0 +1,79 @@
+{
+  "experiment": "fractal-map 174k zoom-quality vs ACCEPTED evaluation metadata (v25)",
+  "frozen_spec_ref": "results/fractal_map/zoom_quality_174k_eval/v25_frozen_spec.json",
+  "raw_purity_ref": "results/fractal_map/zoom_quality_174k_eval/v25_raw_purity.json",
+  "raw_zoom_ref": "results/fractal_map/zoom_quality_174k_eval/v25_raw_zoom.json",
+  "direction_version": 25,
+  "evaluated_at": "2026-09-24",
+  "primary_mode": "cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25",
+  "checks": {
+    "a_branch_monotonic": false,
+    "b_area_monotonic": false,
+    "c_improvement_rate": false,
+    "branch_purity_res0.25": 0.5525,
+    "branch_purity_res3.0": 0.5273,
+    "area_purity_res0.25": 0.3134,
+    "area_purity_res3.0": 0.2622,
+    "improvement_rates": {
+      "res_0.25_to_res_0.5": 0.3125,
+      "res_0.5_to_res_1.0": 0.4583,
+      "res_1.0_to_res_2.0": 0.5938,
+      "res_2.0_to_res_3.0": 0.3846
+    }
+  },
+  "verdict": "FAIL",
+  "secondary_modes": {
+    "cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed_v25": {
+      "branch_purity": [
+        0.5491,
+        0.531,
+        0.5157,
+        0.4994,
+        0.5204
+      ],
+      "area_purity": [
+        0.2956,
+        0.271,
+        0.248,
+        0.2238,
+        0.231
+      ]
+    },
+    "regeste_tfidf_174k": {
+      "branch_purity": [
+        0.3452,
+        0.3452,
+        0.3452,
+        0.3455,
+        0.3434
+      ]
+    }
+  },
+  "baseline_comparison": {
+    "branch_random": 0.25,
+    "area_random": 0.0047,
+    "observed_branch_range": [
+      0.5128,
+      0.5525
+    ],
+    "observed_area_range": [
+      0.2438,
+      0.3134
+    ],
+    "structure_signal": "purity >> random baseline at ALL resolutions -> TF-IDF 174k modes DO encode legal structure",
+    "zoom_refinement_signal": "monotonic purity increase NOT observed -> fine levels do not refine coarse structure"
+  },
+  "fine_level_fragmentation": {
+    "res_2.0_clusters": 12852,
+    "res_3.0_clusters": 63778,
+    "median_cluster_size_res2": 1,
+    "median_cluster_size_res3": 1,
+    "note": "fine ladder levels over-fragmented (median size 1); zoom refinement structurally unavailable in TF-IDF 174k builds"
+  },
+  "consistency_with_prior_evidence": [
+    "citation_heritage_174k FAIL (AUC=0.482 vs 0.65) on cited_outcome_hybrid_0.5_174k - evaluation lane accepted state",
+    "1000-scale zoom-quality diagnostic: production default outcome_hybrid_0.5 ZQ=0.2798 ranked 21st; citation-role modes top (citing 0.5401)",
+    "evaluation lane v17b clustering test PENDING - requires 174k dense embeddings"
+  ],
+  "conclusion": "TF-IDF 174k compressed-ladder modes recover legal structure (purity far above random) but do NOT demonstrate monotonic zoom-refinement against ACCEPTED metadata; production default fails all three frozen success rules. Zoom-quality at 174k is NOT established for TF-IDF-only modes. Citation-role/dense modes remain the evidence path (top ZQ at 1000-scale) and stay BLOCKED on legal-distance 174k dense embeddings."
+}

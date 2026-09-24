@@ -1,0 +1,34 @@
+{
+  "experiment": "fractal-map 174k zoom-quality with accepted evaluation metadata",
+  "lane": "fractal-map",
+  "direction_version": 25,
+  "date_frozen": "2026-09-24",
+  "hypothesis": "The 5-level compressed resolution ladder [0.25,0.5,1.0,2.0,3.0] built on full-corpus TF-IDF representations (174126 real decision IDs) recovers Swiss federal court legal structure at scale: cluster purity w.r.t. accepted metadata labels (branch, legal_area) monotonically increases from coarse to fine resolution, and zoom transitions show net positive purity improvement (zoom coherence) for decision-mappable 174k modes.",
+  "data_sources": {
+    "clusters": "results/fractal_map/legal_distance_modes/<mode>/decision_clusters.json (decision_id -> {res: cluster})",
+    "labels": "/tmp/lex_accepted/evaluation/evaluation/data/174k/metadata_174k.json (ACCEPTED, 173963 entries, branch+legal_area 100% covered, 214 raw areas)"
+  },
+  "modes_frozen": [
+    "cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25",
+    "cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed_v25",
+    "cited_decisions_tfidf_outcome_hybrid_0.5_174k",
+    "regeste_tfidf_174k"
+  ],
+  "resolutions": [
+    0.25,
+    0.5,
+    1.0,
+    2.0,
+    3.0
+  ],
+  "metric_branch": "mean cluster branch purity per resolution; exclude 'unknown'; report coverage",
+  "metric_area": "mean cluster legal_area purity per resolution (214 raw areas); exclude 'unknown'; report coverage",
+  "metric_zoom": "per transition (r_i -> r_{i+1}): mean improvement (child purity - parent purity weighted appropriately) and improvement_rate (fraction of parents with improvement > 0); aggregate over parents with >=3 labeled children",
+  "success_rule": "PASS iff for the production default mode cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25: (a) mean branch purity at res_3.0 > mean branch purity at res_0.25; (b) mean area purity at res_3.0 > mean area purity at res_0.25; (c) zoom improvement_rate > 0.5 for at least 2 of 4 transitions (branch). Secondary: compare all 4 modes; report any mode that fails monotonicity.",
+  "baseline": "Uniform-random clustering baseline: expected purity = 1/n_classes (branch: ~1/5 useful classes ~0.20 excl unknown; area: ~1/214 ~0.0047). Purity must be substantially above these to be informative.",
+  "provenance_notes": [
+    "Only 4 of 6 true-174k dirs are decision-mappable; cited_decisions_tfidf_174k_compressed_v25 and outcome_tfidf_174k_compressed_v25 use placeholder ids -> excluded.",
+    "Computation joins decision_clusters.json (174126 keys) with accepted metadata (173963) by decision_id; no reliance on 175440-row label arrays or embedding-row alignment.",
+    "Previously stored branch_coherence in 174k builds used a different metadata source at build time; this experiment is the first legal_area-level 174k evaluation against ACCEPTED metadata."
+  ]
+}
