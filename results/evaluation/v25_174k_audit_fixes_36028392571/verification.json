@@ -1,0 +1,113 @@
+{
+  "run_id": "eval_v25_audit_fixes_36028392571",
+  "github_run": "36028392571",
+  "resumes_run": "36020066596",
+  "producer_run": "36013963912",
+  "audit_gate": "reports/audit/evaluation/CYCLE_36020066596.md (PASS, safe_to_integrate=true)",
+  "timestamp": "2026-09-24T17:14:30Z",
+  "fix_C_manifest_zero_rows": {
+    "manifest_recorded": {
+      "cited_decisions_tfidf": 82780,
+      "outcome_tfidf": 85343,
+      "regeste_tfidf": 91200,
+      "full_text_tfidf_light": 0
+    },
+    "recounted_exact": {
+      "cited_decisions_tfidf": 82780,
+      "outcome_tfidf": 85343,
+      "regeste_tfidf": 91204,
+      "full_text_tfidf_light": 0
+    },
+    "correction_needed_for": {
+      "regeste_tfidf": [
+        91200,
+        91204
+      ]
+    }
+  },
+  "fix_B_regeste_pool_structure": {
+    "regeste_tfidf": {
+      "zero_rows": 91204,
+      "full_pool": {
+        "pos_pairs_with_ge1_zero_endpoint": 137314,
+        "pos_pairs_total": 137314,
+        "neg_pairs_with_ge1_zero_endpoint": 106092,
+        "neg_pairs_total": 137314,
+        "pos_mean_similarity_f64": 0.0,
+        "neg_mean_similarity_f64": 0.0073679307689193865,
+        "pos_max_similarity_f64": 0.0
+      },
+      "old_pool_pos_pairs_with_ge1_zero_endpoint": 1001,
+      "old_pool_pos_pairs_total": 1020
+    },
+    "cited_decisions_tfidf": {
+      "zero_rows": 82780,
+      "full_pool": {
+        "pos_pairs_with_ge1_zero_endpoint": 3261,
+        "pos_pairs_total": 137314
+      }
+    }
+  },
+  "fix_D_old_pool_auc_cofactor": {
+    "embedding": "cited_outcome_hybrid_0.5 (frozen protocol rebuild, aligned)",
+    "old_pool_file": "evaluation/results/174k_citation_heritage/citation_pairs_174k.json",
+    "n_positive": 1020,
+    "n_negative": 1020,
+    "auc_roc": 0.7583006535947713,
+    "pos_mean_similarity": 0.4444042614937776,
+    "neg_mean_similarity": 0.08196639063681047,
+    "verdict_vs_frozen_threshold_0.65": "PASS"
+  },
+  "reverification_full_pool_auc": {
+    "cited_outcome_hybrid_0.5": {
+      "recomputed_auc_f64": 0.9193409612242899,
+      "committed_auc": 0.9193409695509341,
+      "abs_diff": 8.326644262979244e-09
+    },
+    "regeste_tfidf": {
+      "recomputed_auc_f64": 0.4864835340897505,
+      "committed_auc": 0.4864835340897505,
+      "abs_diff": 0.0
+    }
+  },
+  "fix_A_v17b_recheck_summary": {
+    "github_run": "36028392571",
+    "duration_seconds_total": 598.9,
+    "reps_rechecked": 8,
+    "comparison_vs_recorded": {
+      "cited_decisions_tfidf": {
+        "recheck_matches_recorded_file": false,
+        "recorded_file_is_copy_of": null
+      },
+      "outcome_tfidf": {
+        "recheck_matches_recorded_file": true,
+        "recorded_file_is_copy_of": null
+      },
+      "regeste_tfidf": {
+        "recheck_matches_recorded_file": true,
+        "recorded_file_is_copy_of": null
+      },
+      "full_text_tfidf_light": {
+        "recheck_matches_recorded_file": true,
+        "recorded_file_is_copy_of": "regeste_full_text_hybrid_0.5"
+      },
+      "cited_outcome_hybrid_0.5": {
+        "recheck_matches_recorded_file": true,
+        "recorded_file_is_copy_of": null
+      },
+      "cited_outcome_hybrid_0.7": {
+        "recheck_matches_recorded_file": true,
+        "recorded_file_is_copy_of": null
+      },
+      "regeste_full_text_hybrid_0.5": {
+        "recheck_matches_recorded_file": true,
+        "recorded_file_is_copy_of": "full_text_tfidf_light"
+      },
+      "regeste_full_text_hybrid_0.7": {
+        "recheck_matches_recorded_file": true,
+        "recorded_file_is_copy_of": "full_text_tfidf_light"
+      }
+    },
+    "defect_finding": "results/evaluation/v25_174k_v17b/regeste_full_text_hybrid_0.5.json and regeste_full_text_hybrid_0.7.json are byte-identical (except representation name) to full_text_tfidf_light.json: they are invalid copies, not measurements of the hybrid embeddings. Superseded by the recheck files in this directory for those two reps; the other six reps are independently re-confirmed here."
+  }
+}

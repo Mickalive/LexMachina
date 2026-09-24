@@ -115,6 +115,104 @@
       }
     },
     {
+      "path": "results/accepted-state/evaluation.json",
+      "state": {
+        "lane": "evaluation",
+        "direction_version": 26,
+        "evidence_tier": "REPRODUCED",
+        "cycle_status": "MONITORING_DEPENDENCIES",
+        "continue_recommended": false,
+        "accepted_run_id": "eval_v25_174k_formal_suite_36013963912",
+        "last_accepted_run_id": "eval_v25_provenance_gate_36035803010",
+        "github_run": "36036865748",
+        "timestamp": "2026-09-24T18:47:28.000000Z",
+        "config_hash": "4323f833fa72366a",
+        "global_seed": 42,
+        "factory_direction_v26_question": "Run the machine-executable 174k formal suite autonomously as representations land: (1) full 12-benchmark formal suite at 174k scale on all production representations (frozen harness v3 thresholds unchanged); (2) validate citation_heritage benchmark using the published 174k citation-ID resolution (2,019/2,105 resolved); (3) test whether v17b label normalization (15-25% purity gain, REPRODUCED across 4 seeds) generalizes to 174k fine-grained legal_area labels.",
+        "v25_tfidf_question_status": "COMPLETED_REPRODUCED - 174k formal suite executed on all 8 TF-IDF-family representations (cited_decisions_tfidf, outcome_tfidf, regeste_tfidf, full_text_tfidf_light, cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7, regeste_full_text_hybrid_0.5, regeste_full_text_hybrid_0.7). Independent verification: bitwise-exact embedding rebuild from pinned parquet (7/7 conformance checks PASS). Provenance gate verified (12/12 pytest PASS). Citation heritage validated at 174k with 137,314 positive+negative pairs. v17b label normalization label-level confirmed at 174k (213→163 labels, 32 cross-lingual concepts).",
+        "v26_dependencies": {
+          "legal_distance_174k_dense_embeddings": "ACTIVE - Legal-distance gh run 35935612800 executing year-split CPU computation. Priority 2 dense embeddings awaited: center_projected_768dim, center_projected_64dim, linear_metric_epoch4, mahalanobis_metric_epoch4, hybrid_stabilized_epoch1. Priority 3 citation roles awaited: citing/following/criticizing/distinguishing/overruling_alpha0.3.",
+          "citation_heritage_174k_dense": "INFRASTRUCTURE READY - 137,314 positive + 137,314 negative pairs at full 174k scale. Citation resolution 95.9% (2,019/2,105). Benchmark executable when dense 174k embeddings available.",
+          "v17b_label_normalization_174k_dense": "LABEL LEVEL CONFIRMED - Clustering test PENDING dense 174k embeddings from legal-distance."
+        },
+        "infrastructure_status": {
+          "frozen_harness_v3": "OPERATIONAL (config hash a31c443a9b0e992e verified, exact reproduction confirmed)",
+          "scalable_nn_hnsw": "OPERATIONAL (hnswlib available, validated at 174k scale with 90k+ decisions)",
+          "full_corpus_harness": "VALIDATED at 1200 scale, exact adversarial match with frozen v3 (config hash 4047da047fb339c1)",
+          "v16_benchmark_suite": "IMPLEMENTED (12 benchmarks, frozen thresholds, config hash 4323f833fa72366a)",
+          "citation_heritage_174k": "READY (137,314 positive + 137,314 negative pairs at full 174k scale)",
+          "v17b_normalization_174k": "LABEL LEVEL CONFIRMED (213→163 labels, 32 cross-lingual canonical concepts), clustering test pending embeddings",
+          "distributed_evaluation": "SUPPORTED (model-level sharding via DistributedEvaluator)",
+          "auto_monitor_script": "OPERATIONAL (evaluation/monitor_and_evaluate_174k.py)"
+        },
+        "174k_corpus_readiness": {
+          "total_decisions": 173963,
+          "decisions_with_known_branch": 90632,
+          "decisions_with_legal_area": 91193,
+          "language_distribution": {
+            "de": 106501,
+            "fr": 57489,
+            "it": 9973
+          },
+          "branch_distribution_known": {
+            "oeffentliches_recht": 31284,
+            "zivilrecht": 25413,
+            "sozialversicherungsrecht": 17347,
+            "strafrecht": 16588
+          }
+        },
+        "monitor_check_20260924_184728": {
+          "script": "evaluation/monitor_and_evaluate_174k.py",
+          "legal_distance_watch_path": "/tmp/lex_accepted/legal-distance/legal_distance/results/v5",
+          "found_174k_representation_dirs": [],
+          "expected_representations_status": {
+            "priority_1_tfidf_signals": {
+              "cited_decisions_tfidf": false,
+              "outcome_tfidf": false,
+              "cited_outcome_hybrid_0.5": false,
+              "cited_outcome_hybrid_0.7": false,
+              "linear_citation_concat": false,
+              "linear_hybrid05_concat": false,
+              "linear_citation_w3070": false,
+              "linear_citation_ridge": false
+            },
+            "priority_2_dense_embeddings": {
+              "center_projected_768dim": false,
+              "center_projected_64dim": false,
+              "linear_metric_epoch4": false,
+              "mahalanobis_metric_epoch4": false,
+              "hybrid_stabilized_epoch1": false
+            },
+            "priority_3_citation_roles": {
+              "citation_role_citing_alpha0.3": false,
+              "citation_role_following_alpha0.3": false,
+              "citation_role_criticizing_alpha0.3": false,
+              "citation_role_distinguishing_alpha0.3": false,
+              "citation_role_overruling_alpha0.3": false
+            }
+          },
+          "note": "Priority 1 TF-IDF representations already evaluated in accepted state (v25_174k_formal_suite_execution_36013963912). Monitor watches for Priority 2/3 dense representations from legal-distance."
+        },
+        "negative_results_preserved": {
+          "boilerplate_resistance": "NEGATIVE (~ -0.9) - measures language dominance, not procedural boilerplate",
+          "hierarchy_coherence": "NEGATIVE - v18 confirmed fundamental branch-level limitation (purity ~0.65)",
+          "zoom_coherence": "NEGATIVE - no improvement from coarse to fine at branch level",
+          "legal_area_clustering": "NEGATIVE - fine-grained label granularity prevents purity > 0.5",
+          "citation_heritage_on_tfidf": "NEGATIVE (AUC=0.482) - TF-IDF cannot recover citation proximity at 174k scale (SUPERSEDED by frozen-protocol execution: cited_outcome_hybrid_0.5 AUC=0.919341 PASS)",
+          "center_projected_768": "FAILS jurist pairwise gate (0.4912 < 0.5) - confirmed across all verifications"
+        },
+        "production_decision_gates": {
+          "PRODUCT_SERVING_DEFAULT_cited_outcome_hybrid_0.5": "Must pass BOTH adversarial gates at 174k",
+          "COMBINATION_MODE_linear_hybrid05_concat": "Must pass BOTH adversarial gates + stability test at 174k",
+          "DEFAULT_map_mode_center_projected_64dim_hierarchical": "Validated PASS both gates at 1200, must re-verify at 174k"
+        },
+        "external_blockers": {
+          "jurist_human_study": "Framework ready, externally blocked (requires 5-10 Swiss jurists recruited by repository owner)"
+        },
+        "next_recommendation": "MONITORING_DEPENDENCIES - v25 TF-IDF question COMPLETED and REPRODUCED. All evaluation infrastructure FROZEN, VALIDATED, and AUDIT-READY. Awaiting legal-distance gh run 35935612800 completion and accepted state promotion of dense 174k representations (Priority 2: center_projected_64/768, linear_metric, mahalanobis, hybrid_stabilized; Priority 3: citation roles). When dense representations land in accepted state, execute 12-benchmark suite + citation heritage + v17b clustering test on them. No additional same-question cycle on TF-IDF representations justified. Factory Director to await legal-distance delivery in accepted state before authorizing next evaluation cycle on dense representations. continue_recommended=false for TF-IDF question; lane remains active for dense representation monitoring."
+      }
+    },
+    {
       "path": "results/accepted-state/fractal-map.json",
       "state": {
         "lane": "fractal-map",
@@ -123,14 +221,70 @@
         "cycle_status": "COMPLETED",
         "continue_recommended": false,
         "accepted_run_id": "35952633500",
-        "github_run": "35958585733",
-        "timestamp": "2026-09-24T05:15:00.000000+00:00",
-        "previous_accepted_run": "35950239562",
-        "blocked_on": "legal-distance_174k_dense_embeddings;corpus_174k_metadata",
+        "github_run": "36035695081",
+        "resume_from_run_id": "36034386649",
+        "timestamp": "2026-09-24T18:10:00.000000+00:00",
+        "previous_accepted_run": "35952633500",
+        "blocked_on": "legal-distance_174k_dense_embeddings",
         "blocked_since": "2026-09-24T01:55:00Z",
-        "resume_guard": "final_audit_complete_v11",
-        "next_recommendation": "BLOCKED: TF-IDF modes COMPLETE at compressed ladder (21k scale). Citation role modes (citing_alpha0.3, following_alpha0.3, criticizing_alpha0.3) and dense embedding modes await legal-distance 174k delivery. When legal-distance delivers 174k dense embeddings: (1) run build_parameterized_legal_distance_map_compressed.py for all dense modes, (2) validate citation-role zoom quality at 174k per zoom quality diagnostic (citing ZQ=0.5401, following ZQ=0.5280, criticizing ZQ=0.4864), (3) implement multi-view zoom UI with citation-role views. Multi-view design CONFIRMED: citation roles for zoom navigation, outcome hybrids for flat exploration.",
+        "resume_guard": "final_audit_complete_v12",
+        "next_recommendation": "BLOCKED (narrowed, v26 completion): v25's single-mode negative GENERALIZED to the full decision-mappable set. Frozen census (174k_CENSUS_v26_frozen_spec.json, census_v26.json): 4/12 '174k'-named dirs are TRUE decision-mappable 174k builds, 2 are placeholder-keyed (cited_decisions_tfidf_174k_compressed_v25 = the citation-role mode, outcome_tfidf_174k_compressed_v25), 6 are misnamed 21k builds. Frozen v26 evaluation (v26_frozen_spec.json -> v26_verdict.json) on ALL 4 mappable modes: 0/4 PASS the v25 success rule -> OVERALL FAIL (no landed TF-IDF 174k representation supports monotonic zoom refinement; branch res3<res0.25 in every mode incl. regeste 0.3434<0.3452; regeste area-only monotonic; regeste zoom rates 0.0/0.0/1.0/0.4). v25 repaired-freeze intact (claim-level crosscheck: purity bit-equal 0.5525/0.5128/0.5324/0.514/0.5273; zoom micro-deviations <=2 parents vs v25 recorded, rate>0.5 count 1=1, branch_monotonic False=False). Citation-role/outcome 174k zoom validation BLOCKED (proven): placeholder builds + row->id alignment unrecoverable without full corpus JSONL (probe 1 agreement 0.426 vs ~1.0 expected; probe 2 cluster_metadata CORRUPTED, 1003 dup ids). Remaining blocker single: legal-distance_174k_dense_embeddings. Multi-view zoom UI w/ citation-role views re-verified at product accepted peer (index.html CITATION ROLE VIEWS optgroup, zoom controls, split-view, 65 webgl refs). Tests: 188 frozen + 7 new guard tests = 195 PASS. Run 36034386649 diagnosed: zero-delta (team branch 4aa51c95 byte-identical, no audit branch) consistent with launcher model-health gating (LEX_NO_HEALTHY_FREE_TOOL_MODEL: nemotron probes 503/Nvidia overload, fallback opencode/big-pickle) + LEX_REQUIRE_DELTA guard. continue_recommended=false.",
         "evidence_refs": [
+          "results/fractal_map/zoom_quality_174k_eval/v26_frozen_spec.json",
+          "results/fractal_map/zoom_quality_174k_eval/v26_verdict.json",
+          "fractal_map/evaluation/zoom_quality_174k_all_modes_v26.py",
+          "results/fractal_map/legal_distance_modes/174k_CENSUS_v26_frozen_spec.json",
+          "results/fractal_map/legal_distance_modes/census_v26.json",
+          "results/fractal_map/legal_distance_modes/alignment_probe_v26.json",
+          "fractal_map/hierarchical/audit_174k_builds_36035695081.py",
+          "tests/fractal_map/test_zoom_quality_174k_v26_eval.py",
+          "reports/fractal_map/OPERATIONAL_RESUME_36035695081.md",
+          "results/fractal_map/audit/CYCLE_36035695081_GATE.json",
+          "results/fractal_map/zoom_quality_174k_eval/v25_frozen_spec.json",
+          "results/fractal_map/zoom_quality_174k_eval/v25_raw_purity.json",
+          "results/fractal_map/zoom_quality_174k_eval/v25_raw_zoom.json",
+          "results/fractal_map/zoom_quality_174k_eval/v25_verdict.json",
+          "tests/fractal_map/test_zoom_quality_174k_eval.py",
+          "reports/fractal_map/174k_ZOOM_QUALITY_ACCEPTED_METADATA_36029852715.md",
+          "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_36025207612_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_36025207612_VERIFICATION.md",
+          "results/fractal_map/evaluation/operational_resume_36025207612_state_nesting_fix.json",
+          "fractal_map/hierarchical/verify_state_nesting_fix.py",
+          "results/fractal_map/evaluation/resume_36014970673_nesting_audit.json",
+          "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_36014970673_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_36014970673_VERIFICATION.md",
+          "results/fractal_map/evaluation/resume_36014970673_nesting_audit.json",
+          "fractal_map/hierarchical/compute_honest_nesting_audit.py",
+          "results/fractal_map/hierarchical_map_21k/legal_distance_modes/full_text_tfidf_light/hierarchical_map_results.json",
+          "results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed_v25/hierarchical_map_results.json",
+          "results/fractal_map/audit/CYCLE_FINAL_AUDIT_35998272181_GATE.json",
+          "reports/fractal_map/FINAL_AUDIT_SNAPSHOT_v12_35998272181.md",
+          "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35996995573_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_35991127733_VERIFICATION.md",
+          "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35991127733_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_35991127733_VERIFICATION.md",
+          "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35986809614_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_35986809614_VERIFICATION.md",
+          "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35985576561_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_35985576561_VERIFICATION.md",
+          "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35982101590_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_35982101590_VERIFICATION.md",
+          "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35981026921_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_35981026921_VERIFICATION.md",
+          "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35978979724_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_35978979724_VERIFICATION.md",
+          "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35977333878_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_35977333878_VERIFICATION.md",
+          "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35975678901_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_35975678901_VERIFICATION.md",
+          "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35974569013_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_35974569013_VERIFICATION.md",
+          "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35973018344_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_35973018344_VERIFICATION.md",
+          "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35968700890_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_35968700890_VERIFICATION.md",
+          "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35962405253_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_35962405253_VERIFICATION.md",
           "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35958585733_GATE.json",
           "reports/fractal_map/OPERATIONAL_RESUME_35958585733_VERIFICATION.md",
           "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35957746471_GATE.json",
@@ -231,6 +385,23 @@
           "reports/fractal_map/OPERATIONAL_RESUME_35950239562_VERIFICATION.md"
         ],
         "key_findings": [
+          "RUN 36035695081: OPERATIONAL RESUME from persisted zero-delta snapshot of run 36034386649 (resume_from_run_id consumed; team branch 4aa51c95 == predecessor cycle 36029852715's commit, no audit branch -> diagnosed as launcher model-health/DELTA gating failure: LEX_NO_HEALTHY_FREE_TOOL_MODEL + LEX_REQUIRE_DELTA; model_health.json: free-model probes failing 503/Nvidia overload, resolved_model opencode/big-pickle fallback). DELIVERABLE COMPLETION: (1) frozen 174k census (174k_CENSUS_v26_frozen_spec.json, census_v26.json, alignment_probe_v26.json) - 12 '174k'-named dirs classified: 4 TRUE decision-mappable 174k (hybrid_0.5_v25, hybrid_0.7_v25, hybrid_0.5, regeste_tfidf), 2 placeholder-keyed true-174k (cited_decisions_tfidf_174k_compressed_v25 [CITATION-ROLE mode], outcome_tfidf_174k_compressed_v25), 6 misnamed 21k builds; metadata_174k_full_175k.json ALL-placeholder corruption confirmed; alignment probe 1 (row order vs accepted metadata) agreement 0.4264 vs 0.312 shuffled vs ~1.0 expected -> REJECTED; probe 2 cluster_metadata row->id reconstruction CORRUPTED (1003 duplicate ids, 1314 extra rows); citation-role 174k validation therefore BLOCKED by evidence, not skipped. (2) frozen v26 evaluation (v26_frozen_spec.json -> v26_verdict.json): ALL 4 decision-mappable modes evaluated vs ACCEPTED metadata (173,963 join) with the v25 success rule + nesting + fragmentation. VERDICT: 0/4 modes PASS -> OVERALL FAIL (v25 negative GENERALIZED): branch monoton DROPS in every mode (hybrid_0.5 0.5525->0.5273; hybrid_0.7 0.5491->0.5204; regeste 0.3452->0.3434), area monotonic only for regeste, improvement_rate>0.5 on <2/4 transitions everywhere (regeste rates 0.0/0.0/1.0/0.4). Crosscheck vs frozen v25: purity bit-equal on all 5 resolutions for the primary mode; zoom claim-level identical (rate>0.5 count 1 vs 1, branch monotonic False vs False) with micro-deviations <=2 parents / delta MI <=0.006 recorded (inline v25 producer script never committed; closest reproducible variant). (3) product multi-view zoom UI re-verified at accepted peer (CITATION ROLE VIEWS optgroup, zoom controls, split-view, webgl). (4) Tests: 188 frozen + 7 new guard tests = 195 PASS. State updated; gate JSON written; audit-ready. continue_recommended=false - single external blocker legal-distance_174k_dense_embeddings.",
+          "RUN 36029852715: FIRST 174k ZOOM-QUALITY EVALUATION AGAINST ACCEPTED METADATA. corpus_174k_metadata blocker CLEARED (evaluation lane ACCEPTED metadata_174k.json: 173,963 entries, 100% branch+legal_area field coverage; 214 raw areas). Frozen claim-bearing experiment (freeze-before-compute: v25_frozen_spec.json) evaluated 4 decision-mappable 174k TF-IDF modes via decision_clusters.json x accepted metadata join (173,963/173,963). VERDICT: FAIL on all three frozen success checks for production default cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25 - branch purity res_3.0 0.5273 < res_0.25 0.5525 (non-monotonic), area purity 0.2622 < 0.3134 (non-monotonic), zoom improvement_rate > 0.5 on only 1/4 transitions (0.31/0.46/0.59/0.38). Structure signal strong (purity >> random baseline 0.25/0.005 at all resolutions); fine ladder levels over-fragmented (res_2.0=12,852 clusters, res_3.0=63,778, median size 1). Zoom-refinement: TF-IDF-only 174k modes NOT established; consistent with citation_heritage_174k FAIL (AUC 0.482) and 1000-scale ZQ diagnostic (citation-role top, production default 21st). CENSUS CORRECTION: only 4 of 6 true-174k dirs are decision-mappable (cited_decisions_tfidf_174k_compressed_v25 and outcome_tfidf_174k_compressed_v25 use placeholder bger_placeholder_* IDs, NOT mappable to real decisions). Provenance caveats recorded: labels arrays 175,440 rows vs decision_clusters 174,126 keys; dc-vs-cluster_metadata mismatches 63-321 at fine resolutions; dc-vs-zoom_mappings ~0.02-0.13%. Product multi-view zoom UI with citation-role views (audit rec #4) VERIFIED IMPLEMENTED at product level. Tests: 184/184 frozen PASS + 4 new guard tests = 188 PASS (igraph 1.0.0 + leidenalg 0.12.0 installed). continue_recommended=false - remaining blocker: legal-distance_174k_dense_embeddings.",
+          "RUN 36025207612: OPERATIONAL RESUME from persisted producer snapshot of run 36023963893 (which was a zero-delta repair of REVISE-gated run 36018593628). AUDIT-DRIVEN STATE CORRECTION APPLIED: all 9 ACCEPTED-tier validation_metrics nesting_score over-claims corrected/annotated with honest_strict_nesting (full precision) + NESTING_METRIC_DEFECT_v1 note + audit-artifact pointer; same-class over-claims corrected in metrics_summary.tfidf_modes_174k_compressed.all_nesting_perfect (true->false) and compressed_resolution_ladder.nesting_change (0.0->honest mean of accepted all_modes artifact); center_projected_hierarchical / hierarchical_leiden_concat_legacy / 1000-scale by-construction entries annotated with scope. Durable delta recorded (github_run=36025207612, resume_from_run_id=36023963893). Verification: 184/184 frozen tests PASS (1.36s); compute_honest_nesting_audit.py re-run bit-exact vs committed artifact (46 modes, 37 over-claims, 3 reference dirs, summary, defect block ALL identical). continue_recommended=false.",
+          "RUN 36023963893: DIAGNOSED ORCHESTRATION/VALIDATION FAILURE - dispatched as repair round 1 of REVISE-gated run 36018593628 (origin/cycle/core/fractal-map/36018593628/audit gate=REVISE, required_fixes: (1) correct/annotate state validation_metrics nesting over-claims, (2) record 36018593628 verification as durable delta) but produced ZERO durable delta: team ref cycle/core/fractal-map/36023963893/team == 0e7aaf4f byte-identical to previous commits; the run-ox-with-retry.sh LEX_REQUIRE_DELTA guard would exit 67 (LEX_ZERO_DELTA_REPAIR) on a clean tree, so no audit branch was created for 36023963893. Root orchestration defect unchanged: supervisor dispatches from ephemeral /tmp/lex_control/state/factory_direction.json (fractal-map.status=RUN) while workspace state/fractal-map.json says cycle_status=COMPLETED, continue_recommended=false, blocked_on=legal-distance_174k_dense_embeddings (60th+ documented occurrence of this re-dispatch loop).",
+          "RUN 36014970673: OPERATIONAL RESUME of failed producer run 36008005345 (resume_from_run_id consumed via core-lane.yml resume mechanism; repair_round=0). **All 184 frozen tests PASS. Snapshot preserved: 24 files (2 complete compressed-ladder builds: full_text_tfidf_light at 21,228 [clusters 8/13/22/36/50, honest nesting 0.063] and cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed_v25 at TRUE 175,440 [clusters 29/34/48/11633/63281, honest nesting 0.7385]).** CRITICAL NEGATIVE FINDING — NESTING_METRIC_DEFECT_v1: parameterized builders recorded mean_nesting_score as majority-parent COVERAGE (~1.0 by construction), not nesting; 37/46 audited modes over-claimed 1.0 vs honest strict nesting 0.04-1.0. Remediated in both parameterized builders (strict_nesting_consistency, honest mean_nesting_score, mean_majority_coverage_score, metric_definitions); verified bit-exact against hierarchical_leiden.compute_nesting_score. Historical artifacts preserved untouched per constitution. Corpus census corrected: true 174k = 6 dirs (6 dirs named *_174k_compressed are 21,228). Zoom routing tables unaffected. Blocked_on unchanged. continue_recommended=false.",
+          "RUN 35996995573: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35991127733. **All 184 tests PASS (1.54s), 944 artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. **TF-IDF modes: 10 at 174k (2 full: cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k; 8 compressed), 8 at 21k compressed.** ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v25, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified. **59th documented occurrence.**",
+          "RUN 35991127733: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35986809614. **All 184 tests PASS (1.03s), 944 artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. **TF-IDF modes: 10 at 174k (2 full: cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k; 8 compressed), 8 at 21k compressed.** ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v25, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified. **58th documented occurrence.**",
+          "RUN 35986809614: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35985576561. **All 184 tests PASS (0.79s), 944 artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. **TF-IDF modes: 10 at 174k (2 full: cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k; 8 compressed), 8 at 21k compressed.** ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v25, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified. **57th documented occurrence.**",
+          "RUN 35985576561: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35982101590. **All 184 tests PASS (1.04s), 942 artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. **TF-IDF modes: 2 at 174k (cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k), 8 at 21k compressed.** ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v25, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified. **56th documented occurrence.**",
+          "RUN 35982101590: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35981026921. **All 184 tests PASS (1.41s), 939 artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. **TF-IDF modes: 2 at 174k (cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k), 8 at 21k compressed.** ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v25, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified. **55th documented occurrence.**",
+          "RUN 35978979724: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35977333878. **All 184 tests PASS (1.51s), 939 artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. **TF-IDF modes: 2 at 174k (cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k), 8 at 21k compressed.** ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v10, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified. **53rd documented occurrence.**",
+          "RUN 35977333878: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35975678901. **All 184 tests PASS (1.47s), 937 artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. **TF-IDF modes: 2 at 174k (cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k), 8 at 21k compressed.** ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v25, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified. **52nd documented occurrence.**",
+          "RUN 35975678901: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35974569013. **All 184 tests PASS (1.43s), 937 artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. **TF-IDF modes: 2 at 174k (cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k), 8 at 21k compressed.** ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v25, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified. **51st documented occurrence.**",
+          "RUN 35974569013: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35973018344. **All 184 tests PASS (1.36s), 935 artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. **TF-IDF modes: 2 at 174k (cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k), 8 at 21k compressed.** ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v10, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified. **50th documented occurrence.**",
+          "RUN 35973018344: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35968700890. **All 184 tests PASS (1.31s), 935 artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. **TF-IDF modes: 2 at 174k (cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k), 8 at 21k compressed.** ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v10, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified. **49th documented occurrence.**",
+          "RUN 35968700890: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35962405253. **All 184 tests PASS (1.00s), 933 artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. **TF-IDF modes: 2 at 174k (cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k), 6 at 21k compressed.** ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v10, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified. **48th documented occurrence.**",
+          "RUN 35962405253: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35958585733. **All 184 tests PASS (1.26s), 933 artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. **TF-IDF modes: 2 at 174k (cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k), 6 at 21k compressed.** ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v10, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified. **47th documented occurrence.**",
           "RUN 35958585733: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35957746471. **All 184 tests PASS (1.37s), 925+ artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. **TF-IDF modes: 2 at 174k (cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k), 6 at 21k compressed.** ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v10, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified. **46th documented occurrence.**",
           "RUN 35957746471: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35956338254. **All 184 tests PASS (0.31s), 925+ artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. **TF-IDF modes: 2 at 174k (cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k), 6 at 21k compressed.** ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v10, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified.",
           "RUN 35955157577: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35954256423. **All 184 tests PASS (0.27s), 925+ artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. **TF-IDF modes: 2 at 174k (cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k), 6 at 21k compressed.** ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v10, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified.",
@@ -298,7 +469,10 @@
             "jurist_pairwise_preference": 0.799,
             "language_dominance": 0.4911,
             "adversarial_both_pass": true,
-            "note": "BEST PRODUCTION per factory direction v9/v10. LangDom < 0.6 target ACHIEVED."
+            "note": "BEST PRODUCTION per factory direction v9/v10. LangDom < 0.6 target ACHIEVED.",
+            "nesting_score_scope": "by-construction single-pair metric: fine clusters (res_3.0) built within coarse clusters (res_0.5) => nesting=1.0 for that ONE transition by design (validation_run 33307151666). NOT a ladder mean.",
+            "honest_strict_nesting_ladder_mean": 0.8722435769849564,
+            "nesting_metric_note": "NESTING_METRIC_DEFECT_v1: recorded nesting_score=1.0 reflected the legacy majority-parent COVERAGE metric (~1.0 by construction for independent Leiden partitions), NOT strict nesting. Honest strict nesting = fraction of fine clusters whose ALL non-(-1) members share ONE unique coarse parent (hierarchical_leiden.compute_nesting_score). Full per-mode honest audit: results/fractal_map/evaluation/resume_36014970673_nesting_audit.json (reproduced bit-exactly in run 36025207612)."
           },
           "cited_decisions_tfidf_outcome_hybrid_0.7": {
             "nesting_score": 1.0,
@@ -331,7 +505,10 @@
             "jurist_pairwise_preference": 0.7907,
             "language_dominance": 0.4907,
             "adversarial_both_pass": true,
-            "note": "BEST FRACTAL per factory direction v9/v10. HierAdv=+0.3703, ImpRate=90.3%."
+            "note": "BEST FRACTAL per factory direction v9/v10. HierAdv=+0.3703, ImpRate=90.3%.",
+            "nesting_score_scope": "by-construction single-pair metric: fine clusters (res_3.0) built within coarse clusters (res_0.5) => nesting=1.0 for that ONE transition by design (validation_run 33307151666). NOT a ladder mean.",
+            "honest_strict_nesting_ladder_mean": 0.8644127756695815,
+            "nesting_metric_note": "NESTING_METRIC_DEFECT_v1: recorded nesting_score=1.0 reflected the legacy majority-parent COVERAGE metric (~1.0 by construction for independent Leiden partitions), NOT strict nesting. Honest strict nesting = fraction of fine clusters whose ALL non-(-1) members share ONE unique coarse parent (hierarchical_leiden.compute_nesting_score). Full per-mode honest audit: results/fractal_map/evaluation/resume_36014970673_nesting_audit.json (reproduced bit-exactly in run 36025207612)."
           },
           "center_projected_hierarchical": {
             "nesting_score": 1.0,
@@ -358,7 +535,10 @@
             "jurist_pairwise_preference": 0.5215,
             "jurivoc_benchmarks_passed": 4,
             "jurivoc_benchmarks_total": 5,
-            "purity_min_cluster_size": 3
+            "purity_min_cluster_size": 3,
+            "nesting_score_scope": "by-construction pair coarse_0.5->fine_3.0 (sub-clusters built within coarse clusters) => 1.0 legitimate for that pair; honest 7-level ladder mean differs. Conflation documented in run 36014970673 resume verification.",
+            "honest_strict_nesting_ladder_mean": 0.5006146996278574,
+            "nesting_metric_note": "NESTING_METRIC_DEFECT_v1: recorded nesting_score=1.0 reflected the legacy majority-parent COVERAGE metric (~1.0 by construction for independent Leiden partitions), NOT strict nesting. Honest strict nesting = fraction of fine clusters whose ALL non-(-1) members share ONE unique coarse parent (hierarchical_leiden.compute_nesting_score). Full per-mode honest audit: results/fractal_map/evaluation/resume_36014970673_nesting_audit.json (reproduced bit-exactly in run 36025207612)."
           },
           "hierarchical_leiden_concat_legacy": {
             "hierarchical_purity_global": 0.9561351138684238,
@@ -373,7 +553,8 @@
             "embeddings": "concat_center_tfidf (768 dim)",
             "best_config": "coarse_0.25_fine_3.0",
             "purity_min_cluster_size": 3,
-            "note": "Legacy concat baseline. Preserved for comparison with center_projected_hierarchical (which achieves 0.9571 vs 0.9561)."
+            "note": "Legacy concat baseline. Preserved for comparison with center_projected_hierarchical (which achieves 0.9571 vs 0.9561).",
+            "nesting_score_scope": "by-construction best_config coarse_0.25->fine_3.0 single-pair metric (legacy concat baseline, within-coarse-cluster construction); not a ladder mean. Not flagged by the run-36014970673 honest audit (reference-dir set did not include this legacy mode)."
           },
           "zoom_quality_diagnostic": {
             "run_id": "zoom_quality_diagnostic_20260830_221957",
@@ -415,10 +596,16 @@
             "resolution_reduction_pct": 29,
             "modes_analyzed": 6,
             "purity_delta_retention_pct": 100.0,
-            "nesting_change": 0.0,
+            "nesting_change": -0.0036352876963673384,
             "evidence_tier": "ACCEPTED",
             "validation_run": "33339495531",
-            "note": "Original 6-mode analysis. Extended to full 22-mode analysis in cycle 33341400705."
+            "note": "Original 6-mode analysis. Extended to full 22-mode analysis in cycle 33341400705.",
+            "legacy_recorded_nesting_change": 0.0,
+            "nesting_change_range": [
+              -0.055580871370345175,
+              0.11496948923709871
+            ],
+            "nesting_change_note": "Corrected in run 36025207612: legacy entry claimed nesting_change=0.0 using the defective majority-coverage metric. Honest strict-nesting change (full vs compressed ladder) per accepted compressed_resolution_ladder_all_modes.json (22 modes): mean=-0.003635, min=-0.055581, max=0.114969. Drops of intermediate resolutions legitimately change which nesting checks are performed; zoom navigation at shared resolutions is identical by construction."
           },
           "compressed_resolution_ladder_full_validation": {
             "full_ladder": [
@@ -452,7 +639,7 @@
             "note": "Full 22-mode validation. 100% delta retention across all modes. Zoom navigation identical at shared resolutions by construction. Strict nesting metric shows non-zero change (expected: removing intermediate resolutions changes which nesting checks are performed) but does not affect product zoom behavior. Confirmed safe for 192k scaling."
           },
           "cited_decisions_tfidf_174k_compressed": {
-            "nesting_score": 1.0,
+            "nesting_score": 0.783069252615662,
             "hierarchical_purity": 0.0,
             "zoom_coherence_improvement_rate": 0.0,
             "resolution_ladder": [
@@ -475,7 +662,16 @@
             "corpus": "BGer 2000-2026 (21k decisions from bge_*.jsonl)",
             "evidence_tier": "ACCEPTED",
             "validation_run": "35941777965",
-            "note": "Compressed ladder validated. Branch purity 0 due to metadata limitation (branch=null for all)."
+            "note": "Compressed ladder validated. Branch purity 0 due to metadata limitation (branch=null for all).",
+            "legacy_recorded_nesting_score": 1.0,
+            "honest_strict_nesting": 0.783069252615662,
+            "honest_strict_nesting_transitions": {
+              "res_0.25_to_res_0.5": 0.3333333333333333,
+              "res_0.5_to_res_1.0": 0.8,
+              "res_1.0_to_res_2.0": 0.9995096436744034,
+              "res_2.0_to_res_3.0": 0.9994340334549113
+            },
+            "nesting_metric_note": "NESTING_METRIC_DEFECT_v1: recorded nesting_score=1.0 reflected the legacy majority-parent COVERAGE metric (~1.0 by construction for independent Leiden partitions), NOT strict nesting. Honest strict nesting = fraction of fine clusters whose ALL non-(-1) members share ONE unique coarse parent (hierarchical_leiden.compute_nesting_score). Full per-mode honest audit: results/fractal_map/evaluation/resume_36014970673_nesting_audit.json (reproduced bit-exactly in run 36025207612)."
           },
           "outcome_tfidf_174k_compressed": {
             "nesting_score": 1.0,
@@ -504,7 +700,7 @@
             "note": "Compressed ladder validated. Branch purity 0 due to metadata limitation."
           },
           "cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed": {
-            "nesting_score": 1.0,
+            "nesting_score": 0.853953700800777,
             "hierarchical_purity": 0.0,
             "zoom_coherence_improvement_rate": 0.0,
             "resolution_ladder": [
@@ -527,10 +723,19 @@
             "corpus": "BGer 2000-2026 (21k decisions from bge_*.jsonl)",
             "evidence_tier": "ACCEPTED",
             "validation_run": "35941777965",
-            "note": "BEST FRACTAL mode at 1k scale (JP=0.7907). Compressed ladder validated at 21k."
+            "note": "BEST FRACTAL mode at 1k scale (JP=0.7907). Compressed ladder validated at 21k.",
+            "legacy_recorded_nesting_score": 1.0,
+            "honest_strict_nesting": 0.853953700800777,
+            "honest_strict_nesting_transitions": {
+              "res_0.25_to_res_0.5": 0.6666666666666666,
+              "res_0.5_to_res_1.0": 0.75,
+              "res_1.0_to_res_2.0": 0.9995884434932917,
+              "res_2.0_to_res_3.0": 0.9995596930431501
+            },
+            "nesting_metric_note": "NESTING_METRIC_DEFECT_v1: recorded nesting_score=1.0 reflected the legacy majority-parent COVERAGE metric (~1.0 by construction for independent Leiden partitions), NOT strict nesting. Honest strict nesting = fraction of fine clusters whose ALL non-(-1) members share ONE unique coarse parent (hierarchical_leiden.compute_nesting_score). Full per-mode honest audit: results/fractal_map/evaluation/resume_36014970673_nesting_audit.json (reproduced bit-exactly in run 36025207612)."
           },
           "full_text_tfidf_light_174k_compressed": {
-            "nesting_score": 1.0,
+            "nesting_score": 0.39106372080996143,
             "hierarchical_purity": 0.0,
             "zoom_coherence_improvement_rate": 0.0,
             "resolution_ladder": [
@@ -553,10 +758,19 @@
             "corpus": "BGer 2000-2026 (21k decisions from bge_*.jsonl)",
             "evidence_tier": "ACCEPTED",
             "validation_run": "35941777965",
-            "note": "Compressed ladder validated. Very coarse clustering (49 fine clusters)."
+            "note": "Compressed ladder validated. Very coarse clustering (49 fine clusters).",
+            "legacy_recorded_nesting_score": 1.0,
+            "honest_strict_nesting": 0.39106372080996143,
+            "honest_strict_nesting_transitions": {
+              "res_0.25_to_res_0.5": 0.47368421052631576,
+              "res_0.5_to_res_1.0": 0.4074074074074074,
+              "res_1.0_to_res_2.0": 0.275,
+              "res_2.0_to_res_3.0": 0.40816326530612246
+            },
+            "nesting_metric_note": "NESTING_METRIC_DEFECT_v1: recorded nesting_score=1.0 reflected the legacy majority-parent COVERAGE metric (~1.0 by construction for independent Leiden partitions), NOT strict nesting. Honest strict nesting = fraction of fine clusters whose ALL non-(-1) members share ONE unique coarse parent (hierarchical_leiden.compute_nesting_score). Full per-mode honest audit: results/fractal_map/evaluation/resume_36014970673_nesting_audit.json (reproduced bit-exactly in run 36025207612)."
           },
           "regeste_full_text_hybrid_0.5_174k_compressed": {
-            "nesting_score": 1.0,
+            "nesting_score": 0.9294774877573337,
             "hierarchical_purity": 0.0,
             "zoom_coherence_improvement_rate": 0.0,
             "resolution_ladder": [
@@ -579,10 +793,19 @@
             "corpus": "BGer 2000-2026 (21k decisions from bge_*.jsonl)",
             "evidence_tier": "ACCEPTED",
             "validation_run": "35941777965",
-            "note": "Compressed ladder validated."
+            "note": "Compressed ladder validated.",
+            "legacy_recorded_nesting_score": 1.0,
+            "honest_strict_nesting": 0.9294774877573337,
+            "honest_strict_nesting_transitions": {
+              "res_0.25_to_res_0.5": 0.975609756097561,
+              "res_0.5_to_res_1.0": 0.9666666666666667,
+              "res_1.0_to_res_2.0": 0.9052631578947369,
+              "res_2.0_to_res_3.0": 0.8703703703703703
+            },
+            "nesting_metric_note": "NESTING_METRIC_DEFECT_v1: recorded nesting_score=1.0 reflected the legacy majority-parent COVERAGE metric (~1.0 by construction for independent Leiden partitions), NOT strict nesting. Honest strict nesting = fraction of fine clusters whose ALL non-(-1) members share ONE unique coarse parent (hierarchical_leiden.compute_nesting_score). Full per-mode honest audit: results/fractal_map/evaluation/resume_36014970673_nesting_audit.json (reproduced bit-exactly in run 36025207612)."
           },
           "regeste_full_text_hybrid_0.7_174k_compressed": {
-            "nesting_score": 1.0,
+            "nesting_score": 0.9522750440181633,
             "hierarchical_purity": 0.0,
             "zoom_coherence_improvement_rate": 0.0,
             "resolution_ladder": [
@@ -605,10 +828,19 @@
             "corpus": "BGer 2000-2026 (21k decisions from bge_*.jsonl)",
             "evidence_tier": "ACCEPTED",
             "validation_run": "35941777965",
-            "note": "Compressed ladder validated."
+            "note": "Compressed ladder validated.",
+            "legacy_recorded_nesting_score": 1.0,
+            "honest_strict_nesting": 0.9522750440181633,
+            "honest_strict_nesting_transitions": {
+              "res_0.25_to_res_0.5": 1.0,
+              "res_0.5_to_res_1.0": 1.0,
+              "res_1.0_to_res_2.0": 0.9191919191919192,
+              "res_2.0_to_res_3.0": 0.8899082568807339
+            },
+            "nesting_metric_note": "NESTING_METRIC_DEFECT_v1: recorded nesting_score=1.0 reflected the legacy majority-parent COVERAGE metric (~1.0 by construction for independent Leiden partitions), NOT strict nesting. Honest strict nesting = fraction of fine clusters whose ALL non-(-1) members share ONE unique coarse parent (hierarchical_leiden.compute_nesting_score). Full per-mode honest audit: results/fractal_map/evaluation/resume_36014970673_nesting_audit.json (reproduced bit-exactly in run 36025207612)."
           },
           "cited_decisions_tfidf_outcome_hybrid_0.5_21k_compressed": {
-            "nesting_score": 1.0,
+            "nesting_score": 0.9269594210012833,
             "hierarchical_purity": 0.0,
             "zoom_coherence_improvement_rate": 0.0,
             "resolution_ladder": [
@@ -631,10 +863,19 @@
             "corpus": "BGer 2000-2026 (21k decisions from bge_*.jsonl)",
             "evidence_tier": "ACCEPTED",
             "validation_run": "35944858450",
-            "note": "BEST PRODUCTION hybrid at 1k scale (JP=0.7990). Compressed ladder validated at 21k."
+            "note": "BEST PRODUCTION hybrid at 1k scale (JP=0.7990). Compressed ladder validated at 21k.",
+            "legacy_recorded_nesting_score": 1.0,
+            "honest_strict_nesting": 0.9269594210012833,
+            "honest_strict_nesting_transitions": {
+              "res_0.25_to_res_0.5": 0.8333333333333334,
+              "res_0.5_to_res_1.0": 0.875,
+              "res_1.0_to_res_2.0": 0.9997559388219981,
+              "res_2.0_to_res_3.0": 0.9997484118498019
+            },
+            "nesting_metric_note": "NESTING_METRIC_DEFECT_v1: recorded nesting_score=1.0 reflected the legacy majority-parent COVERAGE metric (~1.0 by construction for independent Leiden partitions), NOT strict nesting. Honest strict nesting = fraction of fine clusters whose ALL non-(-1) members share ONE unique coarse parent (hierarchical_leiden.compute_nesting_score). Full per-mode honest audit: results/fractal_map/evaluation/resume_36014970673_nesting_audit.json (reproduced bit-exactly in run 36025207612)."
           },
           "regeste_tfidf_21k_compressed": {
-            "nesting_score": 1.0,
+            "nesting_score": 0.9631941086395874,
             "hierarchical_purity": 0.0,
             "zoom_coherence_improvement_rate": 0.0,
             "resolution_ladder": [
@@ -657,7 +898,16 @@
             "corpus": "BGer 2000-2026 (21k decisions from bge_*.jsonl)",
             "evidence_tier": "ACCEPTED",
             "validation_run": "35944858450",
-            "note": "Compressed ladder validated at 21k."
+            "note": "Compressed ladder validated at 21k.",
+            "legacy_recorded_nesting_score": 1.0,
+            "honest_strict_nesting": 0.9631941086395874,
+            "honest_strict_nesting_transitions": {
+              "res_0.25_to_res_0.5": 0.9772727272727273,
+              "res_0.5_to_res_1.0": 0.9787234042553191,
+              "res_1.0_to_res_2.0": 0.9270833333333334,
+              "res_2.0_to_res_3.0": 0.9696969696969697
+            },
+            "nesting_metric_note": "NESTING_METRIC_DEFECT_v1: recorded nesting_score=1.0 reflected the legacy majority-parent COVERAGE metric (~1.0 by construction for independent Leiden partitions), NOT strict nesting. Honest strict nesting = fraction of fine clusters whose ALL non-(-1) members share ONE unique coarse parent (hierarchical_leiden.compute_nesting_score). Full per-mode honest audit: results/fractal_map/evaluation/resume_36014970673_nesting_audit.json (reproduced bit-exactly in run 36025207612)."
           }
         },
         "map_modes": {
@@ -959,13 +1209,15 @@
             "zoom_coherence_improvement_rate": 0.3114754098360656,
             "concat_baseline_zoom_coherence": 0.5918367346938775,
             "zoom_coherence_methodology": "per-resolution-step (19/61 fine clusters improve)",
-            "purity_min_cluster_size": 3
+            "purity_min_cluster_size": 3,
+            "nesting_score_scope": "by-construction best_config coarse_0.5->fine_3.0 single pair; not a ladder mean",
+            "honest_strict_nesting_ladder_mean": 0.5006146996278574
           },
           "tfidf_modes_174k_compressed": {
             "modes_completed": 8,
             "modes_at_174k": 2,
             "modes_at_21k_compressed": 6,
-            "all_nesting_perfect": true,
+            "all_nesting_perfect": false,
             "resolution_ladder": [
               0.25,
               0.5,
@@ -987,14 +1239,24 @@
               "regeste_full_text_hybrid_0.5_174k_compressed",
               "regeste_full_text_hybrid_0.7_174k_compressed"
             ],
-            "note": "All 8 TF-IDF legal-distance modes have compressed 5-level ladder artifacts. 2 modes at full 174k (175,440 decisions), 6 modes at 21k (21,228 decisions with branch metadata)."
+            "note": "All 8 TF-IDF legal-distance modes have compressed 5-level ladder artifacts. 2 modes at full 174k (175,440 decisions), 6 modes at 21k (21,228 decisions with branch metadata).",
+            "legacy_recorded_all_nesting_perfect": true,
+            "honest_strict_nesting_by_mode": {
+              "cited_decisions_tfidf_174k_compressed": 0.783069252615662,
+              "outcome_tfidf_174k_compressed": 1.0,
+              "cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed": 0.853953700800777,
+              "full_text_tfidf_light_174k_compressed": 0.39106372080996143,
+              "regeste_full_text_hybrid_0.5_174k_compressed": 0.9294774877573337,
+              "regeste_full_text_hybrid_0.7_174k_compressed": 0.9522750440181633
+            },
+            "nesting_metric_note": "NESTING_METRIC_DEFECT_v1: recorded nesting_score=1.0 reflected the legacy majority-parent COVERAGE metric (~1.0 by construction for independent Leiden partitions), NOT strict nesting. Honest strict nesting = fraction of fine clusters whose ALL non-(-1) members share ONE unique coarse parent (hierarchical_leiden.compute_nesting_score). Full per-mode honest audit: results/fractal_map/evaluation/resume_36014970673_nesting_audit.json (reproduced bit-exactly in run 36025207612)."
           }
         },
-        "operational_resume_id": "35954256423",
-        "repair_of": "35952633500",
+        "operational_resume_id": "36025207612",
+        "repair_of": "36018593628",
         "repair_round": 1,
         "audit_status": "PASS",
-        "artifacts_verified": 925,
+        "artifacts_verified": 995,
         "tests_passed": 184,
         "modes_loaded": 32,
         "registry_crosscheck": {
@@ -1035,7 +1297,21 @@
           },
           "source": "results/fractal_map/scalability/synthetic_scalability_results.json",
           "validation_run": "33337654722"
-        }
+        },
+        "metric_defect_notes": {
+          "NESTING_METRIC_DEFECT_v1": {
+            "summary": "Parameterized compressed builders recorded mean_nesting_score as mean of 'nesting_consistency' = fraction of fine clusters with a valid MAJORITY parent label. For independent Leiden partitions this is ~1.0 by construction and is not nestedness. Honest definition (hierarchical_leiden.compute_nesting_score): a fine cluster is nested iff all its non--1 members share ONE unique coarse parent label.",
+            "audit_artifact": "results/fractal_map/evaluation/resume_36014970673_nesting_audit.json",
+            "audit_script": "fractal_map/hierarchical/compute_honest_nesting_audit.py",
+            "remediation": "run 36014970673 fixed both parameterized builders (strict_nesting_consistency); run 36025207612 corrected/annotated all nesting over-claims in the live state claim surface (validation_metrics 9 ACCEPTED entries + REPRODUCED annotations + metrics_summary + compressed_resolution_ladder nesting_change).",
+            "routing_tables_unaffected": "zoom_mappings.json child_to_parent/parent_to_children remain valid navigation data (majority-parent routing); only the METRIC NAME over-claimed nesting."
+          }
+        },
+        "legacy_repair_of": "35968700890",
+        "revise_gate_run": "36018593628",
+        "revise_gate": "REVISE",
+        "prior_zero_delta_repair_run": "36023963893",
+        "audit_status_scope": "producer self-verification of run 36025207612 operational resume (184/184 frozen tests, bit-exact nesting-audit reproduction, state over-claims corrected). Independent audit gate for this run not yet produced."
       }
     },
     {

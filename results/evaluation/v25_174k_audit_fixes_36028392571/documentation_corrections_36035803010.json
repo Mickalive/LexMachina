@@ -1,0 +1,52 @@
+{
+  "record_id": "eval_v25_audit_documentation_corrections_36035803010",
+  "github_run": "36035803010",
+  "timestamp": "2026-09-24T18:20:00Z",
+  "applies_to_audit": "CYCLE_36028392571",
+  "audit_required_fixes": "Findings 1-3 (non-blocking documentation-level) of reports/audit/evaluation/CYCLE_36028392571.md",
+  "additive": true,
+  "historical_artifacts_untouched": [
+    "results/evaluation/v25_174k_audit_fixes_36028392571/verification.json",
+    "results/evaluation/v25_174k_audit_fixes_36028392571/v17b_recheck/_recheck_summary.json",
+    "results/evaluation/v25_174k_v17b/*.json"
+  ],
+  "correction_1_narrative_overreach": {
+    "original_text": "\"the other six reps are independently re-confirmed here\" (in v17b_recheck/_recheck_summary.json defect_finding and verification.json fix_A_v17b_recheck_summary)",
+    "problem": "Contradicted by the run's own comparison_vs_recorded table (cited_decisions_tfidf: recheck_matches_recorded_file=false). The recorded cited_decisions values are in fact correct.",
+    "corrected_statement": "5 of the other six reps (outcome_tfidf, regeste_tfidf, full_text_tfidf_light, cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7) are re-confirmed exactly against their recorded files; cited_decisions_tfidf recheck differs by <=1% on hierarchy metrics only (environmental KMeans drift: max_abs_delta 0.001867 vs the recheck file, measured in run 36035803010), verdicts unchanged, and the recorded file is reproduced EXACTLY by independent recomputation (max_abs_delta 0.000000, run 36035803010 provenance gate P1).",
+    "evidence": "results/evaluation/v25_174k_provenance_gate_36035803010/gate_results.json P1"
+  },
+  "correction_2_defect_framing_numerical_coincidence": {
+    "original_text": "\"invalid copies, not measurements of the hybrid embeddings. Superseded by the recheck files in this directory for those two reps\"",
+    "problem": "Without the degeneracy mechanism the 'superseded' wording misleadingly implies the superseded values were wrong.",
+    "corrected_statement": "The two v17b files for regeste_full_text_hybrid_0.5/0.7 ARE invalid as provenance (copied, not measured - an integrity violation in producer run 36013963912), but their values coincide with the correct measurements because all 15,000 rows of the frozen hierarchy subsample are regeste-zero rows (verified 15,000/15,000 in run 36035803010) on which hybrid(a,b,alpha) numerically equals full_text_tfidf_light (max abs diff on the triple on-sample: 5.96e-08 / 2.98e-07 float32 rounding). Material impact of the copy defect: nil. The defect class stands recorded.",
+    "evidence": [
+      "results/evaluation/v25_174k_provenance_gate_36035803010/gate_results.json P2 (on-sample diffs)",
+      "results/evaluation/v25_174k_provenance_gate_36035803010/gate_results.json P3 (off-subsample probe diffs 0.31-1.15 -> the copies WOULD have been materially wrong for any other benchmark)"
+    ]
+  },
+  "correction_3_nmi_caveats_named": {
+    "rule": "10% rule applies to purity metrics only; NMI is a fourth, non-purity metric whose drops must be disclosed per rep.",
+    "per_rep_nmi_delta_pct_normalized_vs_raw_authoritative_recheck": {
+      "cited_decisions_tfidf": {"hierarchy_best_nmi": -5.4, "legal_area_nmi": -8.2},
+      "outcome_tfidf": {"hierarchy_best_nmi": -13.1, "legal_area_nmi": -13.1},
+      "regeste_tfidf": "n/a - raw NMI exactly 0 (degenerate zero-vector rep)",
+      "full_text_tfidf_light": {"hierarchy_best_nmi": -27.6, "legal_area_nmi": -24.3},
+      "cited_outcome_hybrid_0.5": {"hierarchy_best_nmi": -9.6, "legal_area_nmi": -14.5},
+      "cited_outcome_hybrid_0.7": {"hierarchy_best_nmi": -10.8, "legal_area_nmi": -10.7},
+      "regeste_full_text_hybrid_0.5": {"hierarchy_best_nmi": -27.6, "legal_area_nmi": -24.3, "note": "full_text-equivalent by subsample degeneracy"},
+      "regeste_full_text_hybrid_0.7": {"hierarchy_best_nmi": -27.6, "legal_area_nmi": -24.3, "note": "full_text-equivalent by subsample degeneracy"}
+    },
+    "purity_ratios_normalized_over_raw_all_ge_1": {
+      "cited_decisions_tfidf": {"hierarchy": 1.515, "zoom_coarse": 1.575, "zoom_fine": 1.557, "legal_area": 1.489},
+      "outcome_tfidf": {"hierarchy": 1.513, "zoom_coarse": 1.513, "zoom_fine": 1.513, "legal_area": 1.513},
+      "regeste_tfidf": {"hierarchy": 1.637, "zoom_coarse": 1.637, "zoom_fine": 1.637, "legal_area": 1.637},
+      "full_text_tfidf_light": {"hierarchy": 1.0, "zoom_coarse": 1.0, "zoom_fine": 1.0, "legal_area": 1.0},
+      "cited_outcome_hybrid_0.5": {"hierarchy": 1.536, "zoom_coarse": 1.562, "zoom_fine": 1.51, "legal_area": 1.503},
+      "cited_outcome_hybrid_0.7": {"hierarchy": 1.541, "zoom_coarse": 1.541, "zoom_fine": 1.564, "legal_area": 1.461},
+      "regeste_full_text_hybrid_0.5": {"hierarchy": 1.0, "zoom_coarse": 1.0, "zoom_fine": 1.0, "legal_area": 1.0},
+      "regeste_full_text_hybrid_0.7": {"hierarchy": 1.0, "zoom_coarse": 1.0, "zoom_fine": 1.0, "legal_area": 1.0}
+    },
+    "conclusion": "Purity-only v17b normalization rule PASSes all 8 reps (ratios >= 1.0 on all four purity metrics); NMI caveats remain disclosed per rep and any future v17b prose must carry them."
+  }
+}
