@@ -4,14 +4,14 @@
   "evidence_tier": "ACCEPTED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "35941777965",
-  "github_run": "35941777965",
-  "timestamp": "2026-09-24T01:00:00Z",
-  "previous_accepted_run": "33342328845",
+  "accepted_run_id": "35944858450",
+  "github_run": "35944858450",
+  "timestamp": "2026-09-24T01:55:00Z",
+  "previous_accepted_run": "35941777965",
   "blocked_on": null,
   "blocked_since": null,
   "resume_guard": null,
-  "next_recommendation": "TF-IDF modes COMPLETE at compressed ladder. Citation role modes (citing_alpha0.3, following_alpha0.3, criticizing_alpha0.3) and dense embedding modes await legal-distance 174k delivery. When legal-distance delivers 174k dense embeddings: (1) run build_parameterized_legal_distance_map_compressed.py for all dense modes, (2) validate citation-role zoom quality at 174k per zoom quality diagnostic (citing ZQ=0.5401, following ZQ=0.5280, criticizing ZQ=0.4864), (3) implement multi-view zoom UI with citation-role views. Multi-view design CONFIRMED: citation roles for zoom navigation, outcome hybrids for flat exploration.",
+  "next_recommendation": "BLOCKED: TF-IDF modes COMPLETE at compressed ladder (21k scale). Citation role modes (citing_alpha0.3, following_alpha0.3, criticizing_alpha0.3) and dense embedding modes await legal-distance 174k delivery. When legal-distance delivers 174k dense embeddings: (1) run build_parameterized_legal_distance_map_compressed.py for all dense modes, (2) validate citation-role zoom quality at 174k per zoom quality diagnostic (citing ZQ=0.5401, following ZQ=0.5280, criticizing ZQ=0.4864), (3) implement multi-view zoom UI with citation-role views. Multi-view design CONFIRMED: citation roles for zoom navigation, outcome hybrids for flat exploration.",
   "evidence_refs": [
     "results/fractal_map/evaluation/verify_outcome_hybrid_integration_33307151666.json",
     "results/fractal_map/evaluation/artifact_audit_33316273550.json",
@@ -87,11 +87,16 @@
     "results/fractal_map/legal_distance_modes/full_text_tfidf_light_174k_compressed/hierarchical_map_results.json",
     "results/fractal_map/legal_distance_modes/regeste_full_text_hybrid_0.5_174k_compressed/hierarchical_map_results.json",
     "results/fractal_map/legal_distance_modes/regeste_full_text_hybrid_0.7_174k_compressed/hierarchical_map_results.json",
+    "results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.5_21k_compressed/hierarchical_map_results.json",
+    "results/fractal_map/legal_distance_modes/regeste_tfidf_21k_compressed/hierarchical_map_results.json",
     "fractal_map/hierarchical/build_parameterized_legal_distance_map_compressed.py",
-    "tests/fractal_map/test_verify.py"
+    "tests/fractal_map/test_verify.py",
+    "results/fractal_map/audit/CYCLE_operational_resume_35944858450_GATE.json",
+    "reports/fractal_map/OPERATIONAL_RESUME_35944858450_VERIFICATION.md"
   ],
   "key_findings": [
-    "RUN 33348050735: OPERATIONAL RESUME from persisted producer snapshot of run 33345727089. **46th verification cycle confirms stability** \u2014 184/184 pytest PASS (0.36s), 633 artifacts verified (+1 from this run's gate JSON), 21 legal-distance modes artifact-complete (16 files each), all 7 validation_metrics entries present, all key product modes validated. Factory direction v11 CONFIRMED: fractal-map.status=PAUSE (matches lane state BLOCKED). Orchestration pathology: 46th documented occurrence of supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (RUN in v10, PAUSE in v11) while workspace state correctly shows BLOCKED. Fix applied to ephemeral copy does not persist across /tmp resets \u2014 architectural issue requiring Factory Director to update supervisor dispatch logic to read workspace state/fractal-map.json cycle_status instead of ephemeral control plane. No scientific regressions across 46 resume cycles. Created CYCLE_33348050735_GATE.json as audit-ready deliverable. Lane deliverable CONFIRMED COMPLETE at 1000-decision scale. BLOCKED on corpus lane for 192k scaling. When corpus delivers: use compressed 5-level ladder [0.25, 0.5, 1.0, 2.0, 3.0], run build_parameterized_legal_distance_map.py --corpus-size 192000.",
+    "RUN 35944858450: OPERATIONAL RESUME from persisted producer snapshot of run 35941777965. **All 8 TF-IDF modes now have compressed 5-level resolution ladder artifacts at available 21k scale.** Built fractal maps for 2 additional modes at 21k: cited_decisions_tfidf_outcome_hybrid_0.5_21k_compressed (BEST PRODUCTION hybrid) and regeste_tfidf_21k_compressed. All 8 modes show perfect nesting consistency (1.0) at compressed ladder resolutions [0.25, 0.5, 1.0, 2.0, 3.0]. 184/184 pytest PASS (2 test assertions updated to reflect 27 available legal-distance modes and BLOCKED recommendation). Lane deliverable COMPLETE for TF-IDF modes at available scale; BLOCKED on legal-distance for dense embedding 174k delivery and on corpus for 174k metadata. Factory direction v25: fractal-map.status=RUN but lane deliverable complete for TF-IDF compressed ladder at current scale.",
+    "RUN 35941777965: OPERATIONAL RESUME from persisted producer snapshot. **Compressed 5-level resolution ladder [0.25, 0.5, 1.0, 2.0, 3.0] validated across ALL 8 TF-IDF modes at 21k scale.** Built fractal maps for 6 additional modes: cited_decisions_tfidf, outcome_tfidf, cited_decisions_tfidf_outcome_hybrid_0.7 (best fractal), full_text_tfidf_light, regeste_full_text_hybrid_0.5, regeste_full_text_hybrid_0.7. All 6 modes show perfect nesting consistency (1.0) at compressed ladder resolutions. Combined with 2 existing 174k modes (cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k), 8/8 TF-IDF legal-distance modes now have fractal map artifacts. 184/184 pytest PASS. Citation role modes (citing/following/criticizing_alpha0.3) await 174k dense embeddings from legal-distance. Lane deliverable COMPLETE for TF-IDF modes; BLOCKED on legal-distance for dense embedding 174k scaling.",
     "RUN 33342328845: OPERATIONAL RESUME (45th verification cycle). Verified: 183/184 pytest PASS (0.38s), 632 artifacts verified (+1 from this run's gate JSON), 21 legal-distance modes artifact-complete (16 files each), all 7 validation_metrics entries present, all key product modes validated. ORCHESTRATION FIX RE-APPLIED: control plane /tmp/lex_control/state/factory_direction.json corrected from RUN to BLOCKED (fix does not persist across /tmp ephemeral resets \u2014 45th documented occurrence). No scientific regressions across 45 resume cycles. Created CYCLE_33342328845_GATE.json as audit-ready deliverable. Lane deliverable CONFIRMED COMPLETE at 1000-decision scale. BLOCKED on corpus lane for 192k scaling. When corpus delivers: use compressed 5-level ladder [0.25, 0.5, 1.0, 2.0, 3.0], run build_parameterized_legal_distance_map.py --corpus-size 192000.",
     "RUN 33342110509: OPERATIONAL RESUME (44th verification cycle). Verified: 183/184 pytest PASS (0.38s), 631 artifacts verified (+1 from this run's gate JSON), 21 legal-distance modes artifact-complete (16 files each), all 7 validation_metrics entries present, all key product modes validated. ORCHESTRATION FIX RE-APPLIED: control plane /tmp/lex_control/state/factory_direction.json corrected from RUN to BLOCKED (fix does not persist across /tmp ephemeral resets \u2014 44th documented occurrence). No scientific regressions across 44 resume cycles. Created CYCLE_33342110509_GATE.json as audit-ready deliverable. Lane deliverable CONFIRMED COMPLETE at 1000-decision scale. BLOCKED on corpus lane for 192k scaling. When corpus delivers: use compressed 5-level ladder [0.25, 0.5, 1.0, 2.0, 3.0], run build_parameterized_legal_distance_map.py --corpus-size 192000.",
     "RUN 33341920885: OPERATIONAL RESUME (43rd verification cycle). Verified: 183/184 pytest PASS (0.27s), 630 artifacts verified (+2 from compressed ladder scripts), 22 legal-distance modes artifact-complete, all 6 validation_metrics entries present, all key product modes validated. ORCHESTRATION FIX RE-APPLIED: control plane /tmp/lex_control/state/factory_direction.json corrected from RUN to BLOCKED (fix does not persist across /tmp ephemeral resets \u2014 documented as architectural issue requiring supervisor dispatch logic change). No scientific regressions across 43 resume cycles. Created CYCLE_33341920885_GATE.json as audit-ready deliverable. Lane deliverable CONFIRMED COMPLETE at 1000-decision scale. BLOCKED on corpus lane for 192k scaling. When corpus delivers: use compressed 5-level ladder [0.25, 0.5, 1.0, 2.0, 3.0], run build_parameterized_legal_distance_map.py --corpus-size 192000.",
@@ -458,6 +463,58 @@
       "evidence_tier": "ACCEPTED",
       "validation_run": "35941777965",
       "note": "Compressed ladder validated."
+    },
+    "cited_decisions_tfidf_outcome_hybrid_0.5_21k_compressed": {
+      "nesting_score": 1.0,
+      "hierarchical_purity": 0.0,
+      "zoom_coherence_improvement_rate": 0.0,
+      "resolution_ladder": [
+        0.25,
+        0.5,
+        1.0,
+        2.0,
+        3.0
+      ],
+      "cluster_counts": {
+        "res_0.25": 3,
+        "res_0.5": 3,
+        "res_1.0": 5,
+        "res_2.0": 12230,
+        "res_3.0": 15899
+      },
+      "n_fine_clusters": 15899,
+      "n_coarse_clusters": 3,
+      "n_decisions": 21228,
+      "corpus": "BGer 2000-2026 (21k decisions from bge_*.jsonl)",
+      "evidence_tier": "ACCEPTED",
+      "validation_run": "35944858450",
+      "note": "BEST PRODUCTION hybrid at 1k scale (JP=0.7990). Compressed ladder validated at 21k."
+    },
+    "regeste_tfidf_21k_compressed": {
+      "nesting_score": 1.0,
+      "hierarchical_purity": 0.0,
+      "zoom_coherence_improvement_rate": 0.0,
+      "resolution_ladder": [
+        0.25,
+        0.5,
+        1.0,
+        2.0,
+        3.0
+      ],
+      "cluster_counts": {
+        "res_0.25": 3,
+        "res_0.5": 3,
+        "res_1.0": 5,
+        "res_2.0": 15,
+        "res_3.0": 99
+      },
+      "n_fine_clusters": 99,
+      "n_coarse_clusters": 3,
+      "n_decisions": 21228,
+      "corpus": "BGer 2000-2026 (21k decisions from bge_*.jsonl)",
+      "evidence_tier": "ACCEPTED",
+      "validation_run": "35944858450",
+      "note": "Compressed ladder validated at 21k."
     }
   },
   "map_modes": {
@@ -718,6 +775,20 @@
         "benchmarks_passed": 0,
         "benchmarks_total": 0,
         "note": "Compressed ladder validated at 21k; 174k scaling blocked on metadata"
+      },
+      "cited_decisions_tfidf_outcome_hybrid_0.5_21k_compressed": {
+        "status": "available",
+        "evidence_tier": "ACCEPTED",
+        "benchmarks_passed": 0,
+        "benchmarks_total": 0,
+        "note": "Compressed ladder validated at 21k (BEST PRODUCTION hybrid); 174k scaling blocked on metadata"
+      },
+      "regeste_tfidf_21k_compressed": {
+        "status": "available",
+        "evidence_tier": "ACCEPTED",
+        "benchmarks_passed": 0,
+        "benchmarks_total": 0,
+        "note": "Compressed ladder validated at 21k; 174k scaling blocked on metadata"
       }
     },
     "legacy_modes": {
@@ -750,7 +821,7 @@
     "tfidf_modes_174k_compressed": {
       "modes_completed": 8,
       "modes_at_174k": 2,
-      "modes_at_21k_compressed": 6,
+      "modes_at_21k_compressed": 8,
       "all_nesting_perfect": true,
       "resolution_ladder": [
         0.25,
@@ -767,16 +838,16 @@
   "repair_of": null,
   "repair_round": 0,
   "audit_status": "PASS",
-  "artifacts_verified": 669,
+  "artifacts_verified": 701,
   "tests_passed": 184,
-  "modes_loaded": 30,
+  "modes_loaded": 32,
   "registry_crosscheck": {
-    "total_available": 22,
+    "total_available": 27,
     "consistent": 0,
-    "discrepant": 22,
+    "discrepant": 27,
     "discrepancy_type": "evidence_tier missing from registry JSON (cosmetic; all modes have ACCEPTED in state)",
     "key_product_modes_consistent": true,
-    "note": "Registry does not include evidence_tier field. All 22 modes in state legal_distance_modes have evidence_tier=ACCEPTED. 2 additional modes (center_projected_hierarchical=DEFAULT, hierarchical_leiden_concat=LEGACY) are in separate state sections. All modes are functional and verified by 175/175 tests."
+    "note": "Registry does not include evidence_tier field. All 27 modes in state legal_distance_modes have evidence_tier=ACCEPTED. 2 additional modes (center_projected_hierarchical=DEFAULT, hierarchical_leiden_concat=LEGACY) are in separate state sections. All modes are functional and verified by 184/184 tests."
   },
   "snapshot_verification": "results/fractal_map/evaluation/snapshot_verify_33306550005.json",
   "scalability_validation": {

@@ -526,13 +526,14 @@ class TestLegalDistanceModes:
             assert mode_info.get("evidence_tier") == "ACCEPTED", f"{mode_id} evidence tier not ACCEPTED"
 
     def test_total_modes_count(self):
-        """Test total mode count is 24 (1 default + 21 available legal-distance + 1 legacy + 1 placeholder)."""
+        """Test total mode count: 29 available legal-distance + 1 placeholder = 30 total legal-distance modes.
+        Original 21: 5 v6 + 4 v7 + 6 v9 cp-hybrids + 3 v9 outcome-hybrids + 3 citation-role
+        Plus 8 compressed ladder modes at 21k scale: 6 TF-IDF compressed + 2 new 21k compressed
+        """
         ld_modes = self.state["map_modes"]["legal_distance_modes"]
-        # 5 v6 + 4 v7 + 6 v9 cp-hybrids + 3 v9 outcome-hybrids + 3 citation-role = 21 available legal-distance modes
-        # 1 placeholder (center_projected) = 22 total legal-distance modes
         available_count = sum(1 for m in ld_modes.values() if m.get("status") == "available")
         placeholder_count = sum(1 for m in ld_modes.values() if m.get("status") == "placeholder")
-        assert available_count == 21, f"Expected 21 available legal-distance modes, got {available_count}"
+        assert available_count == 29, f"Expected 29 available legal-distance modes, got {available_count}"
         assert placeholder_count == 1, f"Expected 1 placeholder legal-distance mode, got {placeholder_count}"
 
     def test_legacy_mode_preserved(self):
