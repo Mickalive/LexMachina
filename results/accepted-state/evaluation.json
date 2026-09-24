@@ -2,8 +2,8 @@
   "lane": "evaluation",
   "direction_version": 25,
   "evidence_tier": "ACCEPTED",
-  "cycle_status": "COMPLETED",
-  "continue_recommended": true,
+  "cycle_status": "BLOCKED_ON_DEPENDENCIES",
+  "continue_recommended": false,
   "accepted_run_id": "eval_v16_full_benchmark_1790186662",
   "github_run": "35920047243",
   "timestamp": "2026-09-23T21:35:00.000000Z",
@@ -11,9 +11,9 @@
   "global_seed": 42,
   "factory_direction_v25_question": "Run the machine-executable 174k formal suite autonomously as representations land: (1) full 12-benchmark formal suite at 174k scale on all production representations (frozen harness v3 thresholds unchanged); (2) validate citation_heritage benchmark using the published 174k citation-ID resolution (2,019/2,105 resolved); (3) test whether v17b label normalization (15-25% purity gain, REPRODUCED across 4 seeds) generalizes to 174k fine-grained legal_area labels.",
   "v25_dependencies": {
-    "legal_distance_174k_representations": "PARTIAL - CPU-cheap TF-IDF/citation/outcome signals computed at 174k (cited_decisions_tfidf, outcome_tfidf, cited_outcome_hybrid_0.5/0.7). Dense embeddings (center_projected_64, legal embeddings) PENDING from legal-distance lane year-split computation.",
-    "citation_heritage_174k": "EXECUTED - 174k citation_heritage benchmark run on cited_outcome_hybrid_0.5_174k with 804 positive pairs. Result: FAIL (AUC=0.482, threshold=0.65). TF-IDF hybrid does not recover citation proximity at 174k scale.",
-    "v17b_label_normalization_174k": "CONFIRMED - Cross-lingual legal_area normalization generalizes to 174k: 214 raw → 164 normalized unique labels (23% reduction), 49.3% labels changed, 32 canonical concepts with multi-language variants. Uniform purity improvement confirmed across all 6 representations on 1200 decisions (hierarchy +15.6-24.0%, zoom_fine +17.9-27.7%, legal_area +12.7-15.3%). 174k label analysis in v17b_label_normalization_174k_analysis."
+    "legal_distance_174k_representations": "BLOCKED - CPU-cheap TF-IDF/citation/outcome signals (cited_decisions_tfidf, outcome_tfidf, cited_outcome_hybrid_0.5/0.7) and dense embeddings (center_projected_64, legal embeddings) NOT YET COMPUTED at 174k in accepted state. Legal-distance lane must first regenerate year-split artifacts via reproduce_full_corpus.py (proven ~100s reproduction) then compute representations year-split within 65-min job ceilings.",
+    "citation_heritage_174k": "INFRASTRUCTURE READY - 804 positive pairs validated at 174k (95.9% citation resolution: 2,019/2,105). Benchmark executable when 174k embeddings available. Previous execution on cited_outcome_hybrid_0.5_174k (from cycle branch) returned FAIL (AUC=0.482, threshold=0.65) - TF-IDF hybrid does not recover citation proximity at 174k scale.",
+    "v17b_label_normalization_174k": "LABEL LEVEL CONFIRMED - Cross-lingual legal_area normalization generalizes to 174k: 214 raw → 164 normalized unique labels (23% reduction), 49.3% labels changed, 32 canonical concepts with multi-language variants. CLUSTERING TEST PENDING - requires 174k embeddings from legal-distance to test hierarchy/zoom/legal_area purity improvements at full scale."
   },
   "v16_full_benchmark_findings": {
     "total_benchmarks_executed": 12,
@@ -36,7 +36,7 @@
     "conditional_passes": [
       "tf_metadata_human_indexing"
     ],
-    "citation_heritage": "SKIPPED on 1200 slice (insufficient positive pairs) - NOW EXECUTED at 174k with 804 positive pairs: FAIL (AUC=0.482)",
+    "citation_heritage": "SKIPPED on 1200 slice (insufficient positive pairs) - INFRASTRUCTURE VALIDATED at 174k with 804 pairs",
     "summary_by_representation": {
       "center_projected_64dim": {
         "passed": 7,
@@ -98,8 +98,8 @@
     }
   },
   "full_corpus_evaluation_harness": {
-    "status": "VALIDATED_AT_174K",
-    "validation_scale": "174,113 decisions",
+    "status": "VALIDATED_AT_1200_READY_FOR_174K",
+    "validation_scale": "1,200 decisions (exact match with frozen harness v3)",
     "backend": "hnsw",
     "config_hash": "4047da047fb339c1",
     "results_match_frozen_harness": true,
@@ -121,20 +121,21 @@
       "jurivoc_l0_nmi": 0.0039,
       "boilerplate_resistance": -0.8153,
       "backend": "hnsw",
-      "duration_seconds": 93.6
+      "duration_seconds": 93.6,
+      "note": "Result from cycle branch execution; 174k embeddings not in accepted state"
     }
   },
   "v17b_label_normalization": {
     "evidence_tier": "REPRODUCED",
     "finding": "Cross-lingual legal_area label normalization improves hierarchy-family purity metrics 15-25% across all 6 representations (uniform), linear_hybrid05_concat improves MOST (hier +24.0%, zoomfine +27.7%). Verified across 4 seeds [42, 123, 456, 789] with std < 0.022.",
-    "test_at_174k": "PENDING full clustering - 174k metadata with normalized labels available (85,871 labels normalized). v17b_label_normalization_174k_analysis in state.",
+    "test_at_174k": "LABEL LEVEL CONFIRMED - 173,963 decisions analyzed: 214→164 unique labels (23.4% reduction), 49.3% labels changed, 32 canonical cross-lingual concepts. CLUSTERING TEST PENDING - requires 174k embeddings from legal-distance.",
     "verification_run_id": "eval_v17b_label_normalization_all_reps_1790196494",
     "github_run": "35917408050",
     "verification_timestamp": "2026-09-23T20:48:23Z",
     "uniform_improvement_confirmed": true,
     "n_labels_normalized_1200": 788
   },
-  "next_recommendation": "CONTINUE - 174k evaluation infrastructure VALIDATED and EXECUTED on CPU-cheap TF-IDF signals. Production default (cited_outcome_hybrid_0.5) PASSES adversarial gates at 174k scale (lang_dom=0.589 < 0.85, jurist_pref=0.742 > 0.5). Citation_heritage benchmark EXECUTED at 174k: FAIL on TF-IDF hybrid (AUC=0.482) - requires dense embeddings for citation recovery. Awaiting legal-distance lane dense embeddings (center_projected_64, legal embeddings) for full 12-benchmark suite at 174k. v17b label normalization generalization CONFIRMED at 174k label level; clustering test pending dense embeddings.",
+  "next_recommendation": "BLOCKED_ON_DEPENDENCIES - Evaluation infrastructure fully validated and ready for 174k execution. Awaiting legal-distance lane to: (1) regenerate year-split artifacts via reproduce_full_corpus.py (~100s), (2) compute CPU-cheap TF-IDF/citation/outcome signals at 174k (cited_decisions_tfidf, outcome_tfidf, cited_outcome_hybrid_0.5/0.7), (3) compute dense embeddings (center_projected_64, legal embeddings) year-split. When 174k representations land in accepted state, evaluation lane will execute: full 12-benchmark suite on all representations (frozen harness v3 thresholds), citation_heritage benchmark (804 positive pairs), v17b label normalization clustering test. Jurist human study remains externally blocked (requires 5-10 Swiss jurists).",
   "evidence_refs": [
     "evaluation/evaluation_v3_harness.py",
     "evaluation/scalable_nn.py",
@@ -222,7 +223,7 @@
     "status": "FAIL",
     "threshold": 0.65,
     "embedding_tested": "cited_outcome_hybrid_0.5_174k",
-    "note": "TF-IDF hybrid does not place cited decisions closer than random at 174k scale. Dense embeddings required for citation heritage recovery."
+    "note": "TF-IDF hybrid does not place cited decisions closer than random at 174k scale. Dense embeddings required for citation heritage recovery. Execution from cycle branch; embedding not in accepted state."
   },
   "v17b_uniformity_confirmation": {
     "uniform_improvement_or_matching": true,
@@ -282,22 +283,20 @@
     "conditional_passes": [
       "tf_metadata_human_indexing"
     ],
-    "citation_heritage": "EXECUTED at 174k with 804 positive pairs: FAIL (AUC=0.482) on cited_outcome_hybrid_0.5_174k"
+    "citation_heritage": "INFRASTRUCTURE VALIDATED at 174k (804 positive pairs) - EXECUTED on cycle branch embedding: FAIL (AUC=0.482) on cited_outcome_hybrid_0.5_174k"
   },
   "v25_execution_cycle": {
-    "github_run": "35920047243",
-    "timestamp": "2026-09-23T21:35:00Z",
+    "github_run": "35925286709",
+    "timestamp": "2026-09-23T22:00:00Z",
     "verifications_performed": [
       "frozen_harness_v3_config_hash_match",
       "v16_full_benchmark_suite_reproduction",
       "v17b_label_normalization_all_reps_uniformity",
       "citation_heritage_174k_infrastructure_check",
       "full_corpus_harness_scaling_validation",
-      "174k_corpus_reproduction",
-      "174k_tfidf_representations_computed",
-      "174k_adversarial_evaluation_cited_outcome_hybrid_0.5",
-      "174k_citation_heritage_benchmark",
-      "174k_v17b_label_normalization_analysis"
+      "174k_corpus_reproduction_path_confirmed",
+      "174k_tfidf_representations_status_check",
+      "legal_distance_174k_delivery_status_check"
     ],
     "all_config_hashes_verified": true,
     "results_archived": [
@@ -306,6 +305,11 @@
       "results/evaluation/v17b_label_normalization_all_reps/v17b_label_normalization_all_reps_results.json",
       "evaluation/results/full_corpus_174k_tfidf/full_corpus_evaluation_results_worker0.json",
       "results/evaluation/citation_heritage_174k.json"
+    ],
+    "blocking_dependencies": [
+      "legal_distance_174k_tfidf_signals",
+      "legal_distance_174k_dense_embeddings",
+      "corpus_174k_year_split_artifacts_in_accepted_state"
     ]
   }
 }
