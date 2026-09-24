@@ -66,24 +66,27 @@ The evaluation lane has **completed all three machine-executable sub-questions**
 ---
 
 ### ✅ Sub-Question 3: v17b Label Normalization Generalization to 174k
-**Protocol:** Conservative cross-lingual legal_area normalization (213 raw → 163 normalized labels, 23.5% reduction, 49.3% of labels changed, 85,819 decisions affected, 32 cross-lingual canonical concepts). Success rule: no representation worsens by >10% on hierarchy-family metrics.
+**Protocol:** Conservative cross-lingual legal_area normalization (213 raw → 163 normalized labels, 23.5% reduction, 49.3% of labels changed, 85,819 decisions affected, 32 cross-lingual canonical concepts). Success rule: no representation worsens by >10% on any hierarchy-family metric (hierarchy_coherence purity/NMI, zoom_coherence, legal_area_clustering).
 
-| Representation | Hierarchy Purity Δ | Zoom Coherence Δ | Legal Area Δ | Within 10% Rule? |
-|---|---|---|---|---|
-| `cited_decisions_tfidf` | +53% (0.13→0.20) | -16% (26.2%→22.0%) | +50% | ❌ **EXCEEDS on zoom** |
-| `cited_outcome_hybrid_0.5` | +53% | -16% | +50% | ❌ **EXCEEDS on zoom** |
-| `cited_outcome_hybrid_0.7` | +53% | -16% | +50% | ❌ **EXCEEDS on zoom** |
-| `regeste_tfidf` | +53% | -16% | +50% | ❌ **EXCEEDS on zoom** |
-| `full_text_tfidf_light` | +0% (coarse labels) | +0% | +0% | ✅ |
-| `regeste_full_text_hybrid_0.5` | +0% | +0% | +0% | ✅ |
-| `regeste_full_text_hybrid_0.7` | +0% | +0% | +0% | ✅ |
-| `outcome_tfidf` | +0% | +0% | +0% | ✅ |
+| Representation | Hierarchy Purity Δ | Hierarchy NMI Δ | Zoom Coherence Δ | Legal Area Purity Δ | Within 10% Rule? |
+|---|---:|---:|---:|---:|---|
+| `cited_decisions_tfidf` | **+52.6%** (0.152→0.232) | -5.8% | **-6.7%** (20.6%→19.3%) | +48.9% | ✅ |
+| `cited_outcome_hybrid_0.5` | **+53.6%** (0.130→0.199) | -9.6% | **-16.0%** (26.2%→22.0%) | +49.6% | ❌ **EXCEEDS on zoom** |
+| `cited_outcome_hybrid_0.7` | **+54.1%** (0.128→0.197) | **-10.8%** | **+7.2%** (26.9%→28.9%) | +46.5% | ❌ **EXCEEDS on NMI** |
+| `regeste_tfidf` | **+63.7%** (0.081→0.132) | 0.0% | **0.0%** (0%→0%) | +63.7% | ✅ |
+| `outcome_tfidf` | **+51.7%** (0.090→0.136) | **-13.1%** | **0.0%** (0%→0%) | +51.3% | ❌ **EXCEEDS on NMI** |
+| `full_text_tfidf_light` | 0% (0.465→0.465) | **-27.6%** | **0.0%** (103.9%→103.9%) | 0% | ❌ **EXCEEDS on NMI** |
+| `regeste_full_text_hybrid_0.5` | 0% (0.465→0.465) | **-27.6%** | **0.0%** (103.9%→103.9%) | 0% | ❌ **EXCEEDS on NMI** |
+| `regeste_full_text_hybrid_0.7` | 0% (0.465→0.465) | **-27.6%** | **0.0%** (103.9%→103.9%) | 0% | ❌ **EXCEEDS on NMI** |
 
 **Key Findings:**
-- Citation-based reps: **1.5–1.6× hierarchy purity gains** but **16% worsening on zoom_coherence** (exceeds 10% threshold)
-- Full-text/regeste reps: coarse labels map 1:1 → no change
-- Even normalized, best hierarchy purity = 0.47 (full_text_tfidf_light) < 0.7 threshold
-- **Conclusion:** v17b normalization partially generalizes; hierarchy-family FAILs at 174k are **not purely label artifacts** — fundamental granularity/coverage limits persist
+- **Hierarchy Purity Δ** measures purity improvement (improves for all citation-based reps: +52–64%), but the **success rule applies to hierarchy NMI** (worsens for 5/8 reps by >10%)
+- **Zoom Coherence Δ**: Only **1/8 representations worsens by >10%** — `cited_outcome_hybrid_0.5` at **-16.0%** (not 4/8 as previously misreported). Other citation-based reps: `cited_decisions_tfidf` -6.7%, `cited_outcome_hybrid_0.7` +7.2%, `regeste_tfidf` 0.0%.
+- **regeste_tfidf is NOT citation-based** — it uses regeste (summary) text only, has no citation IDs (citation_heritage AUC=0.487), and correctly shows 0% zoom change.
+- **5/8 representations worsen hierarchy NMI by >10%**: `cited_outcome_hybrid_0.7` (-10.8%), `outcome_tfidf` (-13.1%), `full_text_tfidf_light` (-27.6%), `regeste_full_text_hybrid_0.5/0.7` (both -27.6%).
+- **2/8 fully within ≤10% rule**: `cited_decisions_tfidf`, `regeste_tfidf`.
+- Even normalized, best hierarchy purity = 0.47 (full_text_tfidf_light) < 0.7 threshold.
+- **Conclusion:** v17b normalization **partially generalizes**; hierarchy-family FAILs at 174k are **not purely label artifacts** — fundamental granularity/coverage limits persist
 
 ---
 
