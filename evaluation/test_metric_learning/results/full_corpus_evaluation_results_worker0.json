@@ -1,0 +1,129 @@
+{
+  "linear_metric_epoch4": {
+    "embedding_shape": [
+      1200,
+      128
+    ],
+    "adversarial": {
+      "adversarial_language_dominance": {
+        "mean_language_dominance": 0.6805254378648874,
+        "std_language_dominance": 0.21769657931547517,
+        "max_language_dominance": 1.0,
+        "k": 20,
+        "threshold": 0.85,
+        "status": "PASS",
+        "note": "Lower is better - language should not dominate neighbors",
+        "backend": "sklearn_exact"
+      },
+      "jurist_pairwise_preference": {
+        "status": "PASS",
+        "total_decisions": 1199,
+        "legal_relevant_only": 681,
+        "language_artifact_only": 94,
+        "both_available": 140,
+        "neither_available": 284,
+        "legal_neighbor_rate": 0.6847,
+        "language_neighbor_rate": 0.1952,
+        "jurist_would_succeed_rate": 0.6847,
+        "jurist_forced_wrong_rate": 0.0784,
+        "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k.",
+        "backend": "sklearn_exact"
+      },
+      "both_pass": true,
+      "language_dominance_score": 0.6805254378648874,
+      "jurist_preference_rate": 0.6847
+    },
+    "jurivoc_alignment": {
+      "level_0_nmi": 0.6878529552902335,
+      "level_1_nmi": 0.49571413637498707,
+      "nesting_score": 0.9479161446803277,
+      "status": "PASS",
+      "note": "Jurivoc proxy: Level 0 = 4 branches, Level 1 = 16 legal areas. Higher NMI = better alignment with legal taxonomy."
+    },
+    "scale_stability": {
+      "mean_neighbor_overlap": 0.7795833333333334,
+      "std_neighbor_overlap": 0.12599534272697896,
+      "n_test_points": 240,
+      "status": "PASS",
+      "note": "Scale stability: fraction of top-10 neighbors preserved when corpus reduced to 80%. Higher = more stable.",
+      "backend": "sklearn_exact"
+    },
+    "boilerplate_resistance": {
+      "boilerplate_neighbor_rate": 0.9439496314496314,
+      "legal_neighbor_rate": 0.05605036855036855,
+      "resistance_score": -0.8878992628992628,
+      "total_comparisons": 6512,
+      "status": "FAIL",
+      "note": "Boilerplate resistance: legal_neighbor_rate - boilerplate_neighbor_rate. Positive = legally relevant neighbors dominate over procedural neighbors.",
+      "backend": "sklearn_exact"
+    },
+    "fractal": {
+      "n_coarse": 0,
+      "n_fine": 0,
+      "coarse_purity": 0.0,
+      "fine_purity": 0.0,
+      "overall_improvement": 0.0,
+      "improvement_rate": 0.0,
+      "legal_area_nmi": 0.0,
+      "flat_purity": 0.0,
+      "hierarchical_advantage": 0.0,
+      "cluster_coherence": {
+        "status": "PASS",
+        "n_clusters": 16,
+        "mean_branch_purity": 0.9577,
+        "branch_nmi": 0.4954,
+        "mean_language_purity": 0.656,
+        "cluster_purities": [
+          1.0,
+          0.9661,
+          0.9437,
+          0.9872,
+          0.9841,
+          0.9487,
+          0.9909,
+          0.9589,
+          1.0,
+          0.8587,
+          0.9434,
+          0.908,
+          0.8977,
+          1.0,
+          0.95,
+          0.9863
+        ],
+        "cluster_sizes": [
+          59,
+          59,
+          71,
+          78,
+          126,
+          39,
+          110,
+          73,
+          115,
+          92,
+          53,
+          87,
+          88,
+          56,
+          20,
+          73
+        ],
+        "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+      },
+      "cross_language_retrieval": {
+        "status": "PASS",
+        "mean_cross_language_recall_at_k": 0.2114,
+        "k": 10,
+        "n_queries": 1199,
+        "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10.",
+        "backend": "sklearn_exact"
+      }
+    },
+    "verdict": "PASS",
+    "both_adversarial_pass": true,
+    "backend": "sklearn_exact",
+    "name": "linear_metric_epoch4",
+    "duration_seconds": 0.6498448848724365
+  }
+}
