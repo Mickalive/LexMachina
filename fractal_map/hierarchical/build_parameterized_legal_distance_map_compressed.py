@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Parameterized Hierarchical Map Builder for LEGAL-DISTANCE modes (COMPRESSED 5-LEVEL LADDER).
+Parameterized Hierarchical Map Builder for LEGAL-DISTANCE modes (COMPRESSED LADDER).
 
 Scales multi-resolution Leiden fractal maps for legal-distance representations
 to arbitrary corpus sizes using the validated compressed 5-level resolution ladder:
 [0.25, 0.5, 1.0, 2.0, 3.0]
 
-This ladder was validated in cycle 33341400705 to achieve 100% purity delta retention
-and 0% nesting change vs the 7-level ladder across all 22 modes. 29% fewer resolutions
-with zero quality loss.
+This replaces the 7-level ladder [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0] per
+ACCEPTED evidence (run 33341400705): 100% purity delta retention, 0% nesting change,
+29% fewer resolutions, identical zoom navigation at shared resolutions.
 """
 
 import json
@@ -18,11 +18,11 @@ from pathlib import Path
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
 
-# Default paths (mirror prior builder conventions)
+# Default paths
 DEFAULT_BASELINE_DIR = Path("/home/runner/work/LexMachina/LexMachina/results/fractal_map/baseline")
 DEFAULT_CORPUS_DIR = Path("/tmp/lex_accepted/corpus/corpus/normalization/canonical")
 
-# COMPRESSED 5-LEVEL LADDER (validated: 100% delta retention, 0% nesting change)
+# COMPRESSED 5-LEVEL RESOLUTION LADDER (validated ACCEPTED)
 RESOLUTIONS = [0.25, 0.5, 1.0, 2.0, 3.0]
 MIN_CLUSTER_SIZE = 3
 
@@ -38,7 +38,7 @@ def load_metadata_with_branch(baseline_dir, corpus_dir, corpus_size=None,
         return {m['decision_id']: i for i, m in enumerate(metadata)}, metadata
     id_to_idx = {m['decision_id']: i for i, m in enumerate(metadata)}
     branch_map = {}
-    for year_file in sorted(corpus_dir.glob("bger_20*.jsonl")):
+    for year_file in sorted(corpus_dir.glob("bge_*.jsonl")):
         with open(year_file) as f:
             for line in f:
                 d = json.loads(line)
@@ -235,7 +235,7 @@ def convert(obj):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Build parameterized legal-distance map (compressed 5-level ladder)')
+    parser = argparse.ArgumentParser(description='Build parameterized legal-distance map (COMPRESSED LADDER)')
     parser.add_argument('--embedding-path', type=Path, required=True,
                         help='Path to source embedding .npy (legal-distance cache)')
     parser.add_argument('--mode-id', type=str, default='legal_distance_mode',
@@ -324,13 +324,12 @@ def main():
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "direction_version": 25,
         "mode_id": args.mode_id,
-        "hypothesis": "Multi-resolution Leiden on legal-distance embeddings produces nested hierarchy",
+        "hypothesis": "Multi-resolution Leiden on legal-distance embeddings produces nested hierarchy (compressed 5-level ladder)",
         "frozen_sample": f"{len(metadata)} decisions ({args.mode_id})",
         "frozen_metric": "Nesting consistency, branch purity per level, zoom improvement rate, provenance purity",
         "embeddings_source": str(args.embedding_path),
         "corpus_size": len(metadata),
         "resolutions_tested": RESOLUTIONS,
-        "compressed_ladder": True,
         "hierarchy_info": hierarchy_info,
         "nesting": nesting,
         "mean_nesting_score": float(np.mean([n['nesting_consistency'] for n in nesting.values()])),
@@ -368,6 +367,7 @@ def main():
         "mean_branch_purity_all_levels": float(np.mean(
             [branch_coherence[f"res_{r}"]['mean_branch_purity'] for r in RESOLUTIONS])),
         "output_dir": str(args.output_dir),
+        "resolutions": RESOLUTIONS,
     }, indent=2))
 
 
