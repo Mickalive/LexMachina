@@ -1,12 +1,12 @@
 {
   "lane": "evaluation",
-  "direction_version": 25,
+  "direction_version": 26,
   "evidence_tier": "ACCEPTED",
   "cycle_status": "BLOCKED_ON_DEPENDENCIES",
   "continue_recommended": false,
-  "accepted_run_id": "eval_v25_174k_infrastructure_verification_20260924",
-  "github_run": "35990980088",
-  "timestamp": "2026-09-24T11:15:00Z",
+  "accepted_run_id": "eval_v25_174k_tfidf_family_20260924",
+  "github_run": "36045308135",
+  "timestamp": "2026-09-24T19:30:00Z",
   "config_hash": "4323f833fa72366a",
   "global_seed": 42,
   "evidence_refs": [
@@ -31,9 +31,39 @@
     "evaluation/reports/evaluation_v25_174k_execution_plan.md",
     "results/evaluation/v16_full_benchmark_suite/v16_full_benchmark_latest.json",
     "results/evaluation/v17b_label_normalization_all_reps/v17b_label_normalization_all_reps_latest.json",
-    "results/evaluation/v3/evaluation_v3_results.json"
+    "results/evaluation/v3/evaluation_v3_results.json",
+    "results/evaluation/v25_174k_formal_suite/embeddings/build_manifest.json",
+    "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
+    "results/evaluation/v25_174k_formal_suite/results/cited_decisions_tfidf.json",
+    "results/evaluation/v25_174k_formal_suite/results/outcome_tfidf.json",
+    "results/evaluation/v25_174k_formal_suite/results/regeste_tfidf.json",
+    "results/evaluation/v25_174k_formal_suite/results/full_text_tfidf_light.json",
+    "results/evaluation/v25_174k_formal_suite/results/cited_outcome_hybrid_0.5.json",
+    "results/evaluation/v25_174k_formal_suite/results/cited_outcome_hybrid_0.7.json",
+    "results/evaluation/v25_174k_formal_suite/results/regeste_full_text_hybrid_0.5.json",
+    "results/evaluation/v25_174k_formal_suite/results/regeste_full_text_hybrid_0.7.json",
+    "results/evaluation/v25_174k_citation_heritage/cited_decisions_tfidf.json",
+    "results/evaluation/v25_174k_citation_heritage/outcome_tfidf.json",
+    "results/evaluation/v25_174k_citation_heritage/regeste_tfidf.json",
+    "results/evaluation/v25_174k_citation_heritage/full_text_tfidf_light.json",
+    "results/evaluation/v25_174k_citation_heritage/cited_outcome_hybrid_0.5.json",
+    "results/evaluation/v25_174k_citation_heritage/cited_outcome_hybrid_0.7.json",
+    "results/evaluation/v25_174k_citation_heritage/regeste_full_text_hybrid_0.5.json",
+    "results/evaluation/v25_174k_citation_heritage/regeste_full_text_hybrid_0.7.json",
+    "results/evaluation/v25_174k_v17b/cited_decisions_tfidf.json",
+    "results/evaluation/v25_174k_v17b/outcome_tfidf.json",
+    "results/evaluation/v25_174k_v17b/regeste_tfidf.json",
+    "results/evaluation/v25_174k_v17b/full_text_tfidf_light.json",
+    "results/evaluation/v25_174k_v17b/cited_outcome_hybrid_0.5.json",
+    "results/evaluation/v25_174k_v17b/cited_outcome_hybrid_0.7.json",
+    "results/evaluation/v25_174k_v17b/regeste_full_text_hybrid_0.5.json",
+    "results/evaluation/v25_174k_v17b/regeste_full_text_hybrid_0.7.json",
+    "evaluation/experiments/v25_174k_suite/protocol_v25_174k_suite.json",
+    "evaluation/experiments/v25_174k_suite/run_v25_174k_suite.py",
+    "evaluation/experiments/v25_174k_suite/build_v25_174k_representations.py",
+    "evaluation/reports/evaluation_v25_174k_tfidf_family_report.md"
   ],
-  "next_recommendation": "BLOCKED_ON_DEPENDENCIES - All evaluation infrastructure fully validated and frozen. Fresh verification runs completed in this cycle: (1) v3 frozen harness REPRODUCED at 1200 scale on 6 representations (config hash a31c443a9b0e992e matches frozen spec); (2) v16 full 12-benchmark suite REPRODUCED at 1200 scale across 6 representations (center_projected_64dim: 7/12 PASS, linear_citation_concat: 7/12 PASS, linear_hybrid05_concat: 7/12 PASS, etc.); (3) v17b label normalization REPRODUCED across all 6 representations with uniform 15-28% purity improvement (hierarchy: 1.15-1.24x, zoom_fine: 1.17-1.28x, legal_area: 1.12-1.15x); (4) citation_heritage infrastructure validated at 174k with 1020 positive/negative pairs. Awaiting legal-distance lane 174k production representations from active gh run 35935612800. No additional same-question cycle justified.",
+  "next_recommendation": "BLOCKED_ON_DEPENDENCIES - TF-IDF production family (8 representations) FULLY EVALUATED at 174k scale (173,963 decisions) against frozen 12-benchmark suite (config hash 4323f833fa72366a), frozen citation_heritage benchmark (137,314 pairs), and v17b label normalization (213→163 labels). All three machine-executable sub-questions COMPLETE for TF-IDF family. Awaiting legal-distance lane 174k dense embeddings (center_projected, metric learning, hybrid objectives, citation roles, linear hybrids). No additional same-question cycle justified for TF-IDF family. Jurist human study remains blocked (external dependency: 5-10 Swiss jurists recruitment).",
   "critical_findings": {
     "v3_harness_reproduced": "v3 frozen evaluation harness REPRODUCED at 1200 scale (config hash a31c443a9b0e992e, seed 42). 6 representations tested: center_projected_768 (FAIL: jurist_pref=0.491), center_projected_64dim (PASS: lang_dom=0.7664, jurist_pref=0.5121), linear_metric_epoch4 (PASS: 0.6805/0.6847), mahalanobis_metric_epoch4 (PASS: 0.6843/0.6781), hybrid_stabilized_epoch1 (PASS: 0.6704/0.6656), hybrid_v2_epoch3 (PASS: 0.7115/0.5988). Best: linear_metric_epoch4 (jurist_pref=0.6847). Reference baseline center_projected_64dim passes both adversarial gates.",
     "v16_full_benchmark_reproduced": "v16 12-benchmark suite REPRODUCED at 1200 scale across 6 representations (direction v13, config hash 4323f833fa72366a, seed 42). Pass counts: center_projected_64dim=7/12, cited_outcome_hybrid_0.5=6/12, linear_citation_concat=7/12, linear_hybrid05_concat=7/12, linear_citation_w3070=6/12, linear_citation_ridge=7/12. citation_heritage SKIP (0 positive pairs in 1200 slice). Universal PASS: branch_knn, adversarial_falsification, multilingual_invariance, cross_language_pairs, collapse_check, temporal_stability. Universal FAIL: hierarchy_coherence (purity 0.25-0.39 < 0.7), zoom_coherence (negative improvement), legal_area_clustering (purity ~0.006-0.009 < 0.5), boilerplate_resistance_real_corpus (correlation -0.06 to +0.09). These are corpus/label limitations per v16/v18 findings.",
@@ -43,24 +73,35 @@
     "scalable_harness_validated": "run_full_corpus_evaluation.py with HNSW backend (hnswlib) validated on 1200-scale test. Frozen config hash 4047da047fb339c1 matches v3 harness. center_projected_64dim PASSES both adversarial gates (LangDom=0.7664<0.85, Jurist=0.5121>0.5), 768-dim versions FAIL (LangDom=0.954, Jurist=0.095). All 12 benchmarks implemented in scalable_nn.py with batched processing. Exact NN fallback for <10k, HNSW for >=10k. Distributed evaluation support via worker sharding.",
     "boilerplate_resistance_negative": "CONFIRMED: Boilerplate resistance negative for all representations (score ~-0.9) at 1200 scale, consistent with legal-distance v6/v10 finding that proxy measures language dominance/cross-lingual alignment failure, not procedural boilerplate.",
     "v16_universal_failures": "hierarchy_coherence, zoom_coherence, legal_area_clustering, boilerplate_resistance_real_corpus FAIL for ALL representations - these are corpus/label limitations, not representation defects",
-    "v16_universal_passes": "branch_knn, adversarial_falsification, multilingual_invariance, cross_language_pairs, collapse_check, temporal_stability PASS for ALL representations"
+    "v16_universal_passes": "branch_knn, adversarial_falsification, multilingual_invariance, cross_language_pairs, collapse_check, temporal_stability PASS for ALL representations",
+    "tfidf_174k_suite_complete": "All 8 TF-IDF representations evaluated at 174k scale against frozen 12-benchmark suite. Pass counts: full_text_tfidf_light=7/12, regeste_full_text_hybrid_0.5=7/12, regeste_full_text_hybrid_0.7=7/12, cited_decisions_tfidf=6/12, cited_outcome_hybrid_0.5=6/12, cited_outcome_hybrid_0.7=6/12, regeste_tfidf=5/12, outcome_tfidf=3/12. Universal 174k FAILs: hierarchy_coherence (purity 0.08-0.47 < 0.7), legal_area_clustering (purity 0.003-0.08 < 0.5). Citation-based reps pass adversarial gates; full-text/regeste reps fail language_dominance (~0.99).",
+    "tfidf_174k_citation_heritage": "7/8 TF-IDF representations PASS citation_heritage AUC≥0.65 at 174k. Best: cited_decisions_tfidf AUC=0.9731, cited_outcome_hybrid_0.7 AUC=0.9605. nn_citation_rate@10: 0.47-0.49 for citation hybrids, 0.44 for full-text hybrids, 0.003 for outcome_tfidf, 0.0 for regeste_tfidf. regeste_tfidf FAILS (AUC=0.4865) — regeste text lacks citation IDs.",
+    "tfidf_174k_v17b_generalization": "v17b label normalization PARTIALLY generalizes to 174k: 7/8 representations within ≤10% worsening rule on hierarchy-family metrics. cited_outcome_hybrid_0.5 worsens by 16% on zoom_coherence (exceeds threshold). Normalized hierarchy purity gains: 1.5-1.6x for citation-based reps, 1.0x for full-text/regeste reps (coarse labels map 1:1). Even normalized, best hierarchy purity=0.47 (full_text_tfidf_light) < 0.7 threshold.",
+    "tfidf_174k_production_default": "cited_outcome_hybrid_0.7 confirmed as production default: passes both adversarial gates (lang_dom=0.569<0.85, branch_coherence=0.356>0.3), citation_heritage AUC=0.9605, nn_citation_rate@10=0.490. cited_outcome_hybrid_0.5 equivalent (AUC=0.9193, nn_rate=0.476). Both zero-shot TF-IDF, no GPU required."
   },
-  "blocked_on": "legal-distance lane: 174k production representations not yet computed (TF-IDF modes, dense embeddings, hybrid combinations). Legal-distance actively executing gh run 35935612800 (year-split TF-IDF computation).",
+  "blocked_on": "legal-distance lane: 174k dense embeddings not yet computed (center_projected, metric learning, hybrid objectives, citation roles, linear hybrids). Legal-distance RUN (staged 174k CPU execution, year-split, TF-IDF first).",
   "production_representations_awaited": [
-    "cited_decisions_tfidf",
-    "outcome_tfidf", 
-    "cited_outcome_hybrid_0.5",
-    "cited_outcome_hybrid_0.7",
     "center_projected_768dim",
     "center_projected_64dim",
     "linear_metric_epoch4",
     "mahalanobis_metric_epoch4",
     "hybrid_stabilized_epoch1",
+    "hybrid_v2_epoch3",
     "citation_role_citing_alpha0.3",
     "citation_role_following_alpha0.3",
     "citation_role_criticizing_alpha0.3",
     "linear_citation_concat",
     "linear_hybrid05_concat"
+  ],
+  "tfidf_family_completed": [
+    "cited_decisions_tfidf",
+    "outcome_tfidf",
+    "cited_outcome_hybrid_0.5",
+    "cited_outcome_hybrid_0.7",
+    "regeste_tfidf",
+    "full_text_tfidf_light",
+    "regeste_full_text_hybrid_0.5",
+    "regeste_full_text_hybrid_0.7"
   ],
   "validation_results": {
     "test_scale": 1200,
@@ -81,7 +122,23 @@
     "best_lang_dom": 0.7664,
     "best_jurist_pref": 0.5121,
     "both_adversarial_pass": true,
-    "backend": "sklearn_exact"
+    "backend": "sklearn_exact",
+    "tfidf_174k_pass_counts": {
+      "full_text_tfidf_light": 7,
+      "regeste_full_text_hybrid_0.5": 7,
+      "regeste_full_text_hybrid_0.7": 7,
+      "cited_decisions_tfidf": 6,
+      "cited_outcome_hybrid_0.5": 6,
+      "cited_outcome_hybrid_0.7": 6,
+      "regeste_tfidf": 5,
+      "outcome_tfidf": 3
+    },
+    "tfidf_174k_total_benchmarks": 12,
+    "tfidf_174k_best_adversarial_pass": "cited_outcome_hybrid_0.7",
+    "tfidf_174k_best_citation_heritage_auc": 0.9731,
+    "tfidf_174k_best_citation_heritage_rep": "cited_decisions_tfidf",
+    "tfidf_174k_backend": "hnswlib",
+    "tfidf_174k_scale": 173963
   },
   "v25_readiness_verification": {
     "github_run": "35990980088",
@@ -102,12 +159,27 @@
     "infrastructure_status": {
       "scalable_nn_hnsw": "OPERATIONAL (hnswlib available)",
       "metadata_174k": "LOADED (173,963 decisions, de:106501, fr:57489, it:9973)",
-      "citation_heritage_pairs": "READY (1,020 positive + 1,020 negative pairs)",
-      "v17b_label_normalization": "LABEL LEVEL CONFIRMED at 174k (213->163 labels, 32 cross-lingual canonical concepts); CLUSTERING LEVEL REPRODUCED at 1200 scale across 6 representations with uniform 15-28% purity improvement",
-      "full_corpus_harness": "VALIDATED at 1200 scale, exact match with frozen v3",
-      "v16_benchmark_suite": "IMPLEMENTED (12 benchmarks, frozen thresholds), REPRODUCED",
+      "citation_heritage_pairs": "READY (137,314 positive + 137,314 negative pairs, frozen protocol)",
+      "v17b_label_normalization": "LABEL LEVEL CONFIRMED at 174k (213->163 labels, 32 cross-lingual canonical concepts); CLUSTERING LEVEL REPRODUCED at 1200 scale across 6 representations with uniform 15-28% purity improvement; 174k CLUSTERING LEVEL TESTED across 8 TF-IDF reps: 7/8 within ≤10% worsening rule, 1 exceeds (cited_outcome_hybrid_0.5 zoom_coherence -16%)",
+      "full_corpus_harness": "VALIDATED at 1200 scale, exact match with frozen v3; FULL 174k EXECUTION COMPLETE for TF-IDF family",
+      "v16_benchmark_suite": "IMPLEMENTED (12 benchmarks, frozen thresholds), REPRODUCED at 1200 and 174k",
       "distributed_evaluation": "SUPPORTED (model-level sharding via DistributedEvaluator)"
     },
     "execution_plan": "evaluation/reports/evaluation_v25_174k_execution_plan.md"
+  },
+  "v25_174k_tfidf_execution": {
+    "github_run": "36013963912",
+    "timestamp": "2026-09-24T14:58:13Z",
+    "verifications_performed": [
+      "v25_174k_embeddings_built_from_pinned_parquet",
+      "v25_174k_row_order_matches_frozen_metadata",
+      "v25_174k_all_8_representations_evaluated",
+      "v25_174k_12_benchmark_suite_frozen_thresholds",
+      "v25_174k_citation_heritage_137314_pairs",
+      "v25_174k_v17b_normalization_tested_8_reps",
+      "frozen_protocol_no_tuning_after_results"
+    ],
+    "build_manifest": "results/evaluation/v25_174k_formal_suite/embeddings/build_manifest.json",
+    "suite_summary": "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json"
   }
 }
