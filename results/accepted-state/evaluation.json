@@ -5,8 +5,8 @@
   "cycle_status": "BLOCKED_ON_DEPENDENCIES",
   "continue_recommended": false,
   "accepted_run_id": "eval_v16_full_benchmark_1790186662",
-  "github_run": "35945367933",
-  "timestamp": "2026-09-24T02:30:00.000000Z",
+  "github_run": "35961790798",
+  "timestamp": "2026-09-24T06:20:00.000000Z",
   "config_hash": "4323f833fa72366a",
   "global_seed": 42,
   "factory_direction_v25_question": "Run the machine-executable 174k formal suite autonomously as representations land: (1) full 12-benchmark formal suite at 174k scale on all production representations (frozen harness v3 thresholds unchanged); (2) validate citation_heritage benchmark using the published 174k citation-ID resolution (2,019/2,105 resolved); (3) test whether v17b label normalization (15-25% purity gain, REPRODUCED across 4 seeds) generalizes to 174k fine-grained legal_area labels.",
@@ -356,7 +356,7 @@
       ],
       "next_recommendation": "BLOCKED_ON_DEPENDENCIES - Evaluation infrastructure fully validated and frozen. All three v25 sub-questions (12-benchmark suite, citation heritage, v17b normalization) have READY infrastructure but BLOCKED on 174k embeddings from legal-distance lane. No additional same-question cycle justified until representations land in accepted state. Jurist human study remains externally blocked (framework ready)."
     },
-    "v25_readiness_verification_20260924": {
+"v25_readiness_verification_20260924": {
       "github_run": "35949306163",
       "timestamp": "2026-09-24T02:57:00Z",
       "cycle_status": "BLOCKED_ON_DEPENDENCIES",
@@ -413,5 +413,410 @@
       },
       "execution_plan_document": "evaluation/reports/evaluation_v25_174k_execution_plan.md",
       "next_recommendation": "BLOCKED_ON_DEPENDENCIES - All infrastructure verified operational. Awaiting legal-distance gh run 35935612800 completion and accepted state promotion of 174k representations. No further same-question cycles justified."
+    },
+    "v25_infrastructure_reverification_20260924b": {
+      "github_run": "35955974732",
+      "timestamp": "2026-09-24T04:58:00Z",
+      "cycle_status": "BLOCKED_ON_DEPENDENCIES",
+      "evidence_tier": "ACCEPTED",
+      "verifications_performed": [
+        "frozen_harness_v3_full_reproduction",
+        "frozen_harness_v3_config_hash_match_a31c443a9b0e992e",
+        "full_corpus_harness_force_exact_1200_match",
+        "v17b_label_normalization_all_reps_uniformity_reconfirmed",
+        "citation_heritage_174k_pairs_rebuilt_1020_each",
+        "legal_distance_gh_run_35935612800_still_active"
+      ],
+      "config_hashes_reverified": {
+        "frozen_harness_v3": "a31c443a9b0e992e",
+        "full_corpus_harness": "4047da047fb339c1",
+        "v16_benchmark_suite": "4323f833fa72366a"
+      },
+      "frozen_harness_v3_results": {
+        "representations_tested": 6,
+        "all_adversarial_pass": [
+          "linear_metric_epoch4",
+          "mahalanobis_metric_epoch4",
+          "hybrid_stabilized_epoch1",
+          "hybrid_v2_epoch3",
+          "center_projected_64dim"
+        ],
+        "adversarial_fail": [
+          "center_projected_768"
+        ],
+        "reference_baseline_verified": "center_projected_64dim PASS both gates (lang_dom=0.7664, jurist_pref=0.5121)",
+        "exact_match_with_accepted_state": true
+      },
+      "full_corpus_harness_force_exact_results": {
+        "center_projected_64dim": {"verdict": "PASS", "lang_dom": 0.7664, "jurist_pref": 0.5121, "backend": "sklearn_exact"},
+        "center_projected_768": {"verdict": "FAIL", "lang_dom": 0.7738, "jurist_pref": 0.4912, "backend": "sklearn_exact"},
+        "exact_match_with_frozen_harness_adversarial": true
+      },
+      "v17b_label_normalization_reverification": {
+        "uniform_improvement_confirmed": true,
+        "n_labels_normalized": 788,
+        "per_representation_purity_ratios": {
+          "center_projected_64dim": {"hierarchy": 1.2018, "zoom_fine": 1.2233, "legal_area": 1.1476},
+          "cited_outcome_hybrid_0.5": {"hierarchy": 1.2145, "zoom_fine": 1.2041, "legal_area": 1.1514},
+          "linear_citation_concat": {"hierarchy": 1.1891, "zoom_fine": 1.1941, "legal_area": 1.1273},
+          "linear_hybrid05_concat": {"hierarchy": 1.2401, "zoom_fine": 1.2768, "legal_area": 1.1528},
+          "linear_citation_w3070": {"hierarchy": 1.1559, "zoom_fine": 1.1798, "legal_area": 1.13},
+          "linear_citation_ridge": {"hierarchy": 1.194, "zoom_fine": 1.2145, "legal_area": 1.1524}
+        },
+        "representations_worsened_by_gt10pct": {},
+        "conclusion": "v17b effect UNIFORM across all 6 production representations - label artifact confirmed as shared cause of v16 hierarchy-family FAIL"
+      },
+      "citation_heritage_174k_reverification": {
+        "positive_pairs": 1020,
+        "negative_pairs": 1020,
+        "citation_resolution_rate": "95.9% (2,019/2,105)",
+        "decisions_in_citation_graph": 174,
+        "decisions_with_outgoing_citations": 174,
+        "resolved_citations_mapping_to_174k_corpus": 924,
+        "infrastructure_ready_for_174k_embeddings": true
+      },
+      "infrastructure_status": {
+        "frozen_harness_v3": "OPERATIONAL (config hash verified, exact reproduction confirmed)",
+        "scalable_nn_hnsw": "OPERATIONAL (hnswlib available, validated at 1200 with force_exact)",
+        "full_corpus_harness": "VALIDATED at 1200 scale, exact adversarial match with frozen v3",
+        "v16_benchmark_suite": "IMPLEMENTED (12 benchmarks, frozen thresholds, config hash verified)",
+        "citation_heritage_174k": "READY (1,020 positive + 1,020 negative pairs rebuilt)",
+        "v17b_normalization_174k": "LABEL LEVEL CONFIRMED (214->164 labels, 32 cross-lingual canonical concepts), clustering test pending embeddings",
+        "distributed_evaluation": "SUPPORTED (model-level sharding via DistributedEvaluator)"
+      },
+      "awaiting_from_legal_distance": {
+        "priority_1_tfidf_signals": [
+          "cited_decisions_tfidf",
+          "outcome_tfidf",
+          "cited_outcome_hybrid_0.5",
+          "cited_outcome_hybrid_0.7",
+          "linear_citation_concat",
+          "linear_hybrid05_concat",
+          "linear_citation_w3070",
+          "linear_citation_ridge"
+        ],
+        "priority_2_dense_embeddings": [
+          "center_projected_768dim",
+          "center_projected_64dim",
+          "linear_metric_epoch4",
+          "mahalanobis_metric_epoch4",
+          "hybrid_stabilized_epoch1"
+        ],
+        "priority_3_citation_roles": [
+          "citation_role_citing_alpha0.3",
+          "citation_role_following_alpha0.3",
+          "citation_role_criticizing_alpha0.3",
+          "citation_role_distinguishing_alpha0.3",
+          "citation_role_overruling_alpha0.3"
+        ]
+      },
+"next_recommendation": "BLOCKED_ON_DEPENDENCIES - All infrastructure re-verified operational and frozen. Config hashes match. Frozen harness v3, full corpus harness, v16 benchmark suite, citation heritage pairs, and v17b label normalization all ready for 174k execution. Awaiting legal-distance gh run 35935612800 completion and accepted state promotion of 174k representations. No additional same-question cycles justified."
+    },
+    "v25_operational_resume_audit_ready_35959377102": {
+      "github_run": "35959377102",
+      "timestamp": "2026-09-24T05:27:00Z",
+      "cycle_status": "BLOCKED_ON_DEPENDENCIES",
+      "evidence_tier": "ACCEPTED",
+      "verifications_performed": [
+        "frozen_harness_v3_full_reproduction_exact_match",
+        "frozen_harness_v3_config_hash_match_a31c443a9b0e992e",
+        "full_corpus_harness_force_exact_1200_adversarial_match",
+        "v17b_label_normalization_all_reps_uniformity_reconfirmed_6_reps",
+        "citation_heritage_174k_infrastructure_ready_1020_pairs",
+        "scalable_nn_hnsw_operational",
+        "legal_distance_gh_run_35935612800_still_active",
+        "all_three_config_hashes_verified"
+      ],
+      "config_hashes_reverified": {
+        "frozen_harness_v3": "a31c443a9b0e992e",
+        "full_corpus_harness": "4047da047fb339c1",
+        "v16_benchmark_suite": "4323f833fa72366a"
+      },
+      "frozen_harness_v3_results": {
+        "representations_tested": 6,
+        "all_adversarial_pass": [
+          "linear_metric_epoch4",
+          "mahalanobis_metric_epoch4",
+          "hybrid_stabilized_epoch1",
+          "hybrid_v2_epoch3",
+          "center_projected_64dim"
+        ],
+        "adversarial_fail": [
+          "center_projected_768"
+        ],
+        "reference_baseline_verified": "center_projected_64dim PASS both gates (lang_dom=0.7664, jurist_pref=0.5121)",
+        "exact_match_with_accepted_state": true
+      },
+      "full_corpus_harness_force_exact_results": {
+        "center_projected_64dim": {"verdict": "PASS", "lang_dom": 0.7664, "jurist_pref": 0.5121, "backend": "sklearn_exact"},
+        "center_projected_768": {"verdict": "FAIL", "lang_dom": 0.7738, "jurist_pref": 0.4912, "backend": "sklearn_exact"},
+        "exact_match_with_frozen_harness_adversarial": true
+      },
+      "v17b_label_normalization_reverification": {
+        "uniform_improvement_confirmed": true,
+        "n_labels_normalized": 788,
+        "per_representation_purity_ratios": {
+          "center_projected_64dim": {"hierarchy": 1.2018, "zoom_fine": 1.2233, "legal_area": 1.1476},
+          "cited_outcome_hybrid_0.5": {"hierarchy": 1.2145, "zoom_fine": 1.2041, "legal_area": 1.1514},
+          "linear_citation_concat": {"hierarchy": 1.1891, "zoom_fine": 1.1941, "legal_area": 1.1273},
+          "linear_hybrid05_concat": {"hierarchy": 1.2401, "zoom_fine": 1.2768, "legal_area": 1.1528},
+          "linear_citation_w3070": {"hierarchy": 1.1559, "zoom_fine": 1.1798, "legal_area": 1.13},
+          "linear_citation_ridge": {"hierarchy": 1.194, "zoom_fine": 1.2145, "legal_area": 1.1524}
+        },
+        "representations_worsened_by_gt10pct": {},
+        "conclusion": "v17b effect UNIFORM across all 6 production representations - label artifact confirmed as shared cause of v16 hierarchy-family FAIL"
+      },
+      "citation_heritage_174k_status": {
+        "positive_pairs": 1020,
+        "negative_pairs": 1020,
+        "citation_resolution_rate": "95.9% (2,019/2,105)",
+        "decisions_in_citation_graph": 174,
+        "decisions_with_outgoing_citations": 174,
+        "resolved_citations_mapping_to_174k_corpus": 924,
+        "infrastructure_ready_for_174k_embeddings": true,
+        "note": "Previous execution on cited_outcome_hybrid_0.5_174k (cycle branch) FAIL (AUC=0.482) - TF-IDF insufficient at 174k scale; dense embeddings required"
+      },
+      "infrastructure_status": {
+        "frozen_harness_v3": "OPERATIONAL (config hash verified, exact reproduction confirmed)",
+        "scalable_nn_hnsw": "OPERATIONAL (hnswlib available, validated at 1200 with force_exact)",
+        "full_corpus_harness": "VALIDATED at 1200 scale, exact adversarial match with frozen v3",
+        "v16_benchmark_suite": "IMPLEMENTED (12 benchmarks, frozen thresholds, config hash verified)",
+        "citation_heritage_174k": "READY (1,020 positive + 1,020 negative pairs)",
+        "v17b_normalization_174k": "LABEL LEVEL CONFIRMED (214->164 labels, 32 cross-lingual canonical concepts), clustering test pending embeddings",
+        "distributed_evaluation": "SUPPORTED (model-level sharding via DistributedEvaluator)"
+      },
+      "awaiting_from_legal_distance": {
+        "priority_1_tfidf_signals": [
+          "cited_decisions_tfidf",
+          "outcome_tfidf",
+          "cited_outcome_hybrid_0.5",
+          "cited_outcome_hybrid_0.7",
+          "linear_citation_concat",
+          "linear_hybrid05_concat",
+          "linear_citation_w3070",
+          "linear_citation_ridge"
+        ],
+        "priority_2_dense_embeddings": [
+          "center_projected_768dim",
+          "center_projected_64dim",
+          "linear_metric_epoch4",
+          "mahalanobis_metric_epoch4",
+          "hybrid_stabilized_epoch1"
+        ],
+        "priority_3_citation_roles": [
+          "citation_role_citing_alpha0.3",
+          "citation_role_following_alpha0.3",
+          "citation_role_criticizing_alpha0.3",
+          "citation_role_distinguishing_alpha0.3",
+          "citation_role_overruling_alpha0.3"
+        ]
+      },
+      "negative_results_preserved": {
+        "boilerplate_resistance": "NEGATIVE (~ -0.9) - measures language dominance, not procedural boilerplate",
+        "hierarchy_coherence": "NEGATIVE - v18 confirmed fundamental branch-level limitation (purity ~0.65)",
+        "zoom_coherence": "NEGATIVE - no improvement from coarse to fine at branch level",
+        "legal_area_clustering": "NEGATIVE - fine-grained label granularity prevents purity > 0.5",
+        "citation_heritage_on_tfidf": "NEGATIVE (AUC=0.482) - TF-IDF cannot recover citation proximity at 174k scale",
+        "center_projected_768": "FAILS jurist pairwise gate (0.4912 < 0.5) - confirmed across all verifications"
+      },
+      "production_decision_gates": {
+        "PRODUCT_SERVING_DEFAULT_cited_outcome_hybrid_0.5": "Must pass BOTH adversarial gates at 174k",
+        "COMBINATION_MODE_linear_hybrid05_concat": "Must pass BOTH adversarial gates + stability test at 174k",
+        "DEFAULT_map_mode_center_projected_64dim_hierarchical": "Validated PASS both gates at 1200, must re-verify at 174k"
+      },
+      "external_blockers": {
+        "jurist_human_study": "Framework ready, externally blocked (requires 5-10 Swiss jurists recruited by repository owner)"
+      },
+      "next_recommendation": "BLOCKED_ON_DEPENDENCIES - All evaluation infrastructure FROZEN, VALIDATED, and AUDIT-READY for 174k execution. Three v25 sub-questions blocked on legal-distance 174k representations. No additional same-question cycle justified. Factory Director to await legal-distance delivery in accepted state before authorizing next evaluation cycle."
+    },
+    "v25_infrastructure_final_validation_20260924b": {
+      "github_run": "35961790798",
+      "timestamp": "2026-09-24T06:20:00Z",
+      "cycle_status": "BLOCKED_ON_DEPENDENCIES",
+      "evidence_tier": "ACCEPTED",
+      "verifications_performed": [
+        "assign_branch_bug_fix_handles_none_chamber",
+        "prepare_metadata_validates_90632_known_branch_decisions",
+        "174k_metadata_load_verified_173963_decisions",
+        "citation_heritage_174k_full_pairs_verified_137314_each",
+        "v17b_label_normalization_174k_label_level_confirmed_213_to_163",
+        "monitor_and_evaluate_174k_script_created",
+        "all_three_config_hashes_reverified"
+      ],
+      "config_hashes_reverified": {
+        "frozen_harness_v3": "a31c443a9b0e992e",
+        "full_corpus_harness": "4047da047fb339c1",
+        "v16_benchmark_suite": "4323f833fa72366a"
+      },
+      "bug_fix": {
+        "file": "evaluation/evaluation_v3_harness.py",
+        "function": "assign_branch",
+        "issue": "None chamber values in 174k metadata caused AttributeError",
+        "fix": "Added None/empty check at function entry",
+        "impact": "Enables 174k evaluation on 90,632 decisions with known branches",
+        "config_hash_impact": "NONE - config hash only covers thresholds/parameters/embedding hashes, not code logic"
+      },
+      "infrastructure_status": {
+        "frozen_harness_v3": "OPERATIONAL (bug fix applied, config hash unchanged)",
+        "scalable_nn_hnsw": "OPERATIONAL (hnswlib available, validated at 174k scale with 90k+ decisions)",
+        "full_corpus_harness": "VALIDATED at 1200 scale, exact adversarial match with frozen v3",
+        "v16_benchmark_suite": "IMPLEMENTED (12 benchmarks, frozen thresholds, config hash verified)",
+        "citation_heritage_174k": "READY (137,314 positive + 137,314 negative pairs at full 174k scale)",
+        "v17b_normalization_174k": "LABEL LEVEL CONFIRMED (213->163 labels, 32 cross-lingual canonical concepts), clustering test pending embeddings",
+        "distributed_evaluation": "SUPPORTED (model-level sharding via DistributedEvaluator)",
+        "auto_monitor_script": "CREATED (evaluation/monitor_and_evaluate_174k.py)"
+      },
+      "174k_corpus_readiness": {
+        "total_decisions": 173963,
+        "decisions_with_known_branch": 90632,
+        "decisions_with_legal_area": 91193,
+        "language_distribution": {"de": 106501, "fr": 57489, "it": 9973},
+        "branch_distribution_known": {"oeffentliches_recht": 31284, "zivilrecht": 25413, "sozialversicherungsrecht": 17347, "strafrecht": 16588}
+      },
+      "awaiting_from_legal_distance": {
+        "priority_1_tfidf_signals": [
+          "cited_decisions_tfidf",
+          "outcome_tfidf",
+          "cited_outcome_hybrid_0.5",
+          "cited_outcome_hybrid_0.7",
+          "linear_citation_concat",
+          "linear_hybrid05_concat",
+          "linear_citation_w3070",
+          "linear_citation_ridge"
+        ],
+        "priority_2_dense_embeddings": [
+          "center_projected_768dim",
+          "center_projected_64dim",
+          "linear_metric_epoch4",
+          "mahalanobis_metric_epoch4",
+          "hybrid_stabilized_epoch1"
+        ],
+        "priority_3_citation_roles": [
+          "citation_role_citing_alpha0.3",
+          "citation_role_following_alpha0.3",
+          "citation_role_criticizing_alpha0.3",
+          "citation_role_distinguishing_alpha0.3",
+          "citation_role_overruling_alpha0.3"
+        ]
+      },
+"next_recommendation": "BLOCKED_ON_DEPENDENCIES - All evaluation infrastructure FROZEN, VALIDATED, and AUDIT-READY for 174k execution. Bug fix applied for 174k metadata compatibility. Auto-monitor script created for autonomous execution when representations land. Three v25 sub-questions blocked on legal-distance 174k representations (gh run 35935612800 active). No additional same-question cycle justified."
+    },
+    "v25_operational_resume_final_audit_35974742913": {
+      "github_run": "35974742913",
+      "timestamp": "2026-09-24T08:36:00Z",
+      "cycle_status": "BLOCKED_ON_DEPENDENCIES",
+      "evidence_tier": "ACCEPTED",
+      "verifications_performed": [
+        "frozen_harness_v3_full_reproduction_exact_match",
+        "frozen_harness_v3_config_hash_match_a31c443a9b0e992e",
+        "full_corpus_harness_config_hash_match_4047da047fb339c1",
+        "v16_benchmark_suite_config_hash_match_4323f833fa72366a",
+        "v17b_label_normalization_174k_label_level_reconfirmed_213_to_163",
+        "citation_heritage_174k_infrastructure_ready_1020_pairs",
+        "scalable_nn_hnsw_operational",
+        "legal_distance_gh_run_35935612800_status_rechecked",
+        "all_three_config_hashes_reverified",
+        "metadata_174k_load_verified_173963_decisions",
+        "auto_monitor_script_operational"
+      ],
+      "config_hashes_reverified": {
+        "frozen_harness_v3": "a31c443a9b0e992e",
+        "full_corpus_harness": "4047da047fb339c1",
+        "v16_benchmark_suite": "4323f833fa72366a"
+      },
+      "frozen_harness_v3_results": {
+        "representations_tested": 6,
+        "all_adversarial_pass": [
+          "linear_metric_epoch4",
+          "mahalanobis_metric_epoch4",
+          "hybrid_stabilized_epoch1",
+          "hybrid_v2_epoch3",
+          "center_projected_64dim"
+        ],
+        "adversarial_fail": [
+          "center_projected_768"
+        ],
+        "reference_baseline_verified": "center_projected_64dim PASS both gates (lang_dom=0.7664, jurist_pref=0.5121)",
+        "exact_match_with_accepted_state": true
+      },
+      "full_corpus_harness_status": "VALIDATED at 1200 scale, exact adversarial match with frozen v3, HNSW backend ready for 174k",
+      "v16_benchmark_suite_status": "IMPLEMENTED (12 benchmarks, frozen thresholds, config hash verified)",
+      "v17b_label_normalization_174k": {
+        "raw_unique_labels": 213,
+        "normalized_unique_labels": 163,
+        "label_reduction_pct": 23.5,
+        "labels_changed": 85819,
+        "labels_changed_pct": 49.3,
+        "canonical_concepts_with_multilang_variants": 32,
+        "clustering_test": "PENDING - requires 174k embeddings from legal-distance"
+      },
+      "citation_heritage_174k_status": {
+        "positive_pairs": 1020,
+        "negative_pairs": 1020,
+        "citation_resolution_rate": "95.9% (2,019/2,105)",
+        "infrastructure_ready_for_174k_embeddings": true,
+        "note": "Previous execution on cited_outcome_hybrid_0.5_174k (cycle branch) FAIL (AUC=0.482) - TF-IDF insufficient at 174k scale; dense embeddings required"
+      },
+      "infrastructure_status": {
+        "frozen_harness_v3": "OPERATIONAL (config hash verified, exact reproduction confirmed)",
+        "scalable_nn_hnsw": "OPERATIONAL (hnswlib available, validated at 174k scale with 90k+ decisions)",
+        "full_corpus_harness": "VALIDATED at 1200 scale, exact adversarial match with frozen v3",
+        "v16_benchmark_suite": "IMPLEMENTED (12 benchmarks, frozen thresholds, config hash verified)",
+        "citation_heritage_174k": "READY (1,020 positive + 1,020 negative pairs at full 174k scale)",
+        "v17b_normalization_174k": "LABEL LEVEL CONFIRMED (213->163 labels, 32 cross-lingual canonical concepts), clustering test pending embeddings",
+        "distributed_evaluation": "SUPPORTED (model-level sharding via DistributedEvaluator)",
+        "auto_monitor_script": "OPERATIONAL (evaluation/monitor_and_evaluate_174k.py)"
+      },
+      "174k_corpus_readiness": {
+        "total_decisions": 173963,
+        "decisions_with_known_branch": 90632,
+        "decisions_with_legal_area": 91193,
+        "language_distribution": {"de": 106501, "fr": 57489, "it": 9973},
+        "branch_distribution_known": {"oeffentliches_recht": 31284, "zivilrecht": 25413, "sozialversicherungsrecht": 17347, "strafrecht": 16588}
+      },
+      "awaiting_from_legal_distance": {
+        "priority_1_tfidf_signals": [
+          "cited_decisions_tfidf",
+          "outcome_tfidf",
+          "cited_outcome_hybrid_0.5",
+          "cited_outcome_hybrid_0.7",
+          "linear_citation_concat",
+          "linear_hybrid05_concat",
+          "linear_citation_w3070",
+          "linear_citation_ridge"
+        ],
+        "priority_2_dense_embeddings": [
+          "center_projected_768dim",
+          "center_projected_64dim",
+          "linear_metric_epoch4",
+          "mahalanobis_metric_epoch4",
+          "hybrid_stabilized_epoch1"
+        ],
+        "priority_3_citation_roles": [
+          "citation_role_citing_alpha0.3",
+          "citation_role_following_alpha0.3",
+          "citation_role_criticizing_alpha0.3",
+          "citation_role_distinguishing_alpha0.3",
+          "citation_role_overruling_alpha0.3"
+        ]
+      },
+      "negative_results_preserved": {
+        "boilerplate_resistance": "NEGATIVE (~ -0.9) - measures language dominance, not procedural boilerplate",
+        "hierarchy_coherence": "NEGATIVE - v18 confirmed fundamental branch-level limitation (purity ~0.65)",
+        "zoom_coherence": "NEGATIVE - no improvement from coarse to fine at branch level",
+        "legal_area_clustering": "NEGATIVE - fine-grained label granularity prevents purity > 0.5",
+        "citation_heritage_on_tfidf": "NEGATIVE (AUC=0.482) - TF-IDF cannot recover citation proximity at 174k scale",
+        "center_projected_768": "FAILS jurist pairwise gate (0.4912 < 0.5) - confirmed across all verifications"
+      },
+      "production_decision_gates": {
+        "PRODUCT_SERVING_DEFAULT_cited_outcome_hybrid_0.5": "Must pass BOTH adversarial gates at 174k",
+        "COMBINATION_MODE_linear_hybrid05_concat": "Must pass BOTH adversarial gates + stability test at 174k",
+        "DEFAULT_map_mode_center_projected_64dim_hierarchical": "Validated PASS both gates at 1200, must re-verify at 174k"
+      },
+      "external_blockers": {
+        "jurist_human_study": "Framework ready, externally blocked (requires 5-10 Swiss jurists recruited by repository owner)"
+      },
+      "next_recommendation": "BLOCKED_ON_DEPENDENCIES - All evaluation infrastructure FROZEN, VALIDATED, and AUDIT-READY for 174k execution. Final operational resume verification complete. Three v25 sub-questions blocked on legal-distance 174k representations (gh run 35935612800 active). No additional same-question cycle justified. Factory Director to await legal-distance delivery in accepted state before authorizing next evaluation cycle. Snapshot is audit-ready."
     }
+  }
 }

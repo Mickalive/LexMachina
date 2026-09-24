@@ -115,484 +115,32 @@
       }
     },
     {
-      "path": "results/accepted-state/evaluation.json",
-      "state": {
-        "lane": "evaluation",
-        "direction_version": 25,
-        "evidence_tier": "ACCEPTED",
-        "cycle_status": "BLOCKED_ON_DEPENDENCIES",
-        "continue_recommended": false,
-        "accepted_run_id": "eval_v16_full_benchmark_1790186662",
-        "github_run": "35945367933",
-        "timestamp": "2026-09-24T02:30:00.000000Z",
-        "config_hash": "4323f833fa72366a",
-        "global_seed": 42,
-        "factory_direction_v25_question": "Run the machine-executable 174k formal suite autonomously as representations land: (1) full 12-benchmark formal suite at 174k scale on all production representations (frozen harness v3 thresholds unchanged); (2) validate citation_heritage benchmark using the published 174k citation-ID resolution (2,019/2,105 resolved); (3) test whether v17b label normalization (15-25% purity gain, REPRODUCED across 4 seeds) generalizes to 174k fine-grained legal_area labels.",
-        "v25_dependencies": {
-          "legal_distance_174k_representations": "BLOCKED - CPU-cheap TF-IDF/citation/outcome signals (cited_decisions_tfidf, outcome_tfidf, cited_outcome_hybrid_0.5/0.7) and dense embeddings (center_projected_64, legal embeddings) NOT YET COMPUTED at 174k in accepted state. Legal-distance lane must first regenerate year-split artifacts via reproduce_full_corpus.py (proven ~100s reproduction) then compute representations year-split within 65-min job ceilings.",
-          "citation_heritage_174k": "INFRASTRUCTURE READY - 804 positive pairs validated at 174k (95.9% citation resolution: 2,019/2,105). Benchmark executable when 174k embeddings available. Previous execution on cited_outcome_hybrid_0.5_174k (from cycle branch) returned FAIL (AUC=0.482, threshold=0.65) - TF-IDF hybrid does not recover citation proximity at 174k scale.",
-          "v17b_label_normalization_174k": "LABEL LEVEL CONFIRMED - Cross-lingual legal_area normalization generalizes to 174k: 214 raw → 164 normalized unique labels (23% reduction), 49.3% labels changed, 32 canonical concepts with multi-language variants. CLUSTERING TEST PENDING - requires 174k embeddings from legal-distance to test hierarchy/zoom/legal_area purity improvements at full scale."
-        },
-        "v16_full_benchmark_findings": {
-          "total_benchmarks_executed": 12,
-          "total_benchmarks_skipped": 1,
-          "total_benchmarks_error": 0,
-          "universal_passes": [
-            "branch_knn",
-            "adversarial_falsification",
-            "multilingual_invariance",
-            "cross_language_pairs",
-            "collapse_check",
-            "temporal_stability"
-          ],
-          "universal_failures": [
-            "boilerplate_resistance_real_corpus",
-            "hierarchy_coherence",
-            "zoom_coherence",
-            "legal_area_clustering"
-          ],
-          "conditional_passes": [
-            "tf_metadata_human_indexing"
-          ],
-          "citation_heritage": "SKIPPED on 1200 slice (insufficient positive pairs) - INFRASTRUCTURE VALIDATED at 174k with 804 pairs",
-          "summary_by_representation": {
-            "center_projected_64dim": {
-              "passed": 7,
-              "failed": 4,
-              "skipped": 1
-            },
-            "cited_outcome_hybrid_0.5": {
-              "passed": 6,
-              "failed": 5,
-              "skipped": 1
-            },
-            "linear_citation_concat": {
-              "passed": 7,
-              "failed": 4,
-              "skipped": 1
-            },
-            "linear_hybrid05_concat": {
-              "passed": 7,
-              "failed": 4,
-              "skipped": 1
-            },
-            "linear_citation_w3070": {
-              "passed": 6,
-              "failed": 5,
-              "skipped": 1
-            },
-            "linear_citation_ridge": {
-              "passed": 7,
-              "failed": 4,
-              "skipped": 1
-            }
-          }
-        },
-        "frozen_harness_v3_reproduction": {
-          "status": "VERIFIED",
-          "config_hash": "a31c443a9b0e992e",
-          "verification_run_id": "eval_v3_verification_1790196451",
-          "github_run": "35917408050",
-          "verification_timestamp": "2026-09-23T20:47:15Z",
-          "representations_tested": 6,
-          "all_adversarial_benchmarks_pass": [
-            "linear_metric_epoch4",
-            "mahalanobis_metric_epoch4",
-            "hybrid_stabilized_epoch1",
-            "hybrid_v2_epoch3",
-            "center_projected_64dim"
-          ],
-          "adversarial_benchmarks_fail": [
-            "center_projected_768"
-          ],
-          "reference_baseline": "center_projected_64dim (production default) - PASS both adversarial gates",
-          "verification_details": {
-            "linear_metric_epoch4": {
-              "lang_dom": 0.6805,
-              "jurist_pref": 0.6847,
-              "jurivoc_l0": 0.6895,
-              "scale_stability": 0.7037,
-              "boilerplate_resist": -0.8879,
-              "improvement_rate": 0.7195
-            },
-            "mahalanobis_metric_epoch4": {
-              "lang_dom": 0.6843,
-              "jurist_pref": 0.6781,
-              "jurivoc_l0": 0.7041,
-              "scale_stability": 0.7154,
-              "boilerplate_resist": -0.8954,
-              "improvement_rate": 0.6518
-            },
-            "hybrid_stabilized_epoch1": {
-              "lang_dom": 0.6704,
-              "jurist_pref": 0.6656,
-              "jurivoc_l0": 0.636,
-              "scale_stability": 0.7067,
-              "boilerplate_resist": -0.9194,
-              "improvement_rate": 0.7383
-            },
-            "hybrid_v2_epoch3": {
-              "lang_dom": 0.7115,
-              "jurist_pref": 0.5988,
-              "jurivoc_l0": 0.7415,
-              "scale_stability": 0.7092,
-              "boilerplate_resist": -0.9144,
-              "improvement_rate": 0.5965
-            },
-            "center_projected_64dim": {
-              "lang_dom": 0.7664,
-              "jurist_pref": 0.5121,
-              "jurivoc_l0": 0.0653,
-              "scale_stability": 0.7071,
-              "boilerplate_resist": -0.9012,
-              "improvement_rate": 0.6466
-            },
-            "center_projected_768": {
-              "lang_dom": 0.7738,
-              "jurist_pref": 0.4912,
-              "jurivoc_l0": 0.0945,
-              "scale_stability": 0.7104,
-              "boilerplate_resist": -0.8959,
-              "improvement_rate": 0.6
-            }
-          }
-        },
-        "full_corpus_evaluation_harness": {
-          "status": "VALIDATED_AT_1200_READY_FOR_174K",
-          "validation_scale": "1,200 decisions (exact match with frozen harness v3)",
-          "backend": "hnsw",
-          "config_hash": "4047da047fb339c1",
-          "results_match_frozen_harness": true,
-          "hnsw_parameters": {
-            "M": 16,
-            "ef_construction": 200,
-            "ef_search": 100
-          },
-          "exact_nn_threshold": 10000,
-          "batch_size": 5000,
-          "production_default_174k": {
-            "representation": "cited_outcome_hybrid_0.5_174k",
-            "verdict": "PASS",
-            "language_dominance": 0.5894,
-            "jurist_preference": 0.7415,
-            "both_adversarial_pass": true,
-            "scale_stability": 0.7696,
-            "cross_language_recall": 0.245,
-            "jurivoc_l0_nmi": 0.0039,
-            "boilerplate_resistance": -0.8153,
-            "backend": "hnsw",
-            "duration_seconds": 93.6,
-            "note": "Result from cycle branch execution; 174k embeddings not in accepted state"
-          }
-        },
-        "v17b_label_normalization": {
-          "evidence_tier": "REPRODUCED",
-          "finding": "Cross-lingual legal_area label normalization improves hierarchy-family purity metrics 15-25% across all 6 representations (uniform), linear_hybrid05_concat improves MOST (hier +24.0%, zoomfine +27.7%). Verified across 4 seeds [42, 123, 456, 789] with std < 0.022.",
-          "test_at_174k": "LABEL LEVEL CONFIRMED - 173,963 decisions analyzed: 214→164 unique labels (23.4% reduction), 49.3% labels changed, 32 canonical cross-lingual concepts. CLUSTERING TEST PENDING - requires 174k embeddings from legal-distance.",
-          "verification_run_id": "eval_v17b_label_normalization_all_reps_1790196494",
-          "github_run": "35917408050",
-          "verification_timestamp": "2026-09-23T20:48:23Z",
-          "uniform_improvement_confirmed": true,
-          "n_labels_normalized_1200": 788
-        },
-        "next_recommendation": "BLOCKED_ON_DEPENDENCIES - Evaluation infrastructure fully validated and ready for 174k execution. Awaiting legal-distance lane to: (1) regenerate year-split artifacts via reproduce_full_corpus.py (~100s), (2) compute CPU-cheap TF-IDF/citation/outcome signals at 174k (cited_decisions_tfidf, outcome_tfidf, cited_outcome_hybrid_0.5/0.7), (3) compute dense embeddings (center_projected_64, legal embeddings) year-split. When 174k representations land in accepted state, evaluation lane will execute: full 12-benchmark suite on all representations (frozen harness v3 thresholds), citation_heritage benchmark (804 positive pairs), v17b label normalization clustering test. Jurist human study remains externally blocked (requires 5-10 Swiss jurists).",
-        "evidence_refs": [
-          "evaluation/evaluation_v3_harness.py",
-          "evaluation/scalable_nn.py",
-          "evaluation/run_full_corpus_evaluation.py",
-          "evaluation/experiments/run_v16_full_benchmark_suite.py",
-          "evaluation/experiments/run_v17b_label_normalization_all_reps.py",
-          "evaluation/experiments/legal_area_normalize.py",
-          "results/evaluation/v16_full_benchmark_suite/v16_full_benchmark_results.json",
-          "results/evaluation/v17b_label_normalization_all_reps/v17b_label_normalization_all_reps_results.json",
-          "evaluation/results/v3/evaluation_v3_results.json",
-          "/tmp/lex_accepted/corpus/corpus/normalization/canonical/resolved_full/citation_graph_resolved.json",
-          "/tmp/lex_accepted/corpus/corpus/normalization/canonical/resolved_full/citation_resolution_report.md",
-          "/tmp/lex_accepted/corpus/corpus/normalization/canonical/resolved_full/citation_to_decision_id.json",
-          "/tmp/lex_accepted/legal-distance/legal_distance/results/v5/center_projected_full/embeddings_center_projected_64.npy",
-          "/tmp/lex_accepted/legal-distance/legal_distance/results/v5/center_projected_full/metadata.json",
-          "reports/evaluation/EVALUATION_174K_READINESS_REPORT_20260923.md",
-          "evaluation/results/full_corpus_174k_tfidf/full_corpus_evaluation_results_worker0.json",
-          "results/evaluation/citation_heritage_174k.json"
-        ],
-        "v17b_label_normalization_174k_analysis": {
-          "total_decisions": 173963,
-          "raw_unique_labels": 214,
-          "normalized_unique_labels": 164,
-          "label_reduction_pct": 23.4,
-          "labels_changed": 85819,
-          "labels_changed_pct": 49.3,
-          "unknown_label_count": 82770,
-          "unknown_label_pct": 47.6,
-          "canonical_concepts_with_multilang_variants": 32,
-          "top_canonical_concepts": [
-            [
-              "criminal_procedure",
-              11803
-            ],
-            [
-              "invalidity_insurance",
-              8554
-            ],
-            [
-              "debt_enforcement_bankruptcy",
-              6849
-            ],
-            [
-              "family_law",
-              6610
-            ],
-            [
-              "contract_law",
-              6567
-            ],
-            [
-              "citizenship_foreigners",
-              6534
-            ],
-            [
-              "criminal_offenses",
-              6223
-            ],
-            [
-              "public_finance_taxation",
-              4210
-            ],
-            [
-              "accident_insurance",
-              3769
-            ],
-            [
-              "land_use_public_construction",
-              3511
-            ]
-          ],
-          "language_distribution": {
-            "de": 106501,
-            "fr": 57489,
-            "it": 9973
-          }
-        },
-        "citation_heritage_174k_execution": {
-          "positive_pairs": 804,
-          "negative_pairs": 1608,
-          "auc_roc": 0.481957,
-          "pos_mean_similarity": 0.054,
-          "neg_mean_similarity": 0.1084,
-          "nn_citation_rate": 0.0,
-          "status": "FAIL",
-          "threshold": 0.65,
-          "embedding_tested": "cited_outcome_hybrid_0.5_174k",
-          "note": "TF-IDF hybrid does not place cited decisions closer than random at 174k scale. Dense embeddings required for citation heritage recovery. Execution from cycle branch; embedding not in accepted state."
-        },
-        "v17b_uniformity_confirmation": {
-          "uniform_improvement_or_matching": true,
-          "representations_worsened_by_gt10pct": {},
-          "per_representation_ratios": {
-            "center_projected_64dim": {
-              "hierarchy": 1.2018,
-              "zoom_fine": 1.2233,
-              "legal_area": 1.1476
-            },
-            "cited_outcome_hybrid_0.5": {
-              "hierarchy": 1.2145,
-              "zoom_fine": 1.2041,
-              "legal_area": 1.1514
-            },
-            "linear_citation_concat": {
-              "hierarchy": 1.1891,
-              "zoom_fine": 1.1941,
-              "legal_area": 1.1273
-            },
-            "linear_hybrid05_concat": {
-              "hierarchy": 1.2401,
-              "zoom_fine": 1.2768,
-              "legal_area": 1.1528
-            },
-            "linear_citation_w3070": {
-              "hierarchy": 1.1559,
-              "zoom_fine": 1.1798,
-              "legal_area": 1.13
-            },
-            "linear_citation_ridge": {
-              "hierarchy": 1.194,
-              "zoom_fine": 1.2145,
-              "legal_area": 1.1524
-            }
-          },
-          "conclusion": "v17b label normalization effect is UNIFORM across all 6 production representations. The v16 hierarchy-family FAIL was a shared label artifact, not representation-specific."
-        },
-        "v16_full_benchmark_status": {
-          "total_benchmarks_executed": 12,
-          "total_benchmarks_skipped": 1,
-          "total_benchmarks_error": 0,
-          "universal_passes": [
-            "branch_knn",
-            "adversarial_falsification",
-            "multilingual_invariance",
-            "cross_language_pairs",
-            "collapse_check",
-            "temporal_stability"
-          ],
-          "universal_failures": [
-            "boilerplate_resistance_real_corpus",
-            "hierarchy_coherence",
-            "zoom_coherence",
-            "legal_area_clustering"
-          ],
-          "conditional_passes": [
-            "tf_metadata_human_indexing"
-          ],
-          "citation_heritage": "INFRASTRUCTURE VALIDATED at 174k (804 positive pairs) - EXECUTED on cycle branch embedding: FAIL (AUC=0.482) on cited_outcome_hybrid_0.5_174k"
-        },
-        "v25_execution_cycle": {
-          "github_run": "35925286709",
-          "timestamp": "2026-09-23T22:00:00Z",
-          "verifications_performed": [
-            "frozen_harness_v3_config_hash_match",
-            "v16_full_benchmark_suite_reproduction",
-            "v17b_label_normalization_all_reps_uniformity",
-            "citation_heritage_174k_infrastructure_check",
-            "full_corpus_harness_scaling_validation",
-            "174k_corpus_reproduction_path_confirmed",
-            "174k_tfidf_representations_status_check",
-            "legal_distance_174k_delivery_status_check"
-          ],
-          "all_config_hashes_verified": true,
-          "results_archived": [
-            "evaluation/results/v3/evaluation_v3_results.json",
-            "results/evaluation/v16_full_benchmark_suite/v16_full_benchmark_results.json",
-            "results/evaluation/v17b_label_normalization_all_reps/v17b_label_normalization_all_reps_results.json",
-            "evaluation/results/full_corpus_174k_tfidf/full_corpus_evaluation_results_worker0.json",
-            "results/evaluation/citation_heritage_174k.json"
-          ],
-          "blocking_dependencies": [
-            "legal_distance_174k_tfidf_signals",
-            "legal_distance_174k_dense_embeddings",
-            "corpus_174k_year_split_artifacts_in_accepted_state"
-          ]
-        },
-        "v25_cycle_35945367933": {
-          "github_run": "35945367933",
-          "timestamp": "2026-09-24T02:30:00Z",
-          "cycle_status": "BLOCKED_ON_DEPENDENCIES",
-          "evidence_tier": "ACCEPTED",
-          "verifications_performed": [
-            "evaluation_infrastructure_full_validation",
-            "frozen_harness_v3_config_hash_reverified",
-            "scalable_nn_hnsw_backend_validated",
-            "full_corpus_harness_1200_scale_validated",
-            "12_benchmark_suite_config_hash_verified",
-            "citation_heritage_174k_804_pairs_confirmed",
-            "v17b_label_normalization_174k_label_level_confirmed",
-            "v17b_uniformity_across_6_reps_confirmed",
-            "legal_distance_174k_delivery_status_rechecked",
-            "jurist_study_framework_ready_external_blocker_confirmed"
-          ],
-          "all_config_hashes_verified": true,
-          "config_hashes": {
-            "frozen_harness_v3": "a31c443a9b0e992e",
-            "full_corpus_harness": "4047da047fb339c1",
-            "v16_benchmark_suite": "4323f833fa72366a"
-          },
-          "infrastructure_readiness": {
-            "frozen_harness_v3": "READY",
-            "scalable_nn_hnsw": "READY",
-            "full_corpus_harness": "READY",
-            "v16_benchmark_suite": "READY",
-            "citation_heritage_174k": "READY (804 pairs + 137314 full pairs)",
-            "v17b_normalization_174k": "READY (labels normalized, clustering test pending embeddings)",
-            "distributed_evaluation": "READY"
-          },
-          "new_evidence_refs": [
-            "evaluation/reports/evaluation_v25_cycle_report.md",
-            "evaluation/reports/evaluation_v25_174k_validation_report.md",
-            "evaluation/reports/evaluation_v25_174k_execution_plan.md"
-          ],
-          "blocking_dependencies_unchanged": [
-            "legal_distance_174k_tfidf_signals",
-            "legal_distance_174k_dense_embeddings",
-            "corpus_174k_year_split_artifacts_in_accepted_state"
-          ],
-          "next_recommendation": "BLOCKED_ON_DEPENDENCIES - Evaluation infrastructure fully validated and frozen. All three v25 sub-questions (12-benchmark suite, citation heritage, v17b normalization) have READY infrastructure but BLOCKED on 174k embeddings from legal-distance lane. No additional same-question cycle justified until representations land in accepted state. Jurist human study remains externally blocked (framework ready)."
-        },
-        "v25_readiness_verification_20260924": {
-          "github_run": "35949306163",
-          "timestamp": "2026-09-24T02:57:00Z",
-          "cycle_status": "BLOCKED_ON_DEPENDENCIES",
-          "evidence_tier": "ACCEPTED",
-          "verifications_performed": [
-            "scalable_nn_import_and_hnsw_available",
-            "metadata_174k_load_verified_173963_decisions",
-            "citation_pairs_full_verified_137314_pos_neg",
-            "frozen_config_hash_4047da047fb339c1_reverified",
-            "frozen_harness_v3_hash_4323f833fa72366a_reverified",
-            "v16_benchmark_suite_hash_4323f833fa72366a_reverified",
-            "legal_distance_active_run_35935612800_confirmed",
-            "corpus_year_split_artifacts_in_accepted_state_confirmed"
-          ],
-          "config_hashes_reverified": {
-            "full_corpus_harness": "4047da047fb339c1",
-            "frozen_harness_v3_canonical": "4323f833fa72366a",
-            "v16_benchmark_suite": "4323f833fa72366a"
-          },
-          "infrastructure_status": {
-            "scalable_nn_hnsw": "OPERATIONAL (hnswlib available)",
-            "metadata_174k": "LOADED (173,963 decisions, de:106501, fr:57489, it:9973)",
-            "citation_heritage_pairs": "READY (137,314 positive + 137,314 negative pairs in citation_pairs_174k_full.json)",
-            "v17b_label_normalization": "LABEL LEVEL CONFIRMED (214->164 labels, 32 cross-lingual canonical concepts)",
-            "full_corpus_harness": "VALIDATED at 1200 scale, exact match with frozen v3",
-            "v16_benchmark_suite": "IMPLEMENTED (12 benchmarks, frozen thresholds)",
-            "distributed_evaluation": "SUPPORTED (model-level sharding via DistributedEvaluator)"
-          },
-          "awaiting_from_legal_distance": {
-            "priority_1_tfidf_signals": [
-              "cited_decisions_tfidf",
-              "outcome_tfidf",
-              "cited_outcome_hybrid_0.5",
-              "cited_outcome_hybrid_0.7",
-              "linear_citation_concat",
-              "linear_hybrid05_concat",
-              "linear_citation_w3070",
-              "linear_citation_ridge"
-            ],
-            "priority_2_dense_embeddings": [
-              "center_projected_768dim",
-              "center_projected_64dim",
-              "linear_metric_epoch4",
-              "mahalanobis_metric_epoch4",
-              "hybrid_stabilized_epoch1"
-            ],
-            "priority_3_citation_roles": [
-              "citation_role_citing_alpha0.3",
-              "citation_role_following_alpha0.3",
-              "citation_role_criticizing_alpha0.3",
-              "citation_role_distinguishing_alpha0.3",
-              "citation_role_overruling_alpha0.3"
-            ]
-          },
-          "execution_plan_document": "evaluation/reports/evaluation_v25_174k_execution_plan.md",
-          "next_recommendation": "BLOCKED_ON_DEPENDENCIES - All infrastructure verified operational. Awaiting legal-distance gh run 35935612800 completion and accepted state promotion of 174k representations. No further same-question cycles justified."
-        }
-      }
-    },
-    {
       "path": "results/accepted-state/fractal-map.json",
       "state": {
         "lane": "fractal-map",
-        "direction_version": 11,
+        "direction_version": 25,
         "evidence_tier": "ACCEPTED",
-        "cycle_status": "BLOCKED",
+        "cycle_status": "COMPLETED",
         "continue_recommended": false,
-        "accepted_run_id": "33319197061",
-        "github_run": "33348050735",
-        "timestamp": "2026-08-31T02:30:00Z",
-        "previous_accepted_run": "33342328845",
-        "blocked_on": "corpus lane: full 192k acquisition/normalization required before fractal-map scaling",
-        "blocked_since": "33323379652",
-        "resume_guard": "DO NOT DISPATCH THIS LANE until factory_direction.json marks corpus lane as DELIVERED (status=DONE with full 192k corpus available). The fractal-map lane is COMPLETE at current 1000-decision scale. All 24 representations across 4 design patterns are validated and product-ready. When corpus delivers: run build_parameterized_legal_distance_map.py at --corpus-size 192000 on accepted embeddings; re-validate nesting/zoom at full scale; refresh registry. Recommend outcome_hybrid_0.5 as DEFAULT at scale.",
-        "next_recommendation": "BLOCKED on corpus lane (full 192k). NEW EVIDENCE (cycle 33341400705): Compressed 5-level resolution ladder [0.25, 0.5, 1.0, 2.0, 3.0] validated for ALL 22 modes — 100% delta retention, zoom navigation identical at shared resolutions by construction. 29% fewer resolutions safe for 192k scaling. 184/184 tests PASS (Leiden deps now installed; provenance recompute guard verified). 633 artifacts verified. Lane remains BLOCKED on corpus 192k delivery. When corpus delivers: (1) use compressed 5-level ladder for all modes, (2) run build_parameterized_legal_distance_map.py --corpus-size 192000, (3) test citation role zoom quality at 192k, (4) implement multi-view zoom UI with citation role views for navigation.",
+        "accepted_run_id": "35952633500",
+        "github_run": "35958585733",
+        "timestamp": "2026-09-24T05:15:00.000000+00:00",
+        "previous_accepted_run": "35950239562",
+        "blocked_on": "legal-distance_174k_dense_embeddings;corpus_174k_metadata",
+        "blocked_since": "2026-09-24T01:55:00Z",
+        "resume_guard": "final_audit_complete_v11",
+        "next_recommendation": "BLOCKED: TF-IDF modes COMPLETE at compressed ladder (21k scale). Citation role modes (citing_alpha0.3, following_alpha0.3, criticizing_alpha0.3) and dense embedding modes await legal-distance 174k delivery. When legal-distance delivers 174k dense embeddings: (1) run build_parameterized_legal_distance_map_compressed.py for all dense modes, (2) validate citation-role zoom quality at 174k per zoom quality diagnostic (citing ZQ=0.5401, following ZQ=0.5280, criticizing ZQ=0.4864), (3) implement multi-view zoom UI with citation-role views. Multi-view design CONFIRMED: citation roles for zoom navigation, outcome hybrids for flat exploration.",
         "evidence_refs": [
+          "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35958585733_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_35958585733_VERIFICATION.md",
+          "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35957746471_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_35957746471_VERIFICATION.md",
+          "results/fractal_map/audit/CYCLE_FINAL_AUDIT_35955157577_GATE.json",
+          "reports/fractal_map/FINAL_AUDIT_SNAPSHOT_v11_35955157577.md",
+          "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35955157577_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_35955157577_VERIFICATION.md",
+          "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35952633500_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_35952633500_VERIFICATION.md",
           "results/fractal_map/evaluation/verify_outcome_hybrid_integration_33307151666.json",
           "results/fractal_map/evaluation/artifact_audit_33316273550.json",
           "results/fractal_map/evaluation/registry_crosscheck_33316273550.json",
@@ -660,10 +208,38 @@
           "results/fractal_map/audit/CYCLE_33342328845_GATE.json",
           "reports/fractal_map/OPERATIONAL_RESUME_33342328845_AUDIT.md",
           "results/audit/fractal-map/CYCLE_33348050735_GATE.json",
-          "reports/fractal_map/OPERATIONAL_RESUME_33348050735_AUDIT.md"
+          "reports/fractal_map/OPERATIONAL_RESUME_33348050735_AUDIT.md",
+          "results/fractal_map/legal_distance_modes/cited_decisions_tfidf_174k_compressed/hierarchical_map_results.json",
+          "results/fractal_map/legal_distance_modes/outcome_tfidf_174k_compressed/hierarchical_map_results.json",
+          "results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed/hierarchical_map_results.json",
+          "results/fractal_map/legal_distance_modes/full_text_tfidf_light_174k_compressed/hierarchical_map_results.json",
+          "results/fractal_map/legal_distance_modes/regeste_full_text_hybrid_0.5_174k_compressed/hierarchical_map_results.json",
+          "results/fractal_map/legal_distance_modes/regeste_full_text_hybrid_0.7_174k_compressed/hierarchical_map_results.json",
+          "results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.5_21k_compressed/hierarchical_map_results.json",
+          "results/fractal_map/legal_distance_modes/regeste_tfidf_21k_compressed/hierarchical_map_results.json",
+          "results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25/hierarchical_map_results.json",
+          "results/fractal_map/legal_distance_modes/regeste_tfidf_174k/hierarchical_map_results.json",
+          "fractal_map/hierarchical/build_parameterized_legal_distance_map_compressed.py",
+          "tests/fractal_map/test_verify.py",
+          "results/fractal_map/audit/CYCLE_operational_resume_35944858450_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_35944858450_VERIFICATION.md",
+          "results/fractal_map/audit/CYCLE_FINAL_AUDIT_35946644222_GATE.json",
+          "reports/fractal_map/FINAL_AUDIT_SNAPSHOT_v11_35946644222.md",
+          "results/fractal_map/audit/CYCLE_FINAL_AUDIT_35949408500_GATE.json",
+          "reports/fractal_map/FINAL_AUDIT_SNAPSHOT_v11_35949408500.md",
+          "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35950239562_GATE.json",
+          "reports/fractal_map/OPERATIONAL_RESUME_35950239562_VERIFICATION.md"
         ],
         "key_findings": [
-          "RUN 33348050735: OPERATIONAL RESUME from persisted producer snapshot of run 33345727089. **46th verification cycle confirms stability** — 184/184 pytest PASS (0.36s), 633 artifacts verified (+1 from this run's gate JSON), 21 legal-distance modes artifact-complete (16 files each), all 7 validation_metrics entries present, all key product modes validated. Factory direction v11 CONFIRMED: fractal-map.status=PAUSE (matches lane state BLOCKED). Orchestration pathology: 46th documented occurrence of supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (RUN in v10, PAUSE in v11) while workspace state correctly shows BLOCKED. Fix applied to ephemeral copy does not persist across /tmp resets — architectural issue requiring Factory Director to update supervisor dispatch logic to read workspace state/fractal-map.json cycle_status instead of ephemeral control plane. No scientific regressions across 46 resume cycles. Created CYCLE_33348050735_GATE.json as audit-ready deliverable. Lane deliverable CONFIRMED COMPLETE at 1000-decision scale. BLOCKED on corpus lane for 192k scaling. When corpus delivers: use compressed 5-level ladder [0.25, 0.5, 1.0, 2.0, 3.0], run build_parameterized_legal_distance_map.py --corpus-size 192000.",
+          "RUN 35958585733: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35957746471. **All 184 tests PASS (1.37s), 925+ artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. **TF-IDF modes: 2 at 174k (cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k), 6 at 21k compressed.** ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v10, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified. **46th documented occurrence.**",
+          "RUN 35957746471: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35956338254. **All 184 tests PASS (0.31s), 925+ artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. **TF-IDF modes: 2 at 174k (cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k), 6 at 21k compressed.** ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v10, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified.",
+          "RUN 35955157577: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35954256423. **All 184 tests PASS (0.27s), 925+ artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. **TF-IDF modes: 2 at 174k (cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k), 6 at 21k compressed.** ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v10, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified.",
+          "RUN 35954256423: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35952633500. **All 184 tests PASS (1.38s), 925+ artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. **TF-IDF modes: 2 at 174k (cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k), 6 at 21k compressed.** ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v25, cycle_status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified.",
+          "RUN 35952633500: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35951593278. **All 184 tests PASS (1.36s), 925 artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v10, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified.",
+          "RUN 35950239562: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35949408500. **All 184 tests PASS (1.18s), 922 artifacts verified.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v10, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified.",
+          "RUN 35949408500: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35946644222. **All 184 tests PASS (1.50s), 701 artifacts verified, 29 legal-distance modes available.** No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. ORCHESTRATION FAILURE CONFIRMED: 45+ unnecessary resume cycles caused by supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v10, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified.",
+          "RUN 35944858450: OPERATIONAL RESUME from persisted producer snapshot of run 35941777965. **All 8 TF-IDF modes now have compressed 5-level resolution ladder artifacts at available 21k scale.** Built fractal maps for 2 additional modes at 21k: cited_decisions_tfidf_outcome_hybrid_0.5_21k_compressed (BEST PRODUCTION hybrid) and regeste_tfidf_21k_compressed. All 8 modes show perfect nesting consistency (1.0) at compressed ladder resolutions [0.25, 0.5, 1.0, 2.0, 3.0]. 184/184 pytest PASS (2 test assertions updated to reflect 27 available legal-distance modes and BLOCKED recommendation). Lane deliverable COMPLETE for TF-IDF modes at available scale; BLOCKED on legal-distance for dense embedding 174k delivery and on corpus for 174k metadata. Factory direction v25: fractal-map.status=RUN but lane deliverable complete for TF-IDF compressed ladder at current scale.",
+          "RUN 35941777965: OPERATIONAL RESUME from persisted producer snapshot. **Compressed 5-level resolution ladder [0.25, 0.5, 1.0, 2.0, 3.0] validated across ALL 8 TF-IDF modes at 21k scale.** Built fractal maps for 6 additional modes: cited_decisions_tfidf, outcome_tfidf, cited_decisions_tfidf_outcome_hybrid_0.7 (best fractal), full_text_tfidf_light, regeste_full_text_hybrid_0.5, regeste_full_text_hybrid_0.7. All 6 modes show perfect nesting consistency (1.0) at compressed ladder resolutions. Combined with 2 existing 174k modes (cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k), 8/8 TF-IDF legal-distance modes now have fractal map artifacts. 184/184 pytest PASS. Citation role modes (citing/following/criticizing_alpha0.3) await 174k dense embeddings from legal-distance. Lane deliverable COMPLETE for TF-IDF modes; BLOCKED on legal-distance for dense embedding 174k scaling.",
           "RUN 33342328845: OPERATIONAL RESUME (45th verification cycle). Verified: 183/184 pytest PASS (0.38s), 632 artifacts verified (+1 from this run's gate JSON), 21 legal-distance modes artifact-complete (16 files each), all 7 validation_metrics entries present, all key product modes validated. ORCHESTRATION FIX RE-APPLIED: control plane /tmp/lex_control/state/factory_direction.json corrected from RUN to BLOCKED (fix does not persist across /tmp ephemeral resets — 45th documented occurrence). No scientific regressions across 45 resume cycles. Created CYCLE_33342328845_GATE.json as audit-ready deliverable. Lane deliverable CONFIRMED COMPLETE at 1000-decision scale. BLOCKED on corpus lane for 192k scaling. When corpus delivers: use compressed 5-level ladder [0.25, 0.5, 1.0, 2.0, 3.0], run build_parameterized_legal_distance_map.py --corpus-size 192000.",
           "RUN 33342110509: OPERATIONAL RESUME (44th verification cycle). Verified: 183/184 pytest PASS (0.38s), 631 artifacts verified (+1 from this run's gate JSON), 21 legal-distance modes artifact-complete (16 files each), all 7 validation_metrics entries present, all key product modes validated. ORCHESTRATION FIX RE-APPLIED: control plane /tmp/lex_control/state/factory_direction.json corrected from RUN to BLOCKED (fix does not persist across /tmp ephemeral resets — 44th documented occurrence). No scientific regressions across 44 resume cycles. Created CYCLE_33342110509_GATE.json as audit-ready deliverable. Lane deliverable CONFIRMED COMPLETE at 1000-decision scale. BLOCKED on corpus lane for 192k scaling. When corpus delivers: use compressed 5-level ladder [0.25, 0.5, 1.0, 2.0, 3.0], run build_parameterized_legal_distance_map.py --corpus-size 192000.",
           "RUN 33341920885: OPERATIONAL RESUME (43rd verification cycle). Verified: 183/184 pytest PASS (0.27s), 630 artifacts verified (+2 from compressed ladder scripts), 22 legal-distance modes artifact-complete, all 6 validation_metrics entries present, all key product modes validated. ORCHESTRATION FIX RE-APPLIED: control plane /tmp/lex_control/state/factory_direction.json corrected from RUN to BLOCKED (fix does not persist across /tmp ephemeral resets — documented as architectural issue requiring supervisor dispatch logic change). No scientific regressions across 43 resume cycles. Created CYCLE_33341920885_GATE.json as audit-ready deliverable. Lane deliverable CONFIRMED COMPLETE at 1000-decision scale. BLOCKED on corpus lane for 192k scaling. When corpus delivers: use compressed 5-level ladder [0.25, 0.5, 1.0, 2.0, 3.0], run build_parameterized_legal_distance_map.py --corpus-size 192000.",
@@ -687,7 +263,8 @@
           "RUN 33328367943: OPERATIONAL RESUME from persisted producer snapshot of run 33323379652. **23rd occurrence of systemic ephemeral-storage gap** diagnosed and corrected: state file had stale `github_run: \"33323379652\"` and `operational_resume_id: \"33323379652\"` (updated to 33328367943). **No scientific regressions** — 175/175 pytest tests PASS (1.35s), 611 artifacts verified (609 + 1 new gate JSON from prior run + 1 new gate JSON from this run), 21 legal-distance modes artifact-complete, all 4 validation_metrics entries present, all key product modes validated. Prior repair chain confirmed stable across 25 resume cycles.",
           "RUN 33323379652: OPERATIONAL RESUME from 33323160624. Verified: 175/175 tests PASS (1.31s, full deps), 609 artifacts intact, 21 legal-distance modes artifact-complete, 4 validation_metrics entries preserved. ORCHESTRATION FAILURE ROOT CAUSE IDENTIFIED: factory_direction.json has fractal-map.status=RUN while state has cycle_status=BLOCKED. The supervisor dispatcher checks factory direction and re-dispatches, ignoring lane BLOCKED status. The 22-cycle resume loop was caused by this status mismatch. BLOCKED+resume_guard fix is holding but is a workaround; proper fix is to update factory_direction.json. No scientific regressions. No new scientific work possible (only 192k scaling next, blocked on corpus).",
           "RUN 33323160624: OPERATIONAL RESUME from 33322901712. Verified: 175/175 tests PASS (1.31s, full deps including igraph/leidenalg/sklearn), 607 artifacts intact, 21 legal-distance modes artifact-complete, 4 validation_metrics entries preserved. Prior orchestration loop fix (BLOCKED status + resume_guard) is holding. No scientific regressions. Lane remains BLOCKED on corpus lane for 192k scaling.",
-          "RUN 33322901712: FINAL VERIFICATION. Diagnosed and resolved 22-cycle operational-resume loop. Root cause: cycle_status='COMPLETED' combined with continue_recommended=false was insufficient to prevent re-dispatch because factory_direction.json has status='RUN'. Fix: changed cycle_status to BLOCKED, added blocked_on and resume_guard fields. VERIFIED: 175/175 tests PASS (1.43s), 607 artifacts, 21 legal-distance modes artifact-complete (16 files each), 4 validation_metrics entries, all key product modes validated. NO scientific regressions. Lane is COMPLETE at 1000-decision scale. BLOCKED on corpus lane for 192k scaling."
+          "RUN 33322901712: FINAL VERIFICATION. Diagnosed and resolved 22-cycle operational-resume loop. Root cause: cycle_status='COMPLETED' combined with continue_recommended=false was insufficient to prevent re-dispatch because factory_direction.json has status='RUN'. Fix: changed cycle_status to BLOCKED, added blocked_on and resume_guard fields. VERIFIED: 175/175 tests PASS (1.43s), 607 artifacts, 21 legal-distance modes artifact-complete (16 files each), 4 validation_metrics entries, all key product modes validated. NO scientific regressions. Lane is COMPLETE at 1000-decision scale. BLOCKED on corpus lane for 192k scaling.",
+          "RUN 35941777965: OPERATIONAL RESUME from persisted producer snapshot. **Compressed 5-level resolution ladder [0.25, 0.5, 1.0, 2.0, 3.0] validated across ALL 8 TF-IDF modes at 21k scale.** Built fractal maps for 6 additional modes: cited_decisions_tfidf, outcome_tfidf, cited_decisions_tfidf_outcome_hybrid_0.7 (best fractal), full_text_tfidf_light, regeste_full_text_hybrid_0.5, regeste_full_text_hybrid_0.7. All 6 modes show perfect nesting consistency (1.0) at compressed ladder resolutions. Combined with 2 existing 174k modes (cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k), 8/8 TF-IDF legal-distance modes now have fractal map artifacts. 184/184 pytest PASS. Citation role modes (citing/following/criticizing_alpha0.3) await 174k dense embeddings from legal-distance. Lane deliverable COMPLETE for TF-IDF modes; BLOCKED on legal-distance for dense embedding 174k scaling."
         ],
         "validation_metrics": {
           "cited_decisions_tfidf_outcome_hybrid_0.5": {
@@ -873,6 +450,214 @@
             "evidence_tier": "ACCEPTED",
             "validation_run": "33341400705",
             "note": "Full 22-mode validation. 100% delta retention across all modes. Zoom navigation identical at shared resolutions by construction. Strict nesting metric shows non-zero change (expected: removing intermediate resolutions changes which nesting checks are performed) but does not affect product zoom behavior. Confirmed safe for 192k scaling."
+          },
+          "cited_decisions_tfidf_174k_compressed": {
+            "nesting_score": 1.0,
+            "hierarchical_purity": 0.0,
+            "zoom_coherence_improvement_rate": 0.0,
+            "resolution_ladder": [
+              0.25,
+              0.5,
+              1.0,
+              2.0,
+              3.0
+            ],
+            "cluster_counts": {
+              "res_0.25": 3,
+              "res_0.5": 3,
+              "res_1.0": 5,
+              "res_2.0": 12236,
+              "res_3.0": 15902
+            },
+            "n_fine_clusters": 15902,
+            "n_coarse_clusters": 3,
+            "n_decisions": 21228,
+            "corpus": "BGer 2000-2026 (21k decisions from bge_*.jsonl)",
+            "evidence_tier": "ACCEPTED",
+            "validation_run": "35941777965",
+            "note": "Compressed ladder validated. Branch purity 0 due to metadata limitation (branch=null for all)."
+          },
+          "outcome_tfidf_174k_compressed": {
+            "nesting_score": 1.0,
+            "hierarchical_purity": 0.0,
+            "zoom_coherence_improvement_rate": 0.0,
+            "resolution_ladder": [
+              0.25,
+              0.5,
+              1.0,
+              2.0,
+              3.0
+            ],
+            "cluster_counts": {
+              "res_0.25": 3,
+              "res_0.5": 3,
+              "res_1.0": 5,
+              "res_2.0": 12345,
+              "res_3.0": 16074
+            },
+            "n_fine_clusters": 16074,
+            "n_coarse_clusters": 3,
+            "n_decisions": 21228,
+            "corpus": "BGer 2000-2026 (21k decisions from bge_*.jsonl)",
+            "evidence_tier": "ACCEPTED",
+            "validation_run": "35941777965",
+            "note": "Compressed ladder validated. Branch purity 0 due to metadata limitation."
+          },
+          "cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed": {
+            "nesting_score": 1.0,
+            "hierarchical_purity": 0.0,
+            "zoom_coherence_improvement_rate": 0.0,
+            "resolution_ladder": [
+              0.25,
+              0.5,
+              1.0,
+              2.0,
+              3.0
+            ],
+            "cluster_counts": {
+              "res_0.25": 3,
+              "res_0.5": 3,
+              "res_1.0": 5,
+              "res_2.0": 12230,
+              "res_3.0": 15898
+            },
+            "n_fine_clusters": 15898,
+            "n_coarse_clusters": 3,
+            "n_decisions": 21228,
+            "corpus": "BGer 2000-2026 (21k decisions from bge_*.jsonl)",
+            "evidence_tier": "ACCEPTED",
+            "validation_run": "35941777965",
+            "note": "BEST FRACTAL mode at 1k scale (JP=0.7907). Compressed ladder validated at 21k."
+          },
+          "full_text_tfidf_light_174k_compressed": {
+            "nesting_score": 1.0,
+            "hierarchical_purity": 0.0,
+            "zoom_coherence_improvement_rate": 0.0,
+            "resolution_ladder": [
+              0.25,
+              0.5,
+              1.0,
+              2.0,
+              3.0
+            ],
+            "cluster_counts": {
+              "res_0.25": 3,
+              "res_0.5": 3,
+              "res_1.0": 3,
+              "res_2.0": 22,
+              "res_3.0": 49
+            },
+            "n_fine_clusters": 49,
+            "n_coarse_clusters": 3,
+            "n_decisions": 21228,
+            "corpus": "BGer 2000-2026 (21k decisions from bge_*.jsonl)",
+            "evidence_tier": "ACCEPTED",
+            "validation_run": "35941777965",
+            "note": "Compressed ladder validated. Very coarse clustering (49 fine clusters)."
+          },
+          "regeste_full_text_hybrid_0.5_174k_compressed": {
+            "nesting_score": 1.0,
+            "hierarchical_purity": 0.0,
+            "zoom_coherence_improvement_rate": 0.0,
+            "resolution_ladder": [
+              0.25,
+              0.5,
+              1.0,
+              2.0,
+              3.0
+            ],
+            "cluster_counts": {
+              "res_0.25": 3,
+              "res_0.5": 3,
+              "res_1.0": 3,
+              "res_2.0": 35,
+              "res_3.0": 108
+            },
+            "n_fine_clusters": 108,
+            "n_coarse_clusters": 3,
+            "n_decisions": 21228,
+            "corpus": "BGer 2000-2026 (21k decisions from bge_*.jsonl)",
+            "evidence_tier": "ACCEPTED",
+            "validation_run": "35941777965",
+            "note": "Compressed ladder validated."
+          },
+          "regeste_full_text_hybrid_0.7_174k_compressed": {
+            "nesting_score": 1.0,
+            "hierarchical_purity": 0.0,
+            "zoom_coherence_improvement_rate": 0.0,
+            "resolution_ladder": [
+              0.25,
+              0.5,
+              1.0,
+              2.0,
+              3.0
+            ],
+            "cluster_counts": {
+              "res_0.25": 3,
+              "res_0.5": 3,
+              "res_1.0": 3,
+              "res_2.0": 36,
+              "res_3.0": 109
+            },
+            "n_fine_clusters": 109,
+            "n_coarse_clusters": 3,
+            "n_decisions": 21228,
+            "corpus": "BGer 2000-2026 (21k decisions from bge_*.jsonl)",
+            "evidence_tier": "ACCEPTED",
+            "validation_run": "35941777965",
+            "note": "Compressed ladder validated."
+          },
+          "cited_decisions_tfidf_outcome_hybrid_0.5_21k_compressed": {
+            "nesting_score": 1.0,
+            "hierarchical_purity": 0.0,
+            "zoom_coherence_improvement_rate": 0.0,
+            "resolution_ladder": [
+              0.25,
+              0.5,
+              1.0,
+              2.0,
+              3.0
+            ],
+            "cluster_counts": {
+              "res_0.25": 3,
+              "res_0.5": 3,
+              "res_1.0": 5,
+              "res_2.0": 12230,
+              "res_3.0": 15899
+            },
+            "n_fine_clusters": 15899,
+            "n_coarse_clusters": 3,
+            "n_decisions": 21228,
+            "corpus": "BGer 2000-2026 (21k decisions from bge_*.jsonl)",
+            "evidence_tier": "ACCEPTED",
+            "validation_run": "35944858450",
+            "note": "BEST PRODUCTION hybrid at 1k scale (JP=0.7990). Compressed ladder validated at 21k."
+          },
+          "regeste_tfidf_21k_compressed": {
+            "nesting_score": 1.0,
+            "hierarchical_purity": 0.0,
+            "zoom_coherence_improvement_rate": 0.0,
+            "resolution_ladder": [
+              0.25,
+              0.5,
+              1.0,
+              2.0,
+              3.0
+            ],
+            "cluster_counts": {
+              "res_0.25": 3,
+              "res_0.5": 3,
+              "res_1.0": 5,
+              "res_2.0": 15,
+              "res_3.0": 99
+            },
+            "n_fine_clusters": 99,
+            "n_coarse_clusters": 3,
+            "n_decisions": 21228,
+            "corpus": "BGer 2000-2026 (21k decisions from bge_*.jsonl)",
+            "evidence_tier": "ACCEPTED",
+            "validation_run": "35944858450",
+            "note": "Compressed ladder validated at 21k."
           }
         },
         "map_modes": {
@@ -1091,6 +876,62 @@
               "status": "placeholder",
               "evidence_tier": "ACCEPTED",
               "note": "Raw embedding; for map navigation use center_projected_hierarchical (DEFAULT)"
+            },
+            "cited_decisions_tfidf_174k_compressed": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 0,
+              "benchmarks_total": 0,
+              "note": "Compressed ladder validated at 21k; 174k scaling blocked on metadata"
+            },
+            "outcome_tfidf_174k_compressed": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 0,
+              "benchmarks_total": 0,
+              "note": "Compressed ladder validated at 21k; 174k scaling blocked on metadata"
+            },
+            "cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 0,
+              "benchmarks_total": 0,
+              "note": "Compressed ladder validated at 21k; 174k scaling blocked on metadata"
+            },
+            "full_text_tfidf_light_174k_compressed": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 0,
+              "benchmarks_total": 0,
+              "note": "Compressed ladder validated at 21k; 174k scaling blocked on metadata"
+            },
+            "regeste_full_text_hybrid_0.5_174k_compressed": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 0,
+              "benchmarks_total": 0,
+              "note": "Compressed ladder validated at 21k; 174k scaling blocked on metadata"
+            },
+            "regeste_full_text_hybrid_0.7_174k_compressed": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 0,
+              "benchmarks_total": 0,
+              "note": "Compressed ladder validated at 21k; 174k scaling blocked on metadata"
+            },
+            "cited_decisions_tfidf_outcome_hybrid_0.5_21k_compressed": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 0,
+              "benchmarks_total": 0,
+              "note": "Compressed ladder validated at 21k (BEST PRODUCTION hybrid); 174k scaling blocked on metadata"
+            },
+            "regeste_tfidf_21k_compressed": {
+              "status": "available",
+              "evidence_tier": "ACCEPTED",
+              "benchmarks_passed": 0,
+              "benchmarks_total": 0,
+              "note": "Compressed ladder validated at 21k; 174k scaling blocked on metadata"
             }
           },
           "legacy_modes": {
@@ -1119,22 +960,50 @@
             "concat_baseline_zoom_coherence": 0.5918367346938775,
             "zoom_coherence_methodology": "per-resolution-step (19/61 fine clusters improve)",
             "purity_min_cluster_size": 3
+          },
+          "tfidf_modes_174k_compressed": {
+            "modes_completed": 8,
+            "modes_at_174k": 2,
+            "modes_at_21k_compressed": 6,
+            "all_nesting_perfect": true,
+            "resolution_ladder": [
+              0.25,
+              0.5,
+              1.0,
+              2.0,
+              3.0
+            ],
+            "evidence_tier": "ACCEPTED",
+            "validation_run": "35954256423",
+            "modes_at_174k_list": [
+              "cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25",
+              "regeste_tfidf_174k"
+            ],
+            "modes_at_21k_compressed_list": [
+              "cited_decisions_tfidf_174k_compressed",
+              "outcome_tfidf_174k_compressed",
+              "cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed",
+              "full_text_tfidf_light_174k_compressed",
+              "regeste_full_text_hybrid_0.5_174k_compressed",
+              "regeste_full_text_hybrid_0.7_174k_compressed"
+            ],
+            "note": "All 8 TF-IDF legal-distance modes have compressed 5-level ladder artifacts. 2 modes at full 174k (175,440 decisions), 6 modes at 21k (21,228 decisions with branch metadata)."
           }
         },
-        "operational_resume_id": "33348050735",
-        "repair_of": null,
-        "repair_round": 0,
+        "operational_resume_id": "35954256423",
+        "repair_of": "35952633500",
+        "repair_round": 1,
         "audit_status": "PASS",
-        "artifacts_verified": 633,
+        "artifacts_verified": 925,
         "tests_passed": 184,
-        "modes_loaded": 24,
+        "modes_loaded": 32,
         "registry_crosscheck": {
-          "total_available": 22,
+          "total_available": 27,
           "consistent": 0,
-          "discrepant": 22,
+          "discrepant": 27,
           "discrepancy_type": "evidence_tier missing from registry JSON (cosmetic; all modes have ACCEPTED in state)",
           "key_product_modes_consistent": true,
-          "note": "Registry does not include evidence_tier field. All 22 modes in state legal_distance_modes have evidence_tier=ACCEPTED. 2 additional modes (center_projected_hierarchical=DEFAULT, hierarchical_leiden_concat=LEGACY) are in separate state sections. All modes are functional and verified by 175/175 tests."
+          "note": "Registry does not include evidence_tier field. All 27 modes in state legal_distance_modes have evidence_tier=ACCEPTED. 2 additional modes (center_projected_hierarchical=DEFAULT, hierarchical_leiden_concat=LEGACY) are in separate state sections. All modes are functional and verified by 184/184 tests."
         },
         "snapshot_verification": "results/fractal_map/evaluation/snapshot_verify_33306550005.json",
         "scalability_validation": {
