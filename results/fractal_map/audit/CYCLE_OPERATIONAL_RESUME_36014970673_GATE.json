@@ -1,0 +1,123 @@
+{
+  "cycle_id": "36014970673",
+  "resume_from_run_id": "36008005345",
+  "timestamp": "2026-09-24T00:00:00Z",
+  "lane": "fractal-map",
+  "direction_version": 25,
+  "audit_status": "PASS",
+  "audit_status_rationale": "Operational resume of failed run 36008005345 verified: 24-file producer snapshot (2 complete compressed-ladder mode builds) preserved and validated; 184/184 frozen tests PASS; a nesting-metric defect discovered during this resume was remediated in the codebase (both parameterized builders) and quantified across all 46 mode dirs + 3 reference dirs with a reproducible audit artifact. PASS does NOT assert perfect nesting anywhere (see honest_nesting_summary).",
+  "verification": {
+    "tests_total": 184,
+    "tests_passed": 184,
+    "tests_failed": 0,
+    "frozen_tests": "tests/fractal_map/test_verify.py (unchanged)",
+    "artifact_verification": {
+      "modes_audited_for_nesting": 46,
+      "reference_dirs_audited": 3,
+      "new_mode_artifacts_preserved_this_resume": 24,
+      "tracked_files_under_results_fractal_map": 993,
+      "recorded_1_0_nesting_that_is_false_under_honest_definition": 37,
+      "true_nesting_1_0_modes": [
+        "outcome_tfidf_174k_compressed",
+        "outcome_tfidf_174k_compressed_v25",
+        "outcome_tfidf_21k_compressed",
+        "criticizing_alpha0.3"
+      ],
+      "compressed_ladder_delta_retention_validated": true
+    }
+  },
+  "diagnosis_of_failed_run_36008005345": {
+    "snapshot_persisted": "24 files: results/fractal_map/hierarchical_map_21k/legal_distance_modes/full_text_tfidf_light/ (12) + results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed_v25/ (12)",
+    "missing_after_failure": [
+      "results/fractal_map/audit/CYCLE_..._GATE.json (gate)",
+      "reports/fractal_map/OPERATIONAL_RESUME_..._VERIFICATION.md (report)",
+      "state/fractal-map.json update (stale at github_run=35998272181)"
+    ],
+    "no_remote_audit_branch": "cycle/core/fractal-map/36008005345/audit does not exist",
+    "log_access": "BLOCKED: no GH_TOKEN in environment; exact failing workflow step not observable",
+    "likely_cause": "Run died after producer persist step and before gate/report/state steps (resume mechanism in core-lane.yml now provides team timeout + resume_from_run_id; this run consumed it)"
+  },
+  "work_completed": {
+    "operational_resume_verification": true,
+    "nesting_metric_defect_remediated": true,
+    "honest_nesting_audit_written": "results/fractal_map/evaluation/resume_36014970673_nesting_audit.json",
+    "audit_script_committed": "fractal_map/hierarchical/compute_honest_nesting_audit.py",
+    "builder_fix_applied": [
+      "fractal_map/hierarchical/build_parameterized_legal_distance_map_compressed.py",
+      "fractal_map/hierarchical/build_parameterized_legal_distance_map.py"
+    ],
+    "builder_fix_verified": "strict_nesting_consistency matches hierarchical_leiden.compute_nesting_score bit-exactly on real 174k-v25 label arrays; synthetic cases pass (nested=1.0, straddled=0.0, orphan-ignored=0.5)",
+    "new_modes_this_cycle": 0,
+    "modes_built_by_run_36008005345_preserved": 2
+  },
+  "new_modes": [
+    {
+      "mode_id": "full_text_tfidf_light",
+      "path": "results/fractal_map/hierarchical_map_21k/legal_distance_modes/full_text_tfidf_light/",
+      "corpus_size": 21228,
+      "embeddings_source": "results/fractal_map/hierarchical_map_21k/tfidf_embeddings/full_text_tfidf_light.npy",
+      "resolutions": [0.25, 0.5, 1.0, 2.0, 3.0],
+      "cluster_counts": {"res_0.25": 8, "res_0.5": 13, "res_1.0": 22, "res_2.0": 36, "res_3.0": 50},
+      "recorded_mean_nesting_score": 1.0,
+      "honest_mean_strict_nesting": 0.063,
+      "honest_per_transition": {"0.25_to_0.5": 0.0, "0.5_to_1.0": 0.136, "1.0_to_2.0": 0.056, "2.0_to_3.0": 0.06},
+      "branch_purity": "0.0 (branch=null in 21k metadata; documented limitation)",
+      "label_completeness": "all resolutions fully labeled (21,228/21,228)"
+    },
+    {
+      "mode_id": "cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed_v25",
+      "path": "results/fractal_map/legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed_v25/",
+      "corpus_size": 175440,
+      "embeddings_source": "results/fractal_map/hierarchical_map_174k/legal_tfidf_embeddings/cited_decisions_tfidf_outcome_hybrid_0.7.npy",
+      "resolutions": [0.25, 0.5, 1.0, 2.0, 3.0],
+      "cluster_counts": {"res_0.25": 29, "res_0.5": 34, "res_1.0": 48, "res_2.0": 11633, "res_3.0": 63281},
+      "recorded_mean_nesting_score": 1.0,
+      "honest_mean_strict_nesting": 0.7385,
+      "honest_per_transition": {"0.25_to_0.5": 0.5, "0.5_to_1.0": 0.458, "1.0_to_2.0": 0.996, "2.0_to_3.0": 0.999},
+      "mean_branch_purity_all_levels": 0.7254,
+      "label_completeness": "all resolutions fully labeled (175,440/175,440)"
+    }
+  ],
+  "honest_nesting_summary": {
+    "defect": "NESTING_METRIC_DEFECT_v1",
+    "what_was_recorded": "mean_nesting_score = mean of nesting_consistency = fraction of fine clusters with a VALID MAJORITY parent label; ~1.0 by construction for independent Leiden partitions; not nestedness.",
+    "honest_definition": "fine cluster nested iff ALL members with non -1 coarse label share ONE unique coarse parent (hierarchical_leiden.compute_nesting_score).",
+    "impact": "37 of 46 audited compressed-ladder modes over-claimed 1.0; true means span 0.04-1.0. Zoom routing tables (child_to_parent) unaffected and remain correct navigation data. center_projected_hierarchical best_config nesting_score=1.0 is legitimate (by-construction sub-clusters), but same dir's hierarchical_map_results.json mean_nesting_score=1.0 vs honest ladder mean 0.5006 documents the legacy conflation.",
+    "remediation": "Both parameterized legal-distance builders now record strict_nesting_consistency per transition, honest mean_nesting_score, mean_majority_coverage_score (legacy number kept transparently) and metric_definitions. Historical artifacts intentionally NOT rewritten (frozen claims preserved).",
+    "worst_honest_nesting_modes": ["regeste_full_text_hybrid_0.5 (0.040, 21k v25)", "full_text_tfidf_light (0.063, 21k v25)", "regeste_tfidf (0.077, 21k v25)"],
+    "product_recommendation": "Zoom UI must treat zoom transitions as majority-parent ROUTED navigation, not containment. High-resolution transitions (1.0->2.0, 2.0->3.0) reach 0.99+ nesting on most modes and are safe; coarse transitions are not nested for the full_text/regeste v25 21k family — flag for embedding/seed review in next science cycle."
+  },
+  "blocked_on": "legal-distance 174k dense embeddings for citation role modes (citing_alpha0.3, following_alpha0.3, criticizing_alpha0.3) and dense hybrids; corpus 174k metadata (branch/legal_area/chamber)",
+  "evidence_tier": "ACCEPTED",
+  "next_recommendation": "Snapshot verified and metric defect remediated; no new science justified while BLOCKED (continue_recommended=false). On unblock: (1) rebuild full_text/regeste 21k v25 family with the FIXED builder so honest nesting is recorded; reevaluate whether embedding space or Leiden seed choice should change (honest nesting 0.04-0.13 is a genuine negative result for that family); (2) scale dense modes with fixed builder; (3) implement multi-view zoom UI treating routing tables as navigation and nesting as diagnostic.",
+  "provenance": {
+    "resumed_snapshot": "commit b94d231a (fractal-map cycle 36008005345 repair 0), branch operational-resume",
+    "audit_script": "fractal_map/hierarchical/compute_honest_nesting_audit.py",
+    "audit_output": "results/fractal_map/evaluation/resume_36014970673_nesting_audit.json",
+    "builder_scripts_fixed": [
+      "fractal_map/hierarchical/build_parameterized_legal_distance_map_compressed.py",
+      "fractal_map/hierarchical/build_parameterized_legal_distance_map.py"
+    ],
+    "embeddings_sources": [
+      "results/fractal_map/hierarchical_map_174k/legal_tfidf_embeddings/",
+      "results/fractal_map/hierarchical_map_21k/tfidf_embeddings/"
+    ],
+    "metadata_source": "results/fractal_map/hierarchical_map_174k/metadata_174k_bge.json (175,440 decisions); 21k metadata branch=null",
+    "validation_tests": "tests/fractal_map/test_verify.py (184 tests, unchanged)"
+  },
+  "negative_results_preserved": [
+    "NESTING_METRIC_DEFECT_v1: 37/46 modes recorded mean_nesting_score=1.0 that is false under strict nesting (honest means 0.04-1.0). Historical artifacts preserved untouched; defect quantified in resume_36014970673_nesting_audit.json.",
+    "New 21k full_text family has LOW honest nesting (full_text_tfidf_light 0.063; regeste_full_text_hybrid_0.5 0.040; regeste_tfidf 0.077) — majority routing is the only coherent navigation there; coarse zoom transitions will not show containment.",
+    "Branch purity = 0.0 for 21k modes (branch=null in 21k metadata) — 21k zoom_coherence parent_details empty (empty improvement signal).",
+    "Prior reports (OPERATIONAL_RESUME_35991127733_VERIFICATION.md et al.) mislabeled corpus: only 6 dirs are true 175,440 (the *_v25 family + cited_decisions_tfidf_outcome_hybrid_0.5_174k + regeste_tfidf_174k); 6 dirs named '*_174k_compressed' have corpus=21,228. Census corrected in this resume.",
+    "Compressed 5-level ladder verdict FAIL on nesting-change for 21/22 modes (documented since gate 35996995573): honest nesting_change between ladders is non-zero for most modes; delta retention 100% stands.",
+    "center_projected_hierarchical hierarchical_map_results.json mean_nesting_score=1.0 vs honest ladder mean 0.5006 (best_config 1.0 remains legitimately by construction).",
+    "Run 36008005345 (failed) leaves no audit branch and no gate/report/state update; failure point not log-observable without GH_TOKEN (recorded blocker)."
+  ],
+  "factory_direction_alignment": {
+    "v25_question": "Scale all 29+ validated representations to full 174k using compressed 5-level ladder",
+    "status": "TF-IDF v25 family at true 175,440: cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed_v25 VERIFIED this resume (+12 files). TF-IDF modes still COMPLETE at available scale (21k/174k). Dense modes BLOCKED on legal-distance.",
+    "compressed_ladder_validated": "100% delta retention across all 22 modes (unchanged); nesting claims corrected to honest values",
+    "orchestration": "Resume mechanism consumed as designed (resume_from_run_id=36008005345, repair_round=0); supervisor ephemeral-state mismatch documented as unresolved orchestration issue, out of lane write scope"
+  }
+}

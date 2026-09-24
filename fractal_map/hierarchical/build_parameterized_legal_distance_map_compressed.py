@@ -95,6 +95,20 @@ def build_nesting(hierarchy_labels):
         parent_to_children = defaultdict(list)
         for child, parent in child_to_parent.items():
             parent_to_children[parent].append(child)
+        # HONEST strict nesting (same semantics as hierarchical_leiden.compute_nesting_score):
+        # a fine cluster is nested iff ALL of its members with a valid (non -1) coarse label
+        # share ONE unique coarse parent label. 'nesting_consistency' (majority-parent
+        # coverage) is retained as legacy routing coverage only, NOT as nesting.
+        fine_ids = [c for c in child_to_parent]
+        n_fine = len(fine_ids)
+        strict_consistent = 0
+        for fine_id in fine_ids:
+            fine_mask = finer_labels == int(fine_id)
+            parent_labels = coarser_labels[fine_mask]
+            parent_labels_valid = parent_labels[parent_labels != -1]
+            if len(parent_labels_valid) > 0 and len(set(parent_labels_valid.tolist())) == 1:
+                strict_consistent += 1
+        strict_nesting = strict_consistent / n_fine if n_fine else 0
         nesting[f"{coarser_res}_to_{finer_res}"] = {
             'coarser_resolution': coarser_res,
             'finer_resolution': finer_res,
@@ -102,6 +116,9 @@ def build_nesting(hierarchy_labels):
             'parent_to_children': dict(parent_to_children),
             'nesting_consistency': (sum(1 for c, p in child_to_parent.items() if p != -1)
                                     / len(child_to_parent) if child_to_parent else 0),
+            'strict_nesting_consistency': strict_nesting,
+            'n_fine_clusters': n_fine,
+            'n_strictly_consistent': strict_consistent,
         }
     return nesting
 
@@ -332,7 +349,16 @@ def main():
         "resolutions_tested": RESOLUTIONS,
         "hierarchy_info": hierarchy_info,
         "nesting": nesting,
-        "mean_nesting_score": float(np.mean([n['nesting_consistency'] for n in nesting.values()])),
+        "metric_definitions": {
+            "mean_nesting_score": ("Mean over transitions of strict_nesting_consistency: fraction of fine clusters "
+                                   "whose members all share ONE unique (non -1) coarse parent label (honest nesting; "
+                                   "same semantics as hierarchical_leiden.compute_nesting_score)."),
+            "mean_majority_coverage_score": ("Mean over transitions of nesting_consistency: fraction of fine clusters "
+                                             "with a valid MAJORITY parent label (routing coverage for child_to_parent "
+                                             "navigation, NOT nesting; retained for legacy comparison)."),
+        },
+        "mean_nesting_score": float(np.mean([n['strict_nesting_consistency'] for n in nesting.values()])),
+        "mean_majority_coverage_score": float(np.mean([n['nesting_consistency'] for n in nesting.values()])),
         "branch_coherence": branch_coherence,
         "zoom_coherence": zoom_coherence,
         "hierarchical": {
@@ -363,7 +389,8 @@ def main():
         "mode_id": args.mode_id,
         "corpus_size": len(metadata),
         "n_fine_clusters": int(len(set(hierarchical_labels[hierarchical_labels != -1]))),
-        "mean_nesting_score": float(np.mean([n['nesting_consistency'] for n in nesting.values()])),
+        "mean_nesting_score": float(np.mean([n['strict_nesting_consistency'] for n in nesting.values()])),
+        "mean_majority_coverage_score": float(np.mean([n['nesting_consistency'] for n in nesting.values()])),
         "mean_branch_purity_all_levels": float(np.mean(
             [branch_coherence[f"res_{r}"]['mean_branch_purity'] for r in RESOLUTIONS])),
         "output_dir": str(args.output_dir),
