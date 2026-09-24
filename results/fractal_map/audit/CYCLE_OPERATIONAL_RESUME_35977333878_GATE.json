@@ -1,0 +1,46 @@
+{
+  "cycle_id": "35977333878",
+  "timestamp": "2026-09-24T08:48:00Z",
+  "direction_version": 25,
+  "lane": "fractal-map",
+  "verification_type": "operational_resume",
+  "prior_run": "35975678901",
+  "audit_verdict": "PASS",
+  "tests": {
+    "total": 184,
+    "passed": 184,
+    "failed": 0,
+    "duration_seconds": 1.47
+  },
+  "artifacts_verified": 937,
+  "legal_distance_modes_available": 41,
+  "key_deliverables": {
+    "tfidf_compressed_ladder_complete": true,
+    "modes_at_21k_compressed": 8,
+    "modes_at_174k": 2,
+    "all_nesting_perfect": true,
+    "resolution_ladder": [0.25, 0.5, 1.0, 2.0, 3.0]
+  },
+  "new_artifacts_this_cycle": [
+    "results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_35977333878_GATE.json",
+    "reports/fractal_map/OPERATIONAL_RESUME_35977333878_VERIFICATION.md"
+  ],
+  "state_updates": {
+    "next_recommendation": "BLOCKED: TF-IDF modes COMPLETE at compressed ladder (21k scale). 2 modes at full 174k (cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25, regeste_tfidf_174k), 8 modes at 21k compressed. Citation role modes (citing_alpha0.3, following_alpha0.3, criticizing_alpha0.3) and dense embedding modes await legal-distance 174k delivery. When legal-distance delivers 174k dense embeddings: (1) run build_parameterized_legal_distance_map_compressed.py for all dense modes, (2) validate citation-role zoom quality at 174k per zoom quality diagnostic (citing ZQ=0.5401, following ZQ=0.5280, criticizing ZQ=0.4864), (3) implement multi-view zoom UI with citation-role views. Multi-view design CONFIRMED: citation roles for zoom navigation, outcome hybrids for flat exploration. continue_recommended=false — no additional same-question cycle justified. 52nd documented occurrence of orchestration failure.",
+    "key_findings_added": "RUN 35977333878: OPERATIONAL RESUME VERIFICATION from persisted producer snapshot of run 35975678901. All 184 tests PASS (1.47s), 937 artifacts verified. No scientific regressions. Lane deliverable CONFIRMED COMPLETE for TF-IDF compressed ladder at available scale. TF-IDF modes: 2 at 174k, 8 at 21k compressed. ORCHESTRATION FAILURE CONFIRMED: supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v25, status=COMPLETED_TFIDF). Fix required: Factory Director must update supervisor dispatch logic. continue_recommended=false — no additional same-question cycle justified. 52nd documented occurrence.",
+    "validation_metrics_added": [],
+    "map_modes_updated": "No new modes this cycle; verification only"
+  },
+  "blockers": {
+    "legal_distance_174k_dense": "Citation role modes (citing/following/criticizing_alpha0.3) and dense embedding modes await legal-distance 174k delivery",
+    "corpus_174k_metadata": "174k scaling blocked on corpus metadata availability (current bge_*.jsonl only 21,228 decisions with branch=null)"
+  },
+  "factory_direction_alignment": {
+    "fractal_map_status_in_factory_direction": "RUN (ephemeral /tmp/lex_control) vs COMPLETED_TFIDF (workspace state)",
+    "lane_deliverable_status": "COMPLETE for TF-IDF compressed ladder at available scale",
+    "note": "Factory direction v25 in workspace correctly shows fractal-map.status=COMPLETED_TFIDF. Ephemeral /tmp/lex_control copy shows RUN causing 52nd unnecessary re-dispatch. Supervisor dispatch logic must read workspace state/factory_direction.json (persistent) not ephemeral control plane copy."
+  },
+  "evidence_tier": "ACCEPTED",
+  "cycle_status": "COMPLETED",
+  "continue_recommended": false
+}
