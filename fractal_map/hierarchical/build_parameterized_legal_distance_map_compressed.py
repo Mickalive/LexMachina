@@ -26,6 +26,44 @@ DEFAULT_CORPUS_DIR = Path("/tmp/lex_accepted/corpus/corpus/normalization/canonic
 RESOLUTIONS = [0.25, 0.5, 1.0, 2.0, 3.0]
 MIN_CLUSTER_SIZE = 3
 
+# Chamber to branch mapping (from evaluation_v3_harness.py)
+CHAMBER_TO_BRANCH = {
+    "I. Öffentlich-rechtliche Abteilung": "oeffentliches_recht",
+    "II. Öffentlich-rechtliche Abteilung": "oeffentliches_recht",
+    "III. Öffentlich-rechtliche Abteilung": "oeffentliches_recht",
+    "IV. Öffentlich-rechtliche Abteilung": "oeffentliches_recht",
+    "I. Zivilrechtliche Abteilung": "zivilrecht",
+    "II. Zivilrechtliche Abteilung": "zivilrecht",
+    "I. Strafrechtliche Abteilung": "strafrecht",
+    "II. Strafrechtliche Abteilung": "strafrecht",
+    "II. sozialrechtliche Abteilung": "sozialversicherungsrecht",
+    "IIe Cour de droit social": "sozialversicherungsrecht",
+    "Ire Cour de droit public": "oeffentliches_recht",
+    "IIe Cour de droit public": "oeffentliches_recht",
+    "Ire Cour de droit civil": "zivilrecht",
+    "IIe Cour de droit civil": "zivilrecht",
+    "Ire Cour de droit pénal": "strafrecht",
+    "IIe Cour de droit pénal": "strafrecht",
+}
+
+
+def assign_branch(chamber: str) -> str:
+    """Assign legal branch from chamber name. Handles None/empty gracefully."""
+    if not chamber:
+        return "unknown"
+    if chamber in CHAMBER_TO_BRANCH:
+        return CHAMBER_TO_BRANCH[chamber]
+    chamber_lower = chamber.lower()
+    if "öffentlich" in chamber_lower or "public" in chamber_lower:
+        return "oeffentliches_recht"
+    if "zivil" in chamber_lower or "civil" in chamber_lower:
+        return "zivilrecht"
+    if "straf" in chamber_lower or "pénal" in chamber_lower or "penal" in chamber_lower:
+        return "strafrecht"
+    if "sozial" in chamber_lower or "social" in chamber_lower:
+        return "sozialversicherungsrecht"
+    return "unknown"
+
 
 def load_metadata_with_branch(baseline_dir, corpus_dir, corpus_size=None,
                               metadata_path=None, has_branch=False):
@@ -37,16 +75,10 @@ def load_metadata_with_branch(baseline_dir, corpus_dir, corpus_size=None,
     if has_branch:
         return {m['decision_id']: i for i, m in enumerate(metadata)}, metadata
     id_to_idx = {m['decision_id']: i for i, m in enumerate(metadata)}
-    branch_map = {}
-    for year_file in sorted(corpus_dir.glob("bge_*.jsonl")):
-        with open(year_file) as f:
-            for line in f:
-                d = json.loads(line)
-                did = d.get('decision_id', '')
-                if did in id_to_idx:
-                    branch_map[did] = d.get('branch')
+    # Derive branch directly from metadata's chamber field (more reliable than corpus)
     for m in metadata:
-        m['branch'] = branch_map.get(m['decision_id'])
+        chamber = m.get('chamber')
+        m['branch'] = assign_branch(chamber)
     return id_to_idx, metadata
 
 
@@ -171,7 +203,7 @@ def compute_zoom_coherence(hierarchy_labels, metadata, min_cluster_size=3):
             if len(coarse_indices) < min_cluster_size:
                 continue
             coarse_branches = [metadata[i].get('branch') for i in coarse_indices]
-            coarse_branches = [b for b in coarse_branches if b and b != 'null']
+            coarse_branches = [b for b in coarse_branches if b and b not in ('null', 'unknown')]
             if not coarse_branches:
                 continue
             coarse_purity = Counter(coarse_branches).most_common(1)[0][1] / len(coarse_branches)
@@ -192,7 +224,7 @@ def compute_zoom_coherence(hierarchy_labels, metadata, min_cluster_size=3):
                 if len(child_indices) < min_cluster_size:
                     continue
                 child_branches = [metadata[i].get('branch') for i in child_indices]
-                child_branches = [b for b in child_branches if b and b != 'null']
+                child_branches = [b for b in child_branches if b and b not in ('null', 'unknown')]
                 if child_branches:
                     child_purities.append(Counter(child_branches).most_common(1)[0][1]
                                           / len(child_branches))
@@ -233,7 +265,7 @@ def compute_branch_purity(labels, metadata, min_cluster_size=3):
         if len(indices) < min_cluster_size:
             continue
         branches = [metadata[i].get('branch') for i in indices]
-        branches = [b for b in branches if b and b != 'null']
+        branches = [b for b in branches if b and b not in ('null', 'unknown')]
         if branches:
             purities.append(Counter(branches).most_common(1)[0][1] / len(branches))
     return float(np.mean(purities)) if purities else 0
