@@ -1,0 +1,71 @@
+{
+  "gate": "PASS",
+  "run_id": "36059101114",
+  "repair_round": 0,
+  "repaired_cycle": null,
+  "lane": "product",
+  "auditor": "LEXMACHINA_INDEPENDENT_AUDITOR",
+  "model": "opencode/nemotron-3-ultra-free",
+  "timestamp": "2026-09-24T21:45:00Z",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "REPRODUCED",
+  "evidence_summary": {
+    "state_reconciliation": "PASS — direction_version 18→26, cycle_status BLOCKED→RUN, continue_recommended false→true; matches factory_direction v26 product.status=RUN",
+    "corpus_174k_staged": "PASS — 26 year files (bge_2000–2025.jsonl) copied to product results; 1k slice (bger_2000plus_slice_1000.jsonl) preserved for map-corpus alignment",
+    "representations_174k_staged": "PASS — hierarchical_map_174k/, cited_decisions_tfidf_outcome_hybrid_0.5_174k/ (175,440 decisions, 5 resolutions, nesting=1.0), cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25/ all present with complete artifacts",
+    "section_modes_coverage": "PASS — 1150/1202 decisions (95.7%) have section data; per-mode: sachverhalt 42.2%, erwaegungen 68.4%, dispositiv 90.6%, full_text 95.7%, erwaegungen_dispositiv 92.3%, sachverhalt_erwaegungen_dispositiv 95.7%",
+    "scale_readiness_174k": "PASS — 16/16 simulation tests PASS: LOD <2s, culling <500ms, spatial index <5s, k-NN <500ms, inverted index <15s, WebGL payload ~6.6MB, full pipeline <3s at 174k",
+    "product_functionality": "PASS — NavigationAPI: 30 representations, 1002 decisions, 6 section modes; 54 API endpoints operational; multi-view map modes (6 design patterns); citation graph (174 decisions, 2105 edges); WebGL/LOD/incremental/health all functional",
+    "test_results": "PASS — 236/236 tests independently verified across 11 test suites (core, v18, 174k sim, health, LOD, incremental, v10, v11, scale, proximity, section)",
+    "leakage": "CLEAN — State drift corrected with full traceability; no silent overwrites; factory_direction and lane state now aligned",
+    "benchmark_gaming": "CLEAN — 174k artifacts STAGED not activated; honest negative results preserved (no rep passes 12/12 benchmarks; hierarchy_coherence fundamentally unpassable at branch level; TF-IDF 174k zoom coherence FAILS all 3 monotonic checks)",
+    "honest_negatives": "CLEAN — Section coverage 42-96% honestly reported; incoming citations non-functional documented; legal_area_purity low (0.14-0.41) acknowledged; true OOS ceiling ~0.53 < 0.7 target confirmed"
+  },
+  "findings": [
+    {
+      "id": "F-001",
+      "severity": "informational",
+      "title": "State drift reconciliation completed",
+      "detail": "Factory_direction v26 specified product.status=RUN but lane state showed BLOCKED. Operational resume 36044366006 reconciled state to v26 with full traceability. Valid fix for documented orchestration pathology (146/211 zero-delta no-op repairs).",
+      "impact": "Lane state now matches control plane. Supervisor will dispatch productive work per v26 question.",
+      "fix_required": false
+    },
+    {
+      "id": "F-002",
+      "severity": "informational",
+      "title": "174k artifacts staged but not activated",
+      "detail": "Full 174k corpus and representation artifacts present in product results but map_loader/NavigationAPI still use 1k slice for map-corpus alignment. Correct dependency management — awaiting legal-distance enriched 174k representations.",
+      "impact": "No functional change to current product. Artifacts ready for activation when dependency resolves.",
+      "fix_required": false
+    },
+    {
+      "id": "F-003",
+      "severity": "informational",
+      "title": "Incoming citations structurally non-functional",
+      "detail": "Citation graph reference IDs (e.g., 'BGE 133 II 249') don't match corpus decision_id format. Incoming index maps 1628 external references, none resolve to corpus decisions. Design limitation since CYCLE_33031530845.",
+      "impact": "All decisions show 0 incoming citations. Frontend handles gracefully.",
+      "fix_required": false
+    },
+    {
+      "id": "F-004",
+      "severity": "informational",
+      "title": "Section mode legal_area purity remains low",
+      "detail": "Section mode clustering purity for legal_area ranges 0.14-0.41 across modes/resolutions. Language purity higher (0.60-0.95). Section modes cluster more by language than legal area.",
+      "impact": "Honest negative result for legal-distance lane. First-class evidence.",
+      "fix_required": false
+    }
+  ],
+  "zero_delta_satisfied": false,
+  "zero_delta_evidence": "This is an operational resume cycle with material state changes (direction_version 18→26, BLOCKED→RUN, 174k corpus/reps staged). Not a zero-delta cycle. Zero-delta pathology was the PROBLEM being fixed.",
+  "repair_history": {
+    "previous_repairs": [
+      "CYCLE_34054959674_ORCHESTRATION_FIX: Fixed factory_direction status mismatch (RUN vs BLOCKED), set product to PAUSED/BLOCKED",
+      "CYCLE_33989675812_FEAT: FEAT-078 TF-IDF truncation fix, FEAT-079 temporal metadata, FEAT-080 cross-language TF-IDF neighbors, FEAT-081 jurist feedback, FEAT-082 section coverage expansion (95.7%)",
+      "CYCLE_33847215009_OPERATIONAL_RESUME: 9 zero-delta no-op repair cycles",
+      "CYCLE_33733439851_FIX: FIX-014 174k simulation infrastructure; FEAT-074/075 scale readiness"
+    ],
+    "recurring_pathology": false,
+    "pathology_note": "Prior repairs were for concrete path bugs, missing dependencies, and orchestration state drift. Current cycle CORRECTS the over-correction in CYCLE_34054959674 (which set factory_direction to PAUSED when v26 requires RUN). No systematic scientific issue."
+  }
+}
