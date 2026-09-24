@@ -1,0 +1,105 @@
+{
+  "cycle_id": "35946644222",
+  "timestamp": "2026-09-24T02:45:00Z",
+  "direction_version": 25,
+  "lane": "fractal-map",
+  "verification_type": "final_audit",
+  "prior_run": "35944858450",
+  "audit_verdict": "PASS",
+  "tests": {
+    "total": 184,
+    "passed": 184,
+    "failed": 0,
+    "duration_seconds": 1.33
+  },
+  "artifacts_verified": 701,
+  "legal_distance_modes_available": 29,
+  "key_deliverables": {
+    "tfidf_compressed_ladder_complete": true,
+    "modes_at_21k_compressed": 8,
+    "modes_at_174k_compressed": 2,
+    "all_nesting_perfect": true,
+    "resolution_ladder": [0.25, 0.5, 1.0, 2.0, 3.0],
+    "compressed_ladder_validated_full_22_modes": true,
+    "citation_role_zoom_quality_ranked": true
+  },
+  "new_artifacts_this_cycle": [
+    "results/fractal_map/audit/CYCLE_FINAL_AUDIT_35946644222_GATE.json",
+    "reports/fractal_map/FINAL_AUDIT_SNAPSHOT_v11_35946644222.md"
+  ],
+  "state_updates": {
+    "cycle_status": "COMPLETED",
+    "continue_recommended": false,
+    "next_recommendation": "BLOCKED: TF-IDF modes COMPLETE at compressed ladder (21k scale, 2 modes at 174k). Citation role modes (citing_alpha0.3, following_alpha0.3, criticizing_alpha0.3) and dense embedding modes await legal-distance 174k delivery. When legal-distance delivers 174k dense embeddings: (1) run build_parameterized_legal_distance_map_compressed.py for all dense modes, (2) validate citation-role zoom quality at 174k per zoom quality diagnostic (citing ZQ=0.5401, following ZQ=0.5280, criticizing ZQ=0.4864), (3) implement multi-view zoom UI with citation-role views."
+  },
+  "blockers": {
+    "legal_distance_174k_dense": "Citation role modes (citing/following/criticizing_alpha0.3) and dense embedding modes await legal-distance 174k delivery (gh run 35935612800 actively executing)",
+    "corpus_174k_metadata": "Full 174k metadata (branch/legal_area/chamber) not materialized locally; bge_*.jsonl subset only 21,228 decisions"
+  },
+  "factory_direction_alignment": {
+    "fractal_map_status_in_factory_direction_v25": "RUN",
+    "workspace_factory_direction_v10": "COMPLETED_TFIDF",
+    "lane_deliverable_status": "COMPLETE for TF-IDF compressed ladder at available scale",
+    "note": "Factory direction v25 says RUN for 174k scaling engineering execution. Lane deliverable complete for TF-IDF modes at current available scale. 174k scaling awaits legal-distance embeddings and corpus metadata. Orchestration failure: supervisor reads ephemeral /tmp/lex_control/state/factory_direction.json (v25, status=RUN) instead of workspace state (v10, status=COMPLETED_TFIDF), causing unnecessary re-dispatches."
+  },
+  "evidence_tier": "ACCEPTED",
+  "cycle_status": "COMPLETED",
+  "continue_recommended": false,
+  "orchestration_failure_diagnosis": {
+    "root_cause": "Supervisor dispatch logic reads /tmp/lex_control/state/factory_direction.json (ephemeral, reset each run) which has fractal-map.status=RUN (v25), while workspace state/factory_direction.json correctly has COMPLETED_TFIDF (v10). The lane state fractal-map.json correctly has cycle_status=COMPLETED, continue_recommended=false, and resume_guard.",
+    "impact": "45+ unnecessary resume cycles dispatched (documented in key_findings history) despite lane deliverable being complete and BLOCKED on dependencies.",
+    "fix_required": "Factory Director must update supervisor dispatch logic to read workspace state/factory_direction.json (persistent) instead of ephemeral control plane copy, OR update ephemeral control plane to match workspace state.",
+    "cycles_wasted": 45,
+    "first_documented": "RUN 33339971167 (38th verification cycle)",
+    "last_documented": "RUN 35944858450"
+  },
+  "scientific_summary": {
+    "compressed_resolution_ladder": {
+      "full_ladder": [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+      "compressed_ladder": [0.25, 0.5, 1.0, 2.0, 3.0],
+      "dropped_resolutions": [0.75, 1.5],
+      "resolution_reduction_pct": 29,
+      "modes_analyzed": 22,
+      "purity_delta_retention_pct": 100.0,
+      "nesting_change": 0.0,
+      "zoom_navigation_identical": true,
+      "evidence_tier": "ACCEPTED",
+      "validation_runs": ["33339495531", "33341400705"]
+    },
+    "zoom_quality_diagnostic": {
+      "n_modes_evaluated": 22,
+      "best_zoom_mode": "citing_alpha0.3",
+      "best_zoom_zq_score": 0.5401,
+      "top_3_modes": ["citing_alpha0.3", "following_alpha0.3", "criticizing_alpha0.3"],
+      "best_production_mode_zq": 0.2798,
+      "best_fractal_mode_zq": 0.2799,
+      "design_implication": "Citation role views for zoom navigation; outcome hybrids for flat exploration. Multi-view product design CONFIRMED.",
+      "evidence_tier": "ACCEPTED",
+      "validation_run": "33338598158"
+    },
+    "tfidf_modes_compressed_ladder": {
+      "total_modes": 8,
+      "modes_at_21k": [
+        "cited_decisions_tfidf",
+        "outcome_tfidf",
+        "cited_decisions_tfidf_outcome_hybrid_0.5",
+        "cited_decisions_tfidf_outcome_hybrid_0.7",
+        "full_text_tfidf_light",
+        "regeste_tfidf",
+        "regeste_full_text_hybrid_0.5",
+        "regeste_full_text_hybrid_0.7"
+      ],
+      "modes_at_174k": [
+        "cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25",
+        "regeste_tfidf_174k"
+      ],
+      "all_nesting_score": 1.0,
+      "branch_purity_limitation": "0.0 due to metadata (branch=null for all decisions in bge_*.jsonl subset)"
+    },
+    "hierarchical_leiden_negative_result": {
+      "finding": "Label-based hierarchy (Jurivoc/legal_area) UNPASSABLE per v18 NEGATIVE result",
+      "evidence_tier": "ACCEPTED",
+      "note": "Retain Leiden-clustering based hierarchy; do not pursue label-based hierarchy"
+    }
+  }
+}
