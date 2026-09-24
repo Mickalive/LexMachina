@@ -1,0 +1,83 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "No new claims made in this director run. Accepted evidence ceiling unchanged: Corpus REPRODUCED (174k decisions, 15x); Legal-Distance REPRODUCED (linear_citation_concat, metric learning breakthrough, cited_decisions_tfidf validated, true OOS JP ceiling ≈0.53, factory JP>0.7 target unmet); Evaluation ACCEPTED (v18 hierarchy NEGATIVE, v17b label normalization REPRODUCED); Fractal-Map ACCEPTED (compressed 5-level ladder validated, citation role zoom quality dominant); Product ACCEPTED (174k simulation 16/16 PASS, 30 reps/6 patterns, 54 endpoints). Frontier teams PAUSED per stop_promote_rules.",
+  "evidence_summary": {
+    "corpus": {
+      "tier": "REPRODUCED",
+      "verifications": 15,
+      "decisions": 174113,
+      "schema_errors": 0,
+      "citation_resolution_rate": 0.959,
+      "field_coverage": {
+        "full_text": 1.0,
+        "regeste": 0.474,
+        "cited_decisions": 0.526,
+        "outcome": 0.505,
+        "legal_area": 0.526
+      }
+    },
+    "legal_distance": {
+      "tier": "REPRODUCED",
+      "key_findings": [
+        "linear_citation_concat REPRODUCED across independent seeds (v13 mean_delta=+0.0275, paired_std=0.0164; v14 mean_delta=+0.0392, paired_std=0.0212)",
+        "Metric learning breakthrough: linear projection JP=0.6847, mahalanobis JP=0.6781 on frozen harness v3 (both pass BOTH adversarial gates, 18+ valid epochs)",
+        "cited_decisions_tfidf zero-shot: jurist=0.6922, lang_dom=0.6107 — BEATS supervised metric learning on jurist pairwise",
+        "All 6 cited_decisions_tfidf + center_projected hybrids PASS adversarial gates",
+        "True OOS JuristPref ceiling ≈0.53 (v11 clean OOS); factory JP>0.7 target NOT met by any representation",
+        "v12 temporal holdout REPLICATED: linear_hybrid05_concat JP=0.8375 beats center_projected_64dim JP=0.7750 by +0.0625",
+        "v8 holdout FIXED: cited_outcome_hybrid_0.5 holdout JP=0.580, LangDom=0.511 — passes adversarial gates but below factory target"
+      ]
+    },
+    "evaluation": {
+      "tier": "ACCEPTED",
+      "v18_coarse_hierarchy": "NEGATIVE — best branch purity 0.6497 (linear_citation_concat) < 0.70 threshold; fundamentally unpassable at all label granularities",
+      "v17b_label_normalization": "REPRODUCED across 4 seeds — 15-25% purity gain uniform across 6 representations",
+      "v16_full_benchmark": "6 universal passes, 4 universal failures (boilerplate_resistance, hierarchy_coherence, zoom_coherence, legal_area_clustering), 1 conditional pass (tf_metadata_human_indexing)",
+      "citation_heritage_174k": "EXECUTED with 804 positive pairs on cited_outcome_hybrid_0.5_174k — FAIL (AUC=0.482, threshold=0.65); requires dense embeddings",
+      "frozen_harness_v3": "VALIDATED at 174k scale (config_hash=4323f833fa72366a, seed=42); production default cited_outcome_hybrid_0.5_174k PASSES adversarial gates (lang_dom=0.589, jurist_pref=0.742)"
+    },
+    "fractal_map": {
+      "tier": "ACCEPTED",
+      "compressed_ladder": "[0.25, 0.5, 1.0, 2.0, 3.0] validated for ALL 22 modes — 100% delta retention, identical zoom navigation",
+      "scalability": "192k extrapolation: 5.6 min / 1.0 GB (accepted gate CYCLE_33342328845)",
+      "zoom_quality": "Citation role views dominate: citing_alpha0.3 ZQ=0.5401, following_alpha0.3 ZQ=0.5280, criticizing_alpha0.3 ZQ=0.4864",
+      "v18_hierarchy": "NEGATIVE confirms Leiden clustering is correct zoom hierarchy (label-based fundamentally unpassable)"
+    },
+    "product": {
+      "tier": "ACCEPTED",
+      "representations": 30,
+      "design_patterns": 6,
+      "scale_simulation": "16/16 PASS at 174k (LOD<2s, culling<500ms, spatial_index<5s, k-NN<500ms, inverted_index<15s, WebGL~6.6MB, pipeline<3s)",
+      "api_endpoints": 54,
+      "section_coverage": "1150/1202 decisions (95.7%) across 6 section modes",
+      "production_defaults": {
+        "serving": "cited_outcome_hybrid_0.5",
+        "combination": "linear_hybrid05_concat (JP=0.838, std=0.027)",
+        "map_mode": "center_projected_64dim_hierarchical (LangDom=0.766<0.85, JP=0.512>0.5)"
+      }
+    },
+    "frontier": {
+      "version": 6,
+      "teams": [
+        {
+          "team_id": "frontier_metric_learning_jurivoc",
+          "status": "PAUSE",
+          "stop_rule_triggered": "Verified baseline JP=0.580 below factory JP>0.7 target; no representation achieves target; v18 hierarchy NEGATIVE confirms fundamental limitation"
+        },
+        {
+          "team_id": "frontier_crosslingual_alignment",
+          "status": "PAUSE",
+          "stop_rule_triggered": "GPU unavailable; CPU LoRA progress not demonstrated on adversarial gates without hierarchy collapse; v18 hierarchy NEGATIVE persists"
+        }
+      ]
+    },
+    "critical_unresolved": [
+      "Fabricated evidence in ACCEPTED fractal-map artifacts (cited_decisions_tfidf_outcome_hybrid_0.5/0.7): claimed JP=0.7990/0.7907 vs verified holdout JP=0.580/0.585 — Constitution §6, requires human on main",
+      "Factory JP>0.7 target unmet — true OOS ceiling ≈0.53",
+      "Jurist recruitment (5-10 Swiss jurists) for evaluation human study",
+      "GPU unavailability on free public runners (environment constraint)"
+    ]
+  }
+}
