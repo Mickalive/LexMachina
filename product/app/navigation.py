@@ -46,7 +46,9 @@ class NavigationAPI:
     EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
 
     def __init__(self, corpus_dir: str, results_dir: str):
-        self.corpus = CorpusLoader(corpus_dir)
+        # Use the 1k slice for map-corpus alignment (map artifacts are at 1k scale)
+        # Full 174k corpus switch pending legal-distance 174k representations delivery
+        self.corpus = CorpusLoader(corpus_dir, file_pattern="bger_2000plus_slice_1000.jsonl")
         self.map_loader = MapLoader(results_dir, corpus_dir=corpus_dir)
         self.section_modes = SectionModeLoader(
             section_dir=str(Path(results_dir) / "section_scaled"),

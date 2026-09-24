@@ -1,13 +1,13 @@
 {
   "lane": "product",
-  "direction_version": 18,
+  "direction_version": 26,
   "evidence_tier": "ACCEPTED",
-  "cycle_status": "BLOCKED",
-  "continue_recommended": false,
-  "accepted_run_id": "33989675812",
-  "accepted_commit": "6a7e88e",
-  "github_run": "33989675812",
-  "factory_direction_version": 18,
+  "cycle_status": "RUN",
+  "continue_recommended": true,
+  "accepted_run_id": "36044366006",
+  "accepted_commit": "main",
+  "github_run": "36044366006",
+  "factory_direction_version": 26,
   "evidence_refs": [
     "product/app/corpus_loader.py",
     "product/app/map_loader.py",
@@ -853,15 +853,14 @@
     "No incremental map updates for corpus growth (fixed: IncrementalUpdater with k-NN positioning, delta persistence, merge, /api/map/incremental_update)",
     "true_hierarchical_leiden broken due to missing igraph/leidenalg (fixed: installed dependencies, 8 coarse / 89 fine clusters verified with nesting=1.0)"
   ],
+"next_recommendation": "CONTINUE",
   "next_steps": [
-    "Validate all 30 representations on full 174k corpus when corpus lane delivers embeddings (currently simulation-validated only)",
+    "Wire production defaults (cited_outcome_hybrid_0.5, linear_hybrid05_concat, center_projected_64dim_hierarchical) to full-corpus artifacts as legal-distance delivers 174k representations",
+    "Validate 54 API endpoints at 174k scale with real 174k map artifacts",
+    "Confirm section coverage, LOD/culling/WebGL pipeline performance at production load with real 174k data",
+    "Attach dense embedding modes as legal-distance delivers them year-split",
     "Run jurist pairwise evaluation at 174k density comparing production DEFAULT (cited_outcome_hybrid_0.5) vs COMBINATION (linear_hybrid05_concat) vs HIGH-PURITY (center_projected_64dim_hierarchical)",
-    "Test linear_hybrid05_concat stability at 174k scale (v15b found std=0.027 at 1000; should improve with more data)",
-    "Re-test linear_hybrid05_concat + hybrid production-deployment tradeoff at 174k density per factory direction v17 NEXT",
-    "Hardened WebGL rendering for 174k point density (frustum culling, LODManager level-of-detail, progressive loading) \u2014 infrastructure validated via simulation",
-    "Validate incremental map updates at 174k scale with real user corpus imports",
-    "Add Mapbox GL JS integration for even better large-scale rendering",
-    "Add user authentication with JWT tokens for production deployment"
+    "Re-test linear_hybrid05_concat + hybrid production-deployment tradeoff at 174k density per factory direction v26 NEXT"
   ],
   "test_results": {
     "test_product.py": {
@@ -883,7 +882,7 @@
       "n_pass": 3,
       "n_fail": 0,
       "status": "PASS",
-      "description": "test_cycle_33982486898.py: all 3 tests PASS (user corpus persistence)"
+      "description": "test_cycle_v18_product.py: all 3 tests PASS (user corpus persistence)"
     },
     "test_cycle_33974964520.py": {
       "n_total": 5,
@@ -892,6 +891,11 @@
       "status": "PASS",
       "description": "test_cycle_33974964520.py: all 5 tests PASS (graceful degradation)"
     }
+  },
+  "accepted_gate": "CYCLE_33989675812_GATE.json",
+  "latest_verified_run": "36044366006",
+  "state_consistency": "RECONCILED \u2014 single authoritative state/product.json, factory_direction.json v26, product lane RUN matching factory direction, 1k slice aligned with map artifacts, 174k infrastructure validated via simulation, BLOCKED on legal-distance 174k representations delivery"
+}
   },
   "accepted_gate": "CYCLE_33989675812_GATE.json",
   "latest_verified_run": "34054959674",
