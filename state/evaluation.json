@@ -699,6 +699,124 @@
           "citation_role_overruling_alpha0.3"
         ]
       },
-      "next_recommendation": "BLOCKED_ON_DEPENDENCIES - All evaluation infrastructure FROZEN, VALIDATED, and AUDIT-READY for 174k execution. Bug fix applied for 174k metadata compatibility. Auto-monitor script created for autonomous execution when representations land. Three v25 sub-questions blocked on legal-distance 174k representations (gh run 35935612800 active). No additional same-question cycle justified."
+"next_recommendation": "BLOCKED_ON_DEPENDENCIES - All evaluation infrastructure FROZEN, VALIDATED, and AUDIT-READY for 174k execution. Bug fix applied for 174k metadata compatibility. Auto-monitor script created for autonomous execution when representations land. Three v25 sub-questions blocked on legal-distance 174k representations (gh run 35935612800 active). No additional same-question cycle justified."
+    },
+    "v25_operational_resume_final_audit_35974742913": {
+      "github_run": "35974742913",
+      "timestamp": "2026-09-24T08:36:00Z",
+      "cycle_status": "BLOCKED_ON_DEPENDENCIES",
+      "evidence_tier": "ACCEPTED",
+      "verifications_performed": [
+        "frozen_harness_v3_full_reproduction_exact_match",
+        "frozen_harness_v3_config_hash_match_a31c443a9b0e992e",
+        "full_corpus_harness_config_hash_match_4047da047fb339c1",
+        "v16_benchmark_suite_config_hash_match_4323f833fa72366a",
+        "v17b_label_normalization_174k_label_level_reconfirmed_213_to_163",
+        "citation_heritage_174k_infrastructure_ready_1020_pairs",
+        "scalable_nn_hnsw_operational",
+        "legal_distance_gh_run_35935612800_status_rechecked",
+        "all_three_config_hashes_reverified",
+        "metadata_174k_load_verified_173963_decisions",
+        "auto_monitor_script_operational"
+      ],
+      "config_hashes_reverified": {
+        "frozen_harness_v3": "a31c443a9b0e992e",
+        "full_corpus_harness": "4047da047fb339c1",
+        "v16_benchmark_suite": "4323f833fa72366a"
+      },
+      "frozen_harness_v3_results": {
+        "representations_tested": 6,
+        "all_adversarial_pass": [
+          "linear_metric_epoch4",
+          "mahalanobis_metric_epoch4",
+          "hybrid_stabilized_epoch1",
+          "hybrid_v2_epoch3",
+          "center_projected_64dim"
+        ],
+        "adversarial_fail": [
+          "center_projected_768"
+        ],
+        "reference_baseline_verified": "center_projected_64dim PASS both gates (lang_dom=0.7664, jurist_pref=0.5121)",
+        "exact_match_with_accepted_state": true
+      },
+      "full_corpus_harness_status": "VALIDATED at 1200 scale, exact adversarial match with frozen v3, HNSW backend ready for 174k",
+      "v16_benchmark_suite_status": "IMPLEMENTED (12 benchmarks, frozen thresholds, config hash verified)",
+      "v17b_label_normalization_174k": {
+        "raw_unique_labels": 213,
+        "normalized_unique_labels": 163,
+        "label_reduction_pct": 23.5,
+        "labels_changed": 85819,
+        "labels_changed_pct": 49.3,
+        "canonical_concepts_with_multilang_variants": 32,
+        "clustering_test": "PENDING - requires 174k embeddings from legal-distance"
+      },
+      "citation_heritage_174k_status": {
+        "positive_pairs": 1020,
+        "negative_pairs": 1020,
+        "citation_resolution_rate": "95.9% (2,019/2,105)",
+        "infrastructure_ready_for_174k_embeddings": true,
+        "note": "Previous execution on cited_outcome_hybrid_0.5_174k (cycle branch) FAIL (AUC=0.482) - TF-IDF insufficient at 174k scale; dense embeddings required"
+      },
+      "infrastructure_status": {
+        "frozen_harness_v3": "OPERATIONAL (config hash verified, exact reproduction confirmed)",
+        "scalable_nn_hnsw": "OPERATIONAL (hnswlib available, validated at 174k scale with 90k+ decisions)",
+        "full_corpus_harness": "VALIDATED at 1200 scale, exact adversarial match with frozen v3",
+        "v16_benchmark_suite": "IMPLEMENTED (12 benchmarks, frozen thresholds, config hash verified)",
+        "citation_heritage_174k": "READY (1,020 positive + 1,020 negative pairs at full 174k scale)",
+        "v17b_normalization_174k": "LABEL LEVEL CONFIRMED (213->163 labels, 32 cross-lingual canonical concepts), clustering test pending embeddings",
+        "distributed_evaluation": "SUPPORTED (model-level sharding via DistributedEvaluator)",
+        "auto_monitor_script": "OPERATIONAL (evaluation/monitor_and_evaluate_174k.py)"
+      },
+      "174k_corpus_readiness": {
+        "total_decisions": 173963,
+        "decisions_with_known_branch": 90632,
+        "decisions_with_legal_area": 91193,
+        "language_distribution": {"de": 106501, "fr": 57489, "it": 9973},
+        "branch_distribution_known": {"oeffentliches_recht": 31284, "zivilrecht": 25413, "sozialversicherungsrecht": 17347, "strafrecht": 16588}
+      },
+      "awaiting_from_legal_distance": {
+        "priority_1_tfidf_signals": [
+          "cited_decisions_tfidf",
+          "outcome_tfidf",
+          "cited_outcome_hybrid_0.5",
+          "cited_outcome_hybrid_0.7",
+          "linear_citation_concat",
+          "linear_hybrid05_concat",
+          "linear_citation_w3070",
+          "linear_citation_ridge"
+        ],
+        "priority_2_dense_embeddings": [
+          "center_projected_768dim",
+          "center_projected_64dim",
+          "linear_metric_epoch4",
+          "mahalanobis_metric_epoch4",
+          "hybrid_stabilized_epoch1"
+        ],
+        "priority_3_citation_roles": [
+          "citation_role_citing_alpha0.3",
+          "citation_role_following_alpha0.3",
+          "citation_role_criticizing_alpha0.3",
+          "citation_role_distinguishing_alpha0.3",
+          "citation_role_overruling_alpha0.3"
+        ]
+      },
+      "negative_results_preserved": {
+        "boilerplate_resistance": "NEGATIVE (~ -0.9) - measures language dominance, not procedural boilerplate",
+        "hierarchy_coherence": "NEGATIVE - v18 confirmed fundamental branch-level limitation (purity ~0.65)",
+        "zoom_coherence": "NEGATIVE - no improvement from coarse to fine at branch level",
+        "legal_area_clustering": "NEGATIVE - fine-grained label granularity prevents purity > 0.5",
+        "citation_heritage_on_tfidf": "NEGATIVE (AUC=0.482) - TF-IDF cannot recover citation proximity at 174k scale",
+        "center_projected_768": "FAILS jurist pairwise gate (0.4912 < 0.5) - confirmed across all verifications"
+      },
+      "production_decision_gates": {
+        "PRODUCT_SERVING_DEFAULT_cited_outcome_hybrid_0.5": "Must pass BOTH adversarial gates at 174k",
+        "COMBINATION_MODE_linear_hybrid05_concat": "Must pass BOTH adversarial gates + stability test at 174k",
+        "DEFAULT_map_mode_center_projected_64dim_hierarchical": "Validated PASS both gates at 1200, must re-verify at 174k"
+      },
+      "external_blockers": {
+        "jurist_human_study": "Framework ready, externally blocked (requires 5-10 Swiss jurists recruited by repository owner)"
+      },
+      "next_recommendation": "BLOCKED_ON_DEPENDENCIES - All evaluation infrastructure FROZEN, VALIDATED, and AUDIT-READY for 174k execution. Final operational resume verification complete. Three v25 sub-questions blocked on legal-distance 174k representations (gh run 35935612800 active). No additional same-question cycle justified. Factory Director to await legal-distance delivery in accepted state before authorizing next evaluation cycle. Snapshot is audit-ready."
     }
   }
+}
