@@ -1,0 +1,44 @@
+{
+  "experiment": "fractal-map 174k zoom-quality completion across ALL decision-mappable modes (v26)",
+  "lane": "fractal-map",
+  "direction_version": 25,
+  "github_run": 36035695081,
+  "resume_from_run": 36034386649,
+  "date_frozen": "2026-09-24",
+  "supersedes": "none (v25 artifacts remain frozen and untouched; v26 completes the claim surface v25 left partial)",
+  "v25_ref": "results/fractal_map/zoom_quality_174k_eval/v25_frozen_spec.json",
+  "census_ref": "results/fractal_map/legal_distance_modes/174k_CENSUS_v26_frozen_spec.json",
+  "hypothesis": "Among the decision-mappable true-174k TF-IDF builds (decision_clusters.json joined to ACCEPTED metadata by decision_id), at least one representation supports monotonic zoom refinement: branch purity and area purity increase coarse->fine across the compressed 5-level ladder [0.25,0.5,1.0,2.0,3.0], with zoom improvement_rate > 0.5 on >= 2 of 4 transitions (identical success rule to v25).",
+  "data_sources": {
+    "clusters": "results/fractal_map/legal_distance_modes/<mode>/decision_clusters.json (decision_id -> {res: cluster})",
+    "labels": "results/fractal_map/legal_distance_modes/<mode>/labels_res_*.npy (cluster membership per embedding row; used for fragmentation, nesting and shape checks, never for id mapping)",
+    "metadata": "/tmp/lex_accepted/evaluation/evaluation/data/174k/metadata_174k.json (ACCEPTED, 173,963 entries; branch+legal_area 100% covered)",
+    "nesting_build": "zoom_mappings.json strict_nesting_consistency per transition (build-time) vs independent recomputation from labels"
+  },
+  "modes_frozen": [
+    "cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25",
+    "cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed_v25",
+    "cited_decisions_tfidf_outcome_hybrid_0.5_174k",
+    "regeste_tfidf_174k"
+  ],
+  "resolutions": [
+    0.25,
+    0.5,
+    1.0,
+    2.0,
+    3.0
+  ],
+  "metric_branch": "mean cluster branch purity per resolution (exclude 'unknown'); clusters with >=3 labeled decisions",
+  "metric_area": "mean cluster legal_area purity per resolution (214 raw areas; exclude 'unknown')",
+  "metric_zoom": "per transition (r_i -> r_{i+1}): mean_improvement and improvement_rate, in the canonical builder semantics (compute_zoom_coherence in build_parameterized_legal_distance_map_compressed.py) translated to decision-ID space: parent = coarse cluster with >=3 member ids and >=1 labeled decision; children of a parent = fine clusters whose majority coarse cluster (over ALL member ids) is that parent, with >=3 labeled decisions; child purity over fine-cluster labeled members; improvement per parent = mean(child purities) - parent purity; improvement_rate = fraction of parents with improvement > 0. Cross-validation vs v25: purity identical to v25 raw (exact to 4dp); zoom micro-values reproduce v25 within +/-2 parents / delta mean_improvement <= 0.006 except matching exactly at the first transition; claim-level checks (monotonic flags, rate>0.5 count) identical to v25 verdict records.",
+  "metric_nesting": "strict_nesting_consistency recomputed from labels: fraction of fine clusters (with >=1 valid member) whose members share exactly one unique coarse parent label",
+  "metric_fragmentation": "per resolution from labels: n_clusters, median cluster size, singleton fraction (size-1 clusters)",
+  "success_rule_per_mode": "PASS iff (a) branch purity res_3.0 > res_0.25 AND (b) area purity res_3.0 > res_0.25 AND (c) branch improvement_rate > 0.5 on >= 2 of 4 transitions",
+  "overall_verdict_rule": "PASS iff ANY decision-mappable true-174k mode passes all three per-mode checks. FAIL => no landed TF-IDF 174k representation supports monotonic zoom refinement (v25 negative GENERALIZED to the full mappable set).",
+  "baseline": "uniform-random purity: branch 1/n_branch_classes (excl unknown), area 1/n_area_classes (excl unknown); recomputed from the evaluation metadata",
+  "citation_signal_probe": "hybrids containing the cited_decisions signal (hybrid_0.5, hybrid_0.7) vs regeste-only mode: do citation-bearing TF-IDF modes show better zoom refinement than the regeste mode at 174k? (closest executable proxy for 'citation-role zoom quality at 174k' given the cited-only 174k build is placeholder-keyed; the placeholder build itself is recorded as BLOCKED evidence in the census. 1000-scale accepted evidence: citation-role modes top zoom-quality, ZQ 0.54.)",
+  "honesty_notes": [
+    "v25 verdict (FAIL on the production default) is NOT recomputed or weakened; v26 extends the same success rule to all 4 mappable modes.",
+    "citation-role 174k validation (cited_decisions_tfidf-only build) is recorded separately as BLOCKED: decision_clusters placeholder-keyed (0 real ids), row->id alignment unrecoverable without the full corpus JSONL (alignment probe 1: 0.43 agreement vs ~1.0 expected)."
+  ]
+}

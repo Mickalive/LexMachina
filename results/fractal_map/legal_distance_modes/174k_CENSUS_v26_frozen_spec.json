@@ -1,0 +1,48 @@
+{
+  "experiment": "fractal-map 174k build census + alignment/provenance audit",
+  "lane": "fractal-map",
+  "direction_version": 25,
+  "github_run": 36035695081,
+  "resume_from_run": 36034386649,
+  "date_frozen": "2026-09-24",
+  "scope": [
+    "All directories under results/fractal_map/legal_distance_modes whose name contains '174k'",
+    "Embedding provenance files under results/fractal_map/hierarchical_map_174k/{legal_tfidf_embeddings,tfidf_embeddings}/embeddings_metadata.json",
+    "Metadata provenance files under results/fractal_map/hierarchical_map_174k/metadata_174k*.json",
+    "ACCEPTED evaluation metadata /tmp/lex_accepted/evaluation/evaluation/data/174k/metadata_174k.json (173,963 entries)"
+  ],
+  "fields_per_dir": [
+    "labels_shapes",
+    "decision_clusters_key_count",
+    "placeholder_key_count",
+    "real_key_count",
+    "corpus_size",
+    "embeddings_source",
+    "run_id",
+    "res0.25_cluster_metadata_cluster_count"
+  ],
+  "classification_rules": {
+    "true_174k": "corpus_size >= 170000",
+    "misnamed_21k": "corpus_size < 30000 (21,228-row builds whose dir name contains '174k')",
+    "decision_mappable": "corpus_size >= 170000 AND real_key_count / decision_clusters_key_count >= 0.99",
+    "placeholder_only": "corpus_size >= 170000 AND real_key_count == 0"
+  },
+  "alignment_probes": [
+    {
+      "probe_id": "row_order_vs_eval_metadata",
+      "question": "Are embedding rows 0..173962 in the same order as ACCEPTED evaluation metadata_174k.json decision_ids?",
+      "method": "Candidate assignment row i <- eval_meta[i]; agreement = fraction where decision_clusters[id].res_0.25 == labels_res_0.25[i]. Compare vs shuffled assignment (seed=0) and vs the ~1.0 expected for a correct order.",
+      "evidence": "If agreement << 1.0, embedding row order is NOT recoverable from the accepted metadata; decision-mappable 174k citation-role/outcome rebuilds require the full corpus JSONL to regenerate the alignment."
+    },
+    {
+      "probe_id": "cluster_metadata_rowid_integrity",
+      "question": "Is row->decision_id reconstruction from cluster_metadata.json (decision_indices + decision_ids) consistent?",
+      "method": "Reconstruct row->id at res_0.25 of the production default 174k_v25 build; report duplicate IDs and placeholder counts.",
+      "evidence": "Duplicates > 0 imply cluster_metadata decision_ids were written from a different row ordering than decision_indices (legacy corruption); do NOT use cluster_metadata for row alignment."
+    }
+  ],
+  "outcomes": [
+    "census_v26.json",
+    "alignment_probe_v26.json"
+  ]
+}

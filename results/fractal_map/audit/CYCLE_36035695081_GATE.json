@@ -1,0 +1,35 @@
+{
+  "cycle_id": "36035695081",
+  "resume_from_run_id": "36034386649",
+  "timestamp": "2026-09-24T18:10:00Z",
+  "lane": "fractal-map",
+  "direction_version": 25,
+  "audit_status": "PASS",
+  "audit_status_scope": "PRODUCER SELF-VERIFICATION GATE. Independent audit job for run 36035695081 has not yet run; this file mirrors the established producer-resume gate convention (results/fractal_map/audit/CYCLE_*_GATE.json) and is NOT the independent audit gate (which is written by the auditor to results/audit/fractal-map/CYCLE_36035695081_GATE.json).",
+  "audit_status_rationale": "Operational resume of the persisted (zero-delta) snapshot of run 36034386649 delivered: (1) diagnosis of the failed cycle (team branch 4aa51c95 byte-identical to predecessor -> no audit branch; launcher model-health gating LEX_NO_HEALTHY_FREE_TOOL_MODEL + LEX_REQUIRE_DELTA; model_health.json free-probe 503/Nvidia failures, fallback opencode/big-pickle); (2) frozen 174k census + alignment audit (12 dirs classified 4/2/6; placeholder corruption confirmed; row->id alignment REJECTED 0.4264 vs ~1.0; cluster_metadata CORRUPTED); (3) frozen v26 evaluation completing the v25 claim surface on ALL 4 decision-mappable 174k modes with the identical success rule -> 0/4 PASS, OVERALL FAIL (v25 negative generalized), crosschecked vs frozen v25 (purity bit-equal; zoom claim-level identical; micro-deviations documented); (4) citation-role 174k validation recorded BLOCKED by evidence (placeholder builds; unrecoverable alignment without full corpus JSONL); (5) product multi-view zoom UI with citation-role views re-verified at accepted peer; (6) 7 new guard tests -> 195/195 PASS; (7) state/fractal-map.json updated with evidence_refs + key_findings; this gate JSON written. continue_recommended=false - single remaining external blocker legal-distance_174k_dense_embeddings.",
+  "diagnosis_of_failed_run_36034386649": {
+    "role_in_chain": "re-dispatched resume of completed lane work (predecessor cycle 36029852715 committed 4aa51c95)",
+    "snapshot_persisted": "origin/cycle/core/fractal-map/36034386649/team == 4aa51c95 (byte-identical to predecessor; zero durable delta)",
+    "failure_mechanism": [
+      "run-ox-with-retry.sh hard-fails on LEX_NO_HEALTHY_FREE_TOOL_MODEL (model-health gating)",
+      "zero-delta runs exit via LEX_REQUIRE_DELTA guard -> no audit branch created (none exists for 36029852715 or 36034386649)",
+      "model_health.json: nemotron probes 503/Nvidia overload; permission auto-reject; resolved_model=opencode/big-pickle (fallback) -> no healthy free tool-model available at dispatch"
+    ],
+    "preserved_work": "commit 4aa51c95 (v25 frozen evaluation, guard tests, state) intact and unmodified"
+  },
+  "deliverables": {
+    "frozen_census": "results/fractal_map/legal_distance_modes/174k_CENSUS_v26_frozen_spec.json -> census_v26.json + alignment_probe_v26.json",
+    "frozen_v26_evaluation": "results/fractal_map/zoom_quality_174k_eval/v26_frozen_spec.json -> v26_verdict.json (OVERALL FAIL, 0/4 modes PASS)",
+    "citation_role_174k": "BLOCKED (placeholder-keyed builds; alignment unrecoverable; evidence in census + probes + v26 honesty_notes)",
+    "product_ui": "multi-view zoom UI with citation-role views re-verified at accepted product peer",
+    "guard_tests": "tests/fractal_map/test_zoom_quality_174k_v26_eval.py (7 tests)"
+  },
+  "verification": {
+    "pytest": "195/195 PASS (188 frozen + 7 new guards)",
+    "crosscheck_v25": "purity bit-equal on all 5 resolutions for primary mode; zoom claim-level identical (rate>0.5 count 1 vs 1; branch monotonic False vs False); zoom micro-deviations <=2 parents / delta MI <=0.006 documented (inline v25 producer script never committed)",
+    "census_rerun": "deterministic classifications on immutable historical artifacts",
+    "v25_freeze": "v25_frozen_spec.json / v25_raw_purity.json / v25_raw_zoom.json / v25_verdict.json untouched; verdict still FAIL"
+  },
+  "blocked_on": "legal-distance_174k_dense_embeddings",
+  "continue_recommended": false
+}
