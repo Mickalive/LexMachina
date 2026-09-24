@@ -229,6 +229,12 @@ CHAMBER_TO_BRANCH = {
 }
 
 def assign_branch(chamber: str) -> str:
+    """Assign legal branch from chamber name.
+    
+    Handles None/empty chamber gracefully (returns 'unknown').
+    """
+    if not chamber:
+        return "unknown"
     if chamber in CHAMBER_TO_BRANCH:
         return CHAMBER_TO_BRANCH[chamber]
     chamber_lower = chamber.lower()
