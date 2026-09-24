@@ -1,0 +1,119 @@
+{
+  "cycle_id": "36025207612",
+  "resume_from_run_id": "36023963893",
+  "revise_gate_run": "36018593628",
+  "timestamp": "2026-09-24T16:30:00Z",
+  "lane": "fractal-map",
+  "direction_version": 25,
+  "audit_status": "PASS",
+  "audit_status_scope": "PRODUCER SELF-VERIFICATION GATE. Independent audit job for run 36025207612 has not yet run; this file mirrors the established producer-resume gate convention (results/fractal_map/audit/CYCLE_OPERATIONAL_RESUME_*_GATE.json) and is NOT the independent audit gate (which is written by the auditor to results/audit/fractal-map/CYCLE_36025207612_GATE.json).",
+  "audit_status_rationale": "Operational resume of persisted producer snapshot of run 36023963893 delivered BOTH required fixes of the independent REVISE gate on run 36018593628: (Fix 1) all 9 ACCEPTED-tier validation_metrics nesting_score over-claims corrected/annotated with honest strict nesting + NESTING_METRIC_DEFECT_v1 note + audit-artifact pointer, plus same-class corrections in metrics_summary.tfidf_modes_174k_compressed.all_nesting_perfect and compressed_resolution_ladder.nesting_change, plus REPRODUCED-tier scope annotations; (Fix 2) durable delta recorded (github_run/resume chain/key_findings for 36023963893 diagnosis and 36025207612 correction). Verification: 184/184 frozen tests PASS; compute_honest_nesting_audit.py re-run bit-exact vs committed artifact; verify_state_nesting_fix.py 53/53 PASS.",
+  "diagnosis_of_failed_run_36023963893": {
+    "role_in_chain": "repair round 1 dispatched after REVISE-gated run 36018593628",
+    "snapshot_persisted": "origin/cycle/core/fractal-map/36023963893/team == 0e7aaf4f (byte-identical to 36014970673 and 36018593628 team refs; zero durable delta)",
+    "missing_after_failure": [
+      "state/fractal-map.json update (REVISE required fixes never applied)",
+      "results/audit/fractal-map/CYCLE_36023963893_GATE.json (no audit branch exists for this run)",
+      "any file referencing run 36023963893"
+    ],
+    "mechanism": "run-ox-with-retry.sh sets LEX_REQUIRE_DELTA=1 for repairs; a clean tree at exit 0 raises LEX_ZERO_DELTA_REPAIR and exits 67, failing the team job before the audit job could run",
+    "root_orchestration_defect": "supervisor re-dispatch loop: ephemeral /tmp/lex_control/state/factory_direction.json fractal-map.status=RUN vs workspace state/fractal-map.json cycle_status=COMPLETED + continue_recommended=false + blocked_on=legal-distance_174k_dense_embeddings (60th+ documented occurrence)"
+  },
+  "verification": {
+    "tests_total": 184,
+    "tests_passed": 184,
+    "tests_failed": 0,
+    "frozen_tests": "tests/fractal_map/test_verify.py (unchanged this run)",
+    "nesting_audit_bit_exact_reproduction": {
+      "script": "fractal_map/hierarchical/compute_honest_nesting_audit.py",
+      "committed_artifact": "results/fractal_map/evaluation/resume_36014970673_nesting_audit.json",
+      "modes_differing": 0,
+      "reference_dirs_equal": true,
+      "summary_equal": true,
+      "defect_block_equal": true,
+      "n_modes_audited": 46,
+      "n_modes_recorded_nesting_overclaim": 37
+    },
+    "state_fix_verification": {
+      "script": "fractal_map/hierarchical/verify_state_nesting_fix.py",
+      "artifact": "results/fractal_map/evaluation/operational_resume_36025207612_state_nesting_fix.json",
+      "checks_total": 53,
+      "checks_passed": 53,
+      "checks_failed": 0
+    },
+    "tracked_files_under_results_fractal_map": 995
+  },
+  "work_completed": {
+    "revise_fix_1_state_nesting_corrections": {
+      "required_entries_corrected": 9,
+      "entries": {
+        "full_text_tfidf_light_174k_compressed": {
+          "legacy": 1.0,
+          "honest": 0.39106372080996143
+        },
+        "cited_decisions_tfidf_174k_compressed": {
+          "legacy": 1.0,
+          "honest": 0.783069252615662
+        },
+        "cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed": {
+          "legacy": 1.0,
+          "honest": 0.853953700800777
+        },
+        "cited_decisions_tfidf_outcome_hybrid_0.5_21k_compressed": {
+          "legacy": 1.0,
+          "honest": 0.9269594210012833
+        },
+        "regeste_full_text_hybrid_0.5_174k_compressed": {
+          "legacy": 1.0,
+          "honest": 0.9294774877573337
+        },
+        "regeste_full_text_hybrid_0.7_174k_compressed": {
+          "legacy": 1.0,
+          "honest": 0.9522750440181633
+        },
+        "regeste_tfidf_21k_compressed": {
+          "legacy": 1.0,
+          "honest": 0.9631941086395874
+        },
+        "cited_decisions_tfidf_outcome_hybrid_0.5": {
+          "pair_value_kept": 1.0,
+          "honest_ladder_mean": 0.8722435769849564,
+          "action": "annotated with nesting_score_scope"
+        },
+        "cited_decisions_tfidf_outcome_hybrid_0.7": {
+          "pair_value_kept": 1.0,
+          "honest_ladder_mean": 0.8644127756695815,
+          "action": "annotated with nesting_score_scope"
+        }
+      },
+      "additional_same_class_corrections": [
+        "metrics_summary.tfidf_modes_174k_compressed.all_nesting_perfect: true -> false (honest_strict_nesting_by_mode added; legacy preserved)",
+        "validation_metrics.compressed_resolution_ladder.nesting_change: 0.0 -> -0.0036352876963673384 (honest mean over accepted compressed_resolution_ladder_all_modes.json 22 modes; range preserved; legacy preserved)",
+        "validation_metrics.center_projected_hierarchical: by-construction scope + honest ladder mean 0.5006146996278574",
+        "validation_metrics.hierarchical_leiden_concat_legacy: by-construction best_config scope",
+        "metrics_summary.center_projected_hierarchical_experiment: scope + honest ladder mean",
+        "top-level metric_defect_notes.NESTING_METRIC_DEFECT_v1 added"
+      ],
+      "legacy_values_preserved": true,
+      "historical_artifacts_untouched": true
+    },
+    "revise_fix_2_durable_delta": {
+      "github_run": "36025207612",
+      "resume_from_run_id": "36023963893",
+      "revise_gate_run": "36018593628",
+      "repair_of": "36018593628",
+      "legacy_repair_of": "35968700890",
+      "prior_zero_delta_repair_run": "36023963893",
+      "key_findings_added": 2
+    },
+    "work_preserved_from_prior_cycles": [
+      "24-file snapshot from run 36008005345 (full_text_tfidf_light 21k + cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed_v25 at true 175,440)",
+      "NESTING_METRIC_DEFECT_v1 builder fixes in build_parameterized_legal_distance_map*.py (run 36014970673)",
+      "honest nesting audit artifact + compute_honest_nesting_audit.py (run 36014970673)",
+      "census correction (6 true-174k TF-IDF dirs) and zoom routing tables"
+    ]
+  },
+  "claim_ceiling": "Accepted evidence unchanged: honest strict-nesting ladder means for 46 modes (37 over-claims quantified, bit-exact reproducible); census correction to 6 true-174k TF-IDF modes; two new 21k/174k v25 builds artifact-complete; 184/184 frozen tests. THIS RUN ADDS: the live state claim surface now agrees with that accepted evidence (53/53 machine checks). No claim of nesting >= 0.99 stands uncorrected for the 7 compressed-family modes. NOT accepted until independent audit: run 36025207612 itself.",
+  "evidence_summary": "184/184 frozen tests PASS (1.36s). compute_honest_nesting_audit.py re-run bit-exact vs committed resume_36014970673_nesting_audit.json (0 of 46 modes differ; reference dirs, summary, defect block identical). verify_state_nesting_fix.py 53/53 PASS covering every corrected/annotated state entry against the honest audit artifact and the accepted compressed_resolution_ladder_all_modes.json. State github_run/resume chain updated to 36025207612/36023963893 with 2 new key_findings documenting the 36018593628 REVISE fixes and the 36023963893 zero-delta failure diagnosis. Tracked artifacts 995, tests file unchanged. Lane remains BLOCKED on legal-distance 174k dense embeddings and corpus 174k metadata; continue_recommended=false.",
+  "recommendation": "CONTINUE same factory-direction question only after unblock (legal-distance dense embeddings or corpus metadata); until then continue_recommended=false. Escalate root orchestration defect: supervisor must read workspace lane state (cycle_status/continue_recommended/blocked_on) instead of ephemeral factory_direction.json status=RUN before dispatching fractal-map."
+}
