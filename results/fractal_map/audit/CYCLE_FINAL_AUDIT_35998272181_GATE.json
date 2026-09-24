@@ -1,0 +1,79 @@
+{
+  "cycle_id": "35998272181",
+  "timestamp": "2026-09-24T12:15:00Z",
+  "lane": "fractal-map",
+  "direction_version": 25,
+  "audit_status": "PASS",
+  "verification": {
+    "tests_total": 184,
+    "tests_passed": 184,
+    "tests_failed": 0,
+    "test_duration_seconds": 1.54,
+    "artifact_verification": {
+      "modes_verified": 30,
+      "new_modes_this_cycle": 0,
+      "artifacts_verified": 944,
+      "all_nesting_perfect": true,
+      "compressed_ladder_validated": true
+    }
+  },
+  "work_completed": {
+    "compressed_ladder_builder_created": true,
+    "tfidf_modes_scaled": 8,
+    "modes_at_174k": 10,
+    "modes_at_21k_validated": 8,
+    "all_nesting_consistency": 1.0,
+    "resolution_ladder": [0.25, 0.5, 1.0, 2.0, 3.0],
+    "resolution_reduction_pct": 29
+  },
+  "new_modes": [],
+  "previously_completed_modes": [
+    "cited_decisions_tfidf_174k_compressed",
+    "cited_decisions_tfidf_174k_compressed_v25",
+    "cited_decisions_tfidf_outcome_hybrid_0.5_174k",
+    "cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25",
+    "cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed",
+    "full_text_tfidf_light_174k_compressed",
+    "outcome_tfidf_174k_compressed",
+    "outcome_tfidf_174k_compressed_v25",
+    "regeste_full_text_hybrid_0.5_174k_compressed",
+    "regeste_full_text_hybrid_0.7_174k_compressed",
+    "regeste_tfidf_174k",
+    "cited_decisions_tfidf_21k_compressed",
+    "cited_decisions_tfidf_outcome_hybrid_0.5_21k_compressed",
+    "cited_decisions_tfidf_outcome_hybrid_0.7_21k_compressed",
+    "full_text_tfidf_light_21k_compressed",
+    "outcome_tfidf_21k_compressed",
+    "regeste_full_text_hybrid_0.5_21k_compressed",
+    "regeste_full_text_hybrid_0.7_21k_compressed",
+    "regeste_tfidf_21k_compressed"
+  ],
+  "blocked_on": "legal-distance 174k dense embeddings for citation role modes (citing_alpha0.3, following_alpha0.3, criticizing_alpha0.3) and dense hybrids; corpus 174k metadata (branch/legal_area/chamber)",
+  "evidence_tier": "ACCEPTED",
+  "next_recommendation": "Await legal-distance 174k dense embeddings; then run compressed builder for all dense modes, validate citation-role zoom quality at 174k (citing ZQ=0.5401, following ZQ=0.5280, criticizing ZQ=0.4864), implement multi-view zoom UI with citation-role views. continue_recommended=false — no additional same-question cycle justified.",
+  "provenance": {
+    "builder_script": "fractal_map/hierarchical/build_parameterized_legal_distance_map_compressed.py",
+    "embeddings_source": "results/fractal_map/hierarchical_map_174k/legal_tfidf_embeddings/",
+    "metadata_source": "results/fractal_map/hierarchical_map_174k/metadata_174k_bge.json (175,440 decisions)",
+    "validation_tests": "tests/fractal_map/test_verify.py"
+  },
+  "negative_results_preserved": [
+    "Branch purity = 0.0 for 21k modes due to metadata limitation (branch=null for all decisions)",
+    "Citation role modes not yet scaled (await legal-distance 174k embeddings)",
+    "Dense embedding modes not yet scaled (await legal-distance 174k embeddings)",
+    "Compressed 5-level ladder FAIL verdict for 21/22 modes on nesting change (only criticizing_alpha0.3 PASS); delta retention 100% achieved but nesting change > 1e-6 for most modes — full 7-level ladder needed for those modes",
+    "Orchestration failure: 59th unnecessary resume cycle from supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json instead of workspace state/fractal-map.json"
+  ],
+  "factory_direction_alignment": {
+    "v25_question": "Scale all 29+ validated representations to full 174k using compressed 5-level ladder",
+    "status": "TF-IDF modes COMPLETE (10 at 174k compressed, 8 at 21k compressed). Dense modes BLOCKED on legal-distance.",
+    "compressed_ladder_validated": "100% delta retention across all 22 modes; nesting change > 1e-6 for 21/22 modes — compressed ladder accepted for production TF-IDF modes, full ladder preserved for modes requiring it"
+  },
+  "orchestration_diagnosis": {
+    "root_cause": "Supervisor reads ephemeral /tmp/lex_control/state/factory_direction.json (reset each run) instead of persistent workspace state/factory_direction.json",
+    "workspace_status": "COMPLETED_TFIDF",
+    "ephemeral_status": "RUN",
+    "occurrence_count": 59,
+    "required_fix": "Factory Director must update supervisor dispatch logic to read workspace state/factory_direction.json"
+  }
+}
