@@ -26,7 +26,7 @@ The evaluation lane has **completed all machine-executable work** for the TF-IDF
 |--------------|--------|---------|
 | **1. Full 12-benchmark formal suite at 174k** | ✅ COMPLETE | All 8 TF-IDF representations evaluated against frozen 12-benchmark suite (config hash 4323f833fa72366a, seed 42) using HNSW-backed k-NN |
 | **2. Citation heritage benchmark** | ✅ COMPLETE | Dedicated citation_heritage benchmark validated on frozen 137,314-pair pool (built from 2,019/2,105 resolved citation IDs). 7/8 TF-IDF reps PASS (AUC ≥ 0.65) |
-| **3. v17b label normalization at 174k** | ✅ COMPLETE | v17b conservative cross-lingual normalization (213→163 labels) tested on all 8 TF-IDF reps. 7/8 within ≤10% worsening rule on hierarchy-family metrics. 1 exceeds (cited_outcome_hybrid_0.5 zoom_coherence -16%) |
+| **3. v17b label normalization at 174k** | ✅ COMPLETE | v17b conservative cross-lingual normalization (213→163 labels) tested on all 8 TF-IDF reps. **2/8 fully within ≤10% rule** (cited_decisions_tfidf, regeste_tfidf); 5 exceed on hierarchy NMI (-10.8% to -27.6%); 1 exceeds on zoom_coherence (-16.0%) |
 | **Jurist human study** | ⏸ BLOCKED | External dependency: requires 5-10 Swiss jurists recruited by repository owner. Framework ready. |
 
 ---
@@ -53,13 +53,13 @@ The evaluation lane has **completed all machine-executable work** for the TF-IDF
 | branch_knn | ❌ Universal FAIL | Threshold 0.6333; only full-text/regeste reps pass |
 | tf_metadata_human_indexing | ❌ Universal FAIL | Threshold 0.8; only full-text/regeste reps pass |
 | adversarial_falsification | ✅ PASS (citation reps) | Citation-based reps pass both gates; full-text/regeste fail language_dominance (~0.99) |
-| boilerplate_resistance_real_corpus | ❌ Universal FAIL | Correlation ~0.0 to -0.9; proxy measures language dominance, not boilerplate |
+| boilerplate_resistance_real_corpus | ❌ FAIL (citation reps); ✅ PASS (full-text/regeste reps) | 3/8 PASS: full_text_tfidf_light (0.914), regeste_full_text_hybrid_0.5 (0.790), regeste_full_text_hybrid_0.7 (0.602); threshold 0.1; proxy measures language dominance |
 | multilingual_invariance | ✅ PASS (citation reps) | Citation reps pass; full-text/regeste fail separation |
 | cross_language_pairs | ✅ PASS (citation reps) | Citation reps pass; full-text/regeste fail |
 | collapse_check | ✅ Universal PASS | No representation collapsed |
 | temporal_stability | ❌ FAIL (citation reps) | std > 0.1 for citation reps; PASS for full-text/regeste |
 | hierarchy_coherence | ❌ Universal FAIL | Purity 0.08-0.47 < 0.7 threshold |
-| zoom_coherence | ✅ PASS (citation reps) | Improvement >0% for all; full-text/regeste show +104% |
+| zoom_coherence | ✅ PASS (6/8 reps) | Improvement >0% for 6/8 reps; 0% for outcome_tfidf, regeste_tfidf → FAIL |
 | legal_area_clustering | ❌ Universal FAIL | Purity 0.003-0.08 < 0.5 |
 
 ---
@@ -91,18 +91,22 @@ The evaluation lane has **completed all machine-executable work** for the TF-IDF
 
 ### Generalization Rule (≤10% worsening on hierarchy-family metrics)
 
-| Representation | Hierarchy Purity Δ | Zoom Coherence Δ | Legal Area Δ | Within Rule? |
-|----------------|-------------------|------------------|--------------|--------------|
-| cited_decisions_tfidf | +52% | -6% | +49% | ✅ |
-| cited_outcome_hybrid_0.7 | +52% | -7% | +51% | ✅ |
-| cited_outcome_hybrid_0.5 | +49% | **-16%** | +47% | ❌ |
-| regeste_tfidf | +0% | 0% | +0% | ✅ (1:1 coarse map) |
-| outcome_tfidf | +0% | 0% | +0% | ✅ (1:1 coarse map) |
-| full_text_tfidf_light | +48% | -5% | +45% | ✅ |
-| regeste_full_text_hybrid_0.5 | +0% | 0% | +0% | ✅ (1:1 coarse map) |
-| regeste_full_text_hybrid_0.7 | +0% | 0% | +0% | ✅ (1:1 coarse map) |
+| Representation | Hierarchy Purity Δ | Hierarchy NMI Δ | Zoom Coherence Δ | Legal Area Purity Δ | Within Rule? |
+|----------------|-------------------|-----------------|------------------|---------------------|--------------|
+| cited_decisions_tfidf | +52.3% | -5.8% | -6.7% | +48.9% | ✅ |
+| cited_outcome_hybrid_0.7 | +54.1% | **-10.8%** | +7.2% | +46.1% | ❌ (NMI) |
+| cited_outcome_hybrid_0.5 | +53.6% | -9.6% | **-16.0%** | +50.3% | ❌ (zoom) |
+| regeste_tfidf | +63.6% | 0% | 0% | +63.6% | ✅ |
+| outcome_tfidf | +51.3% | **-13.1%** | 0% | +51.3% | ❌ (NMI) |
+| full_text_tfidf_light | 0% | **-27.6%** | 0% | 0% | ❌ (NMI) |
+| regeste_full_text_hybrid_0.5 | 0% | **-27.6%** | 0% | 0% | ❌ (NMI; copy defect¹) |
+| regeste_full_text_hybrid_0.7 | 0% | **-27.6%** | 0% | 0% | ❌ (NMI; copy defect¹) |
+
+¹ **Provenance disclosure:** `regeste_full_text_hybrid_0.5` and `regeste_full_text_hybrid_0.7` v17b result files are byte-identical copies of `full_text_tfidf_light` (identified in audit CYCLE_36028392571). Nil numeric impact because the frozen 15k subsample is 100% regeste-zero rows where hybrid ≡ full_text.
 
 **Key Finding:** Normalized hierarchy purity gains 1.5-1.6x for citation-based reps, but even normalized, best purity = 0.47 (full_text_tfidf_light) < 0.7 threshold. v16 hierarchy-family FAIL is confirmed as label artifact, not representation defect.
+
+**NMI Caveat (per audit CYCLE_36035803010):** v17b normalization causes significant NMI drops on hierarchy_coherence and legal_area_clustering for multiple reps: full_text_tfidf_light hierarchy NMI -27.6%, legal_area NMI -24.3%; outcome_tfidf hierarchy NMI -13.1%; cited_outcome_hybrid_0.5 hierarchy NMI -9.6%, legal_area NMI -14.5%; cited_outcome_hybrid_0.7 hierarchy NMI -10.8%. The cross-lingual label merge (167→117 labels) improves purity (fewer classes) but degrades NMI (loss of cross-lingual signal) for representations that already captured cross-lingual structure. At 1200 scale (v17b), the tradeoff was uniform; at 174k it is not.
 
 ---
 
@@ -113,7 +117,7 @@ The evaluation lane has **completed all machine-executable work** for the TF-IDF
 - ✅ Citation heritage AUC = 0.9605
 - ✅ nn_citation_rate@10 = 0.490
 - ✅ 6/12 formal benchmarks PASS
-- ✅ v17b normalization within 10% rule
+- ⚠️ v17b normalization exceeds 10% rule on hierarchy NMI (-10.8%)
 
 ---
 
