@@ -4,9 +4,9 @@
   "evidence_tier": "ACCEPTED",
   "cycle_status": "BLOCKED_ON_DEPENDENCIES",
   "continue_recommended": false,
-  "accepted_run_id": "eval_v25_174k_infrastructure_20260923",
-  "github_run": "35952475313",
-  "timestamp": "2026-09-24T03:57:00Z",
+  "accepted_run_id": "eval_v25_174k_infrastructure_verification_20260924",
+  "github_run": "35990980088",
+  "timestamp": "2026-09-24T11:15:00Z",
   "config_hash": "4323f833fa72366a",
   "global_seed": 42,
   "evidence_refs": [
@@ -30,10 +30,12 @@
     "evaluation/validate_citation_heritage_174k.py",
     "evaluation/reports/evaluation_v25_174k_execution_plan.md",
     "results/evaluation/v16_full_benchmark_suite/v16_full_benchmark_latest.json",
-    "results/evaluation/v17b_label_normalization_all_reps/v17b_label_normalization_all_reps_latest.json"
+    "results/evaluation/v17b_label_normalization_all_reps/v17b_label_normalization_all_reps_latest.json",
+    "results/evaluation/v3/evaluation_v3_results.json"
   ],
-  "next_recommendation": "BLOCKED_ON_DEPENDENCIES - All evaluation infrastructure fully validated and frozen. Fresh verification runs completed: (1) v16 full 12-benchmark suite REPRODUCED at 1200 scale across 6 representations (center_projected_64dim: 7/12 PASS, linear_citation_concat: 7/12 PASS, linear_hybrid05_concat: 7/12 PASS, etc.); (2) v17b label normalization REPRODUCED across all 6 representations with uniform 15-28% purity improvement (hierarchy: 1.15-1.24x, zoom_fine: 1.17-1.28x, legal_area: 1.12-1.15x); (3) citation_heritage infrastructure validated at 174k with 1020 positive/negative pairs. Awaiting legal-distance lane 174k production representations from active gh run 35935612800. No additional same-question cycle justified.",
+  "next_recommendation": "BLOCKED_ON_DEPENDENCIES - All evaluation infrastructure fully validated and frozen. Fresh verification runs completed in this cycle: (1) v3 frozen harness REPRODUCED at 1200 scale on 6 representations (config hash a31c443a9b0e992e matches frozen spec); (2) v16 full 12-benchmark suite REPRODUCED at 1200 scale across 6 representations (center_projected_64dim: 7/12 PASS, linear_citation_concat: 7/12 PASS, linear_hybrid05_concat: 7/12 PASS, etc.); (3) v17b label normalization REPRODUCED across all 6 representations with uniform 15-28% purity improvement (hierarchy: 1.15-1.24x, zoom_fine: 1.17-1.28x, legal_area: 1.12-1.15x); (4) citation_heritage infrastructure validated at 174k with 1020 positive/negative pairs. Awaiting legal-distance lane 174k production representations from active gh run 35935612800. No additional same-question cycle justified.",
   "critical_findings": {
+    "v3_harness_reproduced": "v3 frozen evaluation harness REPRODUCED at 1200 scale (config hash a31c443a9b0e992e, seed 42). 6 representations tested: center_projected_768 (FAIL: jurist_pref=0.491), center_projected_64dim (PASS: lang_dom=0.7664, jurist_pref=0.5121), linear_metric_epoch4 (PASS: 0.6805/0.6847), mahalanobis_metric_epoch4 (PASS: 0.6843/0.6781), hybrid_stabilized_epoch1 (PASS: 0.6704/0.6656), hybrid_v2_epoch3 (PASS: 0.7115/0.5988). Best: linear_metric_epoch4 (jurist_pref=0.6847). Reference baseline center_projected_64dim passes both adversarial gates.",
     "v16_full_benchmark_reproduced": "v16 12-benchmark suite REPRODUCED at 1200 scale across 6 representations (direction v13, config hash 4323f833fa72366a, seed 42). Pass counts: center_projected_64dim=7/12, cited_outcome_hybrid_0.5=6/12, linear_citation_concat=7/12, linear_hybrid05_concat=7/12, linear_citation_w3070=6/12, linear_citation_ridge=7/12. citation_heritage SKIP (0 positive pairs in 1200 slice). Universal PASS: branch_knn, adversarial_falsification, multilingual_invariance, cross_language_pairs, collapse_check, temporal_stability. Universal FAIL: hierarchy_coherence (purity 0.25-0.39 < 0.7), zoom_coherence (negative improvement), legal_area_clustering (purity ~0.006-0.009 < 0.5), boilerplate_resistance_real_corpus (correlation -0.06 to +0.09). These are corpus/label limitations per v16/v18 findings.",
     "v17b_normalization_1200_reproduced": "v17b cross-lingual legal_area normalization REPRODUCED at 1200 scale across ALL 6 representations (788/1200 labels normalized, 104->54 unique labels). Uniform improvement confirmed: NO representation worsens by >10%. Purity ratios (normalized/raw): hierarchy 1.15-1.24x, zoom_fine 1.17-1.28x, legal_area 1.12-1.15x. Best: linear_hybrid05_concat (hierarchy 1.24x, zoom 1.28x). Confirms v16 hierarchy-family FAIL is label artifact, not representation defect.",
     "v17b_normalization_174k": "v17b cross-lingual legal_area normalization generalizes to 174k corpus: 213 raw unique labels -> 163 normalized (23.5% reduction), 49.3% of labels changed (85,819 decisions), avg decisions per label increases from 428 to 560. 32 cross-lingual canonical concepts. Confirms v16 'data granularity' attribution was partially a label normalization artifact.",
@@ -82,18 +84,18 @@
     "backend": "sklearn_exact"
   },
   "v25_readiness_verification": {
-    "github_run": "35952475313",
-    "timestamp": "2026-09-24T03:57:00Z",
+    "github_run": "35990980088",
+    "timestamp": "2026-09-24T11:15:00Z",
     "verifications_performed": [
-      "scalable_nn_import_and_hnsw_available",
-      "metadata_174k_load_verified_173963_decisions",
-      "citation_pairs_full_verified_1020_pos_neg",
-      "frozen_config_hash_4047da047fb339c1_reverified",
-      "frozen_harness_v3_hash_4323f833fa72366a_reverified",
-      "v16_benchmark_suite_hash_4323f833fa72366a_reverified",
-      "v16_full_benchmark_reproduced_at_1200_scale",
+      "v3_frozen_harness_reproduced_at_1200_scale_6_reps",
+      "v16_full_benchmark_suite_reproduced_at_1200_scale_6_reps",
       "v17b_label_normalization_reproduced_at_1200_scale_across_6_reps",
-      "v17b_label_normalization_confirmed_at_174k_label_level",
+      "citation_heritage_174k_validated_1020_pairs",
+      "scalable_nn_hnsw_operational",
+      "metadata_174k_load_verified_173963_decisions",
+      "frozen_config_hash_4047da047fb339c1_reverified",
+      "frozen_harness_v3_hash_a31c443a9b0e992e_reverified",
+      "v16_benchmark_suite_hash_4323f833fa72366a_reverified",
       "legal_distance_active_run_35935612800_confirmed",
       "corpus_year_split_artifacts_in_accepted_state_confirmed"
     ],
