@@ -26,13 +26,24 @@ Guards the audit-ready snapshot produced under protocol
      subsample of the frozen 137,314+137,314 pool must match frozen expected
      values within 0.005 for the four checked representations (independent
      implementation: float64 einsum + sklearn roc_auc_score).
-  7. v17b label-level record at 174k: 214 raw -> 164 normalized unique
+7. v17b label-level record at 174k: 214 raw -> 164 normalized unique
      legal_area labels, 49.3% labels changed, 47.6% unknown (frozen counts).
+  8. v17b per-representation provenance gate (audit CYCLE_36028392571
+      finding 4): recompute each rep's raw-vs-normalized hierarchy-family
+      metrics from the rep's OWN saved embedding on the frozen subsample and
+      assert correspondence with both the recorded and the audit-recheck
+      reference files (rules P1/P2/P3/P4 + negative controls NC_swap,
+      NC_fileid; frozen spec
+      evaluation/experiments/v25_174k_suite/provenance_gate_spec_v1.json).
+      This mechanically catches the copy-defect class discovered in producer
+      run 36013963912 (regeste_full_text_hybrid_0.5/0.7 v17b files
+      byte-identical to full_text_tfidf_light).
 
 Failure of any check means the snapshot no longer conforms to the frozen
 protocol artifacts and must NOT be treated as audit-ready.
 
-Runtime: ~2-4 minutes (one metadata load; no corpus, no HNSW, no KMeans).
+Runtime: ~3-5 minutes (one metadata load; no corpus, no HNSW; the provenance
+gate adds ~1.5 minutes of frozen KMeans recomputation with Pool(4)).
 """
 import json
 import numpy as np
@@ -219,3 +230,42 @@ def test_07_v17b_label_level_record():
     assert abs(changed - 0.493) < 0.005, f"changed fraction {changed}"
     assert abs(unknown - 0.476) < 0.005, f"unknown fraction {unknown}"
     print(f"  v17b labels: {raw_u} -> {norm_u} unique, {changed:.3f} changed, {unknown:.3f} unknown")
+
+
+def test_08_v17b_provenance_gate():
+    """Audit CYCLE_36028392571 finding 4: per-rep v17b provenance gate.
+
+    Delegates to the frozen gate implementation in
+    tests/evaluation/test_v25_174k_v17b_provenance.py (spec:
+    evaluation/experiments/v25_174k_suite/provenance_gate_spec_v1.json) so the
+    gate's rules live in exactly one place. The gate recomputes each rep's
+    v17b metrics from its OWN saved embedding and asserts correspondence with
+    the recorded and audit-recheck reference files, plus the swap/file-identity
+    negative controls. A copied measurement file (the producer-run defect class)
+    fails P1/P2 mechanically.
+    """
+    import importlib.util
+    import sys
+    try:
+        # Under pytest the sibling module is already imported (name matches the
+        # file), so its `_GATE_CACHE` is reused and the heavy recomputation runs
+        # exactly once per session.
+        import test_v25_174k_v17b_provenance as gate
+    except ImportError:
+        spec = importlib.util.spec_from_file_location(
+            "v17b_provenance_gate", ROOT / "tests/evaluation/test_v25_174k_v17b_provenance.py")
+        gate = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(gate)
+    report = gate._run_once()
+    v = report["verdict"]
+    assert v["GATE_OVERALL"] == "PASS", f"provenance gate FAIL: {v}"
+    # frozen expectation: warnings confined to the degenerate triple on both sets
+    for w in report["warnings"]:
+        assert w["pair"].split("<->")[0] in (
+            "full_text_tfidf_light", "regeste_full_text_hybrid_0.5",
+            "regeste_full_text_hybrid_0.7"), f"WARN outside degenerate triple: {w}"
+    print(f"  v17b provenance gate: GATE_OVERALL=PASS "
+          f"(P1/P2/P4 PASS, {v['P3_warnings']} confined P3 WARNs, "
+          f"NC_swap/NC_fileid PASS)")
+    print(f"    reference sets verified: recorded + recheck; "
+          f"duration {report['duration_seconds']}s")

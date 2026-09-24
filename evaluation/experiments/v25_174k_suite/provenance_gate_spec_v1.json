@@ -1,0 +1,72 @@
+{
+  "protocol_id": "eval_v25_v17b_provenance_gate_v1",
+  "lane": "evaluation",
+  "github_run": "36035803010",
+  "frozen_at": "2026-09-24T18:05:00Z",
+  "status": "FROZEN",
+  "motivation": "Audit CYCLE_36028392571 finding 4: extend the v25 174k conformance gate with a per-representation v17b provenance check so the copy-defect class discovered in producer run 36013963912 (regeste_full_text_hybrid_0.5/0.7 v17b files byte-identical to full_text_tfidf_light) is caught mechanically by a future conformance gate instead of by auditor luck.",
+  "benchmark_code": "FROZEN functions imported from evaluation/experiments/v25_174k_suite/run_v25_174k_suite.py (bm_hierarchy, bm_zoom, bm_legal_area, normalize_labels, load_metadata) - NOT reimplemented. Frozen pipeline parameters, random_state=42, n_init=10, subsample = fixed hierarchy_subsample_15000_seed42.",
+  "sample": "results/evaluation/v25_174k_formal_suite/fixed_samples/hierarchy_subsample_15000_seed42.npy (15,000 rows, branch-stratified among known-legal_area rows)",
+  "embeddings": "results/evaluation/v25_174k_formal_suite/embeddings/{rep}.npy (173,963 x 128 float32, snapshot verified bitwise-exact rebuild)",
+  "reference_sets": {
+    "recorded": "results/evaluation/v25_174k_v17b/{rep}.json (producer run 36013963912; contains documented h5/h7 copy defect)",
+    "recheck": "results/evaluation/v25_174k_audit_fixes_36028392571/v17b_recheck/{rep}.json (authoritative per CYCLE_36028392571)"
+  },
+  "reps": [
+    "cited_decisions_tfidf",
+    "outcome_tfidf",
+    "regeste_tfidf",
+    "full_text_tfidf_light",
+    "cited_outcome_hybrid_0.5",
+    "cited_outcome_hybrid_0.7",
+    "regeste_full_text_hybrid_0.5",
+    "regeste_full_text_hybrid_0.7"
+  ],
+  "rules": {
+    "P1_own_embedding_correspondence": {
+      "severity": "HARD FAIL",
+      "rule": "For each (rep, reference_set): recompute the 6 v17b metric groups (raw + normalized x hierarchy_coherence / zoom_coherence / legal_area_clustering) from the rep's OWN saved embedding on the frozen subsample using the frozen benchmark functions. Compare all 14 numerical fields (best_purity, best_nmi, coarse_purity, fine_purity, improvement_pct, overall_purity, nmi per raw/normalized) against the file. FAIL if any |delta| > 0.02 absolute.",
+      "tolerance_frozen": 0.02,
+      "rationale": "Audit CYCLE_36028392571 3.6 measured benign environment drift (sklearn/BLAS) at <= ~1e-3 to ~1e-2 on these metrics; 0.02 provides 2-20x headroom while remaining far below material corruption deltas (metric differences between genuinely different representations are 0.05-0.5, e.g. hierarchy purity 0.152 vs 0.465)."
+    },
+    "P2_file_identity_implies_on_sample_embedding_identity": {
+      "severity": "HARD FAIL",
+      "rule": "For every pair (R1,R2) whose reference files have IDENTICAL metric content (all 14 numerical fields exactly equal): assert max_abs_diff(emb[R1][hier_idx], emb[R2][hier_idx]) <= 1e-4. FAIL otherwise: two different on-sample embeddings cannot yield byte-identical measurement files unless one file was copied.",
+      "embedding_tolerance_frozen": 0.0001
+    },
+    "P3_degeneracy_probe": {
+      "severity": "WARN (does not fail the gate)",
+      "rule": "For every identical-file pair (R1,R2): build a fixed probe = seed-42 subsample of 10,000 rows among rows whose regeste_tfidf base embedding is non-zero (rows where regeste hybrids genuinely differ from full_text). Compute max_abs_diff(emb[R1][probe], emb[R2][probe]). If > 1e-3, record WARN 'file equality not explained by probe embedding equality - measurement provenance must be documented (degenerate-sample copy class)'. Warnings are recorded in the gate report and do not change pass/fail.",
+      "probe_size_frozen": 10000,
+      "probe_seed_frozen": 42,
+      "probe_difference_tolerance_frozen": 0.001
+    },
+    "P4_status_consistency": {
+      "severity": "HARD FAIL",
+      "rule": "For each (rep, reference_set): the status field (PASS/FAIL/SKIP) of each recomputed metric group must equal the status in the reference file. FAIL otherwise (threshold-boundary inconsistency indicates a corrupted file).",
+      "note": "Statuses derive from frozen thresholds; benign drift is far from thresholds, so a status mismatch cannot be explained by environment noise."
+    }
+  },
+  "frozen_expectation": {
+    "P1": "PASS for all 8 reps on both reference sets. For regeste_full_text_hybrid_0.5/0.7 this PASS holds by numerical coincidence: all 15,000 frozen subsample rows are regeste-zero rows on which hybrid emb == full_text emb (documented in CYCLE_36028392571 3.7).",
+    "P2": "PASS. Exactly one identical-content group exists: {full_text_tfidf_light, regeste_full_text_hybrid_0.5, regeste_full_text_hybrid_0.7} (3 members) on both reference sets; their on-sample embeddings are identical by degeneracy.",
+    "P3": "WARN entries for all 3 pairwise combinations within the degenerate triple on both reference sets (probe embeddings differ materially: max_abs_diff ~0.1-0.9 per audit 3.7 'max diff 0.878, 48% of rows'). All other pairs: no WARN (files differ).",
+    "P4": "PASS for all 8 reps on both reference sets."
+  },
+  "negative_controls": {
+    "NC_swap_corruption_matrix": {
+      "rule": "For every ordered pair (victim, donor) among the 8 reps whose recorded files are NOT identical: simulate corruption by writing donor's recorded metric content into victim's slot and require P1 to FAIL (at least one |delta| > 0.02 vs victim's own-embedding recomputation). For pairs within the degenerate triple {full_text_tfidf_light, regeste_full_text_hybrid_0.5, regeste_full_text_hybrid_0.7}, swaps are expected PASS with P3 WARN (corruption numerically invisible - documented degeneracy).",
+      "requirement": "0 unexpected PASSes in the non-degenerate swap cells; swap cells within the triple may pass with WARN."
+    },
+    "NC_file_identity_with_different_embeddings": {
+      "rule": "For every ordered pair (victim, donor) with non-identical recorded files: crafting victim's file to equal donor's file must cause P2 to FAIL, because victim's on-sample embeddings differ from donor's.",
+      "requirement": "P2 FAIL for all such pairs (by construction of P2)."
+    }
+  },
+  "success_rule": [
+    "Main gate: P1/P2/P4 PASS on both reference sets; P3 WARNs confined to the degenerate triple.",
+    "Negative controls: NC_swap_corruption_matrix has 0 unexpected PASSes; NC_file_identity_with_different_embeddings FAILs everywhere expected.",
+    "Gate output lands in results/evaluation/v25_174k_provenance_gate_36035803010/ with raw per-rep recomputations preserved."
+  ],
+  "no_tuning_rule": "No rule, tolerance, sample, probe or threshold is adjusted after observing results."
+}
