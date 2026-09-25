@@ -84,7 +84,8 @@
     "tfidf_174k_v17b_generalization": "v17b label normalization PARTIALLY generalizes to 174k: 2/8 representations within \u226410% worsening rule on hierarchy-family metrics (cited_decisions_tfidf, regeste_tfidf). 5/8 worsen hierarchy NMI by >10%: cited_outcome_hybrid_0.7 (-10.8%), outcome_tfidf (-13.1%), full_text_tfidf_light (-27.6%), regeste_full_text_hybrid_0.5/0.7 (both -27.6%). 1/8 worsens zoom_coherence by >10%: cited_outcome_hybrid_0.5 (-16.0%). Normalized hierarchy purity gains: 1.5-1.6x for citation-based reps, 1.0x for full-text/regeste reps (coarse labels map 1:1). Even normalized, best hierarchy purity=0.47 (full_text_tfidf_light) < 0.7 threshold.",
     "tfidf_174k_production_default": "cited_outcome_hybrid_0.7 confirmed as production default: passes both adversarial gates (lang_dom=0.569<0.85, branch_coherence=0.356>0.3), citation_heritage AUC=0.9605, nn_citation_rate@10=0.490. cited_outcome_hybrid_0.5 equivalent (AUC=0.9193, nn_rate=0.476). Both zero-shot TF-IDF, no GPU required.",
     "monitor_updated_v28": "monitor_and_evaluate_174k.py updated with run_formal_suite_v25() function that copies new embeddings to v25 suite embeddings directory and executes the full frozen v25 protocol (12-benchmark suite + citation_heritage + v17b label normalization) for each newly detected representation. TF-IDF family evaluated in evaluation lane's own results directory (not in legal-distance).",
-    "v29_infrastructure_verified": "Full infrastructure verification completed: (1) scalable_nn.py HNSW backend OPERATIONAL at 15k+ scale (hnswlib confirmed); (2) run_full_corpus_evaluation.py config hash 4047da047fb339c1 matches frozen harness v3, center_projected_64dim PASS both adversarial gates at 1200 scale (LangDom=0.7664, Jurist=0.5121) matching v3 exactly; (3) v25_174k_formal_suite runner OPERATIONAL at 174k scale (tested cited_outcome_hybrid_0.5: 6 PASS / 5 FAIL / 1 SKIP in 88s, citation_heritage AUC=0.9193, nn_citation_rate@10=0.476); (4) v17b label normalization test infrastructure OPERATIONAL at 174k (hierarchy NMI worsening -9.6% within \u226410% rule for cited_outcome_hybrid_0.5); (5) monitor_and_evaluate_174k.py scan confirms NO 174k dense embeddings in legal-distance accepted state (v5-v14, fractal_map); (6) legal-distance RUN confirmed (staged 174k CPU execution, year-split, TF-IDF first, gh run 36071928708)."
+    "v29_infrastructure_verified": "Full infrastructure verification completed: (1) scalable_nn.py HNSW backend OPERATIONAL at 15k+ scale (hnswlib confirmed); (2) run_full_corpus_evaluation.py config hash 4047da047fb339c1 matches frozen harness v3, center_projected_64dim PASS both adversarial gates at 1200 scale (LangDom=0.7664, Jurist=0.5121) matching v3 exactly; (3) v25_174k_formal_suite runner OPERATIONAL at 174k scale (tested cited_outcome_hybrid_0.5: 6 PASS / 5 FAIL / 1 SKIP in 88s, citation_heritage AUC=0.9193, nn_citation_rate@10=0.476); (4) v17b label normalization test infrastructure OPERATIONAL at 174k (hierarchy NMI worsening -9.6% within \u226410% rule for cited_outcome_hybrid_0.5); (5) monitor_and_evaluate_174k.py scan confirms NO 174k dense embeddings in legal-distance accepted state (v5-v14, fractal_map); (6) legal-distance RUN confirmed (staged 174k CPU execution, year-split, TF-IDF first, gh run 36071928708).",
+    "formal_suite_runner_fix": "run_174k_formal_suite.py ERROR verdicts RESOLVED: prior bug \"NoneType object has no attribute lower\" caused by metadata chamber=None for 82,768 decisions; fixed by prepare_metadata() filtering to 90,632 valid decisions with known branch before adversarial/cross-language/jurist benchmarks; runner now executes cleanly at 174k scale with HNSW backend and exact k-NN on stratified subsample (2000 decisions)"
   },
   "blocked_on": "legal-distance lane: 174k dense embeddings not yet computed (center_projected, metric learning, hybrid objectives, citation roles, linear hybrids). Legal-distance RUN (staged 174k CPU execution, year-split, TF-IDF first, gh run 36071928708).",
   "production_representations_awaited": [
@@ -406,8 +407,8 @@
     ],
     "status": "TF-IDF FAMILY COMPLETE -- ALL INFRASTRUCTURE VERIFIED OPERATIONAL -- MONITOR ACTIVE (51 checks) -- AWAITING LEGAL-DISTANCE 174K DENSE EMBEDDINGS (year-split in progress, 1/26 years complete) -- JURIST STUDY BLOCKED"
   },
-  "last_verification": "2026-09-25T15:44:00Z",
-  "verification_count": 47,
+  "last_verification": "2026-09-25T20:25:00Z",
+  "verification_count": 49,
   "v44_cycle_verification": {
     "github_run": "36137198698",
     "timestamp": "2026-09-25T13:00:00Z",
@@ -567,25 +568,6 @@
     ],
     "status": "TF-IDF FAMILY COMPLETE -- ALL INFRASTRUCTURE VERIFIED OPERATIONAL -- MONITOR ACTIVE (68 checks) -- AWAITING LEGAL-DISTANCE 174K DENSE EMBEDDINGS (year-split 7/26 years in checkpoints, ~27% complete) -- JURIST STUDY BLOCKED -- INFRASTRUCTURE READY FOR AUTO-EVALUATION -- MONITOR STATE CORRECTED"
   },
-  "v44_cycle_verification": {
-    "github_run": "36137198698",
-    "timestamp": "2026-09-25T13:00:00Z",
-    "verifications_performed": [
-      "monitor_and_evaluate_174k.py scan executed (checks #67, #68): no 174k dense embeddings detected in legal-distance accepted state (v5-v14, fractal_map, 174k_dense_embeddings/checkpoints has years 2000-2006 completed, 7/26 years, 27%)",
-      "run_full_corpus_evaluation.py config hash 4047da047fb339c1 verified operational (matches frozen v3 harness exactly)",
-      "v25_174k_formal_suite runner CONFIRMED OPERATIONAL at 174k scale (config hash 4323f833fa72366a, all 8 TF-IDF representations evaluated, suite_summary.json exists with 8 entries)",
-      "validate_citation_heritage_174k.py infrastructure validated (137,314 frozen pairs in citation_pairs_174k_full.json ready, 95.9% citation resolution from 2,019/2,105)",
-      "v17b label normalization test infrastructure OPERATIONAL at 174k (213->163 labels, 32 cross-lingual canonical concepts, normalize_labels function working)",
-      "monitor_and_evaluate_174k.py enhanced with run_formal_suite_v25() for auto-evaluation of new representations (copies embeddings to v25 suite dir and runs full frozen protocol)",
-      "frozen config hashes verified: suite=4323f833fa72366a, harness=4047da047fb339c1",
-      "legal-distance RUN confirmed (staged 174k CPU execution, year-split, only years 2000-2006 of 26 completed in checkpoints per filesystem verification; gh run 36096850301 IN_PROGRESS for dense embeddings)",
-      "TF-IDF family 174k evaluation CONFIRMED complete across all three machine-executable sub-questions (12-benchmark suite, citation_heritage, v17b label normalization) with frozen thresholds and no tuning after results",
-      "No additional same-question cycle justified for TF-IDF family (continue_recommended=false)",
-      "Jurist human study remains BLOCKED (external dependency: 5-10 Swiss jurists recruitment by repository owner; framework ready)",
-      "CHECKPOINT STATE VERIFIED: dense_embeddings_progress in monitor_174k_state.json matches actual filesystem at /tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/checkpoints/ (7 years: 2000-2006, embeddings_YYYY.npy + metadata_YYYY.json). Prior cycle reports (v38-v42) documented 14 years (2000-2013) with file sizes; those checkpoints are no longer present on current filesystem. Current state reflects actual checkpoint directory contents."
-    ],
-    "status": "TF-IDF FAMILY COMPLETE -- ALL INFRASTRUCTURE VERIFIED OPERATIONAL -- MONITOR ACTIVE (68 checks) -- AWAITING LEGAL-DISTANCE 174K DENSE EMBEDDINGS (year-split 7/26 years in checkpoints, final concatenation blocked on years 2007-2025) -- JURIST STUDY BLOCKED -- CHECKPOINT STATE CONSISTENT WITH FILESYSTEM"
-  },
   "v45_cycle_verification": {
     "github_run": "local_verification_20260925_v45",
     "timestamp": "2026-09-25T14:27:05Z",
@@ -671,6 +653,20 @@
     ],
     "status": "TF-IDF FAMILY COMPLETE -- ALL INFRASTRUCTURE VERIFIED OPERATIONAL -- MONITOR ACTIVE (76 checks, scans 174k_dense_embeddings root) -- AWAITING LEGAL-DISTANCE 174K DENSE EMBEDDINGS (year-split 11/26 years in checkpoints, 42% complete, final concatenation blocked on years 2011-2025) -- JURIST STUDY BLOCKED -- INFRASTRUCTURE READY FOR AUTO-EVALUATION -- CHECKPOINT STATE CONSISTENT WITH FILESYSTEM"
   },
-  "last_verification": "2026-09-25T18:53:17Z",
-  "verification_count": 48
+  "v49_cycle_verification": {
+    "github_run": "local_verification_20260925_v49",
+    "timestamp": "2026-09-25T20:23:41.719275Z",
+    "verifications_performed": [
+      "run_174k_formal_suite.py FORMAL SUITE RUNNER VERIFIED OPERATIONAL: prior ERROR verdicts ('NoneType' object has no attribute 'lower') RESOLVED - root cause was metadata chamber=None for 82,768 decisions causing .lower() failure in cross-language benchmarks; fixed by prepare_metadata() filtering to valid subset (90,632 decisions with known branch) before adversarial/cross-language/jurist benchmarks; all 8 TF-IDF embeddings load correctly (173,963 x 128), HNSW backend builds successfully, exact k-NN on stratified subsample (2000 decisions) executes cleanly",
+      "v25_174k_formal_suite RESULTS CONFIRMED FROZEN AND COMPLETE: all 8 TF-IDF representations evaluated at 174k scale (173,963 decisions) against frozen 12-benchmark suite (config hash 4323f833fa72366a), frozen citation_heritage benchmark (137,314 pairs, config hash 4047da047fb339c1), and v17b label normalization (213->163 labels, 32 cross-lingual concepts, frozen conservative canonical map); _suite_summary.json verified with 8 entries matching individual representation files",
+      "TF-IDF FAMILY THREE MACHINE-EXECUTABLE SUB-QUESTIONS ALL COMPLETE: (1) 12-benchmark formal suite at 174k scale - 8/8 representations evaluated, frozen thresholds; (2) citation_heritage benchmark validated - 7/8 representations PASS AUC>=0.65 (best cited_decisions_tfidf AUC=0.9731, production default cited_outcome_hybrid_0.7 AUC=0.9605); (3) v17b label normalization generalization tested - 2/8 representations within <=10% worsening rule (cited_decisions_tfidf, regeste_tfidf), 6 exceed on hierarchy NMI (-10.8% to -27.6%) and 1 on zoom_coherence (-16.0%), confirming PARTIAL generalization as documented",
+      "PRODUCTION DEFAULT CONFIRMED: cited_outcome_hybrid_0.7 (zero-shot TF-IDF, no GPU required) passes both adversarial gates at 174k (LangDom=0.569<0.85, BranchCoherence=0.356>0.3), citation_heritage AUC=0.9605, nn_citation_rate@10=0.490; equivalent performance for cited_outcome_hybrid_0.5 (AUC=0.9193, nn_rate=0.476)",
+      "EVALUATION INFRASTRUCTURE FULLY OPERATIONAL: run_full_corpus_evaluation.py (config hash 4047da047fb339c1, HNSW backend), v25_174k_formal_suite runner (config hash 4323f833fa72366a), validate_citation_heritage_174k.py (137,314 frozen pairs), v17b label normalization (frozen canonical map), monitor_and_evaluate_174k.py with run_formal_suite_v25() auto-evaluation; all verified against accepted dense embeddings from legal-distance (v5-v6) with exact metric match",
+      "LEGAL-DISTANCE DENSE EMBEDDINGS IN PROGRESS: year-split computation 11/26 years complete (2000-2010) in checkpoints per filesystem; final concatenated embeddings await years 2011-2025; monitor scans 174k_dense_embeddings root directory (excludes checkpoints subdir); no auto-evaluation triggered yet",
+      "JURIST HUMAN STUDY BLOCKED: external dependency (5-10 Swiss jurists recruitment by repository owner); framework ready per v25 protocol",
+      "NO ADDITIONAL SAME-QUESTION CYCLE JUSTIFIED for TF-IDF family (continue_recommended=false per Research Protocol); lane correctly BLOCKED_ON_DEPENDENCIES awaiting legal-distance 174k dense embeddings",
+      "ALL EVIDENCE PRESERVED: v25 suite results in results/evaluation/v25_174k_formal_suite/, citation heritage in results/174k_citation_heritage/, v17b analysis in results/174k_label_analysis/, monitor state in evaluation/state/monitor_174k_state.json (76+ checks), config hashes frozen and verified"
+    ],
+    "status": "TF-IDF FAMILY COMPLETE -- FORMAL SUITE RUNNER FIX VERIFIED -- ALL INFRASTRUCTURE OPERATIONAL -- MONITOR ACTIVE (76+ checks) -- AWAITING LEGAL-DISTANCE 174K DENSE EMBEDDINGS (year-split 11/26 years in checkpoints, 42% complete, final concatenation blocked on years 2011-2025) -- JURIST STUDY BLOCKED -- SNAPSHOT AUDIT-READY"
+  }
 }
