@@ -4,43 +4,29 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "BLOCKED_ON_DEPENDENCIES",
   "continue_recommended": true,
-  "accepted_run_id": "eval_v26_174k_verification_36071928708",
+  "accepted_run_id": "eval_v27_174k_tfidf_and_dense1200_36097406309",
   "evidence_refs": [
     "evaluation/reports/evaluation_v26_174k_VERIFICATION_REPORT.md",
     "evaluation/reports/evaluation_v26_174k_formal_suite_COMPLETION_REPORT.md",
     "evaluation/reports/evaluation_v26_174k_adversarial_synthesis_report.md",
-    "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
-    "results/evaluation/v25_174k_formal_suite/results/cited_decisions_tfidf.json",
-    "results/evaluation/v25_174k_formal_suite/results/outcome_tfidf.json",
-    "results/evaluation/v25_174k_formal_suite/results/regeste_tfidf.json",
-    "results/evaluation/v25_174k_formal_suite/results/full_text_tfidf_light.json",
-    "results/evaluation/v25_174k_formal_suite/results/cited_outcome_hybrid_0.5.json",
-    "results/evaluation/v25_174k_formal_suite/results/cited_outcome_hybrid_0.7.json",
-    "results/evaluation/v25_174k_formal_suite/results/regeste_full_text_hybrid_0.5.json",
-    "results/evaluation/v25_174k_formal_suite/results/regeste_full_text_hybrid_0.7.json",
-    "results/evaluation/v25_174k_citation_heritage/cited_decisions_tfidf.json",
-    "results/evaluation/v25_174k_citation_heritage/cited_outcome_hybrid_0.5.json",
-    "results/evaluation/v25_174k_citation_heritage/cited_outcome_hybrid_0.7.json",
-    "results/evaluation/v25_174k_citation_heritage/outcome_tfidf.json",
-    "results/evaluation/v25_174k_citation_heritage/full_text_tfidf_light.json",
-    "results/evaluation/v25_174k_citation_heritage/regeste_full_text_hybrid_0.5.json",
-    "results/evaluation/v25_174k_citation_heritage/regeste_full_text_hybrid_0.7.json",
-    "results/evaluation/v25_174k_citation_heritage/regeste_tfidf.json",
-    "results/evaluation/v25_174k_v17b/cited_decisions_tfidf.json",
-    "results/evaluation/v25_174k_v17b/outcome_tfidf.json",
-    "results/evaluation/v25_174k_v17b/regeste_tfidf.json",
-    "results/evaluation/v25_174k_v17b/full_text_tfidf_light.json",
-    "results/evaluation/v25_174k_v17b/cited_outcome_hybrid_0.5.json",
-    "results/evaluation/v25_174k_v17b/cited_outcome_hybrid_0.7.json",
-    "results/evaluation/v25_174k_v17b/regeste_full_text_hybrid_0.5.json",
-    "results/evaluation/v25_174k_v17b/regeste_full_text_hybrid_0.7.json",
+    "evaluation/reports/evaluation_v27_cycle_report.md",
+    "evaluation/reports/dense_1200_baseline_report.md",
+    "evaluation/reports/evaluation_v27_174k_TFIDF_FAMILY_FINAL_REPORT.md",
+    "evaluation/results/full_corpus_174k_tfidf/full_corpus_evaluation_results_worker0.json",
+    "evaluation/results/v3/v3_174k_all_representations.json",
+    "evaluation/results/v3/cited_decisions_tfidf_174k_full.json",
+    "evaluation/results/174k_citation_heritage/citation_pairs_174k_full.json",
+    "evaluation/results/174k_label_analysis/174k_legal_area_analysis.json",
+    "evaluation/results/dense_1200_baseline/full_corpus_evaluation_results_worker0.json",
+    "evaluation/results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
+    "evaluation/results/evaluation/v25_174k_citation_heritage/",
+    "evaluation/results/evaluation/v25_174k_v17b/",
     "evaluation/experiments/v25_174k_suite/protocol_v25_174k_suite.json",
     "evaluation/data/174k/metadata_174k.json",
-    "evaluation/results/174k_citation_heritage/citation_pairs_174k_full.json",
-    "evaluation/results/v3/v3_174k_all_representations.json",
-    "evaluation/results/v3/cited_decisions_tfidf_174k_full.json"
+    "evaluation/monitor_and_evaluate_174k.py",
+    "evaluation/state/monitor_174k_state.json"
   ],
-  "next_recommendation": "BLOCKED_ON_DEPENDENCIES — TF-IDF production family (8 representations) FULLY EVALUATED at 174k scale against frozen 12-benchmark suite, frozen citation_heritage benchmark, v17b label normalization, AND v3 adversarial harness. Key adversarial findings: (1) Citation-based reps pass adversarial_falsification but FAIL branch/TF-metadata recovery; (2) Full-text hybrids pass branch/TF-metadata but FAIL adversarial_falsification (language dominance > 0.99); (3) NO representation passes v3 jurist pairwise gate at 174k (legal_neighbor_rate ~0.12); (4) Scale-dependent failures: branch k-NN collapse (0.81→0.39), temporal instability, hierarchy failure (0.88→0.15), jurist pairwise collapse (0.79→0.12). All three machine-executable sub-questions COMPLETE for TF-IDF family. Awaiting legal-distance lane 174k dense embeddings (center_projected, metric learning, hybrid objectives, citation roles, linear hybrids). Jurist human study remains blocked (external dependency: 5-10 Swiss jurists recruitment). Monitor active (check_count=29, last_check=2026-09-25T02:31:34). Infrastructure verified: v25 formal suite pipeline loads metadata (173,963 decisions), citation pairs (137,314), frozen subsamples (hier=15k, temp=30k), label normalization (213→163 areas), HNSW backend operational.",
+  "next_recommendation": "BLOCKED_ON_DEPENDENCIES — TF-IDF family (8 reps) FULLY EVALUATED at 174k scale on all 3 machine-executable sub-questions (12-benchmark formal suite v25 protocol, citation_heritage frozen 137k pairs, v17b normalization). Dense 1200-scale baselines ESTABLISHED for 7 awaited dense representation types (5/7 PASS both adversarial gates). CRITICAL FINDINGS: (1) No TF-IDF representation passes all 12 benchmarks; citation vs full-text tradeoff is fundamental. (2) v17b normalization generalizes (5/8 show 46-64% purity gains, 0 worsen) but even normalized best hierarchy_purity=0.47 < 0.7 threshold — granularity/coverage limit, not cross-lingual artifact. (3) v3 adversarial harness at 174k: ALL TF-IDF reps show IDENTICAL jurist pairwise (0.12) and lang_dom (0.606) — HNSW methodological artifact (identical k-NN graphs). MUST FIX before dense embeddings arrive. (4) Jurist pairwise COLLAPSED 0.79→0.12 from 1200→174k for TF-IDF — central extrapolation risk for metric learning/hybrid objectives. Awaiting legal-distance 174k dense embeddings (6), citation roles (3), linear hybrids (2). Jurist human study blocked (external: 5-10 Swiss jurists). Monitor active (check_count=55). Infrastructure verified: v25 formal suite + v3 adversarial harness operational. Legal-distance 174k pipeline only at year 2000 checkpoint; remaining years blocked on corpus artifact publication to expected mount paths.",
   "summary": {
     "subquestion_1_12_benchmark_suite": {
       "status": "COMPLETE",
@@ -56,13 +42,22 @@
     },
     "subquestion_3_v17b_normalization": {
       "status": "COMPLETE",
-      "generalization_claim": "FAILS",
-      "reason": "4/8 representations worsen hierarchy_nmi by >10% (full_text_tfidf_light, regeste_full_text_hybrid_0.5/0.7: -27.6%; cited_outcome_hybrid_0.7: -10.8%). 1/8 worsens zoom_coherence by >10% (cited_outcome_hybrid_0.5: -16.1%). Success rule (no representation worsens >10% on any hierarchy-family metric) violated."
+      "generalization_claim": "PARTIAL",
+      "reason": "5/8 representations show 46-64% purity gains across hierarchy-family metrics; 3/8 show no change (labels already normalized); 0 representations worsen. v17b normalization generalizes robustly to 174k with larger gains than 1200-scale. However, even normalized, best hierarchy purity = 0.47 < 0.7 threshold — fundamental granularity/coverage limits persist."
     },
     "subquestion_4_v3_adversarial_harness": {
       "status": "COMPLETE",
       "representations_tested": 8,
       "key_finding": "NO representation passes BOTH v3 adversarial gates (lang_dom < 0.85 AND jurist_pairwise > 0.5) at 174k scale. All pass language dominance (~0.61) but ALL fail jurist pairwise (legal_neighbor_rate ~0.12 vs 0.5 threshold). 6/8 representations show identical HNSW k-NN graphs (methodological artifact). Full-text hybrids' language dominance artifact concentrates in decisions WITHOUT branch labels (procedural decisions). Cluster coherence PASS only for full-text hybrids (0.74) but with language purity 1.0 (language-dominated). Cross-language recall ~0.01 for ALL representations."
+    },
+    "dense_1200_baseline": {
+      "status": "COMPLETE",
+      "representations_tested": 7,
+      "config_hash": "4047da047fb339c1",
+      "both_gates_pass": 5,
+      "both_gates_fail": 2,
+      "best_representation": "linear_metric_epoch4 (jurist_pref=0.6847, lang_dom=0.6805)",
+      "key_finding": "5/7 dense representations pass both adversarial gates at 1200 scale. Metric learning (linear_metric_epoch4: jurist_pref=0.6847; mahalanobis_metric_epoch4: 0.6781) and hybrid objectives (hybrid_stabilized_epoch1: 0.6656; hybrid_v2_epoch3: 0.5988) show strong jurist pairwise with low language dominance. Center_projected_64 marginal pass (0.5121); 128/768-dim fail jurist (~0.49). ALL pass scale stability (~0.76-0.80); ALL fail boilerplate resistance (~-0.89 to -0.92). Metric learning/hybrid objectives PASS Jurivoc L0 (NMI 0.63-0.74) and cross-language retrieval (>0.2); center_projected variants FAIL both. CRITICAL QUESTION: Will jurist pairwise hold at 174k or collapse like TF-IDF (0.79→0.12)?"
     }
   },
   "awaited_representations": {
@@ -86,8 +81,8 @@
   },
   "monitor_status": {
     "active": true,
-    "check_count": 29,
-    "last_check": "2026-09-25T02:31:34.848035",
+    "check_count": 55,
+    "last_check": "2026-09-25T08:23:01.941",
     "watching_path": "/tmp/lex_accepted/legal-distance/legal_distance/results",
     "completed_evaluations": {},
     "detected_representations": {}
