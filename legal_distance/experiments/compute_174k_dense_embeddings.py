@@ -30,15 +30,17 @@ MODEL_NAME = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
 BATCH_SIZE = 128
 EMBEDDING_DIM = 768
 
-# Year files to process (2000 onward per product scope, but we'll do all available)
+# Year files to process (2000 onward per product scope)
 YEAR_FILES = sorted(CORPUS_DIR.glob("bger_[0-9][0-9][0-9][0-9].jsonl"))
+# Filter to only years >= 2000 (product scope)
+YEAR_FILES = [f for f in YEAR_FILES if int(f.stem.split('_')[1]) >= 2000]
 
 # Checkpoint files
 CHECKPOINT_DIR = OUTPUT_DIR / "checkpoints"
 CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
 PROGRESS_FILE = CHECKPOINT_DIR / "progress.json"
-EMBEDDINGS_PATTERN = CHECKPOINT_DIR / "embeddings_{year}.npy"
-METADATA_PATTERN = CHECKPOINT_DIR / "metadata_{year}.json"
+EMBEDDINGS_PATTERN = "embeddings_{year}.npy"
+METADATA_PATTERN = "metadata_{year}.json"
 
 
 def load_metadata_index():
@@ -118,16 +120,16 @@ def compute_year_embeddings(year, year_file, metadata, model, decision_ids_set):
 
 def save_checkpoint(year, embeddings, metadata):
     """Save year embeddings and metadata as checkpoint."""
-    np.save(EMBEDDINGS_PATTERN.format(year=year), embeddings.astype(np.float32))
-    with open(METADATA_PATTERN.format(year=year), 'w') as f:
+    np.save(CHECKPOINT_DIR / EMBEDDINGS_PATTERN.format(year=year), embeddings.astype(np.float32))
+    with open(CHECKPOINT_DIR / METADATA_PATTERN.format(year=year), 'w') as f:
         json.dump(metadata, f, ensure_ascii=False, indent=2)
     logger.info(f"  Saved checkpoint for {year}")
 
 
 def load_checkpoint(year):
     """Load year embeddings and metadata from checkpoint."""
-    emb_path = EMBEDDINGS_PATTERN.format(year=year)
-    meta_path = METADATA_PATTERN.format(year=year)
+    emb_path = CHECKPOINT_DIR / EMBEDDINGS_PATTERN.format(year=year)
+    meta_path = CHECKPOINT_DIR / METADATA_PATTERN.format(year=year)
     if emb_path.exists() and meta_path.exists():
         embeddings = np.load(emb_path)
         with open(meta_path, 'r') as f:
