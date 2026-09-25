@@ -17,7 +17,7 @@
     "evaluation/experiments/legal_area_normalize.py",
     "evaluation/results/full_corpus_174k_tfidf/full_corpus_evaluation_results_worker0.json"
   ],
-  "next_recommendation": "RUN — TF-IDF family (8 representations) COMPLETE at 174k scale with HNSW artifact fix IMPLEMENTED. Formal suite (v3_174k_fixed, config hash b51701f5a9c11692) uses exact k-NN on FIXED STRATIFIED SUBSAMPLE (n=2000, seed=42) of decisions with known branch for adversarial benchmarks (language_dominance, jurist_pairwise, cross-language, jurist_usability); HNSW reserved for full-corpus scale benchmarks (citation_heritage on 137k frozen pairs, temporal_stability on 30k subsample, hierarchy family on 15k stratified subsample, boilerplate on full corpus). All three machine-executable sub-questions of factory direction v27 COMPLETE for TF-IDF family. Dense embeddings (center_projected, metric learning, hybrid, citation roles, linear hybrids) awaited from legal-distance lane (52% complete, blocked on corpus artifact publication gap). Monitor active; will evaluate dense representations autonomously as they land in accepted state. Jurist human study external dependency recorded (framework ready).",
+  "next_recommendation": "RUN — TF-IDF family (8 representations) COMPLETE at 174k scale with HNSW artifact fix IMPLEMENTED. Formal suite (v3_174k_fixed, config hash b51701f5a9c11692) uses exact k-NN on FIXED STRATIFIED SUBSAMPLE (n=2000, seed=42) of decisions with known branch for adversarial benchmarks (language_dominance, jurist_pairwise, cross-language, jurist_usability); HNSW reserved for full-corpus scale benchmarks (citation_heritage on 137k frozen pairs, temporal_stability on 30k subsample, hierarchy family on 15k stratified subsample, boilerplate on full corpus). All three machine-executable sub-questions of factory direction v27 COMPLETE for TF-IDF family. Dense embeddings (center_projected, metric learning, hybrid, citation roles, linear hybrids) awaited from legal-distance lane (36% complete, years 2000-2010; blocked on corpus artifact publication gap). Monitor active; will evaluate dense representations autonomously as they land in accepted state. Jurist human study external dependency recorded (framework ready).",
   "summary": {
     "subquestion_1_12_benchmark_suite": {
       "status": "COMPLETE",
@@ -71,36 +71,36 @@
       },
       "key_finding": "v17b normalization improves purity for citation-based reps (42-64%) but degrades NMI for 6/8 reps (11-28% worsening). Text-based reps show ZERO purity improvement (ratios=1.00) and severe NMI degradation (-24% to -28%). Only 2/8 reps satisfy frozen uniformity rule. Best normalized hierarchy_purity=0.465 < 0.7 threshold — fundamental granularity/coverage limits persist at 174k."
     },
-"critical_hnsw_artifact": {
+    "critical_hnsw_artifact": {
       "status": "FIXED",
       "description": "HNSW with fixed parameters (M=16, ef_construction=200, ef_search=100, seed=42) produces nearly identical k-NN graphs across different TF-IDF representations at 174k scale, masking true representation differences in adversarial benchmarks",
       "evidence": "v3 harness (HNSW on full 174k): all 8 reps show identical jurist_pairwise=0.122 and similar lang_dom ~0.606. Exact k-NN on fixed stratified subsample (n=2000, seed=42) from valid decisions (n=90632): jurist_pairwise=0.71-0.80, lang_dom=0.43-0.53, differentiated across representations",
       "impact": "Jurist pairwise collapse from 1200-scale (0.79) → 174k (0.12) was HNSW artifact, NOT representation failure. FIXED before dense 174k evaluation.",
       "implemented_fix": "Exact k-NN (sklearn brute force) on fixed stratified subsample of 2000 decisions with known branch for adversarial benchmarks; HNSW only for full-corpus scale benchmarks (citation_heritage, temporal_stability, hierarchy family on subsample, boilerplate)"
     },
-  "awaited_representations": {
-    "dense_embeddings_174k": [
-      "center_projected_768dim",
-      "center_projected_64dim",
-      "linear_metric_epoch4",
-      "mahalanobis_metric_epoch4",
-      "hybrid_stabilized_epoch1",
-      "hybrid_v2_epoch3"
-    ],
-    "citation_roles_174k": [
-      "citation_role_citing_alpha0.3",
-      "citation_role_following_alpha0.3",
-      "citation_role_criticizing_alpha0.3"
-    ],
-    "linear_hybrids_174k": [
-      "linear_citation_concat",
-      "linear_hybrid05_concat"
-    ]
-  },
-"monitor_status": {
+    "awaited_representations": {
+      "dense_embeddings_174k": [
+        "center_projected_768dim",
+        "center_projected_64dim",
+        "linear_metric_epoch4",
+        "mahalanobis_metric_epoch4",
+        "hybrid_stabilized_epoch1",
+        "hybrid_v2_epoch3"
+      ],
+      "citation_roles_174k": [
+        "citation_role_citing_alpha0.3",
+        "citation_role_following_alpha0.3",
+        "citation_role_criticizing_alpha0.3"
+      ],
+      "linear_hybrids_174k": [
+        "linear_citation_concat",
+        "linear_hybrid05_concat"
+      ]
+    },
+    "monitor_status": {
       "active": true,
-      "check_count": 67,
-      "last_check": "2026-09-25T14:30:00.000000",
+      "check_count": 68,
+      "last_check": "2026-09-25T21:30:00.000000",
       "watching_path": "/tmp/lex_accepted/legal-distance/legal_distance/results",
       "completed_evaluations": {
         "cited_decisions_tfidf": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true},
@@ -121,26 +121,27 @@
         "monitor_script": "ACTIVE_WITH_FORMAL_SUITE",
         "hnsw_artifact_fix": "IMPLEMENTED_exact_knn_on_valid_subset_for_adversarial"
       },
-    "hnsw_artifact_confirmed": true,
-    "dense_embeddings_progress": {
-      "completed_years": ["2000", "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013"],
-      "total_years": 27,
-      "completion_rate": "52%",
-      "blocked_on": "corpus_artifact_publication_gap"
+      "hnsw_artifact_confirmed": true,
+      "dense_embeddings_progress": {
+        "completed_years": ["2000", "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010"],
+        "total_years": 27,
+        "completion_rate": "36%",
+        "blocked_on": "corpus_artifact_publication_gap"
+      }
+    },
+    "blockers": {
+      "primary": "legal_distance_174k_dense_embeddings_not_in_accepted_state",
+      "root_cause": "corpus_artifact_publication_gap: year-split normalized files and metadata_174k.jsonl exist in corpus workspace but NOT at /tmp/lex_accepted/corpus/... and /tmp/lex_accepted/evaluation/... mount paths where legal-distance expects them",
+      "legal_distance_status": "years_2000_2010_complete; years_2011_2025_blocked_missing_upstream_data",
+      "methodological_blocker": "hnsw_adversarial_artifact_requires_exact_knn_fix_before_dense_174k_eval",
+      "external_dependencies": [
+        "jurist_human_study: requires 5-10 Swiss jurists (framework ready, non-blocking)"
+      ]
+    },
+    "frozen_config_hashes": {
+      "v25_formal_suite": "4323f833fa72366a",
+      "v3_adversarial_harness": "4047da047fb339c1",
+      "v3_174k_config": "evaluation/config/evaluation_v3_174k_config.json"
     }
-  },
-  "blockers": {
-    "primary": "legal_distance_174k_dense_embeddings_not_in_accepted_state",
-    "root_cause": "corpus_artifact_publication_gap: year-split normalized files and metadata_174k.jsonl exist in corpus workspace but NOT at /tmp/lex_accepted/corpus/... and /tmp/lex_accepted/evaluation/... mount paths where legal-distance expects them",
-    "legal_distance_status": "year_2000_checkpoint_only; years_2001_2025_failed_missing_upstream_data",
-    "methodological_blocker": "hnsw_adversarial_artifact_requires_exact_knn_fix_before_dense_174k_eval",
-    "external_dependencies": [
-      "jurist_human_study: requires 5-10 Swiss jurists (framework ready, non-blocking)"
-    ]
-  },
-  "frozen_config_hashes": {
-    "v25_formal_suite": "4323f833fa72366a",
-    "v3_adversarial_harness": "4047da047fb339c1",
-    "v3_174k_config": "evaluation/config/evaluation_v3_174k_config.json"
   }
 }
