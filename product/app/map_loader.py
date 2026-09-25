@@ -3597,8 +3597,11 @@ class MapLoader:
         projection = np.load(projection_path)
         
         # Load decision_ids from the 174k metadata
-        # Use the full metadata file with real decision IDs
-        full_metadata_path = self.results_dir / "hierarchical_map_174k" / "metadata_174k_full.json"
+        # Use the full metadata file with real decision IDs (175k entries)
+        full_metadata_path = self.results_dir / "hierarchical_map_174k" / "metadata_174k_full_175k.json"
+        if not full_metadata_path.exists():
+            # Fallback to smaller metadata file
+            full_metadata_path = self.results_dir / "hierarchical_map_174k" / "metadata_174k_full.json"
         if not full_metadata_path.exists():
             return
         

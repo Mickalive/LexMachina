@@ -2548,6 +2548,8 @@ class NavigationAPI:
         # Vectorized: extract decision_ids and languages using boolean mask
         decision_ids_np = np.array(decision_ids)
         decision_ids = decision_ids_np[lod_mask].tolist()
+        languages_np = np.array(languages)
+        languages = languages_np[lod_mask].tolist()
         n_total = len(xs)
 
         # --- Viewport culling using KD-tree spatial index ---
@@ -2609,17 +2611,22 @@ class NavigationAPI:
 
         # --- Vectorized color + radius assembly (174k-optimized) ---
         # Build cluster-id-to-color-index mapping for vectorized lookup
-        cid_to_color_idx = np.full(int(cluster_ids_v.max()) + 1 if n_culled > 0 else 0, -1, dtype=np.int32)
-        for idx_c, cl in enumerate(clusters):
-            cid_val = cl['cluster_id']
-            if cid_val < len(cid_to_color_idx):
-                cid_to_color_idx[cid_val] = idx_c % len(COLORS)
+        # Handle case where all cluster_ids are -1 (noise/unassigned)
+        if n_culled > 0:
+            max_cid = int(cluster_ids_v.max())
+            cid_to_color_idx = np.full(max(max_cid, 0) + 1, -1, dtype=np.int32)
+            for idx_c, cl in enumerate(clusters):
+                cid_val = cl['cluster_id']
+                if 0 <= cid_val < len(cid_to_color_idx):
+                    cid_to_color_idx[cid_val] = idx_c % len(COLORS)
 
-        # Vectorized RGBA lookup via index array
-        default_color_idx = 0  # fallback index
-        safe_cids = np.clip(cluster_ids_v, 0, len(cid_to_color_idx) - 1) if n_culled > 0 else np.array([], dtype=np.int32)
-        color_indices = cid_to_color_idx[safe_cids] if n_culled > 0 else np.array([], dtype=np.int32)
-        color_indices[color_indices < 0] = default_color_idx
+            # Vectorized RGBA lookup via index array
+            default_color_idx = 0  # fallback index
+            safe_cids = np.clip(cluster_ids_v, 0, len(cid_to_color_idx) - 1)
+            color_indices = cid_to_color_idx[safe_cids]
+            color_indices[color_indices < 0] = default_color_idx
+        else:
+            color_indices = np.array([], dtype=np.int32)
 
         # Pre-compute COLOR_PALETTE as (N_COLORS, 4) float32 array
         COLOR_PALETTE = np.empty((len(COLORS), 4), dtype=np.float32)
