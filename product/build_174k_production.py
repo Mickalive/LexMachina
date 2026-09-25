@@ -30,9 +30,9 @@ logger = logging.getLogger(__name__)
 def load_full_corpus_metadata():
     """Load metadata for all bger_20*.jsonl decisions (174k corpus)."""
     metadata = []
-    for year_file in sorted(CORPUS_DIR.glob("bge_20*.jsonl")):
-        # Skip the slice file
-        if "slice" in year_file.name:
+    for year_file in sorted(CORPUS_DIR.glob("bger_20*.jsonl")):
+        # Skip the slice file and test/eval files
+        if "slice" in year_file.name or "test" in year_file.name or "eval" in year_file.name:
             continue
         with open(year_file) as f:
             for line in f:
@@ -46,8 +46,8 @@ def load_full_corpus_metadata():
                     'chamber': d.get('chamber'),
                     'branch': d.get('branch'),
                     'proceeding_type': d.get('proceeding_type'),
-                    'court': d.get('court', 'bge'),
-                    'outcome': d.get('outcome', 'null'),
+                    'court': d.get('court', 'bger'),
+                    'outcome': d.get('outcome', 'unknown'),
                     'cited_decisions': d.get('cited_decisions', []),
                 })
     logger.info(f"Loaded {len(metadata)} decisions from 2000+ corpus")
