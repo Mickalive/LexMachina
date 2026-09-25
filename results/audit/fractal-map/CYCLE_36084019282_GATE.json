@@ -1,0 +1,83 @@
+{
+  "cycle_id": "36084019282",
+  "lane": "fractal-map",
+  "direction_version": 27,
+  "timestamp": "2026-09-25T02:30:00.000000+00:00",
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF 174k modes encode legal structure (purity >> random) but fail ALL monotonic zoom-refinement checks. Zoom-quality at 174k NOT established for TF-IDF-only modes. Evidence-backed zoom path: citation-role/dense-embedding modes. Lane BLOCKED on legal-distance_174k_dense_embeddings.",
+  "evidence_summary": {
+    "tests_passed": 195,
+    "tests_failed": 0,
+    "tests_skipped": 0,
+    "test_files": [
+      "tests/fractal_map/test_verify.py (184 tests)",
+      "tests/fractal_map/test_zoom_quality_174k_v26_eval.py (7 tests)",
+      "tests/fractal_map/test_zoom_quality_174k_eval.py (4 tests)"
+    ],
+    "lane_state": {
+      "status": "COMPLETED",
+      "blocked_on": "legal-distance_174k_dense_embeddings",
+      "blocked_since": "2026-09-24T01:55:00Z",
+      "continue_recommended": false,
+      "resume_guard": "final_audit_complete_v12",
+      "accepted_run_id": "35952633500",
+      "github_run": "36083220945",
+      "resume_from_run_id": "36082543926"
+    },
+    "frozen_negative_results": [
+      "v25 FAIL (primary mode): FAIL on all 3 frozen success checks",
+      "v26 FAIL (all 4 decision-mappable TF-IDF 174k modes): FAIL on all 3 frozen success checks — negative generalized to full mappable set",
+      "Compressed ladder nesting defect: 21/22 modes fail strict nesting preservation at 1000-scale (NESTING_METRIC_DEFECT_v1)",
+      "TF-IDF 174k over-fragmentation: Median cluster size 1 at fine resolutions (structural barrier to zoom refinement)",
+      "Citation-bearing TF-IDF hybrids do NOT outperform regeste-only at 174k zoom refinement"
+    ],
+    "preserved_positive_results": [
+      "TF-IDF 174k modes encode legal structure (branch purity 0.51-0.55 vs 0.25 random; area purity 0.24-0.31 vs ~0.005 random at ALL resolutions)",
+      "center_projected_hierarchical @ 1000-scale: PASS (nesting=1.0, purity=0.957 > concat baseline 0.949)",
+      "Hierarchical Leiden guarantees perfect nesting by construction",
+      "Compressed 5-level ladder: 100% purity delta retention for ALL 22 modes at 1000-scale",
+      "Zoom navigation mappings identical at shared resolutions between full and compressed ladders",
+      "Multi-view zoom UI with citation-role views implemented at product level",
+      "1000-scale citation-role modes show strong zoom quality (citing_alpha0.3 ZQ=0.5401)"
+    ],
+    "key_metrics_verified": {
+      "center_projected_hierarchical": {
+        "verdict": "PASS",
+        "hierarchical_purity_global": 0.9570933829681662,
+        "best_config": "coarse_0.5_fine_3.0",
+        "purity_improvement_vs_flat_pct": 2.46
+      },
+      "v26_174k_zoom_quality": {
+        "modes_evaluated": 4,
+        "modes_passed": 0,
+        "overall_verdict": "FAIL",
+        "per_mode_verdicts": {
+          "cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25": "FAIL",
+          "cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed_v25": "FAIL",
+          "cited_decisions_tfidf_outcome_hybrid_0.5_174k": "FAIL",
+          "regeste_tfidf_174k": "FAIL"
+        }
+      },
+      "compressed_resolution_ladder": {
+        "verdict": "FAIL (nesting preservation)",
+        "full_ladder": [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+        "compressed_ladder": [0.25, 0.5, 1.0, 2.0, 3.0],
+        "purity_delta_retention_pct": 100,
+        "modes_passing_nesting_preservation": 1,
+        "modes_failing_nesting_preservation": 21
+      }
+    },
+    "dense_embeddings_readiness": "COMPLETE - builder fixed, harness created, verified vs v26 TF-IDF",
+    "orchestration_failure": {
+      "root_cause": "Supervisor reads ephemeral /tmp/lex_control/state/factory_direction.json (fractal-map.status=RUN) instead of workspace state/factory_direction.json (fractal-map.status=COMPLETED_TFIDF) and state/fractal-map.json (blocked_on=legal-distance_174k_dense_embeddings, continue_recommended=false)",
+      "occurrences": "60+ documented",
+      "first_documented": "33339971167",
+      "required_fix": "Factory Director must update supervisor dispatch logic to read workspace state"
+    },
+    "audit_type": "OPERATIONAL_RESUME_VERIFICATION",
+    "repair_round": 0
+  },
+  "next_recommendation": "BLOCKED on legal-distance_174k_dense_embeddings. Resume when dense embeddings delivered. No same-question cycle justified."
+}
