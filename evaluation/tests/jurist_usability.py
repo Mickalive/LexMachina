@@ -70,6 +70,8 @@ def prepare_metadata(metadata: List[Dict]) -> Tuple[np.ndarray, np.ndarray, np.n
     }
     
     def assign_branch(chamber: str) -> str:
+        if not chamber:
+            return "unknown"
         if chamber in CHAMBER_TO_BRANCH:
             return CHAMBER_TO_BRANCH[chamber]
         chamber_lower = chamber.lower()
