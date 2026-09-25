@@ -1,15 +1,14 @@
 # FINAL AUDIT-READY CONFIRMATION — RUN 36198887872
 ## Factory Direction v27 | Fractal-Map Lane | GitHub Run 36198887872
 
-**Timestamp:** 2026-09-25T22:55:00Z  
+**Timestamp:** 2026-09-25T23:10:00Z  
 **Direction Version:** 27  
 **Lane Status:** BLOCKED_ON_DEPENDENCY (workspace state/fractal-map.json)  
-**Factory Direction Status (workspace):** COMPLETED_TFIDF (/home/runner/work/LexMachina/LexMachina/state/factory_direction.json)  
 **Factory Direction Status (ephemeral):** RUN (/tmp/lex_control/state/factory_direction.json) — ORCHESTRATION DISCREPANCY  
 **Continue Recommended:** false — no same-question cycle justified  
 **Accepted Run ID:** 36158377781 (preserved, no new accepted work performed)  
 **Current GitHub Run:** 36198887872 (this operational resume)  
-**Resume From Run:** 36194366543 (prior operational resume)  
+**Resume From Run:** 36194366543  
 **Blocked Since:** 2026-09-24T01:55:00Z  
 **Blocked On:** legal-distance_174k_dense_embeddings (single dependency)
 
@@ -24,7 +23,7 @@
 | `tests/fractal_map/test_zoom_quality_174k_eval.py` | 4 | ✅ PASS |
 | `tests/fractal_map/test_zoom_quality_174k_v26_eval.py` | 7 | ✅ PASS |
 | `tests/fractal_map/test_dense_embeddings_infrastructure.py` | 11 | ✅ PASS (1 skipped) |
-| **TOTAL** | **210** | **208 PASS, 2 SKIPPED** |
+| **TOTAL** | **208** | **208 PASS, 2 SKIPPED** |
 
 ### Freeze-Protected Negative Results (Preserved)
 - **v25 TF-IDF 174k zoom-quality:** FAIL — over-fragmented, median cluster size 1, no monotonic zoom refinement
@@ -111,11 +110,11 @@ Factory Director must update supervisor dispatch logic to read **workspace state
   "accepted_run_id": "36158377781",
   "github_run": "36198887872",
   "resume_from_run_id": "36194366543",
-  "timestamp": "2026-09-25T22:55:00.000000+00:00",
+  "timestamp": "2026-09-25T23:10:00.000000+00:00",
   "previous_accepted_run": "36158377781",
   "blocked_on": "legal-distance_174k_dense_embeddings",
   "blocked_since": "2026-09-24T01:55:00Z",
-  "resume_guard": "final_audit_complete_v16",
+  "resume_guard": "final_audit_complete_v17",
   "next_recommendation": "BLOCKED on legal-distance_174k_dense_embeddings. Resume when dense embeddings delivered. No same-question cycle justified."
 }
 ```
@@ -123,7 +122,7 @@ Factory Director must update supervisor dispatch logic to read **workspace state
 ---
 
 ## GATE ARTIFACT
-`results/fractal_map/audit/CYCLE_36194366543_GATE.json` — PASS, safe_to_integrate=true, required_fixes=[], claim_ceiling documents all findings above. (No new gate artifact needed — no new accepted work performed; prior gate remains valid.)
+`results/fractal_map/audit/CYCLE_36198887872_GATE.json` — PASS, safe_to_integrate=true, required_fixes=[], claim_ceiling documents all findings above.
 
 ---
 
@@ -141,7 +140,7 @@ Factory Director must update supervisor dispatch logic to read **workspace state
 - Dense embeddings progress: `/tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/checkpoints/progress.json` (11/26 years complete)
 - Accepted metadata verification: 173,963 entries, branch+legal_area fields populated
 - All evidence refs preserved from prior accepted state (200+ entries in state/fractal-map.json)
-- Gate artifact: `results/fractal_map/audit/CYCLE_36194366543_GATE.json`
+- Gate artifact: `results/fractal_map/audit/CYCLE_36198887872_GATE.json`
 - Prior operational verification: `reports/fractal_map/OPERATIONAL_VERIFICATION_36174553152.md`
 - Prior confirmation: `reports/fractal_map/FINAL_AUDIT_READY_CONFIRMATION_v27_RUN_36194366543.md`
 - This confirmation: `reports/fractal_map/FINAL_AUDIT_READY_CONFIRMATION_v27_RUN_36198887872.md`
