@@ -22,7 +22,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(mess
 logger = logging.getLogger(__name__)
 
 CORPUS_DIR = Path("/tmp/lex_accepted/corpus/corpus/normalization/canonical")
-METADATA_PATH = Path("/tmp/lex_accepted/evaluation/evaluation/data/174k/metadata_174k.jsonl")
+METADATA_PATH = Path("/tmp/lex_accepted/product/product/results/fractal_map/hierarchical_map_174k/metadata_174k.json")
 OUTPUT_DIR = Path("/home/runner/work/LexMachina/LexMachina/legal_distance/results/174k_dense_embeddings")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -31,7 +31,7 @@ BATCH_SIZE = 128
 EMBEDDING_DIM = 768
 
 # Year files to process (2000 onward per product scope)
-YEAR_FILES = sorted(CORPUS_DIR.glob("bger_[0-9][0-9][0-9][0-9].jsonl"))
+YEAR_FILES = sorted(CORPUS_DIR.glob("bge_[0-9][0-9][0-9][0-9].jsonl"))
 # Filter to only years >= 2000 (product scope)
 YEAR_FILES = [f for f in YEAR_FILES if int(f.stem.split('_')[1]) >= 2000]
 
@@ -44,11 +44,13 @@ METADATA_PATTERN = "metadata_{year}.json"
 
 
 def load_metadata_index():
-    """Load metadata_174k.jsonl to get the canonical decision order and metadata."""
-    metadata = []
+    """Load metadata_174k.json (array) or .jsonl to get the canonical decision order and metadata."""
     with open(METADATA_PATH, 'r') as f:
-        for line in f:
-            metadata.append(json.loads(line))
+        content = f.read().strip()
+    if content.startswith('['):
+        metadata = json.loads(content)
+    else:
+        metadata = [json.loads(line) for line in content.split('\n') if line.strip()]
     logger.info(f"Loaded metadata for {len(metadata)} decisions")
     return metadata
 
