@@ -154,6 +154,22 @@ def scan_for_representations() -> Dict[str, List[Path]]:
                     found[f"fractal_map/{item.name}"] = npy_files
                     logger.info(f"Found 174k representation dir: fractal_map/{item.name} with {len(npy_files)} embeddings")
     
+    # Also check the 174k_dense_embeddings directory at results root (where legal-distance publishes final concatenated embeddings)
+    dense_embeddings_root = LEGAL_DISTANCE_RESULTS_ROOT / "174k_dense_embeddings"
+    if dense_embeddings_root.exists():
+        # Check for final embeddings in the root (not in checkpoints subdirectory)
+        npy_files = list(dense_embeddings_root.glob("*.npy"))
+        if npy_files:
+            found["174k_dense_embeddings"] = npy_files
+            logger.info(f"Found 174k representation dir: 174k_dense_embeddings with {len(npy_files)} embeddings")
+        # Also check any subdirectories that are not 'checkpoints'
+        for item in dense_embeddings_root.iterdir():
+            if item.is_dir() and item.name != "checkpoints" and "174k" in item.name.lower():
+                npy_files = list(item.glob("*.npy"))
+                if npy_files:
+                    found[f"174k_dense_embeddings/{item.name}"] = npy_files
+                    logger.info(f"Found 174k representation dir: 174k_dense_embeddings/{item.name} with {len(npy_files)} embeddings")
+    
     return found
 
 
