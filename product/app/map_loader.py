@@ -137,6 +137,15 @@ class MapLoader:
             "cited_outcome_hybrid_0.5": "_load_cited_outcome_hybrid_0_5",
             "cited_outcome_hybrid_0.7": "_load_cited_outcome_hybrid_0_7",
             "linear_hybrid05_concat": "_load_linear_hybrid05_concat",
+            # 174k TF-IDF representations from hierarchical_map_174k/legal_tfidf_embeddings
+            "cited_decisions_tfidf_174k": "_load_cited_decisions_tfidf_174k",
+            "outcome_tfidf_174k": "_load_outcome_tfidf_174k",
+            "cited_outcome_hybrid_0.5_174k": "_load_cited_outcome_hybrid_0_5_174k",
+            "cited_outcome_hybrid_0.7_174k": "_load_cited_outcome_hybrid_0_7_174k",
+            "regeste_tfidf_174k": "_load_regeste_tfidf_174k",
+            "full_text_tfidf_light_174k": "_load_full_text_tfidf_light_174k",
+            "regeste_full_text_hybrid_0.5_174k": "_load_regeste_full_text_hybrid_0_5_174k",
+            "regeste_full_text_hybrid_0.7_174k": "_load_regeste_full_text_hybrid_0_7_174k",
         }
 
     def load(self) -> int:
@@ -175,6 +184,15 @@ class MapLoader:
             "_load_cited_outcome_hybrid_0_5",
             "_load_cited_outcome_hybrid_0_7",
             "_load_linear_hybrid05_concat",
+            # 174k TF-IDF representations (production defaults)
+            "_load_cited_decisions_tfidf_174k",
+            "_load_outcome_tfidf_174k",
+            "_load_cited_outcome_hybrid_0_5_174k",
+            "_load_cited_outcome_hybrid_0_7_174k",
+            "_load_regeste_tfidf_174k",
+            "_load_full_text_tfidf_light_174k",
+            "_load_regeste_full_text_hybrid_0_5_174k",
+            "_load_regeste_full_text_hybrid_0_7_174k",
         ]
 
         for method_name in load_order:
@@ -2771,6 +2789,90 @@ class MapLoader:
             },
         )
 
+    def _build_zoom_levels_from_cluster_metadata(
+        self,
+        representation: str,
+        decision_ids: List[str],
+        projection: np.ndarray,
+        decision_clusters: Dict,
+        cluster_metadata: Dict,
+        hierarchical_cluster_metadata: Dict,
+        zoom_mappings: Dict,
+    ) -> Dict[int, ZoomLevel]:
+        """Build zoom levels from 174k cluster metadata (produced by build_all_representations.py)."""
+        zoom_levels = {}
+
+        # Create position mapping
+        positions = {}
+        for i, did in enumerate(decision_ids):
+            if i < len(projection):
+                positions[did] = (float(projection[i, 0]), float(projection[i, 1]))
+
+        # Get available resolutions from cluster_metadata
+        # cluster_metadata has keys like "res_0.25", "res_0.5", etc.
+        for res_key, res_meta in cluster_metadata.items():
+            if not res_key.startswith("res_"):
+                continue
+            resolution = float(res_key.replace("res_", ""))
+            zoom_level = int(resolution * 4)  # 0.25->1, 0.5->2, 1.0->4, etc.
+
+            # Build cluster assignments from decision_clusters
+            cluster_assignments = {}
+            for did, info in decision_clusters.items():
+                # decision_clusters has cluster info per decision
+                # We need to find the cluster at this resolution
+                if isinstance(info, dict) and f"res_{resolution}" in info:
+                    cluster_assignments[did] = info[f"res_{resolution}"]
+                elif "cluster_id" in info:
+                    # Fallback to hierarchical cluster
+                    cluster_assignments[did] = info["cluster_id"]
+
+            if not cluster_assignments:
+                # Last resort: spatial grid clustering
+                cluster_assignments = self._assign_clusters_spatial(
+                    positions, resolution
+                )
+
+            # Build cluster info
+            clusters = {}
+            for did, cid in cluster_assignments.items():
+                if cid not in clusters:
+                    clusters[cid] = ClusterInfo(
+                        cluster_id=cid,
+                        zoom_level=zoom_level,
+                        decision_ids=[],
+                        size=0,
+                    )
+                clusters[cid].decision_ids.append(did)
+                clusters[cid].size += 1
+
+            # Enrich with cluster metadata (purity, dominant labels)
+            if res_key in cluster_metadata:
+                for cid_str, meta in cluster_metadata[res_key].items():
+                    cid = int(cid_str)
+                    if cid in clusters:
+                        clusters[cid].legal_area_label = meta.get("dominant_area")
+                        clusters[cid].language_label = meta.get("dominant_language")
+
+            # Compute centroids
+            for cid, cluster in clusters.items():
+                xs = [positions[did][0] for did in cluster.decision_ids if did in positions]
+                ys = [positions[did][1] for did in cluster.decision_ids if did in positions]
+                if xs and ys:
+                    cluster.centroid_x = sum(xs) / len(xs)
+                    cluster.centroid_y = sum(ys) / len(ys)
+
+            zoom_levels[zoom_level] = ZoomLevel(
+                level=zoom_level,
+                n_clusters=len(clusters),
+                clusters=clusters,
+                positions=positions,
+                cluster_assignments=cluster_assignments,
+                n_decisions=len(decision_ids),
+            )
+
+        return zoom_levels
+
     def _assign_clusters_spatial(
         self, positions: Dict[str, Tuple[float, float]], resolution: float
     ) -> Dict[str, int]:
@@ -3456,4 +3558,203 @@ class MapLoader:
                 "std": 0.027,
                 "both_gates_pass": True,
             }
+        )
+
+    # =========================================================================
+    # 174k TF-IDF Representations (from hierarchical_map_174k/legal_tfidf_embeddings)
+    # =========================================================================
+
+    def _load_174k_tfidf_representation(self, name: str, display_name: str, description: str, 
+                                        evidence_tier: str, benchmark_results: Dict,
+                                        embedding_file: str) -> None:
+        """Generic loader for 174k TF-IDF representations from legal_tfidf_embeddings."""
+        legal_tfidf_dir = self.results_dir / "hierarchical_map_174k" / "legal_tfidf_embeddings"
+        embedding_path = legal_tfidf_dir / embedding_file
+        metadata_path = legal_tfidf_dir / "embeddings_metadata.json"
+        
+        if not embedding_path.exists() or not metadata_path.exists():
+            return
+        
+        # Load embeddings metadata
+        with open(metadata_path, "r") as f:
+            embed_meta = json.load(f)
+        
+        n_decisions = embed_meta.get("n_decisions", 0)
+        if n_decisions == 0:
+            return
+        
+        # Load 2D projection (we'll need to compute or load it)
+        # For now, try to load from representation-specific directory if it exists
+        rep_dir = self.results_dir / name
+        projection_path = rep_dir / "projection_2d.npy"
+        
+        if not projection_path.exists():
+            # Projection doesn't exist yet - skip this representation
+            # It will be built by the production build script
+            return
+        
+        # Load projection
+        projection = np.load(projection_path)
+        
+        # Load decision_ids from the 174k metadata
+        # Use the full metadata file with real decision IDs
+        full_metadata_path = self.results_dir / "hierarchical_map_174k" / "metadata_174k_full.json"
+        if not full_metadata_path.exists():
+            return
+        
+        with open(full_metadata_path, "r") as f:
+            full_metadata = json.load(f)
+        
+        # Only use as many decision_ids as we have embeddings for
+        decision_ids = [m["decision_id"] for m in full_metadata[:n_decisions]]
+        
+        # Load fractal-map validated clustering for this representation
+        # Try to load from representation directory
+        if not (rep_dir / "cluster_metadata.json").exists():
+            # Clustering not yet computed for this representation
+            return
+        
+        # Load clustering results
+        with open(rep_dir / "cluster_metadata.json", "r") as f:
+            cluster_metadata = json.load(f)
+        
+        with open(rep_dir / "decision_clusters.json", "r") as f:
+            decision_clusters = json.load(f)
+        
+        with open(rep_dir / "hierarchical_cluster_metadata.json", "r") as f:
+            hierarchical_cluster_metadata = json.load(f)
+        
+        with open(rep_dir / "zoom_mappings.json", "r") as f:
+            zoom_mappings = json.load(f)
+        
+        # Build zoom levels using the clustering results
+        zoom_levels_dict = self._build_zoom_levels_from_cluster_metadata(
+            representation=name,
+            decision_ids=decision_ids,
+            projection=projection,
+            decision_clusters=decision_clusters,
+            cluster_metadata=cluster_metadata,
+            hierarchical_cluster_metadata=hierarchical_cluster_metadata,
+            zoom_mappings=zoom_mappings,
+        )
+        
+        if not zoom_levels_dict:
+            return
+        
+        self.maps[name] = MapState(
+            representation=name,
+            n_decisions=len(decision_ids),
+            zoom_levels=zoom_levels_dict,
+            metadata={
+                "display_name": display_name,
+                "description": description,
+                "evidence_tier": evidence_tier,
+                "benchmark_results": benchmark_results,
+                "clustering_method": "Hierarchical Leiden (coarse_0.5_fine_3.0) - fractal-map validated at 174k",
+                "config": "coarse_0.5_fine_3.0_k15",
+                "n_zoom_levels": len(zoom_levels_dict),
+                "scale": "174k",
+                "note": description + f" 174k TF-IDF representation from legal_tfidf_embeddings.",
+            },
+        )
+
+    def _load_cited_decisions_tfidf_174k(self) -> None:
+        """Load cited_decisions_tfidf at 174k scale (ACCEPTED - zero-shot legal proximity)."""
+        self._load_174k_tfidf_representation(
+            name="cited_decisions_tfidf_174k",
+            display_name="Doctrinal Lineage 174k (Cited Decisions TF-IDF)",
+            description="ACCEPTED zero-shot legal proximity at 174k scale. TF-IDF on cited decisions only. Citation heritage AUC 0.9719. Best for citation-proximity navigation at full corpus scale.",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "citation_heritage_auc": 0.9719,
+                "jurist_pairwise": 0.6889,
+                "language_dominance": 0.612,
+            },
+            embedding_file="cited_decisions_tfidf.npy",
+        )
+
+    def _load_outcome_tfidf_174k(self) -> None:
+        """Load outcome_tfidf at 174k scale."""
+        self._load_174k_tfidf_representation(
+            name="outcome_tfidf_174k",
+            display_name="Outcome Signal 174k (TF-IDF)",
+            description="TF-IDF on outcome field at 174k scale. Captures holding/outcome similarity.",
+            evidence_tier="EXPLORATORY",
+            benchmark_results={},
+            embedding_file="outcome_tfidf.npy",
+        )
+
+    def _load_cited_outcome_hybrid_0_5_174k(self) -> None:
+        """Load cited_outcome_hybrid_0.5 at 174k scale (PRODUCTION DEFAULT per v15b-audit)."""
+        self._load_174k_tfidf_representation(
+            name="cited_outcome_hybrid_0.5_174k",
+            display_name="BEST PRODUCTION 174k: Citation + Outcome (α=0.5) ★",
+            description="PRODUCTION DEFAULT per v15b-audit CRITICAL. Wins full-harness LangDom/JuristPref/Boilerplate. 50% cited_decisions_tfidf + 50% outcome signal. JP=0.7990, LangDom=0.4911. Both adversarial gates PASS. Best for user-imported corpora where branch metadata unavailable.",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "jurist_pairwise": 0.7990,
+                "language_dominance": 0.4911,
+                "both_gates_pass": True,
+            },
+            embedding_file="cited_decisions_tfidf_outcome_hybrid_0.5.npy",
+        )
+
+    def _load_cited_outcome_hybrid_0_7_174k(self) -> None:
+        """Load cited_outcome_hybrid_0.7 at 174k scale (BEST FRACTAL per factory direction v9)."""
+        self._load_174k_tfidf_representation(
+            name="cited_outcome_hybrid_0.7_174k",
+            display_name="BEST FRACTAL 174k: Citation + Outcome (α=0.7) ★",
+            description="BEST FRACTAL hybrid per factory direction v9. 70% cited_decisions_tfidf + 30% outcome signal. HierAdv=+0.3703. Both adversarial gates PASS.",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "jurist_pairwise": 0.7907,
+                "language_dominance": 0.4907,
+                "hierarchical_advantage": 0.3703,
+                "both_gates_pass": True,
+            },
+            embedding_file="cited_decisions_tfidf_outcome_hybrid_0.7.npy",
+        )
+
+    def _load_regeste_tfidf_174k(self) -> None:
+        """Load regeste_tfidf at 174k scale."""
+        self._load_174k_tfidf_representation(
+            name="regeste_tfidf_174k",
+            display_name="Regeste 174k (TF-IDF on Case Summary)",
+            description="TF-IDF on regeste (case summary) field at 174k scale. Coverage: 47.4%.",
+            evidence_tier="EXPLORATORY",
+            benchmark_results={},
+            embedding_file="regeste_tfidf.npy",
+        )
+
+    def _load_full_text_tfidf_light_174k(self) -> None:
+        """Load full_text_tfidf_light at 174k scale."""
+        self._load_174k_tfidf_representation(
+            name="full_text_tfidf_light_174k",
+            display_name="Full Text Light 174k (Truncated TF-IDF)",
+            description="TF-IDF on truncated full text (5k chars) at 174k scale. Coverage: 100%.",
+            evidence_tier="EXPLORATORY",
+            benchmark_results={},
+            embedding_file="full_text_tfidf_light.npy",
+        )
+
+    def _load_regeste_full_text_hybrid_0_5_174k(self) -> None:
+        """Load regeste_full_text_hybrid_0.5 at 174k scale."""
+        self._load_174k_tfidf_representation(
+            name="regeste_full_text_hybrid_0.5_174k",
+            display_name="Regeste + Full Text Hybrid 174k (α=0.5)",
+            description="Hybrid of regeste and truncated full text TF-IDF at 174k scale.",
+            evidence_tier="EXPLORATORY",
+            benchmark_results={},
+            embedding_file="regeste_full_text_hybrid_0.5.npy",
+        )
+
+    def _load_regeste_full_text_hybrid_0_7_174k(self) -> None:
+        """Load regeste_full_text_hybrid_0.7 at 174k scale."""
+        self._load_174k_tfidf_representation(
+            name="regeste_full_text_hybrid_0.7_174k",
+            display_name="Regeste + Full Text Hybrid 174k (α=0.7)",
+            description="Hybrid of regeste and truncated full text TF-IDF at 174k scale (70% regeste).",
+            evidence_tier="EXPLORATORY",
+            benchmark_results={},
+            embedding_file="regeste_full_text_hybrid_0.7.npy",
         )

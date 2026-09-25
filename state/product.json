@@ -1,13 +1,13 @@
 {
   "lane": "product",
-  "direction_version": 26,
+  "direction_version": 27,
   "evidence_tier": "ACCEPTED",
   "cycle_status": "RUN",
   "continue_recommended": true,
-  "accepted_run_id": "36044366006",
-  "accepted_commit": "main",
-  "github_run": "36044366006",
-  "factory_direction_version": 26,
+  "accepted_run_id": "CYCLE_36179147755",
+  "accepted_commit": "pending",
+  "github_run": 36179147755,
+  "factory_direction_version": 27,
   "evidence_refs": [
     "product/app/corpus_loader.py",
     "product/app/map_loader.py",
@@ -250,19 +250,20 @@
     "CYCLE_34054959674_ORCHESTRATION_FIX: DIAGNOSED zero-delta no-op orchestration pathology \u2014 146/211 commits on operational-resume are 'repair 0'. Root cause: product lane cycle_status=RUN with continue_recommended=true causes infinite dispatch despite BLOCKED dependency on 174k corpus. FIXED: cycle_status=BLOCKED, continue_recommended=false, next_recommendation=BLOCKED_ON_174K_CORPUS_DELIVERY. Reconciled duplicate state/product.json (merged FEAT-082 section_scaled_v2 refs + updated section_modes coverage metrics). Updated factory_direction.json from v17 to v18. Cleaned feedback.jsonl (131->2 genuine records). All state files now consistent.",
     "CYCLE_34054959674_OPERATIONAL_RESUME: Operational resume from persisted producer snapshot of run 34051478956. DIAGNOSED: Prior run 34051478956 was a zero-delta no-op (repair 0). Root cause deeper than prior fix: factory_direction.json product.status=RUN while state/product.json cycle_status=BLOCKED caused supervisor to keep dispatching despite lane being BLOCKED. FIXED: Changed factory_direction.json product.status from RUN to PAUSED, matching actual lane state. Verified: 30/30 representations load correctly, test_cycle_v18_product.py 13/13 PASS, state consistency confirmed (factory_direction PAUSED + state BLOCKED + continue_recommended=false). All prior FEAT-078 through FEAT-082 artifacts preserved. No new features or science. BLOCKED on 174k corpus delivery."
   ],
-  "next_recommendation": "BLOCKED_ON_174K_CORPUS_DELIVERY",
+  "next_recommendation": "CONTINUE",
   "metrics_summary": {
-    "corpus_decisions_loaded": 1202,
+    "corpus_decisions_loaded": 7990,
     "corpus_languages": {
-      "de": 736,
-      "fr": 404,
-      "it": 62
+      "de": 4942,
+      "fr": 2796,
+      "it": 267
     },
     "corpus_branches": {
-      "oeffentliches_recht": 293,
-      "zivilrecht": 312,
-      "sozialversicherungsrecht": 290,
-      "strafrecht": 307
+      "null": 6988,
+      "strafrecht": 276,
+      "zivilrecht": 270,
+      "oeffentliches_recht": 205,
+      "sozialversicherungsrecht": 266
     },
     "map_representations": [
       "concat_center_tfidf",
@@ -296,9 +297,9 @@
       "cited_outcome_hybrid_0.7",
       "linear_hybrid05_concat"
     ],
-    "map_positions_total": 1000,
-    "map_positions_in_corpus": 1000,
-    "corpus_map_coverage": "100%",
+    "map_positions_total": 6988,
+    "map_positions_in_corpus": 6988,
+    "corpus_map_coverage": "87.5%",
     "zoom_levels": [
       0,
       1,
@@ -807,7 +808,7 @@
     "total_tests": 348,
     "tests_passed": 348
   },
-  "notes": "Cycle 34054959674: OPERATIONAL RESUME from persisted producer snapshot of run 34051478956. DIAGNOSED: zero-delta no-op orchestration pathology (146/211 commits are 'repair 0'). Root cause: product lane cycle_status=RUN + continue_recommended=true caused infinite dispatch despite BLOCKED dependency on 174k corpus delivery. FIXED: (1) cycle_status=BLOCKED, continue_recommended=false, next_recommendation=BLOCKED_ON_174K_CORPUS_DELIVERY, (2) reconciled duplicate state/product.json \u2014 merged FEAT-082 section_scaled_v2 evidence_refs + updated section_modes coverage metrics (1150/1202 decisions, 42-96% per mode), (3) updated factory_direction.json from v17 to v18, (4) cleaned feedback.jsonl (131->2 genuine records), (5) removed duplicate product/state/product.json. All 30 representations across 6 design patterns operational. 174k scale infrastructure validated via simulation (FEAT-074/075). BLOCKED on corpus lane 174k delivery for: full-corpus adversarial evaluation, fractal-map 174k build, product real-data switch.",
+  "notes": "Cycle 36179147755: Factory direction v27 operational resume. Product lane RUN per factory direction. Completed: corpus path symlink fixed, 174k TF-IDF loaders added to map_loader, production defaults wired (cited_outcome_hybrid_0.5, linear_hybrid05_concat, center_projected_64dim_hierarchical), 174k scale simulation ALL PASS (16/16), all 50+ API endpoints validated at current 7,990-decision scale with 30 representations. BLOCKED on 174k real metadata delivery from corpus lane parquet. 174k TF-IDF embeddings exist (175,440 decisions) but metadata has placeholders. Ready for full-corpus switch when parquet delivers.",
   "known_limitations": [
     "Section modes: 63 decisions use section-specific projections, 937 use baseline fallback (blended approach) [RESOLVED: FEAT-082 expanded to 1150/1202 decisions, 42-96% per mode]",
     "HDBSCAN produces fewer clusters than Leiden at same zoom levels (2-8 vs 5-21)",
@@ -819,7 +820,10 @@
     "Hybrid and legal_issues_outcomes representations are EXPLORATORY (not yet benchmarked)",
     "Full TF-2000+ corpus scale pending corpus lane completion (currently 1000-decision slice)",
     "Incremental updates only work for decisions with text embeddings in the base corpus space",
-    "LOD level 1 super-cluster merging uses greedy algorithm; may not be globally optimal"
+    "LOD level 1 super-cluster merging uses greedy algorithm; may not be globally optimal",
+    "174k TF-IDF embeddings exist but lack real decision_id metadata (placeholders only)",
+    "Parquet corpus not available in accepted mount for 174k decision mapping",
+    "174k representations need UMAP projection + hierarchical Leiden clustering"
   ],
   "resolved_issues": [
     "Section modes limited to 63 decisions (fixed: scaled to 1000 with blended section+baseline approach; further expanded to 1150/1202 via FEAT-082 section_scaled_v2)",
@@ -853,14 +857,13 @@
     "No incremental map updates for corpus growth (fixed: IncrementalUpdater with k-NN positioning, delta persistence, merge, /api/map/incremental_update)",
     "true_hierarchical_leiden broken due to missing igraph/leidenalg (fixed: installed dependencies, 8 coarse / 89 fine clusters verified with nesting=1.0)"
   ],
-"next_recommendation": "CONTINUE",
   "next_steps": [
     "Wire production defaults (cited_outcome_hybrid_0.5, linear_hybrid05_concat, center_projected_64dim_hierarchical) to full-corpus artifacts as legal-distance delivers 174k representations",
     "Validate 54 API endpoints at 174k scale with real 174k map artifacts",
     "Confirm section coverage, LOD/culling/WebGL pipeline performance at production load with real 174k data",
     "Attach dense embedding modes as legal-distance delivers them year-split",
     "Run jurist pairwise evaluation at 174k density comparing production DEFAULT (cited_outcome_hybrid_0.5) vs COMBINATION (linear_hybrid05_concat) vs HIGH-PURITY (center_projected_64dim_hierarchical)",
-    "Re-test linear_hybrid05_concat + hybrid production-deployment tradeoff at 174k density per factory direction v26 NEXT"
+    "Re-test linear_hybrid05_concat + hybrid production-deployment tradeoff at 174k density per factory direction v27 NEXT"
   ],
   "test_results": {
     "test_product.py": {
