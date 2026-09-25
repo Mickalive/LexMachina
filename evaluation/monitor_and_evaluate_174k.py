@@ -30,33 +30,37 @@ logger = logging.getLogger(__name__)
 
 # Configuration
 LEX_ACCEPTED_ROOT = Path("/tmp/lex_accepted")
-LEGAL_DISTANCE_RESULTS = LEX_ACCEPTED_ROOT / "legal-distance/legal_distance/results/v5"
+LEGAL_DISTANCE_RESULTS_ROOT = LEX_ACCEPTED_ROOT / "legal-distance/legal_distance/results"
 
-# Production representations expected at 174k (from factory direction v25)
+# Production representations expected at 174k (from factory direction v27)
+# TF-IDF family COMPLETED at 174k (8 representations evaluated)
 EXPECTED_REPRESENTATIONS = {
-    "priority_1_tfidf_signals": [
+    "completed_tfidf_174k": [
         "cited_decisions_tfidf",
         "outcome_tfidf", 
         "cited_outcome_hybrid_0.5",
         "cited_outcome_hybrid_0.7",
-        "linear_citation_concat",
-        "linear_hybrid05_concat",
-        "linear_citation_w3070",
-        "linear_citation_ridge",
+        "regeste_tfidf",
+        "full_text_tfidf_light",
+        "regeste_full_text_hybrid_0.5",
+        "regeste_full_text_hybrid_0.7",
     ],
-    "priority_2_dense_embeddings": [
+    "awaited_dense_174k": [
         "center_projected_768dim",
         "center_projected_64dim",
         "linear_metric_epoch4",
         "mahalanobis_metric_epoch4",
         "hybrid_stabilized_epoch1",
+        "hybrid_v2_epoch3",
     ],
-    "priority_3_citation_roles": [
+    "awaited_citation_roles_174k": [
         "citation_role_citing_alpha0.3",
         "citation_role_following_alpha0.3",
         "citation_role_criticizing_alpha0.3",
-        "citation_role_distinguishing_alpha0.3",
-        "citation_role_overruling_alpha0.3",
+    ],
+    "awaited_linear_hybrids_174k": [
+        "linear_citation_concat",
+        "linear_hybrid05_concat",
     ]
 }
 
@@ -65,18 +69,27 @@ ALL_EXPECTED = []
 for cat, reps in EXPECTED_REPRESENTATIONS.items():
     ALL_EXPECTED.extend(reps)
 
+# Completed TF-IDF representations (already evaluated)
+COMPLETED_TFIDF = EXPECTED_REPRESENTATIONS["completed_tfidf_174k"]
+
+# Awaited representations
+AWAITED_REPRESENTATIONS = []
+for cat, reps in EXPECTED_REPRESENTATIONS.items():
+    if cat != "completed_tfidf_174k":
+        AWAITED_REPRESENTATIONS.extend(reps)
+
 # Evaluation scripts
 EVALUATION_SCRIPTS = {
     "full_corpus_adversarial": "evaluation/run_full_corpus_evaluation.py",
-    "formal_benchmark_suite": "evaluation/experiments/run_v16_full_benchmark_suite.py",
+    "formal_benchmark_suite": "evaluation/experiments/v25_174k_suite/run_v25_174k_suite.py",
     "citation_heritage": "evaluation/validate_citation_heritage_174k.py",
     "v17b_label_normalization": "evaluation/experiments/run_v17b_label_normalization_all_reps.py",
 }
 
 # Metadata and data paths
 METADATA_174K = Path("evaluation/data/174k/metadata_174k.json")
-CORPUS_174K = Path("evaluation/data/174k/corpus_174k.jsonl")  # May need to be generated
-CITATION_PAIRS = Path("evaluation/results/174k_citation_heritage/citation_pairs_174k.json")
+CORPUS_174K = Path("evaluation/data/174k/corpus_174k.jsonl")
+CITATION_PAIRS = Path("evaluation/results/174k_citation_heritage/citation_pairs_174k_full.json")
 
 # State tracking
 STATE_FILE = Path("evaluation/state/monitor_174k_state.json")
@@ -111,17 +124,34 @@ def scan_for_representations() -> Dict[str, List[Path]]:
     """Scan legal-distance accepted state for 174k representation directories."""
     found = {}
     
-    if not LEGAL_DISTANCE_RESULTS.exists():
-        logger.warning(f"Legal-distance results path not found: {LEGAL_DISTANCE_RESULTS}")
+    if not LEGAL_DISTANCE_RESULTS_ROOT.exists():
+        logger.warning(f"Legal-distance results root not found: {LEGAL_DISTANCE_RESULTS_ROOT}")
         return found
     
-    for item in LEGAL_DISTANCE_RESULTS.iterdir():
-        if item.is_dir() and "174k" in item.name.lower():
-            # Check for embedding files
-            npy_files = list(item.glob("*.npy"))
-            if npy_files:
-                found[item.name] = npy_files
-                logger.info(f"Found 174k representation dir: {item.name} with {len(npy_files)} embeddings")
+    # Scan all version directories for 174k embeddings
+    for version_dir in LEGAL_DISTANCE_RESULTS_ROOT.iterdir():
+        if not version_dir.is_dir():
+            continue
+        if not version_dir.name.startswith('v'):
+            continue
+            
+        for item in version_dir.iterdir():
+            if item.is_dir() and "174k" in item.name.lower():
+                # Check for embedding files
+                npy_files = list(item.glob("*.npy"))
+                if npy_files:
+                    found[f"{version_dir.name}/{item.name}"] = npy_files
+                    logger.info(f"Found 174k representation dir: {version_dir.name}/{item.name} with {len(npy_files)} embeddings")
+    
+    # Also check fractal_map results
+    fractal_results = LEX_ACCEPTED_ROOT / "legal-distance/results/fractal_map"
+    if fractal_results.exists():
+        for item in fractal_results.iterdir():
+            if item.is_dir() and "174k" in item.name.lower():
+                npy_files = list(item.glob("*.npy"))
+                if npy_files:
+                    found[f"fractal_map/{item.name}"] = npy_files
+                    logger.info(f"Found 174k representation dir: fractal_map/{item.name} with {len(npy_files)} embeddings")
     
     return found
 
@@ -154,7 +184,7 @@ def check_representations_ready(found_dirs: Dict) -> Dict[str, bool]:
             rep_name = npy.stem.replace("embeddings_", "").replace("embeddings-", "")
             ready[rep_name] = True
     
-    # Check all expected
+    # Check all expected (including completed)
     status = {}
     for exp in ALL_EXPECTED:
         status[exp] = ready.get(exp, False)
@@ -256,7 +286,7 @@ def execute_evaluation_suite(found_dirs: Dict, state: Dict):
     logger.info(f"NEW REPRESENTATIONS DETECTED: {list(newly_ready.keys())}")
     
     for dir_name, npy_files in newly_ready.items():
-        embeddings_dir = LEGAL_DISTANCE_RESULTS / dir_name
+        embeddings_dir = LEGAL_DISTANCE_RESULTS_ROOT / dir_name if not dir_name.startswith("fractal_map") else (LEX_ACCEPTED_ROOT / "legal-distance/results/fractal_map" / dir_name.split("/", 1)[1])
         
         # Run full corpus adversarial evaluation
         logger.info(f"Starting full corpus evaluation for {dir_name}")
@@ -265,10 +295,10 @@ def execute_evaluation_suite(found_dirs: Dict, state: Dict):
         state["completed_evaluations"][dir_name] = {
             "full_corpus_adversarial": success,
             "completed_at": datetime.now().isoformat(),
-            "output_dir": str(output_base / f"full_corpus_174k_{dir_name}")
+            "output_dir": str(output_base / f"full_corpus_174k_{dir_name.replace('/', '_')}")
         }
         
-        # TODO: Run formal benchmark suite (requires 174k corpus)
+        # TODO: Run formal benchmark suite (v25_174k_suite) - requires adaptation for specific embeddings
         # TODO: Run citation heritage
         # TODO: Run v17b label normalization
         
@@ -279,8 +309,8 @@ def main():
     """Main monitoring loop."""
     logger.info("=" * 60)
     logger.info("174k Evaluation Monitor Started")
-    logger.info(f"Watching: {LEGAL_DISTANCE_RESULTS}")
-    logger.info(f"Expected representations: {len(ALL_EXPECTED)}")
+    logger.info(f"Watching: {LEGAL_DISTANCE_RESULTS_ROOT}")
+    logger.info(f"Expected representations: {len(ALL_EXPECTED)} ({len(COMPLETED_TFIDF)} TF-IDF completed, {len(AWAITED_REPRESENTATIONS)} awaited)")
     logger.info("=" * 60)
     
     state = load_state()
@@ -298,11 +328,17 @@ def main():
     # Print summary
     ready_status = check_representations_ready(found)
     logger.info("\nREPRESENTATION READINESS:")
-    for cat, reps in EXPECTED_REPRESENTATIONS.items():
-        logger.info(f"  {cat}:")
-        for rep in reps:
-            status = "✓" if ready_status.get(rep, False) else "✗"
-            logger.info(f"    {status} {rep}")
+    logger.info("  COMPLETED (TF-IDF family at 174k):")
+    for rep in COMPLETED_TFIDF:
+        status = "✓" if ready_status.get(rep, False) else "✗"
+        logger.info(f"    {status} {rep}")
+    logger.info("  AWAITED (dense embeddings, citation roles, linear hybrids):")
+    for cat in ["awaited_dense_174k", "awaited_citation_roles_174k", "awaited_linear_hybrids_174k"]:
+        if cat in EXPECTED_REPRESENTATIONS:
+            logger.info(f"    {cat}:")
+            for rep in EXPECTED_REPRESENTATIONS[cat]:
+                status = "✓" if ready_status.get(rep, False) else "✗"
+                logger.info(f"      {status} {rep}")
     
     return 0
 
