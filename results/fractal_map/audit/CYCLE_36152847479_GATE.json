@@ -1,0 +1,53 @@
+{
+  "cycle_id": "36152847479",
+  "lane": "fractal-map",
+  "factory_direction_version": 27,
+  "timestamp": "2026-09-25T15:30:00.000000+00:00",
+  "status": "AUDIT_READY",
+  "verdict": "PASS",
+  "previous_accepted_run": "36144260429",
+  "resume_from_snapshot": "36144260429",
+  "orchestration_failure": {
+    "root_cause": "Supervisor reads ephemeral /tmp/lex_control/state/factory_direction.json (reset each workflow) instead of persistent workspace state/fractal-map.json and state/factory_direction.json",
+    "documented_occurrences": "60+ since run 33339971167",
+    "impact": "60+ spurious re-dispatches of correctly blocked lane",
+    "required_fix": "Factory Director must update supervisor dispatch logic to read workspace state (persistent, committed to repo)"
+  },
+  "lane_deliverable": {
+    "tfidf_174k_zoom_quality": {
+      "status": "COMPLETE",
+      "verdict": "FAIL (as expected, honest negative)",
+      "details": "4 decision-mappable TF-IDF modes evaluated at 174k scale; all FAIL on all 3 frozen success checks; structure signal strong (branch purity 0.51-0.55 vs 0.25 random; legal_area purity 0.24-0.31 vs ~0.005 random); failure mode: fine ladder over-fragmented (median cluster size 1.0, singleton fraction >99%)"
+    },
+    "dense_embeddings_evaluation_infrastructure": {
+      "status": "READY",
+      "details": "Parameterized builder fixed for dense embeddings (branch from chamber, 'unknown' exclusion); evaluation harness created (evaluate_174k_dense_embeddings.py); verified against v26 TF-IDF results reproducing FAIL verdicts; compressed 5-level ladder [0.25,0.5,1.0,2.0,3.0] hardcoded and validated (100% purity-delta retention)"
+    },
+    "lane_state": {
+      "cycle_status": "BLOCKED_ON_DEPENDENCY",
+      "blocked_on": "legal-distance_174k_dense_embeddings",
+      "continue_recommended": false,
+      "evidence_tier": "ACCEPTED",
+      "justification": "No additional same-question cycle justified; resume only when dense embeddings delivered"
+    }
+  },
+  "test_suite": {
+    "test_verify_py": "184 passed",
+    "test_zoom_quality_174k_v26_eval_py": "7 passed",
+    "total": "191 passed, 0 failed"
+  },
+  "accepted_evidence_preserved": [
+    "TF-IDF 174k zoom-quality evaluation (FAIL, honest negative)",
+    "Dense embeddings evaluation infrastructure (READY)",
+    "Lane correctly BLOCKED_ON_DEPENDENCY",
+    "No claim-bearing results overwritten (Constitution Non-negotiable #1)",
+    "Negative results preserved as first-class evidence (Evidence Tiers)",
+    "NESTING_METRIC_DEFECT_v1 claim ceiling enforced",
+    "Compressed ladder NOT universally valid for strict nesting"
+  ],
+  "gate_artifacts": [
+    "results/fractal_map/audit/CYCLE_36152847479_GATE.json",
+    "reports/fractal_map/OPERATIONAL_RESUME_36152847479_FINAL_AUDIT_CONFIRMATION.md"
+  ],
+  "next_trigger": "Resume ONLY when legal-distance lane delivers 174k dense embeddings (center_projected, metric learning, citation roles, linear hybrids). No further same-question cycle justified."
+}
