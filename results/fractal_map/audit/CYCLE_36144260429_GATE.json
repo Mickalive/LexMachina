@@ -1,0 +1,70 @@
+{
+  "cycle_id": "36144260429",
+  "lane": "fractal-map",
+  "direction_version": 27,
+  "timestamp": "2026-09-25T14:58:00.000000+00:00",
+  "type": "OPERATIONAL_RESUME_FINAL_AUDIT_CONFIRMATION",
+  "status": "PASS",
+  "verdict": "AUDIT_READY",
+  "previous_accepted_run": "36137531619",
+  "resume_from_run": "36137531619",
+  "test_results": {
+    "test_verify_py": "183 passed, 1 skipped",
+    "test_zoom_quality_174k_v26_eval_py": "7 passed",
+    "test_zoom_quality_174k_eval_py": "4 passed",
+    "total": "194 passed, 1 skipped"
+  },
+  "lane_state": {
+    "evidence_tier": "ACCEPTED",
+    "cycle_status": "BLOCKED_ON_DEPENDENCY",
+    "continue_recommended": false,
+    "blocked_on": "legal-distance_174k_dense_embeddings",
+    "tfidf_174k_completed": true,
+    "dense_embeddings_awaited": true
+  },
+  "orchestration_failure": {
+    "confirmed": true,
+    "root_cause": "Supervisor reads ephemeral /tmp/lex_control/state/factory_direction.json (fractal-map.status=RUN) instead of persistent workspace state/fractal-map.json (BLOCKED_ON_DEPENDENCY, continue_recommended=false)",
+    "documented_occurrences": "60+ since run 33339971167",
+    "required_fix": "Factory Director must update supervisor dispatch logic to read persistent workspace state"
+  },
+  "deliverables_verified": {
+    "tfidf_174k_zoom_quality_v26": "COMPLETE - 0/4 modes PASS (frozen FAIL)",
+    "nesting_metric_defect_v1": "DOCUMENTED & CORRECTED - 37/46 modes over-claimed",
+    "compressed_5_level_ladder": "VALIDATED - 100% delta retention, identical zoom nav",
+    "hierarchical_leiden_174k": "COMPLETE - OVER_FRAGMENTED (median=1, singleton=0.996)",
+    "zoom_quality_diagnostic_1000scale": "COMPLETE - citation-role modes top 3 (ZQ 0.54/0.53/0.49)",
+    "dense_embeddings_readiness": "COMPLETE - builder fixed, harness verified vs v26 FAIL",
+    "citation_role_174k_validation": "BLOCKED - placeholder builds, row->id alignment unrecoverable",
+    "product_multi_view_zoom_ui": "VERIFIED - citation-role views implemented",
+    "center_projected_hierarchical": "PASS - hierarchical_purity_global=0.9571, nesting=1.0",
+    "legal_distance_modes_integration": "COMPLETE - 29 ACCEPTED modes + 1 placeholder"
+  },
+  "key_findings_frozen": [
+    "TF-IDF 174k: Strong coarse structure (branch purity 0.51-0.55 vs 0.25 random) but fine zoom FAILS (median cluster size=1, no monotonic refinement)",
+    "Evidence-backed zoom path = Citation-role / Dense-embedding modes (1000-scale ZQ 0.5401/0.5280/0.4864 vs prod default 0.2798)",
+    "NESTING_METRIC_DEFECT_v1: nesting_score>=0.99 PROHIBITED for 7 compressed modes; honest strict nesting 0.39-0.96",
+    "Compressed 5-level ladder VALID for purity delta retention + identical zoom nav; INVALID for universal strict nesting",
+    "Orchestration failure RE-CONFIRMED: 60+ re-dispatch occurrences due to ephemeral vs persistent state mismatch"
+  ],
+  "negative_results_preserved": [
+    "TF-IDF 174k zoom refinement: No mode passes monotonic checks",
+    "Hierarchical Leiden at 174k: Over-fragmentation persists (singleton fraction 0.996)",
+    "Compressed ladder strict nesting: Does NOT universally preserve (mean change -0.00364)",
+    "Citation-role 174k: Placeholder builds only; blocked by corpus artifact gap",
+    "Production default at 174k: outcome_hybrid_0.5 ZQ=0.2798 (1000-scale), FAIL at 174k"
+  ],
+  "constitution_compliance": {
+    "preserve_provenance": true,
+    "never_fabricate": true,
+    "never_weaken_benchmark": true,
+    "accepted_evidence_beats_narrative": true,
+    "stay_on_mission": true
+  },
+  "gate_artifacts": {
+    "state_file": "state/fractal-map.json",
+    "test_results": "tests/fractal_map/",
+    "this_report": "reports/fractal-map/OPERATIONAL_RESUME_36144260429_FINAL_AUDIT_CONFIRMATION.md"
+  },
+  "next_recommendation": "BLOCKED on legal-distance_174k_dense_embeddings. Resume when dense embeddings delivered. No same-question cycle justified."
+}
