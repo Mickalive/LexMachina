@@ -41,6 +41,57 @@
         "criticizing_alpha0.3": 0.4864
       },
       "production_default_outcome_hybrid_0.5": 0.2798
+    },
+    "alternative_hierarchical_methods_center_projected": {
+      "leiden_baseline": {
+        "verdict": "FAIL",
+        "mean_nesting": 0.4570,
+        "branch_mono": true,
+        "area_mono": true,
+        "improvement_rate_ok": false
+      },
+      "hnsw_leiden": {
+        "verdict": "FAIL",
+        "mean_nesting": 0.4444,
+        "branch_mono": true,
+        "area_mono": true,
+        "improvement_rate_ok": false
+      },
+      "agglom_ward": {
+        "verdict": "PASS",
+        "mean_nesting": 1.0000,
+        "branch_mono": true,
+        "area_mono": true,
+        "improvement_rate_ok": true,
+        "fine_branch_purity": 0.9407,
+        "fine_median_cluster_size": 14,
+        "singleton_fraction": 0.0
+      },
+      "agglom_average": {
+        "verdict": "PASS",
+        "mean_nesting": 1.0000,
+        "branch_mono": true,
+        "area_mono": true,
+        "improvement_rate_ok": true,
+        "fine_branch_purity": 0.9447,
+        "fine_median_cluster_size": 7,
+        "singleton_fraction": 0.0303
+      },
+      "agglom_complete": {
+        "verdict": "PASS",
+        "mean_nesting": 1.0000,
+        "branch_mono": true,
+        "area_mono": true,
+        "improvement_rate_ok": true,
+        "fine_branch_purity": 0.8865,
+        "fine_median_cluster_size": 13,
+        "singleton_fraction": 0.0
+      },
+      "local_umap_zoom_neighborhoods": {
+        "coarse_clusters_tested": 6,
+        "silhouette_scores": [0.295, 0.556, 0.596, 0.400, 0.286, 0.263],
+        "mean_silhouette": 0.399
+      }
     }
   },
   "validation_metrics": {
@@ -201,6 +252,8 @@
     }
   },
 "evidence_refs": [
+    "reports/fractal_map/ALTERNATIVE_HIERARCHICAL_EVALUATION_v27.md",
+    "results/fractal_map/alternative_hierarchical_tests/alt_hierarchical_center_projected_1000_v3.json",
     "reports/fractal_map/OPERATIONAL_RESUME_36134019396_FINAL_AUDIT_CONFIRMATION.md",
     "reports/fractal_map/OPERATIONAL_RESUME_36124699330_FINAL_AUDIT_CONFIRMATION.md",
     "results/fractal_map/audit/CYCLE_36121548922_GATE.json",
@@ -389,6 +442,7 @@
   ],
   "key_findings": [
     "RUN 36134019396 (v27 operational resume final audit confirmation): OPERATIONAL RESUME from persisted producer snapshot of run 36129531677. All 194 tests PASS (1 skipped). Lane state RE-CONFIRMED: TF-IDF 174k zoom-quality evaluation COMPLETE (FAIL as expected — over-fragmented, median cluster size 1, no monotonic zoom refinement); dense embeddings evaluation infrastructure VERIFIED and READY; lane correctly BLOCKED on legal-distance_174k_dense_embeddings (single dependency), continue_recommended=false — no same-question cycle justified. Orchestration failure RE-CONFIRMED: supervisor reads ephemeral /tmp/lex_control/state/factory_direction.json (fractal-map.status=RUN) instead of workspace state/fractal-map.json (BLOCKED_ON_DEPENDENCY) — 60+ documented re-dispatch occurrences. Factory Director must update supervisor dispatch logic. All valid completed work preserved. Snapshot AUDIT-READY. Gate artifact: CYCLE_36134019396_GATE.json (to be created) + OPERATIONAL_RESUME_36134019396_FINAL_AUDIT_CONFIRMATION.md (this run).",
+    "ALTERNATIVE HIERARCHICAL METHODS EVALUATION (v27): On center_projected 768-dim embeddings (1000 decisions), tested 5 hierarchical clustering methods against frozen zoom-quality success rule. Leiden baseline FAIL (nesting 0.457, rate_ok 1/4); HNSW+Leiden FAIL (nesting 0.444, rate_ok 1/4); Agglomerative Ward PASS (nesting 1.0 by construction, rate_ok 3/4, fine purity 0.941); Agglomerative Average PASS (nesting 1.0, rate_ok 3/4, fine purity 0.945); Agglomerative Complete PASS (nesting 1.0, rate_ok 3/4, fine purity 0.887). Local UMAP zoom-conditioned neighborhoods validated: 6 coarse clusters, mean silhouette 0.399 (range 0.26-0.60). CONFIRMS: TF-IDF over-fragmentation at 174k is embedding-space structural, not clustering-method limitation. Dense embeddings + agglomerative hierarchical clustering = coherent multi-resolution zoom path. Ready for legal-distance 174k dense embeddings.",
     "RUN 36124699330 (v27 operational resume final audit confirmation): OPERATIONAL RESUME from persisted producer snapshot of run 36124039258. All 195 tests PASS. Lane state RE-CONFIRMED: TF-IDF 174k zoom-quality evaluation COMPLETE (FAIL as expected — over-fragmented, median cluster size 1, no monotonic zoom refinement); dense embeddings evaluation infrastructure VERIFIED and READY; lane correctly BLOCKED on legal-distance_174k_dense_embeddings (single dependency), continue_recommended=false — no same-question cycle justified. Orchestration failure RE-CONFIRMED: supervisor reads ephemeral /tmp/lex_control/state/factory_direction.json (fractal-map.status=RUN) instead of workspace state/fractal-map.json (BLOCKED_ON_DEPENDENCY) — 60+ documented re-dispatch occurrences. Factory Director must update supervisor dispatch logic. All valid completed work preserved. Snapshot AUDIT-READY. Gate artifact: CYCLE_36121548922_GATE.json (previous) + OPERATIONAL_RESUME_36124699330_FINAL_AUDIT_CONFIRMATION.md (this run).",
     "RUN 36121548922 (v27 operational resume final audit-ready): OPERATIONAL RESUME from persisted producer snapshot of run 36120919309. All 195 tests PASS. Lane state RE-CONFIRMED: TF-IDF 174k zoom-quality evaluation COMPLETE (FAIL as expected — over-fragmented, median cluster size 1, no monotonic zoom refinement); dense embeddings evaluation infrastructure VERIFIED and READY; lane correctly BLOCKED on legal-distance_174k_dense_embeddings (single dependency), continue_recommended=false — no same-question cycle justified. Orchestration failure RE-CONFIRMED: supervisor reads ephemeral /tmp/lex_control/state/factory_direction.json (fractal-map.status=RUN) instead of workspace state/fractal-map.json (BLOCKED_ON_DEPENDENCY) — 60+ documented re-dispatch occurrences. Factory Director must update supervisor dispatch logic. Gate artifact: CYCLE_36121548922_GATE.json. All valid completed work preserved. Snapshot AUDIT-READY.",
     "RUN 36119687208 (v27 current cycle): Hierarchical Leiden test at 174k CONFIRMS over-fragmentation persists despite zoom improvement (coarse_0.25_sub_2.0: 22→83,844 clusters, branch purity 0.337→0.392, zoom improvement_rate 0.947, BUT fine median size=1, singleton_fraction=0.996). Root cause: one massive coarse cluster (83,089 docs = 48% corpus) fragments into 83,089 singletons. TF-IDF embedding space structurally skewed — no clustering fix without better representations. Zoom quality diagnostic RE-RUN at 1000-scale CONFIRMS citation-role modes as evidence-backed zoom path: citing_alpha0.3 ZQ=0.5401, following=0.5280, criticizing=0.4864 (vs prod default outcome_hybrid_0.5 ZQ=0.2798). Dense embeddings evaluation harness verified against v26 TF-IDF FAIL verdicts. Lane correctly BLOCKED on legal-distance_174k_dense_embeddings; continue_recommended=false.",
