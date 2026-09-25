@@ -1,0 +1,70 @@
+{
+  "cycle_id": "36135756228",
+  "lane": "fractal-map",
+  "direction_version": 27,
+  "timestamp": "2026-09-25T12:45:00.000000+00:00",
+  "gate_type": "operational_resume_final_audit_confirmation",
+  "verdict": "PASS",
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF 174k zoom-quality evaluation COMPLETE (FAIL as expected — over-fragmented, median cluster size 1, no monotonic zoom refinement). Dense embeddings evaluation infrastructure VERIFIED_READY. Lane correctly BLOCKED on legal-distance_174k_dense_embeddings (single dependency), continue_recommended=false — no same-question cycle justified. All valid completed work preserved. Negative results honestly represented and frozen.",
+  "evidence_summary": "Verified: (1) v26 frozen evaluation on 4 decision-mappable 174k TF-IDF modes: 0/4 PASS all three success checks (branch monotonicity, area monotonicity, improvement_rate>0.5 on >=2/4 transitions) — FAIL preserved bit-equal to v25. (2) Hierarchical Leiden 174k test: best config coarse_0.25_sub_2.0 yields 22→83,844 clusters, branch purity 0.337→0.392, zoom_improvement_rate 0.947, BUT fine median size=1, singleton_fraction=0.996 — OVER_FRAGMENTED confirmed. (3) Zoom quality diagnostic at 1000-scale: citation-role modes top ranked (citing_alpha0.3 ZQ=0.5401, following=0.5280, criticizing=0.4864) vs prod default outcome_hybrid_0.5 ZQ=0.2798 — evidence-backed zoom path confirmed. (4) Dense embeddings evaluation harness (evaluate_174k_dense_embeddings.py) created and verified reproducing v26 TF-IDF FAIL verdicts. (5) Compressed 5-level ladder [0.25,0.5,1.0,2.0,3.0]: 100% purity delta retention, identical zoom navigation at shared resolutions across 22 modes; NOT universal for strict nesting (honest mean change -0.00364). (6) Product multi-view zoom UI with citation-role views VERIFIED_IMPLEMENTED (65 WebGL refs). (7) Orchestration failure RE-CONFIRMED: 60+ occurrences of supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json instead of persistent workspace state. (8) All 194 tests PASS (1 skipped), negative results preserved per Constitution Article 5.",
+  "tests": {
+    "test_verify": 182,
+    "test_zoom_quality_174k_eval": 6,
+    "test_zoom_quality_174k_v26_eval": 7,
+    "total": 195,
+    "passed": 194,
+    "skipped": 1,
+    "all_passed": true
+  },
+  "lane_state": {
+    "evidence_tier": "ACCEPTED",
+    "cycle_status": "BLOCKED_ON_DEPENDENCY",
+    "continue_recommended": false,
+    "accepted_run_id": "36134019396",
+    "previous_accepted_run": "36124699330",
+    "blocked_on": "legal-distance_174k_dense_embeddings",
+    "blocked_since": "2026-09-24T01:55:00Z",
+    "resume_guard": "final_audit_complete_v13"
+  },
+  "deliverables_verified": {
+    "tfidf_174k_zoom_quality_evaluation": {
+      "status": "COMPLETE",
+      "verdict": "FAIL (as expected)",
+      "details": "All 4 decision-mappable TF-IDF modes FAIL all three frozen success checks. Fine ladder over-fragmented (median cluster size 1, singleton_fraction=0.9956). No monotonic zoom refinement at 174k for TF-IDF-only modes."
+    },
+    "hierarchical_leiden_174k_test": {
+      "status": "COMPLETE",
+      "verdict": "OVER_FRAGMENTED",
+      "details": "Best config coarse_0.25_sub_2.0: 22→83,844 clusters, branch purity 0.337→0.392, zoom_improvement_rate 0.947, BUT fine median size=1, singleton_fraction=0.996. Root cause: one massive coarse cluster (83,089 docs = 48% corpus) fragments into 83,089 singletons."
+    },
+    "zoom_quality_diagnostic_1000scale": {
+      "status": "COMPLETE",
+      "verdict": "PASS",
+      "details": "Citation-role modes confirmed as evidence-backed zoom path: citing_alpha0.3 ZQ=0.5401, following=0.5280, criticizing=0.4864 (vs prod default outcome_hybrid_0.5 ZQ=0.2798)."
+    },
+    "dense_embeddings_evaluation_infrastructure": {
+      "status": "VERIFIED_READY",
+      "details": "evaluate_174k_dense_embeddings.py created and verified against v26 TF-IDF FAIL verdicts. Parameterized builder fixed (branch from chamber, unknown exclusion). Compressed 5-level ladder [0.25,0.5,1.0,2.0,3.0] hardcoded and validated. ACCEPTED 174k metadata (173,963 entries, 100% branch+legal_area) available."
+    },
+    "compressed_resolution_ladder": {
+      "status": "VALIDATED",
+      "verdict": "PASS",
+      "details": "100% purity delta retention and identical zoom navigation at shared resolutions across 22 modes; 29% fewer zoom levels with zero quality loss. NOT universally valid for strict nesting preservation (honest mean change -0.00364, 21/22 modes nonzero)."
+    },
+    "product_multi_view_zoom_ui": {
+      "status": "VERIFIED_IMPLEMENTED",
+      "details": "CITATION ROLE VIEWS optgroup, zoom controls, split-view, 65 WebGL refs. Audit recommendation #4 satisfied."
+    }
+  },
+  "orchestration_failure": {
+    "root_cause": "Supervisor reads ephemeral /tmp/lex_control/state/factory_direction.json (reset each workflow) instead of persistent workspace state/fractal-map.json and state/factory_direction.json",
+    "documented_occurrences": "60+ since run 33339971167",
+    "required_fix": "Factory Director must update supervisor dispatch logic to read workspace state"
+  },
+  "negative_results_preserved": true,
+  "provenance_preserved": true,
+  "audit_ready": true
+}
