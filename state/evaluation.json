@@ -27,7 +27,7 @@
     "evaluation/monitor_and_evaluate_174k.py",
     "evaluation/state/monitor_174k_state.json"
   ],
-  "next_recommendation": "BLOCKED_ON_DEPENDENCIES — TF-IDF family (8 reps) FULLY EVALUATED at 174k scale on all 3 machine-executable sub-questions (12-benchmark formal suite v25 protocol, citation_heritage frozen 137k pairs, v17b normalization). Dense 1200-scale baselines ESTABLISHED for 7 awaited dense representation types (5/7 PASS both adversarial gates). CRITICAL FINDINGS: (1) No TF-IDF representation passes all 12 benchmarks; citation vs full-text tradeoff is fundamental. (2) v17b normalization generalizes (5/8 show 46-64% purity gains, 0 worsen) but even normalized best hierarchy_purity=0.47 < 0.7 threshold — granularity/coverage limit, not cross-lingual artifact. (3) v3 adversarial harness at 174k: ALL TF-IDF reps show IDENTICAL jurist pairwise (0.12) and lang_dom (0.606) — HNSW methodological artifact (identical k-NN graphs). MUST FIX before dense embeddings arrive. (4) Jurist pairwise COLLAPSED 0.79→0.12 from 1200→174k for TF-IDF — central extrapolation risk for metric learning/hybrid objectives. Awaiting legal-distance 174k dense embeddings (6), citation roles (3), linear hybrids (2). Jurist human study blocked (external: 5-10 Swiss jurists). Monitor active (check_count=55). Infrastructure verified: v25 formal suite + v3 adversarial harness operational. Legal-distance 174k pipeline only at year 2000 checkpoint; remaining years blocked on corpus artifact publication to expected mount paths.",
+  "next_recommendation": "BLOCKED_ON_DEPENDENCIES — TF-IDF family (8 reps) FULLY EVALUATED at 174k scale on all 3 machine-executable sub-questions (12-benchmark formal suite v25 protocol, citation_heritage frozen 137k pairs, v17b normalization). Dense 1200-scale baselines ESTABLISHED for 7 awaited dense representation types (5/7 PASS both adversarial gates). CRITICAL FINDINGS: (1) No TF-IDF representation passes all 12 benchmarks; citation vs full-text tradeoff is fundamental. (2) v17b normalization generalizes (5/8 show 46-64% purity gains, 0 worsen) but even normalized best hierarchy_purity=0.47 < 0.7 threshold — granularity/coverage limit, not cross-lingual artifact. (3) v3 adversarial harness at 174k: ALL TF-IDF reps show IDENTICAL jurist pairwise (0.12) and lang_dom (0.606) — HNSW methodological artifact (identical k-NN graphs). MUST FIX before dense embeddings arrive. (4) Jurist pairwise COLLAPSED 0.79→0.12 from 1200→174k for TF-IDF — central extrapolation risk for metric learning/hybrid objectives. Awaiting legal-distance 174k dense embeddings (6), citation roles (3), linear hybrids (2). Jurist human study blocked (external: 5-10 Swiss jurists). Monitor active (check_count=65). Infrastructure verified: v25 formal suite + v3 adversarial harness operational. Legal-distance 174k pipeline only at year 2000 checkpoint; remaining years blocked on corpus artifact publication to expected mount paths.",
   "summary": {
     "subquestion_1_12_benchmark_suite": {
       "status": "COMPLETE",
@@ -95,6 +95,27 @@
       "regeste_full_text_hybrid_0.5": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true},
       "regeste_full_text_hybrid_0.7": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true}
     },
-    "detected_representations": {}
+    "detected_representations": {},
+    "infrastructure_status": {
+      "hnsw_backend": "OPERATIONAL_ON_GITHUB_RUNNERS",
+      "scalable_nn": "OPERATIONAL_WITH_SKLEARN_FALLBACK",
+      "v25_formal_suite": "OPERATIONAL",
+      "citation_heritage": "FROZEN_137314_PAIRS_READY",
+      "v17b_normalization": "OPERATIONAL",
+      "monitor_script": "ACTIVE_WITH_FORMAL_SUITE"
+    }
+  },
+  "blockers": {
+    "primary": "legal_distance_174k_dense_embeddings_not_in_accepted_state",
+    "root_cause": "corpus_artifact_publication_gap: year-split normalized files and metadata_174k.jsonl exist in corpus workspace but NOT at /tmp/lex_accepted/corpus/... and /tmp/lex_accepted/evaluation/... mount paths where legal-distance expects them",
+    "legal_distance_status": "year_2000_checkpoint_only; years_2001_2025_failed_missing_upstream_data",
+    "external_dependencies": [
+      "jurist_human_study: requires 5-10 Swiss jurists (framework ready, non-blocking)"
+    ]
+  },
+  "frozen_config_hashes": {
+    "v25_formal_suite": "4323f833fa72366a",
+    "v3_adversarial_harness": "4047da047fb339c1",
+    "v3_174k_config": "evaluation_v3_174k_config.json"
   }
 }
