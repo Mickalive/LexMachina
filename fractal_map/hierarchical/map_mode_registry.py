@@ -1335,3 +1335,111 @@ if __name__ == "__main__":
     print()
     for mode in get_all_modes():
         print(f"  {mode.mode_id}: {mode.name} [{mode.status.value}] {'(DEFAULT)' if mode.is_default else ''}")
+
+
+# ============================================================================
+# NEW DENSE HIERARCHICAL LEIDEN MODES (from v27 research)
+# ============================================================================
+
+# center_projected_hierarchical_dense - coarse_0.25_sub_2.0 (3→31 clusters, rate=1.0, zero fragmentation)
+MAP_MODES["center_projected_hierarchical_dense"] = MapModeSpec(
+    mode_id="center_projected_hierarchical_dense",
+    name="Center Projected Hierarchical Leiden Dense (coarse_0.25_sub_2.0)",
+    description=(
+        "Hierarchical Leiden on pure center_projected_768 embeddings (dense, language-debiased). "
+        "Validated config coarse_0.25_sub_2.0: 3→31 clusters, branch_purity 0.698→0.932, "
+        "improvement_rate=1.0, zero fragmentation (singleton=0.0), perfect nesting=1.0. "
+        "Evidence-backed zoom path for dense embeddings."
+    ),
+    mode_type=MapModeType.HIERARCHICAL_LEIDEN,
+    status=MapModeStatus.AVAILABLE,
+    is_default=False,
+    resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+    artifacts=_ld_hierarchical_artifacts("center_projected_hierarchical_dense"),
+    metadata={
+        "n_decisions": 1000,
+        "n_coarse_clusters": 3,
+        "n_fine_clusters": 31,
+        "coarse_branch_purity": 0.6975,
+        "fine_branch_purity": 0.9322,
+        "improvement_rate": 1.0,
+        "fine_median_cluster_size": 33.0,
+        "fine_singleton_fraction": 0.0,
+        "nesting": 1.0,
+        "hierarchical_config": {"coarse_res": 0.25, "sub_res": 2.0},
+        "evidence_tier": "ACCEPTED",
+        "embeddings": "center_projected (768 dim, pure dense)",
+    },
+    legal_distance_config=None,
+    benchmark_results=None,
+    warnings=None,
+)
+
+# center_projected_hierarchical_dense_v2 - coarse_0.25_sub_3.0 (3→49 clusters, rate=1.0, zero fragmentation)
+MAP_MODES["center_projected_hierarchical_dense_v2"] = MapModeSpec(
+    mode_id="center_projected_hierarchical_dense_v2",
+    name="Center Projected Hierarchical Leiden Dense (coarse_0.25_sub_3.0)",
+    description=(
+        "Hierarchical Leiden on pure center_projected_768 embeddings (dense, language-debiased). "
+        "Validated config coarse_0.25_sub_3.0: 3→49 clusters, branch_purity 0.698→0.945, "
+        "improvement_rate=1.0, zero fragmentation (singleton=0.0), perfect nesting=1.0. "
+        "Evidence-backed zoom path for dense embeddings (finer granularity)."
+    ),
+    mode_type=MapModeType.HIERARCHICAL_LEIDEN,
+    status=MapModeStatus.AVAILABLE,
+    is_default=False,
+    resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+    artifacts=_ld_hierarchical_artifacts("center_projected_hierarchical_dense_v2"),
+    metadata={
+        "n_decisions": 1000,
+        "n_coarse_clusters": 3,
+        "n_fine_clusters": 49,
+        "coarse_branch_purity": 0.6975,
+        "fine_branch_purity": 0.9451,
+        "improvement_rate": 1.0,
+        "fine_median_cluster_size": 20.0,
+        "fine_singleton_fraction": 0.0,
+        "nesting": 1.0,
+        "hierarchical_config": {"coarse_res": 0.25, "sub_res": 3.0},
+        "evidence_tier": "ACCEPTED",
+        "embeddings": "center_projected (768 dim, pure dense)",
+    },
+    legal_distance_config=None,
+    benchmark_results=None,
+    warnings=None,
+)
+
+# concat_hierarchical_dense - coarse_0.5_sub_3.0 (8→98 clusters, rate=0.75, low fragmentation)
+MAP_MODES["concat_hierarchical_dense"] = MapModeSpec(
+    mode_id="concat_hierarchical_dense",
+    name="Concat Hierarchical Leiden Dense (coarse_0.5_sub_3.0)",
+    description=(
+        "Hierarchical Leiden on concat embeddings (center_projected_768 + TF-IDF_128). "
+        "Validated config coarse_0.5_sub_3.0: 8→98 clusters, branch_purity 0.864→0.945, "
+        "improvement_rate=0.75, low fragmentation (median=9.5, singleton=0.051), perfect nesting=1.0. "
+        "Combines language-debiased dense with legal TF-IDF for richer structure."
+    ),
+    mode_type=MapModeType.HIERARCHICAL_LEIDEN,
+    status=MapModeStatus.AVAILABLE,
+    is_default=False,
+    resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+    artifacts=_ld_hierarchical_artifacts("concat_hierarchical_dense"),
+    metadata={
+        "n_decisions": 1000,
+        "n_coarse_clusters": 8,
+        "n_fine_clusters": 98,
+        "coarse_branch_purity": 0.8642,
+        "fine_branch_purity": 0.9445,
+        "improvement_rate": 0.75,
+        "fine_median_cluster_size": 9.5,
+        "fine_singleton_fraction": 0.051,
+        "nesting": 1.0,
+        "hierarchical_config": {"coarse_res": 0.5, "sub_res": 3.0},
+        "evidence_tier": "ACCEPTED",
+        "embeddings": "concat (center_projected 768 + TF-IDF 128 = 896 dim)",
+    },
+    legal_distance_config=None,
+    benchmark_results=None,
+    warnings=None,
+)
+
