@@ -1,0 +1,129 @@
+{
+  "cited_outcome_hybrid_0.7": {
+    "embedding_shape": [
+      173963,
+      128
+    ],
+    "adversarial": {
+      "adversarial_language_dominance": {
+        "mean_language_dominance": 0.6254347250419278,
+        "std_language_dominance": 0.25576713447803245,
+        "max_language_dominance": 1.0,
+        "k": 20,
+        "threshold": 0.85,
+        "status": "PASS",
+        "note": "Lower is better - language should not dominate neighbors",
+        "backend": "hnsw"
+      },
+      "jurist_pairwise_preference": {
+        "status": "PASS",
+        "total_decisions": 90632,
+        "legal_relevant_only": 29173,
+        "language_artifact_only": 16151,
+        "both_available": 31327,
+        "neither_available": 13981,
+        "legal_neighbor_rate": 0.6675,
+        "language_neighbor_rate": 0.5239,
+        "jurist_would_succeed_rate": 0.6675,
+        "jurist_forced_wrong_rate": 0.1782,
+        "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k.",
+        "backend": "hnsw"
+      },
+      "both_pass": true,
+      "language_dominance_score": 0.6254347250419278,
+      "jurist_preference_rate": 0.6675
+    },
+    "jurivoc_alignment": {
+      "level_0_nmi": 0.012536391678512223,
+      "level_1_nmi": 0.034675165910705893,
+      "nesting_score": 0.3327825174242727,
+      "status": "FAIL",
+      "note": "Jurivoc proxy: Level 0 = 4 branches, Level 1 = 16 legal areas. Higher NMI = better alignment with legal taxonomy."
+    },
+    "scale_stability": {
+      "mean_neighbor_overlap": 0.6509902355602141,
+      "std_neighbor_overlap": 0.2815681373078699,
+      "n_test_points": 18127,
+      "status": "PASS",
+      "note": "Scale stability: fraction of top-10 neighbors preserved when corpus reduced to 80%. Higher = more stable.",
+      "backend": "hnsw"
+    },
+    "boilerplate_resistance": {
+      "boilerplate_neighbor_rate": 0.8896868277976322,
+      "legal_neighbor_rate": 0.11031317220236785,
+      "resistance_score": -0.7793736555952644,
+      "total_comparisons": 236164,
+      "status": "FAIL",
+      "note": "Boilerplate resistance: legal_neighbor_rate - boilerplate_neighbor_rate. Positive = legally relevant neighbors dominate over procedural neighbors.",
+      "backend": "hnsw"
+    },
+    "fractal": {
+      "n_coarse": 0,
+      "n_fine": 0,
+      "coarse_purity": 0.0,
+      "fine_purity": 0.0,
+      "overall_improvement": 0.0,
+      "improvement_rate": 0.0,
+      "legal_area_nmi": 0.0,
+      "flat_purity": 0.0,
+      "hierarchical_advantage": 0.0,
+      "cluster_coherence": {
+        "status": "FAIL",
+        "n_clusters": 16,
+        "mean_branch_purity": 0.3325,
+        "branch_nmi": 0.0236,
+        "mean_language_purity": 0.6218,
+        "cluster_purities": [
+          0.3345,
+          0.4246,
+          0.4254,
+          0.2785,
+          0.3014,
+          0.3827,
+          0.3572,
+          0.3948,
+          0.2883,
+          0.3129,
+          0.2794,
+          0.2923,
+          0.3333,
+          0.3064,
+          0.2989,
+          0.3091
+        ],
+        "cluster_sizes": [
+          13600,
+          9853,
+          2687,
+          6586,
+          1035,
+          16725,
+          13728,
+          1981,
+          926,
+          17375,
+          1174,
+          852,
+          1431,
+          953,
+          833,
+          893
+        ],
+        "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+      },
+      "cross_language_retrieval": {
+        "status": "PASS",
+        "mean_cross_language_recall_at_k": 0.2042,
+        "k": 10,
+        "n_queries": 90632,
+        "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10.",
+        "backend": "hnsw"
+      }
+    },
+    "verdict": "PASS",
+    "both_adversarial_pass": true,
+    "backend": "hnsw",
+    "name": "cited_outcome_hybrid_0.7",
+    "duration_seconds": 99.56412887573242
+  }
+}
