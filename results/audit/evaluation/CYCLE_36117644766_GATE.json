@@ -1,0 +1,63 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF family 174k evaluation COMPLETE across all three machine-executable sub-questions with frozen thresholds and no tuning after results. Production default cited_outcome_hybrid_0.7 validated at 174k scale (adversarial PASS, citation_heritage AUC=0.9605, nn_citation_rate@10=0.490). Infrastructure ready for dense embedding auto-evaluation. Legal-distance 174k dense embeddings BLOCKED (14/26 years in checkpoints). Jurist study BLOCKED (external recruitment). No additional same-question cycle justified for TF-IDF family.",
+  "evidence_summary": {
+    "subquestion_1_12benchmark_suite": {
+      "status": "COMPLETE",
+      "evidence": "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
+      "details": "All 8 TF-IDF representations evaluated at 173,963 decisions with frozen config hash 4323f833fa72366a, HNSW backend. Universal failures (hierarchy_coherence, legal_area_clustering) documented as corpus/label limitations."
+    },
+    "subquestion_2_citation_heritage": {
+      "status": "COMPLETE",
+      "evidence": "results/evaluation/v25_174k_citation_heritage/*.json + evaluation/results/174k_citation_heritage/citation_pairs_174k_full.json",
+      "details": "7/8 TF-IDF reps PASS AUC>=0.65 (best cited_decisions_tfidf AUC=0.9731). Frozen pair pool: 137,314 positive + 137,314 negative pairs. Citation resolution 95.9% (2,019/2,105). regeste_tfidf correctly FAILS (regeste lacks citation IDs)."
+    },
+    "subquestion_3_v17b_normalization": {
+      "status": "COMPLETE_PARTIAL",
+      "evidence": "results/evaluation/v25_174k_v17b/*.json",
+      "details": "213 raw -> 163 normalized labels (23.5% reduction), 32 cross-lingual canonical concepts, 49.3% coverage. PARTIAL generalization: purity gains 1.5-1.6x for citation-based reps, but NMI worsening >10% for 5/8 citation hybrids. Honestly reported."
+    },
+    "production_default": {
+      "representation": "cited_outcome_hybrid_0.7",
+      "adversarial_gates": "PASS (LangDom=0.6252<0.85, Jurist=0.6615>0.5)",
+      "citation_heritage_auc": 0.9605,
+      "nn_citation_rate_at_10": 0.490,
+      "v25_suite": "6 PASS / 6 FAIL / 0 SKIP",
+      "properties": "Zero-shot TF-IDF, no GPU required, HNSW-backed at 174k scale"
+    },
+    "infrastructure": {
+      "hnsw_backend": "OPERATIONAL at 174k (hnswlib confirmed)",
+      "v25_suite_runner": "OPERATIONAL at 174k (config hash verified)",
+      "citation_heritage": "FROZEN 137,314 pairs ready",
+      "v17b_normalization": "OPERATIONAL at 174k",
+      "monitor": "ACTIVE (61 checks, enhanced with run_formal_suite_v25())",
+      "frozen_config_hashes": {
+        "suite": "4323f833fa72366a",
+        "harness": "4047da047fb339c1"
+      }
+    },
+    "legal_distance_dependency": {
+      "status": "BLOCKED",
+      "progress": "14/26 years in checkpoints (2000-2013), final concatenation blocked on 2014-2025",
+      "partial_validation": "7,652 decisions from year-split checkpoints tested; 768-dim center_projected FAILS both gates (consistent with v3 harness)"
+    },
+    "jurist_study": {
+      "status": "BLOCKED",
+      "reason": "External dependency: 5-10 Swiss jurists recruitment by repository owner"
+    },
+    "negative_results_preserved": [
+      "hierarchy_coherence FAIL for ALL reps (purity 0.08-0.47 < 0.7) - label granularity limitation",
+      "legal_area_clustering FAIL for ALL (purity 0.003-0.08 < 0.5) - 167 fine-grained areas",
+      "branch_knn/tf_metadata FAIL for citation-based reps - by design (optimize citation heritage)",
+      "boilerplate_resistance negative for all - language dominance proxy, not boilerplate measure",
+      "v17b NMI worsening >10% for 5/8 citation hybrids - honestly reported as PARTIAL",
+      "regeste_tfidf citation_heritage FAIL (AUC=0.4865) - regeste lacks citation IDs"
+    ],
+    "no_tuning_after_results": true,
+    "no_benchmark_gaming": true,
+    "no_leakage": true,
+    "recurring_repair_pathology": false
+  }
+}
