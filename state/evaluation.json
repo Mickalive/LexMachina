@@ -3,53 +3,56 @@
   "direction_version": 27,
   "evidence_tier": "REPRODUCED",
   "cycle_status": "BLOCKED_ON_DEPENDENCIES",
-  "continue_recommended": true,
+  "continue_recommended": false,
   "accepted_run_id": "eval_v27_174k_verification_36127454643",
   "evidence_refs": [
+    "evaluation/reports/evaluation_v27_174k_FINAL_COMPLETION_REPORT.md",
     "evaluation/reports/evaluation_v26_174k_VERIFICATION_REPORT.md",
     "evaluation/reports/evaluation_v26_174k_formal_suite_COMPLETION_REPORT.md",
     "evaluation/reports/evaluation_v26_174k_adversarial_synthesis_report.md",
     "evaluation/reports/evaluation_v27_cycle_report.md",
     "evaluation/reports/dense_1200_baseline_report.md",
     "evaluation/reports/evaluation_v27_174k_TFIDF_FAMILY_FINAL_REPORT.md",
-    "evaluation/reports/evaluation_v27_174k_FINAL_COMPLETION_REPORT.md",
-    "evaluation/reports/evaluation_v43_cycle_report.md",
     "evaluation/results/full_corpus_174k_tfidf/full_corpus_evaluation_results_worker0.json",
     "evaluation/results/dense_1200_baseline/full_corpus_evaluation_results_worker0.json",
     "evaluation/results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
-    "evaluation/results/evaluation/v25_174k_citation_heritage/",
-    "evaluation/results/evaluation/v25_174k_v17b/",
+    "evaluation/results/evaluation/v25_174k_formal_suite/results/cited_outcome_hybrid_0.7.json",
+    "evaluation/results/evaluation/v25_174k_citation_heritage/citation_pairs_174k_full.json",
+    "evaluation/results/evaluation/v25_174k_v17b/v17b_label_normalization_all_reps_latest.json",
     "evaluation/experiments/v25_174k_suite/protocol_v25_174k_suite.json",
     "evaluation/data/174k/metadata_174k.json",
     "evaluation/monitor_and_evaluate_174k.py",
     "evaluation/state/monitor_174k_state.json"
   ],
-  "next_recommendation": "BLOCKED_ON_DEPENDENCIES — Operational resume from run 36126729759 verified. TF-IDF family (8 reps) FULLY EVALUATED at 174k on all 3 machine-executable sub-questions. Dense 1200 baselines ESTABLISHED (5/7 pass both adversarial gates). CRITICAL: HNSW methodological artifact CONFIRMED — identical k-NN graphs across TF-IDF reps at 174k (jurist pairwise 0.12 artifact vs 0.73-0.80 exact k-NN). MUST FIX before dense embeddings arrive. Dense 174k embeddings 52% computed (14/27 years); blocked on corpus artifact publication gap. Legal-distance pipeline at year 2000 checkpoint only. Jurist human study blocked (external). Monitor active (check_count=66). All evidence preserved and audit-ready.",
+  "next_recommendation": "BLOCKED_ON_DEPENDENCIES — All three machine-executable sub-questions COMPLETE for TF-IDF family (8 reps) at 174k. v25 formal suite validated (7/8 conformance tests PASS; 1 FAIL = documented summary/per-rep mismatch on n_failed for cited_outcome_hybrid_0.7). Citation_heritage benchmark ready (924 resolved citations → 137k frozen pair pool). v17b label normalization CONFIRMED at 174k (214→164 labels, 49.3% changed, 45-64% purity gains on 5/8 reps). CRITICAL HNSW artifact CONFIRMED: identical k-NN graphs across TF-IDF reps at 174k, jurist pairwise collapse 0.79→0.12 is ARTIFACT. Dense 174k embeddings 52% computed (14/27 years); blocked on corpus artifact publication gap (legal-distance at year 2000 checkpoint only). Jurist human study blocked (external). Monitor active (check_count=66). All evidence preserved and audit-ready.",
   "summary": {
     "subquestion_1_12_benchmark_suite": {
       "status": "COMPLETE",
       "representations_tested": 8,
       "best_representation": "cited_decisions_tfidf (6/12 PASS)",
-      "key_finding": "No representation passes all 12 benchmarks at 174k. Citation-aware representations excel at citation_heritage (AUC > 0.91) and adversarial/multilingual but fail branch_knn, tf_metadata, boilerplate, temporal_stability, hierarchy_coherence. Full-text/regeste hybrids pass branch_knn, tf_metadata, boilerplate, temporal but fail adversarial (language dominance > 0.99) and multilingual. ALL fail hierarchy_coherence (max purity 0.465 vs 0.7 threshold) and legal_area_clustering."
+      "key_finding": "No representation passes all 12 benchmarks at 174k. Citation-aware representations excel at citation_heritage (AUC > 0.91) and adversarial/multilingual but fail branch_knn, tf_metadata, boilerplate, temporal_stability, hierarchy_coherence, legal_area_clustering. Full-text/regeste hybrids pass branch_knn, tf_metadata, boilerplate, temporal but fail adversarial (language dominance > 0.99) and multilingual. ALL fail hierarchy_coherence (max purity 0.465 vs 0.7 threshold) and legal_area_clustering.",
+      "data_integrity_issue": "Summary file _suite_summary.json has n_failed=6, n_skipped=0 for cited_outcome_hybrid_0.7; per-rep file has n_failed=5, n_skipped=1. Summary generated before boilerplate_resistance_real_corpus changed to SKIP. Per-rep files are internally consistent and bitwise-reproducible."
     },
     "subquestion_2_citation_heritage": {
       "status": "COMPLETE",
-      "pair_pool": "137,314 positive + 137,314 negative (frozen)",
-      "citation_resolution": "2,019/2,105 (95.9%)",
+      "pair_pool": "137,314 positive + 137,314 negative (frozen, seed=42)",
+      "citation_resolution": "2,019/2,105 (95.9%) resolved; 924 mapping to 174k corpus",
       "results": "7/8 representations PASS (AUC-ROC ≥ 0.65). Top: cited_decisions_tfidf AUC=0.973, nn_citation_rate@10=0.487. Only regeste_tfidf FAILS (AUC=0.487). Citation structure strongly recovered by citation-aware representations."
     },
     "subquestion_3_v17b_normalization": {
       "status": "COMPLETE",
-      "generalization_claim": "PARTIAL",
-      "reason": "5/8 representations show 45-64% purity gains across hierarchy-family metrics; 3/8 show no change (labels already normalized); 0 representations worsen. v17b normalization generalizes robustly to 174k with larger gains than 1200-scale. However, even normalized, best hierarchy purity = 0.465 < 0.7 threshold — fundamental granularity/coverage limits persist."
+      "generalization_claim": "CONFIRMED with larger gains than 1200-scale",
+      "label_stats": "214 raw → 164 normalized unique legal_area labels; 49.3% labels changed; 47.6% unknown",
+      "purity_gains": "5/8 representations show 45-64% purity gains across hierarchy-family metrics; 3/8 show no change (labels already normalized); 0 representations worsen. Best normalized hierarchy purity = 0.465 < 0.7 threshold — fundamental granularity/coverage limits persist."
     },
     "subquestion_4_v3_adversarial_harness": {
       "status": "COMPLETE",
       "representations_tested": 8,
-      "key_finding": "HNSW METHODOLOGICAL ARTIFACT CONFIRMED: ALL 8 TF-IDF reps show IDENTICAL jurist pairwise (0.12) and lang_dom (~0.606) with HNSW at 174k. Exact k-NN on valid 1199 decisions shows jurist pairwise 0.73-0.80. 6/8 reps show identical HNSW k-NN graphs. Full-text hybrids' language dominance artifact concentrates in decisions WITHOUT branch labels. Cross-language recall ~0.01 for ALL. Jurist pairwise collapse 0.79→0.12 is HNSW artifact, not real failure."
+      "key_finding": "HNSW METHODOLOGICAL ARTIFACT CONFIRMED: ALL 8 TF-IDF reps show IDENTICAL jurist pairwise (0.122) and lang_dom (~0.606) with HNSW at 174k. Exact k-NN on valid 1199 decisions shows jurist pairwise 0.73-0.80. 6/8 reps show identical HNSW k-NN graphs. Full-text hybrids' language dominance artifact concentrates in decisions WITHOUT branch labels. Cross-language recall ~0.01 for ALL. Jurist pairwise collapse 0.79→0.12 is HNSW artifact, not real failure.",
+      "required_fix": "Use exact k-NN for adversarial benchmarks on valid subset (n≈1200 with known branch); HNSW for full-corpus scale benchmarks only. Must implement before dense 174k evaluation."
     },
     "dense_1200_baseline": {
-      "status": "COMPLETE",
+      "status": "COMPLETE (EXPLORATORY tier)",
       "representations_tested": 7,
       "config_hash": "4047da047fb339c1",
       "both_gates_pass": 5,
@@ -120,6 +123,7 @@
     "primary": "legal_distance_174k_dense_embeddings_not_in_accepted_state",
     "root_cause": "corpus_artifact_publication_gap: year-split normalized files and metadata_174k.jsonl exist in corpus workspace but NOT at /tmp/lex_accepted/corpus/... and /tmp/lex_accepted/evaluation/... mount paths where legal-distance expects them",
     "legal_distance_status": "year_2000_checkpoint_only; years_2001_2025_failed_missing_upstream_data",
+    "methodological_blocker": "hnsw_adversarial_artifact_requires_exact_knn_fix_before_dense_174k_eval",
     "external_dependencies": [
       "jurist_human_study: requires 5-10 Swiss jurists (framework ready, non-blocking)"
     ]
