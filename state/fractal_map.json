@@ -1,0 +1,25 @@
+{
+  "lane": "fractal-map",
+  "direction_version": 27,
+  "evidence_tier": "EXPLORATORY",
+  "cycle_status": "COMPLETED",
+  "continue_recommended": false,
+  "accepted_run_id": "fractal_map_174k_product_integration_20260925",
+  "evidence_refs": [
+    "results/fractal_map/zoom_quality_174k_eval/v26_verdict.json",
+    "results/fractal_map/zoom_quality_174k_eval/v25_verdict.json",
+    "results/fractal_map/hierarchical_174k_test/hierarchical_leiden_174k_v2_all_results.json",
+    "results/fractal_map/product_integration_174k/",
+    "results/fractal_map/legal_distance_modes/174k_CENSUS_v26_frozen_spec.json",
+    "results/fractal_map/legal_distance_modes/census_v26.json"
+  ],
+  "next_recommendation": "PAUSE pending legal-distance_174k_dense_embeddings delivery. TF-IDF 174k modes support coarse-level navigation only (res 0.25-1.0). Fine levels (res 2.0, 3.0) are over-fragmented (median cluster size 1). Hierarchical Leiden tested with 174k-appropriate parameters fails to fix over-fragmentation because the embedding space has extreme cluster size skew (one cluster contains 48% of corpus). Citation-role/dense-embedding modes remain the evidence-backed path for fine-grained zoom (1000-scale: citing_alpha0.3 ZQ=0.5401). Product integration artifacts built for 4 decision-mappable TF-IDF modes at coarse resolutions.",
+  "key_findings": {
+    "tfidf_174k_coarse_navigation": "WORKS - branch purity 0.51-0.55 vs 0.25 random; legal_area purity 0.24-0.31 vs 0.005 random at res 0.25-1.0",
+    "tfidf_174k_fine_zoom": "FAILS - res_2.0: 12,852 clusters (median=1); res_3.0: 63,778 clusters (median=1). No monotonic zoom refinement.",
+    "hierarchical_leiden_174k": "FAILS to fix - largest coarse cluster (83k docs = 48% corpus) over-fragments into 55k sub-clusters. Embedding signal too sparse at fine granularity.",
+    "regeste_tfidf_174k": "WEAKER - branch purity ~0.345 (flat across all resolutions), only 2-3x random baseline",
+    "citation_role_modes": "BLOCKED - citing_alpha0.3, following_alpha0.3, criticizing_alpha0.3 not available at 174k; best ZQ=0.5401 at 1000-scale",
+    "product_integration": "BUILT - artifacts for 4 decision-mappable modes at coarse resolutions (res 0.25, 0.5, 1.0) with cluster metadata, zoom mappings, zoom coherence, decision_clusters"
+  }
+}
