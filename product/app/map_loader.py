@@ -3121,7 +3121,6 @@ class MapLoader:
     def _load_new_representation(self, name: str, display_name: str, description: str, evidence_tier: str, benchmark_results: Dict, zoom_levels: int = 7) -> None:
         """Generic loader for new representations built by build_all_representations.py."""
         rep_dir = self.results_dir / name
-        baseline_dir = self.results_dir / "baseline"
         
         if not (rep_dir / "metadata.json").exists():
             return
@@ -3129,20 +3128,28 @@ class MapLoader:
             return
         if not (rep_dir / "embeddings.npy").exists():
             return
-        if not (baseline_dir / "metadata.json").exists():
-            return
         
-        # Load metadata (same decision order as baseline)
-        with open(baseline_dir / "metadata.json", "r") as f:
-            metadata = json.load(f)
+        # Load representation-specific metadata (includes decision_ids in embedding order)
+        with open(rep_dir / "metadata.json", "r") as f:
+            rep_metadata = json.load(f)
         
-        decision_ids = [m["decision_id"] for m in metadata]
+        decision_ids = rep_metadata.get("decision_ids", [])
+        if not decision_ids:
+            # Fallback: try to load from baseline if representation metadata doesn't have decision_ids
+            baseline_dir = self.results_dir / "baseline"
+            if (baseline_dir / "metadata.json").exists():
+                with open(baseline_dir / "metadata.json", "r") as f:
+                    baseline_metadata = json.load(f)
+                decision_ids = [m["decision_id"] for m in baseline_metadata]
+        
         n_decisions = len(decision_ids)
+        if n_decisions == 0:
+            return
         
         # Load 2D projection
         projection = np.load(rep_dir / "projection_2d.npy")
         
-        # Build positions mapping
+        # Build positions mapping using representation's own decision_ids
         positions = {}
         for i, did in enumerate(decision_ids):
             if i < len(projection):
@@ -3155,10 +3162,6 @@ class MapLoader:
         
         if not zoom_levels_dict:
             return
-        
-        # Load representation-specific metadata
-        with open(rep_dir / "metadata.json", "r") as f:
-            rep_metadata = json.load(f)
         
         self.maps[name] = MapState(
             representation=name,
