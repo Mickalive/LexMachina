@@ -11,18 +11,22 @@
     "evaluation/reports/evaluation_v26_174k_adversarial_synthesis_report.md",
     "evaluation/reports/evaluation_v27_cycle_report.md",
     "evaluation/reports/dense_1200_baseline_report.md",
+    "evaluation/reports/evaluation_v27_174k_TFIDF_FAMILY_FINAL_REPORT.md",
     "evaluation/results/full_corpus_174k_tfidf/full_corpus_evaluation_results_worker0.json",
     "evaluation/results/v3/v3_174k_all_representations.json",
     "evaluation/results/v3/cited_decisions_tfidf_174k_full.json",
     "evaluation/results/174k_citation_heritage/citation_pairs_174k_full.json",
     "evaluation/results/174k_label_analysis/174k_legal_area_analysis.json",
     "evaluation/results/dense_1200_baseline/full_corpus_evaluation_results_worker0.json",
+    "evaluation/results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
+    "evaluation/results/evaluation/v25_174k_citation_heritage/",
+    "evaluation/results/evaluation/v25_174k_v17b/",
     "evaluation/experiments/v25_174k_suite/protocol_v25_174k_suite.json",
     "evaluation/data/174k/metadata_174k.json",
     "evaluation/monitor_and_evaluate_174k.py",
     "evaluation/state/monitor_174k_state.json"
   ],
-  "next_recommendation": "BLOCKED_ON_DEPENDENCIES — TF-IDF family (8 reps) FULLY EVALUATED at 174k scale on all 3 machine-executable sub-questions (12-benchmark formal suite, citation_heritage, v17b normalization). Dense 1200-scale baselines ESTABLISHED for 7 awaited dense representation types (5/7 PASS both adversarial gates). Critical scale extrapolation risk: TF-IDF jurist pairwise COLLAPSED 0.79→0.12 from 1200→174k. Will metric learning/hybrid objectives maintain >0.5 at 174k? Awaiting legal-distance 174k dense embeddings (6 types), citation roles (3 types), linear hybrids (2 types). Jurist human study blocked (external: 5-10 Swiss jurists). Monitor active (check_count=52, last_check=2026-09-25T07:46:11). Infrastructure verified: v25 formal suite + v3 adversarial harness operational for dense embeddings. Legal-distance 174k dense embedding pipeline only at year 2000 checkpoint (embeddings_2000.npy); remaining years blocked on corpus artifact publication to expected mount paths.",
+  "next_recommendation": "BLOCKED_ON_DEPENDENCIES — TF-IDF family (8 reps) FULLY EVALUATED at 174k scale on all 3 machine-executable sub-questions (12-benchmark formal suite v25 protocol, citation_heritage frozen 137k pairs, v17b normalization). Dense 1200-scale baselines ESTABLISHED for 7 awaited dense representation types (5/7 PASS both adversarial gates). CRITICAL FINDINGS: (1) No TF-IDF representation passes all 12 benchmarks; citation vs full-text tradeoff is fundamental. (2) v17b normalization generalizes (5/8 show 46-64% purity gains, 0 worsen) but even normalized best hierarchy_purity=0.47 < 0.7 threshold — granularity/coverage limit, not cross-lingual artifact. (3) v3 adversarial harness at 174k: ALL TF-IDF reps show IDENTICAL jurist pairwise (0.12) and lang_dom (0.606) — HNSW methodological artifact (identical k-NN graphs). MUST FIX before dense embeddings arrive. (4) Jurist pairwise COLLAPSED 0.79→0.12 from 1200→174k for TF-IDF — central extrapolation risk for metric learning/hybrid objectives. Awaiting legal-distance 174k dense embeddings (6), citation roles (3), linear hybrids (2). Jurist human study blocked (external: 5-10 Swiss jurists). Monitor active (check_count=55). Infrastructure verified: v25 formal suite + v3 adversarial harness operational. Legal-distance 174k pipeline only at year 2000 checkpoint; remaining years blocked on corpus artifact publication to expected mount paths.",
   "summary": {
     "subquestion_1_12_benchmark_suite": {
       "status": "COMPLETE",
@@ -77,8 +81,8 @@
   },
   "monitor_status": {
     "active": true,
-    "check_count": 52,
-    "last_check": "2026-09-25T07:46:11.340444",
+    "check_count": 55,
+    "last_check": "2026-09-25T08:23:01.941",
     "watching_path": "/tmp/lex_accepted/legal-distance/legal_distance/results",
     "completed_evaluations": {},
     "detected_representations": {}
