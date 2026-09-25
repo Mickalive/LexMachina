@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Year-split dense embedding computation for 174k corpus.
+Year-split dense embedding computation for 174k corpus (bger decisions).
 
 Computes 768-dim embeddings using paraphrase-multilingual-mpnet-base-v2
 with year-split chunked processing and resumable checkpoints.
-Then computes center_projected (768dim and 64dim) by subtracting language centers.
+Then computes center_projected (768dim, 64dim, 128dim) by subtracting language centers.
 
 Designed for CPU execution within 65-min job ceilings on free public runners.
 """
@@ -21,8 +21,10 @@ from datetime import datetime, timezone
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 logger = logging.getLogger(__name__)
 
+# Use the bger (unpublished decisions) corpus, not bge (published BGE volumes)
 CORPUS_DIR = Path("/tmp/lex_accepted/corpus/corpus/normalization/canonical")
-METADATA_PATH = Path("/tmp/lex_accepted/product/product/results/fractal_map/hierarchical_map_174k/metadata_174k_full.json")
+# Use the 174k metadata with bger_ decision IDs (173,963 entries)
+METADATA_PATH = Path("/tmp/lex_accepted/evaluation/evaluation/data/174k/metadata_174k.jsonl")
 OUTPUT_DIR = Path("/home/runner/work/LexMachina/LexMachina/legal_distance/results/174k_dense_embeddings")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -30,7 +32,7 @@ MODEL_NAME = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
 BATCH_SIZE = 128
 EMBEDDING_DIM = 768
 
-# Year files to process (2000 onward per product scope)
+# Year files to process (2000 onward per product scope) - bger_ prefix for unpublished decisions
 YEAR_FILES = sorted(CORPUS_DIR.glob("bger_20[0-9][0-9].jsonl"))
 # Filter to only years >= 2000 (product scope)
 YEAR_FILES = [f for f in YEAR_FILES if int(f.stem.split('_')[1]) >= 2000]
@@ -44,13 +46,13 @@ METADATA_PATTERN = "metadata_{year}.json"
 
 
 def load_metadata_index():
-    """Load metadata_174k.json (array) or .jsonl to get the canonical decision order and metadata."""
+    """Load metadata_174k.jsonl to get the canonical decision order and metadata."""
+    metadata = []
     with open(METADATA_PATH, 'r') as f:
-        content = f.read().strip()
-    if content.startswith('['):
-        metadata = json.loads(content)
-    else:
-        metadata = [json.loads(line) for line in content.split('\n') if line.strip()]
+        for line in f:
+            line = line.strip()
+            if line:
+                metadata.append(json.loads(line))
     logger.info(f"Loaded metadata for {len(metadata)} decisions")
     return metadata
 
@@ -157,7 +159,7 @@ def save_progress(progress):
 
 def main():
     logger.info("=" * 70)
-    logger.info("YEAR-SPLIT 174K DENSE EMBEDDING COMPUTATION")
+    logger.info("YEAR-SPLIT 174K DENSE EMBEDDING COMPUTATION (bger corpus)")
     logger.info("=" * 70)
     logger.info(f"Timestamp: {datetime.now(timezone.utc).isoformat()}")
     logger.info(f"Model: {MODEL_NAME}")
@@ -179,7 +181,7 @@ def main():
     completed_years = set(progress["completed_years"])
     logger.info(f"Previously completed years: {sorted(completed_years)}")
     
-    # Extract year from year files
+    # Extract year from year files (bger_YYYY.jsonl format)
     year_files = []
     for yf in YEAR_FILES:
         year = yf.stem.split('_')[1]
