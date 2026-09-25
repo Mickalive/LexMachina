@@ -49,7 +49,15 @@ class NavigationAPI:
         # Use the full 2000+ corpus (bge_20*.jsonl) for production.
         # Map artifacts are at 1k scale but corpus search/indexing uses full corpus.
         # TF-IDF-based map representations at full-corpus scale to be built per factory direction v27.
+        # Also load the 1k slice (bger_2000plus_slice_1000.jsonl) which matches baseline map artifacts.
         self.corpus = CorpusLoader(corpus_dir, file_pattern="bge_20*.jsonl")
+        # Load the 1k slice for map decision lookups
+        slice_loader = CorpusLoader(corpus_dir, file_pattern="bger_2000plus_slice_1000.jsonl")
+        slice_loader.load()
+        # Merge slice decisions into main corpus (slice has priority for map decisions)
+        self.corpus.decisions.update(slice_loader.decisions)
+        self.corpus._search_index_built = False  # Will be rebuilt after merge
+        self.corpus._build_search_index()
         self.map_loader = MapLoader(results_dir, corpus_dir=corpus_dir)
         self.section_modes = SectionModeLoader(
             section_dir=str(Path(results_dir) / "section_scaled"),
