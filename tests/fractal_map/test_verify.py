@@ -367,7 +367,8 @@ class TestMetricConsistency:
 
     def test_state_cycle_status(self):
         # COMPLETED = lane finished normally; BLOCKED = lane finished but blocked on dependency
-        assert self.state["cycle_status"] in ("COMPLETED", "BLOCKED"), f"Unexpected cycle_status: {self.state['cycle_status']}"
+        # BLOCKED_ON_DEPENDENCY = more specific status for lanes blocked on upstream lane delivery
+        assert self.state["cycle_status"] in ("COMPLETED", "BLOCKED", "BLOCKED_ON_DEPENDENCY"), f"Unexpected cycle_status: {self.state['cycle_status']}"
 
     def test_state_continue_recommended_false(self):
         assert self.state["continue_recommended"] is False
