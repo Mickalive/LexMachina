@@ -28,9 +28,12 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(mess
 logger = logging.getLogger(__name__)
 
 def load_full_corpus_metadata():
-    """Load metadata for all bge_20*.jsonl decisions."""
+    """Load metadata for all bger_20*.jsonl decisions (174k corpus)."""
     metadata = []
-    for year_file in sorted(CORPUS_DIR.glob("bge_20*.jsonl")):
+    for year_file in sorted(CORPUS_DIR.glob("bger_20*.jsonl")):
+        # Skip the slice file
+        if "slice" in year_file.name:
+            continue
         with open(year_file) as f:
             for line in f:
                 d = json.loads(line)
