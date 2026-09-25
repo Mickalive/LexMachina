@@ -22,7 +22,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(mess
 logger = logging.getLogger(__name__)
 
 CORPUS_DIR = Path("/tmp/lex_accepted/corpus/corpus/normalization/canonical")
-METADATA_PATH = Path("/tmp/lex_accepted/product/product/results/fractal_map/hierarchical_map_174k/metadata_174k.json")
+METADATA_PATH = Path("/tmp/lex_accepted/product/product/results/fractal_map/hierarchical_map_174k/metadata_174k_full.json")
 OUTPUT_DIR = Path("/home/runner/work/LexMachina/LexMachina/legal_distance/results/174k_dense_embeddings")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -31,7 +31,7 @@ BATCH_SIZE = 128
 EMBEDDING_DIM = 768
 
 # Year files to process (2000 onward per product scope)
-YEAR_FILES = sorted(CORPUS_DIR.glob("bge_[0-9][0-9][0-9][0-9].jsonl"))
+YEAR_FILES = sorted(CORPUS_DIR.glob("bger_20[0-9][0-9].jsonl"))
 # Filter to only years >= 2000 (product scope)
 YEAR_FILES = [f for f in YEAR_FILES if int(f.stem.split('_')[1]) >= 2000]
 
