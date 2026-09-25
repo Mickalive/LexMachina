@@ -1,0 +1,12 @@
+{
+  "gate": "BLOCKED",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "Set state/product.json cycle_status=BLOCKED, continue_recommended=false, next_recommendation=BLOCKED_ON_CORPUS_LANE_174K_DELIVERY",
+    "Align factory_direction_version in state/product.json with state/factory_direction.json (both 26)",
+    "Ensure state/blockers/product.json exists documenting 174k dependency",
+    "No further timestamp-only regeneration cycles — wait for 174k parquet delivery"
+  ],
+  "claim_ceiling": "Production default at 7k scale (bge_20* corpus, 6,988 decisions) for cited_outcome_hybrid_0.5 and cited_outcome_hybrid_0.7; 174k infrastructure wired and simulation-validated, gated on corpus lane parquet delivery. Zero-delta no-op repair cycles on BLOCKED lane are not acceptable.",
+  "evidence_summary": "Zero-delta no-op repair: only created_at timestamps updated (19:31->21:38/21:39) and projection_2d.npy regenerated for cited_outcome_hybrid_0.5 and 0.7. Maps correctly at 7k scale (6,988 decisions, bge_20* corpus). All 4 critical tests PASS. Recurring orchestration pathology: state shows cycle_status=RUN, continue_recommended=true despite factory_direction v26 documenting BLOCKED on 174k corpus delivery. factory_direction_version mismatch (state: 27 vs factory_direction.json: 26) unfixed from prior audit. No blockers file. Per constitution: 'If the same repair pathology is recurring, use BLOCKED rather than infinite REVISE.'"
+}
