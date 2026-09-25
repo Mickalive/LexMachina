@@ -1,9 +1,9 @@
 {
   "lane": "evaluation",
-  "direction_version": 26,
+  "direction_version": 27,
   "evidence_tier": "REPRODUCED",
   "cycle_status": "BLOCKED_ON_DEPENDENCIES",
-  "continue_recommended": false,
+  "continue_recommended": true,
   "accepted_run_id": "eval_v26_174k_verification_36071928708",
   "evidence_refs": [
     "evaluation/reports/evaluation_v26_174k_VERIFICATION_REPORT.md",
@@ -40,7 +40,7 @@
     "evaluation/results/v3/v3_174k_all_representations.json",
     "evaluation/results/v3/cited_decisions_tfidf_174k_full.json"
   ],
-  "next_recommendation": "BLOCKED_ON_DEPENDENCIES — TF-IDF production family (8 representations) FULLY EVALUATED at 174k scale against frozen 12-benchmark suite, frozen citation_heritage benchmark, v17b label normalization, AND v3 adversarial harness. Key adversarial findings: (1) Citation-based reps pass adversarial_falsification but FAIL branch/TF-metadata recovery; (2) Full-text hybrids pass branch/TF-metadata but FAIL adversarial_falsification (language dominance > 0.99); (3) NO representation passes v3 jurist pairwise gate at 174k (legal_neighbor_rate ~0.12); (4) Scale-dependent failures: branch k-NN collapse (0.81→0.39), temporal instability, hierarchy failure (0.88→0.15), jurist pairwise collapse (0.79→0.12). All three machine-executable sub-questions COMPLETE for TF-IDF family. Awaiting legal-distance lane 174k dense embeddings. Jurist human study remains blocked (external dependency: 5-10 Swiss jurists recruitment).",
+  "next_recommendation": "BLOCKED_ON_DEPENDENCIES — TF-IDF production family (8 representations) FULLY EVALUATED at 174k scale against frozen 12-benchmark suite, frozen citation_heritage benchmark, v17b label normalization, AND v3 adversarial harness. Key adversarial findings: (1) Citation-based reps pass adversarial_falsification but FAIL branch/TF-metadata recovery; (2) Full-text hybrids pass branch/TF-metadata but FAIL adversarial_falsification (language dominance > 0.99); (3) NO representation passes v3 jurist pairwise gate at 174k (legal_neighbor_rate ~0.12); (4) Scale-dependent failures: branch k-NN collapse (0.81→0.39), temporal instability, hierarchy failure (0.88→0.15), jurist pairwise collapse (0.79→0.12). All three machine-executable sub-questions COMPLETE for TF-IDF family. Awaiting legal-distance lane 174k dense embeddings (center_projected, metric learning, hybrid objectives, citation roles, linear hybrids). Jurist human study remains blocked (external dependency: 5-10 Swiss jurists recruitment). Monitor active (check_count=21, last_check=2026-09-25T00:09:21).",
   "summary": {
     "subquestion_1_12_benchmark_suite": {
       "status": "COMPLETE",
@@ -64,5 +64,32 @@
       "representations_tested": 8,
       "key_finding": "NO representation passes BOTH v3 adversarial gates (lang_dom < 0.85 AND jurist_pairwise > 0.5) at 174k scale. All pass language dominance (~0.61) but ALL fail jurist pairwise (legal_neighbor_rate ~0.12 vs 0.5 threshold). 6/8 representations show identical HNSW k-NN graphs (methodological artifact). Full-text hybrids' language dominance artifact concentrates in decisions WITHOUT branch labels (procedural decisions). Cluster coherence PASS only for full-text hybrids (0.74) but with language purity 1.0 (language-dominated). Cross-language recall ~0.01 for ALL representations."
     }
+  },
+  "awaited_representations": {
+    "dense_embeddings_174k": [
+      "center_projected_768dim",
+      "center_projected_64dim",
+      "linear_metric_epoch4",
+      "mahalanobis_metric_epoch4",
+      "hybrid_stabilized_epoch1",
+      "hybrid_v2_epoch3"
+    ],
+    "citation_roles_174k": [
+      "citation_role_citing_alpha0.3",
+      "citation_role_following_alpha0.3",
+      "citation_role_criticizing_alpha0.3"
+    ],
+    "linear_hybrids_174k": [
+      "linear_citation_concat",
+      "linear_hybrid05_concat"
+    ]
+  },
+  "monitor_status": {
+    "active": true,
+    "check_count": 21,
+    "last_check": "2026-09-25T00:09:21.631916",
+    "watching_path": "/tmp/lex_accepted/legal-distance/legal_distance/results",
+    "completed_evaluations": {},
+    "detected_representations": {}
   }
 }

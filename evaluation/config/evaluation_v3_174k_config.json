@@ -1,0 +1,86 @@
+{
+  "version": "v3_174k",
+  "description": "Evaluation v3 harness configuration for 174k dense embeddings - paths to be populated when legal-distance promotes 174k results",
+  "factory_direction_version": 27,
+  "global_seed": 42,
+  "paths": {
+    "metadata": {
+      "primary": "evaluation/data/174k/metadata_174k.json",
+      "description": "174k-decision metadata (frozen row order from v25 protocol)"
+    },
+    "center_projected_768dim_174k": {
+      "primary": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v5/center_projected_174k/embeddings_center_projected.npy",
+      "description": "768-dim center-projected embeddings at 174k scale (awaiting legal-distance)"
+    },
+    "center_projected_64dim_174k": {
+      "primary": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v5/center_projected_174k/embeddings_center_projected_64.npy",
+      "description": "64-dim frozen PCA of center-projected embeddings at 174k (production default)"
+    },
+    "linear_metric_epoch4_174k": {
+      "primary": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v6/metric_learning_174k/best_linear_embeddings.npy",
+      "description": "Best linear projection metric learning embeddings at 174k"
+    },
+    "mahalanobis_metric_epoch4_174k": {
+      "primary": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v6/metric_learning_174k/best_mahalanobis_embeddings.npy",
+      "description": "Best Mahalanobis metric learning embeddings at 174k"
+    },
+    "hybrid_stabilized_epoch1_174k": {
+      "primary": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v6/hybrid_stabilized_174k/best_embeddings.npy",
+      "description": "Best stabilized hybrid objective embeddings at 174k"
+    },
+    "hybrid_v2_epoch3_174k": {
+      "primary": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v6/hybrid_v2_174k/best_embeddings.npy",
+      "description": "Best hybrid v2 objective embeddings at 174k"
+    },
+    "citation_role_citing_174k": {
+      "primary": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v7/citation_roles_174k/embeddings_citing.npy",
+      "description": "Citing role embeddings at 174k"
+    },
+    "citation_role_following_174k": {
+      "primary": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v7/citation_roles_174k/embeddings_following.npy",
+      "description": "Following role embeddings at 174k"
+    },
+    "citation_role_criticizing_174k": {
+      "primary": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v7/citation_roles_174k/embeddings_criticizing.npy",
+      "description": "Criticizing role embeddings at 174k"
+    },
+    "linear_citation_concat_174k": {
+      "primary": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v12/linear_combinations_174k/embeddings_linear_citation_concat.npy",
+      "description": "Linear citation concat hybrid at 174k"
+    },
+    "linear_hybrid05_concat_174k": {
+      "primary": "${LEX_ACCEPTED_ROOT}/legal-distance/legal_distance/results/v12/linear_combinations_174k/embeddings_linear_hybrid05_concat.npy",
+      "description": "Linear hybrid05 concat at 174k"
+    },
+    "fractal_map_hierarchical": {
+      "primary": "${LEX_ACCEPTED_ROOT}/fractal-map/fractal_map/hierarchical",
+      "env_var": "LEX_FRACTAL_MAP_PATH",
+      "description": "Hierarchical Leiden module for fractal quality benchmarks"
+    },
+    "jurivoc_hierarchy": {
+      "primary": "${LEX_ACCEPTED_ROOT}/corpus/results/jurivoc/hierarchy.json",
+      "env_var": "LEX_JURIVOC_PATH",
+      "description": "Jurivoc hierarchy JSON for alignment evaluation"
+    }
+  },
+  "adversarial_thresholds": {
+    "language_dominance": 0.85,
+    "jurist_pairwise": 0.5,
+    "cross_lang_recall": 0.2,
+    "cluster_coherence": 0.7
+  },
+  "benchmark_parameters": {
+    "k_neighbors_lang_dom": 20,
+    "k_neighbors_jurist": 10,
+    "k_neighbors_cross_lang": 10,
+    "n_clusters_coherence": 16
+  },
+  "scale_adaptations": {
+    "nn_backend": "hnswlib (M=16, ef_construction=200, ef_search=100) for k-NN at n>10000",
+    "valid_decisions_only": true,
+    "valid_branch_threshold": "Filter to decisions with known branch for jurist pairwise",
+    "subsample_for_hierarchy": 15000,
+    "subsample_for_temporal": 30000
+  },
+  "notes": "This config will be activated when legal-distance promotes 174k dense embeddings to accepted state. Paths are predictive based on factory direction v27 expected outputs."
+}
