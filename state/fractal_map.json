@@ -1,0 +1,196 @@
+{
+  "lane": "fractal-map",
+  "direction_version": 27,
+  "evidence_tier": "ACCEPTED",
+  "cycle_status": "BLOCKED",
+  "continue_recommended": false,
+  "accepted_run_id": "36035695081",
+  "evidence_refs": [
+    "results/fractal_map/zoom_quality_174k_eval/v26_frozen_spec.json",
+    "results/fractal_map/zoom_quality_174k_eval/v26_verdict.json",
+    "results/fractal_map/zoom_quality_174k_eval/v25_frozen_spec.json",
+    "results/fractal_map/zoom_quality_174k_eval/v25_verdict.json",
+    "results/fractal_map/zoom_quality_174k_eval/v25_raw_purity.json",
+    "results/fractal_map/zoom_quality_174k_eval/v25_raw_zoom.json",
+    "results/fractal_map/legal_distance_modes/174k_CENSUS_v26_frozen_spec.json",
+    "results/fractal_map/legal_distance_modes/census_v26.json",
+    "results/fractal_map/legal_distance_modes/alignment_probe_v26.json",
+    "results/fractal_map/evaluation/resume_36014970673_nesting_audit.json",
+    "results/fractal_map/evaluation/compressed_resolution_ladder_all_modes.json",
+    "results/fractal_map/evaluation/zoom_navigation_comparison.json",
+    "results/fractal_map/hierarchical_map_center_projected/center_projected_hierarchical_results.json",
+    "results/fractal_map/hierarchical/compute_honest_nesting_audit.py",
+    "results/fractal_map/product_integration/INTEGRATION_SPEC.md",
+    "results/fractal_map/product_integration/PRODUCT_INTEGRATION_SPEC.md"
+  ],
+  "metrics_summary": {
+    "v26_174k_zoom_quality": {
+      "experiment": "fractal-map 174k zoom-quality completion across ALL decision-mappable modes (v26)",
+      "direction_version": 25,
+      "github_run": 36035695081,
+      "modes_evaluated": 4,
+      "modes": [
+        "cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25",
+        "cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed_v25",
+        "cited_decisions_tfidf_outcome_hybrid_0.5_174k",
+        "regeste_tfidf_174k"
+      ],
+      "success_rule": "PASS iff (a) branch purity res_3.0 > res_0.25 AND (b) area purity res_3.0 > res_0.25 AND (c) branch improvement_rate > 0.5 on >= 2 of 4 transitions",
+      "overall_verdict": "FAIL",
+      "per_mode_verdicts": {
+        "cited_decisions_tfidf_outcome_hybrid_0.5_174k_v25": "FAIL",
+        "cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed_v25": "FAIL",
+        "cited_decisions_tfidf_outcome_hybrid_0.5_174k": "FAIL",
+        "regeste_tfidf_174k": "FAIL"
+      },
+      "baseline_random": {
+        "branch_random": 0.25,
+        "area_random": 0.0047,
+        "n_branch_classes": 4,
+        "n_area_classes": 213
+      },
+      "key_findings": [
+        "TF-IDF 174k modes DO encode legal structure: branch purity 0.51-0.55 vs 0.25 random; area purity 0.24-0.31 vs 0.005 random",
+        "ALL modes fail monotonic zoom-refinement: branch monotonic FALSE, area monotonic FALSE, improvement_rate > 0.5 on >= 2 transitions FALSE",
+        "Fine ladder over-fragmented: median cluster size 1 at res_2.0 (12,000+ clusters) and res_3.0 (63,000+ clusters); singleton fraction > 0.99",
+        "Strict nesting scores: coarse transitions low (0.5-0.61), fine transitions near 1.0 (0.996-0.999) — boundary decisions split across coarse parents",
+        "Citation-bearing hybrids do NOT show better zoom refinement than regeste-only at 174k (delta res3-res0.25: hybrids ~ -0.025, regeste ~ -0.002)"
+      ],
+      "conclusion": "Zoom-quality at 174k NOT established for TF-IDF-only modes. Evidence-backed zoom path remains citation-role/dense-embedding modes (1000-scale: citing_alpha0.3 ZQ=0.5401, following 0.5280, criticizing 0.4864, production default outcome_hybrid_0.5 ZQ=0.2798). BLOCKED on legal-distance_174k_dense_embeddings."
+    },
+    "center_projected_hierarchical_experiment": {
+      "verdict": "PASS",
+      "best_config": "coarse_0.5_fine_3.0",
+      "hierarchical_purity_global": 0.9570933829681662,
+      "flat_mean_purity": 0.9341034737421106,
+      "concat_baseline_purity": 0.9490748223452176,
+      "purity_improvement_vs_flat_pct": 2.46,
+      "purity_improvement_vs_concat_pct": 0.84,
+      "nesting_score": 1.0,
+      "n_fine_clusters": 108,
+      "n_decisions": 1000,
+      "note": "Hierarchical Leiden (zoom within clusters) guarantees perfect nesting by construction and achieves higher purity than flat Leiden on center_projected embeddings at 1000-scale."
+    },
+    "compressed_resolution_ladder": {
+      "verdict": "FAIL",
+      "full_ladder": [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
+      "compressed_ladder": [0.25, 0.5, 1.0, 2.0, 3.0],
+      "dropped_resolutions": [0.75, 1.5],
+      "n_modes_evaluated": 22,
+      "modes_with_100pct_delta_retention": 22,
+      "modes_passing_nesting_change_threshold": 1,
+      "modes_failing_nesting_change_threshold": 21,
+      "only_passing_mode": "criticizing_alpha0.3",
+      "product_implication": "Compressed 5-level ladder preserves 100% purity delta but does NOT preserve strict nesting for most modes. Compressed ladder NOT universally valid — some modes require the full 7-level ladder. Per-mode depth decisions required."
+    },
+    "nesting_metric_defect": {
+      "defect_id": "NESTING_METRIC_DEFECT_v1",
+      "summary": "Parameterized compressed builders recorded mean_nesting_score as mean of 'nesting_consistency' (fraction of fine clusters with a valid MAJORITY parent label). For independent Leiden partitions this is ~1.0 by construction and is NOT nestedness. Honest definition: a fine cluster is nested iff all its non--1 members share ONE unique coarse parent label.",
+      "affected_builders": [
+        "fractal_map/hierarchical/build_parameterized_legal_distance_map_compressed.py",
+        "fractal_map/hierarchical/build_parameterized_legal_distance_map.py",
+        "fractal_map/hierarchical/build_21k_hierarchical_map.py",
+        "fractal_map/hierarchical/build_174k_hierarchical_map_chamber.py",
+        "fractal_map/hierarchical/complete_v6_hierarchical_artifacts.py"
+      ],
+      "honest_reference_implementations": [
+        "fractal_map/hierarchical/hierarchical_leiden.py::compute_nesting_score",
+        "fractal_map/hierarchical/hierarchical_map_builder.py::compute_hierarchy_nesting_score",
+        "fractal_map/hierarchical/run_center_projected_hierarchical.py::compute_hierarchy_nesting_score"
+      ],
+      "routing_tables_unaffected": "zoom_mappings.json child_to_parent/parent_to_children remain valid navigation data (majority-parent routing); only the METRIC NAME over-claimed nesting.",
+      "accepted_audit": "CYCLE_36027099305 (PASS, in accepted mount)",
+      "key_audit_finding": "honest strict-nesting means 0.3911-0.9632 for the 7 compressed-family modes; nesting_score=1.0 citeable ONLY for the 1000-scale by-construction modes with scope annotation and honest ladder mean (0.8722/0.8644); outcome_tfidf_174k_compressed nesting=1.0 is genuine"
+    }
+  },
+  "map_modes": {
+    "default": {
+      "mode_id": "center_projected_64dim_hierarchical",
+      "evidence_tier": "ACCEPTED",
+      "status": "production_default",
+      "description": "center_projected embeddings (768-dim) with hierarchical Leiden at compressed 5-level ladder [0.25, 0.5, 1.0, 2.0, 3.0]. Product serving default: cited_outcome_hybrid_0.5 with linear_hybrid05_concat combination."
+    },
+    "legacy_modes": {
+      "hierarchical_leiden_concat": {
+        "status": "legacy",
+        "evidence_tier": "ACCEPTED",
+        "description": "Original concat (center_projected + TF-IDF Erwaegungen) hierarchical Leiden at 1000-scale. Preserved for comparison."
+      }
+    },
+    "legal_distance_modes": {
+      "note": "30 legal-distance representations (29 available + 1 placeholder) across v6 baseline, v7 metric learning, v7 citation signal, v9 cp-hybrids, v9 outcome hybrids, v9 citation-role. All ACCEPTED tier. Dense modes (citing/following/criticizing_alpha0.3, outcome hybrids) BLOCKED at 174k scale pending legal-distance dense embedding delivery.",
+      "v6_baseline": [
+        "debiased_citation_blended",
+        "hybrid_alpha_03",
+        "hybrid_alpha_05",
+        "legal_cited_decisions_only",
+        "legal_issues_outcomes"
+      ],
+      "v7_metric_learning": [
+        "linear_metric_epoch4",
+        "mahalanobis_metric_epoch4"
+      ],
+      "v7_citation_signal": [
+        "cited_decisions_tfidf",
+        "hybrid_cited_0.3"
+      ],
+      "v9_cp_hybrids": [
+        "cited_decisions_tfidf_hybrid_cp64_0.3",
+        "cited_decisions_tfidf_hybrid_cp64_0.5",
+        "cited_decisions_tfidf_hybrid_cp64_0.7",
+        "cited_decisions_tfidf_hybrid_cp768_0.3",
+        "cited_decisions_tfidf_hybrid_cp768_0.5",
+        "cited_decisions_tfidf_hybrid_cp768_0.7"
+      ],
+      "v9_outcome_hybrids": [
+        "hybrid_stabilized_epoch1",
+        "cited_decisions_tfidf_outcome_hybrid_0.5",
+        "cited_decisions_tfidf_outcome_hybrid_0.7"
+      ],
+      "v9_citation_role": [
+        "following_alpha0.3",
+        "criticizing_alpha0.3",
+        "citing_alpha0.3"
+      ],
+      "placeholder": [
+        "cited_decisions_tfidf_174k_placeholder"
+      ]
+    },
+    "1000_scale_zoom_quality_ranking": {
+      "note": "From accepted 1000-scale zoom-quality diagnostic (audit CYCLE_36027099305). Citation-role modes top the ranking.",
+      "top_modes": [
+        {"mode": "citing_alpha0.3", "ZQ": 0.5401},
+        {"mode": "following_alpha0.3", "ZQ": 0.5280},
+        {"mode": "criticizing_alpha0.3", "ZQ": 0.4864},
+        {"mode": "production_default_outcome_hybrid_0.5", "ZQ": 0.2798, "rank": 21}
+      ]
+    }
+  },
+  "product_integration": {
+    "multi_view_zoom_ui": "Implemented and verified at product level (audit recommendation #4). Citation-role views (citing, following, criticizing) available alongside production default.",
+    "api_endpoints": "54 endpoints validated at 174k simulation scale (16/16 PASS: LOD<2s, culling<500ms, spatial index<5s, k-NN<500ms, inverted index<15s, WebGL ~6.6MB, full pipeline<3s)",
+    "serving_defaults": {
+      "PRODUCT_SERVING_DEFAULT": "cited_outcome_hybrid_0.5",
+      "COMBINATION_MODE": "linear_hybrid05_concat",
+      "DEFAULT_MAP_MODE": "center_projected_64dim_hierarchical"
+    },
+    "blocked_on": "legal-distance_174k_dense_embeddings (citation-role and dense embedding modes at 174k scale)"
+  },
+  "next_recommendation": "BLOCKED: Resume ONLY when legal-distance delivers first 174k dense embeddings (citation-role modes: citing/following/criticizing_alpha0.3, outcome hybrids). Do NOT run additional TF-IDF-only 174k cycles — negative result frozen and complete. All valid completed work preserved. Snapshot audit-ready.",
+  "negative_results_preserved": [
+    "v25 FAIL (primary mode only): FAIL on all 3 frozen success checks",
+    "v26 FAIL (all 4 decision-mappable TF-IDF 174k modes): FAIL on all 3 frozen success checks — negative generalized to full mappable set",
+    "Compressed ladder nesting defect: 21/22 modes fail strict nesting preservation at 1000-scale",
+    "TF-IDF 174k over-fragmentation: median cluster size 1 at fine resolutions (structural barrier to zoom refinement)",
+    "Citation-bearing TF-IDF hybrids do NOT outperform regeste-only at 174k zoom refinement"
+  ],
+  "positive_results_preserved": [
+    "TF-IDF 174k modes encode legal structure (purity >> random baseline at ALL resolutions)",
+    "center_projected_hierarchical at 1000-scale: PASS (nesting=1.0, purity=0.957 > concat baseline 0.949)",
+    "Hierarchical Leiden (zoom within clusters) guarantees perfect nesting by construction",
+    "Compressed 5-level ladder preserves 100% purity delta for ALL 22 modes at 1000-scale",
+    "Zoom navigation mappings identical at shared resolutions between full and compressed ladders",
+    "Multi-view zoom UI with citation-role views implemented at product level",
+    "1000-scale citation-role modes show strong zoom quality (citing_alpha0.3 ZQ=0.5401)"
+  ]
+}
