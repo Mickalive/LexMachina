@@ -14,6 +14,7 @@ import time
 import logging
 import subprocess
 import sys
+import shutil
 from pathlib import Path
 from typing import Dict, List, Set, Optional
 from datetime import datetime
@@ -265,6 +266,78 @@ def run_v17b_normalization(embeddings_dir: Path, representation: str, output_bas
     return True  # Placeholder
 
 
+def run_formal_suite_v25(embeddings_dir: Path, representation: str, output_base: Path) -> bool:
+    """Run the full v25 174k formal suite for a representation.
+    
+    This copies the embedding to the v25 suite embeddings directory and runs
+    the frozen protocol runner (12-benchmark suite + citation_heritage + v17b).
+    """
+    # Target directory for v25 suite embeddings
+    v25_emb_dir = Path("results/evaluation/v25_174k_formal_suite/embeddings")
+    v25_emb_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Find embedding file in source directory
+    npy_files = list(embeddings_dir.glob("*.npy"))
+    if not npy_files:
+        logger.warning(f"No embedding files found in {embeddings_dir} for {representation}")
+        return False
+    
+    # Use the first .npy file (should be the main embedding)
+    src_npy = npy_files[0]
+    dst_npy = v25_emb_dir / f"{representation}.npy"
+    
+    # Copy or symlink the embedding
+    try:
+        if dst_npy.exists() or dst_npy.is_symlink():
+            dst_npy.unlink()
+        import shutil
+        shutil.copy2(src_npy, dst_npy)
+        logger.info(f"Copied {src_npy} -> {dst_npy}")
+    except Exception as e:
+        logger.error(f"Failed to copy embedding: {e}")
+        return False
+    
+    # Run the v25 formal suite for this representation
+    cmd = [
+        "python", "evaluation/experiments/v25_174k_suite/run_v25_174k_suite.py",
+        "--rep", representation,
+        "--parallel", "1"
+    ]
+    
+    output_dir = output_base / f"v25_formal_suite_{representation}"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    log_file = output_dir / f"{representation}_v25_suite.log"
+    
+    logger.info(f"Running v25 formal suite for {representation}: {' '.join(cmd)}")
+    
+    try:
+        with open(log_file, 'w') as f:
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=10800,  # 3 hour timeout for full suite
+                cwd="/home/runner/work/LexMachina/LexMachina"
+            )
+            f.write(result.stdout)
+            f.write(result.stderr)
+        
+        if result.returncode == 0:
+            logger.info(f"v25 formal suite SUCCESS for {representation}")
+            return True
+        else:
+            logger.error(f"v25 formal suite FAILED for {representation} (exit code {result.returncode})")
+            logger.error(f"Stderr: {result.stderr[:2000]}")
+            return False
+            
+    except subprocess.TimeoutExpired:
+        logger.error(f"v25 formal suite TIMEOUT for {representation}")
+        return False
+    except Exception as e:
+        logger.error(f"v25 formal suite ERROR for {representation}: {e}")
+        return False
+
+
 def execute_evaluation_suite(found_dirs: Dict, state: Dict):
     """Execute the full evaluation suite for newly detected representations."""
     output_base = Path("evaluation/results/174k_formal_suite")
@@ -288,19 +361,26 @@ def execute_evaluation_suite(found_dirs: Dict, state: Dict):
     for dir_name, npy_files in newly_ready.items():
         embeddings_dir = LEGAL_DISTANCE_RESULTS_ROOT / dir_name if not dir_name.startswith("fractal_map") else (LEX_ACCEPTED_ROOT / "legal-distance/results/fractal_map" / dir_name.split("/", 1)[1])
         
-        # Run full corpus adversarial evaluation
-        logger.info(f"Starting full corpus evaluation for {dir_name}")
-        success = run_full_corpus_evaluation(embeddings_dir, dir_name, output_base)
+        # Determine representation name from the first .npy file
+        rep_name = npy_files[0].stem.replace("embeddings_", "").replace("embeddings-", "")
+        logger.info(f"Processing representation: {rep_name} from {dir_name}")
+        
+        # 1. Run full corpus adversarial evaluation (v3 harness at 174k scale)
+        logger.info(f"Starting full corpus adversarial evaluation for {rep_name}")
+        adv_success = run_full_corpus_evaluation(embeddings_dir, rep_name, output_base)
+        
+        # 2. Run the full v25 formal suite (12-benchmark + citation_heritage + v17b)
+        logger.info(f"Starting v25 formal suite for {rep_name}")
+        suite_success = run_formal_suite_v25(embeddings_dir, rep_name, output_base)
         
         state["completed_evaluations"][dir_name] = {
-            "full_corpus_adversarial": success,
+            "representation_name": rep_name,
+            "full_corpus_adversarial": adv_success,
+            "v25_formal_suite": suite_success,
             "completed_at": datetime.now().isoformat(),
-            "output_dir": str(output_base / f"full_corpus_174k_{dir_name.replace('/', '_')}")
+            "adv_output_dir": str(output_base / f"full_corpus_174k_{rep_name}"),
+            "suite_output_dir": str(output_base / f"v25_formal_suite_{rep_name}")
         }
-        
-        # TODO: Run formal benchmark suite (v25_174k_suite) - requires adaptation for specific embeddings
-        # TODO: Run citation heritage
-        # TODO: Run v17b label normalization
         
         save_state(state)
 
