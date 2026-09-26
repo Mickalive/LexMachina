@@ -1,0 +1,15 @@
+{
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "Fix corpus glob in build_174k_tfidf_clustering.py and build_174k_tfidf_clustering_full.py: bger_20*.jsonl -> bge_20*.jsonl",
+    "Re-run build script to regenerate 174k artifacts with enriched metadata (branch, legal_area, outcome, chamber, year)",
+    "Verify zoom_coherence shows non-zero improvement rate after metadata enrichment",
+    "Update state/product.json with new 174k representations, scale (21228), map_positions_total, corpus_map_coverage",
+    "Update state/factory_direction.json to version 27 (or reconcile version drift)",
+    "Add tests for cited_outcome_hybrid_0.5_174k, cited_outcome_hybrid_0.7_174k, cited_decisions_tfidf_174k",
+    "Correct scale labeling: use 21k_subset in representation names/metadata until full 174k metadata available"
+  ],
+  "claim_ceiling": "21k-subset TF-IDF production defaults wired with fractal-map validated artifacts (7 zoom levels, hierarchical Leiden nesting=1.0 by construction, spatial indices); metadata enrichment bug blocks zoom_coherence validity; full 174k scale gated on corpus lane HuggingFace parquet delivery and legal-distance 174k dense embeddings for linear_hybrid05_concat_174k",
+  "evidence_summary": "Code changes: map_loader.py (zoom mapping fix, position building, 174k loader), spatial_index.py (persistence naming fix), 2 new build scripts. Map artifacts: 3 representations at 21,228 decisions (not 174k) with complete fractal-map validated artifacts. Scale simulation: 16/16 PASS. Core tests: legacy representations PASS. CRITICAL BUG: corpus glob pattern wrong in both build scripts -> metadata enrichment fails -> all decisions have branch='null' -> zoom_coherence 0% improvement rate. State files stale (v26 vs v27, missing new representations). No tests for new 174k representations. Scale naming overstates actual coverage (21k vs 174k)."
+}
