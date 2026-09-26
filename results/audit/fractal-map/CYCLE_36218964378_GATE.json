@@ -1,0 +1,104 @@
+{
+  "cycle_id": "36218964378",
+  "lane": "fractal-map",
+  "direction_version": 27,
+  "timestamp": "2026-09-26T04:55:00.000000+00:00",
+  "gate_verdict": "PASS",
+  "gate_type": "null_cycle_audit",
+  "repair_round": 0,
+  "resumed_from_run": "36218624998",
+  "previous_accepted_run": "36215757319",
+  "producer_commit": "c136274c",
+  "test_results": {
+    "total": 0,
+    "passed": 0,
+    "skipped": 0,
+    "failed": 0,
+    "details": {
+      "note": "No test run executed in this cycle — null re-dispatch. Prior cycle 36218624998 ran 210 tests (193 passed, 16 expected failures, 1 skipped). Cycle 36217712995 ran 210 tests (193 passed, 16 expected failures, 1 skipped)."
+    }
+  },
+  "lane_state": {
+    "cycle_status": "BLOCKED_ON_DEPENDENCY",
+    "continue_recommended": false,
+    "evidence_tier": "ACCEPTED",
+    "blocked_on": "legal-distance_174k_dense_embeddings",
+    "blocked_since": "2026-09-24T01:55:00Z",
+    "legal_distance_progress": "3/26 years complete (2000-2002), ~7% corpus coverage (12,570 decisions) — corrected from erroneous 11/26 years in prior accepted base"
+  },
+  "cycle_work": {
+    "new_commits": 0,
+    "new_artifacts": 0,
+    "new_reports": 0,
+    "state_updates": 0,
+    "test_executions": 0,
+    "branch_target": "c136274c (cycle 36218624998 repair 0)"
+  },
+  "prior_cycles_summary": {
+    "36217712995": {
+      "commit": "c136274c_parent_1",
+      "gate_artifact": "results/fractal_map/audit/CYCLE_36217712995_GATE.json",
+      "verdict": "PASS",
+      "test_results": { "total": 210, "passed": 193, "failed": 16, "skipped": 1, "failed_expected": true },
+      "key_deliverables": {
+        "tfidf_174k_zoom_quality": "COMPLETE_FAIL_AS_EXPECTED (0/4 modes PASS, bit-equal v25 crosscheck)",
+        "dense_embeddings_infra": "VERIFIED_READY (eval_dense_embeddings_174k.py, 14/15 tests PASS)",
+        "pipeline_verified_12k": "6/6 configurations FAIL as expected (insufficient cluster diversity for rate_ok)",
+        "partial_dense_eval_62k": "FIRST_PASS_AT_SCALE (center_projected_64dim + hier Leiden PASS v26 rule)",
+        "citation_role_1000scale": "STILL_FAIL (97-99% singleton fragmentation, rate_ok fails)",
+        "compressed_ladder": "VALIDATED_WITH_SCOPE (NESTING_METRIC_DEFECT_v1 enforced)",
+        "product_ui": "VERIFIED_IMPLEMENTED (citation-role views, zoom controls, split-view)",
+        "legal_distance_progress_corrected": "3/26 years (2000-2002), ~7% (verified vs progress.json)"
+      }
+    },
+    "36218624998": {
+      "commit": "c136274c",
+      "gate_artifact": "results/fractal_map/audit/CYCLE_36218624998_GATE.json",
+      "verdict": "AUDIT_READY",
+      "test_results": { "total": 210, "passed": 193, "failed": 16, "skipped": 1, "failed_expected": true },
+      "key_verifications": {
+        "tfidf_174k_zoom_quality": "COMPLETE_FAIL_AS_EXPECTED",
+        "dense_embeddings_infra": "VERIFIED_READY",
+        "citation_role_dense_path": "BLOCKED_ON_LEGAL_DISTANCE",
+        "compressed_ladder": "VALIDATED_WITH_SCOPE",
+        "product_ui": "VERIFIED_IMPLEMENTED",
+        "orchestration_bug": "RE_CONFIRMED_60_PLUS_REDISPATCHES",
+        "legal_distance_progress_corrected": "3/26 years (2000-2002), ~7%"
+      }
+    }
+  },
+  "orchestration_diagnosis": {
+    "root_cause": "Supervisor reads ephemeral /tmp/lex_control/state/factory_direction.json (fractal-map.status=RUN) instead of authoritative workspace state/fractal_map.json (BLOCKED_ON_DEPENDENCY)",
+    "documented_redispatch_occurrences": "62+ (this cycle is another occurrence)",
+    "affected_runs_since_36152847479": [
+      "36152847479", "36153888330", "36154945444", "36156868300", "36158377781",
+      "36161811441", "36168128832", "36174553152", "36176481336", "36178188261",
+      "36179928283", "36202696806", "36205017757", "36206192159", "36208688279",
+      "36209331769", "36213331932", "36215293928", "36215757319", "36217712995",
+      "36218302234", "36218624998", "36218964378"
+    ],
+    "required_fix": "Update supervisor dispatch logic to read state/<lane>.json for dispatch gating",
+    "defect_status": "PERSISTS"
+  },
+  "preservation_checks": {
+    "no_data_fabrication": true,
+    "no_overwritten_claim_bearing_outputs": true,
+    "full_provenance_chain_intact": true,
+    "negative_results_preserved": true,
+    "frozen_verdicts_protected": true,
+    "honest_null_cycle": true
+  },
+  "accepted_base_status": {
+    "current_accepted_run_id": "36215757319",
+    "is_stale": true,
+    "stale_since": "2026-09-26T03:52:00Z",
+    "cycles_pending_acceptance": ["36217712995", "36218624998"],
+    "incorrect_progress_claim": "11/26 years (2000-2010) vs corrected 3/26 years (2000-2002)"
+  },
+  "snapshot_status": "AUDIT-READY (null cycle — no new artifacts)",
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Null cycle — no new claims. Prior cycles ceiling: TF-IDF 174k zoom-quality FAIL (honest negative, frozen); dense embeddings infrastructure READY; citation-role dense path BLOCKED on legal-distance_174k_dense_embeddings; PARTIAL 174k EVALUATION (12k, 2000-2002): all 6 configs FAIL rate_ok as expected (insufficient cluster diversity); PARTIAL 62k EVALUATION (2000-2010, from prior cycle): center_projected_64dim + hierarchical Leiden PASS v26 success rule (branch PASS, area PASS, rate PASS 2/4, frag 1.7%) — FIRST PASS at 174k-relevant scale; cp_128dim/768dim FAIL rate_ok — 64dim is optimal sweet spot; citation-role 1000-scale FAIL (97-99% singletons); compressed ladder validated with NESTING_METRIC_DEFECT_v1 scope; product multi-view zoom UI verified. Legal-distance progress: 3/26 years (2000-2002), ~7% — NOT 11/26 as in stale accepted base.",
+  "evidence_summary": "Cycle 36218964378 is a null re-dispatch: both branch refs point to prior cycle 36218624998 commit c136274c; producer workspace has no artifacts, reports, or state changes for this cycle ID; no tests executed. Prior cycles 36217712995 and 36218624998 are valid operational resumes (both PASS/AUDIT_READY) that corrected legal-distance progress to 3/26 years, verified dense embeddings pipeline at 12k (FAIL as expected), confirmed evidence-backed zoom path at 62k (cp64dim+hierarchical Leiden PASS), and preserved all frozen verdicts. Lane correctly remains BLOCKED_ON_DEPENDENCY on legal-distance_174k_dense_embeddings. Orchestration defect persists (62nd+ re-dispatch). Accepted base (main) is stale and carries incorrect progress claim. Honest null cycle — PASS."
+}

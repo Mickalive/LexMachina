@@ -4,11 +4,12 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "RUN",
   "continue_recommended": true,
-  "accepted_run_id": "eval_174k_formal_suite_v27_20260925",
+  "accepted_run_id": "eval_174k_formal_suite_v27_20260926",
   "evidence_refs": [
     "reports/evaluation/EVALUATION_174K_HNSW_FIX_REPORT_v27.md",
     "reports/evaluation/EVALUATION_174K_FORMAL_SUITE_v27.md",
     "reports/evaluation/EVALUATION_174K_FORMAL_SUITE_v27_CYCLE_REPORT.md",
+    "reports/evaluation/EVALUATION_174K_CYCLE_REPORT_v27.md",
     "evaluation/experiments/v25_174k_suite/protocol_v25_174k_suite.json",
     "evaluation/run_174k_formal_suite.py",
     "evaluation/scalable_nn.py",
@@ -16,11 +17,12 @@
     "evaluation/data/174k/metadata_174k.json",
     "evaluation/data/174k/metadata_stats.json",
     "evaluation/experiments/legal_area_normalize.py",
+    "evaluation/experiments/run_v17b_174k_tfidf.py",
     "evaluation/results/full_corpus_174k_tfidf/full_corpus_evaluation_results_worker0.json",
     "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
     "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
     "results/evaluation/v25_174k_citation_heritage/",
-    "results/evaluation/v25_174k_v17b/"
+    "evaluation/results/v17b_174k_tfidf/v17b_174k_tfidf_results.json"
   ],
   "next_recommendation": "RUN — TF-IDF family (8 representations) COMPLETE at 174k scale with HNSW artifact fix IMPLEMENTED (v3_174k_fixed, config hash b51701f5a9c11692). All three machine-executable sub-questions of factory direction v27 COMPLETE for TF-IDF family: (1) 12-benchmark formal suite with exact k-NN on fixed stratified subsample (n=2000) for adversarial benchmarks; (2) citation_heritage on frozen 137k pair pool with 2,019/2,105 citations resolved; (3) v17b label normalization test — NOT uniformly confirmed (2/8 reps satisfy frozen uniformity rule). Dense embeddings (center_projected, metric learning, hybrid, citation roles, linear hybrids) awaited from legal-distance lane (42% complete, years 2000-2010; 11/26 years complete). Monitor active (check_count=92); will evaluate dense representations autonomously as they land in accepted state. Jurist human study external dependency recorded (framework ready). No additional same-question cycle justified for TF-IDF family — fundamental tradeoffs established, negative results preserved.",
   "summary": {
@@ -65,16 +67,16 @@
       "uniformity_rule": "FAIL for 6/8 representations (cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7, full_text_tfidf_light, outcome_tfidf, regeste_full_text_hybrid_0.5, regeste_full_text_hybrid_0.7 worsen >10% on NMI)",
       "passing_representations": ["cited_decisions_tfidf", "regeste_tfidf"],
       "per_representation_purity_ratios": {
-        "cited_decisions_tfidf": {"hierarchy_purity": 1.52, "hierarchy_nmi": 0.94, "zoom_coarse": 1.57, "zoom_fine": 1.56, "legal_area_purity": 1.49, "legal_area_nmi": 0.92},
-        "cited_outcome_hybrid_0.5": {"hierarchy_purity": 1.53, "hierarchy_nmi": 0.90, "zoom_coarse": 1.56, "zoom_fine": 1.51, "legal_area_purity": 1.50, "legal_area_nmi": 0.86},
-        "cited_outcome_hybrid_0.7": {"hierarchy_purity": 1.54, "hierarchy_nmi": 0.89, "zoom_coarse": 1.54, "zoom_fine": 1.56, "legal_area_purity": 1.47, "legal_area_nmi": 0.89},
-        "full_text_tfidf_light": {"hierarchy_purity": 1.00, "hierarchy_nmi": 0.72, "zoom_coarse": 1.00, "zoom_fine": 1.00, "legal_area_purity": 1.00, "legal_area_nmi": 0.76},
-        "outcome_tfidf": {"hierarchy_purity": 1.51, "hierarchy_nmi": 0.87, "zoom_coarse": 1.51, "zoom_fine": 1.51, "legal_area_purity": 1.51, "legal_area_nmi": 0.87},
-        "regeste_tfidf": {"hierarchy_purity": 1.64, "hierarchy_nmi": 1.00, "zoom_coarse": 1.64, "zoom_fine": 1.64, "legal_area_purity": 1.64, "legal_area_nmi": 1.00},
-        "regeste_full_text_hybrid_0.5": {"hierarchy_purity": 1.00, "hierarchy_nmi": 0.72, "zoom_coarse": 1.00, "zoom_fine": 1.00, "legal_area_purity": 1.00, "legal_area_nmi": 0.76},
-        "regeste_full_text_hybrid_0.7": {"hierarchy_purity": 1.00, "hierarchy_nmi": 0.72, "zoom_coarse": 1.00, "zoom_fine": 1.00, "legal_area_purity": 1.00, "legal_area_nmi": 0.76}
+        "cited_decisions_tfidf": {"hierarchy_purity": 1.48, "hierarchy_nmi": 0.95, "zoom_coarse": 1.59, "zoom_fine": 1.50, "legal_area_purity": 1.26, "legal_area_nmi": 0.83},
+        "cited_outcome_hybrid_0.5": {"hierarchy_purity": 1.43, "hierarchy_nmi": 0.85, "zoom_coarse": 1.51, "zoom_fine": 1.50, "legal_area_purity": 1.26, "legal_area_nmi": 0.73},
+        "cited_outcome_hybrid_0.7": {"hierarchy_purity": 1.44, "hierarchy_nmi": 1.06, "zoom_coarse": 1.53, "zoom_fine": 1.47, "legal_area_purity": 1.29, "legal_area_nmi": 0.79},
+        "full_text_tfidf_light": {"hierarchy_purity": 1.00, "hierarchy_nmi": 0.70, "zoom_coarse": 1.00, "zoom_fine": 1.00, "legal_area_purity": 0.97, "legal_area_nmi": 0.79},
+        "outcome_tfidf": {"hierarchy_purity": 1.50, "hierarchy_nmi": 0.88, "zoom_coarse": 1.51, "zoom_fine": 1.50, "legal_area_purity": 1.50, "legal_area_nmi": 0.88},
+        "regeste_tfidf": {"hierarchy_purity": 1.67, "hierarchy_nmi": null, "zoom_coarse": 1.67, "zoom_fine": 1.67, "legal_area_purity": 1.67, "legal_area_nmi": null},
+        "regeste_full_text_hybrid_0.5": {"hierarchy_purity": 1.00, "hierarchy_nmi": 0.70, "zoom_coarse": 1.00, "zoom_fine": 1.00, "legal_area_purity": 0.97, "legal_area_nmi": 0.79},
+        "regeste_full_text_hybrid_0.7": {"hierarchy_purity": 1.00, "hierarchy_nmi": 0.70, "zoom_coarse": 1.00, "zoom_fine": 1.00, "legal_area_purity": 0.97, "legal_area_nmi": 0.79}
       },
-      "key_finding": "v17b normalization improves purity for citation-based reps (42-64%) but degrades NMI for 6/8 reps (11-28% worsening). Text-based reps show ZERO purity improvement (ratios=1.00) and severe NMI degradation (-24% to -28%). Only 2/8 reps satisfy frozen uniformity rule. Best normalized hierarchy_purity=0.465 < 0.7 threshold — fundamental granularity/coverage limits persist at 174k."
+      "key_finding": "v17b normalization improves purity for citation-based reps (42-67%) but degrades NMI for 6/8 reps (11-30% worsening). Text-based reps show ZERO purity improvement (ratios=1.00) and severe NMI degradation (-24% to -30%). Only 2/8 reps satisfy frozen uniformity rule. Best normalized hierarchy_purity=0.465 < 0.7 threshold — fundamental granularity/coverage limits persist at 174k."
     },
     "critical_hnsw_artifact": {
       "status": "FIXED",
@@ -105,7 +107,7 @@
     "monitor_status": {
       "active": true,
       "check_count": 92,
-      "last_check": "2026-09-25T23:28:26.041789",
+      "last_check": "2026-09-26T02:07:42.148000",
       "watching_path": "/tmp/lex_accepted/legal-distance/legal_distance/results",
       "completed_evaluations": {
         "cited_decisions_tfidf": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true},
