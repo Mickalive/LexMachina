@@ -15,7 +15,7 @@
     "evaluation/results/partial_dense_2000_2002/evaluation_partial_dense_latest.json",
     "evaluation/reports/evaluation_v28_174k_tfidf_formal_suite_20260926.md"
   ],
-  "next_recommendation": "TF-IDF family 174k evaluation COMPLETE per factory direction v28 across all three machine-executable sub-questions: (1) 12-benchmark formal suite with HNSW artifact fix (exact k-NN on fixed stratified subsample n=2000), (2) citation_heritage benchmark validated (137,314 frozen pairs, 95.9% citation resolution), (3) v17b label normalization generalization tested at 174k (213->163 labels, 32 cross-lingual concepts, PARTIAL generalization: 2/8 reps within <=10% worsening rule). Partial dense evaluation (years 2000-2002, 12,570 decisions) executed: all 3 center_projected versions FAIL adversarial gates (lang_dom ~0.98, jurist_pref ~0.04) due to metadata coverage (only 2,300/12,570 with known branch) and incomplete center-projection on partial corpus. Evaluation infrastructure operational (monitor active, check_count=126, HNSW artifact fixed, exact k-NN on valid subset for adversarial benchmarks). Lane correctly BLOCKED_ON_DEPENDENCIES for dense embeddings (3/26 years complete, corpus mount path gap blocks years 2003-2025). No additional same-question cycle justified for TF-IDF family. Awaiting legal-distance 174k dense embeddings, citation roles, and linear hybrids.",
+  "next_recommendation": "TF-IDF family 174k evaluation COMPLETE per factory direction v28 across all three machine-executable sub-questions: (1) 12-benchmark formal suite with HNSW artifact fix (exact k-NN on fixed stratified subsample n=2000), (2) citation_heritage benchmark validated (137,314 frozen pairs, 95.9% citation resolution), (3) v17b label normalization generalization tested at 174k (213->163 labels, 32 cross-lingual concepts, PARTIAL generalization: 2/8 reps within <=10% worsening rule). Partial dense evaluation (years 2000-2002, 12,570 decisions) executed: all 3 center_projected versions FAIL adversarial gates (lang_dom ~0.98, jurist_pref ~0.04) due to metadata coverage (only 2,300/12,570 with known branch) and incomplete center-projection on partial corpus. Evaluation infrastructure operational (monitor active, HNSW artifact fixed, exact k-NN on valid subset for adversarial benchmarks). Lane correctly BLOCKED_ON_DEPENDENCIES for dense embeddings (3/26 years complete, corpus mount path gap blocks years 2003-2025). No additional same-question cycle justified for TF-IDF family. Awaiting legal-distance 174k dense embeddings, citation roles, and linear hybrids.",
   "sub_question_results": {
     "formal_suite_12_benchmark": {
       "status": "COMPLETE",
@@ -102,7 +102,7 @@
       "note": "Results not comparable to 1200-slice center_projected (which PASS adversarial); partial corpus center-projection and metadata gaps prevent valid comparison. Full 174k dense embeddings required for meaningful evaluation."
     }
   },
-  "blocked_on": "legal-distance lane: 174k dense embeddings not yet computed (3/26 years complete: 2000-2002, 19,441 decisions = 11% of 173,963; final concatenation blocked on years 2003-2025 due to corpus artifact publication gap at expected mount paths per factory direction v28)",
+  "blocked_on": "legal-distance lane: 174k dense embeddings not yet computed (3/26 years complete: 2000-2002, 19,441 decisions = 11% of 173,963; final concatenation blocked on years 2003-2025 due to corpus artifact publication gap - year-split bger_YYYY.jsonl files missing for 2003-2026; regenerate_yearly_canonical.py can generate them from HuggingFace parquet)",
   "production_representations_awaited": [
     "center_projected_768dim",
     "center_projected_64dim",
@@ -116,6 +116,13 @@
     "linear_citation_concat",
     "linear_hybrid05_concat"
   ],
+  "infrastructure_readiness": {
+    "metadata_174k_symlink": "FIXED: /tmp/lex_accepted/evaluation/evaluation/data/174k/metadata_174k.jsonl -> workspace metadata",
+    "corpus_canonical_path": "EXISTS: /tmp/lex_accepted/corpus/corpus/normalization/canonical/ (bger_*.jsonl for 2000-2002 present, 2003-2026 need generation)",
+    "evaluation_harness": "VERIFIED: frozen v3 thresholds, exact k-NN on stratified subsample (n=2000), HNSW for full-corpus scale benchmarks",
+    "test_suite": "PASSING: frozen_harness_reproducibility, v17_label_normalization, v17b_label_normalization_all_reps, v16_full_benchmark_suite, boilerplate_resistance_real, cross_lingual_alignment_v10, audit_correction_verification",
+    "formal_suite_scripts": "READY: run_174k_formal_suite.py, scalable_nn.py, all benchmark modules operational"
+  },
   "external_dependencies": {
     "jurist_human_study": "BLOCKED (5-10 Swiss jurists recruitment by repository owner; framework ready)"
   }
