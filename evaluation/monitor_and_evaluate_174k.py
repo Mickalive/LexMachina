@@ -32,15 +32,16 @@ logger = logging.getLogger(__name__)
 # Configuration
 LEX_ACCEPTED_ROOT = Path("/tmp/lex_accepted")
 LEGAL_DISTANCE_RESULTS_ROOT = LEX_ACCEPTED_ROOT / "legal-distance/legal_distance/results"
+FRACTAL_MAP_RESULTS_ROOT = LEX_ACCEPTED_ROOT / "fractal-map/results/fractal_map"
 
 # Production representations expected at 174k (from factory direction v27)
-# TF-IDF family COMPLETED at 174k (8 representations evaluated)
+# TF-IDF family COMPLETED at 174k (8 representations evaluated) - names match actual filenames in fractal-map mount
 EXPECTED_REPRESENTATIONS = {
     "completed_tfidf_174k": [
         "cited_decisions_tfidf",
         "outcome_tfidf", 
-        "cited_outcome_hybrid_0.5",
-        "cited_outcome_hybrid_0.7",
+        "cited_decisions_tfidf_outcome_hybrid_0.5",
+        "cited_decisions_tfidf_outcome_hybrid_0.7",
         "regeste_tfidf",
         "full_text_tfidf_light",
         "regeste_full_text_hybrid_0.5",
@@ -49,6 +50,7 @@ EXPECTED_REPRESENTATIONS = {
     "awaited_dense_174k": [
         "center_projected_768dim",
         "center_projected_64dim",
+        "center_projected_128dim",
         "linear_metric_epoch4",
         "mahalanobis_metric_epoch4",
         "hybrid_stabilized_epoch1",
@@ -122,39 +124,10 @@ def save_state(state: Dict):
 
 
 def scan_for_representations() -> Dict[str, List[Path]]:
-    """Scan legal-distance accepted state for 174k representation directories."""
+    """Scan accepted state mounts for 174k representation directories."""
     found = {}
     
-    if not LEGAL_DISTANCE_RESULTS_ROOT.exists():
-        logger.warning(f"Legal-distance results root not found: {LEGAL_DISTANCE_RESULTS_ROOT}")
-        return found
-    
-    # Scan all version directories for 174k embeddings
-    for version_dir in LEGAL_DISTANCE_RESULTS_ROOT.iterdir():
-        if not version_dir.is_dir():
-            continue
-        if not version_dir.name.startswith('v'):
-            continue
-            
-        for item in version_dir.iterdir():
-            if item.is_dir() and "174k" in item.name.lower():
-                # Check for embedding files
-                npy_files = list(item.glob("*.npy"))
-                if npy_files:
-                    found[f"{version_dir.name}/{item.name}"] = npy_files
-                    logger.info(f"Found 174k representation dir: {version_dir.name}/{item.name} with {len(npy_files)} embeddings")
-    
-    # Also check fractal_map results
-    fractal_results = LEX_ACCEPTED_ROOT / "legal-distance/results/fractal_map"
-    if fractal_results.exists():
-        for item in fractal_results.iterdir():
-            if item.is_dir() and "174k" in item.name.lower():
-                npy_files = list(item.glob("*.npy"))
-                if npy_files:
-                    found[f"fractal_map/{item.name}"] = npy_files
-                    logger.info(f"Found 174k representation dir: fractal_map/{item.name} with {len(npy_files)} embeddings")
-    
-    # Also check the 174k_dense_embeddings directory at results root (where legal-distance publishes final concatenated embeddings)
+    # 1. Scan legal-distance results for 174k dense embeddings (final concatenated)
     dense_embeddings_root = LEGAL_DISTANCE_RESULTS_ROOT / "174k_dense_embeddings"
     if dense_embeddings_root.exists():
         # Check for final embeddings in the root (not in checkpoints subdirectory)
@@ -169,6 +142,64 @@ def scan_for_representations() -> Dict[str, List[Path]]:
                 if npy_files:
                     found[f"174k_dense_embeddings/{item.name}"] = npy_files
                     logger.info(f"Found 174k representation dir: 174k_dense_embeddings/{item.name} with {len(npy_files)} embeddings")
+    
+    # 2. Scan fractal-map accepted mount for TF-IDF 174k embeddings (already evaluated but good to verify)
+    tfidf_emb_dir = FRACTAL_MAP_RESULTS_ROOT / "hierarchical_map_174k" / "legal_tfidf_embeddings"
+    if tfidf_emb_dir.exists():
+        npy_files = list(tfidf_emb_dir.glob("*.npy"))
+        if npy_files:
+            found["fractal_map/hierarchical_map_174k/legal_tfidf_embeddings"] = npy_files
+            logger.info(f"Found 174k TF-IDF embeddings: {len(npy_files)} files")
+    
+    tfidf_emb_dir2 = FRACTAL_MAP_RESULTS_ROOT / "hierarchical_map_174k" / "tfidf_embeddings"
+    if tfidf_emb_dir2.exists():
+        npy_files = list(tfidf_emb_dir2.glob("*.npy"))
+        if npy_files:
+            found["fractal_map/hierarchical_map_174k/tfidf_embeddings"] = npy_files
+            logger.info(f"Found 174k TF-IDF embeddings (alt): {len(npy_files)} files")
+    
+    # 3. Scan legal-distance version directories for any other 174k representations
+    if LEGAL_DISTANCE_RESULTS_ROOT.exists():
+        for version_dir in LEGAL_DISTANCE_RESULTS_ROOT.iterdir():
+            if not version_dir.is_dir():
+                continue
+            if not version_dir.name.startswith('v'):
+                continue
+                
+            for item in version_dir.iterdir():
+                if item.is_dir() and "174k" in item.name.lower():
+                    # Check for embedding files
+                    npy_files = list(item.glob("*.npy"))
+                    if npy_files:
+                        found[f"{version_dir.name}/{item.name}"] = npy_files
+                        logger.info(f"Found 174k representation dir: {version_dir.name}/{item.name} with {len(npy_files)} embeddings")
+    
+    # 4. Scan for citation role 174k embeddings (when they land)
+    # These would be in legal-distance results under a 174k citation roles directory
+    for version_dir in LEGAL_DISTANCE_RESULTS_ROOT.iterdir():
+        if not version_dir.is_dir():
+            continue
+        if not version_dir.name.startswith('v'):
+            continue
+        for item in version_dir.iterdir():
+            if item.is_dir() and "citation_role" in item.name.lower() and "174k" in item.name.lower():
+                npy_files = list(item.glob("*.npy"))
+                if npy_files:
+                    found[f"{version_dir.name}/{item.name}"] = npy_files
+                    logger.info(f"Found 174k citation role dir: {version_dir.name}/{item.name} with {len(npy_files)} embeddings")
+    
+    # 5. Scan for linear hybrid 174k embeddings
+    for version_dir in LEGAL_DISTANCE_RESULTS_ROOT.iterdir():
+        if not version_dir.is_dir():
+            continue
+        if not version_dir.name.startswith('v'):
+            continue
+        for item in version_dir.iterdir():
+            if item.is_dir() and "linear" in item.name.lower() and "174k" in item.name.lower():
+                npy_files = list(item.glob("*.npy"))
+                if npy_files:
+                    found[f"{version_dir.name}/{item.name}"] = npy_files
+                    logger.info(f"Found 174k linear hybrid dir: {version_dir.name}/{item.name} with {len(npy_files)} embeddings")
     
     return found
 
@@ -355,48 +386,95 @@ def run_formal_suite_v25(embeddings_dir: Path, representation: str, output_base:
 
 
 def execute_evaluation_suite(found_dirs: Dict, state: Dict):
-    """Execute the full evaluation suite for newly detected representations."""
+    """Execute the full evaluation suite for newly detected AWAITED representations."""
     output_base = Path("evaluation/results/174k_formal_suite")
     output_base.mkdir(parents=True, exist_ok=True)
     
+    # Only evaluate awaited representations, not already-completed TF-IDF
+    awaited_reps = set(AWAITED_REPRESENTATIONS)
+    
     newly_ready = {}
     for dir_name, npy_files in found_dirs.items():
+        # Determine representation names from files in this directory
+        rep_names_in_dir = set()
+        for npy in npy_files:
+            rep_name = npy.stem.replace("embeddings_", "").replace("embeddings-", "")
+            rep_names_in_dir.add(rep_name)
+        
+        # Check if any awaited representations are in this directory
+        awaited_in_dir = rep_names_in_dir & awaited_reps
+        if not awaited_in_dir:
+            # No awaited representations here - skip (e.g., TF-IDF already done)
+            continue
+            
         if dir_name not in state["detected_representations"]:
             newly_ready[dir_name] = npy_files
             state["detected_representations"][dir_name] = {
                 "first_seen": datetime.now().isoformat(),
-                "files": [str(f) for f in npy_files]
+                "files": [str(f) for f in npy_files],
+                "awaited_representations": list(awaited_in_dir)
             }
     
     if not newly_ready:
-        logger.info("No new representations detected")
+        logger.info("No new awaited representations detected")
         return
     
-    logger.info(f"NEW REPRESENTATIONS DETECTED: {list(newly_ready.keys())}")
+    logger.info(f"NEW AWAITED REPRESENTATIONS DETECTED: {list(newly_ready.keys())}")
     
     for dir_name, npy_files in newly_ready.items():
-        embeddings_dir = LEGAL_DISTANCE_RESULTS_ROOT / dir_name if not dir_name.startswith("fractal_map") else (LEX_ACCEPTED_ROOT / "legal-distance/results/fractal_map" / dir_name.split("/", 1)[1])
+        # Map found directory to actual filesystem path
+        if dir_name.startswith("fractal_map/"):
+            embeddings_dir = FRACTAL_MAP_RESULTS_ROOT / dir_name.split("/", 1)[1]
+        elif dir_name.startswith("174k_dense_embeddings"):
+            embeddings_dir = LEGAL_DISTANCE_RESULTS_ROOT / dir_name
+        else:
+            embeddings_dir = LEGAL_DISTANCE_RESULTS_ROOT / dir_name
         
-        # Determine representation name from the first .npy file
-        rep_name = npy_files[0].stem.replace("embeddings_", "").replace("embeddings-", "")
-        logger.info(f"Processing representation: {rep_name} from {dir_name}")
+        if not embeddings_dir.exists():
+            logger.error(f"Embeddings directory not found: {embeddings_dir}")
+            continue
         
-        # 1. Run full corpus adversarial evaluation (v3 harness at 174k scale)
-        logger.info(f"Starting full corpus adversarial evaluation for {rep_name}")
-        adv_success = run_full_corpus_evaluation(embeddings_dir, rep_name, output_base)
+        # Determine awaited representation names from files
+        awaited_in_dir = state["detected_representations"][dir_name].get("awaited_representations", [])
         
-        # 2. Run the full v25 formal suite (12-benchmark + citation_heritage + v17b)
-        logger.info(f"Starting v25 formal suite for {rep_name}")
-        suite_success = run_formal_suite_v25(embeddings_dir, rep_name, output_base)
-        
-        state["completed_evaluations"][dir_name] = {
-            "representation_name": rep_name,
-            "full_corpus_adversarial": adv_success,
-            "v25_formal_suite": suite_success,
-            "completed_at": datetime.now().isoformat(),
-            "adv_output_dir": str(output_base / f"full_corpus_174k_{rep_name}"),
-            "suite_output_dir": str(output_base / f"v25_formal_suite_{rep_name}")
-        }
+        for rep_name in awaited_in_dir:
+            # Verify the embedding file exists
+            rep_file = embeddings_dir / f"{rep_name}.npy"
+            if not rep_file.exists():
+                # Try alternative naming
+                alt_names = [
+                    f"embeddings_{rep_name}.npy",
+                    f"embeddings-{rep_name}.npy",
+                    f"{rep_name}_embeddings.npy",
+                ]
+                for alt in alt_names:
+                    if (embeddings_dir / alt).exists():
+                        rep_file = embeddings_dir / alt
+                        break
+                else:
+                    logger.warning(f"Embedding file not found for {rep_name} in {embeddings_dir}")
+                    continue
+            
+            logger.info(f"Processing awaited representation: {rep_name} from {dir_name}")
+            
+            # 1. Run full corpus adversarial evaluation (v3 harness at 174k scale)
+            logger.info(f"Starting full corpus adversarial evaluation for {rep_name}")
+            adv_success = run_full_corpus_evaluation(embeddings_dir, rep_name, output_base)
+            
+            # 2. Run the full v25 formal suite (12-benchmark + citation_heritage + v17b)
+            logger.info(f"Starting v25 formal suite for {rep_name}")
+            suite_success = run_formal_suite_v25(embeddings_dir, rep_name, output_base)
+            
+            eval_key = f"{dir_name}/{rep_name}"
+            state["completed_evaluations"][eval_key] = {
+                "representation_name": rep_name,
+                "source_dir": dir_name,
+                "full_corpus_adversarial": adv_success,
+                "v25_formal_suite": suite_success,
+                "completed_at": datetime.now().isoformat(),
+                "adv_output_dir": str(output_base / f"full_corpus_174k_{rep_name}"),
+                "suite_output_dir": str(output_base / f"v25_formal_suite_{rep_name}")
+            }
         
         save_state(state)
 
