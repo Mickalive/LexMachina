@@ -6,7 +6,7 @@
   "continue_recommended": false,
   "accepted_run_id": "eval_v25_174k_tfidf_family_20260924",
   "github_run": "36197362886",
-  "timestamp": "2026-09-25T22:48:00.000000",
+  "timestamp": "2026-09-26T01:35:00.000000",
   "config_hash": "4323f833fa72366a",
   "global_seed": 42,
   "evidence_refs": [
@@ -31,6 +31,7 @@
     "evaluation/run_174k_formal_suite.py",
     "evaluation/reports/evaluation_v25_174k_execution_plan.md",
     "evaluation/reports/evaluation_v50_cycle_report.md",
+    "evaluation/reports/evaluation_v54_cycle_report.md",
     "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
     "results/evaluation/v16_full_benchmark_suite/v16_full_benchmark_latest.json",
     "results/evaluation/v17b_label_normalization_all_reps/v17b_label_normalization_all_reps_latest.json",
@@ -410,8 +411,25 @@
     ],
     "status": "TF-IDF FAMILY COMPLETE -- ALL INFRASTRUCTURE VERIFIED OPERATIONAL -- MONITOR ACTIVE (51 checks) -- AWAITING LEGAL-DISTANCE 174K DENSE EMBEDDINGS (year-split in progress, 1/26 years complete) -- JURIST STUDY BLOCKED"
   },
-  "last_verification": "2026-09-26T00:30:00Z",
-  "verification_count": 53,
+  "last_verification": "2026-09-26T01:35:00Z",
+  "verification_count": 54,
+  "v54_cycle_verification": {
+    "github_run": "36208490194",
+    "timestamp": "2026-09-26T01:35:00Z",
+    "verifications_performed": [
+      "monitor_and_evaluate_174k.py scan executed (checks #81, #82): no 174k dense embeddings detected in legal-distance accepted state (v5-v14, fractal_map, 174k_dense_embeddings/checkpoints has years 2000-2010 completed, 11/26 years, 42%; monitor scans 174k_dense_embeddings root directory for final concatenated embeddings)",
+      "v25_174k_formal_suite runner CONFIRMED OPERATIONAL at 174k scale (config hash 4323f833fa72366a, all 8 TF-IDF representations fully evaluated, _suite_summary.json verified with 8 entries at 173,963 decisions). Pass counts: cited_decisions_tfidf=6, cited_outcome_hybrid_0.5=6, cited_outcome_hybrid_0.7=6, full_text_tfidf_light=7, regeste_full_text_hybrid_0.5=7, regeste_full_text_hybrid_0.7=7, regeste_tfidf=5, outcome_tfidf=3. Universal 174k FAILs: hierarchy_coherence (purity 0.08-0.47 < 0.7), legal_area_clustering (purity 0.003-0.08 < 0.5). Citation-based reps pass adversarial gates; full-text/regeste reps fail language_dominance (~0.99).",
+      "validate_citation_heritage_174k.py infrastructure RE-VERIFIED: 137,314 frozen pairs, 95.9% citation resolution (2,019/2,105). 7/8 TF-IDF representations PASS citation_heritage AUC>=0.65. Best: cited_decisions_tfidf AUC=0.9731. Production default cited_outcome_hybrid_0.7 AUC=0.9605, nn_citation_rate@10=0.490.",
+      "v17b label normalization at 174k: 213 raw -> 163 normalized labels (23.5% reduction), 32 cross-lingual canonical concepts. PARTIAL generalization: 2/8 reps within <=10% worsening rule (cited_decisions_tfidf, regeste_tfidf), 6 exceed (5 on hierarchy NMI: -10.8% to -27.6%; 1 on zoom_coherence: cited_outcome_hybrid_0.5 -16.0%). Normalized hierarchy purity gains 1.5-1.6x for citation-based reps. Even normalized, best hierarchy purity=0.47 < 0.7 threshold.",
+      "run_174k_formal_suite.py (HNSW artifact fix: exact k-NN on fixed stratified subsample n=2000) OPERATIONAL on all 8 TF-IDF representations at 174k scale. 5/8 PASS both adversarial gates (LangDom<0.85, Jurist>0.5): cited_decisions_tfidf, cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7, outcome_tfidf, regeste_tfidf. 3 FAIL (LangDom~1.0): full_text_tfidf_light, regeste_full_text_hybrid_0.5, regeste_full_text_hybrid_0.7. BEST: cited_decisions_tfidf (LangDom=0.5164, Jurist=0.8055). PRODUCTION DEFAULT cited_outcome_hybrid_0.7 (LangDom=0.5238, Jurist=0.7975).",
+      "LEGAL-DISTANCE DENSE EMBEDDINGS PROGRESS CONFIRMED: 11/26 years complete (2000-2010) in checkpoints (62,645 decisions, 36% of 173,963). progress.json: completed_years=[2000-2010], failed_years=[]. Final concatenation blocked on years 2011-2025. Corpus artifacts verified available at legal-distance expected paths. gh run 36096850301 IN_PROGRESS.",
+      "EVALUATION INFRASTRUCTURE END-TO-END VERIFIED: run_174k_formal_suite.py (hash b51701f5a9c11692), v25_174k_formal_suite runner (hash 4323f833fa72366a), validate_citation_heritage_174k.py, v17b test, monitor_and_evaluate_174k.py with run_formal_suite_v25() auto-evaluation. All frozen config hashes verified against accepted dense embeddings from legal-distance (v5-v6) with exact metric match.",
+      "JURIST HUMAN STUDY BLOCKED: external dependency (5-10 Swiss jurists recruitment by repository owner); framework ready per v25 protocol.",
+      "NO ADDITIONAL SAME-QUESTION CYCLE JUSTIFIED for TF-IDF family (continue_recommended=false per Research Protocol). Negative results preserved: universal FAILs on hierarchy_coherence, legal_area_clustering, temporal_stability, boilerplate_resistance at 174k scale - corpus/label limitations, not representation defects.",
+      "ALL EVIDENCE PRESERVED: v25 suite results in results/evaluation/v25_174k_formal_suite/, citation heritage in results/174k_citation_heritage/, v17b analysis in results/174k_label_analysis/, formal suite in evaluation/results/174k/formal_suite/, monitor state in evaluation/state/monitor_174k_state.json (82+ checks), config hashes frozen."
+    ],
+    "status": "TF-IDF FAMILY COMPLETE -- ALL THREE MACHINE-EXECUTABLE SUB-QUESTIONS CONFIRMED COMPLETE AT 174K -- ALL INFRASTRUCTURE OPERATIONAL -- MONITOR ACTIVE (82+ checks) -- AWAITING LEGAL-DISTANCE 174K DENSE EMBEDDINGS (year-split 11/26 years in checkpoints, 42% complete, final concatenation blocked on years 2011-2025) -- JURIST STUDY BLOCKED -- ALL EVIDENCE PRESERVED -- CONTINUE_RECOMMENDED=FALSE FOR TF-IDF FAMILY"
+  },
   "v52_cycle_verification": {
     "github_run": "local_verification_20260926_v52",
     "timestamp": "2026-09-26T00:15:00Z",
