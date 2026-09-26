@@ -1221,38 +1221,43 @@ class MapLoader:
             meta_key = f"res_{res_key}"
             if meta_key not in cluster_metadata:
                 continue
-
+            
             res_metadata = cluster_metadata[meta_key]
             labels = labels_by_resolution.get(res_key)
-
+            
             if labels is None:
                 continue
-
+            
             # Build cluster assignments from labels
             cluster_assignments = {}
             for idx, label in enumerate(labels):
                 did = index_to_id.get(idx)
                 if did:
                     cluster_assignments[did] = int(label)
-
-            # Build cluster info from metadata (res_metadata is dict with cluster_id as keys)
+            
+            # Build cluster info from metadata
             clusters = {}
             for cid_str, cluster_data in res_metadata.items():
                 cid = int(cid_str)
-                decision_indices = cluster_data.get("decision_indices", [])
-                decision_ids_in_cluster = [decision_ids[i] for i in decision_indices if i < len(decision_ids)]
-
+                # Use decision_ids from metadata directly (contains actual decision IDs like "bger_...")
+                # This avoids index mapping issues when clustering was done on larger corpus than available at mount path
+                decision_ids_in_cluster = cluster_data.get("decision_ids", [])
+                # Fallback to decision_indices mapping if decision_ids not available
+                if not decision_ids_in_cluster:
+                    decision_indices = cluster_data.get("decision_indices", [])
+                    decision_ids_in_cluster = [decision_ids[i] for i in decision_indices if i < len(decision_ids)]
+                
                 clusters[cid] = ClusterInfo(
                     cluster_id=cid,
                     zoom_level=zoom_level,
                     decision_ids=decision_ids_in_cluster,
                     size=cluster_data.get("size", 0),
-                    centroid_x=0.0,  # Will compute below
+                    centroid_x=0.0,
                     centroid_y=0.0,
                     legal_area_label=cluster_data.get("dominant_area"),
                     language_label=cluster_data.get("dominant_lang"),
                 )
-
+            
             # Compute centroids from positions
             for cid, cluster in clusters.items():
                 xs = [positions[did][0] for did in cluster.decision_ids if did in positions]
@@ -1260,7 +1265,7 @@ class MapLoader:
                 if xs and ys:
                     cluster.centroid_x = sum(xs) / len(xs)
                     cluster.centroid_y = sum(ys) / len(ys)
-
+            
             zoom_levels[zoom_level] = ZoomLevel(
                 level=zoom_level,
                 n_clusters=len(clusters),
@@ -2802,9 +2807,23 @@ class MapLoader:
         """Build zoom levels from 174k cluster metadata (produced by build_all_representations.py)."""
         zoom_levels = {}
 
-        # Create position mapping
+        # Extract full decision_ids from cluster_metadata
+        # The cluster_metadata has 'decision_ids' field with actual decision IDs for each cluster
+        # Use the finest resolution to get all decision_ids
+        all_decision_ids = []
+        finest_key = "res_3.0"
+        if finest_key in cluster_metadata:
+            for cid_str, cluster_data in cluster_metadata[finest_key].items():
+                all_decision_ids.extend(cluster_data.get("decision_ids", []))
+        
+        # If we couldn't get from metadata, fall back to passed decision_ids
+        if not all_decision_ids:
+            all_decision_ids = decision_ids
+        
+        # Create position mapping using all_decision_ids
+        # projection has shape (n_embeddings, 2) where n_embeddings = len(all_decision_ids)
         positions = {}
-        for i, did in enumerate(decision_ids):
+        for i, did in enumerate(all_decision_ids):
             if i < len(projection):
                 positions[did] = (float(projection[i, 0]), float(projection[i, 1]))
 
@@ -3152,8 +3171,33 @@ class MapLoader:
             if label_file.exists():
                 labels_by_resolution[res_key] = np.load(label_file)
         
-        # Build zoom levels from cluster metadata and labels
-        index_to_id = {i: m for i, m in enumerate(decision_ids)}
+        # Build full decision_ids list from cluster metadata
+        # The cluster_metadata has 'decision_ids' field with actual decision IDs for each cluster
+        # Collect all unique decision_ids from all clusters at the finest resolution
+        all_decision_ids = []
+        # Use the finest resolution (res_3.0) to get all decision_ids
+        finest_key = "res_3.0"
+        if finest_key in cluster_metadata:
+            for cid_str, cluster_data in cluster_metadata[finest_key].items():
+                all_decision_ids.extend(cluster_data.get("decision_ids", []))
+        
+        # If we couldn't get from metadata, fall back to passed decision_ids
+        if not all_decision_ids:
+            all_decision_ids = decision_ids
+        
+        # Build index_to_id mapping from all_decision_ids
+        # The labels arrays and projection_2d.npy are indexed by embedding index (0..n-1)
+        # which should match the order in all_decision_ids
+        index_to_id = {i: did for i, did in enumerate(all_decision_ids)}
+        
+        # Build positions from projection_2d using all_decision_ids
+        # projection_2d.npy has shape (n_embeddings, 2) where n_embeddings = len(all_decision_ids)
+        # Use the passed projection_2d if provided, otherwise use the passed positions
+        if projection_2d is not None:
+            positions = {}
+            for i, did in enumerate(all_decision_ids):
+                if i < len(projection_2d):
+                    positions[did] = (float(projection_2d[i, 0]), float(projection_2d[i, 1]))
         
         zoom_levels = {}
         
@@ -3168,7 +3212,7 @@ class MapLoader:
             if labels is None:
                 continue
             
-            # Build cluster assignments from labels
+            # Build cluster assignments from labels using all_decision_ids indexing
             cluster_assignments = {}
             for idx, label in enumerate(labels):
                 did = index_to_id.get(idx)
@@ -3179,8 +3223,13 @@ class MapLoader:
             clusters = {}
             for cid_str, cluster_data in res_metadata.items():
                 cid = int(cid_str)
-                decision_indices = cluster_data.get("decision_indices", [])
-                decision_ids_in_cluster = [decision_ids[i] for i in decision_indices if i < len(decision_ids)]
+                # Use decision_ids from metadata directly (contains actual decision IDs like "bger_...")
+                # This avoids index mapping issues when clustering was done on larger corpus than available at mount path
+                decision_ids_in_cluster = cluster_data.get("decision_ids", [])
+                # Fallback to decision_indices mapping if decision_ids not available
+                if not decision_ids_in_cluster:
+                    decision_indices = cluster_data.get("decision_indices", [])
+                    decision_ids_in_cluster = [all_decision_ids[i] for i in decision_indices if i < len(all_decision_ids)]
                 
                 clusters[cid] = ClusterInfo(
                     cluster_id=cid,

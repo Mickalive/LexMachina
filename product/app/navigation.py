@@ -2548,6 +2548,7 @@ class NavigationAPI:
         # Vectorized: extract decision_ids and languages using boolean mask
         decision_ids_np = np.array(decision_ids)
         decision_ids = decision_ids_np[lod_mask].tolist()
+        languages = np.array(languages)[lod_mask].tolist()
         n_total = len(xs)
 
         # --- Viewport culling using KD-tree spatial index ---
