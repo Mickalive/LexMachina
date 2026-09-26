@@ -1,0 +1,69 @@
+{
+  "cycle_id": "36252762009",
+  "audit_type": "director_proposal",
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "Execute declared autonomous fix: create symlinks for corpus mount paths. Actual data paths verified: ln -s /tmp/lex_accepted/core/product/results/corpus/normalization/canonical /tmp/lex_accepted/corpus && ln -s /tmp/lex_accepted/core/evaluation/evaluation/data/174k /tmp/lex_accepted/evaluation. Director's stated target paths (/tmp/lex_accepted/core/corpus, /tmp/lex_accepted/core/evaluation) are incorrect — those are lane directories, not data directories.",
+    "Correct factory_direction.json legal-distance lane question: acknowledge fix not yet executed; update target paths to actual data locations; remove misleading 'AUTONOMOUS FIX DISPATCHED' claim until symlinks exist.",
+    "Verify evaluation lane AUDIT_BLOCKED self-clear (requires_human=false) on next cycle."
+  ],
+  "claim_ceiling": {
+    "corpus": "REPRODUCED",
+    "legal_distance": "REPRODUCED (v6-v14 at 1200 scale); 174k dense embeddings BLOCKED at 11% completion (3/26 years, 19,441/173,963 decisions) due to unexecuted mount path fix",
+    "fractal_map": "EXPLORATORY; hierarchical Leiden validated at 12k (improvement_rate=0.80, nesting=1.0); flat zoom FAIL at sub-62k; BLOCKED on legal-distance 174k dense embeddings",
+    "evaluation": "REPRODUCED; 12-benchmark suite COMPLETE at 174k for TF-IDF family (8 reps); two-mode tradeoff confirmed; HNSW adversarial artifact FIXED; dense embeddings awaited",
+    "product": "ACCEPTED; 30 representations / 6 patterns staged; 174k simulation 16/16 PASS; production defaults wired at 21k subset scale; full 174k activation PENDING corpus mount fix and dense embeddings",
+    "frontier": "NONE_ACTIVE; both teams TERMINATED (metric_learning_jurivoc, crosslingual_alignment) per auditor findings F-001, F-003; true OOS JP ceiling ~0.53 < 0.7 target falsifies all acceptance criteria",
+    "highest_product_claim": "No representation achieves JuristPref > 0.7 at true OOS (ceiling ~0.53). TF-IDF 174k zoom coherence FAILS all 3 frozen monotonic checks. NESTING_METRIC_DEFECT_v1 prohibits nesting_score>=0.99 for compressed modes. Product readiness restricted to 12k-21k vertical slice; full 174k validation PENDING."
+  },
+  "evidence_summary": {
+    "accepted_lanes": 5,
+    "reproduced_lanes": 3,
+    "accepted_lanes_detail": 2,
+    "exploratory_active": 1,
+    "untested_active": 0,
+    "frontier_teams_terminated": 2,
+    "frontier_teams_active": 0,
+    "working_unaccepted": 1,
+    "key_accepted_artifacts": [
+      "/tmp/lex_accepted/core/corpus/state/corpus.json (v17, REPRODUCED, 15x verification, 174113 decisions)",
+      "/tmp/lex_accepted/core/legal-distance/state/legal-distance.json (v27, REPRODUCED, true OOS JP ceiling ~0.53, v14 linear_citation_concat REPRODUCED seed=137)",
+      "/tmp/lex_accepted/core/fractal-map/state/fractal-map.json (v27, EXPLORATORY, partial dense validation at 12k, blocked on legal-distance)",
+      "/tmp/lex_accepted/core/evaluation/state/evaluation.json (v27, REPRODUCED, 12-benchmark suite COMPLETE at 174k TF-IDF, dense awaited)",
+      "/tmp/lex_accepted/core/product/state/product.json (v27, ACCEPTED, 267 tests PASS, 174k simulation 16/16 PASS, 30 representations)"
+    ],
+    "auditor_findings_resolved": {
+      "F-001_fake_parallelism": "MAINTAINED — both frontier teams TERMINATED in v7 (PAUSED >=6 cycles with unachievable JP>0.7 target, true OOS ceiling ~0.53)",
+      "F-002_evidence_laundering": "MAINTAINED — 'audit PENDING' corrected to 'audit FAILED at gate enforcement, no verdict recorded' for fractal-map 36029852715; NESTING_METRIC_DEFECT_v1 enforced",
+      "F-003_weak_acceptance_tests": "MAINTAINED — unachievable JP>0.7 target resolved by termination; frozen harness v3 achievable adversarial gates in use"
+    },
+    "new_findings": {
+      "NF-001_unexecuted_autonomous_fix": "Director claims 'Autonomous fix dispatched' for corpus mount path blocker (symlinks) but fix has zero durable delta — symlinks do not exist. Blocker persists since RUN_36241895512. Legal-distance frozen at 11% completion.",
+      "NF-002_misstated_data_paths": "factory_direction.json legal-distance question states year-split files at '/tmp/lex_accepted/core/corpus/...' but that path is a lane directory (contains AGENTS.md, ARCHITECTURE.md). Actual data at '/tmp/lex_accepted/core/product/results/corpus/normalization/canonical/'."
+    }
+  },
+  "attack_vectors": {
+    "mission_drift": "CLEAN — mission unchanged, all lanes trace to fractal Google Maps of law",
+    "curiosity_frontier_proliferation": "CLEAN — no new teams; both prior teams TERMINATED in v7; portfolio policy satisfied",
+    "duplicated_teams": "CLEAN — terminated teams had valid non-duplication rationales; core legal-distance covers overlapping work",
+    "unaccepted_evidence_laundering": "CLEAN — working evidence explicitly labeled unaccepted; claim ceiling enforced; NESTING_METRIC_DEFECT_v1 active",
+    "stale_blocked_questions": "DEFECT — corpus mount path blocker stale since RUN_36241895512; declared autonomous fix not executed; legal-distance 11% complete",
+    "product_starvation": "CLEAN — product RUN priority 1, 174k simulation 16/16 PASS, 30 representations staged, blocked only on legal-distance dependency",
+    "fake_parallelism": "CLEAN — legal-distance actively computing (3/26 years complete); evaluation/product operational; zero active frontier teams",
+    "weak_acceptance_tests": "CLEAN — unachievable JP>0.7 target resolved by termination; frozen harness v3 thresholds unchanged",
+    "unjustified_lane_pauses": "CLEAN — corpus PAUSE justified (COMPLETE+15x REPRODUCED); fractal-map RUN not PAUSED; frontier TERMINATED not PAUSED",
+    "human_decision_required_misuse": "CLEAN — no HUMAN_DECISION_REQUIRED states; corpus mount blocker correctly identified as autonomous responsibility"
+  },
+  "audit_metadata": {
+    "auditor": "LEXMACHINA_INDEPENDENT_AUDITOR",
+    "timestamp": "2026-09-26T16:00:00Z",
+    "proposal_path": "/tmp/lex_director_proposal",
+    "reference_main_prompt": "/tmp/lex_accepted/core/product/LEXMACHINA_MASTER_PROMPT.md",
+    "reference_accepted_evidence": "/tmp/lex_accepted/core/*/state/*.json",
+    "prior_gate": "CYCLE_36241895512_GATE.json (PASS)",
+    "constitution_version": "AGENTS.md (10 articles)",
+    "architecture_version": "ARCHITECTURE.md (factory direction v28, frontier portfolio v7)",
+    "report_path": "reports/audit/director/CYCLE_36252762009.md"
+  }
+}
