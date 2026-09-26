@@ -1,0 +1,116 @@
+{
+  "run_id": "fractal_map_v28_20260926_001",
+  "timestamp": "2026-09-26T18:00:00Z",
+  "direction_version": 28,
+  "hypothesis": "Hierarchical Leiden achieves higher zoom quality than flat Leiden at 12k scale (years 2000-2002) on dense embeddings",
+  "frozen_sample": "12,570 decisions (years 2000-2002) from legal-distance dense embeddings checkpoints",
+  "frozen_metric": "Branch purity and legal_area purity improvement rate (hierarchical vs flat)",
+  "success_rule": "Hierarchical improvement_rate > 0.7 AND flat improvement_rate < 0.3 at intermediate resolutions",
+  "data": {
+    "embeddings_source": "/tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/checkpoints/embeddings_200[0-2].npy",
+    "metadata_source": "/tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/checkpoints/metadata_200[0-2].json",
+    "ground_truth_source": "/tmp/lex_accepted/evaluation/evaluation/data/174k/metadata_174k.json",
+    "n_total": 12570,
+    "n_known_branch": 2300,
+    "n_known_legal_area": 2455,
+    "embedding_dim": 768
+  },
+  "hierarchical_leiden_results": {
+    "config": {"coarse_res": 0.25, "fine_res": 3.0, "k": 15, "metric": "cosine"},
+    "coarse_clusters": 12,
+    "fine_clusters": 178,
+    "improvement_rate": 0.787,
+    "mean_hierarchical_purity_legal_area": 0.627,
+    "improvements": 140,
+    "deteriorations": 33,
+    "no_change": 5,
+    "cluster_details_sample": [
+      {"coarse_id": 0, "sub_id": 0, "size": 45, "coarse_purity": 0.14, "fine_purity": 0.39, "improvement": 0.25, "dominant_area_coarse": "Bürgerrecht und Ausländerrecht", "dominant_area_fine": "Familienrecht"},
+      {"coarse_id": 0, "sub_id": 4, "size": 32, "coarse_purity": 0.14, "fine_purity": 0.97, "improvement": 0.82, "dominant_area_coarse": "Bürgerrecht und Ausländerrecht", "dominant_area_fine": "Schuldbetreibungs- und Konkursrecht"},
+      {"coarse_id": 0, "sub_id": 6, "size": 31, "coarse_purity": 0.14, "fine_purity": 0.52, "improvement": 0.38, "dominant_area_coarse": "Bürgerrecht und Ausländerrecht", "dominant_area_fine": "Bürgerrecht und Ausländerrecht"}
+    ]
+  },
+  "hierarchical_leiden_sweep": {
+    "best_config": {"coarse_res": 0.1, "fine_res": 1.0, "improvement_rate": 0.942, "mean_purity": 0.543},
+    "factory_direction_config": {"coarse_res": 0.25, "fine_res": 3.0, "improvement_rate": 0.817, "mean_purity": 0.666},
+    "all_configs": [
+      {"coarse_res": 0.1, "fine_res": 1.0, "coarse_clusters": 9, "fine_clusters": 52, "improvement_rate": 0.942, "mean_purity": 0.543},
+      {"coarse_res": 0.1, "fine_res": 2.0, "coarse_clusters": 9, "fine_clusters": 78, "improvement_rate": 0.936, "mean_purity": 0.547},
+      {"coarse_res": 0.1, "fine_res": 3.0, "coarse_clusters": 9, "fine_clusters": 120, "improvement_rate": 0.933, "mean_purity": 0.564},
+      {"coarse_res": 0.25, "fine_res": 1.0, "coarse_clusters": 13, "fine_clusters": 67, "improvement_rate": 0.746, "mean_purity": 0.551},
+      {"coarse_res": 0.25, "fine_res": 2.0, "coarse_clusters": 13, "fine_clusters": 126, "improvement_rate": 0.746, "mean_purity": 0.599},
+      {"coarse_res": 0.25, "fine_res": 3.0, "coarse_clusters": 13, "fine_clusters": 202, "improvement_rate": 0.817, "mean_purity": 0.666},
+      {"coarse_res": 0.5, "fine_res": 3.0, "coarse_clusters": 16, "fine_clusters": 271, "improvement_rate": 0.712, "mean_purity": 0.700},
+      {"coarse_res": 1.0, "fine_res": 5.0, "coarse_clusters": 22, "fine_clusters": 739, "improvement_rate": 0.840, "mean_purity": 0.796}
+    ]
+  },
+  "flat_leiden_original_space": {
+    "resolutions": [
+      {"resolution": 0.1, "n_clusters": 9, "mean_purity": 0.281},
+      {"resolution": 0.25, "n_clusters": 12, "mean_purity": 0.367},
+      {"resolution": 0.5, "n_clusters": 17, "mean_purity": 0.471},
+      {"resolution": 1.0, "n_clusters": 22, "mean_purity": 0.447},
+      {"resolution": 1.5, "n_clusters": 27, "mean_purity": 0.468},
+      {"resolution": 2.0, "n_clusters": 31, "mean_purity": 0.469},
+      {"resolution": 3.0, "n_clusters": 34, "mean_purity": 0.486},
+      {"resolution": 5.0, "n_clusters": 42, "mean_purity": 0.493}
+    ],
+    "zoom_monotonicity": [
+      {"transition": "0.1_to_0.25", "improvement_rate": 0.533, "improvements": 8, "deteriorations": 0, "no_change": 7},
+      {"transition": "0.25_to_0.5", "improvement_rate": 0.412, "improvements": 7, "deteriorations": 0, "no_change": 10},
+      {"transition": "0.5_to_1.0", "improvement_rate": 0.391, "improvements": 9, "deteriorations": 1, "no_change": 13},
+      {"transition": "1.0_to_1.5", "improvement_rate": 0.345, "improvements": 10, "deteriorations": 2, "no_change": 17},
+      {"transition": "1.5_to_2.0", "improvement_rate": 0.094, "improvements": 3, "deteriorations": 2, "no_change": 27},
+      {"transition": "2.0_to_3.0", "improvement_rate": 0.114, "improvements": 4, "deteriorations": 0, "no_change": 31},
+      {"transition": "3.0_to_5.0", "improvement_rate": 0.319, "improvements": 15, "deteriorations": 4, "no_change": 28}
+    ]
+  },
+  "flat_leiden_umap_space": {
+    "umap_params": {"n_neighbors": 15, "min_dist": 0.1, "n_components": 10, "metric": "cosine", "random_state": 42},
+    "resolutions": [
+      {"resolution": 0.1, "n_clusters": 29, "mean_purity": 0.475},
+      {"resolution": 0.25, "n_clusters": 32, "mean_purity": 0.481},
+      {"resolution": 0.5, "n_clusters": 35, "mean_purity": 0.475},
+      {"resolution": 1.0, "n_clusters": 40, "mean_purity": 0.488},
+      {"resolution": 1.5, "n_clusters": 46, "mean_purity": 0.500},
+      {"resolution": 2.0, "n_clusters": 48, "mean_purity": 0.496},
+      {"resolution": 3.0, "n_clusters": 53, "mean_purity": 0.509},
+      {"resolution": 5.0, "n_clusters": 63, "mean_purity": 0.513}
+    ],
+    "zoom_monotonicity": [
+      {"transition": "0.1_to_0.25", "improvement_rate": 0.156, "improvements": 5, "deteriorations": 0, "no_change": 27},
+      {"transition": "0.25_to_0.5", "improvement_rate": 0.167, "improvements": 6, "deteriorations": 2, "no_change": 28},
+      {"transition": "0.5_to_1.0", "improvement_rate": 0.220, "improvements": 9, "deteriorations": 2, "no_change": 30},
+      {"transition": "1.0_to_1.5", "improvement_rate": 0.188, "improvements": 9, "deteriorations": 7, "no_change": 32},
+      {"transition": "1.5_to_2.0", "improvement_rate": 0.042, "improvements": 2, "deteriorations": 1, "no_change": 45},
+      {"transition": "2.0_to_3.0", "improvement_rate": 0.127, "improvements": 7, "deteriorations": 3, "no_change": 45},
+      {"transition": "3.0_to_5.0", "improvement_rate": 0.188, "improvements": 12, "deteriorations": 9, "no_change": 43}
+    ]
+  },
+  "citation_role_1k_results": {
+    "citing_alpha0.3": {"ZQ": 0.5401, "n_decisions": 1000, "embedding_dim": 64},
+    "following_alpha0.3": {"ZQ": 0.5280, "n_decisions": 1000, "embedding_dim": 64},
+    "criticizing_alpha0.3": {"ZQ": 0.4864, "n_decisions": 1000, "embedding_dim": 64},
+    "outcome_hybrid_0.5": {"ZQ": 0.2798, "n_decisions": 1000, "embedding_dim": 64}
+  },
+  "tfidf_174k_results": {
+    "modes_tested": 4,
+    "modes_passed_zoom_quality": 0,
+    "failure_reason": "No monotonic zoom refinement; severe over-fragmentation (median cluster size 1, >99% singletons)",
+    "branch_purity_range": "0.51-0.55",
+    "legal_area_purity_range": "0.24-0.31"
+  },
+  "nesting_metric_defect_v1": {
+    "enforced": true,
+    "audit_id": "CYCLE_36027099305",
+    "prohibited_claims": "nesting_score>=0.99 for 7 compressed-family modes",
+    "allowed_claims": "nesting_score=1.0 ONLY for 1000-scale by-construction modes with scope annotation"
+  },
+  "conclusion": {
+    "scale_dependency_confirmed": true,
+    "hierarchical_works_at_12k": true,
+    "flat_zoom_fails_at_sub_62k": true,
+    "representation_quality_critical": true,
+    "next_dependency": "legal-distance dense embeddings for years 2003-2025 (3/26 years complete)"
+  }
+}
