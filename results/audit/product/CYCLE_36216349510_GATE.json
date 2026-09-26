@@ -1,0 +1,12 @@
+{
+  "gate": "BLOCKED",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "Restore cited_outcome_hybrid_0.5 and 0.7 to 6,988 decisions (7k bge_20* corpus) OR update tests to honestly expect 1,000 decisions and update all claims",
+    "Fix state/product.json: cycle_status=\"FAIL\", corpus_decisions_mapped=1000, audit_ready=false",
+    "Either fix 174k loaders to return real decisions or document they return 0 and gate them",
+    "Align all 31 map artifacts to a single honest scale with evidence"
+  ],
+  "claim_ceiling": "Production maps operational at 1k slice scale (1,000 decisions) only. 7k bge_20* corpus loaded but not mapped. 174k TF-IDF representations return 0 decisions (placeholder infrastructure only). Benchmark scores (JP≈0.79, LangDom≈0.49) NOT validated at 1k scale.",
+  "evidence_summary": "Code changes: 2 files modified (map_loader.py +85 lines, navigation.py +1 line). Map artifacts: 56 files changed; 2 core production maps reduced 6,988→1,000 decisions; embeddings.npy 3.5MB→0.5MB; all 31 representations uniform at 1k scale. 174k representations: 0 decisions returned; metadata contains 175k placeholder_* IDs. State updates: cycle_status=\"PASS\" (FALSE), corpus_decisions=7990 (NOT MAPPED), audit_ready=true (FALSE). Tests: 2/33 core tests FAIL (cited_outcome_hybrid_0.5, 0.7); 1/33 PARTIAL FAIL (coverage); 30/33 PASS (but don't validate scale). Runtime: NavigationAPI serves 7,988 corpus decisions but ALL maps have 1,000 positions; 174k maps return empty results."
+}
