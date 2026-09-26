@@ -1,0 +1,12 @@
+{
+  "gate": "BLOCKED",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "Fix map_loader.py: add 'import logging; logger = logging.getLogger(__name__)' and use representation's own metadata.json for decision_ids instead of non-existent /tmp/lex_accepted/evaluation/evaluation/data/174k/metadata_174k.json path",
+    "Align factory_direction.json version in control plane with claimed v28 (or revert state to v27 if v28 not intended as formal direction bump)",
+    "Set cycle_status=BLOCKED and continue_recommended=false to match operational reality and stop infinite zero-delta repair dispatches (recurring pathology since CYCLE_34054959674 fix)",
+    "Add 174k representations to DESIGN_PATTERNS and REPRESENTATION_PURPOSES in map_loader.py (minor, but required for proper metadata)"
+  ],
+  "claim_ceiling": "30 legacy representations operational at 1k scale (1,000 decisions); 3 174k TF-IDF representations exist on disk at full 173,963 decisions with 7-resolution hierarchical Leiden clustering but are unloadable due to two code defects in map_loader.py (undefined logger, hardcoded missing metadata path); 174k scale simulation infrastructure validated with synthetic data only; section coverage 95.7% at 1k scale; BLOCKED on legal-distance dense embeddings (3/26 years complete) AND on fixing loader bugs for existing 174k artifacts",
+  "evidence_summary": "Code defects: 2 critical bugs in map_loader.py (undefined logger at line 3647, hardcoded non-existent enriched metadata path) prevent 3 174k representations from loading. Map artifacts: 30 legacy representations load at 1k scale (1,000 decisions); 3 174k representations exist on disk at full 173,963 decisions with 7 zoom levels (res_0.25-3.0) and hierarchical Leiden clustering but are unloadable. Spatial indices: 30 KD-tree indices for legacy reps; 0 for 174k reps. Tests: 16/16 scale simulation tests PASS on synthetic data only; core tests only cover 30 loaded representations. Runtime: NavigationAPI loads 30 representations, 7,990 corpus decisions, 6 section modes; 3 174k reps fail with NameError. Section coverage: 95.7% (1,150/1,202) at 1k scale verified. State inconsistencies: direction_version 27->28 claimed but factory_direction.json remains v27 (3rd consecutive cycle); cycle_status=RUN with continue_recommended=true despite BLOCKED reality (recurring orchestration pathology)."
+}
