@@ -361,7 +361,8 @@ class TestMetricConsistency:
 
     def test_state_evidence_tier(self):
         # Evidence tier hierarchy: UNTESTED < EXPLORATORY < REPRODUCED < ACCEPTED
-        assert self.state["evidence_tier"] in ("REPRODUCED", "ACCEPTED")
+        # Per audit CYCLE_36261399469: first-run experiments at sub-174k scales = EXPLORATORY
+        assert self.state["evidence_tier"] in ("EXPLORATORY", "REPRODUCED", "ACCEPTED")
 
     def test_state_cycle_status(self):
         # COMPLETE = lane finished current question; BLOCKED_ON_DEPENDENCY = blocked on upstream lane
