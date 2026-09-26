@@ -721,13 +721,24 @@ class MapLoader:
         
         id_to_idx = {m['decision_id']: i for i, m in enumerate(metadata)}
         branch_map = {}
-        for year_file in sorted(corpus_dir.glob("bge_20*.jsonl")):
-            with open(year_file) as f:
+        # The baseline metadata uses bger_ decision IDs from the 1000-slice file
+        slice_file = corpus_dir / "bger_2000plus_slice_1000.jsonl"
+        if slice_file.exists():
+            with open(slice_file) as f:
                 for line in f:
                     d = json.loads(line)
                     did = d.get('decision_id', '')
                     if did in id_to_idx:
                         branch_map[did] = d.get('branch')
+        else:
+            # Fallback to year files (for other representations)
+            for year_file in sorted(corpus_dir.glob("bge_20*.jsonl")):
+                with open(year_file) as f:
+                    for line in f:
+                        d = json.loads(line)
+                        did = d.get('decision_id', '')
+                        if did in id_to_idx:
+                            branch_map[did] = d.get('branch')
 
         for m in metadata:
             m['branch'] = branch_map.get(m['decision_id'])
