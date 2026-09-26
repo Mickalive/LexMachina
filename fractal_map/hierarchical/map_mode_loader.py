@@ -181,7 +181,21 @@ class MapModeLoader:
     def get_coarse_labels(self, mode_id: str) -> Optional[np.ndarray]:
         """Get coarse labels (parent level for hierarchical mode)."""
         artifacts = self.load_mode(mode_id)
-        return artifacts.label_arrays.get("labels_coarse_0.5")
+        
+        # Try standard key first
+        labels = artifacts.label_arrays.get("labels_coarse_0.5")
+        if labels is not None:
+            return labels
+        
+        # Try common coarse resolution keys
+        for coarse_res in [0.25, 0.5, 0.75, 1.0]:
+            key = f"labels_coarse_{coarse_res}"
+            labels = artifacts.label_arrays.get(key)
+            if labels is not None:
+                return labels
+        
+        # Try generic key
+        return artifacts.label_arrays.get("labels_coarse")
     
     def get_cluster_metadata(self, mode_id: str, resolution: float) -> Optional[Dict]:
         """Get cluster metadata for a specific resolution."""

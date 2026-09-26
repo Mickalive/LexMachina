@@ -113,10 +113,43 @@ def _ld_artifacts(mode_id: str) -> Dict[str, str]:
         "following_alpha0.3",
         "criticizing_alpha0.3",
         "citing_alpha0.3",
+        # Dense hierarchical Leiden modes (factory direction v27)
+        "center_projected_hierarchical_dense",
+        "center_projected_hierarchical_dense_v2",
+        "concat_hierarchical_dense",
     ]
+    
+    # Coarse resolution per mode (for hierarchical Leiden modes)
+    hierarchical_coarse_res = {
+        # v7/v9 modes use coarse_0.5
+        "linear_metric_epoch4": 0.5,
+        "mahalanobis_metric_epoch4": 0.5,
+        "cited_decisions_tfidf": 0.5,
+        "hybrid_cited_0.3": 0.5,
+        "cited_decisions_tfidf_hybrid_cp64_0.3": 0.5,
+        "cited_decisions_tfidf_hybrid_cp64_0.5": 0.5,
+        "cited_decisions_tfidf_hybrid_cp64_0.7": 0.5,
+        "cited_decisions_tfidf_hybrid_cp768_0.3": 0.5,
+        "cited_decisions_tfidf_hybrid_cp768_0.5": 0.5,
+        "cited_decisions_tfidf_hybrid_cp768_0.7": 0.5,
+        "hybrid_stabilized_epoch1": 0.5,
+        "cited_decisions_tfidf_outcome_hybrid_0.5": 0.5,
+        "cited_decisions_tfidf_outcome_hybrid_0.7": 0.5,
+        "following_alpha0.3": 0.5,
+        "criticizing_alpha0.3": 0.5,
+        "citing_alpha0.3": 0.5,
+        # Dense hierarchical Leiden modes use coarse_0.25
+        "center_projected_hierarchical_dense": 0.25,
+        "center_projected_hierarchical_dense_v2": 0.25,
+        "concat_hierarchical_dense": 0.5,
+    }
+    
     if mode_id in v7_v9_hierarchical_modes:
         artifacts["labels_hierarchical_best"] = f"{base}/labels_hierarchical_best.npy"
-        artifacts["labels_coarse_0.5"] = f"{base}/labels_coarse_0.5.npy"
+        coarse_res = hierarchical_coarse_res.get(mode_id, 0.5)
+        artifacts[f"labels_coarse_{coarse_res}"] = f"{base}/labels_coarse_{coarse_res}.npy"
+        # Also add standard key for loader compatibility
+        artifacts["labels_coarse_0.5"] = f"{base}/labels_coarse_{coarse_res}.npy"
     
     return artifacts
 
@@ -1355,7 +1388,7 @@ MAP_MODES["center_projected_hierarchical_dense"] = MapModeSpec(
     status=MapModeStatus.AVAILABLE,
     is_default=False,
     resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
-    artifacts=_ld_hierarchical_artifacts("center_projected_hierarchical_dense"),
+    artifacts=_ld_artifacts("center_projected_hierarchical_dense"),
     metadata={
         "n_decisions": 1000,
         "n_coarse_clusters": 3,
@@ -1389,7 +1422,7 @@ MAP_MODES["center_projected_hierarchical_dense_v2"] = MapModeSpec(
     status=MapModeStatus.AVAILABLE,
     is_default=False,
     resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
-    artifacts=_ld_hierarchical_artifacts("center_projected_hierarchical_dense_v2"),
+    artifacts=_ld_artifacts("center_projected_hierarchical_dense_v2"),
     metadata={
         "n_decisions": 1000,
         "n_coarse_clusters": 3,
@@ -1423,7 +1456,7 @@ MAP_MODES["concat_hierarchical_dense"] = MapModeSpec(
     status=MapModeStatus.AVAILABLE,
     is_default=False,
     resolution_ladder=[0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0],
-    artifacts=_ld_hierarchical_artifacts("concat_hierarchical_dense"),
+    artifacts=_ld_artifacts("concat_hierarchical_dense"),
     metadata={
         "n_decisions": 1000,
         "n_coarse_clusters": 8,
