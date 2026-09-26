@@ -30,7 +30,7 @@ from hierarchical_zoom_validation import (
 )
 
 PRODUCT_RESULTS = Path("/home/runner/work/LexMachina/LexMachina/product/results/fractal_map")
-CORPUS_DIR = Path("/tmp/lex_accepted/corpus/corpus/normalization/canonical")
+CORPUS_DIR = Path("/home/runner/work/LexMachina/LexMachina/product/results/corpus/normalization/canonical")
 
 NAME = "linear_hybrid05_concat"
 CONFIG = {
@@ -55,7 +55,7 @@ def load_metadata():
     id_to_idx = {m['decision_id']: i for i, m in enumerate(metadata)}
 
     branch_map = {}
-    for year_file in sorted(CORPUS_DIR.glob("bger_20*.jsonl")):
+    for year_file in sorted(CORPUS_DIR.glob("bge_20*.jsonl")):
         with open(year_file) as f:
             for line in f:
                 d = json.loads(line)

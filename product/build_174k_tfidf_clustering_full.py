@@ -33,14 +33,15 @@ from hierarchical_zoom_validation import (
 # Paths
 PRODUCT_RESULTS = Path("/home/runner/work/LexMachina/LexMachina/product/results/fractal_map")
 LEGAL_TFIDF_DIR = PRODUCT_RESULTS / "hierarchical_map_174k" / "legal_tfidf_embeddings"
-CORPUS_DIR = Path("/home/runner/work/LexMachina/LexMachina/product/results/corpus/normalization/canonical")
+# Use enriched metadata from accepted evaluation mount (173,963 entries with branch/legal_area/chamber/year)
+ENRICHED_METADATA_PATH = Path("/tmp/lex_accepted/evaluation/evaluation/data/174k/metadata_174k.json")
 
 # 174k representations to build (production defaults + baselines)
 REPRESENTATIONS_174K = [
     {
         "name": "cited_outcome_hybrid_0.5_174k",
         "display_name": "BEST PRODUCTION 174k: Citation + Outcome (α=0.5) ★",
-        "description": "PRODUCTION DEFAULT per v15b-audit CRITICAL. 50% cited_decisions_tfidf + 50% outcome signal. JP=0.7990, LangDom=0.4911. Both adversarial gates PASS. Best for user-imported corpora where branch metadata unavailable.",
+        "description": "PRODUCTION DEFAULT per v15b-audit CRITICAL. 50% cited_decisions_tfidf + 50% outcome signal. JP=0.7990, LangDom=0.4911. Both adversarial gates PASS. Best for user-imported corpora where branch metadata unavailable. Built on 173,963 decisions with enriched metadata from evaluation mount.",
         "evidence_tier": "ACCEPTED",
         "benchmark_results": {
             "jurist_pairwise": 0.7990,
@@ -52,7 +53,7 @@ REPRESENTATIONS_174K = [
     {
         "name": "cited_outcome_hybrid_0.7_174k",
         "display_name": "BEST FRACTAL 174k: Citation + Outcome (α=0.7) ★",
-        "description": "BEST FRACTAL hybrid per factory direction v9. 70% cited_decisions_tfidf + 30% outcome signal. HierAdv=+0.3703. Both adversarial gates PASS.",
+        "description": "BEST FRACTAL hybrid per factory direction v9. 70% cited_decisions_tfidf + 30% outcome signal. HierAdv=+0.3703. Both adversarial gates PASS. Built on 173,963 decisions with enriched metadata from evaluation mount.",
         "evidence_tier": "ACCEPTED",
         "benchmark_results": {
             "jurist_pairwise": 0.7907,
@@ -65,7 +66,7 @@ REPRESENTATIONS_174K = [
     {
         "name": "cited_decisions_tfidf_174k",
         "display_name": "Doctrinal Lineage 174k (Cited Decisions TF-IDF)",
-        "description": "ACCEPTED zero-shot legal proximity at 174k scale. TF-IDF on cited decisions only. Citation heritage AUC 0.9719. Best for citation-proximity navigation at full corpus scale.",
+        "description": "ACCEPTED zero-shot legal proximity at 174k scale. TF-IDF on cited decisions only. Citation heritage AUC 0.9719. Best for citation-proximity navigation at full corpus scale. Built on 173,963 decisions with enriched metadata from evaluation mount.",
         "evidence_tier": "ACCEPTED",
         "benchmark_results": {
             "citation_heritage_auc": 0.9719,
@@ -78,49 +79,20 @@ REPRESENTATIONS_174K = [
 
 
 def load_metadata_174k_full():
-    """Load 174k metadata with branch and legal_area enrichment from corpus where available."""
-    meta_path = PRODUCT_RESULTS / "hierarchical_map_174k" / "metadata_174k_full.json"
-    with open(meta_path) as f:
+    """Load 174k metadata with branch and legal_area enrichment from accepted evaluation mount."""
+    with open(ENRICHED_METADATA_PATH) as f:
         metadata = json.load(f)
     
     id_to_idx = {m['decision_id']: i for i, m in enumerate(metadata)}
     
-    # Enrich with branch, legal_area, outcome from corpus where available
-    branch_map = {}
-    legal_area_map = {}
-    outcome_map = {}
-    chamber_map = {}
-    year_map = {}
-    
-    logger.info("Enriching 174k metadata from corpus...")
-    for year_file in sorted(CORPUS_DIR.glob("bger_20*.jsonl")):
-        with open(year_file) as f:
-            for line in f:
-                d = json.loads(line)
-                did = d.get('decision_id', '')
-                if did in id_to_idx:
-                    branch_map[did] = d.get('branch')
-                    legal_area_map[did] = d.get('legal_area')
-                    outcome_map[did] = d.get('outcome', 'null')
-                    chamber_map[did] = d.get('chamber')
-                    year_map[did] = d.get('year')
-    
-    enriched_count = 0
+    # The enriched metadata already has branch, legal_area, chamber, year
+    # Convert 'null' strings to None for consistency
     for m in metadata:
-        did = m['decision_id']
-        if did in branch_map:
-            m['branch'] = branch_map[did]
-            enriched_count += 1
-        if did in legal_area_map:
-            m['legal_area'] = legal_area_map[did]
-        if did in outcome_map:
-            m['outcome'] = outcome_map[did]
-        if did in chamber_map:
-            m['chamber'] = chamber_map[did]
-        if did in year_map:
-            m['year'] = year_map[did]
+        for key in ['branch', 'legal_area', 'chamber', 'year']:
+            if m.get(key) == 'null':
+                m[key] = None
     
-    logger.info(f"Enriched {enriched_count}/{len(metadata)} decisions with branch/legal_area/outcome from corpus")
+    logger.info(f"Loaded {len(metadata)} decisions with enriched metadata (branch/legal_area/chamber/year)")
     return id_to_idx, metadata
 
 

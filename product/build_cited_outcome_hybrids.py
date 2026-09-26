@@ -40,7 +40,7 @@ def load_metadata():
     # Enrich with branch and outcome from corpus
     branch_map = {}
     outcome_map = {}
-    for year_file in sorted(CORPUS_DIR.glob("bger_20*.jsonl")):
+    for year_file in sorted(CORPUS_DIR.glob("bge_20*.jsonl")):
         with open(year_file) as f:
             for line in f:
                 d = json.loads(line)

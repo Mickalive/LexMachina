@@ -721,7 +721,7 @@ class MapLoader:
         
         id_to_idx = {m['decision_id']: i for i, m in enumerate(metadata)}
         branch_map = {}
-        for year_file in sorted(corpus_dir.glob("bger_20*.jsonl")):
+        for year_file in sorted(corpus_dir.glob("bge_20*.jsonl")):
             with open(year_file) as f:
                 for line in f:
                     d = json.loads(line)
