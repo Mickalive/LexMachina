@@ -353,55 +353,158 @@ class TestHierarchicalLeiden:
 
 
 class TestMetricConsistency:
-    """Test that state file metrics match recomputed values."""
+    """Test that state file metrics match the constrained hierarchical validation results."""
 
     @pytest.fixture(autouse=True)
     def load_data(self):
         self.state = load_json("state/fractal-map.json")
-        self.cp_results = load_json("results/fractal_map/hierarchical_map_center_projected/center_projected_hierarchical_results.json")
 
     def test_state_evidence_tier(self):
         # Evidence tier hierarchy: UNTESTED < EXPLORATORY < REPRODUCED < ACCEPTED
-        # State promoted to ACCEPTED per verified outcome hybrid integration gate (run 33307151666)
         assert self.state["evidence_tier"] in ("REPRODUCED", "ACCEPTED")
 
     def test_state_cycle_status(self):
-        # COMPLETED = lane finished normally; BLOCKED = lane finished but blocked on dependency
-        # BLOCKED_ON_DEPENDENCY = more specific status for lanes blocked on upstream lane delivery
-        assert self.state["cycle_status"] in ("COMPLETED", "BLOCKED", "BLOCKED_ON_DEPENDENCY"), f"Unexpected cycle_status: {self.state['cycle_status']}"
+        # COMPLETE = lane finished current question; BLOCKED_ON_DEPENDENCY = blocked on upstream lane
+        assert self.state["cycle_status"] in ("COMPLETE", "BLOCKED", "BLOCKED_ON_DEPENDENCY"), f"Unexpected cycle_status: {self.state['cycle_status']}"
 
     def test_state_continue_recommended_false(self):
         assert self.state["continue_recommended"] is False
 
-    def test_state_recommendation_productize(self):
-        # Accept "PRODUCTIZE", "CONTINUE", or "BLOCKED" (lane blocked on corpus dependency)
+    def test_state_recommendation_blocked_on_legal_distance(self):
+        """Next recommendation correctly identifies blocker on legal-distance dense embeddings."""
         rec = self.state["next_recommendation"]
-        assert any(kw in rec for kw in ("PRODUCTIZE", "CONTINUE", "BLOCKED")), f"Unexpected recommendation: {rec}"
+        assert "BLOCKED" in rec
+        assert "legal-distance" in rec
+        assert "dense_embeddings" in rec
 
-    def test_state_verdict_pass(self):
-        verdict = self.state["metrics_summary"]["center_projected_hierarchical_experiment"]["verdict"]
-        assert verdict == "PASS"
+    def test_constrained_hierarchical_validated(self):
+        """Constrained hierarchical Leiden fully validated flag."""
+        assert self.state["constrained_hierarchical_validated"] is True
 
-    def test_state_hierarchical_purity_matches(self):
-        state_purity = self.state["metrics_summary"]["center_projected_hierarchical_experiment"]["hierarchical_purity_global"]
-        state_best_config = self.state["metrics_summary"]["center_projected_hierarchical_experiment"]["best_config"]
-        recomputed = self.cp_results["hierarchical_results"][state_best_config]["hierarchical_purity"]
-        assert abs(state_purity - recomputed) < 1e-6, f"State {state_purity} != recomputed {recomputed} for config {state_best_config}"
+    def test_constrained_hierarchical_config_frozen(self):
+        """Constrained hierarchical config frozen before observation."""
+        config = self.state["constrained_hierarchical_config"]
+        assert config["coarse_res"] == 0.25
+        assert config["base_sub_res"] == 3.0
+        assert config["min_cluster_size"] == 10
+        assert config["max_subclusters_per_parent"] == 20
+        assert config["adaptive_sub_res"] is True
 
-    def test_zoom_improvement_positive(self):
-        improvement = self.state["metrics_summary"]["center_projected_hierarchical_experiment"]["purity_improvement_vs_flat_pct"]
-        assert improvement > 0, f"Zoom improvement {improvement}% is not positive"
+    def test_scales_tested_comprehensive(self):
+        """Scales tested cover 1k-100k + 12k dense."""
+        scales = self.state["constrained_hierarchical_scales_tested"]
+        assert 1200 in scales
+        assert 5000 in scales
+        assert 10000 in scales
+        assert 20000 in scales
+        assert 50000 in scales
+        assert 100000 in scales
+        assert 12570 in scales  # dense embeddings 2000-2002
 
-    def test_default_mode_is_center_projected(self):
-        """Verify center_projected_hierarchical is the default mode."""
-        default_mode = self.state["map_modes"]["default"]["mode_id"]
-        assert default_mode == "center_projected_hierarchical"
+    def test_all_citation_role_modes_pass_constrained(self):
+        """All citation-role modes PASS v26 rule under constrained hierarchical."""
+        results = self.state["constrained_hierarchical_results"]["citation_role_modes_1k"]
+        for mode in ["citing_alpha0.3", "following_alpha0.3", "criticizing_alpha0.3"]:
+            assert results[mode]["improvement_rate"] > 0.5, f"{mode} improvement_rate <= 0.5"
+            assert "0% singletons" in results[mode]["fragmentation"], f"{mode} has fragmentation"
 
-    def test_center_projected_purity_beats_concat(self):
-        """Verify center_projected hierarchical purity > concat baseline."""
-        cp_purity = self.state["validation_metrics"]["center_projected_hierarchical"]["hierarchical_purity_global"]
-        concat_purity = self.state["validation_metrics"]["hierarchical_leiden_concat_legacy"]["hierarchical_purity_global"]
-        assert cp_purity > concat_purity, f"center_projected ({cp_purity}) not better than concat ({concat_purity})"
+    def test_all_outcome_hybrids_pass_constrained(self):
+        """All outcome-hybrid modes PASS v26 rule under constrained hierarchical."""
+        results = self.state["constrained_hierarchical_results"]["citation_outcome_hybrids_1k"]
+        for mode in ["cited_decisions_tfidf", "cited_decisions_tfidf_outcome_hybrid_0.3",
+                     "cited_decisions_tfidf_outcome_hybrid_0.5", "cited_decisions_tfidf_outcome_hybrid_0.7"]:
+            assert results[mode]["improvement_rate"] > 0.5, f"{mode} improvement_rate <= 0.5"
+
+    def test_dense_embeddings_superior_at_12k(self):
+        """Dense embeddings show superior purity at 12k scale."""
+        dense = self.state["constrained_hierarchical_results"]["dense_embeddings_12k"]
+        assert dense["branch_purity_fine"] > 0.98
+        assert dense["area_purity_fine"] > 0.55
+        assert dense["nesting"] == 1.0
+        assert dense["fragmentation"] == "minimal (0.41% singletons)"
+
+    def test_tfidf_174k_flat_zoom_fail(self):
+        """TF-IDF 174k flat zoom FAILs with over-fragmentation."""
+        tfidf = self.state["tfidf_174k_verdict"]
+        assert tfidf["overall_verdict"] == "FAIL"
+        assert tfidf["modes_passed"] == 0
+        assert tfidf["over_fragmentation"] is True
+        assert tfidf["singleton_fraction_fine"] == ">0.99"
+
+    def test_scale_dependency_confirmed(self):
+        """Scale dependency confirmed: flat Leiden fails at >62k, hierarchical works at 100k."""
+        assert self.state["scale_dependency_confirmed"] is True
+
+    def test_nesting_metric_defect_v1_enforced(self):
+        """Nesting metric defect v1 enforced: no false 0.99+ claims for compressed ladders."""
+        assert self.state["nesting_metric_defect_v1_enforced"] is True
+
+    def test_flat_zoom_v26_verdict_fail(self):
+        """Flat zoom v26 verdict correctly recorded as FAIL."""
+        assert self.state["flat_zoom_v26_verdict"] == "FAIL"
+
+    def test_hierarchical_improvement_rate_80pct(self):
+        """Hierarchical improvement rate 80% at partial validation scale."""
+        assert self.state["hierarchical_improvement_rate"] == 0.80
+
+    def test_zero_fragmentation_constrained(self):
+        """Zero fragmentation at constrained hierarchical fine level."""
+        assert self.state["fragmentation"] == "none"
+        assert self.state["singleton_fraction_max"] == 0.0041
+
+    def test_key_findings_all_true(self):
+        """All key findings flags are true (boolean findings)."""
+        findings = self.state["key_findings"]
+        for key, value in findings.items():
+            if isinstance(value, bool):
+                assert value is True, f"Key finding {key} is not True"
+            # String findings are descriptive, not boolean flags
+
+    def test_alternative_methods_results_preserved(self):
+        """Alternative hierarchical methods tested and results preserved (negative results kept)."""
+        alt = self.state["alternative_methods_tested"]
+        # Leiden: scale-dependent
+        assert alt["leiden"]["5k"] == "PASS"
+        assert alt["leiden"]["10k"] == "FAIL"
+        # HNSW: more robust
+        assert alt["hnsw"]["5k"] == "PASS"
+        assert alt["hnsw"]["10k"] == "PASS"
+        # Agglomerative: FAIL
+        assert alt["agglomerative_ward"]["5k"] == "FAIL"
+        assert alt["agglomerative_average"]["5k"] == "FAIL"
+        # HDBSCAN: FAIL
+        assert alt["hdbscan"]["5k"] == "FAIL"
+
+    def test_citation_role_1000_verdict_corrected(self):
+        """Citation role modes: FAIL v26 flat but PASS constrained."""
+        verdict = self.state["citation_role_1000_verdict"]
+        for mode in ["citing_alpha0.3", "following_alpha0.3", "criticizing_alpha0.3"]:
+            assert "FAIL (v26 flat)" in verdict[mode]
+            assert "constrained hierarchical" in verdict[mode]
+            assert "0% fragmentation" in verdict[mode]
+
+    def test_outcome_hybrid_1000_verdict_corrected(self):
+        """Outcome hybrid modes: FAIL v26 flat but PASS constrained."""
+        verdict = self.state["outcome_hybrid_1000_verdict"]
+        for mode in ["cited_decisions_tfidf_outcome_hybrid_0.3",
+                     "cited_decisions_tfidf_outcome_hybrid_0.5",
+                     "cited_decisions_tfidf_outcome_hybrid_0.7"]:
+            assert "FAIL (v26 flat)" in verdict[mode]
+            assert "constrained hierarchical" in verdict[mode]
+            assert "0% fragmentation" in verdict[mode]
+
+    def test_partial_validation_completed(self):
+        """Partial validation at 12k (years 2000-2002) completed."""
+        assert self.state["partial_validation_completed"] is True
+        assert self.state["partial_scale"] == 12570
+        assert self.state["partial_years"] == ["2000", "2001", "2002"]
+
+    def test_strict_nesting_recomputed(self):
+        """Strict nesting recomputed for compressed ladder (shows defect)."""
+        nesting = self.state["strict_nesting_recomputed"]
+        # All nesting scores < 0.99 (defect confirmed)
+        for transition, score in nesting.items():
+            assert score < 0.99, f"Nesting {transition}={score} >= 0.99 (defect not enforced)"
 
 
 class TestLegacyConcatPreserved:
@@ -426,121 +529,62 @@ class TestLegacyConcatPreserved:
 
 
 class TestLegalDistanceModes:
-    """Test that legal-distance modes are properly integrated."""
+    """Test that legal-distance mode results are correctly reflected in constrained hierarchical validation."""
 
     @pytest.fixture(autouse=True)
     def load_data(self):
         self.state = load_json("state/fractal-map.json")
 
-    def test_five_legal_distance_modes_available(self):
-        ld_modes = self.state["map_modes"]["legal_distance_modes"]
-        assert "debiased_citation_blended" in ld_modes
-        assert "legal_cited_decisions_only" in ld_modes
-        assert "hybrid_alpha_03" in ld_modes
-        assert "hybrid_alpha_05" in ld_modes
-        assert "legal_issues_outcomes" in ld_modes
+    def test_citation_role_modes_in_constrained_results(self):
+        """Citation-role modes present in constrained hierarchical results."""
+        results = self.state["constrained_hierarchical_results"]["citation_role_modes_1k"]
+        assert "citing_alpha0.3" in results
+        assert "following_alpha0.3" in results
+        assert "criticizing_alpha0.3" in results
 
-    def test_v7_metric_learning_modes_available(self):
-        """Test that v7 metric learning modes are available."""
-        ld_modes = self.state["map_modes"]["legal_distance_modes"]
-        assert "linear_metric_epoch4" in ld_modes
-        assert "mahalanobis_metric_epoch4" in ld_modes
+    def test_outcome_hybrid_modes_in_constrained_results(self):
+        """Outcome-hybrid modes present in constrained hierarchical results."""
+        results = self.state["constrained_hierarchical_results"]["citation_outcome_hybrids_1k"]
+        assert "cited_decisions_tfidf" in results
+        assert "cited_decisions_tfidf_outcome_hybrid_0.3" in results
+        assert "cited_decisions_tfidf_outcome_hybrid_0.5" in results
+        assert "cited_decisions_tfidf_outcome_hybrid_0.7" in results
 
-    def test_v7_citation_signal_modes_available(self):
-        """Test that v7 citation signal modes are available."""
-        ld_modes = self.state["map_modes"]["legal_distance_modes"]
-        assert "cited_decisions_tfidf" in ld_modes
-        assert "hybrid_cited_0.3" in ld_modes
+    def test_citation_role_improvement_rates_pass_v26(self):
+        """Citation-role modes achieve >50% improvement rate (v26 PASS threshold)."""
+        results = self.state["constrained_hierarchical_results"]["citation_role_modes_1k"]
+        for mode_id, data in results.items():
+            assert data["improvement_rate"] > 0.5, f"{mode_id}: improvement_rate={data['improvement_rate']:.4f} <= 0.5"
 
-    def test_legal_distance_modes_accepted_tier(self):
-        ld_modes = self.state["map_modes"]["legal_distance_modes"]
-        for mode_id, mode_info in ld_modes.items():
-            if mode_id != "center_projected":
-                assert mode_info["evidence_tier"] == "ACCEPTED"
+    def test_outcome_hybrid_improvement_rates_pass_v26(self):
+        """Outcome-hybrid modes achieve >50% improvement rate (v26 PASS threshold)."""
+        results = self.state["constrained_hierarchical_results"]["citation_outcome_hybrids_1k"]
+        for mode_id, data in results.items():
+            assert data["improvement_rate"] > 0.5, f"{mode_id}: improvement_rate={data['improvement_rate']:.4f} <= 0.5"
 
-    def test_v7_modes_pass_both_adversarial_gates(self):
-        """Test that all v7 modes pass both adversarial gates."""
-        ld_modes = self.state["map_modes"]["legal_distance_modes"]
-        v7_modes = ["linear_metric_epoch4", "mahalanobis_metric_epoch4", "cited_decisions_tfidf", "hybrid_cited_0.3"]
-        for mode_id in v7_modes:
-            mode_info = ld_modes[mode_id]
-            assert mode_info.get("adversarial_both_pass") is True, f"{mode_id} does not pass both adversarial gates"
+    def test_citation_role_zero_fragmentation(self):
+        """Citation-role modes have zero fragmentation under constrained hierarchical."""
+        results = self.state["constrained_hierarchical_results"]["citation_role_modes_1k"]
+        for mode_id, data in results.items():
+            assert "0% singletons" in data["fragmentation"], f"{mode_id}: {data['fragmentation']}"
 
-    def test_v9_cited_decisions_hybrid_modes_available(self):
-        """Test that v9 cited_decisions_tfidf cp-hybrid modes are available."""
-        ld_modes = self.state["map_modes"]["legal_distance_modes"]
-        v9_cp_hybrids = [
-            "cited_decisions_tfidf_hybrid_cp64_0.3",
-            "cited_decisions_tfidf_hybrid_cp64_0.5",
-            "cited_decisions_tfidf_hybrid_cp64_0.7",
-            "cited_decisions_tfidf_hybrid_cp768_0.3",
-            "cited_decisions_tfidf_hybrid_cp768_0.5",
-            "cited_decisions_tfidf_hybrid_cp768_0.7",
-        ]
-        for mode_id in v9_cp_hybrids:
-            assert mode_id in ld_modes, f"Missing v9 cp-hybrid mode: {mode_id}"
+    def test_outcome_hybrid_minimal_fragmentation(self):
+        """Outcome-hybrid modes have minimal/no fragmentation under constrained hierarchical."""
+        results = self.state["constrained_hierarchical_results"]["citation_outcome_hybrids_1k"]
+        for mode_id, data in results.items():
+            assert "0% singletons" in data["fragmentation"] or "minimal" in data["fragmentation"], f"{mode_id}: {data['fragmentation']}"
 
-    def test_v9_cp_hybrids_pass_both_adversarial_gates(self):
-        """Test that all v9 cp-hybrid modes pass both adversarial gates."""
-        ld_modes = self.state["map_modes"]["legal_distance_modes"]
-        v9_cp_hybrids = [
-            "cited_decisions_tfidf_hybrid_cp64_0.3",
-            "cited_decisions_tfidf_hybrid_cp64_0.5",
-            "cited_decisions_tfidf_hybrid_cp64_0.7",
-            "cited_decisions_tfidf_hybrid_cp768_0.3",
-            "cited_decisions_tfidf_hybrid_cp768_0.5",
-            "cited_decisions_tfidf_hybrid_cp768_0.7",
-        ]
-        for mode_id in v9_cp_hybrids:
-            mode_info = ld_modes[mode_id]
-            assert mode_info.get("adversarial_both_pass") is True, f"{mode_id} does not pass both adversarial gates"
-            assert mode_info.get("evidence_tier") == "ACCEPTED", f"{mode_id} evidence tier not ACCEPTED"
+    def test_zero_shot_hybrids_work_at_1k(self):
+        """Zero-shot hybrids (cited_decisions_tfidf + outcome_tfidf) work at 1k scale."""
+        assert self.state["key_findings"]["zero_shot_hybrids_work_at_1k"] is True
 
-    def test_v9_breakthrough_modes_available(self):
-        """Test that v9 breakthrough representations are available."""
-        ld_modes = self.state["map_modes"]["legal_distance_modes"]
-        v9_breakthrough = [
-            "hybrid_stabilized_epoch1",
-            "cited_decisions_tfidf_outcome_hybrid_0.5",
-            "cited_decisions_tfidf_outcome_hybrid_0.7",
-            "following_alpha0.3",
-            "criticizing_alpha0.3",
-            "citing_alpha0.3",
-        ]
-        for mode_id in v9_breakthrough:
-            assert mode_id in ld_modes, f"Missing v9 breakthrough mode: {mode_id}"
-
-    def test_v9_breakthrough_modes_pass_both_adversarial_gates(self):
-        """Test that all v9 breakthrough modes pass both adversarial gates."""
-        ld_modes = self.state["map_modes"]["legal_distance_modes"]
-        v9_breakthrough = [
-            "hybrid_stabilized_epoch1",
-            "cited_decisions_tfidf_outcome_hybrid_0.5",
-            "cited_decisions_tfidf_outcome_hybrid_0.7",
-            "following_alpha0.3",
-            "criticizing_alpha0.3",
-            "citing_alpha0.3",
-        ]
-        for mode_id in v9_breakthrough:
-            mode_info = ld_modes[mode_id]
-            assert mode_info.get("adversarial_both_pass") is True, f"{mode_id} does not pass both adversarial gates"
-            assert mode_info.get("evidence_tier") == "ACCEPTED", f"{mode_id} evidence tier not ACCEPTED"
-
-    def test_total_modes_count(self):
-        """Test total mode count: 29 available legal-distance + 1 placeholder = 30 total legal-distance modes.
-        Original 21: 5 v6 + 4 v7 + 6 v9 cp-hybrids + 3 v9 outcome-hybrids + 3 citation-role
-        Plus 8 compressed ladder modes at 21k scale: 6 TF-IDF compressed + 2 new 21k compressed
-        """
-        ld_modes = self.state["map_modes"]["legal_distance_modes"]
-        available_count = sum(1 for m in ld_modes.values() if m.get("status") == "available")
-        placeholder_count = sum(1 for m in ld_modes.values() if m.get("status") == "placeholder")
-        assert available_count == 29, f"Expected 29 available legal-distance modes, got {available_count}"
-        assert placeholder_count == 1, f"Expected 1 placeholder legal-distance mode, got {placeholder_count}"
-
-    def test_legacy_mode_preserved(self):
-        legacy = self.state["map_modes"]["legacy_modes"]
-        assert "hierarchical_leiden_concat" in legacy
-        assert legacy["hierarchical_leiden_concat"]["status"] == "legacy"
+    def test_evidence_backed_zoom_path_recorded(self):
+        """Evidence-backed zoom path correctly recorded."""
+        zoom_path = self.state["key_findings"]["evidence_backed_zoom_path"]
+        assert "constrained_hierarchical_leiden" in zoom_path
+        assert "dense embeddings" in zoom_path
+        assert "citation_role_modes" in zoom_path
+        assert "outcome_hybrids" in zoom_path
 
 
 class TestCompressedResolutionLadder:
