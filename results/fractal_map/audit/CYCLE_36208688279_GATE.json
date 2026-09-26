@@ -1,0 +1,108 @@
+{
+  "cycle_id": "36208688279",
+  "lane": "fractal-map",
+  "direction_version": 27,
+  "timestamp": "2026-09-26T01:35:00.000000+00:00",
+  "gate_verdict": "PASS",
+  "gate_type": "operational_resume_final_audit",
+  "resumed_from_run": "36206192159",
+  "previous_accepted_run": "36206192159",
+  "test_results": {
+    "total": 210,
+    "passed": 208,
+    "skipped": 2,
+    "failed": 0,
+    "details": {
+      "test_dense_embeddings_infrastructure": "13 passed, 1 skipped",
+      "test_verify": "188 passed",
+      "test_zoom_quality_174k_eval": "4 passed",
+      "test_zoom_quality_174k_v26_eval": "6 passed"
+    }
+  },
+  "lane_state": {
+    "cycle_status": "BLOCKED_ON_DEPENDENCY",
+    "continue_recommended": false,
+    "evidence_tier": "ACCEPTED",
+    "blocked_on": "legal-distance_174k_dense_embeddings",
+    "blocked_since": "2026-09-24T01:55:00Z",
+    "legal_distance_progress": "11/26 years complete (2000-2010)"
+  },
+  "deliverable_verification": {
+    "tfidf_174k_zoom_quality": {
+      "status": "COMPLETE",
+      "verdict": "FAIL (expected - honest negative)",
+      "modes_evaluated": 4,
+      "all_modes_fail": true,
+      "bit_equal_v25_crosscheck": true
+    },
+    "dense_embeddings_infrastructure": {
+      "status": "VERIFIED_READY",
+      "eval_script": "fractal_map/evaluation/eval_dense_embeddings_174k.py",
+      "hierarchical_builder": "supports agglomerative Ward/Average/Complete",
+      "metadata_path": "results/evaluation/metadata_174k.json",
+      "success_rule": "frozen v26 (identical to v25)"
+    },
+    "citation_role_dense_path": {
+      "status": "BLOCKED",
+      "blocker": "legal-distance_174k_dense_embeddings",
+      "placeholder_modes": 2,
+      "decision_mappable_modes": 4
+    },
+    "evidence_backed_zoom_path_1000scale": {
+      "status": "CONFIRMED",
+      "agglom_ward": "PASS (nesting=1.0, fine median size 14, no singletons)",
+      "agglom_average": "PASS (nesting=1.0, fine median size 7, singleton 3%)",
+      "agglom_complete": "PASS (nesting=1.0, fine median size 13, no singletons)",
+      "citation_role_zq": {
+        "citing_alpha0.3": 0.5401,
+        "following_alpha0.3": 0.5280,
+        "criticizing_alpha0.3": 0.4864
+      }
+    },
+    "compressed_ladder": {
+      "status": "VALIDATED_WITH_SCOPE",
+      "ladder": [0.25, 0.5, 1.0, 2.0, 3.0],
+      "purity_delta_retention": "100%",
+      "identical_navigation_at_shared_resolutions": true,
+      "level_reduction": "29%",
+      "nesting_metric_defect_v1_enforced": true
+    },
+    "product_multi_view_zoom_ui": {
+      "status": "VERIFIED_IMPLEMENTED",
+      "citation_role_views": true,
+      "zoom_controls": true,
+      "split_view": true,
+      "audit_rec_4_satisfied": true
+    }
+  },
+  "orchestration_diagnosis": {
+    "root_cause": "Supervisor reads ephemeral /tmp/lex_control/state/factory_direction.json (fractal-map.status=RUN) instead of authoritative workspace state/fractal_map.json (BLOCKED_ON_DEPENDENCY)",
+    "documented_redispatch_occurrences": "60+",
+    "affected_runs": [
+      "36152847479",
+      "36153888330",
+      "36154945444",
+      "36156868300",
+      "36158377781",
+      "36161811441",
+      "36168128832",
+      "36174553152",
+      "36176481336",
+      "36178188261",
+      "36179928283",
+      "36202696806",
+      "36205017757",
+      "36206192159",
+      "36208688279"
+    ],
+    "required_fix": "Update supervisor dispatch logic to read state/<lane>.json for dispatch gating"
+  },
+  "preservation_checks": {
+    "no_data_fabrication": true,
+    "no_overwritten_claim_bearing_outputs": true,
+    "full_provenance_chain_intact": true,
+    "negative_results_preserved": true,
+    "frozen_verdicts_protected": true
+  },
+  "snapshot_status": "AUDIT-READY"
+}
