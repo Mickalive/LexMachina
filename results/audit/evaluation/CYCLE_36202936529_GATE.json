@@ -1,0 +1,16 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF family (8 representations) fully evaluated at 174k scale against frozen 12-benchmark suite, frozen citation heritage benchmark (137,314 pairs), and v17b label normalization. Production default cited_outcome_hybrid_0.7 confirmed (zero-shot TF-IDF, no GPU, passes both adversarial gates, citation_heritage AUC=0.9605, nn_citation_rate@10=0.490). All three machine-executable sub-questions complete. Lane correctly BLOCKED_ON_DEPENDENCIES awaiting legal-distance 174k dense embeddings. Jurist study blocked on external recruitment. No additional same-question cycle justified for TF-IDF family.",
+  "evidence_summary": {
+    "v25_formal_suite": "8/8 TF-IDF representations evaluated at 173,963 decisions against frozen 12-benchmark suite (config hash 4323f833fa72366a). Pass counts: full_text_tfidf_light=7, regeste_full_text_hybrid_0.5=7, regeste_full_text_hybrid_0.7=7, cited_decisions_tfidf=6, cited_outcome_hybrid_0.5=6, cited_outcome_hybrid_0.7=6, regeste_tfidf=5, outcome_tfidf=3. Universal FAILs: hierarchy_coherence (purity 0.08-0.47), legal_area_clustering (purity 0.003-0.08).",
+    "citation_heritage": "7/8 TF-IDF representations PASS AUC>=0.65 on frozen 137,314 pair pool (95.9% citation resolution). Best: cited_decisions_tfidf AUC=0.9731. Production default cited_outcome_hybrid_0.7 AUC=0.9605, nn_citation_rate@10=0.490. Regeste_tfidf FAILS (AUC=0.4865) - correctly explained by lack of citation IDs in regeste text.",
+    "v17b_label_normalization": "213 raw -> 163 normalized labels (23.5% reduction), 32 cross-lingual canonical concepts. PARTIAL generalization: 2/8 reps within <=10% worsening rule (cited_decisions_tfidf, regeste_tfidf), 6 exceed on hierarchy NMI (-10.8% to -27.6%), 1 on zoom_coherence (-16.0%). Normalized hierarchy purity gains 1.5-1.6x for citation-based reps. Best normalized purity=0.47 < 0.7 threshold.",
+    "formal_suite_runner": "run_174k_formal_suite.py OPERATIONAL with HNSW artifact fix (exact k-NN on stratified n=2000). 5/8 reps PASS both adversarial gates. Best: cited_decisions_tfidf (LangDom=0.5164, Jurist=0.8055). Production default cited_outcome_hybrid_0.7 (LangDom=0.5238, Jurist=0.7975). Config hash b51701f5a9c11692, seed 42.",
+    "infrastructure": "All pipelines END-TO-END VERIFIED: run_full_corpus_evaluation.py (hash 4047da047fb339c1), scalable_nn.py HNSW (hnswlib), v25 suite runner, validate_citation_heritage_174k.py, v17b test, monitor with run_formal_suite_v25() auto-evaluation. Config hashes frozen and verified against legal-distance accepted dense embeddings (v5-v6).",
+    "legal_distance_dependency": "Year-split dense embeddings 11/26 years complete (2000-2010, 62,645 decisions, 36%) in checkpoints. Final concatenation blocked on years 2011-2025. GitHub run 36096850301 IN_PROGRESS. Monitor scans 174k_dense_embeddings root (excludes checkpoints).",
+    "jurist_study": "BLOCKED - external dependency (5-10 Swiss jurists recruitment). Framework ready per v25 protocol.",
+    "negative_results_preserved": "Universal FAILs on hierarchy_coherence, legal_area_clustering, temporal_stability, boilerplate_resistance correctly attributed to corpus/label limitations. No tuning after results. All evidence preserved in output artifacts."
+  }
+}
