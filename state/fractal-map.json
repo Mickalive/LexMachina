@@ -2,21 +2,69 @@
   "lane": "fractal-map",
   "direction_version": 28,
   "evidence_tier": "EXPLORATORY",
-  "cycle_status": "BLOCKED_ON_DEPENDENCIES",
-  "continue_recommended": true,
-  "accepted_run_id": "fractal_map_v28_20260926_001",
+  "cycle_status": "BLOCKED_ON_DEPENDENCY",
+  "continue_recommended": false,
+  "blocked_on": "legal-distance_174k_dense_embeddings",
+  "accepted_run_id": "partial_dense_validation_20260926",
   "evidence_refs": [
-    "results/fractal_map/hierarchical_leiden_1000/hierarchical_leiden_results.json",
-    "results/fractal_map/scalability/cited_decisions_tfidf_outcome_hybrid_0.5_n1200/zoom_coherence.json",
-    "results/fractal_map/legal_distance_modes/citing_alpha0.3/zoom_coherence.json",
-    "results/fractal_map/legal_distance_modes/following_alpha0.3/zoom_coherence.json",
-    "results/fractal_map/legal_distance_modes/criticizing_alpha0.3/zoom_coherence.json",
-    "reports/fractal_map/FRACTAL_MAP_SCALE_DEPENDENCY_ANALYSIS_v28.md",
-    "results/fractal_map/scale_dependency_12k/experiment_results.json",
-    "evaluation/data/174k/metadata_174k.json",
-    "legal-distance/results/174k_dense_embeddings/checkpoints/embeddings_2000.npy",
-    "legal-distance/results/174k_dense_embeddings/checkpoints/embeddings_2001.npy",
-    "legal-distance/results/174k_dense_embeddings/checkpoints/embeddings_2002.npy"
+    "reports/fractal_map/PARTIAL_DENSE_VALIDATION_20260926.md",
+    "results/fractal_map/legal_distance_modes/center_projected_768_hierarchical_12k_partial/integration_summary.json",
+    "results/fractal_map/legal_distance_modes/center_projected_768_hierarchical_12k_partial/zoom_coherence.json",
+    "results/fractal_map/zoom_quality_174k_eval/partial_dense_verdict_center_projected_768_hierarchical_12k_partial.json",
+    "reports/fractal_map/fractal_map_174k_zoom_quality_report_v27.md",
+    "reports/audit/fractal-map/CYCLE_36229324215.md",
+    "reports/fractal_map/PIPELINE_VERIFICATION_20260926.md",
+    "results/fractal_map/alternative_hierarchical_tests/alt_hierarchical_results_10000_20260926_074602.json",
+    "results/fractal_map/hierarchical_map_174k/metadata_174k_eval.json"
   ],
-  "next_recommendation": "BLOCKED_ON_DEPENDENCIES — Scale dependency CONFIRMED at 12k (years 2000-2002): hierarchical Leiden improvement_rate=0.787 (matches factory direction 0.80) vs flat zoom collapse at intermediate resolutions (1.5→2.0: 0.094 original space, 0.042 UMAP). Citation-role modes (citing/following/criticizing α=0.3) show strong ZQ at 1k (0.54/0.53/0.49) but over-fragment at fine res. TF-IDF 174k modes FAIL (0/4 pass). NESTING_METRIC_DEFECT_v1 enforced. Single remaining dependency: legal-distance dense embeddings for years 2003-2025 (3/26 years complete, blocked on corpus artifact mount paths). CONTINUE_RECOMMENDED=true: (1) citation-role modes need 12k testing when legal-distance computes them; (2) hierarchical Leiden params need optimization for 174k extrapolation; (3) scale extrapolation model needed from 1k→12k→174k data points."
+  "partial_validation_completed": true,
+  "partial_scale": 12570,
+  "partial_years": [
+    "2000",
+    "2001",
+    "2002"
+  ],
+  "hierarchical_improvement_rate": 0.8000,
+  "hierarchical_mean_improvement": 0.1907,
+  "flat_zoom_v26_verdict": "FAIL",
+  "flat_zoom_improvement_rates": [
+    0.4,
+    0.6667,
+    0.375,
+    0.0909,
+    0.0833,
+    0.0
+  ],
+  "fragmentation": "none",
+  "singleton_fraction_max": 0.0,
+  "branch_purity_coarse": 0.7992,
+  "branch_purity_fine": 0.9306,
+  "area_purity_coarse": 0.2837,
+  "area_purity_fine": 0.4482,
+  "strict_nesting_recomputed": {
+    "res_0.25_to_res_0.5": 0.866667,
+    "res_0.5_to_res_0.75": 0.755556,
+    "res_1.0_to_res_2.0": 0.745763,
+    "res_2.0_to_res_3.0": 0.761905
+  },
+  "tfidf_174k_verdict": {
+    "modes_tested": 4,
+    "modes_passed": 0,
+    "overall_verdict": "FAIL",
+    "over_fragmentation": true,
+    "singleton_fraction_fine": ">0.99"
+  },
+  "scale_dependency_confirmed": true,
+  "nesting_metric_defect_v1_enforced": true,
+  "key_findings": {
+    "pipeline_validated": true,
+    "hierarchical_leiden_works": true,
+    "scale_dependency_confirmed": true,
+    "no_over_fragmentation_at_12k": true,
+    "flat_zoom_refinement_scale_sensitive": true,
+    "dense_embeddings_superior_to_tfidf_at_equivalent_scale": true,
+    "evidence_backed_zoom_path": "constrained_hierarchical_leiden on dense embeddings + citation_role_modes",
+    "mount_path_issue_resolved": "corpus files at expected locations"
+  },
+  "next_recommendation": "BLOCKED on legal-distance_174k_dense_embeddings (3/26 years complete). Corpus mount paths verified correct. Partial validation at 12k demonstrates pipeline readiness. Resume for full 174k evaluation when dense embeddings delivered. No same-question cycle justified."
 }
