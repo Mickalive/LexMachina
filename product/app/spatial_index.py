@@ -92,14 +92,18 @@ class SpatialIndex:
 
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
+            # Use explicit suffixes to avoid issues with dots in representation names
+            npz_path = path.parent / (path.name + ".npz")
+            json_path = path.parent / (path.name + ".json")
+            
             # Use numpy's savez for efficient binary storage
             np.savez_compressed(
-                path.with_suffix(".npz"),
+                npz_path,
                 points=self._points,
                 decision_ids=np.array(self._decision_ids, dtype=object),
             )
             # Save id_to_idx as JSON (small)
-            with open(path.with_suffix(".json"), "w") as f:
+            with open(json_path, "w") as f:
                 json.dump(self._id_to_idx, f)
             print(f"[SpatialIndex] Saved {self.size} points to {path}")
             return True
@@ -112,8 +116,9 @@ class SpatialIndex:
         """Load spatial index from disk."""
         path = Path(path)
         try:
-            npz_path = path.with_suffix(".npz")
-            json_path = path.with_suffix(".json")
+            # Use explicit suffixes to avoid issues with dots in representation names
+            npz_path = path.parent / (path.name + ".npz")
+            json_path = path.parent / (path.name + ".json")
             if not npz_path.exists() or not json_path.exists():
                 return None
 

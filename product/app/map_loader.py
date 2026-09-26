@@ -2808,13 +2808,21 @@ class MapLoader:
             if i < len(projection):
                 positions[did] = (float(projection[i, 0]), float(projection[i, 1]))
 
+        # Standard zoom level mapping (same as fractal-map validation)
+        resolution_to_zoom = {
+            "0.25": 0, "0.5": 1, "0.75": 2, "1.0": 3,
+            "1.5": 4, "2.0": 5, "3.0": 6
+        }
+
         # Get available resolutions from cluster_metadata
         # cluster_metadata has keys like "res_0.25", "res_0.5", etc.
         for res_key, res_meta in cluster_metadata.items():
             if not res_key.startswith("res_"):
                 continue
             resolution = float(res_key.replace("res_", ""))
-            zoom_level = int(resolution * 4)  # 0.25->1, 0.5->2, 1.0->4, etc.
+            zoom_level = resolution_to_zoom.get(str(resolution))
+            if zoom_level is None:
+                continue
 
             # Build cluster assignments from decision_clusters
             cluster_assignments = {}
@@ -3120,6 +3128,13 @@ class MapLoader:
             "0.25": 0, "0.5": 1, "0.75": 2, "1.0": 3,
             "1.5": 4, "2.0": 5, "3.0": 6
         }
+        
+        # Build positions from projection_2d if not provided
+        if not positions and projection_2d is not None:
+            positions = {}
+            for i, did in enumerate(decision_ids):
+                if i < len(projection_2d):
+                    positions[did] = (float(projection_2d[i, 0]), float(projection_2d[i, 1]))
         
         # Load cluster metadata
         cluster_metadata = {}
@@ -3583,8 +3598,7 @@ class MapLoader:
         if n_decisions == 0:
             return
         
-        # Load 2D projection (we'll need to compute or load it)
-        # For now, try to load from representation-specific directory if it exists
+        # Load 2D projection
         rep_dir = self.results_dir / name
         projection_path = rep_dir / "projection_2d.npy"
         
@@ -3597,7 +3611,6 @@ class MapLoader:
         projection = np.load(projection_path)
         
         # Load decision_ids from the 174k metadata
-        # Use the full metadata file with real decision IDs
         full_metadata_path = self.results_dir / "hierarchical_map_174k" / "metadata_174k_full.json"
         if not full_metadata_path.exists():
             return
@@ -3609,33 +3622,18 @@ class MapLoader:
         decision_ids = [m["decision_id"] for m in full_metadata[:n_decisions]]
         
         # Load fractal-map validated clustering for this representation
-        # Try to load from representation directory
         if not (rep_dir / "cluster_metadata.json").exists():
             # Clustering not yet computed for this representation
             return
         
-        # Load clustering results
-        with open(rep_dir / "cluster_metadata.json", "r") as f:
-            cluster_metadata = json.load(f)
-        
-        with open(rep_dir / "decision_clusters.json", "r") as f:
-            decision_clusters = json.load(f)
-        
-        with open(rep_dir / "hierarchical_cluster_metadata.json", "r") as f:
-            hierarchical_cluster_metadata = json.load(f)
-        
-        with open(rep_dir / "zoom_mappings.json", "r") as f:
-            zoom_mappings = json.load(f)
-        
-        # Build zoom levels using the clustering results
-        zoom_levels_dict = self._build_zoom_levels_from_cluster_metadata(
-            representation=name,
+        # Use the proper fractal-map clustering loader that loads per-resolution labels
+        zoom_levels_dict = self._load_fractal_map_clustering_for_representation(
+            mode_dir=rep_dir,
             decision_ids=decision_ids,
-            projection=projection,
-            decision_clusters=decision_clusters,
-            cluster_metadata=cluster_metadata,
-            hierarchical_cluster_metadata=hierarchical_cluster_metadata,
-            zoom_mappings=zoom_mappings,
+            n_decisions=len(decision_ids),
+            positions={},  # Will be built inside
+            mode_name=name,
+            projection_2d=projection
         )
         
         if not zoom_levels_dict:
