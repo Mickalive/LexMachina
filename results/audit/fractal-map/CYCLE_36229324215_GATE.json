@@ -1,0 +1,58 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Pipeline infrastructure validated at 1k scale; 174k dense embeddings evaluation remains BLOCKED_ON_DEPENDENCY (3/26 years complete). No zoom-quality success claims at target scale.",
+  "evidence_summary": {
+    "pipeline_verification": {
+      "test_scale": "1k decisions (subset of 174k)",
+      "embedding": "center_projected 768-dim (language-debiased)",
+      "method": "Hierarchical Leiden (coarse_res=0.25, sub_res=3.0)",
+      "result": "SUCCESS - all 10 artifact types generated, hierarchical Leiden nesting=1.0, hierarchical improvement_rate=1.0, mean_improvement=0.0904, singleton_frac=0.043",
+      "flat_resolution_improvement_rates": {
+        "0.25_to_0.5": 0.60,
+        "0.5_to_0.75": 0.29,
+        "0.75_to_1.0": 0.33,
+        "1.0_to_1.5": 0.36,
+        "1.5_to_2.0": 0.57,
+        "2.0_to_3.0": 0.53
+      },
+      "v26_rule_at_1k": "FAIL (only 3/6 transitions >0.5; rule requires >=2/4) - correctly noted as insufficient scale",
+      "fragmentation": "None (median cluster size 13 at finest hierarchical level vs 1.0 in TF-IDF 174k)"
+    },
+    "alternative_hierarchical_tests": {
+      "scale": "5,195 decisions, 128-dim embeddings",
+      "methods_tested": 4,
+      "all_verdicts": "FAIL v26 frozen success rule (improvement_rate_gt_0.5_on_2_of_4)",
+      "details": {
+        "leiden": "branch_monotonic=true, area_monotonic=true, improvement_rate=1/4 transitions",
+        "agglom_ward": "branch_monotonic=false, area_monotonic=false, improvement_rate=0/4",
+        "agglom_average": "branch_monotonic=true, area_monotonic=true, improvement_rate=0/4",
+        "agglom_complete": "branch_monotonic=false, area_monotonic=true, improvement_rate=1/4"
+      }
+    },
+    "lane_status": {
+      "cycle_status": "BLOCKED_ON_DEPENDENCY",
+      "blocked_on": "legal-distance_174k_dense_embeddings",
+      "progress": "3/26 years complete (2000-2002, ~7%)",
+      "continue_recommended": false,
+      "accepted_run_id": "36225717174",
+      "resume_guard": "final_audit_complete_v17"
+    },
+    "prior_evidence_preserved": {
+      "tfidf_174k_zoom_quality": "COMPLETE, FAIL (0/4 modes PASS), median cluster size 1, >99% singletons",
+      "dense_embeddings_62k_partial": "center_projected_64dim + hierarchical Leiden PASS v26 (branch PASS, area PASS, rate PASS 2/4, frag 1.7%)",
+      "citation_role_1000scale": "citing_alpha0.3 ZQ=0.5401, following 0.5280, criticizing 0.4864",
+      "scale_dependency_confirmed": "12k FAIL vs 62k PASS for center_projected_64dim+sub_res=3.0",
+      "nesting_metric_defect_v1": "Enforced - nesting_score>=0.99 claims prohibited for compressed modes",
+      "product_zoom_ui": "Multi-view zoom UI with citation-role views VERIFIED IMPLEMENTED",
+      "compressed_ladder": "100% purity delta retention, 29% fewer levels, NOT universal strict nesting"
+    },
+    "honest_representation": {
+      "primary_objective": "174k dense embeddings evaluation - NOT attempted (dependency unmet)",
+      "work_scope": "Preparatory pipeline infrastructure validation only",
+      "negative_results": "All 4 alternative hierarchical methods FAIL - preserved and reported",
+      "no_overclaims": "v26 rule correctly NOT applied to 1k results; lane status unchanged"
+    }
+  }
+}
