@@ -28,6 +28,44 @@ from .spatial_index import SpatialIndex
 from .lod_manager import LODManager
 
 
+class UnifiedDecisionSource:
+    """Unified decision source that checks corpus first, then map metadata.
+    
+    This allows the proximity explainer and other components to access
+    decisions from both the corpus (with full text) and map metadata
+    (for 174k decisions not in the corpus).
+    """
+    
+    def __init__(self, corpus, nav_api):
+        self.corpus = corpus
+        self.nav_api = nav_api
+    
+    def get(self, decision_id: str):
+        """Get a decision, checking corpus first then map metadata."""
+        # Try corpus first (has full text)
+        decision = self.corpus.get(decision_id)
+        if decision is not None:
+            return decision
+        
+        # Fallback to map metadata (baseline + 174k)
+        meta = self.nav_api._get_map_decision_meta(decision_id)
+        if meta:
+            # Create a minimal decision-like object with required attributes
+            class MapDecision:
+                def __init__(self, meta):
+                    self.language = meta.get("language", "unknown")
+                    self.branch = meta.get("branch")
+                    self.legal_area = meta.get("legal_area")
+                    self.cited_decisions = meta.get("cited_decisions", [])
+                    self.cited_laws = meta.get("cited_laws", [])
+                    self.text_length = meta.get("text_length", 0)
+                    self.decision_date = meta.get("decision_date", "")
+            
+            return MapDecision(meta)
+        
+        return None
+
+
 class NavigationAPI:
     """
     Main navigation interface for the LexMachina product.
@@ -66,7 +104,9 @@ class NavigationAPI:
         self.citation_loader = CitationLoader(
             str(Path(results_dir) / "citation_graph" / "citation_graph.json")
         )
-        self.proximity_explainer = ProximityExplainer(self.corpus)
+        # Unified decision source for proximity explainer (corpus + map metadata)
+        self._decision_source = UnifiedDecisionSource(self.corpus, self)
+        self.proximity_explainer = ProximityExplainer(self._decision_source)
         self.zoom_coherence = ZoomCoherenceLoader(results_dir)
         self.language_analyzer = LanguageAnalyzer()
         self.tfidf_proximity = TFIDFProximity()
@@ -94,15 +134,25 @@ class NavigationAPI:
         self._imported_positions: Dict[Tuple[str, str], Dict] = {}  # (decision_id, representation) -> {x, y, cluster, zoom_level, representation}
 
     def _get_map_decision_meta(self, decision_id: str) -> Dict:
-        """Get metadata for a map decision not in the corpus (from baseline metadata)."""
+        """Get metadata for a map decision not in the corpus (from baseline or 174k metadata)."""
         if not self._map_meta_cache:
             import json as _json
+            # Load baseline metadata (1k slice)
             meta_path = Path(self.map_loader.results_dir) / "baseline" / "metadata.json"
             if meta_path.exists():
                 with open(meta_path, "r") as f:
                     meta_list = _json.load(f)
                 for m in meta_list:
                     self._map_meta_cache[m["decision_id"]] = m
+            # Load 174k metadata if available
+            meta_174k_path = Path(self.map_loader.results_dir) / "hierarchical_map_174k" / "metadata_174k_full.json"
+            if meta_174k_path.exists():
+                with open(meta_174k_path, "r") as f:
+                    meta_list = _json.load(f)
+                for m in meta_list:
+                    # 174k metadata doesn't overwrite baseline (baseline has full_text)
+                    if m["decision_id"] not in self._map_meta_cache:
+                        self._map_meta_cache[m["decision_id"]] = m
         return self._map_meta_cache.get(decision_id, {})
 
     def _get_cache_key(self, prefix: str, *args) -> str:
@@ -723,7 +773,27 @@ class NavigationAPI:
 
         decision = self.corpus.get_full(decision_id)
         if not decision:
-            return {"error": f"Decision {decision_id} not found"}
+            # Fallback to map metadata (baseline or 174k)
+            meta = self._get_map_decision_meta(decision_id)
+            if not meta:
+                return {"error": f"Decision {decision_id} not found"}
+            
+            # Build decision from map metadata
+            decision = {
+                "decision_id": decision_id,
+                "docket_number": meta.get("docket_number", ""),
+                "decision_date": meta.get("decision_date", ""),
+                "language": meta.get("language", "de"),
+                "title": meta.get("title") or meta.get("docket_number", ""),
+                "legal_area": meta.get("legal_area"),
+                "branch": meta.get("branch"),
+                "chamber": meta.get("chamber"),
+                "outcome": meta.get("outcome"),
+                "decision_type": meta.get("decision_type"),
+                "bge_reference": meta.get("bge_reference"),
+                "full_text": None,  # Not available in map metadata
+                "text_length": 0,
+            }
 
         # Find which clusters this decision belongs to
         clusters = []
@@ -755,10 +825,15 @@ class NavigationAPI:
 
         decision["map_clusters"] = clusters
 
-        # Add citation connections
-        outgoing = self.citation_loader.get_outgoing(decision_id)
-        incoming = self.citation_loader.get_incoming(decision_id)
-        citation_counts = self.citation_loader.get_citation_count(decision_id)
+        # Add citation connections (only if we have full corpus decision)
+        if "full_text" in decision and decision["full_text"] is not None:
+            outgoing = self.citation_loader.get_outgoing(decision_id)
+            incoming = self.citation_loader.get_incoming(decision_id)
+            citation_counts = self.citation_loader.get_citation_count(decision_id)
+        else:
+            outgoing = []
+            incoming = []
+            citation_counts = {"outgoing": 0, "incoming": 0}
         decision["citations"] = {
             "outgoing": outgoing,
             "incoming": incoming[:20],  # Limit incoming for response size
@@ -1139,7 +1214,7 @@ class NavigationAPI:
         return result
 
     def get_proximity_explanation(
-        self, decision_id_a: str, decision_id_b: str
+        self, decision_id_a: str, decision_id_b: str, representation: Optional[str] = None
     ) -> Dict[str, Any]:
         """Explain why two decisions are spatially close on the map.
         
@@ -1148,17 +1223,19 @@ class NavigationAPI:
         if not self._initialized:
             return {"error": "Not initialized"}
 
-        # Check cache (order-independent key)
+        if representation is None:
+            representation = self._get_default_representation()
+
+        # Check cache (order-independent key, includes representation)
         pair = tuple(sorted([decision_id_a, decision_id_b]))
-        cache_key = self._get_cache_key("proximity", pair[0], pair[1])
+        cache_key = self._get_cache_key("proximity", representation, pair[0], pair[1])
         cached = self._get_cache(self._proximity_cache, cache_key)
         if cached is not None:
             cached["cached"] = True
             return cached
 
-        # Get distance from map positions (use evaluation-validated default)
-        default_rep = self._get_default_representation()
-        positions = self.map_loader.get_positions(default_rep)
+        # Get distance from map positions for the specified representation
+        positions = self.map_loader.get_positions(representation)
         pos_a = positions.get(decision_id_a)
         pos_b = positions.get(decision_id_b)
 

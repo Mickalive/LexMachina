@@ -111,11 +111,34 @@ class ProximityExplainer:
         dec_a = self.corpus.get(decision_id_a)
         dec_b = self.corpus.get(decision_id_b)
 
+        # Convert Decision objects to dicts for uniform handling
+        if dec_a is not None and hasattr(dec_a, 'language'):
+            # It's a Decision object, convert to dict
+            dec_a = {
+                'language': dec_a.language,
+                'branch': dec_a.branch,
+                'legal_area': dec_a.legal_area,
+                'cited_decisions': dec_a.cited_decisions,
+                'cited_laws': dec_a.cited_laws,
+                'text_length': dec_a.text_length,
+                'decision_date': dec_a.decision_date,
+            }
+        if dec_b is not None and hasattr(dec_b, 'language'):
+            dec_b = {
+                'language': dec_b.language,
+                'branch': dec_b.branch,
+                'legal_area': dec_b.legal_area,
+                'cited_decisions': dec_b.cited_decisions,
+                'cited_laws': dec_b.cited_laws,
+                'text_length': dec_b.text_length,
+                'decision_date': dec_b.decision_date,
+            }
+
         if dec_a is None or dec_b is None:
             missing = decision_id_a if dec_a is None else decision_id_b
             return self._error_result(
                 decision_id_a, decision_id_b, distance,
-                f"Decision not found in corpus: {missing}",
+                f"Decision not found: {missing}",
             )
 
         contributions = self._compute_contributions(dec_a, dec_b)
@@ -147,28 +170,38 @@ class ProximityExplainer:
         }
 
     def _compute_contributions(
-        self, dec_a: Decision, dec_b: Decision,
+        self, dec_a: Dict, dec_b: Dict,
     ) -> List[FeatureContribution]:
         """Compute each feature's contribution to proximity."""
         contributions: List[FeatureContribution] = []
 
+        def get_val(d, key, default=None):
+            """Get value from dict or object."""
+            if isinstance(d, dict):
+                return d.get(key, default)
+            return getattr(d, key, default)
+
         # Language match
-        lang_match = dec_a.language == dec_b.language
+        lang_a = get_val(dec_a, 'language', 'unknown')
+        lang_b = get_val(dec_b, 'language', 'unknown')
+        lang_match = lang_a == lang_b
         lang_contrib = self.weights["language"] if lang_match else 0.0
         contributions.append(FeatureContribution(
             feature="language",
             match=lang_match,
             contribution=lang_contrib,
             weight=self.weights["language"],
-            detail=f"Both in {dec_a.language}" if lang_match
-            else f"{dec_a.language} vs {dec_b.language}",
+            detail=f"Both in {lang_a}" if lang_match
+            else f"{lang_a} vs {lang_b}",
         ))
 
         # Branch match
+        branch_a = get_val(dec_a, 'branch')
+        branch_b = get_val(dec_b, 'branch')
         branch_match = (
-            dec_a.branch is not None
-            and dec_b.branch is not None
-            and dec_a.branch == dec_b.branch
+            branch_a is not None
+            and branch_b is not None
+            and branch_a == branch_b
         )
         branch_contrib = self.weights["branch"] if branch_match else 0.0
         contributions.append(FeatureContribution(
@@ -176,15 +209,17 @@ class ProximityExplainer:
             match=branch_match,
             contribution=branch_contrib,
             weight=self.weights["branch"],
-            detail=f"Both in {dec_a.branch}" if branch_match
-            else f"{dec_a.branch or 'unknown'} vs {dec_b.branch or 'unknown'}",
+            detail=f"Both in {branch_a}" if branch_match
+            else f"{branch_a or 'unknown'} vs {branch_b or 'unknown'}",
         ))
 
         # Legal area match
+        area_a = get_val(dec_a, 'legal_area')
+        area_b = get_val(dec_b, 'legal_area')
         area_match = (
-            dec_a.legal_area is not None
-            and dec_b.legal_area is not None
-            and dec_a.legal_area == dec_b.legal_area
+            area_a is not None
+            and area_b is not None
+            and area_a == area_b
         )
         area_contrib = self.weights["legal_area"] if area_match else 0.0
         contributions.append(FeatureContribution(
@@ -192,13 +227,17 @@ class ProximityExplainer:
             match=area_match,
             contribution=area_contrib,
             weight=self.weights["legal_area"],
-            detail=f"Both in {dec_a.legal_area}" if area_match
-            else f"{dec_a.legal_area or 'unknown'} vs {dec_b.legal_area or 'unknown'}",
+            detail=f"Both in {area_a}" if area_match
+            else f"{area_a or 'unknown'} vs {area_b or 'unknown'}",
         ))
 
         # Citation overlap (Jaccard over cited_decisions + cited_laws)
-        citations_a = set(dec_a.cited_decisions) | set(dec_a.cited_laws)
-        citations_b = set(dec_b.cited_decisions) | set(dec_b.cited_laws)
+        cited_a = get_val(dec_a, 'cited_decisions', [])
+        laws_a = get_val(dec_a, 'cited_laws', [])
+        cited_b = get_val(dec_b, 'cited_decisions', [])
+        laws_b = get_val(dec_b, 'cited_laws', [])
+        citations_a = set(cited_a) | set(laws_a)
+        citations_b = set(cited_b) | set(laws_b)
         citation_sim = _jaccard_similarity(citations_a, citations_b)
         citation_contrib = self.weights["citation_overlap"] * citation_sim
         shared_count = len(citations_a & citations_b)
@@ -211,19 +250,23 @@ class ProximityExplainer:
         ))
 
         # Text length similarity
-        len_sim = _length_similarity(dec_a.text_length, dec_b.text_length)
+        len_a = get_val(dec_a, 'text_length', 0)
+        len_b = get_val(dec_b, 'text_length', 0)
+        len_sim = _length_similarity(len_a, len_b)
         len_contrib = self.weights["text_length"] * len_sim
         contributions.append(FeatureContribution(
             feature="text_length",
             match=len_sim > 0.8,
             contribution=len_contrib,
             weight=self.weights["text_length"],
-            detail=f"{dec_a.text_length} vs {dec_b.text_length} chars (sim: {len_sim:.3f})",
+            detail=f"{len_a} vs {len_b} chars (sim: {len_sim:.3f})",
         ))
 
         # Date proximity (same year)
-        year_a = _extract_year(dec_a.decision_date)
-        year_b = _extract_year(dec_b.decision_date)
+        date_a = get_val(dec_a, 'decision_date', '')
+        date_b = get_val(dec_b, 'decision_date', '')
+        year_a = _extract_year(date_a)
+        year_b = _extract_year(date_b)
         if year_a is not None and year_b is not None:
             year_match = year_a == year_b
             date_contrib = self.weights["date_proximity"] if year_match else 0.0
