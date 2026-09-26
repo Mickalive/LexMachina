@@ -29,7 +29,10 @@
     "results/fractal_map/legal_distance_modes/center_projected_768_hierarchical_12k_partial/zoom_coherence.json",
     "results/fractal_map/zoom_quality_174k_eval/partial_dense_verdict_center_projected_768_hierarchical_12k_partial.json",
     "reports/audit/fractal-map/CYCLE_36027099305.md",
-    "reports/fractal_map/PIPELINE_VERIFICATION_20260926.md"
+    "reports/fractal_map/PIPELINE_VERIFICATION_20260926.md",
+    "results/fractal_map/77k_hierarchical_dense/hierarchical_dense_77k_results.json",
+    "results/fractal_map/77k_true_hierarchical/true_hierarchical_leiden_77k_results.json",
+    "results/fractal_map/77k_fully_recursive_hierarchical/fully_recursive_hierarchical_77k_results.json"
   ],
   "partial_validation_completed": true,
   "partial_scale": 12570,
@@ -161,6 +164,27 @@
       "fragmentation": "minimal (0.41% singletons)",
       "nesting": 1.0
     },
+    "dense_embeddings_77k": {
+      "independent_leiden_flat": {
+        "nesting_score": 0.7207,
+        "mean_purity_delta": 0.0057,
+        "mean_zoom_quality": 0.2893,
+        "v26_verdict": "FAIL (nesting < 0.99)"
+      },
+      "true_hierarchical_leiden": {
+        "nesting_score": 1.0,
+        "improvement_rate": 0.152,
+        "improving_parents": 7,
+        "total_parents": 46,
+        "note": "limited zoom refinement"
+      },
+      "fully_recursive_hierarchical": {
+        "nesting_score": 1.0,
+        "improvement_rate": 0.097,
+        "fragmentation": "severe (77,169 singletons at res_3.0)",
+        "note": "trivial hierarchy"
+      }
+    },
     "citation_role_modes_1k": {
       "citing_alpha0.3": {
         "improvement_rate": 0.75,
@@ -246,7 +270,8 @@
     "flat_zoom_refinement_scale_sensitive": true,
     "dense_embeddings_superior_to_tfidf_at_equivalent_scale": true,
     "evidence_backed_zoom_path": "constrained_hierarchical_leiden on dense embeddings + citation_role_modes + outcome_hybrids",
-    "mount_path_issue_resolved": "corpus files at expected locations",
+    "mount_path_issue_resolved": "corpus files generated at /tmp/lex_accepted/corpus/corpus/normalization/canonical/; legal-distance mount path compatibility unconfirmed",
+    "mount_path_resolution": "Partial: regenerate_yearly_canonical.py generated bger_YYYY.jsonl for all years 1986-2026 at /tmp/lex_accepted/corpus/corpus/normalization/canonical/. Legal-distance compute_174k_dense_embeddings.py expected paths at /tmp/lex_accepted/corpus/... and /tmp/lex_accepted/evaluation/... compatibility not independently verified.",
     "constrained_hierarchical_solves_fragmentation": true,
     "adaptive_sub_resolution_effective": true,
     "min_cluster_size_prevents_singletons": true,
@@ -257,7 +282,9 @@
     "dense_embeddings_v26_threshold_not_met_at_12k": "improvement_rate=45.5% < 50% due to 82% unknown branches in metadata; legal-area purity shows +10% gain",
     "outcome_tfidf_alone_fails": "improvement_rate=33%; cited_decisions signal necessary",
     "tfidf_174k_constrained_hierarchical_passes": "All 4 TF-IDF modes PASS v26 rule at 174k (improvement_rate 57-90%, zero fragmentation, nesting=1.0)",
-    "flat_zoom_fails_at_174k": "Confirmed: flat Leiden FAILs at 174k with >99% fragmentation; constrained hierarchical PASSes"
+    "flat_zoom_fails_at_174k": "Confirmed: flat Leiden FAILs at 174k with >99% fragmentation; constrained hierarchical PASSes",
+    "seventy_seven_k_dense_evaluated": "77,169 decisions (years 2000-2012) evaluated with three hierarchical methods using pre-existing center-projected embeddings from 12k partial validation; scale dependency confirmed (12k improvement_rate=0.80 → 77k improvement_rate=0.15 or trivial hierarchy)",
+    "legal_distance_progress_actual": "3/26 years complete (2000-2002) per legal-distance progress.json; 77k evaluation used pre-existing center-projected embeddings from 12k partial validation, not new legal-distance compute"
   },
-  "next_recommendation": "TF-IDF 174k constrained hierarchical validation COMPLETE. All 4 modes PASS v26 frozen rule (improvement_rate 57-90%, zero fragmentation, nesting=1.0). Lane remains BLOCKED on legal-distance_174k_dense_embeddings (3/26 years complete, ~11.5% year completion). Resume for dense embedding evaluation when delivered. No same-question cycle justified."
+  "next_recommendation": "TF-IDF 174k constrained hierarchical validation COMPLETE. All 4 modes PASS v26 frozen rule (improvement_rate 57-90%, zero fragmentation, nesting=1.0). 77k dense embeddings evaluated: scale dependency confirmed (12k improvement_rate=0.80 → 77k improvement_rate=0.15 or trivial hierarchy). Legal-distance dense embeddings remain at 3/26 years complete (2000-2002 per progress.json). Corpus files generated but legal-distance mount path compatibility unconfirmed. Lane remains BLOCKED on legal-distance_174k_dense_embeddings. No same-question cycle justified until full 174k dense embeddings delivered."
 }
