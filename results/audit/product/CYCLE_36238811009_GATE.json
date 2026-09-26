@@ -1,0 +1,11 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Add 174k representations to DESIGN_PATTERNS and REPRESENTATION_PURPOSES in map_loader.py",
+    "Clarify scale labeling in metadata.json (e.g., scale: \"174k_subset_21k\")",
+    "Update state/product.json with actual corpus and representation counts after integration"
+  ],
+  "claim_ceiling": "Production default at 21k subset scale (21,228 decisions from local metadata_174k_full.json) for cited_outcome_hybrid_0.5_174k, cited_outcome_hybrid_0.7_174k, cited_decisions_tfidf_174k; 174k infrastructure wired and simulation-validated, gated on corpus lane parquet delivery for full 174k metadata and legal-distance lane for dense embeddings",
+  "evidence_summary": "33/33 representations loaded (30 legacy + 3 174k), 16/16 scale simulation tests PASS. Three 174k TF-IDF representations built with fractal-map validated hierarchical Leiden (coarse=0.5, fine=3.0, k=15) at 21,228 decisions, 7 zoom levels each: cited_outcome_hybrid_0.5_174k (PRODUCTION DEFAULT, JP=0.7990), cited_outcome_hybrid_0.7_174k (BEST FRACTAL, HierAdv=+0.3703), cited_decisions_tfidf_174k (zero-shot baseline, citation heritage AUC 0.9719). Spatial indices persisted for all 3. CSV export bug fixed (collects all fieldnames). true_hierarchical_leiden fixed via python-igraph/leidenalg install (5 coarse/89 fine clusters). API endpoints validated at 21k scale. Scale labeling in metadata.json says '174k' but n_decisions=21228 — honestly noted as local subset. Design patterns for 174k reps show UNKNOWN (minor, fixable)."
+}
