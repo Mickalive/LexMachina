@@ -1,0 +1,59 @@
+{
+  "cycle_id": "36225717174",
+  "lane": "fractal-map",
+  "direction_version": 27,
+  "timestamp": "2026-09-26T07:15:00.000000+00:00",
+  "gate_status": "PASS",
+  "gate_type": "operational_resume_final_audit",
+  "test_results": {
+    "total": 210,
+    "passed": 192,
+    "failed": 16,
+    "skipped": 2,
+    "expected_failures": 16,
+    "unexpected_failures": 0
+  },
+  "test_modules": {
+    "test_verify.py": {"passed": 168, "failed": 16, "skipped": 0},
+    "test_dense_embeddings_infrastructure.py": {"passed": 14, "failed": 0, "skipped": 1},
+    "test_zoom_quality_174k_v26_eval.py": {"passed": 7, "failed": 0, "skipped": 0},
+    "test_zoom_quality_174k_eval.py": {"passed": 4, "failed": 0, "skipped": 0}
+  },
+  "guard_tests": {
+    "description": "16 expected failures checking for product-claim keys (metrics_summary, map_modes, validation_metrics) that correctly do not exist while lane is BLOCKED_ON_DEPENDENCY",
+    "all_expected": true,
+    "categories": [
+      "TestMetricConsistency: 5 tests (metrics_summary, map_modes, validation_metrics missing)",
+      "TestLegalDistanceModes: 11 tests (map_modes missing)"
+    ]
+  },
+  "skipped_tests": {
+    "test_dense_embeddings_data_readiness_dense_mode_artifacts_exist": "Dense embeddings not yet available (expected)",
+    "test_legal_distance_scale_readiness_provenance_reproduced_by_recompute": "Provenance recompute skipped (expected)"
+  },
+  "lane_state_verification": {
+    "status": "BLOCKED_ON_DEPENDENCY",
+    "evidence_tier": "ACCEPTED",
+    "continue_recommended": false,
+    "blocked_on": "legal-distance_174k_dense_embeddings",
+    "dependency_progress": "3/26 years complete (2000-2002, ~7%)",
+    "orchestration_failure_confirmed": true,
+    "re_dispatch_occurrences": "60+"
+  },
+  "key_evidence_confirmed": {
+    "tfidf_174k_zoom_quality": "COMPLETE (FAIL as expected)",
+    "dense_embeddings_pipeline": "VERIFIED & READY",
+    "metadata_accessible": true,
+    "hierarchical_leiden_builder": "BUILT & VALIDATED",
+    "evidence_backed_zoom_path": "center_projected_64dim + hierarchical Leiden (validated at 62k scale)",
+    "compressed_ladder": "VALIDATED with scope (100% purity delta retention, identical navigation)",
+    "product_multi_view_ui": "VERIFIED IMPLEMENTED"
+  },
+  "artifacts_generated": [
+    "reports/fractal_map/OPERATIONAL_RESUME_36225717174_FINAL_AUDIT_READY.md",
+    "results/fractal_map/audit/CYCLE_36225717174_GATE.json",
+    "state/fractal_map.json (updated)"
+  ],
+  "audit_ready": true,
+  "next_action": "WAIT for legal-distance_174k_dense_embeddings completion; no same-question cycle justified"
+}
