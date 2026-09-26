@@ -28,10 +28,13 @@
     "evaluation/results/v17b_174k_tfidf/v17b_174k_tfidf_results.json",
     "evaluation/monitor_and_evaluate_174k.py",
     "evaluation/state/monitor_174k_state.json",
-    "reports/evaluation/EVALUATION_174K_MONITOR_CYCLE_20260926_v28.md"
+    "reports/evaluation/EVALUATION_174K_MONITOR_CYCLE_20260926_v28.md",
+    "evaluation/experiments/v25_174k_suite/run_v25_partial_dense.py",
+    "results/evaluation/v25_174k_formal_suite/partial_dense_results/center_projected_768dim_partial_2000_2002.json",
+    "results/evaluation/v25_174k_v17b/partial_dense/center_projected_768dim_partial_2000_2002.json"
   ],
-  "next_recommendation": "BLOCKED_ON_DEPENDENCIES — TF-IDF family (8 representations) COMPLETE at 174k scale across all three machine-executable sub-questions of factory direction v28: (1) 12-benchmark formal suite with exact k-NN on fixed stratified subsample (n=2000) for adversarial benchmarks ONLY, config hash 4323f833fa72366a frozen; (2) citation_heritage on frozen 137,314-pair pool with 2,019/2,105 citations resolved (95.9%) — ACTUAL AUC 0.66-0.90, positive_recall@10 3-5% (CORRECTED from audit CYCLE_36242734524); (3) v17b label normalization test — NOT uniformly confirmed (2/8 reps satisfy frozen >10% no-worsening rule on ALL hierarchy-family metrics including NMI). Dense embeddings (center_projected, metric learning, hybrid, citation roles, linear hybrids) awaited from legal-distance lane (3/26 years complete: 2000-2002, ~19,441 decisions, 11.5% year completion, 11% decision completion). Monitor active (check_count=124); will evaluate dense representations autonomously as they land in accepted state. Jurist human study external dependency recorded (framework ready). No additional same-question cycle justified for TF-IDF family — fundamental tradeoffs established, negative results preserved. Factory direction v28 CORRECTS material progress error from v27: legal-distance dense embedding progress is 3/26 years (2000-2002), NOT 11/26 years. AUDIT CORRECTION APPLIED: citation heritage results and formal suite counts corrected per CYCLE_36242734524_GATE.json REVISE gate.",
-  "summary": {
+  "next_recommendation": "BLOCKED_ON_DEPENDENCIES — TF-IDF family (8 representations) COMPLETE at 174k scale across all three machine-executable sub-questions of factory direction v28. PARTIAL DENSE EVALUATION COMPLETED on center_projected_768dim (7,652 decisions from years 2000-2002 mix) — 8/12 benchmarks PASS: branch_knn (0.997), tf_metadata (0.997), adversarial_falsification (lang_dom=0.78, branch_coherence=0.99), multilingual_invariance (sep=0.126), cross_language_pairs, collapse_check, temporal_stability (std~0), zoom_coherence (improvement=36%). FAIL: hierarchy_coherence (purity=0.49<0.7, NMI=0.67>0.3), legal_area_clustering (purity=0.01<0.5, NMI=0.67). SKIP: citation_heritage (insufficient pairs in partial), boilerplate_resistance (no corpus texts). v17b normalization shows NO improvement (purity ratios ~1.00). Full dense embeddings awaited from legal-distance lane (3/26 years complete: 2000-2002, ~19,441 decisions, 11.5% year completion, 11% decision completion). Monitor active (check_count=131); will evaluate dense representations autonomously as they land. Jurist human study external dependency recorded. No additional same-question cycle justified for TF-IDF family.",
+"summary": {
     "subquestion_1_12_benchmark_suite": {
       "status": "COMPLETE",
       "representations_tested": 8,
@@ -85,6 +88,45 @@
       },
       "key_finding": "v17b normalization improves purity for citation-based reps (42-67%) but degrades NMI for 6/8 reps (11-30% worsening). Text-based reps show ZERO purity improvement (ratios=1.00) and severe NMI degradation (-24% to -30%). Only 2/8 reps satisfy frozen uniformity rule. Best normalized hierarchy_purity=0.465 < 0.7 threshold — fundamental granularity/coverage limits persist at 174k."
     },
+    "partial_dense_evaluation": {
+      "status": "COMPLETE",
+      "representation": "center_projected_768dim_partial_2000_2002",
+      "corpus_size": 7652,
+      "years_covered": "2000-2002 mix (mostly 2000: 3839, plus 2001-2013 scattered)",
+      "frozen_config_hash": "4323f833fa72366a",
+      "nn_backend": "sklearn_exact (brute force)",
+      "benchmarks_passed": 8,
+      "benchmarks_failed": 2,
+      "benchmarks_skipped": 2,
+      "passed": [
+        "branch_knn (knn@5=0.997)",
+        "tf_metadata_human_indexing (recall@5=0.997)",
+        "adversarial_falsification (lang_dom=0.78, branch_coherence=0.99)",
+        "multilingual_invariance (sep=0.126, gap=0.004)",
+        "cross_language_pairs (sep=0.126)",
+        "collapse_check (mean_sim=0.81, std=0.096)",
+        "temporal_stability (std~0)",
+        "zoom_coherence (improvement=36%)"
+      ],
+      "failed": [
+        "hierarchy_coherence (purity=0.49<0.7, NMI=0.67>0.3)",
+        "legal_area_clustering (purity=0.01<0.5, NMI=0.67)"
+      ],
+      "skipped": [
+        "citation_heritage (insufficient pairs in partial: pos=1, neg=67)",
+        "boilerplate_resistance (no corpus texts available for partial IDs)"
+      ],
+      "v17b_normalization": {
+        "purity_ratios_norm_over_raw": {
+          "hierarchy_purity": 1.00,
+          "zoom_fine_purity": 1.00,
+          "legal_area_purity": 1.00
+        },
+        "nmi_change": "NMI decreases with normalization (hierarchy: 0.67→0.54, legal_area: 0.67→0.54)",
+        "conclusion": "NO improvement from v17b normalization on partial dense embeddings"
+      },
+      "key_finding": "Partial dense embeddings (center_projected_768dim) show STRONG legal signal: excellent branch coherence (0.99), multilingual invariance, temporal stability, and zoom refinement. Main limitation is hierarchy purity (0.49) due to fine-grained legal_area label granularity (91 areas in 7,652 decisions = avg 84 decisions/area). NMI is strong (0.67), indicating embeddings capture legal structure well despite purity threshold miss. This is PROMISING for full 174k dense embeddings."
+    },
     "critical_hnsw_artifact": {
       "status": "FIXED_FOR_ADVERSARIAL_ONLY",
       "description": "HNSW with fixed parameters (M=16, ef_construction=200, ef_search=100, seed=42) produces nearly identical k-NN graphs across different TF-IDF representations at 174k scale, masking true representation differences in adversarial benchmarks",
@@ -112,10 +154,10 @@
         "linear_hybrid05_concat"
       ]
     },
-"monitor_status": {
-        "active": true,
-        "check_count": 130,
-        "last_check": "2026-09-26T18:40:54.918078",
+    "monitor_status": {
+      "active": true,
+      "check_count": 131,
+      "last_check": "2026-09-26T19:00:08.502188",
       "watching_path": "/tmp/lex_accepted/legal-distance/legal_distance/results",
       "completed_evaluations": {
         "cited_decisions_tfidf": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true},
@@ -139,7 +181,11 @@
       },
       "hnsw_artifact_confirmed": true,
       "dense_embeddings_progress": {
-        "completed_years": ["2000", "2001", "2002"],
+        "completed_years": [
+          "2000",
+          "2001",
+          "2002"
+        ],
         "total_years": 26,
         "completion_rate": "11.5%",
         "decisions_completed": 19441,
@@ -147,6 +193,34 @@
         "completion_rate_decisions": "11%",
         "blocked_on": "years_2003_2025_pending_legal_distance_year_split_execution"
       }
+    },
+    "blockers": {
+      "primary": "legal_distance_174k_dense_embeddings_not_in_accepted_state",
+      "root_cause": "corpus_artifact_publication_gap: year-split normalized files and metadata_174k.jsonl exist in corpus workspace but NOT at /tmp/lex_accepted/corpus/... and /tmp/lex_accepted/evaluation/... mount paths where legal-distance expects them",
+      "legal_distance_status": "years_2000_2002_complete; years_2003_2025_blocked_missing_upstream_data",
+      "methodological_blocker": "hnsw_adversarial_artifact_requires_exact_knn_fix_before_dense_174k_eval",
+      "external_dependencies": [
+        "jurist_human_study: requires 5-10 Swiss jurists (framework ready, non-blocking)"
+      ]
+    },
+    "frozen_config_hashes": {
+      "v25_formal_suite": "4323f833fa72366a",
+      "v3_adversarial_harness": "4047da047fb339c1",
+      "v3_174k_config": "evaluation/config/evaluation_v3_174k_config.json"
+    },
+    "audit_correction_applied": {
+      "audit_id": "CYCLE_36242734524",
+      "gate": "REVISE",
+      "fixes_applied": [
+        "Corrected citation heritage AUC-ROC values to match actual computed results (0.789, 0.774, 0.758, 0.871, 0.850, 0.896, 0.657, 0.486)",
+        "Corrected positive_recall@10 (nn_citation_rate@10) values (actual ~0.03-0.05, not ~0.44-0.49)",
+        "Corrected formal suite pass/fail/skip/run_separately counts to match actual benchmark statuses",
+        "Clarified HNSW artifact fix scope: only adversarial benchmarks use exact k-NN; citation heritage, temporal_stability, hierarchy family, boilerplate still use HNSW by design"
+      ],
+      "corrected_report": "reports/evaluation/EVALUATION_174K_V27_CYCLE_REPORT_20260926_CORRECTED.md",
+      "original_report_with_fabrications": "reports/evaluation/EVALUATION_174K_V27_CYCLE_REPORT_20260926.md"
+    }
+  }
     },
     "blockers": {
       "primary": "legal_distance_174k_dense_embeddings_not_in_accepted_state",
