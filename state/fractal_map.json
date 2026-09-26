@@ -9,9 +9,23 @@
   "evidence_refs": [
     "reports/fractal_map/CONSTRAINED_HIERARCHICAL_VALIDATION_20260926.md",
     "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_100000_20260926_134800.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_dense_2000_2002_20260926_170804.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_citing_alpha0.3_20260926_170918.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_following_alpha0.3_20260926_170918.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_criticizing_alpha0.3_20260926_170919.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_cited_decisions_tfidf_20260926_171127.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_cited_decisions_tfidf_outcome_hybrid_0.3_20260926_171127.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_cited_decisions_tfidf_outcome_hybrid_0.5_20260926_171127.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_cited_decisions_tfidf_outcome_hybrid_0.7_20260926_171128.json",
     "results/fractal_map/alternative_hierarchical_tests/alt_hierarchical_fulltext_10000_20260926_134129.json",
     "results/fractal_map/zoom_quality_174k_eval/citation_role_1000_v26_rule_20260926_135652.json",
-    "reports/fractal_map/fractal_map_174k_zoom_quality_report_v27.md"
+    "reports/fractal_map/fractal_map_174k_zoom_quality_report_v27.md",
+    "reports/fractal_map/PARTIAL_DENSE_VALIDATION_20260926.md",
+    "results/fractal_map/legal_distance_modes/center_projected_768_hierarchical_12k_partial/integration_summary.json",
+    "results/fractal_map/legal_distance_modes/center_projected_768_hierarchical_12k_partial/zoom_coherence.json",
+    "results/fractal_map/zoom_quality_174k_eval/partial_dense_verdict_center_projected_768_hierarchical_12k_partial.json",
+    "reports/audit/fractal-map/CYCLE_36027099305.md",
+    "reports/fractal_map/PIPELINE_VERIFICATION_20260926.md"
   ],
   "partial_validation_completed": true,
   "partial_scale": 12570,
@@ -32,7 +46,7 @@
     0.0
   ],
   "fragmentation": "none",
-  "singleton_fraction_max": 0.0,
+  "singleton_fraction_max": 0.0041,
   "branch_purity_coarse": 0.7992,
   "branch_purity_fine": 0.9306,
   "area_purity_coarse": 0.2837,
@@ -54,11 +68,13 @@
   "nesting_metric_defect_v1_enforced": true,
   "constrained_hierarchical_validated": true,
   "constrained_hierarchical_scales_tested": [
+    1200,
     5000,
     10000,
     20000,
     50000,
-    100000
+    100000,
+    12570
   ],
   "constrained_hierarchical_config": {
     "coarse_res": 0.25,
@@ -68,11 +84,55 @@
     "adaptive_sub_res": true
   },
   "constrained_hierarchical_results": {
-    "improvement_rate": 1.0,
-    "mean_branch_purity_gain": 0.034,
-    "mean_area_purity_gain": 0.042,
-    "fragmentation": "none (0% singletons at all scales)",
-    "nesting": 1.0
+    "dense_embeddings_12k": {
+      "improvement_rate": 0.4545,
+      "mean_branch_purity_gain": 0.1243,
+      "branch_purity_coarse": 0.8653,
+      "branch_purity_fine": 0.9880,
+      "area_purity_coarse": 0.4532,
+      "area_purity_fine": 0.5563,
+      "fragmentation": "minimal (0.41% singletons)",
+      "nesting": 1.0
+    },
+    "citation_role_modes_1k": {
+      "citing_alpha0.3": {
+        "improvement_rate": 0.75,
+        "branch_purity_gain": 0.1354,
+        "fragmentation": "none (0% singletons)"
+      },
+      "following_alpha0.3": {
+        "improvement_rate": 0.60,
+        "branch_purity_gain": 0.1241,
+        "fragmentation": "none (0% singletons)"
+      },
+      "criticizing_alpha0.3": {
+        "improvement_rate": 0.625,
+        "branch_purity_gain": 0.0482,
+        "fragmentation": "none (0% singletons)"
+      }
+    },
+    "citation_outcome_hybrids_1k": {
+      "cited_decisions_tfidf": {
+        "improvement_rate": 0.833,
+        "branch_purity_gain": 0.138,
+        "fragmentation": "minimal (2.6% singletons)"
+      },
+      "cited_decisions_tfidf_outcome_hybrid_0.3": {
+        "improvement_rate": 0.857,
+        "branch_purity_gain": 0.0497,
+        "fragmentation": "none (0% singletons)"
+      },
+      "cited_decisions_tfidf_outcome_hybrid_0.5": {
+        "improvement_rate": 0.857,
+        "branch_purity_gain": 0.0569,
+        "fragmentation": "none (0% singletons)"
+      },
+      "cited_decisions_tfidf_outcome_hybrid_0.7": {
+        "improvement_rate": 0.706,
+        "branch_purity_gain": 0.0254,
+        "fragmentation": "none (0% singletons)"
+      }
+    }
   },
   "alternative_methods_tested": {
     "leiden": {
@@ -102,9 +162,14 @@
     }
   },
   "citation_role_1000_verdict": {
-    "citing_alpha0.3": "FAIL (v26) but constrained hierarchical: 0% fragmentation, 100% improvement_rate",
-    "following_alpha0.3": "FAIL (v26) severe over-fragmentation",
-    "criticizing_alpha0.3": "FAIL (v26) severe over-fragmentation"
+    "citing_alpha0.3": "FAIL (v26 flat) but constrained hierarchical: 0% fragmentation, 75% improvement_rate",
+    "following_alpha0.3": "FAIL (v26 flat) but constrained hierarchical: 0% fragmentation, 60% improvement_rate",
+    "criticizing_alpha0.3": "FAIL (v26 flat) but constrained hierarchical: 0% fragmentation, 62.5% improvement_rate"
+  },
+  "outcome_hybrid_1000_verdict": {
+    "cited_decisions_tfidf_outcome_hybrid_0.3": "FAIL (v26 flat) but constrained hierarchical: 0% fragmentation, 85.7% improvement_rate",
+    "cited_decisions_tfidf_outcome_hybrid_0.5": "FAIL (v26 flat) but constrained hierarchical: 0% fragmentation, 85.7% improvement_rate",
+    "cited_decisions_tfidf_outcome_hybrid_0.7": "FAIL (v26 flat) but constrained hierarchical: 0% fragmentation, 70.6% improvement_rate"
   },
   "key_findings": {
     "pipeline_validated": true,
@@ -113,12 +178,17 @@
     "no_over_fragmentation_at_12k": true,
     "flat_zoom_refinement_scale_sensitive": true,
     "dense_embeddings_superior_to_tfidf_at_equivalent_scale": true,
-    "evidence_backed_zoom_path": "constrained_hierarchical_leiden on dense embeddings + citation_role_modes",
+    "evidence_backed_zoom_path": "constrained_hierarchical_leiden on dense embeddings + citation_role_modes + outcome_hybrids",
     "mount_path_issue_resolved": "corpus files at expected locations",
     "constrained_hierarchical_solves_fragmentation": true,
     "adaptive_sub_resolution_effective": true,
     "min_cluster_size_prevents_singletons": true,
-    "max_subclusters_prevents_overfragmentation": true
+    "max_subclusters_prevents_overfragmentation": true,
+    "all_citation_role_modes_pass_constrained": true,
+    "all_outcome_hybrids_pass_constrained": true,
+    "zero_shot_hybrids_work_at_1k": true,
+    "dense_embeddings_v26_threshold_not_met_at_12k": "improvement_rate=45.5% < 50% due to 82% unknown branches in metadata; legal-area purity shows +10% gain",
+    "outcome_tfidf_alone_fails": "improvement_rate=33%; cited_decisions signal necessary"
   },
-  "next_recommendation": "BLOCKED on legal-distance_174k_dense_embeddings (3/26 years complete). Constrained hierarchical Leiden validated up to 100k scale — solves fragmentation (0% singletons), guarantees nesting (1.0), achieves 100% improvement rate with strong purity gains. Resume for full 174k evaluation when dense embeddings delivered. No same-question cycle justified."
+  "next_recommendation": "BLOCKED on legal-distance_174k_dense_embeddings (3/26 years complete). Constrained hierarchical Leiden validated at sub-174k scales across all representation families (dense 12k, citation-role 1k, outcome-hybrid 1k, TF-IDF up to 100k). All citation-role and outcome-hybrid modes that FAILED v26 flat zoom quality now PASS with constrained hierarchical Leiden (improvement_rate 60-86%, zero fragmentation, nesting=1.0). Dense embeddings at 12k show strong purity gains (+12% branch, +10% area) but improvement_rate 45.5% falls below v26 threshold; metadata quality (82% unknown branches) limits branch purity signal. Resume for full 174k evaluation when dense embeddings delivered. No same-question cycle justified."
 }
