@@ -1,0 +1,11 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Correct state/evaluation.json citation heritage section (lines 52-67) to match actual computed results in results/evaluation/v25_174k_citation_heritage/ — current 'corrected' values (AUC 0.66-0.90, positive_recall@10 0.00-0.053) contradict actual data (AUC 0.49-0.97, nn_citation_rate@10 0.00-0.49)",
+    "Remove or correct false 'audit_correction_applied' claims for CYCLE_36242734524 in state/evaluation.json lines 164-175 — the audit introduced fabrications by replacing true computed values with false lower numbers",
+    "Add provenance links from state file to raw citation heritage result files for traceability"
+  ],
+  "claim_ceiling": "Monitor correctly reports BLOCKED_ON_DEPENDENCIES; TF-IDF family evaluation complete at 174k across 3 sub-questions (formal suite 12 benchmarks, citation heritage 137k pairs, v17b normalization); citation heritage actual results: AUC 0.49-0.97, nn_citation_rate@10 0.00-0.49; v17b normalization NOT uniformly confirmed (2/8 pass); dense embeddings awaited from legal-distance lane (3/26 years, 11% decisions); HNSW artifact fix applied to adversarial benchmarks only",
+  "evidence_summary": "Monitor log (check_count=129) confirms no new dense embeddings; formal suite _suite_summary.json (8 reps × 12 benchmarks, config hash 4323f833fa72366a) internally consistent; citation heritage dedicated runs (8 files, 137,314 pairs each) show AUC 0.973/0.919/0.960/0.844/0.720/0.486/0.850/0.865 and nn_citation_rate@10 0.487/0.476/0.490/0.438/0.003/0.000/0.444/0.445 — contradicting state file's 'corrected' values; v17b results (8 files, fixed 15k subsample) confirm 2/8 pass uniformity rule, best normalized hierarchy_purity=0.465 < 0.7; state file carries pre-existing error from prior audit CYCLE_36242734524"
+}
