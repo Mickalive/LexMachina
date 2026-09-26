@@ -276,17 +276,25 @@ def get_incremental_updater() -> IncrementalUpdater:
     return _incremental_updater
 
 
-def get_default_representation() -> str:
+def get_default_representation(nav_api=None) -> str:
     """Get the default representation for map navigation.
     
-    Factory direction v15 (v15b-audit CRITICAL + v16 ACCEPTED):
-    cited_outcome_hybrid_0.5 is the PRODUCTION DEFAULT.
+    Factory direction v27: Switch to 174k TF-IDF production defaults.
+    cited_outcome_hybrid_0.5_174k is the PRODUCTION DEFAULT at 174k scale.
     
     v15b-audit CRITICAL: NO representation passes all benchmarks;
     PRODUCTION DEFAULT is cited_outcome_hybrid_0.5 because it wins
     full-harness LangDom/JuristPref/Boilerplate. Best for user-imported
     corpora where branch metadata unavailable.
+    
+    At 174k scale (v27), the TF-IDF hybrid at full-corpus scale is the default.
+    Falls back to 7k version if 174k not available.
     """
+    # Try 174k production default first
+    if nav_api is not None:
+        available = nav_api.map_loader.get_available_representations()
+        if "cited_outcome_hybrid_0.5_174k" in available:
+            return "cited_outcome_hybrid_0.5_174k"
     return "cited_outcome_hybrid_0.5"
 
 
@@ -327,7 +335,7 @@ class ProductHandler(SimpleHTTPRequestHandler):
         if path == "/api/overview":
             self._json_response(get_nav_api().get_overview())
         elif path == "/api/map":
-            default_rep = get_default_representation()
+            default_rep = get_default_representation(get_nav_api())
             rep = params.get("representation", [default_rep])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             mode = params.get("mode", [None])[0]
@@ -353,7 +361,7 @@ class ProductHandler(SimpleHTTPRequestHandler):
                     ]
                     result["degraded_representations"] = list(health_issues.keys())
                     result["recommendation"] = (
-                        f"Try representation '{get_default_representation()}' which is the "
+                        f"Try representation '{get_default_representation(get_nav_api())}' which is the "
                         "production default, or use /api/health/representations for full status."
                     )
                 self._json_response(result)
@@ -366,7 +374,7 @@ class ProductHandler(SimpleHTTPRequestHandler):
         elif path == "/api/map_modes":
             self._json_response(get_nav_api().get_map_modes())
         elif path == "/api/cluster":
-            default_rep = get_default_representation()
+            default_rep = get_default_representation(get_nav_api())
             rep = params.get("representation", [default_rep])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             cid = int(params.get("cluster_id", ["0"])[0])
@@ -402,13 +410,13 @@ class ProductHandler(SimpleHTTPRequestHandler):
                 lambda: get_nav_api().get_language_stats(), ttl=600)
         elif path == "/api/neighbors":
             did = params.get("id", [""])[0]
-            default_rep = get_default_representation()
+            default_rep = get_default_representation(get_nav_api())
             rep = params.get("representation", [default_rep])[0]
             zoom = int(params.get("zoom", ["2"])[0])
             n = int(params.get("n", ["10"])[0])
             self._json_response(get_nav_api().get_neighbors(did, rep, zoom, n))
         elif path == "/api/zoom_levels":
-            default_rep = get_default_representation()
+            default_rep = get_default_representation(get_nav_api())
             rep = params.get("representation", [default_rep])[0]
             self._json_response(get_nav_api().get_zoom_levels(rep))
         elif path == "/api/corpus/stats":
@@ -419,7 +427,7 @@ class ProductHandler(SimpleHTTPRequestHandler):
             self._handle_cached(f"proximity:{id_a}:{id_b}",
                 lambda: get_nav_api().get_proximity_explanation(id_a, id_b))
         elif path == "/api/cluster_coherence":
-            default_rep = get_default_representation()
+            default_rep = get_default_representation(get_nav_api())
             rep = params.get("representation", [default_rep])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             cid = int(params.get("cluster_id", ["0"])[0])
@@ -432,7 +440,7 @@ class ProductHandler(SimpleHTTPRequestHandler):
         elif path == "/api/zoom_coherence/flat_baseline":
             self._json_response(get_nav_api().get_zoom_coherence_flat_baseline())
         elif path == "/api/cluster_language_analysis":
-            default_rep = get_default_representation()
+            default_rep = get_default_representation(get_nav_api())
             rep = params.get("representation", [default_rep])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             cid = int(params.get("cluster_id", ["0"])[0])
@@ -453,7 +461,7 @@ class ProductHandler(SimpleHTTPRequestHandler):
         elif path == "/api/evaluation/representation_quality":
             self._json_response(get_eval_loader().get_representation_quality())
         elif path == "/api/map/temporal":
-            default_rep = get_default_representation()
+            default_rep = get_default_representation(get_nav_api())
             rep = params.get("representation", [default_rep])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             year_start = int(params["year_start"][0]) if "year_start" in params else None
@@ -461,14 +469,14 @@ class ProductHandler(SimpleHTTPRequestHandler):
             self._json_response(get_nav_api().get_temporal_map_data(rep, zoom, year_start, year_end))
         # Map export endpoints
         elif path == "/api/map/export":
-            default_rep = get_default_representation()
+            default_rep = get_default_representation(get_nav_api())
             rep = params.get("representation", [default_rep])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             fmt = params.get("format", ["json"])[0]
             include_meta = params.get("include_metadata", ["true"])[0].lower() == "true"
             self._json_response(get_nav_api().export_map_data(rep, zoom, fmt, include_meta))
         elif path == "/api/cluster/export":
-            default_rep = get_default_representation()
+            default_rep = get_default_representation(get_nav_api())
             rep = params.get("representation", [default_rep])[0]
             zoom = int(params.get("zoom", ["1"])[0])
             cid = int(params.get("cluster_id", ["0"])[0])
@@ -495,7 +503,7 @@ class ProductHandler(SimpleHTTPRequestHandler):
             self._json_response(get_nav_api().validate_representations())
         elif path == "/api/map/compare":
             # Map mode comparison endpoint
-            default_rep = get_default_representation()
+            default_rep = get_default_representation(get_nav_api())
             rep_a = params.get("rep_a", [default_rep])[0]
             rep_b = params.get("rep_b", ["legal_cited_decisions"])[0]
             zoom = int(params.get("zoom", ["1"])[0])
@@ -540,7 +548,7 @@ class ProductHandler(SimpleHTTPRequestHandler):
         elif path == "/api/webgl/lod":
             from app.lod_manager import LODManager
             lod_mgr = LODManager()
-            default_rep = get_default_representation()
+            default_rep = get_default_representation(get_nav_api())
             rep = params.get("representation", [default_rep])[0]
             # Get total point count for the representation
             try:
@@ -557,7 +565,7 @@ class ProductHandler(SimpleHTTPRequestHandler):
         
         # WebGL rendering data endpoint
         elif path == "/api/webgl/data":
-            default_rep = get_default_representation()
+            default_rep = get_default_representation(get_nav_api())
             rep = params.get("representation", [default_rep])[0]
             zoom_level = int(params.get("zoom", ["1"])[0])
             mode = params.get("mode", [None])[0]
@@ -1118,7 +1126,7 @@ def run_server(port=8080):
     """Start the product server."""
     print(f"Initializing LexMachina navigation...")
     nav = get_nav_api()
-    default_rep = get_default_representation()
+    default_rep = get_default_representation(get_nav_api())
     print(f"Loaded {nav.corpus.size} decisions, {len(nav.map_loader.get_available_representations())} maps, "
           f"{len(nav.section_modes.modes)} section modes, citation graph: {nav.citation_loader.get_stats()}, "
           f"zoom coherence: {nav.zoom_coherence._loaded}, TF-IDF model: {nav.tfidf_proximity._built}")

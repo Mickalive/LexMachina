@@ -318,8 +318,8 @@ class NavigationAPI:
     def _get_default_representation(self) -> str:
         """Get the default representation for map navigation.
         
-        Factory direction v15 (v15b-audit CRITICAL + v16 ACCEPTED):
-        cited_outcome_hybrid_0.5 is the PRODUCTION DEFAULT.
+        Factory direction v27: Switch to 174k TF-IDF production defaults.
+        cited_outcome_hybrid_0.5_174k is the PRODUCTION DEFAULT at 174k scale.
         
         v15b-audit CRITICAL: NO representation passes all benchmarks;
         PRODUCTION DEFAULT is cited_outcome_hybrid_0.5 because it wins
@@ -335,7 +335,13 @@ class NavigationAPI:
         center_projected_64dim_hierarchical available as LEGACY mode for comparison.
         linear_hybrid05_concat (JP=0.838, best stable combination) available as
         COMBINATION mode for doctrinal/Jurivoc exploration.
+        
+        At 174k scale (v27), the TF-IDF hybrid at full-corpus scale is the default.
+        Falls back to 7k version if 174k not available.
         """
+        available = self.map_loader.get_available_representations()
+        if "cited_outcome_hybrid_0.5_174k" in available:
+            return "cited_outcome_hybrid_0.5_174k"
         return "cited_outcome_hybrid_0.5"
 
     def _load_imported_positions(self) -> None:
@@ -1784,7 +1790,11 @@ class NavigationAPI:
             import io
             output = io.StringIO()
             if export_rows:
-                fieldnames = list(export_rows[0].keys())
+                # Collect all possible fieldnames from all rows
+                all_fieldnames = set()
+                for row in export_rows:
+                    all_fieldnames.update(row.keys())
+                fieldnames = list(all_fieldnames)
                 writer = csv.DictWriter(output, fieldnames=fieldnames)
                 writer.writeheader()
                 writer.writerows(export_rows)
@@ -1857,7 +1867,11 @@ class NavigationAPI:
             import io
             output = io.StringIO()
             if export_rows:
-                fieldnames = list(export_rows[0].keys())
+                # Collect all possible fieldnames from all rows
+                all_fieldnames = set()
+                for row in export_rows:
+                    all_fieldnames.update(row.keys())
+                fieldnames = list(all_fieldnames)
                 writer = csv.DictWriter(output, fieldnames=fieldnames)
                 writer.writeheader()
                 writer.writerows(export_rows)
