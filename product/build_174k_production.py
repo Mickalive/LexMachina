@@ -22,7 +22,7 @@ from hierarchical_zoom_validation import (
 )
 
 PRODUCT_RESULTS = Path("/home/runner/work/LexMachina/LexMachina/product/results/fractal_map")
-CORPUS_DIR = Path("/tmp/lex_accepted/corpus/corpus/normalization/canonical")
+CORPUS_DIR = Path("/home/runner/work/LexMachina/LexMachina/product/results/corpus/normalization/canonical")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 logger = logging.getLogger(__name__)
