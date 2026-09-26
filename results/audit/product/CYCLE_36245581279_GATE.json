@@ -1,0 +1,12 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Align factory_direction.json version in control plane with claimed v28 (or revert state to v27 if v28 is not intended as a formal direction bump)",
+    "Clarify scale labeling in metadata.json (e.g., scale: \"174k_subset_21k\")",
+    "Consider setting cycle_status=BLOCKED or continue_recommended=false to match operational reality and avoid orchestration pathology",
+    "Add 174k representations to DESIGN_PATTERNS and REPRESENTATION_PURPOSES in map_loader.py (minor)"
+  ],
+  "claim_ceiling": "Production default at 21k subset scale (21,228 decisions from local metadata_174k_full.json) for cited_outcome_hybrid_0.5_174k, cited_outcome_hybrid_0.7_174k, cited_decisions_tfidf_174k; 174k infrastructure wired and simulation-validated, gated on corpus lane parquet delivery for full 174k metadata and legal-distance lane for dense embeddings (3/26 years complete, mount path gap unresolved)",
+  "evidence_summary": "Code changes: 1 file modified (map_loader.py — minor branch metadata loading fix), 4 new feedback entries. Map artifacts: 3 representations at 21,228 decisions with 7 zoom levels each, hierarchical Leiden (coarse=0.5, fine=3.0), nesting_score=1.0 by construction (pre-existing, verified intact). Spatial indices: 3 KD-tree indices for 174k reps (pre-existing, verified intact). Tests: 16/16 scale simulation tests PASS (independently recomputed), 33/33 core product tests PASS (verified subset, independently recomputed). Runtime: MapLoader loads 33/33 representations; NavigationAPI serves 7,990 corpus decisions; 174k reps operational at 7 zoom levels with 21,228 decisions. API: 10 key endpoints validated at 21k scale. Section coverage: 95.7% (1,150/1,202 decisions). State: direction_version 27→28 claimed but factory_direction.json not updated (version-labeling inconsistency)."
+}
