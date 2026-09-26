@@ -1,0 +1,130 @@
+{
+  "cycle_id": "36216424744",
+  "lane": "fractal-map",
+  "direction_version": 27,
+  "timestamp": "2026-09-26T04:20:00.000000+00:00",
+  "gate_verdict": "BLOCKED",
+  "gate_type": "spurious_dispatch_audit",
+  "repair_round": 0,
+  "resumed_from_run": "36213331932",
+  "previous_accepted_run": "36213331932",
+  "producer_commit": "6d504384",
+  "test_results": {
+    "total": 0,
+    "passed": 0,
+    "skipped": 0,
+    "failed": 0,
+    "details": {
+      "note": "No test run executed in this cycle — cycle was dispatched but produced no work. Producer workspace identical to accepted base (commit 6d504384)."
+    }
+  },
+  "lane_state": {
+    "cycle_status": "BLOCKED_ON_DEPENDENCY",
+    "continue_recommended": false,
+    "evidence_tier": "ACCEPTED",
+    "blocked_on": "legal-distance_174k_dense_embeddings",
+    "blocked_since": "2026-09-24T01:55:00Z",
+    "legal_distance_progress": "11/26 years complete (2000-2010), 36% corpus coverage confirmed by partial evaluation at 62,645 decisions (cycle 36213331932)"
+  },
+  "state_transition": {
+    "accepted_run_id_updated": "NO_CHANGE (remains 36213331932)",
+    "github_run_updated": "NO_CHANGE (remains 36213331932)",
+    "resume_from_run_id_updated": "NO_CHANGE (remains 36208688279)",
+    "previous_accepted_run_updated": "NO_CHANGE (remains 36208688279)",
+    "evidence_refs_added": 0,
+    "key_findings_added": 0,
+    "fields_unchanged": [
+      "cycle_status",
+      "continue_recommended",
+      "blocked_on",
+      "blocked_since",
+      "evidence_tier",
+      "direction_version",
+      "next_recommendation",
+      "accepted_run_id",
+      "github_run",
+      "resume_from_run_id",
+      "previous_accepted_run"
+    ],
+    "transition_valid": true,
+    "note": "No state transition occurred — this cycle produced no work and made no state changes"
+  },
+  "prior_cycle_work_summary": {
+    "last_substantive_cycle": "36213331932",
+    "last_substantive_commit": "2a02579f",
+    "last_substantive_gate": "results/fractal_map/audit/CYCLE_36213331932_GATE.json (PASS)",
+    "last_state_transition_cycle": "36215757319",
+    "last_state_transition_commit": "346b11b8",
+    "last_state_transition_gate": "results/audit/fractal-map/CYCLE_36215757319_GATE.json (PASS)",
+    "test_results": {
+      "total": 210,
+      "passed": 192,
+      "skipped": 2,
+      "failed": 16,
+      "failed_expected": true,
+      "failure_reason": "Product-claim tests correctly fail while lane is BLOCKED_ON_DEPENDENCY"
+    },
+    "key_deliverables": {
+      "tfidf_174k_zoom_quality": "COMPLETE_FAIL_AS_EXPECTED (0/4 modes PASS, bit-equal v25 crosscheck)",
+      "dense_embeddings_infra": "VERIFIED_READY (eval_dense_embeddings_174k.py, hierarchical builder, metadata aligned)",
+      "citation_role_dense_path": "BLOCKED_ON_LEGAL_DISTANCE (placeholder keys, no real decision IDs)",
+      "partial_dense_eval_62k": "FIRST_PASS_AT_SCALE (center_projected_64dim + hier Leiden PASS v26 rule)",
+      "citation_role_1000scale": "STILL_FAIL (97-99% singleton fragmentation, rate_ok fails)",
+      "compressed_ladder": "VALIDATED_WITH_SCOPE (NESTING_METRIC_DEFECT_v1 enforced)",
+      "product_ui": "VERIFIED_IMPLEMENTED (citation-role views, zoom controls, split-view)"
+    },
+    "dense_embeddings_partial_results": {
+      "corpus_coverage": "62,645 decisions (years 2000-2010, 36% of 174k)",
+      "raw_768dim": {"branch_mono": true, "area_mono": false, "verdict": "FAIL", "frag_pct": 8},
+      "cp_768dim_debiased": {"branch_mono": true, "area_mono": true, "rate_ok": false, "verdict": "FAIL", "frag_pct": 4.5},
+      "cp_64dim_hier_leiden": {"branch_mono": true, "area_mono": true, "rate_ok": true, "verdict": "PASS", "frag_pct": 1.7, "note": "OPTIMAL SWEET SPOT"},
+      "cp_128dim_hier_leiden": {"branch_mono": true, "area_mono": true, "rate_ok": false, "verdict": "FAIL"},
+      "cp_768dim_hier_leiden": {"branch_mono": true, "area_mono": true, "rate_ok": false, "verdict": "FAIL"},
+      "evidence_backed_zoom_path_confirmed": "Dense embeddings (center_projected_64dim) + hierarchical Leiden = coherent zoom path at partial scale"
+    }
+  },
+  "orchestration_diagnosis": {
+    "root_cause": "Supervisor reads ephemeral /tmp/lex_control/state/factory_direction.json (fractal-map.status=RUN) instead of authoritative workspace state/fractal_map.json (BLOCKED_ON_DEPENDENCY)",
+    "documented_redispatch_occurrences": "63+ (this cycle is latest occurrence)",
+    "affected_runs": [
+      "36152847479",
+      "36153888330",
+      "36154945444",
+      "36156868300",
+      "36158377781",
+      "36161811441",
+      "36168128832",
+      "36174553152",
+      "36176481336",
+      "36178188261",
+      "36179928283",
+      "36202696806",
+      "36205017757",
+      "36206192159",
+      "36208688279",
+      "36209331769",
+      "36213331932",
+      "36215293928",
+      "36215757319",
+      "36216424744"
+    ],
+    "required_fix": "Update supervisor dispatch logic to read state/<lane>.json for dispatch gating",
+    "defect_status": "PERSISTS — UNFIXED SINCE 2026-09-24"
+  },
+  "preservation_checks": {
+    "no_data_fabrication": true,
+    "no_overwritten_claim_bearing_outputs": true,
+    "full_provenance_chain_intact": true,
+    "negative_results_preserved": true,
+    "frozen_verdicts_protected": true,
+    "honest_state_transition": true
+  },
+  "snapshot_status": "AUDIT-READY (no new snapshot; prior cycle 36213331932 snapshot is audit-ready)",
+  "gate": "BLOCKED",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "FACTORY_DIRECTOR: Update supervisor dispatch logic to gate on state/fractal-map.json.cycle_status (must not be BLOCKED_ON_DEPENDENCY) instead of /tmp/lex_control/state/factory_direction.json"
+  ],
+  "claim_ceiling": "NO CLAIMS — Cycle produced zero work. Prior cycle ceiling (36213331932): TF-IDF 174k zoom-quality FAIL (honest negative, frozen); dense embeddings infrastructure READY; citation-role dense path BLOCKED on legal-distance_174k_dense_embeddings; PARTIAL 174k EVALUATION (62k, 2000-2010): center_projected_64dim + hierarchical Leiden PASS v26 success rule (branch PASS, area PASS, rate PASS 2/4, frag 1.7%) — FIRST PASS at 174k-relevant scale; cp_128dim/768dim FAIL rate_ok — 64dim is optimal sweet spot; citation-role 1000-scale FAIL (97-99% singletons); compressed ladder validated with NESTING_METRIC_DEFECT_v1 scope; product multi-view zoom UI verified.",
+  "evidence_summary": "Cycle 36216424744 (repair round 0) was dispatched but produced NO WORK — producer workspace (/tmp/lex_team) is bit-identical to accepted base (commit 6d504384, accept of cycle 36215757319). Lane state in state/fractal-map.json remains BLOCKED_ON_DEPENDENCY on legal-distance_174k_dense_embeddings (36% complete, 11/26 years), continue_recommended=false, accepted_run_id=36213331932. This is the 63rd+ documented spurious re-dispatch caused by supervisor reading ephemeral /tmp/lex_control/state/factory_direction.json (shows RUN) instead of authoritative state/fractal-map.json (shows BLOCKED). No repair is possible — lane is data-blocked on external dependency. All prior validated work preserved (cycles 36213331932 and 36215757319 both have PASS gates). Same orchestration pathology recurring — BLOCKED per constitution."
+}
