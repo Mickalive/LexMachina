@@ -71,6 +71,17 @@ class MapLoader:
         "following_alpha0.3": "CITATION-ROLE",
         "criticizing_alpha0.3": "CITATION-ROLE",
         "citing_alpha0.3": "CITATION-ROLE",
+        # 174k PRODUCTION DEFAULTS (factory direction v27/v28)
+        "cited_outcome_hybrid_0.5_174k": "DEFAULT",
+        "cited_outcome_hybrid_0.7_174k": "DEFAULT",
+        "cited_decisions_tfidf_174k": "HIGH-ADVANTAGE",
+        "linear_hybrid05_concat_174k": "COMBINATION",
+        # 174k EXPLORATORY
+        "outcome_tfidf_174k": "EXPLORATORY",
+        "regeste_tfidf_174k": "EXPLORATORY",
+        "full_text_tfidf_light_174k": "EXPLORATORY",
+        "regeste_full_text_hybrid_0.5_174k": "EXPLORATORY",
+        "regeste_full_text_hybrid_0.7_174k": "EXPLORATORY",
         # LEGACY
         "concat_center_tfidf": "LEGACY",
         "baseline": "LEGACY",
@@ -97,6 +108,16 @@ class MapLoader:
         "following_alpha0.3": "following_precedent",
         "criticizing_alpha0.3": "identifying_criticism",
         "citing_alpha0.3": "citation_network",
+        # 174k representations
+        "cited_outcome_hybrid_0.5_174k": "production_174k",
+        "cited_outcome_hybrid_0.7_174k": "fractal_quality_174k",
+        "cited_decisions_tfidf_174k": "citation_proximity_174k",
+        "linear_hybrid05_concat_174k": "best_stable_combination_174k",
+        "outcome_tfidf_174k": "outcome_signal_174k",
+        "regeste_tfidf_174k": "regeste_174k",
+        "full_text_tfidf_light_174k": "full_text_174k",
+        "regeste_full_text_hybrid_0.5_174k": "regeste_fulltext_174k",
+        "regeste_full_text_hybrid_0.7_174k": "regeste_fulltext_174k",
     }
 
     def __init__(self, results_dir: str, corpus_dir: Optional[str] = None):
@@ -3601,11 +3622,9 @@ class MapLoader:
         if not embedding_path.exists() or not metadata_path.exists():
             return
         
-        # Load embeddings metadata
-        with open(metadata_path, "r") as f:
-            embed_meta = json.load(f)
-        
-        n_decisions = embed_meta.get("n_decisions", 0)
+        # Load embeddings to get actual shape
+        embeddings = np.load(embedding_path)
+        n_decisions = embeddings.shape[0]
         if n_decisions == 0:
             return
         
@@ -3621,16 +3640,18 @@ class MapLoader:
         # Load projection
         projection = np.load(projection_path)
         
-        # Load decision_ids from the 174k metadata
-        full_metadata_path = self.results_dir / "hierarchical_map_174k" / "metadata_174k_full.json"
-        if not full_metadata_path.exists():
+        # Load decision_ids from the ENRICHED 174k metadata (173,963 entries with branch/legal_area/chamber/year)
+        # This is the correct metadata file that matches the embeddings, NOT metadata_174k_full.json
+        enriched_metadata_path = Path("/tmp/lex_accepted/evaluation/evaluation/data/174k/metadata_174k.json")
+        if not enriched_metadata_path.exists():
+            logger.warning(f"Enriched metadata not found at {enriched_metadata_path}")
             return
         
-        with open(full_metadata_path, "r") as f:
-            full_metadata = json.load(f)
+        with open(enriched_metadata_path, "r") as f:
+            enriched_metadata = json.load(f)
         
-        # Only use as many decision_ids as we have embeddings for
-        decision_ids = [m["decision_id"] for m in full_metadata[:n_decisions]]
+        # Use only as many decision_ids as we have embeddings for
+        decision_ids = [m["decision_id"] for m in enriched_metadata[:n_decisions]]
         
         # Load fractal-map validated clustering for this representation
         if not (rep_dir / "cluster_metadata.json").exists():

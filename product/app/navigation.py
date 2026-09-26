@@ -144,8 +144,9 @@ class NavigationAPI:
                     meta_list = _json.load(f)
                 for m in meta_list:
                     self._map_meta_cache[m["decision_id"]] = m
-            # Load 174k metadata if available
-            meta_174k_path = Path(self.map_loader.results_dir) / "hierarchical_map_174k" / "metadata_174k_full.json"
+            # Load 174k ENRICHED metadata if available (173,963 entries with branch/legal_area/chamber/year)
+            # This is the correct metadata file that matches the 174k embeddings, NOT metadata_174k_full.json
+            meta_174k_path = Path("/tmp/lex_accepted/evaluation/evaluation/data/174k/metadata_174k.json")
             if meta_174k_path.exists():
                 with open(meta_174k_path, "r") as f:
                     meta_list = _json.load(f)
