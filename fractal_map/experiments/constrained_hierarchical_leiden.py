@@ -25,7 +25,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(mess
 logger = logging.getLogger(__name__)
 
 BASE = Path('/home/runner/work/LexMachina/LexMachina')
-EMBEDDING_PATH = BASE / 'results/fractal_map/hierarchical_map_174k/tfidf_embeddings/full_text_tfidf_light.npy'
+DEFAULT_EMBEDDING_PATH = BASE / 'results/fractal_map/hierarchical_map_174k/tfidf_embeddings/full_text_tfidf_light.npy'
 METADATA_PATH = Path('/tmp/lex_accepted/evaluation/evaluation/data/174k/metadata_174k.json')
 OUTPUT_DIR = BASE / 'results/fractal_map/constrained_hierarchical_tests'
 
@@ -33,10 +33,11 @@ MIN_CLUSTER_SIZE = 3
 K_NEIGHBORS = 15
 
 
-def load_data(sample_size=None, seed=42):
+def load_data(sample_size=None, seed=42, embedding_path=None):
     """Load embeddings and metadata."""
-    logger.info(f"Loading embeddings from {EMBEDDING_PATH}")
-    embeddings = np.load(EMBEDDING_PATH)
+    emb_path = embedding_path or DEFAULT_EMBEDDING_PATH
+    logger.info(f"Loading embeddings from {emb_path}")
+    embeddings = np.load(emb_path)
     
     logger.info(f"Loading metadata from {METADATA_PATH}")
     with open(METADATA_PATH) as f:
@@ -308,11 +309,12 @@ def main():
     parser.add_argument('--max-subclusters', type=int, default=20, help='Max sub-clusters per parent')
     parser.add_argument('--no-adaptive', action='store_true', help='Disable adaptive sub-resolution')
     parser.add_argument('--output', type=Path, help='Output path')
+    parser.add_argument('--embedding-path', type=Path, help='Path to embedding .npy file')
     args = parser.parse_args()
     
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     
-    embeddings, metadata = load_data(sample_size=args.sample_size, seed=args.seed)
+    embeddings, metadata = load_data(sample_size=args.sample_size, seed=args.seed, embedding_path=args.embedding_path)
     logger.info(f"Final data: {len(embeddings)} decisions, {embeddings.shape[1]} dims")
     
     # Run constrained hierarchical Leiden
