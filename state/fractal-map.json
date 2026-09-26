@@ -12,7 +12,9 @@
     "results/fractal_map/legal_distance_modes/center_projected_768_hierarchical_12k_partial/zoom_coherence.json",
     "results/fractal_map/zoom_quality_174k_eval/partial_dense_verdict_center_projected_768_hierarchical_12k_partial.json",
     "reports/fractal_map/fractal_map_174k_zoom_quality_report_v27.md",
-    "reports/audit/fractal-map/CYCLE_36229324215.md"
+    "reports/audit/fractal-map/CYCLE_36229324215.md",
+    "reports/fractal_map/constrained_hierarchical_partial_dense_report.md",
+    "results/fractal_map/constrained_hierarchical_partial_dense/constrained_hierarchical_partial_dense_results.json"
   ],
   "partial_validation_completed": true,
   "partial_scale": 12570,
@@ -41,5 +43,18 @@
     "flat_zoom_refinement_scale_sensitive": true,
     "dense_embeddings_superior_to_tfidf_at_equivalent_scale": true
   },
-  "next_recommendation": "BLOCKED on legal-distance_174k_dense_embeddings. Partial validation at 12k demonstrates pipeline readiness. Resume for full 174k evaluation when dense embeddings delivered. No same-question cycle justified."
+  "new_exploratory_findings": {
+    "constrained_hierarchical_validated": true,
+    "best_config": "validated_coarse_0.25_sub_3.0 (60% zoom rate, 4.5% singletons, min_cluster_size=20)",
+    "adaptive_sub_res_negative": "Increases fragmentation (21-40% singletons) without proportional zoom benefit",
+    "fixed_sub_res_min_cluster_size_positive": "Controls fragmentation (4.5-14.4% singletons) while maintaining zoom refinement (50-60%)",
+    "hierarchical_zoom_superior_to_flat_at_12k": true,
+    "area_purity_improves_more_than_branch_at_fine": "All configs show larger gains in legal_area (+0.21 to +0.39) vs branch (+0.06 to +0.19)"
+  },
+  "recommended_174k_hierarchical_config": {
+    "default": "coarse_res=0.25, sub_res=3.0, min_cluster_size=20",
+    "alternative_deeper": "coarse_res=0.5, sub_res=2.0, min_cluster_size=20",
+    "rationale": "Validated at 12k and 62k; fixed sub_res with min_cluster_size outperforms adaptive resolution"
+  },
+  "next_recommendation": "BLOCKED on legal-distance_174k_dense_embeddings. Partial validation at 12k demonstrates pipeline readiness and identifies optimal constrained hierarchical config. Resume for full 174k evaluation when dense embeddings delivered. No same-question cycle justified."
 }
