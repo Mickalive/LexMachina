@@ -1,0 +1,15 @@
+{
+  "gate": "BLOCKED",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "Copy bge_2000plus_174k.jsonl from producer workspace to accepted base corpus directory",
+    "Update NavigationAPI to load 174k representations (fix loader paths for 8 new 174k reps)",
+    "Rebuild spatial indices at 174k scale for all representations",
+    "Fix /api/overview endpoint (returns null due to swallowed exception)",
+    "Fix true_hierarchical_leiden loader (NoneType subscript error)",
+    "Replace placeholder metadata in metadata_174k_full_175k.json with real decision data",
+    "Wire production defaults to actual 174k artifacts (not 7k versions)"
+  ],
+  "claim_ceiling": "synthetic_scale_validated | 7k_corpus_operational | 174k_artifacts_unintegrated",
+  "evidence_summary": "State file claims 174k corpus (180,956 decisions), 174k embeddings (175,290 positions), 174k API validation, and production defaults wired to 174k artifacts. Accepted base contains only 6,988 decisions, 7k map positions, 1k spatial indices, 29/39 representations loaded (true_hierarchical_leiden fails), 0/8 174k representations loaded. Scale simulation tests (16/16 PASS) use synthetic upsampled data, not real 174k corpus. Producer workspace has 174k artifacts (bge_2000plus_174k.jsonl with 173,963 lines, legal_distance_modes/cited_decisions_tfidf_outcome_hybrid_0.5_174k with 175,440 decisions) but they are not integrated into accepted base. This is a recurring structural integration failure — same pathology in prior cycles. BLOCKED because fix requires external artifact promotion, not code repair."
+}
