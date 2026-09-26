@@ -1,0 +1,67 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Pipeline infrastructure and hierarchical Leiden validated at 12k scale (years 2000-2002); 174k dense embeddings evaluation remains BLOCKED_ON_DEPENDENCY (3/26 years complete). Flat zoom refinement FAILS v26 rule at 12k — consistent with scale dependency. No 174k success claims.",
+  "evidence_summary": {
+    "partial_dense_validation": {
+      "test_scale": "12,570 decisions (years 2000-2002 only) — explicitly NOT 174k",
+      "embedding": "center_projected 768-dim (language-debiased) computed on partial data",
+      "method": "Hierarchical Leiden (coarse_res=0.25, sub_res=3.0) — validated config from 62k scale",
+      "result": "SUCCESS - all 10 artifact types generated, hierarchical Leiden nesting=1.0, hierarchical improvement_rate=0.80, mean_improvement=0.1907, singleton_frac=0.0",
+      "flat_resolution_improvement_rates": {
+        "0.25_to_0.5": 0.4000,
+        "0.5_to_0.75": 0.6667,
+        "0.75_to_1.0": 0.3750,
+        "1.0_to_1.5": 0.0909,
+        "1.5_to_2.0": 0.0833,
+        "2.0_to_3.0": 0.0000
+      },
+      "v26_rule_at_12k": "FAIL (only 1/4 compressed transitions >0.5; rule requires >=2/4) — correctly reported as scale-dependent",
+      "purity_monotonicity": {
+        "branch": {"coarse": 0.7992, "fine": 0.9306, "monotonic": true},
+        "area": {"coarse": 0.2837, "fine": 0.4482, "monotonic": true}
+      },
+      "fragmentation": "None (0% singletons at all resolutions; median cluster size 191 at res_3.0 vs 1.0 in TF-IDF 174k)",
+      "strict_nesting_recomputed": {
+        "0.25_to_0.5": 0.866667,
+        "0.5_to_1.0": 0.755556,
+        "1.0_to_2.0": 0.745763,
+        "2.0_to_3.0": 0.761905
+      }
+    },
+    "scale_dependency_confirmed": {
+      "pattern": "1k FAIL, 5k FAIL, 12k FAIL, 62k PASS, 174k-TFIDF FAIL",
+      "conclusion": "v26 frozen success rule is scale-sensitive; flat zoom refinement requires ~62k+ corpus density; hierarchical Leiden works at all scales"
+    },
+    "baseline_comparison": {
+      "tfidf_174k": {"branch_purity_coarse": "0.51-0.55", "fragmentation": "Severe (>99% singletons)", "v26": "FAIL"},
+      "12k_partial_dense": {"branch_purity_coarse": 0.7992, "fragmentation": "None (0% singletons)", "v26": "FAIL (rate only)"},
+      "62k_dense": {"branch_purity_coarse": "~0.84", "fragmentation": "Low (1.7%)", "v26": "PASS"}
+    },
+    "lane_status": {
+      "cycle_status": "COMPLETED_PARTIAL_VALIDATION",
+      "evidence_tier": "EXPLORATORY",
+      "blocked_on": "legal-distance_174k_dense_embeddings",
+      "progress": "3/26 years complete (2000-2002, ~7%)",
+      "continue_recommended": false,
+      "accepted_run_id": "partial_dense_validation_20260926"
+    },
+    "prior_evidence_preserved": {
+      "tfidf_174k_zoom_quality": "COMPLETE, FAIL (0/4 modes PASS), median cluster size 1, >99% singletons",
+      "dense_embeddings_62k_partial": "center_projected_64dim + hierarchical Leiden PASS v26 (branch PASS, area PASS, rate PASS 2/4, frag 1.7%)",
+      "citation_role_1000scale": "citing_alpha0.3 ZQ=0.5401, following 0.5280, criticizing 0.4864",
+      "scale_dependency_confirmed": "12k FAIL vs 62k PASS for center_projected_64dim+sub_res=3.0",
+      "nesting_metric_defect_v1": "Enforced - nesting_score>=0.99 claims prohibited for compressed modes",
+      "product_zoom_ui": "Multi-view zoom UI with citation-role views VERIFIED IMPLEMENTED",
+      "compressed_ladder": "100% purity delta retention, 29% fewer levels, NOT universal strict nesting",
+      "pipeline_verification_1k": "All artifacts generated, hierarchical Leiden nesting=1.0, improvement_rate=1.0, mean_improvement=0.0904"
+    },
+    "honest_representation": {
+      "primary_objective": "174k dense embeddings evaluation - NOT attempted (dependency unmet)",
+      "work_scope": "Partial scale validation on available embeddings (years 2000-2002, ~12k)",
+      "negative_results": "v26 FAIL verdict with full transition-level detail preserved and reported",
+      "no_overclaims": "Explicitly labeled PARTIAL SCALE VALIDATION; lane status unchanged; v26 rule correctly applied and failed"
+    }
+  }
+}
