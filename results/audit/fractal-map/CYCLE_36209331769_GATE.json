@@ -1,0 +1,120 @@
+{
+  "cycle_id": "36209331769",
+  "lane": "fractal-map",
+  "direction_version": 27,
+  "timestamp": "2026-09-26T01:52:00.000000+00:00",
+  "gate_verdict": "PASS",
+  "gate_type": "null_cycle_audit",
+  "repair_round": 0,
+  "resumed_from_run": "36208688279",
+  "previous_accepted_run": "36208688279",
+  "test_results": {
+    "total": 0,
+    "passed": 0,
+    "skipped": 0,
+    "failed": 0,
+    "details": {
+      "note": "No test run executed — null cycle (supervisor re-dispatch of blocked lane)"
+    }
+  },
+  "lane_state": {
+    "cycle_status": "BLOCKED_ON_DEPENDENCY",
+    "continue_recommended": false,
+    "evidence_tier": "ACCEPTED",
+    "blocked_on": "legal-distance_174k_dense_embeddings",
+    "blocked_since": "2026-09-24T01:55:00Z",
+    "legal_distance_progress": "11/26 years complete (2000-2010)"
+  },
+  "deliverable_verification": {
+    "tfidf_174k_zoom_quality": {
+      "status": "UNCHANGED",
+      "verdict": "FAIL (expected - honest negative, frozen from v26)",
+      "modes_evaluated": 4,
+      "all_modes_fail": true,
+      "bit_equal_v25_crosscheck": true,
+      "note": "No re-evaluation — prior verdict preserved"
+    },
+    "dense_embeddings_infrastructure": {
+      "status": "UNCHANGED",
+      "eval_script": "fractal_map/evaluation/eval_dense_embeddings_174k.py",
+      "hierarchical_builder": "supports agglomerative Ward/Average/Complete",
+      "metadata_path": "results/evaluation/metadata_174k.json",
+      "success_rule": "frozen v26 (identical to v25)",
+      "note": "Infrastructure ready, awaiting dense embeddings delivery"
+    },
+    "citation_role_dense_path": {
+      "status": "BLOCKED",
+      "blocker": "legal-distance_174k_dense_embeddings",
+      "placeholder_modes": 2,
+      "decision_mappable_modes": 4,
+      "note": "No progress — dependency unchanged"
+    },
+    "evidence_backed_zoom_path_1000scale": {
+      "status": "UNCHANGED",
+      "agglom_ward": "PASS (nesting=1.0, fine median size 14, no singletons)",
+      "agglom_average": "PASS (nesting=1.0, fine median size 7, singleton 3%)",
+      "agglom_complete": "PASS (nesting=1.0, fine median size 13, no singletons)",
+      "citation_role_zq": {
+        "citing_alpha0.3": 0.5401,
+        "following_alpha0.3": 0.5280,
+        "criticizing_alpha0.3": 0.4864
+      },
+      "note": "Confirmed in prior cycle; no new evaluation"
+    },
+    "compressed_ladder": {
+      "status": "UNCHANGED",
+      "ladder": [0.25, 0.5, 1.0, 2.0, 3.0],
+      "purity_delta_retention": "100%",
+      "identical_navigation_at_shared_resolutions": true,
+      "level_reduction": "29%",
+      "nesting_metric_defect_v1_enforced": true,
+      "note": "Validated with scope in prior cycle"
+    },
+    "product_multi_view_zoom_ui": {
+      "status": "UNCHANGED",
+      "citation_role_views": true,
+      "zoom_controls": true,
+      "split_view": true,
+      "audit_rec_4_satisfied": true,
+      "note": "Verified implemented in prior cycle"
+    }
+  },
+  "orchestration_diagnosis": {
+    "root_cause": "Supervisor reads ephemeral /tmp/lex_control/state/factory_direction.json (fractal-map.status=RUN) instead of authoritative workspace state/fractal_map.json (BLOCKED_ON_DEPENDENCY)",
+    "documented_redispatch_occurrences": "61+",
+    "affected_runs": [
+      "36152847479",
+      "36153888330",
+      "36154945444",
+      "36156868300",
+      "36158377781",
+      "36161811441",
+      "36168128832",
+      "36174553152",
+      "36176481336",
+      "36178188261",
+      "36179928283",
+      "36202696806",
+      "36205017757",
+      "36206192159",
+      "36208688279",
+      "36209331769"
+    ],
+    "required_fix": "Update supervisor dispatch logic to read state/<lane>.json for dispatch gating",
+    "defect_status": "PERSISTS — this re-dispatch is proof"
+  },
+  "preservation_checks": {
+    "no_data_fabrication": true,
+    "no_overwritten_claim_bearing_outputs": true,
+    "full_provenance_chain_intact": true,
+    "negative_results_preserved": true,
+    "frozen_verdicts_protected": true,
+    "null_cycle_honestly_represented": true
+  },
+  "snapshot_status": "AUDIT-READY",
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Null cycle — no new claims. Prior cycle ceiling: TF-IDF 174k zoom-quality FAIL (honest negative, frozen); dense embeddings infrastructure READY; citation-role dense path BLOCKED on legal-distance_174k_dense_embeddings; 1000-scale agglomerative PASS confirms dense+agglomerative zoom path; compressed ladder validated with NESTING_METRIC_DEFECT_v1 scope.",
+  "evidence_summary": "Cycle 36209331769 is a null cycle — supervisor re-dispatched blocked lane (61st+ occurrence of orchestration defect). Producer workspace identical to post-36208688279 state: no new commits, no new files, no test runs, no new evaluations. Lane state unchanged: BLOCKED_ON_DEPENDENCY, continue_recommended=false, blocked_on=legal-distance_174k_dense_embeddings (11/26 years). All prior validated work preserved (TF-IDF 174k FAIL verdicts frozen, dense infra READY, 1000-scale agglomerative PASS, compressed ladder validated, product UI verified). Honest negative/null result — PASS."
+}
