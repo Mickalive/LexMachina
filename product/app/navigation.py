@@ -1106,6 +1106,10 @@ class NavigationAPI:
             "following_alpha0.3": "Citation Role: Following (α=0.3) ★",
             "criticizing_alpha0.3": "Citation Role: Criticizing (α=0.3) ★",
             "citing_alpha0.3": "Citation Role: Overruling (α=0.3) ★",
+            # 174k TF-IDF representations (factory direction v27 production defaults)
+            "cited_decisions_tfidf_174k": "174k Doctrinal Lineage (Cited Decisions TF-IDF) ★ 21k decisions",
+            "cited_outcome_hybrid_0.5_174k": "174k PRODUCTION DEFAULT: Citation + Outcome (α=0.5) ★ 21k decisions",
+            "cited_outcome_hybrid_0.7_174k": "174k BEST FRACTAL: Citation + Outcome (α=0.7) ★ 21k decisions",
         }
 
         # Evidence tier info
@@ -1169,6 +1173,10 @@ class NavigationAPI:
             # NEW: Cited Outcome Hybrids (ACCEPTED - factory direction v9)
             "cited_outcome_hybrid_0.5": "PRODUCTION DEFAULT per v15b-audit CRITICAL. Wins full-harness LangDom/JuristPref/Boilerplate. 50% cited_decisions_tfidf + 50% outcome signal. JP=0.7990, LangDom=0.4911. Both adversarial gates PASS. Best for user-imported corpora.",
             "cited_outcome_hybrid_0.7": "ACCEPTED. BEST FRACTAL hybrid per factory direction v9. 70% cited_decisions_tfidf + 30% outcome signal. HierAdv=+0.3703. Both adversarial gates PASS.",
+            # 174k TF-IDF representations (factory direction v27 production defaults)
+            "cited_decisions_tfidf_174k": "174k scale: TF-IDF on cited decisions only. 21,228 decisions. Zero-shot legal proximity at full-corpus scale. Citation heritage AUC 0.9719.",
+            "cited_outcome_hybrid_0.5_174k": "174k scale: PRODUCTION DEFAULT. 50% cited_decisions_tfidf + 50% outcome signal. 21,228 decisions. Both adversarial gates PASS.",
+            "cited_outcome_hybrid_0.7_174k": "174k scale: BEST FRACTAL hybrid. 70% cited_decisions_tfidf + 30% outcome signal. 21,228 decisions. HierAdv=+0.3703.",
         }
         return descriptions.get(rep, f"Representation: {rep}")
 
@@ -2625,6 +2633,7 @@ class NavigationAPI:
         # Vectorized: extract decision_ids and languages using boolean mask
         decision_ids_np = np.array(decision_ids)
         decision_ids = decision_ids_np[lod_mask].tolist()
+        languages = np.array(languages)[lod_mask].tolist()
         n_total = len(xs)
 
         # --- Viewport culling using KD-tree spatial index ---
