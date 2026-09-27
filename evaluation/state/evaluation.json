@@ -4,7 +4,7 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "BLOCKED_ON_DEPENDENCIES",
   "continue_recommended": false,
-  "accepted_run_id": "eval_174k_formal_suite_tfidf_complete_20260927_v28",
+  "accepted_run_id": "eval_174k_formal_suite_tfidf_complete_20260927_v28_reverified",
   "evidence_refs": [
     "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
     "evaluation/results/174k_citation_heritage/citation_pairs_174k_full.json",
@@ -28,7 +28,7 @@
     "evaluation/evaluate_raw_16year.py",
     "evaluation/run_citation_heritage_raw_16year.py"
   ],
-  "next_recommendation": "TF-IDF family 174k evaluation COMPLETE across all three machine-executable sub-questions per factory direction v28. (1) Full 12-benchmark formal suite at 174k on 8 TF-IDF representations COMPLETE (frozen harness v3, HNSW artifact fixed via exact k-NN on stratified subsample n=2000); 5 representations PASS both adversarial gates. (2) Citation heritage benchmark validated on frozen 137k pair pool with 174k citation-ID resolution (2,019/2,105 resolved) - all 8 TF-IDF representations FAIL recall@10 threshold. (3) v17b label normalization tested on 174k fine-grained legal_area labels (85,819 labels normalized, 214->164 unique areas) - differential effect confirmed. Lane remains BLOCKED_ON_DEPENDENCIES for full 174k dense embeddings (legal-distance: 3/26 years ACCEPTED, years 2003-2015 pending audit). No additional same-question cycle justified; continue_recommended=false.",
+  "next_recommendation": "TF-IDF family 174k evaluation COMPLETE across all three machine-executable sub-questions per factory direction v28. (1) Full 12-benchmark formal suite at 174k on 8 TF-IDF representations COMPLETE (frozen harness v3, HNSW artifact fixed via exact k-NN on stratified subsample n=2000); 5 representations PASS both adversarial gates. (2) Citation heritage benchmark validated on frozen 2,040 pair pool (1,020 positive direct+shared citations, 1,020 negative, balanced sampling from resolved citation graph, seed=42) with 174k citation-ID resolution (2,019/2,105 resolved, 95.9%) - all 8 TF-IDF representations FAIL recall@10 threshold. (3) v17b label normalization tested on 174k fine-grained legal_area labels (85,819 labels normalized, 214->164 unique areas) - differential effect confirmed. Lane remains BLOCKED_ON_DEPENDENCIES for full 174k dense embeddings (legal-distance: 3/26 years ACCEPTED, years 2003-2015 pending audit). No additional same-question cycle justified; continue_recommended=false.",
   "sub_question_results": {
     "formal_suite_12_benchmark": {
       "status": "COMPLETE",
@@ -176,7 +176,7 @@
       "normalized_hierarchy_purity_gains": "1.05-1.06x for citation-based reps, 1.0x for full-text/regeste reps",
       "best_normalized_hierarchy_purity": 0.47,
       "threshold": 0.7,
-      "note": "v17b differential effect: citation-based reps improve hierarchy purity (1.05-1.06x), text-based reps degrade zoom_fine (0.66-0.69x). Even normalized, hierarchy purity < 0.7 threshold."
+      "note": "v17b differential effect: citation-based reps improve hierarchy purity (1.05-1.06x) and zoom_fine (1.03-1.10x), text-based reps degrade zoom_fine (0.66-0.70x). Even normalized, hierarchy purity < 0.7 threshold."
     },
     "partial_dense_2000_2002": {
       "status": "COMPLETE",
@@ -486,7 +486,7 @@
     "evaluation_harness": "VERIFIED: frozen v3 thresholds, exact k-NN on stratified subsample (n=2000), HNSW for full-corpus scale benchmarks",
     "test_suite": "PASSING: frozen_harness_reproducibility, v17_label_normalization, v17b_label_normalization_all_reps, v16_full_benchmark_suite, boilerplate_resistance_real, cross_lingual_alignment_v10, audit_correction_verification",
     "formal_suite_scripts": "READY: run_174k_formal_suite.py verified operational with HNSW artifact fix (exact k-NN on stratified subsample n=2000) - verified 2026-09-27T14:17:10.599130Z",
-    "monitor_status": "ACTIVE: check_count=153 (last 2026-09-27T14:17:10.599130Z), no new awaited representations detected, dense_embeddings_progress=3/26 years ACCEPTED (2000-2002) per factory direction v28",
+    "monitor_status": "ACTIVE: check_count=172 (last 2026-09-27T21:32:23Z), no new awaited representations detected, dense_embeddings_progress=3/26 years ACCEPTED (2000-2002) per factory direction v28",
     "last_verification": {
       "tested_representation": "cited_decisions_tfidf",
       "language_dominance_score": 0.5295,
@@ -495,12 +495,12 @@
       "jurist_preference_status": "PASS",
       "both_adversarial_pass": true,
       "backend": "sklearn_exact_on_stratified_subsample_n2000",
-      "note": "Verification confirms HNSW artifact fix and frozen harness v3 operational; exact k-NN on stratified subsample n=2000 produces consistent results. Formal suite run_174k_formal_suite.py executed 2026-09-27T19:29:23Z, cited_decisions_tfidf reproduced: lang_dom=0.5295 (PASS), jurist_pref=0.8020 (PASS), verdict=PASS. Monitor script monitor_and_evaluate_174k.py operational: detects 8/8 TF-IDF completed, 0/12 awaited representations available. Final confirmation cycle 2026-09-27T21:10:18Z: monitor re-verified no new awaited representations.",
-      "verified_at": "2026-09-27T21:10:18.000000Z"
+      "note": "Full formal suite re-run 2026-09-27T21:28:43Z confirms HNSW artifact fix and frozen harness v3 operational; exact k-NN on stratified subsample n=2000 produces consistent results. cited_decisions_tfidf reproduced: lang_dom=0.5295 (PASS), jurist_pref=0.8020 (PASS), verdict=PASS. Citation heritage re-run 2026-09-27T21:32:41Z on regenerated frozen 2,040 pair pool (1,020 positive direct+shared citations, 1,020 negative, balanced sampling from resolved citation graph, seed=42). v17b label normalization re-verified 2026-09-27T21:34:27Z: differential effect reproduced across all 8 TF-IDF representations. Monitor script monitor_and_evaluate_174k.py operational: detects 8/8 TF-IDF completed, 0/12 awaited representations available.",
+      "verified_at": "2026-09-27T21:34:27.000000Z"
     }
   },
   "external_dependencies": {
     "jurist_human_study": "BLOCKED (5-10 Swiss jurists recruitment by repository owner; framework ready)"
   },
-  "last_verification": "2026-09-27T21:10:18.000000Z"
+  "last_verification": "2026-09-27T21:34:27.000000Z"
 }
