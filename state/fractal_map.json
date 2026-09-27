@@ -1,37 +1,66 @@
 {
   "lane": "fractal-map",
   "direction_version": 30,
-  "evidence_tier": "ACCEPTED",
-  "cycle_status": "COMPLETED",
+  "evidence_tier": "EXPLORATORY",
+  "cycle_status": "COMPLETED_DENSE_99K_VALIDATION",
   "continue_recommended": false,
-  "accepted_run_id": "36286783219",
-  "factory_direction_v30_discrepancy": "Factory direction v30 claimed legal-distance dense embedding progress is 16/26 years (2000-2015); actual progress.json shows only 3/26 years complete (2000-2002). This lane state reflects verified actual progress. However, TF-IDF constrained hierarchical Leiden at 174k is now ACCEPTED.",
+  "accepted_run_id": "36290446066",
+  "factory_direction_v30_discrepancy_corrected": "Factory direction v30 correctly states legal-distance dense embedding progress is 16/26 years (2000-2015). Previous lane state incorrectly claimed only 3/26 years. Verified via progress.json in checkpoints: completed_years = [2000-2015]. 99,325 decisions available for testing.",
   "evidence_refs": [
     "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_full_20260926.json",
     "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_hybrid05_20260926.json",
     "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_hybrid07_20260926.json",
     "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_regeste_20260926.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_dense_2000_2015_20260927_031447.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_dense_2000_2002_20260926_170804.json",
     "results/fractal_map/zoom_quality_174k_eval/v26_verdict.json",
     "fractal_map/hierarchical/test_constrained_hierarchical_leiden_174k.py",
-    "reports/fractal_map/AUDIT_READY_SNAPSHOT_36286783219.md",
-    "results/fractal_map/audit/CYCLE_36286783219_GATE.json"
+    "fractal_map/experiments/run_constrained_hierarchical_dense_99k.py",
+    "reports/fractal_map/DENSE_99K_CONSTRAINED_HIERARCHICAL_VALIDATION_20260927.md"
   ],
   "key_findings": {
     "flat_v26_zoom_quality": "FAIL - All 4 TF-IDF modes fail frozen v26 rule: severe over-fragmentation (median cluster size 1, >99% singletons at res_3.0), no branch/area monotonicity, strict nesting < 1.0 at coarse transitions (0.44-0.90)",
-    "constrained_hierarchical_leiden_174k": "PASS - 4/4 TF-IDF modes pass hierarchical zoom test: nesting=1.0 by construction, zero fragmentation (singleton fraction < 0.1%), branch purity delta +0.03 to +0.09, area purity delta +0.03 to +0.13, zoom coherence improvement_rate 57-90% (3/4 modes > 0.5)",
-    "scale_dependency_confirmed": "12k (years 2000-2002) showed improvement_rate=0.80 with zero fragmentation; 77k dense showed severe fragmentation or minimal improvement; 174k TF-IDF constrained hierarchical works",
+    "constrained_hierarchical_leiden_174k_tfidf": "PASS - 4/4 TF-IDF modes pass hierarchical zoom test: nesting=1.0 by construction, zero fragmentation (singleton fraction < 0.1%), branch purity delta +0.03 to +0.09, area purity delta +0.03 to +0.13, zoom coherence improvement_rate 57-90% (3/4 modes > 0.5)",
+    "constrained_hierarchical_leiden_99k_dense": "FAIL v26 - Strong absolute purity (branch 0.986, area 0.602) and zero fragmentation (0.16% singletons), but improvement_rate=47.37% misses 50% threshold. Positive scale trend from 12k (45.45%) → 99k (47.37%).",
+    "scale_dependency_confirmed": "12k dense: improvement_rate=45.45%; 99k dense: improvement_rate=47.37%; 174k TF-IDF: improvement_rate=57-90%. Dense embeddings show improving trend with scale but have not crossed v26 threshold at 99k.",
     "nesting_metric_defect_v1": "CONFIRMED - Compressed ladder passes trivially for by-construction hierarchies but is not universally valid for meaningful legal structure. Flat independent clustering fails nesting at scale."
   },
   "accepted_claims": [
     "Constrained hierarchical Leiden (min_cluster_size + adaptive sub_resolution) on 174k TF-IDF embeddings produces a valid multi-resolution hierarchy with perfect nesting, zero fragmentation, and measurable zoom refinement",
     "The hierarchy is legally meaningful: branch purity improves from coarse to fine (e.g., cited_decisions_tfidf_outcome_hybrid_0.5: 0.4320 -> 0.4906), area purity improves (0.1541 -> 0.2440)",
     "This method is CPU-feasible and production-ready for TF-IDF modes at full 174k scale",
-    "Flat independent Leiden at multiple resolutions is NOT a valid fractal map method at 174k scale (fails v26 frozen rule)"
+    "Flat independent Leiden at multiple resolutions is NOT a valid fractal map method at 174k scale (fails v26 frozen rule)",
+    "Dense embeddings (center_projected) at 99k scale achieve near-perfect branch purity (0.986) and strong area purity (0.602) with zero fragmentation, but zoom refinement rate (47.37%) remains below v26 threshold"
   ],
   "blocked_dependencies": [
-    "legal-distance 174k dense embeddings (only 3/26 years complete: 2000-2002)",
+    "legal-distance 174k dense embeddings (16/26 years complete: 2000-2015; 10 years remaining: 2016-2025)",
     "citation-role modes at 174k scale (citing/following/criticizing alpha=0.3 showed ZQ=0.48-0.54 at 1k scale)",
     "section-specific dense embeddings (sachverhalt/erwaegungen/dispositiv) at 174k"
   ],
-  "next_recommendation": "PIVOT_WITHIN_MISSION — TF-IDF constrained hierarchical Leiden at 174k is ACCEPTED and production-ready. Lane is no longer fully blocked; can proceed with product integration of TF-IDF hierarchical map modes. Dense embeddings remain the critical path for multi-view fractal map (legal issue, reasoning, facts views). Factory Director should prioritize unblocking legal-distance dense embedding computation. No additional same-question cycle needed for TF-IDF hierarchical path."
+  "dense_99k_validation": {
+    "years_tested": [2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015],
+    "decisions": 99325,
+    "embedding_dim": 768,
+    "branch_purity_coarse": 0.8642,
+    "branch_purity_fine": 0.9858,
+    "branch_purity_delta": 0.1216,
+    "area_purity_coarse": 0.5322,
+    "area_purity_fine": 0.6017,
+    "area_purity_delta": 0.0695,
+    "improvement_rate": 0.4737,
+    "singleton_fraction": 0.0016,
+    "nesting": 1.0,
+    "coarse_clusters": 39,
+    "fine_clusters": 623,
+    "v26_pass": false,
+    "scale_trend_from_12k": "improvement_rate 45.45% -> 47.37% (positive)"
+  },
+  "tfidf_174k_validation": {
+    "modes_passed_v26": 4,
+    "improvement_rate_range": "57-90%",
+    "singleton_fraction_max": 0.0009,
+    "nesting": 1.0,
+    "production_ready": true
+  },
+  "next_recommendation": "TF-IDF constrained hierarchical Leiden at 174k is ACCEPTED and production-ready (4/4 modes PASS v26). Dense embeddings at 99k (2000-2015) show strong absolute purity but miss v26 improvement_rate threshold (47.37% vs 50%). Positive scale trend (12k: 45.45% → 99k: 47.37%) suggests 174k dense may cross threshold. Lane remains blocked on legal-distance 174k dense completion (years 2016-2025). No same-question cycle justified for current data. Product should wire TF-IDF hierarchical modes immediately; dense modes await 174k validation."
 }
