@@ -1,0 +1,74 @@
+{
+  "run_id": "36298338686",
+  "lane": "fractal-map",
+  "direction_version": 28,
+  "timestamp": "2026-09-27T05:52:00.000000+00:00",
+  "status": "VERIFIED_COMPLETE",
+  "operation": "operational_resume_verification",
+  "source_snapshot": "36297874163",
+  "tests": {
+    "total": 217,
+    "passed": 215,
+    "skipped": 2,
+    "failed": 0,
+    "skipped_reason": "dense embeddings not yet available (legal-distance blocked)"
+  },
+  "lane_state": {
+    "evidence_tier": "ACCEPTED",
+    "cycle_status": "COMPLETED",
+    "continue_recommended": false,
+    "accepted_run_id": "36297874163",
+    "recommendation": "PIVOT_WITHIN_MISSION"
+  },
+  "key_verifications": {
+    "tfidf_174k_constrained_hierarchical": "ACCEPTED (4/4 modes PASS v26 hierarchical zoom test)",
+    "tfidf_174k_flat_zoom_v26": "FAIL (0/4 modes PASS, frozen negative preserved)",
+    "dense_99k_coarse_sweep": "PASS at coarse_res=0.15-0.2 (improvement_rate 55.6-58.8%, zero fragmentation)",
+    "citation_role_1k": "PASS (citing/following alpha=0.3, improvement_rate=100%)",
+    "debiased_1k": "PASS (coarse_res=0.15-0.3, improvement_rate 66-75%)",
+    "scale_dependency": "CONFIRMED (positive dense trend: 12k 45.45% -> 99k 58.82%)",
+    "nesting_metric_defect_v1": "ENFORCED (7 compressed modes prohibited, 2 by-construction citeable only)",
+    "compressed_ladder": "VALIDATED (100% delta retention, 29% reduction, identical navigation)"
+  },
+  "blocked_dependencies": [
+    "legal-distance 174k dense embeddings (3/26 years ACCEPTED: 2000-2002; 16/26 PENDING AUDIT in progress.json: 2000-2015; 10 years remaining: 2016-2025)",
+    "citation-role modes at 174k scale",
+    "debiased_citation_blended at 174k scale",
+    "section-specific dense embeddings at 174k"
+  ],
+  "orchestration_failure": {
+    "root_cause": "Supervisor reads /tmp/lex_control/state/factory_direction.json (fractal-map.status=RUN) instead of state/fractal-map.json (cycle_status=COMPLETED, continue_recommended=false)",
+    "impact": "60+ wasteful re-dispatches (36152847479 -> 36297874163) with zero durable delta",
+    "this_run": "Another wasteful re-dispatch; lane was already complete",
+    "required_fix": "Update supervisor dispatch logic to read state/<lane>.json for dispatch gating"
+  },
+  "factory_direction_discrepancy": {
+    "fractal_map_status_claimed": "RUN",
+    "fractal_map_status_actual": "COMPLETED (TF-IDF path ACCEPTED)",
+    "legal_distance_dense_progress_claimed": "16/26 years (2000-2015) in /tmp/lex_accepted",
+    "legal_distance_dense_progress_actual": "3/26 years ACCEPTED (2000-2002); progress.json shows 16/26 but NOT accepted",
+    "recorded_in_state": true
+  },
+  "stale_state_cleanup": {
+    "removed": "state/fractal_map.json (underscore variant)",
+    "reason": "Outdated EXPLORATORY tier, direction_version=30, accepted_run_id=36295143270, incorrect 16/26 claim",
+    "authoritative_state": "state/fractal-map.json (hyphen variant)"
+  },
+  "evidence_refs": [
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_full_20260926.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_hybrid05_20260926.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_hybrid07_20260926.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_regeste_20260926.json",
+    "results/fractal_map/zoom_quality_174k_eval/v26_verdict.json",
+    "fractal_map/hierarchical/test_constrained_hierarchical_leiden_174k.py",
+    "reports/fractal_map/AUDIT_READY_SNAPSHOT_36286783219.md",
+    "results/fractal_map/audit/CYCLE_36286783219_GATE.json",
+    "reports/fractal_map/AUDIT_READY_SNAPSHOT_36297874163.md",
+    "results/fractal_map/audit/CYCLE_36297874163_GATE.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_citation_roles_1k_20260927_042054.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_debiased_citation_blended_1k_20260927_042141.json",
+    "results/fractal_map/constrained_hierarchical_tests/dense_99k_coarse_sweep_summary_20260927_053745.json"
+  ],
+  "audit_ready": true,
+  "next_recommendation": "PAUSE - Lane correctly completed for TF-IDF path, blocked on dense embeddings for multi-view path. Resume when legal-distance delivers 174k dense embeddings or Factory Director updates successor question (v29+)."
+}
