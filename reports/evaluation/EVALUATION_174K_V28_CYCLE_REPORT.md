@@ -102,12 +102,25 @@ The evaluation lane has completed all three machine-executable sub-questions fro
 | **Monitor Script** | ✅ ACTIVE | check_count=160, last_check=2026-09-27T17:36:05 |
 | **Test Suite** | ✅ PASSING | frozen_harness_v3, v17b_all_reps, boilerplate, cross_lingual |
 
-**Latest Verification (2026-09-27T17:17:32):**
-- Tested: `cited_decisions_tfidf`
-- Language dominance: 0.5295 (PASS, threshold 0.85)
-- Jurist preference: 0.8020 (PASS, threshold 0.5)
-- Backend: sklearn_exact on stratified subsample n=2000
-- Both adversarial gates: PASS
+**Latest Verification (2026-09-27T18:49:26):**
+- Tested: ALL 8 TF-IDF representations (full suite re-run)
+- Config Hash: `b51701f5a9c11692` (frozen v3, REPRODUCED)
+- Results match prior run exactly — **FULL REPRODUCIBILITY CONFIRMED**
+
+| Representation | Verdict | Lang Dom | Jurist Pref | Both Adv Pass |
+|---|---|---|---|---|
+| cited_decisions_tfidf_outcome_hybrid_0.5 | **PASS** | 0.5167 | 0.8050 | ✅ |
+| cited_decisions_tfidf | **PASS** | 0.5295 | 0.8010 | ✅ |
+| cited_decisions_tfidf_outcome_hybrid_0.7 | **PASS** | 0.5237 | 0.8000 | ✅ |
+| outcome_tfidf | **PASS** | 0.4920 | 0.7250 | ✅ |
+| regeste_tfidf | **PASS** | 0.5240 | 0.5775 | ✅ |
+| full_text_tfidf_light | FAIL | 1.0000 | 0.0000 | ❌ |
+| regeste_full_text_hybrid_0.5 | FAIL | 1.0000 | 0.0000 | ❌ |
+| regeste_full_text_hybrid_0.7 | FAIL | 1.0000 | 0.0000 | ❌ |
+
+- **Production Default** (`cited_decisions_tfidf_outcome_hybrid_0.5`): PASS both adversarial gates
+- **Best Representation** (passing both gates): `cited_decisions_tfidf_outcome_hybrid_0.5`
+- Backend: sklearn_exact on stratified subsample n=2000 (HNSW artifact fix confirmed)
 
 ---
 

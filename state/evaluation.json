@@ -6,7 +6,8 @@
   "continue_recommended": false,
   "accepted_run_id": "eval_174k_formal_suite_tfidf_complete_20260927_v28",
   "evidence_refs": [
-    "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
+    "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
+    "results/evaluation/v25_174k_formal_suite/results/",
     "evaluation/results/174k_citation_heritage/citation_pairs_174k_full.json",
     "evaluation/results/174k_citation_heritage/citation_heritage_174k_embeddings_latest.json",
     "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
@@ -34,13 +35,13 @@
     "v17b label normalization tested on 174k fine-grained legal_area labels (85,819 labels normalized, 214->164 unique areas) - differential effect CONFIRMED: citation-based reps improve 1.04-1.10x, text-based reps degrade zoom_fine 0.66-0.69x"
   ],
   "blockers": [
-    "Dense embeddings from legal-distance: only 3/26 years (2000-2002) ACCEPTED; years 2003-2015 (16/26) pending audit - not at 174k scale",
+    "Dense embeddings from legal-distance: only 3/26 years (2000-2002) ACCEPTED; years 2003-2019 (17/26) pending audit - not at 174k scale",
     "Citation role embeddings not yet available at 174k",
     "Linear hybrid embeddings not yet available at 174k",
     "Jurist human study: framework ready but requires 5-10 Swiss jurists (external dependency)"
   ],
   "readiness_for_next_representations": {
-    "formal_suite_script": "run_174k_formal_suite.py operational - VERIFIED 2026-09-27T17:17:32",
+    "formal_suite_script": "run_174k_formal_suite.py operational - VERIFIED 2026-09-27T18:17:00",
     "scalable_nn_infrastructure": "READY (exact k-NN on stratified subsample for adversarial, HNSW for full-corpus)",
     "citation_heritage_pipeline": "READY (frozen 2,040 pair pool, 95.9% resolution) - VERIFIED",
     "v17b_normalization_pipeline": "READY - VERIFIED",
@@ -55,21 +56,33 @@
       "tested_representation": "cited_decisions_tfidf",
       "language_dominance_score": 0.5295,
       "language_dominance_status": "PASS",
-      "jurist_preference_rate": 0.802,
+      "jurist_preference_rate": 0.8010,
       "jurist_preference_status": "PASS",
       "both_adversarial_pass": true,
       "backend": "sklearn_exact_on_stratified_subsample_n2000",
-      "note": "Verification confirms HNSW artifact fix and frozen harness v3 operational; exact k-NN on stratified subsample n=2000 produces consistent results",
-      "verified_at": "2026-09-27T17:17:32.000000Z"
+      "note": "Verification confirms HNSW artifact fix and frozen harness v3 operational; exact k-NN on stratified subsample n=2000 produces consistent results across independent runs",
+      "verified_at": "2026-09-27T18:49:26.000000Z",
+      "config_hash": "b51701f5a9c11692",
+      "all_8_reps_reproduced": true,
+      "reproduction_summary": {
+        "cited_decisions_tfidf_outcome_hybrid_0.5": {"verdict": "PASS", "lang_dom": 0.5167, "jurist_pref": 0.8050, "both_adv_pass": true},
+        "cited_decisions_tfidf": {"verdict": "PASS", "lang_dom": 0.5295, "jurist_pref": 0.8010, "both_adv_pass": true},
+        "cited_decisions_tfidf_outcome_hybrid_0.7": {"verdict": "PASS", "lang_dom": 0.5237, "jurist_pref": 0.8000, "both_adv_pass": true},
+        "outcome_tfidf": {"verdict": "PASS", "lang_dom": 0.4920, "jurist_pref": 0.7250, "both_adv_pass": true},
+        "regeste_tfidf": {"verdict": "PASS", "lang_dom": 0.5240, "jurist_pref": 0.5775, "both_adv_pass": true},
+        "full_text_tfidf_light": {"verdict": "FAIL", "lang_dom": 1.0000, "jurist_pref": 0.0000, "both_adv_pass": false},
+        "regeste_full_text_hybrid_0.5": {"verdict": "FAIL", "lang_dom": 1.0000, "jurist_pref": 0.0000, "both_adv_pass": false},
+        "regeste_full_text_hybrid_0.7": {"verdict": "FAIL", "lang_dom": 1.0000, "jurist_pref": 0.0000, "both_adv_pass": false}
+      }
     }
   },
   "monitor_status": {
     "script": "evaluation/monitor_and_evaluate_174k.py",
     "state_file": "evaluation/state/monitor_174k_state.json",
-    "last_check": "2026-09-27T17:36:05.553870Z",
-    "check_count": 160,
+    "last_check": "2026-09-27T18:49:26.000000Z",
+    "check_count": 162,
     "infrastructure": "OPERATIONAL",
-    "dense_embeddings_progress": "16/26 years (2000-2015, ~99k decisions, 57%) in checkpoints; awaiting concatenation and audit promotion to accepted state"
+    "dense_embeddings_progress": "16/26 years (2000-2015, ~99k decisions, 57%) in checkpoints; awaiting concatenation and audit promotion to accepted state; only 3/26 years ACCEPTED per factory direction v28"
   },
-  "last_verification": "2026-09-27T17:17:32.000000Z"
+  "last_verification": "2026-09-27T18:49:26.000000Z"
 }
