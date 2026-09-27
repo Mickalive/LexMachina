@@ -1,0 +1,11 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Update state/fractal-map.json: clarify regeste_tfidf ran on 83,072 samples (not 174k)",
+    "Disambiguate 'hierarchical' labeling in product_integration_174k/ summaries (flat vs constrained hierarchy)",
+    "Document canonical fragmentation metric (constrained_hierarchical singleton_fraction vs product_integration hierarchical_singleton_fraction)"
+  ],
+  "claim_ceiling": "Constrained hierarchical Leiden on TF-IDF embeddings produces valid multi-resolution hierarchy with perfect nesting (by construction), near-zero fragmentation (<0.1% singletons via min_cluster_size=10), and measurable zoom refinement (improvement_rate 57.5-90%, branch/area purity deltas positive) at 174k scale for 3/4 modes; regeste_tfidf validated at 83k only. Flat independent Leiden fails v26 frozen rule at 174k. Product integration artifacts exist but serve flat clustering, not constrained hierarchy.",
+  "evidence_summary": "Verified 4 constrained_hierarchical test JSONs (full, hybrid05, hybrid07, regeste) + v26_verdict.json (flat baseline) + 4 product_integration_174k/ directories. All 4 constrained modes: nesting=1.0, hierarchical singleton_fraction 0.0-0.09%, branch_purity_delta +0.03 to +0.09, area_purity_delta +0.03 to +0.13, zoom improvement_rate 0.575-0.90. Flat modes: all FAIL v26 (singleton_frac >99% at res_3.0, nesting 0.44-0.90, no monotonicity). Regeste sample_size=83072 (not 174k). Product integration uses flat multi-resolution clustering with hierarchical_singleton_fraction=35.9% (cited_decisions_tfidf)."
+}
