@@ -76,23 +76,19 @@ def sync_174k_representation_dirs():
     # But the individual representation directories (e.g., cited_outcome_hybrid_0.5_174k)
     # may need to be updated with the full 174k artifacts
     
-    # List of 174k representation directories to sync
-    reps_174k = [
-        "cited_decisions_tfidf_174k",
-        "outcome_tfidf_174k",
-        "cited_outcome_hybrid_0.5_174k",
-        "cited_outcome_hybrid_0.7_174k",
-        "regeste_tfidf_174k",
-        "full_text_tfidf_light_174k",
-        "regeste_full_text_hybrid_0.5_174k",
-        "regeste_full_text_hybrid_0.7_174k",
+    # Mapping from accepted evidence directory names to product directory names
+    rep_mapping = [
+        ("cited_decisions_tfidf", "cited_decisions_tfidf_174k"),
+        ("cited_decisions_tfidf_outcome_hybrid_0.5_174k", "cited_outcome_hybrid_0.5_174k"),
+        ("cited_decisions_tfidf_outcome_hybrid_0.7_174k_compressed_v25", "cited_outcome_hybrid_0.7_174k"),
+        ("regeste_tfidf_174k", "regeste_tfidf_174k"),
     ]
     
-    for rep in reps_174k:
-        src = ACCEPTED_BASE / "product_integration_174k" / rep
-        dst = PRODUCT_BASE / rep
+    for src_name, dst_name in rep_mapping:
+        src = ACCEPTED_BASE / "product_integration_174k" / src_name
+        dst = PRODUCT_BASE / dst_name
         if src.exists():
-            print(f"Syncing {rep}...")
+            print(f"Syncing {src_name} -> {dst_name}...")
             dst.mkdir(parents=True, exist_ok=True)
             for file in src.iterdir():
                 shutil.copy2(file, dst / file.name)

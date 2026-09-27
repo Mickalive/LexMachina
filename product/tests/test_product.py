@@ -1256,15 +1256,14 @@ def test_cited_decisions_tfidf_hybrid_cp64_0_7():
 
 
 def test_cited_outcome_hybrid_0_5():
-    """Test cited_outcome_hybrid_0.5 representation (ACCEPTED - BEST PRODUCTION HYBRID).
+    """Test cited_outcome_hybrid_0.5_174k representation (ACCEPTED - BEST PRODUCTION HYBRID at 174k scale).
 
     Hybrid: 50% cited_decisions_tfidf + 50% outcome signal. JP=0.7990, LangDom=0.4911.
     BEST PRODUCTION hybrid per factory direction v9. LangDom < 0.6 target ACHIEVED.
     Both adversarial gates PASS.
-    Factory direction v27: PRODUCTION DEFAULT at 174k scale (blocked on corpus lane 174k parquet delivery).
-    Current operational scale: 7k (6,988 decisions from bge_20* corpus).
+    Factory direction v27: PRODUCTION DEFAULT at 174k scale. Operational at 21k subset scale (21,228 decisions).
     """
-    print("=== Test: Cited Outcome Hybrid α=0.5 (BEST PRODUCTION) ===")
+    print("=== Test: Cited Outcome Hybrid α=0.5 (BEST PRODUCTION - 174k) ===")
 
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
@@ -1272,28 +1271,29 @@ def test_cited_outcome_hybrid_0_5():
     api.initialize()
 
     reps = api.map_loader.get_available_representations()
-    assert "cited_outcome_hybrid_0.5" in reps, f"cited_outcome_hybrid_0.5 not in representations: {reps}"
+    # Test the 174k production default version
+    assert "cited_outcome_hybrid_0.5_174k" in reps, f"cited_outcome_hybrid_0.5_174k not in representations: {reps}"
 
-    zoom_levels = api.get_zoom_levels("cited_outcome_hybrid_0.5")
-    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
+    zoom_levels = api.get_zoom_levels("cited_outcome_hybrid_0.5_174k")
+    # 174k version has 5 zoom levels (0, 1, 3, 5, 6)
+    assert len(zoom_levels) == 5, f"Expected 5 zoom levels, got {len(zoom_levels)}"
 
-    # Factory direction v27: production default at 174k scale (blocked on corpus lane parquet delivery)
-    # Current available scale: 7k (bge_20* corpus, 6,988 decisions)
-    expected_n_decisions = 6988  # 7k scale (bge_20* corpus)
+    # 174k TF-IDF production default at 21k subset scale
+    expected_n_decisions = 21228  # 21k subset scale (174k TF-IDF production default)
     for zl in [z["level"] for z in zoom_levels]:
-        map_data = api.get_map_data("cited_outcome_hybrid_0.5", zl)
+        map_data = api.get_map_data("cited_outcome_hybrid_0.5_174k", zl)
         assert map_data["n_decisions"] == expected_n_decisions, f"Expected {expected_n_decisions} decisions at zoom {zl}, got {map_data['n_decisions']}"
         print(f"  Zoom {zl}: {map_data['n_clusters']} clusters, {map_data['n_decisions']} decisions")
 
-    map_state = api.map_loader.get_map("cited_outcome_hybrid_0.5")
+    map_state = api.map_loader.get_map("cited_outcome_hybrid_0.5_174k")
     metadata = map_state.metadata
     assert metadata.get("evidence_tier") == "ACCEPTED"
     assert metadata.get("benchmark_results", {}).get("both_gates_pass") == True
     print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}, JP={metadata.get('benchmark_results', {}).get('jurist_pairwise')}, LangDom={metadata.get('benchmark_results', {}).get('language_dominance')}")
 
-    zl_0 = api.map_loader.get_zoom_level("cited_outcome_hybrid_0.5", 0)
+    zl_0 = api.map_loader.get_zoom_level("cited_outcome_hybrid_0.5_174k", 0)
     did = list(zl_0.positions.keys())[0]
-    neighbors = api.get_neighbors(did, "cited_outcome_hybrid_0.5", 1, 5)
+    neighbors = api.get_neighbors(did, "cited_outcome_hybrid_0.5_174k", 1, 5)
     assert len(neighbors) > 0
 
     print("  PASS\n")
@@ -1301,14 +1301,14 @@ def test_cited_outcome_hybrid_0_5():
 
 
 def test_cited_outcome_hybrid_0_7():
-    """Test cited_outcome_hybrid_0.7 representation (ACCEPTED - BEST FRACTAL HYBRID).
+    """Test cited_outcome_hybrid_0.7_174k representation (ACCEPTED - BEST FRACTAL HYBRID at 174k scale).
 
     Hybrid: 70% cited_decisions_tfidf + 30% outcome signal. HierAdv=+0.3703.
     BEST FRACTAL hybrid per factory direction v9.
     Both adversarial gates PASS.
-    Factory direction v27: fractal quality at ~7k scale (bge_20* corpus).
+    Factory direction v27: fractal quality at 174k scale. Operational at 21k subset scale (21,228 decisions).
     """
-    print("=== Test: Cited Outcome Hybrid α=0.7 (BEST FRACTAL) ===")
+    print("=== Test: Cited Outcome Hybrid α=0.7 (BEST FRACTAL - 174k) ===")
 
     corpus_dir = Path(__file__).parent.parent / "results" / "corpus" / "normalization" / "canonical"
     results_dir = Path(__file__).parent.parent / "results" / "fractal_map"
@@ -1316,26 +1316,29 @@ def test_cited_outcome_hybrid_0_7():
     api.initialize()
 
     reps = api.map_loader.get_available_representations()
-    assert "cited_outcome_hybrid_0.7" in reps, f"cited_outcome_hybrid_0.7 not in representations: {reps}"
+    # Test the 174k production fractal version
+    assert "cited_outcome_hybrid_0.7_174k" in reps, f"cited_outcome_hybrid_0.7_174k not in representations: {reps}"
 
-    zoom_levels = api.get_zoom_levels("cited_outcome_hybrid_0.7")
-    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
+    zoom_levels = api.get_zoom_levels("cited_outcome_hybrid_0.7_174k")
+    # 174k version has 5 zoom levels (0, 1, 3, 5, 6)
+    assert len(zoom_levels) == 5, f"Expected 5 zoom levels, got {len(zoom_levels)}"
 
-    expected_n_decisions = 6988  # bge_20* corpus scale
+    # 174k TF-IDF production default at 21k subset scale
+    expected_n_decisions = 21228  # 21k subset scale (174k TF-IDF production default)
     for zl in [z["level"] for z in zoom_levels]:
-        map_data = api.get_map_data("cited_outcome_hybrid_0.7", zl)
+        map_data = api.get_map_data("cited_outcome_hybrid_0.7_174k", zl)
         assert map_data["n_decisions"] == expected_n_decisions, f"Expected {expected_n_decisions} decisions at zoom {zl}, got {map_data['n_decisions']}"
         print(f"  Zoom {zl}: {map_data['n_clusters']} clusters, {map_data['n_decisions']} decisions")
 
-    map_state = api.map_loader.get_map("cited_outcome_hybrid_0.7")
+    map_state = api.map_loader.get_map("cited_outcome_hybrid_0.7_174k")
     metadata = map_state.metadata
     assert metadata.get("evidence_tier") == "ACCEPTED"
     assert metadata.get("benchmark_results", {}).get("both_gates_pass") == True
     print(f"  Metadata: evidence_tier={metadata.get('evidence_tier')}, JP={metadata.get('benchmark_results', {}).get('jurist_pairwise')}, LangDom={metadata.get('benchmark_results', {}).get('language_dominance')}")
 
-    zl_0 = api.map_loader.get_zoom_level("cited_outcome_hybrid_0.7", 0)
+    zl_0 = api.map_loader.get_zoom_level("cited_outcome_hybrid_0.7_174k", 0)
     did = list(zl_0.positions.keys())[0]
-    neighbors = api.get_neighbors(did, "cited_outcome_hybrid_0.7", 1, 5)
+    neighbors = api.get_neighbors(did, "cited_outcome_hybrid_0.7_174k", 1, 5)
     assert len(neighbors) > 0
 
     print("  PASS\n")
