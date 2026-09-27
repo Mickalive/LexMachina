@@ -413,10 +413,10 @@ class TestMetricConsistency:
             assert len(value) > 10, f"Key finding {key} should be descriptive"
 
     def test_factory_direction_discrepancy_recorded(self):
-        """Factory direction v30 discrepancy is recorded in state."""
-        assert "factory_direction_v30_discrepancy" in self.state
-        discrepancy = self.state["factory_direction_v30_discrepancy"]
-        assert "16/26" in discrepancy
+        """Factory direction v28 discrepancy is recorded in state (v30 reverted per auditor)."""
+        assert "factory_direction_v28_discrepancy" in self.state
+        discrepancy = self.state["factory_direction_v28_discrepancy"]
+        assert "16/26" in discrepancy or "17/26" in discrepancy
         assert "3/26" in discrepancy
         assert "2000-2002" in discrepancy
 
