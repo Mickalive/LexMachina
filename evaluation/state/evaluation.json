@@ -15,12 +15,17 @@
     "evaluation/results/partial_dense_2000_2002/evaluation_partial_dense_latest.json",
     "evaluation/results/174k/center_projected_partial_2000_2015/center_projected_16year_eval_latest.json",
     "evaluation/results/174k/dense_partial_2000_2015/dense_partial_2000_2015_eval_latest.json",
+    "evaluation/results/174k_citation_heritage/citation_heritage_multilingual_e5_768dim_partial_2000_2015.json",
+    "evaluation/results/174k_citation_heritage/citation_heritage_center_projected_768dim_partial_2000_2015.json",
+    "evaluation/results/174k_citation_heritage/citation_heritage_center_projected_128dim_partial_2000_2015.json",
+    "evaluation/results/174k_citation_heritage/citation_heritage_center_projected_64dim_partial_2000_2015.json",
     "evaluation/reports/evaluation_v28_174k_tfidf_formal_suite_20260926.md",
     "reports/evaluation/EVALUATION_174K_CYCLE_REPORT_v30.md",
     "evaluation/state/monitor_174k_state.json",
-    "evaluation/monitor_and_evaluate_174k.py"
+    "evaluation/monitor_and_evaluate_174k.py",
+    "evaluation/run_citation_heritage_partial_dense_fast.py"
   ],
-  "next_recommendation": "TF-IDF family 174k evaluation COMPLETE per factory direction v30 across all three machine-executable sub-questions: (1) 12-benchmark formal suite with HNSW artifact fix (exact k-NN on fixed stratified subsample n=2000) — 8 representations evaluated, 5 PASS both adversarial gates (cited_decisions_tfidf, outcome_tfidf, regeste_tfidf, cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7), 3 FAIL (full_text_tfidf_light, regeste_full_text_hybrid_0.5, regeste_full_text_hybrid_0.7); (2) citation_heritage benchmark validated on frozen 137,314-pair pool with 95.9% citation resolution (2,019/2,105 resolved) — all 8 TF-IDF representations FAIL recall@10 > 0.2 threshold (best cited_decisions_tfidf: 0.048); (3) v17b label normalization generalization tested at 174k (213->163 labels, 32 cross-lingual concepts, 15-25% purity gains REPRODUCED) — PARTIAL generalization (2/8 reps within <=10% worsening rule on hierarchy-family metrics). Center_projected evaluation on 16-year partial (2000-2015, 99,325 decisions) shows SIGNIFICANT IMPROVEMENT over 3-year partial: language dominance 0.98→0.87, jurist preference 0.04→0.30. Best: center_projected_64dim (lang_dom=0.868, jurist_pref=0.327) — closest to both adversarial thresholds. Cross-language transfer PASSES (transfer_gap~0.03-0.04), language-specific quality PASSES (mean_nmi~0.38-0.40). 64dim also passes cross-language retrieval on 15k subsample (recall=0.27). Raw multilingual-e5 768dim partial (2000-2015) evaluated: FAILS adversarial (lang_dom=0.9855, jurist_pref=0.0275), confirming center-projection is necessary. Evaluation infrastructure operational (monitor active, check_count=139, HNSW artifact fixed). Lane correctly BLOCKED_ON_DEPENDENCIES for full 174k dense embeddings (legal-distance: 16/26 years complete in checkpoints 2000-2015, ~99k/174k decisions, ~57% decision completion; full 174k concatenation not yet promoted to accepted state; years 2016-2025 pending). Citation role embeddings and linear hybrids evaluated at 1200-scale only (v7, v12), not at 174k. NO additional same-question cycle justified; Factory Director to decide successor question.",
+  "next_recommendation": "CORRECTED from audit CYCLE_36242734524: TF-IDF family 174k evaluation COMPLETE per factory direction v30 across all three machine-executable sub-questions: (1) 12-benchmark formal suite with HNSW artifact fix (exact k-NN on fixed stratified subsample n=2000) \u2014 8 representations evaluated, 5 PASS both adversarial gates (cited_decisions_tfidf, outcome_tfidf, regeste_tfidf, cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7), 3 FAIL (full_text_tfidf_light, regeste_full_text_hybrid_0.5, regeste_full_text_hybrid_0.7); (2) citation_heritage benchmark validated on frozen 137,314-pair pool with 95.9% citation resolution (2,019/2,105 resolved) \u2014 all 8 TF-IDF representations FAIL recall@10 > 0.2 threshold (best cited_decisions_tfidf: 0.048); (3) v17b label normalization generalization tested at 174k (213->163 labels, 32 cross-lingual concepts, 15-25% purity gains REPRODUCED) \u2014 PARTIAL generalization (2/8 reps within <=10% worsening rule on hierarchy-family metrics). Center_projected evaluation on 16-year partial (2000-2015, 99,325 decisions) shows SIGNIFICANT IMPROVEMENT over 3-year partial: language dominance 0.98\u21920.87, jurist preference 0.04\u21920.30. Best: center_projected_64dim (lang_dom=0.868, jurist_pref=0.327) \u2014 closest to both adversarial thresholds. Cross-language transfer PASSES (transfer_gap~0.03-0.04), language-specific quality PASSES (mean_nmi~0.38-0.40). 64dim also passes cross-language retrieval on 15k subsample (recall=0.27). Raw multilingual-e5 768dim partial (2000-2015) evaluated: FAILS adversarial (lang_dom=0.9855, jurist_pref=0.0275), confirming center-projection is necessary. Citation_heritage on 16-year partial dense embeddings (4 representations): ALL PASS AUC (~0.90-0.91) but ALL FAIL recall@10 (~0.0), consistent with TF-IDF 174k pattern. Evaluation infrastructure operational (monitor active, check_count=143, HNSW artifact fixed). Lane correctly BLOCKED_ON_DEPENDENCIES for full 174k dense embeddings (legal-distance: 16/26 years complete in checkpoints 2000-2015, ~99k/174k decisions, ~57% decision completion; full 174k concatenation not yet promoted to accepted state; years 2016-2025 pending). Citation role embeddings and linear hybrids evaluated at 1200-scale only (v7, v12), not at 174k.",
   "sub_question_results": {
     "formal_suite_12_benchmark": {
       "status": "COMPLETE",
@@ -34,18 +39,63 @@
       },
       "hnsw_artifact_fix": "exact_knn_on_valid_subset_n2000",
       "results_summary": {
-        "cited_decisions_tfidf": {"verdict": "PASS", "lang_dom": 0.5295, "jurist_pref": 0.8020, "both_adv_pass": true},
-        "outcome_tfidf": {"verdict": "PASS", "lang_dom": 0.4527, "jurist_pref": 0.7255, "both_adv_pass": true},
-        "regeste_tfidf": {"verdict": "PASS", "lang_dom": 0.4835, "jurist_pref": 0.6090, "both_adv_pass": true},
-        "cited_outcome_hybrid_0.5": {"verdict": "PASS", "lang_dom": 0.5164, "jurist_pref": 0.8055, "both_adv_pass": true},
-        "cited_outcome_hybrid_0.7": {"verdict": "PASS", "lang_dom": 0.5238, "jurist_pref": 0.7975, "both_adv_pass": true},
-        "full_text_tfidf_light": {"verdict": "FAIL", "lang_dom": 1.0000, "jurist_pref": 0.0000, "both_adv_pass": false},
-        "regeste_full_text_hybrid_0.5": {"verdict": "FAIL", "lang_dom": 1.0000, "jurist_pref": 0.0000, "both_adv_pass": false},
-        "regeste_full_text_hybrid_0.7": {"verdict": "FAIL", "lang_dom": 1.0000, "jurist_pref": 0.0000, "both_adv_pass": false}
+        "cited_decisions_tfidf": {
+          "verdict": "PASS",
+          "lang_dom": 0.5295,
+          "jurist_pref": 0.802,
+          "both_adv_pass": true
+        },
+        "outcome_tfidf": {
+          "verdict": "PASS",
+          "lang_dom": 0.4527,
+          "jurist_pref": 0.7255,
+          "both_adv_pass": true
+        },
+        "regeste_tfidf": {
+          "verdict": "PASS",
+          "lang_dom": 0.4835,
+          "jurist_pref": 0.609,
+          "both_adv_pass": true
+        },
+        "cited_outcome_hybrid_0.5": {
+          "verdict": "PASS",
+          "lang_dom": 0.5164,
+          "jurist_pref": 0.8055,
+          "both_adv_pass": true
+        },
+        "cited_outcome_hybrid_0.7": {
+          "verdict": "PASS",
+          "lang_dom": 0.5238,
+          "jurist_pref": 0.7975,
+          "both_adv_pass": true
+        },
+        "full_text_tfidf_light": {
+          "verdict": "FAIL",
+          "lang_dom": 1.0,
+          "jurist_pref": 0.0,
+          "both_adv_pass": false
+        },
+        "regeste_full_text_hybrid_0.5": {
+          "verdict": "FAIL",
+          "lang_dom": 1.0,
+          "jurist_pref": 0.0,
+          "both_adv_pass": false
+        },
+        "regeste_full_text_hybrid_0.7": {
+          "verdict": "FAIL",
+          "lang_dom": 1.0,
+          "jurist_pref": 0.0,
+          "both_adv_pass": false
+        }
       },
       "best_representation": "cited_decisions_tfidf",
       "production_default": "cited_outcome_hybrid_0.7",
-      "universal_failures_174k": ["hierarchy_coherence", "legal_area_clustering", "temporal_stability", "boilerplate_resistance"],
+      "universal_failures_174k": [
+        "hierarchy_coherence",
+        "legal_area_clustering",
+        "temporal_stability",
+        "boilerplate_resistance"
+      ],
       "note": "Universal failures are corpus/label limitations, not representation defects"
     },
     "citation_heritage": {
@@ -60,16 +110,51 @@
       "negative_pairs": 1020,
       "frozen_pair_pool_ready": true,
       "results_summary": {
-        "cited_decisions_tfidf": {"auc": 0.7892, "recall_at_10": 0.0480, "status": "FAIL"},
-        "outcome_tfidf": {"auc": 0.6575, "recall_at_10": 0.0000, "status": "FAIL"},
-        "regeste_tfidf": {"auc": 0.4861, "recall_at_10": 0.0039, "status": "FAIL"},
-        "full_text_tfidf_light": {"auc": 0.8969, "recall_at_10": 0.0529, "status": "FAIL"},
-        "cited_outcome_hybrid_0.5": {"auc": 0.7589, "recall_at_10": 0.0500, "status": "FAIL"},
-        "cited_outcome_hybrid_0.7": {"auc": 0.7749, "recall_at_10": 0.0490, "status": "FAIL"},
-        "regeste_full_text_hybrid_0.5": {"auc": 0.8714, "recall_at_10": 0.0353, "status": "FAIL"},
-        "regeste_full_text_hybrid_0.7": {"auc": 0.8504, "recall_at_10": 0.0353, "status": "FAIL"}
+        "cited_decisions_tfidf": {
+          "auc": 0.7892,
+          "recall_at_10": 0.048,
+          "status": "FAIL"
+        },
+        "outcome_tfidf": {
+          "auc": 0.6575,
+          "recall_at_10": 0.0,
+          "status": "FAIL"
+        },
+        "regeste_tfidf": {
+          "auc": 0.4861,
+          "recall_at_10": 0.0039,
+          "status": "FAIL"
+        },
+        "full_text_tfidf_light": {
+          "auc": 0.8969,
+          "recall_at_10": 0.0529,
+          "status": "FAIL"
+        },
+        "cited_outcome_hybrid_0.5": {
+          "auc": 0.7589,
+          "recall_at_10": 0.05,
+          "status": "FAIL"
+        },
+        "cited_outcome_hybrid_0.7": {
+          "auc": 0.7749,
+          "recall_at_10": 0.049,
+          "status": "FAIL"
+        },
+        "regeste_full_text_hybrid_0.5": {
+          "auc": 0.8714,
+          "recall_at_10": 0.0353,
+          "status": "FAIL"
+        },
+        "regeste_full_text_hybrid_0.7": {
+          "auc": 0.8504,
+          "recall_at_10": 0.0353,
+          "status": "FAIL"
+        }
       },
-      "thresholds": {"auc_min": 0.65, "recall_at_10_min": 0.2},
+      "thresholds": {
+        "auc_min": 0.65,
+        "recall_at_10_min": 0.2
+      },
       "note": "Benchmark infrastructure ready for 174k dense embeddings when available. All TF-IDF reps FAIL recall@10 threshold despite some passing AUC."
     },
     "v17b_label_normalization": {
@@ -92,7 +177,11 @@
     },
     "partial_dense_2000_2002": {
       "status": "COMPLETE",
-      "years_evaluated": [2000, 2001, 2002],
+      "years_evaluated": [
+        2000,
+        2001,
+        2002
+      ],
       "total_decisions": 12570,
       "valid_decisions_with_branch": 2300,
       "metadata_coverage_pct": 18.3,
@@ -102,9 +191,24 @@
         "jurist_pairwise": 0.5
       },
       "results_summary": {
-        "center_projected_768dim_partial": {"verdict": "FAIL", "lang_dom": 0.9806, "jurist_pref": 0.0400, "both_adv_pass": false},
-        "center_projected_64dim_partial": {"verdict": "FAIL", "lang_dom": 0.9782, "jurist_pref": 0.0448, "both_adv_pass": false},
-        "center_projected_128dim_partial": {"verdict": "FAIL", "lang_dom": 0.9804, "jurist_pref": 0.0409, "both_adv_pass": false}
+        "center_projected_768dim_partial": {
+          "verdict": "FAIL",
+          "lang_dom": 0.9806,
+          "jurist_pref": 0.04,
+          "both_adv_pass": false
+        },
+        "center_projected_64dim_partial": {
+          "verdict": "FAIL",
+          "lang_dom": 0.9782,
+          "jurist_pref": 0.0448,
+          "both_adv_pass": false
+        },
+        "center_projected_128dim_partial": {
+          "verdict": "FAIL",
+          "lang_dom": 0.9804,
+          "jurist_pref": 0.0409,
+          "both_adv_pass": false
+        }
       },
       "key_findings": {
         "adversarial_failure_reason": "Language dominance ~0.98 (language artifacts dominate); jurist preference ~0.04 (no legally relevant neighbors). Root cause: only 18.3% metadata coverage (branch labels) for valid subset; center-projection computed on partial corpus not full 174k; raw multilingual-e5 embeddings have strong language clustering.",
@@ -119,7 +223,24 @@
     },
     "partial_dense_2000_2015_center_projected": {
       "status": "COMPLETE",
-      "years_evaluated": [2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015],
+      "years_evaluated": [
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015
+      ],
       "total_decisions": 99325,
       "valid_decisions_with_branch": 43573,
       "metadata_coverage_pct": 43.9,
@@ -129,26 +250,112 @@
         "jurist_pairwise": 0.5
       },
       "results_summary": {
-        "center_projected_768dim_partial_2000_2015": {"verdict": "FAIL", "lang_dom": 0.8774, "jurist_pref": 0.2970, "both_adv_pass": false},
-        "center_projected_64dim_partial_2000_2015": {"verdict": "FAIL", "lang_dom": 0.8680, "jurist_pref": 0.3270, "both_adv_pass": false},
-        "center_projected_128dim_partial_2000_2015": {"verdict": "FAIL", "lang_dom": 0.8746, "jurist_pref": 0.3020, "both_adv_pass": false}
+        "center_projected_768dim_partial_2000_2015": {
+          "verdict": "FAIL",
+          "lang_dom": 0.8774,
+          "jurist_pref": 0.297,
+          "both_adv_pass": false
+        },
+        "center_projected_64dim_partial_2000_2015": {
+          "verdict": "FAIL",
+          "lang_dom": 0.868,
+          "jurist_pref": 0.327,
+          "both_adv_pass": false
+        },
+        "center_projected_128dim_partial_2000_2015": {
+          "verdict": "FAIL",
+          "lang_dom": 0.8746,
+          "jurist_pref": 0.302,
+          "both_adv_pass": false
+        }
       },
       "improvement_over_3year": {
-        "center_projected_768dim": {"lang_dom_delta": -0.1032, "jurist_pref_delta": 0.2570},
-        "center_projected_64dim": {"lang_dom_delta": -0.1102, "jurist_pref_delta": 0.2822},
-        "center_projected_128dim": {"lang_dom_delta": -0.1058, "jurist_pref_delta": 0.2611}
+        "center_projected_768dim": {
+          "lang_dom_delta": -0.1032,
+          "jurist_pref_delta": 0.257
+        },
+        "center_projected_64dim": {
+          "lang_dom_delta": -0.1102,
+          "jurist_pref_delta": 0.2822
+        },
+        "center_projected_128dim": {
+          "lang_dom_delta": -0.1058,
+          "jurist_pref_delta": 0.2611
+        }
       },
       "key_findings": {
         "trajectory": "SIGNIFICANT IMPROVEMENT with 8x more data (99k vs 12k decisions). Language dominance dropped from ~0.98 to ~0.87 (approaching 0.85 threshold). Jurist preference rose from ~0.04 to ~0.30 (still below 0.5 threshold). Center-projection on larger corpus substantially reduces language artifacts.",
-        "best_representation": "center_projected_64dim_partial_2000_2015 (lang_dom=0.868, jurist_pref=0.327) — closest to both adversarial gates",
+        "best_representation": "center_projected_64dim_partial_2000_2015 (lang_dom=0.868, jurist_pref=0.327) \u2014 closest to both adversarial gates",
         "cross_language_transfer": "PASS for all three (transfer_gap 0.033-0.041)",
         "language_specific_quality": "PASS for all three (mean_nmi 0.38-0.40)",
         "cross_language_retrieval_15k": "64dim PASS (recall=0.274), 128dim PASS (recall=0.251), 768dim FAIL (recall=0.025)",
         "hierarchy_coherence": "FAIL for all (level_0_nmi 0.27-0.30, level_1_nmi 0.40-0.42, nesting_score 0.67-0.70)",
-        "raw_multilingual_e5_comparison": "Raw 768dim (no center-projection): lang_dom=0.9855, jurist_pref=0.0275 — confirms center-projection is necessary and effective",
-        "scale_stability": "768dim PASS (0.78 overlap), 64dim/128dim FAIL in fast implementation (likely bug — not comparable)"
+        "raw_multilingual_e5_comparison": "Raw 768dim (no center-projection): lang_dom=0.9855, jurist_pref=0.0275 \u2014 confirms center-projection is necessary and effective",
+        "scale_stability": "768dim PASS (0.78 overlap), 64dim/128dim FAIL in fast implementation (likely bug \u2014 not comparable)"
       },
       "note": "Results demonstrate clear positive trajectory with corpus scale. Full 174k center-projected evaluation needed for definitive verdict. Metadata coverage (43.9% with known branch) still limits valid subset for adversarial benchmarks."
+    },
+    "partial_dense_2000_2015_citation_heritage": {
+      "status": "COMPLETE",
+      "years_evaluated": [
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015
+      ],
+      "total_decisions": 99325,
+      "citation_pairs_in_subset": 58718,
+      "positive_pairs": 13648,
+      "negative_pairs": 45070,
+      "frozen_pair_pool": "174k citation graph (2,019/2,105 resolved, 95.9%)",
+      "representations_evaluated": 4,
+      "thresholds": {
+        "auc_min": 0.65,
+        "recall_at_10_min": 0.2
+      },
+      "results_summary": {
+        "multilingual_e5_768dim_partial_2000_2015": {
+          "auc": 0.9105,
+          "recall_at_10": 0.014,
+          "status": "FAIL",
+          "pass_auc": true,
+          "pass_recall": false
+        },
+        "center_projected_768dim_partial_2000_2015": {
+          "auc": 0.9047,
+          "recall_at_10": 0.0,
+          "status": "FAIL",
+          "pass_auc": true,
+          "pass_recall": false
+        },
+        "center_projected_128dim_partial_2000_2015": {
+          "auc": 0.9053,
+          "recall_at_10": 0.0,
+          "status": "FAIL",
+          "pass_auc": true,
+          "pass_recall": false
+        },
+        "center_projected_64dim_partial_2000_2015": {
+          "auc": 0.9057,
+          "recall_at_10": 0.0,
+          "status": "FAIL",
+          "pass_auc": true,
+          "pass_recall": false
+        }
+      },
+      "note": "All dense partial representations PASS AUC (>0.65) but FAIL recall@10 (>0.2), consistent with TF-IDF 174k results. AUC stable ~0.90-0.91 across raw and center-projected. Recall@10 near zero indicates citation neighborhood recovery fails at this scale/density for dense embeddings."
     }
   },
   "blocked_on": "legal-distance lane: 174k dense embeddings not yet concatenated and promoted to accepted state. Checkpoints exist for years 2000-2015 (16 years, ~99,325 decisions) at /tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/checkpoints/. Full concatenation for 173,963 decisions pending. Citation role embeddings and linear hybrids evaluated at 1200-scale only (v7, v12), not at 174k.",

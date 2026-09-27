@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Run citation_heritage benchmark on partial dense embeddings (2000-2015).
-Filters the frozen 174k pair pool to only include decisions in the partial set.
+Run citation_heritage benchmark on partial dense embeddings (2000-2015) - FAST version.
+Uses HNSW for efficient recall@10 computation.
 """
 import json
 import numpy as np
@@ -14,6 +14,7 @@ from typing import List, Tuple, Dict, Set
 sys.path.insert(0, '/home/runner/work/LexMachina/LexMachina')
 from evaluation.evaluate_174k_dense_partial import load_dense_embeddings_subset, COMPLETED_YEARS
 from evaluation.run_174k_formal_suite import load_evaluation_metadata
+from evaluation.scalable_nn import build_scalable_nn
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 logger = logging.getLogger(__name__)
@@ -47,35 +48,40 @@ def filter_pairs_to_subset(
     logger.info(f"Filtered pairs: {len(pos_filtered)} positive, {len(neg_filtered)} negative")
     return pos_filtered, neg_filtered
 
-def compute_similarities(
+def compute_similarities_batch(
     embeddings: np.ndarray,
     did_to_idx: Dict[str, int],
     pairs: List[Tuple[str, str]]
 ) -> np.ndarray:
-    """Compute cosine similarities for pairs."""
-    similarities = []
-    for a, b in pairs:
-        if a in did_to_idx and b in did_to_idx:
-            idx_a = did_to_idx[a]
-            idx_b = did_to_idx[b]
-            # Cosine similarity (embeddings are already normalized?)
-            emb_a = embeddings[idx_a]
-            emb_b = embeddings[idx_b]
-            sim = np.dot(emb_a, emb_b) / (np.linalg.norm(emb_a) * np.linalg.norm(emb_b))
-            similarities.append(sim)
-        else:
-            # Should not happen if pairs are filtered
-            similarities.append(0.0)
-    return np.array(similarities)
+    """Compute cosine similarities for pairs using vectorized operations."""
+    # Get indices
+    idx_a = np.array([did_to_idx[a] for a, b in pairs if a in did_to_idx and b in did_to_idx])
+    idx_b = np.array([did_to_idx[b] for a, b in pairs if a in did_to_idx and b in did_to_idx])
+    
+    if len(idx_a) == 0:
+        return np.array([])
+    
+    emb_a = embeddings[idx_a]
+    emb_b = embeddings[idx_b]
+    
+    # Cosine similarity (assuming embeddings are already normalized, or normalize)
+    # Normalize rows
+    norms_a = np.linalg.norm(emb_a, axis=1, keepdims=True)
+    norms_b = np.linalg.norm(emb_b, axis=1, keepdims=True)
+    emb_a_norm = emb_a / np.maximum(norms_a, 1e-10)
+    emb_b_norm = emb_b / np.maximum(norms_b, 1e-10)
+    
+    sims = np.sum(emb_a_norm * emb_b_norm, axis=1)
+    return sims
 
-def evaluate_citation_heritage(
+def evaluate_citation_heritage_fast(
     name: str,
     embeddings: np.ndarray,
     subset_metadata: List[Dict],
     positive_pairs: List[Tuple[str, str]],
     negative_pairs: List[Tuple[str, str]]
 ) -> Dict:
-    """Run citation_heritage evaluation on a representation."""
+    """Run citation_heritage evaluation on a representation using HNSW for recall."""
     logger.info(f"\nEvaluating citation_heritage for {name}...")
     logger.info(f"Embeddings shape: {embeddings.shape}")
     
@@ -95,21 +101,22 @@ def evaluate_citation_heritage(
             'negative_pairs_in_subset': len(neg_filtered)
         }
     
-    # Compute similarities
-    logger.info(f"Computing similarities for {len(pos_filtered)} positive pairs...")
-    pos_sims = compute_similarities(embeddings, did_to_idx, pos_filtered)
-    
-    logger.info(f"Computing similarities for {len(neg_filtered)} negative pairs...")
-    neg_sims = compute_similarities(embeddings, did_to_idx, neg_filtered)
+    # Compute similarities for AUC (vectorized)
+    logger.info(f"Computing similarities for AUC ({len(pos_filtered)} pos, {len(neg_filtered)} neg)...")
+    pos_sims = compute_similarities_batch(embeddings, did_to_idx, pos_filtered)
+    neg_sims = compute_similarities_batch(embeddings, did_to_idx, neg_filtered)
     
     # Compute AUC-ROC
     y_true = np.concatenate([np.ones(len(pos_sims)), np.zeros(len(neg_sims))])
     y_scores = np.concatenate([pos_sims, neg_sims])
     auc = roc_auc_score(y_true, y_scores)
     
-    # Compute recall@10
-    # For each positive pair, check if the target is in top-10 neighbors of source
-    # We'll sample some positive pairs for efficiency
+    # Compute recall@10 using HNSW (efficient k-NN)
+    logger.info("Building HNSW index for recall@10...")
+    nn = build_scalable_nn(embeddings, n_neighbors=10, force_exact=False)
+    logger.info(f"Built {nn.backend} index")
+    
+    # Sample queries for recall
     n_queries = min(1000, len(pos_filtered))
     query_indices = np.random.choice(len(pos_filtered), n_queries, replace=False)
     
@@ -119,19 +126,17 @@ def evaluate_citation_heritage(
         source_idx = did_to_idx[source]
         target_idx = did_to_idx[target]
         
-        # Compute similarities to all other decisions
-        source_emb = embeddings[source_idx]
-        sims = np.dot(embeddings, source_emb) / (np.linalg.norm(embeddings, axis=1) * np.linalg.norm(source_emb))
+        # Query HNSW
+        neighbors, _ = nn.kneighbors(embeddings[source_idx:source_idx+1], n_neighbors=11)  # +1 for self
+        neighbor_indices = neighbors[0][1:]  # Exclude self
         
-        # Get top-10 (excluding self)
-        top_10 = np.argsort(sims)[::-1][1:11]
-        if target_idx in top_10:
+        if target_idx in neighbor_indices:
             recall_at_10 += 1
     
     recall_at_10 /= n_queries
     
     logger.info(f"  AUC-ROC: {auc:.4f}")
-    logger.info(f"  Recall@10: {recall_at_10:.4f}")
+    logger.info(f"  Recall@10: {recall_at_10:.4f} (using {nn.backend})")
     
     return {
         'name': name,
@@ -141,14 +146,26 @@ def evaluate_citation_heritage(
         'positive_pairs_evaluated': len(pos_filtered),
         'negative_pairs_evaluated': len(neg_filtered),
         'n_queries_recall': n_queries,
+        'recall_backend': nn.backend,
         'thresholds': {'auc_min': 0.65, 'recall_at_10_min': 0.2},
         'pass_auc': auc >= 0.65,
         'pass_recall': recall_at_10 >= 0.2
     }
 
+def center_project(emb: np.ndarray, dim: int) -> np.ndarray:
+    """Center embeddings and project to target dimension via PCA."""
+    centered = emb - emb.mean(axis=0, keepdims=True)
+    from sklearn.decomposition import PCA
+    pca = PCA(n_components=dim, random_state=42)
+    projected = pca.fit_transform(centered)
+    # Normalize
+    norms = np.linalg.norm(projected, axis=1, keepdims=True)
+    projected = projected / np.maximum(norms, 1e-10)
+    return projected.astype(np.float32)
+
 def main():
     logger.info("=" * 70)
-    logger.info("CITATION_HERITAGE ON PARTIAL DENSE EMBEDDINGS (2000-2015)")
+    logger.info("CITATION_HERITAGE ON PARTIAL DENSE EMBEDDINGS (2000-2015) - FAST")
     logger.info("=" * 70)
     
     # Load full metadata
@@ -164,42 +181,14 @@ def main():
     # Load frozen pairs
     positive_pairs, negative_pairs = load_frozen_pairs()
     
-    # Evaluate raw multilingual-e5 768dim
-    result_raw = evaluate_citation_heritage(
-        "multilingual_e5_768dim_partial_2000_2015",
-        embeddings_raw,
-        subset_metadata,
-        positive_pairs,
-        negative_pairs
-    )
-    
-    # Save results
-    with open(OUTPUT_DIR / "citation_heritage_multilingual_e5_768dim_partial_2000_2015.json", "w") as f:
-        json.dump(result_raw, f, indent=2)
-    
-    # Now evaluate center-projected versions
-    # Load center-projected embeddings from the formal suite results
-    # These are computed from the raw embeddings
-    logger.info("\nComputing center-projected embeddings...")
-    
-    # Center-projection: subtract mean, then PCA to target dim
-    def center_project(emb: np.ndarray, dim: int) -> np.ndarray:
-        # Center
-        centered = emb - emb.mean(axis=0, keepdims=True)
-        # PCA
-        from sklearn.decomposition import PCA
-        pca = PCA(n_components=dim, random_state=42)
-        projected = pca.fit_transform(centered)
-        # Normalize
-        norms = np.linalg.norm(projected, axis=1, keepdims=True)
-        projected = projected / np.maximum(norms, 1e-10)
-        return projected.astype(np.float32)
-    
+    # Evaluate center-projected versions
     for dim in [768, 128, 64]:
+        logger.info(f"\n{'='*50}")
         logger.info(f"Computing center-projected {dim}dim...")
         emb_proj = center_project(embeddings_raw, dim)
+        logger.info(f"Center-projected shape: {emb_proj.shape}")
         
-        result_proj = evaluate_citation_heritage(
+        result_proj = evaluate_citation_heritage_fast(
             f"center_projected_{dim}dim_partial_2000_2015",
             emb_proj,
             subset_metadata,
@@ -207,19 +196,14 @@ def main():
             negative_pairs
         )
         
-        with open(OUTPUT_DIR / f"citation_heritage_center_projected_{dim}dim_partial_2000_2015.json", "w") as f:
+        output_file = OUTPUT_DIR / f"citation_heritage_center_projected_{dim}dim_partial_2000_2015.json"
+        with open(output_file, "w") as f:
             json.dump(result_proj, f, indent=2)
+        logger.info(f"Saved to {output_file}")
     
     logger.info("\n" + "=" * 70)
     logger.info("CITATION_HERITAGE PARTIAL DENSE EVALUATION COMPLETE")
     logger.info("=" * 70)
-    
-    return {
-        'raw_768dim': result_raw,
-        'center_projected_768dim': None,  # Would need to load from file
-        'center_projected_128dim': None,
-        'center_projected_64dim': None
-    }
 
 if __name__ == "__main__":
     main()
