@@ -2,8 +2,8 @@
   "lane": "evaluation",
   "direction_version": 28,
   "evidence_tier": "REPRODUCED",
-  "cycle_status": "COMPLETE",
-  "continue_recommended": false,
+  "cycle_status": "MONITORING",
+  "continue_recommended": true,
   "accepted_run_id": "eval_174k_formal_suite_v28_20260927_final",
   "evidence_refs": [
     "reports/evaluation/EVALUATION_174K_FORMAL_SUITE_v28_CYCLE_REPORT.md",
@@ -24,7 +24,7 @@
     "evaluation/monitor_and_evaluate_174k.py",
     "evaluation/state/monitor_174k_state.json"
   ],
-  "next_recommendation": "PAUSE — TF-IDF family (8 representations) FULLY EVALUATED at 174k scale with formal suite v25 (frozen harness v3, config_hash=4323f833fa72366a). All three sub-questions from factory direction v28 COMPLETE:\n\n1. FORMAL SUITE (12 benchmarks): COMPLETE — Fundamental two-mode tradeoff persists at 174k. Citation-based (cited_decisions_tfidf, cited_outcome_hybrid_0.5/0.7) pass adversarial_falsification via EXACT k-NN (lang_dom ~0.45-0.53, jurist_pref ~0.72-0.80), pass cross_language_retrieval_full (HNSW), but FAIL zero_shot_cross_language_transfer (NMI ~0.03-0.06), language_specific_representation_quality (NMI ~0.09-0.13), temporal_stability (std ~0.39), hierarchy_coherence (level_1_nmi ~0.06-0.09), cluster_coherence (branch_purity ~0.37-0.41), boilerplate_resistance. Text-based (full_text_tfidf_light, regeste hybrids) pass zero_shot_cross_language_transfer (NMI ~0.21), language_specific_representation_quality (NMI ~0.51), cluster_coherence (branch_purity ~0.74), temporal_stability (mean overlap ~0.78) but FAIL adversarial_falsification (lang_dom=1.0, jurist_pref=0.0) via EXACT k-NN and cross_language_retrieval (recall@10=0.0). ALL fail hierarchy_coherence (max level_1_nmi 0.56).\n\n2. CITATION HERITAGE: COMPLETE — NEW NEGATIVE FINDING (2026-09-27): AUC ~0.50-0.53 for ALL 8 TF-IDF representations at 174k scale using HNSW k=20 on full corpus with frozen 137,314 pair pool. Near random (AUC=0.5). Positive recall@20 ranges 0.00-0.07. Previous AUC 0.66-0.90 was different methodology. NO TF-IDF representation encodes citation structure in nearest neighbors above chance level at production scale.\n\n3. v17b LABEL NORMALIZATION: COMPLETE — NOT uniformly confirmed at 174k. Only 5/8 representations satisfy frozen >10% no-worsening rule on ALL hierarchy-family metrics. Citation-based reps show 4-10% purity improvement across all 3 metrics. Text-based reps show ZERO hierarchy_purity improvement and 30-34% zoom_fine_purity DEGRADATION. NMI degrades for all reps. Best normalized hierarchy_purity=0.554 < 0.7 threshold.\n\nDense embeddings, citation roles, linear hybrids at 174k still awaited from legal-distance (3/26 years ACCEPTED; years 2003-2019 pending audit). Evaluation lane PAUSED until new representations land from legal-distance.",
+  "next_recommendation": "MONITORING — TF-IDF family (8 representations) FULLY EVALUATED at 174k scale with formal suite v25 (frozen harness v3, config_hash=4323f833fa72366a). All three sub-questions from factory direction v28 COMPLETE for TF-IDF. Lane now in active monitoring mode: running monitor_and_evaluate_174k.py to detect when awaited representations land from legal-distance and auto-executing the full v25 formal suite (12 benchmarks + citation_heritage + v17b normalization) on each.\n\nCOMPLETED (TF-IDF family at 174k):\n1. FORMAL SUITE (12 benchmarks): COMPLETE — Fundamental two-mode tradeoff persists at 174k. Citation-based (cited_decisions_tfidf, cited_outcome_hybrid_0.5/0.7) pass adversarial_falsification via EXACT k-NN (lang_dom ~0.45-0.53, jurist_pref ~0.72-0.80), pass cross_language_retrieval_full (HNSW), but FAIL zero_shot_cross_language_transfer (NMI ~0.03-0.06), language_specific_representation_quality (NMI ~0.09-0.13), temporal_stability (std ~0.39), hierarchy_coherence (level_1_nmi ~0.06-0.09), cluster_coherence (branch_purity ~0.37-0.41), boilerplate_resistance. Text-based (full_text_tfidf_light, regeste hybrids) pass zero_shot_cross_language_transfer (NMI ~0.21), language_specific_representation_quality (NMI ~0.51), cluster_coherence (branch_purity ~0.74), temporal_stability (mean overlap ~0.78) but FAIL adversarial_falsification (lang_dom=1.0, jurist_pref=0.0) via EXACT k-NN and cross_language_retrieval (recall@10=0.0). ALL fail hierarchy_coherence (max level_1_nmi 0.56).\n\n2. CITATION HERITAGE: COMPLETE — NEW NEGATIVE FINDING (2026-09-27): AUC ~0.50-0.53 for ALL 8 TF-IDF representations at 174k scale using HNSW k=20 on full corpus with frozen 137,314 pair pool. Near random (AUC=0.5). Positive recall@20 ranges 0.00-0.07. Previous AUC 0.66-0.90 was different methodology. NO TF-IDF representation encodes citation structure in nearest neighbors above chance level at production scale.\n\n3. v17b LABEL NORMALIZATION: COMPLETE — NOT uniformly confirmed at 174k. Only 5/8 representations satisfy frozen >10% no-worsening rule on ALL hierarchy-family metrics. Citation-based reps show 4-10% purity improvement across all 3 metrics. Text-based reps show ZERO hierarchy_purity improvement and 30-34% zoom_fine_purity DEGRADATION. NMI degrades for all reps. Best normalized hierarchy_purity=0.554 < 0.7 threshold — fundamental granularity/coverage limits persist at 174k.\n\nAWAITING from legal-distance (per monitor_174k_state.json):\n- Dense embeddings: 16/26 years complete (2000-2015, ~99k decisions, 57%) in checkpoints; years 2016-2025 pending. Transformed representations (center_projected_64/128/768dim, metric-learned, hybrids) NOT YET concatenated into 174k final embeddings.\n- Citation roles: NOT YET computed at 174k\n- Linear hybrids: NOT YET computed at 174k\n\nMONITOR STATUS: Active (check_count=154, last_check=2026-09-27T14:45:00Z). HNSW backend operational. Scalable NN infrastructure operational. v25 formal suite runner operational. Citation heritage frozen 137,314 pairs ready. v17b normalization operational.",
   "summary": {
     "subquestion_1_12_benchmark_suite": {
       "status": "COMPLETE",
@@ -99,6 +99,19 @@
       "v25_formal_suite": "4323f833fa72366a",
       "v3_adversarial_harness": "4047da047fb339c1",
       "v3_174k_config": "evaluation/config/evaluation_v3_174k_config.json"
+    },
+    "monitor_status": {
+      "script": "evaluation/monitor_and_evaluate_174k.py",
+      "state_file": "evaluation/state/monitor_174k_state.json",
+      "last_check": "2026-09-27T14:45:00.000000Z",
+      "check_count": 154,
+      "infrastructure": "OPERATIONAL",
+      "hnsw_backend": "OPERATIONAL_ON_GITHUB_RUNNERS",
+      "scalable_nn": "OPERATIONAL_WITH_SKLEARN_FALLBACK",
+      "v25_formal_suite": "OPERATIONAL",
+      "citation_heritage": "FROZEN_137314_PAIRS_READY",
+      "v17b_normalization": "OPERATIONAL",
+      "dense_embeddings_progress": "16/26 years (2000-2015, ~99k decisions, 57%) in checkpoints; awaiting concatenation and promotion to accepted state"
     }
   }
 }
