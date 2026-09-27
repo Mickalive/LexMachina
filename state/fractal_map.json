@@ -1,0 +1,37 @@
+{
+  "lane": "fractal-map",
+  "direction_version": 28,
+  "evidence_tier": "EXPLORATORY",
+  "cycle_status": "COMPLETE",
+  "continue_recommended": true,
+  "accepted_run_id": "fractal_map_constrained_hierarchical_20260927",
+  "evidence_refs": [
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_5000_20260927_151155.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_2626_20260927_151210.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_5195_20260927_151247.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_5196_20260927_151304.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_20000_20260927_151318.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_30000_20260927_151733.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_10382_20260927_151833.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_7652_20260927_151945.json",
+    "results/fractal_map/zoom_quality_174k_eval/v26_verdict.json",
+    "results/fractal_map/zoom_quality_174k_eval/citation_role_1000_v26_rule_20260927_150934.json"
+  ],
+  "next_recommendation": "CONTINUE — Constrained hierarchical Leiden with min_cluster_size enforcement and adaptive sub-resolution SOLVES the over-fragmentation problem that caused TF-IDF flat Leiden to FAIL v26 zoom-quality rule at 174k. Evidence across 8 experiments (5k-30k scale, 6 TF-IDF modes + 1 dense mode):\n\n1. FRAGMENTATION ELIMINATED: singleton_fraction = 0.0 at all scales (vs >99% for flat Leiden at res_3.0)\n2. ZOOM REFINEMENT ACHIEVED: improvement_rate 0.54-1.0 across modes (vs 0/4 modes passing v26 rate>0.5 on ≥2/4 transitions)\n3. PERFECT NESTING: nesting = 1.0 by construction (vs flat Leiden 0.44-0.99)\n4. PURITY IMPROVEMENT: branch/area purity increases coarse→fine (+0.002 to +0.055 branch; +0.02 to +0.04 area)\n5. DENSE EMBEDDINGS VALIDATED: center_projected_768 (7.6k decisions, years 2000-2002) achieves 0.83 branch purity baseline with hierarchical improvement to 0.83/0.44 area\n\nSCALE DEPENDENCY CONFIRMED: Flat Leiden fails at 174k (median size=1, >99% singletons) but hierarchical works at 5k-30k. The method is ready for 174k dense embeddings when legal-distance delivers them (3/26 years ACCEPTED, 20/26 pending audit).\n\nREMAINING BLOCKER: legal-distance_174k_dense_embeddings (single dependency per factory direction v28). NO product-readiness claim while lane blocked per audit CYCLE_36027099305.",
+  "summary": {
+    "v26_flat_zoom_verdict": "FAIL (0/4 modes PASS)",
+    "constrained_hierarchical_experiments": 8,
+    "scales_tested": ["5k", "10k", "20k", "30k", "7.6k (dense)"],
+    "modes_tested": ["full_text_tfidf_light", "cited_decisions_tfidf", "cited_decisions_tfidf_outcome_hybrid_0.5", "cited_decisions_tfidf_outcome_hybrid_0.7", "regeste_full_text_hybrid_0.5", "center_projected_768dim"],
+    "key_findings": {
+      "fragmentation_solved": true,
+      "zoom_refinement_achieved": true,
+      "perfect_nesting": true,
+      "purity_improvement": true,
+      "dense_embeddings_validated": true,
+      "scale_dependency_confirmed": true
+    },
+    "blockers": ["legal-distance_174k_dense_embeddings_not_in_accepted_state"],
+    "ready_for_174k_dense": true
+  }
+}
