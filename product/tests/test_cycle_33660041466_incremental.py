@@ -28,6 +28,24 @@ def _get_api():
     return api
 
 
+def _get_incremental_test_representation(api):
+    """Get a representation compatible with base embeddings (1000-scale).
+    
+    The incremental updater uses base_embeddings (1000 decisions from baseline).
+    We need a representation where base decision IDs are a subset.
+    concat_center_tfidf has exactly 1000 decisions matching base_embeddings.
+    """
+    # Prefer concat_center_tfidf (exact 1000 match with base_embeddings)
+    available = api.map_loader.get_available_representations()
+    if "concat_center_tfidf" in available:
+        return "concat_center_tfidf"
+    # Fallback to cited_outcome_hybrid_0.5 (6,988 decisions, includes baseline)
+    if "cited_outcome_hybrid_0.5" in available:
+        return "cited_outcome_hybrid_0.5"
+    # Last resort: default (but may be 174k which is incompatible)
+    return api._get_default_representation()
+
+
 def _clean_import_state():
     """Clean user import state before tests."""
     base_dir = Path(__file__).parent.parent
@@ -57,10 +75,10 @@ def test_add_decisions_increases_count():
     api = _get_api()
     updater = IncrementalUpdater(api)
 
-    default_rep = api._get_default_representation()
+    test_rep = _get_incremental_test_representation(api)
     zoom_level = 1
 
-    zl_before = api.map_loader.get_zoom_level(default_rep, zoom_level)
+    zl_before = api.map_loader.get_zoom_level(test_rep, zoom_level)
     count_before = len(zl_before.positions) if zl_before else 0
 
     # Use IDs from the base corpus embedding space (so k-NN finds neighbors)
@@ -68,11 +86,11 @@ def test_add_decisions_increases_count():
 
     result = updater.add_decisions_to_map(
         decision_ids=test_ids,
-        representation=default_rep,
+        representation=test_rep,
         zoom_level=zoom_level,
     )
 
-    zl_after = api.map_loader.get_zoom_level(default_rep, zoom_level)
+    zl_after = api.map_loader.get_zoom_level(test_rep, zoom_level)
     count_after = len(zl_after.positions) if zl_after else 0
 
     assert result["added"] > 0, f"Expected added > 0, got {result['added']}"
@@ -89,13 +107,13 @@ def test_cluster_assignment():
     api = _get_api()
     updater = IncrementalUpdater(api)
 
-    default_rep = api._get_default_representation()
+    test_rep = _get_incremental_test_representation(api)
     zoom_level = 1
     test_ids = _get_test_decision_ids(api, n=5)
 
     result = updater.add_decisions_to_map(
         decision_ids=test_ids,
-        representation=default_rep,
+        representation=test_rep,
         zoom_level=zoom_level,
     )
 
@@ -104,10 +122,10 @@ def test_cluster_assignment():
     assert len(clusters_affected) > 0, "Expected at least one cluster affected"
 
     # Verify in-memory state
-    zl = api.map_loader.get_zoom_level(default_rep, zoom_level)
+    zl = api.map_loader.get_zoom_level(test_rep, zoom_level)
     for did in test_ids:
-        if (did, default_rep) in api._imported_positions:
-            rec = api._imported_positions[(did, default_rep)]
+        if (did, test_rep) in api._imported_positions:
+            rec = api._imported_positions[(did, test_rep)]
             assert "cluster" in rec, f"Missing cluster in record for {did}"
             assert rec["cluster"] >= 0, f"Invalid cluster for {did}: {rec['cluster']}"
             assert did in zl.cluster_assignments, (
@@ -124,20 +142,20 @@ def test_persist_and_merge():
     api = _get_api()
     updater = IncrementalUpdater(api)
 
-    default_rep = api._get_default_representation()
+    test_rep = _get_incremental_test_representation(api)
     zoom_level = 1
     test_ids = _get_test_decision_ids(api, n=5)
 
     # Add decisions
     updater.add_decisions_to_map(
         decision_ids=test_ids,
-        representation=default_rep,
+        representation=test_rep,
         zoom_level=zoom_level,
     )
 
     # Persist
     persist_result = updater.persist_incremental_update(
-        representation=default_rep,
+        representation=test_rep,
         zoom_level=zoom_level,
     )
     assert persist_result["persisted"] > 0, (
@@ -155,13 +173,13 @@ def test_persist_and_merge():
 
     # Pending should now be 0 for this representation
     pending = updater.get_pending_updates()
-    assert pending["by_representation"].get(default_rep, 0) == 0, (
+    assert pending["by_representation"].get(test_rep, 0) == 0, (
         f"Expected 0 pending after persist, got {pending}"
     )
 
     # Merge
     merge_result = updater.merge_deltas(
-        representation=default_rep,
+        representation=test_rep,
         zoom_level=zoom_level,
     )
     assert merge_result["merged"] > 0, (
@@ -178,7 +196,7 @@ def test_pending_updates():
     api = _get_api()
     updater = IncrementalUpdater(api)
 
-    default_rep = api._get_default_representation()
+    test_rep = _get_incremental_test_representation(api)
     zoom_level = 1
 
     # Initially zero pending
@@ -191,7 +209,7 @@ def test_pending_updates():
     test_ids = _get_test_decision_ids(api, n=5)
     result = updater.add_decisions_to_map(
         decision_ids=test_ids,
-        representation=default_rep,
+        representation=test_rep,
         zoom_level=zoom_level,
     )
 
@@ -200,7 +218,7 @@ def test_pending_updates():
     assert pending["total_pending"] == result["added"], (
         f"Expected pending={result['added']}, got {pending['total_pending']}"
     )
-    assert default_rep in pending["by_representation"], (
+    assert test_rep in pending["by_representation"], (
         f"Expected representation in by_representation"
     )
 
@@ -214,14 +232,14 @@ def test_endpoint_structure():
     api = _get_api()
     updater = IncrementalUpdater(api)
 
-    default_rep = api._get_default_representation()
+    test_rep = _get_incremental_test_representation(api)
     zoom_level = 1
     test_ids = _get_test_decision_ids(api, n=5)
 
     # Simulate the endpoint logic directly (no HTTP server needed)
     result = updater.add_decisions_to_map(
         decision_ids=test_ids,
-        representation=default_rep,
+        representation=test_rep,
         zoom_level=zoom_level,
     )
 
