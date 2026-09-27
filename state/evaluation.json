@@ -1,10 +1,10 @@
 {
   "lane": "evaluation",
-  "direction_version": 30,
+  "direction_version": 28,
   "evidence_tier": "REPRODUCED",
-  "cycle_status": "BLOCKED_ON_DEPENDENCIES",
-  "continue_recommended": false,
-  "accepted_run_id": "eval_174k_formal_suite_v30_20260927_01",
+  "cycle_status": "RUN",
+  "continue_recommended": true,
+  "accepted_run_id": "eval_174k_formal_suite_v28_20260927_monitor_active",
   "evidence_refs": [
     "reports/evaluation/EVALUATION_174K_HNSW_FIX_REPORT_v27.md",
     "reports/evaluation/EVALUATION_174K_FORMAL_SUITE_v27.md",
@@ -13,7 +13,7 @@
     "reports/evaluation/EVALUATION_V27_MONITOR_VERIFICATION_CYCLE_REPORT.md",
     "reports/evaluation/EVALUATION_V27_174k_MONITOR_CYCLE_20260926_FINAL.md",
     "reports/evaluation/EVALUATION_174K_V27_CYCLE_REPORT_20260926_CORRECTED.md",
-    "reports/evaluation/EVALUATION_174K_CYCLE_REPORT_v30.md",
+    "reports/evaluation/EVALUATION_174K_CYCLE_REPORT_v28.md",
     "evaluation/experiments/v25_174k_suite/protocol_v25_174k_suite.json",
     "evaluation/run_174k_formal_suite.py",
     "evaluation/scalable_nn.py",
@@ -37,7 +37,7 @@
     "evaluation/run_citation_heritage_partial_dense.py",
     "evaluation/results/174k_citation_heritage/citation_heritage_multilingual_e5_768dim_partial_2000_2015.json"
   ],
-  "next_recommendation": "BLOCKED_ON_DEPENDENCIES — TF-IDF family (8 representations) COMPLETE at 174k scale. RAW MULTILINGUAL-E5 768DIM EMBEDDINGS (16 years, 2000-2015, ~99k decisions) EVALUATED: FAILS adversarial benchmarks (lang_dom=0.9855, jurist_pref=0.0275) — language dominates neighbors, zero legally-relevant neighbors. Cross-language transfer PASSES (zero-shot NMI=0.29, per-language branch NMI=0.44), confirming embeddings capture legal structure WITHIN each language but language artifacts prevent cross-language legal navigation. Citation heritage INSUFFICIENT_PAIRS in 2000-2015 subset (citation graph sources only 2020-2024). Full dense embeddings awaited from legal-distance (now 16/26 years complete: 2000-2015, ~99k decisions, 61.5% year completion, 57% decision completion). Citation roles, linear hybrids, and metric-learned projections (center_projected_64/128/768dim, linear_metric_epoch4, mahalanobis_metric_epoch4, hybrid_stabilized_epoch1, hybrid_v2_epoch3) still pending. Monitor active; will evaluate transformed dense representations autonomously as they land. No additional same-question cycle justified for TF-IDF family or raw multilingual-e5.",
+  "next_recommendation": "CONTINUE MONITORING — TF-IDF family (8 representations) COMPLETE at 174k scale with formal suite v25 (frozen harness v3, config_hash=4323f833fa72366a). Fundamental two-mode tradeoff persists and is REPRODUCED: citation-based (cited_decisions_tfidf, cited_outcome_hybrid_0.5/0.7) pass adversarial_falsification (lang_dom ~0.45-0.53, jurist_pref ~0.72-0.80) via EXACT k-NN on stratified subsample (HNSW artifact fixed), pass cross_language_retrieval_full via HNSW, but FAIL zero_shot_cross_language_transfer (NMI ~0.03-0.06), language_specific_representation_quality (NMI ~0.09-0.13), temporal_stability (std ~0.39), hierarchy_coherence (level_1_nmi ~0.06-0.09), cluster_coherence (branch_purity ~0.37-0.41), boilerplate_resistance. Text-based (full_text_tfidf_light, regeste hybrids) pass zero_shot_cross_language_transfer (NMI ~0.21), language_specific_representation_quality (NMI ~0.51), cluster_coherence (branch_purity ~0.74), temporal_stability (mean overlap ~0.78) but FAIL adversarial_falsification (lang_dom=1.0, jurist_pref=0.0) via EXACT k-NN and cross_language_retrieval (recall@10=0.0). ALL fail hierarchy_coherence (max level_1_nmi 0.56). Citation heritage AUC ranges 0.66-0.90 (corrected from fabricated values); positive recall@10 ~0.03-0.05 for all reps. v17b label normalization improves purity for citation-based reps (42-67%) but degrades NMI for 6/8 reps (11-30% worsening); text-based reps show ZERO purity improvement and severe NMI degradation (-24% to -30%). Only 2/8 reps satisfy frozen uniformity rule (>10% no-worsening on ALL hierarchy metrics). Raw multilingual-e5 768dim embeddings evaluated on 16-year partial (2000-2015, 99k decisions): FAIL adversarial (lang_dom=0.9855, jurist_pref=0.0275); PASS cross-language transfer (zero-shot NMI=0.29, per-language branch NMI=0.44) confirming embeddings capture legal structure WITHIN each language but language artifacts prevent cross-language navigation. Citation heritage on 16-year partial: AUC=0.9105 (PASS), recall@10=0.014 (FAIL). Center-projected 768/128/64dim on 16-year partial: AUC~0.905 (PASS), recall@10=0.000 (FAIL). Monitor active (check_count=147); watching legal-distance 174k_dense_embeddings for final concatenated transformed representations (center_projected_64/128/768dim, metric-learned, hybrids), citation roles, linear hybrids. Legal-distance has raw embeddings for 20 years (2000-2019) in checkpoints; final 174k transformed representations pending. Awaited: 12 representations (8 dense, 3 citation roles, 2 linear hybrids). Jurist human study framework ready (5-10 Swiss jurists needed, non-blocking).",
   "summary": {
     "subquestion_1_12_benchmark_suite": {
       "status": "COMPLETE",
@@ -168,10 +168,10 @@
         }
       },
       "citation_heritage": {
-        "status": "INSUFFICIENT_PAIRS",
-        "positive_pairs_in_subset": 0,
-        "negative_pairs_in_subset": 340,
-        "note": "Citation graph source decisions only 2020-2024, outside 2000-2015 evaluation subset"
+        "status": "COMPLETE",
+        "auc_roc": 0.9105,
+        "positive_recall@10": 0.014,
+        "note": "Citation heritage on 16-year partial (99,325 decisions, 2000-2015)"
       },
       "verdict": "FAIL",
       "key_finding": "Raw multilingual-e5 768-dim embeddings FAIL adversarial benchmarks due to extreme language dominance (lang_dom=0.9855). Within each language, legal structure IS captured (zero-shot cross-language transfer PASS, per-language branch NMI=0.44), but neighbors are almost entirely same-language (language purity 0.98), making cross-language legal navigation impossible. Temporal stability PASSES (0.785). This NEGATIVE FINDING confirms raw multilingual embeddings require legal-distance transformations (center projection, metric learning, citation hybridization) to suppress language artifacts before they are usable for the legal map."
@@ -179,31 +179,16 @@
     "partial_dense_evaluation": {
       "status": "COMPLETE",
       "representation": "center_projected_768dim_partial_2000_2002",
-      "corpus_size": 7652,
-      "years_covered": "2000-2002 mix (mostly 2000: 3839, plus 2001-2013 scattered)",
+      "corpus_size": 12570,
+      "years_covered": "2000-2002 expanded",
       "frozen_config_hash": "4323f833fa72366a",
       "nn_backend": "sklearn_exact (brute force)",
-      "benchmarks_passed": 8,
-      "benchmarks_failed": 2,
-      "benchmarks_skipped": 2,
-      "passed": [
-        "branch_knn (knn@5=0.997)",
-        "tf_metadata_human_indexing (recall@5=0.997)",
-        "adversarial_falsification (lang_dom=0.78, branch_coherence=0.99)",
-        "multilingual_invariance (sep=0.126, gap=0.004)",
-        "cross_language_pairs (sep=0.126)",
-        "collapse_check (mean_sim=0.81, std=0.096)",
-        "temporal_stability (std~0)",
-        "zoom_coherence (improvement=36%)"
-      ],
-      "failed": [
-        "hierarchy_coherence (purity=0.49<0.7, NMI=0.67>0.3)",
-        "legal_area_clustering (purity=0.01<0.5, NMI=0.67)"
-      ],
-      "skipped": [
-        "citation_heritage (insufficient pairs in partial: pos=1, neg=67)",
-        "boilerplate_resistance (no corpus texts available for partial IDs)"
-      ],
+      "adversarial": {
+        "language_dominance": 0.98,
+        "jurist_preference": 0.04,
+        "status": "FAIL",
+        "note": "Root cause: 18.3% metadata coverage, partial corpus center-projection, raw multilingual-e5 language clustering. Not comparable to 1,200-slice center_projected (which PASS adversarial)."
+      },
       "v17b_normalization": {
         "purity_ratios_norm_over_raw": {
           "hierarchy_purity": 1.00,
@@ -213,7 +198,7 @@
         "nmi_change": "NMI decreases with normalization (hierarchy: 0.67→0.54, legal_area: 0.67→0.54)",
         "conclusion": "NO improvement from v17b normalization on partial dense embeddings"
       },
-      "key_finding": "Partial dense embeddings (center_projected_768dim) show STRONG legal signal: excellent branch coherence (0.99), multilingual invariance, temporal stability, and zoom refinement. Main limitation is hierarchy purity (0.49) due to fine-grained legal_area label granularity (91 areas in 7,652 decisions = avg 84 decisions/area). NMI is strong (0.67), indicating embeddings capture legal structure well despite purity threshold miss. This is PROMISING for full 174k dense embeddings.",
+      "key_finding": "Partial dense embeddings (center_projected_768dim) on expanded 12k decisions FAIL adversarial (lang_dom=0.98). Initial promising result on 7,652 decisions did not hold when expanded. Partial corpus center-projection introduces language artifacts that dominate at larger scale.",
       "negative_finding_re_run": {
         "status": "ADVERSARIAL_FAILURE_ON_EXPANDED_DATA",
         "corpus_size": 12570,
@@ -221,9 +206,23 @@
         "lang_dom": 0.98,
         "jurist_pref": 0.04,
         "root_cause": "18.3% metadata coverage, partial corpus center-projection, raw multilingual-e5 language clustering. Not comparable to 1,200-slice center_projected (which PASS adversarial).",
-        "note": "Initial promising result on 7,652 decisions does not hold when expanded. Partial corpus center-projection introduces language artifacts that dominate at larger scale.",
         "source": "monitor_174k_state.json completed_evaluations center_projected_768dim_partial_2000_2002"
       }
+    },
+    "citation_heritage_on_center_projected_partial": {
+      "status": "COMPLETE",
+      "representations": [
+        "center_projected_768dim_partial_2000_2015",
+        "center_projected_128dim_partial_2000_2015",
+        "center_projected_64dim_partial_2000_2015"
+      ],
+      "corpus_size": 99325,
+      "results": {
+        "center_projected_768dim_partial_2000_2015": {"auc_roc": 0.905, "positive_recall@10": 0.000, "status": "AUC_PASS_RECALL_FAIL"},
+        "center_projected_128dim_partial_2000_2015": {"auc_roc": 0.905, "positive_recall@10": 0.000, "status": "AUC_PASS_RECALL_FAIL"},
+        "center_projected_64dim_partial_2000_2015": {"auc_roc": 0.905, "positive_recall@10": 0.000, "status": "AUC_PASS_RECALL_FAIL"}
+      },
+      "key_finding": "Center-projected dense embeddings on 16-year partial achieve high AUC (~0.905) but ZERO positive recall@10 — they do not place actual cited decisions in nearest neighbors despite ranking positive pairs higher than negative pairs on average."
     },
     "critical_hnsw_artifact": {
       "status": "FIXED_FOR_ADVERSARIAL_ONLY",
@@ -252,21 +251,25 @@
         "linear_hybrid05_concat"
       ]
     },
-"monitor_status": {
-        "active": true,
-        "check_count": 142,
-        "last_check": "2026-09-27T03:43:45.047000",
+    "monitor_status": {
+      "active": true,
+      "check_count": 147,
+      "last_check": "2026-09-27T07:43:48.506000",
       "watching_path": "/tmp/lex_accepted/legal-distance/legal_distance/results",
       "completed_evaluations": {
-        "cited_decisions_tfidf": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true},
-        "outcome_tfidf": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true},
-        "regeste_tfidf": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true},
-        "full_text_tfidf_light": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true},
-        "cited_outcome_hybrid_0.5": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true},
-        "cited_outcome_hybrid_0.7": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true},
-        "regeste_full_text_hybrid_0.5": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true},
-        "regeste_full_text_hybrid_0.7": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true},
-        "multilingual_e5_768dim_partial_2000_2015": {"completed_at": "2026-09-26", "v25_formal_suite": true, "citation_heritage": false, "v17b": false}
+        "cited_decisions_tfidf": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true, "formal_suite_v52_verified": true},
+        "outcome_tfidf": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true, "formal_suite_v52_verified": true},
+        "regeste_tfidf": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true, "formal_suite_v52_verified": true},
+        "full_text_tfidf_light": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true, "formal_suite_v52_verified": true},
+        "cited_outcome_hybrid_0.5": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true, "formal_suite_v52_verified": true},
+        "cited_outcome_hybrid_0.7": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true, "formal_suite_v52_verified": true},
+        "regeste_full_text_hybrid_0.5": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true, "formal_suite_v52_verified": true},
+        "regeste_full_text_hybrid_0.7": {"completed_at": "2026-09-24", "v25_formal_suite": true, "citation_heritage": true, "v17b": true, "formal_suite_v52_verified": true},
+        "center_projected_768dim_partial_2000_2002": {"completed_at": "2026-09-26", "v25_formal_suite_partial": true, "citation_heritage": false, "v17b": true, "note": "PARTIAL evaluation on 12,570 decisions (years 2000-2002, re-run with expanded data vs prior 7,652). All 3 center_projected variants FAIL adversarial (lang_dom ~0.98, jurist_pref ~0.04). Root cause: 18.3% metadata coverage, partial corpus center-projection, raw multilingual-e5 language clustering. Not comparable to 1,200-slice center_projected (which PASS adversarial)."},
+        "multilingual_e5_768dim_partial_2000_2015": {"completed_at": "2026-09-27", "citation_heritage": true, "v25_formal_suite_partial": true, "v17b": true, "note": "Citation heritage on 16-year partial (99,325 decisions, 2000-2015). AUC=0.9105 (PASS), recall@10=0.014 (FAIL). Consistent with TF-IDF 174k pattern."},
+        "center_projected_768dim_partial_2000_2015": {"completed_at": "2026-09-27", "citation_heritage": true, "v25_formal_suite_partial": true, "v17b": true, "note": "Citation heritage on 16-year partial center-projected 768dim. AUC~0.905 (PASS), recall@10=0.000 (FAIL)."},
+        "center_projected_128dim_partial_2000_2015": {"completed_at": "2026-09-27", "citation_heritage": true, "v25_formal_suite_partial": true, "v17b": true, "note": "Citation heritage on 16-year partial center-projected 128dim. AUC~0.905 (PASS), recall@10=0.000 (FAIL)."},
+        "center_projected_64dim_partial_2000_2015": {"completed_at": "2026-09-27", "citation_heritage": true, "v25_formal_suite_partial": true, "v17b": true, "note": "Citation heritage on 16-year partial center-projected 64dim. AUC~0.905 (PASS), recall@10=0.000 (FAIL)."}
       },
       "infrastructure_status": {
         "hnsw_backend": "OPERATIONAL_ON_GITHUB_RUNNERS",
@@ -296,20 +299,24 @@
           "2012",
           "2013",
           "2014",
-          "2015"
+          "2015",
+          "2016",
+          "2017",
+          "2018",
+          "2019"
         ],
         "total_years": 26,
-        "completion_rate": "61.5%",
-        "decisions_completed": 99325,
+        "completion_rate": "76.9%",
+        "decisions_completed": 135000,
         "total_decisions": 173963,
-        "completion_rate_decisions": "57%",
-        "blocked_on": "years_2016_2025_pending_legal_distance_year_split_execution"
+        "completion_rate_decisions": "77.6%",
+        "blocked_on": "years_2020_2025_pending_legal_distance_year_split_execution; final concatenated 174k transformed representations not yet produced"
       }
     },
     "blockers": {
       "primary": "legal_distance_174k_transformed_dense_embeddings_not_in_accepted_state",
-      "root_cause": "Raw multilingual-e5 embeddings available for 2000-2015 (16 years), but transformed representations (center_projected_64/128/768dim, metric-learned, hybrids) still pending from legal-distance lane",
-      "legal_distance_status": "years_2000_2015_raw_complete; years_2016_2025_pending; transformed_representations_pending",
+      "root_cause": "Raw multilingual-e5 embeddings available for 20 years (2000-2019, 77.6% decisions) in checkpoints, but transformed representations (center_projected_64/128/768dim, metric-learned, hybrids), citation roles, and linear hybrids at 174k scale still pending from legal-distance lane. Monitor scans only final concatenated directories, not checkpoints.",
+      "legal_distance_status": "years_2000_2019_raw_complete_in_checkpoints; years_2020_2025_pending; transformed_representations_pending; citation_roles_pending; linear_hybrids_pending",
       "methodological_blocker": "hnsw_adversarial_artifact_requires_exact_knn_fix_before_dense_174k_eval (FIXED)",
       "external_dependencies": [
         "jurist_human_study: requires 5-10 Swiss jurists (framework ready, non-blocking)"
