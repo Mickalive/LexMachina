@@ -943,21 +943,31 @@ class NavigationAPI:
     ) -> List[Dict]:
         if representation is None:
             representation = self._get_default_representation()
-        """Get nearest neighbors of a decision based on spatial proximity."""
+        """Get nearest neighbors of a decision based on spatial proximity.
+        
+        Works with both corpus decisions (enriched with full text) and map-only decisions
+        (enriched from map metadata). This enables neighbor lookup at 174k scale where
+        most map decisions are not in the loaded corpus.
+        """
         if not self._initialized:
             return []
 
-        positions = self.map_loader.get_positions(representation)
+        # Get positions for the specific zoom level (not just first zoom level)
+        zl = self.map_loader.get_zoom_level(representation, zoom_level)
+        if not zl:
+            return []
+        
+        positions = zl.positions
         if decision_id not in positions:
             return []
 
         target_pos = positions[decision_id]
         corpus_ids = set(self.corpus.get_all_ids())
         
-        # Compute distances to all other decisions (only those in corpus)
+        # Compute distances to all other decisions on the map (not just corpus)
         distances = []
         for did, pos in positions.items():
-            if did == decision_id or did not in corpus_ids:
+            if did == decision_id:
                 continue
             dist = ((pos[0] - target_pos[0]) ** 2 + (pos[1] - target_pos[1]) ** 2) ** 0.5
             distances.append((did, dist))
@@ -967,10 +977,27 @@ class NavigationAPI:
         
         neighbors = []
         for did, dist in distances[:n]:
+            # Try corpus first (has full text)
             summary = self.corpus.get_summary(did)
             if summary:
+                summary = summary.copy()
                 summary["distance"] = round(dist, 4)
                 neighbors.append(summary)
+            else:
+                # Fallback to map metadata (for 174k decisions not in corpus)
+                meta = self._get_map_decision_meta(did)
+                if meta:
+                    neighbors.append({
+                        "decision_id": did,
+                        "docket_number": meta.get("docket_number", ""),
+                        "decision_date": meta.get("decision_date", ""),
+                        "language": meta.get("language", "unknown"),
+                        "title": meta.get("title") or meta.get("docket_number", ""),
+                        "legal_area": meta.get("legal_area"),
+                        "branch": meta.get("branch"),
+                        "distance": round(dist, 4),
+                        "from_map_metadata": True,
+                    })
 
         return neighbors
 
