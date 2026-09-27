@@ -2648,7 +2648,13 @@ class NavigationAPI:
         LOD_LIMITS = {0: 15000, 1: 30000}
         lod_limit = LOD_LIMITS.get(zoom_level)
         if lod_limit and n_total > lod_limit:
-            grid_size = max(1, int(np.sqrt(n_total / lod_limit)))
+            # Calculate grid_size to yield ~lod_limit cells (sqrt of target count)
+            # grid_size = max(1, int(np.sqrt(n_total / lod_limit))) is buggy when ratio < 2
+            # Fix: ensure grid_size is large enough to produce at least lod_limit cells
+            # target cells per dimension = sqrt(lod_limit), so grid_size = max(1, int(np.sqrt(lod_limit)))
+            # But we also need to account for point density: grid_size = max(1, int(np.sqrt(lod_limit * n_total / lod_limit))) = int(sqrt(n_total))
+            # Better: grid_size = max(2, int(np.sqrt(lod_limit))) ensures >= lod_limit cells
+            grid_size = max(2, int(np.sqrt(lod_limit)))
             x_min_range, x_max_range = xs.min(), xs.max()
             y_min_range, y_max_range = ys.min(), ys.max()
             x_range = x_max_range - x_min_range if x_max_range > x_min_range else 1.0
@@ -2662,6 +2668,12 @@ class NavigationAPI:
             lod_mask = np.zeros(n_total, dtype=bool)
             lod_mask[unique_indices] = True
             n_after_lod = int(lod_mask.sum())
+            # If we still have too many points, do random subsampling
+            if n_after_lod > lod_limit:
+                keep_indices = np.random.choice(unique_indices, size=lod_limit, replace=False)
+                lod_mask = np.zeros(n_total, dtype=bool)
+                lod_mask[keep_indices] = True
+                n_after_lod = lod_limit
         else:
             lod_mask = np.ones(n_total, dtype=bool)
             n_after_lod = n_total
