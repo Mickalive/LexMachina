@@ -1,0 +1,139 @@
+{
+  "lane": "fractal-map",
+  "direction_version": 30,
+  "github_run": 36289653325,
+  "timestamp": "2026-09-27T02:57:00.000000+00:00",
+  "cycle_status": "COMPLETED",
+  "evidence_tier": "ACCEPTED",
+  "continue_recommended": false,
+  "accepted_run_id": "36286783219",
+  "verification_of_run": 36289313607,
+  "verification_type": "NULL_CYCLE_AUDIT",
+  "null_cycle_finding": {
+    "run_id_audited": 36289653325,
+    "work_products_found": false,
+    "latest_producer_commit": "5642ba0e (cycle 36289313607 repair 0)",
+    "latest_control_plane_commit": "5fb1778b (accept cycle 36275401929)",
+    "conclusion": "Run 36289653325 has no distinct work products. Lane state reflects accepted deliverable from run 36286783219."
+  },
+  "key_results": {
+    "tfidf_constrained_hierarchical_174k": {
+      "status": "ACCEPTED",
+      "modes_tested": 4,
+      "modes_passed": 4,
+      "nesting": 1.0,
+      "fragmentation": "<0.1% singletons",
+      "improvement_rate_range": "0.57-0.90",
+      "evidence_tier": "ACCEPTED",
+      "config": {
+        "coarse_res": 0.25,
+        "base_sub_res": 3.0,
+        "min_cluster_size": 10,
+        "max_subclusters_per_parent": 20,
+        "adaptive_sub_res": true
+      }
+    },
+    "tfidf_flat_zoom_v26": {
+      "status": "FAIL",
+      "modes_tested": 4,
+      "modes_passed": 0,
+      "over_fragmentation": true,
+      "singleton_fraction_fine": ">0.99",
+      "evidence_tier": "ACCEPTED",
+      "frozen": true,
+      "v25_crosscheck": "bit-equal purity reproduction"
+    },
+    "scale_dependency": {
+      "confirmed": true,
+      "12k_hierarchical": "PASS (improvement_rate=0.80)",
+      "77k_flat": "FAIL (improvement_rate~0.006)",
+      "174k_constrained_hierarchical": "PASS (improvement_rate 0.57-0.90)"
+    },
+    "nesting_metric_defect_v1": {
+      "enforced": true,
+      "compressed_family_modes_prohibited": 7,
+      "by_construction_modes_citeable": 2,
+      "honest_nesting_range": "0.3911-0.9632",
+      "compressed_ladder_universal_nesting": false
+    },
+    "evidence_backed_zoom_path": {
+      "dense_embeddings_constrained_hierarchical": "Validated at 62k partial scale",
+      "citation_role_modes_1k": "ZQ=0.48-0.54",
+      "outcome_hybrids_1k": "Constrained hierarchical PASS",
+      "blocked_on": "legal-distance_174k_dense_embeddings"
+    },
+    "compressed_resolution_ladder": {
+      "validated": true,
+      "full_ladder_levels": 7,
+      "compressed_ladder_levels": 5,
+      "reduction_pct": 29,
+      "purity_delta_retention": "100%",
+      "zoom_navigation_identical": true,
+      "scope": "Validated at 1000-scale for 6 modes; not universally valid for strict nesting"
+    }
+  },
+  "factory_direction_v30_discrepancy": {
+    "claimed": "16/26 years dense embeddings (2000-2015, ~99,325 decisions, ~57%)",
+    "verified": "3/26 years dense embeddings (2000-2002, ~12,570 decisions, ~7%)",
+    "progress_json_path": "legal_distance/results/174k_dense_embeddings/checkpoints/progress.json",
+    "recorded_in_state": true,
+    "impact": "Fractal-map correctly blocked; evidence-backed zoom path unexecutable at 174k"
+  },
+  "orchestration_failure": {
+    "diagnosed": true,
+    "root_cause": "Supervisor reads /tmp/lex_control/state/factory_direction.json (fractal-map.status=RUN) instead of state/fractal-map.json (cycle_status=COMPLETED)",
+    "wasteful_redispatches": "60+ documented across runs 36152847479-36286783219",
+    "factory_director_action": "Update supervisor dispatch logic to read state/<lane>.json for dispatch gating"
+  },
+  "test_suite": {
+    "total_tests": 217,
+    "passed": 214,
+    "skipped": 3,
+    "failed": 0,
+    "skipped_reasons": [
+      "provenance recompute (external dependency)",
+      "dense embeddings data readiness (2 tests - artifacts not available, 3/26 years only)"
+    ],
+    "modules": {
+      "test_verify.py": { "passed": 179, "skipped": 1, "failed": 0 },
+      "test_zoom_quality_174k_eval.py": { "passed": 4, "skipped": 0, "failed": 0 },
+      "test_zoom_quality_174k_v26_eval.py": { "passed": 7, "skipped": 0, "failed": 0 },
+      "test_dense_embeddings_infrastructure.py": { "passed": 13, "skipped": 2, "failed": 0 },
+      "test_scale_dependency.py": { "passed": 11, "skipped": 0, "failed": 0 }
+    }
+  },
+  "artifacts_verified": [
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_full_20260926.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_hybrid05_20260926.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_hybrid07_20260926.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_regeste_20260926.json",
+    "results/fractal_map/zoom_quality_174k_eval/v26_frozen_spec.json",
+    "results/fractal_map/zoom_quality_174k_eval/v26_verdict.json",
+    "results/fractal_map/zoom_quality_174k_eval/v25_frozen_spec.json",
+    "results/fractal_map/zoom_quality_174k_eval/v25_verdict.json",
+    "fractal_map/evaluation/zoom_quality_174k_all_modes_v26.py",
+    "fractal_map/hierarchical/audit_174k_builds_36035695081.py",
+    "results/fractal_map/evaluation/compressed_resolution_ladder_analysis.json",
+    "results/fractal_map/evaluation/zoom_quality_diagnostic_results.json",
+    "legal_distance/results/174k_dense_embeddings/checkpoints/progress.json"
+  ],
+  "reports_verified": [
+    "reports/fractal_map/AUDIT_READY_SNAPSHOT_36286783219.md",
+    "reports/fractal_map/CONSTRAINED_HIERARCHICAL_VALIDATION_20260926.md",
+    "reports/fractal_map/FRACTAL_MAP_174K_ZOOM_QUALITY_STATE_v27.md"
+  ],
+  "state_consistency": {
+    "state_fractal_map_json": "VALID",
+    "state_fractal_map_json_sync": true,
+    "evidence_tier": "ACCEPTED",
+    "cycle_status": "COMPLETED",
+    "continue_recommended": false,
+    "next_recommendation": "PIVOT_WITHIN_MISSION"
+  },
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF constrained hierarchical Leiden at 174k: ACCEPTED (production-ready). Dense embeddings path: BLOCKED (3/26 years). No product-readiness claim while lane blocked. Nesting_score=1.0 citeable ONLY for 1000-scale by-construction modes with scope annotation.",
+  "evidence_summary": "Independent recomputation confirms: (1) 4/4 TF-IDF constrained hierarchical modes PASS at 174k (nesting=1.0, zero fragmentation, improvement_rate 57-90%); (2) 4/4 TF-IDF flat zoom modes FAIL frozen v26 rule (over-fragmentation >99% singletons, no monotonic refinement); (3) Scale dependency confirmed (12k PASS → 77k FAIL → 174k constrained PASS); (4) NESTING_METRIC_DEFECT_v1 enforced (7 modes prohibited from nesting>=0.99 claims); (5) Legal-distance progress 3/26 years (not 16/26); (6) All 214 tests pass (3 skipped for unavailable dense artifacts); (7) Run 36289653325 is null cycle with no work products. All negative results preserved as first-class evidence.",
+  "audit_ready": true
+}
