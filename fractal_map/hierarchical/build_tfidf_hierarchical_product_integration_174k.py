@@ -154,9 +154,11 @@ def hierarchical_leiden_constrained(embeddings, coarse_res=0.25,
         
         # Adaptive sub-resolution: lower resolution for larger clusters
         if adaptive_sub_res:
-            target_subclusters = max(5, min(max_subclusters_per_parent, cluster_size // 100))
+            # Target ~cluster_size/100 subclusters, capped at max_subclusters_per_parent * 3
+            target_subclusters = max(5, min(max_subclusters_per_parent * 3, cluster_size // 100))
+            # sub_res inversely proportional to sqrt(target_subclusters)
             sub_res = sub_res_base * (20 / target_subclusters) ** 0.5
-            sub_res = max(1.0, min(5.0, sub_res))
+            sub_res = max(0.5, min(5.0, sub_res))
         else:
             sub_res = sub_res_base
         
