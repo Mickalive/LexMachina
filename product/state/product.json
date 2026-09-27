@@ -4,7 +4,7 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETE",
   "continue_recommended": false,
-  "accepted_run_id": "RUN_36307106130",
+  "accepted_run_id": "RUN_36336726468",
   "evidence_refs": [
     "product/results/fractal_map/hierarchical_map_174k/",
     "product/results/fractal_map/cited_outcome_hybrid_0.5_174k/",
@@ -12,13 +12,20 @@
     "product/results/fractal_map/center_projected_64dim_hierarchical/",
     "product/results/fractal_map/linear_hybrid05_concat/",
     "product/tests/test_cycle_174k_simulation.py (16/16 PASS)",
-    "product/tests/test_product.py::test_all_representations_coverage (33/33 PASS)",
-    "product/tests/test_product.py::test_cited_outcome_hybrid_0_5 (PASS)",
+    "product/tests/test_product.py::test_all_representations_coverage (37/37 PASS)",
+    "product/tests/test_product.py::test_cited_outcome_hybrid_0_5 (PASS - 1k scale)",
     "product/tests/test_product.py::test_linear_hybrid05_concat (PASS)",
     "product/tests/test_product.py::test_center_projected (PASS)",
+    "product/tests/test_product.py::test_cited_decisions_tfidf (PASS)",
     "product/tests/test_product.py::test_cited_decisions_tfidf_174k (PASS)",
-    "product/tests/test_product.py::test_cited_outcome_hybrid_0_5_174k (PASS)",
-    "product/tests/test_product.py::test_cited_outcome_hybrid_0_7_174k (PASS)"
+    "product/tests/test_product.py::test_section_modes (PASS - 6 modes)",
+    "product/tests/test_product.py::test_corpus_import (PASS)",
+    "product/tests/test_product.py::test_legal_cited_decisions (PASS)",
+    "product/tests/test_product.py::test_following_alpha0_3 (PASS)",
+    "product/tests/test_product.py::test_criticizing_alpha0_3 (PASS)",
+    "product/tests/test_product.py::test_citing_alpha0_3 (PASS)",
+    "product/tests/test_product.py::test_cited_outcome_hybrid_0_7 (PASS - 1k scale)",
+    "product/tests/test_product.py::test_cited_decisions_tfidf_hybrid_cp64_0_7 (PASS)"
   ],
   "next_recommendation": "PRODUCTIZE with 21k-scale TF-IDF defaults; 174k dense embeddings BLOCKED on legal-distance lane",
   "production_defaults": {
@@ -31,9 +38,9 @@
   "blocked_on": "legal-distance 174k dense embeddings (3/26 years ACCEPTED, 16/26 years pending audit)",
   "scale_readiness_validated": true,
   "scale_simulation_tests": "16/16 PASS (synthetic 174k)",
-  "api_endpoints_validated": "All NavigationAPI methods tested via test_product.py; HTTP server endpoints tested",
-  "representations_loaded": 33,
-  "representations_healthy": 33,
+  "api_endpoints_validated": "All NavigationAPI methods tested via test_product.py; HTTP server code complete (slow startup due to sentence_transformers model loading)",
+  "representations_loaded": 37,
+  "representations_healthy": 36,
   "webgl_pipeline_validated": true,
   "lod_culling_validated": true,
   "section_modes_loaded": 6,
@@ -78,5 +85,11 @@
     "/api/recommendation",
     "/api/evaluation/benchmarks",
     "/api/evaluation/representation_quality"
+  ],
+  "known_issues": [
+    "true_hierarchical_leiden fails to load ('NoneType' object is not subscriptable) - legacy representation",
+    "cited_outcome_hybrid_0.5 (non-174k) is 1k scale not 7k scale as test comment claims - test expectation mismatch",
+    "HTTP server startup slow (~30-60s) due to sentence_transformers model loading on import",
+    "174k spatial indices for some representations built from 1k sample instead of full 21k decisions"
   ]
 }
