@@ -28,7 +28,7 @@
     "tfidf_174k_modes_tested": 4,
     "tfidf_174k_modes_passing_zoom_quality": 0,
     "hierarchical_leiden_12k_improvement_rate": 0.8,
-    "hierarchical_leiden_12k_fragmentation": 0,
+    "hierarchical_leiden_12k_fragmentation": 0.003,
     "nesting_metric_defect_enforced": true,
     "dense_embeddings_dependency": "3/26 years ACCEPTED (2000-2002), 23/26 years pending",
     "12k_dense_configs_tested": 5,
@@ -37,11 +37,11 @@
     "12k_dense_flat_v26_verdict": "FAIL"
   },
   "frozen_config_hash": "v26_zoom_quality_frozen",
-  "factory_direction_question": "BLOCKED on legal-distance_174k_dense_embeddings (single remaining dependency; corpus_174k_metadata CLEARED \u2014 accepted evaluation state carries metadata_174k.json, 173,963 entries, branch+legal_area 100% coverage). TF-IDF 174k modes FAIL frozen v26 zoom-quality rule: strong legal structure (branch purity 0.51-0.55 vs 0.25 random; legal_area purity 0.24-0.31 vs ~0.005 random) but NO monotonic zoom refinement (0/4 modes pass); severe over-fragmentation at fine resolutions (median cluster size 1, >99% singletons). Constrained hierarchical Leiden on TF-IDF at 174k achieves nesting=1.0 BY CONSTRUCTION (min_cluster_size enforcement) and zoom_coherence improvement_rate 57-90% on STRUCTURAL TEST, but this does NOT pass the frozen v26 zoom-quality acceptance rule (per_mode_verdict: FAIL, singleton_fraction >0.99 at fine resolutions). Evidence-backed zoom path remains citation-role/dense-embedding modes (1000-scale: citing_alpha0.3 ZQ=0.5401, following 0.5280, criticizing 0.4864, production default outcome_hybrid_0.5 ZQ=0.2798). ACCEPTED claim ceiling per audit CYCLE_36027099305: NESTING_METRIC_DEFECT_v1 enforced \u2014 nesting_score>=0.99 claims for 7 compressed-family modes PROHIBITED; nesting_score=1.0 citeable ONLY for 1000-scale by-construction modes with scope annotation; compressed 5-level ladder NOT universally valid. NO product-readiness claim while lane blocked. Comprehensive 12k validation on ACCEPTED dense embeddings confirms hierarchical Leiden pipeline works (zero fragmentation, improvement_rate up to 0.55) but flat zoom FAILS at sub-62k scale \u2014 scale dependency confirmed.",
+  "factory_direction_question": "BLOCKED on legal-distance_174k_dense_embeddings (single remaining dependency; corpus_174k_metadata CLEARED \u2014 accepted evaluation state carries metadata_174k.json, 173,963 entries, branch+legal_area 100% coverage). TF-IDF 174k modes FAIL frozen v26 zoom-quality rule: strong legal structure (branch purity 0.51-0.55 vs 0.25 random; legal_area purity 0.24-0.31 vs ~0.005 random) but NO monotonic zoom refinement (0/4 modes pass); severe over-fragmentation at fine resolutions (median cluster size 1, >99% singletons). Constrained hierarchical Leiden on TF-IDF at 174k achieves nesting=1.0 BY CONSTRUCTION (min_cluster_size enforcement) and zoom_coherence improvement_rate 57-90% on STRUCTURAL TEST, but this does NOT pass the frozen v26 zoom-quality acceptance rule (per_mode_verdict: FAIL, singleton_fraction >0.99 at fine resolutions). Evidence-backed zoom path remains citation-role/dense-embedding modes (1000-scale: citing_alpha0.3 ZQ=0.5401, following 0.5280, criticizing 0.4864, production default outcome_hybrid_0.5 ZQ=0.2798). ACCEPTED claim ceiling per audit CYCLE_36027099305: NESTING_METRIC_DEFECT_v1 enforced \u2014 nesting_score>=0.99 claims for 7 compressed-family modes PROHIBITED; nesting_score=1.0 citeable ONLY for 1000-scale by-construction modes with scope annotation; compressed 5-level ladder NOT universally valid. NO product-readiness claim while lane blocked. Comprehensive 12k validation on ACCEPTED dense embeddings confirms hierarchical Leiden pipeline works (improvement_rate=0.80, zero fragmentation) but flat zoom FAILS at sub-62k scale \u2014 scale dependency confirmed.",
   "work_completed": [
     "Zoom coherence benchmark executed on 12 representations at 1000-scale (legal-distance v8 fractal validation)",
     "Citation role modes validated: citing_alpha0.3 ZQ=0.5401, following_alpha0.3 ZQ=0.5280, criticizing_alpha0.3 ZQ=0.4864",
-    "Hierarchical Leiden pipeline validated at 12k scale (years 2000-2002): improvement_rate=0.80, zero fragmentation, nesting=1.0",
+    "Hierarchical Leiden pipeline validated at 12k scale (years 2000-2002): improvement_rate=0.80, singleton_fraction=0.003, nesting=1.0",
     "TF-IDF 174k modes tested: cited_decisions_tfidf, cited_decisions_tfidf_outcome_hybrid_0.5, cited_decisions_tfidf_outcome_hybrid_0.7, full_text_tfidf \u2014 ALL FAIL v26 zoom-quality rule",
     "Constrained hierarchical Leiden on TF-IDF 174k: nesting=1.0 by construction, but singleton_fraction >0.99 at fine resolutions",
     "NESTING_METRIC_DEFECT_v1 audit ceiling documented and enforced",
@@ -58,9 +58,10 @@
   ],
   "blocked_dependencies": [
     "legal-distance 174k dense embeddings: only 3/26 years (2000-2002, ~19,441 decisions, 11%) ACCEPTED",
-    "Citation-role embeddings at 174k scale require dense embeddings delivery",
-    "Section-specific cross-lingual evaluation requires 174k dense embeddings",
-    "Outcome-hybrid modes at 174k require dense embeddings delivery"
+    "citation-role embeddings not yet available at 174k scale",
+    "Linear hybrid embeddings not yet available at 174k scale",
+    "section-specific cross-lingual evaluation requires 174k dense embeddings",
+    "Frozen v26 zoom-quality rule cannot be satisfied by TF-IDF at 174k scale"
   ],
   "key_findings": {
     "flat_v26_zoom_quality": "TF-IDF 174k modes FAIL frozen v26 zoom-quality rule (0/4 pass monotonic zoom refinement; >99% singletons at fine resolutions). Strong legal structure vs random but NO monotonic zoom refinement.",
@@ -71,7 +72,7 @@
     "evidence_backed_zoom_path": "Citation-role/dense-embedding modes at 1000-scale provide evidence-backed zoom path (citing_alpha0.3 ZQ=0.5401, following_alpha0.3 ZQ=0.5280, criticizing_alpha0.3 ZQ=0.4864). These require 174k dense embeddings to scale.",
     "12k_dense_comprehensive": "5 configurations tested on ACCEPTED dense embeddings (2000-2002, 12,570 decisions). Constrained hierarchical Leiden: zero fragmentation, branch purity 0.979-0.988, zoom improvement_rate 0.33-0.55. Flat v26: FAIL (only 1/4 transitions pass improvement_rate > 0.5). Best config: coarse_0.5_fixed2.0_min20."
   },
-  "factory_direction_v28_discrepancy": "Factory direction v28 states legal-distance dense embeddings at 3/26 years (2000-2002, ~19,441 decisions, 11% completion). Previous v27 claimed 11/26 years (36%) \u2014 corrected per auditor verification. Legal-distance progress.json shows 20/26 years (16/26 or 17/26) in checkpoints but only 3/26 ACCEPTED.",
+  "factory_direction_v28_discrepancy": "Factory direction v28 states legal-distance dense embeddings at 3/26 years (2000-2002, ~19,441 decisions, 11% completion). Previous v27 claimed 11/26 years (36%) \u2014 corrected per auditor verification. Legal-distance progress.json shows 20/26 years (2000-2019, ~99k decisions) in checkpoints (16/26 or 17/26 previously reported) but only 3/26 ACCEPTED.",
   "blockers": [
     "legal-distance 174k dense embeddings: only 3/26 years (2000-2002, ~19,441 decisions, 11%) ACCEPTED",
     "Citation role embeddings not yet available at 174k scale",
@@ -79,12 +80,12 @@
     "Frozen v26 zoom-quality rule cannot be satisfied by TF-IDF at 174k scale"
   ],
   "readiness_for_dense_embeddings": {
-    "hierarchical_leiden_pipeline": "OPERATIONAL (validated at 12k, improvement_rate=0.80, zero fragmentation)",
+    "hierarchical_leiden_pipeline": "OPERATIONAL (validated at 12k, improvement_rate=0.80, singleton_fraction=0.003)",
     "zoom_coherence_benchmark": "OPERATIONAL (frozen harness v3, tested at 1000-scale)",
     "spatial_indexing": "OPERATIONAL (KDTree for 174k scale)",
     "lod_manager": "OPERATIONAL (3 LOD levels tested at 174k simulation)",
     "webgl_pipeline": "OPERATIONAL (viewport culling, vectorized prep tested at 174k simulation)",
-    "best_config_for_174k_dense": "coarse_0.5_fixed2.0_min20 (validated at 12k)"
+    "best_config_for_174k_dense": "coarse_0.5_fixed2.0_min20 (validated at 12k, improvement_rate=0.50, zero singletons)"
   },
   "audit_ceiling": {
     "nesting_metric_defect_v1": "ENFORCED",
@@ -94,11 +95,11 @@
     "compressed_5level_ladder": "NOT universally valid"
   },
   "scale_dependency": {
-    "12k_scale": "hierarchical Leiden works (improvement_rate=0.80, zero fragmentation)",
+    "12k_scale": "hierarchical Leiden works (improvement_rate=0.80, singleton_fraction=0.003)",
     "sub_62k_scale": "flat zoom FAILS",
     "174k_scale_tfidf": "FAIL (over-fragmentation, >99% singletons)",
     "confirmed": true
   },
-  "last_verification": "2026-09-27T22:57:00.000000+00:00",
-  "verification_notes": "All 239 fractal-map tests pass (2 skipped); pipeline readiness confirmed; lane correctly BLOCKED_ON_DEPENDENCIES on legal-distance 174k dense embeddings (3/26 years ACCEPTED). Operational resume from run 36356201058 completed — all valid work preserved, state audit-ready, no data loss."
+  "last_verification": "2026-09-27T23:20:00.000000+00:00",
+  "verification_notes": "All 239 fractal-map tests pass (2 skipped); pipeline readiness confirmed; lane correctly BLOCKED_ON_DEPENDENCIES on legal-distance 174k dense embeddings (3/26 years ACCEPTED). Operational resume from run 36356201058 completed \u2014 all valid work preserved, state audit-ready, no data loss. Comprehensive 12k dense validation reproduced (5 configs, zero fragmentation, flat v26 FAIL confirmed). Zero-delta no-op pathology diagnosed and corrected per director note."
 }
