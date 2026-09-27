@@ -1,0 +1,108 @@
+{
+  "run_id": "tfidf_174k_zoom_quality_test_20260927",
+  "timestamp": "2026-09-27T21:30:00.000000Z",
+  "direction_version": 28,
+  "lane": "fractal-map",
+  "evidence_tier": "REPRODUCED",
+  "hypothesis": "TF-IDF representations at 174k scale fail frozen v26 zoom-quality rule despite strong legal structure",
+  "frozen_sample": "174,113 BGer decisions (full corpus 2000-2026)",
+  "frozen_metric": "v26 zoom-quality rule: monotonic zoom refinement (per_mode_verdict PASS), singleton_fraction < 0.9 at fine resolutions",
+  "success_rule": "per_mode_verdict = PASS for each mode tested",
+  "tfidf_modes_tested": 4,
+  "results": {
+    "cited_decisions_tfidf": {
+      "branch_purity_coarse": 0.51,
+      "branch_purity_fine": 0.53,
+      "legal_area_purity_coarse": 0.24,
+      "legal_area_purity_fine": 0.26,
+      "random_baseline_branch": 0.25,
+      "random_baseline_legal_area": 0.005,
+      "monotonic_zoom_refinement": false,
+      "per_mode_verdict": "FAIL",
+      "singleton_fraction_fine": 0.994,
+      "median_cluster_size_fine": 1,
+      "note": "Strong legal structure vs random but NO monotonic zoom refinement; severe over-fragmentation"
+    },
+    "cited_decisions_tfidf_outcome_hybrid_0.5": {
+      "branch_purity_coarse": 0.53,
+      "branch_purity_fine": 0.55,
+      "legal_area_purity_coarse": 0.26,
+      "legal_area_purity_fine": 0.28,
+      "random_baseline_branch": 0.25,
+      "random_baseline_legal_area": 0.005,
+      "monotonic_zoom_refinement": false,
+      "per_mode_verdict": "FAIL",
+      "singleton_fraction_fine": 0.992,
+      "median_cluster_size_fine": 1,
+      "note": "Production default at 21k subset; FAILS at 174k scale"
+    },
+    "cited_decisions_tfidf_outcome_hybrid_0.7": {
+      "branch_purity_coarse": 0.54,
+      "branch_purity_fine": 0.55,
+      "legal_area_purity_coarse": 0.28,
+      "legal_area_purity_fine": 0.30,
+      "random_baseline_branch": 0.25,
+      "random_baseline_legal_area": 0.005,
+      "monotonic_zoom_refinement": false,
+      "per_mode_verdict": "FAIL",
+      "singleton_fraction_fine": 0.993,
+      "median_cluster_size_fine": 1,
+      "note": "FAILS at 174k scale"
+    },
+    "full_text_tfidf": {
+      "branch_purity_coarse": 0.55,
+      "branch_purity_fine": 0.55,
+      "legal_area_purity_coarse": 0.31,
+      "legal_area_purity_fine": 0.31,
+      "random_baseline_branch": 0.25,
+      "random_baseline_legal_area": 0.005,
+      "monotonic_zoom_refinement": false,
+      "per_mode_verdict": "FAIL",
+      "singleton_fraction_fine": 0.998,
+      "median_cluster_size_fine": 1,
+      "note": "Worst over-fragmentation"
+    }
+  },
+  "constrained_hierarchical_leiden_174k": {
+    "config": {
+      "coarse_resolution": 0.5,
+      "sub_resolution": 3.0,
+      "min_cluster_size": 5,
+      "k_nn": 15
+    },
+    "results": {
+      "nesting_score": 1.0,
+      "coarse_purity": 0.48,
+      "fine_purity": 0.62,
+      "hierarchical_purity": 0.71,
+      "improvement_rate_structural_test": 0.57,
+      "zoom_coherence_improvement_rate": 0.90,
+      "singleton_fraction_fine": 0.991,
+      "per_mode_verdict": "FAIL",
+      "note": "nesting=1.0 BY CONSTRUCTION (min_cluster_size enforcement); improvement_rate 57-90% on STRUCTURAL TEST only; does NOT pass frozen v26 zoom-quality acceptance rule (singleton_fraction >0.99 at fine resolutions)"
+    }
+  },
+  "summary": {
+    "modes_tested": 4,
+    "modes_passing_v26_zoom_quality": 0,
+    "all_modes_show_strong_legal_structure_vs_random": true,
+    "all_modes_fail_monotonic_zoom_refinement": true,
+    "all_modes_severe_over_fragmentation": true,
+    "constrained_hierarchical_leiden_nesting_1_0_by_construction": true,
+    "constrained_hierarchical_leiden_passes_v26_rule": false
+  },
+  "v26_zoom_quality_rule": {
+    "frozen_before_observation": true,
+    "criteria": [
+      "per_mode_verdict = PASS (monotonic zoom refinement)",
+      "singleton_fraction < 0.9 at fine resolutions",
+      "improvement_rate > 0.5"
+    ],
+    "status": "UNCHANGED since v26"
+  },
+  "provenance": {
+    "tfidf_embeddings_source": "product/results/fractal_map/legal_tfidf_embeddings/ (8 embeddings at 175k decisions)",
+    "clustering_pipeline": "fractal_map/flat_leiden_174k.py and fractal_map/constrained_hierarchical_leiden_174k.py",
+    "compute_environment": "CPU-only, 65-min job ceiling compatible"
+  }
+}

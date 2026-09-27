@@ -1,0 +1,69 @@
+{
+  "run_id": "hierarchical_leiden_12k_validation_20260927",
+  "timestamp": "2026-09-27T21:30:00.000000Z",
+  "direction_version": 28,
+  "lane": "fractal-map",
+  "evidence_tier": "REPRODUCED",
+  "hypothesis": "Hierarchical Leiden pipeline (validated at 1000-scale) scales to 12k decisions (years 2000-2002) with zero fragmentation and high improvement rate",
+  "frozen_sample": "12,000 BGer decisions (years 2000-2002, ~19,441 decisions in dense embeddings checkpoints)",
+  "frozen_metric": "improvement_rate, fragmentation (singleton_fraction), nesting_score",
+  "success_rule": "improvement_rate > 0.5 AND singleton_fraction < 0.1 AND nesting_score = 1.0",
+  "representations_tested": 1,
+  "representation": "dense_embeddings_years_2000_2002 (legal-distance 174k dense embeddings, 3/26 years ACCEPTED)",
+  "results": {
+    "hierarchical_leiden_config": {
+      "coarse_resolution": 0.5,
+      "sub_resolution": 3.0,
+      "k_nn": 15,
+      "min_cluster_size": 5
+    },
+    "clustering_results": {
+      "coarse_clusters": 15,
+      "fine_clusters": 287,
+      "nesting_score": 1.0,
+      "coarse_purity": 0.724,
+      "fine_purity": 0.912,
+      "hierarchical_purity": 0.948,
+      "improvement_rate": 0.80,
+      "singleton_fraction": 0.003,
+      "median_cluster_size": 42,
+      "max_cluster_size": 189,
+      "min_cluster_size": 5
+    },
+    "zoom_coherence": {
+      "coarse_to_fine_improvement_pct": 26.0,
+      "majority_clusters_improve": true,
+      "zero_deteriorations": true
+    },
+    "verdict": "PASS"
+  },
+  "comparison": {
+    "1000_scale_baseline": {
+      "improvement_rate": 0.55,
+      "singleton_fraction": 0.001,
+      "nesting_score": 1.0
+    },
+    "12k_scale": {
+      "improvement_rate": 0.80,
+      "singleton_fraction": 0.003,
+      "nesting_score": 1.0
+    },
+    "delta": {
+      "improvement_rate": "+0.25",
+      "singleton_fraction": "+0.002",
+      "note": "Pipeline scales well; higher improvement rate at 12k suggests better substructure discovery"
+    }
+  },
+  "scale_dependency_analysis": {
+    "12k_works": true,
+    "sub_62k_fails_flat_zoom": true,
+    "174k_tfidf_fails": true,
+    "note": "Hierarchical Leiden with min_cluster_size enforcement works at 12k but flat zoom fails at sub-62k. TF-IDF at 174k suffers severe over-fragmentation (>99% singletons). Scale dependency confirmed: hierarchical pipeline needs dense embeddings at scale."
+  },
+  "provenance": {
+    "dense_embeddings_source": "legal-distance/results/174k_dense_embeddings/checkpoints/embeddings_2000.npy through embeddings_2002.npy",
+    "metadata_source": "legal-distance/results/174k_dense_embeddings/checkpoints/metadata_2000.json through metadata_2002.json",
+    "pipeline": "fractal_map/hierarchical_leiden_pipeline.py (validated at 1000-scale)",
+    "compute_environment": "CPU-only, 65-min job ceiling compatible"
+  }
+}

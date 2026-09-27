@@ -361,12 +361,12 @@ class TestMetricConsistency:
 
     def test_state_evidence_tier(self):
         # Evidence tier hierarchy: UNTESTED < EXPLORATORY < REPRODUCED < ACCEPTED
-        # TF-IDF constrained hierarchical Leiden at 174k is ACCEPTED
-        assert self.state["evidence_tier"] == "ACCEPTED"
+        # Lane is BLOCKED on legal-distance 174k dense embeddings — evidence tier is REPRODUCED
+        assert self.state["evidence_tier"] == "REPRODUCED"
 
     def test_state_cycle_status(self):
-        # COMPLETED = lane finished current question with accepted evidence; BLOCKED_ON_DEPENDENCY = blocked on upstream lane
-        assert self.state["cycle_status"] in ("COMPLETED", "COMPLETE", "BLOCKED", "BLOCKED_ON_DEPENDENCY"), f"Unexpected cycle_status: {self.state['cycle_status']}"
+        # COMPLETED = lane finished current question with accepted evidence; BLOCKED_ON_DEPENDENCIES = blocked on upstream lanes
+        assert self.state["cycle_status"] in ("COMPLETED", "COMPLETE", "BLOCKED", "BLOCKED_ON_DEPENDENCY", "BLOCKED_ON_DEPENDENCIES"), f"Unexpected cycle_status: {self.state['cycle_status']}"
 
     def test_state_continue_recommended_false(self):
         assert self.state["continue_recommended"] is False
@@ -375,21 +375,22 @@ class TestMetricConsistency:
         """Next recommendation correctly identifies dense embeddings as critical path for multi-view map."""
         rec = self.state["next_recommendation"]
         assert "legal-distance" in rec
-        assert "dense embedding" in rec  # singular in recommendation text
-        # Either BLOCKED (old state) or PIVOT_WITHIN_MISSION (new state with TF-IDF ACCEPTED)
-        assert ("BLOCKED" in rec) or ("PIVOT_WITHIN_MISSION" in rec)
+        assert "dense embed" in rec.lower()
+        # Lane is BLOCKED on dependencies
+        assert "BLOCKED" in rec
 
-    def test_tfidf_constrained_hierarchical_accepted(self):
-        """TF-IDF constrained hierarchical Leiden at 174k is ACCEPTED and production-ready."""
+    def test_tfidf_constrained_hierarchical_not_production_ready(self):
+        """TF-IDF constrained hierarchical Leiden at 174k achieves nesting=1.0 by construction but FAILS v26 zoom-quality rule — NOT production-ready."""
         claims = self.state["accepted_claims"]
         assert len(claims) >= 3
-        # Check for key accepted claims
+        # Check for key claims reflecting actual state
         claim_text = " ".join(claims)
         assert "Constrained hierarchical Leiden" in claim_text
         assert "174k" in claim_text
         assert "TF-IDF" in claim_text
-        assert "production-ready" in claim_text or "CPU-feasible" in claim_text
-        assert "nesting=1.0" in claim_text or "perfect nesting" in claim_text.lower()
+        # Should indicate NOT production-ready / FAILS v26 rule
+        assert "NOT production-ready" in claim_text or "FAILS v26" in claim_text or "per_mode_verdict=FAIL" in claim_text
+        assert "nesting=1.0" in claim_text or "by construction" in claim_text.lower()
 
     def test_blocked_dependencies_recorded(self):
         """Dense embeddings and citation-role modes remain blocked dependencies."""

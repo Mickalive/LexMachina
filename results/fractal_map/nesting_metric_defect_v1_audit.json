@@ -1,0 +1,49 @@
+{
+  "audit_id": "CYCLE_36027099305",
+  "timestamp": "2026-09-27T21:30:00.000000Z",
+  "direction_version": 28,
+  "lane": "fractal-map",
+  "defect_name": "NESTING_METRIC_DEFECT_v1",
+  "severity": "CLAIM_CEILING_ENFORCEMENT",
+  "description": "Hierarchical Leiden implementations that achieve nesting_score=1.0 via min_cluster_size enforcement (compressed-family modes) cannot claim universal validity of the compressed 5-level ladder. nesting_score>=0.99 claims are PROHIBITED for 7 compressed-family modes. nesting_score=1.0 is citeable ONLY for 1000-scale by-construction modes with explicit scope annotation.",
+  "affected_modes": 7,
+  "affected_mode_list": [
+    "coarse_0.25_fine_3.0",
+    "coarse_0.5_fine_3.0",
+    "coarse_0.5_fine_2.0",
+    "coarse_0.75_fine_3.0",
+    "coarse_1.0_fine_3.0",
+    "coarse_1.5_fine_3.0",
+    "coarse_2.0_fine_3.0"
+  ],
+  "permitted_modes": [
+    "1000-scale hierarchical_leiden (coarse_0.5_fine_3.0) - by construction, scope: 1000 decisions only",
+    "12k-scale hierarchical_leiden (coarse_0.5_fine_3.0) - by construction, scope: years 2000-2002 only"
+  ],
+  "prohibited_claims": [
+    "nesting_score >= 0.99 for compressed-family modes implies universal hierarchy validity",
+    "compressed 5-level ladder is universally valid across all scales",
+    "nesting_score=1.0 at 174k TF-IDF implies meaningful hierarchy (it's by construction only)"
+  ],
+  "permitted_claims": [
+    "nesting_score=1.0 for 1000-scale by-construction modes WITH scope annotation",
+    "nesting_score=1.0 for 12k-scale by-construction modes WITH scope annotation",
+    "constrained hierarchical Leiden achieves nesting=1.0 by construction at 174k (min_cluster_size enforcement)"
+  ],
+  "evidence": {
+    "audit_finding": "7 compressed-family modes reported nesting_score>=0.99 without scope limitation",
+    "root_cause": "min_cluster_size parameter enforces nesting=1.0 regardless of actual hierarchical structure quality",
+    "impact": "Product cannot claim multi-resolution hierarchy validity based on compressed-family nesting scores",
+    "remediation": "All nesting_score claims must include explicit scope annotation (scale, representation, config)"
+  },
+  "enforcement": {
+    "effective_date": "2026-09-27",
+    "applies_to": "All fractal-map lane outputs, product claims, and external communications",
+    "verification": "Automated check in fractal-map pipeline: any nesting_score >= 0.99 requires scope_annotation field"
+  },
+  "related_findings": {
+    "scale_dependency": "12k works, sub-62k fails for flat zoom — compressed ladder NOT universally valid",
+    "tfidf_174k_constrained_hierarchical": "nesting=1.0 by construction but singleton_fraction >0.99 at fine resolutions",
+    "citation_role_1000scale": "Valid zoom quality WITHOUT relying on nesting_score claims"
+  }
+}
