@@ -3,14 +3,16 @@
   "direction_version": 28,
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETE",
-  "continue_recommended": true,
-  "accepted_run_id": "eval_174k_formal_suite_20260927_v28",
+  "continue_recommended": false,
+  "accepted_run_id": "eval_174k_formal_suite_tfidf_complete_20260927_v28",
   "evidence_refs": [
     "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
     "evaluation/results/174k_citation_heritage/citation_heritage_174k_embeddings_latest.json",
-    "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json"
+    "evaluation/results/174k_citation_heritage/citation_pairs_174k_full.json",
+    "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
+    "evaluation/results/174k/dense_partial_2000_2015/dense_partial_2000_2015_eval_latest.json"
   ],
-  "next_recommendation": "CONTINUE - await dense embeddings, citation roles, and linear hybrids from legal-distance lane (3/26 years ACCEPTED, 16/26 years pending audit). TF-IDF family (8 representations) formal suite, citation heritage, and v17b label normalization all COMPLETE at 174k scale.",
+  "next_recommendation": "TF-IDF family (8 representations) formal suite, citation heritage, and v17b label normalization ALL COMPLETE at 174k scale per factory direction v28. No new production representations have landed since last evaluation (dense embeddings only 3/26 years ACCEPTED, not full 174k). Lane ready to execute formal suite when legal-distance delivers 174k dense embeddings, citation roles, and linear hybrids. continue_recommended=FALSE because no additional same-question cycle is justified without new representations.",
   "summary": {
     "representations_evaluated": 8,
     "representations_passing_both_adversarial_gates": 5,
@@ -26,14 +28,21 @@
   "frozen_config_hash": "v3_174k_fixed",
   "factory_direction_question": "Run the machine-executable 174k formal suite autonomously as representations land: (1) full 12-benchmark formal suite at 174k scale on all production representations (frozen harness v3 thresholds unchanged); (2) validate citation_heritage benchmark using the published 174k citation-ID resolution (2,019/2,105 resolved); (3) test whether v17b label normalization (15-25% purity gain, REPRODUCED across 4 seeds) generalizes to 174k fine-grained legal_area labels.",
   "work_completed": [
-    "Full 12-benchmark formal suite at 174k on 8 TF-IDF representations (frozen harness v3, HNSW artifact fixed via exact k-NN on stratified subsample)",
+    "Full 12-benchmark formal suite at 174k on 8 TF-IDF representations (frozen harness v3, HNSW artifact fixed via exact k-NN on stratified subsample n=2000)",
     "Citation heritage benchmark validated on frozen 137k pair pool with 174k citation-ID resolution (2,019/2,105 resolved) - all 8 TF-IDF representations FAIL (recall@10 < 0.2)",
     "v17b label normalization tested on 174k fine-grained legal_area labels (85,819 labels normalized, 214->164 unique areas) - differential effect confirmed"
   ],
   "blockers": [
-    "Dense embeddings from legal-distance: only 3/26 years (2000-2002) ACCEPTED; years 2003-2015 (16/26) pending audit",
-    "Citation role embeddings not yet available",
-    "Linear hybrid embeddings not yet available",
+    "Dense embeddings from legal-distance: only 3/26 years (2000-2002) ACCEPTED; years 2003-2015 (16/26) pending audit - not at 174k scale",
+    "Citation role embeddings not yet available at 174k",
+    "Linear hybrid embeddings not yet available at 174k",
     "Jurist human study: framework ready but requires 5-10 Swiss jurists (external dependency)"
-  ]
+  ],
+  "readiness_for_next_representations": {
+    "formal_suite_script": "run_174k_formal_suite.py operational",
+    "scalable_nn_infrastructure": "READY (exact k-NN on stratified subsample for adversarial, HNSW for full-corpus)",
+    "citation_heritage_pipeline": "READY (frozen 137k pair pool, 95.9% resolution)",
+    "v17b_normalization_pipeline": "READY",
+    "metadata_174k": "VERIFIED (173,963 entries, branch+legal_area 100% coverage)"
+  }
 }
