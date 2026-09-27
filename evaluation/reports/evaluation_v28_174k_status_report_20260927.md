@@ -72,22 +72,22 @@ Re-ran adversarial benchmarks on `cited_decisions_tfidf` — **exact reproductio
 - **Generation method**: From resolved citation graph, balanced sampling, seed=42
 - **Status**: FROZEN and ready for 174k embeddings
 
-### TF-IDF Results (All 8 Representations)
+### TF-IDF Results (All 8 Representations) — Re-run on New Frozen 2,040 Pair Pool
 | Representation | AUC | Recall@10 | Status |
 |---|---|---|---|
-| cited_decisions_tfidf | 0.7892 | 0.048 | FAIL |
-| outcome_tfidf | 0.6575 | 0.000 | FAIL |
-| regeste_tfidf | 0.4861 | 0.0039 | FAIL |
-| full_text_tfidf_light | 0.8969 | 0.0529 | FAIL |
-| cited_outcome_hybrid_0.5 | 0.7589 | 0.050 | FAIL |
-| cited_outcome_hybrid_0.7 | 0.7749 | 0.049 | FAIL |
-| regeste_full_text_hybrid_0.5 | 0.8714 | 0.0353 | FAIL |
-| regeste_full_text_hybrid_0.7 | 0.8504 | 0.0353 | FAIL |
+| cited_decisions_tfidf | 0.7891 | 0.0539 | FAIL |
+| outcome_tfidf | 0.6590 | 0.0000 | FAIL |
+| regeste_tfidf | 0.4881 | 0.0029 | FAIL |
+| full_text_tfidf_light | 0.8983 | 0.0529 | FAIL |
+| cited_outcome_hybrid_0.5 | 0.7594 | 0.0471 | FAIL |
+| cited_outcome_hybrid_0.7 | 0.7752 | 0.0510 | FAIL |
+| regeste_full_text_hybrid_0.5 | 0.8722 | 0.0353 | FAIL |
+| regeste_full_text_hybrid_0.7 | 0.8511 | 0.0353 | FAIL |
 
 **Thresholds**: AUC ≥ 0.65, Recall@10 ≥ 0.2
 
 ### Key Finding
-All TF-IDF representations **FAIL recall@10 threshold** despite some passing AUC. Citation neighborhood recovery fails at this scale/density for TF-IDF embeddings. Benchmark infrastructure is validated and ready for dense embeddings when available.
+All TF-IDF representations **FAIL recall@10 threshold** despite some passing AUC. Citation neighborhood recovery fails at this scale/density for TF-IDF embeddings. Results re-run on regenerated frozen 2,040 pair pool (1,020 positive + 1,020 negative, balanced sampling from resolved citation graph, seed=42). Benchmark infrastructure validated and ready for dense embeddings when available.
 
 ---
 
@@ -138,7 +138,7 @@ Even normalized, **hierarchy purity < 0.7 threshold** for all representations �
 |---|---|---|
 | **Formal suite script** | ✅ READY | `run_174k_formal_suite.py` operational; adversarial benchmarks reproduce |
 | **Scalable NN infrastructure** | ✅ READY | Exact k-NN on stratified subsample (adversarial); HNSW for full-corpus |
-| **Citation heritage pipeline** | ✅ READY | Frozen 2,040 pairs generated; validated against 174k citation graph |
+| **Citation heritage pipeline** | ✅ READY | Frozen 2,040 pairs generated; **evaluation re-run on new pair pool**; validated against 174k citation graph |
 | **v17b normalization pipeline** | ✅ READY | Differential effect reproduced across all 8 TF-IDF representations |
 | **Metadata 174k** | ✅ VERIFIED | 173,963 entries; branch+legal_area 100% coverage |
 | **HNSW artifact fix** | ✅ CONFIRMED | Exact k-NN on valid subset avoids HNSW masking representation differences |
@@ -149,8 +149,9 @@ Even normalized, **hierarchy purity < 0.7 threshold** for all representations �
 
 1. **Formal suite results**: `evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json`
 2. **Citation heritage pairs**: `evaluation/results/174k_citation_heritage/citation_pairs_174k.json`
-3. **v17b normalization results**: `evaluation/results/174k_label_normalization/v17b_label_normalization_174k_20260927_123007.json`
-4. **Partial dense evaluation (2000-2015)**: `evaluation/results/174k/dense_partial_2000_2015/dense_partial_2000_2015_eval_latest.json`
+3. **Citation heritage evaluation (re-run on new pair pool)**: `evaluation/results/174k_citation_heritage/citation_heritage_174k_embeddings_latest.json`
+4. **v17b normalization results**: `evaluation/results/174k_label_normalization/v17b_label_normalization_174k_20260927_123007.json`
+5. **Partial dense evaluation (2000-2015)**: `evaluation/results/174k/dense_partial_2000_2015/dense_partial_2000_2015_eval_latest.json`
 
 ---
 
@@ -183,4 +184,5 @@ HNSW artifact fix: exact_knn_on_valid_subset_n2000
 ---
 
 *Report generated: 2026-09-27T12:30:07Z*
+*Report updated with re-run citation heritage results: 2026-09-27T12:55:00Z*
 *Evaluation lane agent — LexMachina Factory*

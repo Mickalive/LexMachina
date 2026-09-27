@@ -8,6 +8,7 @@
   "evidence_refs": [
     "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
     "evaluation/results/174k_citation_heritage/citation_pairs_174k.json",
+    "evaluation/results/174k_citation_heritage/citation_heritage_174k_embeddings_latest.json",
     "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_20260927_123007.json",
     "evaluation/results/174k/dense_partial_2000_2015/dense_partial_2000_2015_eval_latest.json"
   ],
@@ -28,7 +29,7 @@
   "factory_direction_question": "Run the machine-executable 174k formal suite autonomously as representations land: (1) full 12-benchmark formal suite at 174k scale on all production representations (frozen harness v3 thresholds unchanged); (2) validate citation_heritage benchmark using the published 174k citation-ID resolution (2,019/2,105 resolved); (3) test whether v17b label normalization (15-25% purity gain, REPRODUCED across 4 seeds) generalizes to 174k fine-grained legal_area labels.",
   "work_completed": [
     "Full 12-benchmark formal suite at 174k on 8 TF-IDF representations (frozen harness v3, HNSW artifact fixed via exact k-NN on stratified subsample n=2000) - VERIFIED REPRODUCIBLE",
-    "Citation heritage benchmark validated on frozen 2,040 pair pool (1,020 positive direct+shared citations, 1,020 negative) with 174k citation-ID resolution (2,019/2,105 resolved, 95.9%) - all 8 TF-IDF representations FAIL recall@10 threshold",
+    "Citation heritage benchmark re-run on regenerated frozen 2,040 pair pool (1,020 positive direct+shared citations, 1,020 negative, balanced sampling from resolved citation graph, seed=42) with 174k citation-ID resolution (2,019/2,105 resolved, 95.9%) - all 8 TF-IDF representations FAIL recall@10 threshold",
     "v17b label normalization tested on 174k fine-grained legal_area labels (85,819 labels normalized, 214->164 unique areas) - differential effect CONFIRMED: citation-based reps improve 1.04-1.10x, text-based reps degrade zoom_fine 0.66-0.69x"
   ],
   "blockers": [
@@ -46,9 +47,9 @@
   },
   "infrastructure_verification": {
     "adversarial_benchmarks": "VERIFIED - exact k-NN on stratified subsample n=2000, cited_decisions_tfidf reproduces lang_dom=0.5295 PASS, jurist_pref=0.8020 PASS",
-    "citation_heritage_pairs": "VERIFIED - 2,040 frozen pairs generated from resolved citation graph",
+    "citation_heritage_pairs": "VERIFIED - 2,040 frozen pairs generated from resolved citation graph; evaluation RE-RUN on new pair pool",
     "v17b_normalization": "VERIFIED - differential effect reproduced across all 8 TF-IDF representations",
     "hnsw_artifact_fix": "CONFIRMED - exact k-NN on valid subset avoids HNSW masking representation differences"
   },
-  "last_verification": "2026-09-27T12:30:07.924Z"
+  "last_verification": "2026-09-27T12:55:00.676Z"
 }
