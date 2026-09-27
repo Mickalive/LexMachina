@@ -1,0 +1,45 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Generate v10 report: Document OOS metric learning results, leakage quantification (+8% JP inflation), true OOS JuristPref ceiling (~0.53)",
+    "Generate v11 repaired report: Document selection-on-holdout defect repair, clean OOS hybrid_stabilized results (JP=0.535), hierarchy loss ablation effect (+0.030 JP, not +0.055)",
+    "Update legal-distance.json evidence_refs: Clarify v13 as EXPLORATORY tier, v14 linear_citation_concat as REPRODUCED tier; correct hierarchy_loss_oos_effect_honest magnitude to +0.030",
+    "Add explicit caveat to v12_cross_mode_combination_report.md: v13/v14 CV reversed MLP ranking, confirmed two-mode tradeoff persistence under stronger baseline"
+  ],
+  "claim_ceiling": "True OOS JuristPref ceiling ~0.53 (not 0.7 target). CV JP ~0.73-0.79 inflated by in-fold training. Citation-independent retrieval: metric learning 35-37% (passes 15% target), citation signals 13-14% (misses target). Two-mode tradeoff (JP vs CiteIndep) confirmed fundamental — no single representation dominates both.",
+  "evidence_summary": {
+    "reproduced_findings": [
+      "linear_citation_concat: stable JP improvement (+0.0275 v13, +0.0392 v14) with paired_delta_std < 0.03 across independent 5-fold CV (seeds 42 and 137). 5/5 folds positive both runs. All adversarial gates pass. Tier: REPRODUCED.",
+      "Static combinations dominate learned: equal-weight concat most stable (paired_std 0.016-0.021); citation-heavy w3070 higher JP but unstable (paired_std 0.033-0.062); MLP consistently worst (paired_std 0.058). Confirmed v13→v14.",
+      "Two-mode tradeoff persists: No combination beats baseline_linear_oos_refit (JP~0.73, CI=0.505) on both JP and CiteIndep simultaneously. v12 single-split 'break' not reproduced under CV."
+    ],
+    "exploratory_findings": [
+      "linear_hybrid05_concat: highest mean JP (0.7925 v14) but fails stability (paired_std=0.042 > 0.03). Not in v13. May resolve with larger data.",
+      "v12 cross-mode combinations: 23 combos all pass adversarial gates; MLP ranked top on single split but reversed on CV.",
+      "v11 hybrid_stabilized OOS (repaired): Passes all gates cleanly (JP=0.535, LD=0.602, CI=0.364) but improvement over v10 baselines (+0.005 to +0.010) within 200-decision noise floor. Hierarchy loss effect +0.030 JP (NOT load-bearing for gate crossing)."
+    ],
+    "negative_null_results": [
+      "v11 original: Selection-on-holdout defect (epoch 36 selected via holdout JP=0.56). Archived, not deleted. Repair verified.",
+      "v10: Pre-training leakage quantified +8% JP inflation (v9 pre-trained 0.605 vs true OOS 0.525).",
+      "v10: center_projected FAILS holdout jurist gate (JP=0.385 < 0.5). Metric learning necessary.",
+      "True OOS JuristPref ceiling ~0.53 — 0.7 target requires fundamentally new approaches.",
+      "Citation signals miss CiteIndep 15% target (best 14.05%).",
+      "Language artifacts persist: 90-93% language neighbor rate on holdout despite LangDom~0.51 passing gate.",
+      "MLP combinations: Split-dependent noise definitively confirmed across v12→v13→v14."
+    ],
+    "methodological_strengths": [
+      "Frozen harness v3 (config_hash=1674829901d55e83, seed=42) used consistently v10-v14",
+      "Success rule frozen before observation (mean_delta > 0.02, paired_delta_std < 0.03)",
+      "Independent reproduction v14: different CV seed (137), offset ML seeds (+1000)",
+      "Per-fold refitting in v13/v14 eliminates pre-training leakage",
+      "All raw data, code, and archived rejected runs preserved",
+      "Negative results reported as first-class evidence"
+    ],
+    "structural_gaps": [
+      "Missing v10 report (OOS metric learning)",
+      "Missing v11 repaired report (selection-on-holdout repair)",
+      "legal-distance.json evidence tier tracking needs refinement"
+    ]
+  }
+}

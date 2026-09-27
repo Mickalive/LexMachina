@@ -1,0 +1,82 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF family (8 representations) formal suite, citation heritage, and v17b label normalization COMPLETE at 174k scale. Raw multilingual-e5 and center-projected partials evaluated on 16-year subset. Lane BLOCKED_ON_DEPENDENCIES awaiting full 174k dense embeddings from legal-distance.",
+  "evidence_summary": {
+    "tfidf_formal_suite_174k": {
+      "representations_tested": 8,
+      "corpus_size": 173963,
+      "frozen_config_hash": "4323f833fa72366a",
+      "both_adversarial_pass": 5,
+      "both_adversarial_fail": 3,
+      "verification": "Exact match against evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json"
+    },
+    "citation_heritage_174k_tfidf": {
+      "pair_pool": "137314 positive + 137314 negative (frozen, seed=42)",
+      "citation_resolution": "2019/2105 (95.9%) resolved",
+      "all_fail_recall_at_10": true,
+      "best_recall_at_10": 0.0529,
+      "auc_range": "0.4861-0.8969",
+      "correction_applied": "CYCLE_36242734524 fabrication corrected (was AUC=0.973/recall=0.487, now AUC=0.7892/recall=0.048)",
+      "verification": "Exact match against evaluation/results/174k_citation_heritage/citation_heritage_174k_embeddings_latest.json"
+    },
+    "v17b_normalization_174k": {
+      "labels_normalized": 85819,
+      "raw_unique": 214,
+      "norm_unique": 164,
+      "uniformity_rule_pass": 2,
+      "uniformity_rule_fail": 6,
+      "verification": "Exact match against evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json"
+    },
+    "raw_multilingual_e5_16year": {
+      "corpus_size": 99325,
+      "years": "2000-2015",
+      "adversarial_fail": true,
+      "lang_dom": 0.9855,
+      "jurist_pref": 0.0275,
+      "cross_language_transfer_pass": true,
+      "per_lang_nmi": 0.444,
+      "verification": "Exact match against evaluation/results/174k/dense_partial_2000_2015/dense_partial_2000_2015_eval_latest.json"
+    },
+    "center_projected_16year": {
+      "corpus_size": 99325,
+      "best_representation": "center_projected_64dim (lang_dom=0.868, jurist_pref=0.327)",
+      "trajectory_confirmed": "lang_dom 0.98->0.87, jurist_pref 0.04->0.30 from 3-year to 16-year",
+      "cross_lang_retrieval_pass": "64dim only (recall=0.274)",
+      "verification": "Exact match against evaluation/results/174k/center_projected_partial_2000_2015/center_projected_16year_eval_latest.json"
+    },
+    "center_projected_3year_rerun": {
+      "corpus_size": 12570,
+      "metadata_coverage": "18.3%",
+      "all_fail_adversarial": true,
+      "lang_dom": "~0.98",
+      "jurist_pref": "~0.04",
+      "verification": "Exact match against evaluation/results/partial_dense_2000_2002/evaluation_partial_dense_latest.json"
+    },
+    "citation_heritage_partial_dense": {
+      "representations": 4,
+      "all_pass_auc": true,
+      "all_fail_recall": true,
+      "multilingual_e5_recall": 0.014,
+      "center_projected_recall": "0.000",
+      "verification": "Exact match against evaluation/results/174k_citation_heritage/citation_heritage_*partial*.json"
+    },
+    "v17b_dense_partial": {
+      "representations": 3,
+      "uniform_improvement": false,
+      "all_worsen_hierarchy_nmi_gt10pct": true,
+      "verification": "Exact match against evaluation/results/v17b_174k_dense_partial/v17b_174k_dense_partial_latest.json"
+    },
+    "hnsw_artifact_fix": {
+      "status": "FIXED_FOR_ADVERSARIAL_ONLY",
+      "verification": "Exact k-NN on stratified subsample n=2000 for adversarial; HNSW for full-corpus benchmarks. Jurist pairwise: exact=0.71-0.80 vs HNSW=0.12 (all reps)"
+    },
+    "monitor_status": {
+      "active": true,
+      "check_count": 151,
+      "dense_progress": "16/26 years (2000-2015) in checkpoints, 57% decisions",
+      "blocked_on": "years_2016_2025_pending_legal_distance_year_split_execution"
+    }
+  }
+}
