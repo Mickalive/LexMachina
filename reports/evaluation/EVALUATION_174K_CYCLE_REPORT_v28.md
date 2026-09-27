@@ -40,8 +40,12 @@ The v30 factory direction was rejected by the independent auditor (CYCLE_3629613
 ## Current Evaluation Status (Preserved & Verified)
 
 ### ✅ TF-IDF Family — COMPLETE at 174k (8/8 representations)
-
-**Formal Suite v25** (frozen config_hash: `4323f833fa72366a`, HNSW parameters frozen, adversarial benchmarks use EXACT k-NN on stratified subsample n=2000 seed=42):
+ 
+ **Formal Suite v25** (frozen config_hash: `4323f833fa72366a`, HNSW parameters frozen):
+ 
+ - **Adversarial benchmarks (v52 verification): EXACT k-NN on fixed stratified subsample (n=2000, seed=42)** — HNSW artifact FIXED; corrected adversarial numbers (lang_dom ~0.52, jurist_pref ~0.80) reported in v52 summary only; raw per-representation exact k-NN adversarial outputs NOT separately persisted as evidence artifacts (v25 suite uses HNSW for all benchmarks including adversarial).
+ - **Full-corpus benchmarks**: HNSW on subsamples (30k temporal, 15k hierarchy, full boilerplate)
+ - **Persisted per-representation results** (`results/evaluation/v25_174k_formal_suite/results/*.json`) show HNSW-based adversarial results (lang_dom ~0.60).
 
 | Representation | Adversarial (lang_dom) | Jurist Pref | Cross-Lang Retrieval (full) | Zero-Shot Transfer | Hierarchy | Cluster Coherence | Boilerplate | Citation Heritage (AUC) |
 |---|---|---|---|---|---|---|---|---|
@@ -73,7 +77,7 @@ All 8 TF-IDF representations evaluated on frozen pair pool (AUC ≥ 0.65 thresho
 - Text-based: **ZERO purity improvement**, NMI -24% to -30%
 - Best normalized hierarchy_purity = 0.465 < 0.7 threshold
 
-### ⚠️ Raw Multilingual-e5 768dim — PARTIAL EVALUATION (16 years, 2000-2015, 99,325 decisions)
+### ⚠️ Raw Multilingual-e5 768dim — PARTIAL EVALUATION (16 years, 2000-2015, 99,325 decisions, 57% completion)
 
 | Benchmark | Result | Note |
 |---|---|---|
@@ -110,45 +114,48 @@ All 8 TF-IDF representations evaluated on frozen pair pool (AUC ≥ 0.65 thresho
 **Infrastructure:** All operational (HNSW, scalable_nn, v25 formal suite, citation heritage, v17b normalization)
 
 ### Awaited Representations (12 total) — Not Yet Landed
-
-| Category | Representations | Status |
-|---|---|---|
-| **Dense Embeddings (8)** | center_projected_768dim, center_projected_64dim, center_projected_128dim, linear_metric_epoch4, mahalanobis_metric_epoch4, hybrid_stabilized_epoch1, hybrid_v2_epoch3 | ❌ Not in final concatenated directory |
-| **Citation Roles (3)** | citation_role_citing_alpha0.3, citation_role_following_alpha0.3, citation_role_criticizing_alpha0.3 | ❌ Not produced |
-| **Linear Hybrids (2)** | linear_citation_concat, linear_hybrid05_concat | ❌ Not at 174k scale |
-
-**Legal-Distance Progress:** Raw multilingual-e5 embeddings available for **20 years (2000-2019)** in checkpoints (77.6% decisions), but **final concatenated 174k transformed representations not yet produced**. Monitor scans only final directories, not checkpoints.
+ 
+ | Category | Representations | Status |
+ |---|---|---|
+ | **Dense Embeddings (8)** | center_projected_768dim, center_projected_64dim, center_projected_128dim, linear_metric_epoch4, mahalanobis_metric_epoch4, hybrid_stabilized_epoch1, hybrid_v2_epoch3 | ❌ Not in final concatenated directory |
+ | **Citation Roles (3)** | citation_role_citing_alpha0.3, citation_role_following_alpha0.3, citation_role_criticizing_alpha0.3 | ❌ Not produced |
+ | **Linear Hybrids (2)** | linear_citation_concat, linear_hybrid05_concat | ❌ Not at 174k scale |
+ 
+ **Legal-Distance Progress:** Raw multilingual-e5 embeddings available for **16 years (2000-2015)** in checkpoints (57% decisions, 99,325 decisions), but **final concatenated 174k transformed representations not yet produced**. Monitor scans only final directories, not checkpoints.
 
 ---
 
 ## Blockers & Dependencies
-
-| Blocker | Status | Resolution Path |
-|---|---|---|
-| **Primary:** 174k transformed dense embeddings not in accepted state | **EXTERNAL** | Legal-distance lane must produce final concatenated representations (center projection, metric learning, hybrids) from year-split raw embeddings |
-| Citation role embeddings at 174k | **EXTERNAL** | Legal-distance lane |
-| Linear hybrid embeddings at 174k (linear_citation_concat REPRODUCED at 1k, 174k pending) | **EXTERNAL** | Legal-distance lane |
-| Years 2020-2025 raw embeddings | **EXTERNAL** | Legal-distance year-split execution |
-| HNSW adversarial artifact | **FIXED** | Exact k-NN on stratified subsample for adversarial benchmarks only |
-| Jurist human study | **NON-BLOCKING** | Framework ready, requires 5-10 Swiss jurists |
+ 
+ | Blocker | Status | Resolution Path |
+ |---|---|---|
+ | **Primary:** 174k transformed dense embeddings not in accepted state | **EXTERNAL** | Legal-distance lane must produce final concatenated representations (center projection, metric learning, hybrids) from year-split raw embeddings |
+ | Citation role embeddings at 174k | **EXTERNAL** | Legal-distance lane |
+ | Linear hybrid embeddings at 174k (linear_citation_concat REPRODUCED at 1k, 174k pending) | **EXTERNAL** | Legal-distance lane |
+ | Years 2016-2025 raw embeddings | **EXTERNAL** | Legal-distance year-split execution |
+ | HNSW adversarial artifact | **FIXED** | Exact k-NN on stratified subsample for adversarial benchmarks only |
+ | Jurist human study | **NON-BLOCKING** | Framework ready, requires 5-10 Swiss jurists |
 
 ---
 
 ## Evidence Preservation (Per Research Protocol)
-
-All raw outputs, failures, and negative results preserved:
-
-| Artifact | Location | Status |
-|---|---|---|
-| Formal suite v25 results (8 TF-IDF reps) | `evaluation/results/174k/formal_suite/` | ✅ Preserved |
-| Citation heritage results | `evaluation/results/174k_citation_heritage/` | ✅ Preserved |
-| v17b normalization results | `evaluation/results/v17b_174k_tfidf/` | ✅ Preserved |
-| Raw multilingual-e5 partial eval | `evaluation/results/174k/dense_partial_2000_2015/` | ✅ Preserved |
-| Center-projected partial eval | `evaluation/results/174k/dense_partial_2000_2002/` | ✅ Preserved |
-| Center-projected citation heritage | `evaluation/results/174k_citation_heritage/citation_heritage_*.json` | ✅ Preserved |
-| Monitor state | `evaluation/state/monitor_174k_state.json` | ✅ Preserved |
-| Audit corrections (CYCLE_36242734524) | `reports/evaluation/EVALUATION_174K_V27_CYCLE_REPORT_20260926_CORRECTED.md` | ✅ Preserved |
-| Original fabricated report | `reports/evaluation/EVALUATION_174K_V27_CYCLE_REPORT_20260926.md` | ✅ Preserved (not deleted) |
+ 
+ All raw outputs, failures, and negative results preserved:
+ 
+ | Artifact | Location | Status |
+ |---|---|---|
+ | Formal suite v25 results (8 TF-IDF reps, HNSW-based adversarial) | `evaluation/results/174k/formal_suite/` | ✅ Preserved |
+ | Citation heritage results | `evaluation/results/174k_citation_heritage/` | ✅ Preserved |
+ | v17b normalization results | `evaluation/results/v17b_174k_tfidf/` | ✅ Preserved |
+ | Raw multilingual-e5 partial eval | `evaluation/results/174k/dense_partial_2000_2015/` | ✅ Preserved |
+ | Center-projected partial eval | `evaluation/results/174k/dense_partial_2000_2002/` | ✅ Preserved |
+ | Center-projected citation heritage | `evaluation/results/174k_citation_heritage/citation_heritage_*.json` | ✅ Preserved |
+ | Monitor state | `evaluation/state/monitor_174k_state.json` | ✅ Preserved |
+ | Audit corrections (CYCLE_36242734524) | `reports/evaluation/EVALUATION_174K_V27_CYCLE_REPORT_20260926_CORRECTED.md` | ✅ Preserved |
+ | Original fabricated report | `reports/evaluation/EVALUATION_174K_V27_CYCLE_REPORT_20260926.md` | ✅ Preserved (not deleted) |
+ | v52 verification summary (exact k-NN adversarial) | `reports/evaluation/evaluation_v52_cycle_report.md` | ✅ Preserved |
+ 
+ **Note on exact k-NN adversarial raw outputs:** The v52 verification report summarizes corrected exact k-NN adversarial numbers (lang_dom ~0.52, jurist_pref ~0.80) but raw per-representation exact k-NN adversarial outputs are NOT separately persisted as evidence artifacts. The formal suite v25 persisted results use HNSW for all benchmarks. This is documented per research protocol "preserve raw outputs and failures" — the HNSW-based raw outputs are preserved; the exact k-NN summary is preserved in v52 report.
 
 ---
 
@@ -162,18 +169,18 @@ All raw outputs, failures, and negative results preserved:
 ---
 
 ## Compliance with Research Protocol
-
-| Step | Status |
-|---|---|
-| 1. Read Master Prompt, factory direction, lane directive | ✅ |
-| 2. Inspect relevant ACCEPTED evidence | ✅ (TF-IDF complete, partial dense evaluated, monitor active) |
-| 3. State hypothesis, baseline, product decision | ✅ (Two-mode tradeoff reproduced; awaited reps from legal-distance) |
-| 4. Freeze sample, metric, success rule before observing result | ✅ (Formal suite v25 frozen since v16) |
-| 5. Smallest rigorous discriminating experiment | ✅ (Monitor auto-evaluates as representations land) |
-| 6. Run it; preserve raw outputs and failures | ✅ (All preserved) |
-| 7. Compare with baseline, report uncertainty/failure modes | ✅ (vs frozen v3 thresholds; negative results reported) |
-| 8. Write machine-readable lane state + human-readable report | ✅ (state/evaluation.json + this report) |
-| 9. Recommend CONTINUE/PIVOT/BLOCKED/PRODUCTIZE/PAUSE | ✅ **CONTINUE MONITORING** |
+ 
+ | Step | Status |
+ |---|---|
+ | 1. Read Master Prompt, factory direction, lane directive | ✅ |
+ | 2. Inspect relevant ACCEPTED evidence | ✅ (TF-IDF complete, partial dense evaluated, monitor active) |
+ | 3. State hypothesis, baseline, product decision | ✅ (Two-mode tradeoff reproduced; awaited reps from legal-distance) |
+ | 4. Freeze sample, metric, success rule before observing result | ✅ (Formal suite v25 frozen since v16) |
+ | 5. Smallest rigorous discriminating experiment | ✅ (Monitor auto-evaluates as representations land) |
+ | 6. Run it; preserve raw outputs and failures | ⚠️ PARTIAL (HNSW-based formal suite outputs preserved; exact k-NN adversarial per-rep raw outputs NOT separately persisted — v52 summary only) |
+ | 7. Compare with baseline, report uncertainty/failure modes | ✅ (vs frozen v3 thresholds; negative results reported) |
+ | 8. Write machine-readable lane state + human-readable report | ✅ (state/evaluation.json + this report) |
+ | 9. Recommend CONTINUE/PIVOT/BLOCKED/PRODUCTIZE/PAUSE | ✅ **CONTINUE MONITORING** |
 
 ---
 
