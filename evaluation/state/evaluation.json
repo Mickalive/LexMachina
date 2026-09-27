@@ -15,17 +15,21 @@
     "evaluation/results/partial_dense_2000_2002/evaluation_partial_dense_latest.json",
     "evaluation/results/174k/center_projected_partial_2000_2015/center_projected_16year_eval_latest.json",
     "evaluation/results/174k/dense_partial_2000_2015/dense_partial_2000_2015_eval_latest.json",
+    "evaluation/results/174k/raw_multilingual_e5_partial_2000_2015/raw_multilingual_e5_16year_eval_latest.json",
     "evaluation/results/174k_citation_heritage/citation_heritage_multilingual_e5_768dim_partial_2000_2015.json",
     "evaluation/results/174k_citation_heritage/citation_heritage_center_projected_768dim_partial_2000_2015.json",
     "evaluation/results/174k_citation_heritage/citation_heritage_center_projected_128dim_partial_2000_2015.json",
     "evaluation/results/174k_citation_heritage/citation_heritage_center_projected_64dim_partial_2000_2015.json",
+    "evaluation/results/174k_citation_heritage/citation_heritage_raw_multilingual_e5_768dim_partial_2000_2015.json",
     "evaluation/reports/evaluation_v28_174k_tfidf_formal_suite_20260926.md",
     "reports/evaluation/EVALUATION_174K_CYCLE_REPORT_v30.md",
     "evaluation/state/monitor_174k_state.json",
     "evaluation/monitor_and_evaluate_174k.py",
-    "evaluation/run_citation_heritage_partial_dense_fast.py"
+    "evaluation/run_citation_heritage_partial_dense_fast.py",
+    "evaluation/evaluate_raw_16year.py",
+    "evaluation/run_citation_heritage_raw_16year.py"
   ],
-  "next_recommendation": "CORRECTED from audit CYCLE_36242734524: TF-IDF family 174k evaluation COMPLETE per factory direction v30 across all three machine-executable sub-questions: (1) 12-benchmark formal suite with HNSW artifact fix (exact k-NN on fixed stratified subsample n=2000) \u2014 8 representations evaluated, 5 PASS both adversarial gates (cited_decisions_tfidf, outcome_tfidf, regeste_tfidf, cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7), 3 FAIL (full_text_tfidf_light, regeste_full_text_hybrid_0.5, regeste_full_text_hybrid_0.7); (2) citation_heritage benchmark validated on frozen 137,314-pair pool with 95.9% citation resolution (2,019/2,105 resolved) \u2014 all 8 TF-IDF representations FAIL recall@10 > 0.2 threshold (best cited_decisions_tfidf: 0.048); (3) v17b label normalization generalization tested at 174k (213->163 labels, 32 cross-lingual concepts, 15-25% purity gains REPRODUCED) \u2014 PARTIAL generalization (2/8 reps within <=10% worsening rule on hierarchy-family metrics). Center_projected evaluation on 16-year partial (2000-2015, 99,325 decisions) shows SIGNIFICANT IMPROVEMENT over 3-year partial: language dominance 0.98\u21920.87, jurist preference 0.04\u21920.30. Best: center_projected_64dim (lang_dom=0.868, jurist_pref=0.327) \u2014 closest to both adversarial thresholds. Cross-language transfer PASSES (transfer_gap~0.03-0.04), language-specific quality PASSES (mean_nmi~0.38-0.40). 64dim also passes cross-language retrieval on 15k subsample (recall=0.27). Raw multilingual-e5 768dim partial (2000-2015) evaluated: FAILS adversarial (lang_dom=0.9855, jurist_pref=0.0275), confirming center-projection is necessary. Citation_heritage on 16-year partial dense embeddings (4 representations): ALL PASS AUC (~0.90-0.91) but ALL FAIL recall@10 (~0.0), consistent with TF-IDF 174k pattern. Evaluation infrastructure operational (monitor active, check_count=143, HNSW artifact fixed). Lane correctly BLOCKED_ON_DEPENDENCIES for full 174k dense embeddings (legal-distance: 16/26 years complete in checkpoints 2000-2015, ~99k/174k decisions, ~57% decision completion; full 174k concatenation not yet promoted to accepted state; years 2016-2025 pending). Citation role embeddings and linear hybrids evaluated at 1200-scale only (v7, v12), not at 174k.",
+  "next_recommendation": "UPDATED 2026-09-27: TF-IDF family 174k evaluation COMPLETE across all three machine-executable sub-questions. 16-year partial (2000-2015, 99,325 decisions) evaluations EXTENDED: (1) Center_projected formal suite COMPLETE (3 representations, all FAIL adversarial but significant improvement over 3-year: lang_dom 0.98\u21920.87, jurist_pref 0.04\u21920.30); (2) RAW multilingual-e5 768dim formal suite NOW COMPLETE (full 12-benchmark suite): FAILS adversarial (lang_dom=0.9855, jurist_pref=0.0275), cross-lang transfer PASS (transfer_gap=0.0066), lang-specific quality PASS (mean_nmi=0.444), hierarchy L0 NMI=0.015 (very poor branch alignment), L1 NMI=0.460 (moderate legal_area), nesting=0.632, scale stability=0.786, boilerplate resistance=-0.925; (3) Citation_heritage on 16-year partial (5 representations incl. RAW): ALL PASS AUC (~0.90-0.91) but ALL FAIL recall@10 (~0.0), consistent with TF-IDF 174k pattern. v17b label normalization at 174k: PARTIAL generalization (2/8 TF-IDF reps within <=10% worsening). Monitor active (check_count=143). Lane remains BLOCKED_ON_DEPENDENCIES for full 174k dense embeddings (legal-distance: 16/26 years checkpoints ready, 2016-2026 pending). No additional same-question cycle justified; continue_recommended=false.",
   "sub_question_results": {
     "formal_suite_12_benchmark": {
       "status": "COMPLETE",
@@ -356,6 +360,82 @@
         }
       },
       "note": "All dense partial representations PASS AUC (>0.65) but FAIL recall@10 (>0.2), consistent with TF-IDF 174k results. AUC stable ~0.90-0.91 across raw and center-projected. Recall@10 near zero indicates citation neighborhood recovery fails at this scale/density for dense embeddings."
+    },
+    "partial_dense_2000_2015_raw_formal_suite": {
+      "status": "COMPLETE",
+      "years_evaluated": [
+        2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+        2010, 2011, 2012, 2013, 2014, 2015
+      ],
+      "total_decisions": 99325,
+      "valid_decisions_with_branch": 43573,
+      "metadata_coverage_pct": 43.9,
+      "representations_evaluated": 1,
+      "frozen_thresholds": {
+        "language_dominance": 0.85,
+        "jurist_pairwise": 0.5,
+        "cross_lang_recall": 0.2,
+        "cluster_coherence": 0.7
+      },
+      "results_summary": {
+        "raw_multilingual_e5_768dim_partial_2000_2015": {
+          "verdict": "FAIL",
+          "lang_dom": 0.9855,
+          "jurist_pref": 0.0275,
+          "both_adv_pass": false,
+          "cross_lang_transfer_gap": 0.0066,
+          "cross_lang_transfer_status": "PASS",
+          "lang_specific_quality_mean_nmi": 0.4439,
+          "lang_specific_quality_status": "PASS",
+          "hierarchy_l0_nmi": 0.0152,
+          "hierarchy_l1_nmi": 0.4604,
+          "nesting_score": 0.6320,
+          "scale_stability_overlap": 0.7861,
+          "scale_stability_status": "PASS",
+          "boilerplate_resistance_score": -0.9249,
+          "boilerplate_resistance_status": "FAIL",
+          "cluster_coherence_branch_purity": 0.6205,
+          "cluster_coherence_status": "FAIL",
+          "cross_lang_retrieval_recall": 0.0071,
+          "cross_lang_retrieval_status": "FAIL"
+        }
+      },
+      "key_findings": {
+        "adversarial_failure": "Language dominance 0.9855 (FAIL, threshold 0.85); jurist preference 0.0275 (FAIL, threshold 0.5). Language artifacts completely dominate; no legally relevant neighbors.",
+        "cross_language_benchmarks": "Zero-shot transfer PASS (transfer_gap=0.0066); language-specific quality PASS (mean_nmi=0.444). Cross-language alignment works but legal structure is lost to language clustering.",
+        "hierarchy_coherence": "Level 0 NMI=0.015 (very poor branch alignment), Level 1 NMI=0.460 (moderate legal_area), nesting=0.632. Branch-level structure absent.",
+        "scale_stability": "PASS (0.786 overlap at 80% subsample) - raw embeddings stable under corpus reduction.",
+        "boilerplate_resistance": "FAIL (resistance_score=-0.925) - procedural neighbors dominate.",
+        "cluster_coherence": "FAIL (branch_purity=0.621, lang_purity=0.981) - clusters are language-dominated, not legally coherent."
+      },
+      "note": "RAW multilingual-e5 embeddings at 99k scale confirm center-projection is necessary. All adversarial and legal-structure benchmarks FAIL; only cross-language transfer and scale stability PASS."
+    },
+    "partial_dense_2000_2015_raw_citation_heritage": {
+      "status": "COMPLETE",
+      "years_evaluated": [
+        2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+        2010, 2011, 2012, 2013, 2014, 2015
+      ],
+      "total_decisions": 99325,
+      "citation_pairs_in_subset": 58718,
+      "positive_pairs": 13648,
+      "negative_pairs": 45070,
+      "frozen_pair_pool": "174k citation graph (2,019/2,105 resolved, 95.9%)",
+      "representations_evaluated": 1,
+      "thresholds": {
+        "auc_min": 0.65,
+        "recall_at_10_min": 0.2
+      },
+      "results_summary": {
+        "raw_multilingual_e5_768dim_partial_2000_2015": {
+          "auc": 0.9105,
+          "recall_at_10": 0.0,
+          "status": "FAIL",
+          "pass_auc": true,
+          "pass_recall": false
+        }
+      },
+      "note": "RAW multilingual-e5 PASS AUC (0.9105) but FAIL recall@10 (0.0). Consistent with center-projected and TF-IDF pattern: citation proximity preserved in similarity space (high AUC) but not recovered in top-10 neighbors at this scale."
     }
   },
   "blocked_on": "legal-distance lane: 174k dense embeddings not yet concatenated and promoted to accepted state. Checkpoints exist for years 2000-2015 (16 years, ~99,325 decisions) at /tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/checkpoints/. Full concatenation for 173,963 decisions pending. Citation role embeddings and linear hybrids evaluated at 1200-scale only (v7, v12), not at 174k.",
