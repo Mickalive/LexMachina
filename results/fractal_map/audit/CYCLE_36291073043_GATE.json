@@ -1,0 +1,43 @@
+{
+  "run_id": "36291073043",
+  "timestamp": "2026-09-27T00:00:00.000000+00:00",
+  "lane": "fractal-map",
+  "direction_version": 30,
+  "cycle_status": "COMPLETED_DENSE_99K_VALIDATION",
+  "continue_recommended": false,
+  "evidence_tier": "EXPLORATORY",
+  "accepted_run_id": "36291073043",
+  "blocked_on": "legal-distance_174k_dense_embeddings",
+  "verification": {
+    "test_suite": "216 passed, 1 skipped",
+    "tfidf_174k_zoom_quality": "FAIL (0/4 modes pass v26)",
+    "tfidf_constrained_hierarchical_174k": "PASS (4/4 modes pass v26)",
+    "dense_99k_constrained_hierarchical": "FAIL v26 (improvement_rate=47.37% vs 50% threshold)",
+    "dense_scale_trend": "12k: 45.45% -> 99k: 47.37% (positive)",
+    "evidence_backed_zoom_path_62k": "PASS (center_projected_64dim + hierarchical Leiden)",
+    "census_classification": "4/2/6 split reproduced",
+    "alignment_probes": "REJECTED/CORRUPTED reproduced",
+    "nesting_metric_defect_v1": "enforced",
+    "compressed_ladder": "100% delta retention, 29% reduction reproduced"
+  },
+  "artifacts": {
+    "state_file": "state/fractal_map.json",
+    "report": "reports/fractal_map/OPERATIONAL_RESUME_36291073043_FINAL_AUDIT_READY.md",
+    "dense_99k_result": "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_dense_2000_2015_20260927_031447.json",
+    "tfidf_174k_results": [
+      "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_full_20260926.json",
+      "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_hybrid05_20260926.json",
+      "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_hybrid07_20260926.json",
+      "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_regeste_20260926.json"
+    ],
+    "v26_verdict": "results/fractal_map/zoom_quality_174k_eval/v26_verdict.json",
+    "gate_file": "results/fractal_map/audit/CYCLE_36291073043_GATE.json"
+  },
+  "orchestration_failure": {
+    "root_cause": "Supervisor reads ephemeral /tmp/lex_control/state/factory_direction.json (fractal-map.status=RUN) instead of authoritative state/fractal_map.json (BLOCKED_ON_DEPENDENCY)",
+    "re_dispatch_count": "60+ documented occurrences",
+    "impact": "Zero durable delta per re-dispatch; wasteful compute cycles",
+    "fix_required": "Supervisor must read state/<lane>.json for dispatch gating"
+  },
+  "recommendation": "PAUSE - lane correctly blocked. Resume when legal-distance_174k_dense_embeddings completes (years 2016-2025) or Factory Director issues successor question (v31+)."
+}
