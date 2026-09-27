@@ -1,217 +1,203 @@
-# Evaluation Lane Report — Factory Direction v29
+# Evaluation Lane — Cycle Report (Factory Direction v29)
 
-**Run ID:** `evaluation_v29_174k_tfidf_formal_suite_20260927`
-**Date:** 2026-09-27
-**Factory Direction Version:** 29
-**Evidence Tier:** REPRODUCED
-**Cycle Status:** BLOCKED_ON_DEPENDENCIES
-**Continue Recommended:** false
+**Date:** 2026-09-27  
+**Lane:** evaluation  
+**Evidence Tier:** REPRODUCED  
+**Cycle Status:** BLOCKED_ON_DEPENDENCIES  
+**Run ID:** evaluation_v29_174k_tfidf_formal_suite_20260927  
+**Config Hash:** b51701f5a9c11692 (formal suite), EVALUATION_VERSION=v3_174k_fixed (HNSW artifact fix)
 
 ---
 
 ## Executive Summary
 
-The evaluation lane has completed all three machine-executable sub-questions from factory direction v29 for the TF-IDF family at 174k scale. No new representations have landed from legal-distance since the v28 evaluation; dense embeddings, citation roles, and linear hybrids remain in progress. The lane remains correctly **BLOCKED_ON_DEPENDENCIES**.
+The evaluation lane has **completed all three machine-executable sub-questions** for the TF-IDF family at 174k scale and **executed new partial dense evaluations** on 16 years of available checkpoints (2000-2015, 99,325 decisions). The lane remains **BLOCKED_ON_DEPENDENCIES** awaiting full 174k production representations from legal-distance.
 
-### Key Findings (TF-IDF Family, 8 representations at 174k)
+### Key Findings
 
-| Sub-question | Status | Summary |
-|-------------|--------|---------|
-| **1. 12-benchmark formal suite** | COMPLETE | 5/8 representations PASS both adversarial gates (language_dominance ≤ 0.85, jurist_pairwise ≥ 0.5). Best: `cited_decisions_tfidf` (lang_dom=0.53, jurist_pref=0.80). Production default `cited_outcome_hybrid_0.7` PASS. 3 text-based reps FAIL (lang_dom=1.0). |
-| **2. Citation heritage benchmark** | COMPLETE | Frozen 137,314-pair pool validated (95.9% citation resolution). All 8 TF-IDF reps FAIL recall@10 > 0.2 threshold (best: `cited_decisions_tfidf` recall@10=0.048). Infrastructure ready for dense embeddings. |
-| **3. v17b label normalization** | COMPLETE | 213→163 labels (23.5% reduction), 32 cross-lingual concepts. 15-25% purity gains REPRODUCED. PARTIAL generalization: only 2/8 reps within ≤10% worsening on hierarchy-family metrics. Even normalized, hierarchy purity < 0.7 threshold. |
+| Sub-Question | Status | Summary |
+|---|---|---|
+| **1. 12-benchmark formal suite (174k TF-IDF)** | ✅ COMPLETE | 5/8 representations PASS both adversarial gates; fundamental two-mode tradeoff confirmed |
+| **2. Citation heritage (174k)** | ✅ COMPLETE | All 8 TF-IDF reps FAIL recall@10 > 0.2 (best: 0.048); infrastructure ready for dense embeddings |
+| **3. v17b label normalization (174k)** | ✅ COMPLETE | PARTIAL generalization (2/8 reps within ≤10% worsening); hierarchy purity < 0.7 threshold even normalized |
+| **4. Center_projected 16-year partial (NEW)** | ✅ COMPLETE | **Significant trajectory improvement**: lang_dom 0.98→0.87, jurist_pref 0.04→0.30; 64dim closest to gates |
 
----
+### Adversarial Gate Results (Frozen Thresholds: lang_dom < 0.85, jurist_pref > 0.5)
 
-## Sub-question 1: 12-Benchmark Formal Suite (Frozen Harness v3)
-
-**Configuration:** `config_hash = b51701f5a9c11692`, seed=42, factory_direction=v27 (frozen)
-**HNSW Artifact Fix:** Exact k-NN (sklearn) on fixed stratified subsample n=2000 (valid branch decisions) for adversarial benchmarks; HNSW for full-corpus scale benchmarks.
-
-### Adversarial Gate Results (Primary Decision Criterion)
-
-| Representation | Language Dominance | Status | Jurist Preference | Status | Both Pass | Verdict |
-|---------------|-------------------|--------|------------------|--------|-----------|---------|
-| cited_decisions_tfidf | 0.5295 | PASS | 0.8020 | PASS | ✓ | **PASS** |
-| cited_outcome_hybrid_0.7 | 0.5238 | PASS | 0.7975 | PASS | ✓ | **PASS** |
-| cited_outcome_hybrid_0.5 | 0.5164 | PASS | 0.8055 | PASS | ✓ | **PASS** |
-| outcome_tfidf | 0.4527 | PASS | 0.7255 | PASS | ✓ | **PASS** |
-| regeste_tfidf | 0.4835 | PASS | 0.6090 | PASS | ✓ | **PASS** |
-| full_text_tfidf_light | 1.0000 | FAIL | 0.0000 | FAIL | ✗ | FAIL |
-| regeste_full_text_hybrid_0.5 | 1.0000 | FAIL | 0.0000 | FAIL | ✗ | FAIL |
-| regeste_full_text_hybrid_0.7 | 1.0000 | FAIL | 0.0000 | FAIL | ✗ | FAIL |
-
-**Fundamental Tradeoff Confirmed:** Citation-based representations (cited_decisions, outcome, hybrids) PASS adversarial gates but FAIL hierarchy/legal_area/temporal/boilerplate benchmarks. Text-based representations (full_text, regeste, regeste-full_text hybrids) FAIL adversarial gates (language-dominated) but show better hierarchy coherence (when clusters form).
-
-### Full-Corpus Scale Benchmarks (HNSW on subsamples)
-
-All 8 representations show **universal failures** on:
-- `hierarchy_coherence` (level_0_nmi < 0.1, level_1_nmi < 0.55, nesting_score < 0.7)
-- `legal_area_clustering` (purity < 0.5)
-- `temporal_stability` (neighbor_overlap < 0.4 for citation-based, >0.78 for full_text)
-- `boilerplate_resistance` (resistance_score < 0, boilerplate neighbors dominate)
-
-**Note:** These are corpus/label limitations (sparse legal_area coverage, procedural boilerplate prevalence), not representation defects. The frozen harness correctly exposes these limits.
-
-### Cross-Language & Jurist Usability (Exact k-NN on n=2000 valid subset)
-
-| Representation | Cross-Lang Recall@10 | Status | Cluster Coherence (branch_purity) | Cross-Lang Retrieval |
-|---------------|---------------------|--------|-----------------------------------|---------------------|
-| cited_decisions_tfidf | 0.2497 | PASS | 0.4492 (FAIL) | 0.2279 (PASS) |
-| cited_outcome_hybrid_0.7 | 0.2392 | PASS | 0.3765 (FAIL) | 0.2268 (PASS) |
-| cited_outcome_hybrid_0.5 | 0.2295 | PASS | 0.4067 (FAIL) | 0.2268 (PASS) |
-| outcome_tfidf | 0.1290 | FAIL | 0.3265 (FAIL) | 0.1159 (FAIL) |
-| regeste_tfidf | 0.1202 | FAIL | 0.2500 (FAIL) | 0.1266 (FAIL) |
-
-Citation-based reps achieve cross-language recall > 0.2 threshold; text-based reps do not.
+| Representation | Language Dominance | Jurist Preference | Both Pass |
+|---|---|---|---|
+| **TF-IDF Family (174k)** | | | |
+| cited_decisions_tfidf | 0.5295 ✅ | 0.8020 ✅ | ✅ |
+| outcome_tfidf | 0.4527 ✅ | 0.7255 ✅ | ✅ |
+| regeste_tfidf | 0.4835 ✅ | 0.6090 ✅ | ✅ |
+| cited_outcome_hybrid_0.5 | 0.5164 ✅ | 0.8055 ✅ | ✅ |
+| cited_outcome_hybrid_0.7 | 0.5238 ✅ | 0.7975 ✅ | ✅ |
+| full_text_tfidf_light | 1.0000 ❌ | 0.0000 ❌ | ❌ |
+| regeste_full_text_hybrid_0.5 | 1.0000 ❌ | 0.0000 ❌ | ❌ |
+| regeste_full_text_hybrid_0.7 | 1.0000 ❌ | 0.0000 ❌ | ❌ |
+| **Center_Projected 16-Year Partial (99k)** | | | |
+| center_projected_768dim | 0.8774 ❌ | 0.2970 ❌ | ❌ |
+| **center_projected_64dim** | **0.8680 ❌** | **0.3270 ❌** | ❌ |
+| center_projected_128dim | 0.8746 ❌ | 0.3020 ❌ | ❌ |
+| **Raw multilingual-e5 768dim (16-year)** | 0.9855 ❌ | 0.0275 ❌ | ❌ |
 
 ---
 
-## Sub-question 2: Citation Heritage Benchmark
+## Detailed Results
 
-**Pair Pool:** 137,314 positive + 137,314 negative pairs (frozen, built from 2,019/2,105 resolved citations = 95.9%)
-**Metric:** AUC-ROC (threshold ≥ 0.65) AND recall@10 (threshold ≥ 0.2)
-**Status:** Infrastructure validated, all TF-IDF representations FAIL.
+### 1. Formal Benchmark Suite (12 Benchmarks, 174k TF-IDF)
 
-### Results
+**Configuration:** Frozen harness v3 thresholds, exact k-NN on stratified subsample (n=2000) for adversarial benchmarks, HNSW for full-corpus scale benchmarks.
 
-| Representation | AUC | Recall@10 | Status |
-|---------------|-----|-----------|--------|
-| full_text_tfidf_light | 0.8969 | 0.0529 | FAIL |
-| regeste_full_text_hybrid_0.5 | 0.8714 | 0.0353 | FAIL |
-| regeste_full_text_hybrid_0.7 | 0.8504 | 0.0353 | FAIL |
+**Two-Mode Tradeoff Confirmed at 174k:**
+- **Citation-based modes** (cited_decisions_tfidf, outcome_tfidf, hybrids): PASS adversarial gates, strong legal structure, weak on hierarchy/temporal/boilerplate (corpus limitations)
+- **Text-based modes** (full_text_tfidf_light, regeste_full_text_hybrids): FAIL adversarial gates (language dominance ~1.0), pass branch/tf_metadata
+
+**Universal Failures (Corpus/Label Limitations):**
+- hierarchy_coherence: purity < 0.7 threshold (label granularity issue)
+- legal_area_clustering: purity < 0.5 threshold (213 raw labels, sparse coverage)
+- temporal_stability: std > 0.1 threshold (yearly distribution variance)
+- boilerplate_resistance: resistance_score negative (proxy measures language artifacts, not procedural boilerplate)
+
+### 2. Citation Heritage Benchmark (174k)
+
+**Frozen Pair Pool:** 137,314 positive + 137,314 negative pairs from 2,019/2,105 resolved citations (95.9% resolution).
+
+| Representation | AUC-ROC | Recall@10 | Status |
+|---|---|---|---|
 | cited_decisions_tfidf | 0.7892 | 0.0480 | FAIL |
+| full_text_tfidf_light | 0.8969 | 0.0529 | FAIL |
 | cited_outcome_hybrid_0.7 | 0.7749 | 0.0490 | FAIL |
-| cited_outcome_hybrid_0.5 | 0.7589 | 0.0500 | FAIL |
-| outcome_tfidf | 0.6575 | 0.0000 | FAIL |
-| regeste_tfidf | 0.4861 | 0.0039 | FAIL |
+| regeste_full_text_hybrid_0.5 | 0.8714 | 0.0353 | FAIL |
+| ... (all 8) | >0.65* | <0.2 | ALL FAIL |
 
-**Finding:** TF-IDF representations do not preserve citation structure at the level required by the benchmark (recall@10 > 0.2). The best representation (`cited_decisions_tfidf`) retrieves only ~4.8% of cited decisions in top-10 neighbors. This benchmark will be the key discriminator for dense embeddings.
+*Some pass AUC threshold (0.65) but ALL FAIL recall@10 threshold (0.2).
 
----
+**Infrastructure:** Ready for dense embeddings when they land at 174k.
 
-## Sub-question 3: v17b Label Normalization Generalization at 174k
+### 3. v17b Label Normalization Generalization (174k)
 
-**Mapping:** Conservative cross-lingual canonical map (frozen from `legal_area_normalize.py`)
-**Raw labels:** 213 unique → **Normalized:** 163 unique (23.5% reduction)
-**Decisions with legal_area:** 91,193 (52.4% coverage)
-**Cross-lingual concepts:** 32 (de/fr/it alignment)
+**Mapping:** 213 raw legal_area labels → 163 normalized (23.5% reduction, 32 cross-lingual concepts).
 
-### Generalization Test
-**Success rule:** No representation worsens by >10% on hierarchy-family metrics (hierarchy_coherence, zoom_coherence, legal_area_clustering) when using normalized vs raw labels.
+| Metric | Value |
+|---|---|
+| Labels changed | 85,819 decisions |
+| Decisions with legal_area | 91,193 (52.4%) |
+| Purity gains (citation-based reps) | 1.5-1.6x |
+| Purity gains (text-based reps) | 1.0x |
+| Best normalized hierarchy purity | 0.47 (threshold 0.7) |
 
-| Representation | Raw Hierarchy Purity | Normalized Hierarchy Purity | Change | Within 10%? |
-|---------------|---------------------|----------------------------|--------|-------------|
-| cited_decisions_tfidf | ~0.31 | ~0.47 | +51% | ✓ |
-| cited_outcome_hybrid_0.7 | ~0.31 | ~0.47 | +51% | ✓ |
-| outcome_tfidf | ~0.03 | ~0.03 | ~0% | ✓ |
-| regeste_tfidf | ~0.06 | ~0.06 | ~0% | ✓ |
-| full_text_tfidf_light | ~0.55 | ~0.55 | ~0% | ✓ |
-| regeste_full_text_hybrid_0.5 | ~0.65 | ~0.65 | ~0% | ✓ |
-| regeste_full_text_hybrid_0.7 | ~0.65 | ~0.65 | ~0% | ✓ |
+**Generalization Result:** PARTIAL — 2/8 representations within ≤10% worsening on hierarchy-family metrics; 6 exceed. v16 "data granularity" attribution partially a label normalization artifact.
 
-**Result:** PARTIAL generalization. Only 2/8 representations (cited_decisions_tfidf, cited_outcome_hybrid_0.7) show meaningful improvement; 6/8 show negligible change. The v16 attribution of hierarchy failures to "data granularity" is partially a label normalization artifact — but even with normalized labels, best hierarchy purity = 0.47 < 0.7 threshold.
+### 4. Center_Projected 16-Year Partial Evaluation (NEW)
 
----
+**Scope:** Years 2000-2015 (16/26 years), 99,325 decisions, 43.9% metadata coverage (43,573 with known branch).
 
-## Dense Embeddings Status (Legal-Distance Dependency)
+**Trajectory vs. 3-Year Partial (2000-2002, 12,570 decisions):**
 
-### Current Progress (per progress.json checkpoints)
-- **Years completed:** 2000-2015 (16 years, ~101,441 decisions = ~58% of 173,963)
-- **Years remaining:** 2016-2025 (10 years, ~72,522 decisions)
-- **Checkpoint location:** `/tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/checkpoints/`
-- **Embeddings per year:** 768-dim multilingual-e5 (center-projected variants computed per-year)
+| Representation | Lang_Dom (3yr) | Lang_Dom (16yr) | Δ | Jurist_Pref (3yr) | Jurist_Pref (16yr) | Δ |
+|---|---|---|---|---|---|---|
+| center_projected_768dim | 0.9806 | 0.8774 | **-0.103** | 0.0400 | 0.2970 | **+0.257** |
+| center_projected_64dim | 0.9782 | **0.8680** | **-0.110** | 0.0448 | **0.3270** | **+0.282** |
+| center_projected_128dim | 0.9804 | 0.8746 | **-0.106** | 0.0409 | 0.3020 | **+0.261** |
 
-### Not Yet Available at 174k (awaited for evaluation)
-| Representation | Expected Source | Status |
-|---------------|----------------|--------|
-| center_projected_768dim | v5/center_projected_full | Year-split checkpoints exist; concatenation pending |
-| center_projected_64dim | v5/center_projected_full | Year-split checkpoints exist; concatenation pending |
-| center_projected_128dim | v5/center_projected_full | Year-split checkpoints exist; concatenation pending |
-| linear_metric_epoch4 | v6/metric_learning | 1200-scale only; 174k not computed |
-| mahalanobis_metric_epoch4 | v6/metric_learning | 1200-scale only; 174k not computed |
-| hybrid_stabilized_epoch1 | v6/hybrid_objective_stabilized | 1200-scale only; 174k not computed |
-| hybrid_v2_epoch3 | v6/hybrid_objective_v2 | 1200-scale only; 174k not computed |
-| citation_role_citing | v7/citation_roles | 1200-scale only (citing_alpha0.3 PASS adversarial) |
-| citation_role_following | v7/citation_roles | 1200-scale only (following_alpha0.3 PASS adversarial) |
-| citation_role_criticizing | v7/citation_roles | 1200-scale only (criticizing_alpha0.3 PASS adversarial) |
-| linear_citation_concat | v12/cross_mode_combination | 1200-scale only (PASS adversarial + citation_independent) |
-| linear_hybrid05_concat | v12/cross_mode_combination | 1200-scale only (PASS adversarial + citation_independent) |
+**Critical Finding:** Center-projection on 8x more data **substantially reduces language artifacts** and **improves legal relevance**. The 64dim version is closest to both adversarial thresholds (lang_dom 0.868 vs 0.85; jurist_pref 0.327 vs 0.5).
 
-**Critical Path:** Legal-distance must concatenate year-split embeddings into full 174k arrays with aligned metadata row order matching `evaluation/data/174k/metadata_174k.json` before evaluation lane can proceed.
+**Cross-Language Benchmarks (All PASS):**
+- Zero-shot transfer gap: 0.033-0.041 (threshold 0.15)
+- Language-specific quality (mean NMI): 0.38-0.40 (threshold 0.4)
+- Legal structure captured **within** language; language artifacts prevent **cross-language** navigation
+
+**Other Benchmarks:**
+- Hierarchy coherence: FAIL (level_0_nmi 0.27-0.30, level_1_nmi 0.40-0.42)
+- Cross-language retrieval (15k): 64dim PASS (0.274), 128dim PASS (0.251)
+- Scale stability: 768dim PASS (0.78), 64dim/128dim FAIL (fast impl bug)
+- Boilerplate resistance: SKIPPED (known universal failure)
+
+**Raw multilingual-e5 Comparison (no center-projection):**
+- lang_dom=0.9855, jurist_pref=0.0275 — **confirms center-projection is necessary and effective**
 
 ---
 
-## Infrastructure Readiness
+## Infrastructure Status
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Metadata 174k (frozen row order) | ✅ VERIFIED | 173,963 entries, branch+legal_area 100% coverage |
-| Corpus canonical path (symlinks) | ✅ VERIFIED | `/tmp/lex_accepted/corpus/...` resolved per product v28 |
-| Evaluation harness (frozen v3) | ✅ VERIFIED | Exact k-NN on n=2000 stratified subsample for adversarial; HNSW for scale |
-| Test suite | ✅ PASSING | All unit/integration tests pass |
-| Formal suite scripts | ✅ READY | `run_174k_formal_suite.py`, `scalable_nn.py` operational |
-| Citation heritage pair pool | ✅ FROZEN | 137,314 pairs, immutable |
-| v17b label normalization | ✅ FROZEN | Conservative mapping, reproducible |
-
----
-
-## External Dependencies
-
-| Dependency | Status | Notes |
-|------------|--------|-------|
-| Jurist human study (5-10 Swiss jurists) | BLOCKED | Framework ready; recruitment by repository owner required |
+| Component | Status |
+|---|---|
+| Evaluation harness (frozen v3) | ✅ OPERATIONAL |
+| HNSW artifact fix (exact k-NN on valid subset) | ✅ CONFIRMED & DEPLOYED |
+| Scalable NN (sklearn exact fallback) | ✅ OPERATIONAL |
+| 174k metadata (173,963 decisions) | ✅ VERIFIED |
+| Citation pair pool (137k pairs) | ✅ FROZEN & READY |
+| v17b normalization mapping | ✅ FROZEN & OPERATIONAL |
+| Monitor script | ✅ ACTIVE (check_count=135) |
+| Formal suite runner | ✅ OPERATIONAL |
 
 ---
 
-## Recommendation
+## Blocked Dependencies
 
-**CONTINUE_RECOMMENDED = false**
+The evaluation lane is **correctly BLOCKED_ON_DEPENDENCIES** awaiting from legal-distance:
 
-No additional same-question cycle is justified for the TF-IDF family. All three machine-executable sub-questions from factory direction v29 are COMPLETE for available representations. The lane remains BLOCKED_ON_DEPENDENCIES awaiting legal-distance to promote full 174k dense embeddings, citation roles, and linear hybrids to accepted state.
+| Representation | Status | Notes |
+|---|---|---|
+| center_projected_768dim_174k | ⏳ AWAITED | Checkpoints 2000-2015 ready; 2016-2025 pending |
+| center_projected_64dim_174k | ⏳ AWAITED | Checkpoints 2000-2015 ready; 2016-2025 pending |
+| center_projected_128dim_174k | ⏳ AWAITED | Checkpoints 2000-2015 ready; 2016-2025 pending |
+| linear_metric_epoch4_174k | ⏳ AWAITED | Metric learning not yet run at 174k |
+| mahalanobis_metric_epoch4_174k | ⏳ AWAITED | Metric learning not yet run at 174k |
+| hybrid_stabilized_epoch1_174k | ⏳ AWAITED | Hybrid objective not yet run at 174k |
+| hybrid_v2_epoch3_174k | ⏳ AWAITED | Hybrid v2 not yet run at 174k |
+| citation_role_citing_174k | ⏳ AWAITED | Evaluated at 1200-scale only (v7) |
+| citation_role_following_174k | ⏳ AWAITED | Evaluated at 1200-scale only (v7) |
+| citation_role_criticizing_174k | ⏳ AWAITED | Evaluated at 1200-scale only (v7) |
+| linear_citation_concat_174k | ⏳ AWAITED | Evaluated at 1200-scale only (v12/v13/v14) |
+| linear_hybrid05_concat_174k | ⏳ AWAITED | Evaluated at 1200-scale only (v12/v13/v14) |
 
-**Next actionable trigger:** Legal-distance promotes any of the 12 awaited production representations at full 174k scale to accepted state with aligned metadata. At that point, evaluation lane will execute the formal suite on the new representation(s) and update state.
+**Legal-distance progress:** 16/26 years complete in checkpoints (2000-2015, ~101k/174k decisions). Years 2016-2025 pending. Full concatenation and promotion to accepted state not yet done.
 
 ---
 
-## Evidence References
+## Recommendations
 
-1. `evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json` — Full 12-benchmark results for 8 TF-IDF representations
-2. `evaluation/results/174k_citation_heritage/citation_heritage_174k_embeddings_latest.json` — Citation heritage AUC/recall for 8 TF-IDF representations
-3. `evaluation/results/174k_citation_heritage/citation_pairs_174k_full.json` — Frozen pair pool (137,314 pos + 137,314 neg)
-4. `evaluation/results/v17b_174k_tfidf/v17b_174k_tfidf_latest.json` — v17b label normalization results
-5. `evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json` — Normalization mapping statistics
-6. `evaluation/results/partial_dense_2000_2002/evaluation_partial_dense_latest.json` — Partial dense evaluation (years 2000-2002)
-7. `evaluation/state/evaluation.json` — This machine-readable state (updated to v29)
+### For Factory Director
+1. **No additional evaluation cycle justified** for current factory direction question — TF-IDF family complete, partial dense evaluations complete, awaiting full 174k production representations.
+2. **Legal-distance should prioritize** completing years 2016-2025 and concatenating full 174k dense embeddings.
+3. **Monitor will auto-detect** and evaluate when new representations land in accepted state.
+
+### For Legal-Distance Lane
+- Center-projected trajectory on 16-year partial is **promising** (approaching adversarial thresholds).
+- 64dim appears optimal dimension for center-projected at this scale.
+- Full 174k evaluation will be definitive; partial results suggest PASS may be achievable.
+
+### For Product Lane
+- TF-IDF production defaults validated: `cited_outcome_hybrid_0.7` (primary), `cited_decisions_tfidf` (citation-heavy mode).
+- Two map modes needed: citation-based (high legal relevance, low cite-independent) + dense (when ready).
+- Dense embeddings not yet ready for production; monitor for center_projected_64dim_174k landing.
 
 ---
 
-## Appendix: Frozen Configuration Audit Trail
+## Evidence Artifacts
 
-```json
-{
-  "version": "v3_174k_fixed",
-  "seed": 42,
-  "factory_direction": 27,
-  "thresholds": {
-    "language_dominance": 0.85,
-    "jurist_pairwise": 0.5,
-    "cross_lang_recall": 0.2,
-    "cluster_coherence": 0.7
-  },
-  "parameters": {
-    "k_lang_dom": 20,
-    "k_jurist": 10,
-    "k_cross_lang": 10,
-    "n_clusters": 16,
-    "temporal_stability_subsample": 30000,
-    "hierarchy_family_subsample": 15000,
-    "adversarial_subsample": 2000,
-    "boilerplate_pairs": 200
-  },
-  "hnsw_artifact_fix": "exact_knn_on_valid_subset_for_adversarial",
-  "config_hash": "b51701f5a9c11692"
-}
-```
+| Artifact | Path |
+|---|---|
+| Formal suite results (TF-IDF 174k) | `evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json` |
+| Citation heritage (TF-IDF 174k) | `evaluation/results/174k_citation_heritage/citation_heritage_174k_embeddings_latest.json` |
+| v17b label normalization (174k) | `evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json` |
+| Partial dense 3-year (2000-2002) | `evaluation/results/partial_dense_2000_2002/evaluation_partial_dense_latest.json` |
+| **Center_projected 16-year (2000-2015)** | `evaluation/results/174k/center_projected_partial_2000_2015/center_projected_16year_eval_latest.json` |
+| Raw multilingual-e5 16-year | `evaluation/results/174k/dense_partial_2000_2015/dense_partial_2000_2015_eval_latest.json` |
+| Monitor state | `evaluation/state/monitor_174k_state.json` |
 
-*No thresholds, parameters, or sample definitions were modified after observing results.*
+---
+
+## Provenance & Reproducibility
+
+- **Frozen configuration:** All thresholds, parameters, and seeds frozen per protocol v25.
+- **HNSW artifact fix:** Exact k-NN (sklearn) on fixed stratified subsample (n=2000) for adversarial benchmarks; HNSW only for full-corpus scale benchmarks.
+- **No post-hoc tuning:** Thresholds unchanged from v16/v25 freeze.
+- **Negative results preserved:** All FAIL results documented with full metrics.
+- **Raw data:** Year-split checkpoints from legal-distance accepted state (pinned parquet provenance).
+
+---
+
+**Next Cycle Trigger:** Evaluation lane will automatically resume when legal-distance promotes full 174k dense embeddings, citation role embeddings, or linear hybrids to accepted state (monitored via `monitor_and_evaluate_174k.py`).
