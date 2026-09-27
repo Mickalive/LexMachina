@@ -1,51 +1,79 @@
 # Evaluation Lane v30 Monitoring Cycle Report
 
-**Factory Direction**: v27 | **GitHub Run**: 36091515065 | **Date**: 2026-09-25
+**Factory Direction**: v30 | **GitHub Run**: 36288055439 | **Date**: 2026-09-27
 
 ## Executive Summary
 
-The evaluation lane completed its monitoring cycle. **No new 174k dense embeddings detected** in the legal-distance accepted state. The TF-IDF production family (8 representations) remains **fully evaluated at 174k scale** across all three machine-executable sub-questions. Infrastructure is **fully operational and verified**. The lane continues monitoring for legal-distance 174k dense embeddings (gh run 36071928708, staged year-split CPU execution).
+The evaluation lane completed its v30 monitoring cycle. **No new 174k dense embeddings detected** in the legal-distance accepted state. The TF-IDF production family (8 representations) remains **fully evaluated at 174k scale** across all three machine-executable sub-questions from factory direction v30. Infrastructure is **fully operational and verified**. The lane continues monitoring for legal-distance 174k dense embeddings (year-split CPU execution, 16/26 years complete in checkpoints).
 
 ## Monitoring Results
 
 | Check | Status |
 |-------|--------|
-| Monitor scan (legal-distance v5-v14, fractal_map) | **NO 174k dense embeddings found** |
-| Monitor check count | 33 |
+| Monitor scan (legal-distance v5-v14, fractal-map) | **NO 174k dense embeddings found** |
+| Monitor check count | **139** (incremented from 135) |
 | TF-IDF family evaluation | **COMPLETE** (8/8 representations) |
-| Legal-distance 174k run | **ACTIVE** (gh run 36071928708) |
+| Legal-distance 174k dense checkpoints | **16/26 years complete** (2000-2015, ~99,325 decisions, ~57% decision completion) |
 
-## Completed Work (TF-IDF Family at 174k)
+## Completed Work (TF-IDF Family at 174k — All Three Sub-Questions COMPLETE)
 
-All three machine-executable sub-questions from factory direction v25 **COMPLETE**:
+All three machine-executable sub-questions from factory direction v30 **COMPLETE**:
 
-1. **Full 12-benchmark formal suite** (frozen config hash `4323f833fa72366a`): All 8 TF-IDF representations evaluated at 173,963 decisions. Pass counts: `full_text_tfidf_light`=7/12, `regeste_full_text_hybrid_0.5`=7/12, `regeste_full_text_hybrid_0.7`=7/12, `cited_decisions_tfidf`=6/12, `cited_outcome_hybrid_0.5`=6/12, `cited_outcome_hybrid_0.7`=6/12, `regeste_tfidf`=5/12, `outcome_tfidf`=3/12.
+1. **Full 12-benchmark formal suite** (frozen config hash `b51701f5a9c11692`): All 8 TF-IDF representations evaluated at 173,963 decisions with HNSW artifact fix (exact k-NN on fixed stratified subsample n=2000). 
+   - **PASS both adversarial gates (5)**: `cited_decisions_tfidf`, `outcome_tfidf`, `regeste_tfidf`, `cited_outcome_hybrid_0.5`, `cited_outcome_hybrid_0.7`
+   - **FAIL both adversarial gates (3)**: `full_text_tfidf_light`, `regeste_full_text_hybrid_0.5`, `regeste_full_text_hybrid_0.7` (language dominance = 1.0, jurist preference = 0.0)
 
-2. **Citation heritage benchmark** (frozen 137,314 pairs): 7/8 representations PASS AUC≥0.65. Best: `cited_decisions_tfidf` AUC=0.9731, `cited_outcome_hybrid_0.7` AUC=0.9605. Production default `cited_outcome_hybrid_0.7` confirmed (passes both adversarial gates, nn_citation_rate@10=0.490).
+2. **Citation heritage benchmark** (frozen 137,314 pairs): Validated on published 174k citation-ID resolution (95.9%, 2,019/2,105 resolved).
+   - All 8 TF-IDF representations **FAIL recall@10 > 0.2 threshold** (best `cited_decisions_tfidf`: 0.048)
+   - Some pass AUC ≥ 0.65 but recall@10 is the binding gate
 
-3. **v17b label normalization at 174k**: 213→163 labels (23.5% reduction), 32 cross-lingual canonical concepts. 2/8 representations within ≤10% worsening rule (`cited_decisions_tfidf`, `regeste_tfidf`); 6 exceed (5 on hierarchy NMI: -10.8% to -27.6%; 1 on zoom_coherence: `cited_outcome_hybrid_0.5` -16.0%).
+3. **v17b label normalization at 174k**: 213→163 labels (23.5% reduction), 32 cross-lingual canonical concepts.
+   - **PARTIAL generalization**: 2/8 representations within ≤10% worsening rule (`cited_decisions_tfidf`, `regeste_tfidf`)
+   - 6 exceed worsening threshold (5 on hierarchy NMI: -10.8% to -27.6%; 1 on zoom_coherence)
+   - Best normalized hierarchy purity: 0.47 (threshold: 0.7)
+
+## Partial Dense Embedding Trajectory (Informational — Not 174k Scale)
+
+Center-projected evaluation on **16-year partial** (2000-2015, 99,325 decisions, 43.9% metadata coverage) shows **SIGNIFICANT IMPROVEMENT** over 3-year partial:
+
+| Representation | 3-year lang_dom | 16-year lang_dom | Δ | 3-year jurist_pref | 16-year jurist_pref | Δ |
+|---|---|---|---|---|---|---|
+| center_projected_768dim | 0.9806 | 0.8774 | -0.1032 | 0.0400 | 0.2970 | +0.2570 |
+| **center_projected_64dim** | **0.9782** | **0.8680** | **-0.1102** | **0.0448** | **0.3270** | **+0.2822** |
+| center_projected_128dim | 0.9804 | 0.8746 | -0.1058 | 0.0409 | 0.3020 | +0.2611 |
+
+**Key findings**:
+- **Best**: `center_projected_64dim_partial_2000_2015` (lang_dom=0.868, jurist_pref=0.327) — closest to both adversarial thresholds
+- Cross-language transfer **PASSES** for all three (transfer_gap 0.033-0.041)
+- Language-specific quality **PASSES** for all three (mean_nmi 0.38-0.40)
+- Cross-language retrieval on 15k subsample: **64dim PASS** (recall=0.274), 128dim PASS (recall=0.251), 768dim FAIL (recall=0.025)
+- Hierarchy coherence **FAIL** for all (level_0_nmi 0.27-0.30, level_1_nmi 0.40-0.42, nesting_score 0.67-0.70)
+- Raw multilingual-e5 768dim (no center-projection): lang_dom=0.9855, jurist_pref=0.0275 — **confirms center-projection is necessary and effective**
+
+**Trajectory interpretation**: Language dominance dropped from ~0.98 to ~0.87 (approaching 0.85 threshold). Jurist preference rose from ~0.04 to ~0.30 (still below 0.5 threshold). Clear positive trajectory with corpus scale; full 174k center-projected evaluation needed for definitive verdict.
 
 ## Infrastructure Verification
 
 | Component | Status | Evidence |
 |-----------|--------|----------|
 | `scalable_nn.py` HNSW backend | OPERATIONAL | hnswlib confirmed at 15k+ scale |
-| `run_full_corpus_evaluation.py` | OPERATIONAL | Config hash `4047da047fb339c1` matches frozen v3; center_projected_64dim PASS both adversarial gates at 1200 scale (LangDom=0.7664, Jurist=0.5121) |
-| `v25_174k_formal_suite` runner | OPERATIONAL | Tested `cited_outcome_hybrid_0.5`: 6 PASS / 5 FAIL / 1 SKIP in 88s |
-| `validate_citation_heritage_174k.py` | OPERATIONAL | 137,314 pairs ready, 95.9% citation resolution (2,019/2,105) |
+| `run_174k_formal_suite.py` (HNSW artifact fixed) | OPERATIONAL | Exact k-NN on valid subset (n≈2000) for adversarial; HNSW for full-corpus |
+| `run_full_corpus_evaluation.py` | OPERATIONAL | Config hash matches frozen v3; center_projected_64dim PASS at 1200 scale |
+| `validate_citation_heritage_174k.py` | OPERATIONAL | 137,314 pairs ready, 95.9% citation resolution |
 | `run_v17b_label_normalization_all_reps.py` | OPERATIONAL | Tested at 174k: hierarchy NMI worsening -9.6% (within ≤10% rule) |
 | `monitor_and_evaluate_174k.py` | ENHANCED | `run_formal_suite_v25()` auto-evaluates new representations via full v25 protocol |
+| Test suite | PASSING | frozen_harness_reproducibility, v17_label_normalization, v17b_all_reps, v16_full_benchmark_suite, boilerplate_resistance_real, cross_lingual_alignment_v10, audit_correction_verification |
 
 ## Blockers
 
 | Blocker | Type | Resolution Path |
 |---------|------|-----------------|
-| Legal-distance 174k dense embeddings | External dependency | Legal-distance RUN (gh run 36071928708, year-split, CPU-feasible staged computation) |
+| Legal-distance 174k dense embeddings (full concatenation) | External dependency | Legal-distance RUN (year-split, CPU-feasible staged computation; checkpoints 2000-2015 complete; years 2016-2025 pending) |
 | Jurist human study | External dependency | Requires 5-10 Swiss jurists recruitment by repository owner |
 
-## Awaited Representations (from factory direction v27)
+## Awaited Representations (from factory direction v30)
 
-**Dense embeddings (6)**: `center_projected_768dim`, `center_projected_64dim`, `linear_metric_epoch4`, `mahalanobis_metric_epoch4`, `hybrid_stabilized_epoch1`, `hybrid_v2_epoch3`
+**Dense embeddings (6)**: `center_projected_768dim`, `center_projected_64dim`, `center_projected_128dim`, `linear_metric_epoch4`, `mahalanobis_metric_epoch4`, `hybrid_stabilized_epoch1`, `hybrid_v2_epoch3` *(7 total)*
 
 **Citation roles (3)**: `citation_role_citing_alpha0.3`, `citation_role_following_alpha0.3`, `citation_role_criticizing_alpha0.3`
 
@@ -53,14 +81,15 @@ All three machine-executable sub-questions from factory direction v25 **COMPLETE
 
 ## Recommendation
 
-**BLOCKED_ON_DEPENDENCIES** — No additional same-question cycle justified for TF-IDF family. Evaluation infrastructure is **production-ready** for auto-evaluation when legal-distance 174k dense embeddings land in accepted state. Monitor continues running (33 checks completed).
+**BLOCKED_ON_DEPENDENCIES** — No additional same-question cycle justified for TF-IDF family. Evaluation infrastructure is **production-ready** for auto-evaluation when legal-distance 174k dense embeddings land in accepted state. Monitor continues running (139 checks completed). Factory Director to decide successor question.
 
 ## Evidence References
 
-- State: `evaluation/state/evaluation.json` (updated with v30 cycle verification)
-- Monitor state: `evaluation/state/monitor_174k_state.json` (check_count=33)
+- State: `evaluation/state/evaluation.json` (updated with v30 cycle verification, direction_version=30)
+- Monitor state: `evaluation/state/monitor_174k_state.json` (check_count=139)
 - v25 formal suite results: `results/evaluation/v25_174k_formal_suite/results/_suite_summary.json`
 - Citation heritage: `results/evaluation/v25_174k_citation_heritage/`
 - v17b 174k results: `results/evaluation/v25_174k_v17b/`
 - Legal area analysis: `evaluation/results/174k_label_analysis/174k_legal_area_analysis.json`
 - Monitor log: `evaluation/logs/monitor_174k.log`
+- Partial dense 16-year evaluation: `evaluation/results/174k/center_projected_partial_2000_2015/`
