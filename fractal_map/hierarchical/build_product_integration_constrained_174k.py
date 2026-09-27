@@ -230,7 +230,7 @@ def build_decision_clusters_from_labels(hierarchical_labels, coarse_labels, meta
     return decision_clusters
 
 
-def compute_cluster_metadata(hierarchical_labels, coarse_labels, metadata_by_id, metadata_ids):
+def compute_cluster_metadata(embeddings, hierarchical_labels, coarse_labels, metadata_by_id, metadata_ids):
     """Compute cluster metadata for both coarse and hierarchical levels."""
     cluster_metadata = {}
     
@@ -535,7 +535,7 @@ def main():
         
         # Build cluster metadata
         logger.info("  Computing cluster metadata...")
-        cluster_metadata, labels_05 = compute_cluster_metadata(hierarchical_labels, coarse_labels, metadata_by_id, metadata_ids)
+        cluster_metadata, labels_05 = compute_cluster_metadata(embeddings, hierarchical_labels, coarse_labels, metadata_by_id, metadata_ids)
         
         # Build nesting
         logger.info("  Building nesting...")
