@@ -1,0 +1,141 @@
+{
+  "lane": "fractal-map",
+  "direction_version": 28,
+  "github_run": 36303924312,
+  "timestamp": "2026-09-27T07:45:00.000000+00:00",
+  "cycle_status": "COMPLETED",
+  "evidence_tier": "ACCEPTED",
+  "continue_recommended": false,
+  "accepted_run_id": "36297874163",
+  "resume_from_run_id": 36300347888,
+  "orchestration_failure": {
+    "diagnosed": true,
+    "reconfirmed": true,
+    "root_cause": "Supervisor reads /tmp/lex_control/state/factory_direction.json (fractal-map.status=RUN) instead of authoritative state/fractal-map.json (cycle_status=COMPLETED, continue_recommended=false)",
+    "wasteful_redispatches": "60+ documented across runs 36152847479-36286783219; runs 36297874163 and 36303924312 are additional wasteful re-dispatches",
+    "factory_director_action_required": "Update supervisor dispatch logic to read state/<lane>.json for dispatch gating, not /tmp/lex_control/state/factory_direction.json"
+  },
+  "factory_direction_discrepancy": {
+    "factory_direction_version": 28,
+    "factory_direction_fractal_map_status": "RUN",
+    "factory_direction_fractal_map_question": "Describes lane as BLOCKED on legal-distance_174k_dense_embeddings",
+    "actual_lane_state": "COMPLETED (TF-IDF constrained hierarchical ACCEPTED; dense embeddings path blocked but TF-IDF path production-ready)",
+    "factory_direction_v28_legal_distance_dense": "ACCEPTED: 3/26 years (2000-2002); PENDING AUDIT: 16/26 years (2000-2015) in progress.json",
+    "recorded_in_state": true,
+    "state_field": "factory_direction_v30_discrepancy (historical name, v30 was reverted to v28)"
+  },
+  "lane_deliverable_verification": {
+    "tfidf_constrained_hierarchical_174k": {
+      "status": "ACCEPTED",
+      "modes_tested": 4,
+      "modes_passed": 4,
+      "nesting": 1.0,
+      "fragmentation": "<0.1% singletons",
+      "improvement_rate_range": "0.57-0.90",
+      "evidence_tier": "ACCEPTED",
+      "production_ready": true,
+      "verified": true
+    },
+    "tfidf_flat_zoom_v26": {
+      "status": "FAIL (frozen negative result)",
+      "modes_tested": 4,
+      "modes_passed": 0,
+      "over_fragmentation": true,
+      "singleton_fraction_fine": ">0.99",
+      "evidence_tier": "ACCEPTED",
+      "frozen": true,
+      "bit_equal_v25_crosscheck": true,
+      "verified": true
+    },
+    "scale_dependency": {
+      "confirmed": true,
+      "12k_hierarchical": "PASS (improvement_rate=0.80)",
+      "77k_flat": "FAIL (improvement_rate~0.006)",
+      "174k_constrained_hierarchical": "PASS (improvement_rate 0.57-0.90)",
+      "positive_dense_trend": "12k (45.45%) -> 99k (58.82% at coarse_res=0.15)",
+      "verified": true
+    },
+    "nesting_metric_defect_v1": {
+      "enforced": true,
+      "compressed_family_modes_prohibited": 7,
+      "by_construction_modes_citeable": 2,
+      "honest_nesting_range": "0.3911-0.9632",
+      "verified": true
+    },
+    "evidence_backed_zoom_path": {
+      "dense_embeddings_constrained_hierarchical": "Validated at 62k partial; 99k coarse_sweep PASS at coarse_res=0.15-0.2",
+      "citation_role_modes_1k": "ZQ=0.48-0.54 (citing/following PASS v26, criticizing FAIL - sparse)",
+      "debiased_citation_blended_1k": "PASS v26 at coarse_res=0.15-0.3 (66-75% improvement)",
+      "outcome_hybrids_1k": "Constrained PASS",
+      "blocked_on": "legal-distance_174k_dense_embeddings (only 3/26 years ACCEPTED)",
+      "verified": true
+    },
+    "dense_99k_coarse_sweep": {
+      "status": "ACCEPTED (EXPLORATORY tier for dense path)",
+      "years": "2000-2015 (16 years, 99,325 decisions)",
+      "optimal_coarse_res": "0.15-0.2",
+      "improvement_rate_at_optimal": "55.6-58.8%",
+      "branch_delta_at_optimal": "+0.16 to +0.18",
+      "singleton_fraction": "<0.2%",
+      "v26_pass_achievable": true,
+      "note": "Dense embeddings at 99k CAN pass v26 with coarse_res optimization; 16/26 years PENDING AUDIT per factory_direction v28",
+      "verified": true
+    },
+    "citation_role_1k": {
+      "citing_alpha0.3": "PASS v26 (improvement_rate=1.0, zero fragmentation)",
+      "following_alpha0.3": "PASS v26 (improvement_rate=1.0, zero fragmentation)",
+      "criticizing_alpha0.3": "FAIL (embedding too sparse, 0.07% density)",
+      "verified": true
+    },
+    "debiased_citation_blended_1k": {
+      "coarse_0.15": "PASS v26 (improvement_rate=0.6667)",
+      "coarse_0.20": "PASS v26 (improvement_rate=0.75)",
+      "coarse_0.30": "PASS v26 (improvement_rate=0.75)",
+      "all_eval_benchmarks_pass": true,
+      "verified": true
+    }
+  },
+  "test_suite": {
+    "total_tests": 217,
+    "passed": 215,
+    "skipped": 2,
+    "failed": 0,
+    "dense_embeddings_skipped_reason": "Artifacts not yet available (only 3/26 years ACCEPTED per factory_direction v28)",
+    "all_guard_tests_pass": true,
+    "negative_results_freeze_protected": true
+  },
+  "artifacts_verified": [
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_full_20260926.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_hybrid05_20260926.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_hybrid07_20260926.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_regeste_20260926.json",
+    "results/fractal_map/zoom_quality_174k_eval/v26_verdict.json",
+    "results/fractal_map/zoom_quality_174k_eval/v25_verdict.json",
+    "fractal_map/evaluation/zoom_quality_174k_all_modes_v26.py",
+    "fractal_map/hierarchical/audit_174k_builds_36035695081.py",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_citation_roles_1k_20260927_042054.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_debiased_citation_blended_1k_20260927_042141.json",
+    "results/fractal_map/constrained_hierarchical_tests/dense_99k_coarse_sweep_summary_20260927_053745.json"
+  ],
+  "reports_verified": [
+    "reports/fractal_map/AUDIT_READY_SNAPSHOT_36286783219.md",
+    "reports/fractal_map/AUDIT_READY_SNAPSHOT_36297874163.md",
+    "reports/fractal_map/DENSE_99K_CONSTRAINED_HIERARCHICAL_VALIDATION_20260927.md",
+    "reports/fractal_map/CITATION_ROLE_AND_DEBIASED_HIERARCHICAL_1K_VALIDATION_20260927.md"
+  ],
+  "state_files": {
+    "authoritative": "state/fractal-map.json (with hyphen, per ARCHITECTURE.md)",
+    "stale_duplicate": "state/fractal_map.json (with underscore) - NOT present in this workspace, correctly removed",
+    "test_references": "tests/fractal_map/test_verify.py references state/fractal-map.json (authoritative) - ALL PASS"
+  },
+  "audit_ready": true,
+  "provenance_chain": [
+    {"run_id": 36027099305, "description": "Independent audit CYCLE", "key_output": "NESTING_METRIC_DEFECT_v1 enforced"},
+    {"run_id": 36217712995, "description": "Operational resume v27", "key_output": "TF-IDF 174k eval COMPLETE, dense infra READY"},
+    {"run_id": 36285571966, "description": "Persisted producer snapshot", "key_output": "TF-IDF constrained hierarchical ACCEPTED"},
+    {"run_id": 36286783219, "description": "Operational resume", "key_output": "Tests updated, orchestration failure diagnosed, audit-ready"},
+    {"run_id": 36295143270, "description": "Persisted producer snapshot", "key_output": "Dense 99k coarse sweep PASS, citation-role 1k PASS"},
+    {"run_id": 36297874163, "description": "Operational resume", "key_output": "Tests re-verified, orchestration failure re-confirmed, audit-ready"},
+    {"run_id": 36303924312, "description": "This run - operational resume verification", "key_output": "Lane deliverable verified complete, orchestration failure re-confirmed, snapshot audit-ready"}
+  ]
+}
