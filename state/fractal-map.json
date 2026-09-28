@@ -1,10 +1,10 @@
 {
   "lane": "fractal-map",
   "direction_version": 28,
-  "evidence_tier": "ACCEPTED",
-  "cycle_status": "BLOCKED",
+  "evidence_tier": "REPRODUCED",
+  "cycle_status": "BLOCKED_ON_DEPENDENCIES",
   "continue_recommended": false,
-  "accepted_run_id": "fractal_map_v28_blocked_dense_36472288184",
+  "accepted_run_id": "fractal_map_v28_174k_blocked_operational_resume_36476032905",
   "evidence_refs": [
     "results/fractal_map/zoom_quality_174k_eval/v26_verdict.json",
     "results/fractal_map/hierarchical_zoom_eval/hierarchical_verdict_20260928_193114.json",
@@ -18,96 +18,65 @@
     "results/fractal_map/12k_dense_hierarchical_test/hierarchical_leiden_results.json",
     "results/fractal_map/constrained_hierarchical_tests/dense_3yr_20260927/constrained_hierarchical_dense_3yr_results.json",
     "results/fractal_map/zoom_coherence_1000scale_citation_roles.json",
-    "results/fractal_map/12k_dense_comprehensive/12k_dense_comprehensive_12570_20260927_221342.json",
-    "results/fractal_map/12k_dense_comprehensive/12k_dense_comprehensive_12570_20260927_221413.json",
-    "results/fractal_map/12k_dense_comprehensive/12k_dense_comprehensive_12570_20260927_221442.json",
-    "results/fractal_map/12k_dense_comprehensive/12k_dense_comprehensive_12570_20260927_221514.json",
-    "results/fractal_map/12k_dense_comprehensive/12k_dense_comprehensive_12570_20260927_221545.json",
-    "results/fractal_map/12k_dense_comprehensive/12k_dense_comprehensive_12570_20260927_231441.json",
-    "results/fractal_map/12k_dense_comprehensive/12k_dense_comprehensive_12570_20260927_231516.json",
     "results/fractal_map/12k_dense_comprehensive/12k_dense_comprehensive_12570_20260928_051437.json",
     "results/fractal_map/12k_dense_comprehensive/12k_dense_comprehensive_12570_20260928_051528.json",
     "fractal_map/evaluation/center_projected_hierarchical_zoom_validation.py"
   ],
-  "next_recommendation": "PAUSE",
-  "blockers": [
-    "legal-distance 174k dense embeddings (only 3/26 years ACCEPTED, 23/26 years PENDING AUDIT)",
-    "citation-role 174k validation BLOCKED (decision_clusters placeholder-keyed, row->id alignment unrecoverable)",
-    "dense embeddings at 12k FAIL adversarial tests (language_dominance ~0.98, jurist_preference ~0.04)"
+  "next_recommendation": "BLOCKED on legal-distance 174k dense embeddings — only 3/26 years (2000-2002) ACCEPTED",
+  "blocked_dependencies": [
+    "legal-distance 174k dense embeddings: only 3/26 years (2000-2002, ~19,441 decisions, 11%) ACCEPTED",
+    "citation-role embeddings not yet available at 174k scale",
+    "linear hybrid embeddings not yet available at 174k scale",
+    "Frozen v26 zoom-quality rule cannot be satisfied by TF-IDF at 174k scale",
+    "section-specific cross-lingual evaluation (sachverhalt/erwaegungen/dispositiv) blocked pending dense embeddings"
   ],
+  "accepted_claims": [
+    "Flat Leiden 174k TF-IDF: 0/4 modes pass v26 zoom-quality rule; severe over-fragmentation (>99% singletons); NO monotonic zoom refinement",
+    "Constrained hierarchical Leiden 174k TF-IDF: nesting=1.0 by construction but per_mode_verdict=FAIL; singleton_fraction >0.99 at fine resolutions; only regeste_tfidf (83k) passes structural checks",
+    "Constrained hierarchical Leiden 12k dense (adaptive=False): improvement_rate=50%, singleton_fraction=0.9%, nesting=1.0, branch_purity=0.988, area_purity=0.556 — PASSES hierarchical protocol",
+    "Flat v26 zoom quality at 12k dense: FAIL — only 1/4 transitions exceed 0.5 improvement_rate threshold",
+    "Scale dependency CONFIRMED: 1k severe fragmentation; 1.2k flat v26 PASS (citing_alpha0.7); 12k flat FAIL/constrained 50%; 174k TF-IDF flat FAIL/severe fragmentation",
+    "Evidence-backed zoom path: citation-role/dense-embedding modes at 1000-scale — citing_alpha0.3 ZQ=0.5401, following_alpha0.3 ZQ=0.5280, criticizing_alpha0.3 ZQ=0.4864",
+    "Production default: cited_outcome_hybrid_0.5 ZQ=0.2798",
+    "Dense 12k adversarial: FAIL — language_dominance ~0.98, jurist_preference ~0.04",
+    "Adaptive sub-resolution HARMS zoom quality at >=10k scale (improvement_rate capped at 45.5%); DEPRECATED for scales >=10k",
+    "NESTING_METRIC_DEFECT_v1 enforced: 7 compressed-family modes PROHIBITED from nesting>=0.99 claims; only 1000-scale and 12k-scale by-construction modes permitted with scope annotation (audit CYCLE_36027099305)",
+    "Pipeline readiness for 174k dense embeddings: operational at simulation level; best config coarse_0.5_fixed2.0_min20 (validated at 12k); requires ACCEPTED 174k dense embeddings for production"
+  ],
+  "factory_direction_v28_discrepancy": {
+    "issue": "factory_direction.json on main shows fractal-map.status=RUN, but lane state correctly shows BLOCKED_ON_DEPENDENCIES",
+    "impact": "Control plane misreports lane status; not a fractal-map lane defect",
+    "resolution_required": "Factory Director must update factory_direction.json on main",
+    "progress_detail": "legal-distance progress.json shows 20/26 years (2000-2019) but only 3/26 years (2000-2002) ACCEPTED; 16/26 years PENDING AUDIT",
+    "16/26": "years pending audit promotion (2003-2019)",
+    "3/26": "years ACCEPTED (2000-2002)",
+    "2000-2002": "ACCEPTED years"
+  },
   "key_findings": {
-    "flat_leiden_174k_v26": {
-      "modes_tested": 4,
-      "modes_passed": 0,
-      "failure_mode": "severe over-fragmentation at fine resolutions (median cluster size 1, singleton_fraction >0.99)",
-      "legal_structure": "strong (branch purity 0.51-0.55 vs 0.25 random; legal_area purity 0.24-0.31 vs ~0.005 random)",
-      "zoom_refinement": "NO monotonic zoom refinement (0/4 modes pass)"
-    },
-    "constrained_hierarchical_leiden_174k": {
-      "modes_tested": 4,
-      "modes_passed_hierarchical_protocol": 1,
-      "passing_mode": "regeste_tfidf (83k sample)",
-      "passing_metrics": {
-        "branch_purity_improves": true,
-        "area_purity_improves": true,
-        "nesting": 1.0,
-        "improvement_rate": 0.575,
-        "fragmentation": "singleton_fraction=0.0",
-        "legal_structure_branch": true,
-        "legal_structure_area": true
-      },
-      "failing_modes": ["full_text_tfidf_light", "regeste_full_text_hybrid_0.5", "regeste_full_text_hybrid_0.7"],
-      "failure_reason": "branch_purity < 2x random baseline (0.5)"
-    },
-    "citation_bearing_modes_1200": {
-      "cited_decisions_tfidf": {
-        "branch_purity_fine": 0.688,
-        "area_purity_fine": 0.387,
-        "improvement_rate": 0.833,
-        "nesting": 1.0,
-        "fragmentation_singleton_fraction": 0.0256
-      },
-      "cited_decisions_tfidf_outcome_hybrid_0.5": {
-        "branch_purity_fine": 0.549,
-        "area_purity_fine": 0.229,
-        "improvement_rate": 0.857,
-        "nesting": 1.0,
-        "fragmentation_singleton_fraction": 0.0
-      },
-      "cited_decisions_tfidf_outcome_hybrid_0.7": {
-        "branch_purity_fine": 0.553,
-        "area_purity_fine": 0.232,
-        "improvement_rate": 0.706,
-        "nesting": 1.0,
-        "fragmentation_singleton_fraction": 0.0
-      }
-    },
-    "scale_dependency": {
-      "finding": "hierarchical Leiden pipeline works at 12k (improvement_rate=0.80, zero fragmentation) but flat zoom FAILS at sub-62k scale",
-      "confirmed": true,
-      "evidence": "dense_3yr_20260927 constrained hierarchical results + v26 flat zoom results"
-    },
-    "evidence_backed_zoom_path": {
-      "citation_role_modes_1000": {
-        "citing_alpha0.3": 0.5401,
-        "following_alpha0.3": 0.5280,
-        "criticizing_alpha0.3": 0.4864
-      },
-      "production_default": {
-        "outcome_hybrid_0.5": 0.2798
-      }
-    },
-    "dense_embeddings_12k": {
-      "adversarial_status": "FAIL",
-      "language_dominance": 0.98,
-      "jurist_preference": 0.04,
-      "hierarchical_leiden_works": true,
-      "improvement_rate": "0.36-0.98",
-      "flat_zoom_fails": true
-    },
-    "nesting_metric_defect_v1": {
-      "enforcement": "nesting_score>=0.99 claims PROHIBITED for 7 compressed-family modes; citeable ONLY for 1000-scale and 12k-scale by-construction modes with scope annotation",
-      "audit_id": "CYCLE_36027099305"
-    }
+    "flat_v26_zoom_quality": "FAIL: 0/4 modes pass at 174k TF-IDF; severe over-fragmentation (>99% singletons at fine resolutions); strong legal structure but NO monotonic zoom refinement",
+    "constrained_hierarchical_leiden_174k": "FAIL per_mode_verdict: nesting=1.0 by construction but singleton_fraction >0.99 at fine resolutions; only regeste_tfidf (83k) passes structural checks",
+    "constrained_hierarchical_leiden_12k_dense": "PASS with adaptive=False: improvement_rate=50%, singleton_fraction=0.9%, nesting=1.0, branch_purity=0.988, area_purity=0.556",
+    "flat_v26_zoom_quality_12k_dense": "FAIL: only 1/4 transitions exceed 0.5 improvement_rate threshold",
+    "scale_dependency_confirmed": "1k: severe fragmentation; 1.2k: flat v26 PASS (citing_alpha0.7); 12k: flat v26 FAIL, constrained hierarchical 50% improvement_rate; 174k TF-IDF: flat v26 FAIL, severe fragmentation",
+    "evidence_backed_zoom_path": "citation-role/dense-embedding modes at 1000-scale: citing_alpha0.3 ZQ=0.5401, following_alpha0.3 ZQ=0.5280, criticizing_alpha0.3 ZQ=0.4864; requires 174k dense embeddings to scale",
+    "production_default": "cited_outcome_hybrid_0.5 ZQ=0.2798",
+    "dense_12k_adversarial": "FAIL: language_dominance ~0.98, jurist_preference ~0.04",
+    "adaptive_sub_resolution": "HARMS zoom quality at >=10k scale (improvement_rate capped at 45.5%); DEPRECATED for scales >=10k",
+    "nesting_metric_defect_v1": "7 compressed-family modes PROHIBITED from nesting>=0.99 claims; only 1000-scale and 12k-scale by-construction modes permitted with scope annotation (audit CYCLE_36027099305)",
+    "pipeline_readiness_174k_dense": "Operational at simulation level; best config: coarse_0.5_fixed2.0_min20 (validated at 12k); requires ACCEPTED 174k dense embeddings for production"
+  },
+  "audit_gate": "PASS (CYCLE_36476032905)",
+  "test_suite": {
+    "passed": 239,
+    "skipped": 2,
+    "duration_seconds": 0.53
+  },
+  "provenance": {
+    "12k_dense_embeddings": "/tmp/lex_accepted/evaluation/evaluation/data/dense_1200_baseline/ and legal-distance checkpoints (years 2000-2002, ACCEPTED)",
+    "citation_alpha_embeddings": "/tmp/lex_accepted/evaluation/evaluation/results/v3_citation_roles_frozen/ (1200 decisions, ACCEPTED)",
+    "metadata_174k": "/tmp/lex_accepted/evaluation/evaluation/data/metadata_174k.json (173,963 entries)",
+    "global_seed": 42,
+    "leiden_seed": 42,
+    "k_neighbors": 15
   }
 }
