@@ -1261,7 +1261,7 @@ def test_cited_outcome_hybrid_0_5():
     Hybrid: 50% cited_decisions_tfidf + 50% outcome signal. JP=0.7990, LangDom=0.4911.
     BEST PRODUCTION hybrid per factory direction v9. LangDom < 0.6 target ACHIEVED.
     Both adversarial gates PASS.
-    Factory direction v27: PRODUCTION DEFAULT at 174k scale. Operational at 21k subset scale (21,228 decisions).
+    Factory direction v27/v28: PRODUCTION DEFAULT at full 174k scale (173,963 decisions).
     """
     print("=== Test: Cited Outcome Hybrid α=0.5 (BEST PRODUCTION - 174k) ===")
 
@@ -1278,8 +1278,8 @@ def test_cited_outcome_hybrid_0_5():
     # 174k version has 5 zoom levels (0, 1, 3, 5, 6)
     assert len(zoom_levels) == 5, f"Expected 5 zoom levels, got {len(zoom_levels)}"
 
-    # 174k TF-IDF production default at 21k subset scale
-    expected_n_decisions = 21228  # 21k subset scale (174k TF-IDF production default)
+    # 174k TF-IDF production default at FULL 174k scale (173,963 decisions)
+    expected_n_decisions = 173963  # Full 174k scale (factory direction v28)
     for zl in [z["level"] for z in zoom_levels]:
         map_data = api.get_map_data("cited_outcome_hybrid_0.5_174k", zl)
         assert map_data["n_decisions"] == expected_n_decisions, f"Expected {expected_n_decisions} decisions at zoom {zl}, got {map_data['n_decisions']}"
@@ -1306,7 +1306,7 @@ def test_cited_outcome_hybrid_0_7():
     Hybrid: 70% cited_decisions_tfidf + 30% outcome signal. HierAdv=+0.3703.
     BEST FRACTAL hybrid per factory direction v9.
     Both adversarial gates PASS.
-    Factory direction v27: fractal quality at 174k scale. Operational at 21k subset scale (21,228 decisions).
+    Factory direction v27/v28: fractal quality at full 174k scale (173,963 decisions).
     """
     print("=== Test: Cited Outcome Hybrid α=0.7 (BEST FRACTAL - 174k) ===")
 
@@ -1323,8 +1323,8 @@ def test_cited_outcome_hybrid_0_7():
     # 174k version has 5 zoom levels (0, 1, 3, 5, 6)
     assert len(zoom_levels) == 5, f"Expected 5 zoom levels, got {len(zoom_levels)}"
 
-    # 174k TF-IDF production default at 21k subset scale
-    expected_n_decisions = 21228  # 21k subset scale (174k TF-IDF production default)
+    # 174k TF-IDF production default at FULL 174k scale (173,963 decisions)
+    expected_n_decisions = 173963  # Full 174k scale (factory direction v28)
     for zl in [z["level"] for z in zoom_levels]:
         map_data = api.get_map_data("cited_outcome_hybrid_0.7_174k", zl)
         assert map_data["n_decisions"] == expected_n_decisions, f"Expected {expected_n_decisions} decisions at zoom {zl}, got {map_data['n_decisions']}"

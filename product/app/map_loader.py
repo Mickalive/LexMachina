@@ -3596,20 +3596,17 @@ class MapLoader:
     def _load_174k_tfidf_representation(self, name: str, display_name: str, description: str, 
                                         evidence_tier: str, benchmark_results: Dict,
                                         embedding_file: str) -> None:
-        """Generic loader for 174k TF-IDF representations from legal_tfidf_embeddings."""
+        """Generic loader for 174k TF-IDF representations from legal_tfidf_embeddings.
+        
+        Loads decision_ids and n_decisions from the representation's own metadata.json
+        (which has the correct 173,963 entries matching the clustering artifacts),
+        not from the embeddings_metadata.json (which has 175,440 entries).
+        """
         legal_tfidf_dir = self.results_dir / "hierarchical_map_174k" / "legal_tfidf_embeddings"
         embedding_path = legal_tfidf_dir / embedding_file
         metadata_path = legal_tfidf_dir / "embeddings_metadata.json"
         
         if not embedding_path.exists() or not metadata_path.exists():
-            return
-        
-        # Load embeddings metadata
-        with open(metadata_path, "r") as f:
-            embed_meta = json.load(f)
-        
-        n_decisions = embed_meta.get("n_decisions", 0)
-        if n_decisions == 0:
             return
         
         # Load 2D projection
@@ -3624,16 +3621,20 @@ class MapLoader:
         # Load projection
         projection = np.load(projection_path)
         
-        # Load decision_ids from the 174k metadata
-        full_metadata_path = self.results_dir / "hierarchical_map_174k" / "metadata_174k_full.json"
-        if not full_metadata_path.exists():
+        # Load decision_ids and n_decisions from the representation's own metadata.json
+        # This has the correct 173,963 entries matching the clustering artifacts
+        rep_metadata_path = rep_dir / "metadata.json"
+        if not rep_metadata_path.exists():
             return
         
-        with open(full_metadata_path, "r") as f:
-            full_metadata = json.load(f)
+        with open(rep_metadata_path, "r") as f:
+            rep_metadata = json.load(f)
         
-        # Only use as many decision_ids as we have embeddings for
-        decision_ids = [m["decision_id"] for m in full_metadata[:n_decisions]]
+        decision_ids = rep_metadata.get("decision_ids", [])
+        n_decisions = len(decision_ids)
+        
+        if n_decisions == 0:
+            return
         
         # Load fractal-map validated clustering for this representation
         if not (rep_dir / "cluster_metadata.json").exists():
@@ -3644,7 +3645,7 @@ class MapLoader:
         zoom_levels_dict = self._load_fractal_map_clustering_for_representation(
             mode_dir=rep_dir,
             decision_ids=decision_ids,
-            n_decisions=len(decision_ids),
+            n_decisions=n_decisions,
             positions={},  # Will be built inside
             mode_name=name,
             projection_2d=projection
@@ -3655,7 +3656,7 @@ class MapLoader:
         
         self.maps[name] = MapState(
             representation=name,
-            n_decisions=len(decision_ids),
+            n_decisions=n_decisions,
             zoom_levels=zoom_levels_dict,
             metadata={
                 "display_name": display_name,
