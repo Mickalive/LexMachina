@@ -1,0 +1,98 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF family (8 representations) formal suite, citation heritage, and v17b label normalization ALL COMPLETE at 174k scale per factory direction v28 with REPRODUCED evidence tier. Dense embeddings, citation roles, and linear hybrids BLOCKED on legal-distance external dependency (only 3/26 years ACCEPTED). Lane in MONITORING mode — auto-evaluates awaited representations as they land.",
+  "evidence_summary": {
+    "formal_suite_174k": {
+      "representations_evaluated": 8,
+      "representations_passing_both_adversarial_gates": 5,
+      "representations_failing_adversarial": 3,
+      "config_hash_adversarial": "b51701f5a9c11692",
+      "config_hash_v25_suite": "4323f833fa72366a",
+      "method": "Exact k-NN on fixed stratified subsample (n=2000, seed=42) for adversarial; HNSW for full-corpus benchmarks",
+      "reproduction_verified": true,
+      "reproduction_dates": ["2026-09-27T18:49", "2026-09-27T20:26", "2026-09-28T08:04"]
+    },
+    "citation_heritage_174k": {
+      "pair_pool": "frozen_2040_pairs",
+      "positive_pairs": 1020,
+      "negative_pairs": 1020,
+      "citation_resolution": "95.9% (2019/2105)",
+      "seed": 42,
+      "all_8_reps_fail_recall_at_10_threshold": true,
+      "best_recall_at_10": 0.053,
+      "threshold": 0.2,
+      "re_run_verified": "2026-09-28"
+    },
+    "v17b_label_normalization_174k": {
+      "labels_normalized": 85819,
+      "total_labels": 173963,
+      "normalization_rate": "49.3%",
+      "raw_unique_areas": 214,
+      "normalized_unique_areas": 164,
+      "differential_effect_confirmed": true,
+      "citation_based_improvement": "hierarchy +4-6%, zoom_fine +3-8%, legal_area +4-6%",
+      "text_based_degradation": "zoom_fine -30% to -34%",
+      "re_run_verified": "2026-09-27"
+    },
+    "dense_embeddings_partial": {
+      "accepted_years": ["2000", "2001", "2002"],
+      "total_years": 26,
+      "accepted_decisions": 12570,
+      "total_decisions": 173963,
+      "adversarial_status": "FAIL (LangDom ~0.98-1.0)",
+      "cross_language_transfer": "PASS (zero-shot NMI ~0.46-0.48)",
+      "cluster_coherence": "PASS (branch_purity ~0.89)",
+      "scale_dependency_confirmed": true
+    },
+    "v25_formal_suite_174k": {
+      "representations_evaluated": 8,
+      "config_hash": "4323f833fa72366a",
+      "fundamental_tradeoff_reproduced": true,
+      "citation_based_reps": "PASS adversarial/citation_heritage/multilingual, FAIL branch/tf_metadata/hierarchy",
+      "text_based_reps": "PASS branch/tf_metadata, FAIL adversarial (LangDom~0.999)"
+    },
+    "negative_results_preserved": [
+      "Citation heritage: ALL 8 TF-IDF reps FAIL recall@10 > 0.2 (best 0.053)",
+      "Boilerplate resistance: ALL TF-IDF reps FAIL (resistance_score -0.57 to -0.80)",
+      "Hierarchy coherence: ALL TF-IDF reps FAIL Jurivoc proxy (level_1_nmi < 0.2)",
+      "v17b uniform improvement: FALSE (text-based reps degrade zoom_fine 30-34%)",
+      "Dense embeddings at 174k: NOT YET AVAILABLE (only 3/26 years ACCEPTED)"
+    ],
+    "infrastructure_verification": {
+      "adversarial_benchmarks": "VERIFIED - exact k-NN on stratified subsample n=2000, production default reproduces lang_dom=0.5164 PASS, jurist_pref=0.8055 PASS",
+      "citation_heritage_pairs": "VERIFIED - 2,040 frozen pairs generated from resolved citation graph; evaluation RE-RUN on new pair pool",
+      "v17b_normalization": "VERIFIED - differential effect reproduced across all 8 TF-IDF representations",
+      "hnsw_artifact_fix": "CONFIRMED - exact k-NN on valid subset avoids HNSW masking representation differences",
+      "v25_formal_suite": "VERIFIED - frozen protocol v25 executed on all 8 TF-IDF reps at 174k; config hash 4323f833fa72366a; fundamental tradeoff reproduced",
+      "monitor_script": "ACTIVE - check_count=191, last_check=2026-09-28T08:04:10Z, no new awaited representations detected",
+      "scalable_nn": "OPERATIONAL - sklearn exact k-NN for adversarial (n=2000 subsample), HNSW for full-corpus citation heritage",
+      "test_suite": "PASSING - frozen_harness_reproducibility, v17_label_normalization, v17b_all_reps, v16_full_benchmark_suite, boilerplate_resistance_real, cross_lingual_alignment_v10, audit_correction_verification"
+    },
+    "blockers_external": [
+      "Legal-distance 174k dense embeddings: 20/26 years in checkpoints (2000-2019), only 3/26 ACCEPTED; final concatenation + PCA + transformations PENDING",
+      "Legal-distance citation role embeddings: not yet computed at 174k",
+      "Legal-distance linear hybrid embeddings: not yet at 174k",
+      "Jurist human study: framework ready, requires 5-10 Swiss jurists"
+    ],
+    "monitor_status": {
+      "check_count": 191,
+      "last_check": "2026-09-28T08:04:10.779Z",
+      "awaited_representations_detected": 0,
+      "tfidf_family_complete": true,
+      "continue_recommended": true,
+      "reason": "Monitoring has concrete discriminating purpose: auto-evaluate awaited representations as they land in legal-distance accepted state"
+    },
+    "audit_trail": {
+      "formal_suite_initial": "2026-09-24",
+      "formal_suite_reverify_1": "2026-09-27T18:49",
+      "formal_suite_reverify_2": "2026-09-27T20:26",
+      "v17b_reverify": "2026-09-27",
+      "citation_heritage_rerun": "2026-09-28",
+      "infrastructure_reverification": "2026-09-28T06:50",
+      "monitor_check_190": "2026-09-28T06:50",
+      "monitor_check_191": "2026-09-28T08:04"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "linear_citation_concat (equal concatenation of metric-learning linear + citation TF-IDF) achieves stable JP improvement (+0.039 over best baseline, paired_delta_std=0.0212) confirmed across independent seeds (v13 seed=42, v14 seed=137). Finding promoted from EXPLORATORY to REPRODUCED tier. Two-mode tradeoff PERSISTS (no combination wins on both JP and CiteIndep). MLP combinations CONSISTENTLY UNSTABLE. linear_hybrid05_w3070 CONSISTENTLY FAILS stability. Caveats: 1200-decision sample, JP is proxy metric, CiteIndep tradeoff remains, 174k-scale validation pending.",
+  "evidence_summary": "v13 5-fold CV (seed=42): linear_citation_concat mean_delta=+0.0275, paired_delta_std=0.0164 → PASS. v14 independent re-run (seed=137, ML seeds +1000): mean_delta=+0.0392, paired_delta_std=0.0212 → PASS. All 5 folds positive in both versions. linear_hybrid05_w3070 paired_delta_std=0.0326 (v13) and 0.0618 (v14) → CONSISTENT FAIL. MLP combinations bottom-ranked with paired_delta_std>0.057 in both versions. Static combinations dominate: linear_citation_concat (concat) most stable (paired_delta_std=0.016/0.021). Frozen harness v3 (config_hash=1674829901d55e83) used identically. Per-fold refit eliminates v9/v10 leakage. Success rule frozen pre-v13: mean_delta>0.02 AND paired_delta_std<0.03. No evidence of benchmark gaming, circularity, or data corruption."
+}
