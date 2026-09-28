@@ -1,0 +1,104 @@
+{
+  "model": {
+    "model": {
+      "flat_zq": {
+        "a": 8.125528316331604,
+        "b": -0.39245914360665207
+      },
+      "hierarchical_improvement_rate": {
+        "a": 1.8467256499788235e-06,
+        "b": 1.3986652055209343
+      },
+      "singleton_fraction": {
+        "a": 0.4932748020474811,
+        "b": 0.0577328027055866
+      }
+    },
+    "predictions": {
+      "target_scale": 174000,
+      "flat_zq_tfidf": 0.07130995101072699,
+      "hier_impr_tfidf": 39.461743806693796,
+      "singleton_tfidf": 0.990012155117374,
+      "hier_impr_dense_assumption": 39.461743806693796,
+      "singleton_dense_assumption": 0.0
+    },
+    "data_points": {
+      "scales": [
+        1000,
+        12570,
+        173963
+      ],
+      "flat_zq": [
+        0.5401,
+        0.2,
+        0.0
+      ],
+      "hier_impr": [
+        0.029,
+        1.0,
+        0.0
+      ],
+      "hier_singleton": [
+        0.735,
+        0.0,
+        0.99
+      ]
+    }
+  },
+  "predictions": {
+    "citation_role_174k": {
+      "predicted_hierarchical_improvement_rate": 0.006169262126345607,
+      "predicted_flat_zoom_quality": 0.040944875333696576,
+      "confidence": "LOW",
+      "reason": "1k citation-role has severe fragmentation; constrained hierarchical not effective at 1k; no intermediate scale data"
+    },
+    "dense_embeddings_174k": {
+      "predicted_hierarchical_improvement_rate": 0.6742452637275804,
+      "predicted_flat_improvement_rate": 0.2423053581262867,
+      "predicted_singleton_fraction": 0.0,
+      "confidence": "MEDIUM",
+      "reason": "12k dense shows zero fragmentation and PASS; power law decay estimated from 1k\u219212k scale dependency; needs validation at 50k/100k"
+    },
+    "tfidf_174k": {
+      "predicted_hierarchical_improvement_rate": 0.0,
+      "predicted_flat_zoom_quality": 0.0,
+      "predicted_singleton_fraction": 0.99,
+      "confidence": "HIGH",
+      "reason": "ACCEPTED evidence: 0/4 modes pass v26 rule; severe over-fragmentation confirmed"
+    },
+    "cited_outcome_hybrid_174k": {
+      "predicted_flat_zoom_quality": 0.021211583259337717,
+      "confidence": "MEDIUM",
+      "reason": "Production default at 1k; no hierarchical test at 12k; TF-IDF base fails at 174k"
+    }
+  },
+  "recommendations": [
+    "CRITICAL PATH: legal-distance must deliver 174k dense embeddings (years 2003-2025)",
+    "  - Only 3/26 years (2000-2002) ACCEPTED; 20/26 years PENDING AUDIT",
+    "  - Dense embeddings at 12k show PASS with constrained hierarchical (improvement_rate=1.0)",
+    "  - Extrapolation predicts hier_impr ~0.6-0.8 at 174k for dense embeddings",
+    "",
+    "IMMEDIATE ACTIONS (while blocked):",
+    "  1. Finalize 174k pipeline with best 12k config: coarse_0.05_fixed1.0_min20",
+    "  2. Prepare incremental merge strategy: use prior-year coarse clusters as seeds",
+    "  3. Build citation-role pipeline for 12k scale (blocked on legal-distance)",
+    "  4. Validate scale extrapolation at 20k/50k/100k as dense embeddings land",
+    "",
+    "PRODUCT INTEGRATION:",
+    "  - Default map mode: center_projected_64dim_hierarchical (from 1k evidence)",
+    "  - Fallback: cited_outcome_hybrid_0.5 with hierarchical Leiden (TF-IDF, no GPU)",
+    "  - Experimental modes: citing/following/criticizing citation roles (when 174k available)",
+    "",
+    "EVALUATION PRIORITIES WHEN DENSE EMBEDDINGS LAND:",
+    "  1. Run constrained hierarchical Leiden on each year-split batch",
+    "  2. Test monotonic refinement at each merge step (v26 zoom-quality)",
+    "  3. Compare citation-role vs. dense embedding hierarchical performance",
+    "  4. Run full 12-benchmark formal suite at 174k (evaluation lane)"
+  ],
+  "provenance": {
+    "1k_citation_role": "results/fractal_map/zoom_coherence_1000scale_citation_roles.json (ACCEPTED)",
+    "12k_dense": "results/fractal_map/parameter_sweep_12k/ (ACCEPTED years 2000-2002)",
+    "12k_dense_comprehensive": "results/fractal_map/12k_dense_comprehensive/ (ACCEPTED)",
+    "174k_tfidf": "results/fractal_map/tfidf_174k_zoom_quality_failure.json (ACCEPTED)"
+  }
+}
