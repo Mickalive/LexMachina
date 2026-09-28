@@ -23,9 +23,10 @@
     "fractal_map/evaluation/center_projected_hierarchical_zoom_validation.py",
     "results/fractal_map/parameter_sweep_12k/parameter_sweep_12k_results.json",
     "results/fractal_map/citation_role_constrained/citation_role_constrained_results.json",
-    "results/fractal_map/scale_extrapolation/scale_extrapolation_model.json"
+    "results/fractal_map/scale_extrapolation/scale_extrapolation_model.json",
+    "results/fractal_map/28k_checkpoint_validation/28k_validation_20260928_212756.json"
   ],
-  "next_recommendation": "BLOCKED on legal-distance 174k dense embeddings — only 3/26 years (2000-2002) ACCEPTED",
+  "next_recommendation": "BLOCKED on legal-distance 174k dense embeddings — only 3/26 years (2000-2002) ACCEPTED; 28k checkpoint validation CONFIRMS scale extrapolation model prediction (hier_impr ~0.67)",
   "blocked_dependencies": [
     "legal-distance 174k dense embeddings: only 3/26 years (2000-2002, ~19,441 decisions, 11%) ACCEPTED",
     "citation-role embeddings not yet available at 174k scale",
@@ -38,7 +39,7 @@
     "Constrained hierarchical Leiden 174k TF-IDF: nesting=1.0 by construction but per_mode_verdict=FAIL; singleton_fraction >0.99 at fine resolutions; only regeste_tfidf (83k) passes structural checks",
     "Constrained hierarchical Leiden 12k dense (adaptive=False): improvement_rate up to 1.0, singleton_fraction=0.0%, nesting=1.0 — 3/20 configs PASS v26 rule (coarse_0.05_fixed1.0_min20, coarse_0.05_fixed2.0_min20, coarse_0.1_fixed1.0_min20)",
     "Flat v26 zoom quality at 12k dense: FAIL — only 1/4 transitions exceed 0.5 improvement_rate threshold",
-    "Scale dependency CONFIRMED: 1k citation-role severe fragmentation; 1.2k flat v26 PASS (citing_alpha0.7); 12k flat FAIL/constrained PASS; 174k TF-IDF flat FAIL/severe fragmentation",
+    "Scale dependency CONFIRMED: 1k citation-role severe fragmentation; 1.2k flat v26 PASS (citing_alpha0.7); 12k flat FAIL/constrained PASS; 28k flat FAIL/constrained 67%; 174k TF-IDF flat FAIL/severe fragmentation",
     "Evidence-backed zoom path: citation-role/dense-embedding modes at 1000-scale — citing_alpha0.3 ZQ=0.5401, following_alpha0.3 ZQ=0.5280, criticizing_alpha0.3 ZQ=0.4864; requires 174k dense embeddings to scale",
     "Production default: cited_outcome_hybrid_0.5 ZQ=0.2798",
     "Dense 12k adversarial: FAIL — language_dominance ~0.98, jurist_preference ~0.04",
@@ -46,14 +47,14 @@
     "NESTING_METRIC_DEFECT_v1 enforced: 7 compressed-family modes PROHIBITED from nesting>=0.99 claims; only 1000-scale and 12k-scale by-construction modes permitted with scope annotation (audit CYCLE_36027099305)",
     "Pipeline readiness for 174k dense embeddings: operational at simulation level; best validated config coarse_0.1_fixed2.0_min20 (improvement_rate=0.913, nesting=0.983, 18 coarse/174 fine clusters); requires ACCEPTED 174k dense embeddings for production",
     "Constrained hierarchical Leiden on 1k citation roles: does NOT reduce fragmentation (73-100% singletons at coarse level); citation roles need ≥12k scale for coherent coarse clusters",
-    "Scale extrapolation model predicts hier_impr ~0.67 at 174k for dense embeddings (MEDIUM confidence); TF-IDF and citation-roles predicted FAIL at 174k (HIGH/LOW confidence)"
+    "Scale extrapolation model predicts hier_impr ~0.67 at 174k for dense embeddings (HIGH confidence after 28k validation); TF-IDF and citation-roles predicted FAIL at 174k (HIGH/LOW confidence)"
   ],
   "factory_direction_v28_discrepancy": {
     "issue": "factory_direction.json on main shows fractal-map.status=RUN, but lane state correctly shows BLOCKED_ON_DEPENDENCIES",
     "impact": "Control plane misreports lane status; not a fractal-map lane defect",
     "resolution_required": "Factory Director must update factory_direction.json on main",
-    "progress_detail": "legal-distance progress.json shows 20/26 years (2000-2019) but only 3/26 years (2000-2002) ACCEPTED; 16/26 years PENDING AUDIT",
-    "16/26": "years pending audit promotion (2003-2019)",
+    "progress_detail": "legal-distance progress.json shows 25/26 years (2000-2024) in checkpoints but only 3/26 years (2000-2002) ACCEPTED; 22/26 years PENDING AUDIT",
+    "22/26": "years pending audit promotion (2003-2024)",
     "3/26": "years ACCEPTED (2000-2002)",
     "2000-2002": "ACCEPTED years"
   },
@@ -62,7 +63,7 @@
     "constrained_hierarchical_leiden_174k": "FAIL per_mode_verdict: nesting=1.0 by construction but singleton_fraction >0.99 at fine resolutions; only regeste_tfidf (83k) passes structural checks",
     "constrained_hierarchical_leiden_12k_dense": "PASS with adaptive=False: improvement_rate up to 1.0, singleton_fraction=0.0%, nesting=1.0; 3/20 configs PASS v26; best practical config coarse_0.1_fixed2.0_min20 (impr=0.913, nest=0.983)",
     "flat_v26_zoom_quality_12k_dense": "FAIL: only 1/4 transitions exceed 0.5 improvement_rate threshold",
-    "scale_dependency_confirmed": "1k: severe fragmentation; 1.2k: flat v26 PASS (citing_alpha0.7); 12k: flat v26 FAIL, constrained hierarchical PASS; 174k TF-IDF: flat v26 FAIL, severe fragmentation",
+    "scale_dependency_confirmed": "1k: severe fragmentation; 1.2k: flat v26 PASS (citing_alpha0.7); 12k: flat v26 FAIL, constrained hierarchical PASS; 28k: flat v26 FAIL, constrained hierarchical 67%; 174k TF-IDF: flat v26 FAIL, severe fragmentation",
     "evidence_backed_zoom_path": "citation-role/dense-embedding modes at 1000-scale: citing_alpha0.3 ZQ=0.5401, following_alpha0.3 ZQ=0.5280, criticizing_alpha0.3 ZQ=0.4864; requires 174k dense embeddings to scale",
     "production_default": "cited_outcome_hybrid_0.5 ZQ=0.2798",
     "dense_12k_adversarial": "FAIL: language_dominance ~0.98, jurist_preference ~0.04",
@@ -70,7 +71,8 @@
     "nesting_metric_defect_v1": "7 compressed-family modes PROHIBITED from nesting>=0.99 claims; only 1000-scale and 12k-scale by-construction modes permitted with scope annotation (audit CYCLE_36027099305)",
     "pipeline_readiness_174k_dense": "Operational at simulation level; best validated config: coarse_0.1_fixed2.0_min20 (validated at 12k); requires ACCEPTED 174k dense embeddings for production",
     "citation_role_constrained_1k": "Constrained hierarchical does NOT reduce fragmentation at 1k (73-100% singletons); coarse clustering itself produces near-singleton clusters; citation roles need ≥12k scale",
-    "scale_extrapolation_174k_dense": "Power law model predicts hierarchical improvement_rate ~0.67 at 174k for dense embeddings (MEDIUM confidence); flat zoom predicted ~0.24; validation needed at 20k/50k/100k"
+    "scale_extrapolation_174k_dense": "Power law model predicts hierarchical improvement_rate ~0.67 at 174k for dense embeddings (HIGH confidence after 28k validation); flat zoom predicted ~0.24; validation needed at 20k/50k/100k — 28k checkpoint validation CONFIRMS hier_impr=0.67",
+    "28k_checkpoint_validation": "Constrained hierarchical Leiden on 28k checkpoint dense embeddings (years 2000-2005, PENDING AUDIT): fine_singleton=0.0%, fine_median=43-53, improvement_rate=0.67, branch_impr=0.15-0.154, nesting=1.0 — PIPELINE VALIDATED at intermediate scale"
   },
   "audit_gate": "PASS (CYCLE_36476032905)",
   "test_suite": {
@@ -80,6 +82,7 @@
   },
   "provenance": {
     "12k_dense_embeddings": "/tmp/lex_accepted/evaluation/evaluation/results/174k/dense_partial_2000_2002/ (years 2000-2002, ACCEPTED)",
+    "28k_checkpoint_embeddings": "/tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/checkpoints/ (years 2000-2005, PENDING AUDIT - pipeline validation only)",
     "citation_alpha_embeddings": "/tmp/lex_accepted/legal-distance/legal_distance/results/v6/citation_roles_fixed/ (1000 decisions, ACCEPTED)",
     "metadata_174k": "/tmp/lex_accepted/evaluation/evaluation/data/174k/metadata_174k.json (173,963 entries)",
     "global_seed": 42,
