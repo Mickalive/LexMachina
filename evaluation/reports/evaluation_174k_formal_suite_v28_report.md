@@ -33,8 +33,8 @@ The evaluation lane has **completed all machine-executable 174k formal suite tas
 | Representation | Verdict | Lang Dom | Jurist Pref | Both Gates |
 |----------------|---------|----------|-------------|------------|
 | `cited_decisions_tfidf` | ✅ PASS | 0.529 | 0.802 | ✅ |
-| `outcome_tfidf` | ✅ PASS | 0.452 | 0.806 | ✅ |
-| `regeste_tfidf` | ✅ PASS | 0.450 | 0.753 | ✅ |
+| `outcome_tfidf` | ✅ PASS | 0.452 | 0.726 | ✅ |
+| `regeste_tfidf` | ✅ PASS | 0.484 | 0.609 | ✅ |
 | `full_text_tfidf_light` | ❌ FAIL | 0.999 | 0.000 | ❌ |
 | `cited_decisions_tfidf_outcome_hybrid_0.5` | ✅ PASS | 0.516 | 0.806 | ✅ |
 | `cited_decisions_tfidf_outcome_hybrid_0.7` | ✅ PASS | 0.522 | 0.806 | ✅ |
