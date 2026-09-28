@@ -1,0 +1,35 @@
+{
+  "experiment": "fractal-map hierarchical zoom-quality evaluation (constrained hierarchical Leiden)",
+  "lane": "fractal-map",
+  "direction_version": 28,
+  "date_frozen": "2026-09-28",
+  "protocol_version": "hierarchical_v1",
+  "note": "This evaluates 2-level hierarchical clustering (coarse\u2192fine), NOT the v26 flat 5-level ladder.",
+  "hypothesis": "Constrained hierarchical Leiden at 174k achieves zero fragmentation, perfect nesting, and meaningful zoom refinement (improvement_rate > 0.5) on the coarse\u2192fine transition for all TF-IDF modes.",
+  "modes_frozen": [
+    "full_text_tfidf_light",
+    "regeste_tfidf",
+    "regeste_full_text_hybrid_0.5",
+    "regeste_full_text_hybrid_0.7"
+  ],
+  "config_frozen": {
+    "coarse_res": 0.25,
+    "base_sub_res": 3.0,
+    "min_cluster_size": 10,
+    "max_subclusters_per_parent": 20,
+    "adaptive_sub_res": true,
+    "k_neighbors": 15
+  },
+  "metrics": {
+    "fragmentation": "singleton_fraction at fine level (must be < 0.01)",
+    "nesting": "strict nesting consistency coarse\u2192fine (must be 1.0 by construction)",
+    "branch_purity_delta": "fine_branch_purity - coarse_branch_purity (must be > 0)",
+    "area_purity_delta": "fine_area_purity - coarse_area_purity (must be > 0)",
+    "zoom_coherence": "improvement_rate on coarse\u2192fine transition (must be > 0.5)",
+    "legal_structure_branch": "fine_branch_purity > 2 * random_branch_baseline",
+    "legal_structure_area": "fine_area_purity > 2 * random_area_baseline"
+  },
+  "success_rule_per_mode": "PASS iff all 7 metrics pass their thresholds",
+  "overall_verdict_rule": "PASS iff ALL 4 TF-IDF modes PASS",
+  "baseline_source": "/tmp/lex_accepted/evaluation/evaluation/data/174k/metadata_174k.json"
+}
