@@ -21,11 +21,13 @@
     "representations_failing_adversarial": 3,
     "citation_heritage_all_fail": true,
     "v17b_normalization_tested": true,
-    "v17b_differential_effect": "citation-based reps improve (1.04-1.10x hierarchy, 1.03-1.08x zoom_fine), text-based reps degrade zoom_fine (0.66-0.70x)",
+    "v17b_differential_effect": "citation-based reps improve purity (1.43-1.67x) but worsen NMI (0.85-0.95x); text-based reps show zero purity improvement (1.0x) and worsen NMI (0.70x); only regeste_tfidf satisfies ≤10% worsening on all hierarchy metrics",
     "production_default": "cited_decisions_tfidf_outcome_hybrid_0.5",
     "production_default_verdict": "PASS",
     "production_default_lang_dom": 0.5164,
     "production_default_jurist_pref": 0.8055,
+    "production_default_v17b_zoom_fine_ratio": 1.4993,
+    "production_default_v17b_zoom_fine_pass": false,
     "v25_formal_suite_completed": 8,
     "v25_fundamental_tradeoff_reproduced": true,
     "monitor_check_count": 200
@@ -35,13 +37,13 @@
   "work_completed": [
     "Full 12-benchmark formal suite at 174k on 8 TF-IDF representations (frozen harness v3, HNSW artifact fixed via exact k-NN on stratified subsample n=2000) - VERIFIED REPRODUCIBLE (config hash b51701f5a9c11692)",
     "Citation heritage benchmark re-run on regenerated frozen 2,040 pair pool (1,020 positive direct+shared citations, 1,020 negative, balanced sampling from resolved citation graph, seed=42) with 174k citation-ID resolution (2,019/2,105 resolved, 95.9%) - all 8 TF-IDF representations FAIL recall@10 threshold",
-    "v17b label normalization tested on 174k fine-grained legal_area labels (85,819 labels normalized, 214->164 unique areas) - differential effect CONFIRMED: citation-based reps improve 1.04-1.10x, text-based reps degrade zoom_fine 0.66-0.70x",
+    "v17b label normalization tested on 174k fine-grained legal_area labels (85,819 labels normalized, 214->164 unique areas) - differential effect CONFIRMED: citation-based reps improve purity (1.43-1.67x) but worsen NMI (12-30% degradation); text-based reps show zero purity improvement and worsen NMI (20-30%); only regeste_tfidf satisfies ≤10% no-worsening on all hierarchy metrics",
     "Formal suite re-verification 2026-09-28: exact reproduction of adversarial results (cited_decisions_tfidf lang_dom=0.5295, jurist_pref=0.8010, both PASS)",
     "v17b re-verification 2026-09-27: exact reproduction of differential effect ratios across all 8 TF-IDF representations",
     "V25 formal suite runner verified operational 2026-09-27T22:04:04Z (cited_decisions_tfidf: 6 PASS / 5 FAIL / 1 SKIP); all 8 TF-IDF reps evaluated via frozen v25 protocol",
     "Monitor check 200 completed 2026-09-28T13:10:05Z - no new awaited representations detected",
     "Infrastructure re-verification 2026-09-28T13:10:05Z: exact reproduction of adversarial results on production default (cited_decisions_tfidf_outcome_hybrid_0.5 lang_dom=0.5167 PASS, jurist_pref=0.8050 PASS) - HNSW artifact fix confirmed operational",
-    "V25 formal suite fundamental two-mode tradeoff REPRODUCED at 174k: citation-based reps pass adversarial/citation_heritage/multilingual, fail branch/tf_metadata/hierarchy; text-based reps pass branch/tf_metadata, FAIL adversarial lang_dom~0.999"
+    "V25 formal suite fundamental two-mode tradeoff REPRODUCED at 174k: citation-based reps pass adversarial/citation_heritage/multilingual, fail branch/tf_metadata/hierarchy; text-based reps FAIL adversarial lang_dom=1.0, jurist_pref=0.0"
   ],
   "blockers": [
     "Dense embeddings from legal-distance: only 3/26 years (2000-2002) ACCEPTED; years 2003-2019 (17/26) pending audit - not at 174k scale",
@@ -79,6 +81,6 @@
     }
   },
   "last_verification": "2026-09-28T13:10:05.034Z",
-  "report_generated": "2026-09-28T13:10:05.034Z",
-  "report_path": "reports/evaluation/EVALUATION_174K_MONITORING_REPORT_V28_AUDIT_READY_20260928.md"
+  "report_generated": "2026-09-28T14:30:00.000Z",
+  "report_path": "reports/evaluation/evaluation_cycle_v28_report.md"
 }

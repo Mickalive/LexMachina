@@ -23,13 +23,13 @@ The evaluation lane has completed the machine-executable 174k formal suite for a
 | cited_decisions_tfidf_outcome_hybrid_0.7 | PASS | 0.5238 | ✓ | 0.7975 | ✓ | ✓ |
 | outcome_tfidf | PASS | 0.4527 | ✓ | 0.7255 | ✓ | ✓ |
 | regeste_tfidf | PASS | 0.4835 | ✓ | 0.6090 | ✓ | ✓ |
-| regeste_full_text_hybrid_0.5 | FAIL | 0.7175 | ✓ | 0.5725 | ✓ | ✓ |
-| regeste_full_text_hybrid_0.7 | FAIL | 0.7455 | ✓ | 0.5385 | ✓ | ✓ |
+| regeste_full_text_hybrid_0.5 | **FAIL** | **1.0000** | **✗** | **0.0000** | **✗** | **✗** |
+| regeste_full_text_hybrid_0.7 | **FAIL** | **1.0000** | **✗** | **0.0000** | **✗** | **✗** |
 | full_text_tfidf_light | **FAIL** | **1.0000** | **✗** | **0.0000** | **✗** | **✗** |
 
-**Key Finding**: The fundamental two-mode tradeoff **persists at 174k scale**:
+**Key Finding**: The fundamental two-mode tradeoff **persists at 174k scale**, and **all three text-based representations catastrophically fail adversarial gates**:
 - **Citation-based** (cited_decisions + outcome hybrids): PASS adversarial, FAIL branch/legal_area/hierarchy
-- **Text-based** (regeste/full_text + hybrids): PASS branch/legal_area, FAIL adversarial (lang_dom ≈ 1.0)
+- **Text-based** (regeste/full_text + hybrids): FAIL adversarial (lang_dom = 1.0, jurist_pref = 0.0) — language completely dominates neighbor structure
 
 ### 2. Citation Heritage Benchmark — COMPLETE ✓
 - **Frozen pair pool**: 137,314 citation pairs (95.9% citation-ID resolution: 2,019/2,105)
@@ -47,21 +47,21 @@ The evaluation lane has completed the machine-executable 174k formal suite for a
 **Infrastructure ready** for dense embeddings when they arrive.
 
 ### 3. v17b Label Normalization (174k Fine-Grained legal_area) — COMPLETE ✓
-- **Label normalization**: 213 → 163 unique labels (23.5% reduction), 32 cross-lingual concepts merged
-- **Generalization test**: ≤10% worsening rule on zoom_fine purity
+- **Label normalization**: 214 → 164 unique labels (49.3% of 85,819 labels normalized), raw 157 → 107 normalized areas
+- **Test**: Purity ratios (normalized / raw) for hierarchy coherence, zoom coherence, legal area clustering; ≤10% worsening threshold on all hierarchy-family metrics
 
-| Representation | Hierarchy Δ | Zoom_Fine Δ | Legal_Area Δ | Within 10%? |
-|---|---|---|---|---|
-| cited_decisions_tfidf | +5.7% | +3.8% | +6.2% | ✓ |
-| outcome_tfidf | +4.6% | +8.3% | +4.4% | ✓ |
-| regeste_tfidf | 0% | +10.3% | +1.7% | **✗** (zoom_fine) |
-| full_text_tfidf_light | 0% | **-33.2%** | -2.7% | **✗** (zoom_fine) |
-| cited_outcome_hybrid_0.5 | +5.6% | +3.7% | +6.3% | ✓ |
-| cited_outcome_hybrid_0.7 | +5.3% | +4.6% | +5.8% | ✓ |
-| regeste_full_text_hybrid_0.5 | 0% | **-33.9%** | -3.1% | **✗** (zoom_fine) |
-| regeste_full_text_hybrid_0.7 | 0% | **-30.5%** | -3.7% | **✗** (zoom_fine) |
+| Representation | Hierarchy Purity | Hierarchy NMI | Zoom Coarse | Zoom Fine | Legal Area Purity | Legal Area NMI | Uniform ≤10% Worsening |
+|---|---|---|---|---|---|---|---|
+| cited_decisions_tfidf | 1.480 | 0.945 | 1.589 | 1.498 | 1.264 | 0.832 | **✗** (hierarchy_nmi, legal_area_nmi) |
+| cited_decisions_tfidf_outcome_hybrid_0.5 | 1.426 | 0.850 | 1.509 | 1.499 | 1.257 | 0.732 | **✗** (hierarchy_nmi, legal_area_nmi) |
+| cited_decisions_tfidf_outcome_hybrid_0.7 | 1.441 | 1.059 | 1.530 | 1.475 | 1.288 | 0.787 | **✗** (legal_area_nmi) |
+| outcome_tfidf | 1.496 | 0.876 | 1.512 | 1.496 | 1.496 | 0.876 | **✗** (hierarchy_nmi, legal_area_nmi) |
+| regeste_tfidf | 1.672 | N/A | 1.672 | 1.672 | 1.672 | N/A | ✓ (no NMI computed) |
+| full_text_tfidf_light | 1.000 | 0.699 | 1.000 | 1.000 | 0.972 | 0.794 | **✗** (hierarchy_nmi, legal_area_nmi) |
+| regeste_full_text_hybrid_0.5 | 1.000 | 0.699 | 1.000 | 1.000 | 0.972 | 0.794 | **✗** (hierarchy_nmi, legal_area_nmi) |
+| regeste_full_text_hybrid_0.7 | 1.000 | 0.699 | 1.000 | 1.000 | 0.972 | 0.794 | **✗** (hierarchy_nmi, legal_area_nmi) |
 
-**Result**: PARTIAL — 5/8 reps pass; text-based reps degrade 30-34% on zoom_fine purity.
+**Result**: **PARTIAL — Only 1/8 representations (regeste_tfidf) satisfies frozen ≤10% no-worsening rule on ALL hierarchy-family metrics.** Citation-based reps improve purity (1.43–1.67×) but **worsen NMI by 12–30%**. Text-based reps show **zero purity improvement** and **worsen NMI by 20–30%**. Best normalized hierarchy_purity = 0.49 < 0.7 threshold. The v17b differential effect is confirmed but **not uniformly beneficial** at 174k scale.
 
 ### 4. Partial Dense Evaluation (Years 2000-2002, ~12.5k decisions) — COMPLETE ✓
 - **3 center_projected variants** (768/64/128 dim) evaluated
@@ -122,9 +122,11 @@ The evaluation lane has completed the machine-executable 174k formal suite for a
 | Jurist preference | 0.8055 | > 0.5 | ✓ |
 | Citation heritage AUC | 0.7597 | > 0.6 | ✓ |
 | Citation heritage recall@10 | 0.0529 | > 0.2 | **✗** |
-| v17b zoom_fine ratio | 1.0366 | ≤ 1.10 | ✓ |
+| v17b zoom_fine ratio | 1.4993 | ≤ 1.10 | **✗** |
 | Boilerplate resistance | -0.774 | > 0 | **✗** |
 | Scale stability (temporal) | 0.383 | > 0.5 | **✗** |
+
+**Note**: Production default FAILS v17b zoom_fine threshold (1.4993 > 1.10, 49.9% worsening vs 10% allowed). This is a negative result — the production default does not satisfy the label-normalization stability criterion at 174k scale.
 
 ---
 

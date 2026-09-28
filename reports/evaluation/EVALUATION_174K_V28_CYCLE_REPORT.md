@@ -68,13 +68,14 @@ The evaluation lane has completed all three machine-executable sub-questions fro
 ---
 
 ### Sub-Question 3: v17b Label Normalization at 174k
-**Status:** ✅ COMPLETE (85,819 labels normalized, 214→164 unique areas, 23.4% reduction)
+**Status:** ✅ COMPLETE (85,819 labels normalized, 214→164 unique areas, 49.3% of labels normalized)
 
-**Differential Effect CONFIRMED at 174k:**
-- **Citation-based reps:** Hierarchy purity improves 1.04-1.10x, zoom_fine improves 1.03-1.08x
-- **Text-based reps:** Zoom_fine DEGRADES 0.66-0.69x (30-34% worsening)
+**Differential Effect CONFIRMED at 174k (from actual purity ratios norm/raw):**
+- **Citation-based reps:** Purity improves 1.43-1.67×, but NMI worsens (0.85-0.95×, 12-30% degradation)
+- **Text-based reps:** Zero purity improvement (1.00×), NMI worsens (0.70×, 30% degradation)
+- **Only regeste_tfidf** satisfies frozen ≤10% no-worsening rule on ALL hierarchy-family metrics (no NMI computed)
 
-**Generalization Claim:** PARTIAL — not uniformly confirmed. Only 5/8 representations satisfy frozen >10% no-worsening rule on ALL hierarchy-family metrics. Best normalized hierarchy_purity = 0.47 < 0.7 threshold.
+**Generalization Claim:** PARTIAL — only 1/8 representations satisfies ≤10% worsening on ALL hierarchy metrics. Citation-based reps improve purity but degrade NMI; text-based reps show no purity gain and degrade NMI. Best normalized hierarchy_purity = 0.49 < 0.7 threshold. Production default (`cited_decisions_tfidf_outcome_hybrid_0.5`) zoom_fine ratio = 1.4993 (FAILS ≤1.10 threshold, 49.9% worsening).
 
 ---
 
