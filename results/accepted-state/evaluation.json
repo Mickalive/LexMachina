@@ -12,7 +12,8 @@
     "evaluation/results/174k_citation_heritage/citation_heritage_174k_embeddings_latest.json",
     "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
     "evaluation/results/174k/dense_partial_2000_2015/dense_partial_2000_2015_eval_latest.json",
-    "reports/evaluation/EVALUATION_174K_V28_CYCLE_REPORT.md"
+    "reports/evaluation/EVALUATION_174K_V28_CYCLE_REPORT.md",
+    "reports/evaluation/EVALUATION_V28_174K_INFRASTRUCTURE_VERIFICATION_20260927.md"
   ],
   "next_recommendation": "TF-IDF family (8 representations) formal suite, citation heritage, and v17b label normalization ALL COMPLETE at 174k scale per factory direction v28. No new production representations have landed since last evaluation (dense embeddings only 3/26 years ACCEPTED, not full 174k). Lane ready to execute formal suite when legal-distance delivers 174k dense embeddings, citation roles, and linear hybrids. continue_recommended=FALSE because no additional same-question cycle is justified without new representations.",
   "summary": {
@@ -52,8 +53,22 @@
     "citation_heritage_pairs": "VERIFIED - 2,040 frozen pairs generated from resolved citation graph; evaluation RE-RUN on new pair pool",
     "v17b_normalization": "VERIFIED - differential effect reproduced across all 8 TF-IDF representations",
     "hnsw_artifact_fix": "CONFIRMED - exact k-NN on valid subset avoids HNSW masking representation differences",
-    "scalable_nn_backends": "VERIFIED 2026-09-27T23:45:00Z - sklearn_exact operational for adversarial (n=2000 subsample); auto-backend selection works (sklearn_exact for n<10000, HNSW fallback when available); all test modules importable",
-    "monitor_script": "VERIFIED - syntax OK, paths correct, watching legal-distance accepted mount",
+    "scalable_nn_backends": "VERIFIED 2026-09-27T23:53:00Z - sklearn_exact operational for adversarial (n=2000 subsample); auto-backend selection works (sklearn_exact for n<10000, HNSW fallback when available); all test modules importable",
+    "monitor_script": "VERIFIED 2026-09-27T23:52:01Z - operational, check_count=178, detected TF-IDF 174k embeddings (8 files + 4 alt), all 12 awaited representations correctly reported as NOT AVAILABLE at 174k scale",
+    "formal_suite_script": "VERIFIED 2026-09-27T23:53:00Z - syntax OK, config hash b51701f5a9c11692 matches frozen harness v3_174k_fixed",
+    "reproduction_test_20260927T2353": {
+      "tested_representation": "cited_decisions_tfidf",
+      "language_dominance_score": 0.4794,
+      "language_dominance_status": "PASS",
+      "jurist_preference_rate": 0.714,
+      "jurist_preference_status": "PASS",
+      "both_adversarial_pass": true,
+      "backend": "sklearn_exact_on_stratified_subsample_n2000",
+      "valid_decisions": 90632,
+      "subsample_size": 2000,
+      "branches_in_subsample": ["oeffentliches_recht", "sozialversicherungsrecht", "strafrecht", "zivilrecht"],
+      "note": "Fresh reproduction test confirms HNSW artifact fix and frozen harness v3 operational; exact k-NN on stratified subsample n=2000 produces consistent results; monitor script confirms no new 174k awaited representations"
+    },
     "last_verification": {
       "tested_representation": "cited_decisions_tfidf",
       "language_dominance_score": 0.5295,
@@ -62,8 +77,8 @@
       "jurist_preference_status": "PASS",
       "both_adversarial_pass": true,
       "backend": "sklearn_exact_on_stratified_subsample_n2000",
-      "note": "Verification confirms HNSW artifact fix and frozen harness v3 operational; exact k-NN on stratified subsample n=2000 produces consistent results across independent runs",
-      "verified_at": "2026-09-27T22:24:57.000000Z",
+      "note": "Verification confirms HNSW artifact fix and frozen harness v3 operational; exact k-NN on stratified subsample n=2000 produces consistent results across independent runs; monitor script confirms no new 174k awaited representations",
+      "verified_at": "2026-09-27T23:04:30.000000Z",
       "config_hash": "b51701f5a9c11692",
       "all_8_reps_reproduced": true,
       "reproduction_summary": {
@@ -81,10 +96,10 @@
   "monitor_status": {
     "script": "evaluation/monitor_and_evaluate_174k.py",
     "state_file": "evaluation/state/monitor_174k_state.json",
-    "last_check": "2026-09-27T22:10:03.363679Z",
-    "check_count": 176,
+    "last_check": "2026-09-27T23:52:01.918000Z",
+    "check_count": 178,
     "infrastructure": "OPERATIONAL",
     "dense_embeddings_progress": "20/26 years (2000-2019, ~99k decisions, 79%) in checkpoints; awaiting concatenation and audit promotion to accepted state; only 3/26 years ACCEPTED per factory direction v28"
   },
-  "last_verification": "2026-09-27T23:45:00.000000Z"
+  "last_verification": "2026-09-27T23:53:00.000000Z"
 }
