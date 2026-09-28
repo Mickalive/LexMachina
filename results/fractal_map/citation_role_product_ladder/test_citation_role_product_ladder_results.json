@@ -1,0 +1,71 @@
+{
+  "test": "citation_role_product_resolution_ladder",
+  "timestamp": "2026-09-28",
+  "factory_direction_version": 28,
+  "description": "Citation-role embeddings (v6 citation_roles_fixed) tested with product resolution ladder [0.25,0.5,0.75,1.0,1.5,2.0,3.0], k=30, min_cluster_size=1",
+  "embeddings_tested": [
+    "citation_role_citing (1000, 64)",
+    "citation_role_following (1000, 64)",
+    "citation_role_criticizing (1000, 64)",
+    "citation_role_all_weighted (1000, 64)"
+  ],
+  "method": "Leiden at product resolutions, k=30, min_cluster_size=1, zoom coherence per product method",
+  "results": {
+    "citing": {
+      "resolution_ladder": {"0.25": 753, "0.5": 754, "0.75": 754, "1.0": 762, "1.5": 771, "2.0": 779, "3.0": 793},
+      "singleton_fraction": 0.744,
+      "zq_score": 0.0,
+      "zoom_transitions": {
+        "0.25_to_0.5": {"improvement_rate": 0.0, "improvements": 0, "deteriorations": 9},
+        "0.5_to_0.75": {"improvement_rate": 0.0, "improvements": 0, "deteriorations": 10},
+        "0.75_to_1.0": {"improvement_rate": 0.0, "improvements": 0, "deteriorations": 10},
+        "1.0_to_1.5": {"improvement_rate": 0.0, "improvements": 0, "deteriorations": 18},
+        "1.5_to_2.0": {"improvement_rate": 0.0, "improvements": 0, "deteriorations": 27},
+        "2.0_to_3.0": {"improvement_rate": 0.0, "improvements": 0, "deteriorations": 35}
+      }
+    },
+    "following": {
+      "resolution_ladder": {"0.25": 997, "0.5": 997, "0.75": 997, "1.0": 997, "1.5": 997, "2.0": 997, "3.0": 997},
+      "singleton_fraction": 0.996,
+      "zq_score": 0.0,
+      "zoom_transitions": {
+        "0.25_to_0.5": {"improvement_rate": 0.0, "improvements": 0, "deteriorations": 1, "no_change": 1},
+        "0.5_to_0.75": {"improvement_rate": 0.0, "improvements": 0, "deteriorations": 1, "no_change": 1},
+        "0.75_to_1.0": {"improvement_rate": 0.0, "improvements": 0, "deteriorations": 1, "no_change": 1},
+        "1.0_to_1.5": {"improvement_rate": 0.0, "improvements": 0, "deteriorations": 1, "no_change": 1},
+        "1.5_to_2.0": {"improvement_rate": 0.0, "improvements": 0, "deteriorations": 1, "no_change": 1},
+        "2.0_to_3.0": {"improvement_rate": 0.0, "improvements": 0, "deteriorations": 1, "no_change": 1}
+      }
+    },
+    "criticizing": {
+      "resolution_ladder": {"0.25": 903, "0.5": 903, "0.75": 903, "1.0": 903, "1.5": 903, "2.0": 903, "3.0": 903},
+      "singleton_fraction": 1.0,
+      "zq_score": 0.0,
+      "zoom_transitions": {}
+    },
+    "all_weighted": {
+      "resolution_ladder": {"0.25": 745, "0.5": 747, "0.75": 748, "1.0": 753, "1.5": 761, "2.0": 767, "3.0": 784},
+      "singleton_fraction": 0.735,
+      "zq_score": 0.0,
+      "zoom_transitions": {
+        "0.25_to_0.5": {"improvement_rate": 0.0, "improvements": 0, "deteriorations": 10},
+        "0.5_to_0.75": {"improvement_rate": 0.0, "improvements": 0, "deteriorations": 11, "no_change": 1},
+        "0.75_to_1.0": {"improvement_rate": 0.0, "improvements": 0, "deteriorations": 13},
+        "1.0_to_1.5": {"improvement_rate": 0.0, "improvements": 0, "deteriorations": 18},
+        "1.5_to_2.0": {"improvement_rate": 0.0, "improvements": 0, "deteriorations": 26},
+        "2.0_to_3.0": {"improvement_rate": 0.0, "improvements": 0, "deteriorations": 32}
+      }
+    }
+  },
+  "factory_direction_v28_claims": {
+    "citing_alpha0.3": 0.5401,
+    "following_alpha0.3": 0.5280,
+    "criticizing_alpha0.3": 0.4864
+  },
+  "discrepancy_analysis": "Factory direction v28 ZQ scores refer to PRODUCT-INTEGRATED modes (citing_alpha0.3, following_alpha0.3, criticizing_alpha0.3 in /tmp/lex_accepted/product/results/fractal_map/legal_distance_modes/) which use different embeddings/processing and have structured resolution ladders (1->1->3->3->567->898->928). The v6 citation_roles_fixed raw embeddings show severe fragmentation at all resolutions (singleton_frac 0.74-1.0) and ZQ=0.0.",
+  "product_integrated_modes": {
+    "citing_alpha0.3": {"ladder": "1,1,3,3,567,898,928", "benchmarks": "14/14 PASS", "hierarchical_purity": 0.9203},
+    "following_alpha0.3": {"ladder": "1,1,1,3,656,985,986", "benchmarks": "14/14 PASS", "hierarchical_purity": 0.9501},
+    "criticizing_alpha0.3": {"ladder": "1,1,1,2,667,997,997", "benchmarks": "14/14 PASS", "hierarchical_purity": 0.9619}
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "test": "12k_constrained_hierarchical_leiden",
+  "timestamp": "2026-09-28",
+  "factory_direction_version": 28,
+  "description": "Constrained hierarchical Leiden (each finer resolution refines coarser) on 12,570 decisions (years 2000-2002) dense embeddings",
+  "embeddings_tested": [
+    "center_projected_64 (12570, 64)",
+    "center_projected_768 (12570, 768)",
+    "center_projected_128 (12570, 128)"
+  ],
+  "method": "k=15, min_cluster_size=5, resolutions=[0.25,0.5,0.75,1.0,1.5,2.0,3.0], constrained refinement per coarse cluster",
+  "results": {
+    "center_projected_64": {
+      "resolution_ladder": [27, 138, 424, 1143, 896, 1069, 710],
+      "median_size_fine": 1.0,
+      "singleton_fraction_fine": 0.0288,
+      "improvement_rate": 1.0,
+      "min_nesting": 0.6324,
+      "perfect_nesting": false,
+      "v26_verdict": "FAIL",
+      "passes_nesting": false,
+      "passes_improvement": true,
+      "passes_fragmentation": false,
+      "passes_monotonic": false
+    },
+    "center_projected_768": {
+      "resolution_ladder": [31, 146, 439, 1140, 1019, 928, 843],
+      "median_size_fine": 3.0,
+      "singleton_fraction_fine": 0.0286,
+      "improvement_rate": 1.0,
+      "min_nesting": 0.6735,
+      "perfect_nesting": false,
+      "v26_verdict": "FAIL",
+      "passes_nesting": false,
+      "passes_improvement": true,
+      "passes_fragmentation": true,
+      "passes_monotonic": false
+    },
+    "center_projected_128": {
+      "resolution_ladder": [25, 132, 423, 1122, 886, 982, 883],
+      "median_size_fine": 2.0,
+      "singleton_fraction_fine": 0.0346,
+      "improvement_rate": 1.0,
+      "min_nesting": 0.6354,
+      "perfect_nesting": false,
+      "v26_verdict": "FAIL",
+      "passes_nesting": false,
+      "passes_improvement": true,
+      "passes_fragmentation": true,
+      "passes_monotonic": false
+    }
+  },
+  "summary": "Constrained hierarchical Leiden on dense embeddings at 12k does NOT achieve perfect nesting (min_nesting=0.60-0.67 != 1.0), unlike TF-IDF at 174k which achieves nesting=1.0 by construction. Legal purity is non-monotonic (~0.5-0.67). Low fragmentation but fails v26 nesting and monotonic thresholds."
+}
