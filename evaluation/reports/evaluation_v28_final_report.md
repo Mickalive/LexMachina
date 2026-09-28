@@ -39,28 +39,30 @@ The evaluation lane has **completed all required work** for factory direction v2
 
 **Production Default Validated:** `cited_decisions_tfidf_outcome_hybrid_0.5` (PRODUCT_SERVING_DEFAULT) passes both gates with strong jurist preference (0.8055) and moderate language dominance (0.5164).
 
-### Supporting Benchmarks (10 additional)
+### Supporting Benchmarks (10 additional) — Per-Representation Results
 
-| Benchmark | Citation-based Reps | Text-based Reps |
-|-----------|---------------------|-----------------|
-| Cross-language neighbor quality | PASS (cross_lang_same_branch > same_lang_same_branch) | FAIL (language dominates) |
-| Zero-shot cross-language transfer | FAIL (low NMI) | PASS (but language-driven) |
-| Language-specific representation quality | FAIL (low branch NMI) | PASS (high within-lang NMI) |
-| Cluster coherence rating | FAIL (branch purity ~0.4) | PASS (purity ~0.74 but lang=1.0) |
-| Cross-language retrieval | PASS (recall@10 ~0.23) | FAIL (recall@10 = 0.0) |
-| Temporal stability (30k subsample) | FAIL (overlap ~0.38) | PASS (overlap ~0.78) |
-| Hierarchy coherence (15k subsample) | FAIL (L0 NMI ~0.0) | FAIL (L1 NMI high but lang-driven) |
-| Cluster coherence (15k subsample) | FAIL (branch purity ~0.37) | PASS (purity ~0.74, lang ~1.0) |
-| Cross-language retrieval full (15k) | PASS (recall@10 ~0.23) | FAIL (recall@10 ~0.0) |
-| Boilerplate resistance (full corpus) | FAIL (resistance ~ -0.77) | FAIL (resistance ~ -0.56) |
+**Caveat:** The table below shows per-representation PASS/FAIL for the 5 citation-based and 3 text-based representations. Group-level summaries in earlier reports overstated uniformity; citation-based reps are not uniformly strong on cross-language neighbor quality or cross-language retrieval.
 
-**Pattern:** Citation-based representations excel at legal relevance (jurist preference, cross-lang retrieval) but struggle with structural coherence. Text-based representations achieve high cluster coherence and temporal stability but purely through language artifacts.
+| Benchmark | cited_decisions_tfidf | outcome_tfidf | regeste_tfidf | cited_outcome_hybrid_0.5 | cited_outcome_hybrid_0.7 | full_text_tfidf_light | regeste_full_text_hybrid_0.5 | regeste_full_text_hybrid_0.7 |
+|-----------|----------------------|---------------|---------------|--------------------------|--------------------------|----------------------|------------------------------|------------------------------|
+| Cross-language neighbor quality | FAIL | **PASS** | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL |
+| Zero-shot cross-language transfer | FAIL | FAIL | FAIL | FAIL | FAIL | **PASS** | **PASS** | **PASS** |
+| Language-specific representation quality | FAIL | FAIL | FAIL | FAIL | FAIL | **PASS** | **PASS** | **PASS** |
+| Cluster coherence (adversarial subsample) | FAIL | FAIL | FAIL | FAIL | FAIL | **PASS** | **PASS** | **PASS** |
+| Cross-language retrieval (adversarial) | **PASS** | FAIL | FAIL | **PASS** | **PASS** | FAIL | FAIL | FAIL |
+| Temporal stability (30k subsample) | FAIL | FAIL | FAIL | FAIL | FAIL | **PASS** | **PASS** | **PASS** |
+| Hierarchy coherence (15k subsample) | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL |
+| Cluster coherence (15k subsample) | FAIL | FAIL | FAIL | FAIL | FAIL | **PASS** | **PASS** | **PASS** |
+| Cross-language retrieval full (15k) | **PASS** | FAIL | FAIL | **PASS** | **PASS** | FAIL | FAIL | FAIL |
+| Boilerplate resistance (full corpus) | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL | FAIL |
+
+**Corrected Pattern:** Among citation-based representations, only **outcome_tfidf** passes cross-language neighbor quality (1/5), and only **cited_decisions_tfidf + both hybrids** pass cross-language retrieval (3/5). Text-based representations pass zero-shot transfer, language-specific quality, and cluster coherence but purely through language artifacts (language purity ~1.0). No representation passes all benchmarks.
 
 ---
 
 ## 2. Citation Heritage Validation
 
-**Status:** COMPLETE — Validated on all 8 TF-IDF representations using 174k citation-ID resolution (2,019/2,105 resolved)
+**Status:** COMPLETE — Validated on all 8 TF-IDF representations using 174k citation-ID resolution (global citation graph: 2,019/2,105 resolved = 96%; 174k corpus coverage: only 174 decisions (0.1%) have outgoing citations; 924 resolved citations map to 174k corpus decisions)
 
 **Constraint:** Only 174 decisions (0.1%) have outgoing citations in the 174k corpus, severely limiting statistical power.
 
@@ -75,7 +77,7 @@ The evaluation lane has **completed all required work** for factory direction v2
 | outcome_tfidf | 0.658 | 0.000 | FAIL |
 | regeste_tfidf | 0.486 | 0.000 | FAIL |
 
-**Interpretation:** Citation-based representations show meaningful citation structure preservation (AUC > 0.6) but recall@10 remains below the 0.2 threshold due to extreme sparsity. The "best" AUC belongs to full_text_tfidf_light but this is a language artifact.
+**Interpretation:** 7 of 8 representations achieve AUC > 0.6 (regeste_tfidf AUC=0.486), showing meaningful citation structure preservation for most reps, but recall@10 remains below the 0.2 threshold due to extreme sparsity. The highest AUC belongs to full_text_tfidf_light (0.898) but this is a language artifact.
 
 ---
 
