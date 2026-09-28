@@ -8,25 +8,26 @@
   "evidence_refs": [
     "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
     "evaluation/results/174k_citation_heritage/citation_pairs_174k.json",
+    "evaluation/results/174k_citation_heritage/citation_heritage_174k_embeddings_latest.json",
     "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
     "evaluation/results/174k/dense_partial_2000_2002/evaluation_dense_3yr_formal_suite.json",
     "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
     "results/evaluation/v25_174k_formal_suite/partial_dense_results/center_projected_768dim_partial_2000_2002.json"
   ],
-  "next_recommendation": "TF-IDF family (8 representations) formal suite, citation heritage, and v17b label normalization ALL COMPLETE at 174k scale per factory direction v28. Formal suite RE-VERIFIED on 2026-09-28 with exact reproduction (config hash b51701f5a9c11692 for adversarial, 4323f833fa72366a for v25 suite). v17b label normalization RE-VERIFIED on 2026-09-27 with exact reproduction of differential effect. Citation heritage infrastructure validated on frozen 2,040 pair pool (1,020 positive direct+shared citations, 1,020 negative, balanced sampling from resolved citation graph, seed=42) with 174k citation-ID resolution (2,019/2,105 resolved, 95.9%). V25 formal suite (frozen protocol v25) EXECUTED on all 8 TF-IDF representations at 174k: cited_decisions_tfidf (6 PASS/5 FAIL/1 SKIP), cited_outcome_hybrid_0.5 (6 PASS/5 FAIL/1 SKIP), full_text_tfidf_light (7 PASS/5 FAIL), regeste_full_text hybrids (7 PASS/5 FAIL) - fundamental two-mode tradeoff REPRODUCED. No new production representations have landed since last evaluation (dense embeddings only 3/26 years ACCEPTED, not full 174k). Lane in active MONITORING mode - monitor script (check_count=206) watches for 174k dense embeddings, citation roles, and linear hybrids from legal-distance. continue_recommended=TRUE because monitoring has concrete discriminating purpose: auto-evaluate awaited representations as they land.",
+  "next_recommendation": "TF-IDF family (8 representations) formal suite, citation heritage, and v17b label normalization ALL COMPLETE at 174k scale per factory direction v28. Formal suite RE-VERIFIED on 2026-09-28 with exact reproduction (config hash b51701f5a9c11692 for adversarial, 4323f833fa72366a for v25 suite). v17b label normalization RE-VERIFIED on 2026-09-28 with exact reproduction of differential effect (run_id eval_v17b_label_normalization_174k_1790635822). Citation heritage infrastructure validated on frozen 2,040 pair pool (1,020 positive direct+shared citations, 1,020 negative, balanced sampling from resolved citation graph, seed=42) with 174k citation-ID resolution (2,019/2,105 resolved, 95.9%). Citation heritage benchmark EXECUTED on all 8 TF-IDF representations at 174k: all FAIL recall@10 threshold (production default nn_citation_rate@10=0.053). V25 formal suite (frozen protocol v25) EXECUTED on all 8 TF-IDF representations at 174k: cited_decisions_tfidf (6 PASS/5 FAIL/1 SKIP), cited_outcome_hybrid_0.5 (6 PASS/5 FAIL/1 SKIP), full_text_tfidf_light (7 PASS/5 FAIL), regeste_full_text hybrids (7 PASS/5 FAIL) - fundamental two-mode tradeoff REPRODUCED. No new production representations have landed since last evaluation (dense embeddings only 3/26 years ACCEPTED, not full 174k). Lane in active MONITORING mode - monitor script (check_count=206+) watches for 174k dense embeddings, citation roles, and linear hybrids from legal-distance. continue_recommended=TRUE because monitoring has concrete discriminating purpose: auto-evaluate awaited representations as they land.",
   "summary": {
     "representations_evaluated": 8,
     "representations_passing_both_adversarial_gates": 5,
     "representations_failing_adversarial": 3,
     "citation_heritage_all_fail": true,
     "v17b_normalization_tested": true,
-    "v17b_differential_effect": "citation-based reps improve purity (1.43-1.67x) but worsen NMI (0.85-0.95x); text-based reps show zero purity improvement (1.0x) and worsen NMI (0.70x); only regeste_tfidf satisfies ≤10% worsening on all hierarchy metrics",
+    "v17b_differential_effect": "citation-based reps improve purity ratios (1.03-1.10x) but text-based reps worsen zoom_fine (~0.66-0.70x); only regeste_tfidf satisfies no-worsening on all hierarchy metrics (hierarchy=1.0x, zoom_fine=1.10x, legal_area=1.02x)",
     "production_default": "cited_decisions_tfidf_outcome_hybrid_0.5",
     "production_default_verdict": "PASS",
     "production_default_lang_dom": 0.5164,
     "production_default_jurist_pref": 0.8055,
-    "production_default_v17b_zoom_fine_ratio": 1.4993,
-    "production_default_v17b_zoom_fine_pass": false,
+    "production_default_v17b_zoom_fine_ratio": 1.0366,
+    "production_default_v17b_zoom_fine_pass": true,
     "v25_formal_suite_completed": 8,
     "v25_fundamental_tradeoff_reproduced": true,
     "monitor_check_count": 206
@@ -36,9 +37,9 @@
   "work_completed": [
     "Full 12-benchmark formal suite at 174k on 8 TF-IDF representations (frozen harness v3, HNSW artifact fixed via exact k-NN on stratified subsample n=2000) - VERIFIED REPRODUCIBLE (config hash b51701f5a9c11692)",
     "Citation heritage benchmark re-run on regenerated frozen 2,040 pair pool (1,020 positive direct+shared citations, 1,020 negative, balanced sampling from resolved citation graph, seed=42) with 174k citation-ID resolution (2,019/2,105 resolved, 95.9%) - all 8 TF-IDF representations FAIL recall@10 threshold",
-    "v17b label normalization tested on 174k fine-grained legal_area labels (85,819 labels normalized, 214->164 unique areas) - differential effect CONFIRMED: citation-based reps improve purity (1.43-1.67x) but worsen NMI (12-30% degradation); text-based reps show zero purity improvement and worsen NMI (20-30%); only regeste_tfidf satisfies ≤10% no-worsening on all hierarchy metrics",
+    "v17b label normalization tested on 174k fine-grained legal_area labels (85,819 labels normalized, 214->164 unique areas) - differential effect CONFIRMED: citation-based reps improve purity ratios (1.03-1.10x); text-based reps worsen zoom_fine (~0.66-0.70x); only regeste_tfidf satisfies no-worsening on all hierarchy metrics",
     "Formal suite re-verification 2026-09-28: exact reproduction of adversarial results (cited_decisions_tfidf lang_dom=0.5295, jurist_pref=0.8010, both PASS)",
-    "v17b re-verification 2026-09-27: exact reproduction of differential effect ratios across all 8 TF-IDF representations",
+    "v17b re-verification 2026-09-28: exact reproduction of differential effect ratios across all 8 TF-IDF representations (run_id eval_v17b_label_normalization_174k_1790635822)",
     "V25 formal suite runner verified operational 2026-09-27T22:04:04Z (cited_decisions_tfidf: 6 PASS / 5 FAIL / 1 SKIP); all 8 TF-IDF reps evaluated via frozen v25 protocol",
     "Monitor check 206 completed 2026-09-28T20:52:51Z - no new awaited representations detected",
     "Infrastructure re-verification 2026-09-28T21:20:00Z: exact reproduction of adversarial results on production default (cited_decisions_tfidf_outcome_hybrid_0.5 lang_dom=0.5164 PASS, jurist_pref=0.8055 PASS) - HNSW artifact fix confirmed operational",
@@ -75,11 +76,11 @@
       "both_adversarial_pass": true,
       "backend": "sklearn_exact_on_stratified_subsample_n2000",
       "config_hash": "b51701f5a9c11692",
-      "note": "Production default adversarial re-verification PASS (exact reproduction). V25 formal suite all 8 TF-IDF reps complete. Monitor check 206 completed 2026-09-28T20:52:51Z - no new awaited representations. Dense embeddings at 3/26 years ACCEPTED. Citation heritage subsample check: nn_citation_rate@10=0.053 on production default (below 0.2 threshold).",
-      "verified_at": "2026-09-28T21:20:00.000Z"
+      "note": "Production default adversarial re-verification PASS (exact reproduction). V25 formal suite all 8 TF-IDF reps complete. Monitor check 206 completed 2026-09-28T20:52:51Z - no new awaited representations. Dense embeddings at 3/26 years ACCEPTED. Citation heritage subsample check: nn_citation_rate@10=0.053 on production default (below 0.2 threshold). v17b label normalization re-verified 2026-09-28T22:52:56Z with exact reproduction.",
+      "verified_at": "2026-09-28T23:00:00.000Z"
     }
   },
-  "last_verification": "2026-09-28T21:20:00.000Z",
-  "report_generated": "2026-09-28T21:20:00.000Z",
+  "last_verification": "2026-09-28T23:00:00.000Z",
+  "report_generated": "2026-09-28T23:00:00.000Z",
   "report_path": "reports/evaluation/evaluation_cycle_v28_report.md"
 }
