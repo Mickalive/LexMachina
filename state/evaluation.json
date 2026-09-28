@@ -12,21 +12,39 @@
     "evaluation/results/174k_label_analysis/174k_legal_area_analysis.json",
     "evaluation/results/v17b_174k_tfidf/v17b_174k_tfidf_latest.json",
     "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
-    "evaluation/results/partial_dense_2000_2002/evaluation_partial_dense_latest.json"
+    "evaluation/results/partial_dense_2000_2002/evaluation_partial_dense_latest.json",
+    "evaluation/state/monitor_174k_state.json"
   ],
   "next_recommendation": "Await legal-distance 174k dense embeddings audit promotion; then auto-evaluate via monitor_and_evaluate_174k.py",
   "sub_questions": {
-    "1_12_benchmark_formal_suite_174k": "COMPLETE - 8 TF-IDF representations evaluated with frozen harness v3 thresholds; HNSW artifact fixed via exact k-NN on stratified subsample",
-    "2_citation_heritage_benchmark": "COMPLETE - Frozen pair pool validated (137,314 pairs, 95.9% citation resolution); infrastructure ready for dense embeddings",
-    "3_v17b_label_normalization": "COMPLETE - 213→163 labels (23.5% reduction), 32 cross-lingual concepts; PARTIAL generalization (5/8 reps within ≤10% worsening rule)"
+    "1_12_benchmark_formal_suite_174k": "COMPLETE - 8 TF-IDF representations evaluated with frozen harness v3 thresholds; HNSW artifact fixed via exact k-NN on stratified subsample (n=2000 valid decisions)",
+    "2_citation_heritage_benchmark": "COMPLETE - Frozen pair pool validated (137,314 pairs, 95.9% citation resolution); infrastructure ready for dense embeddings; TF-IDF citation-based AUC 0.76-0.79 but recall@10 < 0.2 (FAIL); text-based AUC ~0.49 (FAIL)",
+    "3_v17b_label_normalization": "COMPLETE - 213→163 labels (23.5% reduction), 32 cross-lingual concepts; PARTIAL generalization (5/8 reps within ≤10% worsening rule on zoom_fine; text-based reps degrade 30-34%)",
+    "4_partial_dense_evaluation": "COMPLETE - 3 center_projected variants (768/64/128dim) on 12,570 decisions (years 2000-2002): ALL FAIL adversarial (lang_dom ~0.98, jurist_pref ~0.04). Root cause: 18.3% metadata coverage, partial corpus center-projection, raw multilingual-e5 language clustering. NOT comparable to 1,200-slice center_projected (which PASS adversarial)."
   },
   "blocked_dependencies": [
-    "legal-distance: 174k dense embeddings (3/26 years ACCEPTED (2000-2002), 22/26 years in checkpoints PENDING AUDIT (2003-2024), 1/26 year not yet processed (2025))",
+    "legal-distance: 174k dense embeddings (3/26 years ACCEPTED (2000-2002, ~19,441 decisions), 17/26 years (2003-2019, ~99k decisions) in checkpoints PENDING AUDIT, 6/26 years (2020-2025) not yet processed)",
     "legal-distance: citation role embeddings at 174k (awaits dense completion)",
     "legal-distance: linear hybrid embeddings at 174k (awaits dense completion)"
   ],
   "external_dependencies": [
     "Jurist human study (5-10 Swiss jurists) - framework ready, recruitment by repository owner required"
   ],
-  "monitor_status": "ACTIVE - watching legal-distance accepted mount for final concatenated 174k embeddings"
+  "monitor_status": "ACTIVE - watching legal-distance accepted mount for final concatenated 174k embeddings; check_count=201; last_check=2026-09-28T13:48:26",
+  "key_findings": {
+    "fundamental_tradeoff": "TF-IDF at 174k shows persistent two-mode tradeoff: citation-based reps PASS adversarial (lang_dom~0.53, jurist_pref~0.80) but FAIL branch/hierarchy; text-based reps PASS branch/legal_area but FAIL adversarial (lang_dom=1.0)",
+    "citation_heritage": "NEGATIVE at 174k for all TF-IDF reps - no representation achieves both AUC>0.6 AND recall@10>0.2",
+    "v17b_normalization": "Improves hierarchy/legal_area purity for citation-based reps (5-7% gain) but DEGRADES zoom_fine for text-based reps (30-34% loss)",
+    "hnsw_artifact": "CONFIRMED AND FIXED - HNSW with fixed params produces nearly identical k-NN graphs across TF-IDF reps at 174k; exact k-NN on valid subset used for adversarial benchmarks",
+    "scale_dependency": "Partial dense (12k) FAILS adversarial; 1,200-slice center_projected PASSES. Scale/metadata coverage critical for dense embeddings."
+  },
+  "production_default_status": {
+    "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+    "verdict": "PASS (both adversarial gates)",
+    "language_dominance": 0.5164,
+    "jurist_preference": 0.8055,
+    "citation_heritage_auc": 0.7597,
+    "citation_heritage_recall_at_10": 0.0529,
+    "v17b_zoom_fine_ratio": 1.0366
+  }
 }
