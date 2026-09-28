@@ -13,7 +13,7 @@
     "product/results/fractal_map/product_integration_174k/",
     "reports/product/FACTORY_V28_AUDIT_READY_VERIFICATION.md"
   ],
-  "next_recommendation": "BLOCKED_ON_DEPENDENCIES — 3 PRODUCTION DEFAULT 174k TF-IDF modes VERIFIED at FULL 174k scale (173,963 decisions, 7 zoom levels, hierarchical Leiden + UMAP complete); 174k scale simulation ALL PASS (16/16); section coverage 95.7% (1150/1202 decisions) via section_scaled_v2; corpus mount path gap RESOLVED (bger_YYYY.jsonl symlinks at /tmp/lex_accepted/core/corpus/normalization/ and /tmp/lex_accepted/evaluation/corpus/); full 174k TF-IDF embeddings available (8×175k decisions, 128D); 50+ API endpoints operational; corpus import functional (28/33 reps positioned); BLOCKED on legal-distance 174k dense embeddings (3/26 years complete, ~19,441 decisions, 11%). No further same-question cycles justified without dense embeddings delivery.",
+  "next_recommendation": "BLOCKED_ON_DEPENDENCIES — 3 production default 174k TF-IDF modes operational at 21,228 decisions (21k subset) with 7 zoom levels; 174k scale simulation ALL PASS (16/16); section coverage 95.7% (1150/1202 decisions) via section_scaled_v2; corpus mount path gap RESOLVED (bger_YYYY.jsonl symlinks at /tmp/lex_accepted/core/corpus/normalization/ and /tmp/lex_accepted/evaluation/corpus/); full 174k TF-IDF embeddings available (8×175k decisions, 128D) in hierarchical_map_174k/legal_tfidf_embeddings/; clustering artifacts for ~174k decisions exist on disk but UNLOADABLE due to incomplete metadata_174k_full.json (21,228 entries only, should be 174k); 50+ API endpoints operational; corpus import functional (28/33 reps positioned); BLOCKED on legal-distance 174k dense embeddings (3/26 years complete, ~19,441 decisions, 11%). No further same-question cycles justified without dense embeddings delivery OR completion of metadata_174k_full.json to enable actual 174k TF-IDF loading.",
   "metrics_summary": {
     "corpus_decisions_loaded": 7990,
     "corpus_languages": {
@@ -74,22 +74,22 @@
     "zoom_levels": [0, 1, 2, 3, 4, 5, 6],
     "174k_tfidf_modes_operational": {
       "cited_decisions_tfidf_174k": {
-        "n_decisions": 173963,
+        "n_decisions": 21228,
         "zoom_levels": 7,
         "evidence_tier": "ACCEPTED",
-        "note": "Zero-shot TF-IDF on cited decisions at FULL 174k scale. Citation heritage AUC 0.9719. Best for citation-proximity navigation at corpus scale. Full hierarchical Leiden + UMAP projection complete."
+        "note": "Zero-shot TF-IDF on cited decisions at 21k subset scale. Citation heritage AUC 0.9719. Full 174k clustering artifacts exist on disk but UNLOADABLE due to incomplete metadata_174k_full.json (21,228 entries vs 174k needed)."
       },
       "cited_outcome_hybrid_0.5_174k": {
-        "n_decisions": 173963,
-        "zoom_levels": 7,
+        "n_decisions": 21228,
+        "zoom_levels": 5,
         "evidence_tier": "ACCEPTED",
-        "note": "PRODUCTION DEFAULT per v15b-audit. 50% cited_decisions_tfidf + 50% outcome. Both adversarial gates PASS. Best for user-imported corpora. Full hierarchical Leiden + UMAP projection complete."
+        "note": "PRODUCTION DEFAULT per v15b-audit. 50% cited_decisions_tfidf + 50% outcome. Both adversarial gates PASS. Best for user-imported corpora. Full 174k clustering artifacts exist on disk but UNLOADABLE due to incomplete metadata_174k_full.json."
       },
       "cited_outcome_hybrid_0.7_174k": {
-        "n_decisions": 173963,
-        "zoom_levels": 7,
+        "n_decisions": 21228,
+        "zoom_levels": 5,
         "evidence_tier": "ACCEPTED",
-        "note": "BEST FRACTAL hybrid per factory direction v9. 70% cited_decisions_tfidf + 30% outcome. HierAdv=+0.3703. Both adversarial gates PASS. Full hierarchical Leiden + UMAP projection complete."
+        "note": "BEST FRACTAL hybrid per factory direction v9. 70% cited_decisions_tfidf + 30% outcome. HierAdv=+0.3703. Both adversarial gates PASS. Full 174k clustering artifacts exist on disk but UNLOADABLE due to incomplete metadata_174k_full.json."
       }
     },
     "v28_validation": {
@@ -103,25 +103,27 @@
         "DEFAULT_MAP_MODE: center_projected_64dim_hierarchical"
       ],
       "174k_tfidf_modes_operational": [
-        "cited_decisions_tfidf_174k (173,963 decisions, 7 zoom levels, ACCEPTED, FULL 174k)",
-        "cited_outcome_hybrid_0.5_174k (173,963 decisions, 7 zoom levels, ACCEPTED, FULL 174k, PRODUCTION DEFAULT)",
-        "cited_outcome_hybrid_0.7_174k (173,963 decisions, 7 zoom levels, ACCEPTED, FULL 174k, BEST FRACTAL)"
+        "cited_decisions_tfidf_174k (21,228 decisions, 7 zoom levels, ACCEPTED, 21k subset)",
+        "cited_outcome_hybrid_0.5_174k (21,228 decisions, 5 zoom levels, ACCEPTED, 21k subset, PRODUCTION DEFAULT)",
+        "cited_outcome_hybrid_0.7_174k (21,228 decisions, 5 zoom levels, ACCEPTED, 21k subset, BEST FRACTAL)"
       ],
       "174k_embeddings_available": "8 TF-IDF embeddings at 175,440 decisions in hierarchical_map_174k/legal_tfidf_embeddings",
+      "174k_clustering_artifacts_on_disk": "Full hierarchical Leiden + UMAP clustering for ~173,963 decisions exists in cited_decisions_tfidf_174k/, cited_outcome_hybrid_0.5_174k/, cited_outcome_hybrid_0.7_174k/ but UNLOADABLE — requires metadata_174k_full.json completion (currently 21,228 entries)",
       "awaiting_legal_distance": "Dense embeddings (center_projected, metric learning, citation roles, linear hybrids) - 3/26 years complete (2000-2002, ~19,441 decisions, 11% decision completion). Corpus artifact publication gap resolved via bger_YYYY.jsonl symlinks.",
       "factory_direction_correction": "v28 corrects v27 material error: legal-distance progress is 3/26 years (11.5%), not 11/26 years (36%). progress.json confirms completed_years: [2000, 2001, 2002] only."
     }
   },
-  "notes": "Cycle 36303703669: Factory direction v28 operational resume from persisted producer snapshot. DIAGNOSED orchestration/validation failure: zero-delta no-op repair pathology. FIXED: state updated to v28, cycle_status=BLOCKED_ON_DEPENDENCIES matching actual dependency state. VERIFIED: 38 representations load (31 legacy + 7 174k TF-IDF modes). 174k scale simulation ALL PASS (16/16). Section coverage 95.7%. Production defaults wired. 50+ API endpoints operational. 3 PRODUCTION DEFAULT 174k TF-IDF modes VERIFIED at FULL 174k scale (173,963 decisions) with full hierarchical Leiden + UMAP projection. BLOCKED on legal-distance 174k dense embeddings (3/26 years, ~19,441 decisions). Corpus lane PAUSED (complete). Legal-distance RUN (3/26 years ACCEPTED, 16/26 PENDING AUDIT). Fractal-map RUN (TF-IDF constrained hierarchical Leiden ACCEPTED, dense embeddings blocked). Evaluation RUN (TF-IDF formal suite COMPLETE at 174k, dense awaited). No further same-question cycles justified without dense embeddings delivery.",
+  "notes": "Cycle 36303703669: Factory direction v28 operational resume from persisted producer snapshot. DIAGNOSED orchestration/validation failure: zero-delta no-op repair pathology. FIXED: state updated to v28, cycle_status=BLOCKED_ON_DEPENDENCIES matching actual dependency state. VERIFIED: 38 representations load (31 legacy + 7 174k TF-IDF modes) with 0 load failures. 174k scale simulation ALL PASS (16/16). Section coverage 95.7%. Production defaults wired. 50+ API endpoints operational. 3 production default 174k TF-IDF modes operational at 21,228 decisions (21k subset) with 5-7 zoom levels. Full 174k clustering artifacts exist on disk (~173,963 decisions) but UNLOADABLE due to incomplete metadata_174k_full.json (21,228 entries only). BLOCKED on legal-distance 174k dense embeddings (3/26 years, ~19,441 decisions). Corpus lane PAUSED (complete). Legal-distance RUN (3/26 years ACCEPTED, years 2003-2019 PENDING AUDIT). Fractal-map RUN (TF-IDF constrained hierarchical Leiden ACCEPTED, dense embeddings blocked). Evaluation RUN (TF-IDF formal suite COMPLETE at 174k, dense awaited). No further same-question cycles justified without dense embeddings delivery OR metadata_174k_full.json completion.",
   "known_limitations": [
-    "3/7 174k TF-IDF representations at full 174k scale (production defaults); 4 exploratory at 1k scale",
+    "3/7 174k TF-IDF representations at 21k subset scale (production defaults); 4 exploratory at 1k scale; full 174k clustering artifacts exist but unloadable",
     "Section modes: 1150/1202 decisions use section-specific projections, 52 use baseline fallback",
     "TF-IDF model uses truncated text (2000 chars max per document)",
     "Cross-language neighbors limited by language-dominant clustering",
     "Full TF-2000+ corpus scale pending corpus lane completion (currently 1000-decision slice for legacy reps)",
     "Incremental updates only work for decisions with text embeddings in the base corpus space",
     "LOD level 1 super-cluster merging uses greedy algorithm; may not be globally optimal",
-    "Dense embeddings (center_projected, metric learning, citation roles, linear hybrids) awaited from legal-distance"
+    "Dense embeddings (center_projected, metric learning, citation roles, linear hybrids) awaited from legal-distance",
+    "metadata_174k_full.json incomplete (21,228 entries vs 174k needed) — blocks loading existing 174k clustering artifacts"
   ],
   "resolved_issues": [
     "Section modes limited to 63 decisions (fixed: scaled to 1150/1202 via FEAT-082 section_scaled_v2)",
@@ -157,11 +159,12 @@
     "Corpus mount path gap (fixed: bger_YYYY.jsonl symlinks created at /tmp/lex_accepted/core/corpus/normalization/ and /tmp/lex_accepted/evaluation/corpus/)"
   ],
   "next_steps": [
-    "COMPLETED: Full 174k clustering for cited_decisions_tfidf_174k, cited_outcome_hybrid_0.5_174k, cited_outcome_hybrid_0.7_174k (all 173,963 decisions, 7 zoom levels, hierarchical Leiden + UMAP complete)",
-    "COMPLETED: Validate 54+ API endpoints at 174k scale with real 174k map artifacts",
-    "COMPLETED: Confirm section coverage, LOD/culling/WebGL pipeline performance at production load with real 174k data",
+    "Complete metadata_174k_full.json (174k decision-id mapping) to enable loading existing 174k clustering artifacts from disk",
+    "Wire production defaults (cited_outcome_hybrid_0.5, linear_hybrid05_concat, center_projected_64dim_hierarchical) to full-corpus artifacts as legal-distance delivers 174k representations",
+    "Validate 54 API endpoints at 174k scale with real 174k map artifacts",
+    "Confirm section coverage, LOD/culling/WebGL pipeline performance at production load with real 174k data",
     "Attach dense embedding modes as legal-distance delivers them year-split",
-    "Run jurist pairwise evaluation at 174k density comparing production DEFAULT vs COMBINATION vs HIGH-PURITY",
+    "Run jurist pairwise evaluation at 174k density comparing production DEFAULT (cited_outcome_hybrid_0.5) vs COMBINATION (linear_hybrid05_concat) vs HIGH-PURITY (center_projected_64dim_hierarchical)",
     "Re-test linear_hybrid05_concat + hybrid production-deployment tradeoff at 174k density per factory direction v27 NEXT"
   ],
   "test_results": {
@@ -201,7 +204,7 @@
       "description": "test_cycle_product_v10.py: all 44 tests PASS (design patterns, holdout metrics, recommendations)"
     }
   },
-  "total_tests": 142,
-  "tests_passed": 142,
-  "state_consistency": "AUDIT_READY — single authoritative state/product.json, factory_direction.json v28, product lane BLOCKED_ON_DEPENDENCIES on legal-distance 174k dense embeddings (3/26 years, ~19,441 decisions), 38 representations load (0 failed), 3 PRODUCTION DEFAULT 174k TF-IDF modes VERIFIED at FULL 174k scale (173,963 decisions, 7 zoom levels, hierarchical Leiden + UMAP complete), 174k scale simulation ALL PASS (16/16), section coverage 95.7% (1150/1202 decisions), 50+ API endpoints operational, production defaults wired (cited_outcome_hybrid_0.5_174k, linear_hybrid05_concat, center_projected_64dim_hierarchical). All 142 tests PASS. No further same-question cycles justified without dense embeddings delivery."
+  "total_tests_collected": 351,
+  "tests_passed_verified": 142,
+  "state_consistency": "AUDIT_FIXED — single authoritative state/product.json, factory_direction.json v28, product lane BLOCKED_ON_DEPENDENCIES on legal-distance 174k dense embeddings (3/26 years, ~19,441 decisions), 38 representations load (0 failed), 3 production default 174k TF-IDF modes operational at 21,228 decisions (21k subset) with 5-7 zoom levels, full 174k clustering artifacts exist on disk (~173,963 decisions) but UNLOADABLE due to incomplete metadata_174k_full.json (21,228 entries), 174k scale simulation ALL PASS (16/16), section coverage 95.7% (1150/1202 decisions), 50+ API endpoints operational, production defaults wired (cited_outcome_hybrid_0.5_174k, linear_hybrid05_concat, center_projected_64dim_hierarchical). 351 tests collected; 142 verified passing (core + 174k simulation + v18 + scale readiness + v10). No further same-question cycles justified without dense embeddings delivery OR metadata_174k_full.json completion."
 }
