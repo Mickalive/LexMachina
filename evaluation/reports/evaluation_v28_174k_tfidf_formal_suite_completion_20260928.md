@@ -20,7 +20,7 @@ The evaluation lane has **completed all three machine-executable sub-questions**
 |--------------|--------|------------|
 | **(1) 12-Benchmark Formal Suite** | ✅ COMPLETE | 8 TF-IDF representations evaluated with frozen harness v3 thresholds; HNSW artifact fixed via exact k-NN on stratified subsample (n=2000) |
 | **(2) Citation Heritage Benchmark** | ✅ COMPLETE | Frozen pair pool validated (137,314 pairs, 95.9% citation resolution); infrastructure ready for dense embeddings |
-| **(3) v17b Label Normalization** | ✅ COMPLETE | 213→163 labels (23.5% reduction), 32 cross-lingual concepts; PARTIAL generalization (2/8 reps within ≤10% worsening rule) |
+| **(3) v17b Label Normalization** | ✅ COMPLETE | 213→163 labels (23.5% reduction), 32 cross-lingual concepts; PARTIAL generalization (5/8 reps within ≤10% worsening rule) |
 
 ---
 
@@ -120,11 +120,13 @@ The evaluation lane has **completed all three machine-executable sub-questions**
 | cited_decisions_tfidf | 1.057 | 1.038 | 1.062 | ✅ YES |
 | outcome_tfidf | 1.046 | 1.083 | 1.044 | ✅ YES |
 | regeste_tfidf | 1.000 | 1.103 | 1.017 | ✅ YES (all) |
+| cited_outcome_hybrid_0.5 | 1.056 | 1.037 | 1.063 | ✅ YES |
+| cited_outcome_hybrid_0.7 | 1.053 | 1.046 | 1.058 | ✅ YES |
 | full_text_tfidf_light | 1.000 | 0.668 | 0.973 | ❌ NO (zoom_fine -33%) |
 | regeste_full_text_hybrid_0.5 | 1.000 | 0.661 | 0.969 | ❌ NO |
 | regeste_full_text_hybrid_0.7 | 1.000 | 0.695 | 0.963 | ❌ NO |
 
-**Summary**: 2/8 representations (cited_decisions_tfidf, outcome_tfidf) show improvement or matching across all metrics. 6/8 show >10% worsening on at least one metric (primarily zoom_fine for full-text/regeste-based reps).
+**Summary**: 5/8 representations (cited_decisions_tfidf, outcome_tfidf, regeste_tfidf, cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7) show improvement or matching across all metrics. 3/8 show >10% worsening on at least one metric (primarily zoom_fine for full-text/regeste-based reps).
 
 ### Key Finding
 The v16 "data granularity" attribution (hierarchy purity < 0.7 threshold) is **partially a label normalization artifact** — citation-based reps show 1.5–1.6x purity gains with normalized labels. However, even with normalized labels, **best hierarchy purity = 0.47 < 0.7 threshold**, confirming the fundamental limitation is representation/signal, not just label granularity.
