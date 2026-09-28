@@ -1,0 +1,47 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Clarify citation coverage framing: change 'Only 174 decisions (0.1%) have outgoing citations in 174k corpus' to 'Only 174 decisions (0.1%) in the frozen benchmark pair pool have outgoing citations; full citation graph has 5,031 (2.89%)' in key_findings.citation_heritage_limited_by_sparse_graph"
+  ],
+  "claim_ceiling": "Evaluation lane deliverables per Factory Direction v28 COMPLETE and ACCEPTED. TF-IDF family (8 reps) formal suite, citation heritage validation, and v17b label normalization all executed at 174k scale with frozen harness v3. Dense embeddings from legal-distance remain at 3/26 years ACCEPTED — no further same-question evaluation cycles justified without new representations.",
+  "evidence_summary": {
+    "formal_suite_174k": {
+      "file": "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
+      "representations_tested": 8,
+      "pass_both_adversarial": 5,
+      "fail_both_adversarial": 3,
+      "backend": "sklearn_exact on stratified subsample n=2000 (HNSW artifact fix)"
+    },
+    "citation_heritage": {
+      "file": "evaluation/results/174k_citation_heritage/citation_heritage_174k_embeddings_latest.json",
+      "benchmark_pool": "2,040 frozen pairs (1,020 pos / 1,020 neg), seed=42, 95.9% citation-ID resolution",
+      "all_reps_fail_recall_at_10": true,
+      "best_citation_based_auc": 0.788,
+      "best_overall_auc": 0.898,
+      "coverage_note": "174 decisions in benchmark pool vs 5,031 (2.89%) in full citation graph"
+    },
+    "v17b_normalization": {
+      "file": "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
+      "labels_normalized": 85819,
+      "unique_areas_raw_to_norm": "214 -> 164",
+      "citation_based_gains_pct": "3-10% on hierarchy/zoom_fine/legal_area",
+      "text_based_zoom_fine_loss_pct": "30-34%"
+    },
+    "dense_embeddings_3yr": {
+      "file": "evaluation/results/174k/dense_partial_2000_2002/evaluation_dense_3yr_formal_suite.json",
+      "years": "2000-2002",
+      "decisions": 12570,
+      "variants_tested": 3,
+      "pass_rate": 0,
+      "lang_dom_range": "0.978-0.997",
+      "jurist_pref_range": "0.008-0.045"
+    },
+    "infrastructure_verification": {
+      "monitor_script": "operational, check_count=178",
+      "scalable_nn": "sklearn_exact (adversarial), HNSW (full-corpus), auto-backend selection",
+      "frozen_config_hash": "v3_174k_fixed",
+      "reproduction_test": "cited_decisions_tfidf lang_dom=0.479 PASS, jurist_pref=0.714 PASS, backend=sklearn_exact_on_stratified_subsample_n2000"
+    }
+  }
+}
