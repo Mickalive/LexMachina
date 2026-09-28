@@ -1,0 +1,14 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Correct citation heritage summary in narrative: 7/8 PASS AUC-ROC >= 0.65; 6/8 have nn_citation_rate@10 > 0.2 (not 'ALL FAIL recall@10 < 0.2')",
+    "Correct citation graph coverage: 3.1% (5,348/173,963 unique decisions in positive pairs), not 0.1% (174/173,963)",
+    "Correct dense embeddings adversarial claim: center_projected_768dim_partial_2000_2002 shows LangDom=0.780 PASS, branch_coherence=0.994 PASS (not 'LangDom~0.98-1.0 FAIL')",
+    "Correct v17b zoom_fine claim: fine_purity unchanged at 0.458 for text-based reps; NMI degrades 0.577->0.418 (not 'zoom_fine DEGRADES 30-34%')",
+    "Distinguish V25 174k suite branch_coherence (0.352 for production default) from 1200-decision adversarial validation jurist_preference (0.8055)",
+    "Clarify formal benchmark uses AUC-ROC >= 0.65 threshold, not 'recall@10 < 0.2'"
+  ],
+  "claim_ceiling": "REPRODUCED",
+  "evidence_summary": "V25 formal suite (config hash 4323f833fa72366a) executed on all 8 TF-IDF representations at 173,963 decisions — two-mode tradeoff reproduced. Citation heritage dedicated benchmark on frozen 2,040 pair pool (95.9% citation-ID resolution): 7/8 PASS AUC-ROC >= 0.65, 6/8 nn_citation_rate@10 > 0.2. v17b label normalization differential effect confirmed: citation-based reps improve hierarchy/zoom, text-based reps degrade NMI (fine_purity stable). Adversarial re-verification: production default cited_decisions_tfidf_outcome_hybrid_0.5 PASS (LangDom=0.5164, Jurist=0.8055) via exact k-NN n=2000 (config hash b51701f5a9c11692). Dense partial (3 years 2000-2002): center_projected_768dim PASS adversarial (LangDom=0.780, branch_coherence=0.994). Monitor active (check_count=198), no new representations detected. All core evidence independently verified and reproducible. Narrative summaries contain correctable factual errors (documented in required_fixes) but underlying machine-readable evidence is accurate."
+}
