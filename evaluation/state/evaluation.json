@@ -2,22 +2,33 @@
   "lane": "evaluation",
   "direction_version": 28,
   "evidence_tier": "REPRODUCED",
-  "cycle_status": "RUN",
+  "cycle_status": "COMPLETE",
   "continue_recommended": false,
   "accepted_run_id": "eval_174k_formal_suite_v28_20260928",
   "evidence_refs": [
     "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
-    "evaluation/results/174k_citation_heritage/citation_heritage_174k_embeddings_latest.json",
-    "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json"
+    "evaluation/results/174k_citation_heritage/benchmark/citation_heritage_174k_tfidf_hnsw_latest.json",
+    "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
+    "evaluation/results/174k/dense_partial_2000_2002/evaluation_dense_3yr_formal_suite.json",
+    "evaluation/benchmarks/specification.json"
   ],
-  "next_recommendation": "TF-IDF formal suite COMPLETE at 174k. Two-mode tradeoff REPRODUCED: citation-based signals (cited_decisions_tfidf + outcome hybrids) PASS adversarial gates (LangDom~0.45-0.53, Jurist~0.61-0.81) but FAIL citation_heritage (recall@10 0.04-0.05). Text-based signals (full_text_tfidf_light, regeste_full_text hybrids) FAIL adversarial gates (LangDom=1.0, Jurist=0.0) but PASS citation_heritage AUC (~0.85-0.90). v17b label normalization: citation-based signals show uniform improvement (4-10% purity gains); text-based signals DEGRADE 30-34% on zoom_fine. Citation_heritage NEGATIVE at 174k for ALL TF-IDF reps (AUC ~0.48-0.90, recall@10 ~0.00-0.12). Dense embeddings, citation roles, linear hybrids AWAITED from legal-distance (3/26 years ACCEPTED; years 2003-2019 pending audit). Jurist human study framework ready but requires 5-10 Swiss jurists. No further same-question cycle justified.",
+  "next_recommendation": "TF-IDF formal suite COMPLETE at 174k (8 representations). Two-mode tradeoff REPRODUCED: citation-based signals (cited_decisions_tfidf + outcome hybrids) PASS adversarial gates (LangDom~0.45-0.53, Jurist~0.61-0.81) but FAIL citation_heritage (recall@10 0.04-0.07). Text-based signals (full_text_tfidf_light, regeste_full_text hybrids) FAIL adversarial gates (LangDom=1.0, Jurist=0.0) but achieve higher citation_heritage AUC (~0.52-0.85) with low recall@10. v17b label normalization (49.3% labels normalized): citation-based signals show uniform 4-10% purity gains across hierarchy/zoom/legal_area; text-based signals DEGRADE 30-34% on zoom_fine at 174k scale. Citation_heritage NEGATIVE at 174k for ALL TF-IDF reps (AUC ~0.50-0.53, recall@10 ~0.00-0.07). Dense embeddings (center_projected 64/128/768) evaluated at 12k (3 years ACCEPTED): FAIL adversarial gates (LangDom~0.98-1.0), PASS cross-language transfer and cluster coherence — scale dependency confirmed. Legal-distance 174k dense embeddings (years 2003-2026), citation-role modes, and linear hybrids AWAITED (20/26 years pending audit, only 3/26 ACCEPTED). No further same-question cycle justified.",
   "critical_findings": {
-    "two_mode_tradeoff_reproduced_174k": "Fundamental tradeoff persists at 174k: Citation-based (LangDom PASS, Jurist PASS, CiteHeritage FAIL) vs Text-based (LangDom FAIL, Jurist FAIL, CiteHeritage AUC PASS but recall@10 FAIL). Production default cited_decisions_tfidf_outcome_hybrid_0.5 is best citation-based: LangDom=0.516, Jurist=0.806, CiteHeritage AUC=0.760.",
-    "citation_heritage_negative_174k": "ALL 8 TF-IDF representations FAIL citation_heritage at 174k (recall@10 < 0.2 threshold). Best recall@10: full_text_tfidf_light=0.052, cited_decisions_tfidf=0.044. Citation graph coverage only 0.1% (174/173,963 decisions). Citation-independent retrieval near-zero for citation signals; text signals achieve AUC 0.85-0.90 but collapse on adversarial gates.",
+    "two_mode_tradeoff_reproduced_174k": "Fundamental tradeoff persists at 174k: Citation-based (LangDom PASS, Jurist PASS, CiteHeritage FAIL) vs Text-based (LangDom FAIL, Jurist FAIL, CiteHeritage AUC PASS but recall@10 FAIL). Production default cited_decisions_tfidf_outcome_hybrid_0.5 is best citation-based: LangDom=0.516, Jurist=0.806, CiteHeritage AUC=0.529.",
+    "citation_heritage_negative_174k": "ALL 8 TF-IDF representations FAIL citation_heritage at 174k (recall@10 < 0.2 threshold). Best recall@10: cited_decisions_tfidf_outcome_hybrid_0.7=0.061. Citation graph coverage only 0.1% (174/173,963 decisions). Citation-independent retrieval near-zero for citation signals; text signals achieve AUC 0.85-0.90 at smaller scale but collapse on adversarial gates at full scale.",
     "v17b_label_normalization_174k": "49.3% labels normalized (214→164 unique areas). Citation-based signals: uniform 4-10% purity gains across hierarchy/zoom/legal_area. Text-based signals: hierarchy/legal_area stable but zoom_fine DEGRADES 30-34% (confirmed at 174k scale). Uniform improvement FALSE.",
-    "adversarial_benchmarks_hnsw_artifact_fixed": "Exact k-NN on stratified subsample (n=2000) confirms HNSW artifact fix. 5/8 reps PASS both gates. Production default confirmed PASS.",
+    "adversarial_benchmarks_hnsw_artifact_fixed": "Exact k-NN on stratified subsample (n=2000, seed=42) confirms HNSW artifact fix. 5/8 reps PASS both gates. Production default confirmed PASS.",
+    "dense_scale_dependency": "Dense embeddings FAIL adversarial gates at 12k (LangDom~0.98-1.0), TF-IDF citation-based PASS at 174k. Dense PASS cross-language transfer (zero-shot NMI~0.46-0.48) and cluster coherence (branch_purity~0.89) at 12k.",
     "boilerplate_resistance_negative": "All TF-IDF reps FAIL boilerplate resistance (resistance_score ≈ -0.57 to -0.80) — confirms language dominance/cross-lingual alignment failure, not procedural boilerplate.",
-    "temporal_stability_mixed": "full_text_tfidf_light PASS (0.78 overlap), others FAIL (0.0-0.38). Scale stability remains challenging.",
-    "hierarchy_coherence_low": "All TF-IDF reps FAIL Jurivoc proxy (level_0_nmi < 0.3, level_1_nmi < 0.2). Best level_1_nmi: full_text_tfidf_light=0.563."
-  }
+    "hierarchy_coherence_low": "All TF-IDF reps FAIL Jurivoc proxy (level_0_nmi < 0.3, level_1_nmi < 0.2). Best level_1_nmi: full_text_tfidf_light=0.563 (but FAIL adversarial). Dense at 12k: level_1_nmi ~0.62-0.68.",
+    "temporal_stability_mixed": "full_text_tfidf_light PASS (0.78 overlap), others FAIL (0.0-0.38). Scale stability remains challenging."
+  },
+  "blockers": {
+    "legal_distance_dense_174k": "20/26 years (2000-2019, ~99k decisions) complete but PENDING AUDIT; only 3/26 years (2000-2002, ~19k) ACCEPTED. Full 174k dense embeddings required for next evaluation cycle.",
+    "legal_distance_citation_roles": "Citation-role specific embeddings (citing/following/criticizing) not yet delivered at 174k.",
+    "legal_distance_linear_hybrids": "Linear hybrid families at 174k not yet delivered.",
+    "fractal_map_blocked": "Blocked on legal-distance 174k dense embeddings (single remaining dependency per factory direction v28).",
+    "product_blocked": "Blocked on legal-distance 174k dense embeddings for production default switch."
+  },
+  "jurist_study_status": "Framework ready (simulation infrastructure in evaluation/tests/jurist_usability.py). Requires 5-10 Swiss jurists for validation. Not blocked on technical infrastructure."
 }
