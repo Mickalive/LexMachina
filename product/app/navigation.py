@@ -265,11 +265,13 @@ class NavigationAPI:
         Builds one SpatialIndex per representation for the default zoom level.
         This enables O(sqrt(N) + k) viewport culling instead of O(N) brute-force.
         Tries to load from persisted artifacts for fast startup at 174k scale.
+        Verifies that persisted index matches current map data size.
         """
         import time as _time
         t0 = _time.time()
         count = 0
         loaded_from_disk = 0
+        rebuilt = 0
         
         persist_dir = Path(self.map_loader.results_dir) / "spatial_indices"
         persist_dir.mkdir(parents=True, exist_ok=True)
@@ -278,22 +280,26 @@ class NavigationAPI:
             zl = self.map_loader.get_zoom_level(rep, 1)  # Default zoom level
             if zl and zl.positions:
                 persist_path = persist_dir / f"spatial_{rep.replace('/', '_')}"
+                expected_size = len(zl.positions)
                 
                 # Try to load from disk first
                 si = SpatialIndex.load(persist_path)
-                if si is None:
-                    # Build and persist
+                if si is not None and si.size == expected_size:
+                    loaded_from_disk += 1
+                else:
+                    # Size mismatch or not found - rebuild
+                    if si is not None:
+                        print(f"[SpatialIndex] Size mismatch for {rep}: disk={si.size}, expected={expected_size}, rebuilding...")
                     si = SpatialIndex(persist_path=persist_path)
                     si.build(zl.positions)
-                else:
-                    loaded_from_disk += 1
+                    rebuilt += 1
                 
                 self._spatial_indices[rep] = si
                 count += 1
         
         elapsed = _time.time() - t0
         if count > 0:
-            print(f"[SpatialIndex] Built/loaded {count} spatial indices ({loaded_from_disk} from disk) in {elapsed:.3f}s")
+            print(f"[SpatialIndex] Built/loaded {count} spatial indices ({loaded_from_disk} from disk, {rebuilt} rebuilt) in {elapsed:.3f}s")
 
     def _get_spatial_index(self, representation: str) -> Optional[SpatialIndex]:
         """Get or build spatial index for a representation."""
@@ -305,9 +311,14 @@ class NavigationAPI:
         if zl and zl.positions:
             persist_dir = Path(self.map_loader.results_dir) / "spatial_indices"
             persist_path = persist_dir / f"spatial_{representation.replace('/', '_')}"
+            expected_size = len(zl.positions)
             
             si = SpatialIndex.load(persist_path)
-            if si is None:
+            if si is not None and si.size == expected_size:
+                pass  # Use loaded index
+            else:
+                if si is not None:
+                    print(f"[SpatialIndex] Size mismatch for {representation}: disk={si.size}, expected={expected_size}, rebuilding...")
                 si = SpatialIndex(persist_path=persist_path)
                 si.build(zl.positions)
             

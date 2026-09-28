@@ -1239,31 +1239,34 @@ class MapLoader:
             if labels is None:
                 continue
 
-            # Build cluster assignments from labels
+# Build cluster assignments from labels
             cluster_assignments = {}
             for idx, label in enumerate(labels):
                 did = index_to_id.get(idx)
                 if did:
                     cluster_assignments[did] = int(label)
-
-            # Build cluster info from metadata (res_metadata is dict with cluster_id as keys)
+            
+            # Build cluster info from metadata
             clusters = {}
             for cid_str, cluster_data in res_metadata.items():
                 cid = int(cid_str)
-                decision_indices = cluster_data.get("decision_indices", [])
-                decision_ids_in_cluster = [decision_ids[i] for i in decision_indices if i < len(decision_ids)]
-
+                # Prefer decision_ids if available (new format), fall back to decision_indices (old format)
+                decision_ids_in_cluster = cluster_data.get("decision_ids", [])
+                if not decision_ids_in_cluster:
+                    decision_indices = cluster_data.get("decision_indices", [])
+                    decision_ids_in_cluster = [decision_ids[i] for i in decision_indices if i < len(decision_ids)]
+                
                 clusters[cid] = ClusterInfo(
                     cluster_id=cid,
                     zoom_level=zoom_level,
                     decision_ids=decision_ids_in_cluster,
                     size=cluster_data.get("size", 0),
-                    centroid_x=0.0,  # Will compute below
+                    centroid_x=0.0,
                     centroid_y=0.0,
                     legal_area_label=cluster_data.get("dominant_area"),
                     language_label=cluster_data.get("dominant_lang"),
                 )
-
+            
             # Compute centroids from positions
             for cid, cluster in clusters.items():
                 xs = [positions[did][0] for did in cluster.decision_ids if did in positions]
