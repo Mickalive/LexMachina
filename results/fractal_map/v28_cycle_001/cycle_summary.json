@@ -1,0 +1,90 @@
+{
+  "run_id": "fractal_map_v28_cycle_001",
+  "timestamp": "2026-09-28T05:20:00Z",
+  "lane": "fractal-map",
+  "direction_version": 28,
+  "evidence_tier": "EXPLORATORY",
+  "cycle_status": "RUN",
+  "continue_recommended": true,
+  "blocked_on": "legal-distance 174k dense embeddings (3/26 years ACCEPTED, 20/26 PENDING AUDIT)",
+  "hypothesis": "Constrained hierarchical Leiden with adaptive=False achieves improvement_rate > 50% at 12k scale; citing_alpha0.7 passes flat v26 zoom quality at 1200 scale; scale dependency confirmed",
+  "frozen_sample": [
+    "12k dense embeddings (years 2000-2002, 12,570 decisions, 768-dim, ACCEPTED)",
+    "1200 citation-role alpha embeddings (1,200 decisions, 768-dim, ACCEPTED)"
+  ],
+  "frozen_metric": "Zoom improvement_rate (>50% threshold), flat v26 zoom quality (branch monotonic, area monotonic, improvement_rate_gt_0.5_on_2_of_4)",
+  "success_rule": "Constrained hierarchical Leiden improvement_rate > 0.5 with singleton_fraction < 0.1; flat v26 all three checks pass",
+  "key_findings": {
+    "12k_dense_adaptive_false": {
+      "config": {"coarse_res": 0.25, "base_sub_res": 3.0, "min_cluster_size": 5, "max_subclusters": 20, "adaptive_sub_res": false},
+      "improvement_rate": 0.5455,
+      "mean_improvement": 0.1228,
+      "median_cluster_size": 25.0,
+      "singleton_fraction": 0.008,
+      "hierarchical_branch_purity": 0.9880,
+      "passes_50pct_threshold": true,
+      "flat_v26_verdict": "FAIL"
+    },
+    "12k_dense_adaptive_true": {
+      "best_improvement_rate": 0.4545,
+      "passes_50pct_threshold": false,
+      "conclusion": "Adaptive sub-resolution harms zoom quality at 12k scale"
+    },
+    "1200_citation_alpha_flat_v26": {
+      "citing_alpha0.3": {"verdict": "FAIL", "improvement_rate_gt_05_on_2of4": false},
+      "citing_alpha0.5": {"verdict": "FAIL", "improvement_rate_gt_05_on_2of4": false},
+      "citing_alpha0.7": {"verdict": "PASS", "improvement_rate_gt_05_on_2of4": true},
+      "all_following": {"verdict": "FAIL", "improvement_rate_gt_05_on_2of4": false},
+      "all_criticizing": {"verdict": "FAIL", "improvement_rate_gt_05_on_2of4": false}
+    },
+    "1200_citation_alpha_constrained_hierarchical": {
+      "all_configs_pass_50pct": true,
+      "best_config": {"embedding": "citing_alpha0.7", "coarse_res": 0.25, "improvement_rate": 0.8333, "median_size": 15.0, "singleton_fraction": 0.0}
+    },
+    "scale_dependency": {
+      "1k_raw_citation_roles": "Severe fragmentation (>73% singletons)",
+      "1.2k_citation_alpha": "Flat v26 PASS (citing_alpha0.7), constrained hierarchical 62.5-83.3% imp_rate, near-zero fragmentation",
+      "12k_dense": "Flat v26 FAIL, constrained hierarchical 41.7-54.5% imp_rate (adaptive=False crosses 50%)",
+      "174k_tfidf": "Flat v26 FAIL (0/8 pass), severe over-fragmentation (>99% singletons)"
+    }
+  },
+  "negative_results": [
+    "Flat v26 zoom quality FAILS at 12k for dense embeddings",
+    "Flat v26 zoom quality FAILS at 174k for all 8 TF-IDF representations",
+    "Adaptive sub-resolution caps improvement_rate at 45.5% at 12k scale",
+    "Raw citation role embeddings (1k) show >73% singleton fragmentation",
+    "No dense embedding configuration achieves >55% improvement_rate at 12k"
+  ],
+  "recommendations": {
+    "immediate": [
+      "Test adaptive=False constrained hierarchical Leiden on 174k when dense embeddings arrive",
+      "Request legal-distance to compute citation-role alpha embeddings at 174k scale",
+      "Run full v26 zoom quality suite on all 174k representations"
+    ],
+    "architectural": [
+      "Deprecate adaptive sub-resolution for scales >= 10k",
+      "Prioritize citation-role alpha embedding pipeline for production map modes",
+      "Document scale thresholds where zoom quality behavior changes"
+    ],
+    "evaluation": [
+      "Freeze constrained hierarchical Leiden evaluation as standard benchmark",
+      "Add adaptive=False as standard configuration",
+      "Track improvement_rate, mean_improvement, fragmentation as core metrics"
+    ]
+  },
+  "evidence_artifacts": [
+    "results/fractal_map/v28_cycle_001/12k_dense_comprehensive_12570_20260928_051437.json",
+    "results/fractal_map/v28_cycle_001/12k_dense_comprehensive_12570_20260928_051528.json",
+    "results/fractal_map/v28_cycle_001/constrained_hierarchical_leiden_results.json",
+    "reports/fractal-map/fractal_map_v28_cycle_report.md"
+  ],
+  "provenance": {
+    "dense_embeddings_source": "/home/runner/work/LexMachina/LexMachina/legal_distance/results/174k_dense_embeddings/checkpoints/ (years 2000-2002, ACCEPTED)",
+    "citation_alpha_embeddings_source": "/tmp/lex_accepted/evaluation/evaluation/results/v3_citation_roles_frozen/ (1200 decisions, ACCEPTED)",
+    "metadata_1200": "/tmp/lex_accepted/evaluation/evaluation/data/dense_1200_baseline/metadata_1200.json",
+    "metadata_12k": "year-specific metadata from dense embeddings checkpoints",
+    "global_seed": 42,
+    "leiden_seed": 42,
+    "k_neighbors": 15
+  }
+}
