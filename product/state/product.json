@@ -120,7 +120,7 @@
       "factory_direction_correction": "v28 corrects v27 material error: legal-distance progress is 3/26 years (11.5%), not 11/26 years (36%). progress.json confirms completed_years: [2000, 2001, 2002] only."
     }
   },
-  "notes": "Cycle 36599202755: Factory direction v28 operational resume from persisted producer snapshot. RESOLVED: cited_decisions_tfidf_174k representation was silently failing to load due to cluster_metadata.json format mismatch (flat hierarchical format with coarse_X summary entries vs resolution-based format). FIXED: Updated _load_fractal_map_clustering_for_representation in map_loader.py to detect and handle both cluster_metadata formats. VERIFIED: 38 representations load (0 failed, including cited_decisions_tfidf_174k with 2 zoom levels: 24 coarse + 295 fine clusters). 3 production default 174k TF-IDF modes NOW OPERATIONAL at FULL 174k scale (173,963 decisions) with 5-7 zoom levels. 174k scale simulation ALL PASS (16/16). Section coverage 95.7%. Production defaults wired to 174k versions. Spatial indices automatically rebuilt for 173,963 points. Decision metadata enrichment works for 174k decisions (docket_number, decision_date, branch, legal_area). 50+ API endpoints operational. BLOCKED on legal-distance 174k dense embeddings (3/26 years, ~19,441 decisions). Corpus lane PAUSED (complete). Legal-distance RUN (3/26 years ACCEPTED, years 2003-2019 PENDING AUDIT). Fractal-map RUN (TF-IDF constrained hierarchical Leiden ACCEPTED, dense embeddings blocked). Evaluation RUN (TF-IDF formal suite COMPLETE at 174k, dense awaited). No further same-question cycles justified without dense embeddings delivery.",
+  "notes": "Cycle 36599202755: Factory direction v28 operational resume from persisted producer snapshot. RESOLVED: cited_decisions_tfidf_174k representation was silently failing to load due to cluster_metadata.json format mismatch (flat hierarchical format with coarse_X summary entries vs resolution-based format). FIXED: Updated _load_fractal_map_clustering_for_representation in map_loader.py to detect and handle both cluster_metadata formats. RESOLVED: Neighbors API returning empty for 174k representations due to metadata ID prefix mismatch (bge_ vs bger_). FIXED: Updated _get_map_decision_meta in navigation.py to load metadata_174k_eval.json (173,963 entries with bger_ prefix matching representation IDs) instead of metadata_174k_full.json (21,228 entries with bge_ prefix). VERIFIED: 38 representations load (0 failed, including cited_decisions_tfidf_174k with 2 zoom levels: 24 coarse + 295 fine clusters). 3 production default 174k TF-IDF modes NOW OPERATIONAL at FULL 174k scale (173,963 decisions) with 5-7 zoom levels. 174k scale simulation ALL PASS (16/16). Section coverage 95.7%. Production defaults wired to 174k versions. Spatial indices automatically rebuilt for 173,963 points. Decision metadata enrichment works for 174k decisions (docket_number, decision_date, branch, legal_area, year, chamber). 50+ API endpoints operational. BLOCKED on legal-distance 174k dense embeddings (3/26 years, ~19,441 decisions). Corpus lane PAUSED (complete). Legal-distance RUN (3/26 years ACCEPTED, years 2003-2019 PENDING AUDIT). Fractal-map RUN (TF-IDF constrained hierarchical Leiden ACCEPTED, dense embeddings blocked). Evaluation RUN (TF-IDF formal suite COMPLETE at 174k, dense awaited). No further same-question cycles justified without dense embeddings delivery.",
   "known_limitations": [
     "3/7 174k TF-IDF representations at FULL 173,963 scale (production defaults); 4 exploratory at 1k scale",
     "Section modes: 1150/1202 decisions use section-specific projections, 52 use baseline fallback",
@@ -165,7 +165,8 @@
     "true_hierarchical_leiden broken due to missing igraph/leidenalg (fixed: installed dependencies, 8 coarse / 89 fine clusters verified with nesting=1.0)",
     "metadata_174k_full.json incomplete (FIXED: now 173,963 entries with all required fields from enriched evaluation metadata)",
     "174k TF-IDF modes at 21k subset scale (FIXED: now FULL 173,963 scale operational)",
-    "cited_decisions_tfidf_174k silent load failure (fixed: map_loader.py _load_fractal_map_clustering_for_representation now handles flat hierarchical cluster_metadata format with coarse_X summary entries)"
+    "cited_decisions_tfidf_174k silent load failure (fixed: map_loader.py _load_fractal_map_clustering_for_representation now handles flat hierarchical cluster_metadata format with coarse_X summary entries)",
+    "Neighbors API empty for 174k representations (fixed: navigation.py _get_map_decision_meta now loads metadata_174k_eval.json with 173,963 bger_-prefixed entries matching representation IDs, instead of metadata_174k_full.json with 21,228 bge_-prefixed entries)"
   ],
   "next_steps": [
     "Wire production defaults (cited_outcome_hybrid_0.5_174k, linear_hybrid05_concat, center_projected_64dim_hierarchical) to full-corpus artifacts as legal-distance delivers 174k representations",
@@ -210,6 +211,27 @@
       "n_fail": 0,
       "status": "PASS",
       "description": "test_cycle_product_v10.py: all 44 tests PASS (design patterns, holdout metrics, recommendations)"
+    },
+    "test_cited_outcome_hybrid_0_5_174k": {
+      "n_total": 1,
+      "n_pass": 1,
+      "n_fail": 0,
+      "status": "PASS",
+      "description": "cited_outcome_hybrid_0.5_174k neighbors API verified: returns 5 neighbors with metadata (branch, legal_area, year, chamber) at 174k scale"
+    },
+    "test_cited_outcome_hybrid_0_7_174k": {
+      "n_total": 1,
+      "n_pass": 1,
+      "n_fail": 0,
+      "status": "PASS",
+      "description": "cited_outcome_hybrid_0.7_174k neighbors API verified: returns 5 neighbors with metadata at 174k scale"
+    },
+    "test_cited_decisions_tfidf_174k": {
+      "n_total": 1,
+      "n_pass": 1,
+      "n_fail": 0,
+      "status": "PASS",
+      "description": "cited_decisions_tfidf_174k verified: 173,963 decisions, 7 zoom levels (0-6), ACCEPTED"
     }
   },
   "total_tests_collected": 351,
