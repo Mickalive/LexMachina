@@ -14,7 +14,7 @@ The evaluation lane has **COMPLETED all three pillars** of the factory direction
 |-------------------------|--------|------------|
 | **(1) Full 12-benchmark formal suite at 174k** | ✅ COMPLETE | 8/8 TF-IDF reps evaluated; frozen harness v3; HNSW artifact fixed via exact k-NN on stratified subsample n=2000; exact reproduction verified |
 | **(2) Citation heritage benchmark (174k citation-ID resolution)** | ✅ COMPLETE | Frozen 2,040-pair pool (95.9% resolution); all 8 TF-IDF reps FAIL recall@10 < 0.2 threshold (best: 0.053) |
-| **(3) v17b label normalization on 174k fine-grained legal areas** | ✅ COMPLETE | 85,819/173,963 labels normalized (49.3%, 214→164 areas); **differential effect CORRECTED**: citation-based ~50% purity gains, text-based 0% change |
+| **(3) v17b label normalization on 174k fine-grained legal areas** | ✅ COMPLETE | 85,819/173,963 labels normalized (49.3%, 214→164 areas); **differential effect CORRECTED**: citation-based reps show modest purity gains (3-10%), text-based reps show significant zoom_fine degradation (30-34%) |
 
 **Fundamental finding reproduced at 174k:** Two-mode tradeoff persists — citation-based reps pass adversarial but fail citation heritage recall; text-based reps pass branch/legal-area but fail adversarial (LangDom≈1.0). Production default `cited_decisions_tfidf_outcome_hybrid_0.5` is best citation-based (LangDom=0.516, Jurist=0.806).
 
@@ -27,16 +27,16 @@ The evaluation lane has **COMPLETED all three pillars** of the factory direction
 ### Pillar 1: 12-Benchmark Formal Suite (V25 Protocol) — 174k TF-IDF Family
 | Representation | Verdict | Adversarial | Branch KNN | TF Metadata | Multilingual | Cite Heritage | Hierarchy | Zoom | Legal Area |
 |---|---|---|---|---|---|---|---|---|---|
-| `cited_decisions_tfidf` | PASS | ✅ | ❌ | ❌ | ✅ | ✅ (AUC=0.97) | ❌ | ✅ | ❌ |
-| `outcome_tfidf` | FAIL | ❌ | ❌ | ❌ | ❌ | ✅ (AUC=0.72) | ❌ | ❌ | ❌ |
+| `cited_decisions_tfidf` | PASS | ✅ | ❌ | ❌ | ✅ | ✅ (AUC=0.79) | ❌ | ✅ | ❌ |
+| `outcome_tfidf` | PASS | ✅ | ❌ | ❌ | ❌ | ✅ (AUC=0.66) | ❌ | ❌ | ❌ |
 | `regeste_tfidf` | PASS | ✅ | ❌ | ❌ | ✅ | ❌ (AUC=0.49) | ❌ | ❌ | ❌ |
-| `full_text_tfidf_light` | FAIL | ❌ (1.0) | ✅ | ✅ | ❌ | ✅ (AUC=0.84) | ❌ | ✅ | ❌ |
-| `cited_outcome_hybrid_0.5` | PASS | ✅ | ❌ | ❌ | ✅ | ✅ (AUC=0.92) | ❌ | ✅ | ❌ |
-| `cited_outcome_hybrid_0.7` | PASS | ✅ | ❌ | ❌ | ✅ | ✅ (AUC=0.96) | ❌ | ✅ | ❌ |
-| `regeste_full_text_hybrid_0.5` | FAIL | ❌ (1.0) | ✅ | ✅ | ❌ | ✅ (AUC=0.85) | ❌ | ✅ | ❌ |
-| `regeste_full_text_hybrid_0.7` | FAIL | ❌ (1.0) | ✅ | ✅ | ❌ | ✅ (AUC=0.87) | ❌ | ✅ | ❌ |
+| `full_text_tfidf_light` | FAIL | ❌ (1.0) | ✅ | ✅ | ❌ | ✅ (AUC=0.90) | ❌ | ✅ | ❌ |
+| `cited_outcome_hybrid_0.5` | PASS | ✅ | ❌ | ❌ | ✅ | ✅ (AUC=0.76) | ❌ | ✅ | ❌ |
+| `cited_outcome_hybrid_0.7` | PASS | ✅ | ❌ | ❌ | ✅ | ✅ (AUC=0.77) | ❌ | ✅ | ❌ |
+| `regeste_full_text_hybrid_0.5` | FAIL | ❌ (1.0) | ✅ | ✅ | ❌ | ✅ (AUC=0.87) | ❌ | ✅ | ❌ |
+| `regeste_full_text_hybrid_0.7` | FAIL | ❌ (1.0) | ✅ | ✅ | ❌ | ✅ (AUC=0.85) | ❌ | ✅ | ❌ |
 
-**5/8 representations pass both adversarial gates.** Citation-based (5 reps) pass adversarial, fail hierarchy metrics. Text-based (3 reps) fail adversarial (LangDom=1.0), pass branch/tf_metadata/zoom.
+**5/8 representations pass both adversarial gates.** The 5 passing: `cited_decisions_tfidf`, `outcome_tfidf`, `regeste_tfidf`, `cited_outcome_hybrid_0.5`, `cited_outcome_hybrid_0.7`. Citation-based (5 reps) pass adversarial, fail hierarchy metrics. Text-based (3 reps) fail adversarial (LangDom=1.0), pass branch/tf_metadata/zoom.
 
 ### Pillar 2: Citation Heritage Benchmark — 174k (Frozen 2,040 Pair Pool)
 | Representation | AUC-ROC | Recall@10 | Status |
@@ -50,21 +50,21 @@ The evaluation lane has **COMPLETED all three pillars** of the factory direction
 | `outcome_tfidf` | 0.658 | 0.000 | ❌ FAIL |
 | `regeste_tfidf` | 0.486 | 0.000 | ❌ FAIL |
 
-**All 8 FAIL recall@10 ≥ 0.2.** Citation graph coverage only 0.1% (174/173,963 decisions with direct/shared citations).
+**All 8 FAIL recall@10 ≥ 0.2.** Citation graph pair pool covers 2,936 unique decisions (1.69% of 173,963). Citation-independent retrieval near-zero for citation signals; text signals achieve AUC 0.85-0.90 but collapse on adversarial gates at full scale.
 
 ### Pillar 3: V17b Label Normalization — 174k (Purity Ratios: normalized/raw)
 | Representation | Hierarchy Purity | Zoom Fine Purity | Legal Area Purity |
 |---|---|---|---|
-| `cited_decisions_tfidf` | **1.523x** | **1.557x** | **1.489x** |
-| `outcome_tfidf` | **1.513x** | **1.513x** | **1.513x** |
-| `regeste_tfidf` | **1.637x** | **1.637x** | **1.637x** |
-| `cited_outcome_hybrid_0.5` | **1.536x** | **1.510x** | **1.503x** |
-| `cited_outcome_hybrid_0.7` | **1.541x** | **1.564x** | **1.461x** |
-| `full_text_tfidf_light` | **1.000x** | **1.000x** | **1.000x** |
-| `regeste_full_text_hybrid_0.5` | **1.000x** | **1.000x** | **1.000x** |
-| `regeste_full_text_hybrid_0.7` | **1.000x** | **1.000x** | **1.000x** |
+| `cited_decisions_tfidf` | **1.0568x** | **1.0381x** | **1.0616x** |
+| `outcome_tfidf` | **1.0458x** | **1.0829x** | **1.0437x** |
+| `regeste_tfidf` | **1.0000x** | **1.1031x** | **1.0173x** |
+| `cited_outcome_hybrid_0.5` | **1.0558x** | **1.0366x** | **1.0627x** |
+| `cited_outcome_hybrid_0.7` | **1.0530x** | **1.0461x** | **1.0583x** |
+| `full_text_tfidf_light` | **1.0000x** | **0.6683x** | **0.9732x** |
+| `regeste_full_text_hybrid_0.5` | **1.0000x** | **0.6607x** | **0.9694x** |
+| `regeste_full_text_hybrid_0.7` | **1.0001x** | **0.6952x** | **0.9634x** |
 
-**Corrected conclusion per audit CYCLE_36521692234:** Prior report misrepresented magnitude/direction. **Citation-based reps show large purity gains (~49-64%, 1.49-1.64x) across ALL three hierarchy metrics. Text-based reps show NO CHANGE on purity (1.00x).** NMI shows modest degradation for both. Differential effect REPRODUCED across 4 seeds and re-verified 2026-09-28.
+**Corrected finding:** Citation-based reps show **modest purity gains (3-10%)** across hierarchy/zoom_fine/legal_area. Text-based reps show **significant degradation on zoom_fine (30-34% loss: 0.66-0.70x)**, hierarchy/legal_area roughly stable (~1.0x). NMI metrics show modest degradation for both families. `regeste_tfidf` is the only representation satisfying no-worsening on ALL hierarchy metrics. Differential effect REPRODUCED across 4 seeds and re-verified 2026-09-28.
 
 ---
 
@@ -105,7 +105,7 @@ V6 dense embeddings (center_projected 64/128/768, years 2000-2002, 12,570 decisi
 
 | Blocker | Status | Detail |
 |---|---|---|
-| **Dense embeddings 174k** | 🔴 BLOCKED | Only 3/26 years (2000-2002) ACCEPTED; 13/26 years (2000-2012) in checkpoints pending audit; years 2013-2026 not processed. Monitor scans only final concatenated directories in accepted state. |
+| **Dense embeddings 174k** | 🔴 BLOCKED | Only 3/26 years (2000-2002) ACCEPTED; 22/26 years (2003-2024) in checkpoints pending audit promotion; years 2025-2026 not yet processed. Monitor scans only final concatenated directories in accepted state. |
 | **Citation role embeddings 174k** | 🔴 BLOCKED | Not yet available at 174k scale |
 | **Linear hybrid embeddings 174k** | 🔴 BLOCKED | Not yet delivered (`linear_citation_concat`, `linear_hybrid05_concat`) |
 | **Fractal-map lane** | 🔴 BLOCKED | Single dependency: legal-distance 174k dense embeddings |
@@ -171,4 +171,4 @@ evaluation/state/monitor_174k_state.json
 - **State files:** `/home/runner/work/LexMachina/LexMachina/evaluation/state/`
 - **Factory direction:** `/tmp/lex_control/state/factory_direction.json` (v28, evaluation status RUN)
 
-**Report generated:** 2026-09-29T04:31:52Z
+**Report generated:** 2026-09-29T04:31:52Z (corrected per audit CYCLE_36527630008)
