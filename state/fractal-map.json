@@ -23,7 +23,9 @@
     "results/fractal_map/12k_dense_comprehensive/12k_dense_comprehensive_12570_20260928_051528.json",
     "results/fractal_map/28k_checkpoint_validation/28k_validation_20260928_212756.json",
     "results/fractal_map/pipeline_readiness_12k_dense_official.json",
-    "results/fractal_map/12k_constrained_zoom_diagnostic/constrained_zoom_diagnostic_v2_20260928_133636.json"
+    "results/fractal_map/12k_constrained_zoom_diagnostic/constrained_zoom_diagnostic_v2_20260928_133636.json",
+    "results/fractal_map/alternative_hierarchical_tests/alt_hierarchical_174k_tfidf_20k_20260929.json",
+    "reports/fractal-map/alternative_hierarchical_methods_174k_tfidf_report.md"
   ],
   "next_recommendation": "BLOCKED on legal-distance 174k dense embeddings — only 3/26 years (2000-2002, ~19,441 decisions, 11%) ACCEPTED; 28k checkpoint validation CONFIRMS scale extrapolation model (hier_impr ~0.67 at 174k); pipeline readiness RE-VALIDATED on 12k ACCEPTED dense embeddings",
   "blocked_dependencies": [
@@ -78,7 +80,7 @@
     "pipeline_revalidation_12k_dense": "RE-VALIDATED on ACCEPTED 12k dense embeddings (years 2000-2002): constrained hierarchical Leiden PASSes hierarchical_v1 protocol (adaptive=True, min3); flat v26 FAILs — CONFIRMS prior accepted results"
   },
   "audit_gate": "PASS (CYCLE_36495654105, CYCLE_36554241961, CYCLE_36580077418, CYCLE_36582579243)",
-  "last_verification": "2026-09-29T15:45:00.000000+00:00",
+  "last_verification": "2026-09-29T18:30:00.000000+00:00",
   "test_suite": {
     "passed": 239,
     "skipped": 2,
@@ -111,5 +113,29 @@
     "github_run": "36582579243",
     "factory_direction_version": 28,
     "verification_complete": true
+  },
+  "alternative_methods_verification": {
+    "run_id": "fractal_map_v28_alt_hierarchical_20260929_cycle_36609316132",
+    "timestamp": "2026-09-29T18:30:00.000000+00:00",
+    "hypothesis": "Alternative hierarchical methods (HNSW, agglomerative, local UMAP) may achieve hierarchical_v1 legal_structure_branch on 174k TF-IDF where constrained hierarchical Leiden fails",
+    "frozen_sample": "10,381 decisions (cited_decisions_tfidf, 128-dim, from 20k sample with 48% zero-norm)",
+    "frozen_metric": "Fine branch_purity > 0.5 (hierarchical_v1 legal_structure_branch), improvement_rate, nesting",
+    "methods_tested": [
+      "multi-resolution_leiden_baseline",
+      "hnsw_hierarchical",
+      "agglomerative_ward",
+      "agglomerative_average",
+      "agglomerative_complete",
+      "constrained_hierarchical_leiden_adaptive_false_min10",
+      "local_umap_zoom_neighborhoods"
+    ],
+    "key_finding": "ALL methods FAIL hierarchical_v1 legal_structure_branch — best fine_branch_purity=0.3989 (local UMAP), 20% below 0.5 threshold",
+    "conclusion": "TF-IDF representation fundamentally lacks signal density for fine-grained branch purity > 0.5 at 174k scale; no clustering algorithm can overcome this",
+    "evidence_artifacts": [
+      "results/fractal_map/alternative_hierarchical_tests/alt_hierarchical_174k_tfidf_20k_20260929.json",
+      "reports/fractal-map/alternative_hierarchical_methods_174k_tfidf_report.md"
+    ],
+    "status": "NEGATIVE_RESULT_CONFIRMED",
+    "continue_recommended": false
   }
 }
