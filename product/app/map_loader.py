@@ -3131,11 +3131,15 @@ class MapLoader:
         This is a simplified version of _load_fractal_map_clustering that works with
         the new representations built by build_all_representations.py which have:
         - labels_res_0.25.npy through labels_res_3.0.npy (7 resolution levels)
-        - cluster_metadata.json
+        - cluster_metadata.json (two formats supported)
         - zoom_mappings.json
         - decision_clusters.json
         - zoom_coherence.json
         - metadata.json
+        
+        Supports two cluster_metadata formats:
+        1. Resolution-based: keys like "res_0.25", "res_0.5", etc. (e.g., cited_outcome_hybrid_0.5_174k)
+        2. Flat hierarchical: keys like "0", "1", "2"... with "coarse_parent" field (e.g., cited_decisions_tfidf_174k)
         """
         resolution_keys = ["0.25", "0.5", "0.75", "1.0", "1.5", "2.0", "3.0"]
         resolution_to_zoom = {
@@ -3186,38 +3190,53 @@ class MapLoader:
         
         zoom_levels = {}
         
-        for res_key, zoom_level in resolution_to_zoom.items():
-            meta_key = f"res_{res_key}"
-            if meta_key not in cluster_metadata:
-                continue
+        # Detect cluster_metadata format
+        # Check if it's flat hierarchical format (numeric keys with coarse_parent)
+        # Skip keys that start with "coarse_" as those are summary entries
+        numeric_keys = [k for k in cluster_metadata.keys() if k.isdigit()]
+        first_key = numeric_keys[0] if numeric_keys else None
+        is_flat_hierarchical = first_key is not None and "coarse_parent" in cluster_metadata.get(first_key, {})
+        
+        if is_flat_hierarchical:
+            # Flat hierarchical format: clusters have "coarse_parent" field
+            # Coarse clusters are under "coarse_X" keys with "is_coarse": true
+            # Fine clusters are under numeric keys with "coarse_parent" field
+            # Build two zoom levels: zoom 0 = coarse clusters, zoom 1 = fine clusters
+            coarse_clusters = {}
+            fine_clusters = {}
             
-            res_metadata = cluster_metadata[meta_key]
-            labels = labels_by_resolution.get(res_key)
+            # Load coarse clusters from "coarse_X" keys
+            for cid_str, cluster_data in cluster_metadata.items():
+                if cid_str.startswith("coarse_") and cluster_data.get("is_coarse"):
+                    cid = int(cid_str.replace("coarse_", ""))
+                    # Coarse clusters don't have decision_ids directly, but have "children" listing fine cluster IDs
+                    # We'll build decision_ids from the fine clusters that belong to this coarse cluster
+                    coarse_clusters[cid] = ClusterInfo(
+                        cluster_id=cid,
+                        zoom_level=0,
+                        decision_ids=[],  # Will be populated after loading fine clusters
+                        size=cluster_data.get("size", 0),
+                        centroid_x=0.0,
+                        centroid_y=0.0,
+                        legal_area_label=cluster_data.get("dominant_area"),
+                        language_label=cluster_data.get("dominant_lang"),
+                    )
             
-            if labels is None:
-                continue
-            
-            # Build cluster assignments from labels
-            cluster_assignments = {}
-            for idx, label in enumerate(labels):
-                did = index_to_id.get(idx)
-                if did:
-                    cluster_assignments[did] = int(label)
-            
-            # Build cluster info from metadata
-            clusters = {}
-            for cid_str, cluster_data in res_metadata.items():
+            # Load fine clusters from numeric keys
+            # Only iterate over numeric keys (skip "coarse_X" summary entries)
+            for cid_str in numeric_keys:
+                cluster_data = cluster_metadata[cid_str]
                 cid = int(cid_str)
-                # Handle both formats: decision_ids (new: actual decision IDs) and decision_indices (old: array indices)
+                # Handle both formats: decision_ids and decision_indices
                 if "decision_ids" in cluster_data:
                     decision_ids_in_cluster = cluster_data["decision_ids"]
                 else:
                     decision_indices = cluster_data.get("decision_indices", [])
                     decision_ids_in_cluster = [decision_ids[i] for i in decision_indices if i < len(decision_ids)]
                 
-                clusters[cid] = ClusterInfo(
+                cluster_info = ClusterInfo(
                     cluster_id=cid,
-                    zoom_level=zoom_level,
+                    zoom_level=1,  # Fine level
                     decision_ids=decision_ids_in_cluster,
                     size=cluster_data.get("size", 0),
                     centroid_x=0.0,
@@ -3225,23 +3244,129 @@ class MapLoader:
                     legal_area_label=cluster_data.get("dominant_area"),
                     language_label=cluster_data.get("dominant_lang"),
                 )
+                
+                coarse_parent = cluster_data.get("coarse_parent")
+                if coarse_parent is not None:
+                    # This is a fine cluster
+                    fine_clusters[cid] = cluster_info
+                    # Add decision_ids to parent coarse cluster
+                    if coarse_parent in coarse_clusters:
+                        coarse_clusters[coarse_parent].decision_ids.extend(decision_ids_in_cluster)
+                else:
+                    # This shouldn't happen in flat hierarchical format, but handle anyway
+                    pass
             
-            # Compute centroids from positions
-            for cid, cluster in clusters.items():
-                xs = [positions[did][0] for did in cluster.decision_ids if did in positions]
-                ys = [positions[did][1] for did in cluster.decision_ids if did in positions]
-                if xs and ys:
-                    cluster.centroid_x = sum(xs) / len(xs)
-                    cluster.centroid_y = sum(ys) / len(ys)
+            # Build cluster assignments from labels
+            # Use labels_res_0.25 for coarse, labels_res_0.5 for fine (or similar)
+            coarse_labels = labels_by_resolution.get("0.25")
+            fine_labels = labels_by_resolution.get("0.5")
             
-            zoom_levels[zoom_level] = ZoomLevel(
-                level=zoom_level,
-                n_clusters=len(clusters),
-                clusters=clusters,
-                positions=positions,
-                cluster_assignments=cluster_assignments,
-                n_decisions=n_decisions,
-            )
+            if coarse_labels is not None:
+                coarse_assignments = {}
+                for idx, label in enumerate(coarse_labels):
+                    did = index_to_id.get(idx)
+                    if did:
+                        coarse_assignments[did] = int(label)
+                
+                # Compute centroids for coarse clusters
+                for cid, cluster in coarse_clusters.items():
+                    xs = [positions[did][0] for did in cluster.decision_ids if did in positions]
+                    ys = [positions[did][1] for did in cluster.decision_ids if did in positions]
+                    if xs and ys:
+                        cluster.centroid_x = sum(xs) / len(xs)
+                        cluster.centroid_y = sum(ys) / len(ys)
+                
+                zoom_levels[0] = ZoomLevel(
+                    level=0,
+                    n_clusters=len(coarse_clusters),
+                    clusters=coarse_clusters,
+                    positions=positions,
+                    cluster_assignments=coarse_assignments,
+                    n_decisions=n_decisions,
+                )
+            
+            if fine_labels is not None:
+                fine_assignments = {}
+                for idx, label in enumerate(fine_labels):
+                    did = index_to_id.get(idx)
+                    if did:
+                        fine_assignments[did] = int(label)
+                
+                # Compute centroids for fine clusters
+                for cid, cluster in fine_clusters.items():
+                    xs = [positions[did][0] for did in cluster.decision_ids if did in positions]
+                    ys = [positions[did][1] for did in cluster.decision_ids if did in positions]
+                    if xs and ys:
+                        cluster.centroid_x = sum(xs) / len(xs)
+                        cluster.centroid_y = sum(ys) / len(ys)
+                
+                zoom_levels[1] = ZoomLevel(
+                    level=1,
+                    n_clusters=len(fine_clusters),
+                    clusters=fine_clusters,
+                    positions=positions,
+                    cluster_assignments=fine_assignments,
+                    n_decisions=n_decisions,
+                )
+        
+        else:
+            # Resolution-based format (original)
+            for res_key, zoom_level in resolution_to_zoom.items():
+                meta_key = f"res_{res_key}"
+                if meta_key not in cluster_metadata:
+                    continue
+                
+                res_metadata = cluster_metadata[meta_key]
+                labels = labels_by_resolution.get(res_key)
+                
+                if labels is None:
+                    continue
+                
+                # Build cluster assignments from labels
+                cluster_assignments = {}
+                for idx, label in enumerate(labels):
+                    did = index_to_id.get(idx)
+                    if did:
+                        cluster_assignments[did] = int(label)
+                
+                # Build cluster info from metadata
+                clusters = {}
+                for cid_str, cluster_data in res_metadata.items():
+                    cid = int(cid_str)
+                    # Handle both formats: decision_ids (new: actual decision IDs) and decision_indices (old: array indices)
+                    if "decision_ids" in cluster_data:
+                        decision_ids_in_cluster = cluster_data["decision_ids"]
+                    else:
+                        decision_indices = cluster_data.get("decision_indices", [])
+                        decision_ids_in_cluster = [decision_ids[i] for i in decision_indices if i < len(decision_ids)]
+                    
+                    clusters[cid] = ClusterInfo(
+                        cluster_id=cid,
+                        zoom_level=zoom_level,
+                        decision_ids=decision_ids_in_cluster,
+                        size=cluster_data.get("size", 0),
+                        centroid_x=0.0,
+                        centroid_y=0.0,
+                        legal_area_label=cluster_data.get("dominant_area"),
+                        language_label=cluster_data.get("dominant_lang"),
+                    )
+                
+                # Compute centroids from positions
+                for cid, cluster in clusters.items():
+                    xs = [positions[did][0] for did in cluster.decision_ids if did in positions]
+                    ys = [positions[did][1] for did in cluster.decision_ids if did in positions]
+                    if xs and ys:
+                        cluster.centroid_x = sum(xs) / len(xs)
+                        cluster.centroid_y = sum(ys) / len(ys)
+                
+                zoom_levels[zoom_level] = ZoomLevel(
+                    level=zoom_level,
+                    n_clusters=len(clusters),
+                    clusters=clusters,
+                    positions=positions,
+                    cluster_assignments=cluster_assignments,
+                    n_decisions=n_decisions,
+                )
         
         # Store fractal map metadata for API access
         self._fractal_map_metadata[mode_name] = {
