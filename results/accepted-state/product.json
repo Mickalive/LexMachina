@@ -114,7 +114,7 @@
       "factory_direction_correction": "v28 corrects v27 material error: legal-distance progress is 3/26 years (11.5%), not 11/26 years (36%). progress.json confirms completed_years: [2000, 2001, 2002] only."
     }
   },
-  "notes": "Cycle 36449844323: Operational resume from persisted producer snapshot. DIAGNOSED orchestration/validation failure: zero-delta no-op repair pathology. FIXED: state updated to v28, cycle_status=BLOCKED_ON_DEPENDENCIES matching actual dependency state. VERIFIED: 38 representations load (0 failed). 174k TF-IDF modes operational at FULL 173,963 scale (not 21k subset). cited_outcome_hybrid_0.5_174k PCA projection regenerated (was all zeros). 174k scale simulation ALL PASS (16/16). Section coverage 95.7%. Production defaults wired. 50+ API endpoints operational. WebGL/LOD/culling pipeline validated at 174k scale. BLOCKED on legal-distance 174k dense embeddings (3/26 years, ~19,441 decisions). Corpus lane PAUSED (complete). Legal-distance RUN (3/26 years ACCEPTED, 16/26 PENDING AUDIT). Fractal-map RUN (TF-IDF constrained hierarchical Leiden ACCEPTED, dense embeddings blocked). Evaluation RUN (TF-IDF formal suite COMPLETE at 174k, dense awaited). No further same-question cycles justified without dense embeddings delivery.",
+  "notes": "Cycle 36599202755: Operational resume from persisted producer snapshot. DIAGNOSED orchestration/validation failure: cited_decisions_tfidf_174k representation was silently failing to load due to cluster_metadata.json format mismatch (flat hierarchical format with coarse_X summary entries vs resolution-based format). FIXED: Updated _load_fractal_map_clustering_for_representation in map_loader.py to detect and handle both cluster_metadata formats. VERIFIED: 38 representations now load (0 failed, including cited_decisions_tfidf_174k with 2 zoom levels: 24 coarse + 295 fine clusters). 174k TF-IDF modes operational at FULL 173,963 scale. 174k scale simulation ALL PASS (16/16). Section coverage 95.7%. Production defaults wired. 50+ API endpoints operational. WebGL/LOD/culling pipeline validated at 174k scale. BLOCKED on legal-distance 174k dense embeddings (3/26 years, ~19,441 decisions). Corpus lane PAUSED (complete). Legal-distance RUN (3/26 years ACCEPTED, 16/26 PENDING AUDIT). Fractal-map RUN (TF-IDF constrained hierarchical Leiden ACCEPTED, dense embeddings blocked). Evaluation RUN (TF-IDF formal suite COMPLETE at 174k, dense awaited). No further same-question cycles justified without dense embeddings delivery.",
   "known_limitations": [
     "cited_outcome_hybrid_0.5_174k uses PCA projection (not UMAP) - acceptable for navigation, UMAP preferred for quality",
     "cited_outcome_hybrid_0.7_174k uses UMAP projection - full 174k operational",
@@ -159,7 +159,8 @@
     "No incremental map updates for corpus growth (fixed: IncrementalUpdater with k-NN positioning, delta persistence, merge)",
     "true_hierarchical_leiden broken due to missing igraph/leidenalg (fixed: installed dependencies, 8 coarse / 89 fine clusters verified with nesting=1.0)",
     "Corpus mount path gap (fixed: bge_YYYY.jsonl files available at /tmp/lex_accepted/corpus/corpus/normalization/canonical/)",
-    "cited_outcome_hybrid_0.5_174k projection_2d.npy was all zeros (fixed: regenerated via PCA on 128D embeddings)"
+    "cited_outcome_hybrid_0.5_174k projection_2d.npy was all zeros (fixed: regenerated via PCA on 128D embeddings)",
+    "cited_decisions_tfidf_174k silent load failure (fixed: map_loader.py _load_fractal_map_clustering_for_representation now handles flat hierarchical cluster_metadata format with coarse_X summary entries)"
   ],
   "next_steps": [
     "Attach dense embedding modes as legal-distance delivers them year-split",
