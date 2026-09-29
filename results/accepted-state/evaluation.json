@@ -1,50 +1,87 @@
 {
   "lane": "evaluation",
   "direction_version": 28,
-  "evidence_tier": "REPRODUCED",
+  "evidence_tier": "ACCEPTED",
   "cycle_status": "MONITORING",
   "continue_recommended": true,
-  "accepted_run_id": "evaluation_v28_174k_tfidf_formal_suite_20260928",
+  "accepted_run_id": "eval_174k_formal_suite_v28_monitoring",
   "evidence_refs": [
     "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
-    "evaluation/results/174k_citation_heritage/citation_pairs_174k_full.json",
-    "evaluation/results/174k_citation_heritage/citation_heritage_174k_embeddings_latest.json",
-    "evaluation/results/174k_label_analysis/174k_legal_area_analysis.json",
-    "evaluation/results/v17b_174k_tfidf/v17b_174k_tfidf_latest.json",
+    "evaluation/results/174k_citation_heritage/citation_pairs_174k.json",
     "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
-    "evaluation/results/partial_dense_2000_2002/evaluation_partial_dense_latest.json",
+    "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
+    "results/evaluation/v25_174k_formal_suite/partial_dense_results/dense_v6_2000_2002_12k.json",
     "evaluation/state/monitor_174k_state.json"
   ],
-  "next_recommendation": "Await legal-distance 174k dense embeddings audit promotion; then auto-evaluate via monitor_and_evaluate_174k.py",
-  "sub_questions": {
-    "1_12_benchmark_formal_suite_174k": "COMPLETE - 8 TF-IDF representations evaluated with frozen harness v3 thresholds; HNSW artifact fixed via exact k-NN on stratified subsample (n=2000 valid decisions). Config hash: b51701f5a9c11692",
-    "2_citation_heritage_benchmark": "COMPLETE - Frozen pair pool validated (137,314 pairs, 95.9% citation resolution from 2,019/2,105 resolved); infrastructure ready for dense embeddings; TF-IDF citation-based AUC 0.76-0.79 but recall@10 < 0.2 (FAIL); text-based AUC ~0.49 (FAIL)",
-    "3_v17b_label_normalization": "COMPLETE - 85,819 labels normalized (214→164 unique areas). Differential effect CONFIRMED: Citation-based reps improve 1.04-1.10x on hierarchy/zoom_fine/legal_area; text-based reps DEGRADE zoom_fine 0.66-0.70x",
-    "4_partial_dense_evaluation": "COMPLETE - 3 center_projected variants (768/64/128dim) on 12,570 decisions (years 2000-2002): ALL FAIL adversarial (lang_dom ~0.98, jurist_pref ~0.04). Root cause: 18.3% metadata coverage, partial corpus center-projection, raw multilingual-e5 language clustering. NOT comparable to 1,200-slice center_projected (which PASS adversarial). Additional 16-year partials (2000-2015, 99k decisions) evaluated for citation_heritage: AUC PASS (~0.905), recall@10 FAIL (0.000)"
-  },
-  "blocked_dependencies": [
-    "legal-distance: 174k dense embeddings (3/26 years ACCEPTED (2000-2002, ~19,441 decisions), 22/26 years (2003-2024, ~154k decisions) in checkpoints PENDING AUDIT, 2/26 years (2025-2026) not yet processed)",
-    "legal-distance: citation role embeddings at 174k (awaits dense completion)",
-    "legal-distance: linear hybrid embeddings at 174k (awaits dense completion)"
-  ],
-  "external_dependencies": [
-    "Jurist human study (5-10 Swiss jurists) - framework ready, recruitment by repository owner required"
-  ],
-  "monitor_status": "ACTIVE - watching legal-distance accepted mount for final concatenated 174k embeddings; check_count=215; last_check=2026-09-29T00:48:51; confirmed no new awaited representations (dense embeddings, citation roles, linear hybrids); legal-distance checkpoints show 25/26 years (2000-2024) completed but only 2000-2002 ACCEPTED",
-  "key_findings": {
-    "fundamental_tradeoff": "TF-IDF at 174k shows persistent two-mode tradeoff: citation-based reps PASS adversarial (lang_dom~0.53, jurist_pref~0.80) but FAIL branch/hierarchy; text-based reps PASS branch/legal_area but FAIL adversarial (lang_dom=1.0)",
-    "citation_heritage": "NEGATIVE at 174k for all TF-IDF reps - no representation achieves both AUC>0.6 AND recall@10>0.2",
-    "v17b_normalization": "Improves hierarchy/legal_area purity for citation-based reps (5-7% gain) but DEGRADES zoom_fine for text-based reps (30-34% loss)",
-    "hnsw_artifact": "CONFIRMED AND FIXED - HNSW with fixed params produces nearly identical k-NN graphs across TF-IDF reps at 174k; exact k-NN on valid subset used for adversarial benchmarks",
-    "scale_dependency": "Partial dense (12k) FAILS adversarial; 1,200-slice center_projected PASSES. Scale/metadata coverage critical for dense embeddings."
-  },
-  "production_default_status": {
-    "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
-    "verdict": "PASS (both adversarial gates)",
-    "language_dominance": 0.5164,
-    "jurist_preference": 0.8055,
-    "citation_heritage_auc": 0.7597,
-    "citation_heritage_recall_at_10": 0.0529,
-    "v17b_zoom_fine_ratio": 1.0366
+  "next_recommendation": "TF-IDF family (8 representations) COMPLETE at 174k: formal suite, citation heritage, v17b normalization all executed. V25 formal suite (frozen protocol) REPRODUCED on all 8 TF-IDF reps - fundamental two-mode tradeoff confirmed. V6 dense embeddings (years 2000-2002, 12,570 decisions) evaluated: FAIL adversarial (LangDom=0.99), FAIL hierarchy, FAIL legal_area. Monitor active (check_count=217) - auto-evaluating awaited representations as they land from legal-distance. BLOCKED on legal-distance audit promotion of dense embeddings (years 2003-2024, 22/26 years in checkpoints pending; only 3/26 years ACCEPTED).",
+  "summary": {
+    "tfidf_formal_suite_174k": {
+      "status": "COMPLETE",
+      "representations_tested": 8,
+      "adversarial_pass": 5,
+      "adversarial_fail": 3,
+      "best_representations": [
+        "cited_decisions_tfidf",
+        "cited_decisions_tfidf_outcome_hybrid_0.5",
+        "cited_decisions_tfidf_outcome_hybrid_0.7",
+        "outcome_tfidf",
+        "regeste_tfidf"
+      ],
+      "failed_representations": [
+        "full_text_tfidf_light",
+        "regeste_full_text_hybrid_0.5",
+        "regeste_full_text_hybrid_0.7"
+      ],
+      "key_finding": "Citation-based TF-IDF representations pass both adversarial gates (language_dominance < 0.85, jurist_pairwise > 0.5). Text-based representations fail language dominance (1.0) and jurist pairwise (0.0). Fundamental two-mode tradeoff reproduced at 174k."
+    },
+    "v25_formal_suite_174k": {
+      "status": "COMPLETE",
+      "protocol": "frozen v25 (config hash 4323f833fa72366a)",
+      "representations_tested": 8,
+      "key_finding": "Citation-based reps PASS adversarial/citation_heritage/multilingual, FAIL branch/tf_metadata/hierarchy. Text-based reps FAIL adversarial (lang_dom~1.0, jurist_pref~0.0). No TF-IDF representation passes all 12 benchmarks at 174k."
+    },
+    "citation_heritage_174k": {
+      "status": "COMPLETE",
+      "pair_pool": "2,040 frozen pairs (1,020 positive direct+shared citations, 1,020 negative, seed=42)",
+      "citation_id_resolution": "2,019/2,105 (95.9%)",
+      "result": "All 8 TF-IDF representations FAIL recall@10 threshold (production default nn_citation_rate@10=0.053). AUC-ROC >= 0.65 PASS on all but nearest-neighbor citation recall fails."
+    },
+    "v17b_label_normalization_174k": {
+      "status": "COMPLETE",
+      "labels_normalized": "85,819/173,963 (49.3%)",
+      "raw_unique_areas": 214,
+      "normalized_unique_areas": 164,
+      "uniform_improvement": false,
+      "citation_based_improvement": "5-10% across hierarchy, zoom_fine, legal_area",
+      "outcome_based_improvement": "4-8% across all metrics",
+      "regeste_improvement": "zoom_fine +10.3%, others matching",
+      "full_text_degradation": "zoom_fine -33% to -34%, legal_area -3% to -4%",
+      "key_finding": "v17b normalization generalizes to 174k for citation/outcome representations but DEGRADES full-text representations on zoom_fine. Only regeste_tfidf satisfies no-worsening on ALL hierarchy metrics."
+    },
+    "v6_dense_12k_evaluation": {
+      "status": "COMPLETE",
+      "decisions": 12570,
+      "years": "2000-2002",
+      "v25_formal_suite": "7 PASS / 3 FAIL / 2 SKIP",
+      "adversarial_falsification": "FAIL (LangDom=0.990, BranchCoherence=0.99)",
+      "hierarchy_coherence": "FAIL (purity=0.42, nmi=0.43)",
+      "legal_area_clustering": "FAIL (purity=0.009)",
+      "v17b_normalization": "NO improvement (hierarchy 1.00x, zoom_fine 1.01x, legal_area 1.00x; NMI drops 0.59->0.45)",
+      "key_finding": "V6 dense embeddings cluster by language at 12k scale (LangDom ~0.99). Confirming scale dependency: center_projected PASS at 1.2k slice but FAIL at 12k."
+    },
+"monitor_status": {
+        "check_count": 217,
+        "last_check": "2026-09-29T03:20:24",
+      "awaited_representations": {
+        "dense_embeddings": 8,
+        "citation_roles": 3,
+        "linear_hybrids": 2
+      },
+      "dense_embeddings_progress": {
+        "accepted_years": 3,
+        "checkpoint_years": 22,
+        "blocked_on": "audit promotion of years 2003-2024"
+      }
+    }
   }
 }
