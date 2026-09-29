@@ -4,7 +4,7 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "MONITORING",
   "continue_recommended": true,
-  "accepted_run_id": "eval_174k_formal_suite_tfidf_complete_20260929_v28_monitor_235_verified",
+  "accepted_run_id": "eval_174k_formal_suite_tfidf_complete_20260929_v28_monitor_236_verified",
   "evidence_refs": [
     "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
     "evaluation/results/174k_citation_heritage/citation_pairs_174k.json",
@@ -27,7 +27,7 @@
     "v6_dense_12k_evaluation": "V6 dense embeddings (years 2000-2002, 12,570 decisions) evaluated with v25 formal suite: 7 PASS / 3 FAIL / 2 SKIP. CRITICAL: adversarial_falsification FAIL (language_dominance=0.99, branch_coherence=0.99) - language completely dominates neighbors. hierarchy_coherence FAIL (purity=0.42 < 0.7, nmi=0.59). legal_area_clustering FAIL (purity=0.009 << 0.5). PASS: branch_knn (0.996), tf_metadata (0.996), multilingual_invariance (sep=0.076), cross_language_pairs (sep=0.076), collapse_check (mean_sim=0.86), temporal_stability (std=0.0), zoom_coherence (improvement=50%). V17b normalization: NO improvement (purity unchanged, NMI drops). Confirms dense scale dependency: at 12k, dense embeddings cluster by language not law.",
     "adversarial_benchmarks_hnsw_artifact_fixed": "Exact k-NN on stratified subsample (n=2000, seed=42) confirms HNSW artifact fix. 5/8 reps PASS both gates. Production default confirmed PASS (LangDom=0.477, Jurist=0.735). V25 suite uses HNSW with fixed params (M=16, ef_construction=200, ef_search=100) for scalability; citation_heritage uses exact k-NN on valid subset.",
     "dense_scale_dependency": "Dense embeddings FAIL adversarial gates at 12k (LangDom~0.98-1.0), TF-IDF citation-based PASS at 174k. Dense PASS cross-language transfer (zero-shot NMI~0.46-0.48) and cluster coherence (branch_purity~0.89) at 12k. Root cause: 18.3% metadata coverage, partial corpus center-projection, raw multilingual-e5 language clustering at 12k vs full 174k TF-IDF. V6 dense 12k confirms: LangDom=0.99 at 12k. Extended to 15-year partial (2000-2014): same failure pattern.",
-    "boilerplate_resistance_negative": "All TF-IDF reps FAIL boilerplate resistance (resistance_score ≈ -0.57 to -0.84) - confirms language dominance/cross-lingual alignment failure, not procedural boilerplate.",
+    "boilerplate_resistance_negative": "All TF-IDF reps FAIL boilerplate resistance (resistance_score \u2248 -0.57 to -0.84) - confirms language dominance/cross-lingual alignment failure, not procedural boilerplate.",
     "hierarchy_coherence_low": "All TF-IDF reps FAIL Jurivoc proxy (level_0_nmi < 0.3, level_1_nmi < 0.2). Best level_1_nmi: full_text_tfidf_light=0.030 (but FAIL adversarial). Dense at 12k: level_1_nmi ~0.59-0.68 but purity very low (0.42).",
     "temporal_stability_mixed": "full_text_tfidf_light PASS (0.78 overlap), others FAIL (0.0-0.38). V6 dense 12k PASS (std=0.0 - suspiciously perfect). Scale stability remains challenging."
   },
@@ -56,8 +56,8 @@
       "both_adversarial_pass": true,
       "backend": "sklearn_exact_on_stratified_subsample_n2000",
       "config_hash": "b51701f5a9c11692",
-      "note": "Production default adversarial re-verification PASS (exact reproduction, new run 2026-09-29T20:11:06). V25 formal suite cited_decisions_tfidf re-verified 2026-09-29T20:13:19 (6 PASS/5 FAIL/1 SKIP). v17b normalization re-verified (differential effect confirmed). Monitor check 235 completed 2026-09-29T20:09:55Z - no new awaited representations. Legal-distance 174k dense checkpoints: 15/26 years (2000-2014). Citation heritage frozen 137k pairs ready. v17b normalization 85,819 labels normalized. V6 dense 12k evaluated. All infrastructure VERIFIED.",
-      "verified_at": "2026-09-29T20:15:00.000Z"
+      "note": "Production default adversarial re-verification PASS (exact reproduction, new run 2026-09-29T20:59:39). V25 formal suite cited_decisions_tfidf re-verified 2026-09-29T20:59:39 (6 PASS/5 FAIL/1 SKIP). v17b normalization re-verified (differential effect confirmed). Monitor check 236 completed 2026-09-29T20:59:39Z - no new awaited representations. Legal-distance 174k dense checkpoints: 15/26 years (2000-2014). Citation heritage frozen 137k pairs ready. v17b normalization 85,819 labels normalized. V6 dense 12k evaluated. 15-year partial dense evaluated: adversarial FAIL (LangDom~0.98). All infrastructure VERIFIED.",
+      "verified_at": "2026-09-29T20:59:39.000Z"
     }
   },
   "readiness_for_next_representations": {
@@ -66,6 +66,7 @@
     "citation_heritage_pipeline": "READY (frozen 137,314 pair pool, 95.9% resolution) - VERIFIED",
     "v17b_normalization_pipeline": "READY - VERIFIED",
     "metadata_174k": "VERIFIED (173,963 entries, branch+legal_area 100% coverage)",
-    "monitor_script": "ACTIVE (check_count=235, last_check=2026-09-29T20:09:55Z)"
-  }
+    "monitor_script": "ACTIVE (check_count=236, last_check=2026-09-29T20:59:39Z)"
+  },
+  "last_verification": "2026-09-29T20:59:39.000Z"
 }
