@@ -251,6 +251,15 @@ def main():
             embeddings = np.load(emb_path, mmap_mode='r')
             logger.info(f"  Loaded {embeddings.shape}")
             
+            # Align embeddings with metadata (embeddings may have extra rows from build process)
+            if embeddings.shape[0] > len(raw_labels):
+                logger.info(f"  Trimming embeddings from {embeddings.shape[0]} to {len(raw_labels)} to match metadata")
+                embeddings = embeddings[:len(raw_labels)]
+            elif embeddings.shape[0] < len(raw_labels):
+                logger.error(f"  Embedding/metadata length mismatch: embeddings {embeddings.shape[0]} < metadata {len(raw_labels)}")
+                out["per_representation"][name] = {"error": f"embedding/metadata length mismatch: {embeddings.shape[0]} vs {len(raw_labels)}"}
+                continue
+            
             raw_res = run_one(embeddings, raw_labels, "raw")
             norm_res = run_one(embeddings, norm_labels, "normalized")
             

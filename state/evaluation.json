@@ -4,16 +4,17 @@
   "evidence_tier": "ACCEPTED",
   "cycle_status": "MONITORING",
   "continue_recommended": true,
-  "accepted_run_id": "eval_174k_formal_suite_v28_monitoring",
+  "accepted_run_id": "eval_174k_formal_suite_v28_monitoring_20260929",
   "evidence_refs": [
     "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
     "evaluation/results/174k_citation_heritage/citation_pairs_174k.json",
     "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
-    "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
-    "results/evaluation/v25_174k_formal_suite/partial_dense_results/dense_v6_2000_2002_12k.json",
-    "evaluation/state/monitor_174k_state.json"
+    "evaluation/results/174k/dense_165k_formal_suite/evaluation_165k_dense_formal_suite_latest.json",
+    "evaluation/state/monitor_174k_state.json",
+    "legal-distance/results/audit/legal-distance/CYCLE_36518989087_GATE.json",
+    "legal-distance/results/audit/legal-distance/CYCLE_36526074891_GATE.json"
   ],
-  "next_recommendation": "TF-IDF family (8 representations) COMPLETE at 174k: formal suite, citation heritage, v17b normalization all executed. V25 formal suite (frozen protocol) REPRODUCED on all 8 TF-IDF reps - fundamental two-mode tradeoff confirmed. V6 dense embeddings (years 2000-2002, 12,570 decisions) evaluated: FAIL adversarial (LangDom=0.99), FAIL hierarchy, FAIL legal_area. Monitor active (check_count=217) - auto-evaluating awaited representations as they land from legal-distance. BLOCKED on legal-distance audit promotion of dense embeddings (years 2003-2024, 22/26 years in checkpoints pending; only 3/26 years ACCEPTED).",
+  "next_recommendation": "TF-IDF family (8 representations) COMPLETE at 174k: formal suite, citation heritage, v17b normalization all executed. V25 formal suite (frozen protocol) REPRODUCED on all 8 TF-IDF reps - fundamental two-mode tradeoff confirmed. V6 dense embeddings (years 2000-2002, 12,570 decisions) evaluated: FAIL adversarial (LangDom=0.99), FAIL hierarchy, FAIL legal_area. Center_projected baselines at 174k (165k decisions, years 2000-2024) evaluated: FAIL jurist gate (JP=0.39-0.42). Monitor active (check_count=221) - auto-evaluating awaited representations as they land from legal-distance. BLOCKED on legal-distance audit promotion of dense embeddings (years 2003-2024, 22/26 years in checkpoints pending; only 3/26 years ACCEPTED). Next cycle: wait for legal-distance to promote metric learning, citation role embeddings, and linear hybrids at 174k scale.",
   "summary": {
     "tfidf_formal_suite_174k": {
       "status": "COMPLETE",
@@ -69,9 +70,31 @@
       "v17b_normalization": "NO improvement (hierarchy 1.00x, zoom_fine 1.01x, legal_area 1.00x; NMI drops 0.59->0.45)",
       "key_finding": "V6 dense embeddings cluster by language at 12k scale (LangDom ~0.99). Confirming scale dependency: center_projected PASS at 1.2k slice but FAIL at 12k."
     },
-"monitor_status": {
-        "check_count": 217,
-        "last_check": "2026-09-29T03:20:24",
+    "center_projected_174k_evaluation": {
+      "status": "COMPLETE",
+      "decisions": 165463,
+      "years": "2000-2024",
+      "representations_tested": 3,
+      "all_failed_jurist_gate": true,
+      "jurist_preference_rates": {
+        "center_projected_768dim": 0.389,
+        "center_projected_64dim": 0.418,
+        "center_projected_128dim": 0.4045
+      },
+      "language_dominance": "PASS (~0.83-0.85)",
+      "language_neighbor_rates": "90-93% persist",
+      "full_corpus_benchmarks": {
+        "cluster_coherence": "FAIL",
+        "hierarchy_coherence": "FAIL",
+        "cross_language_retrieval": "FAIL",
+        "boilerplate_resistance": "FAIL (resistance_score ~ -0.89)",
+        "temporal_stability": "PASS (neighbor_overlap ~0.78)"
+      },
+      "key_finding": "Prior v6 claim (center_projected_64 Jurist=0.982 on 1,200 decisions) does not generalize to 174k. Negative result honestly reported. Factory direction v27 correctly anticipated this as PENDING on dense embeddings landing — now resolved with clear negative signal."
+    },
+    "monitor_status": {
+      "check_count": 223,
+      "last_check": "2026-09-29T12:46:01",
       "awaited_representations": {
         "dense_embeddings": 8,
         "citation_roles": 3,
@@ -80,6 +103,7 @@
       "dense_embeddings_progress": {
         "accepted_years": 3,
         "checkpoint_years": 22,
+        "total_years": 26,
         "blocked_on": "audit promotion of years 2003-2024"
       }
     }
