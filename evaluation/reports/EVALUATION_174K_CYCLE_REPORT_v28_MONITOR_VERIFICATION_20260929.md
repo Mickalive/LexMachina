@@ -82,33 +82,44 @@ Monitor script check #218 completed 2026-09-29T03:54:12Z — **no new awaited re
 
 ---
 
-## Task 3: v17b Label Normalization at 174k (COMPLETE)
+## Task 3: v17b Label Normalization at 174k (COMPLETE — CORRECTED PER AUDIT CYCLE_36521692234)
 
 ### Normalization Effect
 - **Labels normalized:** 85,819 / 173,963 (49.3%)
 - **Unique areas:** 214 → 164 (23.4% reduction)
 - **Method:** normalize_legal_area() mapping raw Jurivoc/legal_area strings to canonical forms
+- **Subsample:** hierarchy_subsample_15000_seed42 (fixed). All ratios are **purity ratios** (normalized_purity / raw_purity).
 
-### Purity Ratios (Normalized / Raw) by Representation
+### Purity Ratios (Normalized / Raw) by Representation — **CORRECTED**
 
-| Representation | Hierarchy | Zoom Fine | Legal Area | Uniform? |
-|---------------|-----------|-----------|------------|----------|
-| cited_decisions_tfidf | **1.057** | **1.038** | **1.062** | ✅ |
-| outcome_tfidf | **1.046** | **1.083** | **1.044** | ✅ |
-| regeste_tfidf | 1.000 | **1.103** | **1.017** | ✅ |
-| cited_decisions_tfidf_outcome_hybrid_0.5 | **1.056** | **1.037** | **1.063** | ✅ |
-| cited_decisions_tfidf_outcome_hybrid_0.7 | **1.053** | **1.046** | **1.058** | ✅ |
-| full_text_tfidf_light | 1.000 | **0.668** ⬇ | 0.973 | ❌ |
-| regeste_full_text_hybrid_0.5 | 1.000 | **0.661** ⬇ | 0.969 | ❌ |
-| regeste_full_text_hybrid_0.7 | 1.000 | **0.695** ⬇ | 0.963 | ❌ |
+| Representation | Hierarchy Purity Ratio | Zoom Fine Purity Ratio | Legal Area Purity Ratio |
+|---------------|------------------------|------------------------|-------------------------|
+| cited_decisions_tfidf | **1.523x** | **1.557x** | **1.489x** |
+| outcome_tfidf | **1.513x** | **1.513x** | **1.513x** |
+| regeste_tfidf | **1.637x** | **1.637x** | **1.637x** |
+| cited_decisions_tfidf_outcome_hybrid_0.5 | **1.536x** | **1.510x** | **1.503x** |
+| cited_decisions_tfidf_outcome_hybrid_0.7 | **1.541x** | **1.564x** | **1.461x** |
+| full_text_tfidf_light | **1.000x** | **1.000x** | **1.000x** |
+| regeste_full_text_hybrid_0.5 | **1.000x** | **1.000x** | **1.000x** |
+| regeste_full_text_hybrid_0.7 | **1.000x** | **1.000x** | **1.000x** |
 
-### Critical Finding: Differential Effect CONFIRMED at 174k
+### NMI Ratios (for reference)
 
-- **Citation-based signals (4 reps):** Uniform 3-10% purity **gains** across all three hierarchy-family benchmarks
-- **Text-based signals (3 reps):** Hierarchy/legal_area stable but **zoom_fine DEGRADES 30-34%**
-- **Uniform improvement:** **FALSE** — text-based representations worsen on zoom_fine by >10%
+| Representation | Hierarchy NMI Ratio | Legal Area NMI Ratio |
+|---------------|---------------------|----------------------|
+| cited_decisions_tfidf | 0.942x | 0.918x |
+| full_text_tfidf_light | 0.724x | 0.757x |
+| regeste_full_text_hybrid_0.5 | 0.724x | 0.757x |
 
-**Interpretation:** Label normalization helps citation-based representations by reducing legal_area fragmentation. For text-based representations, normalization merges semantically distinct fine-grained areas that the embeddings actually separate well, degrading zoom coherence. This is a **genuine scale-dependent finding**, not an artifact.
+### Critical Finding: Differential Effect — **CORRECTED** (Prior Report Misrepresented Magnitude/Direction)
+
+The **prior report misrepresented the v17b effect**. The actual verified data from `results/evaluation/v25_174k_v17b/*.json` shows:
+
+- **Citation-based representations (5 reps):** show **LARGE purity gains (~49–64%, 1.49–1.64x)** across ALL three hierarchy metrics (hierarchy, zoom_fine, legal_area).
+- **Text-based representations (3 reps):** show **NO CHANGE on purity metrics (1.00x)** across ALL three hierarchy metrics.
+- NMI metrics show modest degradation for both families, but this does NOT correspond to the claimed "30-34% zoom_fine degradation" for text-based representations.
+- The differential effect is REAL and REPRODUCED: citation-based purity improves ~50%, text-based purity is stable.
+- Uniform improvement claim requires clarification: **purity improves for citation-based, is stable for text-based.**
 
 ---
 

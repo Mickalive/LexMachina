@@ -24,7 +24,7 @@
     "representations_failing_adversarial": 3,
     "citation_heritage_all_fail": true,
     "v17b_normalization_tested": true,
-    "v17b_differential_effect": "citation-based reps improve purity ratios (1.03-1.10x) but text-based reps worsen zoom_fine (~0.66-0.70x); only regeste_tfidf satisfies no-worsening on all hierarchy metrics (hierarchy=1.0x, zoom_fine=1.10x, legal_area=1.02x). V6 dense 12k: NO improvement (hierarchy 1.00x, zoom_fine 1.01x, legal_area 1.00x; NMI drops 0.59->0.45)",
+    "v17b_differential_effect": "CORRECTED per audit CYCLE_36521692234: citation-based reps show LARGE purity gains (~49-64%, 1.49-1.64x) across ALL three hierarchy metrics; text-based reps show NO CHANGE on purity (1.00x across all three). NMI shows modest degradation for both. Prior report misrepresented as 3-10% gains vs 30-34% degradation. Differential effect REPRODUCED: citation-based purity improves ~50%, text-based purity stable. V6 dense 12k: NO improvement (hierarchy 1.00x, zoom_fine 1.01x, legal_area 1.00x; NMI drops 0.59->0.45)",
     "production_default": "cited_decisions_tfidf_outcome_hybrid_0.5",
     "production_default_verdict": "PASS",
     "production_default_lang_dom": 0.5164,
@@ -43,7 +43,7 @@
   "work_completed": [
     "Full 12-benchmark formal suite at 174k on 8 TF-IDF representations (frozen harness v3, HNSW artifact fixed via exact k-NN on stratified subsample n=2000) - VERIFIED REPRODUCIBLE (config hash b51701f5a9c11692)",
     "Citation heritage benchmark re-run on regenerated frozen 2,040 pair pool (1,020 positive direct+shared citations, 1,020 negative, balanced sampling from resolved citation graph, seed=42) with 174k citation-ID resolution (2,019/2,105 resolved, 95.9%) - all 8 TF-IDF representations FAIL recall@10 threshold",
-    "v17b label normalization tested on 174k fine-grained legal_area labels (85,819 labels normalized, 214->164 unique areas) - differential effect CONFIRMED: citation-based reps improve purity ratios (1.03-1.10x); text-based reps worsen zoom_fine (~0.66-0.70x); only regeste_tfidf satisfies no-worsening on all hierarchy metrics",
+    "v17b label normalization tested on 174k fine-grained legal_area labels (85,819 labels normalized, 214->164 unique areas) - differential effect CONFIRMED and CORRECTED per audit CYCLE_36521692234: citation-based reps show LARGE purity gains (~49-64%, 1.49-1.64x) across ALL three hierarchy metrics; text-based reps show NO CHANGE on purity (1.00x across all three). Prior report misrepresented as 3-10% gains vs 30-34% degradation. V6 dense 12k: NO improvement (hierarchy 1.00x, zoom 1.01x, legal_area 1.00x; NMI drops 0.59->0.45)",
     "Formal suite re-verification 2026-09-28: exact reproduction of adversarial results (cited_decisions_tfidf lang_dom=0.5295, jurist_pref=0.8010, both PASS)",
     "v17b re-verification 2026-09-28: exact reproduction of differential effect ratios across all 8 TF-IDF representations (run_id eval_v17b_label_normalization_174k_1790635822)",
     "V25 formal suite runner verified operational 2026-09-27T22:04:04Z (cited_decisions_tfidf: 6 PASS / 5 FAIL / 1 SKIP); all 8 TF-IDF reps evaluated via frozen v25 protocol",

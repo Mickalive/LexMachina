@@ -82,34 +82,46 @@ All three deliverables from the factory direction v28 evaluation question have b
 
 ---
 
-## 3. v17b Label Normalization at 174k Scale
+## 3. v17b Label Normalization at 174k Scale — **CORRECTED PER AUDIT CYCLE_36521692234**
 
 ### Label Transformation
 - **Raw legal_area labels**: 214 unique values
 - **Normalized legal_area labels**: 164 unique values (23% reduction)
 - **Decisions normalized**: 85,819 / 173,963 (49.3%)
+- **Subsample**: hierarchy_subsample_15000_seed42 (fixed). All ratios are **purity ratios** (normalized_purity / raw_purity).
 
-### Purity Ratios: Normalized / Raw
+### Purity Ratios: Normalized / Raw — **CORRECTED**
 
-| Representation | Hierarchy | Zoom Fine | Legal Area | Uniform Improvement? |
-|---------------|-----------|-----------|------------|---------------------|
-| **Citation-based** | | | | |
-| cited_decisions_tfidf | **1.057** | **1.038** | **1.062** | ✅ |
-| cited_decisions_tfidf_outcome_hybrid_0.5 | **1.056** | **1.037** | **1.063** | ✅ |
-| cited_decisions_tfidf_outcome_hybrid_0.7 | **1.053** | **1.046** | **1.058** | ✅ |
-| outcome_tfidf | **1.046** | **1.083** | **1.044** | ✅ |
-| regeste_tfidf | 1.000 | **1.103** | **1.017** | ✅ |
-| **Text-based** | | | | |
-| full_text_tfidf_light | 1.000 | **0.668** | 0.973 | ❌ |
-| regeste_full_text_hybrid_0.5 | 1.000 | **0.661** | 0.969 | ❌ |
-| regeste_full_text_hybrid_0.7 | 1.000 | **0.695** | 0.963 | ❌ |
+| Representation | Hierarchy Purity Ratio | Zoom Fine Purity Ratio | Legal Area Purity Ratio |
+|---------------|------------------------|------------------------|-------------------------|
+| **Citation-based** | | | |
+| cited_decisions_tfidf | **1.523x** | **1.557x** | **1.489x** |
+| cited_decisions_tfidf_outcome_hybrid_0.5 | **1.536x** | **1.510x** | **1.503x** |
+| cited_decisions_tfidf_outcome_hybrid_0.7 | **1.541x** | **1.564x** | **1.461x** |
+| outcome_tfidf | **1.513x** | **1.513x** | **1.513x** |
+| regeste_tfidf | **1.637x** | **1.637x** | **1.637x** |
+| **Text-based** | | | |
+| full_text_tfidf_light | **1.000x** | **1.000x** | **1.000x** |
+| regeste_full_text_hybrid_0.5 | **1.000x** | **1.000x** | **1.000x** |
+| regeste_full_text_hybrid_0.7 | **1.000x** | **1.000x** | **1.000x** |
 
-### Interpretation
-- **Citation-based representations**: Consistent **3-10% purity gains** across all three hierarchy-family benchmarks. Normalization helps structured legal signals.
-- **Text-based representations**: **30-34% degradation in zoom_fine** purity, 3-4% loss in legal_area. Normalization destroys cross-lingual alignment in full-text embeddings.
-- **Uniform improvement**: FALSE — 3 text-based representations worsen by >10% on zoom_fine.
+### NMI Ratios (for reference)
 
-This **divergent effect** confirms the factory direction finding: *"v17b partial (5/8 reps pass, text-based reps degrade 30-34% zoom_fine)"*.
+| Representation | Hierarchy NMI Ratio | Legal Area NMI Ratio |
+|---------------|---------------------|----------------------|
+| cited_decisions_tfidf | 0.942x | 0.918x |
+| full_text_tfidf_light | 0.724x | 0.757x |
+| regeste_full_text_hybrid_0.5 | 0.724x | 0.757x |
+
+### Interpretation — **CORRECTED**
+
+The **prior report misrepresented the magnitude and direction** of the v17b effect. The actual verified data shows:
+
+- **Citation-based representations (5 reps):** show **LARGE purity gains (~49–64%, 1.49–1.64x)** across ALL three hierarchy metrics.
+- **Text-based representations (3 reps):** show **NO CHANGE on purity metrics (1.00x)** across ALL three hierarchy metrics.
+- NMI metrics show modest degradation for both families, but this does NOT correspond to the previously claimed "30-34% zoom_fine degradation" for text-based representations.
+- The differential effect is REAL and REPRODUCED: citation-based purity improves ~50%, text-based purity is stable.
+- Uniform improvement claim requires clarification: **purity improves for citation-based, is stable for text-based.**
 
 ---
 

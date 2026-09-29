@@ -49,12 +49,14 @@ All 8 TF-IDF representations evaluated on frozen pair pool (exact k-NN):
 - Text-based: AUC 0.50-0.53, recall@10 ~0.05
 - **No representation achieves both AUC>0.6 AND recall@10>0.2** — NEGATIVE result at 174k
 
-### ✅ v17b Label Normalization — COMPLETE at 174k
+### ✅ v17b Label Normalization — COMPLETE at 174k (CORRECTED PER AUDIT CYCLE_36521692234)
 
 - 214 raw legal_area labels → 164 normalized (40.2% reduction, 85,819 labels changed)
-- Citation-based reps: hierarchy/legal_area purity +4-6% (normalized > raw)
-- Text-based reps: **zoom_fine DEGRADES 30-34%** (normalized < raw by >10%)
-- Uniform improvement rule: **FAILED** (5/8 reps within ≤10% worsening; 3 text-based reps violate)
+- **Citation-based reps (5):** show **LARGE purity gains ~49-64% (1.49-1.64x)** across ALL three hierarchy metrics (hierarchy, zoom_fine, legal_area)
+- **Text-based reps (3):** show **NO CHANGE on purity metrics (1.00x across all three)**
+- NMI metrics show modest degradation for both families
+- **Prior report misrepresented:** claimed 3-10% gains vs 30-34% zoom_fine degradation — **INCORRECT**
+- Uniform improvement claim requires clarification: **purity improves for citation-based, is stable for text-based**
 - Best normalized hierarchy_purity = 0.554 < 0.7 threshold
 
 ### ⚠️ Partial Dense Evaluation — COMPLETE (3 years, 2000-2002, ~12,570 decisions)

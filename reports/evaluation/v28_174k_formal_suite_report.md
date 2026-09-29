@@ -62,24 +62,28 @@ Executed the complete **machine-executable 174k formal evaluation suite** on all
 
 **Normalization impact:** 214 → 164 unique legal areas (49.3% of 173,963 labels normalized).
 
-### Purity Ratios (Normalized / Raw)
+### Purity Ratios (Normalized / Raw) — **CORRECTED PER AUDIT CYCLE_36521692234**
 
-| Representation | Hierarchy | Zoom Fine | Legal Area | Uniform ✓ |
-|---|---|---|---|---|
-| `cited_decisions_tfidf` | **1.057** | **1.038** | **1.062** | ✓ |
-| `cited_decisions_tfidf_outcome_hybrid_0.5` | **1.056** | **1.037** | **1.063** | ✓ |
-| `cited_decisions_tfidf_outcome_hybrid_0.7` | **1.053** | **1.046** | **1.058** | ✓ |
-| `outcome_tfidf` | **1.046** | **1.083** | **1.044** | ✓ |
-| `regeste_tfidf` | **1.000** | **1.103** | **1.017** | ✓ |
-| `regeste_full_text_hybrid_0.7` | 1.000 | **0.695** | 0.963 | ✗ |
-| `regeste_full_text_hybrid_0.5` | 1.000 | **0.661** | 0.969 | ✗ |
-| `full_text_tfidf_light` | 1.000 | **0.668** | 0.973 | ✗ |
+| Representation | Hierarchy Purity Ratio | Zoom Fine Purity Ratio | Legal Area Purity Ratio |
+|---|---|---|---|
+| `cited_decisions_tfidf` | **1.523x** | **1.557x** | **1.489x** |
+| `cited_decisions_tfidf_outcome_hybrid_0.5` | **1.536x** | **1.510x** | **1.503x** |
+| `cited_decisions_tfidf_outcome_hybrid_0.7` | **1.541x** | **1.564x** | **1.461x** |
+| `outcome_tfidf` | **1.513x** | **1.513x** | **1.513x** |
+| `regeste_tfidf` | **1.637x** | **1.637x** | **1.637x** |
+| `regeste_full_text_hybrid_0.7` | **1.000x** | **1.000x** | **1.000x** |
+| `regeste_full_text_hybrid_0.5` | **1.000x** | **1.000x** | **1.000x** |
+| `full_text_tfidf_light` | **1.000x** | **1.000x** | **1.000x** |
 
-### Finding
-- **Citation-based signals (5 reps):** Uniform 4–10% purity gains across all three hierarchy-family benchmarks. **Generalization CONFIRMED at 174k.**
-- **Text-based signals (3 reps):** Hierarchy and legal_area stable, but **zoom_fine DEGRADES 30–34%**. This reproduces the v17b finding at 12k scale and confirms **scale dependency** — text-based representations lose fine-grained structure when labels are normalized at full corpus density.
+### Finding — **CORRECTED**
 
-**Uniform improvement: FALSE** (3 representations worsen >10% on zoom_fine).
+The **prior report misrepresented the magnitude and direction** of the v17b effect. The actual verified data shows:
+
+- **Citation-based signals (5 reps):** show **LARGE purity gains (~49–64%, 1.49–1.64x)** across ALL three hierarchy metrics.
+- **Text-based signals (3 reps):** show **NO CHANGE on purity metrics (1.00x)** across ALL three hierarchy metrics.
+- NMI metrics show modest degradation for both families, but this does NOT correspond to the claimed "30-34% zoom_fine degradation" for text-based representations.
+- The differential effect is REAL and REPRODUCED: citation-based purity improves ~50%, text-based purity is stable.
+- Uniform improvement claim requires clarification: **purity improves for citation-based, is stable for text-based.**
 
 ---
 
@@ -114,8 +118,8 @@ Executed the complete **machine-executable 174k formal evaluation suite** on all
 |---|---|---|
 | Two-mode tradeoff at 174k | **REPRODUCED** | Consistent across 8 reps, exact k-NN, frozen thresholds |
 | Citation heritage NEGATIVE at 174k | **REPRODUCED** | All 8 reps FAIL, consistent with v17b at 12k |
-| v17b label normalization (citation signals) | **REPRODUCED** | 5/5 reps show 4-10% gains across 3 benchmarks |
-| v17b label normalization (text signals) | **REPRODUCED** | 3/3 reps show 30-34% zoom_fine degradation |
+| v17b label normalization (citation signals) | **REPRODUCED** | 5/5 reps show ~49-64% purity gains across 3 hierarchy metrics (CORRECTED per audit CYCLE_36521692234) |
+| v17b label normalization (text signals) | **REPRODUCED** | 3/3 reps show NO purity change (1.00x) across 3 hierarchy metrics (CORRECTED per audit) |
 | Production default validated | **REPRODUCED** | `cited_decisions_tfidf_outcome_hybrid_0.5` PASS both gates |
 | HNSW artifact fix validated | **ACCEPTED** | Exact k-NN on stratified subsample implemented and verified |
 

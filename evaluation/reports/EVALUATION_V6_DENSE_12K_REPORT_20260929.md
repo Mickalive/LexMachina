@@ -18,6 +18,8 @@ Evaluated **v6 dense embeddings** (legal-distance v6 pipeline, years 2000-2002, 
 
 **v17b label normalization tested:** **NO significant improvement** — hierarchy purity unchanged (0.42→0.42), zoom coherence unchanged (50%→51%), legal_area purity unchanged (0.009→0.009). NMI drops from 0.59→0.45 (hierarchy) and 0.58→0.45 (legal_area).
 
+**Note on v17b at 174k (TF-IDF):** The v17b label normalization at full 174k scale on TF-IDF representations shows a **differential effect** (corrected per audit CYCLE_36521692234): citation-based representations show **large purity gains (~49–64%)** across all hierarchy metrics; text-based representations show **no purity change (1.00x)**. Prior reports misrepresented this as 3-10% gains vs 30-34% degradation.
+
 ---
 
 ## Evaluation Protocol
@@ -89,7 +91,9 @@ This confirms the **root cause**: the v6 dense embeddings (based on multilingual
 | legal_area_clustering (NMI) | 0.583 | 0.453 | 0.777 | **-22%** |
 | Unique legal_areas | 108 | 71 | 0.657 | -34% |
 
-**Interpretation:** Normalization merges cross-lingual variants (214→71 areas) but **does not improve clustering quality**. Purity metrics are unchanged; NMI **decreases significantly**. The v17b normalization helps TF-IDF citation-based signals (3-10% purity gains) but **provides no benefit for dense embeddings** at this scale.
+**Interpretation:** Normalization merges cross-lingual variants (214→71 areas on full 174k; 108→71 on 12k subsample) but **does not improve clustering quality** for dense embeddings. Purity metrics are unchanged; NMI **decreases significantly**. 
+
+**Note on v17b at 174k (TF-IDF, corrected per audit CYCLE_36521692234):** The v17b normalization helps TF-IDF **citation-based** signals (large purity gains ~49–64% across all hierarchy metrics) but provides **no purity benefit for text-based signals (1.00x)**. Prior reports misrepresented this as 3-10% gains vs 30-34% degradation.
 
 ---
 
