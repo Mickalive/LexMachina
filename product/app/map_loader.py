@@ -3208,8 +3208,12 @@ class MapLoader:
             clusters = {}
             for cid_str, cluster_data in res_metadata.items():
                 cid = int(cid_str)
-                decision_indices = cluster_data.get("decision_indices", [])
-                decision_ids_in_cluster = [decision_ids[i] for i in decision_indices if i < len(decision_ids)]
+                # Handle both formats: decision_ids (new: actual decision IDs) and decision_indices (old: array indices)
+                if "decision_ids" in cluster_data:
+                    decision_ids_in_cluster = cluster_data["decision_ids"]
+                else:
+                    decision_indices = cluster_data.get("decision_indices", [])
+                    decision_ids_in_cluster = [decision_ids[i] for i in decision_indices if i < len(decision_ids)]
                 
                 clusters[cid] = ClusterInfo(
                     cluster_id=cid,
