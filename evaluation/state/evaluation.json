@@ -1,14 +1,16 @@
 {
   "lane": "evaluation",
-  "direction_version": 28,
+  "direction_version": 29,
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "accepted_run_id": "eval_174k_formal_suite_20260929_231805",
   "continue_recommended": false,
   "evidence_refs": {
     "formal_suite_results": "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
+    "formal_suite_summary": "evaluation/results/v25_174k_formal_suite/results/_suite_summary.json",
     "citation_heritage_validation": "evaluation/results/174k_citation_heritage/citation_pairs_174k.json",
-    "v17b_label_normalization": "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json"
+    "v17b_label_normalization": "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
+    "partial_dense_12k_results": "evaluation/results/v25_174k_formal_suite/partial_dense_results/"
   },
   "next_recommendation": "PIVOT_WITHIN_MISSION",
   "summary": {
@@ -36,6 +38,16 @@
       "cited_decisions_tfidf_outcome_hybrid_0.7": {"language_dominance": 0.4783, "jurist_preference": 0.7275, "verdict": "PASS"},
       "regeste_full_text_hybrid_0.5": {"language_dominance": 0.4873, "jurist_preference": 0.7140, "verdict": "PASS"},
       "regeste_full_text_hybrid_0.7": {"language_dominance": 0.4889, "jurist_preference": 0.7120, "verdict": "PASS"}
+    },
+    "formal_suite_v25_12_benchmark_results": {
+      "cited_decisions_tfidf": {"n_passed": 6, "n_failed": 5, "n_skipped": 1, "passed": ["citation_heritage", "adversarial_falsification", "multilingual_invariance", "cross_language_pairs", "collapse_check", "zoom_coherence"], "failed": ["branch_knn", "tf_metadata_human_indexing", "boilerplate_resistance_real_corpus", "temporal_stability", "hierarchy_coherence", "legal_area_clustering"]},
+      "outcome_tfidf": {"n_passed": 3, "n_failed": 9, "passed": ["citation_heritage", "collapse_check", "temporal_stability"], "failed": ["branch_knn", "tf_metadata_human_indexing", "adversarial_falsification", "boilerplate_resistance_real_corpus", "multilingual_invariance", "cross_language_pairs", "hierarchy_coherence", "zoom_coherence", "legal_area_clustering"]},
+      "regeste_tfidf": {"n_passed": 5, "n_failed": 7, "passed": ["adversarial_falsification", "multilingual_invariance", "cross_language_pairs", "collapse_check", "temporal_stability"], "failed": ["citation_heritage", "branch_knn", "tf_metadata_human_indexing", "boilerplate_resistance_real_corpus", "hierarchy_coherence", "zoom_coherence", "legal_area_clustering"]},
+      "full_text_tfidf_light": {"n_passed": 7, "n_failed": 5, "passed": ["citation_heritage", "branch_knn", "tf_metadata_human_indexing", "boilerplate_resistance_real_corpus", "collapse_check", "temporal_stability", "zoom_coherence"], "failed": ["adversarial_falsification", "multilingual_invariance", "cross_language_pairs", "hierarchy_coherence", "legal_area_clustering"]},
+      "cited_outcome_hybrid_0.5": {"n_passed": 6, "n_failed": 5, "n_skipped": 1, "passed": ["citation_heritage", "adversarial_falsification", "multilingual_invariance", "cross_language_pairs", "collapse_check", "zoom_coherence"], "failed": ["branch_knn", "tf_metadata_human_indexing", "boilerplate_resistance_real_corpus", "temporal_stability", "hierarchy_coherence", "legal_area_clustering"]},
+      "cited_outcome_hybrid_0.7": {"n_passed": 6, "n_failed": 6, "passed": ["citation_heritage", "adversarial_falsification", "multilingual_invariance", "cross_language_pairs", "collapse_check", "zoom_coherence"], "failed": ["branch_knn", "tf_metadata_human_indexing", "boilerplate_resistance_real_corpus", "temporal_stability", "hierarchy_coherence", "legal_area_clustering"]},
+      "regeste_full_text_hybrid_0.5": {"n_passed": 7, "n_failed": 5, "passed": ["citation_heritage", "branch_knn", "tf_metadata_human_indexing", "boilerplate_resistance_real_corpus", "collapse_check", "temporal_stability", "zoom_coherence"], "failed": ["adversarial_falsification", "multilingual_invariance", "cross_language_pairs", "hierarchy_coherence", "legal_area_clustering"]},
+      "regeste_full_text_hybrid_0.7": {"n_passed": 7, "n_failed": 5, "passed": ["citation_heritage", "branch_knn", "tf_metadata_human_indexing", "boilerplate_resistance_real_corpus", "collapse_check", "temporal_stability", "zoom_coherence"], "failed": ["adversarial_falsification", "multilingual_invariance", "cross_language_pairs", "hierarchy_coherence", "legal_area_clustering"]}
     },
     "cross_language_benchmarks": {
       "all_representations_fail_zero_shot_transfer": true,
@@ -75,6 +87,12 @@
       "worst_degradation": "full_text_tfidf_light zoom_fine ratio 0.8352",
       "note": "v17b normalization does not uniformly improve 174k results; zoom coherence degrades for several reps"
     },
+    "partial_dense_12k_preview": {
+      "note": "12k-scale evaluation on 2000-2002 dense embeddings (ACCEPTED 3/26 years) run as preview; NOT 174k formal suite",
+      "dense_v6_2000_2002_12k": "evaluated in partial_dense_results",
+      "center_projected_768dim_partial_2000_2002": "evaluated in partial_dense_results",
+      "awaiting_174k_dense": "15/26 years (2000-2014) checkpointed pending audit; 11/26 years (2015-2026) not yet processed"
+    },
     "key_findings": [
       "TF-IDF family (8 representations) COMPLETE at 174k with HNSW artifact fixed (exact k-NN on valid subset for adversarial benchmarks)",
       "All 8 representations pass BOTH adversarial gates (language dominance < 0.85, jurist preference > 0.5)",
@@ -85,10 +103,10 @@
       "v17b label normalization (15-25% purity gain at smaller scale) does NOT generalize uniformly to 174k: zoom coherence DEGRADES for 4/8 representations (>10% worse)",
       "All representations FAIL cross-language retrieval (recall@10 ~0.12-0.14 < 0.2), cluster coherence (purity ~0.28-0.36 < 0.7), hierarchy alignment (NMI < 0.03 vs 0.3 threshold), boilerplate resistance (negative scores)",
       "Temporal stability: only full_text_tfidf_light passes (0.78 neighbor overlap), others fail",
-      "No dense embeddings, citation roles, linear hybrids, or metric learning results available yet from legal-distance (3/26 years ACCEPTED, 15/26 years checkpointed pending audit)"
+      "No dense embeddings, citation roles, linear hybrids, or metric learning results available yet from legal-distance at 174k scale (3/26 years ACCEPTED, 15/26 years checkpointed pending audit)"
     ],
     "blockers": [
-      "Dense embeddings, citation roles, metric learning, linear hybrids awaited from legal-distance lane",
+      "Dense embeddings, citation roles, metric learning, linear hybrids awaited from legal-distance lane at 174k scale",
       "Citation graph coverage only 0.1% of 174k corpus limits citation_heritage benchmark power",
       "Jurist human study framework ready but requires 5-10 Swiss jurists (external dependency)"
     ]
