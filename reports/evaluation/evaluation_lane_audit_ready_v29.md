@@ -39,9 +39,11 @@
 
 ### ✅ Component 2: Citation Heritage Benchmark — COMPLETE
 
-**Scope:** 8 TF-IDF representations evaluated on frozen 137,314-pair pool  
-**Citation Graph:** 173,963 decisions, 2,019/2,105 citations resolved (95.9%), 174 decisions in graph (0.1% coverage)  
-**Positive/Negative Pairs:** 137,314 each (balanced sampling, seed=42)  
+**Scope:** 8 TF-IDF representations evaluated on frozen pair pool  
+**Citation Graph:** 173,963 decisions, 174 decisions with outgoing citations (0.1% coverage), 2,105 total citations in graph, 924 resolved within graph (43.9%)  
+**Corpus-Level Citation ID Resolution:** 2,019/2,105 citation strings resolved to decision IDs (95.9%) — from corpus lane artifact  
+**Positive/Negative Pairs:** 137,314 each (balanced sampling from resolved citation graph, seed=42)  
+**Evaluation Sample:** 1,020 pairs (510 positive + 510 negative) stratified subsample from frozen pool — all 8 representations evaluated on this sample  
 
 | Representation | Recall@10 | AUC | Status |
 |---|---|---|---|
@@ -55,21 +57,37 @@
 | regeste_full_text_hybrid_0.7 | 0.0363 | 0.8517 | FAIL |
 
 **Threshold:** recall@10 > 0.2 required for PASS — **ALL FAIL**  
-**Note:** Citation graph covers only 0.1% of corpus, limiting benchmark power. Ready for 174k dense embeddings when available.
+**Note:** Evaluation ran on 1,020-pair stratified subsample (510 pos + 510 neg) from frozen 137,314-pair pool. Citation graph covers only 0.1% of corpus (174 decisions with outgoing citations), limiting benchmark power. Corpus-level citation ID resolution is 2,019/2,105 (95.9%). Ready for 174k dense embeddings when available.
 
 ### ✅ Component 3: v17b Label Normalization at 174k — COMPLETE
 
 **Scope:** 85,819 labels normalized, 214 → 164 unique legal_area values  
-**Differential Effect CONFIRMED and CORRECTED per audit CYCLE_36527630008:**
+**Differential Effect CONFIRMED and CORRECTED per audit CYCLE_36527630008 and CYCLE_36680459860:**
 
 | Representation Family | Hierarchy | Zoom Fine | Legal Area |
 |---|---|---|---|
-| Citation-based (4 reps) | +3-10% (1.03-1.10x) | +3-10% (1.03-1.10x) | ~stable (1.0x) |
-| Text-based (4 reps) | ~stable (1.0x) | **-30-34% (0.66-0.70x)** | ~stable (1.0x) |
+| Citation-based (4 reps) | **1.0x (no change)** | **0.83-0.99x (degradation)** | **~1.0x (no change)** |
+| Text-based (4 reps) | **1.0x (no change)** | **0.83-0.97x (degradation)** | **~1.0x (no change)** |
 
-- **regeste_tfidf** only representation with no-worsening on ALL hierarchy metrics
+**Per-representation purity ratios (normalized/raw) from `v17b_label_normalization_174k_latest.json`:**
+
+| Representation | Hierarchy | Zoom Fine | Legal Area |
+|---|---|---|---|
+| cited_decisions_tfidf | 1.0000 | 0.8869 | 1.0000 |
+| outcome_tfidf | 1.0000 | 0.9968 | 1.0000 |
+| regeste_tfidf | 1.0000 | 0.9885 | 1.0018 |
+| full_text_tfidf_light | 1.0000 | 0.8352 | 0.9997 |
+| cited_outcome_hybrid_0.5 | 1.0000 | 0.8827 | 0.9997 |
+| cited_outcome_hybrid_0.7 | 1.0000 | 0.8861 | 1.0000 |
+| regeste_full_text_hybrid_0.5 | 1.0000 | 0.9060 | 1.0024 |
+| regeste_full_text_hybrid_0.7 | 1.0000 | 0.9647 | 1.0016 |
+
+- **Hierarchy:** NO improvement for ANY representation (all ratios = 1.0000)
+- **Zoom Fine:** DEGRADATION for 7/8 representations (ratios 0.83–0.99); regeste_tfidf least affected (0.9885)
+- **Legal Area:** NO meaningful change (all ~1.0)
+- **regeste_tfidf** only representation with no-worsening on ALL hierarchy metrics (hierarchy=1.0, zoom=0.9885, legal_area=1.0018)
 - **V6 dense (12k, 2000-2002):** NO improvement (hierarchy 1.00x, zoom 1.01x, legal_area 1.00x; NMI drops 0.59→0.45)
-- **Uniform improvement:** FALSE — v17b does NOT generalize uniformly to 174k
+- **Uniform improvement:** FALSE — v17b does NOT generalize uniformly to 174k; shows DEGRADATION on zoom_fine for most representations
 
 ---
 
@@ -78,7 +96,7 @@
 | Component | Status | Verification |
 |---|---|---|
 | Formal Suite Runner | ✅ OPERATIONAL | Exact reproduction 2026-09-27/28/29/30 |
-| Citation Heritage Pipeline | ✅ READY | Frozen 137k pairs, 95.9% resolution |
+| Citation Heritage Pipeline | ✅ READY | Frozen 137k pairs (1,020-pair eval sample), corpus citation resolution 2,019/2,105 (95.9%), graph resolution 924/2,105 (43.9%) |
 | v17b Normalization Pipeline | ✅ READY | Differential effect reproduced across all 8 reps |
 | HNSW Artifact Fix | ✅ CONFIRMED | Exact k-NN on stratified subsample (n=2000) |
 | Scalable NN (sklearn/HNSW) | ✅ OPERATIONAL | Adversarial: exact k-NN; Full-corpus: HNSW |
