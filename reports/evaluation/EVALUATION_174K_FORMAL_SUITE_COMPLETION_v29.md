@@ -23,11 +23,52 @@ The evaluation lane has **completed all three parts** of the factory direction v
 
 ---
 
+## Adversarial Gate Status (Corrected)
+
+**The v25 formal suite's adversarial_falsification benchmark (the formal suite's own adversarial gate): 4/8 PASS**
+
+| Representation | adversarial_falsification | Failure Mode |
+|----------------|---------------------------|--------------|
+| cited_decisions_tfidf | ✅ PASS | — |
+| outcome_tfidf | ❌ FAIL | branch_coherence 0.146 < 0.3 |
+| regeste_tfidf | ✅ PASS | — |
+| full_text_tfidf_light | ❌ FAIL | language_dominance 0.9999 > 0.85 |
+| cited_outcome_hybrid_0.5 | ✅ PASS | — |
+| cited_outcome_hybrid_0.7 | ✅ PASS | — |
+| regeste_full_text_hybrid_0.5 | ❌ FAIL | language_dominance 0.9982 > 0.85 |
+| regeste_full_text_hybrid_0.7 | ❌ FAIL | language_dominance 0.9994 > 0.85 |
+
+**run_174k_formal_suite.py adversarial benchmarks (different metrics): 8/8 PASS** — but this is a separate evaluation using jurist_would_succeed_rate, not the formal suite's adversarial_falsification benchmark. The two evaluations must not be conflated.
+
 ## 1. Formal Suite at 174k — TF-IDF Family (8 Representations)
 
-### 1.1 Adversarial Gate Results (Frozen Harness v3)
+### 1.1 Adversarial Gate Results — Two Distinct Evaluations
 
-All 8 representations pass **BOTH** adversarial gates on the fixed stratified subsample (exact k-NN, HNSW artifact fixed):
+**IMPORTANT CLARIFICATION:** Two different adversarial evaluations exist and must not be conflated:
+
+| Evaluation | Source | Metrics | Thresholds |
+|------------|--------|---------|------------|
+| **run_174k_formal_suite.py adversarial** | `evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json` | `adversarial_language_dominance` (mean_language_dominance) + `jurist_pairwise_preference` (jurist_would_succeed_rate) | lang_dom ≤ 0.85, jurist_pref ≥ 0.5 |
+| **v25 Formal Suite adversarial_falsification** | `results/evaluation/v25_174k_formal_suite/results/_suite_summary.json` | `language_dominance_mean` + `branch_coherence_mean` | lang_dom ≤ 0.85, branch_coherence ≥ 0.3 |
+
+**The v25 formal suite's `adversarial_falsification` benchmark is the formal suite's own adversarial gate.** Its results differ materially from the `run_174k_formal_suite.py` adversarial benchmarks because they measure different things: branch_coherence_mean (legal coherence of neighbors) vs jurist_would_succeed_rate (simulated jurist preference).
+
+#### 1.1.1 v25 Formal Suite — adversarial_falsification Results (Formal Suite Gate)
+
+| Representation | language_dominance_mean (max 0.85) | branch_coherence_mean (min 0.3) | Verdict |
+|----------------|------------------------------------|----------------------------------|---------|
+| cited_decisions_tfidf | 0.6018 ✅ | 0.3540 ✅ | **PASS** |
+| outcome_tfidf | 0.5099 ✅ | 0.1462 ❌ | **FAIL** (branch_coherence < 0.3) |
+| regeste_tfidf | 0.7568 ✅ | 0.6153 ✅ | **PASS** |
+| full_text_tfidf_light | 0.9999 ❌ | 0.7420 ✅ | **FAIL** (language_dominance > 0.85) |
+| cited_outcome_hybrid_0.5 | 0.5785 ✅ | 0.3520 ✅ | **PASS** |
+| cited_outcome_hybrid_0.7 | 0.5689 ✅ | 0.3560 ✅ | **PASS** |
+| regeste_full_text_hybrid_0.5 | 0.9982 ❌ | 0.9562 ✅ | **FAIL** (language_dominance > 0.85) |
+| regeste_full_text_hybrid_0.7 | 0.9994 ❌ | 0.9608 ✅ | **FAIL** (language_dominance > 0.85) |
+
+**Result: 4/8 representations pass the v25 formal suite's adversarial_falsification benchmark.** Text-based representations (full_text_tfidf_light, regeste_full_text_hybrid_*) fail language dominance; outcome_tfidf fails branch coherence. This confirms the fundamental two-mode tradeoff extends to adversarial robustness.
+
+#### 1.1.2 run_174k_formal_suite.py — Adversarial Benchmarks (Different Metrics)
 
 | Representation | Language Dominance (max 0.85) | Jurist Preference (min 0.5) | Verdict |
 |----------------|-------------------------------|------------------------------|---------|
@@ -40,7 +81,7 @@ All 8 representations pass **BOTH** adversarial gates on the fixed stratified su
 | regeste_full_text_hybrid_0.5 | 0.4873 ✅ | 0.7140 ✅ | **PASS** |
 | regeste_full_text_hybrid_0.7 | 0.4889 ✅ | 0.7120 ✅ | **PASS** |
 
-**Best representation:** `cited_decisions_tfidf_outcome_hybrid_0.5` (production default) — lowest language dominance (0.4773) + highest jurist preference (0.7345).
+**All 8 pass this evaluation**, but it uses different metrics (jurist_would_succeed_rate on a 2,000-decision stratified subsample with exact k-NN) than the formal suite's adversarial_falsification benchmark.
 
 ### 1.2 12-Benchmark Formal Suite Results (v25 Protocol)
 

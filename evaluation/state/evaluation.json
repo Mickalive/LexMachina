@@ -18,26 +18,46 @@
     "formal_suite_completed": true,
     "representations_evaluated": 8,
     "adversarial_gate_results": {
-      "all_representations_pass": true,
-      "thresholds": {
-        "language_dominance_max": 0.85,
-        "jurist_pairwise_min": 0.5
+      "formal_suite_adversarial_falsification_v25": {
+        "description": "v25 formal suite's own adversarial_falsification benchmark (language_dominance_mean + branch_coherence_mean)",
+        "all_representations_pass": false,
+        "passed": 4,
+        "failed": 4,
+        "thresholds": {
+          "language_dominance_max": 0.85,
+          "branch_coherence_min": 0.3
+        },
+        "results": {
+          "cited_decisions_tfidf": {"language_dominance_mean": 0.6018, "branch_coherence_mean": 0.3540, "verdict": "PASS"},
+          "outcome_tfidf": {"language_dominance_mean": 0.5099, "branch_coherence_mean": 0.1462, "verdict": "FAIL (branch_coherence < 0.3)"},
+          "regeste_tfidf": {"language_dominance_mean": 0.7568, "branch_coherence_mean": 0.6153, "verdict": "PASS"},
+          "full_text_tfidf_light": {"language_dominance_mean": 0.9999, "branch_coherence_mean": 0.7420, "verdict": "FAIL (language_dominance > 0.85)"},
+          "cited_outcome_hybrid_0.5": {"language_dominance_mean": 0.5785, "branch_coherence_mean": 0.3520, "verdict": "PASS"},
+          "cited_outcome_hybrid_0.7": {"language_dominance_mean": 0.5689, "branch_coherence_mean": 0.3560, "verdict": "PASS"},
+          "regeste_full_text_hybrid_0.5": {"language_dominance_mean": 0.9982, "branch_coherence_mean": 0.9562, "verdict": "FAIL (language_dominance > 0.85)"},
+          "regeste_full_text_hybrid_0.7": {"language_dominance_mean": 0.9994, "branch_coherence_mean": 0.9608, "verdict": "FAIL (language_dominance > 0.85)"}
+        },
+        "note": "Text-based modes fail language dominance; outcome_tfidf fails branch coherence. Confirms two-mode tradeoff extends to adversarial robustness."
       },
-      "best_representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
-      "best_language_dominance": 0.4773,
-      "best_jurist_preference": 0.7345,
-      "production_default": "cited_decisions_tfidf_outcome_hybrid_0.5",
-      "production_default_pass": true
-    },
-    "per_representation_adversarial": {
-      "cited_decisions_tfidf": {"language_dominance": 0.4794, "jurist_preference": 0.7140, "verdict": "PASS"},
-      "outcome_tfidf": {"language_dominance": 0.5015, "jurist_preference": 0.6550, "verdict": "PASS"},
-      "regeste_tfidf": {"language_dominance": 0.4853, "jurist_preference": 0.6315, "verdict": "PASS"},
-      "full_text_tfidf_light": {"language_dominance": 0.4854, "jurist_preference": 0.7080, "verdict": "PASS"},
-      "cited_decisions_tfidf_outcome_hybrid_0.5": {"language_dominance": 0.4773, "jurist_preference": 0.7345, "verdict": "PASS"},
-      "cited_decisions_tfidf_outcome_hybrid_0.7": {"language_dominance": 0.4783, "jurist_preference": 0.7275, "verdict": "PASS"},
-      "regeste_full_text_hybrid_0.5": {"language_dominance": 0.4873, "jurist_preference": 0.7140, "verdict": "PASS"},
-      "regeste_full_text_hybrid_0.7": {"language_dominance": 0.4889, "jurist_preference": 0.7120, "verdict": "PASS"}
+      "run_174k_formal_suite_adversarial": {
+        "description": "Separate evaluation using adversarial_language_dominance + jurist_pairwise_preference on 2000-decision stratified subsample (exact k-NN)",
+        "all_representations_pass": true,
+        "thresholds": {
+          "language_dominance_max": 0.85,
+          "jurist_pairwise_min": 0.5
+        },
+        "results": {
+          "cited_decisions_tfidf": {"language_dominance": 0.4794, "jurist_preference": 0.7140, "verdict": "PASS"},
+          "outcome_tfidf": {"language_dominance": 0.5015, "jurist_preference": 0.6550, "verdict": "PASS"},
+          "regeste_tfidf": {"language_dominance": 0.4853, "jurist_preference": 0.6315, "verdict": "PASS"},
+          "full_text_tfidf_light": {"language_dominance": 0.4854, "jurist_preference": 0.7080, "verdict": "PASS"},
+          "cited_decisions_tfidf_outcome_hybrid_0.5": {"language_dominance": 0.4773, "jurist_preference": 0.7345, "verdict": "PASS"},
+          "cited_decisions_tfidf_outcome_hybrid_0.7": {"language_dominance": 0.4783, "jurist_preference": 0.7275, "verdict": "PASS"},
+          "regeste_full_text_hybrid_0.5": {"language_dominance": 0.4873, "jurist_preference": 0.7140, "verdict": "PASS"},
+          "regeste_full_text_hybrid_0.7": {"language_dominance": 0.4889, "jurist_preference": 0.7120, "verdict": "PASS"}
+        },
+        "note": "Different metrics from formal suite adversarial_falsification. Uses jurist_would_succeed_rate (simulated jurist preference) not branch_coherence_mean. Two evaluations must not be conflated."
+      }
     },
     "formal_suite_v25_12_benchmark_results": {
       "cited_decisions_tfidf": {"n_passed": 6, "n_failed": 5, "n_skipped": 1, "passed": ["citation_heritage", "adversarial_falsification", "multilingual_invariance", "cross_language_pairs", "collapse_check", "zoom_coherence"], "failed": ["branch_knn", "tf_metadata_human_indexing", "boilerplate_resistance_real_corpus", "temporal_stability", "hierarchy_coherence", "legal_area_clustering"]},
@@ -95,9 +115,10 @@
     },
     "key_findings": [
       "TF-IDF family (8 representations) COMPLETE at 174k with HNSW artifact fixed (exact k-NN on valid subset for adversarial benchmarks)",
-      "All 8 representations pass BOTH adversarial gates (language dominance < 0.85, jurist preference > 0.5)",
-      "Production default (cited_decisions_tfidf_outcome_hybrid_0.5) achieves best jurist preference (0.7345) with low language dominance (0.4773)",
-      "Fundamental two-mode tradeoff persists: citation-based reps pass adversarial/citation_heritage but fail branch/tf_metadata/hierarchy; text-based reps pass branch/tf_metadata but FAIL adversarial (language dominance ~0.999 at full corpus)",
+      "v25 formal suite adversarial_falsification: 4/8 PASS (cited_decisions_tfidf, regeste_tfidf, cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7); 4/8 FAIL (outcome_tfidf branch_coherence 0.146; full_text_tfidf_light lang_dom 0.999; regeste_full_text_hybrid_0.5 lang_dom 0.998; regeste_full_text_hybrid_0.7 lang_dom 0.999)",
+      "run_174k_formal_suite.py adversarial (different metrics: jurist_would_succeed_rate): 8/8 PASS — two evaluations must not be conflated",
+      "Production default (cited_decisions_tfidf_outcome_hybrid_0.5) achieves best jurist preference (0.7345) with low language dominance (0.4773) in run_174k_formal_suite evaluation; also PASSES formal suite adversarial_falsification",
+      "Fundamental two-mode tradeoff persists: citation-based reps pass adversarial_falsification/citation_heritage but fail branch/tf_metadata/hierarchy; text-based reps pass branch/tf_metadata but FAIL adversarial_falsification (language dominance ~0.999 at full corpus)",
       "HNSW adversarial artifact FIXED: exact k-NN on stratified 2000-decision valid subset reveals true representation differences",
       "Citation heritage benchmark validated at 174k (1020 positive/negative pairs, 924 resolved citations) but citation graph covers only 0.1% of corpus",
       "v17b label normalization (15-25% purity gain at smaller scale) does NOT generalize uniformly to 174k: zoom coherence DEGRADES for 4/8 representations (>10% worse)",
