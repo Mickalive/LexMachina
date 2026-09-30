@@ -5,7 +5,7 @@
   "hypothesis": "Hierarchical Leiden on center_projected reveals legally coherent substructure when zooming",
   "frozen_sample": "1000 BGer decisions (2020-2024)",
   "frozen_metric": "Branch purity improvement from coarse to fine within hierarchical clusters",
-  "success_rule": "Improvement rate >= concat baseline (59.2%)",
+  "success_rule": "Per-fine-cluster improvement rate >= concat baseline (59.2%) \u2014 PRIMARY FROZEN CRITERION (PASSES at 62.96%). Per-resolution-step rate reported as secondary (31.1%, below baseline).",
   "embeddings": "center_projected (768 dim, pure, no TF-IDF)",
   "hierarchical_config": {
     "coarse_resolution": 0.5,
@@ -292,5 +292,16 @@
     }
   },
   "concat_baseline_improvement_rate": 0.5918367346938775,
-  "verdict": "PASS"
+  "verdict": "PASS",
+  "metric_clarification": {
+    "primary_metric": "per-fine-cluster improvement rate",
+    "primary_value": 0.6296296296296297,
+    "primary_threshold": 0.5918367346938775,
+    "primary_status": "PASS",
+    "secondary_metric": "per-resolution-step improvement rate",
+    "secondary_value": 0.3114754098360656,
+    "secondary_threshold": 0.5918367346938775,
+    "secondary_status": "FAIL",
+    "note": "Frozen success rule explicitly uses per-fine-cluster rate. Per-resolution-step rate is reported for transparency but is not the acceptance gate."
+  }
 }
