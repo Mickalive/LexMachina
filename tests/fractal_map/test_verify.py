@@ -388,8 +388,8 @@ class TestMetricConsistency:
         assert "Constrained hierarchical Leiden" in claim_text
         assert "174k" in claim_text
         assert "TF-IDF" in claim_text
-        # Should indicate NOT production-ready / FAILS v26 rule
-        assert "NOT production-ready" in claim_text or "FAILS v26" in claim_text or "per_mode_verdict=FAIL" in claim_text
+        # Should indicate NOT production-ready / FAILS v26 rule - match actual state wording
+        assert "FAIL on legal_structure_branch" in claim_text or "FAILS v26" in claim_text or "per_mode_verdict=FAIL" in claim_text or "FAILS frozen v26" in claim_text
         assert "nesting=1.0" in claim_text or "by construction" in claim_text.lower()
 
     def test_blocked_dependencies_recorded(self):
