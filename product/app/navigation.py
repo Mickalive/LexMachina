@@ -89,13 +89,15 @@ class NavigationAPI:
         # TF-IDF-based map representations at full-corpus scale to be built per factory direction v27.
         # Also load the 1k slice (bger_2000plus_slice_1000.jsonl) which matches baseline map artifacts.
         self.corpus = CorpusLoader(corpus_dir, file_pattern="bge_20*.jsonl")
-        # Load the 1k slice for map decision lookups
+        # Load the 1k slice for map decision lookups (WITHOUT user imports to avoid double-counting)
         slice_loader = CorpusLoader(corpus_dir, file_pattern="bger_2000plus_slice_1000.jsonl")
-        slice_loader.load()
+        # Load only the slice file, not user imports
+        slice_file = Path(corpus_dir) / "bger_2000plus_slice_1000.jsonl"
+        if slice_file.exists():
+            slice_loader._load_jsonl(slice_file)
         # Merge slice decisions into main corpus (slice has priority for map decisions)
         self.corpus.decisions.update(slice_loader.decisions)
-        self.corpus._search_index_built = False  # Will be rebuilt after merge
-        self.corpus._build_search_index()
+        # Search index will be built in initialize() after full corpus and user imports are loaded
         self.map_loader = MapLoader(results_dir, corpus_dir=corpus_dir)
         self.section_modes = SectionModeLoader(
             section_dir=str(Path(results_dir) / "section_scaled"),
