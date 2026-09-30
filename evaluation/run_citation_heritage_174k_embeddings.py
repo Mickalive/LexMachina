@@ -1,32 +1,30 @@
 #!/usr/bin/env python3
 """
-Run citation_heritage benchmark at 174k scale on TF-IDF production representations.
-Uses the frozen citation pairs from validate_citation_heritage_174k.py.
+Run citation_heritage benchmark on 174k TF-IDF embeddings using the frozen citation pairs.
+This validates the citation_heritage benchmark at full 174k scale.
 """
-
 import json
 import sys
 import time
 import numpy as np
 import logging
 from pathlib import Path
-from sklearn.metrics import roc_auc_score
-from collections import defaultdict
+from collections import Counter
 
-# Add scalable_nn for fast HNSW
-sys.path.insert(0, '/home/runner/work/LexMachina/LexMachina/evaluation')
-from scalable_nn import build_scalable_nn
+sys.path.insert(0, '/home/runner/work/LexMachina/LexMachina')
+from evaluation.scalable_nn import build_scalable_nn, batched_adversarial_language_dominance, batched_jurist_pairwise_preference
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 logger = logging.getLogger(__name__)
 
 # Paths
 EMBEDDINGS_DIR = Path("/home/runner/work/LexMachina/LexMachina/evaluation/results/174k/embeddings")
-PAIRS_PATH = Path("/home/runner/work/LexMachina/LexMachina/evaluation/results/174k_citation_heritage/citation_pairs_174k.json")
-METADATA_PATH = EMBEDDINGS_DIR / "metadata.json"
-OUTPUT_DIR = Path("/home/runner/work/LexMachina/LexMachina/evaluation/results/174k_citation_heritage/embedding_results")
+METADATA_PATH = Path("/home/runner/work/LexMachina/LexMachina/evaluation/data/174k/metadata_174k.json")
+CITATION_PAIRS_PATH = Path("/home/runner/work/LexMachina/LexMachina/evaluation/results/174k_citation_heritage/citation_pairs_174k.json")
+OUTPUT_DIR = Path("/home/runner/work/LexMachina/LexMachina/evaluation/results/174k_citation_heritage")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+# Representations to evaluate (TF-IDF family at 174k)
 REPRESENTATIONS = {
     'cited_decisions_tfidf': 'cited_decisions_tfidf.npy',
     'outcome_tfidf': 'outcome_tfidf.npy',
@@ -38,208 +36,204 @@ REPRESENTATIONS = {
     'regeste_full_text_hybrid_0.7': 'regeste_full_text_hybrid_0.7.npy',
 }
 
-GLOBAL_SEED = 42
+FROZEN_SEED = 42
+K_NEIGHBORS = 10  # For citation heritage we use k=10 for recall@10
+RECALL_THRESHOLD = 0.2  # Frozen threshold from evaluation_v3_config.json
+
+def load_metadata():
+    """Load 174k metadata and create decision_id -> index mapping."""
+    logger.info(f"Loading metadata from {METADATA_PATH}")
+    with open(METADATA_PATH, 'r') as f:
+        metadata = json.load(f)
+    did_to_idx = {m['decision_id']: i for i, m in enumerate(metadata)}
+    logger.info(f"Loaded {len(metadata)} decisions")
+    return metadata, did_to_idx
 
 def load_citation_pairs():
-    """Load the frozen citation pairs."""
-    logger.info(f"Loading citation pairs from {PAIRS_PATH}")
-    with open(PAIRS_PATH) as f:
+    """Load frozen citation pairs."""
+    logger.info(f"Loading citation pairs from {CITATION_PAIRS_PATH}")
+    with open(CITATION_PAIRS_PATH, 'r') as f:
         pairs_data = json.load(f)
     
     positive_pairs = [tuple(p) for p in pairs_data['positive_pairs']]
     negative_pairs = [tuple(p) for p in pairs_data['negative_pairs']]
     
     logger.info(f"Loaded {len(positive_pairs)} positive pairs, {len(negative_pairs)} negative pairs")
-    return positive_pairs, negative_pairs, pairs_data
-
-def load_metadata_and_build_did_index():
-    """Load metadata and build decision_id -> index mapping."""
-    logger.info(f"Loading metadata from {METADATA_PATH}")
-    with open(METADATA_PATH) as f:
-        metadata = json.load(f)
-    
-    did_to_idx = {m['decision_id']: i for i, m in enumerate(metadata)}
-    logger.info(f"Loaded {len(metadata)} decisions, {len(did_to_idx)} unique decision_ids")
-    return metadata, did_to_idx
+    return positive_pairs, negative_pairs
 
 def run_citation_heritage_on_embeddings(embeddings, metadata, did_to_idx, positive_pairs, negative_pairs):
     """
-    Run citation_heritage benchmark: AUC-ROC on citation pairs vs random pairs.
+    Run citation heritage benchmark: AUC-ROC on citation pairs vs random pairs.
     
-    Positive pairs = decisions sharing citations (direct or shared)
-    Negative pairs = random decision pairs with no citation relationship
+    This tests whether decisions sharing citations are closer in embedding space.
     """
-    logger.info("Building HNSW index for fast similarity computation...")
-    nn_index = build_scalable_nn(embeddings, n_neighbors=11, force_exact=False)
-    logger.info(f"Built {nn_index.backend} index for {embeddings.shape[0]} decisions")
+    # Build HNSW index for full corpus
+    logger.info("Building HNSW index for citation heritage...")
+    nn = build_scalable_nn(embeddings, n_neighbors=K_NEIGHBORS, force_exact=False)
     
     # Compute similarities for positive pairs
-    positive_similarities = []
+    logger.info("Computing similarities for positive pairs...")
+    pos_sims = []
     for did1, did2 in positive_pairs:
         if did1 in did_to_idx and did2 in did_to_idx:
-            idx1, idx2 = did_to_idx[did1], did_to_idx[did2]
-            # Cosine similarity (embeddings are already normalized in build_scalable_nn)
-            v1 = nn_index._normalized[idx1]
-            v2 = nn_index._normalized[idx2]
-            sim = np.dot(v1, v2)
-            positive_similarities.append(sim)
+            idx1 = did_to_idx[did1]
+            idx2 = did_to_idx[did2]
+            # Cosine similarity
+            v1 = embeddings[idx1]
+            v2 = embeddings[idx2]
+            norm1 = np.linalg.norm(v1)
+            norm2 = np.linalg.norm(v2)
+            if norm1 > 0 and norm2 > 0:
+                sim = np.dot(v1, v2) / (norm1 * norm2)
+                pos_sims.append(sim)
     
     # Compute similarities for negative pairs
-    negative_similarities = []
+    logger.info("Computing similarities for negative pairs...")
+    neg_sims = []
     for did1, did2 in negative_pairs:
         if did1 in did_to_idx and did2 in did_to_idx:
-            idx1, idx2 = did_to_idx[did1], did_to_idx[did2]
-            v1 = nn_index._normalized[idx1]
-            v2 = nn_index._normalized[idx2]
-            sim = np.dot(v1, v2)
-            negative_similarities.append(sim)
+            idx1 = did_to_idx[did1]
+            idx2 = did_to_idx[did2]
+            v1 = embeddings[idx1]
+            v2 = embeddings[idx2]
+            norm1 = np.linalg.norm(v1)
+            norm2 = np.linalg.norm(v2)
+            if norm1 > 0 and norm2 > 0:
+                sim = np.dot(v1, v2) / (norm1 * norm2)
+                neg_sims.append(sim)
     
-    logger.info(f"Valid positive pairs: {len(positive_similarities)}")
-    logger.info(f"Valid negative pairs: {len(negative_similarities)}")
+    pos_sims = np.array(pos_sims)
+    neg_sims = np.array(neg_sims)
     
-    # AUC-ROC computation
-    y_true = [1] * len(positive_similarities) + [0] * len(negative_similarities)
-    y_scores = positive_similarities + negative_similarities
-    auc_roc = roc_auc_score(y_true, y_scores)
+    logger.info(f"Positive similarities: {len(pos_sims)}, mean={np.mean(pos_sims):.4f}")
+    logger.info(f"Negative similarities: {len(neg_sims)}, mean={np.mean(neg_sims):.4f}")
     
-    # Mean similarities
-    pos_mean = np.mean(positive_similarities) if positive_similarities else 0
-    neg_mean = np.mean(negative_similarities) if negative_similarities else 0
-    similarity_gap = pos_mean - neg_mean
+    # Compute AUC-ROC
+    from sklearn.metrics import roc_auc_score
+    y_true = np.concatenate([np.ones(len(pos_sims)), np.zeros(len(neg_sims))])
+    y_score = np.concatenate([pos_sims, neg_sims])
+    auc_roc = roc_auc_score(y_true, y_score)
     
-    # Also compute nearest neighbor citation rate using HNSW
-    _, nn_indices = nn_index.kneighbors(n_neighbors=10)
+    # Also compute recall@10 using nearest neighbors
+    logger.info("Computing recall@10...")
+    # For each decision in positive pairs, check if its cited partner is in top-10
+    all_neighbors = nn.kneighbors(n_neighbors=K_NEIGHBORS)[1]
     
-    # Build citation partner lookup
-    citation_partners = defaultdict(set)
+    # Build adjacency: decision -> set of cited decisions
+    cited_map = {}
     for did1, did2 in positive_pairs:
-        if did1 in did_to_idx and did2 in did_to_idx:
-            citation_partners[did_to_idx[did1]].add(did_to_idx[did2])
-            citation_partners[did_to_idx[did2]].add(did_to_idx[did1])
+        if did1 not in cited_map:
+            cited_map[did1] = set()
+        cited_map[did1].add(did2)
+        if did2 not in cited_map:
+            cited_map[did2] = set()
+        cited_map[did2].add(did1)
     
-    nn_citation_count = 0
-    nn_total = 0
-    for idx, partners in citation_partners.items():
-        if partners:
-            nn_total += 1
-            if partners & set(nn_indices[idx]):
-                nn_citation_count += 1
+    recall_10_sum = 0
+    recall_10_count = 0
+    for did, cited_set in cited_map.items():
+        if did not in did_to_idx:
+            continue
+        idx = did_to_idx[did]
+        neighbors = all_neighbors[idx]
+        found = sum(1 for c in cited_set if c in did_to_idx and did_to_idx[c] in neighbors)
+        recall = found / min(len(cited_set), K_NEIGHBORS) if cited_set else 0
+        recall_10_sum += recall
+        recall_10_count += 1
     
-    nn_citation_rate = nn_citation_count / nn_total if nn_total > 0 else 0
+    mean_recall_at_10 = recall_10_sum / recall_10_count if recall_10_count > 0 else 0
     
     return {
         'auc_roc': float(auc_roc),
-        'positive_pairs': len(positive_similarities),
-        'negative_pairs': len(negative_similarities),
-        'positive_mean_similarity': float(pos_mean),
-        'negative_mean_similarity': float(neg_mean),
-        'similarity_gap': float(similarity_gap),
-        'nn_citation_rate': float(nn_citation_rate),
-        'nn_citation_count': nn_citation_count,
-        'nn_total_decisions': nn_total,
-        'threshold': 0.65,
-        'status': 'PASS' if auc_roc >= 0.65 else 'FAIL',
-        'note': 'Citation heritage: AUC-ROC on citation pairs vs random pairs. Threshold 0.65.',
-        'backend': nn_index.backend
+        'positive_mean_similarity': float(np.mean(pos_sims)),
+        'negative_mean_similarity': float(np.mean(neg_sims)),
+        'similarity_gap': float(np.mean(pos_sims) - np.mean(neg_sims)),
+        'num_positive_pairs': len(pos_sims),
+        'num_negative_pairs': len(neg_sims),
+        'recall_at_10': float(mean_recall_at_10),
+        'recall_at_10_status': 'PASS' if mean_recall_at_10 >= RECALL_THRESHOLD else 'FAIL',
+        'auc_roc_status': 'PASS' if auc_roc >= 0.65 else 'FAIL',
+        'threshold_auc': 0.65,
+        'threshold_recall': RECALL_THRESHOLD,
+        'backend': nn.backend
     }
 
 def main():
+    t0 = time.time()
     logger.info("=" * 70)
-    logger.info("CITATION HERITAGE BENCHMARK AT 174K ON TF-IDF EMBEDDINGS")
+    logger.info("CITATION_HERITAGE BENCHMARK AT 174K SCALE (TF-IDF FAMILY)")
     logger.info("=" * 70)
     
-    # Load citation pairs
-    positive_pairs, negative_pairs, pairs_data = load_citation_pairs()
+    # Load data
+    metadata, did_to_idx = load_metadata()
+    positive_pairs, negative_pairs = load_citation_pairs()
     
-    # Load metadata and build decision_id index
-    metadata, did_to_idx = load_metadata_and_build_did_index()
-    
-    # Evaluate each representation
-    all_results = {}
+    out = {
+        "run_id": f"citation_heritage_174k_tfidf_{int(time.time())}",
+        "direction_version": 29,
+        "seed": FROZEN_SEED,
+        "k_neighbors": K_NEIGHBORS,
+        "recall_threshold": RECALL_THRESHOLD,
+        "per_representation": {},
+    }
     
     for name, fname in REPRESENTATIONS.items():
-        logger.info(f"\n{'='*60}")
-        logger.info(f"Evaluating: {name}")
-        logger.info(f"{'='*60}")
-        
+        logger.info(f"\nProcessing {name}...")
         try:
             emb_path = EMBEDDINGS_DIR / fname
             embeddings = np.load(emb_path, mmap_mode='r')
-            logger.info(f"Loaded {name}: {embeddings.shape}")
+            logger.info(f"  Loaded {embeddings.shape}")
             
-            # Align with metadata
-            n_meta = len(metadata)
-            if embeddings.shape[0] != n_meta:
-                logger.warning(f"Shape mismatch: embeddings {embeddings.shape[0]} vs metadata {n_meta}")
-                if embeddings.shape[0] > n_meta:
-                    embeddings = embeddings[:n_meta]
-                else:
-                    raise ValueError(f"Embeddings smaller than metadata: {embeddings.shape[0]} < {n_meta}")
+            # Align embeddings with metadata
+            if embeddings.shape[0] > len(metadata):
+                logger.info(f"  Trimming embeddings from {embeddings.shape[0]} to {len(metadata)}")
+                embeddings = embeddings[:len(metadata)]
+            elif embeddings.shape[0] < len(metadata):
+                logger.error(f"  Embedding/metadata length mismatch: {embeddings.shape[0]} < {len(metadata)}")
+                out["per_representation"][name] = {"error": f"embedding/metadata length mismatch"}
+                continue
             
-            start = time.time()
-            result = run_citation_heritage_on_embeddings(embeddings, metadata, did_to_idx, positive_pairs, negative_pairs)
-            duration = time.time() - start
+            result = run_citation_heritage_on_embeddings(
+                embeddings, metadata, did_to_idx, positive_pairs, negative_pairs
+            )
+            out["per_representation"][name] = result
             
-            result['name'] = name
-            result['embedding_shape'] = list(embeddings.shape)
-            result['duration_seconds'] = duration
+            logger.info(f"  {name}: AUC-ROC={result['auc_roc']:.4f} ({result['auc_roc_status']}), "
+                       f"Recall@10={result['recall_at_10']:.4f} ({result['recall_at_10_status']})")
             
-            all_results[name] = result
-            
-            logger.info(f"  {name}: AUC-ROC={result['auc_roc']:.4f} ({result['status']}), "
-                       f"pos_mean={result['positive_mean_similarity']:.4f}, "
-                       f"neg_mean={result['negative_mean_similarity']:.4f}, "
-                       f"gap={result['similarity_gap']:.4f}, "
-                       f"nn_cite_rate={result['nn_citation_rate']:.4f}")
-        
         except Exception as e:
-            logger.error(f"  {name}: ERROR - {e}")
+            logger.error(f"  Error on {name}: {e}")
             import traceback
             traceback.print_exc()
-            all_results[name] = {
-                'name': name,
-                'error': str(e),
-                'status': 'ERROR'
-            }
+            out["per_representation"][name] = {"error": str(e)}
     
-    # Save results
-    from datetime import datetime
-    output_file = OUTPUT_DIR / f"citation_heritage_174k_tfidf_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    out["total_duration_seconds"] = round(time.time() - t0, 2)
+    
+    # Save
+    output_file = OUTPUT_DIR / f"citation_heritage_174k_tfidf_{time.strftime('%Y%m%d_%H%M%S')}.json"
     with open(output_file, 'w') as f:
-        json.dump(all_results, f, indent=2, default=str)
+        json.dump(out, f, indent=2, default=str)
     
     latest_file = OUTPUT_DIR / "citation_heritage_174k_tfidf_latest.json"
     with open(latest_file, 'w') as f:
-        json.dump(all_results, f, indent=2, default=str)
+        json.dump(out, f, indent=2, default=str)
     
     # Summary
-    logger.info("\n" + "=" * 90)
-    logger.info("CITATION HERITAGE 174K - TF-IDF REPRESENTATIONS SUMMARY")
-    logger.info("=" * 90)
-    logger.info(f"{'Representation':<45} {'AUC-ROC':>8} {'Status':>6} {'PosMean':>8} {'NegMean':>8} {'Gap':>8} {'NN-Cite':>8}")
-    logger.info("-" * 90)
+    logger.info("\n" + "=" * 70)
+    logger.info("CITATION_HERITAGE 174K TF-IDF - SUMMARY")
+    logger.info("=" * 70)
+    for name, d in out["per_representation"].items():
+        if "error" in d:
+            logger.info(f"  {name}: ERROR - {d['error']}")
+        else:
+            logger.info(f"  {name}: AUC-ROC={d['auc_roc']:.4f} ({d['auc_roc_status']}), "
+                       f"Recall@10={d['recall_at_10']:.4f} ({d['recall_at_10_status']})")
     
-    for name, res in sorted(all_results.items()):
-        if 'error' in res:
-            logger.info(f"{name:<45} {'ERROR':>8} {'ERROR':>6}")
-            continue
-        logger.info(f"{name:<45} {res['auc_roc']:>8.4f} {res['status']:>6} "
-                   f"{res['positive_mean_similarity']:>8.4f} {res['negative_mean_similarity']:>8.4f} "
-                   f"{res['similarity_gap']:>8.4f} {res['nn_citation_rate']:>8.4f}")
+    logger.info(f"Total duration: {out['total_duration_seconds']}s")
+    logger.info(f"Results saved to: {output_file}")
+    logger.info("=" * 70)
     
-    # Production default
-    prod_default = 'cited_decisions_tfidf_outcome_hybrid_0.5'
-    if prod_default in all_results and 'error' not in all_results[prod_default]:
-        ref = all_results[prod_default]
-        logger.info(f"\n📏 PRODUCTION DEFAULT ({prod_default}):")
-        logger.info(f"   AUC-ROC: {ref['auc_roc']:.4f} ({ref['status']})")
-        logger.info(f"   Similarity gap: {ref['similarity_gap']:.4f}")
-        logger.info(f"   NN citation rate: {ref['nn_citation_rate']:.4f}")
-    
-    logger.info(f"\nResults saved to: {output_file}")
-    logger.info("=" * 90)
-    
-    return all_results
+    return out
 
 if __name__ == "__main__":
     main()
