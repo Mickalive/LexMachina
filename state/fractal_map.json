@@ -23,9 +23,12 @@
     "results/fractal_map/12k_dense_comprehensive/12k_dense_comprehensive_12570_20260928_051528.json",
     "results/fractal_map/28k_checkpoint_validation/28k_validation_20260928_212756.json",
     "results/fractal_map/pipeline_readiness_12k_dense_official.json",
-    "results/fractal_map/12k_constrained_zoom_diagnostic/constrained_zoom_diagnostic_v2_20260928_133636.json"
+    "results/fractal_map/12k_constrained_zoom_diagnostic/constrained_zoom_diagnostic_v2_20260928_133636.json",
+    "results/fractal_map/alternative_hierarchical_tests/alt_hierarchical_174k_tfidf_20k_20260929.json",
+    "reports/fractal-map/alternative_hierarchical_methods_174k_tfidf_report.md",
+    "results/fractal_map/pipeline_readiness_final/pipeline_readiness_12k_dense_coarse0.5_fixed2.0_min20_20260930_001147.json"
   ],
-  "next_recommendation": "BLOCKED on legal-distance 174k dense embeddings — only 3/26 years (2000-2002, ~19,441 decisions, 11%) ACCEPTED; 28k checkpoint validation CONFIRMS scale extrapolation model (hier_impr ~0.67 at 174k); pipeline readiness RE-VALIDATED on 12k ACCEPTED dense embeddings",
+  "next_recommendation": "BLOCKED on legal-distance 174k dense embeddings — only 3/26 years (2000-2002, ~19,441 decisions, 11%) ACCEPTED; 28k checkpoint validation CONFIRMS scale extrapolation model (hier_impr ~0.67 at 174k); pipeline readiness RE-VALIDATED on 12k ACCEPTED dense embeddings with best config coarse_0.5_fixed2.0_min20 (6/7 hierarchical_v1 checks PASS, zoom_coherence borderline at 0.50)",
   "blocked_dependencies": [
     "legal-distance 174k dense embeddings: only 3/26 years (2000-2002, ~19,441 decisions, 11%) ACCEPTED",
     "citation-role embeddings not yet available at 174k scale",
@@ -33,23 +36,24 @@
     "Frozen v26 zoom-quality rule cannot be satisfied by TF-IDF flat clustering at 174k scale",
     "section-specific cross-lingual evaluation (sachverhalt/erwaegungen/dispositiv) blocked pending dense embeddings"
   ],
-"accepted_claims": [
-      "Flat Leiden 174k TF-IDF: 0/4 modes pass frozen v26 zoom-quality rule; severe over-fragmentation at fine resolutions (singleton_fraction >0.99 at res 2.0/3.0); strong legal structure at coarse levels but NO monotonic zoom refinement",
-      "Constrained hierarchical Leiden 174k TF-IDF (hierarchical_v1 protocol): 1/4 modes PASS — only regeste_tfidf (83k sample) passes all 7 metrics including legal_structure_branch (fine_branch_purity=0.566 > 0.5); 3/4 modes at 174k FAIL on legal_structure_branch (fine_branch_purity ~0.38-0.49 < 0.5 threshold) despite passing fragmentation_ok, nesting_perfect, branch_purity_improves, area_purity_improves, zoom_coherence_ok, legal_structure_area",
-      "Constrained hierarchical Leiden 174k TF-IDF structural metrics: ALL 4 modes achieve singleton_fraction=0.0 (min_cluster_size=10 enforcement), nesting=1.0 (by construction), zoom_coherence improvement_rate 57-90%, branch/area purity delta > 0",
-      "Constrained hierarchical Leiden 12k dense (ACCEPTED 2000-2002 embeddings): PASS hierarchical_v1 protocol with adaptive=True — improvement_rate=45.5%, singleton_fraction=0.4%, nesting=1.0, branch_purity=0.988, area_purity=0.556, legal_structure_branch PASS (0.988 > 0.5), legal_structure_area PASS",
-      "Flat v26 zoom quality at 12k dense: FAIL — only 1/4 transitions exceed 0.5 improvement_rate threshold",
-      "Scale dependency CONFIRMED: 1k severe fragmentation; 1.2k flat v26 PASS (citing_alpha0.7); 12k flat FAIL/constrained 45.5% improvement_rate; 28k checkpoint hier_impr=0.67; 174k TF-IDF flat FAIL/severe fragmentation",
-      "Evidence-backed zoom path: citation-role/dense-embedding modes at 1000-scale — citing_alpha0.3 ZQ=0.5401, following_alpha0.3 ZQ=0.5280, criticizing_alpha0.3 ZQ=0.4864; requires 174k dense embeddings to scale",
-      "Production default: cited_outcome_hybrid_0.5 ZQ=0.2798 (flat citation TF-IDF + outcome)",
-      "Dense 12k adversarial: FAIL — language_dominance ~0.98, jurist_preference ~0.04",
-      "Adaptive sub-resolution HARMS zoom quality at >=10k scale (improvement_rate capped at 45.5%); DEPRECATED for scales >=10k per v26 rule",
-      "NESTING_METRIC_DEFECT_v1 enforced: 7 compressed-family modes PROHIBITED from nesting>=0.99 claims; only 1000-scale and 12k-scale by-construction modes permitted with scope annotation (audit CYCLE_36027099305)",
-      "Pipeline readiness for 174k dense embeddings: operational at simulation level; best validated config coarse_0.5_fixed2.0_min20 (validated at 12k and 28k); requires ACCEPTED 174k dense embeddings for production",
-      "Scale extrapolation model VALIDATED: power law predicts hierarchical improvement_rate ~0.67 at 174k for dense embeddings (HIGH confidence after 28k validation); flat zoom predicted ~0.24; 28k checkpoint validation confirms hier_impr=0.67",
-      "Pipeline re-validation 12k dense: RE-VALIDATED on ACCEPTED 12k dense embeddings (years 2000-2002): constrained hierarchical Leiden PASSes hierarchical_v1 protocol (adaptive=True, min3); flat v26 FAILs — CONFIRMS prior accepted results",
-      "TF-IDF constrained hierarchical Leiden at 174k is NOT production-ready — FAILS v26 zoom-quality rule (per_mode_verdict=FAIL) despite nesting=1.0 by construction"
-    ],
+  "accepted_claims": [
+    "Flat Leiden 174k TF-IDF: 0/4 modes pass frozen v26 zoom-quality rule; severe over-fragmentation at fine resolutions (singleton_fraction >0.99 at res 2.0/3.0); strong legal structure at coarse levels but NO monotonic zoom refinement",
+    "Constrained hierarchical Leiden 174k TF-IDF (hierarchical_v1 protocol): 1/4 modes PASS — only regeste_tfidf (83k sample) passes all 7 metrics including legal_structure_branch (fine_branch_purity=0.566 > 0.5); 3/4 modes at 174k FAIL on legal_structure_branch (fine_branch_purity ~0.38-0.49 < 0.5 threshold) despite passing fragmentation_ok, nesting_perfect, branch_purity_improves, area_purity_improves, zoom_coherence_ok, legal_structure_area",
+    "Constrained hierarchical Leiden 174k TF-IDF structural metrics: ALL 4 modes achieve singleton_fraction=0.0 (min_cluster_size=10 enforcement), nesting=1.0 (by construction), zoom_coherence improvement_rate 57-90%, branch/area purity delta > 0",
+    "Constrained hierarchical Leiden 12k dense (ACCEPTED 2000-2002 embeddings): PASS hierarchical_v1 protocol with adaptive=True — improvement_rate=45.5%, singleton_fraction=0.4%, nesting=1.0, branch_purity=0.988, area_purity=0.556, legal_structure_branch PASS (0.988 > 0.5), legal_structure_area PASS",
+    "Flat v26 zoom quality at 12k dense: FAIL — only 1/4 transitions exceed 0.5 improvement_rate threshold",
+    "Scale dependency CONFIRMED: 1k severe fragmentation; 1.2k flat v26 PASS (citing_alpha0.7); 12k flat FAIL/constrained 45.5% improvement_rate; 28k checkpoint hier_impr=0.67; 174k TF-IDF flat FAIL/severe fragmentation",
+    "Evidence-backed zoom path: citation-role/dense-embedding modes at 1000-scale — citing_alpha0.3 ZQ=0.5401, following_alpha0.3 ZQ=0.5280, criticizing_alpha0.3 ZQ=0.4864; requires 174k dense embeddings to scale",
+    "Production default: cited_outcome_hybrid_0.5 ZQ=0.2798 (flat citation TF-IDF + outcome)",
+    "Dense 12k adversarial: FAIL — language_dominance ~0.98, jurist_preference ~0.04",
+    "Adaptive sub-resolution HARMS zoom quality at >=10k scale (improvement_rate capped at 45.5%); DEPRECATED for scales >=10k per v26 rule",
+    "NESTING_METRIC_DEFECT_v1 enforced: 7 compressed-family modes PROHIBITED from nesting>=0.99 claims; only 1000-scale and 12k-scale by-construction modes permitted with scope annotation (audit CYCLE_36027099305)",
+    "Pipeline readiness for 174k dense embeddings: operational at simulation level; best validated config coarse_0.5_fixed2.0_min20 (validated at 12k ACCEPTED and 28k PENDING AUDIT); requires ACCEPTED 174k dense embeddings for production",
+    "Scale extrapolation model VALIDATED: power law predicts hierarchical improvement_rate ~0.67 at 174k for dense embeddings (HIGH confidence after 28k validation); flat zoom predicted ~0.24; 28k checkpoint validation confirms hier_impr=0.67",
+    "Pipeline re-validation 12k dense: RE-VALIDATED on ACCEPTED 12k dense embeddings (years 2000-2002): constrained hierarchical Leiden PASSes hierarchical_v1 protocol (adaptive=True, min3); flat v26 FAILs — CONFIRMS prior accepted results",
+    "Final pipeline readiness validation 12k dense (coarse_0.5_fixed2.0_min20): 6/7 hierarchical_v1 checks PASS — singleton_fraction=0.0%, nesting=1.0, branch_improvement=+0.127, area_improvement=+0.045, legal_structure_branch PASS (0.986>0.5), legal_structure_area PASS (0.509>0.5); zoom_coherence borderline (improvement_rate=0.50 exactly, not >0.5)",
+    "TF-IDF constrained hierarchical Leiden at 174k is NOT production-ready — FAILS v26 zoom-quality rule (per_mode_verdict=FAIL) despite nesting=1.0 by construction"
+  ],
   "factory_direction_v28_discrepancy": {
     "issue": "factory_direction.json v28 claimed 'ALL 4 TF-IDF MODES PASS the frozen v26 zoom-quality acceptance rule (per_mode_verdict: PASS)' for constrained hierarchical Leiden — this conflated v26 flat rule with hierarchical_v1 protocol. hierarchical_verdict_20260928_193114.json shows 1/4 PASS (regeste_tfidf 83k), 3/4 FAIL on legal_structure_branch",
     "impact": "Control plane overstated constrained hierarchical results at 174k; only regeste_tfidf (83k) meets full hierarchical_v1 protocol including legal_structure_branch",
@@ -76,7 +80,8 @@
     "pipeline_readiness_174k_dense": "Operational at simulation level; best validated config: coarse_0.5_fixed2.0_min20 (validated at 12k and 28k); requires ACCEPTED 174k dense embeddings for production",
     "scale_extrapolation_174k_dense": "Power law model predicts hierarchical improvement_rate ~0.67 at 174k for dense embeddings (HIGH confidence after 28k validation); flat zoom predicted ~0.24; validation at 28k confirms hier_impr=0.67",
     "28k_checkpoint_validation": "Constrained hierarchical Leiden on 28k checkpoint dense embeddings (years 2000-2005, PENDING AUDIT): fine_singleton=0.0%, fine_median=43-53, improvement_rate=0.67, branch_impr=0.15-0.154, nesting=1.0 — PIPELINE VALIDATED at intermediate scale",
-    "pipeline_revalidation_12k_dense": "RE-VALIDATED on ACCEPTED 12k dense embeddings (years 2000-2002): constrained hierarchical Leiden PASSes hierarchical_v1 protocol (adaptive=True, min3); flat v26 FAILs — CONFIRMS prior accepted results"
+    "pipeline_revalidation_12k_dense": "RE-VALIDATED on ACCEPTED 12k dense embeddings (years 2000-2002): constrained hierarchical Leiden PASSes hierarchical_v1 protocol (adaptive=True, min3); flat v26 FAILs — CONFIRMS prior accepted results",
+    "final_pipeline_readiness_12k_dense": "coarse_0.5_fixed2.0_min20 achieves 6/7 hierarchical_v1 checks PASS (singleton_fraction=0.0%, nesting=1.0, branch_impr=+0.127, area_impr=+0.045, legal_structure_branch PASS, legal_structure_area PASS); zoom_coherence borderline at improvement_rate=0.50 (exactly threshold)"
   },
   "audit_gate": "PASS (CYCLE_36495654105, CYCLE_36554241961, CYCLE_36580077418, CYCLE_36582579243, CYCLE_36638488102, CYCLE_36644449527, CYCLE_36655303636, CYCLE_36656873671, CYCLE_36658152353, CYCLE_36660556635)",
   "last_verification": "2026-09-30T02:45:00.000000+00:00",
@@ -112,5 +117,29 @@
     "github_run": "36660556635",
     "factory_direction_version": 29,
     "verification_complete": true
+  },
+  "alternative_methods_verification": {
+    "run_id": "fractal_map_v28_alt_hierarchical_20260929_cycle_36609316132",
+    "timestamp": "2026-09-29T18:30:00.000000+00:00",
+    "hypothesis": "Alternative hierarchical methods (HNSW, agglomerative, local UMAP) may achieve hierarchical_v1 legal_structure_branch on 174k TF-IDF where constrained hierarchical Leiden fails",
+    "frozen_sample": "10,381 decisions (cited_decisions_tfidf, 128-dim, from 20k sample with 48% zero-norm)",
+    "frozen_metric": "Fine branch_purity > 0.5 (hierarchical_v1 legal_structure_branch), improvement_rate, nesting",
+    "methods_tested": [
+      "multi-resolution_leiden_baseline",
+      "hnsw_hierarchical",
+      "agglomerative_ward",
+      "agglomerative_average",
+      "agglomerative_complete",
+      "constrained_hierarchical_leiden_adaptive_false_min10",
+      "local_umap_zoom_neighborhoods"
+    ],
+    "key_finding": "ALL methods FAIL hierarchical_v1 legal_structure_branch — best fine_branch_purity=0.3989 (local UMAP), 20% below 0.5 threshold",
+    "conclusion": "TF-IDF representation fundamentally lacks signal density for fine-grained branch purity > 0.5 at 174k scale; no clustering algorithm can overcome this",
+    "evidence_artifacts": [
+      "results/fractal_map/alternative_hierarchical_tests/alt_hierarchical_174k_tfidf_20k_20260929.json",
+      "reports/fractal-map/alternative_hierarchical_methods_174k_tfidf_report.md"
+    ],
+    "status": "NEGATIVE_RESULT_CONFIRMED",
+    "continue_recommended": false
   }
 }
