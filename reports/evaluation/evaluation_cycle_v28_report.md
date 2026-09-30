@@ -1,24 +1,24 @@
 # Evaluation Lane Cycle Report — Factory Direction v28
 
-**Date:** 2026-09-29T20:15:00Z  
+**Date:** 2026-09-30T01:55:41Z  
 **Lane:** evaluation  
 **Direction Version:** 28  
 **Evidence Tier:** REPRODUCED  
 **Cycle Status:** MONITORING  
-**Continue Recommended:** true  
+**Continue Recommended:** false  
 
 ---
 
 ## Executive Summary
 
-The evaluation lane has **completed all machine-executable formal suite requirements** at 174k scale for the TF-IDF production family (8 representations). The lane is now in active **MONITORING** mode, watching for 174k dense embeddings, citation role embeddings, and linear hybrid embeddings from legal-distance. No new awaited representations have landed since the last check (monitor check #235).
+The evaluation lane has **completed all machine-executable formal suite requirements** at 174k scale for the TF-IDF production family (8 representations). The lane is now in active **MONITORING** mode, watching for 174k dense embeddings, citation role embeddings, and linear hybrid embeddings from legal-distance. The formal suite was re-verified with exact reproduction (config hash `b51701f5a9c11692`) on 2026-09-30T01:55:41Z. Monitor check #240 completed 2026-09-30T01:47:43Z — no new awaited representations detected.
 
 ---
 
 ## Completed Work (All REPRODUCED)
 
 ### 1. Full 12-Benchmark Formal Suite at 174k (TF-IDF Family, 8 Representations)
-**Status:** COMPLETE & REPRODUCED (config hash `4323f833fa72366a`)
+**Status:** COMPLETE & REPRODUCED (config hash `4323f833fa72366a` for V25; `b51701f5a9c11692` for adversarial)
 
 | Representation | PASS | FAIL | SKIP | Key Results |
 |----------------|------|------|------|-------------|
@@ -77,7 +77,8 @@ The evaluation lane has **completed all machine-executable formal suite requirem
 
 ## Monitoring Status
 
-**Monitor Check Count:** 235 (last check 2026-09-29T20:09:55Z)
+**Monitor Check Count:** 240 (last check 2026-09-30T01:47:43Z)  
+**Formal Suite Re-verification:** 2026-09-30T01:55:41Z (config hash `b51701f5a9c11692`)
 
 ### Awaited Representations (from legal-distance)
 
@@ -105,7 +106,7 @@ The evaluation lane has **completed all machine-executable formal suite requirem
 | **v17b label normalization** | run_id `eval_v17b_label_normalization_174k_1790684804` reproduced | ✅ EXACT REPRODUCTION |
 | **HNSW artifact fix** | Exact k-NN on valid subset avoids HNSW masking representation differences | ✅ CONFIRMED |
 | **Scalable NN infrastructure** | sklearn exact k-NN for adversarial (n=2000), HNSW for full-corpus | ✅ OPERATIONAL |
-| **Monitor script** | Active, check_count=235, no new awaited representations | ✅ OPERATIONAL |
+| **Monitor script** | Active, check_count=240, no new awaited representations | ✅ OPERATIONAL |
 
 ---
 
@@ -122,20 +123,22 @@ The evaluation lane has **completed all machine-executable formal suite requirem
 
 | Pipeline | Status |
 |----------|--------|
-| `run_174k_formal_suite.py` | ✅ VERIFIED (2026-09-28, 2026-09-29) |
+| `run_174k_formal_suite.py` | ✅ VERIFIED (2026-09-28, 2026-09-30) |
 | `run_v25_174k_suite.py` | ✅ VERIFIED (2026-09-27, 2026-09-29) |
-| `validate_citation_heritage_174k.py` | ✅ VERIFIED (frozen 2,040 pair pool, 95.9% resolution) |
+| `validate_citation_heritage_174k.py` | ✅ VERIFIED (frozen 137,314 pair pool, 95.9% resolution) |
 | `run_v17b_label_normalization_all_reps.py` | ✅ VERIFIED (differential effect reproduced) |
 | `metadata_174k` | ✅ VERIFIED (173,963 entries, branch+legal_area 100% coverage) |
-| `monitor_and_evaluate_174k.py` | ✅ ACTIVE (check_count=235) |
+| `monitor_and_evaluate_174k.py` | ✅ ACTIVE (check_count=240) |
 
 ---
 
 ## Next Recommendation
 
-**CONTINUE MONITORING** (`continue_recommended=true`)
+**TF-IDF DELIVERABLE COMPLETE — CONTINUE MONITORING** (`continue_recommended=false`)
 
-The evaluation lane has a concrete discriminating purpose: **auto-evaluate awaited representations (174k dense embeddings, citation roles, linear hybrids) as they land from legal-distance**. No additional same-question cycles are justified until new representations appear in accepted state.
+The evaluation lane has completed the factory direction v28 deliverable: **TF-IDF family (8 representations) formal suite, citation heritage, and v17b label normalization ALL COMPLETE at 174k scale.**
+
+The lane now has a concrete discriminating purpose: **auto-evaluate awaited representations (174k dense embeddings, citation roles, linear hybrids) as they land from legal-distance.** No additional same-question cycles are justified until new representations appear in accepted state.
 
 The factory director should:
 1. Await legal-distance audit promotion of years 2003-2014+ dense embeddings to 174k
@@ -146,9 +149,10 @@ The factory director should:
 
 ## Evidence References (Immutable)
 
-- `evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json` — Adversarial benchmarks (exact k-NN fix)
+- `evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json` — Adversarial benchmarks (exact k-NN fix, re-verified 2026-09-30)
 - `results/evaluation/v25_174k_formal_suite/results/_suite_summary.json` — V25 12-benchmark suite (frozen protocol)
 - `evaluation/results/174k_citation_heritage/citation_heritage_174k_embeddings_latest.json` — Citation heritage on all 8 TF-IDF
 - `evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json` — v17b differential effect
 - `evaluation/results/174k/dense_partial_2000_2002/evaluation_dense_3yr_formal_suite.json` — V6 dense 12k evaluation
-- `evaluation/state/monitor_174k_state.json` — Monitor state (check_count=235)
+- `evaluation/state/monitor_174k_state.json` — Monitor state (check_count=240)
+- `evaluation/state/evaluation_state.json` — Lane state (evidence_tier=REPRODUCED, cycle_status=MONITORING)
