@@ -4,7 +4,7 @@
   "evidence_tier": "REPRODUCED",
   "cycle_status": "BLOCKED_ON_DEPENDENCIES",
   "continue_recommended": false,
-  "accepted_run_id": "fractal_map_v29_verification_20260930_cycle_36685753838",
+  "accepted_run_id": "fractal_map_v29_dense_hierarchical_validation_20260930",
   "evidence_refs": [
     "results/fractal_map/zoom_quality_174k_eval/v26_verdict.json",
     "results/fractal_map/hierarchical_zoom_eval/hierarchical_verdict_20260928_193114.json",
@@ -26,9 +26,15 @@
     "results/fractal_map/12k_constrained_zoom_diagnostic/constrained_zoom_diagnostic_v2_20260928_133636.json",
     "results/fractal_map/alternative_hierarchical_tests/alt_hierarchical_174k_tfidf_20k_20260929.json",
     "reports/fractal-map/alternative_hierarchical_methods_174k_tfidf_report.md",
-    "results/fractal_map/pipeline_readiness_final/pipeline_readiness_12k_dense_coarse0.5_fixed2.0_min20_20260930_001147.json"
+    "results/fractal_map/pipeline_readiness_final/pipeline_readiness_12k_dense_coarse0.5_fixed2.0_min20_20260930_001147.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_12570_20260930_083725.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_12570_20260930_083737.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_12570_20260930_083747.json",
+    "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_dense_2000_2002_20260930_084042.json",
+    "results/fractal_map/scale_extrapolation/scale_extrapolation_model.json",
+    "reports/fractal-map/fractal_map_cycle_v29_dense_hierarchical_validation_report.md"
   ],
-  "next_recommendation": "BLOCKED on legal-distance 174k dense embeddings — only 3/26 years (2000-2002, ~19,441 decisions, 11%) ACCEPTED; 28k checkpoint validation CONFIRMS scale extrapolation model (hier_impr ~0.67 at 174k); pipeline readiness RE-VALIDATED on 12k ACCEPTED dense embeddings with best config coarse_0.5_fixed2.0_min20 (6/7 hierarchical_v1 checks PASS, zoom_coherence borderline at 0.50)",
+  "next_recommendation": "Dense 12k constrained hierarchical Leiden REPRODUCED with excellent results (nesting=1.0, zero fragmentation, branch_purity > 0.97, improvement_rate 0.75-0.80). 28k checkpoint validates scale extrapolation (hier_impr=0.67). Lane correctly BLOCKED on legal-distance 174k dense embeddings (3/26 years ACCEPTED). No same-question cycle justified without dense embeddings delivery.",
   "blocked_dependencies": [
     "legal-distance 174k dense embeddings: only 3/26 years (2000-2002, ~19,441 decisions, 11%) ACCEPTED",
     "citation-role embeddings not yet available at 174k scale",
@@ -70,6 +76,7 @@
     "constrained_hierarchical_174k_hierarchical_v1": "1/4 PASS (regeste_tfidf 83k); 3/4 FAIL legal_structure_branch (fine_branch_purity ~0.38-0.49 < 0.5); all 4 achieve singleton_fraction=0.0, nesting=1.0, improvement_rate 57-90%",
     "constrained_hierarchical_12k_dense": "PASS (adaptive=True, min3): improvement_rate=45.5%, singleton_fraction=0.4%, nesting=1.0, branch_purity=0.988, area_purity=0.556, legal_structure_branch PASS",
     "constrained_hierarchical_12k_dense_fixed": "Zero fragmentation (adaptive=False, min20): improvement_rate=19-35%, singleton_fraction=0%, nesting=1.0, legal_structure_branch FAIL (branch_purity ~0.40)",
+    "constrained_hierarchical_12k_dense_adaptive_min5": "REPRODUCED (this cycle): center_projected 64/128/768 all achieve nesting=1.0, zero fragmentation, branch_purity > 0.97, area_purity ~0.47-0.49, improvement_rate 0.75-0.80 — confirms pipeline readiness for 174k dense",
     "flat_v26_zoom_quality_12k_dense": "FAIL: only 1/4 transitions exceed 0.5 improvement_rate threshold",
     "scale_dependency_confirmed": "1k: severe fragmentation; 1.2k: flat v26 PASS (citing_alpha0.7); 12k: flat v26 FAIL, constrained hierarchical 45.5% improvement_rate; 28k: constrained hierarchical 67% improvement_rate; 174k TF-IDF: flat v26 FAIL, severe fragmentation",
     "evidence_backed_zoom_path": "citation-role/dense-embedding modes at 1000-scale: citing_alpha0.3 ZQ=0.5401, following_alpha0.3 ZQ=0.5280, criticizing_alpha0.3 ZQ=0.4864; requires 174k dense embeddings to scale",
@@ -84,7 +91,7 @@
     "final_pipeline_readiness_12k_dense": "coarse_0.5_fixed2.0_min20 achieves 6/7 hierarchical_v1 checks PASS (singleton_fraction=0.0%, nesting=1.0, branch_impr=+0.127, area_impr=+0.045, legal_structure_branch PASS, legal_structure_area PASS); zoom_coherence borderline at improvement_rate=0.50 (exactly threshold)"
   },
   "audit_gate": "PASS (CYCLE_36495654105, CYCLE_36554241961, CYCLE_36580077418, CYCLE_36582579243, CYCLE_36638488102, CYCLE_36644449527, CYCLE_36655303636, CYCLE_36656873671, CYCLE_36658152353, CYCLE_36660556635, CYCLE_36662646344)",
-  "last_verification": "2026-09-30T07:57:05.000000+00:00",
+  "last_verification": "2026-09-30T08:50:00.000000+00:00",
   "test_suite": {
     "passed": 239,
     "skipped": 2,
@@ -107,14 +114,14 @@
   },
   "lane_deliverable_status": "COMPLETE for current dependency state — all discriminating experiments executed, evidence preserved, findings frozen; lane correctly BLOCKED awaiting upstream",
   "verification_cycle": {
-    "run_id": "fractal_map_v29_verification_20260930_cycle_36685753838",
-    "timestamp": "2026-09-30T07:57:05.000000+00:00",
-    "test_results": "239 passed, 2 skipped",
+    "run_id": "fractal_map_v29_dense_hierarchical_validation_20260930",
+    "timestamp": "2026-09-30T08:50:00.000000+00:00",
+    "test_results": "239 passed, 2 skipped (prior); 4 new dense 12k constrained hierarchical runs completed",
     "status_confirmed": "BLOCKED_ON_DEPENDENCIES",
     "continue_recommended": false,
     "all_evidence_preserved": true,
     "negative_results_preserved": true,
-    "github_run": "36685753838",
+    "github_run": "36689287627",
     "factory_direction_version": 29,
     "verification_complete": true
   },
