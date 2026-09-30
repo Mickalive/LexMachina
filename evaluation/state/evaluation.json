@@ -3,14 +3,13 @@
   "direction_version": 29,
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
-  "accepted_run_id": "eval_174k_formal_suite_20260930_084014",
+  "accepted_run_id": "eval_174k_formal_suite_20260930_091530",
   "continue_recommended": false,
   "evidence_refs": {
     "formal_suite_results": "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
-    "formal_suite_summary": "evaluation/results/v25_174k_formal_suite/results/_suite_summary.json",
     "citation_heritage_validation": "evaluation/results/174k_citation_heritage/citation_pairs_174k.json",
-    "v17b_label_normalization": "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
-    "partial_dense_12k_results": "evaluation/results/v25_174k_formal_suite/partial_dense_results/"
+    "citation_heritage_benchmark": "evaluation/results/174k_citation_heritage/benchmark/citation_heritage_174k_tfidf_hnsw_20260930_093143.json",
+    "v17b_label_normalization": "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_20260930_092857.json"
   },
   "next_recommendation": "PIVOT_WITHIN_MISSION",
   "summary": {
@@ -40,7 +39,7 @@
         "note": "Text-based modes fail language dominance; outcome_tfidf fails branch coherence. Confirms two-mode tradeoff extends to adversarial robustness."
       },
       "run_174k_formal_suite_adversarial": {
-        "description": "Separate evaluation using adversarial_language_dominance + jurist_pairwise_preference on 2000-decision stratified subsample (exact k-NN)",
+        "description": "Separate evaluation using adversarial_language_dominance + jurist_pairwise_preference on 2000-decision stratified subsample (exact k-NN, HNSW artifact fix)",
         "all_representations_pass": true,
         "thresholds": {
           "language_dominance_max": 0.85,
@@ -56,7 +55,7 @@
           "regeste_full_text_hybrid_0.5": {"language_dominance": 0.4873, "jurist_preference": 0.7140, "verdict": "PASS"},
           "regeste_full_text_hybrid_0.7": {"language_dominance": 0.4889, "jurist_preference": 0.7120, "verdict": "PASS"}
         },
-        "note": "Different metrics from formal suite adversarial_falsification. Uses jurist_would_succeed_rate (simulated jurist preference) not branch_coherence_mean. Two evaluations must not be conflated."
+        "note": "Different metrics from formal suite adversarial_falsification. Uses jurist_would_succeed_rate (simulated jurist preference) not branch_coherence_mean. Two evaluations must not be conflated. HNSW artifact fixed via exact k-NN on stratified valid subset."
       }
     },
     "formal_suite_v25_12_benchmark_results": {
@@ -69,23 +68,30 @@
       "regeste_full_text_hybrid_0.5": {"n_passed": 7, "n_failed": 5, "passed": ["citation_heritage", "branch_knn", "tf_metadata_human_indexing", "boilerplate_resistance_real_corpus", "collapse_check", "temporal_stability", "zoom_coherence"], "failed": ["adversarial_falsification", "multilingual_invariance", "cross_language_pairs", "hierarchy_coherence", "legal_area_clustering"]},
       "regeste_full_text_hybrid_0.7": {"n_passed": 7, "n_failed": 5, "passed": ["citation_heritage", "branch_knn", "tf_metadata_human_indexing", "boilerplate_resistance_real_corpus", "collapse_check", "temporal_stability", "zoom_coherence"], "failed": ["adversarial_falsification", "multilingual_invariance", "cross_language_pairs", "hierarchy_coherence", "legal_area_clustering"]}
     },
-    "cross_language_benchmarks": {
-      "all_representations_fail_zero_shot_transfer": true,
-      "all_representations_fail_language_specific_quality": true,
-      "cross_lang_same_branch_vs_same_lang_same_branch": "No clear cross-language advantage over same-language neighbors",
-      "invariance_gap_negative_for_hybrids": "Cross-lang same-branch slightly worse than same-lang same-branch for hybrid reps"
-    },
-    "jurist_usability_benchmarks": {
-      "cluster_coherence_all_fail": "All representations FAIL (mean_branch_purity ~0.28-0.36 < 0.7 threshold)",
-      "cross_language_retrieval_all_fail": "All representations FAIL (recall@10 ~0.12-0.14 < 0.2 threshold)",
-      "zoom_task_skipped": "Requires hierarchical cluster assignments"
-    },
-    "full_corpus_benchmarks_hnsw": {
-      "temporal_stability": "Mixed: full_text_tfidf_light PASS (0.78), others FAIL (<0.5)",
-      "hierarchy_coherence_jurivoc": "All FAIL (level_0_nmi < 0.3, level_1_nmi < 0.2)",
-      "cluster_coherence": "All FAIL (mean_branch_purity ~0.28-0.34 < 0.7)",
-      "cross_language_retrieval_full": "All FAIL (recall@10 ~0.10-0.14 < 0.2)",
-      "boilerplate_resistance": "All FAIL (negative resistance_score, boilerplate neighbors dominate)"
+    "run_174k_formal_suite_results": {
+      "adversarial": {
+        "all_8_pass": true,
+        "best_representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+        "best_language_dominance": 0.4773,
+        "best_jurist_preference": 0.7345
+      },
+      "cross_language": {
+        "zero_shot_transfer": "ALL FAIL (NMI < threshold)",
+        "language_specific_quality": "ALL FAIL (mean NMI ~0.02-0.05)",
+        "cross_language_neighbor_quality": "No cross-language advantage; same-lang same-branch >> cross-lang same-branch"
+      },
+      "jurist_usability": {
+        "cluster_coherence": "ALL FAIL (mean_branch_purity ~0.28-0.36 < 0.7 threshold)",
+        "cross_language_retrieval": "ALL FAIL (recall@10 ~0.12-0.14 < 0.2 threshold)",
+        "zoom_task": "SKIPPED (requires hierarchical cluster assignments)"
+      },
+      "full_corpus_hnsw": {
+        "temporal_stability": "MIXED: full_text_tfidf_light PASS (0.78), others FAIL (~0.0-0.38)",
+        "hierarchy_coherence_jurivoc": "ALL FAIL (level_0_nmi ~0.001-0.011 < 0.3; level_1_nmi ~0.009-0.03 < 0.2)",
+        "cluster_coherence": "ALL FAIL (mean_branch_purity ~0.28-0.34 < 0.7)",
+        "cross_language_retrieval_full": "ALL FAIL (recall@10 ~0.10-0.14 < 0.2)",
+        "boilerplate_resistance": "ALL FAIL (resistance_score ~ -0.76 to -0.84, boilerplate dominates)"
+      }
     },
     "citation_heritage": {
       "validation_completed": true,
@@ -94,18 +100,23 @@
       "resolved_citations": 924,
       "positive_pairs": 1020,
       "negative_pairs": 1020,
-      "note": "Ready for 174k dense embeddings when available; citation graph covers only 0.1% of corpus"
+      "benchmark_results": {
+        "all_representations_auc": "~0.500 (random chance)",
+        "all_representations_pos_recall_at_20": "~0.0001-0.0008 (near zero)",
+        "verdict": "NEGATIVE - citation heritage not recoverable at 174k with TF-IDF reps"
+      },
+      "note": "Citation graph covers only 0.1% of corpus (174/173963 decisions), limiting benchmark power"
     },
     "v17b_label_normalization": {
       "normalized_labels": 85819,
       "raw_unique_areas": 214,
       "normalized_unique_areas": 164,
       "uniform_improvement": false,
-      "hierarchy_coherence": "No change (ratio=1.0 for all)",
-      "legal_area_clustering": "No change (ratio≈1.0 for all)",
+      "hierarchy_coherence": "No change (ratio=1.0 for all 8 representations)",
+      "legal_area_clustering": "No change (ratio≈1.0 for all 8 representations)",
       "zoom_coherence_degraded": "4/8 representations degraded >10% (ratios 0.83-0.89)",
       "worst_degradation": "full_text_tfidf_light zoom_fine ratio 0.8352",
-      "note": "v17b normalization does not uniformly improve 174k results; zoom coherence degrades for several reps"
+      "note": "NEGATIVE RESULT: v17b normalization (15-25% purity gain at smaller scale) does NOT generalize to 174k fine-grained legal_area labels; zoom coherence actually degrades for several representations"
     },
     "partial_dense_12k_preview": {
       "note": "12k-scale evaluation on 2000-2002 dense embeddings (ACCEPTED 3/26 years) run as preview; NOT 174k formal suite",
@@ -114,14 +125,14 @@
       "awaiting_174k_dense": "15/26 years (2000-2014) checkpointed pending audit; 11/26 years (2015-2026) not yet processed"
     },
     "key_findings": [
-      "TF-IDF family (8 representations) COMPLETE at 174k with HNSW artifact fixed (exact k-NN on valid subset for adversarial benchmarks)",
+      "TF-IDF family (8 representations) COMPLETE at 174k with HNSW artifact fixed (exact k-NN on stratified 2000-decision valid subset for adversarial benchmarks)",
       "v25 formal suite adversarial_falsification: 4/8 PASS (cited_decisions_tfidf, regeste_tfidf, cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7); 4/8 FAIL (outcome_tfidf branch_coherence 0.146; full_text_tfidf_light lang_dom 0.999; regeste_full_text_hybrid_0.5 lang_dom 0.998; regeste_full_text_hybrid_0.7 lang_dom 0.999)",
       "run_174k_formal_suite.py adversarial (different metrics: jurist_would_succeed_rate): 8/8 PASS — two evaluations must not be conflated",
       "Production default (cited_decisions_tfidf_outcome_hybrid_0.5) achieves best jurist preference (0.7345) with low language dominance (0.4773) in run_174k_formal_suite evaluation; also PASSES formal suite adversarial_falsification",
       "Fundamental two-mode tradeoff persists: citation-based reps pass adversarial_falsification/citation_heritage but fail branch/tf_metadata/hierarchy; text-based reps pass branch/tf_metadata but FAIL adversarial_falsification (language dominance ~0.999 at full corpus)",
       "HNSW adversarial artifact FIXED: exact k-NN on stratified 2000-decision valid subset reveals true representation differences",
-      "Citation heritage benchmark validated at 174k (1020 positive/negative pairs, 924 resolved citations) but citation graph covers only 0.1% of corpus",
-      "v17b label normalization (15-25% purity gain at smaller scale) does NOT generalize uniformly to 174k: zoom coherence DEGRADES for 4/8 representations (>10% worse)",
+      "Citation heritage benchmark validated at 174k (1020 positive/negative pairs, 924 resolved citations) but ALL REPS FAIL (AUC~0.5, recall@20~0.0001); citation graph covers only 0.1% of corpus",
+      "v17b label normalization (15-25% purity gain at smaller scale, REPRODUCED across 4 seeds) does NOT generalize uniformly to 174k: zoom coherence DEGRADES for 4/8 representations (>10% worse); hierarchy/legal_area unchanged",
       "All representations FAIL cross-language retrieval (recall@10 ~0.12-0.14 < 0.2), cluster coherence (purity ~0.28-0.36 < 0.7), hierarchy alignment (NMI < 0.03 vs 0.3 threshold), boilerplate resistance (negative scores)",
       "Temporal stability: only full_text_tfidf_light passes (0.78 neighbor overlap), others fail",
       "No dense embeddings, citation roles, linear hybrids, or metric learning results available yet from legal-distance at 174k scale (3/26 years ACCEPTED, 15/26 years checkpointed pending audit)"
