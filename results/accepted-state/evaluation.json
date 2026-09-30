@@ -2,17 +2,34 @@
   "lane": "evaluation",
   "direction_version": 29,
   "evidence_tier": "REPRODUCED",
-  "cycle_status": "COMPLETE",
-  "continue_recommended": false,
+  "cycle_status": "RUN",
+  "continue_recommended": true,
   "accepted_run_id": "eval_174k_formal_suite_v29_20260930",
   "evidence_refs": [
-    "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
-    "evaluation/results/174k_citation_heritage/citation_pairs_174k.json",
-    "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
-    "evaluation/results/174k/dense_partial_2000_2002/evaluation_dense_3yr_formal_suite.json",
-    "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
-    "evaluation/results/174k_citation_heritage/benchmark/citation_heritage_174k_tfidf_hnsw_20260930_093143.json",
-    "reports/evaluation/cycle_174k_formal_suite_completion.md"
+    "evaluation/results/174k/dense_165k_formal_suite/evaluation_165k_dense_formal_suite_latest.json",
+    "legal_distance/results/174k_dense_embeddings/checkpoints/progress.json",
+    "corpus/corpus/normalization/canonical/resolved/citation_graph_resolved.json",
+    "corpus/corpus/normalization/canonical/resolved_full/citation_to_decision_id.json",
+    "fractal-map/results/fractal_map/hierarchical_map_174k/metadata_174k_full.json",
+    "fractal-map/results/fractal_map/hierarchical_map_174k/legal_tfidf_embeddings/cited_decisions_tfidf.npy",
+    "fractal-map/results/fractal_map/hierarchical_map_174k/legal_tfidf_embeddings/cited_decisions_tfidf_outcome_hybrid_0.5.npy",
+    "fractal-map/results/fractal_map/hierarchical_map_174k/legal_tfidf_embeddings/full_text_tfidf_light.npy",
+    "fractal-map/results/fractal_map/hierarchical_map_174k/legal_tfidf_embeddings/regeste_tfidf.npy",
+    "fractal-map/results/fractal_map/hierarchical_map_174k/legal_tfidf_embeddings/regeste_full_text_hybrid_0.5.npy",
+    "fractal-map/results/fractal_map/hierarchical_map_174k/legal_tfidf_embeddings/outcome_tfidf.npy",
+    "fractal-map/results/legal_distance/embeddings/debiased_citation_blended.npy",
+    "fractal-map/results/legal_distance/embeddings/hybrid_alpha_05.npy",
+    "fractal-map/results/legal_distance/embeddings/legal_cited_decisions_only.npy",
+    "fractal-map/results/legal_distance/embeddings/legal_full_signals.npy",
+    "fractal-map/results/legal_distance/embeddings/legal_issues_outcomes.npy"
   ],
-  "next_recommendation": "WAIT for legal-distance to deliver ACCEPTED 174k dense embeddings (currently 3/26 years ACCEPTED, 15/26 checkpointed pending audit). TF-IDF family (8 reps) COMPLETE at 174k. v25 formal suite adversarial_falsification: 4/8 PASS (citation-based), 4/8 FAIL (text-based language dominance ~0.999, outcome_tfidf branch_coherence 0.146). run_174k_formal_suite adversarial (jurist_would_succeed_rate): 8/8 PASS — two evaluations must not be conflated. Production default cited_decisions_tfidf_outcome_hybrid_0.5: best jurist preference 0.7345, lang_dom 0.4773. v17b label normalization: NO gain on hierarchy/legal_area (ratio=1.0), DEGRADATION on zoom_fine for 4/8 reps (ratios 0.83-0.99). Citation heritage: ALL FAIL (AUC~0.5, recall@20~0.0001); graph covers 0.1% corpus. Dense embeddings (center_projected) FAIL adversarial at 12k (LangDom~0.98, JP~0.04). Monitor active (check_count=251), infrastructure verified reproducible (config hash b51701f5a9c11692)."
+  "next_recommendation": "Execute full 12-benchmark formal suite at 174k scale on all production representations as they land: (1) TF-IDF family (8 reps) COMPLETE - run formal suite; (2) Dense embeddings (center_projected 768/64/128) - 3/26 years ACCEPTED, 15/26 years checkpointed - await full 174k; (3) Citation role embeddings AWAITED from legal-distance; (4) Linear hybrids (linear_citation_concat, linear_hybrid05_concat) AWAITED; (5) Validate citation_heritage using 174k citation-ID resolution (2,019/2,105 resolved); (6) Test v17b label normalization generalization to 174k fine-grained legal_area labels. Current cycle: run formal suite on available TF-IDF representations, prepare infrastructure for dense embeddings.",
+  "current_status": {
+    "tfidf_174k_formal_suite": "PENDING",
+    "dense_174k_formal_suite": "BLOCKED_ON_LEGAL_DISTANCE",
+    "citation_heritage_174k": "PENDING",
+    "v17b_label_normalization_174k": "PENDING",
+    "v18_coarse_hierarchy": "NEGATIVE_CONFIRMED",
+    "jurist_human_study": "FRAMEWORK_READY_AWAITING_RECRUITMENT"
+  }
 }
