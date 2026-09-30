@@ -1,10 +1,10 @@
 {
   "lane": "fractal-map",
-  "direction_version": 28,
+  "direction_version": 29,
   "evidence_tier": "REPRODUCED",
   "cycle_status": "BLOCKED_ON_DEPENDENCIES",
   "continue_recommended": false,
-  "accepted_run_id": "fractal_map_v28_final_verification_20260930_cycle_36644449527",
+  "accepted_run_id": "fractal_map_v29_verification_20260930_cycle_36660556635",
   "evidence_refs": [
     "results/fractal_map/zoom_quality_174k_eval/v26_verdict.json",
     "results/fractal_map/hierarchical_zoom_eval/hierarchical_verdict_20260928_193114.json",
@@ -51,16 +51,18 @@
     "Pipeline readiness for 174k dense embeddings: operational at simulation level; best validated config coarse_0.5_fixed2.0_min20 (validated at 12k ACCEPTED and 28k PENDING AUDIT); requires ACCEPTED 174k dense embeddings for production",
     "Scale extrapolation model VALIDATED: power law predicts hierarchical improvement_rate ~0.67 at 174k for dense embeddings (HIGH confidence after 28k validation); flat zoom predicted ~0.24; 28k checkpoint validation confirms hier_impr=0.67",
     "Pipeline re-validation 12k dense: RE-VALIDATED on ACCEPTED 12k dense embeddings (years 2000-2002): constrained hierarchical Leiden PASSes hierarchical_v1 protocol (adaptive=True, min3); flat v26 FAILs — CONFIRMS prior accepted results",
-    "Final pipeline readiness validation 12k dense (coarse_0.5_fixed2.0_min20): 6/7 hierarchical_v1 checks PASS — singleton_fraction=0.0%, nesting=1.0, branch_improvement=+0.127, area_improvement=+0.045, legal_structure_branch PASS (0.986>0.5), legal_structure_area PASS (0.509>0.5); zoom_coherence borderline (improvement_rate=0.50 exactly, not >0.5)"
+    "Final pipeline readiness validation 12k dense (coarse_0.5_fixed2.0_min20): 6/7 hierarchical_v1 checks PASS — singleton_fraction=0.0%, nesting=1.0, branch_improvement=+0.127, area_improvement=+0.045, legal_structure_branch PASS (0.986>0.5), legal_structure_area PASS (0.509>0.5); zoom_coherence borderline (improvement_rate=0.50 exactly, not >0.5)",
+    "TF-IDF constrained hierarchical Leiden at 174k is NOT production-ready — FAILS v26 zoom-quality rule (per_mode_verdict=FAIL) despite nesting=1.0 by construction"
   ],
   "factory_direction_v28_discrepancy": {
-    "issue": "factory_direction.json v28 claims 'ALL 4 TF-IDF MODES PASS the frozen v26 zoom-quality acceptance rule (per_mode_verdict: PASS)' for constrained hierarchical Leiden — this conflates v26 flat rule with hierarchical_v1 protocol. hierarchical_verdict_20260928_193114.json shows 1/4 PASS (regeste_tfidf 83k), 3/4 FAIL on legal_structure_branch",
-    "impact": "Control plane overstates constrained hierarchical results at 174k; only regeste_tfidf (83k) meets full hierarchical_v1 protocol including legal_structure_branch",
+    "issue": "factory_direction.json v28 claimed 'ALL 4 TF-IDF MODES PASS the frozen v26 zoom-quality acceptance rule (per_mode_verdict: PASS)' for constrained hierarchical Leiden — this conflated v26 flat rule with hierarchical_v1 protocol. hierarchical_verdict_20260928_193114.json shows 1/4 PASS (regeste_tfidf 83k), 3/4 FAIL on legal_structure_branch",
+    "impact": "Control plane overstated constrained hierarchical results at 174k; only regeste_tfidf (83k) meets full hierarchical_v1 protocol including legal_structure_branch",
     "resolution_required": "Factory Director should correct factory_direction.json to reflect hierarchical_v1 protocol results accurately",
     "progress_detail": "legal-distance progress.json shows 25/26 years (2000-2024) in checkpoints but only 3/26 years (2000-2002) ACCEPTED; 22/26 years PENDING AUDIT",
     "22/26": "years pending audit promotion (2003-2024)",
     "3/26": "years ACCEPTED (2000-2002)",
-    "2000-2002": "ACCEPTED years"
+    "2000-2002": "ACCEPTED years",
+    "resolution_status": "RESOLVED in factory_direction.json v29 — discrepancy acknowledged and corrected; v29 question text accurately reflects 1/4 PASS on hierarchical_v1 protocol"
   },
   "key_findings": {
     "flat_v26_zoom_quality": "FAIL: 0/4 modes pass; singleton_fraction >0.99 at res 2.0/3.0; strong branch purity (0.51-0.55 vs 0.25 random) but NO monotonic zoom refinement",
@@ -81,12 +83,12 @@
     "pipeline_revalidation_12k_dense": "RE-VALIDATED on ACCEPTED 12k dense embeddings (years 2000-2002): constrained hierarchical Leiden PASSes hierarchical_v1 protocol (adaptive=True, min3); flat v26 FAILs — CONFIRMS prior accepted results",
     "final_pipeline_readiness_12k_dense": "coarse_0.5_fixed2.0_min20 achieves 6/7 hierarchical_v1 checks PASS (singleton_fraction=0.0%, nesting=1.0, branch_impr=+0.127, area_impr=+0.045, legal_structure_branch PASS, legal_structure_area PASS); zoom_coherence borderline at improvement_rate=0.50 (exactly threshold)"
   },
-  "audit_gate": "PASS (CYCLE_36495654105, CYCLE_36554241961, CYCLE_36580077418, CYCLE_36582579243, CYCLE_36638488102, CYCLE_36644449527)",
-  "last_verification": "2026-09-30T00:11:47.194559+00:00",
+  "audit_gate": "PASS (CYCLE_36495654105, CYCLE_36554241961, CYCLE_36580077418, CYCLE_36582579243, CYCLE_36638488102, CYCLE_36644449527, CYCLE_36655303636, CYCLE_36656873671, CYCLE_36658152353, CYCLE_36660556635, CYCLE_36662646344)",
+  "last_verification": "2026-09-30T05:15:00.000000+00:00",
   "test_suite": {
     "passed": 240,
     "skipped": 1,
-    "duration_seconds": 1.53
+    "duration_seconds": 1.82
   },
   "provenance": {
     "12k_dense_embeddings": "/tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/checkpoints/ (years 2000-2002, ACCEPTED)",
@@ -105,15 +107,15 @@
   },
   "lane_deliverable_status": "COMPLETE for current dependency state — all discriminating experiments executed, evidence preserved, findings frozen; lane correctly BLOCKED awaiting upstream",
   "verification_cycle": {
-    "run_id": "fractal_map_v28_final_verification_20260930_cycle_36651789897",
-    "timestamp": "2026-09-30T00:50:00.000000+00:00",
+    "run_id": "fractal_map_v29_final_state_20260930",
+    "timestamp": "2026-09-30T05:15:00.000000+00:00",
     "test_results": "240 passed, 1 skipped",
     "status_confirmed": "BLOCKED_ON_DEPENDENCIES",
     "continue_recommended": false,
     "all_evidence_preserved": true,
     "negative_results_preserved": true,
-    "github_run": "36651789897",
-    "factory_direction_version": 28,
+    "github_run": "36672107651",
+    "factory_direction_version": 29,
     "verification_complete": true
   },
   "alternative_methods_verification": {
