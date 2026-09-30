@@ -6,7 +6,10 @@
   "continue_recommended": true,
   "accepted_run_id": "eval_174k_formal_suite_v29_20260930",
   "evidence_refs": [
-    "evaluation/results/174k/dense_165k_formal_suite/evaluation_165k_dense_formal_suite_latest.json",
+    "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_20260930_180416.json",
+    "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
+    "evaluation/results/v17b_174k_generalization/v17b_174k_generalization_20260930_011927.json",
+    "evaluation/results/174k_citation_heritage/citation_pairs_174k.json",
     "legal_distance/results/174k_dense_embeddings/checkpoints/progress.json",
     "corpus/corpus/normalization/canonical/resolved/citation_graph_resolved.json",
     "corpus/corpus/normalization/canonical/resolved_full/citation_to_decision_id.json",
@@ -23,13 +26,19 @@
     "fractal-map/results/legal_distance/embeddings/legal_full_signals.npy",
     "fractal-map/results/legal_distance/embeddings/legal_issues_outcomes.npy"
   ],
-  "next_recommendation": "Execute full 12-benchmark formal suite at 174k scale on all production representations as they land: (1) TF-IDF family (8 reps) COMPLETE - run formal suite; (2) Dense embeddings (center_projected 768/64/128) - 3/26 years ACCEPTED, 15/26 years checkpointed - await full 174k; (3) Citation role embeddings AWAITED from legal-distance; (4) Linear hybrids (linear_citation_concat, linear_hybrid05_concat) AWAITED; (5) Validate citation_heritage using 174k citation-ID resolution (2,019/2,105 resolved); (6) Test v17b label normalization generalization to 174k fine-grained legal_area labels. Current cycle: run formal suite on available TF-IDF representations, prepare infrastructure for dense embeddings.",
+  "next_recommendation": "TF-IDF family (8 reps) 174k formal suite COMPLETE - all PASS both adversarial gates. Production default cited_decisions_tfidf_outcome_hybrid_0.5 is BEST (LangDom=0.4895, JP=0.7265). v17b label normalization GENERALIZES to 174k: normalization from 213->111 labels yields 5-10x purity gains (RAW near-zero due to sparsity, NORMALIZED ~0.16 meaningful). Citation_heritage benchmark infrastructure ready (924 resolved pairs, 1020 positive pairs) but requires embeddings with citation signal. Dense embeddings (center_projected 768/64/128) - 3/26 years ACCEPTED, 15/26 years checkpointed - await full 174k. Citation role embeddings AWAITED from legal-distance. Linear hybrids (linear_citation_concat, linear_hybrid05_concat) AWAITED. Next cycle: run formal suite on dense embeddings as they land, complete citation_heritage on TF-IDF + outcome hybrids.",
   "current_status": {
-    "tfidf_174k_formal_suite": "PENDING",
+    "tfidf_174k_formal_suite": "COMPLETE_ALL_PASS",
     "dense_174k_formal_suite": "BLOCKED_ON_LEGAL_DISTANCE",
-    "citation_heritage_174k": "PENDING",
-    "v17b_label_normalization_174k": "PENDING",
+    "citation_heritage_174k": "INFRASTRUCTURE_READY_AWAITING_EMBEDDINGS",
+    "v17b_label_normalization_174k": "GENERALIZES_MASSIVE_GAINS",
     "v18_coarse_hierarchy": "NEGATIVE_CONFIRMED",
     "jurist_human_study": "FRAMEWORK_READY_AWAITING_RECRUITMENT"
+  },
+  "key_findings": {
+    "tfidf_formal_suite_174k": "All 8 TF-IDF representations PASS both frozen adversarial gates (LangDom < 0.85, JuristPairwise > 0.5) on exact k-NN stratified subsample. Production default cited_decisions_tfidf_outcome_hybrid_0.5 achieves best jurist preference (0.7265) with low language dominance (0.4895). HNSW artifact fix confirmed: exact k-NN on valid subset reveals true representation quality.",
+    "v17b_generalization": "v17b label normalization (15-25% gain at 1k scale) GENERALIZES to 174k with MASSIVE gains (5-10x). Raw legal_area labels (213) too sparse for meaningful clustering at 174k (purities 0.01-0.03). Normalized labels (111) restore meaningful clustering (purities ~0.16). Finding: label normalization ESSENTIAL for fine-grained legal_area evaluation at corpus scale.",
+    "citation_heritage_infrastructure": "174k citation graph: 174 decisions with outgoing citations (0.1% coverage), 924 resolved citations mapping to corpus, 1020 positive pairs. Benchmark frozen and ready. Awaits embeddings with citation signal (TF-IDF cited_decisions or dense embeddings) for AUC-ROC computation.",
+    "two_mode_tradeoff_confirmed": "TF-IDF family (citation-based) passes adversarial gates with high jurist preference (0.61-0.73) but FAILS cross-language retrieval (<0.15 vs 0.2 threshold) and hierarchy coherence. Dense embeddings needed for complementary mode."
   }
 }
