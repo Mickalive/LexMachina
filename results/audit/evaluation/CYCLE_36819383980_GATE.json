@@ -1,0 +1,89 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF family at 174k passes adversarial robustness gates; production default cited_decisions_tfidf_outcome_hybrid_0.5 validated. All other capabilities (hierarchy recovery, cross-language retrieval, citation recall@10, dense embeddings, boilerplate resistance) FAIL at scale.",
+  "evidence_summary": {
+    "tfidf_formal_suite_174k": {
+      "status": "COMPLETE",
+      "representations_tested": 8,
+      "adversarial_gates_passed": 8,
+      "production_default": "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "key_metrics": {
+        "language_dominance_range": "0.485-0.511",
+        "jurist_preference_range": "0.615-0.727",
+        "backend": "sklearn_exact (EXACT k-NN on stratified n=2000)",
+        "hnsw_artifact_fixed": true
+      }
+    },
+    "citation_heritage_174k": {
+      "status": "COMPLETE",
+      "citations_resolved": "2019/2105 (96%)",
+      "auc_roc_pass": ["cited_decisions_tfidf (0.722)", "regeste_tfidf (0.836)", "cited_decisions_tfidf_outcome_hybrid_0.7 (0.676)", "regeste_full_text_hybrid_0.7 (0.659)"],
+      "recall_at_10_pass": [],
+      "all_recall_at_10_fail": true,
+      "recall_at_10_max": 0.0066,
+      "hnsw_benchmark_auc": "~0.50 (random) for all reps"
+    },
+    "v17b_label_normalization_174k": {
+      "status": "COMPLETE",
+      "uniform_improvement": false,
+      "zoom_fine_worsened_reps": 4,
+      "worsened_reps": ["cited_decisions_tfidf", "full_text_tfidf_light", "cited_decisions_tfidf_outcome_hybrid_0.5", "cited_decisions_tfidf_outcome_hybrid_0.7"],
+      "zoom_fine_degradation_range": "11-16%",
+      "v17b_generalization_15k": "5-10x purity ratios but reference mismatch (v17b reference ratios = 0)"
+    },
+    "v18_coarse_hierarchy": {
+      "status": "COMPLETE",
+      "branch_level_best_purity": 0.649708,
+      "branch_level_threshold": 0.7,
+      "best_representation": "linear_citation_concat",
+      "result": "NEGATIVE - fundamental hierarchy limitation confirmed",
+      "multi_seed_stability": "PASS (std < 0.05, mean > 1.10) but for negative result"
+    },
+    "dense_embeddings_165k_3yr": {
+      "status": "COMPLETE",
+      "representations_tested": 3,
+      "adversarial_gates_passed": 0,
+      "language_dominance_range": "0.996-0.997",
+      "jurist_preference_range": "0.0054-0.0074",
+      "cross_language_zero_shot_nmi": "PASS (0.43-0.51) but retrieval FAIL",
+      "cluster_coherence_branch_purity": "0.87-0.90 but language_purity 0.995+",
+      "boilerplate_resistance": "FAIL (-0.98)",
+      "cross_language_retrieval_recall": "~0.002"
+    },
+    "dense_embeddings_16yr_99k": {
+      "status": "COMPLETE",
+      "representations_tested": 3,
+      "adversarial_gates_passed": 0,
+      "language_dominance_range": "0.868-0.877",
+      "jurist_preference_range": "0.297-0.327",
+      "cross_language_retrieval_recall": "0.025-0.085",
+      "cluster_coherence_branch_purity": "0.67-0.74",
+      "boilerplate_resistance": "FAIL (-0.93)"
+    },
+    "raw_multilingual_e5_99k": {
+      "status": "COMPLETE",
+      "adversarial_gates_passed": 0,
+      "language_dominance": 0.986,
+      "jurist_preference": 0.0275,
+      "cross_language_retrieval_recall": 0.0071,
+      "boilerplate_resistance": "FAIL (-0.92)"
+    },
+    "universal_failures": {
+      "boilerplate_resistance": "ALL reps FAIL (resistance_score -0.79 to -0.98)",
+      "cross_language_retrieval": "ALL reps FAIL (recall@10 0.002-0.15 < 0.2 threshold)",
+      "hierarchy_coherence_branch": "ALL reps FAIL (NMI < 0.03 at branch level)",
+      "citation_heritage_recall": "ALL reps FAIL (recall@10 < 0.01)"
+    },
+    "critical_findings_verified": [
+      "HNSW artifact fixed by EXACT k-NN on stratified subsample",
+      "Two-mode tradeoff confirmed (citation-based vs text-based)",
+      "Citation heritage AUC PASS but recall universally FAIL",
+      "v17b label normalization NEGATIVE for TF-IDF citation-based reps",
+      "v18 hierarchy FAIL at branch level (4 labels) - fundamental limitation",
+      "Dense embeddings FAIL jurist gate at all scales tested",
+      "No benchmark gaming, leakage, or prettiness-as-quality detected"
+    ]
+  }
+}
