@@ -17,9 +17,9 @@ from app.navigation import NavigationAPI
 # Design patterns in MapLoader
 # ---------------------------------------------------------------------------
 
-def test_design_patterns_all_five_exist():
-    """All 7 design pattern labels exist in MapLoader.DESIGN_PATTERNS (added COMBINATION per v15b ACCEPTED, LEGACY-DEFAULT per v15b-audit)."""
-    expected = {"DEFAULT", "LEGACY-DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "COMBINATION", "CITATION-ROLE", "LEGACY"}
+def test_design_patterns_all_eight_exist():
+    """All 8 design pattern labels exist in MapLoader.DESIGN_PATTERNS (added EXPLORATORY for 174k dense embeddings, COMBINATION per v15b ACCEPTED, LEGACY-DEFAULT per v15b-audit)."""
+    expected = {"DEFAULT", "LEGACY-DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "COMBINATION", "CITATION-ROLE", "LEGACY", "EXPLORATORY"}
     actual = set(MapLoader.DESIGN_PATTERNS.values())
     assert expected == actual, f"Missing patterns: {expected - actual}, Extra: {actual - expected}"
 
