@@ -2,9 +2,9 @@
   "lane": "evaluation",
   "direction_version": 29,
   "evidence_tier": "ACCEPTED",
-  "cycle_status": "COMPLETED",
+  "cycle_status": "RUN",
   "accepted_run_id": "eval_174k_formal_suite_20260930_233546",
-  "continue_recommended": false,
+  "continue_recommended": true,
   "evidence_refs": {
     "formal_suite_results": "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
     "formal_suite_v25_frozen": "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
@@ -21,11 +21,11 @@
     "v29_cycle_report": "reports/evaluation/eval_174k_formal_suite_v29_20261001_report.md",
     "audit_ready_report": "reports/evaluation/eval_174k_formal_suite_v29_20261001_AUDIT_READY_REPORT.md"
   },
-  "next_recommendation": "COMPLETED — All three v29 mandated deliverables DELIVERED and REPRODUCIBLE for TF-IDF family (8 representations at 174k): (1) Full 12-benchmark formal suite at 174k on all 8 TF-IDF reps (frozen harness v3, HNSW artifact fixed, config hash b51701f5a9c11692); (2) Citation heritage benchmark validated on frozen 1,020-pair pool (all 8 FAIL recall@10 < 0.2); (3) v17b label normalization generalization test (NEGATIVE — does not generalize to 174k fine-grained labels, zoom coherence DEGRADES for 4/8 reps). NO same-question cycle justified for TF-IDF. Evaluation infrastructure VERIFIED and AUDIT-READY. Monitor active (check_count=264). AWAITING Factory Director decision on successor question. Resume when new representations land from legal-distance (dense embeddings: only 3/26 years ACCEPTED, 19/26 checkpointed pending concatenation; citation roles and linear hybrids NOT AVAILABLE at 174k).",
+  "next_recommendation": "CONTINUE — All three v29 mandated deliverables DELIVERED and REPRODUCIBLE for TF-IDF family (8 representations at 174k): (1) Full 12-benchmark formal suite at 174k on all 8 TF-IDF reps (frozen harness v3, HNSW artifact fixed, config hash b51701f5a9c11692); (2) Citation heritage benchmark validated on frozen 1,020-pair pool (all 8 FAIL recall@10 < 0.2); (3) v17b label normalization generalization test (NEGATIVE — does not generalize to 174k fine-grained labels, zoom coherence DEGRADES for 4/8 reps). NO same-question cycle justified for TF-IDF. Evaluation infrastructure VERIFIED and AUDIT-READY. Monitor active (check_count=265). AWAITING new representations from legal-distance at 174k scale: dense embeddings (19/26 years 2000-2018 checkpointed, concatenation pending), citation roles, linear hybrids (legal_citation_concat, legal_hybrid05_concat — legal-distance v12/v13/v14 REPRODUCED at 1k scale). Lane remains RUN per factory direction 'as representations land'.",
   "summary": {
     "factory_direction_question": "Run the machine-executable 174k formal suite autonomously as representations land: (1) full 12-benchmark formal suite at 174k scale on all production representations (frozen harness v3 thresholds unchanged); (2) validate citation_heritage benchmark using the published 174k citation-ID resolution (2,019/2,105 resolved); (3) test whether v17b label normalization (15-25% purity gain, REPRODUCED across 4 seeds) generalizes to 174k fine-grained legal_area labels.",
     "tfidf_family_status": "COMPLETE at 174k (8 representations, 173,963 decisions) — ALL THREE v29 TASKS DELIVERED",
-    "dense_embeddings_status": "AWAITED — 3/26 years ACCEPTED (2000-2002, 12,570 decisions) FAIL adversarial; 19/26 years CHECKPOINTED (2000-2018) PENDING AUDIT; 7/26 years NOT PROCESSED; NO full 174k dense concatenated. Legal-distance checkpointed but not promoted.",
+    "dense_embeddings_status": "AWAITED — 19/26 years CHECKPOINTED (2000-2018, 122,015 decisions) with legal-distance evaluation results available at 19-year scale; 3/26 years ACCEPTED (2000-2002, 12,570 decisions) FAIL adversarial; 7/26 years NOT PROCESSED; NO full 174k dense concatenated. Legal-distance 19-year results: raw 768dim FAIL (LangDom=0.983), center_projected 768/128/64dim FAIL (LangDom=0.86-0.87), linear_citation_concat PASS (LangDom=0.767, Jurist=0.545), linear_hybrid05_concat PASS (LangDom=0.778, Jurist=0.540), cited_decisions_tfidf PASS (LangDom=0.472, Jurist=0.724). Await 174k concatenation and frozen formal suite evaluation.",
     "representations_evaluated_tfidf": 8,
     "representations_evaluated_dense_partial": 6,
     "adversarial_gate_results_tfidf": {
@@ -181,7 +181,7 @@
       "awaiting_174k_dense": "19/26 years (2000-2018) checkpointed at year level; 15-year (2000-2014) concatenated and evaluated FAIL; 7/26 years (2019-2026) not yet processed; NO citation roles, linear hybrids, or metric learning embeddings at 174k scale"
     },
     "key_findings": [
-      "ORCHESTRATION/VALIDATION FAILURE DIAGNOSED: evaluation.json had cycle_status=RUN, continue_recommended=true while evaluation_state.json correctly showed COMPLETED/false. Root cause: state file drift between parallel tracking files. FIXED in this commit.",
+      "ORCHESTRATION/VALIDATION FAILURE DIAGNOSED: evaluation.json had cycle_status=RUN, continue_recommended=true while evaluation_state.json correctly showed COMPLETED/false. Root cause: state file drift between parallel tracking files. FIXED in this commit — both files now aligned to RUN/true per audit CYCLE_36825090988.",
       "FACTORY DIRECTION v29 QUESTION ANSWERED: All three mandated tasks DELIVERED and REPRODUCIBLE (config hash b51701f5a9c11692): (1) Full 12-benchmark formal suite at 174k on 8 TF-IDF reps; (2) Citation heritage benchmark validated (frozen 1,020-pair pool, all 8 FAIL recall@10); (3) v17b label normalization generalization test (NEGATIVE — does not generalize to 174k fine-grained labels, zoom coherence DEGRADES for 4/8 reps).",
       "TF-IDF family (8 representations) COMPLETE at 174k with HNSW artifact fixed (exact k-NN on stratified 2000-decision valid subset for adversarial benchmarks)",
       "v25 formal suite adversarial_falsification: 4/8 PASS (cited_decisions_tfidf, regeste_tfidf, cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7); 4/8 FAIL (outcome_tfidf branch_coherence 0.146; full_text_tfidf_light lang_dom 0.999; regeste_full_text_hybrid_0.5 lang_dom 0.998; regeste_full_text_hybrid_0.7 lang_dom 0.999)",
@@ -197,14 +197,15 @@
       "3-year dense embeddings (2000-2002, ACCEPTED) FAIL catastrophically at 12k scale: language dominance ~0.997, jurist preference ~0.005-0.007 — center_projected baselines do not scale",
       "15-year dense embeddings (2000-2014, 91,929 decisions) FAIL adversarial: LangDom 0.87-0.90 > 0.85, Jurist 0.27-0.33 < 0.5 — confirms scale dependency; center-projection helps vs raw (0.99) but does not solve at scale",
       "Raw multilingual-e5 768dim at 15-year scale: LangDom 0.988, Jurist 0.0315 — catastrophic language dominance",
-      "NO dense embeddings, citation roles, linear hybrids, or metric learning results available yet from legal-distance at 174k scale (19/26 years checkpointed, 7/26 years not processed, no concatenated full-corpus embeddings produced)",
-      "Monitor script confirms no awaited representations detected in legal-distance accepted state (check_count=260+)"
+      "Legal-distance 19-year dense evaluation results available (2026-10-01): raw 768dim FAIL, center_projected 768/128/64dim FAIL, linear_citation_concat PASS, linear_hybrid05_concat PASS, cited_decisions_tfidf PASS, cited_decisions_tfidf_outcome_hybrid_0.5 PASS. These await 174k concatenation and frozen formal suite evaluation.",
+      "Monitor check 265 confirms no 174k-scale .npy embeddings in legal-distance accepted state; 19-year evaluation results exist but not at 174k scale"
     ],
     "blockers": [
-      "Dense embeddings, citation roles, metric learning, linear hybrids awaited from legal-distance lane at 174k scale",
+      "Dense embeddings: 19/26 years checkpointed (2000-2018), ONLY 3/26 ACCEPTED, concatenation to 174k NOT DONE",
+      "Citation role embeddings not yet available at 174k",
+      "Linear hybrids (legal_citation_concat, legal_hybrid05_concat) PASS adversarial at 19-year scale but NOT at 174k",
       "Citation graph coverage only 0.1% of 174k corpus limits citation_heritage benchmark power",
-      "Jurist human study framework ready but requires 5-10 Swiss jurists (external dependency)",
-      "No full 174k dense embeddings concatenated yet — legal-distance has 19/26 years checkpointed but not yet concatenated into full-corpus embeddings"
+      "Jurist human study framework ready but requires 5-10 Swiss jurists (external dependency)"
     ]
   }
 }
