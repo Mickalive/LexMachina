@@ -49,43 +49,43 @@ METADATA_PATH = Path("/tmp/lex_accepted/evaluation/evaluation/data/174k/metadata
 OUTPUT_BASE = Path("/home/runner/work/LexMachina/LexMachina/results/fractal_map/constrained_hierarchical_174k")
 OUTPUT_BASE.mkdir(parents=True, exist_ok=True)
 
-# Modes to process
+# Modes to process - use validated config: coarse_0.5_fixed2.0_min20 (adaptive=False)
 MODES = [
     {
         "mode_id": "cited_decisions_tfidf_outcome_hybrid_0.5_174k_constrained",
         "embedding_file": "cited_decisions_tfidf_outcome_hybrid_0.5.npy",
         "name": "Cited Decisions TF-IDF + Outcome Hybrid 0.5 (174k Constrained Hierarchical)",
-        "description": "Constrained hierarchical Leiden (min_cluster_size=20, adaptive sub_res) on 174k cited_decisions_tfidf_outcome_hybrid_0.5 embeddings. Nesting=1.0, zero fragmentation, branch purity improvement +0.06, area purity improvement +0.09.",
+        "description": "Constrained hierarchical Leiden (coarse_res=0.5, base_sub_res=2.0, min_cluster_size=20, adaptive=False) on 174k cited_decisions_tfidf_outcome_hybrid_0.5 embeddings. Validated config from 12k/28k dense embeddings.",
         "coarse_res": 0.5,
         "min_cluster_size": 20,
-        "sub_res_base": 3.0,
-        "adaptive_sub_res": True,
+        "sub_res_base": 2.0,
+        "adaptive_sub_res": False,
     },
     {
         "mode_id": "cited_decisions_tfidf_outcome_hybrid_0.7_174k_constrained",
         "embedding_file": "cited_decisions_tfidf_outcome_hybrid_0.7.npy",
         "name": "Cited Decisions TF-IDF + Outcome Hybrid 0.7 (174k Constrained Hierarchical)",
-        "description": "Constrained hierarchical Leiden (min_cluster_size=20, adaptive sub_res) on 174k cited_decisions_tfidf_outcome_hybrid_0.7 embeddings. Nesting=1.0, zero fragmentation, branch purity improvement +0.05, area purity improvement +0.07.",
+        "description": "Constrained hierarchical Leiden (coarse_res=0.5, base_sub_res=2.0, min_cluster_size=20, adaptive=False) on 174k cited_decisions_tfidf_outcome_hybrid_0.7 embeddings. Validated config from 12k/28k dense embeddings.",
         "coarse_res": 0.5,
         "min_cluster_size": 20,
-        "sub_res_base": 3.0,
-        "adaptive_sub_res": True,
+        "sub_res_base": 2.0,
+        "adaptive_sub_res": False,
     },
     {
         "mode_id": "cited_decisions_tfidf_174k_constrained",
         "embedding_file": "cited_decisions_tfidf.npy",
         "name": "Cited Decisions TF-IDF (174k Constrained Hierarchical)",
-        "description": "Constrained hierarchical Leiden (min_cluster_size=20, adaptive sub_res) on 174k cited_decisions_tfidf embeddings. Nesting=1.0, zero fragmentation.",
+        "description": "Constrained hierarchical Leiden (coarse_res=0.5, base_sub_res=2.0, min_cluster_size=20, adaptive=False) on 174k cited_decisions_tfidf embeddings. Validated config from 12k/28k dense embeddings.",
         "coarse_res": 0.5,
         "min_cluster_size": 20,
-        "sub_res_base": 3.0,
-        "adaptive_sub_res": True,
+        "sub_res_base": 2.0,
+        "adaptive_sub_res": False,
     },
     {
         "mode_id": "regeste_tfidf_83k_constrained",
         "embedding_file": "regeste_tfidf.npy",
         "name": "Regeste TF-IDF (83k Constrained Hierarchical)",
-        "description": "Constrained hierarchical Leiden (min_cluster_size=10, adaptive sub_res) on 83k regeste_tfidf embeddings (decisions with regeste text). Nesting=1.0, zero fragmentation, branch purity improvement +0.09, area purity improvement +0.14.",
+        "description": "Constrained hierarchical Leiden (coarse_res=0.25, base_sub_res=3.0, min_cluster_size=10, adaptive=True with capped sub_res) on 83k regeste_tfidf embeddings (decisions with regeste text). Regeste has different characteristics; adaptive with cap works here.",
         "coarse_res": 0.25,
         "min_cluster_size": 10,
         "sub_res_base": 3.0,
@@ -149,6 +149,11 @@ def hierarchical_leiden_constrained(embeddings, metadata, coarse_res=0.5,
     2. For each coarse cluster, run Leiden at adaptive sub_res within the subset
     3. Enforce min_cluster_size - merge tiny clusters
     4. Assign global labels with guaranteed nesting
+    
+    Adaptive sub-resolution logic (validated in constrained_hierarchical_leiden.py):
+    - < 500 docs: sub_res = 1.5
+    - 500-2000 docs: sub_res = 2.0
+    - > 2000 docs: sub_res = sub_res_base
     """
     # Step 1: Global coarse clustering
     coarse_labels, coarse_mod = leiden_clustering(embeddings, resolution=coarse_res, k=k)
@@ -168,8 +173,7 @@ def hierarchical_leiden_constrained(embeddings, metadata, coarse_res=0.5,
         indices = np.where(mask)[0]
         cluster_size = len(indices)
         
-        if cluster_size < min_cluster_size:
-            # Too small to sub-cluster
+        if cluster_size < min_cluster_size * 2:  # Too small to meaningfully sub-cluster
             hierarchical_labels[indices] = sub_cluster_id
             cluster_info[sub_cluster_id] = {
                 'coarse_id': int(coarse_id),
@@ -183,13 +187,18 @@ def hierarchical_leiden_constrained(embeddings, metadata, coarse_res=0.5,
         
         subset_embeddings = embeddings[indices]
         
-        # Adaptive sub-resolution: lower resolution for larger clusters
+        # Adaptive sub-resolution (validated logic from constrained_hierarchical_leiden.py)
         if adaptive_sub_res:
-            target_subclusters = max(5, min(50, cluster_size // 100))
-            sub_res = sub_res_base * (20 / target_subclusters) ** 0.5
-            sub_res = max(1.0, min(5.0, sub_res))
+            if cluster_size < 500:
+                sub_res = 1.5
+            elif cluster_size < 2000:
+                sub_res = 2.0
+            else:
+                sub_res = sub_res_base
         else:
             sub_res = sub_res_base
+        
+        logger.info(f"    Coarse {coarse_id} ({cluster_size} docs): sub_res={sub_res:.1f}")
         
         # Run Leiden within subset
         sub_labels, sub_mod = leiden_clustering(subset_embeddings, resolution=sub_res, k=k)
@@ -201,11 +210,22 @@ def hierarchical_leiden_constrained(embeddings, metadata, coarse_res=0.5,
         # Store sub_labels for this coarse cluster
         sub_labels_dict[coarse_id] = (sub_labels, indices)
         
-        # Post-process: merge sub-clusters smaller than min_cluster_size
+        # Post-process: filter out sub-clusters smaller than min_cluster_size
         sub_label_to_indices = {sid: indices[sub_labels == sid] for sid in unique_sub}
         
         valid_sub_labels = [sid for sid, idxs in sub_label_to_indices.items() if len(idxs) >= min_cluster_size]
         tiny_sub_labels = [sid for sid, idxs in sub_label_to_indices.items() if len(idxs) < min_cluster_size]
+        
+        # If too many valid sub-clusters, keep largest ones (max 20 per parent)
+        max_subclusters = 20
+        if len(valid_sub_labels) > max_subclusters:
+            logger.warning(f"    Coarse {coarse_id}: {len(valid_sub_labels)} sub-clusters > max {max_subclusters}, keeping largest")
+            sub_sizes = [(sid, len(sub_label_to_indices[sid])) for sid in valid_sub_labels]
+            sub_sizes.sort(key=lambda x: x[1], reverse=True)
+            valid_sub_labels = [sid for sid, _ in sub_sizes[:max_subclusters]]
+            # Move excess to tiny
+            kept = set(valid_sub_labels)
+            tiny_sub_labels.extend([sid for sid in valid_sub_labels if sid not in kept])
         
         # Merge tiny clusters into nearest valid cluster (by centroid distance)
         if tiny_sub_labels and valid_sub_labels:
@@ -216,7 +236,10 @@ def hierarchical_leiden_constrained(embeddings, metadata, coarse_res=0.5,
                 best_sid = min(valid_sub_labels, 
                                key=lambda sid: np.linalg.norm(tiny_centroid - valid_centroids[sid]))
                 sub_labels[sub_labels == tiny_sid] = best_sid
-            unique_sub = valid_sub_labels
+        
+        # Recompute unique_sub after merging
+        unique_sub = np.unique(sub_labels[sub_labels != -1])
+        valid_sub_labels = [sid for sid in unique_sub if len(sub_label_to_indices.get(sid, [])) >= min_cluster_size or sid in valid_sub_labels]
         
         # Assign global labels
         for sub_id in unique_sub:

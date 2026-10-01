@@ -319,6 +319,11 @@ def main():
         embeddings = np.load(path)
         print(f"  Shape: {embeddings.shape}")
         
+        # Truncate embeddings to match metadata length (173963) if needed
+        if embeddings.shape[0] != len(metadata):
+            print(f"  Truncating embeddings from {embeddings.shape[0]} to {len(metadata)} to match metadata")
+            embeddings = embeddings[:len(metadata)]
+        
         # Run constrained hierarchical Leiden with fixed 7-level ladder
         print(f"  Running constrained hierarchical Leiden (7-level fixed ladder)...")
         results = constrained_hierarchical_leiden_fixed_ladder(embeddings, k=15, min_cluster_size=5)
