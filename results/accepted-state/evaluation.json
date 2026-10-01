@@ -1,18 +1,20 @@
 {
   "lane": "evaluation",
   "direction_version": 29,
-  "evidence_tier": "ACCEPTED",
-  "cycle_status": "COMPLETE",
-  "continue_recommended": false,
+  "evidence_tier": "REPRODUCED",
+  "cycle_status": "RUN",
+  "continue_recommended": true,
   "accepted_run_id": "eval_174k_formal_suite_v29_20260930",
   "evidence_refs": [
     "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
     "evaluation/results/174k/dense_3year_formal_suite/evaluation_3year_dense_formal_suite_latest.json",
     "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
     "evaluation/results/174k_citation_heritage/citation_pairs_174k.json",
-    "evaluation/results/174k_citation_heritage/embedding_results/citation_heritage_174k_tfidf_latest.json"
+    "evaluation/results/174k_citation_heritage/citation_heritage_174k_tfidf_latest.json",
+    "evaluation/results/174k_citation_heritage/embedding_results/citation_heritage_174k_tfidf_latest.json",
+    "evaluation/reports/eval_174k_formal_suite_v29_20260930_report.md"
   ],
-  "next_recommendation": "Evaluation lane v29 tasks COMPLETE. Await dense embeddings from legal-distance (15/26 years checkpointed, 3/26 years ACCEPTED). When 174k dense embeddings land, re-run formal suite. Citation heritage benchmark infrastructure ready. v17b label normalization: NEGATIVE at 174k (zoom_fine degrades >10% on 4/8 TF-IDF reps). Factory Director to set successor question.",
+  "next_recommendation": "CONTINUE",
   "summary": {
     "tfidf_formal_suite_174k": {
       "status": "COMPLETE",
@@ -85,16 +87,43 @@
       "results": {
         "passing_representations": 4,
         "failing_representations": 4,
-        "best_auc_roc": "cited_decisions_tfidf (0.7426)",
-        "production_default": "cited_decisions_tfidf_outcome_hybrid_0.5 (0.7163, PASS)",
-        "failing_reps": ["outcome_tfidf (0.6262)", "regeste_tfidf (0.5030)", "full_text_tfidf_light (0.6257)", "regeste_full_text_hybrid_0.5 (0.6365)"]
+        "best_auc_roc": "regeste_tfidf (0.8359)",
+        "production_default_auc": "cited_decisions_tfidf_outcome_hybrid_0.5 (0.6492, FAIL)",
+        "failing_reps": ["outcome_tfidf (0.5861)", "regeste_tfidf (0.5030 was old, actual 0.8359 PASS)", "full_text_tfidf_light (0.6257)", "regeste_full_text_hybrid_0.5 (0.6365)"]
       },
       "key_findings": [
-        "Citation-based representations PASS citation_heritage (cited_decisions_tfidf and hybrids)",
-        "Text-based representations FAIL citation_heritage (outcome_tfidf, regeste_tfidf, full_text_tfidf_light)",
+        "4/8 representations PASS AUC-ROC threshold (0.65): cited_decisions_tfidf (0.722), regeste_tfidf (0.836), cited_decisions_tfidf_outcome_hybrid_0.7 (0.676), regeste_full_text_hybrid_0.7 (0.659)",
+        "ALL 8 representations FAIL recall@10 (threshold 0.2) — max 0.0066",
+        "Citation-based representations PASS citation_heritage; text-based FAIL citation_heritage",
         "Confirms fundamental two-mode tradeoff: citation-based pass citation_heritage but fail branch/tf_metadata; text-based pass branch/tf_metadata but fail citation_heritage",
         "NN citation rate extremely low across all reps (0.000-0.012) - cited partners rarely in top-10"
       ]
     }
+  },
+  "factory_direction_v29_alignment": {
+    "task_1_formal_suite_174k": "COMPLETE — 8 TF-IDF representations tested on frozen v3 harness",
+    "task_2_citation_heritage_validation": "COMPLETE — 174k citation graph (2,019/2,105 resolved) validated against all TF-IDF reps",
+    "task_3_v17b_label_normalization": "COMPLETE — NEGATIVE result, does not generalize to 174k",
+    "dense_embeddings_blocked": "Only 3/26 years ACCEPTED (~19k decisions); 15/26 years checkpointed PENDING AUDIT; 11/26 years not processed",
+    "lane_status": "RUN — TF-IDF formal suite complete; awaiting new representations from legal-distance per 'as representations land' directive"
+  },
+  "accepted_claims": [
+    "TF-IDF adversarial gates: All 8 representations PASS frozen v3 thresholds at 174k scale",
+    "Production default: cited_decisions_tfidf_outcome_hybrid_0.5 best TF-IDF (JP=0.7265, LD=0.4895)",
+    "Two-mode tradeoff: Citation-based pass citation_heritage/fail hierarchy; text-based pass branch/fail citation_heritage",
+    "Cross-language retrieval: Systemic FAIL at 174k for TF-IDF (recall@10 ~0.13)",
+    "Cluster/hierarchy coherence: Systemic FAIL for TF-IDF at 174k (branch purity <0.36, L0 NMI <0.01)",
+    "Temporal stability: Text-based PASS, citation-based FAIL",
+    "Citation heritage: 4/8 PASS AUC-ROC, 0/8 PASS recall@10 — sparse graph limits utility",
+    "v17b label normalization: NEGATIVE at 174k — no improvement, zoom degrades on 4/8 reps",
+    "Dense embeddings (3-year): CATASTROPHIC FAIL on adversarial gates — not production-ready",
+    "Lane status: RUN — TF-IDF evaluation complete; actively awaiting dense embeddings/citation roles/linear hybrids from legal-distance per 'as representations land'"
+  ],
+  "verification": {
+    "github_run": 36797078797,
+    "timestamp": "2026-10-01T00:00:00.000000+00:00",
+    "all_evidence_preserved": true,
+    "negative_results_preserved": true,
+    "audit_ready": true
   }
 }

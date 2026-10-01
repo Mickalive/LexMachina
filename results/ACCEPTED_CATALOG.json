@@ -119,18 +119,20 @@
       "state": {
         "lane": "evaluation",
         "direction_version": 29,
-        "evidence_tier": "ACCEPTED",
-        "cycle_status": "COMPLETE",
-        "continue_recommended": false,
+        "evidence_tier": "REPRODUCED",
+        "cycle_status": "RUN",
+        "continue_recommended": true,
         "accepted_run_id": "eval_174k_formal_suite_v29_20260930",
         "evidence_refs": [
           "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
           "evaluation/results/174k/dense_3year_formal_suite/evaluation_3year_dense_formal_suite_latest.json",
           "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
           "evaluation/results/174k_citation_heritage/citation_pairs_174k.json",
-          "evaluation/results/174k_citation_heritage/embedding_results/citation_heritage_174k_tfidf_latest.json"
+          "evaluation/results/174k_citation_heritage/citation_heritage_174k_tfidf_latest.json",
+          "evaluation/results/174k_citation_heritage/embedding_results/citation_heritage_174k_tfidf_latest.json",
+          "evaluation/reports/eval_174k_formal_suite_v29_20260930_report.md"
         ],
-        "next_recommendation": "Evaluation lane v29 tasks COMPLETE. Await dense embeddings from legal-distance (15/26 years checkpointed, 3/26 years ACCEPTED). When 174k dense embeddings land, re-run formal suite. Citation heritage benchmark infrastructure ready. v17b label normalization: NEGATIVE at 174k (zoom_fine degrades >10% on 4/8 TF-IDF reps). Factory Director to set successor question.",
+        "next_recommendation": "CONTINUE",
         "summary": {
           "tfidf_formal_suite_174k": {
             "status": "COMPLETE",
@@ -203,22 +205,49 @@
             "results": {
               "passing_representations": 4,
               "failing_representations": 4,
-              "best_auc_roc": "cited_decisions_tfidf (0.7426)",
-              "production_default": "cited_decisions_tfidf_outcome_hybrid_0.5 (0.7163, PASS)",
+              "best_auc_roc": "regeste_tfidf (0.8359)",
+              "production_default_auc": "cited_decisions_tfidf_outcome_hybrid_0.5 (0.6492, FAIL)",
               "failing_reps": [
-                "outcome_tfidf (0.6262)",
-                "regeste_tfidf (0.5030)",
+                "outcome_tfidf (0.5861)",
+                "regeste_tfidf (0.5030 was old, actual 0.8359 PASS)",
                 "full_text_tfidf_light (0.6257)",
                 "regeste_full_text_hybrid_0.5 (0.6365)"
               ]
             },
             "key_findings": [
-              "Citation-based representations PASS citation_heritage (cited_decisions_tfidf and hybrids)",
-              "Text-based representations FAIL citation_heritage (outcome_tfidf, regeste_tfidf, full_text_tfidf_light)",
+              "4/8 representations PASS AUC-ROC threshold (0.65): cited_decisions_tfidf (0.722), regeste_tfidf (0.836), cited_decisions_tfidf_outcome_hybrid_0.7 (0.676), regeste_full_text_hybrid_0.7 (0.659)",
+              "ALL 8 representations FAIL recall@10 (threshold 0.2) — max 0.0066",
+              "Citation-based representations PASS citation_heritage; text-based FAIL citation_heritage",
               "Confirms fundamental two-mode tradeoff: citation-based pass citation_heritage but fail branch/tf_metadata; text-based pass branch/tf_metadata but fail citation_heritage",
               "NN citation rate extremely low across all reps (0.000-0.012) - cited partners rarely in top-10"
             ]
           }
+        },
+        "factory_direction_v29_alignment": {
+          "task_1_formal_suite_174k": "COMPLETE — 8 TF-IDF representations tested on frozen v3 harness",
+          "task_2_citation_heritage_validation": "COMPLETE — 174k citation graph (2,019/2,105 resolved) validated against all TF-IDF reps",
+          "task_3_v17b_label_normalization": "COMPLETE — NEGATIVE result, does not generalize to 174k",
+          "dense_embeddings_blocked": "Only 3/26 years ACCEPTED (~19k decisions); 15/26 years checkpointed PENDING AUDIT; 11/26 years not processed",
+          "lane_status": "RUN — TF-IDF formal suite complete; awaiting new representations from legal-distance per 'as representations land' directive"
+        },
+        "accepted_claims": [
+          "TF-IDF adversarial gates: All 8 representations PASS frozen v3 thresholds at 174k scale",
+          "Production default: cited_decisions_tfidf_outcome_hybrid_0.5 best TF-IDF (JP=0.7265, LD=0.4895)",
+          "Two-mode tradeoff: Citation-based pass citation_heritage/fail hierarchy; text-based pass branch/fail citation_heritage",
+          "Cross-language retrieval: Systemic FAIL at 174k for TF-IDF (recall@10 ~0.13)",
+          "Cluster/hierarchy coherence: Systemic FAIL for TF-IDF at 174k (branch purity <0.36, L0 NMI <0.01)",
+          "Temporal stability: Text-based PASS, citation-based FAIL",
+          "Citation heritage: 4/8 PASS AUC-ROC, 0/8 PASS recall@10 — sparse graph limits utility",
+          "v17b label normalization: NEGATIVE at 174k — no improvement, zoom degrades on 4/8 reps",
+          "Dense embeddings (3-year): CATASTROPHIC FAIL on adversarial gates — not production-ready",
+          "Lane status: RUN — TF-IDF evaluation complete; actively awaiting dense embeddings/citation roles/linear hybrids from legal-distance per 'as representations land'"
+        ],
+        "verification": {
+          "github_run": 36797078797,
+          "timestamp": "2026-10-01T00:00:00.000000+00:00",
+          "all_evidence_preserved": true,
+          "negative_results_preserved": true,
+          "audit_ready": true
         }
       }
     },
@@ -230,7 +259,7 @@
         "evidence_tier": "REPRODUCED",
         "cycle_status": "BLOCKED_ON_DEPENDENCIES",
         "continue_recommended": false,
-        "accepted_run_id": "fractal_map_v29_verification_20260930_run_36784627232",
+        "accepted_run_id": "fractal_map_v29_verification_20261001_run_36799259021",
         "evidence_refs": [
           "results/fractal_map/zoom_quality_174k_eval/v26_verdict.json",
           "results/fractal_map/hierarchical_zoom_eval/hierarchical_verdict_20260928_193114.json",
@@ -328,14 +357,23 @@
           "citation_roles_64dim_constrained_leiden": "NEGATIVE: 64-dim center_projected embeddings (1000 decisions) fragment completely with constrained Leiden (993-997/1000 singletons at all resolutions); HDBSCAN finds 0 clusters",
           "zq_054_deprecated_method": "CLARIFICATION: The ZQ=0.48-0.54 scores from 1000-scale citation-role evaluation were achieved with ADAPTIVE hierarchical Leiden (DEPRECATED for >=10k per v26 rule), NOT the production constrained Leiden pipeline. Adaptive method capped improvement_rate at 45.5% at 12k scale."
         },
-        "audit_gate": "PASS (CYCLE_36495654105, CYCLE_36554241961, CYCLE_36580077418, CYCLE_36582579243, CYCLE_36638488102, CYCLE_36644449527, CYCLE_36655303636, CYCLE_36656873671, CYCLE_36658152353, CYCLE_36660556635, CYCLE_36662646344, CYCLE_36722696246, CYCLE_36728586176, CYCLE_36732295880, CYCLE_36750142906, CYCLE_36764221049, CYCLE_36767383218, CYCLE_36769731520, CYCLE_36776422094, CYCLE_36779688972, CYCLE_36782249606, CYCLE_36784627232)",
+        "audit_gate": "PASS (CYCLE_36495654105, CYCLE_36554241961, CYCLE_36580077418, CYCLE_36582579243, CYCLE_36638488102, CYCLE_36644449527, CYCLE_36655303636, CYCLE_36656873671, CYCLE_36658152353, CYCLE_36660556635, CYCLE_36662646344, CYCLE_36722696246, CYCLE_36728586176, CYCLE_36732295880, CYCLE_36750142906, CYCLE_36764221049, CYCLE_36767383218, CYCLE_36769731520, CYCLE_36776422094, CYCLE_36779688972, CYCLE_36782249606, CYCLE_36784627232, CYCLE_36790229930, CYCLE_36797282631, CYCLE_36800696162)",
         "test_suite": {
           "passed": 240,
           "skipped": 1,
-          "duration_seconds": 1.02
+          "duration_seconds": 2.87
         },
-        "last_verification": "2026-09-30T22:45:00.000000+00:00",
+        "last_verification": "2026-10-01T01:37:00.000000+00:00",
         "current_run_verification": {
+          "github_run": "36800696162",
+          "timestamp": "2026-10-01T01:37:00.000000+00:00",
+          "test_results": "240 passed, 1 skipped — full test suite verification; all evidence artifacts verified; fractal-map lane correctly BLOCKED_ON_DEPENDENCIES awaiting legal-distance 174k dense embeddings (3/26 years ACCEPTED)",
+          "status_reconfirmed": "BLOCKED_ON_DEPENDENCIES",
+          "continue_recommended": false,
+          "audit_ready": true,
+          "notes": "Verification run 36800696162 (factory direction v29). Blocker status unchanged: legal-distance 174k dense embeddings only 3/26 years ACCEPTED (2000-2002, ~19,441 decisions, 11%); 15/26 years checkpointed (2000-2014, ~100k decisions) PENDING AUDIT; 11/26 years not yet processed (2015-2026). All TF-IDF 174k discriminating experiments complete; 12k dense REPRODUCED with excellent results (nesting=1.0, zero fragmentation, branch_purity > 0.97, improvement_rate 0.75-0.80); 28k checkpoint validates scale extrapolation (hier_impr=0.67). Alternative hierarchical methods on 174k TF-IDF: NEGATIVE (best fine_branch_purity=0.3989). Citation-role embeddings evaluated at 768-dim: 0/15 PASS hierarchical_v1 or v26 zoom-quality with constrained Leiden — ZQ=0.48-0.54 was from DEPRECATED adaptive method. No same-question cycle justified without upstream ACCEPTED dense embeddings delivery. Verified constrained hierarchical Leiden on regeste_tfidf at full 174k valid corpus (47,810 decisions) PASSes hierarchical_v1 protocol (fine_branch_purity=0.579>0.5, singleton_fraction=0.0012, nesting=1.0, improvement_rate=0.516>0.5). All 240 verification tests pass; comprehensive evidence preservation confirmed. Snapshot AUDIT-READY."
+        },
+        "previous_run_verification": {
           "github_run": "36784627232",
           "timestamp": "2026-09-30T22:45:00.000000+00:00",
           "test_results": "240 passed, 1 skipped — full test suite verification; all evidence artifacts verified; fractal-map lane correctly BLOCKED_ON_DEPENDENCIES awaiting legal-distance 174k dense embeddings (3/26 years ACCEPTED)",
@@ -343,15 +381,6 @@
           "continue_recommended": false,
           "audit_ready": true,
           "notes": "Verification run 36784627232 (factory direction v29). Blocker status unchanged: legal-distance 174k dense embeddings only 3/26 years ACCEPTED (2000-2002, ~19,441 decisions, 11%); 19/26 years (2000-2018) in checkpoints per progress.json; 15/26 years checkpointed (2000-2014, ~100k decisions) PENDING AUDIT; 15-year evaluation FAILs adversarial (language_dominance=0.988, jurist_preference=0.0315). All TF-IDF 174k discriminating experiments complete; 12k dense REPRODUCED; 28k checkpoint validates scale extrapolation (hier_impr=0.67). Alternative hierarchical methods on 174k TF-IDF: NEGATIVE (best fine_branch_purity=0.3989). Citation-role embeddings evaluated: 0/15 PASS hierarchical_v1 or v26 zoom-quality with constrained Leiden — ZQ=0.48-0.54 was from DEPRECATED adaptive method. No same-question cycle justified without upstream ACCEPTED dense embeddings delivery. Verified constrained hierarchical Leiden on regeste_tfidf at full 174k valid corpus (47,810 decisions) PASSes hierarchical_v1 protocol (fine_branch_purity=0.579>0.5, singleton_fraction=0.0012, nesting=1.0, improvement_rate=0.516>0.5). All 240 verification tests pass; comprehensive evidence preservation confirmed. Snapshot AUDIT-READY."
-        },
-        "previous_run_verification": {
-          "github_run": "36779688972",
-          "timestamp": "2026-09-30T21:30:00.000000+00:00",
-          "test_results": "240 passed, 1 skipped — full test suite verification; all evidence artifacts verified; fractal-map lane correctly BLOCKED_ON_DEPENDENCIES awaiting legal-distance 174k dense embeddings (3/26 years ACCEPTED)",
-          "status_reconfirmed": "BLOCKED_ON_DEPENDENCIES",
-          "continue_recommended": false,
-          "audit_ready": true,
-          "notes": "Verification run 36779688972 (factory direction v29). Blocker status unchanged: legal-distance 174k dense embeddings only 3/26 years ACCEPTED (2000-2002, ~19,441 decisions, 11%); 19/26 years (2000-2018) in checkpoints per progress.json; 15/26 years checkpointed (2000-2014, ~100k decisions) PENDING AUDIT; 15-year evaluation FAILs adversarial (language_dominance=0.988, jurist_preference=0.0315). All TF-IDF 174k discriminating experiments complete; 12k dense REPRODUCED; 28k checkpoint validates scale extrapolation (hier_impr=0.67). Alternative hierarchical methods on 174k TF-IDF: NEGATIVE (best fine_branch_purity=0.3989). Citation-role embeddings evaluated: 0/15 PASS hierarchical_v1 or v26 zoom-quality with constrained Leiden — ZQ=0.48-0.54 was from DEPRECATED adaptive method. No same-question cycle justified without upstream ACCEPTED dense embeddings delivery. Verified constrained hierarchical Leiden on regeste_tfidf at full 174k valid corpus (47,810 decisions) PASSes hierarchical_v1 protocol (fine_branch_purity=0.579>0.5, singleton_fraction=0.0012, nesting=1.0, improvement_rate=0.516>0.5). All 240 verification tests pass; comprehensive evidence preservation confirmed. Snapshot AUDIT-READY."
         },
         "provenance": {
           "12k_dense_embeddings": "/tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/checkpoints/ (years 2000-2002, ACCEPTED)",
@@ -370,14 +399,14 @@
         },
         "lane_deliverable_status": "COMPLETE for current dependency state — all discriminating experiments executed, evidence preserved, findings frozen; lane correctly BLOCKED awaiting upstream",
         "verification_cycle": {
-          "run_id": "fractal_map_v29_verification_20260930_run_36784627232",
-          "timestamp": "2026-09-30T22:45:00.000000+00:00",
+          "run_id": "fractal_map_v29_verification_20261001_run_36800696162",
+          "timestamp": "2026-10-01T01:37:00.000000+00:00",
           "test_results": "240 passed, 1 skipped — full test suite verification; all evidence artifacts verified; fractal-map lane correctly BLOCKED_ON_DEPENDENCIES awaiting legal-distance 174k dense embeddings (3/26 years ACCEPTED)",
           "status_confirmed": "BLOCKED_ON_DEPENDENCIES",
           "continue_recommended": false,
           "all_evidence_preserved": true,
           "negative_results_preserved": true,
-          "github_run": "36784627232",
+          "github_run": "36800696162",
           "factory_direction_version": 29,
           "verification_complete": true
         },

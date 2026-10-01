@@ -1,0 +1,119 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Constrained hierarchical Leiden on regeste_tfidf at full 174k valid corpus (47,810 decisions) PASSes hierarchical_v1 protocol (fine_branch_purity=0.579>0.5, singleton_fraction=0.0012, nesting=1.0, improvement_rate=0.516>0.5). Dense embeddings pipeline validated at 12k (ACCEPTED) and 28k (PENDING AUDIT) with hier_impr=0.67. Power law extrapolates to ~0.67 at 174k dense. TF-IDF flat and 3/4 hierarchical modes FAIL. Citation-role embeddings NEGATIVE under production pipeline. Lane correctly BLOCKED on upstream dense embeddings.",
+  "evidence_summary": {
+    "hierarchical_v1_174k_tfidf": {
+      "artifact": "results/fractal_map/hierarchical_zoom_eval/hierarchical_verdict_20260928_193114.json",
+      "modes_tested": 4,
+      "modes_passed": 1,
+      "pass_mode": "regeste_tfidf (83k sample, fine_branch_purity=0.566)",
+      "fail_modes": 3,
+      "fail_reason": "legal_structure_branch (fine_branch_purity ~0.38-0.49 < 0.5)"
+    },
+    "v26_flat_zoom_quality_174k_tfidf": {
+      "artifact": "results/fractal_map/zoom_quality_174k_eval/v26_verdict.json",
+      "modes_tested": 4,
+      "modes_passed": 0,
+      "singleton_fraction_res_2.0": 0.9939,
+      "singleton_fraction_res_3.0": 0.9985,
+      "verdict": "FAIL - severe over-fragmentation, no monotonic zoom refinement"
+    },
+    "nesting_metric_defect_v1": {
+      "artifact": "results/fractal_map/nesting_metric_defect_v1_audit.json",
+      "audit_id": "CYCLE_36027099305",
+      "prohibited_modes": 7,
+      "enforcement": "Active - all nesting>=0.99 claims require scope annotation"
+    },
+    "dense_12k_hierarchical": {
+      "artifact": "results/fractal_map/12k_dense_hierarchical_test/hierarchical_leiden_results.json",
+      "protocol": "hierarchical_v1 (adaptive=True, min3)",
+      "verdict": "PASS",
+      "improvement_rate": 0.455,
+      "singleton_fraction": 0.004,
+      "nesting": 1.0,
+      "branch_purity": 0.988,
+      "legal_structure_branch": "PASS (0.988 > 0.5)",
+      "legal_structure_area": "PASS"
+    },
+    "pipeline_readiness_12k_dense_fixed": {
+      "artifact": "results/fractal_map/pipeline_readiness_final/pipeline_readiness_12k_dense_coarse0.5_fixed2.0_min20_20260930_001147.json",
+      "config": "coarse_0.5_fixed2.0_min20 (adaptive=False)",
+      "hierarchical_v1_checks": "6/7 PASS",
+      "zoom_coherence": "BORDERLINE (improvement_rate=0.50 exactly, not >0.5)",
+      "legal_structure_branch": "PASS (0.986 > 0.5)",
+      "legal_structure_area": "PASS (0.509 > 0.5)"
+    },
+    "checkpoint_28k_validation": {
+      "artifact": "results/fractal_map/28k_checkpoint_validation/28k_validation_20260928_212756.json",
+      "sample": "years 2000-2005, PENDING AUDIT",
+      "constrained_hierarchical_hier_impr": 0.67,
+      "branch_impr": 0.15,
+      "fine_singleton_fraction": 0.0,
+      "nesting": 1.0,
+      "flat_v26": "FAIL",
+      "scale_extrapolation": "CONFIRMED at intermediate scale"
+    },
+    "alternative_hierarchical_methods": {
+      "artifact": "results/fractal_map/alternative_hierarchical_tests/alt_hierarchical_174k_tfidf_20k_20260929.json",
+      "methods_tested": 7,
+      "best_fine_branch_purity": 0.3989,
+      "method": "local_umap",
+      "threshold": 0.5,
+      "gap": "20% below threshold",
+      "verdict": "ALL FAIL - TF-IDF lacks signal density at 174k"
+    },
+    "citation_roles_768dim": {
+      "artifacts": [
+        "results/fractal_map/citation_roles_comprehensive_20260930/citation_roles_hierarchical_v1_20260930_161421.json",
+        "results/fractal_map/citation_roles_v26_768_20260930/citation_roles_v26_768_20260930_162853.json"
+      ],
+      "hierarchical_v1": "0/15 PASS (nesting 0.42-0.70, legal_structure_area 0.32-0.36)",
+      "v26_zoom_quality": "0/15 PASS (improvement_rate=0.000 all transitions)",
+      "critical_clarification": "ZQ=0.48-0.54 from 1000-scale used DEPRECATED adaptive method, not production pipeline"
+    },
+    "regeste_tfidf_full_174k": {
+      "artifact": "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_regeste_full_20260930.json",
+      "sample": 47810,
+      "fine_branch_purity": 0.579,
+      "singleton_fraction": 0.0012,
+      "nesting": 1.0,
+      "improvement_rate": 0.516,
+      "verdict": "PASS - 83k sample reproduces at full scale"
+    },
+    "scale_dependency_confirmed": {
+      "1k": "severe fragmentation",
+      "1.2k": "flat v26 PASS (citing_alpha0.7)",
+      "12k_dense": "flat FAIL, constrained 45.5% hier_impr",
+      "28k_checkpoint": "constrained 67% hier_impr",
+      "174k_tfidf": "flat FAIL, severe fragmentation, 1/4 hierarchical PASS"
+    },
+    "test_suite": {
+      "passed": 240,
+      "skipped": 1,
+      "verdict": "PASS"
+    },
+    "blocked_dependencies": {
+      "legal_distance_174k_dense": "3/26 years ACCEPTED (2000-2002, ~19,441 decisions, 11%)",
+      "checkpointed_pending_audit": "15/26 years (2000-2014, ~100k decisions)",
+      "not_processed": "11/26 years (2015-2026)",
+      "citation_role_174k": "NOT AVAILABLE",
+      "linear_hybrid_174k": "NOT AVAILABLE"
+    },
+    "orchestration_failure": {
+      "v28_claim": "ALL 4 TF-IDF modes PASS v26 zoom-quality for constrained hierarchical",
+      "actual": "1/4 PASS hierarchical_v1 (regeste_tfidf only)",
+      "resolution": "RESOLVED in factory_direction.json v29"
+    },
+    "evidence_preservation": {
+      "positive_results": "preserved",
+      "negative_results": "preserved (first-class evidence)",
+      "provenance_chains": "intact",
+      "claim_bearing_outputs_overwritten": false,
+      "evidence_refs_count": 41,
+      "audit_ready_reports": "39+",
+      "result_directories": "50+"
+    }
+  }
+}
