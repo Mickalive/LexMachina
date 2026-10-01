@@ -84,14 +84,12 @@ class NavigationAPI:
     EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
 
     def __init__(self, corpus_dir: str, results_dir: str):
-        # Use the full 2000+ corpus (bge_20*.jsonl) for production.
-        # Map artifacts are at 1k scale but corpus search/indexing uses full corpus.
-        # TF-IDF-based map representations at full-corpus scale to be built per factory direction v27.
-        # Also load the 1k slice (bger_2000plus_slice_1000.jsonl) which matches baseline map artifacts.
+        # Use the 2000+ corpus (bge_20*.jsonl) for production — matches 174k map scope.
+        # Full bge_*.jsonl (1900-2025) loads 21k decisions but takes 30s+ startup; 
+        # 174k map covers 2000-2026 only. Factory direction v29: corpus mount path gap resolved.
         self.corpus = CorpusLoader(corpus_dir, file_pattern="bge_20*.jsonl")
-        # Load the 1k slice for map decision lookups (WITHOUT user imports to avoid double-counting)
+        # Also load the 1k slice (bger_2000plus_slice_1000.jsonl) which matches baseline map artifacts.
         slice_loader = CorpusLoader(corpus_dir, file_pattern="bger_2000plus_slice_1000.jsonl")
-        # Load only the slice file, not user imports
         slice_file = Path(corpus_dir) / "bger_2000plus_slice_1000.jsonl"
         if slice_file.exists():
             slice_loader._load_jsonl(slice_file)
