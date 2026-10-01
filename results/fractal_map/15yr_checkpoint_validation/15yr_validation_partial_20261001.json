@@ -1,0 +1,54 @@
+{
+  "run_id": "15yr_checkpoint_validation_partial_20261001",
+  "timestamp": "2026-10-01T03:19:15.000000+00:00",
+  "direction_version": 29,
+  "sample": "91,929 dense embeddings from checkpoints (years 2000-2014, PENDING AUDIT for 2003-2014 - pipeline validation only)",
+  "embedding_dim": 768,
+  "constrained_hierarchical_results": {
+    "coarse_0.5_fixed2.0_min20": {
+      "config": {
+        "name": "coarse_0.5_fixed2.0_min20",
+        "coarse_res": 0.5,
+        "base_sub_res": 2.0,
+        "min_cluster_size": 20,
+        "max_subclusters_per_parent": 20,
+        "adaptive_sub_res": false
+      },
+      "n_decisions": 91929,
+      "coarse_clusters": 54,
+      "fine_clusters": 780,
+      "coarse_branch_purity": 0.8947,
+      "fine_branch_purity": 0.9842,
+      "coarse_area_purity": 0.6090,
+      "fine_area_purity": 0.6276,
+      "branch_improvement": 0.0895,
+      "area_improvement": 0.0186,
+      "strict_nesting": 1.0,
+      "zoom_branch": {
+        "mean_improvement": 0.0956,
+        "improvement_rate": 0.3478,
+        "n_parents": 23
+      },
+      "zoom_area": {
+        "mean_improvement": 0.0956,
+        "improvement_rate": 0.3478,
+        "n_parents": 23
+      },
+      "fragmentation": {
+        "coarse_median_size": 1399.5,
+        "fine_median_size": 95.0,
+        "fine_singleton_fraction": 0.0,
+        "coarse_singleton_fraction": 0.0
+      }
+    }
+  },
+  "note": "Years 2003-2014 are PENDING AUDIT. Results for pipeline validation only, not ACCEPTED evidence. 2000-2002 are ACCEPTED. Only production config tested so far.",
+  "scale_context": {
+    "12k_ACCEPTED": "hier_impr ~0.50 (fixed config)",
+    "28k_checkpoint": "hier_impr ~0.67",
+    "99k_checkpoint_16yr": "hier_impr ~0.57-0.71 (coarse_0.5 configs)",
+    "100k_this_run_15yr": "hier_impr = 0.35 (coarse_0.5_fixed2.0_min20)",
+    "extrapolated_174k": "hier_impr ~0.67 (power law model, HIGH confidence after 28k validation) - BUT 100k result shows non-monotonic scale dependency"
+  },
+  "key_finding": "Scale dependency is NON-MONOTONIC: 28k (2000-2005) shows hier_impr=0.67, but 100k (2000-2014) shows hier_impr=0.35. Composition matters - broader temporal/legal coverage reduces zoom coherence. The power law extrapolation from 28k alone is insufficient; multi-scale validation needed."
+}
