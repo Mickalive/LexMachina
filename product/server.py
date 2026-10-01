@@ -417,9 +417,13 @@ class ProductHandler(SimpleHTTPRequestHandler):
             did = params.get("id", [""])[0]
             default_rep = get_default_representation(get_nav_api())
             rep = params.get("representation", [default_rep])[0]
-            zoom = int(params.get("zoom", ["2"])[0])
+            # Use a valid zoom level for the representation; default to first available zoom level with positions
+            nav = get_nav_api()
+            available_zooms = nav.map_loader.get_zoom_levels(rep)
+            default_zoom = available_zooms[0] if available_zooms else 0
+            zoom = int(params.get("zoom", [str(default_zoom)])[0])
             n = int(params.get("n", ["10"])[0])
-            self._json_response(get_nav_api().get_neighbors(did, rep, zoom, n))
+            self._json_response(nav.get_neighbors(did, rep, zoom, n))
         elif path == "/api/zoom_levels":
             default_rep = get_default_representation(get_nav_api())
             rep = params.get("representation", [default_rep])[0]
