@@ -22,6 +22,7 @@
     "results/fractal_map/12k_dense_comprehensive/12k_dense_comprehensive_12570_20260928_051437.json",
     "results/fractal_map/12k_dense_comprehensive/12k_dense_comprehensive_12570_20260928_051528.json",
     "results/fractal_map/28k_checkpoint_validation/28k_validation_20260928_212756.json",
+    "results/fractal_map/19yr_checkpoint_validation/19yr_validation_2026-10-01T05-12-09.json",
     "results/fractal_map/pipeline_readiness_12k_dense_official.json",
     "results/fractal_map/12k_constrained_zoom_diagnostic/constrained_zoom_diagnostic_v2_20260928_133636.json",
     "results/fractal_map/alternative_hierarchical_tests/alt_hierarchical_174k_tfidf_20k_20260929.json",
@@ -40,7 +41,7 @@
     "results/fractal_map/citation_roles_v26_768_20260930/citation_roles_v26_768_20260930_162853.json",
     "reports/fractal-map/fractal_map_citation_roles_eval_20260930_report.md"
   ],
-  "next_recommendation": "Dense 12k constrained hierarchical Leiden REPRODUCED with excellent results (nesting=1.0, zero fragmentation, branch_purity > 0.97, improvement_rate 0.75-0.80). 28k checkpoint validates scale extrapolation (hier_impr=0.67). Lane correctly BLOCKED on legal-distance 174k dense embeddings (3/26 years ACCEPTED, 19/26 years checkpointed PENDING AUDIT). No same-question cycle justified without dense embeddings delivery.",
+  "next_recommendation": "Dense 12k constrained hierarchical Leiden REPRODUCED with excellent results (nesting=1.0, zero fragmentation, branch_purity > 0.97, improvement_rate 0.75-0.80). 28k checkpoint validates scale extrapolation (hier_impr=0.67). 19yr checkpoint (122k decisions) validates pipeline at near-production scale (70% of 174k) with ALL 7 hierarchical_v1 checks PASS (fine_branch_purity=0.993, fine_area_purity=0.811). Lane correctly BLOCKED on legal-distance 174k dense embeddings (3/26 years ACCEPTED, 19/26 years checkpointed PENDING AUDIT). No same-question cycle justified without dense embeddings delivery.",
   "blocked_dependencies": [
     "legal-distance 174k dense embeddings: only 3/26 years (2000-2002, ~19,441 decisions, 11%) ACCEPTED",
     "citation-role embeddings not yet available at 174k scale",
@@ -95,6 +96,7 @@
     "pipeline_readiness_174k_dense": "Operational at simulation level; best validated config: coarse_0.5_fixed2.0_min20 (validated at 12k and 28k); requires ACCEPTED 174k dense embeddings for production",
     "scale_extrapolation_174k_dense": "Power law model predicts hierarchical improvement_rate ~0.67 at 174k for dense embeddings (HIGH confidence after 28k validation); flat zoom predicted ~0.24; validation at 28k confirms hier_impr=0.67",
     "28k_checkpoint_validation": "Constrained hierarchical Leiden on 28k checkpoint dense embeddings (years 2000-2005, PENDING AUDIT): fine_singleton=0.0%, fine_median=43-53, improvement_rate=0.67, branch_impr=0.15-0.154, nesting=1.0 — PIPELINE VALIDATED at intermediate scale",
+    "19yr_checkpoint_validation": "Constrained hierarchical Leiden on 19yr checkpoint dense embeddings (years 2000-2018, 122k decisions, PENDING AUDIT): fine_branch_purity=0.993, fine_area_purity=0.811, nesting=1.0, improvement_rate=1.0, fine_singleton_fraction=0.0002, fine_median_size=85 — ALL 7 hierarchical_v1 checks PASS; PIPELINE VALIDATED at near-production scale (70% of 174k corpus)",
     "pipeline_revalidation_12k_dense": "RE-VALIDATED on ACCEPTED 12k dense embeddings (years 2000-2002): constrained hierarchical Leiden PASSes hierarchical_v1 protocol (adaptive=True, min3); flat v26 FAILs — CONFIRMS prior accepted results",
     "final_pipeline_readiness_12k_dense": "coarse_0.5_fixed2.0_min20 achieves 6/7 hierarchical_v1 checks PASS (singleton_fraction=0.0%, nesting=1.0, branch_impr=+0.127, area_impr=+0.045, legal_structure_branch PASS, legal_structure_area PASS); zoom_coherence borderline at improvement_rate=0.50 (exactly threshold)",
     "tfidf_constrained_hierarchical_174k_not_production_ready": "TF-IDF constrained hierarchical Leiden at 174k is NOT production-ready — FAILS v26 zoom-quality rule (per_mode_verdict=FAIL) despite nesting=1.0 by construction",
@@ -131,7 +133,7 @@
   "provenance": {
     "12k_dense_embeddings": "/tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/checkpoints/ (years 2000-2002, ACCEPTED)",
     "28k_checkpoint_embeddings": "/tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/checkpoints/ (years 2000-2005, PENDING AUDIT - pipeline validation only)",
-    "19yr_checkpoint_embeddings": "/tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/checkpoints/ (years 2000-2018, PENDING AUDIT - progress.json)",
+    "19yr_checkpoint_embeddings": "/tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/checkpoints/ (years 2000-2018, 122k decisions, PENDING AUDIT - pipeline validation only)",
     "citation_alpha_embeddings": "/tmp/lex_accepted/evaluation/evaluation/results/v3_citation_roles_frozen/ (1200 decisions, ACCEPTED)",
     "metadata_174k": "/tmp/lex_accepted/evaluation/evaluation/data/174k/metadata_174k.json (173,963 entries)",
     "global_seed": 42,
@@ -156,6 +158,20 @@
     "github_run": "36815990435",
     "factory_direction_version": 29,
     "verification_complete": true
+  },
+  "current_cycle_execution": {
+    "run_id": "fractal_map_19yr_checkpoint_validation_20261001_run_36817250008",
+    "timestamp": "2026-10-01T05:12:09.000000+00:00",
+    "github_run": "36817250008",
+    "direction_version": 29,
+    "work_performed": "Executed constrained hierarchical Leiden pipeline on 19-year checkpoint dense embeddings (years 2000-2018, 122,015 decisions, 768-dim, PENDING AUDIT) using best validated config (coarse_0.5_fixed2.0_min20). Achieved ALL 7 hierarchical_v1 protocol checks PASS: fine_branch_purity=0.993, fine_area_purity=0.811, nesting=1.0, improvement_rate=1.0, fine_singleton_fraction=0.0002, fine_median_size=85. Pipeline validated at near-production scale (70% of 174k corpus). Results for pipeline validation only, not ACCEPTED evidence.",
+    "evidence_produced": [
+      "results/fractal_map/19yr_checkpoint_validation/19yr_validation_2026-10-01T05-12-09.json",
+      "results/fractal_map/19yr_checkpoint_validation/19yr_validation_summary.json"
+    ],
+    "status": "PIPELINE_VALIDATION_COMPLETE",
+    "continue_recommended": false,
+    "audit_ready": true
   },
   "previous_run_verification": {
     "github_run": "36803253432",
