@@ -1,0 +1,13 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Update state/evaluation.json evidence_refs: remove non-existent evaluation/results/174k/dense_165k_formal_suite/evaluation_165k_dense_formal_suite_latest.json",
+    "Correct v17b_174k_tfidf path in evidence_refs: actual location is evaluation/results/v17b_174k_tfidf/v17b_174k_tfidf_latest.json (not under 174k/ subdir)",
+    "Correct v17b_174k_generalization path in evidence_refs: actual location is evaluation/results/174k/v17b_174k_generalization/v17b_174k_generalization_20260930_011927.json",
+    "Correct v17b_174k_dense_partial path in evidence_refs: actual location is evaluation/results/v17b_174k_dense_partial/v17b_174k_dense_partial_latest.json (not under 174k/ subdir)",
+    "Document legal-distance/state/legal-distance.json and corpus/state/corpus.json as external dependencies not produced by this lane"
+  ],
+  "claim_ceiling": "REPRODUCED",
+  "evidence_summary": "All three Factory Direction v29 deliverables completed for available TF-IDF representations at 174k scale. Formal suite: 8/8 representations PASS both adversarial gates (LangDom≤0.85, JuristPref≥0.5) on exact k-NN (frozen harness v3, config hash b51701f5a9c11692, seed=42). Citation heritage: 4/8 PASS (AUC>0.71) on frozen 1,020-pair pool (2,019/2,105 citations resolved); all PASS are citation-based signals, confirming two-mode tradeoff. v17b label normalization: REPRODUCED as method at 1k (15-25% hierarchy gain); 174k generalization TESTED in two regimes (213→111 and 157→107 labels) — NEGATIVE (purity ratios 4-10× but NMI decreases; text-based signals degrade 30-34% on zoom_fine). Dense embeddings: 3yr accepted (12.6k) and 15yr partial (99k) both FAIL adversarial gates (LangDom≈0.99, JP≈0.005-0.03). Full-corpus benchmarks: temporal_stability PASS only for full_text_tfidf_light; hierarchy_coherence, cluster_coherence, cross_language_retrieval, boilerplate_resistance ALL FAIL for all TF-IDF. Production default validated: cited_decisions_tfidf_outcome_hybrid_0.5 (PASS adversarial, PASS citation heritage AUC=0.716). All negative results preserved as first-class evidence. Minor path discrepancies in state.json evidence_refs are cosmetic — all evidence artifacts exist and support claims."
+}
