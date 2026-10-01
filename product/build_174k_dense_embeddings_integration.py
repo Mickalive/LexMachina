@@ -22,13 +22,27 @@ from pathlib import Path
 from collections import Counter
 import logging
 import sys
+import os
 from datetime import datetime, timezone
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 logger = logging.getLogger(__name__)
 
-# Add fractal-map path for hierarchical Leiden
-sys.path.insert(0, '/tmp/lex_accepted/fractal-map/fractal_map/hierarchical')
+# Add fractal-map path for hierarchical Leiden (with fallback chain)
+FRACTAL_MAP_HIERARCHICAL_PATH = os.environ.get(
+    "FRACTAL_MAP_HIERARCHICAL_PATH",
+    "/tmp/lex_accepted/fractal-map/fractal_map/hierarchical"
+)
+# Additional fallback paths
+fractal_map_fallbacks = [
+    FRACTAL_MAP_HIERARCHICAL_PATH,
+    "/home/runner/work/LexMachina/LexMachina/fractal_map/hierarchical",
+    "/tmp/lex_team/fractal_map/hierarchical",
+]
+for fb in fractal_map_fallbacks:
+    if Path(fb).exists():
+        sys.path.insert(0, fb)
+        break
 
 from hierarchical_zoom_validation import (
     load_metadata_with_branch,
@@ -44,19 +58,36 @@ LEGAL_DISTANCE_OUTPUT = Path("/home/runner/work/LexMachina/LexMachina/legal_dist
 # Product results directory
 PRODUCT_RESULTS = Path("/home/runner/work/LexMachina/LexMachina/product/results/fractal_map")
 
-# Corpus directory for branch enrichment
-CORPUS_DIR = Path("/tmp/lex_accepted/corpus/corpus/normalization/canonical")
+# Corpus directory for branch enrichment (with fallback chain matching map_loader.py)
+def _resolve_corpus_dir() -> Path:
+    """Resolve corpus directory using fallback chain matching map_loader.py."""
+    candidates = [
+        Path("/tmp/lex_accepted/corpus/corpus/normalization/canonical"),
+        Path("/home/runner/work/LexMachina/LexMachina/product/results/corpus/normalization/canonical"),
+        Path("/home/runner/work/LexMachina/LexMachina/results/corpus/normalization/canonical"),
+        Path("/tmp/lex_team/results/corpus/normalization/canonical"),
+        Path("/tmp/lex_accepted/core/corpus/normalization/canonical"),
+        Path("/tmp/lex_accepted/evaluation/corpus"),
+    ]
+    for candidate in candidates:
+        if candidate.exists() and any(candidate.glob("bge_20*.jsonl")):
+            return candidate
+    # Last resort: return first candidate (will log 0 enriched)
+    return candidates[0]
+
+CORPUS_DIR = _resolve_corpus_dir()
 
 # Representations to build from dense embeddings
 REPRESENTATIONS = {
     "center_projected_174k_768": {
         "embedding_file": "embeddings_center_projected.npy",
         "evidence_tier": "ACCEPTED",
-        "description": "Language-debiased center_projected at 174k scale (768-dim). Removes language centers from multilingual embeddings. Evaluation v2: ONLY representation passing BOTH adversarial gates (LangDom=0.759, JP=0.522).",
+        "description": "Language-debiased center_projected at 174k scale (768-dim). Removes language centers from multilingual embeddings. Evaluation v2 claimed both gates PASS (LangDom=0.759, JP=0.522). SUPERSEDED by evaluation v3: 768-dim FAILS jurist gate (JP=0.491). Retained for historical comparison. Use 64-dim version for production.",
         "benchmark_results": {
-            "jurist_pairwise": 0.5215,
+            "jurist_pairwise": 0.491,
             "language_dominance": 0.7593,
-            "both_gates_pass": True,
+            "both_gates_pass": False,
+            "note": "Superseded by evaluation v3: JP=0.491 FAIL; retained for historical comparison"
         },
         "embedding_dim": 768,
     },

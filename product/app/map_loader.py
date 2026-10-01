@@ -94,7 +94,7 @@ class MapLoader:
         "center_projected_174k_768": "HIGH-PURITY",
         "center_projected_174k_64": "DEFAULT",  # Production default at 174k
         "center_projected_174k_128": "EXPLORATORY",
-        "raw_768_174k": "LEGACY",
+        "raw_768_174k": "EXPLORATORY",  # Baseline for comparison, not deprecated
     }
 
     REPRESENTATION_PURPOSES: Dict[str, str] = {
@@ -3980,23 +3980,25 @@ class MapLoader:
         )
 
     def _load_center_projected_174k_768(self) -> None:
-        """Load center_projected 768-dim at 174k scale (ACCEPTED - evaluation v2).
+        """Load center_projected 768-dim at 174k scale (SUPERSEDED by evaluation v3).
         
         Language-debiased by removing language centers from 768-dim multilingual embeddings.
-        ONLY representation passing BOTH adversarial gates at 1000 scale:
-        - Language dominance: 0.7593 < 0.85 (PASS)
-        - Jurist pairwise: 0.5215 > 0.5 (PASS)
-        At 174k scale: needs validation but expected to maintain properties.
+        Evaluation v2 claimed: ONLY representation passing BOTH adversarial gates at 1000 scale
+        (LangDom=0.759, JP=0.522). 
+        SUPERSEDED by evaluation v3: 768-dim FAILS jurist gate (JP=0.491).
+        64-dim version (center_projected_174k_64) PASSES both gates - use that for production.
+        Retained for historical comparison only.
         """
         self._load_174k_dense_embedding_representation(
             name="center_projected_174k_768",
-            display_name="Language-Debiased 174k (768-dim Center Projected)",
-            description="Language-debiased center_projected at 174k scale (768-dim). Removes language centers from multilingual embeddings. Evaluation v2: ONLY representation passing BOTH adversarial gates (LangDom=0.759, JP=0.522).",
+            display_name="Language-Debiased 174k (768-dim Center Projected) [SUPERSEDED]",
+            description="Language-debiased center_projected at 174k scale (768-dim). SUPERSEDED by evaluation v3: 768-dim FAILS jurist gate (JP=0.491). Evaluation v2 claimed both gates PASS. Use 64-dim version for production. Retained for historical comparison.",
             evidence_tier="ACCEPTED",
             benchmark_results={
-                "jurist_pairwise": 0.5215,
+                "jurist_pairwise": 0.491,
                 "language_dominance": 0.7593,
-                "both_gates_pass": True,
+                "both_gates_pass": False,
+                "note": "Superseded by evaluation v3: JP=0.491 FAIL; retained for historical comparison"
             },
             embedding_file="embeddings_center_projected.npy",
         )
