@@ -1,18 +1,22 @@
 {
   "lane": "fractal-map",
   "direction_version": 29,
-  "evidence_tier": "ACCEPTED",
-  "cycle_status": "COMPLETE",
+  "evidence_tier": "REPRODUCED",
+  "cycle_status": "BLOCKED_ON_DEPENDENCIES",
   "continue_recommended": false,
   "accepted_run_id": "fractal_map_cycle_20261001_hierarchical_v1_tfidf_174k",
   "evidence_refs": [
     "results/fractal_map/hierarchical_v1_174k_tfidf/hierarchical_v1_174k_tfidf_verdict_20261001_102442.json",
+    "results/fractal_map/hierarchical_v1_174k_tfidf/hierarchical_v1_frozen_spec.json",
     "results/fractal_map/28k_checkpoint_validation/28k_validation_20261001_175210.json",
     "results/fractal_map/scale_extrapolation/scale_extrapolation_model_v3.json",
     "results/fractal_map/hierarchical_map_center_projected/center_projected_hierarchical_results.json",
     "results/fractal_map/zoom_coherence_1000scale_citation_roles.json",
     "results/fractal_map/parameter_sweep_12k/parameter_sweep_12k_results.json",
-    "results/fractal_map/constrained_hierarchical_leiden/constrained_hierarchical_leiden_results.json"
+    "results/fractal_map/constrained_hierarchical_leiden/constrained_hierarchical_leiden_results.json",
+    "results/fractal_map/dense_12k_hierarchical_v1/dense_12k_hierarchical_v1_results.json",
+    "results/fractal_map/dense_12k_hierarchical_v1/dense_12k_hierarchical_v1_FIXED_results.json",
+    "reports/fractal-map/dense_vs_tfidf_hierarchical_v1_comparison.md"
   ],
   "key_findings": {
     "tfidf_174k_hierarchical_v1": {
@@ -53,22 +57,29 @@
         "median_cluster_size": 46,
         "nesting": 1.0,
         "configs_tested": 3,
-        "all_pass_hierarchical_v1": true
+        "note": "Checkpoint data, not ACCEPTED; used different protocol than frozen hierarchical_v1"
       }
     },
-    "12k_dense_validation": {
+    "12k_dense_validation_ACCEPTED": {
       "scale": 12570,
-      "v26_flat_baseline": "FAIL",
-      "constrained_hierarchical_adaptive": {
-        "improvement_rate": 1.0,
-        "fine_branch_purity": 0.98,
-        "singleton_fraction": 0.0
+      "note": "ACCEPTED dense embeddings (years 2000-2002) tested under FROZEN hierarchical_v1 protocol (same as TF-IDF 174k)",
+      "hierarchical_v1_adaptive": {
+        "improvement_rate": 0.273,
+        "fine_branch_purity": 0.997,
+        "fine_area_purity": 0.904,
+        "singleton_fraction": 0.066,
+        "median_cluster_size": 23,
+        "per_mode_verdict": "FAIL (fragmentation_ok=False, zoom_coherence_ok=False)"
       },
-      "constrained_hierarchical_fixed": {
-        "improvement_rate": 0.50,
-        "fine_branch_purity": 0.95,
-        "singleton_fraction": 0.0
-      }
+      "hierarchical_v1_fixed": {
+        "improvement_rate": 0.212,
+        "fine_branch_purity": 0.997,
+        "fine_area_purity": 0.907,
+        "singleton_fraction": 0.093,
+        "median_cluster_size": 19,
+        "per_mode_verdict": "FAIL (fragmentation_ok=False, zoom_coherence_ok=False)"
+      },
+      "critical_finding": "Dense embeddings achieve EXCEPTIONAL purity (branch=0.997, area=0.907) but FAIL hierarchical_v1 due to over-fragmentation and poor zoom coherence. Coarse purity already 0.957 (near ceiling), leaving no legal structure to recover at fine level. Previous 12k validation used different protocol with different success criteria."
     },
     "1000scale_citation_roles_dense": {
       "citing_alpha0.3": {"zoom_quality": 0.5401, "verdict": "STRONG_ZOOM_PATH", "evidence_tier": "REPRODUCED"},
@@ -80,27 +91,33 @@
       "center_projected_64dim": {"zoom_quality": 0.2584, "verdict": "BASELINE_ZOOM_PATH (CURRENT PRODUCT DEFAULT)", "evidence_tier": "REPRODUCED"}
     },
     "scale_extrapolation": {
-      "dense_embeddings_hier_impr": "0.50-0.70 (scale-stable from 12k to 28k to 174k)",
-      "dense_embeddings_singleton": "0.0",
+      "dense_embeddings_hier_impr": "0.50-0.70 (scale-stable from 12k to 28k to 174k) - NOTE: based on checkpoint data with different protocol",
+      "dense_embeddings_singleton": "0.0 (checkpoint data) vs 0.06-0.09 (ACCEPTED 12k under hierarchical_v1)",
       "tfidf_hier_impr": 0.0,
       "tfidf_singleton": 0.99
+    },
+    "dense_vs_tfidf_geometry": {
+      "finding": "FUNDAMENTAL GEOMETRIC DIFFERENCE: Dense embeddings at 12k achieve near-perfect coarse purity (branch=0.957, area=0.854) causing hierarchical_v1 to FAIL on fragmentation (6-9% singletons) and zoom coherence (21-27% improvement_rate). TF-IDF at 174k achieves moderate coarse purity (branch=0.52-0.77) enabling meaningful refinement (branch_delta=+0.11 to +0.16, improvement_rate=58-75%) with zero fragmentation.",
+      "implication": "Dense needs purity-aware stopping criteria; TF-IDF works with current protocol. hierarchical_v1 protocol is TF-IDF-specific."
     }
   },
   "blockers": {
-    "dense_embeddings_174k": "legal-distance lane: only 3/26 years (2000-2002, ~19,441 decisions) ACCEPTED; 15/26 years (2000-2014, ~100k decisions) checkpointed PENDING AUDIT; 11/26 years (2015-2026) not processed",
-    "note": "Fractal-map pipeline fully validated at 12k/28k scales with dense embeddings from checkpoints; ready for 174k when embeddings land"
+    "dense_embeddings_174k": "legal-distance lane: only 3/26 years (2000-2002, ~12,570 decisions) ACCEPTED; 15/26 years (2000-2014, ~100k decisions) checkpointed PENDING AUDIT; 11/26 years (2015-2026) not processed",
+    "dense_protocol_mismatch": "hierarchical_v1 protocol FAILS on ACCEPTED dense embeddings at 12k; requires dense-specific protocol redesign before 174k deployment",
+    "note": "Fractal-map TF-IDF pipeline validated at 174k; dense pipeline NOT validated under product protocol. Dense-specific protocol needed."
   },
   "product_readiness": {
     "tfidf_modes": "OPERATIONAL at 174k (3 production modes, 16/16 scale tests PASS, 50+ API endpoints, WebGL <3s)",
-    "dense_modes": "BLOCKED on legal-distance 174k dense embeddings",
+    "dense_modes": "BLOCKED on legal-distance 174k dense embeddings AND protocol mismatch (hierarchical_v1 FAILS on ACCEPTED 12k dense embeddings)",
     "default_map_mode": "center_projected_64dim_hierarchical (1k evidence, ZQ=0.2584)",
     "fallback_mode": "cited_outcome_hybrid_0.5 with hierarchical Leiden (TF-IDF, no GPU)",
-    "evidence_backed_zoom_path": "citation-role/dense-embedding modes (ZQ 0.48-0.54 at 1k) - pending 174k validation"
+    "evidence_backed_zoom_path": "citation-role/dense-embedding modes (ZQ 0.48-0.54 at 1k) - pending 174k validation AND dense-specific protocol redesign"
   },
   "corrections_from_previous_state": {
-    "previous_claim": "hierarchical_v1 protocol: 1/4 modes PASS (regeste_tfidf), 3/4 FAIL",
-    "actual_result": "6/8 modes PASS (regeste_tfidf FAILS due to metadata gap; outcome_tfidf FAILS due to no refinement)",
-    "note": "Previous state reflected incomplete/early results. Full hierarchical_v1_174k_tfidf run completed 2026-10-01 10:24:42 with 6/8 PASS."
+    "previous_claim": "12k_dense_validation: constrained_hierarchical_adaptive improvement_rate=1.0, singleton_fraction=0.0; constrained_hierarchical_fixed improvement_rate=0.50, singleton_fraction=0.0. Pipeline validated, ready for 174k.",
+    "actual_state": "Previous 12k/28k dense validation used DIFFERENT protocol (adaptive/fixed configs with different success criteria). Under the FROZEN hierarchical_v1 protocol (same as TF-IDF 174k test), ACCEPTED dense embeddings at 12k FAIL (singleton_fraction 6-9% > 1% threshold, improvement_rate 21-27% < 50% threshold). The dense pipeline is NOT validated under the product protocol. Requires dense-specific protocol redesign.",
+    "correction_timestamp": "2026-10-01",
+    "corrected_by": "fractal-map lane researcher (this cycle)"
   },
-  "next_recommendation": "PAUSE until legal-distance delivers 174k dense embeddings. TF-IDF hierarchical pipeline validated at 174k (6/8 modes structurally sound). Dense embedding pipeline validated at 12k/28k checkpoints (improvement_rate ~0.67, zero fragmentation). No same-question discriminating experiment possible while blocked on dense embeddings. Factory Director to decide successor question when embeddings land."
+  "next_recommendation": "PIVOT_WITHIN_MISSION: Design dense-specific hierarchical protocol with purity-aware stopping criteria (don't subdivide clusters with coarse_purity > 0.9) and semantic coherence metrics. Validate at 12k/28k ACCEPTED dense scales. Current hierarchical_v1 protocol is TF-IDF-specific. No same-question discriminating experiment possible while BLOCKED on 174k dense embeddings. Factory Director to decide successor question: either (a) dense protocol redesign, or (b) wait for 174k embeddings with new protocol."
 }
