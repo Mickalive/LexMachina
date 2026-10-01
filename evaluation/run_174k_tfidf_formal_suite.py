@@ -99,8 +99,8 @@ TFIDF_REPRESENTATIONS = {
     'outcome_tfidf': LEGAL_TFIDF_EMBEDDINGS_DIR / "outcome_tfidf.npy",
 }
 
-# Citation heritage validation data
-CITATION_RESOLUTION_PATH = LEX_ACCEPTED_ROOT / "legal-distance/legal_distance/results/v7/citation_id_resolution_bge/citation_to_decision_id.json"
+# Citation heritage validation data - use pre-computed frozen pairs
+CITATION_PAIRS_PATH = Path("evaluation/results/174k_citation_heritage/citation_pairs_174k.json")
 
 OUTPUT_DIR = Path("/home/runner/work/LexMachina/LexMachina/evaluation/results/174k_tfidf_formal_suite")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -148,67 +148,36 @@ def create_stratified_subsample(metadata: List[Dict], size: int = SUBSAMPLE_SIZE
 # ============================================================
 # CITATION HERITAGE VALIDATION (Benchmark from spec)
 # ============================================================
-def load_citation_pairs() -> Tuple[List[Tuple[int, int]], List[Tuple[int, int]]]:
+def load_citation_pairs(metadata: List[Dict]) -> Tuple[List[Tuple[int, int]], List[Tuple[int, int]]]:
     """
-    Load citation pairs for citation_heritage benchmark.
+    Load pre-computed frozen citation pairs for citation_heritage benchmark.
     
-    Uses the 174k citation-ID resolution (2,019/2,105 resolved).
-    Returns positive pairs (shared citations) and negative pairs (no shared citations).
+    Uses the frozen 1,020-pair pool (1,020 positive direct+shared citations, 
+    1,020 negative, balanced sampling from resolved citation graph, seed=42)
+    with 174k citation-ID resolution (2,019/2,105 resolved, 95.9%).
+    
+    Returns positive pairs (shared citations) and negative pairs (no shared citations)
+    as index tuples.
     """
-    # Load citation resolution
-    with open(CITATION_RESOLUTION_PATH) as f:
-        citation_resolution = json.load(f)
+    # Load pre-computed pairs (decision_id pairs)
+    with open(CITATION_PAIRS_PATH) as f:
+        pairs_data = json.load(f)
     
     # Load metadata to get decision_id -> index mapping
-    with open(METADATA_174K_PATH) as f:
-        metadata = json.load(f)
-    
     decision_id_to_idx = {m['decision_id']: i for i, m in enumerate(metadata)}
     
-    # Build citation graph: decision_id -> set of cited decision_ids
-    citation_graph = defaultdict(set)
-    for citation, info in citation_resolution.items():
-        if 'target_decision_id' in info:
-            cited_id = info['target_decision_id']
-            # Find which decisions cite this (we need the reverse mapping)
-            # The citation_resolution maps FROM citation string TO decision_id
-            # We need to find which decisions contain each citation
-            pass
-    
-    # Actually, we need the citation extraction from the corpus
-    # Let's use the resolved citations as positive pairs
-    # For now, we'll use the role_graph from the same directory
-    role_graph_path = CITATION_RESOLUTION_PATH.parent / "role_graph.json"
-    if role_graph_path.exists():
-        with open(role_graph_path) as f:
-            role_graph = json.load(f)
-    else:
-        role_graph = {}
-    
-    # Build positive pairs from citation graph
+    # Convert decision_id pairs to index pairs
     positive_pairs = []
-    for source, targets in role_graph.items():
-        if source in decision_id_to_idx:
-            source_idx = decision_id_to_idx[source]
-            for target in targets:
-                if target in decision_id_to_idx:
-                    target_idx = decision_id_to_idx[target]
-                    positive_pairs.append((source_idx, target_idx))
+    for src_id, tgt_id in pairs_data['positive_pairs']:
+        if src_id in decision_id_to_idx and tgt_id in decision_id_to_idx:
+            positive_pairs.append((decision_id_to_idx[src_id], decision_id_to_idx[tgt_id]))
     
-    # Remove duplicates and self-pairs
-    positive_pairs = list(set(p for p in positive_pairs if p[0] != p[1]))
-    
-    # Sample negative pairs (random pairs not in positive)
-    positive_set = set(positive_pairs)
-    np.random.seed(GLOBAL_SEED)
     negative_pairs = []
-    n_decisions = len(metadata)
-    while len(negative_pairs) < len(positive_pairs) * 2:  # 2:1 negative:positive ratio
-        i, j = np.random.choice(n_decisions, 2, replace=False)
-        if (i, j) not in positive_set and (j, i) not in positive_set:
-            negative_pairs.append((i, j))
+    for src_id, tgt_id in pairs_data['negative_pairs']:
+        if src_id in decision_id_to_idx and tgt_id in decision_id_to_idx:
+            negative_pairs.append((decision_id_to_idx[src_id], decision_id_to_idx[tgt_id]))
     
-    logger.info(f"Citation heritage: {len(positive_pairs)} positive pairs, {len(negative_pairs)} negative pairs")
+    logger.info(f"Citation heritage: {len(positive_pairs)} positive pairs, {len(negative_pairs)} negative pairs (from frozen 1020-pair pool)")
     return positive_pairs, negative_pairs
 
 
@@ -448,7 +417,7 @@ def main():
     
     # Load citation pairs for heritage benchmark
     logger.info("\n2. Loading citation pairs for citation_heritage benchmark...")
-    citation_pairs = load_citation_pairs()
+    citation_pairs = load_citation_pairs(metadata)
     
     # Verify all embedding files exist
     logger.info("\n3. Verifying embedding files...")
@@ -483,15 +452,22 @@ def main():
             ch = result.get('citation_heritage', {})
             v17b = result.get('v17b_label_normalization', {})
             
+            cite_auc = ch.get('auc_roc', None)
+            cite_auc_str = f"{cite_auc:.4f}" if cite_auc is not None else "N/A"
+            v17b_gain = v17b.get('purity_gain_pct', None)
+            v17b_gain_str = f"{v17b_gain:.1f}%" if v17b_gain is not None else "N/A"
+            v17b_gen = "generalizes" if v17b.get('generalizes') else ("no generalize" if v17b else "N/A")
+            ch_status = "PASS" if ch.get('status') == 'PASS' else ("FAIL" if ch.get('status') else "N/A")
+            
             logger.info(f"  {name}: verdict={result['verdict']}, "
                        f"lang_dom={adv['language_dominance_score']:.4f} "
                        f"({'PASS' if adv['adversarial_language_dominance']['status']=='PASS' else 'FAIL'}), "
                        f"jurist_pref={adv['jurist_preference_rate']:.4f} "
                        f"({'PASS' if adv['jurist_pairwise_preference']['status']=='PASS' else 'FAIL'}), "
-                       f"citation_auc={ch.get('auc_roc', 'N/A'):.4f} "
-                       f"({'PASS' if ch.get('status')=='PASS' else 'FAIL' if ch.get('status') else 'N/A'}), "
-                       f"v17b_gain={v17b.get('purity_gain_pct', 'N/A'):.1f}% "
-                       f"({'generalizes' if v17b.get('generalizes') else 'no generalize' if v17b else 'N/A'})")
+                       f"citation_auc={cite_auc_str} "
+                       f"({ch_status}), "
+                       f"v17b_gain={v17b_gain_str} "
+                       f"({v17b_gen})")
             
         except Exception as e:
             logger.error(f"  {name}: ERROR - {e}")
@@ -549,13 +525,15 @@ def main():
         jp_pass = "✓" if adv['jurist_pairwise_preference']['status'] == 'PASS' else "✗"
         both = "✓" if adv['both_pass'] else "✗"
         
-        cite_auc = ch.get('auc_roc', 0)
-        v17b_gain = v17b.get('purity_gain_pct', 0)
+        cite_auc = ch.get('auc_roc', None)
+        v17b_gain = v17b.get('purity_gain_pct', None)
         
         if both == "✓":
             passed_count += 1
         
-        logger.info(f"{name:<40} {res['verdict']:<7} {ld:>7.4f} {jp:>7.4f} {both:>5} {cite_auc:>7.4f} {v17b_gain:>6.1f}%")
+        cite_auc_str = f"{cite_auc:.4f}" if cite_auc is not None else "N/A"
+        v17b_gain_str = f"{v17b_gain:.1f}%" if v17b_gain is not None else "N/A"
+        logger.info(f"{name:<40} {res['verdict']:<7} {ld:>7.4f} {jp:>7.4f} {both:>5} {cite_auc_str:>7} {v17b_gain_str:>7}")
     
     logger.info("-" * 90)
     logger.info(f"Passed both adversarial gates: {passed_count}/{len(TFIDF_REPRESENTATIONS)}")
@@ -575,8 +553,10 @@ def main():
     for name, res in sorted_results:
         if 'error' not in res:
             ch = res.get('citation_heritage', {})
-            logger.info(f"  {name}: AUC={ch.get('auc_roc', 0):.4f} "
-                       f"({'PASS' if ch.get('status')=='PASS' else 'FAIL' if ch.get('status') else 'N/A'})")
+            cite_auc = ch.get('auc_roc', None)
+            cite_auc_str = f"{cite_auc:.4f}" if cite_auc is not None else "N/A"
+            ch_status = "PASS" if ch.get('status') == 'PASS' else ("FAIL" if ch.get('status') else "N/A")
+            logger.info(f"  {name}: AUC={cite_auc_str} ({ch_status})")
     
     logger.info(f"\nResults saved to: {output_file}")
     logger.info("=" * 90)
