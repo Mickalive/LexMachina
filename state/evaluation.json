@@ -2,11 +2,12 @@
   "lane": "evaluation",
   "direction_version": 29,
   "evidence_tier": "REPRODUCED",
-  "cycle_status": "COMPLETED",
-  "continue_recommended": false,
-  "accepted_run_id": "evaluation_174k_formal_suite_v29_20261001",
+  "cycle_status": "RUN",
+  "continue_recommended": true,
+  "accepted_run_id": "eval_174k_formal_suite_20260930_233546",
   "evidence_refs": [
     "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
+    "evaluation/results/174k/formal_suite/15year_dense/evaluation_15year_dense_formal_suite_latest.json",
     "evaluation/results/174k_citation_heritage/citation_heritage_174k_tfidf_latest.json",
     "evaluation/results/174k_citation_heritage/benchmark/citation_heritage_174k_tfidf_hnsw_latest.json",
     "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
@@ -16,6 +17,7 @@
     "evaluation/results/174k/dense_partial_2000_2002/evaluation_dense_3yr_formal_suite.json",
     "results/evaluation/v18_coarse_hierarchy/v18_coarse_hierarchy_latest.json",
     "evaluation/run_174k_formal_suite.py",
+    "evaluation/run_15year_dense_formal_suite.py",
     "evaluation/validate_citation_heritage_174k.py",
     "evaluation/run_v17b_label_normalization_174k.py",
     "evaluation/test_v17b_174k_generalization.py",
@@ -23,7 +25,7 @@
     "evaluation/scalable_nn.py",
     "evaluation/benchmarks/specification.json"
   ],
-  "next_recommendation": "PIVOT_WITHIN_MISSION. All three factory direction v29 tasks COMPLETE for TF-IDF family: (1) 12-benchmark formal suite at 174k on 8 representations — COMPLETE (all PASS adversarial gates with HNSW fix); (2) Citation heritage validation using 174k citation-ID resolution (2,019/2,105 resolved) — COMPLETE (citation-based PASS AUC-ROC, all FAIL recall@10); (3) v17b label normalization generalization to 174k fine-grained legal_area labels — COMPLETE, NEGATIVE (uniform_improvement=false, zoom_fine degraded 11-16% on 4/8 reps). Additional NEGATIVE results: v18 coarse hierarchy (branch-level max purity 0.65 < 0.7), dense embeddings at 165k and 3yr (all FAIL jurist gate). No further same-question cycle justified. Next factory direction should target 174k formal suite evaluation on dense embeddings, citation roles, and linear hybrids when they land from legal-distance (currently 3/26 years ACCEPTED, 15/26 years checkpointed pending audit, 11/26 years not processed).",
+  "next_recommendation": "CONTINUE — Factory direction v29 question explicitly states 'as representations land'. TF-IDF family (8 representations) COMPLETE at 174k with all three mandated tasks delivered. 15-year dense formal suite (2000-2014, ~92k decisions) COMPLETE: dense embeddings FAIL jurist gate (lang_dom ~0.89-0.90, JP ~0.27-0.29); linear combinations PASS language dominance (0.79-0.81) but FAIL jurist preference (~0.47-0.48 < 0.5); TF-IDF baselines PASS both adversarial gates. Lane remains RUN awaiting ACCEPTED 174k dense embeddings, citation role embeddings, linear hybrids at full 174k, and metric learning from legal-distance (3/26 years ACCEPTED, 15/26 checkpointed pending audit, 11/26 not processed). No same-question cycle justified for TF-IDF or 15-year dense; next cycle triggers when new ACCEPTED representations land.",
   "completed_benchmarks": {
     "tfidf_formal_suite_174k": {
       "status": "COMPLETE",
@@ -62,13 +64,25 @@
       "representations": 3,
       "adversarial_gates_passed": 0,
       "jurist_pref_range": "0.008-0.045"
+    },
+    "dense_embeddings_15yr_2000_2014": {
+      "status": "COMPLETE",
+      "representations": 7,
+      "adversarial_gates_passed": 2,
+      "dense_only_passed": 0,
+      "linear_combinations_passed_lang_dom_only": ["linear_citation_concat_15year", "linear_hybrid05_concat_15year"],
+      "tfidf_baselines_passed_both": ["cited_decisions_tfidf_15year", "cited_decisions_tfidf_outcome_hybrid_0.5_15year"],
+      "dense_lang_dom_range": "0.893-0.899",
+      "dense_jurist_pref_range": "0.267-0.288",
+      "linear_lang_dom_range": "0.794-0.809",
+      "linear_jurist_pref_range": "0.473-0.481"
     }
   },
   "pending_from_legal_distance": [
     "ACCEPTED 174k dense embeddings (currently 3/26 years = ~19k decisions)",
     "Checkpointed 15/26 years dense embeddings (2000-2014 = ~100k decisions) - pending audit",
     "Citation role embeddings (citing, following, criticizing)",
-    "Linear hybrid combinations: linear_citation_concat, linear_hybrid05_concat",
+    "Linear hybrid combinations: linear_citation_concat, linear_hybrid05_concat at full 174k",
     "Metric learning embeddings at 174k scale"
   ],
   "critical_findings": {
@@ -78,14 +92,16 @@
     "citation_heritage_negative_recall": "All reps FAIL recall@10 (<0.01 vs 0.2 threshold) despite some passing AUC-ROC",
     "v17b_negative_tfidf": "Label normalization does not uniformly improve TF-IDF at 174k; zoom_fine worsened for citation-based reps",
     "v18_hierarchy_negative": "Branch-level (4 labels) max purity 0.65 < 0.7; fundamental limitation of embedding space for legal hierarchy recovery",
-    "dense_embeddings_fail_jurist_gate": "center_projected 768/64/128 at 165k and 3yr all FAIL jurist gate (JP < 0.5); metric learning required",
-    "boilerplate_resistance_universal_fail": "All representations FAIL boilerplate resistance (resistance_score ~ -0.79 to -0.89)",
-    "cross_language_universal_fail": "All reps FAIL cross-language retrieval (recall ~0.12-0.15 vs 0.2 threshold)"
+    "dense_embeddings_fail_jurist_gate": "center_projected 768/64/128 at 165k, 3yr, and 15yr all FAIL jurist gate (JP < 0.5); metric learning required",
+    "linear_combinations_partial_progress": "linear_citation_concat and linear_hybrid05_concat at 15yr PASS language dominance (~0.79-0.81) but FAIL jurist preference (~0.47-0.48 < 0.5); progress on language dominance but not sufficient for jurist gate",
+    "boilerplate_resistance_universal_fail": "All representations FAIL boilerplate resistance (resistance_score ~ -0.79 to -0.93)",
+    "cross_language_universal_fail": "All reps FAIL cross-language retrieval (recall ~0.02-0.14 vs 0.2 threshold)"
   },
   "product_implications": {
     "production_default_validated": "cited_decisions_tfidf_outcome_hybrid_0.5 operational at 174k (173,963 decisions), passes both adversarial gates",
     "two_map_modes_needed": "Do not collapse to single default; citation-based mode (adversarial + citation heritage) and semantic mode (cross-language + hierarchy) serve different jurist needs",
-    "dense_not_ready": "center_projected embeddings NOT ready for product integration at 174k (fail jurist gate)",
+    "dense_not_ready": "center_projected embeddings NOT ready for product integration at 174k (fail jurist gate at all scales tested: 3yr, 15yr, 165k)",
+    "linear_combinations_not_ready": "linear_citation_concat and linear_hybrid05_concat improve language dominance but do not reach jurist gate (JP ~0.47-0.48); metric learning or stronger citation signals needed",
     "hierarchy_not_recoverable": "No representation recovers legal hierarchy at branch level; fractal-map zoom coherence requires alternative approaches",
     "jurist_study_needed": "Simulated jurist benchmarks show systematic gaps; real jurist study (5-10 Swiss jurists) framework ready"
   }
