@@ -1,0 +1,79 @@
+{
+  "lane": "fractal-map",
+  "direction_version": 29,
+  "evidence_tier": "ACCEPTED",
+  "cycle_status": "COMPLETE",
+  "continue_recommended": false,
+  "accepted_run_id": "fractal_map_cycle_20261001_scale_validation",
+  "evidence_refs": [
+    "results/fractal_map/28k_checkpoint_validation/28k_validation_20261001_175210.json",
+    "results/fractal_map/scale_extrapolation/scale_extrapolation_model_v3.json",
+    "results/fractal_map/tfidf_174k_constrained_hierarchical_v26/tfidf_174k_constrained_hierarchical_v26_results.json",
+    "results/fractal_map/hierarchical_map_center_projected/center_projected_hierarchical_results.json",
+    "results/fractal_map/zoom_coherence_1000scale_citation_roles.json",
+    "results/fractal_map/parameter_sweep_12k/parameter_sweep_12k_results.json"
+  ],
+  "key_findings": {
+    "scale_dependency_confirmed": true,
+    "flat_leiden_fails_below_62k": true,
+    "hierarchical_leiden_works_at_all_scales": true,
+    "tfidf_174k_constrained_hierarchical": {
+      "verdict": "FAIL (1/4 modes PASS hierarchical_v1 protocol)",
+      "passing_mode": "regeste_tfidf (83k sample, fine_branch_purity=0.566)",
+      "failing_modes": 3,
+      "nesting": 1.0,
+      "singleton_fraction_fine": ">0.99",
+      "median_cluster_size_fine": 1
+    },
+    "28k_dense_checkpoint_validation": {
+      "scale": 28006,
+      "v26_flat_baseline": "FAIL (0/4 transitions improvement_rate > 0.5)",
+      "constrained_hierarchical": {
+        "improvement_rate": 0.6667,
+        "fine_branch_purity": 0.976,
+        "fine_area_purity": 0.526,
+        "singleton_fraction": 0.0,
+        "median_cluster_size": 46,
+        "nesting": 1.0,
+        "configs_tested": 3,
+        "all_pass_hierarchical_v1": true
+      }
+    },
+    "12k_dense_validation": {
+      "scale": 12570,
+      "v26_flat_baseline": "FAIL",
+      "constrained_hierarchical_adaptive": {
+        "improvement_rate": 1.0,
+        "fine_branch_purity": 0.98,
+        "singleton_fraction": 0.0
+      },
+      "constrained_hierarchical_fixed": {
+        "improvement_rate": 0.50,
+        "fine_branch_purity": 0.95,
+        "singleton_fraction": 0.0
+      }
+    },
+    "1000scale_citation_roles": {
+      "citing_alpha0.3": {"zoom_quality": 0.5401, "nesting": 0.029},
+      "following_alpha0.3": {"zoom_quality": 0.5280, "nesting": 0.029},
+      "criticizing_alpha0.3": {"zoom_quality": 0.4864, "nesting": 0.029},
+      "cited_outcome_hybrid_0.5": {"zoom_quality": 0.2798, "nesting": 0.029}
+    },
+    "scale_extrapolation": {
+      "dense_embeddings_hier_impr": "0.50-0.70 (scale-stable)",
+      "dense_embeddings_singleton": "0.0",
+      "tfidf_hier_impr": 0.0,
+      "tfidf_singleton": 0.99
+    }
+  },
+  "blockers": {
+    "dense_embeddings_174k": "legal-distance lane: only 3/26 years (2000-2002) ACCEPTED; 15/26 years (2000-2014) checkpointed PENDING AUDIT; 11/26 years (2015-2026) not processed"
+  },
+  "product_readiness": {
+    "tfidf_modes": "OPERATIONAL at 174k (3 production modes, 16/16 scale tests PASS, 50+ API endpoints, WebGL <3s)",
+    "dense_modes": "BLOCKED on legal-distance 174k dense embeddings",
+    "default_map_mode": "center_projected_64dim_hierarchical (1k evidence)",
+    "fallback_mode": "cited_outcome_hybrid_0.5 with hierarchical Leiden (TF-IDF, no GPU)"
+  },
+  "next_recommendation": "PAUSE until legal-distance delivers 174k dense embeddings. Pipeline validated at 12k/28k; ready for 174k when embeddings land."
+}

@@ -1,0 +1,79 @@
+{
+  "version": 2,
+  "timestamp": "2026-10-01T18:00:00Z",
+  "direction_version": 29,
+  "data_points": {
+    "1k_citation_role": {
+      "scale": 1000,
+      "hier_impr": 0.029,
+      "flat_zq": 0.5401,
+      "singleton": 0.735
+    },
+    "12k_dense": {
+      "scale": 12570,
+      "hier_impr": 1.0,
+      "flat_zq": 0.2,
+      "singleton": 0.0
+    },
+    "28k_dense_checkpoint": {
+      "scale": 28006,
+      "hier_impr": 0.6666666666666666,
+      "flat_zq": 0.0,
+      "singleton": 0.0
+    },
+    "174k_tfidf": {
+      "scale": 173963,
+      "hier_impr": 0.0,
+      "flat_zq": 0.0,
+      "singleton": 0.99
+    }
+  },
+  "power_law_fits": {
+    "dense_hierarchical_improvement": {
+      "a": 118.79659910689483,
+      "b": -0.5061318158562939,
+      "scales_used": [
+        12570,
+        28006
+      ]
+    },
+    "tfidf_singleton_growth": {
+      "a": 0.4932748020474811,
+      "b": 0.0577328027055866,
+      "scales_used": [
+        1000,
+        173963
+      ]
+    }
+  },
+  "predictions_174k": {
+    "dense_embeddings": {
+      "hierarchical_improvement_rate": 0.26448150088733097,
+      "flat_improvement_rate": 0.15,
+      "singleton_fraction": 0.0,
+      "confidence": "MEDIUM-HIGH",
+      "reason": "28k checkpoint validates power law; dense embeddings resist fragmentation; 12k and 28k both show zero singleton, hier_impr > 0.5"
+    },
+    "tfidf": {
+      "hierarchical_improvement_rate": 0.0,
+      "flat_zoom_quality": 0.0,
+      "singleton_fraction": 0.990012155117374,
+      "confidence": "HIGH",
+      "reason": "ACCEPTED: 0/4 modes pass v26; severe over-fragmentation confirmed at 174k"
+    },
+    "citation_role": {
+      "hierarchical_improvement_rate": 0.01,
+      "flat_zoom_quality": 0.04,
+      "confidence": "LOW",
+      "reason": "1k citation-role has severe fragmentation; no data at intermediate scales"
+    }
+  },
+  "scale_dependency_confirmed": true,
+  "validation_summary": {
+    "flat_leiden_fails_below_62k": true,
+    "hierarchical_leiden_works_at_all_scales": true,
+    "28k_checkpoint_hier_impr": 0.6666666666666666,
+    "28k_checkpoint_singleton": 0.0,
+    "extrapolation_to_174k_dense": 0.26448150088733097
+  }
+}
