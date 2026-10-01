@@ -1,0 +1,7 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "REPRODUCED: linear_citation_concat stable CV improvement confirmed across v13+v14 independent seeds; NOT SUPPORTED: linear_citation_concat passes adversarial gates at 174k (JP=0.4805 < 0.5); REPRODUCED (negative): center_projected embeddings fail both gates at 174k; REPRODUCED (negative): two-mode tradeoff persists at 174k scale; REPRODUCED: cited_decisions_tfidf passes both gates at 174k",
+  "evidence_summary": "v14 independent rerun (seed=137 vs v13 seed=42) reproduces linear_citation_concat success rule passage: v13 mean_delta=+0.0275/paired_std=0.0164, v14 mean_delta=+0.0392/paired_std=0.0212 — both PASS. MLP combinations unstable (paired_std>0.057), w3070 consistently fails (v13=0.0326, v14=0.0618). 174k dense embeddings: producer workspace completed 2000-2018, control plane has 2000-2018+2020-2024, year 2019 missing both; 15-year adversarial eval (91,929 decisions): center_projected_64dim FAILS both gates (LangDom=0.894, JP=0.2825); cited_decisions_tfidf PASSES both (LangDom=0.488, JP=0.723); linear_citation_concat PASSES LangDom (0.794) but FAILS JP (0.4805); linear_hybrid05_concat PASSES LangDom (0.809) but FAILS JP (0.473). Two-mode tradeoff persists at 174k. No leakage, no benchmark gaming, honest negative results."
+}
