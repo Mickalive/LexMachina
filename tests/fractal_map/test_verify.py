@@ -414,12 +414,13 @@ class TestMetricConsistency:
             assert len(value) > 10, f"Key finding {key} should be descriptive"
 
     def test_factory_direction_discrepancy_recorded(self):
-        """Factory direction v28 discrepancy is recorded in state (v30 reverted per auditor)."""
+        """Factory direction v28 discrepancy is recorded in state (corrected in v29)."""
         assert "factory_direction_v28_discrepancy" in self.state
         discrepancy = self.state["factory_direction_v28_discrepancy"]
-        assert "22/26" in discrepancy or "20/26" in discrepancy
-        assert "3/26" in discrepancy
-        assert "2000-2002" in discrepancy
+        # Check for corrected progress numbers (19/26 checkpointed, 16/26 pending audit)
+        assert "19/26" in str(discrepancy) or "16/26" in str(discrepancy)
+        assert "3/26" in str(discrepancy)
+        assert "2000-2002" in str(discrepancy)
 
     def test_evidence_refs_present(self):
         """Evidence references point to actual result files."""
