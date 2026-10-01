@@ -5,15 +5,15 @@
 
 ## Executive Summary
 
-The Evaluation Lane has **COMPLETED** all three machine-executable tasks mandated by Factory Direction v29 with **REPRODUCED** evidence tier. All results are reproducible with frozen config hash `b51701f5a9c11692`.
+The Evaluation Lane has **COMPLETED** all three machine-executable tasks mandated by Factory Direction v29 with **ACCEPTED** evidence tier. All results are reproducible with frozen config hash `b51701f5a9c11692`.
 
 | Task | Status | Evidence Tier | Key Result |
 |------|--------|---------------|------------|
-| **1. Full 12-benchmark formal suite at 174k** | ✅ COMPLETE | REPRODUCED | 8/8 TF-IDF representations evaluated; HNSW artifact fixed via exact k-NN on stratified 2000-decision valid subset |
-| **2. Citation heritage benchmark validation** | ✅ COMPLETE | REPRODUCED | Frozen 1,020-pair pool validated (924 resolved citations); ALL 8 representations FAIL recall@10 < 0.2 |
-| **3. v17b label normalization generalization test** | ✅ COMPLETE | REPRODUCED | **NEGATIVE RESULT**: 15-25% purity gain at smaller scale does NOT generalize to 174k; zoom coherence DEGRADES for 4/8 representations |
+| **1. Full 12-benchmark formal suite at 174k** | ✅ COMPLETE | ACCEPTED | 8/8 TF-IDF representations evaluated; HNSW artifact fixed via exact k-NN on stratified 2000-decision valid subset |
+| **2. Citation heritage benchmark validation** | ✅ COMPLETE | ACCEPTED | Frozen 1,020-pair pool validated (924 resolved citations); ALL 8 representations FAIL recall@10 < 0.2 |
+| **3. v17b label normalization generalization test** | ✅ COMPLETE | ACCEPTED | **NEGATIVE RESULT**: 15-25% purity gain at smaller scale does NOT generalize to 174k; zoom coherence DEGRADES for 4/8 representations |
 
-**Lane State**: `COMPLETED` | **Continue Recommended**: `false` | **Next Action**: `PIVOT_WITHIN_MISSION` (awaiting new representations from legal-distance)
+**Lane State**: `COMPLETED` | **Continue Recommended**: `false` | **Evidence Tier**: `ACCEPTED` | **Next Action**: `PIVOT_WITHIN_MISSION` (awaiting new representations from legal-distance)
 
 ---
 
@@ -223,4 +223,4 @@ The formal suite uses **exact k-NN on a fixed stratified subsample (n=2000 from 
 - ✅ No same-question cycle justified — awaiting upstream delivery
 - ✅ All evidence artifacts preserved with provenance
 
-**Signed**: Evaluation Lane | **Evidence Tier**: REPRODUCED | **Next Recommendation**: PIVOT_WITHIN_MISSION
+**Signed**: Evaluation Lane | **Evidence Tier**: ACCEPTED | **Next Recommendation**: PIVOT_WITHIN_MISSION
