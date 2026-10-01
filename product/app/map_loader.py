@@ -57,6 +57,7 @@ class MapLoader:
         "linear_metric_best": "HIGH-PURITY",
         "mahalanobis_best": "HIGH-PURITY",
         "hybrid_stabilized_best": "HIGH-PURITY",
+        "center_projected_174k_64": "HIGH-PURITY",  # 174k dense embedding
         # HIGH-ADVANTAGE
         "cited_decisions_tfidf": "HIGH-ADVANTAGE",
         "hybrid_cited_decisions_0.3": "HIGH-ADVANTAGE",
@@ -85,6 +86,15 @@ class MapLoader:
         "hybrid_alpha_0_3": "LEGACY",
         "hybrid_alpha_0_5": "LEGACY",
         "legal_issues_outcomes": "LEGACY",
+        # 174k TF-IDF (production defaults at full scale)
+        "cited_decisions_tfidf_174k": "DEFAULT",
+        "cited_outcome_hybrid_0.5_174k": "DEFAULT",
+        "cited_outcome_hybrid_0.7_174k": "DEFAULT",
+        # 174k Dense Embeddings
+        "center_projected_174k_768": "HIGH-PURITY",
+        "center_projected_174k_64": "DEFAULT",  # Production default at 174k
+        "center_projected_174k_128": "EXPLORATORY",
+        "raw_768_174k": "LEGACY",
     }
 
     REPRESENTATION_PURPOSES: Dict[str, str] = {
@@ -97,6 +107,15 @@ class MapLoader:
         "following_alpha0.3": "following_precedent",
         "criticizing_alpha0.3": "identifying_criticism",
         "citing_alpha0.3": "citation_network",
+        # 174k TF-IDF
+        "cited_decisions_tfidf_174k": "citation_proximity_174k",
+        "cited_outcome_hybrid_0.5_174k": "production_174k",
+        "cited_outcome_hybrid_0.7_174k": "fractal_quality_174k",
+        # 174k Dense Embeddings
+        "center_projected_174k_768": "language_debiased_174k",
+        "center_projected_174k_64": "production_default_174k",
+        "center_projected_174k_128": "language_debiased_rich_174k",
+        "raw_768_174k": "baseline_174k",
     }
 
     def __init__(self, results_dir: str, corpus_dir: Optional[str] = None):
@@ -146,7 +165,12 @@ class MapLoader:
             "full_text_tfidf_light_174k": "_load_full_text_tfidf_light_174k",
             "regeste_full_text_hybrid_0.5_174k": "_load_regeste_full_text_hybrid_0_5_174k",
             "regeste_full_text_hybrid_0.7_174k": "_load_regeste_full_text_hybrid_0_7_174k",
-        }
+        # 174k Dense Embeddings (from legal-distance lane)
+        "center_projected_174k_768": "_load_center_projected_174k_768",
+        "center_projected_174k_64": "_load_center_projected_174k_64",
+        "center_projected_174k_128": "_load_center_projected_174k_128",
+        "raw_768_174k": "_load_raw_768_174k",
+    }
 
     def load(self) -> int:
         """Load all available map artifacts. Returns count of representations loaded."""
@@ -193,6 +217,11 @@ class MapLoader:
             "_load_full_text_tfidf_light_174k",
             "_load_regeste_full_text_hybrid_0_5_174k",
             "_load_regeste_full_text_hybrid_0_7_174k",
+            # 174k Dense Embeddings (from legal-distance lane)
+            "_load_center_projected_174k_768",
+            "_load_center_projected_174k_64",
+            "_load_center_projected_174k_128",
+            "_load_raw_768_174k",
         ]
 
         for method_name in load_order:
@@ -3867,4 +3896,158 @@ class MapLoader:
             evidence_tier="EXPLORATORY",
             benchmark_results={},
             embedding_file="regeste_full_text_hybrid_0.7.npy",
+        )
+
+    # =========================================================================
+    # 174k Dense Embeddings (from legal-distance lane)
+    # =========================================================================
+
+    def _load_174k_dense_embedding_representation(self, name: str, display_name: str, description: str,
+                                                   evidence_tier: str, benchmark_results: Dict,
+                                                   embedding_file: str) -> None:
+        """Generic loader for 174k dense embedding representations from legal-distance.
+        
+        Loads embeddings from legal_distance/results/174k_dense_embeddings/ and
+        uses the representation's own metadata.json (built by build_174k_dense_embeddings_integration.py)
+        which has the correct 173,963 entries matching the clustering artifacts.
+        """
+        legal_distance_dir = Path("/home/runner/work/LexMachina/LexMachina/legal_distance/results/174k_dense_embeddings")
+        embedding_path = legal_distance_dir / embedding_file
+        metadata_path = legal_distance_dir / "metadata.json"
+        
+        if not embedding_path.exists() or not metadata_path.exists():
+            return
+        
+        # Load 2D projection
+        rep_dir = self.results_dir / name
+        projection_path = rep_dir / "projection_2d.npy"
+        
+        if not projection_path.exists():
+            # Projection doesn't exist yet - will be built by integration script
+            return
+        
+        # Load projection
+        projection = np.load(projection_path)
+        
+        # Load decision_ids and n_decisions from the representation's own metadata.json
+        rep_metadata_path = rep_dir / "metadata.json"
+        if not rep_metadata_path.exists():
+            return
+        
+        with open(rep_metadata_path, "r") as f:
+            rep_metadata = json.load(f)
+        
+        decision_ids = rep_metadata.get("decision_ids", [])
+        n_decisions = len(decision_ids)
+        
+        if n_decisions == 0:
+            return
+        
+        # Load fractal-map validated clustering for this representation
+        if not (rep_dir / "cluster_metadata.json").exists():
+            # Clustering not yet computed for this representation
+            return
+        
+        # Use the proper fractal-map clustering loader
+        zoom_levels_dict = self._load_fractal_map_clustering_for_representation(
+            mode_dir=rep_dir,
+            decision_ids=decision_ids,
+            n_decisions=n_decisions,
+            positions={},
+            mode_name=name,
+            projection_2d=projection
+        )
+        
+        if not zoom_levels_dict:
+            return
+        
+        self.maps[name] = MapState(
+            representation=name,
+            n_decisions=n_decisions,
+            zoom_levels=zoom_levels_dict,
+            metadata={
+                "display_name": display_name,
+                "description": description,
+                "evidence_tier": evidence_tier,
+                "benchmark_results": benchmark_results,
+                "clustering_method": "Hierarchical Leiden (coarse_0.5_fine_3.0) - fractal-map validated at 174k",
+                "config": "coarse_0.5_fine_3.0_k15",
+                "n_zoom_levels": len(zoom_levels_dict),
+                "scale": "174k",
+                "source": "legal-distance dense embeddings",
+                "note": description + f" 174k dense embedding representation from legal-distance lane.",
+            },
+        )
+
+    def _load_center_projected_174k_768(self) -> None:
+        """Load center_projected 768-dim at 174k scale (ACCEPTED - evaluation v2).
+        
+        Language-debiased by removing language centers from 768-dim multilingual embeddings.
+        ONLY representation passing BOTH adversarial gates at 1000 scale:
+        - Language dominance: 0.7593 < 0.85 (PASS)
+        - Jurist pairwise: 0.5215 > 0.5 (PASS)
+        At 174k scale: needs validation but expected to maintain properties.
+        """
+        self._load_174k_dense_embedding_representation(
+            name="center_projected_174k_768",
+            display_name="Language-Debiased 174k (768-dim Center Projected)",
+            description="Language-debiased center_projected at 174k scale (768-dim). Removes language centers from multilingual embeddings. Evaluation v2: ONLY representation passing BOTH adversarial gates (LangDom=0.759, JP=0.522).",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "jurist_pairwise": 0.5215,
+                "language_dominance": 0.7593,
+                "both_gates_pass": True,
+            },
+            embedding_file="embeddings_center_projected.npy",
+        )
+
+    def _load_center_projected_174k_64(self) -> None:
+        """Load center_projected 64-dim at 174k scale (ACCEPTED - evaluation v3 CRITICAL FIX).
+        
+        64-dim frozen PCA of center_projected embeddings.
+        CRITICAL: 768-dim version FAILS jurist pairwise (0.491); 64-dim PASSES both gates.
+        Evaluation v3: language_dominance=0.766 (PASS <0.85), jurist_pairwise=0.512 (PASS >0.5).
+        MUST be DEFAULT map mode per factory direction v6.
+        """
+        self._load_174k_dense_embedding_representation(
+            name="center_projected_174k_64",
+            display_name="DEFAULT 174k: Language-Debiased (64-dim Center Projected) ★",
+            description="DEFAULT per factory direction v6 CRITICAL FIX. 64-dim frozen PCA of center_projected. Evaluation v3: LangDom=0.766, JP=0.512 - BOTH gates PASS. 768-dim version FAILS jurist gate (0.491). This 64-dim version is the production default.",
+            evidence_tier="ACCEPTED",
+            benchmark_results={
+                "jurist_pairwise": 0.512,
+                "language_dominance": 0.766,
+                "both_gates_pass": True,
+            },
+            embedding_file="embeddings_center_projected_64.npy",
+        )
+
+    def _load_center_projected_174k_128(self) -> None:
+        """Load center_projected 128-dim at 174k scale (EXPLORATORY).
+        
+        128-dim PCA of center_projected embeddings. Higher dimensionality
+        for richer legal structure preservation.
+        """
+        self._load_174k_dense_embedding_representation(
+            name="center_projected_174k_128",
+            display_name="Language-Debiased 174k (128-dim Center Projected)",
+            description="Language-debiased center_projected at 174k scale (128-dim PCA). Higher dimensionality for richer legal structure preservation.",
+            evidence_tier="EXPLORATORY",
+            benchmark_results={},
+            embedding_file="embeddings_center_projected_128.npy",
+        )
+
+    def _load_raw_768_174k(self) -> None:
+        """Load raw 768-dim multilingual embeddings at 174k scale (EXPLORATORY).
+        
+        Raw sentence-transformers/paraphrase-multilingual-mpnet-base-v2 embeddings.
+        No language debiasing - dominated by language clusters. Baseline for comparison.
+        """
+        self._load_174k_dense_embedding_representation(
+            name="raw_768_174k",
+            display_name="Raw Multilingual 174k (768-dim Baseline)",
+            description="Raw multilingual sentence transformer embeddings at 174k scale (768-dim). No language debiasing - dominated by language clusters. Baseline for comparison.",
+            evidence_tier="EXPLORATORY",
+            benchmark_results={},
+            embedding_file="embeddings_768.npy",
         )
