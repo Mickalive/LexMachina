@@ -1102,9 +1102,23 @@ class NavigationAPI:
         if not self._initialized:
             return {"error": "Not initialized"}
 
-        # Compute corpus-map coverage
+        # Compute corpus-map coverage against the 174k production default
         corpus_ids = set(self.corpus.get_all_ids())
-        map_positions = self.map_loader.get_positions("concat_center_tfidf")
+        
+        # Use 174k production default for coverage stats (factory direction v27+)
+        default_rep = self._get_default_representation()
+        map_positions = self.map_loader.get_positions(default_rep)
+        if not map_positions:
+            # Fallback to any 174k representation
+            for rep in ["cited_outcome_hybrid_0.5_174k", "cited_decisions_tfidf_174k", "cited_outcome_hybrid_0.7_174k"]:
+                map_positions = self.map_loader.get_positions(rep)
+                if map_positions:
+                    break
+        
+        if not map_positions:
+            # Final fallback to baseline
+            map_positions = self.map_loader.get_positions("concat_center_tfidf")
+        
         map_ids = set(map_positions.keys())
         mapped_count = len(corpus_ids & map_ids)
 
@@ -1118,6 +1132,7 @@ class NavigationAPI:
                 "corpus_without_map_position": len(corpus_ids - map_ids),
                 "map_positions_without_corpus": len(map_ids - corpus_ids),
                 "total_map_positions": len(map_ids),
+                "reference_representation": default_rep,
             },
         }
 
