@@ -778,6 +778,11 @@ class MapLoader:
             coarse_res=0.5, sub_res=3.0, k=15
         )
 
+        # Graceful degradation: skip this representation if igraph/leidenalg unavailable
+        if hierarchical_labels is None or coarse_labels is None:
+            print("INFO: true_hierarchical_leiden skipped — igraph/leidenalg not available")
+            return
+
         # Compute metrics
         n_fine_clusters = len(set(hierarchical_labels[hierarchical_labels != -1]))
         coarse_purity = self._compute_branch_purity(coarse_labels, metadata)
