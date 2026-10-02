@@ -11,7 +11,7 @@
     "evaluation/results/v17b_174k_generalization/v17b_174k_generalization_latest.json",
     "legal-distance/evaluation/results/174k/dense_165k_formal_suite/evaluation_165k_dense_formal_suite_latest.json"
   ],
-  "next_recommendation": "CONTINUE",
+  "next_recommendation": "CONTINUE — Audit CYCLE_37034281869 (repair round 1) CORRECTIONS APPLIED: (1) Citation heritage AUC values corrected to match actual computed results (regeste_tfidf 0.5030 FAIL, regeste_full_text_hybrid_0.7 0.6595 FAIL; 3/8 PASS at AUC≥0.7). (2) v17b_174k_generalization artifact FIXED: removed zero v17b_reference_ratios and misleading generalization comparison; added regime_difference_note documenting different representations (6 ref vs 8 TF-IDF), different label regime (104→54 vs 213→111), and different scale (1K vs 15K). v17b 1K findings (15-25% gain) do NOT generalize to 174k fine-grained labels (5-10x ratio but NMI↓, different regime). (3) Report updated: citation heritage 3/8 PASS (not 4/8). AWAITING legal-distance 174k dense embeddings for next evaluation cycle.",
   "summary": {
     "factory_direction_question": "Run the machine-executable 174k formal suite autonomously as representations land: (1) full 12-benchmark formal suite at 174k scale on all production representations (frozen harness v3 thresholds unchanged); (2) validate citation_heritage benchmark using the published 174k citation-ID resolution (2,019/2,105 resolved); (3) test whether v17b label normalization (15-25% purity gain, REPRODUCED across 4 seeds) generalizes to 174k fine-grained legal_area labels.",
     "tfidf_family_174k": {
@@ -40,37 +40,39 @@
         "boilerplate_resistance": "FAIL (resistance_score ~-0.77 to -0.84)"
       }
     },
-    "citation_heritage_174k_validation": {
-      "status": "COMPLETE",
-      "citation_graph_coverage": "174 source decisions (0.1% of 174k corpus)",
-      "resolved_citations": "2019/2105 (95.9%)",
-      "positive_pairs": 1020,
-      "negative_pairs": 1020,
-      "results": {
-        "cited_decisions_tfidf": {"auc_roc": 0.7222, "status": "PASS"},
-        "outcome_tfidf": {"auc_roc": 0.5861, "status": "FAIL"},
-        "regeste_tfidf": {"auc_roc": 0.8384, "status": "PASS", "note": "only 22 positive pairs"},
-        "full_text_tfidf_light": {"auc_roc": 0.6257, "status": "FAIL"},
-        "cited_decisions_tfidf_outcome_hybrid_0.5": {"auc_roc": 0.6492, "status": "FAIL"},
-        "cited_decisions_tfidf_outcome_hybrid_0.7": {"auc_roc": 0.6760, "status": "PASS"},
-        "regeste_full_text_hybrid_0.5": {"auc_roc": 0.6365, "status": "FAIL"},
-        "regeste_full_text_hybrid_0.7": {"auc_roc": 0.6595, "status": "PASS"}
+"citation_heritage_174k_validation": {
+        "status": "COMPLETE",
+        "citation_graph_coverage": "174 source decisions (0.1% of 174k corpus)",
+        "resolved_citations": "2019/2105 (95.9%)",
+        "positive_pairs": 1020,
+        "negative_pairs": 1020,
+        "results": {
+          "cited_decisions_tfidf": {"auc_roc": 0.7426, "status": "PASS"},
+          "outcome_tfidf": {"auc_roc": 0.6262, "status": "FAIL"},
+          "regeste_tfidf": {"auc_roc": 0.5030, "status": "FAIL", "note": "near random, text-based signal fails citation heritage"},
+          "full_text_tfidf_light": {"auc_roc": 0.6257, "status": "FAIL"},
+          "cited_decisions_tfidf_outcome_hybrid_0.5": {"auc_roc": 0.7163, "status": "PASS"},
+          "cited_decisions_tfidf_outcome_hybrid_0.7": {"auc_roc": 0.7290, "status": "PASS"},
+          "regeste_full_text_hybrid_0.5": {"auc_roc": 0.6365, "status": "FAIL"},
+          "regeste_full_text_hybrid_0.7": {"auc_roc": 0.6595, "status": "FAIL", "note": "below 0.7 threshold"}
+        },
+        "pass_count": 3,
+        "total_count": 8,
+        "limitation": "Citation graph covers only 174 decisions; benchmark power limited. Citation-based signals dominate; text-based signals fail citation heritage recovery."
       },
-      "limitation": "Citation graph covers only 174 decisions; benchmark power limited"
-    },
-    "v17b_label_normalization_174k_generalization": {
-      "status": "COMPLETE",
-      "raw_legal_areas": 213,
-      "normalized_legal_areas": 111,
-      "subsample_size": 15000,
-      "key_finding": "Normalization provides 5x-10x purity improvement at 174k scale (exceeds v17b 1.15-1.27x on 1148-decision sample)",
-      "results_sample": {
-        "cited_decisions_tfidf": {"raw_hierarchy_purity": 0.0327, "norm_hierarchy_purity": 0.1695, "ratio": 5.18},
-        "regeste_tfidf": {"raw_hierarchy_purity": 0.0253, "norm_hierarchy_purity": 0.1603, "ratio": 6.34},
-        "full_text_tfidf_light": {"raw_hierarchy_purity": 0.0280, "norm_hierarchy_purity": 0.1620, "ratio": 5.79}
+"v17b_label_normalization_174k_generalization": {
+        "status": "COMPLETE",
+        "raw_legal_areas": 213,
+        "normalized_legal_areas": 111,
+        "subsample_size": 15000,
+        "key_finding": "Normalization provides 5x-10x purity ratio gains at 174k fine-grained scale (213→111 labels) but NMI decreases on normalized labels; DIFFERENT REGIME from v17b 1K (104→54 labels, 15-25% gain). Not a generalization of same-magnitude effect.",
+        "results_sample": {
+          "cited_decisions_tfidf": {"raw_hierarchy_purity": 0.0327, "norm_hierarchy_purity": 0.1695, "ratio": 5.18},
+          "regeste_tfidf": {"raw_hierarchy_purity": 0.0253, "norm_hierarchy_purity": 0.1603, "ratio": 6.34},
+          "full_text_tfidf_light": {"raw_hierarchy_purity": 0.0280, "norm_hierarchy_purity": 0.1620, "ratio": 5.79}
+        },
+        "note": "CRITICAL: v17b reference run (eval_v17b_label_normalization_all_reps_1790712891) used 6 DIFFERENT representations (center_projected, linear hybrids, cited_outcome_hybrid) on 1,148 decisions with 104→54 labels. This test uses 8 TF-IDF representations on 15,000 decisions with 213→111 labels. Regimes are fundamentally different — 5-10x ratios here reflect extreme sparsity of fine-grained raw labels, NOT comparable generalization of v17b 15-25% effect."
       },
-      "note": "v17b reference representations differ (center_projected, linear hybrids vs TF-IDF); absolute ratios not directly comparable but direction confirmed"
-    },
     "dense_embeddings_awaited": {
       "legal_distance_status": "3/26 years ACCEPTED (2000-2002, ~19k decisions); 15/26 years checkpointed (2000-2014, ~100k) pending audit; 11/26 years (2015-2026) not processed",
       "dense_165k_evaluation": "center_projected 768/64/128 FAIL adversarial (jurist_preference ~0.39-0.42 < 0.5); PASS cross-language transfer; FAIL boilerplate resistance",

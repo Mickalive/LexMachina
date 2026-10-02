@@ -15,7 +15,7 @@ The evaluation lane has completed the **machine-executable 174k formal suite** f
 | Benchmark | Status | Key Result |
 |-----------|--------|------------|
 | **TF-IDF Formal Suite (8 reps)** | ✅ COMPLETE | All 8 pass both adversarial gates (HNSW fix) |
-| **Citation Heritage (174k)** | ✅ COMPLETE | Citation-based pass AUC-ROC; ALL fail recall@10 |
+| **Citation Heritage (174k)** | ✅ COMPLETE | Citation-based pass AUC-ROC; **3/8 PASS** at AUC≥0.7 |
 | **v17b Label Normalization (174k)** | ✅ COMPLETE | NEGATIVE for TF-IDF (no uniform improvement) |
 | **v17b Generalization (15k subsample)** | ✅ COMPLETE | 5-10x purity gains but reference mismatch |
 | **v18 Coarse Hierarchy** | ✅ COMPLETE | NEGATIVE: branch-level max purity 0.65 < 0.7 |
@@ -67,8 +67,8 @@ All representations **FAIL** cross-language neighbor quality:
 
 | Mode | Adversarial | Citation Heritage AUC | Hierarchy/Cluster | Boilerplate | Cross-Lang |
 |------|-------------|----------------------|-------------------|-------------|------------|
-| **Citation-based** | ✅ PASS | ✅ PASS (0.65–0.84) | ❌ FAIL | ❌ FAIL | ❌ FAIL |
-| **Text-based** | ✅ PASS* | ❌ FAIL (0.59–0.66) | ❌ FAIL | ❌ FAIL | ❌ FAIL |
+| **Citation-based** | ✅ PASS | ✅ PASS (0.72–0.74) | ❌ FAIL | ❌ FAIL | ❌ FAIL |
+| **Text-based** | ✅ PASS* | ❌ FAIL (0.50–0.66) | ❌ FAIL | ❌ FAIL | ❌ FAIL |
 
 *Text-based now PASS adversarial with HNSW fix (previously FAIL with lang_dom ~0.999)
 
@@ -79,22 +79,22 @@ All representations **FAIL** cross-language neighbor quality:
 ## 2. Citation Heritage Validation at 174k (COMPLETE)
 
 **Resolved Citations**: 2,019 / 2,105 (95.9%)  
-**Frozen Pair Pool**: 137k citation pairs  
-**Method**: HNSW on full corpus (k=10)
+**Frozen Pair Pool**: 1,020 positive + 1,020 negative pairs (balanced from resolved graph)  
+**Method**: Exact k-NN on stratified subsample for adversarial; HNSW on full corpus for citation heritage (k=10)
 
-| Representation | AUC-ROC | Status | Recall@10 | Status |
-|----------------|---------|--------|-----------|--------|
-| `cited_decisions_tfidf` | 0.722 | ✅ PASS | 0.0055 | ❌ FAIL |
-| `cited_decisions_tfidf_outcome_hybrid_0.7` | 0.676 | ✅ PASS | 0.0060 | ❌ FAIL |
-| `regeste_tfidf` | 0.836 | ✅ PASS | 0.0014 | ❌ FAIL |
-| `regeste_full_text_hybrid_0.7` | 0.659 | ✅ PASS | 0.0011 | ❌ FAIL |
-| `cited_decisions_tfidf_outcome_hybrid_0.5` | 0.649 | ❌ FAIL | 0.0066 | ❌ FAIL |
-| `outcome_tfidf` | 0.586 | ❌ FAIL | 0.0000 | ❌ FAIL |
-| `full_text_tfidf_light` | 0.626 | ❌ FAIL | 0.0011 | ❌ FAIL |
-| `regeste_full_text_hybrid_0.5` | 0.636 | ❌ FAIL | 0.0011 | ❌ FAIL |
+| Representation | AUC-ROC | Status (AUC≥0.7) | Recall@10 | Status (Recall≥0.2) |
+|----------------|---------|------------------|-----------|---------------------|
+| `cited_decisions_tfidf` | 0.7426 | ✅ PASS | ~0.005 | ❌ FAIL |
+| `cited_decisions_tfidf_outcome_hybrid_0.5` | 0.7163 | ✅ PASS | ~0.007 | ❌ FAIL |
+| `cited_decisions_tfidf_outcome_hybrid_0.7` | 0.7290 | ✅ PASS | ~0.006 | ❌ FAIL |
+| `regeste_tfidf` | 0.5030 | ❌ FAIL | ~0.001 | ❌ FAIL |
+| `outcome_tfidf` | 0.6262 | ❌ FAIL | ~0.000 | ❌ FAIL |
+| `full_text_tfidf_light` | 0.6257 | ❌ FAIL | ~0.001 | ❌ FAIL |
+| `regeste_full_text_hybrid_0.5` | 0.6365 | ❌ FAIL | ~0.001 | ❌ FAIL |
+| `regeste_full_text_hybrid_0.7` | 0.6595 | ❌ FAIL | ~0.001 | ❌ FAIL |
 
-**Thresholds**: AUC-ROC ≥ 0.65, Recall@10 ≥ 0.2  
-**Result**: Citation-based signals recover citation neighborhoods (AUC) but **cannot retrieve specific cited decisions** in top-10 (recall near zero).
+**Thresholds**: AUC-ROC ≥ 0.7, Recall@10 ≥ 0.2  
+**Result**: **3/8 PASS** at AUC≥0.7 (all `cited_decisions_tfidf` family). Citation-based signals recover citation neighborhoods (AUC) but **cannot retrieve specific cited decisions** in top-10 (recall near zero). Text-based signals (`regeste_tfidf` AUC=0.503 ~random) **fail citation heritage recovery**.
 
 ---
 
@@ -118,19 +118,22 @@ All representations **FAIL** cross-language neighbor quality:
 **Overall**: `uniform_improvement_or_matching = false`  
 **4/8 representations** show >10% degradation on zoom_fine purity after normalization.
 
-### 3.2 Generalization Test (15k stratified subsample)
+### 3.2 Generalization Test (15k stratified subsample) — REGIME DIFFERENCE CONFIRMED
 
-| Representation | Hierarchy Ratio | Zoom Fine Ratio | Legal Area Ratio | Reference Match |
-|----------------|-----------------|-----------------|------------------|-----------------|
-| `cited_decisions_tfidf` | 5.18 | 6.47 | 6.47 | ❌ |
-| `outcome_tfidf` | 10.07 | 10.07 | 10.07 | ❌ |
-| `regeste_tfidf` | 6.64 | 7.84 | 7.84 | ❌ |
-| `full_text_tfidf_light` | 4.70 | 5.89 | 5.89 | ❌ |
-| `cited_decisions_tfidf_outcome_hybrid_0.5` | 5.20 | 6.68 | 6.68 | ❌ |
+| Representation | Hierarchy Ratio | Zoom Fine Ratio | Legal Area Ratio |
+|----------------|-----------------|-----------------|------------------|
+| `cited_decisions_tfidf` | 5.18 | 6.47 | 6.47 |
+| `outcome_tfidf` | 10.07 | 10.07 | 10.07 |
+| `regeste_tfidf` | 6.64 | 7.84 | 7.84 |
+| `full_text_tfidf_light` | 4.70 | 5.89 | 5.89 |
+| `cited_decisions_tfidf_outcome_hybrid_0.5` | 5.20 | 6.68 | 6.68 |
+| `cited_decisions_tfidf_outcome_hybrid_0.7` | 5.20 | 6.60 | 6.60 |
+| `regeste_full_text_hybrid_0.5` | 5.09 | 6.31 | 6.31 |
+| `regeste_full_text_hybrid_0.7` | 5.53 | 7.27 | 7.27 |
 
-**Observation**: Normalization provides **5–10x purity gains** on fine-grained labels at 174k (baseline purity ~0.01–0.03 → normalized ~0.16), but ratios **do not match** v17b reference run (which showed ~1.15–1.25 ratios). The reference run was on a different scale/subsample.
+**Critical Note**: The v17b reference run (`eval_v17b_label_normalization_all_reps_1790712891`) used **different representations** (center_projected_64dim, cited_outcome_hybrid_0.5, linear_citation_concat, linear_hybrid05_concat, linear_citation_w3070, linear_citation_ridge) on **1,148 decisions** with **104→54 labels** (15-25% purity gain, ratios 1.15–1.25). This test uses **8 TF-IDF representations** on **15,000 decisions** with **213→111 labels**. The regimes are **fundamentally different** — the 5–10x ratios here reflect the extreme sparsity of fine-grained raw labels (purity ~0.01–0.03) vs. normalized labels (purity ~0.16), NOT a comparable "generalization" of the v17b effect.
 
-**Conclusion**: v17b normalization helps at 174k for fine labels but the *magnitude* differs from small-scale; not a simple generalization.
+**Conclusion**: v17b normalization at 174k fine-grained scale shows large purity ratio gains (5x-10x) but NMI **decreases** on normalized labels. This is a DIFFERENT REGIME from v17b 1K scale. The v17b 15-25% gain does not "generalize" in the sense of same-magnitude effect; 174k fine-grained labels operate in a distinct regime requiring separate validation.
 
 ---
 
@@ -190,6 +193,7 @@ All representations **FAIL** cross-language neighbor quality:
 | Hierarchy Coherence | NMI_L0 ∈ [0.0002, 0.009] | ❌ FAIL |
 | Cluster Coherence | branch_purity ∈ [0.27, 0.33] | ❌ FAIL |
 | Citation Heritage Recall@10 | recall ∈ [0.000, 0.007] | ❌ FAIL |
+| Citation Heritage AUC-ROC | text-based signals: 0.50–0.66 (FAIL) | ❌ FAIL |
 
 **Universal Passes**: Branch k-NN, Adversarial Falsification (with HNSW fix), Multilingual Invariance (separation), Collapse Check, Temporal Stability (citation-based only)
 
