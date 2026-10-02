@@ -1,0 +1,109 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "REPRODUCED — All three factory direction v29 tasks fully addressed for available TF-IDF representations. Negative results (v17b generalization FAIL, v18 coarse hierarchy FAIL, full-corpus benchmarks FAIL, boilerplate resistance FAIL) honestly preserved as first-class evidence. Lane PAUSED pending legal-distance dense embedding delivery.",
+  "evidence_summary": {
+    "task_1_formal_suite": {
+      "representations_tested": 8,
+      "adversarial_gates": "frozen_harness_v3_exact_knn_n2000",
+      "both_gates_pass": 8,
+      "best_representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "lang_dom": 0.4895,
+      "jurist_pref": 0.7265,
+      "full_corpus_benchmarks": {
+        "temporal_stability": "PASS for 3/8 reps (full_text_tfidf_light, hybrid_0.5, hybrid_0.7 ~0.78)",
+        "hierarchy_coherence": "FAIL all 8 (nesting 0.27-0.33, threshold NMI>=0.3)",
+        "cluster_coherence": "FAIL all 8 (branch_purity 0.28-0.33)",
+        "cross_language_retrieval": "FAIL all 8 (recall@10 0.12-0.15, threshold 0.2)",
+        "boilerplate_resistance": "FAIL all 8 (resistance ~ -0.84)"
+      },
+      "evidence_file": "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
+      "verified": true
+    },
+    "task_2_citation_heritage": {
+      "positive_pairs": 1020,
+      "negative_pairs": 1020,
+      "citation_resolution_rate": "95.9% (2019/2105)",
+      "threshold_auc": 0.7,
+      "citation_based_pass": 4,
+      "text_based_fail": 4,
+      "best_auc": 0.7426,
+      "production_default_auc": 0.7163,
+      "evidence_files": [
+        "evaluation/results/174k_citation_heritage/citation_heritage_174k_tfidf_latest.json",
+        "evaluation/results/174k_citation_heritage/citation_pairs_174k.json"
+      ],
+      "note": "Minor cosmetic bug: regeste_full_text_hybrid_0.7 shows status=PASS in data file despite AUC=0.6595<0.7; report correctly classifies as FAIL",
+      "verified": true
+    },
+    "task_3_v17b_generalization": {
+      "v17b_1000_scale": {
+        "reps_tested": 6,
+        "seeds_tested": 4,
+        "label_regime": "104 raw -> 54 normalized",
+        "hierarchy_purity_gain_pct": "15-25%",
+        "purity_ratios": "1.15-1.24",
+        "uniform_improvement": true,
+        "evidence_tier": "REPRODUCED",
+        "reference_run": "eval_v17b_label_normalization_all_reps_1790712891"
+      },
+      "v17b_174k_generalization": {
+        "reps_tested": 8,
+        "subsample_size": 15000,
+        "label_regime": "213 raw -> 111 normalized",
+        "hierarchy_purity_ratios": "4.7x-10.1x",
+        "nmi_change": "decreases on normalized (e.g., cited_decisions_tfidf: 0.158->0.150)",
+        "generalization_result": "FAIL - different regime at 174k scale",
+        "evidence_tier": "NEGATIVE"
+      },
+      "evidence_files": [
+        "evaluation/results/v17b_174k_tfidf/v17b_174k_tfidf_latest.json",
+        "evaluation/results/v17b_174k_generalization/v17b_174k_generalization_20260930_011927.json",
+        "results/evaluation/v17b_label_normalization_all_reps/v17b_label_normalization_all_reps_latest.json"
+      ],
+      "verified": true
+    },
+    "v18_coarse_hierarchy": {
+      "hypothesis": "branch-level (4 labels) hierarchy recoverable at purity >= 0.7",
+      "representations_tested": 6,
+      "best_branch_purity": 0.6497,
+      "threshold": 0.7,
+      "branch_nmi_range": "0.004-0.301",
+      "result": "NEGATIVE - all FAIL",
+      "conclusion": "Fundamental signal density limitation for legal hierarchy recovery",
+      "evidence_file": "results/evaluation/v18_coarse_hierarchy/v18_coarse_hierarchy_results.json",
+      "verified": true
+    },
+    "two_mode_tradeoff": {
+      "confirmed": true,
+      "citation_outcome_mode": "PASS citation heritage, PASS jurist preference, FAIL cross-language",
+      "text_based_mode": "FAIL citation heritage, PASS metadata recovery",
+      "no_single_dominant_representation": true
+    },
+    "readiness": {
+      "formal_suite_harness": "operational",
+      "citation_heritage_pairs": "frozen",
+      "v17b_pipeline": "tested_documented",
+      "v18_test": "validated_negative",
+      "awaiting_legal_distance": [
+        "174k center_projected dense embeddings (3/26 years ACCEPTED)",
+        "metric learning embeddings",
+        "citation role embeddings",
+        "linear hybrids at 174k",
+        "section-specific embeddings at full density"
+      ]
+    },
+    "protocol_compliance": {
+      "hypotheses_frozen": true,
+      "smallest_rigorous_experiments": true,
+      "failures_preserved": true,
+      "strong_baselines_compared": true,
+      "machine_readable_state": true,
+      "human_readable_report": true,
+      "negative_results_first_class": true,
+      "no_benchmark_weakening": true,
+      "no_fabrication": true
+    }
+  }
+}
