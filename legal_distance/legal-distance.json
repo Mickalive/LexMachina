@@ -6,13 +6,12 @@
   "continue_recommended": false,
   "accepted_run_id": "legal_distance_v29_174k_evaluation_20261001",
   "evidence_refs": [
-    "/tmp/lex_accepted/evaluation/evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
+    "/tmp/lex_accepted/evaluation/results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
     "legal_distance/results/174k_dense_embeddings/evaluation_19year_center_projected/center_projected_128dim_19year_eval_20261001_082619.json",
     "legal_distance/results/174k_dense_embeddings/linear_hybrid05_concat_15year/linear_hybrid05_concat_15year_eval_latest.json",
     "legal_distance/results/174k_dense_embeddings/linear_combinations_19year/linear_combinations_19year_eval_latest.json",
     "legal_distance/results/174k_dense_embeddings/section_crosslingual_eval/section_crosslingual_eval_latest.json",
     "legal_distance/results/v8/holdout_zero_shot_validation_fixed/holdout_zero_shot_validation_fixed.json",
-    "/tmp/lex_accepted/evaluation/evaluation/results/174k_citation_heritage/citation_heritage_174k_tfidf_latest.json",
     "/tmp/lex_accepted/evaluation/results/evaluation/v17b_label_normalization_all_reps/v17b_label_normalization_all_reps_latest.json",
     "/tmp/lex_accepted/evaluation/results/evaluation/v18_coarse_hierarchy/v18_coarse_hierarchy_results.json",
     "legal_distance/results/174k_dense_embeddings/checkpoints/progress.json",
@@ -31,5 +30,27 @@
     "boilerplate_resistance_negative": "All representations resistance_score ≈ -0.74 to -0.92. Proxy measures language dominance/cross-lingual alignment failure, not procedural boilerplate. Consistent across TF-IDF and dense.",
     "v17b_label_normalization_reproduced_regime_dependent": "1000-scale: 15-25% purity gain REPRODUCED (4 seeds). 174k fine-grained (213→111 labels): purity ratios 4-10x but NMI decreases on normalized. Different regime at scale — requires separate validation.",
     "v18_coarse_hierarchy_negative": "Even at 4-label branch level: best purity 0.65 (linear_citation_concat) < 0.7 threshold. Fundamental hierarchy limitation confirmed for TF-IDF/citation representations."
-  }
+  },
+  "orchestration_failure_diagnosis": {
+    "root_causes": [
+      "bger_YYYY.jsonl files missing from canonical corpus for years 2000-2019; only 2020-2024 in raw acquisition",
+      "finalize_174k_embeddings.py asserts full 173k metadata match; checkpoints only cover 129k (design error)",
+      "bger_ (unpublished) vs bge_ (published) ID systems with no cross-mapping",
+      "Section extraction (sachverhalt/erwaegungen/dispositiv) not run at 174k scale"
+    ],
+    "what_went_well": [
+      "Year-split checkpointed computation (2000-2019) completed within CPU constraints",
+      "All TF-IDF 174k formal suite evaluations completed and reproduced",
+      "v8 holdout validation cleanly executed with exact k-NN (HNSW artifact fixed)",
+      "Section cross-lingual evaluation completed at sample scale with clear result",
+      "Scale dependency rigorously quantified at 15yr/19yr"
+    ],
+    "unfixable_in_this_cycle": [
+      "Data acquisition is upstream (corpus lane PAUSED)",
+      "GPU unavailability prevents BGE/multilingual-e5 finetuning at scale",
+      "No bge_<->bger_ mapping — requires corpus-lane coordination"
+    ]
+  },
+  "audit_ready": true,
+  "audit_timestamp": "2026-10-02T00:00:00Z"
 }
