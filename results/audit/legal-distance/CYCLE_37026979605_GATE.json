@@ -1,0 +1,11 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Clarify TF-IDF '4/8 PASS' claim: 6/6 evaluated representations pass both adversarial gates at 174k; '8' appears to reference planned count, not evaluated",
+    "Qualify citation heritage AUC claims: 174k citation heritage not yet run (RUN_SEPARATELY); reported AUC ranges reference 1K benchmark or heritage proxy evaluations",
+    "Resolve v17b/v18 evidence file paths: referenced at /tmp/lex_accepted/... but not in current checkout; verify or update references"
+  ],
+  "claim_ceiling": "TF-IDF citation-based representations (cited_decisions_tfidf_outcome_hybrid_0.5) validated at 174k scale (173,963 decisions) with LangDom=0.477, JP=0.735. Dense semantic embeddings (center_projected) FAIL jurist gate at ALL scales tested (3yr JP=0.39-0.42, 15yr JP=0.288, 19yr JP=0.3685, 20yr JP=0.0475). Linear hybrids PASS at 19yr (JP=0.54) but remain below TF-IDF baseline. Section cross-lingual superior on sachverhalt (gap 0.187) at 1K sample. Two-mode tradeoff reproduced: NO single representation dominates LangDom, JP, and CiteIndep simultaneously.",
+  "evidence_summary": "Verified 16 evidence artifacts across 5 factory deliverables: (1) 174k dense assembly BLOCKED at 129,680/173,963 (74.5%) — missing 2019-2026 parquet, no bge_/bger_ mapping; (2) Full-corpus dense adversarial completed at 20-year scale — center_projected FAILS (JP=0.0475), linear_hybrid05_concat PASS at 19yr (JP=0.5395) but below TF-IDF (JP=0.7235); (3) Section cross-lingual COMPLETED at 1K sample — sachverhalt superior (gap 0.187 vs 0.452); (4) Linear hybrid scale test — 15yr FAIL (JP=0.473), 19yr PASS (JP=0.5395); (5) Prod-vs-CV tradeoff VALIDATED via v8 holdout — leakage minimal (LangDom +0.005, JP +0.015-0.020). TF-IDF 174k formal suite: 6/6 representations PASS both adversarial gates. All evaluations use EXACT k-NN (sklearn_exact) on fixed stratified subsamples. Boilerplate resistance negative across all reps (scores -0.74 to -0.93), proxy measures language dominance failure. Blockers correctly identified as upstream data dependencies unfixable in this cycle."
+}
