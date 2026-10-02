@@ -1,0 +1,98 @@
+{
+  "verification_timestamp": "2026-10-02T12:00:00Z",
+  "lane": "evaluation",
+  "factory_direction_version": 29,
+  "verification_type": "final_cycle_completion",
+  "status": "ALL_ITEMS_COMPLETE_FOR_AVAILABLE_REPRESENTATIONS",
+  "evidence_tier": "REPRODUCED",
+  "factory_direction_requirements": {
+    "task_1_full_formal_suite_174k_tfidf": {
+      "requirement": "Full 12-benchmark formal suite at 174k scale on all production representations (frozen harness v3 thresholds unchanged)",
+      "status": "COMPLETE",
+      "representations_evaluated": 8,
+      "all_adversarial_gates_pass": true,
+      "production_default": "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "production_default_lang_dom": 0.4895,
+      "production_default_jurist_pref": 0.7265,
+      "evidence_tier": "REPRODUCED",
+      "result_ref": "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json"
+    },
+    "task_2_citation_heritage_174k": {
+      "requirement": "Validate citation_heritage benchmark using the published 174k citation-ID resolution (2,019/2,105 resolved)",
+      "status": "COMPLETE",
+      "citation_pairs_tested": 1020,
+      "positive_pairs": 1020,
+      "negative_pairs": 1020,
+      "representations_passed_auc_ge_07": 3,
+      "representations_passed_auc_ge_065": 4,
+      "best_auc": 0.7426,
+      "production_default_auc": 0.7163,
+      "citation_based_dominance_confirmed": true,
+      "evidence_tier": "REPRODUCED",
+      "result_ref": "evaluation/results/174k_citation_heritage/citation_heritage_174k_tfidf_latest.json"
+    },
+    "task_3_v17b_label_normalization_generalization": {
+      "requirement": "Test whether v17b label normalization (15-25% purity gain, REPRODUCED across 4 seeds) generalizes to 174k fine-grained legal_area labels",
+      "status": "COMPLETE - NEGATIVE",
+      "v17b_small_scale_result": "REPRODUCED (15-25% hierarchy purity gain, 4 seeds)",
+      "v17b_174k_result": "NEGATIVE - different regime at scale (213→111 labels vs 104→54 at 1000; purity ratios 4-10x but NMI decreases on normalized labels)",
+      "evidence_tier": "REPRODUCED",
+      "result_refs": [
+        "evaluation/results/v17b_174k_tfidf/v17b_174k_tfidf_latest.json",
+        "evaluation/results/v17b_174k_generalization/v17b_174k_generalization_20260930_011927.json"
+      ]
+    }
+  },
+  "additional_negative_results_confirmed": {
+    "v18_coarse_hierarchy": {
+      "status": "NEGATIVE",
+      "best_branch_purity": 0.6497,
+      "threshold": 0.7,
+      "evidence_tier": "REPRODUCED",
+      "result_ref": "evaluation/results/v18_coarse_hierarchy/v18_coarse_hierarchy_results.json"
+    },
+    "universal_failures_all_representations": {
+      "cross_language_retrieval_recall_at_10": {"threshold": 0.2, "best": 0.14, "status": "UNIVERSAL_FAIL"},
+      "cluster_coherence_mean_branch_purity": {"threshold": 0.7, "best": 0.36, "status": "UNIVERSAL_FAIL"},
+      "hierarchy_coherence_jurivoc_nmi_l0": {"threshold": 0.3, "best": 0.03, "status": "UNIVERSAL_FAIL"},
+      "boilerplate_resistance": {"threshold": ">0", "best": -0.79, "status": "UNIVERSAL_FAIL"},
+      "legal_area_clustering_purity": {"threshold": 0.5, "best": 0.08, "status": "UNIVERSAL_FAIL"}
+    },
+    "dense_embeddings_preview": {
+      "165k_checkpointed_center_projected": "ALL FAIL adversarial gates (LangDom ~0.83-0.85, JP ~0.39-0.42)",
+      "3yr_2000_2002_center_projected": "ALL FAIL adversarial gates (LangDom ~0.98-1.0, JP ~0.005-0.045)",
+      "evidence_tier": "EXPLORATORY",
+      "note": "Metric learning required; raw center_projected insufficient"
+    }
+  },
+  "fundamental_findings": {
+    "two_mode_tradeoff": "CONFIRMED at 174k: Citation-based signals PASS citation heritage & adversarial; Text-based signals PASS branch metadata & temporal stability but FAIL citation heritage & multilingual",
+    "production_default_validated": "cited_decisions_tfidf_outcome_hybrid_0.5 operational at 173,963 decisions",
+    "hierarchy_not_recoverable": "No representation recovers legal hierarchy at branch level (4 labels) or fine-grained level",
+    "jurist_study_needed": "Simulated benchmarks show systematic gaps; human validation framework ready"
+  },
+  "blockers_for_next_cycle": {
+    "174k_dense_embeddings": "legal-distance: 3/26 years ACCEPTED (~19k); 15/26 years checkpointed (2000-2014, ~100k) pending audit; 11/26 years not processed",
+    "citation_role_embeddings": "legal-distance: evaluated at 1k scale; 174k awaited",
+    "linear_hybrids": "legal-distance: v13/v14 REPRODUCED at 1k; 174k awaited",
+    "citation_graph_coverage": "0.1% of corpus limits citation_heritage statistical power",
+    "jurist_human_study": "Framework ready; 5-10 Swiss jurists required; external dependency"
+  },
+  "next_recommendation": "PIVOT_WITHIN_MISSION - No further same-question cycle justified. Next factory direction should target 174k formal suite evaluation on dense embeddings, citation roles, and linear hybrids when they land from legal-distance at ACCEPTED tier.",
+  "continue_recommended": false,
+  "state_file_consistent": true,
+  "report_refs": [
+    "reports/evaluation/EVALUATION_LANE_V29_FINAL_CONSOLIDATED_REPORT.md",
+    "reports/evaluation/EVALUATION_174K_FORMAL_SUITE_COMPLETION_v29.md",
+    "state/evaluation.json"
+  ],
+  "provenance_compliance": {
+    "hypothesis_frozen_before_observation": true,
+    "negative_results_preserved": true,
+    "strong_baselines_used": true,
+    "machine_readable_state_written": true,
+    "human_readable_report_written": true,
+    "provenance_preserved": true,
+    "no_benchmark_weakening": true
+  }
+}
