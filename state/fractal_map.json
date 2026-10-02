@@ -1,0 +1,58 @@
+{
+  "lane": "fractal-map",
+  "direction_version": 29,
+  "evidence_tier": "EXPLORATORY",
+  "cycle_status": "RUN",
+  "continue_recommended": false,
+  "accepted_run_id": null,
+  "evidence_refs": [
+    "results/fractal_map/hierarchical_v1_adaptive/hierarchical_v1_adaptive_results.json",
+    "results/fractal_map/hierarchical_v1_174k_tfidf/hierarchical_v1_174k_tfidf_results.json (partial)",
+    "results/fractal_map/hierarchical_v1_regeste/hierarchical_v1_regeste_results.json (partial)",
+    "results/fractal_map/multi_level_protocol_174k_tfidf/regeste_tfidf/multi_level_174k_regeste_tfidf_results.json",
+    "results/fractal_map/multi_level_protocol_174k_tfidf/regeste_full_text_hybrid_0.5/multi_level_174k_regeste_full_text_hybrid_0.5_results.json",
+    "results/fractal_map/scale_extrapolation/scale_extrapolation_model_v3.json",
+    "results/fractal_map/v28_cycle_001/cycle_summary.json"
+  ],
+  "next_recommendation": "BLOCKED on legal-distance 174k dense embeddings. TF-IDF hierarchical_v1 protocol (fine_branch_purity > 0.5) is FUNDAMENTALLY UNREACHABLE at 174k scale regardless of parameter tuning. Evidence: adaptive sub-resolution solves over-fragmentation and achieves 90% zoom coherence, but fine_branch_purity caps at ~0.45 for best TF-IDF modes. regeste_tfidf achieves fine_branch_purity > 0.5 but with 81% singletons and zoom_coherence FAIL. Citation-role dense embeddings at 1200 scale also FAIL hierarchical_v1 (nesting 0.5-0.7, fine_branch_purity ~0.50-0.52). Wait for dense embeddings from legal-distance.",
+  "hypothesis_tested": "hierarchical_v1 protocol (fine_branch_purity > 0.5, nesting>=0.99, improvement_rate>0.5, singletons<1%) can be achieved on TF-IDF embeddings at 174k scale with adaptive parameter tuning",
+  "frozen_sample": "20k stratified sample of 173,963 BGer decisions (2000-2026); full 174k metadata available",
+  "frozen_metric": "fine_branch_purity (legal_structure_branch threshold > 0.5), strict_nesting, zoom_coherence (improvement_rate), fragmentation (singleton_fraction)",
+  "success_rule": "hierarchical_v1_pass = nesting>=0.99 AND fine_branch_purity>0.5 AND improvement_rate>0.5 AND singleton_fraction<0.01",
+  "key_findings": {
+    "over_fragmentation_solved": "Adaptive sub-resolution + min_cluster_size + max_subclusters reduces singletons from 97% to 6-13% across all TF-IDF modes",
+    "nesting_perfect": "All constrained hierarchical Leiden configs achieve nesting=1.0 by construction",
+    "zoom_coherence_excellent": "90%+ improvement_rate on zoom_coherence for all adaptive configs",
+    "fine_branch_purity_ceiling": "Best TF-IDF mode (cited_decisions_tfidf_outcome_hybrid_0.5) caps at fine_branch_purity ~0.45 with adaptive configs; cannot reach 0.5 threshold",
+    "regeste_tfidf_partial": "regeste_tfidf achieves fine_branch_purity=0.90 but with 81% singletons and zoom_coherence FAIL (rate=43%) due to one massive 13,744-doc coarse cluster",
+    "scale_dependency_confirmed": "Flat Leiden fails below 62k; hierarchical works at all scales but fine_branch_purity is the bottleneck for TF-IDF",
+    "citation_roles_also_fail": "Citation-role dense embeddings at 1200 scale FAIL hierarchical_v1 (nesting 0.5-0.7, fine_branch_purity ~0.50-0.52 per v29 cycle_summary)",
+    "only_83k_pass": "Only regeste_tfidf at 83k sample achieved hierarchical_v1 PASS (fine_branch_purity=0.566) per factory direction v29; does not extrapolate to 174k"
+  },
+  "negative_results": [
+    "No TF-IDF mode achieves hierarchical_v1 PASS at 174k scale",
+    "Adaptive sub-resolution cannot overcome TF-IDF representation ceiling for branch discrimination",
+    "regeste_tfidf fails at 174k due to coarse clustering instability (50 clusters, one 13k-document cluster)",
+    "Fixed fine_res configs either over-fragment (fine_res>=2.0) or under-discriminate (fine_res<=1.5)",
+    "min_cluster_size parameter has minimal effect on fine_branch_purity ceiling"
+  ],
+  "blocked_on": "legal-distance 174k dense embeddings (3/26 years ACCEPTED, 15/26 checkpointed pending audit)",
+  "product_readiness": "NO - lane blocked on dense embeddings per factory direction v29. TF-IDF production modes operational but hierarchical_v1 legal structure claim NOT achievable with TF-IDF at 174k.",
+  "recommendations": {
+    "immediate": [
+      "Accept TF-IDF hierarchical_v1 failure as negative result; do not claim legal_structure_branch for TF-IDF modes at 174k",
+      "Document TF-IDF ceiling: fine_branch_purity ~0.45 max with adaptive configs, ~0.98 with over-fragmented configs (invalid)",
+      "Focus fractal-map lane on preparing for dense embedding arrival"
+    ],
+    "architectural": [
+      "Deprecate TF-IDF hierarchical_v1 protocol as evaluation criterion for 174k scale",
+      "Use constrained hierarchical Leiden (adaptive, min_cluster_size=20, max_subclusters=20) as TF-IDF production default for zoom navigation",
+      "Evidence-backed zoom path remains citation-role/dense-embedding (1000-scale validation)"
+    ],
+    "evaluation": [
+      "Freeze constrained hierarchical Leiden adaptive config as TF-IDF production standard",
+      "Track fine_branch_purity, zoom_coherence, fragmentation as core TF-IDF metrics",
+      "Dense embedding evaluation must use same hierarchical_v1 protocol for comparability"
+    ]
+  }
+}
