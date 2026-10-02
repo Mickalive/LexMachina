@@ -1,13 +1,14 @@
 # Fractal Map Lane — Final Audit-Ready Snapshot (Factory Direction v29)
 
-**Run ID:** `fractal_map_cycle_20261002_multi_level_tfidf_174k_validated`  
+**Run ID:** `FRACTAL_MAP_V29_AUDIT_VERIFICATION_20261002_36988883391`  
 **Date:** 2026-10-02  
 **Factory Direction Version:** 29  
 **Lane:** fractal-map  
-**Evidence Tier:** REPRODUCED  
-**Cycle Status:** COMPLETED  
+**Evidence Tier:** EXPLORATORY  
+**Cycle Status:** BLOCKED_ON_DEPENDENCIES  
 **Continue Recommended:** false  
-**Accepted Run ID:** `fractal_map_cycle_20261002_multi_level_tfidf_174k_validated`
+**Accepted Run ID:** `FRACTAL_MAP_V29_AUDIT_VERIFICATION_20261002_36988883391`  
+**GitHub Run:** 36988883391
 
 ---
 
