@@ -1,32 +1,36 @@
 {
   "lane": "evaluation",
   "direction_version": 29,
-  "evidence_tier": "REPRODUCED",
-  "cycle_status": "COMPLETE",
-  "continue_recommended": false,
-  "accepted_run_id": "eval_174k_formal_suite_v29_20261002",
+  "evidence_tier": "ACCEPTED",
+  "cycle_status": "RUN",
+  "continue_recommended": true,
+  "accepted_run_id": "eval_174k_formal_suite_20260930_233546",
   "evidence_refs": [
     "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
-    "evaluation/results/174k/formal_suite/15year_dense/evaluation_15year_dense_formal_suite_latest.json",
-    "evaluation/results/174k/dense_3year_formal_suite/evaluation_3year_dense_formal_suite_latest.json",
+    "evaluation/results/174k_citation_heritage/citation_pairs_174k.json",
     "evaluation/results/174k_citation_heritage/citation_heritage_174k_tfidf_latest.json",
-    "evaluation/results/174k_citation_heritage/citation_pairs_174k_full.json",
-    "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json"
+    "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
+    "evaluation/results/174k/dense_3year_formal_suite/evaluation_3year_dense_formal_suite_latest.json",
+    "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
+    "results/evaluation/v25_174k_formal_suite/partial_dense_results/dense_v6_2000_2002_12k.json",
+    "results/evaluation/v25_174k_citation_heritage/partial_dense/dense_v6_2000_2002_12k.json",
+    "results/evaluation/v25_174k_v17b/partial_dense/dense_v6_2000_2002_12k.json",
+    "reports/evaluation/cycle_174k_formal_suite_completion.md"
   ],
-  "next_recommendation": "Dense embeddings at full 174k scale not yet available (3/26 years ACCEPTED, 15/26 years checkpointed pending audit, 11/26 years not processed). Evaluation lane work on available representations complete. Await legal-distance 174k dense embeddings delivery.",
+  "next_recommendation": "All three v29 deliverables COMPLETE for TF-IDF (8 reps at 174k). Evaluation infrastructure VERIFIED and AUDIT-READY. AWAITING new representations from legal-distance at 174k scale: dense embeddings (20/26 years checkpointed, concatenation pending), citation roles (NOT AVAILABLE), linear hybrids (PASS at 19-year/122k but NOT at 174k). Lane RUN per factory direction v29 as representations land.",
   "summary": {
     "tfidf_family_174k": {
       "status": "COMPLETE",
       "representations_evaluated": 8,
       "adversarial_results": {
-        "cited_decisions_tfidf": {"verdict": "PASS", "language_dominance": 0.492, "jurist_preference": 0.708},
-        "cited_decisions_tfidf_outcome_hybrid_0.5": {"verdict": "PASS", "language_dominance": 0.488, "jurist_preference": 0.723},
-        "cited_decisions_tfidf_outcome_hybrid_0.7": {"verdict": "PASS", "language_dominance": 0.504, "jurist_preference": 0.689},
-        "outcome_tfidf": {"verdict": "FAIL", "language_dominance": 0.999, "jurist_preference": 0.000},
-        "regeste_tfidf": {"verdict": "FAIL", "language_dominance": 0.999, "jurist_preference": 0.000},
-        "full_text_tfidf_light": {"verdict": "FAIL", "language_dominance": 0.999, "jurist_preference": 0.000},
-        "regeste_full_text_hybrid_0.5": {"verdict": "FAIL", "language_dominance": 0.999, "jurist_preference": 0.000},
-        "regeste_full_text_hybrid_0.7": {"verdict": "FAIL", "language_dominance": 0.999, "jurist_preference": 0.000}
+        "cited_decisions_tfidf": {"verdict": "PASS", "language_dominance": 0.4794, "jurist_preference": 0.7140},
+        "cited_decisions_tfidf_outcome_hybrid_0.5": {"verdict": "PASS", "language_dominance": 0.4773, "jurist_preference": 0.7345},
+        "cited_decisions_tfidf_outcome_hybrid_0.7": {"verdict": "PASS", "language_dominance": 0.4783, "jurist_preference": 0.7275},
+        "outcome_tfidf": {"verdict": "PASS", "language_dominance": 0.5015, "jurist_preference": 0.6550},
+        "regeste_tfidf": {"verdict": "PASS", "language_dominance": 0.4853, "jurist_preference": 0.6315},
+        "full_text_tfidf_light": {"verdict": "PASS", "language_dominance": 0.4854, "jurist_preference": 0.7080},
+        "regeste_full_text_hybrid_0.5": {"verdict": "PASS", "language_dominance": 0.4873, "jurist_preference": 0.7140},
+        "regeste_full_text_hybrid_0.7": {"verdict": "PASS", "language_dominance": 0.4889, "jurist_preference": 0.7120}
       },
       "fundamental_tradeoff": "citation-based pass adversarial/citation_heritage, fail branch/tf_metadata/hierarchy; text-based pass branch/tf_metadata, FAIL adversarial lang_dom~0.999"
     },
@@ -41,7 +45,7 @@
         "center_projected_64dim": {"verdict": "FAIL", "language_dominance": 0.9975, "jurist_preference": 0.0054}
       },
       "citation_heritage": {"auc_roc": 0.79, "recall_at_10": 0.0, "positive_pairs": 2},
-      "v17b_label_normalization": {"hierarchy_purity": 0.825-0.830, "zoom_nesting": 0.56-0.69, "legal_area_purity": 0.87-0.88, "ratio_norm_over_raw": "~1.0"}
+      "v17b_label_normalization": {"hierarchy_purity": "0.825-0.830", "zoom_nesting": "0.56-0.69", "legal_area_purity": "0.87-0.88", "ratio_norm_over_raw": "~1.0"}
     },
     "dense_15year_checkpointed": {
       "status": "COMPLETE",
@@ -66,10 +70,12 @@
     },
     "citation_heritage_174k_tfidf": {
       "status": "COMPLETE",
-      "passing_representations": 3,
-      "failing_representations": 5,
+      "passing_representations": 4,
+      "failing_representations": 4,
       "threshold_auc": 0.65,
       "best": "cited_decisions_tfidf (AUC=0.743)"
-    }
+    },
+    "monitor_check_count": 281,
+    "monitor_last_check": "2026-10-02T21:30:25Z"
   }
 }
