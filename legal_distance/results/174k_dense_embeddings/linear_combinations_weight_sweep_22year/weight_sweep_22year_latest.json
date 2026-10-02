@@ -1,0 +1,4486 @@
+{
+  "baselines": {
+    "center_projected_64": {
+      "name": "center_projected_64_22year",
+      "embedding_shape": [
+        144443,
+        64
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.831875,
+          "std_language_dominance": 0.21615442252010483,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "FAIL",
+          "total_decisions": 2000,
+          "legal_relevant_only": 560,
+          "language_artifact_only": 589,
+          "both_available": 293,
+          "neither_available": 558,
+          "legal_neighbor_rate": 0.4265,
+          "language_neighbor_rate": 0.441,
+          "jurist_would_succeed_rate": 0.4265,
+          "jurist_forced_wrong_rate": 0.2945,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": false,
+        "language_dominance_score": 0.831875,
+        "jurist_preference_rate": 0.4265,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.11680000000000001,
+          "same_lang_same_branch_mean": 0.7409,
+          "cross_branch_mean": 0.1423,
+          "invariance_gap": 0.6241,
+          "separation": -0.025499999999999995,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.40922798443948577,
+              "ari": 0.3811715898200124,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.32275909520341584,
+              "ari": 0.3145445141055411,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.453897315800777,
+              "ari": 0.36078472852236754,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.3226859540521454,
+              "ari": 0.28837233541020396,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.27483610752539783,
+              "ari": 0.23511550414727958,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.436278074900314,
+              "ari": 0.34043051707216543,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.2212647837130233,
+              "ari": 0.18501745872545686,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.08451062045970027,
+              "ari": 0.06185455248269736,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.27022052967854476,
+              "ari": 0.20114448470942498,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.30689930735489596,
+          "in_domain_mean_nmi": 0.3180948738811428,
+          "transfer_gap": 0.01119556652624687,
+          "status": "PASS"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.3886333434775666,
+              "branch_ari": 0.28288192011678226,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.3510972253265668,
+              "branch_ari": 0.29448699130017136,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.3561353874019057,
+              "branch_ari": 0.2019461310805168,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.3652886520686797,
+          "std_nmi": 0.016634837580741305,
+          "min_nmi": 0.3510972253265668,
+          "max_nmi": 0.3886333434775666,
+          "status": "PASS"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "PASS",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.7257,
+          "branch_nmi": 0.3438,
+          "mean_language_purity": 0.7269,
+          "cluster_purities": [
+            0.4545,
+            0.3287,
+            1.0,
+            0.9861,
+            0.972,
+            0.6043,
+            0.3943,
+            0.9545,
+            0.5938,
+            0.8675,
+            0.9048,
+            0.7227,
+            0.5303,
+            0.971,
+            0.374,
+            0.9531
+          ],
+          "cluster_sizes": [
+            176,
+            143,
+            72,
+            72,
+            143,
+            139,
+            175,
+            110,
+            32,
+            151,
+            147,
+            119,
+            132,
+            138,
+            123,
+            128
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.1168,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "FAIL",
+      "both_adversarial_pass": false
+    },
+    "cited_decisions_tfidf": {
+      "name": "cited_decisions_tfidf_22year",
+      "embedding_shape": [
+        144443,
+        128
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.48257500000000003,
+          "std_language_dominance": 0.19099769468504063,
+          "max_language_dominance": 0.95,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 2000,
+          "legal_relevant_only": 143,
+          "language_artifact_only": 419,
+          "both_available": 1425,
+          "neither_available": 13,
+          "legal_neighbor_rate": 0.784,
+          "language_neighbor_rate": 0.922,
+          "jurist_would_succeed_rate": 0.784,
+          "jurist_forced_wrong_rate": 0.2095,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.48257500000000003,
+        "jurist_preference_rate": 0.784,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.12390000000000001,
+          "same_lang_same_branch_mean": 0.13340000000000002,
+          "cross_branch_mean": 0.7427,
+          "invariance_gap": 0.009500000000000008,
+          "separation": -0.6188,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.009694182192062008,
+              "ari": 0.002736693236092652,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.007805035430283101,
+              "ari": 0.005640758221114702,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.02902282683548249,
+              "ari": 0.014669966728771508,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.00864213279249343,
+              "ari": 0.0019033079893447326,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.008011182511370845,
+              "ari": 0.005796828656053017,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.03463288145097378,
+              "ari": 0.020595118570633848,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.007052444617060317,
+              "ari": 0.0010001990418149443,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.007356997601225719,
+              "ari": 0.00505660316543443,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.041591631147408666,
+              "ari": 0.02396814820279906,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.015752053121253138,
+          "in_domain_mean_nmi": 0.01976566528361384,
+          "transfer_gap": 0.004013612162360701,
+          "status": "FAIL"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.01736674043133017,
+              "branch_ari": 0.002766447396826009,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.009781550212857267,
+              "branch_ari": 0.0029494488335571013,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.06848881353629865,
+              "branch_ari": 0.034012220661958276,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.0318790347268287,
+          "std_nmi": 0.02607157719332608,
+          "min_nmi": 0.009781550212857267,
+          "max_nmi": 0.06848881353629865,
+          "status": "FAIL"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "FAIL",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.3283,
+          "branch_nmi": 0.0091,
+          "mean_language_purity": 0.596,
+          "cluster_purities": [
+            0.3121,
+            0.3103,
+            0.2707,
+            0.2932,
+            0.3462,
+            0.3548,
+            0.3529,
+            0.3173,
+            0.4,
+            0.3,
+            0.3415,
+            0.3315,
+            0.315,
+            0.2991,
+            0.3333,
+            0.375
+          ],
+          "cluster_sizes": [
+            141,
+            29,
+            676,
+            133,
+            26,
+            31,
+            34,
+            208,
+            20,
+            90,
+            41,
+            184,
+            200,
+            117,
+            30,
+            40
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.1239,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "PASS",
+      "both_adversarial_pass": true
+    },
+    "cited_decisions_tfidf_outcome_hybrid_0.5": {
+      "name": "cited_decisions_tfidf_outcome_hybrid_0.5_22year",
+      "embedding_shape": [
+        144443,
+        128
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.484875,
+          "std_language_dominance": 0.19053210851454933,
+          "max_language_dominance": 0.9,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 2000,
+          "legal_relevant_only": 140,
+          "language_artifact_only": 415,
+          "both_available": 1438,
+          "neither_available": 7,
+          "legal_neighbor_rate": 0.789,
+          "language_neighbor_rate": 0.9265,
+          "jurist_would_succeed_rate": 0.789,
+          "jurist_forced_wrong_rate": 0.2075,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.484875,
+        "jurist_preference_rate": 0.789,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.12555000000000002,
+          "same_lang_same_branch_mean": 0.13140000000000004,
+          "cross_branch_mean": 0.74305,
+          "invariance_gap": 0.005850000000000022,
+          "separation": -0.6174999999999999,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.004649502175531761,
+              "ari": -0.0021204355494585034,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.006436366608480591,
+              "ari": 0.005231130053376854,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.025817019318506648,
+              "ari": 0.012346264838769258,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.005740151714892651,
+              "ari": -0.001371552304172604,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.006806677382077921,
+              "ari": 0.00512644498735301,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.02460204054472779,
+              "ari": 0.011453997438847998,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.00688112163260241,
+              "ari": 0.0012453510982248462,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.0067375165696445805,
+              "ari": 0.004050159698682677,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.026577882768736703,
+              "ari": 0.01351412776509054,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.012702369398142446,
+          "in_domain_mean_nmi": 0.012678020775448795,
+          "transfer_gap": -2.434862269365054e-05,
+          "status": "FAIL"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.01348878578186075,
+              "branch_ari": -0.0013342843119931128,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.009272204532984435,
+              "branch_ari": 0.0018851890069028683,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.04111505758324796,
+              "branch_ari": 0.02130494243395476,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.021292015966031048,
+          "std_nmi": 0.014122313870267604,
+          "min_nmi": 0.009272204532984435,
+          "max_nmi": 0.04111505758324796,
+          "status": "FAIL"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "FAIL",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.3135,
+          "branch_nmi": 0.0088,
+          "mean_language_purity": 0.6,
+          "cluster_purities": [
+            0.2776,
+            0.3148,
+            0.3137,
+            0.4198,
+            0.3032,
+            0.3254,
+            0.2857,
+            0.2642,
+            0.3019,
+            0.2632,
+            0.2977,
+            0.3793,
+            0.2941,
+            0.2778,
+            0.4,
+            0.2973
+          ],
+          "cluster_sizes": [
+            634,
+            108,
+            51,
+            81,
+            277,
+            126,
+            182,
+            106,
+            53,
+            19,
+            131,
+            29,
+            17,
+            18,
+            20,
+            148
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.1256,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "PASS",
+      "both_adversarial_pass": true
+    }
+  },
+  "sweep_cited_decisions_tfidf": {
+    "weight_0.1": {
+      "name": "linear_weight_0.1_22year",
+      "embedding_shape": [
+        144443,
+        192
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.57635,
+          "std_language_dominance": 0.24855216253334025,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 2000,
+          "legal_relevant_only": 217,
+          "language_artifact_only": 634,
+          "both_available": 1082,
+          "neither_available": 67,
+          "legal_neighbor_rate": 0.6495,
+          "language_neighbor_rate": 0.858,
+          "jurist_would_succeed_rate": 0.6495,
+          "jurist_forced_wrong_rate": 0.317,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.57635,
+        "jurist_preference_rate": 0.6495,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.13725,
+          "same_lang_same_branch_mean": 0.28214999999999996,
+          "cross_branch_mean": 0.5805999999999999,
+          "invariance_gap": 0.14489999999999995,
+          "separation": -0.4433499999999999,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.02263646813210961,
+              "ari": 0.014175377573766265,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.0061399950286434146,
+              "ari": 0.00512794776847228,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.06990712056737408,
+              "ari": 0.02186476616742838,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.02689381758464426,
+              "ari": 0.013289150547888411,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.00702982589923531,
+              "ari": 0.00517033623952178,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.07298407952941725,
+              "ari": 0.02612137602647503,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.00995793929481603,
+              "ari": 0.004017049397470496,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.008293305481878017,
+              "ari": 0.005781305645994067,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.0968196240440631,
+              "ari": 0.048444610036441425,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.03236270958112884,
+          "in_domain_mean_nmi": 0.04216197269180267,
+          "transfer_gap": 0.009799263110673827,
+          "status": "FAIL"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.033683556203426376,
+              "branch_ari": 0.020040709525918195,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.030089356195707437,
+              "branch_ari": 0.01991904220871651,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.20156833452648726,
+              "branch_ari": 0.07572610059759635,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.08844708230854036,
+          "std_nmi": 0.08000226182611397,
+          "min_nmi": 0.030089356195707437,
+          "max_nmi": 0.20156833452648726,
+          "status": "FAIL"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "FAIL",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.3666,
+          "branch_nmi": 0.041,
+          "mean_language_purity": 0.6429,
+          "cluster_purities": [
+            0.3375,
+            0.3333,
+            0.443,
+            0.2708,
+            0.3194,
+            0.3636,
+            0.2941,
+            0.2824,
+            0.3385,
+            0.6774,
+            0.2903,
+            0.3548,
+            0.4558,
+            0.5,
+            0.3137,
+            0.2907
+          ],
+          "cluster_sizes": [
+            160,
+            111,
+            149,
+            192,
+            191,
+            154,
+            136,
+            131,
+            65,
+            124,
+            62,
+            31,
+            147,
+            18,
+            102,
+            227
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.1373,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "PASS",
+      "both_adversarial_pass": true
+    },
+    "weight_0.2": {
+      "name": "linear_weight_0.2_22year",
+      "embedding_shape": [
+        144443,
+        192
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.58475,
+          "std_language_dominance": 0.2468601577816882,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 2000,
+          "legal_relevant_only": 220,
+          "language_artifact_only": 618,
+          "both_available": 1095,
+          "neither_available": 67,
+          "legal_neighbor_rate": 0.6575,
+          "language_neighbor_rate": 0.8565,
+          "jurist_would_succeed_rate": 0.6575,
+          "jurist_forced_wrong_rate": 0.309,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.58475,
+        "jurist_preference_rate": 0.6575,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.14235000000000003,
+          "same_lang_same_branch_mean": 0.29075,
+          "cross_branch_mean": 0.5669,
+          "invariance_gap": 0.14839999999999998,
+          "separation": -0.4245499999999999,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.033972447440404105,
+              "ari": 0.01554777669109208,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.005815557732600993,
+              "ari": 0.004441930073084497,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.09024252585308179,
+              "ari": 0.03608932102042387,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.028179850453575073,
+              "ari": 0.014152424741753211,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.02095588988441831,
+              "ari": 0.014001912128996584,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.0749638477000843,
+              "ari": 0.036392876922421505,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.009399235753358147,
+              "ari": 0.003584797965412786,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.010181127850343922,
+              "ari": 0.008238209608556393,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.10252666761673304,
+              "ari": 0.05673772636733142,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.036463690890507376,
+          "in_domain_mean_nmi": 0.05248500164718515,
+          "transfer_gap": 0.016021310756677773,
+          "status": "FAIL"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.074626586920636,
+              "branch_ari": 0.03564200001138641,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.0330980242502267,
+              "branch_ari": 0.018922025308367955,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.19192085839943032,
+              "branch_ari": 0.10662518216528581,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.09988182319009768,
+          "std_nmi": 0.0672534677225698,
+          "min_nmi": 0.0330980242502267,
+          "max_nmi": 0.19192085839943032,
+          "status": "FAIL"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "FAIL",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.3289,
+          "branch_nmi": 0.0156,
+          "mean_language_purity": 0.6184,
+          "cluster_purities": [
+            0.3774,
+            0.277,
+            0.3048,
+            0.4079,
+            0.3178,
+            0.3604,
+            0.2838,
+            0.2736,
+            0.3099,
+            0.3571,
+            0.3538,
+            0.3221,
+            0.3333,
+            0.381,
+            0.3167,
+            0.2857
+          ],
+          "cluster_sizes": [
+            53,
+            213,
+            105,
+            152,
+            236,
+            197,
+            74,
+            201,
+            213,
+            28,
+            65,
+            208,
+            27,
+            42,
+            60,
+            126
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.1424,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "PASS",
+      "both_adversarial_pass": true
+    },
+    "weight_0.3": {
+      "name": "linear_weight_0.3_22year",
+      "embedding_shape": [
+        144443,
+        192
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.605775,
+          "std_language_dominance": 0.2439885230395069,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 2000,
+          "legal_relevant_only": 231,
+          "language_artifact_only": 592,
+          "both_available": 1112,
+          "neither_available": 65,
+          "legal_neighbor_rate": 0.6715,
+          "language_neighbor_rate": 0.852,
+          "jurist_would_succeed_rate": 0.6715,
+          "jurist_forced_wrong_rate": 0.296,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.605775,
+        "jurist_preference_rate": 0.6715,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.14985,
+          "same_lang_same_branch_mean": 0.31715,
+          "cross_branch_mean": 0.533,
+          "invariance_gap": 0.16729999999999998,
+          "separation": -0.38315,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.03701212723808849,
+              "ari": 0.027426697087166402,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.008785040977301713,
+              "ari": 0.007684932537918796,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.09239254995941487,
+              "ari": 0.04736027648704822,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.02673536242439122,
+              "ari": 0.015179906720208684,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.012956007085416155,
+              "ari": 0.005573291793559785,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.12171987087333741,
+              "ari": 0.05780707799982179,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.018072832317750333,
+              "ari": 0.011576264450250952,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.008618335333540861,
+              "ari": 0.006979836073228345,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.16864263113167496,
+              "ari": 0.12937192379064352,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.046053998647622725,
+          "in_domain_mean_nmi": 0.07287025515172653,
+          "transfer_gap": 0.026816256504103804,
+          "status": "FAIL"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.1421676873946261,
+              "branch_ari": 0.10306968929056218,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.03481583105960412,
+              "branch_ari": 0.017938068277656077,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.18272315543034015,
+              "branch_ari": 0.07793141451283855,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.11990222462819011,
+          "std_nmi": 0.0624016948208951,
+          "min_nmi": 0.03481583105960412,
+          "max_nmi": 0.18272315543034015,
+          "status": "FAIL"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "FAIL",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.3744,
+          "branch_nmi": 0.0414,
+          "mean_language_purity": 0.6479,
+          "cluster_purities": [
+            0.3548,
+            0.2679,
+            0.6475,
+            0.4228,
+            0.2899,
+            0.5128,
+            0.4266,
+            0.2792,
+            0.3641,
+            0.2927,
+            0.3235,
+            0.2881,
+            0.4194,
+            0.3065,
+            0.3256,
+            0.4688
+          ],
+          "cluster_sizes": [
+            62,
+            265,
+            122,
+            149,
+            138,
+            39,
+            143,
+            154,
+            195,
+            123,
+            170,
+            177,
+            62,
+            62,
+            43,
+            96
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.1499,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "PASS",
+      "both_adversarial_pass": true
+    },
+    "weight_0.4": {
+      "name": "linear_weight_0.4_22year",
+      "embedding_shape": [
+        144443,
+        192
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.653875,
+          "std_language_dominance": 0.23984106065267474,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 2000,
+          "legal_relevant_only": 257,
+          "language_artifact_only": 592,
+          "both_available": 1088,
+          "neither_available": 63,
+          "legal_neighbor_rate": 0.6725,
+          "language_neighbor_rate": 0.84,
+          "jurist_would_succeed_rate": 0.6725,
+          "jurist_forced_wrong_rate": 0.296,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.653875,
+        "jurist_preference_rate": 0.6725,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.16010000000000002,
+          "same_lang_same_branch_mean": 0.38445000000000007,
+          "cross_branch_mean": 0.45545,
+          "invariance_gap": 0.22435000000000005,
+          "separation": -0.29535,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.3095874920886011,
+              "ari": 0.2845932156017962,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.00936366818969033,
+              "ari": 0.007448611993915263,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.4508019138994232,
+              "ari": 0.31118119954061607,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.13845973569024167,
+              "ari": 0.0813481166748396,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.03716590658245057,
+              "ari": 0.03001974112540698,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.35940740690717193,
+              "ari": 0.26540084277838155,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.05028328242692387,
+              "ari": 0.026708796446327406,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.007410948304775491,
+              "ari": 0.0038300324780567263,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.29431482200102477,
+              "ari": 0.24239888694035838,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.1692878259030378,
+          "in_domain_mean_nmi": 0.21368940689069213,
+          "transfer_gap": 0.04440158098765434,
+          "status": "FAIL"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.2581701617814354,
+              "branch_ari": 0.1951304441183178,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.09165243159044818,
+              "branch_ari": 0.055203081206977506,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.2033036272123501,
+              "branch_ari": 0.10160279996090747,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.1843754068614112,
+          "std_nmi": 0.06928562506624242,
+          "min_nmi": 0.09165243159044818,
+          "max_nmi": 0.2581701617814354,
+          "status": "FAIL"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "FAIL",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.4211,
+          "branch_nmi": 0.0593,
+          "mean_language_purity": 0.641,
+          "cluster_purities": [
+            0.4157,
+            0.3122,
+            0.2857,
+            0.708,
+            0.3548,
+            0.3153,
+            0.6727,
+            0.2945,
+            0.4662,
+            0.3814,
+            0.3471,
+            0.3514,
+            0.2969,
+            0.6667,
+            0.4884,
+            0.381
+          ],
+          "cluster_sizes": [
+            89,
+            205,
+            105,
+            113,
+            155,
+            203,
+            110,
+            275,
+            133,
+            118,
+            121,
+            37,
+            128,
+            102,
+            43,
+            63
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.1601,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "PASS",
+      "both_adversarial_pass": true
+    },
+    "weight_0.5": {
+      "name": "linear_weight_0.5_22year",
+      "embedding_shape": [
+        144443,
+        192
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.734625,
+          "std_language_dominance": 0.23336636298961339,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 2000,
+          "legal_relevant_only": 390,
+          "language_artifact_only": 656,
+          "both_available": 826,
+          "neither_available": 128,
+          "legal_neighbor_rate": 0.608,
+          "language_neighbor_rate": 0.741,
+          "jurist_would_succeed_rate": 0.608,
+          "jurist_forced_wrong_rate": 0.328,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.734625,
+        "jurist_preference_rate": 0.608,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.15619999999999998,
+          "same_lang_same_branch_mean": 0.5304500000000001,
+          "cross_branch_mean": 0.31334999999999996,
+          "invariance_gap": 0.3742500000000001,
+          "separation": -0.15714999999999998,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.30703919336124375,
+              "ari": 0.27885116708168184,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.22493580233356691,
+              "ari": 0.22083103386229322,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.41845801129025256,
+              "ari": 0.3206342207332858,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.2788369957803374,
+              "ari": 0.26948657653412345,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.2989514251133496,
+              "ari": 0.2907814008477924,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.5133401133813223,
+              "ari": 0.38382903048535927,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.14437409282238142,
+              "ari": 0.1241785605343157,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.06293242530088289,
+              "ari": 0.04727618006057112,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.28402534342980357,
+              "ari": 0.2184756745885941,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.2738129068181239,
+          "in_domain_mean_nmi": 0.29667198730146566,
+          "transfer_gap": 0.02285908048334173,
+          "status": "PASS"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.3910343659202842,
+              "branch_ari": 0.27290292495972,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.30257984937974636,
+              "branch_ari": 0.21396157759818524,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.33245419567462836,
+              "branch_ari": 0.19136585621396118,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.34202280365821963,
+          "std_nmi": 0.03673979738796251,
+          "min_nmi": 0.30257984937974636,
+          "max_nmi": 0.3910343659202842,
+          "status": "PASS"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "FAIL",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.6076,
+          "branch_nmi": 0.2613,
+          "mean_language_purity": 0.7246,
+          "cluster_purities": [
+            0.875,
+            0.6548,
+            0.5096,
+            0.9756,
+            1.0,
+            0.8016,
+            0.3769,
+            0.5703,
+            0.396,
+            0.4167,
+            0.5319,
+            0.5182,
+            0.4773,
+            0.9247,
+            0.2759,
+            0.4167
+          ],
+          "cluster_sizes": [
+            168,
+            197,
+            157,
+            123,
+            142,
+            126,
+            130,
+            128,
+            101,
+            144,
+            94,
+            110,
+            44,
+            146,
+            58,
+            132
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.1562,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "PASS",
+      "both_adversarial_pass": true
+    },
+    "weight_0.6": {
+      "name": "linear_weight_0.6_22year",
+      "embedding_shape": [
+        144443,
+        192
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.7999749999999999,
+          "std_language_dominance": 0.2199289643839574,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 2000,
+          "legal_relevant_only": 555,
+          "language_artifact_only": 634,
+          "both_available": 494,
+          "neither_available": 317,
+          "legal_neighbor_rate": 0.5245,
+          "language_neighbor_rate": 0.564,
+          "jurist_would_succeed_rate": 0.5245,
+          "jurist_forced_wrong_rate": 0.317,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.7999749999999999,
+        "jurist_preference_rate": 0.5245,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.1381,
+          "same_lang_same_branch_mean": 0.6654000000000001,
+          "cross_branch_mean": 0.1965,
+          "invariance_gap": 0.5273000000000001,
+          "separation": -0.05840000000000001,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.41752136997005046,
+              "ari": 0.3963490187312528,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.3262162100164185,
+              "ari": 0.3266097093153196,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.4340811751416806,
+              "ari": 0.3501991912848063,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.2842696865697561,
+              "ari": 0.27385250035469855,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.277326190874938,
+              "ari": 0.24626811806077556,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.47950648040795557,
+              "ari": 0.32797670036321863,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.15430123892266562,
+              "ari": 0.13111789141390698,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.07876149442737336,
+              "ari": 0.06428614671882252,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.3120983716814813,
+              "ari": 0.21316273607001196,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.292856047580975,
+          "in_domain_mean_nmi": 0.33564864417548995,
+          "transfer_gap": 0.04279259659451495,
+          "status": "PASS"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.3990992360779452,
+              "branch_ari": 0.29428614354312915,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.31816331596693104,
+              "branch_ari": 0.21918456370757136,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.36810739438467993,
+              "branch_ari": 0.21253987965318358,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.36178998214318536,
+          "std_nmi": 0.033342546034817185,
+          "min_nmi": 0.31816331596693104,
+          "max_nmi": 0.3990992360779452,
+          "status": "PASS"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "PASS",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.7116,
+          "branch_nmi": 0.3428,
+          "mean_language_purity": 0.7378,
+          "cluster_purities": [
+            0.9758,
+            0.3902,
+            0.9516,
+            0.6061,
+            0.5182,
+            0.9802,
+            0.4494,
+            0.3913,
+            0.6281,
+            0.9663,
+            0.9948,
+            0.6381,
+            0.544,
+            0.3725,
+            1.0,
+            0.9787
+          ],
+          "cluster_sizes": [
+            124,
+            123,
+            124,
+            33,
+            137,
+            101,
+            158,
+            161,
+            121,
+            178,
+            192,
+            105,
+            125,
+            153,
+            71,
+            94
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.1381,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "PASS",
+      "both_adversarial_pass": true
+    },
+    "weight_0.7": {
+      "name": "linear_weight_0.7_22year",
+      "embedding_shape": [
+        144443,
+        192
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.82325,
+          "std_language_dominance": 0.21674163767029167,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "FAIL",
+          "total_decisions": 2000,
+          "legal_relevant_only": 580,
+          "language_artifact_only": 587,
+          "both_available": 325,
+          "neither_available": 508,
+          "legal_neighbor_rate": 0.4525,
+          "language_neighbor_rate": 0.456,
+          "jurist_would_succeed_rate": 0.4525,
+          "jurist_forced_wrong_rate": 0.2935,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": false,
+        "language_dominance_score": 0.82325,
+        "jurist_preference_rate": 0.4525,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.12255,
+          "same_lang_same_branch_mean": 0.7257,
+          "cross_branch_mean": 0.15175,
+          "invariance_gap": 0.60315,
+          "separation": -0.02919999999999999,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.4321761453861595,
+              "ari": 0.39597999770203124,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.3301390981359025,
+              "ari": 0.32737371533514886,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.4732370018561567,
+              "ari": 0.3779143220084426,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.3124165298285743,
+              "ari": 0.2772185197128662,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.30209616071832096,
+              "ari": 0.2790542333469278,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.44283322865201624,
+              "ari": 0.34853241289547754,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.20907674630851636,
+              "ari": 0.18159260146412756,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.06995801058874358,
+              "ari": 0.0503457710501331,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.2799531133282785,
+              "ari": 0.20171499482198335,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.3062767692283183,
+          "in_domain_mean_nmi": 0.33807513981091963,
+          "transfer_gap": 0.03179837058260132,
+          "status": "PASS"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.4002347641593397,
+              "branch_ari": 0.2910403361130295,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.3673120034024436,
+              "branch_ari": 0.3030184239415694,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.35260892278312234,
+              "branch_ari": 0.21835446310325268,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.37338523011496855,
+          "std_nmi": 0.019911776309920196,
+          "min_nmi": 0.35260892278312234,
+          "max_nmi": 0.4002347641593397,
+          "status": "PASS"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "PASS",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.7158,
+          "branch_nmi": 0.3725,
+          "mean_language_purity": 0.7232,
+          "cluster_purities": [
+            0.4032,
+            0.3248,
+            0.9528,
+            1.0,
+            0.9167,
+            0.4045,
+            1.0,
+            0.6405,
+            0.4773,
+            0.8703,
+            0.9815,
+            0.9769,
+            0.38,
+            0.4859,
+            0.9773,
+            0.6612
+          ],
+          "cluster_sizes": [
+            124,
+            117,
+            127,
+            71,
+            156,
+            89,
+            156,
+            153,
+            44,
+            185,
+            162,
+            130,
+            100,
+            177,
+            88,
+            121
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.1226,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "FAIL",
+      "both_adversarial_pass": false
+    },
+    "weight_0.8": {
+      "name": "linear_weight_0.8_22year",
+      "embedding_shape": [
+        144443,
+        192
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.8302,
+          "std_language_dominance": 0.21617807474394807,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "FAIL",
+          "total_decisions": 2000,
+          "legal_relevant_only": 564,
+          "language_artifact_only": 585,
+          "both_available": 299,
+          "neither_available": 552,
+          "legal_neighbor_rate": 0.4315,
+          "language_neighbor_rate": 0.442,
+          "jurist_would_succeed_rate": 0.4315,
+          "jurist_forced_wrong_rate": 0.2925,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": false,
+        "language_dominance_score": 0.8302,
+        "jurist_preference_rate": 0.4315,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.11835000000000001,
+          "same_lang_same_branch_mean": 0.7374499999999999,
+          "cross_branch_mean": 0.14420000000000002,
+          "invariance_gap": 0.6191,
+          "separation": -0.025850000000000012,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.43413517817846714,
+              "ari": 0.4003964703435232,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.3026876838423287,
+              "ari": 0.29919737121879636,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.4408318875627425,
+              "ari": 0.3395606443559479,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.34372816057704075,
+              "ari": 0.30695676068502564,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.2697853624214879,
+              "ari": 0.23426301840126199,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.46096567270432703,
+              "ari": 0.35838061801858784,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.20366803429922598,
+              "ari": 0.1781756414934528,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.08829907322780974,
+              "ari": 0.06884833924888041,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.33707878333973795,
+              "ari": 0.26630043303595485,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.30669675203557906,
+          "in_domain_mean_nmi": 0.34699977464656434,
+          "transfer_gap": 0.040303022610985284,
+          "status": "PASS"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.40326680518946667,
+              "branch_ari": 0.2938733953411844,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.40657404065060515,
+              "branch_ari": 0.3106312732737698,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.35576296274329433,
+              "branch_ari": 0.2005567180399963,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.38853460286112207,
+          "std_nmi": 0.023212349423071682,
+          "min_nmi": 0.35576296274329433,
+          "max_nmi": 0.40657404065060515,
+          "status": "PASS"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "PASS",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.7219,
+          "branch_nmi": 0.3355,
+          "mean_language_purity": 0.7492,
+          "cluster_purities": [
+            0.5938,
+            0.6533,
+            0.7778,
+            0.6693,
+            0.9864,
+            0.9688,
+            0.352,
+            0.9264,
+            0.6019,
+            0.9928,
+            0.8264,
+            0.386,
+            0.942,
+            1.0,
+            0.4286,
+            0.4451
+          ],
+          "cluster_sizes": [
+            32,
+            150,
+            126,
+            127,
+            147,
+            128,
+            125,
+            163,
+            103,
+            138,
+            144,
+            171,
+            69,
+            71,
+            133,
+            173
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.1184,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "FAIL",
+      "both_adversarial_pass": false
+    },
+    "weight_0.9": {
+      "name": "linear_weight_0.9_22year",
+      "embedding_shape": [
+        144443,
+        192
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.8315499999999999,
+          "std_language_dominance": 0.2162627973091997,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "FAIL",
+          "total_decisions": 2000,
+          "legal_relevant_only": 559,
+          "language_artifact_only": 589,
+          "both_available": 295,
+          "neither_available": 557,
+          "legal_neighbor_rate": 0.427,
+          "language_neighbor_rate": 0.442,
+          "jurist_would_succeed_rate": 0.427,
+          "jurist_forced_wrong_rate": 0.2945,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": false,
+        "language_dominance_score": 0.8315499999999999,
+        "jurist_preference_rate": 0.427,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.11685000000000001,
+          "same_lang_same_branch_mean": 0.74045,
+          "cross_branch_mean": 0.14270000000000002,
+          "invariance_gap": 0.6236,
+          "separation": -0.025850000000000012,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.40922798443948577,
+              "ari": 0.3811715898200124,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.3009018564664347,
+              "ari": 0.298474786943374,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.453897315800777,
+              "ari": 0.36078472852236754,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.31369112641598085,
+              "ari": 0.28001812439953366,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.2757743565627297,
+              "ari": 0.23683497032149367,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.43480177720182417,
+              "ari": 0.33821618246952223,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.22337413151634788,
+              "ari": 0.18662620860348553,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.07579677311849221,
+              "ari": 0.055974152924506915,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.27022052967854476,
+              "ari": 0.20114448470942498,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.3004104967533095,
+          "in_domain_mean_nmi": 0.31840762356025337,
+          "transfer_gap": 0.017997126806943875,
+          "status": "PASS"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.39830574033130506,
+              "branch_ari": 0.2844889284556373,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.3642898409870768,
+              "branch_ari": 0.3068581626837106,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.35632101173607234,
+              "branch_ari": 0.2012362257209098,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.372972197684818,
+          "std_nmi": 0.018206534489461884,
+          "min_nmi": 0.35632101173607234,
+          "max_nmi": 0.39830574033130506,
+          "status": "PASS"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "FAIL",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.6991,
+          "branch_nmi": 0.3297,
+          "mean_language_purity": 0.7402,
+          "cluster_purities": [
+            0.6744,
+            0.5664,
+            1.0,
+            0.9655,
+            0.8645,
+            0.5403,
+            0.4762,
+            0.9739,
+            0.4118,
+            0.9767,
+            0.3896,
+            0.4211,
+            0.6061,
+            0.9421,
+            0.377,
+            1.0
+          ],
+          "cluster_sizes": [
+            129,
+            113,
+            149,
+            116,
+            155,
+            124,
+            126,
+            153,
+            153,
+            129,
+            154,
+            152,
+            33,
+            121,
+            122,
+            71
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.1169,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "FAIL",
+      "both_adversarial_pass": false
+    }
+  },
+  "sweep_cited_decisions_tfidf_outcome_hybrid_0.5": {
+    "weight_0.1": {
+      "name": "linear_hybrid_weight_0.1_22year",
+      "embedding_shape": [
+        144443,
+        192
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.58175,
+          "std_language_dominance": 0.2466818548251979,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 2000,
+          "legal_relevant_only": 212,
+          "language_artifact_only": 632,
+          "both_available": 1094,
+          "neither_available": 62,
+          "legal_neighbor_rate": 0.653,
+          "language_neighbor_rate": 0.863,
+          "jurist_would_succeed_rate": 0.653,
+          "jurist_forced_wrong_rate": 0.316,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.58175,
+        "jurist_preference_rate": 0.653,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.13625000000000004,
+          "same_lang_same_branch_mean": 0.27985000000000004,
+          "cross_branch_mean": 0.5839000000000001,
+          "invariance_gap": 0.1436,
+          "separation": -0.44765000000000005,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.00791898785809614,
+              "ari": 0.0006661158972591254,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.004302284887405352,
+              "ari": -0.0015720431766867455,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.059384492177079265,
+              "ari": 0.026436093673708333,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.016177827542791408,
+              "ari": 0.004622666781562808,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.00550636514962521,
+              "ari": 0.002880199276903069,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.05799428377611095,
+              "ari": 0.02504782808906992,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.008132568662353172,
+              "ari": 0.0024432543257094513,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.005883683245153221,
+              "ari": 0.002412783579797035,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.03482888253075847,
+              "ari": 0.021877261646165866,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.02531252338181556,
+          "in_domain_mean_nmi": 0.016084745179493275,
+          "transfer_gap": -0.009227778202322283,
+          "status": "FAIL"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.0665646124103579,
+              "branch_ari": 0.02481927074762331,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.03356025131521555,
+              "branch_ari": 0.014630431847563963,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.14748559134195882,
+              "branch_ari": 0.03155426500703118,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.08253681835584409,
+          "std_nmi": 0.047861461860429604,
+          "min_nmi": 0.03356025131521555,
+          "max_nmi": 0.14748559134195882,
+          "status": "FAIL"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "FAIL",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.4849,
+          "branch_nmi": 0.0758,
+          "mean_language_purity": 0.6965,
+          "cluster_purities": [
+            0.9014,
+            0.3003,
+            0.5714,
+            0.3333,
+            0.3039,
+            0.7333,
+            0.2655,
+            0.56,
+            0.3607,
+            0.4429,
+            0.2613,
+            0.569,
+            0.5181,
+            0.8767,
+            0.4384,
+            0.3226
+          ],
+          "cluster_sizes": [
+            71,
+            373,
+            14,
+            54,
+            204,
+            90,
+            354,
+            50,
+            61,
+            70,
+            310,
+            58,
+            83,
+            73,
+            73,
+            62
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.1363,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "PASS",
+      "both_adversarial_pass": true
+    },
+    "weight_0.2": {
+      "name": "linear_hybrid_weight_0.2_22year",
+      "embedding_shape": [
+        144443,
+        192
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.59985,
+          "std_language_dominance": 0.2448774744642716,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 2000,
+          "legal_relevant_only": 219,
+          "language_artifact_only": 620,
+          "both_available": 1101,
+          "neither_available": 60,
+          "legal_neighbor_rate": 0.66,
+          "language_neighbor_rate": 0.8605,
+          "jurist_would_succeed_rate": 0.66,
+          "jurist_forced_wrong_rate": 0.31,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.59985,
+        "jurist_preference_rate": 0.66,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.14125,
+          "same_lang_same_branch_mean": 0.3007,
+          "cross_branch_mean": 0.5580499999999999,
+          "invariance_gap": 0.15945000000000004,
+          "separation": -0.41679999999999995,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.011795754630320857,
+              "ari": 0.004663726867864194,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.005373829237413999,
+              "ari": 0.0025885560063007096,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.08752075808719512,
+              "ari": 0.046891327548205665,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.017730695455333987,
+              "ari": 0.00889119318491828,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.006129108279976653,
+              "ari": 0.003577970875244835,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.10306840593213368,
+              "ari": 0.06498264734238005,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.00874156707238806,
+              "ari": 0.003399994834238444,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.005609305121391094,
+              "ari": 0.001974634444863083,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.03482888253075847,
+              "ari": 0.021877261646165866,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.03800742681764265,
+          "in_domain_mean_nmi": 0.017584581813685326,
+          "transfer_gap": -0.020422845003957326,
+          "status": "FAIL"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.08417907003898173,
+              "branch_ari": 0.04236722045793301,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.0272679815675654,
+              "branch_ari": 0.016133184345505477,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.19454098490739263,
+              "branch_ari": 0.0801150326492188,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.10199601217131327,
+          "std_nmi": 0.06944132766487884,
+          "min_nmi": 0.0272679815675654,
+          "max_nmi": 0.19454098490739263,
+          "status": "FAIL"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "FAIL",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.4203,
+          "branch_nmi": 0.0591,
+          "mean_language_purity": 0.6634,
+          "cluster_purities": [
+            0.5104,
+            0.2889,
+            0.4533,
+            0.3,
+            0.2671,
+            0.3039,
+            0.2976,
+            0.6667,
+            0.3636,
+            0.3091,
+            0.4493,
+            0.3415,
+            0.2612,
+            0.4706,
+            0.9706,
+            0.4706
+          ],
+          "cluster_sizes": [
+            96,
+            450,
+            75,
+            50,
+            277,
+            204,
+            84,
+            90,
+            99,
+            55,
+            69,
+            41,
+            291,
+            17,
+            68,
+            34
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.1412,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "PASS",
+      "both_adversarial_pass": true
+    },
+    "weight_0.3": {
+      "name": "linear_hybrid_weight_0.3_22year",
+      "embedding_shape": [
+        144443,
+        192
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.6395,
+          "std_language_dominance": 0.2418413736315604,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 2000,
+          "legal_relevant_only": 233,
+          "language_artifact_only": 619,
+          "both_available": 1088,
+          "neither_available": 60,
+          "legal_neighbor_rate": 0.6605,
+          "language_neighbor_rate": 0.8535,
+          "jurist_would_succeed_rate": 0.6605,
+          "jurist_forced_wrong_rate": 0.3095,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.6395,
+        "jurist_preference_rate": 0.6605,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.15234999999999999,
+          "same_lang_same_branch_mean": 0.35810000000000003,
+          "cross_branch_mean": 0.48954999999999993,
+          "invariance_gap": 0.20575000000000004,
+          "separation": -0.33719999999999994,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.010918290034482019,
+              "ari": 0.003682505473680191,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.006156126931453635,
+              "ari": 0.003693230093049796,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.10197573724696671,
+              "ari": 0.06202065455545715,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.018155440640878654,
+              "ari": 0.009211207242170063,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.008281481785145503,
+              "ari": 0.006382947611884223,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.118707472812605,
+              "ari": 0.07958718757993022,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.009420667646453853,
+              "ari": 0.004296689888043663,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.005923533863410057,
+              "ari": 0.0023380551505612587,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.03510503183527563,
+              "ari": 0.020991786590470945,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.04338982985696132,
+          "in_domain_mean_nmi": 0.01810160121830105,
+          "transfer_gap": -0.02528822863866027,
+          "status": "FAIL"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.1416404123297262,
+              "branch_ari": 0.08128734028930391,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.030811411262431664,
+              "branch_ari": 0.017790363752265944,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.13358381838604635,
+              "branch_ari": 0.04228184467058564,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.10201188065940141,
+          "std_nmi": 0.05045365733855808,
+          "min_nmi": 0.030811411262431664,
+          "max_nmi": 0.1416404123297262,
+          "status": "FAIL"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "FAIL",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.4176,
+          "branch_nmi": 0.0571,
+          "mean_language_purity": 0.6658,
+          "cluster_purities": [
+            0.3319,
+            0.3636,
+            0.8077,
+            0.4545,
+            0.3039,
+            0.6389,
+            0.3333,
+            0.7429,
+            0.2756,
+            0.3163,
+            0.5,
+            0.2716,
+            0.2944,
+            0.3478,
+            0.3736,
+            0.3263
+          ],
+          "cluster_sizes": [
+            226,
+            33,
+            78,
+            121,
+            204,
+            108,
+            57,
+            105,
+            254,
+            98,
+            16,
+            243,
+            248,
+            23,
+            91,
+            95
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.1523,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "PASS",
+      "both_adversarial_pass": true
+    },
+    "weight_0.4": {
+      "name": "linear_hybrid_weight_0.4_22year",
+      "embedding_shape": [
+        144443,
+        192
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.693325,
+          "std_language_dominance": 0.23881832922746948,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 2000,
+          "legal_relevant_only": 315,
+          "language_artifact_only": 644,
+          "both_available": 965,
+          "neither_available": 76,
+          "legal_neighbor_rate": 0.64,
+          "language_neighbor_rate": 0.8045,
+          "jurist_would_succeed_rate": 0.64,
+          "jurist_forced_wrong_rate": 0.322,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.693325,
+        "jurist_preference_rate": 0.64,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.16065000000000004,
+          "same_lang_same_branch_mean": 0.45535000000000003,
+          "cross_branch_mean": 0.38399999999999995,
+          "invariance_gap": 0.29469999999999996,
+          "separation": -0.2233499999999999,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.010915597594607706,
+              "ari": 0.0020914048750683674,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.010272982419483724,
+              "ari": 0.009186171974240747,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.13024706096366667,
+              "ari": 0.08144631642024593,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.032588830760218075,
+              "ari": 0.02190771561189803,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.01576729136213828,
+              "ari": 0.01535732494488539,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.11555456145607326,
+              "ari": 0.07604371949017338,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.007473366778907986,
+              "ari": 0.0015245527947738038,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.006522813316607694,
+              "ari": 0.0030218116318836176,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.025239270360183565,
+              "ari": 0.004930732994976205,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.0504432692824929,
+          "in_domain_mean_nmi": 0.017307386438976516,
+          "transfer_gap": -0.03313588284351639,
+          "status": "FAIL"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.1834207939223791,
+              "branch_ari": 0.1185094340303771,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.04622904804828656,
+              "branch_ari": 0.02880275972515178,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.20353197571121107,
+              "branch_ari": 0.07819899146663856,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.14439393922729224,
+          "std_nmi": 0.06989694463220064,
+          "min_nmi": 0.04622904804828656,
+          "max_nmi": 0.20353197571121107,
+          "status": "FAIL"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "FAIL",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.453,
+          "branch_nmi": 0.0933,
+          "mean_language_purity": 0.6965,
+          "cluster_purities": [
+            0.6224,
+            0.4156,
+            0.4111,
+            0.3509,
+            0.7579,
+            0.3039,
+            0.3019,
+            0.3895,
+            0.4412,
+            0.9126,
+            0.3364,
+            0.4839,
+            0.3019,
+            0.507,
+            0.3333,
+            0.3789
+          ],
+          "cluster_sizes": [
+            98,
+            154,
+            90,
+            114,
+            95,
+            204,
+            53,
+            172,
+            68,
+            103,
+            107,
+            93,
+            212,
+            142,
+            105,
+            190
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.1607,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "PASS",
+      "both_adversarial_pass": true
+    },
+    "weight_0.5": {
+      "name": "linear_hybrid_weight_0.5_22year",
+      "embedding_shape": [
+        144443,
+        192
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.747675,
+          "std_language_dominance": 0.23144296138573753,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 2000,
+          "legal_relevant_only": 457,
+          "language_artifact_only": 647,
+          "both_available": 766,
+          "neither_available": 130,
+          "legal_neighbor_rate": 0.6115,
+          "language_neighbor_rate": 0.7065,
+          "jurist_would_succeed_rate": 0.6115,
+          "jurist_forced_wrong_rate": 0.3235,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.747675,
+        "jurist_preference_rate": 0.6115,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.16,
+          "same_lang_same_branch_mean": 0.55685,
+          "cross_branch_mean": 0.28314999999999996,
+          "invariance_gap": 0.3968499999999999,
+          "separation": -0.12314999999999995,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.1904450873795057,
+              "ari": 0.1853807949224163,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.012790705390142931,
+              "ari": 0.0116697677953373,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.1157789404505768,
+              "ari": 0.07721552874802409,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.28087309771443086,
+              "ari": 0.24967743537681814,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.02486635495096106,
+              "ari": 0.026472848309448568,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.2689363767481367,
+              "ari": 0.1917698102169801,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.007187582261803705,
+              "ari": 0.0011036589133932965,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.005156924237259303,
+              "ari": 0.003006405338417,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.035061107539129534,
+              "ari": 0.01912619882147584,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.1151206044670584,
+          "in_domain_mean_nmi": 0.08345751662319877,
+          "transfer_gap": -0.03166308784385963,
+          "status": "FAIL"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.2154495552531513,
+              "branch_ari": 0.14034020174791545,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.17402909086251175,
+              "branch_ari": 0.10599852439486199,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.1983606877188129,
+              "branch_ari": 0.07824867665228225,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.195946444611492,
+          "std_nmi": 0.01699578663316283,
+          "min_nmi": 0.17402909086251175,
+          "max_nmi": 0.2154495552531513,
+          "status": "FAIL"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "FAIL",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.4578,
+          "branch_nmi": 0.0994,
+          "mean_language_purity": 0.7033,
+          "cluster_purities": [
+            0.5243,
+            0.3567,
+            0.4234,
+            0.8291,
+            0.3677,
+            0.3137,
+            0.3824,
+            0.4221,
+            0.2885,
+            0.5574,
+            0.4645,
+            0.446,
+            0.5312,
+            0.5474,
+            0.4664,
+            0.4048
+          ],
+          "cluster_sizes": [
+            103,
+            171,
+            137,
+            117,
+            155,
+            102,
+            102,
+            154,
+            52,
+            122,
+            155,
+            139,
+            32,
+            95,
+            238,
+            126
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.16,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "PASS",
+      "both_adversarial_pass": true
+    },
+    "weight_0.6": {
+      "name": "linear_hybrid_weight_0.6_22year",
+      "embedding_shape": [
+        144443,
+        192
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.7964749999999999,
+          "std_language_dominance": 0.2194739719761776,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "PASS",
+          "total_decisions": 2000,
+          "legal_relevant_only": 548,
+          "language_artifact_only": 640,
+          "both_available": 510,
+          "neither_available": 302,
+          "legal_neighbor_rate": 0.529,
+          "language_neighbor_rate": 0.575,
+          "jurist_would_succeed_rate": 0.529,
+          "jurist_forced_wrong_rate": 0.32,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": true,
+        "language_dominance_score": 0.7964749999999999,
+        "jurist_preference_rate": 0.529,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.1413,
+          "same_lang_same_branch_mean": 0.6594000000000001,
+          "cross_branch_mean": 0.1993,
+          "invariance_gap": 0.5181000000000001,
+          "separation": -0.057999999999999996,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.3778949110377221,
+              "ari": 0.357999891842254,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.024418699162973397,
+              "ari": 0.02004852437915942,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.43852290966594887,
+              "ari": 0.31508790748167137,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.30893097300547623,
+              "ari": 0.26109956530691064,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.04450992804301184,
+              "ari": 0.033792458560917955,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.44458915898058365,
+              "ari": 0.35493155976303076,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.19739527219754904,
+              "ari": 0.17136545329361158,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.011772011670366398,
+              "ari": 0.007093534126788049,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.25329967069395215,
+              "ari": 0.19534697318413544,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.23760483744714958,
+          "in_domain_mean_nmi": 0.22523483659156204,
+          "transfer_gap": -0.012370000855587537,
+          "status": "PASS"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.3810524018804588,
+              "branch_ari": 0.26701453146313375,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.21976591382659952,
+              "branch_ari": 0.14093024482216837,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.30260805524412754,
+              "branch_ari": 0.1598133582873917,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.3011421236503953,
+          "std_nmi": 0.06585309167009575,
+          "min_nmi": 0.21976591382659952,
+          "max_nmi": 0.3810524018804588,
+          "status": "PASS"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "FAIL",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.6416,
+          "branch_nmi": 0.2526,
+          "mean_language_purity": 0.679,
+          "cluster_purities": [
+            1.0,
+            0.8203,
+            0.3404,
+            0.7731,
+            0.2895,
+            0.6852,
+            0.4651,
+            0.3667,
+            0.8061,
+            0.5104,
+            0.9817,
+            0.4222,
+            0.9545,
+            0.4481,
+            1.0,
+            0.4019
+          ],
+          "cluster_sizes": [
+            156,
+            128,
+            141,
+            119,
+            152,
+            108,
+            43,
+            150,
+            98,
+            192,
+            109,
+            135,
+            110,
+            183,
+            69,
+            107
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.1413,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "PASS",
+      "both_adversarial_pass": true
+    },
+    "weight_0.7": {
+      "name": "linear_hybrid_weight_0.7_22year",
+      "embedding_shape": [
+        144443,
+        192
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.824075,
+          "std_language_dominance": 0.21524205995808532,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "FAIL",
+          "total_decisions": 2000,
+          "legal_relevant_only": 554,
+          "language_artifact_only": 594,
+          "both_available": 344,
+          "neither_available": 508,
+          "legal_neighbor_rate": 0.449,
+          "language_neighbor_rate": 0.469,
+          "jurist_would_succeed_rate": 0.449,
+          "jurist_forced_wrong_rate": 0.297,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": false,
+        "language_dominance_score": 0.824075,
+        "jurist_preference_rate": 0.449,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.12285000000000001,
+          "same_lang_same_branch_mean": 0.7211500000000001,
+          "cross_branch_mean": 0.156,
+          "invariance_gap": 0.5983,
+          "separation": -0.033149999999999985,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.41058140532631515,
+              "ari": 0.39136651043826864,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.3382642515921481,
+              "ari": 0.32774132236559766,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.4280698890632164,
+              "ari": 0.3294082497631102,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.3311069721014744,
+              "ari": 0.2826355067961509,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.2639601582327372,
+              "ari": 0.22936770293269557,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.4145271059862218,
+              "ari": 0.35052011996126264,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.2172357383226055,
+              "ari": 0.19077627550139112,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.12890537021948875,
+              "ari": 0.1336523575539808,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.3284277189465397,
+              "ari": 0.27047709278339643,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.3096848878808591,
+          "in_domain_mean_nmi": 0.3343230941685307,
+          "transfer_gap": 0.02463820628767155,
+          "status": "PASS"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.4287093596788783,
+              "branch_ari": 0.3195917382350619,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.34962765665726375,
+              "branch_ari": 0.2373705053517261,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.31051145919035034,
+              "branch_ari": 0.1839795059908358,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.36294949184216413,
+          "std_nmi": 0.04916495628320527,
+          "min_nmi": 0.31051145919035034,
+          "max_nmi": 0.4287093596788783,
+          "status": "PASS"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "FAIL",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.6893,
+          "branch_nmi": 0.3208,
+          "mean_language_purity": 0.7305,
+          "cluster_purities": [
+            0.4083,
+            0.6061,
+            0.6417,
+            0.581,
+            0.9866,
+            0.3916,
+            0.8442,
+            0.6594,
+            0.4651,
+            0.9861,
+            0.9727,
+            1.0,
+            0.377,
+            0.8936,
+            0.3165,
+            0.8987
+          ],
+          "cluster_sizes": [
+            169,
+            99,
+            120,
+            105,
+            149,
+            143,
+            154,
+            138,
+            43,
+            72,
+            110,
+            138,
+            122,
+            141,
+            139,
+            158
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.1229,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "FAIL",
+      "both_adversarial_pass": false
+    },
+    "weight_0.8": {
+      "name": "linear_hybrid_weight_0.8_22year",
+      "embedding_shape": [
+        144443,
+        192
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.8308499999999999,
+          "std_language_dominance": 0.21507156367125801,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "FAIL",
+          "total_decisions": 2000,
+          "legal_relevant_only": 559,
+          "language_artifact_only": 586,
+          "both_available": 302,
+          "neither_available": 553,
+          "legal_neighbor_rate": 0.4305,
+          "language_neighbor_rate": 0.444,
+          "jurist_would_succeed_rate": 0.4305,
+          "jurist_forced_wrong_rate": 0.293,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": false,
+        "language_dominance_score": 0.8308499999999999,
+        "jurist_preference_rate": 0.4305,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.11795,
+          "same_lang_same_branch_mean": 0.73765,
+          "cross_branch_mean": 0.1444,
+          "invariance_gap": 0.6197,
+          "separation": -0.02645,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.4296181633491028,
+              "ari": 0.3925529660515092,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.3364422203635246,
+              "ari": 0.32893725548322583,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.453897315800777,
+              "ari": 0.36078472852236754,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.3281619688847467,
+              "ari": 0.28057566816694574,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.28057661620816227,
+              "ari": 0.24083361471546258,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.4460213702096432,
+              "ari": 0.34725999001367225,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.212193569496888,
+              "ari": 0.1817803495706488,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.07354728284391593,
+              "ari": 0.05690120418610286,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.2779588698728715,
+              "ari": 0.20233399293733514,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.3083772879332492,
+          "in_domain_mean_nmi": 0.32938454981004556,
+          "transfer_gap": 0.021007261876796357,
+          "status": "PASS"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.40541355945465435,
+              "branch_ari": 0.29828876713777946,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.3984886337677434,
+              "branch_ari": 0.3375895505323297,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.3525599250819158,
+              "branch_ari": 0.19210226416751758,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.3854873727681045,
+          "std_nmi": 0.023454228578052908,
+          "min_nmi": 0.3525599250819158,
+          "max_nmi": 0.40541355945465435,
+          "status": "PASS"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "PASS",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.7098,
+          "branch_nmi": 0.3277,
+          "mean_language_purity": 0.7302,
+          "cluster_purities": [
+            0.5938,
+            0.6122,
+            0.9865,
+            0.5694,
+            0.9882,
+            0.4176,
+            0.4231,
+            0.9309,
+            1.0,
+            0.5781,
+            0.8767,
+            0.5603,
+            0.92,
+            0.9732,
+            0.3898,
+            0.5368
+          ],
+          "cluster_sizes": [
+            32,
+            147,
+            74,
+            72,
+            169,
+            170,
+            130,
+            188,
+            78,
+            128,
+            146,
+            116,
+            125,
+            112,
+            177,
+            136
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.1179,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "FAIL",
+      "both_adversarial_pass": false
+    },
+    "weight_0.9": {
+      "name": "linear_hybrid_weight_0.9_22year",
+      "embedding_shape": [
+        144443,
+        192
+      ],
+      "adversarial": {
+        "adversarial_language_dominance": {
+          "mean_language_dominance": 0.831825,
+          "std_language_dominance": 0.21544934294399692,
+          "max_language_dominance": 1.0,
+          "k": 20,
+          "threshold": 0.85,
+          "status": "PASS",
+          "note": "Lower is better - language should not dominate neighbors"
+        },
+        "jurist_pairwise_preference": {
+          "status": "FAIL",
+          "total_decisions": 2000,
+          "legal_relevant_only": 560,
+          "language_artifact_only": 590,
+          "both_available": 298,
+          "neither_available": 552,
+          "legal_neighbor_rate": 0.429,
+          "language_neighbor_rate": 0.444,
+          "jurist_would_succeed_rate": 0.429,
+          "jurist_forced_wrong_rate": 0.295,
+          "note": "Simulated jurist prefers legally-relevant neighbors. Rate > 0.5 means majority of decisions have at least one legally-relevant neighbor in top-k."
+        },
+        "both_pass": false,
+        "language_dominance_score": 0.831825,
+        "jurist_preference_rate": 0.429,
+        "backend": "sklearn_exact",
+        "subset_size": 2000,
+        "note": "EXACT k-NN on fixed stratified subsample (HNSW artifact fix)"
+      },
+      "cross_language": {
+        "cross_language_neighbor_quality": {
+          "cross_lang_same_branch_mean": 0.11670000000000001,
+          "same_lang_same_branch_mean": 0.74085,
+          "cross_branch_mean": 0.14245,
+          "invariance_gap": 0.62415,
+          "separation": -0.02574999999999998,
+          "k": 10
+        },
+        "zero_shot_cross_language_transfer": {
+          "pairwise_results": {
+            "fr->fr": {
+              "train_lang": "fr",
+              "test_lang": "fr",
+              "zero_shot": false,
+              "nmi": 0.4100119980255311,
+              "ari": 0.3811215930982379,
+              "test_size": 674
+            },
+            "fr->de": {
+              "train_lang": "fr",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.32542478799988933,
+              "ari": 0.31814004323855205,
+              "test_size": 1185
+            },
+            "fr->it": {
+              "train_lang": "fr",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.453897315800777,
+              "ari": 0.36078472852236754,
+              "test_size": 141
+            },
+            "de->fr": {
+              "train_lang": "de",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.3226859540521454,
+              "ari": 0.28837233541020396,
+              "test_size": 674
+            },
+            "de->de": {
+              "train_lang": "de",
+              "test_lang": "de",
+              "zero_shot": false,
+              "nmi": 0.26703654920699565,
+              "ari": 0.22986253044946578,
+              "test_size": 1185
+            },
+            "de->it": {
+              "train_lang": "de",
+              "test_lang": "it",
+              "zero_shot": true,
+              "nmi": 0.43480177720182417,
+              "ari": 0.33821618246952223,
+              "test_size": 141
+            },
+            "it->fr": {
+              "train_lang": "it",
+              "test_lang": "fr",
+              "zero_shot": true,
+              "nmi": 0.22348521492664156,
+              "ari": 0.18708102304345392,
+              "test_size": 674
+            },
+            "it->de": {
+              "train_lang": "it",
+              "test_lang": "de",
+              "zero_shot": true,
+              "nmi": 0.0734162174912819,
+              "ari": 0.05494637420196711,
+              "test_size": 1185
+            },
+            "it->it": {
+              "train_lang": "it",
+              "test_lang": "it",
+              "zero_shot": false,
+              "nmi": 0.3330333508132943,
+              "ari": 0.24820991888044827,
+              "test_size": 141
+            }
+          },
+          "zero_shot_mean_nmi": 0.30561854457875987,
+          "in_domain_mean_nmi": 0.3366939660152737,
+          "transfer_gap": 0.031075421436513817,
+          "status": "PASS"
+        },
+        "language_specific_representation_quality": {
+          "per_language": {
+            "fr": {
+              "n_decisions": 674,
+              "branch_nmi": 0.39849052188492223,
+              "branch_ari": 0.28754415943821426,
+              "n_branches": 4
+            },
+            "de": {
+              "n_decisions": 1185,
+              "branch_nmi": 0.36181558384815354,
+              "branch_ari": 0.30398572796975504,
+              "n_branches": 4
+            },
+            "it": {
+              "n_decisions": 141,
+              "branch_nmi": 0.35632101173607234,
+              "branch_ari": 0.2012362257209098,
+              "n_branches": 4
+            }
+          },
+          "mean_nmi": 0.37220903915638265,
+          "std_nmi": 0.018718704219427267,
+          "min_nmi": 0.35632101173607234,
+          "max_nmi": 0.39849052188492223,
+          "status": "PASS"
+        }
+      },
+      "jurist_usability": {
+        "cluster_coherence_rating": {
+          "status": "PASS",
+          "n_clusters": 16,
+          "mean_branch_purity": 0.7138,
+          "branch_nmi": 0.3193,
+          "mean_language_purity": 0.7354,
+          "cluster_purities": [
+            0.9328,
+            0.9941,
+            0.9867,
+            0.325,
+            0.557,
+            0.3855,
+            0.7265,
+            0.6452,
+            0.9737,
+            0.4651,
+            1.0,
+            0.5806,
+            1.0,
+            0.6111,
+            0.9048,
+            0.3333
+          ],
+          "cluster_sizes": [
+            119,
+            170,
+            75,
+            160,
+            149,
+            166,
+            223,
+            155,
+            76,
+            43,
+            82,
+            124,
+            74,
+            108,
+            147,
+            129
+          ],
+          "note": "Simulated jurist rates clusters by branch coherence. High branch purity = legally coherent clusters. High language purity = language-dominated clusters."
+        },
+        "zoom_task": {
+          "status": "SKIP",
+          "note": "Requires hierarchical cluster assignments"
+        },
+        "cross_language_retrieval": {
+          "status": "FAIL",
+          "mean_cross_language_recall_at_k": 0.1167,
+          "k": 10,
+          "n_queries": 2000,
+          "note": "Simulated jurist searches for cross-language legal equivalents. Recall > 0.2 means at least 1 in 5 cross-language legal equivalents appears in top-10."
+        }
+      },
+      "verdict": "FAIL",
+      "both_adversarial_pass": false
+    }
+  },
+  "best_weight_cited": "weight_0.4",
+  "best_weight_hybrid": "weight_0.3",
+  "timestamp": "2026-10-02T22:37:55.152305",
+  "n_decisions": 144443,
+  "year_range": "2000-2021"
+}
