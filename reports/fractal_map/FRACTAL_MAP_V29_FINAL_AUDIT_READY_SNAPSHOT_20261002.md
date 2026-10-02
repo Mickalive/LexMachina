@@ -60,14 +60,16 @@
 
 | Path | Description | Status |
 |------|-------------|--------|
-| `results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_full_20260926.json` | TF-IDF hybrid_0.5 at 174k (coarse=21, fine=371, branch 0.353→0.383) | ✅ Valid JSON |
-| `results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_hybrid05_20260926.json` | cited_decisions_tfidf_outcome_hybrid_0.5 | ✅ Valid JSON |
-| `results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_hybrid07_20260926.json` | cited_decisions_tfidf_outcome_hybrid_0.7 | ✅ Valid JSON |
-| `results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_regeste_20260926.json` | regeste_tfidf | ✅ Valid JSON |
+| `results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_full_20260926.json` | hybrid_0.5 (full_text_tfidf_light) at 174k (coarse=21, fine=371, branch 0.353→0.383) | ✅ Valid JSON |
+| `results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_hybrid05_20260926.json` | cited_decisions_tfidf_outcome_hybrid_0.5 at 174k (coarse=85, fine=1,118) | ✅ Valid JSON |
+| `results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_hybrid07_20260926.json` | cited_decisions_tfidf_outcome_hybrid_0.7 at 174k (coarse=107, fine=1,326) | ✅ Valid JSON |
+| `results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_regeste_20260926.json` | regeste_tfidf at 83,072 (coarse=175, fine=1,274) | ✅ Valid JSON |
 | `results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_regeste_full_20260930.json` | regeste_tfidf full 174k | ✅ Valid JSON |
-| `results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_citing_alpha0.3_20260926_170918.json` | Citation role: citing | ✅ Valid JSON |
-| `results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_following_alpha0.3_20260926_170918.json` | Citation role: following | ✅ Valid JSON |
-| `results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_criticizing_alpha0.3_20260926_170919.json` | Citation role: criticizing | ✅ Valid JSON |
+| `results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_citing_alpha0.3_20260926_170918.json` | Citation role: citing_alpha0.3 at 1,200 (coarse=17, fine=153) | ✅ Valid JSON |
+| `results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_following_alpha0.3_20260926_170918.json` | Citation role: following_alpha0.3 at 1,200 | ✅ Valid JSON |
+| `results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_criticizing_alpha0.3_20260926_170919.json` | Citation role: criticizing_alpha0.3 at 1,200 | ✅ Valid JSON |
+| `results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_cited_decisions_tfidf_20260926_171127.json` | cited_decisions_tfidf at 1,200 (coarse=6, fine=39) | ✅ Valid JSON |
+| `results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_cited_decisions_tfidf_outcome_hybrid_0.5_20260926_171127.json` | cited_decisions_tfidf_outcome_hybrid_0.5 at 1,200 | ✅ Valid JSON |
 | `results/fractal_map/multi_level_protocol_174k_tfidf/regeste_tfidf/multi_level_174k_regeste_tfidf_results.json` | Multi-level protocol regeste_tfidf | ✅ Valid JSON |
 | `results/fractal_map/multi_level_protocol_174k_tfidf/cited_decisions_tfidf/multi_level_174k_cited_decisions_tfidf_results.json` | Multi-level protocol cited_decisions | ✅ Valid JSON |
 | `results/fractal_map/scale_extrapolation/scale_extrapolation_model_v3.json` | Scale extrapolation model v3 | ✅ Valid JSON |
@@ -103,14 +105,23 @@
 
 | Mode | Sample | Coarse | Fine | Branch Δ | Area Δ | Nesting | Zoom Rate | Singletons |
 |------|--------|--------|------|----------|--------|---------|-----------|------------|
-| `cited_decisions_tfidf_outcome_hybrid_0.5` | 173,963 | 21 | 371 | +0.030 | +0.031 | 1.000 | 87.8% | 0.0% |
-| `cited_decisions_tfidf_outcome_hybrid_0.7` | 173,963 | 107 | 1,118 | +0.059 | +0.090 | 1.000 | 83.8% | 0.09% |
-| `cited_decisions_tfidf` | 173,963 | 85 | 1,326 | +0.049 | +0.070 | 1.000 | 90.0% | 0.0% |
+| `hybrid_0.5 (full_text_tfidf_light)` | 173,963 | 21 | 371 | +0.030 | +0.031 | 1.000 | 87.8% | 0.0% |
+| `cited_decisions_tfidf_outcome_hybrid_0.5` | 173,963 | 85 | 1,118 | +0.058 | +0.090 | 1.000 | 87.8% | 0.09% |
+| `cited_decisions_tfidf_outcome_hybrid_0.7` | 173,963 | 107 | 1,326 | +0.049 | +0.070 | 1.000 | 83.8% | 0.08% |
 | `regeste_tfidf` | 83,072 | 175 | 1,274 | +0.088 | +0.135 | 1.000 | 57.5% | 0.0% |
 
-**All modes:** Nesting = 1.0 (by construction), singleton fraction < 0.1%, branch/area purity strictly improves from coarse to fine.
+**Citation-role / hybrid modes at 1,200-sample scale (NOT 174k):**
+| Mode | Sample | Coarse | Fine | Branch Purity | Area Purity | Nesting |
+|------|--------|--------|------|---------------|-------------|---------|
+| `citing_alpha0.3` | 1,200 | 17 | 153 | 0.688 | 0.387 | 1.000 |
+| `following_alpha0.3` | 1,200 | — | — | — | — | 1.000 |
+| `criticizing_alpha0.3` | 1,200 | — | — | — | — | 1.000 |
+| `cited_decisions_tfidf` | 1,200 | 6 | 39 | 0.688 | 0.387 | 1.000 |
+| `cited_decisions_tfidf_outcome_hybrid_0.5` | 1,200 | — | — | — | — | 1.000 |
 
-**BUT:** Fine branch purity caps at ~0.38-0.45 for adaptive configs — **cannot reach hierarchical_v1 threshold of > 0.5**.
+**All 174k modes:** Nesting = 1.0 (by construction), singleton fraction < 0.1%, branch/area purity strictly improves from coarse to fine.
+
+**BUT:** Fine branch purity caps at ~0.38-0.49 for adaptive 174k configs — **cannot reach hierarchical_v1 threshold of > 0.5**. Citation-role modes at 1,200 show higher branch purity (0.688) but do not scale to 174k without dense embeddings.
 
 ### 2. Frozen v26 Flat Zoom Quality — ALL FAIL at 174k
 
@@ -152,7 +163,7 @@
 | Blocker | Status | Evidence |
 |---------|--------|----------|
 | legal-distance 174k dense embeddings | **CRITICAL** | Only 3/26 years ACCEPTED (2000-2002, ~19,441 decisions, 11%) |
-| Citation role embeddings at 174k | PENDING | Requires 174k dense embeddings |
+| Citation role embeddings at 174k | PENDING | Requires 174k dense embeddings; current 1,200-sample only |
 | Linear hybrid embeddings at 174k | PENDING | Requires 174k dense embeddings |
 | Section-specific cross-lingual | PENDING | Requires 174k dense embeddings |
 | Frozen v26 rule unsatisfiable by TF-IDF | CONFIRMED | 0/4 modes pass at 174k |
