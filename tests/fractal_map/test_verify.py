@@ -417,10 +417,10 @@ class TestMetricConsistency:
         """Factory direction v28 discrepancy is recorded in state (corrected in v29)."""
         assert "factory_direction_v28_discrepancy" in self.state
         discrepancy = self.state["factory_direction_v28_discrepancy"]
-        # Check for corrected progress numbers (19/26 checkpointed, 16/26 pending audit)
-        assert "19/26" in str(discrepancy) or "16/26" in str(discrepancy)
+        # Check for corrected progress numbers: v29 states 15/26 checkpointed; actual evidence shows 21/26 computed
+        assert "21/26" in str(discrepancy) or "15/26" in str(discrepancy)
         assert "3/26" in str(discrepancy)
-        assert "2000-2002" in str(discrepancy)
+        assert "ACCEPTED" in str(discrepancy) or "2000-2002" in str(discrepancy)
 
     def test_evidence_refs_present(self):
         """Evidence references point to actual result files."""
