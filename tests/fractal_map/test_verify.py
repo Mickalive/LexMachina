@@ -361,8 +361,8 @@ class TestMetricConsistency:
 
     def test_state_evidence_tier(self):
         # Evidence tier hierarchy: UNTESTED < EXPLORATORY < REPRODUCED < ACCEPTED
-        # Lane is BLOCKED on legal-distance 174k dense embeddings — evidence tier is REPRODUCED
-        assert self.state["evidence_tier"] == "REPRODUCED"
+        # TF-IDF 174k validation is first-run (no independent reproduction) — evidence tier is EXPLORATORY
+        assert self.state["evidence_tier"] == "EXPLORATORY"
 
     def test_state_cycle_status(self):
         # COMPLETED = lane finished current question with accepted evidence; BLOCKED_ON_DEPENDENCIES = blocked on upstream lanes

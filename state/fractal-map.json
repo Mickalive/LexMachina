@@ -1,11 +1,11 @@
 {
   "lane": "fractal-map",
   "direction_version": 29,
-  "evidence_tier": "REPRODUCED",
+  "evidence_tier": "EXPLORATORY",
   "cycle_status": "BLOCKED_ON_DEPENDENCIES",
   "continue_recommended": false,
-  "accepted_run_id": "FRACTAL_MAP_174K_TFIDF_VALIDATION_20261002",
-  "github_run": 36985829359,
+  "accepted_run_id": "FRACTAL_MAP_V29_AUDIT_VERIFICATION_20261002_36988883391",
+  "github_run": 36988883391,
   "evidence_refs": [
     "results/fractal_map/hierarchical_leiden_174k_tfidf_all_modes.json",
     "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_full_20260926.json",
@@ -52,7 +52,7 @@
     "fine_branch_purity_best": 0.930,
     "fine_branch_purity_worst": 0.36,
     "dense_embeddings_available": false,
-    "dense_embeddings_progress": "3/26 years ACCEPTED (2000-2002, ~19,441 decisions), 15/26 years checkpointed (2000-2014, ~100k decisions), 11/26 years not processed"
+    "dense_embeddings_progress": "3/26 years ACCEPTED (2000-2002, ~19,441 decisions), 15/26 years checkpointed (2000-2014, ~100k decisions) pending audit, 11/26 years not processed (2015-2026)"
   },
   "accepted_claims": [
     "Constrained hierarchical Leiden at 174k on TF-IDF achieves nesting=1.0 by construction for all 8 modes",
@@ -68,11 +68,11 @@
     "TF-IDF production modes OPERATIONAL at 174k (3 modes, 16/16 scale tests PASS, 50+ API endpoints, WebGL <3s) but hierarchical_v1 legal_structure_branch claim NOT achievable with TF-IDF at 174k"
   ],
   "blocked_dependencies": [
-    "legal-distance 174k dense embeddings: only 3/26 years ACCEPTED (2000-2002, ~19k decisions), 19/26 years checkpointed (2000-2018, ~122k decisions) pending audit, 4/26 years NOT PROCESSED (2019, 2020-2025)",
+    "legal-distance 174k dense embeddings: only 3/26 years ACCEPTED (2000-2002, ~19k decisions), 15/26 years checkpointed (2000-2014, ~100k decisions) pending audit, 11/26 years NOT PROCESSED (2015-2026)",
     "legal-distance citation-role embeddings at 174k: only 1,200 decisions ACCEPTED (frozen v3), requires dense embeddings at scale",
     "legal-distance linear_hybrid05_concat at 174k: not available; 15-year proxy NEGATIVE (JP=-0.2465 delta vs TF-IDF)",
     "Section-specific cross-lingual evaluation: pending dense embeddings at full corpus density",
-    "Corpus data gap for years 2019, 2020-2025: dense embedding checkpoints cover only 122,265/173,963 decisions (70.4%)"
+    "Corpus data gap for years 2015-2026: dense embedding checkpoints cover only ~100k/173,963 decisions (~57%)"
   ],
   "key_findings": {
     "flat_v26_zoom_quality": "Flat Leiden at v26 resolutions FAILS for all 4 TF-IDF modes at 174k (0/4 PASS): severe over-fragmentation (>99% singletons, median cluster size=1), no monotonic zoom refinement",
@@ -80,7 +80,7 @@
     "scale_dependency_confirmed": "Flat Leiden fails below 62k scale; constrained hierarchical Leiden works at ALL scales (1k-174k) but fine_branch_purity ceiling is representation-dependent. TF-IDF caps at ~0.93 (full_text_tfidf_light) but best citation-based modes ~0.68. Dense embeddings predicted 0.95-0.97 at 174k per 28k checkpoint extrapolation",
     "nesting_metric_defect_v1": "Audit CYCLE_36027099305 enforced: nesting_score>=0.99 claims for 7 compressed-family modes PROHIBITED. nesting_score=1.0 citeable ONLY for 1000-scale and 12k-scale by-construction modes with scope annotation. Compressed 5-level ladder NOT universally valid",
     "tfidf_fundamental_ceiling": "TF-IDF representation fundamentally lacks signal density for fine-grained branch purity > 0.5 at 174k scale for citation-based modes. Best text-based mode (full_text_tfidf_light) reaches 0.93 but with coarse structure limitations. Exhaustive algorithm testing (7 alternative hierarchical methods) confirms TF-IDF ceiling",
-    "dense_embeddings_necessary_sufficient": "Dense embeddings are necessary and sufficient for hierarchical_v1 PASS at scale. 12k ACCEPTED dense PASSes hierarchical_v1; 28k checkpoint validates scale extrapolation (hier_impr ~0.67); 19yr checkpoint (122k) validates pipeline at 70% scale with ALL 7 hierarchical_v1 checks PASS",
+    "dense_embeddings_necessary_sufficient": "Dense embeddings are necessary and sufficient for hierarchical_v1 PASS at scale. 12k ACCEPTED dense PASSes hierarchical_v1; 28k checkpoint validates scale extrapolation (hier_impr ~0.67); 15yr checkpoint (100k) validates pipeline at 57% scale with ALL 7 hierarchical_v1 checks PASS",
     "multi_level_recursive_protocol_validated": "Multi-level recursive purity-aware protocol STRUCTURALLY VALIDATED at 174k for TF-IDF (5 modes, 4-5 levels, perfect nesting, zero fragmentation, monotonic refinement). Threshold calibration needed for cited_decisions_tfidf (level 1) and regeste modes (level 2 area_purity_stop). READY for dense embedding deployment"
   },
   "factory_direction_v28_discrepancy": {
