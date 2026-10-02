@@ -25,7 +25,7 @@ from hierarchical_zoom_validation import (
 
 PRODUCT_RESULTS = Path("/home/runner/work/LexMachina/LexMachina/product/results/fractal_map")
 EMBEDDING_DIR = Path("/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/hierarchical_map_174k/legal_tfidf_embeddings")
-METADATA_FILE = Path("/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/hierarchical_map_174k/metadata_174k_full.json")
+METADATA_FILE = Path("/home/runner/work/LexMachina/LexMachina/product/results/fractal_map/hierarchical_map_174k/metadata_174k_full_175k.json")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 logger = logging.getLogger(__name__)
