@@ -101,7 +101,7 @@ def run_citation_heritage(embeddings, did_to_idx, positive_pairs, negative_pairs
         'similarity_gap': float(np.mean(positive_scores) - np.mean(negative_scores)),
         'num_positive_pairs': len(valid_positive),
         'num_negative_pairs': len(valid_negative),
-        'status': 'PASS' if auc_roc > 0.65 else 'FAIL'
+        'status': 'PASS' if auc_roc >= 0.7 else 'FAIL'
     }
     
     return metrics

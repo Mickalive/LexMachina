@@ -32,16 +32,24 @@ Ran adversarial benchmarks (exact k-NN on fixed stratified subsample of 2,000 va
 
 ### 2. Citation Heritage Benchmark — **OPERATIONAL**
 
-Validated benchmark infrastructure on 1,020 positive + 1,020 negative citation pairs from resolved citation graph (2,019/2,105 citations resolved at 95.9%):
+Validated benchmark infrastructure on 1,020 positive + 1,020 negative citation pairs from resolved citation graph (2,019/2,105 citations resolved at 95.9%). **Threshold: AUC-ROC ≥ 0.7 (frozen in code and report).**
 
-| Representation | AUC-ROC | Expected |
-|----------------|---------|----------|
-| cited_decisions_tfidf | 0.7426 | ✅ PASS (≥ 0.7) |
+| Representation | AUC-ROC | Status |
+|----------------|---------|--------|
+| cited_decisions_tfidf | 0.7426 | ✅ PASS |
 | cited_decisions_tfidf_outcome_hybrid_0.7 | 0.7290 | ✅ PASS |
 | cited_decisions_tfidf_outcome_hybrid_0.5 (production default) | 0.7163 | ✅ PASS |
+| regeste_full_text_hybrid_0.7 | 0.6595 | ❌ FAIL |
+| regeste_full_text_hybrid_0.5 | 0.6365 | ❌ FAIL |
+| outcome_tfidf | 0.6262 | ❌ FAIL |
+| full_text_tfidf_light | 0.6257 | ❌ FAIL |
 | regeste_tfidf | 0.5030 | ❌ FAIL (~random) |
 
+**Result: 4/8 PASS at AUC ≥ 0.7.**
+
 **Fundamental two-mode tradeoff confirmed:** Citation-based signals recover citation heritage; text-based signals do not.
+
+*Note: Previous report incorrectly claimed threshold ≥ 0.7 while code used 0.65. This discrepancy has been fixed — both code and report now use AUC ≥ 0.7.*
 
 ---
 
@@ -50,7 +58,7 @@ Validated benchmark infrastructure on 1,020 positive + 1,020 negative citation p
 ### Completed Work Items (3/3)
 
 1. ✅ **TF-IDF family formal suite at 174k** — 8 representations, all PASS both adversarial gates
-2. ✅ **Citation heritage validation at 174k** — 1,020 pairs, 4/8 PASS AUC-ROC ≥ 0.7
+2. ✅ **Citation heritage validation at 174k** — 1,020 pairs, **4/8 PASS AUC-ROC ≥ 0.7** (threshold aligned with code)
 3. ✅ **v17b label normalization** — REPRODUCED at 1K (15-25% gain, 4 seeds); 174k generalization tested (NEGATIVE — different regime)
 4. ✅ **v18 coarse hierarchy** — NEGATIVE (best branch purity 0.65 < 0.7 threshold)
 
@@ -80,11 +88,14 @@ Validated benchmark infrastructure on 1,020 positive + 1,020 negative citation p
 
 ---
 
-## Critical Findings Summary (Unchanged from v29)
+## Critical Findings Summary (Unchanged from v29, except citation heritage threshold fix)
 
 1. **TF-IDF 174k formal suite COMPLETE** — Production default `cited_decisions_tfidf_outcome_hybrid_0.5` validated (LangDom=0.4895, JuristPref=0.7265)
-2. **Citation heritage VALIDATED** — Citation-based signals dominate (AUC 0.71-0.74); text-based fail (AUC ~0.5)
-3. **v17b label normalization REPRODUCED** — But 174k generalization FAILS (different label regime: 213→111 vs 104→54)
+2. **Citation heritage VALIDATED** — Citation-based signals dominate (AUC 0.71-0.74); text-based fail (AUC ~0.5-0.66). **Threshold fixed: AUC ≥ 0.7 in both code and report (4/8 PASS).**
+3. **v17b label normalization REPRODUCED** — But 174k generalization FAILS under two distinct normalization regimes:
+   - Experiment A (inline v17b keywords): 213→111 labels, 4.7x-10x purity ratios, NMI decreases
+   - Experiment B (`legal_area_normalize.py`): 157→107 labels, 1.0x-1.67x purity ratios, NMI decreases
+   **See clarification report:** `reports/evaluation/v17b_174k_normalization_regimes_clarification.md`
 4. **v18 coarse hierarchy NEGATIVE** — Fundamental hierarchy limitation at branch level (best 0.65 < 0.7)
 5. **Two-mode tradeoff CONFIRMED** — Citation signals vs text signals; persists in dense embeddings at 165k
 6. **Boilerplate resistance NEGATIVE** — All reps show resistance_score ≈ -0.84 (measures language dominance, not boilerplate)
@@ -118,6 +129,7 @@ Factory Director to decide successor question. Legal-distance recommends FRONTIE
 - `evaluation/results/v17b_174k_dense_partial/v17b_174k_dense_partial_latest.json`
 - `results/evaluation/v18_coarse_hierarchy/v18_coarse_hierarchy_results.json`
 - `state/evaluation.json` (updated with verification timestamp)
+- `reports/evaluation/v17b_174k_normalization_regimes_clarification.md` (v17b two-regime clarification)
 
 ---
 
@@ -128,4 +140,5 @@ Factory Director to decide successor question. Legal-distance recommends FRONTIE
 - ✅ Citation heritage pairs frozen from resolved 174k citation graph
 - ✅ Negative results preserved (v18 coarse hierarchy, boilerplate resistance, v17b 174k generalization)
 - ✅ No benchmark weakening after seeing results
+- ✅ **Citation heritage threshold aligned: code and report both use AUC ≥ 0.7**
 - ✅ Provenance preserved in state/evaluation.json and evidence refs
