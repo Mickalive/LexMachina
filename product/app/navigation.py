@@ -2444,6 +2444,9 @@ class NavigationAPI:
         optional viewport bbox filtering, and LOD decimation to minimize
         data transfer.
         
+        OPTIMIZED: Uses raw zoom level data directly from map_loader,
+        applies LOD/culling BEFORE enrichment, only enriches visible points.
+        
         Args:
             representation: Map representation name
             zoom_level: Zoom level
@@ -2470,13 +2473,228 @@ class NavigationAPI:
                 cached["cached"] = True
                 return cached
 
+        # Get raw zoom level data directly from map_loader (no corpus enrichment)
         if map_mode:
             map_data = self.get_map_data(map_mode=map_mode, zoom_level=zoom_level)
+            positions = map_data.get('positions', [])
+            clusters = map_data.get('clusters', [])
         else:
-            map_data = self.get_map_data(representation=representation, zoom_level=zoom_level)
-
-        positions = map_data.get('positions', [])
-        clusters = map_data.get('clusters', [])
+            # OPTIMIZED PATH: Use raw zoom level data, enrich only after culling
+            zl = self.map_loader.get_zoom_level(representation, zoom_level)
+            if not zl:
+                return {"error": f"Zoom level {zoom_level} not available for {representation}"}
+            
+            clusters = []
+            for cid, cluster in zl.clusters.items():
+                clusters.append({
+                    "cluster_id": cid,
+                    "size": cluster.size,
+                    "centroid_x": cluster.centroid_x,
+                    "centroid_y": cluster.centroid_y,
+                    "sample_decisions": [],  # No sample decisions for WebGL
+                })
+            
+            # Build position arrays from raw data (fast: no corpus.get_summary calls)
+            decision_ids = list(zl.positions.keys())
+            n_total = len(decision_ids)
+            
+            # Get imported decision IDs
+            if import_ids is not None:
+                imported_ids = import_ids
+            else:
+                imported_ids = set(key[0] for key in self._imported_positions.keys())
+            
+            # Prepare numpy arrays directly from raw positions
+            xs = np.empty(n_total, dtype=np.float64)
+            ys = np.empty(n_total, dtype=np.float64)
+            cluster_ids = np.empty(n_total, dtype=np.int32)
+            imported_flags = np.empty(n_total, dtype=bool)
+            
+            for i, did in enumerate(decision_ids):
+                x, y = zl.positions[did]
+                xs[i] = x
+                ys[i] = y
+                cluster_ids[i] = zl.cluster_assignments.get(did, 0)
+                imported_flags[i] = did in imported_ids
+            
+            positions_array = np.column_stack((xs, ys))
+            
+            # Apply LOD decimation BEFORE enrichment
+            positions_processed = positions_array
+            cluster_ids_processed = cluster_ids
+            decision_ids_processed = decision_ids
+            imported_flags_processed = imported_flags
+            clusters_processed = clusters
+            n_total_pre_lod = n_total
+            n_after_lod = n_total
+            lod_decimation = {"applied": False, "original_count": n_total, "decimated_count": n_total, "zoom_level": zoom_level}
+            
+            if lod_level is not None and lod_level < 2 and n_total > 0:
+                # LOD decimation
+                lod_result = self.lod_manager.compute_lod_levels(positions_processed, clusters_processed, lod_level)
+                positions_processed = lod_result["points"]
+                cluster_ids_processed = np.zeros(lod_result["point_count"], dtype=np.int32)  # Will be recomputed
+                lod_sizes = lod_result["cluster_sizes"]
+                n_after_lod = lod_result["point_count"]
+                lod_decimation = {
+                    "applied": True,
+                    "original_count": n_total_pre_lod,
+                    "decimated_count": n_after_lod,
+                    "zoom_level": zoom_level,
+                }
+                
+                # For LOD points, we need to find nearest cluster centroid
+                if n_after_lod > 0 and len(clusters_processed) > 0:
+                    n_cl = len(clusters_processed)
+                    cl_centroids = np.empty((n_cl, 2), dtype=np.float64)
+                    cl_cids = np.empty(n_cl, dtype=np.int32)
+                    for idx_c, cl in enumerate(clusters_processed):
+                        cl_centroids[idx_c, 0] = cl["centroid_x"]
+                        cl_centroids[idx_c, 1] = cl["centroid_y"]
+                        cl_cids[idx_c] = cl["cluster_id"]
+                    diffs = positions_processed[:, np.newaxis, :] - cl_centroids[np.newaxis, :, :]
+                    dists_sq = np.sum(diffs * diffs, axis=2)
+                    nearest_idx = np.argmin(dists_sq, axis=1)
+                    cluster_ids_processed = cl_cids[nearest_idx]
+                
+                # Generate placeholder decision_ids for LOD points
+                decision_ids_processed = [f"lod_cluster_{int(cluster_ids_processed[j])}_{j}" for j in range(n_after_lod)]
+                imported_flags_processed = np.zeros(n_after_lod, dtype=bool)
+            
+            # Apply viewport culling
+            if bbox and n_after_lod > 0:
+                culled_mask = self.lod_manager.cull_to_viewport(positions_processed, bbox)
+                positions_processed = positions_processed[culled_mask]
+                cluster_ids_processed = cluster_ids_processed[culled_mask]
+                decision_ids_processed = [decision_ids_processed[i] for i in range(n_after_lod) if culled_mask[i]]
+                imported_flags_processed = imported_flags_processed[culled_mask]
+                n_after_lod = int(np.sum(culled_mask))
+            
+            # NOW enrich only the visible/remaining points (after LOD + culling)
+            # This is fast because n_after_lod is small (viewport) or already decimated
+            n_culled = n_after_lod
+            positions = []
+            corpus_ids = set(self.corpus.get_all_ids())
+            for i in range(n_culled):
+                did = decision_ids_processed[i]
+                x = positions_processed[i, 0]
+                y = positions_processed[i, 1]
+                cid = int(cluster_ids_processed[i])
+                is_imported = bool(imported_flags_processed[i])
+                
+                summary = self.corpus.get_summary(did) if not did.startswith("lod_cluster_") else None
+                meta = {}
+                if not summary and not did.startswith("lod_cluster_"):
+                    meta = self._get_map_decision_meta(did)
+                
+                positions.append({
+                    "decision_id": did,
+                    "x": float(x),
+                    "y": float(y),
+                    "cluster": cid,
+                    "language": (summary.get("language") if summary else meta.get("language", "unknown")),
+                    "branch": (summary.get("branch") if summary else meta.get("branch", "unknown")),
+                    "legal_area": (summary.get("legal_area") if summary else meta.get("legal_area", "unknown")),
+                    "has_corpus": did in corpus_ids,
+                    "is_imported": is_imported,
+                })
+            
+            # Build cluster color map
+            COLORS = [
+                '#7c8aff', '#ff6b6b', '#51cf66', '#ffd43b', '#cc5de8',
+                '#20c997', '#ff922b', '#4dabf7', '#e599f7', '#69db7c',
+                '#fcc419', '#ff8787', '#748ffc', '#63e6be', '#da77f2',
+                '#a9e34b', '#ffa94d', '#74c0fc', '#b2f2bb', '#f783ac',
+            ]
+            cluster_color_map = {}
+            for i, cluster in enumerate(clusters_processed):
+                cid = cluster['cluster_id']
+                hex_c = COLORS[i % len(COLORS)]
+                h = hex_c.lstrip('#')
+                r, g, b = int(h[0:2], 16)/255.0, int(h[2:4], 16)/255.0, int(h[4:6], 16)/255.0
+                cluster_color_map[cid] = (r, g, b, 0.8)
+            
+            # Vectorized color/radius assignment for final points
+            n_final = len(positions)
+            positions_array = np.empty(n_final * 2, dtype=np.float32)
+            colors_array = np.empty(n_final * 4, dtype=np.float32)
+            radii_array = np.empty(n_final, dtype=np.float32)
+            imported_array = np.empty(n_final, dtype=np.float32)
+            decision_ids_final = []
+            cluster_ids_final = np.empty(n_final, dtype=np.int32)
+            languages_final = []
+            
+            for i, p in enumerate(positions):
+                positions_array[i*2] = p['x']
+                positions_array[i*2 + 1] = p['y']
+                cid = p['cluster']
+                r, g, b, a = cluster_color_map.get(cid, (0.5, 0.5, 0.5, 0.8))
+                colors_array[i*4] = r
+                colors_array[i*4 + 1] = g
+                colors_array[i*4 + 2] = b
+                colors_array[i*4 + 3] = a
+                # Radius based on cluster size (find cluster)
+                cluster_size = 1
+                for cl in clusters_processed:
+                    if cl['cluster_id'] == cid:
+                        cluster_size = cl['size']
+                        break
+                radii_array[i] = max(3.0, min(20.0, np.sqrt(cluster_size) * 2))
+                imported_array[i] = 1.0 if p['is_imported'] else 0.0
+                decision_ids_final.append(p['decision_id'])
+                cluster_ids_final[i] = cid
+                languages_final.append(p['language'])
+            
+            # Build transform from full data extents
+            transform = {
+                "xMin": float(xs.min()) if n_total > 0 else 0,
+                "xMax": float(xs.max()) if n_total > 0 else 0,
+                "yMin": float(ys.min()) if n_total > 0 else 0,
+                "yMax": float(ys.max()) if n_total > 0 else 0,
+                "scale": 1.0,
+                "offsetX": 0,
+                "offsetY": 0,
+            }
+            
+            # Compute frustum planes for GPU-side culling
+            frustum_planes = None
+            if bbox and 'xMin' in bbox and 'xMax' in bbox and 'yMin' in bbox and 'yMax' in bbox:
+                frustum_planes = [
+                    (1.0, 0.0, -bbox['xMin']),
+                    (-1.0, 0.0, bbox['xMax']),
+                    (0.0, 1.0, -bbox['yMin']),
+                    (0.0, -1.0, bbox['yMax']),
+                ]
+            
+            result = {
+                "points": {
+                    "positions": positions_array.tolist(),
+                    "colors": colors_array.tolist(),
+                    "radii": radii_array.tolist(),
+                    "imported": imported_array.tolist(),
+                    "decision_ids": decision_ids_final,
+                    "cluster_ids": cluster_ids_final.tolist(),
+                    "languages": languages_final,
+                    "count": n_culled,
+                },
+                "clusters": clusters_processed,
+                "hulls": [],
+                "transform": transform,
+                "frustum_planes": frustum_planes,
+                "viewport_bbox": bbox,
+                "lod_decimation": lod_decimation,
+                "viewport_culling": {
+                    "requested": bbox is not None,
+                    "total_positions": n_total_pre_lod,
+                    "visible_positions": n_culled,
+                    "culled_count": n_total_pre_lod - n_culled,
+                    "visible_clusters": len(set(cluster_ids_final)) if n_final > 0 else 0,
+                },
+            }
+            
+            if cache_key:
+                self._set_cache(self._webgl_cache, cache_key, result)
+            return result
 
         if not positions:
             return {
