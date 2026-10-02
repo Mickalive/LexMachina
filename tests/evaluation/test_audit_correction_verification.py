@@ -218,8 +218,8 @@ def test_next_recommendation_mentions_current_audit():
     state = load_json("evaluation/state/evaluation.json")
     
     rec = state["next_recommendation"]
-    # Should mention the current audit cycle corrections
-    assert "CYCLE_37034281869" in rec or "CYCLE_36974751409" in rec or "REPAIR" in rec
+    # Should mention the current audit cycle corrections (CYCLE_37047250876 = round 3)
+    assert "CYCLE_37047250876" in rec or "CYCLE_37034281869" in rec or "CYCLE_37040923855" in rec or "REPAIR" in rec
     # Should mention citation heritage correction
     assert "citation heritage" in rec.lower() or "citation_heritage" in rec.lower()
     # Should mention v17b regime difference
