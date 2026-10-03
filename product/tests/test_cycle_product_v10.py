@@ -387,7 +387,7 @@ def test_nav_get_representation_recommendation_invalid():
 def test_map_loader_metadata_has_design_pattern():
     """MapLoader.DESIGN_PATTERNS assigns a pattern to every representation."""
     for rep_name, pattern in MapLoader.DESIGN_PATTERNS.items():
-        assert pattern in {"DEFAULT", "LEGACY-DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "COMBINATION", "CITATION-ROLE", "LEGACY"}, (
+        assert pattern in {"DEFAULT", "LEGACY-DEFAULT", "HIGH-PURITY", "HIGH-ADVANTAGE", "COMBINATION", "CITATION-ROLE", "LEGACY", "EXPLORATORY"}, (
             f"{rep_name} has unexpected pattern: {pattern}"
         )
 
