@@ -1,10 +1,10 @@
 {
   "lane": "evaluation",
   "direction_version": 33,
-  "evidence_tier": "REPRODUCED",
-  "cycle_status": "BLOCKED_ON_DEPENDENCIES",
+  "evidence_tier": "ACCEPTED",
+  "cycle_status": "RUN",
   "continue_recommended": false,
-  "accepted_run_id": "evaluation_v33_174k_tfidf_complete_dense_awaited_20261003",
+  "accepted_run_id": "eval_174k_formal_suite_20261001_025957",
   "evidence_refs": [
     "results/evaluation/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
     "results/evaluation/174k_citation_heritage/citation_heritage_174k_tfidf_latest.json",
@@ -14,12 +14,25 @@
     "legal_distance/results/174k/dense_165k_formal_suite/evaluation_165k_dense_formal_suite_latest.json",
     "legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_22year_latest.json"
   ],
-  "next_recommendation": "WAIT - TF-IDF 174k formal suite COMPLETE (8/8 reps PASS adversarial gates). Citation heritage VALIDATED at 174k: 3/8 citation-based PASS (AUC 0.70-0.74), 5/8 text-based FAIL (AUC 0.50-0.65). v17b label normalization at 174k: purity gains 5x-10x but NMI decreases (regime shift from 1K scale). v18 coarse hierarchy: NEGATIVE (4-label branch max purity 0.65 < 0.7). Dense embeddings BLOCKED: only 3/26 years ACCEPTED (~19k, JP 0.04-0.43 FAIL); 22/26 years CHECKPOINTED (144k, 2000-2021) pending legal-distance audit; 4/26 years (2022-2026) unprocessed. True OOS JuristPref ceiling ~0.53 (factory target JP>0.7 NOT met). No further same-question cycles until dense embeddings promoted to ACCEPTED.",
+  "next_recommendation": "TF-IDF 174k formal suite COMPLETE (8 reps, all PASS adversarial gates). v17b label normalization generalization to 174k fine-grained labels: NEGATIVE - different regime (5-10x purity ratios but NMI decreases). v18 coarse hierarchy: NEGATIVE - even at 4-label branch level, best purity 0.65 < 0.7 threshold (linear_citation_concat). Citation heritage at 174k: infrastructure validated (2,019/2,105 citations resolved) but evaluation blocked on bge_/bger_ ID mapping mismatch (canonical corpus uses bge_, evaluation uses bger_). Dense embeddings await legal-distance delivery (3/26 years ACCEPTED, 22/26 years CHECKPOINTED pending audit, 4/26 years NOT PROCESSED). True OOS JuristPref ceiling ~0.53 (factory JP>0.7 target NOT met by any representation). No additional same-question cycle justified until new 174k representations land.",
   "critical_findings": {
     "tfidf_174k_formal_suite_complete": "All 8 TF-IDF representations evaluated at 173,963 decisions on frozen harness v3. All PASS both adversarial gates (language_dominance < 0.85, jurist_pairwise > 0.5). Best: cited_decisions_tfidf_outcome_hybrid_0.5 (LangDom=0.477, JP=0.735). Fundamental two-mode tradeoff persists: citation-based (cited_decisions) dominate jurist preference; text-based (regeste/full_text) fail adversarial lang_dom ~0.999.",
     "citation_heritage_174k_validated": "Frozen pair pool (1,020 positive/negative) from 174k citation-ID resolution (2,019/2,105 resolved). Citation-based modes PASS (AUC 0.70-0.74), text-based FAIL (AUC 0.50-0.65). Confirms citation signals recover citation heritage; text signals do not.",
     "v17b_label_normalization_174k": "Tested on 15k subsample (213->111 labels). Purity ratios 5x-10x but NMI decreases on normalized labels. Different regime from v17b 1K scale (104->54 labels, 1.15-1.25x ratios). Normalization merges labels embeddings were separating. Does NOT generalize in same-magnitude sense.",
     "v18_coarse_hierarchy_negative": "Even at 4-label branch level: best purity 0.65 (linear_citation_concat) < 0.7 threshold. NMI ~0.004-0.30. Fundamental hierarchy limitation confirmed for TF-IDF/citation representations.",
     "dense_embeddings_blocked": "Legal-distance: 3/26 years ACCEPTED (2000-2002, ~19k) - center_projected FAILS jurist gate at all scales (JP 0.04-0.43). 22/26 years CHECKPOINTED (2000-2021, 144k) - legal-distance ran 165k formal suite: center_projected FAILS adversarial (JP 0.39-0.43, LangDom 0.83-0.85); citation heritage AUC 0.79-0.85 PASSES (better than TF-IDF). 4/26 years (2022-2026) unprocessed. Blocker: bge_<->bger_ ID mapping + missing parquet 2022-2026."
+  },
+  "v17_label_normalization_findings": {
+    "evidence_tier": "REPRODUCED",
+    "multi_seed_verified": true,
+    "multi_seed_details": "4 seeds (42, 123, 456, 789) - hierarchy ratio std 0.014, zoom_fine std 0.018, legal_area std 0.015; all means > 1.10",
+    "reference_run": "eval_v17b_label_normalization_all_reps_1790712891"
+  },
+  "v17b_label_normalization_all_reps_findings": {
+    "evidence_tier": "REPRODUCED",
+    "multi_seed_verified": true,
+    "multi_seed_details": "4 seeds verified at 1K scale; 174k generalization test COMPLETE (NEGATIVE - different regime)",
+    "reference_run": "eval_v17b_label_normalization_all_reps_1790712891",
+    "generalization_run": "v17b_174k_generalization_20260930_011927"
   }
 }
