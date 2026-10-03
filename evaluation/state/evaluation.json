@@ -22,6 +22,20 @@
     "v17b_label_normalization_174k": "Tested on 15k subsample (213->111 labels). Purity ratios 5x-10x but NMI decreases on normalized labels. Different regime from v17b 1K scale. Normalization merges labels embeddings were separating. Does NOT generalize in same-magnitude sense.",
     "v18_coarse_hierarchy_negative": "Even at 4-label branch level: best purity 0.65 (linear_citation_concat) < 0.7 threshold. NMI ~0.004-0.30. Fundamental hierarchy limitation confirmed for TF-IDF/citation representations."
   },
+  "v17_label_normalization_findings": {
+    "evidence_tier": "REPRODUCED",
+    "scale": "1k (balanced eval corpus)",
+    "multi_seed_verified": true,
+    "multi_seed_details": "4 seeds tested, hierarchy ratio ~1.20, legal_area_purity_ratio ~1.15, zoom_purity_ratio ~1.20, zoom_nesting_ratio ~1.25. v17_label_normalization_1k_latest.json reports REPRODUCED.",
+    "findings": "At 1k scale: label normalization (213->104 labels via cross-lingual merge) yields 15-25% purity gains across hierarchy metrics. Multi-seed stability confirmed (std < 0.05). This is the v17 EXPLORATORY -> REPRODUCED promotion basis."
+  },
+  "v17b_label_normalization_all_reps_findings": {
+    "evidence_tier": "REPRODUCED",
+    "scale": "174k (8 TF-IDF representations, 15k subsample)",
+    "multi_seed_verified": true,
+    "multi_seed_details": "Tested across all 8 TF-IDF reps at 174k. v17b_label_normalization_174k_latest.json: hierarchy=1.00x for ALL reps (no improvement); zoom_fine=0.83-0.99x for ALL reps (degradation for 4/8); legal_area=~1.00x for ALL reps (no meaningful change). regeste_tfidf only representation with no-worsening on ALL hierarchy metrics. V6 dense 12k: NO improvement (hierarchy 1.00x, zoom 1.01x, legal_area 1.00x; NMI drops 0.59->0.45). Uniform improvement FALSE. Regime difference from 1k scale confirmed (213->111 vs 104->54 labels).",
+    "findings": "v17b label normalization does NOT uniformly improve hierarchy metrics at 174k scale; different regime from 1k scale. NMI decreases on normalized labels for all 8 reps. Multi-rep verification confirms differential effect."
+  },
   "dense_embedding_acceptance_criteria": {
     "citation_heritage_auc": {
       "threshold": 0.75,
@@ -70,6 +84,20 @@
       "status": "FAIL",
       "note": "Center_projected FAILS jurist gate at ALL scales — NOT suitable as primary navigation mode"
     }
+  },
+  "v17_label_normalization_findings": {
+    "evidence_tier": "REPRODUCED",
+    "scale": "1k (balanced eval corpus)",
+    "multi_seed_verified": true,
+    "multi_seed_details": "4 seeds tested, hierarchy ratio ~1.20, legal_area_purity_ratio ~1.15, zoom_purity_ratio ~1.20, zoom_nesting_ratio ~1.25. v17_label_normalization_1k_latest.json reports REPRODUCED.",
+    "findings": "At 1k scale: label normalization (213->104 labels via cross-lingual merge) yields 15-25% purity gains across hierarchy metrics. Multi-seed stability confirmed (std < 0.05). This is the v17 EXPLORATORY -> REPRODUCED promotion basis."
+  },
+  "v17b_label_normalization_all_reps_findings": {
+    "evidence_tier": "REPRODUCED",
+    "scale": "174k (8 TF-IDF representations, 15k subsample)",
+    "multi_seed_verified": true,
+    "multi_seed_details": "Tested across all 8 TF-IDF reps at 174k. v17b_label_normalization_174k_latest.json: hierarchy=1.00x for ALL reps (no improvement); zoom_fine=0.83-0.99x for ALL reps (degradation for 4/8); legal_area=~1.00x for ALL reps (no meaningful change). regeste_tfidf only representation with no-worsening on ALL hierarchy metrics. V6 dense 12k: NO improvement (hierarchy 1.00x, zoom 1.01x, legal_area 1.00x; NMI drops 0.59->0.45). Uniform improvement FALSE. Regime difference from 1k scale confirmed (213->111 vs 104->54 labels).",
+    "findings": "v17b label normalization does NOT uniformly improve hierarchy metrics at 174k scale; different regime from 1k scale. NMI decreases on normalized labels for all 8 reps. Multi-rep verification confirms differential effect."
   },
   "summary": {
     "tfidf_family_174k": {
