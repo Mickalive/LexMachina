@@ -1,38 +1,74 @@
 {
   "lane": "evaluation",
-  "direction_version": 33,
+  "direction_version": 34,
   "evidence_tier": "ACCEPTED",
   "cycle_status": "RUN",
   "continue_recommended": false,
-  "accepted_run_id": "eval_174k_formal_suite_20261001_025957",
+  "accepted_run_id": "eval_174k_v34_acceptance_criteria_20261003",
   "evidence_refs": [
-    "results/evaluation/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
-    "results/evaluation/174k_citation_heritage/citation_heritage_174k_tfidf_latest.json",
+    "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
+    "results/evaluation/v25_174k_citation_heritage/cited_decisions_tfidf.json",
     "results/evaluation/v17b_174k_generalization/v17b_174k_generalization_latest.json",
     "results/evaluation/v18_coarse_hierarchy/v18_coarse_hierarchy_latest.json",
     "results/evaluation/partial_dense_2000_2002/evaluation_partial_dense_latest.json",
     "legal_distance/results/174k/dense_165k_formal_suite/evaluation_165k_dense_formal_suite_latest.json",
-    "legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_22year_latest.json"
+    "legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_22year_latest.json",
+    "legal_distance/results/174k_dense_embeddings/section_crosslingual_eval/section_crosslingual_eval_latest.json"
   ],
-  "next_recommendation": "TF-IDF 174k formal suite COMPLETE (8 reps, all PASS adversarial gates). v17b label normalization generalization to 174k fine-grained labels: NEGATIVE - different regime (5-10x purity ratios but NMI decreases). v18 coarse hierarchy: NEGATIVE - even at 4-label branch level, best purity 0.65 < 0.7 threshold (linear_citation_concat). Citation heritage at 174k: infrastructure validated (2,019/2,105 citations resolved) but evaluation blocked on bge_/bger_ ID mapping mismatch (canonical corpus uses bge_, evaluation uses bger_). Dense embeddings await legal-distance delivery (3/26 years ACCEPTED, 22/26 years CHECKPOINTED pending audit, 4/26 years NOT PROCESSED). True OOS JuristPref ceiling ~0.53 (factory JP>0.7 target NOT met by any representation). No additional same-question cycle justified until new 174k representations land.",
+  "next_recommendation": "TF-IDF 174k evaluation FROZEN as production baseline (8 reps, all PASS adversarial gates, best: cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.7265). Dense embedding acceptance criteria VALIDATED against 22-year/144k evidence: citation heritage AUC 0.79 PASS (>0.75 threshold), section cross-lingual sachverhalt 0.282 PASS (>0.2), dispositiv 0.148 PASS (>0.1), erwaegungen 0.093 below threshold. Center_projected FAILS jurist preference gate (JP 0.39-0.42) at all scales. No 174k dense embeddings available — blocked on bge_/bger_ ID mapping + parquet 2022-2026. No additional same-question cycle justified until 174k dense embeddings land.",
   "critical_findings": {
-    "tfidf_174k_formal_suite_complete": "All 8 TF-IDF representations evaluated at 173,963 decisions on frozen harness v3. All PASS both adversarial gates (language_dominance < 0.85, jurist_pairwise > 0.5). Best: cited_decisions_tfidf_outcome_hybrid_0.5 (LangDom=0.477, JP=0.735). Fundamental two-mode tradeoff persists: citation-based (cited_decisions) dominate jurist preference; text-based (regeste/full_text) fail adversarial lang_dom ~0.999.",
-    "citation_heritage_174k_validated": "Frozen pair pool (1,020 positive/negative) from 174k citation-ID resolution (2,019/2,105 resolved). Citation-based modes PASS (AUC 0.70-0.74), text-based FAIL (AUC 0.50-0.65). Confirms citation signals recover citation heritage; text signals do not.",
-    "v17b_label_normalization_174k": "Tested on 15k subsample (213->111 labels). Purity ratios 5x-10x but NMI decreases on normalized labels. Different regime from v17b 1K scale (104->54 labels, 1.15-1.25x ratios). Normalization merges labels embeddings were separating. Does NOT generalize in same-magnitude sense.",
-    "v18_coarse_hierarchy_negative": "Even at 4-label branch level: best purity 0.65 (linear_citation_concat) < 0.7 threshold. NMI ~0.004-0.30. Fundamental hierarchy limitation confirmed for TF-IDF/citation representations.",
-    "dense_embeddings_blocked": "Legal-distance: 3/26 years ACCEPTED (2000-2002, 12,570 decisions) - center_projected FAILS jurist gate at all scales (JP 0.04-0.43). 22/26 years CHECKPOINTED (2000-2021, 144k) - legal-distance ran 165k formal suite: center_projected FAILS adversarial (JP 0.39-0.43, LangDom 0.83-0.85); citation heritage AUC 0.79-0.85 reported by legal-distance pipeline (different pipeline, not evaluation lane). 4/26 years (2022-2026) unprocessed. Blocker: bge_<->bger_ ID mapping + missing parquet 2022-2026."
+    "tfidf_174k_production_baseline_frozen": "All 8 TF-IDF representations evaluated at 173,963 decisions on frozen harness v3. All PASS both adversarial gates (language_dominance < 0.85, jurist_pairwise > 0.5). Best production default: cited_decisions_tfidf_outcome_hybrid_0.5 (LangDom=0.4895, JP=0.7265). Fundamental two-mode tradeoff persists: citation-based modes dominate jurist preference; text-based modes fail adversarial language dominance ~0.999.",
+    "dense_embedding_acceptance_criteria_validation": "Against 22-year/144k legal-distance evidence: (1) Citation heritage AUC 0.79-0.79 (center_projected 64/768/128dim) PASS > 0.75 threshold — dense embeddings EXCEL at citation heritage recovery vs TF-IDF citation-based (AUC 0.71-0.74). (2) Section cross-lingual: sachverhalt cross_lang_same_branch 0.282 PASS > 0.2 threshold; dispositiv 0.148 PASS > 0.1 threshold; erwaegungen 0.093 below. Confirms Sachverhalt > Dispositiv > Erwaegungen hierarchy. (3) Adversarial: center_projected FAILS jurist gate at 144k (JP 0.39-0.42) — does NOT meet jurist preference baseline. (4) Cross-language retrieval recall@10 ~0.04-0.11 FAIL (threshold 0.2). Dense embeddings are COMPLEMENTARY VIEWS ONLY.",
+    "v17b_label_normalization_174k": "Tested on 15k subsample (213->111 labels). Purity ratios 5x-10x but NMI decreases on normalized labels. Different regime from v17b 1K scale. Normalization merges labels embeddings were separating. Does NOT generalize in same-magnitude sense.",
+    "v18_coarse_hierarchy_negative": "Even at 4-label branch level: best purity 0.65 (linear_citation_concat) < 0.7 threshold. NMI ~0.004-0.30. Fundamental hierarchy limitation confirmed for TF-IDF/citation representations."
   },
-  "v17_label_normalization_findings": {
-    "evidence_tier": "REPRODUCED",
-    "multi_seed_verified": true,
-    "multi_seed_details": "4 seeds (42, 123, 456, 789) - hierarchy ratio std 0.014, zoom_fine std 0.018, legal_area std 0.015; all means > 1.10",
-    "reference_run": "eval_v17b_label_normalization_all_reps_1790712891"
-  },
-  "v17b_label_normalization_all_reps_findings": {
-    "evidence_tier": "REPRODUCED",
-    "multi_seed_verified": true,
-    "multi_seed_details": "4 seeds verified at 1K scale; 174k generalization test COMPLETE (NEGATIVE - different regime)",
-    "reference_run": "eval_v17b_label_normalization_all_reps_1790712891",
-    "generalization_run": "v17b_174k_generalization_20260930_011927"
+  "dense_embedding_acceptance_criteria": {
+    "citation_heritage_auc": {
+      "threshold": 0.75,
+      "evidence_22year": {
+        "center_projected_768dim": 0.7941,
+        "center_projected_64dim": 0.7922,
+        "center_projected_128dim": 0.7916
+      },
+      "status": "PASS",
+      "note": "Dense embeddings EXCEED TF-IDF citation-based baseline (0.71-0.74) and exceed 0.75 threshold"
+    },
+    "cross_lang_same_branch_sachverhalt": {
+      "threshold": 0.2,
+      "evidence_22year": {
+        "center_projected_768dim": 0.2816,
+        "center_projected_64dim": 0.2816
+      },
+      "status": "PASS",
+      "note": "Sachverhalt (facts) section shows strongest cross-lingual alignment"
+    },
+    "cross_lang_same_branch_dispositiv": {
+      "threshold": 0.1,
+      "evidence_22year": {
+        "center_projected_768dim": 0.1481,
+        "center_projected_64dim": 0.1502
+      },
+      "status": "PASS",
+      "note": "Dispositiv (holdings) section shows moderate cross-lingual alignment"
+    },
+    "cross_lang_same_branch_erwaegungen": {
+      "threshold": 0.1,
+      "evidence_22year": {
+        "center_projected_768dim": 0.0925,
+        "center_projected_64dim": 0.0941
+      },
+      "status": "FAIL",
+      "note": "Erwaegungen (reasoning) section shows weakest cross-lingual alignment — below 0.1 threshold"
+    },
+    "jurist_pairwise_preference": {
+      "threshold": 0.5,
+      "evidence_165k": {
+        "center_projected_768dim": 0.389,
+        "center_projected_64dim": 0.418,
+        "center_projected_128dim": 0.4045
+      },
+      "status": "FAIL",
+      "note": "Center_projected FAILS jurist gate at ALL scales — NOT suitable as primary navigation mode"
+    }
   }
 }
