@@ -1,0 +1,14 @@
+{
+  "gate": "BLOCKED",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "Regenerate TF-IDF 174k constrained hierarchical results with correct branch_purity metrics (actual: 0.38-0.57, not 0.90-0.93)",
+    "Remove or correct the '6/8 PASS at 174k' claim and the fine_branch_purity >0.9 values for text-based modes",
+    "Correct citation-based mode scale claims: actual sample_size=1,200, not 90,612 (52%)",
+    "Correct multi-level protocol 'zero fragmentation' claim: singleton_fraction=2.3-3.0% at levels 1-3",
+    "Re-verify all downstream recommendations dependent on TF-IDF 174k performance claims",
+    "Align evidence_tier with actual result quality (results do not support claimed performance)"
+  ],
+  "claim_ceiling": "TF-IDF hierarchical_v1 at 174k achieves branch_purity 0.38-0.57 (not >0.9); citation-based modes only validated at 1,200 scale (not 90k); multi-level protocol structurally valid but calibration fails on TF-IDF; 144k dense checkpoint and 12k dense validation claims are accurate; blocked dependency on legal-distance 174k dense embeddings correctly identified",
+  "evidence_summary": "Independent recomputation from committed artifacts in results/fractal_map/ shows: (1) TF-IDF 174k hierarchical_v1 branch_purity values are 0.383 (full_text_tfidf_light), 0.491 (hybrid05), 0.491 (hybrid07), 0.566 (regeste_tfidf) — contradicting report claims of 0.930, 0.906, 0.909, 0.000. (2) Citation-based modes (cited_decisions_tfidf, outcome_hybrids) have sample_size=1,200 not 90,612. (3) Multi-level protocol shows singleton_fraction 2.3-3.0% at levels 1-3, contradicting 'zero fragmentation'. (4) 144k checkpoint (fine_branch_purity~0.97, strict_nesting>=0.99, zoom_improvement 0.48-0.76), 12k dense validation (multi-level PASS, hierarchical builder 39->412, v26 FAIL), compressed ladder (21/22 FAIL), and zoom navigation (PASS) claims are all supported by artifacts. (5) Nesting metric defect v1 properly enforced. (6) Blocked dependencies accurately identified. The central TF-IDF 174k performance claims are materially false, constituting a systemic reporting defect recurring across operational resume cycles v42-v63."
+}
