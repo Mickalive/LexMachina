@@ -2,14 +2,14 @@
   "lane": "evaluation",
   "direction_version": 34,
   "evidence_tier": "ACCEPTED",
-  "cycle_status": "COMPLETE",
+  "cycle_status": "RUN",
   "continue_recommended": false,
   "accepted_run_id": "evaluation_v34_tfidf174k_baseline_20261003",
   "evidence_refs": [
-    "results/evaluation/tfidf_174k_formal_suite_baseline.json",
-    "results/evaluation/dense_complementary_acceptance_criteria.json",
-    "results/evaluation/174k_citation_heritage/citation_pairs_174k.json",
-    "reports/evaluation/eval_174k_v34_baseline_and_dense_criteria_report.md"
+    "evaluation/results/evaluation/tfidf_174k_formal_suite_baseline.json",
+    "evaluation/results/evaluation/dense_complementary_acceptance_criteria.json",
+    "evaluation/results/174k_citation_heritage/citation_pairs_174k_full.json",
+    "evaluation/reports/EVALUATION_V34_FINAL_AUDIT_READY.md"
   ],
   "next_recommendation": "PIVOT_WITHIN_MISSION: TF-IDF 174k frozen as production baseline (JP 0.735 best hybrid). Dense embeddings accepted as complementary views with explicit acceptance criteria: citation_heritage_auc > 0.75, cross_lang_same_branch_sachverhalt > 0.2, cross_lang_same_branch_dispositiv > 0.1. Corpus lane unblocking (BGE/bger mapping + 2022-2026 parquet) required for 174k dense delivery. No further same-question cycles justified.",
   "tfidf_baseline": {
@@ -30,5 +30,21 @@
   "blocked_on": [
     "corpus:bge_bger_id_mapping",
     "corpus:parquet_2022_2026"
-  ]
+  ],
+  "monitor_check_count": 287,
+  "monitor_last_check": "2026-10-03T23:10:02Z",
+  "v17_label_normalization_findings": {
+    "evidence_tier": "REPRODUCED",
+    "scale": "1k (balanced eval corpus)",
+    "multi_seed_verified": true,
+    "multi_seed_details": "4 seeds tested, hierarchy ratio ~1.20, legal_area_purity_ratio ~1.15, zoom_purity_ratio ~1.20, zoom_nesting_ratio ~1.25. v17_label_normalization_1k_latest.json reports REPRODUCED.",
+    "findings": "At 1k scale: label normalization (213->104 labels via cross-lingual merge) yields 15-25% purity gains across hierarchy metrics. Multi-seed stability confirmed (std < 0.05). This is the v17 EXPLORATORY -> REPRODUCED promotion basis."
+  },
+  "v17b_label_normalization_all_reps_findings": {
+    "evidence_tier": "REPRODUCED",
+    "scale": "174k (8 TF-IDF representations, 15k subsample)",
+    "multi_seed_verified": true,
+    "multi_seed_details": "Tested across all 8 TF-IDF reps at 174k. v17b_label_normalization_174k_latest.json: hierarchy=1.00x for ALL reps (no improvement); zoom_fine=0.83-0.99x for ALL reps (degradation for 4/8); legal_area=~1.00x for ALL reps (no meaningful change). regeste_tfidf only representation with no-worsening on ALL hierarchy metrics. V6 dense 12k: NO improvement (hierarchy 1.00x, zoom 1.01x, legal_area 1.00x; NMI drops 0.59->0.45). Uniform improvement FALSE. Regime difference from 1k scale confirmed (213->111 vs 104->54 labels).",
+    "findings": "v17b label normalization does NOT uniformly improve hierarchy metrics at 174k scale; different regime from 1k scale. NMI decreases on normalized labels for all 8 reps. Multi-rep verification confirms differential effect."
+  }
 }
