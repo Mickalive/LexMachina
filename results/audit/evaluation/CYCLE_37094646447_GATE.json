@@ -1,0 +1,22 @@
+{
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "Remove or fix broken evidence references in state/evaluation.json (legal_distance/results/... paths do not exist)",
+    "Either provide legal-distance pipeline evidence (144k citation heritage, 165k formal suite, section cross-lingual) or retract specific dense embedding acceptance criteria numbers (AUC 0.79, cross-lang 0.282/0.148/0.093, JP 0.39-0.42)",
+    "Reconcile citation heritage AUC discrepancies: formal suite shows cited_decisions_tfidf AUC=0.973, outcome_tfidf AUC=0.720; report claims TF-IDF baseline 0.71-0.74; dense partial shows 0.905",
+    "Correct adversarial re-verification numbers or cite source: report claims LangDom=0.4895 for cited_outcome_hybrid_0.5 but formal suite shows 0.5785",
+    "Add missing section cross-lingual evaluation evidence or explicitly mark as NOT EVALUATED (currently marked PENDING in EVALUATION_READINESS.md)"
+  ],
+  "claim_ceiling": "TF-IDF 174k production baseline ACCEPTED and FROZEN. Dense embedding acceptance criteria UNVERIFIED — claims based on missing legal-distance evidence. Negative results (v17b, v18, JuristPref ceiling ~0.53) ACCEPTED and correctly reported.",
+  "evidence_summary": {
+    "tfidf_174k_formal_suite": "VERIFIED — 8 reps at 173,963 decisions, all PASS adversarial gates, config_hash 4323f833fa72366a",
+    "tfidf_citation_heritage": "VERIFIED — dedicated evaluation at 174k, results in results/evaluation/v25_174k_citation_heritage/",
+    "v17b_label_normalization": "VERIFIED NEGATIVE — 15k subsample, 213->111 labels, 5x-10x purity ratios but NMI decreases, different regime from 1K scale",
+    "v18_coarse_hierarchy": "VERIFIED NEGATIVE — 4-label branch level best purity 0.65 < 0.7 threshold, fundamental limitation confirmed",
+    "partial_dense_99k": "VERIFIED — center_projected FAILS both adversarial gates (LangDom ~0.87-0.88, JP ~0.30-0.33), citation heritage AUC ~0.905",
+    "legal_distance_144k_dense": "MISSING — referenced in report and state but no files found in checkout or producer workspace",
+    "legal_distance_165k_formal_suite": "MISSING — referenced in report and state but no files found",
+    "section_crosslingual_eval": "MISSING — marked PENDING in EVALUATION_READINESS.md, no results found"
+  }
+}
