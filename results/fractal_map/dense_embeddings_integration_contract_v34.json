@@ -1,0 +1,125 @@
+{
+  "contract_version": 34,
+  "lane": "fractal-map",
+  "date_frozen": "2026-10-03",
+  "status": "FROZEN",
+  "note": "Dense embedding integration contract for fractal-map multi-view deployment. TF-IDF citation hybrids remain PRIMARY product mode (jurist preference JP 0.78-0.79). Dense embeddings are COMPLEMENTARY views only. This contract defines acceptance criteria for when legal-distance delivers 174k dense embeddings (blocked on corpus lane: BGE/bger ID mapping + parquet 2022-2026).",
+  "primary_product_mode": {
+    "mode": "TF-IDF citation hybrids (cited_decisions_tfidf, cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7)",
+    "jurist_preference": "0.78-0.79",
+    "role": "PRIMARY navigation mode (beats simple semantic baseline JP 0.43)"
+  },
+  "complementary_views": [
+    {
+      "view_name": "Citation Heritage",
+      "description": "Dense embeddings recover citation heritage (doctrinal proximity through shared citations) better than TF-IDF citation-based methods",
+      "acceptance_criterion": "AUC > 0.75",
+      "baseline_tfidf_citation_based_auc": "0.71-0.74",
+      "evidence_22year_144k": {
+        "center_projected_768dim_auc": 0.7946,
+        "center_projected_64dim_auc": 0.7922,
+        "center_projected_128dim_auc": 0.7916,
+        "status": "PASSED at 22-year/144k checkpoint scale"
+      },
+      "minimal_scale_validated": "21-year / 137k decisions (AUC 0.8455 raw, 0.8182 cp64)",
+      "required_dense_modes": ["center_projected_64dim", "center_projected_128dim", "center_projected_768dim"],
+      "product_integration": "Separate map mode: citation_heritage_view"
+    },
+    {
+      "view_name": "Cross-Lingual (Sachverhalt)",
+      "description": "Sachverhalt (legally relevant facts) section shows strongest cross-lingual alignment in dense embeddings",
+      "acceptance_criterion": "cross_lang_same_branch > 0.20",
+      "evidence_1k_sample": {
+        "center_projected_64dim_cross_lang_same_branch": 0.282,
+        "invariance_gap": 0.187,
+        "n_decisions_with_section": 359,
+        "status": "PASSED at 1K sample scale"
+      },
+      "evidence_22year": {
+        "center_projected_768dim_cross_lang_same_branch": 0.2816,
+        "center_projected_64dim_cross_lang_same_branch": 0.2816,
+        "status": "PASSED at 22-year/144k checkpoint scale"
+      },
+      "full_corpus_density": "BLOCKED pending section extraction at 174k scale (corpus lane resumption required)",
+      "required_dense_modes": ["center_projected_64dim", "center_projected_768dim"],
+      "product_integration": "Separate map mode: cross_lingual_sachverhalt_view"
+    },
+    {
+      "view_name": "Cross-Lingual (Dispositiv)",
+      "description": "Dispositiv (holding/outcome) section shows moderate cross-lingual alignment",
+      "acceptance_criterion": "cross_lang_same_branch > 0.10",
+      "evidence_1k_sample": {
+        "center_projected_64dim_cross_lang_same_branch": 0.150,
+        "invariance_gap": 0.397,
+        "n_decisions_with_section": 538,
+        "status": "PASSED at 1K sample scale"
+      },
+      "evidence_22year": {
+        "center_projected_768dim_cross_lang_same_branch": 0.1481,
+        "center_projected_64dim_cross_lang_same_branch": 0.1502,
+        "status": "PASSED at 22-year/144k checkpoint scale"
+      },
+      "full_corpus_density": "BLOCKED pending section extraction at 174k scale (corpus lane resumption required)",
+      "required_dense_modes": ["center_projected_64dim", "center_projected_768dim"],
+      "product_integration": "Separate map mode: cross_lingual_dispositiv_view"
+    },
+    {
+      "view_name": "Cross-Lingual (Erwaegungen)",
+      "description": "Erwaegungen (reasoning) section shows weakest cross-lingual alignment — below threshold",
+      "acceptance_criterion": "cross_lang_same_branch > 0.10",
+      "evidence_1k_sample": {
+        "center_projected_64dim_cross_lang_same_branch": 0.094,
+        "invariance_gap": 0.452,
+        "n_decisions_with_section": 510,
+        "status": "FAILED at 1K sample scale"
+      },
+      "evidence_22year": {
+        "center_projected_768dim_cross_lang_same_branch": 0.0925,
+        "center_projected_64dim_cross_lang_same_branch": 0.0941,
+        "status": "FAILED at 22-year/144k checkpoint scale"
+      },
+      "note": "Reasoning is most language-specific; not suitable for cross-lingual view",
+      "required_dense_modes": ["center_projected_64dim", "center_projected_768dim"],
+      "product_integration": "NOT INCLUDED — does not meet acceptance criterion"
+    },
+    {
+      "view_name": "Linear Hybrid Complement",
+      "description": "Linear combination of TF-IDF citation hybrids + dense embeddings at optimal weight (w=0.3-0.4 dense)",
+      "acceptance_criterion": "PASS both adversarial gates (language_dominance < 0.85, jurist_preference > 0.5) at optimal weight w=0.3-0.4",
+      "evidence_22year_144k": {
+        "cited_decisions_tfidf_plus_dense_w04": {
+          "jurist_preference": 0.6725,
+          "language_dominance": 0.6539,
+          "status": "PASS adversarial gates"
+        },
+        "cited_outcome_hybrid_0.5_plus_dense_w03": {
+          "jurist_preference": 0.6115,
+          "language_dominance": 0.7477,
+          "status": "PASS adversarial gates"
+        }
+      },
+      "note": "PASS adversarial but REMAIN BELOW TF-IDF baseline (JP 0.61-0.67 vs 0.78-0.79). Optimal weight shifts toward TF-IDF dominance (w=0.3-0.4 dense / 0.6-0.7 TF-IDF). Citation signals dominate jurist preference; semantic signals add cross-lingual benefit but dilute legal relevance.",
+      "minimal_scale_validated": "19-year / 122k decisions",
+      "required_dense_modes": ["center_projected_64dim", "center_projected_128dim"],
+      "product_integration": "Separate map mode: linear_hybrid_complement_view (marked EXPLORATORY)"
+    }
+  ],
+  "infrastructure_readiness": {
+    "hierarchical_builder": "VALIDATED at 12k dense (4 levels, nesting=1.0, zero fragmentation, 39 coarse -> 412 fine)",
+    "map_mode_registry": "READY for dense mode registration",
+    "zoom_neighborhood_api": "READY for dense embeddings",
+    "webgl_pipeline": "VALIDATED at 174k TF-IDF (<3s), ready for dense",
+    "product_integration": "READY for multi-view mode switching"
+  },
+  "blockers": [
+    "Corpus lane: BGE/bger ID mapping production (canonical corpus uses bge_ IDs, evaluation uses bger_ IDs — no mapping exists)",
+    "Corpus lane: Parquet generation for years 2022-2026 (29,520 decisions missing from pinned 2026 snapshot)",
+    "Corpus lane: Section extraction (sachverhalt/erwaegungen/dispositiv) at 174k scale for cross-lingual evaluation density",
+    "Legal-distance lane: 174k dense embeddings computation (currently 3/26 years complete, ~19,441 decisions, 11%)"
+  ],
+  "successor_criteria": {
+    "trigger": "Legal-distance lane delivers 174k dense embeddings passing all four complementary view acceptance criteria",
+    "action": "Integrate dense embedding complementary views into fractal-map multi-view product deployment",
+    "validation": "Run multi-level recursive protocol on dense modes at 174k; verify structural criteria; register modes in map_mode_registry; expose in product map mode selector"
+  }
+}
