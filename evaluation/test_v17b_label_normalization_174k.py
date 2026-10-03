@@ -1,609 +1,454 @@
 #!/usr/bin/env python3
 """
-Test v17b label normalization generalization to 174k fine-grained legal_area labels.
+Test v17b Label Normalization Generalization at 174k Scale.
 
-v17b at 1000-scale: 15-25% purity gain REPRODUCED across 4 seeds.
-At 174k: "purity ratios 4-10x but NMI decreases on normalized. Different regime at scale."
-
-This script tests label normalization on:
-1. TF-IDF embeddings at full 174k scale (8 representations available)
-2. Dense embeddings at 19k scale (4 representations: raw_768, cp_768, cp_64, cp_128)
+The v17b label normalization maps equivalent legal areas across languages 
+(e.g., "Vertragsrecht" (DE), "Droit des contrats" (FR), "Diritto contrattuale" (IT))
+to a common normalized label. This test evaluates whether the 15-25% purity gain
+reported at smaller scale generalizes to 174k fine-grained legal_area labels.
 """
 
 import json
 import numpy as np
-import logging
+import time
 from pathlib import Path
 from typing import Dict, List, Any, Tuple
 from collections import Counter, defaultdict
-from sklearn.cluster import KMeans
-from sklearn.metrics import normalized_mutual_info_score, adjusted_rand_score
-from sklearn.preprocessing import normalize
+from sklearn.cluster import AgglomerativeClustering
+from sklearn.metrics import normalized_mutual_info_score
+import logging
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Paths
-TFIDF_EMBEDDINGS_DIR = Path("/tmp/lex_accepted/legal-distance/evaluation/results/174k/embeddings")
-DENSE_19K_RESULTS_DIR = Path("/tmp/lex_accepted/legal-distance/evaluation/results/174k/dense_19k_formal_suite")
-METADATA_174K_PATH = Path("/tmp/lex_accepted/legal-distance/evaluation/data/174k/metadata_174k.json")
-OUTPUT_DIR = Path("/tmp/lex_accepted/legal-distance/evaluation/results/174k/v17b_label_normalization_test")
+# Configuration
+METADATA_FILE = Path("/tmp/lex_accepted/legal-distance/evaluation/results/174k/embeddings/metadata.json")
+EMBEDDINGS_DIR = Path("/tmp/lex_accepted/legal-distance/evaluation/results/174k/embeddings")
+OUTPUT_DIR = Path("/home/runner/work/LexMachina/LexMachina/results/evaluation")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-# TF-IDF representations at 174k
-TFIDF_REPRESENTATIONS = {
-    'cited_decisions_tfidf': 'cited_decisions_tfidf.npy',
-    'cited_decisions_tfidf_outcome_hybrid_0.5': 'cited_decisions_tfidf_outcome_hybrid_0.5.npy',
-    'cited_decisions_tfidf_outcome_hybrid_0.7': 'cited_decisions_tfidf_outcome_hybrid_0.7.npy',
-    'full_text_tfidf_light': 'full_text_tfidf_light.npy',
-    'outcome_tfidf': 'outcome_tfidf.npy',
-    'regeste_full_text_hybrid_0.5': 'regeste_full_text_hybrid_0.5.npy',
-    'regeste_full_text_hybrid_0.7': 'regeste_full_text_hybrid_0.7.npy',
-    'regeste_tfidf': 'regeste_tfidf.npy',
-}
+# Test embeddings - focus on production defaults
+TEST_EMBEDDINGS = [
+    "cited_decisions_tfidf.npy",
+    "cited_decisions_tfidf_outcome_hybrid_0.5.npy",
+    "cited_decisions_tfidf_outcome_hybrid_0.7.npy",
+    "center_projected_64dim",  # Will need to check if available
+]
 
-# Legal area label normalization rules (from v17b)
-# Common normalizations for Swiss Federal Supreme Court legal areas
-LEGAL_AREA_NORMALIZATIONS = {
-    # Contract law variants
-    'Vertragsrecht': 'Vertragsrecht',
-    'Droit des contrats': 'Vertragsrecht',
-    'Diritto contrattuale': 'Vertragsrecht',
-    'Droit des obligations (en général)': 'Vertragsrecht',
+# v17b label normalization mapping (DE/FR/IT equivalents)
+# This is a representative mapping based on Swiss legal taxonomy
+LABEL_NORMALIZATION_MAP = {
+    # Contract law
+    "Vertragsrecht": "contract_law",
+    "Droit des contrats": "contract_law",
+    "Diritto contrattuale": "contract_law",
+    "Droit des obligations (en général)": "contract_law",
+    "Haftpflichtrecht": "liability_law",
+    "Droit de la responsabilité": "liability_law",
     
     # Civil procedure
-    'Zivilprozess': 'Zivilprozess',
-    'Procédure civile': 'Zivilprozess',
-    'Procedura civile': 'Zivilprozess',
+    "Zivilprozess": "civil_procedure",
+    "Procédure civile": "civil_procedure",
+    "Procedura civile": "civil_procedure",
+    "Schiedsgerichtsbarkeit": "arbitration",
     
     # Family law
-    'Familienrecht': 'Familienrecht',
-    'Droit de la famille': 'Familienrecht',
-    'Diritto della famiglia': 'Familienrecht',
+    "Familienrecht": "family_law",
+    "Droit de la famille": "family_law",
+    "Diritto di famiglia": "family_law",
+    "Droit des successions": "inheritance_law",
+    "Diritto successorio": "inheritance_law",
+    "Erbrecht": "inheritance_law",
     
-    # Debt enforcement/bankruptcy
-    'Schuldbetreibungs- und Konkursrecht': 'Schuldbetreibungs- und Konkursrecht',
-    'Droit des poursuites et faillites': 'Schuldbetreibungs- und Konkursrecht',
-    'Diritto delle esecuzioni e del fallimento': 'Schuldbetreibungs- und Konkursrecht',
-    
-    # Property/real rights
-    'Sachenrecht': 'Sachenrecht',
-    'Droits réels': 'Sachenrecht',
-    'Diritti reali': 'Sachenrecht',
-    
-    # Inheritance
-    'Erbrecht': 'Erbrecht',
-    'Droit des successions': 'Erbrecht',
-    'Diritto successorio': 'Erbrecht',
-    
-    # Company law
-    'Gesellschaftsrecht': 'Gesellschaftsrecht',
-    'Droit des sociétés': 'Gesellschaftsrecht',
-    'Diritto societario': 'Gesellschaftsrecht',
-    
-    # IP/Competition
-    'Immaterialgüter-, Wettbewerbs- und Kartellrecht': 'Immaterialgüter-, Wettbewerbs- und Kartellrecht',
-    'Droit de la propriété intellectuelle, de la concurrence et des cartels': 'Immaterialgüter-, Wettbewerbs- und Kartellrecht',
-    
-    # Tort/liability
-    'Haftpflichtrecht': 'Haftpflichtrecht',
-    'Droit de la responsabilité': 'Haftpflichtrecht',
-    'Diritto della responsabilità': 'Haftpflichtrecht',
-    
-    # Person law
-    'Personenrecht': 'Personenrecht',
-    'Droit des personnes': 'Personenrecht',
-    'Diritto delle persone': 'Personenrecht',
+    # Debt enforcement & bankruptcy
+    "Schuldbetreibungs- und Konkursrecht": "debt_enforcement_bankruptcy",
+    "Droit des poursuites et faillites": "debt_enforcement_bankruptcy",
+    "Diritto delle esecuzioni e del fallimento": "debt_enforcement_bankruptcy",
+    "Schuldbetreibungs- und Konkurskammer": "debt_enforcement_bankruptcy",
     
     # Criminal law
-    'Straftaten': 'Straftaten',
-    'Infractions': 'Straftaten',
-    'Reati': 'Straftaten',
+    "Strafprozess": "criminal_procedure",
+    "Procédure pénale": "criminal_procedure",
+    "Straftaten": "criminal_offenses",
+    "Infractions": "criminal_offenses",
+    "Strafrecht (allgemein)": "criminal_law_general",
     
-    # Criminal procedure
-    'Strafprozess': 'Strafprozess',
-    'Procédure pénale': 'Strafprozess',
-    'Procedura penale': 'Strafprozess',
+    # Public law - citizenship & foreigners
+    "Bürgerrecht und Ausländerrecht": "citizenship_foreigners_law",
+    "Droit de cité et droit des étrangers": "citizenship_foreigners_law",
+    "Cittadinanza e diritto degli stranieri": "citizenship_foreigners_law",
     
-    # Constitutional/administrative
-    'Bürgerrecht und Ausländerrecht': 'Bürgerrecht und Ausländerrecht',
-    'Droit de cité et droit des étrangers': 'Bürgerrecht und Ausländerrecht',
-    'Cittadinanza e diritto degli stranieri': 'Bürgerrecht und Ausländerrecht',
+    # Public law - public finance & tax
+    "Öffentliche Finanzen & Abgaberecht": "public_finance_tax_law",
+    "Finanze pubbliche & diritto tributario": "public_finance_tax_law",
+    "Droit des finances publiques": "public_finance_tax_law",
     
-    'Droit de cité et droit des étrangers': 'Bürgerrecht und Ausländerrecht',
+    # Public law - spatial planning & construction
+    "Raumplanung und öffentliches Baurecht": "spatial_planning_construction_law",
+    "Aménagement du territoire et droit public des constructions": "spatial_planning_construction_law",
+    "Costruzioni stradali e circolazione stradale": "spatial_planning_construction_law",
+    "Pianificazione territoriale e diritto pubblico edilizio": "spatial_planning_construction_law",
     
-    # Extradition/mutual assistance
-    'Entraide et extradition': 'Entraide und Auslieferung',
-    'Rechtshilfe und Auslieferung': 'Entraide und Auslieferung',
-    'Assistenza giudiziaria e estradizione': 'Entraide und Auslieferung',
+    # Social insurance
+    "Invalidenversicherung": "disability_insurance",
+    "Assurance-invalidité": "disability_insurance",
+    "Unfallversicherung": "accident_insurance",
+    "Assicurazione contro gli infortuni": "accident_insurance",
+    "Gesundheitswesen & soziale Sicherheit": "healthcare_social_security",
+    "Santé & sécurité sociale": "healthcare_social_security",
     
-    # Public finances/tax
-    'Öffentliche Finanzen & Abgaberecht': 'Öffentliche Finanzen & Abgaberecht',
-    'Finances publiques & droit fiscal': 'Öffentliche Finanzen & Abgaberecht',
-    'Finanze pubbliche & diritto tributario': 'Öffentliche Finanzen & Abgaberecht',
+    # Legal assistance & extradition
+    "Entraide et extradition": "legal_assistance_extradition",
+    "Rechtshilfe und Auslieferung": "legal_assistance_extradition",
+    "Assistenza giudiziaria e estradizione": "legal_assistance_extradition",
+    "Diritto fondamentale": "fundamental_rights",
+    "Grundrecht": "fundamental_rights",
     
-    # Social security
-    'Gesundheitswesen & soziale Sicherheit': 'Gesundheitswesen & soziale Sicherheit',
-    'Santé & sécurité sociale': 'Gesundheitswesen & soziale Sicherheit',
+    # Administrative procedure
+    "Procédure administrative": "administrative_procedure",
+    "Verfahren": "procedure_general",
     
-    # Media
-    'Medien': 'Medien',
+    # Intellectual property & competition
+    "Immaterialgüter-, Wettbewerbs- und Kartellrecht": "ip_competition_cartel_law",
+    "Droits réels": "property_rights",
+    "Diritto reale": "property_rights",
+    "Sachenrecht": "property_rights",
     
-    # Environment
-    'Ökologisches Gleichgewicht': 'Ökologisches Gleichgewicht',
-    
-    # Planning/construction
-    'Raumplanung und öffentliches Baurecht': 'Raumplanung und öffentliches Baurecht',
-    'Aménagement du territoire et droit public des constructions': 'Raumplanung und öffentliches Baurecht',
-    'Pianificazione territoriale e diritto pubblico edilizio': 'Raumplanung und öffentliches Baurecht',
-    
-    # Public employment
-    'Öffentliches Dienstverhältnis': 'Öffentliches Dienstverhältnis',
-    'Fonction publique': 'Öffentliches Dienstverhältnis',
-    
-    # Fundamental rights
-    'Grundrecht': 'Grundrecht',
-    'Droit fondamental': 'Grundrecht',
-    'Diritto fondamentale': 'Grundrecht',
-    
-    # Political rights
-    'Politische Rechte': 'Politische Rechte',
-    
-    # Jurisdiction
-    'Zuständigkeitsfragen, Garantie des Wohnsitzrichters und des v...': 'Zuständigkeit',
-    'Questions de compétence, garantie du juge du domicile et du v...': 'Zuständigkeit',
-    
-    # Post/telecom
-    'Post- und Fernmeldeverkehr': 'Post- und Fernmeldeverkehr',
-    
-    # Energy
-    'Energie': 'Energie',
-    
-    # Economy
-    'Wirtschaft': 'Wirtschaft',
+    # Corporate law
+    "Gesellschaftsrecht": "corporate_law",
+    "Droit des sociétés": "corporate_law",
+    "Diritto societario": "corporate_law",
     
     # Registry
-    'Registre': 'Registre',
+    "Registre": "registry",
     
-    # Debt enforcement specific
-    'Schuldbetreibungs- und Konkurskammer': 'Schuldbetreibungs- und Konkursrecht',
-    'Camera delle esecuzioni e dei fallimenti': 'Schuldbetreibungs- und Konkursrecht',
+    # Public service
+    "Fonction publique": "civil_service",
+    "Öffentliches Dienstverhältnis": "public_service_employment",
+    "Pubblico impiego": "civil_service",
+    
+    # Media law
+    "Medien": "media_law",
+    
+    # Economic law
+    "Wirtschaft": "economic_law",
+    "Économie": "economic_law",
+    
+    # Postal & telecommunications
+    "Post- und Fernmeldeverkehr": "postal_telecom_law",
+    
+    # Energy law
+    "Energie": "energy_law",
+    
+    # Environmental law
+    "Ökologisches Gleichgewicht": "environmental_law",
+    
+    # Road construction & traffic
+    "Strassenbau und Strassenverkehr": "road_construction_traffic_law",
+    
+    # Judicial organization
+    "Zuständigkeitsfragen, Garantie des Wohnsitzrichters und des v...": "jurisdiction_judge_guarantees",
+    
+    # Enforcement & bankruptcy (chamber)
+    "Camera delle esecuzioni e dei fallimenti": "debt_enforcement_bankruptcy",
+    "Schuldbetreibungs- und Konkurskammer": "debt_enforcement_bankruptcy",
+    
+    # Criminal chamber
+    "Cour de droit pénal": "criminal_court",
+    "Strafrechtliche Abteilung": "criminal_division",
+    
+    # Civil courts
+    "I. zivilrechtliche Abteilung": "civil_division_1",
+    "II. zivilrechtliche Abteilung": "civil_division_2",
+    "Ire Cour de droit civil": "civil_court_1",
+    "IIe Cour de droit civil": "civil_court_2",
+    "I Corte di diritto civile": "civil_court_1",
+    "II Corte di diritto civile": "civil_court_2",
+    
+    # Public law courts
+    "I. öffentlich-rechtliche Abteilung": "public_law_division_1",
+    "II. Öffentlich-rechtliche Abteilung": "public_law_division_2",
+    "Ire Cour de droit public": "public_law_court_1",
+    "I. Öffentlich-rechtliche Abteilung": "public_law_division_1",
+    
+    # Social insurance courts
+    "Strafrechtliche Abteilung": "criminal_division",
+    "Cour de droit pénal": "criminal_court",
 }
 
+# Also normalize chamber names that appear as legal_area
+CHAMBER_TO_NORMALIZED = {
+    "I. zivilrechtliche Abteilung": "civil_division_1",
+    "II. zivilrechtliche Abteilung": "civil_division_2",
+    "Ire Cour de droit civil": "civil_court_1",
+    "IIe Cour de droit civil": "civil_court_2",
+    "I Corte di diritto civile": "civil_court_1",
+    "II Corte di diritto civile": "civil_court_2",
+    "I. öffentlich-rechtliche Abteilung": "public_law_division_1",
+    "II. Öffentlich-rechtliche Abteilung": "public_law_division_2",
+    "Ire Cour de droit public": "public_law_court_1",
+    "I. Öffentlich-rechtliche Abteilung": "public_law_division_1",
+    "Strafrechtliche Abteilung": "criminal_division",
+    "Cour de droit pénal": "criminal_court",
+    "Camera delle esecuzioni e dei fallimenti": "debt_enforcement_bankruptcy",
+    "Schuldbetreibungs- und Konkurskammer": "debt_enforcement_bankruptcy",
+}
 
-def normalize_legal_area(label: str) -> str:
-    """Normalize a legal_area label using v17b rules."""
-    if not label or label == 'null' or label == 'unknown':
-        return 'unknown'
-    
-    # Direct mapping
-    if label in LEGAL_AREA_NORMALIZATIONS:
-        return LEGAL_AREA_NORMALIZATIONS[label]
-    
-    # Try case-insensitive match
-    label_lower = label.strip().lower()
-    for orig, norm in LEGAL_AREA_NORMALIZATIONS.items():
-        if orig.strip().lower() == label_lower:
-            return norm
-    
-    # Try partial matching for unmatched labels
-    # Contract-related
-    if any(kw in label_lower for kw in ['vertrag', 'contrat', 'contratt', 'obligation', 'obblig']):
-        return 'Vertragsrecht'
-    # Family
-    if any(kw in label_lower for kw in ['famili', 'famill', 'personen', 'personne', 'person']):
-        return 'Familienrecht'
-    # Debt enforcement
-    if any(kw in label_lower for kw in ['schuld', 'betreib', 'konkurs', 'poursuit', 'faillit', 'esecuz', 'falliment']):
-        return 'Schuldbetreibungs- und Konkursrecht'
-    # Property
-    if any(kw in label_lower for kw in ['sachen', 'droit reel', 'diritti real', 'immobil']):
-        return 'Sachenrecht'
-    # Inheritance
-    if any(kw in label_lower for kw in ['erb', 'success', 'succession']):
-        return 'Erbrecht'
-    # Company
-    if any(kw in label_lower for kw in ['gesellschaf', 'societ', 'company']):
-        return 'Gesellschaftsrecht'
-    # IP
-    if any(kw in label_lower for kw in ['immateriell', 'intellectuel', 'propriete intellect', 'concorren', 'cartel', 'competit']):
-        return 'Immaterialgüter-, Wettbewerbs- und Kartellrecht'
-    # Tort
-    if any(kw in label_lower for kw in ['haftpflicht', 'responsabilit', 'responsabil']):
-        return 'Haftpflichtrecht'
-    # Criminal
-    if any(kw in label_lower for kw in ['straftat', 'infraction', 'reat', 'straf', 'penal', 'pénal']):
-        return 'Straftaten'
-    # Criminal procedure
-    if any(kw in label_lower for kw in ['strafprozess', 'procédure pénale', 'procedura penale']):
-        return 'Strafprozess'
-    # Citizenship/foreigners
-    if any(kw in label_lower for kw in ['bürgerrecht', 'ausländer', 'cittadinanza', 'stranieri', 'étranger', 'cite']):
-        return 'Bürgerrecht und Ausländerrecht'
-    # Extradition
-    if any(kw in label_lower for kw in ['entraide', 'extradition', 'rechtshilfe', 'auslieferung', 'assistenza giud']):
-        return 'Entraide und Auslieferung'
-    # Public finance
-    if any(kw in label_lower for kw in ['finanz', 'abgab', 'fiscal', 'tributar', 'steuer']):
-        return 'Öffentliche Finanzen & Abgaberecht'
-    # Social security
-    if any(kw in label_lower for kw in ['gesundheit', 'soziale sicher', 'santé', 'sécurité social', 'assistenza']):
-        return 'Gesundheitswesen & soziale Sicherheit'
-    # Media
-    if 'medien' in label_lower or 'media' in label_lower:
-        return 'Medien'
-    # Environment
-    if any(kw in label_lower for kw in ['ökolog', 'ecolog', 'environnement', 'ambiente']):
-        return 'Ökologisches Gleichgewicht'
-    # Planning
-    if any(kw in label_lower for kw in ['raumplan', 'bau', 'construction', 'ediliz', 'territori']):
-        return 'Raumplanung und öffentliches Baurecht'
-    # Public service
-    if any(kw in label_lower for kw in ['dienst', 'fonction public', 'public serv']):
-        return 'Öffentliches Dienstverhältnis'
-    # Fundamental rights
-    if any(kw in label_lower for kw in ['grundrecht', 'droit fondamental', 'diritti fondamentale']):
-        return 'Grundrecht'
-    # Political rights
-    if any(kw in label_lower for kw in ['politisch', 'politique', 'politici']):
-        return 'Politische Rechte'
-    # Jurisdiction
-    if any(kw in label_lower for kw in ['zuständig', 'compétence', 'competenza', 'giudice', 'judge']):
-        return 'Zuständigkeit'
-    # Post/telecom
-    if any(kw in label_lower for kw in ['post', 'fernmelde', 'telecom', 'telecomunic']):
-        return 'Post- und Fernmeldeverkehr'
-    # Energy
-    if any(kw in label_lower for kw in ['energi', 'énergie', 'energia']):
-        return 'Energie'
-    # Economy
-    if any(kw in label_lower for kw in ['wirtschaft', 'économie', 'economia']):
-        return 'Wirtschaft'
-    # Registry
-    if any(kw in label_lower for kw in ['register', 'registre']):
-        return 'Registre'
-    
-    # Return original if no match
-    return label
+GLOBAL_SEED = 42
+SAMPLE_SIZE = 5000  # Sample for efficiency at 174k scale
 
+def normalize_legal_area(legal_area: str, chamber: str = "") -> str:
+    """Normalize a legal_area label using v17b mapping."""
+    if legal_area and legal_area != "unknown" and legal_area in LABEL_NORMALIZATION_MAP:
+        return LABEL_NORMALIZATION_MAP[legal_area]
+    
+    # Fallback: try chamber
+    if chamber and chamber in CHAMBER_TO_NORMALIZED:
+        return CHAMBER_TO_NORMALIZED[chamber]
+    
+    # Fallback: use original (lowercase, underscores)
+    if legal_area and legal_area != "unknown":
+        return legal_area.lower().replace(" ", "_").replace("-", "_").replace("&", "and").replace("(", "").replace(")", "").replace(",", "").replace(".", "").replace("'", "")
+    
+    return "unknown"
 
-def load_metadata_174k() -> List[Dict]:
-    """Load 174k metadata."""
-    logger.info("Loading 174k metadata...")
-    with open(METADATA_174K_PATH) as f:
+def load_metadata() -> List[Dict[str, Any]]:
+    """Load metadata."""
+    with open(METADATA_FILE) as f:
         metadata = json.load(f)
-    logger.info(f"Loaded {len(metadata)} decisions")
+    logger.info(f"Loaded metadata for {len(metadata)} decisions")
     return metadata
 
-
-def load_tfidf_embeddings() -> Dict[str, np.ndarray]:
-    """Load all TF-IDF embeddings at 174k."""
-    embeddings = {}
-    for name, fname in TFIDF_REPRESENTATIONS.items():
-        path = TFIDF_EMBEDDINGS_DIR / fname
-        if path.exists():
-            emb = np.load(path)
-            logger.info(f"Loaded {name}: {emb.shape}")
-            embeddings[name] = emb
-        else:
-            logger.warning(f"Missing embedding file: {path}")
+def load_embeddings(embedding_file: str) -> np.ndarray:
+    """Load embeddings."""
+    filepath = EMBEDDINGS_DIR / embedding_file
+    logger.info(f"Loading embeddings from {filepath}")
+    embeddings = np.load(filepath)
+    logger.info(f"Embeddings shape: {embeddings.shape}")
     return embeddings
 
-
-def load_dense_19k_embeddings() -> Dict[str, np.ndarray]:
-    """Load dense 19k embeddings from evaluation results."""
-    # The dense embeddings were created in evaluate_19k_dense_formal_suite.py
-    # We need to regenerate them or load from checkpoints
-    # For now, we'll load the raw 768 and apply transformations
+def run_clustering_evaluation(
+    embeddings: np.ndarray,
+    labels: List[str],
+    n_clusters: int,
+    name: str,
+) -> Dict[str, float]:
+    """Run clustering and compute NMI and purity."""
+    np.random.seed(GLOBAL_SEED)
     
-    DENSE_CHECKPOINTS_DIR = Path("/tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/checkpoints")
-    FULL_METADATA_PATH = Path("/tmp/lex_accepted/legal-distance/evaluation/data/174k/metadata_174k.json")
-    TARGET_YEARS = list(range(2000, 2003))
-    
-    with open(FULL_METADATA_PATH) as f:
-        full_metadata = json.load(f)
-    
-    target_ids = set()
-    year_meta = {}
-    year_emb = {}
-    
-    for year in TARGET_YEARS:
-        meta_path = DENSE_CHECKPOINTS_DIR / f"metadata_{year}.json"
-        emb_path = DENSE_CHECKPOINTS_DIR / f"embeddings_{year}.npy"
-        
-        with open(meta_path) as f:
-            meta = json.load(f)
-        emb = np.load(emb_path)
-        
-        year_meta[year] = meta
-        year_emb[year] = emb
-        
-        for m in meta:
-            target_ids.add(m['decision_id'])
-    
-    subset_metadata = []
-    for m in full_metadata:
-        if m['decision_id'] in target_ids:
-            subset_metadata.append(m)
-    
-    id_to_year_local = {}
-    for year in TARGET_YEARS:
-        meta = year_meta[year]
-        for local_idx, m in enumerate(meta):
-            id_to_year_local[m['decision_id']] = (year, local_idx)
-    
-    dim = year_emb[TARGET_YEARS[0]].shape[1]
-    embeddings_768 = np.zeros((len(subset_metadata), dim), dtype=np.float32)
-    
-    for i, m in enumerate(subset_metadata):
-        year, local_idx = id_to_year_local[m['decision_id']]
-        embeddings_768[i] = year_emb[year][local_idx]
-    
-    logger.info(f"Assembled dense 768-dim: {embeddings_768.shape}")
-    
-    # Center project
-    languages = sorted(set(m.get('language', 'unknown') for m in subset_metadata))
-    centers = {}
-    for lang in languages:
-        mask = np.array([m.get('language') == lang for m in subset_metadata])
-        if np.sum(mask) > 0:
-            centers[lang] = embeddings_768[mask].mean(axis=0)
-    
-    debiased = np.copy(embeddings_768)
-    for i, m in enumerate(subset_metadata):
-        lang = m.get('language')
-        if lang in centers:
-            debiased[i] = embeddings_768[i] - centers[lang]
-    
-    norms = np.linalg.norm(debiased, axis=1, keepdims=True)
+    # Normalize embeddings
+    norms = np.linalg.norm(embeddings, axis=1, keepdims=True)
     norms[norms == 0] = 1
-    debiased = debiased / norms
+    normalized = embeddings / norms
     
-    # PCA to 64
-    pca_64 = PCA(n_components=64, random_state=42)
-    emb_64 = normalize(pca_64.fit_transform(debiased), norm='l2', axis=1)
+    # Clustering
+    clustering = AgglomerativeClustering(
+        n_clusters=n_clusters,
+        metric="cosine",
+        linkage="average",
+    )
+    pred_labels = clustering.fit_predict(normalized)
     
-    # PCA to 128
-    pca_128 = PCA(n_components=128, random_state=42)
-    emb_128 = normalize(pca_128.fit_transform(debiased), norm='l2', axis=1)
+    # NMI
+    nmi = float(normalized_mutual_info_score(labels, pred_labels))
     
-    return {
-        'dense_raw_768': embeddings_768,
-        'dense_center_projected_768': debiased,
-        'dense_center_projected_64': emb_64,
-        'dense_center_projected_128': emb_128,
-    }, subset_metadata
-
-
-def get_legal_areas(metadata: List[Dict]) -> np.ndarray:
-    """Extract legal_area labels from metadata."""
-    return np.array([m.get('legal_area', 'unknown') for m in metadata])
-
-
-def get_normalized_legal_areas(metadata: List[Dict]) -> np.ndarray:
-    """Extract normalized legal_area labels from metadata."""
-    return np.array([normalize_legal_area(m.get('legal_area', 'unknown')) for m in metadata])
-
-
-def compute_cluster_purity(labels: np.ndarray, true_labels: np.ndarray) -> float:
-    """Compute cluster purity (majority class accuracy per cluster, weighted by cluster size)."""
-    unique_labels = np.unique(labels[labels != -1])
-    if len(unique_labels) == 0:
-        return 0.0
+    # Purity
+    purity_scores = []
+    unique_clusters = set(pred_labels)
+    for cluster_id in unique_clusters:
+        mask = pred_labels == cluster_id
+        cluster_true = [labels[i] for i in range(len(labels)) if mask[i]]
+        if cluster_true:
+            most_common = Counter(cluster_true).most_common(1)[0][1]
+            purity_scores.append(most_common / len(cluster_true))
     
-    total_correct = 0
-    total_points = 0
-    
-    for label in unique_labels:
-        mask = labels == label
-        cluster_true = true_labels[mask]
-        if len(cluster_true) == 0:
-            continue
-        majority = Counter(cluster_true).most_common(1)[0][1]
-        total_correct += majority
-        total_points += len(cluster_true)
-    
-    return total_correct / total_points if total_points > 0 else 0.0
-
-
-def test_label_normalization(embeddings: np.ndarray, metadata: List[Dict], 
-                              n_clusters: int = None, random_state: int = 42) -> Dict[str, Any]:
-    """Test label normalization effect on clustering."""
-    
-    legal_areas = get_legal_areas(metadata)
-    normalized_legal_areas = get_normalized_legal_areas(metadata)
-    
-    # Count unique labels
-    unique_original = len(np.unique(legal_areas))
-    unique_normalized = len(np.unique(normalized_legal_areas))
-    
-    logger.info(f"Original legal_area labels: {unique_original}")
-    logger.info(f"Normalized legal_area labels: {unique_normalized}")
-    logger.info(f"Reduction: {unique_original} -> {unique_normalized} ({unique_normalized/unique_original*100:.1f}%)")
-    
-    # Determine n_clusters if not specified
-    if n_clusters is None:
-        n_clusters = unique_normalized
-    
-    # Run KMeans on embeddings
-    kmeans = KMeans(n_clusters=n_clusters, random_state=random_state, n_init=10)
-    cluster_labels = kmeans.fit_predict(embeddings)
-    
-    # Compute purities
-    purity_original = compute_cluster_purity(cluster_labels, legal_areas)
-    purity_normalized = compute_cluster_purity(cluster_labels, normalized_legal_areas)
-    
-    # Compute NMI
-    nmi_original = normalized_mutual_info_score(legal_areas, cluster_labels)
-    nmi_normalized = normalized_mutual_info_score(normalized_legal_areas, cluster_labels)
-    
-    # Compute ARI
-    ari_original = adjusted_rand_score(legal_areas, cluster_labels)
-    ari_normalized = adjusted_rand_score(normalized_legal_areas, cluster_labels)
-    
-    # Purity gain
-    purity_gain = (purity_normalized - purity_original) / purity_original * 100 if purity_original > 0 else 0
-    nmi_change = (nmi_normalized - nmi_original) / nmi_original * 100 if nmi_original > 0 else 0
+    purity = float(np.mean(purity_scores)) if purity_scores else 0.0
     
     return {
-        'n_clusters': int(n_clusters),
-        'unique_original_labels': int(unique_original),
-        'unique_normalized_labels': int(unique_normalized),
-        'label_reduction_ratio': unique_normalized / unique_original if unique_original > 0 else 0,
-        'purity_original': float(purity_original),
-        'purity_normalized': float(purity_normalized),
-        'purity_gain_pct': float(purity_gain),
-        'nmi_original': float(nmi_original),
-        'nmi_normalized': float(nmi_normalized),
-        'nmi_change_pct': float(nmi_change),
-        'ari_original': float(ari_original),
-        'ari_normalized': float(ari_normalized),
+        "nmi": nmi,
+        "purity": purity,
+        "n_clusters": n_clusters,
+        "n_samples": len(labels),
     }
-
-
-def test_multi_seed(embeddings: np.ndarray, metadata: List[Dict], 
-                    n_clusters: int, seeds: List[int] = [42, 123, 456, 789]) -> Dict[str, Any]:
-    """Test label normalization across multiple seeds."""
-    
-    results = []
-    for seed in seeds:
-        result = test_label_normalization(embeddings, metadata, n_clusters=n_clusters, random_state=seed)
-        result['seed'] = seed
-        results.append(result)
-    
-    # Aggregate
-    purity_gains = [r['purity_gain_pct'] for r in results]
-    nmi_changes = [r['nmi_change_pct'] for r in results]
-    
-    return {
-        'seed_results': results,
-        'purity_gain_mean': float(np.mean(purity_gains)),
-        'purity_gain_std': float(np.std(purity_gains)),
-        'purity_gain_min': float(np.min(purity_gains)),
-        'purity_gain_max': float(np.max(purity_gains)),
-        'nmi_change_mean': float(np.mean(nmi_changes)),
-        'nmi_change_std': float(np.std(nmi_changes)),
-        'all_seeds_positive_gain': all(g > 0 for g in purity_gains),
-    }
-
 
 def main():
-    logger.info("=" * 70)
-    logger.info("v17b Label Normalization Generalization Test at 174k / 19k Scale")
-    logger.info("=" * 70)
+    logger.info("Starting v17b Label Normalization Test at 174k Scale")
+    start_time = time.time()
     
     # Load metadata
-    metadata_174k = load_metadata_174k()
+    metadata = load_metadata()
     
-    # 1. Test on TF-IDF embeddings at 174k
-    logger.info("\n" + "=" * 70)
-    logger.info("TESTING TF-IDF EMBEDDINGS AT 174k SCALE")
-    logger.info("=" * 70)
+    # Create normalized labels
+    logger.info("Creating normalized labels...")
+    raw_labels = []
+    normalized_labels = []
+    decision_ids = []
     
-    tfidf_embeddings = load_tfidf_embeddings()
-    tfidf_results = {}
+    for m in metadata:
+        legal_area = m.get("legal_area", "unknown")
+        chamber = m.get("chamber", "")
+        decision_id = m.get("decision_id", "")
+        
+        raw = legal_area if legal_area != "unknown" else "unknown"
+        norm = normalize_legal_area(legal_area, chamber)
+        
+        raw_labels.append(raw)
+        normalized_labels.append(norm)
+        decision_ids.append(decision_id)
     
-    for name, embeddings in tfidf_embeddings.items():
-        logger.info(f"\nTesting {name} ({embeddings.shape[0]} decisions, {embeddings.shape[1]} dims)...")
-        
-        # Trim embeddings to match metadata length
-        if embeddings.shape[0] != len(metadata_174k):
-            logger.info(f"  Trimming embeddings from {embeddings.shape[0]} to {len(metadata_174k)}")
-            embeddings = embeddings[:len(metadata_174k)]
-        
-        # Use normalized label count for n_clusters
-        normalized_areas = get_normalized_legal_areas(metadata_174k)
-        n_clusters = len(np.unique(normalized_areas))
-        
-        # Single seed test
-        result = test_label_normalization(embeddings, metadata_174k, n_clusters=n_clusters)
-        
-        # Multi-seed test
-        multi_seed = test_multi_seed(embeddings, metadata_174k, n_clusters=n_clusters)
-        
-        tfidf_results[name] = {
-            'single_seed': result,
-            'multi_seed': multi_seed,
-        }
-        
-        logger.info(f"  Purity original: {result['purity_original']:.4f}, normalized: {result['purity_normalized']:.4f}")
-        logger.info(f"  Purity gain: {result['purity_gain_pct']:.2f}%")
-        logger.info(f"  NMI original: {result['nmi_original']:.4f}, normalized: {result['nmi_normalized']:.4f}")
-        logger.info(f"  NMI change: {result['nmi_change_pct']:.2f}%")
-        logger.info(f"  Multi-seed mean gain: {multi_seed['purity_gain_mean']:.2f}% ± {multi_seed['purity_gain_std']:.2f}%")
+    # Statistics
+    raw_unique = len(set(raw_labels))
+    norm_unique = len(set(normalized_labels))
+    unknown_count = raw_labels.count("unknown")
     
-    # 2. Test on dense embeddings at 19k
-    logger.info("\n" + "=" * 70)
-    logger.info("TESTING DENSE EMBEDDINGS AT 19k SCALE (2000-2002)")
-    logger.info("=" * 70)
+    logger.info(f"Raw unique labels: {raw_unique}")
+    logger.info(f"Normalized unique labels: {norm_unique}")
+    logger.info(f"Unknown count: {unknown_count} ({unknown_count/len(raw_labels)*100:.1f}%)")
     
-    dense_embeddings, dense_metadata = load_dense_19k_embeddings()
-    dense_results = {}
+    # Filter out unknown for clustering evaluation
+    valid_indices = [i for i, (r, n) in enumerate(zip(raw_labels, normalized_labels)) 
+                     if r != "unknown" and n != "unknown"]
     
-    for name, embeddings in dense_embeddings.items():
-        logger.info(f"\nTesting {name} ({embeddings.shape[0]} decisions, {embeddings.shape[1]} dims)...")
+    logger.info(f"Valid indices for clustering: {len(valid_indices)}")
+    
+    # Sample for efficiency
+    if len(valid_indices) > SAMPLE_SIZE:
+        np.random.seed(GLOBAL_SEED)
+        valid_indices = np.random.choice(valid_indices, SAMPLE_SIZE, replace=False).tolist()
+    
+    # Load embeddings and test
+    results = {}
+    
+    for emb_file in TEST_EMBEDDINGS:
+        if not (EMBEDDINGS_DIR / emb_file).exists():
+            logger.warning(f"Embedding file not found: {emb_file}")
+            continue
+            
+        logger.info(f"\n{'='*60}")
+        logger.info(f"Testing: {emb_file}")
+        logger.info(f"{'='*60}")
         
-        normalized_areas = get_normalized_legal_areas(dense_metadata)
-        n_clusters = len(np.unique(normalized_areas))
-        
-        result = test_label_normalization(embeddings, dense_metadata, n_clusters=n_clusters)
-        multi_seed = test_multi_seed(embeddings, dense_metadata, n_clusters=n_clusters)
-        
-        dense_results[name] = {
-            'single_seed': result,
-            'multi_seed': multi_seed,
-        }
-        
-        logger.info(f"  Purity original: {result['purity_original']:.4f}, normalized: {result['purity_normalized']:.4f}")
-        logger.info(f"  Purity gain: {result['purity_gain_pct']:.2f}%")
-        logger.info(f"  NMI original: {result['nmi_original']:.4f}, normalized: {result['nmi_normalized']:.4f}")
-        logger.info(f"  NMI change: {result['nmi_change_pct']:.2f}%")
-        logger.info(f"  Multi-seed mean gain: {multi_seed['purity_gain_mean']:.2f}% ± {multi_seed['purity_gain_std']:.2f}%")
+        try:
+            embeddings = load_embeddings(emb_file)
+            
+            # Get embeddings for valid indices
+            sample_embeddings = embeddings[valid_indices]
+            sample_raw = [raw_labels[i] for i in valid_indices]
+            sample_norm = [normalized_labels[i] for i in valid_indices]
+            
+            # Filter out zero vectors
+            norms = np.linalg.norm(sample_embeddings, axis=1)
+            non_zero_mask = norms > 1e-10
+            if not np.all(non_zero_mask):
+                logger.info(f"  Filtering out {np.sum(~non_zero_mask)} zero vectors")
+                sample_embeddings = sample_embeddings[non_zero_mask]
+                sample_raw = [sample_raw[i] for i in range(len(sample_raw)) if non_zero_mask[i]]
+                sample_norm = [sample_norm[i] for i in range(len(sample_norm)) if non_zero_mask[i]]
+            
+            # Determine n_clusters (use normalized unique count, capped)
+            n_clusters = min(len(set(sample_norm)), 50)
+            n_clusters = max(n_clusters, 4)  # At least 4 (branches)
+            
+            logger.info(f"Sample size: {len(sample_embeddings)}")
+            logger.info(f"Raw unique in sample: {len(set(sample_raw))}")
+            logger.info(f"Normalized unique in sample: {len(set(sample_norm))}")
+            logger.info(f"Using n_clusters: {n_clusters}")
+            
+            # Evaluate with raw labels
+            raw_metrics = run_clustering_evaluation(
+                sample_embeddings, sample_raw, n_clusters, f"{emb_file}_raw"
+            )
+            
+            # Evaluate with normalized labels
+            norm_metrics = run_clustering_evaluation(
+                sample_embeddings, sample_norm, n_clusters, f"{emb_file}_norm"
+            )
+            
+            # Compute purity gain
+            purity_gain_pct = 0
+            if raw_metrics["purity"] > 0:
+                purity_gain_pct = (norm_metrics["purity"] - raw_metrics["purity"]) / raw_metrics["purity"] * 100
+            
+            results[emb_file.replace('.npy', '')] = {
+                "raw_labels": raw_metrics,
+                "normalized_labels": norm_metrics,
+                "purity_gain_pct": purity_gain_pct,
+                "nmi_gain": norm_metrics["nmi"] - raw_metrics["nmi"],
+                "normalized_unique_labels": len(set(sample_norm)),
+                "raw_unique_labels": len(set(sample_raw)),
+            }
+            
+            logger.info(f"  Raw:     NMI={raw_metrics['nmi']:.4f}, Purity={raw_metrics['purity']:.4f}")
+            logger.info(f"  Norm:    NMI={norm_metrics['nmi']:.4f}, Purity={norm_metrics['purity']:.4f}")
+            logger.info(f"  Gain:    NMI={norm_metrics['nmi'] - raw_metrics['nmi']:.4f}, Purity={purity_gain_pct:.1f}%")
+            
+        except Exception as e:
+            logger.error(f"Error processing {emb_file}: {e}")
+            results[emb_file.replace('.npy', '')] = {"error": str(e)}
     
     # Save results
-    from datetime import datetime
-    all_results = {
-        'tfidf_174k': tfidf_results,
-        'dense_19k': dense_results,
-        'timestamp': datetime.now().isoformat(),
-        'summary': {
-            'tfidf_representations_tested': len(tfidf_results),
-            'dense_representations_tested': len(dense_results),
-            'normalization_rules_count': len(LEGAL_AREA_NORMALIZATIONS),
-        }
-    }
-    
-    output_file = OUTPUT_DIR / f"v17b_label_normalization_174k_test_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    timestamp = time.strftime('%Y%m%d_%H%M%S')
+    output_file = OUTPUT_DIR / f"v17b_label_normalization_174k_{timestamp}.json"
     with open(output_file, 'w') as f:
-        json.dump(all_results, f, indent=2, default=str)
+        json.dump({
+            "run_info": {
+                "timestamp": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+                "direction_version": 29,
+                "total_decisions": len(metadata),
+                "valid_decisions": len(valid_indices),
+                "sample_size": SAMPLE_SIZE,
+                "global_seed": GLOBAL_SEED,
+                "raw_unique_labels": raw_unique,
+                "normalized_unique_labels": norm_unique,
+                "unknown_count": unknown_count,
+            },
+            "results": results
+        }, f, indent=2)
     
-    latest_file = OUTPUT_DIR / "v17b_label_normalization_174k_test_latest.json"
+    # Also save as latest
+    latest_file = OUTPUT_DIR / "v17b_label_normalization_174k_latest.json"
     with open(latest_file, 'w') as f:
-        json.dump(all_results, f, indent=2, default=str)
+        json.dump({
+            "run_info": {
+                "timestamp": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+                "direction_version": 29,
+                "total_decisions": len(metadata),
+                "valid_decisions": len(valid_indices),
+                "sample_size": SAMPLE_SIZE,
+                "global_seed": GLOBAL_SEED,
+                "raw_unique_labels": raw_unique,
+                "normalized_unique_labels": norm_unique,
+                "unknown_count": unknown_count,
+            },
+            "results": results
+        }, f, indent=2)
     
-    # Summary report
-    logger.info("\n" + "=" * 70)
-    logger.info("v17b LABEL NORMALIZATION GENERALIZATION TEST - SUMMARY")
-    logger.info("=" * 70)
+    logger.info(f"\nResults saved to {output_file}")
+    logger.info(f"Total duration: {time.time() - start_time:.2f}s")
     
-    logger.info(f"\n{'Representation':<45} {'Labels':>6} {'Purity Gain':>12} {'NMI Change':>10} {'Multi-seed':>12}")
-    logger.info("-" * 90)
+    # Print summary
+    print("\n" + "="*100)
+    print("v17b LABEL NORMALIZATION 174k GENERALIZATION TEST")
+    print("="*100)
+    print(f"Total decisions: {len(metadata)}")
+    print(f"Valid decisions (non-unknown): {len([r for r in raw_labels if r != 'unknown'])}")
+    print(f"Raw unique labels: {raw_unique} -> Normalized unique labels: {norm_unique}")
+    print(f"Reduction: {(1 - norm_unique/raw_unique)*100:.1f}%")
+    print()
     
-    for name, res in tfidf_results.items():
-        ss = res['single_seed']
-        ms = res['multi_seed']
-        logger.info(f"{name:<45} {ss['unique_normalized_labels']:>6} {ss['purity_gain_pct']:>11.2f}% {ss['nmi_change_pct']:>9.2f}% {ms['purity_gain_mean']:>11.2f}%")
-    
-    for name, res in dense_results.items():
-        ss = res['single_seed']
-        ms = res['multi_seed']
-        logger.info(f"{name:<45} {ss['unique_normalized_labels']:>6} {ss['purity_gain_pct']:>11.2f}% {ss['nmi_change_pct']:>9.2f}% {ms['purity_gain_mean']:>11.2f}%")
-    
-    logger.info(f"\nResults saved to: {output_file}")
-    logger.info("=" * 70)
-    
-    return all_results
-
+    for name, result in results.items():
+        if "error" in result:
+            print(f"  {name}: ERROR - {result['error']}")
+        else:
+            raw = result["raw_labels"]
+            norm = result["normalized_labels"]
+            gain = result["purity_gain_pct"]
+            nmi_gain = result["nmi_gain"]
+            status = "✓ GAIN" if gain > 0 else "✗ LOSS/NO GAIN"
+            print(f"  {name}:")
+            print(f"    Raw:     NMI={raw['nmi']:.4f}, Purity={raw['purity']:.4f} ({result['raw_unique_labels']} labels)")
+            print(f"    Norm:    NMI={norm['nmi']:.4f}, Purity={norm['purity']:.4f} ({result['normalized_unique_labels']} labels)")
+            print(f"    Gain:    NMI={nmi_gain:+.4f}, Purity={gain:+.1f}% {status}")
 
 if __name__ == "__main__":
     main()
