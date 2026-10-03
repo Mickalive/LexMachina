@@ -424,8 +424,12 @@
                 </select>
                 <label>Representation</label>
                 <select id="rep-select">
-                    <!-- PRODUCTION DEFAULT: cited_outcome_hybrid_0.5 (v15b-audit CRITICAL: wins full-harness LangDom/JuristPref/Boilerplate) -->
-                    <option value="cited_outcome_hybrid_0.5" selected>★ PRODUCTION DEFAULT: Citation+Outcome α=0.5 (JP=0.799, LangDom=0.491, v15b-audit)</option>
+                    <!-- 174k TF-IDF PRODUCTION DEFAULTS (factory direction v34: PRIMARY product mode, beats semantic baseline JP 0.78 vs 0.43) -->
+                    <optgroup label="174k TF-IDF PRODUCTION DEFAULTS (PRIMARY v1.0 — JP 0.78 vs 0.43 baseline)">
+                        <option value="cited_outcome_hybrid_0.5_174k" selected>★ PRODUCTION DEFAULT v1.0: Citation+Outcome α=0.5 @174k — JP=0.799, LangDom=0.491 (173,963 decisions, 7 zoom)</option>
+                        <option value="cited_outcome_hybrid_0.7_174k">★ BEST FRACTAL v1.0: Citation+Outcome α=0.7 @174k — HierAdv=+0.370 (173,963 decisions, 5 zoom)</option>
+                        <option value="cited_decisions_tfidf_174k">Doctrinal Lineage @174k (Cited TF-IDF) — Citation Heritage AUC=0.9719 (173,963 decisions, 7 zoom)</option>
+                    </optgroup>
                     <!-- COMBINATION (v15b ACCEPTED) — BEST STABLE representation overall -->
                     <optgroup label="COMBINATION (v15b ACCEPTED: beats all zero-shot hybrids)">
                         <option value="linear_hybrid05_concat">★ BEST STABLE: Metric+Outcome Combo — JP=0.838, std=0.027 (v15b ACCEPTED)</option>
@@ -437,9 +441,9 @@
                         <option value="hybrid_stabilized_best">Stabilized Hybrid (epoch 1) — JP=0.515, LangDom=0.605, 37% cite-indep</option>
                     </optgroup>
                     <!-- HIGH-ADVANTAGE (Citation/Outcome) — factory direction v9: cross-lingual alignment -->
-                    <optgroup label="HIGH-ADVANTAGE: Citation/Outcome (cross-lingual, fractal)">
-                        <option value="cited_outcome_hybrid_0.7">★ BEST FRACTAL: Citation+Outcome α=0.7 — HierAdv=+0.370</option>
-                        <option value="cited_decisions_tfidf">Doctrinal Lineage (Cited TF-IDF) — JP=0.692*, LangDom=0.611</option>
+                    <optgroup label="HIGH-ADVANTAGE: Citation/Outcome (cross-lingual, fractal) — 1k slice">
+                        <option value="cited_outcome_hybrid_0.7">★ BEST FRACTAL (1k): Citation+Outcome α=0.7 — HierAdv=+0.370</option>
+                        <option value="cited_decisions_tfidf">Doctrinal Lineage 1k (Cited TF-IDF) — JP=0.692*, LangDom=0.611</option>
                     </optgroup>
                     <!-- Production CP64 Hybrids (ACCEPTED) -->
                     <optgroup label="Production Hybrids CP64 (ACCEPTED)">
@@ -742,7 +746,7 @@
     const API = '';
     let currentData = null;
     let currentZoom = 1;
-    let currentRep = 'cited_outcome_hybrid_0.5';
+    let currentRep = 'cited_outcome_hybrid_0.5_174k';
     let currentMode = '';
     let hoveredPoint = null;
     let selectedCluster = null;
@@ -2532,8 +2536,8 @@ webglRenderer.uploadPointData(
             });
             
             // Set defaults
-            selectA.value = currentRep || 'cited_outcome_hybrid_0.5';
-            selectB.value = 'legal_cited_decisions';
+            selectA.value = currentRep || 'cited_outcome_hybrid_0.5_174k';
+            selectB.value = 'cited_decisions_tfidf_174k';
         } catch (e) {
             console.error('Failed to populate comparison reps:', e);
         }
