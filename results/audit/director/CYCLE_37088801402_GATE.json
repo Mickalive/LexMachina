@@ -1,0 +1,55 @@
+{
+  "cycle_id": "CYCLE_37088801402",
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    {
+      "id": "F-002",
+      "description": "Legal-distance checkpoint progress factual discrepancy in factory_direction.json v32 and director report",
+      "location": "state/factory_direction.json (lanes.legal-distance.question, lanes.fractal-map.question) and reports/director/RUN_37088801402.md",
+      "current": "CHECKPOINTED (PENDING AUDIT): 21/26 years (2000-2020, ~150k decisions). NOT YET PROCESSED: 5/26 years (2021-2026)",
+      "required": "CHECKPOINTED (PENDING AUDIT): 22/26 years (2000-2021, 144,443 decisions). NOT YET PROCESSED: 4/26 years (2022-2026)",
+      "evidence_source": "/tmp/lex_accepted/core/legal-distance/state/legal-distance.json (direction_version 30, verified 2026-10-03T01:30:00Z) — scale_evidence_summary.22_year_2000_2021.n_decisions=144443, checkpoints cover 144,443/173,963 decisions (83.0%, years 2000-2021)",
+      "repairability": "SAME_CYCLE — concrete factual correction to decision-informing control plane document"
+    }
+  ],
+  "claim_ceiling": {
+    "corpus_completeness": "174,113 decisions, 2000-2026, schema validation 0 errors, 15x REPRODUCED",
+    "tfidf_production_defaults_174k": "3 modes operational (cited_decisions_tfidf, cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7), 16/16 scale tests PASS, 50+ endpoints, WebGL <3s, ACCEPTED",
+    "dense_embeddings_jurist_gate": "FAIL at ALL scales tested (JP 0.05-0.43), REPRODUCED",
+    "linear_hybrids_19_22yr": "PASS adversarial gates but BELOW TF-IDF baseline (JP 0.54-0.67 vs 0.72-0.79), REPRODUCED",
+    "dense_embeddings_citation_heritage": "RECOVER at scale (AUC 0.79-0.85) — BETTER than TF-IDF citation-based (AUC 0.71-0.74), REPRODUCED (NEW finding)",
+    "v17b_label_normalization": "Purity gains +7% to +36% at 174k; NMI decreases (regime shift at scale, requires separate validation), REPRODUCED",
+    "v18_coarse_hierarchy": "NEGATIVE — max branch purity 0.65 < 0.7 threshold, REPRODUCED",
+    "true_oos_jurist_pref_ceiling": "~0.53 — factory JP>0.7 target NOT met by any representation, REPRODUCED",
+    "fractal_map_tfidf_hierarchical_v1": "6/8 modes PASS (3 text-based full 173k fine_branch_purity 0.906-0.930; 3 citation-based 52% scale 0.609-0.685), EXPLORATORY",
+    "fractal_map_174k_dense": "BLOCKED — dependent on legal-distance 174k dense embeddings delivery"
+  },
+  "evidence_summary": {
+    "accepted_mounts_verified": 6,
+    "mounts": [
+      "/tmp/lex_accepted/core/corpus/state/corpus.json (REPRODUCED, v17)",
+      "/tmp/lex_accepted/core/legal-distance/state/legal-distance.json (REPRODUCED, v30, BLOCKED_ON_DEPENDENCIES)",
+      "/tmp/lex_accepted/core/fractal-map/state/fractal-map.json (EXPLORATORY, v29, BLOCKED_ON_DEPENDENCIES)",
+      "/tmp/lex_accepted/core/evaluation/state/evaluation.json (REPRODUCED, v29, COMPLETED)",
+      "/tmp/lex_accepted/core/product/state/product.json (ACCEPTED, v29, BLOCKED_ON_DEPENDENCIES)",
+      "/tmp/lex_accepted/core/evaluation/state/frontier_portfolio.json (v7, both TERMINATED)"
+    ],
+    "audit_gates_referenced": [
+      "CYCLE_37085364854 (fractal-map, PASS, safe_to_integrate=true)",
+      "CYCLE_37078171837 (legal-distance, PASS, safe_to_integrate=true)",
+      "CYCLE_37073590337 (product, PASS, safe_to_integrate=true)",
+      "CYCLE_36960859294 (evaluation, PASS, safe_to_integrate=true)"
+    ],
+    "negative_results_preserved": [
+      "Dense embeddings FAIL jurist gate at ALL scales",
+      "v18 coarse hierarchy NEGATIVE (max purity 0.65 < 0.7)",
+      "Citation heritage recall@10 universally < 0.2 at 174k",
+      "Boilerplate resistance proxy measures language dominance, not procedural boilerplate",
+      "TF-IDF citation-based modes do not achieve hierarchical_v1 at full 174k",
+      "Legal TF-IDF from bge_ corpus FAILS adversarial suite — signals don't transfer"
+    ],
+    "benchmark_integrity": "All frozen adversarial gates unchanged (LangDom<0.85, JP>0.5, v18 purity>=0.7, JP>0.7 target). No benchmark weakening after seeing results.",
+    "evidence_hygiene": "F-001 repaired (v17b mischaracterization). No other unaccepted-evidence laundering detected. F-002 is factual discrepancy in accepted evidence reporting, not evidence laundering."
+  }
+}
