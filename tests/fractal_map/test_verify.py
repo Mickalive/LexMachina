@@ -417,8 +417,8 @@ class TestMetricConsistency:
         """Factory direction v29/v30 corrections are recorded in state (v28 discrepancy corrected in v29, v30 adds blocker detail)."""
         assert "factory_direction_v29_v30_corrections" in self.state
         discrepancy = self.state["factory_direction_v29_v30_corrections"]
-        # Check for corrected progress numbers: v29 states 15/26 checkpointed; actual evidence shows 21/26 computed
-        assert "21/26" in str(discrepancy) or "15/26" in str(discrepancy)
+        # Check for corrected progress numbers: v30 confirms 22/26 years checkpointed (2000-2021), 3/26 ACCEPTED
+        assert "22/26" in str(discrepancy)
         assert "3/26" in str(discrepancy)
         assert "ACCEPTED" in str(discrepancy) or "2000-2002" in str(discrepancy)
 
