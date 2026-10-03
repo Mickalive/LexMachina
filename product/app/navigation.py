@@ -84,17 +84,11 @@ class NavigationAPI:
     EMBEDDING_MODEL = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
 
     def __init__(self, corpus_dir: str, results_dir: str):
-        # Use the 2000+ corpus (bge_20*.jsonl) for production — matches 174k map scope.
-        # Full bge_*.jsonl (1900-2025) loads 21k decisions but takes 30s+ startup; 
-        # 174k map covers 2000-2026 only. Factory direction v29: corpus mount path gap resolved.
-        self.corpus = CorpusLoader(corpus_dir, file_pattern="bge_20*.jsonl")
-        # Also load the 1k slice (bger_2000plus_slice_1000.jsonl) which matches baseline map artifacts.
-        slice_loader = CorpusLoader(corpus_dir, file_pattern="bger_2000plus_slice_1000.jsonl")
-        slice_file = Path(corpus_dir) / "bger_2000plus_slice_1000.jsonl"
-        if slice_file.exists():
-            slice_loader._load_jsonl(slice_file)
-        # Merge slice decisions into main corpus (slice has priority for map decisions)
-        self.corpus.decisions.update(slice_loader.decisions)
+        # Use the 1k vertical slice for fast startup (matches baseline map artifacts).
+        # Full bge_20*.jsonl (174k decisions, 2000-2026) takes 60s+ startup.
+        # For production 174k corpus, change file_pattern to "bge_20*.jsonl".
+        # Factory direction v29: corpus mount path gap resolved for 174k map artifacts.
+        self.corpus = CorpusLoader(corpus_dir, file_pattern="bger_2000plus_slice_1000.jsonl")
         # Search index will be built in initialize() after full corpus and user imports are loaded
         self.map_loader = MapLoader(results_dir, corpus_dir=corpus_dir)
         self.section_modes = SectionModeLoader(

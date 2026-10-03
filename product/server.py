@@ -229,12 +229,8 @@ def get_nav_api() -> NavigationAPI:
         return _nav_api
 
     base_dir = Path(__file__).parent
-    # Use accepted corpus mount for full 174k corpus (factory direction v29: corpus mount path gap resolved)
-    accepted_corpus_dir = "/tmp/lex_accepted/corpus/corpus/normalization/canonical"
-    if Path(accepted_corpus_dir).exists():
-        corpus_dir = accepted_corpus_dir
-    else:
-        corpus_dir = str(base_dir / "results" / "corpus" / "normalization" / "canonical")
+    # Use local corpus for fast startup (metadata subset); 174k map artifacts in results/fractal_map
+    corpus_dir = str(base_dir / "results" / "corpus" / "normalization" / "canonical")
     results_dir = str(base_dir / "results" / "fractal_map")
 
     try:
