@@ -91,7 +91,7 @@ Linear hybrids PASS adversarial gates at scale but **remain below TF-IDF baselin
 | Scale | n_decisions | linear_citation_concat (w=opt) | linear_hybrid05_concat (w=opt) | TF-IDF Baseline (cited_decisions_tfidf) |
 |---|---|---|---|---|
 | **15-year** | 91,929 | JP=0.473 ❌ | JP=0.473 ❌ | JP=0.720 ✅ |
-| **19-year** | 122,015 | JP=0.647 ✅ (w=0.3) | JP=0.637 ✅ (w=0.3) | JP=0.724 ✅ |
+| **19-year** | 122,015 | JP=0.545 ✅ (w=0.3) | JP=0.540 ✅ (w=0.3) | JP=0.724 ✅ |
 | **22-year** | 144,443 | JP=0.673 ✅ (w=0.4) | JP=0.661 ✅ (w=0.3) | JP=0.784 ✅ |
 
 ### Weight Sweep at 22-year (144k) — Optimal Dense Contribution

@@ -63,8 +63,8 @@ Weight sweeps at 19yr and 22yr reveal **scale-dependent optimal weights**:
 
 | Scale | Representation | Optimal Weight | JP | LangDom | Both Pass? | vs TF-IDF Baseline |
 |-------|----------------|----------------|-----|---------|------------|-------------------|
-| 19yr | linear_citation_concat | w=0.3 | 0.6465 | 0.6264 | ✓ | Below (0.7235) |
-| 19yr | linear_hybrid05_concat | w=0.3 | 0.6365 | 0.6617 | ✓ | Below (0.7155) |
+| 19yr | linear_citation_concat | w=0.3 | 0.5445 | 0.6264 | ✓ | Below (0.7235) |
+| 19yr | linear_hybrid05_concat | w=0.3 | 0.5395 | 0.6617 | ✓ | Below (0.7155) |
 | 22yr | linear_citation_concat | **w=0.4** | 0.6725 | 0.6539 | ✓ | Below (0.7840) |
 | 22yr | linear_hybrid05_concat | w=0.3 | 0.6605 | 0.6395 | ✓ | Below (0.7890) |
 
@@ -135,7 +135,7 @@ Confirmed via v8 holdout validation on true zero-shot split. Dense embeddings ca
 |-------|-------|-----------|---------------------|------------------------|-------------------|----------------------|
 | 3-yr (ACCEPTED) | 2000-2002 | 19,441 | 0.39-0.42 | N/A | N/A | N/A |
 | 15-yr | 2000-2014 | 91,929 | 0.288 | 0.473 (w=0.5) | 0.7235 | N/A |
-| 19-yr | 2000-2018 | 122,015 | 0.3685 | 0.6465 (w=0.3) | 0.7235 | N/A |
+| 19-yr | 2000-2018 | 122,015 | 0.3685 | 0.5445 (w=0.3) | 0.7235 | N/A |
 | 20-yr | 2000-2019 | 129,680 | **0.0475** | N/A | N/A | N/A |
 | 21-yr | 2000-2020 | 137,189 | Not tested | N/A | N/A | **0.8455** |
 | 22-yr | 2000-2021 | 144,443 | 0.4265 | 0.6725 (w=0.4) | **0.7840** | **0.7946** |
