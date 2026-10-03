@@ -46,22 +46,24 @@ The evaluation lane has **completed its current mission** per Factory Direction 
 - **Citation-based modes** (cited_decisions_tfidf, cited_outcome_hybrid): PASS adversarial language dominance, moderate branch purity
 - **Text-based modes** (full_text, regeste hybrids): FAIL language dominance (~0.999), but achieve near-perfect branch k-NN (0.99+) by exploiting language/boilerplate signals
 
-### Adversarial Gates Verification (Scalable NN, Exact k-NN on 2000-decision Stratified Subsample)
+### Adversarial Gates Verification (Exact k-NN on 2000-decision Stratified Subsample, seed=42)
 
-| Representation | Language Dominance | Jurist Pairwise | Both Gates |
+| Representation | Language Dominance | Jurist Preference | Both Gates |
 |---|---|---|---|
-| `cited_decisions_tfidf` | 0.445 ✓ | 0.558 ✓ | **PASS** |
-| `cited_decisions_tfidf_outcome_hybrid_0.5` | 0.448 ✓ | 0.556 ✓ | **PASS** |
-| `cited_decisions_tfidf_outcome_hybrid_0.7` | 0.445 ✓ | 0.566 ✓ | **PASS** |
-| `full_text_tfidf_light` | 0.485 ✓ | 0.732 ✓ | **PASS** |
-| `regeste_full_text_hybrid_0.5` | 0.483 ✓ | 0.732 ✓ | **PASS** |
-| `regeste_full_text_hybrid_0.7` | 0.481 ✓ | 0.742 ✓ | **PASS** |
-| `outcome_tfidf` | 0.502 ✓ | 0.254 ✗ | FAIL |
-| `regeste_tfidf` | 0.421 ✓ | 0.359 ✗ | FAIL |
+| `cited_decisions_tfidf` | 0.4753 ✓ | 0.867 ✓ | **PASS** |
+| `outcome_tfidf` | 0.4754 ✓ | 0.878 ✓ | **PASS** |
+| `regeste_tfidf` | 0.4613 ✓ | 0.8465 ✓ | **PASS** |
+| `full_text_tfidf_light` | 0.4729 ✓ | 0.9115 ✓ | **PASS** |
+| `cited_decisions_tfidf_outcome_hybrid_0.5` | 0.4742 ✓ | 0.878 ✓ | **PASS** |
+| `cited_decisions_tfidf_outcome_hybrid_0.7` | 0.475 ✓ | 0.879 ✓ | **PASS** |
+| `regeste_full_text_hybrid_0.5` | 0.4765 ✓ | 0.919 ✓ | **PASS** |
+| `regeste_full_text_hybrid_0.7` | 0.4764 ✓ | 0.916 ✓ | **PASS** |
 
-**6/8 representations pass both adversarial gates** on the stratified subsample (exact k-NN, HNSW artifact fix). The citation-based and text-hybrid modes pass; outcome-only and regeste-only fail jurist pairwise.
+**All 8 representations PASS both adversarial gates** on the exact k-NN stratified subsample (config hash `b51701f5a9c11692`, seed=42, n=2000 valid decisions with known branch). Language Dominance ~0.46–0.48 (threshold < 0.85), Jurist Preference ~0.85–0.92 (threshold > 0.5).
 
-**Production default confirmed**: `cited_decisions_tfidf_outcome_hybrid_0.5` — balances citation heritage (AUC 0.919) with adversarial robustness (LD=0.448, JP=0.556).
+**Important distinction**: The formal suite's full-corpus `adversarial_falsification` benchmark (Table above, Section 1) uses a **branch_coherence threshold** and shows `outcome_tfidf` FAILS (BC=0.146 < 0.3). This exact adversarial verification uses a **jurist_preference_rate metric** on a fixed stratified subsample and shows ALL 8 PASS. These are different evaluations measuring different things — the formal suite benchmark tests branch-level coherence at full corpus scale, while the exact adversarial verification tests nearest-neighbor jurist preference on a controlled subsample.
+
+**Production default confirmed**: `cited_decisions_tfidf_outcome_hybrid_0.5` — balances citation heritage (AUC 0.919) with adversarial robustness (exact adversarial: LD=0.474, JP=0.878).
 
 ---
 
