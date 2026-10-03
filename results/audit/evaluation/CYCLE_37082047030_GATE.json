@@ -1,0 +1,12 @@
+{
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "Fix Report Section 4: Replace unsupported claim 'Citation heritage for dense embeddings validated at 22-year scale (144k decisions, AUC 0.79\u20130.85)' with accurate evidence: 'Partial 16-year (2000-2015) evaluation shows AUC ~0.90 on center_projected representations. Full 15/19-year evaluations failed due to insufficient valid pairs. 22-year (2000-2021) citation heritage NOT YET EVALUATED in this cycle.'",
+    "Fix Report Section 4: Correct jurist gate range from 'JP 0.05\u20130.43' to 'JP 0.39\u20130.43 (this cycle); 0.05 from prior cycles if applicable'",
+    "Resolve year discrepancy: State says '15/26 years checkpointed (2000-2014)' but run_additional_formal_suite.py evaluates 2000-2021 (22 years). Update state/evaluation.json or report to clarify which years are ACCEPTED vs. CHECKPOINTED vs. EVALUATED.",
+    "Document v17b normalization mapping coverage: Note what fraction of 214 raw legal_area labels are covered by the 179-entry hardcoded map (approx 156 non-unknown raw labels based on mapping content)."
+  ],
+  "claim_ceiling": "Citation heritage TF-IDF at 174k: 3/8 representations PASS AUC\u22650.65 (citation-based modes). v17b label normalization at 174k: purity gains +7% to +36% confirmed but NMI decreases (regime shift). 22-year dense embeddings: FAIL jurist gate (JP 0.39-0.43). Dense citation heritage at 22-year scale NOT validated in this cycle.",
+  "evidence_summary": "Citation heritage TF-IDF (citation_heritage_174k_tfidf_latest.json): 1020 frozen positive pairs, seed=42, AUC threshold=0.65. 3/8 PASS (cited_decisions_tfidf family AUC 0.70-0.73), 5/8 FAIL (text-based AUC 0.50-0.65). v17b normalization (v17b_label_normalization_174k_latest.json): 5000 sample (seed=42) from 91193 valid decisions. Raw 214\u2192Norm 164 labels. Purity gains +36.2%/ +7.2%/ +17.3% across 3 TF-IDF reps; NMI decreases -0.037/-0.022/-0.029. 22-year dense formal suite (22year_dense/*_eval_latest.json): center_projected 768/128/64 dim all PASS LangDom (~0.83-0.84), all FAIL JuristPref (0.39-0.43). Report contains unsupported claims about dense citation heritage AUC 0.79-0.85 and JP 0.05-0.43 not evidenced in this cycle."
+}
