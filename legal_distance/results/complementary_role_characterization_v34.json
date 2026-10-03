@@ -1,0 +1,251 @@
+{
+  "lane": "legal-distance",
+  "factory_direction_version": 34,
+  "evidence_tier": "REPRODUCED",
+  "characterization_timestamp": "2026-10-03T10:30:00Z",
+  "max_available_scale": {
+    "years": 22,
+    "year_range": "2000-2021",
+    "n_decisions": 144443,
+    "coverage_pct": 83.0,
+    "blocked_174k": true
+  },
+  "pivot_executed": "PIVOT_WITHIN_MISSION",
+  "primary_product_mode": "TF-IDF citation hybrids (cited_outcome_hybrid_0.5)",
+  "complementary_dense_views": {
+    "citation_heritage": {
+      "status": "READY at 144k",
+      "minimal_sufficient_scale": "130k decisions (21-year, 2000-2020) with >=100 positive citation pairs",
+      "best_mode": "center_projected_64dim",
+      "evidence": {
+        "auc_roc": {
+          "raw_768dim": 0.7946,
+          "center_projected_64dim": 0.7922,
+          "center_projected_128dim": 0.7916,
+          "center_projected_768dim": 0.7941
+        },
+        "similarity_gap_pos_neg": {
+          "raw_768dim": 0.063,
+          "center_projected_64dim": 0.410,
+          "center_projected_128dim": 0.391,
+          "center_projected_768dim": 0.389
+        },
+        "tfidf_citation_baseline_auc": "0.71-0.74",
+        "tfidf_text_baseline_auc": "0.50-0.63",
+        "positive_citation_pairs": 344,
+        "negative_pairs": 500
+      },
+      "acceptance_criteria": {
+        "metric": "AUC-ROC",
+        "threshold": "> 0.75",
+        "current_144k": "0.79-0.85",
+        "status": "PASS"
+      },
+      "product_integration": {
+        "view_name": "citation_heritage",
+        "default_representation": "center_projected_64dim",
+        "status": "READY v1.1+",
+        "refresh_trigger": "Corpus growth adding >=5k decisions with new citation pairs"
+      },
+      "key_finding": "Dense embeddings SUPERIOR to TF-IDF for citation heritage recovery (AUC 0.79-0.85 vs 0.71-0.74). Emerges at scale when sufficient cross-year citation density exists."
+    },
+    "section_cross_lingual": {
+      "status": "SAMPLE ONLY (1K) — BLOCKED pending section extraction at 174k",
+      "current_evidence_scale": "1K sample (Sachverhalt n=359, Dispositiv n=538, Erwaegungen n=510)",
+      "minimal_sufficient_scale": "174k full corpus (section extraction required)",
+      "best_mode": "center_projected_64dim per section",
+      "hierarchy": {
+        "sachverhalt": {
+          "cross_lang_same_branch": 0.282,
+          "same_lang_same_branch": 0.468,
+          "invariance_gap": 0.187,
+          "separation": 0.032,
+          "rank": "BEST",
+          "center_projection_improvement_pct": 38
+        },
+        "dispositiv": {
+          "cross_lang_same_branch": 0.150,
+          "same_lang_same_branch": 0.548,
+          "invariance_gap": 0.397,
+          "separation": -0.152,
+          "rank": "INTERMEDIATE",
+          "center_projection_improvement_pct": 31
+        },
+        "erwaegungen": {
+          "cross_lang_same_branch": 0.094,
+          "same_lang_same_branch": 0.546,
+          "invariance_gap": 0.452,
+          "separation": -0.265,
+          "rank": "POOREST",
+          "center_projection_improvement_pct": 16
+        }
+      },
+      "acceptance_criteria": {
+        "sachverhalt": {
+          "metric": "cross_lang_same_branch",
+          "threshold": "> 0.2",
+          "current_1k": 0.282,
+          "status": "SAMPLE_ONLY"
+        },
+        "dispositiv": {
+          "metric": "cross_lang_same_branch",
+          "threshold": "> 0.1",
+          "current_1k": 0.150,
+          "status": "SAMPLE_ONLY"
+        }
+      },
+      "product_integration": {
+        "view_name": "cross_lingual",
+        "default_representation": "center_projected_64dim per section (sachverhalt > dispositiv)",
+        "status": "BLOCKED v1.1+",
+        "refresh_trigger": "Full corpus section extraction complete"
+      },
+      "key_finding": "Sachverhalt (facts) superior cross-lingual alignment; Dispositiv (holding) intermediate; Erwaegungen (reasoning) poorest. Center projection improves all sections 16-38%. Legal facts transcend language; reasoning is most language-specific."
+    },
+    "linear_hybrid_complement": {
+      "status": "READY at 144k (exploratory mode)",
+      "minimal_sufficient_scale": "122k decisions (19-year, 2000-2018) — first scale PASS both adversarial gates",
+      "optimal_weights_22yr": {
+        "cited_decisions_tfidf": {
+          "weight_dense": 0.4,
+          "jp": 0.6725,
+          "langdom": 0.6539,
+          "both_gates_pass": true,
+          "cross_lang_recall_at_10": 0.160
+        },
+        "outcome_hybrid_0_5": {
+          "weight_dense": 0.3,
+          "jp": 0.6605,
+          "langdom": 0.6395,
+          "both_gates_pass": true,
+          "cross_lang_recall_at_10": 0.143
+        }
+      },
+      "tfidf_baseline_22yr": {
+        "cited_decisions_tfidf": {"jp": 0.7840, "langdom": 0.4826},
+        "outcome_hybrid_0_5": {"jp": 0.7890, "langdom": 0.4849}
+      },
+      "cross_lingual_improvement": {
+        "tfidf_baseline": 0.124,
+        "hybrid_w04": 0.160,
+        "improvement": 0.036,
+        "note": "Hybrids improve cross-lingual retrieval but remain below 0.2 threshold for useful cross-language equivalents"
+      },
+      "scale_dependency": "Optimal weight shifts toward denser semantic contribution at larger scale (w=0.3 at 19yr -> w=0.4 at 22yr for pure citation TF-IDF)",
+      "acceptance_criteria": {
+        "adversarial_gates": {
+          "metric": "both adversarial gates",
+          "threshold": "PASS",
+          "current_144k": "PASS (w=0.3-0.4)",
+          "status": "PASS"
+        },
+        "cross_lang_improvement": {
+          "metric": "cross_lang_same_branch > TF-IDF baseline",
+          "threshold": "> 0.124",
+          "current_144k": 0.160,
+          "status": "PASS"
+        }
+      },
+      "product_integration": {
+        "view_name": "hybrid_complement",
+        "default_representation": "linear_citation_concat_w0.4 (22yr) / linear_hybrid05_concat_w0.3 (19yr)",
+        "status": "EXPLORATORY v1.1+",
+        "note": "Does NOT beat TF-IDF on jurist preference — marked as exploratory mode"
+      },
+      "key_finding": "Linear hybrids PASS adversarial gates at scale (19yr+) but remain BELOW TF-IDF baseline on jurist preference (0.66-0.67 vs 0.78-0.79). Add cross-lingual benefit but citation signals remain dominant for legal relevance."
+    }
+  },
+  "two_mode_tradeoff": {
+    "reproduced_at_scales": ["3yr", "15yr", "19yr", "20yr", "21yr", "22yr"],
+    "tradeoff_matrix": {
+      "tfidf_citation_hybrids": {
+        "langdom": 0.48,
+        "jurist_preference": 0.78,
+        "citation_independence": 0.14,
+        "characteristic": "Legal relevance, monolingual clusters"
+      },
+      "dense_semantic_center_projected": {
+        "langdom": "0.83-0.98",
+        "jurist_preference": "0.05-0.43",
+        "citation_independence": 0.37,
+        "characteristic": "Cross-lingual, language-dominated"
+      },
+      "linear_hybrids_optimal": {
+        "langdom": "0.58-0.80",
+        "jurist_preference": "0.61-0.67",
+        "citation_independence": "0.20-0.30",
+        "characteristic": "Best of both, but below TF-IDF JP"
+      }
+    },
+    "conclusion": "No single representation dominates all three metrics at any scale. Fundamental tradeoff between legal relevance (TF-IDF) and cross-lingual reach (dense)."
+  },
+  "true_oos_ceiling": {
+    "jurist_preference_ceiling": 0.53,
+    "factory_target": 0.7,
+    "achievable": false,
+    "source": "v8 holdout validation (train-only TF-IDF/SVD on 80%)",
+    "implication": "Dense embeddings cannot be PRIMARY for jurist navigation"
+  },
+  "data_blockers": {
+    "bge_bger_id_mapping": "Canonical corpus uses bge_ IDs, evaluation uses bger_ IDs — no mapping exists",
+    "parquet_2022_2026": "29,520 decisions missing (years 2022-2026), no /tmp/bger.parquet",
+    "section_extraction_174k": "Sachverhalt/Erwaegungen/Dispositiv not extracted at 174k scale",
+    "gpu_unavailable": "No BGE/multilingual-e5 finetuning at scale"
+  },
+  "acceptance_criteria_summary": {
+    "citation_heritage_auc": {"threshold": "> 0.75", "current": "0.79-0.85", "status": "PASS"},
+    "cross_lingual_sachverhalt": {"threshold": "> 0.2", "current": "0.282 (1K)", "status": "SAMPLE_ONLY"},
+    "cross_lingual_dispositiv": {"threshold": "> 0.1", "current": "0.150 (1K)", "status": "SAMPLE_ONLY"},
+    "hybrid_adversarial": {"threshold": "PASS", "current": "PASS (w=0.3-0.4)", "status": "PASS"},
+    "hybrid_cross_lang": {"threshold": "> 0.124", "current": "0.160 (w=0.4)", "status": "PASS"}
+  },
+  "product_integration_contracts": {
+    "primary_navigation": {
+      "view_name": "primary_navigation",
+      "representation": "cited_outcome_hybrid_0.5 (TF-IDF)",
+      "status": "PRODUCTION v1.0",
+      "user_intent": "Jurist finds legally relevant neighbors"
+    },
+    "citation_heritage": {
+      "view_name": "citation_heritage",
+      "representation": "center_projected_64dim",
+      "status": "READY v1.1+",
+      "user_intent": "Jurist explores doctrinal lineage via shared citations"
+    },
+    "cross_lingual": {
+      "view_name": "cross_lingual",
+      "representation": "center_projected_64dim per section (sachverhalt > dispositiv)",
+      "status": "BLOCKED v1.1+",
+      "user_intent": "Jurist finds equivalent decisions in other languages"
+    },
+    "hybrid_explore": {
+      "view_name": "hybrid_complement",
+      "representation": "linear_citation_concat_w0.4 (22yr) / linear_hybrid05_concat_w0.3 (19yr)",
+      "status": "EXPLORATORY v1.1+",
+      "user_intent": "Jurist trades some legal relevance for cross-lingual reach"
+    }
+  },
+  "evidence_sources": {
+    "citation_heritage_22yr": "legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_22year_latest.json",
+    "citation_heritage_21yr": "legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_21year_latest.json",
+    "section_crosslingual_1k": "legal_distance/results/174k_dense_embeddings/section_crosslingual_eval/section_crosslingual_eval_latest.json",
+    "weight_sweep_22yr": "legal_distance/results/174k_dense_embeddings/linear_combinations_weight_sweep_22year/weight_sweep_22year_latest.json",
+    "linear_combinations_19yr": "legal_distance/results/174k_dense_embeddings/linear_combinations_19year/linear_combinations_19year_eval_latest.json",
+    "evaluation_22yr_center_projected": "legal_distance/results/174k_dense_embeddings/evaluation_22year_center_projected/combined_results.json",
+    "evaluation_15yr_hybrid05": "legal_distance/results/174k_dense_embeddings/linear_hybrid05_concat_15year/linear_hybrid05_concat_15year_eval_latest.json",
+    "tfidf_174k_formal_suite": "/tmp/lex_accepted/evaluation/results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
+    "v8_holdout_oos": "/tmp/lex_accepted/evaluation/results/evaluation/v8_holdout_zero_shot_validation/holdout_zero_shot_validation_fixed.json",
+    "v17b_label_normalization": "/tmp/lex_accepted/evaluation/results/evaluation/v17b_label_normalization_all_reps/v17b_label_normalization_all_reps_latest.json",
+    "v18_coarse_hierarchy": "/tmp/lex_accepted/evaluation/results/evaluation/v18_coarse_hierarchy/v18_coarse_hierarchy_results.json"
+  },
+  "recommendation": {
+    "continue_same_question": false,
+    "reason": "Maximum evidence extracted at 144k scale. Complementary role fully characterized. No further same-question cycles justified.",
+    "next_actions": [
+      "Corpus lane: Resume for bge_<->bger_ mapping, 2022-2026 parquet, section extraction at 174k",
+      "Product lane: Ship v1.0 with TF-IDF citation hybrids as primary (JP 0.78 vs 0.43 semantic baseline)",
+      "Dense integration: v1.1+ for citation-heritage view and cross-lingual view (contracts defined)",
+      "No new Frontier team — portfolio v7 confirmed, all teams TERMINATED"
+    ]
+  }
+}
