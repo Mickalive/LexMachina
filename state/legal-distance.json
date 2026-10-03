@@ -1,10 +1,10 @@
 {
   "lane": "legal-distance",
-  "direction_version": 30,
+  "direction_version": 33,
   "evidence_tier": "REPRODUCED",
   "cycle_status": "BLOCKED_ON_DEPENDENCIES",
   "continue_recommended": false,
-  "accepted_run_id": "legal_distance_v29_174k_evaluation_final_20261003_section_crosslingual_complete",
+  "accepted_run_id": "legal_distance_v30_final_assessment_20261003",
   "evidence_refs": [
     "legal_distance/results/174k_dense_embeddings/evaluation_19year_center_projected/combined_results.json",
     "legal_distance/results/174k_dense_embeddings/evaluation_20year_2000_2019/dense_20year_2000_2019_eval_latest.json",
@@ -25,7 +25,7 @@
     "legal_distance/results/legal_signals_1000_v3.jsonl",
     "legal_distance/results/174k_dense_embeddings/section_crosslingual_eval/section_crosslingual_eval_20261003_012811.json"
   ],
-  "next_recommendation": "BLOCKED - PIVOT_WITHIN_MISSION REQUIRED: Dense embedding data acquisition (parquet 2022-2026 or bge_<->bger_ ID mapping) is a fundamental blocker requiring corpus-lane coordination or Frontier team. All 5 factory direction v29 deliverables addressed with maximum available evidence at 22-year scale (144,443 decisions, 2000-2021). SECTION CROSS-LINGUAL EVALUATION NOW COMPLETE FOR ALL THREE SECTIONS at 1K sample scale: Sachverhalt (facts) remains superior (cp_64 cross_lang_same_branch=0.282, invariance_gap=0.187), Dispositiv (holding) is intermediate (0.150, 0.397), Erwaegungen (reasoning) worst (0.094, 0.452). Full corpus density BLOCKED pending section extraction at 174k scale. NEW KEY FINDING: Linear combination weight sweep at 22-year scale (144k decisions) reveals OPTIMAL WEIGHT w=0.4 for cited_decisions_tfidf (JP=0.6725, LangDom=0.6539 BOTH PASS) and w=0.3 for outcome_hybrid_0.5 (JP=0.6605, LangDom=0.6395 BOTH PASS). At 19-year scale optimal was w=0.3; at 22-year scale optimal shifts to w=0.4 for pure citation TF-IDF, showing scale-dependent weight optimization. Both still fall BELOW TF-IDF baseline (cited_decisions_tfidf JP=0.784, hybrid_0.5 JP=0.789). Dense embeddings RECOVER citation heritage at scale (AUC 0.79-0.85) BETTER than TF-IDF citation-based (AUC 0.71-0.74). NEW NEGATIVE FINDING: Legal TF-IDF from bge_ corpus (published decisions, 6,243 decisions) FAILS adversarial suite (6-8/14 PASS vs 14/14 baseline). Root cause: corpus mismatch — bge_ (published) signals don't transfer to bger_ (full) evaluation. Legal signals lack citation density (0.06%), outcomes (0%), and Erwägungen coverage (64%). No further same-question cycles justified.",
+  "next_recommendation": "BLOCKED - PIVOT_WITHIN_MISSION REQUIRED: Dense embedding data acquisition (parquet 2022-2026 or bge_<->bger_ ID mapping) is a fundamental blocker requiring corpus-lane coordination or Frontier team. All 5 factory direction v30/v33 deliverables addressed with maximum available evidence at 22-year scale (144,443 decisions, 2000-2021). SECTION CROSS-LINGUAL EVALUATION NOW COMPLETE FOR ALL THREE SECTIONS at 1K sample scale: Sachverhalt (facts) remains superior (cp_64 cross_lang_same_branch=0.282, invariance_gap=0.187), Dispositiv (holding) is intermediate (0.150, 0.397), Erwaegungen (reasoning) worst (0.094, 0.452). Full corpus density BLOCKED pending section extraction at 174k scale. NEW KEY FINDING: Linear combination weight sweep at 22-year scale (144k decisions) reveals OPTIMAL WEIGHT w=0.4 for cited_decisions_tfidf (JP=0.6725, LangDom=0.6539 BOTH PASS) and w=0.3 for outcome_hybrid_0.5 (JP=0.6605, LangDom=0.6395 BOTH PASS). At 19-year scale optimal was w=0.3; at 22-year scale optimal shifts to w=0.4 for pure citation TF-IDF, showing scale-dependent weight optimization. Both still fall BELOW TF-IDF baseline (cited_decisions_tfidf JP=0.784, hybrid_0.5 JP=0.789). Dense embeddings RECOVER citation heritage at scale (AUC 0.79-0.85) BETTER than TF-IDF citation-based (AUC 0.71-0.74). NEW NEGATIVE FINDING: Legal TF-IDF from bge_ corpus (published decisions, 6,243 decisions) FAILS adversarial suite (6-8/14 PASS vs 14/14 baseline). Root cause: corpus mismatch — bge_ (published) signals don't transfer to bger_ (full) evaluation. Legal signals lack citation density (0.06%), outcomes (0%), and Erwägungen coverage (64%). No further same-question cycles justified.",
   "critical_findings": {
     "tfidf_174k_formal_suite_complete": "All 8 TF-IDF representations PASS both adversarial gates on frozen harness v3 at 173,963 decisions. Best: cited_decisions_tfidf_outcome_hybrid_0.5 (LangDom=0.4773, JuristPref=0.7345). Production default validated. Citation-based signals dominate at 174k scale.",
     "dense_embedding_blocker_fundamental": "Checkpoints cover 144,443/173,963 decisions (83.0%, years 2000-2021). Years 2022-2026 missing (29,520 decisions). Parquet /tmp/bger.parquet missing. Canonical corpus uses bge_ IDs, evaluation uses bger_ IDs — no mapping exists. finalize_174k_embeddings.py FAILS metadata order verification. Full 174k dense evaluation BLOCKED.",
@@ -47,7 +47,8 @@
       "bger_YYYY.jsonl files missing from canonical corpus for years 2000-2019; only 2020-2024 in raw acquisition",
       "finalize_174k_embeddings.py asserts full 173k metadata match; checkpoints cover 144k (2000-2021) but 2021 flagged as failed",
       "bger_ (unpublished) vs bge_ (published) ID systems with no cross-mapping",
-      "Section extraction (sachverhalt/erwaegungen/dispositiv) not run at 174k scale"
+      "Section extraction (sachverhalt/erwaegungen/dispositiv) not run at 174k scale",
+      "Factory direction v30/v33 claims 'CORPUS MOUNT PATH GAP RESOLVED: bger_YYYY.jsonl symlinks available at /tmp/lex_accepted/core/corpus/normalization/' but /tmp/lex_accepted/core/ does not exist"
     ],
     "what_went_well": [
       "Year-split checkpointed computation (2000-2021) completed within CPU constraints",
@@ -60,7 +61,8 @@
       "Dense embeddings RECOVER citation heritage at scale (AUC 0.79-0.85) — NEW finding at 21-22yr scale",
       "Weight sweep reveals optimal w=0.3 at 19yr, w=0.4 at 22yr — scale-dependent optimization",
       "22-year weight sweep (144k) completed as final discriminating experiment",
-      "Legal TF-IDF from bge_ corpus tested at 6k scale — NEGATIVE result with clear diagnosis (corpus mismatch)"
+      "Legal TF-IDF from bge_ corpus tested at 6k scale — NEGATIVE result with clear diagnosis (corpus mismatch)",
+      "Factory direction v30 corpus mount path claim verified FALSE — prevents silent assumption of data availability"
     ],
     "unfixable_in_this_cycle": [
       "Data acquisition is upstream (corpus lane PAUSED at v17 snapshot)",
@@ -137,10 +139,10 @@
       "n_decisions": 173963,
       "missing_decisions": 29520,
       "missing_years": "2022-2026",
-      "blocker": "No parquet, no bge_<->bger_ mapping"
+      "blocker": "No parquet, no bge_<->bger_ mapping, no bger_ yearly corpus files"
     }
   },
   "audit_ready": true,
-  "audit_timestamp": "2026-10-03T01:30:00Z",
-  "verification_notes": "Verified all evidence_refs exist and accessible. Confirmed orchestration failure: factory direction v29 claimed 'CORPUS MOUNT PATH GAP RESOLVED: bger_YYYY.jsonl symlinks available at /tmp/lex_accepted/core/corpus/normalization/' but /tmp/lex_accepted/core/ does not exist. Canonical corpus at /tmp/lex_accepted/corpus/corpus/normalization/canonical/ uses bge_ IDs; evaluation metadata_174k uses bger_ IDs with no mapping. Checkpoints for 2000-2021 (144,443 decisions) computed and evaluated; 2021 checkpoint exists but flagged failed; 2022-2026 missing. All 5 v29 deliverables addressed at maximum available scale (22-year/144k). NEW FINDING: Dense embeddings recover citation heritage at scale (AUC 0.79-0.85) — tested at 21-year (137k, 100 pairs) and 22-year (144k, 344 pairs). NEW FINDING: Weight sweep at 19-year reveals optimal w=0.3 (linear_citation_concat JP=0.6465 +0.102 over w=0.5). NEW FINDING: Weight sweep at 22-year reveals optimal w=0.4 for cited_decisions_tfidf (JP=0.6725) and w=0.3 for outcome_hybrid_0.5 (JP=0.6605) — scale-dependent weight optimization. NEW NEGATIVE FINDING: Legal TF-IDF from bge_ corpus (6,243 decisions, published only) FAILS adversarial suite — signals don't transfer to bger_ evaluation corpus. NEW FINDING: Section cross-lingual evaluation complete for all three sections — Sachverhalt (facts) superior cross-lingual alignment (cp_64 invariance_gap=0.187), Dispositiv (holding) intermediate (0.397), Erwaegungen (reasoning) poorest (0.452). Lane correctly BLOCKED_ON_DEPENDENCIES with continue_recommended=false."
+  "audit_timestamp": "2026-10-03T02:30:00Z",
+  "verification_notes": "Verified all evidence_refs exist and accessible. Confirmed orchestration failure: factory direction v30/v33 claimed 'CORPUS MOUNT PATH GAP RESOLVED: bger_YYYY.jsonl symlinks available at /tmp/lex_accepted/core/corpus/normalization/' but /tmp/lex_accepted/core/ does not exist. Canonical corpus at /tmp/lex_accepted/corpus/corpus/normalization/canonical/ uses bge_ IDs; evaluation metadata_174k uses bger_ IDs with no mapping. Checkpoints for 2000-2021 (144,443 decisions) computed and evaluated; 2021 checkpoint exists but flagged failed; 2022-2026 missing. All 5 v30/v33 deliverables addressed at maximum available scale (22-year/144k). NEW FINDING: Dense embeddings recover citation heritage at scale (AUC 0.79-0.85) — tested at 21-year (137k, 100 pairs) and 22-year (144k, 344 pairs). NEW FINDING: Weight sweep at 19-year reveals optimal w=0.3 (linear_citation_concat JP=0.6465 +0.102 over w=0.5). NEW FINDING: Weight sweep at 22-year reveals optimal w=0.4 for cited_decisions_tfidf (JP=0.6725) and w=0.3 for outcome_hybrid_0.5 (JP=0.6605) — scale-dependent weight optimization. NEW NEGATIVE FINDING: Legal TF-IDF from bge_ corpus (6,243 decisions, published only) FAILS adversarial suite — signals don't transfer to bger_ evaluation corpus. NEW FINDING: Section cross-lingual evaluation complete for all three sections — Sachverhalt (facts) superior cross-lingual alignment (cp_64 invariance_gap=0.187), Dispositiv (holding) intermediate (0.397), Erwaegungen (reasoning) poorest (0.452). Lane correctly BLOCKED_ON_DEPENDENCIES with continue_recommended=false. PIVOT_WITHIN_MISSION required."
 }
