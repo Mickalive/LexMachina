@@ -223,16 +223,23 @@ def test_data_blockers_identified():
     completed_years = data.get("completed_years", [])
     failed_years = data.get("failed_years", [])
     
-    # Should have 2000-2021 (22 years) completed or attempted
+    # Completed years includes 2000-2023 (24 years) but 2021-2023 also flagged as failed
+    # This indicates embeddings exist but quality validation failed
     assert len(completed_years) >= 22, f"Expected >=22 completed years, got {len(completed_years)}"
+    assert "2021" in completed_years and "2022" in completed_years and "2023" in completed_years, "2021-2023 should be in completed_years"
     
-    # 2022-2026 missing
-    all_years = set(range(2000, 2027))
+    # Actual missing: 2024-2026 (3 years, ~15k decisions)
+    all_years = set(str(y) for y in range(2000, 2027))
     done_years = set(completed_years)
     missing = all_years - done_years
-    assert 2022 in missing and 2026 in missing, "Years 2022-2026 should be missing"
+    assert "2024" in missing and "2026" in missing, f"Years 2024-2026 should be missing, got {sorted(missing)}"
+    assert "2022" not in missing and "2023" not in missing, "2022-2023 should be in completed_years (though flagged failed)"
     
-    print(f"✅ Data Blockers: Completed years={len(completed_years)}, Missing={sorted(missing)}")
+    # Verify failed_years includes 2021-2026
+    for y in ["2021", "2022", "2023", "2024", "2025", "2026"]:
+        assert y in failed_years, f"Year {y} should be in failed_years"
+    
+    print(f"✅ Data Blockers: Completed years={len(completed_years)} (2000-2023), Failed={sorted(set(failed_years))}, Missing={sorted(missing)}")
 
 
 if __name__ == "__main__":

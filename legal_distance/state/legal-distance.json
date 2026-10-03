@@ -20,7 +20,7 @@
     "/tmp/lex_accepted/evaluation/results/evaluation/v18_coarse_hierarchy/v18_coarse_hierarchy_results.json",
     "legal_distance/reports/legal_distance_v34_complementary_role.md"
   ],
-  "next_recommendation": "PIVOT_WITHIN_MISSION COMPLETE: Dense embedding complementary role characterized at maximum available scale (22yr/144k, 2000-2021). Three complementary modes VALIDATED against acceptance criteria: (1) Citation heritage recovery: Dense embeddings AUC 0.79-0.85 > TF-IDF 0.71-0.74, PASSES >0.75 threshold at 21-22yr scale (137k-144k); (2) Section cross-lingual: Sachverhalt cp_64 cross_lang_same_branch=0.282 > 0.2, Dispositiv cp_64=0.150 > 0.1, Erwaegungen=0.094 < 0.1 \u2014 facts/holdings align cross-lingually, reasoning does not; (3) Linear hybrid complement: PASS adversarial gates at 19yr+ (w=0.3-0.4) but REMAIN BELOW TF-IDF baseline (JP 0.61-0.67 vs 0.78-0.79). Minimal scales: citation heritage ~21yr/137k (sufficient citation pairs from 2019+), linear hybrid ~19yr/122k, section cross-lingual untested at full density. Data blocker persists: bge_/bger_ ID mapping + parquet 2022-2026 (29,520 decisions). Corpus lane resumption required for 174k completion. No further same-question cycles justified.",
+  "next_recommendation": "PIVOT_WITHIN_MISSION COMPLETE: Dense embedding complementary role characterized at maximum available evaluated scale (22yr/144k, 2000-2021). Three complementary modes VALIDATED against acceptance criteria: (1) Citation heritage recovery: Dense embeddings AUC 0.79-0.85 > TF-IDF 0.71-0.74, PASSES >0.75 threshold at 21-22yr scale (137k-144k); (2) Section cross-lingual: Sachverhalt cp_64 cross_lang_same_branch=0.282 > 0.2, Dispositiv cp_64=0.150 > 0.1, Erwaegungen=0.094 < 0.1 \u2014 facts/holdings align cross-lingually, reasoning does not; (3) Linear hybrid complement: PASS adversarial gates at 19yr+ (w=0.3-0.4) but REMAIN BELOW TF-IDF baseline (JP 0.61-0.67 vs 0.78-0.79). Minimal scales: citation heritage ~21yr/137k (sufficient citation pairs from 2019+), linear hybrid ~19yr/122k, section cross-lingual untested at full density. Data blocker persists: bge_/bger_ ID mapping + parquet 2024-2026 (15,536 decisions); 2022-2023 embeddings exist (158k total) but flagged FAILED in progress.json quality check. Corpus lane resumption required for 174k completion and 2022-2023 quality validation. No further same-question cycles justified.",
   "critical_findings": {
     "citation_heritage_dense_superiority": "Dense multilingual-e5 embeddings RECOVER citation heritage at scale (AUC 0.79-0.85 at 21-22yr, 137k-144k decisions), BETTER than TF-IDF citation-based (AUC 0.71-0.74) and much better than TF-IDF text-based (AUC 0.50-0.63). Center projection and PCA (64/128/768-dim) preserve this capability. Previously untested at sufficient scale due to citation pair distribution requiring recent years (2019+). Semantic embeddings capture doctrinal proximity through shared citations despite failing jurist gate on language dominance.",
     "section_crosslingual_hierarchy": "Section-specific cross-lingual evaluation COMPLETE for all three sections at 1K sample scale. Sachverhalt (facts, n=359) SUPERIOR: cp_64 cross_lang_same_branch=0.282, invariance_gap=0.187. Dispositiv (holding, n=538) INTERMEDIATE: cp_64 cross_lang_same_branch=0.150, invariance_gap=0.397. Erwaegungen (reasoning, n=510) POOREST: cp_64 cross_lang_same_branch=0.094, invariance_gap=0.452. Center projection improves all (sachverhalt gap 0.304\u21920.187, erwaegungen 0.538\u21920.452, dispositiv 0.575\u21920.397). Legal facts align best cross-lingually; holdings retain some alignment; reasoning is most language-specific. Full corpus density BLOCKED pending section extraction at 174k scale.",
@@ -93,11 +93,17 @@
       "erwaegungen_cp64_cross_lang_same_branch": 0.094,
       "status": "Citation heritage PASSED (AUC > 0.75); Sachverhalt/Dispositiv cross-lingual PASSED; linear combos PASS adversarial at optimal weight; center_projected FAILS jurist gate; TF-IDF baseline dominates"
     },
+    "24_year_2000_2023": {
+      "n_decisions": 158427,
+      "center_projected_jp": "NOT EVALUATED",
+      "citation_heritage_auc": "NOT EVALUATED",
+      "status": "Embeddings computed (checkpoints exist) but flagged FAILED in progress.json; evaluation not run at this scale. Requires corpus lane for bger_ 2022-2023 validation and quality verification."
+    },
     "174k_target": {
       "n_decisions": 173963,
-      "missing_decisions": 29520,
-      "missing_years": "2022-2026",
-      "blocker": "No parquet, no bge_<->bger_ mapping, no bger_ yearly corpus files"
+      "missing_decisions": 15536,
+      "missing_years": "2024-2026",
+      "blocker": "No parquet for 2024-2026, no bge_<->bger_ mapping, no bger_ yearly corpus files for 2024-2026; 2022-2023 embeddings exist but flagged failed quality check"
     }
   },
   "minimal_scale_characterization": {
@@ -134,5 +140,5 @@
   },
   "audit_ready": true,
   "audit_timestamp": "2026-10-03T12:12:45.814734Z",
-  "verification_notes": "Final audit verification complete. All 13 evidence_refs verified. PIVOT_WITHIN_MISSION characterization complete at max available scale (22yr/144k). Three complementary modes validated against evaluation lane criteria. Data blocker persists (bge_/bger_ ID mapping + parquet 2022-2026 + section extraction). Lane correctly BLOCKED_ON_DEPENDENCIES with continue_recommended=false. Snapshot audit-ready."
+  "verification_notes": "Final audit verification complete. All 13 evidence_refs verified. PIVOT_WITHIN_MISSION characterization complete at max available evaluated scale (22yr/144k, 2000-2021). 24yr/158k embeddings exist (2000-2023) but 2022-2023 flagged FAILED in progress.json; evaluation not run at this scale. Three complementary modes validated against evaluation lane criteria. Data blocker: bge_/bger_ ID mapping + parquet 2024-2026 (15,536 decisions) + section extraction; 2022-2023 quality validation needed. Lane correctly BLOCKED_ON_DEPENDENCIES with continue_recommended=false. Snapshot audit-ready."
 }
