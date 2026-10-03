@@ -1,6 +1,6 @@
 {
   "lane": "evaluation",
-  "direction_version": 29,
+  "direction_version": 30,
   "evidence_tier": "ACCEPTED",
   "cycle_status": "RUN",
   "continue_recommended": true,
@@ -11,13 +11,19 @@
     "evaluation/results/174k_citation_heritage/citation_heritage_174k_tfidf_latest.json",
     "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
     "evaluation/results/174k/dense_3year_formal_suite/evaluation_3year_dense_formal_suite_latest.json",
+    "evaluation/results/174k/formal_suite/15year_dense/evaluation_15year_dense_formal_suite_latest.json",
+    "evaluation/results/174k/formal_suite/19year_dense/evaluation_19year_dense_formal_suite_latest.json",
+    "evaluation/results/174k/formal_suite/22year_dense/center_projected_768dim_22year_eval_latest.json",
+    "evaluation/results/174k_citation_heritage/citation_heritage_dense_subsets_latest.json",
+    "evaluation/results/174k_citation_heritage/citation_heritage_center_projected_768dim_partial_2000_2015.json",
     "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
     "results/evaluation/v25_174k_formal_suite/partial_dense_results/dense_v6_2000_2002_12k.json",
     "results/evaluation/v25_174k_citation_heritage/partial_dense/dense_v6_2000_2002_12k.json",
     "results/evaluation/v25_174k_v17b/partial_dense/dense_v6_2000_2002_12k.json",
-    "reports/evaluation/cycle_174k_formal_suite_completion.md"
+    "reports/evaluation/cycle_174k_formal_suite_completion.md",
+    "reports/evaluation/evaluation_v29_final_verification_20261002.md"
   ],
-  "next_recommendation": "CONTINUE — All three v29 mandated deliverables DELIVERED and REPRODUCIBLE for TF-IDF family (8 representations at 174k): (1) Full 12-benchmark formal suite at 174k on all 8 TF-IDF reps (frozen harness v3, HNSW artifact fixed, config hash b51701f5a9c11692); (2) Citation heritage benchmark validated on frozen 1,020-pair pool (all 8 FAIL recall@10 < 0.2); (3) v17b label normalization generalization test (NEGATIVE — does not generalize to 174k fine-grained labels, zoom coherence DEGRADES for 4/8 reps). NO same-question cycle justified for TF-IDF. Evaluation infrastructure VERIFIED and AUDIT-READY. Monitor active (check_count=283). Adversarial re-verification 2026-10-02T23:50: exact reproduction on ALL 8 TF-IDF reps (config hash b51701f5a9c11692): all PASS both gates (LangDom 0.485-0.511, Jurist 0.614-0.727). AWAITING new representations from legal-distance at 174k scale: dense embeddings (22/26 years 2000-2021 checkpointed per legal-distance progress.json, concatenation BLOCKED on bge_/bger_ ID mapping), citation roles, linear hybrids (legal_citation_concat, legal_hybrid05_concat — legal-distance v12/v13/v14 REPRODUCED at 1k scale; 19-year evaluations PASS adversarial). Lane remains RUN per factory direction 'as representations land'.",
+  "next_recommendation": "CONTINUE — All three v29 mandated deliverables DELIVERED and REPRODUCIBLE for TF-IDF family (8 representations at 174k): (1) Full 12-benchmark formal suite at 174k on all 8 TF-IDF reps (frozen harness v3, HNSW artifact fixed, config hash b51701f5a9c11692); (2) Citation heritage benchmark validated on frozen 1,020-pair pool (all 8 FAIL recall@10 < 0.2); (3) v17b label normalization generalization test (NEGATIVE — does not generalize to 174k fine-grained labels, zoom coherence DEGRADES for 4/8 reps). NO same-question cycle justified for TF-IDF. Evaluation infrastructure VERIFIED and AUDIT-READY. Monitor active (check_count=284). Adversarial re-verification 2026-10-03T00:10: exact reproduction on ALL 8 TF-IDF reps (config hash b51701f5a9c11692): all PASS both gates (LangDom 0.485-0.511, Jurist 0.614-0.727). AWAITING new representations from legal-distance at 174k scale: dense embeddings (3/26 years ACCEPTED 2000-2002; 21/26 years CHECKPOINTED 2000-2020 pending audit; 22/26 years EVALUATED 2000-2021 for adversarial formal suite but citation heritage only partial 16-year 2000-2015); citation roles (NOT AVAILABLE); linear hybrids (PASS at 19-year/122k but NOT at 174k). REPAIR CYCLE_37082047030 applied: corrected unsupported dense citation heritage claim (AUC 0.79-0.85 at 22-year was unsupported; actual: partial 16-year AUC=0.90, 15/19-year FAILED insufficient pairs, 22-year NOT EVALUATED), corrected jurist gate range (JP 0.39-0.43 this cycle), clarified year statuses, documented v17b mapping coverage. Lane remains RUN per factory direction v30 'as representations land'.",
   "summary": {
     "representations_evaluated": 8,
     "representations_passing_both_adversarial_gates": 8,
@@ -36,7 +42,21 @@
     "v6_dense_12k_evaluated": true,
     "v6_dense_12k_verdict": "FAIL (adversarial LangDom=0.99, hierarchy FAIL, legal_area FAIL)",
     "v6_dense_12k_v17b_improvement": false,
-    "monitor_check_count": 283
+    "dense_embeddings_year_status": {
+      "ACCEPTED": "3/26 years (2000-2002, ~19k decisions) - formal suite and citation heritage evaluated",
+      "CHECKPOINTED": "21/26 years (2000-2020, ~150k decisions) per legal-distance progress.json - pending audit",
+      "EVALUATED_by_evaluation_lane": "22/26 years (2000-2021, 144,443 decisions) for adversarial formal suite; citation heritage only 16-year partial (2000-2015) AUC=0.90; 15/19/22-year FAILED or NOT RUN"
+    },
+    "v17b_normalization_mapping_coverage": {
+      "raw_labels_in_corpus": 214,
+      "canonical_concepts_after_normalization": 164,
+      "cross_lingual_map_entries": 91,
+      "unique_raw_labels_covered_by_map": 91,
+      "coverage_fraction": "91/214 = 42.5% of raw labels explicitly mapped",
+      "unique_canonical_concepts_in_map": 40,
+      "note": "Map merges de/fr/it equivalents (typically 2-3 per concept, avg 2.3). Remaining 123 raw labels (57.5%) pass through unchanged (identity). 40 canonical concepts from map + 123 identity = 163 (close to 164 observed; difference likely from NONE/empty handling). Map is CONSERVATIVE: only clearly-equivalent cross-lingual labels merged."
+    },
+    "monitor_check_count": 284
   },
   "frozen_config_hash": "b51701f5a9c11692",
   "factory_direction_question": "Run the machine-executable 174k formal suite autonomously as representations land: (1) full 12-benchmark formal suite at 174k scale on all production representations (frozen harness v3 thresholds unchanged); (2) validate citation_heritage benchmark using the published 174k citation-ID resolution (2,019/2,105 resolved); (3) test whether v17b label normalization (15-25% purity gain, REPRODUCED across 4 seeds) generalizes to 174k fine-grained legal_area labels.",
@@ -73,7 +93,8 @@
     "Final audit-ready verification 2026-10-02T23:14:36: Adversarial re-verification on production default cited_decisions_tfidf_outcome_hybrid_0.5 confirmed: LangDom=0.4895 PASS, JuristPref=0.7265 PASS (exact k-NN on stratified subsample n=2000, config hash b51701f5a9c11692). All 8 TF-IDF representations PASS both adversarial gates. Evaluation infrastructure FULLY OPERATIONAL and AUDIT-READY. TF-IDF deliverables COMPLETE per factory direction v29. Legal-distance dense embeddings: 22/26 years (2000-2021) checkpointed, concatenation to 174k BLOCKED on bger/bge ID mapping. Lane remains RUN monitoring for 174k-scale representations.",
     "Monitor check 282 completed 2026-10-02T23:14:36Z — scanned legal-distance accepted state (22/26 years 2000-2021 checkpointed per progress.json); NO 174k-scale .npy embeddings detected in 174k_dense_embeddings directory. Adversarial re-verification PASS on production default cited_decisions_tfidf_outcome_hybrid_0.5: LangDom=0.4895 PASS, JuristPref=0.7265 PASS (exact k-NN on stratified subsample n=2000, config hash b51701f5a9c11692). All 8 TF-IDF reps PASS both gates. Awaited representations still pending at 174k. All evaluation infrastructure VERIFIED and AUDIT-READY.",
     "Adversarial re-verification 2026-10-02T23:50: exact reproduction on ALL 8 TF-IDF representations (config hash b51701f5a9c11692) CONFIRMED: all PASS both adversarial gates. Production default cited_decisions_tfidf_outcome_hybrid_0.5: LangDom=0.4895 PASS, JuristPref=0.7265 PASS. All 8 TF-IDF reps: LangDom 0.485-0.511, Jurist 0.614-0.727. HNSW artifact fix confirmed operational. Monitor check 283. No new awaited representations detected from legal-distance (dense embeddings: 22/26 years 2000-2021 checkpointed per legal-distance progress.json, 3/26 ACCEPTED; citation roles: NOT AVAILABLE; linear hybrids: PASS at 19-year/122k scale but NOT at 174k). All evaluation infrastructure VERIFIED and AUDIT-READY. Lane remains RUN per factory direction v29.",
-    "Monitor check 284 completed 2026-10-03T00:10:42Z — scanned legal-distance accepted state (22/26 years 2000-2021 checkpointed per progress.json); NO 174k-scale .npy embeddings detected in 174k_dense_embeddings directory. Adversarial re-verification PASS on ALL 8 TF-IDF representations (config hash b51701f5a9c11692): cited_decisions_tfidf LangDom=0.4917/JP=0.7075, outcome_tfidf 0.5078/0.6660, regeste_tfidf 0.5111/0.6145, full_text_tfidf_light 0.4854/0.7080, cited_decisions_tfidf_outcome_hybrid_0.5 0.4895/0.7265, cited_decisions_tfidf_outcome_hybrid_0.7 0.4908/0.7195, regeste_full_text_hybrid_0.5 0.4873/0.7140, regeste_full_text_hybrid_0.7 0.4889/0.7120. All 8 PASS both gates (LangDom < 0.85, Jurist > 0.5). Awaited representations still pending at 174k: dense embeddings (22/26 years checkpointed, only 3/26 ACCEPTED, concatenation NOT DONE), citation roles (NOT AVAILABLE), linear hybrids (PASS at 19-year/122k scale but NOT at 174k). All evaluation infrastructure VERIFIED and AUDIT-READY. Lane remains RUN per factory direction v29."
+    "Monitor check 284 completed 2026-10-03T00:10:42Z — scanned legal-distance accepted state (22/26 years 2000-2021 checkpointed per progress.json); NO 174k-scale .npy embeddings detected in 174k_dense_embeddings directory. Adversarial re-verification PASS on ALL 8 TF-IDF representations (config hash b51701f5a9c11692): cited_decisions_tfidf LangDom=0.4917/JP=0.7075, outcome_tfidf 0.5078/0.6660, regeste_tfidf 0.5111/0.6145, full_text_tfidf_light 0.4854/0.7080, cited_decisions_tfidf_outcome_hybrid_0.5 0.4895/0.7265, cited_decisions_tfidf_outcome_hybrid_0.7 0.4908/0.7195, regeste_full_text_hybrid_0.5 0.4873/0.7140, regeste_full_text_hybrid_0.7 0.4889/0.7120. All 8 PASS both gates (LangDom < 0.85, Jurist > 0.5). Awaited representations still pending at 174k: dense embeddings (22/26 years checkpointed, only 3/26 ACCEPTED, concatenation NOT DONE), citation roles (NOT AVAILABLE), linear hybrids (PASS at 19-year/122k scale but NOT at 174k). All evaluation infrastructure VERIFIED and AUDIT-READY. Lane remains RUN per factory direction v29.",
+    "REPAIR CYCLE_37082047030 round 1 completed 2026-10-03: Fixed four audit-required defects: (1) Report Section 4: Replaced unsupported claim 'Citation heritage for dense embeddings validated at 22-year scale (144k decisions, AUC 0.79-0.85)' with accurate evidence 'Partial 16-year (2000-2015) evaluation shows AUC ~0.90 on center_projected representations. Full 15/19-year evaluations failed due to insufficient valid pairs. 22-year (2000-2021) citation heritage NOT YET EVALUATED in this cycle.' (2) Report Section 4: Corrected jurist gate range from 'JP 0.05-0.43' to 'JP 0.39-0.43 (this cycle); 0.05 from prior cycles if applicable'. (3) State files: Resolved year discrepancy — clarified ACCEPTED (3/26 years 2000-2002) vs CHECKPOINTED (21/26 years 2000-2020) vs EVALUATED (22/26 years 2000-2021 for adversarial, partial for citation heritage). (4) Documented v17b normalization mapping coverage: 91/214 = 42.5% of raw labels explicitly mapped via 91-entry cross-lingual map (40 canonical concepts); remaining 123 raw labels pass through unchanged."
   ],
   "blockers": [
     "Dense embeddings from legal-distance: 22/26 years (2000-2021) checkpointed; ONLY 3/26 years (2000-2002) ACCEPTED; concatenation to 174k NOT DONE (bge_/bger_ ID mapping blocker)",
@@ -107,17 +128,17 @@
       "all_8_tfidf_pass": true,
       "backend": "sklearn_exact_on_stratified_subsample_n2000",
       "config_hash": "b51701f5a9c11692",
-      "note": "Adversarial re-verification 2026-10-03T00:10 PASS on ALL 8 TF-IDF representations (config hash b51701f5a9c11692): LangDom range 0.485-0.511 all < 0.85, Jurist range 0.614-0.727 all > 0.5. Production default cited_decisions_tfidf_outcome_hybrid_0.5: LangDom=0.4895 PASS, Jurist=0.7265 PASS. Dense embeddings at 3/26 years ACCEPTED (FAIL). 19-year partial dense evaluated: center_projected FAIL, linear hybrids PASS. Citation heritage threshold fixed to 0.7 (4/8 PASS). v17b two normalization regimes clarified. All infrastructure VERIFIED. Factory direction v29.",
+      "note": "Adversarial re-verification 2026-10-03T00:10 PASS on ALL 8 TF-IDF representations (config hash b51701f5a9c11692): LangDom range 0.485-0.511 all < 0.85, Jurist range 0.614-0.727 all > 0.5. Production default cited_decisions_tfidf_outcome_hybrid_0.5: LangDom=0.4895 PASS, Jurist=0.7265 PASS. Dense embeddings at 3/26 years ACCEPTED (FAIL). 19-year partial dense evaluated: center_projected FAIL, linear hybrids PASS. Citation heritage threshold fixed to 0.7 (4/8 PASS). v17b two normalization regimes clarified. All infrastructure VERIFIED. Factory direction v30.",
       "verified_at": "2026-10-03T00:10:42.489Z"
     }
   },
   "last_verification": "2026-10-03T00:10:42.489Z",
-  "report_generated": "2026-10-02T21:34:09.910662+00:00",
-  "report_path": "reports/evaluation/EVALUATION_V29_CYCLE_REPORT_20261002_FINAL.md",
+  "report_generated": "2026-10-03T00:10:42.489Z",
+  "report_path": "reports/evaluation/evaluation_v29_final_verification_20261002.md",
   "monitor_check_count": 284,
   "monitor_last_check": "2026-10-03T00:10:42.489Z",
   "awaited_representations_status": {
-    "dense_embeddings_174k": "NOT_YET_AVAILABLE (22/26 years 2000-2021 checkpointed per legal-distance progress.json; legal-distance evaluation results at 22-year/144k scale available — raw 768dim FAIL, center_projected 768/128/64dim FAIL at 20-year; concatenation to 174k BLOCKED on bge_/bger_ ID mapping and missing parquet 2022-2026)",
+    "dense_embeddings_174k": "NOT_YET_AVAILABLE (3/26 years 2000-2002 ACCEPTED; 21/26 years 2000-2020 CHECKPOINTED pending audit; 22/26 years 2000-2021 evaluated for adversarial formal suite; citation heritage only 16-year 2000-2015 partial AUC=0.90; 15/19/22-year FAILED or NOT RUN; concatenation to 174k BLOCKED on bge_/bger_ ID mapping and missing parquet 2022-2026)",
     "citation_roles_174k": "NOT_YET_AVAILABLE (citation role embeddings in legal-distance v6 but not at 174k scale)",
     "linear_hybrids_174k": "PARTIAL_EVIDENCE — CONFIRMED PASS at 19-year/122k scale (legal-distance 2026-10-01): linear_citation_concat PASS (LangDom=0.767, Jurist=0.545), linear_hybrid05_concat PASS (LangDom=0.778, Jurist=0.540), cited_decisions_tfidf PASS (LangDom=0.472, Jurist=0.724), cited_decisions_tfidf_outcome_hybrid_0.5 PASS (LangDom=0.474, Jurist=0.716); legal-distance v12/v13/v14 REPRODUCED at 1k scale; await 174k concatenation and frozen formal suite evaluation"
   },

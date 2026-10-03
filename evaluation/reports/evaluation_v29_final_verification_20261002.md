@@ -36,9 +36,11 @@ The evaluation lane has completed all three items in the factory direction v29 q
 |-------|-----------|------------------|----------------|
 | 15-year (2000-2014) | 91,929 | FAIL both gates | FAIL jurist gate |
 | 19-year (2000-2018) | 122,015 | FAIL both gates | **PASS both gates** (JP=0.5395) but below TF-IDF baseline |
-| 22-year (2000-2021) | 144,443 | FAIL jurist gate (JP=0.43) | **PASS both gates at w=0.3-0.4** but below TF-IDF baseline |
+| 22-year (2000-2021) | 144,443 | FAIL jurist gate (JP 0.39-0.43) | **PASS both gates at w=0.3-0.4** but below TF-IDF baseline |
 
-**Critical finding**: Dense embeddings recover citation heritage **better than TF-IDF** (AUC 0.79-0.85 vs 0.71-0.74) but **fail jurist gate** on language dominance at all scales tested.
+**Critical finding (corrected per audit CYCLE_37082047030)**: 
+- **Citation heritage for dense embeddings**: Partial 16-year (2000-2015) evaluation shows AUC ~0.90 on center_projected_768dim (13,648 positive pairs). Full 15-year (2000-2014) and 19-year (2000-2018) evaluations **FAILED due to insufficient valid pairs**. 22-year (2000-2021) citation heritage **NOT YET EVALUATED** in this cycle. The prior claim "AUC 0.79-0.85 at 22-year scale" was unsupported.
+- **Jurist gate**: Center projected representations FAIL at all scales tested (JP 0.39-0.43 at 22-year; 0.26-0.29 at 15-year; 0.47-0.48 at 19-year). Linear hybrids PASS jurist gate at 19/22-year but remain below TF-IDF baseline (JP ~0.54 vs 0.73).
 
 ### Label Normalization (v17b)
 - **1000 scale**: 15-25% hierarchy purity gain REPRODUCED across 4 seeds

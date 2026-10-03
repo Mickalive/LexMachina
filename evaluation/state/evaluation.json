@@ -1,6 +1,6 @@
 {
   "lane": "evaluation",
-  "direction_version": 29,
+  "direction_version": 30,
   "evidence_tier": "ACCEPTED",
   "cycle_status": "RUN",
   "continue_recommended": true,
@@ -11,13 +11,19 @@
     "evaluation/results/174k_citation_heritage/citation_heritage_174k_tfidf_latest.json",
     "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
     "evaluation/results/174k/dense_3year_formal_suite/evaluation_3year_dense_formal_suite_latest.json",
+    "evaluation/results/174k/formal_suite/15year_dense/evaluation_15year_dense_formal_suite_latest.json",
+    "evaluation/results/174k/formal_suite/19year_dense/evaluation_19year_dense_formal_suite_latest.json",
+    "evaluation/results/174k/formal_suite/22year_dense/center_projected_768dim_22year_eval_latest.json",
+    "evaluation/results/174k_citation_heritage/citation_heritage_dense_subsets_latest.json",
+    "evaluation/results/174k_citation_heritage/citation_heritage_center_projected_768dim_partial_2000_2015.json",
     "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
     "results/evaluation/v25_174k_formal_suite/partial_dense_results/dense_v6_2000_2002_12k.json",
     "results/evaluation/v25_174k_citation_heritage/partial_dense/dense_v6_2000_2002_12k.json",
     "results/evaluation/v25_174k_v17b/partial_dense/dense_v6_2000_2002_12k.json",
-    "reports/evaluation/cycle_174k_formal_suite_completion.md"
+    "reports/evaluation/cycle_174k_formal_suite_completion.md",
+    "reports/evaluation/evaluation_v29_final_verification_20261002.md"
   ],
-  "next_recommendation": "All three v29 deliverables COMPLETE for TF-IDF (8 reps at 174k). Evaluation infrastructure VERIFIED and AUDIT-READY. AWAITING new representations from legal-distance at 174k scale: dense embeddings (22/26 years checkpointed, concatenation BLOCKED on bge_/bger_ ID mapping), citation roles (NOT AVAILABLE), linear hybrids (PASS at 19-year/122k but NOT at 174k). Lane RUN per factory direction v29 as representations land.",
+  "next_recommendation": "All three v29 deliverables COMPLETE for TF-IDF (8 reps at 174k). Evaluation infrastructure VERIFIED and AUDIT-READY. AWAITING new representations from legal-distance at 174k scale: dense embeddings (3/26 years ACCEPTED 2000-2002; 21/26 years CHECKPOINTED 2000-2020 pending audit; 22/26 years EVALUATED 2000-2021 for adversarial formal suite but citation heritage only partial 16-year 2000-2015); citation roles (NOT AVAILABLE); linear hybrids (PASS at 19-year/122k but NOT at 174k). Lane RUN per factory direction v30 as representations land. REPAIR CYCLE_37082047030 applied: corrected unsupported dense citation heritage claim and jurist gate range.",
   "summary": {
     "tfidf_family_174k": {
       "status": "COMPLETE",
@@ -66,6 +72,27 @@
       },
       "fundamental_tradeoff": "citation-based pass adversarial/citation_heritage, fail branch/tf_metadata/hierarchy; text-based pass branch/tf_metadata, FAIL adversarial lang_dom~0.999"
     },
+    "dense_embeddings_year_status": {
+      "ACCEPTED": {
+        "years": "2000-2002",
+        "count": 3,
+        "decisions": 12570,
+        "evidence_tier": "ACCEPTED",
+        "evaluations": ["3-year formal suite (adversarial FAIL), 3-year citation heritage (AUC=0.79, 2 pairs)"]
+      },
+      "CHECKPOINTED": {
+        "years": "2000-2020",
+        "count": 21,
+        "decisions": "~150k",
+        "evidence_tier": "CHECKPOINTED (pending audit)",
+        "evaluations": ["15-year formal suite (adversarial FAIL), 19-year formal suite (linear hybrids PASS jurist gate), 22-year formal suite (adversarial: center_projected FAIL jurist gate JP 0.39-0.43)"]
+      },
+      "EVALUATED_by_evaluation_lane": {
+        "adversarial_formal_suite": "22 years (2000-2021, 144,443 decisions) - center_projected 768/128/64dim all FAIL jurist gate",
+        "citation_heritage": "PARTIAL ONLY - 16-year (2000-2015) center_projected_768dim AUC=0.90 (13,648 pairs); 15-year/19-year/22-year FAILED or NOT RUN due to insufficient valid pairs",
+        "v17b_normalization": "tested on 3-year dense (12k): NO improvement (hierarchy 1.00x, zoom 1.01x, legal_area 1.00x; NMI drops 0.59->0.45)"
+      }
+    },
     "dense_3year_accepted": {
       "status": "COMPLETE",
       "years": "2000-2002",
@@ -91,13 +118,15 @@
       "citation_heritage": {
         "auc_roc": 0.79,
         "recall_at_10": 0.0,
-        "positive_pairs": 2
+        "positive_pairs": 2,
+        "note": "Only 2 positive pairs available at 3-year scale; result not statistically meaningful"
       },
       "v17b_label_normalization": {
         "hierarchy_purity": "0.825-0.830",
         "zoom_nesting": "0.56-0.69",
         "legal_area_purity": "0.87-0.88",
-        "ratio_norm_over_raw": "~1.0"
+        "ratio_norm_over_raw": "~1.0",
+        "conclusion": "No meaningful improvement"
       }
     },
     "dense_15year_checkpointed": {
@@ -133,17 +162,86 @@
         }
       },
       "citation_heritage": {
-        "auc_roc": 0.91,
-        "recall_at_10": 0.0,
-        "positive_pairs": 10248
+        "status": "FAILED",
+        "error": "Insufficient valid pairs",
+        "note": "Prior state incorrectly claimed AUC=0.91 with 10248 pairs; actual evaluation FAILED per citation_heritage_dense_subsets_latest.json"
       },
       "v17b_label_normalization": "not completed (timeout), but 3-year results show ratio ~1.0"
+    },
+    "dense_19year_checkpointed": {
+      "status": "COMPLETE",
+      "years": "2000-2018",
+      "decisions": 122015,
+      "representations_evaluated": 5,
+      "adversarial_results": {
+        "center_projected_768dim": {
+          "verdict": "FAIL",
+          "language_dominance": 0.86,
+          "jurist_preference": "~0.47-0.48"
+        },
+        "center_projected_128dim": {
+          "verdict": "FAIL",
+          "jurist_preference": "~0.47-0.48"
+        },
+        "center_projected_64dim": {
+          "verdict": "FAIL",
+          "jurist_preference": "~0.47-0.48"
+        },
+        "linear_citation_concat": {
+          "verdict": "PASS",
+          "jurist_preference": 0.545
+        },
+        "linear_hybrid05_concat": {
+          "verdict": "PASS",
+          "jurist_preference": 0.540
+        }
+      },
+      "citation_heritage": {
+        "status": "FAILED",
+        "error": "Insufficient valid pairs"
+      }
+    },
+    "dense_22year_evaluated": {
+      "status": "COMPLETE",
+      "years": "2000-2021",
+      "decisions": 144443,
+      "representations_evaluated": 3,
+      "adversarial_results": {
+        "center_projected_768dim": {
+          "verdict": "FAIL",
+          "language_dominance": 0.842,
+          "jurist_preference": 0.3975
+        },
+        "center_projected_128dim": {
+          "verdict": "FAIL",
+          "language_dominance": 0.838,
+          "jurist_preference": 0.408
+        },
+        "center_projected_64dim": {
+          "verdict": "FAIL",
+          "language_dominance": 0.832,
+          "jurist_preference": 0.4265
+        }
+      },
+      "citation_heritage": {
+        "status": "NOT_EVALUATED",
+        "note": "22-year citation heritage not evaluated; only 16-year (2000-2015) partial evaluation available (AUC=0.90)"
+      }
     },
     "v17b_label_normalization_174k_tfidf": {
       "status": "COMPLETE",
       "uniform_improvement_or_matching": false,
       "worsened_gt10pct": 4,
       "conclusion": "v17b label normalization does NOT uniformly improve hierarchy metrics at 174k scale; zoom_fine purity degrades by 11-16% for citation-based representations"
+    },
+    "v17b_normalization_mapping_coverage": {
+      "raw_labels_in_corpus": 214,
+      "canonical_concepts_after_normalization": 164,
+      "cross_lingual_map_entries": 91,
+      "unique_raw_labels_covered_by_map": 91,
+      "coverage_fraction": "91/214 = 42.5% of raw labels explicitly mapped",
+      "unique_canonical_concepts_in_map": 40,
+      "note": "Map merges de/fr/it equivalents (typically 2-3 per concept, avg 2.3). Remaining 123 raw labels (57.5%) pass through unchanged (identity). 40 canonical concepts from map + 123 identity = 163 (close to 164 observed; difference likely from NONE/empty handling). Map is CONSERVATIVE: only clearly-equivalent cross-lingual labels merged."
     },
     "citation_heritage_174k_tfidf": {
       "status": "COMPLETE",
