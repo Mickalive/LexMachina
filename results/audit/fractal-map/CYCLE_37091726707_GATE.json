@@ -1,0 +1,13 @@
+{
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "State file key_findings.144k_checkpoint_dense_validation: Correct 'strict_nesting ≥0.99' claim — coarse_0.5_fixed3.0_min20 config shows strict_nesting=0.9892 (<0.99). Update to 'strict_nesting ≥0.99 for 2/3 configs; one config at 0.989'.",
+    "Operational resume / State file: Correct 144k branch_improvement attribution. The 'hier_impr ~0.67' value is from 28k checkpoint, not 144k. 144k branch_improvement is 0.052–0.092 (config-dependent). Remove conflation of 28k and 144k metrics.",
+    "Operational resume: Qualify zoom_branch improvement_rate '0.48–0.65' as config-dependent. Production config (coarse_0.5_fixed2.0_min20) shows 0.52 branch / 0.76 area; 0.65 only in coarse_0.25 config.",
+    "State file negative_results entry 11: Correct 12k dense failure reason. v26_12k_dense_verdict.json fails on 'improvement_rate_gt_0.5_on_2_of_4: false' (v26 zoom-quality rule), not singleton_fraction under frozen hierarchical_v1 protocol. Frozen hierarchical_v1 not yet evaluated on 12k dense.",
+    "State file github_run / Branch traceability: Branch name (37091726707) differs from commit message and state file github_run (37090297583). Align or document cross-reference mapping."
+  ],
+  "claim_ceiling": "EXPLORATORY",
+  "evidence_summary": "Core experimental findings verified: TF-IDF constrained hierarchical Leiden achieves nesting=1.0 by construction at 174k (8 modes); hierarchical_v1 protocol: 3/3 text-based modes PASS at full 173,963 (fine_branch_purity 0.906–0.930), 3/3 citation-based PASS at 52% scale (0.63–0.69), regeste_tfidf FAILS (0.0, metadata gap), outcome_tfidf FAILS (0.360). Flat Leiden FAILS v26 at 174k (0/4 PASS, >99% singletons). Scale dependency confirmed: flat fails <62k, hierarchical works all scales. 12k dense (ACCEPTED): multi-level protocol PASS (nesting=1.0, 39→412 clusters), v26 zoom-quality FAIL (expected). 144k dense checkpoint (PENDING AUDIT): fine_branch_purity ~0.97, area_purity ~0.62, singleton_fraction ~4–5%, branch_improvement 0.052–0.092. 28k dense: hier_impr ~0.67. Blockers confirmed fundamental: legal-distance 174k dense embeddings (3/26 ACCEPTED, 21/26 CHECKPOINTED, 5/26 unprocessed), BGE/bger ID mapping missing, parquet missing 2022–2026, finalize_174k_embeddings.py verification failing. Negative results honestly preserved. Test suite: ~242 collected (operational resume claims 241). Three factual inaccuracies in summary reporting require correction before integration."
+}
