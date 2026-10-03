@@ -1,0 +1,18 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF 174k production default validated (cited_decisions_tfidf_outcome_hybrid_0.5: LangDom=0.4773, JuristPref=0.7345). Dense embeddings BLOCKED at 144k/174k (83%) — center_projected FAILS jurist gate at ALL scales tested (3yr-22yr). Linear hybrids PASS adversarial gates at 19yr but remain BELOW TF-IDF baseline (delta -0.18). Two-mode tradeoff (Citation/Outcome vs Semantic vs Hybrid) REPRODUCED at all scales. NEW: Dense embeddings recover citation heritage at scale (AUC 0.79-0.85) BETTER than TF-IDF citation-based (0.71-0.74). V14 independent rerun CONFIRMED for linear_citation_concat. Section cross-lingual: sachverhalt superior (gap 0.187 vs 0.452). Prod-vs-CV leakage minimal. No further same-question cycles justified — fundamental blocker is upstream corpus data acquisition.",
+  "evidence_summary": {
+    "tfidf_174k_formal_suite": "COMPLETE - 8/8 representations PASS both adversarial gates on frozen harness v3 at 173,963 decisions. Best: cited_decisions_tfidf_outcome_hybrid_0.5 (LangDom=0.4773, JuristPref=0.7345, AUC=0.7163).",
+    "dense_embedding_assembly": "BLOCKED - 144,443/173,963 decisions (83%, years 2000-2021). Missing: parquet for 2022-2026, no bge_<->bger_ ID mapping. finalize_174k_embeddings.py fails metadata order verification.",
+    "center_projected_jurist_gate": "FAIL at all scales - 3yr (JP=0.39-0.42), 15yr (JP=0.288), 19yr (JP=0.3685), 20yr (JP=0.0475 catastrophic), 22yr (JP=0.3975). LangDom 0.84-0.98. Cross-lang retrieval FAIL (recall@10 < 0.1). Boilerplate resistance ≈ -0.93.",
+    "linear_combinations_19yr": "PASS adversarial gates but below TF-IDF baseline. linear_citation_concat: LangDom=0.7669, JP=0.5445 (delta -0.179). linear_hybrid05_concat: LangDom=0.7784, JP=0.5395 (delta -0.184). Scale dependency: 15yr JP=0.473 FAIL, 19yr PASS.",
+    "section_crosslingual": "Sachverhalt (n=359) superior to Erwaegungen (n=510). Sachverhalt cp_64: cross_lang_same_branch=0.282, invariance_gap=0.187, separation=+0.032. Erwaegungen cp_64: cross_lang_same_branch=0.094, invariance_gap=0.452, separation=-0.265. Zero-shot transfer FAIL for both.",
+    "prod_vs_cv_holdout": "VALIDATED - 4/4 zero-shot hybrids PASS both gates on true 20% holdout. Train-only TF-IDF/SVD fitting. Leakage impact: LangDom improves -0.065 to -0.095, JP decreases -0.027 to -0.034. No significant information leakage.",
+    "two_mode_tradeoff": "REPRODUCED at all scales. Citation/Outcome (TF-IDF): LangDom~0.48, JP~0.73, CiteIndep~14%. Semantic (center_projected): LangDom~0.84-0.98, JP~0.05-0.40, CiteIndep~37%. Linear Hybrids: LangDom~0.77-0.78, JP~0.54, intermediate. No single representation dominates all three metrics.",
+    "citation_heritage_dense": "NEW FINDING - Dense multilingual-e5 RECOVERS citation heritage at 21-22yr scale (AUC 0.79-0.85, 137k-144k decisions, 100-344 positive pairs), BETTER than TF-IDF citation-based (AUC 0.71-0.74) and text-based (AUC 0.50-0.63). Center projection/PCA (64/128-dim) preserves capability.",
+    "v14_independent_rerun": "CONFIRMED - linear_citation_concat reproduced under independent seed (137 vs 42). Paired delta_mean=0.0392 (>0.02 threshold), paired_delta_std=0.0212 (<0.03 threshold). linear_hybrid05_w3070 consistently FAILS (reproduced negative).",
+    "negative_results_honest": "All FAIL verdicts reported as first-class evidence: center_projected jurist gate FAIL at all scales, linear combos below TF-IDF baseline, boilerplate resistance negative universally, v18 coarse hierarchy best purity 0.65 < 0.7, v17b regime-dependent at scale, section cross-lingual zero-shot FAIL, citation independent retrieval ~13-14% < 15% target."
+  }
+}

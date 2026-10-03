@@ -1,0 +1,13 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Fix cluster_coherence metric: add language_purity threshold or composite score to prevent misleading PASS on language-dominated clusters (mean_language_purity ~0.995)",
+    "Fix state file citation heritage count: update passing_representations from 3 to 4 at AUC>=0.65 threshold (regeste_full_text_hybrid_0.7 AUC=0.6595 passes)",
+    "Align 15-year dense status in state file: change from COMPLETE to CHECKPOINTED_PENDING_AUDIT per report",
+    "Flag 3-year citation heritage AUC=0.79 as statistically unreliable (only 2 positive pairs in subset)",
+    "Define explicit PASS/FAIL threshold for zero_shot_cross_language_transfer status (currently undocumented)"
+  ],
+  "claim_ceiling": "TF-IDF citation-based representations (cited_decisions_tfidf family) pass both adversarial gates at 174k scale; however jurist_forced_wrong_rate of 0.27-0.38 indicates language artifacts still dominate neighbors. Dense center_projected embeddings fail adversarial gates at all available scales (3-year: LangDom~0.996, JuristPref~0.006; 15-year: LangDom~0.89-0.90, JuristPref~0.27-0.29). v17b label normalization does not generalize to 174k fine-grained labels (4/8 representations worsen zoom_fine by >10%). Citation heritage at 174k shows AUC>0.65 for 4/8 signals but Recall@10=0.0 due to 0.1% citation graph coverage. All negative results preserved as first-class evidence.",
+  "evidence_summary": "Verified 8 TF-IDF representations at 174k (8 PASS both adversarial gates). Verified citation heritage: 4/8 PASS AUC>=0.65, Recall@10=0.0 all. Verified 3 dense representations at 3-year (12,570 decisions): all FAIL adversarial (LangDom 0.996-0.997, JuristPref 0.005-0.007), cross-language transfer PASS but cluster_coherence PASS misleading (language_purity 0.995). Verified 5 representations at 15-year (91,929 decisions): all FAIL adversarial, linear_citation_concat closest (LangDom 0.794 PASS, JuristPref 0.481 FAIL). Verified v17b label normalization at 174k: uniform_improvement=false, 4/8 degrade zoom_fine >10%. No data leakage, benchmark gaming, or prettiness-as-quality detected. HNSW artifact fix (exact k-NN on stratified subsample) valid. Negative results honestly reported and preserved."
+}

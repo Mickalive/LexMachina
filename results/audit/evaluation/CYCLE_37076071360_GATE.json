@@ -1,0 +1,103 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "ACCEPTED",
+  "evidence_summary": {
+    "adversarial_benchmarks": {
+      "representations_tested": 8,
+      "all_pass_both_gates": true,
+      "lang_dom_range": [0.477, 0.502],
+      "jurist_pref_range": [0.632, 0.735],
+      "production_default": "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "production_default_lang_dom": 0.4773,
+      "production_default_jurist_pref": 0.7345,
+      "config_hash": "b51701f5a9c11692",
+      "reproductions": 12,
+      "method": "exact_kNN_on_stratified_subsample_n2000_seed42"
+    },
+    "citation_heritage": {
+      "pair_pool_size": 2040,
+      "positive_pairs": 1020,
+      "negative_pairs": 1020,
+      "corpus_citation_resolution": "2019/2105 (95.9%)",
+      "graph_citation_resolution": "924/2105 (43.9%)",
+      "passed_auc_ge_065": 4,
+      "passed_auc_ge_070": 3,
+      "best_auc": 0.7426,
+      "production_default_auc": 0.7163,
+      "text_based_signals_fail": true,
+      "citation_signals_dominate": true,
+      "recall_at_10_universally_low": true
+    },
+    "v17b_label_normalization": {
+      "scale_tested": "174k (15,000 subsample)",
+      "raw_labels": 214,
+      "normalized_labels": 164,
+      "decisions_normalized": 85819,
+      "hierarchy_ratio_all_reps": 1.0,
+      "zoom_fine_degraded_reps": 4,
+      "zoom_fine_ratios": {
+        "cited_decisions_tfidf": 0.8869,
+        "full_text_tfidf_light": 0.8352,
+        "cited_decisions_tfidf_outcome_hybrid_0.5": 0.8827,
+        "cited_decisions_tfidf_outcome_hybrid_0.7": 0.8861
+      },
+      "generalization": "FAIL - different regime at 174k",
+      "uniform_improvement": false,
+      "only_no_worsening": "regeste_tfidf"
+    },
+    "v18_coarse_hierarchy": {
+      "branch_level_best_purity": 0.65,
+      "threshold": 0.7,
+      "representations_tested": 6,
+      "status": "NEGATIVE",
+      "conclusion": "Fundamental hierarchy limitation confirmed"
+    },
+    "dense_embeddings": {
+      "years_accepted": 3,
+      "years_checkpointed": 20,
+      "years_total": 26,
+      "accepted_decisions": "~19k (2000-2002)",
+      "concatenation_status": "NOT_DONE",
+      "v6_12k_adversarial": "FAIL (LangDom=0.99)",
+      "blocked_on": ["BGE/bger ID mismatch", "missing years 2019/2025/2026"]
+    },
+    "full_corpus_benchmarks": {
+      "temporal_stability_text_reps": "PASS (~0.78)",
+      "hierarchy_coherence": "FAIL (nesting ~0.65)",
+      "cluster_coherence": "FAIL (branch_purity ~0.3, lang_purity ~0.6)",
+      "cross_language_retrieval": "FAIL (recall@10 ~0.12-0.14)",
+      "boilerplate_resistance": "FAIL (resistance ~ -0.84, diagnosed as language dominance)"
+    },
+    "production_default": {
+      "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "wired_as": "PRODUCT_SERVING_DEFAULT",
+      "adversarial_pass": true,
+      "citation_heritage_pass": true,
+      "full_corpus_operational": true,
+      "zoom_levels": 5
+    },
+    "infrastructure": {
+      "formal_suite_harness": "frozen v3, config hash b51701f5a9c11692",
+      "exact_knn_adversarial": "verified (HNSW artifact fixed)",
+      "citation_heritage_pairs": "frozen 1,020-pair pool",
+      "v17b_pipeline": "verified",
+      "metadata_174k": "verified (173,963 entries, 100% branch+legal_area)",
+      "monitor_script": "active (check_count=281)",
+      "last_verification": "2026-10-02T21:34:09Z"
+    },
+    "negative_results_preserved": [
+      "v17b label normalization generalization FAIL",
+      "v18 coarse hierarchy FAIL",
+      "dense embeddings 12k FAIL",
+      "citation heritage FAIL for 4/8 text-based reps",
+      "all full-corpus benchmarks FAIL (except temporal_stability for text reps)",
+      "boilerplate resistance negative for all reps"
+    ],
+    "no_fabrication_detected": true,
+    "no_benchmark_weakening": true,
+    "no_leakage_detected": true,
+    "no_prettiness_as_quality": true
+  }
+}

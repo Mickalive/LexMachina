@@ -1,0 +1,20 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "All 5 factory direction v29 deliverables addressed at maximum available evidence scale (22-year, 144,443 decisions, 2000-2021). Lane correctly BLOCKED_ON_DEPENDENCIES with continue_recommended=false. No further same-question cycles justified.",
+  "evidence_summary": {
+    "tfidf_174k_formal_suite": "VERIFIED - All 8 TF-IDF representations PASS both adversarial gates on frozen harness v3 at 173,963 decisions. Best: cited_decisions_tfidf_outcome_hybrid_0.5 (LangDom=0.4773, JuristPref=0.7345). Source: all_experiments_results.json",
+    "dense_embedding_blocker": "VERIFIED - Checkpoints cover 144,443/173,963 decisions (83.0%, years 2000-2021). Years 2022-2026 missing (29,520 decisions). Parquet /tmp/bger.parquet missing. bge_ vs bger_ ID systems with no mapping. finalize_174k_embeddings.py FAILS metadata order. Source: checkpoints/progress.json, verification_notes",
+    "center_projected_jurist_gate": "VERIFIED - FAIL at all scales: 3yr JP=0.39-0.42, 15yr JP=0.288, 19yr JP=0.3685, 20yr JP=0.0475 (catastrophic), 22yr JP=0.3975. All FAIL both adversarial gates. Source: evaluation_*year_center_projected/combined_results.json",
+    "linear_combinations": "VERIFIED - linear_citation_concat 19yr: JP=0.5445 PASS, LangDom=0.7669 PASS. linear_hybrid05_concat 19yr: JP=0.5395 PASS, LangDom=0.7784 PASS. Both BELOW TF-IDF baseline (JP=0.7235). Scale dependency: 15yr JP=0.473 FAIL. Source: linear_combinations_19year_eval_latest.json, linear_hybrid05_concat_15year_eval_latest.json",
+    "section_crosslingual": "VERIFIED - Sachverhalt (n=359) cp_64: cross_lang_same_branch=0.282, invariance_gap=0.187. Erwaegungen (n=510) cp_64: cross_lang_same_branch=0.094, invariance_gap=0.452. Center projection improves both. Completed at 1K sample. Source: section_crosslingual_eval_latest.json",
+    "two_mode_tradeoff": "VERIFIED - Citation/Outcome TF-IDF: LangDom~0.48, JP~0.73, CiteIndep~14%. Semantic: LangDom~0.84-0.98, JP~0.05-0.40, CiteIndep~37%. Metric Learning: LangDom~0.58-0.61, JP~0.53-0.61. Linear Hybrids: LangDom~0.77-0.78, JP~0.54. NO single representation dominates all three metrics at any scale. Source: all evaluation JSONs across scales",
+    "prod_vs_cv_leakage": "VERIFIED - v8 holdout (train-only TF-IDF/SVD on 80%): all 4 zero-shot hybrids PASS both gates on true holdout. Leakage impact: LangDom +0.005, JP +0.015-0.020. Production default validated. Source: holdout_zero_shot_validation_fixed.json",
+    "citation_heritage_tfidf": "VERIFIED - TF-IDF citation-based: AUC 0.71-0.78 PASS. Text-based: AUC ~0.50-0.63 FAIL. Production default AUC=0.7163. Source: all_experiments_results.json",
+    "dense_citation_heritage": "VERIFIED (NEW) - Dense multilingual-e5 RECOVERS citation heritage at scale: 21yr (137k) raw AUC=0.8455, cp64=0.8182; 22yr (144k) raw AUC=0.7946, cp64=0.7922. BETTER than TF-IDF citation-based (0.71-0.74). CP/PCA preserves capability (AUC 0.79-0.82). Source: citation_heritage_21year_latest.json, citation_heritage_22year_latest.json",
+    "v17b_label_normalization": "REFERENCED - 1000-scale: 15-25% purity gain REPRODUCED (4 seeds). 174k fine-grained: purity ratios 4-10x but NMI decreases. Different regime at scale. Source: /tmp/lex_accepted/evaluation/v17b/",
+    "v18_coarse_hierarchy": "REFERENCED - 4-label branch level: best purity 0.65 < 0.7 threshold. Fundamental hierarchy limitation confirmed. Source: /tmp/lex_accepted/evaluation/v18/",
+    "boilerplate_resistance": "VERIFIED - All representations resistance_score ≈ -0.74 to -0.93. Proxy measures language dominance/cross-lingual alignment failure, not procedural boilerplate. Consistent across TF-IDF and dense. Source: all full_corpus.boilerplate_resistance entries"
+  }
+}

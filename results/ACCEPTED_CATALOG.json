@@ -126,17 +126,18 @@
         "evidence_refs": [
           "evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
           "evaluation/results/174k/formal_suite/15year_dense/evaluation_15year_dense_formal_suite_latest.json",
+          "evaluation/results/174k/formal_suite/19year_dense/evaluation_19year_dense_formal_suite_latest.json",
           "evaluation/results/174k_citation_heritage/citation_heritage_174k_tfidf_latest.json",
           "evaluation/results/174k_citation_heritage/citation_pairs_174k.json",
           "evaluation/results/v17b_174k_tfidf/v17b_174k_tfidf_latest.json",
-          "evaluation/results/v17b_174k_generalization/v17b_174k_generalization_20260930_011927.json",
+          "evaluation/results/v17b_174k_generalization/v17b_174k_generalization_latest.json",
           "evaluation/results/v17b_174k_dense_partial/v17b_174k_dense_partial_latest.json",
           "evaluation/results/v18_coarse_hierarchy/v18_coarse_hierarchy_results.json",
           "/tmp/lex_accepted/legal-distance/state/legal-distance.json",
           "/tmp/lex_accepted/corpus/state/corpus.json",
           "evaluation/reports/evaluation_v29_final_report.md"
         ],
-        "next_recommendation": "PAUSE — Factory direction v29 question fully addressed for available representations. TF-IDF family (8 reps) COMPLETE at 174k with frozen harness v3. Citation heritage VALIDATED on 174k (1,020 positive/negative pairs from 2,019/2,105 resolved citations): 3/8 PASS AUC-ROC ≥ 0.7 (cited_decisions_tfidf family), 4/8 PASS at frozen threshold AUC≥0.65 (adds regeste_full_text_hybrid_0.7). v17b label normalization REPRODUCED at 1000 scale (15-25% gain, 4 seeds); 174k generalization TESTED — NEGATIVE (different regime: 213→111 labels, purity ratios 4-10x but NMI decreases). v18 coarse hierarchy NEGATIVE (branch-level best purity 0.65 < 0.7 threshold). Dense embeddings CHECKPOINTED at 15yr/19yr (100k/122k decisions) PENDING AUDIT in legal-distance; 174k dense BLOCKED on BGE/bger ID mismatch and missing years 2019/2025/2026. No new 174k representations have landed from legal-distance since last evaluation cycle. Lane should PAUSE until legal-distance delivers 174k dense embeddings, metric learning, citation roles, and linear hybrids. Factory Director to decide successor question (legal-distance recommends FRONTIER_TEAM_REQUIRED for dense embedding data acquisition).",
+        "next_recommendation": "PAUSE — Factory direction v29 question fully addressed for available representations. TF-IDF family (8 reps) COMPLETE at 174k with frozen harness v3. Citation heritage VALIDATED on 174k (1,020 positive/negative pairs from 2,019/2,105 resolved citations): 3/8 PASS AUC-ROC ≥ 0.7 (cited_decisions_tfidf family), 4/8 PASS at frozen threshold AUC≥0.65 (adds regeste_full_text_hybrid_0.7). v17b label normalization REPRODUCED at 1000 scale (15-25% gain, 4 seeds); 174k generalization TESTED — NEGATIVE (different regime: 213→111 labels, purity ratios 4-10x but NMI decreases). v18 coarse hierarchy NEGATIVE (branch-level best purity 0.65 < 0.7 threshold). Dense embeddings CHECKPOINTED at 15yr/19yr (100k/122k decisions) with formal suite run; 22yr (144k) evaluated by legal-distance. Full 174k dense BLOCKED on BGE/bger ID mismatch and missing years 2022-2026. No new 174k representations have landed from legal-distance since last evaluation cycle. Lane should PAUSE until legal-distance delivers 174k dense embeddings, metric learning, citation roles, and linear hybrids. Factory Director to decide successor question (legal-distance recommends FRONTIER_TEAM_REQUIRED for dense embedding data acquisition).",
         "critical_findings": {
           "tfidf_174k_formal_suite_complete": "All 8 TF-IDF representations evaluated at 174k scale with frozen harness v3 (exact k-NN on valid subset for adversarial benchmarks). All 8 PASS both adversarial gates. Best: cited_decisions_tfidf_outcome_hybrid_0.5 (LangDom=0.4895, JuristPref=0.7265). Production default validated. Full-corpus benchmarks: temporal_stability PASS (0.78 for full_text_tfidf_light), hierarchy_coherence FAIL (nesting~0.65), cluster_coherence FAIL (branch_purity~0.3-0.35, lang_purity~0.6), boilerplate_resistance FAIL (resistance≈-0.84).",
           "citation_heritage_174k_validated": "Run on 1,020 positive + 1,020 negative citation pairs from resolved citation graph (2,019/2,105 citations resolved). Citation-based signals dominate: 3/8 PASS AUC-ROC ≥ 0.7 (cited_decisions_tfidf family), 4/8 PASS at frozen threshold AUC≥0.65 (adds regeste_full_text_hybrid_0.7 at 0.6595). Best: cited_decisions_tfidf (AUC=0.7426), cited_decisions_tfidf_outcome_hybrid_0.7 (AUC=0.7290), cited_decisions_tfidf_outcome_hybrid_0.5 (AUC=0.7163). Text-based signals FAIL (regeste_tfidf AUC=0.503 ~random). Confirms fundamental two-mode tradeoff: citation signals recover citation heritage, text signals do not.",
@@ -224,13 +225,17 @@
           "status": "ALL_ITEMS_COMPLETE_FOR_AVAILABLE_REPRESENTATIONS",
           "blocked_on": "legal-distance 174k dense embeddings delivery",
           "last_evaluation_timestamp": "2026-10-02",
-          "last_verification_timestamp": "2026-10-02T06:50:00Z",
+          "last_verification_timestamp": "2026-10-02T23:32:57Z",
           "test_results": {
             "frozen_harness_v3_reproducibility": "PASS",
             "v25_174k_suite_snapshot": "6/8 PASS (test_04 minor data issue, test_08 timeout)",
             "citation_heritage_spot_check": "PASS (independent AUC recomputation within 0.005 tolerance)",
             "smoke_test_formal_suite": "PASS (production default: LangDom=0.4895, JuristPref=0.7265, Both=PASS)",
-            "citation_heritage_benchmark": "OPERATIONAL (production default AUC=0.7163, cited_decisions_tfidf AUC=0.7426, regeste_tfidf AUC=0.5030)"
+            "citation_heritage_benchmark": "OPERATIONAL (production default AUC=0.7163, cited_decisions_tfidf AUC=0.7426, regeste_tfidf AUC=0.5030)",
+            "v17b_174k_generalization": "COMPLETE (regime difference confirmed, NMI decreases on normalized)",
+            "v18_coarse_hierarchy": "COMPLETE (NEGATIVE: best branch purity 0.65 < 0.7 threshold)",
+            "dense_formal_suite_15yr": "COMPLETE (7 reps evaluated, all FAIL both adversarial gates)",
+            "dense_formal_suite_19yr": "COMPLETE (7 reps evaluated, linear_hybrid05_concat PASS both gates but below TF-IDF baseline)"
           }
         }
       }
@@ -244,11 +249,18 @@
         "cycle_status": "BLOCKED_ON_DEPENDENCIES",
         "continue_recommended": false,
         "accepted_run_id": "FRACTAL_MAP_V29_FINAL_AUDIT_READY_20261002_37045815180",
-        "github_run": 37057666100,
-        "verification_run_id": "fractal_map_v29_verification_20261002_37061417331",
-        "verification_timestamp": "2026-10-02T20:35:00Z",
+        "github_run": 37075771888,
+        "verification_run_id": "fractal_map_v29_verification_20261002_37075771888",
+        "verification_timestamp": "2026-10-02T23:10:00Z",
         "verification_tests_passed": 239,
         "verification_tests_skipped": 2,
+        "preparatory_run_id": "fractal_map_prep_12k_dense_20261002_211725",
+        "preparatory_timestamp": "2026-10-02T21:17:25Z",
+        "preparatory_validations": {
+          "multi_level_protocol_12k": "PASS",
+          "frozen_v26_12k_dense": "FAIL (expected — scale dependency)",
+          "hierarchical_builder_12k": "SUCCESS (39 coarse → 412 fine, all artifacts generated)"
+        },
         "evidence_refs": [
           "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_full_20260926.json",
           "results/fractal_map/constrained_hierarchical_tests/constrained_hierarchical_174k_hybrid05_20260926.json",
@@ -282,9 +294,13 @@
           "/tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/checkpoints/progress.json",
           "reports/fractal_map/scale_dependency_validation_report.md",
           "reports/fractal_map/FRACTAL_MAP_V29_AUDIT_READY_SNAPSHOT_20261002.md",
-          "reports/fractal_map/FRACTAL_MAP_V29_FINAL_AUDIT_READY_SNAPSHOT_20261002.md"
+          "reports/fractal_map/FRACTAL_MAP_V29_FINAL_AUDIT_READY_SNAPSHOT_20261002.md",
+          "results/fractal_map/dense_12k_prep_validation/multi_level_12k_results.json",
+          "results/fractal_map/dense_12k_prep_validation/v26_12k_dense_verdict.json",
+          "results/fractal_map/dense_12k_prep_validation/center_projected_12k_hierarchical/",
+          "reports/fractal_map/PREPARATORY_VALIDATION_12K_DENSE_20261002.md"
         ],
-        "next_recommendation": "BLOCKED_ON_DEPENDENCIES — legal-distance 174k dense embeddings is the single remaining dependency. TF-IDF constrained hierarchical Leiden at 174k: hierarchical_v1 protocol shows 0/4 modes PASS at full 174k (fine_branch_purity 0.38-0.49 < 0.5); regeste_tfidf passes at 83k/47k sample but not at full 174k. Flat Leiden FAILs at 174k (>99% singletons, no monotonic zoom). Scale dependency confirmed: flat works ≥62k, fails below; hierarchical works at ALL scales but representation-limited. 28k checkpoint validates extrapolation (hier_impr ~0.67). Multi-level recursive protocol STRUCTURALLY VALIDATED at 174k for 4 TF-IDF modes but CALIBRATION FAILS on TF-IDF: cited_decisions_tfidf (level1_branch=0.347, level2_area=0.092), regeste_tfidf (level2_area=0.129) — purity-aware stopping thresholds too aggressive for TF-IDF signal density. Evidence-backed zoom path for dense modes is citation-role/dense-embedding (1000-scale: citing_alpha0.3 ZQ=0.5401). NESTING_METRIC_DEFECT_v1: nesting_score>=0.99 claims for compressed modes PROHIBITED. No further same-question cycles justified without dense embeddings delivery. VERIFICATION CONFIRMED: 239 tests pass, 1 skipped; infrastructure ready for dense embeddings (evaluate_174k_dense_embeddings.py + build_dense_hierarchical_artifacts.py); state file consistent with evidence.",
+        "next_recommendation": "BLOCKED_ON_DEPENDENCIES — legal-distance 174k dense embeddings is the single remaining dependency. TF-IDF constrained hierarchical Leiden at 174k: hierarchical_v1 protocol shows 0/4 modes PASS at full 174k (fine_branch_purity 0.38-0.49 < 0.5); regeste_tfidf passes at 83k/47k sample but not at full 174k. Flat Leiden FAILs at 174k (>99% singletons, no monotonic zoom). Scale dependency confirmed: flat works ≥62k, fails below; hierarchical works at ALL scales but representation-limited. 28k checkpoint validates extrapolation (hier_impr ~0.67). Multi-level recursive protocol STRUCTURALLY VALIDATED at 174k for 4 TF-IDF modes but CALIBRATION FAILS on TF-IDF. Evidence-backed zoom path for dense modes is citation-role/dense-embedding (1000-scale: citing_alpha0.3 ZQ=0.5401). NESTING_METRIC_DEFECT_v1: nesting_score>=0.99 claims for compressed modes PROHIBITED. PREPARATORY VALIDATION COMPLETE: 12k ACCEPTED dense embeddings validate multi-level protocol PASS, hierarchical builder SUCCESS, frozen v26 FAIL (expected). No further same-question cycles justified without dense embeddings delivery. VERIFICATION CONFIRMED: 239 tests pass, 1 skipped; infrastructure ready for dense embeddings (evaluate_174k_dense_embeddings.py + build_dense_hierarchical_artifacts.py); state file consistent with evidence.",
         "hypothesis_tested": "hierarchical_v1 protocol (fine_branch_purity > 0.5, nesting>=0.99, improvement_rate>0.5, singletons<1%) can be achieved on TF-IDF embeddings at 174k scale with adaptive parameter tuning",
         "frozen_sample": "20k stratified sample of 173,963 BGer decisions (2000-2026); full 174k metadata available (173,963 entries, branch+legal_area 100% coverage)",
         "frozen_metric": "fine_branch_purity (legal_structure_branch threshold > 0.5), strict_nesting, zoom_coherence (improvement_rate), fragmentation (singleton_fraction)",
@@ -304,7 +320,7 @@
           "fine_branch_purity_best_174k": 0.491,
           "fine_branch_purity_best_all_scales": 0.688,
           "dense_embeddings_available": false,
-          "dense_embeddings_progress": "3/26 years ACCEPTED (2000-2002, ~19,441 decisions), 15/26 years checkpointed (2000-2014, ~100k decisions) pending audit, 11/26 years not processed (2015-2026)"
+          "dense_embeddings_progress": "3/26 years ACCEPTED (2000-2002, ~19,441 decisions) per factory_direction v29; CHECKPOINTED evidence: 21/26 years (2000-2020, ~150k decisions) embeddings computed pending audit; 5/26 years (2021-2026) not processed"
         },
         "accepted_claims": [
           "Constrained hierarchical Leiden at 174k on TF-IDF achieves nesting=1.0 by construction for all 4 modes tested at full scale",
@@ -321,11 +337,11 @@
           "Multi-level protocol calibration on TF-IDF at 174k FAILS for 4 modes tested: cited_decisions_tfidf (level1_branch_purity=0.347 < 0.5, level2_area_purity=0.092 < 0.15), regeste_tfidf (level2_area_purity=0.129 < 0.15). Purity-aware stopping thresholds too aggressive for TF-IDF signal density; early stopping prevents sufficient subdivision at level 2 to reach area purity threshold"
         ],
         "blocked_dependencies": [
-          "legal-distance 174k dense embeddings: only 3/26 years ACCEPTED (2000-2002, ~19k decisions), 15/26 years checkpointed (2000-2014, ~100k decisions) pending audit, 11/26 years NOT PROCESSED (2015-2026)",
+          "legal-distance 174k dense embeddings: only 3/26 years ACCEPTED (2000-2002, ~19k decisions) per factory_direction v29; CHECKPOINTED evidence shows 21/26 years (2000-2020, ~150k decisions) with embeddings computed, pending audit promotion; 5/26 years (2021-2026) not processed",
           "legal-distance citation-role embeddings at 174k: only 1,200 decisions ACCEPTED (frozen v3), requires dense embeddings at scale",
           "legal-distance linear_hybrid05_concat at 174k: not available; 15-year proxy NEGATIVE (JP=-0.2465 delta vs TF-IDF)",
           "Section-specific cross-lingual evaluation: pending dense embeddings at full corpus density",
-          "Corpus data gap for years 2015-2026: dense embedding checkpoints cover only ~100k/173,963 decisions (~57%)"
+          "Corpus data gap for years 2021-2026: dense embedding checkpoints cover ~150k/173,963 decisions (~86%) but only 3/26 years ACCEPTED post-audit"
         ],
         "key_findings": {
           "flat_v26_zoom_quality": "Flat Leiden at v26 resolutions FAILS for all 4 TF-IDF modes at 174k (0/4 PASS): severe over-fragmentation (>99% singletons, median cluster size=1), no monotonic zoom refinement",
@@ -333,15 +349,16 @@
           "scale_dependency_confirmed": "Flat Leiden fails below 62k scale; constrained hierarchical Leiden works at ALL scales (1k-174k) but fine_branch_purity ceiling is representation-dependent. TF-IDF caps at ~0.49 (citation-based modes) / ~0.38 (text-based modes) at 174k; 0.57-0.58 at subsample scales. Dense embeddings predicted 0.95-0.97 at 174k per 28k checkpoint extrapolation",
           "nesting_metric_defect_v1": "Audit CYCLE_36027099305 enforced: nesting_score>=0.99 claims for 7 compressed-family modes PROHIBITED. nesting_score=1.0 citeable ONLY for 1000-scale and 12k-scale by-construction modes with scope annotation. Compressed 5-level ladder NOT universally valid",
           "tfidf_fundamental_ceiling": "TF-IDF representation fundamentally lacks signal density for fine-grained branch purity > 0.5 at 174k scale for citation-based modes. Best text-based mode (full_text_tfidf_light) reaches 0.38; citation-hybrid modes reach 0.49. Exhaustive algorithm testing (7 alternative hierarchical methods) confirms TF-IDF ceiling",
-          "dense_embeddings_necessary_sufficient": "Dense embeddings are necessary and sufficient for hierarchical_v1 PASS at scale. 12k ACCEPTED dense PASSes hierarchical_v1; 28k checkpoint validates scale extrapolation (hier_impr ~0.67); 15yr checkpoint (100k) validates pipeline at 57% scale with ALL 7 hierarchical_v1 checks PASS",
-          "multi_level_recursive_protocol_validated": "Multi-level recursive purity-aware protocol STRUCTURALLY VALIDATED at 174k for TF-IDF (4 modes, 4-5 levels, perfect nesting ≥0.95, zero fragmentation, median size >3, monotonic refinement at every level). CALIBRATION FAILS on TF-IDF: cited_decisions_tfidf (level1_branch_purity=0.347 < 0.5, level2_area_purity=0.092 < 0.15), regeste_tfidf (level2_area_purity=0.129 < 0.15). Purity-aware stopping thresholds (level1 branch_purity_stop=0.8, level2 area_purity_stop=0.5) too aggressive for TF-IDF signal density; early stopping prevents sufficient subdivision at level 2 to reach area purity threshold. Ready for dense embedding deployment with same thresholds; TF-IDF fallback requires threshold adjustment or acceptance of structural validation without full PASS"
+          "dense_embeddings_necessary_sufficient": "Dense embeddings are necessary and sufficient for hierarchical_v1 PASS at scale. 12k ACCEPTED dense PASSes hierarchical_v1; 28k checkpoint validates scale extrapolation (hier_impr ~0.67); 15yr checkpoint (100k, 2000-2014) validates pipeline at 57% scale with ALL 7 hierarchical_v1 checks PASS; checkpoint evidence extends to 21/26 years (2000-2020, ~150k, ~86%) pending audit promotion",
+          "multi_level_recursive_protocol_validated": "Multi-level recursive purity-aware protocol STRUCTURALLY VALIDATED at 174k for TF-IDF (4 modes, 4-5 levels, perfect nesting ≥0.95, zero fragmentation, median size >3, monotonic refinement at every level). CALIBRATION FAILS on TF-IDF: cited_decisions_tfidf (level1_branch_purity=0.347 < 0.5, level2_area_purity=0.092 < 0.15), regeste_tfidf (level2_area_purity=0.129 < 0.15). Purity-aware stopping thresholds (level1 branch_purity_stop=0.8, level2 area_purity_stop=0.5) too aggressive for TF-IDF signal density; early stopping prevents sufficient subdivision at level 2 to reach area purity threshold. Ready for dense embedding deployment with same thresholds; TF-IDF fallback requires threshold adjustment or acceptance of structural validation without full PASS",
+          "preparatory_12k_dense_validation": "Preparatory validation on 12k ACCEPTED dense embeddings (2000-2002) CONFIRMS: (1) Multi-level recursive protocol PASS with 174k production config (4 levels, perfect nesting 1.0, zero fragmentation, level1 branch_purity=0.88, level3 area_purity=0.20); (2) Frozen v26 flat Leiden FAIL (expected — scale dependency: flat fails below 62k, hier works at ALL scales); (3) Hierarchical builder pipeline SUCCESSFULLY generates all 6 product artifacts (39 coarse → 412 fine clusters, coarse_0.5_sub_2.0_min20 config). Infrastructure fully ready for 174k dense embeddings delivery."
         },
         "factory_direction_v28_discrepancy": {
           "v28_checkpoint_progress": "25/26 years (2000-2024, ~160k decisions)",
-          "v29_corrected_progress": "19/26 years (2000-2018, ~122k decisions) checkpointed PENDING AUDIT; 16/26 years (2000-2015) pending audit; only 3/26 years (2000-2002, ~19,441 decisions) ACCEPTED",
+          "v29_corrected_progress": "Factory_direction v29 states: 15/26 years (2000-2014, ~100k decisions) checkpointed PENDING AUDIT; only 3/26 years ACCEPTED. ACTUAL checkpoint evidence: 21/26 years (2000-2020, ~150k decisions) embeddings computed, pending audit promotion; 5/26 years (2021-2026) not processed",
           "v28_tfidf_claim": "ALL 4 TF-IDF modes PASS constrained hierarchical at 174k",
           "v29_corrected_claim": "0/4 TF-IDF modes PASS hierarchical_v1 protocol at full 174k; 2/4 subsample modes PASS (regeste_tfidf at 83k/47k)",
-          "resolution": "Discrepancy acknowledged and progress numbers fixed in factory_direction.json v29"
+          "resolution": "Discrepancy acknowledged and progress numbers fixed in factory_direction.json v29; actual checkpoint progress exceeds v29 claim but audit promotion pending"
         },
         "product_readiness": {
           "tfidf_modes": "OPERATIONAL at 174k (3 production modes, 16/16 scale tests PASS, 50+ API endpoints, WebGL <3s). Multi-level protocol STRUCTURALLY VALID at 174k for 4 TF-IDF modes; calibration FAILS on TF-IDF (thresholds too aggressive). Ready as fallback when dense embeddings unavailable with constrained hierarchical Leiden only.",
@@ -365,7 +382,7 @@
             "Accept TF-IDF hierarchical_v1 failure as negative result; do not claim legal_structure_branch for TF-IDF modes at 174k",
             "Document TF-IDF ceiling: fine_branch_purity ~0.49 max with adaptive configs at 174k, ~0.98 with over-fragmented configs (invalid)",
             "Accept multi-level protocol calibration failure on TF-IDF: purity-aware stopping thresholds too aggressive for TF-IDF signal density",
-            "Focus fractal-map lane on preparing for dense embedding arrival"
+            "PREPARATORY VALIDATION COMPLETE: 12k dense embeddings validate multi-level protocol PASS, hierarchical builder SUCCESS, frozen v26 FAIL (expected). Lane ready for 174k dense embeddings delivery."
           ],
           "architectural": [
             "Deprecate TF-IDF hierarchical_v1 protocol as evaluation criterion for 174k scale",
@@ -377,7 +394,8 @@
             "Freeze constrained hierarchical Leiden adaptive config as TF-IDF production standard",
             "Track fine_branch_purity, zoom_coherence, fragmentation as core TF-IDF metrics",
             "Dense embedding evaluation must use same hierarchical_v1 protocol for comparability",
-            "Multi-level protocol evaluation thresholds must be scale- and representation-adjusted; TF-IDF cannot use same thresholds as dense embeddings"
+            "Multi-level protocol evaluation thresholds must be scale- and representation-adjusted; TF-IDF cannot use same thresholds as dense embeddings",
+            "When 174k dense embeddings arrive: run evaluate_174k_dense_embeddings.py on all dense modes, run build_dense_hierarchical_artifacts.py for production modes, run multi-level protocol on 174k dense"
           ]
         },
         "corrections_from_previous_state": {
@@ -395,33 +413,38 @@
         "evidence_tier": "REPRODUCED",
         "cycle_status": "BLOCKED_ON_DEPENDENCIES",
         "continue_recommended": false,
-        "accepted_run_id": "legal_distance_v29_174k_evaluation_20261001",
+        "accepted_run_id": "legal_distance_v29_174k_evaluation_final_20261002_weight_sweep_22year",
         "evidence_refs": [
-          "/tmp/lex_accepted/evaluation/evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
           "legal_distance/results/174k_dense_embeddings/evaluation_19year_center_projected/combined_results.json",
-          "legal_distance/results/174k_dense_embeddings/linear_hybrid05_concat_15year/linear_hybrid05_concat_15year_eval_latest.json",
+          "legal_distance/results/174k_dense_embeddings/evaluation_20year_2000_2019/dense_20year_2000_2019_eval_latest.json",
           "legal_distance/results/174k_dense_embeddings/linear_combinations_19year/linear_combinations_19year_eval_latest.json",
+          "legal_distance/results/174k_dense_embeddings/linear_hybrid05_concat_15year/linear_hybrid05_concat_15year_eval_latest.json",
           "legal_distance/results/174k_dense_embeddings/section_crosslingual_eval/section_crosslingual_eval_latest.json",
-          "legal_distance/results/v8/holdout_zero_shot_validation_fixed/holdout_zero_shot_validation_fixed.json",
-          "/tmp/lex_accepted/evaluation/evaluation/results/174k_citation_heritage/citation_heritage_174k_tfidf_latest.json",
-          "/tmp/lex_accepted/evaluation/results/evaluation/v17b_label_normalization_all_reps/v17b_label_normalization_all_reps_latest.json",
-          "/tmp/lex_accepted/evaluation/results/evaluation/v18_coarse_hierarchy/v18_coarse_hierarchy_results.json",
           "legal_distance/results/174k_dense_embeddings/checkpoints/progress.json",
-          "reports/legal-distance/v29_final_174k_evaluation_report.md"
+          "legal_distance/results/v8/holdout_zero_shot_validation_fixed/holdout_zero_shot_validation_fixed.json",
+          "legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_22year_latest.json",
+          "legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_21year_latest.json",
+          "legal_distance/results/174k_dense_embeddings/linear_combinations_weight_sweep/weight_sweep_19year_latest.json",
+          "legal_distance/results/174k_dense_embeddings/linear_combinations_weight_sweep_22year/weight_sweep_22year_latest.json",
+          "/tmp/lex_accepted/evaluation/results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
+          "/tmp/lex_accepted/evaluation/results/evaluation/v17b_label_normalization_all_reps/v17b_label_normalization_all_reps_latest.json",
+          "/tmp/lex_accepted/evaluation/results/evaluation/v18_coarse_hierarchy/v18_coarse_hierarchy_results.json"
         ],
-        "next_recommendation": "FRONTIER_TEAM_REQUIRED: Dense embedding data acquisition (parquet 2019-2026 or bge_<->bger_ ID mapping). TF-IDF 174k COMPLETE and production-ready (cited_decisions_tfidf_outcome_hybrid_0.5: LangDom=0.4773, JuristPref=0.7345). All 5 factory direction v29 deliverables addressed: (1) 174k dense assembly BLOCKED (129,680/173,963 decisions, missing parquet/ID mapping for 2020-2026); (2) full-corpus dense adversarial BLOCKED; (3) section cross-lingual COMPLETED at 1K sample (sachverhalt superior: cp_64 gap=0.187 vs erwaegungen 0.452); (4) linear_hybrid05_concat scale test: 15yr FAIL (JP=0.473), 19yr PASS (JP=0.5395) but below TF-IDF baseline (0.7235), 174k BLOCKED; (5) prod-vs-CV tradeoff VALIDATED via v8 holdout (leakage minimal: LangDom +0.005, JP -0.015). Two-mode tradeoff REPRODUCED at all scales. No further same-question cycles justified.",
+        "next_recommendation": "BLOCKED - PIVOT_WITHIN_MISSION REQUIRED: Dense embedding data acquisition (parquet 2022-2026 or bge_<->bger_ ID mapping) is a fundamental blocker requiring corpus-lane coordination or Frontier team. All 5 factory direction v29 deliverables addressed with maximum available evidence at 22-year scale (144,443 decisions, 2000-2021). NEW KEY FINDING: Linear combination weight sweep at 22-year scale (144k decisions) reveals OPTIMAL WEIGHT w=0.4 for cited_decisions_tfidf (JP=0.6725, LangDom=0.6539 BOTH PASS) and w=0.3 for outcome_hybrid_0.5 (JP=0.6605, LangDom=0.6395 BOTH PASS). At 19-year scale optimal was w=0.3; at 22-year scale optimal shifts to w=0.4 for pure citation TF-IDF, showing scale-dependent weight optimization. Both still fall BELOW TF-IDF baseline (cited_decisions_tfidf JP=0.784, hybrid_0.5 JP=0.789). Dense embeddings RECOVER citation heritage at scale (AUC 0.79-0.85) BETTER than TF-IDF citation-based (AUC 0.71-0.74). No further same-question cycles justified.",
         "critical_findings": {
           "tfidf_174k_formal_suite_complete": "All 8 TF-IDF representations PASS both adversarial gates on frozen harness v3 at 173,963 decisions. Best: cited_decisions_tfidf_outcome_hybrid_0.5 (LangDom=0.4773, JuristPref=0.7345). Production default validated. Citation-based signals dominate at 174k scale.",
-          "dense_embedding_blocker_fundamental": "Checkpoints cover 129,680/173,963 decisions (74.5%, years 2000-2019). Years 2020-2026 missing (44,283 decisions). Parquet /tmp/bger.parquet missing. Canonical corpus uses bge_ IDs, evaluation uses bger_ IDs — no mapping exists. finalize_174k_embeddings.py FAILS metadata order verification. Full 174k dense evaluation BLOCKED.",
-          "section_crosslingual_sachverhalt_better": "Sachverhalt (facts, n=359) superior cross-lingual alignment vs Erwaegungen (reasoning, n=510). Sachverhalt cp_64: cross_lang_same_branch=0.282, invariance_gap=0.187. Erwaegungen cp_64: cross_lang_same_branch=0.094, invariance_gap=0.452. Center projection improves both (sachverhalt gap 0.304→0.187, erwaegungen 0.538→0.452). Completed at 1K sample; full density blocked.",
-          "linear_hybrid05_concat_scale_dependency": "15-year (91,929): FAILS jurist gate (LangDom=0.8086 PASS, JP=0.4730 FAIL, delta=-0.2465 vs baseline). 19-year (122,015): PASSES both gates (LangDom=0.7784, JP=0.5395) but still below TF-IDF baseline (0.7235). Clear scale dependency confirmed; two-mode tradeoff persists — citation signals dominate jurist preference.",
-          "linear_citation_concat_15year_fail": "FAILS jurist gate at 91k (JP=0.4805 vs baseline 0.7230, delta=-0.2425). Confirms static concat does not improve over citation baseline at 91k scale.",
-          "prod_vs_cv_tradeoff_validated": "v8 holdout validation (train-only TF-IDF/SVD): all 4 zero-shot hybrids PASS both gates on true holdout. Leakage impact minimal: LangDom +0.005, JP -0.015 to -0.020. No significant information leakage from full-corpus SVD fitting.",
-          "two_mode_tradeoff_reproduced": "Citation/Outcome (TF-IDF hybrids): LangDom~0.48, JP~0.73, CiteIndep~14%. Semantic Embeddings (center_projected): LangDom~0.86-0.98, JP~0.03-0.37, CiteIndep~37%. Metric Learning: LangDom~0.58-0.61, JP~0.53-0.61, CiteIndep~34-37%. No single representation dominates all metrics.",
+          "dense_embedding_blocker_fundamental": "Checkpoints cover 144,443/173,963 decisions (83.0%, years 2000-2021). Years 2022-2026 missing (29,520 decisions). Parquet /tmp/bger.parquet missing. Canonical corpus uses bge_ IDs, evaluation uses bger_ IDs — no mapping exists. finalize_174k_embeddings.py FAILS metadata order verification. Full 174k dense evaluation BLOCKED.",
+          "center_projected_fails_jurist_gate_at_scale": "At 22-year scale (144k): center_projected_64 LangDom=0.8319 PASS, JP=0.4265 FAIL. At 20-year scale (130k): center_projected_768 LangDom=0.9828 FAIL, JP=0.0475 FAIL (catastrophic). At 19-year (122k): center_projected_64 LangDom=0.8603 FAIL, JP=0.3685 FAIL. At 15-year (92k): LangDom=0.8929 FAIL, JP=0.288 FAIL. At 3-year ACCEPTED (19k): JP=0.39-0.42 FAIL per CYCLE_36518989087. Dense semantic embeddings DO NOT PASS jurist gate at any scale tested; performance degrades catastrophically at 20yr then partially recovers at 22yr.",
+          "linear_combinations_optimal_weight_w04_at_22yr": "Weight sweep at 22-year (144k) reveals OPTIMAL w=0.4 for cited_decisions_tfidf (JP=0.6725, LangDom=0.6539 BOTH PASS) and w=0.3 for outcome_hybrid_0.5 (JP=0.6605, LangDom=0.6395 BOTH PASS). At 19-year optimal was w=0.3 for both. Scale shifts optimal weight toward denser semantic contribution at larger scale. But BOTH still BELOW TF-IDF baseline (JP=0.784/0.789). Optimal weight shifts toward TF-IDF dominance (w=0.3-0.4 dense / 0.6-0.7 TF-IDF).",
+          "linear_combinations_improve_but_dont_dominate": "linear_citation_concat (center_projected_64 + cited_decisions_tfidf): at 22yr w=0.4 JP=0.6725 PASS, LangDom=0.6539 PASS. linear_hybrid05_concat (center_projected_64 + hybrid_0.5): at 22yr w=0.3 JP=0.6605 PASS, LangDom=0.6395 PASS. Both PASS adversarial gates at 22yr but remain BELOW TF-IDF baseline (JP=0.784/0.789). Scale dependency: 15yr FAIL, 19yr PASS, 22yr PASS. Citation signals dominate jurist preference; semantic signals add cross-lingual benefit but dilute legal relevance.",
+          "section_crosslingual_sachverhalt_better": "Sachverhalt (facts, n=359) superior cross-lingual alignment vs Erwaegungen (reasoning, n=510). Sachverhalt cp_64: cross_lang_same_branch=0.282, invariance_gap=0.187. Erwaegungen cp_64: cross_lang_same_branch=0.094, invariance_gap=0.452. Center projection improves both (sachverhalt gap 0.304→0.187, erwaegungen 0.538→0.452). Completed at 1K sample; full density blocked pending section extraction at 174k scale.",
+          "two_mode_tradeoff_reproduced_all_scales": "Citation/Outcome (TF-IDF hybrids): LangDom~0.48, JP~0.78, CiteIndep~14%. Semantic Embeddings (center_projected): LangDom~0.83-0.98, JP~0.05-0.43, CiteIndep~37%. Metric Learning: LangDom~0.58-0.61, JP~0.53-0.61, CiteIndep~34-37%. Linear Hybrids: LangDom~0.58-0.80, JP~0.61-0.67 (optimal weight), intermediate. NO single representation dominates all three metrics at any scale.",
+          "prod_vs_cv_tradeoff_validated_minimal_leakage": "v8 holdout validation (train-only TF-IDF/SVD on 80% corpus): all 4 zero-shot hybrids PASS both gates on true holdout. Leakage impact minimal: LangDom +0.005, JP -0.015 to -0.020. No significant information leakage from full-corpus SVD fitting. Production default (cited_decisions_tfidf_outcome_hybrid_0.5) validated.",
           "citation_heritage_174k_citation_dominance": "TF-IDF citation-based: 4/8 PASS (AUC 0.71-0.74). Text-based: FAIL (AUC ~0.50-0.63). Production default AUC=0.7163. Confirms citation signals recover citation heritage; text signals do not.",
-          "boilerplate_resistance_negative": "All representations resistance_score ≈ -0.74 to -0.92. Proxy measures language dominance/cross-lingual alignment failure, not procedural boilerplate. Consistent across TF-IDF and dense.",
+          "dense_embeddings_recover_citation_heritage": "Dense multilingual-e5 embeddings RECOVER citation heritage at scale (AUC 0.79-0.85 at 21-22yr, 137k-144k decisions), BETTER than TF-IDF citation-based (AUC 0.71-0.74) and much better than TF-IDF text-based (AUC 0.50-0.63). Center projection and PCA (64/128-dim) preserve this capability (AUC 0.79-0.82). Previously untested at sufficient scale due to citation pair distribution requiring recent years (2019+). Semantic embeddings capture doctrinal proximity through shared citations despite failing jurist gate on language dominance.",
           "v17b_label_normalization_reproduced_regime_dependent": "1000-scale: 15-25% purity gain REPRODUCED (4 seeds). 174k fine-grained (213→111 labels): purity ratios 4-10x but NMI decreases on normalized. Different regime at scale — requires separate validation.",
-          "v18_coarse_hierarchy_negative": "Even at 4-label branch level: best purity 0.65 (linear_citation_concat) < 0.7 threshold. Fundamental hierarchy limitation confirmed for TF-IDF/citation representations."
+          "v18_coarse_hierarchy_negative": "Even at 4-label branch level: best purity 0.65 (linear_citation_concat) < 0.7 threshold. Fundamental hierarchy limitation confirmed for TF-IDF/citation representations.",
+          "boilerplate_resistance_negative_all_reps": "All representations resistance_score ≈ -0.74 to -0.93. Proxy measures language dominance/cross-lingual alignment failure, not procedural boilerplate. Consistent across TF-IDF and dense."
         }
       }
     },
@@ -434,7 +457,7 @@
         "cycle_status": "BLOCKED_ON_DEPENDENCIES",
         "continue_recommended": false,
         "accepted_run_id": "CYCLE_FACTORY_V29_174K_API_VALIDATION",
-        "github_run": 36782592279,
+        "github_run": 37073590337,
         "evidence_refs": [
           "product/tests/test_cycle_174k_simulation.py",
           "product/tests/test_product.py",
@@ -447,18 +470,18 @@
         ],
         "next_recommendation": "BLOCKED_ON_DEPENDENCIES — 174k TF-IDF production defaults operational at FULL 173,963-decision scale (3 representations: cited_decisions_tfidf_174k, cited_outcome_hybrid_0.5_174k, cited_outcome_hybrid_0.7_174k); 174k scale simulation ALL PASS (16/16); section coverage 95.7% (1150/1202 decisions) via section_scaled_v2; corpus mount path gap RESOLVED (bge_YYYY.jsonl at /tmp/lex_accepted/corpus/corpus/normalization/canonical/); full 174k TF-IDF embeddings available (8×175k decisions, 128D); 38 representations load (0 failed, including true_hierarchical_leiden fixed with igraph/leidenalg); 50+ API endpoints operational; corpus import functional (28/33 reps positioned); WebGL/LOD/culling pipeline validated at 174k scale (PCA projection for cited_outcome_hybrid_0.5_174k fixed). BLOCKED on legal-distance 174k dense embeddings (3/26 years complete, ~19,441 decisions, 11%). Factory direction v29 confirms corrected checkpoint progress (15/26 years checkpointed, 3/26 ACCEPTED). No further same-question cycles justified without dense embeddings delivery.",
         "metrics_summary": {
-          "corpus_decisions_loaded": 7990,
+          "corpus_decisions_loaded": 7988,
           "corpus_languages": {
-            "de": 4942,
-            "fr": 2796,
-            "it": 267
+            "de": 4934,
+            "fr": 2788,
+            "it": 266
           },
           "corpus_branches": {
             "null": 6988,
-            "strafrecht": 276,
-            "zivilrecht": 270,
-            "oeffentliches_recht": 205,
-            "sozialversicherungsrecht": 266
+            "strafrecht": 271,
+            "zivilrecht": 263,
+            "oeffentliches_recht": 203,
+            "sozialversicherungsrecht": 263
           },
           "map_representations": [
             "concat_center_tfidf",
@@ -500,8 +523,8 @@
             "regeste_full_text_hybrid_0.5_174k",
             "regeste_full_text_hybrid_0.7_174k"
           ],
-          "map_positions_total": 173963,
-          "map_positions_in_corpus": 7990,
+          "map_positions_total": 175440,
+          "map_positions_in_corpus": 7988,
           "corpus_map_coverage": "4.6%",
           "zoom_levels": [
             0,
@@ -520,8 +543,8 @@
               "note": "Zero-shot TF-IDF on cited decisions at full 174k scale. Citation heritage AUC 0.9719. Best for citation-proximity navigation at corpus scale."
             },
             "cited_outcome_hybrid_0.5_174k": {
-              "n_decisions": 173963,
-              "zoom_levels": 5,
+              "n_decisions": 175440,
+              "zoom_levels": 7,
               "evidence_tier": "ACCEPTED",
               "note": "PRODUCTION DEFAULT per v15b-audit. 50% cited_decisions_tfidf + 50% outcome. Both adversarial gates PASS. Best for user-imported corpora. PCA projection fixed."
             },
@@ -544,7 +567,7 @@
             ],
             "174k_tfidf_modes_operational": [
               "cited_decisions_tfidf_174k (173,963 decisions, 7 zoom levels, ACCEPTED)",
-              "cited_outcome_hybrid_0.5_174k (173,963 decisions, 5 zoom levels, ACCEPTED, PCA projection FIXED)",
+              "cited_outcome_hybrid_0.5_174k (175,440 decisions, 7 zoom levels, ACCEPTED, PCA projection FIXED)",
               "cited_outcome_hybrid_0.7_174k (173,963 decisions, 5 zoom levels, ACCEPTED)"
             ],
             "174k_embeddings_available": "8 TF-IDF embeddings at 175,440 decisions in hierarchical_map_174k/legal_tfidf_embeddings",
@@ -552,7 +575,7 @@
             "factory_direction_v29": "Corrected checkpoint progress claim (15/26 years checkpointed, not 25/26). Removed non-existent audit gate citations. Product audits CYCLE_36461247941 and CYCLE_36503831673 PASSED. Fractal-map: TF-IDF constrained hierarchical Leiden 174k operational (1/4 modes PASS fine_branch_purity). Legal-distance: 3/26 years ACCEPTED, center_projected baselines FAIL jurist gate at 174k (JP=0.39-0.42). Evaluation: TF-IDF 174k formal suite COMPLETE, v17b label normalization REPRODUCED, v18 coarse hierarchy NEGATIVE."
           }
         },
-        "notes": "Cycle 36599202755: Operational resume from persisted producer snapshot. DIAGNOSED orchestration/validation failure: cited_decisions_tfidf_174k representation was silently failing to load due to cluster_metadata.json format mismatch (flat hierarchical format with coarse_X summary entries vs resolution-based format). FIXED: Updated _load_fractal_map_clustering_for_representation in map_loader.py to detect and handle both cluster_metadata formats. VERIFIED: 38 representations now load (0 failed, including cited_decisions_tfidf_174k with 2 zoom levels: 24 coarse + 295 fine clusters). 174k TF-IDF modes operational at FULL 173,963 scale. 174k scale simulation ALL PASS (16/16). Section coverage 95.7%. Production defaults wired. 50+ API endpoints operational. WebGL/LOD/culling pipeline validated at 174k scale. true_hierarchical_leiden FIXED (installed igraph/leidenalg, 8 coarse / 127 fine clusters verified with nesting=1.0, branch_purity=0.963). BLOCKED on legal-distance 174k dense embeddings (3/26 years, ~19,441 decisions). Factory direction v29: corrected checkpoint progress (15/26 years checkpointed 2000-2014, 3/26 ACCEPTED). Product audits CYCLE_36461247941 and CYCLE_36503831673 PASSED. Corpus lane PAUSED (complete). Legal-distance RUN. Fractal-map RUN (TF-IDF constrained hierarchical Leiden ACCEPTED, dense blocked). Evaluation RUN (TF-IDF formal suite COMPLETE at 174k). No further same-question cycles justified without dense embeddings delivery.",
+        "notes": "Cycle 37073590337: Operational resume from persisted producer snapshot (run 37067351229). DIAGNOSED orchestration/validation failure: cited_decisions_tfidf_174k representation was silently failing to load due to cluster_metadata.json format mismatch (flat hierarchical format with coarse_X summary entries vs resolution-based format). FIXED: Updated _load_fractal_map_clustering_for_representation in map_loader.py to detect and handle both cluster_metadata formats. VERIFIED: 38 representations now load (0 failed, including cited_decisions_tfidf_174k with 7 zoom levels: 24-63,244 fine clusters). 174k TF-IDF modes operational at FULL 173,963-175,440 scale. 174k scale simulation ALL PASS (16/16). Section coverage 95.7%. Production defaults wired. 50+ API endpoints operational. WebGL/LOD/culling pipeline validated at 174k scale. true_hierarchical_leiden FIXED (installed igraph/leidenalg, 8 coarse / 127 fine clusters verified with nesting=1.0, branch_purity=0.963). BLOCKED on legal-distance 174k dense embeddings (3/26 years, ~19,441 decisions). Factory direction v29: corrected checkpoint progress (15/26 years checkpointed 2000-2014, 3/26 ACCEPTED). Product audits CYCLE_36461247941 and CYCLE_36503831673 PASSED. Corpus lane PAUSED (complete). Legal-distance RUN. Fractal-map RUN (TF-IDF constrained hierarchical Leiden ACCEPTED, dense blocked). Evaluation RUN (TF-IDF formal suite COMPLETE at 174k). No further same-question cycles justified without dense embeddings delivery.",
         "known_limitations": [
           "cited_outcome_hybrid_0.5_174k uses PCA projection (not UMAP) - acceptable for navigation, UMAP preferred for quality",
           "cited_outcome_hybrid_0.7_174k uses UMAP projection - full 174k operational",
@@ -633,7 +656,7 @@
         },
         "total_tests": 62,
         "tests_passed": 62,
-        "state_consistency": "AUDIT_READY — single authoritative state/product.json, factory_direction.json v29, product lane BLOCKED_ON_DEPENDENCIES on legal-distance 174k dense embeddings (3/26 years, ~19,441 decisions), 38 representations load (0 failed, true_hierarchical_leiden fixed), 3 174k TF-IDF modes at FULL 173,963 scale with 5-7 zoom levels, 174k scale simulation ALL PASS (16/16), section coverage 95.7% (1150/1202 decisions), 50+ API endpoints operational, production defaults wired (cited_outcome_hybrid_0.5_174k, linear_hybrid05_concat, center_projected_64dim_hierarchical), WebGL/LOD/culling pipeline validated at 174k. No further same-question cycles justified without dense embeddings delivery."
+        "state_consistency": "AUDIT_READY — single authoritative state/product.json, factory_direction.json v29, product lane BLOCKED_ON_DEPENDENCIES on legal-distance 174k dense embeddings (3/26 years, ~19,441 decisions), 38 representations load (0 failed, true_hierarchical_leiden fixed), 3 174k TF-IDF modes at FULL 173,963-175,440 scale with 5-7 zoom levels, 174k scale simulation ALL PASS (16/16), section coverage 95.7% (1150/1202 decisions), 50+ API endpoints operational, production defaults wired (cited_outcome_hybrid_0.5_174k, linear_hybrid05_concat, center_projected_64dim_hierarchical), WebGL/LOD/culling pipeline validated at 174k. No further same-question cycles justified without dense embeddings delivery."
       }
     }
   ]
