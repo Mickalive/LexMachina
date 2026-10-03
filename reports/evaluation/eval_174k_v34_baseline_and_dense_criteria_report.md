@@ -232,7 +232,7 @@ The V25 suite confirms the adversarial results and adds multi-dimensional evalua
   "tfidf_citation_heritage_174k": "results/evaluation/citation_heritage_174k_tfidf_latest.json",
   "dense_citation_heritage_22year": "results/evaluation/partial_dense_2000_2002/citation_heritage_22year_latest.json",
   "dense_section_crosslingual": "results/evaluation/partial_dense_2000_2002/section_crosslingual_eval_latest.json",
-  "v17b_generalization_174k": "results/evaluation/v17b_174k_generalization/v17b_174k_generalization_latest.json",
+  "v17b_label_normalization_174k": "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
   "v18_coarse_hierarchy": "results/evaluation/v18_coarse_hierarchy/v18_coarse_hierarchy_latest.json",
   "legal_distance_dense_165k": "legal_distance/results/174k/dense_165k_formal_suite/evaluation_165k_dense_formal_suite_latest.json",
   "legal_distance_citation_heritage": "legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_22year_latest.json",
