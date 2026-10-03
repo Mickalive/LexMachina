@@ -1,0 +1,66 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "At 22-year scale (144k decisions, 2000-2021), dense multilingual-e5 embeddings with center projection achieve citation heritage AUC 0.79-0.85 (>0.75 threshold) and Sachverhalt cross-lingual alignment 0.282 (>0.2 threshold) at 1K sample scale. Linear hybrids PASS adversarial gates at w=0.3-0.4 but remain below TF-IDF baseline on jurist preference (0.61-0.67 vs 0.78-0.79). Dense embeddings alone FAIL jurist gate at all scales (JP 0.05-0.43). Full 174k evaluation blocked by missing corpus infrastructure.",
+  "evidence_summary": {
+    "citation_heritage": {
+      "verified": true,
+      "scale": "21-22yr (137k-144k decisions)",
+      "dense_auc": "0.79-0.85",
+      "tfidf_citation_baseline": "0.71-0.74",
+      "tfidf_text_baseline": "0.50-0.63",
+      "threshold": ">0.75",
+      "status": "PASSED"
+    },
+    "section_crosslingual": {
+      "verified": true,
+      "scale": "1K sample only (full corpus blocked)",
+      "sachverhalt": {"cross_lang_same_branch": 0.282, "threshold": ">0.2", "status": "PASSED"},
+      "dispositiv": {"cross_lang_same_branch": 0.150, "threshold": ">0.1", "status": "PASSED"},
+      "erwaegungen": {"cross_lang_same_branch": 0.094, "threshold": ">0.1", "status": "FAILED"}
+    },
+    "linear_hybrids": {
+      "verified": true,
+      "minimal_scale": "19yr (122k decisions)",
+      "22yr_results": {
+        "linear_citation_concat_w04": {"jurist_preference": 0.6725, "langdom": 0.6539, "both_gates_pass": true},
+        "linear_hybrid05_concat_w03": {"jurist_preference": 0.6115, "langdom": 0.7477, "both_gates_pass": true}
+      },
+      "tfidf_baseline_jp": "0.78-0.79",
+      "status": "PARTIAL (PASS gates, below baseline)"
+    },
+    "dense_embeddings_jurist_gate": {
+      "verified": true,
+      "all_scales_fail": true,
+      "jp_range": "0.05-0.43",
+      "status": "CONFIRMED FAILURE"
+    },
+    "two_mode_tradeoff": {
+      "verified": true,
+      "tfidf_primary": {"jurist_preference": "0.78-0.79", "langdom": "0.48", "cite_indep": "14%"},
+      "dense_complementary": {"jurist_preference": "0.05-0.43", "langdom": "0.83-0.98", "cite_indep": "~37%"},
+      "linear_hybrids_intermediate": {"jurist_preference": "0.61-0.67", "langdom": "0.65-0.75", "cite_indep": "~37%"},
+      "no_single_dominates_all_three": true
+    },
+    "negative_results_preserved": {
+      "true_oos_ceiling_053": true,
+      "v18_hierarchy_negative": true,
+      "legal_tfidf_bge_fails": true,
+      "boilerplate_resistance_negative": true,
+      "erwaegungen_crosslingual_fails": true
+    },
+    "data_blockers": {
+      "bge_bger_id_mapping_missing": true,
+      "bger_yearly_corpus_missing_2000_2019": true,
+      "parquet_missing_2022_2026": true,
+      "section_extraction_not_at_174k": true,
+      "v30_v33_claim_corpus_path_resolved_false": true
+    },
+    "lane_status": {
+      "cycle_status": "BLOCKED_ON_DEPENDENCIES",
+      "continue_recommended": false,
+      "pivot_within_mission_complete": true
+    }
+  }
+}
