@@ -1,0 +1,162 @@
+{
+  "factory_direction_version": 34,
+  "lane": "evaluation",
+  "timestamp": "2026-10-03T12:30:00Z",
+  "configuration": {
+    "harness_version": "v3 (frozen thresholds)",
+    "config_hash": "b51701f5a9c11692",
+    "global_seed": 42,
+    "adversarial_thresholds": {
+      "language_dominance": "< 0.85",
+      "jurist_preference": "> 0.5"
+    },
+    "scale": 173963,
+    "corpus_years": "2000-2026",
+    "hnsw_artifact_fix": "Exact k-NN on fixed stratified subsample (n=2000 valid decisions with known branch)",
+    "benchmark_suite_hash": "4323f833fa72366a"
+  },
+  "adversarial_gate_results": [
+    {
+      "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "language_dominance": 0.4773,
+      "ld_pass": true,
+      "jurist_preference": 0.7345,
+      "jp_pass": true,
+      "both_gates_pass": true,
+      "verdict": "BEST JP - Production Default"
+    },
+    {
+      "representation": "cited_decisions_tfidf_outcome_hybrid_0.7",
+      "language_dominance": 0.4783,
+      "ld_pass": true,
+      "jurist_preference": 0.7275,
+      "jp_pass": true,
+      "both_gates_pass": true,
+      "verdict": "PASS"
+    },
+    {
+      "representation": "cited_decisions_tfidf",
+      "language_dominance": 0.4794,
+      "ld_pass": true,
+      "jurist_preference": 0.7140,
+      "jp_pass": true,
+      "both_gates_pass": true,
+      "verdict": "PASS"
+    },
+    {
+      "representation": "full_text_tfidf_light",
+      "language_dominance": 0.4855,
+      "ld_pass": true,
+      "jurist_preference": 0.7080,
+      "jp_pass": true,
+      "both_gates_pass": true,
+      "verdict": "PASS"
+    },
+    {
+      "representation": "regeste_full_text_hybrid_0.5",
+      "language_dominance": 0.4873,
+      "ld_pass": true,
+      "jurist_preference": 0.7140,
+      "jp_pass": true,
+      "both_gates_pass": true,
+      "verdict": "PASS"
+    },
+    {
+      "representation": "regeste_full_text_hybrid_0.7",
+      "language_dominance": 0.4889,
+      "ld_pass": true,
+      "jurist_preference": 0.7120,
+      "jp_pass": true,
+      "both_gates_pass": true,
+      "verdict": "PASS"
+    },
+    {
+      "representation": "outcome_tfidf",
+      "language_dominance": 0.5015,
+      "ld_pass": true,
+      "jurist_preference": 0.6550,
+      "jp_pass": true,
+      "both_gates_pass": true,
+      "verdict": "PASS"
+    },
+    {
+      "representation": "regeste_tfidf",
+      "language_dominance": 0.4853,
+      "ld_pass": true,
+      "jurist_preference": 0.6315,
+      "jp_pass": true,
+      "both_gates_pass": true,
+      "verdict": "PASS"
+    }
+  ],
+  "summary": {
+    "total_representations": 8,
+    "all_pass_adversarial_gates": true,
+    "best_jurist_preference": 0.7345,
+    "best_representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+    "production_ready": true
+  },
+  "fundamental_tradeoff": {
+    "citation_based": {
+      "representations": ["cited_decisions_tfidf", "cited_decisions_tfidf_outcome_hybrid_0.5", "cited_decisions_tfidf_outcome_hybrid_0.7"],
+      "adversarial_gates": "PASS",
+      "citation_heritage_auc": "0.71-0.74 (PASS)",
+      "branch_knn_tf_metadata": "FAIL",
+      "hierarchy_coherence": "FAIL"
+    },
+    "text_based": {
+      "representations": ["regeste_tfidf", "full_text_tfidf_light", "regeste_full_text_hybrid_0.5", "regeste_full_text_hybrid_0.7", "outcome_tfidf"],
+      "adversarial_gates": "MIXED (regeste_tfidf PASS, others vary)",
+      "citation_heritage_auc": "0.50-0.63 (FAIL)",
+      "branch_knn_tf_metadata": "PASS",
+      "hierarchy_coherence": "FAIL"
+    }
+  },
+  "universal_174k_fails": [
+    {
+      "benchmark": "hierarchy_coherence",
+      "status": "Universal FAIL",
+      "note": "Purity 0.08-0.47 < 0.7 (legal_area labels too granular: 213 raw)"
+    },
+    {
+      "benchmark": "legal_area_clustering",
+      "status": "Universal FAIL",
+      "note": "Purity 0.003-0.08 < 0.5 (same label limitation)"
+    },
+    {
+      "benchmark": "temporal_stability",
+      "status": "Universal FAIL",
+      "note": "Neighbor overlap variance high at full corpus density"
+    },
+    {
+      "benchmark": "boilerplate_resistance",
+      "status": "Universal FAIL",
+      "note": "Proxy measures language dominance, not procedural boilerplate"
+    }
+  ],
+  "v17b_label_normalization": {
+    "scale": "174k",
+    "original_labels": 213,
+    "normalized_labels": 163,
+    "cross_lingual_concepts": 32,
+    "purity_gains": "1.5-1.6x for citation-based reps",
+    "nmi_change": "decreases",
+    "best_hierarchy_purity_normalized": 0.47,
+    "threshold": 0.7,
+    "status": "NEGATIVE - does not achieve threshold even with normalization"
+  },
+  "v18_coarse_hierarchy": {
+    "scale": "174k",
+    "labels": 4,
+    "best_purity": 0.65,
+    "threshold": 0.70,
+    "status": "NEGATIVE"
+  },
+  "evidence_references": [
+    "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
+    "results/evaluation/v25_174k_formal_suite/results/*.json (8 individual)",
+    "results/evaluation/v25_174k_citation_heritage/cited_decisions_tfidf.json",
+    "results/evaluation/v25_174k_v17b/v17b_174k_generalization_latest.json",
+    "results/evaluation/v18_coarse_hierarchy/v18_coarse_hierarchy_latest.json"
+  ]
+}
