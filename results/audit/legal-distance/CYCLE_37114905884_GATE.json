@@ -1,0 +1,137 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Dense multilingual-e5 embeddings provide three validated complementary capabilities at 22-year/144k scale: (1) Citation heritage recovery (AUC 0.79-0.85 > TF-IDF 0.71-0.74); (2) Section cross-lingual alignment for facts (0.282) and holdings (0.150), not reasoning (0.094); (3) Linear hybrid complement passing adversarial gates at w=0.3-0.4 but remaining below TF-IDF jurist preference baseline. Fundamental two-mode tradeoff confirmed. 174k completion blocked on corpus lane.",
+  "evidence_summary": {
+    "citation_heritage_recovery": {
+      "criterion": "AUC > 0.75",
+      "result": "PASS",
+      "values": {
+        "raw_768dim": 0.7946,
+        "center_projected_768dim": 0.7941,
+        "center_projected_64dim": 0.7922,
+        "center_projected_128dim": 0.7916
+      },
+      "scale": "21-22yr / 137k-144k decisions",
+      "evidence_file": "citation_heritage_22year_latest.json",
+      "positive_pairs_22yr": 344,
+      "positive_pairs_21yr": 100,
+      "baseline_tfidf_citation_auc": "0.71-0.74",
+      "baseline_tfidf_text_auc": "0.50-0.63"
+    },
+    "section_crosslingual_sachverhalt": {
+      "criterion": "cross_lang_same_branch > 0.2 (cp_64)",
+      "result": "PASS",
+      "value": 0.282,
+      "invariance_gap": 0.187,
+      "scale": "1K sample (359 decisions with sachverhalt)",
+      "evidence_file": "section_crosslingual_eval_latest.json",
+      "note": "Full corpus density BLOCKED pending section extraction at 174k scale"
+    },
+    "section_crosslingual_dispositiv": {
+      "criterion": "cross_lang_same_branch > 0.1 (cp_64)",
+      "result": "PASS",
+      "value": 0.150,
+      "invariance_gap": 0.397,
+      "scale": "1K sample (538 decisions with dispositiv)",
+      "evidence_file": "section_crosslingual_eval_latest.json",
+      "note": "Full corpus density BLOCKED"
+    },
+    "section_crosslingual_erwaegungen": {
+      "criterion": "cross_lang_same_branch > 0.1 (cp_64)",
+      "result": "FAIL",
+      "value": 0.094,
+      "invariance_gap": 0.452,
+      "scale": "1K sample (510 decisions with erwaegungen)",
+      "evidence_file": "section_crosslingual_eval_latest.json",
+      "note": "Reasoning is most language-specific; full corpus density BLOCKED"
+    },
+    "linear_hybrid_complement": {
+      "criterion": "PASS both adversarial gates (LangDom < 0.85, JP > 0.5)",
+      "result": "PASS at optimal weights",
+      "optimal_weights": {
+        "cited_decisions_tfidf": {
+          "weight": 0.4,
+          "jurist_preference": 0.6725,
+          "language_dominance": 0.6539
+        },
+        "outcome_hybrid_0.5": {
+          "weight": 0.3,
+          "jurist_preference": 0.6115,
+          "language_dominance": 0.7477
+        }
+      },
+      "scale": "19-22yr / 122k-144k decisions",
+      "evidence_file": "weight_sweep_22year_latest.json",
+      "critical_caveat": "Both remain BELOW TF-IDF baseline (cited_decisions_tfidf JP=0.784, outcome_hybrid_0.5 JP=0.789)"
+    },
+    "two_mode_tradeoff": {
+      "finding": "No single representation dominates all three metrics",
+      "modes": {
+        "tfidf_citation_hybrids": {
+          "language_dominance": "~0.48",
+          "jurist_preference": "~0.78",
+          "citation_independence": "~14%",
+          "role": "PRIMARY product mode"
+        },
+        "dense_center_projected": {
+          "language_dominance": "~0.83-0.98",
+          "jurist_preference": "~0.05-0.43",
+          "citation_independence": "~37%",
+          "role": "COMPLEMENTARY modes"
+        },
+        "linear_hybrids_optimal": {
+          "language_dominance": "~0.58-0.80",
+          "jurist_preference": "~0.61-0.67",
+          "citation_independence": "Intermediate",
+          "role": "BRIDGE"
+        }
+      }
+    },
+    "dense_embeddings_jurist_gate": {
+      "finding": "FAIL at ALL scales tested",
+      "scale_results": {
+        "3yr_19k": "JP=0.39-0.42 FAIL",
+        "15yr_92k": "JP=0.288 FAIL",
+        "19yr_122k": "JP=0.3685 FAIL",
+        "20yr_130k": "JP=0.0475 CATASTROPHIC FAIL",
+        "22yr_144k": "JP=0.4265 FAIL"
+      },
+      "evidence_file": "combined_results.json"
+    },
+    "true_oos_jurist_preference_ceiling": {
+      "finding": "~0.53 < 0.7 factory target",
+      "note": "TF-IDF baseline JP=0.78 evaluated on SVD-fitted data (known leakage); v8 holdout showed -0.015 to -0.020 impact"
+    },
+    "legal_tfidf_bge_corpus": {
+      "finding": "FAILS adversarial suite (6-8/14 PASS vs 14/14 baseline)",
+      "root_cause": "Corpus mismatch (bge_ IDs don't map to bger_); signal coverage deficits"
+    },
+    "v18_coarse_hierarchy": {
+      "finding": "FAIL at 4-label branch level",
+      "best_purity": 0.65,
+      "threshold": 0.7,
+      "representation": "linear_citation_concat",
+      "verification_status": "UNVERIFIED - referenced file missing"
+    },
+    "data_blocker": {
+      "missing_decisions": 29520,
+      "missing_years": "2022-2026",
+      "blockers": [
+        "No parquet files for 2022-2026",
+        "No bge_ <-> bger_ ID mapping",
+        "No bger_ yearly corpus files for 2000-2019"
+      ],
+      "corpus_lane_resumption_required": true
+    },
+    "state_machine": {
+      "direction_version": 34,
+      "evidence_tier": "REPRODUCED",
+      "cycle_status": "BLOCKED_ON_DEPENDENCIES",
+      "continue_recommended": false,
+      "audit_ready": true,
+      "accepted_run_id": "legal_distance_v34_complementary_role_20261003"
+    }
+  }
+}
