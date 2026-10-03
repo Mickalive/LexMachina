@@ -16,7 +16,7 @@
     "reports/product/V28_VALIDATION_REPORT.md",
     "reports/product/FACTORY_V29_AUDIT_READY_VERIFICATION.md"
   ],
-  "next_recommendation": "V1_READY — v1.0 release CUT with TF-IDF citation hybrids as PRIMARY navigation mode (beats semantic baseline JP 0.78 vs 0.43). Three 174k TF-IDF production modes operational at FULL 173,963-175,440 decisions with 7 zoom levels (cited_decisions_tfidf_174k, cited_outcome_hybrid_0.5_174k, cited_outcome_hybrid_0.7_174k). 174k scale simulation ALL PASS (16/16). Section coverage 95.7% (1150/1202 decisions). 50+ API endpoints operational. WebGL/LOD/culling pipeline <3s at 174k. Production defaults wired. Dense embeddings (citation heritage view, cross-lingual view) deferred to v1.1+ pending legal-distance 174k delivery (currently 3/26 years, ~19,441 decisions, 11%). No further same-question cycles justified for v1.0.",
+  "next_recommendation": "V1_READY — v1.0 release CUT with TF-IDF citation hybrids as PRIMARY navigation mode (beats semantic baseline JP 0.78 vs 0.43). Three 174k TF-IDF production modes operational at FULL 173,963 decisions with 5-7 zoom levels (cited_decisions_tfidf_174k, cited_outcome_hybrid_0.5_174k, cited_outcome_hybrid_0.7_174k). 174k scale simulation ALL PASS (16/16). Section coverage 95.7% (1150/1202 decisions). 50+ API endpoints operational. WebGL/LOD/culling pipeline <3s at 174k. Production defaults wired. Dense embeddings (citation heritage view, cross-lingual view) deferred to v1.1+ pending legal-distance 174k delivery (currently 3/26 years, ~19,441 decisions, 11%). No further same-question cycles justified for v1.0.",
   "v1_release": {
     "version": "1.0",
     "release_date": "2026-10-03",
@@ -35,14 +35,14 @@
         "purpose": "Citation-proximity navigation, doctrinal lineage, citation heritage AUC 0.9719"
       },
       "cited_outcome_hybrid_0.5_174k": {
-        "n_decisions": 175440,
+        "n_decisions": 173963,
         "zoom_levels": 7,
         "evidence_tier": "ACCEPTED",
         "purpose": "PRODUCTION DEFAULT — balanced citation+outcome, best for user-imported corpora"
       },
       "cited_outcome_hybrid_0.7_174k": {
         "n_decisions": 173963,
-        "zoom_levels": 7,
+        "zoom_levels": 5,
         "evidence_tier": "ACCEPTED",
         "purpose": "BEST FRACTAL — 70% citation proximity, HierAdv=+0.370"
       }
@@ -63,6 +63,7 @@
     }
   },
   "metrics_summary": {
+    "design_patterns_count": 38,
     "corpus_decisions_loaded": 1002,
     "corpus_languages": {
       "de": 606,
@@ -122,14 +123,14 @@
         "note": "Zero-shot TF-IDF on cited decisions at full 174k scale. Citation heritage AUC 0.9719. Best for citation-proximity navigation at corpus scale."
       },
       "cited_outcome_hybrid_0.5_174k": {
-        "n_decisions": 175440,
+        "n_decisions": 173963,
         "zoom_levels": 7,
         "evidence_tier": "ACCEPTED",
         "note": "PRODUCTION DEFAULT per v15b-audit. 50% cited_decisions_tfidf + 50% outcome. Both adversarial gates PASS (JP=0.7990, LangDom=0.4911). Best for user-imported corpora. PCA projection fixed."
       },
       "cited_outcome_hybrid_0.7_174k": {
         "n_decisions": 173963,
-        "zoom_levels": 7,
+        "zoom_levels": 5,
         "evidence_tier": "ACCEPTED",
         "note": "BEST FRACTAL hybrid per factory direction v9. 70% cited_decisions_tfidf + 30% outcome. HierAdv=+0.3703. Both adversarial gates PASS (JP=0.7907, LangDom=0.4907). Full 174k positions operational."
       }
@@ -146,8 +147,8 @@
       ],
       "174k_tfidf_modes_operational": [
         "cited_decisions_tfidf_174k (173,963 decisions, 7 zoom levels, ACCEPTED)",
-        "cited_outcome_hybrid_0.5_174k (175,440 decisions, 7 zoom levels, ACCEPTED, PCA projection FIXED)",
-        "cited_outcome_hybrid_0.7_174k (173,963 decisions, 7 zoom levels, ACCEPTED)"
+        "cited_outcome_hybrid_0.5_174k (173,963 decisions, 7 zoom levels, ACCEPTED, PCA projection FIXED)",
+        "cited_outcome_hybrid_0.7_174k (173,963 decisions, 5 zoom levels, ACCEPTED)"
       ],
       "174k_embeddings_available": "8 TF-IDF embeddings at 175,440 decisions in hierarchical_map_174k/legal_tfidf_embeddings",
       "awaiting_legal_distance": "Dense embeddings (center_projected, metric learning, citation roles, linear hybrids) - 3/26 years complete (2000-2002, ~19,441 decisions, 11% decision completion). 15/26 years checkpointed (2000-2014, ~100k). Corpus artifact publication gap resolved via bge_YYYY.jsonl files.",
@@ -235,5 +236,5 @@
   },
   "total_tests": 62,
   "tests_passed": 62,
-  "state_consistency": "AUDIT_READY — single authoritative state/product.json, factory_direction.json v34, product lane V1_READY (v1.0 release cut with TF-IDF citation hybrids as PRIMARY navigation mode). 33 representations load (0 failed, all healthy, true_hierarchical_leiden fixed), 3 174k TF-IDF modes at FULL 173,963-175,440 scale with 7 zoom levels, 174k scale simulation ALL PASS (16/16), section coverage 95.7% (1150/1202 decisions), 50+ API endpoints operational, production defaults wired (cited_outcome_hybrid_0.5_174k, linear_hybrid05_concat, center_projected_64dim_hierarchical), WebGL/LOD/culling pipeline validated at 174k. Strategic pivot per v34: TF-IDF citation hybrids = PRIMARY (beats semantic baseline JP 0.78 vs 0.43); Dense = COMPLEMENTARY for v1.1+. No further same-question cycles justified for v1.0."
+  "state_consistency": "AUDIT_READY — single authoritative state/product.json, factory_direction.json v34, product lane V1_READY (v1.0 release cut with TF-IDF citation hybrids as PRIMARY navigation mode). 33 representations load (0 failed, all healthy, true_hierarchical_leiden fixed), 3 174k TF-IDF modes at FULL 173,963 scale with 5-7 zoom levels, 174k scale simulation ALL PASS (16/16), section coverage 95.7% (1150/1202 decisions), 50+ API endpoints operational, production defaults wired (cited_outcome_hybrid_0.5_174k, linear_hybrid05_concat, center_projected_64dim_hierarchical), WebGL/LOD/culling pipeline validated at 174k. Strategic pivot per v34: TF-IDF citation hybrids = PRIMARY (beats semantic baseline JP 0.78 vs 0.43); Dense = COMPLEMENTARY for v1.1+. No further same-question cycles justified for v1.0."
 }
