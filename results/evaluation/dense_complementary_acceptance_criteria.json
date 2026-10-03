@@ -1,0 +1,95 @@
+{
+  "run_id": "evaluation_v34_dense_complementary_criteria_20261003",
+  "lane": "evaluation",
+  "direction_version": 34,
+  "timestamp": "2026-10-03T20:35:00Z",
+  "purpose": "Define explicit acceptance criteria for dense embeddings as COMPLEMENTARY views (not primary navigation)",
+  "context": {
+    "pivot_decision": "legal_distance audit CYCLE_37090665528",
+    "dense_role": "COMPLEMENTARY (citation heritage view, cross-lingual view, linear hybrid complement)",
+    "tfidf_role": "PRIMARY (jurist preference, branch clustering, tf_metadata)",
+    "true_oos_jp_ceiling": 0.53
+  },
+  "acceptance_criteria": {
+    "citation_heritage_view": {
+      "metric": "AUC for recovering cited precedent pairs",
+      "threshold": "> 0.75",
+      "current_citation_based_174k": "0.70-0.74 (PASS at 174k scale)",
+      "current_text_based_174k": "0.50-0.65 (FAIL)",
+      "target": "citation_based dense embeddings must exceed 0.75 AUC on frozen 137k pair pool",
+      "validation_method": "validate_citation_heritage_174k.py on frozen pair pool"
+    },
+    "cross_lingual_view": {
+      "sachverhalt": {
+        "metric": "cross_lang_same_branch_mean (facts section)",
+        "threshold": "> 0.2",
+        "rationale": "Sachverhalt (facts) showed best cross-lingual alignment in section experiments (gap 0.187 vs 0.452)",
+        "validation": "Section-segmented dense embeddings with bge/bger mapping"
+      },
+      "dispositiv": {
+        "metric": "cross_lang_same_branch_mean (holdings section)",
+        "threshold": "> 0.1",
+        "rationale": "Dispositiv (holdings) second-best cross-lingual alignment",
+        "validation": "Section-segmented dense embeddings with bge/bger mapping"
+      },
+      "erwaegungen": {
+        "metric": "cross_lang_same_branch_mean (reasoning section)",
+        "threshold": "> 0.05",
+        "rationale": "Erwaegungen (reasoning) weakest cross-lingual alignment but still useful for doctrine view",
+        "validation": "Section-segmented dense embeddings with bge/bger mapping"
+      }
+    },
+    "linear_hybrid_complement": {
+      "metric": "jurist_pairwise_preference (hybrid_weight 0.3-0.4)",
+      "threshold": "> 0.60 (below TF-IDF baseline 0.735 but above dense-only 0.43)",
+      "rationale": "Linear hybrids at optimal weight PASS adversarial gates but remain BELOW TF-IDF baseline (JP 0.66-0.67 vs 0.78-0.79)",
+      "validation": "Formal suite adversarial gates on 2000 decision stratified sample"
+    }
+  },
+  "accepted_negative_findings": {
+    "true_oos_jurist_preference_ceiling": {
+      "value": 0.53,
+      "factory_target": 0.7,
+      "status": "ACCEPTED_NEGATIVE",
+      "implication": "Dense embeddings cannot be primary navigation mode"
+    },
+    "v18_coarse_hierarchy": {
+      "max_branch_purity": 0.65,
+      "threshold": 0.7,
+      "status": "ACCEPTED_NEGATIVE",
+      "implication": "Coarse legal taxonomy recovery fails for dense embeddings"
+    },
+    "citation_heritage_recall_at_10": {
+      "max": 0.0066,
+      "status": "ACCEPTED_NEGATIVE",
+      "implication": "Citation heritage is ranking signal, not retrieval signal"
+    },
+    "boilerplate_resistance_dense": {
+      "status": "FAIL",
+      "implication": "Dense embeddings more susceptible to procedural boilerplate"
+    }
+  },
+  "data_blockers": {
+    "bge_bger_id_mapping": {
+      "status": "BLOCKING",
+      "impact": "Cannot align 174k dense embeddings with evaluation metadata (bger_ IDs)",
+      "resolution": "Corpus lane resumption required"
+    },
+    "parquet_2022_2026": {
+      "status": "BLOCKING",
+      "impact": "29,520 decisions (2022-2026) missing from parquet, cannot compute 174k dense embeddings",
+      "resolution": "Corpus lane resumption required"
+    },
+    "section_extraction_174k": {
+      "status": "REQUIRED",
+      "impact": "Cross-lingual section alignment needs sachverhalt/erwaegungen/dispositiv at 174k scale",
+      "resolution": "Corpus lane resumption required"
+    }
+  },
+  "validation_protocol": {
+    "citation_heritage": "Run validate_citation_heritage_174k.py on frozen 137k pair pool with 174k dense embeddings",
+    "cross_lingual": "Compute section-segmented embeddings (sachverhalt/dispositiv/erwaegungen), evaluate cross_lang_same_branch per section",
+    "linear_hybrid": "Run formal suite adversarial gates on hybrid weights 0.3, 0.35, 0.4 with 174k dense + TF-IDF",
+    "scale": "All criteria must hold at full 174k (not subsampled)"
+  }
+}

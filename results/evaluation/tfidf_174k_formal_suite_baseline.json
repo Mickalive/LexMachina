@@ -1,0 +1,77 @@
+{
+  "run_id": "evaluation_v34_tfidf174k_baseline_20261003",
+  "lane": "evaluation",
+  "direction_version": 34,
+  "timestamp": "2026-10-03T20:35:00Z",
+  "corpus": {
+    "name": "swiss_federal_supreme_court_2000_2026",
+    "size": 173963,
+    "normalization": "pinned_2026_snapshot",
+    "parquet_source": "corpus_lane_v17"
+  },
+  "tfidf_modes_evaluated": 8,
+  "adversarial_gate_results": {
+    "cited_decisions_tfidf": {
+      "language_dominance": { "status": "PASS", "mean": 0.479, "threshold": 0.85 },
+      "jurist_pairwise_preference": { "status": "PASS", "rate": 0.714, "threshold": 0.5 },
+      "both_pass": true
+    },
+    "outcome_tfidf": {
+      "language_dominance": { "status": "PASS", "mean": 0.502, "threshold": 0.85 },
+      "jurist_pairwise_preference": { "status": "PASS", "rate": 0.655, "threshold": 0.5 },
+      "both_pass": true
+    },
+    "regeste_tfidf": {
+      "language_dominance": { "status": "PASS", "mean": 0.485, "threshold": 0.85 },
+      "jurist_pairwise_preference": { "status": "PASS", "rate": 0.632, "threshold": 0.5 },
+      "both_pass": true
+    },
+    "full_text_tfidf_light": {
+      "language_dominance": { "status": "PASS", "mean": 0.485, "threshold": 0.85 },
+      "jurist_pairwise_preference": { "status": "PASS", "rate": 0.708, "threshold": 0.5 },
+      "both_pass": true
+    },
+    "cited_decisions_tfidf_outcome_hybrid_0.5": {
+      "language_dominance": { "status": "PASS", "mean": 0.477, "threshold": 0.85 },
+      "jurist_pairwise_preference": { "status": "PASS", "rate": 0.7345, "threshold": 0.5 },
+      "both_pass": true
+    },
+    "cited_decisions_tfidf_outcome_hybrid_0.7": {
+      "language_dominance": { "status": "PASS", "mean": 0.478, "threshold": 0.85 },
+      "jurist_pairwise_preference": { "status": "PASS", "rate": 0.7275, "threshold": 0.5 },
+      "both_pass": true
+    },
+    "regeste_full_text_hybrid_0.5": {
+      "language_dominance": { "status": "PASS", "mean": 0.480, "threshold": 0.85 },
+      "jurist_pairwise_preference": { "status": "PASS", "rate": 0.720, "threshold": 0.5 },
+      "both_pass": true
+    },
+    "regeste_full_text_hybrid_0.7": {
+      "language_dominance": { "status": "PASS", "mean": 0.482, "threshold": 0.85 },
+      "jurist_pairwise_preference": { "status": "PASS", "rate": 0.715, "threshold": 0.5 },
+      "both_pass": true
+    }
+  },
+  "production_baseline": {
+    "mode": "cited_decisions_tfidf_outcome_hybrid_0.5",
+    "jurist_preference_rate": 0.7345,
+    "language_dominance": 0.477,
+    "beats_semantic_baseline": true,
+    "semantic_baseline_jp": 0.43,
+    "verdict": "FROZEN_AS_PRODUCTION_BASELINE"
+  },
+  "known_limitations": {
+    "cross_language_retrieval": { "status": "FAIL", "mean_recall_at_10": 0.1414, "threshold": 0.2 },
+    "hierarchy_coherence": { "status": "FAIL", "level_1_nmi": 0.028, "nesting_score": 0.317 },
+    "cluster_coherence": { "status": "FAIL", "mean_branch_purity": 0.316, "mean_language_purity": 0.612 },
+    "temporal_stability": { "status": "FAIL", "mean_neighbor_overlap": 0.381 },
+    "boilerplate_resistance": { "status": "FAIL", "resistance_score": -0.834 },
+    "zero_shot_cross_language_transfer": { "status": "FAIL", "transfer_gap": -0.00003 }
+  },
+  "scale_validation": {
+    "simulation_tests": "16/16 PASS",
+    "webgl_pipeline": "<3s",
+    "metadata_coverage": "95.7% section coverage",
+    "endpoints": "50+"
+  }
+}
