@@ -4,11 +4,15 @@ Loads pre-computed map artifacts from the fractal-map lane.
 Supports multi-resolution clustering and zoom navigation.
 """
 import json
+import logging
 import os
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass, field
 import numpy as np
+
+
+logger = logging.getLogger("lexmachina.map_loader")
 
 
 @dataclass
@@ -3729,9 +3733,9 @@ class MapLoader:
                                         embedding_file: str) -> None:
         """Generic loader for 174k TF-IDF representations from legal_tfidf_embeddings.
         
-        Loads decision_ids and n_decisions from the representation's own metadata.json
-        (which has the correct 173,963 entries matching the clustering artifacts),
-        not from the embeddings_metadata.json (which has 175,440 entries).
+        Loads decision_ids and n_decisions from metadata_174k_eval.json (173,963 real bger_ IDs)
+        which is the authoritative metadata for 174k representations. The embeddings and projections
+        may have 175,440 entries (including placeholders), so we slice to match the real metadata.
         """
         legal_tfidf_dir = self.results_dir / "hierarchical_map_174k" / "legal_tfidf_embeddings"
         embedding_path = legal_tfidf_dir / embedding_file
@@ -3752,19 +3756,27 @@ class MapLoader:
         # Load projection
         projection = np.load(projection_path)
         
-        # Load decision_ids and n_decisions from the representation's own metadata.json
-        # This has the correct 173,963 entries matching the clustering artifacts
-        rep_metadata_path = rep_dir / "metadata.json"
-        if not rep_metadata_path.exists():
+        # Load decision_ids from metadata_174k_eval.json (authoritative 173,963 real bger_ IDs)
+        # This avoids the placeholder IDs in the representation's own metadata.json
+        eval_metadata_path = self.results_dir / "hierarchical_map_174k" / "metadata_174k_eval.json"
+        if not eval_metadata_path.exists():
+            logger.warning(f"metadata_174k_eval.json not found for {name}")
             return
         
-        with open(rep_metadata_path, "r") as f:
-            rep_metadata = json.load(f)
+        with open(eval_metadata_path, "r") as f:
+            eval_metadata = json.load(f)
         
-        decision_ids = rep_metadata.get("decision_ids", [])
-        n_decisions = len(decision_ids)
+        decision_ids = [m["decision_id"] for m in eval_metadata]
+        n_decisions = len(decision_ids)  # Should be 173,963
         
         if n_decisions == 0:
+            return
+        
+        # Slice projection to match decision_ids count (projection may have 175,440 entries)
+        if len(projection) > n_decisions:
+            projection = projection[:n_decisions]
+        elif len(projection) < n_decisions:
+            logger.warning(f"Projection shorter than metadata for {name}: {len(projection)} vs {n_decisions}")
             return
         
         # Load fractal-map validated clustering for this representation
