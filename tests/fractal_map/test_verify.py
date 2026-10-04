@@ -398,7 +398,7 @@ class TestMetricConsistency:
         """Critical findings document major v34 results."""
         findings = self.state["critical_findings"]
         assert "tfidf_hierarchical_v1_6_of_8_pass" in findings
-        assert "multi_level_recursive_protocol_validated" in findings
+        assert "multi_level_recursive_protocol_fails_174k" in findings
         assert "calibration_fails_tfidf" in findings
         assert "dense_integration_contract_frozen" in findings
         assert "scale_extrapolation_validated" in findings
@@ -513,7 +513,7 @@ class TestLegalDistanceModes:
         """Evidence-backed zoom path recorded in critical findings."""
         findings = self.state["critical_findings"]
         # Check for key names that indicate zoom path validation
-        assert "multi_level_recursive_protocol_validated" in findings
+        assert "multi_level_recursive_protocol_fails_174k" in findings
         assert "tfidf_hierarchical_v1_6_of_8_pass" in findings
         # Check that findings mention dense embeddings as blocked
         findings_text = " ".join(findings.values())
