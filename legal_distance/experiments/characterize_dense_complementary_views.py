@@ -22,8 +22,8 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Paths
-DENSE_12K_PATH = Path('/tmp/lex_accepted/evaluation/evaluation/results/174k/dense_embeddings_2000_2002/embeddings_2000_2002.npy')
-DENSE_12K_META_PATH = Path('/tmp/lex_accepted/evaluation/evaluation/results/174k/dense_embeddings_2000_2002/metadata_2000_2002.json')
+DENSE_12K_PATH = Path('/tmp/lex_accepted/evaluation/results/evaluation/v25_174k_formal_suite/embeddings/dense_v6_2000_2002_12k.npy')
+DENSE_12K_META_PATH = Path('/tmp/lex_accepted/evaluation/results/evaluation/v25_174k_formal_suite/embeddings/metadata_dense_v6_2000_2002_12k.json')
 TFIDF_12K_PATH = Path('/tmp/lex_accepted/evaluation/results/evaluation/v25_174k_formal_suite/embeddings/cited_decisions_tfidf.npy')
 TFIDF_12K_META_PATH = Path('/tmp/lex_accepted/evaluation/results/evaluation/v25_174k_formal_suite/embeddings/metadata_partial_174k.json')
 
