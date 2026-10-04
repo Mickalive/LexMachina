@@ -1,0 +1,314 @@
+{
+  "run_id": "legal_distance_dense_scale_characterization_v34",
+  "factory_direction_version": 34,
+  "evidence_tier": "ACCEPTED",
+  "timestamp": "2026-10-04T15:30:00Z",
+  "purpose": "Characterize minimal dense embedding scale and specific dense modes for product's non-jurist-preference views",
+  "context": {
+    "pivot_decision": "legal_distance audit CYCLE_37090665528",
+    "question": "What minimal dense embedding scale and which specific dense modes (citation heritage, section cross-lingual, linear hybrid complement) are necessary and sufficient for the product's non-jurist-preference views?",
+    "data_blockers": ["BGE/bger ID mapping", "parquet 2022-2026 (15,536 decisions)", "section extraction at 174k scale"]
+  },
+  "scale_characterization": {
+    "3_year_2000_2002": {
+      "n_decisions": 19441,
+      "description": "ACCEPTED dense embeddings (multilingual-e5, center_projected) at 3-year scale",
+      "cross_lingual_full_text": {
+        "center_projected_768dim": {
+          "cross_lang_same_branch_mean": 0.656,
+          "same_lang_same_branch_mean": 0.743,
+          "invariance_gap": 0.087,
+          "separation": 0.0,
+          "k": 10
+        },
+        "center_projected_64dim": {
+          "cross_lang_same_branch_mean": 0.971,
+          "same_lang_same_branch_mean": 0.722,
+          "invariance_gap": -0.249,
+          "separation": 0.0,
+          "k": 10
+        },
+        "note": "Inflated by homogeneous 2000-2002 time window; not representative of full corpus diversity"
+      },
+      "legal_area_clustering": {
+        "1k": {"branch_purity": 0.609, "nmi": 0.61},
+        "2k": {"branch_purity": 0.493, "nmi": 0.49},
+        "4k": {"branch_purity": 0.485, "nmi": 0.48},
+        "12_5k": {"branch_purity": 0.475, "nmi": 0.47},
+        "trend": "Legal area purity degrades with scale (0.61→0.47), consistent with full-corpus evaluations"
+      },
+      "branch_k_nn_at_1": {
+        "1k": 0.957,
+        "2k": 0.989,
+        "4k": 0.988,
+        "12_5k": 0.992
+      },
+      "dense_only_jurist_preference": {
+        "1k": 0.992,
+        "2k": 0.991,
+        "4k": 0.995,
+        "12_5k": 0.996,
+        "note": "Near-perfect at small homogeneous scales but FAILS at all larger scales (see 15yr-24yr)"
+      },
+      "adversarial": {
+        "center_projected_768dim": {"jurist_preference": 0.0074, "language_dominance": 0.9964, "verdict": "FAIL"},
+        "center_projected_64dim": {"jurist_preference": 0.0054, "language_dominance": 0.9975, "verdict": "FAIL"},
+        "center_projected_128dim": {"jurist_preference": 0.0054, "language_dominance": 0.9974, "verdict": "FAIL"}
+      },
+      "citation_heritage": {
+        "auc_roc": 0.79,
+        "positive_pairs": 2,
+        "note": "Only 2 positive pairs at 3-year scale; not statistically meaningful"
+      }
+    },
+    "15_year_2000_2014": {
+      "n_decisions": 91929,
+      "center_projected_768dim": {"jurist_preference": 0.288, "language_dominance": 0.8929, "verdict": "FAIL"},
+      "linear_hybrid05_concat": {"jurist_preference": 0.473, "language_dominance": 0.8086, "verdict": "FAIL"},
+      "note": "Dense embeddings and linear hybrids FAIL jurist gate at 15yr scale"
+    },
+    "19_year_2000_2018": {
+      "n_decisions": 122015,
+      "center_projected_768dim": {"jurist_preference": 0.3685, "language_dominance": 0.8603, "verdict": "FAIL"},
+      "linear_citation_concat_w0.3": {"jurist_preference": 0.6465, "language_dominance": 0.6264, "both_gates_pass": true},
+      "linear_hybrid05_concat_w0.3": {"jurist_preference": 0.6365, "language_dominance": 0.6617, "both_gates_pass": true},
+      "cited_decisions_tfidf_baseline": {"jurist_preference": 0.7235, "language_dominance": 0.48},
+      "outcome_hybrid_0.5_baseline": {"jurist_preference": 0.7155, "language_dominance": 0.48},
+      "note": "FIRST scale where linear hybrids PASS both adversarial gates (w=0.3); minimal sufficient scale for linear hybrid complement"
+    },
+    "20_year_2000_2019": {
+      "n_decisions": 129680,
+      "center_projected_768dim": {"jurist_preference": 0.0475, "language_dominance": 0.9828, "verdict": "CATASTROPHIC FAIL"},
+      "citation_heritage": {"positive_pairs": "insufficient", "note": "Not evaluated due to insufficient citation pairs"},
+      "note": "Performance degrades catastrophically at 20yr; worse than 19yr"
+    },
+    "21_year_2000_2020": {
+      "n_decisions": 137189,
+      "center_projected_768dim": {"jurist_preference": "NOT TESTED"},
+      "citation_heritage": {
+        "raw_768dim": {"auc_roc": 0.8455, "positive_pairs": 100},
+        "center_projected_64dim": {"auc_roc": 0.8182, "similarity_gap": 0.41},
+        "note": "FIRST scale with AUC > 0.75 on center_projected; minimal sufficient scale for citation heritage"
+      }
+    },
+    "22_year_2000_2021": {
+      "n_decisions": 144443,
+      "center_projected_64dim": {"jurist_preference": 0.4265, "language_dominance": 0.8319, "verdict": "FAIL"},
+      "cited_decisions_tfidf_baseline": {"jurist_preference": 0.784, "language_dominance": 0.4826},
+      "outcome_hybrid_0.5_baseline": {"jurist_preference": 0.789, "language_dominance": 0.4849},
+      "linear_citation_concat_w0.4": {"jurist_preference": 0.6725, "language_dominance": 0.6539, "both_gates_pass": true},
+      "linear_hybrid05_concat_w0.3": {"jurist_preference": 0.6115, "language_dominance": 0.7477, "both_gates_pass": true},
+      "citation_heritage": {
+        "raw_768dim": {"auc_roc": 0.7946, "similarity_gap": 0.063},
+        "center_projected_64dim": {"auc_roc": 0.7922, "similarity_gap": 0.410},
+        "center_projected_128dim": {"auc_roc": 0.7916, "similarity_gap": 0.391},
+        "center_projected_768dim": {"auc_roc": 0.7941, "similarity_gap": 0.389},
+        "positive_pairs": 344
+      },
+      "section_crosslingual_1k_sample": {
+        "sachverhalt_cp64": {"cross_lang_same_branch": 0.282, "invariance_gap": 0.187, "threshold": ">0.2", "status": "PASS"},
+        "dispositiv_cp64": {"cross_lang_same_branch": 0.150, "invariance_gap": 0.397, "threshold": ">0.1", "status": "PASS"},
+        "erwaegungen_cp64": {"cross_lang_same_branch": 0.094, "invariance_gap": 0.452, "threshold": ">0.1", "status": "FAIL"}
+      },
+      "note": "Citation heritage PASSED; section cross-lingual (Sachverhalt/Dispositiv) PASSED at 1K sample; linear hybrids PASS adversarial at optimal weight (w=0.3-0.4) but BELOW TF-IDF baseline"
+    },
+    "24_year_2000_2023": {
+      "n_decisions": 158427,
+      "center_projected_64dim": {"jurist_preference": "NOT EVALUATED (bge_/bger_ alignment blocker)"},
+      "citation_heritage": {
+        "raw_768dim": {"auc_roc": 0.6819, "similarity_gap": 0.258},
+        "center_projected_768dim": {"auc_roc": 0.7696, "similarity_gap": 0.364},
+        "center_projected_64dim": {"auc_roc": 0.7667, "similarity_gap": 0.383},
+        "center_projected_128dim": {"auc_roc": 0.7669, "similarity_gap": 0.366},
+        "positive_pairs": 730,
+        "negative_pairs": 834,
+        "note": "Center_projected AUC 0.767-0.770 > 0.75 threshold REINFORCED with 2.1x more positive pairs (730 vs 344). Raw 768dim FAILS at 24yr."
+      }
+    },
+    "165k_2000_2023_formal_suite": {
+      "n_decisions": 165463,
+      "source": "evaluation/partial_dense_2000_2002/evaluation_165k_dense_formal_suite_latest.json",
+      "center_projected_768dim": {
+        "adversarial": {"jurist_preference": 0.389, "language_dominance": 0.847, "verdict": "FAIL"},
+        "cross_language_retrieval": {"recall_at_10": 0.100, "threshold": ">0.2", "status": "FAIL"},
+        "cluster_coherence": {"mean_branch_purity": 0.669, "mean_language_purity": 0.778, "status": "FAIL"},
+        "hierarchy_coherence": {"level_0_nmi": 0.197, "level_1_nmi": 0.358, "nesting_score": 0.649, "status": "FAIL"},
+        "boilerplate_resistance": {"resistance_score": -0.883, "status": "FAIL"},
+        "temporal_stability": {"mean_neighbor_overlap": 0.780, "status": "PASS"},
+        "zero_shot_transfer": {"mean_nmi": 0.234, "transfer_gap": -0.016, "status": "PASS"}
+      },
+      "center_projected_64dim": {
+        "adversarial": {"jurist_preference": 0.418, "language_dominance": 0.835, "verdict": "FAIL"},
+        "cross_language_retrieval": {"recall_at_10": 0.110, "threshold": ">0.2", "status": "FAIL"},
+        "cluster_coherence": {"mean_branch_purity": 0.666, "mean_language_purity": 0.766, "status": "FAIL"},
+        "hierarchy_coherence": {"level_0_nmi": 0.197, "level_1_nmi": 0.368, "nesting_score": 0.645, "status": "FAIL"},
+        "boilerplate_resistance": {"resistance_score": -0.895, "status": "FAIL"},
+        "temporal_stability": {"mean_neighbor_overlap": 0.780, "status": "PASS"},
+        "zero_shot_transfer": {"mean_nmi": 0.236, "transfer_gap": -0.010, "status": "PASS"}
+      },
+      "center_projected_128dim": {
+        "adversarial": {"jurist_preference": 0.405, "language_dominance": 0.843, "verdict": "FAIL"},
+        "cross_language_retrieval": {"recall_at_10": 0.104, "threshold": ">0.2", "status": "FAIL"},
+        "cluster_coherence": {"mean_branch_purity": 0.645, "mean_language_purity": 0.722, "status": "FAIL"},
+        "hierarchy_coherence": {"level_0_nmi": 0.197, "level_1_nmi": 0.355, "nesting_score": 0.673, "status": "FAIL"},
+        "boilerplate_resistance": {"resistance_score": -0.887, "status": "FAIL"},
+        "temporal_stability": {"mean_neighbor_overlap": 0.780, "status": "PASS"},
+        "zero_shot_transfer": {"mean_nmi": 0.236, "transfer_gap": -0.015, "status": "PASS"}
+      },
+      "note": "All center_projected variants FAIL jurist gate at 165k (JP 0.39-0.42). Cross-language recall 0.10-0.11 << 0.2 threshold. Boilerplate resistance NEGATIVE (procedural dominates). Hierarchy coherence FAILS. Only temporal stability and zero-shot transfer PASS."
+    }
+  },
+  "minimal_sufficient_scales": {
+    "citation_heritage_recovery": {
+      "minimal_scale": "21yr / 137k decisions (2000-2020)",
+      "evidence": "AUC 0.8455 (raw), 0.8182 (cp64) at 21yr with 100 positive pairs; 22yr AUC 0.7946 (raw), 0.7922 (cp64) with 344 positive pairs; 24yr AUC 0.7696 (cp768), 0.7667 (cp64), 0.7669 (cp128) with 730 positive pairs",
+      "acceptance_criterion": "AUC > 0.75 on center_projected",
+      "best_mode": "center_projected_64dim",
+      "status": "PASSED at 21-24yr (137k-158k)"
+    },
+    "section_crosslingual_sachverhalt": {
+      "minimal_scale": "1K sample (359 decisions with sachverhalt)",
+      "evidence": "cp_64 cross_lang_same_branch=0.282 > 0.2 threshold, invariance_gap=0.187",
+      "acceptance_criterion": "cross_lang_same_branch > 0.2",
+      "best_mode": "center_projected_64dim per section",
+      "status": "PASSED at sample scale; full corpus density BLOCKED pending section extraction at 174k"
+    },
+    "section_crosslingual_dispositiv": {
+      "minimal_scale": "1K sample (538 decisions with dispositiv)",
+      "evidence": "cp_64 cross_lang_same_branch=0.150 > 0.1 threshold, invariance_gap=0.397",
+      "acceptance_criterion": "cross_lang_same_branch > 0.1",
+      "best_mode": "center_projected_64dim per section",
+      "status": "PASSED at sample scale; full corpus density BLOCKED pending section extraction at 174k"
+    },
+    "section_crosslingual_erwaegungen": {
+      "minimal_scale": "1K sample (510 decisions with erwaegungen)",
+      "evidence": "cp_64 cross_lang_same_branch=0.094 < 0.1 threshold, invariance_gap=0.452",
+      "acceptance_criterion": "cross_lang_same_branch > 0.1",
+      "best_mode": "center_projected_64dim per section",
+      "status": "FAILED at sample scale; reasoning is most language-specific"
+    },
+    "linear_hybrid_complement": {
+      "minimal_scale": "19yr / 122k decisions (2000-2018)",
+      "evidence": "At 15yr FAIL (JP=0.473); at 19yr PASS both gates at w=0.3 (JP=0.6365-0.6465); at 22yr PASS at w=0.3-0.4 (JP=0.6115-0.6725). Scale shifts optimal weight toward semantic.",
+      "acceptance_criterion": "PASS both adversarial gates AND cross_lang_same_branch > TF-IDF baseline",
+      "best_mode": "linear_citation_concat_w0.4 (22yr) / linear_hybrid05_concat_w0.3 (19yr)",
+      "status": "PASSED at 19yr+; but JP remains BELOW TF-IDF baseline (0.78-0.79)"
+    }
+  },
+  "complementary_modes_validated": {
+    "citation_heritage_view": {
+      "metric": "AUC for recovering cited precedent pairs",
+      "threshold": "> 0.75",
+      "dense_superiority": "Dense embeddings AUC 0.79-0.85 > TF-IDF citation-based 0.71-0.74 > TF-IDF text-based 0.50-0.63",
+      "status": "ACCEPTED at 21-24yr (137k-158k)"
+    },
+    "cross_lingual_view": {
+      "sachverhalt": {"metric": "cross_lang_same_branch_mean", "threshold": "> 0.2", "achieved": 0.282, "status": "PASS (1K sample)"},
+      "dispositiv": {"metric": "cross_lang_same_branch_mean", "threshold": "> 0.1", "achieved": 0.150, "status": "PASS (1K sample)"},
+      "erwaegungen": {"metric": "cross_lang_same_branch_mean", "threshold": "> 0.1", "achieved": 0.094, "status": "FAIL (1K sample)"},
+      "hierarchy": "Sachverhalt > Dispositiv > Erwaegungen (facts align best cross-lingually)",
+      "full_corpus": "BLOCKED pending section extraction at 174k scale"
+    },
+    "linear_hybrid_complement": {
+      "metric": "jurist_pairwise_preference at optimal weight (w=0.3-0.4)",
+      "threshold": "> 0.60 (below TF-IDF baseline 0.78-0.79 but above dense-only 0.43)",
+      "achieved": {"19yr": 0.6365-0.6465, "22yr": 0.6115-0.6725},
+      "cross_lingual_improvement": {"tfidf_baseline": 0.124, "hybrid_w0.4": 0.160, "improvement": 0.036},
+      "status": "PASS adversarial gates at 19yr+; exploratory mode (does NOT beat TF-IDF on jurist preference)"
+    }
+  },
+  "two_mode_tradeoff": {
+    "reproduced_at_scales": ["3yr", "15yr", "19yr", "20yr", "21yr", "22yr", "24yr", "165k"],
+    "tradeoff_matrix": {
+      "tfidf_citation_hybrids": {
+        "langdom": 0.48,
+        "jurist_preference": 0.78,
+        "citation_independence": 0.14,
+        "characteristic": "Legal relevance, monolingual clusters"
+      },
+      "dense_semantic_center_projected": {
+        "langdom": "0.83-0.98",
+        "jurist_preference": "0.05-0.43",
+        "citation_independence": 0.37,
+        "characteristic": "Cross-lingual, language-dominated"
+      },
+      "linear_hybrids_optimal": {
+        "langdom": "0.58-0.80",
+        "jurist_preference": "0.61-0.67",
+        "citation_independence": "0.20-0.30",
+        "characteristic": "Best of both, but below TF-IDF JP"
+      }
+    },
+    "conclusion": "No single representation dominates all three metrics at any scale. Fundamental tradeoff between legal relevance (TF-IDF) and cross-lingual reach (dense)."
+  },
+  "true_oos_ceiling": {
+    "jurist_preference_ceiling": 0.53,
+    "factory_target": 0.7,
+    "achievable": false,
+    "source": "v8 holdout validation (train-only TF-IDF/SVD on 80%)",
+    "implication": "Dense embeddings cannot be PRIMARY for jurist navigation"
+  },
+  "accepted_negative_findings": {
+    "dense_embeddings_fail_jurist_gate_all_scales": "JP 0.05-0.43 at all scales 3yr-165k",
+    "true_oos_jurist_preference_ceiling_0_53": "Below 0.7 factory target",
+    "v18_coarse_hierarchy_max_purity_0_65": "Below 0.7 threshold",
+    "citation_heritage_recall_at_10_max_0_0066": "Ranking signal only, not retrieval signal",
+    "boilerplate_resistance_dense_negative": "Dense embeddings more susceptible to procedural boilerplate",
+    "raw_768dim_fails_citation_heritage_at_24yr": "AUC 0.68 < 0.75; center projection required",
+    "full_text_dense_inflated_at_small_scale": "Cross-lingual 0.656 at 1K but degrades to 0.10 at 165k"
+  },
+  "evidence_sources": {
+    "3_year_formal_suite": "/tmp/lex_accepted/evaluation/results/evaluation/partial_dense_2000_2002/evaluation_partial_dense_latest.json",
+    "22_year_citation_heritage": "legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_22year_latest.json",
+    "21_year_citation_heritage": "legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_21year_latest.json",
+    "24_year_citation_heritage": "legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_24year_latest.json",
+    "section_crosslingual_1k": "legal_distance/results/174k_dense_embeddings/section_crosslingual_eval/section_crosslingual_eval_latest.json",
+    "weight_sweep_22yr": "legal_distance/results/174k_dense_embeddings/linear_combinations_weight_sweep_22year/weight_sweep_22year_latest.json",
+    "linear_combinations_19yr": "legal_distance/results/174k_dense_embeddings/linear_combinations_19year/linear_combinations_19year_eval_latest.json",
+    "165k_formal_suite": "/tmp/lex_accepted/evaluation/results/evaluation/partial_dense_2000_2002/evaluation_165k_dense_formal_suite_latest.json",
+    "tfidf_174k_formal_suite": "/tmp/lex_accepted/evaluation/results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
+    "v8_holdout_oos": "/tmp/lex_accepted/evaluation/results/evaluation/v8_holdout_zero_shot_validation/holdout_zero_shot_validation_fixed.json",
+    "v17b_label_normalization": "/tmp/lex_accepted/evaluation/results/evaluation/v17b_label_normalization_all_reps/v17b_label_normalization_all_reps_latest.json",
+    "v18_coarse_hierarchy": "/tmp/lex_accepted/evaluation/results/evaluation/v18_coarse_hierarchy/v18_coarse_hierarchy_results.json"
+  },
+  "product_integration_contracts": {
+    "primary_navigation": {
+      "view_name": "primary_navigation",
+      "representation": "cited_outcome_hybrid_0.5 (TF-IDF)",
+      "status": "PRODUCTION v1.0",
+      "user_intent": "Jurist finds legally relevant neighbors",
+      "performance": "JP 0.78-0.79, LangDom ~0.48"
+    },
+    "citation_heritage": {
+      "view_name": "citation_heritage",
+      "representation": "center_projected_64dim",
+      "status": "READY v1.1+",
+      "user_intent": "Jurist explores doctrinal lineage via shared citations",
+      "performance": "AUC 0.79-0.85 (superior to TF-IDF 0.71-0.74)"
+    },
+    "cross_lingual": {
+      "view_name": "cross_lingual",
+      "representation": "center_projected_64dim per section (sachverhalt > dispositiv)",
+      "status": "BLOCKED v1.1+",
+      "user_intent": "Jurist finds equivalent decisions in other languages",
+      "performance": "Sachverhalt 0.282, Dispositiv 0.150 at 1K sample"
+    },
+    "hybrid_explore": {
+      "view_name": "hybrid_complement",
+      "representation": "linear_citation_concat_w0.4 (22yr) / linear_hybrid05_concat_w0.3 (19yr)",
+      "status": "EXPLORATORY v1.1+",
+      "user_intent": "Jurist trades some legal relevance for cross-lingual reach",
+      "performance": "JP 0.61-0.67, cross-lang recall 0.14-0.16"
+    }
+  },
+  "recommendation": {
+    "continue_same_question": false,
+    "reason": "Maximum evidence extracted at available scales (24yr/158k citation heritage, 165k formal suite, 1K section cross-lingual). Complementary role fully characterized with minimal sufficient scales identified. No further same-question cycles justified.",
+    "next_actions": [
+      "Corpus lane: Resume for bge_<->bger_ mapping, 2022-2026 parquet, section extraction at 174k",
+      "Product lane: Ship v1.0 with TF-IDF citation hybrids as primary (JP 0.78 vs 0.43 semantic baseline)",
+      "Dense integration: v1.1+ for citation-heritage view and cross-lingual view (contracts defined and frozen)",
+      "No new Frontier team — portfolio v7 confirmed, all teams TERMINATED"
+    ]
+  }
+}
