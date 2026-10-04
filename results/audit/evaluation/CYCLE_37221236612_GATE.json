@@ -1,0 +1,51 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Document citation heritage AUC discrepancy: V25 formal suite reports AUC=0.973 (full citation graph, 137k pairs) while dedicated citation_heritage_174k eval reports AUC=0.730 (filtered 'valid' pairs, 1k/1020). Add explicit reconciliation in report defining both metrics and which governs production decisions.",
+    "Add bootstrap confidence intervals for dense embedding citation heritage AUC (n=344 positive pairs at 22-year scale) and cross-lingual section metrics (coverage 36-54%).",
+    "Document the 'valid positive pair' filter criteria used in citation_heritage_174k_tfidf_latest.json (only 1020 valid pairs from 173,963 decisions)."
+  ],
+  "claim_ceiling": "TF-IDF 174k production baseline FROZEN (JP 0.7265, LangDom 0.4895). Dense embeddings VALIDATED as complementary views ONLY (citation heritage AUC>0.75 PASS, cross-lingual sachverhalt>0.2 PASS, dispositiv>0.1 PASS, erwaegungen>0.1 FAIL, jurist preference FAIL at all scales 0.005-0.43). No 174k dense evaluation possible until corpus lane resolves bge_/bger_ ID mapping + parquet 2022-2026.",
+  "evidence_summary": {
+    "tfidf_adversarial_reverify": {
+      "file": "results/evaluation/adversarial_reverify_20261002/exact_adversarial_all_tfidf.json",
+      "method": "Exact k-NN, stratified n=2000, seed=42, config_hash=b51701f5a9c11692",
+      "result": "All 8 TF-IDF representations PASS both gates (LangDom<0.85, JP>0.5). Production default: cited_decisions_tfidf_outcome_hybrid_0.5 (LangDom=0.4895, JP=0.7265)"
+    },
+    "v25_formal_suite": {
+      "file": "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
+      "method": "HNSW (M=16, ef_construction=200, ef_search=100), full 173,963 decisions, 12 benchmarks",
+      "result": "Fundamental tradeoff confirmed: citation-based PASS adversarial/citation_heritage, FAIL branch/TF_metadata/hierarchy; text-based PASS branch/TF_metadata, FAIL adversarial (LangDom~0.999). Citation heritage AUC discrepancy noted (0.973 vs 0.730)."
+    },
+    "citation_heritage_174k_tfidf": {
+      "file": "results/evaluation/citation_heritage_174k_tfidf_latest.json",
+      "method": "Sampled 1000 positive / 2000 negative from 1020 valid pairs",
+      "result": "Citation-based PASS (AUC 0.70-0.74), text-based FAIL (AUC 0.50-0.65). Threshold 0.65."
+    },
+    "dense_citation_heritage_22year": {
+      "file": "results/evaluation/partial_dense_2000_2002/citation_heritage_22year_latest.json",
+      "method": "344 positive pairs, 500 negative, 144,443 decisions",
+      "result": "center_projected 768/128/64dim AUC 0.792-0.795 PASS (>0.75). Exceeds TF-IDF citation-based (0.71-0.74). Low n=344 limits statistical precision."
+    },
+    "dense_cross_lingual_sections": {
+      "file": "results/evaluation/partial_dense_2000_2002/section_crosslingual_eval_latest.json",
+      "method": "Section-specific cross-lingual neighbor quality, coverage 36-54%",
+      "result": "Sachverhalt PASS (>0.2), Dispositiv PASS (>0.1), Erwaegungen FAIL (<0.1). Hierarchy confirmed: Sachverhalt > Dispositiv > Erwaegungen."
+    },
+    "v17b_label_normalization_174k": {
+      "file": "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
+      "method": "5000 sample, seed=42, 213->111 labels via cross-lingual merge (42.5% map coverage)",
+      "result": "Purity increases but NMI decreases (5/8 reps). No uniform improvement. Different regime from 1k scale (15-25% gain). Negative result honestly preserved."
+    },
+    "v18_coarse_hierarchy": {
+      "file": "results/evaluation/v18_coarse_hierarchy/v18_coarse_hierarchy_latest.json",
+      "method": "1199 branch-level samples, 4 labels, 6 representations, 4 seeds",
+      "result": "FAIL: max branch purity 0.6497 (linear_citation_concat) < 0.70 threshold. center_projected_64dim 0.5188. Multi-seed stable (std<0.05). Fundamental hierarchy limitation confirmed."
+    },
+    "product_integration_verification": {
+      "file": "results/evaluation/product_integration_verification_v11.json",
+      "result": "16/16 scale simulation tests PASS, 50+ endpoints, 95.7% section coverage, WebGL pipeline <3s. TF-IDF hierarchical modes OPERATIONAL at 174k."
+    }
+  }
+}
