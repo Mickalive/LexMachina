@@ -1958,7 +1958,8 @@ webglRenderer.uploadPointData(
         }
 
         const neighborsResp = await fetch(`${API}/api/neighbors?id=${decisionId}&representation=${currentRep}&zoom=${currentZoom}&n=8`);
-        const neighbors = await neighborsResp.json();
+        const neighborsData = await neighborsResp.json();
+        const neighbors = neighborsData.neighbors || [];  // Handle new wrapped response format
         
         if (neighbors.length > 0) {
             html += `<div class="field"><div class="field-label">Nearest Neighbors (with proximity analysis)</div><div class="neighbors-list">`;
@@ -2249,7 +2250,7 @@ webglRenderer.uploadPointData(
         }
     });
 
-    // Search
+// Search
     let searchTimeout;
     document.getElementById('search-input').addEventListener('input', (e) => {
         clearTimeout(searchTimeout);
@@ -2263,7 +2264,8 @@ webglRenderer.uploadPointData(
             let url = `${API}/api/search?q=${encodeURIComponent(q)}&limit=20`;
             if (lang) url += `&language=${encodeURIComponent(lang)}`;
             const resp = await fetch(url);
-            const results = await resp.json();
+            const data = await resp.json();
+            const results = data.results || [];  // Handle new wrapped response format
             const list = document.getElementById('cluster-list');
             list.innerHTML = results.map(d => {
                 const langColor = LANG_COLORS[d.language] || LANG_COLORS.unknown;
@@ -2272,7 +2274,7 @@ webglRenderer.uploadPointData(
                         <span class="cluster-id" style="font-size:11px;"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${langColor};margin-right:3px;vertical-align:middle;"></span>${d.decision_id}</span>
                         <span class="cluster-size">${d.language}</span>
                     </div>
-                    <div class="cluster-samples">${d.branch || ''} · ${d.decision_date}</div>
+                    <div class="cluster-samples">${d.branch || ''} \u00b7 ${d.decision_date}</div>
                 </div>`;
             }).join('');
         }, 300);

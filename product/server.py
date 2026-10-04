@@ -48,6 +48,9 @@ _rate_limit_lock = threading.Lock()
 DEFAULT_RATE_LIMIT = 100  # requests per window
 RATE_LIMIT_WINDOW = 60  # seconds
 
+# Navigation API initialization lock
+_nav_api_init_lock = threading.Lock()
+
 # Caching
 _cache_store = {}
 _cache_lock = threading.Lock()
@@ -225,24 +228,31 @@ def get_nav_api() -> NavigationAPI:
     tolerant of the failure.
     """
     global _nav_api, _nav_api_init_error
+    
+    # Fast path: already initialized
     if _nav_api is not None:
         return _nav_api
-
-    base_dir = Path(__file__).parent
-    # Use local corpus for fast startup (metadata subset); 174k map artifacts in results/fractal_map
-    corpus_dir = str(base_dir / "results" / "corpus" / "normalization" / "canonical")
-    results_dir = str(base_dir / "results" / "fractal_map")
-
-    try:
-        _nav_api = NavigationAPI(corpus_dir, results_dir)
-        _nav_api.initialize()
-        _nav_api_init_error = None
-    except Exception as e:
-        _nav_api_init_error = str(e)
-        logger.error("NavigationAPI initialization failed: %s", e)
-        raise
-
-    return _nav_api
+    
+    # Slow path: need to initialize - use lock to prevent race conditions
+    with _nav_api_init_lock:
+        # Double-check after acquiring lock
+        if _nav_api is not None:
+            return _nav_api
+        
+        base_dir = Path(__file__).parent
+        corpus_dir = str(base_dir / "results" / "corpus" / "normalization" / "canonical")
+        results_dir = str(base_dir / "results" / "fractal_map")
+        
+        try:
+            _nav_api = NavigationAPI(corpus_dir, results_dir)
+            _nav_api.initialize()
+            _nav_api_init_error = None
+        except Exception as e:
+            _nav_api_init_error = str(e)
+            logger.error("NavigationAPI initialization failed: %s", e)
+            raise
+        
+        return _nav_api
 
 
 def get_health_checker() -> RepresentationHealthChecker:

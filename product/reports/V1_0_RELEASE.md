@@ -101,7 +101,9 @@ All three modes:
 - `GET /api/decision` — Full decision text + metadata
 - `GET /api/citations` — Citation graph (in/out/both, limited)
 - `GET /api/search` — Full-text search with language filter
+  - **Response:** `{"results": [...], "query": "...", "limit": 20}` — wrapped array with metadata
 - `GET /api/neighbors` — k-NN neighbors with metadata
+  - **Response:** `{"neighbors": [...], "decision_id": "...", "representation": "...", "zoom": 1}` — wrapped array with context
 - `GET /api/map/temporal` — Temporal filtering by year range
 
 ### Map Modes & Comparison
