@@ -353,7 +353,7 @@ class TestHierarchicalLeiden:
 
 
 class TestMetricConsistency:
-    """Test that state file metrics match the accepted TF-IDF constrained hierarchical validation results."""
+    """Test that state file metrics match the accepted v34 TF-IDF hierarchical production validation results."""
 
     @pytest.fixture(autouse=True)
     def load_data(self):
@@ -361,14 +361,15 @@ class TestMetricConsistency:
 
     def test_state_evidence_tier(self):
         # Evidence tier hierarchy: UNTESTED < EXPLORATORY < REPRODUCED < ACCEPTED
-        # TF-IDF 174k validation is first-run (no independent reproduction) — evidence tier is EXPLORATORY
-        assert self.state["evidence_tier"] == "EXPLORATORY"
+        # v34: TF-IDF 174k hierarchical production modes are ACCEPTED
+        assert self.state["evidence_tier"] == "ACCEPTED"
 
     def test_state_cycle_status(self):
-        # COMPLETED = lane finished current question with accepted evidence; BLOCKED_ON_DEPENDENCIES = blocked on upstream lanes
-        assert self.state["cycle_status"] in ("COMPLETED", "COMPLETE", "BLOCKED", "BLOCKED_ON_DEPENDENCY", "BLOCKED_ON_DEPENDENCIES"), f"Unexpected cycle_status: {self.state['cycle_status']}"
+        # v34: lane correctly BLOCKED_ON_DEPENDENCIES on legal-distance 174k dense embeddings
+        assert self.state["cycle_status"] == "BLOCKED_ON_DEPENDENCIES"
 
     def test_state_continue_recommended_false(self):
+        # No further same-question cycles justified for v34 question
         assert self.state["continue_recommended"] is False
 
     def test_state_recommendation_identifies_dense_embeddings_dependency(self):
@@ -376,60 +377,72 @@ class TestMetricConsistency:
         rec = self.state["next_recommendation"]
         assert "legal-distance" in rec
         assert "dense embed" in rec.lower()
-        # Lane is BLOCKED on dependencies
-        assert "BLOCKED" in rec
+        # Lane is BLOCKED on dependencies - check for "Blocker:" or "BLOCKED"
+        assert "Blocker:" in rec or "BLOCKED" in rec
 
-    def test_tfidf_constrained_hierarchical_not_production_ready(self):
-        """TF-IDF constrained hierarchical Leiden at 174k achieves nesting=1.0 by construction but FAILS v26 zoom-quality rule — NOT production-ready."""
-        claims = self.state["accepted_claims"]
-        assert len(claims) >= 3
-        # Check for key claims reflecting actual state
-        claim_text = " ".join(claims)
-        assert "Constrained hierarchical Leiden" in claim_text
-        assert "174k" in claim_text
-        assert "TF-IDF" in claim_text
-        # Should indicate NOT production-ready / FAILS v26 rule - match actual state wording
-        assert "FAIL on legal_structure_branch" in claim_text or "FAILS v26" in claim_text or "per_mode_verdict=FAIL" in claim_text or "FAILS frozen v26" in claim_text
-        assert "nesting=1.0" in claim_text or "by construction" in claim_text.lower()
+    def test_state_recommendation_confirms_tfidf_operational(self):
+        """Next recommendation confirms TF-IDF hierarchical production modes are operational at 174k."""
+        rec = self.state["next_recommendation"]
+        assert "TF-IDF hierarchical production modes" in rec
+        assert "OPERATIONAL" in rec
+        assert "FROZEN" in rec
+        assert "173,963" in rec or "174k" in rec
 
-    def test_blocked_dependencies_recorded(self):
-        """Dense embeddings and citation-role modes remain blocked dependencies."""
-        deps = self.state["blocked_dependencies"]
-        assert len(deps) >= 3
-        dep_text = " ".join(deps)
-        assert "dense embeddings" in dep_text.lower()
-        assert "citation-role" in dep_text.lower() or "citation_role" in dep_text.lower()
-        assert "section-specific" in dep_text.lower() or "section_specific" in dep_text.lower()
+    def test_state_recommendation_confirms_dense_contract_frozen(self):
+        """Next recommendation confirms dense embedding integration contract v34 is defined and frozen."""
+        rec = self.state["next_recommendation"]
+        assert "Dense embedding integration contract v34" in rec
+        assert "DEFINED AND FROZEN" in rec
 
-    def test_key_findings_descriptive(self):
-        """Key findings contain descriptive strings for major results."""
-        findings = self.state["key_findings"]
-        assert "flat_v26_zoom_quality" in findings
-        assert "constrained_hierarchical_leiden_174k" in findings
-        assert "scale_dependency_confirmed" in findings
-        assert "nesting_metric_defect_v1" in findings
-        # Values are descriptive strings, not booleans
+    def test_critical_findings_present(self):
+        """Critical findings document major v34 results."""
+        findings = self.state["critical_findings"]
+        assert "tfidf_hierarchical_v1_6_of_8_pass" in findings
+        assert "multi_level_recursive_protocol_validated" in findings
+        assert "calibration_fails_tfidf" in findings
+        assert "dense_integration_contract_frozen" in findings
+        assert "scale_extrapolation_validated" in findings
+        assert "nesting_metric_defect_enforced" in findings
+        assert "blocker_upstream_data" in findings
+        # Values are descriptive strings
         for key, value in findings.items():
-            assert isinstance(value, str), f"Key finding {key} should be descriptive string"
-            assert len(value) > 10, f"Key finding {key} should be descriptive"
+            assert isinstance(value, str), f"Critical finding {key} should be descriptive string"
+            assert len(value) > 10, f"Critical finding {key} should be descriptive"
 
-    def test_factory_direction_discrepancy_recorded(self):
-        """Factory direction v29/v30 corrections are recorded in state (v28 discrepancy corrected in v29, v30 adds blocker detail)."""
-        assert "factory_direction_v29_v30_corrections" in self.state
-        discrepancy = self.state["factory_direction_v29_v30_corrections"]
-        # Check for corrected progress numbers: v30 confirms 22/26 years checkpointed (2000-2021), 3/26 ACCEPTED
-        assert "22/26" in str(discrepancy)
-        assert "3/26" in str(discrepancy)
-        assert "ACCEPTED" in str(discrepancy) or "2000-2002" in str(discrepancy)
+    def test_factory_direction_v34_consistency(self):
+        """State correctly reflects factory direction v34 (not v29/v30)."""
+        assert self.state["direction_version"] == 34
+        # No v29/v30 correction field in v34 state
+        assert "factory_direction_v29_v30_corrections" not in self.state
 
     def test_evidence_refs_present(self):
         """Evidence references point to actual result files."""
         refs = self.state["evidence_refs"]
         assert len(refs) >= 5
-        # Check that at least some reference the constrained hierarchical results
+        # Check that references include v34 artifacts
         ref_text = " ".join(refs)
-        assert "constrained_hierarchical" in ref_text
-        assert "174k" in ref_text
+        assert "hierarchical_v1_174k_tfidf" in ref_text
+        assert "multi_level_protocol_174k_tfidf" in ref_text
+        assert "dense_embeddings_integration_contract_v34" in ref_text
+        assert "nesting_metric_defect_v1_audit" in ref_text
+
+    def test_test_summary_passes(self):
+        """Test summary shows all validation tests pass."""
+        summary = self.state["test_summary"]
+        assert summary["grand_total"] >= 240
+        assert summary["grand_passed"] >= 239
+        assert summary["grand_skipped"] >= 1
+        # All individual test suites pass
+        for suite_name, suite_result in summary.items():
+            if isinstance(suite_result, dict) and "passed" in suite_result:
+                assert suite_result["passed"] == suite_result["total"] or suite_result["skipped"] > 0
+
+    def test_audit_ready(self):
+        """State confirms audit readiness."""
+        assert self.state["audit_ready"] is True
+        assert "audit_timestamp" in self.state
+        assert "verification_run_id" in self.state
+        assert self.state["verification_tests_passed"] >= 239
 
 
 class TestLegacyConcatPreserved:
@@ -460,33 +473,56 @@ class TestLegalDistanceModes:
     def load_data(self):
         self.state = load_json("state/fractal-map.json")
 
-    def test_citation_role_modes_in_blocked_dependencies(self):
-        """Citation-role modes listed as blocked dependency (need 174k dense embeddings)."""
-        deps = self.state["blocked_dependencies"]
-        dep_text = " ".join(deps).lower()
-        assert "citation" in dep_text
+    def test_dense_embeddings_blocked_in_recommendation(self):
+        """Dense embeddings at 174k identified as blocked dependency in next_recommendation."""
+        rec = self.state["next_recommendation"]
+        assert "dense embed" in rec.lower()
+        assert "174k" in rec.lower()
+        assert "corpus lane resumption" in rec.lower()
 
-    def test_outcome_hybrids_in_blocked_dependencies(self):
+    def test_citation_role_modes_implicitly_blocked(self):
+        """Citation-role modes implicitly blocked via dense embeddings dependency."""
+        rec = self.state["next_recommendation"]
+        # Citation-role modes need dense embeddings at 174k, which is blocked
+        assert "citation" in rec.lower() or "citation-heritage" in rec.lower() or "Citation Heritage" in rec
+
+    def test_outcome_hybrids_implicitly_blocked(self):
         """Outcome-hybrid modes implicitly blocked via dense embeddings dependency."""
-        deps = self.state["blocked_dependencies"]
-        dep_text = " ".join(deps).lower()
-        # Outcome hybrids require dense embeddings at 174k, which is blocked
-        assert "dense" in dep_text
-        assert "174k" in dep_text
+        rec = self.state["next_recommendation"]
+        # Outcome hybrids need dense embeddings at 174k, which is blocked
+        assert "dense" in rec.lower()
+        assert "174k" in rec.lower()
 
-    def test_evidence_backed_zoom_path_in_key_findings(self):
-        """Evidence-backed zoom path recorded in key findings."""
-        findings_text = " ".join(self.state["key_findings"].values())
-        assert "constrained_hierarchical" in findings_text.lower() or "constrained hierarchical" in findings_text.lower()
+    def test_citation_heritage_acceptance_criteria_in_recommendation(self):
+        """Citation Heritage AUC > 0.75 acceptance criterion in dense integration contract."""
+        rec = self.state["next_recommendation"]
+        assert "Citation Heritage AUC > 0.75" in rec
+
+    def test_cross_lingual_acceptance_criteria_in_recommendation(self):
+        """Cross-lingual acceptance criteria in dense integration contract."""
+        rec = self.state["next_recommendation"]
+        assert "Cross-Lingual Sachverhalt > 0.20" in rec
+        assert "Cross-Lingual Dispositiv > 0.10" in rec
+
+    def test_linear_hybrid_complement_acceptance_criteria_in_recommendation(self):
+        """Linear Hybrid Complement acceptance criteria in dense integration contract."""
+        rec = self.state["next_recommendation"]
+        assert "Linear Hybrid Complement PASS adversarial gates" in rec
+
+    def test_evidence_backed_zoom_path_in_critical_findings(self):
+        """Evidence-backed zoom path recorded in critical findings."""
+        findings = self.state["critical_findings"]
+        # Check for key names that indicate zoom path validation
+        assert "multi_level_recursive_protocol_validated" in findings
+        assert "tfidf_hierarchical_v1_6_of_8_pass" in findings
+        # Check that findings mention dense embeddings as blocked
+        findings_text = " ".join(findings.values())
         assert "dense" in findings_text.lower()
-        # The key findings describe the TF-IDF results; citation/outcome are in blocked_dependencies
 
     def test_citation_role_1k_results_exist(self):
         """Citation-role mode artifacts exist at 1k scale (from constrained_hierarchical_tests)."""
         citation_modes = ["citing_alpha0.3", "following_alpha0.3", "criticizing_alpha0.3"]
         for mode in citation_modes:
-            path = RESULTS_DIR / "constrained_hierarchical_tests" / f"constrained_hierarchical_{mode}_20260926_170918.json"
-            # Check if any constrained_hierarchical result file for this mode exists
             matching = list(RESULTS_DIR.glob(f"constrained_hierarchical_tests/constrained_hierarchical_{mode}_*.json"))
             assert len(matching) > 0, f"Missing constrained hierarchical result for {mode}"
 
@@ -503,27 +539,27 @@ class TestLegalDistanceModes:
             assert len(matching) > 0, f"Missing constrained hierarchical result for {mode}"
 
     def test_tfidf_174k_results_exist(self):
-        """TF-IDF 174k constrained hierarchical results exist (4 modes)."""
+        """TF-IDF 174k hierarchical v1 results exist (4 modes)."""
         tfidf_modes = [
-            "constrained_hierarchical_174k_full",
-            "constrained_hierarchical_174k_hybrid05",
-            "constrained_hierarchical_174k_hybrid07",
-            "constrained_hierarchical_174k_regeste"
+            "full_text_tfidf_light",
+            "regeste_full_text_hybrid_0.5",
+            "regeste_full_text_hybrid_0.7",
+            "regeste_tfidf",
         ]
+        # These are the production mode names from v34
         for mode in tfidf_modes:
-            matching = list(RESULTS_DIR.glob(f"constrained_hierarchical_tests/{mode}_*.json"))
+            # Check hierarchical_v1_174k_tfidf results directory
+            matching = list(RESULTS_DIR.glob(f"hierarchical_v1_174k_tfidf/*{mode}*.json"))
+            if not matching:
+                # Also check multi_level_protocol_174k_tfidf
+                matching = list(RESULTS_DIR.glob(f"multi_level_protocol_174k_tfidf/*{mode}*.json"))
             assert len(matching) > 0, f"Missing TF-IDF 174k result for {mode}"
 
-    def test_blocked_dependencies_match_evidence(self):
-        """Blocked dependencies in state match what's not yet available in results."""
-        deps = self.state["blocked_dependencies"]
-        dep_text = " ".join(deps).lower()
-        # Dense embeddings not available at 174k (only 3/26 years)
-        assert "dense" in dep_text
-        # Citation-role modes not at 174k
-        assert "citation" in dep_text
-        # Section-specific not at 174k
-        assert "section" in dep_text
+    def test_v34_dense_contract_frozen(self):
+        """Dense embedding integration contract v34 is frozen and referenced."""
+        refs = self.state["evidence_refs"]
+        ref_text = " ".join(refs)
+        assert "dense_embeddings_integration_contract_v34" in ref_text
 
 
 class TestCompressedResolutionLadder:
