@@ -1,0 +1,46 @@
+{
+  "cycle_id": "operational_resume_37205108234",
+  "lane": "fractal-map",
+  "factory_direction_version": 34,
+  "timestamp": "2026-10-04T20:00:00.000000Z",
+  "github_run": 37205108234,
+  "prior_audit_run": 37204514515,
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "audit_type": "operational_resume_verification",
+  "verification_summary": {
+    "total_tests": 247,
+    "passed": 245,
+    "skipped": 2,
+    "failed": 0,
+    "skip_reason": "1) dense_mode_artifacts_exist skipped — dense embeddings not yet at 174k (known upstream blocker); 2) test_provenance_reproduced_by_recompute skipped — recompute provenance not required for audit"
+  },
+  "orchestration_failure_diagnosis": {
+    "failure_exists": false,
+    "diagnosis": "Lane correctly BLOCKED_ON_DEPENDENCIES on legal-distance 174k dense embeddings (requires corpus lane resumption for BGE/bger ID mapping + parquet 2022-2026). No fractal-map lane defect exists.",
+    "blockers_upstream": [
+      "BGE/bger ID mapping missing (canonical corpus uses bge_ IDs, evaluation uses bger_ IDs)",
+      "Parquet generation for years 2022-2026 (29,520 decisions missing)",
+      "Section extraction (sachverhalt/erwaegungen/dispositiv) at 174k scale"
+    ]
+  },
+  "evidence_preservation": {
+    "all_prior_claims_preserved": true,
+    "negative_results_preserved": true,
+    "frozen_benchmarks_unchanged": true,
+    "no_fabricated_data": true,
+    "no_overwritten_claim_bearing_outputs": true
+  },
+  "audit_readiness": {
+    "provenance_preserved": true,
+    "evidence_tiers_accurate": true,
+    "blockers_documented": true,
+    "next_steps_unambiguous": true,
+    "dense_integration_contract_frozen": true
+  },
+  "recommendation": {
+    "continue_recommended": false,
+    "cycle_status": "BLOCKED_ON_DEPENDENCIES",
+    "factory_director_decision_required": "Corpus lane resumption for BGE/bger ID mapping + parquet 2022-2026"
+  }
+}
