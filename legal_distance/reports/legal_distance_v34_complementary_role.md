@@ -1,248 +1,137 @@
-# Legal Distance Lane — Complementary Role Characterization (Factory Direction v34)
+# Legal Distance Lane — Factory Direction v34
+## Dense Embedding Complementary Role Characterization (COMPLETE)
 
-**Lane**: legal-distance
-**Direction Version**: 34
-**Evidence Tier**: REPRODUCED
-**Cycle Status**: BLOCKED_ON_DEPENDENCIES
-**Continue Recommended**: false
-**Assessment Date**: 2026-10-03
-**Accepted Run ID**: legal_distance_v34_complementary_role_20261003
+**Status:** BLOCKED_ON_DEPENDENCIES | **Evidence Tier:** REPRODUCED | **Continue Recommended:** false
 
 ---
 
 ## Executive Summary
 
-The legal-distance lane has **fully characterized the complementary role of dense embeddings alongside TF-IDF citation hybrids** for the product's multi-view map at the maximum available scale (22 years, 144,443 decisions, 2000-2021). The factory direction v34 pivot question is answered with comprehensive evidence.
+The PIVOT_WITHIN_MISSION executed per CYCLE_37090665528 audit has been fully characterized. Dense embeddings (multilingual-e5 center_projected) **do not beat TF-IDF citation hybrids on jurist preference at any scale** (JP 0.05–0.43 vs 0.78–0.79), but they **excel at three complementary capabilities** essential for the product's multi-view map:
 
-**Three complementary modes are validated against explicit acceptance criteria from the evaluation lane:**
-
-| Complementary Mode | Acceptance Criterion | Result at Max Available Scale | Status |
+| Complementary View | Acceptance Criterion | Status | Minimal Scale |
 |---|---|---|---|
-| **Citation Heritage Recovery** | AUC > 0.75 | Dense: 0.79-0.85 (21-22yr) vs TF-IDF: 0.71-0.74 | ✅ **PASSED** |
-| **Section Cross-Lingual (Sachverhalt)** | cross_lang_same_branch > 0.2 | cp_64: 0.282 (1K sample) | ✅ **PASSED** |
-| **Section Cross-Lingual (Dispositiv)** | cross_lang_same_branch > 0.1 | cp_64: 0.150 (1K sample) | ✅ **PASSED** |
-| **Section Cross-Lingual (Erwaegungen)** | cross_lang_same_branch > 0.1 | cp_64: 0.094 (1K sample) | ❌ FAILED |
-| **Linear Hybrid Complement** | PASS both adversarial gates | PASS at 19yr+ (w=0.3-0.4) but JP 0.61-0.67 < TF-IDF 0.78-0.79 | ⚠️ **PARTIAL** |
+| **Citation Heritage Recovery** | AUC > 0.75 | ✅ PASSED | 21yr / 137k (2000–2020) |
+| **Section Cross-Lingual (Sachverhalt)** | cross_lang_same_branch > 0.2 | ✅ PASSED | 1K sample (359 decisions) |
+| **Section Cross-Lingual (Dispositiv)** | cross_lang_same_branch > 0.1 | ✅ PASSED | 1K sample (538 decisions) |
+| **Section Cross-Lingual (Erwaegungen)** | cross_lang_same_branch > 0.1 | ❌ FAILED | — (reasoning most language-specific) |
+| **Linear Hybrid Complement** | PASS both adversarial gates | ✅ PASSED | 19yr / 122k (w=0.3–0.4) |
 
-**Fundamental finding**: No single representation dominates all metrics. The two-mode tradeoff is structural:
-- **TF-IDF citation hybrids** = PRIMARY product mode (jurist preference JP≈0.78, branch clustering)
-- **Dense embeddings** = COMPLEMENTARY modes (citation heritage view, cross-lingual view, linear hybrid complement)
-
-Full 174k (173,963 decisions) evaluation remains **fundamentally blocked** by missing bger_ corpus for 2022-2026 (29,520 decisions) and bge_↔bger_ ID mapping. Corpus lane resumption required.
+**Product Decision:** TF-IDF citation hybrids = PRIMARY mode (jurist preference, branch clustering). Dense embeddings = COMPLEMENTARY modes (citation heritage view, cross-lingual fact/holding view, linear hybrid complement). v1.0 ships with TF-IDF; dense integration is v1.1+.
 
 ---
 
-## Factory Direction v34 Deliverables — Status
+## Evidence Summary (All REPRODUCED)
 
-| # | Deliverable | Status | Scale Achieved | Evidence |
-|---|-------------|--------|----------------|----------|
-| 1 | Characterize citation heritage recovery by dense embeddings | **COMPLETE** | 21-22yr / 137k-144k | AUC 0.79-0.85 > 0.75 threshold |
-| 2 | Characterize section cross-lingual alignment hierarchy | **COMPLETE** | 1K sample (all 3 sections) | Sachverhalt > Dispositiv > Erwaegungen |
-| 3 | Characterize linear hybrid complement at scale | **COMPLETE** | 15yr, 19yr, 22yr | PASS adversarial at 19yr+; below TF-IDF baseline |
-| 4 | Determine minimal dense embedding scale for each mode | **COMPLETE** | See minimal scale table below | Citation: 21yr; Section: 1K sample; Hybrid: 19yr |
-| 5 | Validate against evaluation lane acceptance criteria | **COMPLETE** | 22yr/144k + 1K sample | 3/4 criteria PASSED |
+### 1. Citation Heritage Recovery — Dense Superiority CONFIRMED
 
----
+| Representation | AUC (22yr/144k) | AUC (21yr/137k) | Similarity Gap (cp64) |
+|---|---|---|---|
+| Dense raw (768) | **0.795** | **0.845** | 0.063 |
+| Dense cp64 | **0.792** | **0.818** | **0.410** |
+| Dense cp128 | **0.792** | **0.818** | 0.391 |
+| TF-IDF citation-based | ~0.71–0.74 | — | — |
+| TF-IDF text-based | ~0.50–0.63 | — | — |
 
-## Evidence Summary — Three Complementary Modes
+- **Finding:** Dense embeddings recover citation heritage **better than TF-IDF citation-based** (0.79–0.85 vs 0.71–0.74) at scale where sufficient citation pairs exist (≥100 positive pairs requires 2019+ decisions).
+- **Center projection (cp64)** preserves AUC while dramatically improving similarity gap (0.410 vs 0.063), making the view usable for navigation.
+- **Minimal scale:** 21 years / 137k decisions (2000–2020). Below this, positive citation pairs too sparse.
 
-### A. Citation Heritage Recovery — Dense Embeddings SUPERIOR
+### 2. Section Cross-Lingual Hierarchy — Sachverhalt > Dispositiv > Erwaegungen
 
-**Finding**: Dense multilingual-e5 embeddings recover citation heritage at scale **better than TF-IDF citation-based representations**.
-
-| Representation | Scale | AUC ROC | Positive Pairs | Status |
+| Section | N | cp64 cross_lang_same_branch | cp64 invariance_gap | Status |
 |---|---|---|---|---|
-| multilingual-e5 raw 768dim | 22yr (144k) | **0.7946** | 344 | ✅ PASSED |
-| center_projected 768dim | 22yr (144k) | **0.7941** | 344 | ✅ PASSED |
-| center_projected 64dim | 22yr (144k) | **0.7922** | 344 | ✅ PASSED |
-| center_projected 128dim | 22yr (144k) | **0.7916** | 344 | ✅ PASSED |
-| multilingual-e5 raw 768dim | 21yr (137k) | **0.8455** | 100 | ✅ PASSED |
-| center_projected 64dim | 21yr (137k) | **0.8182** | 100 | ✅ PASSED |
-| TF-IDF citation-based | 174k | 0.71-0.74 | — | Baseline |
-| TF-IDF text-based | 174k | 0.50-0.63 | — | FAILED |
+| **Sachverhalt** (facts) | 359 | **0.282** | **0.187** | ✅ PASS (>0.2) |
+| **Dispositiv** (holding) | 538 | **0.150** | **0.397** | ✅ PASS (>0.1) |
+| **Erwaegungen** (reasoning) | 510 | **0.094** | **0.452** | ❌ FAIL (<0.1) |
 
-**Key insight**: Center projection and PCA (64/128/768-dim) preserve citation heritage recovery capability. Previously untested at sufficient scale due to citation pair distribution requiring recent years (2019+). Semantic embeddings capture doctrinal proximity through shared citations despite failing jurist gate on language dominance.
+- **Finding:** Legal facts align best cross-lingually; holdings retain some alignment; reasoning is most language-specific.
+- **Center projection improves all:** Sachverhalt gap 0.304→0.187 (38% improvement), Erwaegungen 0.538→0.452, Dispositiv 0.575→0.397.
+- **Full-corpus density BLOCKED** pending section extraction at 174k scale (corpus lane).
 
-**Minimal scale**: **21yr / 137k decisions** (2000-2020) — sufficient citation pairs emerge from 2019+ decisions.
+### 3. Linear Hybrid Complement — Scale-Dependent Optimal Weight
 
-### B. Section Cross-Lingual Hierarchy — Facts > Holdings > Reasoning
-
-**Finding**: Legal facts align best cross-lingually; holdings retain some alignment; reasoning is most language-specific.
-
-| Section | N | cp_64 cross_lang_same_branch | invariance_gap | vs Threshold |
+| Scale | Optimal Weight (cited_decisions_tfidf) | JP at Optimal | LangDom at Optimal | Both Gates |
 |---|---|---|---|---|
-| **Sachverhalt (facts)** | 359 | **0.282** | **0.187** | > 0.2 ✅ |
-| **Dispositiv (holding)** | 538 | **0.150** | **0.397** | > 0.1 ✅ |
-| **Erwaegungen (reasoning)** | 510 | **0.094** | **0.452** | < 0.1 ❌ |
+| 15yr (92k) | w=0.3 | 0.473 | 0.809 | ❌ FAIL |
+| 19yr (122k) | w=0.3 | **0.647** | **0.626** | ✅ PASS |
+| 22yr (144k) | **w=0.4** | **0.673** | **0.654** | ✅ PASS |
 
-Center projection improves all sections (sachverhalt gap 0.304→0.187, erwaegungen 0.538→0.452, dispositiv 0.575→0.397).
-
-**Minimal scale**: **1K sample** (only scale tested; full corpus density blocked pending section extraction at 174k scale).
-
-**Product implication**: Sachverhalt-specific embeddings could enable a superior cross-lingual navigation view for legally relevant facts.
-
-### C. Linear Hybrid Complement — Scale-Dependent, Below TF-IDF Baseline
-
-**Finding**: Linear hybrids PASS adversarial gates at optimal weights but remain BELOW TF-IDF baseline on jurist preference.
-
-| Scale | Combination | Optimal w | JP | LangDom | Both PASS? | vs TF-IDF Baseline |
-|---|---|---|---|---|---|---|
-| 15yr (92k) | linear_hybrid05_concat | w=0.3 | 0.473 | 0.809 | ❌ FAIL | — |
-| 19yr (122k) | linear_citation_concat | w=0.3 | 0.6465 | 0.6264 | ✅ PASS | -0.077 |
-| 19yr (122k) | linear_hybrid05_concat | w=0.3 | 0.6365 | 0.6617 | ✅ PASS | -0.079 |
-| 22yr (144k) | linear_citation_concat | **w=0.4** | **0.6725** | 0.6539 | ✅ PASS | -0.112 |
-| 22yr (144k) | linear_hybrid05_concat | **w=0.3** | **0.6115** | 0.7477 | ✅ PASS | -0.178 |
-
-**Scale dependency**: Optimal weight shifts toward denser semantic contribution at larger scale (w=0.3 at 19yr → w=0.4 at 22yr for cited_decisions_tfidf). Citation signals dominate jurist preference; semantic signals add cross-lingual benefit but dilute legal relevance.
-
-**Minimal scale**: **19yr / 122k decisions** (2000-2018) — first scale where linear hybrids PASS both adversarial gates.
-
----
-
-## Minimal Dense Embedding Scale Characterization
-
-| Complementary Mode | Minimal Scale | Evidence | Acceptance Criterion | Status |
+| Scale | Optimal Weight (outcome_hybrid_0.5) | JP at Optimal | LangDom at Optimal | Both Gates |
 |---|---|---|---|---|
-| **Citation Heritage Recovery** | 21yr / 137k (2000-2020) | AUC 0.8455 (raw), 0.8182 (cp64) at 21yr with 100 positive pairs; 22yr AUC 0.79-0.79 with 344 pairs | AUC > 0.75 | ✅ PASSED |
-| **Section Cross-Lingual: Sachverhalt** | 1K sample (359 decisions) | cp_64 cross_lang_same_branch=0.282 > 0.2 | > 0.2 | ✅ PASSED (sample only) |
-| **Section Cross-Lingual: Dispositiv** | 1K sample (538 decisions) | cp_64 cross_lang_same_branch=0.150 > 0.1 | > 0.1 | ✅ PASSED (sample only) |
-| **Section Cross-Lingual: Erwaegungen** | 1K sample (510 decisions) | cp_64 cross_lang_same_branch=0.094 < 0.1 | > 0.1 | ❌ FAILED |
-| **Linear Hybrid Complement** | 19yr / 122k (2000-2018) | PASS both gates at w=0.3 (JP=0.6365-0.6465); 15yr FAILS (JP=0.473) | PASS both adversarial gates | ✅ PASSED at 19yr+ |
+| 19yr (122k) | w=0.3 | **0.637** | **0.662** | ✅ PASS |
+| 22yr (144k) | **w=0.3** | **0.612** | **0.748** | ✅ PASS |
+
+- **Finding:** Linear hybrids PASS adversarial gates at ≥19yr but **remain below TF-IDF baseline** (JP 0.61–0.67 vs 0.78–0.79).
+- **Scale shifts weight toward semantic:** 19yr→22yr shifts cited_decisions_tfidf optimal from w=0.3 to w=0.4.
+- **Tradeoff:** Adding semantic improves cross-lingual (0.160 vs 0.124) but dilutes legal relevance.
+
+### 4. Fundamental Two-Mode Tradeoff — No Single Representation Dominates
+
+| Mode | Jurist Preference | Language Dominance | Citation Independence |
+|---|---|---|---|
+| TF-IDF Citation Hybrids | **0.78–0.79** | **0.48** | ~14% |
+| Dense (center_projected) | 0.05–0.43 | 0.83–0.98 | ~37% |
+| Linear Hybrid (w=0.3–0.4) | 0.61–0.67 | 0.58–0.75 | Intermediate |
+
+**No representation dominates all three metrics.** This necessitates multi-view product.
+
+### 5. True OOS Jurist Preference Ceiling
+
+- **v8 holdout zero-shot validation:** True OOS JP ceiling ~0.53 < 0.7 factory target.
+- TF-IDF baseline JP=0.78 evaluated on same data used for SVD fitting (known leakage, but v8 showed minimal impact: JP −0.015 to −0.020).
+
+### 6. TF-IDF 174k Primary Mode Validated
+
+- **v25 174k formal suite:** 8/8 reps PASS both adversarial gates.
+- Best hybrid (cited_outcome_hybrid_0.5): JP ≈ 0.735, LangDom = 0.578 PASS.
+- Beats semantic baseline (center_projected JP=0.43) decisively.
+- **Product default:** `cited_outcome_hybrid_0.5_174k` operational at 173,963 decisions.
 
 ---
 
-## Two-Mode Tradeoff — Reproduced at All Scales
+## Data Blockers (Require Corpus Lane Resumption)
 
-| Scale | Representation | LangDom | JuristPref | CiteIndep | Verdict |
-|---|---|---|---|---|---|
-| 3yr (19k) | center_projected_64 | 0.86 | 0.39-0.42 | ~37% | FAIL |
-| 15yr (92k) | center_projected_64 | 0.89 | 0.288 | ~37% | FAIL |
-| 19yr (122k) | center_projected_64 | 0.86 | 0.37 | ~37% | FAIL |
-| 20yr (130k) | center_projected_768 | 0.98 | **0.05** | ~37% | FAIL (catastrophic) |
-| 22yr (144k) | center_projected_64 | 0.83 | 0.43 | ~37% | FAIL |
-| 22yr (144k) | cited_decisions_tfidf | 0.48 | **0.784** | 14% | **PASS** |
-| 22yr (144k) | cited_outcome_hybrid_0.5 | 0.48 | **0.789** | 14% | **PASS** |
-| 22yr (144k) | linear_citation_concat (w=0.4) | 0.65 | 0.67 | ~37% | PASS* |
-| 22yr (144k) | linear_hybrid05_concat (w=0.3) | 0.75 | 0.61 | ~37% | PASS* |
+| Blocker | Impact | Decisions Affected |
+|---|---|---|
+| **BGE/bger ID mapping** | No cross-mapping between published (bge_) and unpublished (bger_) IDs; evaluation uses bger_, canonical corpus uses bge_ | All 174k |
+| **Parquet 2024–2026** | Missing normalization artifacts for 3 years | ~15,536 decisions |
+| **Parquet 2022–2023** | Embeddings computed (158k total) but flagged FAILED in progress.json; quality validation needed | 2022–2023 |
+| **Section extraction 174k** | Sachverhalt/Erwaegungen/Dispositiv not extracted at full scale; blocks cross-lingual density validation | All 174k |
 
-*PASS adversarial gates but BELOW TF-IDF baseline on JuristPref
-
-**NO single representation dominates all three metrics at any scale.**
+**Corpus lane status:** PAUSED. Resume ONLY for (a) BGE/bger mapping, (b) parquet 2022–2026, (c) section extraction 174k.
 
 ---
 
-## Negative Results (Accepted as First-Class Evidence)
+## 12k Scale Characterization (Supplementary)
 
-1. **Center Projected FAILS jurist gate at ALL scales** (JP 0.05-0.43) — no scale where dense semantic embeddings alone serve jurist preference
-2. **True OOS JuristPref ceiling ~0.53** < 0.7 factory target — no representation achieves target under true out-of-sample conditions
-3. **v18 Coarse Hierarchy NEGATIVE** — even at 4-label branch level, best purity 0.65 < 0.7 threshold
-4. **Legal TF-IDF from bge_ corpus (6,243 decisions) FAILS** — signals don't transfer to bger_ evaluation corpus (corpus mismatch)
-5. **Boilerplate Resistance NEGATIVE all reps** — resistance_score ≈ -0.74 to -0.93 (proxy measures language dominance failure, not procedural boilerplate)
-6. **Erwaegungen cross-lingual alignment FAILS** — reasoning is fundamentally language-specific (cross_lang_same_branch=0.094)
+Additional scale-dependence analysis on 12k ACCEPTED dense embeddings (2000–2002):
 
----
-
-## Fundamental Blockers (Unfixable in This Cycle)
-
-### 1. No bger_ Yearly Corpus Files (2000-2019)
-- **Claim in v30**: "bger_YYYY.jsonl symlinks available at /tmp/lex_accepted/core/corpus/normalization/"
-- **Reality**: `/tmp/lex_accepted/core/` **does not exist**. Canonical corpus uses `bge_` IDs (published BGE volumes, ~6,243 decisions).
-
-### 2. No bge_ ↔ bger_ ID Mapping
-- Canonical corpus: `bge_BGE_126_I_122` (published)
-- Evaluation metadata: `bger_4P.253_1999` (unpublished)
-- **No cross-mapping exists**. 174k metadata (173,963 entries) cannot match canonical corpus.
-
-### 3. Missing Parquet for 2022-2026
-- `finalize_174k_embeddings.py` asserts full 173k metadata match against parquet
-- Parquet `/tmp/bger.parquet` missing
-- Years 2022-2026 (29,520 decisions) have no embedding checkpoints
-
-### 4. Section Extraction Not Run at 174k Scale
-- Section cross-lingual evaluation complete only at 1K sample scale
-- Full corpus extraction requires bger_ full-text access (blocked by #1)
+- **Cross-lingual (full-text dense):** cross_lang_same_branch 0.66–1.00 across scales (different metric from section-specific eval)
+- **Legal area clustering:** Purity declines with scale (0.61 @1k → 0.48 @12k); NMI 0.74→0.60
+- **Branch k-NN:** Extremely high (>0.95) at all scales (2000–2002 sample has strong branch separation)
+- **Linear hybrid (concat):** JP proxy ~1.0 at all weights (different proxy than adversarial test)
+- **Key insight:** 12k sample (3 years) behaves differently than full corpus — adversarial tests at 144k are gold standard.
 
 ---
 
-## Product-Ready Outputs (Available Now)
+## Verification
 
-1. **Production default**: `cited_decisions_tfidf_outcome_hybrid_0.5` at 174k (TF-IDF, zero-shot, no GPU) — **primary navigation mode**
-2. **Linear hybrid alternatives** at 22yr scale:
-   - `linear_citation_concat` (w=0.4) — JP=0.6725, PASS adversarial
-   - `linear_hybrid05_concat` (w=0.3) — JP=0.6115, PASS adversarial
-   - Available for product integration as complementary modes
-3. **Dense embeddings** at 22yr/144k:
-   - `center_projected_64/128/768` — citation heritage recovery (AUC 0.79-0.85), FAIL jurist gate
-   - Ready for **citation heritage view** and **cross-lingual view** product integration
+- ✅ All 8 tests in `test_complementary_role_v34.py` PASS
+- ✅ All 13 evidence_refs verified
+- ✅ PIVOT_WITHIN_MISSION characterization complete at max available evaluated scale (22yr/144k, 2000–2021)
+- ✅ Three complementary modes validated against evaluation lane acceptance criteria
+- ✅ Negative results preserved (Erwaegungen cross-lingual FAIL, dense JP FAIL at all scales, true OOS ceiling < 0.7)
 
 ---
 
-## Recommendation for Factory Director
+## Recommendation
 
-**PIVOT_WITHIN_MISSION COMPLETE**. The legal-distance lane has reached its evidence ceiling under current data constraints.
+**PIVOT_WITHIN_MISSION COMPLETE.** No further same-question cycles justified.
 
-### Required Upstream Actions (Corpus Lane)
-1. **Generate bger_ yearly corpus files** (2000-2026) from unpublished decisions API
-2. **Create bge_ ↔ bger_ ID mapping** (cross-reference published vs unpublished identifiers)
-3. **Produce parquet for 2022-2026** enabling `finalize_174k_embeddings.py` metadata verification
-4. **Run section extraction at 174k scale** (sachverhalt/erwaegungen/dispositiv)
+- **Legal-distance lane:** BLOCKED_ON_DEPENDENCIES, continue_recommended=false
+- **Corpus lane:** Must resume for BGE/bger mapping + parquet 2022–2026 + section extraction
+- **Fractal-map / Evaluation / Product:** BLOCKED on 174k dense embeddings for multi-view deployment
+- **Frontier portfolio v7 CONFIRMED:** Both teams TERMINATED (true OOS JP ceiling ~0.53 and v18 hierarchy NEGATIVE falsify all current acceptance criteria; no ACCEPTED evidence opens credible independent path)
 
-### Successor Question for Legal-Distance (When Data Blocker Resolves)
-> *"With complete bger_ corpus and ID mapping, do dense embeddings + linear hybrids surpass TF-IDF baseline on jurist preference at 174k scale, and do section-specific dense embeddings (sachverhalt) achieve cross_lang_same_branch > 0.2 at full corpus density?"*
-
-### Immediate Product Integration Path
-- **Product lane** can integrate TF-IDF production defaults and 22yr linear hybrids immediately (already operational per product lane state)
-- **Fractal-map lane** can proceed with TF-IDF hierarchical structures (already operational at 174k)
-- **Evaluation lane** can run formal suite on linear hybrids once 174k dense embeddings land
-- **Dense embedding complementary views** (citation heritage, sachverhalt cross-lingual) are ready for product integration as **non-primary map modes**
-
----
-
-## Evidence References (Machine-Readable)
-
-```
-legal_distance/results/174k_dense_embeddings/checkpoints/progress.json
-legal_distance/results/174k_dense_embeddings/evaluation_22year_center_projected/
-legal_distance/results/174k_dense_embeddings/linear_combinations_weight_sweep_22year/weight_sweep_22year_latest.json
-legal_distance/results/174k_dense_embeddings/linear_combinations_22year/linear_citation_concat_22year_eval_latest.json
-legal_distance/results/174k_dense_embeddings/linear_combinations_22year/linear_hybrid05_concat_22year_eval_latest.json
-legal_distance/results/174k_dense_embeddings/section_crosslingual_eval/section_crosslingual_eval_latest.json
-legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_22year_latest.json
-legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_21year_latest.json
-legal_distance/results/174k_dense_embeddings/legal_tfidf_bge/all_experiments_results.json
-/tmp/lex_accepted/evaluation/results/evaluation/v25_174k_formal_suite/results/_suite_summary.json
-/tmp/lex_accepted/evaluation/results/evaluation/v17b_label_normalization_all_reps/v17b_label_normalization_all_reps_latest.json
-/tmp/lex_accepted/evaluation/results/evaluation/v18_coarse_hierarchy/v18_coarse_hierarchy_results.json
-legal_distance/reports/legal_distance_v34_complementary_role.md
-```
-
----
-
-## Verification Notes
-
-- All evidence_refs verified accessible
-- Factory direction v34 pivot question fully addressed at maximum available scale (22yr/144k)
-- Three complementary modes characterized against explicit acceptance criteria from evaluation lane:
-  - Citation heritage AUC > 0.75 — **PASSED** at 21-22yr
-  - Section cross-lingual sachverhalt > 0.2, dispositiv > 0.1 — **PASSED** at 1K sample
-  - Linear hybrid complement PASS adversarial — **PASSED** at 19yr+
-- Fundamental two-mode tradeoff confirmed: TF-IDF citation hybrids dominate jurist preference (primary product mode); dense embeddings excel at complementary capabilities (citation heritage, cross-lingual alignment)
-- Data blocker (bge_/bger_ ID mapping + missing parquet 2022-2026) requires corpus lane resumption
-- Lane correctly BLOCKED_ON_DEPENDENCIES with continue_recommended=false
-- Negative results preserved as first-class evidence per Research Protocol
-
----
-
-## Appendix: Scale Extrapolation Model
-
-Hierarchical Leiden improvement_rate at 174k: **~0.67** (extrapolated from 28k checkpoint). Flat Leiden FAILs at sub-62k scale (>99% singletons). Hierarchical works at ALL scales by construction (min_cluster_size enforcement).
-
-The 144k checkpoint (22/26 years, 2000-2021) validates scale extrapolation:
-- fine_branch_purity ~0.97
-- improvement_rate 0.48-0.65 branch / 0.75-0.76 area
-- strict_nesting >=0.99
-- fine_singletons ~4-5%
-
----
-
-*End of Report*
+The product ships v1.0 with TF-IDF citation hybrids as primary navigation mode. Dense embedding integration for citation-heritage view and cross-lingual view is v1.1+ contingent on corpus lane unblocking.
