@@ -14,8 +14,8 @@ from urllib.error import HTTPError, URLError
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from product.server import run_server, ProductHandler, ThreadedHTTPServer, get_nav_api
-import product.server as server_module
+from server import run_server, ProductHandler, ThreadedHTTPServer, get_nav_api
+import server as server_module
 
 
 class HTTPIntegrationTest:
