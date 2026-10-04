@@ -198,7 +198,7 @@ def test_evidence_refs():
     state = load_json("evaluation/state/evaluation.json")
     
     refs = state["evidence_refs"]
-    assert len(refs) == 8
+    assert len(refs) == 9
     assert "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json" in refs
     assert "results/evaluation/citation_heritage_174k_tfidf_latest.json" in refs
     assert "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json" in refs
@@ -207,6 +207,7 @@ def test_evidence_refs():
     assert "results/evaluation/partial_dense_2000_2002/section_crosslingual_eval_latest.json" in refs
     assert "results/evaluation/adversarial_reverify_20261002/exact_adversarial_all_tfidf.json" in refs
     assert "reports/evaluation/eval_174k_v34_baseline_and_dense_criteria_report.md" in refs
+    assert "reports/evaluation/evaluation_v34_final_cycle_verification_20261004.md" in refs
     
     print("✅ Evidence references verified!")
 
