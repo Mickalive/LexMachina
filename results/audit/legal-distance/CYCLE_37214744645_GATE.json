@@ -1,0 +1,79 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Dense embeddings characterized as COMPLEMENTARY modes only: (1) Citation Heritage Recovery — PASS at 21-24yr scale (AUC 0.767-0.845 > 0.75); (2) Section Cross-Lingual — Sachverhalt PASS (0.282 > 0.2), Dispositiv PASS (0.150 > 0.1), Erwaegungen FAIL (0.094 < 0.1) at 1K sample; (3) Linear Hybrid Complement — PASS adversarial gates at 19yr+ (w=0.3-0.4) but 11-13% BELOW TF-IDF baseline on jurist preference (0.66-0.67 vs 0.78-0.79). Dense embeddings NEVER PASS jurist gate at any scale (best 0.4265 at 22yr). True OOS JuristPref ceiling ~0.53 < 0.7 factory target. TF-IDF citation hybrids remain PRIMARY product mode (JP 0.73-0.78 at 174k).",
+  "evidence_summary": {
+    "citation_heritage": {
+      "21yr_137k": {"cp64_auc": 0.8182, "positive_pairs": 100, "status": "PASS"},
+      "22yr_144k": {"cp64_auc": 0.7922, "positive_pairs": 344, "status": "PASS"},
+      "24yr_158k": {"cp64_auc": 0.7667, "positive_pairs": 730, "status": "PASS"},
+      "tfidf_citation_baseline_auc": "0.71-0.74",
+      "tfidf_text_baseline_auc": "0.50-0.63",
+      "minimal_sufficient_scale": "21yr / 137k decisions (requires 2019+ citation pairs)"
+    },
+    "section_crosslingual_1k_sample": {
+      "sachverhalt": {"cross_lang_same_branch": 0.2816, "invariance_gap": 0.1875, "threshold": 0.2, "status": "PASS"},
+      "dispositiv": {"cross_lang_same_branch": 0.1502, "invariance_gap": 0.3974, "threshold": 0.1, "status": "PASS"},
+      "erwaegungen": {"cross_lang_same_branch": 0.0941, "invariance_gap": 0.4522, "threshold": 0.1, "status": "FAIL"},
+      "center_projection_improvement_pct": {"sachverhalt": 38, "dispositiv": 31, "erwaegungen": 16},
+      "full_corpus_blocker": "Section extraction at 174k scale required"
+    },
+    "linear_hybrid_22yr_144k": {
+      "cited_decisions_tfidf": {"optimal_weight": 0.4, "jp": 0.6725, "langdom": 0.6539, "both_gates": "PASS", "cross_lang_recall": 0.1601},
+      "outcome_hybrid_0_5": {"optimal_weight": 0.3, "jp": 0.6605, "langdom": 0.6395, "both_gates": "PASS", "cross_lang_recall": 0.1430},
+      "tfidf_baselines": {
+        "cited_decisions_tfidf": {"jp": 0.7840, "langdom": 0.4826, "cross_lang_recall": 0.1239},
+        "outcome_hybrid_0_5": {"jp": 0.7890, "langdom": 0.4849, "cross_lang_recall": 0.1256}
+      },
+      "scale_dependency": "15yr FAIL (JP=0.473) -> 19yr PASS (w=0.3) -> 22yr PASS (w=0.3-0.4); optimal weight shifts toward semantic at larger scale",
+      "delta_vs_tfidf": "-0.11 to -0.13 JP points"
+    },
+    "dense_jurist_gate_all_scales": {
+      "3yr": "0.39-0.42",
+      "15yr": 0.288,
+      "19yr": 0.3685,
+      "20yr": 0.0475,
+      "22yr": 0.4265,
+      "verdict": "FAIL at all scales; non-monotonic U-shaped pattern"
+    },
+    "true_oos_ceiling": {
+      "jurist_pref_holdout": "0.51-0.56",
+      "factory_target": 0.7,
+      "achievable": false,
+      "leakage_magnitude": "-0.015 to -0.020"
+    },
+    "tfidf_174k_formal_suite": {
+      "best_representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "jurist_preference": 0.7345,
+      "language_dominance": 0.4773,
+      "both_gates": "PASS",
+      "all_8_tfidf_representations_pass": true,
+      "production_status": "v1.0 PRIMARY"
+    },
+    "negative_results": {
+      "v18_coarse_hierarchy": "Best purity 0.65 < 0.7 threshold (cluster_coherence mean_branch_purity well below 0.7 at 174k)",
+      "boilerplate_resistance": "All representations score -0.74 to -0.93 (FAIL)",
+      "legal_tfidf_bge_corpus": "6-8/14 PASS adversarial; ALL FAIL citation heritage (AUC ~0.5); signal coverage deficits",
+      "v17b_label_normalization": "15-25% purity gain at 1K; FAILS generalization to 174k (REGIME-DEPENDENT)"
+    },
+    "data_blockers": {
+      "bge_bger_id_mapping": "No cross-mapping between canonical (bge_) and evaluation (bger_) ID systems",
+      "parquet_2024_2026": "15,536 decisions missing; progress.json flags 2021-2026 as failed",
+      "section_extraction_174k": "Sachverhalt/Erwaegungen/Dispositiv not extracted at full corpus scale",
+      "2022_2023_quality_flag": "Embeddings EXIST and PASS citation heritage quality check (AUC > 0.75), contradicting progress.json 'failed' flag"
+    },
+    "two_mode_tradeoff": {
+      "tfidf_citation_hybrids": {"langdom": 0.48, "jp": 0.78, "cite_indep": 0.14},
+      "dense_semantic": {"langdom": "0.83-0.98", "jp": "0.05-0.43", "cite_indep": 0.37},
+      "linear_hybrids_optimal": {"langdom": "0.58-0.80", "jp": "0.61-0.67", "cite_indep": "0.20-0.30"},
+      "conclusion": "No single representation dominates all three metrics at any scale"
+    },
+    "product_integration_contracts": {
+      "primary_navigation": {"view": "primary_navigation", "representation": "cited_outcome_hybrid_0.5", "status": "PRODUCTION v1.0"},
+      "citation_heritage": {"view": "citation_heritage", "representation": "center_projected_64dim", "status": "READY v1.1+"},
+      "cross_lingual": {"view": "cross_lingual", "representation": "center_projected_64dim per section", "status": "BLOCKED v1.1+"},
+      "hybrid_explore": {"view": "hybrid_complement", "representation": "linear_citation_concat_w0.4 / linear_hybrid05_concat_w0.3", "status": "EXPLORATORY v1.1+"}
+    }
+  }
+}
