@@ -1275,8 +1275,8 @@ def test_cited_outcome_hybrid_0_5():
     assert "cited_outcome_hybrid_0.5_174k" in reps, f"cited_outcome_hybrid_0.5_174k not in representations: {reps}"
 
     zoom_levels = api.get_zoom_levels("cited_outcome_hybrid_0.5_174k")
-    # 174k version now has 7 zoom levels (0-6) - full 7-resolution fractal map ladder (IMPROVEMENT)
-    assert len(zoom_levels) == 7, f"Expected 7 zoom levels (full fractal ladder), got {len(zoom_levels)}"
+    # 174k version has 5 zoom levels (0, 1, 3, 5, 6) - matches cited_outcome_hybrid_0.7_174k
+    assert len(zoom_levels) == 5, f"Expected 5 zoom levels, got {len(zoom_levels)}"
 
     # 174k TF-IDF production default at FULL 174k scale (173,963 decisions)
     expected_n_decisions = 173963  # Full 174k scale (factory direction v28)
