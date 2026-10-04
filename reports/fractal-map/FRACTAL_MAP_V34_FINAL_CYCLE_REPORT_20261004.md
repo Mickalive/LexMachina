@@ -38,17 +38,20 @@ The fractal-map lane deliverable for factory direction v34 is **COMPLETE and AUD
 
 All 3 production modes achieve **fine_branch_purity 0.906-0.930** at full 174k scale.
 
-### 2. Multi-Level Recursive Protocol — STRUCTURALLY VALIDATED at 174k ✅
+### 2. Multi-Level Recursive Protocol — FAILS at 174k for TF-IDF Modes ❌ (Negative Result Preserved)
 **Location:** `results/fractal_map/multi_level_protocol_174k_tfidf/`
 
-| Mode | Levels | Coarse→Fine | Nesting | Fragmentation | Monotonic Refinement |
-|------|--------|-------------|---------|---------------|---------------------|
-| `full_text_tfidf_light` | 4 | 39→412 | **1.0** | 0% | ✅ |
-| `regeste_full_text_hybrid_0.5` | 4 | 39→412 | **1.0** | 0% | ✅ |
-| `regeste_full_text_hybrid_0.7` | 4 | 39→412 | **1.0** | 0% | ✅ |
-| `cited_decisions_tfidf` | 4 | 39→412 | **1.0** | 0% | ✅ |
+**Correction per Audit CYCLE_37181332124:** The prior draft incorrectly claimed structural validation. Actual evidence shows **all 5 TF-IDF modes FAIL** the multi-level (4+ level) protocol at 174k scale. All modes collapse to a single cluster at all levels (all labels = 0).
 
-**All 4 TF-IDF modes pass structural validation**: perfect nesting (≥0.95, actually 1.0 by construction), zero fragmentation, monotonic refinement.
+| Mode | Levels Tested | Actual Result | Verdict |
+|------|---------------|---------------|---------|
+| `full_text_tfidf_light` | 4 | All decisions in single cluster (label 0) at all levels | FAIL |
+| `regeste_full_text_hybrid_0.5` | 4 | All decisions in single cluster (label 0) at all levels | FAIL |
+| `regeste_full_text_hybrid_0.7` | 4 | All decisions in single cluster (label 0) at all levels | FAIL |
+| `cited_decisions_tfidf` | 4 | All decisions in single cluster (label 0) at all levels | FAIL |
+| `regeste_tfidf` | 4 | All decisions in single cluster (label 0) at all levels | FAIL |
+
+**Clarification:** The **hierarchical_v1 production protocol** (2-level: coarse→fine) **PASSES** for 3 text-based production modes at 174k (fine_branch_purity 0.906–0.930, see Section 1). The **multi-level recursive protocol** (4+ levels) was tested at 174k and **does not pass** for TF-IDF modes. This is a valid negative result, correctly preserved per evidence tier protocol. The erroneous "39→412" cluster progression and "nesting=1.0" claims in the prior draft conflated the two protocols and have been removed.
 
 ### 3. Calibration — NEGATIVE RESULT (Correctly Preserved) ❌
 **Location:** `results/fractal_map/multi_level_protocol_174k_tfidf_calibrated/`
@@ -105,7 +108,7 @@ Calibration thresholds are too aggressive for TF-IDF signal density. Calibrated 
 | TF-IDF hierarchical v1: 6/8 modes PASS | ✅ | `hierarchical_v1_174k_tfidf_verdict` |
 | Text-based modes at full 174k: fine_branch_purity 0.906-0.930 | ✅ | `hierarchical_v1_174k_tfidf_verdict` |
 | Citation-based at 52% scale: 0.609-0.685 | ✅ | `hierarchical_v1_174k_tfidf_verdict` |
-| Multi-level recursive protocol: 4 TF-IDF modes validated | ✅ | `multi_level_protocol_174k_tfidf/` |
+| **Multi-level recursive protocol (4+ levels): FAILS for all TF-IDF modes at 174k** | ❌ (preserved) | `multi_level_protocol_174k_tfidf/` |
 | Calibration FAILS on TF-IDF (thresholds too aggressive) | ❌ (preserved) | `multi_level_protocol_174k_tfidf_calibrated/` |
 | Dense integration contract v34: 4 complementary views defined | ✅ | `dense_embeddings_integration_contract_v34.json` |
 | Scale extrapolation validated at 144k checkpoint | ✅ | `144k_multi_level_validation/` |
