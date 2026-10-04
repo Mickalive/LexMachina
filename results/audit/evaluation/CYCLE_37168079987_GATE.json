@@ -1,0 +1,102 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF 174k evaluation FROZEN as production baseline (8 reps, all PASS adversarial gates, best: cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.7345). Dense embeddings validated as COMPLEMENTARY VIEWS ONLY (citation heritage AUC 0.79, cross-lang sachverhalt 0.28, dispositiv 0.15, erwaegungen 0.09 FAIL; JP ceiling ~0.53). No further same-question cycle justified until 174k dense embeddings land.",
+  "evidence_summary": {
+    "tfidf_174k_formal_suite": {
+      "representations_evaluated": 8,
+      "all_pass_adversarial_gates": true,
+      "best_mode": "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "best_jurist_preference": 0.7345,
+      "best_language_dominance": 0.477,
+      "config_hash": "b51701f5a9c11692",
+      "scale": 173963,
+      "evidence_tier": "ACCEPTED"
+    },
+    "dense_acceptance_criteria_validation": {
+      "citation_heritage_auc": {
+        "threshold": 0.75,
+        "center_projected_768dim": 0.7941,
+        "center_projected_64dim": 0.7922,
+        "center_projected_128dim": 0.7916,
+        "status": "PASS"
+      },
+      "cross_lang_sachverhalt": {
+        "threshold": 0.2,
+        "center_projected_768dim": 0.2816,
+        "center_projected_64dim": 0.2816,
+        "status": "PASS"
+      },
+      "cross_lang_dispositiv": {
+        "threshold": 0.1,
+        "center_projected_768dim": 0.1481,
+        "center_projected_64dim": 0.1502,
+        "status": "PASS"
+      },
+      "cross_lang_erwaegungen": {
+        "threshold": 0.1,
+        "center_projected_768dim": 0.0925,
+        "center_projected_64dim": 0.0941,
+        "status": "FAIL"
+      },
+      "jurist_preference_gate": {
+        "threshold": 0.5,
+        "center_projected_768dim": 0.389,
+        "center_projected_64dim": 0.418,
+        "center_projected_128dim": 0.405,
+        "status": "FAIL",
+        "note": "FAILS at ALL scales (3yr: 0.005, 15yr: 0.288, 22yr: 0.427)"
+      },
+      "true_oos_jp_ceiling": 0.53,
+      "factory_target": 0.7,
+      "source_evidence": "Legal-distance 22yr/144k checkpoint (ACCEPTED tier, GitHub Run 37090665528)",
+      "evidence_tier": "ACCEPTED"
+    },
+    "v17b_label_normalization_174k": {
+      "status": "COMPLETE",
+      "uniform_improvement": false,
+      "regime": "213->111 labels (32 cross-lingual concepts)",
+      "purity_ratios": "5x-10x gains but NMI decreases on normalized labels for all 8 reps",
+      "different_from_1k_scale": true,
+      "evidence_tier": "ACCEPTED_NEGATIVE"
+    },
+    "v18_coarse_hierarchy": {
+      "status": "COMPLETE",
+      "hypothesis": "Branch-level (4 labels) hierarchy recoverable with purity >= 0.70",
+      "best_branch_purity": 0.6497,
+      "best_representation": "linear_citation_concat",
+      "center_projected_64dim_purity": 0.5188,
+      "multi_seed_stability": "PASS (std < 0.05)",
+      "conclusion": "FAIL - fundamental hierarchy limitation confirmed",
+      "evidence_tier": "ACCEPTED_NEGATIVE"
+    },
+    "citation_heritage_174k_tfidf": {
+      "status": "COMPLETE",
+      "passing_representations": 5,
+      "failing_representations": 3,
+      "threshold_auc": 0.65,
+      "best": "cited_decisions_tfidf (AUC=0.973)",
+      "recall_at_10_max": 0.49,
+      "evidence_tier": "ACCEPTED"
+    },
+    "blocking_dependencies": {
+      "bge_bger_id_mapping": "BLOCKING - corpus lane",
+      "parquet_2022_2026": "BLOCKING - corpus lane (29,520 decisions missing)",
+      "section_extraction_174k": "REQUIRED - corpus lane"
+    },
+    "research_protocol_conformance": {
+      "hypothesis_frozen": true,
+      "sample_frozen": true,
+      "metrics_frozen": true,
+      "success_rules_frozen": true,
+      "no_tuning_after_results": true,
+      "negative_results_preserved": true,
+      "evidence_tier_accepted": true,
+      "provenance_preserved": true,
+      "no_historical_overwrite": true,
+      "anti_noise_principle": true,
+      "multi_view_requirement": true
+    }
+  }
+}
