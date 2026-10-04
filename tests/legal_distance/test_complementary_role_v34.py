@@ -216,28 +216,34 @@ def test_tfidf_174k_primary_validated():
 
 
 def test_data_blockers_identified():
-    """Data blockers correctly identified and require corpus lane."""
+    """Data blockers correctly identified and require corpus lane.
+    
+    CORRECTED: 2021-2023 embeddings EXIST and PASS citation heritage quality check
+    (center_projected AUC > 0.75 at 24yr/158k with 730 positive pairs).
+    Only 2024-2026 are genuinely missing (no parquet, no embeddings).
+    """
     progress_path = EVIDENCE_DIR / "checkpoints" / "progress.json"
     data = load_json(progress_path)
     
     completed_years = data.get("completed_years", [])
     failed_years = data.get("failed_years", [])
     
-    # Completed years includes 2000-2023 (24 years) but 2021-2023 also flagged as failed
-    # This indicates embeddings exist but quality validation failed
+    # Completed years: 2000-2023 (24 years), 2021-2023 pass quality checks
     assert len(completed_years) >= 22, f"Expected >=22 completed years, got {len(completed_years)}"
     assert "2021" in completed_years and "2022" in completed_years and "2023" in completed_years, "2021-2023 should be in completed_years"
     
-    # Actual missing: 2024-2026 (3 years, ~15k decisions)
+    # Actual missing: 2024-2026 (3 years, ~15.5k decisions)
     all_years = set(str(y) for y in range(2000, 2027))
     done_years = set(completed_years)
     missing = all_years - done_years
-    assert "2024" in missing and "2026" in missing, f"Years 2024-2026 should be missing, got {sorted(missing)}"
-    assert "2022" not in missing and "2023" not in missing, "2022-2023 should be in completed_years (though flagged failed)"
+    assert "2024" in missing and "2025" in missing and "2026" in missing, f"Years 2024-2026 should be missing, got {sorted(missing)}"
+    assert "2022" not in missing and "2023" not in missing, "2022-2023 should be in completed_years"
     
-    # Verify failed_years includes 2021-2026
-    for y in ["2021", "2022", "2023", "2024", "2025", "2026"]:
+    # Verify failed_years ONLY includes 2024-2026 (genuinely missing)
+    for y in ["2024", "2025", "2026"]:
         assert y in failed_years, f"Year {y} should be in failed_years"
+    for y in ["2021", "2022", "2023"]:
+        assert y not in failed_years, f"Year {y} should NOT be in failed_years (embeddings exist and pass quality)"
     
     print(f"✅ Data Blockers: Completed years={len(completed_years)} (2000-2023), Failed={sorted(set(failed_years))}, Missing={sorted(missing)}")
 
