@@ -392,7 +392,8 @@ class ProductHandler(SimpleHTTPRequestHandler):
             q = params.get("q", [""])[0]
             limit = int(params.get("limit", ["20"])[0])
             language = params.get("language", [None])[0]
-            self._json_response(get_nav_api().search_decisions(q, limit, language=language))
+            results = get_nav_api().search_decisions(q, limit, language=language)
+            self._json_response({"results": results, "query": q, "limit": limit})
         elif path == "/api/import/status":
             job_id = params.get("job_id", [""])[0]
             if not job_id:
@@ -419,7 +420,8 @@ class ProductHandler(SimpleHTTPRequestHandler):
             default_zoom = available_zooms[0] if available_zooms else 0
             zoom = int(params.get("zoom", [str(default_zoom)])[0])
             n = int(params.get("n", ["10"])[0])
-            self._json_response(nav.get_neighbors(did, rep, zoom, n))
+            neighbors = nav.get_neighbors(did, rep, zoom, n)
+            self._json_response({"neighbors": neighbors, "decision_id": did, "representation": rep, "zoom": zoom})
         elif path == "/api/zoom_levels":
             default_rep = get_default_representation(get_nav_api())
             rep = params.get("representation", [default_rep])[0]
