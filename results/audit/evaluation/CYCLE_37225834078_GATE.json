@@ -1,0 +1,18 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Correct Erwaegungen threshold in dense_complementary_acceptance_criteria.json from 0.05 to 0.10 for consistency with completion summary (documentation only, doesn't change outcome)"
+  ],
+  "claim_ceiling": "TF-IDF 174k production baseline FROZEN (8/8 PASS adversarial, config_hash b51701f5a9c11692). Dense embedding complementary view criteria DEFINED and VALIDATED against 22-year/144k checkpoint: 3/4 PASS (citation heritage AUC >0.75, cross-lang sachverhalt >0.2, cross-lang dispositiv >0.1), 1 FAIL (cross-lang erwaegungen ~0.093 < 0.1). Complementary-only role CONFIRMED: center_projected FAILS jurist gate at ALL scales (JP 0.05-0.43). No 174k dense embeddings available — blocked on corpus lane resumption.",
+  "evidence_summary": {
+    "tfidf_174k_baseline": "results/evaluation/adversarial_reverify_20261002/exact_adversarial_all_tfidf.json — all 8 representations PASS both gates (LangDom <0.85, Jurist >0.5), exact k-NN n=2000 seed=42",
+    "dense_acceptance_criteria": "results/evaluation/dense_complementary_acceptance_criteria.json — 4 criteria with thresholds and validation methods defined",
+    "citation_heritage_22year": "results/evaluation/partial_dense_2000_2002/citation_heritage_22year_latest.json — center_projected AUC 0.7916-0.7946 (344 pos pairs, 144443 decisions) PASS >0.75",
+    "cross_lingual_22year": "results/evaluation/partial_dense_2000_2002/section_crosslingual_eval_latest.json — sachverhalt 0.2816 PASS >0.2, dispositiv 0.148-0.150 PASS >0.1, erwaegungen 0.0925-0.0941 FAIL >0.1",
+    "jurist_gate_all_scales": "results/evaluation/partial_dense_2000_2002/evaluation_165k_dense_formal_suite_latest.json + state/evaluation.json — center_projected JP 0.389-0.427 FAIL >0.5 at 165k; consistent FAIL at 3/15/19/22-year",
+    "negative_results": "V17b fails 174k generalization (hierarchy=1.00x, zoom_fine=0.83-0.99x); V18 max branch purity 0.6497 <0.7; citation heritage recall@10 ~0.0066; true OOS jurist ceiling ~0.53 <0.7",
+    "verification_tests": "All 5 core v34 test suites PASS (9+1+1+6+5=22 tests) independently executed",
+    "state_consistency": "state/evaluation.json matches completion summary; all evidence_refs resolve to valid files"
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "COMPLEMENTARY_VIEWS_CHARACTERIZED_AT_MAX_SCALE",
+  "evidence_summary": {
+    "citation_heritage_recovery": {
+      "claim": "Dense center_projected embeddings recover citation heritage AUC > 0.75 at 21-24yr scale, superior to TF-IDF",
+      "verified": true,
+      "evidence": "citation_heritage_24year_latest.json: cp_64 AUC 0.7667, cp_768 AUC 0.7696, cp_128 AUC 0.7669 with 730 positive pairs (2.1x 22yr); 22yr cp_64 AUC 0.7922; 21yr cp_64 AUC 0.8182",
+      "minimal_scale": "21yr / 137k decisions (2000-2020)",
+      "best_mode": "center_projected_64dim"
+    },
+    "section_crosslingual_view": {
+      "claim": "Hierarchy Sachverhalt > Dispositiv > Erwaegungen for cross-lingual alignment at 1K sample",
+      "verified": true,
+      "evidence": "section_crosslingual_eval_latest.json: Sachverhalt cp64 cross_lang=0.2816 (>0.2 PASS), Dispositiv cp64=0.1502 (>0.1 PASS), Erwaegungen cp64=0.0941 (<0.1 FAIL)",
+      "minimal_scale": "1K sample (359-538 decisions per section)",
+      "blocker": "Full corpus density BLOCKED pending section extraction at 174k (corpus lane)"
+    },
+    "linear_hybrid_complement": {
+      "claim": "Linear hybrids PASS both adversarial gates at 19yr+ (w=0.3-0.4) but JP below TF-IDF baseline",
+      "verified": true,
+      "evidence": "weight_sweep_22year_latest.json: w=0.3 JP=0.6715/LangDom=0.606 PASS; w=0.4 JP=0.6725/LangDom=0.654 PASS; TF-IDF baseline JP=0.784/0.789. Scale shifts optimal weight toward semantic (19yr w=0.3, 22yr w=0.4)",
+      "minimal_scale": "19yr / 122k decisions (2000-2018)",
+      "limitation": "JP 0.61-0.67 vs TF-IDF 0.78-0.79; cross-lang recall improvement +0.036"
+    },
+    "two_mode_tradeoff": {
+      "claim": "No single representation dominates LangDom, JuristPref, Citation Independence at any scale",
+      "verified": true,
+      "evidence": "Reproduced at 3yr, 15yr, 19yr, 20yr, 21yr, 22yr, 24yr, 165k. TF-IDF: LangDom~0.48/JP~0.78/CiteIndep~14%. Dense: LangDom~0.83-0.98/JP~0.05-0.43/CiteIndep~37%. Hybrids: intermediate.",
+      "implication": "TF-IDF = PRIMARY mode; Dense = COMPLEMENTARY modes"
+    },
+    "true_oos_ceiling": {
+      "claim": "True OOS JuristPref ceiling ~0.53 < 0.7 factory target",
+      "verified": true,
+      "evidence": "v8 holdout (fixed): TF-IDF JP -0.015 to -0.020 under true OOS; TF-IDF baseline 0.78 has SVD leakage; zero-shot hybrids holdout JP 0.525-0.585; no representation achieves 0.7 target OOS",
+      "implication": "Dense cannot be PRIMARY for jurist navigation"
+    },
+    "scale_characterization_12k": {
+      "claim": "Full-text dense inflated at small homogeneous scale, degrades at scale",
+      "verified": true,
+      "evidence": "cross_lang_same_branch: 0.656 (1K) -> 0.957 (12.5K) but separation collapses; legal area purity 0.609 -> 0.475; adversarial JP ~0.005 at 3yr (FAIL)",
+      "interpretation": "Small-scale results reflect language model design, not legal equivalence"
+    },
+    "formal_suite_165k": {
+      "claim": "All center_projected variants FAIL jurist gate at maximum evaluated scale (165k)",
+      "verified": true,
+      "evidence": "cp_768 JP=0.389, cp_64 JP=0.418, cp_128 JP=0.405; cross-lang recall 0.10-0.11 << 0.2; boilerplate resistance NEGATIVE; hierarchy coherence FAIL; only temporal stability and zero-shot transfer PASS"
+    },
+    "v18_coarse_hierarchy": {
+      "claim": "Even at 4-label branch level: best purity 0.65 < 0.7 threshold",
+      "verified": true,
+      "evidence": "v18_coarse_hierarchy_results.json: linear_citation_concat best purity 0.65 < 0.7; fundamental hierarchy limitation for TF-IDF/citation representations"
+    },
+    "legal_tfidf_bge_negative": {
+      "claim": "Legal TF-IDF from bge_ corpus (6,243 decisions) FAILS adversarial suite",
+      "verified": true,
+      "evidence": "all_experiments_results.json: 6-8/14 PASS vs 14/14 baseline; ALL variants FAIL citation heritage (AUC ~0.5), branch kNN (0.26-0.39), multilingual invariance; PASS LangDom~0.49-0.50; root cause: corpus mismatch (bge_ vs bger_) and signal coverage deficits"
+    },
+    "data_blockers": {
+      "claim": "Three blockers prevent 174k completion; 2022-2023 embeddings exist and pass citation heritage despite progress.json failed flags",
+      "verified": true,
+      "evidence": "1) BGE/bger ID mapping missing; 2) Parquet 2024-2026 missing (15,536 decisions); 3) Section extraction at 174k not run. Contradiction: progress.json flags 2021-2023 failed but 24yr eval (incl 2022-2023) PASSES AUC>0.75 with 730 pairs",
+      "resolution": "Escalated to corpus lane; continue_recommended=false"
+    },
+    "accepted_negative_findings": {
+      "claim": "All negative results preserved as first-class evidence",
+      "verified": true,
+      "evidence": "Dense FAILS jurist gate all scales (JP 0.05-0.43); True OOS ceiling 0.53; v18 hierarchy max purity 0.65; citation heritage recall@10 max 0.0066; boilerplate resistance negative; raw 768dim FAILS citation heritage at 24yr (AUC 0.68); full-text dense inflated at small scale; BGE TF-IDF fails generalization"
+    }
+  }
+}

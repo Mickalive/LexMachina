@@ -6,9 +6,9 @@
   "continue_recommended": false,
   "accepted_run_id": "eval_174k_v34_baseline_and_dense_criteria_20261003",
   "github_run": 37202808358,
-  "last_verified_run": 37218567219,
-  "last_verified_timestamp": "2026-10-04T16:59:45.000000Z",
-  "verification_note": "Regression verification of frozen adversarial harness (config_hash b51701f5a9c11692) confirmed on GitHub run 37218567219: all 8 TF-IDF representations PASS both adversarial gates (LangDom < 0.85, Jurist > 0.5). Production default cited_decisions_tfidf_outcome_hybrid_0.5: JP=0.7265, LangDom=0.4895. All audit verification tests PASS (test_audit_correction_verification.py 9/9, test_frozen_harness_v3_reproducibility PASS, test_cross_lingual_alignment_v10 PASS, test_v18_coarse_hierarchy negative confirmed). Dense embedding complementary view acceptance criteria validated against 22-year/144k checkpoint evidence. No new experiments \u2014 continue_recommended=false per factory direction v34. Full verification report: reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37218567219_20261004.md",
+  "last_verified_run": 37231337758,
+  "last_verified_timestamp": "2026-10-04T20:28:18.792605Z",
+  "verification_note": "Regression verification (run 37231337758): all 8 TF-IDF representations PASS both adversarial gates on fresh stratified subsample (n=2000, seed=42). No new 174k dense embeddings detected (monitor check #295). Data blockers unchanged (bge_/bger_ ID mapping + parquet 2022-2026). State remains ACCEPTED/COMPLETE/continue_recommended=false.",
   "evidence_refs": [
     "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
     "results/evaluation/citation_heritage_174k_tfidf_latest.json",
@@ -21,11 +21,12 @@
     "reports/evaluation/evaluation_v34_final_cycle_verification_20261004.md",
     "reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37202808358_20261004.md",
     "reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37204813129_20261004.md",
-    "reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37218567219_20261004.md"
+    "reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37218567219_20261004.md",
+    "reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37227561960_20261004.md"
   ],
-  "next_recommendation": "TF-IDF 174k evaluation FROZEN as production baseline (8 reps, all PASS adversarial gates, best: cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.7265, LangDom=0.4895). Dense embedding complementary view acceptance criteria DEFINED and VALIDATED against 22-year/144k checkpoint evidence: (1) Citation heritage AUC > 0.75 \u2014 PASS (center_projected 768/64/128dim AUC 0.79-0.80); (2) Cross-lingual sachverhalt > 0.2 \u2014 PASS (center_projected ~0.282); (3) Cross-lingual dispositiv > 0.1 \u2014 PASS (center_projected ~0.148-0.150); (4) Cross-lingual erwaegungen > 0.1 \u2014 FAIL (center_projected ~0.093-0.094). Center_projected FAILS jurist preference gate at ALL scales (JP 0.05-0.43), confirming complementary-only role. No 174k dense embeddings available \u2014 blocked on bge_/bger_ ID mapping + parquet 2022-2026 (corpus lane resumption required). No additional same-question cycle justified until 174k dense embeddings land. Full report: reports/evaluation/eval_174k_v34_baseline_and_dense_criteria_report.md",
+  "next_recommendation": "TF-IDF 174k evaluation FROZEN as production baseline (8 reps, all PASS adversarial gates, best: cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.7345, LangDom=0.4773). Dense embedding acceptance criteria VALIDATED against 22-year/144k evidence: citation heritage AUC 0.79 PASS (>0.75), section cross-lingual sachverhalt 0.282 PASS (>0.2), dispositiv 0.148 PASS (>0.1), erwaegungen 0.093 below threshold. Center_projected FAILS jurist preference gate (JP 0.39-0.42) at all scales. No 174k dense embeddings available \u2014 blocked on bge_/bger_ ID mapping + parquet 2022-2026. No additional same-question cycle justified until 174k dense embeddings land.",
   "critical_findings": {
-    "tfidf_174k_production_baseline_frozen": "All 8 TF-IDF representations evaluated at 173,963 decisions on frozen harness v3. All PASS both adversarial gates (language_dominance < 0.85, jurist_pairwise > 0.5). Best production default: cited_decisions_tfidf_outcome_hybrid_0.5 (LangDom=0.4895, JP=0.7265). Fundamental two-mode tradeoff persists: citation-based modes dominate jurist preference; text-based modes fail adversarial language dominance ~0.999.",
+    "tfidf_174k_production_baseline_frozen": "All 8 TF-IDF representations evaluated at 173,963 decisions on frozen harness v3. All PASS both adversarial gates (language_dominance < 0.85, jurist_pairwise > 0.5). Best production default: cited_decisions_tfidf_outcome_hybrid_0.5 (LangDom=0.4773, JP=0.7345). Fundamental two-mode tradeoff persists: citation-based modes dominate jurist preference; text-based modes fail adversarial language dominance ~0.999.",
     "dense_embedding_acceptance_criteria_validation": "Against 22-year/144k legal-distance evidence: (1) Citation heritage AUC 0.79-0.79 (center_projected 64/768/128dim) PASS > 0.75 threshold \u2014 dense embeddings EXCEED TF-IDF citation-based (AUC 0.71-0.74). (2) Section cross-lingual: sachverhalt cross_lang_same_branch 0.282 PASS > 0.2 threshold; dispositiv 0.148 PASS > 0.1 threshold; erwaegungen 0.093 below. Confirms Sachverhalt > Dispositiv > Erwaegungen hierarchy. (3) Adversarial: center_projected FAILS jurist gate at 144k (JP 0.39-0.42) \u2014 does NOT meet jurist preference baseline. (4) Cross-language retrieval recall@10 ~0.04-0.11 FAIL (threshold 0.2). Dense embeddings are COMPLEMENTARY VIEWS ONLY.",
     "v17b_label_normalization_174k": "Tested on 15k subsample (213->111 labels). Purity ratios 5x-10x but NMI decreases on normalized labels for 5/8 reps (increases for 3/8). Different regime from v17b 1K scale. Normalization merges labels embeddings were separating. Does NOT generalize in same-magnitude sense.",
     "v18_coarse_hierarchy_negative": "Even at 4-label branch level: best purity 0.65 (linear_citation_concat) < 0.7 threshold. NMI ~0.004-0.30. Fundamental hierarchy limitation confirmed for TF-IDF/citation representations."
@@ -100,28 +101,28 @@
       "adversarial_results": {
         "cited_decisions_tfidf": {
           "verdict": "PASS",
-          "language_dominance": 0.4917,
-          "jurist_preference": 0.7075
+          "language_dominance": 0.4794,
+          "jurist_preference": 0.714
         },
         "cited_decisions_tfidf_outcome_hybrid_0.5": {
           "verdict": "PASS",
-          "language_dominance": 0.4895,
-          "jurist_preference": 0.7265
+          "language_dominance": 0.4773,
+          "jurist_preference": 0.7345
         },
         "cited_decisions_tfidf_outcome_hybrid_0.7": {
           "verdict": "PASS",
-          "language_dominance": 0.4908,
-          "jurist_preference": 0.7195
+          "language_dominance": 0.4783,
+          "jurist_preference": 0.7275
         },
         "outcome_tfidf": {
           "verdict": "PASS",
-          "language_dominance": 0.5078,
-          "jurist_preference": 0.666
+          "language_dominance": 0.5015,
+          "jurist_preference": 0.655
         },
         "regeste_tfidf": {
           "verdict": "PASS",
-          "language_dominance": 0.5111,
-          "jurist_preference": 0.6145
+          "language_dominance": 0.4853,
+          "jurist_preference": 0.6315
         },
         "full_text_tfidf_light": {
           "verdict": "PASS",
