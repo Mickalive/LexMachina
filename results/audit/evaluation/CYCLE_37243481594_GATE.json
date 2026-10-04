@@ -1,0 +1,22 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Correct narrative claim: text-based TF-IDF reps at 174k do NOT have language dominance ~0.999 (frozen adversarial shows LD ~0.47-0.51 for all 8 reps). The ~0.999 figure reflects 3-year dense results, not 174k TF-IDF.",
+    "Reconcile v17b label normalization count: report says 213→163 labels, evidence shows 213→111; state.json mapping says 164 canonical concepts. Use consistent numbers.",
+    "Provide evidence artifact for 174k temporal_stability universal FAIL claim, or remove from Universal FAILs table.",
+    "Provide evidence artifact for Citation Heritage Recall@10 max 0.0066 claim, or clarify metric source.",
+    "Provide source artifact for linear hybrid 22yr JP results (w=0.3/0.4), or qualify as unverified."
+  ],
+  "claim_ceiling": "TF-IDF 174k production baseline FROZEN and adversarially validated (8 reps, all PASS). Dense embeddings VALIDATED as COMPLEMENTARY VIEWS ONLY: citation heritage AUC 0.79 PASS (>0.75), cross-lingual sachverhalt 0.28 PASS (>0.2), dispositiv 0.15 PASS (>0.1), erwaegungen 0.09 FAIL (<0.1), jurist preference 0.35-0.43 FAIL (<0.5) at all scales up to 24yr/158k. True OOS jurist preference ceiling ~0.38. Negative results (v17b, v18, dense JP) honestly preserved. Lane BLOCKED_ON_DEPENDENCIES (corpus lane).",
+  "evidence_summary": {
+    "tfidf_174k_adversarial": "8 representations, exact k-NN n=2000 seed=42, config hash b51701f5a9c11692. All PASS: LD 0.485-0.511, JP 0.615-0.727. Best: cited_decisions_tfidf_outcome_hybrid_0.5 (JP=0.7265, LD=0.4895).",
+    "citation_heritage_174k_tfidf": "4/8 PASS AUC>0.65. Best: cited_decisions_tfidf AUC=0.743. Citation-based reps PASS, text-based reps FAIL.",
+    "dense_citation_heritage_22yr": "144,443 decisions. center_projected 768/64/128dim AUC 0.792-0.795 PASS >0.75. Exceeds TF-IDF citation-based baseline.",
+    "dense_cross_lingual_3yr": "sachverhalt cross_lang_same_branch 0.282 PASS >0.2; dispositiv 0.148 PASS >0.1; erwaegungen 0.093 FAIL <0.1.",
+    "dense_adversarial_24yr": "158,427 decisions. center_projected 768/64/128dim all FAIL jurist gate (JP 0.351/0.377/0.357). 64dim passes LD (0.844) but fails JP. True OOS ceiling ~0.38.",
+    "v17b_174k": "213→111 labels, 15k subsample. Purity ratios 5x-10x but NMI decreases for 5/8 reps. overall_generalization=false. Different regime from 1K scale.",
+    "v18_coarse_hierarchy": "4-label branch level. Best purity 0.6497 (linear_citation_concat) < 0.70. overall_success=false. Fundamental hierarchy limitation confirmed.",
+    "blocking_dependencies": "BGE/bger ID mapping (corpus lane), Parquet 2022-2026 (29,520 decisions missing), Section extraction at 174k (not run). Legal-distance: 22/26 years checkpointed, only 3 ACCEPTED."
+  }
+}
