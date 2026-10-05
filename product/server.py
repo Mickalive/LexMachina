@@ -231,12 +231,14 @@ def get_nav_api() -> NavigationAPI:
     
     # Fast path: already initialized
     if _nav_api is not None:
+        assert _nav_api is not None, "_nav_api should not be None here"
         return _nav_api
     
     # Slow path: need to initialize - use lock to prevent race conditions
     with _nav_api_init_lock:
         # Double-check after acquiring lock
         if _nav_api is not None:
+            assert _nav_api is not None, "_nav_api should not be None here"
             return _nav_api
         
         base_dir = Path(__file__).parent
@@ -250,8 +252,10 @@ def get_nav_api() -> NavigationAPI:
         except Exception as e:
             _nav_api_init_error = str(e)
             logger.error("NavigationAPI initialization failed: %s", e)
+            _nav_api = None  # Ensure _nav_api is None on failure
             raise
         
+        assert _nav_api is not None, "_nav_api should be set after successful initialization"
         return _nav_api
 
 
@@ -604,7 +608,7 @@ class ProductHandler(SimpleHTTPRequestHandler):
         elif path == "/api/health":
             try:
                 nav = get_nav_api()
-                nav_ok = True
+                nav_ok = nav is not None
             except Exception as e:
                 nav_ok = False
                 nav = None
@@ -619,7 +623,7 @@ class ProductHandler(SimpleHTTPRequestHandler):
                 "nav_api_initialized": nav_ok,
                 "nav_api_error": _nav_api_init_error,
             }
-            if nav_ok:
+            if nav_ok and nav is not None:
                 health["corpus_decisions"] = nav.corpus.size
                 health["maps_loaded"] = len(nav.map_loader.get_available_representations())
 
