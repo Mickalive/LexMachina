@@ -1,0 +1,83 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Dense embeddings characterized as COMPLEMENTARY (not primary) at max evaluated scale 22yr/144k extended to 24yr/158k. Citation heritage AUC 0.767-0.85 > 0.75 threshold (minimal scale 21yr/137k). Section cross-lingual hierarchy validated at 1K sample (Sachverhalt 0.282, Dispositiv 0.150 PASS; Erwaegungen 0.094 FAIL). Linear hybrids PASS adversarial at 19yr+ but remain 11-13% below TF-IDF baseline on jurist preference. True OOS JP ceiling ~0.53 < 0.7 factory target. TF-IDF citation hybrids = PRIMARY product mode at 174k. Dense embeddings = v1.1+ exploratory pending data blockers resolution.",
+  "evidence_summary": {
+    "citation_heritage": {
+      "21yr_137k": { "raw_auc": 0.8455, "cp64_auc": 0.8182, "pairs": 100 },
+      "22yr_144k": { "raw_auc": 0.7946, "cp64_auc": 0.7922, "pairs": 344 },
+      "24yr_158k": { "raw_auc": 0.6819, "cp64_auc": 0.7667, "cp768_auc": 0.7696, "pairs": 730 },
+      "tfidf_citation_baseline_auc": "0.71-0.74",
+      "minimal_scale": "21yr/137k (>=100 positive citation pairs from 2019+)",
+      "verdict": "PASSED - dense center_projected AUC > 0.75 at 21-24yr"
+    },
+    "section_crosslingual": {
+      "sachverhalt": { "cross_lang_same_branch": 0.282, "invariance_gap": 0.187, "threshold": 0.2, "status": "PASS" },
+      "dispositiv": { "cross_lang_same_branch": 0.150, "invariance_gap": 0.397, "threshold": 0.1, "status": "PASS" },
+      "erwaegungen": { "cross_lang_same_branch": 0.094, "invariance_gap": 0.452, "threshold": 0.1, "status": "FAIL" },
+      "scale": "1K sample (n=359/538/510 per section)",
+      "blocker": "Full corpus density requires section extraction at 174k"
+    },
+    "linear_hybrid": {
+      "15yr_91k": { "cited_decisions_jp": 0.473, "status": "FAIL" },
+      "19yr_122k": { "cited_w03_jp": 0.6465, "hybrid_w03_jp": 0.6365, "status": "PASS both gates" },
+      "22yr_144k": { "cited_w04_jp": 0.6725, "hybrid_w03_jp": 0.6605, "status": "PASS both gates" },
+      "tfidf_baseline_22yr_jp": 0.784,
+      "delta_vs_tfidf": "-0.11 to -0.13",
+      "cross_lingual_improvement": "+0.036 cross_lang_recall at w=0.4"
+    },
+    "two_mode_tradeoff": {
+      "tfidf_primary": { "langdom": 0.48, "jp": 0.78, "citeindep": 0.14 },
+      "dense_semantic": { "langdom": "0.83-0.98", "jp": "0.05-0.43", "citeindep": 0.37 },
+      "linear_hybrid": { "langdom": "0.58-0.80", "jp": "0.61-0.67", "citeindep": "0.25-0.30" },
+      "conclusion": "No single representation dominates all three metrics at any scale"
+    },
+    "dense_jurist_gate": {
+      "3yr": 0.40, "15yr": 0.288, "19yr": 0.3685, "20yr": 0.0475, "22yr": 0.4265,
+      "all_fail": true,
+      "pattern": "non-monotonic U-shaped"
+    },
+    "true_oos_ceiling": {
+      "tfidf_train_jp": 0.73,
+      "tfidf_holdout_jp": 0.71,
+      "leakage": 0.02,
+      "ceiling_estimate": 0.53,
+      "factory_target": 0.7,
+      "achievable": false
+    },
+    "negative_results": {
+      "v18_coarse_hierarchy": "best purity 0.65 < 0.7",
+      "legal_tfidf_bge": "6-8/14 PASS, ALL FAIL citation heritage (AUC~0.5)",
+      "boilerplate_resistance": "all representations score -0.74 to -0.93",
+      "v17b_label_normalization": "15-25% gain at 1K, fails at 174k"
+    },
+    "data_blockers": [
+      "bge_/bger_ ID mapping missing",
+      "parquet 2024-2026 missing (15,536 decisions)",
+      "2022-2023 embeddings exist but flagged FAILED in progress.json (contradicted by citation heritage PASS)",
+      "section extraction at 174k not done"
+    ],
+    "tfidf_174k_primary": {
+      "best_jp": 0.7345,
+      "best_langdom": 0.4773,
+      "all_8_representations_pass": true,
+      "scale_simulations": "16/16 PASS",
+      "webgl_pipeline": "<3s"
+    }
+  },
+  "audit_metadata": {
+    "auditor": "LEXMACHINA INDEPENDENT AUDITOR",
+    "model": "opencode/nemotron-3-ultra-free",
+    "audit_date": "2026-10-05",
+    "lane": "legal-distance",
+    "run_id": 37291381376,
+    "repair_round": 0,
+    "producer_workspace": "/tmp/lex_team",
+    "control_plane": "/home/runner/work/LexMachina/LexMachina",
+    "direction_version": 34,
+    "evidence_tier": "REPRODUCED",
+    "cycle_status": "BLOCKED_ON_DEPENDENCIES",
+    "continue_recommended": false
+  }
+}
