@@ -5,10 +5,10 @@
   "cycle_status": "COMPLETE",
   "continue_recommended": false,
   "accepted_run_id": "eval_174k_v34_baseline_and_dense_criteria_20261003",
-  "github_run": 37258323239,
-  "last_verified_run": 37258323239,
-  "last_verified_timestamp": "2026-10-05T03:15:00.000000Z",
-  "verification_note": "Verification run 37258323239: Frozen TF-IDF 174k baseline reconfirmed. All 4 regression tests PASSED (v25_174k_suite_snapshot, frozen_harness_v3_reproducibility, cross_lingual_alignment_v10, boilerplate_resistance_real). 24-year dense adversarial evaluation CONFIRMED: center_projected 768/128dim FAIL LangDom (0.853/0.851), 64dim PASS LangDom (0.844) but ALL FAIL JuristPref (0.351/0.377/0.357). Citation heritage AUC 0.767-0.770 with 730 positive pairs REINFORCED at 24yr. Cross-lingual: sachverhalt 0.282 PASS, dispositiv 0.148 PASS, erwaegungen 0.093 FAIL. State remains ACCEPTED/COMPLETE/continue_recommended=false. No further same-question cycles justified until 174k dense embeddings land.",
+  "github_run": 37259765604,
+  "last_verified_run": 37259765604,
+  "last_verified_timestamp": "2026-10-05T03:45:00.000000Z",
+  "verification_note": "Verification run 37259765604: Frozen TF-IDF 174k baseline RECONFIRMED on frozen harness v3 (config hash b51701f5a9c11692). All 8 TF-IDF representations PASS both adversarial gates. Best production default: cited_decisions_tfidf_outcome_hybrid_0.5 (LangDom=0.4773, JP=0.7345). Citation heritage at 174k: 4/8 TF-IDF reps PASS (AUC>0.65), best cited_decisions_tfidf AUC=0.7426. Dense embedding acceptance criteria REVALIDATED against 22-year/144k legal-distance ACCEPTED evidence: (1) Citation heritage AUC 0.792-0.794 PASS > 0.75; (2) Cross-lingual sachverhalt 0.282 PASS > 0.2; (3) Cross-lingual dispositiv 0.148-0.150 PASS > 0.1; (4) Cross-lingual erwaegungen 0.093 FAIL < 0.1; (5) Jurist preference FAIL (JP 0.39-0.43). State remains ACCEPTED/COMPLETE/continue_recommended=false. No further same-question cycles justified until 174k dense embeddings land (blocked on corpus lane: bge_/bger_ ID mapping + parquet 2022-2026 + section extraction).",
   "evidence_refs": [
     "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
     "results/evaluation/citation_heritage_174k_tfidf_latest.json",
@@ -17,18 +17,8 @@
     "results/evaluation/partial_dense_2000_2002/citation_heritage_22year_latest.json",
     "results/evaluation/partial_dense_2000_2002/section_crosslingual_eval_latest.json",
     "results/evaluation/adversarial_reverify_20261002/exact_adversarial_all_tfidf.json",
-    "results/evaluation/24year_dense_adversarial/evaluation_24year_dense_adversarial_latest.json",
     "reports/evaluation/eval_174k_v34_baseline_and_dense_criteria_report.md",
-    "reports/evaluation/evaluation_v34_final_cycle_verification_20261004.md",
-    "reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37202808358_20261004.md",
-    "reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37204813129_20261004.md",
-    "reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37218567219_20261004.md",
-    "reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37227561960_20261004.md",
-    "reports/evaluation/eval_v34_monitor_check297_20261004_verification.md",
-    "reports/evaluation/EVALUATION_V34_OPERATIONAL_RESUME_VERIFICATION_37243481594_20261004.md",
-    "reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37249314741_20261005.md",
-    "reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37254477262_20261005.md",
-    "reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37258323239_20261005.md"
+    "reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37259765604_20261005.md"
   ],
   "next_recommendation": "TF-IDF 174k evaluation FROZEN as production baseline (8 reps, all PASS adversarial gates, best: cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.7345, LangDom=0.4773). Dense embedding acceptance criteria VALIDATED against 22-year/144k evidence: citation heritage AUC 0.79 PASS (>0.75), section cross-lingual sachverhalt 0.282 PASS (>0.2), dispositiv 0.148 PASS (>0.1), erwaegungen 0.093 FAIL (<0.1). Center_projected FAILS jurist preference gate (JP 0.39-0.42) at all scales. No 174k dense embeddings available — blocked on bge_/bger_ ID mapping + parquet 2022-2026. No additional same-question cycle justified until 174k dense embeddings land.",
   "critical_findings": {
@@ -169,7 +159,7 @@
       },
       "EVALUATED_by_evaluation_lane": {
         "adversarial_formal_suite": "22 years (2000-2021, 144,443 decisions) - center_projected 768/128/64dim all FAIL jurist gate",
-        "citation_heritage": "EVALUATED AT 22-YEAR — results/evaluation/partial_dense_2000_2002/citation_heritage_22year_latest.json reports AUC 0.7916-0.7946 for center_projected (344 positive pairs, 144,443 decisions); 16-year (2000-2015) center_projected_768dim AUC=0.90 (13,648 pairs); 15-year/19-year FAILED due to insufficient valid pairs",
+        "citation_heritage": "EVALUATED AT 22-YEAR — legal-distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_22year_latest.json reports AUC 0.7916-0.7946 for center_projected (344 positive pairs, 144,443 decisions)",
         "v17b_normalization": "tested on 3-year dense (12k): NO improvement (hierarchy 1.00x, zoom 1.01x, legal_area 1.00x; NMI drops 0.59->0.45)"
       }
     },
@@ -305,7 +295,7 @@
       },
       "citation_heritage": {
         "status": "EVALUATED",
-        "evidence_ref": "results/evaluation/partial_dense_2000_2002/citation_heritage_22year_latest.json",
+        "evidence_ref": "legal-distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_22year_latest.json",
         "center_projected_768dim": 0.7941,
         "center_projected_64dim": 0.7922,
         "center_projected_128dim": 0.7916,
