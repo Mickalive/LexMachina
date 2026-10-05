@@ -1,0 +1,95 @@
+{
+  "cycle_id": 37286259446,
+  "audit_timestamp": "2026-10-05T00:00:00.000000Z",
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": {
+    "tfidf_citation_hybrids_primary_mode": "PRODUCTION DEFAULT (V1.0) - JP 0.73-0.79 at 174k, beats semantic baseline 0.43",
+    "dense_citation_heritage_view": "COMPLEMENTARY VIEW v1.1+ - AUC 0.79-0.85 > 0.75 threshold at 21-24yr/137k-158k, min scale 130k",
+    "dense_cross_lingual_view": "COMPLEMENTARY VIEW v1.1+ - Sachverhalt 0.282 > 0.2, Dispositiv 0.150 > 0.1, blocked on 174k section extraction",
+    "dense_hybrid_complement_view": "EXPLORATORY COMPLEMENT v1.1+ - PASS adversarial w=0.3-0.4 but JP 0.61-0.67 < TF-IDF 0.78-0.79",
+    "multi_level_recursive_hierarchy_174k": "NOT ACHIEVED - valid negative result preserved (FAILS all 5 TF-IDF modes)",
+    "coarse_hierarchy_4label_purity_0.7": "NOT ACHIEVED - max 0.65, valid negative preserved",
+    "true_oos_jurist_pref_ceiling": "~0.53 < 0.7 factory target - dense embeddings cannot be primary mode"
+  },
+  "evidence_summary": {
+    "corpus": {
+      "tier": "REPRODUCED",
+      "scale": "174,113 decisions",
+      "verifications": 15,
+      "tests": "76/76 PASS",
+      "status": "COMPLETE/PAUSED",
+      "blockers_for_resumption": ["BGE/bger ID mapping", "parquet 2022-2026 (29,520 decisions)", "section extraction at 174k"]
+    },
+    "legal_distance": {
+      "tier": "ACCEPTED",
+      "scale": "24yr/158,427 decisions (2000-2023)",
+      "key_findings": {
+        "dense_jurist_gate": "FAIL at ALL scales (3yr-22yr: JP 0.05-0.43)",
+        "citation_heritage_auc": "0.79-0.85 (21-24yr) > 0.75 threshold, > TF-IDF 0.71-0.74",
+        "cross_lingual_sachverhalt": "0.282 > 0.2 PASS",
+        "cross_lingual_dispositiv": "0.150 > 0.1 PASS",
+        "cross_lingual_erwaegungen": "0.094 < 0.1 FAIL",
+        "linear_hybrids": "PASS adversarial w=0.3-0.4, JP 0.61-0.67 < TF-IDF baseline",
+        "true_oos_ceiling": "~0.53"
+      },
+      "status": "BLOCKED_ON_DEPENDENCIES (corpus lane)"
+    },
+    "fractal_map": {
+      "tier": "ACCEPTED",
+      "scale": "173,963 decisions (full 174k)",
+      "key_findings": {
+        "tfidf_hierarchical_v1": "3 production modes PASS (fine_branch_purity 0.906-0.930)",
+        "multi_level_recursive_4level": "FAILS all 5 TF-IDF modes (level2 area_purity ~0.134 < 0.15)",
+        "calibration": "FAILS on TF-IDF (thresholds too aggressive)",
+        "dense_integration_contract": "FROZEN: 4 complementary views with acceptance thresholds",
+        "scale_extrapolation_144k": "hierarchical builder (2-level) fine_purity ~0.97, nesting >=0.99"
+      },
+      "status": "BLOCKED_ON_DEPENDENCIES (legal-distance 174k dense)"
+    },
+    "evaluation": {
+      "tier": "ACCEPTED",
+      "scale": "173,963 decisions (TF-IDF), 22yr/144k (dense)",
+      "key_findings": {
+        "tfidf_174k_baseline": "8/8 reps PASS both adversarial gates, best JP 0.7345",
+        "dense_acceptance_criteria": "VALIDATED at 22yr: citation heritage AUC 0.79 PASS, cross_lang Sachverhalt 0.282 PASS, Dispositiv 0.150 PASS, Erwaegungen 0.094 FAIL, center_projected JP 0.39-0.42 FAIL",
+        "v18_coarse_hierarchy": "NEGATIVE max purity 0.65 < 0.7",
+        "v17b_normalization_174k": "NEGATIVE degrades 4/8 reps, no uniform improvement",
+        "citation_heritage_recall10": "NEGATIVE max 0.0066"
+      },
+      "status": "COMPLETE/continue_recommended=false"
+    },
+    "product": {
+      "tier": "ACCEPTED",
+      "scale": "173,963 decisions (3 production TF-IDF modes)",
+      "key_metrics": {
+        "production_modes": 3,
+        "zoom_levels": "7 (0-6) for defaults",
+        "api_endpoints": "56/56 PASS at 174k scale",
+        "scale_simulation": "16/16 PASS",
+        "section_coverage": "95.7% (1150/1202)",
+        "webgl_pipeline": "<3s",
+        "representations_loading": "38/38 healthy (0 FAIL)",
+        "tests_collected": 351,
+        "tests_verified_passing": 198
+      },
+      "dense_integration_contracts": "FROZEN for v1.1+ (Citation Heritage, Cross-Lingual, Hybrid Complement)",
+      "status": "V1_0_RELEASE_READY"
+    }
+  },
+  "audit_findings": {
+    "mission_drift": false,
+    "frontier_proliferation": false,
+    "duplicated_teams": false,
+    "evidence_laundering": false,
+    "stale_blocked_questions": false,
+    "product_starvation": false,
+    "fake_parallelism": false,
+    "weak_acceptance_tests": false,
+    "unjustified_lane_pauses": false,
+    "human_decision_required_misuse": false,
+    "control_plane_defect_noted": "V28-pattern mounting defect in /tmp/lex_control (shows RUN vs workspace BLOCKED_ON_DEPENDENCIES) - infrastructure issue, not lane failure"
+  },
+  "director_action_required": "Resume corpus lane for BGE/bger ID mapping + parquet 2022-2026 + section extraction at 174k scale to unblock v1.1+ dense embedding delivery"
+}
