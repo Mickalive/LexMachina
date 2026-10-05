@@ -3737,7 +3737,7 @@ class MapLoader:
         which is the authoritative metadata for 174k representations. The embeddings and projections
         may have 175,440 entries (including placeholders), so we slice to match the real metadata.
         """
-        legal_tfidf_dir = self.results_dir / "fractal_map" / "hierarchical_map_174k" / "legal_tfidf_embeddings"
+        legal_tfidf_dir = self.results_dir / "hierarchical_map_174k" / "legal_tfidf_embeddings"
         embedding_path = legal_tfidf_dir / embedding_file
         metadata_path = legal_tfidf_dir / "embeddings_metadata.json"
         
@@ -3745,7 +3745,7 @@ class MapLoader:
             return
         
         # Load 2D projection
-        rep_dir = self.results_dir / "fractal_map" / name
+        rep_dir = self.results_dir / name
         projection_path = rep_dir / "projection_2d.npy"
         
         if not projection_path.exists():
@@ -3758,7 +3758,7 @@ class MapLoader:
         
         # Load decision_ids from metadata_174k_eval.json (authoritative 173,963 real bger_ IDs)
         # This avoids the placeholder IDs in the representation's own metadata.json
-        eval_metadata_path = self.results_dir / "fractal_map" / "hierarchical_map_174k" / "metadata_174k_eval.json"
+        eval_metadata_path = self.results_dir / "hierarchical_map_174k" / "metadata_174k_eval.json"
         if not eval_metadata_path.exists():
             logger.warning(f"metadata_174k_eval.json not found for {name}")
             return
@@ -3920,8 +3920,8 @@ class MapLoader:
     # =========================================================================
 
     def _load_174k_dense_embedding_representation(self, name: str, display_name: str, description: str,
-                                                   evidence_tier: str, benchmark_results: Dict,
-                                                   embedding_file: str) -> None:
+                                                    evidence_tier: str, benchmark_results: Dict,
+                                                    embedding_file: str) -> None:
         """Generic loader for 174k dense embedding representations from legal-distance.
         
         Loads embeddings from legal_distance/results/174k_dense_embeddings/ and
@@ -3936,7 +3936,7 @@ class MapLoader:
             return
         
         # Load 2D projection
-        rep_dir = self.results_dir / "fractal_map" / name
+        rep_dir = self.results_dir / name
         projection_path = rep_dir / "projection_2d.npy"
         
         if not projection_path.exists():
