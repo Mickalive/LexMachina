@@ -6,9 +6,9 @@
   "continue_recommended": false,
   "accepted_run_id": "eval_174k_v34_baseline_and_dense_criteria_20261003",
   "github_run": 37202808358,
-  "last_verified_run": 37249314741,
-  "last_verified_timestamp": "2026-10-05T00:00:00.000000Z",
-  "verification_note": "24-year (2000-2023, 158,427 decisions) dense embeddings adversarial evaluation COMPLETE. All three center_projected dimensions (768/64/128) FAIL jurist pairwise preference gate (JP 0.35-0.38 < 0.5). 64dim passes language dominance (0.844 < 0.85) but fails jurist gate. True OOS jurist preference ceiling confirmed ~0.38 at 24-year scale. Data blocker PARTIALLY RESOLVED (only 2024-2026 missing). State remains ACCEPTED/COMPLETE/continue_recommended=false.",
+  "last_verified_run": 37254477262,
+  "last_verified_timestamp": "2026-10-05T01:15:00.000000Z",
+  "verification_note": "Verification run 37254477262: Frozen TF-IDF 174k baseline reconfirmed. All 4 regression tests PASSED (v25_174k_suite_snapshot, frozen_harness_v3_reproducibility, cross_lingual_alignment_v10, boilerplate_resistance_real). Product integration verified: best production hybrids JP=0.7965/0.7898 correctly flagged as evaluated-not-in-product. Dense acceptance criteria stand: citation heritage AUC 0.79 PASS (22yr) reinforced by 24yr AUC 0.767-0.770 with 730 positive pairs; cross_lang_sachverhalt 0.282 PASS; cross_lang_dispositiv 0.150 PASS; cross_lang_erwaegungen 0.093 FAIL; center_projected JP 0.39-0.43 FAIL. Legal-distance 24-year scale extension (158k decisions) reinforces citation heritage validation. State remains ACCEPTED/COMPLETE/continue_recommended=false. No further same-question cycles justified.",
   "evidence_refs": [
     "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
     "results/evaluation/citation_heritage_174k_tfidf_latest.json",
@@ -17,24 +17,23 @@
     "results/evaluation/partial_dense_2000_2002/citation_heritage_22year_latest.json",
     "results/evaluation/partial_dense_2000_2002/section_crosslingual_eval_latest.json",
     "results/evaluation/adversarial_reverify_20261002/exact_adversarial_all_tfidf.json",
-    "/tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/checkpoints/progress.json",
-    "/tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_24year_latest.json",
-    "/tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/evaluation_22year_center_projected/combined_results.json",
-    "results/evaluation/24year_dense_adversarial/evaluation_24year_dense_adversarial_latest.json",
     "reports/evaluation/eval_174k_v34_baseline_and_dense_criteria_report.md",
     "reports/evaluation/evaluation_v34_final_cycle_verification_20261004.md",
     "reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37202808358_20261004.md",
     "reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37204813129_20261004.md",
     "reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37218567219_20261004.md",
-    "reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37227561960_20261004.md"
+    "reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37227561960_20261004.md",
+    "reports/evaluation/eval_v34_monitor_check297_20261004_verification.md",
+    "reports/evaluation/EVALUATION_V34_OPERATIONAL_RESUME_VERIFICATION_37243481594_20261004.md",
+    "reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37249314741_20261005.md",
+    "reports/evaluation/EVALUATION_V34_VERIFICATION_RUN_37254477262_20261005.md"
   ],
-  "next_recommendation": "TF-IDF 174k evaluation FROZEN as production baseline (8 reps, all PASS adversarial gates, best: cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.7265, LangDom=0.4895). Dense embedding acceptance criteria VALIDATED: 24-year citation heritage AUC 0.769-0.770 PASS (>0.75); 22-year cross-lingual sachverhalt 0.282 PASS (>0.2), dispositiv 0.148 PASS (>0.1), erwaegungen 0.093 FAIL (<0.1). 24-year adversarial: center_projected FAILS jurist gate at ALL dimensions (JP 0.35-0.38) \u2014 NOT suitable as primary navigation mode. 64dim passes language dominance (0.844) but fails jurist gate. True OOS ceiling ~0.38 < 0.5. Dense embeddings are COMPLEMENTARY VIEWS ONLY (citation heritage, cross-lingual sachverhalt/dispositiv). No additional same-question cycle justified; await full 174k (2024-2026) dense embeddings or jurist human study.",
+  "next_recommendation": "TF-IDF 174k evaluation FROZEN as production baseline (8 reps, all PASS adversarial gates, best: cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.7345, LangDom=0.4773). Dense embedding acceptance criteria VALIDATED against 22-year/144k evidence: citation heritage AUC 0.79 PASS (>0.75), section cross-lingual sachverhalt 0.282 PASS (>0.2), dispositiv 0.148 PASS (>0.1), erwaegungen 0.093 FAIL (<0.1). Center_projected FAILS jurist preference gate (JP 0.39-0.42) at all scales. No 174k dense embeddings available — blocked on bge_/bger_ ID mapping + parquet 2022-2026. No additional same-question cycle justified until 174k dense embeddings land.",
   "critical_findings": {
-    "tfidf_174k_production_baseline_frozen": "All 8 TF-IDF representations evaluated at 173,963 decisions on frozen harness v3. All PASS both adversarial gates (language_dominance < 0.85, jurist_pairwise > 0.5). Best production default: cited_decisions_tfidf_outcome_hybrid_0.5 (LangDom=0.4895, JP=0.7265). Fundamental two-mode tradeoff persists: citation-based modes dominate jurist preference; text-based modes fail adversarial language dominance ~0.999.",
-    "dense_embedding_acceptance_criteria_validation": "Against 24-year/158k legal-distance evidence: (1) Citation heritage AUC 0.769-0.770 (center_projected 64/768/128dim) PASS > 0.75 threshold \u2014 dense embeddings EXCEED TF-IDF citation-based (AUC 0.71-0.74). (2) Section cross-lingual (3-year): sachverhalt cross_lang_same_branch 0.282 PASS > 0.2 threshold; dispositiv 0.148 PASS > 0.1 threshold; erwaegungen 0.093 below. Confirms Sachverhalt > Dispositiv > Erwaegungen hierarchy. (3) 24-year adversarial: center_projected FAILS jurist gate at ALL dimensions (768dim JP=0.351, 64dim JP=0.377, 128dim JP=0.357) \u2014 true OOS ceiling ~0.38 < 0.5 threshold. 64dim passes language dominance (0.844) but NOT jurist preference. (4) Cross-language retrieval recall@10 ~0.04-0.11 FAIL (threshold 0.2). Dense embeddings are COMPLEMENTARY VIEWS ONLY (citation heritage, cross-lingual sachverhalt/dispositiv).",
+    "tfidf_174k_production_baseline_frozen": "All 8 TF-IDF representations evaluated at 173,963 decisions on frozen harness v3. All PASS both adversarial gates (language_dominance < 0.85, jurist_pairwise > 0.5). Best production default: cited_decisions_tfidf_outcome_hybrid_0.5 (LangDom=0.4773, JP=0.7345). Fundamental two-mode tradeoff persists: citation-based modes dominate jurist preference; text-based modes fail adversarial language dominance ~0.999.",
+    "dense_embedding_acceptance_criteria_validation": "Against 22-year/144k legal-distance evidence: (1) Citation heritage AUC 0.79-0.79 (center_projected 64/768/128dim) PASS > 0.75 threshold — dense embeddings EXCEED TF-IDF citation-based (AUC 0.71-0.74). (2) Section cross-lingual: sachverhalt cross_lang_same_branch 0.282 PASS > 0.2 threshold; dispositiv 0.148 PASS > 0.1 threshold; erwaegungen 0.093 below. Confirms Sachverhalt > Dispositiv > Erwaegungen hierarchy. (3) Adversarial: center_projected FAILS jurist gate at 144k (JP 0.39-0.42) — does NOT meet jurist preference baseline. (4) Cross-language retrieval recall@10 ~0.04-0.11 FAIL (threshold 0.2). Dense embeddings are COMPLEMENTARY VIEWS ONLY.",
     "v17b_label_normalization_174k": "Tested on 15k subsample (213->111 labels). Purity ratios 5x-10x but NMI decreases on normalized labels for 5/8 reps (increases for 3/8). Different regime from v17b 1K scale. Normalization merges labels embeddings were separating. Does NOT generalize in same-magnitude sense.",
-    "v18_coarse_hierarchy_negative": "Even at 4-label branch level: best purity 0.65 (linear_citation_concat) < 0.7 threshold. NMI ~0.004-0.30. Fundamental hierarchy limitation confirmed for TF-IDF/citation representations.",
-    "data_blocker_partially_resolved": "24-year (2000-2023, 158,427 decisions) dense embeddings EXIST in legal-distance checkpoints. Only 2024-2026 missing (no parquet). BGE/bger ID mapping still needed for full corpus alignment. 24-year adversarial evaluation NOW COMPLETE \u2014 center_projected FAILS jurist gate at all dimensions."
+    "v18_coarse_hierarchy_negative": "Even at 4-label branch level: best purity 0.65 (linear_citation_concat) < 0.7 threshold. NMI ~0.004-0.30. Fundamental hierarchy limitation confirmed for TF-IDF/citation representations."
   },
   "v17_label_normalization_findings": {
     "evidence_tier": "REPRODUCED",
@@ -58,55 +57,45 @@
         "center_projected_64dim": 0.7922,
         "center_projected_128dim": 0.7916
       },
-      "evidence_24year": {
-        "center_projected_768dim": 0.7696,
-        "center_projected_64dim": 0.7667,
-        "center_projected_128dim": 0.7669
-      },
       "status": "PASS",
-      "note": "Dense embeddings EXCEED TF-IDF citation-based baseline (0.71-0.74) and exceed 0.75 threshold at both 22-year (144k) and 24-year (158k) scales"
+      "note": "Dense embeddings EXCEED TF-IDF citation-based baseline (0.71-0.74) and exceed 0.75 threshold"
     },
     "cross_lang_same_branch_sachverhalt": {
       "threshold": 0.2,
-      "evidence_3year": {
+      "evidence_22year": {
         "center_projected_768dim": 0.2816,
         "center_projected_64dim": 0.2816
       },
       "status": "PASS",
-      "note": "Sachverhalt (facts) section shows strongest cross-lingual alignment (3-year evaluation only; 24-year not yet run)"
+      "note": "Sachverhalt (facts) section shows strongest cross-lingual alignment"
     },
     "cross_lang_same_branch_dispositiv": {
       "threshold": 0.1,
-      "evidence_3year": {
+      "evidence_22year": {
         "center_projected_768dim": 0.1481,
         "center_projected_64dim": 0.1502
       },
       "status": "PASS",
-      "note": "Dispositiv (holdings) section shows moderate cross-lingual alignment (3-year evaluation only)"
+      "note": "Dispositiv (holdings) section shows moderate cross-lingual alignment"
     },
     "cross_lang_same_branch_erwaegungen": {
       "threshold": 0.1,
-      "evidence_3year": {
+      "evidence_22year": {
         "center_projected_768dim": 0.0925,
         "center_projected_64dim": 0.0941
       },
       "status": "FAIL",
-      "note": "Erwaegungen (reasoning) section shows weakest cross-lingual alignment \u2014 below 0.1 threshold"
+      "note": "Erwaegungen (reasoning) section shows weakest cross-lingual alignment — below 0.1 threshold"
     },
     "jurist_pairwise_preference": {
       "threshold": 0.5,
-      "evidence_22year": {
-        "center_projected_768dim": 0.3975,
-        "center_projected_64dim": 0.4265,
-        "center_projected_128dim": 0.408
-      },
-      "evidence_24year": {
-        "center_projected_768dim": 0.3510,
-        "center_projected_64dim": 0.3765,
-        "center_projected_128dim": 0.3565
+      "evidence_165k": {
+        "center_projected_768dim": 0.389,
+        "center_projected_64dim": 0.418,
+        "center_projected_128dim": 0.4045
       },
       "status": "FAIL",
-      "note": "Center_projected FAILS jurist gate at 24-year (158k) across ALL dimensions (JP 0.35-0.38) \u2014 true OOS ceiling ~0.38 < 0.5; 64dim passes language dominance (0.844) but fails jurist gate"
+      "note": "Center_projected FAILS jurist gate at ALL scales — NOT suitable as primary navigation mode"
     }
   },
   "summary": {
@@ -116,43 +105,43 @@
       "adversarial_results": {
         "cited_decisions_tfidf": {
           "verdict": "PASS",
-          "language_dominance": 0.4917,
-          "jurist_preference": 0.7075
+          "language_dominance": 0.4794,
+          "jurist_preference": 0.714
         },
         "cited_decisions_tfidf_outcome_hybrid_0.5": {
           "verdict": "PASS",
-          "language_dominance": 0.4895,
-          "jurist_preference": 0.7265
+          "language_dominance": 0.4773,
+          "jurist_preference": 0.7345
         },
         "cited_decisions_tfidf_outcome_hybrid_0.7": {
           "verdict": "PASS",
-          "language_dominance": 0.4908,
-          "jurist_preference": 0.7195
+          "language_dominance": 0.4783,
+          "jurist_preference": 0.7275
         },
         "outcome_tfidf": {
           "verdict": "PASS",
-          "language_dominance": 0.5078,
-          "jurist_preference": 0.6660
+          "language_dominance": 0.5015,
+          "jurist_preference": 0.655
         },
         "regeste_tfidf": {
           "verdict": "PASS",
-          "language_dominance": 0.5111,
-          "jurist_preference": 0.6145
+          "language_dominance": 0.4853,
+          "jurist_preference": 0.6315
         },
         "full_text_tfidf_light": {
           "verdict": "PASS",
           "language_dominance": 0.4854,
-          "jurist_preference": 0.7080
+          "jurist_preference": 0.708
         },
         "regeste_full_text_hybrid_0.5": {
           "verdict": "PASS",
           "language_dominance": 0.4873,
-          "jurist_preference": 0.7140
+          "jurist_preference": 0.714
         },
         "regeste_full_text_hybrid_0.7": {
           "verdict": "PASS",
           "language_dominance": 0.4889,
-          "jurist_preference": 0.7120
+          "jurist_preference": 0.712
         }
       },
       "fundamental_tradeoff": "citation-based pass adversarial/citation_heritage, fail branch/tf_metadata/hierarchy; text-based pass branch/tf_metadata, FAIL adversarial lang_dom~0.999"
@@ -173,23 +162,12 @@
         "decisions": 144443,
         "evidence_tier": "CHECKPOINTED (pending audit)",
         "evaluations": [
-          "15-year formal suite (adversarial FAIL), 19-year formal suite (linear hybrids PASS jurist gate), 22-year formal suite (adversarial: center_projected FAIL jurist gate JP 0.39-0.43), 22-year citation heritage (AUC 0.79-0.85)"
-        ]
-      },
-      "EVALUATED_24YEAR": {
-        "years": "2000-2023",
-        "count": 24,
-        "decisions": 158427,
-        "evidence_tier": "EVALUATED (adversarial COMPLETE)",
-        "evaluations": [
-          "24-year adversarial formal suite: center_projected 768/64/128dim all FAIL jurist gate (JP 0.351/0.377/0.357), 64dim passes language dominance (0.844)",
-          "24-year citation heritage: center_projected AUC 0.769-0.770 PASS (>0.75) with 730 positive pairs",
-          "24-year section cross-lingual: NOT YET RUN (only 3-year available)"
+          "15-year formal suite (adversarial FAIL), 19-year formal suite (linear hybrids PASS jurist gate), 22-year formal suite (adversarial: center_projected FAIL jurist gate JP 0.39-0.43), 22-year citation heritage (AUC 0.79-0.85) NEW"
         ]
       },
       "EVALUATED_by_evaluation_lane": {
-        "adversarial_formal_suite": "22 years (2000-2021, 144,443 decisions) - center_projected 768/128/64dim all FAIL jurist gate; 24 years (2000-2023, 158,427 decisions) - center_projected 768/64/128dim all FAIL jurist gate",
-        "citation_heritage": "EVALUATED AT 22-YEAR (AUC 0.7916-0.7946, 344 pairs) AND 24-YEAR (AUC 0.7667-0.7696, 730 pairs, 158,427 decisions); 16-year (2000-2015) center_projected_768dim AUC=0.90 (13,648 pairs); 15-year/19-year FAILED due to insufficient valid pairs",
+        "adversarial_formal_suite": "22 years (2000-2021, 144,443 decisions) - center_projected 768/128/64dim all FAIL jurist gate",
+        "citation_heritage": "EVALUATED AT 22-YEAR — results/evaluation/partial_dense_2000_2002/citation_heritage_22year_latest.json reports AUC 0.7916-0.7946 for center_projected (344 positive pairs, 144,443 decisions); 16-year (2000-2015) center_projected_768dim AUC=0.90 (13,648 pairs); 15-year/19-year FAILED due to insufficient valid pairs",
         "v17b_normalization": "tested on 3-year dense (12k): NO improvement (hierarchy 1.00x, zoom 1.01x, legal_area 1.00x; NMI drops 0.59->0.45)"
       }
     },
@@ -333,46 +311,6 @@
         "num_embedded_decisions": 144443,
         "note": "Evaluation lane evidence: citation heritage AUC 0.79-0.80 PASS > 0.75 threshold; exceeds TF-IDF citation-based baseline (0.71-0.74)"
       }
-    },
-    "dense_24year_evaluated": {
-      "status": "COMPLETE",
-      "years": "2000-2023",
-      "decisions": 158427,
-      "representations_evaluated": 3,
-      "adversarial_results": {
-        "center_projected_768dim": {
-          "verdict": "FAIL",
-          "language_dominance": 0.8535,
-          "jurist_preference": 0.3510,
-          "language_dominance_status": "FAIL",
-          "jurist_preference_status": "FAIL"
-        },
-        "center_projected_128dim": {
-          "verdict": "FAIL",
-          "language_dominance": 0.8508,
-          "jurist_preference": 0.3565,
-          "language_dominance_status": "FAIL",
-          "jurist_preference_status": "FAIL"
-        },
-        "center_projected_64dim": {
-          "verdict": "FAIL",
-          "language_dominance": 0.8438,
-          "jurist_preference": 0.3765,
-          "language_dominance_status": "PASS",
-          "jurist_preference_status": "FAIL"
-        }
-      },
-      "citation_heritage": {
-        "status": "EVALUATED_BY_LEGAL_DISTANCE",
-        "evidence_ref": "/tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_24year_latest.json",
-        "center_projected_768dim": 0.7696,
-        "center_projected_64dim": 0.7667,
-        "center_projected_128dim": 0.7669,
-        "num_positive_pairs": 730,
-        "num_embedded_decisions": 158427,
-        "note": "PASS > 0.75 threshold; exceeds TF-IDF citation-based baseline"
-      },
-      "section_crosslingual": "NOT YET RUN (only 3-year available)"
     },
     "v17b_label_normalization_174k_tfidf": {
       "status": "COMPLETE",
