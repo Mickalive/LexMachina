@@ -1,0 +1,96 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF 174k production baseline frozen; dense embeddings validated as complementary views only (citation heritage AUC 0.79 PASS, jurist preference FAIL at all scales ~0.40-0.43); no 174k dense embeddings available pending corpus lane",
+  "evidence_summary": {
+    "tfidf_174k_baseline": {
+      "config_hash": "b51701f5a9c11692",
+      "representations_evaluated": 8,
+      "all_pass_both_gates": true,
+      "lang_dom_range": [0.485, 0.511],
+      "jurist_pref_range": [0.614, 0.727],
+      "production_default": "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "evidence_file": "results/evaluation/adversarial_reverify_20261002/exact_adversarial_all_tfidf.json"
+    },
+    "dense_acceptance_criteria": {
+      "citation_heritage_auc": {
+        "threshold": 0.75,
+        "center_projected_768dim": 0.7941,
+        "center_projected_64dim": 0.7922,
+        "center_projected_128dim": 0.7916,
+        "status": "PASS",
+        "n_decisions": 144443,
+        "n_positive_pairs": 344,
+        "evidence_file": "results/evaluation/partial_dense_2000_2002/citation_heritage_22year_latest.json"
+      },
+      "cross_lang_sachverhalt": {
+        "threshold": 0.2,
+        "achieved": 0.2816,
+        "status": "PASS",
+        "evidence_file": "results/evaluation/partial_dense_2000_2002/section_crosslingual_eval_latest.json"
+      },
+      "cross_lang_dispositiv": {
+        "threshold": 0.1,
+        "achieved": 0.1481,
+        "status": "PASS",
+        "evidence_file": "results/evaluation/partial_dense_2000_2002/section_crosslingual_eval_latest.json"
+      },
+      "cross_lang_erwaegungen": {
+        "threshold": 0.1,
+        "achieved": 0.0925,
+        "status": "FAIL",
+        "evidence_file": "results/evaluation/partial_dense_2000_2002/section_crosslingual_eval_latest.json"
+      },
+      "jurist_pairwise_preference": {
+        "threshold": 0.5,
+        "center_projected_768dim_22year": 0.3975,
+        "center_projected_64dim_22year": 0.4265,
+        "center_projected_128dim_22year": 0.408,
+        "center_projected_768dim_24year": 0.351,
+        "center_projected_64dim_24year": 0.3765,
+        "center_projected_128dim_24year": 0.3565,
+        "status": "FAIL_AT_ALL_SCALES",
+        "true_oos_ceiling_estimate": 0.53,
+        "evidence_files": [
+          "evaluation/results/174k/formal_suite/22year_dense/center_projected_768dim_22year_eval_latest.json",
+          "evaluation/results/174k/formal_suite/22year_dense/center_projected_64dim_22year_eval_latest.json",
+          "evaluation/results/174k/formal_suite/22year_dense/center_projected_128dim_22year_eval_latest.json",
+          "results/evaluation/24year_dense_adversarial/evaluation_24year_dense_adversarial_latest.json"
+        ]
+      }
+    },
+    "negative_results_preserved": {
+      "v17b_label_normalization_174k": {
+        "uniform_improvement": false,
+        "hierarchy_ratio_all_reps": 1.0,
+        "zoom_fine_degradation_gt10pct": 4,
+        "nmi_decreases": 5,
+        "evidence_file": "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json"
+      },
+      "v18_coarse_hierarchy": {
+        "hypothesis": "branch_level purity >= 0.70 at 4 labels",
+        "max_branch_purity": 0.6497,
+        "best_representation": "linear_citation_concat",
+        "status": "FAIL",
+        "evidence_file": "results/evaluation/v18_coarse_hierarchy/v18_coarse_hierarchy_latest.json"
+      },
+      "citation_heritage_recall_at_10": {
+        "max_achieved": 0.0066,
+        "threshold": 0.2,
+        "status": "FAIL"
+      }
+    },
+    "blockers": [
+      "BGE/bger ID mapping mismatch (corpus lane)",
+      "Parquet 2022-2026 missing (29,520 decisions, corpus lane)",
+      "Section extraction 174k needed for cross-lingual criteria (corpus lane)"
+    ],
+    "state": {
+      "evidence_tier": "ACCEPTED",
+      "cycle_status": "COMPLETE",
+      "continue_recommended": false,
+      "last_verified_run": 37247224471
+    }
+  }
+}
