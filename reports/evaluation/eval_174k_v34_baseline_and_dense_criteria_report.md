@@ -167,8 +167,8 @@ The V25 suite confirms the adversarial results and adds multi-dimensional evalua
 
 ### 3.1 V17b Label Normalization — FAILS Generalization to 174k
 - **1k scale:** 15-25% purity gain REPRODUCED
-- **174k scale:** hierarchy=1.00x, zoom_fine=0.83-0.99x (DEGRADATION), legal_area=1.00x, NMI DROPS (0.59→0.45)
-- **Conclusion:** Label normalization does NOT uniformly improve hierarchy metrics at scale; different regime from 1k (213→111 vs 104→54 labels)
+- **174k scale:** 5k subsample, 214→164 labels, 3 representations tested; hierarchy=1.00x, zoom_fine=0.83-0.99x (DEGRADATION 7-17%), legal_area=1.00x, NMI DECREASES for all 3 reps
+- **Conclusion:** Label normalization does NOT uniformly improve hierarchy metrics at scale; different regime from 1k (214→164 vs 104→54 labels, 5k vs 1k sample, 3 vs 8 reps). Purity gains 7-36% (not 5x-10x).
 
 ### 3.2 V18 Coarse Hierarchy — NEGATIVE
 - **Hypothesis:** Branch-level (4 labels) hierarchy recoverable with purity ≥ 0.70
