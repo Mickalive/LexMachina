@@ -132,14 +132,14 @@ class NavigationAPI:
         if not self._map_meta_cache:
             import json as _json
             # Load baseline metadata (1k slice)
-            meta_path = Path(self.map_loader.results_dir) / "baseline" / "metadata.json"
+            meta_path = Path(self.map_loader.results_dir) / "fractal_map" / "baseline" / "metadata.json"
             if meta_path.exists():
                 with open(meta_path, "r") as f:
                     meta_list = _json.load(f)
                 for m in meta_list:
                     self._map_meta_cache[m["decision_id"]] = m
             # Load 174k evaluation metadata (173,963 entries with bger_ prefix matching representation IDs)
-            meta_174k_eval_path = Path(self.map_loader.results_dir) / "hierarchical_map_174k" / "metadata_174k_eval.json"
+            meta_174k_eval_path = Path(self.map_loader.results_dir) / "fractal_map" / "hierarchical_map_174k" / "metadata_174k_eval.json"
             if meta_174k_eval_path.exists():
                 with open(meta_174k_eval_path, "r") as f:
                     meta_list = _json.load(f)
@@ -148,7 +148,7 @@ class NavigationAPI:
                     if m["decision_id"] not in self._map_meta_cache:
                         self._map_meta_cache[m["decision_id"]] = m
             # Fallback: load 174k full metadata (bge_ prefix) for any remaining
-            meta_174k_full_path = Path(self.map_loader.results_dir) / "hierarchical_map_174k" / "metadata_174k_full.json"
+            meta_174k_full_path = Path(self.map_loader.results_dir) / "fractal_map" / "hierarchical_map_174k" / "metadata_174k_full.json"
             if meta_174k_full_path.exists():
                 with open(meta_174k_full_path, "r") as f:
                     meta_list = _json.load(f)
@@ -226,8 +226,8 @@ class NavigationAPI:
     def _load_base_embeddings(self) -> None:
         """Load base corpus embeddings for k-NN search during user imports."""
         try:
-            embeddings_path = Path(self.map_loader.results_dir) / "baseline" / "embeddings.npy"
-            metadata_path = Path(self.map_loader.results_dir) / "baseline" / "metadata.json"
+            embeddings_path = Path(self.map_loader.results_dir) / "fractal_map" / "baseline" / "embeddings.npy"
+            metadata_path = Path(self.map_loader.results_dir) / "fractal_map" / "baseline" / "metadata.json"
             
             if embeddings_path.exists() and metadata_path.exists():
                 self._base_embeddings = np.load(embeddings_path)

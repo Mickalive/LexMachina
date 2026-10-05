@@ -3386,7 +3386,7 @@ class MapLoader:
 
     def _load_new_representation(self, name: str, display_name: str, description: str, evidence_tier: str, benchmark_results: Dict, zoom_levels: int = 7) -> None:
         """Generic loader for new representations built by build_all_representations.py."""
-        rep_dir = self.results_dir / name
+        rep_dir = self.results_dir / "fractal_map" / name
         
         if not (rep_dir / "metadata.json").exists():
             return
@@ -3737,7 +3737,7 @@ class MapLoader:
         which is the authoritative metadata for 174k representations. The embeddings and projections
         may have 175,440 entries (including placeholders), so we slice to match the real metadata.
         """
-        legal_tfidf_dir = self.results_dir / "hierarchical_map_174k" / "legal_tfidf_embeddings"
+        legal_tfidf_dir = self.results_dir / "fractal_map" / "hierarchical_map_174k" / "legal_tfidf_embeddings"
         embedding_path = legal_tfidf_dir / embedding_file
         metadata_path = legal_tfidf_dir / "embeddings_metadata.json"
         
@@ -3745,7 +3745,7 @@ class MapLoader:
             return
         
         # Load 2D projection
-        rep_dir = self.results_dir / name
+        rep_dir = self.results_dir / "fractal_map" / name
         projection_path = rep_dir / "projection_2d.npy"
         
         if not projection_path.exists():
@@ -3758,7 +3758,7 @@ class MapLoader:
         
         # Load decision_ids from metadata_174k_eval.json (authoritative 173,963 real bger_ IDs)
         # This avoids the placeholder IDs in the representation's own metadata.json
-        eval_metadata_path = self.results_dir / "hierarchical_map_174k" / "metadata_174k_eval.json"
+        eval_metadata_path = self.results_dir / "fractal_map" / "hierarchical_map_174k" / "metadata_174k_eval.json"
         if not eval_metadata_path.exists():
             logger.warning(f"metadata_174k_eval.json not found for {name}")
             return
@@ -3936,7 +3936,7 @@ class MapLoader:
             return
         
         # Load 2D projection
-        rep_dir = self.results_dir / name
+        rep_dir = self.results_dir / "fractal_map" / name
         projection_path = rep_dir / "projection_2d.npy"
         
         if not projection_path.exists():
