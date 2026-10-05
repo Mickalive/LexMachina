@@ -1,0 +1,18 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Correct citation heritage pass count in state files: '4/8' -> '3/8' (only cited_decisions_tfidf, cited_decisions_tfidf_outcome_hybrid_0.5, cited_decisions_tfidf_outcome_hybrid_0.7 pass AUC>0.65; full_text_tfidf_light AUC=0.6147 FAILS)"
+  ],
+  "claim_ceiling": "TF-IDF 174k production baseline FROZEN (all 8 reps PASS adversarial gates). Dense embeddings VALIDATED as COMPLEMENTARY VIEWS ONLY: citation heritage AUC>0.75 PASS, cross-lingual sachverhalt>0.2/dispositiv>0.1 PASS, erwaegungen FAIL, jurist preference FAIL at all scales (JP~0.35-0.38). No 174k dense embeddings available (data blocker). v17b label normalization does NOT generalize at 174k (NMI decreases 3/3 reps). v18 coarse hierarchy FAIL at 4-branch level (max purity 0.65 < 0.7).",
+  "evidence_summary": {
+    "tfidf_adversarial_verification": "All 8 TF-IDF representations PASS both adversarial gates on frozen harness v3 (config hash b51701f5a9c11692). Original exact k-NN n=2000 seed=42: LangDom range [0.485, 0.511], JP range [0.614, 0.727]. Verification run 37267703659 n=1027: LangDom range [0.454, 0.471], JP range [0.631, 0.858]. Production default cited_decisions_tfidf_outcome_hybrid_0.5 PASS both.",
+    "tfidf_citation_heritage_174k": "3/8 representations PASS AUC>0.65 (cited_decisions_tfidf 0.7296, cited_outcome_hybrid_0.5 0.7027, cited_outcome_hybrid_0.7 0.7144). Text-based modes FAIL (full_text_tfidf_light 0.6147, outcome_tfidf 0.6202, regeste_tfidf 0.4950, hybrids 0.625/0.646). Fundamental tradeoff confirmed: citation-based wins citation heritage; text-based wins branch/TF-metadata but FAILS adversarial LangDom~0.999.",
+    "dense_citation_heritage_22year": "4/4 center_projected/raw representations PASS AUC>0.75 (0.7916-0.7946) on 144,443 decisions (344 positive pairs). Exceeds TF-IDF citation-based baseline (0.71-0.74) by ~0.05-0.08.",
+    "dense_cross_lingual_3year": "Sachverhalt PASS >0.2 (center_projected 0.282), Dispositiv PASS >0.1 (center_projected 0.148-0.150), Erwaegungen FAIL <0.1 (center_projected 0.093-0.094). Hierarchy Sachverhalt > Dispositiv > Erwaegungen confirmed. Only 3-year evaluated (359-538 decisions with section coverage).",
+    "dense_24year_adversarial": "center_projected FAILS jurist gate at ALL dimensions (768dim JP=0.351, 64dim JP=0.377, 128dim JP=0.357) on 158,427 decisions. 64dim passes language dominance (0.844) but fails jurist gate. True OOS ceiling ~0.38 < 0.5 threshold.",
+    "v17b_label_normalization_174k": "5k subsample, 214->164 labels, 3 representations tested. Purity gains 7-36% but NMI DECREASES for all 3 reps (-0.022 to -0.037). Zoom_fine degrades 7-17%. Different regime from 1k scale (214->164 vs 104->54 labels, 5k vs 1k sample). Does NOT generalize.",
+    "v18_coarse_hierarchy": "6 representations tested at 4-label branch level. Best purity 0.6497 (linear_citation_concat) < 0.7 threshold. Center_projected_64dim 0.5188. Multi-seed stability PASS (std<0.05). Fundamental hierarchy limitation confirmed for TF-IDF/citation representations.",
+    "data_blockers": "174k dense embeddings blocked on: (1) bge_/bger_ ID mapping missing, (2) parquet 2022-2026 missing (29,520 decisions). Corpus lane resumption required."
+  }
+}

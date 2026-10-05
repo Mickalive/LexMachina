@@ -1,0 +1,11 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Correct citation heritage PASS count: report states '4/8 reps PASS' citing citation_heritage_174k_tfidf_latest.json but actual data shows 3/8 PASS (AUC 0.7296 best). Dedicated v25 eval shows 7/8 PASS (AUC 0.9731). Clarify which evaluation is referenced.",
+    "Linear hybrid JP 0.66-0.67 at 22yr claim references legal-distance evidence not in producer workspace; qualify or add evidence_ref.",
+    "Minor AUC discrepancy: cited_decisions_tfidf AUC reported as 0.7426 vs actual 0.7296 in cited evidence"
+  ],
+  "claim_ceiling": "TF-IDF 174k production baseline FROZEN: cited_decisions_tfidf_outcome_hybrid_0.5 (JP 0.7345, LangDom 0.4773 at 173,963 decisions). Dense embeddings are COMPLEMENTARY VIEWS ONLY — excel at citation heritage (AUC 0.79+) and cross-lingual fact/holdings alignment, but FAIL jurist preference gate at ALL scales (JP ceiling ~0.53 OOS vs factory target >0.70). No further same-question cycle justified until 174k dense embeddings land (blocked on corpus lane: bge_/bger_ ID mapping + parquet 2022-2026 + section extraction).",
+  "evidence_summary": "Independently recomputed all key metrics from producer workspace (/tmp/lex_team): (1) TF-IDF 174k formal suite: 8/8 reps REPRODUCE EXACTLY on frozen harness v3 (config hash b51701f5a9c11692), all PASS adversarial gates (LangDom < 0.85, JP > 0.5). (2) Citation heritage: two evaluations exist — sampled (1020 pairs): 3/8 PASS, best AUC 0.7296; dedicated (137k pairs): 7/8 PASS, best AUC 0.9731. Report cites sampled but states 4/8 PASS (discrepancy). (3) Dense acceptance criteria at 22yr/144k: citation heritage AUC 0.792-0.794 PASS (>0.75); cross-lang sachverhalt 0.282 PASS (>0.2); dispositiv 0.148 PASS (>0.1); erwaegungen 0.093 FAIL (<0.1); jurist preference 0.389-0.418 FAIL (<0.5). (4) All negative results preserved (v17b normalization NEGATIVE, v18 hierarchy NEGATIVE, universal 174k FAILs documented as corpus limitations). (5) No config drift, no HNSW artifacts (exact k-NN), no train/test leakage. (6) Blocking dependencies correctly identified and external to evaluation lane."
+}
