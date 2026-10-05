@@ -1,0 +1,16 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF 174k production baseline frozen; dense embeddings validated as complementary views only; all negative results honestly reported",
+  "evidence_summary": {
+    "tfidf_174k_formal_suite": "All 8 representations PASS both adversarial gates (LangDom < 0.85, JP > 0.5) on frozen harness v3 (config hash b51701f5a9c11692, seed 42, n=2000 stratified). Best: cited_decisions_tfidf_outcome_hybrid_0.5 (LangDom=0.4895, JP=0.7265). Verified in evaluation_174k_formal_suite_latest.json and local verification 2026-10-05T07:42:49Z.",
+    "tfidf_174k_citation_heritage": "4/8 representations PASS AUC > 0.65. Best cited_decisions_tfidf AUC=0.7296. Frozen 137k pair pool. Verified in citation_heritage_174k_tfidf_latest.json.",
+    "dense_acceptance_criteria": "Validated against 22-year/144k legal-distance evidence: (1) Citation heritage AUC 0.79-0.80 PASS > 0.75; (2) Cross-lingual Sachverhalt 0.282 PASS > 0.2, Dispositiv 0.148 PASS > 0.1, Erwaegungen 0.093 FAIL < 0.1; (3) Jurist gate JP 0.35-0.43 FAIL < 0.5; (4) Cross-lang recall@10 0.04-0.11 FAIL < 0.2; (5) Linear hybrids PASS adversarial but BELOW TF-IDF baseline (JP 0.66-0.67 vs 0.78-0.79). Verified in citation_heritage_22year_latest.json, section_crosslingual_eval_latest.json, evaluation_165k_dense_formal_suite_latest.json.",
+    "v17b_label_normalization_174k": "NON-GENERALIZATION confirmed: uniform_improvement_or_matching=false; 4/8 reps worsen >10% on zoom_fine (0.83-0.89); NMI decreases for 5/8 reps; hierarchy ratio 1.00x for all; different regime from 1k scale (213->111 vs 104->54 labels). Verified in v17b_label_normalization_174k_latest.json.",
+    "v18_coarse_hierarchy": "FUNDAMENTAL LIMITATION: Best branch purity 0.6497 (linear_citation_concat) < 0.70 threshold. center_projected_64dim 0.5188. All 6 reps FAIL. Multi-seed stable but irrelevant. Verified in v18_coarse_hierarchy_latest.json.",
+    "24year_dense_adversarial": "center_projected FAILS jurist gate at ALL dimensions: 768d JP=0.351, 64d JP=0.377, 128d JP=0.357. 24-year citation heritage claim RETRACTED (no artifact). Verified in evaluation_24year_dense_adversarial_latest.json.",
+    "data_blocker": "22-year (2000-2021, 144k decisions) dense embeddings EXIST with ACCEPTED evidence. 24-year adversarial COMPLETE. Only 2024-2026 missing. BGE/bger ID mapping still needed.",
+    "reproducibility": "Global seed 42, config hash b51701f5a9c11692, fixed stratified subsample n=2000, frozen 137k citation pairs, 4-seed verification (std < 0.05) all consistent across artifacts and GitHub Actions run 37278463278."
+  }
+}
