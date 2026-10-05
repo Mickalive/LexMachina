@@ -1,0 +1,51 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF 174k evaluation frozen as production baseline (8 reps, all PASS adversarial gates: LangDom 0.485-0.511, JP 0.614-0.727); dense embedding acceptance criteria validated against 22-year/144k evidence: citation heritage AUC 0.79 PASS (>0.75), cross-lang sachverhalt 0.282 PASS (>0.2), cross-lang dispositiv 0.150 PASS (>0.1), cross-lang erwaegungen 0.093 FAIL (<0.1), jurist pairwise 0.39-0.43 FAIL (<0.5); center_projected FAILS jurist gate at ALL scales; v17b label normalization does NOT generalize at 174k scale; v18 coarse hierarchy FAIL at branch level (best 0.65 < 0.7); no 174k dense embeddings available - blocked on corpus lane (bge_/bger_ mapping + parquet 2022-2026). No further same-question cycles justified.",
+  "evidence_summary": {
+    "verification_tests": {
+      "test_v25_174k_suite_snapshot": "PASSED - 8 TF-IDF reps (173963,128) frozen; hybrid bitwise exact; subsamples seed-42 deterministic; 12 benchmarks frozen thresholds; CH spot AUC within 0.005; v17b labels 214->164; provenance gate GATE_OVERALL=PASS",
+      "test_frozen_harness_v3_reproducibility": "PASSED - 6 dense reps reproduced within 1e-3 tolerance; config_hash=4323f833fa72366a; seed=42; adversarial thresholds frozen",
+      "test_cross_lingual_alignment_v10": "PASSED - Proc Pairs near-lossless; Joint PCA Jurivoc L0 reduction 47.5% (~48%); section outcome overfit confirmed (Jurivoc L0 0.007-0.011); Procrustes catastrophic FAIL",
+      "test_boilerplate_resistance_real": "PASSED - 5 TF-IDF section signals all >85% preservation (89.2-93.2%); correction confirmed: systemic challenge is cross-lingual alignment, NOT boilerplate"
+    },
+    "dense_acceptance_criteria": {
+      "citation_heritage_auc": "PASS (0.7916-0.7946 > 0.75) - exceeds TF-IDF citation baseline (0.71-0.74)",
+      "cross_lang_sachverhalt": "PASS (0.282 > 0.2)",
+      "cross_lang_dispositiv": "PASS (0.148-0.150 > 0.1)",
+      "cross_lang_erwaegungen": "FAIL (0.093-0.094 < 0.1)",
+      "jurist_pairwise_preference": "FAIL (0.39-0.43 < 0.5 at all scales)"
+    },
+    "negative_results_preserved": [
+      "Dense embeddings FAIL jurist gate at ALL scales (JP 0.39-0.43) - NOT primary navigation",
+      "Erwaegungen cross-lingual FAIL - Sachverhalt > Dispositiv > Erwaegungen hierarchy confirmed",
+      "v17b label normalization: uniform_improvement_or_matching=false; 4 reps worsen >10% zoom_fine; NMI decreases for 5/8 reps",
+      "v18 coarse hierarchy: best branch purity 0.6497 < 0.7 - fundamental limitation confirmed",
+      "No 174k dense embeddings - blocked on corpus lane dependencies"
+    ],
+    "product_integration": {
+      "best_hybrids_not_in_product": "cited_decisions_tfidf_outcome_hybrid_0.5 (JP=0.7965, LangDom=0.4941) and _0.7 (JP=0.7898, LangDom=0.4922) correctly flagged in in_eval_not_product",
+      "adversarial_gate_summary": "20/24 PASS (83.3%) matches frozen state",
+      "known_failures_identified": "center_projected_768, cited_decisions_tfidf_procrustes, cited_decisions_tfidf_cca, criticizing_alpha0.7"
+    },
+    "evidence_refs_verified": [
+      "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
+      "results/evaluation/citation_heritage_174k_tfidf_latest.json",
+      "evaluation/results/174k_label_normalization/v17b_label_normalization_174k_latest.json",
+      "results/evaluation/v18_coarse_hierarchy/v18_coarse_hierarchy_latest.json",
+      "results/evaluation/partial_dense_2000_2002/citation_heritage_22year_latest.json",
+      "results/evaluation/partial_dense_2000_2002/section_crosslingual_eval_latest.json",
+      "results/evaluation/adversarial_reverify_20261002/exact_adversarial_all_tfidf.json",
+      "results/evaluation/product_integration_verification_v11.json"
+    ],
+    "attack_analysis": {
+      "leakage": "None - frozen seed-42 subsamples, frozen config hash, independent recomputation",
+      "weak_baselines": "None - adversarial gates use strong thresholds; TF-IDF 174k is production baseline",
+      "benchmark_gaming": "None - 12 benchmarks frozen; provenance gate catches copy defects",
+      "prettiness_as_quality": "Avoided - report leads with negative results",
+      "boilerplate_confounding": "Corrected - real test shows 89-93% preservation; v3 proxy acknowledged misnamed",
+      "unsupported_claims": "None - product integration explicitly flags gaps; state remains COMPLETE/continue_recommended=false"
+    }
+  }
+}
