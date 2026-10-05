@@ -1,0 +1,143 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Dense embeddings characterized as complementary views ONLY: (1) Citation Heritage Recovery AUC 0.77-0.85 > TF-IDF 0.71-0.74 at 21-24yr/137k-158k; (2) Section Cross-Lingual: Sachverhalt 0.282 > 0.2 PASS, Dispositiv 0.150 > 0.1 PASS, Erwaegungen 0.094 < 0.1 FAIL at 1K sample; (3) Linear Hybrid Complement PASS adversarial at 19yr+ (w=0.3-0.4) but JP 0.61-0.67 < TF-IDF 0.78-0.79. NO dense representation passes jurist gate at any scale (JP 0.05-0.43). True OOS JuristPref ceiling ~0.53 < 0.7 factory target. Legal TF-IDF bge_ corpus NEGATIVE. v18 coarse hierarchy NEGATIVE (purity 0.65 < 0.7). All negative results honestly preserved.",
+  "evidence_summary": {
+    "citation_heritage_recovery": {
+      "status": "VALIDATED",
+      "minimal_scale": "21yr / 137k decisions (2000-2020)",
+      "key_evidence": "legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_24year_latest.json",
+      "metrics": {
+        "center_projected_64_auc_21yr": 0.8182,
+        "center_projected_64_auc_22yr": 0.7922,
+        "center_projected_64_auc_24yr": 0.7667,
+        "positive_pairs_24yr": 730,
+        "tfidf_citation_baseline_auc": "0.71-0.74",
+        "acceptance_threshold": ">0.75",
+        "verdict": "PASSED at 21-24yr; dense SUPERIOR to TF-IDF"
+      }
+    },
+    "section_crosslingual_hierarchy": {
+      "status": "VALIDATED",
+      "minimal_scale": "1K sample (359 Sachverhalt, 538 Dispositiv, 510 Erwaegungen)",
+      "key_evidence": "legal_distance/results/174k_dense_embeddings/section_crosslingual_eval/section_crosslingual_eval_latest.json",
+      "metrics": {
+        "sachverhalt_cp64_cross_lang_same_branch": 0.2816,
+        "sachverhalt_threshold": ">0.2",
+        "sachverhalt_status": "PASSED",
+        "dispositiv_cp64_cross_lang_same_branch": 0.1502,
+        "dispositiv_threshold": ">0.1",
+        "dispositiv_status": "PASSED",
+        "erwaegungen_cp64_cross_lang_same_branch": 0.0941,
+        "erwaegungen_threshold": ">0.1",
+        "erwaegungen_status": "FAILED",
+        "hierarchy": "Sachverhalt > Dispositiv > Erwaegungen",
+        "blocker": "Full corpus density BLOCKED pending section extraction at 174k"
+      }
+    },
+    "linear_hybrid_complement": {
+      "status": "VALIDATED",
+      "minimal_scale": "19yr / 122k decisions (2000-2018)",
+      "key_evidence": "legal_distance/results/174k_dense_embeddings/linear_combinations_weight_sweep_22year/weight_sweep_22year_latest.json",
+      "metrics": {
+        "optimal_weight_cited_decisions": 0.4,
+        "optimal_weight_outcome_hybrid": 0.3,
+        "jp_at_optimal_cited": 0.6725,
+        "jp_at_optimal_hybrid": 0.6115,
+        "tfidf_baseline_jp": 0.784,
+        "tfidf_baseline_jp_hybrid": 0.789,
+        "cross_lingual_improvement_w03": "+24.3%",
+        "cross_lingual_improvement_w04": "+29.2%",
+        "adversarial_gates": "PASS at w=0.3-0.4 (19yr+)",
+        "verdict": "PASS adversarial but BELOW TF-IDF baseline on JP"
+      }
+    },
+    "dense_embeddings_jurist_gate": {
+      "status": "VALIDATED_NEGATIVE",
+      "scales_tested": [
+        {"scale": "3yr_ACCEPTED", "decisions": 19441, "jp": "0.39-0.42", "verdict": "FAIL"},
+        {"scale": "15yr", "decisions": 91929, "jp": 0.288, "verdict": "FAIL"},
+        {"scale": "19yr", "decisions": 122015, "jp": 0.3685, "verdict": "FAIL"},
+        {"scale": "20yr", "decisions": 129680, "jp": 0.0475, "verdict": "CATASTROPHIC_FAIL"},
+        {"scale": "22yr", "decisions": 144443, "jp": 0.4265, "verdict": "FAIL"}
+      ],
+      "v5_baseline_1200_decisions_jp": 0.4892,
+      "consensus_estimate": "~0.53",
+      "verdict": "FAIL at ALL scales tested"
+    },
+    "true_oos_juristpref_ceiling": {
+      "status": "VALIDATED_NEGATIVE",
+      "estimated_ceiling": "~0.53",
+      "factory_target": 0.7,
+      "tfidf_baseline_jp": 0.78,
+      "holdout_impact": "JP -0.015 to -0.020",
+      "verdict": "No representation achieves factory target under true OOS"
+    },
+    "legal_tfidf_bge_corpus": {
+      "status": "VALIDATED_NEGATIVE",
+      "corpus": "6,243 decisions (bge_ published volumes, 2000-2021)",
+      "adversarial_suite_pass_rate": "6-8/14 vs 14/14 baseline",
+      "citation_heritage_auc": "~0.5 (FAIL)",
+      "branch_knn": "0.26-0.39 (FAIL)",
+      "root_cause": "bge_/bger_ ID mismatch, signal coverage deficits (cited_decisions 0.06%, outcomes 0%, Erwaegungen 64%)",
+      "verdict": "Does not generalize to full corpus"
+    },
+    "v18_coarse_hierarchy": {
+      "status": "VALIDATED_NEGATIVE",
+      "labels": 4,
+      "best_purity": 0.65,
+      "threshold": 0.7,
+      "best_representation": "linear_citation_concat",
+      "verdict": "Fundamental hierarchy limitation confirmed"
+    },
+    "audit_repairs_applied": {
+      "repair_1_comprehensive_validation": {
+        "status": "VERIFIED_COMPLETE",
+        "fix": "v5 baseline center_projected (768-dim, 1200 decisions) JP=0.4892 as primary; ST variant (384-dim, JP=0.9817) labeled separate",
+        "evidence": "legal_distance/results/v6/comprehensive_validation/comprehensive_validation_all_results.json"
+      },
+      "repair_2_citation_role_integration": {
+        "status": "VERIFIED_COMPLETE",
+        "fix": "Overclustering detection (n_fine=1000, n_coarse=1, coarse_purity<0.5) → base roles marked FAIL_DEGENERATE, valid_representation=false; alpha-blended (0.3, 0.5, 0.7) show 8 coarse clusters → PASS",
+        "evidence": "legal_distance/results/v6/citation_role_integration/citation_role_integration_all_results.json"
+      },
+      "repair_3_overclustering_gate": {
+        "status": "VERIFIED_COMPLETE",
+        "fix": "Fractal verdict requires valid_representation=true (not overclustered, not degenerate) across all evaluation scripts",
+        "evidence": "Updated evaluation scripts in legal_distance/experiments/"
+      }
+    },
+    "data_blockers": [
+      {
+        "blocker": "BGE/bger ID mapping",
+        "impact": "No cross-mapping between published (bge_) and unpublished (bger_) decision IDs",
+        "lane": "corpus"
+      },
+      {
+        "blocker": "Parquet 2024-2026",
+        "impact": "15,536 decisions missing from 174k target",
+        "lane": "corpus"
+      },
+      {
+        "blocker": "Section extraction at 174k",
+        "impact": "Blocks cross-lingual density validation for Sachverhalt/Dispositiv/Erwaegungen",
+        "lane": "corpus"
+      },
+      {
+        "blocker": "2022-2023 embeddings flagged failed in progress.json",
+        "impact": "Contradiction: embeddings EXIST and PASS citation heritage (AUC > 0.75 with 730 pairs)",
+        "note": "Quality check logic needs investigation; embeddings likely valid"
+      }
+    ],
+    "research_protocol_compliance": {
+      "hypothesis_frozen": true,
+      "corpus_frozen": true,
+      "metrics_frozen": true,
+      "success_rules_frozen": true,
+      "negative_results_preserved": true,
+      "machine_readable_state": true,
+      "human_readable_reports": true
+    }
+  }
+}
