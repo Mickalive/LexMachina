@@ -2660,6 +2660,50 @@ class NavigationAPI:
                     (0.0, -1.0, bbox['yMax']),
                 ]
             
+# --- Cluster hulls (bounding boxes) for optimized path ---
+            cluster_hulls = []
+            if n_culled > 0 and len(clusters_processed) > 0:
+                # Build cluster color map
+                COLORS = [
+                    '#7c8aff', '#ff6b6b', '#51cf66', '#ffd43b', '#cc5de8',
+                    '#20c997', '#ff922b', '#4dabf7', '#e599f7', '#69db7c',
+                    '#fcc419', '#ff8787', '#748ffc', '#63e6be', '#da77f2',
+                    '#a9e34b', '#ffa94d', '#74c0fc', '#b2f2bb', '#f783ac',
+                ]
+                
+                def hex_to_rgb(hex_color: str):
+                    h = hex_color.lstrip('#')
+                    if len(h) == 3:
+                        h = ''.join([c*2 for c in h])
+                    return (int(h[0:2], 16) / 255.0, int(h[2:4], 16) / 255.0, int(h[4:6], 16) / 255.0)
+                
+                cluster_color_rgba = {}
+                for i, cluster in enumerate(clusters_processed):
+                    cid = cluster['cluster_id']
+                    r, g, b = hex_to_rgb(COLORS[i % len(COLORS)])
+                    cluster_color_rgba[cid] = (r, g, b, 0.8)
+                
+                default_rgba = (0.5, 0.5, 0.5, 0.8)
+                
+                # Group culled positions by cluster
+                unique_clusters = np.unique(cluster_ids_final)
+                for cid in unique_clusters:
+                    mask_c = cluster_ids_final == cid
+                    cx = positions_processed[mask_c, 0]
+                    cy = positions_processed[mask_c, 1]
+                    if len(cx) >= 3:
+                        color_rgba = cluster_color_rgba.get(int(cid), default_rgba)
+                        cluster_hulls.append({
+                            'cluster_id': int(cid),
+                            'points': [
+                                [float(cx.min()), float(cy.min())],
+                                [float(cx.max()), float(cy.min())],
+                                [float(cx.max()), float(cy.max())],
+                                [float(cx.min()), float(cy.max())],
+                            ],
+                            'color': list(color_rgba[:3]) + [0.1]
+                        })
+            
             result = {
                 "points": {
                     "positions": positions_array.tolist(),
@@ -2672,7 +2716,7 @@ class NavigationAPI:
                     "count": n_culled,
                 },
                 "clusters": clusters_processed,
-                "hulls": [],
+                "hulls": cluster_hulls,
                 "transform": transform,
                 "frustum_planes": frustum_planes,
                 "viewport_bbox": bbox,
@@ -2684,11 +2728,12 @@ class NavigationAPI:
                     "culled_count": n_total_pre_lod - n_culled,
                     "visible_clusters": len(set(cluster_ids_final)) if n_final > 0 else 0,
                 },
+                "lod_level": lod_level,
             }
-            
-            if cache_key:
-                self._set_cache(self._webgl_cache, cache_key, result)
-            return result
+        
+        if cache_key:
+            self._set_cache(self._webgl_cache, cache_key, result)
+        return result
 
         if not positions:
             return {
