@@ -1,0 +1,17 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF 174k production baseline FROZEN (8 reps, all PASS adversarial gates, best cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.7345 LangDom=0.4773). Dense embeddings validated as COMPLEMENTARY VIEWS ONLY: citation heritage AUC 0.79 PASS (>0.75), section cross-lingual sachverhalt 0.282 PASS (>0.2) dispositiv 0.148 PASS (>0.1) erwaegungen 0.093 FAIL (<0.1), adversarial jurist gate FAIL at ALL scales (JP 0.39-0.42), cross-lang retrieval recall@10 ~0.04-0.11 FAIL (<0.2). v17b label normalization does NOT generalize to 174k (5/8 reps NMI decrease, zoom_fine degrade 11-16%). v18 coarse hierarchy FAIL even at 4-label branch level (best purity 0.65 < 0.70). No 174k dense embeddings available — blocked on bge_/bger_ ID mapping + parquet 2022-2026.",
+  "evidence_summary": {
+    "tfidf_174k_adversarial": "8/8 representations PASS both gates (LangDom<0.85, JP>0.5) via exact k-NN (config b51701f5a9c11692, seed=42, n=2000). Best: cited_decisions_tfidf_outcome_hybrid_0.5 (LangDom=0.4895, JP=0.7265). Fundamental two-mode tradeoff: citation-based pass adversarial/citation_heritage FAIL branch/tf_metadata/hierarchy; text-based pass branch/tf_metadata FAIL adversarial LangDom~0.999.",
+    "citation_heritage_174k_tfidf": "4/8 PASS AUC>0.65. Best cited_decisions_tfidf AUC=0.7296 (formal suite: 0.743). Text-based representations FAIL (AUC 0.49-0.65).",
+    "dense_citation_heritage_22year": "144,443 decisions, 344 positive pairs. center_projected 64/768/128dim AUC 0.7916-0.7941 PASS (>0.75). EXCEEDS TF-IDF citation-based (0.71-0.74). raw_multilingual_e5 AUC 0.7946 PASS.",
+    "dense_section_crosslingual": "sachverhalt cross_lang_same_branch 0.2816 PASS (>0.2); dispositiv 0.1481 PASS (>0.1); erwaegungen 0.0925 FAIL (<0.1). Hierarchy Sachverhalt > Dispositiv > Erwaegungen confirmed.",
+    "dense_adversarial": "center_projected FAILS jurist gate at ALL scales: 3yr JP~0.005, 15yr JP~0.27, 19yr JP~0.47, 22yr JP 0.39-0.43. Threshold JP>0.5. Cross-lang retrieval recall@10 ~0.04-0.11 FAIL (threshold 0.2).",
+    "v17b_normalization_174k": "15k subsample, 213->111 labels. Hierarchy ratio 1.00x ALL reps (no improvement). Zoom fine ratio 0.83-0.99x (degradation 11-16% for 4/8 citation-based reps). NMI decreases 5/8, increases 3/8. Regime difference from 1k (213->104, 15-25% gains) CONFIRMED.",
+    "v18_coarse_hierarchy": "Branch-level (4 labels) best purity 0.6497 (linear_citation_concat) < 0.70 threshold. All 6 representations FAIL. Multi-seed stability PASS (std<0.05) but Rule A fails. Fundamental hierarchy limitation confirmed for TF-IDF/citation representations.",
+    "formal_suite_v25": "12 benchmarks x 8 reps @ 173,963 decisions. Config hash 4323f833fa72366a. Consistent two-mode tradeoff pattern across all benchmarks.",
+    "data_blocker": "No 174k dense embeddings — bge_/bger_ ID mapping + parquet 2022-2026 unresolved. Correctly documented as blocker."
+  }
+}
