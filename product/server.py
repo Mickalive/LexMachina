@@ -246,8 +246,10 @@ def get_nav_api() -> NavigationAPI:
         results_dir = str(base_dir / "results" / "fractal_map")
         
         try:
-            _nav_api = NavigationAPI(corpus_dir, results_dir)
-            _nav_api.initialize()
+            # Use local variable to avoid exposing partially initialized instance
+            nav = NavigationAPI(corpus_dir, results_dir)
+            nav.initialize()
+            _nav_api = nav
             _nav_api_init_error = None
         except Exception as e:
             _nav_api_init_error = str(e)
