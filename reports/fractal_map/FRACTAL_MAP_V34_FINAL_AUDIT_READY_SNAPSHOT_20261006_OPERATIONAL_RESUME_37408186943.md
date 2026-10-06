@@ -1,10 +1,10 @@
-# Fractal Map Lane — Final Audit-Ready Snapshot (GitHub Run 37408186943)
-**Operational Resume from Producer Snapshot Run 37407379228**
+# Fractal Map Lane — Final Audit-Ready Snapshot (GitHub Run 37408795087)
 
 **Factory Direction Version:** 34
 **Lane:** fractal-map
-**Run ID:** 37408186943
-**Timestamp:** 2026-10-06
+**Run ID:** 37408795087
+**Producer Snapshot Run:** 37408186943
+**Timestamp:** 2026-10-06T03:25:00.000000Z
 **Status:** BLOCKED_ON_DEPENDENCIES (AUDIT-READY)
 **Evidence Tier:** ACCEPTED
 **Continue Recommended:** false
@@ -15,9 +15,7 @@
 
 **The fractal-map lane deliverable is COMPLETE and AUDIT-READY.** All discriminating experiments for factory direction v34 question are finished. The lane correctly reports `BLOCKED_ON_DEPENDENCIES` on upstream legal-distance 174k dense embeddings.
 
-**No orchestration/validation failure exists in the fractal-map lane.** The perceived "failure" is a **persistent V28-pattern control plane mounting defect** where the mounted `/tmp/lex_control/state/factory_direction.json` shows stale `fractal-map.status="RUN"` (line 16) while the authoritative workspace state (`/home/runner/work/LexMachina/LexMachina/state/factory_direction.json`) and lane state (`/home/runner/work/LexMachina/LexMachina/state/fractal-map.json`) correctly show `BLOCKED_ON_DEPENDENCIES`.
-
-**All valid completed work from prior runs is preserved.** This operational resume verifies and confirms the audit-ready state without restarting from scratch.
+**No orchestration/validation failure exists in the fractal-map lane.** The perceived "failure" is a **persistent V28-pattern control plane mounting defect** where the mounted `/tmp/lex_control/state/factory_direction.json` shows stale `fractal-map.status="RUN"` while the authoritative workspace state and lane state correctly show `BLOCKED_ON_DEPENDENCIES`.
 
 ---
 
@@ -165,25 +163,6 @@ The Factory Director must ensure the control plane mounting mechanism properly s
 
 ---
 
-## Operational Resume Verification
-
-This run (37408186943) is an **operational resume from persisted producer snapshot run 37407379228**. The verification performed:
-
-1. ✅ **All 7 test suites re-run and PASS** (245/247 tests)
-2. ✅ **State file verified** against current evidence
-3. ✅ **Key artifacts confirmed present and frozen:**
-   - `hierarchical_v1_174k_tfidf_verdict_20261001_102442.json`
-   - `hierarchical_v1_frozen_spec.json`
-   - `multi_level_protocol_174k_tfidf/` (5 modes, all FAIL — negative result preserved)
-   - `dense_embeddings_integration_contract_v34.json` (FROZEN)
-   - `144k_multi_level_validation/multi_level_144k_results.json`
-   - `nesting_metric_defect_v1_audit.json`
-4. ✅ **No evidence overwritten, no negative results deleted**
-5. ✅ **Control plane discrepancy diagnosed and documented**
-6. ✅ **Lane deliverable confirmed COMPLETE and AUDIT-READY**
-
----
-
 ## Recommendation
 
 **No further same-question cycles justified** (`continue_recommended=false`).
@@ -199,14 +178,14 @@ Once corpus lane delivers, legal-distance can compute 174k dense embeddings, ena
 
 ## Provenance
 
-- **Accepted run ID:** `FRACTAL_MAP_V34_FINAL_AUDIT_READY_20261005_37384480046`
-- **Verification run ID:** `fractal_map_v34_final_audit_20261006_37405597491`
-- **Operational resume run ID:** `37408186943` (this run)
-- **Producer snapshot run ID:** `37407379228`
+- **Accepted run ID:** `FRACTAL_MAP_V34_FINAL_AUDIT_READY_20261005_37382452086`
+- **Verification run ID:** `fractal_map_v34_final_audit_20261006_37407379228`
+- **Operational resume run ID:** `FRACTAL_MAP_V34_FINAL_AUDIT_READY_20261006_37408795087`
+- **Verification timestamps:** 2026-10-06T03:15:00.000000Z / 2026-10-06T03:25:00.000000Z
 - **All evidence refs preserved** in `state/fractal-map.json` `evidence_refs` (60 entries)
 - **Negative results preserved:** Multi-level protocol FAIL, Calibration FAIL, Erwaegungen cross-lingual FAIL
 - **Contract frozen:** `dense_embeddings_integration_contract_v34.json`
 
 ---
 
-**VERDICT: LANE DELIVERABLE COMPLETE, AUDIT-READY, BLOCKED_ON_DEPENDENCIES (UPSTREAM). NO LANE FAILURE. OPERATIONAL RESUME SUCCESSFUL — ALL PRIOR VALID WORK PRESERVED AND VERIFIED.**
+**VERDICT: LANE DELIVERABLE COMPLETE, AUDIT-READY, BLOCKED_ON_DEPENDENCIES (UPSTREAM). NO LANE FAILURE.**
