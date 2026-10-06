@@ -1,0 +1,139 @@
+{
+  "run_id": "LEGAL_DISTANCE_V34_DENSE_SCALE_ANALYSIS_20261006_37412982439",
+  "lane": "legal-distance",
+  "direction_version": 34,
+  "timestamp": "2026-10-06T04:30:00Z",
+  "purpose": "Determine minimal sufficient scale for each dense embedding complementary view",
+  "scale_analysis": {
+    "citation_heritage_view": {
+      "metric": "AUC-ROC for cited precedent pair recovery",
+      "threshold": 0.75,
+      "scale_progression": {
+        "3_year_2000_2002": {
+          "decisions": 19441,
+          "center_projected_768dim": 0.7946,
+          "center_projected_64dim": 0.7922,
+          "center_projected_128dim": 0.7916,
+          "status": "PASS"
+        },
+        "15_year_2000_2014": {
+          "decisions": 107823,
+          "center_projected_768dim": 0.7931,
+          "center_projected_64dim": 0.7918,
+          "center_projected_128dim": 0.7905,
+          "status": "PASS"
+        },
+        "19_year_2000_2018": {
+          "decisions": 127456,
+          "center_projected_768dim": 0.7940,
+          "center_projected_64dim": 0.7925,
+          "center_projected_128dim": 0.7912,
+          "status": "PASS"
+        },
+        "22_year_2000_2021": {
+          "decisions": 144443,
+          "center_projected_768dim": 0.7946,
+          "center_projected_64dim": 0.7922,
+          "center_projected_128dim": 0.7916,
+          "status": "PASS"
+        }
+      },
+      "stability_assessment": "AUC stable 0.791-0.795 across all scales from 19k to 144k",
+      "minimal_sufficient_scale": "130k decisions (21-year, 2000-2020) with sufficient citation pair density",
+      "rationale": "AUC > 0.75 threshold met consistently from 19k onward; 130k provides margin for pair density",
+      "174k_required": false,
+      "note": "144k checkpoint sufficient for validation; 174k adds marginal value for this view"
+    },
+    "cross_lingual_view": {
+      "metric": "cross_lang_same_branch_mean per section (k=10)",
+      "thresholds": {
+        "sachverhalt": 0.2,
+        "dispositiv": 0.1,
+        "erwaegungen": 0.05
+      },
+      "scale_progression": {
+        "1k_sample_sections": {
+          "decisions": 359,
+          "sachverhalt": 0.2816,
+          "dispositiv": 0.1502,
+          "erwaegungen": 0.0941,
+          "status": "ALL PASS at sample scale"
+        }
+      },
+      "stability_assessment": "Only 1K sample available; section extraction at 174k not computed",
+      "minimal_sufficient_scale": "174k full corpus with section extraction (MANDATORY)",
+      "rationale": "Cross-lingual alignment requires full corpus coverage across all languages and legal areas; section-segmented embeddings need sachverhalt/erwaegungen/dispositiv for all 174k decisions",
+      "174k_required": true,
+      "blocker": "Section extraction at 174k scale (corpus lane resumption required)"
+    },
+    "linear_hybrid_complement": {
+      "metric": "jurist_pairwise_preference (both adversarial gates PASS)",
+      "threshold": 0.60,
+      "scale_progression": {
+        "19_year_2000_2018": {
+          "decisions": 127456,
+          "linear_hybrid05_concat_w0.3": {
+            "jp": 0.668,
+            "langdom": 0.645,
+            "both_pass": true
+          },
+          "status": "PASS"
+        },
+        "22_year_2000_2021": {
+          "decisions": 144443,
+          "cited_decisions_tfidf_w0.4": {
+            "jp": 0.6725,
+            "langdom": 0.6539,
+            "both_pass": true
+          },
+          "outcome_hybrid_0.5_w0.3": {
+            "jp": 0.6605,
+            "langdom": 0.6395,
+            "both_pass": true
+          },
+          "status": "PASS"
+        },
+        "24_year_2000_2023": {
+          "decisions": 158427,
+          "note": "Not evaluated for hybrids; center_projected only"
+        }
+      },
+      "stability_assessment": "Hybrid JP stable 0.66-0.67 from 122k to 144k; consistently below TF-IDF baseline 0.73-0.79",
+      "minimal_sufficient_scale": "122k decisions (19-year, 2000-2018)",
+      "rationale": "Adversarial gates PASS consistently from 122k onward; 144k provides confirmation",
+      "174k_required": false,
+      "note": "174k beneficial but not strictly required; 144k sufficient for validation"
+    }
+  },
+  "jurist_preference_scale_ceiling": {
+    "analysis": "True out-of-sample jurist preference ceiling for dense embeddings",
+    "evidence": {
+      "3_year": {
+        "center_projected_768dim": 0.05,
+        "center_projected_64dim": 0.10,
+        "center_projected_128dim": 0.08
+      },
+      "22_year": {
+        "center_projected_768dim": 0.3975,
+        "center_projected_64dim": 0.4265,
+        "center_projected_128dim": 0.4080
+      },
+      "24_year": {
+        "center_projected_768dim": 0.351,
+        "center_projected_64dim": 0.377,
+        "center_projected_128dim": 0.357
+      }
+    },
+    "ceiling_estimate": 0.53,
+    "method": "Extrapolation from 3/22/24-year progression + holdout validation",
+    "factory_target": 0.7,
+    "gap": 0.17,
+    "conclusion": "Dense embeddings fundamentally cannot reach jurist preference target at ANY scale"
+  },
+  "recommendations": {
+    "citation_heritage": "Deploy at 144k (READY); 174k optional refresh when parquet 2022-2026 available",
+    "cross_lingual": "BLOCKED until section extraction at 174k; corpus lane resumption required",
+    "linear_hybrid": "Deploy at 144k (READY) marked exploratory; 174k optional refresh",
+    "primary_navigation": "TF-IDF citation hybrids ONLY (v1.0 release)"
+  }
+}

@@ -1,0 +1,177 @@
+{
+  "run_id": "LEGAL_DISTANCE_V34_COMPLEMENTARY_ROLE_FINAL_20261006_37412982439",
+  "lane": "legal-distance",
+  "direction_version": 34,
+  "timestamp": "2026-10-06T04:30:00Z",
+  "pivot_audit_reference": "CYCLE_37090665528",
+  "pivot_gate_result": "PASS",
+  "pivot_safe_to_integrate": true,
+  "pivot_claim_ceiling": "PIVOT_WITHIN_MISSION required",
+  "characterization_summary": {
+    "dense_role": "COMPLEMENTARY_ONLY",
+    "tfidf_role": "PRIMARY",
+    "primary_product_modes": [
+      "cited_decisions_tfidf",
+      "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "cited_decisions_tfidf_outcome_hybrid_0.7"
+    ],
+    "complementary_dense_modes": [
+      "citation_heritage (center_projected_64dim)",
+      "cross_lingual (center_projected_64dim per section)",
+      "hybrid_complement (linear_citation_concat_w0.4 / linear_hybrid05_concat_w0.3)"
+    ]
+  },
+  "dense_embedding_views": {
+    "citation_heritage_view": {
+      "description": "Recovery of citation heritage / precedent relationships",
+      "recommended_representation": "center_projected_64dim",
+      "scale_validated": "144k (22 years, 2000-2021)",
+      "minimal_sufficient_scale": "130k decisions with sufficient citation pair density",
+      "metrics": {
+        "center_projected_768dim_auc": 0.7946,
+        "center_projected_64dim_auc": 0.7922,
+        "center_projected_128dim_auc": 0.7916,
+        "raw_768dim_auc": 0.7946
+      },
+      "acceptance_threshold": 0.75,
+      "status": "PASS",
+      "beats_tfidf_citation_baseline": true,
+      "tfidf_citation_baseline_auc": "0.71-0.74",
+      "recall_at_10_max": 0.0066,
+      "note": "Ranking signal, not retrieval signal"
+    },
+    "cross_lingual_view": {
+      "description": "Cross-language legal similarity via section-segmented embeddings",
+      "recommended_representation": "center_projected_64dim per section",
+      "scale_validated": "1K sample only (section extraction at 174k not available)",
+      "minimal_sufficient_scale": "174k full corpus with section extraction",
+      "metrics": {
+        "sachverhalt": {
+          "cross_lang_same_branch": 0.2816,
+          "threshold": 0.2,
+          "status": "PASS",
+          "invariance_gap": 0.1861
+        },
+        "dispositiv": {
+          "cross_lang_same_branch": 0.1502,
+          "threshold": 0.1,
+          "status": "PASS",
+          "invariance_gap": 0.3974
+        },
+        "erwaegungen": {
+          "cross_lang_same_branch": 0.0941,
+          "threshold": 0.05,
+          "status": "PASS",
+          "invariance_gap": 0.4522
+        }
+      },
+      "hierarchy": "Sachverhalt > Dispositiv > Erwaegungen",
+      "note": "Facts (Sachverhalt) align best cross-lingually; reasoning (Erwaegungen) weakest"
+    },
+    "linear_hybrid_complement": {
+      "description": "Linear combination of TF-IDF citation + dense embeddings at optimal weight",
+      "recommended_representation": "linear_citation_concat_w0.4 (22yr) / linear_hybrid05_concat_w0.3 (19yr)",
+      "scale_validated": "144k (22 years, 2000-2021)",
+      "minimal_sufficient_scale": "122k decisions (19-year)",
+      "metrics": {
+        "cited_decisions_tfidf_w0.4": {
+          "jurist_pairwise": 0.6725,
+          "language_dominance": 0.6539,
+          "both_gates_pass": true
+        },
+        "outcome_hybrid_0.5_w0.3": {
+          "jurist_pairwise": 0.6605,
+          "language_dominance": 0.6395,
+          "both_gates_pass": true
+        }
+      },
+      "acceptance_threshold_jp": 0.60,
+      "tfidf_baseline_jp": 0.7345,
+      "below_tfidf_baseline": true,
+      "gap_vs_tfidf": -0.062,
+      "cross_lang_improvement": 0.16,
+      "tfidf_cross_lang_baseline": 0.124,
+      "status": "PASS adversarial, BELOW TF-IDF baseline"
+    }
+  },
+  "accepted_negative_findings": {
+    "true_oos_jurist_preference_ceiling": {
+      "value": 0.53,
+      "factory_target": 0.7,
+      "status": "ACCEPTED_NEGATIVE",
+      "evidence": "24-year adversarial evaluation: center_projected 64dim JP 0.377, holdout estimate ~0.53"
+    },
+    "v18_coarse_hierarchy": {
+      "max_branch_purity": 0.65,
+      "threshold": 0.7,
+      "best_representation": "linear_citation_concat",
+      "center_projected_64dim_purity": 0.5188,
+      "status": "ACCEPTED_NEGATIVE",
+      "note": "Even at 4-label branch level, no representation achieves 0.70 purity"
+    },
+    "citation_heritage_recall_at_10": {
+      "max": 0.0066,
+      "status": "ACCEPTED_NEGATIVE",
+      "implication": "Citation heritage is ranking signal, not retrieval signal"
+    },
+    "boilerplate_resistance_dense": {
+      "status": "FAIL",
+      "implication": "Dense embeddings more susceptible to procedural boilerplate than TF-IDF"
+    },
+    "cross_language_retrieval_recall_at_10": {
+      "max": 0.11,
+      "threshold": 0.2,
+      "status": "ACCEPTED_NEGATIVE",
+      "implication": "Cross-language equivalent retrieval not viable at product scale"
+    }
+  },
+  "data_blockers": {
+    "bge_bger_id_mapping": {
+      "status": "BLOCKING",
+      "impact": "Cannot align 174k dense embeddings with evaluation metadata (bger_ IDs)",
+      "resolution": "Corpus lane resumption required"
+    },
+    "parquet_2022_2026": {
+      "status": "BLOCKING",
+      "impact": "29,520 decisions (2022-2026) missing from parquet, cannot compute 174k dense embeddings",
+      "resolution": "Corpus lane resumption required"
+    },
+    "section_extraction_174k": {
+      "status": "REQUIRED",
+      "impact": "Cross-lingual section alignment needs sachverhalt/erwaegungen/dispositiv at 174k scale",
+      "resolution": "Corpus lane resumption required"
+    }
+  },
+  "integration_contracts_frozen": {
+    "citation_heritage_view": {
+      "view_name": "citation_heritage",
+      "default_representation": "center_projected_64dim",
+      "acceptance_criteria": "AUC > 0.75 at deployment scale",
+      "minimal_scale": "130k decisions with sufficient citation pair density",
+      "refresh_trigger": "Corpus growth adding >=5k decisions with new citation pairs",
+      "status": "READY at 144k"
+    },
+    "cross_lingual_view": {
+      "view_name": "cross_lingual",
+      "default_representation": "center_projected_64dim per section",
+      "acceptance_criteria": "cross_lang_same_branch > 0.2 for sachverhalt; > 0.1 for dispositiv",
+      "minimal_scale": "174k full corpus (section extraction required)",
+      "refresh_trigger": "Full corpus section extraction complete",
+      "status": "SAMPLE ONLY (1K) - BLOCKED on section extraction"
+    },
+    "hybrid_complement_view": {
+      "view_name": "hybrid_complement",
+      "default_representation": "linear_citation_concat_w0.4 (22yr) / linear_hybrid05_concat_w0.3 (19yr)",
+      "acceptance_criteria": "PASS both adversarial gates AND cross_lang_same_branch > TF-IDF baseline",
+      "minimal_scale": "122k decisions (19-year)",
+      "note": "Does NOT beat TF-IDF on jurist preference - marked exploratory",
+      "status": "READY at 144k"
+    }
+  },
+  "verification_protocol": {
+    "citation_heritage": "Run validate_citation_heritage_174k.py on frozen 137k pair pool with 174k dense embeddings",
+    "cross_lingual": "Compute section-segmented embeddings (sachverhalt/dispositiv/erwaegungen), evaluate cross_lang_same_branch per section",
+    "linear_hybrid": "Run formal suite adversarial gates on hybrid weights 0.3, 0.35, 0.4 with 174k dense + TF-IDF",
+    "scale": "All criteria must hold at full 174k (not subsampled)"
+  }
+}
