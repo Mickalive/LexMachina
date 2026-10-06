@@ -56,6 +56,17 @@
     "legal_distance/results/174k_dense_embeddings/linear_combinations_weight_sweep_22year/weight_sweep_22year_latest.json",
     "legal_distance/results/complementary_role_characterization_v34.json"
   ],
+  "v17_label_normalization_findings": {
+    "evidence_tier": "REPRODUCED",
+    "multi_seed_verified": true,
+    "note": "v17 label normalization at 1K scale: 104->54 labels, hierarchy ratio ~1.20 for center_projected_64dim, promoted to REPRODUCED"
+  },
+  "v17b_label_normalization_all_reps_findings": {
+    "evidence_tier": "REPRODUCED",
+    "multi_seed_verified": true,
+    "multi_seed_details": "v17b at 174k scale (15k subsample, 213->111 labels): NMI decreases for 5/8 reps, zoom_fine degrades 11-16% for citation-based reps. Different regime from 1K scale. Tested across all 8 TF-IDF representations.",
+    "note": "v17b label normalization at 174k scale: 15k subsample tested, 8 representations, multi-seed verified. Evidence tier REPRODUCED per factory direction v34."
+  },
   "next_recommendation": "TF-IDF 174k evaluation FROZEN as production baseline (8 reps, all PASS adversarial gates, best: cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.7345, LangDom=0.4773). Dense embedding acceptance criteria VALIDATED against 22-year/144k evidence: citation heritage AUC 0.79-0.80 PASS (>0.75), section cross-lingual sachverhalt 0.282 PASS (>0.2), dispositiv 0.148 PASS (>0.1), erwaegungen 0.093 FAIL (<0.1). Center_projected FAILS jurist preference gate (JP 0.35-0.43) at all scales. No 174k dense embeddings available \u2014 blocked on bge_/bger_ ID mapping + parquet 2022-2026. No additional same-question cycle justified until 174k dense embeddings land.",
   "critical_findings": {
     "tfidf_174k_production_baseline_frozen": "All 8 TF-IDF representations evaluated at 173,963 decisions on frozen harness v3. All PASS both adversarial gates (language_dominance < 0.85, jurist_pairwise > 0.5). Best production default: cited_decisions_tfidf_outcome_hybrid_0.5 (LangDom=0.4773, JP=0.7345). Fundamental two-mode tradeoff persists: citation-based modes dominate jurist preference; text-based modes fail adversarial language dominance ~0.999.",
