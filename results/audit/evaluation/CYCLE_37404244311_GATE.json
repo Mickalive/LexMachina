@@ -1,0 +1,103 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF 174k production baseline FROZEN and REPRODUCED (8/8 representations PASS adversarial gates, best: cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.7345). Dense embeddings validated as COMPLEMENTARY VIEWS ONLY (citation heritage AUC 0.79-0.80 > 0.75 PASS; cross-lingual sachverhalt 0.282 > 0.2 PASS, dispositiv 0.148 > 0.1 PASS, erwaegungen 0.093 < 0.1 FAIL; jurist gate FAIL at all scales JP ~0.35-0.38 < 0.5). Negative results preserved: v17b NON-GENERALIZATION at 174k, v18 hierarchy FAIL at 4-branch (max 0.65 < 0.70), dense jurist gate ceiling ~0.38. Accepted-lane embedding drift documented (fractal-map lane immutability violation) but evaluation baseline remains reproducible from working directory.",
+  "evidence_summary": {
+    "tfidf_174k_baseline": {
+      "config_hash": "b51701f5a9c11692",
+      "seed": 42,
+      "method": "exact_kNN_stratified_subsample_n2000",
+      "corpus_size": 173963,
+      "representations_evaluated": 8,
+      "all_pass_adversarial": true,
+      "production_default": "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "production_langdom": 0.4773,
+      "production_jurist_pref": 0.7345,
+      "reproduction_runs": [37335427922, 37392661746, "local_20261006T005230"],
+      "citation_heritage_passing": 4,
+      "citation_heritage_threshold": 0.65,
+      "best_citation_auc": 0.7296
+    },
+    "dense_embedding_criteria": {
+      "citation_heritage_auc_22year": {
+        "threshold": 0.75,
+        "center_projected_768dim": 0.7946,
+        "center_projected_64dim": 0.7922,
+        "center_projected_128dim": 0.7916,
+        "status": "PASS"
+      },
+      "cross_lingual_sachverhalt": {
+        "threshold": 0.2,
+        "center_projected_768dim": 0.2816,
+        "center_projected_64dim": 0.2816,
+        "status": "PASS"
+      },
+      "cross_lingual_dispositiv": {
+        "threshold": 0.1,
+        "center_projected_768dim": 0.1481,
+        "center_projected_64dim": 0.1502,
+        "status": "PASS"
+      },
+      "cross_lingual_erwaegungen": {
+        "threshold": 0.1,
+        "center_projected_768dim": 0.0925,
+        "center_projected_64dim": 0.0941,
+        "status": "FAIL"
+      },
+      "jurist_pairwise_22year": {
+        "threshold": 0.5,
+        "center_projected_768dim": 0.3975,
+        "center_projected_64dim": 0.4265,
+        "center_projected_128dim": 0.408,
+        "status": "FAIL"
+      },
+      "jurist_pairwise_24year": {
+        "threshold": 0.5,
+        "center_projected_768dim": 0.351,
+        "center_projected_64dim": 0.3765,
+        "center_projected_128dim": 0.3565,
+        "status": "FAIL",
+        "note": "64dim passes language dominance (0.844) but fails jurist gate; true OOS ceiling ~0.38"
+      }
+    },
+    "negative_results": {
+      "v17b_label_normalization_174k": {
+        "sample_size": 5000,
+        "raw_labels": 213,
+        "normalized_labels": 164,
+        "nmi_decreases_all_reps": true,
+        "purity_gain_but_nmi_loss": true,
+        "conclusion": "Does not generalize from 1K scale"
+      },
+      "v18_coarse_hierarchy": {
+        "hypothesis": "branch_level_purity >= 0.70 for center_projected_64dim",
+        "best_purity": 0.6497,
+        "best_representation": "linear_citation_concat",
+        "center_projected_64dim_purity": 0.5188,
+        "multi_seed_stable": true,
+        "conclusion": "Fundamental hierarchy limitation confirmed"
+      }
+    },
+    "accepted_lane_drift": {
+      "frozen_verification": "2026-10-05T15:55Z",
+      "regeneration_timestamp": "2026-10-05T21:27Z",
+      "working_dir_reproduced_baseline": "2026-10-06T00:52Z",
+      "frozen_production_jp": 0.7345,
+      "current_accepted_production_jp": 0.5560,
+      "delta": -0.1785,
+      "frozen_passing_reps": 8,
+      "current_accepted_passing_reps": 6,
+      "working_dir_embeddings_valid": true,
+      "fractal_map_lane_violation": "Accepted results mutated post-freeze",
+      "evaluation_baseline_impact": "NONE - working directory reproduces frozen baseline"
+    },
+    "infrastructure": {
+      "formal_suite": "OPERATIONAL",
+      "citation_heritage": "FROZEN_1020_PAIRS_95.9%_RESOLUTION",
+      "v17b_pipeline": "OPERATIONAL",
+      "monitor_checks": 309,
+      "hnsw_backend": "OPERATIONAL_ON_GITHUB"
+    }
+  }
+}
