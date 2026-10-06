@@ -139,7 +139,7 @@ class NavigationAPI:
                 for m in meta_list:
                     self._map_meta_cache[m["decision_id"]] = m
             # Load 174k evaluation metadata (173,963 entries with bger_ prefix matching representation IDs)
-            meta_174k_eval_path = Path(self.map_loader.results_dir) / "hierarchical_map_174k" / "metadata_174k_eval.json"
+            meta_174k_eval_path = Path(self.map_loader.results_dir) / "fractal_map" / "hierarchical_map_174k" / "metadata_174k_eval.json"
             if meta_174k_eval_path.exists():
                 with open(meta_174k_eval_path, "r") as f:
                     meta_list = _json.load(f)
@@ -148,7 +148,7 @@ class NavigationAPI:
                     if m["decision_id"] not in self._map_meta_cache:
                         self._map_meta_cache[m["decision_id"]] = m
             # Fallback: load 174k full metadata (bge_ prefix) for any remaining
-            meta_174k_full_path = Path(self.map_loader.results_dir) / "hierarchical_map_174k" / "metadata_174k_full.json"
+            meta_174k_full_path = Path(self.map_loader.results_dir) / "fractal_map" / "hierarchical_map_174k" / "metadata_174k_full.json"
             if meta_174k_full_path.exists():
                 with open(meta_174k_full_path, "r") as f:
                     meta_list = _json.load(f)
