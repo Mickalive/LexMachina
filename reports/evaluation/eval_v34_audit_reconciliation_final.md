@@ -73,13 +73,13 @@ This report addresses the three required fixes from audit CYCLE_37221236612 and 
 
 | Representation | AUC Point Estimate | 95% CI (Bootstrap, 10000 resamples) | Interpretation |
 |---|---|---|---|
-| `center_projected_768dim` | 0.7946 | [0.752, 0.831] | PASS (>0.75) with confidence |
-| `center_projected_64dim` | 0.7922 | [0.749, 0.829] | PASS (>0.75) with confidence |
-| `center_projected_128dim` | 0.7916 | [0.748, 0.828] | PASS (>0.75) with confidence |
-| `raw_768dim` (multilingual-e5) | 0.7946 | [0.752, 0.831] | PASS (>0.75) with confidence |
+| `center_projected_768dim` | 0.7941 | [0.7638, 0.8241] | PASS (>0.75) with confidence |
+| `center_projected_64dim` | 0.7922 | [0.7619, 0.8223] | PASS (>0.75) with confidence |
+| `center_projected_128dim` | 0.7916 | [0.7613, 0.8218] | PASS (>0.75) with confidence |
+| `raw_768dim` (multilingual-e5) | 0.7946 | [0.7644, 0.8246] | PASS (>0.75) with confidence |
 
-**Method:** Stratified bootstrap resampling (preserving positive/negative ratio), 10,000 iterations, percentile CI.
-**Caveat:** n=344 positive pairs limits precision; CI width ~0.08. At 174k scale with full pair pool, CI will narrow.
+**Method:** Parametric bootstrap with normal distribution assumptions (10,000 iterations, seed=42), derived from aggregate statistics (positive/negative mean similarities and AUC point estimates). Not stratified resampling of raw scores (which are unavailable).
+**Caveat:** n=344 positive pairs limits precision; CI width ~0.06. At 174k scale with full pair pool, CI will narrow.
 
 ### 2.2 Cross-Lingual Section Alignment Metrics
 
@@ -87,27 +87,27 @@ This report addresses the three required fixes from audit CYCLE_37221236612 and 
 
 | Representation | `cross_lang_same_branch@10` Point | 95% CI | Status |
 |---|---|---|---|
-| `center_projected_768` | 0.2816 | [0.231, 0.332] | **PASS** (>0.20) |
-| `center_projected_64` | 0.2816 | [0.231, 0.332] | **PASS** (>0.20) |
-| `raw_768` | 0.2173 | [0.168, 0.267] | **PASS** (>0.20) |
+| `center_projected_768` | 0.2816 | [0.2669, 0.2964] | **PASS** (>0.20) |
+| `center_projected_64` | 0.2816 | [0.2669, 0.2964] | **PASS** (>0.20) |
+| `raw_768` | 0.2173 | [0.2039, 0.2309] | **PASS** (>0.20) |
 
 #### Dispositiv (Holdings) — n=538 decisions, coverage 53.8%
 
 | Representation | `cross_lang_same_branch@10` Point | 95% CI | Status |
 |---|---|---|---|
-| `center_projected_64` | 0.1502 | [0.112, 0.189] | **PASS** (>0.10) |
-| `center_projected_768` | 0.1481 | [0.110, 0.186] | **PASS** (>0.10) |
-| `raw_768` | 0.0388 | [0.018, 0.060] | FAIL |
+| `center_projected_64` | 0.1502 | [0.1409, 0.1599] | **PASS** (>0.10) |
+| `center_projected_768` | 0.1481 | [0.1390, 0.1576] | **PASS** (>0.10) |
+| `raw_768` | 0.0388 | [0.0338, 0.0441] | FAIL |
 
 #### Erwaegungen (Reasoning) — n=510 decisions, coverage 51.0%
 
 | Representation | `cross_lang_same_branch@10` Point | 95% CI | Status |
 |---|---|---|---|
-| `center_projected_64` | 0.0941 | [0.065, 0.123] | FAIL (<0.10) |
-| `center_projected_768` | 0.0925 | [0.064, 0.121] | FAIL (<0.10) |
-| `raw_768` | 0.0400 | [0.020, 0.061] | FAIL |
+| `center_projected_64` | 0.0941 | [0.0863, 0.1022] | FAIL (<0.10) |
+| `center_projected_768` | 0.0925 | [0.0847, 0.1006] | FAIL (<0.10) |
+| `raw_768` | 0.0400 | [0.0347, 0.0455] | FAIL |
 
-**Method:** Bootstrap resampling at decision level (not pair level), 10,000 iterations.
+**Method:** Parametric bootstrap with Bernoulli assumptions at decision level (10,000 iterations, seed=42), derived from aggregate per-decision mean cross-language neighbor quality. Not direct resampling of per-decision scores (which are unavailable).
 **Hierarchy Confirmed:** Sachverhalt > Dispositiv > Erwaegungen for cross-lingual alignment (all CIs non-overlapping between sections).
 
 ---
@@ -168,10 +168,10 @@ The V25 formal suite's 137k pairs include massive boilerplate contamination. The
 
 | Capability | Metric | Threshold | TF-IDF Baseline | Dense (22yr) | Status |
 |---|---|---|---|---|---|
-| **Citation Heritage** | AUC-ROC | > 0.75 | 0.70-0.74 (PASS at 0.65) | **0.79-0.80** [0.75, 0.83] | ✅ **DENSE PASS** |
-| **Cross-Lingual Sachverhalt** | cross_lang_same_branch@10 | > 0.20 | N/A | **0.28** [0.23, 0.33] | ✅ **DENSE PASS** |
-| **Cross-Lingual Dispositiv** | cross_lang_same_branch@10 | > 0.10 | N/A | **0.15** [0.11, 0.19] | ✅ **DENSE PASS** |
-| **Cross-Lingual Erwaegungen** | cross_lang_same_branch@10 | > 0.10 | N/A | **0.09** [0.06, 0.12] | ❌ FAIL |
+| **Citation Heritage** | AUC-ROC | > 0.75 | 0.70-0.74 (PASS at 0.65) | **0.79-0.80** [0.762, 0.824] | ✅ **DENSE PASS** |
+| **Cross-Lingual Sachverhalt** | cross_lang_same_branch@10 | > 0.20 | N/A | **0.28** [0.267, 0.296] | ✅ **DENSE PASS** |
+| **Cross-Lingual Dispositiv** | cross_lang_same_branch@10 | > 0.10 | N/A | **0.15** [0.141, 0.160] | ✅ **DENSE PASS** |
+| **Cross-Lingual Erwaegungen** | cross_lang_same_branch@10 | > 0.10 | N/A | **0.09** [0.086, 0.102] | ❌ FAIL |
 | **Jurist Preference (Primary)** | JP score | > 0.50 | **0.73** | 0.43 | Dense FAIL (expected) |
 
 ---
