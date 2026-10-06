@@ -1,0 +1,19 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Correct hybrid complement validation scale claim from 144k to 1,200 decisions (pre-existing report defect)",
+    "Remove or fix reference to non-existent evidence file 'weight_sweep_22year_latest.json' (pre-existing report defect)",
+    "Align Erwaegungen cross-lingual threshold between dense_complementary_acceptance_criteria.json (>0.10, FAIL) and report (>0.05, PASS) (pre-existing report defect)",
+    "Disclose zero-shot cross-lingual transfer failures in cross-lingual view summary (pre-existing report defect)"
+  ],
+  "claim_ceiling": "TF-IDF 174k production baseline frozen at JP=0.735 (cited_decisions_tfidf_outcome_hybrid_0.5). Dense embeddings validated as complementary views ONLY: citation heritage AUC 0.792 at 144k (EXCEEDS TF-IDF 0.71-0.74); cross-lingual Sachverhalt 0.282, Dispositiv 0.150 at 1K sample (blocked on 174k section extraction); linear hybrids PASS adversarial gates at 1.2k scale (NOT 144k as claimed). True OOS Jurist Preference ceiling for dense: ~0.53 < 0.70 factory target.",
+  "evidence_summary": {
+    "tfidf_174k_baseline": "VERIFIED: 8 representations, all PASS adversarial gates (LangDom<0.85, JP>0.5), config hash b51701f5a9c11692, exact k-NN on stratified n=2000 seed=42",
+    "citation_heritage_dense": "VERIFIED: 4 dense variants AUC 0.791-0.795 at 144,443 decisions (22-year), exceeds TF-IDF citation baseline 0.71-0.74",
+    "cross_lingual_dense": "PARTIALLY VERIFIED: Sachverhalt 0.282, Dispositiv 0.150, Erwaegungen 0.094 at 359-538 decisions (1K sample); Erwaegungen threshold discrepancy (criteria: >0.10 FAIL vs report: >0.05 PASS); zero-shot transfer FAILS all sections",
+    "hybrid_complement": "SCALE CLAIM VIOLATION: Report claims 144k validation; actual evidence at 1,200 decisions only (v15_full_harness_latest.json). Referenced weight_sweep_22year_latest.json does not exist.",
+    "negative_findings": "VERIFIED: Dense JP ceiling ~0.53 (observed 0.35-0.43 at scale), v18 hierarchy max purity 0.65<0.70, dense boilerplate FAIL, cross-lang recall@10 0.11 max",
+    "outcome_tfidf_instability": "VERIFIED: JP=0.655 (frozen config b51701f5a9c11692) vs JP=0.391 (verification config 04b6d5f0c13131ef), 186 neither_available due to outcome metadata gaps. Commit correctly documents this."
+  }
+}

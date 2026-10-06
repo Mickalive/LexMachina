@@ -1,0 +1,75 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "NULL CYCLE — No new claims. This cycle (37465725917) is a duplicate git reference pointing to the same commit (a7326d4f) as previously accepted cycle 37459162822. The producer workspace is identical to the accepted base. The prior audit validated: Dense embeddings (multilingual-e5 center_projected) are NECESSARY and SUFFICIENT for three non-jurist-preference views at characterized minimal scales: (1) Citation Heritage recovery at 21yr/137k (cp64 AUC 0.77–0.85 > TF-IDF citation 0.71–0.74), (2) Section Cross-Lingual alignment at 1K sample (Sachverhalt cp64 cross_lang=0.282 > 0.2, Dispositiv=0.150 > 0.1, Erwaegungen=0.094 < 0.1 FAIL), (3) Linear Hybrid Complement at 19yr/122k (w=0.3–0.4 PASS adversarial, JP 0.61–0.67 < TF-IDF 0.78–0.79). Two-mode tradeoff is fundamental: TF-IDF = PRIMARY (jurist preference, branch clustering); Dense = COMPLEMENTARY (citation heritage, cross-lingual, hybrid complement). True OOS JuristPref ceiling ~0.53 < 0.7 factory target. Data blockers: bge_/bger_ mapping, parquet 2024–2026, 174k section extraction.",
+  "evidence_summary": {
+    "cycle_type": "NULL_CYCLE",
+    "git_ref": "cycle/core/legal-distance/37465725917",
+    "points_to_commit": "a7326d4f4c2e68d6d770d00a4bcb7767718b10a1",
+    "same_as_accepted_cycle": 37459162822,
+    "producer_workspace_diff": "NO_DIFFERENCES",
+    "prior_audit_gate": "PASS",
+    "prior_audit_safe_to_integrate": true,
+    "work_produced_this_cycle": "NONE",
+    "complementary_role_characterization": {
+      "citation_heritage_22yr": {
+        "raw_768dim_auc": 0.7946279069767441,
+        "center_projected_64dim_auc": 0.7922209302325581,
+        "center_projected_768dim_auc": 0.7940523255813953,
+        "positive_pairs": 344,
+        "all_above_075": true
+      },
+      "citation_heritage_21yr": {
+        "raw_768dim_auc": 0.84548,
+        "center_projected_64dim_auc": 0.8182,
+        "positive_pairs": 100,
+        "minimal_scale_confirmed": true
+      },
+      "citation_heritage_24yr": {
+        "center_projected_64dim_auc": 0.7666715942314641,
+        "center_projected_768dim_auc": 0.7695985677211655,
+        "positive_pairs": 730,
+        "reinforced_at_scale": true
+      },
+      "section_crosslingual_cp64": {
+        "sachverhalt": { "cross_lang_same_branch": 0.2816155988857939, "invariance_gap": 0.1874651810584959, "status": "PASS" },
+        "dispositiv": { "cross_lang_same_branch": 0.15018587360594798, "invariance_gap": 0.3973977695167286, "status": "PASS" },
+        "erwaegungen": { "cross_lang_same_branch": 0.09411764705882353, "invariance_gap": 0.45215686274509803, "status": "FAIL" },
+        "hierarchy_confirmed": true,
+        "center_projection_improves_all": true
+      },
+      "linear_hybrid_22yr": {
+        "tfidf_baseline_jp": 0.784,
+        "tfidf_baseline_langdom": 0.4826,
+        "passing_weights": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
+        "optimal_w_cited": 0.4,
+        "optimal_w_hybrid": 0.3,
+        "all_hybrid_jp_below_tfidf": true,
+        "cross_lingual_improvement_at_w04": true
+      },
+      "two_mode_tradeoff": {
+        "dense_cp64": { "jp": 0.4265, "langdom": 0.831875 },
+        "tfidf_cited": { "jp": 0.784, "langdom": 0.4826 },
+        "hybrid_w04": { "jp": 0.6725, "langdom": 0.653875 },
+        "no_single_dominates": true
+      },
+      "true_oos_ceiling": {
+        "tfidf_holdout_jp": 0.525,
+        "hybrid_05_holdout_jp": 0.580,
+        "dense_holdout_jp": 0.385,
+        "factory_target_07_unachievable": true
+      },
+      "data_blockers": {
+        "completed_years": 24,
+        "completed_range": "2000-2023",
+        "failed_years": ["2024", "2025", "2026"],
+        "correction": "2021-2023 embeddings exist and pass quality (24yr AUC 0.767-0.770)",
+        "missing_decisions": "~15.5k (2024-2026)"
+      },
+      "tests_passed": 7,
+      "tests_total": 8,
+      "test_7_caveat": "174k formal suite path /tmp/lex_accepted/evaluation/results/evaluation/v25_174k_formal_suite/results/_suite_summary.json missing (orchestration failure); 22yr proxy evidence sufficient"
+    }
+  }
+}
