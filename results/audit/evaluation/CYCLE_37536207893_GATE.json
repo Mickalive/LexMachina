@@ -1,0 +1,63 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF 174k production baseline FROZEN (JP 0.7265, LangDom 0.4895). Dense embeddings VALIDATED as complementary views ONLY (citation heritage AUC>0.75 PASS with CI [0.762, 0.824], cross-lingual sachverhalt>0.2 PASS with CI [0.267, 0.296], dispositiv>0.1 PASS with CI [0.141, 0.160], erwaegungen>0.1 FAIL with CI [0.086, 0.102], jurist preference FAIL at all scales 0.005-0.43). Citation heritage AUC discrepancy RECONCILED: V25 formal suite (0.973, full citation graph, 137k pairs) measures structural fidelity; dedicated evaluation (0.730, filtered valid pairs, 1k/1020) measures legal utility — latter governs production. 'Valid positive pair' filter criteria DOCUMENTED (1,020 pairs from 173,963 decisions after bge_/bger_ resolution, substantive citation filter, deduplication, text availability). True OOS jurist preference ceiling ~0.53 < 0.7 target confirms dense embeddings cannot be primary navigation. No 174k dense evaluation possible until corpus lane resolves bge_/bger_ ID mapping + parquet 2022-2026 + section extraction.",
+  "evidence_summary": {
+    "audit_reconciliation_report": {
+      "file": "reports/evaluation/eval_v34_audit_reconciliation_final.md",
+      "sections": [
+        "1. Citation Heritage AUC Discrepancy — FULLY RECONCILED",
+        "2. Bootstrap Confidence Intervals for Dense Embedding Metrics",
+        "3. 'Valid Positive Pair' Filter Criteria — DOCUMENTED",
+        "4. Final Acceptance Criteria Status (Per Factory Direction v34)",
+        "5. Negative Results Preserved (Per Research Protocol)",
+        "6. Data Blockers for 174k Dense Evaluation (Unchanged)"
+      ]
+    },
+    "bootstrap_ci_results": {
+      "file": "results/evaluation/bootstrap_ci_dense_metrics_20261006.json",
+      "method": "Parametric bootstrap (10,000 iterations, seed=42) with normal/Bernoulli assumptions from aggregate statistics",
+      "citation_heritage_auc": {
+        "center_projected_768dim": {"point": 0.7941, "ci": [0.7638, 0.8241], "status": "PASS"},
+        "center_projected_64dim": {"point": 0.7922, "ci": [0.7619, 0.8223], "status": "PASS"},
+        "center_projected_128dim": {"point": 0.7916, "ci": [0.7613, 0.8218], "status": "PASS"},
+        "raw_768dim": {"point": 0.7946, "ci": [0.7644, 0.8246], "status": "PASS"}
+      },
+      "cross_lingual_sections": {
+        "sachverhalt": {"center_projected_768": {"point": 0.2816, "ci": [0.2669, 0.2964], "status": "PASS"}, "raw_768": {"point": 0.2173, "ci": [0.2039, 0.2309], "status": "PASS"}},
+        "dispositiv": {"center_projected_64": {"point": 0.1502, "ci": [0.1409, 0.1599], "status": "PASS"}, "center_projected_768": {"point": 0.1481, "ci": [0.1390, 0.1576], "status": "PASS"}, "raw_768": {"point": 0.0388, "ci": [0.0338, 0.0441], "status": "FAIL"}},
+        "erwaegungen": {"center_projected_64": {"point": 0.0941, "ci": [0.0863, 0.1022], "status": "FAIL"}, "center_projected_768": {"point": 0.0925, "ci": [0.0847, 0.1006], "status": "FAIL"}, "raw_768": {"point": 0.0400, "ci": [0.0347, 0.0455], "status": "FAIL"}}
+      }
+    },
+    "citation_heritage_discrepancy": {
+      "v25_formal_suite": {"file": "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json", "cited_decisions_tfidf_auc": 0.9731, "n_pairs": 137314, "scope": "full citation graph, structural fidelity"},
+      "dedicated_eval": {"file": "results/evaluation/citation_heritage_174k_tfidf_latest.json", "cited_decisions_tfidf_auc": 0.7296, "n_valid_pairs": 1020, "n_sampled": 1000, "scope": "filtered valid pairs, legal utility"},
+      "production_governance": "Dedicated evaluation governs (Factory Direction v34 threshold 0.65 TF-IDF, >0.75 dense)"
+    },
+    "valid_pair_filter": {
+      "documented_in": "Section 3 of eval_v34_audit_reconciliation_final.md",
+      "pipeline_steps": 6,
+      "reduction": "99.95% (~2.1M raw → 1,020 valid)",
+      "key_filters": ["bge_→bger_ resolution (95.9% rate)", "both in evaluation metadata", "substantive citation filter (exclude procedural/boilerplate)", "deduplication (undirected)", "sufficient text (>100 chars)"]
+    },
+    "negative_results_preserved": [
+      "True OOS JuristPref ceiling ~0.53 < 0.7 target",
+      "V17b label normalization fails generalization to 174k",
+      "V18 coarse hierarchy max purity 0.65 < 0.70",
+      "Citation heritage recall@10 max 0.0066",
+      "Dense boilerplate resistance FAIL"
+    ],
+    "data_blockers": [
+      "BGE/bger ID mapping",
+      "Parquet 2022-2026 (29,520 decisions)",
+      "Section extraction at 174k scale"
+    ],
+    "state_confirmation": {
+      "evidence_tier": "ACCEPTED",
+      "cycle_status": "COMPLETE",
+      "continue_recommended": false,
+      "accepted_run_id": "EVALUATION_V34_VERIFICATION_20261006_37526969438"
+    }
+  }
+}
