@@ -1,0 +1,80 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "PIVOT_WITHIN_MISSION required — Dense embeddings are COMPLEMENTARY ONLY (citation heritage, cross-lingual, hybrid complement). TF-IDF citation hybrids remain PRIMARY (JP 0.78-0.79). True OOS dense JP ceiling ~0.53 < 0.7 factory target. No further same-question cycles justified.",
+  "evidence_summary": {
+    "citation_heritage_view": {
+      "status": "VERIFIED PASS",
+      "metrics": {
+        "center_projected_64dim_auc_22yr": 0.7922,
+        "center_projected_64dim_auc_24yr": 0.7667,
+        "tfidf_citation_baseline": "0.71-0.74",
+        "superiority_confirmed": true,
+        "center_projection_required": true,
+        "minimal_scale": "137k (21yr, 2000-2020)",
+        "recall_at_10_max": 0.0066
+      },
+      "product_status": "READY v1.1+"
+    },
+    "cross_lingual_view": {
+      "status": "VERIFIED SAMPLE_ONLY",
+      "metrics": {
+        "sachverhalt_cross_lang_same_branch": 0.2816,
+        "dispositiv_cross_lang_same_branch": 0.1502,
+        "erwaegungen_cross_lang_same_branch": 0.0941,
+        "hierarchy": "Sachverhalt > Dispositiv > Erwaegungen",
+        "center_projection_improvement_pct": "16-38%",
+        "scale": "1K sample (359/538/510 decisions)"
+      },
+      "product_status": "BLOCKED v1.1+ (pending 174k section extraction)"
+    },
+    "linear_hybrid_complement": {
+      "status": "VERIFIED PASS_ADVERSARIAL_BELOW_TFIDF",
+      "metrics": {
+        "optimal_w_22yr_cited_tfidf": 0.4,
+        "jp_w04": 0.6725,
+        "langdom_w04": 0.6539,
+        "tfidf_baseline_jp": 0.784,
+        "gap_vs_tfidf": -0.1115,
+        "cross_lang_recall_improvement": 0.036,
+        "minimal_scale": "122k (19yr, 2000-2018)"
+      },
+      "product_status": "EXPLORATORY v1.1+"
+    },
+    "two_mode_tradeoff": {
+      "status": "VERIFIED FUNDAMENTAL",
+      "reproduced_at_scales": ["3yr", "15yr", "19yr", "20yr", "21yr", "22yr", "24yr", "165k"],
+      "conclusion": "No single representation dominates all three metrics (LangDom, JP, CiteIndep) at any scale"
+    },
+    "true_oos_ceiling": {
+      "status": "SUPPORTED",
+      "dense_ceiling_estimate": 0.53,
+      "v8_holdout_dense_jp": 0.385,
+      "factory_target": 0.7,
+      "achievable": false
+    },
+    "accepted_negative_findings": [
+      "Dense embeddings fail jurist gate at ALL scales (JP 0.05-0.43)",
+      "v18 coarse hierarchy max purity 0.65 < 0.7 threshold",
+      "Citation heritage recall@10 max 0.0066 (ranking signal only)",
+      "Boilerplate resistance: dense MORE susceptible than TF-IDF (score -0.88 to -0.90)",
+      "Cross-language retrieval recall@10 max 0.11 < 0.2 threshold",
+      "Erwaegungen cross-lingual FAILS (0.094 < 0.1)"
+    ],
+    "data_blockers": [
+      "bge_/bger_ ID mapping (BLOCKING)",
+      "parquet 2022-2026 missing 15,536-29,520 decisions (BLOCKING)",
+      "section extraction at 174k (REQUIRED)",
+      "GPU unavailable for finetuning (BLOCKING)"
+    ],
+    "attack_surface": {
+      "leakage": "CLEAN — citation pairs, holdout splits, exact k-NN, section segmentation",
+      "benchmark_gaming": "NONE — a priori thresholds, no threshold shopping",
+      "weak_baselines": "NONE — TF-IDF citation/text baselines are strong and relevant",
+      "prettiness_as_quality": "ABSENT — technical metric-dense reports",
+      "boilerplate_confounding": "ADDRESSED — negative result accepted and reported",
+      "unsupported_product_claims": "NONE — conditional contracts, primary = TF-IDF v1.0"
+    }
+  }
+}
