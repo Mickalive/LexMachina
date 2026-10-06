@@ -70,6 +70,13 @@ The following are **frozen as production evaluation baseline** — no further sa
 | Citation Heritage Baseline (TF-IDF citation-based) | AUC 0.71–0.74 | 174k citation heritage eval |
 | Cross-Lang Baseline (TF-IDF) | `cross_lang_same_branch` ~0.12–0.14 | 174k formal suite |
 
+**Frozen Configuration Hash:** `b51701f5a9c11692` (EXACT k-NN on fixed stratified subsample of 2,000 decisions, seed=42, HNSW artifact fix applied) — this config is the canonical production baseline. The adversarial verification run (GitHub 37399175524, config `04b6d5f0c13131ef`) used a different harness configuration and is **not** the frozen baseline.
+
+**Known Instability:** `outcome_tfidf` shows config-dependent behavior:
+- Formal suite (config `b51701f5a9c11692`): JP = 0.655, PASS
+- Adversarial verification (config `04b6d5f0c13131ef`): JP = 0.391, FAIL (186 `neither_available` decisions due to outcome metadata coverage gaps)
+- **Recommendation:** `outcome_tfidf` is **not recommended for standalone use**; the production baseline uses the stable `cited_decisions_tfidf_outcome_hybrid_0.5` which is robust across both configs (JP 0.735 formal / 0.702 verification).
+
 ---
 
 ## 2. Dense Embedding Complementary View Acceptance Criteria (FORMALIZED)
