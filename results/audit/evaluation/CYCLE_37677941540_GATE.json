@@ -1,0 +1,44 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Monitor check #323: No new awaited 174k representations detected. TF-IDF 174k production baseline remains frozen (ACCEPTED, 8/8 modes PASS both adversarial gates, best cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.7345). Dense embedding complementary criteria VALIDATED against 24-year/158k legal-distance checkpoint evidence with bootstrap 95% CIs: citation_heritage_auc > 0.75 PASS (0.792 [0.762,0.824]), cross_lang_sachverhalt > 0.2 PASS (0.282 [0.267,0.296]), cross_lang_dispositiv > 0.1 PASS (0.150 [0.141,0.160]), cross_lang_erwaegungen > 0.1 FAIL (0.094 [0.086,0.102]). Full 174k validation BLOCKED on bge_/bger_ ID mapping, parquet 2024-2026, section extraction. NO adversarial re-verification performed this cycle; last was 2026-10-01 (GitHub run 37218567219). Lane status COMPLETE, continue_recommended=false.",
+  "evidence_summary": {
+    "prior_cycle_defects": [
+      "Claimed fresh adversarial re-verification performed (LangDom=0.4895, JuristPref=0.7265) — NOT performed; metrics from 2026-10-01",
+      "Claimed configuration hash verification (b51701f5a9c11692) — NOT run",
+      "Implied 15x independent verification re-earned this cycle — HISTORICAL only (2026-09-24 to 2026-10-05)",
+      "Incorrect method field: 'monitor_scan_for_174k_representations + adversarial_reverification' — actual: monitor_scan_for_174k_representations only"
+    ],
+    "repair_actions": [
+      "Report corrected: Adversarial Re-verification section renamed to Status; explicit 'NOT PERFORMED THIS CYCLE' statement added",
+      "Metrics qualified as historical (2026-10-01, GitHub run 37218567219)",
+      "Configuration hash claim removed",
+      "Correction Note table added documenting each overstated claim",
+      "state/evaluation.json: added accurate latest_monitoring_verification object with method='monitor_scan_for_174k_representations' and explicit NO ADVERSARIAL RE-VERIFICATION note",
+      "evaluation/state/monitor_174k_state.json: last_verification updated to 'monitor_only_no_new_representations_adversarial_not_triggered', check_count=323"
+    ],
+    "monitoring_validity": {
+      "lane_status": "COMPLETE (correct)",
+      "tfidf_174k_baseline": "FROZEN, ACCEPTED (8/8 modes PASS, JP=0.7345)",
+      "dense_criteria": "DEFINED/FROZEN, 3/4 PASS at 24yr/158k checkpoints, UNVALIDATED at 174k",
+      "detection_result": "No new awaited 174k dense representations (24 checkpoints 2000-2023 present; 2024-2026 missing)",
+      "adversarial_trigger": "Correctly NOT triggered (by design, only on new representations)",
+      "data_blockers": "Accurately documented: bge_/bger_ ID mapping, parquet 2024-2026, section extraction"
+    },
+    "negative_results_preserved": [
+      "Citation heritage AUC 0.482 FAIL at 174k (partial 22yr PASS does not generalize)",
+      "Cross-lingual Erwägungen FAIL (0.094 [0.086,0.102] CI)",
+      "Coarse hierarchy max branch purity 0.65 < 0.7 threshold",
+      "True OOS jurist preference ceiling 0.53 < 0.7 factory target",
+      "TF-IDF known limitations: cross-language recall@10 0.141 < 0.2, hierarchy nesting 0.317, cluster branch_purity 0.316, temporal stability 0.381, boilerplate resistance -0.834"
+    ],
+    "attack_surface": {
+      "leakage": "None — monitor only scans for representation existence",
+      "benchmark_gaming": "None — frozen formal suite and adversarial gates unchanged",
+      "prettiness_as_quality": "None — correction improves honesty, not aesthetics",
+      "boilerplate_confounding": "N/A — monitoring cycle, not representation evaluation",
+      "weak_baselines": "None — TF-IDF is frozen production baseline; dense correctly UNVALIDATED"
+    }
+  }
+}
