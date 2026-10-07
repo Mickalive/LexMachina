@@ -410,9 +410,9 @@ class TestMetricConsistency:
             assert len(value) > 10, f"Critical finding {key} should be descriptive"
 
     def test_factory_direction_v34_consistency(self):
-        """State correctly reflects factory direction v34 (not v29/v30)."""
-        assert self.state["direction_version"] == 34
-        # No v29/v30 correction field in v34 state
+        """State correctly reflects factory direction v35 (not v29/v30)."""
+        assert self.state["direction_version"] == 35
+        # No v29/v30 correction field in v34/v35 state
         assert "factory_direction_v29_v30_corrections" not in self.state
 
     def test_evidence_refs_present(self):
