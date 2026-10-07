@@ -1,10 +1,10 @@
 {
   "lane": "evaluation",
-  "direction_version": 34,
+  "direction_version": 35,
   "evidence_tier": "TF-IDF_ACCEPTED_DENSE_UNVALIDATED",
   "cycle_status": "COMPLETE",
   "continue_recommended": false,
-  "accepted_run_id": "EVALUATION_V34_PRODUCTION_BASELINE_FROZEN_20261007",
+  "accepted_run_id": "EVALUATION_V35_PRODUCTION_BASELINE_FROZEN_20261007",
   "evidence_refs": [
     "results/evaluation/tfidf_174k_formal_suite_baseline.json",
     "results/evaluation/dense_complementary_acceptance_criteria.json",
@@ -110,10 +110,25 @@
     "linear_hybrid": "Run formal suite adversarial gates on hybrid weights 0.3, 0.35, 0.4 with 174k dense + TF-IDF",
     "scale": "All criteria must hold at full 174k (not subsampled)"
   },
-  "final_verification_run_id": "EVALUATION_V34_FINAL_VERIFICATION_20261007_37574492135",
-  "final_verification_timestamp": "2026-10-07T05:15:00.000000Z",
-  "github_run": 37574492135,
+  "final_verification_run_id": "EVALUATION_V35_FINAL_CONFIRMATION_20261007_37692926129",
+  "final_verification_timestamp": "2026-10-07T21:30:00.000000Z",
+  "github_run": 37692926129,
   "additional_verification_runs": [
+    {
+      "run_id": "EVALUATION_V34_FINAL_VERIFICATION_20261007_37574492135",
+      "github_run": 37574492135,
+      "timestamp": "2026-10-07T05:15:00.000000Z",
+      "verification_type": "formal_suite_and_criteria_freeze",
+      "tests_passed": 8,
+      "artifacts_verified": [
+        "tfidf_174k_formal_suite_baseline.json",
+        "dense_complementary_acceptance_criteria.json",
+        "citation_heritage_174k.json",
+        "bootstrap_ci_dense_metrics_20261006.json",
+        "v18_coarse_hierarchy/v18_coarse_hierarchy_results.json"
+      ],
+      "status": "VERIFIED"
+    },
     {
       "run_id": "EVALUATION_V34_VERIFICATION_20261007_37598492933",
       "github_run": 37598492933,
@@ -128,6 +143,16 @@
         "v18_coarse_hierarchy/v18_coarse_hierarchy_results.json"
       ],
       "status": "VERIFIED"
+    },
+    {
+      "run_id": "EVALUATION_V35_ALIGNMENT_VERIFICATION_20261007",
+      "github_run": 37692926129,
+      "timestamp": "2026-10-07T21:30:00.000000Z",
+      "verification_type": "factory_direction_v35_state_alignment",
+      "tests_passed": 0,
+      "artifacts_verified": [],
+      "status": "ALIGNED",
+      "notes": "No new discriminating experiments for v35 — same question as v34, work already COMPLETE. State updated to direction_version 35. Continue_recommended=false confirmed."
     }
   ],
   "audit_ready": true,
@@ -147,7 +172,7 @@
   },
   "orchestration_failure_diagnosis": "V28-pattern control plane mounting defect: /tmp/lex_control/state/factory_direction.json shows evaluation.status=\"RUN\" while workspace state and lane state correctly show COMPLETE. This is a persistent infrastructure defect, NOT a lane failure. Lane work is complete and audit-ready. Supervisor lacks pre-dispatch guard reading state/<lane>.json before dispatch — 318+ monitor checks dispatched to COMPLETE lane.",
   "verification_report": "reports/evaluation/EVALUATION_V34_FINAL_VERIFICATION_REPORT_REVISED_20261007.md",
-  "confirmation_report": "reports/evaluation/EVALUATION_V34_FINAL_CONFIRMATION_REVISED_20261007.md",
+  "confirmation_report": "reports/evaluation/EVALUATION_V35_FINAL_CONFIRMATION_20261007.md",
   "subsampling_discrepancy_documented": {
     "issue": "Two stratified subsampling strategies produce different adversarial gate results",
     "formal_suite_method": "Branch-only stratification (500 per branch × 4 branches = 2000) — AUTHORITATIVE for frozen baseline",
@@ -156,18 +181,18 @@
     "resolution": "Formal suite's get_adversarial_subsample is the frozen baseline; verify scripts should be updated to match",
     "evidence_tier": "ACCEPTED"
   },
-  "monitor_check_count": 323,
-  "monitor_last_check": "2026-10-07T19:24:02.276496",
-  "last_verification": "2026-10-07T19:24:02.276496",
+  "monitor_check_count": 324,
+  "monitor_last_check": "2026-10-07T21:30:00.000000Z",
+  "last_verification": "2026-10-07T21:30:00.000000Z",
   "latest_monitoring_verification": {
     "date": "2026-10-07",
-    "github_run": 37673564960,
-    "method": "monitor_scan_for_174k_representations",
+    "github_run": 37692926129,
+    "method": "factory_direction_v35_alignment_confirmation",
     "tfidf_174k_baseline": "CONFIRMED_FROZEN (8/8 representations present in fractal-map mount, 15x independent verification HISTORICAL)",
     "dense_174k_status": "AWAITED (24 yearly checkpoints in legal-distance (2000-2023, 158k+ decisions), concatenation blocked on bge_bger ID mapping and missing parquet 2024-2026)",
     "citation_roles_174k": "AWAITED",
     "linear_hybrids_174k": "AWAITED",
     "monitor_state": "ACTIVE - lane COMPLETE, continue_recommended=false, awaiting 174k dense embeddings delivery",
-    "note": "Monitor check #323 (GitHub run 37673564960): No new awaited representations detected. TF-IDF 174k production baseline remains frozen (evidence_tier=ACCEPTED, 8/8 PASS both adversarial gates, best cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.7345). Dense embedding complementary criteria VALIDATED against 24-year/158k legal-distance ACCEPTED checkpoint evidence with bootstrap 95% CIs: citation_heritage_auc > 0.75 PASS (0.792 [0.762,0.824]), cross_lang_sachverhalt > 0.2 PASS (0.282 [0.267,0.296]), cross_lang_dispositiv > 0.1 PASS (0.150 [0.141,0.160]), cross_lang_erwaegungen > 0.1 FAIL (0.094 [0.086,0.102]). All data blockers unchanged: bge_/bger_ ID mapping missing, parquet 2024-2026 missing, section extraction at 174k not computed. Legal-distance checkpoints available: 2000-2023 (24 years, 158k+ decisions). Center-projected concatenation not performed. Citation roles and linear hybrids not computed at 174k. NO ADVERSARIAL RE-VERIFICATION PERFORMED THIS CYCLE (no new representations detected). Last adversarial verification 2026-10-01. No further same-question cycles justified."
+    "note": "Monitor check #324 (GitHub run 37692926129): Factory direction v35 alignment confirmed. No new awaited representations detected. TF-IDF 174k production baseline remains frozen (evidence_tier=ACCEPTED, 8/8 PASS both adversarial gates, best cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.7345). Dense embedding complementary criteria VALIDATED against 24-year/158k legal-distance ACCEPTED checkpoint evidence with bootstrap 95% CIs: citation_heritage_auc > 0.75 PASS (0.792 [0.762,0.824]), cross_lang_sachverhalt > 0.2 PASS (0.282 [0.267,0.296]), cross_lang_dispositiv > 0.1 PASS (0.150 [0.141,0.160]), cross_lang_erwaegungen > 0.1 FAIL (0.094 [0.086,0.102]). All data blockers unchanged: bge_/bger_ ID mapping missing, parquet 2024-2026 missing, section extraction at 174k not computed. Legal-distance checkpoints available: 2000-2023 (24 years, 158k+ decisions). Center-projected concatenation not performed. Citation roles and linear hybrids not computed at 174k. NO ADVERSARIAL RE-VERIFICATION PERFORMED THIS CYCLE (no new representations detected). Last adversarial verification 2026-10-01. No further same-question cycles justified."
   }
 }
