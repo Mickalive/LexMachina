@@ -1,11 +1,12 @@
 {
   "lane": "evaluation",
   "direction_version": 35,
-  "evidence_tier": "TF-IDF_ACCEPTED_DENSE_UNVALIDATED",
+  "evidence_tier": "TF-IDF_REVERIFIED_MUTATED_DENSE_UNVALIDATED",
   "cycle_status": "COMPLETE",
   "continue_recommended": false,
-  "accepted_run_id": "EVALUATION_V34_PRODUCTION_BASELINE_FROZEN_20261007",
+  "accepted_run_id": "EVALUATION_V35_BASELINE_REVERIFIED_20261007",
   "evidence_refs": [
+    "results/evaluation/tfidf_174k_formal_suite_baseline_reverified.json",
     "results/evaluation/tfidf_174k_formal_suite_baseline.json",
     "results/evaluation/dense_complementary_acceptance_criteria.json",
     "results/evaluation/citation_heritage_174k.json",
@@ -16,19 +17,38 @@
     "/tmp/lex_accepted/legal-distance/state/legal-distance.json",
     "/tmp/lex_accepted/fractal-map/state/fractal-map.json"
   ],
-  "next_recommendation": "TF-IDF 174k evaluation FROZEN as production baseline (COMPLETE, no further cycles). Dense embedding complementary view acceptance criteria DEFINED and FROZEN but UNVALIDATED at 174k scale — validation BLOCKED pending corpus lane deliveries (bge_/bger_ ID mapping, parquet 2022-2026, section extraction at 174k). Next evaluation cycle triggers ONLY when legal-distance delivers 174k dense embeddings for validation against frozen criteria.",
-  "monitor_check_count": 324,
-  "monitor_last_check": "2026-10-07T20:29:45.192000",
-  "last_verification": "2026-10-07T20:29:45.192000",
+  "next_recommendation": "TF-IDF 174k production baseline RE-VERIFIED against current accepted mount (2026-10-07). ORIGINAL FREEZE (2026-10-03) COMPROMISED: accepted mount embeddings mutated post-freeze (fractal-map rebuild 2026-10-07). RE-VERIFIED RESULTS: 6/8 representations PASS both adversarial gates (vs 8/8 originally). Production baseline cited_decisions_tfidf_outcome_hybrid_0.5: JP=0.556 (vs 0.7345 original), LangDom=0.448 (vs 0.477), BOTH PASS. Citation heritage on production baseline: AUC=0.649 (FAIL, threshold 0.65). Dense embedding complementary criteria UNCHANGED but UNVALIDATED at 174k — validation BLOCKED pending corpus lane deliveries. Next evaluation cycle triggers ONLY when legal-distance delivers 174k dense embeddings for validation against frozen criteria. MUTATION DOCUMENTED as accepted negative finding.",
+  "monitor_check_count": 327,
+  "monitor_last_check": "2026-10-07T21:36:00.000000",
+  "last_verification": "2026-10-07T21:36:00.000000",
   "latest_monitoring_verification": {
     "date": "2026-10-07",
-    "github_run": 37673564960,
-    "method": "monitor_scan_for_174k_representations + adversarial_reverification",
-    "tfidf_174k_baseline": "CONFIRMED_FROZEN (8/8 representations present in fractal-map mount, 15x independent verification). WORKING DIRECTORY embeddings REVERIFIED: cited_decisions_tfidf_outcome_hybrid_0.5 adversarial PASS (LangDom=0.4895, JuristPref=0.7265 on exact k-NN stratified subsample n=2000, seed=42). ACCEPTED lane embeddings MUTATED post-freeze (JP=0.5560, Δ=-0.1785).",
+    "github_run": 37687845907,
+    "method": "full_reverification_accepted_mount_all_8_representations",
+    "tfidf_174k_baseline": "RE-VERIFIED: 6/8 PASS both adversarial gates. Production baseline cited_decisions_tfidf_outcome_hybrid_0.5: JP=0.556 (PASS), LangDom=0.448 (PASS). Citation heritage AUC=0.649 (FAIL). Original freeze (2026-10-03, JP=0.7345) INVALIDATED by accepted mount mutation (fractal-map rebuild 2026-10-07).",
+    "mutation_details": {
+      "original_freeze_date": "2026-10-03",
+      "accepted_mount_modified_date": "2026-10-07T21:16:21",
+      "original_production_jp": 0.7345,
+      "reverified_production_jp": 0.5560,
+      "delta": -0.1785,
+      "original_all_8_pass": true,
+      "reverified_pass_count": 6,
+      "failed_representations": ["outcome_tfidf (JP=0.254)", "regeste_tfidf (JP=0.3585)"]
+    },
     "dense_174k_status": "AWAITED (24 yearly checkpoints in legal-distance (2000-2023, 158k+ decisions), concatenation blocked on bge_bger ID mapping and missing parquet 2024-2026)",
     "citation_roles_174k": "AWAITED",
     "linear_hybrids_174k": "AWAITED",
     "monitor_state": "ACTIVE - lane COMPLETE, continue_recommended=false, awaiting 174k dense embeddings delivery",
-    "note": "Monitor check #323 (GitHub run 37673564960): No new awaited representations detected. TF-IDF 174k production baseline remains frozen (evidence_tier=ACCEPTED, 8/8 PASS both adversarial gates, best cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.7265). Dense embedding complementary criteria VALIDATED against 24-year/158k legal-distance ACCEPTED checkpoint evidence with bootstrap 95% CIs: citation_heritage_auc > 0.75 PASS (0.792 [0.762,0.824]), cross_lang_sachverhalt > 0.2 PASS (0.282 [0.267,0.296]), cross_lang_dispositiv > 0.1 PASS (0.150 [0.141,0.160]), cross_lang_erwaegungen > 0.1 FAIL (0.094 [0.086,0.102]). All data blockers unchanged: bge_/bger_ ID mapping missing, parquet 2024-2026 missing, section extraction at 174k not computed. Legal-distance checkpoints available: 2000-2023 (24 years, 158k+ decisions). Center-projected concatenation not performed. Citation roles and linear hybrids not computed at 174k. No further same-question cycles justified."
+    "note": "Re-verification run 2026-10-07T21:35:34Z. TF-IDF production baseline functionally valid (passes adversarial gates) but degraded from original freeze. Dense embedding complementary criteria VALIDATED against 24-year/158k legal-distance ACCEPTED checkpoint evidence with bootstrap 95% CIs: citation_heritage_auc > 0.75 PASS (0.792 [0.762,0.824]), cross_lang_sachverhalt > 0.2 PASS (0.282 [0.267,0.296]), cross_lang_dispositiv > 0.1 PASS (0.150 [0.141,0.160]), cross_lang_erwaegungen > 0.1 FAIL (0.094 [0.086,0.102]). All data blockers unchanged. No further same-question cycles justified."
+  },
+  "accepted_negative_findings": {
+    "tfidf_baseline_mutation_post_freeze": {
+      "description": "Accepted mount TF-IDF embeddings mutated after original baseline freeze (2026-10-03 -> 2026-10-07 fractal-map rebuild)",
+      "impact": "Original frozen baseline results (8/8 PASS, JP=0.7345) no longer reflect current accepted mount state",
+      "reverified_state": "6/8 PASS, production baseline JP=0.556 (still PASS), citation_heritage AUC=0.649 (FAIL)",
+      "evidence_tier": "ACCEPTED_NEGATIVE",
+      "remediation": "Baseline re-frozen with current accepted mount values; mutation documented for provenance"
+    }
   }
 }
