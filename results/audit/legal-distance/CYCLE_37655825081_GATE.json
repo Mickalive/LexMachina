@@ -1,0 +1,11 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Clarify TF-IDF citation baseline comparison: dense AUC 0.79-0.85 vs text-only TF-IDF (0.50-0.63), NOT production debiased_citation_blended (AUC 0.9089)",
+    "Update true OOS ceiling value: best TF-IDF holdout JP=0.58, dense holdout JP=0.385, both < 0.7 target",
+    "Correct Erwaegungen cross-lingual status in summary table: ❌ FAIL (not 🟡 SAMPLE ONLY)"
+  ],
+  "claim_ceiling": "Dense embeddings are NECESSARY and SUFFICIENT for three non-jurist-preference complementary views at characterized minimal scales (citation heritage: 21yr/137k; section cross-lingual Sachverhalt/Dispositiv: 1K sample; linear hybrid complement: 19yr/122k). TF-IDF citation hybrids = PRIMARY product mode (v1.0, JP~0.78). Dense = COMPLEMENTARY modes (v1.1+). No single representation dominates jurist preference + language dominance + citation independence at any scale.",
+  "evidence_summary": "All 8/8 test assertions independently verified against frozen source evidence. Citation heritage: dense center_projected AUC 0.76-0.85 > 0.75 threshold at 21-24yr (137k-158k decisions, 100-730 positive pairs). Section cross-lingual: Sachverhalt cp64 cross_lang=0.282>0.2 PASS, Dispositiv=0.150>0.1 PASS, Erwaegungen=0.094<0.1 FAIL (1K sample only, full corpus BLOCKED). Linear hybrids: PASS adversarial gates at 19yr+ (w=0.3-0.4, JP=0.61-0.67) but BELOW TF-IDF baseline (JP=0.78-0.79). Two-mode tradeoff reproduced at 8 scales (3yr-165k): TF-IDF dominates JP, dense dominates LangDom, hybrids intermediate. True OOS ceiling: v8 holdout best TF-IDF JP=0.58, dense JP=0.385, both < 0.7 factory target. TF-IDF 174k primary baseline (debiased_citation_blended) passes ALL 14 benchmarks. Data blockers: bge_/bger_ ID mapping, parquet 2024-2026 (~15.5k missing), 174k section extraction. Negative results preserved: dense JP failure at all scales, Erwaegungen cross-lingual FAIL, raw 768dim citation heritage FAIL at 24yr, boilerplate resistance NEGATIVE, full-text cross-lingual inflated at small scale. Provenance complete across 7 evidence directories."
+}
