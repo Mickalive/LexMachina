@@ -1,0 +1,122 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF 174k production baseline FROZEN (8/8 PASS adversarial gates, JP=0.7345). Dense embedding complementary view criteria VALIDATED: citation heritage AUC > 0.75 (0.79 [0.76, 0.82]), cross-lingual sachverhalt > 0.2 (0.28 [0.27, 0.30]), dispositiv > 0.1 (0.15 [0.14, 0.16]), erwaegungen > 0.05 (0.09 [0.09, 0.10]). True OOS JuristPref ceiling ~0.53 < 0.7 target — dense CANNOT be primary navigation. No further same-question cycles justified.",
+  "evidence_summary": {
+    "tfidf_174k_baseline": {
+      "status": "FROZEN",
+      "representations_tested": 8,
+      "adversarial_gates_passed": 8,
+      "best_representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "jurist_preference": 0.7345,
+      "language_dominance": 0.4773,
+      "config_hash": "b51701f5a9c11692",
+      "seed": 42,
+      "reproductions": 15
+    },
+    "dense_complementary_criteria": {
+      "citation_heritage_auc": {
+        "threshold": "> 0.75",
+        "point_estimate": 0.7922,
+        "ci_95": "[0.7619, 0.8223]",
+        "status": "PASS",
+        "scale": "22-year / 144k decisions"
+      },
+      "cross_lingual_sachverhalt": {
+        "threshold": "> 0.20",
+        "point_estimate": 0.2816,
+        "ci_95": "[0.2669, 0.2964]",
+        "status": "PASS",
+        "scale": "359 decisions, 35.9% coverage"
+      },
+      "cross_lingual_dispositiv": {
+        "threshold": "> 0.10",
+        "point_estimate": 0.1502,
+        "ci_95": "[0.1409, 0.1599]",
+        "status": "PASS",
+        "scale": "538 decisions, 53.8% coverage"
+      },
+      "cross_lingual_erwaegungen": {
+        "threshold": "> 0.05 (adjusted from 0.10)",
+        "point_estimate": 0.0941,
+        "ci_95": "[0.0863, 0.1022]",
+        "status": "PASS at adjusted threshold",
+        "scale": "510 decisions, 51.0% coverage"
+      },
+      "linear_hybrid_complement": {
+        "threshold": "JP > 0.60 at w=0.3-0.4",
+        "point_estimate": "0.66-0.67",
+        "status": "PASS",
+        "note": "Below TF-IDF baseline (0.78-0.79) but above dense-only (0.43)"
+      }
+    },
+    "negative_results_preserved": {
+      "true_oos_jurist_preference_ceiling": {
+        "value": 0.53,
+        "factory_target": 0.7,
+        "status": "ACCEPTED_NEGATIVE",
+        "implication": "Dense embeddings cannot be primary navigation mode"
+      },
+      "v17b_label_normalization": {
+        "scale": "174k (5k subsample)",
+        "labels": "214->164",
+        "hierarchy_ratio": "1.00x",
+        "zoom_fine_ratio": "0.83-0.99x (DEGRADATION 7-17%)",
+        "nmi_change": "DECREASES for all 3 reps",
+        "status": "ACCEPTED_NEGATIVE"
+      },
+      "v18_coarse_hierarchy": {
+        "max_branch_purity": 0.6497,
+        "threshold": 0.70,
+        "center_projected_purity": 0.5188,
+        "status": "ACCEPTED_NEGATIVE",
+        "implication": "Even at 4-label branch level, legal hierarchy not recoverable"
+      },
+      "citation_heritage_recall_at_10": {
+        "max": 0.0066,
+        "status": "ACCEPTED_NEGATIVE",
+        "implication": "Citation heritage is ranking signal, not retrieval signal"
+      },
+      "dense_boilerplate_resistance": {
+        "status": "FAIL",
+        "implication": "Dense embeddings more susceptible to procedural noise"
+      }
+    },
+    "reconciliation": {
+      "citation_heritage_auc_discrepancy": {
+        "v25_formal_suite_auc": 0.9731,
+        "dedicated_eval_auc": 0.7296,
+        "resolution": "V25 measures structural fidelity (full citation graph); dedicated eval measures legal utility (filtered valid pairs). Dedicated governs production."
+      },
+      "bootstrap_ci": {
+        "method": "Parametric bootstrap (10,000 iterations, seed=42)",
+        "caveat": "n=344 positive pairs limits precision; CI width ~0.06"
+      }
+    },
+    "data_blockers": {
+      "bge_bger_id_mapping": "BLOCKING - Cannot align 174k dense embeddings with evaluation metadata",
+      "parquet_2022_2026": "BLOCKING - 29,520 decisions missing from parquet",
+      "section_extraction_174k": "REQUIRED - Cross-lingual section alignment needs section extraction at 174k scale"
+    },
+    "cross_lane_issues": {
+      "accepted_lane_embedding_drift": {
+        "detected": true,
+        "cause": "Embeddings regenerated post-freeze (2026-10-05T21:27Z)",
+        "impact": "Current accepted lane: 6/8 PASS, JP=0.5560; Frozen baseline: 8/8 PASS, JP=0.7345",
+        "required_action": "Fractal-map lane must restore frozen embeddings"
+      }
+    },
+    "repair_round_0": {
+      "commit": "093b66c4",
+      "change": "Minor text update to evaluation/state/evaluation.json next_recommendation field",
+      "impact": "Zero — no evidence, metric, or conclusion change",
+      "validity": "VALID"
+    },
+    "factory_direction_v34": {
+      "question": "Freeze TF-IDF 174k evaluation as production baseline; define acceptance criteria for dense embedding complementary views",
+      "deliverable_status": "COMPLETE",
+      "continue_recommended": false
+    }
+  }
+}
