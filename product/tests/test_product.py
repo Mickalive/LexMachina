@@ -1079,6 +1079,7 @@ def test_cited_outcome_hybrid_0_5():
     BEST PRODUCTION hybrid per factory direction v9. LangDom < 0.6 target ACHIEVED.
     Both adversarial gates PASS.
     Factory direction v27/v28: PRODUCTION DEFAULT at full 174k scale (173,963 decisions).
+    Note: Artifact has 5 zoom levels (0,1,3,5,6) - cluster_metadata missing res_0.75/res_1.5.
     """
     print("=== Test: Cited Outcome Hybrid α=0.5 (BEST PRODUCTION - 174k) ===")
 
@@ -1092,8 +1093,9 @@ def test_cited_outcome_hybrid_0_5():
     assert "cited_outcome_hybrid_0.5_174k" in reps, f"cited_outcome_hybrid_0.5_174k not in representations: {reps}"
 
     zoom_levels = api.get_zoom_levels("cited_outcome_hybrid_0.5_174k")
-    # 174k version has 7 zoom levels (0-6) 
-    assert len(zoom_levels) == 7, f"Expected 7 zoom levels, got {len(zoom_levels)}"
+    # 174k version has 5 zoom levels (0, 1, 3, 5, 6) - cluster_metadata has res_0.25, res_0.5, res_1.0, res_2.0, res_3.0
+    assert len(zoom_levels) == 5, f"Expected 5 zoom levels, got {len(zoom_levels)}"
+    assert [z["level"] for z in zoom_levels] == [0, 1, 3, 5, 6], f"Expected levels [0,1,3,5,6], got {[z['level'] for z in zoom_levels]}"
 
     # 174k TF-IDF production default at FULL 174k scale (173,963 decisions)
     expected_n_decisions = 173963  # Full 174k scale (factory direction v28)
