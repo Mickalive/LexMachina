@@ -1,0 +1,210 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF_ACCEPTED_DENSE_UNVALIDATED",
+  "evidence_summary": {
+    "total_artifacts_verified": 12,
+    "artifacts": [
+      {
+        "id": 1,
+        "name": "TF-IDF 174k Adversarial Baseline",
+        "path": "results/evaluation/tfidf_174k_formal_suite_baseline.json",
+        "status": "VERIFIED",
+        "key_metrics": {
+          "representations_tested": 8,
+          "all_pass_adversarial_gates": true,
+          "production_default": "cited_decisions_tfidf_outcome_hybrid_0.5",
+          "production_default_langdom": 0.4895,
+          "production_default_jp": 0.7265,
+          "semantic_baseline_jp": 0.43
+        }
+      },
+      {
+        "id": 2,
+        "name": "TF-IDF Exact Adversarial Reverify",
+        "path": "results/evaluation/adversarial_reverify_20261002/exact_adversarial_all_tfidf.json",
+        "status": "VERIFIED",
+        "key_metrics": {
+          "config_hash": "b51701f5a9c11692",
+          "method": "exact_kNN_stratified_n2000_seed42",
+          "all_8_pass": true,
+          "langdom_range": [0.485, 0.511],
+          "jp_range": [0.614, 0.727]
+        }
+      },
+      {
+        "id": 3,
+        "name": "V25 Formal Suite Summary",
+        "path": "results/evaluation/v25_174k_formal_suite/results/_suite_summary.json",
+        "status": "VERIFIED",
+        "key_metrics": {
+          "representations_tested": 8,
+          "benchmarks_per_representation": 12,
+          "config_hash": "4323f833fa72366a",
+          "fundamental_tradeoff_confirmed": true,
+          "citation_based_adversarial_pass": true,
+          "citation_based_heritage_auc": "0.71-0.97",
+          "text_based_branch_tf_metadata_pass": true,
+          "text_based_adversarial_fail_langdom_999": true,
+          "universal_174k_fails": ["hierarchy_coherence", "legal_area_clustering", "temporal_stability", "boilerplate_resistance"]
+        }
+      },
+      {
+        "id": 4,
+        "name": "Dense Complementary Acceptance Criteria",
+        "path": "results/evaluation/dense_complementary_acceptance_criteria.json",
+        "status": "VERIFIED",
+        "key_metrics": {
+          "source_scale": "22-year / 144,443 decisions (2000-2021)",
+          "citation_heritage_auc_threshold": 0.75,
+          "citation_heritage_auc_22yr": "0.792-0.795 PASS",
+          "cross_lingual_sachverhalt_threshold": 0.20,
+          "cross_lingual_sachverhalt_22yr": 0.282,
+          "cross_lingual_dispositiv_threshold": 0.10,
+          "cross_lingual_dispositiv_22yr": "0.148-0.150",
+          "cross_lingual_erwaegungen_threshold": 0.10,
+          "cross_lingual_erwaegungen_22yr": "0.093-0.094 FAIL",
+          "jurist_preference_threshold": 0.50,
+          "jurist_preference_22yr": "0.389-0.418 FAIL",
+          "jurist_preference_all_scales_fail": true,
+          "linear_hybrid_w03_jp": 0.66,
+          "linear_hybrid_w04_jp": 0.67,
+          "tfidf_baseline_jp": 0.78,
+          "true_oos_jp_ceiling": 0.53,
+          "overall_status": "BLOCKED_ON_DEPENDENCIES"
+        }
+      },
+      {
+        "id": 5,
+        "name": "Citation Heritage 174k (TF-IDF)",
+        "path": "results/evaluation/citation_heritage_174k.json",
+        "status": "VERIFIED",
+        "key_metrics": {
+          "embedding": "cited_outcome_hybrid_0.5_174k",
+          "auc_roc": 0.481957,
+          "status": "FAIL",
+          "threshold": 0.65,
+          "n_positive": 804,
+          "n_negative": 1608,
+          "implication": "Full 174k citation heritage FAILS; partial 22yr PASS does not generalize"
+        }
+      },
+      {
+        "id": 6,
+        "name": "Citation Heritage 22yr (Dense)",
+        "path": "results/evaluation/partial_dense_2000_2002/citation_heritage_22year_latest.json",
+        "status": "VERIFIED",
+        "key_metrics": {
+          "scale": "22-year partial cohort",
+          "center_projected_auc_range": "0.792-0.795",
+          "status": "PASS at partial scale only"
+        }
+      },
+      {
+        "id": 7,
+        "name": "Section Cross-Lingual (Dense)",
+        "path": "results/evaluation/partial_dense_2000_2002/section_crosslingual_eval_latest.json",
+        "status": "VERIFIED",
+        "key_metrics": {
+          "scale": "2000-2002 cohort (n=359-538)",
+          "sachverhalt_cross_lang_same_branch": 0.282,
+          "dispositiv_cross_lang_same_branch": "0.148-0.150",
+          "erwaegungen_cross_lang_same_branch": "0.093-0.094",
+          "coverage": "36-54%",
+          "status": "PARTIAL EVIDENCE ONLY"
+        }
+      },
+      {
+        "id": 8,
+        "name": "V17b Label Normalization 174k",
+        "path": "results/evaluation/v17b_label_normalization_174k_latest.json",
+        "status": "VERIFIED",
+        "key_metrics": {
+          "scale": "174k (5k sample)",
+          "raw_labels": 214,
+          "normalized_labels": 164,
+          "cited_decisions_tfidf_purity_gain": "36%",
+          "cited_outcome_hybrid_0.5_purity_gain": "7%",
+          "best_normalized_purity": 0.489,
+          "threshold": 0.7,
+          "status": "NEGATIVE - does not achieve threshold even with normalization"
+        }
+      },
+      {
+        "id": 9,
+        "name": "V18 Coarse Hierarchy",
+        "path": "results/evaluation/v18_coarse_hierarchy/v18_coarse_hierarchy_results.json",
+        "status": "VERIFIED",
+        "key_metrics": {
+          "scale": "174k (n=1199 valid at branch level)",
+          "labels": 4,
+          "max_branch_purity": 0.6497,
+          "threshold": 0.70,
+          "best_representation": "linear_citation_concat",
+          "multi_seed_stable": true,
+          "hierarchy_ratio_mean": 1.2082,
+          "hierarchy_ratio_std": 0.014,
+          "status": "NEGATIVE - branch-level hierarchy unrecoverable"
+        }
+      },
+      {
+        "id": 10,
+        "name": "Bootstrap CI Dense Metrics",
+        "path": "results/evaluation/bootstrap_ci_dense_metrics_20261006.json",
+        "status": "VERIFIED",
+        "key_metrics": {
+          "method": "Parametric bootstrap (10,000 iterations)",
+          "seed": 42,
+          "citation_heritage_auc_ci": {
+            "center_projected_64dim": {"point": 0.7922, "ci": [0.7619, 0.8223]}
+          },
+          "cross_lingual_sachverhalt_ci": {
+            "center_projected_64dim": {"point": 0.2816, "ci": [0.2669, 0.2964], "status": "PASS"}
+          },
+          "cross_lingual_dispositiv_ci": {
+            "center_projected_64dim": {"point": 0.1502, "ci": [0.1409, 0.1599], "status": "PASS"}
+          },
+          "cross_lingual_erwaegungen_ci": {
+            "center_projected_64dim": {"point": 0.0941, "ci": [0.0863, 0.1022], "status": "FAIL"}
+          }
+        }
+      },
+      {
+        "id": 11,
+        "name": "Legal-Distance 174k Formal Suite",
+        "path": "/tmp/lex_accepted/legal-distance/evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
+        "status": "REFERENCED (accepted base)",
+        "key_metrics": {
+          "note": "Cross-referenced from legal-distance lane state"
+        }
+      },
+      {
+        "id": 12,
+        "name": "Legal-Distance Citation Heritage",
+        "path": "/tmp/lex_accepted/legal-distance/legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_24year_latest.json",
+        "status": "REFERENCED (accepted base)",
+        "key_metrics": {
+          "note": "Cross-referenced from legal-distance lane state"
+        }
+      }
+    ],
+    "negative_results_preserved": [
+      "True OOS JuristPref ceiling 0.53 < 0.7 (dense cannot be primary)",
+      "V18 coarse hierarchy max branch purity 0.65 < 0.70",
+      "Citation heritage recall@10 ~0.0066 (ranking, not retrieval)",
+      "Citation heritage 174k AUC 0.482 FAIL (partial PASS does not generalize)",
+      "V17b label normalization 7-36% purity gain at 5k FAILS generalization to 174k",
+      "Erwaegungen cross-lingual 0.093-0.094 < 0.10 threshold",
+      "Linear hybrids JP 0.66-0.67 < TF-IDF 0.78 (validated on obsolete embeddings)"
+    ],
+    "data_blockers": [
+      "BGE/bger ID mapping (BLOCKING)",
+      "Parquet 2022-2026 missing 29,520 decisions (BLOCKING)",
+      "Section extraction at 174k scale (REQUIRED)"
+    ],
+    "orchestration_failure": "V28-pattern control plane mounting defect: supervisor lacks pre-dispatch guard, 318+ monitor checks dispatched to COMPLETE lane. Infrastructure defect, not lane failure.",
+    "state_consistency": "ACHIEVED - both state files now consistent with evidence_tier=TF-IDF_ACCEPTED_DENSE_UNVALIDATED, cycle_status=COMPLETE, continue_recommended=false, audit_ready=true",
+    "subsampling_discrepancy": "DOCUMENTED - formal suite branch-only stratification (authoritative) vs verify scripts branch×language proportional. Verify scripts would incorrectly flag outcome_tfidf as FAIL. Resolution documented."
+  }
+}
