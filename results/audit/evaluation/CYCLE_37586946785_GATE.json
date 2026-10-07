@@ -1,0 +1,17 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF 174k production baseline FROZEN (8/8 PASS adversarial gates, best cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.7265). Dense embeddings VALIDATED as COMPLEMENTARY VIEWS ONLY against 22-year/144k legal-distance checkpoints: citation heritage AUC 0.792 [0.762, 0.822] > 0.75, cross-lang sachverhalt 0.282 [0.267, 0.296] > 0.2, dispositiv 0.150 [0.141, 0.160] > 0.1, erwaegungen 0.094 [0.086, 0.102] < 0.1 FAIL. 24-year dense adversarial: center_projected FAILS jurist gate at ALL dimensions (JP 0.35-0.38) - true OOS ceiling ~0.38 < 0.5. No dense embedding suitable as primary navigation. v17b normalization NON-GENERALIZING at 174k. v18 hierarchy FAIL at 4 branches (max purity 0.65). Data blockers unchanged. Lane in monitoring mode until 174k dense embeddings land.",
+  "evidence_summary": {
+    "tfidf_174k_adversarial": "8/8 PASS both gates (LangDom < 0.85, Jurist > 0.5) on frozen harness v3 (config_hash=b51701f5a9c11692, seed=42, exact k-NN n=2000). Best: cited_decisions_tfidf_outcome_hybrid_0.5 (LangDom=0.4895, JP=0.7265).",
+    "tfidf_174k_citation_heritage": "4/8 PASS (AUC>0.65). Best: cited_decisions_tfidf AUC=0.7296. V25 formal suite (0.973, full graph) vs dedicated eval (0.730, filtered pairs) discrepancy documented.",
+    "dense_22year_citation_heritage": "center_projected_64dim AUC=0.7922 [0.762, 0.822] > 0.75 PASS. Exceeds TF-IDF citation-based (0.71-0.74). 768dim=0.794, 128dim=0.792.",
+    "dense_3year_cross_lingual": "sachverhalt 0.282 [0.267, 0.296] > 0.2 PASS; dispositiv 0.150 [0.141, 0.160] > 0.1 PASS; erwaegungen 0.094 [0.086, 0.102] < 0.1 FAIL. Hierarchy confirmed: Sachverhalt > Dispositiv > Erwaegungen.",
+    "dense_24year_adversarial": "center_projected FAILS jurist gate ALL dimensions: 768dim JP=0.351, 64dim JP=0.3765 (LangDom=0.844 PASS), 128dim JP=0.3565. True OOS ceiling ~0.38 < 0.5.",
+    "v17b_normalization_174k": "NON-GENERALIZING: NMI decreases 3/3 reps; zoom_fine purity degrades 7-17%; different regime from 1K scale.",
+    "v18_coarse_hierarchy": "FAIL at 4-branch level: max purity 0.6497 (linear_citation_concat) < 0.70 threshold. Fundamental hierarchy limitation confirmed.",
+    "data_blockers": "bge_/bger_ ID mapping, parquet 2022-2026, section extraction 174k — all corpus lane, unchanged.",
+    "negative_results_preserved": "v17b non-generalization, v18 hierarchy FAIL, recall@10 max 0.0066, true OOS JP ceiling ~0.53 < 0.70."
+  }
+}

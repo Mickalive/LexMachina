@@ -1,0 +1,62 @@
+{
+  "cycle_id": "CYCLE_FACTORY_V34_174K_V10_RELEASE_VERIFIED_37598975250",
+  "factory_direction_version": 34,
+  "lane": "product",
+  "status": "PASS",
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "claim_ceiling": "V1.0 RELEASED — TF-IDF citation hybrids as primary navigation mode (JP 0.78 vs 0.43 baseline). 3 production 174k TF-IDF modes operational at 173,963 decisions. All test suites PASS. Dense embedding integration ready for v1.1+.",
+  "evidence_tier": "ACCEPTED",
+  "continue_recommended": false,
+  "next_recommendation": "No further same-question cycles justified. Next: v1.1 dense embedding complementary views (requires corpus lane resumption for BGE/bger ID mapping + parquet 2022-2026 + section extraction).",
+  "verification_summary": {
+    "total_tests_verified": 113,
+    "test_suites": {
+      "test_cycle_174k_simulation": {"total": 16, "passed": 16, "failed": 0},
+      "test_cycle_v18_product": {"total": 13, "passed": 13, "failed": 0},
+      "test_cycle_scale_readiness": {"total": 36, "passed": 36, "failed": 0},
+      "test_cycle_product_v10": {"total": 44, "passed": 44, "failed": 0},
+      "test_http_api_integration": {"total": 4, "passed": 4, "failed": 0}
+    },
+    "production_modes_verified": 3,
+    "production_mode_names": [
+      "cited_decisions_tfidf_174k",
+      "cited_outcome_hybrid_0.5_174k",
+      "cited_outcome_hybrid_0.7_174k"
+    ],
+    "corpus_decisions": 173963,
+    "representations_loaded": 33,
+    "startup_validation": {"passing": 33, "warnings": 0, "failing": 0},
+    "health_summary": {"total": 33, "healthy": 33, "degraded": 0, "failed": 0, "healthy_pct": 100.0}
+  },
+  "artifacts_verified": [
+    "product/results/fractal_map/cited_decisions_tfidf_174k/",
+    "product/results/fractal_map/cited_outcome_hybrid_0.5_174k/",
+    "product/results/fractal_map/cited_outcome_hybrid_0.7_174k/",
+    "product/results/fractal_map/hierarchical_map_174k/metadata_174k_eval.json",
+    "product/results/fractal_map/spatial_indices/spatial_cited_decisions_tfidf_174k",
+    "product/results/fractal_map/spatial_indices/spatial_cited_outcome_hybrid_0.5_174k",
+    "product/results/fractal_map/spatial_indices/spatial_cited_outcome_hybrid_0.7_174k"
+  ],
+  "blockers_resolved": [
+    "174k TF-IDF representation path bug FIXED (map_loader.py now uses correct paths without 'fractal_map/' prefix since results_dir IS the fractal_map directory)"
+  ],
+  "dense_embedding_integration": {
+    "status": "READY",
+    "build_script": "product/build_174k_dense_embeddings_integration.py",
+    "map_loader_methods": [
+      "_load_center_projected_174k_768",
+      "_load_center_projected_174k_64",
+      "_load_center_projected_174k_128",
+      "_load_raw_768_174k",
+      "_load_174k_dense_embedding_representation (generic)"
+    ],
+    "integration_contracts": {
+      "citation_heritage_view": {"status": "READY at 144k", "criteria": "AUC > 0.75"},
+      "cross_lingual_view": {"status": "BLOCKED", "criteria": "section extraction at 174k"},
+      "hybrid_complement_view": {"status": "READY at 144k", "criteria": "PASS adversarial + cross_lang > TF-IDF"}
+    }
+  },
+  "timestamp": "2026-10-07T09:15:00.000000+00:00",
+  "github_run": 37598975250
+}

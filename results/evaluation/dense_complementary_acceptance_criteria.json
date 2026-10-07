@@ -1,49 +1,63 @@
 {
-  "run_id": "evaluation_v34_dense_complementary_criteria_20261003",
+  "run_id": "evaluation_v34_dense_complementary_criteria_REVISED_20261007",
   "lane": "evaluation",
   "direction_version": 34,
-  "timestamp": "2026-10-03T20:35:00Z",
-  "purpose": "Define explicit acceptance criteria for dense embeddings as COMPLEMENTARY views (not primary navigation)",
+  "timestamp": "2026-10-07T08:45:00Z",
+  "purpose": "Define explicit acceptance criteria for dense embeddings as COMPLEMENTARY views (not primary navigation) — REVISED per Audit CYCLE_37591874490",
   "context": {
     "pivot_decision": "legal_distance audit CYCLE_37090665528",
     "dense_role": "COMPLEMENTARY (citation heritage view, cross-lingual view, linear hybrid complement)",
     "tfidf_role": "PRIMARY (jurist preference, branch clustering, tf_metadata)",
-    "true_oos_jp_ceiling": 0.53
+    "true_oos_jp_ceiling": 0.53,
+    "audit_correction": "Original document claimed 'current_citation_based_174k: 0.70-0.74 (PASS at 174k scale)' — contradicted by actual 174k run (AUC 0.48 FAIL). Dense criteria are FROZEN but UNVALIDATED at 174k scale pending corpus lane deliveries."
   },
   "acceptance_criteria": {
     "citation_heritage_view": {
       "metric": "AUC for recovering cited precedent pairs",
       "threshold": "> 0.75",
-      "current_citation_based_174k": "0.70-0.74 (PASS at 174k scale)",
+      "current_citation_based_174k": "AUC 0.482 FAIL (cited_outcome_hybrid_0.5_174k embedding, frozen 137k pair pool)",
       "current_text_based_174k": "0.50-0.65 (FAIL)",
-      "target": "citation_based dense embeddings must exceed 0.75 AUC on frozen 137k pair pool",
-      "validation_method": "validate_citation_heritage_174k.py on frozen pair pool"
+      "partial_22yr_cohort_2000_2002": "AUC 0.792-0.794 PASS (center_projected 768/64/128) — NOT full 174k corpus",
+      "target": "citation_based dense embeddings must exceed 0.75 AUC on frozen 137k pair pool at FULL 174k SCALE",
+      "validation_method": "validate_citation_heritage_174k.py on frozen pair pool",
+      "status": "CRITERION_DEFINED_FROZEN — VALIDATION BLOCKED at 174k"
     },
     "cross_lingual_view": {
       "sachverhalt": {
         "metric": "cross_lang_same_branch_mean (facts section)",
         "threshold": "> 0.2",
         "rationale": "Sachverhalt (facts) showed best cross-lingual alignment in section experiments (gap 0.187 vs 0.452)",
-        "validation": "Section-segmented dense embeddings with bge/bger mapping"
+        "validation": "Section-segmented dense embeddings with bge/bger mapping",
+        "evidence_at_174k": "Full-doc embeddings: cross_lang_same_branch_mean = 0.0 FAIL (cross_language_benchmark_results.json)",
+        "evidence_partial_subset": "Section-segmented (n=359, coverage=0.359): center_projected_64/768 = 0.282 PASS",
+        "status": "CRITERION_DEFINED_FROZEN — VALIDATION BLOCKED at 174k (section extraction required)"
       },
       "dispositiv": {
         "metric": "cross_lang_same_branch_mean (holdings section)",
         "threshold": "> 0.1",
         "rationale": "Dispositiv (holdings) second-best cross-lingual alignment",
-        "validation": "Section-segmented dense embeddings with bge/bger mapping"
+        "validation": "Section-segmented dense embeddings with bge/bger mapping",
+        "evidence_at_174k": "Full-doc embeddings: cross_lang_same_branch_mean = 0.0 FAIL",
+        "evidence_partial_subset": "Section-segmented (n=538, coverage=0.538): center_projected_64 = 0.150, center_projected_768 = 0.148 PASS",
+        "status": "CRITERION_DEFINED_FROZEN — VALIDATION BLOCKED at 174k (section extraction required)"
       },
       "erwaegungen": {
         "metric": "cross_lang_same_branch_mean (reasoning section)",
         "threshold": "> 0.05",
         "rationale": "Erwaegungen (reasoning) weakest cross-lingual alignment but still useful for doctrine view",
-        "validation": "Section-segmented dense embeddings with bge/bger mapping"
+        "validation": "Section-segmented dense embeddings with bge/bger mapping",
+        "evidence_partial_subset": "Section-segmented (n=510, coverage=0.510): center_projected_64 = 0.094, center_projected_768 = 0.093 PASS",
+        "status": "CRITERION_DEFINED_FROZEN — VALIDATION BLOCKED at 174k (section extraction required)"
       }
     },
     "linear_hybrid_complement": {
       "metric": "jurist_pairwise_preference (hybrid_weight 0.3-0.4)",
       "threshold": "> 0.60 (below TF-IDF baseline 0.735 but above dense-only 0.43)",
       "rationale": "Linear hybrids at optimal weight PASS adversarial gates but remain BELOW TF-IDF baseline (JP 0.66-0.67 vs 0.78-0.79)",
-      "validation": "Formal suite adversarial gates on 2000 decision stratified sample"
+      "validation": "Formal suite adversarial gates on 2000 decision stratified sample with 174k dense + TF-IDF",
+      "evidence_at_174k": "BLOCKED — no 174k legal-distance dense embeddings exist (bge_/bger_ mapping, parquet 2022-2026, section extraction)",
+      "evidence_obsolete_embeddings": "product_integration_verification_v11.json: JP 0.66-0.68 on v6-v10 era embeddings (hybrid_stabilized, mahalanobis, linear_metric) — NOT target embeddings",
+      "status": "CRITERION_DEFINED_FROZEN — VALIDATION BLOCKED at 174k"
     }
   },
   "accepted_negative_findings": {
@@ -67,6 +81,12 @@
     "boilerplate_resistance_dense": {
       "status": "FAIL",
       "implication": "Dense embeddings more susceptible to procedural boilerplate"
+    },
+    "citation_heritage_174k_auc_fail": {
+      "value": 0.482,
+      "threshold": 0.75,
+      "status": "ACCEPTED_NEGATIVE",
+      "implication": "Full 174k corpus citation heritage FAILS for cited_outcome_hybrid_0.5_174k embedding; partial 22yr cohort PASS does not generalize"
     }
   },
   "data_blockers": {
@@ -91,5 +111,17 @@
     "cross_lingual": "Compute section-segmented embeddings (sachverhalt/dispositiv/erwaegungen), evaluate cross_lang_same_branch per section",
     "linear_hybrid": "Run formal suite adversarial gates on hybrid weights 0.3, 0.35, 0.4 with 174k dense + TF-IDF",
     "scale": "All criteria must hold at full 174k (not subsampled)"
+  },
+  "revision_history": {
+    "original_run_id": "evaluation_v34_dense_complementary_criteria_20261003",
+    "revised_per_audit": "CYCLE_37591874490_GATE (REVISE)",
+    "key_corrections": [
+      "Removed false claim: 'current_citation_based_174k: 0.70-0.74 (PASS at 174k scale)'",
+      "Added actual 174k result: AUC 0.482 FAIL",
+      "Clarified cross-lingual results are from partial subsets (n=359-538, coverage 36-54%), not 174k scale",
+      "Clarified linear hybrid JP validated on obsolete v6-v10 embeddings, not target 174k legal-distance embeddings",
+      "Updated evidence tier for dense criteria from ACCEPTED to UNVALIDATED/BLOCKED pending corpus lane deliveries",
+      "Added citation_heritage_174k_auc_fail to accepted_negative_findings"
+    ]
   }
 }

@@ -1,9 +1,9 @@
 {
   "lane": "evaluation",
   "direction_version": 34,
-  "evidence_tier": "ACCEPTED",
+  "evidence_tier": "TF-IDF_ACCEPTED_DENSE_UNVALIDATED",
   "cycle_status": "COMPLETE",
-  "continue_recommended": false,
+  "continue_recommended": "conditional",
   "accepted_run_id": "EVALUATION_V34_PRODUCTION_BASELINE_FROZEN_20261007",
   "evidence_refs": [
     "results/evaluation/tfidf_174k_formal_suite_baseline.json",
@@ -16,7 +16,7 @@
     "/tmp/lex_accepted/legal-distance/state/legal-distance.json",
     "/tmp/lex_accepted/fractal-map/state/fractal-map.json"
   ],
-  "next_recommendation": "TF-IDF 174k evaluation FROZEN as production baseline. Dense embedding complementary view acceptance criteria DEFINED and FROZEN. No further same-question cycles justified. Factory Director action required: Resume corpus lane for BGE/bger ID mapping + parquet 2022-2026 + section extraction at 174k scale to enable dense embedding validation against frozen criteria.",
+  "next_recommendation": "TF-IDF 174k evaluation FROZEN as production baseline (COMPLETE, no further cycles). Dense embedding complementary view acceptance criteria DEFINED and FROZEN but UNVALIDATED at 174k scale — validation BLOCKED pending corpus lane deliveries (bge_/bger_ ID mapping, parquet 2022-2026, section extraction at 174k). Next evaluation cycle triggers ONLY when legal-distance delivers 174k dense embeddings for validation against frozen criteria.",
   "v17_label_normalization_findings": {
     "evidence_tier": "REPRODUCED",
     "multi_seed_verified": true,
@@ -39,29 +39,34 @@
       "beats_semantic_baseline": true,
       "semantic_baseline_jp": 0.43,
       "all_8_modes_pass_adversarial": true,
-      "verdict": "FROZEN_AS_PRODUCTION_BASELINE"
+      "verdict": "FROZEN_AS_PRODUCTION_BASELINE",
+      "evidence_tier": "ACCEPTED"
     },
     "dense_complementary_criteria_frozen": {
       "citation_heritage_auc": {
         "threshold": "> 0.75",
-        "current_dense_evidence": "0.79-0.85 at 21-24yr scale (137k-158k decisions)",
-        "current_tfidf_citation_based": "0.70-0.74 at 174k",
-        "status": "CRITERION_DEFINED_AWAITING_174K_VALIDATION"
+        "current_dense_evidence_174k": "AUC 0.482 FAIL (cited_outcome_hybrid_0.5_174k)",
+        "current_dense_evidence_partial_22yr": "0.79-0.85 at 22yr scale (2000-2002 cohort, NOT full 174k)",
+        "current_tfidf_citation_based": "0.70-0.74 at 174k (TF-IDF citation-based)",
+        "status": "CRITERION_DEFINED_FROZEN — VALIDATION FAILED at 174k, partial PASS does not generalize"
       },
       "cross_lingual_sachverhalt": {
         "threshold": "> 0.2",
-        "current_evidence": "0.282 at 1K sample scale",
-        "status": "CRITERION_DEFINED_AWAITING_174K_VALIDATION"
+        "current_evidence_174k": "Full-doc embeddings: 0.0 FAIL",
+        "current_evidence_partial_subset": "0.282 at 1K sample scale (n=359, coverage=36%)",
+        "status": "CRITERION_DEFINED_FROZEN — VALIDATION BLOCKED (section extraction at 174k required)"
       },
       "cross_lingual_dispositiv": {
         "threshold": "> 0.1",
-        "current_evidence": "0.150 at 1K sample scale",
-        "status": "CRITERION_DEFINED_AWAITING_174K_VALIDATION"
+        "current_evidence_174k": "Full-doc embeddings: 0.0 FAIL",
+        "current_evidence_partial_subset": "0.150 at 1K sample scale (n=538, coverage=54%)",
+        "status": "CRITERION_DEFINED_FROZEN — VALIDATION BLOCKED (section extraction at 174k required)"
       },
       "linear_hybrid_complement": {
         "threshold": "JP > 0.60 at w=0.3-0.4 (below TF-IDF 0.735, above dense-only 0.43)",
-        "current_evidence": "0.61-0.67 at 19-22yr scale",
-        "status": "CRITERION_DEFINED_AWAITING_174K_VALIDATION"
+        "current_evidence_174k": "BLOCKED — no 174k legal-distance dense embeddings exist",
+        "current_evidence_obsolete_embeddings": "0.66-0.68 on v6-v10 era embeddings (NOT target legal-distance 174k embeddings)",
+        "status": "CRITERION_DEFINED_FROZEN — VALIDATION BLOCKED (dense embeddings delivery required)"
       }
     },
     "accepted_negative_findings": {
@@ -78,6 +83,11 @@
       "citation_heritage_recall_at_10": {
         "max": 0.0066,
         "implication": "Citation heritage is ranking signal, not retrieval signal"
+      },
+      "citation_heritage_174k_auc_fail": {
+        "value": 0.482,
+        "threshold": 0.75,
+        "implication": "Full 174k corpus citation heritage FAILS; partial 22yr cohort PASS does not generalize to full corpus"
       },
       "tfidf_known_limitations": {
         "cross_language_retrieval": "FAIL (recall@10 0.141 < 0.2)",
@@ -100,10 +110,50 @@
     "linear_hybrid": "Run formal suite adversarial gates on hybrid weights 0.3, 0.35, 0.4 with 174k dense + TF-IDF",
     "scale": "All criteria must hold at full 174k (not subsampled)"
   },
-  "final_verification_run_id": "EVALUATION_V34_FINAL_AUDIT_VERIFICATION_20261007",
-  "final_verification_timestamp": "2026-10-07T02:30:00.000000Z",
-  "github_run": 37561471534,
+  "final_verification_run_id": "EVALUATION_V34_FINAL_VERIFICATION_20261007_37574492135",
+  "final_verification_timestamp": "2026-10-07T05:15:00.000000Z",
+  "github_run": 37574492135,
+  "additional_verification_runs": [
+    {
+      "run_id": "EVALUATION_V34_VERIFICATION_20261007_37598492933",
+      "github_run": 37598492933,
+      "timestamp": "2026-10-07T09:30:00.000000Z",
+      "verification_type": "independent_state_and_artifact_audit",
+      "tests_passed": 12,
+      "artifacts_verified": [
+        "tfidf_174k_formal_suite_baseline.json",
+        "dense_complementary_acceptance_criteria.json",
+        "citation_heritage_174k.json",
+        "bootstrap_ci_dense_metrics_20261006.json",
+        "v18_coarse_hierarchy/v18_coarse_hierarchy_results.json"
+      ],
+      "status": "VERIFIED"
+    }
+  ],
   "audit_ready": true,
+  "audit_revision": {
+    "original_cycle": 37591874490,
+    "audit_gate": "REVISE",
+    "audit_report": "reports/audit/evaluation/CYCLE_37591874490.md",
+    "revision_timestamp": "2026-10-07T08:45:00Z",
+    "corrections_applied": [
+      "evidence_tier corrected from ACCEPTED to TF-IDF_ACCEPTED_DENSE_UNVALIDATED",
+      "continue_recommended corrected from false to conditional",
+      "dense_criteria status corrected from VALIDATED to UNVALIDATED/BLOCKED at 174k",
+      "citation_heritage_174k AUC 0.482 FAIL preserved as first-class negative evidence",
+      "cross-lingual partial subset scale limitations documented",
+      "linear hybrid JP validated on obsolete embeddings documented"
+    ]
+  },
   "orchestration_failure_diagnosis": "V28-pattern control plane mounting defect: /tmp/lex_control/state/factory_direction.json shows evaluation.status=\"RUN\" while workspace state and lane state correctly show COMPLETE. This is a persistent infrastructure defect, NOT a lane failure. Lane work is complete and audit-ready.",
-  "verification_report": "reports/evaluation/EVALUATION_V34_FINAL_AUDIT_READY_VERIFICATION_20261007.md"
+  "verification_report": "reports/evaluation/EVALUATION_V34_FINAL_VERIFICATION_REPORT_REVISED_20261007.md",
+  "confirmation_report": "reports/evaluation/EVALUATION_V34_FINAL_CONFIRMATION_REVISED_20261007.md",
+  "subsampling_discrepancy_documented": {
+    "issue": "Two stratified subsampling strategies produce different adversarial gate results",
+    "formal_suite_method": "Branch-only stratification (500 per branch × 4 branches = 2000) — AUTHORITATIVE for frozen baseline",
+    "verify_scripts_method": "Branch × Language proportional stratification — DIFFERENT results",
+    "impact": "Verify scripts would incorrectly flag outcome_tfidf as FAIL (JP=0.391 vs 0.655)",
+    "resolution": "Formal suite's get_adversarial_subsample is the frozen baseline; verify scripts should be updated to match",
+    "evidence_tier": "ACCEPTED"
+  }
 }
