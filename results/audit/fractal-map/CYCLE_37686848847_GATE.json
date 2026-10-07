@@ -1,0 +1,86 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF hierarchical production modes OPERATIONAL at 174k (3 text-based modes at full 173,963 decisions: fine_branch_purity 0.906-0.930; 3 citation-based modes at 52% scale: 0.609-0.685). Multi-level recursive protocol (4+ levels) FAILS at 174k for all TF-IDF modes (level2 area_purity ~0.134 < 0.15) — valid negative. Calibration FAILS on TF-IDF — valid negative. Dense embedding integration contract v34 FROZEN (4 complementary views: Citation Heritage AUC>0.75, Cross-Lingual Sachverhalt>0.20, Cross-Lingual Dispositiv>0.10, Linear Hybrid Complement PASS adversarial at w=0.3-0.4; Erwaegungen FAILS excluded). 144k checkpoint validates hierarchical builder (2-level) scale extrapolation (fine_branch_purity~0.97, strict_nesting>=0.99). NESTING_METRIC_DEFECT_v1 enforced. BLOCKED on legal-distance 174k dense embeddings (requires corpus lane: BGE/bger ID mapping, parquet 2022-2026, section extraction). Control plane mount defect (shows RUN in /tmp/lex_control) is infrastructure, not lane failure.",
+  "evidence_summary": {
+    "tfidf_hierarchical_v1_174k": {
+      "source": "results/fractal_map/hierarchical_v1_174k_tfidf/hierarchical_v1_174k_tfidf_verdict_20261001_102442.json",
+      "modes_tested": 8,
+      "modes_pass": 6,
+      "text_modes_full_scale": 3,
+      "citation_modes_52pct_scale": 3,
+      "fine_branch_purity_range": "0.906-0.930 (text) / 0.609-0.685 (citation)",
+      "all_protocol_checks_pass": true,
+      "frozen_spec": "hierarchical_v1_frozen_spec.json"
+    },
+    "multi_level_recursive_protocol_174k": {
+      "source": "results/fractal_map/multi_level_protocol_174k_tfidf/full_text_tfidf_light/multi_level_174k_full_text_tfidf_light_results.json",
+      "verdict": "FAIL",
+      "failure_criterion": "level2_area_gt_0.15 (actual ~0.134)",
+      "note": "Not cluster collapse at all levels; Levels 1-3 have multiple clusters",
+      "all_tfidf_modes_fail": true,
+      "negative_result_preserved": true
+    },
+    "calibration_174k": {
+      "source": "results/fractal_map/multi_level_protocol_174k_tfidf_calibrated/",
+      "verdict": "FAIL",
+      "reason": "Thresholds too aggressive for TF-IDF signal density",
+      "negative_result_preserved": true
+    },
+    "dense_integration_contract_v34": {
+      "source": "results/fractal_map/dense_embeddings_integration_contract_v34.json",
+      "status": "FROZEN",
+      "complementary_views": 5,
+      "views_passed": 4,
+      "views_failed": 1,
+      "primary_product_mode": "TF-IDF citation hybrids (JP 0.78-0.79)"
+    },
+    "preparatory_dense_validation": {
+      "12k_dense": {
+        "multi_level_protocol": "PASS (4 levels, nesting=1.0, zero fragmentation)",
+        "hierarchical_builder": "SUCCESS (39 coarse -> 412 fine, branch_purity 0.988)",
+        "evidence_tier": "ACCEPTED"
+      },
+      "144k_checkpoint": {
+        "hierarchical_builder_2level": "PASS (fine_branch_purity ~0.97, strict_nesting >=0.99)",
+        "multi_level_protocol": "FAIL (level1_branch_gt_0.5=false)",
+        "evidence_tier": "EXPLORATORY (PENDING AUDIT for 2003-2021)"
+      }
+    },
+    "scale_extrapolation": {
+      "fine_branch_purity": "~0.97",
+      "improvement_rate_branch": "0.48-0.65",
+      "improvement_rate_area": "0.75-0.76",
+      "strict_nesting": ">=0.99",
+      "fine_singletons": "~4-5%",
+      "note": "Describes hierarchical builder (2-level), NOT multi-level recursive protocol"
+    },
+    "nesting_metric_defect_v1": {
+      "source": "results/fractal_map/nesting_metric_defect_v1_audit.json",
+      "enforcement": "ACTIVE",
+      "affected_modes": 7,
+      "prohibited_claims": ["Universal hierarchy validity from compressed-family nesting_score>=0.99"],
+      "permitted_claims": ["nesting=1.0 for 1000/12k by-construction modes WITH scope annotation"]
+    },
+    "test_infrastructure": {
+      "grand_total": 247,
+      "grand_passed": 246,
+      "grand_skipped": 1,
+      "suites_all_pass": true,
+      "latest_verification_run": 37677994219
+    },
+    "blockers_upstream": [
+      "Corpus: BGE/bger ID mapping",
+      "Corpus: Parquet 2022-2026 (29,520 decisions)",
+      "Corpus: Section extraction at 174k",
+      "Legal-distance: 174k dense embeddings (~11% complete, 3/26 years ACCEPTED)"
+    ],
+    "control_plane_defect": {
+      "type": "V28-pattern mount persistence",
+      "symptom": "/tmp/lex_control/state/factory_direction.json shows RUN while workspace shows BLOCKED_ON_DEPENDENCIES",
+      "classification": "INFRASTRUCTURE DEFECT (not lane failure)",
+      "authoritative_state": "workspace state/fractal-map.json per ARCHITECTURE.md §3"
+    }
+  }
+}
