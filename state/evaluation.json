@@ -100,10 +100,18 @@
     "linear_hybrid": "Run formal suite adversarial gates on hybrid weights 0.3, 0.35, 0.4 with 174k dense + TF-IDF",
     "scale": "All criteria must hold at full 174k (not subsampled)"
   },
-  "final_verification_run_id": "EVALUATION_V34_FINAL_AUDIT_VERIFICATION_20261007",
-  "final_verification_timestamp": "2026-10-07T02:30:00.000000Z",
-  "github_run": 37561471534,
+  "final_verification_run_id": "EVALUATION_V34_FINAL_VERIFICATION_20261007_37574492135",
+  "final_verification_timestamp": "2026-10-07T05:15:00.000000Z",
+  "github_run": 37574492135,
   "audit_ready": true,
   "orchestration_failure_diagnosis": "V28-pattern control plane mounting defect: /tmp/lex_control/state/factory_direction.json shows evaluation.status=\"RUN\" while workspace state and lane state correctly show COMPLETE. This is a persistent infrastructure defect, NOT a lane failure. Lane work is complete and audit-ready.",
-  "verification_report": "reports/evaluation/EVALUATION_V34_FINAL_AUDIT_READY_VERIFICATION_20261007.md"
+  "verification_report": "reports/evaluation/EVALUATION_V34_FINAL_VERIFICATION_REPORT_20261007.md",
+  "subsampling_discrepancy_documented": {
+    "issue": "Two stratified subsampling strategies produce different adversarial gate results",
+    "formal_suite_method": "Branch-only stratification (500 per branch × 4 branches = 2000) — AUTHORITATIVE for frozen baseline",
+    "verify_scripts_method": "Branch × Language proportional stratification — DIFFERENT results",
+    "impact": "Verify scripts would incorrectly flag outcome_tfidf as FAIL (JP=0.391 vs 0.655)",
+    "resolution": "Formal suite's get_adversarial_subsample is the frozen baseline; verify scripts should be updated to match",
+    "evidence_tier": "ACCEPTED"
+  }
 }
