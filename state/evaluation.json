@@ -11,10 +11,9 @@
     "legal-distance/results/legal_distance/dense_complementary_characterization/scale_characterization_results.json",
     "legal-distance/legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_22year_latest.json",
     "fractal-map/results/fractal_map/dense_embeddings_integration_contract_v34.json",
-    "fractal-map/results/fractal_map/144k_checkpoint_validation/144k_validation_144443decisions.json",
-    "product/results/audit/product/CYCLE_37073590337_GATE.json"
+    "fractal-map/results/fractal_map/144k_checkpoint_validation/144k_validation_144443decisions.json"
   ],
-  "next_recommendation": "TF-IDF 174k formal suite FROZEN as production baseline (8/8 reps PASS both adversarial gates, best hybrid_0.5 JP=0.735). Dense embedding complementary view acceptance criteria DEFINED from ACCEPTED evidence at max available scale (144k/22yr checkpoint): (1) Citation Heritage — center_projected_64dim AUC > 0.75 (PASSED 0.7922); (2) Cross-Lingual Sachverhalt — cross_lang_same_branch > 0.2 (PASSED 0.282); (3) Cross-Lingual Dispositiv — cross_lang_same_branch > 0.1 (PASSED 0.150); (4) Cross-Lingual Erwaegungen — REJECTED (0.094 < 0.1); (5) Linear Hybrid Complement — PASS both adversarial gates AND cross_lang_same_branch > TF-IDF baseline (PASS adversarial at w=0.3-0.4, cross_lang +0.036). BLOCKED on corpus lane: BGE/bger ID mapping + parquet 2022-2026 + section extraction 174k. No further same-question cycles justified. Product v1.0 with TF-IDF primary; dense v1.1+ per integration contracts.",
+  "next_recommendation": "TF-IDF 174k formal suite FROZEN as production baseline (8/8 reps PASS both adversarial gates, best hybrid_0.5 JP=0.735). Dense embedding complementary view acceptance criteria DEFINED from ACCEPTED evidence at max available scale (144k/22yr checkpoint and 1K section samples): (1) Citation Heritage — center_projected_64dim AUC > 0.75 (PASSED 0.7922 at 144k 22yr cohort); (2) Cross-Lingual Sachverhalt — cross_lang_same_branch > 0.2 (PASSED 0.282 at n=359, 36% coverage); (3) Cross-Lingual Dispositiv — cross_lang_same_branch > 0.1 (PASSED 0.150 at n=538, 54% coverage); (4) Cross-Lingual Erwaegungen — REJECTED (0.094 < 0.1 at n=510, 51% coverage); (5) Linear Hybrid Complement — PASS adversarial gates on obsolete v6-v10 embeddings (JP 0.66-0.68) with cross_lang improvement +0.036; target 174k legal-distance dense embeddings do not exist. BLOCKED on corpus lane: BGE/bger ID mapping + parquet 2022-2026 + section extraction 174k. No further same-question cycles justified. Product v1.0 with TF-IDF primary; dense v1.1+ per integration contracts.",
   "frozen_baseline": {
     "name": "TF-IDF 174k Production Baseline",
     "default_mode": "cited_decisions_tfidf_outcome_hybrid_0.5_174k",
@@ -24,7 +23,8 @@
       "language_dominance_threshold": 0.85,
       "jurist_preference_threshold": 0.5,
       "all_reps_pass_both": true,
-      "reps_tested": 8
+      "reps_tested": 8,
+      "note": "Adversarial gate framework: language_dominance + jurist_pairwise on 2000-decision stratified subsample. Distinct from broader v25_174k_formal_suite (12 benchmarks) where only 4/8 pass adversarial_falsification benchmark."
     },
     "best_metrics": {
       "jurist_preference": 0.735,
@@ -46,11 +46,16 @@
       "view_name": "citation_heritage",
       "acceptance_criterion": "AUC > 0.75",
       "best_dense_mode": "center_projected_64dim",
-      "evidence_at_144k": {
+      "evidence_at_144k_22yr_cohort": {
+        "cohort_description": "22-year cohort (2000-2021), 144,443 decisions — NOT full 174k corpus (missing 2022-2026)",
         "center_projected_768dim_auc": 0.7946,
         "center_projected_64dim_auc": 0.7922,
         "center_projected_128dim_auc": 0.7916,
-        "status": "PASSED"
+        "status": "PASSED at 144k partial cohort"
+      },
+      "evidence_at_full_174k": {
+        "cited_outcome_hybrid_0.5_174k_auc": 0.482,
+        "status": "FAIL at full 174k — VALIDATION BLOCKED per prior audit CYCLE_37591874490"
       },
       "tfidf_citation_baseline_auc": "0.71-0.74",
       "minimal_sufficient_scale": "130k decisions (21-year, 2000-2020)",
@@ -67,16 +72,18 @@
         "invariance_gap": 0.187,
         "improvement_pct": 38,
         "n_decisions_with_section": 359,
-        "status": "PASSED"
+        "coverage": 0.359,
+        "status": "PASSED on 1K partial cohort sample (36% coverage)"
       },
       "evidence_at_144k_22yr": {
         "cross_lang_same_branch": 0.2816,
-        "status": "PASSED"
+        "status": "PASSED at 144k partial cohort (22yr, 2000-2021)"
       },
       "hierarchy_rank": 1,
       "full_corpus_status": "BLOCKED pending section extraction at 174k",
       "required_dense_modes": ["center_projected_64dim", "center_projected_768dim"],
-      "product_integration": "Separate map mode: cross_lingual_sachverhalt_view"
+      "product_integration": "Separate map mode: cross_lingual_sachverhalt_view",
+      "qualification": "Results from n=359 decisions (36% coverage) in 1K partial cohort; full-corpus validation BLOCKED pending section extraction at 174k"
     },
     "cross_lingual_dispositiv_view": {
       "view_name": "cross_lingual_dispositiv",
@@ -87,16 +94,18 @@
         "invariance_gap": 0.397,
         "improvement_pct": 31,
         "n_decisions_with_section": 538,
-        "status": "PASSED"
+        "coverage": 0.538,
+        "status": "PASSED on 1K partial cohort sample (54% coverage)"
       },
       "evidence_at_144k_22yr": {
         "cross_lang_same_branch": 0.1502,
-        "status": "PASSED"
+        "status": "PASSED at 144k partial cohort (22yr, 2000-2021)"
       },
       "hierarchy_rank": 2,
       "full_corpus_status": "BLOCKED pending section extraction at 174k",
       "required_dense_modes": ["center_projected_64dim", "center_projected_768dim"],
-      "product_integration": "Separate map mode: cross_lingual_dispositiv_view"
+      "product_integration": "Separate map mode: cross_lingual_dispositiv_view",
+      "qualification": "Results from n=538 decisions (54% coverage) in 1K partial cohort; full-corpus validation BLOCKED pending section extraction at 174k"
     },
     "cross_lingual_erwaegungen_view": {
       "view_name": "cross_lingual_erwaegungen",
@@ -107,15 +116,17 @@
         "invariance_gap": 0.452,
         "improvement_pct": 16,
         "n_decisions_with_section": 510,
-        "status": "FAILED"
+        "coverage": 0.510,
+        "status": "FAILED on 1K partial cohort sample (51% coverage)"
       },
       "evidence_at_144k_22yr": {
         "cross_lang_same_branch": 0.0941,
-        "status": "FAILED"
+        "status": "FAILED at 144k partial cohort (22yr, 2000-2021)"
       },
       "hierarchy_rank": 3,
       "note": "Reasoning is most language-specific; not suitable for cross-lingual view",
-      "product_integration": "NOT INCLUDED — does not meet acceptance criterion"
+      "product_integration": "NOT INCLUDED — does not meet acceptance criterion",
+      "qualification": "Results from n=510 decisions (51% coverage) in 1K partial cohort; full-corpus validation BLOCKED pending section extraction at 174k"
     },
     "linear_hybrid_complement_view": {
       "view_name": "linear_hybrid_complement",
@@ -125,22 +136,22 @@
         "cited_decisions_tfidf_plus_dense_w04": {
           "jurist_preference": 0.6725,
           "language_dominance": 0.6539,
-          "adversarial_status": "PASS"
+          "adversarial_status": "PASS on obsolete v6-v10 embeddings"
         },
         "cited_outcome_hybrid_05_plus_dense_w03": {
           "jurist_preference": 0.6115,
           "language_dominance": 0.7477,
-          "adversarial_status": "PASS"
+          "adversarial_status": "PASS on obsolete v6-v10 embeddings"
         },
         "tfidf_baseline_jp": 0.7840,
         "cross_lingual_improvement": 0.036,
-        "status": "PASS adversarial, BELOW TF-IDF baseline on JP"
+        "status": "PASS adversarial gates on obsolete v6-v10 era embeddings (product_integration_verification_v11.json); target 174k legal-distance dense embeddings do not exist — validation BLOCKED"
       },
-      "minimal_scale_validated": "122k decisions (19-year, 2000-2018)",
+      "minimal_scale_validated": "122k decisions (19-year, 2000-2018) on obsolete embeddings",
       "optimal_weight_range": "w=0.3-0.4 dense / 0.6-0.7 TF-IDF",
       "required_dense_modes": ["center_projected_64dim", "center_projected_128dim"],
       "product_integration": "Separate map mode: linear_hybrid_complement_view (marked EXPLORATORY)",
-      "note": "Citation signals dominate jurist preference; semantic signals add cross-lingual benefit but dilute legal relevance"
+      "note": "Citation signals dominate jurist preference; semantic signals add cross-lingual benefit but dilute legal relevance. Evidence from obsolete v6-v10 embeddings — NOT target 174k legal-distance embeddings."
     }
   },
   "fundamental_tradeoff": {
@@ -172,5 +183,15 @@
       "purpose": "Ultimate validation of simulated jurist proxy"
     }
   },
-  "report_path": "reports/evaluation/evaluation_v35_tfidf_174k_baseline_and_dense_acceptance_criteria.md"
+  "report_path": "reports/evaluation/evaluation_v35_tfidf_174k_baseline_and_dense_acceptance_criteria.md",
+  "audit_corrections_applied": {
+    "cycle_revised": "CYCLE_37696016446",
+    "fixes_applied": [
+      "Citation Heritage: Distinguished 144k partial cohort (22yr, 2000-2021) from full 174k; added explicit BLOCKED note with AUC 0.482 FAIL at 174k per prior audit CYCLE_37591874490",
+      "Cross-Lingual Sachverhalt/Dispositiv/Erwaegungen: Added explicit qualification of n=359-538 decisions (36-54% coverage) in 1K partial cohort; full-corpus validation BLOCKED pending section extraction at 174k",
+      "Linear Hybrid: Replaced 'PASS adversarial at 144k' with accurate statement referencing obsolete v6-v10 era embeddings (product_integration_verification_v11.json); target 174k legal-distance dense embeddings do not exist",
+      "Product Audit Gate: Removed broken reference to CYCLE_37073590337_GATE.json (file does not exist)",
+      "Evaluation Framework: Clarified that '8/8 reps PASS both adversarial gates' refers to adversarial gate framework (language_dominance + jurist_pairwise on 2000-decision stratified subsample), NOT the broader v25_174k_formal_suite (12 benchmarks)"
+    ]
+  }
 }
