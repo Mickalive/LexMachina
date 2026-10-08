@@ -1,7 +1,7 @@
 {
   "lane": "evaluation",
   "direction_version": 35,
-  "evidence_tier": "REPRODUCED",
+  "evidence_tier": "TF-IDF_REVERIFIED_DENSE_UNVALIDATED",
   "cycle_status": "COMPLETE",
   "continue_recommended": false,
   "accepted_run_id": "evaluation_v35_baseline_freeze_20261007",
@@ -13,22 +13,26 @@
     "fractal-map/results/fractal_map/dense_embeddings_integration_contract_v34.json",
     "fractal-map/results/fractal_map/144k_checkpoint_validation/144k_validation_144443decisions.json"
   ],
-  "next_recommendation": "TF-IDF 174k formal suite FROZEN as production baseline (8/8 reps PASS both adversarial gates, best hybrid_0.5 JP=0.735). Dense embedding complementary view acceptance criteria DEFINED from ACCEPTED evidence at max available scale (144k/22yr checkpoint and 1K section samples): (1) Citation Heritage — center_projected_64dim AUC > 0.75 (PASSED 0.7922 at 144k 22yr cohort); (2) Cross-Lingual Sachverhalt — cross_lang_same_branch > 0.2 (PASSED 0.282 at n=359, 36% coverage); (3) Cross-Lingual Dispositiv — cross_lang_same_branch > 0.1 (PASSED 0.150 at n=538, 54% coverage); (4) Cross-Lingual Erwaegungen — REJECTED (0.094 < 0.1 at n=510, 51% coverage); (5) Linear Hybrid Complement — PASS adversarial gates on obsolete v6-v10 embeddings (JP 0.66-0.68) with cross_lang improvement +0.036; target 174k legal-distance dense embeddings do not exist. BLOCKED on corpus lane: BGE/bger ID mapping + parquet 2022-2026 + section extraction 174k. No further same-question cycles justified. Product v1.0 with TF-IDF primary; dense v1.1+ per integration contracts.",
+  "next_recommendation": "TF-IDF 174k formal suite RE-VERIFIED and RE-FROZEN as production baseline (6/8 reps PASS both adversarial gates on current accepted mount, JP=0.556, LangDom=0.448). Original freeze (2026-10-03, JP=0.735) invalidated by post-freeze mutation of accepted mount embeddings during fractal-map rebuild (2026-10-07). Dense embedding complementary view acceptance criteria DEFINED from ACCEPTED evidence at max available scale (144k/22yr checkpoint and 1K section samples): (1) Citation Heritage — center_projected_64dim AUC > 0.75 (PASSED 0.7922 at 144k 22yr cohort; FAILS at full 174k AUC 0.482); (2) Cross-Lingual Sachverhalt — cross_lang_same_branch > 0.2 (PASSED 0.282 at n=359, 36% coverage); (3) Cross-Lingual Dispositiv — cross_lang_same_branch > 0.1 (PASSED 0.150 at n=538, 54% coverage); (4) Cross-Lingual Erwaegungen — REJECTED (0.094 < 0.1); (5) Linear Hybrid Complement — PASS adversarial gates on obsolete v6-v10 embeddings (JP 0.66-0.68) with cross_lang improvement +0.036; target 174k legal-distance dense embeddings do not exist. BLOCKED on corpus lane: BGE/bger ID mapping + parquet 2022-2026 + section extraction 174k. No further same-question cycles justified. Product v1.0 with TF-IDF primary; dense v1.1+ per integration contracts.",
   "frozen_baseline": {
-    "name": "TF-IDF 174k Production Baseline",
+    "name": "TF-IDF 174k Production Baseline (RE-VERIFIED 2026-10-07)",
     "default_mode": "cited_decisions_tfidf_outcome_hybrid_0.5_174k",
     "corpus_scale": 173963,
     "formal_suite_completion": "2026-10-01",
+    "re_verification": "2026-10-07T21:35:34Z",
+    "mutation_note": "Accepted mount embeddings mutated post-original-freeze (2026-10-03) during fractal-map rebuild (2026-10-07T21:16:21). Original metrics (JP=0.7345) no longer reflect current accepted mount state.",
     "adversarial_gates": {
       "language_dominance_threshold": 0.85,
       "jurist_preference_threshold": 0.5,
-      "all_reps_pass_both": true,
+      "all_reps_pass_both": false,
       "reps_tested": 8,
-      "note": "Adversarial gate framework: language_dominance + jurist_pairwise on 2000-decision stratified subsample. Distinct from broader v25_174k_formal_suite (12 benchmarks) where only 4/8 pass adversarial_falsification benchmark."
+      "reps_pass_both": 6,
+      "reps_fail_jurist_preference": 2,
+      "note": "Adversarial gate framework: language_dominance + jurist_pairwise on 2000-decision stratified subsample with exact k-NN. Distinct from broader v25_174k_formal_suite (12 benchmarks) where only 4/8 pass adversarial_falsification benchmark."
     },
     "best_metrics": {
-      "jurist_preference": 0.735,
-      "language_dominance": 0.477,
+      "jurist_preference": 0.556,
+      "language_dominance": 0.448,
       "citation_heritage_auc_tfidf_citation": "0.71-0.74",
       "cross_language_recall_at_10": 0.14,
       "boilerplate_resistance_score": -0.83,
@@ -38,7 +42,8 @@
       "Cross-language retrieval below target (0.14 < 0.2)",
       "Boilerplate resistance negative (-0.83)",
       "Hierarchy coherence NMI below target (0.03 < 0.3)",
-      "True OOS jurist preference ceiling ~0.53 < 0.7 factory target"
+      "True OOS jurist preference ceiling ~0.53 < 0.7 factory target",
+      "Citation heritage AUC 0.649 (FAIL at threshold 0.65) on production baseline"
     ]
   },
   "dense_complementary_acceptance_criteria": {
