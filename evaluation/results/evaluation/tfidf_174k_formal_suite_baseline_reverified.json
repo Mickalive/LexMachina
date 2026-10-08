@@ -1,0 +1,119 @@
+{
+  "factory_direction_version": 35,
+  "lane": "evaluation",
+  "timestamp": "2026-10-07T13:52:38Z",
+  "github_run": 37399175524,
+  "configuration": {
+    "harness_version": "v3 (frozen thresholds)",
+    "config_hash": "04b6d5f0c13131ef",
+    "global_seed": 42,
+    "adversarial_thresholds": {
+      "language_dominance": "< 0.85",
+      "jurist_preference": "> 0.5"
+    },
+    "scale": 173963,
+    "corpus_years": "2000-2026",
+    "hnsw_artifact_fix": "Exact k-NN on fixed stratified subsample (n=2000 valid decisions with known branch)",
+    "benchmark_suite_hash": "4323f833fa72366a"
+  },
+  "adversarial_gate_results": [
+    {
+      "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "language_dominance": 0.43775,
+      "ld_pass": true,
+      "jurist_preference": 0.5565,
+      "jp_pass": true,
+      "both_gates_pass": true,
+      "verdict": "PASS - Production Default (RE-VERIFIED)"
+    },
+    {
+      "representation": "cited_decisions_tfidf_outcome_hybrid_0.7",
+      "language_dominance": 0.43542499999999995,
+      "ld_pass": true,
+      "jurist_preference": 0.566,
+      "jp_pass": true,
+      "both_gates_pass": true,
+      "verdict": "PASS"
+    },
+    {
+      "representation": "cited_decisions_tfidf",
+      "language_dominance": 0.43485,
+      "ld_pass": true,
+      "jurist_preference": 0.558,
+      "jp_pass": true,
+      "both_gates_pass": true,
+      "verdict": "PASS"
+    },
+    {
+      "representation": "full_text_tfidf_light",
+      "language_dominance": 0.48495,
+      "ld_pass": true,
+      "jurist_preference": 0.732,
+      "jp_pass": true,
+      "both_gates_pass": true,
+      "verdict": "PASS"
+    },
+    {
+      "representation": "regeste_full_text_hybrid_0.5",
+      "language_dominance": 0.48279999999999995,
+      "ld_pass": true,
+      "jurist_preference": 0.7315,
+      "jp_pass": true,
+      "both_gates_pass": true,
+      "verdict": "PASS"
+    },
+    {
+      "representation": "regeste_full_text_hybrid_0.7",
+      "language_dominance": 0.48097500000000004,
+      "ld_pass": true,
+      "jurist_preference": 0.742,
+      "jp_pass": true,
+      "both_gates_pass": true,
+      "verdict": "PASS"
+    },
+    {
+      "representation": "outcome_tfidf",
+      "language_dominance": 0.49154999999999993,
+      "ld_pass": true,
+      "jurist_preference": 0.251,
+      "jp_pass": false,
+      "both_gates_pass": false,
+      "verdict": "FAIL"
+    },
+    {
+      "representation": "regeste_tfidf",
+      "language_dominance": 0.3999,
+      "ld_pass": true,
+      "jurist_preference": 0.362,
+      "jp_pass": false,
+      "both_gates_pass": false,
+      "verdict": "FAIL"
+    }
+  ],
+  "summary": {
+    "total_representations": 8,
+    "pass_both_adversarial_gates": 6,
+    "fail_jurist_preference": 2,
+    "best_jurist_preference": 0.742,
+    "best_representation": "regeste_full_text_hybrid_0.7",
+    "production_default": "cited_decisions_tfidf_outcome_hybrid_0.5",
+    "production_default_jurist_preference": 0.5565,
+    "production_default_language_dominance": 0.43775,
+    "production_default_both_pass": true
+  },
+  "mutation_context": {
+    "original_freeze_date": "2026-10-03",
+    "accepted_mount_modified_date": "2026-10-07T21:16:21",
+    "original_production_jp": 0.7345,
+    "reverified_production_jp": 0.5565,
+    "delta": -0.178,
+    "original_all_8_pass": true,
+    "reverified_pass_count": 6,
+    "failed_representations": ["outcome_tfidf (JP=0.251)", "regeste_tfidf (JP=0.362)"],
+    "note": "TF-IDF production baseline functionally valid (passes adversarial gates) but degraded from original freeze. Working directory embeddings reproduce frozen baseline exactly (JP=0.7345). Accepted lane embeddings mutated post-freeze during fractal-map rebuild."
+  },
+  "evidence_references": [
+    "evaluation_174k_adversarial_verification_20261007_135236.json",
+    "tfidf_174k_formal_suite_baseline.json (original freeze 2026-10-03)"
+  ]
+}
