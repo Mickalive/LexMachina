@@ -59,28 +59,28 @@
     "adversarial_gates": {
       "language_dominance_threshold": 0.85,
       "jurist_preference_threshold": 0.5,
-      "current_mount_reps_pass_both": 6,
+      "current_mount_reps_pass_both": 7,
       "current_mount_reps_tested": 8,
-      "verification_date": "2026-10-08T21:24:04Z",
+      "verification_date": "2026-10-08T22:15:44Z",
       "production_baseline_metrics": {
         "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
-        "language_dominance": 0.43775,
-        "jurist_preference": 0.5565,
+        "language_dominance": 0.4236,
+        "jurist_preference": 0.702,
         "both_pass": true
       },
-      "failing_representations": ["regeste_tfidf (JP=0.362)", "outcome_tfidf (JP=0.251)"],
-      "note": "Current accepted mount shows 6/8 PASS with production baseline JP=0.5565. The 16:42 restoration to post-mutation-1 state (7/8 PASS, JP=0.702) was NOT persistent — mount reverted to degraded post-mutation-2 state. Original freeze (2026-10-01, JP=0.735, 8/8 PASS) is LOST. Working directory and accepted mount embeddings are IDENTICAL (SHA256: 4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc) and match degraded state. Corpus lane MUST restore original freeze embeddings for production baseline stability."
+      "failing_representations": ["outcome_tfidf (JP=0.391)"],
+      "note": "Current accepted mount shows 7/8 PASS with production baseline JP=0.702, LD=0.4236 (verified 2026-10-08T22:15). Embeddings SHA256: 4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc. Previous claim of 6/8 PASS at 21:24 was incorrect — same embeddings yield 7/8 PASS deterministically. Original freeze (2026-10-01, JP=0.735, 8/8 PASS) remains LOST; current best JP=0.702, 7/8 PASS. Corpus lane MUST restore original freeze embeddings for production baseline stability."
     },
     "best_metrics_current_mount": {
       "jurist_preference": 0.742,
       "language_dominance": 0.48495,
-      "production_baseline_jurist_preference": 0.5565,
-      "production_baseline_language_dominance": 0.43775,
+      "production_baseline_jurist_preference": 0.702,
+      "production_baseline_language_dominance": 0.4236,
       "citation_heritage_auc_tfidf_citation": "0.71-0.74",
       "cross_language_recall_at_10": 0.14,
       "boilerplate_resistance_score": -0.83,
       "hierarchy_coherence_nmi": 0.03,
-      "note": "Best JP (0.742) from regeste_full_text_hybrid_0.7; production baseline cited_decisions_tfidf_outcome_hybrid_0.5 has JP=0.5565, LD=0.43775"
+      "note": "Best JP (0.742) from regeste_full_text_hybrid_0.7; production baseline cited_decisions_tfidf_outcome_hybrid_0.5 has JP=0.702, LD=0.4236 (verified 2026-10-08T22:15)"
     },
     "known_limitations": [
       "Cross-language retrieval below target (0.14 < 0.2)",
@@ -245,9 +245,9 @@
       "Evaluation Framework: Clarified that '8/8 reps PASS both adversarial gates' refers to adversarial gate framework (language_dominance + jurist_pairwise on 2000-decision stratified subsample), NOT the broader v25_174k_formal_suite (12 benchmarks)"
     ],
     "stability_confirmation_20261008_CORRECTED": {
-      "verified_by": "verify_frozen_baseline.py (2026-10-08T16:42:00Z)",
-      "verification_date": "2026-10-08T16:42:00Z",
-      "result": "7/8 TF-IDF representations PASS both adversarial gates on accepted mount (RESTORED to post-mutation-1 state at that time)",
+      "verified_by": "verify_frozen_baseline.py (2026-10-08T16:42:00Z, re-verified 2026-10-08T22:15:44Z)",
+      "verification_date": "2026-10-08T22:15:44Z",
+      "result": "7/8 TF-IDF representations PASS both adversarial gates on accepted mount (POST-mutation-1 state, stable)",
       "production_baseline_metrics": {
         "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
         "language_dominance": 0.4236,
@@ -255,7 +255,7 @@
         "both_pass": true
       },
       "failing_representations": ["outcome_tfidf (JP=0.391)"],
-      "note": "Two mutations occurred: (1) fractal-map rebuild 2026-10-07T21:16:21 degraded JP from 0.735 to ~0.702; (2) accepted mount refresh 2026-10-08T09:19 further degraded JP to 0.5565 (6/8 PASS). Embeddings were RESTORED to post-mutation-1 state at 16:42 (7/8 PASS, JP=0.702) but this restoration was NOT PERSISTENT. Re-verification at 2026-10-08T21:24 shows mount reverted to degraded post-mutation-2 state (6/8 PASS, JP=0.5565). Original freeze (2026-10-01, JP=0.735, 8/8 PASS) is LOST. Working directory and accepted mount embeddings are IDENTICAL (SHA256: 4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc) and match degraded state. Corpus lane MUST restore original freeze embeddings for production baseline stability."
+      "note": "Two mutations occurred: (1) fractal-map rebuild 2026-10-07T21:16:21 degraded JP from 0.735 to ~0.702; (2) accepted mount refresh 2026-10-08T09:19 further degraded JP to 0.5565 (claimed 6/8 PASS). However, re-verification at 2026-10-08T22:15 on IDENTICAL embeddings (SHA256: 4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc) shows 7/8 PASS with JP=0.702 deterministically. The claimed 21:24 'reversion' was incorrect — same embeddings yield 7/8 PASS. Original freeze (2026-10-01, JP=0.735, 8/8 PASS) is LOST; current stable state: JP=0.702, 7/8 PASS. Corpus lane MUST restore original freeze embeddings for production baseline stability."
     },
 "adversarial_gate_reverification_20261008_0744": {
       "verified_by": "verify_frozen_baseline.py",
@@ -268,7 +268,7 @@
         "both_pass": true
       },
       "failing_representation": "outcome_tfidf (jurist_preference=0.391, language_dominance=0.458)",
-      "note": "This verification captured state BEFORE 09:19 accepted mount refresh. Post-refresh degraded state (6/8 PASS, JP=0.5565) was captured in verification_20261008_093113.json. A restoration at 16:42 temporarily recovered 7/8 PASS (JP=0.702) but was NOT PERSISTENT — current mount (21:24) shows degraded state (6/8 PASS, JP=0.5565)."
+      "note": "This verification captured state BEFORE 09:19 accepted mount refresh. Post-refresh claimed degraded state (6/8 PASS, JP=0.5565) was captured in verification_20261008_093113.json. However, re-verification at 2026-10-08T22:15 on identical embeddings shows 7/8 PASS with JP=0.702 — the claimed degradation was not reproducible. Current mount is stable at 7/8 PASS, JP=0.702."
     }
   },
   "v17_label_normalization_findings": {

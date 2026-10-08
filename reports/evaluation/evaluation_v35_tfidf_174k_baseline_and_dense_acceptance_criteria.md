@@ -278,6 +278,8 @@ This report has been revised per Audit CYCLE_37696016446 (REVISE gate) with the 
 **Additional Correction (2026-10-08 Reverification):**
 6. **Adversarial Gate Count:** Updated from "8/8 PASS" to "7/8 PASS" based on current mount verification (verify_frozen_baseline.py, 2026-10-08T07:44:00Z). outcome_tfidf FAILS jurist preference (0.391). Formal suite (2026-10-01) reported 8/8 PASS; discrepancy likely due to stratified subsample differences. Production default modes (cited_decisions_tfidf_outcome_hybrid_0.5/0.7, regeste_full_text_hybrid_0.5/0.7, full_text_tfidf_light) all PASS with JP > 0.70. State and report updated to reflect accurate current verification.
 
+7. **Stability Confirmation Correction (2026-10-08T22:15):** Prior claim that mount "reverted to degraded state (6/8 PASS, JP=0.5565) at 21:24" was INCORRECT. Re-verification on IDENTICAL embeddings (SHA256: 4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc) shows 7/8 PASS with JP=0.702 deterministically. The mount is STABLE at post-mutation-1 state (7/8 PASS, JP=0.702). Original freeze (JP=0.735, 8/8 PASS) remains LOST; current best is JP=0.702, 7/8 PASS.
+
 ---
 
 *Report generated per Research Protocol: freeze hypothesis/corpus/metric/success rule before outcome inspection. Negative results preserved as evidence.*

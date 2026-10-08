@@ -21,10 +21,10 @@ def test_v35_state_structure():
     
     assert state["lane"] == "evaluation"
     assert state["direction_version"] == 35
-    assert state["evidence_tier"] == "TF-IDF_DEGRADED_DENSE_UNVALIDATED"
+    assert state["evidence_tier"] == "TF-IDF_REPRODUCED_PARTIAL_DENSE_UNVALIDATED"
     assert state["cycle_status"] == "COMPLETE"
     assert state["continue_recommended"] is False
-    assert state["accepted_run_id"] == "evaluation_v35_baseline_reverification_20261008_0931"
+    assert state["accepted_run_id"] == "evaluation_v35_baseline_reverification_20261008_1642"
     
     print("✅ v35 state structure verified!")
 
@@ -34,21 +34,21 @@ def test_tfidf_174k_baseline_mutation_documented():
     state = load_json("state/evaluation.json")
     
     rec = state["next_recommendation"]
-    assert "TF-IDF 174k baseline NOT stable" in rec
+    assert "TF-IDF 174k baseline PARTIALLY RECOVERED" in rec
     assert "mutated TWICE" in rec
     assert "fractal-map rebuild 2026-10-07T21:16:21" in rec
     assert "accepted mount refresh 2026-10-08T09:19" in rec
     assert "degraded JP from 0.735 to ~0.702" in rec
     assert "further degraded JP to 0.5565" in rec
-    assert "ACCEPTED MOUNT EMBEDDINGS DEGRADED — ORIGINAL FREEZE EMBEDDINGS LOST" in state["frozen_baseline"]["known_limitations"][-1]
+    assert "ORIGINAL FREEZE EMBEDDINGS LOST" in state["frozen_baseline"]["known_limitations"][-1]
     
     # Verify frozen_baseline section documents both mutations
     fb = state["frozen_baseline"]
     assert fb["mutation_1_fractal_map_rebuild"]["effect"] == "Degraded production baseline JP from 0.735 to ~0.702 (per pre-refresh verification)"
     assert fb["mutation_2_accepted_mount_refresh"]["effect"] == "Further degraded production baseline JP from ~0.702 to 0.5565; 6/8 PASS"
     
-    # Verify current mount metrics
-    assert fb["adversarial_gates"]["current_mount_reps_pass_both"] == 6
+    # Verify current mount metrics (corrected: 7/8 PASS, not 6/8)
+    assert fb["adversarial_gates"]["current_mount_reps_pass_both"] == 7
     assert fb["adversarial_gates"]["current_mount_reps_tested"] == 8
     
     print("✅ TF-IDF 174k baseline mutation accurately documented!")
@@ -149,7 +149,7 @@ def test_external_dependencies():
 
 
 def test_audit_corrections_applied():
-    """Verify audit corrections from CYCLE_37696016446 are applied."""
+    """Verify audit corrections from CYCLE_37696016446 are applied (with subsequent verification correction)."""
     state = load_json("state/evaluation.json")
     
     corrections = state["audit_corrections_applied"]
@@ -162,11 +162,12 @@ def test_audit_corrections_applied():
     assert "Product Audit Gate: Removed broken reference" in fixes[3]
     assert "Evaluation Framework: Clarified" in fixes[4]
     
-    # Verify stability confirmation
+    # Verify stability confirmation (corrected by 2026-10-08T22:15 re-verification)
     sc = corrections["stability_confirmation_20261008_CORRECTED"]
-    assert sc["result"] == "6/8 TF-IDF representations PASS both adversarial gates on CURRENT accepted mount (post-09:19 refresh)"
+    assert sc["result"] == "7/8 TF-IDF representations PASS both adversarial gates on accepted mount (POST-mutation-1 state, stable)"
     assert "Two mutations occurred" in sc["note"]
-    assert "Working directory embeddings are IDENTICAL to current accepted mount (both degraded)" in sc["note"]
+    assert "claimed 21:24 'reversion' was incorrect" in sc["note"]
+    assert "current stable state: JP=0.702, 7/8 PASS" in sc["note"]
     
     print("✅ Audit corrections verified!")
 
