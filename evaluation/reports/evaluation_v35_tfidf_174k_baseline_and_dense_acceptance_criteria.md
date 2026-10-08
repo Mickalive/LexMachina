@@ -51,7 +51,7 @@ This cycle completes the evaluation lane's mandate for factory direction v35:
 | Representations passing both gates | 8/8 | 6/8 | -2 |
 | Failed representations | — | `outcome_tfidf`, `regeste_tfidf` | — |
 
-**Root cause:** Accepted mount embeddings mutated post-original-freeze during fractal-map rebuild (2026-10-07T21:16:21). Working directory embeddings reproduce frozen baseline exactly (JP=0.7345, 8/8 PASS).
+**Root cause:** Accepted mount embeddings mutated post-original-freeze during fractal-map rebuild (2026-10-07T21:16:21), degrading JP from 0.735 to ~0.702. A subsequent accepted mount refresh (2026-10-08T09:19) further degraded JP to 0.5565. Working directory embeddings are IDENTICAL to current accepted mount embeddings (both degraded, JP=0.5565). Original freeze embeddings (JP=0.735, 8/8 PASS) are LOST.
 
 ### 1.3 v25_174k_Formal_Suite Results (12 Benchmarks)
 

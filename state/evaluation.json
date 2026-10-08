@@ -1,10 +1,10 @@
 {
   "lane": "evaluation",
   "direction_version": 35,
-  "evidence_tier": "TF-IDF_REVERIFIED_DENSE_UNVALIDATED",
+  "evidence_tier": "TF-IDF_DEGRADED_DENSE_UNVALIDATED",
   "cycle_status": "COMPLETE",
   "continue_recommended": false,
-  "accepted_run_id": "evaluation_v35_baseline_reverification_20261008_0744",
+  "accepted_run_id": "evaluation_v35_baseline_reverification_20261008_0931",
   "evidence_refs": [
     "legal-distance/evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
     "legal-distance/results/legal_distance/complementary_role_characterization_v34.json",
@@ -13,27 +13,59 @@
     "fractal-map/results/fractal_map/dense_embeddings_integration_contract_v34.json",
     "fractal-map/results/fractal_map/144k_checkpoint_validation/144k_validation_144443decisions.json"
   ],
-  "next_recommendation": "TF-IDF 174k formal suite CONFIRMED as production baseline (7/8 reps PASS both adversarial gates on current accepted mount; production default modes all PASS with JP > 0.70). Original freeze (2026-10-03) affected by post-freeze mutation during fractal-map rebuild (2026-10-07). Current accepted mount verified 2026-10-08: 7/8 PASS both gates; outcome_tfidf FAILS jurist preference (0.391) but is not a production default. Dense embedding complementary view acceptance criteria DEFINED from ACCEPTED evidence at max available scale (144k/22yr checkpoint and 1K section samples): (1) Citation Heritage — center_projected_64dim AUC > 0.75 (PASSED 0.7922 at 144k 22yr cohort; FAILS at full 174k AUC 0.482); (2) Cross-Lingual Sachverhalt — cross_lang_same_branch > 0.2 (PASSED 0.282 at n=359, 36% coverage); (3) Cross-Lingual Dispositiv — cross_lang_same_branch > 0.1 (PASSED 0.150 at n=538, 54% coverage); (4) Cross-Lingual Erwaegungen — REJECTED (0.094 < 0.1); (5) Linear Hybrid Complement — PASS adversarial gates on obsolete v6-v10 embeddings (JP 0.66-0.68) with cross_lang improvement +0.036; target 174k legal-distance dense embeddings do not exist. BLOCKED on corpus lane: BGE/bger ID mapping + parquet 2022-2026 + section extraction 174k. No further same-question cycles justified. Product v1.0 with TF-IDF primary; dense v1.1+ per integration contracts.",
+  "next_recommendation": "TF-IDF 174k baseline NOT stable — accepted mount embeddings mutated TWICE: (1) fractal-map rebuild 2026-10-07T21:16:21 (degraded JP from 0.735 to ~0.702); (2) accepted mount refresh 2026-10-08T09:19 (further degraded JP to 0.5565, 6/8 PASS). Verification_20261008_074403 captured PRE-refresh state (JP=0.702, 7/8 PASS). Current embeddings are DEGRADED relative to original freeze. Dense acceptance criteria DEFINED but validation BLOCKED at 174k pending corpus lane. No further same-question cycles justified. Product v1.0 with TF-IDF primary; dense v1.1+ per integration contracts. CORPUS LANE MUST RESTORE ORIGINAL FREEZE EMBEDDINGS for production baseline stability.",
   "frozen_baseline": {
-    "name": "TF-IDF 174k Production Baseline (RE-VERIFIED 2026-10-08)",
+    "name": "TF-IDF 174k Production Baseline (ORIGINAL FREEZE 2026-10-03, NOT CURRENT MOUNT)",
     "default_mode": "cited_decisions_tfidf_outcome_hybrid_0.5_174k",
     "corpus_scale": 173963,
     "formal_suite_completion": "2026-10-01",
-    "re_verification": "2026-10-08T07:44:00Z (7/8 reps PASS both adversarial gates; production baseline JP=0.702, LangDom=0.424)",
-    "mutation_note": "Accepted mount embeddings mutated post-original-freeze (2026-10-03) during fractal-map rebuild (2026-10-07T21:16:21). Current accepted mount verified 2026-10-08: 7/8 representations PASS both adversarial gates. outcome_tfidf FAILS jurist preference (0.391). Production default modes (cited_decisions_tfidf_outcome_hybrid_0.5/0.7, regeste_full_text_hybrid_0.5/0.7, full_text_tfidf_light) all PASS with JP > 0.70. Baseline CONFIRMED STABLE for production use.",
+    "original_freeze_metrics": {
+      "jurist_preference": 0.735,
+      "language_dominance": 0.477,
+      "verification_date": "2026-10-01",
+      "reps_pass_both": 8,
+      "reps_tested": 8
+    },
+    "mutation_1_fractal_map_rebuild": {
+      "date": "2026-10-07T21:16:21",
+      "effect": "Degraded production baseline JP from 0.735 to ~0.702 (per pre-refresh verification)",
+      "note": "Fractal-map rebuild mutated accepted mount embeddings; pre-refresh verification (2026-10-08T07:44) captured JP=0.702, 7/8 PASS"
+    },
+    "mutation_2_accepted_mount_refresh": {
+      "date": "2026-10-08T09:19",
+      "effect": "Further degraded production baseline JP from ~0.702 to 0.5565; 6/8 PASS",
+      "verification_date": "2026-10-08T09:31:13Z",
+      "reps_pass_both": 6,
+      "reps_tested": 8,
+      "failing_representations": ["regeste_tfidf (JP=0.362)", "outcome_tfidf (JP=0.251)"],
+      "production_baseline_metrics": {
+        "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+        "language_dominance": 0.4377,
+        "jurist_preference": 0.5565,
+        "both_pass": true
+      }
+    },
+    "pre_refresh_verification_20261008_0744": {
+      "verification_date": "2026-10-08T07:44:00Z",
+      "reps_pass_both": 7,
+      "reps_tested": 8,
+      "production_baseline_metrics": {
+        "jurist_preference": 0.702,
+        "language_dominance": 0.4236,
+        "both_pass": true
+      },
+      "note": "Captured state BEFORE 09:19 accepted mount refresh"
+    },
     "adversarial_gates": {
       "language_dominance_threshold": 0.85,
       "jurist_preference_threshold": 0.5,
-      "all_reps_pass_both": false,
-      "reps_tested": 8,
-      "reps_pass_both": 7,
-      "reps_fail_jurist_preference": 1,
-      "failing_representation": "outcome_tfidf (jurist_preference=0.391)",
-      "note": "Adversarial gate framework: language_dominance + jurist_pairwise on 2000-decision stratified subsample with exact k-NN. Distinct from broader v25_174k_formal_suite (12 benchmarks). Formal suite (2026-10-01) reported 8/8 PASS; current verification (2026-10-08) on same accepted mount shows 7/8 PASS. Discrepancy likely due to subsample differences. Production default modes unaffected."
+      "current_mount_reps_pass_both": 6,
+      "current_mount_reps_tested": 8,
+      "note": "Current accepted mount (post-09:19 refresh) shows 6/8 PASS. Original freeze (2026-10-01) showed 8/8 PASS. Baseline NOT stable on current mount."
     },
-    "best_metrics": {
-      "jurist_preference": 0.702,
-      "language_dominance": 0.4236,
+    "best_metrics_current_mount": {
+      "jurist_preference": 0.742,
+      "language_dominance": 0.4377,
       "citation_heritage_auc_tfidf_citation": "0.71-0.74",
       "cross_language_recall_at_10": 0.14,
       "boilerplate_resistance_score": -0.83,
@@ -45,7 +77,8 @@
       "Hierarchy coherence NMI below target (0.03 < 0.3)",
       "True OOS jurist preference ceiling ~0.53 < 0.7 factory target",
       "Citation heritage AUC 0.649 (FAIL at threshold 0.65) on production baseline",
-      "outcome_tfidf representation fails jurist preference gate (0.391 < 0.5) — not used as production default"
+      "regeste_tfidf and outcome_tfidf fail jurist preference gate on current mount",
+      "ACCEPTED MOUNT EMBEDDINGS DEGRADED — ORIGINAL FREEZE EMBEDDINGS LOST"
     ]
   },
   "dense_complementary_acceptance_criteria": {
@@ -191,7 +224,7 @@
     }
   },
   "report_path": "reports/evaluation/evaluation_v35_tfidf_174k_baseline_and_dense_acceptance_criteria.md",
-"audit_corrections_applied": {
+  "audit_corrections_applied": {
     "cycle_revised": "CYCLE_37696016446",
     "fixes_applied": [
       "Citation Heritage: Distinguished 144k partial cohort (22yr, 2000-2021) from full 174k; added explicit BLOCKED note with AUC 0.482 FAIL at 174k per prior audit CYCLE_37591874490",
@@ -200,22 +233,23 @@
       "Product Audit Gate: Removed broken reference to CYCLE_37073590337_GATE.json (file does not exist in mounted checkout or producer workspace)",
       "Evaluation Framework: Clarified that '8/8 reps PASS both adversarial gates' refers to adversarial gate framework (language_dominance + jurist_pairwise on 2000-decision stratified subsample), NOT the broader v25_174k_formal_suite (12 benchmarks)"
     ],
-    "stability_confirmation_20261008": {
-      "verified_by": "evaluation_v35_baseline_freeze_20261007 (this cycle)",
-      "verification_date": "2026-10-08T05:43:00Z",
-      "result": "8/8 TF-IDF representations PASS both adversarial gates on current accepted mount",
+    "stability_confirmation_20261008_CORRECTED": {
+      "verified_by": "verify_frozen_baseline.py (2026-10-08T09:31:13Z)",
+      "verification_date": "2026-10-08T09:31:13Z",
+      "result": "6/8 TF-IDF representations PASS both adversarial gates on CURRENT accepted mount (post-09:19 refresh)",
       "production_baseline_metrics": {
         "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
-        "language_dominance": 0.4895,
-        "jurist_preference": 0.7265,
+        "language_dominance": 0.4377,
+        "jurist_preference": 0.5565,
         "both_pass": true
       },
-      "note": "Post-mutation degradation (2026-10-07, JP=0.556) RESOLVED; current embeddings recover original freeze performance (JP=0.7345). Baseline CONFIRMED STABLE for production use."
+      "failing_representations": ["regeste_tfidf (JP=0.362)", "outcome_tfidf (JP=0.251)"],
+      "note": "PREVIOUS CLAIM 'RESOLVED; current embeddings recover original freeze performance (JP=0.7345)' WAS FALSE. Two mutations occurred: (1) fractal-map rebuild 2026-10-07T21:16:21 degraded JP from 0.735 to ~0.702; (2) accepted mount refresh 2026-10-08T09:19 further degraded JP to 0.5565. Verification_20261008_074403 (JP=0.702, 7/8 PASS) captured state AFTER mutation_1 but BEFORE mutation_2. Original freeze (2026-10-01, JP=0.735, 8/8 PASS) is LOST on current mount. Working directory embeddings are IDENTICAL to current accepted mount (both degraded). Corpus lane must restore original freeze embeddings for production baseline stability."
     },
     "adversarial_gate_reverification_20261008_0744": {
-      "verified_by": "verify_frozen_baseline.py (this run)",
+      "verified_by": "verify_frozen_baseline.py",
       "verification_date": "2026-10-08T07:44:00Z",
-      "result": "7/8 TF-IDF representations PASS both adversarial gates on current accepted mount",
+      "result": "7/8 TF-IDF representations PASS both adversarial gates on PRE-refresh accepted mount",
       "production_baseline_metrics": {
         "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
         "language_dominance": 0.4236,
@@ -223,7 +257,7 @@
         "both_pass": true
       },
       "failing_representation": "outcome_tfidf (jurist_preference=0.391, language_dominance=0.458)",
-      "note": "Formal suite (2026-10-01) reported 8/8 PASS; current verification shows 7/8 PASS. Discrepancy likely due to stratified subsample differences. Production default modes (cited_decisions_tfidf_outcome_hybrid_0.5/0.7, regeste_full_text_hybrid_0.5/0.7, full_text_tfidf_light) all PASS with JP > 0.70. State updated to reflect accurate current verification."
+      "note": "This verification captured state BEFORE 09:19 accepted mount refresh. Current mount (post-refresh) shows 6/8 PASS with JP=0.5565."
     }
   }
 }
