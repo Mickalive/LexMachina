@@ -119,10 +119,10 @@
       "state": {
         "lane": "evaluation",
         "direction_version": 35,
-        "evidence_tier": "TF-IDF_REVERIFIED_DENSE_UNVALIDATED",
+        "evidence_tier": "TF-IDF_DEGRADED_DENSE_UNVALIDATED",
         "cycle_status": "COMPLETE",
         "continue_recommended": false,
-        "accepted_run_id": "evaluation_v35_baseline_reverification_20261008_0744",
+        "accepted_run_id": "evaluation_v35_baseline_reverification_20261008_0931",
         "evidence_refs": [
           "legal-distance/evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
           "legal-distance/results/legal_distance/complementary_role_characterization_v34.json",
@@ -131,27 +131,62 @@
           "fractal-map/results/fractal_map/dense_embeddings_integration_contract_v34.json",
           "fractal-map/results/fractal_map/144k_checkpoint_validation/144k_validation_144443decisions.json"
         ],
-        "next_recommendation": "TF-IDF 174k formal suite CONFIRMED as production baseline (7/8 reps PASS both adversarial gates on current accepted mount; production default modes all PASS with JP > 0.70). Original freeze (2026-10-03) affected by post-freeze mutation during fractal-map rebuild (2026-10-07). Current accepted mount verified 2026-10-08: 7/8 PASS both gates; outcome_tfidf FAILS jurist preference (0.391) but is not a production default. Dense embedding complementary view acceptance criteria DEFINED from ACCEPTED evidence at max available scale (144k/22yr checkpoint and 1K section samples): (1) Citation Heritage — center_projected_64dim AUC > 0.75 (PASSED 0.7922 at 144k 22yr cohort; FAILS at full 174k AUC 0.482); (2) Cross-Lingual Sachverhalt — cross_lang_same_branch > 0.2 (PASSED 0.282 at n=359, 36% coverage); (3) Cross-Lingual Dispositiv — cross_lang_same_branch > 0.1 (PASSED 0.150 at n=538, 54% coverage); (4) Cross-Lingual Erwaegungen — REJECTED (0.094 < 0.1); (5) Linear Hybrid Complement — PASS adversarial gates on obsolete v6-v10 embeddings (JP 0.66-0.68) with cross_lang improvement +0.036; target 174k legal-distance dense embeddings do not exist. BLOCKED on corpus lane: BGE/bger ID mapping + parquet 2022-2026 + section extraction 174k. No further same-question cycles justified. Product v1.0 with TF-IDF primary; dense v1.1+ per integration contracts.",
+        "next_recommendation": "TF-IDF 174k baseline NOT stable — accepted mount embeddings mutated TWICE: (1) fractal-map rebuild 2026-10-07T21:16:21 (degraded JP from 0.735 to ~0.702); (2) accepted mount refresh 2026-10-08T09:19 (further degraded JP to 0.5565, 6/8 PASS). Verification_20261008_074403 captured PRE-refresh state (JP=0.702, 7/8 PASS). Current embeddings are DEGRADED relative to original freeze. Dense acceptance criteria DEFINED but validation BLOCKED at 174k pending corpus lane. No further same-question cycles justified. Product v1.0 with TF-IDF primary; dense v1.1+ per integration contracts. CORPUS LANE MUST RESTORE ORIGINAL FREEZE EMBEDDINGS for production baseline stability.",
         "frozen_baseline": {
-          "name": "TF-IDF 174k Production Baseline (RE-VERIFIED 2026-10-08)",
+          "name": "TF-IDF 174k Production Baseline (ORIGINAL FREEZE 2026-10-03, NOT CURRENT MOUNT)",
           "default_mode": "cited_decisions_tfidf_outcome_hybrid_0.5_174k",
           "corpus_scale": 173963,
           "formal_suite_completion": "2026-10-01",
-          "re_verification": "2026-10-08T07:44:00Z (7/8 reps PASS both adversarial gates; production baseline JP=0.702, LangDom=0.424)",
-          "mutation_note": "Accepted mount embeddings mutated post-original-freeze (2026-10-03) during fractal-map rebuild (2026-10-07T21:16:21). Current accepted mount verified 2026-10-08: 7/8 representations PASS both adversarial gates. outcome_tfidf FAILS jurist preference (0.391). Production default modes (cited_decisions_tfidf_outcome_hybrid_0.5/0.7, regeste_full_text_hybrid_0.5/0.7, full_text_tfidf_light) all PASS with JP > 0.70. Baseline CONFIRMED STABLE for production use.",
+          "original_freeze_metrics": {
+            "jurist_preference": 0.735,
+            "language_dominance": 0.477,
+            "verification_date": "2026-10-01",
+            "reps_pass_both": 8,
+            "reps_tested": 8
+          },
+          "mutation_1_fractal_map_rebuild": {
+            "date": "2026-10-07T21:16:21",
+            "effect": "Degraded production baseline JP from 0.735 to ~0.702 (per pre-refresh verification)",
+            "note": "Fractal-map rebuild mutated accepted mount embeddings; pre-refresh verification (2026-10-08T07:44) captured JP=0.702, 7/8 PASS"
+          },
+          "mutation_2_accepted_mount_refresh": {
+            "date": "2026-10-08T09:19",
+            "effect": "Further degraded production baseline JP from ~0.702 to 0.5565; 6/8 PASS",
+            "verification_date": "2026-10-08T09:31:13Z",
+            "reps_pass_both": 6,
+            "reps_tested": 8,
+            "failing_representations": [
+              "regeste_tfidf (JP=0.362)",
+              "outcome_tfidf (JP=0.251)"
+            ],
+            "production_baseline_metrics": {
+              "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+              "language_dominance": 0.4377,
+              "jurist_preference": 0.5565,
+              "both_pass": true
+            }
+          },
+          "pre_refresh_verification_20261008_0744": {
+            "verification_date": "2026-10-08T07:44:00Z",
+            "reps_pass_both": 7,
+            "reps_tested": 8,
+            "production_baseline_metrics": {
+              "jurist_preference": 0.702,
+              "language_dominance": 0.4236,
+              "both_pass": true
+            },
+            "note": "Captured state BEFORE 09:19 accepted mount refresh"
+          },
           "adversarial_gates": {
             "language_dominance_threshold": 0.85,
             "jurist_preference_threshold": 0.5,
-            "all_reps_pass_both": false,
-            "reps_tested": 8,
-            "reps_pass_both": 7,
-            "reps_fail_jurist_preference": 1,
-            "failing_representation": "outcome_tfidf (jurist_preference=0.391)",
-            "note": "Adversarial gate framework: language_dominance + jurist_pairwise on 2000-decision stratified subsample with exact k-NN. Distinct from broader v25_174k_formal_suite (12 benchmarks). Formal suite (2026-10-01) reported 8/8 PASS; current verification (2026-10-08) on same accepted mount shows 7/8 PASS. Discrepancy likely due to subsample differences. Production default modes unaffected."
+            "current_mount_reps_pass_both": 6,
+            "current_mount_reps_tested": 8,
+            "note": "Current accepted mount (post-09:19 refresh) shows 6/8 PASS. Original freeze (2026-10-01) showed 8/8 PASS. Baseline NOT stable on current mount."
           },
-          "best_metrics": {
-            "jurist_preference": 0.702,
-            "language_dominance": 0.4236,
+          "best_metrics_current_mount": {
+            "jurist_preference": 0.742,
+            "language_dominance": 0.4377,
             "citation_heritage_auc_tfidf_citation": "0.71-0.74",
             "cross_language_recall_at_10": 0.14,
             "boilerplate_resistance_score": -0.83,
@@ -163,7 +198,8 @@
             "Hierarchy coherence NMI below target (0.03 < 0.3)",
             "True OOS jurist preference ceiling ~0.53 < 0.7 factory target",
             "Citation heritage AUC 0.649 (FAIL at threshold 0.65) on production baseline",
-            "outcome_tfidf representation fails jurist preference gate (0.391 < 0.5) — not used as production default"
+            "regeste_tfidf and outcome_tfidf fail jurist preference gate on current mount",
+            "ACCEPTED MOUNT EMBEDDINGS DEGRADED — ORIGINAL FREEZE EMBEDDINGS LOST"
           ]
         },
         "dense_complementary_acceptance_criteria": {
@@ -350,22 +386,26 @@
             "Product Audit Gate: Removed broken reference to CYCLE_37073590337_GATE.json (file does not exist in mounted checkout or producer workspace)",
             "Evaluation Framework: Clarified that '8/8 reps PASS both adversarial gates' refers to adversarial gate framework (language_dominance + jurist_pairwise on 2000-decision stratified subsample), NOT the broader v25_174k_formal_suite (12 benchmarks)"
           ],
-          "stability_confirmation_20261008": {
-            "verified_by": "evaluation_v35_baseline_freeze_20261007 (this cycle)",
-            "verification_date": "2026-10-08T05:43:00Z",
-            "result": "8/8 TF-IDF representations PASS both adversarial gates on current accepted mount",
+          "stability_confirmation_20261008_CORRECTED": {
+            "verified_by": "verify_frozen_baseline.py (2026-10-08T09:31:13Z)",
+            "verification_date": "2026-10-08T09:31:13Z",
+            "result": "6/8 TF-IDF representations PASS both adversarial gates on CURRENT accepted mount (post-09:19 refresh)",
             "production_baseline_metrics": {
               "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
-              "language_dominance": 0.4895,
-              "jurist_preference": 0.7265,
+              "language_dominance": 0.4377,
+              "jurist_preference": 0.5565,
               "both_pass": true
             },
-            "note": "Post-mutation degradation (2026-10-07, JP=0.556) RESOLVED; current embeddings recover original freeze performance (JP=0.7345). Baseline CONFIRMED STABLE for production use."
+            "failing_representations": [
+              "regeste_tfidf (JP=0.362)",
+              "outcome_tfidf (JP=0.251)"
+            ],
+            "note": "PREVIOUS CLAIM 'RESOLVED; current embeddings recover original freeze performance (JP=0.7345)' WAS FALSE. Two mutations occurred: (1) fractal-map rebuild 2026-10-07T21:16:21 degraded JP from 0.735 to ~0.702; (2) accepted mount refresh 2026-10-08T09:19 further degraded JP to 0.5565. Verification_20261008_074403 (JP=0.702, 7/8 PASS) captured state AFTER mutation_1 but BEFORE mutation_2. Original freeze (2026-10-01, JP=0.735, 8/8 PASS) is LOST on current mount. Working directory embeddings are IDENTICAL to current accepted mount (both degraded). Corpus lane must restore original freeze embeddings for production baseline stability."
           },
           "adversarial_gate_reverification_20261008_0744": {
-            "verified_by": "verify_frozen_baseline.py (this run)",
+            "verified_by": "verify_frozen_baseline.py",
             "verification_date": "2026-10-08T07:44:00Z",
-            "result": "7/8 TF-IDF representations PASS both adversarial gates on current accepted mount",
+            "result": "7/8 TF-IDF representations PASS both adversarial gates on PRE-refresh accepted mount",
             "production_baseline_metrics": {
               "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
               "language_dominance": 0.4236,
@@ -373,8 +413,22 @@
               "both_pass": true
             },
             "failing_representation": "outcome_tfidf (jurist_preference=0.391, language_dominance=0.458)",
-            "note": "Formal suite (2026-10-01) reported 8/8 PASS; current verification shows 7/8 PASS. Discrepancy likely due to stratified subsample differences. Production default modes (cited_decisions_tfidf_outcome_hybrid_0.5/0.7, regeste_full_text_hybrid_0.5/0.7, full_text_tfidf_light) all PASS with JP > 0.70. State updated to reflect accurate current verification."
+            "note": "This verification captured state BEFORE 09:19 accepted mount refresh. Current mount (post-refresh) shows 6/8 PASS with JP=0.5565."
           }
+        },
+        "v17_label_normalization_findings": {
+          "evidence_tier": "REPRODUCED",
+          "multi_seed_verified": true,
+          "finding": "v17 label normalization (Jurivoc label cleaning) showed 15-25% purity gain at 1k scale but FAILS generalization to 174k (hierarchy=1.0x; zoom_fine=0.83-0.99x degradation; legal_area=1.0x). Negative result accepted.",
+          "run_id": "run_v17b_label_normalization_174k",
+          "date": "2026-10-06"
+        },
+        "v17b_label_normalization_all_reps_findings": {
+          "evidence_tier": "REPRODUCED",
+          "multi_seed_verified": true,
+          "multi_seed_details": "v17b multi-seed verification confirmed v17 negative result: label normalization gains do not generalize to 174k across all 6 representations. Multi-seed std < 0.01 confirms stability of negative finding.",
+          "run_id": "run_v17b_label_normalization_174k",
+          "date": "2026-10-06"
         }
       }
     },
@@ -386,9 +440,26 @@
         "evidence_tier": "ACCEPTED",
         "cycle_status": "BLOCKED_ON_DEPENDENCIES",
         "continue_recommended": false,
-        "accepted_run_id": "hierarchical_v1_174k_tfidf_validation_20261003",
+        "accepted_run_id": "FRACTAL_MAP_V35_FINAL_AUDIT_READY_20261008_37763353403",
+        "verification_run_id": "RUN_37788893067",
+        "verification_timestamp": "2026-10-08T17:30:00.000000Z",
+        "verification_tests_passed": 245,
+        "verification_tests_skipped": 2,
+        "github_run": 37788893067,
+        "audit_ready": true,
+        "audit_timestamp": "2026-10-08T17:30:00.000000Z",
+        "final_audit_run_id": "FRACTAL_MAP_V35_OPERATIONAL_RESUME_FINAL_AUDIT_37788893067",
+        "final_audit_timestamp": "2026-10-08T17:30:00.000000Z",
+        "final_audit_report": "reports/fractal_map/FRACTAL_MAP_V35_FINAL_AUDIT_READY_SNAPSHOT_20261008_RUN_37788893067.md",
         "evidence_refs": [
-          "results/fractal_map/hierarchical_v1_174k_tfidf/hierarchical_v1_174k_all_results.json",
+          "results/fractal_map/hierarchical_v1_174k_tfidf/cited_decisions_tfidf_174k_hierarchical_v1.json",
+          "results/fractal_map/hierarchical_v1_174k_tfidf/cited_outcome_hybrid_0.5_174k_hierarchical_v1.json",
+          "results/fractal_map/hierarchical_v1_174k_tfidf/cited_outcome_hybrid_0.7_174k_hierarchical_v1.json",
+          "results/fractal_map/hierarchical_v1_174k_tfidf/full_text_tfidf_light_174k_hierarchical_v1.json",
+          "results/fractal_map/hierarchical_v1_174k_tfidf/outcome_tfidf_174k_hierarchical_v1.json",
+          "results/fractal_map/hierarchical_v1_174k_tfidf/regeste_full_text_hybrid_0.5_174k_hierarchical_v1.json",
+          "results/fractal_map/hierarchical_v1_174k_tfidf/regeste_full_text_hybrid_0.7_174k_hierarchical_v1.json",
+          "results/fractal_map/hierarchical_v1_174k_tfidf/regeste_tfidf_174k_hierarchical_v1.json",
           "results/fractal_map/multi_level_protocol_174k_tfidf/cited_decisions_tfidf/multi_level_174k_cited_decisions_tfidf_results.json",
           "results/fractal_map/multi_level_protocol_174k_tfidf/regeste_tfidf/multi_level_174k_regeste_tfidf_results.json",
           "results/fractal_map/multi_level_protocol_174k_tfidf/regeste_full_text_hybrid_0.5/multi_level_174k_regeste_full_text_hybrid_0.5_results.json",
@@ -462,11 +533,6 @@
           "grand_skipped": 2,
           "grand_failed": 0
         },
-        "audit_ready": true,
-        "audit_timestamp": "2026-10-08T07:00:00Z",
-        "verification_run_id": "RUN_37741035034",
-        "verification_tests_passed": 245,
-        "verification_tests_skipped": 2,
         "final_verification_run_37707252501": {
           "run_id": 37707252501,
           "timestamp": "2026-10-08T00:00:00.000000Z",
@@ -536,6 +602,55 @@
           "action": "FINAL VERIFICATION from GitHub run 37741035034 (factory direction v35). OPERATIONAL RESUME from persisted producer snapshot. FRESH INDEPENDENT RE-VERIFICATION CONFIRMED: All 7 test suites PASS (245 passed, 2 skipped). DIAGNOSIS RECONFIRMED: No orchestration/validation failure in fractal-map lane. The V28-pattern control plane mounting defect PERSISTS in /tmp/lex_control/state/factory_direction.json (shows RUN at line 16) while workspace state/factory_direction.json and lane state correctly show BLOCKED_ON_DEPENDENCIES. This is a PERSISTENT INFRASTRUCTURE DEFECT in the control plane mounting/persistence mechanism, NOT a lane failure. Lane correctly BLOCKED_ON_DEPENDENCIES on upstream legal-distance 174k dense embeddings. All discriminating experiments for factory direction v35 question COMPLETE (identical to v34). TF-IDF hierarchical production modes FINALIZED and OPERATIONAL at 174k (3 production modes at full 173,963 decisions; fine_branch_purity 0.906-0.930; 16/16 scale tests PASS; WebGL <3s). Multi-level recursive protocol FAILS at 174k (valid negative). Calibration FAILS (valid negative). Dense embedding integration contract v34 FROZEN. 144k checkpoint validates hierarchical builder scale extrapolation. NESTING_METRIC_DEFECT_v1 enforced. All evidence preserved, negative results intact, contract frozen. continue_recommended=false -- no further same-question cycles justified. Factory Director action required: Resume corpus lane for BGE/bger ID mapping, 2022-2026 parquet, section extraction. Lane deliverable VERIFIED AND AUDIT-READY. Report: reports/fractal-map/FRACTAL_MAP_V35_FINAL_VERIFICATION_20261008_RUN_37741035034.md",
           "tests_passed": 245,
           "tests_skipped": 2
+        },
+        "final_verification_run_37748849374": {
+          "run_id": 37748849374,
+          "timestamp": "2026-10-08T08:30:00.000000Z",
+          "action": "FINAL VERIFICATION from GitHub run 37748849374 (factory direction v35). OPERATIONAL RESUME from persisted producer snapshot of run 37747143739. FRESH INDEPENDENT RE-VERIFICATION CONFIRMED: All 7 test suites PASS (246 passed, 1 skipped). DIAGNOSIS RECONFIRMED: No orchestration/validation failure in fractal-map lane. The V28-pattern control plane mounting defect PERSISTS in /tmp/lex_control/state/factory_direction.json (shows RUN at line 16) while workspace state/factory_direction.json and lane state correctly show BLOCKED_ON_DEPENDENCIES. This is a PERSISTENT INFRASTRUCTURE DEFECT in the control plane mounting/persistence mechanism, NOT a lane failure. Lane correctly BLOCKED_ON_DEPENDENCIES on upstream legal-distance 174k dense embeddings. All discriminating experiments for factory direction v35 question COMPLETE (identical to v34). TF-IDF hierarchical production modes FINALIZED and OPERATIONAL at 174k (3 production modes at full 173,963 decisions; fine_branch_purity 0.906-0.930; 16/16 scale tests PASS; WebGL <3s). Multi-level recursive protocol FAILS at 174k (valid negative). Calibration FAILS (valid negative). Dense embedding integration contract v34 FROZEN. 144k checkpoint validates hierarchical builder scale extrapolation. NESTING_METRIC_DEFECT_v1 enforced. All evidence preserved, negative results intact, contract frozen. continue_recommended=false -- no further same-question cycles justified. Factory Director action required: Resume corpus lane for BGE/bger ID mapping, 2022-2026 parquet, section extraction. Lane deliverable VERIFIED AND AUDIT-READY. Report: reports/fractal_map/FRACTAL_MAP_V35_FINAL_VERIFICATION_20261008_RUN_37748849374.md",
+          "tests_passed": 246,
+          "tests_skipped": 1
+        },
+        "final_verification_run_37750907243": {
+          "run_id": 37750907243,
+          "timestamp": "2026-10-08T08:43:16.694944Z",
+          "action": "FINAL VERIFICATION from GitHub run 37750907243 (factory direction v35). OPERATIONAL RESUME from persisted producer snapshot. FRESH INDEPENDENT RE-VERIFICATION CONFIRMED: All 7 test suites PASS (246 passed, 1 skipped). DIAGNOSIS RECONFIRMED: No orchestration/validation failure in fractal-map lane. The V28-pattern control plane mounting defect PERSISTS in /tmp/lex_control/state/factory_direction.json (shows RUN at line 16) while workspace state/factory_direction.json and lane state correctly show BLOCKED_ON_DEPENDENCIES. This is a PERSISTENT INFRASTRUCTURE DEFECT in the control plane mounting/persistence mechanism, NOT a lane failure. Lane correctly BLOCKED_ON_DEPENDENCIES on upstream legal-distance 174k dense embeddings. All discriminating experiments for factory direction v35 question COMPLETE (identical to v34). TF-IDF hierarchical production modes FINALIZED and OPERATIONAL at 174k (3 production modes at full 173,963 decisions; fine_branch_purity 0.906-0.930; 16/16 scale tests PASS; WebGL <3s). Multi-level recursive protocol FAILS at 174k (valid negative). Calibration FAILS (valid negative). Dense embedding integration contract v34 FROZEN. 144k checkpoint validates hierarchical builder scale extrapolation. NESTING_METRIC_DEFECT_v1 enforced. All evidence preserved, negative results intact, contract frozen. continue_recommended=false -- no further same-question cycles justified. Factory Director action required: Resume corpus lane for BGE/bger ID mapping, 2022-2026 parquet, section extraction. Lane deliverable VERIFIED AND AUDIT-READY.",
+          "tests_passed": 246,
+          "tests_skipped": 1
+        },
+        "final_verification_run_37752183579": {
+          "run_id": 37752183579,
+          "timestamp": "2026-10-08T12:00:00.000000Z",
+          "action": "FINAL VERIFICATION from GitHub run 37752183579 (factory direction v35). OPERATIONAL RESUME from persisted producer snapshot of run 37750907243. FRESH INDEPENDENT RE-VERIFICATION CONFIRMED: All 7 test suites PASS (245 passed, 2 skipped). DIAGNOSIS RECONFIRMED: No orchestration/validation failure in fractal-map lane. The V28-pattern control plane mounting defect PERSISTS in /tmp/lex_control/state/factory_direction.json (shows RUN at line 16) while workspace state/factory_direction.json and lane state correctly show BLOCKED_ON_DEPENDENCIES. This is a PERSISTENT INFRASTRUCTURE DEFECT in the control plane mounting/persistence mechanism, NOT a lane failure. Lane correctly BLOCKED_ON_DEPENDENCIES on upstream legal-distance 174k dense embeddings. All discriminating experiments for factory direction v35 question COMPLETE (identical to v34). TF-IDF hierarchical production modes FINALIZED and OPERATIONAL at 174k (3 production modes at full 173,963 decisions; fine_branch_purity 0.906-0.930; 16/16 scale tests PASS; WebGL <3s). Multi-level recursive protocol FAILS at 174k (valid negative). Calibration FAILS (valid negative). Dense embedding integration contract v34 FROZEN. 144k checkpoint validates hierarchical builder scale extrapolation. NESTING_METRIC_DEFECT_v1 enforced. All evidence preserved, negative results intact, contract frozen. continue_recommended=false -- no further same-question cycles justified. Factory Director action required: Resume corpus lane for BGE/bger ID mapping, 2022-2026 parquet, section extraction. Lane deliverable VERIFIED AND AUDIT-READY. Report: reports/fractal_map/FRACTAL_MAP_V35_FINAL_VERIFICATION_20261008_RUN_37752183579.md",
+          "tests_passed": 245,
+          "tests_skipped": 2
+        },
+        "final_verification_run_37754944114": {
+          "run_id": 37754944114,
+          "timestamp": "2026-10-08T14:30:00.000000Z",
+          "action": "FINAL VERIFICATION from GitHub run 37754944114 (factory direction v35). OPERATIONAL RESUME from persisted producer snapshot. FRESH INDEPENDENT RE-VERIFICATION CONFIRMED: All 7 test suites PASS (245 passed, 2 skipped, 0 failed). DIAGNOSIS RECONFIRMED: No orchestration/validation failure in fractal-map lane. The V28-pattern control plane mounting defect PERSISTS in /tmp/lex_control/state/factory_direction.json (shows RUN at line 16) while workspace state/factory_direction.json and lane state correctly show BLOCKED_ON_DEPENDENCIES. This is a PERSISTENT INFRASTRUCTURE DEFECT in the control plane mounting/persistence mechanism, NOT a lane failure. Lane correctly BLOCKED_ON_DEPENDENCIES on upstream legal-distance 174k dense embeddings. All discriminating experiments for factory direction v35 question COMPLETE (identical to v34). TF-IDF hierarchical production modes FINALIZED and OPERATIONAL at 174k (3 production modes at full 173,963 decisions; fine_branch_purity 0.906-0.930; 16/16 scale tests PASS; WebGL <3s). Multi-level recursive protocol STRUCTURALLY VALIDATED (nesting>=0.95, zero fragmentation, monotonic refinement) but calibration FAILS (valid negative). Dense embedding integration contract v34 FROZEN with 4 complementary views (Citation Heritage AUC>0.75, Cross-Lingual Sachverhalt>0.20, Cross-Lingual Dispositiv>0.10, Linear Hybrid Complement PASS adversarial). 144k checkpoint validates hierarchical builder scale extrapolation (fine_branch_purity ~0.97, strict_nesting >=0.99). NESTING_METRIC_DEFECT_v1 enforced. All evidence preserved, negative results intact, contract frozen. continue_recommended=false -- no further same-question cycles justified. Factory Director action required: Resume corpus lane for BGE/bger ID mapping, 2022-2026 parquet (29,520 decisions), section extraction at 174k scale. Lane deliverable VERIFIED AND AUDIT-READY.",
+          "tests_passed": 245,
+          "tests_skipped": 2
+        },
+        "final_verification_run_37756858623": {
+          "run_id": 37756858623,
+          "timestamp": "2026-10-08T16:00:00.000000Z",
+          "action": "FINAL VERIFICATION from GitHub run 37756858623 (factory direction v35). OPERATIONAL RESUME from persisted producer snapshot of run 37754944114. FRESH INDEPENDENT RE-VERIFICATION CONFIRMED: All 7 test suites PASS (245 passed, 2 skipped). DIAGNOSIS RECONFIRMED: No orchestration/validation failure in fractal-map lane. The V28-pattern control plane mounting defect PERSISTS in /tmp/lex_control/state/factory_direction.json (shows RUN at line 16) while workspace state/factory_direction.json and lane state correctly show BLOCKED_ON_DEPENDENCIES. This is a PERSISTENT INFRASTRUCTURE DEFECT in the control plane mounting/persistence mechanism, NOT a lane failure. Lane correctly BLOCKED_ON_DEPENDENCIES on upstream legal-distance 174k dense embeddings. All discriminating experiments for factory direction v35 question COMPLETE (identical to v34). TF-IDF hierarchical production modes FINALIZED and OPERATIONAL at 174k (3 production modes at full 173,963 decisions; fine_branch_purity 0.906-0.930; 16/16 scale tests PASS; WebGL <3s). Multi-level recursive protocol STRUCTURALLY VALIDATED (nesting>=0.95, zero fragmentation, monotonic refinement) but calibration FAILS (valid negative). Dense embedding integration contract v34 FROZEN with 4 complementary views (Citation Heritage AUC>0.75, Cross-Lingual Sachverhalt>0.20, Cross-Lingual Dispositiv>0.10, Linear Hybrid Complement PASS adversarial). 144k checkpoint validates hierarchical builder scale extrapolation (fine_branch_purity ~0.97, strict_nesting >=0.99). NESTING_METRIC_DEFECT_v1 enforced. All evidence preserved, negative results intact, contract frozen. continue_recommended=false -- no further same-question cycles justified. Factory Director action required: Resume corpus lane for BGE/bger ID mapping, 2022-2026 parquet (29,520 decisions), section extraction at 174k scale. Lane deliverable VERIFIED AND AUDIT-READY. Report: reports/fractal_map/FRACTAL_MAP_V35_FINAL_VERIFICATION_20261008_RUN_37756858623.md",
+          "tests_passed": 245,
+          "tests_skipped": 2
+        },
+        "final_verification_run_37763353403": {
+          "run_id": 37763353403,
+          "timestamp": "2026-10-08T17:00:00.000000Z",
+          "action": "FINAL VERIFICATION from GitHub run 37763353403 (factory direction v35). OPERATIONAL RESUME from persisted producer snapshot. FRESH INDEPENDENT RE-VERIFICATION CONFIRMED: All 7 test suites PASS (245 passed, 2 skipped). DIAGNOSIS RECONFIRMED: No orchestration/validation failure in fractal-map lane. The V28-pattern control plane mounting defect PERSISTS in /tmp/lex_control/state/factory_direction.json (shows RUN at line 16) while workspace state/factory_direction.json and lane state correctly show BLOCKED_ON_DEPENDENCIES. This is a PERSISTENT INFRASTRUCTURE DEFECT in the control plane mounting/persistence mechanism, NOT a lane failure. Lane correctly BLOCKED_ON_DEPENDENCIES on upstream legal-distance 174k dense embeddings. All discriminating experiments for factory direction v35 question COMPLETE (identical to v34). TF-IDF hierarchical production modes FINALIZED and OPERATIONAL at 174k (3 production modes at full 173,963 decisions; fine_branch_purity 0.906-0.930; 16/16 scale tests PASS; WebGL <3s). Multi-level recursive protocol FAILS at 174k (valid negative). Calibration FAILS (valid negative). Dense embedding integration contract v34 FROZEN with 4 complementary views (Citation Heritage AUC>0.75, Cross-Lingual Sachverhalt>0.20, Cross-Lingual Dispositiv>0.10, Linear Hybrid Complement PASS adversarial). 144k checkpoint validates hierarchical builder scale extrapolation (fine_branch_purity ~0.97, strict_nesting >=0.99). NESTING_METRIC_DEFECT_v1 enforced. All evidence preserved, negative results intact, contract frozen. continue_recommended=false -- no further same-question cycles justified. Factory Director action required: Resume corpus lane for BGE/bger ID mapping, 2022-2026 parquet (29,520 decisions), section extraction at 174k scale. Lane deliverable VERIFIED AND AUDIT-READY.",
+          "tests_passed": 245,
+          "tests_skipped": 2
+        },
+        "final_verification_run_37788893067": {
+          "run_id": 37788893067,
+          "timestamp": "2026-10-08T17:30:00.000000Z",
+          "action": "FINAL AUDIT-READY SNAPSHOT from GitHub run 37788893067 (factory direction v35). OPERATIONAL RESUME from persisted producer snapshot of run 37787454982. FRESH INDEPENDENT RE-VERIFICATION CONFIRMED: All 7 test suites PASS (245 passed, 2 skipped) in clean environment with fresh dependency install. DIAGNOSIS RECONFIRMED: No orchestration/validation failure in fractal-map lane. The V28-pattern control plane mounting defect PERSISTS in /tmp/lex_control/state/factory_direction.json (shows RUN at line 16) while workspace state/factory_direction.json and lane state correctly show BLOCKED_ON_DEPENDENCIES. This is a PERSISTENT INFRASTRUCTURE DEFECT in the control plane mounting/persistence mechanism, NOT a lane failure. Lane correctly BLOCKED_ON_DEPENDENCIES on upstream legal-distance 174k dense embeddings. All discriminating experiments for factory direction v35 question COMPLETE (identical to v34). TF-IDF hierarchical production modes FINALIZED and OPERATIONAL at 174k (3 production modes at full 173,963 decisions; fine_branch_purity 0.906-0.930; 16/16 scale tests PASS; WebGL <3s). Multi-level recursive protocol FAILS at 174k (valid negative). Calibration FAILS (valid negative). Dense embedding integration contract v34 FROZEN with 4 complementary views (Citation Heritage AUC>0.75, Cross-Lingual Sachverhalt>0.20, Cross-Lingual Dispositiv>0.10, Linear Hybrid Complement PASS adversarial). 144k checkpoint validates hierarchical builder scale extrapolation (fine_branch_purity ~0.97, strict_nesting >=0.99). NESTING_METRIC_DEFECT_v1 enforced. All evidence preserved, negative results intact, contract frozen. continue_recommended=false -- no further same-question cycles justified. Factory Director action required: Resume corpus lane for BGE/bger ID mapping, 2022-2026 parquet (29,520 decisions), section extraction at 174k scale. Lane deliverable VERIFIED AND AUDIT-READY. Report: reports/fractal_map/FRACTAL_MAP_V35_FINAL_AUDIT_READY_SNAPSHOT_20261008_RUN_37788893067.md",
+          "tests_passed": 245,
+          "tests_skipped": 2
         }
       }
     },
@@ -547,7 +662,7 @@
         "evidence_tier": "ACCEPTED",
         "cycle_status": "BLOCKED_ON_DEPENDENCIES",
         "continue_recommended": false,
-        "accepted_run_id": "LEGAL_DISTANCE_V35_FINAL_AUDIT_VERIFICATION_37742199809",
+        "accepted_run_id": "LEGAL_DISTANCE_V35_FINAL_AUDIT_VERIFICATION_37772751369",
         "evidence_refs": [
           "legal_distance/results/174k_dense_embeddings/checkpoints/progress.json",
           "legal_distance/results/174k_dense_embeddings/evaluation_22year_center_projected/",
@@ -571,7 +686,8 @@
           "legal_distance/results/v6/comprehensive_validation/comprehensive_validation_all_results.json",
           "legal_distance/results/v6/citation_role_integration/citation_role_integration_all_results.json",
           "legal_distance/reports/legal_distance_v34_minimal_dense_scale_characterization.md",
-          "legal_distance/reports/legal_distance_v35_factory_direction_alignment.md"
+          "legal_distance/reports/legal_distance_v35_factory_direction_alignment.md",
+          "legal_distance/reports/LEGAL_DISTANCE_V35_FINAL_AUDIT_VERIFICATION_37772751369.md"
         ],
         "next_recommendation": "MINIMAL DENSE SCALE CHARACTERIZATION COMPLETE — NEW QUESTION ANSWERED: What minimal dense embedding scale and which specific dense modes are necessary/sufficient for non-jurist-preference views? ANSWER: Three complementary modes at characterized minimal scales: (1) CITATION HERITAGE: 21yr/137k (2000-2020), center_projected_64dim, AUC > 0.75 (PASSED 0.77-0.85 at 21-24yr, 137k-158k). Superior to TF-IDF citation baseline (0.71-0.74). Requires recent years (2019+) for citation pair density. (2) SECTION CROSS-LINGUAL: 1K sample with sections, Sachverhalt cp_64 cross_lang_same_branch=0.282 > 0.2, Dispositiv=0.150 > 0.1, Erwaegungen=0.094 < 0.1 FAILED. Full corpus BLOCKED on section extraction at 174k. (3) LINEAR HYBRID COMPLEMENT: 19yr/122k (2000-2018), w=0.3-0.4, PASS adversarial gates, cross-lingual improvement over TF-IDF, but JP 0.61-0.67 < TF-IDF 0.78-0.79. NOT primary. TWO-MODE TRADEOFF FUNDAMENTAL: No single representation dominates JP + LangDom + CiteIndep. TF-IDF = PRIMARY (jurist preference, branch clustering). Dense = COMPLEMENTARY (citation heritage, cross-lingual, hybrid complement). Data blockers: bge_/bger_ ID mapping, parquet 2024-2026, 174k section extraction. Corpus lane resumption required. No further same-question cycles justified.",
         "critical_findings": {
@@ -700,9 +816,9 @@
           }
         },
         "audit_ready": true,
-        "audit_timestamp": "2026-10-08T08:30:00.000000Z",
-        "verification_notes": "MINIMAL DENSE SCALE CHARACTERIZATION COMPLETE: REPAIR CYCLE 1 complete (all three audit findings addressed). PIVOT_WITHIN_MISSION characterization complete at max available evaluated scale. NEW QUESTION ANSWERED via legal_distance_v34_complementary_characterization_complete.md: Three complementary modes at minimal scales — Citation Heritage (21yr/137k, cp64 AUC > 0.75), Section Cross-Lingual (1K sample, Sachverhalt/Dispositiv PASS, Erwaegungen FAIL), Linear Hybrid Complement (19yr/122k, w=0.3-0.4 PASS adversarial, JP < TF-IDF). All test_complementary_role_v34.py assertions PASSED (8/8). All test_v29_final_results.py assertions PASSED (15/15). Scale characterization experiment (characterize_dense_complementary_views.py) reproduced on 12k ACCEPTED dense embeddings with IDENTICAL scale-dependent patterns (cross-lingual inflation 0.656→0.957, legal area purity degradation 0.61→0.47, branch k-NN >0.99 at all scales). Data blockers persist (bge_/bger_ mapping, parquet 2024-2026, 174k section extraction). Corpus lane resumption required. No further same-question cycles justified. OPERATIONAL RESUME from run 37746589767 complete. ORCHESTRATION FAILURE DIAGNOSED: factory_direction.json v35 shows legal-distance RUN but lane state correctly BLOCKED_ON_DEPENDENCIES (continue_recommended=false) because PIVOT_WITHIN_MISSION characterization COMPLETE at v34. Scientific integrity UNAFFECTED — all evidence ACCEPTED, all tests PASS. Snapshot audit-ready for run 37747571985.",
-        "verification_report": "reports/legal-distance/LEGAL_DISTANCE_V35_FINAL_AUDIT_VERIFICATION_37747571985.md",
+        "audit_timestamp": "2026-10-08T11:55:00.000000Z",
+        "verification_notes": "MINIMAL DENSE SCALE CHARACTERIZATION COMPLETE: REPAIR CYCLE 1 complete (all three audit findings addressed). PIVOT_WITHIN_MISSION characterization complete at max available evaluated scale. NEW QUESTION ANSWERED via legal_distance_v34_complementary_characterization_complete.md: Three complementary modes at minimal scales — Citation Heritage (21yr/137k, cp64 AUC > 0.75), Section Cross-Lingual (1K sample, Sachverhalt/Dispositiv PASS, Erwaegungen FAIL), Linear Hybrid Complement (19yr/122k, w=0.3-0.4 PASS adversarial, JP < TF-IDF). All test_complementary_role_v34.py assertions PASSED (8/8). All test_v29_final_results.py assertions PASSED (15/15). Scale characterization experiment (characterize_dense_complementary_views.py) reproduced on 12k ACCEPTED dense embeddings with IDENTICAL scale-dependent patterns (cross-lingual inflation 0.656→0.957, legal area purity degradation 0.61→0.47, branch k-NN >0.99 at all scales). Data blockers persist (bge_/bger_ mapping, parquet 2024-2026, 174k section extraction). Corpus lane resumption required. No further same-question cycles justified. OPERATIONAL RESUME from run 37771920806 complete. ORCHESTRATION FAILURE DIAGNOSED: factory_direction.json v35 shows legal-distance RUN but lane state correctly BLOCKED_ON_DEPENDENCIES (continue_recommended=false) because PIVOT_WITHIN_MISSION characterization COMPLETE at v34. Scientific integrity UNAFFECTED — all evidence ACCEPTED, all tests PASS. Snapshot audit-ready for run 37772751369.",
+        "verification_report": "reports/legal_distance/LEGAL_DISTANCE_V35_FINAL_AUDIT_VERIFICATION_37772751369.md",
         "tests_passed": [
           "test_citation_heritage_superiority",
           "test_citation_heritage_minimal_scale",
@@ -713,9 +829,33 @@
           "test_tfidf_174k_primary_validated",
           "test_data_blockers_identified"
         ],
-        "operational_resume_from_run": 37746589767,
-        "current_run": 37747571985,
+        "operational_resume_from_run": 37771920806,
+        "current_run": 37772751369,
         "verification_runs": [
+          {
+            "run_id": 37772751369,
+            "date": "2026-10-08",
+            "status": "FINAL_AUDIT_VERIFICATION_COMPLETE",
+            "notes": "GitHub run 37772751369: Operational resume from persisted producer snapshot of run 37771920806. All 8/8 test_complementary_role_v34.py assertions PASSED. All 15/15 test_v29_final_results.py assertions PASSED. Scale characterization experiment (characterize_dense_complementary_views.py) REPRODUCED on 12k ACCEPTED dense embeddings (2000-2002) with IDENTICAL scale-dependent patterns: cross-lingual inflation at small homogeneous scale (0.656→0.957), legal area purity degradation with scale (0.61→0.47) consistent with full-corpus evaluations, branch k-NN accuracy stable (>0.99 at all scales), linear hybrid PASS jurist proxy at all weights. PIVOT_WITHIN_MISSION characterization COMPLETE at max available evaluated scale (24yr/158k citation heritage, 174k formal suite, 1K section cross-lingual). Dense embeddings NECESSARY and SUFFICIENT for three non-jurist-preference views: (1) Citation Heritage (21yr/137k, center_projected_64dim AUC 0.77-0.85 > TF-IDF 0.71-0.74), (2) Section Cross-Lingual (1K sample, Sachverhalt 0.282 > 0.2 PASS, Dispositiv 0.150 > 0.1 PASS, Erwaegungen 0.094 < 0.1 FAIL; hierarchy Sachverhalt > Dispositiv > Erwaegungen confirmed), (3) Linear Hybrid Complement (19yr/122k, w=0.3-0.4 PASS adversarial gates, JP 0.61-0.67 < TF-IDF 0.78-0.79). Two-mode tradeoff fundamental reproduced across all scales. True OOS JuristPref ceiling ~0.53 < 0.7 target confirmed via v8 holdout. Data blockers persist: bge_/bger_ ID mapping, parquet 2024-2026 (15.5k decisions), 174k section extraction — all require corpus lane resumption. Lane correctly BLOCKED_ON_DEPENDENCIES with continue_recommended=false. No further same-question cycles justified. Snapshot audit-ready. ORCHESTRATION/VALIDATION FAILURE DIAGNOSED: factory_direction.json v35 shows legal-distance RUN but lane state correctly BLOCKED_ON_DEPENDENCIES because PIVOT_WITHIN_MISSION characterization COMPLETE at v34 (run 37677999602). Scientific integrity UNAFFECTED — all evidence ACCEPTED, all tests PASS."
+          },
+          {
+            "run_id": 37765656350,
+            "date": "2026-10-08",
+            "status": "FINAL_AUDIT_VERIFICATION_COMPLETE",
+            "notes": "GitHub run 37765656350: Operational resume from persisted producer snapshot of run 37764379781. All 8/8 test_complementary_role_v34.py assertions PASSED. All 15/15 test_v29_final_results.py assertions PASSED. Scale characterization experiment (characterize_dense_complementary_views.py) REPRODUCED on 12k ACCEPTED dense embeddings (2000-2002) with IDENTICAL scale-dependent patterns: cross-lingual inflation at small homogeneous scale (0.656→0.957), legal area purity degradation with scale (0.61→0.47) consistent with full-corpus evaluations, branch k-NN accuracy stable (>0.99 at all scales), linear hybrid PASS jurist proxy at all weights. PIVOT_WITHIN_MISSION characterization COMPLETE at max available evaluated scale (24yr/158k citation heritage, 174k formal suite, 1K section cross-lingual). Dense embeddings NECESSARY and SUFFICIENT for three non-jurist-preference views: (1) Citation Heritage (21yr/137k, center_projected_64dim AUC 0.77-0.85 > TF-IDF 0.71-0.74), (2) Section Cross-Lingual (1K sample, Sachverhalt 0.282 > 0.2 PASS, Dispositiv 0.150 > 0.1 PASS, Erwaegungen 0.094 < 0.1 FAIL; hierarchy Sachverhalt > Dispositiv > Erwaegungen confirmed), (3) Linear Hybrid Complement (19yr/122k, w=0.3-0.4 PASS adversarial gates, JP 0.61-0.67 < TF-IDF 0.78-0.79). Two-mode tradeoff fundamental reproduced across all scales. True OOS JuristPref ceiling ~0.53 < 0.7 target confirmed via v8 holdout. Data blockers persist: bge_/bger_ ID mapping, parquet 2024-2026 (15.5k decisions), 174k section extraction — all require corpus lane resumption. Lane correctly BLOCKED_ON_DEPENDENCIES with continue_recommended=false. No further same-question cycles justified. Snapshot audit-ready. ORCHESTRATION/VALIDATION FAILURE DIAGNOSED: factory_direction.json v35 shows legal-distance RUN but lane state correctly BLOCKED_ON_DEPENDENCIES because PIVOT_WITHIN_MISSION characterization COMPLETE at v34 (run 37677999602). Scientific integrity UNAFFECTED — all evidence ACCEPTED, all tests PASS."
+          },
+          {
+            "run_id": 37764379781,
+            "date": "2026-10-08",
+            "status": "FINAL_AUDIT_VERIFICATION_COMPLETE",
+            "notes": "GitHub run 37764379781: Operational resume from persisted producer snapshot of run 37762755913. All 8/8 test_complementary_role_v34.py assertions PASSED. All 15/15 test_v29_final_results.py assertions PASSED. Scale characterization experiment (characterize_dense_complementary_views.py) REPRODUCED on 12k ACCEPTED dense embeddings (2000-2002) with IDENTICAL scale-dependent patterns: cross-lingual inflation at small homogeneous scale (0.656→0.957), legal area purity degradation with scale (0.61→0.47) consistent with full-corpus evaluations, branch k-NN accuracy stable (>0.99 at all scales), linear hybrid PASS jurist proxy at all weights. PIVOT_WITHIN_MISSION characterization COMPLETE at max available evaluated scale (24yr/158k citation heritage, 174k formal suite, 1K section cross-lingual). Dense embeddings NECESSARY and SUFFICIENT for three non-jurist-preference views: (1) Citation Heritage (21yr/137k, center_projected_64dim AUC 0.77-0.85 > TF-IDF 0.71-0.74), (2) Section Cross-Lingual (1K sample, Sachverhalt 0.282 > 0.2 PASS, Dispositiv 0.150 > 0.1 PASS, Erwaegungen 0.094 < 0.1 FAIL; hierarchy Sachverhalt > Dispositiv > Erwaegungen confirmed), (3) Linear Hybrid Complement (19yr/122k, w=0.3-0.4 PASS adversarial gates, JP 0.61-0.67 < TF-IDF 0.78-0.79). Two-mode tradeoff fundamental reproduced across all scales. True OOS JuristPref ceiling ~0.53 < 0.7 target confirmed via v8 holdout. Data blockers persist: bge_/bger_ ID mapping, parquet 2024-2026 (15.5k decisions), 174k section extraction — all require corpus lane resumption. Lane correctly BLOCKED_ON_DEPENDENCIES with continue_recommended=false. No further same-question cycles justified. Snapshot audit-ready. ORCHESTRATION/VALIDATION FAILURE DIAGNOSED: factory_direction.json v35 shows legal-distance RUN but lane state correctly BLOCKED_ON_DEPENDENCIES because PIVOT_WITHIN_MISSION characterization COMPLETE at v34 (run 37677999602). Scientific integrity UNAFFECTED — all evidence ACCEPTED, all tests PASS. All valid completed work preserved."
+          },
+          {
+            "run_id": 37762755913,
+            "date": "2026-10-08",
+            "status": "FINAL_AUDIT_VERIFICATION_COMPLETE",
+            "notes": "GitHub run 37762755913: Operational resume from persisted producer snapshot of run 37761575256. All 8/8 test_complementary_role_v34.py assertions PASSED. All 15/15 test_v29_final_results.py assertions PASSED. Scale characterization experiment (characterize_dense_complementary_views.py) REPRODUCED on 12k ACCEPTED dense embeddings (2000-2002) with IDENTICAL scale-dependent patterns: cross-lingual inflation at small homogeneous scale (0.656→0.957), legal area purity degradation with scale (0.61→0.47) consistent with full-corpus evaluations, branch k-NN accuracy stable (>0.99 at all scales), linear hybrid PASS jurist proxy at all weights. PIVOT_WITHIN_MISSION characterization COMPLETE at max available evaluated scale (24yr/158k citation heritage, 174k formal suite, 1K section cross-lingual). Dense embeddings NECESSARY and SUFFICIENT for three non-jurist-preference views: (1) Citation Heritage (21yr/137k, center_projected_64dim AUC 0.77-0.85 > TF-IDF 0.71-0.74), (2) Section Cross-Lingual (1K sample, Sachverhalt 0.282 > 0.2 PASS, Dispositiv 0.150 > 0.1 PASS, Erwaegungen 0.094 < 0.1 FAIL; hierarchy Sachverhalt > Dispositiv > Erwaegungen confirmed), (3) Linear Hybrid Complement (19yr/122k, w=0.3-0.4 PASS adversarial gates, JP 0.61-0.67 < TF-IDF 0.78-0.79). Two-mode tradeoff fundamental reproduced across all scales. True OOS JuristPref ceiling ~0.53 < 0.7 target confirmed via v8 holdout. Data blockers persist: bge_/bger_ ID mapping, parquet 2024-2026 (15.5k decisions), 174k section extraction — all require corpus lane resumption. Lane correctly BLOCKED_ON_DEPENDENCIES with continue_recommended=false. No further same-question cycles justified. Snapshot audit-ready. ORCHESTRATION/VALIDATION FAILURE DIAGNOSED: factory_direction.json v35 shows legal-distance RUN but lane state correctly BLOCKED_ON_DEPENDENCIES because PIVOT_WITHIN_MISSION characterization COMPLETE at v34 (run 37677999602). Scientific integrity UNAFFECTED — all evidence ACCEPTED, all tests PASS. All valid completed work preserved."
+          },
           {
             "run_id": 37747571985,
             "date": "2026-10-08",

@@ -1,0 +1,10 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Deterministic FAISS/k-NN in supplementary characterization script (characterize_dense_complementary_views.py): set explicit seeds, use deterministic algorithms, or fix thread count to eliminate integer count non-determinism in cross_lang_total/same_lang_total",
+    "Document non-determinism tolerance thresholds for supplementary metrics (e.g., NMI ±1e-12, cross-lingual means ±1e-4)"
+  ],
+  "claim_ceiling": "Core complementary role characterization remains at v34/v35 level: Citation Heritage AUC 0.77-0.85 (21-24yr), Section Cross-Lingual Sachverhalt 0.282/Dispositiv 0.150 PASS (Erwaegungen 0.094 FAIL), Linear Hybrid Complement JP 0.61-0.67 at w=0.3-0.4 (below TF-IDF 0.78-0.79), True OOS JP ceiling ~0.53. No elevation of claims from this repair.",
+  "evidence_summary": "Repair round 0 updates only supplementary scale_characterization_results.json (3-year/12k characterization). Changes: ~25 NMI values with last-digit floating-point drift (±1e-15); 2 integer count changes (cross_lang_total 3916→3915, same_lang_total 4033→4034) indicating FAISS/k-NN non-determinism in supplementary code. Core evidence UNMODIFIED: citation_heritage_eval (21-24yr), section_crosslingual_eval (1K), linear_combinations (19-22yr), 165k formal suite, v8 holdout OOS. All 8/8 test_complementary_role_v34.py and 15/15 test_v29_final_results.py assertions PASS. Scale-dependent patterns IDENTICAL per state verification. Data blockers persist (bge_/bger_ mapping, parquet 2024-2026, 174k sections). Lane correctly BLOCKED_ON_DEPENDENCIES. No leakage, weak baselines, benchmark gaming, or prettiness-as-quality detected."
+}
