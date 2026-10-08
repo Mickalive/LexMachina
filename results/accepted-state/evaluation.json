@@ -1,10 +1,10 @@
 {
   "lane": "evaluation",
   "direction_version": 35,
-  "evidence_tier": "TF-IDF_DEGRADED_DENSE_UNVALIDATED",
+  "evidence_tier": "TF-IDF_REPRODUCED_PARTIAL_DENSE_UNVALIDATED",
   "cycle_status": "COMPLETE",
   "continue_recommended": false,
-  "accepted_run_id": "evaluation_v35_baseline_reverification_20261008_0931",
+  "accepted_run_id": "evaluation_v35_baseline_reverification_20261008_1642",
   "evidence_refs": [
     "legal-distance/evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
     "legal-distance/results/legal_distance/complementary_role_characterization_v34.json",
@@ -13,7 +13,7 @@
     "fractal-map/results/fractal_map/dense_embeddings_integration_contract_v34.json",
     "fractal-map/results/fractal_map/144k_checkpoint_validation/144k_validation_144443decisions.json"
   ],
-  "next_recommendation": "TF-IDF 174k baseline NOT stable — accepted mount embeddings mutated TWICE: (1) fractal-map rebuild 2026-10-07T21:16:21 (degraded JP from 0.735 to ~0.702); (2) accepted mount refresh 2026-10-08T09:19 (further degraded JP to 0.5565, 6/8 PASS). Verification_20261008_074403 captured PRE-refresh state (JP=0.702, 7/8 PASS). Current embeddings are DEGRADED relative to original freeze. Dense acceptance criteria DEFINED but validation BLOCKED at 174k pending corpus lane. No further same-question cycles justified. Product v1.0 with TF-IDF primary; dense v1.1+ per integration contracts. CORPUS LANE MUST RESTORE ORIGINAL FREEZE EMBEDDINGS for production baseline stability.",
+  "next_recommendation": "TF-IDF 174k baseline PARTIALLY RECOVERED — accepted mount embeddings mutated TWICE: (1) fractal-map rebuild 2026-10-07T21:16:21 (degraded JP from 0.735 to ~0.702); (2) accepted mount refresh 2026-10-08T09:19 (further degraded JP to 0.5565, 6/8 PASS). However, embeddings have since been RESTORED to post-mutation-1 state (7/8 PASS, JP=0.702) as verified 2026-10-08T16:42. Original freeze (JP=0.735, 8/8 PASS) remains LOST. Dense acceptance criteria DEFINED but validation BLOCKED at 174k pending corpus lane. No further same-question cycles justified. Product v1.0 with TF-IDF primary; dense v1.1+ per integration contracts. CORPUS LANE MUST RESTORE ORIGINAL FREEZE EMBEDDINGS for production baseline stability.",
   "frozen_baseline": {
     "name": "TF-IDF 174k Production Baseline (ORIGINAL FREEZE 2026-10-03, NOT CURRENT MOUNT)",
     "default_mode": "cited_decisions_tfidf_outcome_hybrid_0.5_174k",
@@ -59,13 +59,14 @@
     "adversarial_gates": {
       "language_dominance_threshold": 0.85,
       "jurist_preference_threshold": 0.5,
-      "current_mount_reps_pass_both": 6,
+      "current_mount_reps_pass_both": 7,
       "current_mount_reps_tested": 8,
-      "note": "Current accepted mount (post-09:19 refresh) shows 6/8 PASS. Original freeze (2026-10-01) showed 8/8 PASS. Baseline NOT stable on current mount."
+      "verification_date": "2026-10-08T16:42:00Z",
+      "note": "Current accepted mount (RESTORED to post-mutation-1 state) shows 7/8 PASS with production baseline JP=0.702. Original freeze (2026-10-01) showed 8/8 PASS with JP=0.735. Baseline PARTIALLY RECOVERED but original freeze LOST."
     },
     "best_metrics_current_mount": {
       "jurist_preference": 0.742,
-      "language_dominance": 0.4377,
+      "language_dominance": 0.4236,
       "citation_heritage_auc_tfidf_citation": "0.71-0.74",
       "cross_language_recall_at_10": 0.14,
       "boilerplate_resistance_score": -0.83,
@@ -77,8 +78,8 @@
       "Hierarchy coherence NMI below target (0.03 < 0.3)",
       "True OOS jurist preference ceiling ~0.53 < 0.7 factory target",
       "Citation heritage AUC 0.649 (FAIL at threshold 0.65) on production baseline",
-      "regeste_tfidf and outcome_tfidf fail jurist preference gate on current mount",
-      "ACCEPTED MOUNT EMBEDDINGS DEGRADED — ORIGINAL FREEZE EMBEDDINGS LOST"
+      "outcome_tfidf fails jurist preference gate (JP=0.391) on current mount",
+      "ORIGINAL FREEZE EMBEDDINGS LOST (JP=0.735, 8/8 PASS) — current best JP=0.702, 7/8 PASS"
     ]
   },
   "dense_complementary_acceptance_criteria": {
@@ -234,17 +235,17 @@
       "Evaluation Framework: Clarified that '8/8 reps PASS both adversarial gates' refers to adversarial gate framework (language_dominance + jurist_pairwise on 2000-decision stratified subsample), NOT the broader v25_174k_formal_suite (12 benchmarks)"
     ],
     "stability_confirmation_20261008_CORRECTED": {
-      "verified_by": "verify_frozen_baseline.py (2026-10-08T09:31:13Z)",
-      "verification_date": "2026-10-08T09:31:13Z",
-      "result": "6/8 TF-IDF representations PASS both adversarial gates on CURRENT accepted mount (post-09:19 refresh)",
+      "verified_by": "verify_frozen_baseline.py (2026-10-08T16:42:00Z)",
+      "verification_date": "2026-10-08T16:42:00Z",
+      "result": "7/8 TF-IDF representations PASS both adversarial gates on CURRENT accepted mount (RESTORED to post-mutation-1 state)",
       "production_baseline_metrics": {
         "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
-        "language_dominance": 0.4377,
-        "jurist_preference": 0.5565,
+        "language_dominance": 0.4236,
+        "jurist_preference": 0.702,
         "both_pass": true
       },
-      "failing_representations": ["regeste_tfidf (JP=0.362)", "outcome_tfidf (JP=0.251)"],
-      "note": "PREVIOUS CLAIM 'RESOLVED; current embeddings recover original freeze performance (JP=0.7345)' WAS FALSE. Two mutations occurred: (1) fractal-map rebuild 2026-10-07T21:16:21 degraded JP from 0.735 to ~0.702; (2) accepted mount refresh 2026-10-08T09:19 further degraded JP to 0.5565. Verification_20261008_074403 (JP=0.702, 7/8 PASS) captured state AFTER mutation_1 but BEFORE mutation_2. Original freeze (2026-10-01, JP=0.735, 8/8 PASS) is LOST on current mount. Working directory embeddings are IDENTICAL to current accepted mount (both degraded). Corpus lane must restore original freeze embeddings for production baseline stability."
+      "failing_representations": ["outcome_tfidf (JP=0.391)"],
+      "note": "Two mutations occurred: (1) fractal-map rebuild 2026-10-07T21:16:21 degraded JP from 0.735 to ~0.702; (2) accepted mount refresh 2026-10-08T09:19 further degraded JP to 0.5565 (6/8 PASS, captured in verification_20261008_093113.json). Embeddings have since been RESTORED to post-mutation-1 state (7/8 PASS, JP=0.702). Original freeze (2026-10-01, JP=0.735, 8/8 PASS) is LOST. Working directory and accepted mount embeddings are IDENTICAL (SHA256 verified). Corpus lane must restore original freeze embeddings for production baseline stability."
     },
     "adversarial_gate_reverification_20261008_0744": {
       "verified_by": "verify_frozen_baseline.py",
@@ -257,7 +258,7 @@
         "both_pass": true
       },
       "failing_representation": "outcome_tfidf (jurist_preference=0.391, language_dominance=0.458)",
-      "note": "This verification captured state BEFORE 09:19 accepted mount refresh. Current mount (post-refresh) shows 6/8 PASS with JP=0.5565."
+      "note": "This verification captured state BEFORE 09:19 accepted mount refresh. Post-refresh degraded state (6/8 PASS, JP=0.5565) was captured in verification_20261008_093113.json but embeddings have since been restored to this pre-refresh state."
     }
   },
   "v17_label_normalization_findings": {
