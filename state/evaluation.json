@@ -59,18 +59,28 @@
     "adversarial_gates": {
       "language_dominance_threshold": 0.85,
       "jurist_preference_threshold": 0.5,
-      "current_mount_reps_pass_both": 7,
+      "current_mount_reps_pass_both": 6,
       "current_mount_reps_tested": 8,
-      "verification_date": "2026-10-08T16:42:00Z",
-      "note": "Current accepted mount (RESTORED to post-mutation-1 state) shows 7/8 PASS with production baseline JP=0.702. Original freeze (2026-10-01) showed 8/8 PASS with JP=0.735. Baseline PARTIALLY RECOVERED but original freeze LOST."
+      "verification_date": "2026-10-08T21:24:04Z",
+      "production_baseline_metrics": {
+        "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+        "language_dominance": 0.43775,
+        "jurist_preference": 0.5565,
+        "both_pass": true
+      },
+      "failing_representations": ["regeste_tfidf (JP=0.362)", "outcome_tfidf (JP=0.251)"],
+      "note": "Current accepted mount shows 6/8 PASS with production baseline JP=0.5565. The 16:42 restoration to post-mutation-1 state (7/8 PASS, JP=0.702) was NOT persistent — mount reverted to degraded post-mutation-2 state. Original freeze (2026-10-01, JP=0.735, 8/8 PASS) is LOST. Working directory and accepted mount embeddings are IDENTICAL (SHA256: 4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc) and match degraded state. Corpus lane MUST restore original freeze embeddings for production baseline stability."
     },
     "best_metrics_current_mount": {
       "jurist_preference": 0.742,
-      "language_dominance": 0.4236,
+      "language_dominance": 0.48495,
+      "production_baseline_jurist_preference": 0.5565,
+      "production_baseline_language_dominance": 0.43775,
       "citation_heritage_auc_tfidf_citation": "0.71-0.74",
       "cross_language_recall_at_10": 0.14,
       "boilerplate_resistance_score": -0.83,
-      "hierarchy_coherence_nmi": 0.03
+      "hierarchy_coherence_nmi": 0.03,
+      "note": "Best JP (0.742) from regeste_full_text_hybrid_0.7; production baseline cited_decisions_tfidf_outcome_hybrid_0.5 has JP=0.5565, LD=0.43775"
     },
     "known_limitations": [
       "Cross-language retrieval below target (0.14 < 0.2)",
@@ -237,7 +247,7 @@
     "stability_confirmation_20261008_CORRECTED": {
       "verified_by": "verify_frozen_baseline.py (2026-10-08T16:42:00Z)",
       "verification_date": "2026-10-08T16:42:00Z",
-      "result": "7/8 TF-IDF representations PASS both adversarial gates on CURRENT accepted mount (RESTORED to post-mutation-1 state)",
+      "result": "7/8 TF-IDF representations PASS both adversarial gates on accepted mount (RESTORED to post-mutation-1 state at that time)",
       "production_baseline_metrics": {
         "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
         "language_dominance": 0.4236,
@@ -245,9 +255,9 @@
         "both_pass": true
       },
       "failing_representations": ["outcome_tfidf (JP=0.391)"],
-      "note": "Two mutations occurred: (1) fractal-map rebuild 2026-10-07T21:16:21 degraded JP from 0.735 to ~0.702; (2) accepted mount refresh 2026-10-08T09:19 further degraded JP to 0.5565 (6/8 PASS, captured in verification_20261008_093113.json). Embeddings have since been RESTORED to post-mutation-1 state (7/8 PASS, JP=0.702). Original freeze (2026-10-01, JP=0.735, 8/8 PASS) is LOST. Working directory and accepted mount embeddings are IDENTICAL (SHA256 verified). Corpus lane must restore original freeze embeddings for production baseline stability."
+      "note": "Two mutations occurred: (1) fractal-map rebuild 2026-10-07T21:16:21 degraded JP from 0.735 to ~0.702; (2) accepted mount refresh 2026-10-08T09:19 further degraded JP to 0.5565 (6/8 PASS). Embeddings were RESTORED to post-mutation-1 state at 16:42 (7/8 PASS, JP=0.702) but this restoration was NOT PERSISTENT. Re-verification at 2026-10-08T21:24 shows mount reverted to degraded post-mutation-2 state (6/8 PASS, JP=0.5565). Original freeze (2026-10-01, JP=0.735, 8/8 PASS) is LOST. Working directory and accepted mount embeddings are IDENTICAL (SHA256: 4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc) and match degraded state. Corpus lane MUST restore original freeze embeddings for production baseline stability."
     },
-    "adversarial_gate_reverification_20261008_0744": {
+"adversarial_gate_reverification_20261008_0744": {
       "verified_by": "verify_frozen_baseline.py",
       "verification_date": "2026-10-08T07:44:00Z",
       "result": "7/8 TF-IDF representations PASS both adversarial gates on PRE-refresh accepted mount",
@@ -258,7 +268,7 @@
         "both_pass": true
       },
       "failing_representation": "outcome_tfidf (jurist_preference=0.391, language_dominance=0.458)",
-      "note": "This verification captured state BEFORE 09:19 accepted mount refresh. Post-refresh degraded state (6/8 PASS, JP=0.5565) was captured in verification_20261008_093113.json but embeddings have since been restored to this pre-refresh state."
+      "note": "This verification captured state BEFORE 09:19 accepted mount refresh. Post-refresh degraded state (6/8 PASS, JP=0.5565) was captured in verification_20261008_093113.json. A restoration at 16:42 temporarily recovered 7/8 PASS (JP=0.702) but was NOT PERSISTENT — current mount (21:24) shows degraded state (6/8 PASS, JP=0.5565)."
     }
   },
   "v17_label_normalization_findings": {
