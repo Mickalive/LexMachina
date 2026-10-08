@@ -13,7 +13,7 @@
     "fractal-map/results/fractal_map/dense_embeddings_integration_contract_v34.json",
     "fractal-map/results/fractal_map/144k_checkpoint_validation/144k_validation_144443decisions.json"
   ],
-  "next_recommendation": "TF-IDF 174k baseline NOT stable — accepted mount embeddings mutated TWICE: (1) fractal-map rebuild 2026-10-07T21:16:21 (degraded JP from 0.735 to ~0.556); (2) accepted mount refresh 2026-10-08T09:19 (current embeddings show JP=0.5565 for production baseline, 6/8 PASS). Verification_20261008_074403 captured PRE-refresh state (JP=0.702, 7/8 PASS). Current embeddings are DEGRADED relative to original freeze. Dense acceptance criteria DEFINED but validation BLOCKED at 174k pending corpus lane. No further same-question cycles justified. Product v1.0 with TF-IDF primary; dense v1.1+ per integration contracts. CORPUS LANE MUST RESTORE ORIGINAL FREEZE EMBEDDINGS for production baseline stability.",
+  "next_recommendation": "TF-IDF 174k baseline NOT stable — accepted mount embeddings mutated TWICE: (1) fractal-map rebuild 2026-10-07T21:16:21 (degraded JP from 0.735 to ~0.702); (2) accepted mount refresh 2026-10-08T09:19 (further degraded JP to 0.5565, 6/8 PASS). Verification_20261008_074403 captured PRE-refresh state (JP=0.702, 7/8 PASS). Current embeddings are DEGRADED relative to original freeze. Dense acceptance criteria DEFINED but validation BLOCKED at 174k pending corpus lane. No further same-question cycles justified. Product v1.0 with TF-IDF primary; dense v1.1+ per integration contracts. CORPUS LANE MUST RESTORE ORIGINAL FREEZE EMBEDDINGS for production baseline stability.",
   "frozen_baseline": {
     "name": "TF-IDF 174k Production Baseline (ORIGINAL FREEZE 2026-10-03, NOT CURRENT MOUNT)",
     "default_mode": "cited_decisions_tfidf_outcome_hybrid_0.5_174k",
@@ -28,12 +28,12 @@
     },
     "mutation_1_fractal_map_rebuild": {
       "date": "2026-10-07T21:16:21",
-      "effect": "Degraded production baseline JP from 0.735 to ~0.556",
-      "note": "Fractal-map rebuild mutated accepted mount embeddings"
+      "effect": "Degraded production baseline JP from 0.735 to ~0.702 (per pre-refresh verification)",
+      "note": "Fractal-map rebuild mutated accepted mount embeddings; pre-refresh verification (2026-10-08T07:44) captured JP=0.702, 7/8 PASS"
     },
     "mutation_2_accepted_mount_refresh": {
       "date": "2026-10-08T09:19",
-      "effect": "Current accepted mount embeddings show JP=0.5565 for production baseline, 6/8 PASS",
+      "effect": "Further degraded production baseline JP from ~0.702 to 0.5565; 6/8 PASS",
       "verification_date": "2026-10-08T09:31:13Z",
       "reps_pass_both": 6,
       "reps_tested": 8,
@@ -244,7 +244,7 @@
         "both_pass": true
       },
       "failing_representations": ["regeste_tfidf (JP=0.362)", "outcome_tfidf (JP=0.251)"],
-      "note": "PREVIOUS CLAIM 'RESOLVED; current embeddings recover original freeze performance (JP=0.7345)' WAS FALSE. The 09:19 accepted mount refresh installed DEGRADED embeddings. Verification_20261008_074403 (JP=0.702, 7/8 PASS) captured PRE-refresh state. Original freeze (2026-10-01, JP=0.735, 8/8 PASS) is LOST on current mount. Corpus lane must restore original freeze embeddings for production baseline stability."
+      "note": "PREVIOUS CLAIM 'RESOLVED; current embeddings recover original freeze performance (JP=0.7345)' WAS FALSE. Two mutations occurred: (1) fractal-map rebuild 2026-10-07T21:16:21 degraded JP from 0.735 to ~0.702; (2) accepted mount refresh 2026-10-08T09:19 further degraded JP to 0.5565. Verification_20261008_074403 (JP=0.702, 7/8 PASS) captured state AFTER mutation_1 but BEFORE mutation_2. Original freeze (2026-10-01, JP=0.735, 8/8 PASS) is LOST on current mount. Working directory embeddings are IDENTICAL to current accepted mount (both degraded). Corpus lane must restore original freeze embeddings for production baseline stability."
     },
     "adversarial_gate_reverification_20261008_0744": {
       "verified_by": "verify_frozen_baseline.py",
@@ -259,5 +259,19 @@
       "failing_representation": "outcome_tfidf (jurist_preference=0.391, language_dominance=0.458)",
       "note": "This verification captured state BEFORE 09:19 accepted mount refresh. Current mount (post-refresh) shows 6/8 PASS with JP=0.5565."
     }
+  },
+  "v17_label_normalization_findings": {
+    "evidence_tier": "REPRODUCED",
+    "multi_seed_verified": true,
+    "finding": "v17 label normalization (Jurivoc label cleaning) showed 15-25% purity gain at 1k scale but FAILS generalization to 174k (hierarchy=1.0x; zoom_fine=0.83-0.99x degradation; legal_area=1.0x). Negative result accepted.",
+    "run_id": "run_v17b_label_normalization_174k",
+    "date": "2026-10-06"
+  },
+  "v17b_label_normalization_all_reps_findings": {
+    "evidence_tier": "REPRODUCED",
+    "multi_seed_verified": true,
+    "multi_seed_details": "v17b multi-seed verification confirmed v17 negative result: label normalization gains do not generalize to 174k across all 6 representations. Multi-seed std < 0.01 confirms stability of negative finding.",
+    "run_id": "run_v17b_label_normalization_174k",
+    "date": "2026-10-06"
   }
 }
