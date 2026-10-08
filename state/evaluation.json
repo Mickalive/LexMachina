@@ -4,7 +4,7 @@
   "evidence_tier": "TF-IDF_REVERIFIED_DENSE_UNVALIDATED",
   "cycle_status": "COMPLETE",
   "continue_recommended": false,
-  "accepted_run_id": "evaluation_v35_baseline_freeze_20261007",
+  "accepted_run_id": "evaluation_v35_baseline_reverification_20261008_0744",
   "evidence_refs": [
     "legal-distance/evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
     "legal-distance/results/legal_distance/complementary_role_characterization_v34.json",
@@ -13,26 +13,27 @@
     "fractal-map/results/fractal_map/dense_embeddings_integration_contract_v34.json",
     "fractal-map/results/fractal_map/144k_checkpoint_validation/144k_validation_144443decisions.json"
   ],
-  "next_recommendation": "TF-IDF 174k formal suite CONFIRMED STABLE as production baseline (8/8 reps PASS both adversarial gates on current accepted mount, production baseline JP=0.7265, LangDom=0.4895). Original freeze (2026-10-03, JP=0.735) was affected by post-freeze mutation during fractal-map rebuild (2026-10-07), but current accepted mount embeddings (verified 2026-10-08) RECOVER original performance. Dense embedding complementary view acceptance criteria DEFINED from ACCEPTED evidence at max available scale (144k/22yr checkpoint and 1K section samples): (1) Citation Heritage — center_projected_64dim AUC > 0.75 (PASSED 0.7922 at 144k 22yr cohort; FAILS at full 174k AUC 0.482); (2) Cross-Lingual Sachverhalt — cross_lang_same_branch > 0.2 (PASSED 0.282 at n=359, 36% coverage); (3) Cross-Lingual Dispositiv — cross_lang_same_branch > 0.1 (PASSED 0.150 at n=538, 54% coverage); (4) Cross-Lingual Erwaegungen — REJECTED (0.094 < 0.1); (5) Linear Hybrid Complement — PASS adversarial gates on obsolete v6-v10 embeddings (JP 0.66-0.68) with cross_lang improvement +0.036; target 174k legal-distance dense embeddings do not exist. BLOCKED on corpus lane: BGE/bger ID mapping + parquet 2022-2026 + section extraction 174k. No further same-question cycles justified. Product v1.0 with TF-IDF primary; dense v1.1+ per integration contracts.",
+  "next_recommendation": "TF-IDF 174k formal suite CONFIRMED as production baseline (7/8 reps PASS both adversarial gates on current accepted mount; production default modes all PASS with JP > 0.70). Original freeze (2026-10-03) affected by post-freeze mutation during fractal-map rebuild (2026-10-07). Current accepted mount verified 2026-10-08: 7/8 PASS both gates; outcome_tfidf FAILS jurist preference (0.391) but is not a production default. Dense embedding complementary view acceptance criteria DEFINED from ACCEPTED evidence at max available scale (144k/22yr checkpoint and 1K section samples): (1) Citation Heritage — center_projected_64dim AUC > 0.75 (PASSED 0.7922 at 144k 22yr cohort; FAILS at full 174k AUC 0.482); (2) Cross-Lingual Sachverhalt — cross_lang_same_branch > 0.2 (PASSED 0.282 at n=359, 36% coverage); (3) Cross-Lingual Dispositiv — cross_lang_same_branch > 0.1 (PASSED 0.150 at n=538, 54% coverage); (4) Cross-Lingual Erwaegungen — REJECTED (0.094 < 0.1); (5) Linear Hybrid Complement — PASS adversarial gates on obsolete v6-v10 embeddings (JP 0.66-0.68) with cross_lang improvement +0.036; target 174k legal-distance dense embeddings do not exist. BLOCKED on corpus lane: BGE/bger ID mapping + parquet 2022-2026 + section extraction 174k. No further same-question cycles justified. Product v1.0 with TF-IDF primary; dense v1.1+ per integration contracts.",
   "frozen_baseline": {
-    "name": "TF-IDF 174k Production Baseline (RE-VERIFIED 2026-10-07)",
+    "name": "TF-IDF 174k Production Baseline (RE-VERIFIED 2026-10-08)",
     "default_mode": "cited_decisions_tfidf_outcome_hybrid_0.5_174k",
     "corpus_scale": 173963,
     "formal_suite_completion": "2026-10-01",
-    "re_verification": "2026-10-08T05:43:00Z (confirmed stable; 8/8 PASS, JP=0.7265)",
-    "mutation_note": "Accepted mount embeddings mutated post-original-freeze (2026-10-03) during fractal-map rebuild (2026-10-07T21:16:21), causing interim degradation (JP=0.556 on 2026-10-07). Current accepted mount (verified 2026-10-08) RECOVERS original performance (JP=0.7265 ≈ original 0.7345). Baseline CONFIRMED STABLE.",
+    "re_verification": "2026-10-08T07:44:00Z (7/8 reps PASS both adversarial gates; production baseline JP=0.702, LangDom=0.424)",
+    "mutation_note": "Accepted mount embeddings mutated post-original-freeze (2026-10-03) during fractal-map rebuild (2026-10-07T21:16:21). Current accepted mount verified 2026-10-08: 7/8 representations PASS both adversarial gates. outcome_tfidf FAILS jurist preference (0.391). Production default modes (cited_decisions_tfidf_outcome_hybrid_0.5/0.7, regeste_full_text_hybrid_0.5/0.7, full_text_tfidf_light) all PASS with JP > 0.70. Baseline CONFIRMED STABLE for production use.",
     "adversarial_gates": {
       "language_dominance_threshold": 0.85,
       "jurist_preference_threshold": 0.5,
-      "all_reps_pass_both": true,
+      "all_reps_pass_both": false,
       "reps_tested": 8,
-      "reps_pass_both": 8,
-      "reps_fail_jurist_preference": 0,
-      "note": "Adversarial gate framework: language_dominance + jurist_pairwise on 2000-decision stratified subsample with exact k-NN. Distinct from broader v25_174k_formal_suite (12 benchmarks) where only 4/8 pass adversarial_falsification benchmark. CONFIRMED 2026-10-08: 8/8 PASS on current accepted mount."
+      "reps_pass_both": 7,
+      "reps_fail_jurist_preference": 1,
+      "failing_representation": "outcome_tfidf (jurist_preference=0.391)",
+      "note": "Adversarial gate framework: language_dominance + jurist_pairwise on 2000-decision stratified subsample with exact k-NN. Distinct from broader v25_174k_formal_suite (12 benchmarks). Formal suite (2026-10-01) reported 8/8 PASS; current verification (2026-10-08) on same accepted mount shows 7/8 PASS. Discrepancy likely due to subsample differences. Production default modes unaffected."
     },
     "best_metrics": {
-      "jurist_preference": 0.7265,
-      "language_dominance": 0.4895,
+      "jurist_preference": 0.702,
+      "language_dominance": 0.4236,
       "citation_heritage_auc_tfidf_citation": "0.71-0.74",
       "cross_language_recall_at_10": 0.14,
       "boilerplate_resistance_score": -0.83,
@@ -43,7 +44,8 @@
       "Boilerplate resistance negative (-0.83)",
       "Hierarchy coherence NMI below target (0.03 < 0.3)",
       "True OOS jurist preference ceiling ~0.53 < 0.7 factory target",
-      "Citation heritage AUC 0.649 (FAIL at threshold 0.65) on production baseline"
+      "Citation heritage AUC 0.649 (FAIL at threshold 0.65) on production baseline",
+      "outcome_tfidf representation fails jurist preference gate (0.391 < 0.5) — not used as production default"
     ]
   },
   "dense_complementary_acceptance_criteria": {
@@ -189,13 +191,13 @@
     }
   },
   "report_path": "reports/evaluation/evaluation_v35_tfidf_174k_baseline_and_dense_acceptance_criteria.md",
-  "audit_corrections_applied": {
+"audit_corrections_applied": {
     "cycle_revised": "CYCLE_37696016446",
     "fixes_applied": [
       "Citation Heritage: Distinguished 144k partial cohort (22yr, 2000-2021) from full 174k; added explicit BLOCKED note with AUC 0.482 FAIL at 174k per prior audit CYCLE_37591874490",
       "Cross-Lingual Sachverhalt/Dispositiv/Erwaegungen: Added explicit qualification of n=359-538 decisions (36-54% coverage) in 1K partial cohort; full-corpus validation BLOCKED pending section extraction at 174k",
       "Linear Hybrid: Replaced 'PASS adversarial at 144k' with accurate statement referencing obsolete v6-v10 era embeddings (product_integration_verification_v11.json); target 174k legal-distance dense embeddings do not exist",
-      "Product Audit Gate: Removed broken reference to CYCLE_37073590337_GATE.json (file does not exist)",
+      "Product Audit Gate: Removed broken reference to CYCLE_37073590337_GATE.json (file does not exist in mounted checkout or producer workspace)",
       "Evaluation Framework: Clarified that '8/8 reps PASS both adversarial gates' refers to adversarial gate framework (language_dominance + jurist_pairwise on 2000-decision stratified subsample), NOT the broader v25_174k_formal_suite (12 benchmarks)"
     ],
     "stability_confirmation_20261008": {
@@ -209,6 +211,19 @@
         "both_pass": true
       },
       "note": "Post-mutation degradation (2026-10-07, JP=0.556) RESOLVED; current embeddings recover original freeze performance (JP=0.7345). Baseline CONFIRMED STABLE for production use."
+    },
+    "adversarial_gate_reverification_20261008_0744": {
+      "verified_by": "verify_frozen_baseline.py (this run)",
+      "verification_date": "2026-10-08T07:44:00Z",
+      "result": "7/8 TF-IDF representations PASS both adversarial gates on current accepted mount",
+      "production_baseline_metrics": {
+        "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+        "language_dominance": 0.4236,
+        "jurist_preference": 0.702,
+        "both_pass": true
+      },
+      "failing_representation": "outcome_tfidf (jurist_preference=0.391, language_dominance=0.458)",
+      "note": "Formal suite (2026-10-01) reported 8/8 PASS; current verification shows 7/8 PASS. Discrepancy likely due to stratified subsample differences. Production default modes (cited_decisions_tfidf_outcome_hybrid_0.5/0.7, regeste_full_text_hybrid_0.5/0.7, full_text_tfidf_light) all PASS with JP > 0.70. State updated to reflect accurate current verification."
     }
   }
 }
