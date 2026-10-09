@@ -1,0 +1,131 @@
+{
+  "report_id": "FRACTAL_MAP_V35_FINAL_REPORT_20261009",
+  "lane": "fractal-map",
+  "direction_version": 35,
+  "timestamp": "2026-10-09T00:00:00Z",
+  "status": "COMPLETE",
+  "evidence_tier": "ACCEPTED",
+  "continue_recommended": false,
+  "tfidf_production_modes": {
+    "count": 3,
+    "modes": [
+      {
+        "mode_id": "cited_decisions_tfidf",
+        "name": "Cited Decisions TF-IDF (Zero-Shot Citation Signal)",
+        "role": "Primary navigation component",
+        "fine_branch_purity_52pct": 0.683,
+        "fine_area_purity_52pct": 0.322,
+        "nesting": 1.0,
+        "status": "PRODUCTION"
+      },
+      {
+        "mode_id": "cited_decisions_tfidf_outcome_hybrid_0.5",
+        "name": "Cited Decisions TF-IDF + Outcome Hybrid α=0.5",
+        "role": "PRODUCT_SERVING_DEFAULT",
+        "fine_branch_purity_52pct": 0.635,
+        "fine_area_purity_52pct": 0.271,
+        "nesting": 1.0,
+        "regenerated_174k": true,
+        "zoom_levels": 7,
+        "status": "PRODUCTION"
+      },
+      {
+        "mode_id": "cited_decisions_tfidf_outcome_hybrid_0.7",
+        "name": "Cited Decisions TF-IDF + Outcome Hybrid α=0.7",
+        "role": "High citation weight for zoom refinement",
+        "fine_branch_purity_52pct": 0.610,
+        "fine_area_purity_52pct": 0.291,
+        "nesting": 1.0,
+        "status": "PRODUCTION"
+      }
+    ],
+    "jurist_preference": "0.78-0.79 (beats semantic baseline 0.43)",
+    "scale_tests_pass": "16/16 at 174k",
+    "webgl_pipeline": "<3s at 174k"
+  },
+  "hierarchical_v1_protocol": {
+    "total_modes": 8,
+    "pass": 6,
+    "text_based_full_174k": 3,
+    "text_based_fine_branch_purity_range": [0.906, 0.930],
+    "citation_based_52pct": 3,
+    "citation_based_fine_branch_purity_range": [0.609, 0.685],
+    "fail_modes": ["regeste_tfidf", "outcome_tfidf"]
+  },
+  "multi_level_recursive_protocol": {
+    "modes_validated_at_174k": 4,
+    "levels": 5,
+    "structural_checks": {
+      "perfect_nesting_ge_0.95": true,
+      "zero_fragmentation": true,
+      "monotonic_refinement": true
+    },
+    "calibration": "FAIL (thresholds too aggressive for TF-IDF signal density at 174k)"
+  },
+  "dense_integration_contract": {
+    "version": 34,
+    "status": "FROZEN",
+    "date_frozen": "2026-10-03",
+    "complementary_views": 4,
+    "views": [
+      {
+        "name": "Citation Heritage",
+        "criterion": "AUC > 0.75",
+        "evidence_144k": "AUC 0.79-0.85 (TF-IDF baseline 0.71-0.74)",
+        "required_modes": ["center_projected_64dim", "center_projected_128dim", "center_projected_768dim"],
+        "product_mode": "citation_heritage_view"
+      },
+      {
+        "name": "Cross-Lingual (Sachverhalt)",
+        "criterion": "cross_lang_same_branch > 0.20",
+        "evidence_144k": "cp64: 0.282 (gap 0.187)",
+        "required_modes": ["center_projected_64dim", "center_projected_768dim"],
+        "product_mode": "cross_lingual_sachverhalt_view"
+      },
+      {
+        "name": "Cross-Lingual (Dispositiv)",
+        "criterion": "cross_lang_same_branch > 0.10",
+        "evidence_144k": "cp64: 0.150 (gap 0.397)",
+        "required_modes": ["center_projected_64dim", "center_projected_768dim"],
+        "product_mode": "cross_lingual_dispositiv_view"
+      },
+      {
+        "name": "Cross-Lingual (Erwaegungen)",
+        "criterion": "cross_lang_same_branch > 0.10",
+        "evidence_144k": "cp64: 0.094 (gap 0.452) — FAIL",
+        "product_mode": "NOT INCLUDED"
+      },
+      {
+        "name": "Linear Hybrid Complement",
+        "criterion": "PASS adversarial at w=0.3-0.4",
+        "evidence_144k": "cited_decisions_tfidf + dense w=0.4: JP 0.67, LD 0.65",
+        "note": "PASS adversarial but BELOW TF-IDF baseline (JP 0.61-0.67 vs 0.78-0.79)",
+        "required_modes": ["center_projected_64dim", "center_projected_128dim"],
+        "product_mode": "linear_hybrid_complement_view (EXPLORATORY)"
+      }
+    ],
+    "infrastructure_ready": {
+      "hierarchical_builder": true,
+      "map_mode_registry": true,
+      "zoom_neighborhood_api": true,
+      "webgl_pipeline": true,
+      "product_integration": true
+    }
+  },
+  "blockers": [
+    "Corpus lane: BGE/bger ID mapping production",
+    "Corpus lane: Parquet generation for years 2022-2026 (29,520 decisions missing)",
+    "Corpus lane: Section extraction (sachverhalt/erwaegungen/dispositiv) at 174k scale",
+    "Legal-distance lane: 174k dense embeddings computation (~11% complete)"
+  ],
+  "negative_results_preserved": [
+    "Calibration FAILS on TF-IDF (thresholds too aggressive)",
+    "Erwaegungen cross-lingual FAILS (0.094 < 0.10)",
+    "v18 coarse hierarchy NEGATIVE (max branch purity 0.65 < 0.7)",
+    "Citation heritage recall@10 NEGATIVE (max 0.0066)",
+    "True OOS JuristPref ceiling ~0.53 < 0.7",
+    "Linear hybrids BELOW TF-IDF baseline (JP 0.61-0.67 vs 0.78-0.79)",
+    "Dense embeddings FAIL jurist gate at ALL scales (JP 0.05-0.43)"
+  ],
+  "next_recommendation": "AWAIT_DATA_UNBLOCK: Resume when legal-distance delivers 174k dense embeddings (blocked on corpus lane). Then integrate dense complementary views per contract v34."
+}
