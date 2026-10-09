@@ -7,59 +7,121 @@
   "accepted_run_id": "EVALUATION_V35_FROZEN_BASELINE_20261009_37995781744",
   "evidence_refs": [
     "legal_distance/evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
-    "legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_22year_latest.json",
-    "legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_24year_latest.json",
-    "legal_distance/results/174k_dense_embeddings/section_crosslingual_eval/section_crosslingual_eval_latest.json",
-    "legal_distance/results/174k_dense_embeddings/linear_combinations_weight_sweep_22year/weight_sweep_22year_latest.json",
+    "evaluation/results/174k_tfidf_formal_suite/verification_20261009_081230.json",
+    "evaluation/results/174k_tfidf_formal_suite/verification_20261009_185503.json",
+    "evaluation/results/174k_tfidf_formal_suite/verification_20261009_213435.json",
+    "legal_distance/results/legal_distance/174k_dense_embeddings/citation_heritage_eval/citation_heritage_22year_latest.json",
+    "legal_distance/results/legal_distance/174k_dense_embeddings/citation_heritage_eval/citation_heritage_24year_latest.json",
+    "results/evaluation/citation_heritage_174k.json",
+    "legal_distance/results/legal_distance/174k_dense_embeddings/section_crosslingual_eval/section_crosslingual_eval_latest.json",
+    "legal_distance/results/legal_distance/174k_dense_embeddings/linear_combinations_22year/linear_combinations_22year_eval_latest.json",
+    "results/evaluation/product_integration_verification_v11.json",
     "fractal-map/state/fractal-map.json",
     "legal-distance/state/legal-distance.json"
   ],
-  "next_recommendation": "TF-IDF 174k evaluation FROZEN as production baseline. 8/8 representations PASS both adversarial gates (language dominance threshold 0.85, jurist pairwise preference). Primary production mode: cited_decisions_tfidf_outcome_hybrid_0.5 (JP=0.7345, LangDom=0.4773). Dense embedding complementary views acceptance criteria DEFINED and VALIDATED at available scales: (1) Citation Heritage: center_projected_64dim AUC > 0.75 — PASSED at 22yr/144k (0.7922) and 24yr/158k (0.7667); (2) Cross-Lingual Sachverhalt: center_projected_64dim cross_lang_same_branch > 0.2 — PASSED at 1K sample (0.2816); (3) Cross-Lingual Dispositiv: center_projected_64dim cross_lang_same_branch > 0.1 — PASSED at 1K sample (0.1502); (4) Linear Hybrid Complement: PASS both adversarial gates at optimal weight (w=0.3-0.4) with cross-lingual improvement over TF-IDF baseline — PASSED at 19-22yr. Erwaegungen cross-lingual FAILS threshold (0.094 < 0.1). Full 174k dense validation BLOCKED on corpus lane: BGE/bger ID mapping, parquet 2022-2026, section extraction at 174k. No further same-question cycles justified.",
+  "next_recommendation": "TF-IDF 174k evaluation FROZEN as production baseline with DOCUMENTED MUTATIONS. Original freeze (2026-10-01): 8/8 PASS, JP=0.7345 — LOST. Current verified state (2026-10-09): 6-7/8 PASS across environments, JP=0.59-0.66. Production baseline PASSES both adversarial gates in ALL verified environments. Corpus lane MUST restore original freeze embeddings + frozen metadata for production baseline stability. Dense embedding complementary views acceptance criteria DEFINED and VALIDATED at maximum available scales with explicit qualifications: (1) Citation Heritage: center_projected_64dim AUC > 0.75 — PASSED at 22yr/144k PARTIAL COHORT (0.7922) and 24yr/158k PARTIAL COHORT (0.7667); FULL 174K BLOCKED — TF-IDF baseline AUC=0.482 FAIL at 174k per prior audit CYCLE_37591874490. (2) Cross-Lingual Sachverhalt: center_projected_64dim cross_lang_same_branch > 0.2 — PASSED AT SAMPLE SCALE (0.2816 at 1K sample, 36% coverage); BLOCKED AT 174K PENDING SECTION EXTRACTION. (3) Cross-Lingual Dispositiv: center_projected_64dim cross_lang_same_branch > 0.1 — PASSED AT SAMPLE SCALE (0.1502 at 1K sample, 54% coverage); BLOCKED AT 174K PENDING SECTION EXTRACTION. (4) Linear Hybrid Complement: PASS both adversarial gates at optimal weight (w=0.3-0.4) with cross-lingual improvement over TF-IDF baseline — PASSED at 19-22yr on OBSOLETE v6-v10 EMBEDDINGS; target 174k legal-distance dense embeddings do not exist — validation BLOCKED pending corpus lane. Erwaegungen cross-lingual FAILS threshold (0.094 < 0.1). Full 174k dense validation BLOCKED on corpus lane: BGE/bger ID mapping, parquet 2022-2026, section extraction at 174k. No further same-question cycles justified.",
   "critical_findings": {
-    "tfidf_174k_baseline_frozen": "8 TF-IDF representations evaluated at full 173,963 decisions. ALL PASS both adversarial gates (language dominance < 0.85, jurist pairwise preference > 0.5). Best production mode: cited_decisions_tfidf_outcome_hybrid_0.5 (JP=0.7345, LangDom=0.4773). Cited_decisions_tfidf (JP=0.714, LangDom=0.479) and cited_decisions_tfidf_outcome_hybrid_0.7 (JP=0.7275, LangDom=0.478) also PASS. Other metrics (cross-language retrieval, hierarchy coherence, cluster coherence, boilerplate resistance) mostly FAIL — expected for flat embeddings; hierarchical modes address this in fractal-map lane.",
-    "citation_heritage_acceptance": "Dense center_projected_64dim AUC > 0.75 threshold PASSED at 22yr/144k (AUC=0.7922, 344 positive pairs) and 24yr/158k (AUC=0.7667, 730 positive pairs). Superior to TF-IDF citation baseline (AUC 0.71-0.74) and TF-IDF text baseline (AUC 0.50-0.63). Raw 768dim FAILS at 24yr (AUC=0.682) — center projection REQUIRED. Minimal sufficient scale: 21yr/137k (AUC=0.8182).",
-    "cross_lingual_sachverhalt_acceptance": "center_projected_64dim cross_lang_same_branch = 0.2816 > 0.2 threshold (PASS). Invariance gap = 0.187 (vs raw 768dim gap 0.304). Sample: 359 decisions with sachverhalt section. Sachverhalt (facts) aligns BEST cross-lingually. Full corpus validation BLOCKED on section extraction at 174k.",
-    "cross_lingual_dispositiv_acceptance": "center_projected_64dim cross_lang_same_branch = 0.1502 > 0.1 threshold (PASS). Invariance gap = 0.397 (vs raw 768dim gap 0.575). Sample: 538 decisions with dispositiv section. Dispositiv (holdings) INTERMEDIATE cross-lingual alignment. Full corpus validation BLOCKED on section extraction at 174k.",
-    "cross_lingual_erwaegungen_failure": "center_projected_64dim cross_lang_same_branch = 0.0941 < 0.1 threshold (FAIL). Invariance gap = 0.452 (vs raw 768dim gap 0.538). Sample: 510 decisions with erwaegungen section. Erwaegungen (reasoning) is MOST language-specific section. Hierarchy confirmed: Sachverhalt > Dispositiv > Erwaegungen.",
-    "linear_hybrid_complement_acceptance": "At 22yr/144k: linear_citation_concat_w0.4 (JP=0.6725, LangDom=0.6539) and outcome_hybrid_0.5_w0.3 (JP=0.6115, LangDom=0.7477) BOTH PASS adversarial gates. Cross-lingual improvement over TF-IDF baseline: +0.16. But JP REMAINS BELOW TF-IDF baseline (0.73-0.79). Marked EXPLORATORY — not primary navigation.",
+    "tfidf_174k_baseline_frozen_with_mutations": "Original freeze (2026-10-01): 8/8 representations PASS both adversarial gates at full 173,963 decisions. Best production mode: cited_decisions_tfidf_outcome_hybrid_0.5 (JP=0.7345, LangDom=0.4773). Current verified state (2026-10-09 deterministic verification with sorted groups fix): 6-7/8 PASS across environments. Prior env: 7/8 PASS, JP=0.659. Fresh/production env: 6/8 PASS, JP=0.5925. Current env: 6/8 PASS, JP=0.5925. outcome_tfidf FAILS in ALL current verified environments (JP=0.26-0.43). regeste_tfidf FAILS in fresh/production environments (JP=0.403). Non-determinism root-caused (metadata ordering → stratified subsample) and FIXED via sorted groups. Cross-environment discrepancy explained (k-NN tie-breaking in numpy/sklearn). Production baseline PASSES both adversarial gates in ALL verified environments (JP > 0.5, LangDom < 0.85). Mission criterion satisfied: TF-IDF beats semantic baseline (JP 0.59-0.66 vs 0.43). Original freeze embeddings LOST due to accepted mount mutations (fractal-map rebuild 2026-10-07, accepted mount refresh 2026-10-08, metadata update 2026-10-08T23:40). Corpus lane MUST restore original freeze embeddings + frozen metadata for production baseline stability.",
+    "citation_heritage_acceptance": "Dense center_projected_64dim AUC > 0.75 threshold PASSED at 22yr/144k PARTIAL COHORT (AUC=0.7922, 344 positive pairs, 2000-2021) and 24yr/158k PARTIAL COHORT (AUC=0.7667, 730 positive pairs, 2000-2023). Superior to TF-IDF citation baseline (AUC 0.71-0.74) and TF-IDF text baseline (AUC 0.50-0.63). Raw 768dim FAILS at 24yr (AUC=0.682) — center projection REQUIRED. Minimal sufficient scale: 21yr/137k (AUC=0.8182). FULL 174K VALIDATION BLOCKED — TF-IDF baseline on cited_outcome_hybrid_0.5_174k yields AUC=0.482 FAIL per prior audit CYCLE_37591874490.",
+    "cross_lingual_sachverhalt_acceptance": "center_projected_64dim cross_lang_same_branch = 0.2816 > 0.2 threshold (PASS). Invariance gap = 0.187 (vs raw 768dim gap 0.304). Sample: 359 decisions with sachverhalt section (36% coverage in 1K partial cohort / 144k 22yr cohort). Sachverhalt (facts) aligns BEST cross-lingually. Full corpus validation BLOCKED on section extraction at 174k. Status: PASSED AT SAMPLE SCALE (BLOCKED AT 174K PENDING SECTION EXTRACTION).",
+    "cross_lingual_dispositiv_acceptance": "center_projected_64dim cross_lang_same_branch = 0.1502 > 0.1 threshold (PASS). Invariance gap = 0.397 (vs raw 768dim gap 0.575). Sample: 538 decisions with dispositiv section (54% coverage). Dispositiv (holdings) INTERMEDIATE cross-lingual alignment. Full corpus validation BLOCKED on section extraction at 174k. Status: PASSED AT SAMPLE SCALE (BLOCKED AT 174K PENDING SECTION EXTRACTION).",
+    "cross_lingual_erwaegungen_failure": "center_projected_64dim cross_lang_same_branch = 0.0941 < 0.1 threshold (FAIL). Invariance gap = 0.452 (vs raw 768dim gap 0.538). Sample: 510 decisions with erwaegungen section (51% coverage). Erwaegungen (reasoning) is MOST language-specific section. Hierarchy confirmed: Sachverhalt > Dispositiv > Erwaegungen. Status: FAILED AT SAMPLE SCALE.",
+    "linear_hybrid_complement_acceptance": "At 22yr/144k on OBSOLETE v6-v10 EMBEDDINGS: linear_citation_concat_w0.4 (JP=0.6725, LangDom=0.6539) and outcome_hybrid_0.5_w0.3 (JP=0.6115, LangDom=0.7477) BOTH PASS adversarial gates. Cross-lingual improvement over TF-IDF baseline: +0.16. But JP REMAINS BELOW TF-IDF baseline (0.73-0.79 original / 0.59-0.66 current verified). Marked EXPLORATORY — not primary navigation. Explicit disclosure: Evidence from obsolete v6-v10 era embeddings (product_integration_verification_v11.json); target 174k legal-distance dense embeddings do not exist — validation BLOCKED pending corpus lane.",
     "data_blockers": "BGE/bger ID mapping missing (cannot align 174k dense embeddings with evaluation metadata); parquet 2022-2026 missing (29,520 decisions); section extraction at 174k not computed (sachverhalt/erwaegungen/dispositiv). All require corpus lane resumption."
   },
   "frozen_baseline": {
-    "tfidf_174k_production_modes": [
-      {
-        "name": "cited_decisions_tfidf_outcome_hybrid_0.5",
-        "jurist_preference": 0.7345,
-        "language_dominance": 0.47725,
-        "both_adversarial_pass": true,
-        "embedding_dim": 128,
-        "n_decisions": 173963,
-        "status": "PRIMARY_PRODUCTION_DEFAULT"
+    "original_freeze_20261001": {
+      "tfidf_174k_production_modes": [
+        {
+          "name": "cited_decisions_tfidf_outcome_hybrid_0.5",
+          "jurist_preference": 0.7345,
+          "language_dominance": 0.47725,
+          "both_adversarial_pass": true,
+          "embedding_dim": 128,
+          "n_decisions": 173963,
+          "status": "ORIGINAL_FREEZE_PRIMARY_DEFAULT_LOST"
+        },
+        {
+          "name": "cited_decisions_tfidf",
+          "jurist_preference": 0.714,
+          "language_dominance": 0.479375,
+          "both_adversarial_pass": true,
+          "embedding_dim": 128,
+          "n_decisions": 173963,
+          "status": "ORIGINAL_FREEZE_ALTERNATIVE_LOST"
+        },
+        {
+          "name": "cited_decisions_tfidf_outcome_hybrid_0.7",
+          "jurist_preference": 0.7275,
+          "language_dominance": 0.478325,
+          "both_adversarial_pass": true,
+          "embedding_dim": 128,
+          "n_decisions": 173963,
+          "status": "ORIGINAL_FREEZE_ALTERNATIVE_LOST"
+        }
+      ],
+      "all_8_reps_pass_both_gates": true,
+      "verification_date": "2026-10-01",
+      "note": "ORIGINAL FREEZE — LOST due to accepted mount mutations. Corpus lane MUST restore for production baseline stability."
+    },
+    "current_verified_state_20261009": {
+      "deterministic_verification_prior_env": {
+        "verification_date": "2026-10-09T08:12:30Z",
+        "reps_pass_both": 7,
+        "reps_tested": 8,
+        "production_baseline_metrics": {
+          "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+          "jurist_preference": 0.6590,
+          "language_dominance": 0.4258,
+          "both_pass": true
+        },
+        "failing_representations": ["outcome_tfidf (JP=0.4325)"],
+        "note": "DETERMINISTIC with sorted groups fix. 7/8 PASS, production baseline JP=0.6590."
       },
-      {
-        "name": "cited_decisions_tfidf",
-        "jurist_preference": 0.714,
-        "language_dominance": 0.479375,
-        "both_adversarial_pass": true,
-        "embedding_dim": 128,
-        "n_decisions": 173963,
-        "status": "PRODUCTION_ALTERNATIVE"
+      "deterministic_verification_fresh_production_env": {
+        "verification_date": "2026-10-09T18:55:03Z",
+        "github_run": 37975401319,
+        "reps_pass_both": 6,
+        "reps_tested": 8,
+        "production_baseline_metrics": {
+          "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+          "jurist_preference": 0.5925,
+          "language_dominance": 0.3481,
+          "both_pass": true
+        },
+        "failing_representations": ["regeste_tfidf (JP=0.4030)", "outcome_tfidf (JP=0.2610)"],
+        "note": "DETERMINISTIC in fresh env (numpy 2.5.3, sklearn 1.9.1). 6/8 PASS, production baseline JP=0.5925. Cross-environment discrepancy due to k-NN tie-breaking differences."
       },
-      {
-        "name": "cited_decisions_tfidf_outcome_hybrid_0.7",
-        "jurist_preference": 0.7275,
-        "language_dominance": 0.478325,
-        "both_adversarial_pass": true,
-        "embedding_dim": 128,
-        "n_decisions": 173963,
-        "status": "PRODUCTION_ALTERNATIVE"
-      }
-    ],
+      "deterministic_verification_current_env": {
+        "verification_date": "2026-10-09T21:34:35Z",
+        "reps_pass_both": 6,
+        "reps_tested": 8,
+        "production_baseline_metrics": {
+          "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+          "jurist_preference": 0.5925,
+          "language_dominance": 0.3481,
+          "both_pass": true
+        },
+        "failing_representations": ["regeste_tfidf (JP=0.4030)", "outcome_tfidf (JP=0.2610)"],
+        "note": "DETERMINISTIC in current env. Matches fresh/production env (6/8 PASS, JP=0.5925). Production baseline PASSES both gates in ALL verified environments."
+      },
+      "mutation_history": [
+        {"event": "Original Freeze", "date": "2026-10-01", "production_baseline_jp": 0.7345, "reps_pass_both": 8, "status": "VERIFIED_ORIGINAL_NOW_LOST"},
+        {"event": "Mutation 1: Fractal-map rebuild", "date": "2026-10-07T21:16", "production_baseline_jp": 0.702, "note": "Pre-refresh verification captured this degradation"},
+        {"event": "Mutation 2: Accepted mount refresh", "date": "2026-10-08T09:19", "production_baseline_jp": 0.5565, "reps_pass_both": 6},
+        {"event": "Metadata update (control plane mount)", "date": "2026-10-08T23:40", "note": "Changed decision ordering → stratified subsample selects different 2000 decisions"},
+        {"event": "Non-deterministic verification", "date": "2026-10-09T03:54", "production_baseline_jp": 0.702, "reps_pass_both": 7, "note": "Metadata-ordering sensitive, matches pre-refresh state"},
+        {"event": "DETERMINISTIC verification (FIXED)", "date": "2026-10-09T08:12", "production_baseline_jp": 0.659, "reps_pass_both": 7, "note": "Sorted groups fix applied — reproducible within prior env"},
+        {"event": "Fresh/Production env verification", "date": "2026-10-09T18:55", "production_baseline_jp": 0.5925, "reps_pass_both": 6, "note": "Cross-environment discrepancy: k-NN tie-breaking in numpy/sklearn"}
+      ],
+      "corpus_lane_restoration_required": "Corpus lane MUST restore original freeze embeddings + frozen metadata for production baseline stability (SHA256 from 2026-10-01 original freeze)."
+    },
     "adversarial_gates": {
       "language_dominance_threshold": 0.85,
       "jurist_pairwise_preference_threshold": 0.5,
-      "note": "Both must PASS for production readiness"
+      "note": "Both must PASS for production readiness. Production baseline PASSES both gates in ALL verified environments."
     },
-    "evaluation_protocol": "v25_174k_formal_suite: 8 representations, exact k-NN on fixed stratified subsample (2000 decisions), HNSW for full-corpus metrics"
+    "evaluation_protocol": "v25_174k_formal_suite: 8 representations, exact k-NN on fixed stratified subsample (2000 decisions), HNSW for full-corpus metrics. Non-determinism FIXED via sorted groups in verify_frozen_baseline.py."
   },
   "dense_complementary_acceptance_criteria": {
     "citation_heritage_view": {
@@ -67,21 +129,28 @@
       "default_representation": "center_projected_64dim",
       "acceptance_criterion": "AUC > 0.75 on frozen citation heritage pair pool",
       "validated_at": {
-        "22yr_144k": {
+        "22yr_144k_partial_cohort": {
+          "cohort_description": "22-year cohort (2000-2021), 144,443 decisions — NOT full 174k corpus (missing 2022-2026)",
           "center_projected_64dim_auc": 0.7922,
           "positive_pairs": 344,
-          "status": "PASSED"
+          "status": "PASSED_AT_PARTIAL_COHORT"
         },
-        "24yr_158k": {
+        "24yr_158k_partial_cohort": {
+          "cohort_description": "24-year cohort (2000-2023), 158k decisions — NOT full 174k corpus (missing 2024-2026)",
           "center_projected_64dim_auc": 0.7667,
           "positive_pairs": 730,
-          "status": "PASSED"
+          "status": "PASSED_AT_PARTIAL_COHORT"
+        },
+        "full_174k_tfidf_baseline": {
+          "cited_outcome_hybrid_0.5_174k_auc": 0.482,
+          "status": "FAIL_AT_FULL_174K_PER_PRIOR_AUDIT_CYCLE_37591874490"
         }
       },
       "minimal_sufficient_scale": "21yr / 137k decisions (2000-2020)",
       "deployment_requirement": "Full 174k dense embeddings + BGE/bger ID alignment",
       "refresh_trigger": "Corpus growth adding >=5k decisions with new citation pairs",
-      "status": "READY_AT_144K_BLOCKED_AT_174K"
+      "status": "READY_AT_PARTIAL_COHORT_BLOCKED_AT_174K",
+      "explicit_qualification": "VALIDATED AT PARTIAL COHORT (2000-2021/2023); FULL 174K BLOCKED — TF-IDF baseline AUC=0.482 FAIL at 174k per prior audit CYCLE_37591874490."
     },
     "cross_lingual_view": {
       "view_name": "cross_lingual",
@@ -92,41 +161,48 @@
           "threshold": 0.2,
           "validated_value": 0.2816,
           "invariance_gap": 0.187,
-          "status": "PASSED_AT_SAMPLE"
+          "sample_size": 359,
+          "coverage": 0.36,
+          "status": "PASSED_AT_SAMPLE_SCALE_BLOCKED_AT_174K_PENDING_SECTION_EXTRACTION"
         },
         "dispositiv": {
           "metric": "cross_lang_same_branch_mean (k=10)",
           "threshold": 0.1,
           "validated_value": 0.1502,
           "invariance_gap": 0.397,
-          "status": "PASSED_AT_SAMPLE"
+          "sample_size": 538,
+          "coverage": 0.54,
+          "status": "PASSED_AT_SAMPLE_SCALE_BLOCKED_AT_174K_PENDING_SECTION_EXTRACTION"
         },
         "erwaegungen": {
           "metric": "cross_lang_same_branch_mean (k=10)",
           "threshold": 0.1,
           "validated_value": 0.0941,
           "invariance_gap": 0.452,
-          "status": "FAILED_AT_SAMPLE"
+          "sample_size": 510,
+          "coverage": 0.51,
+          "status": "FAILED_AT_SAMPLE_SCALE"
         }
       },
       "hierarchy": "Sachverhalt > Dispositiv > Erwaegungen",
       "minimal_sufficient_scale": "174k full corpus with section extraction (MANDATORY)",
       "deployment_requirement": "Section extraction (sachverhalt/erwaegungen/dispositiv) at 174k scale",
-      "status": "SAMPLE_ONLY_BLOCKED_ON_SECTION_EXTRACTION"
+      "status": "SAMPLE_ONLY_BLOCKED_ON_SECTION_EXTRACTION",
+      "explicit_qualification": "Results from n=359-538 decisions (36-54% coverage) in partial cohort; full-corpus validation BLOCKED pending section extraction at 174k."
     },
     "linear_hybrid_complement_view": {
       "view_name": "hybrid_complement",
       "default_representation": "linear_citation_concat_w0.4 (22yr) / linear_hybrid05_concat_w0.3 (19yr)",
       "acceptance_criterion": "PASS both adversarial gates AND cross_lang_same_branch improvement over TF-IDF baseline",
       "validated_at": {
-        "19yr_122k": {
+        "19yr_122k_obsolete_embeddings": {
           "linear_hybrid05_concat_w0.3": {
             "jurist_preference": 0.6365,
             "language_dominance": 0.6617,
             "both_pass": true
           }
         },
-        "22yr_144k": {
+        "22yr_144k_obsolete_embeddings": {
           "linear_citation_concat_w0.4": {
             "jurist_preference": 0.6725,
             "language_dominance": 0.6539,
@@ -141,9 +217,9 @@
       },
       "cross_lang_improvement_over_tfidf": 0.16,
       "tfidf_cross_lang_baseline": 0.124,
-      "note": "Does NOT beat TF-IDF on jurist preference (0.61-0.67 vs 0.73-0.79) — marked EXPLORATORY",
-      "minimal_sufficient_scale": "19yr / 122k decisions (2000-2018)",
-      "status": "READY_AT_144K_BLOCKED_AT_174K"
+      "note": "Does NOT beat TF-IDF on jurist preference (0.61-0.67 vs 0.73-0.79 original / 0.59-0.66 current verified) — marked EXPLORATORY. Explicit disclosure: Evidence from obsolete v6-v10 era embeddings (product_integration_verification_v11.json); target 174k legal-distance dense embeddings do not exist — validation BLOCKED pending corpus lane.",
+      "minimal_sufficient_scale": "19yr / 122k decisions (2000-2018) on obsolete embeddings",
+      "status": "READY_AT_144K_ON_OBSOLETE_EMBEDDINGS_BLOCKED_AT_174K"
     }
   },
   "accepted_negative_findings": {

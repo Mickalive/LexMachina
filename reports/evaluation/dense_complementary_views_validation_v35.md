@@ -1,21 +1,21 @@
 # Dense Complementary Views Validation at 144k/22yr Scale
-**Factory Direction v35 | Evaluation Lane | 2026-10-08**
+**Factory Direction v35 | Evaluation Lane | 2026-10-09 | REVISED per Audit CYCLE_37995781744**
 
 ---
 
 ## Executive Summary
 
-This report validates the **dense embedding complementary views** at the maximum available scale (144,443 decisions, 22-year cohort 2000-2021) per the Factory Direction v35 pivot. The TF-IDF citation hybrids remain the **PRIMARY** product mode (jurist preference 0.78-0.79). Dense embeddings are validated for **COMPLEMENTARY** views only.
+This report validates the **dense embedding complementary views** at the maximum available scale (144,443 decisions, 22-year cohort 2000-2021) per the Factory Direction v35 pivot. The TF-IDF citation hybrids remain the **PRIMARY** product mode (jurist preference 0.78-0.79 original freeze; 0.59-0.66 current verified). Dense embeddings are validated for **COMPLEMENTARY** views only.
 
-| Complementary View | Acceptance Criterion | Result at 144k/22yr | Status |
+| Complementary View | Acceptance Criterion | Result at Max Available Scale | Status |
 |---|---|---|---|
-| Citation Heritage | AUC > 0.75 | 0.792-0.795 (cp64/768/128) | ✅ PASSED |
-| Cross-Lingual Sachverhalt | cross_lang_same_branch > 0.20 | 0.282 (cp64/768) | ✅ PASSED |
-| Cross-Lingual Dispositiv | cross_lang_same_branch > 0.10 | 0.148-0.150 (cp64/768) | ✅ PASSED |
-| Cross-Lingual Erwaegungen | cross_lang_same_branch > 0.10 | 0.093-0.094 (cp64/768) | ❌ FAILED |
-| Linear Hybrid Complement | PASS both adversarial gates + cross_lang > TF-IDF | PASS gates, cross_lang 0.156-0.160 > 0.124 TF-IDF | ⚠️ CONDITIONAL |
+| **Citation Heritage** | AUC > 0.75 | 0.792-0.795 (cp64/768/128) at **144k/22yr PARTIAL COHORT** | ✅ **PASSED AT PARTIAL COHORT; FULL 174K BLOCKED — TF-IDF baseline AUC=0.482 FAIL at 174k per prior audit CYCLE_37591874490** |
+| **Cross-Lingual Sachverhalt** | cross_lang_same_branch > 0.20 | 0.282 (cp64/768) at **1K SAMPLE / 144k 22yr** | ✅ **PASSED AT SAMPLE SCALE (BLOCKED AT 174K PENDING SECTION EXTRACTION)** |
+| **Cross-Lingual Dispositiv** | cross_lang_same_branch > 0.10 | 0.148-0.150 (cp64/768) at **1K SAMPLE / 144k 22yr** | ✅ **PASSED AT SAMPLE SCALE (BLOCKED AT 174K PENDING SECTION EXTRACTION)** |
+| **Cross-Lingual Erwaegungen** | cross_lang_same_branch > 0.10 | 0.093-0.094 (cp64/768) at **1K SAMPLE / 144k 22yr** | ❌ FAILED AT SAMPLE SCALE |
+| **Linear Hybrid Complement** | PASS both adversarial gates + cross_lang > TF-IDF | PASS gates, cross_lang 0.156-0.160 > 0.124 TF-IDF at **144k/22yr on OBSOLETE v6-v10 EMBEDDINGS** | ⚠️ **CONDITIONAL — Evidence from obsolete v6-v10 era embeddings; target 174k legal-distance dense embeddings do not exist — validation BLOCKED pending corpus lane** |
 
-**Key Finding**: Dense embeddings are NECESSARY and SUFFICIENT for two non-jurist-preference views (Citation Heritage, Cross-Lingual Sachverhalt/Dispositiv) but remain BELOW TF-IDF on jurist preference (0.61-0.67 vs 0.78-0.79).
+**Key Finding**: Dense embeddings are NECESSARY and SUFFICIENT for two non-jurist-preference views (Citation Heritage, Cross-Lingual Sachverhalt/Dispositiv) but remain BELOW TF-IDF on jurist preference (0.61-0.67 vs 0.78-0.79 original / 0.59-0.66 current verified).
 
 ---
 
@@ -24,7 +24,7 @@ This report validates the **dense embedding complementary views** at the maximum
 ### Acceptance Criterion
 > **AUC > 0.75** on citation heritage recovery (doctrinal proximity through shared citations)
 
-### Evidence at 144k/22yr (344 positive pairs, 500 negative pairs)
+### Evidence at 144k/22yr (344 positive pairs, 500 negative pairs) — PARTIAL COHORT (2000-2021)
 
 | Dense Mode | AUC-ROC | Positive Mean Sim | Negative Mean Sim | Similarity Gap |
 |---|---|---|---|---|
@@ -34,8 +34,9 @@ This report validates the **dense embedding complementary views** at the maximum
 | raw_768dim | 0.7946 | 0.922 | 0.859 | 0.063 |
 
 **Baseline Comparison**:
-- TF-IDF citation-based: AUC ~0.71-0.74 (PASS)
-- TF-IDF text-based: AUC ~0.50-0.63 (FAIL)
+- TF-IDF citation-based: AUC ~0.71-0.74 (PASS at 174k)
+- TF-IDF text-based: AUC ~0.50-0.63 (FAIL at 174k)
+- **TF-IDF on cited_outcome_hybrid_0.5_174k: AUC = 0.482 (FAIL at full 174k) — per prior audit CYCLE_37591874490**
 - Random: AUC 0.5
 
 ### Scale Dependency
@@ -46,8 +47,9 @@ This report validates the **dense embedding complementary views** at the maximum
 ### Product Integration
 - **View name**: `citation_heritage`
 - **Default representation**: `center_projected_64dim`
-- **Status**: READY at 144k
+- **Status**: **READY at 144k PARTIAL COHORT; BLOCKED at 174k**
 - **Required modes**: `center_projected_64dim`, `center_projected_128dim`, `center_projected_768dim`
+- **Explicit Qualification**: **VALIDATED AT PARTIAL COHORT (2000-2021/2023); FULL 174K BLOCKED — TF-IDF baseline AUC=0.482 FAIL at 174k per prior audit CYCLE_37591874490.**
 
 ---
 
@@ -68,7 +70,7 @@ This hierarchy reflects legal reality: facts are most language-invariant, reason
 | raw_768dim | 0.2173 | 0.304 | -0.044 | 359 | 36% |
 
 **Improvement over raw**: 38% (invariance gap 0.187 vs 0.304)
-**Status**: ✅ PASSED at 1K sample and 144k/22yr
+**Status**: ✅ **PASSED AT SAMPLE SCALE (BLOCKED AT 174K PENDING SECTION EXTRACTION)**
 
 ### 2.2 Dispositiv (Holding/Outcome)
 **Acceptance**: `cross_lang_same_branch > 0.10`
@@ -80,7 +82,7 @@ This hierarchy reflects legal reality: facts are most language-invariant, reason
 | raw_768dim | 0.0388 | 0.575 | -0.308 | 538 | 54% |
 
 **Improvement over raw**: 31% (invariance gap 0.397 vs 0.575)
-**Status**: ✅ PASSED at 1K sample and 144k/22yr
+**Status**: ✅ **PASSED AT SAMPLE SCALE (BLOCKED AT 174K PENDING SECTION EXTRACTION)**
 
 ### 2.3 Erwaegungen (Reasoning)
 **Acceptance**: `cross_lang_same_branch > 0.10`
@@ -92,17 +94,17 @@ This hierarchy reflects legal reality: facts are most language-invariant, reason
 | raw_768dim | 0.0400 | 0.538 | -0.342 | 510 | 51% |
 
 **Improvement over raw**: 16% (invariance gap 0.452 vs 0.538)
-**Status**: ❌ FAILED — does not meet 0.10 threshold
+**Status**: ❌ **FAILED AT SAMPLE SCALE — does not meet 0.10 threshold**
 **Note**: Reasoning is most language-specific; not suitable for cross-lingual view
 
 ### Product Integration
 | View | Status | Default Mode | Required Modes |
 |---|---|---|---|
-| `cross_lingual_sachverhalt` | ✅ READY at 144k | `center_projected_64dim` per section | cp64, cp768 |
-| `cross_lingual_dispositiv` | ✅ READY at 144k | `center_projected_64dim` per section | cp64, cp768 |
+| `cross_lingual_sachverhalt` | ✅ **READY AT SAMPLE SCALE (BLOCKED AT 174K PENDING SECTION EXTRACTION)** | `center_projected_64dim` per section | cp64, cp768 |
+| `cross_lingual_dispositiv` | ✅ **READY AT SAMPLE SCALE (BLOCKED AT 174K PENDING SECTION EXTRACTION)** | `center_projected_64dim` per section | cp64, cp768 |
 | `cross_lingual_erwaegungen` | ❌ NOT INCLUDED | — | — |
 
-**Qualification**: Results from n=359-538 decisions (36-54% coverage) in partial cohort. Full-corpus validation BLOCKED pending section extraction at 174k (corpus lane resumption required).
+**Qualification**: Results from n=359-538 decisions (36-54% coverage) in partial cohort. **Full-corpus validation BLOCKED pending section extraction at 174k (corpus lane resumption required).**
 
 ---
 
@@ -111,7 +113,7 @@ This hierarchy reflects legal reality: facts are most language-invariant, reason
 ### Acceptance Criterion
 > **PASS both adversarial gates** (language_dominance < 0.85, jurist_preference > 0.5) **AND** `cross_lang_same_branch > TF-IDF baseline`
 
-### Evidence at 144k/22yr
+### Evidence at 144k/22yr — ON OBSOLETE v6-v10 EMBEDDINGS
 
 | Hybrid | Weight (Dense) | JP | LangDom | Both Gates | cross_lang_same_branch | vs TF-IDF (0.124) |
 |---|---|---|---|---|---|---|
@@ -123,9 +125,9 @@ This hierarchy reflects legal reality: facts are most language-invariant, reason
 ### Key Findings
 - ✅ **PASS both adversarial gates** at optimal weights (w=0.3-0.4 dense / 0.6-0.7 TF-IDF)
 - ✅ **Cross-lingual improvement**: +26-29% over TF-IDF baseline
-- ❌ **Does NOT beat TF-IDF on jurist preference** (0.61-0.67 vs 0.78-0.79)
+- ❌ **Does NOT beat TF-IDF on jurist preference** (0.61-0.67 vs 0.78-0.79 original / 0.59-0.66 current verified)
 - ⚠️ Citation signals dominate jurist preference; semantic signals add cross-lingual benefit but dilute legal relevance
-- **Minimal scale validated**: 122k decisions (19-year, 2000-2018)
+- **Minimal scale validated**: 122k decisions (19-year, 2000-2018) on **obsolete v6-v10 embeddings**
 
 ### Product Integration
 - **View name**: `linear_hybrid_complement` (marked **EXPLORATORY**)
@@ -133,7 +135,9 @@ This hierarchy reflects legal reality: facts are most language-invariant, reason
   - `linear_citation_concat_w0.4` (22yr)
   - `linear_hybrid05_concat_w0.3` (19yr)
 - **Required dense modes**: `center_projected_64dim`, `center_projected_128dim`
-- **Status**: READY at 144k
+- **Status**: **READY AT 144k ON OBSOLETE EMBEDDINGS; BLOCKED AT 174k — target 174k legal-distance dense embeddings do not exist**
+
+**Explicit Disclosure**: **Evidence from obsolete v6-v10 era embeddings (product_integration_verification_v11.json: hybrid_stabilized JP 0.6656, linear_metric_epoch4 JP 0.6847, mahalanobis_metric_epoch4 JP 0.6781); target 174k legal-distance dense embeddings do not exist — validation BLOCKED pending corpus lane.**
 
 ---
 
@@ -181,7 +185,7 @@ This hierarchy reflects legal reality: facts are most language-invariant, reason
 ### For Product v1.0 (TF-IDF Primary)
 - ✅ **TF-IDF citation hybrids operational at 174k** (3 production modes, 16/16 scale tests PASS, WebGL <3s)
 - ✅ **Production default**: `cited_decisions_tfidf_outcome_hybrid_0.5_174k`
-- ✅ **7/8 representations PASS both adversarial gates** on current accepted mount — **DETERMINISTIC verification (2026-10-09T08:12) with sorted groups fix: JP=0.659, LangDom=0.426 for production baseline**. Prior non-deterministic results (6/8 at JP=0.5565 ↔ 7/8 at JP=0.702) fixed by sorting group keys before subsampling.
+- ✅ **6-7/8 representations PASS both adversarial gates** on current accepted mount — **Deterministic verification (2026-10-09T21:34) with sorted groups fix: JP=0.5925, LangDom=0.3481 for production baseline in fresh/production env**. Original freeze (2026-10-01): JP=0.7345, 8/8 PASS — **LOST**. Corpus lane MUST restore original freeze embeddings + frozen metadata for production baseline stability.
 
 ### For Product v1.1+ (Dense Complementary Views)
 - **Citation Heritage**: Integrate when legal-distance delivers 174k center_projected_64/128/768dim embeddings
@@ -203,11 +207,15 @@ All results are reproducible from accepted mount `/tmp/lex_accepted`:
 
 | Artifact | Path |
 |---|---|
-| TF-IDF 174k adversarial verification (DETERMINISTIC, with sorted groups fix) | `evaluation/results/174k_tfidf_formal_suite/verification_20261009_081230.json` |
-| TF-IDF 174k adversarial verification (prior non-deterministic) | `evaluation/results/174k_tfidf_formal_suite/verification_20261009_035429.json` |
-| Citation heritage 22yr | `legal-distance/legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_22year_latest.json` |
-| Cross-lingual sections 22yr | `legal-distance/legal_distance/results/174k_dense_embeddings/section_crosslingual_eval/section_crosslingual_eval_latest.json` |
-| Linear hybrids 22yr | `legal-distance/legal_distance/results/174k_dense_embeddings/linear_combinations_22year/linear_combinations_22year_eval_latest.json` |
+| TF-IDF 174k adversarial verification (DETERMINISTIC, with sorted groups fix, prior env) | `evaluation/results/174k_tfidf_formal_suite/verification_20261009_081230.json` |
+| TF-IDF 174k adversarial verification (DETERMINISTIC, fresh/production env) | `evaluation/results/174k_tfidf_formal_suite/verification_20261009_185503.json` |
+| TF-IDF 174k adversarial verification (DETERMINISTIC, current env) | `evaluation/results/174k_tfidf_formal_suite/verification_20261009_213435.json` |
+| Citation heritage 22yr (partial cohort) | `legal-distance/legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_22year_latest.json` |
+| Citation heritage 24yr (partial cohort) | `legal-distance/legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_24year_latest.json` |
+| Citation heritage 174k full (TF-IDF baseline FAIL) | `results/evaluation/citation_heritage_174k.json` |
+| Cross-lingual sections 22yr (partial cohort) | `legal-distance/legal_distance/results/174k_dense_embeddings/section_crosslingual_eval/section_crosslingual_eval_latest.json` |
+| Linear hybrids 22yr (on obsolete v6-v10 embeddings) | `legal-distance/legal_distance/results/174k_dense_embeddings/linear_combinations_22year/linear_combinations_22year_eval_latest.json` |
+| Product integration v11 (obsolete embeddings evidence) | `results/evaluation/product_integration_verification_v11.json` |
 | 22yr center_projected eval | `legal-distance/legal_distance/results/174k_dense_embeddings/evaluation_22year_center_projected/combined_results.json` |
 | Fractal-map integration contract | `fractal-map/results/fractal_map/dense_embeddings_integration_contract_v34.json` |
 
@@ -215,14 +223,14 @@ All results are reproducible from accepted mount `/tmp/lex_accepted`:
 
 ## 9. Conclusion
 
-The **dense embedding complementary role is fully characterized** at the maximum available scale (144k/22yr):
+The **dense embedding complementary role is fully characterized** at the maximum available scale (144k/22yr partial cohort and 1K sample):
 
-1. **Citation Heritage** — Dense embeddings SUPERIOR to TF-IDF (AUC 0.79 vs 0.71-0.74) ✅
-2. **Cross-Lingual Sachverhalt/Dispositiv** — Dense embeddings SUPERIOR to raw/TF-IDF ✅
+1. **Citation Heritage** — Dense embeddings SUPERIOR to TF-IDF (AUC 0.79 vs 0.71-0.74) ✅ **AT PARTIAL COHORT; FULL 174K BLOCKED**
+2. **Cross-Lingual Sachverhalt/Dispositiv** — Dense embeddings SUPERIOR to raw/TF-IDF ✅ **AT SAMPLE SCALE; FULL 174K BLOCKED**
 3. **Cross-Lingual Erwaegungen** — Below threshold, correctly excluded ❌
-4. **Linear Hybrid** — PASS adversarial, adds cross-lingual benefit, but BELOW TF-IDF on JP ⚠️
+4. **Linear Hybrid** — PASS adversarial, adds cross-lingual benefit, but BELOW TF-IDF on JP ⚠️ **ON OBSOLETE EMBEDDINGS**
 
-**TF-IDF citation hybrids = PRIMARY (JP 0.78); Dense = COMPLEMENTARY.**
+**TF-IDF citation hybrids = PRIMARY (JP 0.59-0.73 verified); Dense = COMPLEMENTARY.**
 
 The original hypothesis that dense embeddings would beat TF-IDF on jurist preference at scale is **falsified** (JP 0.05-0.43 at all scales). The pivot to complementary roles is evidence-backed and complete.
 
