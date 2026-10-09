@@ -1,0 +1,59 @@
+{
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "Fix factory_direction.json lane statuses to match accepted evidence: legal-distance -> BLOCKED_ON_DEPENDENCIES, fractal-map -> BLOCKED_ON_DEPENDENCIES, evaluation -> COMPLETE, product -> RUN",
+    "Reconcile factory_direction version: either revert to v34 (matching accepted legal-distance/product) or justify v35 with material changes",
+    "Remove stale RUN statuses for lanes that have completed questions and are blocked on dependencies",
+    "Document control plane mounting defect: proposal factory_direction.json may reflect corrupted control plane mount",
+    "Add explicit note that corpus lane resumption is the single critical path for all downstream dense embedding work"
+  ],
+  "claim_ceiling": "PIVOT_WITHIN_MISSION complete at v34. TF-IDF citation hybrids = PRIMARY product mode (JP 0.78 vs semantic 0.43). Dense embeddings = COMPLEMENTARY modes only (citation heritage AUC 0.79-0.85, cross-lingual Sachverhalt 0.282, linear hybrid PASS adversarial but JP 0.61-0.67 < TF-IDF). True OOS JP ceiling ~0.53 < 0.7 factory target is a hard limit. No further claims for dense as primary mode.",
+  "evidence_summary": {
+    "corpus": {
+      "tier": "REPRODUCED",
+      "status": "COMPLETED",
+      "continue_recommended": false,
+      "key_metrics": "174,113 decisions, 95.9% citation resolution, 76/76 tests PASS, 15x independent verification"
+    },
+    "legal_distance": {
+      "tier": "ACCEPTED",
+      "status": "BLOCKED_ON_DEPENDENCIES",
+      "continue_recommended": false,
+      "key_metrics": "Citation Heritage AUC 0.79-0.85 > TF-IDF 0.71-0.74; Sachverhalt cross_lang_same_branch 0.282 > 0.2 PASS; Dispositiv 0.150 > 0.1 PASS; Erwaegungen 0.094 < 0.1 FAIL; Linear hybrid PASS adversarial (w=0.3-0.4) but JP 0.61-0.67 < TF-IDF 0.78-0.79; True OOS JP ceiling ~0.53"
+    },
+    "fractal_map": {
+      "tier": "ACCEPTED",
+      "status": "BLOCKED_ON_DEPENDENCIES",
+      "continue_recommended": false,
+      "key_metrics": "3 TF-IDF production modes at 173,963 (fine_branch_purity 0.906-0.930); Multi-level recursive protocol structurally valid (nesting>=0.95, zero fragmentation); Calibration FAILS (valid negative); Dense integration contract v34 FROZEN (4 complementary views)"
+    },
+    "evaluation": {
+      "tier": "TF-IDF_REPRODUCED_DENSE_COMPLEMENTARY_VALIDATED",
+      "status": "COMPLETE",
+      "continue_recommended": false,
+      "key_metrics": "TF-IDF baseline deterministic (JP=0.6590, 7/8 PASS, 3/3 runs identical); Dense criteria: Citation Heritage AUC>0.75 PASS, Sachverhalt>0.2 PASS, Dispositiv>0.1 PASS, Erwaegungen FAIL; Original freeze LOST (was JP=0.735, 8/8 PASS)"
+    },
+    "product": {
+      "tier": "ACCEPTED",
+      "status": "V1_0_RELEASED",
+      "continue_recommended": false,
+      "key_metrics": "3 TF-IDF modes operational at 173,963 decisions; 16/16 scale tests PASS; 56 API endpoints PASS; WebGL <3s; Dense integration contracts FROZEN for v1.1+ (Citation Heritage, Cross-Lingual, Hybrid Complement views)"
+    },
+    "frontier_portfolio": {
+      "version": 1,
+      "teams": 0,
+      "policy": "No new teams justified — both prior teams falsified by accepted evidence"
+    },
+    "data_blockers": [
+      "BGE/bger ID mapping (canonical vs evaluation ID systems)",
+      "Parquet 2022-2026 (29,520 decisions missing)",
+      "Section extraction at 174k scale (Sachverhalt/Erwaegungen/Dispositiv)"
+    ],
+    "critical_integrity_issues": [
+      "Original freeze embeddings LOST (2 mutations: fractal-map rebuild + accepted mount refresh)",
+      "Control plane mounting defect: /tmp/lex_control/state/factory_direction.json shows RUN vs workspace BLOCKED_ON_DEPENDENCIES",
+      "Legal-distance 174k dense embeddings do not exist — 144k evidence uses obsolete v6-v10 embeddings"
+    ]
+  }
+}
