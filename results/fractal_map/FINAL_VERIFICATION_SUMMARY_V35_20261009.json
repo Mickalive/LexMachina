@@ -1,0 +1,77 @@
+{
+  "lane": "fractal-map",
+  "direction_version": 35,
+  "verification_run_id": "RUN_37889039638",
+  "verification_timestamp": "2026-10-09T00:00:00.000000Z",
+  "evidence_tier": "ACCEPTED",
+  "cycle_status": "BLOCKED_ON_DEPENDENCIES",
+  "continue_recommended": false,
+  "test_verification": {
+    "total_passed": 246,
+    "total_skipped": 1,
+    "total_failed": 0,
+    "test_suites": {
+      "test_verify.py": {"passed": 186, "skipped": 0, "failed": 0},
+      "test_pipeline_readiness.py": {"passed": 14, "skipped": 0, "failed": 0},
+      "test_zoom_quality_174k_eval.py": {"passed": 4, "skipped": 0, "failed": 0},
+      "test_zoom_quality_174k_v26_eval.py": {"passed": 7, "skipped": 0, "failed": 0},
+      "test_dense_embeddings_infrastructure.py": {"passed": 14, "skipped": 1, "failed": 0},
+      "test_scale_dependency.py": {"passed": 11, "skipped": 0, "failed": 0},
+      "test_12k_dense_comprehensive.py": {"passed": 10, "skipped": 0, "failed": 0}
+    }
+  },
+  "deliverables_verified": {
+    "tfidf_hierarchical_v1_production_modes": {
+      "status": "OPERATIONAL_AT_174K",
+      "modes": 3,
+      "decisions": 173963,
+      "fine_branch_purity_range": "0.906-0.930",
+      "scale_tests_pass": "16/16",
+      "webgl_pipeline_latency": "<3s"
+    },
+    "multi_level_recursive_protocol": {
+      "status": "FAILS_AT_174K",
+      "modes_tested": 5,
+      "failure_mode": "level2_area_purity ~0.134 < 0.15",
+      "verdict": "VALID_NEGATIVE_PRESERVED"
+    },
+    "calibration_protocol": {
+      "status": "FAILS_ON_TFIDF",
+      "cause": "thresholds_too_aggressive_for_sparse_signal",
+      "verdict": "VALID_NEGATIVE_PRESERVED"
+    },
+    "dense_embedding_integration_contract_v34": {
+      "status": "FROZEN",
+      "complementary_views": 4,
+      "acceptance_criteria": {
+        "citation_heritage_auc": ">0.75 (validated 0.79-0.85)",
+        "cross_lingual_sachverhalt": ">0.20 (validated 0.281-0.282)",
+        "cross_lingual_dispositiv": ">0.10 (validated 0.148-0.150)",
+        "linear_hybrid_complement": "PASS adversarial at w=0.3-0.4 (JP 0.61-0.67)"
+      }
+    },
+    "scale_extrapolation_144k_checkpoint": {
+      "status": "VALIDATED",
+      "years": "22/26 (2000-2021)",
+      "fine_branch_purity": "~0.97",
+      "strict_nesting": ">=0.99",
+      "fine_singletons": "~4-5%",
+      "improvement_rate_branch": "0.48-0.65",
+      "improvement_rate_area": "0.75-0.76"
+    },
+    "nesting_metric_defect_v1": {
+      "status": "ENFORCED",
+      "prohibited": "7 compressed-family modes from universal nesting claims"
+    }
+  },
+  "blockers": [
+    {"blocker": "BGE/bger ID mapping production", "owner": "corpus_lane", "required_for": "legal-distance 174k dense embeddings"},
+    {"blocker": "Parquet generation 2022-2026 (29,520 decisions)", "owner": "corpus_lane", "required_for": "full 174k dense computation"},
+    {"blocker": "Section extraction (sachverhalt/erwaegungen/dispositiv) at 174k", "owner": "corpus_lane", "required_for": "cross-lingual evaluation density"},
+    {"blocker": "174k dense embeddings computation", "owner": "legal-distance lane", "required_for": "multi-view deployment (4 complementary views)"}
+  ],
+  "diagnosis": "No orchestration/validation failure in fractal-map lane. V28-pattern control plane mounting defect persists in /tmp/lex_control (shows RUN) while workspace state/factory_direction.json and lane state correctly show BLOCKED_ON_DEPENDENCIES. This is a PERSISTENT INFRASTRUCTURE DEFECT in the control plane mounting/persistence mechanism, NOT a lane failure.",
+  "next_recommendation": "Factory Director action required: Resume corpus lane for (1) BGE/bger ID mapping production, (2) Parquet generation for years 2022-2026, (3) Section extraction at 174k scale for cross-lingual evaluation. Once legal-distance delivers 174k dense embeddings passing the four complementary view acceptance criteria, fractal-map lane will integrate them as multi-view modes per the frozen v34 contract.",
+  "audit_ready": true,
+  "state_file_consistent": true
+}
