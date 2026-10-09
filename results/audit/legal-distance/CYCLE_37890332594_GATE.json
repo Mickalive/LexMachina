@@ -1,0 +1,102 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "PIVOT_WITHIN_MISSION characterization COMPLETE — three complementary dense modes characterized at minimal scales: (1) Citation Heritage 21yr/137k AUC>0.75, (2) Section Cross-Lingual 1K sample Sachverhalt/Dispositiv PASS, (3) Linear Hybrid Complement 19yr/122k PASS adversarial. Two-mode tradeoff fundamental. True OOS JP ceiling ~0.53. Data blockers require corpus lane resumption.",
+  "evidence_summary": {
+    "citation_heritage": {
+      "21yr_137k": { "raw_auc": 0.8455, "cp64_auc": 0.8182, "n_pairs": 100, "status": "PASSED" },
+      "22yr_144k": { "raw_auc": 0.7946, "cp64_auc": 0.7922, "n_pairs": 344, "status": "PASSED" },
+      "24yr_158k": { "cp768_auc": 0.7696, "cp64_auc": 0.7667, "cp128_auc": 0.7669, "n_pairs": 730, "status": "PASSED" },
+      "superior_to_tfidf_citation_baseline": true,
+      "minimal_scale": "21yr / 137k decisions (2000-2020)"
+    },
+    "section_crosslingual": {
+      "scale": "1K sample",
+      "sachverhalt": { "cross_lang_same_branch": 0.282, "invariance_gap": 0.187, "threshold": 0.2, "status": "PASSED" },
+      "dispositiv": { "cross_lang_same_branch": 0.150, "invariance_gap": 0.397, "threshold": 0.1, "status": "PASSED" },
+      "erwaegungen": { "cross_lang_same_branch": 0.094, "invariance_gap": 0.452, "threshold": 0.1, "status": "FAILED" },
+      "hierarchy_confirmed": "Sachverhalt > Dispositiv > Erwaegungen",
+      "center_projection_improvement": "38% / 31% / 16% gap reduction",
+      "minimal_scale": "1K sample with sections"
+    },
+    "linear_hybrid_complement": {
+      "scale": "22yr / 144k decisions (2000-2021)",
+      "optimal_weights": "w=0.3-0.4 for cited_decisions_tfidf, w=0.3 for outcome_hybrid_0.5",
+      "tfidf_baseline_jp": 0.784,
+      "tfidf_baseline_langdom": 0.483,
+      "hybrid_w03_jp": 0.672,
+      "hybrid_w04_jp": 0.673,
+      "hybrid_w03_langdom": 0.606,
+      "hybrid_w04_langdom": 0.654,
+      "both_adversarial_pass": true,
+      "jp_below_tfidf_baseline": true,
+      "cross_lingual_improvement_over_tfidf": true,
+      "minimal_scale": "19yr / 122k decisions (2000-2018)"
+    },
+    "two_mode_tradeoff": {
+      "dense_embeddings": { "jp": "0.05-0.43", "langdom": "0.83-0.98", "citeindep": "~37%", "role": "COMPLEMENTARY" },
+      "tfidf_citation_hybrids": { "jp": "~0.78", "langdom": "~0.48", "citeindep": "~14%", "role": "PRIMARY" },
+      "linear_hybrids": { "jp": "0.61-0.67", "langdom": "0.58-0.80", "citeindep": "intermediate", "role": "COMPLEMENTARY" },
+      "fundamental": true,
+      "reproduced_at_all_scales": true,
+      "scale_characterization_reproduced": {
+        "cross_lingual_inflation": "0.656 -> 0.957",
+        "legal_area_purity_degradation": "0.609 -> 0.475",
+        "branch_knn_stable": ">0.99 at all scales",
+        "linear_hybrid_jurist_proxy_pass_all_weights": true
+      }
+    },
+    "true_oos_ceiling": {
+      "value": 0.53,
+      "factory_target": 0.7,
+      "below_target": true,
+      "confirmed_via": "v8 holdout zero-shot validation (200 holdout / 1000 train)"
+    },
+    "tfidf_174k_primary": {
+      "formal_suite": "8/8 reps PASS both adversarial gates",
+      "production_defaults": ["cited_decisions_tfidf", "cited_outcome_hybrid_0.5"],
+      "citation_heritage_auc": "0.919-0.973",
+      "langdom": "0.578-0.602",
+      "status": "OPERATIONAL at full 173,963 decisions"
+    },
+    "data_blockers": {
+      "bge_bger_id_mapping": "MISSING",
+      "parquet_2024_2026": "MISSING (15,536 decisions)",
+      "section_extraction_174k": "NOT RUN",
+      "corrected_understanding": "2021-2023 embeddings EXIST and PASS quality checks; only 2024-2026 genuinely missing"
+    },
+    "orchestration_sync_issue": {
+      "factory_direction_v35_status": "RUN",
+      "lane_state_status": "BLOCKED_ON_DEPENDENCIES",
+      "impact": "None on scientific integrity — control-plane sync issue only",
+      "root_cause": "Factory direction v35 incremented for product lane change without updating legal-distance status"
+    },
+    "test_results": {
+      "test_complementary_role_v34_py": "8/8 PASSED",
+      "test_v29_final_results_py": "15/15 PASSED",
+      "scale_characterization_experiment": "REPRODUCED on 12,570 accepted embeddings"
+    },
+    "negative_results_honestly_represented": [
+      "Dense embeddings FAIL jurist gate at ALL scales (JP 0.05-0.43)",
+      "Erwaegungen cross-lingual FAILS (0.094 < 0.1)",
+      "True OOS JP ceiling ~0.53 < 0.7 factory target",
+      "v18 coarse hierarchy NEGATIVE (max purity 0.65 < 0.7)",
+      "Legal TF-IDF bge_ corpus FAILS adversarial (6-8/14 PASS)",
+      "Citation heritage recall@10 NEGATIVE (max 0.0066)",
+      "Linear hybrids remain BELOW TF-IDF baseline on JP"
+    ]
+  },
+  "audit_metadata": {
+    "auditor": "LEXMACHINA INDEPENDENT AUDITOR",
+    "lane": "legal-distance",
+    "run_id": 37890332594,
+    "repair_round": 0,
+    "factory_direction_version": 35,
+    "lane_pivot_version": 34,
+    "producer_workspace": "/tmp/lex_team",
+    "control_plane": "/home/runner/work/LexMachina/LexMachina",
+    "date": "2026-10-09",
+    "audit_report": "reports/audit/legal-distance/CYCLE_37890332594.md"
+  }
+}
