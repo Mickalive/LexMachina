@@ -1,0 +1,85 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "PIVOT_WITHIN_MISSION characterization complete at max available evaluated scale. Three complementary dense modes characterized with minimal sufficient scales: (1) Citation Heritage: 21yr/137k, center_projected_64dim AUC > 0.75 (PASSED 0.77-0.85) — SUPERIOR to TF-IDF; (2) Section Cross-Lingual: 1K sample, Sachverhalt 0.282 > 0.2 PASS, Dispositiv 0.150 > 0.1 PASS, Erwaegungen 0.094 < 0.1 FAIL — full corpus BLOCKED; (3) Linear Hybrid Complement: 19yr/122k, w=0.3-0.4 PASS adversarial, JP 0.61-0.67 < TF-IDF 0.78-0.79 — NOT primary. Two-mode tradeoff FUNDAMENTAL. True OOS JuristPref ceiling ~0.53 < 0.7 target. Data blockers persist (bge_/bger_ mapping, parquet 2024-2026, 174k section extraction). No further same-question cycles justified.",
+  "evidence_summary": {
+    "citation_heritage": {
+      "status": "PASSED",
+      "minimal_scale": "21yr / 137k decisions (2000-2020)",
+      "evidence": "center_projected_64dim AUC 0.8182 at 21yr (100 pairs), 0.7922 at 22yr (344 pairs), 0.7667 at 24yr (730 pairs). All > 0.75 threshold. Superior to TF-IDF citation baseline (0.71-0.74). Requires recent years (2019+) for citation pair density.",
+      "test_assertion": "test_citation_heritage_superiority, test_citation_heritage_minimal_scale — PASSED"
+    },
+    "section_cross_lingual": {
+      "status": "PARTIAL_PASS",
+      "minimal_scale": "1K sample (359 sachverhalt, 538 dispositiv, 510 erwaegungen)",
+      "evidence": "center_projected_64: Sachverhalt cross_lang_same_branch=0.282 > 0.2 PASS, Dispositiv=0.150 > 0.1 PASS, Erwaegungen=0.094 < 0.1 FAIL. Hierarchy Sachverhalt > Dispositiv > Erwaegungen confirmed. Center projection improves all sections (gap reduction >10%). Full corpus BLOCKED pending section extraction at 174k.",
+      "test_assertion": "test_sachverhalt_superior_cross_lingual_alignment, test_dispositiv_intermediate_alignment, test_erwaegungen_poorest_alignment, test_center_projection_improves_all_sections — PASSED"
+    },
+    "linear_hybrid_complement": {
+      "status": "PASSED_ADVERSARIAL_BUT_SUBORDINATE",
+      "minimal_scale": "19yr / 122k decisions (2000-2018)",
+      "evidence": "At 15yr FAIL (JP=0.473); at 19yr PASS both gates at w=0.3 (JP=0.6365-0.6465); at 22yr PASS at w=0.3-0.4 (JP=0.6115-0.6725). Optimal weight shifts toward TF-IDF dominance at larger scale. Cross-lingual improvement over TF-IDF (0.1601 vs 0.1239 at w=0.4). But JP remains BELOW TF-IDF baseline (0.78-0.79). NOT primary mode.",
+      "test_assertion": "test_linear_hybrid_optimal_weight, test_22year_linear_combinations_pass_adversarial, test_22year_optimal_weight_shifts_toward_tfidf — PASSED"
+    },
+    "two_mode_tradeoff": {
+      "status": "FUNDAMENTAL_CONFIRMED",
+      "evidence": "Reproduced at all scales (3yr, 15yr, 19yr, 20yr, 21yr, 22yr, 24yr, 165k). TF-IDF citation hybrids: JP~0.78, LangDom~0.48, CiteIndep~0.14 (PRIMARY). Dense semantic: JP 0.05-0.43, LangDom 0.83-0.98, CiteIndep~0.37 (COMPLEMENTARY). Linear hybrids: intermediate on all, but below TF-IDF JP. NO single representation dominates all three metrics at any scale.",
+      "test_assertion": "test_two_mode_tradeoff_fundamental, test_citation_mode_high_jp_low_citeindep, test_semantic_mode_high_citeindep_low_jp, test_no_single_representation_dominates_all_three — PASSED"
+    },
+    "true_oos_ceiling": {
+      "status": "CONFIRMED",
+      "evidence": "v8 holdout validation (train 1000, holdout 200): TF-IDF hybrids holdout JP 0.525-0.585, dense holdout JP 0.385. Consensus ceiling ~0.53 < 0.7 factory target. No representation achieves target under true OOS conditions.",
+      "test_assertion": "test_true_oos_ceiling — PASSED"
+    },
+    "dense_fails_jurist_gate_all_scales": {
+      "status": "CONFIRMED",
+      "evidence": "3yr JP=0.005-0.007, 15yr JP=0.288, 19yr JP=0.3685, 20yr JP=0.0475 (catastrophic), 22yr JP=0.4265, 165k JP=0.39-0.42. NEVER passes jurist gate (threshold ~0.5) at any scale tested.",
+      "test_assertion": "Implicit in test_two_mode_tradeoff_fundamental and scale characterization — CONFIRMED"
+    },
+    "tfidf_174k_primary": {
+      "status": "OPERATIONAL",
+      "evidence": "174k formal suite (173,963 decisions): cited_outcome_hybrid_0.5 JP=0.7345, LangDom=0.477 — BOTH PASS adversarial. cited_decisions_tfidf JP=0.714, LangDom=0.479 — BOTH PASS. Citation heritage AUC 0.71-0.74 PASS. PRIMARY product modes validated at full corpus scale.",
+      "test_assertion": "test_tfidf_174k_primary_validated — PASSED"
+    },
+    "data_blockers": {
+      "status": "CORRECTLY_IDENTIFIED",
+      "evidence": "Completed years: 2000-2023 (24 years). 2021-2023 embeddings EXIST and PASS citation heritage quality check (AUC > 0.75). Failed years: 2024, 2025, 2026 ONLY (15,536 decisions missing). Blockers: bge_/bger_ ID mapping, parquet 2024-2026, 174k section extraction. Corpus lane resumption required.",
+      "test_assertion": "test_data_blockers_identified — PASSED (corrected)"
+    },
+    "scale_characterization_reproduced": {
+      "status": "IDENTICAL_ACROSS_15_PLUS_RUNS",
+      "evidence": "characterize_dense_complementary_views.py on 12,570 ACCEPTED dense embeddings (2000-2002): cross-lingual inflation 0.656→0.957, legal area purity degradation 0.609→0.475, branch k-NN >0.99 at all scales, linear hybrid PASS jurist proxy at all weights. Pattern consistent with full-corpus evaluations.",
+      "test_assertion": "Reproduced in 15+ consecutive operational resume verifications (37725797175 → 37901757909)"
+    },
+    "negative_results_honestly_represented": {
+      "status": "ALL_ACCEPTED",
+      "evidence": "Erwaegungen cross-lingual FAIL (0.094 < 0.1), dense fails jurist gate all scales, true OOS ceiling ~0.53 < 0.7, v18 coarse hierarchy NEGATIVE (max purity 0.65 < 0.7), legal TF-IDF bge_ corpus FAILS adversarial (6-8/14), citation heritage recall@10 max 0.0066, boilerplate resistance dense NEGATIVE, raw 768dim fails citation heritage at 24yr, small-scale dense cross-lingual inflated. All negative findings support pivot conclusion.",
+      "test_assertion": "Implicit in all tests — NEGATIVE RESULTS ARE THE ANSWER"
+    }
+  },
+  "verification_metadata": {
+    "run_id": 37901757909,
+    "lane": "legal-distance",
+    "factory_direction_version": 35,
+    "lane_direction_version": 34,
+    "repair_round": 0,
+    "audit_timestamp": "2026-10-09T15:00:00.000000Z",
+    "tests_passed": {
+      "test_complementary_role_v34_py": "8/8 PASSED",
+      "test_v29_final_results_py": "15/15 PASSED"
+    },
+    "state_consistency": {
+      "direction_version": 35,
+      "evidence_tier": "ACCEPTED",
+      "cycle_status": "BLOCKED_ON_DEPENDENCIES",
+      "continue_recommended": false,
+      "accepted_run_id": "LEGAL_DISTANCE_V35_FINAL_AUDIT_VERIFICATION_37901757909",
+      "audit_ready": true,
+      "current_run": 37901757909,
+      "operational_resume_from_run": 37900752123
+    },
+    "orchestration_failure_diagnosed": true,
+    "scientific_integrity": "UNAFFECTED"
+  }
+}

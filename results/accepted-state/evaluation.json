@@ -1,19 +1,39 @@
 {
   "lane": "evaluation",
   "direction_version": 35,
-  "evidence_tier": "TF-IDF_REPRODUCED_DENSE_COMPLEMENTARY_VALIDATED_AT_144K",
+  "evidence_tier": "TF-IDF_REPRODUCED_DENSE_COMPLEMENTARY_VALIDATED_AT_144K_BENCHMARK_FIXED",
   "cycle_status": "COMPLETE",
   "continue_recommended": false,
-  "accepted_run_id": "evaluation_v35_dense_complementary_validation_20261009_0104",
+  "accepted_run_id": "evaluation_v35_benchmark_reliability_fix_20261009_0705",
   "evidence_refs": [
     "legal-distance/evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
     "legal-distance/results/legal_distance/complementary_role_characterization_v34.json",
     "legal-distance/results/legal_distance/dense_complementary_characterization/scale_characterization_results.json",
     "legal-distance/legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_22year_latest.json",
+    "legal-distance/legal_distance/results/174k_dense_embeddings/section_crosslingual_eval/section_crosslingual_eval_latest.json",
+    "legal-distance/legal_distance/results/174k_dense_embeddings/linear_combinations_22year/linear_combinations_22year_eval_latest.json",
     "fractal-map/results/fractal_map/dense_embeddings_integration_contract_v34.json",
-    "fractal-map/results/fractal_map/144k_checkpoint_validation/144k_validation_144443decisions.json"
+    "fractal-map/results/fractal_map/144k_checkpoint_validation/144k_validation_144443decisions.json",
+    "evaluation/results/174k_tfidf_formal_suite/verification_20261009_104321.json"
   ],
-  "next_recommendation": "EVALUATION LANE V35 COMPLETE. TF-IDF 174k baseline frozen as production baseline (original freeze JP=0.735, 8/8 PASS on 2026-10-01; current mount shows non-deterministic results: 6/8 PASS at JP=0.5565 ↔ 7/8 PASS at JP=0.702 depending on metadata ordering). Dense complementary view acceptance criteria FROZEN and VALIDATED at maximal available scale (144k/22yr): Citation Heritage AUC 0.792-0.795 > 0.75 ✅; Cross-Lingual Sachverhalt 0.282 > 0.20 ✅; Cross-Lingual Dispositiv 0.150 > 0.10 ✅; Cross-Lingual Erwaegungen 0.094 < 0.10 ❌ (correctly excluded); Linear Hybrid PASS adversarial but below TF-IDF JP (0.61-0.67 vs 0.78-0.79) ⚠️. True OOS JP ceiling ~0.53 < 0.7 target. Data blockers: BGE/bger ID mapping, parquet 2022-2026, section extraction 174k. No further same-question cycles justified. Product v1.0 with TF-IDF primary; dense v1.1+ per integration contracts. Corpus lane MUST restore original freeze embeddings + frozen metadata for production baseline stability.",
+  "next_recommendation": "EVALUATION LANE V35 COMPLETE. TF-IDF 174k baseline frozen as production baseline (original freeze JP=0.735, 8/8 PASS on 2026-10-01; non-determinism in adversarial gate subsampling identified and FIXED via sorted groups in verify_frozen_baseline.py). Deterministic verification (2026-10-09T08:12) shows 7/8 PASS with production baseline JP=0.659, LangDom=0.426. Dense complementary view acceptance criteria FROZEN and VALIDATED at maximal available scale (144k/22yr): Citation Heritage AUC 0.792-0.795 > 0.75 ✅; Cross-Lingual Sachverhalt 0.282 > 0.20 ✅; Cross-Lingual Dispositiv 0.150 > 0.10 ✅; Cross-Lingual Erwaegungen 0.094 < 0.10 ❌ (correctly excluded); Linear Hybrid PASS adversarial but below TF-IDF JP (0.61-0.67 vs 0.78-0.79) ⚠️. True OOS JP ceiling ~0.53 < 0.7 target. Data blockers: BGE/bger ID mapping, parquet 2022-2026, section extraction 174k. No further same-question cycles justified. Product v1.0 with TF-IDF primary; dense v1.1+ per integration contracts. Corpus lane MUST restore original freeze embeddings + frozen metadata for production baseline stability.",
+  "latest_verification_20261009": {
+    "verification_date": "2026-10-09T10:43:21Z",
+    "script": "verify_frozen_baseline.py (WITH SORTED GROUPS FIX - FINAL AUDIT VERIFICATION)",
+    "result_file": "evaluation/results/174k_tfidf_formal_suite/verification_20261009_104321.json",
+    "reps_pass_both": 7,
+    "reps_tested": 8,
+    "production_baseline_metrics": {
+      "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "language_dominance": 0.425775,
+      "jurist_preference": 0.6590,
+      "both_pass": true
+    },
+    "failing_representations": ["outcome_tfidf (JP=0.4325)"],
+    "best_jurist_preference": 0.7350,
+    "best_language_dominance": 0.48335,
+    "note": "FINAL AUDIT VERIFICATION: 3 consecutive runs produce IDENTICAL results (7/8 PASS, production baseline JP=0.6590, LD=0.4258). Benchmark non-determinism FIXED. Adversarial gate results are now reproducible regardless of metadata JSON ordering. Embeddings SHA256: 4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc, Config hash: a31c443a9b0e992e."
+  },
   "frozen_baseline": {
     "name": "TF-IDF 174k Production Baseline (ORIGINAL FREEZE 2026-10-03, NOT CURRENT MOUNT)",
     "default_mode": "cited_decisions_tfidf_outcome_hybrid_0.5_174k",
@@ -59,28 +79,28 @@
     "adversarial_gates": {
       "language_dominance_threshold": 0.85,
       "jurist_preference_threshold": 0.5,
-      "current_mount_reps_pass_both": 6,
+      "current_mount_reps_pass_both": 7,
       "current_mount_reps_tested": 8,
-      "verification_date": "2026-10-08T23:44:25Z",
+      "verification_date": "2026-10-09T08:12:30Z",
       "production_baseline_metrics": {
         "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
-        "language_dominance": 0.4377,
-        "jurist_preference": 0.5565,
+        "language_dominance": 0.4258,
+        "jurist_preference": 0.6590,
         "both_pass": true
       },
-      "failing_representations": ["regeste_tfidf (JP=0.362)", "outcome_tfidf (JP=0.251)"],
-      "note": "CURRENT MOUNT with NEW metadata (updated 2026-10-08T23:40) shows 6/8 PASS with production baseline JP=0.5565, LD=0.4377. Embeddings SHA256: 4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc. Prior claim of 7/8 PASS at 22:15 was with OLD metadata — results are NOT deterministic across metadata orderings. Original freeze (2026-10-01, JP=0.735, 8/8 PASS) is LOST; current state: JP=0.5565, 6/8 PASS. Corpus lane MUST restore original freeze embeddings for production baseline stability."
+      "failing_representations": ["outcome_tfidf (JP=0.4325)"],
+      "note": "DETERMINISTIC VERIFICATION with sorted groups fix in verify_frozen_baseline.py. 7/8 PASS with production baseline JP=0.6590, LD=0.4258. Embeddings SHA256: 4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc. Config hash: a31c443a9b0e992e. Prior non-deterministic results (6/8 at JP=0.5565 ↔ 7/8 at JP=0.702) were due to metadata-ordering sensitivity in stratified subsampling. Fix: sort group keys before sampling. Original freeze (2026-10-01, JP=0.735, 8/8 PASS) is LOST; current deterministic state: JP=0.6590, 7/8 PASS. Corpus lane MUST restore original freeze embeddings + frozen metadata for production baseline stability."
     },
     "best_metrics_current_mount": {
-      "jurist_preference": 0.742,
-      "language_dominance": 0.48495,
-      "production_baseline_jurist_preference": 0.5565,
-      "production_baseline_language_dominance": 0.4377,
+      "jurist_preference": 0.735,
+      "language_dominance": 0.4834,
+      "production_baseline_jurist_preference": 0.6590,
+      "production_baseline_language_dominance": 0.4258,
       "citation_heritage_auc_tfidf_citation": "0.71-0.74",
       "cross_language_recall_at_10": 0.14,
       "boilerplate_resistance_score": -0.83,
       "hierarchy_coherence_nmi": 0.03,
-      "note": "Best JP (0.742) from regeste_full_text_hybrid_0.7; production baseline cited_decisions_tfidf_outcome_hybrid_0.5 has JP=0.5565, LD=0.4377 (verified 2026-10-08T23:44 with NEW metadata)"
+      "note": "Best JP (0.735) from full_text_tfidf_light; production baseline cited_decisions_tfidf_outcome_hybrid_0.5 has JP=0.6590, LD=0.4258 (deterministic verification 2026-10-09T08:12 with sorted groups fix). Original freeze (JP=0.735, 8/8 PASS) is LOST; deterministic current state: JP=0.6590, 7/8 PASS."
     },
     "known_limitations": [
       "Cross-language retrieval below target (0.14 < 0.2)",
@@ -88,9 +108,9 @@
       "Hierarchy coherence NMI below target (0.03 < 0.3)",
       "True OOS jurist preference ceiling ~0.53 < 0.7 factory target",
       "Citation heritage AUC 0.649 (FAIL at threshold 0.65) on production baseline",
-      "outcome_tfidf fails jurist preference gate (JP=0.251) on current mount",
-      "regeste_tfidf fails jurist preference gate (JP=0.362) on current mount",
-      "ORIGINAL FREEZE EMBEDDINGS LOST (JP=0.735, 8/8 PASS) — current best JP=0.5565, 6/8 PASS"
+      "outcome_tfidf fails jurist preference gate (JP=0.4325) on deterministic verification",
+      "regeste_tfidf passes jurist preference gate (JP=0.5405) on deterministic verification",
+      "ORIGINAL FREEZE EMBEDDINGS LOST (JP=0.735, 8/8 PASS) — deterministic current state: JP=0.6590, 7/8 PASS"
     ]
   },
   "dense_complementary_acceptance_criteria": {
@@ -243,7 +263,8 @@
       "Cross-Lingual Sachverhalt/Dispositiv/Erwaegungen: Added explicit qualification of n=359-538 decisions (36-54% coverage) in 1K partial cohort; full-corpus validation BLOCKED pending section extraction at 174k",
       "Linear Hybrid: Replaced 'PASS adversarial at 144k' with accurate statement referencing obsolete v6-v10 era embeddings (product_integration_verification_v11.json); target 174k legal-distance dense embeddings do not exist",
       "Product Audit Gate: Removed broken reference to CYCLE_37073590337_GATE.json (file does not exist in mounted checkout or producer workspace)",
-      "Evaluation Framework: Clarified that '8/8 reps PASS both adversarial gates' refers to adversarial gate framework (language_dominance + jurist_pairwise on 2000-decision stratified subsample), NOT the broader v25_174k_formal_suite (12 benchmarks)"
+      "Evaluation Framework: Clarified that '8/8 reps PASS both adversarial gates' refers to adversarial gate framework (language_dominance + jurist_pairwise on 2000-decision stratified subsample), NOT the broader v25_174k_formal_suite (12 benchmarks)",
+      "Non-determinism Fix: Fixed stratified subsampling in verify_frozen_baseline.py by sorting groups by (branch, language) key before sampling. This eliminates metadata-ordering sensitivity. Verified deterministic 7/8 PASS with production baseline JP=0.659 (verification_20261009_081230.json)."
     ],
     "stability_confirmation_20261008_CORRECTED": {
       "verified_by": "verify_frozen_baseline.py (2026-10-08T23:44:25Z)",
@@ -268,25 +289,25 @@
       "conclusion": "Adversarial gate results are sensitive to metadata ordering; production baseline stability requires frozen metadata + embeddings"
     },
     "latest_verification_20261009": {
-      "verification_date": "2026-10-09T01:18:21Z",
-      "script": "verify_frozen_baseline.py",
-      "result_file": "evaluation/results/174k_tfidf_formal_suite/verification_20261009_011821.json",
-      "reps_pass_both": 6,
+      "verification_date": "2026-10-09T10:43:21Z",
+      "script": "verify_frozen_baseline.py (WITH SORTED GROUPS FIX - FINAL AUDIT VERIFICATION)",
+      "result_file": "evaluation/results/174k_tfidf_formal_suite/verification_20261009_104321.json",
+      "reps_pass_both": 7,
       "reps_tested": 8,
       "production_baseline_metrics": {
         "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
-        "language_dominance": 0.43775,
-        "jurist_preference": 0.5565,
+        "language_dominance": 0.425775,
+        "jurist_preference": 0.6590,
         "both_pass": true
       },
-      "failing_representations": ["regeste_tfidf (JP=0.362)", "outcome_tfidf (JP=0.251)"],
-      "best_jurist_preference": 0.742,
-      "best_language_dominance": 0.48495,
-      "note": "Confirms 2026-10-08T23:44 verification — results stable on current mount with NEW metadata. Config hash: a31c443a9b0e992e. Embeddings SHA256: 4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc."
+      "failing_representations": ["outcome_tfidf (JP=0.4325)"],
+      "best_jurist_preference": 0.7350,
+      "best_language_dominance": 0.48335,
+      "note": "FINAL AUDIT VERIFICATION: 3 consecutive runs produce IDENTICAL results (7/8 PASS, production baseline JP=0.6590, LD=0.4258). Benchmark non-determinism FIXED. Adversarial gate results are now reproducible regardless of metadata JSON ordering. Embeddings SHA256: 4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc, Config hash: a31c443a9b0e992e."
     },
     "final_verification_20261009_0118": {
       "verification_date": "2026-10-09T01:18:21Z",
-      "script": "verify_frozen_baseline.py",
+      "script": "verify_frozen_baseline.py (WITHOUT sorted groups fix — SUPERSEDED)",
       "result_file": "evaluation/results/174k_tfidf_formal_suite/verification_20261009_011821.json",
       "config_hash": "a31c443a9b0e992e",
       "embeddings_sha256": "4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc",
@@ -308,7 +329,7 @@
         "regeste_tfidf": {"verdict": "FAIL", "language_dominance": 0.3999, "jurist_preference": 0.3620, "both_pass": false},
         "outcome_tfidf": {"verdict": "FAIL", "language_dominance": 0.4915, "jurist_preference": 0.2510, "both_pass": false}
       },
-      "note": "Verification with NEW metadata (post-2026-10-08T23:40 mount). 6/8 PASS, production baseline JP=0.5565."
+      "note": "SUPERSEDED by deterministic_verification_20261009_0812. Verification with NEW metadata (post-2026-10-08T23:40 mount). 6/8 PASS, production baseline JP=0.5565. This result is NOT deterministic due to metadata-ordering sensitivity in subsampling."
     },
     "latest_verification_20261009_0354": {
       "verification_date": "2026-10-09T03:54:29Z",
@@ -335,6 +356,63 @@
         "outcome_tfidf": {"verdict": "FAIL", "language_dominance": 0.4578, "jurist_preference": 0.3910, "both_pass": false}
       },
       "note": "CONFIRMS NON-DETERMINISM: 7/8 PASS with JP=0.702 (matches pre-refresh 2026-10-08T07:44), reverting from 6/8 PASS at JP=0.5565. Same embeddings, same config hash, same seed=42 — different stratified subsample due to metadata ordering sensitivity. Production baseline stability requires frozen metadata + embeddings."
+    },
+"deterministic_verification_20261009_0812": {
+      "verification_date": "2026-10-09T08:12:30Z",
+      "script": "verify_frozen_baseline.py (WITH SORTED GROUPS FIX)",
+      "result_file": "evaluation/results/174k_tfidf_formal_suite/verification_20261009_081230.json",
+      "config_hash": "a31c443a9b0e992e",
+      "embeddings_sha256": "4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc",
+      "fix_applied": "Sorted groups by (branch, language) key in create_stratified_subsample() to ensure deterministic iteration order regardless of metadata JSON ordering",
+      "reps_pass_both": 7,
+      "reps_tested": 8,
+      "production_baseline_metrics": {
+        "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+        "language_dominance": 0.4258,
+        "jurist_preference": 0.6590,
+        "both_pass": true
+      },
+      "all_results": {
+        "full_text_tfidf_light": {"verdict": "PASS", "language_dominance": 0.4834, "jurist_preference": 0.7350, "both_pass": true},
+        "regeste_full_text_hybrid_0.7": {"verdict": "PASS", "language_dominance": 0.4806, "jurist_preference": 0.7235, "both_pass": true},
+        "regeste_full_text_hybrid_0.5": {"verdict": "PASS", "language_dominance": 0.4809, "jurist_preference": 0.7225, "both_pass": true},
+        "cited_decisions_tfidf": {"verdict": "PASS", "language_dominance": 0.4252, "jurist_preference": 0.6710, "both_pass": true},
+        "cited_decisions_tfidf_outcome_hybrid_0.7": {"verdict": "PASS", "language_dominance": 0.4241, "jurist_preference": 0.6650, "both_pass": true},
+        "cited_decisions_tfidf_outcome_hybrid_0.5": {"verdict": "PASS", "language_dominance": 0.4258, "jurist_preference": 0.6590, "both_pass": true},
+        "regeste_tfidf": {"verdict": "PASS", "language_dominance": 0.3590, "jurist_preference": 0.5405, "both_pass": true},
+        "outcome_tfidf": {"verdict": "FAIL", "language_dominance": 0.4232, "jurist_preference": 0.4325, "both_pass": false}
+      },
+      "note": "DETERMINISTIC RESULT with sorted groups fix. 7/8 PASS, production baseline JP=0.6590 (between prior 0.5565 and 0.702). The fix eliminates metadata-ordering non-determinism by sorting group keys before sampling. This verification is REPRODUCIBLE across runs with same embeddings and metadata."
+    },
+    "final_deterministic_verification_20261009_1043": {
+      "verification_date": "2026-10-09T10:43:21Z",
+      "script": "verify_frozen_baseline.py (WITH SORTED GROUPS FIX - FINAL AUDIT VERIFICATION)",
+      "result_file": "evaluation/results/174k_tfidf_formal_suite/verification_20261009_104321.json",
+      "config_hash": "a31c443a9b0e992e",
+      "embeddings_sha256": "4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc",
+      "fix_applied": "Sorted groups by (branch, language) key in create_stratified_subsample() to ensure deterministic iteration order regardless of metadata JSON ordering",
+      "reps_pass_both": 7,
+      "reps_tested": 8,
+      "production_baseline_metrics": {
+        "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+        "language_dominance": 0.425775,
+        "jurist_preference": 0.6590,
+        "both_pass": true
+      },
+      "all_results": {
+        "full_text_tfidf_light": {"verdict": "PASS", "language_dominance": 0.48335, "jurist_preference": 0.7350, "both_pass": true},
+        "regeste_full_text_hybrid_0.7": {"verdict": "PASS", "language_dominance": 0.480575, "jurist_preference": 0.7235, "both_pass": true},
+        "regeste_full_text_hybrid_0.5": {"verdict": "PASS", "language_dominance": 0.48095, "jurist_preference": 0.7225, "both_pass": true},
+        "cited_decisions_tfidf": {"verdict": "PASS", "language_dominance": 0.425175, "jurist_preference": 0.6710, "both_pass": true},
+        "cited_decisions_tfidf_outcome_hybrid_0.7": {"verdict": "PASS", "language_dominance": 0.4241, "jurist_preference": 0.6650, "both_pass": true},
+        "cited_decisions_tfidf_outcome_hybrid_0.5": {"verdict": "PASS", "language_dominance": 0.425775, "jurist_preference": 0.6590, "both_pass": true},
+        "regeste_tfidf": {"verdict": "PASS", "language_dominance": 0.35895, "jurist_preference": 0.5405, "both_pass": true},
+        "outcome_tfidf": {"verdict": "FAIL", "language_dominance": 0.4232, "jurist_preference": 0.4325, "both_pass": false}
+      },
+      "determinism_confirmed": true,
+      "verification_runs": 3,
+      "all_runs_identical": true,
+      "note": "FINAL AUDIT VERIFICATION: 3 consecutive runs produce IDENTICAL results (7/8 PASS, production baseline JP=0.6590, LD=0.4258). Benchmark non-determinism FIXED. Adversarial gate results are now reproducible regardless of metadata JSON ordering."
     }
   },
   "v17_label_normalization_findings": {

@@ -1,0 +1,74 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF hierarchical_v1 production modes (6/8 PASS) are OPERATIONAL at 174k (3 text-based at full 173,963: fine_branch_purity 0.906-0.930; 3 citation-based at 52% scale: 0.609-0.685). Multi-level recursive protocol (4+ levels) FAILS for all TF-IDF modes at 174k (valid negative, preserved). Calibration FAILS (valid negative, preserved). Dense embedding integration contract v34 FROZEN with 4 complementary views. 12k dense ACCEPTED (multi-level PASS, hierarchical builder SUCCESS). 144k checkpoint validates hierarchical builder (2-level) scale extrapolation. NESTING_METRIC_DEFECT_v1 ENFORCED. Lane correctly BLOCKED_ON_DEPENDENCIES on legal-distance 174k dense embeddings (requires corpus lane resumption). No lane defect exists. V28-pattern control plane mounting defect is infrastructure, not lane.",
+  "evidence_summary": {
+    "tfidf_hierarchical_v1_174k": {
+      "text_based_production_modes": 3,
+      "text_based_fine_branch_purity_range": "0.906-0.930",
+      "citation_based_modes_at_52pct": 3,
+      "citation_based_fine_branch_purity_range": "0.609-0.685",
+      "all_pass_threshold": "fine_branch_purity > 0.5",
+      "verification_artifact": "hierarchical_v1_174k_tfidf_verdict_20261001_102442.json"
+    },
+    "multi_level_recursive_protocol_174k": {
+      "modes_tested": 5,
+      "all_fail": true,
+      "failure_mode": "all decisions collapse to single cluster (label 0) at all levels",
+      "negative_result_preserved": true,
+      "verification_artifact": "multi_level_protocol_174k_tfidf/full_text_tfidf_light/multi_level_174k_full_text_tfidf_light_results.json"
+    },
+    "calibration_174k": {
+      "result": "FAIL",
+      "reason": "thresholds too aggressive for TF-IDF signal density",
+      "negative_result_preserved": true,
+      "verification_artifact": "multi_level_protocol_174k_tfidf_calibrated/"
+    },
+    "dense_embeddings_integration_contract_v34": {
+      "status": "FROZEN",
+      "complementary_views": 4,
+      "citation_heritage_auc": "0.79-0.85 (PASS >0.75)",
+      "cross_lingual_sachverhalt": "0.28 (PASS >0.20)",
+      "cross_lingual_dispositiv": "0.15 (PASS >0.10)",
+      "cross_lingual_erwaegungen": "0.09 (FAIL >0.10, correctly excluded)",
+      "linear_hybrid_complement_jp": "0.61-0.67 (PASS adversarial, BELOW TF-IDF 0.78-0.79)",
+      "verification_artifact": "dense_embeddings_integration_contract_v34.json"
+    },
+    "preparatory_dense_validation": {
+      "12k_dense": "ACCEPTED - multi-level PASS (4 levels, nesting=1.0, zero fragmentation), hierarchical builder SUCCESS (39->412), v26 flat Leiden FAIL (expected)",
+      "144k_checkpoint": "22/26 years, fine_branch_purity~0.97, improvement_rate branch 0.48-0.65 / area 0.75-0.76, strict_nesting>=0.99, fine_singletons~4-5%",
+      "note": "144k metrics are for hierarchical builder (2-level), NOT multi-level recursive protocol"
+    },
+    "nesting_metric_defect_v1": {
+      "enforced": true,
+      "affected_modes": 7,
+      "remediation": "all future outputs require explicit scope annotation"
+    },
+    "test_suites": {
+      "grand_total": 247,
+      "grand_passed": 245,
+      "grand_skipped": 2,
+      "grand_failed": 0,
+      "skipped_reasons": [
+        "optional Leiden recompute deps not installed (igraph/leidenalg)",
+        "dense mode artifacts don't exist at 174k yet (known upstream blocker)"
+      ]
+    },
+    "blocker_chain": {
+      "fractal_map": "BLOCKED_ON_DEPENDENCIES",
+      "legal_distance_174k_dense": "11% complete (3/26 years)",
+      "corpus_lane_resumption_required": [
+        "BGE/bger ID mapping production",
+        "parquet 2022-2026 (29,520 decisions)",
+        "section extraction (sachverhalt/erwaegungen/dispositiv) at 174k scale"
+      ]
+    },
+    "control_plane_discrepancy": {
+      "mounted_control_plane_status": "RUN",
+      "workspace_state_status": "BLOCKED_ON_DEPENDENCIES",
+      "diagnosis": "V28-pattern infrastructure defect in mounting/persistence mechanism",
+      "lane_fault": false
+    }
+  }
+}
