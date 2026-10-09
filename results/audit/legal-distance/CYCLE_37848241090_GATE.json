@@ -1,0 +1,97 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Minimal dense scale characterization complete: Three complementary modes at characterized minimal scales — (1) Citation Heritage: 21yr/137k, center_projected_64dim AUC 0.77-0.85 > 0.75 (superior to TF-IDF 0.71-0.74); (2) Section Cross-Lingual: 1K sample, Sachverhalt cp64 0.282 > 0.2 PASS, Dispositiv 0.150 > 0.1 PASS, Erwaegungen 0.094 < 0.1 FAIL; (3) Linear Hybrid Complement: 19yr/122k, w=0.3-0.4 passes adversarial gates, JP 0.61-0.67 < TF-IDF 0.78-0.79. Two-mode tradeoff fundamental reproduced across all scales. True OOS JuristPref ceiling ~0.53 < 0.7 target. Dense embeddings fail jurist gate at all scales (JP 0.05-0.43). Data blockers persist (bge_/bger_ mapping, parquet 2024-2026, 174k section extraction). No further same-question cycles justified.",
+  "evidence_summary": {
+    "citation_heritage": {
+      "files_verified": [
+        "legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_21year_latest.json",
+        "legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_22year_latest.json",
+        "legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_24year_latest.json"
+      ],
+      "key_metrics": {
+        "21yr_cp64_auc": 0.8182,
+        "22yr_cp64_auc": 0.7922,
+        "24yr_cp64_auc": 0.7667,
+        "24yr_raw768_auc": 0.6819,
+        "positive_pairs_24yr": 730
+      },
+      "status": "CONFIRMED"
+    },
+    "section_crosslingual": {
+      "file_verified": "legal_distance/results/174k_dense_embeddings/section_crosslingual_eval/section_crosslingual_eval_latest.json",
+      "key_metrics": {
+        "sachverhalt_cp64_cross_lang_same_branch": 0.282,
+        "dispositiv_cp64_cross_lang_same_branch": 0.150,
+        "erwaegungen_cp64_cross_lang_same_branch": 0.094,
+        "sachverhalt_invariance_gap": 0.187,
+        "dispositiv_invariance_gap": 0.397,
+        "erwaegungen_invariance_gap": 0.452
+      },
+      "status": "CONFIRMED"
+    },
+    "linear_hybrids": {
+      "files_verified": [
+        "legal_distance/results/174k_dense_embeddings/linear_combinations_weight_sweep_22year/weight_sweep_22year_latest.json",
+        "legal_distance/results/174k_dense_embeddings/linear_combinations_22year/linear_hybrid05_concat_22year_eval_latest.json"
+      ],
+      "key_metrics": {
+        "optimal_w_cited_decisions_jp": 0.6725,
+        "optimal_w_cited_decisions_langdom": 0.6539,
+        "optimal_w_outcome_hybrid_jp": 0.6115,
+        "optimal_w_outcome_hybrid_langdom": 0.7477,
+        "tfidf_baseline_jp": 0.784,
+        "dense_only_jp": 0.4265
+      },
+      "status": "CONFIRMED"
+    },
+    "two_mode_tradeoff": {
+      "reproduced_at_scales": ["3yr", "15yr", "19yr", "20yr", "21yr", "22yr", "24yr", "165k"],
+      "reproduced_on_12k_accepted": true,
+      "status": "CONFIRMED"
+    },
+    "true_oos_ceiling": {
+      "file_verified": "legal_distance/results/v8/holdout_zero_shot_validation_fixed/holdout_zero_shot_validation_fixed.json",
+      "key_metrics": {
+        "tfidf_holdout_jp": 0.525,
+        "hybrid_0.5_holdout_jp": 0.580,
+        "dense_holdout_jp": 0.385,
+        "ceiling_estimate": 0.53
+      },
+      "status": "CONFIRMED"
+    },
+    "dense_jurist_gate_failure": {
+      "scales_tested": ["3yr", "15yr", "19yr", "20yr", "22yr", "165k"],
+      "jp_range": "0.05-0.43",
+      "status": "CONFIRMED"
+    },
+    "negative_findings_documented": {
+      "erwaegungen_crosslingual_fail": true,
+      "raw_768dim_citation_heritage_fail_24yr": true,
+      "cross_language_retrieval_fail_all": true,
+      "boilerplate_resistance_negative": true,
+      "hierarchy_coherence_fail_all": true,
+      "legal_tfidf_bge_corpus_fail": true,
+      "v18_coarse_hierarchy_max_purity_0.65": true
+    },
+    "data_blockers": {
+      "bge_bger_mapping": true,
+      "parquet_2024_2026_missing": true,
+      "section_extraction_174k_blocked": true,
+      "orchestration_failure_documented": true
+    },
+    "tests_passed": [
+      "test_citation_heritage_superiority",
+      "test_citation_heritage_minimal_scale",
+      "test_section_crosslingual_hierarchy",
+      "test_linear_hybrid_optimal_weight",
+      "test_two_mode_tradeoff_fundamental",
+      "test_true_oos_ceiling",
+      "test_tfidf_174k_primary_validated",
+      "test_data_blockers_identified",
+      "test_complementary_role_v34.py (8/8)",
+      "test_v29_final_results.py (15/15)"
+    ]
+  }
+}
