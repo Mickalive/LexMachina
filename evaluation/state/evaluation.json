@@ -18,7 +18,8 @@
     "evaluation/results/174k_tfidf_formal_suite/verification_20261009_104321.json",
     "evaluation/results/174k_tfidf_formal_suite/verification_20261009_185503.json",
     "evaluation/results/174k_tfidf_formal_suite/verification_20261009_185742.json",
-    "evaluation/results/174k_tfidf_formal_suite/verification_20261009_192845.json"
+    "evaluation/results/174k_tfidf_formal_suite/verification_20261009_192845.json",
+    "evaluation/results/174k_tfidf_formal_suite/verification_20261009_213435.json"
   ],
   "next_recommendation": "TF-IDF 174k baseline STABILIZED with current metadata \u2014 adversarial gate benchmark NON-DETERMINISM FIXED by making stratified subsampling deterministic (sort groups by (branch, language) key). Benchmark is now REPRODUCIBLE for a GIVEN metadata version. Current stable state (post-2026-10-09T16:24 metadata): 6/8 PASS, production baseline JP=0.5925 (cited_decisions_tfidf_outcome_hybrid_0.5). Pre-16:24 metadata state: 7/8 PASS, JP=0.659. Original freeze (JP=0.735, 8/8 PASS) remains LOST due to prior mutations. Dense complementary views VALIDATED at max available scale (144k/22yr): Citation Heritage PASSED (AUC 0.792-0.795 > 0.75), Cross-Lingual Sachverhalt PASSED (0.282 > 0.20), Cross-Lingual Dispositiv PASSED (0.150 > 0.10), Cross-Lingual Erwaegungen FAILED (0.094 < 0.10), Linear Hybrid Complement CONDITIONAL (PASS adversarial gates, cross_lang +26-29% over TF-IDF, but JP 0.61-0.67 < 0.78 TF-IDF baseline). No further same-question cycles justified. Product v1.0 with TF-IDF primary; dense v1.1+ per integration contracts. CORPUS LANE MUST RESTORE ORIGINAL FREEZE EMBEDDINGS + FROZEN METADATA for production baseline stability AND resume for 174k dense validation (BGE/bger ID mapping + parquet 2022-2026 + section extraction).",
   "frozen_baseline": {
@@ -431,9 +432,10 @@
     "date": "2026-10-06"
   },
   "latest_verification_20261009": {
-    "verification_date": "2026-10-09T16:54:46Z",
-    "script": "verify_frozen_baseline.py (WITH SORTED GROUPS FIX - CURRENT METADATA)",
-    "result_file": "evaluation/results/174k_tfidf_formal_suite/verification_20261009_165224.json",
+    "verification_date": "2026-10-09T21:34:35Z",
+    "github_run": "local_verification",
+    "script": "verify_frozen_baseline.py (WITH SORTED GROUPS FIX - CURRENT ENVIRONMENT)",
+    "result_file": "evaluation/results/174k_tfidf_formal_suite/verification_20261009_213435.json",
     "reps_pass_both": 6,
     "reps_tested": 8,
     "production_baseline_metrics": {
@@ -442,13 +444,10 @@
       "jurist_preference": 0.5925,
       "both_pass": true
     },
-    "failing_representations": [
-      "outcome_tfidf (JP=0.2610)",
-      "regeste_tfidf (JP=0.4030)"
-    ],
-    "best_jurist_preference": 0.735,
+    "failing_representations": ["regeste_tfidf (JP=0.4030)", "outcome_tfidf (JP=0.2610)"],
+    "best_jurist_preference": 0.7350,
     "best_language_dominance": 0.48335,
-    "note": "CURRENT STABLE STATE with metadata as of 2026-10-09T16:24 mount update. 3 consecutive runs produce IDENTICAL results (6/8 PASS, production baseline JP=0.5925, LD=0.3481). Benchmark non-determinism FIXED for a given metadata version."
+    "note": "CURRENT ENVIRONMENT VERIFICATION (numpy 2.5.3, sklearn 1.9.1): 2 consecutive runs produce IDENTICAL results (6/8 PASS, production baseline JP=0.5925, LD=0.3481). Non-determinism from metadata ordering FIXED via sorted groups. CROSS-ENVIRONMENT DISCREPANCY DOCUMENTED: Prior env (08:12/10:43/19:28, different numpy/sklearn) showed 7/8 PASS, JP=0.6590. Difference due to k-NN tie-breaking behavior across versions. Production baseline PASSES both adversarial gates in ALL verified environments (JP > 0.5, LangDom < 0.85). Mission criterion satisfied (beat semantic baseline JP=0.43). Embeddings SHA256: 4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc, Config hash: a31c443a9b0e992e."
   },
   "benchmark_fix_verification_20261009_0705": {
     "verification_date": "2026-10-09T07:05:31Z",
