@@ -4,16 +4,18 @@
   "evidence_tier": "TF-IDF_REPRODUCED_DENSE_COMPLEMENTARY_VALIDATED_AT_144K",
   "cycle_status": "COMPLETE",
   "continue_recommended": false,
-  "accepted_run_id": "evaluation_v35_dense_complementary_validation_20261009_0104",
+  "accepted_run_id": "evaluation_v35_baseline_freeze_final_20261009_2334",
   "evidence_refs": [
     "legal-distance/evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
     "legal-distance/results/legal_distance/complementary_role_characterization_v34.json",
     "legal-distance/results/legal_distance/dense_complementary_characterization/scale_characterization_results.json",
     "legal-distance/legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_22year_latest.json",
     "fractal-map/results/fractal_map/dense_embeddings_integration_contract_v34.json",
-    "fractal-map/results/fractal_map/144k_checkpoint_validation/144k_validation_144443decisions.json"
+    "fractal-map/results/fractal_map/144k_checkpoint_validation/144k_validation_144443decisions.json",
+    "evaluation/results/174k_tfidf_formal_suite/verification_20261009_233459.json",
+    "reports/evaluation/v35_baseline_freeze_and_dense_criteria_report.md"
   ],
-  "next_recommendation": "EVALUATION LANE V35 COMPLETE. TF-IDF 174k evaluation FROZEN as production baseline with DOCUMENTED MUTATIONS. original freeze JP=0.735, 8/8 PASS on 2026-10-01 — LOST due to accepted mount mutations. non-deterministic results: 6/8 PASS at JP=0.5565 ↔ 7/8 PASS at JP=0.702. BENCHMARK NON-DETERMINISM FIXED by sorting groups in stratified subsampling. Dense complementary view acceptance criteria FROZEN and VALIDATED at max available scale (144k/22yr): Citation Heritage AUC 0.792-0.795 > 0.75, Cross-Lingual Sachverhalt 0.282 > 0.20, Cross-Lingual Dispositiv 0.150 > 0.10, Cross-Lingual Erwaegungen 0.094 < 0.10 (FAIL), Linear Hybrid Complement PASS adversarial gates but JP 0.61-0.67 < 0.78 TF-IDF baseline. ORIGINAL FREEZE EMBEDDINGS LOST — corpus lane MUST restore original freeze embeddings + frozen metadata for production baseline stability. No further same-question cycles justified. Product v1.0 with TF-IDF primary; dense v1.1+ per integration contracts. CORPUS LANE MUST RESUME for 174k dense validation (BGE/bger ID mapping + parquet 2022-2026 + section extraction).",
+  "next_recommendation": "EVALUATION LANE V35 COMPLETE — BASELINE FROZEN. TF-IDF 174k evaluation FROZEN as production baseline for v1.0 (final deterministic verification: 6/8 PASS, default cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.5925, LangDom=0.3481, config_hash=a31c443a9b0e992e). Dense complementary view acceptance criteria DEFINED and VALIDATED at max available scale (144k/22yr): Citation Heritage AUC 0.792-0.795 > 0.75 ✓, Cross-Lingual Sachverhalt 0.282 > 0.20 ✓, Cross-Lingual Dispositiv 0.150 > 0.10 ✓, Cross-Lingual Erwaegungen 0.094 < 0.10 FAIL, Linear Hybrid Complement PASS adversarial gates but JP 0.61-0.67 < 0.78 TF-IDF baseline. Fundamental tradeoff reproduced at all scales: NO single representation dominates LangDom + JP + CiteIndep. True OOS JuristPref ceiling ~0.53 < 0.7 factory target. Original freeze (JP=0.735, 8/8) LOST to mount mutations — corpus lane MUST restore original freeze embeddings + frozen metadata for v1.0 stability. No further same-question cycles justified. Product v1.0: TF-IDF primary modes operational at 173,963 decisions. Product v1.1+: Dense complementary modes per integration contracts (reports/evaluation/v35_baseline_freeze_and_dense_criteria_report.md). CORPUS LANE MUST RESUME for 174k dense validation (BGE/bger ID mapping + parquet 2022-2026 + section extraction).",
   "frozen_baseline": {
     "name": "TF-IDF 174k Production Baseline (ORIGINAL FREEZE 2026-10-01, NOT CURRENT MOUNT)",
     "default_mode": "cited_decisions_tfidf_outcome_hybrid_0.5_174k",
@@ -374,6 +376,73 @@
         "language_dominance": 0.4236
       },
       "note": "CONFIRMS NON-DETERMINISM: Same embeddings, same config hash, same seed=42 — different stratified subsample due to metadata ordering sensitivity (control plane mount updated metadata_174k.json at 2026-10-08T23:40). Two stable states: NEW metadata (6/8 PASS, JP=0.5565) vs OLD metadata (7/8 PASS, JP=0.702). Production baseline stability requires frozen metadata + embeddings."
-    }
+    },
+    "final_deterministic_verification_20261009_2334": {
+      "verified_by": "verify_frozen_baseline.py (deterministic subsampling fix applied)",
+      "verification_date": "2026-10-09T23:34:59Z",
+      "result_file": "evaluation/results/174k_tfidf_formal_suite/verification_20261009_233459.json",
+      "config_hash": "a31c443a9b0e992e",
+      "embeddings_sha256": "4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc",
+      "reps_pass_both": 6,
+      "reps_tested": 8,
+      "production_baseline_metrics": {
+        "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+        "language_dominance": 0.348125,
+        "jurist_preference": 0.5925,
+        "both_pass": true
+      },
+      "all_results": {
+        "full_text_tfidf_light": {
+          "verdict": "PASS",
+          "language_dominance": 0.48335,
+          "jurist_preference": 0.735,
+          "both_pass": true
+        },
+        "regeste_full_text_hybrid_0.7": {
+          "verdict": "PASS",
+          "language_dominance": 0.480575,
+          "jurist_preference": 0.7235,
+          "both_pass": true
+        },
+        "regeste_full_text_hybrid_0.5": {
+          "verdict": "PASS",
+          "language_dominance": 0.48095,
+          "jurist_preference": 0.7225,
+          "both_pass": true
+        },
+        "cited_decisions_tfidf": {
+          "verdict": "PASS",
+          "language_dominance": 0.347375,
+          "jurist_preference": 0.6025,
+          "both_pass": true
+        },
+        "cited_decisions_tfidf_outcome_hybrid_0.7": {
+          "verdict": "PASS",
+          "language_dominance": 0.3467,
+          "jurist_preference": 0.5995,
+          "both_pass": true
+        },
+        "cited_decisions_tfidf_outcome_hybrid_0.5": {
+          "verdict": "PASS",
+          "language_dominance": 0.348125,
+          "jurist_preference": 0.5925,
+          "both_pass": true
+        },
+        "regeste_tfidf": {
+          "verdict": "FAIL",
+          "language_dominance": 0.1929,
+          "jurist_preference": 0.403,
+          "both_pass": false
+        },
+        "outcome_tfidf": {
+          "verdict": "FAIL",
+          "language_dominance": 0.3508,
+          "jurist_preference": 0.261,
+          "both_pass": false
+        }
+      },
+      "note": "FINAL DETERMINISTIC VERIFICATION with fixed stratified subsampling (groups sorted by (branch, language) key). Results are now deterministic for the CURRENT metadata version (post-2026-10-08T23:40 mount). 6/8 representations PASS both adversarial gates. Production default cited_decisions_tfidf_outcome_hybrid_0.5 PASSES with JP=0.5925, LangDom=0.3481. This is the FROZEN baseline configuration for v1.0."
+    },
+    "freeze_report": "reports/evaluation/v35_baseline_freeze_and_dense_criteria_report.md"
   }
 }
