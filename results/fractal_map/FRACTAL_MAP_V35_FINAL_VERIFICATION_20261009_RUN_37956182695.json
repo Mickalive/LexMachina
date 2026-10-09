@@ -1,0 +1,91 @@
+{
+  "lane": "fractal-map",
+  "direction_version": 35,
+  "github_run": 37956182695,
+  "timestamp": "2026-10-09T06:00:00.000000Z",
+  "evidence_tier": "ACCEPTED",
+  "cycle_status": "BLOCKED_ON_DEPENDENCIES",
+  "continue_recommended": false,
+  "audit_ready": true,
+  "test_verification": {
+    "total_tests": 247,
+    "passed": 245,
+    "skipped": 2,
+    "failed": 0,
+    "suites": {
+      "test_verify": {"passed": 185, "skipped": 1, "failed": 0},
+      "test_pipeline_readiness": {"passed": 14, "skipped": 0, "failed": 0},
+      "test_zoom_quality_174k_eval": {"passed": 4, "skipped": 0, "failed": 0},
+      "test_zoom_quality_174k_v26_eval": {"passed": 7, "skipped": 0, "failed": 0},
+      "test_dense_embeddings_infrastructure": {"passed": 14, "skipped": 1, "failed": 0},
+      "test_scale_dependency": {"passed": 11, "skipped": 0, "failed": 0},
+      "test_12k_dense_comprehensive": {"passed": 10, "skipped": 0, "failed": 0}
+    }
+  },
+  "deliverables": {
+    "tfidf_hierarchical_v1_production_modes": {
+      "status": "OPERATIONAL",
+      "scale": "173,963 decisions (full 174k)",
+      "production_modes": 3,
+      "fine_branch_purity_range": "0.906-0.930",
+      "limited_modes_at_52pct": 2,
+      "failed_modes": 2
+    },
+    "multi_level_recursive_protocol": {
+      "status": "FAILS_AT_174K",
+      "result": "VALID_NEGATIVE",
+      "failure_detail": "level2 area_purity ~0.134 < 0.15 threshold",
+      "note": "Not cluster collapse at all levels; hierarchical_v1 (2-level) PASSES"
+    },
+    "calibration_protocol": {
+      "status": "FAILS_ON_TFIDF",
+      "result": "VALID_NEGATIVE",
+      "failure_detail": "Thresholds too aggressive for TF-IDF sparse signal density"
+    },
+    "dense_embedding_integration_contract_v34": {
+      "status": "FROZEN",
+      "complementary_views": 4,
+      "citation_heritage": {"criterion": "AUC > 0.75", "evidence_144k": "0.79-0.85", "status": "PASSED"},
+      "cross_lingual_sachverhalt": {"criterion": "same_branch > 0.20", "evidence_144k": "0.281-0.282", "status": "PASSED"},
+      "cross_lingual_dispositiv": {"criterion": "same_branch > 0.10", "evidence_144k": "0.148-0.150", "status": "PASSED"},
+      "cross_lingual_erwaegungen": {"criterion": "same_branch > 0.10", "evidence_144k": "0.092-0.094", "status": "FAILED_EXCLUDED"},
+      "linear_hybrid_complement": {"criterion": "PASS adversarial at w=0.3-0.4", "evidence_144k": "JP 0.61-0.67", "status": "PASSED_BELOW_TFIDF_BASELINE"}
+    },
+    "scale_extrapolation_144k_checkpoint": {
+      "status": "VALIDATED",
+      "fine_branch_purity": "~0.97",
+      "improvement_rate_branch": "0.48-0.65",
+      "improvement_rate_area": "0.75-0.76",
+      "strict_nesting": ">=0.99",
+      "fine_singletons": "~4-5%"
+    },
+    "nesting_metric_defect_v1": {
+      "status": "ENFORCED",
+      "defect": "7 compressed-family modes reported nesting_score >= 0.99 without scope annotation",
+      "enforcement": "All nesting >= 0.99 claims require explicit scope annotation"
+    },
+    "product_integration": {
+      "status": "READY",
+      "production_modes": 3,
+      "scale_tests_passed": "16/16",
+      "webgl_pipeline": "<3s"
+    }
+  },
+  "blockers": [
+    "Corpus lane: BGE/bger ID mapping production",
+    "Corpus lane: Parquet generation 2022-2026 (29,520 decisions)",
+    "Corpus lane: Section extraction (sachverhalt/erwaegungen/dispositiv) at 174k scale",
+    "Legal-distance lane: 174k dense embeddings computation"
+  ],
+  "orchestration_defect": {
+    "type": "V28-pattern control plane mounting defect",
+    "location": "/tmp/lex_control/state/factory_direction.json line 16",
+    "symptom": "fractal-map.status = 'RUN' (stale)",
+    "authoritative_state": "workspace state/factory_direction.json and state/fractal-map.json show BLOCKED_ON_DEPENDENCIES",
+    "root_cause": "Persistent infrastructure defect in control plane mounting/persistence mechanism",
+    "impact_on_lane": "ZERO - all deliverables complete, all tests pass",
+    "resolution_owner": "Factory Director (infrastructure)"
+  },
+  "next_recommendation": "continue_recommended=false. Factory Director: Resume corpus lane for BGE/bger ID mapping, parquet 2022-2026, section extraction at 174k scale.",
+  "report_file": "reports/fractal_map/FRACTAL_MAP_V35_FINAL_VERIFICATION_REPORT_20261009_RUN_37956182695.md"
+}
