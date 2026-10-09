@@ -16,39 +16,41 @@ def load_json(path):
 
 
 def test_v35_state_structure():
-    """Verify evaluation.json has correct v35 structure."""
+    """Verify evaluation.json has correct v35 structure (final completion)."""
     state = load_json("state/evaluation.json")
     
     assert state["lane"] == "evaluation"
     assert state["direction_version"] == 35
-    assert state["evidence_tier"] == "TF-IDF_REPRODUCED_PARTIAL_DENSE_UNVALIDATED"
+    assert state["evidence_tier"] == "TF-IDF_REPRODUCED_DENSE_COMPLEMENTARY_VALIDATED_AT_144K"
     assert state["cycle_status"] == "COMPLETE"
     assert state["continue_recommended"] is False
-    assert state["accepted_run_id"] == "evaluation_v35_baseline_reverification_20261008_1642"
+    assert state["accepted_run_id"] == "evaluation_v35_dense_complementary_validation_20261009_0104"
     
     print("✅ v35 state structure verified!")
 
 
 def test_tfidf_174k_baseline_mutation_documented():
-    """Verify TF-IDF 174k baseline mutation is accurately documented."""
+    """Verify TF-IDF 174k baseline mutation is accurately documented (final state)."""
     state = load_json("state/evaluation.json")
     
     rec = state["next_recommendation"]
-    assert "TF-IDF 174k baseline PARTIALLY RECOVERED" in rec
-    assert "mutated TWICE" in rec
-    assert "fractal-map rebuild 2026-10-07T21:16:21" in rec
-    assert "accepted mount refresh 2026-10-08T09:19" in rec
-    assert "degraded JP from 0.735 to ~0.702" in rec
-    assert "further degraded JP to 0.5565" in rec
+    assert "EVALUATION LANE V35 COMPLETE" in rec
+    assert "original freeze JP=0.735, 8/8 PASS on 2026-10-01" in rec
+    assert "non-deterministic results: 6/8 PASS at JP=0.5565 ↔ 7/8 PASS at JP=0.702" in rec
+    assert "Dense complementary view acceptance criteria FROZEN and VALIDATED" in rec
+    assert "Citation Heritage AUC 0.792-0.795 > 0.75" in rec
+    assert "Cross-Lingual Sachverhalt 0.282 > 0.20" in rec
+    assert "Cross-Lingual Dispositiv 0.150 > 0.10" in rec
+    assert "Cross-Lingual Erwaegungen 0.094 < 0.10" in rec
     assert "ORIGINAL FREEZE EMBEDDINGS LOST" in state["frozen_baseline"]["known_limitations"][-1]
     
     # Verify frozen_baseline section documents both mutations
     fb = state["frozen_baseline"]
-    assert fb["mutation_1_fractal_map_rebuild"]["effect"] == "Degraded production baseline JP from 0.735 to ~0.702 (per pre-refresh verification)"
+    assert fb["mutation_1_fractal_map_rebuild"]["effect"] == "Degraded production baseline JP from 0.735 to ~0.702 (per pre-refresh verification with OLD metadata)"
     assert fb["mutation_2_accepted_mount_refresh"]["effect"] == "Further degraded production baseline JP from ~0.702 to 0.5565; 6/8 PASS"
     
-    # Verify current mount metrics (corrected: 7/8 PASS, not 6/8)
-    assert fb["adversarial_gates"]["current_mount_reps_pass_both"] == 7
+    # Verify current mount metrics (NEW metadata: 6/8 PASS at JP=0.5565)
+    assert fb["adversarial_gates"]["current_mount_reps_pass_both"] == 6
     assert fb["adversarial_gates"]["current_mount_reps_tested"] == 8
     
     print("✅ TF-IDF 174k baseline mutation accurately documented!")
@@ -162,12 +164,19 @@ def test_audit_corrections_applied():
     assert "Product Audit Gate: Removed broken reference" in fixes[3]
     assert "Evaluation Framework: Clarified" in fixes[4]
     
-    # Verify stability confirmation (corrected by 2026-10-08T22:15 re-verification)
+    # Verify stability confirmation (CORRECTED by 2026-10-08T23:44 verification showing non-determinism)
     sc = corrections["stability_confirmation_20261008_CORRECTED"]
-    assert sc["result"] == "7/8 TF-IDF representations PASS both adversarial gates on accepted mount (POST-mutation-1 state, stable)"
-    assert "Two mutations occurred" in sc["note"]
-    assert "claimed 21:24 'reversion' was incorrect" in sc["note"]
-    assert "current stable state: JP=0.702, 7/8 PASS" in sc["note"]
+    assert sc["result"] == "6/8 TF-IDF representations PASS both adversarial gates on accepted mount with NEW metadata"
+    assert "CRITICAL CORRECTION" in sc["note"]
+    assert "Metadata file was updated at 2026-10-08T23:40" in sc["note"]
+    assert "Results are NOT deterministic across metadata orderings" in sc["note"]
+    assert "Original freeze (2026-10-01, JP=0.735, 8/8 PASS) is LOST" in sc["note"]
+    
+    # Verify latest verification confirms non-determinism
+    lv = corrections["latest_verification_20261009_0354"]
+    assert lv["reps_pass_both"] == 7
+    assert lv["reps_tested"] == 8
+    assert "CONFIRMS NON-DETERMINISM" in lv["note"]
     
     print("✅ Audit corrections verified!")
 
@@ -189,13 +198,13 @@ def test_evidence_refs():
 
 
 def test_accepted_run_id_format():
-    """Verify accepted_run_id follows the v35 naming convention."""
+    """Verify accepted_run_id follows the v35 naming convention (final completion)."""
     state = load_json("state/evaluation.json")
     
     run_id = state["accepted_run_id"]
     assert run_id.startswith("evaluation_v35_")
-    assert "baseline_reverification" in run_id
-    assert "20261008" in run_id
+    assert "dense_complementary_validation" in run_id
+    assert "20261009" in run_id
     
     print("✅ Accepted run ID format verified!")
 
