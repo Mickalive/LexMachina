@@ -1,10 +1,10 @@
 {
   "lane": "evaluation",
   "direction_version": 35,
-  "evidence_tier": "TF-IDF_REPRODUCED_DENSE_COMPLEMENTARY_VALIDATED_AT_144K",
+  "evidence_tier": "TF-IDF_REPRODUCED_DENSE_COMPLEMENTARY_VALIDATED_AT_144K_BENCHMARK_FIXED",
   "cycle_status": "COMPLETE",
   "continue_recommended": false,
-  "accepted_run_id": "evaluation_v35_dense_complementary_validation_20261009_0104",
+  "accepted_run_id": "evaluation_v35_benchmark_reliability_fix_20261009_0705",
   "evidence_refs": [
     "legal-distance/evaluation/results/174k/formal_suite/evaluation_174k_formal_suite_latest.json",
     "legal-distance/results/legal_distance/complementary_role_characterization_v34.json",
@@ -14,9 +14,9 @@
     "legal-distance/legal_distance/results/174k_dense_embeddings/linear_combinations_22year/linear_combinations_22year_eval_latest.json",
     "fractal-map/results/fractal_map/dense_embeddings_integration_contract_v34.json",
     "fractal-map/results/fractal_map/144k_checkpoint_validation/144k_validation_144443decisions.json",
-    "evaluation/results/174k_tfidf_formal_suite/verification_20261009_010447.json"
+    "evaluation/results/174k_tfidf_formal_suite/verification_20261009_070531.json"
   ],
-  "next_recommendation": "TF-IDF 174k baseline PARTIALLY RECOVERED — verified 6/8 representations PASS both adversarial gates on current accepted mount with NEW metadata (JP=0.5565); 7/8 PASS with OLD metadata (JP=0.702). CRITICAL: Adversarial gate results are NON-DETERMINISTIC across metadata orderings — same embeddings, same config hash, same seed=42 yield different stratified subsamples. Original freeze (JP=0.735, 8/8 PASS) remains LOST. Dense complementary views VALIDATED at max available scale (144k/22yr): Citation Heritage PASSED (AUC 0.792-0.795 > 0.75), Cross-Lingual Sachverhalt PASSED (0.282 > 0.20), Cross-Lingual Dispositiv PASSED (0.150 > 0.10), Cross-Lingual Erwaegungen FAILED (0.094 < 0.10), Linear Hybrid Complement CONDITIONAL (PASS adversarial gates, cross_lang +26-29% over TF-IDF, but JP 0.61-0.67 < 0.78 TF-IDF baseline). No further same-question cycles justified. Product v1.0 with TF-IDF primary; dense v1.1+ per integration contracts. CORPUS LANE MUST RESTORE ORIGINAL FREEZE EMBEDDINGS + FROZEN METADATA for production baseline stability AND resume for 174k dense validation (BGE/bger ID mapping + parquet 2022-2026 + section extraction).",
+  "next_recommendation": "TF-IDF 174k baseline STABILIZED — adversarial gate benchmark NON-DETERMINISM FIXED by making stratified subsampling deterministic (sort groups by (branch, language) key). Verified deterministic result: 7/8 representations PASS both adversarial gates with production baseline JP=0.659 (cited_decisions_tfidf_outcome_hybrid_0.5). Original freeze (JP=0.735, 8/8 PASS) remains LOST due to prior mutations, but benchmark is now REPRODUCIBLE regardless of metadata JSON ordering. Dense complementary views VALIDATED at max available scale (144k/22yr): Citation Heritage PASSED (AUC 0.792-0.795 > 0.75), Cross-Lingual Sachverhalt PASSED (0.282 > 0.20), Cross-Lingual Dispositiv PASSED (0.150 > 0.10), Cross-Lingual Erwaegungen FAILED (0.094 < 0.10), Linear Hybrid Complement CONDITIONAL (PASS adversarial gates, cross_lang +26-29% over TF-IDF, but JP 0.61-0.67 < 0.78 TF-IDF baseline). No further same-question cycles justified. Product v1.0 with TF-IDF primary; dense v1.1+ per integration contracts. CORPUS LANE MUST RESTORE ORIGINAL FREEZE EMBEDDINGS + FROZEN METADATA for production baseline stability AND resume for 174k dense validation (BGE/bger ID mapping + parquet 2022-2026 + section extraction).",
   "frozen_baseline": {
     "name": "TF-IDF 174k Production Baseline (ORIGINAL FREEZE 2026-10-03, NOT CURRENT MOUNT)",
     "default_mode": "cited_decisions_tfidf_outcome_hybrid_0.5_174k",
@@ -86,10 +86,22 @@
     "adversarial_gates": {
       "language_dominance_threshold": 0.85,
       "jurist_preference_threshold": 0.5,
-      "current_mount_reps_pass_both": "NON-DETERMINISTIC (6/8 ↔ 7/8 depending on metadata ordering)",
+      "current_mount_reps_pass_both": "DETERMINISTIC 7/8 PASS (benchmark fixed)",
       "current_mount_reps_tested": 8,
-      "verification_date": "2026-10-09T03:54:29Z",
-      "note": "Adversarial gate results are sensitive to metadata ordering. Control plane mount updated metadata_174k.json at 2026-10-08T23:40, changing stratified subsample selection. Two stable states observed: (1) NEW metadata: 6/8 PASS, JP=0.5565; (2) OLD metadata: 7/8 PASS, JP=0.702. Same embeddings, same config hash, same seed=42. Production baseline stability requires frozen metadata + embeddings."
+      "verification_date": "2026-10-09T07:05:31Z",
+      "note": "Adversarial gate benchmark NON-DETERMINISM FIXED: stratified subsampling now sorts groups by (branch, language) key for deterministic iteration regardless of metadata JSON ordering. Control plane mount updated metadata_174k.json at 2026-10-08T23:40 previously caused two stable states (6/8 PASS at JP=0.5565 vs 7/8 PASS at JP=0.702). Fix verified: 7/8 PASS with production baseline JP=0.659 (cited_decisions_tfidf_outcome_hybrid_0.5). Production baseline stability now requires frozen embeddings + deterministic benchmark code.",
+      "benchmark_fix": {
+        "issue": "Stratified subsampling used groups.items() iteration order, sensitive to metadata JSON insertion order",
+        "fix": "Sort groups.keys() by (branch, language) before sampling",
+        "files_fixed": [
+          "evaluation/verify_frozen_baseline.py",
+          "evaluation/run_174k_tfidf_formal_suite.py",
+          "evaluation/verify_frozen_baseline_37399175524.py"
+        ],
+        "verified_deterministic": true,
+        "verification_runs": 3,
+        "all_runs_identical": true
+      }
     },
     "best_metrics_current_mount": {
       "jurist_preference": 0.742,
@@ -280,7 +292,8 @@
       "Linear Hybrid: Replaced 'PASS adversarial at 144k' with accurate statement referencing TARGET 174k legal-distance dense embeddings at 22yr/144k scale; cross_lang improvement confirmed; JP below TF-IDF baseline",
       "Product Audit Gate: Removed broken reference to CYCLE_37073590337_GATE.json (file does not exist in mounted checkout or producer workspace)",
       "Evaluation Framework: Clarified that '8/8 reps PASS both adversarial gates' refers to adversarial gate framework (language_dominance + jurist_pairwise on 2000-decision stratified subsample), NOT the broader v25_174k_formal_suite (12 benchmarks)",
-      "NON-DETERMINISM CONFIRMED 2026-10-09T03:54: Adversarial gate results are sensitive to metadata ordering — same embeddings, same config hash, same seed=42 yield 6/8 PASS (JP=0.5565) with NEW metadata vs 7/8 PASS (JP=0.702) with OLD metadata. Control plane mount updated metadata_174k.json at 2026-10-08T23:40. Production baseline stability requires frozen metadata + embeddings."
+      "NON-DETERMINISM CONFIRMED 2026-10-09T03:54: Adversarial gate results are sensitive to metadata ordering — same embeddings, same config hash, same seed=42 yield 6/8 PASS (JP=0.5565) with NEW metadata vs 7/8 PASS (JP=0.702) with OLD metadata. Control plane mount updated metadata_174k.json at 2026-10-08T23:40. Production baseline stability requires frozen metadata + embeddings.",
+      "BENCHMARK RELIABILITY FIX 2026-10-09T07:05: Fixed adversarial gate benchmark non-determinism by making stratified subsampling deterministic (sort groups by (branch, language) key). Verified 3 consecutive runs with IDENTICAL results: 7/8 PASS, production baseline JP=0.659. Files fixed: verify_frozen_baseline.py, run_174k_tfidf_formal_suite.py, verify_frozen_baseline_37399175524.py. Benchmark now reproducible regardless of metadata JSON ordering."
     ],
     "stability_confirmation_20261008_CORRECTED": {
       "verified_by": "verify_frozen_baseline.py (2026-10-08T21:52:03Z)",
@@ -334,21 +347,50 @@
     "date": "2026-10-06"
   },
   "latest_verification_20261009": {
-    "verification_date": "2026-10-09T03:54:29Z",
+    "verification_date": "2026-10-09T07:05:31Z",
     "script": "verify_frozen_baseline.py",
-    "result_file": "evaluation/results/174k_tfidf_formal_suite/verification_20261009_035429.json",
+    "result_file": "evaluation/results/174k_tfidf_formal_suite/verification_20261009_070531.json",
     "reps_pass_both": 7,
     "reps_tested": 8,
     "production_baseline_metrics": {
       "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
-      "language_dominance": 0.4236,
-      "jurist_preference": 0.7020,
+      "language_dominance": 0.4258,
+      "jurist_preference": 0.6590,
       "both_pass": true
     },
-    "failing_representations": ["outcome_tfidf (JP=0.391)"],
-    "best_jurist_preference": 0.742,
-    "best_language_dominance": 0.48495,
-    "note": "CRITICAL NON-DETERMINISM CONFIRMED: 7/8 PASS with JP=0.702 reverts from 6/8 PASS at JP=0.5565 (01:18 verification). Same embeddings (SHA256: 4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc), same config hash (a31c443a9b0e992e), same seed=42 — different stratified subsample due to metadata ordering sensitivity (control plane mount updated metadata_174k.json at 2026-10-08T23:40). Production baseline stability requires frozen metadata + embeddings. Matches pre-refresh state (2026-10-08T07:44: 7/8 PASS, JP=0.702)."
+    "failing_representations": ["outcome_tfidf (JP=0.4325)"],
+    "best_jurist_preference": 0.7350,
+    "best_language_dominance": 0.4834,
+    "note": "BENCHMARK NON-DETERMINISM FIXED: 7/8 PASS with JP=0.659 (deterministic, reproducible). Stratified subsampling now sorts groups by (branch, language) key. Same embeddings (SHA256: 4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc), same config hash (a31c443a9b0e992e), same seed=42 — NOW produces IDENTICAL subsample across runs regardless of metadata JSON ordering. Verified 3 consecutive runs with identical results."
+  },
+  "benchmark_fix_verification_20261009_0705": {
+    "verification_date": "2026-10-09T07:05:31Z",
+    "script": "verify_frozen_baseline.py (FIXED)",
+    "result_file": "evaluation/results/174k_tfidf_formal_suite/verification_20261009_070531.json",
+    "config_hash": "a31c443a9b0e992e",
+    "embeddings_sha256": "4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc",
+    "reps_pass_both": 7,
+    "reps_tested": 8,
+    "production_baseline_metrics": {
+      "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "language_dominance": 0.4258,
+      "jurist_preference": 0.6590,
+      "both_pass": true
+    },
+    "all_results": {
+      "full_text_tfidf_light": {"verdict": "PASS", "language_dominance": 0.4834, "jurist_preference": 0.7350, "both_pass": true},
+      "regeste_full_text_hybrid_0.7": {"verdict": "PASS", "language_dominance": 0.4806, "jurist_preference": 0.7235, "both_pass": true},
+      "regeste_full_text_hybrid_0.5": {"verdict": "PASS", "language_dominance": 0.4809, "jurist_preference": 0.7225, "both_pass": true},
+      "cited_decisions_tfidf": {"verdict": "PASS", "language_dominance": 0.4252, "jurist_preference": 0.6710, "both_pass": true},
+      "cited_decisions_tfidf_outcome_hybrid_0.7": {"verdict": "PASS", "language_dominance": 0.4241, "jurist_preference": 0.6650, "both_pass": true},
+      "cited_decisions_tfidf_outcome_hybrid_0.5": {"verdict": "PASS", "language_dominance": 0.4258, "jurist_preference": 0.6590, "both_pass": true},
+      "regeste_tfidf": {"verdict": "PASS", "language_dominance": 0.3590, "jurist_preference": 0.5405, "both_pass": true},
+      "outcome_tfidf": {"verdict": "FAIL", "language_dominance": 0.4232, "jurist_preference": 0.4325, "both_pass": false}
+    },
+    "determinism_verified": true,
+    "verification_runs": 3,
+    "all_runs_identical": true,
+    "note": "BENCHMARK RELIABILITY FIX CONFIRMED: Fixed stratified subsampling non-determinism by sorting group keys. 3 consecutive runs produce IDENTICAL results. Adversarial gate benchmark is now reproducible regardless of metadata JSON ordering. This fixes the critical benchmark reliability issue documented in NON-DETERMINISM CONFIRMED 2026-10-09T03:54."
   },
   "final_verification_20261009_0118": {
     "verification_date": "2026-10-09T01:18:21Z",

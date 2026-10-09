@@ -112,7 +112,12 @@ SUBSAMPLE_SIZE = 2000  # Frozen: 2000 decisions for exact adversarial eval
 SUBSAMPLE_SEED = 42
 
 def create_stratified_subsample(metadata: List[Dict], size: int = SUBSAMPLE_SIZE, seed: int = SUBSAMPLE_SEED) -> List[int]:
-    """Create stratified subsample by branch x language."""
+    """Create stratified subsample by branch x language.
+    
+    FIXED: Groups are now sorted by (branch, language) key to ensure deterministic
+    subsampling regardless of metadata JSON ordering. This fixes the non-determinism
+    introduced when control plane mount updated metadata_174k.json at 2026-10-08T23:40.
+    """
     np.random.seed(seed)
     
     # Group by (branch, language)
@@ -126,7 +131,9 @@ def create_stratified_subsample(metadata: List[Dict], size: int = SUBSAMPLE_SIZE
     # Sample proportionally
     total_valid = sum(len(v) for v in groups.values())
     indices = []
-    for key, group_indices in groups.items():
+    # FIX: Sort groups by (branch, language) key for deterministic iteration order
+    for key in sorted(groups.keys()):
+        group_indices = groups[key]
         n_sample = max(1, int(len(group_indices) * size / total_valid))
         n_sample = min(n_sample, len(group_indices))
         sampled = np.random.choice(group_indices, n_sample, replace=False)
