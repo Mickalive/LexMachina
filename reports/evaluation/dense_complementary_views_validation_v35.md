@@ -181,7 +181,7 @@ This hierarchy reflects legal reality: facts are most language-invariant, reason
 ### For Product v1.0 (TF-IDF Primary)
 - ✅ **TF-IDF citation hybrids operational at 174k** (3 production modes, 16/16 scale tests PASS, WebGL <3s)
 - ✅ **Production default**: `cited_decisions_tfidf_outcome_hybrid_0.5_174k`
-- ✅ **7/8 representations PASS both adversarial gates** on current accepted mount (JP=0.702 for production baseline)
+- ✅ **7/8 representations PASS both adversarial gates** on current accepted mount — **DETERMINISTIC verification (2026-10-09T08:12) with sorted groups fix: JP=0.659, LangDom=0.426 for production baseline**. Prior non-deterministic results (6/8 at JP=0.5565 ↔ 7/8 at JP=0.702) fixed by sorting group keys before subsampling.
 
 ### For Product v1.1+ (Dense Complementary Views)
 - **Citation Heritage**: Integrate when legal-distance delivers 174k center_projected_64/128/768dim embeddings
@@ -203,7 +203,8 @@ All results are reproducible from accepted mount `/tmp/lex_accepted`:
 
 | Artifact | Path |
 |---|---|
-| TF-IDF 174k adversarial verification | `evaluation/results/174k_tfidf_formal_suite/verification_latest.json` |
+| TF-IDF 174k adversarial verification (DETERMINISTIC, with sorted groups fix) | `evaluation/results/174k_tfidf_formal_suite/verification_20261009_081230.json` |
+| TF-IDF 174k adversarial verification (prior non-deterministic) | `evaluation/results/174k_tfidf_formal_suite/verification_20261009_035429.json` |
 | Citation heritage 22yr | `legal-distance/legal_distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_22year_latest.json` |
 | Cross-lingual sections 22yr | `legal-distance/legal_distance/results/174k_dense_embeddings/section_crosslingual_eval/section_crosslingual_eval_latest.json` |
 | Linear hybrids 22yr | `legal-distance/legal_distance/results/174k_dense_embeddings/linear_combinations_22year/linear_combinations_22year_eval_latest.json` |

@@ -16,7 +16,7 @@ The evaluation lane has **fully completed** its mission for factory direction v3
 
 **Both deliverables are frozen and verified:**
 
-1. ✅ **TF-IDF 174k evaluation FROZEN as production baseline** — `cited_decisions_tfidf_outcome_hybrid_0.5` passes both adversarial gates. Current accepted mount verification (2026-10-09T03:54) shows **7/8 representations PASS both gates** with production baseline JP=0.702, LangDom=0.424. Original freeze (2026-10-01, JP=0.735, 8/8 PASS) remains LOST due to accepted mount mutations; corpus lane MUST restore original freeze embeddings for production baseline stability.
+1. ✅ **TF-IDF 174k evaluation FROZEN as production baseline** — `cited_decisions_tfidf_outcome_hybrid_0.5` passes both adversarial gates. **Deterministic verification (2026-10-09T08:12) with sorted groups fix shows 7/8 representations PASS both gates** with production baseline JP=0.659, LangDom=0.426. Non-determinism in adversarial gate subsampling identified and fixed. Original freeze (2026-10-01, JP=0.735, 8/8 PASS) remains LOST due to accepted mount mutations; corpus lane MUST restore original freeze embeddings for production baseline stability.
 
 2. ✅ **Dense embedding complementary view acceptance criteria FROZEN and VALIDATED at maximal available scale (144k/22yr)** — All four criteria defined with explicit thresholds, validated against accepted evidence from legal-distance and fractal-map lanes at 144,443 decisions (22-year cohort 2000-2021).
 
@@ -26,20 +26,22 @@ The evaluation lane has **fully completed** its mission for factory direction v3
 
 ## 1. TF-IDF 174k Production Baseline — FROZEN (with Documented Mutations)
 
-### 1.1 Latest Verification (2026-10-09T03:54:29)
+### 1.1 Latest Deterministic Verification (2026-10-09T08:12:30) — WITH SORTED GROUPS FIX
 
 | Mode | Jurist Preference | Language Dominance | Both Gates |
 |------|-------------------|-------------------|------------|
-| `regeste_full_text_hybrid_0.7` | **0.7420** | **0.4810** | ✅ PASS |
-| `full_text_tfidf_light` | 0.7320 | 0.4849 | ✅ PASS |
-| `regeste_full_text_hybrid_0.5` | 0.7315 | 0.4828 | ✅ PASS |
-| `cited_decisions_tfidf_outcome_hybrid_0.7` | 0.7125 | 0.4211 | ✅ PASS |
-| `cited_decisions_tfidf` | 0.7055 | 0.4207 | ✅ PASS |
-| `cited_decisions_tfidf_outcome_hybrid_0.5` | **0.7020** | **0.4236** | ✅ PASS |
-| `regeste_tfidf` | 0.6395 | 0.3758 | ✅ PASS |
-| `outcome_tfidf` | 0.3910 | 0.4578 | ❌ FAIL |
+| `full_text_tfidf_light` | **0.7350** | **0.4834** | ✅ PASS |
+| `regeste_full_text_hybrid_0.7` | 0.7235 | 0.4806 | ✅ PASS |
+| `regeste_full_text_hybrid_0.5` | 0.7225 | 0.4809 | ✅ PASS |
+| `cited_decisions_tfidf` | 0.6710 | 0.4252 | ✅ PASS |
+| `cited_decisions_tfidf_outcome_hybrid_0.7` | 0.6650 | 0.4241 | ✅ PASS |
+| `cited_decisions_tfidf_outcome_hybrid_0.5` | **0.6590** | **0.4258** | ✅ PASS |
+| `regeste_tfidf` | 0.5405 | 0.3590 | ✅ PASS |
+| `outcome_tfidf` | 0.4325 | 0.4232 | ❌ FAIL |
 
-**Production Default:** `cited_decisions_tfidf_outcome_hybrid_0.5` (JP=0.702, LangDom=0.424, both gates PASS)
+**Production Default:** `cited_decisions_tfidf_outcome_hybrid_0.5` (JP=0.659, LangDom=0.426, both gates PASS)
+
+**Fix Applied:** Sorted groups by (branch, language) key in `create_stratified_subsample()` to ensure deterministic iteration order regardless of metadata JSON ordering. This eliminates the metadata-ordering sensitivity documented below.
 
 ### 1.2 Mutation History (Critical for Production Stability)
 
@@ -49,18 +51,21 @@ The evaluation lane has **fully completed** its mission for factory direction v3
 | **Mutation 1: Fractal-map rebuild** | 2026-10-07T21:16 | Degraded to JP≈0.702 (pre-refresh verification captured this) |
 | **Mutation 2: Accepted mount refresh** | 2026-10-08T09:19 | Further degraded to JP=0.5565, 6/8 PASS |
 | **Metadata update (control plane mount)** | 2026-10-08T23:40 | Changed decision ordering → stratified subsample selects different 2000 decisions |
-| **Current Verification** | 2026-10-09T03:54 | **7/8 PASS, JP=0.702** (matches pre-refresh state) |
+| **Non-deterministic Verification** | 2026-10-09T03:54 | 7/8 PASS, JP=0.702 (matches pre-refresh state) |
+| **DETERMINISTIC Verification (FIXED)** | 2026-10-09T08:12 | **7/8 PASS, JP=0.659** — reproducible across runs |
 
-**Critical Finding:** Adversarial gate results are **sensitive to metadata ordering** (which determines the stratified subsample via seed=42). The claim that "same embeddings yield deterministic results" was **FALSE**. Results vary: 6/8 PASS (JP=0.5565) ↔ 7/8 PASS (JP=0.702) depending on metadata version.
+**Critical Finding:** Adversarial gate results were **sensitive to metadata ordering** (which determines the stratified subsample via seed=42). The claim that "same embeddings yield deterministic results" was **FALSE**. Results varied: 6/8 PASS (JP=0.5565) ↔ 7/8 PASS (JP=0.702) depending on metadata version.
+
+**Fix Applied:** Sorted group keys before sampling in `verify_frozen_baseline.py`. This makes the subsample deterministic regardless of metadata JSON ordering.
 
 **Production Baseline Stability Requires:** Frozen metadata + frozen embeddings. **Corpus lane MUST restore original freeze embeddings** (SHA256 from 2026-10-01) for production baseline stability.
 
 ### 1.3 Mission Satisfaction Verified
 
 - **Simple semantic baseline (center_projected):** JP = 0.43 (from legal-distance scale characterization)
-- **TF-IDF hybrid_0.5 (current mount):** JP = 0.702
+- **TF-IDF hybrid_0.5 (deterministic verification):** JP = 0.659
 - **TF-IDF hybrid_0.5 (original freeze):** JP = 0.735
-- **Margin (current):** +0.272 (63% relative improvement over semantic baseline)
+- **Margin (deterministic):** +0.229 (53% relative improvement over semantic baseline)
 - **Margin (original):** +0.305 (71% relative improvement)
 - **Verdict:** TF-IDF citation hybrids **beat the simple semantic-map baseline** on jurist preference — **mission satisfied**.
 
@@ -88,18 +93,6 @@ These are **accepted negative findings** — the TF-IDF baseline is frozen with 
 ---
 
 ## 2. Dense Embedding Complementary View Criteria — FROZEN & VALIDATED at 144k/22yr
-
-### 2.1 Strategic Context (from legal-distance audit CYCLE_37090665528)
-
-| Representation Class | Jurist Preference | Language Dominance | Citation Independence | Role |
-|---------------------|-------------------|-------------------|----------------------|------|
-| TF-IDF citation hybrids | **0.78-0.79** | **0.48** | ~14% | **PRIMARY** (navigation, branch clustering) |
-| Dense semantic (center_projected) | 0.05-0.43 | 0.83-0.98 | ~37% | FAILS jurist gate at ALL scales |
-| Linear hybrids (w=0.3-0.4) | 0.61-0.67 | 0.58-0.80 | intermediate | COMPLEMENTARY (cross-lingual boost) |
-
-**Fundamental two-mode tradeoff:** No single representation dominates all three metrics at any scale. TF-IDF = PRIMARY for jurist preference. Dense = COMPLEMENTARY for specific capabilities.
-
-### 2.2 Frozen Acceptance Criteria — VALIDATED at 144k/22yr
 
 #### A. Citation Heritage View ✅ **PASSED**
 - **Metric:** AUC-ROC for recovering cited precedent pairs (344 positive, 500 negative pairs)
@@ -241,7 +234,8 @@ All findings trace to ACCEPTED evidence from upstream lanes:
 
 | Test | Result | Notes |
 |------|--------|-------|
-| `verify_frozen_baseline.py` (2026-10-09T03:54) | ✅ 7/8 PASS | Production baseline JP=0.702, LangDom=0.424 |
+| `verify_frozen_baseline.py` (2026-10-09T08:12, WITH SORTED GROUPS FIX) | ✅ 7/8 PASS | **Deterministic** production baseline JP=0.659, LangDom=0.426 |
+| `verify_frozen_baseline.py` (2026-10-09T03:54, without fix) | ✅ 7/8 PASS | Non-deterministic JP=0.702 (metadata-ordering sensitive) |
 | `test_v25_174k_suite_snapshot.py` | ✅ PASS (exit code 0) | 174k TF-IDF formal suite snapshot conforms to frozen protocol |
 | `test_frozen_harness_v3_reproducibility.py` | ✅ PASS | All 6 representations REPRODUCED within tolerance 0.001 |
 
@@ -252,7 +246,7 @@ All findings trace to ACCEPTED evidence from upstream lanes:
 **CONTINUE_RECOMMENDED = false**
 
 The evaluation lane has:
-- ✅ Frozen TF-IDF 174k evaluation as production baseline (with mutation history documented)
+- ✅ Frozen TF-IDF 174k evaluation as production baseline (with mutation history documented and non-determinism FIXED)
 - ✅ Defined and validated dense embedding complementary view acceptance criteria at max available scale (144k/22yr)
 - ✅ Documented all accepted negative findings
 - ✅ Identified precise data blockers
@@ -265,7 +259,8 @@ The evaluation lane has:
 ## 10. Artifacts Written
 
 - `state/evaluation.json` — Machine-readable lane state (COMPLETE, continue_recommended=false)
-- `results/evaluation/174k_tfidf_formal_suite/verification_20261009_035429.json` — Latest adversarial verification
+- `evaluation/results/174k_tfidf_formal_suite/verification_20261009_081230.json` — **Deterministic** adversarial verification (with sorted groups fix)
+- `evaluation/results/174k_tfidf_formal_suite/verification_20261009_035429.json` — Prior non-deterministic verification
 - `results/evaluation/dense_complementary_acceptance_criteria.json` — Frozen complementary criteria (in state)
 - `reports/evaluation/dense_complementary_views_validation_v35.md` — Dense validation report at 144k
 - `reports/evaluation/EVALUATION_V35_FINAL_COMPLETION_CONFIRMED_20261009.md` — This report
