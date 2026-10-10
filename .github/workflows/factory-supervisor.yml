@@ -143,262 +143,36 @@ jobs:
           NEED_HEALTH=0
           DIRV=$(jq -r '.version' state/factory_direction.json)
 
-          # Direction changes are hard generation boundaries. A Core run from an
-          # older direction (or a lane no longer RUN) is superseded work and must
-          # not consume runner capacity or later integrate stale conclusions.
-          echo "Scanning for superseded Core runs after direction change..."
-          gh run list --repo "$GITHUB_REPOSITORY" --workflow core-lane.yml --limit 100 \
-            --json databaseId,displayTitle,status,createdAt \
-            | jq -r --arg epoch "$CONTROL_EPOCH" '.[] | select(.createdAt >= $epoch) | select(.status=="queued" or .status=="in_progress" or .status=="requested" or .status=="waiting" or .status=="pending") | [.databaseId,.displayTitle] | @tsv' \
-            | while IFS=
-          CORE_HUMAN=$(jq '[.lanes[] | select(.status=="HUMAN_DECISION_REQUIRED")] | length' state/factory_direction.json)
-          FRONTIER_RUN_DESIRED=$(jq '[.teams[] | select(.status=="RUN")] | length' state/frontier_portfolio.json)
-          FRONTIER_HUMAN=$(jq '[.teams[] | select(.status=="HUMAN_DECISION_REQUIRED")] | length' state/frontier_portfolio.json)
-
-          case "$TRIGGER_WORKFLOW" in
-            "LEX Core Lane"|"LEX Frontier Team") NEED_DIRECTOR=1 ;;
-          esac
-
-          for lane in corpus legal-distance fractal-map evaluation product; do
-            status=$(jq -r --arg lane "$lane" '.lanes[$lane].status // "PAUSE"' state/factory_direction.json)
-            if [[ "$status" == "HUMAN_DECISION_REQUIRED" ]]; then
-              echo "::warning::$lane explicitly requires human decision; this lane alone is paused."
-              continue
-            fi
-            [[ "$status" == RUN ]] || { echo "$lane: $status"; continue; }
-
-            q=$(jq -r --arg lane "$lane" '.lanes[$lane].question // ""' state/factory_direction.json)
-            qhash=$(printf '%s' "$q" | sha256sum | awk '{print $1}')
-            blocker="state/blockers/$lane.json"
-            if [[ -f "$blocker" ]] && [[ "$(jq -r '.question_hash // ""' "$blocker")" == "$qhash" ]]; then
-              if [[ "$(jq -r '.requires_human // false' "$blocker")" == true ]]; then
-                echo "::warning::$lane has HUMAN_DECISION_REQUIRED blocker; lane paused pending user decision."
-              else
-                echo "$lane: current question is scientifically/structurally blocked; Director must redirect it."
-                NEED_DIRECTOR=1
-              fi
-              continue
-            fi
-
-            if git ls-remote --exit-code --heads origin "refs/heads/lab/$lane" >/dev/null 2>&1; then
-              raw=$(gh api "repos/${GITHUB_REPOSITORY}/contents/state/${lane}.json?ref=lab/${lane}" --jq '.content' 2>/dev/null | tr -d '\n' | base64 -d 2>/dev/null || true)
-              if [[ -n "$raw" ]] && [[ "$(jq -r '.continue_recommended // true' <<<"$raw")" == false ]] && [[ "$(jq -r '.direction_version // -1' <<<"$raw")" == "$DIRV" ]]; then
-                echo "$lane: same-direction work exhausted; asking Director for a new move."
-                NEED_DIRECTOR=1
-                continue
-              fi
-            fi
-
-            prefix="Core ${lane} dirV${DIRV} "
-            [[ "$(active_count core-lane.yml "$prefix")" -eq 0 ]] || { echo "$lane: already active/queued in current control epoch"; continue; }
-
-            resume_id=$(latest_operational_failure core-lane.yml "$prefix")
-            if [[ -n "$resume_id" ]] && git ls-remote --exit-code --heads origin "refs/heads/cycle/core/${lane}/${resume_id}/team" >/dev/null 2>&1; then
-              gh workflow run core-lane.yml --repo "$GITHUB_REPOSITORY" --ref main \
-                -f lane="$lane" -f direction_version="$DIRV" -f resume_from_run_id="$resume_id" -f repair_round=0
-              echo "$lane: resumed operationally failed snapshot $resume_id"
-              continue
-            fi
-
-            fails=$(consecutive_failures core-lane.yml "$prefix")
-            if (( fails >= 2 )); then
-              echo "::warning::$lane has $fails consecutive post-epoch operational workflow failures; retrying instead of blocking."
-              NEED_HEALTH=1
-              NEED_DIRECTOR=1
-            fi
-
-            gh workflow run core-lane.yml --repo "$GITHUB_REPOSITORY" --ref main \
-              -f lane="$lane" -f direction_version="$DIRV" -f repair_round=0
-            echo "$lane: dispatched direction v$DIRV"
-          done
-
-          jq -c '.teams[] | select(.status=="RUN")' state/frontier_portfolio.json | while IFS= read -r item; do
-            team=$(jq -r .team_id <<<"$item"); ver=$(jq -r .charter_version <<<"$item")
-            [[ "$team" =~ ^[a-z0-9][a-z0-9-]{1,62}$ ]] || continue
-            blocker="state/blockers/frontier/$team.json"
-            if [[ -f "$blocker" ]] && [[ "$(jq -r '.charter_version // -1' "$blocker")" == "$ver" ]]; then
-              if [[ "$(jq -r '.requires_human // false' "$blocker")" == true ]]; then
-                echo "::warning::Frontier $team v$ver requires human decision; this team alone is paused."
-              else
-                echo "Frontier $team v$ver blocked under current charter; Director must redirect/kill/recharter it."
-              fi
-              echo NEED_DIRECTOR > /tmp/lex_need_director_frontier
-              continue
-            fi
-
-            if git ls-remote --exit-code --heads origin "refs/heads/lab/frontier/$team" >/dev/null 2>&1; then
-              raw=$(gh api "repos/${GITHUB_REPOSITORY}/contents/state/frontier/${team}.json?ref=lab/frontier/${team}" --jq '.content' 2>/dev/null | tr -d '\n' | base64 -d 2>/dev/null || true)
-              if [[ -n "$raw" ]] && [[ "$(jq -r '.charter_version // -1' <<<"$raw")" == "$ver" ]] && [[ "$(jq -r '.continue_recommended // true' <<<"$raw")" == false ]]; then
-                echo "Frontier $team v$ver exhausted same-charter work; awaiting Director."
-                echo NEED_DIRECTOR > /tmp/lex_need_director_frontier
-                continue
-              fi
-            fi
-
-            prefix="Frontier ${team} v${ver} "
-            [[ "$(active_count frontier-team.yml "$prefix")" -eq 0 ]] || { echo "Frontier $team already active in current epoch"; continue; }
-            fails=$(consecutive_failures frontier-team.yml "$prefix")
-            if (( fails >= 2 )); then
-              echo "::warning::Frontier $team has $fails consecutive post-epoch operational failures; retrying, not blocking."
-              echo NEED_HEALTH > /tmp/lex_need_health_frontier
-              echo NEED_DIRECTOR > /tmp/lex_need_director_frontier
-            fi
-            gh workflow run frontier-team.yml --repo "$GITHUB_REPOSITORY" --ref main \
-              -f team_id="$team" -f charter_version="$ver" -f repair_round=0
-            echo "Frontier $team v$ver dispatched"
-          done
-
-          [[ -f /tmp/lex_need_director_frontier ]] && NEED_DIRECTOR=1
-          [[ -f /tmp/lex_need_health_frontier ]] && NEED_HEALTH=1
-
-          if (( CORE_RUN_DESIRED + FRONTIER_RUN_DESIRED == 0 && CORE_HUMAN + FRONTIER_HUMAN == 0 )); then
-            echo "::warning::No RUN work and no human-decision gate: Director must create the next productive move."
-            NEED_DIRECTOR=1
-          fi
-
-          (( NEED_HEALTH == 0 )) || ensure_model_health
-          (( NEED_DIRECTOR == 0 )) || ensure_director
-
-          echo "Supervisor pass complete: legacy/stale agent runs reaped; failed snapshots resumed before fresh work; only explicit HUMAN_DECISION_REQUIRED state can justify idleness."
-\t' read -r id title; do
+          # A direction/charter change is a hard generation boundary: active
+          # work from an older generation must not consume capacity or integrate.
+          echo "Scanning for superseded Core runs..."
+          gh run list --repo "$GITHUB_REPOSITORY" --workflow core-lane.yml --limit 100 --json databaseId,displayTitle,status,createdAt \
+            | jq -r --arg epoch "$CONTROL_EPOCH" '.[] | select(.createdAt >= $epoch) | select(.status=="queued" or .status=="in_progress" or .status=="requested" or .status=="waiting" or .status=="pending") | "\(.databaseId)|\(.displayTitle)"' \
+            | while IFS='|' read -r id title; do
                 [[ -n "$id" ]] || continue
-                if [[ "$title" =~ ^Core[[:space:]]+([^[:space:]]+)[[:space:]]+dirV([0-9]+)[[:space:]] ]]; then
-                  lane="${BASH_REMATCH[1]}"
-                  run_dirv="${BASH_REMATCH[2]}"
-                  lane_status=$(jq -r --arg lane "$lane" '.lanes[$lane].status // "PAUSE"' state/factory_direction.json)
-                  if [[ "$run_dirv" != "$DIRV" || "$lane_status" != "RUN" ]]; then
-                    echo "::warning::Cancelling superseded Core run $id: $title (current dirV=$DIRV, lane_status=$lane_status)"
-                    gh run cancel "$id" --repo "$GITHUB_REPOSITORY" || true
-                  fi
+                lane=$(printf '%s' "$title" | sed -nE 's/^Core ([^ ]+) dirV([0-9]+) .*/\1/p')
+                run_dirv=$(printf '%s' "$title" | sed -nE 's/^Core ([^ ]+) dirV([0-9]+) .*/\2/p')
+                [[ -n "$lane" && -n "$run_dirv" ]] || continue
+                lane_status=$(jq -r --arg lane "$lane" '.lanes[$lane].status // "PAUSE"' state/factory_direction.json)
+                if [[ "$run_dirv" != "$DIRV" || "$lane_status" != "RUN" ]]; then
+                  echo "::warning::Cancelling superseded Core run $id: $title (current dirV=$DIRV, lane_status=$lane_status)"
+                  gh run cancel "$id" --repo "$GITHUB_REPOSITORY" || true
                 fi
               done
 
-          # Frontier charter versions are generation boundaries too.
           echo "Scanning for superseded Frontier runs..."
-          gh run list --repo "$GITHUB_REPOSITORY" --workflow frontier-team.yml --limit 100 \
-            --json databaseId,displayTitle,status,createdAt \
-            | jq -r --arg epoch "$CONTROL_EPOCH" '.[] | select(.createdAt >= $epoch) | select(.status=="queued" or .status=="in_progress" or .status=="requested" or .status=="waiting" or .status=="pending") | [.databaseId,.displayTitle] | @tsv' \
-            | while IFS=
-          CORE_HUMAN=$(jq '[.lanes[] | select(.status=="HUMAN_DECISION_REQUIRED")] | length' state/factory_direction.json)
-          FRONTIER_RUN_DESIRED=$(jq '[.teams[] | select(.status=="RUN")] | length' state/frontier_portfolio.json)
-          FRONTIER_HUMAN=$(jq '[.teams[] | select(.status=="HUMAN_DECISION_REQUIRED")] | length' state/frontier_portfolio.json)
-
-          case "$TRIGGER_WORKFLOW" in
-            "LEX Core Lane"|"LEX Frontier Team") NEED_DIRECTOR=1 ;;
-          esac
-
-          for lane in corpus legal-distance fractal-map evaluation product; do
-            status=$(jq -r --arg lane "$lane" '.lanes[$lane].status // "PAUSE"' state/factory_direction.json)
-            if [[ "$status" == "HUMAN_DECISION_REQUIRED" ]]; then
-              echo "::warning::$lane explicitly requires human decision; this lane alone is paused."
-              continue
-            fi
-            [[ "$status" == RUN ]] || { echo "$lane: $status"; continue; }
-
-            q=$(jq -r --arg lane "$lane" '.lanes[$lane].question // ""' state/factory_direction.json)
-            qhash=$(printf '%s' "$q" | sha256sum | awk '{print $1}')
-            blocker="state/blockers/$lane.json"
-            if [[ -f "$blocker" ]] && [[ "$(jq -r '.question_hash // ""' "$blocker")" == "$qhash" ]]; then
-              if [[ "$(jq -r '.requires_human // false' "$blocker")" == true ]]; then
-                echo "::warning::$lane has HUMAN_DECISION_REQUIRED blocker; lane paused pending user decision."
-              else
-                echo "$lane: current question is scientifically/structurally blocked; Director must redirect it."
-                NEED_DIRECTOR=1
-              fi
-              continue
-            fi
-
-            if git ls-remote --exit-code --heads origin "refs/heads/lab/$lane" >/dev/null 2>&1; then
-              raw=$(gh api "repos/${GITHUB_REPOSITORY}/contents/state/${lane}.json?ref=lab/${lane}" --jq '.content' 2>/dev/null | tr -d '\n' | base64 -d 2>/dev/null || true)
-              if [[ -n "$raw" ]] && [[ "$(jq -r '.continue_recommended // true' <<<"$raw")" == false ]] && [[ "$(jq -r '.direction_version // -1' <<<"$raw")" == "$DIRV" ]]; then
-                echo "$lane: same-direction work exhausted; asking Director for a new move."
-                NEED_DIRECTOR=1
-                continue
-              fi
-            fi
-
-            prefix="Core ${lane} dirV${DIRV} "
-            [[ "$(active_count core-lane.yml "$prefix")" -eq 0 ]] || { echo "$lane: already active/queued in current control epoch"; continue; }
-
-            resume_id=$(latest_operational_failure core-lane.yml "$prefix")
-            if [[ -n "$resume_id" ]] && git ls-remote --exit-code --heads origin "refs/heads/cycle/core/${lane}/${resume_id}/team" >/dev/null 2>&1; then
-              gh workflow run core-lane.yml --repo "$GITHUB_REPOSITORY" --ref main \
-                -f lane="$lane" -f direction_version="$DIRV" -f resume_from_run_id="$resume_id" -f repair_round=0
-              echo "$lane: resumed operationally failed snapshot $resume_id"
-              continue
-            fi
-
-            fails=$(consecutive_failures core-lane.yml "$prefix")
-            if (( fails >= 2 )); then
-              echo "::warning::$lane has $fails consecutive post-epoch operational workflow failures; retrying instead of blocking."
-              NEED_HEALTH=1
-              NEED_DIRECTOR=1
-            fi
-
-            gh workflow run core-lane.yml --repo "$GITHUB_REPOSITORY" --ref main \
-              -f lane="$lane" -f direction_version="$DIRV" -f repair_round=0
-            echo "$lane: dispatched direction v$DIRV"
-          done
-
-          jq -c '.teams[] | select(.status=="RUN")' state/frontier_portfolio.json | while IFS= read -r item; do
-            team=$(jq -r .team_id <<<"$item"); ver=$(jq -r .charter_version <<<"$item")
-            [[ "$team" =~ ^[a-z0-9][a-z0-9-]{1,62}$ ]] || continue
-            blocker="state/blockers/frontier/$team.json"
-            if [[ -f "$blocker" ]] && [[ "$(jq -r '.charter_version // -1' "$blocker")" == "$ver" ]]; then
-              if [[ "$(jq -r '.requires_human // false' "$blocker")" == true ]]; then
-                echo "::warning::Frontier $team v$ver requires human decision; this team alone is paused."
-              else
-                echo "Frontier $team v$ver blocked under current charter; Director must redirect/kill/recharter it."
-              fi
-              echo NEED_DIRECTOR > /tmp/lex_need_director_frontier
-              continue
-            fi
-
-            if git ls-remote --exit-code --heads origin "refs/heads/lab/frontier/$team" >/dev/null 2>&1; then
-              raw=$(gh api "repos/${GITHUB_REPOSITORY}/contents/state/frontier/${team}.json?ref=lab/frontier/${team}" --jq '.content' 2>/dev/null | tr -d '\n' | base64 -d 2>/dev/null || true)
-              if [[ -n "$raw" ]] && [[ "$(jq -r '.charter_version // -1' <<<"$raw")" == "$ver" ]] && [[ "$(jq -r '.continue_recommended // true' <<<"$raw")" == false ]]; then
-                echo "Frontier $team v$ver exhausted same-charter work; awaiting Director."
-                echo NEED_DIRECTOR > /tmp/lex_need_director_frontier
-                continue
-              fi
-            fi
-
-            prefix="Frontier ${team} v${ver} "
-            [[ "$(active_count frontier-team.yml "$prefix")" -eq 0 ]] || { echo "Frontier $team already active in current epoch"; continue; }
-            fails=$(consecutive_failures frontier-team.yml "$prefix")
-            if (( fails >= 2 )); then
-              echo "::warning::Frontier $team has $fails consecutive post-epoch operational failures; retrying, not blocking."
-              echo NEED_HEALTH > /tmp/lex_need_health_frontier
-              echo NEED_DIRECTOR > /tmp/lex_need_director_frontier
-            fi
-            gh workflow run frontier-team.yml --repo "$GITHUB_REPOSITORY" --ref main \
-              -f team_id="$team" -f charter_version="$ver" -f repair_round=0
-            echo "Frontier $team v$ver dispatched"
-          done
-
-          [[ -f /tmp/lex_need_director_frontier ]] && NEED_DIRECTOR=1
-          [[ -f /tmp/lex_need_health_frontier ]] && NEED_HEALTH=1
-
-          if (( CORE_RUN_DESIRED + FRONTIER_RUN_DESIRED == 0 && CORE_HUMAN + FRONTIER_HUMAN == 0 )); then
-            echo "::warning::No RUN work and no human-decision gate: Director must create the next productive move."
-            NEED_DIRECTOR=1
-          fi
-
-          (( NEED_HEALTH == 0 )) || ensure_model_health
-          (( NEED_DIRECTOR == 0 )) || ensure_director
-
-          echo "Supervisor pass complete: legacy/stale agent runs reaped; failed snapshots resumed before fresh work; only explicit HUMAN_DECISION_REQUIRED state can justify idleness."
-\t' read -r id title; do
+          gh run list --repo "$GITHUB_REPOSITORY" --workflow frontier-team.yml --limit 100 --json databaseId,displayTitle,status,createdAt \
+            | jq -r --arg epoch "$CONTROL_EPOCH" '.[] | select(.createdAt >= $epoch) | select(.status=="queued" or .status=="in_progress" or .status=="requested" or .status=="waiting" or .status=="pending") | "\(.databaseId)|\(.displayTitle)"' \
+            | while IFS='|' read -r id title; do
                 [[ -n "$id" ]] || continue
-                if [[ "$title" =~ ^Frontier[[:space:]]+([^[:space:]]+)[[:space:]]+v([0-9]+)[[:space:]] ]]; then
-                  team="${BASH_REMATCH[1]}"
-                  run_ver="${BASH_REMATCH[2]}"
-                  current_ver=$(jq -r --arg team "$team" '.teams[] | select(.team_id==$team) | .charter_version // empty' state/frontier_portfolio.json | head -n1)
-                  current_status=$(jq -r --arg team "$team" '.teams[] | select(.team_id==$team) | .status // empty' state/frontier_portfolio.json | head -n1)
-                  if [[ -z "$current_ver" || "$run_ver" != "$current_ver" || "$current_status" != "RUN" ]]; then
-                    echo "::warning::Cancelling superseded Frontier run $id: $title (current v=${current_ver:-none}, status=${current_status:-none})"
-                    gh run cancel "$id" --repo "$GITHUB_REPOSITORY" || true
-                  fi
+                team=$(printf '%s' "$title" | sed -nE 's/^Frontier ([^ ]+) v([0-9]+) .*/\1/p')
+                run_ver=$(printf '%s' "$title" | sed -nE 's/^Frontier ([^ ]+) v([0-9]+) .*/\2/p')
+                [[ -n "$team" && -n "$run_ver" ]] || continue
+                current_ver=$(jq -r --arg team "$team" '.teams[] | select(.team_id==$team) | .charter_version // empty' state/frontier_portfolio.json | head -n1)
+                current_status=$(jq -r --arg team "$team" '.teams[] | select(.team_id==$team) | .status // empty' state/frontier_portfolio.json | head -n1)
+                if [[ -z "$current_ver" || "$run_ver" != "$current_ver" || "$current_status" != "RUN" ]]; then
+                  echo "::warning::Cancelling superseded Frontier run $id: $title"
+                  gh run cancel "$id" --repo "$GITHUB_REPOSITORY" || true
                 fi
               done
 
