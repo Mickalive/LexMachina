@@ -1,0 +1,77 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Update evaluation.json:jurist_preference_rate from 0.5925 to 0.556 with protocol annotation",
+    "Update evaluation.json:language_dominance_score from 0.3481 to 0.4477 with protocol annotation",
+    "Remove or re-label dense citation heritage AUC claims (0.7667-0.8182) as 'not empirically validated - blocked on citation graph coverage'",
+    "Fix evidence_refs: replace missing formal_suite_latest.json with tfidf_174k_formal_suite_baseline_reverified.json",
+    "Fix evidence_refs: remove citation_heritage_24year_latest.json (does not exist; dense runs FAILED)",
+    "Verify boilerplate_resistance_score -0.8340 against actual artifact or remove if unverified"
+  ],
+  "claim_ceiling": "TF-IDF citation hybrid (cited_decisions_tfidf_outcome_hybrid_0.5) production-ready for jurist preference navigation (JP 0.556-0.7345 protocol-dependent) and branch clustering at 174k scale. Dense complementary views criteria-defined but not empirically validated at scale due to corpus lane dependencies (citation graph coverage, ID mapping, 2022-2026 parquet, section extraction).",
+  "evidence_summary": {
+    "tfidf_baseline_reverified": {
+      "production_mode": "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "jurist_preference_rate": 0.556,
+      "language_dominance": 0.4477,
+      "mutation_documented": true,
+      "original_freeze_jp": 0.7345,
+      "status": "RE-FROZEN_WITH_CURRENT_ACCEPTED_MOUNT"
+    },
+    "tfidf_adversarial_gates": {
+      "production_mode": "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "jurist_preference_rate": 0.7345,
+      "language_dominance": 0.47725,
+      "protocol": "exact_kNN_branch_stratified_n2000_seed42",
+      "both_gates_pass": true
+    },
+    "citation_heritage_tfidf": {
+      "cited_decisions_tfidf_auc": 0.7296,
+      "threshold": 0.65,
+      "status": "PASSED"
+    },
+    "citation_heritage_dense": {
+      "center_projected_64dim_15year": "FAILED - Insufficient valid pairs",
+      "center_projected_64dim_19year": "FAILED - Insufficient valid pairs",
+      "all_representations": "AUC=0.5, positive_pairs_evaluated=0",
+      "citation_graph_coverage": "174/173963 decisions, 924 resolved citations"
+    },
+    "cross_lingual_sachverhalt": {
+      "cross_lang_same_branch_mean": 0.2816,
+      "threshold": 0.2,
+      "status": "PASS",
+      "sample_size": 359
+    },
+    "cross_lingual_dispositiv": {
+      "cross_lang_same_branch_mean": 0.1502,
+      "threshold": 0.1,
+      "status": "PASS",
+      "sample_size": 538
+    },
+    "cross_lingual_erwaegungen": {
+      "cross_lang_same_branch_mean": 0.0941,
+      "threshold": 0.1,
+      "status": "FAIL",
+      "honestly_reported": true
+    },
+    "zero_shot_cross_lingual": {
+      "center_projected_64dim_full_nmi": 0.2258,
+      "center_projected_64dim_sachverhalt_nmi": 0.1886,
+      "threshold": 0.2,
+      "status": "BELOW_THRESHOLD",
+      "honestly_reported": true
+    },
+    "jurist_usability": {
+      "pairwise_preference_rate": 0.4515,
+      "cluster_coherence_branch_purity": 0.9035,
+      "zoom_improvement_pct": 7.1,
+      "cross_language_recall_at_10": 0.1194
+    },
+    "cross_language_benchmarks": {
+      "cross_lang_same_branch_mean": 0.0,
+      "zero_shot_mean_nmi": 0.3899,
+      "adversarial_language_dominance": 0.99905
+    }
+  }
+}
