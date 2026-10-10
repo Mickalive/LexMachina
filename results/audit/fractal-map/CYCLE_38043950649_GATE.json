@@ -1,0 +1,23 @@
+{
+  "gate": "BLOCKED",
+  "safe_to_integrate": false,
+  "lane": "fractal-map",
+  "run_id": "38043950649",
+  "repair_round": 0,
+  "accepted_base": "362c3066",
+  "producer_ref": "d503e72c",
+  "required_fixes": [
+    "Terminate the recurring zero-delta operational-resume loop: runs 38038542509, 38040455432 and 38043950649 all resolve to the identical team commit d503e72c with no new code, data, or result artifacts. This is a control-plane/orchestration defect, not lane work, and must be fixed on main before another cycle is dispatched.",
+    "Canonically consolidate the three conflicting state files. state/fractal-map.json is the only in-scope file; state/fractal_map.json (underscore) and state/fractal_map_fixed.json (underscore) are OUT of the lane write scope and cannot be removed by the lane. An external/human decision must delete or reconcile them.",
+    "Repair the JSON corruption in state/fractal_map_fixed.json (valid in base 362c3066; in the producer tree it fails with 'Extra data: line 259 column 1' i.e. a duplicated trailing brace). Out of lane write scope.",
+    "Remove or correct the dangling evidence reference reports/fractal_map/CONSTRAINED_HIERARCHICAL_174K_FULL_VALIDATION_20260926.md, which does not exist on disk or in git history.",
+    "Narrow the unsupported 'control-plane mounting defect' claim: factory_direction.json fractal-map.status=RUN is the Director assignment, while the lane self-reports cycle_status=BLOCKED_ON_DEPENDENCIES; these are different fields/semantics, not a demonstrated contradiction.",
+    "Director action: keep the lane paused on its real upstream blockers (BGE<->bger ID mapping, 2022-2026 parquet corpus, 174k section extraction) rather than re-dispatching validation-only resume cycles."
+  ],
+  "claim_ceiling": "No new scientific or experimental work was produced in cycle 38043950649 (team ref d503e72c is byte-identical to runs 38038542509 and 38040455432). All asserted v35 numbers are re-assertions of previously ACCEPTED, already-integrated fractal-map artifacts and may not be promoted as new evidence from this cycle. Independently re-verified this cycle: the named 7-suite test aggregate reproduces exactly (245 passed / 2 skipped); hierarchical_v1_174k_tfidf verdict modes_passed=6 with full_text_tfidf_light branch_purity 0.930 and regeste hybrids 0.906/0.909; dense_embeddings_integration_contract_v34.json is FROZEN. The lane remains BLOCKED_ON_DEPENDENCIES and cannot advance until the control-plane loop is terminated and upstream corpus data lands.",
+  "evidence_summary": "Zero-delta, recurring operational-resume cycle. git rev-parse shows cycle/core/fractal-map/{38038542509,38040455432,38043950649}/team all == d503e72c; git diff 362c3066..d503e72c is 25 metadata-only files (resume/diagnosis/audit-verification markdown + verification JSON + state edits) with no new experiment scripts, data, or results. state/fractal-map.json contains 25 near-identical operational_resume_final_* blocks; prior cycles 38008222905..38015183403 were repeatedly passed as 'no work performed' without terminating the loop. Concrete defects: state/fractal_map_fixed.json is invalid JSON in the producer tree (valid in base) from a duplicated trailing brace; state/fractal_map.json and state/fractal_map_fixed.json are outside the lane's core-lane.yml write scope and cannot be fixed by the lane; a referenced evidence file CONSTRAINED_HIERARCHICAL_174K_FULL_VALIDATION_20260926.md does not exist. Independent reproduction of the 7 named test suites yielded 245 passed / 2 skipped, matching the producer, and the cited result artifacts exist with matching numbers, so no fabrication was found. Anti-gaming: no benchmark weakened, no contrary output deleted, no prettiness-as-quality substitution; negatives (multi-level protocol, calibration, outcome_tfidf/regeste_tfidf) honestly preserved. Gate is BLOCKED rather than REVISE because the sole concrete repair lives outside the lane's write scope and any same-cycle repair would regenerate the identical no-op snapshot, an externally-blocked non-terminating pathology that requires a control-plane/human decision.",
+  "auditor_outputs": {
+    "report": "reports/audit/fractal-map/CYCLE_38043950649.md",
+    "gate": "results/audit/fractal-map/CYCLE_38043950649_GATE.json"
+  }
+}
