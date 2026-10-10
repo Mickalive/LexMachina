@@ -1,0 +1,44 @@
+{
+  "cycle_id": "38053269822",
+  "repair_round": 0,
+  "gate": "BLOCKED",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "Deliver v36 corpus artifacts durably or record an honest negative: (1) Sachverhalt/Erwaegungen/Dispositiv section extraction across the 174k corpus with >=95% coverage of decisions possessing section text; (2) BGE/bger decision-ID crosswalk covering >=95% of evaluation bger_ IDs; (3) 2024-2026 parquet/embeddings for 15,536 decisions, deterministically reproducible from pinned parquet sha256 74f3b2d683b6c298efc6e287cd88244cc19f38af38e060cc4d4e5cf5f938a62d. A zero-delta cycle on a RUN lane is invalid.",
+    "Reconcile canonical artifact persistency: committed tree holds stale bge_YYYY.jsonl snapshot (111 files, 21,034 records: 6,988 from 2000-2026) contradicting state/metrics claim of 174,113 decisions; the real bger_YYYY.jsonl corpus is gitignored and never persisted. Promote a state where the frozen test suite passes on the tree (76/76 reproducible), or honestly re-baseline claims; remove/archive the misleading stale snapshot.",
+    "Fix state/corpus.json staleness: accepted_run_id 33516132492 vs accepted head promotion of cycle 33766817387; direction_version 17 vs tree factory_direction 14 vs mounted control plane 36; align test_state_metrics_consistency hard-coded assertion (==14).",
+    "Fix supervisor/orchestrator dispatch loop (root cause of 22+ redundant corpus cycles): dispatch must read authoritative workspace state/<lane>.json cycle_status/continue_recommended, not ephemeral /tmp/lex_control mount state which resets to RUN each cycle."
+  ],
+  "claim_ceiling": "NO_CLAIMS — ZERO_DURABLE_DELTA. Cycle produced no commit, no report, no artifacts, no state change; none of the three v36 acceptance deliverables (section extraction, BGE/bger crosswalk, 2024-2026 parquet/embeddings) exist. Nothing certifiable above UNTESTED from this cycle; nothing safe to integrate.",
+  "evidence_summary": {
+    "producer_delta": "ZERO — team and team-attempt-1 refs identical to accepted base 0bbc8d28; git diff empty; worktree clean; no commits/reports/stash/unreachable objects for run 38053269822",
+    "v36_deliverables_present": false,
+    "section_extraction_artifacts": "none",
+    "bge_bger_crosswalk_artifacts": "none",
+    "2024_2026_parquet_embeddings": "none",
+    "mounted_control_plane": "direction v36, corpus status RUN (single critical path)",
+    "workspace_authoritative_state": "cycle_status=COMPLETED, continue_recommended=false, accepted_run_id=33516132492, direction_version=17",
+    "recurring_pathology": "corpus lane 22+ redundant/no-op cycles; supervisor reads ephemeral /tmp/lex_control state instead of workspace state/<lane>.json (V28-pattern mounting defect unresolved)",
+    "as_committed_test_run": "65 passed / 11 failed (pytest corpus/tests): 10 failures from missing gitignored bger_YYYY.jsonl year files (canonical dir holds tracked stale bge_YYYY.jsonl, 111 files / 21,034 records vs claimed 174,113); 1 failure test_state_metrics_consistency (direction_version 17 != 14); 23 return-not-None warnings",
+    "tracked_canonical_snapshot_records": 21034,
+    "tracked_canonical_2000_2026_records": 6988,
+    "citation_resolver_as_committed_index": 22555,
+    "leakage_attack_results": "CLEAN — no claims made, nothing to fabricate; no benchmark or baseline touched",
+    "base_integrity_defects": "PRE-EXISTING, not caused by this cycle: (a) tracked canonical snapshot contradicts 174,113 state claim; (b) 76/76 PASS claim not reproducible from committed base without 822.8MB parquet regeneration; (c) state accepted_run_id/direction_version stale"
+  },
+  "recurring_defects": [
+    {
+      "id": "supervisor_dispatch_pathology",
+      "description": "Supervisor reads ephemeral /tmp/lex_control factory_direction.json (corpus=RUN on each mount) instead of authoritative workspace state/corpus.json (COMPLETED/continue_recommended=false), causing recurrent no-op corpus dispatches (22+ documented in prior audit CYCLE_33766817387)",
+      "occurrences": "22+",
+      "recommendation": "Dispatch must key off workspace state/<lane>.json; BLOCKED gate writes state/blockers/corpus.json keyed to v36 question hash to halt the loop"
+    },
+    {
+      "id": "canonical_artifact_persistency",
+      "description": "174k bger_YYYY.jsonl corpus is gitignored and regenerated ephemerally each verification; promoted base retains only a stale 21k-record bge_YYYY.jsonl snapshot, so committed state contradicts accepted metrics and the frozen suite fails as-committed (65/76)",
+      "occurrences": "persistent since v14-era lineage",
+      "recommendation": "Decide durable artifact policy (commit regenerable corpus or replace stale snapshot + test manifest) before any further corpus acceptance"
+    }
+  ],
+  "timestamp": "2026-10-10T00:00:00Z"
+}
