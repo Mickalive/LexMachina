@@ -1,0 +1,41 @@
+{
+  "run_id": "LEGAL_DISTANCE_V35_CITATION_HERITAGE_RELATION_DECOMPOSITION_38039706350",
+  "lane": "legal-distance",
+  "direction_version": 35,
+  "github_run": 38039706350,
+  "created_utc": "2026-10-10T09:12:00Z",
+  "frozen_before_outcome": true,
+
+  "motivation": "The primary fairness audit produced a contradiction: on the ORIG 1020-pair set (no self-pairs, identical matched pairs) dense_cp64=0.7189 vs cited_decisions TF-IDF=0.7159 (tie), but on the graph-derived FULL set dense_cp64=0.9176 vs cited_decisions TF-IDF=0.6489 (large dense win). Decompose the citation relation to find what each representation actually recovers and whether 'dense superiority for citation heritage' is representation-dependent.",
+
+  "citation_graph": "/tmp/lex_accepted/evaluation/evaluation/results/174k_citation_heritage/citation_graph_174k.json (5031 sources, 7799 edges, 918 targets, 793 targets with >=2 citing sources)",
+
+  "fixed_relations_as_positive_sets": {
+    "DIRECT": "ordered pairs (s,t) with t in graph[s], s!=t, both in metadata",
+    "SHARED1": "unordered pairs {a,b} sharing >=1 outgoing citation target, a!=b; emitted ordered both ways",
+    "SHARED2": "unordered pairs {a,b} sharing >=2 outgoing citation targets"
+  },
+
+  "fixed_negative_sets": {
+    "NEG_rand": "uniform random distinct pairs (baseline used by the original benchmark)",
+    "NEG_hard": "random pairs with NO direct citation and ZERO shared outgoing targets (matched to the graph decisons' out-degree regime)"
+  },
+
+  "representations": {
+    "dense_raw_768": "multilingual-e5 full text",
+    "dense_cp_768": "per-language center projected + L2",
+    "dense_cp64": "PCA-64 on cp + L2",
+    "tfidf_cited_decisions_128": "the production TF-IDF citation representation (SVD-128) used in the accepted comparison",
+    "citation_jaccard_full": "full-dimensional binary outgoing-citation Jaccard (upper reference for a pure citation representation)"
+  },
+
+  "metric": "AUC-ROC (Mann-Whitney average ranks); Jaccard / cosine decision score",
+
+  "decision_relevant_rule_frozen": {
+    "dense_superiority_supported": "dense_cp64 AUC exceeds tfidf_cited_decisions_128 AUC by >= 0.02 on BOTH SHARED2 (evaluation lane's frozen criterion) and DIRECT, using identical negatives.",
+    "dense_superiority_not_supported": "the +0.02 dense margin holds on at most one relation, or disappears under identical negatives.",
+    "interpretation": "If dense wins only on DIRECT while the pure citation representation (jaccard) also wins on SHARED2, then the 'citation heritage' view does not need dense embeddings; the apparent advantage in the accepted state is representation/dimension-dependent."
+  },
+
+  "sampling": {"max_positive": 50000, "max_negative": 50000, "seed": 42}
+}

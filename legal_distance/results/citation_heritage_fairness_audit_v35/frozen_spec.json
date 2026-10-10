@@ -1,0 +1,68 @@
+{
+  "run_id": "LEGAL_DISTANCE_V35_CITATION_HERITAGE_FAIRNESS_AUDIT_38039706350",
+  "lane": "legal-distance",
+  "direction_version": 35,
+  "github_run": 38039706350,
+  "created_utc": "2026-10-10T09:05:00Z",
+  "frozen_before_outcome": true,
+
+  "mission_link": "The product's v1.1 multi-view map contract (legal-distance state/legal-distance.json and ACCEPTED evaluation state/evaluation.json) makes the citation-heritage view a DENSE-embedding complementary mode, justified by the claim that dense center_projected embeddings beat TF-IDF citation-based representations on citation-heritage AUC. If that claim is a metric artifact, the product contract changes (dense is not needed for citation heritage; TF-IDF citation representation already covers it).",
+
+  "question": "Is the legal-distance accepted claim 'dense center_projected embeddings recover citation heritage better than TF-IDF citation-based (AUC 0.77-0.85 vs 0.71-0.74)' a valid, non-artifactual result on the frozen citation-heritage benchmark?",
+
+  "accepted_claim_under_test": {
+    "source": "legal_distance/state/legal-distance.json critical_findings.citation_heritage_dense_superiority",
+    "text": "Dense multilingual-e5 embeddings RECOVER citation heritage at scale (AUC 0.79-0.85 at 21-22yr) BETTER than TF-IDF citation-based (AUC 0.71-0.74).",
+    "dense_auc": [0.7667, 0.8455],
+    "tfidf_auc": [0.71, 0.74],
+    "implied_margin": ">= 0.05"
+  },
+
+  "threats_preregistered": {
+    "T1_self_pairs": "citation_pairs_174k.json positive_pairs contains 174/1020 (17.1%) pairs of the form (d,d). Cosine similarity of (d,d) is exactly 1.0 for EVERY representation, which mechanically inflates positive scores and AUC. Any claim must be recomputed after removing self-pairs.",
+    "T2_pair_set_mismatch": "The dense citation-heritage runs filter positive/negative pairs to decisions present in the dense year-checkpoints (e.g. 100 pairs at 2000-2020, 344 at 2000-2021, 730 at 2000-2023), while the TF-IDF citation-heritage runs evaluate all 1020 pairs. dense vs TF-IDF are therefore measured on DIFFERENT pair sets. A fair comparison must evaluate all representations on the IDENTICAL decision-matched pair set.",
+    "T3_subset_selection": "Because the citation graph is concentrated in recent years, filtering to early checkpoints selects a small, year-biased pair sample. Statistical uncertainty must be reported (bootstrap)."
+  },
+
+  "fixed_representations": {
+    "dense": [
+      "dense_raw_768 (multilingual-e5 full-text, checkpoint assembly)",
+      "dense_cp_768 (per-language center projection + L2)",
+      "dense_cp64 (PCA-64 fitted on the assembled cp subset + L2, matching the original pipeline)"
+    ],
+    "tfidf": [
+      "cited_decisions_tfidf (AUC reference best of the citation family)",
+      "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "cited_decisions_tfidf_outcome_hybrid_0.7"
+    ]
+  },
+
+  "fixed_pair_sets": {
+    "ORIG": "evaluation/results/174k_citation_heritage/citation_pairs_174k.json (1020 pos / 1020 neg; coverage 174 decisions in graph)",
+    "FULL": "/tmp/lex_accepted/evaluation/evaluation/results/174k_citation_heritage/citation_pairs_174k_full.json (137314 pos / 137314 neg; 5031 decisions in graph) used as a high-power secondary set",
+    "P_matched": "ORIG pairs where BOTH decisions have a dense 2000-2023 embedding (primary fair comparison set)",
+    "no_self": "the respective pair set with (d,d) pairs removed from positives and negatives"
+  },
+
+  "metric": "AUC-ROC via Mann-Whitney U with average ranks; cosine similarity as the decision score",
+
+  "success_rule_frozen": {
+    "claim_survives": "AUC(dense_cp64) - max(AUC(tfidf_citation_family)) >= +0.02 on the IDENTICAL P_matched + no_self pair set.",
+    "claim_falsified": "margin < +0.02 (including negative margins)",
+    "self_pair_inflation_reported": "Delta AUC caused by removing self-pairs, per representation",
+    "uncertainty": "2000-resample bootstrap 95% CI on the dense-minus-best-TFIDF AUC margin (seed 42)"
+  },
+
+  "decision_unlocked": {
+    "if_survives": "Keep dense citation-heritage as a valid complementary mode; proceed to 174k integration contract.",
+    "if_falsified": "Retract citation_heritage_dense_superiority from ACCEPTED legal-distance state; the product citation-heritage view does NOT require dense embeddings; update product contract to TF-IDF citation heritage (AUC ~0.73-0.74) and remove the 'dense superior' justification."
+  },
+
+  "data_provenance": {
+    "dense_checkpoints": "legal_distance/results/174k_dense_embeddings/checkpoints/embeddings_{2000..2023}.npy + metadata_{year}.json",
+    "full_metadata": "evaluation/data/174k/metadata_174k.json (173963, identical id order to evaluation/results/174k/embeddings/metadata.json)",
+    "tfidf_embeddings": "evaluation/results/174k/embeddings/{cited_decisions_tfidf,cited_decisions_tfidf_outcome_hybrid_0.5,cited_decisions_tfidf_outcome_hybrid_0.7}.npy"
+  },
+
+  "note": "This is an independent falsification audit of a claim already RETRACTED by the ACCEPTED evaluation lane (evaluation/state/evaluation.json: citation_heritage_view status DENSE_NOT_EMPIRICALLY_VALIDATED, 'Previous claims of AUC 0.7667-0.8182 were from partial/insufficient runs and are retracted'). The legal-distance lane state still carries the claim as ACCEPTED. This audit resolves the cross-lane contradiction with executable evidence."
+}
