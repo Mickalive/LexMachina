@@ -62,6 +62,15 @@ TFIDF_REPRESENTATIONS = {
 SUBSAMPLE_SIZE = 2000
 SUBSAMPLE_SEED = 42
 
+# ============================================================
+# INPUT PINNING (integrity guard only; does NOT change any metric)
+# Added 2026-10-10 operational-resume 38051663272 to make silent
+# accepted-mount mutation and cross-environment drift loud.
+# Set LEX_ENFORCE_METADATA_PIN=1 to hard-fail on metadata mutation.
+# ============================================================
+PINNED_METADATA_SHA256 = "34a0d4677c14c7f01b8b918bf87f5c330635dd3b620d83a75ba8b50e9fe59469"
+PINNED_ENVIRONMENT = {"python": "3.12.3", "numpy": "2.5.3", "sklearn": "1.9.1"}
+
 def create_stratified_subsample(metadata: List[Dict], size: int = SUBSAMPLE_SIZE, seed: int = SUBSAMPLE_SEED) -> List[int]:
     """Create stratified subsample by branch x language.
     
@@ -137,6 +146,26 @@ def main():
     with open(METADATA_174K_PATH) as f:
         metadata = json.load(f)
     logger.info(f"Loaded metadata for {len(metadata)} decisions")
+
+    # Integrity guard: pin metadata content hash and environment versions.
+    import platform
+    try:
+        import sklearn
+        env_now = {"python": platform.python_version(), "numpy": np.__version__, "sklearn": sklearn.__version__}
+    except Exception:
+        env_now = {"python": platform.python_version(), "numpy": np.__version__, "sklearn": "unknown"}
+    with open(METADATA_174K_PATH, "rb") as f:
+        metadata_sha256 = hashlib.sha256(f.read()).hexdigest()
+    metadata_pin_ok = metadata_sha256 == PINNED_METADATA_SHA256
+    environment_pin_ok = env_now == PINNED_ENVIRONMENT
+    logger.info(f"Metadata sha256: {metadata_sha256} (pin_ok={metadata_pin_ok})")
+    logger.info(f"Environment: {env_now} (pin_ok={environment_pin_ok})")
+    if not metadata_pin_ok:
+        logger.error("METADATA PIN MISMATCH: accepted-mount metadata mutated since freeze.")
+        if os.environ.get("LEX_ENFORCE_METADATA_PIN", "0") == "1":
+            raise SystemExit(2)
+    if not environment_pin_ok:
+        logger.warning("ENVIRONMENT PIN MISMATCH: k-NN tie-breaking can differ across numpy/sklearn versions.")
     
     # Create stratified subsample
     logger.info("Creating stratified subsample...")
@@ -232,7 +261,31 @@ def main():
     latest_file = OUTPUT_DIR / "verification_latest.json"
     with open(latest_file, 'w') as f:
         json.dump(all_results, f, indent=2, default=str)
-    
+
+    # Write a provenance sidecar so audits can detect silent input drift.
+    prov = {
+        "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "config_hash": config_hash,
+        "global_seed": GLOBAL_SEED,
+        "subsample_size": SUBSAMPLE_SIZE,
+        "metadata_path": str(METADATA_174K_PATH),
+        "metadata_sha256": metadata_sha256,
+        "metadata_sha256_pinned": PINNED_METADATA_SHA256,
+        "metadata_pin_ok": metadata_pin_ok,
+        "environment": env_now,
+        "environment_pinned": PINNED_ENVIRONMENT,
+        "environment_pin_ok": environment_pin_ok,
+        "reps_passing_both": passed_count,
+        "reps_tested": len(TFIDF_REPRESENTATIONS),
+        "target_representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+        "target_jurist_preference_rate": all_results.get(
+            "cited_decisions_tfidf_outcome_hybrid_0.5", {}).get("jurist_preference_rate"),
+        "target_language_dominance_score": all_results.get(
+            "cited_decisions_tfidf_outcome_hybrid_0.5", {}).get("language_dominance_score"),
+    }
+    with open(OUTPUT_DIR / "verification_latest_provenance.json", 'w') as f:
+        json.dump(prov, f, indent=2, default=str)
+
     logger.info(f"\nResults saved to: {output_file}")
     return all_results, config_hash
 
