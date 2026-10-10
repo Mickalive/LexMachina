@@ -1,0 +1,59 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "TF-IDF 174k production baseline frozen and operational (JP=0.5925, 6/8 PASS). Dense complementary views validated at 144k/22yr partial cohort. Full 174k dense validation blocked on corpus lane. True OOS ceiling ~0.53. No further same-question cycles justified.",
+  "evidence_summary": {
+    "primary_verified": [
+      "evaluation/results/174k_tfidf_formal_suite/verification_20261010_003930.json",
+      "evaluation/results/174k_tfidf_formal_suite/verification_20261010_003937.json",
+      "evaluation/results/174k_tfidf_formal_suite/verification_20261010_003943.json",
+      "evaluation/verify_frozen_baseline.py",
+      "state/evaluation.json",
+      "reports/evaluation/EVALUATION_V35_FINAL_DETERMINISTIC_BASELINE_20261010.md"
+    ],
+    "dense_complementary_verified_in_workspace": [
+      "results/evaluation/partial_dense_2000_2002/citation_heritage_22year_latest.json",
+      "results/evaluation/partial_dense_2000_2002/section_crosslingual_eval_latest.json"
+    ],
+    "external_referenced_not_in_workspace": [
+      "legal-distance/results/174k_dense_embeddings/citation_heritage_eval/citation_heritage_22year_latest.json",
+      "legal-distance/results/174k_dense_embeddings/section_crosslingual_eval/section_crosslingual_eval_latest.json",
+      "legal-distance/results/174k_dense_embeddings/linear_combinations_22year/linear_combinations_22year_eval_latest.json"
+    ],
+    "key_metrics_recomputed": {
+      "production_baseline_jurist_preference": 0.5925,
+      "production_baseline_language_dominance": 0.348125,
+      "representations_passing_both_gates": 6,
+      "representations_tested": 8,
+      "benchmark_determinism_verified": true,
+      "determinism_verification_runs": 3,
+      "all_runs_identical": true,
+      "citation_heritage_auc_cp64": 0.7922,
+      "cross_lingual_sachverhalt_cross_lang": 0.2816,
+      "cross_lingual_dispositiv_cross_lang": 0.1502,
+      "cross_lingual_erwaegungen_cross_lang": 0.0941
+    },
+    "negative_findings_preserved": [
+      "Dense embeddings FAIL jurist gate at ALL scales (JP 0.05-0.43)",
+      "True OOS JuristPref ceiling ~0.53 < 0.7 factory target",
+      "v18 coarse hierarchy max purity 0.65 < 0.7",
+      "Citation heritage recall@10 max 0.0066",
+      "Raw 768dim FAILS citation heritage at 24yr (AUC 0.68)",
+      "Full-text dense cross-lingual inflated at small scale (0.656 at 1K -> 0.10 at 165k)",
+      "v17 label normalization FAILS generalization to 174k (multi-seed verified)"
+    ],
+    "data_blockers_honestly_reported": [
+      "BGE/bger ID mapping missing",
+      "Parquet 2022-2026 missing (29,520 decisions)",
+      "Section extraction at 174k not done",
+      "GPU unavailable for finetuning"
+    ],
+    "mutation_history_documented": [
+      "Fractal-map rebuild 2026-10-07: JP 0.735 -> ~0.702",
+      "Accepted mount refresh 2026-10-08: JP ~0.702 -> 0.5565",
+      "Non-determinism confirmed 2026-10-09: same embeddings yield different results based on metadata ordering",
+      "Benchmark fix 2026-10-09: sorted groups by (branch, language) key"
+    ]
+  }
+}
