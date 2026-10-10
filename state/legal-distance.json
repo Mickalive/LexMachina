@@ -135,7 +135,7 @@
       "center_projected_768_jp": "NOT TESTED",
       "citation_heritage_raw_auc": 0.8455,
       "citation_heritage_cp64_auc": 0.8182,
-      "status": "Citation heritage PASSED (AUC > 0.7); jurist gate not tested"
+      "status": "RETRACTED (v35 citation-heritage fairness audit, run 38039706350, REPRODUCED): the 'Citation heritage PASSED (AUC > 0.7)' label used with-self, artifact-inflated numbers (raw 0.8455 / cp64 0.8182 over 100 positive pairs incl. degenerate (d,d) self-pairs). On identical matched self-pair-free ORIG pairs, dense_cp64 = 0.7189 vs cited_decisions_tfidf = 0.7159 (margin +0.0030 < pre-registered +0.02; bootstrap 95% CI [-0.034, +0.037]) - dense is NOT superior to TF-IDF citation; the absolute AUC > 0.75 criterion FAILS on no-self ORIG pairs (0.7189) and PASSES only on the FULL citation-graph no-self set (0.9176), i.e. pair-set dependent. Jurist gate not tested."
     },
     "22_year_2000_2021": {
       "n_decisions": 144443,
@@ -154,7 +154,7 @@
       "sachverhalt_cp64_cross_lang_same_branch": 0.282,
       "dispositiv_cp64_cross_lang_same_branch": 0.15,
       "erwaegungen_cp64_cross_lang_same_branch": 0.094,
-      "status": "Citation heritage PASSED (AUC > 0.75); Sachverhalt/Dispositiv cross-lingual PASSED; linear combos PASS adversarial at optimal weight; center_projected FAILS jurist gate; TF-IDF baseline dominates"
+      "status": "RETRACTED (v35 citation-heritage fairness audit, run 38039706350, REPRODUCED): the 'Citation heritage PASSED (AUC > 0.75)' label used with-self numbers (raw 0.7946 / cp64 0.7922) inflated ~0.045-0.051 AUC by 174/1020 degenerate (d,d) self-pairs. On identical matched no-self ORIG pairs dense_cp64 = 0.7189 (< 0.75, FAILS absolute criterion) vs cited_decisions_tfidf = 0.7159 (margin +0.0030 < +0.02) - pair-set dependent (FULL no-self 0.9176 PASSES). Unchanged: Sachverhalt/Dispositiv cross-lingual PASSED; linear combos PASS adversarial at optimal weight; center_projected FAILS jurist gate; TF-IDF baseline dominates."
     },
     "24_year_2000_2023": {
       "n_decisions": 158427,
@@ -165,7 +165,7 @@
       "citation_heritage_cp128_auc": 0.7669,
       "citation_heritage_positive_pairs": 730,
       "citation_heritage_negative_pairs": 834,
-      "status": "Citation heritage PASSED (center_projected AUC 0.767-0.770 > 0.75); 730 positive pairs (2.1x more than 22yr); center_projected JP not evaluated due to bge_/bger_ alignment blocker"
+      "status": "RETRACTED (v35 citation-heritage fairness audit, run 38039706350, REPRODUCED): 'center_projected AUC 0.767-0.770 > 0.75' used with-self 730-pair numbers; 174/1020 ORIG positives were degenerate (d,d) self-pairs inflating every representation by ~0.045-0.051 AUC. On identical matched no-self pairs dense_cp64 = 0.7189 (FAILS AUC > 0.75) vs cited_decisions_tfidf = 0.7159 (margin +0.0030 < +0.02); the matched no-self FULL citation-graph set passes (0.9176), so the label is pair-set dependent. 730 positive pairs (2.1x more than 22yr); center_projected JP not evaluated due to bge_/bger_ alignment blocker."
     },
     "174k_target": {
       "n_decisions": 173963,
@@ -177,9 +177,9 @@
   "minimal_scale_characterization": {
     "citation_heritage_recovery": {
       "minimal_scale": "21yr / 137k decisions (2000-2020)",
-      "evidence": "AUC 0.8455 (raw), 0.8182 (cp64) at 21yr with 100 positive pairs; 22yr AUC 0.7946 (raw), 0.7922 (cp64) with 344 positive pairs; 24yr AUC 0.7696 (cp768), 0.7667 (cp64), 0.7669 (cp128) with 730 positive pairs. Sufficient citation pairs require recent years (2019+). All center_projected variants PASS >0.75 at 21-24yr.",
-      "acceptance_criterion": "AUC > 0.75",
-      "status": "PASSED at 21-24yr (137k-158k)"
+      "evidence": "WITH-SELF / pair-set-dependent (v35 fairness audit run 38039706350: labels RETRACTED in unqualified form): AUC 0.8455 (raw), 0.8182 (cp64) at 21yr with 100 positive pairs; 22yr AUC 0.7946 (raw), 0.7922 (cp64) with 344 positive pairs; 24yr AUC 0.7696 (cp768), 0.7667 (cp64), 0.7669 (cp128) with 730 positive pairs - these include 174/1020 degenerate (d,d) self-pairs inflating every representation by ~0.045-0.051 AUC. MATCHED NO-SELF (identical pairs): ORIG 606-pair dense_cp64 0.7189 (FAILS absolute AUC > 0.75) vs cited_decisions_tfidf 0.7159 (margin +0.0030 < +0.02; bootstrap 95% CI [-0.034, +0.037]) -> dense NOT superior to TF-IDF citation on identical pairs; FULL citation-graph no-self dense_cp64 0.9176 (PASSES AUC > 0.75 - pair-set dependent). Dense retains citation-relatedness signal (0.719 ORIG no-self; 0.92-0.97 shared-citation) and remains a text-only citation-heritage proxy when citation metadata is absent. Sufficient citation pairs require recent years (2019+).",
+      "acceptance_criterion": "AUC > 0.75 on matched self-pair-free pairs AND dense >= best TF-IDF citation by +0.02 AUC margin on identical matched no-self pairs (v35 pre-registered success rule)",
+      "status": "RETRACTED as stated (v35 fairness audit FALSIFIED): ORIG matched no-self dense_cp64 0.7189 < 0.75 fails the absolute criterion and equals TF-IDF citation within noise (margin +0.0030 < +0.02). 'PASSED at 21-24yr (137k-158k)' and 'All center_projected variants PASS >0.75' were with-self/pair-set dependent."
     },
     "section_crosslingual_sachverhalt": {
       "minimal_scale": "1K sample (359 decisions with sachverhalt)",
@@ -207,8 +207,8 @@
     }
   },
   "audit_ready": true,
-  "audit_timestamp": "2026-10-10T09:13:47.927572+00:00",
-  "verification_notes": "MINIMAL DENSE SCALE CHARACTERIZATION COMPLETE \u2014 NEW QUESTION ANSWERED: What minimal dense embedding scale and which specific dense modes are necessary/sufficient for non-jurist-preference views? ANSWER: Three complementary modes at characterized minimal scales: (1) CITATION HERITAGE: 21yr/137k (2000-2020), center_projected_64dim, AUC > 0.75 (PASSED 0.77-0.85 at 21-24yr, 137k-158k). Superior to TF-IDF citation baseline (0.71-0.74). Requires recent years (2019+) for citation pair density. (2) SECTION CROSS-LINGUAL: 1K sample with sections, Sachverhalt cp_64 cross_lang_same_branch=0.282 > 0.2, Dispositiv=0.150 > 0.1, Erwaegungen=0.094 < 0.1 FAILED. Full corpus BLOCKED on section extraction at 174k. (3) LINEAR HYBRID COMPLEMENT: 19yr/122k (2000-2018), w=0.3-0.4, PASS adversarial gates, cross-lingual improvement over TF-IDF, but JP 0.61-0.67 < TF-IDF 0.78-0.79. NOT primary. TWO-MODE TRADEOFF FUNDAMENTAL: No single representation dominates JP + LangDom + CiteIndep. TF-IDF = PRIMARY (jurist preference, branch clustering). Dense = COMPLEMENTARY (citation heritage, cross-lingual, hybrid complement). Data blockers: bge_/bger_ ID mapping, parquet 2024-2026, 174k section extraction. Corpus lane resumption required. No further same-question cycles justified.",
+  "audit_timestamp": "2026-10-10T11:47:22.830317+00:00",
+  "verification_notes": "V35 CITATION-HERITAGE FAIRNESS AUDIT COMPLETE (run 38039706350, REPRODUCED, independently audited to <=1e-6): the ACCEPTED claim 'dense multilingual-e5 embeddings RECOVER citation heritage at scale (AUC 0.79-0.85) BETTER than TF-IDF citation (AUC 0.71-0.74)' is FALSIFIED on identical matched self-pair-free pairs (dense_cp64 0.7189 vs cited_decisions_tfidf 0.7159; margin +0.0030 < pre-registered +0.02; bootstrap 95% CI [-0.034, +0.037]). The apparent gap was a pair-set mismatch (dense on 730 pairs, TF-IDF on 1020) plus 174/1020 degenerate (d,d) self-pairs inflating every representation by ~0.045-0.051 AUC. All 'PASSED (AUC > 0.7 / > 0.75)' citation-heritage labels are SELF-PAIR/PAIR-SET DEPENDENT (ORIG matched no-self dense_cp64 0.7189 FAILS; FULL citation-graph no-self 0.9176 PASSES) and are RETRACTED in unqualified form. Corrected product guidance: for corpora with resolved citations, build the citation-heritage view from the citation graph (full-dim binary citation Jaccard 0.7735 DIRECT / 1.000 SHARED beats dense_cp64 0.6924 / 0.9698); dense embeddings are justified only as a text-only citation-heritage PROXY when citation metadata is absent. Dense embeddings still CARRY citation-relatedness signal (0.719 ORIG no-self; 0.92-0.97 shared-citation relations). UNCHANGED ACCEPTED findings: (2) SECTION CROSS-LINGUAL at 1K sample: Sachverhalt cp_64 cross_lang_same_branch 0.282 > 0.2, Dispositiv 0.150 > 0.1, Erwaegungen 0.094 < 0.1 FAIL - full corpus BLOCKED on 174k section extraction. (3) LINEAR HYBRID COMPLEMENT: 19yr/122k, w=0.3-0.4 PASS both adversarial gates but JP 0.61-0.67 < TF-IDF baseline 0.78-0.79 - NOT primary. TWO-MODE TRADEOFF FUNDAMENTAL: TF-IDF citation hybrids = PRIMARY product mode (jurist preference, branch clustering); dense = COMPLEMENTARY only. Data blockers unchanged: bge_/bger_ ID mapping, parquet 2024-2026, 174k section extraction (corpus lane resumption required). No further same-question dense-scale cycle justified.",
   "verification_report": "legal_distance/reports/legal_distance_v35_citation_heritage_fairness_audit.md",
   "tests_passed": [
     "test_citation_heritage_superiority",
@@ -237,7 +237,7 @@
     "test_citation_heritage_fairness_v35"
   ],
   "operational_resume_from_run": 38008189963,
-  "current_run": 38039706350,
+  "current_run": 38048310059,
   "verification_runs": [
     {
       "run_id": 38032939284,
@@ -848,6 +848,12 @@
       "date": "2026-10-10",
       "status": "CITATION_HERITAGE_FAIRNESS_AUDIT_FALSIFIED",
       "notes": "Dense citation-heritage AUC is statistically indistinguishable from the TF-IDF citation representation on identical matched pairs. The accepted 'dense 0.79-0.85 > TF-IDF 0.71-0.74' claim is a pair-set mismatch + self-pair artifact. For citation-heritage views, use the citation graph / a full-dimensional citation representation; dense is justified only as a text-only proxy when citations are unavailable. Resolves cross-lane contradiction in favour of the evaluation lane's retraction."
+    },
+    {
+      "run_id": 38048310059,
+      "date": "2026-10-10",
+      "status": "REPAIR1_STATE_V35_FALSIFICATION_PROPAGATED",
+      "notes": "Repair round 1 of rejected cycle 38046612238 (audit REVISE, required_fixes): propagated the v35 falsification verdict through scale_evidence_summary (21/22/24yr rows), minimal_scale_characterization.citation_heritage_recovery and verification_notes in both canonical state files - with-self AUCs annotated as self-pair/pair-set dependent, matched no-self AUCs stated (ORIG dense_cp64 0.7189 vs cited_decisions_tfidf 0.7159, margin +0.0030; FULL no-self 0.9176), no retracted 'PASSED (AUC > 0.75)' assertion remains in unqualified positive form. test_citation_heritage_fairness_v35.py extended with a raw-input recompute check (dense checkpoints + citation_pairs_174k.json) reproducing the primary 606-pair no-self AUCs exactly (delta 0.0). No frozen baseline, data, metric or success rule weakened."
     }
   ],
   "last_verified_run": 38022266704,
