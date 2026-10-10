@@ -1,0 +1,100 @@
+{
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "Update evaluation.json:frozen_production_baseline.jurist_preference_rate from 0.5925 to 0.659",
+    "Update evaluation.json:frozen_production_baseline.language_dominance_score from 0.3481 to 0.4258",
+    "Update evaluation.json:frozen_production_baseline.verification_timestamp to 2026-10-10T07:05:27Z (commit dd840e05)",
+    "Document embedding artifact path and HNSW index version used for cycle 38032814066 verification",
+    "Explain neighbor availability shift (neither_available 438->1) -- confirm same frozen baseline or document change",
+    "Fix evidence_refs: replace missing formal_suite_latest.json with verification_latest.json",
+    "Fix evidence_refs: remove citation_heritage_24year_latest.json (does not exist; dense runs FAILED)",
+    "Re-label dense citation heritage AUC claims as 'not empirically validated -- blocked on citation graph coverage'",
+    "Verify/remove boilerplate_resistance_score -0.8340 if unverified"
+  ],
+  "claim_ceiling": "TF-IDF citation hybrid shows JP=0.659/LD=0.426 in latest verification (artifact provenance undocumented). Dense complementary views criteria-defined but not empirically validated at scale due to corpus lane dependencies (citation graph coverage, ID mapping, 2022-2026 parquet, section extraction).",
+  "evidence_summary": {
+    "new_verification": {
+      "production_mode": "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "jurist_preference_rate": 0.659,
+      "language_dominance": 0.425775,
+      "both_gates_pass": true,
+      "deterministic_runs": 3,
+      "neighbor_stats": {
+        "legal_relevant_only": 164,
+        "language_artifact_only": 681,
+        "both_available": 1154,
+        "neither_available": 1
+      }
+    },
+    "previous_verification": {
+      "production_mode": "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "jurist_preference_rate": 0.5925,
+      "language_dominance": 0.348125,
+      "both_gates_pass": true,
+      "neighbor_stats": {
+        "legal_relevant_only": 254,
+        "language_artifact_only": 377,
+        "both_available": 931,
+        "neither_available": 438
+      }
+    },
+    "all_modes_new": {
+      "regeste_tfidf": { "jp": 0.5405, "ld": 0.3590, "pass": true },
+      "full_text_tfidf_light": { "jp": 0.735, "ld": 0.4834, "pass": true },
+      "regeste_full_text_hybrid_0.5": { "jp": 0.7225, "ld": 0.4810, "pass": true },
+      "regeste_full_text_hybrid_0.7": { "jp": 0.7235, "ld": 0.4806, "pass": true },
+      "cited_decisions_tfidf": { "jp": 0.671, "ld": 0.4252, "pass": true },
+      "cited_decisions_tfidf_outcome_hybrid_0.5": { "jp": 0.659, "ld": 0.4258, "pass": true },
+      "cited_decisions_tfidf_outcome_hybrid_0.7": { "jp": 0.665, "ld": 0.4241, "pass": true },
+      "outcome_tfidf": { "jp": 0.4325, "ld": 0.4232, "pass": false }
+    },
+    "citation_heritage_tfidf": {
+      "cited_decisions_tfidf_auc": 0.7296,
+      "threshold": 0.65,
+      "status": "PASSED"
+    },
+    "citation_heritage_dense": {
+      "center_projected_64dim_15year": "FAILED - Insufficient valid pairs",
+      "center_projected_64dim_19year": "FAILED - Insufficient valid pairs",
+      "all_representations": "AUC=0.5, positive_pairs_evaluated=0",
+      "citation_graph_coverage": "174/173963 decisions, 924 resolved citations"
+    },
+    "cross_lingual_sachverhalt": {
+      "cross_lang_same_branch_mean": 0.2816,
+      "threshold": 0.2,
+      "status": "PASS",
+      "sample_size": 359
+    },
+    "cross_lingual_dispositiv": {
+      "cross_lang_same_branch_mean": 0.1502,
+      "threshold": 0.1,
+      "status": "PASS",
+      "sample_size": 538
+    },
+    "cross_lingual_erwaegungen": {
+      "cross_lang_same_branch_mean": 0.0941,
+      "threshold": 0.1,
+      "status": "FAIL",
+      "honestly_reported": true
+    },
+    "zero_shot_cross_lingual": {
+      "center_projected_64dim_full_nmi": 0.2258,
+      "center_projected_64dim_sachverhalt_nmi": 0.1886,
+      "threshold": 0.2,
+      "status": "BELOW_THRESHOLD",
+      "honestly_reported": true
+    },
+    "jurist_usability": {
+      "pairwise_preference_rate": 0.4515,
+      "cluster_coherence_branch_purity": 0.9035,
+      "zoom_improvement_pct": 7.1,
+      "cross_language_recall_at_10": 0.1194
+    },
+    "cross_language_benchmarks": {
+      "cross_lang_same_branch_mean": 0.0,
+      "zero_shot_mean_nmi": 0.3899,
+      "adversarial_language_dominance": 0.99905
+    }
+  }
+}
