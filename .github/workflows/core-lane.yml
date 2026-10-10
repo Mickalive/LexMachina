@@ -314,12 +314,7 @@ jobs:
           set -euo pipefail
           echo "Core finalizer: team=$TEAM_RESULT audit=$AUDIT_RESULT integrate=$INTEGRATE_RESULT"
 
-          CURRENT_DIRV=$(jq -r '.version // -1' state/factory_direction.json)
-          CURRENT_STATUS=$(jq -r --arg lane "$LANE" '.lanes[$lane].status // "PAUSE"' state/factory_direction.json)
-
-          if [[ "$DIRV" != "$CURRENT_DIRV" || "$CURRENT_STATUS" != "RUN" ]]; then
-            echo "Core finalizer: run is superseded (run dirV=$DIRV; current dirV=$CURRENT_DIRV; lane status=$CURRENT_STATUS). No self-recovery."
-          elif [[ "$TEAM_RESULT" != success || "$AUDIT_RESULT" == failure || "$AUDIT_RESULT" == cancelled || "$INTEGRATE_RESULT" == failure || "$INTEGRATE_RESULT" == cancelled ]]; then
+          if [[ "$TEAM_RESULT" != success || "$AUDIT_RESULT" == failure || "$AUDIT_RESULT" == cancelled || "$INTEGRATE_RESULT" == failure || "$INTEGRATE_RESULT" == cancelled ]]; then
             SNAP="cycle/core/${LANE}/${GITHUB_RUN_ID}/team"
             if git ls-remote --exit-code --heads origin "refs/heads/$SNAP" >/dev/null 2>&1; then
               gh workflow run core-lane.yml --repo "$GITHUB_REPOSITORY" --ref main \
