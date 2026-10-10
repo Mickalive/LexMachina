@@ -1,0 +1,54 @@
+{
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    {
+      "id": "D-1",
+      "severity": "MEDIUM",
+      "file": "evaluation/verify_frozen_baseline.py",
+      "description": "The newly added integrity guard uses os.environ at line 165 but the module never imports os (imports are json, numpy, logging, sys, time, hashlib, pathlib, typing, collections, sklearn). The advertised hard-fail (LEX_ENFORCE_METADATA_PIN=1) therefore raises NameError instead of the intended SystemExit(2). It still exits non-zero, so the functional block survives, but the artifact does not do what the report claims it does.",
+      "same_cycle_repairable": true,
+      "repair_action": "Add `import os` (or obtain the env var without os) so the LEX_ENFORCE_METADATA_PIN=1 branch exits cleanly with SystemExit(2)."
+    },
+    {
+      "id": "D-2",
+      "severity": "LOW",
+      "file": "results/evaluation/frozen_baseline_reproducibility/provenance.json",
+      "description": "pre_verification_latest_sha256=6514501d... and pre_verification_pointer_metrics (JP=0.5925) refer to the POST-run rerun (PRE_verification_latest_rerun.json), not to the true pre-repair pointer. The report and OPERATIONAL_RESUME_38051663272_DIAGNOSIS.json correctly identify the pre-repair pointer as PRE_verification_latest.json (sha256 cff6b19e722b..., JP=0.659 / LD=0.425775, byte-identical to the accepted base verification_latest.json). The provenance record contradicts the repair's own report/diagnosis and would mislead future auditors about the direction of the repair.",
+      "same_cycle_repairable": true,
+      "repair_action": "Repoint pre_* fields to the archived pre-repair artifact (cff6b19e722b..., JP=0.659 / LD=0.425775) and/or rename them to state unambiguously that the 6514501d... file is the post-run rerun."
+    }
+  ],
+  "claim_ceiling": "No new claim is licensed by this cycle. Ceiling remains the last accepted audit CYCLE_38037204821 (gate=PASS): TF-IDF 174k production baseline cited_decisions_tfidf_outcome_hybrid_0.5 satisfies the mission criterion (JP=0.5925 > 0.5 gate; beats simple semantic baseline JP=0.43; 6/8 representations pass both adversarial gates) in the pinned environment python 3.12.3 / numpy 2.5.3 / sklearn 1.9.1, config_hash a31c443a9b0e992e. The exact JP/LD is environment-dependent (META_UNSTABLE_ACROSS_ENVIRONMENTS) and must be quoted with its pinned environment and config hash. Dense complementary criteria are DEFINED/FROZEN but UNVALIDATED at 174k scale (blocked on corpus section extraction, BGE/bger ID crosswalk, 2024-2026 embeddings, citation-graph coverage). No dense-primary navigation claim. This cycle's delta is a negative reproducibility result (recorded JP=0.659 does not reproduce) plus a conservative reconciliation of lane state to the accepted value; it does not raise the ceiling.",
+  "evidence_summary": {
+    "run": "38051663272",
+    "lane": "evaluation",
+    "repair_round": 0,
+    "accepted_base": "e0d8e12e (accept evaluation cycle 38037204821)",
+    "producer_tip": "a1dff397 (evaluation cycle 38051663272 repair 0)",
+    "delta_is_nonzero": true,
+    "independent_recompute_limitation": "The accepted-mount inputs (/tmp/lex_accepted/legal-distance/evaluation/data/174k/metadata_174k.json and the .npy embeddings) are not mounted in the audit sandbox, so verify_frozen_baseline.py could not be re-executed. Byte-identity to accepted-base artifacts was used as the strongest available corroboration.",
+    "verified_facts": {
+      "frozen_spec_unmodified": "sha256 5084377badab7bc04838809d28c4b6f53a81cd8320d0deeb81d8ffec422c69ca identical at producer a1dff397 and prior cycle 38048232833 (452717a0); hypothesis/metric/sample/success-rule unchanged.",
+      "harness_diff_purely_additive": "Only PINNED_METADATA_SHA256, PINNED_ENVIRONMENT, integrity logging and a provenance sidecar were added; no change to subsampling, thresholds, seed, k or metric. Shipped harness sha256 c4261095... and v3 harness eab5ccab... match provenance.json.",
+      "result_byte_identical_to_accepted_base": "Producer verification_latest.json sha256 6514501d9a83... equals accepted-base verification_20261009_165224.json and verification_20261010_003930.json (both JP=0.5925), proving 0.5925 is a genuine reproducible output of this harness on the accepted artifacts.",
+      "pre_repair_pointer_preserved": "PRE_verification_latest.json sha256 cff6b19e722b... equals the accepted base verification_latest.json (JP=0.659 / LD=0.425775); old state preserved in state_evaluation_PRE_REPAIR.json (JP=0.659/LD=0.4258/hash 4323f833...).",
+      "repair_aligns_with_accepted_audit": "Accepted audit CYCLE_38037204821 GATE claim_ceiling already used JP=0.5925/LD=0.3481; accepted base state/evaluation.json held the inconsistent 0.659. The producer moved the state toward the accepted authority (conservative, downward).",
+      "mission_criterion_still_holds": "JP=0.5925 > 0.5 gate and > 0.43 semantic baseline; 6/8 reps pass both adversarial gates.",
+      "diagnosis_facts": "Zero-delta cycles 38038745129/38041914843/38044734747/38047626287 team branches = e0d8e12e; BLOCKED audit for 38047626287 exists at origin/.../audit (bb40df91); 38048232833 and 38048817288 = 452717a0 (spec authored, never executed). All confirmed.",
+      "write_scope_ok": "All 28 changed paths are within evaluation/, tests/evaluation/, results/evaluation/, reports/evaluation/, state/evaluation.json; no producer-authored results/audit self-audit gate.",
+      "regression_test": "tests/evaluation/test_baseline_reproducibility_repair.py PASSED (exit 0) when run from the producer tree."
+    },
+    "attacks": {
+      "post_hoc_metric_or_threshold": "None; spec hash-stable across cycles.",
+      "benchmark_weakening": "None; the quoted metric moved down, not up.",
+      "benchmark_gaming": "None observed; the unfavourable NOT_REPRODUCED outcome is reported and the metric is lowered.",
+      "claim_bearing_overwrite": "Mitigated; verification_latest.json is a rolling pointer rewritten by the harness every run, all timestamped history preserved, pre-repair pointer archived byte-identically.",
+      "provenance_falsification": "D-2 present (mislabelled pre_* fields in provenance.json).",
+      "leakage_weak_baseline_prettiness": "N/A for this read-only reproduction/repair.",
+      "control_plane": "Structural RUN vs COMPLETE mismatch is real and is being closed by Factory Director proposal 38051948651 (a3b04585, direction v36 sets evaluation PAUSE). Not perpetuated by the producer; BLOCKED not warranted. Note: Director v36 still quotes the old JP=0.659, which now disagrees with the repaired state and should be reconciled.",
+      "root_cause_rigor": "Cross-environment attribution mirrors accepted audit 2.4 and is hedged; but the accepted base contains both 0.5925 and 0.659 outputs on the same day, so cross-environment cannot be cleanly separated from cross-run non-determinism / metadata-mount mutation. Supportable claim is environment-dependent/meta-unstable (which the state flags)."
+    },
+    "gate_rationale": "The scientific content is an honest, durable negative result (JP=0.659 NOT_REPRODUCED; reproducible value 0.5925 corroborated byte-identically by accepted-base artifacts) that correctly preserves history and the mission criterion. It is not safe to integrate only because its own new integrity machinery has a concrete same-cycle-repairable defect (D-1: missing `import os` breaks the advertised hard-fail guard) and its new provenance record mislabels the pre-repair pointer (D-2). No human/external decision is required for the producer's artifact, and the prior zero-delta BLOCKED pathology is not recurring, so REVISE (not BLOCKED, not PASS)."
+  }
+}
