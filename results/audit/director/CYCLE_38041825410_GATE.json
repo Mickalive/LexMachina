@@ -1,0 +1,80 @@
+{
+  "audit_id": "CYCLE_38041825410",
+  "target": "Factory Director proposal /tmp/lex_director_proposal run=38041825410",
+  "base": "main@0d33bef2 (accepted base) / proposal commit c8026f04 (parent c1483ff3), 2026-10-10T10:05:25Z",
+  "prior_audit": "CYCLE_38040441141 (recovered from origin/cycle/director/38040441141/audit @ 5843a9f7; required_fixes D-1 MEDIUM, D-2 LOW)",
+  "date": "2026-10-10",
+  "auditor": "independent_auditor",
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    {
+      "id": "R-1",
+      "severity": "MEDIUM",
+      "file": "reports/director/RUN_38041825410.md",
+      "also": "state/factory_direction.json (no change required beyond the report wording)",
+      "description": "Integration-safety statement is inaccurate and incomplete. factory-director.yml L157 overlays the ENTIRE reports/director directory from the proposal branch (git checkout \"origin/$P\" -- state/factory_direction.json state/frontier_portfolio.json reports/director). The proposal's reports/director is a strict superset of main's and adds three files, two of which are REJECTED reports: RUN_38040441141.md AND RUN_38039192911.md. RUN_38041825410.md sections 2.3 and 13 name only RUN_38040441141.md. RUN_38039192911.md therefore enters main unchanged and un-neutralised while still asserting, as current truth: L24 'The supervisor's per-lane exhaustion gate ... therefore fired on every RUN lane' (a mechanism this same run proves is dead code); L69 'TF-IDF citation hybrids DOMINATE (JP 0.78-0.79)' (stale partial-cohort number; accepted deterministic baseline is JP=0.659); L70 'Dense EXCELS at complementary views: Citation Heritage AUC 0.79-0.85 (> TF-IDF 0.71-0.74) at 144k/22yr' (the retracted dense-superiority claim). Section 13 also says 'This proposal's diff is 4 lines in state/factory_direction.json plus this report'; 4 is the round-1 to round-2 repair delta, whereas the go-forward overlay onto main is the full v36 state delta (13 changed lines) plus BOTH rejected reports.",
+      "same_cycle_repairable": true,
+      "repair_action": "Extend the RUN_38041825410.md section 2.3 [FALSE - SUPERSEDED] block to cover RUN_38039192911.md L24/L69/L70; name RUN_38039192911.md alongside RUN_38040441141.md in section 13; and correct the '4 lines' statement to describe the actual main overlay (full v36 state delta + both rejected reports). Alternatively, state explicitly and defensibly why the round-0 report needs no supersession marker - it cannot remain implicit while the analogous RUN_38040441141.md lines are blocked. Textual only; no routing change."
+    },
+    {
+      "id": "R-2",
+      "severity": "LOW",
+      "file": "state/factory_direction.json",
+      "also": "reports/director/RUN_38041825410.md (section references)",
+      "description": "Internal contradiction in the control-plane-consumed director_note. The RUN_38040441141 [F-4 LOW] segment still asserts 'at v35 the supervisor exhaustion gate skipped all three RUN lanes ... so CORE_RUN_DESIRED=3 with 0 dispatched and NEED_DIRECTOR raised'. The RUN_38041825410 [OBSERVATION] in the SAME file states the exhaustion guard (factory-supervisor.yml L178) is inert and that log-verified passes printed 'already active/queued' and never 'same-direction work exhausted', i.e. dispatched 0 does not reproduce via that mechanism. Independently confirmed: jq '.continue_recommended // true' reads a stored false as true (// returns the right operand for a false left side), so the L178 branch can never execute; the effective gates are L161 (status) and L186 (activity). The run applied bracketed supersession hygiene to the analogous RUN_37093485135 0.79-0.85 sentence and to RUN_38040441141.md L30/75/88/159 but omitted it here.",
+      "same_cycle_repairable": true,
+      "repair_action": "Append the same bracketed [FALSE - SUPERSEDED] marker to the RUN_38040441141 [F-4 LOW] mechanism sentence in director_note, stating the verified mechanism (L161 status gate + L186 activity gate; the L176-179 exhaustion guard is dead code), preserving the historical text additively. Textual only; no routing change."
+    }
+  ],
+  "claim_ceiling": "Direction v36 routing is supported by accepted evidence and may be integrated once R-1 and R-2 are corrected: corpus PAUSE->RUN on exactly four bounded downstream-requested unblocking artifacts (bge_/bger_ ID mapping; 2022-2026 coverage reconciliation; 174k section extraction; frozen-metadata provenance restore), legal-distance/fractal-map/evaluation RUN->PAUSE as exhausted at v35, product PAUSE->RUN on a bounded corpus-independent question, frontier portfolio held empty (v1). D-1 is FIXED: no dense 174k citation-heritage AUC exists (dense runs FAILED with insufficient valid pairs; status DENSE_NOT_EMPIRICALLY_VALIDATED_BLOCKED_ON_CITATION_GRAPH_COVERAGE); AUC 0.482 (FAIL, n_pos=804, n_neg=1608) is the SPARSE cited_outcome_hybrid_0.5_174k result; accepted deterministic TF-IDF citation-heritage baseline AUC=0.7296; accepted frozen baseline JP=0.659 / LD=0.4258; dense comparator row center_projected_64dim 0.7922 PASS(partial). D-2 is FIXED: product item (c) carries a measurable acceptance test (>=200 sampled neighbour queries; 100% language-mismatch qualifier; 0% mislabelled; machine-readable artifact). NOT supported: any dense citation-heritage superiority over TF-IDF; JP 0.78-0.79 as the current baseline; that the supervisor exhaustion guard fires; that only one rejected report enters main via the reports/director overlay; any new ACCEPTED scientific evidence created by this proposal. No benchmark, threshold or frozen baseline changed.",
+  "evidence_summary": {
+    "cycle_type": "director_direction_proposal_repair_round_2",
+    "new_accepted_evidence": false,
+    "delta": {
+      "round1_to_round2": "reports/director/RUN_38041825410.md added; state/factory_direction.json 4 changed lines (version held at 36); state/frontier_portfolio.json 0-line diff",
+      "proposal_vs_main": "state/factory_direction.json 13 changed lines (v35->v36); reports/director/ +3 files, 344->347, none deleted",
+      "write_scope": "CLEAN - only state/factory_direction.json + reports/director/RUN_38041825410.md changed this round"
+    },
+    "repairs_verified": {
+      "D-1": "FIXED - sparse/dense provenance corrected everywhere operative. state serialized: 'latest accepted gate records dense' = 0 occurrences; 'dense 174k AUC = 0.482 FAIL' = exactly 1, inside the correction quote; all 0.482 mentions attribute to SPARSE cited_outcome_hybrid_0.5_174k; lanes.legal-distance.question and lanes.evaluation.question corrected. Historical RUN_38040441141.md L30/75/88/159 superseded in RUN_38041825410.md section 2.3 per precedent CYCLE_36021197325.",
+      "D-2": "FIXED - product item (c) now carries a falsifiable acceptance test in lanes.product.question"
+    },
+    "recomputed_facts": {
+      "zero_four_eight_two_provenance": "core/evaluation/results/evaluation/citation_heritage_174k.json: embedding=cited_outcome_hybrid_0.5_174k, auc_roc=0.481957, n_pos=804, n_neg=1608, status=FAIL -> SPARSE. evaluation.json dense citation_heritage_view = DENSE_NOT_EMPIRICALLY_VALIDATED_BLOCKED_ON_CITATION_GRAPH_COVERAGE. Gates CYCLE_35949306163 ('Citation heritage FAIL on TF-IDF (AUC=0.482)') and CYCLE_38008331991 ('full 174k dense BLOCKED') preserved.",
+      "accepted_baselines": "deterministic 174k JP=0.659 / LD=0.4258 (config_hash 4323f833fa72366a, ts 2026-10-10T07:05:27Z); TF-IDF citation-heritage AUC=0.72960925; dense comparator center_projected_64dim 0.7922 PASS(partial)",
+      "exhaustion_guard": "INERT - factory-supervisor.yml L178 tests jq -r '.continue_recommended // true' == false; jq // returns the right operand for a false left side, so a stored false reads as true; branch unreachable. Same pattern at the Frontier guard. Effective gates L161 (status) and L186 (activity). Round-2 OBSERVATION is correct; the prior audit's deadlock_diagnosis was mechanism-incorrect.",
+      "corpus_resumption_basis": "named as sole critical path in each accepted lane self-report; 174,113-decision v17 normalization CLOSED and explicitly not to be re-verified",
+      "product_resumption_basis": "accepted product known_limitations include corpus-INDEPENDENT defects (projection mismatch 1000 vs 173963 x5 modes; section fallback 52/1202; language dominance 0.4258; LOD greedy merge)",
+      "overlay": "factory-director.yml L157 copies the whole reports/director dir from the proposal; proposal is a strict superset of main and adds RUN_38039192911.md, RUN_38040441141.md, RUN_38041825410.md; no main file deleted"
+    },
+    "attack_surfaces": {
+      "mission_drift": "CLEAN",
+      "curiosity_or_frontier_proliferation": "CLEAN - portfolio v1 empty; frontier write scope cannot emit canonical corpus/**",
+      "duplicated_teams": "CLEAN - zero frontier teams",
+      "unaccepted_evidence_laundering": "CLEAN in operative routing (D-1 corrected); report-level residual handled by R-1",
+      "stale_blocked_questions": "DEFECT R-2 - director_note retains an unmarked false deadlock mechanism contradicting this run's own OBSERVATION",
+      "product_starvation_or_fake_parallelism": "CLEAN - product genuinely resumed on corpus-independent limitations",
+      "weak_baselines": "CLEAN - accepted TF-IDF production baseline vs center_projected semantic baseline; true-OOS ceiling ~0.53 preserved",
+      "frozen_benchmark_weakening": "CLEAN - no threshold/benchmark changed",
+      "benchmark_gaming_or_post_hoc_metrics": "CLEAN",
+      "boilerplate_confounding": "CLEAN - adversarial language-dominance gates retained",
+      "prettiness_as_quality": "N/A",
+      "unsupported_product_claims": "CLEAN after D-2",
+      "human_decision_required_abuse": "CLEAN - none used",
+      "integration_safety": "DEFECT R-1 - section 13 omits one of the two rejected reports the overlay adds and understates the go-forward state delta"
+    },
+    "negative_results_preserved": [
+      "dense center_projected jurist failure (JP 0.05-0.43)",
+      "dense citation-heritage not empirically validated at 174k (insufficient valid pairs)",
+      "sparse cited_outcome_hybrid_0.5_174k citation-heritage FAIL (AUC 0.482)",
+      "cross-lingual Erwaegungen FAIL 0.094",
+      "TF-IDF multi-level calibration FAIL",
+      "v18 coarse hierarchy NEGATIVE (max branch purity 0.65 < 0.7)",
+      "citation-heritage recall@10 NEGATIVE (max 0.0066)",
+      "original 2026-10-01/03 freeze JP=0.7345 LOST"
+    ],
+    "human_decision_required_used": false,
+    "safe_to_integrate_rationale": "Blocked only by same-cycle, wording-only repairs R-1 (reports/director overlay adds a second unmarked rejected report; section 13 understates blast radius) and R-2 (director_note retains a false deadlock mechanism contradicted by this run's own verified observation). Both are repairable inside the Director write scope (state/factory_direction.json + reports/director/RUN_38041825410.md); neither is data-blocked, structurally invalid, repetitive, nor an owner-level decision. The verified v36 routing and the D-1/D-2 repairs are unaffected and should integrate once R-1/R-2 are applied."
+  }
+}
