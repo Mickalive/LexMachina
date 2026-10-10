@@ -1,0 +1,76 @@
+{
+  "audit_id": "CYCLE_38040441141",
+  "target": "Factory Director proposal /tmp/lex_director_proposal run=38040441141",
+  "base": "main@0d33bef2 (accepted base) / proposal commit c1483ff3 (parent 5701ef8c)",
+  "date": "2026-10-10",
+  "auditor": "independent_auditor",
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    {
+      "id": "D-1",
+      "severity": "MEDIUM",
+      "file": "reports/director/RUN_38040441141.md",
+      "also": "state/factory_direction.json (lanes.legal-distance.question, lanes.evaluation.question, director_note)",
+      "description": "False provenance attribution: the repaired F-1 text states the accepted gate records a 'dense 174k AUC = 0.482 FAIL' (report L30, L75, L88, L159; and three places in factory_direction.json). Accepted evidence attributes 0.482 to a SPARSE representation, not dense. Source artifact core/evaluation/results/evaluation/citation_heritage_174k.json (run citation_heritage_174k_1790199246) has embedding='cited_outcome_hybrid_0.5_174k', auc_roc=0.481957, n_pos=804, status=FAIL. The accepted evaluation audit CYCLE_38037204821.md L108 labels the row 'Citation Heritage AUC (cited_outcome_hybrid_0.5_174k) | 0.482 | FAIL'; its dense row is separately 'center_projected_64dim | 0.7922 | PASS (partial)'. Accepted gate CYCLE_35949306163_GATE.json: 'Citation heritage FAIL on TF-IDF (AUC=0.482) ... dense embeddings required'; CYCLE_38008331991_GATE.json lists 'full 174k dense BLOCKED'. The accepted evaluation state (evaluation.json dense_embedding_complementary_acceptance_criteria.citation_heritage_view) records dense citation-heritage as DENSE_NOT_EMPIRICALLY_VALIDATED_BLOCKED_ON_CITATION_GRAPH_COVERAGE with note 'All dense citation heritage runs at 174k scale FAILED with Insufficient valid pairs'. Therefore no dense 174k AUC exists, and the sentence is internally self-contradictory (it says dense runs failed for insufficient pairs and then cites a dense AUC). This misstates accepted evidence, violates the Master Prompt non-negotiable 'Preserve provenance', and propagates into resumable lane question text. Root cause: the prior audit's own F-1 repair_action used the imprecise phrase 'dense 174k AUC=0.482 FAIL', implying a validated dense result that never existed; this repair carried that imprecision forward.",
+      "same_cycle_repairable": true,
+      "repair_action": "Replace every 'dense 174k AUC = 0.482 FAIL' with an accurate statement: the 174k citation-heritage run for the sparse 'cited_outcome_hybrid_0.5' representation scored AUC 0.482 (FAIL; citation_heritage_174k.json, n_pos=804), while DENSE citation-heritage at 174k was not measured (all dense runs FAILED with 'insufficient valid pairs'; status DENSE_NOT_EMPIRICALLY_VALIDATED_BLOCKED_ON_CITATION_GRAPH_COVERAGE). Remove the self-contradiction. Apply to report L30/75/88/159 and to state/factory_direction.json lanes.legal-distance.question, lanes.evaluation.question, and director_note. No routing change is implied."
+    },
+    {
+      "id": "D-2",
+      "severity": "LOW",
+      "file": "state/factory_direction.json",
+      "also": "reports/director/RUN_38040441141.md (Product Resumption Charter, item (c))",
+      "description": "Weak acceptance test: product resumption item (c) ('surface the documented cross-language limitation honestly in the API/UI instead of implying cross-lingual neighbours') has no measurable success rule, unlike items (a), (b) and (d) which each carry a concrete, falsifiable acceptance test. Under the Master Prompt evaluation doctrine a success rule is required before claim-bearing work; item (c) therefore cannot be adjudicated on completion.",
+      "same_cycle_repairable": true,
+      "repair_action": "Add a falsifiable acceptance test for item (c), e.g. 'for a defined sample of cross-language neighbour results, the API/UI surfaces the language-dominance qualifier and never presents a cross-language neighbour as language-consistent; qualifier present for 100% of sampled cross-language pairs.' Textual only."
+    }
+  ],
+  "claim_ceiling": "Direction v36 routing is procedurally supported and the deadlock diagnosis is verified: resume corpus PAUSE->RUN on exactly four bounded downstream-requested unblocking artifacts (bge_/bger_ ID mapping; 2022-2026 coverage reconciliation; 174k section extraction; frozen-metadata provenance restore), pause the three exhausted lanes (legal-distance, fractal-map, evaluation), resume product PAUSE->RUN on a bounded corpus-independent question, and keep the frontier portfolio empty (v1). The corrected mounting narrative (no V28 control-plane defect; workspace and mounted state/factory_direction.json are the same version) is supported. NOT supported: that a DENSE 174k citation-heritage AUC of 0.482 exists (accepted state records dense citation-heritage as not empirically validated / insufficient valid pairs; 0.482 is the sparse cited_outcome_hybrid_0.5_174k result); dense citation-heritage superiority over TF-IDF (retracted at 174k); a current jurist-preference baseline of JP 0.78-0.79 (accepted deterministic baseline is JP=0.659 / LD=0.4258); any new ACCEPTED evidence created by this proposal. The routing decision does not depend on the mis-sourced 0.482 label; the D-1 correction is a provenance fix, not a reversal of the routing.",
+  "evidence_summary": {
+    "cycle_type": "director_direction_proposal_repair",
+    "new_accepted_evidence": false,
+    "repairs_verified": {
+      "F-1": "PARTIAL - retracted 0.79-0.85 claim removed, but replacement text introduces false 'dense 174k AUC=0.482' attribution (D-1)",
+      "F-2": "FIXED - JP=0.659 / LD=0.4258 stated as current; 0.78-0.79 labelled 22yr partial-cohort; 0.5925/LD=0.3481 labelled stale; 0.7345 recorded LOST",
+      "F-3": "FIXED - product PAUSE->RUN on bounded corpus-independent question with per-item tests",
+      "F-4": "FIXED - 'four' corrected to 'three'"
+    },
+    "recomputed_facts": {
+      "corpus": "REPRODUCED dir17 COMPLETED cont=false; 174,113 decisions; 0 schema errors; full_text=1.0/regeste=.474/cited=.526/outcome=.505/legal_area=.526; citation resolve 2,019/2,105 (95.91%); bge_entries_indexed=17,618; year 2000-2026=173,963; 76/76 tests",
+      "evaluation": "ACCEPTED dir35 COMPLETE cont=false; frozen baseline cited_decisions_tfidf_outcome_hybrid_0.5 JP=0.659 / LD=0.4258; both adversarial gates PASS; citation_heritage_auc=0.7296; config_hash=4323f833fa72366a; ts=2026-10-10T07:05:27Z; previous 2026-10-03 JP=0.7345 invalidated; 0.5925/0.3481 stale",
+      "zero_four_eight_two_provenance": "source core/evaluation/results/evaluation/citation_heritage_174k.json (run citation_heritage_174k_1790199246): embedding=cited_outcome_hybrid_0.5_174k, auc_roc=0.481957, n_pos=804, n_neg=1608, status=FAIL -> SPARSE hybrid, NOT dense. Accepted CYCLE_38037204821.md L108 labels it '(cited_outcome_hybrid_0.5_174k)'; CYCLE_35949306163_GATE.json calls it 'TF-IDF ... dense embeddings required'; evaluation.json dense citation_heritage_view status=DENSE_NOT_EMPIRICALLY_VALIDATED_BLOCKED_ON_CITATION_GRAPH_COVERAGE (all dense 174k runs FAILED with insufficient valid pairs)",
+      "deliverable_d_identifiers": "OK - embeddings SHA 4135e00e... and config a31c443a... are the embedding/harness context shared by original and mutated states; accepted evidence (CYCLE_37887107630) identifies the mutation as metadata_174k.json reordering. Proposal correctly warns original freeze is LOST and forbids substituting a different metadata version",
+      "deadlock_diagnosis": "verified against factory-supervisor.yml: a RUN lane whose lab self-report has continue_recommended==false at the current direction version is skipped and raises NEED_DIRECTOR; at v35 CORE_RUN_DESIRED=3, dispatched 0",
+      "control_plane_correction": "verified - no V28-pattern mounting defect; workspace and mounted state/factory_direction.json are the same version; BLOCKED_ON_DEPENDENCIES/COMPLETE live only in lane self-reports"
+    },
+    "attack_surfaces": {
+      "mission_drift": "CLEAN",
+      "curiosity_or_frontier_proliferation": "CLEAN - portfolio empty v1; frontier write scope verified in frontier-team.yml L129 cannot emit canonical corpus/**",
+      "duplicated_teams": "CLEAN - zero frontier teams",
+      "unaccepted_evidence_laundering": "DEFECT D-1 - sparse cited_outcome_hybrid_0.5 0.482 misattributed to dense in report and control-plane questions",
+      "stale_blocked_questions": "CLEAN - three exhausted lanes paused; retracted/stale content reconciled",
+      "product_starvation_or_fake_parallelism": "CLEAN - product genuinely resumed on corpus-independent known_limitations",
+      "weak_baselines": "CLEAN - TF-IDF accepted production baseline vs strong center_projected semantic baseline; true-OOS ceiling ~0.53 preserved",
+      "frozen_benchmark_weakening": "CLEAN - no threshold/benchmark changed; corpus normalization closed; no claim-bearing output overwritten",
+      "benchmark_gaming_or_post_hoc_metrics": "CLEAN",
+      "boilerplate_confounding": "CLEAN - adversarial language-dominance gate retained",
+      "prettiness_as_quality": "N/A",
+      "unsupported_product_claims": "D-2 (item (c) untestable); otherwise concrete bounds and stop rule",
+      "human_decision_required_abuse": "CLEAN - none used",
+      "write_scope": "CLEAN - only reports/director/RUN_38040441141.md and state/factory_direction.json changed"
+    },
+    "negative_results_preserved": [
+      "dense center_projected jurist failure (JP 0.05-0.43)",
+      "dense citation-heritage retraction / not empirically validated at 174k (insufficient valid pairs)",
+      "sparse cited_outcome_hybrid_0.5 174k citation-heritage FAIL (AUC 0.482)",
+      "cross-lingual Erwaegungen FAIL 0.094",
+      "TF-IDF multi-level calibration FAIL",
+      "v18 coarse hierarchy NEGATIVE (max branch purity 0.65 < 0.7)",
+      "citation-heritage recall@10 NEGATIVE (max 0.0066)",
+      "original 2026-10-01/03 freeze JP=0.7345 LOST / not reproducible"
+    ],
+    "human_decision_required_used": false,
+    "safe_to_integrate_rationale": "Blocked only by same-cycle textual repairs D-1 (provenance misattribution of 0.482 to dense) and D-2 (missing acceptance test for product item (c)). No external data, no owner-level choice, no structural defect. The verified routing decision (direction v36) is unaffected and should integrate once D-1/D-2 are corrected."
+  }
+}
