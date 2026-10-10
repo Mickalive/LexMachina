@@ -1,0 +1,46 @@
+{
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "Update factory_direction.json to version 38: set lanes.corpus.status = 'COMPLETE' (was 'RUN'), update corpus question to reflect completion and artifact promotion",
+    "Update factory_direction.json lanes.legal-distance, fractal-map, evaluation, product: change pause rationale from 'pending corpus data/section extraction' to 'awaiting frontier-citation-graph graph integration' (corpus blockers resolved per accepted corpus.json v36)",
+    "Update frontier_portfolio.json to version 4: set teams[0].status = 'RUN' (was 'PAUSE'), clear blocker file state/blockers/frontier/frontier-citation-graph.json",
+    "Promote corpus artifacts in director report: section_spans_174k.parquet (174,114 decisions), bge_bger_crosswalk.parquet (eval alignment 1.000), bger_2024_2026_index.parquet (15,536 decisions) — all acceptance PASS per accepted corpus.json v36",
+    "Re-dispatch frontier-citation-graph charter v1 with ALL 6 declared dependencies mounted in team workspace: (1) corpus/normalization/canonical pinned 174k corpus, (2) corpus/normalization/canonical/resolved_full/citation_to_decision_id.json, (3) corpus/normalization/canonical/resolved_full/citation_graph_resolved.json, (4) evaluation/evaluation/build_174k_citation_graph.py, (5) evaluation/results/174k_citation_heritage/citation_graph_174k.json + citation_pairs_174k_full.json, (6) legal-distance center_projected_64dim embeddings for 2000-2021 subset",
+    "Fix control-plane mount configuration: ensure /tmp/lex_accepted (core/evaluation/, core/corpus/normalization/canonical/resolved_full/, core/legal-distance/results/174k_dense_embeddings/) is mounted into frontier-citation-graph team workspace for next dispatch",
+    "Update director report to acknowledge corpus lane completion (run 38058288630, direction v36, 14/14 tests PASS, evidence_tier REPRODUCED) and record artifact promotion + frontier re-dispatch"
+  ],
+  "claim_ceiling": "No new claims. Existing accepted claims stand: (1) TF-IDF citation hybrids PRIMARY at 174k (JP=0.659, LD=0.4258, both adversarial gates PASS, config_hash 4323f833fa72366a); (2) Dense citation-heritage RETRACTED (AUC 0.7189 on matched no-self pairs < 0.75 threshold, margin vs TF-IDF +0.003 < +0.02); (3) Dense cross-lingual sachverhalt 0.2816 > 0.2 PASS, dispositiv 0.1502 > 0.1 PASS, erwaegungen 0.0941 < 0.1 FAIL (sample n=359/538); (4) Dense zero-shot cross-language 0.2258 > TF-IDF 0.019 but < 0.2 threshold; (5) True OOS JuristPref ceiling ~0.53 < 0.7 factory target; (6) V1.0 product RELEASED with 3 TF-IDF modes at 173,963 decisions; (7) V1.1 dense complementary views defined (citation-heritage, cross-lingual, hybrid) but blocked on frontier-citation-graph integration and corpus artifacts (now resolved for cross-lingual).",
+  "evidence_summary": {
+    "core/evaluation/state/evaluation.json": {
+      "tier": "ACCEPTED",
+      "direction_version": 35,
+      "cycle_status": "COMPLETE",
+      "key_findings": "Frozen TF-IDF baseline cited_decisions_tfidf_outcome_hybrid_0.5 at 173,963: JP=0.659, LD=0.4258 (both gates PASS, deterministic 3 runs, config_hash 4323f833fa72366a). Dense citation-heritage RETRACTED (all 174k runs FAILED 'Insufficient valid pairs', prior AUC 0.7667-0.8182 retracted). Cross-lingual: sachverhalt 0.2816 PASS, dispositiv 0.1502 PASS, erwaegungen 0.0941 FAIL (samples). Zero-shot dense 0.2258 vs TF-IDF 0.019."
+    },
+    "core/corpus/state/corpus.json": {
+      "tier": "REPRODUCED",
+      "direction_version": 36,
+      "cycle_status": "COMPLETED",
+      "key_findings": "174,113 decisions. Three v36 deliverables ALL PASS (14/14 tests): (1) Section extraction 174k — section_spans_174k.parquet, coverage sachverhalt 0.6725/erwaegungen 0.9990/dispositiv 0.9676, structure parity 1.000/1.000/1.000. (2) BGE/bger crosswalk — bge_bger_crosswalk.parquet, eval alignment 173,963/173,963=1.000, vol>=127 link rate 0.894. (3) 2024-2026 parquet — bger_2024_2026_index.parquet, 15,536 decisions (2024=7,036; 2025=7,493; 2026=1,007), canonical regen 0 errors. Next recommendation: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS."
+    },
+    "core/legal-distance/state/legal-distance.json": {
+      "tier": "REPRODUCED",
+      "direction_version": 35,
+      "cycle_status": "SUCCESSOR_RECOMMENDED",
+      "key_findings": "Dense citation-heritage superiority FALSIFIED on identical matched self-pair-free pairs (dense_cp64 0.7189 vs cited_decisions_tfidf 0.7159, margin +0.003, 95% CI [-0.034,+0.037]). Dense = text-only proxy when citations absent. Two-mode tradeoff fundamental: TF-IDF citation hybrids JP 0.78-0.79 (primary), dense embeddings JP 0.05-0.43 (FAIL all scales), linear hybrids JP 0.61-0.67 (PASS adversarial but below TF-IDF). True OOS JuristPref ceiling ~0.53."
+    },
+    "core/fractal-map/state/fractal-map.json": {
+      "tier": "ACCEPTED",
+      "direction_version": 35,
+      "cycle_status": "COMPLETE_FALSIFICATION_PRODUCT_JOIN_BLOCKER",
+      "key_findings": "TF-IDF hierarchical metric reproduction 0.906-0.930 fine_branch_purity (bit-exact on eval-v25 embeddings) but fine ARI_branch 0.043 FAILS frozen positive control (<0.05) — no branch-recovery claim. Product join scrambled (BLOCKER_PRODUCT_JOIN_ALIGNMENT_V1: diag_is_best_match=0.0). Multi-level recursive protocol structurally valid (nesting>=0.95) but calibration FAILS (valid negative). Dense integration contract v34 FROZEN with 4 complementary views. 144k checkpoint validates scale extrapolation. 246/250 tests PASS."
+    },
+    "core/product/state/product.json": {
+      "tier": "ACCEPTED",
+      "direction_version": 34,
+      "cycle_status": "V1_0_RELEASED",
+      "key_findings": "V1.0 RELEASED stable: 3 TF-IDF production modes at 173,963 decisions (7 zoom levels, 16/16 scale PASS, 56 endpoints, WebGL <3s). Dense integration infrastructure READY (build script + 4 map_loader methods + contracts). V1.1 complementary views defined: citation-heritage (AUC>0.75, min 130k), cross-lingual (sachverhalt>0.2/dispositiv>0.1, min 174k with sections), hybrid (PASS adversarial, min 122k). Data blockers for v1.1 listed as BGE/bger ID mapping + parquet 2022-2026 + section extraction — ALL NOW RESOLVED per corpus.json v36."
+    }
+  }
+}
