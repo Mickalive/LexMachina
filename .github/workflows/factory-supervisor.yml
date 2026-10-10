@@ -143,39 +143,6 @@ jobs:
           NEED_HEALTH=0
           DIRV=$(jq -r '.version' state/factory_direction.json)
 
-          # A direction/charter change is a hard generation boundary: active
-          # work from an older generation must not consume capacity or integrate.
-          echo "Scanning for superseded Core runs..."
-          gh run list --repo "$GITHUB_REPOSITORY" --workflow core-lane.yml --limit 100 --json databaseId,displayTitle,status,createdAt \
-            | jq -r --arg epoch "$CONTROL_EPOCH" '.[] | select(.createdAt >= $epoch) | select(.status=="queued" or .status=="in_progress" or .status=="requested" or .status=="waiting" or .status=="pending") | "\(.databaseId)|\(.displayTitle)"' \
-            | while IFS='|' read -r id title; do
-                [[ -n "$id" ]] || continue
-                lane=$(printf '%s' "$title" | sed -nE 's/^Core ([^ ]+) dirV([0-9]+) .*/\1/p')
-                run_dirv=$(printf '%s' "$title" | sed -nE 's/^Core ([^ ]+) dirV([0-9]+) .*/\2/p')
-                [[ -n "$lane" && -n "$run_dirv" ]] || continue
-                lane_status=$(jq -r --arg lane "$lane" '.lanes[$lane].status // "PAUSE"' state/factory_direction.json)
-                if [[ "$run_dirv" != "$DIRV" || "$lane_status" != "RUN" ]]; then
-                  echo "::warning::Cancelling superseded Core run $id: $title (current dirV=$DIRV, lane_status=$lane_status)"
-                  gh run cancel "$id" --repo "$GITHUB_REPOSITORY" || true
-                fi
-              done
-
-          echo "Scanning for superseded Frontier runs..."
-          gh run list --repo "$GITHUB_REPOSITORY" --workflow frontier-team.yml --limit 100 --json databaseId,displayTitle,status,createdAt \
-            | jq -r --arg epoch "$CONTROL_EPOCH" '.[] | select(.createdAt >= $epoch) | select(.status=="queued" or .status=="in_progress" or .status=="requested" or .status=="waiting" or .status=="pending") | "\(.databaseId)|\(.displayTitle)"' \
-            | while IFS='|' read -r id title; do
-                [[ -n "$id" ]] || continue
-                team=$(printf '%s' "$title" | sed -nE 's/^Frontier ([^ ]+) v([0-9]+) .*/\1/p')
-                run_ver=$(printf '%s' "$title" | sed -nE 's/^Frontier ([^ ]+) v([0-9]+) .*/\2/p')
-                [[ -n "$team" && -n "$run_ver" ]] || continue
-                current_ver=$(jq -r --arg team "$team" '.teams[] | select(.team_id==$team) | .charter_version // empty' state/frontier_portfolio.json | head -n1)
-                current_status=$(jq -r --arg team "$team" '.teams[] | select(.team_id==$team) | .status // empty' state/frontier_portfolio.json | head -n1)
-                if [[ -z "$current_ver" || "$run_ver" != "$current_ver" || "$current_status" != "RUN" ]]; then
-                  echo "::warning::Cancelling superseded Frontier run $id: $title"
-                  gh run cancel "$id" --repo "$GITHUB_REPOSITORY" || true
-                fi
-              done
-
           CORE_RUN_DESIRED=$(jq '[.lanes[] | select(.status=="RUN")] | length' state/factory_direction.json)
           CORE_HUMAN=$(jq '[.lanes[] | select(.status=="HUMAN_DECISION_REQUIRED")] | length' state/factory_direction.json)
           FRONTIER_RUN_DESIRED=$(jq '[.teams[] | select(.status=="RUN")] | length' state/frontier_portfolio.json)
