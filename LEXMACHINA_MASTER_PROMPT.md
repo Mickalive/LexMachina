@@ -45,7 +45,15 @@ The product may expose multiple map modes when that improves navigation.
 A flat 2D/3D scatterplot is a baseline, not the product. The target is hierarchical and multi-resolution: corpus → domain → subdomain → subcluster → microcluster → decisions. Zoom should reveal more specific structure rather than merely enlarge points.
 
 ## 3D interaction requirement
-The shipped map must be a **true interactive 3D scene**, not merely a 2D canvas or a WebGL renderer with all vertices fixed at `z=0`. Users must be able to orbit, tilt, pan and zoom through a spatial legal landscape. The third visual dimension must remain honest: it may encode an evidence-backed legal/hierarchical signal, or a clearly labeled non-legal visualization aid such as local density/topographic relief, but it must never fabricate a legal metric. A 2D view may exist as an optional top-down mode, not as the canonical product experience.
+The shipped map must be a **true interactive 3D scene**, not merely a 2D canvas or a WebGL renderer with all vertices fixed at `z=0`.
+
+However, the canonical UX is a **constrained 2.5D legal territory**, not free-flight 3D. Ordinary navigation must feel like Google Maps: pan, zoom, select, double-click to enter a region, breadcrumb to leave it. Free orbit is an optional advanced mode, not a prerequisite for using the product.
+
+The map's visible geography must **emerge from legally meaningful relations**. X/Y neighborhoods come from the active evidence-backed legal representation; region boundaries come from the nested legal communities; the default relief comes from an explicitly defined relational field such as within-community cohesion / inter-community coupling. Mountains, valleys, passes, corridors and landmasses must therefore correspond to interpretable graph structure rather than cosmetic extrusion.
+
+The third visual dimension must remain honest: it may encode an evidence-backed legal/hierarchical signal, or a clearly labeled visualization-only aid, but it must never fabricate a legal metric. A top-down 2D inspection mode may exist, but a flat scatterplot is not the canonical product.
+
+The authoritative interaction and geometry specification is `docs/product/VISUALIZATION_V2_SPEC.md`.
 
 ## Evaluation doctrine
 Before claim-bearing measurement, freeze hypothesis, corpus/sample, baseline, metric and success rule. Preserve negative results. Compare against strong baselines. Prefer tests measuring jurist usefulness or credible proxies.
