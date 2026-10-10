@@ -1,0 +1,82 @@
+{
+  "run_id": "LEGAL_DISTANCE_V36_CITATION_HERITAGE_TEXT_PROXY_38051603155",
+  "lane": "legal-distance",
+  "direction_version": 35,
+  "github_run": 38051603155,
+  "created_utc": "2026-10-10T12:30:00Z",
+  "frozen_before_outcome": true,
+
+  "mission_link": "The v35 citation-heritage fairness audit (ACCEPTED, run 38039706350) FALSIFIED dense-superiority over the TF-IDF *citation* representation but left one surviving product role: 'dense embeddings are justified only as a TEXT-ONLY proxy for citation heritage when citation metadata is absent/unresolved (user-imported corpora)'. That role has NEVER been tested against the correct comparator (a text-only baseline the product can build without a citation graph). The product's second input mode is user-imported corpora, which typically have no resolved citation graph, so this proxy is the ONLY remaining executable path for a citation-heritage map mode. The evaluation lane's frozen dense complementary criterion (citation_heritage_view: AUC>=0.75 on shared>=2 pairs; TF-IDF comparator 0.7296) also conflicts with the v35 matched-pair numbers (dense_cp64 0.7189 vs cited_decisions_tfidf 0.7159 on identical no-self ORIG pairs). This cycle tests the surviving role and reconciles the criterion.",
+
+  "question": "For a corpus WITHOUT a resolved citation graph, are dense text embeddings a necessary-and-sufficient citation-heritage proxy - i.e. do they beat the strongest text-only baseline (the best representation the product could build from text alone) by a decisive margin on identical matched self-pair-free citation-relatedness pairs? And is the evaluation lane's frozen shared>=2 / AUC>=0.75 dense criterion a valid capability gate?",
+
+  "hypotheses_preregistered": {
+    "H1_dense_proxy_sufficiency_ORIG": "On identical matched self-pair-free ORIG pairs, dense_cp64 beats the best TEXT-ONLY representation (max over full_text_tfidf_light, regeste_tfidf, regeste_full_text_hybrid_0.5, regeste_full_text_hybrid_0.7) by >= +0.05 AUC.",
+    "H1b_dense_proxy_sufficiency_DIRECT": "Same comparison on the DIRECT citation relation (A cites B) with hard (non-citation-related) negatives, restricted to the identical dense-covered pair set, margin >= +0.05 AUC.",
+    "H2_eval_criterion_degenerate": "The evaluation lane's frozen dense citation-heritage criterion 'AUC>=0.75 on shared>=2 citation pairs' is relation-degenerate: a faithful citation representation (full-dim binary citation Jaccard) scores >=0.99 on SHARED2 and dense_cp64 scores >=0.90 on SHARED2, while dense_cp64 on the DIRECT relation is <0.75. A flat SHARED2 threshold therefore cannot certify the product capability.",
+    "H3_baseline_reconciliation": "The evaluation lane's frozen comparator 0.7296 is a with-self, mixed-relation ORIG number on a 1000-pos / 2000-neg sample; on the identical matched self-pair-free ORIG pairs the same cited_decisions_tfidf representation is materially lower (~0.7159), so 'dense >= 0.75' and 'TF-IDF = 0.7296' are not comparable quantities. Recompute and report both protocols."
+  },
+
+  "threats_preregistered": {
+    "T1_self_pairs": "ORIG positives contain (d,d) self-pairs (174/1020) whose cosine is 1.0 for every representation; remove them for all comparisons.",
+    "T2_pair_set_mismatch": "Dense checkpoints cover 2000-2023 (158,427 decisions); the full corpus metadata is 173,963 and the TF-IDF arrays are 175,440 rows. The primary comparison uses ONLY pairs where BOTH decisions have a dense checkpoint, so every representation is scored on the IDENTICAL pair list. Per-representation-filtered numbers are reported separately only for provenance.",
+    "T3_baseline_choice": "The text-only baseline family is fixed in advance. To avoid a weak-baseline win, the primary baseline is the MAX over the pre-registered text-only family (the hardest text-only comparator). citation-based representations (cited_decisions_tfidf, hybrids, jaccard) are NOT eligible as text-only baselines because they cannot be built without a citation graph.",
+    "T4_corpus_fitted_encoders": "Both dense and TF-IDF encoders are fitted on this corpus; this is symmetric for the proxy use case (both would be fitted on the imported corpus) and is not a dense advantage.",
+    "T5_pair_relation_heterogeneity": "ORIG mixes DIRECT and SHARED relations; the relation-stratified DIRECT/SHARED analysis is reported separately so a mixed-relation average cannot hide a relation-specific failure."
+  },
+
+  "fixed_representations": {
+    "dense_primary": ["dense_cp64 (per-language center projection + PCA-64 + L2)"],
+    "dense_secondary": ["dense_cp_768", "dense_raw_768"],
+    "text_only_family": [
+      "full_text_tfidf_light (TF-IDF over truncated full_text; always available)",
+      "regeste_tfidf (TF-IDF over regeste/headnote; available if curated summary present)",
+      "regeste_full_text_hybrid_0.5",
+      "regeste_full_text_hybrid_0.7"
+    ],
+    "text_only_primary_baseline": "max over text_only_family on the identical pair set",
+    "metadata_only_report_only": ["outcome_tfidf (outcome metadata; NOT text, reported for context only)"],
+    "citation_aware_context": [
+      "cited_decisions_tfidf (TF-IDF over cited decision IDs)",
+      "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "cited_decisions_tfidf_outcome_hybrid_0.7",
+      "citation_jaccard_full (full-dim binary outgoing-citation Jaccard; faithful citation reference)"
+    ]
+  },
+
+  "fixed_pair_sets": {
+    "ORIG_MATCHED_NO_SELF": "evaluation/results/174k_citation_heritage/citation_pairs_174k.json positives/negatives where BOTH decisions have a dense 2000-2023 checkpoint, minus (d,d) self-pairs. Expected n_pos=606, n_neg=834 (must match the v35 fairness audit).",
+    "ORIG_ALL_NO_SELF": "same file, self-pairs removed, no dense filter (context only).",
+    "DIRECT_HARD_MATCHED": "graph-derived ordered pairs (s,t), s!=t, t in graph[s], with hard negatives (no direct citation and zero shared outgoing targets), restricted to pairs where BOTH decisions are dense-covered (identical pair set for all representations).",
+    "SHARED1_HARD_MATCHED": "unordered pairs sharing >=1 outgoing citation target, hard negatives, dense-covered.",
+    "SHARED2_HARD_MATCHED": "unordered pairs sharing >=2 outgoing citation targets (the evaluation lane's relation), hard negatives, dense-covered."
+  },
+
+  "metric": "AUC-ROC via Mann-Whitney U with average ranks; cosine similarity as the decision score (TF-IDF vectors are L2-normalized but a proper cosine is always computed).",
+
+  "success_rules_frozen": {
+    "dense_text_proxy_justified": "H1 margin (dense_cp64 - max(text_only_family)) >= +0.05 AUC on ORIG_MATCHED_NO_SELF AND H1b margin >= +0.05 AUC on DIRECT_HARD_MATCHED. => product may ship a dense-based citation-heritage proxy view for imported corpora.",
+    "dense_text_proxy_partial": "exactly one of H1 / H1b passes. => ship only on the passing relation, marked exploratory.",
+    "dense_text_proxy_not_justified": "neither H1 nor H1b passes. => do NOT ship a dense-based citation-heritage view; use the best text-only TF-IDF baseline for imported corpora.",
+    "H2_supported": "citation_jaccard_full SHARED2_HARD_MATCHED AUC >= 0.99 AND dense_cp64 SHARED2_HARD_MATCHED AUC >= 0.90 AND dense_cp64 DIRECT_HARD_MATCHED AUC < 0.75.",
+    "uncertainty": "2000-resample paired bootstrap 95% CI on the dense_cp64-minus-best-text-only AUC margin (seed 42), resampling the shared valid pair list."
+  },
+
+  "decision_unlocked": {
+    "if_justified": "Product: add a dense-embedding citation-heritage PROXY mode for imported corpora without citations, criterion = dense_cp64 beats the best text-only baseline by >= +0.05 on DIRECT and ORIG. Evaluation lane: re-freeze the dense complementary criterion with a relation-stratified, self-pair-free, text-only-comparator rule.",
+    "if_not_justified": "Product: the citation-heritage mode for imported corpora uses the best text-only TF-IDF baseline; dense is NOT shipped for citation heritage. Legal-distance: revise the surviving-role statement accordingly; no further dense-proxy cycle justified.",
+    "either_way": "Reconcile the evaluation lane's frozen comparator 0.7296 (with-self, mixed-relation, 1000/2000 sample) with the identical matched self-pair-free number, and replace the flat shared>=2 / 0.75 gate with a relation-stratified criterion if H2 is supported."
+  },
+
+  "data_provenance": {
+    "dense_checkpoints": "legal_distance/results/174k_dense_embeddings/checkpoints/embeddings_{2000..2023}.npy + metadata_{year}.json (158,427 decisions)",
+    "full_metadata": "evaluation/data/174k/metadata_174k.json (173,963; identical id order to evaluation/results/174k/embeddings/metadata.json; both are prefixes of the 175,440-row TF-IDF arrays)",
+    "tfidf_embeddings": "evaluation/results/174k/embeddings/{cited_decisions_tfidf,cited_decisions_tfidf_outcome_hybrid_0.5,cited_decisions_tfidf_outcome_hybrid_0.7,full_text_tfidf_light,regeste_tfidf,regeste_full_text_hybrid_0.5,regeste_full_text_hybrid_0.7,outcome_tfidf}.npy (175,440 x 128)",
+    "citation_pairs_orig": "evaluation/results/174k_citation_heritage/citation_pairs_174k.json (1020 pos / 1020 neg; direct+shared among 174 citing decisions)",
+    "citation_graph": "/tmp/lex_accepted/evaluation/evaluation/results/174k_citation_heritage/citation_graph_174k.json (5031 sources, 7799 edges, 918 targets)",
+    "v35_committed_reference": "legal_distance/results/citation_heritage_fairness_audit_v35/{fairness_audit_results.json,relation_decomposition_results.json}",
+    "eval_lane_frozen_baseline": "/tmp/lex_accepted/evaluation/state/evaluation.json frozen_production_baseline.citation_heritage_auc = 0.7296; dense_embedding_complementary_acceptance_criteria.citation_heritage_view threshold 0.75 on shared>=2"
+  },
+
+  "note": "This experiment adds ONLY text-only baselines and identical-pair matching to the FROZEN v35 pipelines; it does not overwrite any prior result artifact. It tests the one surviving dense complementary role and reconciles a cross-lane criterion. No new data is generated."
+}
