@@ -1,0 +1,10 @@
+{
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "Fix test citation graph alignment: citation_graph_resolved_test.json resolution rate dropped from 95.91% to 52.07% due to test corpus (bger_test_2024.jsonl) replacement with 2024-only decisions that don't cover citation_graph.json's 2020 docket refs. Options: (A) Update citation_graph.json to include new test decisions' citations, (B) Restore test corpus to match citation_graph.json, (C) Make test self-contained with generated citation graph.",
+    "Verify test_citation_resolver_graph_resolution passes with resolution rate >= 95% after fix"
+  ],
+  "claim_ceiling": "Production corpus lane COMPLETE and VERIFIED at REPRODUCED tier: 174,113 decisions, 95.91% citation resolution, 0 schema errors, 14/14 v36 tests PASS, 76/76 total tests PASS, 15 independent verifications. Test infrastructure regression only — production artifacts unchanged and correct.",
+  "evidence_summary": "Production artifacts (resolved_full/, section_spans_174k.parquet, bge_bger_crosswalk.parquet, 2024-2026 artifacts) all verified against accepted base (run 38061671614) — no changes, all metrics PASS. Test artifacts (citation_graph_resolved_test.json) show REGRESSION: resolution rate 95.91% -> 52.07% because bger_test_2024.jsonl was replaced with 2024 API pull decisions that don't cover citation_graph.json's 2020 docket references. Root cause: test environment lacks year-split corpus files; test corpus must cover citation_graph.json refs. Fix required in test infrastructure before acceptance."
+}
