@@ -44,19 +44,6 @@ The product may expose multiple map modes when that improves navigation.
 ## Fractal requirement
 A flat 2D/3D scatterplot is a baseline, not the product. The target is hierarchical and multi-resolution: corpus → domain → subdomain → subcluster → microcluster → decisions. Zoom should reveal more specific structure rather than merely enlarge points.
 
-## 3D interaction requirement
-The shipped map must be a **true interactive 3D scene**, not merely a 2D canvas or a WebGL renderer with all vertices fixed at `z=0`.
-
-Camera freedom is allowed. Free orbit may be used if it remains usable; the product is not judged by whether the camera is constrained. The canonical UX requirement is that users can navigate, select and inspect the legal graph without fighting the camera.
-
-The map's visible geography must **emerge from legally meaningful relations**, and those relations must be directly inspectable. X/Y neighborhoods come from the active evidence-backed legal representation; region boundaries come from nested legal communities; relief may come from an explicitly defined relational field such as within-community cohesion / inter-community coupling. Mountains, valleys, passes, corridors and landmasses must therefore correspond to interpretable graph structure rather than cosmetic extrusion.
-
-Most importantly, the scene must expose the graph itself at the appropriate level of detail: aggregated inter-region corridors at coarse zoom, strongest neighboring-cluster relations at cluster zoom, and a bounded typed ego-network for a selected decision (e.g. citations, legal-neighborhood affinity, bridge relations, and other evidence-backed relation layers). A 3D point cloud without readable relations fails the product requirement.
-
-The third visual dimension must remain honest: it may encode an evidence-backed legal/hierarchical signal, or a clearly labeled visualization-only aid, but it must never fabricate a legal metric. A top-down 2D inspection mode may exist, but a flat scatterplot is not the canonical product.
-
-The authoritative interaction and geometry specification is `docs/product/VISUALIZATION_V2_SPEC.md`.
-
 ## Evaluation doctrine
 Before claim-bearing measurement, freeze hypothesis, corpus/sample, baseline, metric and success rule. Preserve negative results. Compare against strong baselines. Prefer tests measuring jurist usefulness or credible proxies.
 
