@@ -1,0 +1,107 @@
+{
+  "run": "38057542081",
+  "lane": "evaluation",
+  "direction_version": 36,
+  "mode": "REPAIR_ROUND_2",
+  "repair_round": 2,
+  "audit_base": "CYCLE_38057542081_GATE.json (gate=REVISE, safe_to_integrate=false)",
+  "prior_repair_commits": [
+    "e0d8e12e (accept evaluation cycle 38037204821)",
+    "452717a0 (evaluation cycle 38048232833 repair 0)",
+    "a1dff397 (evaluation cycle 38051663272 repair 0 - operational resume)",
+    "4a826f4f (evaluation cycle 38051663272 - verification pointer at 0.5925)",
+    "95dc3b44 (evaluation cycle 38057542081 repair 1 - reverted pointer to 0.659, D-1/D-2 fixed but new contradiction introduced)"
+  ],
+  "defects_fixed": {
+    "D-1": {
+      "severity": "HIGH",
+      "description": "state/report/pointer contradiction: state/evaluation.json claimed JP=0.5925 canonical, verification_latest.json reverted to JP=0.659",
+      "fix": "Updated state/evaluation.json to honestly document bimodal runner-dependence (Mode A: 0.5925, Mode B: 0.659); live pointer shows Mode B; both are byte-stable and equally valid under identical recorded inputs",
+      "files_changed": ["state/evaluation.json"]
+    },
+    "D-2": {
+      "severity": "HIGH",
+      "description": "False claim: '3 identical runs => canonical 0.5925' and '0.659 NOT_REPRODUCED' falsified by this cycle's own 14:02 runs reproducing 0.659 byte-for-byte",
+      "fix": "Replaced reproducibility claim with honest bimodal/runner-dependent statement in state/evaluation.json (baseline_reproducibility and meta_stability blocks); both modes PASS both gates",
+      "files_changed": ["state/evaluation.json"]
+    },
+    "D-3": {
+      "severity": "MEDIUM",
+      "description": "Per-run provenance omitted embedding hashes, v3-harness hash, peer branch tips, threading/hash-seed env",
+      "fix": "Enhanced verification_latest_provenance.json with embedding hashes (all 8 embeddings), harness hashes (verify_frozen_baseline.py and evaluation_v3_harness.py), peer mount branches, and threading environment (OMP_NUM_THREADS, OPENBLAS_NUM_THREADS, MKL_NUM_THREADS, PYTHONHASHSEED)",
+      "files_changed": ["evaluation/results/174k_tfidf_formal_suite/verification_latest_provenance.json"]
+    },
+    "D-4": {
+      "severity": "LOW",
+      "description": "No narrative/run reference for 38057542081; final stdout not preserved",
+      "fix": "Created this diagnosis JSON and accompanying report EVALUATION_REPAIR_ROUND_2_38057542081_AUDIT_READY.md; stdout captured in verification run logs",
+      "files_changed": ["results/evaluation/REPAIR_ROUND_2_38057542081_DIAGNOSIS.json", "reports/evaluation/EVALUATION_REPAIR_ROUND_2_38057542081_AUDIT_READY.md"]
+    }
+  },
+  "verification_runs": {
+    "run_1": {
+      "file": "verification_20261010_140218.json",
+      "sha256": "cff6b19e722b28810e52989faaec0821dc88c644c8b2986cf75c088069ae7ade",
+      "target_jp": 0.659,
+      "target_ld": 0.425775,
+      "reps_passing_both": 7,
+      "reps_tested": 8,
+      "neither_available": 1
+    },
+    "run_2": {
+      "file": "verification_20261010_140222.json",
+      "sha256": "cff6b19e722b28810e52989faaec0821dc88c644c8b2986cf75c088069ae7ade",
+      "target_jp": 0.659,
+      "target_ld": 0.425775,
+      "reps_passing_both": 7,
+      "reps_tested": 8,
+      "neither_available": 1
+    },
+    "run_3": {
+      "file": "verification_20261010_140227.json",
+      "sha256": "cff6b19e722b28810e52989faaec0821dc88c644c8b2986cf75c088069ae7ade",
+      "target_jp": 0.659,
+      "target_ld": 0.425775,
+      "reps_passing_both": 7,
+      "reps_tested": 8,
+      "neither_available": 1
+    }
+  },
+  "alternative_mode_preserved": {
+    "description": "Mode A (0.5925/0.348125) preserved in reproducibility archive",
+    "evidence": [
+      "results/evaluation/frozen_baseline_reproducibility/FROZEN_cycle_38048232833_RESULT.json (runs 1-3)",
+      "results/evaluation/frozen_baseline_reproducibility/run3_determinism_check.json",
+      "verification_20261010_130425.json (sha256 6514501d...)"
+    ]
+  },
+  "identical_inputs_confirmed": {
+    "metadata_sha256": "34a0d4677c14c7f01b8b918bf87f5c330635dd3b620d83a75ba8b50e9fe59469",
+    "target_embedding_sha256": "4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc",
+    "harness_sha256": "c0a519a4e1cb02dafa5b6b9540a5a7f01123ae4af391cfac87a07815a97e0d10",
+    "harness_v3_sha256": "eab5ccabb909740180ea7a14f6fb547979057209855cd6e00e2436ac4e5b2cbe",
+    "python": "3.12.3",
+    "numpy": "2.5.3",
+    "sklearn": "1.9.1"
+  },
+  "mission_criterion": {
+    "jurist_gate": "PASS in both modes (JP > 0.5 and > 0.43 semantic baseline)",
+    "language_gate": "PASS in both modes (LD < 0.85)",
+    "satisfied": true
+  },
+  "evidence_refs": [
+    "state/evaluation.json",
+    "evaluation/results/174k_tfidf_formal_suite/verification_latest.json",
+    "evaluation/results/174k_tfidf_formal_suite/verification_latest_provenance.json",
+    "evaluation/results/174k_tfidf_formal_suite/verification_20261010_140218.json",
+    "evaluation/results/174k_tfidf_formal_suite/verification_20261010_140222.json",
+    "evaluation/results/174k_tfidf_formal_suite/verification_20261010_140227.json",
+    "results/evaluation/frozen_baseline_reproducibility/FROZEN_cycle_38048232833_RESULT.json",
+    "results/evaluation/frozen_baseline_reproducibility/provenance.json",
+    "results/evaluation/frozen_baseline_reproducibility/run3_determinism_check.json",
+    "tmp/lex_prior_audit/results/audit/evaluation/CYCLE_38057542081_GATE.json",
+    "tmp/lex_prior_audit/reports/audit/evaluation/CYCLE_38057542081.md"
+  ],
+  "continue_recommended": false,
+  "next_recommendation": "PRODUCTIZE_TFIDF_BASELINE_AND_DEFINE_DENSE_COMPLEMENTARY_CRITERIA; no further evaluation cycles under same question justified"
+}

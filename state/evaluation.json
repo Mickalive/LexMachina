@@ -1,33 +1,30 @@
 {
   "lane": "evaluation",
-  "direction_version": 35,
+  "direction_version": 36,
   "evidence_tier": "ACCEPTED",
   "cycle_status": "COMPLETE",
   "continue_recommended": false,
   "accepted_run_id": "EVAL_FREEZE_TFIDF_174K_BASELINE_20261010",
-  "proposed_run_id": "EVAL_BASELINE_REPRO_REPAIR_38051663272",
-  "producer_run": "38051663272 (operational resume of snapshot 38048817288)",
-  "repair_evidence_tier": "REPRODUCED",
   "evidence_refs": [
-    "results/evaluation/frozen_baseline_reproducibility/FROZEN_cycle_38048232833_RESULT.json",
-    "results/evaluation/frozen_baseline_reproducibility/provenance.json",
-    "results/evaluation/frozen_baseline_reproducibility/run3_determinism_check.json",
-    "evaluation/results/174k_tfidf_formal_suite/verification_latest_provenance.json",
     "evaluation/results/174k_tfidf_formal_suite/verification_latest.json",
+    "evaluation/results/174k_tfidf_formal_suite/verification_latest_provenance.json",
     "results/evaluation/citation_heritage_174k_tfidf_latest.json",
     "results/evaluation/partial_dense_2000_2002/section_crosslingual_eval_latest.json",
     "evaluation/tests/jurist_usability.py",
     "evaluation/tests/cross_language_benchmarks.py",
     "evaluation/tests/citation_proximity.py",
     "results/jurist_usability_results.json",
-    "results/cross_language_benchmark_results.json"
+    "results/cross_language_benchmark_results.json",
+    "results/evaluation/frozen_baseline_reproducibility/FROZEN_cycle_38048232833_RESULT.json",
+    "results/evaluation/frozen_baseline_reproducibility/provenance.json",
+    "results/evaluation/frozen_baseline_reproducibility/run3_determinism_check.json"
   ],
-  "next_recommendation": "PRODUCTIZE_TFIDF_BASELINE_AND_DEFINE_DENSE_COMPLEMENTARY_CRITERIA; CONTROL_PLANE_RECONCILE_EVALUATION_STATUS_RUN_TO_PAUSE",
+  "next_recommendation": "PRODUCTIZE_TFIDF_BASELINE_AND_DEFINE_DENSE_COMPLEMENTARY_CRITERIA",
   "frozen_production_baseline": {
     "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
     "corpus_scale": 173963,
-    "jurist_preference_rate": 0.5925,
-    "language_dominance_score": 0.348125,
+    "jurist_preference_rate": 0.659,
+    "language_dominance_score": 0.425775,
     "adversarial_gates": {
       "adversarial_language_dominance": "PASS",
       "jurist_pairwise_preference": "PASS",
@@ -36,18 +33,12 @@
     "citation_heritage_auc": 0.7296,
     "cross_language_recall_at_10": 0.1194,
     "boilerplate_resistance_score": null,
-    "temporal_stability": 0.381,
+    "temporal_stability": 0.3810,
     "hierarchy_coherence_nesting": 0.3173,
-    "verification_timestamp": "2026-10-10T12:31:02Z",
+    "verification_timestamp": "2026-10-10T14:02:27Z",
     "verification_config_hash": "a31c443a9b0e992e",
     "verification_subsample_size": 2000,
-    "note": "Corrected 2026-10-10 by operational-resume 38051663272 (snapshot of 38048817288). The previously recorded JP=0.659/LD=0.4258 (config hash 4323f833fa72366a) was NOT reproducible in the pinned environment. Two runs of the frozen harness plus a third determinism run all give JP=0.5925/LD=0.348125 (6/8 PASS, config hash a31c443a9b0e992e) against the hash-pinned accepted mount (metadata sha256 34a0d467..., target embedding sha256 4135e00e...). This matches the independent accepted audit CYCLE_38037204821 value. Root cause: cross-environment k-NN tie-breaking (numpy/sklearn) compounded by the documented accepted-mount mutation history. Values are pinned to env python 3.12.3 / numpy 2.5.3 / sklearn 1.9.1. Mission criterion still satisfied (JP 0.5925 > 0.5 gate and > 0.43 semantic baseline).",
-    "verification_environment": {
-      "python": "3.12.3",
-      "numpy": "2.5.3",
-      "sklearn": "1.9.1"
-    },
-    "verification_runs_identical": 3
+    "note": "Updated 2026-10-10 per cycle 38057542081 repair 2: three verification runs at 14:02Z (verification_20261010_140218/22/27.json) are byte-identical (sha256 cff6b19e...) and show JP=0.659, LD=0.425775 (7/8 PASS). The prior frozen baseline (operational-resume 38051663272, config hash a31c443a9b0e992e) produced JP=0.5925, LD=0.348125 (6/8 PASS) under the SAME metadata content hash (34a0d467...), SAME embedding blobs (4135e00e...), SAME harness code (c0a519a4...), and SAME library versions (python 3.12.3/numpy 2.5.3/sklearn 1.9.1). The point value is RUNNER/MACHINE-DEPENDENT (bimodal: {0.5925, 0.659}) and NOT a stable property of the pinned library versions alone. Both modes PASS both adversarial gates (JP>0.5, >0.43 semantic baseline; LD<0.85). The value quoted here (0.659) reflects the latest live pointer; the alternative canonical mode (0.5925) is equally valid and preserved in the reproducibility archive. NO single number may be quoted as THE frozen baseline without specifying the runner/concurrency environment."
   },
   "dense_embedding_complementary_acceptance_criteria": {
     "citation_heritage_view": {
@@ -101,7 +92,7 @@
         "center_projected_64dim_full": 0.2258,
         "center_projected_64dim_sachverhalt": 0.1886
       },
-      "tfidf_baseline": 0.019,
+      "tfidf_baseline": 0.0190,
       "status": "DENSE_EXCEEDS_TFIDF_BUT_BELOW_02_THRESHOLD",
       "note": "Strong relative to TF-IDF (0.2258 vs 0.0190); absolute threshold aspirational for v1.1. Below 0.2 threshold for sachverhalt (0.1886)."
     }
@@ -179,67 +170,79 @@
     },
     "neighbor_shift_explanation": "Previous verification (65f4748d) showed neither_available=438; new verification (38032814066) shows neither_available=1. This shift reflects re-running the adversarial verification protocol against the embedding artifact built on 2026-09-24 with the corrected HNSW search configuration (ef_search=100, k=20). The previous verification used a different search protocol or index state. The new verification is deterministic (3 identical runs) and represents the current frozen baseline for the production mode cited_decisions_tfidf_outcome_hybrid_0.5."
   },
-  "baseline_reproducibility_repair": {
-    "performed_by_run": "operational-resume-38051663272 (snapshot of 38048817288)",
-    "experiment": "evaluation/experiments/FROZEN_cycle_38048232833_baseline_reproducibility.json",
-    "experiment_frozen_at_utc": "2026-10-10T11:30:00Z",
-    "verdict": "NOT_REPRODUCED",
-    "success_rule": "REPRODUCED iff both repeated runs equal each other AND equal recorded JP=0.659/LD=0.4258 within +/-0.001",
-    "runs_identical_to_each_other": true,
-    "run_jp": [
-      0.5925,
-      0.5925,
-      0.5925
-    ],
-    "run_ld": [
-      0.348125,
-      0.348125,
-      0.348125
-    ],
-    "reps_passing_both": [
-      6,
-      6,
-      6
-    ],
-    "recorded_value_archived": {
-      "jurist_preference_rate": 0.659,
-      "language_dominance_score": 0.4258,
-      "verification_timestamp": "2026-10-10T07:05:27Z",
-      "verification_config_hash": "4323f833fa72366a",
-      "note": "Updated 2026-10-10 per cycle 38032814066 repair: new adversarial verification (3 deterministic runs) shows JP=0.659, LD=0.4258. Previous freeze (2026-10-03 JP=0.7345) invalidated by post-freeze accepted mount mutation; previous evaluation.json (JP=0.5925, LD=0.3481) was stale. Embedding artifact: evaluation/results/174k_tfidf_formal_suite/embeddings/ (built 2026-09-24, seed=42, dim=128, HNSW M=16 ef_construction=200 ef_search=100). Neighbor shift (neither_available 438\u21921) reflects re-run against this embedding artifact with corrected search protocol; not a frozen baseline mutation."
+  "baseline_reproducibility": {
+    "status": "BIMODAL_RUNNER_DEPENDENT",
+    "documented_modes": {
+      "mode_A": {
+        "jurist_preference_rate": 0.5925,
+        "language_dominance_score": 0.348125,
+        "reps_passing_both": 6,
+        "reps_tested": 8,
+        "config_hash": "a31c443a9b0e992e",
+        "neither_available": 438,
+        "observed_in": ["operational-resume 38051663272 (runs 1-3)", "frozen reproducibility experiment 38048232833"],
+        "verification_sha256": "6514501d9a8398257ffed4b8d66e91b48d26cf5f0f719ef38371c9ef3e43a828"
+      },
+      "mode_B": {
+        "jurist_preference_rate": 0.659,
+        "language_dominance_score": 0.425775,
+        "reps_passing_both": 7,
+        "reps_tested": 8,
+        "config_hash": "a31c443a9b0e992e",
+        "neither_available": 1,
+        "observed_in": ["accepted base verification_latest.json @ e0d8e12e", "cycle 38057542081 (verification_20261010_140218/22/27.json)", "cycle 38057542081 live pointer"],
+        "verification_sha256": "cff6b19e722b28810e52989faaec0821dc88c644c8b2986cf75c088069ae7ade"
+      }
     },
-    "reproducible_value": "JP=0.5925 LD=0.348125 (config hash a31c443a9b0e992e)",
-    "repair_actions": [
-      "Pinned metadata content sha256 in evaluation/verify_frozen_baseline.py (PINNED_METADATA_SHA256) with env-var hard-fail (LEX_ENFORCE_METADATA_PIN=1)",
-      "Pinned environment (python 3.12.3/numpy 2.5.3/sklearn 1.9.1) and emitted verification_latest_provenance.json sidecar",
-      "Recorded the actual reproducible value in frozen_production_baseline",
-      "Flagged the frozen-baseline claim as environment/mount meta-unstable (see meta_stability)"
-    ],
-    "raw_evidence": [
-      "results/evaluation/frozen_baseline_reproducibility/FROZEN_cycle_38048232833_RESULT.json",
-      "results/evaluation/frozen_baseline_reproducibility/provenance.json",
-      "results/evaluation/frozen_baseline_reproducibility/run3_determinism_check.json",
-      "evaluation/results/174k_tfidf_formal_suite/verification_latest_provenance.json"
-    ]
+    "identical_recorded_inputs_across_modes": {
+      "metadata_sha256": "34a0d4677c14c7f01b8b918bf87f5c330635dd3b620d83a75ba8b50e9fe59469",
+      "target_embedding_sha256": "4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc",
+      "harness_sha256": "c0a519a4e1cb02dafa5b6b9540a5a7f01123ae4af391cfac87a07815a97e0d10",
+      "harness_v3_sha256": "eab5ccabb909740180ea7a14f6fb547979057209855cd6e00e2436ac4e5b2cbe",
+      "python": "3.12.3",
+      "numpy": "2.5.3",
+      "sklearn": "1.9.1"
+    },
+    "conclusion": "The jurist_preference_rate is BIMODAL and RUNNER/MACHINE-DEPENDENT. Two byte-stable modes exist under IDENTICAL recorded inputs (metadata, embeddings, harness code, library versions). The mechanism is NOT established (likely BLAS/thread-scheduling differences affecting k-NN tie-breaking on near-tie distances in citation/outcome embeddings). Both modes PASS both adversarial gates. NO single value (0.5925 or 0.659) may be quoted as THE canonical frozen baseline without specifying the runner/concurrency environment. The live pointer currently shows Mode B (0.659); Mode A (0.5925) is equally reproducible and preserved in the reproducibility archive.",
+    "mission_criterion": {
+      "jurist_gate": "PASS in both modes (JP > 0.5 and > 0.43 semantic baseline)",
+      "language_gate": "PASS in both modes (LD < 0.85)",
+      "satisfied": true
+    },
+    "verification_runs_identical": true,
+    "verification_runs_count": 3,
+    "note": "Prior state claimed '3 identical runs => canonical 0.5925' and '0.659 NOT_REPRODUCED'. This was falsified by cycle 38057542081 which reproduced 0.659 byte-for-byte on the same accepted inputs. The honest statement is bimodal runner-dependence."
   },
   "meta_stability": {
-    "status": "META_UNSTABLE_ACROSS_ENVIRONMENTS",
-    "reproducible": true,
-    "reproducible_within_pinned_environment": true,
-    "reproducible_across_environments": false,
-    "cause": "k-NN tie-breaking differs across numpy/sklearn versions; accepted-mount artifacts were also mutated twice post-freeze (fractal-map rebuild 2026-10-07, mount refresh 2026-10-08)",
+    "status": "META_UNSTABLE_ACROSS_RUNNERS",
+    "reproducible_within_runner": true,
+    "reproducible_across_runners": false,
+    "cause": "k-NN tie-breaking differs across runners/machines (not pinned by python/numpy/sklearn versions); two byte-stable modes observed (0.5925 and 0.659) under identical recorded inputs",
     "documented_values": {
-      "env_2026-10-09_post_1624": "JP=0.5925/LD=0.3481 (6/8 PASS)",
-      "env_pre_2026-10-09_1624": "JP=0.659/LD=0.4258 (7/8 PASS)",
-      "original_freeze_2026-10-01": "JP=0.735/LD=0.477 (8/8 PASS, permanently lost)"
+      "mode_A_runner": "JP=0.5925/LD=0.348125 (6/8 PASS, neither_available=438)",
+      "mode_B_runner": "JP=0.659/LD=0.425775 (7/8 PASS, neither_available=1)",
+      "original_freeze_2026-10-01": "JP=0.735/LD=0.477 (8/8 PASS, permanently lost to post-freeze mount mutations)"
     },
-    "conclusion": "Production baseline PASSES both adversarial gates in EVERY documented environment (JP>0.5, LD<0.85); the exact JP/LD value is environment-dependent and must never be quoted without the pinned environment."
+    "conclusion": "Production baseline PASSES both adversarial gates in EVERY documented runner/mode (JP>0.5, LD<0.85); the exact JP/LD value is runner-dependent and must never be quoted without the runner/concurrency environment."
   },
   "control_plane_reconciliation": {
-    "issue": "/tmp/lex_control/state/factory_direction.json (v35) lists lanes.evaluation.status=RUN priority=1 while accepted state/evaluation.json is cycle_status=COMPLETE with continue_recommended=false.",
-    "observed_effect": "Four consecutive fresh evaluation cycles (38038745129, 38041914843, 38044734747, 38047626287) produced zero-delta output; audit CYCLE_38047626287 returned gate=BLOCKED citing this structural mismatch.",
-    "owner": "Factory Director / control plane (NOT same-cycle producer-fixable; producer scope excludes state/factory_direction.json)",
-    "action_required": "Set lanes.evaluation.status=PAUSE (or supply a new accepted question) so the supervisor stops dispatching finished evaluation cycles.",
-    "producer_note": "This operational-resume run supplied a genuine durable delta (baseline reproducibility experiment + state repair) instead of another empty cycle."
+    "issue": "/tmp/lex_control/state/factory_direction.json (v36) lists lanes.evaluation.status=PAUSE; this state file is cycle_status=COMPLETE with continue_recommended=false. Alignment achieved.",
+    "observed_effect": "No further evaluation cycles should be dispatched under the same v36 question.",
+    "owner": "Factory Director / control plane",
+    "action_required": "None - alignment achieved in v36."
+  },
+  "repair_history": {
+    "cycle_38051663272": {
+      "type": "OPERATIONAL_RESUME",
+      "action": "Executed frozen reproducibility experiment; corrected frozen_production_baseline to 0.5925; added metadata pinning; added meta_stability; archived non-reproducible 0.659 value"
+    },
+    "cycle_38053714213": {
+      "type": "REPAIR_ROUND_1_D1_D2",
+      "action": "Fixed D-1 (import os in verify_frozen_baseline.py) and D-2 (provenance pre_/rerun_* labeling)"
+    },
+    "cycle_38057542081": {
+      "type": "REPAIR_ROUND_2_D1_D2_D3_D4",
+      "action": "Fixed state/report/pointer contradiction (D-1); replaced false reproducibility claim with honest bimodal statement (D-2); enhanced provenance with embedding/harness hashes and threading env (D-3); added run 38057542081 diagnosis report (D-4)"
+    }
   }
 }
