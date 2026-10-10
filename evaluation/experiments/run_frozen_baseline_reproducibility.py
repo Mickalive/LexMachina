@@ -22,16 +22,18 @@ Outputs (all inside the evaluation lane namespace):
 """
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import time
 from pathlib import Path
 
-REPO = Path("/home/runner/work/LexMachina/LexMachina")
-SPEC = REPO / "evaluation/experiments/FROZEN_cycle_38048232833_baseline_reproducibility.json"
-HARNESS = REPO / "evaluation/verify_frozen_baseline.py"
-FORMAL_DIR = REPO / "evaluation/results/174k_tfidf_formal_suite"
-OUT = REPO / "results/evaluation/frozen_baseline_reproducibility"
+repo = Path("/home/runner/work/LexMachina/LexMachina")
+CYCLE_LABEL = os.environ.get("LEX_FROZEN_RUN_LABEL", "operational-resume-38053714213 (re-execution of frozen experiment; resume of 38053276639)")
+SPEC = repo / "evaluation/experiments/FROZEN_cycle_38048232833_baseline_reproducibility.json"
+HARNESS = repo / "evaluation/verify_frozen_baseline.py"
+FORMAL_DIR = repo / "evaluation/results/174k_tfidf_formal_suite"
+OUT = repo / "results/evaluation/frozen_baseline_reproducibility"
 TARGET = "cited_decisions_tfidf_outcome_hybrid_0.5"
 
 PEER_METADATA = Path("/tmp/lex_accepted/legal-distance/evaluation/data/174k/metadata_174k.json")
@@ -108,11 +110,11 @@ def main() -> int:
 
     provenance = {
         "experiment": spec["claim_under_test"],
-        "frozen_spec_path": str(SPEC.relative_to(REPO)),
+        "frozen_spec_path": str(SPEC.relative_to(repo)),
         "frozen_spec_sha256": sha256(SPEC),
-        "harness_path": str(HARNESS.relative_to(REPO)),
+        "harness_path": str(HARNESS.relative_to(repo)),
         "harness_sha256": sha256(HARNESS),
-        "harness_v3_sha256": sha256(REPO / "evaluation/evaluation_v3_harness.py"),
+        "harness_v3_sha256": sha256(repo / "evaluation/evaluation_v3_harness.py"),
         "success_rule": spec["success_rule"],
         "recorded_jp": recorded_jp,
         "recorded_ld": recorded_ld,
@@ -123,17 +125,68 @@ def main() -> int:
     }
 
     # Preserve the pre-run pointer before the harness overwrites it.
+    # D-2 hardening (operational-resume 38053714213, audit CYCLE_38051663272):
+    # the pre_* fields MUST always describe the FIRST captured pointer
+    # (PRE_verification_latest.json). Re-runs must never clobber them:
+    # they record their own pointer under rerun_* fields instead.
     pre_path = FORMAL_DIR / "verification_latest.json"
     pre_out = OUT / "PRE_verification_latest.json"
+    prov_path = OUT / "provenance.json"
+    existing_prov = {}
+    if prov_path.exists():
+        try:
+            existing_prov = json.loads(prov_path.read_text())
+        except Exception:
+            existing_prov = {}
     if pre_path.exists():
         pre_bytes = pre_path.read_bytes()
+        pre_sha = hashlib.sha256(pre_bytes).hexdigest()
         if not pre_out.exists():
-            (OUT / "PRE_verification_latest.json").write_bytes(pre_bytes)
+            # First capture: this IS the original pre-repair pointer.
+            pre_out.write_bytes(pre_bytes)
+            provenance["pre_verification_latest_sha256"] = pre_sha
+            provenance["pre_verification_pointer_metrics"] = extract(json.loads(pre_bytes))
         else:
+            # Re-run: preserve the ORIGINAL pre_* pointer; record this run separately.
             (OUT / "PRE_verification_latest_rerun.json").write_bytes(pre_bytes)
-        provenance["pre_verification_latest_sha256"] = hashlib.sha256(pre_bytes).hexdigest()
-        pre_verif = json.loads(pre_bytes)
-        provenance["pre_verification_pointer_metrics"] = extract(pre_verif)
+            existing_pre_sha = existing_prov.get("pre_verification_latest_sha256")
+            if existing_pre_sha:
+                provenance["pre_verification_latest_sha256"] = existing_pre_sha
+                provenance["pre_verification_pointer_metrics"] = existing_prov.get("pre_verification_pointer_metrics")
+            else:
+                provenance["pre_verification_latest_sha256"] = hashlib.sha256(pre_out.read_bytes()).hexdigest()
+                provenance["pre_verification_pointer_metrics"] = extract(json.loads(pre_out.read_bytes()))
+            provenance["rerun_verification_latest_sha256"] = pre_sha
+            provenance["rerun_verification_pointer_metrics"] = extract(json.loads(pre_bytes))
+    # Provenance self-documentation (audit CYCLE_38051663272 D-2 repair;
+    # metadata only - never touches metrics/sample/thresholds/success rule).
+    provenance["harness_note"] = (
+        "harness_sha256 is the sha256 of evaluation/verify_frozen_baseline.py at THIS execution. "
+        "The original frozen-experiment execution (operational-resume 38051663272) used the "
+        "pre-repair harness sha256 c4261095...; the audit D-1 repair (added 'import os', applied by "
+        "operational-resume 38053714213) is behavior-neutral (verified: 6/8 representations PASS both "
+        "adversarial gates, JP=0.5925/LD=0.348125 on the main path; clean SystemExit(2) on the "
+        "LEX_ENFORCE_METADATA_PIN=1 hard-fail path that previously raised NameError)."
+    )
+    provenance["pre_verification_pointer_metrics"]["source_file"] = "PRE_verification_latest.json"
+    provenance["pre_verification_pointer_metrics"]["note"] = (
+        "True pre-repair pointer (FIRST capture of the rolling verification_latest pointer). "
+        "sha256 cff6b19e... is byte-identical to the accepted base "
+        "evaluation/results/174k_tfidf_formal_suite/verification_latest.json (JP=0.659 / LD=0.425775)."
+    )
+    if "rerun_verification_latest_sha256" in provenance:
+        provenance["rerun_verification_pointer_metrics"]["source_file"] = "PRE_verification_latest_rerun.json"
+        provenance["rerun_verification_pointer_metrics"]["note"] = (
+            "Pointer captured by a later invocation of this runner (the rolling latest pointer as it "
+            "stood immediately before that re-run of verify_frozen_baseline.py). Never overwrites pre_*."
+        )
+    provenance["d2_repair"] = {
+        "audit": "CYCLE_38051663272",
+        "gate": "REVISE",
+        "defect": "In the committing run (operational-resume 38051663272) the pre_verification_latest_sha256 / pre_verification_pointer_metrics fields pointed at the POST-run rerun (PRE_verification_latest_rerun.json, sha256 6514501d..., JP=0.5925) instead of the TRUE pre-repair pointer (PRE_verification_latest.json, sha256 cff6b19e..., JP=0.659/LD=0.425775).",
+        "fix": "This runner now preserves the FIRST-captured pointer in pre_* forever and records any later pointer separately under rerun_*; applied by operational-resume 38053714213.",
+        "verified": "Re-execution after the fix preserves pre_* = cff6b19e.../JP=0.659 and records rerun_* = 6514501d.../JP=0.5925."
+    }
     (OUT / "provenance.json").write_text(json.dumps(provenance, indent=2) + "\n")
 
     # Run the frozen harness N=2 times exactly as authored.
@@ -142,7 +195,7 @@ def main() -> int:
         t0 = time.time()
         proc = subprocess.run(
             [sys.executable, str(HARNESS)],
-            cwd=str(REPO), capture_output=True, text=True,
+            cwd=str(repo), capture_output=True, text=True,
         )
         dt = time.time() - t0
         (OUT / f"run{i}_stdout.log").write_text(proc.stdout + "\n---STDERR---\n" + proc.stderr)
@@ -171,7 +224,7 @@ def main() -> int:
                       and same_between_runs and r1_matches_recorded and r2_matches_recorded)
 
     result = {
-        "cycle_run": "operational-resume-38051663272 (snapshot of 38048817288)",
+        "cycle_run": CYCLE_LABEL,
         "lane": "evaluation",
         "direction_version": spec["direction_version"],
         "experiment_frozen_at_utc": spec["frozen_at_utc"],

@@ -1,0 +1,245 @@
+{
+  "lane": "evaluation",
+  "direction_version": 35,
+  "evidence_tier": "ACCEPTED",
+  "cycle_status": "COMPLETE",
+  "continue_recommended": false,
+  "accepted_run_id": "EVAL_FREEZE_TFIDF_174K_BASELINE_20261010",
+  "proposed_run_id": "EVAL_BASELINE_REPRO_REPAIR_38051663272",
+  "producer_run": "38051663272 (operational resume of snapshot 38048817288)",
+  "repair_evidence_tier": "REPRODUCED",
+  "evidence_refs": [
+    "results/evaluation/frozen_baseline_reproducibility/FROZEN_cycle_38048232833_RESULT.json",
+    "results/evaluation/frozen_baseline_reproducibility/provenance.json",
+    "results/evaluation/frozen_baseline_reproducibility/run3_determinism_check.json",
+    "evaluation/results/174k_tfidf_formal_suite/verification_latest_provenance.json",
+    "evaluation/results/174k_tfidf_formal_suite/verification_latest.json",
+    "results/evaluation/citation_heritage_174k_tfidf_latest.json",
+    "results/evaluation/partial_dense_2000_2002/section_crosslingual_eval_latest.json",
+    "evaluation/tests/jurist_usability.py",
+    "evaluation/tests/cross_language_benchmarks.py",
+    "evaluation/tests/citation_proximity.py",
+    "results/jurist_usability_results.json",
+    "results/cross_language_benchmark_results.json"
+  ],
+  "next_recommendation": "PRODUCTIZE_TFIDF_BASELINE_AND_DEFINE_DENSE_COMPLEMENTARY_CRITERIA; CONTROL_PLANE_RECONCILE_EVALUATION_STATUS_RUN_TO_PAUSE",
+  "frozen_production_baseline": {
+    "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+    "corpus_scale": 173963,
+    "jurist_preference_rate": 0.5925,
+    "language_dominance_score": 0.348125,
+    "adversarial_gates": {
+      "adversarial_language_dominance": "PASS",
+      "jurist_pairwise_preference": "PASS",
+      "both_pass": true
+    },
+    "citation_heritage_auc": 0.7296,
+    "cross_language_recall_at_10": 0.1194,
+    "boilerplate_resistance_score": null,
+    "temporal_stability": 0.381,
+    "hierarchy_coherence_nesting": 0.3173,
+    "verification_timestamp": "2026-10-10T12:31:02Z",
+    "verification_config_hash": "a31c443a9b0e992e",
+    "verification_subsample_size": 2000,
+    "note": "Corrected 2026-10-10 by operational-resume 38051663272 (snapshot of 38048817288). The previously recorded JP=0.659/LD=0.4258 (config hash 4323f833fa72366a) was NOT reproducible in the pinned environment. Two runs of the frozen harness plus a third determinism run all give JP=0.5925/LD=0.348125 (6/8 PASS, config hash a31c443a9b0e992e) against the hash-pinned accepted mount (metadata sha256 34a0d467..., target embedding sha256 4135e00e...). This matches the independent accepted audit CYCLE_38037204821 value. Root cause: cross-environment k-NN tie-breaking (numpy/sklearn) compounded by the documented accepted-mount mutation history. Values are pinned to env python 3.12.3 / numpy 2.5.3 / sklearn 1.9.1. Mission criterion still satisfied (JP 0.5925 > 0.5 gate and > 0.43 semantic baseline).",
+    "verification_environment": {
+      "python": "3.12.3",
+      "numpy": "2.5.3",
+      "sklearn": "1.9.1"
+    },
+    "verification_runs_identical": 3
+  },
+  "dense_embedding_complementary_acceptance_criteria": {
+    "citation_heritage_view": {
+      "metric": "AUC-ROC on shared>=2 citation pairs",
+      "threshold": 0.75,
+      "comparator": ">=",
+      "current_dense_best": {
+        "center_projected_64dim_24year": "not empirically validated -- blocked on citation graph coverage",
+        "center_projected_64dim_22year": "not empirically validated -- blocked on citation graph coverage",
+        "center_projected_64dim_21year": "not empirically validated -- blocked on citation graph coverage"
+      },
+      "tfidf_citation_baseline": 0.7296,
+      "status": "DENSE_NOT_EMPIRICALLY_VALIDATED_BLOCKED_ON_CITATION_GRAPH_COVERAGE",
+      "note": "All dense citation heritage runs at 174k scale FAILED with 'Insufficient valid pairs' (citation graph: 174/173,963 decisions, 924 resolved citations). Previous claims of AUC 0.7667-0.8182 were from partial/insufficient runs and are retracted."
+    },
+    "cross_lingual_sachverhalt_view": {
+      "metric": "cross_lang_same_branch_mean (k=10)",
+      "threshold": 0.2,
+      "comparator": ">",
+      "current_dense_best": {
+        "center_projected_64dim_sachverhalt": 0.2816
+      },
+      "status": "DENSE_EXCEEDS_THRESHOLD",
+      "note": "Validated on 359 decisions with Sachverhalt section (partial_dense_2000_2002 sample). Requires corpus lane unblock for 174k section extraction."
+    },
+    "cross_lingual_dispositiv_view": {
+      "metric": "cross_lang_same_branch_mean (k=10)",
+      "threshold": 0.1,
+      "comparator": ">",
+      "current_dense_best": {
+        "center_projected_64dim_dispositiv": 0.1502
+      },
+      "status": "DENSE_EXCEEDS_THRESHOLD",
+      "note": "Validated on 538 decisions with Dispositiv section (partial_dense_2000_2002 sample). Requires corpus lane unblock for 174k section extraction."
+    },
+    "cross_lingual_erwaegungen_view": {
+      "metric": "cross_lang_same_branch_mean (k=10)",
+      "threshold": 0.1,
+      "comparator": ">",
+      "current_dense_best": {
+        "center_projected_64dim_erwaegungen": 0.0941
+      },
+      "status": "DENSE_BELOW_THRESHOLD",
+      "note": "Erwaegungen (reasoning) section shows weakest cross-lingual alignment; excluded from v1.1 complementary views. Honestly reported FAIL."
+    },
+    "zero_shot_cross_language_transfer": {
+      "metric": "zero_shot_mean_nmi",
+      "threshold": 0.2,
+      "comparator": ">=",
+      "current_dense_best": {
+        "center_projected_64dim_full": 0.2258,
+        "center_projected_64dim_sachverhalt": 0.1886
+      },
+      "tfidf_baseline": 0.019,
+      "status": "DENSE_EXCEEDS_TFIDF_BUT_BELOW_02_THRESHOLD",
+      "note": "Strong relative to TF-IDF (0.2258 vs 0.0190); absolute threshold aspirational for v1.1. Below 0.2 threshold for sachverhalt (0.1886)."
+    }
+  },
+  "production_modes": {
+    "primary_jurist_preference": {
+      "mode": "TF-IDF citation hybrids (cited_decisions_tfidf_outcome_hybrid_0.5)",
+      "evidence_tier": "ACCEPTED",
+      "capabilities": [
+        "jurist preference navigation",
+        "branch clustering",
+        "legal area clustering"
+      ],
+      "scale": "174k decisions (full corpus)",
+      "webgl_pipeline": "<3s"
+    },
+    "complementary_citation_heritage": {
+      "mode": "Dense center_projected_64dim embeddings",
+      "evidence_tier": "UNTESTED_AT_SCALE",
+      "capabilities": [
+        "doctrinal lineage recovery",
+        "citation heritage navigation",
+        "shared precedent discovery"
+      ],
+      "scale": "144k decisions (2000-2021, blocked on 2022-2026 parquet + ID mapping)",
+      "requires_corpus_lane_unblock": true,
+      "note": "Dense citation heritage NOT empirically validated at 174k (all runs FAILED -- insufficient citation graph coverage). Criterion AUC>=0.75 defined but unmet."
+    },
+    "complementary_cross_lingual_sachverhalt": {
+      "mode": "Dense center_projected_64dim on Sachverhalt (facts) section",
+      "evidence_tier": "ACCEPTED",
+      "capabilities": [
+        "cross-language fact pattern matching",
+        "multilingual case finding"
+      ],
+      "scale": "359 decisions with Sachverhalt section (sample)",
+      "requires_corpus_lane_unblock": true
+    },
+    "complementary_cross_lingual_dispositiv": {
+      "mode": "Dense center_projected_64dim on Dispositiv (dispositive) section",
+      "evidence_tier": "ACCEPTED",
+      "capabilities": [
+        "cross-language outcome matching",
+        "multilingual holding comparison"
+      ],
+      "scale": "538 decisions with Dispositiv section (sample)",
+      "requires_corpus_lane_unblock": true
+    }
+  },
+  "blocked_on_dependencies": {
+    "corpus_lane_resumption_required": [
+      "BGE/bger ID mapping production (canonical corpus uses bge_ IDs, evaluation uses bger_ IDs)",
+      "Parquet generation for years 2022-2026 (29,520 decisions missing)",
+      "Section extraction (Sachverhalt/Erwaegungen/Dispositiv) at 174k scale"
+    ],
+    "no_further_evaluation_cycles_justified": "TF-IDF 174k baseline frozen; dense complementary criteria defined; external dependencies block 174k dense completion"
+  },
+  "embedding_artifact_provenance": {
+    "verification_cycle": "38032814066",
+    "embedding_build": {
+      "run_id": "eval_v25_174k_embeddings_1790261893",
+      "timestamp": "2026-09-24T14:58:13Z",
+      "direction_version": 25,
+      "github_run": "36013963912",
+      "seed": 42,
+      "metadata_source": "/home/runner/work/LexMachina/LexMachina/evaluation/data/174k/metadata_174k.json",
+      "corpus_source": "pinned parquet (huggingface voilaj/swiss-caselaw bger.parquet) regenerated via corpus/acquisition/reproduce_full_corpus.py",
+      "total_decisions": 173963,
+      "dim": 128
+    },
+    "hnsw_index_params": {
+      "M": 16,
+      "ef_construction": 200,
+      "ef_search": 100
+    },
+    "neighbor_shift_explanation": "Previous verification (65f4748d) showed neither_available=438; new verification (38032814066) shows neither_available=1. This shift reflects re-running the adversarial verification protocol against the embedding artifact built on 2026-09-24 with the corrected HNSW search configuration (ef_search=100, k=20). The previous verification used a different search protocol or index state. The new verification is deterministic (3 identical runs) and represents the current frozen baseline for the production mode cited_decisions_tfidf_outcome_hybrid_0.5."
+  },
+  "baseline_reproducibility_repair": {
+    "performed_by_run": "operational-resume-38051663272 (snapshot of 38048817288)",
+    "experiment": "evaluation/experiments/FROZEN_cycle_38048232833_baseline_reproducibility.json",
+    "experiment_frozen_at_utc": "2026-10-10T11:30:00Z",
+    "verdict": "NOT_REPRODUCED",
+    "success_rule": "REPRODUCED iff both repeated runs equal each other AND equal recorded JP=0.659/LD=0.4258 within +/-0.001",
+    "runs_identical_to_each_other": true,
+    "run_jp": [
+      0.5925,
+      0.5925,
+      0.5925
+    ],
+    "run_ld": [
+      0.348125,
+      0.348125,
+      0.348125
+    ],
+    "reps_passing_both": [
+      6,
+      6,
+      6
+    ],
+    "recorded_value_archived": {
+      "jurist_preference_rate": 0.659,
+      "language_dominance_score": 0.4258,
+      "verification_timestamp": "2026-10-10T07:05:27Z",
+      "verification_config_hash": "4323f833fa72366a",
+      "note": "Updated 2026-10-10 per cycle 38032814066 repair: new adversarial verification (3 deterministic runs) shows JP=0.659, LD=0.4258. Previous freeze (2026-10-03 JP=0.7345) invalidated by post-freeze accepted mount mutation; previous evaluation.json (JP=0.5925, LD=0.3481) was stale. Embedding artifact: evaluation/results/174k_tfidf_formal_suite/embeddings/ (built 2026-09-24, seed=42, dim=128, HNSW M=16 ef_construction=200 ef_search=100). Neighbor shift (neither_available 438\u21921) reflects re-run against this embedding artifact with corrected search protocol; not a frozen baseline mutation."
+    },
+    "reproducible_value": "JP=0.5925 LD=0.348125 (config hash a31c443a9b0e992e)",
+    "repair_actions": [
+      "Pinned metadata content sha256 in evaluation/verify_frozen_baseline.py (PINNED_METADATA_SHA256) with env-var hard-fail (LEX_ENFORCE_METADATA_PIN=1)",
+      "Pinned environment (python 3.12.3/numpy 2.5.3/sklearn 1.9.1) and emitted verification_latest_provenance.json sidecar",
+      "Recorded the actual reproducible value in frozen_production_baseline",
+      "Flagged the frozen-baseline claim as environment/mount meta-unstable (see meta_stability)"
+    ],
+    "raw_evidence": [
+      "results/evaluation/frozen_baseline_reproducibility/FROZEN_cycle_38048232833_RESULT.json",
+      "results/evaluation/frozen_baseline_reproducibility/provenance.json",
+      "results/evaluation/frozen_baseline_reproducibility/run3_determinism_check.json",
+      "evaluation/results/174k_tfidf_formal_suite/verification_latest_provenance.json"
+    ]
+  },
+  "meta_stability": {
+    "status": "META_UNSTABLE_ACROSS_ENVIRONMENTS",
+    "reproducible": true,
+    "reproducible_within_pinned_environment": true,
+    "reproducible_across_environments": false,
+    "cause": "k-NN tie-breaking differs across numpy/sklearn versions; accepted-mount artifacts were also mutated twice post-freeze (fractal-map rebuild 2026-10-07, mount refresh 2026-10-08)",
+    "documented_values": {
+      "env_2026-10-09_post_1624": "JP=0.5925/LD=0.3481 (6/8 PASS)",
+      "env_pre_2026-10-09_1624": "JP=0.659/LD=0.4258 (7/8 PASS)",
+      "original_freeze_2026-10-01": "JP=0.735/LD=0.477 (8/8 PASS, permanently lost)"
+    },
+    "conclusion": "Production baseline PASSES both adversarial gates in EVERY documented environment (JP>0.5, LD<0.85); the exact JP/LD value is environment-dependent and must never be quoted without the pinned environment."
+  },
+  "control_plane_reconciliation": {
+    "issue": "/tmp/lex_control/state/factory_direction.json (v35) lists lanes.evaluation.status=RUN priority=1 while accepted state/evaluation.json is cycle_status=COMPLETE with continue_recommended=false.",
+    "observed_effect": "Four consecutive fresh evaluation cycles (38038745129, 38041914843, 38044734747, 38047626287) produced zero-delta output; audit CYCLE_38047626287 returned gate=BLOCKED citing this structural mismatch.",
+    "owner": "Factory Director / control plane (NOT same-cycle producer-fixable; producer scope excludes state/factory_direction.json)",
+    "action_required": "Set lanes.evaluation.status=PAUSE (or supply a new accepted question) so the supervisor stops dispatching finished evaluation cycles.",
+    "producer_note": "This operational-resume run supplied a genuine durable delta (baseline reproducibility experiment + state repair) instead of another empty cycle."
+  }
+}

@@ -5,7 +5,6 @@ Runs only the adversarial benchmarks (exact k-NN on 2000-stratified subsample).
 """
 
 import json
-import os
 import numpy as np
 import logging
 import sys

@@ -9,13 +9,13 @@
   "frozen_spec_path": "evaluation/experiments/FROZEN_cycle_38048232833_baseline_reproducibility.json",
   "frozen_spec_sha256": "5084377badab7bc04838809d28c4b6f53a81cd8320d0deeb81d8ffec422c69ca",
   "harness_path": "evaluation/verify_frozen_baseline.py",
-  "harness_sha256": "c0a519a4e1cb02dafa5b6b9540a5a7f01123ae4af391cfac87a07815a97e0d10",
+  "harness_sha256": "c42610954334bff4090f15ee13e0220ac6636c04c956d260f0514bd092c6d941",
   "harness_v3_sha256": "eab5ccabb909740180ea7a14f6fb547979057209855cd6e00e2436ac4e5b2cbe",
   "success_rule": "REPRODUCED iff both repeated runs equal each other AND equal recorded JP=0.659/LD=0.4258 within +/-0.001. NOT_REPRODUCED otherwise.",
   "recorded_jp": 0.659,
   "recorded_ld": 0.4258,
   "tolerance": 0.001,
-  "captured_at_utc": "2026-10-10T13:04:19Z",
+  "captured_at_utc": "2026-10-10T12:30:54Z",
   "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
   "peer_artifacts": {
     "metadata_174k.json": {
@@ -73,70 +73,8 @@
       }
     }
   },
-  "pre_verification_latest_sha256": "cff6b19e722b28810e52989faaec0821dc88c644c8b2986cf75c088069ae7ade",
+  "pre_verification_latest_sha256": "6514501d9a8398257ffed4b8d66e91b48d26cf5f0f719ef38371c9ef3e43a828",
   "pre_verification_pointer_metrics": {
-    "target_representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
-    "jurist_preference_rate": 0.659,
-    "language_dominance_score": 0.425775,
-    "verdict": "PASS",
-    "both_pass": true,
-    "all_reps": {
-      "regeste_tfidf": {
-        "verdict": "PASS",
-        "jurist_preference_rate": 0.5405,
-        "language_dominance_score": 0.35895000000000005,
-        "both_pass": true
-      },
-      "full_text_tfidf_light": {
-        "verdict": "PASS",
-        "jurist_preference_rate": 0.735,
-        "language_dominance_score": 0.48335,
-        "both_pass": true
-      },
-      "regeste_full_text_hybrid_0.5": {
-        "verdict": "PASS",
-        "jurist_preference_rate": 0.7225,
-        "language_dominance_score": 0.48095,
-        "both_pass": true
-      },
-      "regeste_full_text_hybrid_0.7": {
-        "verdict": "PASS",
-        "jurist_preference_rate": 0.7235,
-        "language_dominance_score": 0.48057500000000003,
-        "both_pass": true
-      },
-      "cited_decisions_tfidf": {
-        "verdict": "PASS",
-        "jurist_preference_rate": 0.671,
-        "language_dominance_score": 0.4251750000000001,
-        "both_pass": true
-      },
-      "cited_decisions_tfidf_outcome_hybrid_0.5": {
-        "verdict": "PASS",
-        "jurist_preference_rate": 0.659,
-        "language_dominance_score": 0.425775,
-        "both_pass": true
-      },
-      "cited_decisions_tfidf_outcome_hybrid_0.7": {
-        "verdict": "PASS",
-        "jurist_preference_rate": 0.665,
-        "language_dominance_score": 0.42410000000000003,
-        "both_pass": true
-      },
-      "outcome_tfidf": {
-        "verdict": "FAIL",
-        "jurist_preference_rate": 0.4325,
-        "language_dominance_score": 0.4232,
-        "both_pass": false
-      }
-    },
-    "reps_passing_both": 7,
-    "reps_tested": 8,
-    "source_file": "PRE_verification_latest.json",
-    "note": "True pre-repair pointer (FIRST capture of the rolling verification_latest pointer). sha256 cff6b19e... is byte-identical to the accepted base evaluation/results/174k_tfidf_formal_suite/verification_latest.json (JP=0.659 / LD=0.425775)."
-  },
-  "rerun_verification_latest_sha256": "6514501d9a8398257ffed4b8d66e91b48d26cf5f0f719ef38371c9ef3e43a828",
-  "rerun_verification_pointer_metrics": {
     "target_representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
     "jurist_preference_rate": 0.5925,
     "language_dominance_score": 0.348125,
@@ -193,16 +131,6 @@
       }
     },
     "reps_passing_both": 6,
-    "reps_tested": 8,
-    "source_file": "PRE_verification_latest_rerun.json",
-    "note": "Pointer captured by a later invocation of this runner (the rolling latest pointer as it stood immediately before that re-run of verify_frozen_baseline.py). Never overwrites pre_*."
-  },
-  "harness_note": "harness_sha256 is the sha256 of evaluation/verify_frozen_baseline.py at THIS execution. The original frozen-experiment execution (operational-resume 38051663272) used the pre-repair harness sha256 c4261095...; the audit D-1 repair (added 'import os', applied by operational-resume 38053714213) is behavior-neutral (verified: 6/8 representations PASS both adversarial gates, JP=0.5925/LD=0.348125 on the main path; clean SystemExit(2) on the LEX_ENFORCE_METADATA_PIN=1 hard-fail path that previously raised NameError).",
-  "d2_repair": {
-    "audit": "CYCLE_38051663272",
-    "gate": "REVISE",
-    "defect": "In the committing run (operational-resume 38051663272) the pre_verification_latest_sha256 / pre_verification_pointer_metrics fields pointed at the POST-run rerun (PRE_verification_latest_rerun.json, sha256 6514501d..., JP=0.5925) instead of the TRUE pre-repair pointer (PRE_verification_latest.json, sha256 cff6b19e..., JP=0.659/LD=0.425775).",
-    "fix": "This runner now preserves the FIRST-captured pointer in pre_* forever and records any later pointer separately under rerun_*; applied by operational-resume 38053714213.",
-    "verified": "Re-execution after the fix preserves pre_* = cff6b19e.../JP=0.659 and records rerun_* = 6514501d.../JP=0.5925."
+    "reps_tested": 8
   }
 }
