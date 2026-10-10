@@ -6,7 +6,8 @@ SECTION A — committed-artifact smoke/consistency checks (relabelled; NOT falsi
 SECTION B — raw-input recompute (independent, falsifiable):
   Re-derives the v36 headline numbers FROM RAW INPUTS only, with an INDEPENDENT
   AUC implementation (trapezoidal ROC over unique thresholds) and a re-implemented
-  dense assembly / center-projection / PCA-64 pipeline:
+  dense assembly / center-projection / PCA-64 pipeline (the FULL text-only family is
+  asserted, not just the best representation):
     * dense checkpoints   legal_distance/results/174k_dense_embeddings/checkpoints/
     * metadata            evaluation/data/174k/metadata_174k.json
     * TF-IDF reps         evaluation/results/174k/embeddings/*.npy
@@ -21,10 +22,19 @@ SECTION B — raw-input recompute (independent, falsifiable):
   (and the dense-only legs of H2) are re-derived from the recomputed numbers. If a
   committed JSON were fabricated, Section B would disagree.
 
+SECTION C — integrated report markdown <-> committed JSON consistency (repair-round 1
+  guard for audit CYCLE_38056432926 required fixes D1/D2/D3): every AUC cell in the
+  report's H1 (§2.1), H1b (§2.2) and H3 (§2.4) tables must equal the committed value
+  rounded to 4dp; the §2.4 heading must not overclaim bit-identical reproduction and
+  must disclose that no max_positive_sampled/negative caps were applied; and the §4
+  provenance must disclose the state-file reconciliation. A D1-class report error
+  (report value diverging from committed JSON) now fails the suite.
+
 Run:  python3 tests/legal_distance/test_citation_heritage_text_proxy_v36.py
 Exits non-zero on any failed assertion.
 """
 import json
+import re
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -182,6 +192,16 @@ def section_a_smoke():
     check("H2_rule_supported", h2["supported"] is True, json.dumps(h2))
     check("verdict_is_justified", a["verdict_summary"]["verdict"] == "DENSE_TEXT_PROXY_JUSTIFIED",
           a["verdict_summary"]["verdict"])
+    # committed-JSON internal consistency: the H1 'best text-only' block must equal the
+    # argmax over the full committed text-only family (guards D1-class committed-JSON
+    # inconsistency; reads committed JSON only and is therefore NOT falsifiable alone).
+    c_row0 = a["protocol_results"]["ORIG_matched_no_self"]
+    fam = {rep: c_row0[rep]["auc"] for rep in TEXT_ONLY}
+    exp_best = max(fam, key=fam.get)
+    check("committed_text_only_family_best_is_max",
+          exp_best == h1["best_text_only_rep"] and abs(fam[exp_best] - h1["best_text_only_auc"]) <= TOL,
+          f"family_max={exp_best} ({fam[exp_best]:.4f}) vs H1 best "
+          f"{h1['best_text_only_rep']} ({h1['best_text_only_auc']:.4f})")
 
 
 # ============================================================ SECTION B
@@ -245,6 +265,10 @@ def section_b_recompute():
           f"recomputed={r_dense:.6f} committed={c_row['dense_cp64']['auc']:.6f}")
 
     text_aucs = {rep: auc_on(m_pos, m_neg, mk_tf(rep))[0] for rep in TEXT_ONLY}
+    for rep in TEXT_ONLY:  # FULL text-only family, not just the best (guards D1-class drift)
+        check(f"recompute_ORIG_text_only_{rep}_matches",
+              abs(text_aucs[rep] - c_row[rep]["auc"]) <= TOL,
+              f"{rep}: recomputed={text_aucs[rep]:.6f} committed={c_row[rep]['auc']:.6f}")
     best_rep = max(text_aucs, key=text_aucs.get)
     best_text = text_aucs[best_rep]
     committed_best_rep = committed["H1_ORIG_dense_vs_text_only"]["best_text_only_rep"]
@@ -293,6 +317,10 @@ def section_b_recompute():
     check("recompute_DIRECT_dense_cp64_matches", abs(rd - cdir["dense_cp64"]["auc"]) <= TOL,
           f"recomputed={rd:.6f} committed={cdir['dense_cp64']['auc']:.6f}")
     dtxt = {rep: auc_on(dpos, dneg, mk_tf(rep))[0] for rep in TEXT_ONLY}
+    for rep in TEXT_ONLY:  # FULL text-only family on DIRECT (guards D1-class drift)
+        check(f"recompute_DIRECT_text_only_{rep}_matches",
+              abs(dtxt[rep] - cdir[rep]["auc"]) <= TOL,
+              f"{rep}: recomputed={dtxt[rep]:.6f} committed={cdir[rep]['auc']:.6f}")
     dbest_rep = max(dtxt, key=dtxt.get)
     dbest = dtxt[dbest_rep]
     check("recompute_DIRECT_best_text_matches",
@@ -323,9 +351,140 @@ def section_b_recompute():
               f"dense_S2={rs2:.4f} dense_DIRECT={rd:.4f}; jaccard leg SKIPPED")
 
 
+# ============================================================ SECTION C
+def _md_section(md, marker, end_marker):
+    """Return the report substring from `marker` up to (not incl.) `end_marker`."""
+    i = md.find(marker)
+    if i == -1:
+        return ""
+    j = md.find(end_marker, i + len(marker))
+    return md[i:j if j != -1 else len(md)]
+
+
+def _md_table_rows(text):
+    """Parse markdown table rows into lists of stripped cells (skips separators)."""
+    rows = []
+    for line in text.splitlines():
+        line = line.strip()
+        if not line.startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip("|").split("|")]
+        if cells and all(re.fullmatch(r":?-{3,}:?", c) for c in cells if c):
+            continue  # separator row |---|---:|
+        rows.append(cells)
+    return rows
+
+
+def _first_float(s):
+    m = re.search(r"\d+\.\d+", s)
+    return float(m.group()) if m else None
+
+
+def section_c_report_consistency():
+    """Integrated report markdown <-> committed JSON consistency (guards D1/D2/D3).
+
+    Every AUC cell in the report's H1/H1b/H3 tables must equal the committed value
+    rounded to 4dp; the §2.4 heading must not overclaim exact reproduction and must
+    disclose the missing 1000/2000 caps; §4 must disclose the state reconciliation.
+    """
+    print("SECTION C — report markdown <-> committed JSON consistency (D1/D2/D3 guards)")
+    md_path = ROOT / "legal_distance/reports/legal_distance_v36_citation_heritage_text_proxy.md"
+    assert md_path.exists(), f"missing report {md_path}"
+    md = md_path.read_text()
+    a = json.load(open(A_JSON))
+    b = json.load(open(B_JSON))
+
+    # ---- C1: H1 table (section 2.1) vs protocol_results.ORIG_matched_no_self ----
+    h1 = _md_section(md, "### 2.1", "### 2.2")
+    rows = [c for c in _md_table_rows(h1) if len(c) >= 4]
+    c_row = a["protocol_results"]["ORIG_matched_no_self"]
+    dense_auc = c_row["dense_cp64"]["auc"]
+    expect = {rep: c_row[rep]["auc"] for rep in
+              ["dense_cp64", "regeste_full_text_hybrid_0.7", "regeste_full_text_hybrid_0.5",
+               "regeste_tfidf", "full_text_tfidf_light", "cited_decisions_tfidf"]}
+    mism = []
+    for cells in rows:
+        rep = next((k for k in expect if cells[1].startswith(f"`{k}`")), None)
+        if rep is None:
+            continue
+        val = _first_float(cells[2])
+        if val is None or abs(val - expect[rep]) > 5e-5:
+            mism.append(f"{rep}: report={val} committed={expect[rep]:.4f}")
+        dlt = _first_float(cells[3]) if cells[3] not in ("—", "-", "") else None
+        if dlt is not None and abs(dlt - round(dense_auc - expect[rep], 4)) > 5e-5:
+            mism.append(f"{rep}: delta={dlt} expected={round(dense_auc - expect[rep], 4):+.4f}")
+    check("report_H1_table_matches_committed_ORIG_matched_no_self", not mism,
+          "; ".join(mism) if mism else "all 6 rows (value+delta) match committed to 4dp")
+
+    # ---- C2: H1b table (section 2.2) vs matched_results.DIRECT__NEG_hard ----
+    h1b = _md_section(md, "### 2.2", "### 2.3")
+    cdir = b["matched_results"]["DIRECT__NEG_hard"]
+    expect_b = {"dense_cp64": cdir["dense_cp64"]["auc"],
+                "regeste_full_text_hybrid_0.7": cdir["regeste_full_text_hybrid_0.7"]["auc"],
+                "full_text_tfidf_light": cdir["full_text_tfidf_light"]["auc"]}
+    mism_b = []
+    for cells in _md_table_rows(h1b):
+        if len(cells) < 3:
+            continue
+        rep = next((k for k in expect_b if cells[1].startswith(f"`{k}`")), None)
+        if rep is None:
+            continue
+        val = _first_float(cells[2])
+        if val is None or abs(val - expect_b[rep]) > 5e-5:
+            mism_b.append(f"{rep}: report={val} committed={expect_b[rep]:.4f}")
+    check("report_H1b_table_matches_committed_DIRECT", not mism_b,
+          "; ".join(mism_b) if mism_b else "all 3 rows match committed to 4dp")
+
+    # ---- C3: H3 reconciliation (section 2.4): heading, caps disclosure, table ----
+    h3 = _md_section(md, "### 2.4", "## 3. Decision-relevant")
+    check("report_2.4_heading_no_exact_overclaim",
+          ("Reproduced exactly from raw inputs" not in md) and ("not bit-identical" in h3),
+          "heading must not say 'exactly'; 'not bit-identical' must appear")
+    check("report_2.4_discloses_no_caps",
+          ("max_positive_sampled=1000" in h3) and ("not exactly reproduced" in h3)
+          and ("1020/1020" in h3),
+          "caps absence + this-run values must be disclosed")
+    rec = a["reconciliation_eval_0.7296"]
+    exp_h3 = {"with": rec["this_run_ORIG_all_with_self_cited_decisions_tfidf"],
+              "no_self": rec["this_run_ORIG_all_no_self_cited_decisions_tfidf"],
+              "matched_no_self": rec["this_run_ORIG_matched_no_self_cited_decisions_tfidf"]}
+    mism_h3 = []
+    for cells in _md_table_rows(h3):
+        if len(cells) < 3:
+            continue
+        key = None
+        cell = cells[1] + " " + cells[2]
+        if "matched" in cell and "no self" in cell.replace("**", ""):
+            key = "matched_no_self"
+        elif "no self" in cell.replace("**", ""):
+            key = "no_self"
+        elif "with" in cell:
+            key = "with"
+        if key is None:
+            continue
+        val = _first_float(cells[2])
+        if val is None or abs(val - exp_h3[key]) > 5e-5:
+            mism_h3.append(f"{key}: report={val} committed={exp_h3[key]:.4f}")
+    check("report_H3_table_matches_reconciliation_json", not mism_h3,
+          "; ".join(mism_h3) if mism_h3 else "3 protocol rows match reconciliation JSON to 4dp")
+
+    # ---- C4: D3 provenance disclosure of state-file reconciliation ----
+    prov = _md_section(md, "## 4", "## 5")
+    div_runs = ["38031579621", "38027372192", "38026456230", "38017387070", "38014429418"]
+    ok_d3 = ("reconcil" in prov) and ("canonical" in prov) and all(r in prov for r in div_runs) \
+        and ("104" in prov) and ("103" in prov)
+    check("report_4_discloses_state_reconciliation_D3", ok_d3,
+          "expected canonical (103->104) reconciliation disclosure naming the 5 divergent runs")
+
+    # ---- C5: regeste_tfidf below chance explicitly reported (D1 consequence) ----
+    check("report_notes_regeste_tfidf_below_chance", "below chance" in h1,
+          "regeste_tfidf (0.4850) must be explicitly marked below chance in §2.1")
+
+
 def main():
     section_a_smoke()
     section_b_recompute()
+    section_c_report_consistency()
     print(f"\n{len(PASS)} passed, {len(FAIL)} failed, {len(SKIP)} skipped")
     if SKIP:
         print("SKIPPED (environment-dependent, non-failing): " + ", ".join(SKIP))

@@ -101,7 +101,7 @@
       "report": "legal_distance/reports/legal_distance_v35_citation_heritage_fairness_audit.md",
       "tests": "tests/legal_distance/test_citation_heritage_fairness_v35.py (18/18 pass)"
     },
-    "citation_heritage_text_only_proxy_v36": "CONFIRMED (v36, run 38051603155): for corpora WITHOUT a citation graph, dense multilingual-e5 (center-projected PCA-64) is a materially better text-only citation-heritage proxy than any TF-IDF text-only baseline. Identical matched self-pair-free ORIG (606/834): dense_cp64 0.7189 vs best text-only regeste_full_text_hybrid_0.7 0.5866 (margin +0.1324, CI +0.0925..+0.1709); DIRECT hard-matched (5255/6008): 0.6924 vs 0.5616 (+0.1308). full_text_tfidf_light (used in the original non-comparable claim) is the WEAKEST text-only rep (0.5308). This scopes the dense complementary role to the no-graph fallback and does not affect the v35 result that the citation graph beats dense on DIRECT and is an oracle on SHARED."
+    "citation_heritage_text_only_proxy_v36": "CONFIRMED (v36, run 38051603155): for corpora WITHOUT a citation graph, dense multilingual-e5 (center-projected PCA-64) is a materially better text-only citation-heritage proxy than any TF-IDF text-only baseline. Identical matched self-pair-free ORIG (606/834): dense_cp64 0.7189 vs best text-only regeste_full_text_hybrid_0.7 0.5866 (margin +0.1324, CI +0.0925..+0.1709); DIRECT hard-matched (5255/6008): 0.6924 vs 0.5616 (+0.1308). full_text_tfidf_light (used in the original non-comparable claim) is NOT the strongest text-only rep (0.5308; regeste_tfidf is the weakest at 0.4850, below chance). This scopes the dense complementary role to the no-graph fallback and does not affect the v35 result that the citation graph beats dense on DIRECT and is an oracle on SHARED."
   },
   "scale_evidence_summary": {
     "3_year_accepted_2000_2002": {
@@ -869,6 +869,12 @@
       "date": "2026-10-10",
       "status": "CITATION_HERITAGE_TEXT_PROXY_JUSTIFIED",
       "notes": "v36 citation-heritage TEXT-ONLY proxy test (successor to accepted v35 falsification). Question: does a dense text embedding beat the strongest TEXT-ONLY baseline for citation heritage on a corpus without a citation graph? H1 ORIG identical matched self-pair-free (606/834): dense_cp64 0.7189 vs best text-only regeste_full_text_hybrid_0.7 0.5866, margin +0.1324 (95% CI +0.0925..+0.1709) >= +0.05 PASS. H1b DIRECT hard-matched (5255/6008): dense_cp64 0.6924 vs 0.5616, margin +0.1308 (CI +0.1158..+0.1447) PASS. H2 eval shared>=2/0.75 dense gate degenerate: citation_jaccard_full SHARED2 oracle 1.0000, dense_cp64 SHARED2 0.9698, dense_cp64 DIRECT 0.6924 (<0.75) => supported. H3 reconciliation: eval frozen 0.7296 is with-self mixed-relation 1000/2000-sampled cited_decisions_tfidf (this run 0.7426 with-self, 0.6967 no-self, 0.7159 matched no-self); not comparable to the shared>=2 dense gate. Verdict DENSE_TEXT_PROXY_JUSTIFIED. Dense remains NOT superior to the citation graph on DIRECT (0.6924 vs 0.7718) and redundant on SHARED relations (graph oracle). 23/23 non-circular tests pass (independent trapezoidal-ROC AUC reproduces committed values to 1e-6). No further same-question dense-scale cycle justified."
+    },
+    {
+      "run_id": 38057380692,
+      "date": "2026-10-10",
+      "status": "REPAIR1_REPORT_NUMERIC_AND_PROVENANCE_FIX",
+      "notes": "Repair round 1 of rejected cycle 38056432926 (audit REVISE, required_fixes D1-D3): corrected report section 2.1 H1 table (regeste_full_text_hybrid_0.5 0.5863->0.5521, delta -0.1668; regeste_tfidf 0.5759->0.4850, delta -0.2339, below chance) to match committed text_proxy_results.json protocol_results.ORIG_matched_no_self; replaced section 2.4 heading 'Reproduced exactly from raw inputs' with 'Recomputed from raw inputs (protocol reconciled, not bit-identical)' and disclosed that no max_positive_sampled=1000/max_negative_sampled=2000 caps were applied, so the frozen eval 0.7296 is not exactly reproduced (this run 0.7426 with-self / 0.7159 matched no-self); disclosed in report section 4 that legal_distance/state/legal-distance.json was reconciled to canonical state/legal-distance.json verification_runs (103->104, replacing 5 divergent entries 38031579621, 38027372192, 38026456230, 38017387070, 38014429418, all retained in git history). Strengthened test_citation_heritage_text_proxy_v36.py: full text-only family asserted on ORIG and DIRECT (Section B); new Section C parses the report markdown and verifies every H1/H1b/H3 table cell and delta against committed JSON plus the D2/D3 disclosures (a D1-class drift now fails the suite). 39 checks pass with citation-graph mount present (38 pass + 1 skip without). No committed JSON or AUC changed; evidence_tier=REPRODUCED, cycle_status=SUCCESSOR_RECOMMENDED, continue_recommended=false and the REPRODUCED claim ceiling are unchanged."
     }
   ],
   "last_verified_run": 38022266704,
@@ -955,6 +961,6 @@
     },
     "conclusion": "On a corpus without a citation graph, a dense text embedding is a materially better citation-heritage proxy than any TF-IDF text-only baseline (+0.13 AUC, two independent pair constructions). This is the surviving complementary role of dense embeddings and does not revive the retracted 'dense beats citation features' claim: the citation graph still wins on DIRECT (0.7718 vs 0.6924) and is an oracle on SHARED. The eval-lane shared>=2 / 0.75 dense gate is degenerate (graph oracle) and not comparable to the 0.7296 baseline.",
     "report": "legal_distance/reports/legal_distance_v36_citation_heritage_text_proxy.md",
-    "tests": "tests/legal_distance/test_citation_heritage_text_proxy_v36.py (23/23 pass)"
+    "tests": "tests/legal_distance/test_citation_heritage_text_proxy_v36.py (39 checks: 38 + 1 graph-dependent with the citation-graph peer mount; 38 pass + 1 skipped without it; full text-only family + report<->JSON consistency guarded)"
   }
 }

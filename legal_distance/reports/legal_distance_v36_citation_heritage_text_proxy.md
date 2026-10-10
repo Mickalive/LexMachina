@@ -4,7 +4,21 @@
 **Date:** 2026-10-10 · **Evidence tier:** REPRODUCED (pending audit)
 **Frozen spec:** `legal_distance/results/citation_heritage_text_proxy_v36/frozen_spec.json`
 (registered before outcome inspection)
-**Tests:** `tests/legal_distance/test_citation_heritage_text_proxy_v36.py` (23/23 pass)
+**Tests:** `tests/legal_distance/test_citation_heritage_text_proxy_v36.py` (39 checks with the
+citation-graph mount present, incl. 2 graph-dependent; 38 pass + 1 skipped without it)
+
+> **Repair round 1 (audit cycle 38056432926, GitHub run 38057380692):** corrected the §2.1
+> H1 baseline table — `regeste_full_text_hybrid_0.5` = 0.5521 (Δ −0.1668) and `regeste_tfidf`
+> = 0.4850 (Δ −0.2339, below chance) — replacing the erroneous 0.5863/0.5759 rows (D1); replaced
+> the §2.4 "Reproduced exactly" heading with "Recomputed from raw inputs (protocol reconciled,
+> **not bit-identical**)" and disclosed that no 1000/2000 sampling caps were applied, so the
+> frozen 0.7296 is not exactly reproduced (D2); added §4 provenance disclosure that
+> `legal_distance/state/legal-distance.json` was reconciled to canonical
+> `state/legal-distance.json` (103 → 104 runs) (D3); strengthened the verification test to
+> assert the **full text-only family** against committed JSON and to guard report↔JSON
+> consistency (Sections A/C), which would have caught D1. **No committed JSON or AUC changed**;
+> all headline numbers remain exactly the audited, independently reproduced values; the claim
+> ceiling (REPRODUCED, not ACCEPTED) and scope limits are unchanged.
 
 ## 0. Why this cycle exists (successor to the accepted v35 falsification)
 
@@ -55,14 +69,16 @@ Identical matched self-pair-free **ORIG** pairs (n_pos=606, n_neg=834; the same 
 |---|---:|---:|
 | `dense_cp64` (text embedding) | **0.7189** | — |
 | `regeste_full_text_hybrid_0.7` (best text-only) | 0.5866 | **−0.1324** |
-| `regeste_full_text_hybrid_0.5` | 0.5863 | −0.1326 |
-| `regeste_tfidf` | 0.5759 | −0.1430 |
+| `regeste_full_text_hybrid_0.5` | 0.5521 | −0.1668 |
+| `regeste_tfidf` (below chance) | 0.4850 | −0.2339 |
 | `full_text_tfidf_light` (minimal text-only) | 0.5308 | −0.1881 |
 | `cited_decisions_tfidf` (citation feature; not text-only) | 0.7159 | −0.0030 |
 
 - **Margin = +0.1324 AUC**, bootstrap 95% CI **[+0.0925, +0.1709]** (n_boot=2000) — well above the
   pre-registered +0.05 threshold. **H1 PASS.**
-- The strongest text-only baseline is still ~0.13 AUC below dense; the weakest is ~0.19 below.
+- The strongest text-only baseline is still ~0.13 AUC below dense. The **weakest** text-only
+  baseline is `regeste_tfidf` (0.4850, **below chance**), ~0.23 AUC below dense; the minimal
+  full-text baseline sits between them (~0.19 below).
 - For reference, the citation-feature comparator `cited_decisions_tfidf` remains statistically
   tied with dense (v35: +0.003, CI straddles 0). So the ordering is:
   citation-feature ≈ dense ≫ best text-only.
@@ -102,7 +118,7 @@ H2 rule (`jaccard_SHARED2 ≥ 0.99 AND dense_SHARED2 ≥ 0.90 AND dense_DIRECT <
 
 ### 2.4 H3 — reconciliation of the frozen evaluation baseline `0.7296`
 
-Reproduced exactly from raw inputs:
+Recomputed from raw inputs (protocol reconciled, **not bit-identical**):
 
 | protocol | `cited_decisions_tfidf` AUC |
 |---|---:|
@@ -111,8 +127,12 @@ Reproduced exactly from raw inputs:
 | ORIG, matched no self-pairs (v35/v36 primary set) | 0.7159 |
 
 The frozen evaluation value `0.7296` is a **with-self, mixed-relation, 1000/2000-sampled**
-number; it is not comparable to the flat "shared≥2, dense≥0.75" dense gate. Reconciliation
-**PASS** — the two lanes measure different protocols, not contradictory capabilities.
+number. This run applied **no** `max_positive_sampled=1000` / `max_negative_sampled=2000` caps —
+it scored the full 1020/1020 with-self ORIG (0.7426) and the matched self-pair-free set (0.7159)
+— so the frozen `0.7296` is **not exactly reproduced** here (protocols reconciled, not
+bit-identical), and it is not comparable to the flat "shared≥2, dense≥0.75" dense gate.
+Reconciliation **PASS** — the two lanes measure different protocols, not contradictory
+capabilities.
 
 ## 3. Decision-relevant conclusion
 
@@ -135,6 +155,15 @@ number; it is not comparable to the flat "shared≥2, dense≥0.75" dense gate. 
 ## 4. Provenance & reproducibility
 
 - Frozen spec (pre-outcome): `legal_distance/results/citation_heritage_text_proxy_v36/frozen_spec.json`.
+- Repair-round record (audit cycle 38056432926, required fixes D1–D3):
+  `legal_distance/reports/legal_distance_v36_citation_heritage_text_proxy_REPAIR1.md`.
+- **State-file reconciliation (provenance disclosure):** `legal_distance/state/legal-distance.json`
+  was overwritten with (i.e. reconciled to) the canonical `state/legal-distance.json`
+  `verification_runs` list (103 entries) plus this run (`38051603155`, 104 entries total),
+  replacing 5 divergent entries that existed only in the accepted-base duplicate
+  (`38031579621, 38027372192, 38026456230, 38017387070, 38014429418`). All replaced entries
+  remain in git history; the reconciliation toward the canonical control-plane file
+  (constitution §10, `main` is authoritative) is intended.
 - Experiment: `legal_distance/experiments/citation_heritage_text_proxy_v36.py` (≈49 s; deterministic, seed 42).
   Determinism note: the relation sampler now returns `sorted(set)` negatives and `restrict_matched`
   returns sorted pairs. This was necessary because `bootstrap_margin` resamples by **positional**
@@ -152,20 +181,27 @@ number; it is not comparable to the flat "shared≥2, dense≥0.75" dense gate. 
   (the graph is **not repo-tracked** and lives only in the accepted evaluation peer mount; the test
   treats graph-dependent jaccard/H2 checks as SKIP when the mount is absent — the dense/text-only
   AUCs and H1/H1b do not depend on it).
-- Non-circular verification: `tests/legal_distance/test_citation_heritage_text_proxy_v36.py`
+- Non-circular verification: `tests/legal_distance/test_citation_heritage_text_proxy_v36.py`.
   Section B recomputes every headline AUC from raw vectors with an **independent** trapezoidal-ROC
-  implementation (not the experiment's average-rank AUC) and re-implemented assembly/PCA. With the
-  graph mounted: 23 passed, 0 failed, 0 skipped. Without the graph (auditor environment, verified via
-  `LEX_CITATION_GRAPH=<nonexistent>`): 22 passed, 0 failed, 1 skipped (graph-dependent checks). The
-  independent AUC matches the committed values to 1e-6.
+  implementation (not the experiment's average-rank AUC) and re-implemented assembly/PCA, asserting
+  the **full text-only family** (all four TF-IDF reps on ORIG and on DIRECT), dense, cited-decisions
+  and margin values against the committed JSONs. Section A checks committed-artifact consistency;
+  Section C (added in repair round 1) parses this report's H1/H1b/H3 tables and asserts every AUC
+  cell and Δ matches the committed JSONs to 4dp, that the §2.4 heading does not overclaim exact
+  reproduction, and that §4 discloses the state-file reconciliation — so a D1-class report drift
+  now fails the suite. With the graph mounted: **39 passed, 0 failed, 0 skipped**. Without the
+  graph (auditor environment, verified via `LEX_CITATION_GRAPH=<nonexistent>`): **38 passed, 0
+  failed, 1 skipped** (graph-dependent jaccard/H2 checks). The independent AUC matches the
+  committed values to 1e-6.
 
 ## 5. Negative / qualifying results preserved
 
 - Dense is **still not superior to the citation graph** on DIRECT (0.6924 vs 0.7718) and is
   **redundant** on shared-citation relations (graph oracle = 1.0). The text-only proxy advantage
   does **not** revive the retracted "dense beats citation features" claim.
-- `full_text_tfidf_light` — the baseline used in the original non-comparable comparison — is the
-  **weakest** text-only representation (0.5308), not the strongest. The original comparison
-  understated the text-only class by ≈0.056 AUC.
+- `full_text_tfidf_light` — the baseline used in the original non-comparable comparison — is
+  **not** the strongest text-only representation (0.5308; `regeste_tfidf` is even weaker at
+  0.4850, below chance). The original comparison understated the text-only class by ≈0.056 AUC
+  versus the strongest text-only rep (`regeste_full_text_hybrid_0.7`, 0.5866).
 - The bootstrap pairing of geometric-mean-similar pairs (T5) is a conservative approximation;
   it does not change pass/fail.
