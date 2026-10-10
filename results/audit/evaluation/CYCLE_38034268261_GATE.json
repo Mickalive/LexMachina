@@ -1,0 +1,70 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    "Corpus lane: Restore original freeze embeddings (JP=0.735, 8/8 PASS) — currently LOST due to two mutations (fractal-map rebuild 2026-10-07, accepted mount refresh 2026-10-08)",
+    "Corpus lane: Resolve bge_/bger_ ID mapping for full 174k alignment",
+    "Corpus lane: Provide parquet 2022-2026 (29,520 decisions missing)",
+    "Corpus lane: Enable section extraction at 174k scale (Sachverhalt/Dispositiv/Erwaegungen)",
+    "Jurist human study: Execute framework with 5-10 Swiss jurists"
+  ],
+  "claim_ceiling": "TF-IDF 174k production baseline FROZEN and VERIFIED; dense complementary views DEFINED and VALIDATED at max available scale (144k/22yr); NO further same-question cycles justified until corpus lane delivers full 174k dense embeddings or jurist human study executes.",
+  "evidence_summary": {
+    "adversarial_gate_verification": {
+      "runs": 3,
+      "all_identical": true,
+      "production_baseline": "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "production_metrics": {
+        "language_dominance": 0.348125,
+        "jurist_preference": 0.5925,
+        "both_pass": true
+      },
+      "reps_pass_both": 6,
+      "reps_tested": 8,
+      "failing_reps": ["regeste_tfidf (JP=0.403)", "outcome_tfidf (JP=0.261)"]
+    },
+    "mission_criterion": {
+      "threshold": 0.43,
+      "achieved": 0.5925,
+      "satisfied": true
+    },
+    "benchmark_determinism_fix": {
+      "issue": "Stratified subsampling sensitive to metadata JSON insertion order",
+      "fix": "Sort groups.keys() by (branch, language) before sampling",
+      "files_fixed": ["verify_frozen_baseline.py", "run_174k_tfidf_formal_suite.py", "verify_frozen_baseline_37399175524.py"],
+      "verified_identical_runs": 3,
+      "deterministic_per_metadata_version": true
+    },
+    "dense_complementary_acceptance": {
+      "citation_heritage_auc": {"threshold": 0.75, "achieved": "0.7922-0.7946", "status": "PASS", "scale": "144k/22yr"},
+      "cross_lingual_sachverhalt": {"threshold": 0.20, "achieved": 0.2816, "status": "PASS", "coverage": "36%, n=359"},
+      "cross_lingual_dispositiv": {"threshold": 0.10, "achieved": 0.1502, "status": "PASS", "coverage": "54%, n=538"},
+      "cross_lingual_erwaegungen": {"threshold": 0.10, "achieved": 0.0941, "status": "FAIL", "coverage": "51%, n=510"},
+      "linear_hybrid_complement": {"adversarial_pass": true, "cross_lang_improvement": "26-29%", "status": "PASS (EXPLORATORY)", "note": "JP below TF-IDF baseline"}
+    },
+    "fundamental_tradeoff": {
+      "reproduced_at_scales": ["3yr", "15yr", "19yr", "20yr", "21yr", "22yr"],
+      "conclusion": "NO single representation dominates all three metrics at any scale"
+    },
+    "true_oos_ceiling": {
+      "jurist_pref_ceiling": 0.53,
+      "factory_target": 0.7,
+      "achievable": false
+    },
+    "negative_results_honestly_reported": [
+      "regeste_tfidf FAILS jurist gate (JP=0.403)",
+      "outcome_tfidf FAILS jurist gate (JP=0.261)",
+      "Cross-Lingual Erwaegungen FAILS (0.094 < 0.10)",
+      "24-year dense adversarial: center_projected FAILS jurist gate at ALL dims (JP 0.35-0.38)",
+      "v17b label normalization: FAILS generalization to 174k (NMI decreases, zoom_fine degrades 7-17%)",
+      "v18 coarse hierarchy: FAIL at 4-branch level (max purity 0.65 < 0.7)",
+      "Full 174k dense embeddings NOT AVAILABLE (data blockers documented)",
+      "True OOS ceiling 0.53 < 0.7 factory target"
+    ],
+    "embeddings_provenance": {
+      "sha256": "4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc",
+      "config_hash": "a31c443a9b0e992e",
+      "metadata_version": "post-2026-10-09T16:24"
+    }
+  }
+}
