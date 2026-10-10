@@ -1,0 +1,61 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": {
+    "primary_navigation": {
+      "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+      "scale": 173963,
+      "jurist_preference": 0.659,
+      "language_dominance": 0.4258,
+      "citation_heritage_auc": 0.7296,
+      "evidence_tier": "ACCEPTED",
+      "adversarial_gates": "BOTH_PASS"
+    },
+    "dense_citation_heritage": {
+      "representation": "center_projected_64dim",
+      "scale": "21yr/137k (NOT 174k)",
+      "jurist_preference": "0.05-0.43 (FAIL)",
+      "citation_heritage_auc": "0.77-0.85 (RETRACTED -- all 174k runs FAILED insufficient pairs)",
+      "evidence_tier": "RETRACTED / UNTESTED_AT_SCALE",
+      "note": "Prior claims retracted per evaluation.json; blocked on citation graph coverage"
+    },
+    "cross_lingual_sachverhalt": {
+      "representation": "center_projected_64dim",
+      "scale": "1K sample",
+      "cross_lang_same_branch": 0.2816,
+      "threshold": 0.2,
+      "status": "PASS (sample only)",
+      "evidence_tier": "ACCEPTED",
+      "blocked_on": "174k section extraction (now DELIVERED by corpus lane)"
+    },
+    "cross_lingual_dispositiv": {
+      "representation": "center_projected_64dim",
+      "scale": "1K sample",
+      "cross_lang_same_branch": 0.1502,
+      "threshold": 0.1,
+      "status": "PASS (sample only)",
+      "evidence_tier": "ACCEPTED",
+      "blocked_on": "174k section extraction (now DELIVERED by corpus lane)"
+    },
+    "linear_hybrid_complement": {
+      "representation": "linear_citation_concat_w0.4 / linear_hybrid05_concat_w0.3",
+      "scale": "19yr/122k",
+      "jurist_preference": "0.61-0.67 (< TF-IDF 0.78-0.79)",
+      "adversarial_gates": "PASS at w=0.3-0.4",
+      "evidence_tier": "ACCEPTED (partial scale)",
+      "note": "Does NOT beat TF-IDF on jurist preference -- marked exploratory"
+    }
+  },
+  "evidence_summary": {
+    "accepted_lane_states": 5,
+    "frontier_teams_active": 1,
+    "frozen_baselines": 3,
+    "retracted_claims": 1,
+    "negative_results_preserved": 4,
+    "pending_validations": 3,
+    "all_evidence_tier": "ACCEPTED or RETRACTED (no UNTESTED/EXPLORATORY laundered)",
+    "provenance_preserved": true,
+    "benchmarks_frozen": true
+  }
+}
