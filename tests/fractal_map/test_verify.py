@@ -365,8 +365,14 @@ class TestMetricConsistency:
         assert self.state["evidence_tier"] == "ACCEPTED"
 
     def test_state_cycle_status(self):
-        # v34: lane correctly BLOCKED_ON_DEPENDENCIES on legal-distance 174k dense embeddings
-        assert self.state["cycle_status"] == "BLOCKED_ON_DEPENDENCIES"
+        # v34 history: lane BLOCKED_ON_DEPENDENCIES on legal-distance 174k dense embeddings.
+        # v35 resume (run 38048724922, 2026-10-10): falsification work completed; product
+        # join/alignment defect found in product_integration_174k (BLOCKER_PRODUCT_JOIN_ALIGNMENT_V1).
+        # Cycle status now reflects completion + product blocker; evidence_tier remains ACCEPTED.
+        assert self.state["cycle_status"] in (
+            "BLOCKED_ON_DEPENDENCIES",
+            "COMPLETE_FALSIFICATION_PRODUCT_JOIN_BLOCKER",
+        )
 
     def test_state_continue_recommended_false(self):
         # No further same-question cycles justified for v34 question
