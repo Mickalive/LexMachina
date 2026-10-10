@@ -1,5 +1,42 @@
 {
-  "version": 1,
-  "teams": [],
+  "version": 2,
+  "teams": [
+    {
+      "team_id": "citation-graph-reconstruction",
+      "charter_version": 1,
+      "status": "RUN",
+      "product_capability": "Restore and harden the citation signal that underpins the PRIMARY product mode cited_decisions_tfidf_outcome_hybrid_0.5 and the mission-required 'cited precedents and citation role' multi-view; validate/repair the dense citation-heritage complementary view.",
+      "question": "Can the full ~173,963-decision corpus yield a resolved citation graph with orders-of-magnitude more coverage than the current 174-decision / 2,019-reference sample, and does dense citation-heritage AUC then reach > 0.75 (vs the accepted full-174k FAIL of 0.482) while TF-IDF citation heritage beats its frozen baseline?",
+      "hypothesis": "The observed full-174k citation-heritage FAIL (AUC 0.482) and repeated 'insufficient valid pairs' are coverage artifacts: citation resolution has so far been exercised on only 174 source decisions with outgoing citations. Extracting and resolving citations across the whole normalized corpus will restore citation-heritage discriminability (dense AUC > 0.75, TF-IDF > baseline) and strengthen the primary citation-based mode.",
+      "why_now": "Evaluation audit CYCLE_38037204821 (2026-10-10, gate=PASS) retracts the earlier dense citation-heritage PASS and records full-174k AUC 0.482 FAIL, attributed to citation-graph coverage ('174/173,963 decisions; 924 resolved'). The accepted corpus citation_resolution_report confirms only 174 source decisions with outgoing citations. The primary product mode is citation-based, so this is the single highest mission risk and is not owned by any running lane.",
+      "non_duplication": "Corpus lane resumption is scoped to bge/bger ID mapping, durable all-years 2000-2026 artifact publication, and full-scale section extraction. No core lane owns full-corpus citation extraction/resolution quality or citation-heritage re-validation; legal-distance's citation work is dependency-blocked on exactly this graph.",
+      "dependencies": [
+        "normalized full corpus (corpus lane regeneration/publish)",
+        "corpus/acquisition/citation_resolver.py",
+        "evaluation citation-pair proximity harness (citation_proximity.py)",
+        "legal-distance center_projected dense embeddings at evaluated scale"
+      ],
+      "acceptance_test": "Build a full-corpus resolved citation graph and report per-year resolved outgoing-citation coverage plus positive-pair counts. PASS iff (a) coverage >= 10x current (>=1,740 source decisions with outgoing citations OR >=20,000 resolved references) AND (b) dense citation-heritage AUC > 0.75 AND TF-IDF citation-heritage AUC > frozen baseline, measured on a frozen pair pool at >=137k pairs.",
+      "stop_promote_rule": "PROMOTE results to evaluation + legal-distance if acceptance_test PASS (restores the citation-heritage complementary view and hardens the primary mode). TERMINATE and preserve the negative if full-corpus resolution still yields insufficient pairs or AUC <= baseline, establishing that citation coverage is intrinsically sparse so citation-heritage must be dropped from the roadmap."
+    },
+    {
+      "team_id": "norms-at-issue-coarse",
+      "charter_version": 1,
+      "status": "RUN",
+      "product_capability": "Deliver the mission-required 'norms/articles genuinely at issue' map view and a coherent coarse-level (domain/subdomain) fractal structure — the currently weakest part of the shipped map.",
+      "question": "Does a legally-active-norm distance (norms/articles actually litigated, with ubiquitous boilerplate norms suppressed per the anti-noise principle) recover coarse legal structure — branch/legal-area purity and Jurivoc NMI — better than the current TF-IDF coarse levels, which max at branch purity 0.65 < 0.7 and Jurivoc L1 NMI 0.028?",
+      "hypothesis": "Coarse-level navigation fails because text/citation signals are dominated by procedural boilerplate and language. Extracting norms/articles at issue and applying context-sensitive topicality yields a coarse hierarchy with branch purity > 0.7 and higher Jurivoc alignment than the frozen TF-IDF baseline.",
+      "why_now": "v18 coarse hierarchy is an ACCEPTED NEGATIVE (4-label branch max purity 0.65 < 0.7); TF-IDF cluster coherence is FAIL (branch purity 0.316, language-dominated 0.612); the Master Prompt mandates the norms-at-issue view while the corpus field_coverage shows cited_laws = 0.0 (feature absent). Coarse structure is where every current signal fails and no lane/frontier is working.",
+      "non_duplication": "No core lane or frontier owns statutory norm-at-issue extraction or its coarse-hierarchy value. Legal-distance's accepted work covers semantic, section, outcome and citation hybrids but never legally-active norms; this charter targets the coarse hierarchy specifically, where those signals all fail.",
+      "dependencies": [
+        "corpus full_text (normalized)",
+        "law/article reference extraction (new component)",
+        "evaluation Jurivoc / branch weak-supervision harness",
+        "fractal-map coarse-level purity + NMI harness"
+      ],
+      "acceptance_test": "Produce a norm-at-issue representation and measure coarse-level branch purity and Jurivoc NMI vs the frozen TF-IDF baseline. PASS iff branch purity > 0.7 AND strictly greater than TF-IDF, with boilerplate-norm suppression verified (ubiquitous boilerplate norms contribute little to the coarse partition).",
+      "stop_promote_rule": "PROMOTE to fractal-map + product as a coarse-level default map mode if acceptance_test PASS. TERMINATE and preserve the negative if norm signals cannot beat TF-IDF coarse purity, confirming coarse-level limits are intrinsic to the corpus rather than to signal choice."
+    }
+  ],
   "policy": "Create specialized teams only for concrete product-relevant hypotheses or bottlenecks. Parallelism should grow with credible independent paths, not curiosity."
 }
