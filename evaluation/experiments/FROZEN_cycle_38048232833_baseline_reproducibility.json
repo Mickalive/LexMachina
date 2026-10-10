@@ -1,0 +1,31 @@
+{
+  "cycle_run": "38048232833",
+  "lane": "evaluation",
+  "direction_version": 35,
+  "frozen_at_utc": "2026-10-10T11:30:00Z",
+  "purpose": "Adversarially test whether the ACCEPTED 'frozen' TF-IDF 174k production baseline is reproducible in a fresh environment against the currently-mounted ACCEPTED peer artifacts, and whether the value recorded in state/evaluation.json is the value produced by the frozen harness.",
+  "lane_question_ref": "Freeze TF-IDF 174k evaluation as production baseline; define acceptance criteria for dense embedding complementary views.",
+  "claim_under_test": {
+    "artifact": "state/evaluation.json :: frozen_production_baseline",
+    "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+    "recorded_jurist_preference_rate": 0.659,
+    "recorded_language_dominance_score": 0.4258,
+    "recorded_at": "2026-10-10T07:05:27Z"
+  },
+  "hypothesis_H1": "A fresh invocation of evaluation/verify_frozen_baseline.py in this environment reproduces the recorded frozen metric (JP=0.659, LD=0.4258) because the baseline is genuinely frozen and the mounted artifacts are pinned.",
+  "hypothesis_H0_alt": "The metric is sensitive to mutable ACCEPTED-mount metadata content, so the 'frozen' value is not reproducible across mounts; the frozen baseline is an artifact of whichever metadata snapshot is mounted, not a stable production number.",
+  "inputs_pinned": {
+    "harness": "evaluation/verify_frozen_baseline.py",
+    "harness_v3_harness": "evaluation/evaluation_v3_harness.py",
+    "metadata_path": "/tmp/lex_accepted/legal-distance/evaluation/data/174k/metadata_174k.json",
+    "embeddings_dir": "/tmp/lex_accepted/fractal-map/results/fractal_map/hierarchical_map_174k",
+    "metadata_sha256_expected": "34a0d4677c14c7f01b8b918bf87f5c330635dd3b620d83a75ba8b50e9fe59469",
+    "embedding_sha256_expected": "4135e00e735728592df39f2f3dc65326f835d671d19f1e76bff081cc40e2c7dc"
+  },
+  "metric": "jurist_preference_rate (JP) and language_dominance_score (LD) for cited_decisions_tfidf_outcome_hybrid_0.5 from verify_frozen_baseline.py",
+  "sample": "deterministic stratified 2000-decision subsample (seed=42, sorted group keys) from 173963-decision metadata",
+  "repeats": 2,
+  "success_rule": "REPRODUCED iff both repeated runs equal each other AND equal recorded JP=0.659/LD=0.4258 within +/-0.001. NOT_REPRODUCED otherwise.",
+  "product_decision_unlocked": "If NOT_REPRODUCED, the frozen production baseline record is invalid and must be repaired by (a) pinning metadata content hash in the harness, (b) recording the actual reproducible value, and (c) flagging the frozen-baseline claim as meta-unstable. If REPRODUCED, the freeze stands and no same-question cycle is justified.",
+  "no_weakening": "This experiment does not modify thresholds, sample, metric or embeddings. It is a read-only reproduction attack."
+}
