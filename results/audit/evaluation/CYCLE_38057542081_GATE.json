@@ -1,0 +1,73 @@
+{
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    {
+      "id": "D-1",
+      "severity": "HIGH",
+      "file": "state/evaluation.json; reports/evaluation/EVALUATION_OPERATIONAL_RESUME_38051663272_AUDIT_READY.md; evaluation/results/174k_tfidf_formal_suite/verification_latest.json",
+      "description": "state/report/pointer contradiction. state/evaluation.json :: frozen_production_baseline.jurist_preference_rate=0.5925, baseline_reproducibility_repair.verdict=NOT_REPRODUCED, verification_runs_identical=3, and the report calls the lane 'internally consistent' and 0.5925 canonical; but commit 95dc3b44 reverted the live evaluation/results/174k_tfidf_formal_suite/verification_latest.json to sha256 cff6b19e... (JP=0.659) and repointed its provenance sidecar (14:02Z) to target_jurist_preference_rate=0.659, without touching state or the report. The workspace now returns opposite baselines depending on which artifact is read.",
+      "same_cycle_repairable": true,
+      "repair_action": "Make state/evaluation.json, the report/diagnosis and the live pointer+sidecar mutually consistent with the latest committed evidence (update the state/report to the observed bimodality, or restore the pointer to the intended canonical artifact and document it). Do not leave a rolling-pointer overwrite unreconciled."
+    },
+    {
+      "id": "D-2",
+      "severity": "HIGH",
+      "file": "state/evaluation.json; reports/evaluation/EVALUATION_OPERATIONAL_RESUME_38051663272_AUDIT_READY.md; results/evaluation/frozen_baseline_reproducibility/",
+      "description": "The 'reproducible canonical value / deterministic within the pinned environment' claim is falsified by the producer's own committed evidence. Byte-stable mode A: JP=0.5925/LD=0.348125/6-of-8 (sha256 6514501d..., 12:30-13:04 jobs). Byte-stable mode B: JP=0.659/LD=0.425775/7-of-8 (sha256 cff6b19e..., 14:02 job 38057542081). Both were produced with the same metadata content hash 34a0d467..., the same python 3.12.3/numpy 2.5.3/sklearn 1.9.1, unchanged embedding git blobs (results/fractal_map/hierarchical_map_174k/*), the same harness (c0a519a4...) and the same imported v3 metric module (blob 5ff537f6..., content eab5ccab...). The value is bimodal and runner/machine-dependent, not a stable property of the pinned environment.",
+      "same_cycle_repairable": true,
+      "repair_action": "Replace '3 identical runs => canonical 0.5925' with an honest runner-dependent/bimodal statement (JP in {0.5925,0.659}, LD in {0.348125,0.425775}; both PASS the gates) or pin the runner/concurrency environment required to quote a single number. Correct the report's 'cross-environment tie-breaking' root-cause wording to state the mechanism is not established."
+    },
+    {
+      "id": "D-3",
+      "severity": "MEDIUM",
+      "file": "evaluation/results/174k_tfidf_formal_suite/verification_latest_provenance.json; evaluation/experiments/run_frozen_baseline_reproducibility.py",
+      "description": "The per-run provenance sidecar records only the metadata sha256 and python/numpy/sklearn versions. It does not record the embedding file hashes (which are the dominant metric inputs and are read from the fractal-map mount), the imported evaluation_v3_harness.py hash (imported via a hard-coded absolute sys.path), the peer mount branch tips, or thread/hash-seed controls (OMP_NUM_THREADS, OPENBLAS_NUM_THREADS, PYTHONHASHSEED). A silent mount or code change is therefore undetectable from the sidecar alone.",
+      "same_cycle_repairable": true,
+      "repair_action": "Add embedding hashes, v3-harness hash, peer branch tips and the threading/hash-seed environment to the per-run sidecar; ideally verify (not just record) the v3-harness hash."
+    },
+    {
+      "id": "D-4",
+      "severity": "LOW",
+      "file": "reports/evaluation/; results/evaluation/frozen_baseline_reproducibility/",
+      "description": "This cycle has no narrative or machine-readable reference to run 38057542081 (grep -r '38057542081' returns nothing), and no runN_stdout.log was committed for the 14:02 runs (unlike the 13:04 runs).",
+      "same_cycle_repairable": true,
+      "repair_action": "Add a report/diagnosis entry for run 38057542081 pointing at the 14:02 verifications, and commit stdout for the final runs."
+    }
+  ],
+  "claim_ceiling": "No new claim is licensed beyond the last accepted audit CYCLE_38037204821. Maximum supportable claim: the TF-IDF 174k production baseline cited_decisions_tfidf_outcome_hybrid_0.5 PASSES both adversarial gates on the accepted corpus/metadata, with JP in the observed range [0.5925, 0.659] (>0.5 gate; >0.43 simple semantic baseline) and LD in [0.348, 0.426] (<0.85); the point value is runner/machine-dependent (bimodal, two byte-stable modes) and is NOT established by the recorded library-version pins, so no single number (0.5925 or 0.659) may be quoted as THE frozen baseline without the runner/concurrency environment. citation_heritage_auc=0.7296 and cross_language_recall@10=0.1194 are unchanged. Dense complementary criteria remain DEFINED/FROZEN but UNVALIDATED at 174k scale (blocked on corpus section extraction, bge/bger ID crosswalk, 2024-2026 embeddings, citation-graph coverage); the dense citation-heritage retraction stands. No dense-primary navigation claim. This cycle's delta is (i) three more reproduction runs showing 0.659 and (ii) an unreconciled live-pointer overwrite; it does not raise the ceiling.",
+  "evidence_summary": {
+    "run": "38057542081",
+    "lane": "evaluation",
+    "repair_round": 1,
+    "accepted_base": "e0d8e12e (accept evaluation cycle 38037204821)",
+    "producer_tip": "95dc3b44 (evaluation cycle 38057542081 repair 1)",
+    "control_plane": "/tmp/lex_control state/factory_direction.json v36: lanes.evaluation.status=PAUSE (quote JP=0.659 'deterministic across 3 runs' is itself over-strong; Director artifact, out of lane scope)",
+    "delta_is_nonzero": true,
+    "independent_recompute_limitation": "The accepted-mount inputs (/tmp/lex_accepted/legal-distance/.../metadata_174k.json and the .npy embeddings) are not mounted in the audit sandbox, so verify_frozen_baseline.py could not be re-executed. Byte-identity to accepted-base artifacts plus git-object identity of all metric inputs was used as the strongest available corroboration.",
+    "verified_facts": {
+      "prior_D1_fixed": "evaluation/verify_frozen_baseline.py has 'import os' at line 8; the LEX_ENFORCE_METADATA_PIN=1 branch reads os.environ at line 166.",
+      "prior_d2_fixed": "provenance.json pre_verification_latest_sha256=cff6b19e... (JP=0.659) and rerun_verification_latest_sha256=6514501d... (JP=0.5925) with a d2_repair note; matches report/diagnosis.",
+      "frozen_spec_unmodified": "5084377badab7bc04838809d28c4b6f53a81cd8320d0deeb81d8ffec422c69ca (unchanged).",
+    "harness_hashes": "verify_frozen_baseline.py c0a519a4... (post-D-1); imported evaluation_v3_harness.py content eab5ccab..., git blob 5ff537f6... unchanged at base and every producer ref.",
+    "two_byte_stable_modes": "0.5925/LD=0.348125/6-of-8 sha256 6514501d9a83...; 0.659/LD=0.425775/7-of-8 sha256 cff6b19e722b...; both recur many times in the accepted base's timestamped history.",
+    "live_pointer_reverted": "verification_latest.json content sha256 = cff6b19e... (0.659) at e0d8e12e and at 95dc3b44, but 1622b961/6514501d (0.5925) at a1dff397 and 4a826f4f. The final commit reverted the pointer while state stayed 0.5925.",
+    "inputs_identical_across_modes": "metadata sha256 34a0d467... logged at 13:04 and 14:02; python 3.12.3/numpy 2.5.3/sklearn 1.9.1 at both; git diff c431c1ee..e4b300a0 for results/fractal_map/hierarchical_map_174k/ is empty (embedding blobs unchanged); v3 metric blob unchanged; nearest-neighbor metric contains no unseeded RNG.",
+    "prior_defects_fixed": "D-1 (import os, line 8/166) and D-2 (provenance pre_*/rerun_* labels) from CYCLE_38051663272 are verified FIXED.",
+    "run_not_referenced": "grep -r '38057542081' over producer workspace returns no file; commit 95dc3b44 adds only 3 JSON + sidecar/pointer edits and no report/stdout.",
+    "write_scope_clean": "All changed paths within evaluation/, tests/evaluation/, results/evaluation/, reports/evaluation/, state/evaluation.json; no producer results/audit self-gate; accepted base intact; worktree clean.",
+    "independent_recompute_limitation_note": "Harness could not be re-executed (/tmp/lex_accepted not mounted); corroboration via byte-identity and git-object identity."
+  },
+  "attacks": {
+    "post_hoc_metric_or_threshold_change": "No. Frozen spec 5084377b... hash-identical; success rule/tolerance/sample unmodified.",
+    "benchmark_weakening_or_gaming": "No threshold/benchmark weakened. Both modes PASS. Note the live pointer now carries the higher value (0.659) while the narrative keeps the lower (0.5925) - inconsistent, not conservatively reconciled.",
+    "claim_bearing_overwrite": "verification_latest.json is a rolling pointer the harness rewrites each run (expected), but the overwrite was committed without reconciling state/report, re-creating the state<->pointer inversion a prior audit required to be removed.",
+    "provenance_falsification": "No false statement, but the 14:02 per-run sidecar omits the embedding hashes, v3-harness hash, branch tips and threading env needed to substantiate 'same inputs' (D-3).",
+    "leakage_weak_baseline_prettiness": "N/A (read-only reproduction; no map/visual artifact).",
+    "control_plane": "v36 already sets evaluation PAUSE; its '0.659 deterministic across 3 runs' is falsified too but factory_direction.json is a Director artifact outside the lane write scope.",
+    "recurring_pathology": "Zero-delta pathology (BLOCKED at CYCLE_38047626287) is NOT recurring - real delta exists. The recurring element is artifact/state inconsistency plus over-strong reproducibility language; bounded and same-cycle repairable -> REVISE, not BLOCKED.",
+    "root_cause_rigor": "Producer's 'cross-environment tie-breaking' attribution is unsupported by its own data: identical metadata hash, library versions, embedding blobs and harness blob produced both modes. The mechanism is not established; the supportable claim is runner/machine-dependent bimodality."
+  },
+  "gate_rationale": "The producer's prior defects D-1 and D-2 are fixed and verified, and the mission criterion holds in both observed modes (JP>0.5, >0.43 baseline, LD<0.85). But this cycle's new commit (95dc3b44) silently reverted the live verification pointer to JP=0.659 while state/evaluation.json and the report still assert JP=0.5925 is the reproducible canonical value and 0.659 is NOT_REPRODUCED, and the producer's own three new runs falsify the single-canonical-value claim (two byte-stable modes under identical recorded inputs). These are concrete, bounded, same-cycle-repairable claim-hygiene/provenance defects inside the lane write scope; no human/external decision is needed to make the lane's own artifacts consistent, and the recurring zero-delta pathology is not present. Hence REVISE (not PASS, not BLOCKED), safe_to_integrate=false."
+  }
+}
