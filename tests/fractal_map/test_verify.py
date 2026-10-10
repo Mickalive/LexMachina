@@ -386,13 +386,19 @@ class TestMetricConsistency:
         # Lane is BLOCKED on dependencies - check for "Blocker:" or "BLOCKED"
         assert "Blocker:" in rec or "BLOCKED" in rec
 
-    def test_state_recommendation_confirms_tfidf_operational(self):
-        """Next recommendation confirms TF-IDF hierarchical production modes are operational at 174k."""
+    def test_state_recommendation_decontradicts_tfidf_operational(self):
+        """F3 repair: state must NOT present TF-IDF hierarchical modes as operational /
+        unqualified-confirmed while the same cycle declares product_integration_174k
+        artifacts untrustworthy. Product serving must be explicitly BLOCKED."""
         rec = self.state["next_recommendation"]
         assert "TF-IDF hierarchical production modes" in rec
-        assert "OPERATIONAL" in rec
         assert "FROZEN" in rec
         assert "173,963" in rec or "174k" in rec
+        # de-contradiction assertions
+        assert "NOT OPERATIONAL" in rec, "state must explicitly deny product-operational status"
+        assert "BLOCKER_PRODUCT_JOIN_ALIGNMENT_V1" in rec
+        assert "SCRAMBLED" in rec or "scrambled" in rec
+        assert "CONFIRMED label is RETRACTED" in rec
 
     def test_state_recommendation_confirms_dense_contract_frozen(self):
         """Next recommendation confirms dense embedding integration contract v34 is defined and frozen."""
@@ -410,10 +416,57 @@ class TestMetricConsistency:
         assert "scale_extrapolation_validated" in findings
         assert "nesting_metric_defect_enforced" in findings
         assert "blocker_upstream_data" in findings
+        # REVISE-repair findings (audit cycle 38050987857)
+        assert "agreement_harness_positive_control_failed" in findings
+        assert "r3_coarse_metric_supplement" in findings
         # Values are descriptive strings
         for key, value in findings.items():
             assert isinstance(value, str), f"Critical finding {key} should be descriptive string"
             assert len(value) > 10, f"Critical finding {key} should be descriptive"
+
+    def test_r3_coarse_metric_supplement(self):
+        """F1 repair: coarse_ARI_branch is surfaced and reproduced bit-exact."""
+        supp = load_json(
+            "results/fractal_map/tfidf_hierarchy_reconciliation_v1/r3_coarse_metric_supplement_v1.json"
+        )
+        pm = supp["per_mode"]
+        assert pm["full_text_tfidf_light"]["coarse_ARI_branch"] == \
+            pytest.approx(0.25806127509487903, abs=1e-9)
+        assert pm["regeste_full_text_hybrid_0.5"]["coarse_ARI_branch"] == \
+            pytest.approx(0.1746652966979994, abs=1e-9)
+        assert pm["regeste_full_text_hybrid_0.7"]["coarse_ARI_branch"] == \
+            pytest.approx(0.16290003582748813, abs=1e-9)
+        # fine partition is over-segmented, so fine ARI is not the coarse measure
+        assert pm["full_text_tfidf_light"]["fine_n_clusters"] > 100
+        assert pm["full_text_tfidf_light"]["fine_ARI_branch"] < 0.10
+        # every recomputed value matches the frozen R3 results file
+        for mode, rec in pm.items():
+            for k in ("fine_ARI_branch", "coarse_ARI_branch", "fine_NMI_area",
+                      "fine_n_clusters", "coarse_n_clusters"):
+                assert rec[f"{k}_matches_frozen"], f"{mode}:{k} not bit-exact"
+
+    def test_agreement_harness_positive_control_fails_source_corrected(self):
+        """F2 repair: frozen positive control fails on source-corrected labels too."""
+        supp = load_json(
+            "results/fractal_map/tfidf_hierarchy_reconciliation_v1/r3_coarse_metric_supplement_v1.json"
+        )
+        pc = supp["positive_control"]
+        assert supp["frozen_positive_control_threshold"] == 0.05
+        assert pc["product_artifact_passes"] is False
+        assert pc["source_corrected_passes"] is False
+        assert pc["source_corrected_full_text_ARI_branch"] < 0.05
+
+    def test_state_repair_record_and_no_dangling_ref(self):
+        """F4/F5 repair: repair record present; dangling report reference corrected."""
+        assert "repair_cycle_38050987857" in self.state
+        rep = self.state["repair_cycle_38050987857"]
+        assert rep["audit_gate"] == "REVISE"
+        assert rep["dispatch_run_id"] == 38050987857
+        assert rep["producer_team_run_id"] == 38048724922
+        # F5: the dangling path must be gone; corrected path must exist
+        refs = " ".join(self.state["evidence_refs"])
+        assert "reports/fractal_map/CONSTRAINED_HIERARCHICAL_174K_FULL_VALIDATION_20260926.md" not in refs
+        assert (BASE / "reports/fractal-map/CONSTRAINED_HIERARCHICAL_174K_FULL_VALIDATION_20260926.md").exists()
 
     def test_factory_direction_v34_consistency(self):
         """State correctly reflects factory direction v35 (not v29/v30)."""

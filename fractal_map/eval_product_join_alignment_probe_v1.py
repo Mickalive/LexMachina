@@ -27,6 +27,7 @@ Output: results/fractal_map/diagnostics/product_integration_174k_join_probe_v1.j
 """
 import json
 import sys
+import hashlib
 from pathlib import Path
 
 import numpy as np
@@ -51,6 +52,14 @@ def _l2_normalize(rows):
         out = rows / norms
     out[~np.isfinite(out)] = 0.0
     return out
+
+
+def _sha256(path):
+    h = hashlib.sha256()
+    with open(path, 'rb') as f:
+        for chunk in iter(lambda: f.read(1 << 20), b''):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 def probe(mode):
@@ -91,6 +100,10 @@ def probe(mode):
 
 if __name__ == '__main__':
     results = {m: probe(m) for m in MODES}
+    inputs_sha256 = {}
+    for m in MODES:
+        inputs_sha256[str(EVAL_EMB / f'{m}.npy')] = _sha256(EVAL_EMB / f'{m}.npy')
+        inputs_sha256[str(PROD_EMB / f'{m}.npy')] = _sha256(PROD_EMB / f'{m}.npy')
     blob = {
         'probe_id': 'product_integration_174k_join_probe_v1',
         'lane': 'fractal-map',
@@ -100,6 +113,7 @@ if __name__ == '__main__':
         'motivation': 'Run 38048724922 reconciliation: PRODUCT artifacts showed at-chance purity '
                       '(R1/R2) while accepted headline comes from eval-aligned embeddings. '
                       'This probe isolates whether product id->cluster joins are ID-truthful.',
+        'inputs_sha256': inputs_sha256,
         'results': results,
     }
     out_path = OUT / 'product_integration_174k_join_probe_v1.json'

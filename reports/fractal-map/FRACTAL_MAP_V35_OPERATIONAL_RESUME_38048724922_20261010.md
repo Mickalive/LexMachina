@@ -5,6 +5,7 @@
 - Resumed from: persisted producer snapshot of GitHub run **38048724922** (team branch `cycle/core/fractal-map/38048724922/team`, commit `dcf5505e`)
 - Report date: 2026-10-10
 - Scope: diagnose the run's orchestration/validation failure, complete the frozen falsification experiment (R3), determine the status of the accepted 0.906–0.930 headline, and make the snapshot audit-ready.
+- **Revision (2026-10-10T13:00:00Z): repair round 1 for audit cycle 38050987857 (REVISE, `results/audit/fractal-map/CYCLE_38050987857_GATE.json`).** Fixes F1 (surface `coarse_ARI_branch`; fine ARI is not the macro measure), F2 (positive control fails on source-corrected labels too; narrow "CONFIRMED"; retract "entirely a product join defect"), F4 (provenance/run-id mapping). Sections 2–3 and 5 below were corrected accordingly; reproduced values are unchanged.
 
 ## 1. Orchestration failure diagnosis (run 38048724922)
 
@@ -36,21 +37,35 @@ All metrics, configs and decision rules below were frozen **before** any computa
 - `R2_product_agreement_weak_but_above_chance=True` (historical harness) — correct framing: the product join retains only a faint residual signal.
 
 ### R3 — source isolation (completed this resume; `eval_r3_source_isolation_v1.py`, frozen v29 pipeline on evaluation-v25 embeddings)
-| mode | accepted headline | R3 reproduced | fine n_clusters | ARI_branch | NMI_area |
-|---|---|---|---|---|---|
-| full_text_tfidf_light | 0.93 | **0.93007** (bit-exact) | 365 (bit-exact) | 0.0429 | 0.5737 |
-| regeste_full_text_hybrid_0.5 | 0.906 | **0.90567** (bit-exact) | 1101 | 0.0441 | 0.5597 |
-| regeste_full_text_hybrid_0.7 | 0.909 | **0.90889** (bit-exact) | 1316 | 0.0469 | 0.5550 |
+| mode | accepted headline | R3 reproduced | fine n_clusters | coarse n_clusters | fine ARI_branch | **coarse ARI_branch** | NMI_area |
+|---|---|---|---|---|---|---|---|
+| full_text_tfidf_light | 0.93 | **0.93007** (bit-exact) | 365 (bit-exact) | 19 | 0.0429 | **0.2581** | 0.5737 |
+| regeste_full_text_hybrid_0.5 | 0.906 | **0.90567** (bit-exact) | 1101 | 81 | 0.0441 | **0.1747** | 0.5597 |
+| regeste_full_text_hybrid_0.7 | 0.909 | **0.90889** (bit-exact) | 1316 | 104 | 0.0469 | **0.1629** | 0.5550 |
 
 R3 reproduces the accepted headline **bit-for-bit** on the evaluation embeddings with the frozen pipeline.
+
+**Granularity correction (audit required_fix F1).** The fine partition has 365–1316 clusters and is therefore **over-segmented relative to the 5-class human `branch` label**; the fine-level `ARI_branch` (~0.04) is *not* the correct macro-alignment measure. At the coarse level (19/81/104 clusters, `coarse_res=0.25`) the same hierarchy shows **weak-to-moderate** recapture of the branch axis (`coarse_ARI_branch` 0.258/0.175/0.163). The earlier report used only the fine figure and thereby understated coarse agreement. Both levels are now surfaced, reproduced bit-exact from the frozen `r3_labels/*.npy` by `fractal_map/eval_r3_coarse_metric_supplement_v1.py` → `results/fractal_map/tfidf_hierarchy_reconciliation_v1/r3_coarse_metric_supplement_v1.json`.
+
+### Positive-control reconciliation (audit required_fix F2)
+The frozen `EVAL_SPEC_FROZEN.json` positive control (`success_and_decision_rules.positive_control`) states: *"full_text_tfidf_light (full 173,963) must show ARI_branch > 0.05; if not, the whole evaluation harness is invalid and no claim is made."*
+
+| full_text ARI_branch | value | vs 0.05 |
+|---|---|---|
+| product artifact (harness `positive_control`) | 0.00033 | FAIL |
+| **source-corrected R3 labels (eval-v25, row space == id space)** | **0.04294** | **FAIL** |
+
+The positive control therefore fails on **both** the product artifact and the *source-corrected* labels. The earlier framing that the discrepancy is "NOT scientific — it is a product join/alignment defect" is **retracted/qualified**: the join defect is real and fully explains the product id-scrambling, but it is **not the only cause**. Independently of the join defect, the frozen harness still fails its own positive control and therefore yields **no branch-recovery claim** for any TF-IDF hierarchical mode. `agreement_results.json` `harness_verdict = INCONCLUSIVE_POSITIVE_CONTROL_FAILED`, `harness_valid = false`.
+
+**Threshold disambiguation (audit required_fix F2).** Two distinct frozen thresholds were conflated in the audited text: the positive control (harness validity) is `ARI_branch > 0.05`; the per-level `recovers_branch` rule is `ARI_branch > 0.10`. At the fine level the modes fail *both* (0.043–0.047); at the coarse level `coarse_ARI_branch` 0.163–0.258 exceeds 0.10, but this is reported only as a weak-to-moderate characterisation because the harness itself is invalid. Neither threshold can support the unqualified "CONFIRMED" label.
 
 ### Verdicts under the frozen rules (`r3_source_isolation_verdict_v1.json`)
 - **`R1_provenance_mismatch_confirmed`: TRUE** — product artifacts cannot serve the accepted claim (2 absent, 1 at 0.355 vs 0.93).
 - **`R2_product_agreement_at_chance`: FALSE by the letter** (default mode is 329σ above its shuffled null), **but** the full_text mode is exactly at chance and the default mode's macro-alignment is destroyed (NMI_area 0.033 vs 0.574 truth).
-- **`R3_source_driven`: TRUE** — accepted purity ≥ 0.85 reproduced on all 3 text modes on evaluation embeddings while product < 0.60 or absent; R3 ARI_branch < 0.10 (0.043–0.047) ⇒ micro-pure / macro-unaligned on the branch axis.
-- **Falsification clause: PARTIALLY triggered, but as a scientific characterization, NOT as falsification of the headline.** R3 eval-embedding hierarchies are micro-coherent (purity 0.906–0.930) and keep strong legal_area structure (NMI_area 0.555–0.574, ~40× the product artifacts' 0.013–0.033) but do not recapture the coarse 5-class human **branch** axis (ARI_branch ~0.04). That is expected for content/thematic clustering; the accepted claims stand, provenance-specific.
+- **`R3_source_driven`: TRUE** — accepted purity ≥ 0.85 reproduced on all 3 text modes on evaluation embeddings while product < 0.60 or absent; the *fine* level is micro-pure / macro-unaligned (fine ARI_branch 0.043–0.047) while the *coarse* level shows weak-to-moderate branch recapture (coarse ARI_branch 0.16–0.26).
+- **Falsification clause: PARTIALLY triggered, but as a scientific characterization, NOT as falsification of the headline.** R3 eval-embedding hierarchies are micro-coherent (purity 0.906–0.930) and keep strong legal_area structure (NMI_area 0.555–0.574, ~40× the product artifacts' 0.013–0.033). At the fine level they do not recapture the 5-class human **branch** axis (fine ARI_branch ~0.04); at the coarse level they partially do (coarse ARI_branch 0.16–0.26). That is consistent with content/thematic clustering. The reproduced purity numbers stand, but under the frozen positive control they do **not** constitute a validated branch-recovery claim (see positive-control reconciliation above).
 
-## 3. Root cause of the discrepancy — product join/alignment defect
+## 3. Root cause of the product-artifact discrepancy — product join/alignment defect
 
 The product artifacts' labels are **scrambled relative to decision ids**:
 
@@ -59,7 +74,7 @@ The product artifacts' labels are **scrambled relative to decision ids**:
 - New pre-registered join probe (`fractal_map/eval_product_join_alignment_probe_v1.py` → `results/fractal_map/diagnostics/product_integration_174k_join_probe_v1.json`): for all 3 text modes, **diagonal-is-best = 0.0%** (2000-row sample, seed 0), best-match cosine 0.836–0.899, median |best−idx| = 1150, 96.8% of rows displaced >1000 rows ⇒ the product row order ≠ eval-metadata order. The product id→cluster mapping is therefore effectively a random join (which is exactly what R1/R2 observe: purity at/near chance).
 - Prior lane evidence already flagged this: census/review run 36035695081 (`legal_distance_modes/alignment_probe_v26.json`: candidate agreement 0.426 vs ~1.0 expected, verdict REJECTED; `duplicate_id_count 1003, CORRUPTED` in cluster metadata) and `zoom_quality_174k_all_modes_v26.py` (174k build placeholder-keyed, separately BLOCKED).
 
-**Defect class:** data-integrity / join-alignment defect in the product artifacts — **not** a scientific falsification of the accepted embedding-based claim.
+**Defect class:** data-integrity / join-alignment defect in the product artifacts. This defect is **a** cause of the product-artifact-vs-accepted-headline numeric gap and fully explains the product id-scrambling. It is **not the only cause** of the overall discrepancy: as shown in the positive-control reconciliation above, the frozen harness fails its own positive control on *source-corrected* labels (fine ARI_branch 0.0429 < 0.05), independently of the join defect. The audited report's claim that the discrepancy is "NOT scientific — it is a product join/alignment defect" is therefore retracted/qualified (audit required_fix F2).
 
 ## 4. Blocker raised
 
@@ -67,17 +82,19 @@ The product artifacts' labels are **scrambled relative to decision ids**:
 
 ## 5. Product capability conclusion for direction v35
 
-- **Accepted headline status: CONFIRMED, provenance-specific.** TF-IDF hierarchical fine purity 0.906–0.930 is real and deterministic on the evaluation-v25 embeddings (R3 bit-exact reproduction), and these are the embeddings the product should serve.
-- **Scientific characterization:** TF-IDF hierarchies are micro-coherent and area-informative (NMI_area 0.56–0.57) but do not recover the coarse 5-class branch axis (ARI_branch 0.04) — consistent with content/thematic clustering. The map is a faithful geometric structure, not a branch taxonomy.
-- **Product blocker:** current `product_integration_174k` artifacts join scrambled (at-chance purity); downstream consumers must not trust their decision→cluster assignments until rebuild + probe verification.
+- **Accepted headline status: REPRODUCED (metric-level) — NOT a validated branch-recovery claim.** TF-IDF hierarchical fine `fine_branch_purity` 0.906–0.930 is real and deterministic on the evaluation-v25 embeddings (R3 bit-exact reproduction). Under the frozen `EVAL_SPEC` positive control the harness still fails (source-corrected full_text fine ARI_branch 0.0429 < 0.05), so the correct statement is only that the *number* reproduces on that embedding source. The unqualified "CONFIRMED" used in the audited report is withdrawn (audit required_fix F2).
+- **Scientific characterization:** TF-IDF hierarchies are micro-coherent and area-informative (NMI_area 0.56–0.57). They barely recover the 5-class human **branch** axis at the fine (over-segmented) level (fine ARI_branch 0.04) and only weakly-to-moderately at the coarse level (coarse ARI_branch 0.16–0.26) — consistent with content/thematic clustering. The map is a geometric structure, not a branch taxonomy.
+- **Product blocker:** current `product_integration_174k` artifacts join scrambled (at-chance purity); downstream consumers must not trust their decision→cluster assignments until rebuild + probe verification. No TF-IDF hierarchical mode is servable today.
 
 ## 6. Preservation & audit-readiness
 
-- No historical claim-bearing file was modified: `reconciliation_results.json`, `agreement_results.json`, `EVAL_SPEC_FROZEN.json`, `RECON_SPEC_FROZEN.json`, all `hierarchical_v1_174k_tfidf/*.json`, all product/hierarchical artifacts — untouched.
-- New files this resume: `r3_source_isolation_results.json` (+ `r3_labels/`), `r3_source_isolation_verdict_v1.json`, `fractal_map/eval_product_join_alignment_probe_v1.py`, `results/fractal_map/diagnostics/product_integration_174k_join_probe_v1.json`, this report, and the `state/fractal-map.json` operational-resume record.
+- No historical claim-bearing file was modified: `reconciliation_results.json`, `agreement_results.json`, `EVAL_SPEC_FROZEN.json`, `RECON_SPEC_FROZEN.json`, `r3_source_isolation_results.json`, all `hierarchical_v1_174k_tfidf/*.json`, all product/hierarchical artifacts — untouched.
+- New files from repair 1 (commit `c431c1ee`): `r3_source_isolation_results.json` (+ `r3_labels/`), `r3_source_isolation_verdict_v1.json`, `fractal_map/eval_product_join_alignment_probe_v1.py`, `results/fractal_map/diagnostics/product_integration_174k_join_probe_v1.json`, this report, and the `state/fractal-map.json` operational-resume record.
+- New/changed in this REVISE repair (audit cycle 38050987857): `r3_source_isolation_verdict_v1.json` (F1/F2/F4 corrections, `revision_record`), this report (sections 2–3, 5), `fractal_map/eval_r3_coarse_metric_supplement_v1.py` + `results/fractal_map/tfidf_hierarchy_reconciliation_v1/r3_coarse_metric_supplement_v1.json` (new reproducible coarse-metric + positive-control artifact), `state/fractal-map.json` (F3 de-contradiction, F5 reference fix), and `tests/fractal_map/test_verify.py` (pin corrected state semantics).
 
 ## 7. Next steps
 1. Corpus/product lane: rebuild product artifacts from eval-aligned embeddings (new path), re-run join probe → expect diag_is_best ≈ 1.0 and purity ≈ 0.91–0.93.
 2. Build the two missing regeste hybrid product modes.
 3. Re-run the reconciliation harness on the corrected artifacts to close R1/R2 with evidence rather than absence.
 4. Update `main` blocker-hash writer/reader to the same canonical format (prior audit requirement).
+5. Resolve the frozen `EVAL_SPEC` positive-control failure: either (a) establish that the harness cannot validate branch recovery at all and record the metric as unusable for that purpose, or (b) re-freeze a positive control appropriate to the coarse level and re-run it before any branch-recovery claim. Do not silently replace the frozen control.

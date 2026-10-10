@@ -1,0 +1,71 @@
+{
+  "supplement_id": "r3_coarse_metric_supplement_v1",
+  "lane": "fractal-map",
+  "direction_version": 35,
+  "created_utc": "2026-10-10T13:00:00Z",
+  "purpose": "REVISE repair CYCLE_38050987857: surface the coarse-level ARI_branch that the audited cycle omitted, and re-verify the frozen EVAL_SPEC positive control on the source-corrected labels.",
+  "method": "Recompute ARI_branch / NMI_area from the frozen r3_labels/*.npy and metadata_174k_aligned.json exactly as frozen in RECON_SPEC_FROZEN.json. No clustering re-run; no threshold changed.",
+  "frozen_positive_control_rule": "full_text_tfidf_light (full 173,963) must show ARI_branch > 0.05; if not, the whole evaluation harness is invalid and no claim is made.",
+  "frozen_positive_control_threshold": 0.05,
+  "positive_control": {
+    "product_artifact_full_text_ARI_branch": 0.0003300828245138065,
+    "source_corrected_full_text_ARI_branch": 0.042939834467911366,
+    "product_artifact_passes": false,
+    "source_corrected_passes": false,
+    "harness_verdict_recorded": "INCONCLUSIVE_POSITIVE_CONTROL_FAILED",
+    "harness_valid_recorded": false,
+    "conclusion": "FAILS on BOTH the product artifact and the source-corrected labels (0.00033 and 0.04294, both < 0.05). The agreement harness is therefore INVALID/INCONCLUSIVE for branch recovery even after removing the product join defect; the join defect must NOT be described as the only cause of the discrepancy."
+  },
+  "granularity_note": "The R3 fine partition (365-1316 clusters) is over-segmented relative to the 5-class human branch axis, so the fine-level ARI (~0.04) is not the correct macro-alignment measure. The coarse-level ARI_branch (0.16-0.26) shows weak-to-moderate, not absent, recapture of the branch axis.",
+  "per_mode": {
+    "full_text_tfidf_light": {
+      "fine_n_clusters": 365,
+      "coarse_n_clusters": 19,
+      "fine_ARI_branch": 0.042939834467911366,
+      "coarse_ARI_branch": 0.25806127509487903,
+      "fine_NMI_area": 0.5737480273607963,
+      "fine_ARI_branch_matches_frozen": true,
+      "coarse_ARI_branch_matches_frozen": true,
+      "fine_NMI_area_matches_frozen": true,
+      "fine_n_clusters_matches_frozen": true,
+      "coarse_n_clusters_matches_frozen": true
+    },
+    "regeste_full_text_hybrid_0.5": {
+      "fine_n_clusters": 1101,
+      "coarse_n_clusters": 81,
+      "fine_ARI_branch": 0.04410091750268447,
+      "coarse_ARI_branch": 0.1746652966979994,
+      "fine_NMI_area": 0.5596592701102936,
+      "fine_ARI_branch_matches_frozen": true,
+      "coarse_ARI_branch_matches_frozen": true,
+      "fine_NMI_area_matches_frozen": true,
+      "fine_n_clusters_matches_frozen": true,
+      "coarse_n_clusters_matches_frozen": true
+    },
+    "regeste_full_text_hybrid_0.7": {
+      "fine_n_clusters": 1316,
+      "coarse_n_clusters": 104,
+      "fine_ARI_branch": 0.04690507354127749,
+      "coarse_ARI_branch": 0.16290003582748813,
+      "fine_NMI_area": 0.5550155810347405,
+      "fine_ARI_branch_matches_frozen": true,
+      "coarse_ARI_branch_matches_frozen": true,
+      "fine_NMI_area_matches_frozen": true,
+      "fine_n_clusters_matches_frozen": true,
+      "coarse_n_clusters_matches_frozen": true
+    }
+  },
+  "inputs_sha256": {
+    "results/fractal_map/multi_level_protocol_174k_tfidf/metadata_174k_aligned.json": "2eb0ead5a6d74a89cdfc67068ceca0f4eea93140612cd31ab544f7bff22d0858",
+    "results/fractal_map/tfidf_hierarchy_reconciliation_v1/r3_source_isolation_results.json": "81887b5983dd12f74f5ea79972c722f7586871e55c7bf645f8c5ae398e60cff4",
+    "results/fractal_map/tfidf_hierarchy_agreement_v1/agreement_results.json": "593ced35838a2b75e5d5440a0894607562f70a03e58d4c55be82bc7df6019687",
+    "results/fractal_map/tfidf_hierarchy_agreement_v1/EVAL_SPEC_FROZEN.json": "7d290f6bc2b8e61a7b41a5ee56959333e6b1fe43137bcc4e71aec0bd9e16c4a3",
+    "results/fractal_map/tfidf_hierarchy_reconciliation_v1/r3_labels/full_text_tfidf_light_hierarchical.npy": "0eaede9b5b9efb93cb7b75221545ea7d69d4634a1884b78661c35c9469f6791c",
+    "results/fractal_map/tfidf_hierarchy_reconciliation_v1/r3_labels/full_text_tfidf_light_coarse.npy": "29ca940e7baf6c4cbdd6620feda9bbcdb09b368d3058b2a76a581577735bcb09",
+    "results/fractal_map/tfidf_hierarchy_reconciliation_v1/r3_labels/regeste_full_text_hybrid_0.5_hierarchical.npy": "76e59611561601cea2d88ecf12e2a8139beece5105b955f225677b8ca7406431",
+    "results/fractal_map/tfidf_hierarchy_reconciliation_v1/r3_labels/regeste_full_text_hybrid_0.5_coarse.npy": "df40eff3157670ca05e601f7c53884e60005fad0c8147a668394e4267065e936",
+    "results/fractal_map/tfidf_hierarchy_reconciliation_v1/r3_labels/regeste_full_text_hybrid_0.7_hierarchical.npy": "9767d813752670ddfa408fe9f7b34e833112400b0190352b658e3e36368dc490",
+    "results/fractal_map/tfidf_hierarchy_reconciliation_v1/r3_labels/regeste_full_text_hybrid_0.7_coarse.npy": "77d8c61a511f69e59e955d0cf19e0eaefcb0362ab39b8fef840f0a4f783a1747"
+  },
+  "preservation": "Read-only over frozen artifacts. Only new output written: this supplement. r3_source_isolation_results.json, EVAL_SPEC_FROZEN.json and agreement_results.json are unchanged."
+}
