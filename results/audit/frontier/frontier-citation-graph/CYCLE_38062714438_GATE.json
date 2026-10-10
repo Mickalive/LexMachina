@@ -1,0 +1,36 @@
+{
+  "gate": "BLOCKED",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    "Materialize evaluation/evaluation/build_174k_citation_graph.py and its outputs (citation_graph_174k.json, citation_pairs_174k_full.json) to main branch",
+    "Materialize corpus/normalization/canonical/resolved_full/citation_graph_resolved.json and citation_to_decision_id.json (250-decision seed) to main branch",
+    "Materialize center_projected_64dim dense embeddings for 2000-2021 subset to main branch",
+    "Verify all charter dependency paths against actual workspace before re-chartering team"
+  ],
+  "claim_ceiling": "UNTESTABLE — no corpus-scale citation graph exists in workspace; charter dependencies missing from control plane",
+  "evidence_summary": {
+    "team_state": "INITIALIZED (evidence_tier: UNTESTED, accepted_run_id: null)",
+    "team_artifacts_produced": 0,
+    "team_reports_produced": 0,
+    "team_results_produced": 0,
+    "charter_dependencies_missing": 4,
+    "charter_dependencies_present": 2,
+    "missing_critical_artifacts": [
+      "evaluation/evaluation/build_174k_citation_graph.py",
+      "evaluation/results/174k_citation_heritage/citation_graph_174k.json (claimed: 5,031 sources, 7,799 edges)",
+      "evaluation/results/174k_citation_heritage/citation_pairs_174k_full.json (claimed: 137,314 positive pairs)",
+      "corpus/normalization/canonical/resolved_full/citation_graph_resolved.json",
+      "corpus/normalization/canonical/resolved_full/citation_to_decision_id.json",
+      "center_projected_64dim embeddings (2000-2021)"
+    ],
+    "frozen_baselines": {
+      "tfidf_citation_heritage_auc": 0.7296,
+      "dense_citation_heritage_status": "NOT empirically validated — blocked on citation graph coverage",
+      "frozen_citation_graph_coverage": "174/173,963 decisions, 924 resolved citations",
+      "theoretical_ceiling_decisions_with_cited_decisions": 91583,
+      "charter_minimum_adoption_target": 45800,
+      "stop_promote_termination_threshold": 10000
+    },
+    "root_cause": "Structural dependency failure — charter assumes pre-existing corpus-scale citation graph pipeline and outputs that were never materialized in the control plane (main branch). Team cannot extend what does not exist."
+  }
+}
