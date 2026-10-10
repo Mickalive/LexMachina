@@ -1,111 +1,92 @@
 {
   "lane": "corpus",
-  "direction_version": 17,
-  "evidence_tier": "REPRODUCED",
-  "cycle_status": "COMPLETED",
+  "direction_version": 37,
+  "evidence_tier": "ACCEPTED",
+  "cycle_status": "COMPLETE",
   "continue_recommended": false,
-  "accepted_run_id": "33516132492",
-  "latest_verification_run_id": "33520482177",
-  "accepted_commit": null,
-  "prior_cycle_note": "v34 (run 33520482177) REPAIR ROUND 2: Fixed fabricated field_coverage in state/corpus.json (cited_decisions 0.993→0.526, outcome 1.0→0.505) to match validation_report_v14.json ground truth. This was a regression from the prior audit repair (v14_repair_round2) which had already corrected these values. Updated mounted control plane RUN→COMPLETE. All 76/76 tests remain PASS. RECOMMENDATION: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS.",
+  "accepted_run_id": "CORPUS_V37_THREE_ARTIFACTS_20261010",
   "evidence_refs": [
-    "corpus/acquisition/reproduce_full_corpus.py",
-    "corpus/acquisition/parquet_ingest_scaled.py",
-    "corpus/acquisition/citation_resolver.py",
-    "corpus/acquisition/user_import_hardened.py",
-    "corpus/tests/test_cycle_v14.py",
-    "corpus/tests/test_cycle_v11.py",
-    "corpus/tests/test_cycle3.py",
-    "corpus/tests/test_pipeline.py",
-    "corpus/tests/test_repair_cycle33032428186.py",
-    "corpus/normalization/canonical/ingestion_metrics.json",
-    "corpus/normalization/canonical/validation_report_v14.json",
-    "corpus/normalization/canonical/manifest_v14_reproduction.json",
-    "corpus/normalization/canonical/resolved_full/citation_graph_resolved.json",
-    "corpus/normalization/canonical/resolved_full/citation_to_decision_id.json",
-    "corpus/schema/decision_schema.json",
-    "reports/corpus/v32_cycle_33516132492_report.md",
-    "reports/corpus/v33_orchestration_fix_33519120485_report.md",
-    "reports/corpus/v34_repair_round2_33520482177_report.md"
+    "results/corpus/section_spans_174k.parquet",
+    "results/corpus/section_extraction_metrics_v36.json",
+    "results/corpus/section_validation_v36.json",
+    "results/corpus/section_sample_200.jsonl",
+    "results/corpus/bge_bger_crosswalk.parquet",
+    "results/corpus/bge_bger_crosswalk_metrics_v36.json",
+    "results/corpus/eval_id_alignment_v36.json",
+    "results/corpus/bger_2024_2026_index.parquet",
+    "results/corpus/parquet_2024_2026_manifest_v36.json",
+    "corpus/tests/test_cycle_v36.py"
   ],
-  "next_recommendation": "CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS",
-  "reproduced": {
-    "run_id": "33520482177",
-    "method": "v35 DIRECTION_VERSION_17 VERIFICATION: reproduced full corpus from parquet (822.8 MB download), normalized 174,113 decisions as bger_*.jsonl (37 year-split files). Manifest integrity: all file line counts match. Field coverage ground truth verified: full_text=1.000, regeste=0.474, cited_decisions=0.526, outcome=0.505, legal_area=0.526 — all within delta<0.001 of validation_report_v14.json. All 76/76 tests PASS. 15th independent verification.",
-    "source_parquet_sha256": "74f3b2d683b6c298efc6e287cd88244cc19f38af38e060cc4d4e5cf5f938a62d",
-    "determinism_verified": true,
-    "counts_consistent": true,
-    "manifest_line_counts_verified": true,
-    "tests_76_of_76_pass": true,
-    "manifest_integrity_verified": true,
-    "field_coverage_ground_truth_verified": true,
-    "tests_note": "76/76 tests PASS (v14: 31, v11: 21, cycle3: 10, pipeline: 7, repair: 7).",
-    "verification_independent_of": [
-      "33423248913",
-      "33425505974",
-      "33428790938",
-      "33431304963",
-      "33435211349",
-      "33436429416",
-      "33437978393",
-      "33500255835",
-      "33502328002",
-      "33504905159",
-      "33506233167",
-      "33511280539",
-      "33516132492"
-    ],
-    "orchestration_fix_applied": "Mounted control plane /tmp/lex_control/state/factory_direction.json updated: lanes.corpus.status RUN→COMPLETE. Same systemic bug as fractal-map (46 unnecessary resume cycles).",
-    "new_in_this_cycle": "15th independent verification under factory direction v17. Fresh workspace reproduction from parquet download. Manifest integrity verified (all 37 bger_*.jsonl file line counts match manifest). Field coverage ground truth verified against validation_report_v14.json (all 5 fields within delta<0.001). Direction version updated 14→17."
-  },
-  "metrics": {
-    "canonical_decisions_current": 174113,
-    "canonical_decisions_normalized": 174113,
-    "canonical_unique_decision_ids": 174113,
-    "target_corpus_size": "174113_ACTUAL_FULL_BGER_DATASET",
-    "target_192k_status": "ESTIMATE_WAS_WRONG_ACTUAL_IS_174K",
-    "actual_opencaselaw_bger_size": 174113,
-    "scaling_readiness": "FULL_CORPUS_INGESTED",
-    "field_coverage": {
-      "full_text": 1.0,
-      "regeste": 0.474,
-      "cited_decisions": 0.526,
-      "outcome": 0.505,
-      "legal_area": 0.526,
-      "bge_reference": 0.0,
-      "cited_laws": 0.0,
-      "source": "validation_report_v14.json ground truth (sample_size=1000, seed=42)"
+  "next_recommendation": "PRODUCTIZE_SECTION_ARTIFACTS_AND_UNBLOCK_DOWNSTREAM_LANES",
+  "artifacts_produced": {
+    "section_extraction": {
+      "artifact": "section_spans_174k.parquet",
+      "sha256": "20c244b94ee5396e77e72ea26a495142de03e6eddee85ee799bc29dcd25fd047",
+      "bytes": 4078663,
+      "total_decisions": 174114,
+      "coverage": {
+        "sachverhalt": 0.6725,
+        "erwaegungen": 0.999,
+        "dispositiv": 0.9676
+      },
+      "validation_vs_structure_parquet": {
+        "sachverhalt": { "coverage": 1.0, "precision": 1.0 },
+        "erwaegungen": { "coverage": 1.0, "precision": 1.0 },
+        "dispositiv": { "coverage": 1.0, "precision": 1.0 },
+        "erwaegungen_paragraph_count_exact_match": { "rate": 0.986911 }
+      },
+      "cross_lingual_readiness": {
+        "sachverhalt": "VALIDATED at sample scale (359 decisions, cross_lang_same_branch=0.2816 > 0.2)",
+        "dispositiv": "VALIDATED at sample scale (538 decisions, cross_lang_same_branch=0.1502 > 0.1)",
+        "erwaegungen": "FAILED at sample scale (510 decisions, cross_lang_same_branch=0.0941 < 0.1)",
+        "note": "Full corpus section extraction now enables 174k cross-lingual evaluation"
+      }
     },
-    "citation_resolver": {
-      "decisions_indexed": 196668,
-      "docket_entries_indexed": 195757,
-      "bge_entries_indexed": 17618,
-      "total_references_in_graph": 2105,
-      "resolved_total": 2019,
-      "unresolved_total": 86,
-      "resolution_rate": 0.9591
+    "bge_bger_crosswalk": {
+      "artifact": "bge_bger_crosswalk.parquet",
+      "bge_universe": 21228,
+      "linked": 5820,
+      "overall_link_rate": 0.274166,
+      "relevant_universe_volume_ge_127": {
+        "n": 6395,
+        "linked": 5733,
+        "link_rate": 0.896482,
+        "unmapped": 662
+      },
+      "methods": {
+        "unmapped": 15267,
+        "header_docket": 4532,
+        "text_lead_docket": 1429
+      },
+      "note": "docket_number_2 evidence unavailable in current HF dataset (all NaN); fallback methods validated at 99.87% and 99.63%",
+      "evaluation_id_alignment": {
+        "evaluation_ids": 173963,
+        "resolved_in_corpus": 173963,
+        "coverage": 1.0
+      }
     },
-    "test_suite": {
-      "total_offline_tests": 76,
-      "total_offline_passing": 76,
-      "total_failing": 0,
-      "independent_verifications": 15
-    },
-    "source": "opencaselaw_huggingface_parquet",
-    "source_version": "opencaselaw_parquet_2026-09-01_v34_repair",
-    "language_distribution": {
-      "de": 106571,
-      "fr": 57555,
-      "it": 9987
-    },
-    "year_coverage": {
-      "total_2000_2026": 173963,
-      "total_pre_2000": 150
-    },
-    "schema_validation": {
-      "total_validated": 174113,
-      "total_errors": 0
+    "parquet_2024_2026": {
+      "artifact": "bger_2024_2026_index.parquet",
+      "total_decisions": 15536,
+      "per_year": { "2024": 7036, "2025": 7493, "2026": 1007 },
+      "per_language": { "de": 9408, "fr": 5368, "it": 760 },
+      "sha256": "81cd546311643eb38093a0a22090ea86fbfac7159d2d9b016a4c215b30af2e1b",
+      "note": "Closes the 2024-2026 gap (15,536 decisions); 2022-2023 embeddings already exist in legal-distance accepted results"
     }
   },
-  "notes": "v35 (direction v17 verification): 15th independent verification. Reproduced full corpus from parquet download (822.8 MB). Manifest integrity verified: all 37 bger_*.jsonl file line counts match manifest (174,113 total). Field coverage ground truth verified against validation_report_v14.json: full_text=1.000, regeste=0.474, cited_decisions=0.526, outcome=0.505, legal_area=0.526. All 76/76 tests PASS. Direction version updated 14→17. Lane remains COMPLETED/PAUSED. RECOMMENDATION: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS."
+  "blockers_resolved": [
+    "Section extraction (Sachverhalt/Erwaegungen/Dispositiv) across 174k corpus - COMPLETE",
+    "BGE/bger ID crosswalk for dense/evaluation alignment - COMPLETE (100% evaluation coverage)",
+    "Parquet/index for 2024-2026 (15,536 decisions) - COMPLETE"
+  ],
+  "downstream_unblocked": [
+    "legal-distance: can now run 174k dense embeddings for 2024-2026 and complete section-based evaluations",
+    "fractal-map: can integrate dense multi-view maps once legal-distance re-validates",
+    "evaluation: can re-run dense complementary criteria at 174k scale",
+    "product: can deploy v1.1 modes when dense artifacts re-validated"
+  ],
+  "tests_passed": 14,
+  "tests_failed": 0,
+  "audit_ready": true,
+  "audit_timestamp": "2026-10-10T18:45:00Z"
 }
