@@ -1,0 +1,56 @@
+{
+  "spec_id": "tfidf_hierarchy_agreement_v1",
+  "lane": "fractal-map",
+  "direction_version": 35,
+  "created_utc": "2026-10-10T12:00:00Z",
+  "frozen_before_outcome_inspection": true,
+  "product_decision_unlocked": "Choose the TF-IDF hierarchical production mode and depth (flat vs 2-level vs multi-level) for the fractal map, based on agreement with human legal indexing rather than arbitrary purity thresholds.",
+  "hypothesis": {
+    "H1_production_2level_beats_flat": "The 2-level hierarchical_v1 TF-IDF modes recover human legal structure (branch, legal_area) substantially better than a flat Leiden partition, measured by ARI/NMI against human labels.",
+    "H2_multilevel_adds_little": "Deeper (multi-level) refinement beyond the coarse level does not materially improve ARI(branch) vs the coarse level, OR is degenerate (one giant cluster dominates).",
+    "H3_regeste_tfidf_zero_is_defect": "The reported branch_purity=0.0 for regeste_tfidf_174k_hierarchical_v1 is caused by label/metadata misalignment or extreme fragmentation, not by genuine absence of legal structure."
+  },
+  "sample": {
+    "corpus": "173,963 aligned Swiss Federal Supreme Court decisions used by the frozen 174k TF-IDF hierarchy artifacts",
+    "metadata": "results/fractal_map/multi_level_protocol_174k_tfidf/metadata_174k_aligned.json",
+    "human_fields": {
+      "branch": "coarse legal branch (5 values incl. unknown)",
+      "legal_area": "fine legal area (214 values incl. unknown)"
+    },
+    "valid_only": true,
+    "note": "Agreement metrics computed only on decisions with a valid (not unknown/null) human label for the field under test."
+  },
+  "primary_metrics": {
+    "ARI_branch": "sklearn.metrics.adjusted_rand_score(cluster_labels, human_branch) on valid-branch subset",
+    "NMI_area": "sklearn.metrics.normalized_mutual_info_score(cluster_labels, human_legal_area, average_method='arithmetic') on valid-area subset",
+    "Vmea_area": "sklearn.metrics.v_measure_score(cluster_labels, human_legal_area) on valid-area subset",
+    "ARI_area": "adjusted_rand_score(cluster_labels, human_legal_area) on valid-area subset"
+  },
+  "diagnostics": {
+    "n_clusters": "number of distinct cluster labels on full sample",
+    "largest_cluster_fraction": "size of largest cluster / n",
+    "singleton_fraction": "fraction of decisions in clusters of size 1",
+    "valid_branch_fraction": "fraction with valid branch label",
+    "valid_area_fraction": "fraction with valid legal_area label"
+  },
+  "success_and_decision_rules": {
+    "structurally_usable_level": "n_clusters >= 10 AND largest_cluster_fraction <= 0.50 AND singleton_fraction < 0.01",
+    "recovers_branch": "ARI_branch > 0.10",
+    "H1_supported": "At least one 2-level production mode has a structurally usable fine level with ARI_branch > ARI_branch of a flat Leiden partition of comparable n_clusters (within 2x).",
+    "H2_supported": "For the multi-level protocol, finest-level ARI_branch - coarse-level ARI_branch < 0.02, OR finest level largest_cluster_fraction > 0.50.",
+    "H3_supported": "regeste_tfidf artifact has ARI_branch == 0.0 AND NMI_area == 0.0 while valid-label fraction > 0.4, indicating misalignment, OR n_clusters > 10000 (fragmentation).",
+    "positive_control": "full_text_tfidf_light (full 173,963) must show ARI_branch > 0.05; if not, the whole evaluation harness is invalid and no claim is made."
+  },
+  "baselines": {
+    "random_partition": "ARI ~ 0, NMI ~ 0",
+    "flat_leiden_matched_granularity": "flat Leiden label arrays at resolutions 0.25/0.5/1.0/2.0/3.0 where available (product_integration_174k/*/labels_res_*.npy)",
+    "frozen_v26_flat_leiden": "labels_hierarchical_best.npy for regeste_tfidf_174k (known flat over-fragmentation case)"
+  },
+  "artifacts_under_test": {
+    "two_level_production": "results/fractal_map/product_integration_174k/{mode}/labels_hierarchical_best.npy and labels_coarse_0.5.npy",
+    "multi_level": "results/fractal_map/multi_level_protocol_174k_tfidf/{mode}/*_results.json (level_labels)",
+    "multi_level_calibrated": "results/fractal_map/multi_level_protocol_174k_tfidf_calibrated/{mode}/*_results.json (level_labels)"
+  },
+  "falsification": "If the positive control fails, or if all artifacts show identical ARI after alignment audit, the harness is invalid and results are recorded as INCONCLUSIVE (negative evidence), not as a positive claim.",
+  "notes": "Metrics and thresholds frozen before running any agreement computation. No threshold will be relaxed after observing results."
+}

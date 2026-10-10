@@ -1,0 +1,57 @@
+{
+  "spec_id": "tfidf_hierarchy_reconciliation_v1",
+  "lane": "fractal-map",
+  "direction_version": 35,
+  "created_utc": "2026-10-10T12:03:45Z",
+  "frozen_before_outcome_inspection": true,
+  "parent_spec": {
+    "spec_id": "tfidf_hierarchy_agreement_v1",
+    "sha256": "7d290f6bc2b8e61a7b41a5ee56959333e6b1fe43137bcc4e71aec0bd9e16c4a3",
+    "role": "The parent evaluation established the frozen agreement metrics (ARI_branch, NMI_area) and produced harness_verdict=INCONCLUSIVE_POSITIVE_CONTROL_FAILED on the PRODUCT label artifacts. This addendum reconciles the accepted factory-direction headline with those artifacts."
+  },
+  "accepted_headline_under_test": {
+    "text": "3 text-based TF-IDF modes at full 173,963 have fine_branch_purity 0.906-0.930 (factory direction v35; audit CYCLE_38023784349)",
+    "source_artifact": "results/fractal_map/hierarchical_v1_174k_tfidf/{mode}_174k_hierarchical_v1.json",
+    "source_embeddings": "/tmp/lex_accepted/evaluation/results/evaluation/v25_174k_formal_suite/embeddings/{mode}.npy  (173963 x 128)",
+    "source_code": "fractal_map/evaluation/run_hierarchical_v1_174k_tfidf.py -> fractal_map/experiments/constrained_hierarchical_leiden.py"
+  },
+  "product_serving_artifacts_under_test": {
+    "label_artifacts": "results/fractal_map/product_integration_174k/{mode}/{decision_clusters.json,labels_hierarchical_best.npy,labels_coarse_0.5.npy,labels_res_*.npy}",
+    "source_embeddings": "results/fractal_map/hierarchical_map_174k/legal_tfidf_embeddings/{mode}.npy  (175440 x 128)",
+    "source_code": "fractal_map/hierarchical/build_tfidf_hierarchical_product_integration_174k.py",
+    "metadata": "results/fractal_map/multi_level_protocol_174k_tfidf/metadata_174k_aligned.json (173963; decision_id order verified identical to /tmp/lex_accepted/evaluation/evaluation/data/174k/metadata_174k.json)"
+  },
+  "questions": {
+    "R1_metric_reconciliation": "Reproduce the ACCEPTED purity metric on the PRODUCT artifacts and test whether it equals the accepted 0.906-0.930 headline.",
+    "R2_alignment_test": "Use a size-matched permutation null (shuffled labels) to test whether the PRODUCT artifacts' branch/area agreement is above chance, i.e. distinguish 'genuinely weak macro-alignment' from 'random/misaligned join'.",
+    "R3_source_isolation": "Re-run the frozen v29 hierarchical_v1 clustering on the EVALUATION-v25 embeddings for the 3 text modes and compute BOTH the accepted purity metric AND ARI_branch on the same labels, isolating whether the purity discrepancy is driven by embedding provenance or by the clustering code."
+  },
+  "metric_definitions_frozen": {
+    "accepted_purity_unweighted": "mean over non-empty clusters (label != -1) of (dominant valid branch count / valid branch count in cluster), where valid excludes null and 'unknown'",
+    "accepted_purity_weighted": "sum over clusters of dominant valid branch count / total valid branch count (size-weighted analogue of accepted metric)",
+    "ARI_branch": "sklearn.adjusted_rand_score(human_branch, cluster_label) on rows with valid branch AND label != -1",
+    "NMI_area": "sklearn.normalized_mutual_info_score(human_legal_area, cluster_label, average_method='arithmetic') on rows with valid legal_area AND label != -1",
+    "chance_branch_weighted": "sum over the 4 branch classes of (p_class)^2, computed on the valid-branch subset",
+    "permutation_null": "shuffle the cluster label array uniformly at random (preserves cluster sizes), N_PERM=30, seed=12345; report null mean/std, z and empirical p for ARI_branch, NMI_area, accepted_purity_unweighted and accepted_purity_weighted"
+  },
+  "config_frozen_for_R3": {
+    "coarse_res": 0.25,
+    "base_sub_res": 3.0,
+    "min_cluster_size": 10,
+    "max_subclusters_per_parent": 20,
+    "adaptive_sub_res": true,
+    "k_neighbors": 15,
+    "modes": ["full_text_tfidf_light", "regeste_full_text_hybrid_0.5", "regeste_full_text_hybrid_0.7"],
+    "note": "Exactly the config frozen in hierarchical_v1_frozen_spec.json (direction v29). Reproduces the accepted pipeline, not a new method."
+  },
+  "decision_rules_frozen": {
+    "R1_provenance_mismatch_confirmed": "For at least 2 of the 3 text modes, PRODUCT accepted_purity_unweighted differs from the accepted headline value by > 0.20 absolute.",
+    "R2_product_agreement_weak_but_above_chance": "PRODUCT ARI_branch for all structurally-usable levels < 0.10 AND permutation-null p<0.05 for accepted_purity_weighted (observed above shuffled-label null).",
+    "R2_product_agreement_at_chance": "PRODUCT accepted_purity_weighted is within 2 null std of the shuffled-label null for the production default mode (cited_decisions_tfidf_outcome_hybrid_0.5_174k).",
+    "R3_source_driven": "R3 reproduced accepted_purity_unweighted >= 0.85 for all 3 text modes on the evaluation embeddings while PRODUCT accepted_purity_unweighted < 0.60; AND R3 ARI_branch on those same reproduced labels is < 0.10 (micro-pure/macro-unaligned) OR >= 0.10 (indicating a PRODUCT join/alignment defect).",
+    "action_if_R1_confirmed": "Annotate the accepted 0.906-0.930 headline as provenance-specific to the evaluation-v25 embeddings with the run_hierarchical_v1 pipeline; report product-artifact values as the production truth. Do NOT overwrite the historical accepted verdict JSON.",
+    "action_if_R3_ari_high": "Raise a data-integrity blocker on product_integration_174k embedding->metadata alignment (embeddings 175440 vs metadata 173963) for the corpus/product lanes; do not promote any agreement-based claim until resolved."
+  },
+  "falsification": "If R3 shows the evaluation-embedding hierarchies ALSO have ARI_branch < 0.10, the conclusion is that TF-IDF hierarchical modes are micro-coherent but do not recover human top-level branch partition structure (a negative but valid scientific result). If R3 shows ARI_branch >= 0.10 on evaluation embeddings while product embeddings show ~0, the dominant explanation is a PRODUCT alignment/provenance defect, not a scientific property.",
+  "notes": "Metrics, config, sample and rules frozen before running any R1/R2/R3 computation in this cycle. No threshold will be relaxed after observing results. The pre-existing permutation script fractal_map/permutation_null_tfidf_hierarchy_v1.py (authored after the parent eval, fixed seed 12345) is reported only as a diagnostic; R2 here is a fresh, pre-registered definition."
+}
