@@ -20,7 +20,7 @@ The evaluation lane deliverable for factory direction v35 is **COMPLETE**. All r
 | Adversarial gate benchmark deterministic | ✅ COMPLETE | 3/3 runs IDENTICAL for given metadata version (fixed via sorted group iteration) |
 | Dense complementary acceptance criteria defined | ✅ COMPLETE | 5 views specified with thresholds, best modes, validation evidence |
 | Dense complementary criteria validated at max scale | ✅ COMPLETE | 144k/22yr cohort: Citation Heritage ✅, Sachverhalt ✅, Dispositiv ✅, Erwaegungen ❌, Linear Hybrid ⚠️ |
-| Mission criterion satisfied | ✅ COMPLETE | TF-IDF citation hybrids JP=0.659 > semantic baseline JP=0.43 |
+| Mission criterion satisfied | ✅ COMPLETE | TF-IDF citation hybrids JP=0.5925 > semantic baseline JP=0.43 |
 | Negative findings preserved | ✅ COMPLETE | True OOS ceiling ~0.53, v18 hierarchy 0.65, citation heritage recall@10 0.0066, etc. |
 | Data blockers identified | ✅ COMPLETE | BGE/bger ID mapping, parquet 2022-2026, section extraction at 174k |
 
@@ -32,24 +32,26 @@ The evaluation lane deliverable for factory direction v35 is **COMPLETE**. All r
 
 | Metric | Value | Threshold | Status |
 |--------|-------|-----------|--------|
-| Jurist Preference | 0.6590 | > 0.5 | ✅ PASS |
-| Language Dominance | 0.4258 | < 0.85 | ✅ PASS |
+| Jurist Preference | 0.5925 | > 0.5 | ✅ PASS |
+| Language Dominance | 0.3481 | < 0.85 | ✅ PASS |
 | Both Adversarial Gates | PASS | — | ✅ PASS |
 
-**Full Adversarial Gate Results (Deterministic — 3/3 runs identical):**
+**Full Adversarial Gate Results (Deterministic — 3/3 runs identical for GIVEN metadata version):**
 
 | Representation | Verdict | LangDom | LD-Pass | JuristPref | JP-Pass | Both |
 |----------------|---------|---------|---------|------------|---------|------|
 | full_text_tfidf_light | PASS | 0.4834 | ✓ | 0.7350 | ✓ | ✓ |
 | regeste_full_text_hybrid_0.7 | PASS | 0.4806 | ✓ | 0.7235 | ✓ | ✓ |
 | regeste_full_text_hybrid_0.5 | PASS | 0.4809 | ✓ | 0.7225 | ✓ | ✓ |
-| cited_decisions_tfidf | PASS | 0.4252 | ✓ | 0.6710 | ✓ | ✓ |
-| cited_decisions_tfidf_outcome_hybrid_0.7 | PASS | 0.4241 | ✓ | 0.6650 | ✓ | ✓ |
-| **cited_decisions_tfidf_outcome_hybrid_0.5** | **PASS** | **0.4258** | **✓** | **0.6590** | **✓** | **✓** |
-| regeste_tfidf | PASS | 0.3590 | ✓ | 0.5405 | ✓ | ✓ |
-| outcome_tfidf | FAIL | 0.4232 | ✓ | 0.4325 | ✗ | ✗ |
+| cited_decisions_tfidf | PASS | 0.3474 | ✓ | 0.6025 | ✓ | ✓ |
+| cited_decisions_tfidf_outcome_hybrid_0.7 | PASS | 0.3467 | ✓ | 0.5995 | ✓ | ✓ |
+| **cited_decisions_tfidf_outcome_hybrid_0.5** | **PASS** | **0.3481** | **✓** | **0.5925** | **✓** | **✓** |
+| regeste_tfidf | FAIL | 0.1929 | ✓ | 0.4030 | ✗ | ✗ |
+| outcome_tfidf | FAIL | 0.3508 | ✓ | 0.2610 | ✗ | ✗ |
 
-**Passed both gates: 7/8** (deterministic for current metadata version)
+**Passed both gates: 6/8** (deterministic for current metadata version post-2026-10-09T16:24)
+
+> **Qualification:** Prior environment (different numpy/sklearn, pre-16:24 metadata) yielded 7/8 PASS, JP=0.659. Current environment (numpy 2.5.3, sklearn 1.9.1, post-16:24 metadata) yields 6/8 PASS, JP=0.5925. Benchmark non-determinism fix (sorted groups) verified: 3/3 runs identical for a GIVEN metadata version. Cross-environment discrepancy due to k-NN tie-breaking behavior across versions. Production baseline PASSES both adversarial gates in ALL verified environments (JP > 0.5, LangDom < 0.85). Mission criterion satisfied (beat semantic baseline JP=0.43).
 
 ---
 
@@ -66,7 +68,7 @@ The evaluation lane deliverable for factory direction v35 is **COMPLETE**. All r
 **Qualifications:**
 - Citation Heritage: Validated at 144k partial cohort (22yr, 2000-2021). Full 174k validation BLOCKED (AUC 0.482 FAIL).
 - Cross-Lingual: Results from n=359-538 decisions (36-54% coverage) in 1K partial cohort; full-corpus BLOCKED pending section extraction at 174k.
-- Linear Hybrid: Evidence from obsolete v6-v10 embeddings; target 174k embeddings do not exist. Marked EXPLORATORY for product.
+- Linear Hybrid: Evidence from TARGET 174k legal-distance dense embeddings at 22yr/144k scale. PASS adversarial gates + cross_lang improvement confirmed; JP below TF-IDF baseline. Marked EXPLORATORY for product.
 
 ---
 
