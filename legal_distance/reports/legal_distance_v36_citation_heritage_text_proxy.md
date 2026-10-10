@@ -77,7 +77,7 @@ DIRECT-citation hard-negative **matched** pairs (n_pos=5255, n_neg=6008):
 | `regeste_full_text_hybrid_0.7` (best text-only) | 0.5616 |
 | `full_text_tfidf_light` | 0.5388 |
 
-- **Margin = +0.1308 AUC**, bootstrap 95% CI **[+0.1161, +0.1445]**. **H1b PASS.**
+- **Margin = +0.1308 AUC**, bootstrap 95% CI **[+0.1158, +0.1447]**. **H1b PASS.**
 
 The +0.13 margin is stable across two independent pair constructions (ORIG and graph-derived
 DIRECT), which rules out a single-pair-set fluke.
@@ -136,17 +136,28 @@ number; it is not comparable to the flat "shared≥2, dense≥0.75" dense gate. 
 
 - Frozen spec (pre-outcome): `legal_distance/results/citation_heritage_text_proxy_v36/frozen_spec.json`.
 - Experiment: `legal_distance/experiments/citation_heritage_text_proxy_v36.py` (≈49 s; deterministic, seed 42).
+  Determinism note: the relation sampler now returns `sorted(set)` negatives and `restrict_matched`
+  returns sorted pairs. This was necessary because `bootstrap_margin` resamples by **positional**
+  index, so the previous `list(set)` ordering (hash-seed dependent) shifted bootstrap CIs between
+  processes. With the sort fix, two consecutive runs produce **byte-identical** output JSONs
+  (md5-verified). Headline AUCs (H1/H1b/H2) were unchanged by the fix; only low-order bootstrap
+  digits moved (H1b CI [+0.1161,+0.1445]→[+0.1158,+0.1447]).
 - Results: `text_proxy_results.json` (H1, reconciliation, verdict),
   `relation_text_baselines_results.json` (H1b, H2, relation decomposition),
   `relation_pairs_v36.json` (frozen matched relation pair dump used by the test).
 - Raw inputs (unchanged, mounted): dense checkpoints `legal_distance/results/174k_dense_embeddings/checkpoints/`;
   `evaluation/data/174k/metadata_174k.json`; `evaluation/results/174k/embeddings/*.npy`;
   `evaluation/results/174k_citation_heritage/citation_pairs_174k.json`;
-  graph `/tmp/lex_accepted/evaluation/evaluation/results/174k_citation_heritage/citation_graph_174k.json`.
+  graph `/tmp/lex_accepted/evaluation/evaluation/results/174k_citation_heritage/citation_graph_174k.json`
+  (the graph is **not repo-tracked** and lives only in the accepted evaluation peer mount; the test
+  treats graph-dependent jaccard/H2 checks as SKIP when the mount is absent — the dense/text-only
+  AUCs and H1/H1b do not depend on it).
 - Non-circular verification: `tests/legal_distance/test_citation_heritage_text_proxy_v36.py`
   Section B recomputes every headline AUC from raw vectors with an **independent** trapezoidal-ROC
-  implementation (not the experiment's average-rank AUC) and re-implemented assembly/PCA; 23/23 pass.
-  The independent AUC matches the committed values to 1e-6.
+  implementation (not the experiment's average-rank AUC) and re-implemented assembly/PCA. With the
+  graph mounted: 23 passed, 0 failed, 0 skipped. Without the graph (auditor environment, verified via
+  `LEX_CITATION_GRAPH=<nonexistent>`): 22 passed, 0 failed, 1 skipped (graph-dependent checks). The
+  independent AUC matches the committed values to 1e-6.
 
 ## 5. Negative / qualifying results preserved
 

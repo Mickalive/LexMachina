@@ -32,7 +32,12 @@ CKPT = ROOT / "legal_distance/results/174k_dense_embeddings/checkpoints"
 FULL_META = ROOT / "evaluation/data/174k/metadata_174k.json"
 TFIDF_DIR = ROOT / "evaluation/results/174k/embeddings"
 PAIRS_ORIG = ROOT / "evaluation/results/174k_citation_heritage/citation_pairs_174k.json"
-GRAPH = Path("/tmp/lex_accepted/evaluation/evaluation/results/174k_citation_heritage/citation_graph_174k.json")
+# The citation graph is not repo-tracked; it is mounted in the accepted evaluation peer.
+GRAPH_CANDIDATES = [
+    Path("/tmp/lex_accepted/evaluation/evaluation/results/174k_citation_heritage/citation_graph_174k.json"),
+    Path("/tmp/lex_accepted/evaluation/results/174k_citation_heritage/citation_graph_174k.json"),
+]
+GRAPH = next((p for p in GRAPH_CANDIDATES if p.exists()), None)
 OUT_DIR = ROOT / "legal_distance/results/citation_heritage_text_proxy_v36"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 SEED = 42
@@ -147,6 +152,12 @@ def main():
     dense_cov = set(cp64.keys())
 
     log("loading citation graph ...")
+    if GRAPH is None:
+        raise SystemExit(
+            "citation graph not found; looked in: "
+            + ", ".join(str(p) for p in GRAPH_CANDIDATES)
+            + " (mounted only in the producer environment; Part B needs it)"
+        )
     G = json.load(open(GRAPH))
     d2t = {}
     for s, ts in G.items():
@@ -367,7 +378,9 @@ def main():
                 continue
             a, b = all_ids[i], all_ids[j]
             out.add((a, b) if a < b else (b, a))
-        return list(out)
+        # Deterministic order: bootstrap_margin resamples by positional index, so an
+        # unordered list(set) would make bootstrap CIs hash-seed dependent.
+        return sorted(out)
 
     def hard_neg(k):
         out = set()
@@ -386,7 +399,7 @@ def main():
                 continue
             out.add(key)
             attempts += 1
-        return list(out)
+        return sorted(out)
 
     u_shared2 = max(1, min(MAXPOS, len(shared2)))
     u_shared1 = max(1, min(MAXPOS, len(shared1)))
@@ -395,8 +408,8 @@ def main():
     neg_hard = {k: hard_neg(k) for k in [u_shared1, u_shared2, u_direct]}
 
     def restrict_matched(pos, neg):
-        p = [(a, b) for a, b in pos if a in dense_cov and b in dense_cov]
-        n = [(a, b) for a, b in neg if a in dense_cov and b in dense_cov]
+        p = sorted((a, b) for a, b in pos if a in dense_cov and b in dense_cov)
+        n = sorted((a, b) for a, b in neg if a in dense_cov and b in dense_cov)
         return p, n
 
     B = {"run_id": "LEGAL_DISTANCE_V36_RELATION_TEXT_BASELINES_38051603155",
@@ -435,8 +448,8 @@ def main():
     h1b_name = max(TEXT_ONLY, key=lambda r: rel_hard["DIRECT__NEG_hard"][r]["auc"])
     d_direct = rel_hard["DIRECT__NEG_hard"]["dense_cp64"]["auc"]
     t_direct = rel_hard["DIRECT__NEG_hard"][h1b_name]["auc"]
-    direct_pos_matched = [(a, b) for (a, b) in plan[0][1] if a in dense_cov and b in dense_cov]
-    direct_neg_matched = [(a, b) for (a, b) in plan[0][3] if a in dense_cov and b in dense_cov]
+    direct_pos_matched = sorted((a, b) for (a, b) in plan[0][1] if a in dense_cov and b in dense_cov)
+    direct_neg_matched = sorted((a, b) for (a, b) in plan[0][3] if a in dense_cov and b in dense_cov)
     y, sa, sb = match_matrix(direct_pos_matched, direct_neg_matched, sc_cp64, mk_tf(h1b_name))
     h1b = {"dense_cp64_auc": d_direct, "best_text_only_rep": h1b_name, "best_text_only_auc": t_direct,
            "margin": d_direct - t_direct, "bootstrap": bootstrap_margin(y, sa, sb),
