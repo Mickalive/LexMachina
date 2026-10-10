@@ -1,0 +1,92 @@
+{
+  "audit_id": "CYCLE_38039192911",
+  "target": "Factory Director proposal /tmp/lex_director_proposal run=38039192911",
+  "base": "main@0d33bef2 (accepted base) / proposal commit 5701ef8c (parent 5150b8ac)",
+  "date": "2026-10-10",
+  "auditor": "independent_auditor",
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    {
+      "id": "F-1",
+      "severity": "HIGH",
+      "file": "reports/director/RUN_38039192911.md",
+      "also": "state/factory_direction.json (lanes.legal-distance.question)",
+      "description": "Unaccepted-evidence laundering: the report presents 'Citation Heritage AUC 0.79-0.85 (> TF-IDF 0.71-0.74)' as accepted evidence, but the current ACCEPTED evaluation state (results/accepted-state/evaluation.json, direction_version=35) explicitly retracts AUC 0.7667-0.8182 and records dense citation-heritage as DENSE_NOT_EMPIRICALLY_VALIDATED_BLOCKED_ON_CITATION_GRAPH_COVERAGE (all 174k runs FAILED with insufficient valid pairs). The latest accepted evaluation audit gate CYCLE_38037204821 records 'retracted false 0.70-0.74 PASS claim / 174k AUC=0.482 FAIL', and CYCLE_38031234105 required the claims be re-labelled as not empirically validated. Two ACCEPTED lane states conflict (legal-distance partial-cohort PASS vs evaluation retraction); the Director selected the favourable side instead of reconciling.",
+      "same_cycle_repairable": true,
+      "repair_action": "Correct the legal-distance bullet to state the retraction and current status (dense citation-heritage not validated at 174k; accepted TF-IDF citation-heritage AUC=0.7296; latest dense 174k AUC=0.482 FAIL), and annotate/correct the same retracted claim embedded in state/factory_direction.json lanes.legal-distance.question before that question can be resumed."
+    },
+    {
+      "id": "F-2",
+      "severity": "MEDIUM",
+      "file": "reports/director/RUN_38039192911.md",
+      "description": "Stale jurist-preference numbers presented as current: report cites 'JP 0.78-0.79' and evaluation '7/8 PASS, JP 0.659 / 6/8, JP 0.5925 depending on metadata content'. The ACCEPTED evaluation frozen baseline is JP=0.659, LD=0.4258, and that state explicitly labels JM=0.5925/LD=0.3481 as stale; 0.78-0.79 is a 22-year partial-cohort figure.",
+      "same_cycle_repairable": true,
+      "repair_action": "State JP=0.659 / LD=0.4258 as the accepted deterministic baseline and label 0.78-0.79 / 0.5925 as scale/protocol-specific (0.5925 stale), consistent with results/accepted-state/evaluation.json."
+    },
+    {
+      "id": "F-3",
+      "severity": "MEDIUM",
+      "file": "reports/director/RUN_38039192911.md",
+      "description": "Product starvation / unsupported claim: product is held at PAUSE with the assertion 'No product slice can advance without them [corpus deliverables].' The Master Prompt requires research and product to run in parallel and not wait for perfect research. results/accepted-state/product.json known_limitations lists non-corpus defects (5 exploratory 174k TF-IDF modes fail to load due to projection-length mismatch 1000 vs 173963; truncated-text TF-IDF; cross-language neighbour quality; section fallback for 52/1202 decisions) that are not corpus-gated.",
+      "same_cycle_repairable": true,
+      "repair_action": "Either add a bounded corpus-independent product question to state/factory_direction.json, or explicitly justify product PAUSE by evidencing that every product known_limitation is corpus-gated."
+    },
+    {
+      "id": "F-4",
+      "severity": "LOW",
+      "file": "reports/director/RUN_38039192911.md",
+      "description": "Factual contradiction: report line ~14 says 'four non-product lanes marked RUN' at v35, but its own table (and verified state) shows three RUN lanes (legal-distance, fractal-map, evaluation); corpus was PAUSE.",
+      "same_cycle_repairable": true,
+      "repair_action": "Correct 'four' to 'three'."
+    }
+  ],
+  "claim_ceiling": "Direction v36 routing is procedurally supported and the deadlock diagnosis is verified: resume corpus PAUSE->RUN for the four downstream-requested unblocking artifacts (bge_/bger_ ID mapping; 2022-2026 coverage reconciliation; 174k section extraction; frozen-metadata restore) and pause the three exhausted lanes (legal-distance, fractal-map, evaluation); frontier portfolio empty. NOT supported: dense citation-heritage superiority over TF-IDF (retracted at 174k); a jurist-preference baseline of 0.78-0.79 (accepted deterministic baseline is JP=0.659 / LD=0.4258); the assertion that no independent product work exists. No new ACCEPTED evidence is created by this proposal.",
+  "evidence_summary": {
+    "cycle_type": "director_direction_proposal",
+    "new_accepted_evidence": false,
+    "deadlock_diagnosis": {
+      "verified": true,
+      "mechanism": "factory-supervisor.yml L155-206: for each RUN lane, if lab state continue_recommended==false and direction_version==DIRV, NEED_DIRECTOR=1 and no dispatch",
+      "v35_state": "corpus PAUSE; legal-distance/fractal-map/evaluation RUN with accepted continue_recommended=false at dir 35; product PAUSE",
+      "prior_stalled_runs": ["37945065142", "37980589310", "38003308695", "38016863843"],
+      "result": "CORE_RUN_DESIRED=3, dispatched 0; NEED_DIRECTOR raised; direction re-armed each cycle"
+    },
+    "control_plane_correction": {
+      "verified": true,
+      "finding": "/tmp/lex_control/state/factory_direction.json and pre-proposal workspace state/factory_direction.json are identical (both v35, downstream lanes RUN); BLOCKED_ON_DEPENDENCIES/COMPLETE exist only in lane self-reports. No V28-pattern mounting defect."
+    },
+    "accepted_state_verification": {
+      "corpus": "REPRODUCED dir17 COMPLETED cont=false; 174,113 decisions; 0 schema errors; field coverage full_text=1.0/regeste=.474/cited=.526/outcome=.505/legal_area=.526; citation resolve 2,019/2,105 (95.9%); bge_entries=17,618; 2000-2026=173,963; 76/76 tests",
+      "legal_distance": "ACCEPTED dir35 BLOCKED_ON_DEPENDENCIES cont=false; dense center_projected FAILS jurist gate all scales (JP 0.05-0.43); true OOS JP ceiling ~0.53",
+      "fractal_map": "ACCEPTED dir35 BLOCKED_ON_DEPENDENCIES cont=false; TF-IDF modes operational 173,963; fine_branch_purity .906-.930; 16/16 scale tests; WebGL <3s",
+      "evaluation": "ACCEPTED dir35 COMPLETE cont=false; frozen baseline JP=0.659 LD=0.4258; dense citation-heritage RETRACTED/not validated at 174k; cross-lingual sachverhalt .282 / dispositiv .150 / erwaegungen .094 FAIL",
+      "product": "ACCEPTED dir34 V1_0_RELEASED cont=false; 173,963 decisions; 56 endpoints; 16/16 scale tests; 95.7% section coverage (1150/1202)"
+    },
+    "defects": {
+      "unaccepted_evidence_laundering": "PRESENT (F-1) - retracted dense citation-heritage AUC 0.79-0.85 asserted as accepted",
+      "stale_metrics": "PRESENT (F-2) - JP 0.78-0.79 / 0.5925 vs accepted JP=0.659",
+      "product_starvation": "PRESENT (F-3) - unsupported 'no product slice can advance'; non-corpus known_limitations exist",
+      "factual_error": "PRESENT (F-4) - 'four RUN lanes' vs three",
+      "weak_acceptance_tests": "NONE - corpus acceptance tests concrete/falsifiable; explicit anti-loop stop rule present"
+    },
+    "cleared_attack_surfaces": [
+      "mission_drift: CLEAN",
+      "curiosity_or_frontier_proliferation: CLEAN - portfolio empty v1, no new teams",
+      "duplicated_teams: CLEAN - zero frontier teams; frontier scope cannot write canonical corpus artifacts",
+      "fake_parallelism: CLEAN - honest single-lane critical path",
+      "frozen_benchmark_weakening: CLEAN - none",
+      "human_decision_required_abuse: CLEAN - none used",
+      "fabrication_of_data_labels_results: NONE detected"
+    ],
+    "negative_results_preserved": [
+      "dense center_projected jurist failure (JP 0.05-0.43)",
+      "cross-lingual Erwaegungen FAIL 0.094",
+      "TF-IDF multi-level calibration FAIL (valid negative)",
+      "true OOS JuristPref ceiling ~0.53 < 0.7 target",
+      "original 2026-10-01 freeze JP=0.7345 LOST / not reproducible"
+    ],
+    "human_decision_required_used": false,
+    "safe_to_integrate_rationale": "Blocked only by same-cycle textual/evidence-synthesis repairs (F-1..F-4); no external data, no owner-level choice required."
+  }
+}
