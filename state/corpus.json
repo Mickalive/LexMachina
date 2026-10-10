@@ -1,13 +1,13 @@
 {
   "lane": "corpus",
-  "direction_version": 17,
+  "direction_version": 36,
   "evidence_tier": "REPRODUCED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "33516132492",
-  "latest_verification_run_id": "33520482177",
+  "accepted_run_id": "38058288630",
+  "latest_verification_run_id": "38058288630",
   "accepted_commit": null,
-  "prior_cycle_note": "v34 (run 33520482177) REPAIR ROUND 2: Fixed fabricated field_coverage in state/corpus.json (cited_decisions 0.993→0.526, outcome 1.0→0.505) to match validation_report_v14.json ground truth. This was a regression from the prior audit repair (v14_repair_round2) which had already corrected these values. Updated mounted control plane RUN→COMPLETE. All 76/76 tests remain PASS. RECOMMENDATION: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS.",
+  "prior_cycle_note": "v36 (run 38058288630, resumed as single critical path): produced the three v36 deliverables at scale. (1) SECTION EXTRACTION for all 174,114 decisions (results/corpus/section_spans_174k.parquet) via the vendored OpenCaseLaw extractor; parity vs independently published structure.parquet = coverage 1.000 / precision 1.000 / FN 0 for all three sections, erwaegungen paragraph-count parity 0.98691; unconditional coverage sachverhalt 0.6725 / erwaegungen 0.9990 / dispositiv 0.9676. (2) BGE/bger ID CROSSWALK (results/corpus/bge_bger_crosswalk.parquet): 5,804/21,228 canonical BGE linked; 5,717/6,395 = 0.8940 of the vol>=127 (bger-era) universe; evaluation-id alignment 173,963/173,963 = 1.000. Preserved negative: 678 vol>=127 regeste-only records expose no originating docket. (3) 2024-2026 artifacts published deterministically (index parquet + stratified sample + manifest; per year 2024=7,036 / 2025=7,493 / 2026=1,007); canonical regeneration 174,113 / 0 errors / 101.9s. 14/14 v36 tests PASS. Dense embeddings deferred to the PAUSED legal-distance lane (input published; reproducible command recorded) — no lane duplication.",
   "evidence_refs": [
     "corpus/acquisition/reproduce_full_corpus.py",
     "corpus/acquisition/parquet_ingest_scaled.py",
@@ -26,7 +26,22 @@
     "corpus/schema/decision_schema.json",
     "reports/corpus/v32_cycle_33516132492_report.md",
     "reports/corpus/v33_orchestration_fix_33519120485_report.md",
-    "reports/corpus/v34_repair_round2_33520482177_report.md"
+    "reports/corpus/v34_repair_round2_33520482177_report.md",
+    "corpus/normalization/section_extractor.py",
+    "corpus/acquisition/build_section_artifacts.py",
+    "corpus/acquisition/build_bge_bger_crosswalk.py",
+    "corpus/acquisition/build_2024_2026_artifacts.py",
+    "corpus/normalization/materialize_sections.py",
+    "corpus/tests/test_cycle_v36.py",
+    "results/corpus/section_spans_174k.parquet",
+    "results/corpus/section_extraction_metrics_v36.json",
+    "results/corpus/bge_bger_crosswalk.parquet",
+    "results/corpus/bge_bger_crosswalk_metrics_v36.json",
+    "results/corpus/eval_id_alignment_v36.json",
+    "results/corpus/bger_2024_2026_index.parquet",
+    "results/corpus/bger_2024_2026_sample_100.jsonl",
+    "results/corpus/parquet_2024_2026_manifest_v36.json",
+    "reports/corpus/v36_corpus_sections_crosswalk_2024_2026.md"
   ],
   "next_recommendation": "CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS",
   "reproduced": {
@@ -106,6 +121,44 @@
       "total_validated": 174113,
       "total_errors": 0
     }
+  },
+  "v36_artifacts": {
+    "sections": {
+      "artifact": "results/corpus/section_spans_174k.parquet",
+      "metrics": "results/corpus/section_extraction_metrics_v36.json",
+      "decisions": 174114,
+      "elapsed_seconds": 185.48,
+      "unconditional_coverage": {"sachverhalt": 0.6725, "erwaegungen": 0.9990, "dispositiv": 0.9676},
+      "structure_parquet_parity": {"sachverhalt": [1.0, 1.0], "erwaegungen": [1.0, 1.0], "dispositiv": [1.0, 1.0]},
+      "erwaegungen_paragraph_count_parity": 0.98691,
+      "span_order_violations": 0,
+      "acceptance": "PASS (100% recovery of decisions labelled present; 0 false negatives)"
+    },
+    "crosswalk": {
+      "artifact": "results/corpus/bge_bger_crosswalk.parquet",
+      "metrics": "results/corpus/bge_bger_crosswalk_metrics_v36.json",
+      "eval_alignment": "results/corpus/eval_id_alignment_v36.json",
+      "canonical_bge_universe": 21228,
+      "linked": 5804,
+      "overall_link_rate": 0.273412,
+      "relevant_volume_ge_127": {"n": 6395, "linked": 5717, "link_rate": 0.89398, "unmapped": 678},
+      "methods": {"docket_number_2": 5708, "text_lead_docket": 253, "unmapped": 15267},
+      "evaluation_id_alignment": {"ids": 173963, "resolved": 173963, "coverage": 1.0},
+      "negative_result": "678 vol>=127 regeste-only records expose no originating docket in any open field (head/body/docket_number_2).",
+      "acceptance": "PASS (evaluation-id alignment 1.000 >= 0.95; BGE->bger identity 0.894 of vol>=127)"
+    },
+    "parquet_2024_2026": {
+      "index": "results/corpus/bger_2024_2026_index.parquet",
+      "sample": "results/corpus/bger_2024_2026_sample_100.jsonl",
+      "manifest": "results/corpus/parquet_2024_2026_manifest_v36.json",
+      "total": 15536,
+      "per_year": {"2024": 7036, "2025": 7493, "2026": 1007},
+      "per_language": {"de": 9408, "fr": 5368, "it": 760},
+      "canonical_regeneration": {"normalized": 174113, "errors": 0, "elapsed_seconds": 101.9},
+      "embeddings": "DEFERRED to legal-distance lane (input published; 2000-2023 checkpoints exist, 2024-2026 missing)",
+      "acceptance": "PASS (deterministic index+sample+manifest; canonical regen 0 errors)"
+    },
+    "tests": {"file": "corpus/tests/test_cycle_v36.py", "result": "14/14 PASS"}
   },
   "notes": "v35 (direction v17 verification): 15th independent verification. Reproduced full corpus from parquet download (822.8 MB). Manifest integrity verified: all 37 bger_*.jsonl file line counts match manifest (174,113 total). Field coverage ground truth verified against validation_report_v14.json: full_text=1.000, regeste=0.474, cited_decisions=0.526, outcome=0.505, legal_area=0.526. All 76/76 tests PASS. Direction version updated 14→17. Lane remains COMPLETED/PAUSED. RECOMMENDATION: CORPUS_LANE_COMPLETE_UNBLOCK_DEPENDENTS."
 }
