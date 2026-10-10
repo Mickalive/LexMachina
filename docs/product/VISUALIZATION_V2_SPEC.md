@@ -11,9 +11,9 @@ LexMachina is not a 3D scatterplot and not a free-flight data visualization.
 
 The canonical experience is a **navigable legal territory**: a Google-Maps-like map of case law whose geography is generated from legally meaningful relations between decisions, whose regions refine as the user zooms, and whose relief exposes an interpretable structural property of the legal graph.
 
-The product must feel like navigating a territory, not piloting a 3D engine.
+The product must feel like navigating a meaningful legal structure, not merely admiring a 3D point cloud.
 
-A true 3D rendering engine is required, but the default interaction is a constrained **2.5D topographic map**.
+A true 3D rendering engine is required. Free orbit / camera rotation is allowed and may be the default if it remains usable. Camera freedom is not itself a product criterion. The decisive criterion is whether the spatial representation makes legally meaningful relations between decisions and regions easier to see, inspect and understand.
 
 ## 2. Non-negotiable distinction: legal geometry vs visual geometry
 
@@ -122,20 +122,59 @@ Default terrain intuition:
 
 The exact formula is an implementation hypothesis and must be tested. The invariant is semantic: **terrain must be generated from relation strength and hierarchical structure, not arbitrary extrusion.**
 
-## 5. Connection geometry
+## 5. Connection geometry — PRIMARY PRODUCT REQUIREMENT
 
-The graph should be visible without turning the map into spaghetti.
+The graph must be visually legible. A user should be able to answer not only “what is near this decision?” but also “what is it connected to, by what kind of relation, and what does it connect across?”
 
-Default behavior:
+The scene therefore needs explicit relation rendering, without degenerating into edge spaghetti.
 
-- no individual edges at country/domain zoom;
-- render only aggregated inter-region corridors whose total relation weight exceeds a threshold;
-- show the strongest relations of a selected cluster;
-- show the strongest N relations of a selected decision;
-- animate or highlight lineage direction where citation direction is meaningful;
-- use arcs/ribbons/bridges only when they communicate a real relation.
+### 5.1 At corpus / domain scale
 
-At high zoom, a selected precedent lineage may appear as a route through the terrain.
+Do not render millions of individual edges.
+
+Aggregate node-level relations into **inter-region corridors**. Corridor width / intensity should encode aggregate relation weight between regions under the active relation layer.
+
+The result should expose:
+
+- strongly isolated legal territories;
+- strongly coupled neighboring regions;
+- surprising long-range links;
+- bridge regions connecting otherwise separated communities.
+
+### 5.2 At cluster scale
+
+Selecting or hovering a cluster reveals its strongest neighboring clusters and the dominant relation types responsible for each connection.
+
+The user should be able to switch relation layers, e.g.:
+
+- legal-neighborhood affinity;
+- precedent citations;
+- following / distinguishing / criticizing where validated;
+- shared norms at issue;
+- reasoning similarity;
+- fact similarity.
+
+### 5.3 At decision scale
+
+Selecting a decision reveals only a bounded, ranked relation ego-network:
+
+- strongest outgoing citations;
+- strongest incoming citations;
+- strongest legal-neighborhood edges;
+- strongest cross-cluster / bridge relations;
+- relation type, direction and strength.
+
+Use different visual encodings for different relation types and directions. Do not draw every available edge.
+
+### 5.4 Lineages and paths
+
+Where citation direction is meaningful, a jurisprudential lineage may be rendered as a directed route through the landscape.
+
+The user should be able to choose a target decision and inspect a relation path or shortest / strongest path through the graph.
+
+### 5.5 Relation-first test
+
+A visualization fails if the user sees a beautiful 3D terrain but cannot inspect the graph relationships that generated or explain it.
 
 ## 6. Canonical map modes
 
@@ -194,37 +233,34 @@ Overlays must not silently change X/Y geometry.
 
 ## 7. Interaction model
 
-The default camera is intentionally constrained.
+Camera freedom is allowed. The product may use free orbit if users can control it comfortably. The interaction model must optimize comprehension of relations, not enforce a particular camera ideology.
 
-### 7.1 Default controls
+### 7.1 Core controls
 
-- drag = pan;
+- drag / orbit controls = move the camera naturally;
 - wheel / trackpad = zoom;
-- double-click region = enter / zoom into region;
+- pan control = translate focus;
+- double-click region = focus / enter the region;
 - single click = select;
 - Escape / breadcrumb = go back;
 - search = drop a pin and fly smoothly to the target;
 - hover = lightweight tooltip;
-- selected decision = highlight + nearest legal neighbors + strongest relations.
+- selected decision = highlight + nearest legal neighbors + strongest typed relations.
 
 ### 7.2 Camera
 
-Default:
+Required:
 
 - perspective camera;
-- fixed or narrowly constrained yaw;
-- tilt around 25–45°;
-- automatic horizon and north/orientation stability;
-- smooth interpolation between zoom levels.
+- orbit / tilt / pan / zoom;
+- reset and top-down views;
+- smooth focus transitions;
+- selected-object focus;
+- no interaction mode should obscure the selected relation network.
 
-Controls:
+A constrained map mode may be offered if it proves easier to use, but free orbit is not a failure condition and may remain the canonical camera.
 
-- `Map` = constrained 2.5D canonical mode;
-- `Top-down` = true 2D inspection;
-- `Relief` = stronger tilt / height exaggeration;
-- `Free 3D` = optional advanced mode, never the default.
-
-Free orbit must not be required for ordinary navigation.
+The usability criterion is empirical: users must be able to navigate and inspect relations without fighting the camera.
 
 ### 7.3 Fractal zoom semantics
 
@@ -370,7 +406,7 @@ The feature is not accepted merely because it uses WebGL or a 3D camera.
 
 It passes only if all of the following hold:
 
-1. **Map-like usability** — default navigation is pan/zoom/select/double-click hierarchy; free orbit is optional.
+1. **Relation-readable usability** — navigation may include free orbit, but selecting decisions/regions and inspecting typed relations must be easy and must not require fighting the camera.
 2. **True 3D** — world geometry uses nonconstant Z, perspective projection, camera/view transforms and depth testing.
 3. **Relational terrain** — default terrain height is generated from an explicitly defined relation/hierarchy field, not random extrusion or cosmetic noise.
 4. **Emergent regions** — visible regions / landmasses derive from nested communities and graph relations.
@@ -379,7 +415,7 @@ It passes only if all of the following hold:
 7. **Explanation** — a user can inspect why a decision/region is located where it is.
 8. **Evidence gating** — unvalidated map modes are visibly experimental and cannot silently replace the accepted production default.
 9. **Full-scale viability** — the 173,963-decision production corpus remains navigable through LOD/culling.
-10. **Regression tests** — automated tests fail if the renderer regresses to a flat z=0 scatterplot or if default navigation requires free-orbit controls.
+10. **Regression tests** — automated tests fail if the renderer regresses to a flat z=0 scatterplot, if typed relation rendering disappears, or if selection cannot reveal a bounded relation ego-network.
 
 ## 16. Immediate implementation order
 
@@ -390,15 +426,18 @@ Do not attempt every view simultaneously.
 - keep `cited_outcome_hybrid_0.5_174k` X/Y;
 - compute hierarchical region meshes;
 - compute relational-cohesion height field from the accepted neighborhood graph;
-- constrained 2.5D camera;
-- pan / zoom / select / double-click hierarchy;
+- usable perspective/orbit camera with reset + top-down;
+- zoom / select / focus hierarchy;
 - region labels;
-- decision and region picking.
+- decision and region picking;
+- selected decision immediately reveals a bounded typed ego-network.
 
 ### Milestone B — relation corridors and explanations
 
-- aggregated cross-region connections;
-- selected-decision strongest relations;
+- aggregated cross-region connections visible at coarse scale;
+- selected-decision strongest typed relations and directions;
+- cluster-to-cluster relation summaries;
+- lineage / relation path inspection;
 - “why here?” panel;
 - breadcrumb / path through hierarchy.
 
@@ -417,6 +456,6 @@ Enable precedent, facts and reasoning maps only as their underlying representati
 
 The key qualitative test is:
 
-> A jurist should be able to open LexMachina, navigate without learning 3D controls, recognize coherent legal territories, zoom into progressively narrower legal questions, select a decision, and understand both its neighborhood and the relations that shaped the surrounding geography.
+> A jurist should be able to open LexMachina, recognize coherent legal territories, select a decision, immediately see its most important typed relations, trace a jurisprudential lineage or bridge into another region, and understand both its neighborhood and the relations that shaped the surrounding geography.
 
-If the user experiences the system as a 3D point cloud, the product has failed even if the renderer is technically correct.
+If the user experiences the system as a 3D point cloud with no readable relational structure, the product has failed even if the renderer is technically correct.
