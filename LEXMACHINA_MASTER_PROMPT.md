@@ -44,6 +44,9 @@ The product may expose multiple map modes when that improves navigation.
 ## Fractal requirement
 A flat 2D/3D scatterplot is a baseline, not the product. The target is hierarchical and multi-resolution: corpus → domain → subdomain → subcluster → microcluster → decisions. Zoom should reveal more specific structure rather than merely enlarge points.
 
+## 3D interaction requirement
+The shipped map must be a **true interactive 3D scene**, not merely a 2D canvas or a WebGL renderer with all vertices fixed at `z=0`. Users must be able to orbit, tilt, pan and zoom through a spatial legal landscape. The third visual dimension must remain honest: it may encode an evidence-backed legal/hierarchical signal, or a clearly labeled non-legal visualization aid such as local density/topographic relief, but it must never fabricate a legal metric. A 2D view may exist as an optional top-down mode, not as the canonical product experience.
+
 ## Evaluation doctrine
 Before claim-bearing measurement, freeze hypothesis, corpus/sample, baseline, metric and success rule. Preserve negative results. Compare against strong baselines. Prefer tests measuring jurist usefulness or credible proxies.
 
