@@ -30,15 +30,13 @@
       "jurist_pairwise_preference": "PASS",
       "both_pass": true
     },
-    "citation_heritage_auc": 0.7296,
+    "citation_heritage_auc": 0.7027,
     "cross_language_recall_at_10": 0.1194,
     "boilerplate_resistance_score": null,
-    "temporal_stability": 0.3810,
-    "hierarchy_coherence_nesting": 0.3173,
     "verification_timestamp": "2026-10-10T14:02:27Z",
     "verification_config_hash": "a31c443a9b0e992e",
     "verification_subsample_size": 2000,
-    "note": "Updated 2026-10-10 per cycle 38057542081 repair 2: three verification runs at 14:02Z (verification_20261010_140218/22/27.json) are byte-identical (sha256 cff6b19e...) and show JP=0.659, LD=0.425775 (7/8 PASS). The prior frozen baseline (operational-resume 38051663272, config hash a31c443a9b0e992e) produced JP=0.5925, LD=0.348125 (6/8 PASS) under the SAME metadata content hash (34a0d467...), SAME embedding blobs (4135e00e...), SAME harness code (c0a519a4...), and SAME library versions (python 3.12.3/numpy 2.5.3/sklearn 1.9.1). The point value is RUNNER/MACHINE-DEPENDENT (bimodal: {0.5925, 0.659}) and NOT a stable property of the pinned library versions alone. Both modes PASS both adversarial gates (JP>0.5, >0.43 semantic baseline; LD<0.85). The value quoted here (0.659) reflects the latest live pointer; the alternative canonical mode (0.5925) is equally valid and preserved in the reproducibility archive. NO single number may be quoted as THE frozen baseline without specifying the runner/concurrency environment."
+    "note": "Updated 2026-10-10 per cycle 38057542081 repair 2: three verification runs at 14:02Z (verification_20261010_140218/22/27.json) are byte-identical (sha256 cff6b19e...) and show JP=0.659, LD=0.425775 (7/8 PASS). The prior frozen baseline (operational-resume 38051663272, config hash a31c443a9b0e992e) produced JP=0.5925, LD=0.348125 (6/8 PASS) under the SAME metadata content hash (34a0d467...), SAME embedding blobs (4135e00e...), SAME harness code (c0a519a4...), and SAME library versions (python 3.12.3/numpy 2.5.3/sklearn 1.9.1). The point value is RUNNER/MACHINE-DEPENDENT (bimodal: {0.5925, 0.659}) and NOT a stable property of the pinned library versions alone. Both modes PASS both adversarial gates (JP>0.5, >0.43 semantic baseline; LD<0.85). The value quoted here (0.659) reflects the latest live pointer; the alternative canonical mode (0.5925) is equally valid and preserved in the reproducibility archive. NO single number may be quoted as THE frozen baseline without specifying the runner/concurrency environment. Citation heritage AUC corrected to 0.7027 per audit CYCLE_38061450243: value 0.7296 belongs to cited_decisions_tfidf representation, not the production representation cited_decisions_tfidf_outcome_hybrid_0.5 (AUC=0.7027). Temporal stability and hierarchy coherence nesting values removed as unsourced in v16/v18 benchmark artifacts (all representations FAIL hierarchy coherence, purity < 0.7)."
   },
   "dense_embedding_complementary_acceptance_criteria": {
     "citation_heritage_view": {
@@ -50,9 +48,9 @@
         "center_projected_64dim_22year": "not empirically validated -- blocked on citation graph coverage",
         "center_projected_64dim_21year": "not empirically validated -- blocked on citation graph coverage"
       },
-      "tfidf_citation_baseline": 0.7296,
+      "tfidf_citation_baseline": 0.7027,
       "status": "DENSE_NOT_EMPIRICALLY_VALIDATED_BLOCKED_ON_CITATION_GRAPH_COVERAGE",
-      "note": "All dense citation heritage runs at 174k scale FAILED with 'Insufficient valid pairs' (citation graph: 174/173,963 decisions, 924 resolved citations). Previous claims of AUC 0.7667-0.8182 were from partial/insufficient runs and are retracted."
+      "note": "All dense citation heritage runs at 174k scale FAILED with 'Insufficient valid pairs' (citation graph: 174/173,963 decisions, 924 resolved citations). Previous claims of AUC 0.7667-0.8182 were from partial/insufficient runs and are retracted. TF-IDF baseline corrected to 0.7027 per audit CYCLE_38061450243 (value for cited_decisions_tfidf_outcome_hybrid_0.5 production representation)."
     },
     "cross_lingual_sachverhalt_view": {
       "metric": "cross_lang_same_branch_mean (k=10)",
@@ -168,7 +166,8 @@
       "ef_construction": 200,
       "ef_search": 100
     },
-    "neighbor_shift_explanation": "Previous verification (65f4748d) showed neither_available=438; new verification (38032814066) shows neither_available=1. This shift reflects re-running the adversarial verification protocol against the embedding artifact built on 2026-09-24 with the corrected HNSW search configuration (ef_search=100, k=20). The previous verification used a different search protocol or index state. The new verification is deterministic (3 identical runs) and represents the current frozen baseline for the production mode cited_decisions_tfidf_outcome_hybrid_0.5."
+    "neighbor_shift_explanation": "Previous verification (65f4748d) showed neither_available=438; new verification (38032814066) shows neither_available=1. This shift reflects re-running the adversarial verification protocol against the embedding artifact built on 2026-09-24 with the corrected HNSW search configuration (ef_search=100, k=20). The previous verification used a different search protocol or index state. The new verification is deterministic (3 identical runs) and represents the current frozen baseline for the production mode cited_decisions_tfidf_outcome_hybrid_0.5.",
+    "provenance_limitation_note": "Per audit CYCLE_38061450243: Embedding hashes in verification_latest_provenance.json reference peer mount (/tmp/lex_accepted/fractal-map/results/fractal_map/hierarchical_map_174k/tfidf_embeddings/) from the fractal-map lane, which is NOT available for independent verification in isolated audit environments. The local evaluation workspace embeddings (/tmp/lex_team/results/evaluation/v25_174k_formal_suite/embeddings/) have DIFFERENT hashes. Independent verification of embedding artifact identity is blocked on peer mount availability. This limitation must be resolved before claiming fully independent reproducibility."
   },
   "baseline_reproducibility": {
     "status": "BIMODAL_RUNNER_DEPENDENT",
@@ -243,6 +242,10 @@
     "cycle_38057542081": {
       "type": "REPAIR_ROUND_2_D1_D2_D3_D4",
       "action": "Fixed state/report/pointer contradiction (D-1); replaced false reproducibility claim with honest bimodal statement (D-2); enhanced provenance with embedding/harness hashes and threading env (D-3); added run 38057542081 diagnosis report (D-4)"
+    },
+    "cycle_38061450243": {
+      "type": "REPAIR_ROUND_3_AUDIT_FIXES",
+      "action": "Applied four required fixes from audit CYCLE_38061450243: (1) Corrected citation_heritage_auc from 0.7296 to 0.7027 for production representation cited_decisions_tfidf_outcome_hybrid_0.5; (2) Removed unsourced temporal_stability: 0.3810 (no match in v16/v18 benchmarks); (3) Removed unsourced hierarchy_coherence_nesting: 0.3173 (all representations FAIL hierarchy coherence, purity < 0.7); (4) Added provenance_limitation_note to embedding_artifact_provenance documenting peer mount dependency blocking independent verification. Also updated tfidf_citation_baseline in dense_embedding_complementary_acceptance_criteria to 0.7027 for consistency."
     }
   }
 }
