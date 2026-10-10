@@ -1,0 +1,124 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "Factory Director proposal RUN_38081300409 maintains mission integrity and evidence discipline. All core lanes correctly PAUSED on single credible Frontier team (frontier-citation-graph charter v1). No version increments. No HUMAN_DECISION_REQUIRED. Claim ceiling: Await frontier-citation-graph audit gate; if PASS, promote adopted corpus-scale citation graph to legal-distance/evaluation/fractal-map/product for 174k dense re-validation; if TERMINATE, record negative result (citation-heritage claim genuinely dead, remains retracted).",
+  "evidence_summary": {
+    "accepted_baseline": {
+      "corpus": {
+        "source": "/tmp/lex_accepted/core/corpus/state/corpus.json",
+        "tier": "ACCEPTED",
+        "direction_version": 37,
+        "key_artifacts": [
+          "section_spans_174k.parquet (174,114 decisions, coverage: sachverhalt=0.6725, erwaegungen=0.999, dispositiv=0.9676)",
+          "bge_bger_crosswalk.parquet (100% evaluation ID alignment: 173,963/173,963)",
+          "bger_2024_2026_index.parquet (15,536 decisions closing dense-input gap)"
+        ],
+        "audit_ready": true,
+        "audit_timestamp": "2026-10-10T18:45:00Z"
+      },
+      "legal_distance": {
+        "source": "/tmp/lex_accepted/core/legal-distance/state/legal-distance.json",
+        "tier": "REPRODUCED",
+        "direction_version": 35,
+        "critical_findings": {
+          "citation_heritage_dense_superiority": "FALSIFIED (v35 fairness audit run 38039706350): dense_cp64 0.7189 vs cited_decisions_tfidf 0.7159 on identical matched no-self pairs (margin +0.003, CI [-0.034,+0.037])",
+          "dense_embeddings_fail_jurist_gate_all_scales": "JP 0.05-0.43 at all scales tested",
+          "tfidf_citation_hybrids_primary": "JP 0.78-0.79, both adversarial gates PASS at 174k",
+          "two_mode_tradeoff_fundamental": "TF-IDF = PRIMARY (jurist preference); dense = COMPLEMENTARY (citation heritage, cross-lingual, linear hybrid)"
+        },
+        "blockers": "BGE/bger ID mapping + parquet 2022-2026 + 174k section extraction (corpus lane resumption)"
+      },
+      "fractal_map": {
+        "source": "/tmp/lex_accepted/core/fractal-map/state/fractal-map.json",
+        "tier": "ACCEPTED",
+        "direction_version": 35,
+        "key_findings": {
+          "tfidf_hierarchical_metric_reproduction": "fine_branch_purity 0.906-0.930 BIT-EXACT on eval-v25 embeddings (R3 source isolation)",
+          "product_join_defect": "BLOCKER_PRODUCT_JOIN_ALIGNMENT_V1: id->cluster joins scrambled (diag_is_best_match=0.0%)",
+          "dense_integration_contract_v34": "FROZEN: 4 complementary views (Citation Heritage AUC>0.75, Cross-Lingual Sachverhalt>0.20, Dispositiv>0.10, Linear Hybrid PASS adversarial)",
+          "multi_level_recursive_protocol": "Structurally VALIDATED; calibration FAILS on TF-IDF (valid negative)"
+        },
+        "blockers": "Upstream legal-distance 174k dense embeddings"
+      },
+      "evaluation": {
+        "source": "/tmp/lex_accepted/core/evaluation/state/evaluation.json",
+        "tier": "ACCEPTED",
+        "direction_version": 35,
+        "frozen_production_baseline": {
+          "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+          "corpus_scale": 173963,
+          "jurist_preference_rate": 0.659,
+          "language_dominance_score": 0.4258,
+          "adversarial_gates": "BOTH PASS",
+          "citation_heritage_auc": 0.7296,
+          "config_hash": "4323f833fa72366a"
+        },
+        "dense_complementary_criteria": {
+          "citation_heritage_view": "DENSE_NOT_EMPIRICALLY_VALIDATED_BLOCKED_ON_CITATION_GRAPH_COVERAGE (threshold AUC>=0.75)",
+          "cross_lingual_sachverhalt": "DENSE_EXCEEDS_THRESHOLD (0.2816 > 0.2) at sample scale",
+          "cross_lingual_dispositiv": "DENSE_EXCEEDS_THRESHOLD (0.1502 > 0.1) at sample scale",
+          "cross_lingual_erwaegungen": "DENSE_BELOW_THRESHOLD (0.0941 < 0.1) - honestly reported FAIL",
+          "zero_shot_transfer": "DENSE_EXCEEDS_TFIDF_BUT_BELOW_02_THRESHOLD (0.2258 vs TF-IDF 0.0190)"
+        }
+      },
+      "product": {
+        "source": "/tmp/lex_accepted/core/product/state/product.json",
+        "tier": "ACCEPTED",
+        "direction_version": 34,
+        "cycle_status": "V1_0_RELEASED",
+        "production_modes": {
+          "cited_decisions_tfidf_174k": "173,963 decisions, 7 zoom levels (0-6), ACCEPTED",
+          "cited_outcome_hybrid_0.5_174k": "173,963 decisions, 7 zoom levels, PRODUCTION DEFAULT, ACCEPTED",
+          "cited_outcome_hybrid_0.7_174k": "173,963 decisions, 5 zoom levels, BEST FRACTAL, ACCEPTED"
+        },
+        "v11_blockers": [
+          "frontier-citation-graph delivery",
+          "legal-distance dense re-validation at 174k",
+          "174k cross-lingual evaluation (corpus section extraction)"
+        ]
+      }
+    },
+    "proposal_state": {
+      "factory_direction": {
+        "source": "/tmp/lex_director_proposal/state/factory_direction.json",
+        "version": 38,
+        "lane_statuses": {
+          "corpus": "PAUSE (COMPLETE, all blockers resolved)",
+          "legal_distance": "PAUSE (awaiting frontier-citation-graph)",
+          "fractal_map": "PAUSE (awaiting frontier-citation-graph)",
+          "evaluation": "PAUSE (awaiting frontier-citation-graph)",
+          "product": "PAUSE (awaiting frontier-citation-graph)"
+        }
+      },
+      "frontier_portfolio": {
+        "source": "/tmp/lex_director_proposal/state/frontier_portfolio.json",
+        "version": 4,
+        "teams": [
+          {
+            "team_id": "frontier-citation-graph",
+            "charter_version": 1,
+            "status": "RUN",
+            "current_run": 38078594985,
+            "audit_gate": "PENDING",
+            "acceptance_test_summary": "Graph coverage >=45,800 decisions with >=1 resolved edge; citation-heritage AUC on shared>=2 pairs with >=2000 evaluable pairs; TF-IDF AUC > 0.7296 OR dense >= 0.75; artifacts reproducible; frozen benchmark not weakened",
+            "stop_promote_rule": "PROMOTE if coverage+AUC pass and improvement shown; TERMINATE if graph <=10,000 decisions with resolved edges or AUC <= 0.7296"
+          }
+        ]
+      }
+    },
+    "audit_checks": {
+      "mission_drift": "PASS - mission verbatim consistent with Main Prompt",
+      "frontier_proliferation": "PASS - single team, policy upheld",
+      "duplicated_teams": "PASS - no duplication verified",
+      "unaccepted_evidence_laundering": "PASS - all 6 dependencies traced to ACCEPTED evidence in /tmp/lex_accepted",
+      "stale_blocked_questions": "PASS - all PAUSEs have concrete upstream dependency on single Frontier team",
+      "product_starvation": "PASS - V1.0 released stable, v1.1 correctly blocked on evidence-backed path",
+      "fake_parallelism": "PASS - factory correctly serialized on single binding bottleneck",
+      "weak_acceptance_tests": "PASS - quantitative thresholds derived from accepted evidence, concrete termination rule",
+      "unjustified_lane_pauses": "PASS - every pause explicitly justified by frontier-citation-graph dependency",
+      "human_decision_required": "PASS - no inappropriate HDR claim; path fully determined by audit gate outcome",
+      "version_discipline": "PASS - no increments without material state change"
+    }
+  }
+}
