@@ -702,6 +702,26 @@ class ProductHandler(SimpleHTTPRequestHandler):
         elif path == "/api/representations/health":
             self._json_response(self._handle_representations_health())
 
+        # Query-map MVP vertical slice: question -> bundle -> answer/counter/map
+        elif path == "/api/query/run":
+            q = params.get("q", [""])[0]
+            n = int(params.get("n", ["120"])[0])
+            self._handle_cached(f"query_run:{q}:{n}", lambda: self._run_query_bundle(q, n))
+        elif path == "/api/query/answer":
+            q = params.get("q", [""])[0]
+            n = int(params.get("n", ["120"])[0])
+            self._handle_cached(f"query_answer:{q}:{n}",
+                                lambda: self._run_query_bundle(q, n)["answer"])
+        elif path == "/api/query/map":
+            q = params.get("q", [""])[0]
+            n = int(params.get("n", ["120"])[0])
+            self._handle_cached(f"query_map:{q}:{n}", lambda: {
+                "query": q,
+                "bundle": self._run_query_bundle(q, n),
+            })
+        elif path == "/query" or path == "/query.html":
+            self._serve_file("static/query.html", "text/html")
+
         # Static files
         elif path == "/" or path == "/index.html":
             self._serve_file("static/index.html", "text/html")
@@ -1118,6 +1138,28 @@ class ProductHandler(SimpleHTTPRequestHandler):
             result["error"] = str(e)
 
         return result
+
+    def _run_query_bundle(self, q: str, n: int):
+        """Run the query-map MVP pipeline. Raises ValueError on bad input."""
+        try:
+            from query.pipeline import run_query as _run_query
+            from query.bundle import validate_bundle
+        except ImportError:
+            from product.query.pipeline import run_query as _run_query
+            from product.query.bundle import validate_bundle
+        if not (q or "").strip():
+            return {"error": "q parameter required"}
+        n = max(10, min(300, n))
+        try:
+            bundle = _run_query(q, top_n=n)
+        except Exception as e:
+            logger.error("query pipeline failed: %s", e)
+            return {"error": f"query pipeline failed: {e}"}
+        errors = validate_bundle(bundle)
+        if errors:
+            logger.error("query bundle invalid: %s", errors)
+            return {"error": "bundle validation failed", "details": errors}
+        return bundle
 
     def _json_response(self, data, status=200):
         """Send a JSON response."""
