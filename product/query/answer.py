@@ -1,0 +1,181 @@
+"""Sourced extractive answer (no paid LLM) + independent counter-authority pass.
+
+Answer: selects sentences from top-ranked decisions covering query terms and
+cites the decision_ids they came from. Every cited id is a real retrieved
+decision; no generative labels beyond what the text supports.
+
+Counter-authority: an INDEPENDENT second retrieval with adversarial expansion
+(negation/exception/limitation vocabulary in DE/FR/IT) against the provisional
+answer, so contrary/minority lines stay visible even when low-ranked.
+"""
+from __future__ import annotations
+
+import re
+
+from .retrieval import tfidf_scores, tokenize
+
+SENT_SPLIT = re.compile(r"(?<=[.!?;])\s+(?=[A-ZÄÖÜÉÈÊA-Z0-9«\"'])")
+
+ADVERSARIAL_TERMS = [
+    # DE
+    "ausnahme", "einschränkung", "entgegen", "abweichend", "minderheit",
+    "vorbehalt", "jedoch", "dennoch", "abgelehnt", "abgewiesen", "nicht",
+    "unbegründet", "unzulässig", "ausschluss", "eng auszulegen",
+    # FR
+    "exception", "contraire", "limitatif", "rejeté", "irrecevable",
+    "minorité", "toutefois", "néanmoins", "écarté", "réservé",
+    # IT
+    "eccezione", "contrario", "respinto", "irricevibile", "minoranza",
+    "tuttavia", "riserva",
+]
+
+
+def split_sentences(text: str, max_len: int = 600) -> list[str]:
+    parts = SENT_SPLIT.split((text or "").replace("\n", " "))
+    return [p.strip()[:max_len] for p in parts if len(p.strip()) > 40][:400]
+
+
+def build_answer(query: str, ranked: list[dict], max_cites: int = 8) -> dict:
+    qtoks = set(tokenize(query))
+    cands: list[tuple[float, str, str]] = []  # (cover, sentence, decision_id)
+    for d in ranked[:40]:
+        for s in split_sentences(d.get("full_text", "")):
+            stoks = set(tokenize(s))
+            overlap = len(qtoks & stoks)
+            if overlap == 0:
+                continue
+            # coverage density + mild preference for higher-ranked decisions
+            score = overlap / (1 + len(stoks) / 60.0) + 0.05 * max(0.0, 1.0 - d.get("rank", 50) / 40.0)
+            cands.append((score, s, d["decision_id"]))
+    cands.sort(key=lambda t: -t[0])
+    picked: list[dict] = []
+    used: set[str] = set()
+    for score, sent, did in cands:
+        if did in used and len(used) >= 3:
+            continue
+        # skip near-duplicate sentences
+        if any(_jaccard(sent, p["text"]) > 0.7 for p in picked):
+            continue
+        picked.append({"text": sent, "decision_id": did, "relevance": round(score, 4)})
+        used.add(did)
+        if len(picked) >= max_cites:
+            break
+    cited = sorted({p["decision_id"] for p in picked})
+    if picked:
+        prose = ("Zur Anfrage finden sich in den abgerufenen Entscheiden u.a. folgende "
+                 "relevante Stellen (Extrakt, keine Rechtsberatung):\n" +
+                 "\n".join(f"[{i+1}] ({p['decision_id']}) {p['text']}" for i, p in enumerate(picked)))
+    else:
+        prose = ("Zu dieser Anfrage fand die breite Abfrage keine direkt zitierfähige "
+                 "Stelle im abgerufenen Bestand. Bitte Anfrage präzisieren oder Bestand erweitern.")
+    return {
+        "prose": prose,
+        "statements": picked,
+        "cited_decision_ids": cited,
+        "method": "extractive_tfidf_v1",
+        "model": "none-local-extractive",
+    }
+
+
+def _jaccard(a: str, b: str) -> float:
+    sa, sb = set(tokenize(a)), set(tokenize(b))
+    if not sa or not sb:
+        return 0.0
+    return len(sa & sb) / len(sa | sb)
+
+
+# Evidence-anchored status groups. A candidate only receives a status when the
+# matching marker string literally occurs in its own text; the matched marker(s)
+# travel with the hit as `status_markers` so the UI can show the evidence.
+# Everything stays `candidate-*`: these are retrieval candidates for human
+# judgement, never asserted holdings (Master Prompt: never classify without
+# evidence supporting the label).
+COUNTER_STATUS_PATTERNS: list[tuple[str, list[str]]] = [
+    # (status, marker patterns; patterns are lower-case substrings of decision text)
+    ("candidate-contrary", [
+        "entgegen der rechtsprechung", "entgegenstehend", "entgegen früheren",
+        "abweichende rechtsprechung", "abweichend von", "anders entschieden",
+        "jurisprudence contraire", "précédent écarté", "écarté de la jurisprudence",
+        "giurisprudenza contraria", "minderheit", "minorité", "minoranza",
+    ]),
+    ("candidate-distinguishing", [
+        "zu unterscheiden", "unterscheidet sich", "sich unterscheiden",
+        "à distinguer", "distinguere", "distinguer", "andersliegend",
+        "anders gelagert",
+    ]),
+    ("candidate-exception", [
+        "ausnahme", "sonderfall", "exception", "eccezione", "fall exception",
+        "ausschluss", "ausschliesslich auszuschliessen",
+    ]),
+    ("candidate-limiting", [
+        "einschränkung", "einschränkend", "unter vorbehalt", "vorbehalt",
+        "eng auszulegen", "limitatif", "réservé", "sous réserve",
+        "riserva", "vorbehalten",
+    ]),
+]
+
+
+def classify_counter_status(low_text: str) -> tuple[str, list[str]]:
+    """Map a decision's own text to a conservative candidate-* status.
+
+    Returns (status, matched_markers). Falls back to the most conservative
+    status `candidate-limiting` when only generic adversarial vocabulary hit.
+    """
+    for status, patterns in COUNTER_STATUS_PATTERNS:
+        matched = [p for p in patterns if p in low_text]
+        if matched:
+            return status, matched[:4]
+    return "candidate-limiting", []
+
+
+def counter_authority_pass(query: str, ranked: list[dict], corpus_texts: dict[str, str],
+                           top_k: int = 12) -> tuple[list[dict], dict]:
+    """Independent adversarial retrieval. Returns (counter_hits, info).
+
+    corpus_texts: decision_id -> full_text for the whole query corpus.
+    Counter candidates are decisions whose text matches adversarial vocabulary
+    AND the query topic, preferring ones NOT top-ranked by the initial search
+    (minority/low-ranked lines stay visible).
+    """
+    adv_q = query + " " + " ".join(ADVERSARIAL_TERMS)
+    ids = list(corpus_texts.keys())
+    docs = [(corpus_texts[i] or "")[:8000] for i in ids]
+    order, scores = tfidf_scores(adv_q, docs)
+    initial_rank = {d["decision_id"]: d.get("rank", 10**9) for d in ranked}
+    hits = []
+    for idx in order:
+        did = ids[idx]
+        if scores[idx] <= 0:
+            break
+        text = corpus_texts[did]
+        # evidence: which adversarial markers actually occur
+        low = text.lower()
+        markers = sorted({t for t in ADVERSARIAL_TERMS if t in low})
+        if not markers:
+            continue
+        status, status_markers = classify_counter_status(low)
+        evidence_markers = sorted(set(status_markers) | set(markers[:6]))[:8]
+        sents = [s for s in split_sentences(text)
+                 if any(m in s.lower() for m in evidence_markers[:8])]
+        hits.append({
+            "decision_id": did,
+            "adversarial_score": round(scores[idx], 6),
+            "initial_rank": initial_rank.get(did),
+            "was_low_ranked": initial_rank.get(did, 10**9) > 20,
+            "markers": markers[:6],
+            "status_markers": status_markers,
+            "evidence_sentence": sents[0][:400] if sents else "",
+            "counter_status": status,
+        })
+        if len(hits) >= top_k:
+            break
+    info = {
+        "method": "independent_adversarial_tfidf_v1",
+        "n_candidates": len(hits),
+        "n_low_ranked_rescued": sum(1 for h in hits if h["was_low_ranked"]),
+        "status_counts": _status_counts(hits),
+        "status_vocabulary": [s for s, _ in COUNTER_STATUS_PATTERNS],
+        "status_rule": "candidate-* derived only from marker strings present in the "
+                       "decision's own text; status_markers carries the evidence",
+    }
+    return hits, info
