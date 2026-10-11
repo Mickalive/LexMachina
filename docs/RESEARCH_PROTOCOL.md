@@ -20,3 +20,13 @@ Core evaluation families: Jurivoc/human-index agreement where available; nearest
 Every core research lane must keep `state/<lane>.json` machine-readable and set at least: `lane`, `direction_version`, `evidence_tier`, `cycle_status`, `continue_recommended`, `accepted_run_id` (or proposed run id before audit), `evidence_refs`, and `next_recommendation`. `continue_recommended=true` means another cycle under the SAME factory-direction question has a concrete discriminating purpose; it is not a generic request to keep running. When no additional same-question cycle is justified, set it false so the Factory Director can decide the successor question.
 
 Frontier states must analogously preserve `team_id`, `charter_version`, `evidence_tier`, `cycle_status`, `continue_recommended`, provenance/evidence references and the charter stop/promote recommendation.
+
+## Product-engineering cycles
+Product and engineering Frontier cycles are not required to manufacture a scientific hypothesis when the task is implementation. They must instead state the concrete capability/integration contract, reuse available accepted components, produce runnable code/tests/fixtures, and verify the acceptance contract.
+
+For the query-map MVP, do not require obsolete universal-174k metrics to gate query-specific components. Evaluate the capability actually being shipped.
+
+## Owner-attention / continuation
+Autonomous cycles may continue while they produce measurable executable progress. Do not use `continue_recommended=false` on Product merely because one intermediate milestone completed. Product should remain `continue_recommended=true` until it records `human_gate_ready=true` for a locally runnable end-to-end product, unless the current direction is genuinely superseded or structurally blocked.
+
+Technical failures, provider failures, library choices and ordinary implementation decisions are not human blockers. Retry, rotate, narrow or reroute autonomously.
