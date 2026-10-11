@@ -36,7 +36,7 @@ env:
   LEX_MODEL: opencode/x-preview-f-free
 
 concurrency:
-  group: lex-core-${{ inputs.lane }}
+  group: lex-core-${{ inputs.lane }}-v${{ inputs.direction_version }}
   cancel-in-progress: true
 
 jobs:
@@ -326,8 +326,11 @@ jobs:
         run: |
           set -euo pipefail
           echo "Core finalizer: team=$TEAM_RESULT audit=$AUDIT_RESULT integrate=$INTEGRATE_RESULT"
+          CURRENT_DIRV=$(jq -r '.version // -1' state/factory_direction.json 2>/dev/null || echo -1)
 
-          if [[ "$TEAM_RESULT" != success || "$AUDIT_RESULT" == failure || "$AUDIT_RESULT" == cancelled || "$INTEGRATE_RESULT" == failure || "$INTEGRATE_RESULT" == cancelled ]]; then
+          if [[ "$DIRV" != "$CURRENT_DIRV" ]]; then
+            echo "Run direction v$DIRV is superseded by current v$CURRENT_DIRV; no stale recovery will be dispatched."
+          elif [[ "$TEAM_RESULT" != success || "$AUDIT_RESULT" == failure || "$AUDIT_RESULT" == cancelled || "$INTEGRATE_RESULT" == failure || "$INTEGRATE_RESULT" == cancelled ]]; then
             SNAP="cycle/core/${LANE}/${GITHUB_RUN_ID}/team"
             if git ls-remote --exit-code --heads origin "refs/heads/$SNAP" >/dev/null 2>&1; then
               gh workflow run core-lane.yml --repo "$GITHUB_REPOSITORY" --ref main \
