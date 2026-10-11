@@ -135,3 +135,13 @@ Therefore:
 `state/frontier_portfolio.json` contains only executable/current Frontier teams. Retired/superseded charters are moved intact to `state/archive/frontier_portfolio_history.json`; their full implementation/audit evidence remains on lab/cycle branches. Active blockers live only under `state/blockers/`; retired blockers belong under `state/archive/blockers/`.
 
 `main` is deliberately lightweight. Full result arrays, parquet files, benchmark dumps and historical reports must NOT be mirrored to main. `results/accepted-state/` plus `results/ACCEPTED_CATALOG.json` are the compact accepted-state index; detailed artifacts live on the accepted lab branch that produced them.
+
+## Progressive query execution
+The UI should become useful in stages instead of blocking on one monolithic request:
+1. retrieve/dedupe broad candidates;
+2. render an initial query map;
+3. enrich selected evidence and stream/generate the sourced answer;
+4. run adversarial retrieval/classification;
+5. patch counter-authorities/relations into the existing bundle/map.
+
+The broad map pool and LLM evidence pack are deliberately different sizes. Query-specific mode must not load global 174k matrices on startup. Full-text decision bodies are lazy. Expensive geometry is cached by retrieval/config hash.
