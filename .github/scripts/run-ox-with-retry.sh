@@ -25,6 +25,10 @@ START_HEAD=""
 REPAIR_INTENT=false
 OVERLAY=false
 CHILD_PID=""
+MODEL_POOL=()
+MODEL_INDEX=0
+MODEL_ARG_INDEX=-1
+MODEL_ARG_MODE=""
 NETWORK_RE='(network_error|NetworkError|network error|fetch failed|APIConnectionError|ECONNRESET|ECONNREFUSED|EAI_AGAIN|ENETUNREACH|ENOTFOUND|ETIMEDOUT|timed out|timeout|socket hang up|connection (reset|refused|closed|error)|upstream.*(reset|closed|unavailable|error)|HTTP[^0-9]*(429|500|502|503|504)|status[^0-9]*(429|500|502|503|504)|too many requests|rate.?limit|service unavailable|bad gateway|gateway timeout|temporar(y|ily) unavailable|TLS|SSL.*error|Unexpected server error|internal server error)'
 
 restore_overlay() {
@@ -82,28 +86,57 @@ validate_registry(){
 }
 
 resolve_model_args(){
-  local health="/tmp/lex_control/state/model_health.json" resolved healthy fallback i
+  local health="/tmp/lex_control/state/model_health.json" resolved healthy i key hex pool_len selected requested
   [[ -f "$health" ]] || { echo "::error::LEX_MODEL_HEALTH_MISSING" >&2; return 76; }
   healthy=$(jq -r '.healthy // false' "$health" 2>/dev/null || echo false)
   resolved=$(jq -r '.resolved_model // empty' "$health" 2>/dev/null || true)
-  fallback=$(jq -r '.using_fallback // false' "$health" 2>/dev/null || echo false)
   if [[ "$healthy" != true || -z "$resolved" ]]; then
     echo "::error::LEX_NO_HEALTHY_FREE_TOOL_MODEL; model-health workflow must pass before agent work is dispatched." >&2
     return 76
   fi
+
+  mapfile -t MODEL_POOL < <(jq -r '.healthy_models[]? // empty' "$health" 2>/dev/null | sed '/^$/d')
+  if [[ "${#MODEL_POOL[@]}" -eq 0 ]]; then MODEL_POOL=("$resolved"); fi
+  pool_len=${#MODEL_POOL[@]}
+  key="${LEX_MODEL_SLOT:-${GITHUB_RUN_ID:-default}}"
+  hex=$(printf '%s' "$key" | sha256sum | awk '{print substr($1,1,8)}')
+  MODEL_INDEX=$((16#$hex % pool_len))
+  selected="${MODEL_POOL[$MODEL_INDEX]}"
+
   for ((i=0; i<${#RUN_ARGS[@]}; i++)); do
     if [[ "${RUN_ARGS[$i]}" == "--model" && $((i+1)) -lt ${#RUN_ARGS[@]} ]]; then
-      echo "LEX_MODEL_RESOLVED requested=${RUN_ARGS[$((i+1))]} resolved=$resolved fallback=$fallback"
-      RUN_ARGS[$((i+1))]="$resolved"
+      requested="${RUN_ARGS[$((i+1))]}"
+      MODEL_ARG_INDEX=$i
+      MODEL_ARG_MODE="pair"
+      RUN_ARGS[$((i+1))]="$selected"
+      echo "LEX_MODEL_POOL size=$pool_len slot=$key requested=$requested selected=$selected index=$MODEL_INDEX"
       return 0
     elif [[ "${RUN_ARGS[$i]}" == --model=* ]]; then
-      echo "LEX_MODEL_RESOLVED requested=${RUN_ARGS[$i]#--model=} resolved=$resolved fallback=$fallback"
-      RUN_ARGS[$i]="--model=$resolved"
+      requested="${RUN_ARGS[$i]#--model=}"
+      MODEL_ARG_INDEX=$i
+      MODEL_ARG_MODE="equal"
+      RUN_ARGS[$i]="--model=$selected"
+      echo "LEX_MODEL_POOL size=$pool_len slot=$key requested=$requested selected=$selected index=$MODEL_INDEX"
       return 0
     fi
   done
   echo "::error::LEX_MODEL_ARGUMENT_MISSING" >&2
   return 77
+}
+
+rotate_model(){
+  local n=${#MODEL_POOL[@]} selected
+  (( n > 1 )) || return 0
+  MODEL_INDEX=$(((MODEL_INDEX + 1) % n))
+  selected="${MODEL_POOL[$MODEL_INDEX]}"
+  if [[ "$MODEL_ARG_MODE" == "pair" ]]; then
+    RUN_ARGS[$((MODEL_ARG_INDEX+1))]="$selected"
+  elif [[ "$MODEL_ARG_MODE" == "equal" ]]; then
+    RUN_ARGS[$MODEL_ARG_INDEX]="--model=$selected"
+  else
+    return 0
+  fi
+  echo "::warning::LEX_MODEL_ROTATE selected=$selected index=$MODEL_INDEX pool_size=$n"
 }
 
 RUN_ARGS=("$@")
@@ -174,7 +207,8 @@ while ((attempt<=MAX_ATTEMPTS)); do
   fi
   if [[ "$rc" -eq 75 ]] || grep -Eiq "$NETWORK_RE" "$LOG"; then
     if ((attempt<MAX_ATTEMPTS)); then
-      echo "::warning::Transient Ox/OpenCode failure; retrying"
+      echo "::warning::Transient Ox/OpenCode failure; rotating healthy free model pool before retry"
+      rotate_model || true
       sleep "$RETRY_DELAY"
       attempt=$((attempt+1))
       continue
