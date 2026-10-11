@@ -27,33 +27,35 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-      - name: Mirror exact accepted lane outputs to main
+      - name: Publish compact accepted-state catalog
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p results/accepted-state
-          # Historical paused-lane results already live on main. During the MVP,
-          # mirror only currently RUN core lanes to avoid fetching multi-GB legacy branches.
-          for lane in $(jq -r '.lanes | to_entries[] | select(.value.status=="RUN") | .key' state/factory_direction.json); do
+          mkdir -p results/accepted-state/frontier
+
+          # Main is a control plane, not an artifact mirror. Full accepted
+          # evidence remains on lab/* branches; publish only compact states.
+          for lane in corpus legal-distance fractal-map evaluation product; do
             br="lab/$lane"
-            if git ls-remote --exit-code --heads origin "refs/heads/$br" >/dev/null 2>&1; then
-              git fetch origin "$br:refs/remotes/origin/$br"
-              git cat-file -e "origin/$br:results/$lane" 2>/dev/null && git checkout "origin/$br" -- "results/$lane" || true
-              git cat-file -e "origin/$br:results/audit/$lane" 2>/dev/null && git checkout "origin/$br" -- "results/audit/$lane" || true
-              if git cat-file -e "origin/$br:state/$lane.json" 2>/dev/null; then git show "origin/$br:state/$lane.json" > "results/accepted-state/$lane.json"; fi
+            if git ls-remote --exit-code --heads origin "refs/heads/$br" >/dev/null 2>&1 && git fetch -q origin "$br:refs/remotes/origin/$br"; then
+              if git cat-file -e "origin/$br:state/$lane.json" 2>/dev/null; then
+                git show "origin/$br:state/$lane.json" > "results/accepted-state/$lane.json"
+              fi
             fi
           done
-          mkdir -p results/frontier results/audit/frontier results/accepted-state/frontier
+
+          # Only active/promoted Frontier states belong in the live catalog.
+          find results/accepted-state/frontier -type f -name '*.json' -delete 2>/dev/null || true
           jq -r '.teams[] | select(.status=="RUN" or .status=="PROMOTE") | .team_id' state/frontier_portfolio.json | while read -r team; do
             [[ -n "$team" ]] || continue
-            ref="refs/heads/lab/frontier/$team"
-            if git ls-remote --exit-code --heads origin "$ref" >/dev/null 2>&1; then
-              git fetch origin "$ref:refs/remotes/origin/lab/frontier/$team"
-              git cat-file -e "origin/lab/frontier/$team:results/frontier/$team" 2>/dev/null && git checkout "origin/lab/frontier/$team" -- "results/frontier/$team" || true
-              git cat-file -e "origin/lab/frontier/$team:results/audit/frontier/$team" 2>/dev/null && git checkout "origin/lab/frontier/$team" -- "results/audit/frontier/$team" || true
-              if git cat-file -e "origin/lab/frontier/$team:state/frontier/$team.json" 2>/dev/null; then git show "origin/lab/frontier/$team:state/frontier/$team.json" > "results/accepted-state/frontier/$team.json"; fi
+            br="lab/frontier/$team"
+            if git ls-remote --exit-code --heads origin "refs/heads/$br" >/dev/null 2>&1 && git fetch -q origin "$br:refs/remotes/origin/$br"; then
+              if git cat-file -e "origin/$br:state/frontier/$team.json" 2>/dev/null; then
+                git show "origin/$br:state/frontier/$team.json" > "results/accepted-state/frontier/$team.json"
+              fi
             fi
           done
+
           python - <<'PY'
           import json, pathlib
           root=pathlib.Path('results/accepted-state')
@@ -62,12 +64,15 @@ jobs:
               try: state=json.loads(p.read_text())
               except Exception: continue
               entries.append({'path':str(p).replace('\\','/'),'state':state})
-          pathlib.Path('results/ACCEPTED_CATALOG.json').write_text(json.dumps({'entries':entries},ensure_ascii=False,indent=2)+'\n')
+          pathlib.Path('results/ACCEPTED_CATALOG.json').write_text(
+              json.dumps({'schema_version':2,'artifact_policy':'compact-state-only','entries':entries},
+                         ensure_ascii=False,indent=2)+'\n')
           PY
+
           git config user.name "lex-results-publisher"; git config user.email "lex-results@autonomous.local"
-          git add results
-          git diff --cached --quiet && { echo "No accepted-result delta"; exit 0; }
-          git commit -m "results: publish accepted lab catalog ${GITHUB_RUN_ID}"
+          git add results/accepted-state results/ACCEPTED_CATALOG.json
+          git diff --cached --quiet && { echo "No accepted-state delta"; exit 0; }
+          git commit -m "results: refresh compact accepted-state catalog ${GITHUB_RUN_ID}"
           for i in 1 2 3 4 5 6; do
             if git pull --rebase origin main && git push origin HEAD:main; then exit 0; fi
             git rebase --abort 2>/dev/null || true
