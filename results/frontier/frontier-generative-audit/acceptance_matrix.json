@@ -1,0 +1,81 @@
+{
+  "team_id": "frontier-generative-audit",
+  "charter_version": 2,
+  "run_id": "38176699303",
+  "resumed_from_snapshot_run": "38174887852",
+  "contract_version": "generative-audit-contract/2.1",
+  "canonical_tree": "frontier/frontier-generative-audit",
+  "acceptance": {
+    "1_provider_interface": {
+      "status": "PASS",
+      "evidence": [
+        "Provider abstraction with three backends: OpenCode CLI (default), OpenAI-compatible local server (LEX_GENAUDIT_BACKEND=openai), deterministic fixture mode (frontier/frontier-generative-audit/generative_audit/provider.py)",
+        "Live CI verification: LEX_REAL_MODEL=1 test_real_model_smoke PASS with free model opencode/nemotron-3.5-lightning-free (3 bundle-constrained citations, 0 redactions)",
+        "Live end-to-end: results/frontier/frontier-generative-audit/cached_example_real_model_run38176699303_attempt2.json (opencode/mimo-v2.6-flash-free, 6 constrained citations + 6 adversarial findings)",
+        "Provider failure fallback covered by test_provider_fallback_across_models (broken model -> healthy fallback, success attributed to the model that worked)"
+      ]
+    },
+    "2_citation_constraint": {
+      "status": "PASS",
+      "evidence": [
+        "test_hallucinated_citation_rejection_and_redaction: invented [BGE-9999-FAKE] rejected AND redacted from surfaced prose",
+        "test_fixture_rejects_invented_cited_ids: fixture cannot smuggle unknown IDs",
+        "test_live_model_citation_styles_parentheses_and_unicode_hyphens: live-model citation styles ([ID], (ID), ([ID]), unicode non-breaking hyphens) parsed; unknown IDs still rejected",
+        "All live runs: redacted_citation_ids == [] (no hallucinations observed across 3 real-model e2e runs)"
+      ]
+    },
+    "3_independent_adversarial_pass": {
+      "status": "PASS",
+      "evidence": [
+        "Separate model call with challenge-only objective (generative_audit/adversarial.py build_prompt/run_with_info); test_adversarial_prompt_is_independent asserts structural independence from the answer prompt",
+        "test_adversarial_parse_rejects_unknown_ids: findings citing non-bundle IDs rejected and recorded",
+        "Live attempt2 produced 6 findings (contradictory/limiting/exception/minority_line) distinct from the provisional answer text",
+        "Live attempt1 produced an honest empty result (model returned '[]' even after one strict-format retry) — negative result preserved verbatim in adversarial_info.raw_excerpt"
+      ]
+    },
+    "4_structured_statuses": {
+      "status": "PASS",
+      "evidence": [
+        "StatusLabel supporting|limiting|contrary_or_exception|unclassified with uncertainty + evidence_refs (generative_audit/models.py)",
+        "test_structured_statuses_merging: merge priority contrary > limiting > supporting; uncertainty minimized; evidence unioned",
+        "test_unsupported_status_downgrade: decisions without evidence stay unclassified",
+        "test_cited_but_contrary_stays_visible_as_counter: cited+limiting decision keeps counter_status=candidate-limiting so the product UI keeps it discoverable"
+      ]
+    },
+    "5_post_generation_validation": {
+      "status": "PASS",
+      "evidence": [
+        "PostGenerationValidator: strict local bundle validation always; OpenCaseLaw /api/attest when reachable (LEX_OCL_ATTEST=1) with injectable attestor (generative_audit/opencaselaw.py)",
+        "test_post_generation_validation_strict_local_and_attestation covers attestation-up, attestation-down (endpoint unreachable) and strict-local modes",
+        "Documented negative result: https://opencaselaw.org/api/attest unreachable from this CI sandbox (curl exit 000); strict-local fallback verified"
+      ]
+    },
+    "6_end_to_end_cached_example": {
+      "status": "PASS",
+      "evidence": [
+        "results/frontier/frontier-generative-audit/cached_example_fixture.json (deterministic)",
+        "results/frontier/frontier-generative-audit/cached_example_real_model_run38176699303.json (live, opencode/nemotron-3.5-lightning-free)",
+        "results/frontier/frontier-generative-audit/cached_example_real_model_run38176699303_attempt2.json (live, opencode/mimo-v2.6-flash-free: 6 citations, 6 findings, statuses limiting=3 contrary_or_exception=3)",
+        "Each artifact contains query, answer, cited IDs, validation report, adversarial findings, merged statuses and the audited product bundle"
+      ]
+    },
+    "7_test_coverage": {
+      "status": "PASS",
+      "evidence": [
+        "tests/frontier/frontier-generative-audit/test_generative_audit_v2.py: 23/23 PASS (frozen deterministic suite, no network, no model calls unless LEX_REAL_MODEL=1)",
+        "invented citation rejection, unsupported-status downgrade, provider failure fallback (partial + total), deterministic parsing (answers and adversarial findings) all covered",
+        "Legacy accepted suite generative_audit/tests/test_generative_audit.py still passes 10/10 (prior accepted work preserved unchanged)"
+      ]
+    },
+    "8_integration_contract": {
+      "status": "PASS",
+      "evidence": [
+        "generative_audit/integration_contract.py: one-call seam run_generative_audit(product_bundle) -> audited product-compatible query_result_bundle",
+        "frontier/frontier-generative-audit/README.md documents the contract, guarantees and provider backends for the product lane",
+        "test_run_generative_audit_end_to_end_contract asserts product validate_bundle() key rules, JSON serializability, counter-status vocabulary and provenance block"
+      ]
+    }
+  },
+  "overall": "PROMOTE",
+  "claim_ceiling": "Demonstrated: query_result_bundle -> source-grounded generative answer (free OpenCode CLI models, citation-constrained to retrieved decision IDs with programmatic rejection + redaction) -> independent adversarial counter-authority pass -> merged structured statuses with uncertainty/evidence -> product-compatible audited bundle. NOT claimed: live OpenCaseLaw attestation (endpoint unreachable from CI; strict-local fallback only), full OpenCaseLaw retrieval, interactive map or UI integration, legal-correctness of model prose beyond citation constraint."
+}
