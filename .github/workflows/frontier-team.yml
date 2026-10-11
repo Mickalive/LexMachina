@@ -118,8 +118,33 @@ jobs:
           elif [[ -n "$RESUME_FROM" ]]; then
             MODE="OPERATIONAL RESUME from persisted Frontier producer snapshot ${RESUME_FROM}. Preserve valid completed work, diagnose the operational failure, and finish or verify the charter without restarting from scratch."
           fi
+          export LEX_REQUIRE_DELTA=1
+          export LEX_MODEL_SLOT="frontier:${TEAM}:v${VER}:${GITHUB_RUN_ID}"
           bash .github/scripts/run-ox-with-retry.sh run --model "$LEX_MODEL" --agent frontier_researcher \
             "Run LexMachina Frontier team=${TEAM}, charter v${VER}, GitHub run=${GITHUB_RUN_ID}. Exact charter=/tmp/lex_frontier_charter.json. Read /tmp/lex_control/AGENTS.md and Main Prompt. Accepted evidence=/tmp/lex_accepted. Execute only this charter. If the charter is an engineering capability, BUILD RUNNABLE CODE/TESTS/fixtures and a narrow integration contract; do not substitute a research memo. REUSE-FIRST: inspect accepted product/core mounts before rebuilding capabilities. Use parallel subagents for independent implementation/testing when useful. Optimize throughput and owner-attention, not token thrift. Your state/frontier/${TEAM}.json MUST retain charter_version and set continue_recommended true only if another cycle under the SAME charter is specifically justified. ${MODE}"
+      - name: Validate Frontier producer delta and state
+        shell: bash
+        env:
+          TEAM: ${{ inputs.team_id }}
+          VER: ${{ inputs.charter_version }}
+        run: |
+          set -euo pipefail
+          STATE="state/frontier/${TEAM}.json"
+          test -s "$STATE" || { echo "::error::Missing Frontier state $STATE"; exit 68; }
+          jq -e --argjson ver "$VER" '
+            .charter_version == $ver and
+            (.cycle_status // "INITIALIZED") != "INITIALIZED" and
+            (.evidence_tier // "UNTESTED") != ""
+          ' "$STATE" >/dev/null || {
+            echo "::error::Frontier producer did not advance machine-readable state beyond INITIALIZED"
+            cat "$STATE" || true
+            exit 69
+          }
+          if git diff --quiet && git diff --cached --quiet && [[ -z "$(git status --porcelain -uall)" ]]; then
+            echo "::error::Frontier producer returned success with zero durable delta"
+            exit 67
+          fi
+
       - name: Clean generated junk
         if: always()
         shell: bash
