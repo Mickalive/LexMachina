@@ -1,9 +1,96 @@
 # LexMachina Factory Architecture
 
-## Control plane
-`main` owns mission, agents, workflows, directives and factory direction. Persistent lab branches execute the latest control plane from `main`; stale role definitions on lab branches are not authoritative. The Ox launcher itself must self-pin to the current `main` version before execution, and an hourly reconciliation workflow repairs persistent lab branches that missed a launcher update.
+## Current product architecture
 
-## Accepted branches
+LexMachina is a **query-specific visual legal-research system**.
+
+Canonical data flow:
+
+```
+legal question
+  -> OpenCaseLaw retrieval / citation expansion
+  -> normalized query_result_bundle
+  -> reranking / source packing
+  -> generative sourced answer
+  -> independent counter-authority pass
+  -> query-conditioned clustering / projection
+  -> interactive map + decision/source inspection
+```
+
+The product does NOT require one universal geometry for all Swiss case law.
+
+OpenCaseLaw is the default Swiss public data plane. The legacy 174k LexMachina corpus, global-map artifacts and research results are preserved as reusable evidence/components, not as the MVP critical path.
+
+## Central integration contract: query_result_bundle
+
+All parallel work should converge on a small product-owned bundle contract rather than inventing incompatible pipelines.
+
+Minimum conceptual fields:
+- query + query variants/provenance;
+- generated answer + cited decision IDs;
+- decisions with stable decision_id, canonical URL/citation, court/date/language and retrieved text/snippets;
+- retrieval/rerank scores and source provenance;
+- counter-authority status + uncertainty/evidence;
+- cluster ID/label;
+- projection coordinates;
+- citation/typed relations.
+
+Product may evolve the exact schema while preserving backwards-compatible fixtures during the MVP.
+
+## Reuse-first product shell
+
+The accepted `lab/product` implementation is a component library, not discarded legacy.
+
+Prefer adapting:
+- threaded HTTP server, caching and error handling;
+- search/navigation/decision/citation/neighbor API patterns;
+- WebGL + Canvas rendering;
+- cluster/decision inspection;
+- spatial index, LOD and culling;
+- TF-IDF / clustering / UMAP / Leiden utilities;
+- multilingual/evaluation helpers.
+
+Do not rebuild these unless old global-174k assumptions make adaptation slower than isolation behind the query_result_bundle seam.
+
+## Parallel engineering topology
+
+### Core Product — continuous integrator
+Owns the runnable application and end-to-end contract. It:
+- builds its own vertical slice continuously;
+- inspects ACCEPTED Frontier mounts every cycle;
+- absorbs useful components immediately;
+- never waits for every Frontier team;
+- keeps running until `human_gate_ready=true`.
+
+### Core Evaluation — continuous falsifier
+Owns compact executable benchmarks for retrieval, counter-authority recall, source validity, language robustness, answer citation validity, cluster stability, reproducibility and latency. It feeds concrete failures back to Product without blocking the first clickable slice.
+
+### Human-authorized Frontier engineering teams
+Current portfolio may run independent non-overlapping implementation tracks such as:
+- OpenCaseLaw retrieval/cache adapter;
+- generative answer + adversarial/counter-authority engine;
+- query-map UI adapter.
+
+Frontier artifacts live in their own namespace and are promoted only after independent audit. Product remains the integrator.
+
+## Legacy core lanes
+
+### Corpus
+Historical corpus acquisition/normalization work is preserved and PAUSED. Reopen only for a concrete product capability missing from OpenCaseLaw.
+
+### Legal Distance
+Historical representation/distance research is preserved and PAUSED. Reopen only if query-specific retrieval/map tests expose a precise representation deficit.
+
+### Fractal Map
+Historical global hierarchy work is preserved and PAUSED. Reuse clustering/rendering code; do not repair the universal 174k map unless a query-specific product need proves it necessary.
+
+## Control plane
+
+`main` owns mission, agents, workflows, directives and factory direction. Persistent lab branches execute the latest control plane from `main`; stale role definitions on lab branches are not authoritative.
+
+A cycle works on an isolated branch. Independent audit gates promotion. Rejected work never silently becomes accepted state.
+
+Accepted branches:
 - `lab/corpus`
 - `lab/legal-distance`
 - `lab/fractal-map`
@@ -11,28 +98,18 @@
 - `lab/product`
 - dynamic `lab/frontier/<team_id>`
 
-A cycle works on an isolated cycle branch. An independent audit gates promotion. Rejected work never silently becomes accepted state.
+## Autonomous throughput doctrine
 
-## Core lanes
-### Corpus
-Acquire/normalize Federal Supreme Court decisions from 2000 onward; preserve provenance, metadata and structure; support user corpus import.
+Repository-owner attention is the scarce resource; autonomous agent cycles are cheap.
 
-### Legal Distance
-Discover and benchmark representations/distances: semantic, legal issue, reasoning, facts, norms, citations, doctrine, outcome and hybrids.
-
-### Fractal Map
-Convert accepted similarity/distance evidence into stable multi-resolution regions and zoomable map structures.
-
-### Evaluation
-Build falsification harnesses, Jurivoc/TF weak-supervision benchmarks, neighbor tests, boilerplate tests, multilingual tests, stability tests and jurist-usefulness evaluation.
-
-### Product
-Continuously build a usable end-to-end application: TF base map, zoom/navigation, map modes, decision inspection, corpus import, persisted recomputation artifacts.
-
-## Dynamic Frontier teams
-The Factory Director may create, continue, pause, kill or promote specialized Frontier teams when concrete evidence opens a product-relevant path. More credible independent paths may justify more teams in parallel. Every charter must identify a product capability, precise question, why-now evidence, non-duplication rationale and acceptance test. Frontier exploration is elastic in means but never in mission.
-
-`state/frontier_portfolio.json` is an append-only charter ledger by `(team_id, charter_version)`. Once a charter version has been dispatched, its substantive fields must never be rewritten or deleted. A successor hypothesis is a new `charter_version`; the old entry changes only lifecycle status such as RUN → PAUSE / TERMINATE / PROMOTE / SUPERSEDED. This preserves the exact charter for in-flight team runs, later audits and historical reproducibility.
+Therefore:
+- direction changes cancel superseded same-lane work;
+- technical/network/model failures retry or rotate automatically;
+- multiple healthy free OpenCode models should be load-balanced when available;
+- independent engineering tracks run in parallel;
+- Product integrates incrementally rather than waiting for portfolio completion;
+- agents choose libraries/layouts/thresholds/repair strategies autonomously;
+- human escalation is reserved for a ready-to-test product or an unavoidable owner-level product/business/legal/external-access decision.
 
 ## Output layout
 - lane implementation: `corpus/`, `legal_distance/`, `fractal_map/`, `evaluation/`, `product/`
@@ -44,12 +121,12 @@ The Factory Director may create, continue, pause, kill or promote specialized Fr
 - dynamic Frontier: `frontier/<team>/`, `results/frontier/<team>/`, `state/frontier/<team>.json`
 
 ## Invariants
-- At most one active run per core lane or Frontier team.
+- At most one active run per core lane or Frontier team, but different lanes/teams should run in parallel.
+- Newer direction/charter work supersedes stale same-lane/team work.
 - PASS required for accepted promotion.
-- Audit REVISE means concrete same-cycle repair; BLOCKED/REJECT prevents dishonest loops.
-- Supervisor dispatch must be idempotent.
-- Transient Ox/network failures retry; scientific/product failures remain failures.
+- Audit REVISE means concrete repair; BLOCKED prevents dishonest loops.
+- Supervisor dispatch is idempotent.
 - A repair cannot succeed with zero durable delta.
-- Accepted results are mirrored to `main/results/` without deleting history.
-- Product runs continuously but exploratory science does not silently become a default.
-- A dispatched Frontier charter is immutable forever at its exact version.
+- Historical accepted/negative evidence is preserved.
+- Human-authorized Frontier charters remain active until their stop/promote rule is met or an ACCEPTED equivalent supersedes them.
+- Product does not stop at a partial milestone; `human_gate_ready=true` is the normal handoff point.
