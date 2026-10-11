@@ -121,7 +121,7 @@ jobs:
 
           cancel_predirection_directors() {
             local changed id title created
-            changed=$(git log -1 --format=%cI -- state/factory_direction.json 2>/dev/null || true)
+            changed=$(gh api "repos/${GITHUB_REPOSITORY}/commits?path=state/factory_direction.json&per_page=1" --jq '.[0].commit.committer.date' 2>/dev/null || true)
             [[ -n "$changed" ]] || return 0
             echo "Scanning active Directors older than latest direction change ($changed)..."
             gh run list --repo "$GITHUB_REPOSITORY" --workflow factory-director.yml --limit 50 --json databaseId,displayTitle,status,createdAt               | jq -r --arg changed "$changed" '.[] | select(.status=="queued" or .status=="in_progress" or .status=="requested" or .status=="waiting" or .status=="pending") | select(.createdAt < $changed) | [.databaseId,.displayTitle,.createdAt] | @tsv'               | while IFS=$'\t' read -r id title created; do
@@ -194,10 +194,6 @@ jobs:
           CORE_HUMAN=$(jq '[.lanes[] | select(.status=="HUMAN_DECISION_REQUIRED")] | length' state/factory_direction.json)
           FRONTIER_RUN_DESIRED=$(jq '[.teams[] | select(.status=="RUN")] | length' state/frontier_portfolio.json)
           FRONTIER_HUMAN=$(jq '[.teams[] | select(.status=="HUMAN_DECISION_REQUIRED")] | length' state/frontier_portfolio.json)
-
-          case "$TRIGGER_WORKFLOW" in
-            "LEX Core Lane"|"LEX Frontier Team") NEED_DIRECTOR=1 ;;
-          esac
 
           for lane in corpus legal-distance fractal-map evaluation product; do
             status=$(jq -r --arg lane "$lane" '.lanes[$lane].status // "PAUSE"' state/factory_direction.json)
