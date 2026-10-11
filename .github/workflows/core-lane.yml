@@ -154,15 +154,43 @@ jobs:
           elif [[ -n "$RESUME_FROM" ]]; then
             MODE="OPERATIONAL RESUME from persisted producer snapshot of run ${RESUME_FROM}. Preserve all valid completed work. Diagnose the orchestration/validation failure, finish or verify the lane deliverable, and make the snapshot audit-ready. Do not restart from scratch merely because the prior workflow failed."
           fi
+          if [[ "$LANE" == "product" || "$LANE" == "evaluation" ]]; then
+            export LEX_REQUIRE_DELTA=1
+          fi
+          export LEX_MODEL_SLOT="core:${LANE}:v${DIRECTION_VERSION}:${GITHUB_RUN_ID}"
           bash .github/scripts/run-ox-with-retry.sh run --model "$LEX_MODEL" --agent "$AGENT" \
             "LexMachina lane=${LANE}; factory direction version=${DIRECTION_VERSION}; GitHub run=${GITHUB_RUN_ID}. Read /tmp/lex_control/AGENTS.md, /tmp/lex_control/LEXMACHINA_MASTER_PROMPT.md, /tmp/lex_control/ARCHITECTURE.md, /tmp/lex_control/docs/RESEARCH_PROTOCOL.md, /tmp/lex_control/state/factory_direction.json and /tmp/lex_control/directives/lanes/${LANE}.md. Relevant ACCEPTED peers are mounted under /tmp/lex_accepted. Execute real work toward the exact current lane question. ${FAST_MODE} ${MODE}"
+
+      - name: Validate active MVP producer state
+        if: ${{ inputs.lane == 'product' || inputs.lane == 'evaluation' }}
+        shell: bash
+        env:
+          LANE: ${{ inputs.lane }}
+          DIRV: ${{ inputs.direction_version }}
+        run: |
+          set -euo pipefail
+          STATE="state/${LANE}.json"
+          test -s "$STATE" || { echo "::error::Missing $STATE"; exit 68; }
+          jq -e --argjson dirv "$DIRV" '
+            (.direction_version // -1) == $dirv and
+            (.cycle_status // "INITIALIZED") != "INITIALIZED"
+          ' "$STATE" >/dev/null || {
+            echo "::error::$LANE producer did not update state for direction v$DIRV"
+            cat "$STATE" || true
+            exit 69
+          }
 
       - name: Clean generated junk
         if: always()
         shell: bash
+        env:
+          LANE: ${{ inputs.lane }}
         run: |
           find . -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null || true
           find . -type f \( -name '*.pyc' -o -name '*.pyo' \) -delete 2>/dev/null || true
+          if [[ "$LANE" == "product" ]]; then
+            find product -maxdepth 1 -type f -name '*.log' -delete 2>/dev/null || true
+          fi
 
       - name: Enforce lane write scope
         shell: bash
