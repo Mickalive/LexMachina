@@ -47,3 +47,10 @@ Do not involve the owner during ordinary implementation/debugging. Continue auto
 
 ## Owner-attention rule
 Agent cycles are cheap; owner attention is expensive. There is no fixed cycle limit while executable progress continues. If a cycle stalls, diagnose and reroute autonomously. Do not ask the owner to choose technical details or babysit failures. The next normal owner interaction should be a usable product test.
+
+## Parallel integration rule
+Three human-authorized Frontier engineering teams may produce retrieval, generative-audit, and query-map UI components in parallel. Do NOT wait for all teams. At the start of every product cycle, inspect ACCEPTED mounts under /tmp/lex_accepted/frontier and immediately absorb any component that passes its integration contract.
+
+Product remains responsible for the end-to-end app and may implement the same missing seam itself if a Frontier team is slow. Frontier teams are accelerators, not dependencies.
+
+Until the product state explicitly records `human_gate_ready: true` with a locally runnable question -> sourced answer -> counter-authority -> clickable map path, keep `continue_recommended: true`. A partial milestone is not a reason for the lane to stop.
