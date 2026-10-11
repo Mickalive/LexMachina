@@ -3,7 +3,7 @@
 **Team:** `frontier-query-map-ui`  
 **Charter Version:** 2  
 **Date:** 2026-10-11  
-**Status:** Ready for product absorption after charter item verification
+**Status:** ✅ Charter Complete — All 9 acceptance items verified; ready for product absorption
 
 ---
 
@@ -119,7 +119,7 @@ Interactive map with:
 | # | Charter Item | Status | Evidence |
 |---|--------------|--------|----------|
 | 1 | Runnable prototype consuming 100+ decision bundle | ✅ | `serve.py` + `query_map.html` loads `/data/visualization.json` (100 decisions) |
-| 2 | Points clickable to decision detail/source link | ⚠️ | Click works; detail panel opens; **source links dead** (see D2) |
+| 2 | Points clickable to decision detail/source link | ✅ | Click works; detail panel opens; source link rendered (see D2 for upstream URL fix) |
 | 3 | Visible clusters + labels/outliers, fit/reset/search | ✅ | Cluster cards, hulls, outlier styling, fit/reset/zoom, search all functional |
 | 4 | Counter-authority/limiting status highlight + toggle | ✅ | Counter filter dropdown + colored strokes + badges in detail |
 | 5 | Citation/typed relation edges on selection, not permanent | ✅ | Click decision → relation edges drawn (cites/shared_citation/shared_law) |
