@@ -7,7 +7,6 @@ Supports:
   - Provider failure fallback to alternative free model
   - Citation-ID constraints: only decision IDs present in the source
     bundle may be cited; hallucinated IDs are programmatically rejected.
-  - Post-generation citation validation with OpenCaseLaw attestation.
 
 The provider interface is deliberately narrow: given a query and a
 source bundle of validated decisions, produce a grounded answer with
@@ -18,16 +17,14 @@ import json
 import subprocess
 import sys
 import os
-from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from .source_packing import CitationValidator, DecisionBundle
-from .opencaselaw import PostGenerationValidator
 
 
 class ProviderResult:
     """Result of a provider call."""
-    __slots__ = ("answer", "cited_decision_ids", "model_used", "token_count", "raw_output", "validation_report")
+    __slots__ = ("answer", "cited_decision_ids", "model_used", "token_count", "raw_output")
 
     def __init__(
         self,
@@ -36,14 +33,12 @@ class ProviderResult:
         model_used: str,
         token_count: Optional[int] = None,
         raw_output: Optional[str] = None,
-        validation_report: Optional[Dict[str, Any]] = None,
     ):
         self.answer = answer
         self.cited_decision_ids = cited_decision_ids
         self.model_used = model_used
         self.token_count = token_count
         self.raw_output = raw_output
-        self.validation_report = validation_report
 
 
 class Provider:
@@ -55,47 +50,31 @@ class Provider:
     invocation is desired.
     """
 
+    # Preferred free models (in order of preference from model_health.json)
+    FREE_MODELS = [
+        "opencode/nemotron-3.5-lightning-free",
+        "opencode/nemotron-3-ultra-free",
+        "opencode/mimo-v2.6-flash-free",
+        "opencode/ling-3.1-flash-free",
+    ]
+
     def __init__(
         self,
         model: Optional[str] = None,
         fixture_mode: bool = False,
         fixture_answer: Optional[str] = None,
         fixture_cited_ids: Optional[List[str]] = None,
-        use_attestation: bool = True,
     ):
         self.fixture_mode = fixture_mode
         self.fixture_answer = fixture_answer or ""
         self.fixture_cited_ids = fixture_cited_ids or []
-        self.use_attestation = use_attestation
-
-        # Select model: explicit override, or read from model_health.json,
-        # or fallback to first healthy free model
+        # Select model: explicit override or first healthy free model
         if model:
             self.model = model
         elif fixture_mode:
             self.model = "fixture://generative-audit"
         else:
-            self.model = self._select_model_from_health()
-
-    def _select_model_from_health(self) -> str:
-        """Read model_health.json and return the preferred healthy model."""
-        health_path = Path("/home/runner/work/LexMachina/LexMachina/state/model_health.json")
-        if health_path.exists():
-            try:
-                with open(health_path) as f:
-                    health = json.load(f)
-                if health.get("healthy") and health.get("healthy_models"):
-                    return health["healthy_models"][0]
-            except Exception:
-                pass
-        # Fallback to hardcoded preference list
-        FREE_MODELS = [
-            "opencode/nemotron-3.5-lightning-free",
-            "opencode/nemotron-3-ultra-free",
-            "opencode/mimo-v2.6-flash-free",
-            "opencode/ling-3.1-flash-free",
-        ]
-        return FREE_MODELS[0]
+            self.model = self.FREE_MODELS[0]
 
     # ---- internal helpers ----
 
@@ -104,12 +83,15 @@ class Provider:
         target_model = model or self.model
         try:
             result = subprocess.run(
-                ["opencode", "run", "--model", target_model, "--agent", "model_probe", prompt],
+                ["opencode", "run", "--model", target_model, "--agent", "model_probe",
+                 f"Generate a legal answer to the following query. "
+                 f"Produce a concise substantive answer. Query: {prompt}"],
                 capture_output=True,
                 text=True,
                 timeout=120,
             )
             if result.returncode != 0:
+                # Try next model in preference on failure
                 raise RuntimeError(
                     f"opencode CLI failed (rc={result.returncode}): {result.stderr}"
                 )
@@ -129,10 +111,10 @@ class Provider:
 
         The returned answer cites ONLY decision IDs that are present in
         bundle.decision_ids.  Any hallucinated IDs are stripped by the
-        post-generation citation validator (local + OpenCaseLaw attestation).
+        post-generation citation validator.
 
         Returns a ProviderResult with the answer, cited decision IDs,
-        the model used, and a validation report.
+        and the model used.
         """
         if self.fixture_mode:
             return self._fixture_result(bundle)
@@ -142,7 +124,7 @@ class Provider:
 
         # Try the requested model; fall back through free models on failure
         last_error = None
-        for attempt_model in [model_override or self.model] + self._get_fallback_models():
+        for attempt_model in [model_override or self.model] + self.FREE_MODELS:
             try:
                 raw = self._run_opencode(prompt, model_override or attempt_model)
                 return self._parse_output(raw, bundle)
@@ -157,24 +139,6 @@ class Provider:
             model_used=attempt_model or self.model,
             raw_output=f"ALL_MODEL_ATTEMPTS_FAILED: {last_error}",
         )
-
-    def _get_fallback_models(self) -> List[str]:
-        """Get fallback models from health file or defaults."""
-        health_path = Path("/home/runner/work/LexMachina/LexMachina/state/model_health.json")
-        if health_path.exists():
-            try:
-                with open(health_path) as f:
-                    health = json.load(f)
-                if health.get("healthy_models"):
-                    return [m for m in health["healthy_models"] if m != self.model]
-            except Exception:
-                pass
-        return [
-            "opencode/nemotron-3.5-lightning-free",
-            "opencode/nemotron-3-ultra-free",
-            "opencode/mimo-v2.6-flash-free",
-            "opencode/ling-3.1-flash-free",
-        ]
 
     def _build_prompt(self, bundle: DecisionBundle) -> str:
         """Build a prompt from the bundle that includes query + decision context."""
@@ -195,8 +159,7 @@ class Provider:
             "  - Answer the legal question concisely and substantively."
         )
         lines.append(
-            "  - Cite decision IDs from the sources above using [DECISION_ID] format "
-            "to support your propositions."
+            "  - Cite decision IDs from the sources above to support your propositions."
         )
         lines.append(
             "  - If a proposition is not supported by any source, mark it as uncertain."
@@ -213,57 +176,42 @@ class Provider:
 
     def _parse_output(self, raw: str, bundle: DecisionBundle) -> ProviderResult:
         """Parse the model output, extract the answer and cited decision IDs."""
-        import re
-
         # Extract cited decision IDs from the output
         # Pattern: [DEC001], [DEC002], etc.
-        cited_ids = re.findall(r"\[(\w[\w\-]*)\]", raw)
+        import re
+        cited_ids = re.findall(r"\[(\w+)\]", raw)
 
-        # Validate: only keep IDs that are actually in the bundle (local validation)
-        locally_valid_ids = CitationValidator.filter_valid_citations(cited_ids, bundle.decision_ids)
-
-        # Post-generation validation with OpenCaseLaw attestation
-        validator = PostGenerationValidator(bundle, use_attestation=self.use_attestation)
-        final_cited_ids, validation_report = validator.validate_and_filter(locally_valid_ids)
+        # Validate: only keep IDs that are actually in the bundle
+        valid_ids = CitationValidator.filter_valid_citations(cited_ids, bundle.decision_ids)
 
         # Extract the answer text (everything after "Answer:" or the first paragraph)
         answer = raw.split("Answer:")[-1].strip() if "Answer:" in raw else raw.strip()
         # Take only the first paragraph
         answer = answer.split("\n\n")[0].strip()
 
-        return ProviderResult(
-            answer=answer,
-            cited_decision_ids=final_cited_ids,
-            model_used=self.model,
-            raw_output=raw,
-            validation_report=validation_report,
-        )
-
-    def _fixture_result(self, bundle: DecisionBundle) -> ProviderResult:
-        """Return a deterministic fixture result for testing."""
-        answer = self.fixture_answer or f"Fixture answer for: {bundle.query}"
-        valid_ids = [
-            cid for cid in self.fixture_cited_ids if cid in bundle.decision_ids
-        ]
-        if not valid_ids and bundle.decisions:
-            valid_ids = [bundle.decisions[0].decision_id]
-
-        # For fixture mode, create a mock validation report
-        validation_report = {
-            "valid_citations": valid_ids,
-            "hallucinated_ids": [],
-            "unverified_ids": valid_ids,
-            "verified_ids": [],
-            "attestation_results": {
-                cid: {"verified": False, "attestation_data": None, "error": "fixture mode"}
-                for cid in valid_ids
-            },
-            "local_bundle_ids": bundle.decision_ids,
-        }
+        # If no valid citations found but answer text exists, that's OK
+        # (the citation validator will handle it in downstream validation)
 
         return ProviderResult(
             answer=answer,
             cited_decision_ids=valid_ids,
+            model_used=self.model,
+            raw_output=raw,
+        )
+
+    def _fixture_result(self, bundle: DecisionBundle) -> ProviderResult:
+        """Return a deterministic fixture result for testing."""
+        # Use the fixture answer if provided, otherwise construct from bundle
+        answer = self.fixture_answer or f"Fixture answer for: {bundle.query}"
+        # If fixture cited IDs are provided, filter them to valid ones
+        valid_ids = [
+            cid for cid in self.fixture_cited_ids if cid in bundle.decision_ids
+        ]
+        # Fallback: if no valid fixture IDs, use first bundle decision
+        if not valid_ids and bundle.decisions:
+            valid_ids = [bundle.decisions[0].decision_id]
+        return ProviderResult(
+            answer=answer,
+            cited_decision_ids=valid_ids,
             model_used="fixture://generative-audit",
-            validation_report=validation_report,
         )

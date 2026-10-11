@@ -36,6 +36,7 @@ from generative_audit.integration_contract import (  # noqa: E402
     package_answer,
     apply_to_product_bundle,
 )
+from generative_audit.opencaselaw import OpenCaseLawAttestor  # noqa: E402
 from generative_audit.provider import Provider  # noqa: E402
 from generative_audit.source_packing import from_product_bundle  # noqa: E402
 
@@ -43,6 +44,62 @@ DEFAULT_BUNDLE = (
     HERE.parent.parent
     / "tests" / "frontier" / "frontier-generative-audit" / "fixtures" / "sample_bundle.json"
 )
+
+
+def _default_fixture_findings(bundle) -> list:
+    """Deterministic adversarial findings for the offline (--fixture) path.
+
+    Quotes are taken verbatim from the bundle text so they survive the
+    evidence source-check; reasons rotate across the challenge vocabulary.
+    This keeps the deterministic cached example a *complete* demonstration
+    (answer + adversarial findings + merged statuses), not just an answer.
+    """
+    from generative_audit.adversarial import AdversarialFinding
+
+    reasons = ["contradictory", "limiting", "exception", "minority_line"]
+    out = []
+    for i, dec in enumerate(bundle.decisions[1:4]):
+        text = " ".join((dec.text or "").split())
+        quote = text[:60].strip()
+        if len(quote) < 20:
+            quote = text.strip()
+        out.append(
+            AdversarialFinding(
+                decision_id=dec.decision_id,
+                title=dec.title,
+                reason=reasons[i % len(reasons)],
+                evidence_refs=[quote] if quote else [],
+                uncertainty=0.3 + 0.1 * i,
+                confidence=0.8,
+            )
+        )
+    return out
+
+
+def _live_quote_auditor(attestor: OpenCaseLawAttestor):
+    """Optional live ``POST /api/attest`` audit_quotes hook.
+
+    Returns True only when the service itself matched the quote verbatim
+    against a searched source; False / None (inconclusive) never upgrades a
+    locally rejected quote.
+    """
+
+    def audit(decision_id: str, quote: str):
+        try:
+            res = attestor.attest_draft(f'"{quote}" (vgl. {decision_id})', audit_quotes=True)
+        except Exception:  # noqa: BLE001 - live audit is best-effort
+            return None
+        evidence = res.evidence or {}
+        ledger = evidence.get("ledger") or {}
+        quotations = ledger.get("quotations") or {}
+        matched = quotations.get("matched_sources") or []
+        if decision_id in matched:
+            return True
+        if quotations.get("not_found"):
+            return False
+        return None
+
+    return audit
 
 
 def _load_bundle(path: Path) -> Dict[str, Any]:
@@ -68,9 +125,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--model", default=None, help="model id override (free OpenCode or local)")
     ap.add_argument("--answer", default=None, help="fixture answer text (fixture mode)")
     ap.add_argument("--out", type=Path, default=None, help="write cached example JSON here")
-    ap.add_argument("--attestation", action="store_true", help="attempt OpenCaseLaw attestation")
+    ap.add_argument("--attestation", action="store_true",
+                    help="attempt live OpenCaseLaw source validation "
+                         "(POST /api/attest + decision existence checks)")
+    ap.add_argument("--no-fixture-findings", dest="no_fixture_findings", action="store_true",
+                    help="fixture mode: skip the built-in deterministic adversarial findings")
     ap.add_argument("--timeout", type=float, default=180.0)
     args = ap.parse_args(argv)
+    args.default_fixture_findings = not args.no_fixture_findings
 
     product_bundle = _load_bundle(args.bundle)
     bundle = from_product_bundle(product_bundle)
@@ -96,7 +158,33 @@ def main(argv: list[str] | None = None) -> int:
         timeout=args.timeout,
     )
     findings, adv_info = adv.run_with_info()
-    package = package_answer(result, findings, bundle)
+    if fixture and args.default_fixture_findings:
+        findings = _default_fixture_findings(bundle)
+        adv_info = {
+            "method": "fixture_adversarial_v2",
+            "model": adv.model,
+            "n_findings": len(findings),
+            "independence": "deterministic challenge-only fixture findings (quotes verbatim "
+                            "from the bundle text)",
+        }
+
+    attestor = OpenCaseLawAttestor(enabled=bool(args.attestation)) if args.attestation else None
+    quote_auditor = _live_quote_auditor(attestor) if attestor is not None else None
+
+    draft_validation = None
+    if attestor is not None:
+        # POST /api/attest on the *surfaced* answer: audits the answer's own
+        # case citations, pinpoints and (with audit_quotes) quotations.
+        res = attestor.attest_draft(result.answer or "", audit_quotes=True)
+        draft_validation = {
+            "endpoint": res.endpoint,
+            "verified": res.verified,
+            "verdict": res.verdict,
+            "error": res.error,
+            "evidence": res.evidence,
+        }
+
+    package = package_answer(result, findings, bundle, quote_auditor=quote_auditor)
     audited = apply_to_product_bundle(
         product_bundle, package, findings,
         provenance={
@@ -104,9 +192,11 @@ def main(argv: list[str] | None = None) -> int:
             "provider_error": result.error,
             "citation_validation": {
                 k: result.validation_report.get(k)
-                for k in ("mode", "hallucinated_ids", "verified_ids", "unverified_ids")
+                for k in ("mode", "api_base", "hallucinated_ids", "verified_ids", "unverified_ids")
             },
             "adversarial": adv_info,
+            "evidence_source_check": package.evidence_check,
+            "draft_source_validation": draft_validation,
             "latency_seconds": round(time.time() - t0, 3),
             "mode": "fixture" if fixture else "real-model",
         },
@@ -123,6 +213,7 @@ def main(argv: list[str] | None = None) -> int:
         "citation_validation": result.validation_report,
         "adversarial_findings": [f.to_dict() for f in findings],
         "adversarial_info": adv_info,
+        "evidence_source_check": package.evidence_check,
         **package.to_dict(),
         "status_summary": package.summary(),
         "audited_product_bundle": audited,
@@ -148,6 +239,13 @@ def main(argv: list[str] | None = None) -> int:
         "findings": [(f.decision_id, f.reason) for f in findings],
         "status_summary": package.summary(),
         "validation_mode": result.validation_report.get("mode"),
+        "evidence_refs": {
+            k: (package.evidence_check or {}).get(k)
+            for k in ("refs_checked", "refs_verified", "refs_rejected", "n_downgraded")
+        },
+        "evidence_boundary_rejected_refs": audited["provenance"]["generative_audit"].get(
+            "evidence_boundary_rejected_refs"
+        ),
     }
     print(json.dumps(summary, indent=2))
     return 0 if result.error is None else 1

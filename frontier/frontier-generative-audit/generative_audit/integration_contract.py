@@ -25,6 +25,7 @@ import copy
 from typing import Any, Dict, List, Optional
 
 from .adversarial import AdversarialFinding, AdversarialPass
+from .evidence import is_quote_ref, source_check_findings, verified_evidence_refs
 from .models import AnswerPackage, DecisionStatus, StatusLabel
 from .provider import Provider, ProviderResult
 from .source_packing import DecisionBundle, from_product_bundle
@@ -51,13 +52,14 @@ REASON_TO_STATUS = {
     "unclassified": StatusLabel.UNCLASSIFIED,
 }
 
-CONTRACT_VERSION = "generative-audit-contract/2.1"
+CONTRACT_VERSION = "generative-audit-contract/2.2"
 
 
 def package_answer(
     result: ProviderResult,
     findings: List[AdversarialFinding],
     bundle: DecisionBundle,
+    quote_auditor: Optional[Any] = None,
 ) -> AnswerPackage:
     """Merge a provider result + adversarial findings into structured statuses.
 
@@ -65,12 +67,23 @@ def package_answer(
       * every bundle decision gets a status (default ``unclassified``);
       * a cited decision is ``supporting`` unless adversarial evidence of
         higher priority (limiting / contrary) overrides it;
-      * merge uncertainty is the minimum of the merged inputs.
+      * merge uncertainty is the minimum of the merged inputs;
+      * every finding's ``evidence_refs`` is source-checked against the
+        cited decision's retrieved text first (acceptance test 5 +
+        audit repair 3): unverifiable quotes are dropped, never surfaced,
+        and a finding with no verifiable quote is downgraded to
+        uncertainty >= 0.95.
     """
+    checked_findings, evidence_report = source_check_findings(
+        findings, bundle, quote_auditor=quote_auditor
+    )
+
     package = AnswerPackage(
         answer=result.answer,
         cited_decision_ids=list(result.cited_decision_ids),
     )
+    package.evidence_check = evidence_report
+    package.checked_findings = checked_findings
 
     status_map: Dict[str, DecisionStatus] = {
         dec.decision_id: DecisionStatus(
@@ -97,7 +110,7 @@ def package_answer(
                 )
             )
 
-    for finding in findings:
+    for finding in checked_findings:
         label = REASON_TO_STATUS.get(finding.reason, StatusLabel.UNCLASSIFIED)
         incoming = DecisionStatus(
             decision_id=finding.decision_id,
@@ -139,15 +152,24 @@ def apply_to_product_bundle(
     findings: List[AdversarialFinding],
     provenance: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
-    """Return a NEW product bundle with generative answer + counter statuses."""
+    """Return a NEW product bundle with generative answer + counter statuses.
+
+    Evidence boundary guard: ``decisions[*].counter_evidence`` only ever
+    receives quotes that occur verbatim in that decision's retrieved text
+    (plus internal non-quote markers such as ``cited in generated answer``).
+    Rejected quotes are counted in the provenance block, never displayed.
+    """
     out = copy.deepcopy(product_bundle)
     bundle = from_product_bundle(out)
+    by_text = {dec.decision_id: dec.text for dec in bundle.decisions}
 
     answer = to_product_answer(package, bundle)
     answer["model"] = (provenance or {}).get("model", "")
     out["answer"] = answer
 
-    findings_by_id = {f.decision_id: f for f in findings}
+    checked_findings = list(package.checked_findings or findings or [])
+    findings_by_id = {f.decision_id: f for f in checked_findings}
+    boundary_rejected = 0
     for dec in out.get("decisions", []):
         did = dec.get("decision_id")
         status = package.decision_statuses.get(did)
@@ -162,8 +184,15 @@ def apply_to_product_bundle(
         else:
             dec["counter_status"] = COUNTER_STATUS_FOR.get(status.label, "none")
         finding = findings_by_id.get(did)
-        dec["counter_evidence"] = "; ".join(status.evidence_refs[:2])
+        quote_refs = [r for r in status.evidence_refs if is_quote_ref(r)]
+        kept_refs, rejected = verified_evidence_refs(
+            list(status.evidence_refs), by_text.get(did, "")
+        )
+        boundary_rejected += rejected
+        dec["counter_evidence"] = "; ".join(kept_refs[:2])
         dec["counter_uncertainty"] = round(status.uncertainty, 4)
+        if quote_refs:
+            dec["counter_evidence_verified"] = rejected == 0
         if finding is not None:
             dec["counter_reason"] = finding.reason
             dec["counter_confidence"] = round(finding.confidence, 4)
@@ -172,6 +201,8 @@ def apply_to_product_bundle(
     prov["generative_audit"] = {
         "contract": CONTRACT_VERSION,
         "status_summary": package.summary(),
+        "evidence_source_check": package.evidence_check or None,
+        "evidence_boundary_rejected_refs": boundary_rejected,
         **(provenance or {}),
     }
     out["provenance"] = prov
@@ -186,12 +217,18 @@ def run_generative_audit(
     fixture_cited_ids: Optional[List[str]] = None,
     fixture_findings: Optional[List[AdversarialFinding]] = None,
     model: Optional[str] = None,
+    quote_auditor: Optional[Any] = None,
+    validate_draft_live: bool = False,
 ) -> Dict[str, Any]:
     """ONE-CALL product seam: query_result_bundle in, audited bundle out.
 
     ``fixture_mode=True`` makes the whole pipeline deterministic and offline
     (used by the frozen test suite).  Otherwise a real free model path is
     used (OpenCode CLI by default).
+
+    ``quote_auditor`` / ``validate_draft_live`` optionally attach the live
+    OpenCaseLaw ``/api/attest`` quote audit (opt-in; the offline verbatim
+    check is always the floor).
     """
     bundle = from_product_bundle(product_bundle)
     prov: Dict[str, Any] = {"contract": CONTRACT_VERSION}
@@ -207,7 +244,7 @@ def run_generative_audit(
     prov["provider_error"] = result.error
     prov["citation_validation"] = {
         k: result.validation_report.get(k)
-        for k in ("mode", "hallucinated_ids", "verified_ids", "unverified_ids")
+        for k in ("mode", "api_base", "hallucinated_ids", "verified_ids", "unverified_ids")
     }
 
     adv = AdversarialPass(
@@ -220,9 +257,26 @@ def run_generative_audit(
     findings, adv_info = adv.run_with_info()
     prov["adversarial"] = adv_info
 
-    package = package_answer(result, findings, bundle)
+    package = package_answer(result, findings, bundle, quote_auditor=quote_auditor)
+    if validate_draft_live:
+        prov["draft_source_validation"] = _live_draft_validation(result, bundle)
     audited = apply_to_product_bundle(product_bundle, package, findings, provenance=prov)
     return audited
+
+
+def _live_draft_validation(result: ProviderResult, bundle: DecisionBundle) -> Optional[Dict[str, Any]]:
+    """Optional live ``POST /api/attest`` audit of the surfaced answer prose."""
+    from .opencaselaw import OpenCaseLawAttestor
+
+    attestor = OpenCaseLawAttestor(enabled=True)
+    res = attestor.attest_draft(result.answer or "", audit_quotes=True)
+    return {
+        "endpoint": res.endpoint,
+        "verified": res.verified,
+        "verdict": res.verdict,
+        "error": res.error,
+        "evidence": res.evidence,
+    }
 
 
 #: Aliases kept for lane symmetry with the v2 contract.

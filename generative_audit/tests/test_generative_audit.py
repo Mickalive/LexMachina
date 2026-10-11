@@ -18,8 +18,8 @@ import sys
 import os
 from typing import List
 
-# Add the project root to path so we can import from generative_audit.src
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+# Add the source to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from generative_audit.src.provider import Provider, ProviderResult
 from generative_audit.src.source_packing import DecisionBundle, CitationValidator, Decision
@@ -405,7 +405,7 @@ def test_end_to_end_cached_example():
         bundle_data = json.load(f)
 
     # Reconstruct bundle
-    from generative_audit.src.source_packing import DecisionBundle, Decision
+    from generative_audit.src.source_packing import DecisionBundle
     bundle = DecisionBundle(
         query=bundle_data["query"],
         decision_ids=bundle_data["decision_ids"],

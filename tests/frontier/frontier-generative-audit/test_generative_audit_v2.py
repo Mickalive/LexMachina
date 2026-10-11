@@ -1,4 +1,4 @@
-"""LexMachina Frontier — generative audit v2.1 — frozen deterministic suite.
+"""LexMachina Frontier — generative audit v2.2 — frozen deterministic suite.
 
 Covers the charter acceptance tests (v2, charter_version=2):
 
@@ -12,11 +12,19 @@ Covers the charter acceptance tests (v2, charter_version=2):
   (4) merged statuses supporting / limiting / contrary_or_exception /
       unclassified with uncertainty + evidence references;
   (5) post-generation citation/source validation (OpenCaseLaw attestation
-      where feasible, strict local otherwise);
+      where feasible, strict local otherwise) — including live
+      ``mcp.opencaselaw.ch`` probes when LEX_LIVE_OCL=1;
   (6) end-to-end cached example with answer + adversarial findings;
   (7) tests for invented-citation rejection, unsupported-status downgrade,
       provider failure fallback and deterministic parsing;
   (8) narrow integration contract for the product lane.
+
+Repair cycle 38181577763 (rejected cycle 38180132239, round 1) added the
+auditor's required regressions: sound attestation verdicts for the live
+``200 {"error": ...}`` body, empty/non-object bodies and non-2xx responses;
+verbatim source-checking of adversarial ``evidence_refs`` (fabricated quotes
+must never reach ``decisions[*].counter_evidence``); and reconciliation of
+the product-compatibility check with the accepted core validator.
 
 Run:  python3 tests/frontier/frontier-generative-audit/test_generative_audit_v2.py
 Or:   python3 -m pytest tests/frontier/frontier-generative-audit/ -q
@@ -27,6 +35,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import tempfile
 from pathlib import Path
 from typing import List
 
@@ -44,6 +53,12 @@ from generative_audit.adversarial import (  # noqa: E402
     AdversarialFinding,
     AdversarialPass,
 )
+from generative_audit.evidence import (  # noqa: E402
+    DOWNGRADED_MIN_UNCERTAINTY,
+    normalize_quote,
+    quote_in_source,
+    source_check_findings,
+)
 from generative_audit.integration_contract import (  # noqa: E402
     CONTRACT_VERSION,
     package_answer,
@@ -52,9 +67,12 @@ from generative_audit.integration_contract import (  # noqa: E402
 )
 from generative_audit.models import StatusLabel  # noqa: E402
 from generative_audit.opencaselaw import (  # noqa: E402
+    DEFAULT_OCL_API_BASE,
+    RETIRED_WRONG_API_BASE,
     OpenCaseLawAttestor,
     PostGenerationValidator,
 )
+from generative_audit.product_compat import validate_product_bundle  # noqa: E402
 from generative_audit.provider import Provider, ProviderError, ProviderResult  # noqa: E402
 from generative_audit.source_packing import (  # noqa: E402
     CitationValidator,
@@ -67,7 +85,12 @@ from generative_audit.source_packing import (  # noqa: E402
 FIXTURE_BUNDLE = HERE / "fixtures" / "sample_bundle.json"
 RESULTS_DIR = HERE.parents[2] / "results" / "frontier" / "frontier-generative-audit"
 
-# Product-required keys, mirroring product/query/bundle.py (accepted core mount).
+#: The exact HTTP-200 error body observed from the live OpenCaseLaw
+#: ``POST /api/attest`` route when ``draft_text`` is missing (cycle
+#: 38180132239 audit, defect 2).  Must never count as verification.
+OBSERVED_ATTEST_ERROR_BODY = {"error": "Provide draft_text to audit."}
+
+#: Product-required keys, mirroring product/query/bundle.py (accepted core mount).
 PRODUCT_REQUIRED_TOP = ["bundle_version", "query", "query_variants", "answer",
                         "decisions", "clusters", "relations", "provenance"]
 PRODUCT_REQUIRED_DECISION = ["decision_id", "court", "language", "rank", "score",
@@ -96,26 +119,8 @@ def _load_fixture_bundle() -> DecisionBundle:
 
 
 def _check_product_compatible(bundle: dict) -> List[str]:
-    """Replicate product validate_bundle() rules (accepted core contract)."""
-    errors = []
-    for key in PRODUCT_REQUIRED_TOP:
-        if key not in bundle:
-            errors.append(f"missing top-level key: {key}")
-    if errors:
-        return errors
-    ids = set()
-    for i, d in enumerate(bundle["decisions"]):
-        for key in PRODUCT_REQUIRED_DECISION:
-            if key not in d:
-                errors.append(f"decision[{i}] missing key: {key}")
-        did = d.get("decision_id")
-        if did in ids:
-            errors.append(f"duplicate decision_id: {did}")
-        ids.add(did)
-    cited = set(bundle.get("answer", {}).get("cited_decision_ids", []))
-    unknown = cited - ids
-    if unknown:
-        errors.append(f"answer cites unknown decision_ids: {sorted(unknown)}")
+    """Validate with the accepted product contract (real validator if mounted)."""
+    errors, _source = validate_product_bundle(bundle)
     return errors
 
 
@@ -333,9 +338,10 @@ def test_structured_statuses_merging():
     result = ProviderResult(answer="Rule X [CH-001].", cited_decision_ids=["CH-001"], model_used="t")
     findings = [
         AdversarialFinding(decision_id="CH-001", reason="limiting",
-                           evidence_refs=["but not for apprentices"], uncertainty=0.3),
+                           evidence_refs=["limited in time, space and content"], uncertainty=0.3),
         AdversarialFinding(decision_id="CH-002", reason="contradictory",
-                           evidence_refs=["two years presumptively excessive"], uncertainty=0.2),
+                           evidence_refs=["exceeding two years is presumptively disproportionate"],
+                           uncertainty=0.2),
     ]
     package = package_answer(result, findings, bundle)
     s1 = package.decision_statuses["CH-001"]
@@ -369,7 +375,7 @@ def test_post_generation_validation_strict_local_and_attestation():
     print(">>> test_post_generation_validation_strict_local_and_attestation")
     bundle = _small_bundle()
 
-    # strict local mode (default in CI: no egress)
+    # strict local mode (default in CI: deterministic, network-free)
     report = PostGenerationValidator(bundle, use_attestation=False).validate_citations(
         ["CH-001", "GHOST"]
     )
@@ -377,12 +383,15 @@ def test_post_generation_validation_strict_local_and_attestation():
     assert report["valid_citations"] == ["CH-001"]
     assert report["hallucinated_ids"] == ["GHOST"]
 
-    # attestation reachable -> verified
-    ok_attestor = OpenCaseLawAttestor(fetch=lambda url, timeout: {"decision": "ok", "url": url})
+    # attestation reachable -> verified (realistic decision-record payload)
+    ok_attestor = OpenCaseLawAttestor(
+        fetch=lambda url, timeout: {"decision": "ok", "decision_id": "CH-001", "url": url}
+    )
     report_ok = PostGenerationValidator(bundle, use_attestation=True, attestor=ok_attestor)
     rep_ok = report_ok.validate_citations(["CH-001"])
     assert rep_ok["mode"] == "attestation+local"
     assert rep_ok["verified_ids"] == ["CH-001"]
+    assert rep_ok["attestation_results"]["CH-001"]["verdict"].startswith("ok_")
 
     # attestation unreachable -> local-valid retained, flagged unverified
     def _raise(url: str, timeout: float):
@@ -396,6 +405,184 @@ def test_post_generation_validation_strict_local_and_attestation():
     assert "unreachable" in rep["attestation_results"]["CH-001"]["error"]
     assert rep["hallucinated_ids"] == ["GHOST"]
     print("  PASS: strict-local + attestation-up + attestation-down paths")
+    return True
+
+
+def test_attestation_error_body_is_not_verified():
+    """Audit repair 2: HTTP-200 ``{"error": ...}`` must never verify a decision.
+
+    Reproduces the observed live body of ``POST /api/attest`` when
+    ``draft_text`` is missing, plus the 404 ``{"detail": ...}`` bodies the
+    decisions/integrity routes return for unknown ids.
+    """
+    print(">>> test_attestation_error_body_is_not_verified")
+    bundle = _small_bundle()
+
+    attestor = OpenCaseLawAttestor(fetch=lambda url, timeout: dict(OBSERVED_ATTEST_ERROR_BODY))
+    res = attestor.attest_decision("CH-001")
+    assert res.verified is False, "an HTTP-200 error body must not verify"
+    assert res.verdict in ("error_payload", "unresolved_in_both_routes")
+    assert "error" not in (res.attestation_data or {})
+
+    rep = PostGenerationValidator(bundle, use_attestation=True, attestor=attestor).validate_citations(
+        ["CH-001"]
+    )
+    assert rep["verified_ids"] == []
+    assert rep["unverified_ids"] == ["CH-001"]
+
+    # the FastAPI 404 shape ({"detail": ...}) must be equally unverified
+    detail_attestor = OpenCaseLawAttestor(
+        fetch=lambda url, timeout: {"detail": "Decision not found: CH-001"}
+    )
+    assert detail_attestor.attest_decision("CH-001").verified is False
+
+    # an error payload served against the draft-audit route is inconclusive
+    draft = OpenCaseLawAttestor(post=lambda url, payload, timeout: dict(OBSERVED_ATTEST_ERROR_BODY))
+    assert draft.attest_draft("").verified is False
+    print("  PASS: 200 error bodies, 404 detail bodies and empty drafts stay unverified")
+    return True
+
+
+def test_attestation_empty_and_mismatched_payloads_unverified():
+    """Audit repair 2: empty payloads, id mismatches and inconclusive audits."""
+    print(">>> test_attestation_empty_and_mismatched_payloads_unverified")
+    assert OpenCaseLawAttestor(fetch=lambda u, t: {}).attest_decision("CH-001").verified is False
+    assert OpenCaseLawAttestor(fetch=lambda u, t: None).attest_decision("CH-001").verified is False
+    assert OpenCaseLawAttestor(fetch=lambda u, t: []).attest_decision("CH-001").verified is False
+
+    mismatch = OpenCaseLawAttestor(
+        fetch=lambda u, t: {"decision_id": "SOME-OTHER-CASE", "court": "bger"}
+    )
+    assert mismatch.attest_decision("CH-001").verified is False
+
+    # attest ok=true but zero case citations audited => inconclusive, not verified
+    inconclusive = OpenCaseLawAttestor(
+        post=lambda u, p, t: {"ok": True, "citations_found": 0, "citations_ok": 0, "issues": []}
+    )
+    assert inconclusive.attest_draft("Der Fall betrifft X.").verified is False
+
+    # non-2xx surfaces as an exception from the default transport -> unverified
+    def _http_error(url: str, timeout: float):
+        raise OSError("HTTP Error 500: Internal Server Error")
+
+    assert OpenCaseLawAttestor(fetch=_http_error).attest_decision("CH-001").verified is False
+    print("  PASS: empty / mismatched / inconclusive / non-2xx all unverified")
+    return True
+
+
+def test_evidence_source_check_rejects_fabricated_quote():
+    """Audit repair 3: the auditor's injection attack must not surface.
+
+    A finding whose evidence quote is absent from the cited decision's text
+    must lose that quote (never ``counter_evidence``) and be downgraded to
+    high uncertainty — while staying visible as a candidate counter-authority.
+    """
+    print(">>> test_evidence_source_check_rejects_fabricated_quote")
+    bundle = _small_bundle()
+    forged = AdversarialFinding(
+        decision_id="CH-003", reason="limiting",
+        evidence_refs=["Dieses Zitat existiert nicht im Entscheidtext 12345."],
+        uncertainty=0.1, confidence=0.95,
+    )
+    checked, report = source_check_findings([forged], bundle)
+    assert checked[0].evidence_refs == [], "fabricated quote must be rejected"
+    assert checked[0].uncertainty >= DOWNGRADED_MIN_UNCERTAINTY
+    assert report["refs_rejected"] == 1 and report["refs_verified"] == 0
+    assert report["n_downgraded"] == 1
+
+    # product-shaped bundle containing the small fixture decisions
+    mini = {
+        "bundle_version": "1.0", "query": bundle.query, "query_variants": [],
+        "answer": {"prose": "", "statements": [], "cited_decision_ids": ["CH-001"]},
+        "decisions": [
+            {"decision_id": dec.decision_id, "court": "bger", "language": "de", "rank": i,
+             "score": 1.0, "provenance": {}, "snippet": dec.text, "cluster_id": "c1",
+             "x": 0.0, "y": 0.0, "counter_status": "none", "canonical_url": "", "citation": dec.title}
+            for i, dec in enumerate(bundle.decisions)
+        ],
+        "clusters": [{"cluster_id": "c1", "label": "c",
+                      "decision_ids": list(bundle.decision_ids)}],
+        "relations": [],
+        "provenance": {},
+    }
+
+    result = ProviderResult(answer="Rule [CH-001]", cited_decision_ids=["CH-001"], model_used="t")
+    package = package_answer(result, [forged], bundle)
+    audited = apply_to_product_bundle(mini, package, [forged])
+    by_id = {d["decision_id"]: d for d in audited["decisions"]}
+
+    assert by_id["CH-003"]["counter_status"] == "candidate-limiting", (
+        "a downgraded finding must stay visible (never hidden)"
+    )
+    assert by_id["CH-003"]["counter_evidence"] == "", (
+        "fabricated quote must not reach counter_evidence"
+    )
+    assert by_id["CH-003"]["counter_uncertainty"] >= DOWNGRADED_MIN_UNCERTAINTY
+    assert by_id["CH-003"]["counter_reason"] == "limiting"
+
+    prov = audited["provenance"]["generative_audit"]
+    check = prov["evidence_source_check"]
+    assert check["refs_rejected"] == 1
+    assert check["findings"][0]["rejected_refs"] == forged.evidence_refs, (
+        "rejected quotes are kept in provenance for audit, never as evidence"
+    )
+    assert prov["evidence_boundary_rejected_refs"] == 0  # already stripped upstream
+    for dec in audited["decisions"]:
+        assert "Dieses Zitat" not in str(dec.get("counter_evidence", ""))
+    assert "Dieses Zitat" not in str(audited["answer"])
+
+    # defence in depth: even an UNCHECKED status cannot push a quote through
+    package.decision_statuses["CH-003"].evidence_refs.append(
+        "Dieses Zitat existiert nicht im Entscheidtext 12345."
+    )
+    audited2 = apply_to_product_bundle(mini, package, [forged])
+    by_id2 = {d["decision_id"]: d for d in audited2["decisions"]}
+    assert by_id2["CH-003"]["counter_evidence"] == ""
+    assert by_id2["CH-003"]["counter_evidence_verified"] is False
+    assert audited2["provenance"]["generative_audit"]["evidence_boundary_rejected_refs"] == 1
+    print("  PASS: fabricated quote rejected, finding downgraded but still visible")
+    return True
+
+
+def test_evidence_source_check_accepts_verbatim_quote():
+    """Audit repair 3 (positive path): verbatim quotes survive and are surfaced."""
+    print(">>> test_evidence_source_check_accepts_verbatim_quote")
+    bundle = _small_bundle()
+    good = AdversarialFinding(
+        decision_id="CH-002", reason="limiting",
+        evidence_refs=["exceeding two years is presumptively disproportionate"],
+        uncertainty=0.2, confidence=0.9,
+    )
+    checked, report = source_check_findings([good], bundle)
+    assert checked[0].evidence_refs == good.evidence_refs
+    assert checked[0].uncertainty == 0.2
+    assert report["refs_verified"] == 1 and report["n_downgraded"] == 0
+
+    # normalisation: case + whitespace collapse, and unicode-hyphen folding
+    assert quote_in_source("EXCEEDING   TWO YEARS is presumptively disproportionate",
+                           bundle.by_id()["CH-002"].text)
+    assert quote_in_source(
+        "Karenz\u2011entschädigung fuehrt zur Unverbindlichkeit",
+        "Der Verzicht auf die Karenz-entschädigung fuehrt zur Unverbindlichkeit.",
+    )
+    assert normalize_quote("  A\u00a0Quote\u2014Here. ") == "a quote-here."
+    assert not quote_in_source("two", "A clause exceeding two years is disproportionate."), (
+        "quotes shorter than the minimum evidential length must not verify"
+    )
+    assert not quote_in_source("this sentence is not in the decision at all 999",
+                               bundle.by_id()["CH-002"].text)
+
+    # the boundary filter keeps non-quote internal markers
+    from generative_audit.evidence import verified_evidence_refs
+    kept, rejected = verified_evidence_refs(
+        ["cited in generated answer", "exceeding two years is presumptively disproportionate",
+         "not in the text at all 12345"],
+        bundle.by_id()["CH-002"].text,
+    )
+    assert kept[0] == "cited in generated answer"
+    assert kept[1].startswith("exceeding two years")
+    assert rejected == 1
+    print("  PASS: verbatim quotes survive normalisation; boundary filter counts rejects")
     return True
 
 
@@ -422,7 +609,9 @@ def test_run_generative_audit_end_to_end_contract():
     fixture_findings = [
         AdversarialFinding(
             decision_id="CH-2021-DE-042", title="BGer 4A_42/2021", reason="limiting",
-            evidence_refs=["Der Verzicht auf die Karenzentschaedigung fuehrt zur Unverbindlichkeit"],
+            # verbatim substring of the fixture decision text (source-checked)
+            evidence_refs=["Der Verzicht des Arbeitgebers auf die Karenzentschaedigung "
+                           "waehrend der"],
             uncertainty=0.25, confidence=0.85,
         ),
         AdversarialFinding(
@@ -497,19 +686,25 @@ def test_end_to_end_cached_example():
         "counter_statuses": {
             d["decision_id"]: d["counter_status"] for d in audited["decisions"]
         },
+        "evidence_source_check": audited["provenance"]["generative_audit"]["evidence_source_check"],
         "audited_product_bundle": audited,
     }
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    out = RESULTS_DIR / "cached_example_fixture.json"
-    with open(out, "w", encoding="utf-8") as fh:
-        json.dump(cached, fh, indent=2, ensure_ascii=False)
-    with open(out, encoding="utf-8") as fh:
-        back = json.load(fh)
-    assert back["answer"] == cached["answer"]
-    assert back["cited_decision_ids"] == ["CH-2020-FR-001"]
-    assert back["adversarial_findings"][0]["reason"] == "limiting"
-    assert back["counter_statuses"]["CH-2021-DE-042"] == "candidate-limiting"
-    print(f"  PASS: cached example written to {out}")
+    with tempfile.TemporaryDirectory(prefix="lex-genaudit-cache-") as tmp:
+        out = Path(tmp) / "cached_example_fixture.json"
+        with open(out, "w", encoding="utf-8") as fh:
+            json.dump(cached, fh, indent=2, ensure_ascii=False)
+        with open(out, encoding="utf-8") as fh:
+            back = json.load(fh)
+        assert back["answer"] == cached["answer"]
+        assert back["cited_decision_ids"] == ["CH-2020-FR-001"]
+        assert back["adversarial_findings"][0]["reason"] == "limiting"
+        assert back["counter_statuses"]["CH-2021-DE-042"] == "candidate-limiting"
+    # the suite never mutates claim-bearing result files (audit observation);
+    # publication belongs to run_e2e.py
+    assert cached["evidence_source_check"]["refs_verified"] == 1
+    assert cached["evidence_source_check"]["refs_rejected"] == 0
+    print("  PASS: cached example round-trips through a temp path (results/ untouched)")
     return True
 
 
@@ -633,6 +828,95 @@ def test_cited_but_contrary_stays_visible_as_counter():
     return True
 
 
+def test_live_ocl_endpoints_and_sound_verification():
+    """Audit repair 1+2 (opt-in): the documented host is reachable and sound.
+
+    Set ``LEX_LIVE_OCL=1``.  Probes ``https://mcp.opencaselaw.ch/api`` with
+    the correct methods, asserts the retired ``opencaselaw.org`` host is the
+    wrong one, and re-checks that a live ``200 {"error": ...}`` body from
+    ``POST /attest`` cannot be mistaken for verification.
+    """
+    if os.environ.get("LEX_LIVE_OCL", "0") != "1":
+        print(">>> test_live_ocl_endpoints_and_sound_verification: SKIPPED "
+              "(set LEX_LIVE_OCL=1 to enable)")
+        return True
+    print(">>> test_live_ocl_endpoints_and_sound_verification")
+    from generative_audit.opencaselaw import default_fetch, default_post
+
+    base = DEFAULT_OCL_API_BASE
+    spec = default_fetch(f"{base}/openapi.json", 30.0)
+    assert spec["info"]["title"] == "OpenCaseLaw API", spec["info"]
+    assert any(s.get("url", "").startswith(base) for s in spec.get("servers", []))
+
+    # routes required by acceptance (5) exist with the documented methods
+    assert "post" in spec["paths"]["/attest"]
+    assert "post" in spec["paths"]["/verify-claim"]
+    assert "get" in spec["paths"]["/decisions/{decision_id}"]
+    assert "get" in spec["paths"]["/integrity/{decision_id}"]
+
+    real_id = "bge_BGE_89_II_126"
+    attestor = OpenCaseLawAttestor(enabled=True, timeout=45.0)
+    res = attestor.attest_decision(real_id)
+    assert res.verified is True, f"real decision must verify: {res.error}"
+    assert res.evidence.get("decision_id") == real_id or res.evidence.get("leaf_hash")
+
+    unknown = attestor.attest_decision("CH-2020-FR-001")
+    assert unknown.verified is False, "synthetic id must stay unverified against the corpus"
+
+    # live POST /attest: a malformed draft yields HTTP-200 {"error": ...}
+    bad = default_post(f"{base}/attest", {}, 30.0)
+    assert "error" in bad, bad
+    res_bad = attestor.attest_draft("")
+    assert res_bad.verified is False
+
+    # live POST /attest with a real draft + audit_quotes
+    good = attestor.attest_draft(
+        f"Laut {real_id} ist ein Konkurrenzverbot auslegungsbedürftig.", audit_quotes=True
+    )
+    assert good.attestation_data is not None or good.verified or good.verdict
+
+    # verify-claim returns a judge verdict, never a bare truthy body
+    claim = attestor.verify_claim(
+        "Ein Konkurrenzverbot in einem Werklieferungsvertrag ist auslegungsbedürftig.", real_id
+    )
+    assert claim.verified is True and claim.evidence.get("supports") in {
+        "yes", "partial", "no", "contradicts", "unrelated"}
+
+    # the retired host must NOT be used as the default
+    assert "opencaselaw.org" not in base
+    assert RETIRED_WRONG_API_BASE.startswith("https://opencaselaw.org")
+    print(f"  PASS: live host {base} verified decision {real_id} "
+          f"({res.endpoint.split(' | ')[0]}), synthetic id unverified")
+    return True
+
+
+def test_product_compat_uses_accepted_validator():
+    """Audit observation: reconcile the product-compatibility check with core.
+
+    The suite must call the *accepted* ``product/query/bundle.py`` validator
+    when the core mount is available, and fall back to a faithful offline
+    mirror otherwise — never a divergent re-implementation.
+    """
+    print(">>> test_product_compat_uses_accepted_validator")
+    errors, source = validate_product_bundle({"query": "x"})
+    assert any("missing top-level key" in e for e in errors), errors
+    print(f"  validator source: {source}")
+
+    with open(FIXTURE_BUNDLE, encoding="utf-8") as fh:
+        fixture = json.load(fh)
+    ok, source2 = validate_product_bundle(fixture)
+    assert ok == [], (ok, source2)
+
+    if source.startswith("accepted-core"):
+        from generative_audit.product_compat import load_accepted_validator
+        fn, _ = load_accepted_validator()
+        assert fn(fixture) == [], "mirror and accepted validator must agree"
+        print(f"  PASS: accepted validator used ({source}); mirror agrees")
+    else:
+        print("  PASS: offline mirror used (accepted core mount not present)")
+    return True
+
+
 ALL_TESTS = [
     test_real_path_fixture_and_contract_surface,
     test_fixture_mode_deterministic,
@@ -649,6 +933,10 @@ ALL_TESTS = [
     test_structured_statuses_merging,
     test_unsupported_status_downgrade,
     test_post_generation_validation_strict_local_and_attestation,
+    test_attestation_error_body_is_not_verified,
+    test_attestation_empty_and_mismatched_payloads_unverified,
+    test_evidence_source_check_rejects_fabricated_quote,
+    test_evidence_source_check_accepts_verbatim_quote,
     test_product_bundle_adapter,
     test_run_generative_audit_end_to_end_contract,
     test_end_to_end_cached_example,
@@ -656,6 +944,8 @@ ALL_TESTS = [
     test_live_model_citation_styles_parentheses_and_unicode_hyphens,
     test_adversarial_parse_normalizes_unicode_hyphens,
     test_adversarial_format_retry_recovers_prose_response,
+    test_product_compat_uses_accepted_validator,
+    test_live_ocl_endpoints_and_sound_verification,
     test_real_model_smoke,
 ]
 

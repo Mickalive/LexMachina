@@ -115,6 +115,10 @@ class AnswerPackage:
     limiting_count: int = 0
     contrary_or_exception_count: int = 0
     unclassified_count: int = 0
+    #: provenance of the adversarial evidence source-check (see evidence.py)
+    evidence_check: Dict[str, Any] = field(default_factory=dict)
+    #: findings after source-checking (quotes filtered / uncertainty raised)
+    checked_findings: List[Any] = field(default_factory=list)
 
     def finalize_statuses(self) -> None:
         counts = {label: 0 for label in StatusLabel}
@@ -141,4 +145,5 @@ class AnswerPackage:
             "decision_statuses": {
                 did: st.to_dict() for did, st in sorted(self.decision_statuses.items())
             },
+            "evidence_check": self.evidence_check,
         }

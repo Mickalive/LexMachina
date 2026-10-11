@@ -12,9 +12,19 @@ for authorities in the same retrieved bundle that could:
 
 Independence is structural, not rhetorical: the pass uses a separate
 model call with a separate prompt that never contains the first pass'
-chain of thought, and findings that merely echo the answer without a
-challenge reason are dropped.  Every finding must cite a decision ID
-present in the bundle; unknown IDs are rejected and recorded.
+chain of thought, and it is instructed to surface *challenges only*.
+Findings that carry no challenge reason are not dropped from the record
+(information preservation / negative-result hygiene); they are classified
+``unclassified``, which the status merge maps to ``counter_status="none"``
+in the product — so an echo can never be *displayed* as a challenge.
+``CHALLENGE_REASONS`` is the vocabulary that does count as a challenge and
+is reported per run as ``n_challenging_findings``.
+
+Every finding must cite a decision ID present in the bundle; unknown IDs
+are rejected and recorded.  Every ``evidence_refs`` quote is subsequently
+source-checked verbatim against the cited decision's retrieved text
+(:mod:`generative_audit.evidence`); quotes that cannot be located are
+rejected before they reach the product.
 """
 
 from __future__ import annotations
@@ -109,16 +119,19 @@ class AdversarialPass:
             "",
             "For each challenge report: decision_id, title, reason (one of "
             "contradictory|limiting|distinguishing|exception|minority_line|"
-            "language_branch|unclassified), evidence_refs (short verbatim "
-            "excerpt from that decision), uncertainty (0.0 certain - 1.0 "
-            "highly uncertain), confidence (0.0-1.0).",
+            "language_branch|unclassified), evidence_refs (short excerpts "
+            "COPIED VERBATIM from that decision's text above — character for "
+            "character, no paraphrase, no translation, no invention; "
+            "paraphrases are rejected by the source checker), uncertainty "
+            "(0.0 certain - 1.0 highly uncertain), confidence (0.0-1.0).",
             "",
             "Do NOT restate or endorse the answer; only surface challenges. "
+            "Do NOT invent facts that are not in the retrieved text. "
             "Use no tools. Reply with ONLY a JSON array (no prose, no "
             "markdown fences). Example:",
             '[{"decision_id": "DEC-002", "title": "BGE …", "reason": '
-            '"limiting", "evidence_refs": ["excerpt"], "uncertainty": 0.3, '
-            '"confidence": 0.8}]',
+            '"limiting", "evidence_refs": ["excerpt copied verbatim"], '
+            '"uncertainty": 0.3, "confidence": 0.8}]',
             "",
             "If the retrieved sources contain no challenge, reply with [].",
         ]
@@ -142,6 +155,7 @@ class AdversarialPass:
                 "method": "fixture_adversarial_v2",
                 "model": self.model,
                 "n_findings": len(kept),
+                "n_challenging_findings": sum(1 for f in kept if f.reason in CHALLENGING_REASONS),
                 "n_rejected_ids": len(self.rejected_ids),
                 "rejected_ids": list(self.rejected_ids),
                 "independence": "fixture-injected findings, challenge-only",
@@ -189,11 +203,14 @@ class AdversarialPass:
             "method": "independent_llm_adversarial_v2",
             "model": self.model,
             "n_findings": len(findings),
+            "n_challenging_findings": sum(1 for f in findings if f.reason in CHALLENGING_REASONS),
             "n_rejected_ids": len(self.rejected_ids),
             "rejected_ids": list(self.rejected_ids),
             "reasons": sorted({f.reason for f in findings}),
             "retries": retries,
-            "independence": "separate model call, challenge-only objective, unknown IDs rejected",
+            "independence": "separate model call, challenge-only objective, unknown IDs rejected; "
+                            "unclassified findings are kept in the record but map to counter_status "
+                            "'none' so they are never displayed as challenges",
         }
         if not findings:
             # Preserve the negative result verbatim for auditability.

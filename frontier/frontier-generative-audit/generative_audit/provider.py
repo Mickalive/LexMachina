@@ -223,6 +223,12 @@ class Provider:
             "  - Answer the question substantively in one paragraph.",
             "  - Support propositions by citing sources as [DECISION_ID], "
             "using ONLY the retrieved IDs listed above.",
+            "  - Right after a [DECISION_ID] marker, add the official Swiss "
+            "citation shown in the source list in parentheses (e.g. "
+            "[bge_78_II_230] (BGE 78 II 230)) so the citation can be "
+            "independently attested by OpenCaseLaw.",
+            "  - Quote the source verbatim (in its own language) when you "
+            "state what a decision held.",
             "  - Never invent, guess or extrapolate a decision ID.",
             "  - Mark propositions not supported by the sources as uncertain.",
             "  - Do not use any tools; reply with the answer text only.",
