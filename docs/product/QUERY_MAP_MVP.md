@@ -47,27 +47,27 @@ Requirements:
 
 The legacy 174k corpus and its artifacts remain preserved as research evidence and optional fallback/test data, but are no longer the critical path.
 
-## 4. Zero-cost invariant
+## 4. Owner-time invariant
 
-The MVP must incur **zero mandatory external API spend**.
+The scarce resource is **the repository owner's attention**, not agent compute.
 
-Allowed:
+For development and testing, the canonical path must work without requiring the owner to buy or provision paid inference. Prefer:
 - OpenCaseLaw public API / MCP;
-- standard GitHub Actions runners on this public repository;
-- OpenCode free models / currently healthy free fallback models;
+- OpenCode free models / healthy free fallbacks;
+- locally runnable open-source models;
 - open-source Python/JS libraries;
-- locally downloadable open-source models if they fit standard runner resources;
 - existing repository artifacts.
 
-Forbidden as required dependencies:
-- paid embedding APIs;
-- paid reranking APIs;
-- paid LLM APIs;
-- paid vector databases;
-- paid search APIs;
-- paid hosted inference.
+This is a development/test constraint, NOT a permanent product architecture constraint. A future production service may use paid or hosted LLM/embedding/reranking infrastructure if that improves the product and has a viable business case.
 
-A paid service may only be documented as an optional future benchmark, never used by the canonical MVP path.
+The factory must not trade away product quality or create needless engineering solely to avoid hypothetical future inference cost.
+
+Owner-attention rules:
+- technical failures auto-retry or reroute;
+- implementation choices inside the canonical mission are made autonomously;
+- do not ask the owner to choose libraries, embeddings, layouts, thresholds, or repair strategies;
+- do not ask for manual data preparation that agents can perform;
+- surface a human gate only when a clickable product is ready for judgment, or when an unavoidable product/business/legal/external-access choice genuinely requires the owner.
 
 ## 5. Retrieval-first doctrine
 
@@ -202,16 +202,21 @@ Suggested minimum `query_result_bundle` fields:
 - typed relations/citations;
 - source URL / citation string.
 
-## 10B. Cycle budget / anti-drift rule
+## 10B. Autonomous execution / anti-drift rule
 
-The MVP should not need another open-ended research program.
+The MVP should not need another open-ended research program, but **there is no arbitrary limit on free autonomous agent cycles**.
 
-Target sequence:
-- Product cycle 1: real OpenCaseLaw/cached query -> query_result_bundle -> source-linked clickable map using reused UI/server.
-- Product cycle 2: sourced generative answer + independent counter-authority pass integrated into that same UI, if cycle 1 did not already include them.
-- Product cycle 3: only concrete fixes from evaluation/human use; then human product gate.
+Preferred milestone sequence:
+- first usable vertical slice: real OpenCaseLaw/cached query -> query_result_bundle -> source-linked clickable map using reused UI/server;
+- next: sourced generative answer + independent counter-authority pass integrated into that same UI;
+- then: autonomous fixes driven by evaluation until the product is ready for the human product gate.
 
-If three accepted product cycles do not yield a locally clickable end-to-end MVP, stop broadening the architecture and treat that as evidence that the autonomous approach is too operationally expensive.
+Agents may iterate as long as they are making measurable progress. Repeated cycles with no executable delta must trigger autonomous diagnosis, rerouting or narrower implementation — not a request for owner intervention.
+
+The relevant cost metric is owner attention:
+- zero owner involvement during routine implementation/debugging;
+- one owner checkpoint when a genuinely usable end-to-end product is ready;
+- additional owner involvement only for a true product decision that autonomous evidence cannot resolve.
 
 ## 11. Automated evaluation
 
@@ -256,6 +261,6 @@ Frozen benchmark queries + human test. Only after this gate should the factory s
 
 ## 14. Kill rule
 
-If the factory cannot produce a clickable end-to-end prototype using only free dependencies, existing repository code, and OpenCaseLaw public infrastructure, the project is too operationally expensive relative to its differentiation and should be stopped.
+If repeated autonomous work cannot produce a clickable end-to-end prototype without consuming repeated owner attention, record that as a failure of the autonomous-development approach and simplify/reroute before asking the owner to intervene.
 
-If it produces the prototype but the visual layer does not materially improve legal research over answer + ranked list, stop the standalone product.
+The substantive kill rule is product usefulness: if a working prototype shows that the visual layer does not materially improve legal research over answer + ranked list, stop the standalone product.
