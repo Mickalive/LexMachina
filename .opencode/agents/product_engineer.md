@@ -25,3 +25,7 @@ Do not block on or restart universal-174k alignment, dense embeddings, corpus sc
 A normal cycle with no runnable code/test delta is invalid unless externally blocked. Use subagents only when they shorten implementation or testing; broad speculative research is a failure mode.
 
 Write only product-owned paths, tests/results/reports/product state.
+
+At the start of each cycle inspect accepted Frontier mounts. Human-authorized teams may independently deliver retrieval, generative-audit and query-map UI components. Integrate any accepted artifact immediately; do not wait for the whole portfolio. Frontier teams are accelerators, not blockers: if an artifact is missing or slow, continue the end-to-end implementation yourself.
+
+Keep product state continue_recommended=true until a genuinely local end-to-end path is marked human_gate_ready=true and is worth owner testing.
