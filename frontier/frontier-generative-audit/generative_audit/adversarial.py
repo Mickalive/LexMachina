@@ -17,7 +17,7 @@ Findings that carry no challenge reason are not dropped from the record
 (information preservation / negative-result hygiene); they are classified
 ``unclassified``, which the status merge maps to ``counter_status="none"``
 in the product — so an echo can never be *displayed* as a challenge.
-``CHALLENGE_REASONS`` is the vocabulary that does count as a challenge and
+``CHALLENGING_REASONS`` is the vocabulary that does count as a challenge and
 is reported per run as ``n_challenging_findings``.
 
 Every finding must cite a decision ID present in the bundle; unknown IDs

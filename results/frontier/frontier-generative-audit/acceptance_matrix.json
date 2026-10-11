@@ -1,18 +1,20 @@
 {
   "team_id": "frontier-generative-audit",
   "charter_version": 2,
-  "run_id": "38176699303",
-  "resumed_from_snapshot_run": "38174887852",
-  "contract_version": "generative-audit-contract/2.1",
+  "run_id": "38184472515",
+  "mode": "OPERATIONAL RESUME of producer snapshot 38181577763 (repair cycle of audited-REVISE run 38180132239)",
+  "resumed_from_snapshot_run": "38181577763",
+  "contract_version": "generative-audit-contract/2.2",
   "canonical_tree": "frontier/frontier-generative-audit",
   "acceptance": {
     "1_provider_interface": {
       "status": "PASS",
       "evidence": [
         "Provider abstraction with three backends: OpenCode CLI (default), OpenAI-compatible local server (LEX_GENAUDIT_BACKEND=openai), deterministic fixture mode (frontier/frontier-generative-audit/generative_audit/provider.py)",
-        "Live CI verification: LEX_REAL_MODEL=1 test_real_model_smoke PASS with free model opencode/nemotron-3.5-lightning-free (3 bundle-constrained citations, 0 redactions)",
-        "Live end-to-end: results/frontier/frontier-generative-audit/cached_example_real_model_run38176699303_attempt2.json (opencode/mimo-v2.6-flash-free, 6 constrained citations + 6 adversarial findings)",
-        "Provider failure fallback covered by test_provider_fallback_across_models (broken model -> healthy fallback, success attributed to the model that worked)"
+        "Live verification in run 38184472515: LEX_REAL_MODEL=1 smoke PASS with free model opencode/nemotron-3-ultra-free (3 bundle-constrained citations, 0 redactions)",
+        "Live end-to-end in run 38184472515: results/frontier/frontier-generative-audit/cached_example_ocl_attested_findings_run38184472515.json (opencode/mimo-v2.6-flash-free, 6 constrained citations + 2 independent adversarial findings)",
+        "Provider failure fallback covered by test_provider_fallback_across_models (broken model -> healthy fallback, success attributed to the model that worked); total failure returns a structured failure",
+        "No owner-provisioned API cost anywhere: models come only from the state/model_health.json free pool (free_only=true)"
       ]
     },
     "2_citation_constraint": {
@@ -21,7 +23,7 @@
         "test_hallucinated_citation_rejection_and_redaction: invented [BGE-9999-FAKE] rejected AND redacted from surfaced prose",
         "test_fixture_rejects_invented_cited_ids: fixture cannot smuggle unknown IDs",
         "test_live_model_citation_styles_parentheses_and_unicode_hyphens: live-model citation styles ([ID], (ID), ([ID]), unicode non-breaking hyphens) parsed; unknown IDs still rejected",
-        "All live runs: redacted_citation_ids == [] (no hallucinations observed across 3 real-model e2e runs)"
+        "All live runs including both run-38184472515 e2e artifacts: redacted_citation_ids == [] (no hallucinations observed across 5 real-model e2e runs)"
       ]
     },
     "3_independent_adversarial_pass": {
@@ -29,8 +31,9 @@
       "evidence": [
         "Separate model call with challenge-only objective (generative_audit/adversarial.py build_prompt/run_with_info); test_adversarial_prompt_is_independent asserts structural independence from the answer prompt",
         "test_adversarial_parse_rejects_unknown_ids: findings citing non-bundle IDs rejected and recorded",
-        "Live attempt2 produced 6 findings (contradictory/limiting/exception/minority_line) distinct from the provisional answer text",
-        "Live attempt1 produced an honest empty result (model returned '[]' even after one strict-format retry) — negative result preserved verbatim in adversarial_info.raw_excerpt"
+        "Live run 38184472515: cached_example_ocl_attested_findings_run38184472515.json produced 2 findings (limiting, distinguishing) distinct from the provisional answer, with 3/3 evidence quotes verified verbatim against source text",
+        "Live run 38184472515 (first attested attempt) honestly returned 0 findings; negative result preserved verbatim in adversarial_info — the pass never restates or fabricates challenges",
+        "Earlier live runs: 6 findings (exception/limiting/minority_line) in run 38181577763 and run 38176699303 attempt2; empty '[]' after one strict-format retry preserved in run 38176699303 attempt1"
       ]
     },
     "4_structured_statuses": {
@@ -39,43 +42,58 @@
         "StatusLabel supporting|limiting|contrary_or_exception|unclassified with uncertainty + evidence_refs (generative_audit/models.py)",
         "test_structured_statuses_merging: merge priority contrary > limiting > supporting; uncertainty minimized; evidence unioned",
         "test_unsupported_status_downgrade: decisions without evidence stay unclassified",
-        "test_cited_but_contrary_stays_visible_as_counter: cited+limiting decision keeps counter_status=candidate-limiting so the product UI keeps it discoverable"
+        "test_cited_but_contrary_stays_visible_as_counter: cited+limiting decision keeps counter_status=candidate-limiting so the product UI keeps it discoverable",
+        "Live run 38184472515: statuses {supporting: 4, limiting: 2}; product bundle carries counter_status values ['cited','candidate-limiting']"
       ]
     },
     "5_post_generation_validation": {
       "status": "PASS",
       "evidence": [
-        "PostGenerationValidator: strict local bundle validation always; OpenCaseLaw /api/attest when reachable (LEX_OCL_ATTEST=1) with injectable attestor (generative_audit/opencaselaw.py)",
-        "test_post_generation_validation_strict_local_and_attestation covers attestation-up, attestation-down (endpoint unreachable) and strict-local modes",
-        "Documented negative result: https://opencaselaw.org/api/attest unreachable from this CI sandbox (curl exit 000); strict-local fallback verified"
+        "PostGenerationValidator: strict local bundle validation always; live OpenCaseLaw validation when reachable (LEX_OCL_ATTEST=1 / run_e2e.py --attestation) with injectable attestor (generative_audit/opencaselaw.py)",
+        "REPAIR FIX 1 CLOSED (live host): frontier/frontier-generative-audit/probe_ocl.py re-run live in run 38184472515 — https://mcp.opencaselaw.ch/api answers HTTP 200 on /openapi.json, /decisions search, /decisions/{id}, /integrity/{id}, POST /api/attest and POST /api/verify-claim; the earlier 'no egress to opencaselaw.org' negative was misattributed (wrong host + GET against a POST-only route) and is corrected in README.md, this matrix and the cycle report",
+        "REPAIR FIX 2 CLOSED (sound verdicts): verified is never bool(payload) — HTTP-200 error bodies (including the observed {\"error\": \"Provide draft_text to audit.\"}), empty/mismatched payloads, inconclusive attest ledgers and non-2xx all stay unverified; regression tests test_attestation_error_body_is_not_verified and test_attestation_empty_and_mismatched_payloads_unverified reproduce the exact audit-injected bodies",
+        "Live attestation e2e in run 38184472515: cached_example_ocl_attested_findings_run38184472515.json — all 6 real OCL decision IDs verified as live decision records (GET decisions, verdict ok_decision_record:decision_id), 0 hallucinated, mode attestation+local",
+        "test_post_generation_validation_strict_local_and_attestation covers attestation-up, attestation-down (endpoint unreachable) and strict-local modes"
       ]
     },
     "6_end_to_end_cached_example": {
       "status": "PASS",
       "evidence": [
         "results/frontier/frontier-generative-audit/cached_example_fixture.json (deterministic)",
-        "results/frontier/frontier-generative-audit/cached_example_real_model_run38176699303.json (live, opencode/nemotron-3.5-lightning-free)",
-        "results/frontier/frontier-generative-audit/cached_example_real_model_run38176699303_attempt2.json (live, opencode/mimo-v2.6-flash-free: 6 citations, 6 findings, statuses limiting=3 contrary_or_exception=3)",
+        "results/frontier/frontier-generative-audit/cached_example_ocl_attested_findings_run38184472515.json (live, this run: 6 live-verified citations + 2 adversarial findings + statuses + audited product bundle)",
+        "results/frontier/frontier-generative-audit/cached_example_ocl_attested_run38184472515.json (live, this run: independent reproduction, 6 live-verified citations, honest empty adversarial result)",
+        "results/frontier/frontier-generative-audit/cached_example_ocl_attested_run38181577763.json (live, resumed snapshot: 6 live-verified citations + 6 findings)",
+        "results/frontier/frontier-generative-audit/cached_example_real_model_run38176699303_attempt2.json (live, synthetic bundle: 6 citations + 6 findings)",
         "Each artifact contains query, answer, cited IDs, validation report, adversarial findings, merged statuses and the audited product bundle"
       ]
     },
     "7_test_coverage": {
       "status": "PASS",
       "evidence": [
-        "tests/frontier/frontier-generative-audit/test_generative_audit_v2.py: 23/23 PASS (frozen deterministic suite, no network, no model calls unless LEX_REAL_MODEL=1)",
+        "tests/frontier/frontier-generative-audit/test_generative_audit_v2.py: 29/29 PASS in run 38184472515 (frozen deterministic suite, no network, no model calls unless LEX_REAL_MODEL=1 / LEX_LIVE_OCL=1)",
         "invented citation rejection, unsupported-status downgrade, provider failure fallback (partial + total), deterministic parsing (answers and adversarial findings) all covered",
-        "Legacy accepted suite generative_audit/tests/test_generative_audit.py still passes 10/10 (prior accepted work preserved unchanged)"
+        "Repair-cycle regressions added by snapshot 38181577763 and re-verified here: attestation error-body / empty-payload / non-2xx soundness; fabricated-quote rejection + downgrade; accepted-core product validator import",
+        "Live modes verified in run 38184472515: LEX_REAL_MODEL=1 smoke PASS (opencode/nemotron-3-ultra-free) and LEX_LIVE_OCL=1 probe PASS (bge_BGE_89_II_126 verified, synthetic id unverified)",
+        "Legacy accepted suite generative_audit/tests/test_generative_audit.py still passes 10/10 (prior accepted work preserved)"
       ]
     },
     "8_integration_contract": {
       "status": "PASS",
       "evidence": [
-        "generative_audit/integration_contract.py: one-call seam run_generative_audit(product_bundle) -> audited product-compatible query_result_bundle",
-        "frontier/frontier-generative-audit/README.md documents the contract, guarantees and provider backends for the product lane",
-        "test_run_generative_audit_end_to_end_contract asserts product validate_bundle() key rules, JSON serializability, counter-status vocabulary and provenance block"
+        "generative_audit/integration_contract.py: one-call seam run_generative_audit(product_bundle) -> audited product-compatible query_result_bundle; CONTRACT_VERSION generative-audit-contract/2.2",
+        "frontier/frontier-generative-audit/README.md documents the contract, guarantees, provider backends and the corrected OpenCaseLaw validation path for the product lane",
+        "test_run_generative_audit_end_to_end_contract asserts product validate_bundle() key rules, JSON serializability, counter-status vocabulary and provenance block",
+        "test_product_compat_uses_accepted_validator: the accepted core validator is imported from the mounted core lane (/tmp/lex_accepted/core/product/product/query/bundle.py), not merely mirrored"
       ]
     }
   },
+  "repair_closure_of_audit_38180132239": {
+    "fix_1_live_ocl_host": "CLOSED — live probe (run 38184472515 + snapshot 38181577763) establishes https://mcp.opencaselaw.ch/api reachability and correct methods; two live attested e2e runs; stale 'no egress' claim removed from README/matrix/report",
+    "fix_2_attestation_verdict_semantics": "CLOSED — sound evaluation predicates with regression tests against the exact audit-injected 200 error body and empty/mismatched/non-2xx payloads",
+    "fix_3_evidence_source_checking": "CLOSED — generative_audit/evidence.py verbatim (NFKC+hyphen-fold) quote source-check; fabricated quotes rejected before counter_evidence; downgrade to uncertainty >= 0.95 with finding kept visible; recorded in provenance.generative_audit.evidence_source_check; live demo: 3/3 quotes verified in cached_example_ocl_attested_findings_run38184472515.json",
+    "fix_4_legacy_tree_provenance": "CLOSED — generative_audit/src and generative_audit/tests restored byte-for-byte to the accepted base (diff -rq against lab/frontier/frontier-generative-audit af8926a: identical); generative_audit/PROVENANCE.md documents the honest correction; adversarial module docstring now matches implemented filter behaviour (CHALLENGING_REASONS used; unclassified findings kept, mapped to counter_status=none)"
+  },
+  "operational_failure_diagnosis_38181577763": "The repair producer of run 38181577763 completed the substantive work (live OCL probe, sound attestation, evidence source-checking, legacy-tree restoration, +368 lines of regression tests) but restored generative_audit/ — an out-of-scope provenance path — as uncommitted working-tree changes and crashed before advancing state/frontier/frontier-generative-audit.json or writing the acceptance matrix and cycle report. The workflow's 'Enforce team scope' gate then exited 4 on the uncommitted generative_audit/ delta (allowlist: frontier|tests|results|reports|state|data/<TEAM>), the team job failed, audit was skipped, and resilience re-dispatched this operational resume from the persisted snapshot branch (whose 'Persist team snapshot' step had already committed the producer's work, including the now byte-identical legacy restoration).",
   "overall": "PROMOTE",
-  "claim_ceiling": "Demonstrated: query_result_bundle -> source-grounded generative answer (free OpenCode CLI models, citation-constrained to retrieved decision IDs with programmatic rejection + redaction) -> independent adversarial counter-authority pass -> merged structured statuses with uncertainty/evidence -> product-compatible audited bundle. NOT claimed: live OpenCaseLaw attestation (endpoint unreachable from CI; strict-local fallback only), full OpenCaseLaw retrieval, interactive map or UI integration, legal-correctness of model prose beyond citation constraint."
+  "claim_ceiling": "Demonstrated: query_result_bundle -> source-grounded generative answer (free OpenCode CLI models, citation-constrained to retrieved decision IDs with programmatic rejection + redaction) -> independent adversarial counter-authority pass -> merged structured statuses with uncertainty and evidence -> product-compatible audited bundle with discoverable counter-authorities; post-generation source validation via LIVE OpenCaseLaw API (mcp.opencaselaw.ch: decision-record existence, integrity/RFC6962, POST /api/attest, POST /api/verify-claim) with sound verdict semantics, plus strict-local fallback; adversarial evidence quotes source-checked verbatim before reaching the product bundle. NOT claimed: legal correctness of model prose beyond the citation constraint; full OpenCaseLaw retrieval (bundles currently synthetic or built by build_ocl_fixture.py from public search); interactive map or UI integration (product lane); frequency/calibration of adversarial findings (live variance: 0-6 findings per run, preserved honestly); legal attestation of quotes via audit_quotes beyond local verbatim checking."
 }

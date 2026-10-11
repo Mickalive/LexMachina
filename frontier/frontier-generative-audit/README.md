@@ -1,4 +1,4 @@
-# Frontier `frontier-generative-audit` — canonical tree (charter v2, contract 2.1)
+# Frontier `frontier-generative-audit` — canonical tree (charter v2, contract 2.2)
 
 Provider-agnostic, **source-grounded legal answer generation** plus an
 **independent counter-authority / adversarial pass**, constrained to the
@@ -69,29 +69,53 @@ audited = apply_to_product_bundle(product_bundle, package, findings)
 
 | Backend | How | Verified |
 |---|---|---|
-| OpenCode CLI, free models | default; model chosen from `state/model_health.json` | yes, live in CI (run 38176699303) |
+| OpenCode CLI, free models | default; model chosen from `state/model_health.json` | yes, live in CI runs 38176699303 / 38184472515 (`nemotron-3-ultra-free`, `mimo-v2.6-flash-free`) |
 | Local OpenAI-compatible server (Ollama/LM Studio/vLLM) | `LEX_GENAUDIT_BACKEND=openai LEX_OPENAI_BASE_URL=http://127.0.0.1:11434/v1` | documented local mode |
 | Deterministic fixture | `Provider(fixture_mode=True, ...)` / `run_e2e.py --fixture` | yes, frozen suite |
 
-Post-generation validation uses OpenCaseLaw `/api/attest` when reachable
-(`LEX_OCL_ATTEST=1`), otherwise strict local bundle validation (the CI
-sandbox used for this cycle has no egress to opencaselaw.org — recorded
-negative result, fallback verified by tests).
+Post-generation validation uses OpenCaseLaw `/api/attest` and
+`/api/decisions/{id}` on the documented live host
+**`https://mcp.opencaselaw.ch/api`** when reachable (`LEX_OCL_ATTEST=1` /
+`run_e2e.py --attestation`), otherwise strict local bundle validation.
+Correction of the earlier cycle's recorded negative: `opencaselaw.org/api/attest`
+was the *wrong host* (TLS failure) and a GET against a POST-only route; the
+real host is reachable from CI — verified live in runs 38181577763 and
+38184472515 (`results/frontier/frontier-generative-audit/ocl_live_probe_run38184472515.json`,
+`cached_example_ocl_attested_*_run3818*.json`, all 6 bundle citations
+live-verified as decision records). Attestation verdicts are sound: HTTP-200
+error bodies, empty/mismatched payloads and non-2xx are **unverified**
+(regression-tested against the live `{"error": "Provide draft_text to audit."}` body).
+
+Adversarial `evidence_refs` are source-checked verbatim (unicode-normalised)
+against each cited decision's retrieved text before they can reach
+`decisions[*].counter_evidence`; unverifiable quotes are rejected and the
+finding is downgraded (uncertainty ≥ 0.95) but kept visible.
 
 ## Run it
 
 ```bash
-# frozen deterministic suite (23 tests)
+# frozen deterministic suite (29 tests)
 python3 tests/frontier/frontier-generative-audit/test_generative_audit_v2.py
 
-# include the live free-model smoke test
-LEX_REAL_MODEL=1 python3 tests/frontier/frontier-generative-audit/test_generative_audit_v2.py
+# include the live free-model smoke test and live OpenCaseLaw probes
+LEX_REAL_MODEL=1 LEX_LIVE_OCL=1 \
+  python3 tests/frontier/frontier-generative-audit/test_generative_audit_v2.py
 
 # end-to-end cached example (fixture or real)
 python3 frontier/frontier-generative-audit/run_e2e.py --fixture \
     --out results/frontier/frontier-generative-audit/cached_example_fixture.json
 python3 frontier/frontier-generative-audit/run_e2e.py --real --model opencode/mimo-v2.6-flash-free \
     --out results/frontier/frontier-generative-audit/cached_example_real_model.json
+
+# end-to-end on a real OpenCaseLaw-derived bundle with live attestation
+python3 frontier/frontier-generative-audit/run_e2e.py --real \
+    --model opencode/mimo-v2.6-flash-free \
+    --bundle tests/frontier/frontier-generative-audit/fixtures/real_ocl_bundle.json \
+    --attestation \
+    --out results/frontier/frontier-generative-audit/cached_example_ocl_attested.json
+
+# live host/method probe (search, decision existence, integrity, attest, verify-claim)
+python3 frontier/frontier-generative-audit/probe_ocl.py --out ocl_live_probe.json
 ```
 
 ## Layout

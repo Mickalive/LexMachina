@@ -16,5 +16,5 @@ Narrow integration surface for the product lane::
 See README.md one directory up for the full contract.
 """
 
-__version__ = "2.1.0"
+__version__ = "2.2.0"
 CANONICAL_TREE = "frontier/frontier-generative-audit"
