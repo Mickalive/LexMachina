@@ -24,12 +24,12 @@ env:
 
 concurrency:
   group: lex-factory-director
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   propose:
     runs-on: ubuntu-latest
-    timeout-minutes: 300
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v6
         with:
@@ -61,6 +61,12 @@ jobs:
           git fetch origin "$P:refs/remotes/origin/$P" "$A:refs/remotes/origin/$A"
           git switch -C director-repair "origin/$P"
           git worktree add --detach /tmp/lex_prior_audit "origin/$A"
+      - name: Record control-plane base
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reports/director
+          sha256sum state/factory_direction.json | awk '{print $1}' > "reports/director/BASE_DIRECTION_SHA_${GITHUB_RUN_ID}.txt"
       - name: Install Ox/OpenCode
         run: curl --retry 5 --retry-all-errors --retry-delay 15 -fsSL https://opencode.ai/install | bash
       - name: Direct factory
@@ -100,7 +106,7 @@ jobs:
     needs: propose
     if: needs.propose.result == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 240
+    timeout-minutes: 60
     outputs:
       gate: ${{ steps.gate.outputs.gate }}
     steps:
@@ -152,8 +158,14 @@ jobs:
           ROUND: ${{ inputs.repair_round || 0 }}
         run: |
           set -euo pipefail
-          P="cycle/director/${GITHUB_RUN_ID}/proposal"; A="cycle/director/${GITHUB_RUN_ID}/audit"; git fetch origin "$P:refs/remotes/origin/$P" "$A:refs/remotes/origin/$A"
+          P="cycle/director/${GITHUB_RUN_ID}/proposal"; A="cycle/director/${GITHUB_RUN_ID}/audit"; git fetch origin "$P:refs/remotes/origin/$P" "$A:refs/remotes/origin/$A" origin main
           if [[ "$GATE" == PASS ]]; then
+            BASE_SHA=$(git show "origin/$P:reports/director/BASE_DIRECTION_SHA_${GITHUB_RUN_ID}.txt" 2>/dev/null | tr -d '\n' || true)
+            CURRENT_SHA=$(git show origin/main:state/factory_direction.json | sha256sum | awk '{print $1}')
+            if [[ -n "$BASE_SHA" && "$BASE_SHA" != "$CURRENT_SHA" ]]; then
+              echo "::warning::Superseded Director proposal: control direction changed after this run started. Skipping integration."
+              exit 0
+            fi
             git checkout "origin/$P" -- state/factory_direction.json state/frontier_portfolio.json reports/director
             git checkout "origin/$A" -- results/audit/director reports/audit/director
             git config user.name "lex-director-integrator"; git config user.email "lex-director@autonomous.local"; git add state/factory_direction.json state/frontier_portfolio.json reports/director results/audit/director reports/audit/director; git commit -m "direction: accept Director run ${GITHUB_RUN_ID}" || exit 0
