@@ -1,5 +1,5 @@
 {
-  "version": 8,
+  "version": 9,
   "teams": [
     {
       "team_id": "frontier-citation-graph",
@@ -278,7 +278,71 @@
       "audit_gate": "SUPERSEDED_BY_PRODUCT_PIVOT",
       "audit_note": "Human product pivot direction v42: global 174k id→cluster repair is no longer an MVP blocker. Preserve all evidence and diagnostics, but stop spending factory capacity on this path. Query-specific product uses OpenCaseLaw retrieval and per-query mapping instead.",
       "integration_result": "superseded"
+    },
+    {
+      "team_id": "frontier-query-retrieval",
+      "charter_version": 1,
+      "status": "RUN",
+      "human_authorized": true,
+      "product_capability": "A production-ready OpenCaseLaw retrieval/cache adapter that turns a Swiss legal question into a normalized, provenance-preserving query_result_bundle candidate set for downstream answer generation and mapping.",
+      "question": "Can OpenCaseLaw's public REST/CLI surface, combined with existing LexMachina caching/search utilities, produce a deterministic high-recall 100–300-decision candidate bundle with multilingual expansion, deduplication, lazy full-text/structure retrieval, and citation-neighborhood expansion without rebuilding a national corpus?",
+      "hypothesis": "Yes. OpenCaseLaw already exposes relevance-ranked /api/decisions search, full decisions, structured reasoning, citations, leading cases and canonical URLs. A thin adapter plus query expansion, pagination, caching and normalization should replace the old 174k ingestion path for the MVP.",
+      "why_now": "Human pivot v43 makes owner attention the scarce resource and OpenCaseLaw the canonical source. Public documentation verified 2026-10-11 exposes free/no-key REST search, decision structure, citation graph and leading-case routes. The current product lane already has server/cache/navigation patterns but no query-specific OpenCaseLaw bundle adapter. This is an independent implementation bottleneck that can be built in parallel.",
+      "non_duplication": "Core product owns end-to-end integration/UI and will consume accepted artifacts; evaluation owns benchmarks. This team owns ONLY the reusable retrieval adapter, fixtures and normalized bundle contract in its Frontier namespace. It must reuse accepted product cache/search patterns rather than build another app shell.",
+      "dependencies": [
+        "OpenCaseLaw public REST API: https://mcp.opencaselaw.ch/api/decisions plus decision/structure/citations/leading-cases endpoints; no API key; soft pace <=5 req/s",
+        "Accepted lab/product server/cache/navigation patterns mounted under /tmp/lex_accepted/core/product",
+        "Canonical query_result_bundle concept in docs/product/QUERY_MAP_MVP.md",
+        "Existing LexMachina multilingual/TF-IDF utilities where directly reusable"
+      ],
+      "acceptance_test": "(1) Runnable Python adapter/CLI with live and cached modes. (2) A real Swiss-law query can page/merge OpenCaseLaw results into a normalized bundle with decision_id, canonical_url, citation string, language, date/court, title/regeste/snippet and retrieval provenance; configurable target up to at least 100 results without violating documented rate limits. (3) Deduplication is deterministic by decision_id/canonical identity. (4) Lazy full decision/structure fetching works for selected candidates. (5) Citation-neighborhood expansion can add incoming/outgoing/leading-case candidates with provenance and bounded limits. (6) At least FR/DE/IT query variants or language-filtered expansion are supported without fabricating translations. (7) Cached fixtures make tests deterministic/offline. (8) Tests exercise pagination, cache, dedupe, provenance and remote-failure degradation. (9) A short machine-readable integration contract documents how product imports/copies the adapter.",
+      "stop_promote_rule": "PROMOTE when acceptance (1)-(9) pass and hand artifacts to product/evaluation. Continue only for concrete adapter defects found by integration. TERMINATE if OpenCaseLaw public interfaces cannot supply stable decision IDs/source URLs/full-text/citation expansion required by the bundle; document exact missing capability instead of rebuilding the national corpus.",
+      "created_at": "2026-10-11T19:56:32.601Z",
+      "run_history": []
+    },
+    {
+      "team_id": "frontier-generative-audit",
+      "charter_version": 1,
+      "status": "RUN",
+      "human_authorized": true,
+      "product_capability": "Provider-agnostic sourced legal answer generation plus an independent counter-authority/adversarial pass that can run for development with a free OpenCode CLI or local model and later swap to production inference.",
+      "question": "Can a query_result_bundle be turned into a genuinely generative, source-grounded legal answer and then independently challenged for contradictory, limiting, distinguishing or exception authorities, with every surfaced citation constrained to retrieved OpenCaseLaw decision IDs and verifiable against sources?",
+      "hypothesis": "Yes. The LLM need not be custom-trained; a provider abstraction plus source packing, citation-ID constraints, a separate adversarial retrieval/generation pass and post-generation validation should deliver the required behavior. OpenCaseLaw's verification/attestation routes can strengthen source checks.",
+      "why_now": "The product's remaining differentiation is not generic chat but an answer that exposes what it may have simplified. This capability is logically independent of rendering and can be implemented/tested in parallel. Development must not require the owner to provision paid APIs, while the future production provider remains replaceable.",
+      "non_duplication": "Core product owns the final answer panel and server integration; frontier-query-retrieval owns data acquisition; evaluation owns comparative benchmarks. This team owns ONLY the generation/provider abstraction, source-packing/citation validation contract, and adversarial second-pass logic/fixtures.",
+      "dependencies": [
+        "Canonical query_result_bundle schema/spec in docs/product/QUERY_MAP_MVP.md",
+        "Accepted product/server patterns under /tmp/lex_accepted/core/product",
+        "Free OpenCode model available in CI via current model-health, and/or optional local Ollama/OpenAI-compatible backend for developer machines",
+        "OpenCaseLaw decision IDs/canonical URLs and public verification endpoints such as /api/attest when useful",
+        "frontier-query-retrieval artifacts may be consumed once ACCEPTED, but this charter must also work against a frozen synthetic/cached bundle fixture so it can proceed independently"
+      ],
+      "acceptance_test": "(1) Provider interface with at least one real no-owner-cost development path attempted and working in CI or documented local mode (OpenCode CLI and/or local model), plus deterministic fixture/mock for tests. (2) Given a bundle, generate a substantive answer that cites only decision IDs present in the source bundle; hallucinated IDs are programmatically rejected. (3) Run a logically independent adversarial pass whose objective is to find/flag contradictory, limiting, distinguishing, older/minority or exception authorities; it must not simply restate the first answer. (4) Merge adversarial findings into structured statuses supporting/limiting/contrary_or_exception/unclassified with uncertainty and evidence references. (5) Add post-generation citation/source validation, using OpenCaseLaw attestation/claim support where feasible or strict local bundle validation otherwise. (6) Produce at least one end-to-end cached example with answer + adversarial findings. (7) Tests cover invented citation rejection, unsupported-status downgrade, provider failure fallback and deterministic parsing. (8) Publish a narrow integration contract for product.",
+      "stop_promote_rule": "PROMOTE when (1)-(8) pass. Continue only for concrete integration defects or source-validation failures. TERMINATE the specific provider path if it cannot produce tool-usable output reliably; keep the provider abstraction and try another free/local development provider without escalating to the owner.",
+      "created_at": "2026-10-11T19:56:32.601Z",
+      "run_history": []
+    },
+    {
+      "team_id": "frontier-query-map-ui",
+      "charter_version": 1,
+      "status": "RUN",
+      "human_authorized": true,
+      "product_capability": "A query-specific interactive jurisprudence map that consumes query_result_bundle data and reuses the existing LexMachina WebGL/Canvas/navigation shell, with readable clusters, outliers, relations and counter-authority emphasis.",
+      "question": "Can the existing LexMachina visual stack be adapted behind a query_result_bundle seam so 100–300 retrieved decisions become a useful clickable map without depending on the old universal 174k alignment/global hierarchy?",
+      "hypothesis": "Yes. Existing WebGL/Canvas, navigation, cluster/decision-detail and LOD code are already far more than the MVP needs. Replacing the global representation loader with a query-bundle adapter plus local TF-IDF/similarity, deterministic clustering and 2D projection should yield a testable interface quickly.",
+      "why_now": "The visual audit layer is the product hypothesis the owner wants to test. The old UI/server are valuable sunk work, but current assumptions are global-map oriented. An isolated adaptation prototype can advance in parallel with retrieval and generative work, using cached bundles.",
+      "non_duplication": "Core product remains integrator. This team owns ONLY the visual/query-bundle adaptation prototype and tests inside its Frontier namespace. It must reuse accepted product frontend/rendering/navigation code where possible rather than redesign branding or create a separate polished app.",
+      "dependencies": [
+        "Accepted lab/product frontend/server/navigation/rendering code mounted under /tmp/lex_accepted/core/product",
+        "Canonical query_result_bundle schema/spec in docs/product/QUERY_MAP_MVP.md",
+        "Existing LexMachina TF-IDF/clustering/UMAP/Leiden utilities where useful",
+        "A frozen 100+ decision fixture may be synthesized from historical accepted data or public OpenCaseLaw responses so the team does not wait on frontier-query-retrieval"
+      ],
+      "acceptance_test": "(1) Runnable local prototype or component that consumes a query_result_bundle fixture with roughly 100+ decisions. (2) Points clickable to decision detail/source link. (3) Visible clusters with labels/placeholders derived from bundle data, outliers preserved, fit/reset/search controls functional. (4) Counter-authority/limiting status can be highlighted/toggled. (5) Citation/typed relation edges appear on selection rather than as permanent spaghetti. (6) No dependency on global 174k id→cluster alignment or global hierarchy. (7) Reuse of existing LexMachina renderer/navigation is demonstrated or a concrete reason for isolated replacement is documented. (8) Automated browser/data smoke tests or equivalent verify bundle load, click mapping and status filtering. (9) Integration contract tells product exactly which files/components to absorb.",
+      "stop_promote_rule": "PROMOTE when (1)-(9) pass. Continue only for concrete usability/integration defects. TERMINATE a rendering approach if it obscures clusters or requires global-174k artifacts; switch to a simpler 2D/Canvas path rather than asking the owner for design decisions.",
+      "created_at": "2026-10-11T19:56:32.601Z",
+      "run_history": []
     }
   ],
-  "policy": "Create specialized teams only for concrete bottlenecks in the zero-cost query-map MVP. Do not restart global corpus, universal-geometry, citation-graph or 174k join work unless the query-specific product demonstrates a concrete need."
+  "policy": "Human-authorized query-map engineering teams may run in parallel when their integration contracts are non-overlapping. Maximize autonomous throughput and minimize owner attention. Preserve/terminate legacy teams per history. Do not restart universal-174k/citation-graph research unless the query-specific product demonstrates a concrete need. Product is the integrator and should absorb ACCEPTED Frontier artifacts immediately rather than waiting for the whole portfolio."
 }
