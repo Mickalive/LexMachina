@@ -129,6 +129,12 @@ jobs:
           AGENT="lane_researcher"
           [[ "$LANE" == product ]] && AGENT="product_engineer"
           MODE=""
+          FAST_MODE=""
+          if [[ "$LANE" == "product" ]]; then
+            FAST_MODE="FAST MVP MODE: prioritize a runnable query->result-bundle->clickable-map vertical slice. Reuse existing server/UI/clustering code before replacing it. Do not spend the cycle on broad research, universal-174k repair, architecture prose, 3D polish or paid dependencies. Use subagents only when they shorten executable delivery."
+          elif [[ "$LANE" == "evaluation" ]]; then
+            FAST_MODE="FAST MVP MODE: build the smallest executable retrieval/counter-authority benchmark that can falsify the product. Reuse existing multilingual/provenance tests. Do not rerun obsolete universal-174k benchmarks."
+          fi
           if [[ -n "$REPAIR_FROM" ]]; then
             MODE="REPAIR exact rejected cycle ${REPAIR_FROM}, round ${REPAIR_ROUND}. Read /tmp/lex_prior_audit and fix every required_fixes item without weakening frozen baselines, data, metrics, success rules or scope. A zero-delta repair is invalid."
             export LEX_REQUIRE_DELTA=1
@@ -136,7 +142,7 @@ jobs:
             MODE="OPERATIONAL RESUME from persisted producer snapshot of run ${RESUME_FROM}. Preserve all valid completed work. Diagnose the orchestration/validation failure, finish or verify the lane deliverable, and make the snapshot audit-ready. Do not restart from scratch merely because the prior workflow failed."
           fi
           bash .github/scripts/run-ox-with-retry.sh run --model "$LEX_MODEL" --agent "$AGENT" \
-            "LexMachina lane=${LANE}; factory direction version=${DIRECTION_VERSION}; GitHub run=${GITHUB_RUN_ID}. Read /tmp/lex_control/AGENTS.md, /tmp/lex_control/LEXMACHINA_MASTER_PROMPT.md, /tmp/lex_control/ARCHITECTURE.md, /tmp/lex_control/docs/RESEARCH_PROTOCOL.md, /tmp/lex_control/state/factory_direction.json and /tmp/lex_control/directives/lanes/${LANE}.md. Relevant ACCEPTED peers are mounted under /tmp/lex_accepted. Execute real work toward the exact current lane question. No token thrift: use as many useful fresh-context subagents and discriminating experiments as justified, but do not drift from the final product. ${MODE}"
+            "LexMachina lane=${LANE}; factory direction version=${DIRECTION_VERSION}; GitHub run=${GITHUB_RUN_ID}. Read /tmp/lex_control/AGENTS.md, /tmp/lex_control/LEXMACHINA_MASTER_PROMPT.md, /tmp/lex_control/ARCHITECTURE.md, /tmp/lex_control/docs/RESEARCH_PROTOCOL.md, /tmp/lex_control/state/factory_direction.json and /tmp/lex_control/directives/lanes/${LANE}.md. Relevant ACCEPTED peers are mounted under /tmp/lex_accepted. Execute real work toward the exact current lane question. ${FAST_MODE} ${MODE}"
 
       - name: Clean generated junk
         if: always()
