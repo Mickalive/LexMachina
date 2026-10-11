@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "teams": [
     {
       "team_id": "frontier-citation-graph",
@@ -226,6 +226,36 @@
           "audit_gate": "TERMINATED_PER_STOP_RULE",
           "audit_note": "Director assessment RUN_38122218567: Charter v1 remains TERMINATED (finalized at run 38116322578). This run confirms termination stands. No successor charter justified — two consecutive charters terminated for operational execution gaps. Negative result accepted.",
           "integration_result": "terminated"
+        }
+      ]
+    },
+    {
+      "team_id": "frontier-product-join-fix",
+      "charter_version": 1,
+      "status": "DISPATCHED",
+      "product_capability": "Make 3 TF-IDF production modes (and 2 missing regeste hybrids) product-operational at full 174k scale by fixing the id→cluster join alignment defect in build_production_modes_product_integration_174k.py",
+      "question": "Can the product embeddings (175,440 rows, bge_ corpus-jsonl order) be deterministically reordered to match the evaluation metadata (173,963 rows, bger_ order) using the accepted BGE/bger crosswalk, such that rebuilt product_integration_174k artifacts pass the join probe (diag_is_best_match_fraction ~ 1.0) and the 3 TF-IDF modes + 2 regeste hybrids become servable?",
+      "hypothesis": "The join defect is purely a row-order mismatch between the product embedding matrix (built against metadata_174k_full.json bge_ order) and the evaluation metadata (metadata_174k.json bger_ order). The BGE/bger crosswalk (5,820 linked, 100% eval coverage) provides a deterministic alignment. Reordering embeddings to evaluation order before clustering will yield correct id→cluster mapping and make all 5 TF-IDF hierarchical modes product-operational at 174k.",
+      "why_now": "Concrete accepted evidence: (1) Corpus lane v37 DELIVERED BGE/bger crosswalk with 100% evaluation ID alignment. (2) Join probe CONFIRMS scrambling (diag=0.0, median displacement 1150). (3) Frontier-citation-graph TERMINATED — citation-heritage path dead; this is the ONLY unblocked path to product-operational 174k modes. (4) All dependencies satisfied in /tmp/lex_accepted. (5) Fix is independent of dense embeddings, citation graph, section extraction — purely a data-alignment repair.",
+      "non_duplication": "No active lane/team addresses this. Corpus lane COMPLETE (delivered crosswalk, not product integration). Fractal-map PAUSED (owns clustering methodology, not product integration build script). Product PAUSED (owns serving, not the build-time alignment defect). Legal-distance owns dense embeddings. Evaluation owns harness. This team FIXES a specific build-script defect using accepted artifacts.",
+      "dependencies": [
+        "Product embeddings (175,440x128) — /tmp/lex_accepted/core/fractal-map/results/fractal_map/hierarchical_map_174k/legal_tfidf_embeddings/ (ACCEPTED)",
+        "Product metadata order (175,440 bge_ IDs) — /tmp/lex_accepted/core/fractal-map/results/fractal_map/hierarchical_map_174k/metadata_174k_full.json (ACCEPTED)",
+        "Evaluation metadata (173,963 bger_ IDs) — /tmp/lex_accepted/core/evaluation/evaluation/data/174k/metadata_174k.json (ACCEPTED)",
+        "BGE/bger crosswalk (5,820 linked, 100% eval alignment) — /tmp/lex_accepted/core/corpus/results/corpus/bge_bger_crosswalk.parquet (ACCEPTED)",
+        "Join probe (frozen verification) — /tmp/lex_accepted/core/fractal-map/results/fractal_map/diagnostics/product_integration_174k_join_probe_v1.json (ACCEPTED)"
+      ],
+      "acceptance_test": "(1) Rebuilt product_integration_174k artifacts for all 5 modes (3 existing + 2 regeste hybrids) at full 173,963 decisions. (2) Join probe re-run on rebuilt artifacts: diag_is_best_match_fraction >= 0.99 for all modes (was 0.0). (3) Cluster metrics reproduce accepted values: fine_branch_purity 0.906-0.930, area_purity 0.629-0.659, improvement_rate 58-75%. (4) All 5 modes load in product server with correct decision_id→cluster mapping (neighbors API returns metadata-matched results). (5) Historical scrambled artifacts preserved under product_integration_174k_scrambled/; new artifacts under product_integration_174k_aligned_v1/.",
+      "stop_promote_rule": "PROMOTE (hand aligned artifacts + join probe pass to fractal-map/product as ACCEPTED) if acceptance (1)-(4) pass. TERMINATE if alignment cannot be achieved (crosswalk coverage insufficient for 173,963 decisions) — record negative result. No successor charter without new evidence.",
+      "run_history": [
+        {
+          "run_id": 38131081497,
+          "charter_version": 1,
+          "status": "DISPATCHED",
+          "dispatched_at": "2026-10-11T10:15:00Z",
+          "audit_gate": "PENDING",
+          "audit_note": "Charter v1 created per RUN_38131081497. All 5 dependencies confirmed available in /tmp/lex_accepted. BLOCKER_PRODUCT_JOIN_ALIGNMENT_V1 is a concrete, independent product bottleneck fixable without citation graph. Awaiting team artifact production and audit gate.",
+          "integration_result": "pending"
         }
       ]
     }
