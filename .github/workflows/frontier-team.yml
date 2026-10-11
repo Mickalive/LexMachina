@@ -60,12 +60,12 @@ jobs:
           jq -e '.product_capability and .question and .hypothesis and .why_now and .non_duplication and .acceptance_test and .stop_promote_rule' /tmp/lex_frontier_charter.json >/dev/null
           if [[ -n "$REPAIR_FROM" ]]; then
             TBR="cycle/frontier/${TEAM}/${REPAIR_FROM}/team"; ABR="cycle/frontier/${TEAM}/${REPAIR_FROM}/audit"
-            git fetch origin "$TBR:refs/remotes/origin/$TBR" "$ABR:refs/remotes/origin/$ABR"
+            git fetch --depth=1 origin "$TBR:refs/remotes/origin/$TBR" "$ABR:refs/remotes/origin/$ABR"
             git switch -C repair-base "origin/$TBR"
             git worktree add --detach /tmp/lex_prior_audit "origin/$ABR"
           elif [[ -n "$RESUME_FROM" ]]; then
             TBR="cycle/frontier/${TEAM}/${RESUME_FROM}/team"
-            git fetch origin "$TBR:refs/remotes/origin/$TBR"
+            git fetch --depth=1 origin "$TBR:refs/remotes/origin/$TBR"
             git switch -C operational-resume "origin/$TBR"
             echo "Resuming persisted Frontier snapshot from run $RESUME_FROM"
           else
@@ -91,14 +91,15 @@ jobs:
           rm -rf /tmp/lex_accepted; mkdir -p /tmp/lex_accepted/core /tmp/lex_accepted/frontier
           case "$TEAM" in
             frontier-query-retrieval) CORE_PEERS=(product) ;;
-            frontier-generative-audit) CORE_PEERS=(product evaluation) ;;
-            frontier-query-map-ui) CORE_PEERS=(product fractal-map) ;;
+            frontier-generative-audit) CORE_PEERS=(product) ;;
+            frontier-query-map-ui) CORE_PEERS=(product) ;;
             *) CORE_PEERS=(corpus legal-distance fractal-map evaluation product) ;;
           esac
           for lane in "${CORE_PEERS[@]}"; do
-            br="lab/$lane"; if git ls-remote --exit-code --heads origin "refs/heads/$br" >/dev/null 2>&1; then git fetch origin "$br:refs/remotes/origin/$br"; git worktree add --detach "/tmp/lex_accepted/core/$lane" "origin/$br" || true; fi
+            br="lab/$lane"; if git ls-remote --exit-code --heads origin "refs/heads/$br" >/dev/null 2>&1; then git fetch --depth=1 origin "$br:refs/remotes/origin/$br"; git worktree add --detach "/tmp/lex_accepted/core/$lane" "origin/$br" || true; fi
           done
-          git ls-remote --heads origin 'refs/heads/lab/frontier/*' | while read -r sha ref; do peer="${ref#refs/heads/lab/frontier/}"; [[ "$peer" == "$TEAM" ]] && continue; git fetch origin "$ref:refs/remotes/origin/lab/frontier/$peer"; git worktree add --detach "/tmp/lex_accepted/frontier/$peer" "origin/lab/frontier/$peer" || true; done
+          # Frontier teams are independent accelerators; Product integrates them.
+          # Do not mount peer Frontier branches here.
       - name: Install Ox/OpenCode
         run: curl --retry 5 --retry-all-errors --retry-delay 15 -fsSL https://opencode.ai/install | bash
       - name: Execute Frontier charter
@@ -236,7 +237,7 @@ jobs:
         run: |
           set -euo pipefail
           TBR="cycle/frontier/${TEAM}/${GITHUB_RUN_ID}/team"; ABR="cycle/frontier/${TEAM}/${GITHUB_RUN_ID}/audit"; ACC="lab/frontier/$TEAM"
-          git fetch origin "$TBR:refs/remotes/origin/$TBR" "$ABR:refs/remotes/origin/$ABR" "$ACC:refs/remotes/origin/$ACC"
+          git fetch --depth=1 origin "$TBR:refs/remotes/origin/$TBR" "$ABR:refs/remotes/origin/$ABR" "$ACC:refs/remotes/origin/$ACC"
           if [[ "$GATE" == PASS ]]; then
             OLD=$(git rev-parse "origin/$ACC"); git switch -C promote "origin/$TBR"; git checkout "origin/$ABR" -- "results/audit/frontier/$TEAM" "reports/audit/frontier/$TEAM"; git config user.name "lex-integrator"; git config user.email "lex-integrator@autonomous.local"; git add "results/audit/frontier/$TEAM" "reports/audit/frontier/$TEAM"; git commit -m "accept Frontier $TEAM ${GITHUB_RUN_ID}" || true; git push --force-with-lease="refs/heads/$ACC:$OLD" origin "HEAD:refs/heads/$ACC"
           elif [[ "$GATE" == REVISE ]]; then
