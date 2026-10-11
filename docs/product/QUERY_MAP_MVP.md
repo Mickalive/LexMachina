@@ -153,6 +153,55 @@ Nice-to-have, not MVP blockers:
 - custom corpus import;
 - multiple legal views.
 
+## 9A. Performance architecture
+
+Performance is part of the product hypothesis. A visually auditable system that feels materially slower than ordinary legal search will fail even if its clusters are good.
+
+### Progressive pipeline
+
+Do NOT serialize the whole query path behind the LLM.
+
+Preferred flow:
+1. normalize query + check persistent cache;
+2. run broad OpenCaseLaw search/query variants with bounded concurrency;
+3. deduplicate and return the first ranked candidate set;
+4. compute a fast initial query-specific map and render it;
+5. in parallel, fetch richer text/structure only for the evidence subset needed for answer generation;
+6. stream/generate the sourced answer;
+7. run the adversarial/counter-authority pass in parallel or immediately after the provisional answer;
+8. incrementally update the map/statuses when additional authorities are found.
+
+The initial map MUST NOT wait for completion of the generative answer or adversarial pass.
+
+### Hot-path constraints
+
+- Query-specific mode must not initialize/load the legacy 174k global-map representations at server startup.
+- Legacy artifacts are lazy/optional fallback only.
+- Do not fetch full text for all 100–300 mapped cases before first render. Use search/regeste/snippet metadata for broad-map geometry; lazily fetch full decision/structure for the smaller answer-evidence set and clicked cases.
+- Deduplicate before expensive full-text/network/LLM work.
+- Use bounded concurrent remote calls while respecting OpenCaseLaw pacing/rate limits.
+- Persist query/result/source caches to disk so repeated queries and test fixtures avoid repeated network work.
+- Separate the broad map pool from the answer context. The LLM should receive a selected evidence pack, not 300 complete judgments.
+- Cache expensive map geometry by query + retrieval/config hash.
+- Do not recompute unchanged clusters/projection merely because answer text changed.
+
+### MVP latency budgets
+
+These are engineering targets, not scientific claims:
+- lightweight server startup: target < 3 s excluding first-time local model download/start;
+- cached query to initial map: target < 1 s;
+- normal live query to first useful ranked/map result: target < 5 s under ordinary network conditions;
+- local clustering/projection for ~100–300 decisions: target < 2 s;
+- decision click/detail from already fetched data: target < 150 ms locally;
+- answer generation should stream or expose progress rather than block the map;
+- counter-authority updates may arrive later, but must not freeze the interface.
+
+Record measured p50/p95-like timings for frozen fixtures/live smoke tests where practical. If UMAP/Leiden or another sophisticated method violates the budget without measurable UX gain, fall back to the simpler method.
+
+### Memory/startup discipline
+
+The query-map MVP should run without loading corpus-scale matrices into RAM. Existing 174k assets are reusable research components but are not allowed on the default hot path.
+
 ## 10. Reuse from existing LexMachina
 
 Reuse only when it reduces time-to-test:
