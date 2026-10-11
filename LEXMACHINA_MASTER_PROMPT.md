@@ -74,24 +74,19 @@ For Swiss public law research, OpenCaseLaw is the canonical first source for the
 
 Preserve the legacy LexMachina 174k corpus and all accepted/rejected research results as historical evidence and optional fallback/test data, but do not keep them on the critical path unless the new product actually needs them.
 
-## Zero-cost invariant
-The canonical MVP must require **zero mandatory external API spend**.
+## Owner-time invariant
+The scarce development resource is **the repository owner's attention**, not autonomous agent compute.
 
-Allowed:
-- OpenCaseLaw public REST/MCP;
-- standard GitHub-hosted runners available free to this public repository;
-- OpenCode free models / free fallback models;
-- open-source libraries and locally runnable open-source models;
-- existing repository artifacts.
+For development/testing, use free OpenCode models, local open-source models, OpenCaseLaw public infrastructure and existing repository assets so the owner is not required to provision paid APIs just to evaluate the MVP.
 
-Forbidden as required dependencies:
-- paid LLM APIs;
-- paid embedding/reranking APIs;
-- paid search APIs;
-- paid vector databases;
-- paid hosted inference.
+This does NOT constrain the eventual production stack: a deployed product may use paid/local/hosted LLM, embedding or reranking services when justified.
 
-Paid services may be documented only as optional future benchmarks.
+The factory must optimize for low owner involvement:
+- retry/reroute technical failures autonomously;
+- choose implementation details autonomously;
+- reuse existing work before rebuilding;
+- never ask the owner to supervise ordinary engineering;
+- surface a human gate only for a ready-to-test product or a genuine product/business/legal/external-access decision.
 
 ## Broad means, narrow end
 The factory may use lexical search, BM25/TF-IDF, multilingual query expansion, citation expansion, open-source embeddings, graph methods, reranking, clustering, projection, WebGL/Canvas, answer generation, counter-authority retrieval and other methods that directly improve the query-map product.
@@ -169,6 +164,6 @@ UNTESTED < EXPLORATORY < REPRODUCED < ACCEPTED. Only ACCEPTED findings may raise
 - Never fabricate data, labels, citations or results.
 - Never weaken a benchmark after seeing results.
 - Never equate prettier visualization with better legal navigation.
-- Never make a paid external service mandatory for the canonical MVP.
+- Do not require the owner to provision paid APIs merely to develop/test the MVP; future production inference may be paid or local.
 - Technical failures auto-retry/recover; dead ends reroute. Only a genuine human decision may stop the factory.
 - Stay on the product mission.
