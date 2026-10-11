@@ -1,0 +1,149 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "No new product claims raised. TF-IDF citation hybrids remain PRIMARY (frozen baseline JP=0.659/LD=0.4258, both adversarial gates PASS). Dense citation-heritage remains RETRACTED (DENSE_NOT_EMPIRICALLY_VALIDATED_BLOCKED_ON_CITATION_GRAPH_COVERAGE) pending frontier-citation-graph. Erwaegungen cross-lingual remains EXCLUDED from v1.1 (0.0941 < 0.1 threshold, honestly reported FAIL). TF-IDF hierarchical modes remain NOT product-operational due to BLOCKER_PRODUCT_JOIN_ALIGNMENT_V1 (diag_is_best_match=0.0%, median displacement 1150 rows). V1.1 dense complementary views deferred to post-frontier-citation-graph + corpus lane resumption + join defect fix. Maximum supported statement after frontier-citation-graph PASS: 'Citation-heritage AUC improved above 0.7296 OR dense center_projected_64dim >= 0.75 at 174k scale with adopted corpus-scale graph.'",
+  "evidence_summary": {
+    "corpus_lane": {
+      "source": "/tmp/lex_accepted/core/corpus/state/corpus.json",
+      "tier": "ACCEPTED",
+      "accepted_run_id": "CORPUS_V37_THREE_ARTIFACTS_20261010",
+      "key_metrics": {
+        "canonical_decisions": 174114,
+        "section_extraction_coverage": {
+          "sachverhalt": 0.6725,
+          "erwaegungen": 0.999,
+          "dispositiv": 0.9676
+        },
+        "validation_vs_structure_parquet": {
+          "coverage": 1.0,
+          "precision": 1.0
+        },
+        "bge_bger_crosswalk": {
+          "bge_universe": 21228,
+          "linked": 5820,
+          "relevant_volume_ge_127_linked": 5733,
+          "relevant_volume_ge_127_total": 6395,
+          "evaluation_id_alignment": 1.0
+        },
+        "parquet_2024_2026_decisions": 15536
+      },
+      "audit_gates": [
+        "CYCLE_38078296603_GATE.json (PASS)",
+        "CYCLE_38079593178_GATE.json (PASS)"
+      ]
+    },
+    "legal_distance_lane": {
+      "source": "/tmp/lex_accepted/frontier/frontier-citation-graph/results/accepted-state/legal-distance.json",
+      "tier": "ACCEPTED",
+      "key_findings": {
+        "dense_citation_heritage_superiority": "FALSIFIED (v35 audit) — prior AUC 0.79-0.85 RETRACTED",
+        "dense_jurist_gate": "FAIL at all scales (JP 0.05-0.43)",
+        "tfidf_primary_jp": "0.78-0.79",
+        "cross_lingual_sachverhalt": "0.2816 > 0.2 PASS (sample n=359)",
+        "cross_lingual_dispositiv": "0.1502 > 0.1 PASS (sample n=538)",
+        "cross_lingual_erwaegungen": "0.0941 < 0.1 FAIL (sample n=510, honestly reported)",
+        "blockers_resolved": [
+          "section extraction",
+          "BGE/bger ID mapping",
+          "parquet 2024-2026"
+        ],
+        "reopen_condition": "frontier-citation-graph integrates corpus-scale graph into frozen harness; then legal-distance re-validates dense at 174k"
+      }
+    },
+    "fractal_map_lane": {
+      "source": "/tmp/lex_accepted/frontier/frontier-citation-graph/results/accepted-state/fractal-map.json",
+      "tier": "ACCEPTED",
+      "key_findings": {
+        "tfidf_hierarchical_metric_reproduction": "fine_branch_purity 0.906-0.930 at 174k (BIT-EXACT)",
+        "join_defect_confirmed": "BLOCKER_PRODUCT_JOIN_ALIGNMENT_V1: diag_is_best_match=0.0%, median_displacement=1150 rows for all 3 text modes",
+        "positive_control_failure": "fine ARI_branch 0.0429 < 0.05 (frozen EVAL_SPEC)",
+        "dense_integration_contract_v34": "FROZEN — 4 complementary views defined (Citation Heritage AUC>0.75, Cross-Lingual Sachverhalt>0.2, Dispositiv>0.1, Linear Hybrid PASS adversarial); scale extrapolation validated at 144k; Citation Heritage UNTESTED/BLOCKED"
+      }
+    },
+    "evaluation_lane": {
+      "source": "/tmp/lex_accepted/core/evaluation/state/evaluation.json",
+      "tier": "ACCEPTED",
+      "accepted_run_id": "EVAL_FREEZE_TFIDF_174K_BASELINE_20261010",
+      "frozen_baseline": {
+        "representation": "cited_decisions_tfidf_outcome_hybrid_0.5",
+        "corpus_scale": 173963,
+        "jurist_preference_rate": 0.659,
+        "language_dominance_score": 0.4258,
+        "adversarial_gates": "PASS (both)",
+        "citation_heritage_auc": 0.7296,
+        "config_hash": "4323f833fa72366a",
+        "verification_timestamp": "2026-10-10T07:05:27Z"
+      },
+      "dense_retraction": "DENSE_NOT_EMPIRICALLY_VALIDATED_BLOCKED_ON_CITATION_GRAPH_COVERAGE (all 174k dense runs FAILED 'Insufficient valid pairs'; prior AUC 0.7667-0.8182 retracted)",
+      "dense_complementary_criteria": {
+        "citation_heritage_auc": { "threshold": 0.75, "status": "BLOCKED" },
+        "cross_lingual_sachverhalt": { "threshold": 0.2, "dense_best": 0.2816, "status": "EXCEEDS_THRESHOLD" },
+        "cross_lingual_dispositiv": { "threshold": 0.1, "dense_best": 0.1502, "status": "EXCEEDS_THRESHOLD" },
+        "cross_lingual_erwaegungen": { "threshold": 0.1, "dense_best": 0.0941, "status": "BELOW_THRESHOLD" },
+        "zero_shot_cross_language": { "threshold": 0.2, "dense_best_full": 0.2258, "dense_best_sachverhalt": 0.1886, "tfidf_baseline": 0.0190, "status": "EXCEEDS_TFIDF_BUT_BELOW_02" }
+      }
+    },
+    "product_lane": {
+      "source": "/tmp/lex_accepted/frontier/frontier-citation-graph/results/accepted-state/product.json",
+      "tier": "ACCEPTED",
+      "key_metrics": {
+        "v1_0_status": "RELEASED but JOIN-DEFECTIVE",
+        "tfidf_modes_built": 3,
+        "decisions_per_mode": 173963,
+        "zoom_levels": 7,
+        "scale_tests": "16/16 PASS",
+        "api_endpoints": 56,
+        "webgl_pipeline": "<3s",
+        "join_defect": {
+          "diag_is_best_match_fraction": 0.0,
+          "median_abs_best_minus_idx": 1150,
+          "modes_affected": ["full_text_tfidf_light", "regeste_full_text_hybrid_0.5", "regeste_full_text_hybrid_0.7"]
+        },
+        "product_serving_default": "cited_outcome_hybrid_0.5_174k",
+        "frozen_baseline_jp": 0.659,
+        "frozen_baseline_ld": 0.4258
+      },
+      "v1_1_blockers": [
+        "frontier-citation-graph adopted corpus-scale graph",
+        "legal-distance dense citation-heritage re-validation at 174k",
+        "174k cross-lingual evaluation of Sachverhalt/Dispositiv views",
+        "join defect fix (BLOCKER_PRODUCT_JOIN_ALIGNMENT_V1)"
+      ]
+    },
+    "frontier_citation_graph": {
+      "team_state_source": "/tmp/lex_accepted/frontier/frontier-citation-graph/state/frontier/frontier-citation-graph.json",
+      "charter_version": 1,
+      "status": "RUN (re-dispatched run 38078594985)",
+      "corpus_scale_graph_source": "/tmp/lex_accepted/core/evaluation/evaluation/results/174k_citation_heritage/citation_graph_174k.json",
+      "corpus_scale_pairs_source": "/tmp/lex_accepted/core/evaluation/evaluation/results/174k_citation_heritage/citation_pairs_174k_full.json",
+      "frozen_benchmark_source": "/tmp/lex_accepted/core/evaluation/evaluation/results/174k_citation_heritage/citation_pairs_174k.json",
+      "key_metrics": {
+        "non_adopted_graph_sources": 5031,
+        "non_adopted_graph_edges": 7799,
+        "non_adopted_graph_outdegree_ge_2": 1286,
+        "corpus_scale_positive_pairs": 137314,
+        "frozen_benchmark_in_citation_graph": 174,
+        "frozen_benchmark_with_outgoing_citations": 174,
+        "frozen_benchmark_resolved_citations": 924,
+        "acceptance_test": "Coverage >=45,800 decisions with >=1 resolved edge OR documented ceiling; AUC on shared>=2 pairs >=2000 evaluable; TF-IDF AUC>0.7296 OR dense>=0.75; provenance preserved; benchmark not weakened"
+      },
+      "run_history": [
+        { "run_id": 38062714438, "status": "BLOCKED_UPSTREAM", "audit_gate": "BLOCKED", "note": "4/6 deps absent — control-plane mount failure" },
+        { "run_id": 38078594985, "status": "DISPATCHED", "audit_gate": "PENDING", "note": "Re-dispatched after corpus delivery; evidence from /tmp/lex_accepted now mounted" }
+      ]
+    },
+    "prior_audit_fixes_verified": {
+      "D1_corpus_audit_run_id": {
+        "prior_error": "factory_direction.json v40 director_note cited RUN_38078594985 (frontier re-dispatch) as corpus audit",
+        "fix_applied": "Corrected to CYCLE_38078296603 / CYCLE_38079593178 (both PASS, safe_to_integrate=true)",
+        "verification": "Both gates exist at /tmp/lex_accepted/core/corpus/results/audit/corpus/ with claim_ceiling FULL_CORPUS_DELIVERED_174113_DECISIONS_V37_AUDIT_VERIFIED"
+      },
+      "D2_frozen_benchmark_seed_size": {
+        "prior_error": "factory_direction.json v40 legal-distance.question described frozen benchmark as '250-decision seed (original_stats.total_decisions=250)'",
+        "fix_applied": "Corrected to '174 decisions (in_citation_graph=174, with_outgoing_citations=174, 924 resolved citations)'",
+        "verification": "Matches evaluation.json frozen_production_baseline.note: 'citation graph: 174/173,963 decisions, 924 resolved citations'"
+      }
+    }
+  }
+}
