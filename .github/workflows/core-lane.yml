@@ -55,11 +55,17 @@ jobs:
         shell: bash
         env:
           LANE: ${{ inputs.lane }}
+          DIRV: ${{ inputs.direction_version }}
           REPAIR_FROM: ${{ inputs.repair_from_run_id }}
           RESUME_FROM: ${{ inputs.resume_from_run_id }}
         run: |
           set -euo pipefail
           case "$LANE" in corpus|legal-distance|fractal-map|evaluation|product) ;; *) echo "::error::invalid lane $LANE"; exit 2;; esac
+          CURRENT_DIRV=$(jq -r '.version // -1' state/factory_direction.json)
+          if [[ "$DIRV" != "$CURRENT_DIRV" ]]; then
+            echo "::warning::Superseded Core dispatch: requested direction v$DIRV, current direction v$CURRENT_DIRV"
+            exit 86
+          fi
           [[ -z "$REPAIR_FROM" || -z "$RESUME_FROM" ]] || { echo "::error::repair_from and resume_from are mutually exclusive"; exit 2; }
 
           if [[ -n "$REPAIR_FROM" ]]; then
