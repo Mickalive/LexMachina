@@ -317,7 +317,12 @@ jobs:
         run: |
           set -euo pipefail
           TEAM="cycle/core/${LANE}/${GITHUB_RUN_ID}/team"; AUD="cycle/core/${LANE}/${GITHUB_RUN_ID}/audit"; ACC="lab/$LANE"
-          git fetch origin "$TEAM:refs/remotes/origin/$TEAM" "$AUD:refs/remotes/origin/$AUD" "$ACC:refs/remotes/origin/$ACC"
+          CURRENT_DIRV=$(jq -r '.version // -1' state/factory_direction.json)
+          if [[ "$DIRV" != "$CURRENT_DIRV" ]]; then
+            echo "::warning::Skipping integration from superseded direction v$DIRV; current is v$CURRENT_DIRV"
+            exit 0
+          fi
+          git fetch --depth=1 origin "$TEAM:refs/remotes/origin/$TEAM" "$AUD:refs/remotes/origin/$AUD" "$ACC:refs/remotes/origin/$ACC"
           if [[ "$GATE" == PASS ]]; then
             OLD=$(git rev-parse "origin/$ACC")
             git switch -C promote "origin/$TEAM"
