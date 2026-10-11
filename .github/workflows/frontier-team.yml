@@ -32,7 +32,7 @@ env:
   LEX_MODEL: opencode/x-preview-f-free
 
 concurrency:
-  group: lex-frontier-${{ inputs.team_id }}
+  group: lex-frontier-${{ inputs.team_id }}-v${{ inputs.charter_version }}
   cancel-in-progress: true
 
 jobs:
@@ -243,7 +243,11 @@ jobs:
         run: |
           set -euo pipefail
           echo "Frontier finalizer: team=$TEAM_RESULT audit=$AUDIT_RESULT integrate=$INTEGRATE_RESULT"
-          if [[ "$TEAM_RESULT" != success || "$AUDIT_RESULT" == failure || "$AUDIT_RESULT" == cancelled || "$INTEGRATE_RESULT" == failure || "$INTEGRATE_RESULT" == cancelled ]]; then
+          CURRENT_STATUS=$(jq -r --arg team "$TEAM" --argjson ver "$VER" '[.teams[] | select(.team_id==$team and .charter_version==$ver)][-1].status // "MISSING"' state/frontier_portfolio.json 2>/dev/null || echo MISSING)
+          CURRENT_VER=$(jq -r --arg team "$TEAM" '[.teams[] | select(.team_id==$team)] | map(.charter_version) | max // -1' state/frontier_portfolio.json 2>/dev/null || echo -1)
+          if [[ "$CURRENT_STATUS" != "RUN" || "$VER" != "$CURRENT_VER" ]]; then
+            echo "Frontier $TEAM v$VER is superseded/inactive (status=$CURRENT_STATUS current_v=$CURRENT_VER); no stale recovery will be dispatched."
+          elif [[ "$TEAM_RESULT" != success || "$AUDIT_RESULT" == failure || "$AUDIT_RESULT" == cancelled || "$INTEGRATE_RESULT" == failure || "$INTEGRATE_RESULT" == cancelled ]]; then
             SNAP="cycle/frontier/${TEAM}/${GITHUB_RUN_ID}/team"
             if git ls-remote --exit-code --heads origin "refs/heads/$SNAP" >/dev/null 2>&1; then
               gh workflow run frontier-team.yml --repo "$GITHUB_REPOSITORY" --ref main -f team_id="$TEAM" -f charter_version="$VER" -f resume_from_run_id="$GITHUB_RUN_ID" -f repair_round="$ROUND"
