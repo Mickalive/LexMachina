@@ -171,6 +171,48 @@ Do NOT block the MVP on:
 - universal fractal hierarchy;
 - BGE/bger crosswalk work beyond what the new query pipeline actually needs.
 
+## 10A. Reuse-first inventory
+
+The product pivot does **not** invalidate the month of prior LexMachina work. Reuse existing implementation before replacing it.
+
+Known reusable assets on `lab/product` include:
+- `product/server.py`: threaded stdlib HTTP server, response cache, rate limiting, health/error patterns and API routing;
+- `product/static/index.html`: existing interactive WebGL/Canvas map UI, search/filter controls and decision/cluster interaction patterns;
+- `product/app/navigation.py`: navigation/search/decision/neighbor/citation API patterns;
+- `product/app/map_loader.py`: representation/map loading contracts;
+- existing clustering/projection tooling based on scikit-learn, NetworkX, igraph/Leiden and UMAP;
+- existing spatial-index, LOD/culling, proximity-explanation and import patterns;
+- accepted evaluation work on multilingual robustness, jurist preference, boilerplate resistance and deterministic benchmarking.
+
+Reuse rule:
+1. adapt before rewriting;
+2. preserve historical artifacts and negative results;
+3. if an old global-174k assumption blocks adaptation, isolate it behind a new query-bundle adapter rather than replacing the whole server/UI;
+4. the preferred new abstraction is a `query_result_bundle` consumed by the existing product shell.
+
+Suggested minimum `query_result_bundle` fields:
+- query;
+- generated_answer + cited decision IDs;
+- retrieval metadata/provenance;
+- decisions[];
+- per-decision retrieval/rerank scores;
+- counter_authority_status with uncertainty;
+- cluster_id / cluster_label;
+- x/y (and optional z) projection;
+- typed relations/citations;
+- source URL / citation string.
+
+## 10B. Cycle budget / anti-drift rule
+
+The MVP should not need another open-ended research program.
+
+Target sequence:
+- Product cycle 1: real OpenCaseLaw/cached query -> query_result_bundle -> source-linked clickable map using reused UI/server.
+- Product cycle 2: sourced generative answer + independent counter-authority pass integrated into that same UI, if cycle 1 did not already include them.
+- Product cycle 3: only concrete fixes from evaluation/human use; then human product gate.
+
+If three accepted product cycles do not yield a locally clickable end-to-end MVP, stop broadening the architecture and treat that as evidence that the autonomous approach is too operationally expensive.
+
 ## 11. Automated evaluation
 
 Create a small frozen set of real Swiss legal research questions with known useful authorities and at least some known limiting / contrary authority where feasible.
