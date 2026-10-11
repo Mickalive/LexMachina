@@ -97,7 +97,12 @@ jobs:
         run: |
           set -euo pipefail
           rm -rf /tmp/lex_accepted; mkdir -p /tmp/lex_accepted
-          for peer in corpus legal-distance fractal-map evaluation product; do
+          case "$LANE" in
+            product) PEERS=(evaluation fractal-map) ;;
+            evaluation) PEERS=(product) ;;
+            *) PEERS=(corpus legal-distance fractal-map evaluation product) ;;
+          esac
+          for peer in "${PEERS[@]}"; do
             [[ "$peer" == "$LANE" ]] && continue
             br="lab/$peer"
             if git ls-remote --exit-code --heads origin "refs/heads/$br" >/dev/null 2>&1; then
@@ -106,11 +111,13 @@ jobs:
             fi
           done
           mkdir -p /tmp/lex_accepted/frontier
-          git ls-remote --heads origin 'refs/heads/lab/frontier/*' | while read -r sha ref; do
-            team="${ref#refs/heads/lab/frontier/}"
-            git fetch origin "$ref:refs/remotes/origin/lab/frontier/$team"
-            git worktree add --detach "/tmp/lex_accepted/frontier/$team" "origin/lab/frontier/$team" || true
-          done
+          if [[ "$LANE" == product || "$LANE" == evaluation ]]; then
+            git ls-remote --heads origin 'refs/heads/lab/frontier/*' | while read -r sha ref; do
+              team="${ref#refs/heads/lab/frontier/}"
+              git fetch origin "$ref:refs/remotes/origin/lab/frontier/$team"
+              git worktree add --detach "/tmp/lex_accepted/frontier/$team" "origin/lab/frontier/$team" || true
+            done
+          fi
 
       - name: Install Ox/OpenCode
         shell: bash
