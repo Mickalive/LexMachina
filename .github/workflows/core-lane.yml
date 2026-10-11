@@ -104,7 +104,7 @@ jobs:
           set -euo pipefail
           rm -rf /tmp/lex_accepted; mkdir -p /tmp/lex_accepted
           case "$LANE" in
-            product) PEERS=(evaluation fractal-map) ;;
+            product) PEERS=() ;;
             evaluation) PEERS=(product) ;;
             *) PEERS=(corpus legal-distance fractal-map evaluation product) ;;
           esac
@@ -112,16 +112,19 @@ jobs:
             [[ "$peer" == "$LANE" ]] && continue
             br="lab/$peer"
             if git ls-remote --exit-code --heads origin "refs/heads/$br" >/dev/null 2>&1; then
-              git fetch origin "$br:refs/remotes/origin/$br"
+              git fetch --depth=1 origin "$br:refs/remotes/origin/$br"
               git worktree add --detach "/tmp/lex_accepted/$peer" "origin/$br" || true
             fi
           done
           mkdir -p /tmp/lex_accepted/frontier
           if [[ "$LANE" == product || "$LANE" == evaluation ]]; then
-            git ls-remote --heads origin 'refs/heads/lab/frontier/*' | while read -r sha ref; do
-              team="${ref#refs/heads/lab/frontier/}"
-              git fetch origin "$ref:refs/remotes/origin/lab/frontier/$team"
-              git worktree add --detach "/tmp/lex_accepted/frontier/$team" "origin/lab/frontier/$team" || true
+            jq -r '.teams[] | select(.status=="RUN" or .status=="PROMOTE") | .team_id' /tmp/lex_control/state/frontier_portfolio.json | while read -r team; do
+              [[ -n "$team" ]] || continue
+              ref="refs/heads/lab/frontier/$team"
+              if git ls-remote --exit-code --heads origin "$ref" >/dev/null 2>&1; then
+                git fetch --depth=1 origin "$ref:refs/remotes/origin/lab/frontier/$team"
+                git worktree add --detach "/tmp/lex_accepted/frontier/$team" "origin/lab/frontier/$team" || true
+              fi
             done
           fi
 
