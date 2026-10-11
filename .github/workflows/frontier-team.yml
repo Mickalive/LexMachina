@@ -55,9 +55,9 @@ jobs:
           set -euo pipefail
           [[ "$TEAM" =~ ^[a-z0-9][a-z0-9-]{1,62}$ ]] || { echo "::error::invalid team id"; exit 2; }
           [[ -z "$REPAIR_FROM" || -z "$RESUME_FROM" ]] || { echo "::error::repair_from and resume_from are mutually exclusive"; exit 2; }
-          jq --arg team "$TEAM" --argjson ver "$VER" '.teams[] | select(.team_id==$team and .charter_version==$ver and .status=="RUN")' state/frontier_portfolio.json > /tmp/frontier_charter.json
-          test -s /tmp/frontier_charter.json || { echo "::error::exact executable charter missing"; exit 3; }
-          jq -e '.product_capability and .question and .hypothesis and .why_now and .non_duplication and .acceptance_test and .stop_promote_rule' /tmp/frontier_charter.json >/dev/null
+          jq --arg team "$TEAM" --argjson ver "$VER" '.teams[] | select(.team_id==$team and .charter_version==$ver and .status=="RUN")' state/frontier_portfolio.json > /tmp/lex_frontier_charter.json
+          test -s /tmp/lex_frontier_charter.json || { echo "::error::exact executable charter missing"; exit 3; }
+          jq -e '.product_capability and .question and .hypothesis and .why_now and .non_duplication and .acceptance_test and .stop_promote_rule' /tmp/lex_frontier_charter.json >/dev/null
           if [[ -n "$REPAIR_FROM" ]]; then
             TBR="cycle/frontier/${TEAM}/${REPAIR_FROM}/team"; ABR="cycle/frontier/${TEAM}/${REPAIR_FROM}/audit"
             git fetch origin "$TBR:refs/remotes/origin/$TBR" "$ABR:refs/remotes/origin/$ABR"
@@ -119,7 +119,7 @@ jobs:
             MODE="OPERATIONAL RESUME from persisted Frontier producer snapshot ${RESUME_FROM}. Preserve valid completed work, diagnose the operational failure, and finish or verify the charter without restarting from scratch."
           fi
           bash .github/scripts/run-ox-with-retry.sh run --model "$LEX_MODEL" --agent frontier_researcher \
-            "Run LexMachina Frontier team=${TEAM}, charter v${VER}, GitHub run=${GITHUB_RUN_ID}. Exact charter=/tmp/frontier_charter.json. Read /tmp/lex_control/AGENTS.md and Main Prompt. Accepted evidence=/tmp/lex_accepted. Execute only this charter. If the charter is an engineering capability, BUILD RUNNABLE CODE/TESTS/fixtures and a narrow integration contract; do not substitute a research memo. REUSE-FIRST: inspect accepted product/core mounts before rebuilding capabilities. Use parallel subagents for independent implementation/testing when useful. Optimize throughput and owner-attention, not token thrift. Your state/frontier/${TEAM}.json MUST retain charter_version and set continue_recommended true only if another cycle under the SAME charter is specifically justified. ${MODE}"
+            "Run LexMachina Frontier team=${TEAM}, charter v${VER}, GitHub run=${GITHUB_RUN_ID}. Exact charter=/tmp/lex_frontier_charter.json. Read /tmp/lex_control/AGENTS.md and Main Prompt. Accepted evidence=/tmp/lex_accepted. Execute only this charter. If the charter is an engineering capability, BUILD RUNNABLE CODE/TESTS/fixtures and a narrow integration contract; do not substitute a research memo. REUSE-FIRST: inspect accepted product/core mounts before rebuilding capabilities. Use parallel subagents for independent implementation/testing when useful. Optimize throughput and owner-attention, not token thrift. Your state/frontier/${TEAM}.json MUST retain charter_version and set continue_recommended true only if another cycle under the SAME charter is specifically justified. ${MODE}"
       - name: Clean generated junk
         if: always()
         shell: bash
@@ -167,7 +167,7 @@ jobs:
           ACC="lab/frontier/$TEAM"; TBR="cycle/frontier/${TEAM}/${GITHUB_RUN_ID}/team"
           git fetch origin "$ACC:refs/remotes/origin/$ACC" "$TBR:refs/remotes/origin/$TBR"
           git switch -C audit-base "origin/$ACC"; git worktree add --detach /tmp/lex_team "origin/$TBR"
-          git show origin/main:state/frontier_portfolio.json | jq --arg team "$TEAM" --argjson ver '${{ inputs.charter_version }}' '.teams[] | select(.team_id==$team and .charter_version==$ver)' > /tmp/frontier_charter.json
+          git show origin/main:state/frontier_portfolio.json | jq --arg team "$TEAM" --argjson ver '${{ inputs.charter_version }}' '.teams[] | select(.team_id==$team and .charter_version==$ver)' > /tmp/lex_frontier_charter.json
       - name: Install Ox/OpenCode
         run: curl --retry 5 --retry-all-errors --retry-delay 15 -fsSL https://opencode.ai/install | bash
       - name: Audit Frontier
@@ -178,7 +178,7 @@ jobs:
           set -euo pipefail
           mkdir -p "results/audit/frontier/$TEAM" "reports/audit/frontier/$TEAM"
           bash .github/scripts/run-ox-with-retry.sh run --model "$LEX_MODEL" --agent independent_auditor \
-            "Audit Frontier team=${TEAM}, charter=/tmp/frontier_charter.json, run=${GITHUB_RUN_ID}, producer=/tmp/lex_team. Enforce exact charter. For engineering charters, first run/smoke-test the produced component against its acceptance contract; do not demand unrelated legacy science. Write ONLY reports/audit/frontier/${TEAM}/CYCLE_${GITHUB_RUN_ID}.md and results/audit/frontier/${TEAM}/CYCLE_${GITHUB_RUN_ID}_GATE.json containing gate PASS|REVISE|BLOCKED, safe_to_integrate, required_fixes, claim_ceiling, evidence_summary. Recurring repair pathology must become BLOCKED rather than infinite REVISE."
+            "Audit Frontier team=${TEAM}, charter=/tmp/lex_frontier_charter.json, run=${GITHUB_RUN_ID}, producer=/tmp/lex_team. Enforce exact charter. For engineering charters, first run/smoke-test the produced component against its acceptance contract; do not demand unrelated legacy science. Write ONLY reports/audit/frontier/${TEAM}/CYCLE_${GITHUB_RUN_ID}.md and results/audit/frontier/${TEAM}/CYCLE_${GITHUB_RUN_ID}_GATE.json containing gate PASS|REVISE|BLOCKED, safe_to_integrate, required_fixes, claim_ceiling, evidence_summary. Recurring repair pathology must become BLOCKED rather than infinite REVISE."
       - name: Validate and persist audit
         id: gate
         shell: bash
