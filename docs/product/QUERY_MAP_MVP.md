@@ -190,7 +190,9 @@ The initial map MUST NOT wait for completion of the generative answer or adversa
 These are engineering targets, not scientific claims:
 - lightweight server startup: target < 3 s excluding first-time local model download/start;
 - cached query to initial map: target < 1 s;
-- normal live query to first useful ranked/map result: target < 5 s under ordinary network conditions;
+- upstream search latency is external (OpenCaseLaw currently documents roughly 5–15 s typical search latency); measure it separately;
+- after the first OpenCaseLaw result page arrives, local normalize/rerank/geometry/render overhead: target < 1.5 s;
+- first map may render from the first ~50–100 results; expand incrementally toward ~100–300 without clearing/freezing the UI;
 - local clustering/projection for ~100–300 decisions: target < 2 s;
 - decision click/detail from already fetched data: target < 150 ms locally;
 - answer generation should stream or expose progress rather than block the map;
