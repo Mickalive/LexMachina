@@ -1,6 +1,6 @@
 # Product lane — query-map fast path
 
-Ship the shortest runnable path to the canonical zero-cost query-map MVP in `docs/product/QUERY_MAP_MVP.md`.
+Ship the shortest runnable path to the canonical query-map MVP in `docs/product/QUERY_MAP_MVP.md`, while minimizing repository-owner attention.
 
 ## REUSE-FIRST mandate
 Before writing replacement infrastructure, inspect the existing `lab/product` implementation and accepted peer mounts. Reuse working components whenever they shorten time-to-clickable-product. In particular, prefer adapting the existing:
@@ -34,7 +34,7 @@ Do NOT spend an MVP cycle on:
 - dense 174k embedding generation;
 - global fractal hierarchy;
 - custom model training;
-- paid inference;
+- requiring the owner to provision paid inference for development/testing;
 - cosmetic redesign;
 - broad architecture prose before a vertical slice exists.
 
@@ -43,4 +43,7 @@ Every normal product cycle must leave runnable code or tests. A cycle that produ
 
 The first successful product cycle should, at minimum, allow a developer to run one local command/server, submit or select a real Swiss-law query fixture, and see a source-linked clickable result map. Generative answer/counter-authority functionality should be added in the same cycle if feasible; otherwise it is the immediate next delta.
 
-Do not expand beyond the human product gate until the user has a clickable artifact to test.
+Do not involve the owner during ordinary implementation/debugging. Continue autonomously through retries, narrower slices and repairs until there is a genuinely clickable end-to-end artifact worth testing, or an unavoidable owner-level decision.
+
+## Owner-attention rule
+Agent cycles are cheap; owner attention is expensive. There is no fixed cycle limit while executable progress continues. If a cycle stalls, diagnose and reroute autonomously. Do not ask the owner to choose technical details or babysit failures. The next normal owner interaction should be a usable product test.
