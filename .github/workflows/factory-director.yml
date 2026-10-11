@@ -41,16 +41,21 @@ jobs:
           set -euo pipefail
           mkdir -p /tmp/lex_accepted/core /tmp/lex_accepted/frontier
           for lane in corpus legal-distance fractal-map evaluation product; do
+            status=$(jq -r --arg lane "$lane" '.lanes[$lane].status // "PAUSE"' state/factory_direction.json)
+            [[ "$status" == "RUN" ]] || continue
             br="lab/$lane"
             if git ls-remote --exit-code --heads origin "refs/heads/$br" >/dev/null 2>&1; then
               git fetch origin "$br:refs/remotes/origin/$br"
               git worktree add --detach "/tmp/lex_accepted/core/$lane" "origin/$br" || true
             fi
           done
-          git ls-remote --heads origin 'refs/heads/lab/frontier/*' | while read -r sha ref; do
-            team="${ref#refs/heads/lab/frontier/}"
-            git fetch origin "$ref:refs/remotes/origin/lab/frontier/$team"
-            git worktree add --detach "/tmp/lex_accepted/frontier/$team" "origin/lab/frontier/$team" || true
+          jq -r '.teams[] | select(.status=="RUN") | .team_id' state/frontier_portfolio.json | while read -r team; do
+            [[ -n "$team" ]] || continue
+            ref="refs/heads/lab/frontier/$team"
+            if git ls-remote --exit-code --heads origin "$ref" >/dev/null 2>&1; then
+              git fetch origin "$ref:refs/remotes/origin/lab/frontier/$team"
+              git worktree add --detach "/tmp/lex_accepted/frontier/$team" "origin/lab/frontier/$team" || true
+            fi
           done
       - name: Restore exact rejected proposal for repair
         if: ${{ inputs.repair_from_run_id != '' }}
@@ -120,8 +125,23 @@ jobs:
           set -euo pipefail
           P="cycle/director/${GITHUB_RUN_ID}/proposal"; git fetch origin "$P:refs/remotes/origin/$P"; git worktree add --detach /tmp/lex_director_proposal "origin/$P"
           mkdir -p /tmp/lex_accepted/core /tmp/lex_accepted/frontier
-          for lane in corpus legal-distance fractal-map evaluation product; do br="lab/$lane"; if git ls-remote --exit-code --heads origin "refs/heads/$br" >/dev/null 2>&1; then git fetch origin "$br:refs/remotes/origin/$br"; git worktree add --detach "/tmp/lex_accepted/core/$lane" "origin/$br" || true; fi; done
-          git ls-remote --heads origin 'refs/heads/lab/frontier/*' | while read -r sha ref; do team="${ref#refs/heads/lab/frontier/}"; git fetch origin "$ref:refs/remotes/origin/lab/frontier/$team"; git worktree add --detach "/tmp/lex_accepted/frontier/$team" "origin/lab/frontier/$team" || true; done
+          for lane in corpus legal-distance fractal-map evaluation product; do
+            status=$(jq -r --arg lane "$lane" '.lanes[$lane].status // "PAUSE"' state/factory_direction.json)
+            [[ "$status" == "RUN" ]] || continue
+            br="lab/$lane"
+            if git ls-remote --exit-code --heads origin "refs/heads/$br" >/dev/null 2>&1; then
+              git fetch origin "$br:refs/remotes/origin/$br"
+              git worktree add --detach "/tmp/lex_accepted/core/$lane" "origin/$br" || true
+            fi
+          done
+          jq -r '.teams[] | select(.status=="RUN") | .team_id' state/frontier_portfolio.json | while read -r team; do
+            [[ -n "$team" ]] || continue
+            ref="refs/heads/lab/frontier/$team"
+            if git ls-remote --exit-code --heads origin "$ref" >/dev/null 2>&1; then
+              git fetch origin "$ref:refs/remotes/origin/lab/frontier/$team"
+              git worktree add --detach "/tmp/lex_accepted/frontier/$team" "origin/lab/frontier/$team" || true
+            fi
+          done
       - name: Install Ox/OpenCode
         run: curl --retry 5 --retry-all-errors --retry-delay 15 -fsSL https://opencode.ai/install | bash
       - name: Audit Director proposal
