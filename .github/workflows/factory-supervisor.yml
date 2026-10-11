@@ -87,6 +87,50 @@ jobs:
                 done
           }
 
+          cancel_superseded_core_runs() {
+            local dirv id title rv
+            dirv=$(jq -r '.version' state/factory_direction.json)
+            echo "Scanning active Core runs for superseded direction versions (current v$dirv)..."
+            gh run list --repo "$GITHUB_REPOSITORY" --workflow core-lane.yml --limit 100 --json databaseId,displayTitle,status               | jq -r '.[] | select(.status=="queued" or .status=="in_progress" or .status=="requested" or .status=="waiting" or .status=="pending") | [.databaseId,.displayTitle] | @tsv'               | while IFS=$'\t' read -r id title; do
+                  [[ -n "$id" ]] || continue
+                  rv=$(sed -n 's/.* dirV\([0-9][0-9]*\) .*/\1/p' <<<"$title")
+                  [[ -n "$rv" ]] || continue
+                  if [[ "$rv" != "$dirv" ]]; then
+                    echo "::warning::Cancelling superseded Core run $id: $title (current direction v$dirv)"
+                    gh run cancel "$id" --repo "$GITHUB_REPOSITORY" || true
+                  fi
+                done
+          }
+
+          cancel_superseded_frontier_runs() {
+            local id title team ver status current_ver
+            echo "Scanning active Frontier runs for retired/superseded charters..."
+            gh run list --repo "$GITHUB_REPOSITORY" --workflow frontier-team.yml --limit 100 --json databaseId,displayTitle,status               | jq -r '.[] | select(.status=="queued" or .status=="in_progress" or .status=="requested" or .status=="waiting" or .status=="pending") | [.databaseId,.displayTitle] | @tsv'               | while IFS=$'\t' read -r id title; do
+                  [[ -n "$id" ]] || continue
+                  team=$(sed -n 's/^Frontier \([^ ]*\) v[0-9][0-9]* .*/\1/p' <<<"$title")
+                  ver=$(sed -n 's/^Frontier [^ ]* v\([0-9][0-9]*\) .*/\1/p' <<<"$title")
+                  [[ -n "$team" && -n "$ver" ]] || continue
+                  status=$(jq -r --arg team "$team" --argjson ver "$ver" '[.teams[] | select(.team_id==$team and .charter_version==$ver)][-1].status // "MISSING"' state/frontier_portfolio.json)
+                  current_ver=$(jq -r --arg team "$team" '[.teams[] | select(.team_id==$team)] | map(.charter_version) | max // -1' state/frontier_portfolio.json)
+                  if [[ "$status" != "RUN" || "$ver" != "$current_ver" ]]; then
+                    echo "::warning::Cancelling superseded Frontier run $id: $title (status=$status current_v=$current_ver)"
+                    gh run cancel "$id" --repo "$GITHUB_REPOSITORY" || true
+                  fi
+                done
+          }
+
+          cancel_predirection_directors() {
+            local changed id title created
+            changed=$(git log -1 --format=%cI -- state/factory_direction.json 2>/dev/null || true)
+            [[ -n "$changed" ]] || return 0
+            echo "Scanning active Directors older than latest direction change ($changed)..."
+            gh run list --repo "$GITHUB_REPOSITORY" --workflow factory-director.yml --limit 50 --json databaseId,displayTitle,status,createdAt               | jq -r --arg changed "$changed" '.[] | select(.status=="queued" or .status=="in_progress" or .status=="requested" or .status=="waiting" or .status=="pending") | select(.createdAt < $changed) | [.databaseId,.displayTitle,.createdAt] | @tsv'               | while IFS=$'\t' read -r id title created; do
+                  [[ -n "$id" ]] || continue
+                  echo "::warning::Cancelling pre-direction Director $id: $title created=$created"
+                  gh run cancel "$id" --repo "$GITHUB_REPOSITORY" || true
+                done
+          }
+
           cancel_stale_agent_jobs() {
             local now id title job_name started start_epoch age workflow
             now=$(date -u +%s)
@@ -130,6 +174,9 @@ jobs:
           }
 
           cancel_legacy_active
+          cancel_superseded_core_runs
+          cancel_superseded_frontier_runs
+          cancel_predirection_directors
           cancel_stale_agent_jobs
 
           if [[ "$(jq -r '.healthy // false' state/model_health.json 2>/dev/null || echo false)" != true ]]; then
