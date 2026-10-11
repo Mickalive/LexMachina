@@ -2,7 +2,7 @@ name: LEX Accepted Results Publisher
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "27 * * * *"
   workflow_dispatch:
   workflow_run:
     workflows:
@@ -16,7 +16,7 @@ permissions:
 
 concurrency:
   group: lex-results-publisher
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   publish:
@@ -32,7 +32,9 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p results/accepted-state
-          for lane in corpus legal-distance fractal-map evaluation product; do
+          # Historical paused-lane results already live on main. During the MVP,
+          # mirror only currently RUN core lanes to avoid fetching multi-GB legacy branches.
+          for lane in $(jq -r '.lanes | to_entries[] | select(.value.status=="RUN") | .key' state/factory_direction.json); do
             br="lab/$lane"
             if git ls-remote --exit-code --heads origin "refs/heads/$br" >/dev/null 2>&1; then
               git fetch origin "$br:refs/remotes/origin/$br"
@@ -42,11 +44,15 @@ jobs:
             fi
           done
           mkdir -p results/frontier results/audit/frontier results/accepted-state/frontier
-          git ls-remote --heads origin 'refs/heads/lab/frontier/*' | while read -r sha ref; do
-            team="${ref#refs/heads/lab/frontier/}"; git fetch origin "$ref:refs/remotes/origin/lab/frontier/$team"
-            git cat-file -e "origin/lab/frontier/$team:results/frontier/$team" 2>/dev/null && git checkout "origin/lab/frontier/$team" -- "results/frontier/$team" || true
-            git cat-file -e "origin/lab/frontier/$team:results/audit/frontier/$team" 2>/dev/null && git checkout "origin/lab/frontier/$team" -- "results/audit/frontier/$team" || true
-            if git cat-file -e "origin/lab/frontier/$team:state/frontier/$team.json" 2>/dev/null; then git show "origin/lab/frontier/$team:state/frontier/$team.json" > "results/accepted-state/frontier/$team.json"; fi
+          jq -r '.teams[] | select(.status=="RUN" or .status=="PROMOTE") | .team_id' state/frontier_portfolio.json | while read -r team; do
+            [[ -n "$team" ]] || continue
+            ref="refs/heads/lab/frontier/$team"
+            if git ls-remote --exit-code --heads origin "$ref" >/dev/null 2>&1; then
+              git fetch origin "$ref:refs/remotes/origin/lab/frontier/$team"
+              git cat-file -e "origin/lab/frontier/$team:results/frontier/$team" 2>/dev/null && git checkout "origin/lab/frontier/$team" -- "results/frontier/$team" || true
+              git cat-file -e "origin/lab/frontier/$team:results/audit/frontier/$team" 2>/dev/null && git checkout "origin/lab/frontier/$team" -- "results/audit/frontier/$team" || true
+              if git cat-file -e "origin/lab/frontier/$team:state/frontier/$team.json" 2>/dev/null; then git show "origin/lab/frontier/$team:state/frontier/$team.json" > "results/accepted-state/frontier/$team.json"; fi
+            fi
           done
           python - <<'PY'
           import json, pathlib
