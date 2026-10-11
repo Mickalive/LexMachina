@@ -132,4 +132,17 @@ jobs:
             fi
           done
 
+          echo '--- maintenance branch cleanup ---'
+          git ls-remote --heads origin 'refs/heads/maintenance/*' | while read -r sha ref; do
+            branch="${ref#refs/heads/}"
+            commit_date=$(gh api "repos/$REPO/commits/$sha" --jq '.commit.committer.date' 2>/dev/null || true)
+            [[ -n "$commit_date" ]] || continue
+            commit_epoch=$(date -u -d "$commit_date" +%s 2>/dev/null || echo "$NOW")
+            age=$((NOW-commit_epoch))
+            if (( age >= BRANCH_RETENTION_SECONDS )); then
+              echo "Deleting stale maintenance branch $branch (age=${age}s)"
+              git push origin --delete "$branch" || true
+            fi
+          done
+
           echo 'Housekeeping complete.'
