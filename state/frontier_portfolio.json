@@ -1,5 +1,5 @@
 {
-  "version": 5,
+  "version": 6,
   "teams": [
     {
       "team_id": "frontier-citation-graph",
@@ -11,7 +11,7 @@
       "why_now": "Newer ACCEPTED evaluation evidence (core/evaluation/state/evaluation.json, EVAL_FREEZE_TFIDF_174K_BASELINE_20261010, 2026-10-10) explicitly names citation-graph coverage as the binding blocker for the citation-heritage capability and retracts the prior dense-superiority claim. The frozen benchmark graph is only a 174-decision seed (in_citation_graph=174, with_outgoing_citations=174, 924 resolved citations), yet accepted artifacts already contain a corpus-scale graph (5,031 sources / 7,799 edges / 137,314 pairs) that was produced but never adopted. This integration/adoption bottleneck is concrete, product-relevant, and independent of the dense-embedding pipeline and of section extraction. CORPUS LANE NOW DELIVERED: section extraction (174k), BGE/bger crosswalk (100% eval alignment), 2024-2026 parquet (15,536 decisions) — all dependencies for this team are satisfied.",
       "non_duplication": "Corpus lane (PAUSE) completed 174k section extraction, BGE/bger ID crosswalk, and 2024-2026 parquet/embeddings — NOT citation-graph construction. legal-distance is PAUSED and owns embedding/distance benchmarking, not graph construction; fractal-map owns clustering; evaluation owns the harness; product owns UI. No active lane or team currently builds or ADOPTS a corpus-scale citation graph. THIS TEAM DOES NOT REBUILD WHAT EXISTS: it EXTENDS and INTEGRATES evaluation/evaluation/build_174k_citation_graph.py and its existing outputs (evaluation/results/174k_citation_heritage/citation_graph_174k.json — 5,031 sources, 7,799 edges, 1,286 outdegree>=2 — and citation_pairs_174k_full.json — 137,314 positive pairs), and must first document and quantify why those outputs were NOT adopted into the frozen benchmark (suspected ID-scheme/resolution/coverage gaps) before adding any new extraction.",
       "dependencies": [
-        "corpus/normalization/canonical pinned 174k corpus (bge_ decision IDs; canonical JSONL covers 2000-2026; full_text coverage 1.0; cited_decisions field coverage 0.526) and evaluation metadata_174k (bger_ decision IDs, 173,963, years 2000-2026) — DELIVERED",
+        "corpus/normalization/canonical pinned 174k corpus (bge_ decision IDs; canonical JSONL covers 2000-2026; full_text coverage 1.0; cited_decisions field coverage 0.526) and evaluation metadata_174k (bger_ decision IDs, 173,963, years 2000-2026) — DELIVERED, ACCEPTED in /tmp/lex_accepted",
         "corpus/normalization/canonical/resolved_full/citation_to_decision_id.json and citation_graph_resolved.json (174-decision seed: in_citation_graph=174, with_outgoing_citations=174, 2,019/2,105 refs resolved; resolution 95.9%) — ACCEPTED, AVAILABLE IN /tmp/lex_accepted",
         "EXISTING non-adopted corpus-scale graph to extend: evaluation/evaluation/build_174k_citation_graph.py, evaluation/results/174k_citation_heritage/citation_graph_174k.json (5,031 sources / 7,799 edges / 1,286 outdegree>=2), citation_pairs_174k_full.json (137,314 positive pairs) — ACCEPTED, AVAILABLE IN /tmp/lex_accepted",
         "frozen evaluation harness: evaluation/results/174k_citation_heritage/citation_pairs_174k.json (in_citation_graph=174, resolved_citations_in_corpus=924) and results/evaluation/citation_heritage_174k_tfidf_latest.json (TF-IDF citation-heritage AUC=0.7296) — ACCEPTED, AVAILABLE IN /tmp/lex_accepted",
@@ -19,7 +19,7 @@
         "frozen benchmark rule from core/evaluation/state/evaluation.json (citation-heritage threshold AUC>=0.75, shared>=2 citation pairs) — ACCEPTED, AVAILABLE IN /tmp/lex_accepted"
       ],
       "acceptance_test": "(1) Corpus-scale citation graph BUILT/ADOPTED with coverage reported against the theoretical ceiling: at least 45,800 decisions carrying >=1 resolved outgoing edge (>=50% of the ~91,583 maximum implied by cited_decisions field coverage 0.526 over 174,113 decisions), EXTENDING the existing 5,031-source graph, OR a documented, reproducible coverage ceiling with quantified resolution failure modes; resolution rate reported against the 95.9% seed baseline. (2) Citation-heritage AUC on shared>=2 citation pairs computed on a held-out split, using the frozen harness, with >=2000 evaluable pairs. (3) EITHER frozen TF-IDF primary citation-heritage AUC improves above 0.7296 OR dense center_projected_64dim reaches the 0.75 criterion. (4) Artifacts serialized, deterministically reproducible, provenance-preserved, and the adoption status of the existing 5,031-source graph explicitly documented. (5) Frozen benchmark NOT weakened; all negative results preserved.",
-      "stop_promote_rule": "PROMOTE (hand graph + metrics to fractal-map/legal-distance/evaluation/product as an accepted artifact) if acceptance (1)+(2) pass and (3) shows improvement or dense>=0.75. TERMINATE if the integrated graph cannot exceed 10,000 decisions with resolved outgoing edges (≈2x the existing 5,031-source graph) within the charter window, or if citation-heritage AUC does not exceed the frozen 0.7296 — record the negative result and leave the dense citation-heritage claim retracted. A successor hypothesis requires a NEW charter_version.",
+      "stop_promote_rule": "PROMOTE (hand graph + metrics to fractal-map/legal-distance/evaluation/product as an accepted artifact) if acceptance (1)+(2) pass and (3) shows improvement or dense>=0.75. TERMINATE if the integrated graph cannot exceed 10,000 decisions with resolved outgoing edges within the charter window, or if citation-heritage AUC does not exceed the frozen 0.7296 — record the negative result and leave the dense citation-heritage claim retracted. A successor hypothesis requires a NEW charter_version.",
       "run_history": [
         {
           "run_id": 38062714438,
@@ -44,7 +44,7 @@
           "charter_version": 1,
           "status": "INITIALIZED",
           "audit_gate": "PENDING",
-          "audit_note": "Director assessment RUN_38112187740: team remains INITIALIZED (evidence_tier=UNTESTED per frontier-citation-graph/state/frontier-citation-graph.json). All 6 dependencies confirmed available in /tmp/lex_accepted. Awaiting team artifact production and subsequent audit. No new teams chartered; portfolio v4 unchanged.",
+          "audit_note": "Director assessment RUN_38112187740: team remains INITIALIZED (evidence_tier=UNTESTED per frontier-citation-graph/state/frontier-citation-graph.json). All 6 dependencies confirmed available in /tmp/lex_accepted. Awaiting team artifact production and subsequent audit. No new teams chartered; portfolio v4 unchanged — single team at charter v1 is the only credible independent path. Awaiting team artifact production and audit gate.",
           "integration_result": "pending"
         },
         {
@@ -85,7 +85,7 @@
     {
       "team_id": "frontier-citation-graph",
       "charter_version": 2,
-      "status": "INITIALIZED",
+      "status": "TERMINATED",
       "product_capability": "Doctrinal-lineage / citation-heritage navigation at full corpus scale: the ability to surface a decision's true legal ancestors and descendants (which precedents it follows, distinguishes, criticizes) as a separable citation-heritage map view, and to strengthen the citation-based primary representation and its evaluation.",
       "question": "Can the EXISTING corpus-scale citation extraction pipeline (evaluation/evaluation/build_174k_citation_graph.py, already producing 5,031 source decisions / 7,799 edges / 137,314 positive pairs) be EXTENDED to cover ≥10,000 decisions with resolved outgoing edges (≥2× the current 5,031) by leveraging the full cited_decisions field coverage (0.526 over 174,113 decisions, theoretical ceiling ~91,583), AND integrated into the frozen evaluation harness to make the citation-heritage criterion empirically testable at 174k scale?",
       "hypothesis": "The existing pipeline (build_174k_citation_graph.py) computes over all 2000-2026 bger_ metadata via citation_to_decision_id.json but currently only yields 5,031 source decisions with outgoing edges. The gap to the theoretical ceiling (~91,583) is due to ID-scheme mismatches (bge_ vs bger_), incomplete resolution of cited references to decision IDs, and/or the pipeline not iterating over all decisions. The BGE/bger crosswalk (5,820 linked, 100% eval alignment) and section extraction (174k) are now DELIVERED, removing the last data blockers. Extending the existing pipeline to resolve citations for more decisions and adopting its output into the frozen harness will make the citation-heritage AUC criterion testable; if the extended graph still cannot exceed 10,000 decisions with resolved edges, the citation-heritage capability is genuinely dead at corpus scale and the dense claim must remain retracted.",
@@ -118,6 +118,15 @@
           "audit_gate": "PENDING",
           "audit_note": "Director assessment RUN_38117582938: team remains INITIALIZED; all 6 dependencies confirmed available in /tmp/lex_accepted. Zero artifacts produced since dispatch (run 38116322578). This is Run 1 of 2 for Milestone 1 (≥10,000 decisions with resolved outgoing edges). Portfolio v5 unchanged — single team at charter v2 remains the only credible independent path. Awaiting team artifact production and audit gate.",
           "integration_result": "pending"
+        },
+        {
+          "run_id": 38118376799,
+          "charter_version": 2,
+          "status": "TERMINATED",
+          "completed_at": "2026-10-11T06:35:00Z",
+          "audit_gate": "TERMINATED_PER_STOP_RULE",
+          "audit_note": "TERMINATED per charter stop rule: Milestone 1 deadline reached (2 Director runs: 38116322578 dispatch, 38117582938 run 1, this run 38118376799 is run 2) with zero artifacts produced. Existing corpus-scale graph remains at 5,031 source decisions with resolved outgoing edges — cannot exceed 10,000 threshold. All 6 dependencies satisfied in /tmp/lex_accepted; no data blockers. This is an operational execution failure, not scientific invalidity. Negative result recorded: the citation-heritage capability cannot be empirically validated at corpus scale with current pipeline; dense center_projected_64dim citation-heritage claim remains retracted (DENSE_NOT_EMPIRICALLY_VALIDATED_BLOCKED_ON_CITATION_GRAPH_COVERAGE). Frozen TF-IDF baseline AUC=0.7296 stands unchallenged. No successor charter justified — two consecutive charters terminated for operational execution gaps indicates this path is not viable without fundamental pipeline redesign, which would be a new hypothesis requiring separate justification.",
+          "integration_result": "terminated"
         }
       ]
     }
