@@ -1,64 +1,174 @@
 # LEXMACHINA — MASTER PROMPT
 
 ## Mission
-Build the fastest path to a genuinely useful **Google Maps of law**: a fractal, multi-scale map of case law in which decisions are positioned by legally meaningful proximity; users can zoom from domains to subdomains to micro-clusters to decisions, switch legal/factual/reasoning/citation views, and import their own corpus to compute once and explore interactively.
+Build the fastest path to a genuinely useful **visual legal research interface** for Swiss case law.
+
+LexMachina is not required to discover one universal geometry of all jurisprudence. Its core product is query-specific:
+
+> legal question → broad retrieval → sourced AI answer → visual map of the relevant jurisprudence → explicit search for contrary / limiting authority.
+
+The map exists to help jurists see branches, minority lines, exceptions, isolated decisions and relationships that a ranked text list or a single AI answer can hide.
 
 ## Initial product scope
-1. Swiss Federal Supreme Court case law from **2000 onward** as the first public base map.
-2. User-imported case-law corpora as the second input mode.
-3. Compute a corpus once; persist derived map/index artifacts; do not recompute without reason.
-4. Ship an ugly but real end-to-end product early and improve it continuously.
+1. Swiss case law as the first public domain.
+2. Use **OpenCaseLaw public infrastructure as the default data source** instead of rebuilding the national corpus and citation graph.
+3. For each query, retrieve broadly, preserve high recall, then build a map over a tractable result set.
+4. Keep the AI answer and the visual map side by side: the map is an audit/exploration layer for the answer.
+5. Explicitly search for decisions that contradict, limit, distinguish or create exceptions to the provisional answer.
+6. Ship a clickable end-to-end prototype before doing more fundamental representation research.
+7. User-imported corpora remain a later capability, not the MVP critical path.
 
-## Central research question
-What representation and distance between legal decisions produces neighborhoods, clusters and multi-scale regions that are **more useful to jurists** than a simple whole-document semantic embedding map?
+## Central product question
+For a real legal research query, does **AI answer + visual query map** help a jurist discover and understand relevant jurisprudence — especially contrary or minority authority — better than an AI answer plus a conventional ranked list?
 
-Everything in this repository exists to answer that question and turn accepted answers into product capability.
+Everything in this repository exists to answer that question and turn a positive answer into product capability.
+
+## Query-conditioned structure
+Do not assume every decision has one globally correct position in a universal legal space.
+
+The relevant structure is allowed to depend on the current research question, active relation layer and retrieved candidate set.
+
+The same decision may occupy a different position for a different query. This is expected.
+
+## Retrieval-first doctrine
+A visualization cannot reveal an authority that retrieval failed to find.
+
+Therefore:
+- optimize recall before map aesthetics;
+- search across FR/DE/IT;
+- use norms, citations and query expansion where useful;
+- preserve lower-ranked candidates that may represent contrary or minority lines;
+- run an independent adversarial retrieval pass against the provisional answer.
+
+## Adversarial research requirement
+For every substantive research query, the product should attempt to find authority that could:
+- contradict the provisional answer;
+- narrow it;
+- distinguish the facts or legal issue;
+- reveal an exception;
+- expose an older/minority line;
+- reveal a language-specific branch.
+
+These authorities must remain visible in the result set even when they are not top-ranked by the initial search.
+
+Never classify a case as supporting/contrary/limiting unless the evidence supports that label.
+
+## Visual map requirement
+The map is a research interface, not decoration.
+
+Minimum semantics:
+- point = decision;
+- proximity = query-conditioned similarity/relation;
+- cluster = coherent group of retrieved decisions;
+- outlier = weakly connected/isolated result worth inspecting;
+- relations/citations can be revealed on selection;
+- cluster labels explain why a group exists;
+- counter-authorities are visually discoverable.
+
+2D or 3D is an implementation choice. A 3D point cloud is not inherently better. Use 3D only if it improves comprehension.
+
+## Data-source doctrine
+Prefer open, maintained infrastructure over rebuilding commoditized components.
+
+For Swiss public law research, OpenCaseLaw is the canonical first source for the MVP because it provides public search, decision records, laws and citation infrastructure.
+
+Preserve the legacy LexMachina 174k corpus and all accepted/rejected research results as historical evidence and optional fallback/test data, but do not keep them on the critical path unless the new product actually needs them.
+
+## Zero-cost invariant
+The canonical MVP must require **zero mandatory external API spend**.
+
+Allowed:
+- OpenCaseLaw public REST/MCP;
+- standard GitHub-hosted runners available free to this public repository;
+- OpenCode free models / free fallback models;
+- open-source libraries and locally runnable open-source models;
+- existing repository artifacts.
+
+Forbidden as required dependencies:
+- paid LLM APIs;
+- paid embedding/reranking APIs;
+- paid search APIs;
+- paid vector databases;
+- paid hosted inference.
+
+Paid services may be documented only as optional future benchmarks.
 
 ## Broad means, narrow end
-The factory may test many embeddings, legal-specific embeddings, lexical methods, citation graphs, norm/article extraction, Jurivoc, section segmentation, LLM-derived legal issues, argument structure, doctrine citations, legally relevant facts, outcomes, graph embeddings, metric learning, clustering, manifold learning, hierarchical clustering, multiresolution graph methods, dimensionality reduction, retrieval techniques, hybrid distances and visualization algorithms.
+The factory may use lexical search, BM25/TF-IDF, multilingual query expansion, citation expansion, open-source embeddings, graph methods, reranking, clustering, projection, WebGL/Canvas, answer generation, counter-authority retrieval and other methods that directly improve the query-map product.
 
-It must NOT create unrelated research programs merely because they are interesting. Every experiment must state the product capability it could improve and the concrete decision its result will inform.
+Do not launch broad research programs merely because they are scientifically interesting.
 
-## Prior art
-Treat Isaacus/Kanon-style legal semantic embedding plus dimensionality reduction as an important external baseline and architectural reference where legally and technically usable. Never assume their representation is correct. Reproduce or approximate strong existing methods before claiming improvement. Learn from legal-map, semantic-search, legal-network and document-engineering work. Prior art is a baseline, not an authority.
+Do not rebuild:
+- a national Swiss case-law corpus;
+- a national citation graph;
+- a universal 174k embedding space;
+- a universal fractal hierarchy;
 
-## Human benchmark / weak supervision
-Exploit Swiss Federal Supreme Court metadata and intellectual indexing where available, including norms/descriptors and Jurivoc, as imperfect human benchmarks. Never mistake Jurivoc for ground truth. Use it to test whether geometry recovers meaningful human structure while allowing useful novel structure.
+unless a concrete MVP capability cannot be built without it.
 
-## Anti-noise principle
-Frequent boilerplate and routine procedural passages must not dominate geometry merely because they occur everywhere. A norm, precedent, phrase or section that is ubiquitous in a corpus should contribute little positional information unless the decision genuinely litigates that element. Prefer context-sensitive topicality over naive mention counts.
+## Reuse doctrine
+Reuse existing LexMachina work when it shortens time-to-product:
+- TF-IDF / lexical tooling;
+- multilingual robustness tests;
+- clustering and hierarchy code;
+- WebGL / Canvas rendering;
+- LOD / culling;
+- navigation / decision detail components;
+- evaluation discipline;
+- negative/null results.
 
-## Multi-view requirement
-Do not prematurely collapse legal similarity into one scalar representation. Preserve separable views where useful:
-- legal issue / doctrinal proximity
-- reasoning / argument proximity
-- legally relevant facts
-- norms/articles genuinely at issue
-- cited precedents and citation role
-- doctrine/authors cited
-- outcome/holding
-- time/court/language metadata
-
-The product may expose multiple map modes when that improves navigation.
-
-## Fractal requirement
-A flat 2D/3D scatterplot is a baseline, not the product. The target is hierarchical and multi-resolution: corpus → domain → subdomain → subcluster → microcluster → decisions. Zoom should reveal more specific structure rather than merely enlarge points.
+Legacy join-alignment, dense-embedding and corpus-scale graph problems are not MVP blockers unless they directly affect the query-specific pipeline.
 
 ## Evaluation doctrine
-Before claim-bearing measurement, freeze hypothesis, corpus/sample, baseline, metric and success rule. Preserve negative results. Compare against strong baselines. Prefer tests measuring jurist usefulness or credible proxies.
+Before claim-bearing measurement, freeze hypothesis, query set, baseline, metric and success rule. Preserve negative results. Never weaken a benchmark after seeing results.
 
-Candidate evaluations include neighborhood agreement with human indexing; retrieval of known doctrinal families; cross-language robustness; recovery of related decisions without shared citations or obvious keywords; stability under corpus growth; cluster hierarchy coherence; resistance to procedural boilerplate; and jurist pairwise preference over baseline neighbors/maps.
+Automated evaluation should cover:
+- recall of known relevant authorities;
+- recall of known contrary/limiting authorities;
+- source validity;
+- duplication;
+- language robustness;
+- reproducibility;
+- latency;
+- cluster stability.
+
+Automated metrics do not prove that the visualization is useful.
+
+## Human product gate
+Further investment is justified only if real legal research tasks show that the visual layer materially improves the experience over answer + ranked list.
+
+The key questions are:
+1. Did the map expose a relevant branch, exception or decision that was less visible in the list/answer?
+2. Did the map make the jurisprudential structure easier to understand?
+3. Did the map increase confidence that contrary authority had not been hidden?
+4. Was the combined answer + map preferable to the conventional interface?
+
+If not, stop the standalone product.
 
 ## Product doctrine
-Research and product run in parallel. Product Engineering integrates evidence-backed methods as defaults and may expose exploratory modes clearly marked. Never wait for perfect research before producing a working slice.
+Build the smallest clickable end-to-end slice first.
+
+Canonical implementation order:
+1. free OpenCaseLaw retrieval + caching;
+2. free reranking / result bundle;
+3. sourced AI answer;
+4. independent counter-authority pass;
+5. query-specific interactive map over roughly 100–300 decisions;
+6. frozen automated tests;
+7. human product test.
+
+Only after this gate should the factory invest in more sophisticated global geometry, dense embeddings, custom corpus infrastructure or 3D.
+
+The authoritative MVP specification is `docs/product/QUERY_MAP_MVP.md`.
 
 ## Evidence tiers
-UNTESTED < EXPLORATORY < REPRODUCED < ACCEPTED. Only ACCEPTED findings may raise default product claims or replace a benchmarked default. Accepted negative findings are first-class results.
+UNTESTED < EXPLORATORY < REPRODUCED < ACCEPTED. Only ACCEPTED findings may raise default product claims. Accepted negative findings are first-class results.
 
 ## Non-negotiables
 - Preserve provenance and historical results; never overwrite claim-bearing outputs.
 - Never fabricate data, labels, citations or results.
 - Never weaken a benchmark after seeing results.
 - Never equate prettier visualization with better legal navigation.
-- Do not constrain useful research because of token thrift when Ox is available without a token budget constraint.
-- Stay on mission.
+- Never make a paid external service mandatory for the canonical MVP.
+- Technical failures auto-retry/recover; dead ends reroute. Only a genuine human decision may stop the factory.
+- Stay on the product mission.
