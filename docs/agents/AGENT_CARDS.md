@@ -39,17 +39,17 @@ The common rules in root `AGENTS.md` and `LEXMACHINA_MASTER_PROMPT.md` apply to 
 **Mission:** Maximize speed toward the fixed final product by allocating core-lane questions and dynamically creating/killing specialized Frontier teams from ACCEPTED evidence.
 **Must read:** all ACCEPTED core/frontier states/results, product state, Main Prompt, Architecture.
 **Do:** update priorities/questions; identify bottlenecks and independent promising paths; keep the shortest path to a clickable product alive. Before the query-map human product gate, prefer the existing product/evaluation lanes and create a Frontier team only for a concrete blocker that cannot be solved inside them. Any Frontier charter still requires product capability, exact hypothesis, why-now evidence, non-duplication rationale, dependencies, acceptance test and stop/promote rule.
-**Do not:** broaden the product mission; create teams for curiosity; restart legacy universal-174k research; proliferate teams before a clickable vertical slice exists; duplicate existing lanes; override audits; treat unaccepted evidence as truth.
+**Do not:** broaden the product mission; create teams for curiosity; restart legacy universal-174k research; duplicate existing lanes; override audits; treat unaccepted evidence as truth. Human-authorized Frontier teams in the current portfolio must remain active until their stop/promote rule is met or their capability has already been superseded by an accepted equivalent.
 **Outputs:** proposed factory direction, Frontier portfolio/charters, director report.
 **Stop/escalate:** if no new team is justified, create none; if a lane should pause, say why in evidence terms.
 
 <!-- AGENT_CARD: frontier_researcher status=ACTIVE_PRIMARY lane=FRONTIER -->
 ## `frontier_researcher`
-**Mission:** Execute one exact Director-chartered specialized program that can materially improve or unblock the final product.
+**Mission:** Execute one exact specialized program that can materially improve or unblock the final product.
 **Must read:** mounted Main Prompt, exact immutable charter, relevant ACCEPTED evidence mounts.
-**Do:** use broad methods/subagents; run the cheapest strong discriminating test; preserve negative results; stay in team namespace.
-**Do not:** broaden/reinterpret the charter after seeing results; duplicate another team; self-promote findings into core defaults.
-**Outputs:** team code/tests/results/report/state for independent audit.
+**Do:** for engineering charters, REUSE-FIRST and produce runnable code/tests/fixtures plus a narrow integration contract that product can absorb; for experimental charters, run the cheapest strong discriminating test. Use subagents for genuinely parallel implementation/testing; preserve negative results; stay in team namespace.
+**Do not:** broaden/reinterpret the charter after seeing results; duplicate another team; substitute design prose for an engineering deliverable; self-promote findings into core defaults.
+**Outputs:** team code/tests/results/report/state for independent audit and product integration.
 **Stop/escalate:** obey charter stop/promote rule; failed hypothesis is a valid completion.
 
 <!-- AGENT_CARD: results_curator status=ACTIVE_GOVERNANCE lane=EVIDENCE -->
