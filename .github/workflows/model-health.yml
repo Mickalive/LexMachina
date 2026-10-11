@@ -8,7 +8,7 @@ on:
       - '.opencode/agents/model_probe.md'
       - 'docs/agents/AGENT_CARDS.md'
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: '*/30 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -38,8 +38,8 @@ jobs:
         shell: bash
         run: |
           set -uo pipefail
-          mkdir -p /tmp/lex_model_health
-          MODELS_LOG=/tmp/lex_model_health/models.txt
+          mkdir -p "$GITHUB_WORKSPACE/.lex_model_health"
+          MODELS_LOG=$GITHUB_WORKSPACE/.lex_model_health/models.txt
           if ! opencode models > "$MODELS_LOG" 2>&1; then
             echo "::warning::opencode models failed"
             cat "$MODELS_LOG" || true
@@ -73,8 +73,8 @@ jobs:
             CANDIDATES+=("$model")
           done
 
-          RESULTS=/tmp/lex_model_health/results.jsonl
-          HEALTHY_FILE=/tmp/lex_model_health/healthy.txt
+          RESULTS=$GITHUB_WORKSPACE/.lex_model_health/results.jsonl
+          HEALTHY_FILE=$GITHUB_WORKSPACE/.lex_model_health/healthy.txt
           : > "$RESULTS"
           : > "$HEALTHY_FILE"
           PREFERRED='opencode/x-preview-f-free'
@@ -86,9 +86,9 @@ jobs:
               continue
             fi
 
-            MARKER="/tmp/lex_model_health/marker_${GITHUB_RUN_ID}_$(echo "$model" | tr '/.-' '___')"
+            MARKER="$GITHUB_WORKSPACE/.lex_model_health/marker_${GITHUB_RUN_ID}_$(echo "$model" | tr '/.-' '___')"
             rm -f "$MARKER"
-            LOG="/tmp/lex_model_health/probe_$(echo "$model" | tr '/.-' '___').log"
+            LOG="$GITHUB_WORKSPACE/.lex_model_health/probe_$(echo "$model" | tr '/.-' '___').log"
 
             echo "Probing $model with a real bash-tool side effect"
             set +e
