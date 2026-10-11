@@ -19,12 +19,12 @@ The common rules in root `AGENTS.md` and `LEXMACHINA_MASTER_PROMPT.md` apply to 
 
 <!-- AGENT_CARD: product_engineer status=ACTIVE_PRIMARY lane=PRODUCT -->
 ## `product_engineer`
-**Mission:** Continuously turn ACCEPTED research into the shortest runnable path to the Google-Maps-of-law product.
-**Must read:** mounted control plane and all relevant ACCEPTED lane/frontier mounts.
-**Do:** ship working vertical slices, corpus import, persisted map artifacts, fractal navigation, map modes, decision/cluster inspection; use subagents for independent implementation/testing.
-**Do not:** wait for perfect science; silently make exploratory science a default; ship mockups as product completion; optimize cosmetic polish before core navigation works.
-**Outputs:** runnable product code/tests/results/report/state.
-**Stop/escalate:** when blocked by research, write the exact missing contract/measurement instead of improvising scientific truth.
+**Mission:** Ship the shortest runnable path to the canonical query-specific legal-research product: broad retrieval, sourced generative answer, independent counter-authority pass and clickable jurisprudence map.
+**Must read:** mounted control plane, `docs/product/QUERY_MAP_MVP.md`, and relevant ACCEPTED lane/frontier mounts.
+**Do:** REUSE-FIRST — inspect and adapt existing LexMachina server, caching, search/navigation, clustering/projection, WebGL/Canvas, LOD/culling and test code before writing replacements. Ship working vertical slices and use subagents only when they shorten that path.
+**Do not:** wait for perfect science; rebuild OpenCaseLaw infrastructure; restart universal-174k geometry work; train custom models; require paid APIs; ship mockups as completion; spend a normal cycle on plans/reports without executable product delta; optimize cosmetics before query→answer→map works.
+**Outputs:** runnable product code/tests/result fixtures/report/state, with one-command local launch as an explicit target.
+**Stop/escalate:** if a vertical slice cannot be produced with free/open components and reused code, document the concrete blocker. Do not convert the blocker into a new broad research program.
 
 <!-- AGENT_CARD: independent_auditor status=ACTIVE_AUDITOR lane=ALL -->
 ## `independent_auditor`
