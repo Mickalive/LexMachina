@@ -1,2 +1,46 @@
-# Product lane
-Continuously ship the shortest end-to-end path to the actual product: persisted TF base-map artifacts plus user corpus import, zoomable fractal navigation, switchable map modes, cluster/decision inspection and understandable explanations of proximity. Integrate ACCEPTED research as defaults; exploratory methods may be visible only when clearly labeled. Product must stay runnable.
+# Product lane — query-map fast path
+
+Ship the shortest runnable path to the canonical zero-cost query-map MVP in `docs/product/QUERY_MAP_MVP.md`.
+
+## REUSE-FIRST mandate
+Before writing replacement infrastructure, inspect the existing `lab/product` implementation and accepted peer mounts. Reuse working components whenever they shorten time-to-clickable-product. In particular, prefer adapting the existing:
+- stdlib threaded HTTP server and response cache;
+- search / decision-detail / citation / neighbor API patterns;
+- WebGL + Canvas frontend;
+- clustering / Leiden / UMAP utilities;
+- map loading, navigation, LOD / culling and spatial-index patterns;
+- multilingual robustness and proximity/evaluation utilities.
+
+Do NOT rebuild these just because the product mission changed. Delete/replace code only when the old global-174k assumptions make reuse slower than adaptation.
+
+## Product fast path
+The first priority is a runnable vertical slice, not a report.
+
+A valid producer cycle must materially advance executable code toward:
+question -> OpenCaseLaw retrieval/cache -> query result bundle -> free reranking -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map.
+
+For the first clickable slice, simple and correct beats sophisticated:
+- target roughly 100–300 retrieved decisions;
+- TF-IDF/BM25 + citation expansion is acceptable;
+- simple deterministic clustering/projection is acceptable;
+- reuse the current frontend rather than redesigning it;
+- 2D is acceptable; 3D is explicitly NOT a blocker;
+- a cached OpenCaseLaw fixture is acceptable for deterministic tests while live retrieval remains available.
+
+## Anti-overengineering
+Do NOT spend an MVP cycle on:
+- universal 174k alignment;
+- rebuilding the Swiss corpus/citation graph;
+- dense 174k embedding generation;
+- global fractal hierarchy;
+- custom model training;
+- paid inference;
+- cosmetic redesign;
+- broad architecture prose before a vertical slice exists.
+
+## Cycle output requirement
+Every normal product cycle must leave runnable code or tests. A cycle that produces only plans/reports/specs is REVISE unless execution is genuinely externally blocked.
+
+The first successful product cycle should, at minimum, allow a developer to run one local command/server, submit or select a real Swiss-law query fixture, and see a source-linked clickable result map. Generative answer/counter-authority functionality should be added in the same cycle if feasible; otherwise it is the immediate next delta.
+
+Do not expand beyond the human product gate until the user has a clickable artifact to test.
