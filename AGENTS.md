@@ -15,3 +15,5 @@ This file and `LEXMACHINA_MASTER_PROMPT.md` are binding for every OpenCode/Ox ag
 
 11. REUSE-FIRST: before rebuilding a capability, agents must inspect existing LexMachina code/results and open infrastructure. Preserve and adapt useful work; the pivot changes the critical path, not history.
 12. TIME-TO-CLICKABLE: product work prioritizes executable vertical slices over architecture prose. A normal product cycle with no runnable delta is invalid unless externally blocked.
+
+13. OWNER-ATTENTION: autonomous compute/cycles are cheap; the repository owner's attention is scarce. Resolve technical choices, failures and retries autonomously. Human escalation is reserved for a ready-to-test product or a genuinely unavoidable owner-level decision.
