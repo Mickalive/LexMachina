@@ -67,6 +67,7 @@ stage_control(){
     if git cat-file -e "$ref:$p" 2>/dev/null; then mkdir -p "/tmp/lex_control/$(dirname "$p")"; git show "$ref:$p" > "/tmp/lex_control/$p"; fi
   done
   if git cat-file -e "$ref:directives/lanes" 2>/dev/null; then git archive "$ref" directives/lanes | tar -x -C /tmp/lex_control; fi
+  if git cat-file -e "$ref:docs/product" 2>/dev/null; then git archive "$ref" docs/product | tar -x -C /tmp/lex_control; fi
   for p in AGENTS.md .opencode/agents; do if git cat-file -e "$ref:$p" 2>/dev/null; then git checkout -q "$ref" -- "$p"; fi; done
   OVERLAY=true
 }
