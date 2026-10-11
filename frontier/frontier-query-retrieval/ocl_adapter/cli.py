@@ -40,29 +40,54 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="ocl_adapter",
         description="OpenCaseLaw retrieval/cache adapter -> query_result_bundle candidates",
+        epilog=(
+            "Offline fixture replay (deterministic, no network): "
+            "python3 -m ocl_adapter 'Kündigung Mietvertrag Mietrecht' "
+            "--preset fixtures --out bundle.json --validate"
+        ),
     )
     p.add_argument("query", nargs="?", help="Swiss legal question / search query")
     p.add_argument("--query", dest="query_opt", default=None, help="same as positional query")
-    p.add_argument("--mode", choices=MODES, default="live",
-                   help="live=network+cache, offline=cache only, refresh=network only")
+    p.add_argument("--preset", choices=("standard", "fixtures"), default="standard",
+                   help="standard=today's CLI defaults; fixtures=exact recorded fixture "
+                        "scenario (results/frontier/frontier-query-retrieval/fixtures/cache), "
+                        "which also defaults --mode to offline")
+    p.add_argument("--mode", choices=MODES, default=None,
+                   help="live=network+cache, offline=cache only, refresh=network only "
+                        "(default: live; offline with --preset fixtures)")
     p.add_argument("--cache-dir", default=None, help="cache/fixture directory")
     p.add_argument("--base-url", default=None, help="OpenCaseLaw API base URL")
-    p.add_argument("--target", type=int, default=150, help="soft candidate target (100-300)")
-    p.add_argument("--max-candidates", type=int, default=300, help="hard cap on candidates")
-    p.add_argument("--page-size", type=int, default=100, help="page size for /decisions")
-    p.add_argument("--max-pages", type=int, default=3, help="max pages per query variant")
-    p.add_argument("--max-requests", type=int, default=40, help="hard request budget")
-    p.add_argument("--max-rps", type=float, default=4.0, help="max requests/second (<=5)")
-    p.add_argument("--stages", default=",".join(STAGES),
-                   help=f"comma list of stages from {STAGES}")
+    p.add_argument("--target", type=int, default=None,
+                   help="soft candidate target (100-300); default 150")
+    p.add_argument("--max-candidates", type=int, default=None, help="hard cap on candidates; default 300")
+    p.add_argument("--page-size", type=int, default=None, help="page size for /decisions; default 100")
+    p.add_argument("--max-pages", type=int, default=None,
+                   help="max pages per query variant; default 3")
+    p.add_argument("--max-requests", type=int, default=None, help="hard request budget; default 40")
+    p.add_argument("--max-rps", type=float, default=None, help="max requests/second (<=5); default 4.0")
+    p.add_argument("--lang-pages", type=int, default=None,
+                   help="max pages per language-filter variant; default 1")
+    p.add_argument("--citation-seeds", type=int, default=None,
+                   help="citation-neighbourhood seeds; default 5")
+    p.add_argument("--citation-page-size", type=int, default=None,
+                   help="citations fetched per seed; default 20")
+    p.add_argument("--leading-limit", type=int, default=None,
+                   help="/leading-cases limit; default 20")
+    p.add_argument("--stages", default=None,
+                   help=f"comma list of stages from {STAGES}; default {','.join(STAGES)}")
+    p.add_argument("--stop-at-target", action="store_true",
+                   help="stop stages once the candidate target is met")
     p.add_argument("--no-stop-at-target", action="store_true",
                    help="run every requested stage even after the target is met")
-    p.add_argument("--languages", default=",".join(LANGUAGES),
-                   help="language filters for the 'lang' stage")
+    p.add_argument("--languages", default=None,
+                   help=f"language filters for the 'lang' stage; default {','.join(LANGUAGES)}")
     p.add_argument("--no-citations", action="store_true", help="skip citation-neighbourhood expansion")
     p.add_argument("--no-leading", action="store_true", help="skip /leading-cases stage")
     p.add_argument("--hydrate", default="", help="comma list of decision ids to fully fetch")
-    p.add_argument("--hydrate-top", type=int, default=0, help="fully fetch the first N candidates")
+    p.add_argument("--hydrate-top", type=int, default=None,
+                   help="fully fetch the first N candidates; default 0 (2 with --preset fixtures)")
+    p.add_argument("--hydrate-needs-detail", type=int, default=None,
+                   help="also fully fetch the first N candidates flagged needs_detail; default 0")
     p.add_argument("--no-structure", action="store_true", help="skip /structure during hydration")
     p.add_argument("--out", default=None, help="write the candidate bundle JSON here")
     p.add_argument("--product-bundle", default=None,
@@ -73,6 +98,85 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
+def _preset_dict(args: argparse.Namespace):
+    """AdapterConfig snapshot for ``--preset fixtures``, else None."""
+    if args.preset != "fixtures":
+        return None
+    from .fixtures import fixture_config  # local import keeps import graph light
+
+    return fixture_config().to_dict()
+
+
+def resolve_config_kwargs(args: argparse.Namespace) -> dict:
+    """Precedence: explicit CLI flag > --preset fixture value > built-in default."""
+    preset = _preset_dict(args)
+    base = AdapterConfig().to_dict()
+
+    def pick(arg_name: str, cfg_key: str):
+        val = getattr(args, arg_name)
+        if val is not None:
+            return val
+        if preset is not None and cfg_key in preset:
+            return preset[cfg_key]
+        return base[cfg_key]
+
+    if args.mode is not None:
+        mode = args.mode
+    else:
+        mode = "offline" if preset is not None else "live"
+
+    if args.stop_at_target:
+        stop = True
+    elif args.no_stop_at_target:
+        stop = False
+    else:
+        stop = bool(preset["stop_when_target_met"]) if preset is not None else base["stop_when_target_met"]
+
+    def toggle(arg_name: str, cfg_key: str) -> bool:
+        if getattr(args, arg_name):
+            return False
+        if preset is not None:
+            return bool(preset[cfg_key])
+        return bool(base[cfg_key])
+
+    if args.stages is not None:
+        stages = tuple(_csv(args.stages) or [])
+    elif preset is not None:
+        stages = tuple(preset["stages"])
+    else:
+        stages = tuple(base["stages"])
+
+    if args.languages is not None:
+        language_filters = tuple(_csv(args.languages) or LANGUAGES)
+    elif preset is not None:
+        language_filters = tuple(preset["language_filters"])
+    else:
+        language_filters = tuple(base["language_filters"])
+
+    kwargs = dict(
+        mode=mode,
+        target=pick("target", "target"),
+        max_candidates=pick("max_candidates", "max_candidates"),
+        page_size=pick("page_size", "page_size"),
+        max_pages_per_variant=pick("max_pages", "max_pages_per_variant"),
+        max_requests=pick("max_requests", "max_requests"),
+        max_rps=pick("max_rps", "max_rps"),
+        lang_max_pages=pick("lang_pages", "lang_max_pages"),
+        citation_seeds=pick("citation_seeds", "citation_seeds"),
+        citation_page_size=pick("citation_page_size", "citation_page_size"),
+        leading_cases_limit=pick("leading_limit", "leading_cases_limit"),
+        hydrate_needs_detail=pick("hydrate_needs_detail", "hydrate_needs_detail"),
+        stages=stages,
+        stop_when_target_met=stop,
+        citation_expansion=toggle("no_citations", "citation_expansion"),
+        leading_cases=toggle("no_leading", "leading_cases"),
+        language_filters=language_filters,
+    )
+    if preset is not None:
+        kwargs.setdefault("cache_dir", preset["cache_dir"])
+    return kwargs
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = build_parser().parse_args(argv)
     query = (args.query_opt or args.query or "").strip()
@@ -80,26 +184,22 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print("error: a query is required (positional or --query)", file=sys.stderr)
         return 2
 
-    stages = tuple(_csv(args.stages) or [])
-    unknown = [s for s in stages if s not in STAGES]
+    cfg_kwargs = resolve_config_kwargs(args)
+    unknown = [s for s in cfg_kwargs["stages"] if s not in STAGES]
     if unknown:
         print(f"error: unknown stages {unknown}; valid: {STAGES}", file=sys.stderr)
         return 2
 
-    cfg_kwargs = dict(
-        mode=args.mode,
-        target=args.target,
-        max_candidates=args.max_candidates,
-        page_size=args.page_size,
-        max_pages_per_variant=args.max_pages,
-        max_requests=args.max_requests,
-        max_rps=args.max_rps,
-        stages=stages,
-        stop_when_target_met=not args.no_stop_at_target,
-        citation_expansion=not args.no_citations,
-        leading_cases=not args.no_leading,
-        language_filters=tuple(_csv(args.languages) or LANGUAGES),
-    )
+    if args.preset == "fixtures" and cfg_kwargs["mode"] == "offline":
+        from .fixtures import FIXTURE_QUERY
+
+        if query != FIXTURE_QUERY:
+            print(
+                "note: --preset fixtures records only the "
+                f"'{FIXTURE_QUERY}' scenario; other queries replay as cache misses",
+                file=sys.stderr,
+            )
+
     if args.cache_dir:
         cfg_kwargs["cache_dir"] = args.cache_dir
     if args.base_url:
@@ -110,12 +210,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
+    hydrate_top = args.hydrate_top
+    if hydrate_top is None:
+        hydrate_top = 2 if args.preset == "fixtures" else 0
+
     bundle = build_candidate_bundle(
         query,
         config=cfg,
         cache=FileCache(Path(cfg.cache_dir)),
         hydrate_ids=_csv(args.hydrate) or None,
-        hydrate_top=args.hydrate_top,
+        hydrate_top=hydrate_top,
         include_structure=not args.no_structure,
     )
 
