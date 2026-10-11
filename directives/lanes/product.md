@@ -54,3 +54,8 @@ Three human-authorized Frontier engineering teams may produce retrieval, generat
 Product remains responsible for the end-to-end app and may implement the same missing seam itself if a Frontier team is slow. Frontier teams are accelerators, not dependencies.
 
 Until the product state explicitly records `human_gate_ready: true` with a locally runnable question -> sourced answer -> counter-authority -> clickable map path, keep `continue_recommended: true`. A partial milestone is not a reason for the lane to stop.
+
+## Runtime performance mandate
+The query-map hot path must be lightweight. Do not initialize legacy 174k representations on default server startup. Render the first query-specific candidate map before waiting for the LLM/counter-authority pass. Fetch full decisions lazily for the evidence subset/clicked cases, not all mapped cases. Use persistent cache + bounded concurrency + deterministic cache/config hashes.
+
+Target: cached map <1s, typical live first map <5s, local 100–300 point geometry <2s, detail click <150ms where data is local. Treat these as engineering budgets and measure them. Prefer simpler clustering/projection when sophistication misses the budget without demonstrated UX benefit.
