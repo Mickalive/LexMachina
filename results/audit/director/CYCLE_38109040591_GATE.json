@@ -1,0 +1,84 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": {
+    "primary_navigation": {
+      "mode": "TF-IDF citation hybrids (cited_decisions_tfidf_outcome_hybrid_0.5)",
+      "jurist_preference": 0.659,
+      "language_dominance": 0.4258,
+      "adversarial_gates": "BOTH_PASS",
+      "scale": "173,963 decisions (full corpus)",
+      "evidence_tier": "ACCEPTED",
+      "product_operational": false,
+      "blocker": "BLOCKER_PRODUCT_JOIN_ALIGNMENT_V1 (id->cluster joins scrambled, diag_is_best_match=0.0%)"
+    },
+    "complementary_citation_heritage": {
+      "mode": "Dense center_projected_64dim embeddings",
+      "acceptance_criterion": "AUC >= 0.75 on shared>=2 citation pairs",
+      "current_status": "UNTESTED_AT_SCALE -- blocked on corpus-scale citation graph integration",
+      "retracted_claims": "Prior AUC 0.7667-0.8182 retracted (self-pair artifact, pair-set dependent); matched no-self dense_cp64=0.7189 < 0.75",
+      "evidence_tier": "UNTESTED_AT_SCALE"
+    },
+    "complementary_cross_lingual_sachverhalt": {
+      "mode": "Dense center_projected_64dim on Sachverhalt section",
+      "acceptance_criterion": "cross_lang_same_branch > 0.2",
+      "current_status": "ACCEPTED at 1K sample (0.2816); BLOCKED on 174k section extraction",
+      "evidence_tier": "ACCEPTED"
+    },
+    "complementary_cross_lingual_dispositiv": {
+      "mode": "Dense center_projected_64dim on Dispositiv section",
+      "acceptance_criterion": "cross_lang_same_branch > 0.1",
+      "current_status": "ACCEPTED at 1K sample (0.1502); BLOCKED on 174k section extraction",
+      "evidence_tier": "ACCEPTED"
+    },
+    "complementary_cross_lingual_erwaegungen": {
+      "mode": "Dense center_projected_64dim on Erwaegungen section",
+      "acceptance_criterion": "cross_lang_same_branch > 0.1",
+      "current_status": "FAILED at 1K sample (0.0941); excluded from v1.1",
+      "evidence_tier": "ACCEPTED"
+    },
+    "complementary_linear_hybrid": {
+      "mode": "linear_citation_concat_w0.4 (22yr) / linear_hybrid05_concat_w0.3 (19yr)",
+      "acceptance_criterion": "PASS both adversarial gates AND cross_lang_same_branch > TF-IDF baseline",
+      "current_status": "ACCEPTED at 19yr+ (PASS adversarial); JP 0.61-0.67 < TF-IDF 0.78-0.79; marked exploratory",
+      "evidence_tier": "ACCEPTED"
+    },
+    "fractal_hierarchical_map": {
+      "mode": "TF-IDF hierarchical Leiden (cited_decisions_tfidf, cited_outcome_hybrid_0.5, cited_outcome_hybrid_0.7)",
+      "metric_reproduction": "fine_branch_purity 0.906-0.930 BIT-EXACT on evaluation-v25 embeddings",
+      "branch_recovery_claim": "RETRACTED -- frozen EVAL_SPEC positive control FAILS (fine ARI_branch 0.0429 < 0.05); coarse ARI_branch 0.163-0.258 only weak-to-moderate",
+      "product_operational": false,
+      "blocker": "BLOCKER_PRODUCT_JOIN_ALIGNMENT_V1 + positive control failure",
+      "evidence_tier": "ACCEPTED (metric-level only)"
+    }
+  },
+  "evidence_summary": {
+    "master_prompt": "/tmp/lex_director_proposal/LEXMACHINA_MASTER_PROMPT.md",
+    "factory_direction_v40": "/tmp/lex_director_proposal/state/factory_direction.json",
+    "frontier_portfolio_v4": "/tmp/lex_director_proposal/state/frontier_portfolio.json",
+    "director_report": "/tmp/lex_director_proposal/reports/director/RUN_38109040591.md",
+    "accepted_evidence_core": {
+      "evaluation_frozen_baseline": "/tmp/lex_accepted/core/evaluation/state/evaluation.json",
+      "legal_distance_scale_characterization": "/tmp/lex_accepted/core/legal-distance/state/legal-distance.json",
+      "corpus_three_artifacts": "/tmp/lex_accepted/core/corpus/state/corpus.json",
+      "product_v10_released": "/tmp/lex_accepted/core/product/state/product.json",
+      "fractal_map_hierarchical_validation": "/tmp/lex_accepted/core/fractal-map/state/fractal-map.json"
+    },
+    "accepted_evidence_frontier": {
+      "frontier_citation_graph_context": "/tmp/lex_accepted/frontier/frontier-citation-graph/results/accepted-state/"
+    },
+    "key_accepted_findings": [
+      "PIVOT_WITHIN_MISSION confirmed: dense FAILS jurist gate at ALL scales (JP 0.05-0.43); TF-IDF citation hybrids DOMINATE (JP 0.78-0.79)",
+      "True OOS JuristPref ceiling ~0.53 < 0.7 factory target",
+      "v18 coarse hierarchy NEGATIVE (max purity 0.65 < 0.7)",
+      "Linear hybrids PASS adversarial but BELOW TF-IDF (JP 0.61-0.67 vs 0.78-0.79)",
+      "Dense citation-heritage claims RETRACTED (self-pair inflation ~0.045 AUC, pair-set dependent; matched no-self 0.7189 < 0.75)",
+      "Dense cross-lingual: Sachverhalt PASS (0.282), Dispositiv PASS (0.150), Erwaegungen FAIL (0.094)",
+      "Corpus 3 artifacts DELIVERED: section extraction (174k), BGE/bger crosswalk (100% eval alignment), 2024-2026 parquet (15,536 decisions)",
+      "Product v1.0 RELEASED but JOIN-DEFECTIVE (diag_is_best=0.0%, median displacement 1150 rows)",
+      "Fractal-map: TF-IDF fine_branch_purity 0.906-0.930 METRIC-LEVEL reproduced; NO branch-recovery claim (positive control FAILS)",
+      "Single frontier team `frontier-citation-graph` justified by binding blocker (citation-graph coverage)"
+    ]
+  }
+}
