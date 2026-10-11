@@ -33,12 +33,12 @@ env:
 
 concurrency:
   group: lex-frontier-${{ inputs.team_id }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   team:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v6
         with:
@@ -113,7 +113,7 @@ jobs:
             MODE="OPERATIONAL RESUME from persisted Frontier producer snapshot ${RESUME_FROM}. Preserve valid completed work, diagnose the operational failure, and finish or verify the charter without restarting from scratch."
           fi
           bash .github/scripts/run-ox-with-retry.sh run --model "$LEX_MODEL" --agent frontier_researcher \
-            "Run LexMachina Frontier team=${TEAM}, charter v${VER}, GitHub run=${GITHUB_RUN_ID}. Exact charter=/tmp/frontier_charter.json. Read /tmp/lex_control/AGENTS.md and Main Prompt. Accepted evidence=/tmp/lex_accepted. Execute only this charter. Use as many useful subagents/experiments as the concrete path justifies; no token thrift, no mission drift. Your state/frontier/${TEAM}.json MUST retain charter_version and set continue_recommended true only if another cycle under the SAME charter is specifically justified. ${MODE}"
+            "Run LexMachina Frontier team=${TEAM}, charter v${VER}, GitHub run=${GITHUB_RUN_ID}. Exact charter=/tmp/frontier_charter.json. Read /tmp/lex_control/AGENTS.md and Main Prompt. Accepted evidence=/tmp/lex_accepted. Execute only this charter. If the charter is an engineering capability, BUILD RUNNABLE CODE/TESTS/fixtures and a narrow integration contract; do not substitute a research memo. REUSE-FIRST: inspect accepted product/core mounts before rebuilding capabilities. Use parallel subagents for independent implementation/testing when useful. Optimize throughput and owner-attention, not token thrift. Your state/frontier/${TEAM}.json MUST retain charter_version and set continue_recommended true only if another cycle under the SAME charter is specifically justified. ${MODE}"
       - name: Clean generated junk
         if: always()
         shell: bash
@@ -144,7 +144,7 @@ jobs:
     needs: team
     if: needs.team.result == 'success'
     runs-on: ubuntu-latest
-    timeout-minutes: 300
+    timeout-minutes: 60
     outputs:
       gate: ${{ steps.gate.outputs.gate }}
     steps:
@@ -172,7 +172,7 @@ jobs:
           set -euo pipefail
           mkdir -p "results/audit/frontier/$TEAM" "reports/audit/frontier/$TEAM"
           bash .github/scripts/run-ox-with-retry.sh run --model "$LEX_MODEL" --agent independent_auditor \
-            "Audit Frontier team=${TEAM}, charter=/tmp/frontier_charter.json, run=${GITHUB_RUN_ID}, producer=/tmp/lex_team. Enforce exact charter and strongest relevant baseline/null. Write ONLY reports/audit/frontier/${TEAM}/CYCLE_${GITHUB_RUN_ID}.md and results/audit/frontier/${TEAM}/CYCLE_${GITHUB_RUN_ID}_GATE.json containing gate PASS|REVISE|BLOCKED, safe_to_integrate, required_fixes, claim_ceiling, evidence_summary. Recurring repair pathology must become BLOCKED rather than infinite REVISE."
+            "Audit Frontier team=${TEAM}, charter=/tmp/frontier_charter.json, run=${GITHUB_RUN_ID}, producer=/tmp/lex_team. Enforce exact charter. For engineering charters, first run/smoke-test the produced component against its acceptance contract; do not demand unrelated legacy science. Write ONLY reports/audit/frontier/${TEAM}/CYCLE_${GITHUB_RUN_ID}.md and results/audit/frontier/${TEAM}/CYCLE_${GITHUB_RUN_ID}_GATE.json containing gate PASS|REVISE|BLOCKED, safe_to_integrate, required_fixes, claim_ceiling, evidence_summary. Recurring repair pathology must become BLOCKED rather than infinite REVISE."
       - name: Validate and persist audit
         id: gate
         shell: bash
