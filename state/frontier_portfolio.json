@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "teams": [
     {
       "team_id": "frontier-citation-graph",
@@ -232,7 +232,7 @@
     {
       "team_id": "frontier-product-join-fix",
       "charter_version": 1,
-      "status": "DISPATCHED",
+      "status": "TERMINATED",
       "product_capability": "Make 3 TF-IDF production modes (and 2 missing regeste hybrids) product-operational at full 174k scale by fixing the id→cluster join alignment defect in build_production_modes_product_integration_174k.py",
       "question": "Can the product embeddings (175,440 rows, bge_ corpus-jsonl order) be deterministically reordered to match the evaluation metadata (173,963 rows, bger_ order) using the accepted BGE/bger crosswalk, such that rebuilt product_integration_174k artifacts pass the join probe (diag_is_best_match_fraction ~ 1.0) and the 3 TF-IDF modes + 2 regeste hybrids become servable?",
       "hypothesis": "The join defect is purely a row-order mismatch between the product embedding matrix (built against metadata_174k_full.json bge_ order) and the evaluation metadata (metadata_174k.json bger_ order). The BGE/bger crosswalk (5,820 linked, 100% eval coverage) provides a deterministic alignment. Reordering embeddings to evaluation order before clustering will yield correct id→cluster mapping and make all 5 TF-IDF hierarchical modes product-operational at 174k.",
@@ -273,8 +273,12 @@
           "audit_note": "Director assessment RUN_38141032113: team remains DISPATCHED/INITIALIZED; all 5 dependencies confirmed available in /tmp/lex_accepted. Zero artifacts produced across 2 Director runs since dispatch (38133979887, this run 38141032113). Join probe (diag_is_best_match_fraction=0.0, median displacement 1150) and BGE/bger crosswalk (100% eval alignment, 173,963/173,963) confirmed as frozen evidence. This is the only actionable path to unblock product (citation-heritage path TERMINATED). Awaiting team artifact production and audit gate. Portfolio v7 unchanged.",
           "integration_result": "pending"
         }
-      ]
+      ],
+      "completed_at": "2026-10-11T19:23:02.884Z",
+      "audit_gate": "SUPERSEDED_BY_PRODUCT_PIVOT",
+      "audit_note": "Human product pivot direction v42: global 174k id→cluster repair is no longer an MVP blocker. Preserve all evidence and diagnostics, but stop spending factory capacity on this path. Query-specific product uses OpenCaseLaw retrieval and per-query mapping instead.",
+      "integration_result": "superseded"
     }
   ],
-  "policy": "Create specialized teams only for concrete product-relevant hypotheses or bottlenecks. Parallelism should grow with credible independent paths, not curiosity."
+  "policy": "Create specialized teams only for concrete bottlenecks in the zero-cost query-map MVP. Do not restart global corpus, universal-geometry, citation-graph or 174k join work unless the query-specific product demonstrates a concrete need."
 }
