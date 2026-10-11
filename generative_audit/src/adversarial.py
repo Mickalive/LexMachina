@@ -142,8 +142,10 @@ class AdversarialPass:
             "(highly uncertain) about the classification."
         )
         lines.append("")
-        lines.append("Return a JSON list where each element has: "
-                     "decision_id, title, reason, evidence_refs (list), uncertainty.")
+        lines.append("CRITICAL: Output ONLY a valid JSON array. Do NOT use any tools, "
+                     "do NOT write files, do NOT use markdown formatting. "
+                     "Your entire response must be a single JSON list starting with [ and ending with ]. "
+                     "Example: [{\"decision_id\": \"DEC-001\", \"title\": \"Title\", \"reason\": \"contradictory\", \"evidence_refs\": [\"excerpt\"], \"uncertainty\": 0.1}]")
         lines.append("")
         lines.append("If no adversarial authorities are found from this bundle, "
                      "return an empty JSON list [].")
@@ -173,12 +175,20 @@ class AdversarialPass:
         import re
 
         # Try to find JSON list in the output
-        # Look for [...] pattern that looks like a JSON list
-        json_match = re.search(r"\[.*\]", raw, re.DOTALL)
-        if not json_match:
-            return []
+        # First, look for a JSON code block ```json [...] ```
+        json_block_match = re.search(r"```(?:json)?\s*(\[.*?\])\s*```", raw, re.DOTALL)
+        if json_block_match:
+            json_str = json_block_match.group(1)
+        else:
+            # Fallback: look for a JSON array that starts with [{ (object array)
+            json_match = re.search(r"\[\s*\{.*?\}\]", raw, re.DOTALL)
+            if not json_match:
+                # Last resort: any [...] but non-greedy
+                json_match = re.search(r"\[.*?\]", raw, re.DOTALL)
+            if not json_match:
+                return []
+            json_str = json_match.group(0)
 
-        json_str = json_match.group(0)
         try:
             findings_data = json.loads(json_str)
         except json.JSONDecodeError:
@@ -196,7 +206,36 @@ class AdversarialPass:
             title = fd.get("title", decision_id)
             reason = fd.get("reason", "unclassified")
             evidence_refs = fd.get("evidence_refs", [])
-            uncertainty = fd.get("uncertainty", 1.0)
+            uncertainty_raw = fd.get("uncertainty", 1.0)
+
+            # Normalize uncertainty: handle string values like "low", "medium", "high"
+            if isinstance(uncertainty_raw, str):
+                uncertainty_map = {"low": 0.2, "medium": 0.5, "high": 0.8}
+                uncertainty = uncertainty_map.get(uncertainty_raw.lower(), 1.0)
+            else:
+                try:
+                    uncertainty = float(uncertainty_raw)
+                except (ValueError, TypeError):
+                    uncertainty = 1.0
+
+            # Ensure evidence_refs are actual text snippets, not just decision IDs
+            # If they look like decision IDs, try to find the corresponding text
+            normalized_refs = []
+            for ref in evidence_refs:
+                if isinstance(ref, str):
+                    # If ref looks like a decision_id from our bundle, try to get text
+                    if ref in self.bundle.decision_ids:
+                        for dec in self.bundle.decisions:
+                            if dec.decision_id == ref:
+                                # Take first 200 chars of decision text
+                                snippet = (dec.text or "")[:200].strip()
+                                if snippet:
+                                    normalized_refs.append(snippet)
+                                break
+                    else:
+                        normalized_refs.append(ref)
+            evidence_refs = normalized_refs
+
             # Normalize reason
             valid_reasons = {
                 "contradictory", "limiting", "distinguishing",
@@ -217,15 +256,13 @@ class AdversarialPass:
                 )
             )
 
-        # Deduplicate by decision_id
-        seen_ids: Set[str] = set()
-        unique_findings = []
+        # Deduplicate by decision_id (keep the one with lowest uncertainty)
+        seen_ids: Dict[str, AdversarialFinding] = {}
         for f in findings:
-            if f.decision_id not in seen_ids:
-                seen_ids.add(f.decision_id)
-                unique_findings.append(f)
+            if f.decision_id not in seen_ids or f.uncertainty < seen_ids[f.decision_id].uncertainty:
+                seen_ids[f.decision_id] = f
 
-        return unique_findings
+        return list(seen_ids.values())
 
     def _parse_findings_fallback(self, json_str: str) -> List[AdversarialFinding]:
         """Fallback parsing when full JSON parse fails."""
