@@ -373,6 +373,145 @@ class TestPaginationScripted(unittest.TestCase):
         self.assertEqual(validate_candidate_bundle(bundle), [])
 
 
+class TestHardCapEnforcement(unittest.TestCase):
+    """The documented ``max_candidates`` hard cap must hold exactly.
+
+    A single page can push the unique count past the cap (the page loop
+    checks the cap only *before* fetching), so the pipeline must trim to
+    the highest-ranked candidates deterministically.
+    """
+
+    def test_single_oversized_page_is_trimmed_to_cap(self):
+        from ocl_adapter.client import OCLClient
+        from ocl_adapter.transport import FixtureTransport, RawResponse
+
+        n_results = 30
+
+        class _BigPage(FixtureTransport):
+            def get(self, path, params=None):
+                if path != "/decisions":
+                    return super().get(path, params)
+                body = json.dumps(
+                    {
+                        "results": [
+                            {
+                                "decision_id": f"D{i:02d}",
+                                "language": "de",
+                                "relevance_score": 100 - i,
+                                "canonical_url": f"https://example.org/D{i:02d}",
+                            }
+                            for i in range(n_results)
+                        ],
+                        "total": n_results,
+                        "has_more": False,
+                        "next_offset": None,
+                        "returned": n_results,
+                    }
+                )
+                return RawResponse(
+                    path=path,
+                    params=dict(params or {}),
+                    url="fixture://decisions",
+                    status=200,
+                    body=body,
+                    fetched_at=0.0,
+                    from_cache=True,
+                )
+
+        cfg = AdapterConfig(
+            mode="offline",
+            page_size=50,
+            max_pages_per_variant=1,
+            max_candidates=10,
+            target=10,
+            max_requests=20,
+            stages=("search",),
+            citation_expansion=False,
+            leading_cases=False,
+            stop_when_target_met=False,
+        )
+        client = OCLClient(_BigPage({}), cfg)
+        bundle = build_candidate_bundle(
+            "Hardcap Test",
+            config=cfg,
+            client=client,
+        )
+        # The hard cap holds exactly.
+        self.assertEqual(len(bundle["candidates"]), 10)
+        self.assertEqual(bundle["n_candidates"], 10)
+        # Ranking is contiguous and the best relevance scores survive.
+        self.assertEqual(
+            [c["rank"] for c in bundle["candidates"]], list(range(1, 11))
+        )
+        self.assertEqual(
+            [c["decision_id"] for c in bundle["candidates"]],
+            [f"D{i:02d}" for i in range(10)],
+        )
+        # Trim is recorded in provenance.
+        targets = bundle["provenance"]["targets"]
+        self.assertEqual(targets["pre_trim_candidates"], 30)
+        self.assertTrue(targets["trimmed_to_max_candidates"])
+        self.assertEqual(validate_candidate_bundle(bundle), [])
+
+    def test_no_trim_when_under_cap(self):
+        from ocl_adapter.client import OCLClient
+        from ocl_adapter.transport import FixtureTransport, RawResponse
+
+        class _SmallPage(FixtureTransport):
+            def get(self, path, params=None):
+                if path != "/decisions":
+                    return super().get(path, params)
+                body = json.dumps(
+                    {
+                        "results": [
+                            {
+                                "decision_id": f"E{i}",
+                                "language": "de",
+                                "relevance_score": 100 - i,
+                            }
+                            for i in range(4)
+                        ],
+                        "total": 4,
+                        "has_more": False,
+                        "next_offset": None,
+                        "returned": 4,
+                    }
+                )
+                return RawResponse(
+                    path=path,
+                    params=dict(params or {}),
+                    url="fixture://decisions",
+                    status=200,
+                    body=body,
+                    fetched_at=0.0,
+                    from_cache=True,
+                )
+
+        cfg = AdapterConfig(
+            mode="offline",
+            page_size=50,
+            max_pages_per_variant=1,
+            max_candidates=10,
+            target=4,
+            max_requests=20,
+            stages=("search",),
+            citation_expansion=False,
+            leading_cases=False,
+            stop_when_target_met=False,
+        )
+        client = OCLClient(_SmallPage({}), cfg)
+        bundle = build_candidate_bundle(
+            "Undercap Test",
+            config=cfg,
+            client=client,
+        )
+        self.assertEqual(len(bundle["candidates"]), 4)
+        targets = bundle["provenance"]["targets"]
+        self.assertEqual(targets["pre_trim_candidates"], 4)
+        self.assertFalse(targets["trimmed_to_max_candidates"])
+        self.assertEqual(validate_candidate_bundle(bundle), [])
+
+
 class TestCliOffline(unittest.TestCase):
     def test_cli_fixture_preset_exit_0_and_writes_bundles(self):
         with tempfile.TemporaryDirectory() as td:

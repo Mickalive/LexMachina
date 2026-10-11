@@ -4,27 +4,34 @@
   "evidence_tier": "ACCEPTED",
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
-  "accepted_run_id": "38179086460",
-  "producer_snapshot_run": "38175239535",
-  "accepted_commit": "operational-resume",
+  "accepted_run_id": "38184246923",
+  "producer_snapshot_run": "38183873148",
+  "run_lineage": {
+    "38175239535": "producer snapshot that shipped ocl_adapter package, fixtures, LIVE_EVIDENCE and INTEGRATION_CONTRACT but left the contract-referenced test suite unwritten",
+    "38179086460": "accepted run that wrote the three offline unittest modules and first verified 43/43 tests + fixture replay + live multi-stage retrieval",
+    "38179807923": "git acceptance commit on main (164e0bc)",
+    "38183873148": "persisted producer snapshot this cycle resumes from",
+    "38184246923": "this operational-resume cycle: re-verified all artifacts live, found and fixed one concrete adapter defect (hard-cap overshoot), added regression tests, refreshed contract notes"
+  },
   "operational_resume": {
-    "from_snapshot": 38175239535,
-    "diagnosis": "Prior producer run 38175239535 shipped the full ocl_adapter package, fixtures, LIVE_EVIDENCE and INTEGRATION_CONTRACT but left the referenced tests/frontier/frontier-query-retrieval suite unwritten (contract pointed at three missing files). State was also left on a stale accepted_run_id from an earlier reset generation.",
-    "remediation": "Wrote the three contract-referenced offline unittest modules (pagination/cache/dedupe/provenance/degradation/contract), fixed path-depth and contract-key mismatches in tests, verified 43/43 tests pass offline, re-verified fixture replay (105 candidates, deterministic) and live multi-stage retrieval (200 candidates, citation+leading+trilingual, rps<=4).",
+    "from_snapshot": 38183873148,
+    "diagnosis": "Operational failure was a state-write lag, not an artifact failure: state/frontier/frontier-query-retrieval.json still referenced accepted_run_id 38179086460 / producer_snapshot_run 38175239535 while main's acceptance commit was produced by run 38179807923 and the persisted producer snapshot was 38183873148. The intervening producer runs did not persist their state update. All accepted artifacts were intact on disk and in git (working tree clean vs 164e0bc). Integration re-verification additionally found one concrete adapter defect: the documented max_candidates 'hard cap' was exceeded by up to one page (a live run with default cap 300 produced 343 candidates) because page loops check the cap only before fetching.",
+    "remediation": "Re-verified every accepted artifact in this environment (45/45 offline tests, fixture replay, live network runs at <=4 rps). Fixed the hard-cap overshoot in ocl_adapter/pipeline.py: after dedupe, candidates are ranked deterministically and trimmed to max_candidates, with pre_trim_candidates and trimmed_to_max_candidates recorded in provenance.targets. Added TestHardCapEnforcement regression tests (overshoot trimmed to cap; under-cap untouched). Documented cap semantics and fixture-replay determinism level in INTEGRATION_CONTRACT.json (additive; contract_version unchanged).",
     "preserved": [
-      "frontier/frontier-query-retrieval/ocl_adapter/",
+      "frontier/frontier-query-retrieval/ocl_adapter/ (all modules)",
       "frontier/frontier-query-retrieval/INTEGRATION_CONTRACT.json",
       "frontier/frontier-query-retrieval/record_fixtures.py",
       "frontier/frontier-query-retrieval/run_live_evidence.py",
-      "results/frontier/frontier-query-retrieval/fixtures/",
-      "results/frontier/frontier-query-retrieval/LIVE_EVIDENCE.json",
+      "results/frontier/frontier-query-retrieval/fixtures/ (19 envelopes + FIXTURE_META.json)",
+      "results/frontier/frontier-query-retrieval/LIVE_EVIDENCE.json (run 38172061004, untouched historical evidence)",
       "results/frontier/frontier-query-retrieval/LIVE_BUNDLE_*.json",
-      "results/frontier/frontier-query-retrieval/LIVE_PRODUCT_BUNDLE_*.json"
+      "results/frontier/frontier-query-retrieval/LIVE_PRODUCT_BUNDLE_*.json",
+      "frontier/query_retrieval/ (older-generation prototype namespace, kept as historical evidence; not part of the accepted contract)"
     ],
     "added": [
-      "tests/frontier/frontier-query-retrieval/test_ocl_adapter_offline.py",
-      "tests/frontier/frontier-query-retrieval/test_ocl_adapter_degradation.py",
-      "tests/frontier/frontier-query-retrieval/test_ocl_adapter_contract.py"
+      "tests/frontier/frontier-query-retrieval/test_ocl_adapter_offline.py::TestHardCapEnforcement (2 regression tests)",
+      "ocl_adapter/pipeline.py hard-cap trim + provenance.targets.pre_trim_candidates/trimmed_to_max_candidates",
+      "INTEGRATION_CONTRACT.json adapter.cap_enforcement + fixtures.fixture_replay_determinism notes"
     ]
   },
   "acceptance": {
@@ -40,30 +47,38 @@
   },
   "evidence": {
     "tests_command": "python3 -m unittest discover -s tests/frontier/frontier-query-retrieval -p 'test_*.py' -v",
-    "tests_result": "43 tests OK, offline, network_required=false",
-    "fixture_replay": "results/frontier/frontier-query-retrieval/fixtures/cache (19 envelopes); n_candidates=105; deterministic across re-runs; validation_errors=[]",
-    "live_evidence": "results/frontier/frontier-query-retrieval/LIVE_EVIDENCE.json (run 38172061004 artifacts preserved; primary 300 candidates with citation.incoming=27 citation.outgoing=7 leading_case=15 de/fr/it; secondary 175 FR/DE/IT)",
-    "live_smoke_this_cycle": {
-      "query": "Kündigung Mietvertrag Mietrecht",
-      "n_candidates": 200,
-      "channels": {
-        "citation.incoming": 9,
-        "citation.outgoing": 5,
-        "leading_case": 10,
-        "search": 89,
-        "search.language_filter": 145
+    "tests_result": "45 tests OK (was 43; +2 hard-cap regression tests), offline, network_required=false",
+    "fixture_replay": "results/frontier/frontier-query-retrieval/fixtures/cache (19 envelopes); n_candidates=105; candidate decision_id sequence identical across re-runs; validation_errors=[]; only generated_at/latency_seconds vary (run metadata)",
+    "live_reverification_this_cycle": {
+      "fresh_network_fr_query": {
+        "query": "responsabilité contractuelle dommages",
+        "n_candidates": 176,
+        "target": 100,
+        "network_calls": 2,
+        "degraded": false,
+        "n_failures": 0,
+        "validation_errors": [],
+        "exit_code": 0
       },
-      "languages": {"?": 14, "de": 86, "fr": 50, "it": 50},
-      "degraded": false,
-      "n_failures": 0,
-      "validation_errors": [],
-      "max_rps": 4.0
+      "hard_cap_fix_verification": {
+        "query": "Mietvertrag Kündigungsfrist",
+        "max_candidates": 80,
+        "n_candidates": 80,
+        "pre_trim_candidates": 99,
+        "trimmed_to_max_candidates": true,
+        "degraded": false,
+        "n_failures": 0,
+        "validation_errors": [],
+        "note": "before the fix the same scenario produced 343 candidates against the default cap of 300; the cap now holds exactly"
+      },
+      "hydration_and_rate_limit": "n_hydrated=1 with full_text+structure fetched lazily; max_rps=4.0 <= charter 5.0 in every run"
     },
+    "prior_live_evidence": "results/frontier/frontier-query-retrieval/LIVE_EVIDENCE.json (run 38172061004 artifacts preserved; primary 300 candidates with citation.incoming=27 citation.outgoing=7 leading_case=15 de/fr/it; secondary 175 FR/DE/IT)",
     "integration_contract": "frontier/frontier-query-retrieval/INTEGRATION_CONTRACT.json"
   },
   "handoff": {
     "to": ["product", "evaluation"],
-    "product_action": "sys.path.insert(repo/frontier/frontier-query-retrieval); from ocl_adapter import build_candidate_bundle, to_product_bundle; do not re-implement dedupe/caching/provenance",
+    "product_action": "sys.path.insert(repo/frontier/frontier-query-retrieval); from ocl_adapter import build_candidate_bundle, to_product_bundle; do not re-implement dedupe/caching/provenance; max_candidates is now a true hard cap (see adapter.cap_enforcement)",
     "evaluation_action": "use fixtures/ + LIVE_EVIDENCE.json as frozen retrieval inputs; do not re-record while benchmarks frozen",
     "artifacts": [
       "frontier/frontier-query-retrieval/ocl_adapter/",
@@ -73,5 +88,5 @@
       "results/frontier/frontier-query-retrieval/LIVE_EVIDENCE.json"
     ]
   },
-  "stop_promote_rule": "PROMOTE. All acceptance (1)-(9) pass. Continue only for concrete adapter defects found by integration."
+  "stop_promote_rule": "PROMOTE. Acceptance (1)-(9) pass; the one concrete integration defect found this cycle (hard-cap overshoot) was fixed and regression-tested within this cycle, so no further same-charter cycle is justified. Continue only for concrete adapter defects found by integration."
 }

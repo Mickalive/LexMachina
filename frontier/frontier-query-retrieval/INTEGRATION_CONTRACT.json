@@ -20,7 +20,8 @@
     "import_sys_path_entry": "frontier/frontier-query-retrieval",
     "python": ">=3.10",
     "third_party_dependencies": [],
-    "note": "stdlib only (urllib/hashlib/json/dataclasses); the parent directory name contains a hyphen so the importable unit is the child package 'ocl_adapter'"
+    "note": "stdlib only (urllib/hashlib/json/dataclasses); the parent directory name contains a hyphen so the importable unit is the child package 'ocl_adapter'",
+    "cap_enforcement": "max_candidates is a true hard cap: page loops stop fetching at the cap, and any final-page overshoot (up to page_size records) is trimmed deterministically to the highest-ranked candidates after dedupe. provenance.targets records pre_trim_candidates and trimmed_to_max_candidates so consumers can audit the trim."
   },
   "integration_options": [
     {
@@ -98,6 +99,7 @@
     "meta": "results/frontier/frontier-query-retrieval/fixtures/FIXTURE_META.json",
     "n_envelopes": 19,
     "coverage": ["/decisions (search + language filters, paged)", "/decisions/{id}", "/structure/{id}", "/citations/{id}", "/leading-cases"],
+    "fixture_replay_determinism": "fixture replay is deterministic at the candidate-content level: identical decision_id sequence, ordering, channels, counts and provenance strings across re-runs. Only run-metadata fields (generated_at, provenance.latency_seconds) vary between replays, as expected for a run record.",
     "replay_command": "python3 -m ocl_adapter 'Kündigung Mietvertrag Mietrecht' --preset fixtures --out bundle.json --validate",
     "api": ["ocl_adapter.fixtures.fixture_config()", "ocl_adapter.fixtures.replay_fixtures()", "ocl_adapter.fixtures.record_fixtures()"],
     "record_command": "python3 record_fixtures.py --query '<swiss law question>'"

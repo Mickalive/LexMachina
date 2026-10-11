@@ -18,7 +18,7 @@ from __future__ import annotations
 import time
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 
-from .bundle import build_candidate_bundle as assemble_bundle
+from .bundle import build_candidate_bundle as assemble_bundle, rank_candidates
 from .cache import FileCache
 from .client import OCLClient
 from .config import AdapterConfig
@@ -322,6 +322,17 @@ def build_candidate_bundle(
     dd = dedupe(records)
     candidates = dd.candidates
 
+    # ---- enforce the documented hard candidate cap ------------------
+    # The page loops check the cap *before* fetching, so one final
+    # page can overshoot max_candidates by up to page_size records.
+    # Trim to the highest-ranked candidates so the documented "hard
+    # cap" holds exactly and deterministically (relevance first,
+    # then score, then decision_id -- the same order the bundle
+    # assembles). Pre-trim count is preserved in provenance.
+    pre_trim_candidates = len(candidates)
+    if pre_trim_candidates > cfg.max_candidates:
+        candidates = rank_candidates(candidates)[: max(0, cfg.max_candidates)]
+
     # ---- optional lazy hydration ---------------------------------------
     lazy = {"full_text": "lazy", "structure": "lazy", "hydrated": [], "requested": []}
     todo: List[str] = []
@@ -376,6 +387,8 @@ def build_candidate_bundle(
             "max_pages_per_variant": cfg.max_pages_per_variant,
             "max_requests": cfg.max_requests,
             "target_reached": unique_count(records) >= cfg.target,
+            "pre_trim_candidates": pre_trim_candidates,
+            "trimmed_to_max_candidates": pre_trim_candidates > cfg.max_candidates,
         },
         "latency_seconds": round(clock() - t0, 3),
     }
