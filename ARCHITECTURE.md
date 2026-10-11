@@ -130,3 +130,8 @@ Therefore:
 - Historical accepted/negative evidence is preserved.
 - Human-authorized Frontier charters remain active until their stop/promote rule is met or an ACCEPTED equivalent supersedes them.
 - Product does not stop at a partial milestone; `human_gate_ready=true` is the normal handoff point.
+
+## Active vs historical control state
+`state/frontier_portfolio.json` contains only executable/current Frontier teams. Retired/superseded charters are moved intact to `state/archive/frontier_portfolio_history.json`; their full implementation/audit evidence remains on lab/cycle branches. Active blockers live only under `state/blockers/`; retired blockers belong under `state/archive/blockers/`.
+
+`main` is deliberately lightweight. Full result arrays, parquet files, benchmark dumps and historical reports must NOT be mirrored to main. `results/accepted-state/` plus `results/ACCEPTED_CATALOG.json` are the compact accepted-state index; detailed artifacts live on the accepted lab branch that produced them.
