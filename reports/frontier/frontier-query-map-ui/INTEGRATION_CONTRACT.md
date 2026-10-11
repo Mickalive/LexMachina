@@ -1,177 +1,190 @@
-# INTEGRATION CONTRACT — frontier-query-map-ui (charter v2)
+# Integration Contract: frontier-query-map-ui → Core Product
 
-Team: `frontier-query-map-ui`
-Charter version: 2
-GitHub run: 38179511140 (operational resume of producer snapshot 38175693552)
-Status: ready for product-lane absorption
-
-This document tells the **product lane exactly which files/components to absorb**
-(charter acceptance item 9). Every item below is runnable today; nothing here is
-a design proposal.
+**Team:** `frontier-query-map-ui`  
+**Charter Version:** 2  
+**Date:** 2026-10-11  
+**Status:** Ready for product absorption after charter item verification
 
 ---
 
-## 0. How to run the prototype
+## 1. File Manifest (Absorb These Files)
 
-```bash
-# from repository root
-python3 frontier/frontier-query-map-ui/src/serve.py --port 8787
-# then open http://127.0.0.1:8787/
+All paths are relative to repository root. Every file listed here exists in the current HEAD.
+
+### Prototype UI (New Capability)
+```
+frontier/frontier-query-map-ui/ui/query_map.html      # Main prototype entry point
+frontier/frontier-query-map-ui/ui/query_map.css       # Styles for query map
+frontier/frontier-query-map-ui/ui/query_map_model.js  # Data model & state
+frontier/frontier-query-map-ui/ui/query_map.js        # Controller & interactions
+frontier/frontier-query-map-ui/ui/canvas2d_renderer.js # Canvas 2D renderer (fallback)
 ```
 
-Zero paid services. Stdlib HTTP server + accepted product static assets +
-frozen fixture. No global 174k artifact is read at any point.
-
-Regenerate the frozen fixture (offline, from the vendored 100-decision corpus):
-
-```bash
-python3 -m pip install numpy scikit-learn   # product/query/{qmap,pipeline} deps
-python3 frontier/frontier-query-map-ui/src/build_fixture.py --top-n 150
+### Prototype Server (New Capability)
+```
+frontier/frontier-query-map-ui/src/serve.py           # HTTP server (static + live query)
+frontier/frontier-query-map-ui/src/query_bundle_adapter.py  # Bundle → visualization adapter
+frontier/frontier-query-map-ui/src/product_compat.py  # Product defect shim + run_query wrapper
+frontier/frontier-query-map-ui/src/build_fixture.py   # Fixture builder
 ```
 
-Run the automated smoke tests (data + server + browser-equivalent):
+### Fixtures (Test Data)
+```
+frontier/frontier-query-map-ui/fixtures/query_result_bundle.json   # 100-decision bundle
+frontier/frontier-query-map-ui/fixtures/visualization.json         # Adapted visualization
+frontier/frontier-query-map-ui/fixtures/FIXTURE_MANIFEST.json      # Checksums & provenance
+```
+
+### Automated Tests (Verification)
+```
+tests/frontier/frontier-query-map-ui/test_data_smoke.py       # Bundle/viz validation
+tests/frontier/frontier-query-map-ui/test_server_smoke.py     # HTTP endpoint tests
+tests/frontier/frontier-query-map-ui/test_browser_smoke.js    # JSDOM browser-equivalent tests
+```
+
+---
+
+## 2. Product Defects to Fix on `main`
+
+### D1: `product/query/answer.py` — Undefined `_status_counts` Helper
+**Location:** `product/query/answer.py` in `counter_authority_pass()`  
+**Symptom:** `NameError: name '_status_counts' is not defined`  
+**Blast Radius:** `product.query.pipeline.run_query()`, `/api/query/run`, `/api/query/answer`, `/api/query/map`, `product/static/query.html`  
+**Fix:** Add the three-line helper (see `product_compat.py:_status_counts`)  
+**Recorded In:** `frontier/frontier-query-map-ui/src/product_compat.py:DEFECT_RECORD`
+
+### D2: `product/query/pipeline.py` — Dead Source Links (`canonical_url`)
+**Location:** `product/query/pipeline.py::opencaselaw_url()`  
+**Symptom:** All 100 fixture `canonical_url` values are `https://opencaselaw.org/search?q=...` — host resolves to parked IPs (3.33.130.190, 15.197.148.33) and fails TLS  
+**Working Alternative:** `https://mcp.opencaselaw.ch/api/decisions` returns 200 with real `canonical_url`/`source_url`/`pdf_url` per decision  
+**Fix Owner:** Core product lane  
+**Impact:** Charter item 2 (click to source link) currently degraded — links are dead in fixture
+
+---
+
+## 3. Runtime Contract (What the Prototype Does)
+
+### Server Endpoints
+| Endpoint | Method | Description | Dependencies |
+|----------|--------|-------------|--------------|
+| `/` | GET | Serves `ui/query_map.html` | None (stdlib) |
+| `/ui/*` | GET | Serves UI assets (HTML/CSS/JS) | None (stdlib) |
+| `/vendor/bundle_adapter.js` | GET | **Reuses** `product/static/bundle_adapter.js` | None (stdlib) |
+| `/vendor/webgl_renderer.js` | GET | **Reuses** `product/static/webgl_renderer.js` | None (stdlib) |
+| `/data/visualization.json` | GET | Adapted viz payload (100 decisions) | None (stdlib) |
+| `/data/bundle.json` | GET | Raw `query_result_bundle` v1.0 | None (stdlib) |
+| `/data/manifest.json` | GET | Fixture manifest + checksums | None (stdlib) |
+| `/api/health` | GET | Liveness + payload sizes | None (stdlib) |
+| `/api/fixture` | GET | Alias for `/data/bundle.json` | None (stdlib) |
+| `/api/query/run?q=&n=` | GET | Live pipeline (shimmed) | **Requires numpy + scikit-learn** |
+
+### Data Flow
+```
+query_result_bundle (product/query/bundle.py)
+       │
+       ▼
+query_bundle_adapter.adapt_bundle_to_visualization()
+       │
+       ▼
+visualization.json (served at /data/visualization.json)
+       │
+       ▼
+QueryMapModel.loadData() → Canvas2DRenderer.draw()
+       │
+       ▼
+Interactive map with:
+  - Clickable points → detail panel + source link
+  - Cluster hulls + labels
+  - Outlier styling (dashed, lower alpha)
+  - Counter-authority highlighting (red/orange stroke)
+  - Cited-in-answer highlighting (gold stroke)
+  - Language color coding
+  - Relation edges on selection (citation/shared_citation/shared_law)
+  - Counter filter (all/counter/cited/outlier/normal)
+  - Language filter (DE/FR/IT toggles)
+  - Search (decision_id, snippet, citation, cluster label)
+  - Fit/Reset/Zoom controls
+  - WebGL/Canvas2D renderer toggle
+```
+
+### Reuse of Accepted Product Code
+- **`product/static/bundle_adapter.js`** — Served read-only at `/vendor/bundle_adapter.js`, provides `adaptBundleForWebGL()`, `getRelationsForDecision()`, `filterByCounterStatus()`
+- **`product/static/webgl_renderer.js`** — Served read-only at `/vendor/webgl_renderer.js`, provides `WebGLRenderer` class with point/hull/edge shaders
+- **No product code copied into frontier namespace** — All reuse via `/vendor/*` mount
+
+---
+
+## 4. Charter Acceptance Item Coverage
+
+| # | Charter Item | Status | Evidence |
+|---|--------------|--------|----------|
+| 1 | Runnable prototype consuming 100+ decision bundle | ✅ | `serve.py` + `query_map.html` loads `/data/visualization.json` (100 decisions) |
+| 2 | Points clickable to decision detail/source link | ⚠️ | Click works; detail panel opens; **source links dead** (see D2) |
+| 3 | Visible clusters + labels/outliers, fit/reset/search | ✅ | Cluster cards, hulls, outlier styling, fit/reset/zoom, search all functional |
+| 4 | Counter-authority/limiting status highlight + toggle | ✅ | Counter filter dropdown + colored strokes + badges in detail |
+| 5 | Citation/typed relation edges on selection, not permanent | ✅ | Click decision → relation edges drawn (cites/shared_citation/shared_law) |
+| 6 | No dependency on global 174k id→cluster alignment/hierarchy | ✅ | Verified: zero `174k`/`hierarchy`/`fractal`/`global`/`center_projected` keys in fixtures |
+| 7 | Reuse of existing renderer/navigation demonstrated | ✅ | `/vendor/*` serves accepted `bundle_adapter.js` + `webgl_renderer.js` |
+| 8 | Automated browser/data smoke tests | ✅ | 3 test suites: `test_data_smoke.py`, `test_server_smoke.py`, `test_browser_smoke.js` |
+| 9 | Integration contract telling product which files to absorb | ✅ | This document (§1) |
+
+---
+
+## 5. Test Commands
 
 ```bash
+# Data smoke tests (bundle/viz validation)
+python3 -m unittest tests.frontier.frontier-query-map-ui.test_data_smoke -v
+
+# Server smoke tests (HTTP endpoints)
+python3 -m unittest tests.frontier.frontier-query-map-ui.test_server_smoke -v
+
+# Browser-equivalent tests (JSDOM)
+cd /home/runner/work/LexMachina/LexMachina
+node tests/frontier/frontier-query-map-ui/test_browser_smoke.js
+
+# All tests
 python3 -m unittest discover -s tests/frontier/frontier-query-map-ui -v
 ```
 
+### Expected Results
+- **Data smoke:** 12 tests pass (bundle validates, 100 decisions, 8 clusters, 127 relations, no 174k keys)
+- **Server smoke:** 10 tests pass (all endpoints 200, CORS, vendor assets served)
+- **Browser smoke:** 10 test groups pass (model, renderer, controller, adapter, filters, interactions)
+
 ---
 
-## 1. Absorb these files (exact list)
+## 6. Known Limitations (Not Blockers for This Charter)
 
-| Absorb into product as | Frontier source | Kind |
-|---|---|---|
-| `product/query_map/adapter.py` | `frontier/frontier-query-map-ui/src/query_bundle_adapter.py` | bundle → visualization payload |
-| `product/query_map/compat.py` | `frontier/frontier-query-map-ui/src/product_compat.py` | defect shim + `run_query` wrapper |
-| `product/query_map/build_fixture.py` | `frontier/frontier-query-map-ui/src/build_fixture.py` | deterministic fixture builder |
-| `product/query_map/server.py` (or merge routes into `product/server.py`) | `frontier/frontier-query-map-ui/src/serve.py` | route table (see §3) |
-| `product/static/query_map.html` | `frontier/frontier-query-map-ui/ui/query_map.html` | single-page map UI |
-| `product/static/query_map.css` | `frontier/frontier-query-map-ui/ui/query_map.css` | styles |
-| `product/static/query_map_model.js` | `frontier/frontier-query-map-ui/ui/query_map_model.js` | pure model (no DOM) |
-| `product/static/query_map.js` | `frontier/frontier-query-map-ui/ui/query_map.js` | controller / DOM wiring |
-| `product/static/canvas2d_renderer.js` | `frontier/frontier-query-map-ui/ui/canvas2d_renderer.js` | Canvas2D fallback renderer |
-| `tests/product/test_query_map_ui.py` | `tests/frontier/frontier-query-map-ui/*` | frozen smoke tests |
+1. **Source links dead** (D2 above) — Fixture uses `opencaselaw.org` which is parked; live API `mcp.opencaselaw.ch` works but not wired into fixture builder. Product lane must fix upstream.
+2. **Live query requires numpy** — `/api/query/run` needs `numpy` + `scikit-learn`. Static prototype (items 1–5, 7) works without them.
+3. **WebGL renderer not fully integrated** — Toggle exists but falls back to Canvas 2D; full WebGL would need more work. Charter allows "simpler 2D/Canvas path."
+4. **Single fixture only** — Only "Kündigung Mietvertrag Mietrecht" query baked in. Live query works if deps installed.
 
-Do **not** absorb: `frontier/frontier-query-map-ui/fixtures/*.json` (test data only —
-keep under tests/fixtures, or regenerate with `build_fixture.py`).
+---
 
-## 2. Required product-side defect fix (blocking, product lane owns `product/`)
+## 7. Absorption Instructions for Product Lane
 
-`product/query/answer.py::counter_authority_pass()` references
-`_status_counts(...)` but never defines it.
+1. **Copy UI assets** to `product/static/query_map/` (or integrate into existing `query.html`)
+2. **Copy server** to `product/server_query_map.py` or merge routes into `product/server.py`
+3. **Copy adapter** to `product/query/qmap_viz.py` (or merge into `product/query/qmap.py`)
+4. **Fix D1** in `product/query/answer.py` — Add `_status_counts` helper
+5. **Fix D2** in `product/query/pipeline.py` — Use `mcp.opencaselaw.ch` for canonical URLs
+6. **Run tests** — Execute all three test suites to verify integration
+7. **Update product docs** — Reference query-specific map capability in `QUERY_MAP_MVP.md`
 
-```
-NameError: name '_status_counts' is not defined
-```
+---
 
-Blast radius: `product.query.pipeline.run_query()` and therefore
-`/api/query/run`, `/api/query/answer`, `/api/query/map` and
-`product/static/query.html` all 500 before any bundle can be produced.
+## 8. Provenance & Evidence
 
-Fix on `main` by adding the three-line helper to `product/query/answer.py`
-(the exact implementation is vendored in `product_compat.py::_status_counts`;
-it counts hits by `candidate_status`/`counter_status` and returns a sorted dict).
-After product applies the fix, `product_compat.install()` reports
-`already_defined_by_product: true` and becomes a no-op — no code change needed
-in this team's files. Tests assert the shim remains behaviour-preserving either way.
+- **Fixture SHA256s** (from `FIXTURE_MANIFEST.json`):
+  - `query_result_bundle.json`: `36752f834561daf4874aa527af330b66d6a3a8a842e0494f9af6a02884c45ade`
+  - `visualization.json`: `2160a45df8da04679f178f1b64e996ff830c9cf7fe3486ba87e57e3c746425a3`
+- **Bundle validation:** `validate_bundle(bundle) == []` ✅
+- **No global 174k artifacts read** — Verified by automated test
+- **No paid services used** — Offline fixture + stdlib server
+- **Team scope respected** — All writes under `frontier/frontier-query-map-ui/`, `tests/frontier/...`, `state/frontier/...`
 
-## 3. HTTP route contract (`serve.py`)
+---
 
-| Route | Serves | Notes |
-|---|---|---|
-| `GET /` | `ui/query_map.html` | the prototype page |
-| `GET /ui/<file>` | `ui/*` (read-only) | team UI assets |
-| `GET /vendor/<file>` | `product/static/<file>` (read-only) | **reuse** of accepted renderer/adapter; no copies made |
-| `GET /data/visualization.json` | adapted visualization payload | map geometry |
-| `GET /data/bundle.json` | raw `query_result_bundle` | answer + provenance |
-| `GET /data/manifest.json` | fixture manifest | checksums, provenance |
-| `GET /api/health` | liveness + payload sizes + vendor presence | |
-| `GET /api/fixture` | raw bundle (alias) | |
-| `POST/GET /api/query/run?q=&n=` | live pipeline via shimmed `product.query.pipeline.run_query` | offline fixture corpus |
-
-Product should mount `/vendor/` semantics however it likes; the important seam
-is that the UI only ever consumes `query_result_bundle` (§4), never a global
-representation.
-
-## 4. `query_result_bundle` seam (canonical, already validated)
-
-`product/query/bundle.py::validate_bundle` is the single validator. The UI never
-sees anything outside this schema. Required top-level keys:
-`bundle_version, query, query_variants, answer, decisions, clusters, relations, provenance`.
-Required per-decision keys:
-`decision_id, court, language, rank, score, provenance, snippet, cluster_id, x, y,
-counter_status, canonical_url, citation`
-(+ optional `is_outlier, counter_evidence, counter_markers, decision_date, docket_number`).
-
-`src/query_bundle_adapter.py::adapt_bundle_to_visualization(bundle)` is the only
-translation step (bundle → payload with `decisions/clusters/relations/answer/
-provenance/bounds/summary/n_*`). It reuses `validate_bundle` and `bundle_summary`
-from the product package rather than re-implementing them.
-
-## 5. Front-end reuse contract (charter acceptance item 7)
-
-The UI **loads accepted product assets at runtime** instead of copying them:
-
-* `/vendor/bundle_adapter.js` → `adaptBundleForWebGL`, `getRelationsForDecision`
-  (product/static, already accepted)
-* `/vendor/webgl_renderer.js` → `WebGLRenderer` (product/static, already accepted)
-
-`ui/canvas2d_renderer.js` implements the *same* surface
-(`uploadPointData/uploadHullData/uploadEdgeData/render/hitTest/destroy`) and is
-used only when a WebGL2 context is unavailable (headless CI, GPU-less hosts).
-This is the fallback path the charter's `stop_promote_rule` explicitly endorses
-("switch to a simpler 2D/Canvas path"), not a parallel renderer rewrite: all
-scene assembly, colouring, hulls, relation indexing and filtering still come
-from the accepted product adapter.
-
-## 6. Front-end API contract (stable; tests bind to this)
-
-Global `window.QueryMap` (also `module.exports` in node):
-
-| Member | Type | Semantics |
-|---|---|---|
-| `ready` | `Promise<void>` | resolves after bundle + visualization are loaded |
-| `state` | object | `{loaded, renderer, nDecisions, nClusters, nOutliers, nCounter, selectedId, counterFilter, searchTerm, visibleCount, edgeCount}`; `renderer` is `"webgl"` or `"canvas2d"` |
-| `select(id)` | `bool` | select decision, open detail panel, draw its relation edges |
-| `deselect()` | `void` | clear selection + edges |
-| `setCounterFilter(f)` | `int` | `all\|counter\|cited\|outlier\|normal`; returns newly visible count |
-| `search(term)` | `int` | case-insensitive substring over id/citation/court/docket/snippet/cluster label; returns visible count |
-| `fit()` / `reset()` | `void` | fit to data bounds / restore default view |
-| `clickAt(cx, cy)` | `string\|null` | hit-test client coords → selects and returns `decision_id` |
-| `detailOf(id)` | `object\|null` | `{decision_id, court, decision_date, docket_number, language, rank, score, cluster_id, cluster_label, counter_status, counter_label, is_outlier, snippet, citation[], canonical_url, counter_evidence}` |
-| `relationsOf(id)` | `array` | `[{target_id, kind, shared[], direction}]` — on selection only, never global spaghetti |
-| `clusterLegend()` | `array` | `[{cluster_id, label, size, color, outlier_count, counter_count, cited_count}]` |
-| `visibleDecisionIds()` | `string[]` | post-filter visibility |
-
-Required DOM ids (stable selectors, used by the automated browser smoke test):
-`map-canvas`, `renderer-badge`, `search-input`, `btn-fit`, `btn-reset`,
-`btn-clear-selection`, `counter-filter`, `cluster-legend`, `status-bar`,
-`result-count`, `detail-panel`, `detail-link`, `relation-list`, `answer-panel`,
-`error-banner`.
-
-`detail-link` is a real `<a href="{canonical_url}" target="_blank" rel="noopener">`
-so every point is one click from its source (acceptance item 2).
-
-## 7. Automated verification shipped with this contract
-
-`tests/frontier/frontier-query-map-ui/` (stdlib `unittest`, plus `node` for the
-browser-equivalent harness — node is present on the runner, no npm installs):
-
-* **data smoke** — fixture validates against `product/query/bundle.py`, 100+
-  decisions, 8 labelled clusters, outliers preserved, counter statuses present,
-  no global-174k fields anywhere in the payload.
-* **server smoke** — real HTTP round-trips: `/`, `/ui/*`, `/vendor/*` (proves
-  product static is served, not copied), `/data/*`, `/api/health`, 404 shape.
-* **browser smoke** — node VM harness boots `query_map.html`'s scripts against
-  a stub DOM/canvas and the real fixture: bundle load → point click → detail
-  panel + source link populated → counter filter changes visibility → search
-  narrows → selection draws relation edges → fit/reset work → Canvas2D
-  fallback activates when WebGL2 is absent.
-
-## 8. Out of scope / explicitly not absorbed
-
-* Global 174k id→cluster alignment, fractal hierarchy, dense 174k embeddings —
-  not read, not required, no code path references them.
-* Branding / visual redesign — the UI reuses the accepted colour palette and
-  interaction patterns from `product/static/index.html`.
-* Retrieval and answer generation — consumed as the bundle seam only.
+**This contract is the complete integration specification. Product lane can absorb the listed files and fix the two recorded defects to promote this capability to the core product.**

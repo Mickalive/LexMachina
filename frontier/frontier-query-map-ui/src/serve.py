@@ -1,9 +1,10 @@
 """Local prototype server for the query-specific jurisprudence map.
 
-Stdlib-only (owner-time invariant: no paid API, no extra service to provision).
+Stdlib-only for static/file serving (owner-time invariant: no paid API, no extra service to provision).
+The live query endpoint requires numpy/scikit-learn (documented in requirements).
 
 Routes
-------
+-----
     /                        -> ui/query_map.html  (the prototype)
     /ui/<file>               -> frontier UI assets (read-only)
     /vendor/<file>           -> ACCEPTED product static assets, served read-only
@@ -14,9 +15,13 @@ Routes
     /data/bundle.json        -> raw query_result_bundle (answer + provenance)
     /data/manifest.json      -> fixture manifest (checksums, provenance)
     /api/health              -> liveness + payload sizes
-    /api/query/run?q=&n=     -> live pipeline (shimmed product pipeline)
+    /api/query/run?q=&n=     -> live pipeline (shimmed product pipeline, requires numpy)
 
-Run:
+Run (static/file serving only - no numpy required):
+    python3 frontier/frontier-query-map-ui/src/serve.py --port 8787
+
+Run (with live query - requires numpy + scikit-learn):
+    pip install numpy scikit-learn
     python3 frontier/frontier-query-map-ui/src/serve.py --port 8787
 """
 from __future__ import annotations
@@ -36,7 +41,9 @@ for p in (str(_HERE), str(REPO_ROOT)):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-import product_compat  # noqa: E402
+# product_compat is imported lazily in _route() to avoid numpy import at startup
+# for static/file serving. This keeps the "stdlib-only" claim true for the
+# prototype UI serving path.
 
 UI_DIR = TEAM_ROOT / "ui"
 FIXTURE_DIR = TEAM_ROOT / "fixtures"
@@ -55,6 +62,13 @@ CONTENT_TYPES = {
     ".png": "image/png",
     ".ico": "image/x-icon",
 }
+
+
+def _get_product_compat():
+    """Lazily import and install product_compat shim."""
+    import product_compat
+    product_compat.install()
+    return product_compat
 
 
 class QueryMapHandler(BaseHTTPRequestHandler):
@@ -156,6 +170,7 @@ class QueryMapHandler(BaseHTTPRequestHandler):
             if not q.strip():
                 return self._send_json({"error": "empty query"}, 400)
             try:
+                product_compat = _get_product_compat()
                 bundle, report = product_compat.run_query(q, top_n=n)
             except Exception as exc:  # pragma: no cover - surfaced to the UI
                 return self._send_json({"error": f"{type(exc).__name__}: {exc}"}, 500)
@@ -171,7 +186,7 @@ class QueryMapHandler(BaseHTTPRequestHandler):
 
 
 def make_server(host: str = "127.0.0.1", port: int = 8787, verbose: bool = False) -> ThreadingHTTPServer:
-    product_compat.install()
+    # No product_compat.install() here - lazy loaded on /api/query/run
     srv = ThreadingHTTPServer((host, port), QueryMapHandler)
     srv.verbose = verbose  # type: ignore[attr-defined]
     return srv
