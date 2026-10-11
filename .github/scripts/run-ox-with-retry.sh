@@ -5,7 +5,7 @@ set -uo pipefail
 # launcher. Re-exec the exact current wrapper from main when it differs.
 if [[ "${LEX_WRAPPER_REEXEC:-0}" != "1" ]]; then
   LATEST_WRAPPER="$(mktemp)"
-  if git fetch -q origin main 2>/dev/null && git show origin/main:.github/scripts/run-ox-with-retry.sh > "$LATEST_WRAPPER" 2>/dev/null; then
+  if git fetch -q --depth=1 origin main 2>/dev/null && git show origin/main:.github/scripts/run-ox-with-retry.sh > "$LATEST_WRAPPER" 2>/dev/null; then
     if ! cmp -s "$0" "$LATEST_WRAPPER"; then
       chmod +x "$LATEST_WRAPPER"
       export LEX_WRAPPER_REEXEC=1
@@ -61,7 +61,7 @@ trap cleanup EXIT INT TERM
 
 stage_control(){
   local ref="origin/main"
-  if ! git fetch -q origin main; then echo "::warning::main refresh failed; using workflow checkout"; ref="${GITHUB_SHA:-HEAD}"; fi
+  if ! git fetch -q --depth=1 origin main; then echo "::warning::main refresh failed; using workflow checkout"; ref="${GITHUB_SHA:-HEAD}"; fi
   rm -rf /tmp/lex_control; mkdir -p /tmp/lex_control
   for p in AGENTS.md LEXMACHINA_MASTER_PROMPT.md ARCHITECTURE.md docs/RESEARCH_PROTOCOL.md docs/agents/AGENT_CARDS.md state/factory_direction.json state/frontier_portfolio.json state/model_health.json; do
     if git cat-file -e "$ref:$p" 2>/dev/null; then mkdir -p "/tmp/lex_control/$(dirname "$p")"; git show "$ref:$p" > "/tmp/lex_control/$p"; fi
