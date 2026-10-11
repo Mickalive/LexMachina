@@ -186,10 +186,9 @@ jobs:
               echo "::warning::Superseded Director proposal: control direction changed after this run started. Skipping integration."
               exit 0
             fi
-            git checkout "origin/$P" -- state/factory_direction.json state/frontier_portfolio.json reports/director
-            git checkout "origin/$A" -- results/audit/director reports/audit/director
-            git config user.name "lex-director-integrator"; git config user.email "lex-director@autonomous.local"; git add state/factory_direction.json state/frontier_portfolio.json reports/director results/audit/director reports/audit/director; git commit -m "direction: accept Director run ${GITHUB_RUN_ID}" || exit 0
-            for i in 1 2 3 4 5 6; do if git pull --rebase origin main && git push origin HEAD:main; then exit 0; fi; git rebase --abort 2>/dev/null || true; git reset --hard origin/main; git checkout "origin/$P" -- state/factory_direction.json state/frontier_portfolio.json reports/director; git checkout "origin/$A" -- results/audit/director reports/audit/director; git add -A; git commit -m "direction: accept Director run ${GITHUB_RUN_ID}" || true; sleep $((i*3)); done; exit 1
+            git checkout "origin/$P" -- state/factory_direction.json state/frontier_portfolio.json
+            git config user.name "lex-director-integrator"; git config user.email "lex-director@autonomous.local"; git add state/factory_direction.json state/frontier_portfolio.json; git commit -m "direction: accept Director run ${GITHUB_RUN_ID}" || exit 0
+            for i in 1 2 3 4 5 6; do if git pull --rebase origin main && git push origin HEAD:main; then exit 0; fi; git rebase --abort 2>/dev/null || true; git reset --hard origin/main; git checkout "origin/$P" -- state/factory_direction.json state/frontier_portfolio.json; git add state/factory_direction.json state/frontier_portfolio.json; git commit -m "direction: accept Director run ${GITHUB_RUN_ID}" || true; sleep $((i*3)); done; exit 1
           elif [[ "$GATE" == REVISE ]]; then
             gh workflow run factory-director.yml --repo "$GITHUB_REPOSITORY" --ref main -f repair_from_run_id="${GITHUB_RUN_ID}" -f repair_round="$((ROUND+1))"
           else
