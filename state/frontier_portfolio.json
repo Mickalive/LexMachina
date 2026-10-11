@@ -1,12 +1,12 @@
 {
-  "version": 10,
+  "version": 11,
   "schema_version": 2,
   "history_archive": "state/archive/frontier_portfolio_history.json",
-  "policy": "ACTIVE PORTFOLIO ONLY. Human-authorized query-map engineering teams run in parallel with non-overlapping integration contracts. Historical/terminated charters are preserved in the archive and on lab/cycle branches; do not load them into normal Director/Supervisor context.",
+  "policy": "ACTIVE PORTFOLIO ONLY. v2 query-map engineering teams are fresh operational generations on lightweight branches. Human-authorized teams run in parallel with non-overlapping contracts; Product integrates accepted outputs immediately.",
   "teams": [
     {
       "team_id": "frontier-query-retrieval",
-      "charter_version": 1,
+      "charter_version": 2,
       "status": "RUN",
       "human_authorized": true,
       "product_capability": "A production-ready OpenCaseLaw retrieval/cache adapter that turns a Swiss legal question into a normalized, provenance-preserving query_result_bundle candidate set for downstream answer generation and mapping.",
@@ -22,12 +22,13 @@
       ],
       "acceptance_test": "(1) Runnable Python adapter/CLI with live and cached modes. (2) A real Swiss-law query can page/merge OpenCaseLaw results into a normalized bundle with decision_id, canonical_url, citation string, language, date/court, title/regeste/snippet and retrieval provenance; configurable target up to at least 100 results without violating documented rate limits. (3) Deduplication is deterministic by decision_id/canonical identity. (4) Lazy full decision/structure fetching works for selected candidates. (5) Citation-neighborhood expansion can add incoming/outgoing/leading-case candidates with provenance and bounded limits. (6) At least FR/DE/IT query variants or language-filtered expansion are supported without fabricating translations. (7) Cached fixtures make tests deterministic/offline. (8) Tests exercise pagination, cache, dedupe, provenance and remote-failure degradation. (9) A short machine-readable integration contract documents how product imports/copies the adapter.",
       "stop_promote_rule": "PROMOTE when acceptance (1)-(9) pass and hand artifacts to product/evaluation. Continue only for concrete adapter defects found by integration. TERMINATE if OpenCaseLaw public interfaces cannot supply stable decision IDs/source URLs/full-text/citation expansion required by the bundle; document exact missing capability instead of rebuilding the national corpus.",
-      "created_at": "2026-10-11T19:56:32.601Z",
-      "run_history": []
+      "created_at": "2026-10-11T20:23:37.011Z",
+      "run_history": [],
+      "operational_revision_reason": "Fresh execution after sandbox permission fix, zero-delta enforcement, shallow mounts, and lightweight lab-branch reset. Product hypothesis/acceptance contract unchanged."
     },
     {
       "team_id": "frontier-generative-audit",
-      "charter_version": 1,
+      "charter_version": 2,
       "status": "RUN",
       "human_authorized": true,
       "product_capability": "Provider-agnostic sourced legal answer generation plus an independent counter-authority/adversarial pass that can run for development with a free OpenCode CLI or local model and later swap to production inference.",
@@ -44,12 +45,13 @@
       ],
       "acceptance_test": "(1) Provider interface with at least one real no-owner-cost development path attempted and working in CI or documented local mode (OpenCode CLI and/or local model), plus deterministic fixture/mock for tests. (2) Given a bundle, generate a substantive answer that cites only decision IDs present in the source bundle; hallucinated IDs are programmatically rejected. (3) Run a logically independent adversarial pass whose objective is to find/flag contradictory, limiting, distinguishing, older/minority or exception authorities; it must not simply restate the first answer. (4) Merge adversarial findings into structured statuses supporting/limiting/contrary_or_exception/unclassified with uncertainty and evidence references. (5) Add post-generation citation/source validation, using OpenCaseLaw attestation/claim support where feasible or strict local bundle validation otherwise. (6) Produce at least one end-to-end cached example with answer + adversarial findings. (7) Tests cover invented citation rejection, unsupported-status downgrade, provider failure fallback and deterministic parsing. (8) Publish a narrow integration contract for product.",
       "stop_promote_rule": "PROMOTE when (1)-(8) pass. Continue only for concrete integration defects or source-validation failures. TERMINATE the specific provider path if it cannot produce tool-usable output reliably; keep the provider abstraction and try another free/local development provider without escalating to the owner.",
-      "created_at": "2026-10-11T19:56:32.601Z",
-      "run_history": []
+      "created_at": "2026-10-11T20:23:37.011Z",
+      "run_history": [],
+      "operational_revision_reason": "Fresh execution after sandbox permission fix, zero-delta enforcement, shallow mounts, and lightweight lab-branch reset. Product hypothesis/acceptance contract unchanged."
     },
     {
       "team_id": "frontier-query-map-ui",
-      "charter_version": 1,
+      "charter_version": 2,
       "status": "RUN",
       "human_authorized": true,
       "product_capability": "A query-specific interactive jurisprudence map that consumes query_result_bundle data and reuses the existing LexMachina WebGL/Canvas/navigation shell, with readable clusters, outliers, relations and counter-authority emphasis.",
@@ -65,8 +67,9 @@
       ],
       "acceptance_test": "(1) Runnable local prototype or component that consumes a query_result_bundle fixture with roughly 100+ decisions. (2) Points clickable to decision detail/source link. (3) Visible clusters with labels/placeholders derived from bundle data, outliers preserved, fit/reset/search controls functional. (4) Counter-authority/limiting status can be highlighted/toggled. (5) Citation/typed relation edges appear on selection rather than as permanent spaghetti. (6) No dependency on global 174k id→cluster alignment or global hierarchy. (7) Reuse of existing LexMachina renderer/navigation is demonstrated or a concrete reason for isolated replacement is documented. (8) Automated browser/data smoke tests or equivalent verify bundle load, click mapping and status filtering. (9) Integration contract tells product exactly which files/components to absorb.",
       "stop_promote_rule": "PROMOTE when (1)-(9) pass. Continue only for concrete usability/integration defects. TERMINATE a rendering approach if it obscures clusters or requires global-174k artifacts; switch to a simpler 2D/Canvas path rather than asking the owner for design decisions.",
-      "created_at": "2026-10-11T19:56:32.601Z",
-      "run_history": []
+      "created_at": "2026-10-11T20:23:37.011Z",
+      "run_history": [],
+      "operational_revision_reason": "Fresh execution after sandbox permission fix, zero-delta enforcement, shallow mounts, and lightweight lab-branch reset. Product hypothesis/acceptance contract unchanged."
     }
   ]
 }
