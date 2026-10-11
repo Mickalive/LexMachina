@@ -89,7 +89,13 @@ jobs:
         run: |
           set -euo pipefail
           rm -rf /tmp/lex_accepted; mkdir -p /tmp/lex_accepted/core /tmp/lex_accepted/frontier
-          for lane in corpus legal-distance fractal-map evaluation product; do
+          case "$TEAM" in
+            frontier-query-retrieval) CORE_PEERS=(product) ;;
+            frontier-generative-audit) CORE_PEERS=(product evaluation) ;;
+            frontier-query-map-ui) CORE_PEERS=(product fractal-map) ;;
+            *) CORE_PEERS=(corpus legal-distance fractal-map evaluation product) ;;
+          esac
+          for lane in "${CORE_PEERS[@]}"; do
             br="lab/$lane"; if git ls-remote --exit-code --heads origin "refs/heads/$br" >/dev/null 2>&1; then git fetch origin "$br:refs/remotes/origin/$br"; git worktree add --detach "/tmp/lex_accepted/core/$lane" "origin/$br" || true; fi
           done
           git ls-remote --heads origin 'refs/heads/lab/frontier/*' | while read -r sha ref; do peer="${ref#refs/heads/lab/frontier/}"; [[ "$peer" == "$TEAM" ]] && continue; git fetch origin "$ref:refs/remotes/origin/lab/frontier/$peer"; git worktree add --detach "/tmp/lex_accepted/frontier/$peer" "origin/lab/frontier/$peer" || true; done
