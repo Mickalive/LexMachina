@@ -22,6 +22,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional, Set
+import subprocess
+import json
+import re
+from pathlib import Path
 
 from .source_packing import DecisionBundle, Decision, CitationValidator
 
@@ -56,12 +60,27 @@ class AdversarialPass:
         model: Optional[str] = None,
         fixture_mode: bool = False,
         fixture_findings: Optional[List[AdversarialFinding]] = None,
+        use_attestation: bool = True,
     ):
         self.bundle = bundle
         self.answer = answer
-        self.model = model or "opencode/nemotron-3.5-lightning-free"
+        self.model = model or self._select_model_from_health()
         self.fixture_mode = fixture_mode
         self.fixture_findings = fixture_findings or []
+        self.use_attestation = use_attestation
+
+    def _select_model_from_health(self) -> str:
+        """Read model_health.json and return the preferred healthy model."""
+        health_path = Path("/home/runner/work/LexMachina/LexMachina/state/model_health.json")
+        if health_path.exists():
+            try:
+                with open(health_path) as f:
+                    health = json.load(f)
+                if health.get("healthy") and health.get("healthy_models"):
+                    return health["healthy_models"][0]
+            except Exception:
+                pass
+        return "opencode/nemotron-3.5-lightning-free"
 
     # ---- public API ----
 
@@ -185,6 +204,9 @@ class AdversarialPass:
             }
             if reason not in valid_reasons:
                 reason = "unclassified"
+            # Validate that the decision_id is in the bundle
+            if decision_id not in self.bundle.decision_ids:
+                continue
             findings.append(
                 AdversarialFinding(
                     decision_id=decision_id,
@@ -224,6 +246,9 @@ class AdversarialPass:
             }
             if reason not in valid_reasons:
                 reason = "unclassified"
+            # Validate that the decision_id is in the bundle
+            if did not in self.bundle.decision_ids:
+                continue
             findings.append(
                 AdversarialFinding(
                     decision_id=did,

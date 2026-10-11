@@ -13,9 +13,10 @@ This package answers the charter question:
 """
 
 from .provider import Provider, ProviderResult
-from .source_packing import CitationValidator, DecisionBundle
+from .source_packing import CitationValidator, DecisionBundle, Decision
 from .adversarial import AdversarialPass, AdversarialFinding
-from .models import StatusLabel, DecisionStatus, uncertainty_from_evidence
+from .models import StatusLabel, DecisionStatus, AnswerPackage, uncertainty_from_evidence
 from .integration_contract import package_answer
+from .opencaselaw import OpenCaseLawAttestor, PostGenerationValidator, validate_bundle_against_ocl
 
 __version__ = "2.0.0"
