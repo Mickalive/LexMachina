@@ -29,8 +29,8 @@ sent could never have worked.  The corrected client defaults to the live
 host, uses POST for POST-only routes, and records which check verified each
 decision.  ``probe_ocl.py`` in this tree re-runs the reachability probes.
 
-Verification semantics (repaired)
----------------------------------
+Verification semantics (repaired; adversarial audit cycle 2026-10-12)
+---------------------------------------------------------------------
 ``verified`` is **never** ``bool(payload)``.  A check only verifies when the
 response carries positive identification evidence:
 
@@ -38,16 +38,33 @@ response carries positive identification evidence:
 * a JSON object that is not an error payload (``error`` / ``errors`` /
   ``detail`` / ``ok: false`` / error status);
 * for a decision: a truthy ``decision_id`` / ``decision`` / ``id`` /
-  ``docket_number`` key, and — when the payload echoes an id — an id that
-  matches the one we asked about;
-* for an integrity proof: truthy ``leaf_hash`` (and ``root``);
-* for a draft attestation: ``ok`` is true **and** the draft actually
-  contained Swiss-case citations that were resolved
-  (``citations_found`` > 0 and ``citations_ok`` == ``citations_found``);
-  an audit that found nothing to audit is *inconclusive*, not verified.
+  ``docket_number`` key **and — when we asked about a specific decision id —
+  an id echo (``decision_id`` / ``id`` / ``docket_number``) that matches the
+  one we asked about**.  A body like ``{"decision": "ok"}`` that carries no
+  id echo can never verify any decision (defect fixed: it previously
+  verified every id);
+* for an integrity proof: truthy ``leaf_hash`` **and** (when an id was
+  requested) a matching ``decision_id`` echo — the observed live proof body
+  always echoes ``decision_id``;
+* for a draft attestation: ``ok`` is true, ``citations_found`` > 0,
+  ``citations_ok`` is an integer equal to ``citations_found`` (a missing or
+  boolean ``citations_ok`` is unverified), **and** the body binds itself to
+  the audited draft (a ``ledger`` or an ``annotated_text`` / ``linked_text``
+  / ``draft_text`` echo) — a canned ``{"ok": true, "citations_found": n,
+  "citations_ok": n}`` body that refers to nothing verifies nothing;
+* for claim support (``POST /verify-claim``): a ``supports`` verdict in the
+  judge vocabulary **and** a matching ``decision_id`` echo (the route echoes
+  the id it judged, observed live).
+
+All evaluator call sites now pass the expected id, so the mismatch check on
+``/verify-claim`` actually runs (defect fixed: it was dead code — a response
+echoing a different decision id used to verify).
 
 The observed live error body ``200 {"error": "Provide draft_text to audit."}``
-is therefore unverified (regression-tested).
+is therefore unverified (regression-tested).  Draft-attestation result
+identifiers are sha256-derived (never Python's per-process randomised
+``hash()``), so identical drafts yield identical, reproducible verdict
+identity across processes.
 
 Strict local validation always runs and is the offline default; live
 attestation is opt-in via ``LEX_OCL_ATTEST=1`` so the deterministic suite
@@ -56,6 +73,7 @@ never touches the network.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import urllib.error
