@@ -140,7 +140,11 @@ jobs:
               "counter_decisions": len(counters),
               "provider_error": ga.get("provider_error"),
               "adversarial_method": (ga.get("adversarial") or {}).get("method"),
+              "adversarial_model": (ga.get("adversarial") or {}).get("model"),
               "adversarial_error": (ga.get("adversarial") or {}).get("error"),
+              "adversarial_prompt_decisions": (ga.get("adversarial") or {}).get("prompt_decisions"),
+              "adversarial_bundle_decisions": (ga.get("adversarial") or {}).get("bundle_decisions"),
+              "adversarial_attempts": (ga.get("adversarial") or {}).get("attempts"),
               "geometry_preserved": all(
                   (a.get("x"), a.get("y"), a.get("cluster_id"), a.get("is_outlier"))
                   == (b.get("x"), b.get("y"), b.get("cluster_id"), b.get("is_outlier"))
@@ -158,5 +162,9 @@ jobs:
           assert answer.get("cited_decision_ids"), metrics
           assert set(answer["cited_decision_ids"]) <= ids, metrics
           assert (ga.get("adversarial") or {}).get("method") == "independent_llm_adversarial_v2", metrics
+          assert metrics["adversarial_error"] in (None, ""), metrics
+          assert metrics["adversarial_model"], metrics
+          assert 1 <= int(metrics["adversarial_prompt_decisions"] or 0) <= 36, metrics
+          assert int(metrics["adversarial_bundle_decisions"] or 0) == len(final["decisions"]), metrics
           assert metrics["geometry_preserved"] is True, metrics
           PY
