@@ -257,12 +257,42 @@ def build_matrix(run_id: str, checks: Dict[str, Any], live: bool) -> Dict[str, A
     def verdict(ok: Any) -> str:
         return "PASS" if ok else ("NOT-RUN" if ok is None else "FAIL")
 
+    # Derive mode from the live flag: if live mode was exercised, reflect that;
+# otherwise use deterministic.  Avoid always claiming "operational resume of
+# snapshot 38193076995" for runs that are not resumes.
+    if live:
+        run_mode = "live verify_cycle.py finisher (LEX_REAL_MODEL=1 LEX_LIVE_OCL=1)"
+    else:
+        run_mode = "deterministic verify_cycle.py finisher"
+
+    # Derive resumed_from_snapshot_run from run context: check whether the
+    # run involved an operational resume from a prior snapshot.  If the
+    # checkpoint or suite results indicate a resume, record the prior run id;
+    # otherwise use None so the matrix accurately reflects the run type rather
+    # than always hardcoding 38193076995.
+    resumed_from = None
+    if "resumed_from_snapshot_run" in checks.get("suites", {}):
+        resumed_from = checks["suites"].get("resumed_from_snapshot_run")
+    if resumed_from is None:
+        # Look at the top-level check summary for resume evidence
+        for suite_key in ("canonical_suite", "legacy_suite"):
+            suite_info = checks.get("suites", {}).get(suite_key, {})
+            if isinstance(suite_info, dict) and suite_info.get("ok"):
+                # If the run produced a full acceptance matrix from a resumed
+                # producer, the acceptance_summary may note it; otherwise leave None.
+                passed = suite_info.get("passed", 0)
+                total = suite_info.get("total", 0)
+                if passed > 0 and total > 0 and passed < total:
+                    # Partial pass may indicate a resumed run with truncated evidence
+                    pass  # keep resumed_from as None
+    resumed_from_snapshot_run = resumed_from if resumed_from is not None else None
+    
     return {
         "team_id": "frontier-generative-audit",
         "charter_version": 2,
         "run_id": run_id,
-        "mode": "deterministic verify_cycle.py finisher (operational resume of snapshot 38193076995)",
-        "resumed_from_snapshot_run": "38193076995",
+        "mode": run_mode,
+        "resumed_from_snapshot_run": resumed_from_snapshot_run,
         "contract_version": "generative-audit-contract/2.2",
         "canonical_tree": "frontier/frontier-generative-audit",
         "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),

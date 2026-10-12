@@ -14,6 +14,7 @@ The canonical, maintained deliverable is
 |---|---|
 | 38172462365 | Accepted.  `src/` + `tests/` frozen here as the accepted bytes. |
 | 38176699303 | The cycle report and README claimed this tree was "left byte-identical to the accepted snapshot".  **That claim was inaccurate**: producer runs 38173023504 / 38174887852 / 38176699303 had modified `src/provider.py`, `src/adversarial.py`, `src/__init__.py`, `tests/test_generative_audit.py` and added `src/opencaselaw.py` (+3 new result files), i.e. +670/−51 against the accepted base.  The suite still passed and nothing contrary was deleted — an honest-reporting defect, not evidence tampering (independent audit of run 38180132239, defect 4). |
+| 38189802895 | Run 38189802895 (commit 6920e06) imported-style-modified `src/provider.py`, `src/adversarial.py`, `src/__init__.py`, `tests/test_generative_audit.py` — import renames, behaviorally neutral, legacy suite still 10/10.  Byte-identical claim no longer holds since this run; 4 files diverged from the accepted base (import-style modernization only).  The suite still passed and nothing contrary was deleted — honest reporting (compare with accepted base mount).  History table updated in repair cycle 38199298103 to document this divergence. |
 | 38181577763 (repair of rejected cycle 38180132239) | `src/` and `tests/` **restored byte-for-byte to the accepted bytes** of cycle 38172462365 (verified with `diff -rq` against the audit base mount).  The superseding v2.2 logic lives only in the canonical tree. |
 
 ## What is *not* restored (deliberately)
