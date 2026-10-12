@@ -118,7 +118,7 @@ jobs:
           done
           mkdir -p /tmp/lex_accepted/frontier
           if [[ "$LANE" == product || "$LANE" == evaluation ]]; then
-            jq -r '.teams[] | select(.status=="RUN" or .status=="PROMOTE") | .team_id' /tmp/lex_control/state/frontier_portfolio.json | while read -r team; do
+            git show origin/main:state/frontier_portfolio.json | jq -r '.teams[] | select(.status=="RUN" or .status=="PROMOTE") | .team_id' | while read -r team; do
               [[ -n "$team" ]] || continue
               ref="refs/heads/lab/frontier/$team"
               if git ls-remote --exit-code --heads origin "$ref" >/dev/null 2>&1; then
