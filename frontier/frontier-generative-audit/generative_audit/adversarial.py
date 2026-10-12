@@ -58,6 +58,13 @@ UNCERTAINTY_WORDS = {"certain": 0.0, "low": 0.2, "medium": 0.5, "high": 0.8, "un
 # markers and answer-cited IDs; classification is still performed by a separate
 # model call and evidence is still verified against the full bundle afterwards.
 MAX_PROMPT_SOURCES = 24
+ADVERSARIAL_MODEL_PREFERENCE = (
+    "opencode/space-bunny-free",
+    "opencode/nemotron-3.5-lightning-free",
+    "opencode/mimo-v2.6-flash-free",
+    "opencode/nemotron-3-ultra-free",
+)
+
 CHALLENGE_MARKERS = (
     # DE
     "ausnahme", "entgegen", "abweich", "jedoch", "hingegen", "vorbehalt",
@@ -119,19 +126,26 @@ class AdversarialPass:
         elif fixture_mode:
             self.model = "fixture://generative-audit"
         else:
-            healthy = paths.healthy_models()
-            # Prefer a different healthy model from the answer generator when
-            # possible.  This strengthens operational independence and avoids a
-            # single slow provider becoming a single point of failure.
-            self.model = healthy[1] if len(healthy) > 1 else paths.preferred_model()
+            ordered = self._ordered_healthy_models()
+            # Live integrated evidence (run 38289533807) showed that
+            # space-bunny completed the bounded challenge pass while lightning
+            # and ultra both hit the 60s ceiling. Prefer the observed successful
+            # reviewer, while retaining the whole healthy pool as fallback.
+            self.model = ordered[0] if ordered else paths.preferred_model()
         self.rejected_ids: List[str] = []
         self.last_error: Optional[str] = None
         self.last_raw: Optional[str] = None
 
     # ---- prompt ----
 
+    @staticmethod
+    def _ordered_healthy_models() -> List[str]:
+        healthy = [m for m in paths.healthy_models() if m]
+        preferred = [m for m in ADVERSARIAL_MODEL_PREFERENCE if m in healthy]
+        return preferred + [m for m in healthy if m not in preferred]
+
     def _fallback_models(self, exclude: Optional[str] = None) -> List[str]:
-        return [m for m in paths.healthy_models() if m and m != exclude]
+        return [m for m in self._ordered_healthy_models() if m != exclude]
 
     @staticmethod
     def _rank_of(dec, fallback: int) -> int:
