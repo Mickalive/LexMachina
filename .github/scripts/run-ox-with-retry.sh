@@ -226,11 +226,11 @@ while ((attempt<=MAX_ATTEMPTS)); do
     failed_model="$(current_model)"
     [[ -n "$failed_model" ]] && MODEL_QUARANTINED["$failed_model"]=1
     echo "::warning::LEX_MODEL_AUTH_FAILURE model=${failed_model:-unknown}; quarantining for this run" >&2
-    if ((attempt<MAX_ATTEMPTS)) && rotate_model; then
+    if rotate_model; then
       attempt=$((attempt+1))
       continue
     fi
-    echo "::error::LEX_MODEL_AUTH_POOL_EXHAUSTED; model-health is stale or provider auth is globally unavailable" >&2
+    echo "::error::LEX_MODEL_AUTH_POOL_EXHAUSTED; every model in the current healthy pool failed auth/unavailability in this run" >&2
     restore_overlay || true
     exit 76
   fi
