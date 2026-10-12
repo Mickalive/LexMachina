@@ -1,151 +1,186 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>LexMachina — Query Map MVP</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LexMachina — Carte jurisprudentielle</title>
 <style>
-  body { font-family: system-ui, sans-serif; margin: 0; display: flex; height: 100vh; }
-  #left { width: 380px; min-width: 320px; overflow-y: auto; padding: 12px; border-right: 1px solid #ccc; }
-  #main { flex: 1; display: flex; flex-direction: column; }
-  #bar { padding: 8px; border-bottom: 1px solid #ccc; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  #map { flex: 1; position: relative; }
-  canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
-  #detail { position: absolute; right: 8px; top: 8px; width: 320px; max-height: 90%; overflow-y: auto;
-            background: rgba(255,255,255,.96); border: 1px solid #999; padding: 10px; display: none; }
-  .stmt { margin: 6px 0; padding: 6px; background: #f4f6ff; border-left: 3px solid #36c; font-size: 13px; }
-  .counter { margin: 6px 0; padding: 6px; background: #fff4f4; border-left: 3px solid #c33; font-size: 13px; }
-  .legend span { display: inline-block; width: 12px; height: 12px; margin-right: 4px; vertical-align: middle; }
-  input[type=text] { flex: 1; min-width: 200px; padding: 6px; }
-  button { padding: 6px 12px; }
-  #status { font-size: 12px; color: #555; }
-  h3 { margin: 12px 0 4px; font-size: 14px; }
-  a { color: #36c; }
+:root{font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:#17191f;background:#f5f6f8}
+*{box-sizing:border-box}body{margin:0;height:100vh;display:grid;grid-template-columns:390px 1fr;overflow:hidden}
+aside{background:#fff;border-right:1px solid #e2e5ea;overflow:auto;padding:18px}
+main{min-width:0;display:flex;flex-direction:column}.brand{font-weight:800;font-size:21px}.sub{color:#68707d;font-size:12px;margin:3px 0 16px}
+.search{display:grid;grid-template-columns:1fr 72px;gap:7px}.search input,.search select,button{border:1px solid #d7dbe2;border-radius:8px;padding:9px;background:#fff}
+button{cursor:pointer;font-weight:650}.primary{grid-column:1/-1;background:#17191f;color:#fff;border-color:#17191f}
+#status{font-size:12px;color:#68707d;margin:9px 0 14px;min-height:30px}.phase{display:inline-block;padding:2px 7px;border-radius:20px;background:#eef0f4;margin-right:5px}
+.warn{color:#9c5a00;background:#fff7e8;border:1px solid #f0d7a8;padding:8px;border-radius:8px;font-size:12px}
+h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#737b88;margin:18px 0 7px}
+#prose{font-size:13px;line-height:1.5;white-space:pre-wrap}.card{font-size:12px;padding:8px 9px;margin:6px 0;border-radius:8px;background:#f7f8fa;border:1px solid #eceef2}
+.card.counter{border-left:3px solid #bd2d3a}.card a{color:#2459a8;text-decoration:none}.cluster{display:flex;gap:7px;align-items:flex-start}.dot{width:10px;height:10px;border-radius:50%;margin-top:3px;flex:0 0 auto}
+#toolbar{height:54px;background:#fff;border-bottom:1px solid #e2e5ea;display:flex;gap:7px;align-items:center;padding:9px 12px}
+#toolbar input{border:1px solid #d7dbe2;border-radius:7px;padding:7px;width:220px}#toolbar select{border:1px solid #d7dbe2;border-radius:7px;padding:7px}
+#mapWrap{position:relative;flex:1;min-height:0}canvas{width:100%;height:100%;display:block;background:#fafbfc}
+#detail{position:absolute;right:14px;top:14px;width:min(360px,45%);max-height:calc(100% - 28px);overflow:auto;background:rgba(255,255,255,.98);border:1px solid #d9dde5;border-radius:10px;padding:13px;box-shadow:0 8px 30px rgba(20,25,35,.12);display:none;font-size:12px;line-height:1.45}
+#detail .close{float:right;border:0;padding:0 5px;font-size:18px}.muted{color:#737b88}.pill{display:inline-block;border-radius:20px;padding:2px 7px;background:#eef0f4;margin:2px 3px 2px 0}.pill.red{background:#fdecef;color:#941d2c}.pill.gold{background:#fff4d5;color:#815c00}
+#legend{position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.9);border:1px solid #e2e5ea;border-radius:8px;padding:7px 9px;font-size:11px;color:#59616d}
+@media(max-width:850px){body{grid-template-columns:1fr;grid-template-rows:44% 56%}aside{border-right:0;border-bottom:1px solid #e2e5ea}.brand{font-size:18px}#detail{width:70%}}
 </style>
 </head>
 <body>
-<div id="left">
-  <h2>LexMachina Query Map</h2>
-  <div id="answer"><h3>Antwort (quellenbasiert)</h3><div id="prose">Anfrage stellen …</div></div>
-  <div id="counters"><h3>Gegen-/Ausnahme-Entscheide</h3><div id="counterList">–</div></div>
-  <div id="clusters"><h3>Cluster</h3><div id="clusterList" class="legend">–</div></div>
-</div>
-<div id="main">
-  <div id="bar">
-    <input id="q" type="text" value="Kündigung Mietvertrag Mietrecht" placeholder="Rechtsfrage …">
-    <select id="n"><option>60</option><option selected>120</option><option>200</option></select>
-    <button id="run">Suchen + Karte</button>
-    <span id="status"></span>
+<aside>
+  <div class="brand">LEX / LexMachina</div>
+  <div class="sub">Recherche suisse · réponse sourcée · carte des lignes jurisprudentielles</div>
+  <div class="search">
+    <input id="q" value="Kündigung Mietvertrag Mietrecht" placeholder="Posez une question de droit suisse…">
+    <select id="n"><option>100</option><option selected>150</option><option>250</option><option>300</option></select>
+    <button class="primary" id="run">Rechercher</button>
   </div>
-  <div id="map"><canvas id="cv"></canvas><div id="detail"></div></div>
-</div>
+  <div id="status">Prêt.</div>
+  <h3>Réponse</h3>
+  <div id="prose">La carte apparaîtra avant la réponse : LEX récupère d’abord les décisions, puis audite la réponse séparément.</div>
+  <div id="answerMeta"></div>
+  <h3>Contre-autorités / exceptions</h3>
+  <div id="counterList" class="muted">—</div>
+  <h3>Clusters</h3>
+  <div id="clusterList" class="muted">—</div>
+</aside>
+<main>
+  <div id="toolbar">
+    <input id="filter" placeholder="Filtrer décisions / snippets…">
+    <select id="counterFilter">
+      <option value="all">Toutes</option>
+      <option value="counter">Contre-autorités</option>
+      <option value="cited">Citées</option>
+      <option value="outlier">Outliers</option>
+    </select>
+    <select id="langFilter"><option value="all">Toutes langues</option><option value="de">DE</option><option value="fr">FR</option><option value="it">IT</option></select>
+    <button id="fit">Ajuster</button>
+  </div>
+  <div id="mapWrap">
+    <canvas id="cv"></canvas><div id="detail"></div>
+    <div id="legend">couleur = cluster · contour rouge = contre-autorité · or = citée · point pâle = outlier</div>
+  </div>
+</main>
 <script>
-const COLORS = ["#1f77b4","#ff7f0e","#2ca02c","#d62728","#9467bd","#8c564b","#e377c2","#7f7f7f"];
-let BUNDLE = null, PTS = [];
-const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+const COLORS=["#2459a8","#d4771d","#27845b","#a83b4b","#6d54a8","#8a653a","#b34d91","#65717f"];
+const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+let BUNDLE=null,PTS=[],RUN_ID=null,VIEW={scale:1,ox:0,oy:0};
 
-function fit() {
-  const r = cv.parentElement.getBoundingClientRect();
-  cv.width = Math.max(300, r.width); cv.height = Math.max(300, r.height - 2);
-  draw();
-}
-window.addEventListener("resize", fit);
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function status(text,phase){document.getElementById("status").innerHTML=(phase?'<span class="phase">'+esc(phase)+'</span>':"")+esc(text)}
+function isCounter(d){return d.counter_status&& !["none","cited","supporting-candidate","context","unclassified"].includes(d.counter_status)}
+function bodyText(d){return [d.decision_id,d.court,d.docket_number,d.snippet,Array.isArray(d.citation)?d.citation.join(" "):d.citation].join(" ").toLowerCase()}
 
-async function run() {
-  const q = document.getElementById("q").value.trim();
-  const n = document.getElementById("n").value;
-  if (!q) return;
-  document.getElementById("status").textContent = "lädt …";
-  const res = await fetch("/api/query/run?q=" + encodeURIComponent(q) + "&n=" + n);
-  const b = await res.json();
-  if (b.error) { document.getElementById("status").textContent = "Fehler: " + b.error; return; }
-  BUNDLE = b;
-  document.getElementById("status").textContent =
-    b.decisions.length + " Entscheide, " + b.clusters.length + " Cluster, " +
-    b.provenance.latency_seconds + "s (" + b.provenance.corpus.live_provenance + ")";
-  renderAnswer(b); renderCounters(b); renderClusters(b); layout(b); draw();
-}
-document.getElementById("run").onclick = run;
-
-function renderAnswer(b) {
-  const el = document.getElementById("prose");
-  el.innerHTML = "<p style='font-size:13px'>" + esc(b.answer.prose).slice(0, 600) + "…</p>" +
-    b.answer.statements.map((s, i) =>
-      `<div class="stmt">[${i+1}] <a href="#" data-did="${esc(s.decision_id)}">${esc(s.decision_id)}</a><br>${esc(s.text)}</div>`).join("");
-  el.querySelectorAll("a[data-did]").forEach(a => a.onclick = e => { e.preventDefault(); showDetail(a.dataset.did); });
+function filtered(){
+  if(!BUNDLE)return[];
+  const q=document.getElementById("filter").value.trim().toLowerCase();
+  const cf=document.getElementById("counterFilter").value,lf=document.getElementById("langFilter").value;
+  return BUNDLE.decisions.filter(d=>{
+    if(lf!=="all"&&d.language!==lf)return false;
+    if(q&&!bodyText(d).includes(q))return false;
+    if(cf==="counter"&&!isCounter(d))return false;
+    if(cf==="cited"&&d.counter_status!=="cited")return false;
+    if(cf==="outlier"&&!d.is_outlier)return false;
+    return true;
+  });
 }
 
-function renderCounters(b) {
-  const cs = b.decisions.filter(d => d.counter_status && d.counter_status !== "none" && d.counter_status !== "cited");
-  document.getElementById("counterList").innerHTML = cs.length ?
-    cs.map(d => `<div class="counter"><a href="#" data-did="${esc(d.decision_id)}">${esc(d.decision_id)}</a> ` +
-      `<i>${esc(d.counter_status)}</i><br>${esc(d.counter_evidence || d.snippet).slice(0, 220)}</div>`).join("") :
-    "Keine Gegen-Kandidaten im Abruf gefunden.";
-  document.querySelectorAll("#counterList a[data-did]").forEach(a => a.onclick = e => { e.preventDefault(); showDetail(a.dataset.did); });
+function fit(){
+  const r=cv.parentElement.getBoundingClientRect();cv.width=Math.max(320,r.width);cv.height=Math.max(240,r.height);
+  VIEW={scale:1,ox:0,oy:0};draw();
 }
+window.addEventListener("resize",fit);document.getElementById("fit").onclick=fit;
+["filter","counterFilter","langFilter"].forEach(id=>document.getElementById(id).addEventListener(id==="filter"?"input":"change",draw));
 
-function renderClusters(b) {
-  document.getElementById("clusterList").innerHTML = b.clusters.map(c =>
-    `<div><span style="background:${COLORS[c.cluster_id % 8]}"></span><b>C${c.cluster_id}</b> (${c.size}): ${esc(c.label)}</div>`).join("");
+function screenPos(p){
+  const pad=46,W=cv.width-2*pad,H=cv.height-2*pad;
+  return{x:pad+(p.x+1)/2*W,y:pad+(1-(p.y+1)/2)*H};
 }
-
-function layout(b) {
-  PTS = b.decisions.map(d => ({ ...d }));
-}
-
-function draw() {
-  ctx.clearRect(0, 0, cv.width, cv.height);
-  if (!PTS.length) return;
-  const pad = 40, W = cv.width - 2 * pad, H = cv.height - 2 * pad;
-  for (const p of PTS) {
-    const px = pad + (p.x + 1) / 2 * W, py = pad + (1 - (p.y + 1) / 2) * H;
-    p._px = px; p._py = py;
-    const isCounter = p.counter_status && p.counter_status !== "none" && p.counter_status !== "cited";
-    const isCited = p.counter_status === "cited";
-    ctx.beginPath();
-    ctx.arc(px, py, isCited ? 7 : 5, 0, 7);
-    ctx.fillStyle = COLORS[p.cluster_id % 8];
-    ctx.globalAlpha = p.is_outlier ? 0.55 : 0.9;
-    ctx.fill(); ctx.globalAlpha = 1;
-    if (isCounter) { ctx.lineWidth = 2.5; ctx.strokeStyle = "#c00"; ctx.stroke(); }
-    if (isCited) { ctx.lineWidth = 2; ctx.strokeStyle = "#fa0"; ctx.stroke(); }
-    if (p.is_outlier) { ctx.lineWidth = 1; ctx.strokeStyle = "#333"; ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]); }
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);PTS=filtered().map(d=>({...d}));
+  for(const p of PTS){
+    const s=screenPos(p);p._px=s.x;p._py=s.y;
+    ctx.beginPath();ctx.arc(s.x,s.y,p.counter_status==="cited"?7:5,0,Math.PI*2);
+    ctx.fillStyle=COLORS[(p.cluster_id??0)%COLORS.length];ctx.globalAlpha=p.is_outlier?.48:.88;ctx.fill();ctx.globalAlpha=1;
+    if(isCounter(p)){ctx.lineWidth=2.5;ctx.strokeStyle="#b72736";ctx.stroke()}
+    if(p.counter_status==="cited"){ctx.lineWidth=2.2;ctx.strokeStyle="#d59b00";ctx.stroke()}
   }
-  ctx.fillStyle = "#333"; ctx.font = "12px sans-serif";
-  ctx.fillText("● Cluster-Farbe  ○-rot = Gegen-Kandidat  ○-gold = zitiert  ┄ = Outlier", 10, 16);
 }
-
-cv.onclick = e => {
-  const r = cv.getBoundingClientRect();
-  const mx = e.clientX - r.left, my = e.clientY - r.top;
-  let best = null, bd = 1e9;
-  for (const p of PTS) {
-    const d = (p._px - mx) ** 2 + (p._py - my) ** 2;
-    if (d < bd) { bd = d; best = p; }
-  }
-  if (best && bd < 30 * 30) showDetail(best.decision_id);
+cv.onclick=e=>{
+  const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+  let best=null,dist=Infinity;for(const p of PTS){const d=(p._px-mx)**2+(p._py-my)**2;if(d<dist){dist=d;best=p}}
+  if(best&&dist<28*28)showDetail(best.decision_id);
 };
 
-function showDetail(did) {
-  const d = BUNDLE.decisions.find(x => x.decision_id === did);
-  if (!d) return;
-  const cl = BUNDLE.clusters.find(c => c.cluster_id === d.cluster_id);
-  const rels = BUNDLE.relations.filter(r => r.source === did || r.target === did).slice(0, 8);
-  document.getElementById("detail").style.display = "block";
-  document.getElementById("detail").innerHTML =
-    `<b>${esc(d.decision_id)}</b> <button style="float:right" onclick="document.getElementById('detail').style.display='none'">×</button><br>` +
-    `${esc(d.court)} · ${esc(d.language)} · ${esc(d.decision_date)} · ${esc(d.docket_number)}<br>` +
-    `Rank ${d.rank} · Score ${d.score} · Cluster C${d.cluster_id} (${esc(cl ? cl.label : "")})<br>` +
-    `Status: <b>${esc(d.counter_status)}</b>${d.is_outlier ? " · Outlier" : ""}<br><br>` +
-    `${esc(d.snippet)}…<br><br>` +
-    (d.counter_evidence ? `<i>Gegen-Hinweis:</i> ${esc(d.counter_evidence)}<br><br>` : "") +
-    (rels.length ? `<i>Relationen:</i><br>` + rels.map(r => `↔ ${esc(r.source === did ? r.target : r.source)} (${esc((r.shared||[]).join(", "))})`).join("<br>") + "<br><br>" : "") +
-    `<a href="${esc(d.canonical_url)}" target="_blank">Quelle öffnen ↗</a>`;
+function renderBundle(b){
+  BUNDLE=b;renderAnswer();renderCounters();renderClusters();draw();
+}
+function renderAnswer(){
+  const a=BUNDLE?.answer||{},ready=a.status==="ready",degraded=a.status==="degraded";
+  document.getElementById("prose").textContent=a.prose|| (ready?"":"Analyse en cours…");
+  let meta="";
+  if(a.method)meta+='<div class="card muted">'+esc(a.method)+(a.model?" · "+esc(a.model):"")+"</div>";
+  if(degraded)meta+='<div class="warn">Le fournisseur génératif est indisponible : réponse extractive de secours. La carte et les sources restent valides, mais ce n’est pas le mode produit cible.</div>';
+  document.getElementById("answerMeta").innerHTML=meta;
+}
+function renderCounters(){
+  const cs=(BUNDLE?.decisions||[]).filter(isCounter);
+  document.getElementById("counterList").innerHTML=cs.length?cs.slice(0,20).map(d=>
+    '<div class="card counter"><a href="#" data-id="'+esc(d.decision_id)+'">'+esc(d.decision_id)+'</a> <b>'+esc(d.counter_status)+'</b><br>'+esc(d.counter_evidence||d.snippet).slice(0,260)+'</div>'
+  ).join(""):'<span class="muted">Aucune contre-autorité qualifiée à ce stade.</span>';
+  document.querySelectorAll("#counterList a[data-id]").forEach(a=>a.onclick=e=>{e.preventDefault();showDetail(a.dataset.id)});
+}
+function renderClusters(){
+  const cs=BUNDLE?.clusters||[];
+  document.getElementById("clusterList").innerHTML=cs.map(c=>
+    '<div class="card cluster"><span class="dot" style="background:'+COLORS[c.cluster_id%COLORS.length]+'"></span><div><b>C'+c.cluster_id+'</b> · '+c.size+' décisions<br>'+esc(c.label)+'</div></div>'
+  ).join("");
+}
+function showDetail(id){
+  const d=BUNDLE?.decisions.find(x=>x.decision_id===id);if(!d)return;
+  const c=BUNDLE.clusters.find(x=>x.cluster_id===d.cluster_id);
+  const rels=BUNDLE.relations.filter(r=>r.source===id||r.target===id).slice(0,8);
+  const cites=Array.isArray(d.citation)?d.citation.join("<br>"):esc(d.citation||"");
+  const panel=document.getElementById("detail");panel.style.display="block";
+  panel.innerHTML='<button class="close" onclick="this.parentElement.style.display=\'none\'">×</button>'+
+    '<b>'+esc(d.decision_id)+'</b><br><span class="muted">'+esc(d.court)+' · '+esc(d.language)+' · '+esc(d.decision_date||"")+'</span><br>'+
+    '<span class="pill">rang '+esc(d.rank)+'</span><span class="pill">C'+esc(d.cluster_id)+'</span>'+
+    (isCounter(d)?'<span class="pill red">'+esc(d.counter_status)+'</span>':"")+
+    (d.counter_status==="cited"?'<span class="pill gold">citée</span>':"")+
+    '<p>'+esc(d.snippet||"")+'</p>'+
+    (d.counter_evidence?'<p><b>Élément contraire :</b> '+esc(d.counter_evidence)+'</p>':"")+
+    (c?'<p><b>Cluster :</b> '+esc(c.label)+'</p>':"")+
+    (rels.length?'<p><b>Relations :</b><br>'+rels.map(r=>"↔ "+esc(r.source===id?r.target:r.source)+" · "+esc(r.kind)).join("<br>")+"</p>":"")+
+    (cites?'<p><b>Citation :</b><br>'+cites+"</p>":"")+
+    (d.canonical_url?'<p><a target="_blank" rel="noopener" href="'+esc(d.canonical_url)+'">Ouvrir la source ↗</a></p>':"");
 }
 
-function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+async function getJSON(url){
+  const res=await fetch(url);const data=await res.json();
+  if(!res.ok||data.error)throw new Error(data.error||("HTTP "+res.status));
+  return data;
+}
+async function run(){
+  const q=document.getElementById("q").value.trim(),n=document.getElementById("n").value;if(!q)return;
+  document.getElementById("run").disabled=true;RUN_ID=null;BUNDLE=null;draw();
+  document.getElementById("prose").textContent="";document.getElementById("answerMeta").innerHTML="";
+  status("Récupération et construction de la carte…","1/2");
+  try{
+    const first=await getJSON("/api/query/start?q="+encodeURIComponent(q)+"&n="+n);
+    RUN_ID=first.run_id;renderBundle(first.bundle);
+    const ndec=first.bundle.decisions.length,lat=first.bundle.provenance?.latency_seconds;
+    status(ndec+" décisions · carte prête"+(lat!=null?" · "+lat+" s":"")+" · audit de la réponse en cours…","carte");
+    const second=await getJSON("/api/query/enrich?run_id="+encodeURIComponent(RUN_ID));
+    renderBundle(second.bundle);
+    const final=second.bundle,ga=final.provenance?.generative_audit||{},count=final.decisions.filter(isCounter).length;
+    status(final.decisions.length+" décisions · "+final.clusters.length+" clusters · "+count+" contre-autorités"+(ga.degraded?" · mode dégradé":""),"terminé");
+  }catch(err){
+    status(err.message,"erreur");
+    document.getElementById("answerMeta").innerHTML='<div class="warn">'+esc(err.message)+'</div>';
+  }finally{document.getElementById("run").disabled=false}
+}
+document.getElementById("run").onclick=run;
+document.getElementById("q").addEventListener("keydown",e=>{if(e.key==="Enter")run()});
 fit();
-run();
 </script>
 </body>
 </html>
