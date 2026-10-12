@@ -44,6 +44,7 @@ CANONICAL = HERE.parents[2] / "frontier" / "frontier-generative-audit"
 sys.path.insert(0, str(CANONICAL))
 
 import generative_audit  # noqa: E402
+from generative_audit import paths  # noqa: E402
 
 assert Path(generative_audit.__file__).resolve().is_relative_to(CANONICAL.resolve()), (
     f"imported wrong package tree: {generative_audit.__file__}"
@@ -258,6 +259,34 @@ def test_prompt_constrains_citations():
     assert "Never invent" in prompt
     assert bundle.query in prompt
     print("  PASS: prompt carries bundle IDs + no-invention constraint")
+    return True
+
+
+def test_adversarial_prefers_live_proven_fast_reviewer():
+    """Observed live latency: start with the reviewer that actually completed."""
+    print(">>> test_adversarial_prefers_live_proven_fast_reviewer")
+    original = paths.healthy_models
+    try:
+        paths.healthy_models = lambda: [
+            "opencode/nemotron-3-ultra-free",
+            "opencode/nemotron-3.5-lightning-free",
+            "opencode/space-bunny-free",
+            "opencode/mimo-v2.6-flash-free",
+        ]
+        adv = AdversarialPass(
+            bundle=_small_bundle(),
+            answer="Provisional answer [CH-001].",
+            runner=lambda prompt, model, timeout: "[]",
+        )
+        assert adv.model == "opencode/space-bunny-free"
+        assert adv._fallback_models(exclude=adv.model) == [
+            "opencode/nemotron-3.5-lightning-free",
+            "opencode/mimo-v2.6-flash-free",
+            "opencode/nemotron-3-ultra-free",
+        ]
+    finally:
+        paths.healthy_models = original
+    print("  PASS: live-proven reviewer is first, healthy pool remains fallback")
     return True
 
 
@@ -1012,6 +1041,7 @@ ALL_TESTS = [
     test_provider_fallback_across_models,
     test_provider_total_failure_is_recorded,
     test_prompt_constrains_citations,
+    test_adversarial_prefers_live_proven_fast_reviewer,
     test_adversarial_fallback_across_models,
     test_adversarial_prompt_shortlist_is_bounded_multilingual_and_counter_aware,
     test_adversarial_parse_rejects_unknown_ids,
