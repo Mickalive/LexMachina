@@ -373,6 +373,12 @@ jobs:
           if [[ "$DIRV" != "$CURRENT_DIRV" ]]; then
             echo "Run direction v$DIRV is superseded by current v$CURRENT_DIRV; no stale recovery will be dispatched."
           elif [[ "$TEAM_RESULT" != success || "$AUDIT_RESULT" == failure || "$AUDIT_RESULT" == cancelled || "$INTEGRATE_RESULT" == failure || "$INTEGRATE_RESULT" == cancelled ]]; then
+            PREFIX="Core ${LANE} dirV${DIRV} "
+            OTHER_ACTIVE=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow core-lane.yml --limit 100 --json databaseId,displayTitle,status \
+              | jq --arg p "$PREFIX" --arg self "$GITHUB_RUN_ID" '[.[] | select((.databaseId|tostring)!=$self) | select(.displayTitle|startswith($p)) | select(.status=="queued" or .status=="in_progress" or .status=="requested" or .status=="waiting" or .status=="pending")] | length')
+            if (( OTHER_ACTIVE > 0 )); then
+              echo "Same-generation ${LANE} work is already active/queued; skipping duplicate recovery."
+            else
             SNAP="cycle/core/${LANE}/${GITHUB_RUN_ID}/team"
             if git ls-remote --exit-code --heads origin "refs/heads/$SNAP" >/dev/null 2>&1; then
               gh workflow run core-lane.yml --repo "$GITHUB_REPOSITORY" --ref main \
@@ -382,6 +388,7 @@ jobs:
               gh workflow run core-lane.yml --repo "$GITHUB_REPOSITORY" --ref main \
                 -f lane="$LANE" -f direction_version="$DIRV" -f repair_round="$ROUND"
               echo "Operational recovery dispatched fresh because no producer snapshot survived."
+            fi
             fi
           fi
 
