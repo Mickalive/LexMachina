@@ -1,0 +1,36 @@
+name: Factory Control CI
+
+on:
+  push:
+    branches:
+      - main
+      - fix/v45-factory-stabilization
+    paths:
+      - '.github/scripts/**'
+      - '.github/workflows/**'
+      - 'state/frontier_portfolio.json'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/scripts/**'
+      - '.github/workflows/**'
+      - 'state/frontier_portfolio.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  control-plane:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse factory YAML
+        run: |
+          ruby -e 'require "yaml"; Dir[".github/workflows/*.yml"].each { |f| YAML.load_file(f, aliases: true); puts "OK #{f}" }'
+      - name: Validate shell syntax
+        run: bash -n .github/scripts/run-ox-with-retry.sh
+      - name: Validate active portfolio JSON
+        run: jq empty state/frontier_portfolio.json

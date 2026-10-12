@@ -30,6 +30,8 @@ MODEL_INDEX=0
 MODEL_ARG_INDEX=-1
 MODEL_ARG_MODE=""
 NETWORK_RE='(network_error|NetworkError|network error|fetch failed|APIConnectionError|ECONNRESET|ECONNREFUSED|EAI_AGAIN|ENETUNREACH|ENOTFOUND|ETIMEDOUT|timed out|timeout|socket hang up|connection (reset|refused|closed|error)|upstream.*(reset|closed|unavailable|error)|HTTP[^0-9]*(429|500|502|503|504)|status[^0-9]*(429|500|502|503|504)|too many requests|rate.?limit|service unavailable|bad gateway|gateway timeout|temporar(y|ily) unavailable|TLS|SSL.*error|Unexpected server error|internal server error)'
+AUTH_RE='(Invalid credential|invalid credential|authentication failed|unauthorized|forbidden|HTTP[^0-9]*(401|403)|status[^0-9]*(401|403)|Model is unavailable|model is unavailable)'
+declare -A MODEL_QUARANTINED=()
 
 restore_overlay() {
   [[ "$OVERLAY" == true ]] || return 0
@@ -125,19 +127,33 @@ resolve_model_args(){
   return 77
 }
 
-rotate_model(){
-  local n=${#MODEL_POOL[@]} selected
-  (( n > 1 )) || return 0
-  MODEL_INDEX=$(((MODEL_INDEX + 1) % n))
-  selected="${MODEL_POOL[$MODEL_INDEX]}"
+current_model(){
   if [[ "$MODEL_ARG_MODE" == "pair" ]]; then
-    RUN_ARGS[$((MODEL_ARG_INDEX+1))]="$selected"
+    printf '%s' "${RUN_ARGS[$((MODEL_ARG_INDEX+1))]}"
   elif [[ "$MODEL_ARG_MODE" == "equal" ]]; then
-    RUN_ARGS[$MODEL_ARG_INDEX]="--model=$selected"
-  else
-    return 0
+    printf '%s' "${RUN_ARGS[$MODEL_ARG_INDEX]#--model=}"
   fi
-  echo "::warning::LEX_MODEL_ROTATE selected=$selected index=$MODEL_INDEX pool_size=$n"
+}
+
+rotate_model(){
+  local n=${#MODEL_POOL[@]} selected tries=0
+  (( n > 1 )) || return 1
+  while (( tries < n )); do
+    MODEL_INDEX=$(((MODEL_INDEX + 1) % n))
+    selected="${MODEL_POOL[$MODEL_INDEX]}"
+    tries=$((tries+1))
+    [[ -z "${MODEL_QUARANTINED[$selected]:-}" ]] || continue
+    if [[ "$MODEL_ARG_MODE" == "pair" ]]; then
+      RUN_ARGS[$((MODEL_ARG_INDEX+1))]="$selected"
+    elif [[ "$MODEL_ARG_MODE" == "equal" ]]; then
+      RUN_ARGS[$MODEL_ARG_INDEX]="--model=$selected"
+    else
+      return 1
+    fi
+    echo "::warning::LEX_MODEL_ROTATE selected=$selected index=$MODEL_INDEX pool_size=$n"
+    return 0
+  done
+  return 1
 }
 
 RUN_ARGS=("$@")
@@ -206,6 +222,18 @@ while ((attempt<=MAX_ATTEMPTS)); do
     restore_overlay || true
     exit 78
   fi
+  if grep -Eiq "$AUTH_RE" "$LOG"; then
+    failed_model="$(current_model)"
+    [[ -n "$failed_model" ]] && MODEL_QUARANTINED["$failed_model"]=1
+    echo "::warning::LEX_MODEL_AUTH_FAILURE model=${failed_model:-unknown}; quarantining for this run" >&2
+    if rotate_model; then
+      attempt=$((attempt+1))
+      continue
+    fi
+    echo "::error::LEX_MODEL_AUTH_POOL_EXHAUSTED; every model in the current healthy pool failed auth/unavailability in this run" >&2
+    restore_overlay || true
+    exit 76
+  fi
   if [[ "$rc" -eq 75 ]] || grep -Eiq "$NETWORK_RE" "$LOG"; then
     if ((attempt<MAX_ATTEMPTS)); then
       echo "::warning::Transient Ox/OpenCode failure; rotating healthy free model pool before retry"
@@ -217,7 +245,7 @@ while ((attempt<=MAX_ATTEMPTS)); do
     restore_overlay || true
     exit 75
   fi
-  echo "OpenCode failed without transient signature (rc=$rc)" >&2
+  echo "OpenCode failed without transient/auth signature (rc=$rc)" >&2
   restore_overlay || true
   exit "$rc"
 done

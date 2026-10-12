@@ -64,15 +64,15 @@ jobs:
           }
 
           consecutive_failures() {
-            local workflow="$1" prefix="$2"
+            local workflow="$1" prefix="$2" since="${3:-$CONTROL_EPOCH}"
             gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --limit 100 --json displayTitle,status,conclusion,createdAt \
-              | jq --arg p "$prefix" --arg epoch "$CONTROL_EPOCH" '[.[] | select(.createdAt >= $epoch) | select(.displayTitle|startswith($p)) | select(.status=="completed")] | reduce .[] as $r ({n:0,stop:false}; if .stop then . elif ($r.conclusion=="success") then .stop=true else .n += 1 end) | .n'
+              | jq --arg p "$prefix" --arg since "$since" '[.[] | select(.createdAt >= $since) | select(.displayTitle|startswith($p)) | select(.status=="completed")] | reduce .[] as $r ({n:0,stop:false}; if .stop then . elif ($r.conclusion=="success") then .stop=true else .n += 1 end) | .n'
           }
 
           latest_operational_failure() {
-            local workflow="$1" prefix="$2"
-            gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --limit 100 --json databaseId,displayTitle,status,conclusion \
-              | jq -r --arg p "$prefix" '[.[] | select(.displayTitle|startswith($p)) | select(.status=="completed")][0] as $r | if ($r != null and ($r.conclusion=="failure" or $r.conclusion=="cancelled" or $r.conclusion=="timed_out" or $r.conclusion=="stale" or $r.conclusion=="action_required")) then ($r.databaseId|tostring) else "" end'
+            local workflow="$1" prefix="$2" since="${3:-$CONTROL_EPOCH}"
+            gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --limit 100 --json databaseId,displayTitle,status,conclusion,createdAt \
+              | jq -r --arg p "$prefix" --arg since "$since" '[.[] | select(.createdAt >= $since) | select(.displayTitle|startswith($p)) | select(.status=="completed")][0] as $r | if ($r != null and ($r.conclusion=="failure" or $r.conclusion=="cancelled" or $r.conclusion=="timed_out" or $r.conclusion=="stale" or $r.conclusion=="action_required")) then ($r.databaseId|tostring) else "" end'
           }
 
           cancel_legacy_active() {
@@ -184,7 +184,16 @@ jobs:
             ensure_model_health
             exit 0
           fi
-          echo "Factory model: $(jq -r '.resolved_model' state/model_health.json) (fallback=$(jq -r '.using_fallback' state/model_health.json))"
+          HEALTH_TS=$(jq -r '.last_checked_at // "1970-01-01T00:00:00Z"' state/model_health.json)
+          HEALTH_EPOCH=$(date -u -d "$HEALTH_TS" +%s 2>/dev/null || echo 0)
+          NOW_EPOCH=$(date -u +%s)
+          HEALTH_AGE=$((NOW_EPOCH-HEALTH_EPOCH))
+          if (( HEALTH_AGE > 1200 )); then
+            echo "::warning::Model health is stale (${HEALTH_AGE}s); probing before dispatch instead of trusting an old green state."
+            ensure_model_health
+            exit 0
+          fi
+          echo "Factory model: $(jq -r '.resolved_model' state/model_health.json) (fallback=$(jq -r '.using_fallback' state/model_health.json), health_age=${HEALTH_AGE}s)"
 
           NEED_DIRECTOR=0
           NEED_HEALTH=0
@@ -228,19 +237,20 @@ jobs:
             prefix="Core ${lane} dirV${DIRV} "
             [[ "$(active_count core-lane.yml "$prefix")" -eq 0 ]] || { echo "$lane: already active/queued in current control epoch"; continue; }
 
-            resume_id=$(latest_operational_failure core-lane.yml "$prefix")
-            if [[ -n "$resume_id" ]] && git ls-remote --exit-code --heads origin "refs/heads/cycle/core/${lane}/${resume_id}/team" >/dev/null 2>&1; then
-              gh workflow run core-lane.yml --repo "$GITHUB_REPOSITORY" --ref main \
-                -f lane="$lane" -f direction_version="$DIRV" -f resume_from_run_id="$resume_id" -f repair_round=0
-              echo "$lane: resumed operationally failed snapshot $resume_id"
+            fails=$(consecutive_failures core-lane.yml "$prefix" "$HEALTH_TS")
+            if (( fails >= 2 )); then
+              echo "::warning::$lane has $fails consecutive failures since model-health $HEALTH_TS; circuit breaker OPEN until a fresh health probe or direction change."
+              NEED_HEALTH=1
+              NEED_DIRECTOR=1
               continue
             fi
 
-            fails=$(consecutive_failures core-lane.yml "$prefix")
-            if (( fails >= 2 )); then
-              echo "::warning::$lane has $fails consecutive post-epoch operational workflow failures; retrying instead of blocking."
-              NEED_HEALTH=1
-              NEED_DIRECTOR=1
+            resume_id=$(latest_operational_failure core-lane.yml "$prefix" "$HEALTH_TS")
+            if [[ -n "$resume_id" ]] && git ls-remote --exit-code --heads origin "refs/heads/cycle/core/${lane}/${resume_id}/team" >/dev/null 2>&1; then
+              gh workflow run core-lane.yml --repo "$GITHUB_REPOSITORY" --ref main \
+                -f lane="$lane" -f direction_version="$DIRV" -f resume_from_run_id="$resume_id" -f repair_round=0
+              echo "$lane: one controlled resume after health-check (snapshot $resume_id)"
+              continue
             fi
 
             gh workflow run core-lane.yml --repo "$GITHUB_REPOSITORY" --ref main \
@@ -273,11 +283,12 @@ jobs:
 
             prefix="Frontier ${team} v${ver} "
             [[ "$(active_count frontier-team.yml "$prefix")" -eq 0 ]] || { echo "Frontier $team already active in current epoch"; continue; }
-            fails=$(consecutive_failures frontier-team.yml "$prefix")
+            fails=$(consecutive_failures frontier-team.yml "$prefix" "$HEALTH_TS")
             if (( fails >= 2 )); then
-              echo "::warning::Frontier $team has $fails consecutive post-epoch operational failures; retrying, not blocking."
+              echo "::warning::Frontier $team has $fails consecutive failures since model-health $HEALTH_TS; circuit breaker OPEN until a fresh health probe or charter change."
               echo NEED_HEALTH > /tmp/lex_need_health_frontier
               echo NEED_DIRECTOR > /tmp/lex_need_director_frontier
+              continue
             fi
             gh workflow run frontier-team.yml --repo "$GITHUB_REPOSITORY" --ref main \
               -f team_id="$team" -f charter_version="$ver" -f repair_round=0
