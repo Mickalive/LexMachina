@@ -39,7 +39,7 @@ def build_answer(query: str, ranked: list[dict], max_cites: int = 8) -> dict:
     qtoks = set(tokenize(query))
     cands: list[tuple[float, str, str]] = []  # (cover, sentence, decision_id)
     for d in ranked[:40]:
-        for s in split_sentences(d.get("full_text", "")):
+        for s in split_sentences(d.get("full_text") or d.get("regeste") or d.get("snippet") or ""):
             stoks = set(tokenize(s))
             overlap = len(qtoks & stoks)
             if overlap == 0:

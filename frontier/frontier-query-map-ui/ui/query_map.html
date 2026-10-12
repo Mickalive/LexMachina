@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LexMachina — Query Map</title>
+    <link rel="stylesheet" href="query_map.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Sidebar -->
+        <aside id="sidebar">
+            <header id="sidebar-header">
+                <h1>LexMachina</h1>
+                <div class="subtitle">Query-Specific Jurisprudence Map</div>
+            </header>
+
+            <div id="controls">
+                <label>Counter Filter</label>
+                <select id="counter-filter">
+                    <option value="all">All Decisions</option>
+                    <option value="counter">Counter Authorities Only</option>
+                    <option value="cited">Cited in Answer</option>
+                    <option value="outlier">Outliers Only</option>
+                    <option value="normal">Context Only</option>
+                </select>
+
+                <label>Language Filter</label>
+                <div class="lang-toggles" id="lang-toggles"></div>
+
+                <label>Search</label>
+                <div class="search-row">
+                    <input type="text" id="search-input" placeholder="Search decisions...">
+                    <select id="search-lang">
+                        <option value="">All</option>
+                        <option value="de">DE</option>
+                        <option value="fr">FR</option>
+                        <option value="it">IT</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="stats-bar">
+                <span id="stat-total"></span> decisions · 
+                <span id="stat-clusters"></span> clusters · 
+                <span id="stat-counter"></span> counter · 
+                <span id="stat-cited"></span> cited
+            </div>
+
+            <div id="cluster-list"></div>
+        </aside>
+
+        <!-- Main Map Area -->
+        <main id="map-container">
+            <canvas id="map-canvas"></canvas>
+            
+            <!-- Zoom Controls -->
+            <div id="zoom-controls">
+                <button class="zoom-btn" data-action="fit" title="Fit to Data">⌂</button>
+                <button class="zoom-btn" data-action="reset" title="Reset View">⟳</button>
+                <button class="zoom-btn" data-action="zoom-in" title="Zoom In">+</button>
+                <button class="zoom-btn" data-action="zoom-out" title="Zoom Out">−</button>
+            </div>
+
+            <!-- Renderer Toggle -->
+            <button id="renderer-toggle" title="Toggle WebGL/Canvas2D">WebGL</button>
+
+            <!-- Detail Panel -->
+            <div id="detail-panel">
+                <div class="panel-header">
+                    <h2 id="detail-title">Decision</h2>
+                    <button class="close-btn" id="detail-close">&times;</button>
+                </div>
+                <div class="panel-body" id="detail-body"></div>
+            </div>
+
+            <!-- Relation Legend -->
+            <div id="relation-legend" class="hidden">
+                <div class="legend-title">Relations for selected decision</div>
+                <div id="relation-list"></div>
+            </div>
+
+            <!-- Tooltip -->
+            <div id="tooltip" class="hidden"></div>
+        </main>
+    </div>
+
+    <!-- Load scripts in order -->
+    <script src="/vendor/bundle_adapter.js"></script>
+    <script src="/vendor/webgl_renderer.js"></script>
+    <script src="canvas2d_renderer.js"></script>
+    <script src="query_map_model.js"></script>
+    <script src="query_map.js"></script>
+</body>
+</html>

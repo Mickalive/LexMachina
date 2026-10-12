@@ -1,0 +1,182 @@
+{
+  "contract_version": "1.0",
+  "revisions": [
+    {
+      "revision": "1.0.1",
+      "date": "2026-10-12",
+      "run": "38196996329",
+      "kind": "operational (schema unchanged)",
+      "changes": [
+        "documented CLI/--out examples moved from repo-root-relative bundle.json to results/frontier/frontier-query-retrieval/scratch/ (prevention for the exit-code-4 scope failures of runs 38192249068 and 38193491547)",
+        "added scope_safety and evidence_freshness sections",
+        "run_live_evidence.py: run id comes only from LEX_FRONTIER_RUN_ID (no previous-run default) and A0_fresh_live_network rejects zero-network 'live' evidence unless LEX_ALLOW_CACHE_REPLAY=1",
+        "verify_scope_safe.sh: repository root is passed explicitly instead of guessed (the old parent-walk matched results/frontier/frontier-query-retrieval and crashed the contract-import check)"
+      ],
+      "schema_impact": "none; candidate/product schemas, public API and rates are unchanged"
+    }
+  ],
+  "name": "frontier-query-retrieval OpenCaseLaw adapter integration contract",
+  "team_id": "frontier-query-retrieval",
+  "charter_version": 2,
+  "produced_by": {
+    "team": "frontier-query-retrieval",
+    "namespace": "frontier/frontier-query-retrieval",
+    "scope": "reusable retrieval/cache adapter, fixtures and normalized bundle contract only; no app shell, no UI, no answer generation"
+  },
+  "consumer": {
+    "lane": "core product",
+    "spec": "docs/product/QUERY_MAP_MVP.md (query_result_bundle)",
+    "owns": "end-to-end integration, answer generation, visual map, evaluation owns benchmarks"
+  },
+  "adapter": {
+    "name": "ocl_adapter",
+    "version": "1.0.0",
+    "package_dir": "frontier/frontier-query-retrieval/ocl_adapter",
+    "import_sys_path_entry": "frontier/frontier-query-retrieval",
+    "python": ">=3.10",
+    "third_party_dependencies": [],
+    "note": "stdlib only (urllib/hashlib/json/dataclasses); the parent directory name contains a hyphen so the importable unit is the child package 'ocl_adapter'",
+    "cap_enforcement": "max_candidates is a true hard cap: page loops stop fetching at the cap, and any final-page overshoot (up to page_size records) is trimmed deterministically to the highest-ranked candidates after dedupe. provenance.targets records pre_trim_candidates and trimmed_to_max_candidates so consumers can audit the trim."
+  },
+  "integration_options": [
+    {
+      "method": "sys_path_import",
+      "fastest": true,
+      "steps": [
+        "sys.path.insert(0, <repo_root>/frontier/frontier-query-retrieval)",
+        "from ocl_adapter import AdapterConfig, build_candidate_bundle, to_product_bundle, validate_candidate_bundle",
+        "bundle = build_candidate_bundle(query, config=AdapterConfig(mode='live', target=150), hydrate_top=2)",
+        "product_bundle = to_product_bundle(bundle)  # keys match product/query/bundle.py REQUIRED_TOP"
+      ],
+      "files_to_copy_if_vendoring": [
+        "frontier/frontier-query-retrieval/ocl_adapter/*.py"
+      ]
+    },
+    {
+      "method": "cli_subprocess",
+      "steps": [
+        "python3 -m ocl_adapter \"<query>\" --target 150 --out results/frontier/frontier-query-retrieval/scratch/bundle.json --product-bundle results/frontier/frontier-query-retrieval/scratch/product_bundle.json --validate",
+        "run with cwd=<repo_root>/frontier/frontier-query-retrieval (or PYTHONPATH set to that dir)",
+        "exit codes: 0 ok, 2 usage/config error, 3 no candidates, 4 validation errors",
+        "output-path rule: --out/--product-bundle must stay inside your lane namespace or a system temp dir; never write bundle*.json at the repository root (see scope_safety)"
+      ]
+    },
+    {
+      "method": "offline_fixture_replay",
+      "deterministic": true,
+      "steps": [
+        "python3 -m ocl_adapter \"Kündigung Mietvertrag Mietrecht\" --preset fixtures --out results/frontier/frontier-query-retrieval/scratch/replay.json --validate",
+        "no network; replays results/frontier/frontier-query-retrieval/fixtures/cache (19 envelopes)",
+        "deterministic at candidate-content level across runs and processes (verified by tests/frontier/frontier-query-retrieval/test_ocl_adapter_scope_safety.py and verify_determinism.py)"
+      ]
+    }
+  ],
+  "scope_safety": {
+    "why": "The Frontier workflow enforces team write scope on the working tree; one stray file outside frontier/<team>/, tests/frontier/<team>/, results/frontier/<team>/, reports/frontier/<team>/, state/frontier/<team>.json fails the whole run with exit code 4. Runs 38192249068 (root-level bundle*.json from a relative --out) and 38193491547 (product/** copy) both died this way.",
+    "documented_command_rule": "every CLI example in this contract writes --out/--product-bundle under results/frontier/frontier-query-retrieval/scratch/ or a system temp dir; this is pinned by test_documented_commands_never_write_repo_root",
+    "supported_harness": "frontier/frontier-query-retrieval/verify_scope_safe.sh smoke-tests the adapter from any working directory and writes only into results/frontier/frontier-query-retrieval/verification/<stamp>/",
+    "scratch_dir": "results/frontier/frontier-query-retrieval/scratch/ (create on demand; disposable by-products only, never claim-bearing evidence)",
+    "pycache": "set PYTHONDONTWRITEBYTECODE=1 or use python3 -B when smoke-testing inside the checkout"
+  },
+  "evidence_freshness": {
+    "rule": "LIVE_*.json is claim-bearing. run_live_evidence.py requires LEX_FRONTIER_RUN_ID (no default from a previous run) and fails check A0_fresh_live_network when a scenario performs zero network calls, unless LEX_ALLOW_CACHE_REPLAY=1 is set explicitly (the evidence is then flagged cache_replayed=true).",
+    "provenance": "results/frontier/frontier-query-retrieval/archive/ preserves every historical LIVE_* generation; never overwrite one in place",
+    "determinism": "given identical HTTP responses the adapter is deterministic (warm-cache and cross-process fixture probes agree); a different candidate set under a 'live' label therefore indicates a stale cache replay, which A0_fresh_live_network now rejects"
+  },
+  "public_api": [
+    {"symbol": "AdapterConfig", "kind": "dataclass", "signature": "AdapterConfig(**fields) -> frozen config; .replace(**kw), .to_dict(), .cache_path()", "purpose": "all knobs (mode, target, max_candidates, page_size, max_pages_per_variant, lang_max_pages, max_requests, max_rps<=5.0, stages, citation_*, leading_*, hydrate_needs_detail, cache_dir, base_url)"},
+    {"symbol": "config_from_env", "kind": "function", "signature": "config_from_env(base=None, **overrides) -> AdapterConfig", "purpose": "LEX_OCL_BASE_URL/MODE/CACHE_DIR/MAX_RPS/TARGET/MAX_REQUESTS overrides"},
+    {"symbol": "build_candidate_bundle", "kind": "function", "signature": "build_candidate_bundle(query, *, config=None, transport=None, client=None, cache=None, hydrate_ids=None, hydrate_top=0, include_structure=True, stages=None, clock=time.time) -> dict", "purpose": "full retrieval run -> normalized candidate bundle"},
+    {"symbol": "to_product_bundle", "kind": "function", "signature": "to_product_bundle(bundle) -> dict", "purpose": "candidate bundle -> product query_result_bundle (answer/clusters/relations pending upstream)"},
+    {"symbol": "validate_candidate_bundle", "kind": "function", "signature": "validate_candidate_bundle(bundle) -> list[str]", "purpose": "candidate bundle schema validation (empty list = valid)"},
+    {"symbol": "validate_against_product", "kind": "function", "signature": "validate_against_product(bundle) -> list[str]", "purpose": "product-bridge validation (empty list = valid)"},
+    {"symbol": "bundle_summary", "kind": "function", "signature": "bundle_summary(bundle) -> dict", "purpose": "counts, channels, languages, dedupe, degraded, n_failures, request_summary"},
+    {"symbol": "rank_candidates", "kind": "function", "signature": "rank_candidates(candidates) -> list[dict]", "purpose": "deterministic relevance-first ranking"},
+    {"symbol": "dedupe", "kind": "function", "signature": "dedupe(records, *, order='identity') -> DedupeResult", "purpose": "canonical identity merge; output order independent of input order"},
+    {"symbol": "identity_key", "kind": "function", "signature": "identity_key(record) -> str", "purpose": "cid:|src:|dkt: identity scheme"},
+    {"symbol": "build_variants", "kind": "function", "signature": "build_variants(query, language_filters=('de','fr','it'), *, max_terms=12, include_language_filters=True) -> list[QueryVariant]", "purpose": "original + lexicon expansion + de/fr/it server-side language filters; no machine translation"},
+    {"symbol": "FileCache", "kind": "class", "signature": "FileCache(root).get/set/put_response/get_response/keys/stats", "purpose": "content-addressed envelope cache (sha256 of path+canonical params), TTL enforced by transport"},
+    {"symbol": "request_key", "kind": "function", "signature": "request_key(path, params=None) -> str", "purpose": "stable 64-hex cache key"},
+    {"symbol": "OCLClient", "kind": "class", "signature": "OCLClient(transport, config=None, *, limiter=None, budget=None).search_page/get_decision/get_structure/get_regeste/get_citations/get_leading_cases/stats/summary", "purpose": "typed endpoint surface over a Transport"},
+    {"symbol": "make_transport", "kind": "function", "signature": "make_transport(config, cache=None) -> CachedTransport", "purpose": "HttpTransport + FileCache with mode policy (live/offline/refresh)"},
+    {"symbol": "Transport implementations", "kind": "classes", "signature": "HttpTransport / CachedTransport / FixtureTransport / ScriptedTransport (.get(path, params) -> RawResponse)", "purpose": "network, cache policy, deterministic replay, failure injection for tests"},
+    {"symbol": "RateLimiter / RequestBudget", "kind": "classes", "signature": "RateLimiter(max_rps).wait(); RequestBudget(max_requests).consume(stage=...)", "purpose": "soft pace <=5 req/s and hard request budget"},
+    {"symbol": "exceptions", "kind": "hierarchy", "signature": "OCLError > OCLTransportError, OCLHTTPError, OCLDecodeError, OCLCacheMiss, OCLBudgetExceeded, OCLValidationError", "purpose": "typed failures; pipeline degrades instead of crashing"}
+  ],
+  "candidate_bundle": {
+    "version": "1.0-candidate",
+    "top_level_keys": ["bundle_version", "adapter", "query", "query_variants", "candidates", "n_candidates", "dedupe", "provenance", "lazy", "pending_downstream", "config", "generated_at"],
+    "required_candidate_fields": ["schema_version", "decision_id", "canonical_decision_id", "canonical_url", "source_url", "court", "court_name", "language", "decision_date", "docket_number", "title", "regeste", "snippet", "citation", "rank", "score", "channels", "provenance", "provenance_events", "detail_status", "full_text_status", "structure_status"],
+    "provenance_per_candidate": {"string": "ocl:<channel>[ variant=..| page=..| seed=..][ mergedxN]", "events": "list of {channel, endpoint, ...acquisition detail}"},
+    "bundle_provenance_keys": ["adapter", "adapter_version", "charter_version", "team_id", "base_url", "mode", "stages", "query_variants", "expansion", "searches", "stage_notes", "failures", "degraded", "rate_limit", "request_summary", "cache_stats", "targets", "latency_seconds"]
+  },
+  "product_bundle": {
+    "version": "1.0",
+    "required_top_keys": ["bundle_version", "query", "query_variants", "answer", "decisions", "clusters", "relations", "provenance"],
+    "required_decision_keys": ["decision_id", "court", "language", "rank", "score", "provenance", "snippet", "cluster_id", "x", "y", "counter_status", "canonical_url", "citation"],
+    "pending_downstream": ["answer", "clusters", "relations", "cluster_id", "x", "y", "counter_status"],
+    "note": "to_product_bundle() fills placeholders; product fills answer/clusters/relations/x/y/counter_status upstream of the adapter"
+  },
+  "modes": {
+    "live": "cache hit short-circuits; miss fetches HTTPS and writes the envelope cache",
+    "offline": "cache only; a miss degrades (status=0, provenance.degraded=true) instead of raising",
+    "refresh": "always fetches and rewrites the cache"
+  },
+  "fixtures": {
+    "query": "Kündigung Mietvertrag Mietrecht",
+    "cache_dir": "results/frontier/frontier-query-retrieval/fixtures/cache",
+    "meta": "results/frontier/frontier-query-retrieval/fixtures/FIXTURE_META.json",
+    "n_envelopes": 19,
+    "coverage": ["/decisions (search + language filters, paged)", "/decisions/{id}", "/structure/{id}", "/citations/{id}", "/leading-cases"],
+    "fixture_replay_determinism": "fixture replay is deterministic at the candidate-content level: identical decision_id sequence, ordering, channels, counts and provenance strings across re-runs. Only run-metadata fields (generated_at, provenance.latency_seconds) vary between replays, as expected for a run record.",
+    "replay_command": "python3 -m ocl_adapter 'Kündigung Mietvertrag Mietrecht' --preset fixtures --out results/frontier/frontier-query-retrieval/scratch/replay.json --validate",
+    "api": ["ocl_adapter.fixtures.fixture_config()", "ocl_adapter.fixtures.replay_fixtures()", "ocl_adapter.fixtures.record_fixtures()"],
+    "record_command": "python3 record_fixtures.py --query '<swiss law question>'"
+  },
+  "rate_limits": {
+    "charter_max_rps": 5.0,
+    "default_max_rps": 4.0,
+    "min_interval_seconds_at_default": 0.25,
+    "api_key_required": false,
+    "base_url": "https://mcp.opencaselaw.ch/api",
+    "enforcement": "RateLimiter inside HttpTransport; AdapterConfig rejects max_rps outside (0, 5.0]"
+  },
+  "tests": {
+    "framework": "stdlib unittest (no third-party test runner required)",
+    "command": "python3 -m unittest discover -s tests/frontier/frontier-query-retrieval -p 'test_*.py' -v",
+    "network_required": false,
+    "files": [
+      "tests/frontier/frontier-query-retrieval/test_ocl_adapter_offline.py",
+      "tests/frontier/frontier-query-retrieval/test_ocl_adapter_degradation.py",
+      "tests/frontier/frontier-query-retrieval/test_ocl_adapter_contract.py",
+      "tests/frontier/frontier-query-retrieval/test_ocl_adapter_scope_safety.py"
+    ],
+    "covers": ["pagination", "cache hit/miss/TTL", "deterministic dedupe", "provenance", "remote-failure degradation", "lazy hydration", "citation/leading expansion", "trilingual variants without fabricated translations", "product bridge", "CLI modes/exit codes", "integration contract validity"]
+  },
+  "reuse": {
+    "lexicon": "copied_from:accepted/product/product/query/retrieval.py#EXPANSION (closed tables only; every added term labelled accepted_lexicon)",
+    "patterns": "cache/navigation patterns inspected under /tmp/lex_accepted/core/product (product/query/corpus.py cached_live_search, product/app/navigation.py key cache); adapter supersedes the unversioned opencaselaw.org/api/search endpoint with the documented mcp.opencaselaw.ch/api surface + content-addressed envelope cache",
+    "schema": "product/query/bundle.py REQUIRED_TOP/REQUIRED_DECISION mirrored as PRODUCT_REQUIRED_TOP/PRODUCT_REQUIRED_DECISION"
+  },
+  "handoff": {
+    "artifacts": [
+      "frontier/frontier-query-retrieval/ocl_adapter/",
+      "frontier/frontier-query-retrieval/INTEGRATION_CONTRACT.json",
+      "frontier/frontier-query-retrieval/record_fixtures.py",
+      "frontier/frontier-query-retrieval/run_live_evidence.py",
+      "frontier/frontier-query-retrieval/verify_scope_safe.sh",
+      "frontier/frontier-query-retrieval/verify_determinism.py",
+      "results/frontier/frontier-query-retrieval/fixtures/",
+      "results/frontier/frontier-query-retrieval/LIVE_EVIDENCE.json",
+      "tests/frontier/frontier-query-retrieval/"
+    ],
+    "product_action": "import ocl_adapter (sys.path or vendored copy), call build_candidate_bundle + to_product_bundle, then fill answer/clusters/relations; do not re-implement dedupe, caching or provenance",
+    "evaluation_action": "use fixtures/ + LIVE_EVIDENCE.json as frozen retrieval inputs; do not re-record fixtures while benchmarks are frozen",
+    "ownership": "changes to the adapter belong to frontier-query-retrieval under the same charter; product may copy but should record divergence in its own state"
+  },
+  "compatibility": {
+    "schema_freeze": "candidate-1.0 / 1.0-candidate fields above are the frozen seam; additive fields are allowed, removals require a contract_version bump",
+    "python": ">=3.10",
+    "os": "linux/mac/windows (stdlib urllib)"
+  }
+}

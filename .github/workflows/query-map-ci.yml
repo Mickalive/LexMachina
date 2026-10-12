@@ -1,0 +1,71 @@
+name: Query Map CI
+
+on:
+  push:
+    branches:
+      - lab/product
+      - fix/v45-product-convergence
+  pull_request:
+    branches:
+      - lab/product
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  v45-query-map:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: product/requirements-query.txt
+      - name: Install query-map dependencies
+        run: pip install -r product/requirements-query.txt
+      - name: Compile v45 product seam
+        run: |
+          python -m py_compile \
+            product/query/pipeline.py \
+            product/query/qmap.py \
+            product/query/corpus.py \
+            product/query_app.py
+      - name: Product integration tests
+        run: pytest -q product/tests/test_query_map_mvp.py
+      - name: Live OpenCaseLaw product smoke
+        if: github.ref == 'refs/heads/fix/v45-product-convergence'
+        timeout-minutes: 6
+        run: |
+          python - <<'PY'
+          import json, sys, time
+          sys.path.insert(0, "product")
+          from query import run_query_initial
+          t0 = time.time()
+          b = run_query_initial("Kündigung Mietvertrag Mietrecht", top_n=100, retrieval_mode="live")
+          retrieval = b["provenance"]["retrieval"]
+          remote = retrieval["remote"]
+          metrics = {
+              "decisions": len(b["decisions"]),
+              "clusters": len(b["clusters"]),
+              "elapsed_seconds": round(time.time()-t0, 3),
+              "network_calls": remote.get("request_summary", {}).get("network_calls"),
+              "cache_hits": remote.get("request_summary", {}).get("cache_hits"),
+              "languages": retrieval.get("candidate_languages"),
+              "channels": retrieval.get("candidate_channels"),
+          }
+          print(json.dumps(metrics, sort_keys=True), flush=True)
+          assert len(b["decisions"]) >= 100, metrics
+          assert all(d["canonical_url"].startswith("https://mcp.opencaselaw.ch/") for d in b["decisions"][:20])
+          assert remote.get("degraded") is False, remote.get("failures")
+          assert (metrics["network_calls"] or 0) >= 5, metrics
+          assert {"de", "fr", "it"} <= set((metrics["languages"] or {}).keys()), metrics
+          assert (metrics["channels"] or {}).get("search", 0) > 0, metrics
+          assert (metrics["channels"] or {}).get("search.language_filter", 0) > 0, metrics
+          PY
+      - name: Accepted retrieval adapter tests
+        run: python -m unittest discover -s tests/frontier/frontier-query-retrieval -p 'test_*.py'
+      - name: Accepted generative-audit tests
+        run: pytest -q tests/frontier/frontier-generative-audit/test_generative_audit_v2.py

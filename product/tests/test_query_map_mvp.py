@@ -1,105 +1,156 @@
-"""Query-map MVP acceptance tests (product lane, factory direction v44).
+"""LEX v45 query-map integration tests.
 
-Covers the vertical slice: question -> bundle -> answer -> counter -> map.
-Deterministic (vendored fixture); live OpenCaseLaw is optional enhancement.
+All tests are deterministic/offline: they replay frozen real OpenCaseLaw
+responses and use the generative-audit fixture provider.  Frontier component
+suites test their own internals; this file tests the product seam.
 """
 import math
 import sys
 from pathlib import Path
 
-import pytest
+ROOT = Path(__file__).resolve().parents[2]
+PRODUCT = ROOT / "product"
+sys.path.insert(0, str(PRODUCT))
+sys.path.insert(0, str(ROOT))
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from query import enrich_query_bundle, run_query_initial
+from query.bundle import validate_bundle
 
-from query import run_query
-from query.bundle import bundle_summary, validate_bundle
-
-QUERIES = ["Kündigung Mietvertrag Mietrecht", "licenciement assurance invalidité"]
-
-
-def _bundle(q="Kündigung Mietvertrag Mietrecht", n=60):
-    b = run_query(q, top_n=n)
-    assert validate_bundle(b) == [], f"bundle invalid: {validate_bundle(b)}"
-    return b
+QUERY = "Kündigung Mietvertrag Mietrecht"
 
 
-def test_bundle_contract():
-    b = _bundle()
-    for key in ["bundle_version", "query", "query_variants", "answer",
-                "decisions", "clusters", "relations", "provenance"]:
-        assert key in b, f"missing {key}"
-    assert len(b["query_variants"]) >= 1
-    assert b["provenance"]["corpus"]["n_total"] >= 60
+def initial(n=100):
+    bundle = run_query_initial(QUERY, top_n=n, retrieval_mode="fixture")
+    assert validate_bundle(bundle) == []
+    return bundle
 
 
-def test_map_coordinates_finite_and_bounded():
-    b = _bundle()
-    cids = {c["cluster_id"] for c in b["clusters"]}
-    assert len(cids) >= 2
+def test_initial_phase_is_real_map_not_fake_answer():
+    b = initial()
+    assert b["provenance"]["phase"] == "map_ready"
+    assert b["provenance"]["fixture_mode"] is True
+    assert len(b["decisions"]) >= 100
+    assert len(b["clusters"]) >= 2
+    assert b["answer"]["status"] == "pending"
+    assert b["answer"]["cited_decision_ids"] == []
+
+
+def test_verified_opencaselaw_urls_and_no_guessed_endpoint():
+    b = initial()
+    assert all(
+        d["canonical_url"].startswith("https://mcp.opencaselaw.ch/")
+        for d in b["decisions"][:20]
+    )
+    corpus_source = (PRODUCT / "query" / "corpus.py").read_text(encoding="utf-8")
+    assert "opencaselaw.org/api/search" not in corpus_source
+    assert "www.opencaselaw.org/api/search" not in corpus_source
+
+
+def test_map_coordinates_finite_bounded_and_clustered():
+    b = initial()
+    cluster_ids = {c["cluster_id"] for c in b["clusters"]}
     for d in b["decisions"]:
         assert math.isfinite(d["x"]) and math.isfinite(d["y"])
-        assert -1.0 - 1e-6 <= d["x"] <= 1.0 + 1e-6
-        assert -1.0 - 1e-6 <= d["y"] <= 1.0 + 1e-6
-        assert d["cluster_id"] in cids
+        assert -1.0001 <= d["x"] <= 1.0001
+        assert -1.0001 <= d["y"] <= 1.0001
+        assert d["cluster_id"] in cluster_ids
+    assert any(d.get("is_outlier") for d in b["decisions"])
 
 
-def test_clusters_labeled_and_outliers_marked():
-    b = _bundle()
-    for c in b["clusters"]:
-        assert c["label"] and len(c["label"]) >= 3, f"empty label: {c}"
-        assert c["size"] >= 1
-    assert any("is_outlier" in d for d in b["decisions"])
+def test_map_is_deterministic_in_one_numeric_stack():
+    a = initial()
+    b = initial()
+    ga = {d["decision_id"]: (d["x"], d["y"], d["cluster_id"], d.get("is_outlier")) for d in a["decisions"]}
+    gb = {d["decision_id"]: (d["x"], d["y"], d["cluster_id"], d.get("is_outlier")) for d in b["decisions"]}
+    assert ga == gb
 
 
-def test_answer_citations_valid():
-    b = _bundle()
-    ids = {d["decision_id"] for d in b["decisions"]}
-    assert len(b["answer"]["cited_decision_ids"]) >= 1
-    assert set(b["answer"]["cited_decision_ids"]) <= ids
-    assert len(b["answer"]["statements"]) >= 1
-    for s in b["answer"]["statements"]:
-        assert s["decision_id"] in ids and len(s["text"]) > 40
-
-
-def test_counter_authority_pass_independent():
-    b = _bundle()
-    counters = [d for d in b["decisions"]
-                if d["counter_status"] not in ("none", "cited")]
-    assert len(counters) >= 1, "adversarial pass found no candidates"
-    assert any(d["counter_evidence"] or d["counter_markers"] for d in counters)
-    assert b["provenance"]["counter"]["method"].startswith("independent_")
-
-
-def test_multilingual_recall():
-    b = _bundle(n=100)
+def test_fixture_replay_preserves_multilingual_retrieval():
+    b = initial()
     langs = {d["language"] for d in b["decisions"]}
-    assert {"de", "fr", "it"} <= langs, f"missing languages: {langs}"
+    assert {"de", "fr", "it"} <= langs
 
 
-def test_french_query_end_to_end():
-    b = _bundle(QUERIES[1])
-    s = bundle_summary(b)
-    assert s["n_decisions"] == 60 and s["answer_citations"] >= 1
+def test_enrichment_is_source_constrained_and_does_not_move_map():
+    first = initial()
+    geo = {d["decision_id"]: (d["x"], d["y"], d["cluster_id"], d.get("is_outlier")) for d in first["decisions"]}
+
+    final = enrich_query_bundle(
+        first,
+        retrieval_mode="fixture",
+        fixture_generation=True,
+        evidence_count=12,
+    )
+    assert validate_bundle(final) == []
+    assert final["provenance"]["phase"] == "complete"
+    assert final["answer"]["status"] == "ready"
+    assert final["answer"]["method"] == "generative_audit_llm_v2"
+
+    ids = {d["decision_id"] for d in final["decisions"]}
+    assert final["answer"]["cited_decision_ids"]
+    assert set(final["answer"]["cited_decision_ids"]) <= ids
+
+    after = {d["decision_id"]: (d["x"], d["y"], d["cluster_id"], d.get("is_outlier")) for d in final["decisions"]}
+    assert after == geo
 
 
-def test_deterministic_projection():
-    b1 = _bundle()
-    b2 = _bundle()
-    m1 = {d["decision_id"]: (d["x"], d["y"], d["cluster_id"]) for d in b1["decisions"]}
-    m2 = {d["decision_id"]: (d["x"], d["y"], d["cluster_id"]) for d in b2["decisions"]}
-    assert m1.keys() == m2.keys()
-    for k in m1:
-        assert m1[k] == m2[k], f"nondeterministic map for {k}"
+def test_independent_adversarial_result_patches_visible_counter_status():
+    first = initial()
+    final = enrich_query_bundle(
+        first,
+        retrieval_mode="fixture",
+        fixture_generation=True,
+        evidence_count=12,
+    )
+    ga = final["provenance"]["generative_audit"]
+    assert ga["adversarial"]["method"] == "fixture_adversarial_v2"
+    counters = [
+        d for d in final["decisions"]
+        if d.get("counter_status") in {"candidate-limiting", "candidate-contrary"}
+    ]
+    assert counters
+    assert counters[0].get("counter_uncertainty") is not None
 
 
-def test_latency_bounded():
-    b = _bundle()
-    assert b["provenance"]["latency_seconds"] < 60
+def test_fixture_mode_is_explicit_not_a_live_padding_source():
+    b = initial()
+    retrieval = b["provenance"]["retrieval"]
+    assert b["provenance"]["fixture_mode"] is True
+    assert retrieval["n_candidates"] == len(b["decisions"])
+    pipeline_source = (PRODUCT / "query" / "pipeline.py").read_text(encoding="utf-8")
+    assert 'if mode == "fixture"' in pipeline_source
+    assert "load_fixture_decisions" not in pipeline_source
 
 
-def test_source_links_present():
-    b = _bundle()
-    for d in b["decisions"][:10]:
-        assert d["canonical_url"].startswith("http")
-        assert d["snippet"]
+def test_one_command_server_contract_start_then_enrich():
+    import json
+    import threading
+    import urllib.parse
+    import urllib.request
+    from query_app import make_server
+
+    srv = make_server("127.0.0.1", 0, fixture_mode=True, verbose=False)
+    thread = threading.Thread(target=srv.serve_forever, daemon=True)
+    thread.start()
+    base = f"http://127.0.0.1:{srv.server_address[1]}"
+    try:
+        with urllib.request.urlopen(base + "/api/health", timeout=10) as resp:
+            health = json.loads(resp.read())
+        assert health["ok"] is True
+        assert health["direction_version"] == 45
+
+        url = base + "/api/query/start?" + urllib.parse.urlencode({"q": QUERY, "n": 100})
+        with urllib.request.urlopen(url, timeout=60) as resp:
+            first = json.loads(resp.read())
+        assert first["bundle"]["provenance"]["phase"] == "map_ready"
+        run_id = first["run_id"]
+
+        with urllib.request.urlopen(base + "/api/query/enrich?" + urllib.parse.urlencode({"run_id": run_id}), timeout=60) as resp:
+            second = json.loads(resp.read())
+        assert second["run_id"] == run_id
+        assert second["bundle"]["provenance"]["phase"] == "complete"
+        assert second["bundle"]["answer"]["status"] == "ready"
+    finally:
+        srv.shutdown()
+        srv.server_close()
+        thread.join(timeout=5)
