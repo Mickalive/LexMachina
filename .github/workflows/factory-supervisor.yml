@@ -184,7 +184,16 @@ jobs:
             ensure_model_health
             exit 0
           fi
-          echo "Factory model: $(jq -r '.resolved_model' state/model_health.json) (fallback=$(jq -r '.using_fallback' state/model_health.json))"
+          HEALTH_TS=$(jq -r '.last_checked_at // "1970-01-01T00:00:00Z"' state/model_health.json)
+          HEALTH_EPOCH=$(date -u -d "$HEALTH_TS" +%s 2>/dev/null || echo 0)
+          NOW_EPOCH=$(date -u +%s)
+          HEALTH_AGE=$((NOW_EPOCH-HEALTH_EPOCH))
+          if (( HEALTH_AGE > 1200 )); then
+            echo "::warning::Model health is stale (${HEALTH_AGE}s); probing before dispatch instead of trusting an old green state."
+            ensure_model_health
+            exit 0
+          fi
+          echo "Factory model: $(jq -r '.resolved_model' state/model_health.json) (fallback=$(jq -r '.using_fallback' state/model_health.json), health_age=${HEALTH_AGE}s)"
 
           NEED_DIRECTOR=0
           NEED_HEALTH=0
@@ -238,9 +247,10 @@ jobs:
 
             fails=$(consecutive_failures core-lane.yml "$prefix")
             if (( fails >= 2 )); then
-              echo "::warning::$lane has $fails consecutive post-epoch operational workflow failures; retrying instead of blocking."
+              echo "::warning::$lane has $fails consecutive post-epoch operational failures; circuit breaker OPEN. No identical redispatch until health/direction changes."
               NEED_HEALTH=1
               NEED_DIRECTOR=1
+              continue
             fi
 
             gh workflow run core-lane.yml --repo "$GITHUB_REPOSITORY" --ref main \
@@ -275,9 +285,10 @@ jobs:
             [[ "$(active_count frontier-team.yml "$prefix")" -eq 0 ]] || { echo "Frontier $team already active in current epoch"; continue; }
             fails=$(consecutive_failures frontier-team.yml "$prefix")
             if (( fails >= 2 )); then
-              echo "::warning::Frontier $team has $fails consecutive post-epoch operational failures; retrying, not blocking."
+              echo "::warning::Frontier $team has $fails consecutive post-epoch operational failures; circuit breaker OPEN. No identical redispatch."
               echo NEED_HEALTH > /tmp/lex_need_health_frontier
               echo NEED_DIRECTOR > /tmp/lex_need_director_frontier
+              continue
             fi
             gh workflow run frontier-team.yml --repo "$GITHUB_REPOSITORY" --ref main \
               -f team_id="$team" -f charter_version="$ver" -f repair_round=0
