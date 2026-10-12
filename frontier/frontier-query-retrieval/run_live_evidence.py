@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -168,7 +169,7 @@ def main(argv=None) -> int:
         "generated_at": time.time(),
         "team_id": "frontier-query-retrieval",
         "charter_version": 2,
-        "run_id": "38172061004",
+        "run_id": os.environ.get("LEX_FRONTIER_RUN_ID", "38190325825"),
         "base_url": "https://mcp.opencaselaw.ch/api",
         "runs": runs,
         "all_runs_pass": all(r["all_checks_pass"] for r in runs),
