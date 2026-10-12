@@ -8,11 +8,12 @@ Current MVP flow:
 
 ```
 question
-  -> OpenCaseLaw retrieval
-  -> query_result_bundle
-  -> sourced generative answer
-  -> counter-authority pass
-  -> query-conditioned clusters/map
+  -> live OpenCaseLaw retrieval + deterministic dedupe
+  -> query-conditioned clusters/map (rendered immediately)
+  -> lazy evidence hydration
+  -> source-constrained generative answer
+  -> independent adversarial counter-authority pass
+  -> patch answer/evidence/statuses without moving the map
   -> clickable decision/source inspection
 ```
 
@@ -23,6 +24,8 @@ The repository is operated by an autonomous OpenCode/Ox engineering factory. The
 
 ## Run the v45 query-map product
 
+The v45 MVP entry point is `product/query_app.py`; `product/server.py` is the preserved legacy 174k-map server, not the query-product hot path.
+
 The normal path uses live OpenCaseLaw retrieval and the free/local generative provider abstraction:
 
 ```bash
@@ -30,7 +33,9 @@ pip install -r product/requirements-query.txt
 python product/query_app.py --port 8787
 ```
 
-Open `http://127.0.0.1:8787/`. The UI renders the retrieved query map first, then enriches it with the sourced answer and independent counter-authority audit.
+Open `http://127.0.0.1:8787/`. The UI renders the retrieved map first, then lazily hydrates evidence and enriches that same map with the sourced answer and independent counter-authority audit.
+
+A local OpenAI-compatible backend (Ollama / LM Studio / vLLM) can be used by setting `LEX_GENAUDIT_BACKEND=local`, `LEX_OPENAI_BASE_URL`, and optionally `LEX_OPENAI_MODEL`. If no generative provider succeeds, LEX keeps the map and sources and visibly falls back to the extractive answer instead of pretending the generative audit succeeded.
 
 For deterministic offline development/tests:
 
