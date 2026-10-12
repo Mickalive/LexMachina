@@ -1,0 +1,154 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    {
+      "file": "frontier/frontier-query-retrieval/ocl_adapter/cli.py",
+      "issue": "module docstring (lines 9-12) documents 'python3 -m ocl_adapter <query> --mode offline --cache-dir results/frontier/frontier-query-retrieval/fixtures/cache', which returns 0 candidates and exit 4 when run from the repo root: standard defaults (page_size=100, max_pages_per_variant=3, citation_page_size=20, target=150) produce different content-addressed cache keys than the fixture recording config, so every lookup misses. The authoritative INTEGRATION_CONTRACT.json route (--preset fixtures) works (exit 0, 105 candidates) and is what the run evidences.",
+      "severity": "low",
+      "type": "doc_defect_pre_existing",
+      "blocking": false,
+      "fix": "Point the docstring example at --preset fixtures, or give the example the recording config (fixture_config equivalent); optionally add a test asserting the documented offline command exits 0"
+    },
+    {
+      "file": "frontier/frontier-query-retrieval/ocl_adapter/dedupe.py",
+      "issue": "Canonical-identity dedupe cannot merge source-level twin records: OpenCaseLaw exposes the same judgment under two ids (e.g. bge_BGE_124_III_201 and bge_124 III 201 - both HTTP 200, same decision_date 1998-01-22, same citation_string_de, differing only in docket formatting). 6 such pairs in the primary live bundle (6/300 = 2%), 0 in the secondary bundle, 0 in the 105-candidate fixture replay. Charter acceptance (3) is met literally (dedupe IS deterministic by decision_id/canonical identity), but a downstream map could render twin nodes for one real decision.",
+      "severity": "low",
+      "type": "data_quality",
+      "blocking": false,
+      "fix": "Add a normalized (court, decision_date, docket-without-court-prefix, spaces-stripped) identity scheme to canonical_identity_v1, then regenerate LIVE_* evidence for the new run; committed fixtures are unaffected (0 twin pairs) so frozen evaluation inputs remain valid. Do not change fixtures while benchmarks are frozen."
+    }
+  ],
+  "claim_ceiling": "OpenCaseLaw retrieval/cache adapter only: deterministic (given identical HTTP responses), provenance-preserving, source-linked query_result_bundle candidate sets of 100-300 decisions from live or cached OpenCaseLaw, with API-supplied canonical_url/citation_string, multilingual server-side de/fr/it language filters plus a closed accepted-lexicon expansion (no machine translation), lazy full-text/structure hydration, bounded citation and leading-case neighbourhood expansion, order-independent dedupe by canonical identity, frozen offline fixtures (19 envelopes, replay 105 candidates), an enforced <=5 req/s soft pace configured at 4.0 rps (a configured ceiling, not measured throughput; measured 0.11-0.45 rps), stdlib-only/no-API-key operation, and a validated machine-readable product bridge with explicit pending_downstream placeholders. NOT delivered and NOT claimed: answer generation, clustering, relations, map layout (x/y), counter-status, UI/clickable-map rendering (product/evaluation lanes, correctly marked incomplete by the producer); any recall/accuracy benchmark (none run; fixtures frozen for eval); merging of source-level twin records exposed by the source under two ids (~2% of one live run); language/title/regeste/snippet for un-hydrated citation-neighbour shells (35/300 in the primary live run - hydrate first, producer reports them honestly as +35 unlabelled); and no dependency on or rebuild of the legacy 174k corpus.",
+  "evidence_summary": {
+    "gate_basis": "auditor re-executed acceptance contract against producer snapshot 38204133740 (worktree HEAD e30305b); all numbers below are auditor-measured unless prefixed producer_",
+    "acceptance_criteria_passed": 9,
+    "acceptance_criteria_total": 9,
+    "unit_tests_passed": 57,
+    "unit_tests_total": 57,
+    "unit_tests_offline_verified": "suite also green with http_proxy/https_proxy pointed at a dead port (127.0.0.1:9)",
+    "test_assertions": 164,
+    "test_skips_or_vacuous_asserts": 0,
+    "harness_checks_passed": 3,
+    "harness_checks_total": 3,
+    "harness_command": "LEX_VERIFY_OUT=<scratch> bash frontier/frontier-query-retrieval/verify_scope_safe.sh -> exit 0",
+    "determinism_probe": {
+      "deterministic": true,
+      "fixture_subprocess": "2 processes x 105 candidates, identical content",
+      "warm_cache": "2 x 300 candidates identical; pass 1 network_calls=12, pass 2 network_calls=0 (pure replay)",
+      "prior_gate_required_fix_closed": "verify_determinism.py now resolves subprocess --out to an absolute path; regression test TestDeterminismProbeRelativeOut executes in the suite"
+    },
+    "fresh_live_smoke_auditor": {
+      "query": "Kündigung Mietvertrag Mietrecht",
+      "mode": "live",
+      "cold_cache": true,
+      "candidates": 221,
+      "network_calls": 7,
+      "cache_hits": 0,
+      "hydrated": 2,
+      "full_text_chars": [12450, 26432],
+      "validation_errors": [],
+      "exit_code": 0
+    },
+    "producer_live_evidence": {
+      "run_id": "38204133740",
+      "cache_replayed": false,
+      "primary_candidates": 300,
+      "primary_requests": 18,
+      "primary_elapsed_seconds": 103.3,
+      "secondary_candidates": 175,
+      "secondary_requests": 7,
+      "secondary_elapsed_seconds": 66.5,
+      "all_runs_pass": true
+    },
+    "source_validity": {
+      "decision_ids_checked": 3,
+      "decision_ids_http_200_and_matching": 3,
+      "canonical_urls_checked": 2,
+      "canonical_urls_http_200": 2,
+      "citation_endpoint_http_200": true,
+      "synthetic_looking_ids_verified_real": "bge_98 II 294 (200, full_text 10569 chars) is a genuine API id, not fabricated"
+    },
+    "zero_cost_claims": {
+      "api_key_required": false,
+      "auth_headers_or_tokens_in_package": 0,
+      "third_party_dependencies": 0,
+      "stdlib_only_imports": true,
+      "unauthenticated_live_calls_succeeded": true
+    },
+    "rate_limit": {
+      "charter_max_rps": 5.0,
+      "configured_max_rps": 4.0,
+      "config_rejects_above_charter": true,
+      "min_interval_seconds": 0.25,
+      "measured_rps_range": [0.11, 0.45],
+      "note": "4.0 rps is the configured ceiling, not measured throughput"
+    },
+    "dedupe": {
+      "strategy": "canonical_identity_v1",
+      "order_independent_across_hash_seeds": [1, 7, 12345],
+      "primary_unique_ids_equals_candidates": "300/300",
+      "secondary_unique_ids_equals_candidates": "175/175",
+      "source_level_twin_pairs_primary": 6,
+      "source_level_twin_pairs_secondary": 0,
+      "source_level_twin_pairs_fixture_replay": 0
+    },
+    "multilingual": {
+      "query_variants": 5,
+      "machine_translation_used": false,
+      "language_filters_server_side": ["de", "fr", "it"],
+      "producer_primary_languages": {"de": 165, "fr": 50, "it": 50, "unlabelled_citation_shells": 35}
+    },
+    "fixtures": {
+      "envelopes": 19,
+      "replay_candidates": 105,
+      "replay_deterministic_across_runs_and_processes": true,
+      "recorded_live_19_network_calls_0_cache_hits": true,
+      "frozen_not_rerecorded_this_cycle": true
+    },
+    "degradation": {
+      "offline_empty_cache": "degraded bundle, 6 failures recorded, exit 3 (no --validate) / 4 (with --validate), no crash",
+      "unreachable_host": "degraded bundle, exit 4 with --validate, no crash"
+    },
+    "integration_contract": {
+      "contract_version": "1.0",
+      "revision": "1.0.1",
+      "charter_version": 2,
+      "public_api_symbols": 18,
+      "bridge_executed": true,
+      "validation_errors": 0,
+      "product_validation_errors": 0
+    },
+    "scope_safety": {
+      "producer_worktree_clean": true,
+      "stray_repo_root_files": 0,
+      "auditor_writes_confined_to": ["/tmp/opencode/audit_38204133740", "reports/audit/frontier/frontier-query-retrieval/CYCLE_38204133740.md", "results/audit/frontier/frontier-query-retrieval/CYCLE_38204133740_GATE.json"],
+      "generation_a_files_quarantined_with_manifest": true,
+      "team_namespace_differs_from_accepted_base_only_in": "frontier/frontier-query-retrieval/verify_determinism.py (prior-gate fix) and tests/.../test_ocl_adapter_scope_safety.py (+regression test)"
+    },
+    "evidence_freshness_ordering_utc": {
+      "live_primary": "04:44:17",
+      "live_secondary": "04:45:23",
+      "determinism_probe": "04:45:29",
+      "harness_stamp_final": "04:47:20",
+      "snapshot_commit_e30305b": "04:51:27",
+      "verification_after_last_claim_bearing_write": true
+    },
+    "repair_pathology": {
+      "audit_history_gates": ["38179807923:PASS", "38196996329:PASS(+1 low fix)", "38204133740:PASS(+2 low non-blocking fixes)"],
+      "repeated_unrepaired_defect": false,
+      "prior_required_fix_closed_with_regression_test": true,
+      "scope_hazard_class_recurred_this_cycle": false,
+      "revise_loop": false,
+      "blocked_applicable": false
+    },
+    "non_blocking_findings": [
+      "F1 low: cli.py docstring offline-replay example fails (documented command mismatch with recording config)",
+      "F2 low: 6/300 source-level twin record pairs not merged by canonical-identity dedupe",
+      "F3 info: 35/300 citation-neighbour candidates are un-hydrated shells without language/snippet (documented lazy design, honestly reported)",
+      "F4 info: 4.0 rps is a configured ceiling, not measured throughput",
+      "F5 trivial: duplicated handoff.artifacts entry for verification/38204133740a in producer state"
+    ],
+    "stop_promote_rule": "PROMOTE; continue_recommended=false is correct; continue only if product/evaluation integration surfaces a concrete adapter defect under the same charter"
+  }
+}
