@@ -159,6 +159,41 @@ def test_fixture_mode_deterministic():
     return True
 
 
+def test_prompt_surfaces_relevant_passage_beyond_judgment_prefix():
+    """Hydrated holdings later in a judgment must reach the answer model."""
+    print(">>> test_prompt_surfaces_relevant_passage_beyond_judgment_prefix")
+    late = (
+        "Procedural history and party submissions. " * 80
+        + " Art. 102 Abs. 2 StGB: Bei der originären Haftung "
+          "(responsabilité primaire) tritt die Strafbarkeit des Unternehmens "
+          "neben diejenige des Individualtäters und gilt unabhängig von der "
+          "Strafbarkeit natürlicher Personen."
+    )
+    bundle = DecisionBundle(
+        query="La responsabilité selon l'art. 102 CP est-elle subsidiaire ou primaire ?",
+        decision_ids=["BGE-142-IV-333"],
+        decisions=[
+            Decision(
+                decision_id="BGE-142-IV-333",
+                title="BGE 142 IV 333",
+                text=late,
+                metadata={
+                    "court": "bge",
+                    "rank": 1,
+                    "score": 0.9,
+                    "snippet": "Art. 102 Abs. 1 und 2 StGB; Strafbarkeit des Unternehmens.",
+                },
+            )
+        ],
+    )
+    prompt = Provider(fixture_mode=True).build_prompt(bundle)
+    assert "originären Haftung" in prompt
+    assert "responsabilité primaire" in prompt
+    assert "unabhängig von der Strafbarkeit" in prompt
+    print("  PASS: late decisive holding packed into prompt")
+    return True
+
+
 def test_provider_preserves_multi_paragraph_answer():
     """Regression: structured legal answers must not be truncated at first blank line."""
     print(">>> test_provider_preserves_multi_paragraph_answer")
@@ -1057,6 +1092,7 @@ ALL_TESTS = [
     test_real_path_fixture_and_contract_surface,
     test_fixture_mode_deterministic,
     test_provider_preserves_multi_paragraph_answer,
+    test_prompt_surfaces_relevant_passage_beyond_judgment_prefix,
     test_fixture_rejects_invented_cited_ids,
     test_hallucinated_citation_rejection_and_redaction,
     test_redaction_helper_unit,
