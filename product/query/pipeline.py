@@ -45,11 +45,15 @@ def _retrieval_config(top_n: int, mode: str) -> AdapterConfig:
     cases and citation neighbours all get a chance before the 100-300 cap fills.
     """
     top_n = max(MIN_LIVE_RESULTS, min(MAX_RESULTS, int(top_n)))
-    page = max(14, min(50, top_n // 7))
+    # Fetch a broader internal pool because multilingual/citation channels
+    # overlap heavily.  The product target remains 100-300 decisions; this
+    # headroom prevents dedupe from shrinking the map below the requested size.
+    pool_cap = min(MAX_RESULTS, max(top_n + 80, int(top_n * 1.6)))
+    page = max(25, min(50, top_n // 4))
     return AdapterConfig(
         mode=mode,
         target=top_n,
-        max_candidates=top_n,
+        max_candidates=pool_cap,
         page_size=page,
         max_pages_per_variant=1,
         lang_max_pages=1,
