@@ -28,7 +28,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Parse factory YAML
-        run: ruby -e 'require "yaml"; Dir[".github/workflows/*.yml"].each { |f| YAML.load_file(f, aliases: true); puts "OK #{f}" }'
+        run: |
+          ruby -e 'require "yaml"; Dir[".github/workflows/*.yml"].each { |f| YAML.load_file(f, aliases: true); puts "OK #{f}" }'
       - name: Validate shell syntax
         run: bash -n .github/scripts/run-ox-with-retry.sh
       - name: Validate active portfolio JSON
