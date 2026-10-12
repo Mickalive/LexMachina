@@ -15,6 +15,8 @@ sys.path.insert(0, str(ROOT))
 
 from query import enrich_query_bundle, run_query_initial
 from query.bundle import validate_bundle
+from query.relevance import rerank_product_bundle
+from ocl_adapter.expansion import build_variants
 
 QUERY = "Kündigung Mietvertrag Mietrecht"
 
@@ -154,3 +156,51 @@ def test_one_command_server_contract_start_then_enrich():
         srv.shutdown()
         srv.server_close()
         thread.join(timeout=5)
+
+
+def test_legal_query_expansion_bridges_swiss_statute_languages_and_doctrine():
+    variants = build_variants(
+        "Dans quelles conditions la Business Judgment Rule protège-t-elle le conseil d'administration selon l'art. 754 CO ?",
+        include_language_filters=False,
+    )
+    texts = {v.text for v in variants}
+    assert "Art. 754 OR" in texts
+    assert any("Geschäftsentscheid" in text and "Verwaltungsrat" in text for text in texts)
+    assert any(v.kind == "legal_concept" for v in variants)
+
+
+def test_product_reranker_prefers_direct_legal_issue_over_broad_remote_hit():
+    bundle = {
+        "query": "Business Judgment Rule conseil d'administration",
+        "query_variants": [
+            "Business Judgment Rule Verwaltungsrat",
+            "Geschäftsentscheid Verwaltungsrat angemessene Informationsbasis Interessenkonflikt",
+        ],
+        "decisions": [
+            {
+                "decision_id": "TAX",
+                "court": "bger",
+                "score": 99.0,
+                "title": "Impôt",
+                "citation": "TF tax",
+                "regeste": "Déduction fiscale relative à une activité commerciale.",
+                "snippet": "",
+            },
+            {
+                "decision_id": "BJR",
+                "court": "bger",
+                "score": 1.0,
+                "title": "Verwaltungsrat",
+                "citation": "TF BJR",
+                "regeste": (
+                    "Geschäftsentscheid des Verwaltungsrats auf angemessener "
+                    "Informationsbasis und frei von Interessenkonflikten."
+                ),
+                "snippet": "",
+            },
+        ],
+        "provenance": {},
+    }
+    reranked = rerank_product_bundle(bundle)
+    assert reranked["decisions"][0]["decision_id"] == "BJR"
+    assert reranked["decisions"][0]["score"] > reranked["decisions"][1]["score"]
