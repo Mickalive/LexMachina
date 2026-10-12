@@ -26,6 +26,7 @@ for _p in (RETRIEVAL_ROOT, GENAUDIT_ROOT):
 from ocl_adapter import AdapterConfig, build_candidate_bundle, to_product_bundle  # noqa: E402
 from ocl_adapter.fixtures import fixture_config, replay_fixtures  # noqa: E402
 from generative_audit.integration_contract import run_generative_audit  # noqa: E402
+from generative_audit.adversarial import AdversarialFinding  # noqa: E402
 
 MIN_LIVE_RESULTS = 100
 MAX_RESULTS = 300
@@ -240,11 +241,24 @@ def enrich_query_bundle(
 
     try:
         fixture_ids = [d["decision_id"] for d in work["decisions"][:2]]
+        fixture_findings = None
+        if fixture_generation and len(work["decisions"]) >= 3:
+            challenge = work["decisions"][2]
+            evidence = str(challenge.get("full_text") or challenge.get("snippet") or "").strip()[:120]
+            fixture_findings = [AdversarialFinding(
+                decision_id=challenge["decision_id"],
+                title=str(challenge.get("citation") or challenge["decision_id"]),
+                reason="limiting",
+                evidence_refs=[evidence] if evidence else [],
+                uncertainty=0.2,
+                confidence=0.9,
+            )]
         audited = run_generative_audit(
             work,
             fixture_mode=fixture_generation,
             fixture_answer=("Fixture grounded answer " + " ".join(f"[{x}]" for x in fixture_ids)) if fixture_generation else None,
             fixture_cited_ids=fixture_ids if fixture_generation else None,
+            fixture_findings=fixture_findings,
         )
         ga = audited.get("provenance", {}).get("generative_audit", {})
         provider_error = ga.get("provider_error")
