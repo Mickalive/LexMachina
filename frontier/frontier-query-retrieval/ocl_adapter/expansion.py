@@ -70,7 +70,10 @@ CONCEPT_VARIANTS: Tuple[Tuple[Tuple[str, ...], Tuple[str, ...]], ...] = (
         ("vol de faible valeur", "vol de peu de valeur", "petit vol", "diebstahl"),
         (
             "Diebstahl Arbeitnehmer fristlose Kündigung",
-            "geringfügiger Diebstahl Arbeitnehmer Art. 337 OR",
+            "geringfügiger Diebstahl fristlose Kündigung",
+            "Bagatelldiebstahl fristlose Kündigung",
+            "Diebstahl Arbeitgeber Vertrauensverhältnis",
+            "Diebstahl Art. 337 OR",
         ),
     ),
     (
