@@ -150,7 +150,7 @@ class CitationValidator:
                             "court", "language", "rank", "score", "decision_date",
                             "docket_number", "cluster_id", "canonical_url",
                             "provenance", "counter_status", "query_similarity",
-                            "legal_anchor_score", "retrieval_score_raw",
+                            "legal_anchor_score", "retrieval_score_raw", "snippet",
                         )
                         if d.get(k) is not None
                     },
