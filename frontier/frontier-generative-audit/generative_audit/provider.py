@@ -304,8 +304,10 @@ class Provider:
         report["hallucinated_ids"] = hallucinated
         report["redacted_citation_ids"] = hallucinated
 
-        answer = raw.split("Answer:")[-1].strip() if "Answer:" in raw else raw.strip()
-        answer = answer.split("\n\n")[0].strip()
+        # Preserve the complete model answer. The previous implementation
+        # split on the first blank line, which silently reduced structured
+        # multi-paragraph legal answers to a heading or opening sentence.
+        answer = raw.split("Answer:", 1)[-1].strip() if "Answer:" in raw else raw.strip()
         clean_answer, _removed = redact_unknown_citations(answer, bundle.decision_ids)
 
         return ProviderResult(
