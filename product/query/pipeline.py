@@ -15,6 +15,7 @@ from typing import Any
 from .answer import build_answer, counter_authority_pass
 from .bundle import build_bundle, validate_bundle
 from .qmap import build_map
+from .relevance import rerank_product_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RETRIEVAL_ROOT = REPO_ROOT / "frontier" / "frontier-query-retrieval"
@@ -69,7 +70,7 @@ def _retrieval_config(top_n: int, mode: str) -> AdapterConfig:
     )
 
 
-def _retrieve(query: str, top_n: int, *, mode: str = "live", hydrate_top: int = 0) -> dict:
+def _retrieve(\n    query: str,\n    top_n: int,\n    *,\n    mode: str = "live",\n    hydrate_top: int = 0,\n    hydrate_ids: list[str] | None = None,\n) -> dict:
     if mode == "fixture":
         # Frozen OpenCaseLaw envelopes; deterministic and network-free.
         cfg = fixture_config(
@@ -82,7 +83,7 @@ def _retrieve(query: str, top_n: int, *, mode: str = "live", hydrate_top: int = 
     if mode not in {"live", "offline", "refresh"}:
         raise ValueError(f"unsupported retrieval mode: {mode}")
     cfg = _retrieval_config(top_n, mode)
-    return build_candidate_bundle(query, config=cfg, hydrate_top=hydrate_top, include_structure=True)
+    return build_candidate_bundle(\n        query,\n        config=cfg,\n        hydrate_top=hydrate_top,\n        hydrate_ids=hydrate_ids,\n        include_structure=True,\n    )
 
 
 def _candidate_to_product(candidate_bundle: dict) -> dict:
@@ -183,11 +184,17 @@ def _merge_hydrated_evidence(bundle: dict, *, retrieval_mode: str, evidence_coun
     if n == 0 or evidence_count <= 0:
         return out
     try:
+        requested_ids = [
+            d["decision_id"]
+            for d in sorted(out["decisions"], key=lambda row: row.get("rank") or 10**9)
+            [: min(max(1, evidence_count), n)]
+        ]
         hydrated = _retrieve(
             out["query"],
             n,
             mode=retrieval_mode,
-            hydrate_top=min(max(1, evidence_count), n),
+            hydrate_top=0,
+            hydrate_ids=requested_ids,
         )
         by_id = {c.get("decision_id"): c for c in hydrated.get("candidates", [])}
         hydrated_ids = []
