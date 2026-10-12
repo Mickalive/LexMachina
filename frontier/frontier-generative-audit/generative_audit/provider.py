@@ -206,21 +206,33 @@ class Provider:
     # ---- prompt construction ----
 
     def build_prompt(self, bundle: DecisionBundle) -> str:
+        # The full bundle remains the citation-validation boundary, but dumping
+        # 100+ weak lexical hits into the answer model diluted the strongest
+        # authorities. Product reranking places the best legal evidence first.
+        prompt_decisions = list(bundle.decisions[:36])
         lines = [
             "You are a legal research assistant answering a Swiss case-law "
             "question using ONLY the retrieved decision sources listed below.",
             "",
             f"Query: {bundle.query}",
             "",
-            "Retrieved decision sources:",
+            f"Retrieved decision sources: {len(prompt_decisions)} highest-ranked "
+            f"of {len(bundle.decisions)} retrieved decisions.",
         ]
-        for dec in bundle.decisions:
-            snippet = " ".join((dec.text or "").split())[:600]
+        for dec in prompt_decisions:
+            snippet = " ".join((dec.text or "").split())[:700]
             lines.append(f"  [{dec.decision_id}] {dec.title}: {snippet}")
         lines += [
             "",
             "Instructions:",
-            "  - Answer the question substantively in one paragraph.",
+            "  - Answer every distinct sub-question in the query. If a statute "
+            "contains different paragraphs/alternatives (for example al. 1 "
+            "versus al. 2), state each branch separately and do not collapse them.",
+            "  - Prefer Federal Supreme Court/BGE holdings over lower-court "
+            "decisions when both directly address the same proposition.",
+            "  - A source that merely mentions a statute or topic is not enough "
+            "to support a proposition; rely on sources that actually address it.",
+            "  - Give a concise structured answer (normally 2-5 short paragraphs).",
             "  - Support propositions by citing sources as [DECISION_ID], "
             "using ONLY the retrieved IDs listed above.",
             "  - Right after a [DECISION_ID] marker, add the official Swiss "
@@ -230,7 +242,8 @@ class Provider:
             "  - Quote the source verbatim (in its own language) when you "
             "state what a decision held.",
             "  - Never invent, guess or extrapolate a decision ID.",
-            "  - Mark propositions not supported by the sources as uncertain.",
+            "  - Mark propositions not supported by the sources as uncertain "
+            "instead of filling gaps from general model knowledge.",
             "  - Do not use any tools; reply with the answer text only.",
             "",
             "Answer:",
