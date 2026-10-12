@@ -1,0 +1,24 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [
+    {
+      "file": "frontier/frontier-query-retrieval/verify_determinism.py",
+      "issue": "fixture_subprocess probe uses relative --out path while subprocess cwd differs from parent cwd, causing false negative determinism report",
+      "severity": "low",
+      "type": "test_harness_bug",
+      "fix": "Use absolute output paths or align working directories in probe_fixture_subprocess()"
+    }
+  ],
+  "claim_ceiling": "Adapter delivers deterministic, provenance-preserving candidate bundles from live/cached OpenCaseLaw with multilingual expansion, citation/leading neighbourhoods, lazy hydration, and product bridge contract. Does not generate answers, clusters, relations, or maps (explicitly pending_downstream). No machine translation. Zero-cost claim verified (no API key, stdlib only).",
+  "evidence_summary": {
+    "unit_tests": "56/56 pass",
+    "live_primary": "300 candidates, 18 network calls, 4.0 RPS, all A0-A9 checks pass",
+    "live_secondary": "175 candidates, 7 network calls, 4.0 RPS, all applicable checks pass",
+    "fixture_replay": "Deterministic at candidate-content level (decision_ids, provenance, scores, ranks identical across subprocesses; only latency_seconds/generated_at differ)",
+    "warm_cache_probe": "Identical candidate content across two live-mode runs against same cache directory",
+    "contract_validation": "INTEGRATION_CONTRACT.json v1.0.1 validated by test_ocl_adapter_contract.py",
+    "scope_safety": "verify_scope_safe.sh passes; CLI --out constrained to team namespace",
+    "evidence_freshness": "run_live_evidence.py requires LEX_FRONTIER_RUN_ID, rejects zero-network replays via A0_fresh_live_network"
+  }
+}
