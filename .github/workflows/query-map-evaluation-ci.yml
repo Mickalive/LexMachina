@@ -7,6 +7,7 @@ on:
       - fix/v45-evaluation-convergence
     paths:
       - 'evaluation/query_map/**'
+      - 'evaluation/__init__.py'
       - 'state/evaluation.json'
       - '.github/workflows/query-map-evaluation-ci.yml'
   pull_request:
@@ -20,9 +21,11 @@ permissions:
 jobs:
   evaluator:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -32,3 +35,40 @@ jobs:
         run: python -m py_compile evaluation/query_map/harness.py evaluation/query_map/evaluate_bundle.py
       - name: Test evaluator invariants
         run: pytest -q evaluation/query_map/test_harness.py
+      - name: Materialize promoted product independently
+        run: |
+          git fetch --depth=1 origin lab/product
+          git worktree add /tmp/lex-product FETCH_HEAD
+          pip install -r /tmp/lex-product/product/requirements-query.txt
+      - name: Generate product start/enrich bundles
+        env:
+          PYTHONPATH: /tmp/lex-product/product:/tmp/lex-product
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from query import run_query_initial, enrich_query_bundle
+
+          q = "Kündigung Mietvertrag Mietrecht"
+          initial = run_query_initial(q, top_n=100, retrieval_mode="fixture")
+          final = enrich_query_bundle(
+              initial,
+              retrieval_mode="fixture",
+              fixture_generation=True,
+              evidence_count=12,
+          )
+          Path("/tmp/lex-initial.json").write_text(json.dumps(initial), encoding="utf-8")
+          Path("/tmp/lex-final.json").write_text(json.dumps(final), encoding="utf-8")
+          PY
+      - name: Independently audit product bundles
+        run: |
+          python -m evaluation.query_map.evaluate_bundle \
+            --initial /tmp/lex-initial.json \
+            --final /tmp/lex-final.json \
+            --out /tmp/lex-evaluation.json
+          python - <<'PY'
+          import json
+          r=json.load(open("/tmp/lex-evaluation.json", encoding="utf-8"))
+          print(json.dumps({"pass":r["pass"],"counts":r["counts"],"languages":r["languages"],"geometry":r["geometry"]["preserved"]}, sort_keys=True))
+          assert r['pass'] is True
+          PY
