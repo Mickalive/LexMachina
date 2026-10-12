@@ -143,9 +143,9 @@ def rerank_product_bundle(product_bundle: dict) -> dict:
         court = str(dec.get("court") or "").lower()
         federal = 1.0 if court in {"bger", "bge", "bstger"} else 0.0
         value = (
-            0.72 * float(sims[idx])
-            + 0.16 * float(raw_norm[idx])
-            + 0.10 * anchor
+            0.82 * float(sims[idx])
+            + 0.04 * float(raw_norm[idx])
+            + 0.12 * anchor
             + 0.02 * federal
         )
         value = max(0.0, min(1.0, value))
