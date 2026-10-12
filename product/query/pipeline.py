@@ -37,18 +37,31 @@ def _text_for(d: dict) -> str:
 
 
 def _retrieval_config(top_n: int, mode: str) -> AdapterConfig:
+    """Budget the candidate cap across independent retrieval channels.
+
+    The accepted adapter stops a stage when max_candidates is full.  A single
+    100-result lexical page could therefore crowd out language/citation passes.
+    We deliberately use smaller one-page search slices so DE/FR/IT, leading
+    cases and citation neighbours all get a chance before the 100-300 cap fills.
+    """
     top_n = max(MIN_LIVE_RESULTS, min(MAX_RESULTS, int(top_n)))
+    page = max(14, min(50, top_n // 7))
     return AdapterConfig(
         mode=mode,
         target=top_n,
         max_candidates=top_n,
-        page_size=min(100, top_n),
-        max_pages_per_variant=3,
+        page_size=page,
+        max_pages_per_variant=1,
+        lang_max_pages=1,
         max_requests=40,
         max_rps=4.0,
-        stop_when_target_met=True,
+        stop_when_target_met=False,
         citation_expansion=True,
+        citation_seeds=3,
+        citation_page_size=min(20, max(10, top_n // 10)),
+        max_new_from_citations=min(60, max(25, top_n // 4)),
         leading_cases=True,
+        leading_cases_limit=min(20, max(10, top_n // 10)),
     )
 
 
@@ -137,10 +150,19 @@ def run_query_initial(query: str, top_n: int = 150, *, retrieval_mode: str = "li
         raise RuntimeError("OpenCaseLaw retrieval returned no decisions")
     product = _candidate_to_product(candidate)
     bundle = _map_bundle(product, t0)
+    candidate_languages = {}
+    candidate_channels = {}
+    for c in candidate.get("candidates", []):
+        lang = c.get("language") or "?"
+        candidate_languages[lang] = candidate_languages.get(lang, 0) + 1
+        for channel in c.get("channels") or []:
+            candidate_channels[channel] = candidate_channels.get(channel, 0) + 1
     bundle["provenance"]["retrieval"] = {
         "adapter": candidate.get("adapter"),
         "candidate_bundle_version": candidate.get("bundle_version"),
         "n_candidates": candidate.get("n_candidates"),
+        "candidate_languages": candidate_languages,
+        "candidate_channels": candidate_channels,
         "dedupe": candidate.get("dedupe"),
         "remote": candidate.get("provenance", {}),
     }
