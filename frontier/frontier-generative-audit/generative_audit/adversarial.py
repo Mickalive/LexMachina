@@ -178,16 +178,28 @@ class AdversarialPass:
             text = " ".join((dec.text or "").lower().split())
             marker_hits = sum(text.count(marker) for marker in CHALLENGE_MARKERS)
             rank = self._rank_of(dec, pos)
-            scored.append((marker_hits, rank, str(dec.decision_id), dec))
+            try:
+                relevance = float((dec.metadata or {}).get("score") or 0.0)
+            except (TypeError, ValueError):
+                relevance = 0.0
+            scored.append((marker_hits, relevance, rank, str(dec.decision_id), dec))
 
-        # 1) Explicit exception/limitation language: strongest counter signal.
-        # Keep both high-ranked and low-ranked marker hits so a minority/outlier
-        # authority is not systematically erased by the shortlist itself.
-        marker_rows = [row for row in sorted(scored, key=lambda x: (-x[0], x[1], x[2])) if row[0] > 0]
-        for _hits, _rank, _did, dec in marker_rows[: min(8, max_sources)]:
+        # 1) Exception/limitation language matters only inside a decision that
+        # is itself relevant to the legal question. Previously a generic word
+        # such as "exception" could promote unrelated tax or tort cases into
+        # the counter-authority prompt.
+        max_relevance = max((row[1] for row in scored), default=0.0)
+        relevance_floor = max(0.015, max_relevance * 0.18)
+        marker_rows = [
+            row for row in sorted(scored, key=lambda x: (-x[0], -x[1], x[2], x[3]))
+            if row[0] > 0 and (
+                row[1] >= relevance_floor or normalize_id(row[3]) in cited
+            )
+        ]
+        for _hits, _rel, _rank, _did, dec in marker_rows[: min(8, max_sources)]:
             add(dec)
         if len(selected) < max_sources:
-            for _hits, _rank, _did, dec in reversed(marker_rows[-2:]):
+            for _hits, _rel, _rank, _did, dec in reversed(marker_rows[-2:]):
                 add(dec)
 
         # 2) Answer-cited authorities: look for limitations inside what the
@@ -209,7 +221,7 @@ class AdversarialPass:
                         break
 
         # 4) Fill with retrieval-ranked context until the bounded prompt is full.
-        for _hits, _rank, _did, dec in sorted(scored, key=lambda x: (x[1], x[2])):
+        for _hits, _rel, _rank, _did, dec in sorted(scored, key=lambda x: (x[2], -x[1], x[3])):
             add(dec)
             if len(selected) >= max_sources:
                 break
@@ -245,6 +257,10 @@ class AdversarialPass:
             "paraphrases are rejected by the source checker), uncertainty "
             "(0.0 certain - 1.0 highly uncertain), confidence (0.0-1.0).",
             "",
+            "A challenge must address the SAME legal issue as the query and "
+            "the proposition it challenges. An unrelated decision is NEVER a "
+            "counter-authority merely because it contains words such as "
+            "'exception', 'limiting', 'company' or 'liability'. "
             "Do NOT restate or endorse the answer; only surface challenges. "
             "Do NOT invent facts that are not in the retrieved text. "
             "Use no tools. Reply with ONLY a JSON array (no prose, no "
