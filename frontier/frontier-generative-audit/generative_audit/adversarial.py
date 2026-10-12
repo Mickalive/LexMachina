@@ -167,12 +167,14 @@ class AdversarialPass:
             scored.append((marker_hits, rank, str(dec.decision_id), dec))
 
         # 1) Explicit exception/limitation language: strongest counter signal.
-        for hits, _rank, _did, dec in sorted(scored, key=lambda x: (-x[0], x[1], x[2])):
-            if hits <= 0:
-                break
+        # Keep both high-ranked and low-ranked marker hits so a minority/outlier
+        # authority is not systematically erased by the shortlist itself.
+        marker_rows = [row for row in sorted(scored, key=lambda x: (-x[0], x[1], x[2])) if row[0] > 0]
+        for _hits, _rank, _did, dec in marker_rows[: min(8, max_sources)]:
             add(dec)
-            if len(selected) >= min(10, max_sources):
-                break
+        if len(selected) < max_sources:
+            for _hits, _rank, _did, dec in reversed(marker_rows[-2:]):
+                add(dec)
 
         # 2) Answer-cited authorities: look for limitations inside what the
         # answer itself relied on.
