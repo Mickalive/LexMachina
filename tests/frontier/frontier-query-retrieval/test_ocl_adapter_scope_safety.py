@@ -172,12 +172,17 @@ class TestDeterminismProbeRelativeOut(unittest.TestCase):
                 capture_output=True, text=True, timeout=300,
             )
             self.assertEqual(proc.returncode, 0, proc.stderr)
-            report = json.loads(proc.stdout)
+            # --out is the authoritative artifact; stdout carries a compact
+            # summary whose ``probes`` values are booleans, not probe dicts.
+            summary = json.loads(proc.stdout)
+            self.assertTrue(requested.exists())
+            report = json.loads(requested.read_text(encoding="utf-8"))
             self.assertTrue(report["deterministic"])
             self.assertTrue(
                 report["probes"]["fixture_subprocess"]["identical_candidate_content"]
             )
-            self.assertTrue(requested.exists())
+            self.assertEqual(summary["deterministic"], report["deterministic"])
+            self.assertTrue(summary["probes"]["fixture_subprocess"])
             # No stray replays anywhere in the team namespace.
             self.assertEqual(list(TEAM_DIR.rglob("fixture_replay_*.json")), [])
 

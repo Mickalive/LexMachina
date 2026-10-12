@@ -24,10 +24,15 @@ Scope safety: writes only to ``results/frontier/frontier-query-retrieval/
 verification/<stamp>/`` (or an explicit ``--out``); never writes at the
 repository root; never touches claim-bearing LIVE_*.json or fixtures/.
 
-Usage::
+Usage (run from the repository root)::
 
-    python3 verify_determinism.py --cache-dir /tmp/opencode/lex_ocl_live_cache \\
-        --out results/frontier/frontier-query-retrieval/verification/38196996329/determinism.json
+    python3 frontier/frontier-query-retrieval/verify_determinism.py \\
+        --out results/frontier/frontier-query-retrieval/verification/<run>/determinism.json
+
+``--out`` is resolved relative to the *current working directory*, not to this
+script, so pass a path relative to wherever you are running from (or an
+absolute path). In-team only: the target must stay under
+``results/frontier/frontier-query-retrieval/``.
 
 Exit codes: 0 deterministic, 1 non-deterministic, 2 usage/config error.
 """

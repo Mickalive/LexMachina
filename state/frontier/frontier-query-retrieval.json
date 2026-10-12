@@ -5,9 +5,9 @@
   "cycle_status": "COMPLETED",
   "continue_recommended": false,
   "accepted_run_id": "38190325825",
-  "producer_snapshot_run": "38196996329",
+  "producer_snapshot_run": "38204133740",
   "run_lineage": {
-    "38172061004": "live evidence for the ocl_adapter namespace (archived this cycle under results/frontier/frontier-query-retrieval/archive/run_38172061004/)",
+    "38172061004": "live evidence for the ocl_adapter namespace (archived under results/frontier/frontier-query-retrieval/archive/run_38172061004/)",
     "38175239535": "producer snapshot that shipped ocl_adapter package, fixtures, LIVE_EVIDENCE and INTEGRATION_CONTRACT but left the contract-referenced test suite unwritten",
     "38179086460": "accepted run that wrote the three offline unittest modules and first verified 43/43 tests + fixture replay + live multi-stage retrieval",
     "38179807923": "git acceptance commit on main (164e0bc); audit gate PASS, safe_to_integrate=true",
@@ -19,84 +19,133 @@
     "38192249068": "FAILED (workflow exit 4, team scope): documented replay command with relative --out bundle.json wrote bundle{,1,2}.json at the repository root; artifacts quarantined under results/frontier/frontier-query-retrieval/archive/scope_recovery/run_38192249068/",
     "38193491547": "FAILED (workflow exit 4, team scope): wrote an out-of-scope product/** adapter+cache copy (19 files); artifacts quarantined under results/frontier/frontier-query-retrieval/archive/scope_recovery/run_38193491547/",
     "38195272963": "incomplete operational resume: quarantined the out-of-scope artifacts and added verify_scope_safe.sh, but never advanced this state record, never wrote its promised report, and shipped a harness whose repo-root detection false-positived on results/frontier/frontier-query-retrieval; diagnosis reconstructed in reports/frontier/frontier-query-retrieval/OPERATIONAL_RESUME_38195272963.md",
-    "38196996329": "this operational-resume cycle: fixed the harness root-detection defect, fixed the claim-bearing live-evidence overwrite (freshness guard + run-id attribution), quarantined the mislabelled cache-replay LIVE_* set with a manifest, added a determinism probe and an 11-test scope/freshness regression suite (45 -> 56 offline tests, all green), regenerated cold-cache live evidence for this run (18+7 real network requests, A1-A9 all pass) and re-verified acceptance (1)-(9)"
+    "38196996329": "operational-resume cycle: fixed the harness root-detection defect, fixed the claim-bearing live-evidence overwrite (freshness guard + run-id attribution), quarantined the mislabelled cache-replay LIVE_* set, added a determinism probe and an 11-test scope/freshness regression suite (45 -> 56 offline tests), regenerated cold-cache live evidence, re-verified acceptance (1)-(9)",
+    "38200364291": "OPERATIONALLY FAILED. Produced valid work that is preserved (verify_determinism.py absolute --out fix; TestDeterminismProbeRelativeOut regression; cold-cache LIVE_* evidence; verification/38200364291a 3/3 PASS) but then overwrote ocl_adapter/{__init__,bundle,cli,client,expansion}.py with a stale second-generation-A copy and added six files that exist on no other ref; every claim-bearing artifact of that run predates the overwrite, so the broken package reached the snapshot unnoticed, the state record was never advanced and no report was written. Full diagnosis: reports/frontier/frontier-query-retrieval/OPERATIONAL_RESUME_38200364291.md",
+    "38204133740": "this operational-resume cycle: restored the five core modules from the accepted base lab/frontier/frontier-query-retrieval, quarantined the six generation-A files with a MANIFEST, fixed the never-executed new regression test, archived the run-38200364291 LIVE_* set, regenerated cold-cache live evidence for this run, and re-verified acceptance (1)-(9) (57 offline tests, 3x 3/3 harness stamps (a, b and _final, the last after the final write), both determinism probes true, fresh live 300+175 candidates at 4.0 rps)"
   },
   "operational_resume": {
-    "from_snapshot": 38195272963,
-    "diagnosis": "Two preceding cycles died on the Frontier team-scope gate (exit 4) for writing outside frontier/frontier-query-retrieval/: run 38192249068 wrote root-level bundle*.json from the documented replay command, run 38193491547 wrote a product/** copy. Run 38195272963 quarantined both and added verify_scope_safe.sh but ended before advancing state or reporting, and its harness guessed the repository root by walking parents for 'frontier/frontier-query-retrieval', which also matches 'results/frontier/frontier-query-retrieval' and crashed the contract-import check. Separately, the top-level LIVE_*.json at resume was a zero-network cache replay still labelled run_id 38190325825 whose candidate set differed from that run's true live evidence.",
-    "failure_class": "workflow scope-escape x2 + incomplete prior resume + stale-cache evidence re-labelling; no adapter defect",
+    "from_snapshot": 38200364291,
+    "diagnosis": "Snapshot 38200364291 shipped an internally inconsistent tree. Diffing its team namespace against the accepted base (lab/frontier/frontier-query-retrieval, byte-identical to snapshot 38196996329 for that namespace) showed 13 changed files: 2 legitimate (verify_determinism.py absolute --out fix, +34-line regression test) and 11 from a stale 'generation-A' adapter copy that overwrote ocl_adapter/__init__.py, bundle.py, cli.py, client.py and expansion.py and added ocl_adapter/{deduplication,retrieval}.py, contracts/INTEGRATION_CONTRACT.md, fixtures/{generate_fixtures.py,minimal_fixture.json} and tests/test_adapter.py (files present on no other ref in the repository). The overwrite removed AdapterConfig/build_candidate_bundle/bundle_summary/build_variants/to_product_bundle/validate_against_product/validate_candidate_bundle from the public API, left pipeline and fixtures unimportable, dropped OCLClient, and replaced the CLI with one that rejects --preset fixtures. Measured effect: only 15 of 57 unit tests could be discovered (3 import errors) and the contract-import bridge was dead. It went unnoticed because every claim-bearing artifact of that run was produced BEFORE the overwrite (verification 03:38:20Z, live evidence 03:40:48Z, determinism probe 03:43:02Z) and nothing re-ran afterwards; the state record was never advanced and no report was written. The run's own determinism probe also reported deterministic=false, but that was the probe's relative --out defect (n_candidates=null, both children exit 0), which the same run correctly diagnosed and fixed.",
+    "failure_class": "post-evidence snapshot payload corruption (stale parallel adapter copy committed over the accepted modules) + never-advanced state + never-written report; no defect in the accepted adapter itself",
     "remediation": [
-      "verify_scope_safe.sh now receives the repository root explicitly from the shell instead of guessing it; verification/38196996329b/VERIFICATION.json shows 3/3 PASS (56 unit tests, deterministic replay, contract-import bridge)",
-      "run_live_evidence.py takes its run id only from LEX_FRONTIER_RUN_ID (fallback unattributed-<epoch>) and fails new check A0_fresh_live_network when a scenario performs zero network calls unless LEX_ALLOW_CACHE_REPLAY=1; evidence now records cache_replayed and cache_dir; functional proof: warm-cache re-execution exits 1 with A0=false, run_id=unattributed-*",
-      "INTEGRATION_CONTRACT.json revision 1.0.1: every documented --out/--product-bundle targets results/frontier/frontier-query-retrieval/scratch/ or /tmp; new scope_safety and evidence_freshness sections; ocl_adapter/cli.py examples and --out help updated the same way",
-      "new tests/frontier/frontier-query-retrieval/test_ocl_adapter_scope_safety.py (11 tests) pins all of the above, including a negative control that the legacy --out bundle.json shape is rejected, and executes the documented replay command offline",
-      "new frontier/frontier-query-retrieval/verify_determinism.py: warm-cache probe (2x300 candidates, byte-identical candidate content) and cross-process fixture probe (identical) prove the adapter is deterministic given identical responses, so the differing quarantined candidate set is stale cache, not non-determinism",
-      "mislabelled LIVE_* set quarantined to results/frontier/frontier-query-retrieval/archive/pre_resume_38196996329_overwritten_live_evidence/ with MANIFEST.md; claim-bearing LIVE_* regenerated for this run from a cold cache by the final code (18+7 real network requests, 0 cache hits, A0=true)",
-      "reports/frontier/frontier-query-retrieval/OPERATIONAL_RESUME_38195272963.md (reconstructed, referenced by the scope_recovery README) and OPERATIONAL_RESUME_38196996329.md written"
+      "restored ocl_adapter/{__init__,bundle,cli,client,expansion}.py from the accepted base lab/frontier/frontier-query-retrieval (byte-identical to snapshot 38196996329)",
+      "quarantined the six generation-A files (moved, not deleted) to results/frontier/frontier-query-retrieval/archive/run_38200364291_stale_generation_a/ with MANIFEST.md recording file-by-file effects and the cross-ref provenance check",
+      "preserved run-38200364291's legitimate work in place: verify_determinism.py absolute --out resolution and the TestDeterminismProbeRelativeOut regression",
+      "fixed that new regression test, which had never been executed in its own run: it parsed the probe's stdout summary (probes values are booleans) instead of the authoritative --out report and raised TypeError; every original assertion was kept, plus a stdout/report cross-check",
+      "archived the run-38200364291 LIVE_* set to results/frontier/frontier-query-retrieval/archive/run_38200364291_final/ with MANIFEST.md, then regenerated claim-bearing LIVE_* for this run from a cold cache (cache dir removed first) with LEX_FRONTIER_RUN_ID=38204133740",
+      "re-ran the scope-safe harness after all writes (stamps 38204133740a and 38204133740b, both 3/3 PASS) and the determinism probe (both probes true, exit 0)",
+      "documented in verify_determinism.py that --out resolves against the current working directory; a relative path briefly misplaced that probe's output at frontier/results/** during this cycle and was caught by a manual scope scan before the workflow's Enforce team scope step",
+      "reports/frontier/frontier-query-retrieval/OPERATIONAL_RESUME_38200364291.md written"
     ],
     "negative_result": [
-      "Stale-cache 'live' evidence can look legitimate (valid run id, full check set) while carrying responses from an earlier network session and a different candidate set; detection now requires a freshness check, not a run-id check",
-      "verify_scope_safe.sh as first shipped was itself broken (repo-root false positive on results/frontier/frontier-query-retrieval); the failing log is preserved in results/frontier/frontier-query-retrieval/verification/38196996329/contract_import.txt",
-      "An offline bundle built with non-fixture parameters against the fixture cache degrades to an empty provenance.degraded=true bundle instead of fabricating results (carried forward from 38190325825)"
+      "A snapshot can be internally inconsistent: green verification and live-evidence artifacts whose timestamps precede the code that was actually committed. Freshness must be checked against the shipped tree, not against the run id alone",
+      "Verification must run after the LAST write. Run 38200364291 verified at 03:38Z and corrupted the tree afterwards; this cycle therefore stamped 38204133740b after the restore, the live run and the determinism probe",
+      "A regression test that is written but never executed is not evidence: run 38200364291's new test failed on first execution in this cycle",
+      "Relative --out paths remain the recurring scope hazard in this team (38192249068, 38200364291, briefly 38204133740) - now pinned by tests and by docstrings"
     ],
     "preserved": [
-      "frontier/frontier-query-retrieval/ocl_adapter/ (stdlib-only adapter, contract schema 1.0-candidate unchanged this cycle)",
-      "frontier/frontier-query-retrieval/INTEGRATION_CONTRACT.json (contract_version 1.0, revision 1.0.1 operational)",
-      "tests/frontier/frontier-query-retrieval/ (now 56 stdlib unittest tests, offline)",
+      "frontier/frontier-query-retrieval/ocl_adapter/ (accepted stdlib adapter, contract schema 1.0-candidate unchanged)",
+      "frontier/frontier-query-retrieval/INTEGRATION_CONTRACT.json (contract_version 1.0, revision 1.0.1)",
+      "frontier/frontier-query-retrieval/verify_determinism.py (run-38200364291 fix, plus this cycle's cwd docstring)",
+      "tests/frontier/frontier-query-retrieval/ (57 stdlib unittest tests, offline)",
       "results/frontier/frontier-query-retrieval/fixtures/ (19 envelopes + FIXTURE_META.json; NOT re-recorded, evaluation stays frozen)",
-      "results/frontier/frontier-query-retrieval/archive/run_38172061004/ and archive/run_38190325825/ (claim-bearing history, untouched)",
-      "results/frontier/frontier-query-retrieval/archive/scope_recovery/ (out-of-scope artifacts of the failed runs, untouched)",
-      "results/frontier/frontier-query-retrieval/archive/run_38196996329_pre_freshness_guard/ (this run's first live output, superseded within the same run id)",
+      "results/frontier/frontier-query-retrieval/archive/run_38172061004/, archive/run_38190325825/, archive/run_38196996329_final/, archive/pre_resume_38196996329_overwritten_live_evidence/, archive/scope_recovery/ (claim-bearing history, untouched)",
+      "results/frontier/frontier-query-retrieval/archive/run_38200364291_final/ (this snapshot's own cold-cache LIVE_* set, archived not overwritten)",
+      "results/frontier/frontier-query-retrieval/archive/run_38200364291_stale_generation_a/ (quarantined generation-A copy)",
       "frontier/query_retrieval/ (historical second adapter from run 38185780342; not on the critical path, untouched)"
     ]
   },
   "acceptance": {
-    "1_adapter_cli_live_and_cached": "PASS - python3 -m ocl_adapter runs live/offline/refresh modes; --preset fixtures replays offline; exit codes 0/2/3/4 documented and exercised",
-    "2_normalized_bundle_ge_100": "PASS - live primary 300 candidates (18 network requests, 32.5s), secondary 175 (7 requests, 20.5s), both at 4.0 rps <= charter 5.0; every candidate carries decision_id, canonical_decision_id, canonical_url, source_url, citation, language, decision_date, court/court_name, title/regeste/snippet, rank/score and provenance",
-    "3_deterministic_dedupe": "PASS - canonical_identity_v1 is order-independent; live bundles satisfy n_candidates == unique decision_ids; determinism probe shows byte-identical candidate content across repeated and cross-process runs on identical responses",
-    "4_lazy_full_structure": "PASS - hydrate_top/hydrate_needs_detail/hydrate_ids fetch full decision + /structure on demand; live primary hydrated 3 with full_text and structure",
+    "1_adapter_cli_live_and_cached": "PASS - python3 -m ocl_adapter runs live/offline/refresh modes; --preset fixtures replays offline; exit codes 0/2/3/4 documented and exercised; both live scenarios and two fixture replays executed for this run",
+    "2_normalized_bundle_ge_100": "PASS - live primary 300 candidates (18 network requests, 103.3s), secondary 175 (7 requests, 66.5s), both at 4.0 rps <= charter 5.0, 0 cache hits; every candidate carries decision_id, canonical_decision_id, canonical_url, source_url, citation, language, decision_date, court/court_name, title/regeste/snippet, rank/score and provenance",
+    "3_deterministic_dedupe": "PASS - canonical_identity_v1 is order-independent; live bundles satisfy n_candidates == unique decision_ids; determinism probe for this run: warm-cache 2x300 byte-identical and cross-process 2x105 identical, deterministic=true, exit 0",
+    "4_lazy_full_structure": "PASS - hydrate_top/hydrate_needs_detail/hydrate_ids fetch full decision + /structure on demand; live primary hydrated 3 with full text and structure, secondary hydrated 1",
     "5_citation_and_leading_expansion": "PASS - live primary added 28 incoming + 7 outgoing citation candidates from 4 seeds and 15 leading cases, all with channel provenance and bounded limits",
-    "6_trilingual_without_fabricated_translations": "PASS - primary spans de 165 / fr 50 / it 50, secondary de 45 / fr 81 / it 49; original query + accepted-lexicon expansion + server-side de/fr/it filters; tests assert no fabricated translations",
-    "7_offline_fixtures": "PASS - 19 committed envelopes; two CLI replays and two cross-process replays produce identical decision_id sequences and provenance strings",
-    "8_tests_pagination_cache_dedupe_provenance_degradation": "PASS - 56 stdlib unittest tests (0.9s, offline, no third-party imports): pagination, cache hit/miss/TTL, order-independent dedupe, per-candidate provenance, transport outage/budget/404 degradation, plus 11 new scope-safety and evidence-freshness regressions",
+    "6_trilingual_without_fabricated_translations": "PASS - primary de 165 / fr 50 / it 50 (+35 unlabelled), secondary de 45 / fr 81 / it 49; original query + accepted-lexicon expansion + server-side de/fr/it language filters; tests assert no fabricated translations",
+    "7_offline_fixtures": "PASS - 19 committed envelopes; two CLI replays and two cross-process replays produce 105 candidates with identical decision_id and provenance sequences",
+    "8_tests_pagination_cache_dedupe_provenance_degradation": "PASS - 57 stdlib unittest tests (1.5s, offline, no third-party imports): pagination, cache hit/miss/TTL, order-independent dedupe, per-candidate provenance, transport outage/budget/404 degradation, plus 12 scope-safety and evidence-freshness regressions",
     "9_integration_contract": "PASS - INTEGRATION_CONTRACT.json (contract_version 1.0, revision 1.0.1) documents sys-path import, CLI subprocess and offline replay with scope-safe output paths, public API (18 symbols), frozen candidate/product schemas, rate limits, scope_safety and evidence_freshness; contract tests verify documented files/paths/symbols and execute the documented replay command"
   },
   "evidence": {
     "tests_command": "python3 -m unittest discover -s tests/frontier/frontier-query-retrieval -p 'test_*.py'",
-    "tests_result": "56 tests OK (0.9s), offline, network_required=false, stdlib only",
-    "harness_command": "LEX_VERIFY_RUN_ID=38196996329b bash frontier/frontier-query-retrieval/verify_scope_safe.sh",
-    "harness_result": "3/3 PASS (unit tests, deterministic fixture replay, contract-import bridge) -> results/frontier/frontier-query-retrieval/verification/38196996329b/VERIFICATION.json",
+    "tests_result": "57 tests OK (1.5s), offline, network_required=false, stdlib only",
+    "harness_command": "LEX_VERIFY_RUN_ID=38204133740b bash frontier/frontier-query-retrieval/verify_scope_safe.sh",
+    "harness_result": "3/3 PASS (unit tests, deterministic fixture replay, contract-import bridge) -> results/frontier/frontier-query-retrieval/verification/38204133740_final/VERIFICATION.json; identical 3/3 in stamps 38204133740a and 38204133740b (the final stamp was executed after the last write of this cycle)",
     "fixture_replay_command": "python3 -m ocl_adapter 'Kündigung Mietvertrag Mietrecht' --preset fixtures --out results/frontier/frontier-query-retrieval/scratch/replay.json --validate",
-    "fixture_replay_result": "105 candidates, 19/19 cache hits, 0 network calls, validation_errors=[], identical decision_id+provenance sequence across re-runs and across processes",
+    "fixture_replay_result": "105 candidates, 0 network calls, validation_errors=[], identical decision_id+provenance sequence across re-runs and across processes",
     "determinism_probe": {
       "script": "frontier/frontier-query-retrieval/verify_determinism.py",
-      "result": "results/frontier/frontier-query-retrieval/verification/38196996329/determinism.json",
+      "result": "results/frontier/frontier-query-retrieval/verification/38204133740/determinism.json",
       "warm_cache_probe": "2 passes on one shared cache, 0 network calls both, 2x300 candidates, byte-identical candidate content",
       "cross_process_probe": "2 separate interpreters replaying fixtures, identical candidate content (105)",
-      "conclusion": "adapter is deterministic given identical responses; the candidate-set difference in the quarantined LIVE_* set is stale cached responses, not non-determinism"
+      "conclusion": "deterministic=true, exit 0 (the run-38200364291 probe output that showed deterministic=false was the probe's own relative --out defect, now fixed and regression-tested)"
     },
     "live_evidence": {
-      "run_id": "38196996329",
+      "run_id": "38204133740",
       "path": "results/frontier/frontier-query-retrieval/LIVE_EVIDENCE.json",
       "base_url": "https://mcp.opencaselaw.ch/api",
       "cache_dir": "/tmp/opencode/lex_ocl_live_cache",
       "cold_cache": true,
       "cache_replay_allowed": false,
-      "primary": {"query": "Kündigung Mietvertrag Mietrecht", "candidates": 300, "requests": 18, "network_calls": 18, "cache_hits": 0, "rps": 4.0, "elapsed_seconds": 32.5, "languages": {"de": 165, "fr": 50, "it": 50}, "channels": {"search": 171, "search.language_filter": 145, "citation.incoming": 28, "citation.outgoing": 7, "leading_case": 15}, "hydrated": 3, "all_checks_pass": true},
-      "secondary": {"query": "responsabilité contractuelle dommages indemnisation", "candidates": 175, "requests": 7, "network_calls": 7, "cache_hits": 0, "rps": 4.0, "elapsed_seconds": 20.5, "languages": {"de": 45, "fr": 81, "it": 49}, "channels": {"search": 81, "search.language_filter": 140}, "all_checks_pass": true},
-      "checks": "A0_fresh_live_network + A1..A9 all true for both scenarios",
+      "primary": {
+        "query": "Kündigung Mietvertrag Mietrecht",
+        "candidates": 300,
+        "requests": 18,
+        "network_calls": 18,
+        "cache_hits": 0,
+        "rps": 4.0,
+        "elapsed_seconds": 103.3,
+        "languages": {
+          "de": 165,
+          "fr": 50,
+          "it": 50,
+          "?": 35
+        },
+        "channels": {
+          "search": 170,
+          "search.language_filter": 145,
+          "citation.incoming": 28,
+          "citation.outgoing": 7,
+          "leading_case": 15
+        },
+        "hydrated": 3,
+        "all_checks_pass": true
+      },
+      "secondary": {
+        "query": "responsabilité contractuelle dommages indemnisation",
+        "candidates": 175,
+        "requests": 7,
+        "network_calls": 7,
+        "cache_hits": 0,
+        "rps": 4.0,
+        "elapsed_seconds": 66.5,
+        "languages": {
+          "de": 45,
+          "fr": 81,
+          "it": 49
+        },
+        "channels": {
+          "search": 81,
+          "search.language_filter": 140
+        },
+        "hydrated": 1,
+        "all_checks_pass": true
+      },
+      "checks": "A0_fresh_live_network + A1..A9 + rate_limit_respected all true for both scenarios",
       "rate_limit_respected": true,
       "charter_max_rps": 5.0,
       "degraded": false,
       "validation_errors": []
     },
-    "freshness_guard_proof": "one-off driver (temp RESULTS, nothing written into the repo): warm-cache re-execution of run_live_evidence.py exits 1 with A0_fresh_live_network=false, cache_replayed=true, run_id=unattributed-<epoch>",
-    "product_bridge": "to_product_bundle(replay_fixtures()) -> 105 decisions, all REQUIRED_DECISION keys present, validate_against_product() == [] (executed in verification/38196996329b/contract_import.txt)"
+    "product_bridge": "to_product_bundle(replay_fixtures()) -> 105 decisions, all REQUIRED_DECISION keys present, validate_against_product() == [] (execution log: results/frontier/frontier-query-retrieval/verification/38204133740b/contract_import.txt)"
   },
   "handoff": {
-    "to": ["product", "evaluation"],
-    "product_action": "sys.path.insert(0, <repo>/frontier/frontier-query-retrieval); from ocl_adapter import AdapterConfig, build_candidate_bundle, to_product_bundle; bundle = build_candidate_bundle(query, config=AdapterConfig(mode='live', target=150), hydrate_top=2); product_bundle = to_product_bundle(bundle); then fill answer/clusters/relations/x/y/counter_status upstream. Do not re-implement dedupe, caching, provenance or expansion. When vendoring or running the CLI, keep --out/--product-bundle inside your lane namespace (INTEGRATION_CONTRACT.json -> scope_safety).",
-    "evaluation_action": "Use results/frontier/frontier-query-retrieval/fixtures/ + LIVE_EVIDENCE.json (run 38196996329, cold cache) as frozen retrieval inputs; replay via ocl_adapter.fixtures.replay_fixtures() for deterministic benchmarks; do not re-record fixtures while benchmarks are frozen.",
+    "to": [
+      "product",
+      "evaluation"
+    ],
+    "product_action": "sys.path.insert(0, <repo>/frontier/frontier-query-retrieval); from ocl_adapter import AdapterConfig, build_candidate_bundle, to_product_bundle; bundle = build_candidate_bundle(query, config=AdapterConfig(mode='live', target=150), hydrate_top=2); product_bundle = to_product_bundle(bundle); then fill answer/clusters/relations/x/y/counter_status upstream. Do not re-implement dedupe, caching, provenance or expansion. When vendoring or running the CLI, keep --out/--product-bundle inside your lane namespace (INTEGRATION_CONTRACT.json -> scope_safety). NOTE: snapshot 38200364291 was unusable; integrate from this snapshot (38204133740) or from lab/frontier/frontier-query-retrieval.",
+    "evaluation_action": "Use results/frontier/frontier-query-retrieval/fixtures/ + LIVE_EVIDENCE.json (run 38204133740, cold cache) as frozen retrieval inputs; replay via ocl_adapter.fixtures.replay_fixtures() for deterministic benchmarks; do not re-record fixtures while benchmarks are frozen. The pre-existing run-38200364291 LIVE_* set is archived at results/frontier/frontier-query-retrieval/archive/run_38200364291_final/.",
     "artifacts": [
       "frontier/frontier-query-retrieval/ocl_adapter/",
       "frontier/frontier-query-retrieval/INTEGRATION_CONTRACT.json",
@@ -109,10 +158,17 @@
       "results/frontier/frontier-query-retrieval/LIVE_EVIDENCE.json",
       "results/frontier/frontier-query-retrieval/LIVE_BUNDLE_*.json",
       "results/frontier/frontier-query-retrieval/LIVE_PRODUCT_BUNDLE_*.json",
-      "results/frontier/frontier-query-retrieval/verification/",
+      "results/frontier/frontier-query-retrieval/verification/38204133740a/",
+      "results/frontier/frontier-query-retrieval/verification/38204133740a/",
+      "results/frontier/frontier-query-retrieval/verification/38204133740b/",
+      "results/frontier/frontier-query-retrieval/verification/38204133740_final/",
+      "results/frontier/frontier-query-retrieval/verification/38204133740/determinism.json",
+      "results/frontier/frontier-query-retrieval/archive/run_38200364291_final/",
+      "results/frontier/frontier-query-retrieval/archive/run_38200364291_stale_generation_a/",
+      "reports/frontier/frontier-query-retrieval/OPERATIONAL_RESUME_38200364291.md",
       "reports/frontier/frontier-query-retrieval/OPERATIONAL_RESUME_38196996329.md",
       "reports/frontier/frontier-query-retrieval/OPERATIONAL_RESUME_38195272963.md"
     ]
   },
-  "stop_promote_rule": "PROMOTE. Acceptance (1)-(9) re-verified this cycle by direct execution (56/56 offline tests, 3/3 scope-safe harness checks, deterministic replay + cross-process determinism probe, machine-readable contract import, fresh cold-cache live evidence for two trilingual scenarios). The operational failure modes that killed runs 38192249068/38193491547/38195272963 now have tooling and regression-test prevention. No concrete adapter defect remains; continue_recommended=false. Continue only if product/evaluation integration surfaces a concrete adapter defect under this same charter."
+  "stop_promote_rule": "PROMOTE. Acceptance (1)-(9) re-verified this cycle by direct execution after the final write (57/57 offline tests, two 3/3 scope-safe harness stamps, deterministic fixture replay + both determinism probes true, machine-readable contract import, fresh cold-cache live evidence for two trilingual scenarios at 4.0 rps). The operational failure of snapshot 38200364291 (stale adapter copy committed over the accepted modules after all evidence was produced) is diagnosed, reverted and quarantine-preserved; the accepted adapter itself has no defect. continue_recommended=false. Continue only if product/evaluation integration surfaces a concrete adapter defect under this same charter."
 }
