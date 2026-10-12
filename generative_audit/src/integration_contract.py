@@ -17,10 +17,10 @@ from __future__ import annotations
 
 from typing import Dict, List, Any, Optional
 
-from .source_packing import DecisionBundle
-from .provider import Provider, ProviderResult
-from .adversarial import AdversarialFinding, AdversarialPass
-from .models import AnswerPackage, DecisionStatus, StatusLabel
+from source_packing import DecisionBundle
+from provider import Provider, ProviderResult
+from adversarial import AdversarialFinding, AdversarialPass
+from models import AnswerPackage, DecisionStatus, StatusLabel
 
 
 # ---- Integration contract signature ----

@@ -23,7 +23,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional, Set
 
-from .source_packing import DecisionBundle, Decision, CitationValidator
+from source_packing import DecisionBundle, Decision, CitationValidator
 
 
 @dataclass

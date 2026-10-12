@@ -19,7 +19,7 @@ import sys
 import os
 from typing import Any, Dict, List, Optional, Tuple
 
-from .source_packing import CitationValidator, DecisionBundle
+from source_packing import CitationValidator, DecisionBundle
 
 
 class ProviderResult:

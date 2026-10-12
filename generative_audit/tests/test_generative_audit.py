@@ -21,10 +21,10 @@ from typing import List
 # Add the source to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from generative_audit.src.provider import Provider, ProviderResult
-from generative_audit.src.source_packing import DecisionBundle, CitationValidator, Decision
-from generative_audit.src.adversarial import AdversarialPass, AdversarialFinding
-from generative_audit.src.models import AnswerPackage, DecisionStatus, StatusLabel, uncertainty_from_evidence
+from provider import Provider, ProviderResult
+from source_packing import DecisionBundle, CitationValidator, Decision
+from adversarial import AdversarialPass, AdversarialFinding
+from models import AnswerPackage, DecisionStatus, StatusLabel, uncertainty_from_evidence
 
 
 def test_hallucinated_citation_rejection():
@@ -249,7 +249,7 @@ def test_structured_statuses_merging():
     ]
 
     # Create answer result with DEC-001 cited
-    from generative_audit.src.provider import ProviderResult
+    from provider import ProviderResult
     result = ProviderResult(
         answer="The rule is X.",
         cited_decision_ids=["DEC-001"],
@@ -257,7 +257,7 @@ def test_structured_statuses_merging():
     )
 
     # Package using the integration contract
-    from generative_audit.src.integration_contract import package_answer
+    from integration_contract import package_answer
     package = package_answer(result, findings, bundle)
 
     # Check that all three decision IDs have statuses
@@ -325,7 +325,7 @@ def test_unsupported_status_downgrade():
 
     findings = []  # No adversarial findings
 
-    from generative_audit.src.integration_contract import package_answer
+    from integration_contract import package_answer
     package = package_answer(result, findings, bundle)
 
     # DEC-001 is cited → supporting
@@ -350,7 +350,7 @@ def test_integration_contract():
     print(">>> test_integration_contract")
 
     # Verify the contract is importable and has the expected functions
-    from generative_audit.src.integration_contract import (
+    from integration_contract import (
         package_answer, ProviderContract, AdversarialPassContract,
         AnswerPackageContract
     )
@@ -405,7 +405,7 @@ def test_end_to_end_cached_example():
         bundle_data = json.load(f)
 
     # Reconstruct bundle
-    from generative_audit.src.source_packing import DecisionBundle
+    from source_packing import DecisionBundle
     bundle = DecisionBundle(
         query=bundle_data["query"],
         decision_ids=bundle_data["decision_ids"],
@@ -434,7 +434,7 @@ def test_end_to_end_cached_example():
     findings = adversarial_pass.run()
 
     # Package the answer
-    from generative_audit.src.integration_contract import package_answer
+    from integration_contract import package_answer
     package = package_answer(result, findings, bundle)
 
     # Verify the packaged result is complete
