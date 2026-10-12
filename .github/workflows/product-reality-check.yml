@@ -50,6 +50,7 @@ jobs:
           import os
           import sys
           import time
+          import unicodedata
 
           sys.path.insert(0, "product")
           sys.path.insert(0, ".")
@@ -158,4 +159,63 @@ jobs:
           assert ga.get("provider_error") in (None, ""), report
           assert adv.get("method") == "independent_llm_adversarial_v2", report
           assert adv.get("error") in (None, ""), report
+
+          # Product truth gates: structural green is not enough. These encode
+          # independently known legal propositions/authorities for the four
+          # frozen smoke questions so a fluent but materially wrong answer fails.
+          def norm(value):
+              value = unicodedata.normalize("NFKD", str(value or ""))
+              value = "".join(ch for ch in value if not unicodedata.combining(ch))
+              return " ".join(value.casefold().split())
+
+          prose = norm(answer.get("prose"))
+          cited_ids = set(answer.get("cited_decision_ids") or [])
+
+          if slug == "rent-default":
+              assert "30" in prose, report
+              assert (
+                  "fin d'un mois" in prose
+                  or "fin d’un mois" in prose
+                  or "ende eines monats" in prose
+              ), "missing Art. 257d(2) residential termination notice period"
+              assert (
+                  "abus" in prose or "bonne foi" in prose or "rechtsmissbrauch" in prose
+              ), "missing jurisprudential limitation / good-faith branch"
+
+          elif slug == "corporate-criminal-liability":
+              assert "subsidi" in prose, "missing Art. 102(1) subsidiary branch"
+              assert (
+                  "responsabilite primaire" in prose or "originar" in prose
+              ), "missing Art. 102(2) primary/original liability"
+              assert (
+                  "independant" in prose or "unabhangig" in prose
+              ), "missing independence from natural-person liability"
+              assert "ne cree pas une responsabilite primaire" not in prose, (
+                  "answer reverses the Federal Supreme Court's Art. 102(2) classification"
+              )
+              assert cited_ids & {"bge_BGE_142_IV_333", "bger_6B_124_2016"}, (
+                  "answer must use direct Federal Supreme Court Art. 102(2) authority"
+              )
+
+          elif slug == "business-judgment-rule":
+              assert "information" in prose, "missing adequate-information criterion"
+              assert (
+                  "conflit" in prose or "interessenkonflikt" in prose
+              ), "missing conflict-of-interest criterion"
+              assert (
+                  "retenue" in prose or "zuruckhaltung" in prose or "deference" in prose
+                  or "abstient" in prose
+              ), "missing judicial-restraint proposition"
+              assert cited_ids & {
+                  "bger_4A_219_2015", "bger_4A_259_2016", "bger_4A_626_2013",
+                  "bger_4A_603_2014", "bger_4A_62_2024",
+              }, "answer must cite direct Federal Supreme Court BJR authority"
+
+          elif slug == "petty-theft-dismissal":
+              direct = {"bger_4A_228_2015", "bger_4A_177_2017"}
+              assert ids & direct, "retrieval missed direct Federal Supreme Court petty-theft authority"
+              assert cited_ids & direct, "answer ignored direct Federal Supreme Court petty-theft authority"
+              assert (
+                  "faible valeur" in prose or "geringfug" in prose or "bagatell" in prose
+              ), "answer does not address the low-value fact pattern"
           PY
