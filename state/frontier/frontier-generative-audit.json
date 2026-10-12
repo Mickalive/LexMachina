@@ -4,8 +4,31 @@
   "evidence_tier": "ACCEPTED",
   "cycle_status": "COMPLETE",
   "continue_recommended": false,
-  "accepted_run_id": "38196248501",
+  "accepted_run_id": "38196838573",
   "run_history": [
+    {
+      "run_id": "38196838573",
+      "charter_version": 2,
+      "status": "COMPLETE",
+      "notes": "Fresh execution of charter v2 (GitHub run 38196838573). All acceptance criteria verified: (1) provider interface with free OpenCode CLI + local OpenAI-compatible + deterministic fixture backends, zero owner-paid APIs; (2) hallucinated citation rejection and redirection from prose; (3) logically independent adversarial pass finds contradictory/limiting/distinguishing/exception authorities without restating the first answer; (4) structured statuses supporting/limiting/contrary_or_exception/unclassified with uncertainty and evidence references; (5) post-generation citation/source validation (strict local bundle validation, OpenCaseLaw attestation opt-in); (6) end-to-end cached example with answer + adversarial findings; (7) tests covering invented citation rejection, unsupported-status downgrade, provider failure fallback and deterministic parsing; (8) narrow integration contract for product lane published and validated against accepted core product validator. All 39 tests pass (29 v2 + 10 legacy). continue_recommended=false since no further cycle under the SAME charter is specifically justified.",
+      "acceptance_summary": {
+        "1_provider_interface": "PASS - CLI free-model pool (opencode/nemotron-3-ultra-free) + local OpenAI-compatible and fixture backends; fallback chain verified; zero owner-provisioned API cost",
+        "2_citation_constraint": "PASS - invented IDs rejected AND redacted from prose; all cited IDs constrained to bundle decision_ids",
+        "3_independent_adversarial_pass": "PASS - separate challenge-only model call; unknown finding IDs rejected; format-retry logic verified",
+        "4_structured_statuses": "PASS - 4 statuses with uncertainty+evidence; merge priority (contrary>limiting>supporting); cited-but-limiting stays visible as counter-authority",
+        "5_post_generation_validation": "PASS - strict-local always on; LIVE OpenCaseLaw attestation sound verdict semantics; error/empty/mismatch/non-2xx all unverified",
+        "6_end_to_end_cached_example": "PASS - fixture cached example round-trips; live attested examples produced",
+        "7_test_coverage": "PASS - 29/29 canonical (offline and live) + 10/10 legacy accepted suite untouched; 39/39 total tests pass",
+        "8_integration_contract": "PASS - run_generative_audit one-call seam (contract 2.2) validated against accepted-core validate_bundle(); README.md documents product copy/adapt contract (2.2)"
+      },
+      "repair_closures": {
+        "fix_1_live_ocl_host": "CLOSED - live probe + attested e2e runs across multiple runs; stale no-egress negative corrected everywhere",
+        "fix_2_attestation_verdict_semantics": "CLOSED - error/empty/mismatched/non-2xx unverified; regression-tested against the exact audit-injected body across runs",
+        "fix_3_evidence_source_checking": "CLOSED - verbatim quote source-check before counter_evidence; downgrade to uncertainty >= 0.95, finding kept visible; provenance recorded across runs",
+        "fix_4_legacy_tree_provenance": "CLOSED - src+tests byte-identical to accepted base; PROVENANCE.md honest correction; adversarial docstring matches behaviour across runs"
+      },
+      "artifacts_status": "All charter v2 artifacts verified runnable and byte-stable. State confirmed: charter_version=2 retained, continue_recommended=false. All 8 acceptance criteria PASS."
+    },
     {
       "run_id": "38188919013",
       "charter_version": 2,
@@ -104,8 +127,8 @@
     }
   ],
   "accepted_commit": "operational-resume-38196248501",
-  "cycle_report": "reports/frontier/frontier-generative-audit/CYCLE_38196248501.md",
-  "reset_reason": "Fresh execution of charter v2 (GitHub run 38196248501). All acceptance criteria verified (1-8 PASS). State consolidated: charter_version=2 retained, continue_recommended=false since no further cycle under the SAME charter is specifically justified. All 39 tests pass (29 v2 + 10 legacy).",
+  "cycle_report": "reports/frontier/frontier-generative-audit/CYCLE_38196838573.md",
+  "reset_reason": "Fresh execution of charter v2 (GitHub run 38196838573). All acceptance criteria verified (1-8 PASS). State consolidated: charter_version=2 retained, continue_recommended=false since no further cycle under the SAME charter is specifically justified. All 39 tests pass (29 v2 + 10 legacy).",
   "acceptance_summary": {
     "1_provider_interface": "PASS - CLI free-model pool live-smoked (opencode/nemotron-3-ultra-free), local OpenAI-compatible and fixture backends; fallback chain verified",
     "2_citation_constraint": "PASS - invented IDs rejected AND redacted; every artifact this cycle has zero unknown/redacted citations",
@@ -148,12 +171,15 @@
     "deterministic_finisher": "frontier/frontier-generative-audit/verify_cycle.py",
     "acceptance_matrix_latest": "results/frontier/frontier-generative-audit/acceptance_matrix.json",
     "cached_example_fixture_38193475195": "results/frontier/frontier-generative-audit/cached_example_fixture_run38193475195.json",
+    "cached_example_fixture_38196838573": "results/frontier/frontier-generative-audit/cached_example_fixture_run38196838573.json",
+    "acceptance_matrix_38196838573": "results/frontier/frontier-generative-audit/acceptance_matrix_run38196838573.json",
     "cached_example_ocl_attested_38193475195": "results/frontier/frontier-generative-audit/cached_example_ocl_attested_run38193475195.json",
     "cached_example_ocl_attested_mimo_38193475195": "results/frontier/frontier-generative-audit/cached_example_ocl_attested_mimo_run38193475195.json",
     "cached_example_ocl_attested_nemotron_38193475195": "results/frontier/frontier-generative-audit/cached_example_ocl_attested_nemotron_run38193475195.json",
     "ocl_live_probe_38193475195": "results/frontier/frontier-generative-audit/ocl_live_probe_run38193475195.json",
     "run_38193076995": "OPERATIONAL FAILURE diagnosed (agent session died before evidence publication); all committed work preserved and re-verified green in run 38193475195",
     "run_38193475195": "state advanced: charter_version=2 retained, continue_recommended=false; acceptance (1)-(8) PASS with live re-verification; deterministic finisher shipped",
-    "run_38196248501": "state advanced: charter_version=2 retained, continue_recommended=false; acceptance (1)-(8) PASS; all 39 tests pass; deterministic finisher confirmed"
+    "run_38196248501": "state advanced: charter_version=2 retained, continue_recommended=false; acceptance (1)-(8) PASS; all 39 tests pass; deterministic finisher confirmed",
+      "run_38196838573": "state advanced: charter_version=2 retained, continue_recommended=false; acceptance (1)-(8) PASS; all 39 tests pass (29 v2 + 10 legacy); deterministic finisher confirmed; acceptance matrix and cached example produced"
   }
 }
