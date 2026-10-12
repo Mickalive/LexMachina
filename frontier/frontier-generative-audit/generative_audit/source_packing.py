@@ -149,7 +149,8 @@ class CitationValidator:
                         for k in (
                             "court", "language", "rank", "score", "decision_date",
                             "docket_number", "cluster_id", "canonical_url",
-                            "provenance", "counter_status",
+                            "provenance", "counter_status", "query_similarity",
+                            "legal_anchor_score", "retrieval_score_raw",
                         )
                         if d.get(k) is not None
                     },
