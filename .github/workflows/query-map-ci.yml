@@ -69,3 +69,94 @@ jobs:
         run: python -m unittest discover -s tests/frontier/frontier-query-retrieval -p 'test_*.py'
       - name: Accepted generative-audit tests
         run: pytest -q tests/frontier/frontier-generative-audit/test_generative_audit_v2.py
+
+  live-integrated-generative:
+    # Opt-in real end-to-end smoke. Trigger deliberately with a commit message
+    # containing [live-e2e]; ordinary product pushes stay deterministic/offline.
+    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[live-e2e]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: product/requirements-query.txt
+      - name: Install query-map dependencies
+        run: pip install -r product/requirements-query.txt
+      - name: Install current OpenCode
+        shell: bash
+        run: curl --retry 5 --retry-all-errors --retry-delay 15 -fsSL https://opencode.ai/install | bash
+      - name: Run live integrated retrieval + generation + adversarial smoke
+        timeout-minutes: 10
+        env:
+          LEX_REPO_ROOT: ${{ github.workspace }}
+        run: |
+          python - <<'PY'
+          import json
+          import sys
+          import time
+
+          sys.path.insert(0, "product")
+          sys.path.insert(0, ".")
+          from query import enrich_query_bundle, run_query_initial
+          from query.bundle import validate_bundle
+          from generative_audit import paths
+
+          # Pin this smoke to models freshly proven healthy by the factory.
+          paths.DEFAULT_FREE_MODELS[:] = [
+              "opencode/nemotron-3-ultra-free",
+              "opencode/mimo-v2.6-flash-free",
+          ]
+
+          t0 = time.time()
+          initial = run_query_initial(
+              "Kündigung Mietvertrag Mietrecht",
+              top_n=100,
+              retrieval_mode="live",
+          )
+          final = enrich_query_bundle(
+              initial,
+              retrieval_mode="live",
+              evidence_count=6,
+              fixture_generation=False,
+          )
+          errors = validate_bundle(final)
+          ga = final.get("provenance", {}).get("generative_audit", {})
+          answer = final.get("answer", {})
+          ids = {d["decision_id"] for d in final["decisions"]}
+          counters = [
+              d for d in final["decisions"]
+              if d.get("counter_status") in {"candidate-limiting", "candidate-contrary"}
+          ]
+          metrics = {
+              "decisions": len(final["decisions"]),
+              "clusters": len(final["clusters"]),
+              "answer_status": answer.get("status"),
+              "answer_method": answer.get("method"),
+              "model": answer.get("model"),
+              "citations": len(answer.get("cited_decision_ids") or []),
+              "counter_decisions": len(counters),
+              "provider_error": ga.get("provider_error"),
+              "adversarial_method": (ga.get("adversarial") or {}).get("method"),
+              "adversarial_error": (ga.get("adversarial") or {}).get("error"),
+              "geometry_preserved": all(
+                  (a.get("x"), a.get("y"), a.get("cluster_id"), a.get("is_outlier"))
+                  == (b.get("x"), b.get("y"), b.get("cluster_id"), b.get("is_outlier"))
+                  for a, b in zip(initial["decisions"], final["decisions"])
+              ),
+              "elapsed_seconds": round(time.time() - t0, 3),
+          }
+          print(json.dumps(metrics, sort_keys=True), flush=True)
+
+          assert errors == [], errors
+          assert len(final["decisions"]) >= 100, metrics
+          assert answer.get("status") == "ready", metrics
+          assert answer.get("method") == "generative_audit_llm_v2", metrics
+          assert ga.get("provider_error") in (None, ""), metrics
+          assert answer.get("cited_decision_ids"), metrics
+          assert set(answer["cited_decision_ids"]) <= ids, metrics
+          assert (ga.get("adversarial") or {}).get("method") == "independent_llm_adversarial_v2", metrics
+          assert metrics["geometry_preserved"] is True, metrics
+          PY
