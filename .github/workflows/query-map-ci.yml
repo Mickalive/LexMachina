@@ -45,18 +45,25 @@ jobs:
           from query import run_query_initial
           t0 = time.time()
           b = run_query_initial("Kündigung Mietvertrag Mietrecht", top_n=100, retrieval_mode="live")
-          assert len(b["decisions"]) >= 100, len(b["decisions"])
-          assert all(d["canonical_url"].startswith("https://mcp.opencaselaw.ch/") for d in b["decisions"][:20])
-          remote = b["provenance"]["retrieval"]["remote"]
-          assert remote.get("degraded") is False, remote.get("failures")
-          print(json.dumps({
+          retrieval = b["provenance"]["retrieval"]
+          remote = retrieval["remote"]
+          metrics = {
               "decisions": len(b["decisions"]),
               "clusters": len(b["clusters"]),
               "elapsed_seconds": round(time.time()-t0, 3),
               "network_calls": remote.get("request_summary", {}).get("network_calls"),
               "cache_hits": remote.get("request_summary", {}).get("cache_hits"),
-              "languages": sorted({d["language"] for d in b["decisions"]}),
-          }, sort_keys=True))
+              "languages": retrieval.get("candidate_languages"),
+              "channels": retrieval.get("candidate_channels"),
+          }
+          print(json.dumps(metrics, sort_keys=True), flush=True)
+          assert len(b["decisions"]) >= 100, metrics
+          assert all(d["canonical_url"].startswith("https://mcp.opencaselaw.ch/") for d in b["decisions"][:20])
+          assert remote.get("degraded") is False, remote.get("failures")
+          assert (metrics["network_calls"] or 0) >= 5, metrics
+          assert {"de", "fr", "it"} <= set((metrics["languages"] or {}).keys()), metrics
+          assert (metrics["channels"] or {}).get("search", 0) > 0, metrics
+          assert (metrics["channels"] or {}).get("search.language_filter", 0) > 0, metrics
           PY
       - name: Accepted retrieval adapter tests
         run: python -m unittest discover -s tests/frontier/frontier-query-retrieval -p 'test_*.py'
