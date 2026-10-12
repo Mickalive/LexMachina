@@ -4,11 +4,13 @@ on:
   push:
     branches:
       - main
-      - fix/v45-factory-stabilization
+      - 'fix/**'
     paths:
       - '.github/scripts/**'
       - '.github/workflows/**'
       - 'state/frontier_portfolio.json'
+      - 'state/factory_direction.json'
+      - 'state/control_epoch.json'
   pull_request:
     branches:
       - main
@@ -16,6 +18,8 @@ on:
       - '.github/scripts/**'
       - '.github/workflows/**'
       - 'state/frontier_portfolio.json'
+      - 'state/factory_direction.json'
+      - 'state/control_epoch.json'
   workflow_dispatch:
 
 permissions:
@@ -32,5 +36,5 @@ jobs:
           ruby -e 'require "yaml"; Dir[".github/workflows/*.yml"].each { |f| YAML.load_file(f, aliases: true); puts "OK #{f}" }'
       - name: Validate shell syntax
         run: bash -n .github/scripts/run-ox-with-retry.sh
-      - name: Validate active portfolio JSON
-        run: jq empty state/frontier_portfolio.json
+      - name: Validate control JSON
+        run: jq empty state/frontier_portfolio.json state/factory_direction.json state/control_epoch.json
