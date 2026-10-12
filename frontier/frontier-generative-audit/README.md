@@ -115,7 +115,16 @@ python3 frontier/frontier-generative-audit/run_e2e.py --real \
     --out results/frontier/frontier-generative-audit/cached_example_ocl_attested.json
 
 # live host/method probe (search, decision existence, integrity, attest, verify-claim)
-python3 frontier/frontier-generative-audit/probe_ocl.py --out ocl_live_probe.json
+python3 frontier/frontier-generative-audit/probe_ocl.py \
+    --out results/frontier/frontier-generative-audit/ocl_live_probe.json
+
+# deterministic cycle finisher (suites + fixture e2e, emits the per-run
+# acceptance matrix). Add --live for the free-model smoke, live OCL probe and
+# attested end-to-end. Publishing evidence must never depend on a long-lived
+# agent session — run 38193076995 died before publishing and had to be resumed.
+python3 frontier/frontier-generative-audit/verify_cycle.py --run-id <RUN_ID>
+LEX_REAL_MODEL=1 LEX_LIVE_OCL=1 \
+python3 frontier/frontier-generative-audit/verify_cycle.py --run-id <RUN_ID> --live
 ```
 
 ## Layout
@@ -125,11 +134,14 @@ frontier/frontier-generative-audit/
   generative_audit/            canonical package (provider, adversarial, models,
                                source_packing, opencaselaw, integration_contract, paths)
   run_e2e.py                   CLI orchestrator producing cached examples
+  verify_cycle.py              deterministic cycle finisher -> per-run acceptance matrix
+  probe_ocl.py                 live OpenCaseLaw host/method probe
   README.md                    this contract
 tests/frontier/frontier-generative-audit/
   test_generative_audit_v2.py  frozen suite (acceptance 1-8)
   fixtures/sample_bundle.json  product-shaped query_result_bundle v1.0 fixture
 results/frontier/frontier-generative-audit/
-  acceptance_matrix.json       acceptance (1)-(8) -> evidence
+  acceptance_matrix.json       acceptance (1)-(8) -> evidence (latest verified run)
+  acceptance_matrix_run*.json  immutable per-run matrices
   cached_example_*.json        end-to-end cached examples (fixture + live models)
 ```
