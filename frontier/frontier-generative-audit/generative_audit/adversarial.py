@@ -36,7 +36,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from . import paths
 from .provider import ProviderError, Runner, resolve_runner
-from .source_packing import DecisionBundle, normalize_id
+from .source_packing import DecisionBundle, extract_citation_ids, normalize_id
 
 VALID_REASONS = {
     "contradictory", "limiting", "distinguishing",
@@ -50,6 +50,27 @@ CHALLENGING_REASONS = {
 }
 
 UNCERTAINTY_WORDS = {"certain": 0.0, "low": 0.2, "medium": 0.5, "high": 0.8, "uncertain": 1.0}
+
+# The adversarial call should inspect a deliberately broad *challenge shortlist*,
+# not dump hundreds of retrieved decisions into one prompt.  This keeps the
+# second pass fast enough for the progressive UI while preserving independence:
+# selection is deterministic and based on retrieval rank, multilingual challenge
+# markers and answer-cited IDs; classification is still performed by a separate
+# model call and evidence is still verified against the full bundle afterwards.
+MAX_PROMPT_SOURCES = 36
+CHALLENGE_MARKERS = (
+    # DE
+    "ausnahme", "entgegen", "abweich", "jedoch", "hingegen", "vorbehalt",
+    "unwirksam", "nichtig", "unzul", "nur wenn", "sofern",
+    # FR
+    "exception", "contraire", "toutefois", "néanmoins", "cependant",
+    "irrecev", "nul", "inval", "sous réserve", "à moins",
+    # IT
+    "eccezione", "contrario", "tuttavia", "nondimeno", "irricev",
+    "nullo", "invalid", "salvo", "a meno",
+    # EN / mixed headnotes
+    "however", "unless", "limiting", "minority",
+)
 
 
 @dataclass
@@ -85,7 +106,7 @@ class AdversarialPass:
         fixture_mode: bool = False,
         fixture_findings: Optional[List[AdversarialFinding]] = None,
         runner: Optional[Runner] = None,
-        timeout: float = 180.0,
+        timeout: float = 90.0,
     ):
         self.bundle = bundle
         self.answer = answer or ""
@@ -93,12 +114,90 @@ class AdversarialPass:
         self.fixture_findings = fixture_findings or []
         self.runner = resolve_runner(runner) if not fixture_mode else runner
         self.timeout = timeout
-        self.model = model or ("fixture://generative-audit" if fixture_mode else paths.preferred_model())
+        if model:
+            self.model = model
+        elif fixture_mode:
+            self.model = "fixture://generative-audit"
+        else:
+            healthy = paths.healthy_models()
+            # Prefer a different healthy model from the answer generator when
+            # possible.  This strengthens operational independence and avoids a
+            # single slow provider becoming a single point of failure.
+            self.model = healthy[1] if len(healthy) > 1 else paths.preferred_model()
         self.rejected_ids: List[str] = []
         self.last_error: Optional[str] = None
         self.last_raw: Optional[str] = None
 
     # ---- prompt ----
+
+    def _fallback_models(self, exclude: Optional[str] = None) -> List[str]:
+        return [m for m in paths.healthy_models() if m and m != exclude]
+
+    @staticmethod
+    def _rank_of(dec, fallback: int) -> int:
+        rank = (dec.metadata or {}).get("rank")
+        return rank if isinstance(rank, int) and rank > 0 else fallback
+
+    def _prompt_decisions(self, max_sources: int = MAX_PROMPT_SOURCES):
+        """Deterministically shortlist sources for the challenge model.
+
+        The full retrieved bundle remains authoritative for ID/evidence
+        validation.  This method only bounds the text sent to the second LLM
+        call, which prevents large-result prompts from timing out.
+        """
+        decisions = list(self.bundle.decisions)
+        if len(decisions) <= max_sources:
+            return decisions
+
+        cited = {normalize_id(x) for x in extract_citation_ids(self.answer)}
+        selected = []
+        selected_ids = set()
+
+        def add(dec) -> None:
+            did = normalize_id(dec.decision_id)
+            if did and did not in selected_ids and len(selected) < max_sources:
+                selected.append(dec)
+                selected_ids.add(did)
+
+        scored = []
+        for pos, dec in enumerate(decisions, start=1):
+            text = " ".join((dec.text or "").lower().split())
+            marker_hits = sum(text.count(marker) for marker in CHALLENGE_MARKERS)
+            rank = self._rank_of(dec, pos)
+            scored.append((marker_hits, rank, str(dec.decision_id), dec))
+
+        # 1) Explicit exception/limitation language: strongest counter signal.
+        for hits, _rank, _did, dec in sorted(scored, key=lambda x: (-x[0], x[1], x[2])):
+            if hits <= 0:
+                break
+            add(dec)
+            if len(selected) >= min(18, max_sources):
+                break
+
+        # 2) Answer-cited authorities: look for limitations inside what the
+        # answer itself relied on.
+        for pos, dec in enumerate(decisions, start=1):
+            if normalize_id(dec.decision_id) in cited:
+                add(dec)
+
+        # 3) Preserve language branches (two early authorities per language).
+        for lang in ("de", "fr", "it"):
+            kept = 0
+            for pos, dec in enumerate(decisions, start=1):
+                if str((dec.metadata or {}).get("language") or "").lower() == lang:
+                    before = len(selected)
+                    add(dec)
+                    if len(selected) > before:
+                        kept += 1
+                    if kept >= 2:
+                        break
+
+        # 4) Fill with retrieval-ranked context until the bounded prompt is full.
+        for _hits, _rank, _did, dec in sorted(scored, key=lambda x: (x[1], x[2])):
+            add(dec)
+            if len(selected) >= max_sources:
+                break
+        return selected
 
     def build_prompt(self) -> str:
         lines = [
@@ -110,10 +209,15 @@ class AdversarialPass:
             "",
             f"Provisional answer under review: {self.answer}",
             "",
-            "Retrieved decision sources:",
+            "Retrieved decision sources (deterministic challenge shortlist):",
         ]
-        for dec in self.bundle.decisions:
-            snippet = " ".join((dec.text or "").split())[:400]
+        prompt_decisions = self._prompt_decisions()
+        lines.append(
+            f"  [shortlist provenance] {len(prompt_decisions)} of "
+            f"{len(self.bundle.decisions)} retrieved decisions"
+        )
+        for dec in prompt_decisions:
+            snippet = " ".join((dec.text or "").split())[:360]
             lines.append(f"  [{dec.decision_id}] {dec.title}: {snippet}")
         lines += [
             "",
@@ -163,59 +267,93 @@ class AdversarialPass:
             return kept, info
 
         prompt = self.build_prompt()
-        try:
-            raw = self.runner(prompt, self.model, self.timeout)
-        except Exception as exc:  # noqa: BLE001 - degrade to no findings
-            self.last_error = str(exc)
-            return [], {
-                "method": "independent_llm_adversarial_v2",
-                "model": self.model,
-                "n_findings": 0,
-                "error": self.last_error,
-                "independence": "separate model call; failed closed",
-            }
+        prompt_decisions = self._prompt_decisions()
+        candidates: List[str] = []
+        for candidate in [self.model, *self._fallback_models(exclude=self.model)]:
+            if candidate and candidate not in candidates:
+                candidates.append(candidate)
 
-        self.last_raw = raw
-        findings = self.parse_findings(raw)
-        retries = 0
-        if not findings and raw.strip() and not self.rejected_ids:
-            # Live free models occasionally answer in prose instead of JSON.
-            # One strict-format retry keeps the pass useful without weakening
-            # the challenge-only objective.
+        attempts: List[Dict[str, str]] = []
+        for attempt_model in candidates:
+            self.rejected_ids = []
+            self.last_error = None
+            retries = 0
             try:
-                raw2 = self.runner(
-                    self.build_prompt()
-                    + "\n\nREMINDER: your entire reply must be ONE JSON array "
-                    "starting with [ and ending with ]. No prose.",
-                    self.model,
-                    self.timeout,
-                )
+                raw = self.runner(prompt, attempt_model, self.timeout)
             except Exception as exc:  # noqa: BLE001
+                attempts.append({"model": attempt_model, "error": str(exc)})
                 self.last_error = str(exc)
-                raw2 = ""
-            if raw2:
+                continue
+
+            self.last_raw = raw
+            findings = self.parse_findings(raw)
+            parsed_array = self._extract_json_array(raw)
+
+            # Live free models occasionally answer in prose instead of JSON,
+            # or cite only IDs outside the bundle. One strict-format retry on
+            # that model is allowed before rotating to the next healthy model.
+            if parsed_array is None or (not findings and self.rejected_ids):
+                try:
+                    raw2 = self.runner(
+                        prompt
+                        + "\n\nREMINDER: your entire reply must be ONE JSON array "
+                        "starting with [ and ending with ]. Use ONLY decision IDs "
+                        "from the shortlist above. No prose.",
+                        attempt_model,
+                        self.timeout,
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    attempts.append({"model": attempt_model, "error": str(exc)})
+                    self.last_error = str(exc)
+                    continue
                 retries = 1
                 self.last_raw = raw2
                 findings = self.parse_findings(raw2)
                 raw = raw2
+                parsed_array = self._extract_json_array(raw2)
 
-        info = {
+            # A valid [] is a legitimate negative result. Invalid/unusable
+            # structure rotates; it is not silently treated as "no challenge".
+            if parsed_array is None or (not findings and self.rejected_ids):
+                attempts.append({
+                    "model": attempt_model,
+                    "error": "unusable adversarial response after format retry",
+                })
+                continue
+
+            info = {
+                "method": "independent_llm_adversarial_v2",
+                "model": attempt_model,
+                "n_findings": len(findings),
+                "n_challenging_findings": sum(1 for f in findings if f.reason in CHALLENGING_REASONS),
+                "n_rejected_ids": len(self.rejected_ids),
+                "rejected_ids": list(self.rejected_ids),
+                "reasons": sorted({f.reason for f in findings}),
+                "retries": retries,
+                "attempts": attempts,
+                "bundle_decisions": len(self.bundle.decisions),
+                "prompt_decisions": len(prompt_decisions),
+                "prompt_strategy": "rank+challenge-markers+cited-ids+language-balance",
+                "independence": "separate model call, challenge-only objective, bounded deterministic "
+                                "source shortlist, unknown IDs rejected; unclassified findings stay "
+                                "in the audit record but map to counter_status 'none'",
+            }
+            if not findings:
+                info["raw_excerpt"] = (self.last_raw or "")[:1500]
+            return findings, info
+
+        self.last_error = self.last_error or "all adversarial provider attempts failed"
+        return [], {
             "method": "independent_llm_adversarial_v2",
-            "model": self.model,
-            "n_findings": len(findings),
-            "n_challenging_findings": sum(1 for f in findings if f.reason in CHALLENGING_REASONS),
-            "n_rejected_ids": len(self.rejected_ids),
-            "rejected_ids": list(self.rejected_ids),
-            "reasons": sorted({f.reason for f in findings}),
-            "retries": retries,
-            "independence": "separate model call, challenge-only objective, unknown IDs rejected; "
-                            "unclassified findings are kept in the record but map to counter_status "
-                            "'none' so they are never displayed as challenges",
+            "model": "",
+            "n_findings": 0,
+            "error": self.last_error,
+            "attempts": attempts,
+            "bundle_decisions": len(self.bundle.decisions),
+            "prompt_decisions": len(prompt_decisions),
+            "prompt_strategy": "rank+challenge-markers+cited-ids+language-balance",
+            "independence": "separate model call; all healthy-model attempts failed closed",
         }
-        if not findings:
-            # Preserve the negative result verbatim for auditability.
-            info["raw_excerpt"] = (self.last_raw or "")[:1500]
-        return findings, info
 
     # ---- parsing (deterministic, tested) ----
 
