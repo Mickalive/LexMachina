@@ -139,7 +139,11 @@ def probe_fixture_subprocess(out_dir: Path) -> dict:
     env["PYTHONDONTWRITEBYTECODE"] = "1"
     rcs, sigs = [], []
     for i in (1, 2):
-        out = out_dir / f"fixture_replay_{i}.json"
+        # Resolve to an absolute path: the subprocess runs with a different
+        # cwd (this package dir), so a relative --out would be written
+        # somewhere unexpected and the probe would see no file (false
+        # non-determinism verdict; found in run 38200364291).
+        out = (out_dir / f"fixture_replay_{i}.json").resolve()
         p = subprocess.run(
             [sys.executable, "-B", "-m", "ocl_adapter", PRIMARY_QUERY,
              "--preset", "fixtures", "--out", str(out), "--validate", "--quiet"],

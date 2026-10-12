@@ -148,6 +148,40 @@ class TestVerifyHarnessScopeSafety(unittest.TestCase):
         self.assertIn("tempfile.mkdtemp", src)
 
 
+class TestDeterminismProbeRelativeOut(unittest.TestCase):
+    """A relative --out must not fool the fixture-subprocess probe.
+
+    Found in run 38200364291: the probe spawned ``python -m ocl_adapter``
+    with cwd=<package dir> while passing a --out resolved against the
+    repository root. The subprocess therefore wrote its replay next to a
+    nonexistent relative path inside the team namespace, the probe saw no
+    output files and reported a false non-determinism verdict (and left
+    stray fixture_replay_*.json under the team dir). The probe must
+    resolve subprocess outputs to absolute paths first.
+    """
+
+    def test_relative_out_replays_and_leaves_no_stray_files(self):
+        with tempfile.TemporaryDirectory(prefix="ocl_det_out_") as tmp:
+            requested = Path(tmp) / "det.json"
+            rel = os.path.relpath(requested, REPO_ROOT)
+            proc = subprocess.run(
+                [sys.executable, "-B", str(TEAM_DIR / "verify_determinism.py"),
+                 "--skip-warm-cache", "--out", rel],
+                cwd=str(REPO_ROOT),
+                env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
+                capture_output=True, text=True, timeout=300,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            report = json.loads(proc.stdout)
+            self.assertTrue(report["deterministic"])
+            self.assertTrue(
+                report["probes"]["fixture_subprocess"]["identical_candidate_content"]
+            )
+            self.assertTrue(requested.exists())
+            # No stray replays anywhere in the team namespace.
+            self.assertEqual(list(TEAM_DIR.rglob("fixture_replay_*.json")), [])
+
+
 class TestDocumentedReplayCommandRunsScopeSafe(unittest.TestCase):
     """Execute the documented replay command verbatim (offline, no network)."""
 
