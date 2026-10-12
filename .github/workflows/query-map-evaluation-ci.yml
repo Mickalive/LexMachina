@@ -1,0 +1,34 @@
+name: Query Map Evaluation CI
+
+on:
+  push:
+    branches:
+      - lab/evaluation
+      - fix/v45-evaluation-convergence
+    paths:
+      - 'evaluation/query_map/**'
+      - 'state/evaluation.json'
+      - '.github/workflows/query-map-evaluation-ci.yml'
+  pull_request:
+    branches:
+      - lab/evaluation
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evaluator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install evaluator test dependency
+        run: pip install pytest
+      - name: Compile evaluator
+        run: python -m py_compile evaluation/query_map/harness.py evaluation/query_map/evaluate_bundle.py
+      - name: Test evaluator invariants
+        run: pytest -q evaluation/query_map/test_harness.py
