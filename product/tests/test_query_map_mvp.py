@@ -168,6 +168,15 @@ def test_legal_query_expansion_bridges_swiss_statute_languages_and_doctrine():
     assert any("Geschäftsentscheid" in text and "Verwaltungsrat" in text for text in texts)
     assert any(v.kind == "legal_concept" for v in variants)
 
+    theft_variants = build_variants(
+        "Un vol de faible valeur commis par un employé justifie-t-il un licenciement immédiat selon l'art. 337 CO ?",
+        include_language_filters=False,
+    )
+    theft_texts = {v.text for v in theft_variants}
+    assert "Art. 337 OR" in theft_texts
+    assert "Bagatelldiebstahl fristlose Kündigung" in theft_texts
+    assert "geringfügiger Diebstahl fristlose Kündigung" in theft_texts
+
 
 def test_product_reranker_prefers_direct_legal_issue_over_broad_remote_hit():
     bundle = {
