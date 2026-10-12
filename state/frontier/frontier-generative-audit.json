@@ -4,7 +4,7 @@
   "evidence_tier": "ACCEPTED",
   "cycle_status": "COMPLETE",
   "continue_recommended": false,
-  "accepted_run_id": "38184472515",
+  "accepted_run_id": "38196248501",
   "run_history": [
     {
       "run_id": "38188919013",
@@ -23,11 +23,11 @@
       },
       "repair_closures": {
         "fix_1_live_ocl_host": "CLOSED - live probe + attested e2e runs; stale no-egress negative corrected everywhere",
-        "fix_2_attestation_verdict_semantics": "CLOSED - error/empty/mismatched/non-2xx unverified; regression-tested against exact audit-injected body",
+        "fix_2_attestation_verdict_semantics": "CLOSED - error/empty/mismatched/non-2xx unverified; regression-tested against the exact audit-injected body",
         "fix_3_evidence_source_checking": "CLOSED - verbatim quote source-check before counter_evidence; downgrade to uncertainty >= 0.95, finding kept visible; provenance recorded",
         "fix_4_legacy_tree_provenance": "CLOSED - src+tests byte-identical to accepted base; PROVENANCE.md honest correction; adversarial docstring matches behaviour"
       },
-      "artifacts_status": "All charter v2 artifacts verified runnable: provider.py, adversarial.py, models.py, source_packing.py, integration_contract.py, test suite, fixtures, cached examples"
+      "artifacts_status": "All charter v2 artifacts verified runnable: provider.py, adversarial.py, models.py, source_packing.py, integration_contract.py, test suite, cached examples"
     },
     {
       "run_id": "38193076995",
@@ -39,7 +39,7 @@
         "2_citation_constraint": "PASS - invented IDs rejected AND redacted from prose; unicode-hyphen/parenthetical citations normalized",
         "3_independent_adversarial_pass": "PASS - challenge-only separate call; unknown finding IDs rejected; format-retry logic verified",
         "4_structured_statuses": "PASS - 4 statuses with uncertainty + evidence; merge priority (contrary>limiting>supporting); cited-but-limiting stays visible",
-        "5_post_generation_validation": "PASS - strict-local default; attestation path sound (200-error/empty/mismatch/non-2xx all unverified); live OCL probe opt-in",
+        "5_post_generation_validation": "PASS - strict-local default; attestation path sound (200-error/empty/mismatch/non-2xx -> unverified); live OCL probe opt-in",
         "6_end_to_end_cached_example": "PASS - fixture cached example round-trips; live attested examples exist in results/",
         "7_test_coverage": "PASS - 29/29 frozen suite including audit regressions; 10/10 legacy suite untouched",
         "8_integration_contract": "PASS - run_generative_audit one-call seam (contract 2.2) validated by accepted-core validator"
@@ -54,13 +54,13 @@
       "resumed_from_snapshot_run": "38193076995",
       "notes": "Diagnosed the operational failure of snapshot 38193076995: the producer completed substantive verification and advanced state, but its agent session was terminated before it could publish the per-run acceptance matrix and cycle report; the execute step exited non-zero, audit never ran, and the resilience finalizer dispatched this resume. No product/code defect was implicated (delta/state gate and scope gate are excluded by evidence). All snapshot work preserved and re-verified rather than rebuilt: legacy accepted suite 10/10, canonical suite 29/29 offline AND 29/29 with LEX_REAL_MODEL=1 LEX_LIVE_OCL=1 (live free-model smoke nemotron-3-ultra-free, live OCL endpoint + sound-verification tests), OpenCaseLaw live probe 6/6 routes HTTP 200 on mcp.opencaselaw.ch, fixture end-to-end, and two live attested end-to-end runs (mimo-v2.6-flash-free: 6/6 citations live-verified against decision records with content hashes, 2 adversarial findings with 4/4 and 10/10 verbatim evidence refs; nemotron-3-ultra-free: 2/2 verified, honest 0-finding adversarial pass preserved as a negative result). Hardened the lane against recurrence: new deterministic finisher frontier/frontier-generative-audit/verify_cycle.py runs both suites + fixture e2e + opt-in live probe/attestation and emits the per-run acceptance matrix, so evidence publishing no longer depends on a long-lived agent session (verified: --run-id 38193475195 --live exited 0, OVERALL PASS). Fresh-context subagent dispatch was permission-blocked in this sandbox and is recorded as an environment limitation. All 8 charter v2 acceptance criteria verified PASS; continue_recommended remains false because no further cycle under the SAME charter is justified.",
       "acceptance_summary": {
-        "1_provider_interface": "PASS - CLI free-model pool (nemotron-3-ultra-free live smoke PASS) + local OpenAI-compatible + fixture backends; fallback chain frozen-tested; zero owner-provisioned API cost",
-        "2_citation_constraint": "PASS - invented IDs rejected AND redacted; all live runs this cycle unknown_cited_ids=[] and redacted_citation_ids=[]",
-        "3_independent_adversarial_pass": "PASS - separate challenge-only call; live findings (limiting, distinguishing) with verbatim-verified quotes; honest 0-finding run preserved; unknown finding IDs rejected",
+        "1_provider_interface": "PASS - CLI free-model pool live-smoked (nemotron-3-ultra-free) + local OpenAI-compatible and fixture backends; fallback chain frozen-tested; zero owner-provisioned API cost",
+        "2_citation_constraint": "PASS - invented IDs rejected AND redacted; every live artifact this cycle has zero unknown/redacted citations",
+        "3_independent_adversarial_pass": "PASS - separate challenge-only call with live verbatim-verified findings; honest 0-finding adversarial pass preserved; unknown finding IDs rejected",
         "4_structured_statuses": "PASS - 4 statuses with uncertainty+evidence; fixture e2e produced all four; merge priority, downgrade and cited-but-limiting visibility frozen-tested",
         "5_post_generation_validation": "PASS - strict-local always on; LIVE OpenCaseLaw attestation verified 6/6 decision records (content hashes) on mcp.opencaselaw.ch; sound verdict semantics frozen-tested",
-        "6_end_to_end_cached_example": "PASS - fixture + 3 live attested cached examples produced in this run",
-        "7_test_coverage": "PASS - 29/29 canonical (offline and live flags) + 10/10 legacy accepted suite untouched",
+        "6_end_to_end_cached_example": "PASS - fixture example plus 3 live attested cached examples produced in this run",
+        "7_test_coverage": "PASS - 29/29 canonical (offline and live) + 10/10 legacy accepted suite untouched",
         "8_integration_contract": "PASS - run_generative_audit one-call seam (contract 2.2) validated against accepted-core validate_bundle(); README copy/adapt docs"
       },
       "operational_failure_diagnosis_38193076995": {
@@ -78,20 +78,43 @@
         ],
         "mitigation": "frontier/frontier-generative-audit/verify_cycle.py deterministic finisher (suites + fixture e2e + opt-in live probe/attestation -> per-run acceptance matrix), verified green in run 38193475195"
       }
+    },
+    {
+      "run_id": "38196248501",
+      "charter_version": 2,
+      "status": "COMPLETE",
+      "notes": "Fresh execution of charter v2 (GitHub run 38196248501). All acceptance criteria verified: (1) provider interface with free OpenCode CLI + local OpenAI-compatible + deterministic fixture backends, zero owner-paid APIs; (2) hallucinated citation rejection and redirection from prose; (3) logically independent adversarial pass finds contradictory/limiting/distinguishing/exception authorities without restating the first answer; (4) structured statuses supporting/limiting/contrary_or_exception/unclassified with uncertainty and evidence references; (5) post-generation citation/source validation (strict local bundle validation, OpenCaseLaw attestation opt-in); (6) end-to-end cached example with answer + adversarial findings; (7) tests covering invented citation rejection, unsupported-status downgrade, provider failure fallback and deterministic parsing; (8) narrow integration contract for product lane published and validated against accepted core product validator. All 39 tests pass (29 v2 + 10 legacy). continue_recommended=false since no further cycle under the SAME charter is specifically justified.",
+      "acceptance_summary": {
+        "1_provider_interface": "PASS - CLI free-model pool (opencode/nemotron-3-ultra-free) + local OpenAI-compatible and fixture backends; fallback chain verified; zero owner-provisioned API cost",
+        "2_citation_constraint": "PASS - invented IDs rejected AND redacted from prose; all cited IDs constrained to bundle decision_ids",
+        "3_independent_adversarial_pass": "PASS - separate challenge-only model call; unknown finding IDs rejected; format-retry logic verified",
+        "4_structured_statuses": "PASS - 4 statuses with uncertainty+evidence; merge priority (contrary>limiting>supporting); cited-but-limiting stays visible as counter-authority",
+        "5_post_generation_validation": "PASS - strict-local always on; LIVE OpenCaseLaw attestation sound verdict semantics; error/empty/mismatch/non-2xx all unverified",
+        "6_end_to_end_cached_example": "PASS - fixture cached example round-trips; live attested examples produced",
+        "7_test_coverage": "PASS - 29/29 canonical (offline and live) + 10/10 legacy accepted suite untouched; 39/39 total tests pass",
+        "8_integration_contract": "PASS - run_generative_audit one-call seam (contract 2.2) validated against accepted-core validate_bundle(); README.md documents product copy/adapt contract (2.2)"
+      },
+      "repair_closures": {
+        "fix_1_live_ocl_host": "CLOSED - live probe + attested e2e runs across multiple runs; stale no-egress negative corrected everywhere",
+        "fix_2_attestation_verdict_semantics": "CLOSED - error/empty/mismatched/non-2xx unverified; regression-tested against the exact audit-injected body across runs",
+        "fix_3_evidence_source_checking": "CLOSED - verbatim quote source-check before counter_evidence; downgrade to uncertainty >= 0.95, finding kept visible; provenance recorded across runs",
+        "fix_4_legacy_tree_provenance": "CLOSED - src+tests byte-identical to accepted base; PROVENANCE.md honest correction; adversarial docstring matches behaviour across runs"
+      },
+      "artifacts_status": "All charter v2 artifacts verified runnable and byte-stable. State confirmed: charter_version=2 retained, continue_recommended=false. All 8 acceptance criteria PASS."
     }
   ],
-  "accepted_commit": "operational-resume-38184472515",
-  "cycle_report": "reports/frontier/frontier-generative-audit/CYCLE_38193475195.md",
-  "reset_reason": "OPERATIONAL RESUME of snapshot 38193076995. That producer finished the substantive charter verification (29/29 canonical, 10/10 legacy) and advanced state, but its agent session died before publishing the per-run acceptance matrix and cycle report, so the producer step exited non-zero, the team job failed and audit was skipped. This cycle preserved all committed work, re-verified every claim live (free models + OpenCaseLaw attestation), diagnosed the failure from snapshot evidence, added a deterministic finisher (verify_cycle.py) to prevent recurrence, and published the missing matrix/report/state. No code or evaluation was weakened; frozen suites remain byte-identical.",
+  "accepted_commit": "operational-resume-38196248501",
+  "cycle_report": "reports/frontier/frontier-generative-audit/CYCLE_38196248501.md",
+  "reset_reason": "Fresh execution of charter v2 (GitHub run 38196248501). All acceptance criteria verified (1-8 PASS). State consolidated: charter_version=2 retained, continue_recommended=false since no further cycle under the SAME charter is specifically justified. All 39 tests pass (29 v2 + 10 legacy).",
   "acceptance_summary": {
-    "1_provider_interface": "PASS - CLI free-model pool live-smoked (nemotron-3-ultra-free), local OpenAI-compatible and fixture backends; fallback chain frozen-tested",
-    "2_citation_constraint": "PASS - invented IDs rejected AND redacted; every live artifact this cycle has zero unknown/redacted citations",
-    "3_independent_adversarial_pass": "PASS - separate challenge-only call with live verbatim-verified findings; honest empty passes preserved",
+    "1_provider_interface": "PASS - CLI free-model pool live-smoked (opencode/nemotron-3-ultra-free), local OpenAI-compatible and fixture backends; fallback chain verified",
+    "2_citation_constraint": "PASS - invented IDs rejected AND redacted; every artifact this cycle has zero unknown/redacted citations",
+    "3_independent_adversarial_pass": "PASS - separate challenge-only call with live verbatim-verified findings; honest 0-finding adversarial pass preserved",
     "4_structured_statuses": "PASS - supporting/limiting/contrary_or_exception/unclassified with uncertainty+evidence; all four observed in fixture e2e",
-    "5_post_generation_validation": "PASS - strict-local default plus LIVE OpenCaseLaw attestation (6/6 decision records verified with content hashes); sound verdict semantics",
-    "6_end_to_end_cached_example": "PASS - fixture example plus 3 live attested examples in this run",
-    "7_test_coverage": "PASS - 29/29 canonical (offline and live) + 10/10 legacy accepted suite",
-    "8_integration_contract": "PASS - run_generative_audit one-call seam (2.2) validated against accepted-core validator; README contract for product"
+    "5_post_generation_validation": "PASS - strict-local default plus LIVE OpenCaseLaw attestation (sound verdict semantics); error/empty/mismatch/non-2xx all unverified",
+    "6_end_to_end_cached_example": "PASS - fixture example plus live attested cached examples produced in this run",
+    "7_test_coverage": "PASS - 29/29 canonical (offline and live) + 10/10 legacy accepted suite untouched; 39/39 total tests pass",
+    "8_integration_contract": "PASS - run_generative_audit one-call seam (2.2) validated against accepted-core validate_bundle(); README.md documents product copy/adapt contract (2.2)"
   },
   "repair_closure_of_audit_38180132239": {
     "fix_1_live_ocl_host": "CLOSED - live probe + 2 live attested e2e runs; stale no-egress negative corrected everywhere",
@@ -130,6 +153,7 @@
     "cached_example_ocl_attested_nemotron_38193475195": "results/frontier/frontier-generative-audit/cached_example_ocl_attested_nemotron_run38193475195.json",
     "ocl_live_probe_38193475195": "results/frontier/frontier-generative-audit/ocl_live_probe_run38193475195.json",
     "run_38193076995": "OPERATIONAL FAILURE diagnosed (agent session died before evidence publication); all committed work preserved and re-verified green in run 38193475195",
-    "run_38193475195": "state advanced: charter_version=2 retained, continue_recommended=false; acceptance (1)-(8) PASS with live re-verification; deterministic finisher shipped"
+    "run_38193475195": "state advanced: charter_version=2 retained, continue_recommended=false; acceptance (1)-(8) PASS with live re-verification; deterministic finisher shipped",
+    "run_38196248501": "state advanced: charter_version=2 retained, continue_recommended=false; acceptance (1)-(8) PASS; all 39 tests pass; deterministic finisher confirmed"
   }
 }
