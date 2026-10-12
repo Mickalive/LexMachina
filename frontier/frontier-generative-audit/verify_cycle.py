@@ -60,6 +60,73 @@ RESULTS = REPO / "results" / "frontier" / "frontier-generative-audit"
 
 RESULTS_RE = re.compile(r"Results:\s*(\d+)\s*passed,\s*(\d+)\s*failed")
 
+#: Team write scope enforced by .github/workflows/frontier-team.yml
+#: ("Enforce team scope").  Run 38206770378 failed exactly that gate: its
+#: producer wrote a cached example into the legacy ``generative_audit/`` tree,
+#: so the team job failed and the run's evidence publication was discarded and
+#: operationally resumed.  The finisher therefore re-runs the identical gate
+#: locally and fails loudly *before* the workflow does.
+TEAM = "frontier-generative-audit"
+SCOPE_PREFIXES = (
+    f"frontier/{TEAM}/",
+    f"tests/frontier/{TEAM}/",
+    f"results/frontier/{TEAM}/",
+    f"reports/frontier/{TEAM}/",
+    f"state/frontier/{TEAM}.json",
+    f"data/frontier/{TEAM}/",
+)
+
+
+def check_scope_guard() -> Dict[str, Any]:
+    """Mirror the workflow's scope gate over ``git status --porcelain -uall``."""
+    try:
+        proc = subprocess.run(
+            ["git", "status", "--porcelain", "-uall"],
+            cwd=str(REPO),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=60,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:  # pragma: no cover
+        return {
+            "ok": False,
+            "error": f"git status failed: {exc}",
+            "violations": [],
+            "changed_paths": [],
+        }
+    if proc.returncode != 0:  # pragma: no cover
+        return {
+            "ok": False,
+            "error": f"git status rc={proc.returncode}: {proc.stderr.strip()[:400]}",
+            "violations": [],
+            "changed_paths": [],
+        }
+
+    changed: List[str] = []
+    violations: List[str] = []
+    for raw in proc.stdout.splitlines():
+        line = raw.rstrip("\n")
+        if not line.strip():
+            continue
+        path = line[3:] if len(line) > 3 else ""
+        # Renames/copies are reported as "old -> new"; both sides must be in scope.
+        for part in [p.strip() for p in path.split(" -> ")]:
+            if not part:
+                continue
+            changed.append(part)
+            if not any(part.startswith(p) for p in SCOPE_PREFIXES):
+                violations.append(f"{line.strip()}")
+                break
+    return {
+        "ok": not violations,
+        "violations": violations,
+        "changed_paths": changed,
+        "scope_prefixes": list(SCOPE_PREFIXES),
+        "matches_workflow_gate": True,
+    }
+
+
 
 def _run(cmd: List[str], env: Dict[str, str], timeout: int) -> Tuple[int, str]:
     proc = subprocess.run(
@@ -251,6 +318,7 @@ def build_matrix(run_id: str, checks: Dict[str, Any], live: bool) -> Dict[str, A
     canon_ok = checks["suites"]["canonical_suite"]["ok"]
     legacy_ok = checks["suites"]["legacy_suite"]["ok"]
     fixture_ok = checks["fixture_e2e"]["ok"]
+    scope_ok = bool(checks.get("scope_guard", {}).get("ok"))
     live_bits = checks.get("live") or {}
     live_ok = all(v.get("ok") for v in live_bits.values()) if live_bits else None
 
@@ -370,8 +438,19 @@ def build_matrix(run_id: str, checks: Dict[str, Any], live: bool) -> Dict[str, A
             },
         },
         "overall": "PASS"
-        if (canon_ok and legacy_ok and fixture_ok and (live_ok in (True, None)))
+        if (
+            canon_ok
+            and legacy_ok
+            and fixture_ok
+            and scope_ok
+            and (live_ok in (True, None))
+        )
         else "FAIL",
+        "scope_gate": {
+            "ok": scope_ok,
+            "detail": checks.get("scope_guard", {}),
+            "note": "Mirrors the workflow 'Enforce team scope' gate; run 38206770378 failed it by writing into the legacy generative_audit/ tree.",
+        },
         "claim_ceiling": "ACCEPTED engineering capability; live results are point-in-time CI observations of free providers and OpenCaseLaw public endpoints",
     }
 
@@ -394,6 +473,9 @@ def main(argv: List[str]) -> int:
     checks: Dict[str, Any] = {
         "suites": check_suites(live=args.live),
         "fixture_e2e": check_fixture_e2e(args.run_id, check_only=args.check_only),
+        # Runs after the suites/e2e above so it observes every file this
+        # finisher and the preceding producer session touched.
+        "scope_guard": check_scope_guard(),
     }
     if args.live:
         checks["live"] = check_live(args.run_id, check_only=args.check_only)

@@ -1,12 +1,12 @@
 {
   "team_id": "frontier-generative-audit",
   "charter_version": 2,
-  "run_id": "38206049799",
-  "mode": "deterministic verify_cycle.py finisher",
+  "run_id": "38207769244",
+  "mode": "live verify_cycle.py finisher (LEX_REAL_MODEL=1 LEX_LIVE_OCL=1)",
   "resumed_from_snapshot_run": null,
   "contract_version": "generative-audit-contract/2.2",
   "canonical_tree": "frontier/frontier-generative-audit",
-  "generated_at": "2026-10-12T05:02:10Z",
+  "generated_at": "2026-10-12T05:34:30Z",
   "checks": {
     "suites": {
       "legacy_suite": {
@@ -22,16 +22,16 @@
         ]
       },
       "canonical_suite": {
-        "command": "/usr/bin/python3 /home/runner/work/LexMachina/LexMachina/tests/frontier/frontier-generative-audit/test_generative_audit_v2.py  [offline]",
+        "command": "/usr/bin/python3 /home/runner/work/LexMachina/LexMachina/tests/frontier/frontier-generative-audit/test_generative_audit_v2.py  [LEX_REAL_MODEL=1 LEX_LIVE_OCL=1]",
         "exit_code": 0,
         "passed": 29,
         "failed": 0,
         "ok": true,
-        "live_flags": false,
+        "live_flags": true,
         "tail": [
-          "  PASS: accepted validator used (accepted-core:/tmp/lex_accepted/core/product/product/query/bundle.py); mirror agrees",
-          ">>> test_live_ocl_endpoints_and_sound_verification: SKIPPED (set LEX_LIVE_OCL=1 to enable)",
-          ">>> test_real_model_smoke: SKIPPED (set LEX_REAL_MODEL=1 to enable)",
+          "  PASS: live host https://mcp.opencaselaw.ch/api verified decision bge_BGE_89_II_126 (GET decisions), synthetic id unverified",
+          ">>> test_real_model_smoke",
+          "  PASS: real model opencode/nemotron-3-ultra-free produced 3 bundle-constrained citations",
           "",
           "================================================================",
           "Results: 29 passed, 0 failed out of 29"
@@ -40,7 +40,7 @@
     },
     "fixture_e2e": {
       "exit_code": 0,
-      "out": "/home/runner/work/LexMachina/LexMachina/results/frontier/frontier-generative-audit/cached_example_fixture_run38206049799.json",
+      "out": "/home/runner/work/LexMachina/LexMachina/results/frontier/frontier-generative-audit/cached_example_fixture_run38207769244.json",
       "ok": true,
       "cited_decision_ids": [
         "CH-2020-FR-001",
@@ -56,6 +56,68 @@
       },
       "findings": 3,
       "citation_constraint_ok": true
+    },
+    "scope_guard": {
+      "ok": true,
+      "violations": [],
+      "changed_paths": [
+        "frontier/frontier-generative-audit/verify_cycle.py",
+        "results/frontier/frontier-generative-audit/acceptance_matrix.json",
+        "results/frontier/frontier-generative-audit/acceptance_matrix_run38207769244.json",
+        "results/frontier/frontier-generative-audit/cached_example_fixture_run38207769244.json",
+        "results/frontier/frontier-generative-audit/ocl_live_probe_run38207769244.json"
+      ],
+      "scope_prefixes": [
+        "frontier/frontier-generative-audit/",
+        "tests/frontier/frontier-generative-audit/",
+        "results/frontier/frontier-generative-audit/",
+        "reports/frontier/frontier-generative-audit/",
+        "state/frontier/frontier-generative-audit.json",
+        "data/frontier/frontier-generative-audit/"
+      ],
+      "matches_workflow_gate": true
+    },
+    "live": {
+      "ocl_probe": {
+        "exit_code": 0,
+        "out": "/home/runner/work/LexMachina/LexMachina/results/frontier/frontier-generative-audit/ocl_live_probe_run38207769244.json",
+        "live_host_reachable": true,
+        "routes": {},
+        "ok": true
+      },
+      "ocl_attested_e2e": {
+        "exit_code": 0,
+        "out": "/home/runner/work/LexMachina/LexMachina/results/frontier/frontier-generative-audit/cached_example_ocl_attested_run38207769244.json",
+        "model": "opencode/mimo-v2.6-flash-free",
+        "cited_decision_ids": [
+          "bge_78_II_230",
+          "tg_obergericht_RBOG_2008_Nr._12",
+          "zh_obergericht_LA200026",
+          "zh_obergericht_LA190014",
+          "bger_4A_62_2011",
+          "bger_4C.44_2002"
+        ],
+        "unknown_cited_ids": [],
+        "redacted_citation_ids": [],
+        "unknown_finding_ids": [],
+        "findings": 6,
+        "status_summary": {
+          "supporting": 0,
+          "limiting": 6,
+          "contrary_or_exception": 0,
+          "unclassified": 0
+        },
+        "validation_mode": "attestation+local",
+        "verified_ids": [
+          "bge_78_II_230",
+          "tg_obergericht_RBOG_2008_Nr._12",
+          "zh_obergericht_LA200026",
+          "zh_obergericht_LA190014",
+          "bger_4A_62_2011",
+          "bger_4C.44_2002"
+        ],
+        "ok": true
+      }
     }
   },
   "acceptance": {
@@ -64,7 +126,7 @@
       "evidence": [
         "provider.py: OpenCode CLI (free model pool), OpenAI-compatible local server, deterministic fixture backends",
         "canonical suite includes test_real_model_smoke (opt-in LEX_REAL_MODEL=1) and test_provider_fallback_across_models",
-        "live free-model + OCL verification executed: False"
+        "live free-model + OCL verification executed: True"
       ]
     },
     "2_citation_constraint": {
@@ -92,19 +154,19 @@
       "status": "PASS",
       "evidence": [
         "strict-local bundle validation always on; OpenCaseLaw attestation path sound (error/empty/mismatch/non-2xx -> unverified)",
-        "live attestation not exercised in this invocation (set --live)"
+        "live attested e2e: {\"ocl_probe\": true, \"ocl_attested_e2e\": true}"
       ]
     },
     "6_end_to_end_cached_example": {
       "status": "PASS",
       "evidence": [
-        "cached example written: /home/runner/work/LexMachina/LexMachina/results/frontier/frontier-generative-audit/cached_example_fixture_run38206049799.json"
+        "cached example written: /home/runner/work/LexMachina/LexMachina/results/frontier/frontier-generative-audit/cached_example_fixture_run38207769244.json"
       ]
     },
     "7_test_coverage": {
       "status": "PASS",
       "evidence": [
-        "canonical suite 29 passed / 0 failed (offline)",
+        "canonical suite 29 passed / 0 failed (live flags on)",
         "legacy accepted suite 10 passed / 0 failed",
         "covers invented-citation rejection, unsupported-status downgrade, provider failure fallback, deterministic parsing"
       ]
@@ -118,5 +180,29 @@
     }
   },
   "overall": "PASS",
+  "scope_gate": {
+    "ok": true,
+    "detail": {
+      "ok": true,
+      "violations": [],
+      "changed_paths": [
+        "frontier/frontier-generative-audit/verify_cycle.py",
+        "results/frontier/frontier-generative-audit/acceptance_matrix.json",
+        "results/frontier/frontier-generative-audit/acceptance_matrix_run38207769244.json",
+        "results/frontier/frontier-generative-audit/cached_example_fixture_run38207769244.json",
+        "results/frontier/frontier-generative-audit/ocl_live_probe_run38207769244.json"
+      ],
+      "scope_prefixes": [
+        "frontier/frontier-generative-audit/",
+        "tests/frontier/frontier-generative-audit/",
+        "results/frontier/frontier-generative-audit/",
+        "reports/frontier/frontier-generative-audit/",
+        "state/frontier/frontier-generative-audit.json",
+        "data/frontier/frontier-generative-audit/"
+      ],
+      "matches_workflow_gate": true
+    },
+    "note": "Mirrors the workflow 'Enforce team scope' gate; run 38206770378 failed it by writing into the legacy generative_audit/ tree."
+  },
   "claim_ceiling": "ACCEPTED engineering capability; live results are point-in-time CI observations of free providers and OpenCaseLaw public endpoints"
 }
