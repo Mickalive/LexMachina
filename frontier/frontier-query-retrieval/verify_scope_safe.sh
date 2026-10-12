@@ -106,11 +106,18 @@ rc=$?
 check "7_fixture_replay_deterministic" "$rc" "two replays compared (log: replay_check.txt)"
 
 # ------------------------------------------------- (1)-(6,9) contract import
-python3 -B - "$OUT" <<'PY' >"$OUT/contract_import.txt" 2>&1
+# NOTE: the repository root is passed in by the shell (computed from this
+# script's own location). It must NOT be guessed by walking parents looking
+# for 'frontier/frontier-query-retrieval': that pattern also matches
+# 'results/frontier/frontier-query-retrieval', which made an earlier version
+# of this check fail with FileNotFoundError on INTEGRATION_CONTRACT.json.
+python3 -B - "$OUT" "$ROOT" <<'PY' >"$OUT/contract_import.txt" 2>&1
 import json, pathlib, sys
 
 p = pathlib.Path(sys.argv[1])
-repo = next((q for q in p.parents if (q / "frontier" / "frontier-query-retrieval").is_dir()), None)
+repo = pathlib.Path(sys.argv[2]).resolve()
+assert (repo / "frontier" / "frontier-query-retrieval").is_dir(), f"bad repo root: {repo}"
+assert (repo / "frontier" / "frontier-query-retrieval" / "INTEGRATION_CONTRACT.json").is_file()
 sys.path.insert(0, str(repo / "frontier" / "frontier-query-retrieval"))
 
 from ocl_adapter import (AdapterConfig, build_candidate_bundle, bundle_summary,

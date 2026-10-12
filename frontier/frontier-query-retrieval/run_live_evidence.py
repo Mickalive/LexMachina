@@ -114,7 +114,18 @@ def run(name: str) -> dict:
     channels = summary["channels"]
     rs = summary["request_summary"]
 
+    # Freshness guard: "live evidence" must actually touch the network. A warm
+    # /tmp cache replayed under a previous run id is stale evidence, not live
+    # evidence (found and fixed in operational resume 38196996329: the top-level
+    # LIVE_* files had been overwritten by a 0-network cache replay that still
+    # carried run_id 38190325825 and a different, older candidate set).
+    # Opt back in explicitly with LEX_ALLOW_CACHE_REPLAY=1 when a cache replay
+    # is genuinely what you want (then the evidence is flagged as such).
+    cache_replayed = rs.get("network_calls", 0) == 0
+    allow_replay = os.environ.get("LEX_ALLOW_CACHE_REPLAY") == "1"
+
     checks = {
+        "A0_fresh_live_network": (not cache_replayed) or allow_replay,
         "A1_runnable_cli_and_modes": True,
         "A2_target_at_least_100": n >= spec["min_candidates"],
         "A3_deterministic_dedupe": bundle["dedupe"].get("strategy") == "canonical_identity_v1"
@@ -140,6 +151,8 @@ def run(name: str) -> dict:
         "bundle_path": str(bundle_path.relative_to(RESULTS.parents[2])),
         "product_bundle_path": str(product_path.relative_to(RESULTS.parents[2])),
         "summary": summary,
+        "cache_dir": str(LIVE_CACHE),
+        "cache_replayed": cache_replayed,
         "search_pages": len(bundle["provenance"]["searches"]),
         "stage_notes": bundle["provenance"]["stage_notes"],
         "failures": bundle["provenance"]["failures"],
@@ -158,6 +171,12 @@ def main(argv=None) -> int:
     args = p.parse_args(argv)
     names = list(SCENARIOS) if args.scenario == "all" else [args.scenario]
 
+    # Attribution rule (operational resume 38196996329): evidence must carry the
+    # id of the run that produced it. A previously accepted run id must never be
+    # the default, or a later re-execution silently re-labels its output as that
+    # older run's claim-bearing evidence.
+    run_id = os.environ.get("LEX_FRONTIER_RUN_ID") or f"unattributed-{int(time.time())}"
+
     runs = []
     for name in names:
         print(f"[live] running scenario {name} ...", flush=True)
@@ -169,8 +188,10 @@ def main(argv=None) -> int:
         "generated_at": time.time(),
         "team_id": "frontier-query-retrieval",
         "charter_version": 2,
-        "run_id": os.environ.get("LEX_FRONTIER_RUN_ID", "38190325825"),
+        "run_id": run_id,
         "base_url": "https://mcp.opencaselaw.ch/api",
+        "cache_dir": str(LIVE_CACHE),
+        "cache_replay_allowed": os.environ.get("LEX_ALLOW_CACHE_REPLAY") == "1",
         "runs": runs,
         "all_runs_pass": all(r["all_checks_pass"] for r in runs),
     }

@@ -4,12 +4,20 @@ Examples::
 
     # live retrieval, 150 candidates, all stages, write bundle + summary
     python3 -m ocl_adapter "Kündigung Mietvertrag Mietrecht" \\
-        --target 150 --out results.json
+        --target 150 --out results/frontier/frontier-query-retrieval/scratch/live.json
 
     # fully offline replay of the recorded fixtures (deterministic)
     python3 -m ocl_adapter "Kündigung Mietvertrag Mietrecht" \\
         --mode offline --cache-dir results/frontier/frontier-query-retrieval/fixtures/cache \\
-        --out offline.json --validate
+        --out results/frontier/frontier-query-retrieval/scratch/offline.json --validate
+
+Output-path rule (see INTEGRATION_CONTRACT.json -> ``scope_safety``): when this
+CLI runs inside a LexMachina repository checkout, ``--out`` / ``--product-bundle``
+targets must stay inside your own lane's namespace (for this team:
+``results/frontier/frontier-query-retrieval/...``) or in a system temp dir.
+Never write ``bundle.json`` at the repository root: the Frontier workflow's
+scope gate rejects the whole run for a single stray file (exit code 4), which
+is what failed runs 38192249068 and 38193491547.
 """
 from __future__ import annotations
 
@@ -43,7 +51,7 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "Offline fixture replay (deterministic, no network): "
             "python3 -m ocl_adapter 'Kündigung Mietvertrag Mietrecht' "
-            "--preset fixtures --out bundle.json --validate"
+            "--preset fixtures --out results/frontier/frontier-query-retrieval/scratch/replay.json --validate"
         ),
     )
     p.add_argument("query", nargs="?", help="Swiss legal question / search query")
@@ -89,9 +97,13 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--hydrate-needs-detail", type=int, default=None,
                    help="also fully fetch the first N candidates flagged needs_detail; default 0")
     p.add_argument("--no-structure", action="store_true", help="skip /structure during hydration")
-    p.add_argument("--out", default=None, help="write the candidate bundle JSON here")
+    p.add_argument("--out", default=None,
+                   help="write the candidate bundle JSON here (inside your lane's "
+                        "namespace when running in a LexMachina checkout; see "
+                        "INTEGRATION_CONTRACT.json scope_safety)")
     p.add_argument("--product-bundle", default=None,
-                   help="also write the accepted product query_result_bundle JSON here")
+                   help="also write the accepted product query_result_bundle JSON here "
+                        "(same output-path rule as --out)")
     p.add_argument("--quiet", action="store_true", help="do not print the summary")
     p.add_argument("--validate", action="store_true",
                    help="validate the produced bundle and exit 4 on failure")
