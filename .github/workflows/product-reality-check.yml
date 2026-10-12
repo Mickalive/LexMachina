@@ -1,0 +1,161 @@
+name: Product Reality Check
+
+on:
+  push:
+    branches:
+      - lab/product
+
+permissions:
+  contents: read
+
+jobs:
+  reality-check:
+    if: contains(github.event.head_commit.message, '[reality-check]')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - slug: rent-default
+            question: "Sous quelles conditions un bailleur peut-il résilier un bail d'habitation pour retard dans le paiement du loyer selon le droit suisse, et quelles exceptions ou limites jurisprudentielles existent ?"
+          - slug: petty-theft-dismissal
+            question: "Un vol de faible valeur commis par un employé justifie-t-il un licenciement immédiat selon l'art. 337 CO ? Quelles circonstances font varier la réponse ?"
+          - slug: corporate-criminal-liability
+            question: "La responsabilité pénale de l'entreprise selon l'art. 102 CP est-elle subsidiaire ou primaire, et pour quelles infractions ? Quelles exigences d'organisation doivent être prouvées ?"
+          - slug: business-judgment-rule
+            question: "Dans quelles conditions le juge suisse s'abstient-il de revoir une décision commerciale d'un conseil d'administration au titre de la business judgment rule, et quelles exceptions ou limites ressortent de la jurisprudence ?"
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: product/requirements-query.txt
+      - name: Install dependencies
+        run: pip install -r product/requirements-query.txt
+      - name: Install current OpenCode
+        shell: bash
+        run: curl --retry 5 --retry-all-errors --retry-delay 15 -fsSL https://opencode.ai/install | bash
+      - name: Run real product question
+        timeout-minutes: 10
+        env:
+          LEX_REPO_ROOT: ${{ github.workspace }}
+          REALITY_QUESTION: ${{ matrix.question }}
+          REALITY_SLUG: ${{ matrix.slug }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import sys
+          import time
+
+          sys.path.insert(0, "product")
+          sys.path.insert(0, ".")
+
+          from query import enrich_query_bundle, run_query_initial
+          from query.bundle import validate_bundle
+          from generative_audit import paths
+
+          paths.DEFAULT_FREE_MODELS[:] = [
+              "opencode/nemotron-3-ultra-free",
+              "opencode/nemotron-3.5-lightning-free",
+              "opencode/space-bunny-free",
+              "opencode/mimo-v2.6-flash-free",
+          ]
+
+          q = os.environ["REALITY_QUESTION"]
+          slug = os.environ["REALITY_SLUG"]
+
+          t0 = time.time()
+          initial = run_query_initial(q, top_n=100, retrieval_mode="live")
+          map_seconds = round(time.time() - t0, 3)
+
+          final = enrich_query_bundle(
+              initial,
+              retrieval_mode="live",
+              evidence_count=10,
+              max_cites=8,
+              fixture_generation=False,
+          )
+          total_seconds = round(time.time() - t0, 3)
+
+          errors = validate_bundle(final)
+          answer = final.get("answer", {})
+          ga = final.get("provenance", {}).get("generative_audit", {})
+          adv = ga.get("adversarial") or {}
+          cited = set(answer.get("cited_decision_ids") or [])
+
+          def compact_decision(d):
+              return {
+                  "decision_id": d.get("decision_id"),
+                  "rank": d.get("rank"),
+                  "citation": d.get("citation"),
+                  "court": d.get("court"),
+                  "language": d.get("language"),
+                  "title": d.get("title"),
+                  "cluster_id": d.get("cluster_id"),
+                  "counter_status": d.get("counter_status"),
+                  "counter_evidence": str(d.get("counter_evidence") or "")[:600],
+                  "snippet": str(d.get("snippet") or "")[:900],
+                  "canonical_url": d.get("canonical_url"),
+              }
+
+          cited_rows = [compact_decision(d) for d in final["decisions"] if d.get("decision_id") in cited]
+          counter_rows = [
+              compact_decision(d)
+              for d in final["decisions"]
+              if d.get("counter_status") in {"candidate-limiting", "candidate-contrary", "limiting", "contrary_or_exception"}
+          ]
+          counter_rows.sort(key=lambda d: (d.get("rank") or 999999))
+
+          cluster_rows = []
+          for c in final.get("clusters", []):
+              cluster_rows.append({
+                  "cluster_id": c.get("cluster_id"),
+                  "label": c.get("label"),
+                  "size": c.get("size"),
+                  "keywords": c.get("keywords"),
+              })
+
+          report = {
+              "slug": slug,
+              "question": q,
+              "map_seconds": map_seconds,
+              "total_seconds": total_seconds,
+              "decision_count": len(final.get("decisions") or []),
+              "cluster_count": len(final.get("clusters") or []),
+              "clusters": cluster_rows,
+              "answer_status": answer.get("status"),
+              "answer_method": answer.get("method"),
+              "answer_model": answer.get("model"),
+              "answer_prose": answer.get("prose"),
+              "cited_decision_ids": answer.get("cited_decision_ids") or [],
+              "cited_decisions": cited_rows,
+              "counter_count": len(counter_rows),
+              "counter_decisions": counter_rows[:12],
+              "provider_error": ga.get("provider_error"),
+              "adversarial_method": adv.get("method"),
+              "adversarial_model": adv.get("model"),
+              "adversarial_error": adv.get("error"),
+              "adversarial_attempts": adv.get("attempts"),
+              "hydration": final.get("provenance", {}).get("evidence_hydration"),
+              "validation_errors": errors,
+          }
+
+          print("LEX_REALITY_CHECK_BEGIN", flush=True)
+          print(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True), flush=True)
+          print("LEX_REALITY_CHECK_END", flush=True)
+
+          assert errors == [], errors
+          assert answer.get("status") == "ready", report
+          assert answer.get("method") == "generative_audit_llm_v2", report
+          assert len(str(answer.get("prose") or "")) >= 120, report
+          assert answer.get("cited_decision_ids"), report
+          ids = {d["decision_id"] for d in final["decisions"]}
+          assert set(answer.get("cited_decision_ids") or []) <= ids, report
+          assert ga.get("provider_error") in (None, ""), report
+          assert adv.get("method") == "independent_llm_adversarial_v2", report
+          assert adv.get("error") in (None, ""), report
+          PY
