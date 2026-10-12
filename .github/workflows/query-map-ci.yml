@@ -107,6 +107,8 @@ jobs:
           # Pin this smoke to models freshly proven healthy by the factory.
           paths.DEFAULT_FREE_MODELS[:] = [
               "opencode/nemotron-3-ultra-free",
+              "opencode/nemotron-3.5-lightning-free",
+              "opencode/space-bunny-free",
               "opencode/mimo-v2.6-flash-free",
           ]
 
@@ -164,7 +166,7 @@ jobs:
           assert (ga.get("adversarial") or {}).get("method") == "independent_llm_adversarial_v2", metrics
           assert metrics["adversarial_error"] in (None, ""), metrics
           assert metrics["adversarial_model"], metrics
-          assert 1 <= int(metrics["adversarial_prompt_decisions"] or 0) <= 36, metrics
+          assert 1 <= int(metrics["adversarial_prompt_decisions"] or 0) <= 24, metrics
           assert int(metrics["adversarial_bundle_decisions"] or 0) == len(final["decisions"]), metrics
           assert metrics["geometry_preserved"] is True, metrics
           PY
