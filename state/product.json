@@ -1,8 +1,8 @@
 {
   "lane": "product",
   "direction_version": 45,
-  "evidence_tier": "INTEGRATION",
-  "cycle_status": "V45_QUERY_MAP_CONVERGENCE",
+  "evidence_tier": "INTEGRATION_VERIFIED",
+  "cycle_status": "V45_QUERY_MAP_INTEGRATED",
   "continue_recommended": true,
   "human_gate_ready": false,
   "product": "query-specific Swiss legal research",
@@ -20,12 +20,34 @@
   "degraded_path": "extractive_tfidf_v1 only when generative provider fails; visibly marked degraded",
   "legacy_174k": "preserved as historical evidence/components; absent from default v45 hot path",
   "verification": {
-    "status": "PENDING_CURRENT_BRANCH_EXECUTION",
-    "target_tests": [
-      "product/tests/test_query_map_mvp.py",
-      "frontier retrieval accepted suite",
-      "frontier generative-audit accepted suite"
-    ]
+    "status": "PASS",
+    "ci_run_id": "38275529752",
+    "product_integration_tests": "9 passed",
+    "retrieval_component_tests": "57 passed",
+    "generative_audit_component_tests": "29 passed",
+    "live_opencaselaw_smoke": {
+      "query": "Kündigung Mietvertrag Mietrecht",
+      "decisions": 118,
+      "clusters": 8,
+      "elapsed_seconds": 21.385,
+      "network_calls": 9,
+      "cache_hits": 0,
+      "languages": {
+        "?": 27,
+        "de": 41,
+        "fr": 25,
+        "it": 25
+      },
+      "channels": {
+        "citation.incoming": 16,
+        "citation.outgoing": 9,
+        "leading_case": 10,
+        "search": 44,
+        "search.language_filter": 71
+      },
+      "degraded": false
+    },
+    "note": "Live smoke now requires >=100 decisions, >=5 network calls, DE/FR/IT presence, search and language-filter channels. This prevents a one-page lexical shortcut from passing as broad retrieval."
   },
   "human_gate_criteria": [
     "one-command local launch",
@@ -37,5 +59,5 @@
     "measured provenance and latency",
     "no 174k startup dependency"
   ],
-  "next_recommendation": "Run the integrated v45 seam, repair only concrete integration failures, then set human_gate_ready=true for owner testing."
+  "next_recommendation": "Merge the verified v45 integration into lab/product. Then Evaluation must benchmark the integrated bundle and the owner must exercise a real live generative query before human_gate_ready can become true."
 }
