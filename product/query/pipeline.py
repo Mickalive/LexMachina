@@ -70,7 +70,14 @@ def _retrieval_config(top_n: int, mode: str) -> AdapterConfig:
     )
 
 
-def _retrieve(\n    query: str,\n    top_n: int,\n    *,\n    mode: str = "live",\n    hydrate_top: int = 0,\n    hydrate_ids: list[str] | None = None,\n) -> dict:
+def _retrieve(
+    query: str,
+    top_n: int,
+    *,
+    mode: str = "live",
+    hydrate_top: int = 0,
+    hydrate_ids: list[str] | None = None,
+) -> dict:
     if mode == "fixture":
         # Frozen OpenCaseLaw envelopes; deterministic and network-free.
         cfg = fixture_config(
@@ -79,11 +86,18 @@ def _retrieve(\n    query: str,\n    top_n: int,\n    *,\n    mode: str = "live"
             max_candidates=min(max(100, top_n), 200),
             stop_when_target_met=False,
         )
-        fixture_hydrate_top = hydrate_top or len(hydrate_ids or [])\n        return replay_fixtures(query, config=cfg, hydrate_top=fixture_hydrate_top)
+        fixture_hydrate_top = hydrate_top or len(hydrate_ids or [])
+        return replay_fixtures(query, config=cfg, hydrate_top=fixture_hydrate_top)
     if mode not in {"live", "offline", "refresh"}:
         raise ValueError(f"unsupported retrieval mode: {mode}")
     cfg = _retrieval_config(top_n, mode)
-    return build_candidate_bundle(\n        query,\n        config=cfg,\n        hydrate_top=hydrate_top,\n        hydrate_ids=hydrate_ids,\n        include_structure=True,\n    )
+    return build_candidate_bundle(
+        query,
+        config=cfg,
+        hydrate_top=hydrate_top,
+        hydrate_ids=hydrate_ids,
+        include_structure=True,
+    )
 
 
 def _candidate_to_product(candidate_bundle: dict) -> dict:
