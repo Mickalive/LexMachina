@@ -1,12 +1,13 @@
-"""Sourced extractive answer (no paid LLM) + independent counter-authority pass.
+"""Explicit degraded fallback for the v45 query product.
 
-Answer: selects sentences from top-ranked decisions covering query terms and
-cites the decision_ids they came from. Every cited id is a real retrieved
-decision; no generative labels beyond what the text supports.
+The normal path is generative-audit contract 2.2: source-constrained generation
+followed by a separate adversarial model pass. This module is used only when
+no generative provider succeeds, so the UI remains useful without pretending
+that the fallback is the target product behavior.
 
-Counter-authority: an INDEPENDENT second retrieval with adversarial expansion
-(negation/exception/limitation vocabulary in DE/FR/IT) against the provisional
-answer, so contrary/minority lines stay visible even when low-ranked.
+Fallback answer: extracts source sentences and cites only retrieved IDs.
+Fallback counter pass: lexical DE/FR/IT exception/limitation retrieval; these
+are candidate signals rather than model-verified legal classifications.
 """
 from __future__ import annotations
 
