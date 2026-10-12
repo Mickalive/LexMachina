@@ -52,6 +52,7 @@ assert Path(generative_audit.__file__).resolve().is_relative_to(CANONICAL.resolv
 from generative_audit.adversarial import (  # noqa: E402
     AdversarialFinding,
     AdversarialPass,
+    MAX_PROMPT_SOURCES,
 )
 from generative_audit.evidence import (  # noqa: E402
     DOWNGRADED_MIN_UNCERTAINTY,
@@ -257,6 +258,91 @@ def test_prompt_constrains_citations():
     assert "Never invent" in prompt
     assert bundle.query in prompt
     print("  PASS: prompt carries bundle IDs + no-invention constraint")
+    return True
+
+
+def test_adversarial_fallback_across_models():
+    """Integration repair: a timeout/error must rotate to another healthy model."""
+    print(">>> test_adversarial_fallback_across_models")
+    bundle = _small_bundle()
+    calls: List[str] = []
+
+    def runner(prompt: str, model: str, timeout: float) -> str:
+        calls.append(model)
+        if model == "free/slow":
+            raise TimeoutError("simulated adversarial timeout")
+        return json.dumps([
+            {
+                "decision_id": "CH-002",
+                "title": "BGE 4A 2",
+                "reason": "limiting",
+                "evidence_refs": ["exceeding two years is presumptively disproportionate"],
+                "uncertainty": 0.2,
+                "confidence": 0.9,
+            }
+        ])
+
+    adv = AdversarialPass(
+        bundle=bundle,
+        answer="The clause is valid [CH-001].",
+        model="free/slow",
+        runner=runner,
+    )
+    adv._fallback_models = lambda exclude=None: ["free/fast"]
+    findings, info = adv.run_with_info()
+
+    assert calls == ["free/slow", "free/fast"]
+    assert [f.decision_id for f in findings] == ["CH-002"]
+    assert info["model"] == "free/fast"
+    assert not info.get("error")
+    assert info["attempts"] and info["attempts"][0]["model"] == "free/slow"
+    print("  PASS: adversarial timeout rotates to healthy fallback")
+    return True
+
+
+def test_adversarial_prompt_shortlist_is_bounded_multilingual_and_counter_aware():
+    """Large bundles must not be dumped wholesale into the adversarial model."""
+    print(">>> test_adversarial_prompt_shortlist_is_bounded_multilingual_and_counter_aware")
+    decisions = []
+    ids = []
+    langs = ("de", "fr", "it")
+    for i in range(90):
+        did = f"CH-LARGE-{i:03d}"
+        ids.append(did)
+        lang = langs[i % len(langs)]
+        text = f"ordinary retrieved authority number {i}"
+        if i % 7 == 0:
+            text += " toutefois exception ausnahme eccezione limiting"
+        decisions.append(
+            Decision(
+                decision_id=did,
+                title=f"Decision {i}",
+                text=text,
+                metadata={"rank": i + 1, "language": lang},
+            )
+        )
+
+    bundle = DecisionBundle(
+        query="large-bundle challenge test",
+        decision_ids=ids,
+        decisions=decisions,
+    )
+    adv = AdversarialPass(
+        bundle=bundle,
+        answer="Provisional answer [CH-LARGE-001].",
+        model="m",
+        fixture_mode=True,
+    )
+    shortlist = adv._prompt_decisions()
+    assert len(shortlist) == MAX_PROMPT_SOURCES
+    assert "CH-LARGE-084" in {d.decision_id for d in shortlist}, (
+        "late-ranked explicit exception authority should survive the shortlist"
+    )
+    langs_kept = {d.metadata.get("language") for d in shortlist}
+    assert {"de", "fr", "it"} <= langs_kept
+    prompt = adv.build_prompt()
+    assert f"{MAX_PROMPT_SOURCES} of 90 retrieved decisions" in prompt
+    print("  PASS: large prompt bounded with counter signals + language branches preserved")
     return True
 
 
@@ -926,6 +1012,8 @@ ALL_TESTS = [
     test_provider_fallback_across_models,
     test_provider_total_failure_is_recorded,
     test_prompt_constrains_citations,
+    test_adversarial_fallback_across_models,
+    test_adversarial_prompt_shortlist_is_bounded_multilingual_and_counter_aware,
     test_adversarial_parse_rejects_unknown_ids,
     test_adversarial_parse_deterministic,
     test_adversarial_prompt_is_independent,
