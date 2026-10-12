@@ -120,3 +120,37 @@ def test_fixture_mode_is_explicit_not_a_live_padding_source():
     pipeline_source = (PRODUCT / "query" / "pipeline.py").read_text(encoding="utf-8")
     assert 'if mode == "fixture"' in pipeline_source
     assert "load_fixture_decisions" not in pipeline_source
+
+
+def test_one_command_server_contract_start_then_enrich():
+    import json
+    import threading
+    import urllib.parse
+    import urllib.request
+    from query_app import make_server
+
+    srv = make_server("127.0.0.1", 0, fixture_mode=True, verbose=False)
+    thread = threading.Thread(target=srv.serve_forever, daemon=True)
+    thread.start()
+    base = f"http://127.0.0.1:{srv.server_address[1]}"
+    try:
+        with urllib.request.urlopen(base + "/api/health", timeout=10) as resp:
+            health = json.loads(resp.read())
+        assert health["ok"] is True
+        assert health["direction_version"] == 45
+
+        url = base + "/api/query/start?" + urllib.parse.urlencode({"q": QUERY, "n": 100})
+        with urllib.request.urlopen(url, timeout=60) as resp:
+            first = json.loads(resp.read())
+        assert first["bundle"]["provenance"]["phase"] == "map_ready"
+        run_id = first["run_id"]
+
+        with urllib.request.urlopen(base + "/api/query/enrich?" + urllib.parse.urlencode({"run_id": run_id}), timeout=60) as resp:
+            second = json.loads(resp.read())
+        assert second["run_id"] == run_id
+        assert second["bundle"]["provenance"]["phase"] == "complete"
+        assert second["bundle"]["answer"]["status"] == "ready"
+    finally:
+        srv.shutdown()
+        srv.server_close()
+        thread.join(timeout=5)
