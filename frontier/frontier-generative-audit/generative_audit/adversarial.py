@@ -193,7 +193,9 @@ class AdversarialPass:
         marker_rows = [
             row for row in sorted(scored, key=lambda x: (-x[0], -x[1], x[2], x[3]))
             if row[0] > 0 and (
-                row[1] >= relevance_floor or normalize_id(row[3]) in cited
+                max_relevance <= 0.0
+                or row[1] >= relevance_floor
+                or normalize_id(row[3]) in cited
             )
         ]
         for _hits, _rel, _rank, _did, dec in marker_rows[: min(8, max_sources)]:
