@@ -159,6 +159,27 @@ def test_fixture_mode_deterministic():
     return True
 
 
+def test_provider_preserves_multi_paragraph_answer():
+    """Regression: structured legal answers must not be truncated at first blank line."""
+    print(">>> test_provider_preserves_multi_paragraph_answer")
+    bundle = _small_bundle()
+    raw = (
+        "**Rule**\n\n"
+        "First proposition [CH-001].\n\n"
+        "**Exception**\n\n"
+        "Second proposition [CH-002]."
+    )
+    p = Provider(model="fixture-model", runner=lambda *_args, **_kwargs: raw, use_attestation=False)
+    result = p._parse_output(raw, bundle, "fixture-model")
+    assert "**Rule**" in result.answer
+    assert "First proposition" in result.answer
+    assert "**Exception**" in result.answer
+    assert "Second proposition" in result.answer
+    assert result.cited_decision_ids == ["CH-001", "CH-002"]
+    print("  PASS: multi-paragraph answer preserved")
+    return True
+
+
 def test_fixture_rejects_invented_cited_ids():
     """Acceptance (2)+(7): fixture cannot smuggle unknown IDs through."""
     print(">>> test_fixture_rejects_invented_cited_ids")
@@ -1035,6 +1056,7 @@ def test_product_compat_uses_accepted_validator():
 ALL_TESTS = [
     test_real_path_fixture_and_contract_surface,
     test_fixture_mode_deterministic,
+    test_provider_preserves_multi_paragraph_answer,
     test_fixture_rejects_invented_cited_ids,
     test_hallucinated_citation_rejection_and_redaction,
     test_redaction_helper_unit,
