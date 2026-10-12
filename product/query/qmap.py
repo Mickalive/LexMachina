@@ -1,6 +1,7 @@
 """Deterministic query-conditioned map over one retrieved decision set."""
 from __future__ import annotations
 
+import html
 import re
 import numpy as np
 
@@ -15,8 +16,7 @@ hanno aveva perché nel cui alle quale quali questo questa questi queste anche t
 deve devono essere ogni dove quando senza sopra sotto dopo prima mentre the and for are with from
 that this have has had were was will bundesgericht tribunal tribunale federale recours beschwerde
 ricorso arrêt urteil sentenza entscheid entscheidung considérant erwägung considerando art gesetz
-loi legge ordonnance verordnung ordinanza code droit recht diritto
-""".split())
+loi legge ordonnance verordnung ordinanza code droit recht diritto mark regeste regesto consid\n""".split())
 
 
 def find_citations(text: str) -> list[str]:
@@ -24,8 +24,11 @@ def find_citations(text: str) -> list[str]:
 
 
 def _body(d: dict) -> str:
-    return str(d.get("full_text") or d.get("regeste") or d.get("snippet")
+    text = str(d.get("full_text") or d.get("regeste") or d.get("snippet")
                or d.get("title") or d.get("citation") or "")
+    text = html.unescape(text)
+    text = re.sub(r"<[^>]+>", " ", text)
+    return " ".join(text.split())
 
 
 def _canonicalise_axes(coords: np.ndarray) -> np.ndarray:
