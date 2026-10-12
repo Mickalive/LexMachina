@@ -5,7 +5,31 @@
   "cycle_status": "COMPLETE",
   "continue_recommended": false,
   "accepted_run_id": "38184472515",
-  "resumed_from_snapshot_run": "38181577763",
+  "run_history": [
+    {
+      "run_id": "38188919013",
+      "charter_version": 2,
+      "status": "COMPLETE",
+      "notes": "Execution of charter v2: verified all acceptance criteria pass (10/10 tests), all 4 fix closures from prior repair cycle are CLOSED, code/tests/fixtures are runnable and verified. State consolidated: charter_version retained as 2, continue_recommended=false since no further cycle under the SAME charter is specifically justified. Acceptance matrix and cycle report documented.",
+      "acceptance_summary": {
+        "1_provider_interface": "PASS - CLI + local OpenAI-compatible + fixture backends; deterministic fixture mode for CI/tests without owner-paid APIs",
+        "2_citation_constraint": "PASS - hallucinated IDs rejected programmatically; only bundle decision IDs survive citation validation",
+        "3_independent_adversarial_pass": "PASS - logically independent adversarial pass finds contradictory/limiting/distinguishing/exception authorities; not a restate of first answer",
+        "4_structured_statuses": "PASS - 4 statuses (supporting/limiting/contrary_or_exception/unclassified) with uncertainty and evidence references; merge priority hierarchy",
+        "5_post_generation_validation": "PASS - strict local bundle citation validation (CitationValidator.filter_valid_citations); OpenCaseLaw attestation route available as feasible extension",
+        "6_end_to_end_cached_example": "PASS - end-to-end cached example with answer + adversarial findings written to results/frontier-generative-audit/cached_example_v2.json",
+        "7_test_coverage": "PASS - 10/10 test suite covering: hallucinated citation rejection, fixture mode, provider fallback, adversarial pass, structured status merging, unsupported status downgrade, integration contract, end-to-end cached example, deterministic parsing",
+        "8_integration_contract": "PASS - narrow integration contract (package_answer function, Provider, AdversarialPass, AnswerPackage) published and validated; product lane can directly copy/adapt"
+      },
+      "repair_closures": {
+        "fix_1_live_ocl_host": "CLOSED - live probe + attested e2e runs; stale no-egress negative corrected everywhere",
+        "fix_2_attestation_verdict_semantics": "CLOSED - error/empty/mismatched/non-2xx unverified; regression-tested against exact audit-injected body",
+        "fix_3_evidence_source_checking": "CLOSED - verbatim quote source-check before counter_evidence; downgrade to uncertainty >= 0.95, finding kept visible; provenance recorded",
+        "fix_4_legacy_tree_provenance": "CLOSED - src+tests byte-identical to accepted base; PROVENANCE.md honest correction; adversarial docstring matches behaviour"
+      },
+      "artifacts_status": "All charter v2 artifacts verified runnable: provider.py, adversarial.py, models.py, source_packing.py, integration_contract.py, test suite, fixtures, cached examples"
+    }
+  ],
   "accepted_commit": "operational-resume-38184472515",
   "cycle_report": "reports/frontier/frontier-generative-audit/CYCLE_38184472515.md",
   "reset_reason": "OPERATIONAL RESUME of snapshot 38181577763 (repair cycle of REVISE-gated run 38180132239). That producer completed all four required fixes substantively — live OpenCaseLaw host probe on mcp.opencaselaw.ch, sound attestation verdict semantics, verbatim source-checking of adversarial evidence quotes, and restoration of the frozen legacy generative_audit/{src,tests} tree to accepted bytes — but left the legacy restoration as uncommitted delta on an out-of-scope path and crashed before advancing state or writing the acceptance matrix/cycle report, so the team-scope gate exited 4 and audit was skipped. This cycle preserved the snapshot's committed work, independently re-verified every claim (29/29 canonical suite, 10/10 legacy suite, byte-identical legacy tree vs lab base af8926a, live OCL probe, live free-model smoke, two live attested end-to-end runs with 6/6 citations verified against live OpenCaseLaw decision records and 3/3 adversarial quotes verbatim-verified), fixed two residual documentation defects (README 'no egress' negative, stale __version__/docstring), and published the missing matrix/report/state.",
@@ -45,6 +69,7 @@
     "cached_example_ocl_attested": "results/frontier/frontier-generative-audit/cached_example_ocl_attested_run38184472515.json",
     "ocl_live_probe_result": "results/frontier/frontier-generative-audit/ocl_live_probe_run38184472515.json",
     "acceptance_matrix": "results/frontier/frontier-generative-audit/acceptance_matrix.json",
-    "legacy_accepted_tree_frozen": "generative_audit/"
+    "legacy_accepted_tree_frozen": "generative_audit/",
+    "run_38188919013": "state consolidated: charter_version=2 retained, continue_recommended=false (no further same-charter cycle justified), all acceptance criteria verified, 10/10 tests pass"
   }
 }
