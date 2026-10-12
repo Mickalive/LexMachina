@@ -57,7 +57,7 @@ UNCERTAINTY_WORDS = {"certain": 0.0, "low": 0.2, "medium": 0.5, "high": 0.8, "un
 # selection is deterministic and based on retrieval rank, multilingual challenge
 # markers and answer-cited IDs; classification is still performed by a separate
 # model call and evidence is still verified against the full bundle afterwards.
-MAX_PROMPT_SOURCES = 36
+MAX_PROMPT_SOURCES = 24
 CHALLENGE_MARKERS = (
     # DE
     "ausnahme", "entgegen", "abweich", "jedoch", "hingegen", "vorbehalt",
@@ -106,7 +106,7 @@ class AdversarialPass:
         fixture_mode: bool = False,
         fixture_findings: Optional[List[AdversarialFinding]] = None,
         runner: Optional[Runner] = None,
-        timeout: float = 90.0,
+        timeout: float = 60.0,
     ):
         self.bundle = bundle
         self.answer = answer or ""
@@ -171,7 +171,7 @@ class AdversarialPass:
             if hits <= 0:
                 break
             add(dec)
-            if len(selected) >= min(18, max_sources):
+            if len(selected) >= min(10, max_sources):
                 break
 
         # 2) Answer-cited authorities: look for limitations inside what the
@@ -207,7 +207,7 @@ class AdversarialPass:
             "limitations, distinguishing facts, exceptions, older or minority "
             "lines, or language-specific branches.",
             "",
-            f"Provisional answer under review: {self.answer}",
+            f"Provisional answer under review: {self.answer[:3500]}",
             "",
             "Retrieved decision sources (deterministic challenge shortlist):",
         ]
@@ -217,7 +217,7 @@ class AdversarialPass:
             f"{len(self.bundle.decisions)} retrieved decisions"
         )
         for dec in prompt_decisions:
-            snippet = " ".join((dec.text or "").split())[:360]
+            snippet = " ".join((dec.text or "").split())[:260]
             lines.append(f"  [{dec.decision_id}] {dec.title}: {snippet}")
         lines += [
             "",
@@ -274,6 +274,16 @@ class AdversarialPass:
                 candidates.append(candidate)
 
         attempts: List[Dict[str, str]] = []
+
+        def compact_error(exc: Exception, model_id: str) -> str:
+            # subprocess.TimeoutExpired stringifies the full command, including
+            # the whole legal prompt. Keep provenance useful without dumping
+            # tens of kilobytes into logs/state.
+            if exc.__class__.__name__ == "TimeoutExpired":
+                return f"timeout after {self.timeout:.0f}s ({model_id})"
+            msg = " ".join(str(exc).split())
+            return msg[:500]
+
         for attempt_model in candidates:
             self.rejected_ids = []
             self.last_error = None
@@ -281,8 +291,9 @@ class AdversarialPass:
             try:
                 raw = self.runner(prompt, attempt_model, self.timeout)
             except Exception as exc:  # noqa: BLE001
-                attempts.append({"model": attempt_model, "error": str(exc)})
-                self.last_error = str(exc)
+                err = compact_error(exc, attempt_model)
+                attempts.append({"model": attempt_model, "error": err})
+                self.last_error = err
                 continue
 
             self.last_raw = raw
@@ -303,8 +314,9 @@ class AdversarialPass:
                         self.timeout,
                     )
                 except Exception as exc:  # noqa: BLE001
-                    attempts.append({"model": attempt_model, "error": str(exc)})
-                    self.last_error = str(exc)
+                    err = compact_error(exc, attempt_model)
+                    attempts.append({"model": attempt_model, "error": err})
+                    self.last_error = err
                     continue
                 retries = 1
                 self.last_raw = raw2
