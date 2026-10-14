@@ -29,6 +29,13 @@ from ocl_adapter.fixtures import fixture_config, replay_fixtures  # noqa: E402
 from generative_audit.integration_contract import run_generative_audit  # noqa: E402
 from generative_audit.adversarial import AdversarialFinding  # noqa: E402
 
+from .audit_seam import apply as _apply_audit_seam  # noqa: E402
+
+# Product-owned knobs (adversarial wall-clock budget + free-model order). The
+# applied configuration is exported into every bundle's provenance so the
+# auditor can verify it instead of inferring it.
+AUDIT_SEAM = _apply_audit_seam()
+
 MIN_LIVE_RESULTS = 100
 MAX_RESULTS = 300
 
@@ -325,6 +332,7 @@ def enrich_query_bundle(
             d["x"], d["y"], d["cluster_id"], d["is_outlier"] = original_geo[d["decision_id"]]
 
     audited.setdefault("provenance", {})["phase"] = "complete"
+    audited["provenance"]["product_audit_seam"] = AUDIT_SEAM
     audited["provenance"]["enrichment_latency_seconds"] = round(time.time() - t0, 3)
     audited["provenance"]["latency_seconds_total"] = round(
         float(initial_bundle.get("provenance", {}).get("latency_seconds") or 0.0)

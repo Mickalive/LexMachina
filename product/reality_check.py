@@ -1,0 +1,354 @@
+#!/usr/bin/env python3
+"""Local pre-validation of the frozen Product Reality Check legs.
+
+Why this exists
+---------------
+``.github/workflows/product-reality-check.yml`` is the durable gate: it only
+runs on a push to ``lab/product`` whose commit message contains
+``[reality-check]``, and a failed leg therefore costs a full GitHub round trip
+plus an audit cycle.  This runner executes the *same* questions and the *same*
+assertions locally so that
+
+  1. a leg can be debugged before it is burned into a durable Actions run;
+  2. the independent auditor can recompute the gate instead of trusting prose;
+  3. failures are recorded as evidence instead of being rediscovered.
+
+Scope honesty: results produced here are LOCAL evidence.  They are written to
+``results/product/reality_check/`` and are never a substitute for the durable
+Actions run; ``state/product.json`` keeps ``durable_green_run_id: null`` until
+one exists.
+
+Gate parity
+-----------
+The question strings and the assertion semantics are copied from
+``product-reality-check.yml`` at the moment this file was written (run
+38554018429, workflow head ``097f00d``).  ``test_reality_check_parity`` in
+``product/tests/test_reality_check.py`` fails if the workflow and this file
+drift apart, so the two cannot silently diverge.
+
+Usage
+-----
+    python product/reality_check.py --slug rent-default            # one leg, live
+    python product/reality_check.py --slug all --mode fixture      # offline structural pass
+    python product/reality_check.py --list
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+import time
+import unicodedata
+from pathlib import Path
+from typing import Any
+
+PRODUCT_ROOT = Path(__file__).resolve().parent
+REPO_ROOT = PRODUCT_ROOT.parent
+for _p in (str(PRODUCT_ROOT), str(REPO_ROOT)):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
+# Frozen questions — byte-identical to the workflow matrix.
+LEGS: dict[str, str] = {
+    "rent-default": (
+        "Sous quelles conditions un bailleur peut-il résilier un bail d'habitation "
+        "pour retard dans le paiement du loyer selon le droit suisse, et quelles "
+        "exceptions ou limites jurisprudentielles existent ?"
+    ),
+    "petty-theft-dismissal": (
+        "Un vol de faible valeur commis par un employé justifie-t-il un licenciement "
+        "immédiat selon l'art. 337 CO ? Quelles circonstances font varier la réponse ?"
+    ),
+    "corporate-criminal-liability": (
+        "La responsabilité pénale de l'entreprise selon l'art. 102 CP est-elle "
+        "subsidiaire ou primaire, et pour quelles infractions ? Quelles exigences "
+        "d'organisation doivent être prouvées ?"
+    ),
+    "business-judgment-rule": (
+        "Dans quelles conditions le juge suisse s'abstient-il de revoir une décision "
+        "commerciale d'un conseil d'administration au titre de la business judgment "
+        "rule, et quelles exceptions ou limites ressortent de la jurisprudence ?"
+    ),
+}
+
+
+def norm(value: Any) -> str:
+    """NFKD + strip diacritics + casefold + collapse whitespace (workflow parity)."""
+    value = unicodedata.normalize("NFKD", str(value or ""))
+    value = "".join(ch for ch in value if not unicodedata.combining(ch))
+    return " ".join(value.casefold().split())
+
+
+class GateFailure(Exception):
+    """Raised by the workflow-style assertions; carries the report payload."""
+
+
+def _require(condition: bool, report: dict, message: str) -> None:
+    if not condition:
+        raise GateFailure(message or "assertion failed")
+
+
+def structural_gates(report: dict) -> None:
+    """Assertions that run for every leg before the substantive truth gates."""
+    final = report["bundle"]
+    answer = final.get("answer", {})
+    ga = final.get("provenance", {}).get("generative_audit", {}) or {}
+    adv = ga.get("adversarial") or {}
+    errors = report["validation_errors"]
+    _require(errors == [], report, f"bundle validation errors: {errors}")
+    _require(answer.get("status") == "ready", report, "answer status not ready")
+    _require(answer.get("method") == "generative_audit_llm_v2", report,
+             f"unexpected answer method: {answer.get('method')}")
+    _require(len(str(answer.get("prose") or "")) >= 120, report, "answer prose too short")
+    _require(bool(answer.get("cited_decision_ids")), report, "answer cites nothing")
+    ids = {d["decision_id"] for d in final["decisions"]}
+    _require(set(answer.get("cited_decision_ids") or []) <= ids, report,
+             "answer cites ids outside the bundle")
+    _require(ga.get("provider_error") in (None, ""), report,
+             f"provider error: {ga.get('provider_error')}")
+    _require(adv.get("method") == "independent_llm_adversarial_v2", report,
+             f"adversarial method: {adv.get('method')}")
+    _require(adv.get("error") in (None, ""), report, f"adversarial error: {adv.get('error')}")
+
+
+def truth_gates(slug: str, report: dict) -> None:
+    """Substantive Swiss-law truth gates — workflow parity, one branch per slug."""
+    final = report["bundle"]
+    answer = final.get("answer", {})
+    prose = norm(answer.get("prose"))
+    cited_ids = set(answer.get("cited_decision_ids") or [])
+    ids = {d["decision_id"] for d in final["decisions"]}
+
+    if slug == "rent-default":
+        _require("30" in prose, report, "missing Art. 257d(2) 30-day notice period")
+        _require(
+            "fin d'un mois" in prose
+            or "fin d’un mois" in prose
+            or "fin de mois" in prose
+            or "fin du mois" in prose
+            or "ende eines monats" in prose,
+            report,
+            "missing Art. 257d(2) residential termination notice period",
+        )
+        _require(
+            "abus" in prose or "bonne foi" in prose or "rechtsmissbrauch" in prose,
+            report,
+            "missing jurisprudential limitation / good-faith branch",
+        )
+
+    elif slug == "corporate-criminal-liability":
+        _require("subsidi" in prose, report, "missing Art. 102(1) subsidiary branch")
+        _require(
+            "responsabilite primaire" in prose or "originar" in prose,
+            report,
+            "missing Art. 102(2) primary/original liability",
+        )
+        _require("ne cree pas une responsabilite primaire" not in prose, report,
+                 "answer reverses the Federal Supreme Court's Art. 102(2) classification")
+        _require(bool(cited_ids & {"bge_BGE_142_IV_333", "bger_6B_124_2016"}), report,
+                 "answer must use direct Federal Supreme Court Art. 102(2) authority")
+
+    elif slug == "business-judgment-rule":
+        _require("information" in prose, report, "missing adequate-information criterion")
+        _require("conflit" in prose or "interessenkonflikt" in prose, report,
+                 "missing conflict-of-interest criterion")
+        _require(
+            "retenue" in prose or "zuruckhaltung" in prose or "deference" in prose
+            or "abstient" in prose or "abstenir" in prose,
+            report,
+            "missing judicial-restraint proposition",
+        )
+        _require(bool(cited_ids & {
+            "bger_4A_219_2015", "bger_4A_259_2016", "bger_4A_626_2013",
+            "bger_4A_603_2014", "bger_4A_62_2024",
+        }), report, "answer must cite direct Federal Supreme Court BJR authority")
+
+    elif slug == "petty-theft-dismissal":
+        direct = {"bger_4A_228_2015", "bger_4A_177_2017"}
+        _require(bool(ids & direct), report,
+                 "retrieval missed direct Federal Supreme Court petty-theft authority")
+        _require(bool(cited_ids & direct), report,
+                 "answer ignored direct Federal Supreme Court petty-theft authority")
+        _require(
+            "faible valeur" in prose or "geringfug" in prose or "bagatell" in prose,
+            report,
+            "answer does not address the low-value fact pattern",
+        )
+    else:
+        raise GateFailure(f"unknown slug {slug}")
+
+
+def evaluate(slug: str, report: dict) -> list[dict]:
+    """Run all gates, returning an ordered list of per-gate outcomes."""
+    results: list[dict] = []
+
+    def step(name: str, fn) -> None:
+        try:
+            fn()
+            results.append({"gate": name, "passed": True, "detail": ""})
+        except GateFailure as exc:
+            results.append({"gate": name, "passed": False, "detail": str(exc)})
+
+    step("structural", lambda: structural_gates(report))
+    if results[-1]["passed"]:
+        step(f"truth::{slug}", lambda: truth_gates(slug, report))
+    else:
+        results.append({"gate": f"truth::{slug}", "passed": False,
+                        "detail": "skipped: structural gates failed"})
+    return results
+
+
+def run_leg(slug: str, mode: str, top_n: int, evidence_count: int, max_cites: int) -> dict:
+    from query import enrich_query_bundle, run_query_initial
+    from query.bundle import validate_bundle
+
+    question = LEGS[slug]
+    fixture_generation = mode == "fixture"
+    retrieval_mode = "fixture" if fixture_generation else "live"
+
+    t0 = time.time()
+    initial = run_query_initial(question, top_n=top_n, retrieval_mode=retrieval_mode)
+    map_seconds = round(time.time() - t0, 3)
+    final = enrich_query_bundle(
+        initial,
+        retrieval_mode=retrieval_mode,
+        evidence_count=evidence_count,
+        max_cites=max_cites,
+        fixture_generation=fixture_generation,
+    )
+    total_seconds = round(time.time() - t0, 3)
+
+    answer = final.get("answer", {})
+    ga = final.get("provenance", {}).get("generative_audit", {}) or {}
+    adv = ga.get("adversarial") or {}
+    cited = set(answer.get("cited_decision_ids") or [])
+    counters = [
+        d for d in final["decisions"]
+        if d.get("counter_status") in {"candidate-limiting", "candidate-contrary",
+                                       "candidate-distinguishing", "candidate-exception"}
+    ]
+
+    report: dict[str, Any] = {
+        "slug": slug,
+        "mode": mode,
+        "question": question,
+        "map_seconds": map_seconds,
+        "total_seconds": total_seconds,
+        "validation_errors": validate_bundle(final),
+        "decision_count": len(final["decisions"]),
+        "cluster_count": len(final["clusters"]),
+        "answer_status": answer.get("status"),
+        "answer_method": answer.get("method"),
+        "answer_model": answer.get("model"),
+        "answer_prose": answer.get("prose"),
+        "cited_decision_ids": sorted(cited),
+        "counter_count": len(counters),
+        "provider_error": ga.get("provider_error"),
+        "adversarial_method": adv.get("method"),
+        "adversarial_model": adv.get("model"),
+        "adversarial_error": adv.get("error"),
+        "adversarial_attempts": adv.get("attempts"),
+        "adversarial_prompt_decisions": adv.get("prompt_decisions"),
+        "adversarial_bundle_decisions": adv.get("bundle_decisions"),
+        "product_audit_seam": (final.get("provenance") or {}).get("product_audit_seam"),
+        "bundle": final,
+    }
+    return report
+
+
+def strip_bundle(report: dict) -> dict:
+    """Drop the heavy decision payload; keep everything a reviewer needs."""
+    out = {k: v for k, v in report.items() if k != "bundle"}
+    final = report.get("bundle") or {}
+    out["cited_decisions"] = [
+        {
+            "decision_id": d.get("decision_id"),
+            "rank": d.get("rank"),
+            "citation": d.get("citation"),
+            "language": d.get("language"),
+            "counter_status": d.get("counter_status"),
+            "canonical_url": d.get("canonical_url"),
+            "snippet": str(d.get("snippet") or "")[:400],
+        }
+        for d in final.get("decisions", [])
+        if d.get("decision_id") in set(report.get("cited_decision_ids") or [])
+    ]
+    out["clusters"] = [
+        {"cluster_id": c.get("cluster_id"), "label": c.get("label"), "size": c.get("size")}
+        for c in final.get("clusters", [])
+    ]
+    return out
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--slug", default="rent-default",
+                        help="leg name or 'all' (default: rent-default)")
+    parser.add_argument("--mode", choices=("live", "fixture"), default="live")
+    parser.add_argument("--top-n", type=int, default=100)
+    parser.add_argument("--evidence-count", type=int, default=10)
+    parser.add_argument("--max-cites", type=int, default=8)
+    parser.add_argument("--out", default=str(REPO_ROOT / "results" / "product" / "reality_check"))
+    parser.add_argument("--list", action="store_true", help="print frozen legs and exit")
+    args = parser.parse_args(argv)
+
+    if args.list:
+        for slug, question in LEGS.items():
+            print(f"{slug}\t{question}")
+        return 0
+
+    slugs = list(LEGS) if args.slug == "all" else [args.slug]
+    unknown = [s for s in slugs if s not in LEGS]
+    if unknown:
+        print(f"unknown slug(s): {unknown}; known: {list(LEGS)}", file=sys.stderr)
+        return 2
+
+    out_dir = Path(args.out)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+
+    summary = {
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "mode": args.mode,
+        "local_evidence_only": True,
+        "durable_run_required": "product-reality-check.yml on lab/product with [reality-check]",
+        "legs": [],
+    }
+    exit_code = 0
+    for slug in slugs:
+        print(f"== reality leg: {slug} (mode={args.mode}) ==", flush=True)
+        try:
+            report = run_leg(slug, args.mode, args.top_n, args.evidence_count, args.max_cites)
+            gates = evaluate(slug, report)
+        except Exception as exc:  # keep negative results as evidence
+            report = {"slug": slug, "mode": args.mode, "question": LEGS[slug],
+                      "fatal_error": f"{type(exc).__name__}: {exc}"}
+            gates = [{"gate": "run", "passed": False, "detail": report["fatal_error"]}]
+        passed = all(g["passed"] for g in gates)
+        exit_code = exit_code or (0 if passed else 1)
+        slim = strip_bundle(report) if "bundle" in report else dict(report)
+        slim["gates"] = gates
+        slim["leg_passed"] = passed
+        slim["evidence_tier"] = "LOCAL_NOT_DURABLE"
+        path = out_dir / f"{slug}_{args.mode}_{stamp}.json"
+        path.write_text(json.dumps(slim, ensure_ascii=False, indent=2, sort_keys=True),
+                        encoding="utf-8")
+        summary["legs"].append({"slug": slug, "passed": passed, "gates": gates,
+                                "report": str(path.relative_to(REPO_ROOT))})
+        for g in gates:
+            mark = "PASS" if g["passed"] else "FAIL"
+            print(f"   [{mark}] {g['gate']}" + (f" — {g['detail']}" if g["detail"] else ""),
+                  flush=True)
+
+    summary_path = out_dir / f"summary_{args.mode}_{stamp}.json"
+    summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True),
+                            encoding="utf-8")
+    print(f"\nwrote {summary_path.relative_to(REPO_ROOT)}")
+    print(f"overall: {'PASS' if exit_code == 0 else 'FAIL'} (local evidence; "
+          f"a durable Actions run is still required)")
+    return exit_code
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

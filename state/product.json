@@ -1,77 +1,122 @@
 {
   "lane": "product",
-  "direction_version": 48,
-  "evidence_tier": "LIVE_E2E_VERIFIED",
-  "cycle_status": "V45_QUERY_MAP_MACHINE_GATE_GREEN",
-  "continue_recommended": false,
+  "direction_version": 49,
+  "cycle_status": "MVP_VERTICAL_SLICE_VERIFIED_LOCAL_REALITY_GATE_PENDING_DURABLE_RUN",
+  "continue_recommended": true,
   "human_gate_ready": false,
-  "product": "query-specific Swiss legal research",
+  "machine_gate_ready": false,
+  "evidence_tier": "LOCAL_VERIFIED_PENDING_DURABLE_RUN",
+  "product": "query-specific Swiss legal research: broad OpenCaseLaw retrieval -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map",
+  "state_updated_by_run": 38554018429,
+  "state_updated_from_resumed_snapshot_run": 38548957828,
+  "state_updated_at": "2026-10-14",
+  "supersedes_claims": {
+    "removed_claim": "V45_QUERY_MAP_MACHINE_GATE_GREEN / LIVE_E2E_VERIFIED",
+    "reason": "Pre-red claim was written 2026-10-12T18:27:34Z, before the contradicting reality checks at 19:11-19:21Z, and cited run ids that now return HTTP 404. It is no longer current status and is not re-asserted anywhere in this state.",
+    "prior_direction_version": 48
+  },
+  "run_id_policy": {
+    "rule": "Cite a GitHub run id only after snapshotting {run_id, head_sha, conclusion, created_at} from the GitHub REST API in this state file; ids that do not resolve are listed under unresolvable_run_ids and are never presented as latest/verified evidence.",
+    "verified_at": "2026-10-14 via https://api.github.com/repos/Mickalive/LexMachina/actions/runs/{id} (unauthenticated, HTTP 200/404 recorded)"
+  },
+  "verified_runs": [
+    {
+      "run_id": 38295955819,
+      "head_sha": "3081b65bac30239304fcf156834f569f9a707122",
+      "conclusion": "success",
+      "created_at": "2026-10-12T19:11:14Z",
+      "head_branch": "lab/product",
+      "note": "Only all-green Product Reality Check run, but it contains structural asserts only; the substantive Swiss-law truth gates added in f7994a3 were not yet in force."
+    },
+    {
+      "run_id": 38296709657,
+      "head_sha": "65b28198bb058577424b996012352cfe00b0c89c",
+      "conclusion": "failure",
+      "created_at": "2026-10-12T19:17:54Z",
+      "head_branch": "lab/product",
+      "note": "3/4 matrix legs failed."
+    },
+    {
+      "run_id": 38297155377,
+      "head_sha": "7cb314285b08814ba5af62a463ac733156e0561b",
+      "conclusion": "failure",
+      "created_at": "2026-10-12T19:21:54Z",
+      "head_branch": "lab/product",
+      "note": "Latest reality check at lab/product HEAD (7cb3142). rent-default leg failed; substantive truth gates have never passed 4/4."
+    },
+    {
+      "run_id": 38543277176,
+      "head_sha": "876a61650618d13e00085990c28faa6c9039680a",
+      "conclusion": "failure",
+      "created_at": "2026-10-14T09:33:57Z",
+      "head_branch": "main",
+      "note": "Core product cycle. team job failed at 'Run lane cycle' (step 6); audit/integrate skipped."
+    },
+    {
+      "run_id": 38548957828,
+      "head_sha": "f334bb298e14cb7ec84d984ef1078fa74ece588d",
+      "conclusion": "failure",
+      "created_at": "2026-10-14T10:21:08Z",
+      "head_branch": "main",
+      "note": "Producer work itself succeeded (step 6 success); team job failed at step 7 'Validate active MVP producer state' because this file still said direction_version 48. Team snapshot persisted on cycle/core/product/38548957828/team and is the base of the present operational resume."
+    }
+  ],
+  "unresolvable_run_ids": {
+    "ids": [38290597414, 38275529752, 38204133740, 38215168853, 38185297811],
+    "status": "HTTP 404 after housekeeper pruning",
+    "consequence": "Any prior claim that depended on them (including 'LIVE_E2E_VERIFIED with run 38290597414') is withdrawn, not merely relabelled."
+  },
+  "reality_check_status": {
+    "workflow": "product-reality-check.yml (push to lab/product with [reality-check])",
+    "frozen_legs": ["rent-default", "petty-theft-dismissal", "corporate-criminal-liability", "business-judgment-rule"],
+    "last_durable_run": {
+      "run_id": 38297155377,
+      "head_sha": "7cb314285b08814ba5af62a463ac733156e0561b",
+      "conclusion": "failure",
+      "created_at": "2026-10-12T19:21:54Z",
+      "matrix_result": "3/4 success; rent-default leg failed"
+    },
+    "outcome_log_2026_10_12": [
+      {"run_id": 38295955819, "created_at": "2026-10-12T19:11:14Z", "conclusion": "success", "detail": "structural asserts only"},
+      {"run_id": 38296709657, "created_at": "2026-10-12T19:17:54Z", "conclusion": "failure", "detail": "3/4"},
+      {"run_id": 38297155377, "created_at": "2026-10-12T19:21:54Z", "conclusion": "failure", "detail": "3/4, rent-default leg"}
+    ],
+    "substantive_4_of_4_green": false,
+    "blocking_leg": "rent-default (Art. 257d(2) residential termination): the answer must state the 30-day/end-of-month notice rule AND the good-faith/Rechtsmissbrauch limitation",
+    "durable_green_run_id": null
+  },
+  "orchestration_failure_diagnosis": {
+    "resumed_run": 38548957828,
+    "failing_step": "Validate active MVP producer state",
+    "failing_assertion": "jq '.direction_version == 49 and .cycle_status != \"INITIALIZED\"' on state/product.json",
+    "root_cause": "The producer wrote its direction-v49 state to product/state/product.json while the workflow validates state/product.json, which still carried direction_version 48 and the withdrawn V45_QUERY_MAP_MACHINE_GATE_GREEN claim.",
+    "consequence": "team job -> failure, audit + integrate skipped, resilience dispatched the operational resume (present run 38554018429).",
+    "secondary_risk_noted": "Earlier cycles also wrote outside product scope (frontier/frontier-generative-audit/generative_audit/provider.py and results/frontier/frontier-query-retrieval/cache/*). Those writes are already persisted in the snapshot; 'Enforce lane write scope' only inspects pending changes, so they cannot be cleaned without tripping the scope check in the same run. They are recorded here as pre-existing snapshot content, not as current-cycle work."
+  },
   "normal_path": {
-    "retrieval": "frontier-query-retrieval/v2",
-    "initial_map": "query-conditioned TF-IDF/SVD/KMeans rendered before generation",
-    "generation_and_counter": "frontier-generative-audit/contract-2.2",
-    "ui": "progressive start -> map -> enrich answer/counter statuses"
+    "retrieval": "frontier-query-retrieval/v2 (OCL adapter) behind product/query/retrieval.py",
+    "initial_map": "query-conditioned TF-IDF + SVD + KMeans rendered before generation",
+    "generation_and_counter": "frontier-generative-audit contract 2.2 (independent adversarial pass)",
+    "ui": "product/static/query.html progressive start -> map -> enrich answer/counter statuses"
   },
   "source_policy": {
     "live": "https://mcp.opencaselaw.ch/api via accepted adapter",
     "fixtures": "offline/test only; never merged into live results",
-    "canonical_urls": "mcp.opencaselaw.ch decision URLs"
+    "canonical_urls": "mcp.opencaselaw.ch decision URLs",
+    "external_spend": "none; free OpenCode models and public OpenCaseLaw endpoints only"
   },
-  "degraded_path": "extractive_tfidf_v1 only when generative provider fails; visibly marked degraded",
-  "legacy_174k": "preserved as historical evidence/components; absent from default v45 hot path",
   "verification": {
-    "status": "PASS",
-    "ci_run_id": "38275529752",
-    "product_integration_tests": "9 passed",
-    "retrieval_component_tests": "57 passed",
-    "generative_audit_component_tests": "32 passed",
-    "live_opencaselaw_smoke": {
-      "query": "Kündigung Mietvertrag Mietrecht",
-      "decisions": 118,
-      "clusters": 8,
-      "elapsed_seconds": 21.385,
-      "network_calls": 9,
-      "cache_hits": 0,
-      "languages": {
-        "?": 27,
-        "de": 41,
-        "fr": 25,
-        "it": 25
-      },
-      "channels": {
-        "citation.incoming": 16,
-        "citation.outgoing": 9,
-        "leading_case": 10,
-        "search": 44,
-        "search.language_filter": 71
-      },
-      "degraded": false
-    },
-    "note": "Live smoke now requires >=100 decisions, >=5 network calls, DE/FR/IT presence, search and language-filter channels. This prevents a one-page lexical shortcut from passing as broad retrieval.",
-    "latest_ci_run_id": "38290597414",
-    "live_integrated_generative_smoke": {
-      "run_id": "38290597414",
-      "query": "Kündigung Mietvertrag Mietrecht",
-      "decisions": 118,
-      "clusters": 8,
-      "answer_status": "ready",
-      "answer_method": "generative_audit_llm_v2",
-      "answer_model": "opencode/nemotron-3-ultra-free",
-      "citations": 9,
-      "counter_decisions": 16,
-      "provider_error": null,
-      "adversarial_method": "independent_llm_adversarial_v2",
-      "adversarial_model": "opencode/space-bunny-free",
-      "adversarial_error": null,
-      "adversarial_prompt_decisions": 24,
-      "adversarial_bundle_decisions": 118,
-      "adversarial_attempts": [],
-      "geometry_preserved": true,
-      "elapsed_seconds": 174.942,
-      "previous_verified_elapsed_seconds": 209.487,
-      "latency_improvement_seconds": 34.545,
-      "conclusion": "PASS: strict live retrieval + map + evidence hydration + sourced generation + independent adversarial pass completed without provider/adversarial error or adversarial fallback; bundle valid and geometry stable."
-    }
+    "status": "PASS (local, deterministic)",
+    "verified_on": "2026-10-14 (run 38554018429 workspace)",
+    "product_integration_tests": "11 passed (pytest product/tests/test_query_map_mvp.py)",
+    "retrieval_component_tests": "57 passed (unittest tests/frontier/frontier-query-retrieval)",
+    "generative_audit_component_tests": "34 passed (pytest tests/frontier/frontier-generative-audit/test_generative_audit_v2.py)",
+    "evidence_reports": [
+      "reports/product/CYCLE_38554018429_RESUME.md",
+      "results/product/reality_check/"
+    ],
+    "durable_actions_run": null,
+    "durable_run_note": "No durable green Actions run exists yet; the team job has no GH_TOKEN, so a durable run can only be produced by pushing [reality-check] to lab/product through the normal audit+integrate chain. Local results are labelled local and are not presented as CI evidence."
   },
   "human_gate_criteria": [
     "one-command local launch",
@@ -81,10 +126,9 @@
     "independent counter-authority pass updates the existing map",
     "offline deterministic tests",
     "measured provenance and latency",
-    "no 174k startup dependency"
+    "no 174k startup dependency",
+    "durable Product Reality Check 4/4 green"
   ],
-  "next_recommendation": "STOP autonomous engineering. Machine gate is green. The next useful evidence is a real owner/jurist product session on several legal questions; reopen Product/Evaluation only for a concrete failure observed there.",
-  "machine_gate_ready": true,
-  "human_gate_note": "Not yet human_gate_ready: machine verification is complete, but the product hypothesis is whether a jurist finds the map/counter-authority layer materially better than answer + ranked list.",
+  "next_recommendation": "Keep continuing. Next deltas in order: (1) durable Product Reality Check 4/4 green via the audit+integrate chain, starting with the rent-default truth gates (30-day/end-of-month notice rule plus good-faith/Rechtsmissbrauch limitation); (2) local live end-to-end run recorded under results/product/reality_check/ to pre-validate the legs before the durable dispatch; (3) owner/jurist map-vs-list session once a durable green exists.",
   "integration_origin_direction_version": 45
 }
