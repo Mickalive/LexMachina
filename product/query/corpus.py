@@ -39,8 +39,14 @@ def load_fixture_decisions() -> list[dict]:
 def ocl_live_search(query: str, limit: int = 150, timeout: int = 45) -> tuple[list[dict], str]:
     """Live search through the accepted adapter and verified mcp.opencaselaw.ch API."""
     target = max(1, min(300, int(limit)))
+    # Product-owned cache root: a live run must never create files in another
+    # lane's directory (Enforce lane write scope failed run 38575541439 that
+    # way).  Same content-addressed format, product path only.
+    from .cache_path import product_cache_dir
+
     cfg = AdapterConfig(
         mode="live",
+        cache_dir=str(product_cache_dir()),
         target=target,
         max_candidates=target,
         timeout=float(timeout),

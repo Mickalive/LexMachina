@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from .answer import build_answer, counter_authority_pass
+from .answer_contract import ensure_coverage
 from .bundle import build_bundle, validate_bundle
 from .qmap import build_map
 from .relevance import rerank_product_bundle
@@ -20,6 +21,9 @@ from .relevance import rerank_product_bundle
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RETRIEVAL_ROOT = REPO_ROOT / "frontier" / "frontier-query-retrieval"
 GENAUDIT_ROOT = REPO_ROOT / "frontier" / "frontier-generative-audit"
+
+from .cache_path import product_cache_dir  # noqa: E402  (scope-safe cache root)
+
 for _p in (RETRIEVAL_ROOT, GENAUDIT_ROOT):
     if _p.is_dir() and str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
@@ -60,6 +64,7 @@ def _retrieval_config(top_n: int, mode: str) -> AdapterConfig:
     page = max(25, min(50, top_n // 4))
     return AdapterConfig(
         mode=mode,
+        cache_dir=str(product_cache_dir()),
         target=top_n,
         max_candidates=pool_cap,
         page_size=page,
@@ -321,6 +326,15 @@ def enrich_query_bundle(
         audited["answer"]["status"] = "ready"
     except Exception as exc:
         audited = _extractive_degraded_fallback(work, f"{type(exc).__name__}: {exc}", max_cites=max_cites)
+
+    # Answer-completeness contract: the model intermittently dropped the
+    # Art. 257d(2) effective-dating condition (see results/product/reality_check/
+    # 20261014T14{04,22,24}*).  Fill omitted conditions with verbatim sentences
+    # from decisions already in the bundle — never with invented text — and
+    # export the intervention into provenance for the auditor.
+    coverage = ensure_coverage(audited)
+    if coverage.get("changed"):
+        audited["provenance"]["answer_coverage"] = coverage
 
     # The adversarial/generative stage must never move the already visible map.
     original_geo = {
