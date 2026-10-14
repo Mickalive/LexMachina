@@ -27,6 +27,11 @@ withdrawn ``V45_QUERY_MAP_MACHINE_GATE_GREEN`` claim happened.  This module:
    the run's ``head_sha`` matches the lab branch the summary was produced from;
 4. never touches ``human_gate_ready`` — that flag is the owner's to earn.
 
+Per-job conclusions (``team`` / ``audit`` / ``integrate`` / ``resilience``) are
+recorded alongside the run so the promotion chain is checkable: the v50 stall
+was caused by a green team job whose ``integrate`` never ran, and a run-level
+``conclusion: success`` alone would not have shown that distinction.
+
 Usage
 -----
     python product/ci_run_evidence.py --run-id 38600271324 --apply
@@ -94,6 +99,31 @@ def observe_run(run_id: int | str, repo: str = DEFAULT_REPO, fetch: Fetch = http
         "workflow": (payload.get("path") or (payload.get("workflow_url") or "").rsplit("/", 1)[-1]),
         "source": url,
     }
+
+
+def observe_jobs(run_id: int | str, repo: str = DEFAULT_REPO, fetch: Fetch = http_fetch) -> dict:
+    """Return ``{job name: conclusion}`` for one run's jobs.
+
+    The v50 blocker was never the product work: the lane stalled because the
+    audit job died on a misplaced gate file and ``integrate`` was skipped, so
+    ``lab/product`` stopped advancing.  A green team job alone therefore does not
+    tell a reader whether the promotion chain actually completed.  Recording the
+    per-job conclusions makes that fact machine-checkable instead of narrative.
+    A failure to read jobs (HTTP != 200) is never fatal: partial evidence must
+    not block recording the run observation itself.
+    """
+    url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/jobs?per_page=100"
+    try:
+        status, payload = fetch(url)
+    except Exception:  # pragma: no cover - network resilience, never fatal
+        return {}
+    if status != 200 or not isinstance(payload, dict):
+        return {}
+    jobs: dict[str, Any] = {}
+    for job in payload.get("jobs") or []:
+        if isinstance(job, dict) and job.get("name"):
+            jobs[str(job["name"])] = job.get("conclusion")
+    return jobs
 
 
 def find_summary(run_id: int | str, summary_dir: Path = DEFAULT_SUMMARY_DIR) -> Path | None:
@@ -182,6 +212,7 @@ def update_state(
     *,
     summary_path: str | None = None,
     unresolved: bool = False,
+    jobs: dict | None = None,
 ) -> dict:
     """Return a new state dict with the observation and gate decision applied."""
     out = json.loads(json.dumps(state))  # deep copy without importing copy for clarity
@@ -212,6 +243,13 @@ def update_state(
         entry["legs_complete"] = summary.get("legs_complete")
         entry["all_legs_passed"] = summary.get("all_legs_passed")
         entry["execution"] = summary.get("execution")
+    if jobs:
+        entry["jobs"] = dict(jobs)
+        entry["promotion_chain_green"] = bool(
+            jobs.get("team") == "success"
+            and jobs.get("audit") == "success"
+            and jobs.get("integrate") == "success"
+        )
 
     runs = [r for r in out["verified_runs"] if r.get("run_id") != entry["run_id"]]
     runs.append(entry)
@@ -283,9 +321,11 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     observation["observed_at"] = observed_at
+    jobs = observe_jobs(run_id, args.repo)
+    observation["jobs"] = jobs
     summary_path = find_summary(run_id, Path(args.summary_dir))
     summary = load_summary(summary_path)
-    new_state = update_state(state, observation, summary,
+    new_state = update_state(state, observation, summary, jobs=jobs or None,
                              summary_path=(str(summary_path.relative_to(REPO_ROOT))
                                            if summary_path and summary_path.is_absolute()
                                            and str(summary_path).startswith(str(REPO_ROOT))
@@ -299,6 +339,7 @@ def main(argv: list[str] | None = None) -> int:
         "status": observation.get("status"),
         "head_sha": observation.get("head_sha"),
         "created_at": observation.get("created_at"),
+        "jobs": jobs,
         "summary": str(summary_path) if summary_path else None,
         "machine_gate_ready": new_state.get("machine_gate_ready"),
         "machine_gate_reasons": decision.get("reasons"),

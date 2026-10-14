@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LexMachina — Carte jurisprudentielle</title>
+<!-- Accepted frontier-human-gate-harness assets (byte-identical copies of
+     frontier/frontier-human-gate-harness/static/lex_gate_switch.{js,css};
+     sha256 38d4b20f... / 1a8cf486..., verified by product/tests/test_human_gate_integration.py).
+     The switch renders the conventional ranked-list baseline from the SAME
+     already-loaded bundle, so list vs map comparison is a view change, never a
+     re-retrieval. -->
+<link rel="stylesheet" href="/static/lex_gate_switch.css">
 <style>
 :root{font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:#17191f;background:#f5f6f8}
 *{box-sizing:border-box}body{margin:0;height:100vh;display:grid;grid-template-columns:390px 1fr;overflow:hidden}
@@ -19,6 +26,9 @@ h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#737b88;ma
 #toolbar{height:54px;background:#fff;border-bottom:1px solid #e2e5ea;display:flex;gap:7px;align-items:center;padding:9px 12px}
 #toolbar input{border:1px solid #d7dbe2;border-radius:7px;padding:7px;width:220px}#toolbar select{border:1px solid #d7dbe2;border-radius:7px;padding:7px}
 #mapWrap{position:relative;flex:1;min-height:0}canvas{width:100%;height:100%;display:block;background:#fafbfc}
+/* host sizing for the accepted baseline list view (the harness styles it as a
+   scrolling pane; inside this flex column it must claim the same row as #mapWrap) */
+#lexListView{flex:1;min-height:0}
 #detail{position:absolute;right:14px;top:14px;width:min(360px,45%);max-height:calc(100% - 28px);overflow:auto;background:rgba(255,255,255,.98);border:1px solid #d9dde5;border-radius:10px;padding:13px;box-shadow:0 8px 30px rgba(20,25,35,.12);display:none;font-size:12px;line-height:1.45}
 #detail .close{float:right;border:0;padding:0 5px;font-size:18px}.muted{color:#737b88}.pill{display:inline-block;border-radius:20px;padding:2px 7px;background:#eef0f4;margin:2px 3px 2px 0}.pill.red{background:#fdecef;color:#941d2c}.pill.gold{background:#fff4d5;color:#815c00}
 #legend{position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.9);border:1px solid #e2e5ea;border-radius:8px;padding:7px 9px;font-size:11px;color:#59616d}
@@ -59,14 +69,19 @@ h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#737b88;ma
     <canvas id="cv"></canvas><div id="detail"></div>
     <div id="legend">couleur = cluster · contour rouge = contre-autorité · or = citée · point pâle = outlier</div>
   </div>
+  <div id="lexListView" hidden></div>
 </main>
+<script src="/static/lex_gate_switch.js"></script>
 <script>
 const COLORS=["#2459a8","#d4771d","#27845b","#a83b4b","#6d54a8","#8a653a","#b34d91","#65717f"];
 const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
 let BUNDLE=null,PTS=[],RUN_ID=null,VIEW={scale:1,ox:0,oy:0};
 
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function status(text,phase){document.getElementById("status").innerHTML=(phase?'<span class="phase">'+esc(phase)+'</span>':"")+esc(text)}
+let LAST_STATUS={text:"Prêt.",phase:""};
+function viewPhase(){const s=window.__LEX_GATE_SWITCH__;return s?'<span class="phase">vue '+(s.controller.viewMode==="list"?"liste":"carte")+"</span>":""}
+function status(text,phase){LAST_STATUS={text,phase:phase||""};document.getElementById("status").innerHTML=viewPhase()+(phase?'<span class="phase">'+esc(phase)+'</span>':"")+esc(text)}
+function restoreStatus(){status(LAST_STATUS.text,LAST_STATUS.phase)}
 function isCounter(d){return d.counter_status&& !["none","cited","supporting-candidate","context","unclassified"].includes(d.counter_status)}
 function bodyText(d){return [d.decision_id,d.court,d.docket_number,d.snippet,Array.isArray(d.citation)?d.citation.join(" "):d.citation].join(" ").toLowerCase()}
 
@@ -113,6 +128,9 @@ cv.onclick=e=>{
 
 function renderBundle(b){
   BUNDLE=b;renderAnswer();renderCounters();renderClusters();draw();
+  /* accepted harness contract: the conventional list must follow every bundle
+     replacement, otherwise it would show the previous query's results */
+  if(window.LexGateSwitch)LexGateSwitch.notifyBundleChanged();
 }
 function renderAnswer(){
   const a=BUNDLE?.answer||{},ready=a.status==="ready",degraded=a.status==="degraded";
@@ -181,6 +199,37 @@ async function run(){
 document.getElementById("run").onclick=run;
 document.getElementById("q").addEventListener("keydown",e=>{if(e.key==="Enter")run()});
 fit();
+
+/* ---------------------------------------------------------------------------
+   Accepted frontier-human-gate-harness integration (INTEGRATION_CONTRACT.json).
+   Both views are rendered from the SAME loaded bundle: getBundle() returns the
+   object the map just drew, never a URL, so switching can never re-retrieve.
+   The harness owns #status while a toggle happens; a listener registered AFTER
+   attach() therefore re-applies the product status (phase pill, counts, latency)
+   immediately afterwards.  Nothing else in the product code changes.
+   --------------------------------------------------------------------------- */
+if(window.LexGateSwitch){
+  const switchController=LexGateSwitch.attach({
+    getBundle:function(){return BUNDLE},
+    mapEl:document.getElementById("mapWrap"),
+    listEl:document.getElementById("lexListView"),
+    toolbarEl:document.getElementById("toolbar"),
+    statusEl:document.getElementById("status"),
+    session_id:null,
+    mountExportButton:true,
+    openDetail:showDetail
+  });
+  const toggle=document.getElementById("lexViewToggle");
+  /* Registered AFTER attach(), so this listener runs after the harness one:
+     - notifyBundleChanged() refills the list pane from the bundle that is now
+       loaded (attach() ran before the first query, so the pane starts empty);
+     - restoreStatus() re-applies the product wording the harness just replaced. */
+  if(toggle)toggle.addEventListener("click",function(){
+    LexGateSwitch.notifyBundleChanged();
+    restoreStatus();
+  });
+  window.__LEX_PRODUCT_SWITCH__={controller:switchController,lastStatus:()=>LAST_STATUS};
+}
 </script>
 </body>
 </html>

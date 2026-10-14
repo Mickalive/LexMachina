@@ -285,6 +285,72 @@ def test_documented_workspace_head_of_another_run_is_not_borrowed():
     assert out["machine_gate_ready"] is False
 
 
+# --------------------------------------------------------------------------- #
+# job chain (the v50 promotion deadlock made this the deciding evidence)
+# --------------------------------------------------------------------------- #
+def _jobs_fetcher(payload: dict, status: int = 200):
+    seen: list[str] = []
+
+    def fetch(url: str) -> tuple[int, dict]:
+        seen.append(url)
+        return status, payload
+
+    fetch.seen = seen  # type: ignore[attr-defined]
+    return fetch
+
+
+GREEN_CHAIN = {"team": "success", "audit": "success", "integrate": "success",
+               "resilience": "success"}
+
+
+def test_observe_jobs_records_every_job_conclusion():
+    payload = {"jobs": [{"name": name, "conclusion": conclusion}
+                        for name, conclusion in GREEN_CHAIN.items()]}
+    jobs = ev.observe_jobs(38604340726, fetch=_jobs_fetcher(payload))
+    assert jobs == GREEN_CHAIN
+
+
+def test_observe_jobs_records_a_skipped_integrate_instead_of_guessing_green():
+    payload = {"jobs": [{"name": "team", "conclusion": "success"},
+                        {"name": "audit", "conclusion": "failure"},
+                        {"name": "integrate", "conclusion": "skipped"}]}
+    jobs = ev.observe_jobs(38600271324, fetch=_jobs_fetcher(payload))
+    assert jobs["integrate"] == "skipped"
+    assert jobs["audit"] == "failure"
+
+
+def test_observe_jobs_never_fabricates_when_the_api_is_unavailable():
+    assert ev.observe_jobs(38604340726, fetch=_jobs_fetcher({}, status=503)) == {}
+
+
+def test_recorded_entry_states_whether_the_promotion_chain_completed():
+    green_run = 38604340726
+    obs = ev.observe_run(green_run, fetch=_fetcher(payload=_payload(id=green_run)))
+    obs["observed_at"] = "2026-10-14T21:40:00Z"
+    out = ev.update_state(_state(), obs, _summary(run_id=green_run), jobs=GREEN_CHAIN)
+    entry = next(r for r in out["verified_runs"] if r["run_id"] == green_run)
+    assert entry["jobs"] == GREEN_CHAIN
+    assert entry["promotion_chain_green"] is True
+
+
+def test_team_green_but_integrate_skipped_is_recorded_as_a_broken_chain():
+    obs = ev.observe_run(38600271324, fetch=_fetcher())
+    obs["observed_at"] = "2026-10-14T21:40:00Z"
+    jobs = {"team": "success", "audit": "failure", "integrate": "skipped"}
+    out = ev.update_state(_state(), obs, _summary(), jobs=jobs)
+    entry = next(r for r in out["verified_runs"] if r["run_id"] == 38600271324)
+    assert entry["promotion_chain_green"] is False
+
+
+def test_missing_job_evidence_is_omitted_rather_than_defaulted_to_green():
+    obs = ev.observe_run(38600271324, fetch=_fetcher())
+    obs["observed_at"] = "2026-10-14T21:40:00Z"
+    out = ev.update_state(_state(), obs, _summary())
+    entry = next(r for r in out["verified_runs"] if r["run_id"] == 38600271324)
+    assert "jobs" not in entry
+    assert "promotion_chain_green" not in entry
+
+
 def test_runner_records_both_dispatch_and_workspace_shas(monkeypatch, tmp_path):
     """The leg summary itself must be able to prove which code produced it."""
     import ci_reality_legs as ci
