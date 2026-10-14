@@ -460,18 +460,6 @@
       }
     },
     {
-      "path": "results/accepted-state/frontier/frontier-human-gate-harness.json",
-      "state": {
-        "team_id": "frontier-human-gate-harness",
-        "charter_version": 1,
-        "evidence_tier": "UNTESTED",
-        "cycle_status": "INITIALIZED",
-        "continue_recommended": true,
-        "accepted_run_id": null,
-        "accepted_commit": null
-      }
-    },
-    {
       "path": "results/accepted-state/legal-distance.json",
       "state": {
         "lane": "legal-distance",
@@ -1445,11 +1433,11 @@
       "state": {
         "lane": "product",
         "direction_version": 50,
-        "cycle_status": "V50_OPERATIONAL_RESUME_38604340726__4_OF_4_LIVE_LEGS_PASS_IN_THIS_RUN__RUN_CONCLUSION_PENDING",
+        "cycle_status": "V50_MACHINE_GATE_GREEN_38604340726_OBSERVED__HUMAN_GATE_BASELINE_ADOPTED__OWNER_SESSION_PENDING",
         "continue_recommended": true,
         "human_gate_ready": false,
-        "machine_gate_ready": false,
-        "evidence_tier": "CI_TEAM_JOB_LIVE_4_OF_4_IN_RUN_38604340726__RUN_CONCLUSION_PENDING",
+        "machine_gate_ready": true,
+        "evidence_tier": "DURABLE_CI_VERIFIED",
         "product": "query-specific Swiss legal research: broad OpenCaseLaw retrieval -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map",
         "state_updated_by_run": 38604340726,
         "state_updated_from_resumed_snapshot_run": 38600271324,
@@ -1556,6 +1544,44 @@
               "resilience": "success (dispatched operational resume 38604340726 with resume_from_run_id=38600271324)"
             },
             "note": "Team job fully green (4/4 live frozen legs, summary_ci_38600271324.json); run conclusion is failure ONLY because the independent audit job failed at the auditor agent step itself — NOT the v49 misplaced-artifact pathology (that failed at step 6 'Enforce audit scope and read gate'). Job logs require admin rights (HTTP 403 unauthenticated), so the wrapper exit code is not retrievable from the lane; observable facts recorded from the public REST jobs endpoint at 2026-10-14T17:21Z."
+          },
+          {
+            "run_id": 38604340726,
+            "head_sha": "cfef528f883641fb9bbb3b4d9b3763be7cf0f59f",
+            "conclusion": "success",
+            "created_at": "2026-10-14T17:10:09Z",
+            "head_branch": "main",
+            "event": "workflow_dispatch",
+            "observed_at": "2026-10-14T21:36:10Z",
+            "ci_reality_summary": "results/product/reality_check/summary_ci_38604340726.json",
+            "workspace_head_sha": "9a3b746bdd459f9c3025a800ab34925c34b7cdd1",
+            "run_head_sha": "cfef528f883641fb9bbb3b4d9b3763be7cf0f59f",
+            "legs_ran_in_this_run": [
+              "petty-theft-dismissal",
+              "rent-default",
+              "corporate-criminal-liability",
+              "business-judgment-rule"
+            ],
+            "legs_complete": true,
+            "all_legs_passed": true,
+            "execution": {
+              "concurrency": 1,
+              "mode": "sequential",
+              "rationale": "4-way parallel execution pushed every adversarial pass past its ceiling on 2026-10-14; only an uncontended sequential run is admissible",
+              "requested_order": [
+                "petty-theft-dismissal",
+                "rent-default",
+                "corporate-criminal-liability",
+                "business-judgment-rule"
+              ]
+            },
+            "jobs": {
+              "team": "success",
+              "audit": "success",
+              "integrate": "success",
+              "resilience": "success"
+            },
+            "promotion_chain_green": true
           }
         ],
         "unresolvable_run_ids": {
@@ -1604,9 +1630,9 @@
               "detail": "3/4, rent-default leg"
             }
           ],
-          "substantive_4_of_4_green": false,
+          "substantive_4_of_4_green": true,
           "blocking_leg": "durable gate blocking leg: rent-default (Art. 257d(2) residential termination) — the answer must state the 30-day/end-of-month notice rule AND the good-faith/Rechtsmissbrauch limitation. That leg now PASSES locally in live mode (results/product/reality_check/rent-default_live_20261014T122313Z.json); only the durable Actions run remains red.",
-          "durable_green_run_id": null,
+          "durable_green_run_id": 38604340726,
           "local_live_prevalidation_2026_10_14": {
             "evidence_tier": "LOCAL_NOT_DURABLE",
             "runner": "python product/reality_check.py --slug <leg> --mode live",
@@ -1685,7 +1711,14 @@
               "seconds": 683.5,
               "summary": "results/product/reality_check/summary_ci_38600271324.json"
             }
-          }
+          },
+          "ci_reality_summary": "results/product/reality_check/summary_ci_38604340726.json",
+          "legs_ran_in_this_run": [
+            "petty-theft-dismissal",
+            "rent-default",
+            "corporate-criminal-liability",
+            "business-judgment-rule"
+          ]
         },
         "orchestration_failure_diagnosis": {
           "resumed_run": 38554018429,
@@ -1760,30 +1793,108 @@
           "external_spend": "none; free OpenCode models and public OpenCaseLaw endpoints only"
         },
         "verification": {
-          "status": "PASS (local, deterministic + CI_TEAM_JOB_LIVE 4/4 in this run)",
-          "verified_on": "2026-10-14 (run 38604340726 workspace, resumed from run 38600271324 snapshot)",
-          "product_integration_tests": "73 passed (pytest six-suite: ci_reality_legs 20 + ci_run_evidence 15 + reality_check + audit_seam + query_map_mvp + answer_contract)",
-          "live_legs_this_run": "results/product/reality_check/summary_ci_38604340726.json (4/4 structural+truth, sequential)",
+          "status": "PASS (local, offline + LIVE OpenCaseLaw end-to-end this cycle; 91 product tests)",
+          "verified_on": "2026-10-14 (run 38641080245 workspace)",
+          "product_integration_tests": "91 passed (ci_reality_legs 20 + ci_run_evidence 26 + reality_check + audit_seam + query_map_mvp + answer_contract + human_gate_integration 12)",
+          "live_legs_this_run": "results/product/reality_check/summary_ci_38604340726.json (4/4 structural+truth, sequential) — durable run conclusion=success observed 2026-10-14T21:36:10Z",
           "evidence_reports": [
             "reports/product/CYCLE_38604340726.md",
             "reports/product/CYCLE_38600271324.md",
             "results/product/reality_check/"
           ],
           "durable_actions_run": null,
-          "durable_run_note": "No durable green core-lane run exists yet: 38600271324 was team-green but audit-failed; this run (38604340726) carries fresh 4/4 in-run legs and awaits its own audit+integrate conclusion, which is not observable while the team job executes. Observation command: python product/ci_run_evidence.py --run-id 38604340726 --apply"
+          "durable_run_note": "No durable green core-lane run exists yet: 38600271324 was team-green but audit-failed; this run (38604340726) carries fresh 4/4 in-run legs and awaits its own audit+integrate conclusion, which is not observable while the team job executes. Observation command: python product/ci_run_evidence.py --run-id 38604340726 --apply",
+          "live_clickable_slice_this_cycle": {
+            "run_id": 38641080245,
+            "server": "python product/query_app.py --port 8793 (one command, stdlib ThreadingHTTPServer)",
+            "query": "Responsabilité pénale de l'entreprise selon l'art. 102 CP subsidiaire ou primaire",
+            "phase_1_start": {
+              "wall_seconds": 66.04,
+              "decisions": 220,
+              "clusters": 8,
+              "outliers": 22,
+              "answer_status": "pending",
+              "mode": "live",
+              "fixture_mode": false,
+              "query_variants": 8,
+              "languages": {
+                "de": 133,
+                "it": 37,
+                "fr": 26,
+                "none": 24
+              },
+              "canonical_urls": "220/220",
+              "upstream_attribution": "one GET /api/decisions page measured 13.7 s from this workspace; the 66 s is upstream-dominated, not local"
+            },
+            "phase_2_enrich": {
+              "wall_seconds": 141.35,
+              "answer_status": "ready",
+              "method": "generative_audit_llm_v2",
+              "answer_model": "opencode/nemotron-3-ultra-free",
+              "cited_decision_ids": 8,
+              "adversarial": "independent_llm_adversarial_v2 on a different model (opencode/space-bunny-free)",
+              "adversarial_findings": 11,
+              "challenging_findings": 11,
+              "rejected_ids": 0,
+              "counter_status_decisions": 11,
+              "provider_error": null,
+              "degraded": false
+            },
+            "dom_smoke": "node product/verify_query_page.js -> PASS 16 assertions against the live enriched bundle",
+            "artifacts": [
+              "results/product/clickable_slice/api_query_start_20261014T214600Z.json",
+              "results/product/clickable_slice/bundle_live_map_only_20261014T214600Z.json",
+              "results/product/clickable_slice/bundle_live_enriched_20261014T214600Z.json",
+              "results/product/clickable_slice/dom_smoke_20261014T214600Z.txt"
+            ],
+            "report": "reports/product/CYCLE_38641080245.md",
+            "claim_ceiling": "pipeline and UI verification only; no claim that the map helps a jurist"
+          },
+          "pre_existing_collection_errors": "18 legacy 174k test modules fail collection with ModuleNotFoundError: sentence_transformers (optional dep, PAUSE'd legacy lane); unchanged by this cycle and not on the query-map path"
         },
         "human_gate_criteria": [
-          "one-command local launch",
-          "verified live OpenCaseLaw query",
-          "clickable clusters/outliers/source links",
-          "source-constrained real generative answer",
-          "independent counter-authority pass updates the existing map",
-          "offline deterministic tests",
-          "measured provenance and latency",
-          "no 174k startup dependency",
-          "durable Product Reality Check 4/4 green"
+          {
+            "criterion": "one-command local launch",
+            "status": "PASS (python product/query_app.py --port 8791)"
+          },
+          {
+            "criterion": "verified live OpenCaseLaw query",
+            "status": "PASS (live OpenCaseLaw retrieval; see clickable_slice_smoke)"
+          },
+          {
+            "criterion": "clickable clusters/outliers/source links",
+            "status": "PASS (clusters, outliers, canonical source links, list<->map switch)"
+          },
+          {
+            "criterion": "source-constrained real generative answer",
+            "status": "PASS (source-constrained generative answer, cited decision ids only)"
+          },
+          {
+            "criterion": "independent counter-authority pass updates the existing map",
+            "status": "PASS (independent counter-authority pass updates the same bundle/map)"
+          },
+          {
+            "criterion": "offline deterministic tests",
+            "status": "PASS (91 product tests incl. the new human-gate suite)"
+          },
+          {
+            "criterion": "measured provenance and latency",
+            "status": "PASS (provenance + latency in every bundle; upstream measured separately)"
+          },
+          {
+            "criterion": "no 174k startup dependency",
+            "status": "PASS (query mode never loads 174k representations)"
+          },
+          {
+            "criterion": "durable Product Reality Check 4/4 green",
+            "status": "PASS (durable core-lane run 38604340726, 4/4 live legs in-run, conclusion=success observed)"
+          },
+          {
+            "criterion": "real owner/jurist session on the map-vs-list comparison",
+            "status": "PENDING (human_gate_ready=false; this is the only remaining item)"
+          }
         ],
-        "next_recommendation": "Continue. This operational resume re-executed the four frozen legs LIVE in run 38604340726 (4/4 structural+truth, sequential, summary_ci_38604340726.json) and recorded the honest conclusion=failure of the prior run 38600271324 (audit job failed at the auditor agent step, not the artifact-placement pathology). The single remaining mechanical step for machine gate: after THIS run completes, run `python product/ci_run_evidence.py --run-id 38604340726 --apply`; it sets machine_gate_ready=true only if conclusion==success AND the summary shows 4/4. If the audit fails operationally again, the lane cannot fix the auditor (.github/** and the auditor card are control-plane scope) — the next resume should --resume nothing (new run id) and simply re-run the legs in-run while keeping the audit guide report short. human_gate_ready stays false until a real owner/jurist session.",
+        "next_recommendation": "The v50 machine-repair objective is COMPLETE and recorded: durable core-lane run 38604340726 is observed conclusion=success with team/audit/integrate/resilience green and its own in-run 4/4 live reality legs (machine_gate_ready=true, machine_repair.status=COMPLETE_AND_RECORDED). This cycle additionally adopted the accepted frontier-human-gate-harness list<->map baseline, so the comparative human gate is answerable in one sitting from the same bundle; integration uncovered and fixed a real defect (first toggle rendered an empty baseline). continue_recommended stays true for two concrete reasons, not for the machine gate: (1) my lane contract keeps it true until human_gate_ready is earned by a real owner/jurist session, which agents cannot fabricate; (2) owner-independent deltas remain: finalize the exported session draft into results/product/ via the accepted CLI, and record p50/p95 latency against the QUERY_MAP_MVP §9A budgets with upstream and local time separated. Next cycle should pick one of those, not re-verify the machine gate.",
         "integration_origin_direction_version": 45,
         "prior_current_run": {
           "run_id": 38559540834,
@@ -1881,12 +1992,11 @@
           }
         },
         "machine_gate": {
-          "ready": false,
+          "ready": true,
           "decided_for_run_id": 38604340726,
-          "decided_at": "2026-10-14T17:35:00Z",
-          "reasons": [
-            "conclusion=None is not 'success' (own run conclusion not observable while its team job executes)"
-          ],
+          "decided_at": "2026-10-14T21:36:10Z",
+          "reasons": [],
+          "provenance_note": "summary records the run head sha",
           "criteria": [
             "run conclusion == success (observed on the GitHub REST API)",
             "summary_ci_<run_id>.json exists for THIS run id",
@@ -1894,6 +2004,80 @@
             "legs_complete == true and all_legs_passed == true",
             "summary provenance: it records the run head sha (GITHUB_SHA) or the lab-branch head this run executed, as documented for this run id in state/product.json"
           ]
+        },
+        "human_gate_integration": {
+          "why": "The comparative human gate (answer+map vs answer+ranked list) was unanswerable: the clickable slice had no conventional baseline. The accepted team frontier-human-gate-harness owns that baseline; product adopted it instead of rebuilding it (v50 direction: adopt when accepted).",
+          "team_id": "frontier-human-gate-harness",
+          "accepted_mount_observed": "/tmp/lex_accepted/frontier/frontier-human-gate-harness/frontier/frontier-human-gate-harness/static",
+          "assets": {
+            "lex_gate_switch.js": {
+              "installed_path": "/home/runner/work/LexMachina/LexMachina/product/static/lex_gate_switch.js",
+              "sha256": "38d4b20fd08b68ac1fc76753fd080a3f67dfbdf908641134bbd7857ac2e3aaa3",
+              "expected_sha256": "38d4b20fd08b68ac1fc76753fd080a3f67dfbdf908641134bbd7857ac2e3aaa3",
+              "digest_matches": true,
+              "byte_identical_to_accepted": true,
+              "provides": [
+                "list<->map switch",
+                "capture draft export"
+              ]
+            },
+            "lex_gate_switch.css": {
+              "installed_path": "/home/runner/work/LexMachina/LexMachina/product/static/lex_gate_switch.css",
+              "sha256": "1a8cf48683ae80c673f00ba4747ff4312f4ad8b6faeef8fcfb8dd79ba6ff3a21",
+              "expected_sha256": "1a8cf48683ae80c673f00ba4747ff4312f4ad8b6faeef8fcfb8dd79ba6ff3a21",
+              "digest_matches": true,
+              "byte_identical_to_accepted": true,
+              "provides": [
+                "baseline row styling",
+                "toggle styling"
+              ]
+            }
+          },
+          "html_hooks": {
+            "list_element": true,
+            "script_asset": true,
+            "style_asset": true,
+            "attach_call": true,
+            "bundle_hook": true,
+            "map_element": true,
+            "toolbar_host": true,
+            "bundle_changed": true
+          },
+          "product_side_integration": [
+            "product/static/query.html loads /static/lex_gate_switch.{js,css}",
+            "<div id=\"lexListView\" hidden> added beside #mapWrap inside <main>; map stays the first paint",
+            "LexGateSwitch.attach({getBundle:function(){return BUNDLE}, mapEl, listEl, toolbarEl, statusEl, mountExportButton:true})",
+            "renderBundle() calls LexGateSwitch.notifyBundleChanged() on every bundle replacement",
+            "a click listener registered AFTER attach() re-renders the list pane and re-applies the product status, because attach() runs before the first query and the harness overwrites #status"
+          ],
+          "product_owned_adapters": [
+            "product/query/human_gate.py (digest-pinned adoption + hook verification)",
+            "product/verify_query_page.js (DOM smoke of the real page)"
+          ],
+          "verification": "python product/query/human_gate.py ; node product/verify_query_page.js <bundle.json> ; pytest product/tests/test_human_gate_integration.py",
+          "defect_found_and_fixed_by_integration": "First toggle rendered an EMPTY list: the accepted switch renders rows at attach() (bundle was null) and on bundle change only while already in list view. Product bridges this with a documented API call (notifyBundleChanged) after the switch listener, not by forking the accepted file.",
+          "claim_ceiling": "The gate is now answerable in one sitting from the same bundle. It is NOT answered: only a real owner/jurist session can set human_gate_ready.",
+          "evidence": {
+            "asset_and_hook_tests": 12,
+            "dom_assertions": 16,
+            "bundle_used_for_dom_smoke": "results/product/clickable_slice/2026-10-14T22:0xZ bundle from the local fixture server (105 decisions, answer ready, 2 cited, 1 counter)"
+          }
+        },
+        "machine_repair": {
+          "v50_objective": "one durable, retrievable, GREEN core-lane run of lane=product whose own team job executes the four frozen reality legs LIVE",
+          "status": "COMPLETE_AND_RECORDED",
+          "run_id": 38604340726,
+          "observed_conclusion": "success",
+          "observed_at": "2026-10-14T21:36:10Z",
+          "jobs": {
+            "team": "success",
+            "audit": "success",
+            "integrate": "success",
+            "resilience": "success"
+          },
+          "promotion_chain_green": true,
+          "recorder": "python product/ci_run_evidence.py --run-id 38604340726 --apply (machine-observed, never hand-asserted)",
+          "remaining": "none for the machine gate; the human gate needs a real owner/jurist session and is deliberately not self-declared"
         }
       }
     }
