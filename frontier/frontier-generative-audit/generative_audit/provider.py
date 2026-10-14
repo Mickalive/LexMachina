@@ -33,12 +33,32 @@ from .source_packing import (
     redact_unknown_citations,
 )
 
+def _normalize_for_matching(text: str) -> str:
+    """Normalize text for cross-language cue matching: NFKD + remove diacritics + casefold."""
+    import unicodedata
+    normalized = unicodedata.normalize("NFKD", text.casefold())
+    return "".join(ch for ch in normalized if not unicodedata.combining(ch))
+
+
 _EVIDENCE_CUES = (
-    "subsidi", "primair", "originär", "originar", "unabhängig", "indépend",
+    # Hierarchy/subsidiary
+    "subsidi", "primair", "originar", "originar", "unabhangig", "independ",
+    # Exceptions/limitations
     "exception", "ausnahme", "limit", "voraussetz", "condition",
-    "organis", "interessenkonflikt", "information", "geschäftsentscheid",
-    "frist", "délai", "vertrauen", "treue", "missbrauch", "abus",
+    # Organization/conflict of interest
+    "organis", "interessenkonflikt", "information", "geschaeftsentscheid",
+    # Time periods/deadlines
+    "frist", "delai", "délai",
+    # Good faith / abuse of rights / trust
+    "vertrauen", "treue", "missbrauch", "abus",
+    # Compensation/offset
     "kompensation", "verrechnung", "compensation", "avertissement",
+    # Additional German legal terms
+    "rechtsmissbrauch", "unlauterkeit", "treuwidrig", "missbrauchlich",
+    # Additional French legal terms
+    "abusif", "mauvaise foi", "bonne foi",
+    # Additional Italian legal terms
+    "abuso", "cattiva fede", "buona fede",
 )
 
 _SOURCE_STOPWORDS = {
@@ -76,10 +96,21 @@ def _evidence_excerpt(decision: Any, query: str, max_chars: int = 1800) -> str:
         t for t in re.findall(r"[^\W\d_]{4,}", query_low, flags=re.UNICODE)
         if t not in _SOURCE_STOPWORDS
     }
+    # Normalize query terms for cross-language matching
+    qterms_norm = {_normalize_for_matching(t) for t in qterms}
+
     article_numbers = set(re.findall(r"(?i)\bart(?:\.|icle)?\s*(\d+[a-z]?)", query))
     # Swiss-law questions often name a bare article as "102 CP" after "art.".
     if not article_numbers:
         article_numbers = set(re.findall(r"\b(\d{2,3}[a-z]?)\b", query))
+
+    # Also extract article numbers from decision metadata (statutes field)
+    meta_statutes = metadata.get("statutes") or []
+    if isinstance(meta_statutes, list):
+        for statute in meta_statutes:
+            if isinstance(statute, str):
+                for m in re.finditer(r"(?i)\bart(?:\.|icle)?\s*(\d+[a-z]?)", statute):
+                    article_numbers.add(m.group(1))
 
     # Sentence-ish chunks, with enough context to retain legal conditions.
     sentences = [
@@ -90,14 +121,17 @@ def _evidence_excerpt(decision: Any, query: str, max_chars: int = 1800) -> str:
     scored = []
     for pos, sentence in enumerate(sentences):
         low = sentence.casefold()
+        low_norm = _normalize_for_matching(sentence)
         term_hits = sum(1 for term in qterms if term in low)
+        term_hits_norm = sum(1 for term in qterms_norm if term in low_norm)
         article_hits = sum(
             1 for num in article_numbers
             if re.search(rf"(?i)(?:art(?:\.|icle)?\s*)?{re.escape(num)}\b", sentence)
         )
-        cue_hits = sum(1 for cue in _EVIDENCE_CUES if cue in low)
+        cue_hits = sum(1 for cue in _EVIDENCE_CUES if _normalize_for_matching(cue) in low_norm)
         exact_bjr = 1 if "business judgment rule" in low else 0
-        score = 2.0 * term_hits + 4.0 * article_hits + 0.7 * cue_hits + 5.0 * exact_bjr
+        # Use normalized term hits as well for cross-language matching
+        score = 2.0 * max(term_hits, term_hits_norm) + 4.0 * article_hits + 0.7 * cue_hits + 5.0 * exact_bjr
         if score > 0:
             scored.append((score, -pos, sentence))
 
