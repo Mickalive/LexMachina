@@ -1,0 +1,102 @@
+{
+  "schema_version": "1.0",
+  "record_type": "lex_integration_contract",
+  "team_id": "frontier-human-gate-harness",
+  "charter_version": 1,
+  "run_id": "38600279890",
+  "acceptance_item": 7,
+  "ownership": {
+    "product_owns_final_integration": true,
+    "team_owns_product_file": false,
+    "team_write_scope": [
+      "frontier/frontier-human-gate-harness/",
+      "tests/frontier/frontier-human-gate-harness/",
+      "results/frontier/frontier-human-gate-harness/",
+      "reports/frontier/frontier-human-gate-harness/",
+      "state/frontier/frontier-human-gate-harness.json"
+    ],
+    "evaluation_owns_gate_judgement": true
+  },
+  "copies": [
+    {
+      "source": "frontier/frontier-human-gate-harness/static/lex_gate_switch.js",
+      "sha256": "37c6797c1c490649d4420d0bcf0f6188871262641818f65c5b2fa4ec190a23ee",
+      "targets": ["product/static/lex_gate_switch.js", "inline into product/static/query.html <script>"],
+      "provides": ["list<->map switch", "capture draft export"],
+      "acceptance": [2, 4]
+    },
+    {
+      "source": "frontier/frontier-human-gate-harness/static/lex_gate_switch.css",
+      "sha256": "1a8cf48683ae80c673f00ba4747ff4312f4ad8b6faeef8fcfb8dd79ba6ff3a21",
+      "targets": ["product/static/lex_gate_switch.css", "inline into product/static/query.html <style>"],
+      "provides": ["baseline row styling", "toggle styling"],
+      "acceptance": [1, 2]
+    },
+    {
+      "source": "frontier/frontier-human-gate-harness/frontier_human_gate_harness/baseline_view.py",
+      "sha256": "d22f9a313754ed2a42648c396e882b3e1f0fd838f43e4592c6d9aa76698ff498",
+      "symbols": ["build_model(bundle)", "render_rows_html(bundle)", "render_document(bundle)"],
+      "targets": ["optional server-side baseline in product's own code path"],
+      "note": "optional: client-side renderRowsHtml(bundle) in the switch is byte-identical (parity test)",
+      "acceptance": [1]
+    }
+  ],
+  "hooks": [
+    {"hook": "toolbar_host", "product_code": "#toolbar", "change": "none — attach inserts #lexViewToggle as first child"},
+    {"hook": "map_element", "product_code": "#mapWrap", "change": "none — pass as mapEl"},
+    {"hook": "list_element", "product_code": "absent", "change": "add <div id=\"lexListView\" hidden></div> beside #mapWrap inside <main>"},
+    {"hook": "loaded_bundle", "product_code": "let BUNDLE=null; renderBundle(b){BUNDLE=b; ...}", "change": "none — read via getBundle, never fetch"},
+    {"hook": "bundle_changed", "product_code": "renderBundle() ~L114 and BUNDLE=null reset ~L164", "change": "append LexGateSwitch.notifyBundleChanged();"},
+    {"hook": "escape_rule", "product_code": "esc() = [&<>\"'] -> &amp; &lt; &gt; &quot; &#39;", "change": "none — identical to harness esc()"}
+  ],
+  "boot_snippet": "LexGateSwitch.attach({ getBundle: function(){ return BUNDLE; }, mapEl: document.getElementById('mapWrap'), listEl: document.getElementById('lexListView'), toolbarEl: document.getElementById('toolbar'), statusEl: document.getElementById('status'), session_id: null, mountExportButton: true })",
+  "caller_contract": [
+    "getBundle() must return the already-loaded bundle object the map draws (no URL, no promise, no fetch)",
+    "the switch performs no re-retrieval and no bundle mutation; rank order is authoritative",
+    "required fields for the conventional list: rank, court, decision_date, language, citation, canonical_url, decision_id, snippet — a missing field is a product contract defect reported by name (CLI exit 3), never invented",
+    "call LexGateSwitch.notifyBundleChanged() after every bundle replacement or the list shows a stale query",
+    "finalise capture offline: python -m frontier_human_gate_harness.cli --finalize <draft.json> --fixture <bundle> --out results/frontier/frontier-human-gate-harness (missing answer => exit 2; --allow-incomplete => status 'incomplete' with missing_answers spelled out)"
+  ],
+  "controller_api": {
+    "viewMode": "list|map",
+    "switchTo": "function(mode)",
+    "toggle": "function()",
+    "openDecision": "function(decisionId)",
+    "openCounter": "function(decisionId)",
+    "bundleRef": "-> {query, n_decisions}",
+    "exportDraft": "function({session_id, session_id_origin, view_mode_initial}) -> 22-key draft record",
+    "actions": "{at, view_mode, event, ref}",
+    "global": "window.__LEX_GATE_SWITCH__ = {controller, config}",
+    "global_bundle_changed": "LexGateSwitch.notifyBundleChanged()"
+  },
+  "capture": {
+    "schema_source": "frontier/frontier-human-gate-harness/frontier_human_gate_harness/capture.py::RECORD_KEYS",
+    "record_keys": [
+      "schema_version", "record_type", "team_id", "charter_version",
+      "session_id", "session_id_origin", "status", "source",
+      "query", "bundle_ref", "bundle_sha256", "bundle_hash_status",
+      "started_at", "ended_at", "wall_clock_seconds",
+      "view_mode_initial", "view_mode_final",
+      "actions", "decisions_opened", "counter_authorities_opened",
+      "answers", "missing_answers", "latency"
+    ],
+    "output_path": "results/frontier/frontier-human-gate-harness/session_<id>.json"
+  },
+  "out_of_scope_for_this_team": [
+    "retrieval, generation, reranking",
+    "any edit to product/**",
+    "benchmark or evaluation changes",
+    "counter-authority classification (fixture counter_status stays 'unclassified')",
+    "owning or deciding the final integration"
+  ],
+  "acceptance_mapping": {
+    "1": "frontier/.../baseline_view.py + tests test_baseline_view.*",
+    "2": "static/lex_gate_switch.js + tests test_switch.* + node assertions 19-23",
+    "3": "frontier/.../owner_card.py + tests test_owner_card.*",
+    "4": "frontier/.../capture.py + tests test_capture.*",
+    "5": "python -m frontier_human_gate_harness.cli --fixture <bundle> --out <dir> (smoke.sh step 4)",
+    "6": "42 offline tests via tests/frontier/frontier-human-gate-harness/run_tests.py",
+    "7": "INTEGRATION_CONTRACT.md + INTEGRATION_CONTRACT.json",
+    "8": "smoke.sh step 6 + results/frontier/frontier-human-gate-harness/evidence/scope_violations.txt"
+  }
+}
