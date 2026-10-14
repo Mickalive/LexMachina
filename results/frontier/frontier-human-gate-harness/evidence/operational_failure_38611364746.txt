@@ -1,0 +1,52 @@
+OPERATIONAL FAILURE DIAGNOSIS — producer snapshot 38611364746
+Resume run: 38619126078 · team=frontier-human-gate-harness · charter v1
+
+SYMPTOM
+  Resilience job re-dispatched an operational resume from
+  cycle/frontier/frontier-human-gate-harness/38611364746/team.
+  That branch already contained the full runnable harness (code, tests,
+  fixture, integration contract, smoke artifacts) committed as 990355c.
+
+ROOT CAUSE (state gate, not product defect)
+  frontier-team.yml "Validate Frontier producer delta and state" requires:
+
+    .charter_version == VER
+    and (.cycle_status // "INITIALIZED") != "INITIALIZED"
+    and (.evidence_tier // "UNTESTED") != ""
+
+  Snapshot state/frontier/frontier-human-gate-harness.json was still:
+
+    {"evidence_tier":"UNTESTED","cycle_status":"INITIALIZED", ...}
+
+  …so the team job failed at the state gate (exit 69 / equivalent) AFTER the
+  work existed. "Persist team snapshot" runs with if:always(), which is why
+  the code survived on the team branch while the lane never advanced.
+
+SECONDARY (same commit, non-blocking)
+  smoke/ artifacts in 990355c were stale relative to the final Python/JS in
+  the same commit (owner card draft lacked query_sha256; harness_demo.html
+  was missing the inlined switch CSS/JS blocks). Re-running smoke.sh in this
+  resume regenerated them; double-run is now byte-identical.
+
+WHAT WAS NOT BROKEN
+  - Ranked-list baseline, switch, FR/DE card, capture, CLI, fixture
+    synthesiser, integration contract: all present and test-green.
+  - Write scope: only the five permitted team paths.
+  - No product/ or state/product.json writes.
+  - No network capability in the package or switch JS.
+
+RESUME ACTION (this run 38619126078)
+  1. Re-ran bash frontier/frontier-human-gate-harness/smoke.sh → SMOKE OK
+     (fixture check, 45 Python tests, 52 node assertions, CLI offline path,
+      outputs + scope checks).
+  2. Regenerated smoke/ so artifacts match shipped code; double-run identical.
+  3. Advanced state/frontier/frontier-human-gate-harness.json beyond
+     INITIALIZED with charter_version retained and a concrete operational
+     diagnosis (this file + reports/frontier/.../CYCLE_38619126078.md).
+  4. Verified product HEAD fb71974 still matches the integration-contract
+     hooks in product/static/query.html (186 lines; #toolbar, #mapWrap,
+     BUNDLE, renderBundle, esc) — no contract rewrite needed.
+
+NOT RESTARTED
+  No component was rebuilt. Prior accepted-quality code was preserved;
+  only evidence regeneration + state/report advancement were added.
