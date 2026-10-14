@@ -37,13 +37,13 @@ from typing import Any
 
 DEFAULT_ADVERSARIAL_TIMEOUT_SECONDS = 180.0
 
-#: Order verified by the 2026-10-14T11:01Z free-model health snapshot
-#: (``/tmp/lex_control/state/model_health.json``: ultra, mimo, lightning, ling).
+#: Order verified by the 2026-10-14T13:50Z free-model health snapshot
+#: (``/tmp/lex_control/state/model_health.json``: ultra, mimo, space-bunny, longcat).
 MODEL_ORDER = [
     "opencode/nemotron-3-ultra-free",
     "opencode/mimo-v2.6-flash-free",
-    "opencode/nemotron-3.5-lightning-free",
-    "opencode/ling-3.1-flash-free",
+    "opencode/space-bunny-free",
+    "opencode/longcat-2.5-preview-free",
 ]
 
 _APPLIED: dict[str, Any] | None = None
