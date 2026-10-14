@@ -43,6 +43,7 @@ Exit codes
     0  every selected leg ran in this run and passed structural + truth gates
     1  every selected leg ran, at least one failed its gates (negative evidence)
     3  the run is incomplete (deadline reached / nothing executed yet)
+    4  dependency preflight failed (numpy/scikit-learn missing; install requirements-query)
 """
 from __future__ import annotations
 
@@ -354,6 +355,23 @@ def run_legs(
     return summary, exit_code
 
 
+def preflight_imports() -> list[str]:
+    """Names of hard dependencies that are missing in this interpreter.
+
+    A fresh CI runner has no third-party packages; the first in-run leg attempt
+    of run 38604340726 died with ``ModuleNotFoundError: No module named 'numpy'``
+    on all four legs before any LLM call.  Failing once, loudly, up front is
+    strictly cheaper than four poisoned run-scoped leg records.
+    """
+    missing: list[str] = []
+    for mod, pkg in (("numpy", "numpy"), ("sklearn", "scikit-learn")):
+        try:
+            __import__(mod)
+        except ImportError:
+            missing.append(pkg)
+    return missing
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -391,6 +409,17 @@ def main(argv: list[str] | None = None) -> int:
             "deadline_seconds": args.deadline_seconds,
         }, indent=2))
         return 0
+
+    missing = preflight_imports()
+    if missing:
+        print(
+            "::error::missing python dependencies: "
+            + ", ".join(missing)
+            + " — run `pip install -r product/requirements-query.txt` before the legs "
+            "(fresh CI runners ship without them; see run 38604340726 attempt 1)",
+            file=sys.stderr, flush=True,
+        )
+        return 4
 
     _summary, exit_code = run_legs(
         run_id,

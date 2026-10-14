@@ -370,3 +370,22 @@ def test_unsafe_run_id_is_rejected():
         except ValueError:
             continue
         raise AssertionError(f"unsafe run id accepted: {bad!r}")  # pragma: no cover
+
+def test_preflight_imports_clean_env_returns_empty():
+    """In an installed environment the preflight must report no missing packages."""
+    assert ci.preflight_imports() == []
+
+
+def test_main_exits_4_when_preflight_fails(monkeypatch):
+    """A dependency miss must fail once, loudly, instead of four poisoned legs.
+
+    Run 38604340726 attempt 1 recorded four fatal ModuleNotFoundError legs on a
+    fresh runner; the preflight converts that into a single actionable error.
+    """
+    monkeypatch.setattr(ci, "preflight_imports", lambda: ["numpy", "scikit-learn"])
+    rc = ci.main(["--run-id", "38604340726", "--mode", "live", "--plan-only"])
+    assert rc == 0  # plan-only stays dependency-free
+    monkeypatch.setattr(ci, "run_legs", lambda *a, **k: (_ for _ in ()).throw(
+        AssertionError("run_legs must not run when preflight fails")))
+    rc = ci.main(["--run-id", "38604340726", "--mode", "live"])
+    assert rc == 4
