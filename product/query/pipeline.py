@@ -176,7 +176,9 @@ def run_query_initial(query: str, top_n: int = 150, *, retrieval_mode: str = "li
     if not query:
         raise ValueError("empty query")
     top_n = max(MIN_LIVE_RESULTS, min(MAX_RESULTS, int(top_n))) if retrieval_mode != "fixture" else max(40, min(200, int(top_n)))
+    t_upstream_start = time.time()
     candidate = _retrieve(query, top_n, mode=retrieval_mode, hydrate_top=0)
+    upstream_s = time.time() - t_upstream_start
     if not candidate.get("candidates"):
         raise RuntimeError("OpenCaseLaw retrieval returned no decisions")
     product = _candidate_to_product(candidate)
@@ -198,6 +200,21 @@ def run_query_initial(query: str, top_n: int = 150, *, retrieval_mode: str = "li
         "remote": candidate.get("provenance", {}),
     }
     bundle["provenance"]["fixture_mode"] = retrieval_mode == "fixture"
+    # Upstream (OpenCaseLaw network) vs local (dedupe + query-conditioned
+    # geometry + bundle assembly) split, so a latency report can never blame
+    # local code for public-infrastructure time (QUERY_MAP_MVP 9A / lane
+    # runtime performance mandate).  product/latency_budget.py consumes this.
+    local_total_s = time.time() - t0
+    bundle["provenance"]["timing"] = {
+        "upstream_retrieval_s": round(upstream_s, 4),
+        "local_total_s": round(local_total_s, 4),
+        "local_map_s": round(max(0.0, local_total_s - upstream_s), 4),
+        "mode": retrieval_mode,
+        "n_decisions": len(bundle.get("decisions") or []),
+        "n_clusters": len(bundle.get("clusters") or []),
+        "fixture_mode": retrieval_mode == "fixture",
+    }
+    bundle["provenance"]["latency_seconds"] = round(local_total_s, 3)
     errors = validate_bundle(bundle)
     if errors:
         raise RuntimeError(f"initial query bundle invalid: {errors}")
@@ -293,10 +310,12 @@ def enrich_query_bundle(
     evidence and counter-authority fields are patched.
     """
     t0 = time.time()
+    timing_local_enrich = 0.0
     base_errors = validate_bundle(initial_bundle)
     if base_errors:
         raise ValueError(f"cannot enrich invalid bundle: {base_errors}")
     work = _merge_hydrated_evidence(initial_bundle, retrieval_mode=retrieval_mode, evidence_count=evidence_count)
+    timing_local_enrich = time.time() - t0
 
     try:
         fixture_ids = [d["decision_id"] for d in work["decisions"][:2]]
@@ -347,7 +366,17 @@ def enrich_query_bundle(
 
     audited.setdefault("provenance", {})["phase"] = "complete"
     audited["provenance"]["product_audit_seam"] = AUDIT_SEAM
-    audited["provenance"]["enrichment_latency_seconds"] = round(time.time() - t0, 3)
+    enriched_total_s = time.time() - t0
+    audited["provenance"]["enrichment_latency_seconds"] = round(enriched_total_s, 3)
+    # Enrichment runs strictly after the map is already rendered (QUERY_MAP_MVP
+    # 9A: the initial map MUST NOT wait for generation), so its cost is reported
+    # separately and is never folded into the map budgets.
+    audited["provenance"].setdefault("timing", {})
+    audited["provenance"]["timing"].update({
+        "enrich_total_s": round(enriched_total_s, 4),
+        "enrich_model_s": round(enriched_total_s - float(timing_local_enrich), 4),
+        "enrich_non_model_s": round(float(timing_local_enrich), 4),
+    })
     audited["provenance"]["latency_seconds_total"] = round(
         float(initial_bundle.get("provenance", {}).get("latency_seconds") or 0.0)
         + float(audited["provenance"]["enrichment_latency_seconds"]),
