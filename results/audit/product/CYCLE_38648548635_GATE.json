@@ -1,0 +1,45 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": "in_run_ci_4of4_source_linked_map__durable_green_run_pending",
+  "evidence_summary": "Vertical slice verified: real/cached OpenCaseLaw input produces source-linked result bundle (cited ids subset of bundle, counter-authority candidates present) and clickable map (8 clusters, 105 decisions/query, test_query_map_mvp green). 11/11 MVP tests pass. Write scope clean (product/, results/product/, reports/product/, state/product.json only). Zero external cost: opencode/*-free models, public OpenCaseLaw endpoints, no API keys. All cited canonical_urls on https://mcp.opencaselaw.ch/. Fixture/live paths strictly separated in query/corpus.py.",
+  "vertical_slice_verification": {
+    "real_cached_opencase_law_input": "PASS — fixture mode uses frozen OpenCaseLaw envelopes; live mode hits mcp.opencaselaw.ch/api with strict fixture/live separation",
+    "source_linked_result_bundle": "PASS — cited decision ids ⊆ bundle ids; per-decision citation + counter_status present (5-12 counter candidates per query); structural gate cited_ids ⊆ bundle_ids verified",
+    "clickable_map": "PASS — 8 clusters, 105 decisions per query, coordinates finite and bounded [-1,1], deterministic (ga==gb across runs), outlier detection active, test_query_map_mvp.py 11/11 green",
+    "sourced_generative_answer": "PASS — generative_audit_llm_v2 with independent_llm_adversarial_v2 (space-bunny-free); error=null on all legs; answer cites only retrieved decision IDs",
+    "zero_external_cost": "PASS — opencode/*-free models, public OpenCaseLaw endpoints, no API keys under product/, all canonical_urls on mcp.opencaselaw.ch",
+    "fixture_live_separation": "PASS — query/corpus.py enforces strict separation; live never padded with fixture rows; content-addressed product cache (results/product/query_cache, 189 entries) holds previously live-fetched envelopes"
+  },
+  "metrics_summary": {
+    "mvp_tests_total": 11,
+    "mvp_tests_passed": 11,
+    "mvp_tests_failed": 0,
+    "fixture_decisions": 105,
+    "fixture_clusters": 8,
+    "fixture_languages": ["de", "fr", "it"],
+    "retrieval_adapter": "frontier-query-retrieval/v2 (OCL adapter)",
+    "generative_audit_contract": "v2.2",
+    "map_component": "query-conditioned-tfidf-v45",
+    "progressive_phases": ["map_ready"],
+    "counter_authority_statuses_supported": ["candidate-limiting", "candidate-contrary", "candidate-distinguishing", "candidate-exception", "cited", "none"],
+    "latency_map_ready_s": 0.131
+  },
+  "known_limitations": [
+    "Fixture mode uses placeholder generative answer; real model needed for content quality verification",
+    "Real model generation requires free model availability (nemotron-3-ultra-free)",
+    "Legacy 174k server/tests require sentence-transformers and corpus artifacts (not on MVP critical path)",
+    "Latency budgets from QUERY_MAP_MVP §9A not yet measured on live retrieval path"
+  ],
+  "evidence_chain_repair": {
+    "stale_pre_red_accepted_state": "REMOVED from state/product.json: V45_QUERY_MAP_MACHINE_GATE_GREEN / LIVE_E2E_VERIFIED are withdrawn, not re-asserted.",
+    "unverifiable_run_ids": "listed once under state/product.json unresolvable_run_ids; never cited as latest/verified evidence",
+    "reality_check_outcomes_recorded": "state/product.json reality_check_status records the 2026-10-12 durable failures AND the 2026-10-14 local live outcomes",
+    "direction_version_aligned": true
+  },
+  "canonical_state_file": "state/product.json (workflow-validated; this in-package file is a convenience mirror and never overrides it)",
+  "state_written_during_run": 38648548635,
+  "state_written_during_run_status": "in_progress at write time",
+  "resumed_snapshot_run": 38647386235
+}
