@@ -460,6 +460,18 @@
       }
     },
     {
+      "path": "results/accepted-state/frontier/frontier-human-gate-harness.json",
+      "state": {
+        "team_id": "frontier-human-gate-harness",
+        "charter_version": 1,
+        "evidence_tier": "UNTESTED",
+        "cycle_status": "INITIALIZED",
+        "continue_recommended": true,
+        "accepted_run_id": null,
+        "accepted_commit": null
+      }
+    },
+    {
       "path": "results/accepted-state/legal-distance.json",
       "state": {
         "lane": "legal-distance",
@@ -1432,26 +1444,16 @@
       "path": "results/accepted-state/product.json",
       "state": {
         "lane": "product",
-        "direction_version": 49,
-        "cycle_status": "MVP_VERTICAL_SLICE_VERIFIED_LOCAL_REPAIR_4_OF_4_PENDING_DURABLE_RUN",
+        "direction_version": 50,
+        "cycle_status": "V50_OPERATIONAL_RESUME_38604340726__4_OF_4_LIVE_LEGS_PASS_IN_THIS_RUN__RUN_CONCLUSION_PENDING",
         "continue_recommended": true,
         "human_gate_ready": false,
         "machine_gate_ready": false,
-        "evidence_tier": "LOCAL_VERIFIED_PENDING_DURABLE_RUN",
+        "evidence_tier": "CI_TEAM_JOB_LIVE_4_OF_4_IN_RUN_38604340726__RUN_CONCLUSION_PENDING",
         "product": "query-specific Swiss legal research: broad OpenCaseLaw retrieval -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map",
-        "state_updated_by_run": 38559540834,
-        "state_updated_from_resumed_snapshot_run": 38554018429,
+        "state_updated_by_run": 38604340726,
+        "state_updated_from_resumed_snapshot_run": 38600271324,
         "state_updated_at": "2026-10-14",
-        "current_run": {
-          "run_id": 38559540834,
-          "head_branch": "main",
-          "head_sha": "c0013d7bd38bd35a7edaa0a4f0e7493643f5a5b7",
-          "event": "workflow_dispatch",
-          "created_at": "2026-10-14T11:51:29Z",
-          "status_at_state_write": "in_progress",
-          "role": "OPERATIONAL RESUME of the persisted producer snapshot of run 38554018429 (resume_from_run_id)",
-          "note": "Not cited as verified evidence: conclusion is not available while this producer session runs. Snapshot {run_id, head_sha, conclusion, created_at} is recorded only for runs whose conclusion is already observable."
-        },
         "supersedes_claims": {
           "removed_claim": "V45_QUERY_MAP_MACHINE_GATE_GREEN / LIVE_E2E_VERIFIED",
           "reason": "Pre-red claim was written 2026-10-12T18:27:34Z, before the contradicting reality checks at 19:11-19:21Z, and cited run ids that now return HTTP 404. It is no longer current status and is not re-asserted anywhere in this state.",
@@ -1516,6 +1518,44 @@
             },
             "job_id_team": 115818581173,
             "note": "OPERATIONAL failure by design: work-quantum expiry (wrapper rc 78, LEX_WORK_QUANTUM_EXPIRED, 2700s budget started ~11:06Z; snapshot commit 4d2fc49 authored 11:51:15Z). Not a state-validation failure. Producer snapshot preserved and resumed by run 38559540834. Details: reports/product/CYCLE_38554018429_RESUME.md"
+          },
+          {
+            "run_id": 38600271324,
+            "head_sha": "43652aa75c0141681e0afb48c44a84f623f01c50",
+            "conclusion": "failure",
+            "created_at": "2026-10-14T16:41:50Z",
+            "head_branch": "main",
+            "event": "workflow_dispatch",
+            "observed_at": "2026-10-14T17:30:36Z",
+            "ci_reality_summary": "results/product/reality_check/summary_ci_38600271324.json",
+            "workspace_head_sha": "ea161e6dd575985374093cd6306dcd6a4a3cb095",
+            "run_head_sha": null,
+            "legs_ran_in_this_run": [
+              "petty-theft-dismissal",
+              "rent-default",
+              "corporate-criminal-liability",
+              "business-judgment-rule"
+            ],
+            "legs_complete": true,
+            "all_legs_passed": true,
+            "execution": {
+              "concurrency": 1,
+              "mode": "sequential",
+              "rationale": "4-way parallel execution pushed every adversarial pass past its ceiling on 2026-10-14; only an uncontended sequential run is admissible",
+              "requested_order": [
+                "petty-theft-dismissal",
+                "rent-default",
+                "corporate-criminal-liability",
+                "business-judgment-rule"
+              ]
+            },
+            "jobs": {
+              "team": "success (all 10 steps; 4/4 live legs in-run; scope and state validation green)",
+              "audit": "failure at step 5 'Independent audit' (independent_auditor agent step); steps 6-7 skipped",
+              "integrate": "skipped",
+              "resilience": "success (dispatched operational resume 38604340726 with resume_from_run_id=38600271324)"
+            },
+            "note": "Team job fully green (4/4 live frozen legs, summary_ci_38600271324.json); run conclusion is failure ONLY because the independent audit job failed at the auditor agent step itself — NOT the v49 misplaced-artifact pathology (that failed at step 6 'Enforce audit scope and read gate'). Job logs require admin rights (HTTP 403 unauthenticated), so the wrapper exit code is not retrievable from the lane; observable facts recorded from the public REST jobs endpoint at 2026-10-14T17:21Z."
           }
         ],
         "unresolvable_run_ids": {
@@ -1621,7 +1661,31 @@
             "note": "The parallel batch ran four legs concurrently in one session; rent-default's adversarial pass timed out on all four healthy models under that contention and passed on an uncontended retry. Contention, not answer content, was the differentiator: the rent-default answer already satisfied all three truth assertions in both the 11:32Z and the contended 12:08Z runs.",
             "answers_already_satisfied_rent_truth_assertions": "The 11:32Z rent-default answer already contained '30', 'fin du mois' and 'abus'; that leg failed only on the adversarial structural gate, which product/query/audit_seam.py (60s -> 180s) was written to fix."
           },
-          "substantive_4_of_4_scope": "the flags substantive_4_of_4_green / durable_green_run_id refer to the DURABLE Product Reality Check run only; local live 4/4 is recorded separately under local_live_prevalidation_2026_10_14.local_4_of_4"
+          "substantive_4_of_4_scope": "the flags substantive_4_of_4_green / durable_green_run_id refer to the DURABLE Product Reality Check run only; local live 4/4 is recorded separately under local_live_prevalidation_2026_10_14.local_4_of_4",
+          "ci_leg_runner": {
+            "command": "python product/ci_reality_legs.py --run-id $GITHUB_RUN_ID --mode live",
+            "summary_name": "results/product/reality_check/summary_ci_<run_id>.json",
+            "exit_codes": {
+              "0": "all four legs ran in this run and passed",
+              "1": "a leg ran and failed its gates (negative evidence retained)",
+              "3": "incomplete: deadline reached, legs_missing names exactly which legs did not run"
+            },
+            "last_in_job_run": {
+              "run_id": 38604340726,
+              "legs": 4,
+              "passed": 4,
+              "seconds": 369.769,
+              "summary": "results/product/reality_check/summary_ci_38604340726.json",
+              "note": "OPERATIONAL RESUME of run 38600271324's snapshot; legs re-executed LIVE in this run (run-scoped filenames; cross-run reuse refused)."
+            },
+            "prior_in_job_run_38600271324": {
+              "run_id": 38600271324,
+              "legs": 4,
+              "passed": 4,
+              "seconds": 683.5,
+              "summary": "results/product/reality_check/summary_ci_38600271324.json"
+            }
+          }
         },
         "orchestration_failure_diagnosis": {
           "resumed_run": 38554018429,
@@ -1640,7 +1704,20 @@
             "evidence": "run created 2026-10-14T11:04:31Z (job 115818581173); snapshot commit 4d2fc49 authored 2026-10-14 11:51:15Z; agent start ~11:06Z + 2700s = ~11:51Z; 'Validate active MVP producer state' recorded SKIPPED, i.e. it never asserted anything false.",
             "status": "OPERATIONAL, NOT A VALIDATION DEFECT - snapshot preserved and resumed; no restart from scratch."
           },
-          "secondary_risk_noted": "Earlier cycles also wrote outside product scope (frontier/frontier-generative-audit/generative_audit/provider.py and results/frontier/frontier-query-retrieval/cache/*). Those writes are already committed in the snapshot; 'Enforce lane write scope' only inspects pending changes, so they cannot be cleaned without tripping the scope check in the same run. They are recorded as pre-existing snapshot content, not current-cycle work. Live-run cache by-products created inside a cycle are removed before the scope step (reports/product/CYCLE_38559540834.md section 4)."
+          "secondary_risk_noted": "Earlier cycles also wrote outside product scope (frontier/frontier-generative-audit/generative_audit/provider.py and results/frontier/frontier-query-retrieval/cache/*). Those writes are already committed in the snapshot; 'Enforce lane write scope' only inspects pending changes, so they cannot be cleaned without tripping the scope check in the same run. They are recorded as pre-existing snapshot content, not current-cycle work. Live-run cache by-products created inside a cycle are removed before the scope step (reports/product/CYCLE_38559540834.md section 4).",
+          "run_38600271324": {
+            "failing_job": "audit (step 5 'Independent audit')",
+            "not_the_v49_pathology": true,
+            "detail": [
+              "Team job success (all steps). Audit job failed at the independent_auditor agent step itself; 'Enforce audit scope and read gate' and 'Persist audit snapshot' were SKIPPED, so this is NOT the misplaced-artifact jq failure of runs 38571087814/38578725589. Job logs are admin-only (HTTP 403 via public API); the wrapper's possible non-zero exits (78 quantum, 76 model-auth pool exhausted, 75 network retries exhausted) cannot be distinguished from the lane. Integrate skipped; resilience dispatched this operational resume (38604340726)."
+            ],
+            "lane_levers": [
+              "re-executed the four frozen legs LIVE inside this resume run so a green audit+integrate chain here completes v50 (a) in-run",
+              "recorded the observed 38600271324 conclusion=failure + jobs detail into verified_runs via product/ci_run_evidence.py",
+              "dependency preflight added to product/ci_reality_legs.py (fresh-runner ModuleNotFoundError crash of this run's attempt 1 converted to one actionable exit-4 error)",
+              "cycle report written as a minutes-scale audit guide"
+            ]
+          }
         },
         "control_plane_hardening_items": [
           {
@@ -1661,6 +1738,13 @@
               "or refresh the override against the current healthy pool"
             ],
             "scope": "control-plane workflow scope; recorded so a durable red is not misdiagnosed as an answer-content failure"
+          },
+          {
+            "item": "audit_artifact_placement_deadlock",
+            "detail": "The independent auditor wrote results/audit/product/CYCLE_<run>_GATE.json into the producer worktree /tmp/lex_team instead of the audit job checkout in runs 38571087814 and 38578725589, so `Enforce audit scope and read gate` died on jq, integrate was skipped and lab/product stopped advancing (the producer work itself had already passed).",
+            "product_lane_action": "None available: .github/** and the auditor agent card are outside product write scope (the attempt to add a dispatch trigger already burned run 38575541439 with `lane crossed protected scope`).",
+            "status": "restated by the director in factory_wide_operational_requirements as a FILE-LOCATION contract only; recorded here once so the lane stops re-investigating it",
+            "precedent": "run 38559540834 passed team->audit->integrate->resilience with the same auditor using relative paths from the audit checkout"
           }
         ],
         "normal_path": {
@@ -1676,19 +1760,17 @@
           "external_spend": "none; free OpenCode models and public OpenCaseLaw endpoints only"
         },
         "verification": {
-          "status": "PASS (local, deterministic + local live pre-validation)",
-          "verified_on": "2026-10-14 (run 38559540834 workspace, resumed from run 38554018429)",
-          "product_integration_tests": "26 passed (pytest product/tests/test_reality_check.py product/tests/test_audit_seam.py product/tests/test_query_map_mvp.py)",
-          "retrieval_component_tests": "57 passed (unittest discover tests/frontier/frontier-query-retrieval)",
-          "generative_audit_component_tests": "34 passed (pytest tests/frontier/frontier-generative-audit/test_generative_audit_v2.py)",
-          "live_reality_prevalidation": "see reality_check_status.local_live_prevalidation_2026_10_14",
+          "status": "PASS (local, deterministic + CI_TEAM_JOB_LIVE 4/4 in this run)",
+          "verified_on": "2026-10-14 (run 38604340726 workspace, resumed from run 38600271324 snapshot)",
+          "product_integration_tests": "73 passed (pytest six-suite: ci_reality_legs 20 + ci_run_evidence 15 + reality_check + audit_seam + query_map_mvp + answer_contract)",
+          "live_legs_this_run": "results/product/reality_check/summary_ci_38604340726.json (4/4 structural+truth, sequential)",
           "evidence_reports": [
-            "reports/product/CYCLE_38554018429_RESUME.md",
-            "reports/product/CYCLE_38559540834.md",
+            "reports/product/CYCLE_38604340726.md",
+            "reports/product/CYCLE_38600271324.md",
             "results/product/reality_check/"
           ],
           "durable_actions_run": null,
-          "durable_run_note": "No durable green Actions run exists yet. product-reality-check.yml fires only on a push to lab/product containing '[reality-check]'; see control_plane_hardening_items[0]. Local results are labelled LOCAL_NOT_DURABLE and are never presented as CI evidence."
+          "durable_run_note": "No durable green core-lane run exists yet: 38600271324 was team-green but audit-failed; this run (38604340726) carries fresh 4/4 in-run legs and awaits its own audit+integrate conclusion, which is not observable while the team job executes. Observation command: python product/ci_run_evidence.py --run-id 38604340726 --apply"
         },
         "human_gate_criteria": [
           "one-command local launch",
@@ -1701,8 +1783,118 @@
           "no 174k startup dependency",
           "durable Product Reality Check 4/4 green"
         ],
-        "next_recommendation": "Keep continuing. Next deltas in order: (1) durable Product Reality Check 4/4 green - requires closing the trigger gap in control_plane_hardening_items[0], then a [reality-check] push to lab/product whose head commit contains the audited product fixes; (2) re-run the rent-default leg uncontended and keep the four local live legs green as pre-validation evidence; (3) owner/jurist map-vs-list session once a durable green exists.",
-        "integration_origin_direction_version": 45
+        "next_recommendation": "Continue. This operational resume re-executed the four frozen legs LIVE in run 38604340726 (4/4 structural+truth, sequential, summary_ci_38604340726.json) and recorded the honest conclusion=failure of the prior run 38600271324 (audit job failed at the auditor agent step, not the artifact-placement pathology). The single remaining mechanical step for machine gate: after THIS run completes, run `python product/ci_run_evidence.py --run-id 38604340726 --apply`; it sets machine_gate_ready=true only if conclusion==success AND the summary shows 4/4. If the audit fails operationally again, the lane cannot fix the auditor (.github/** and the auditor card are control-plane scope) — the next resume should --resume nothing (new run id) and simply re-run the legs in-run while keeping the audit guide report short. human_gate_ready stays false until a real owner/jurist session.",
+        "integration_origin_direction_version": 45,
+        "prior_current_run": {
+          "run_id": 38559540834,
+          "head_branch": "main",
+          "head_sha": "c0013d7bd38bd35a7edaa0a4f0e7493643f5a5b7",
+          "event": "workflow_dispatch",
+          "created_at": "2026-10-14T11:51:29Z",
+          "status_at_state_write": "in_progress",
+          "role": "OPERATIONAL RESUME of the persisted producer snapshot of run 38554018429 (resume_from_run_id)",
+          "note": "Not cited as verified evidence: conclusion is not available while this producer session runs. Snapshot {run_id, head_sha, conclusion, created_at} is recorded only for runs whose conclusion is already observable."
+        },
+        "current_run": {
+          "run_id": 38604340726,
+          "head_branch": "main",
+          "head_sha_workflow": "cfef528f883641fb9bbb3b4d9b3763be7cf0f59f",
+          "head_sha_lab_product_at_leg_execution": "9a3b746bdd459f9c3025a800ab34925c34b7cdd1",
+          "event": "workflow_dispatch",
+          "created_at": "2026-10-14T17:10:09Z",
+          "status_at_state_write": "in_progress",
+          "conclusion_at_state_write": null,
+          "role": "OPERATIONAL RESUME of the persisted producer snapshot of run 38600271324 (resume_from_run_id)",
+          "note": "The conclusion of this run is NOT observable while its own team job executes; it is never asserted here. machine_gate_ready stays false until product/ci_run_evidence.py observes conclusion==success for this run id from the GitHub REST API and matches it against summary_ci_38604340726.json.",
+          "pending_observation_command": "python product/ci_run_evidence.py --run-id 38604340726 --apply"
+        },
+        "v50_delivery": {
+          "outcome": "one durable, retrievable, GREEN core-lane run whose own team job executes the four frozen reality legs LIVE and writes results/product/reality_check/summary_ci_<run_id>.json",
+          "runner": "product/ci_reality_legs.py (reuse-first: run_leg/evaluate/strip_bundle from product/reality_check.py, no gate logic re-implemented)",
+          "recorder": "product/ci_run_evidence.py (observes the run on the GitHub REST API, records {run_id, head_sha, conclusion, created_at}, opens machine_gate_ready only on an observed green run + complete live leg summary)",
+          "tests": "product/tests/test_ci_reality_legs.py (18) + product/tests/test_ci_run_evidence.py (15); 66 passed together with the pre-existing reality/audit-seam/query-map/answer-contract suites",
+          "live_evidence_this_run": {
+            "run_id": 38604340726,
+            "summary": "results/product/reality_check/summary_ci_38604340726.json",
+            "legs": [
+              "petty-theft-dismissal",
+              "rent-default",
+              "corporate-criminal-liability",
+              "business-judgment-rule"
+            ],
+            "result": "4/4 structural + truth PASS, sequential/uncontended, 369.8 s total",
+            "per_leg_seconds": {
+              "petty-theft-dismissal": 101.796,
+              "rent-default": 98.123,
+              "corporate-criminal-liability": 175.733,
+              "business-judgment-rule": 95.91
+            },
+            "answer_model": "opencode/nemotron-3-ultra-free",
+            "adversarial_model": "opencode/space-bunny-free",
+            "evidence_tier": "CI_TEAM_JOB_LIVE (executed inside this run's own team job; petty-theft executed earlier in the same run id and was resumed within-run)",
+            "cross_run_reuse": "REFUSED_BY_RUN_SCOPED_FILENAMES",
+            "resume_chain_within_run": [
+              "attempt 1 (17:23Z): fresh runner lacked numpy/scikit-learn; 4 fatal legs recorded then archived as *.attempt1-missing-deps.json",
+              "attempt 2: deps installed from product/requirements-query.txt; petty-theft-dismissal PASSED; process group killed by a local tool timeout mid rent-default; summary flushed with 1/4",
+              "attempt 3: setsid-detached --resume; petty-theft reused within run; remaining 3 legs PASSED; summary_ci_38604340726.json 4/4"
+            ]
+          },
+          "guarantees": [
+            "sequential by construction; assert_disjoint_intervals fails the run if two legs ever overlap (the 4-way parallel batch of 2026-10-14 that pushed every adversarial pass past its 180 s ceiling cannot return)",
+            "durable partial progress: every leg result and the summary are flushed to disk immediately, so a killed job keeps its work and --resume continues inside the SAME run id",
+            "no older green leg can be presented as current: cross-run filenames are rejected on write and ignored on resume",
+            "machine_gate_ready is flipped by observation, never by assertion; a 404 run is recorded under unresolvable_run_ids and can never be cited as evidence"
+          ],
+          "audit_artifact_placement": "The v50 blocker (independent auditor writing results/audit/<lane>/CYCLE_<run>_GATE.json into /tmp/lex_team instead of the audit checkout, runs 38571087814 / 38578725589) is control-plane scope and is now restated in factory_wide_operational_requirements. The product lane cannot edit .github/**; this cycle therefore concentrates on making the TEAM job itself green and self-evidencing.",
+          "clickable_slice_smoke_this_cycle": {
+            "server": "python product/query_app.py --port 8791 (one command, stdlib ThreadingHTTPServer)",
+            "checked_at": "2026-10-14T17:0xZ inside run 38600271324",
+            "query": "Responsabilite penale de l'entreprise selon l'art. 102 CP : subsidiaire ou primaire ?",
+            "phase_1_start": "GET /api/query/start -> 156 decisions, 8 clusters, per-decision x/y + cluster_id + canonical_url; answer status pending (map before generation)",
+            "phase_2_enrich": "GET /api/query/enrich -> answer ready, method generative_audit_llm_v2, model opencode/nemotron-3-ultra-free, 5 cited decision ids, 2 counter-status decisions, adversarial pass independent_llm_adversarial_v2 / opencode/space-bunny-free with error=None",
+            "purpose": "confirm the v45 clickable slice is unregressed by the v50 CI-evidence work; not a human gate result (human_gate_ready stays false)"
+          },
+          "prior_live_evidence_38600271324": {
+            "summary": "results/product/reality_check/summary_ci_38600271324.json",
+            "legs": [
+              "petty-theft-dismissal",
+              "rent-default",
+              "corporate-criminal-liability",
+              "business-judgment-rule"
+            ],
+            "result": "4/4 structural + truth PASS, sequential/uncontended, 683.5 s total",
+            "per_leg_seconds": {
+              "petty-theft-dismissal": 230.2,
+              "rent-default": 92.3,
+              "corporate-criminal-liability": 293.2,
+              "business-judgment-rule": 67.7
+            },
+            "answer_model": "opencode/nemotron-3-ultra-free",
+            "adversarial_model": "opencode/space-bunny-free",
+            "evidence_tier": "CI_TEAM_JOB_LIVE (executed inside this run's own team job, not a prior local run)",
+            "cross_run_reuse": "REFUSED_BY_RUN_SCOPED_FILENAMES (every leg artefact carries ci-<run_id> in its name; assert_run_scoped rejects anything else)"
+          },
+          "dependency_preflight": {
+            "change": "product/ci_reality_legs.py preflight_imports(): missing numpy/scikit-learn now exits 4 with an actionable message before any leg runs",
+            "why": "run 38604340726 attempt 1 recorded four fatal ModuleNotFoundError legs on a fresh runner",
+            "tests": "product/tests/test_ci_reality_legs.py (+2 tests, suite 18->20)"
+          }
+        },
+        "machine_gate": {
+          "ready": false,
+          "decided_for_run_id": 38604340726,
+          "decided_at": "2026-10-14T17:35:00Z",
+          "reasons": [
+            "conclusion=None is not 'success' (own run conclusion not observable while its team job executes)"
+          ],
+          "criteria": [
+            "run conclusion == success (observed on the GitHub REST API)",
+            "summary_ci_<run_id>.json exists for THIS run id",
+            "summary mode == live (CI_TEAM_JOB_LIVE)",
+            "legs_complete == true and all_legs_passed == true",
+            "summary provenance: it records the run head sha (GITHUB_SHA) or the lab-branch head this run executed, as documented for this run id in state/product.json"
+          ]
+        }
       }
     }
   ]
