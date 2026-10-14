@@ -2,12 +2,10 @@
   "lane": "product",
   "direction_version": 49,
   "evidence_tier": "REPRODUCED",
-  "cycle_status": "MVP_QUERY_MAP_VERTICAL_SLICE_WORKING",
+  "cycle_status": "MVP_QUERY_MAP_VERTICAL_SLICE_WORKING_AND_LOCAL_REALITY_4_OF_4",
   "continue_recommended": true,
   "accepted_run_id": "MVP_QUERY_MAP_FIXTURE_TESTS_20261014",
   "github_run": 38548957828,
-  "last_verified_run": 38548957828,
-  "last_verified_timestamp": "2026-10-14T10:35:00.000000+00:00",
   "evidence_refs": [
     "product/tests/test_query_map_mvp.py",
     "product/query/pipeline.py",
@@ -22,19 +20,33 @@
     "frontier/frontier-generative-audit/generative_audit/",
     "frontier/frontier-query-map-ui/src/query_bundle_adapter.py"
   ],
-  "next_recommendation": "MVP query-map vertical slice is RUNNABLE in fixture mode (11/11 tests PASS). Progressive pipeline: query -> OpenCaseLaw retrieval (fixture) -> query_result_bundle -> map geometry (TF-IDF + SVD + KMeans) -> generative answer (fixture) -> independent adversarial counter-authority pass -> UI. Reality check gate (Art. 257d(2) rent termination: 30-day/end-of-month notice rule + good-faith/Rechtsmissbrauch limitation) requires live OpenCaseLaw retrieval + real model generation. Next: run live query with free model (nemotron-3-ultra-free) against OpenCaseLaw to verify answer content quality, then record durable GitHub Actions run.",
+  "next_recommendation": "See state/product.json. Blocking item: product-reality-check.yml has no [reality-check]-free trigger through the audit+integrate chain (control_plane_hardening_items[0]).",
   "metrics_summary": {
     "mvp_tests_total": 11,
     "mvp_tests_passed": 11,
     "mvp_tests_failed": 0,
     "fixture_decisions": 100,
     "fixture_clusters": 8,
-    "fixture_languages": ["de", "fr", "it"],
+    "fixture_languages": [
+      "de",
+      "fr",
+      "it"
+    ],
     "retrieval_adapter": "frontier-query-retrieval/v2 (OCL adapter)",
     "generative_audit_contract": "v2.2",
     "map_component": "query-conditioned-tfidf-v45",
-    "progressive_phases": ["map_ready", "complete"],
-    "counter_authority_statuses_supported": ["candidate-limiting", "candidate-contrary", "candidate-distinguishing", "candidate-exception", "cited", "none"]
+    "progressive_phases": [
+      "map_ready",
+      "complete"
+    ],
+    "counter_authority_statuses_supported": [
+      "candidate-limiting",
+      "candidate-contrary",
+      "candidate-distinguishing",
+      "candidate-exception",
+      "cited",
+      "none"
+    ]
   },
   "known_limitations": [
     "Fixture mode uses placeholder generative answer; real model needed for content quality verification",
@@ -44,16 +56,22 @@
     "Legacy 174k server/tests require sentence-transformers and corpus artifacts (not on MVP critical path)"
   ],
   "reality_check_status": {
-    "rent_default_leg": "PENDING_LIVE_VERIFICATION - requires Art. 257d(2) query + live OpenCaseLaw + real model generation",
-    "petty_theft_dismissal": "PENDING_LIVE_VERIFICATION",
-    "corporate_criminal_liability": "PENDING_LIVE_VERIFICATION",
-    "business_judgment_rule": "PENDING_LIVE_VERIFICATION",
-    "overall": "3/4 failed in prior run 38297155377; fixture mode tests PASS but content quality unverified"
+    "rent_default_leg": "PASS (local live, uncontended retry 2026-10-14T12:23:13Z, structural+truth)",
+    "petty_theft_dismissal": "PASS (local live 2026-10-14T12:08:05Z, structural+truth)",
+    "corporate_criminal_liability": "PASS (local live 2026-10-14T12:08:08Z, structural+truth)",
+    "business_judgment_rule": "PASS (local live 2026-10-14T12:08:11Z, structural+truth)",
+    "overall": "LOCAL LIVE 4/4 on 2026-10-14 (LOCAL_NOT_DURABLE). Durable Product Reality Check still 3/4 at lab/product HEAD (run 38297155377); durable_green_run_id=null.",
+    "evidence": "results/product/reality_check/"
   },
   "evidence_chain_repair": {
-    "stale_pre_red_accepted_state": "ACKNOWLEDGED - product.json was at direction_version 34 (V1_0_RELEASED), now updated to v49 MVP scope",
-    "unverifiable_run_ids": "ACKNOWLEDGED - prior run IDs (38290597414, 38275529752, 38204133740, 38215168853, 38185297811) return 404; only citing surviving run IDs going forward",
-    "reality_check_outcomes_recorded": true,
-    "direction_version_aligned": true
-  }
+    "stale_pre_red_accepted_state": "REMOVED from state/product.json: V45_QUERY_MAP_MACHINE_GATE_GREEN / LIVE_E2E_VERIFIED are withdrawn, not re-asserted.",
+    "unverifiable_run_ids": "listed once under state/product.json unresolvable_run_ids; never cited as latest/verified evidence",
+    "reality_check_outcomes_recorded": "state/product.json reality_check_status records the 2026-10-12 durable failures AND the 2026-10-14 local live outcomes",
+    "direction_version_aligned": true,
+    "durable_green_run_id": null
+  },
+  "canonical_state_file": "state/product.json (workflow-validated; this in-package file is a convenience mirror and never overrides it)",
+  "state_written_during_run": 38559540834,
+  "state_written_during_run_status": "in_progress at write time; NOT cited as verified CI evidence (see state/product.json run_id_policy)",
+  "resumed_snapshot_run": 38554018429
 }

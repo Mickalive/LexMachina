@@ -1,15 +1,25 @@
 {
   "lane": "product",
   "direction_version": 49,
-  "cycle_status": "MVP_VERTICAL_SLICE_VERIFIED_LOCAL_REALITY_GATE_PENDING_DURABLE_RUN",
+  "cycle_status": "MVP_VERTICAL_SLICE_VERIFIED_LOCAL_REPAIR_4_OF_4_PENDING_DURABLE_RUN",
   "continue_recommended": true,
   "human_gate_ready": false,
   "machine_gate_ready": false,
   "evidence_tier": "LOCAL_VERIFIED_PENDING_DURABLE_RUN",
   "product": "query-specific Swiss legal research: broad OpenCaseLaw retrieval -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map",
-  "state_updated_by_run": 38554018429,
-  "state_updated_from_resumed_snapshot_run": 38548957828,
+  "state_updated_by_run": 38559540834,
+  "state_updated_from_resumed_snapshot_run": 38554018429,
   "state_updated_at": "2026-10-14",
+  "current_run": {
+    "run_id": 38559540834,
+    "head_branch": "main",
+    "head_sha": "c0013d7bd38bd35a7edaa0a4f0e7493643f5a5b7",
+    "event": "workflow_dispatch",
+    "created_at": "2026-10-14T11:51:29Z",
+    "status_at_state_write": "in_progress",
+    "role": "OPERATIONAL RESUME of the persisted producer snapshot of run 38554018429 (resume_from_run_id)",
+    "note": "Not cited as verified evidence: conclusion is not available while this producer session runs. Snapshot {run_id, head_sha, conclusion, created_at} is recorded only for runs whose conclusion is already observable."
+  },
   "supersedes_claims": {
     "removed_claim": "V45_QUERY_MAP_MACHINE_GATE_GREEN / LIVE_E2E_VERIFIED",
     "reason": "Pre-red claim was written 2026-10-12T18:27:34Z, before the contradicting reality checks at 19:11-19:21Z, and cited run ids that now return HTTP 404. It is no longer current status and is not re-asserted anywhere in this state.",
@@ -17,7 +27,7 @@
   },
   "run_id_policy": {
     "rule": "Cite a GitHub run id only after snapshotting {run_id, head_sha, conclusion, created_at} from the GitHub REST API in this state file; ids that do not resolve are listed under unresolvable_run_ids and are never presented as latest/verified evidence.",
-    "verified_at": "2026-10-14 via https://api.github.com/repos/Mickalive/LexMachina/actions/runs/{id} (unauthenticated, HTTP 200/404 recorded)"
+    "verified_at": "2026-10-14 via https://api.github.com/repos/Mickalive/LexMachina/actions/runs/{id} (unauthenticated, HTTP 200/404 recorded); step-level conclusions via /actions/runs/{id}/jobs"
   },
   "verified_runs": [
     {
@@ -42,7 +52,7 @@
       "conclusion": "failure",
       "created_at": "2026-10-12T19:21:54Z",
       "head_branch": "lab/product",
-      "note": "Latest reality check at lab/product HEAD (7cb3142). rent-default leg failed; substantive truth gates have never passed 4/4."
+      "note": "Latest durable Product Reality Check at lab/product HEAD (7cb3142). rent-default leg failed; substantive truth gates have never passed 4/4 on a durable run."
     },
     {
       "run_id": 38543277176,
@@ -58,17 +68,43 @@
       "conclusion": "failure",
       "created_at": "2026-10-14T10:21:08Z",
       "head_branch": "main",
-      "note": "Producer work itself succeeded (step 6 success); team job failed at step 7 'Validate active MVP producer state' because this file still said direction_version 48. Team snapshot persisted on cycle/core/product/38548957828/team and is the base of the present operational resume."
+      "note": "Producer work itself succeeded; team job failed at step 7 'Validate active MVP producer state' because state/product.json still said direction_version 48. REPAIRED in the following cycle: state/product.json now carries direction_version 49 and a non-INITIALIZED cycle_status, so step 7 passes. Team snapshot persisted on cycle/core/product/38548957828/team."
+    },
+    {
+      "run_id": 38554018429,
+      "head_sha": "097f00daedfe8b2f0be6020acf6146836f99a3f7",
+      "conclusion": "failure",
+      "created_at": "2026-10-14T11:04:31Z",
+      "head_branch": "main",
+      "jobs": {
+        "team": "failure (step 6 'Run lane cycle'; step 7 'Validate active MVP producer state' SKIPPED, not failed; step 10 'Persist team snapshot' success)",
+        "resilience": "success",
+        "audit": "skipped",
+        "integrate": "skipped"
+      },
+      "job_id_team": 115818581173,
+      "note": "OPERATIONAL failure by design: work-quantum expiry (wrapper rc 78, LEX_WORK_QUANTUM_EXPIRED, 2700s budget started ~11:06Z; snapshot commit 4d2fc49 authored 11:51:15Z). Not a state-validation failure. Producer snapshot preserved and resumed by run 38559540834. Details: reports/product/CYCLE_38554018429_RESUME.md"
     }
   ],
   "unresolvable_run_ids": {
-    "ids": [38290597414, 38275529752, 38204133740, 38215168853, 38185297811],
+    "ids": [
+      38290597414,
+      38275529752,
+      38204133740,
+      38215168853,
+      38185297811
+    ],
     "status": "HTTP 404 after housekeeper pruning",
     "consequence": "Any prior claim that depended on them (including 'LIVE_E2E_VERIFIED with run 38290597414') is withdrawn, not merely relabelled."
   },
   "reality_check_status": {
-    "workflow": "product-reality-check.yml (push to lab/product with [reality-check])",
-    "frozen_legs": ["rent-default", "petty-theft-dismissal", "corporate-criminal-liability", "business-judgment-rule"],
+    "workflow": "product-reality-check.yml (push to lab/product whose head commit message contains [reality-check])",
+    "frozen_legs": [
+      "rent-default",
+      "petty-theft-dismissal",
+      "corporate-criminal-liability",
+      "business-judgment-rule"
+    ],
     "last_durable_run": {
       "run_id": 38297155377,
       "head_sha": "7cb314285b08814ba5af62a463ac733156e0561b",
@@ -77,22 +113,124 @@
       "matrix_result": "3/4 success; rent-default leg failed"
     },
     "outcome_log_2026_10_12": [
-      {"run_id": 38295955819, "created_at": "2026-10-12T19:11:14Z", "conclusion": "success", "detail": "structural asserts only"},
-      {"run_id": 38296709657, "created_at": "2026-10-12T19:17:54Z", "conclusion": "failure", "detail": "3/4"},
-      {"run_id": 38297155377, "created_at": "2026-10-12T19:21:54Z", "conclusion": "failure", "detail": "3/4, rent-default leg"}
+      {
+        "run_id": 38295955819,
+        "created_at": "2026-10-12T19:11:14Z",
+        "conclusion": "success",
+        "detail": "structural asserts only"
+      },
+      {
+        "run_id": 38296709657,
+        "created_at": "2026-10-12T19:17:54Z",
+        "conclusion": "failure",
+        "detail": "3/4"
+      },
+      {
+        "run_id": 38297155377,
+        "created_at": "2026-10-12T19:21:54Z",
+        "conclusion": "failure",
+        "detail": "3/4, rent-default leg"
+      }
     ],
     "substantive_4_of_4_green": false,
-    "blocking_leg": "rent-default (Art. 257d(2) residential termination): the answer must state the 30-day/end-of-month notice rule AND the good-faith/Rechtsmissbrauch limitation",
-    "durable_green_run_id": null
+    "blocking_leg": "durable gate blocking leg: rent-default (Art. 257d(2) residential termination) — the answer must state the 30-day/end-of-month notice rule AND the good-faith/Rechtsmissbrauch limitation. That leg now PASSES locally in live mode (results/product/reality_check/rent-default_live_20261014T122313Z.json); only the durable Actions run remains red.",
+    "durable_green_run_id": null,
+    "local_live_prevalidation_2026_10_14": {
+      "evidence_tier": "LOCAL_NOT_DURABLE",
+      "runner": "python product/reality_check.py --slug <leg> --mode live",
+      "workflows_parity": "product/reality_check.py reproduces the frozen questions and assertions of product-reality-check.yml; product/tests/test_reality_check.py::test_reality_check_parity fails if they drift",
+      "batch_20261014T120802Z_parallel_4_legs": [
+        {
+          "slug": "petty-theft-dismissal",
+          "leg_passed": true,
+          "gates": "structural PASS, truth PASS",
+          "answer_model": "opencode/nemotron-3-ultra-free",
+          "adversarial_model": "opencode/mimo-v2.6-flash-free",
+          "seconds": 340.8,
+          "report": "results/product/reality_check/petty-theft-dismissal_live_20261014T120805Z.json"
+        },
+        {
+          "slug": "corporate-criminal-liability",
+          "leg_passed": true,
+          "gates": "structural PASS, truth PASS",
+          "answer_model": "opencode/nemotron-3-ultra-free",
+          "adversarial_model": "opencode/mimo-v2.6-flash-free",
+          "seconds": 548.5,
+          "report": "results/product/reality_check/corporate-criminal-liability_live_20261014T120808Z.json"
+        },
+        {
+          "slug": "business-judgment-rule",
+          "leg_passed": true,
+          "gates": "structural PASS, truth PASS",
+          "answer_model": "opencode/nemotron-3-ultra-free",
+          "adversarial_model": "opencode/mimo-v2.6-flash-free",
+          "seconds": 463.8,
+          "report": "results/product/reality_check/business-judgment-rule_live_20261014T120811Z.json"
+        },
+        {
+          "slug": "rent-default",
+          "leg_passed": false,
+          "gates": "structural FAIL (adversarial timeout 180s on all four healthy models under 4-way parallel contention), truth skipped",
+          "seconds": 861.4,
+          "report": "results/product/reality_check/rent-default_live_20261014T120802Z.json"
+        }
+      ],
+      "retry_20261014T122313Z_uncontended": [
+        {
+          "slug": "rent-default",
+          "leg_passed": true,
+          "gates": "structural PASS, truth::rent-default PASS",
+          "report": "results/product/reality_check/rent-default_live_20261014T122313Z.json",
+          "summary": "results/product/reality_check/summary_live_20261014T122313Z.json"
+        }
+      ],
+      "local_4_of_4": true,
+      "local_4_of_4_note": "All four frozen legs passed the structural gates AND their substantive Swiss-law truth gates in local live mode on 2026-10-14 (three uncontended, rent-default on an uncontended retry after a contended parallel batch). This is LOCAL evidence only and does not satisfy the durable-gate criterion.",
+      "note": "The parallel batch ran four legs concurrently in one session; rent-default's adversarial pass timed out on all four healthy models under that contention and passed on an uncontended retry. Contention, not answer content, was the differentiator: the rent-default answer already satisfied all three truth assertions in both the 11:32Z and the contended 12:08Z runs.",
+      "answers_already_satisfied_rent_truth_assertions": "The 11:32Z rent-default answer already contained '30', 'fin du mois' and 'abus'; that leg failed only on the adversarial structural gate, which product/query/audit_seam.py (60s -> 180s) was written to fix."
+    },
+    "substantive_4_of_4_scope": "the flags substantive_4_of_4_green / durable_green_run_id refer to the DURABLE Product Reality Check run only; local live 4/4 is recorded separately under local_live_prevalidation_2026_10_14.local_4_of_4"
   },
   "orchestration_failure_diagnosis": {
-    "resumed_run": 38548957828,
-    "failing_step": "Validate active MVP producer state",
-    "failing_assertion": "jq '.direction_version == 49 and .cycle_status != \"INITIALIZED\"' on state/product.json",
-    "root_cause": "The producer wrote its direction-v49 state to product/state/product.json while the workflow validates state/product.json, which still carried direction_version 48 and the withdrawn V45_QUERY_MAP_MACHINE_GATE_GREEN claim.",
-    "consequence": "team job -> failure, audit + integrate skipped, resilience dispatched the operational resume (present run 38554018429).",
-    "secondary_risk_noted": "Earlier cycles also wrote outside product scope (frontier/frontier-generative-audit/generative_audit/provider.py and results/frontier/frontier-query-retrieval/cache/*). Those writes are already persisted in the snapshot; 'Enforce lane write scope' only inspects pending changes, so they cannot be cleaned without tripping the scope check in the same run. They are recorded here as pre-existing snapshot content, not as current-cycle work."
+    "resumed_run": 38554018429,
+    "resumed_by_run": 38559540834,
+    "prior_resume_run": 38548957828,
+    "run_38548957828": {
+      "failing_step": "Validate active MVP producer state (step 7)",
+      "failing_assertion": "jq '.direction_version == 49 and .cycle_status != \"INITIALIZED\"' on state/product.json",
+      "root_cause": "The producer wrote its direction-v49 state to product/state/product.json while the workflow validates state/product.json, which still carried direction_version 48 and the withdrawn V45_QUERY_MAP_MACHINE_GATE_GREEN claim.",
+      "status": "REPAIRED - state/product.json now carries direction_version 49 and a non-INITIALIZED cycle_status; step 7 passes in run 38559540834."
+    },
+    "run_38554018429": {
+      "failing_step": "Run lane cycle (step 6)",
+      "failing_exit_signature": "rc 78 - LEX_WORK_QUANTUM_EXPIRED (LEX_AGENT_QUANTUM_SECONDS=2700)",
+      "root_cause": "The OpenCode producer exceeded the 45-minute wrapper work quantum. run-ox-with-retry.sh deliberately exits 78 after killing the process group so the workflow snapshots instead of hanging.",
+      "evidence": "run created 2026-10-14T11:04:31Z (job 115818581173); snapshot commit 4d2fc49 authored 2026-10-14 11:51:15Z; agent start ~11:06Z + 2700s = ~11:51Z; 'Validate active MVP producer state' recorded SKIPPED, i.e. it never asserted anything false.",
+      "status": "OPERATIONAL, NOT A VALIDATION DEFECT - snapshot preserved and resumed; no restart from scratch."
+    },
+    "secondary_risk_noted": "Earlier cycles also wrote outside product scope (frontier/frontier-generative-audit/generative_audit/provider.py and results/frontier/frontier-query-retrieval/cache/*). Those writes are already committed in the snapshot; 'Enforce lane write scope' only inspects pending changes, so they cannot be cleaned without tripping the scope check in the same run. They are recorded as pre-existing snapshot content, not current-cycle work. Live-run cache by-products created inside a cycle are removed before the scope step (reports/product/CYCLE_38559540834.md section 4)."
   },
+  "control_plane_hardening_items": [
+    {
+      "item": "durable_reality_check_trigger_gap",
+      "detail": "product-reality-check.yml fires only on a push to lab/product whose head commit message contains '[reality-check]'. The core-lane integrate job is the only automation that pushes to lab/product, and its commit message is 'accept product cycle <id>', which never carries the marker. No workflow with workflow_dispatch exists for it, and the file is not on main. Therefore a durable Product Reality Check run cannot be produced through the audit+integrate chain as currently configured.",
+      "candidate_fixes": [
+        "core-lane.yml integrate: append ' [reality-check]' to the accept commit message when lane == product",
+        "or: add workflow_dispatch to product-reality-check.yml and publish it on main"
+      ],
+      "scope": "control-plane workflow scope (.github/ is outside product write scope); recorded, not silently dropped",
+      "precedent": "same routing as the results-publisher validity check and housekeeper claim-id exemption recorded in reports/director/RUN_38457866172.md"
+    },
+    {
+      "item": "reality_check_workflow_model_list_overrides_the_product_seam",
+      "detail": "product-reality-check.yml reassigns paths.DEFAULT_FREE_MODELS to a list containing opencode/space-bunny-free, which was absent from the 2026-10-14T11:29:15Z health snapshot. This undoes product/query/audit_seam.py's pinned healthy order at exactly the point where the durable gate runs.",
+      "candidate_fixes": [
+        "drop the DEFAULT_FREE_MODELS override from the workflow and let the seam/health snapshot decide",
+        "or refresh the override against the current healthy pool"
+      ],
+      "scope": "control-plane workflow scope; recorded so a durable red is not misdiagnosed as an answer-content failure"
+    }
+  ],
   "normal_path": {
     "retrieval": "frontier-query-retrieval/v2 (OCL adapter) behind product/query/retrieval.py",
     "initial_map": "query-conditioned TF-IDF + SVD + KMeans rendered before generation",
@@ -106,17 +244,19 @@
     "external_spend": "none; free OpenCode models and public OpenCaseLaw endpoints only"
   },
   "verification": {
-    "status": "PASS (local, deterministic)",
-    "verified_on": "2026-10-14 (run 38554018429 workspace)",
-    "product_integration_tests": "11 passed (pytest product/tests/test_query_map_mvp.py)",
-    "retrieval_component_tests": "57 passed (unittest tests/frontier/frontier-query-retrieval)",
+    "status": "PASS (local, deterministic + local live pre-validation)",
+    "verified_on": "2026-10-14 (run 38559540834 workspace, resumed from run 38554018429)",
+    "product_integration_tests": "26 passed (pytest product/tests/test_reality_check.py product/tests/test_audit_seam.py product/tests/test_query_map_mvp.py)",
+    "retrieval_component_tests": "57 passed (unittest discover tests/frontier/frontier-query-retrieval)",
     "generative_audit_component_tests": "34 passed (pytest tests/frontier/frontier-generative-audit/test_generative_audit_v2.py)",
+    "live_reality_prevalidation": "see reality_check_status.local_live_prevalidation_2026_10_14",
     "evidence_reports": [
       "reports/product/CYCLE_38554018429_RESUME.md",
+      "reports/product/CYCLE_38559540834.md",
       "results/product/reality_check/"
     ],
     "durable_actions_run": null,
-    "durable_run_note": "No durable green Actions run exists yet; the team job has no GH_TOKEN, so a durable run can only be produced by pushing [reality-check] to lab/product through the normal audit+integrate chain. Local results are labelled local and are not presented as CI evidence."
+    "durable_run_note": "No durable green Actions run exists yet. product-reality-check.yml fires only on a push to lab/product containing '[reality-check]'; see control_plane_hardening_items[0]. Local results are labelled LOCAL_NOT_DURABLE and are never presented as CI evidence."
   },
   "human_gate_criteria": [
     "one-command local launch",
@@ -129,6 +269,6 @@
     "no 174k startup dependency",
     "durable Product Reality Check 4/4 green"
   ],
-  "next_recommendation": "Keep continuing. Next deltas in order: (1) durable Product Reality Check 4/4 green via the audit+integrate chain, starting with the rent-default truth gates (30-day/end-of-month notice rule plus good-faith/Rechtsmissbrauch limitation); (2) local live end-to-end run recorded under results/product/reality_check/ to pre-validate the legs before the durable dispatch; (3) owner/jurist map-vs-list session once a durable green exists.",
+  "next_recommendation": "Keep continuing. Next deltas in order: (1) durable Product Reality Check 4/4 green - requires closing the trigger gap in control_plane_hardening_items[0], then a [reality-check] push to lab/product whose head commit contains the audited product fixes; (2) re-run the rent-default leg uncontended and keep the four local live legs green as pre-validation evidence; (3) owner/jurist map-vs-list session once a durable green exists.",
   "integration_origin_direction_version": 45
 }
