@@ -7,15 +7,15 @@ from tempfile import TemporaryDirectory
 
 from _bootstrap import load_fixture
 
-from frontier_human_gate_harness.bundle_io import bundle_sha256
+from frontier_human_gate_harness.bundle_io import bundle_sha256, query_sha256
 from frontier_human_gate_harness.capture import (ANSWER_KEYS, QUESTION_IDS,
-                                                 RECORD_KEYS, CaptureError,
-                                                 MissingAnswerError, empty_capture,
-                                                 finalize, merge_drafts,
-                                                 personal_data_errors,
-                                                 read_draft, record_bytes,
-                                                 session_filename, validate_record,
-                                                 write_session)
+                                                  RECORD_KEYS, CaptureError,
+                                                  MissingAnswerError, empty_capture,
+                                                  finalize, merge_drafts,
+                                                  personal_data_errors,
+                                                  read_draft, record_bytes,
+                                                  session_filename, validate_record,
+                                                  write_session)
 
 FROM = "2026-10-14T10:00:00Z"
 TO = "2026-10-14T10:03:30Z"
@@ -37,7 +37,8 @@ def draft(*, session_id="s-1", answers=None, query="Kündigung Mietvertrag",
         "session_id": session_id, "session_id_origin": "draft", "status": "draft",
         "source": source, "query": query,
         "bundle_ref": {"query": query, "n_decisions": n},
-        "bundle_sha256": None, "bundle_hash_status": "not_verified",
+        "bundle_sha256": None, "query_sha256": None,
+        "bundle_hash_status": "not_verified",
         "started_at": started, "ended_at": ended,
         "wall_clock_seconds": 210.0,
         "view_mode_initial": view_initial, "view_mode_final": view_final,
@@ -115,6 +116,9 @@ def test_complete_record_carries_the_four_required_elements():
     assert record["missing_answers"] == []
     assert record["bundle_sha256"] == bundle_sha256(bundle)
     assert record["bundle_hash_status"] == "computed"
+    # charter acceptance (4): bundle/query hash — the query hash is the sha256
+    # of the exact query string the bundle carries, derived not trusted
+    assert record["query_sha256"] == query_sha256(bundle["query"])
     assert record["bundle_ref"]["query"] == bundle["query"]
     assert record["bundle_ref"]["n_decisions"] == len(bundle["decisions"])
     assert record["wall_clock_seconds"] == 210.0
@@ -224,4 +228,47 @@ def test_write_session_names_and_roundtrip():
 def test_answer_key_contract_never_widens():
     assert ANSWER_KEYS == {"scale", "text", "answered_at"}
     assert len(QUESTION_IDS) == 4
+
+
+def test_query_hash_is_derived_never_trusted():
+    """Acceptance (4): the session record carries the bundle/query hash."""
+    bundle = load_fixture()
+    expected = query_sha256(bundle["query"])
+    assert expected and len(expected) == 64
+
+    # the empty one-command capture derives it from the fixture query
+    empty = empty_capture(bundle, now=FROM)
+    assert empty["query_sha256"] == expected
+    assert validate_record(empty) == []
+
+    # finalize recomputes it from the bundle, even when drafts carried none
+    record = finalize([draft(answers=complete_answers(), bundle=bundle)],
+                      bundle=bundle, now=TO)
+    assert record["query_sha256"] == expected
+    assert validate_record(record) == []
+
+    # no bundle attached -> no query -> no query hash, and that validates
+    plain = finalize([draft(answers=complete_answers(), query=None)],
+                     session_id="s-1", now=TO)
+    assert plain["query"] is None and plain["query_sha256"] is None
+    assert validate_record(plain) == []
+
+
+def test_query_hash_mismatch_is_rejected_not_silently_repaired():
+    d = draft(answers=complete_answers())
+    d["query_sha256"] = "0" * 64          # a hash that is not the query's hash
+    errors = validate_record(d)
+    assert any("query_sha256 does not match" in e for e in errors)
+    # a hash present while the record has no query is equally refused
+    d2 = draft(answers=complete_answers(), query=None)
+    d2["query"] = None
+    d2["bundle_ref"] = {"query": None, "n_decisions": 3}
+    d2["query_sha256"] = "a" * 64
+    assert any("query_sha256 present while query is null" in e
+               for e in validate_record(d2))
+    # a non-sha256 value is refused
+    d3 = draft(answers=complete_answers())
+    d3["query_sha256"] = "nope"
+    assert any("query_sha256 must be a sha256 hex string or null" in e
+               for e in validate_record(d3))
 

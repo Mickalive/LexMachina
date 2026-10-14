@@ -82,7 +82,8 @@ def test_finalize_rejects_missing_answer_then_accepts_labelled_incomplete():
         "session_id": "owner-7", "session_id_origin": "draft", "status": "draft",
         "source": "demo", "query": "Kündigung Mietvertrag Mietrecht",
         "bundle_ref": {"query": "Kündigung Mietvertrag Mietrecht", "n_decisions": 100},
-        "bundle_sha256": None, "bundle_hash_status": "not_verified",
+        "bundle_sha256": None, "query_sha256": None,
+        "bundle_hash_status": "not_verified",
         "started_at": "2026-10-14T10:00:00Z", "ended_at": "2026-10-14T10:05:00Z",
         "wall_clock_seconds": 300.0,
         "view_mode_initial": "map", "view_mode_final": "list",
@@ -119,6 +120,8 @@ def test_finalize_rejects_missing_answer_then_accepts_labelled_incomplete():
         assert sorted(record["answers"]) == ["q1"]
         assert record["bundle_hash_status"] == "computed"
         assert len(record["bundle_sha256"]) == 64
+        assert len(record["query_sha256"]) == 64, \
+            "acceptance (4): the finalized record carries the query hash"
         empty_siblings = [x.name for x in out.glob("session_*.json")
                           if x.name != "session_owner-7.json"]
         assert empty_siblings and all(n.startswith("session_empty_") for n in empty_siblings), \

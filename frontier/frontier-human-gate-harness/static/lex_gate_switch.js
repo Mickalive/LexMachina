@@ -43,8 +43,24 @@ var LexGateSwitch = (function () {
       .replace(/'/g, "&#39;");
   }
 
+  /* rankOf mirrors frontier_human_gate_harness.baseline_view._rank exactly:
+     JSON numbers/booleans truncate toward zero; strings must be DECIMAL
+     numeric per Python float()'s grammar (underscores only between digits);
+     Number()'s extra acceptance (hex "0x10", binary "0b101", non-ASCII digits)
+     is deliberately rejected so both renderers coerce identically; anything
+     else (null, arrays, objects, "abc", "", "inf", "nan") is 0. */
+  var DECIMAL_RE = /^[+-]?(?:(?:\d(?:_?\d)*)(?:\.(?:\d(?:_?\d)*)?)?|\.\d(?:_?\d)*)(?:[eE][+-]?\d(?:_?\d)*)?$/;
   function rankOf(value) {
-    var number = Number(value);
+    var number;
+    if (typeof value === "number" || typeof value === "boolean") {
+      number = Number(value);
+    } else if (typeof value === "string") {
+      var trimmed = value.trim();
+      if (!DECIMAL_RE.test(trimmed)) { return 0; }
+      number = Number(trimmed.replace(/_/g, ""));
+    } else {
+      return 0;
+    }
     if (!isFinite(number)) { return 0; }
     return Math.trunc(number);
   }
@@ -58,16 +74,26 @@ var LexGateSwitch = (function () {
     return text(value);
   }
 
+  /* snippetOf mirrors baseline_view._snippet: truncation counts CODE POINTS
+     (Python str semantics), not UTF-16 units — Array.from splits by code point
+     so astral characters (e.g. 𝄞) cannot desynchronise the two renderers. */
   function snippetOf(value) {
     var value0 = text(value);
-    return value0.length > SNIPPET_LIMIT ? value0.slice(0, SNIPPET_LIMIT) + "\u2026" : value0;
+    var chars = Array.from(value0);
+    return chars.length > SNIPPET_LIMIT
+      ? chars.slice(0, SNIPPET_LIMIT).join("") + "\u2026"
+      : value0;
   }
 
   function buildListModel(bundle) {
     var raw = (bundle && Array.isArray(bundle.decisions)) ? bundle.decisions : [];
     var kept = [];
     for (var i = 0; i < raw.length; i++) {
-      if (raw[i] && typeof raw[i] === "object") { kept.push(raw[i]); }
+      /* same filter as Python isinstance(d, dict): plain objects only —
+         arrays and primitives are dropped by BOTH renderers */
+      if (raw[i] && typeof raw[i] === "object" && !Array.isArray(raw[i])) {
+        kept.push(raw[i]);
+      }
     }
     var order = [];
     for (var j = 0; j < kept.length; j++) {
@@ -220,6 +246,7 @@ var LexGateSwitch = (function () {
           query: ref.query,
           bundle_ref: ref,
           bundle_sha256: null,
+          query_sha256: null,
           bundle_hash_status: "not_verified",
           started_at: controller.startedAt,
           ended_at: now(),

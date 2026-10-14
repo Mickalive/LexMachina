@@ -97,6 +97,52 @@ ok(model[0].citation === "ATF 1" && model[1].citation === "BGE 1 \u00b7 BGE 2",
 ok(model[4].rank === 4 && typeof model[4].rank === "number",
    "numeric string rank coerced to number");
 
+/* ---- 1b. coercion parity with the Python renderer ------------------------ */
+/* The same adversarial bundle is rendered by
+   frontier_human_gate_harness.baseline_view in
+   tests/.../test_baseline_view.py::test_coercion_parity_with_python — the two
+   renderers must agree value-for-value, byte-for-byte, on every case. */
+const ASTRAL = "\uD834\uDD1E";               /* 𝄞 one code point, two UTF-16 units */
+const coerciveBundle = {
+  bundle_version: "1.0", query: "Coercion", query_variants: [],
+  answer: { status: "fixture", prose: "", cited_decision_ids: [] },
+  decisions: [
+    { decision_id: "d_astral", court: "bge", decision_date: "2020-01-01", language: "de",
+      rank: 1, citation: "ATF 1", canonical_url: "https://example.org/a",
+      snippet: ASTRAL.repeat(301) + "z" },
+    { decision_id: "d_hex", court: "bge", decision_date: "2020-01-02", language: "de",
+      rank: "0x10", citation: "ATF 2", canonical_url: null, snippet: "hex rank" },
+    { decision_id: "d_uscore", court: "bge", decision_date: "2020-01-03", language: "de",
+      rank: "3_000", citation: "ATF 3", canonical_url: null, snippet: "underscore rank" },
+    { decision_id: "d_spaces", court: "bge", decision_date: "2020-01-04", language: "de",
+      rank: "  4.7 ", citation: "ATF 4", canonical_url: null, snippet: "padded rank" },
+    { decision_id: "d_bool", court: "bge", decision_date: "2020-01-05", language: "de",
+      rank: true, citation: "ATF 5", canonical_url: null, snippet: "bool rank" },
+    { decision_id: "d_nullrank", court: "bge", decision_date: "2020-01-06", language: "de",
+      rank: null, citation: "ATF 6", canonical_url: null, snippet: "null rank" },
+    ["not", "a", "decision"],
+    { decision_id: "d_arabic", court: "bge", decision_date: "2020-01-07", language: "de",
+      rank: "\u0663", citation: "ATF 7", canonical_url: null, snippet: "non-ascii digit" }
+  ],
+  clusters: [], relations: [], provenance: {}
+};
+const coerciveModel = LexGateSwitch.buildListModel(coerciveBundle);
+ok(coerciveModel.length === 7, "coercion: array decision dropped by the JS renderer");
+ok(JSON.stringify(coerciveModel.map(r => r.decision_id)) ===
+   JSON.stringify(["d_hex", "d_nullrank", "d_arabic", "d_astral", "d_bool", "d_spaces", "d_uscore"]),
+   "coercion: rank order matches Python float() semantics (stable)");
+ok(coerciveModel[0].rank === 0 && coerciveModel[1].rank === 0 && coerciveModel[2].rank === 0,
+   "coercion: hex string, null and non-ASCII digit ranks are 0");
+ok(coerciveModel[3].rank === 1 && coerciveModel[4].rank === 1,
+   "coercion: numeric and boolean rank 1 stay 1");
+ok(coerciveModel[5].rank === 4 && coerciveModel[6].rank === 3000,
+   "coercion: '  4.7 ' truncates to 4, '3_000' (underscores between digits) is 3000");
+const astralRow = coerciveModel[3].snippet;
+ok(Array.from(astralRow).length === 301 && astralRow.slice(-1) === "\u2026",
+   "coercion: astral snippet truncated by CODE POINTS (300 + ellipsis)");
+ok(astralRow === ASTRAL.repeat(300) + "\u2026",
+   "coercion: astral truncation is code-point exact (UTF-16 slicing would show 150 units");
+
 /* ---- 2. no map/semantic leakage in the baseline --------------------------- */
 const rows = LexGateSwitch.renderRowsHtml(syntheticBundle);
 ok(!/cluster/i.test(rows), "rendered rows mention no cluster");
@@ -157,7 +203,7 @@ ok(controller.bundleRef().query === "Synthetische Testanfrage"
 const draft = controller.exportDraft({ session_id: null, view_mode_initial: "map" });
 const expectedKeys = ["schema_version", "record_type", "team_id", "charter_version",
   "session_id", "session_id_origin", "status", "source", "query", "bundle_ref",
-  "bundle_sha256", "bundle_hash_status", "started_at", "ended_at",
+  "bundle_sha256", "query_sha256", "bundle_hash_status", "started_at", "ended_at",
   "wall_clock_seconds", "view_mode_initial", "view_mode_final", "actions",
   "decisions_opened", "counter_authorities_opened", "answers", "missing_answers",
   "latency"];
@@ -166,8 +212,9 @@ ok(JSON.stringify(Object.keys(draft)) === JSON.stringify(expectedKeys),
 ok(JSON.stringify(draft.missing_answers) === JSON.stringify(["q1", "q2", "q3", "q4"]),
    "draft lists all four unanswered questions explicitly");
 ok(Object.keys(draft.answers).length === 0, "draft never invents an answer");
-ok(draft.bundle_sha256 === null && draft.bundle_hash_status === "not_verified",
-   "draft does not claim a bundle hash it did not compute");
+ok(draft.bundle_sha256 === null && draft.bundle_hash_status === "not_verified"
+   && draft.query_sha256 === null,
+   "draft does not claim a bundle/query hash it did not compute");
 ok(draft.source === "switch" && draft.status === "draft"
    && draft.record_type === "lex_human_gate_session" && draft.charter_version === 1,
    "draft identity fields");

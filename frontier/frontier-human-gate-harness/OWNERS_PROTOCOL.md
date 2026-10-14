@@ -56,14 +56,15 @@ des Master Prompt.
 | Group | Fields |
 |---|---|
 | identity | `schema_version, record_type, team_id, charter_version, session_id, session_id_origin, status, source` |
-| evidence | `query, bundle_ref, bundle_sha256, bundle_hash_status` |
+| evidence | `query, bundle_ref, bundle_sha256, query_sha256, bundle_hash_status` |
 | timing | `started_at, ended_at, wall_clock_seconds, latency` |
 | behaviour | `view_mode_initial, view_mode_final, actions[] (at, view_mode, event, ref), decisions_opened[], counter_authorities_opened[]` |
 | answers | `answers{q1..q4: {scale 1–5, text, answered_at}}, missing_answers[]` |
 
 Personal-data keys are forbidden anywhere in the record (schema allow-list, asserted in
 `test_capture.py`); `missing_answers` must equal the computed set exactly (no silent
-defaults); `bundle_sha256` is `null` unless it was actually computed.
+defaults); `bundle_sha256` is `null` unless it was actually computed, and `query_sha256`
+is derived from the record's own query string (never trusted — a mismatch is refused).
 
 ## The four questions (verbatim EN)
 

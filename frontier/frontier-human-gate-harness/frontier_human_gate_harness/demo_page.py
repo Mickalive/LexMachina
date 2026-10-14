@@ -23,10 +23,11 @@ from pathlib import Path
 
 from .baseline_view import BASELINE_LABEL_DE, BASELINE_LABEL_FR, esc, render_rows_html
 from .bundle_io import bundle_sha256
-from .owner_card import render_card_body
+from .owner_card import CARD_CSS, render_card_body
 
 HARNESS_ROOT = Path(__file__).resolve().parents[1]
 SWITCH_JS = HARNESS_ROOT / "static" / "lex_gate_switch.js"
+SWITCH_CSS = HARNESS_ROOT / "static" / "lex_gate_switch.css"
 
 DEMO_CSS = """
 :root{font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:#17191f;background:#f5f6f8}
@@ -158,7 +159,14 @@ def render_demo_page(bundle: dict) -> str:
         raise FileNotFoundError(
             f"switch component missing: {SWITCH_JS} — build static/lex_gate_switch.js first"
         )
+    if not SWITCH_CSS.is_file():
+        raise FileNotFoundError(
+            f"switch styles missing: {SWITCH_CSS} — build static/lex_gate_switch.css first"
+        )
     switch_source = SWITCH_JS.read_text(encoding="utf-8")
+    # the demo page is one self-contained offline file: the shipped switch CSS
+    # and the card CSS are inlined (no external asset request, no network)
+    switch_css = SWITCH_CSS.read_text(encoding="utf-8")
     bundle_json = json.dumps(bundle, ensure_ascii=False).replace("<", "\\u003c").replace("&", "\\u0026")
     rows = render_rows_html(bundle)
     sha = bundle_sha256(bundle)
@@ -172,6 +180,8 @@ def render_demo_page(bundle: dict) -> str:
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LexMachina — harness propriétaire (liste ↔ carte)</title>
 <style>{DEMO_CSS}</style>
+<style>{CARD_CSS}</style>
+<style>{switch_css}</style>
 </head>
 <body>
 <header>

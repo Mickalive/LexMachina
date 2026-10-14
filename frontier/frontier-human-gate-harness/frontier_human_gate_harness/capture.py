@@ -5,6 +5,9 @@ Acceptance test (4): a capture routine writing a machine-readable session record
 bundle/query hash, view mode per action, decisions opened, counter-authorities
 opened, timestamped answers to the four questions and wall-clock latency — no
 personal data, no fabricated entries, no silent defaults for missing answers.
+``query_sha256`` is derived from the record's own ``query`` string (null when no
+query is attached); client-side drafts leave it null and ``finalize`` computes it,
+mirroring the ``bundle_sha256`` / ``bundle_hash_status`` pattern.
 
 Acceptance test (6): the capture *rejects* a missing answer instead of inventing
 one — :func:`finalize` raises :class:`MissingAnswerError` unless the caller
@@ -20,7 +23,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
 
-from .bundle_io import bundle_sha256, canonical_json, sha256_text
+from .bundle_io import bundle_sha256, canonical_json, query_sha256, sha256_text
 from .owner_card import QUESTION_IDS
 
 SCHEMA_VERSION = "1.0"
@@ -31,7 +34,8 @@ CHARTER_VERSION = 1
 RECORD_KEYS = [
     "schema_version", "record_type", "team_id", "charter_version",
     "session_id", "session_id_origin", "status", "source",
-    "query", "bundle_ref", "bundle_sha256", "bundle_hash_status",
+    "query", "bundle_ref", "bundle_sha256", "query_sha256",
+    "bundle_hash_status",
     "started_at", "ended_at", "wall_clock_seconds",
     "view_mode_initial", "view_mode_final",
     "actions", "decisions_opened", "counter_authorities_opened",
@@ -124,6 +128,9 @@ def new_record(*, session_id: str | None, session_id_origin: str | None, status:
         "query": query,
         "bundle_ref": dict(bundle_ref),
         "bundle_sha256": bundle_sha256_value,
+        # the query hash is DERIVED, never trusted: sha256 of the exact query
+        # string carried in this record, or null when no query is attached
+        "query_sha256": query_sha256(query) if isinstance(query, str) else None,
         "bundle_hash_status": bundle_hash_status,
         "started_at": started_at,
         "ended_at": ended_at,
@@ -239,6 +246,19 @@ def validate_record(record: dict, *, expected_status: Iterable[str] | None = Non
         errors.append("bundle_hash_status=computed requires bundle_sha256")
     if record["bundle_hash_status"] == "not_verified" and sha is not None:
         errors.append("bundle_sha256 present while bundle_hash_status=not_verified")
+
+    qsha = record["query_sha256"]
+    if qsha is not None and (not isinstance(qsha, str) or not SHA_RE.match(qsha)):
+        errors.append("query_sha256 must be a sha256 hex string or null")
+    if record["query"] is None:
+        if qsha is not None:
+            errors.append("query_sha256 present while query is null")
+    else:
+        # the query hash is derived from the record's own query string; a value
+        # that does not match is a corrupted/untrusted record, never accepted
+        expected = query_sha256(record["query"])
+        if qsha is not None and qsha != expected:
+            errors.append("query_sha256 does not match the record's query string")
 
     started = _parse_iso(record["started_at"], "started_at", errors)
     ended = _parse_iso(record["ended_at"], "ended_at", errors)
@@ -481,6 +501,8 @@ def finalize(drafts: list[dict], *, bundle: dict | None = None,
                                 "n_decisions": len(bundle.get("decisions") or [])}
         record["bundle_sha256"] = sha
         record["bundle_hash_status"] = "computed"
+        record["query_sha256"] = (query_sha256(bundle_query)
+                                  if isinstance(bundle_query, str) else None)
 
     record["ended_at"] = record["ended_at"] or stamp
     record["started_at"] = record["started_at"] or stamp
@@ -557,6 +579,8 @@ def capture_schema_summary() -> dict:
         "personal_keys_forbidden": sorted(PERSONAL_KEYS),
         "hash": {"algorithm": "sha256", "canonicalisation":
                  "json.dumps(sort_keys=True, separators=(',',':'), ensure_ascii=False)"},
+        "query_hash": {"algorithm": "sha256", "input": "the record's own query string",
+                       "derived": True},
     }
 
 

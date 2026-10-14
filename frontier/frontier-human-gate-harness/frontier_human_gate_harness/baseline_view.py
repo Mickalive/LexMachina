@@ -8,11 +8,15 @@ the conventional baseline.
 
 Every coercion rule in this module is mirrored character-for-character in
 ``static/lex_gate_switch.js`` (``buildListModel`` / ``renderRowsHtml``); the
-parity is enforced by the offline test suite.
+parity is enforced by the offline test suite, including the defensive cases
+(ASTRAL-plane snippet truncation by code point, decimal-string rank grammar,
+non-object decisions dropped) — see
+``tests/frontier/frontier-human-gate-harness/test_baseline_view.py``.
 """
 from __future__ import annotations
 
 import html
+import re
 from typing import Any
 
 from .bundle_io import bundle_sha256, canonical_json  # noqa: F401  (re-exported for tests)
@@ -23,9 +27,21 @@ SNIPPET_LIMIT = 300
 BASELINE_LABEL_FR = "Liste classée conventionnelle (baseline)"
 BASELINE_LABEL_DE = "Konventionelle Rangliste (Baseline)"
 BASELINE_NOTE_FR = ("Aucune information de carte dans cette vue : rang, tribunal, date, "
-                    "langue, citation, extrait, source.")
+                     "langue, citation, extrait, source.")
 BASELINE_NOTE_DE = ("Keine Karteninformation in dieser Ansicht: Rang, Gericht, Datum, "
-                    "Sprache, Zitat, Auszug, Quelle.")
+                     "Sprache, Zitat, Auszug, Quelle.")
+
+#: The exact rank coercion contract, mirrored character-for-character in
+#: ``static/lex_gate_switch.js`` (``DECIMAL_RE`` / ``rankOf``): ASCII decimal
+#: numeric strings per float()'s grammar (underscores only between digits).
+#: ``re.ASCII`` matters: Python float() alone would accept non-ASCII decimal
+#: digits ("٣"), which the JS renderer (and the product bundle contract) does
+#: not — both renderers must coerce identically, byte for byte.
+DECIMAL_RE = re.compile(
+    r"^[+-]?(?:(?:\d(?:_?\d)*)(?:\.(?:\d(?:_?\d)*)?)?|\.\d(?:_?\d)*)"
+    r"(?:[eE][+-]?\d(?:_?\d)*)?$",
+    re.ASCII,
+)
 
 ROW_TEMPLATE = (
     '<li class="lex-row" data-rank="{rank}" data-decision-id="{decision_id_esc}">'
@@ -53,9 +69,27 @@ def _text(value: Any) -> str:
 
 
 def _rank(value: Any) -> int:
-    try:
-        number = float(value)  # accepts int, float and numeric strings ("3")
-    except (TypeError, ValueError):
+    """Coerce a bundle rank exactly as the JS renderer does (see DECIMAL_RE).
+
+    JSON numbers/booleans truncate toward zero; strings must be ASCII decimal
+    numeric (``"3"``, ``" 3.7 "``, ``"+4"``, ``".5"``, ``"1e3"``, ``"3_000"``);
+    everything else (null, arrays, objects, ``"0x10"``, ``""``, ``"inf"``,
+    ``"nan"``, non-ASCII digits) is 0. Parity is enforced offline against
+    ``static/lex_gate_switch.js``.
+    """
+    if isinstance(value, bool):
+        number = float(value)
+    elif isinstance(value, (int, float)):
+        number = float(value)
+    elif isinstance(value, str):
+        trimmed = value.strip()
+        if not DECIMAL_RE.match(trimmed):
+            return 0
+        try:
+            number = float(trimmed.replace("_", ""))
+        except ValueError:  # pragma: no cover - regex already excludes these
+            return 0
+    else:
         return 0
     if number != number or number in (float("inf"), float("-inf")):
         return 0

@@ -235,6 +235,7 @@ CARD_SCRIPT = r"""
       query: null,
       bundle_ref: { query: null, n_decisions: null },
       bundle_sha256: null,
+      query_sha256: null,
       bundle_hash_status: "not_verified",
       started_at: null,
       ended_at: nowIso(),
@@ -275,41 +276,43 @@ CARD_SCRIPT = r"""
 """
 
 
+CARD_CSS = """
+:root{font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:#17191f;background:#f5f6f8}
+*{box-sizing:border-box}
+body{margin:0;padding:22px;max-width:760px}
+h1{font-size:18px;margin:0 0 6px}
+h3{font-size:14px;margin:16px 0 4px}
+.lex-intro{font-size:13px;line-height:1.5;color:#33383f}
+.lex-src{font-size:11px;color:#737b88;margin:3px 0}
+.lex-card-q{background:#fff;border:1px solid #e2e5ea;border-radius:10px;padding:10px 12px;margin:10px 0}
+.lex-qid{display:inline-block;background:#eef0f4;border-radius:20px;padding:1px 7px;font-size:11px;color:#59616d;margin-right:6px}
+.lex-q-en{font-size:11px;color:#737b88;margin:2px 0}
+.lex-q-hint{font-size:12px;color:#59616d;margin:2px 0 8px}
+.lex-scale-row{display:flex;flex-wrap:wrap;gap:6px}
+.lex-scale{display:inline-flex;align-items:center;gap:4px;border:1px solid #d7dbe2;border-radius:8px;padding:4px 7px;font-size:12px;background:#fff}
+.lex-scale-v{font-weight:700}
+.lex-scale-a{color:#59616d}
+textarea{width:100%;margin-top:8px;border:1px solid #d7dbe2;border-radius:8px;padding:7px;font:inherit;font-size:12px;resize:vertical}
+.lex-card-sq{background:#f7f8fa;border:1px solid #eceef2;border-radius:10px;padding:10px 12px;margin:10px 0}
+.lex-sq{font-size:13px;line-height:1.5;margin:4px 0}
+.lex-card-export{margin-top:14px;background:#fff;border:1px solid #e2e5ea;border-radius:10px;padding:10px 12px}
+.lex-session{display:block;font-size:12px;color:#59616d;margin-bottom:8px}
+.lex-session input{display:block;width:100%;margin-top:4px;border:1px solid #d7dbe2;border-radius:8px;padding:7px;font:inherit}
+button{cursor:pointer;font-weight:650;border:1px solid #17191f;background:#17191f;color:#fff;border-radius:8px;padding:9px 12px}
+#lexCardExportStatus{font-size:12px;color:#27845b;margin-top:7px}
+"""
+
+
 def render_card_document(lang: str) -> str:
     """Self-contained offline card page (FR or DE). No network, no external asset."""
     body = render_card_body(lang)
-    css_lang = lang
     return f"""<!DOCTYPE html>
-<html lang="{css_lang}">
+<html lang="{lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LexMachina — {'Fiche porte humaine' if lang == 'fr' else 'Owner-Testkarte'}</title>
-<style>
-:root{{font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:#17191f;background:#f5f6f8}}
-*{{box-sizing:border-box}}
-body{{margin:0;padding:22px;max-width:760px}}
-h1{{font-size:18px;margin:0 0 6px}}
-h3{{font-size:14px;margin:16px 0 4px}}
-.lex-intro{{font-size:13px;line-height:1.5;color:#33383f}}
-.lex-src{{font-size:11px;color:#737b88;margin:3px 0}}
-.lex-card-q{{background:#fff;border:1px solid #e2e5ea;border-radius:10px;padding:10px 12px;margin:10px 0}}
-.lex-qid{{display:inline-block;background:#eef0f4;border-radius:20px;padding:1px 7px;font-size:11px;color:#59616d;margin-right:6px}}
-.lex-q-en{{font-size:11px;color:#737b88;margin:2px 0}}
-.lex-q-hint{{font-size:12px;color:#59616d;margin:2px 0 8px}}
-.lex-scale-row{{display:flex;flex-wrap:wrap;gap:6px}}
-.lex-scale{{display:inline-flex;align-items:center;gap:4px;border:1px solid #d7dbe2;border-radius:8px;padding:4px 7px;font-size:12px;background:#fff}}
-.lex-scale-v{{font-weight:700}}
-.lex-scale-a{{color:#59616d}}
-textarea{{width:100%;margin-top:8px;border:1px solid #d7dbe2;border-radius:8px;padding:7px;font:inherit;font-size:12px;resize:vertical}}
-.lex-card-sq{{background:#f7f8fa;border:1px solid #eceef2;border-radius:10px;padding:10px 12px;margin:10px 0}}
-.lex-sq{{font-size:13px;line-height:1.5;margin:4px 0}}
-.lex-card-export{{margin-top:14px;background:#fff;border:1px solid #e2e5ea;border-radius:10px;padding:10px 12px}}
-.lex-session{{display:block;font-size:12px;color:#59616d;margin-bottom:8px}}
-.lex-session input{{display:block;width:100%;margin-top:4px;border:1px solid #d7dbe2;border-radius:8px;padding:7px;font:inherit}}
-button{{cursor:pointer;font-weight:650;border:1px solid #17191f;background:#17191f;color:#fff;border-radius:8px;padding:9px 12px}}
-#lexCardExportStatus{{font-size:12px;color:#27845b;margin-top:7px}}
-</style>
+<style>{CARD_CSS}</style>
 </head>
 <body data-lex-card-lang="{lang}">
 {body}

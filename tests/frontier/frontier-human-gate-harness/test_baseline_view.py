@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from _bootstrap import (FIXTURE_PATH, SWITCH_JS, VERIFY_JS, load_fixture,
                         require_node, run_node)
@@ -103,3 +105,56 @@ def test_python_and_javascript_renderers_are_byte_identical():
     assert payload["model"] == bv.build_model(bundle)
     assert payload["rows"] == bv.render_rows_html(bundle)
     assert payload["list_fields"] == bv.LIST_FIELDS
+
+
+def test_coercion_parity_with_python():
+    """Acceptance (1)/(6): every coercion rule agrees value-for-value with JS.
+
+    The same adversarial bundle is asserted inside ``js/verify_switch.js``
+    (section 1b) against hand-derived expectations; this test pins the Python
+    renderer to the identical values, so the two renderers cannot drift.
+    """
+    require_node()
+    astral = "\U0001d11e"
+    bundle = {
+        "query": "Coercion", "decisions": [
+            {"decision_id": "d_astral", "court": "bge", "decision_date": "2020-01-01",
+             "language": "de", "rank": 1, "citation": "ATF 1",
+             "canonical_url": "https://example.org/a",
+             "snippet": astral * 301 + "z"},
+            {"decision_id": "d_hex", "court": "bge", "decision_date": "2020-01-02",
+             "language": "de", "rank": "0x10", "citation": "ATF 2",
+             "canonical_url": None, "snippet": "hex rank"},
+            {"decision_id": "d_uscore", "court": "bge", "decision_date": "2020-01-03",
+             "language": "de", "rank": "3_000", "citation": "ATF 3",
+             "canonical_url": None, "snippet": "underscore rank"},
+            {"decision_id": "d_spaces", "court": "bge", "decision_date": "2020-01-04",
+             "language": "de", "rank": "  4.7 ", "citation": "ATF 4",
+             "canonical_url": None, "snippet": "padded rank"},
+            {"decision_id": "d_bool", "court": "bge", "decision_date": "2020-01-05",
+             "language": "de", "rank": True, "citation": "ATF 5",
+             "canonical_url": None, "snippet": "bool rank"},
+            {"decision_id": "d_nullrank", "court": "bge", "decision_date": "2020-01-06",
+             "language": "de", "rank": None, "citation": "ATF 6",
+             "canonical_url": None, "snippet": "null rank"},
+            ["not", "a", "decision"],
+            {"decision_id": "d_arabic", "court": "bge", "decision_date": "2020-01-07",
+             "language": "de", "rank": "٣", "citation": "ATF 7",
+             "canonical_url": None, "snippet": "non-ascii digit"},
+        ],
+    }
+    model = bv.build_model(bundle)
+    assert [row["decision_id"] for row in model] == [
+        "d_hex", "d_nullrank", "d_arabic", "d_astral", "d_bool", "d_spaces", "d_uscore"]
+    assert [row["rank"] for row in model] == [0, 0, 0, 1, 1, 4, 3000]
+    astral_snippet = model[3]["snippet"]
+    assert len(astral_snippet) == 301 and astral_snippet.endswith("…")
+    assert astral_snippet == astral * 300 + "…"
+    with TemporaryDirectory() as tmp:
+        bundle_path = Path(tmp) / "coercive.json"
+        bundle_path.write_text(json.dumps(bundle), encoding="utf-8")
+        proc = run_node([str(VERIFY_JS), "--emit-fixture", str(bundle_path)])
+    assert proc.returncode == 0, proc.stderr
+    payload = json.loads(proc.stdout)
+    assert payload["model"] == model
+    assert payload["rows"] == bv.render_rows_html(bundle)

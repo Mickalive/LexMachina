@@ -39,8 +39,8 @@ def test_switch_never_resorts_or_mutates_the_bundle():
     for pattern in (r"\.decisions\s*\.sort", r"decisions\s*\.sort\s*\(",
                     r"\.decisions\s*=", r"decisions\.splice", r"decisions\.reverse"):
         assert not re.search(pattern, source), f"in-place bundle mutation pattern: {pattern}"
-    assert "slice()" in source or ".slice(" in source, \
-        "the switch should copy before sorting"
+    assert "order.sort(" in source, \
+        "the switch must sort a parallel order array, never the bundle's decisions"
 
     # Python side: the baseline renderer must not mutate its input either
     bundle = load_fixture()
@@ -77,6 +77,11 @@ def test_demo_page_is_one_bundle_one_switch_one_card():
     assert "LexGateSwitch.attach" in html
     for token in NETWORK_TOKENS:
         assert token not in html, f"network token {token!r} in demo page"
+    # the demo inlines BOTH shipped stylesheets (styled baseline rows + card),
+    # it never links them — one self-contained file, still fully offline
+    assert ".lex-row {" in html and ".lex-card-q{" in html, \
+        "demo must inline the switch CSS and the card CSS"
+    assert 'rel="stylesheet"' not in html, "demo must not reference an external stylesheet"
     # the demo carries the same decision ids the baseline rows show
     first_id = bundle["decisions"][0]["decision_id"]
     assert first_id in html

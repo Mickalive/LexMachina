@@ -1,7 +1,7 @@
 # frontier-human-gate-harness
 
 One-command offline owner test harness for the Master Prompt **human product gate**
-(charter v1 · run `38600279890`).
+(charter v1 · producer run `38600279890` · operational-resume run `38611364746`).
 
 It makes the gate answerable in a single sitting:
 
@@ -31,7 +31,7 @@ produces `baseline_view.html`, `owner_card_fr.html`, `owner_card_de.html`,
 `owner_card.json`, `session_empty_<hash>.json`, `harness_demo.html` (the clickable
 list↔map switch + card + export slice) and `summary.json`.
 
-Smoke everything (fixture check, 42 tests, node assertions, CLI run, output + scope checks):
+Smoke everything (fixture check, 45 tests, 52 node assertions, CLI run, output + scope checks):
 
 ```bash
 bash frontier/frontier-human-gate-harness/smoke.sh
@@ -51,11 +51,13 @@ TERMINATE rule — the exact field is named, nothing is invented) · `4` usage e
 
 ```bash
 python tests/frontier/frontier-human-gate-harness/run_tests.py          # stdlib runner
-node tests/frontier/frontier-human-gate-harness/js/verify_switch.js     # 45 switch assertions
+node tests/frontier/frontier-human-gate-harness/js/verify_switch.js     # 52 switch assertions
 ```
 
 Same modules also run under `pytest` when pytest is installed (skips use `unittest.SkipTest`).
-Python↔JS row parity is asserted byte-for-byte on the frozen fixture.
+Python↔JS row parity is asserted byte-for-byte on the frozen fixture AND on an adversarial
+coercion bundle (astral-plane snippet truncation by code point, decimal-string rank grammar,
+non-object decisions) — the two renderers cannot drift.
 
 ## Layout
 

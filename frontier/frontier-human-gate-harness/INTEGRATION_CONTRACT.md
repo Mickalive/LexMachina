@@ -4,7 +4,7 @@
 No file under `product/` is written, patched or owned by this team. Everything below is a
 copy/attach instruction for the product lane; evaluation owns the gate judgement.
 
-Charter: `frontier-human-gate-harness` charter v1 · run `38600279890` · acceptance test (7).
+Charter: `frontier-human-gate-harness` charter v1 · producer run `38600279890` · resume run `38611364746` · acceptance test (7).
 
 ---
 
@@ -12,9 +12,9 @@ Charter: `frontier-human-gate-harness` charter v1 · run `38600279890` · accept
 
 | # | Source (this team, read-only for product) | Target (product's choice, product's repo path) | Why |
 |---|---|---|---|
-| 1 | `frontier/frontier-human-gate-harness/static/lex_gate_switch.js`<br>sha256 `37c6797c1c490649d4420d0bcf0f6188871262641818f65c5b2fa4ec190a23ee` | `product/static/lex_gate_switch.js` **or** inlined into the `<script>` block of `product/static/query.html` | the list↔map switch + capture draft (acceptance 2/4) |
+| 1 | `frontier/frontier-human-gate-harness/static/lex_gate_switch.js`<br>sha256 `38d4b20fd08b68ac1fc76753fd080a3f67dfbdf908641134bbd7857ac2e3aaa3` | `product/static/lex_gate_switch.js` **or** inlined into the `<script>` block of `product/static/query.html` | the list↔map switch + capture draft (acceptance 2/4) |
 | 2 | `frontier/frontier-human-gate-harness/static/lex_gate_switch.css`<br>sha256 `1a8cf48683ae80c673f00ba4747ff4312f4ad8b6faeef8fcfb8dd79ba6ff3a21` | `product/static/lex_gate_switch.css` **or** inlined into `<style>` in `query.html` | baseline-row + toggle styling |
-| 3 | *(optional, server-side baseline)* `frontier/frontier-human-gate-harness/frontier_human_gate_harness/baseline_view.py` → `render_rows_html(bundle)` / `build_model(bundle)`<br>sha256 `d22f9a313754ed2a42648c396e882b3e1f0fd838f43e4592c6d9aa76698ff498` | product may call it from its own server path, or skip it and let `attach()` render the list client-side | byte-identical rows either way (test `test_python_and_javascript_renderers_are_byte_identical`) |
+| 3 | *(optional, server-side baseline)* `frontier/frontier-human-gate-harness/frontier_human_gate_harness/baseline_view.py` → `render_rows_html(bundle)` / `build_model(bundle)`<br>sha256 `70e2d7cb9968521cf3b28a1adfee1bea158c07169469d3e7ce349a560edf5d1c` | product may call it from its own server path, or skip it and let `attach()` render the list client-side | byte-identical rows either way (test `test_python_and_javascript_renderers_are_byte_identical`, `test_coercion_parity_with_python`) |
 
 `query.html` currently ships only `index.html` + `query.html` (all JS inline), so the inline
 option is legitimate: paste the file verbatim, keep the `LexGateSwitch` UMD-style global.
@@ -71,8 +71,10 @@ and, inside `renderBundle()` and the `BUNDLE=null` reset:
    terminates and prints the exact field name (exit 3) instead of inventing data.
 4. **`notifyBundleChanged()` on every new bundle**, otherwise the list shows the previous
    query — the failure mode this contract exists to prevent.
-5. **Capture flow**: `controller.exportDraft({session_id})` → 22-key draft JSON (schema in
-   `frontier/.../capture.py::RECORD_KEYS`); finalise offline with
+5. **Capture flow**: `controller.exportDraft({session_id})` → 23-key draft JSON (schema in
+   `frontier/.../capture.py::RECORD_KEYS`; `query_sha256` stays `null` in client drafts and
+   is derived from the record's own query string at `finalize` time, mirroring
+   `bundle_sha256`); finalise offline with
 
    ```bash
    python -m frontier_human_gate_harness.cli --finalize <draft.json> \
@@ -106,6 +108,6 @@ the final integration decision, and any counter-authority classification (all fi
 | (3) FR/DE card + frozen-leg question | `frontier/.../owner_card.py`, tests `test_owner_card.*` |
 | (4) session capture record | `frontier/.../capture.py`, tests `test_capture.*` |
 | (5) one-command offline path | `python -m frontier_human_gate_harness.cli …`, `smoke.sh` step 4 |
-| (6) ≥8 deterministic offline tests | 42 tests: `python tests/frontier/frontier-human-gate-harness/run_tests.py` |
+| (6) ≥8 deterministic offline tests | 45 tests: `python tests/frontier/frontier-human-gate-harness/run_tests.py` |
 | (7) this contract | `INTEGRATION_CONTRACT.md` + `INTEGRATION_CONTRACT.json` |
 | (8) zero writes outside the five paths | `smoke.sh` step 6 + `results/.../evidence/scope_violations.txt` |
