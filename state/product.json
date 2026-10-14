@@ -290,7 +290,7 @@
   "verification": {
     "status": "PASS (local, deterministic + local live pre-validation)",
     "verified_on": "2026-10-14 (run 38559540834 workspace, resumed from run 38554018429)",
-    "product_integration_tests": "26 passed (pytest product/tests/test_reality_check.py product/tests/test_audit_seam.py product/tests/test_query_map_mvp.py)",
+    "product_integration_tests": "71 passed (pytest: 38 new this cycle + 33 pre-existing reality/audit-seam/query-map/answer-contract)",
     "retrieval_component_tests": "57 passed (unittest discover tests/frontier/frontier-query-retrieval)",
     "generative_audit_component_tests": "34 passed (pytest tests/frontier/frontier-generative-audit/test_generative_audit_v2.py)",
     "live_reality_prevalidation": "see reality_check_status.local_live_prevalidation_2026_10_14",
@@ -300,7 +300,8 @@
       "results/product/reality_check/"
     ],
     "durable_actions_run": null,
-    "durable_run_note": "No durable green Actions run exists yet. product-reality-check.yml fires only on a push to lab/product containing '[reality-check]'; see control_plane_hardening_items[0]. Local results are labelled LOCAL_NOT_DURABLE and are never presented as CI evidence."
+    "durable_run_note": "No durable green Actions run exists yet. product-reality-check.yml fires only on a push to lab/product containing '[reality-check]'; see control_plane_hardening_items[0]. Local results are labelled LOCAL_NOT_DURABLE and are never presented as CI evidence.",
+    "slice_smoke_this_cycle": "one-command server start->enrich smoke green (see v50_delivery.clickable_slice_smoke_this_cycle)"
   },
   "human_gate_criteria": [
     "one-command local launch",
@@ -368,7 +369,15 @@
       "no older green leg can be presented as current: cross-run filenames are rejected on write and ignored on resume",
       "machine_gate_ready is flipped by observation, never by assertion; a 404 run is recorded under unresolvable_run_ids and can never be cited as evidence"
     ],
-    "audit_artifact_placement": "The v50 blocker (independent auditor writing results/audit/<lane>/CYCLE_<run>_GATE.json into /tmp/lex_team instead of the audit checkout, runs 38571087814 / 38578725589) is control-plane scope and is now restated in factory_wide_operational_requirements. The product lane cannot edit .github/**; this cycle therefore concentrates on making the TEAM job itself green and self-evidencing."
+    "audit_artifact_placement": "The v50 blocker (independent auditor writing results/audit/<lane>/CYCLE_<run>_GATE.json into /tmp/lex_team instead of the audit checkout, runs 38571087814 / 38578725589) is control-plane scope and is now restated in factory_wide_operational_requirements. The product lane cannot edit .github/**; this cycle therefore concentrates on making the TEAM job itself green and self-evidencing.",
+    "clickable_slice_smoke_this_cycle": {
+      "server": "python product/query_app.py --port 8791 (one command, stdlib ThreadingHTTPServer)",
+      "checked_at": "2026-10-14T17:0xZ inside run 38600271324",
+      "query": "Responsabilite penale de l'entreprise selon l'art. 102 CP : subsidiaire ou primaire ?",
+      "phase_1_start": "GET /api/query/start -> 156 decisions, 8 clusters, per-decision x/y + cluster_id + canonical_url; answer status pending (map before generation)",
+      "phase_2_enrich": "GET /api/query/enrich -> answer ready, method generative_audit_llm_v2, model opencode/nemotron-3-ultra-free, 5 cited decision ids, 2 counter-status decisions, adversarial pass independent_llm_adversarial_v2 / opencode/space-bunny-free with error=None",
+      "purpose": "confirm the v45 clickable slice is unregressed by the v50 CI-evidence work; not a human gate result (human_gate_ready stays false)"
+    }
   },
   "machine_gate": {
     "ready": false,
