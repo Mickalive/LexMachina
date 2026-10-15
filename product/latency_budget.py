@@ -160,7 +160,10 @@ def aggregate(samples: Iterable[dict], metric: str, predicate: Any = None) -> di
 
     ``predicate`` restricts the sample set before aggregating, which is how the
     upstream metric is kept admissible: only network-served samples are allowed
-    to contribute an ``upstream_retrieval_s`` value, whatever a sample file says.
+    to contribute an ``upstream_retrieval_s`` value, as determined by
+    ``sample_served_from()`` / ``upstream_admissible()`` from observed
+    ``request_summary`` evidence (``network_calls > 0`` / ``cache_hits > 0``).
+    Legacy index-derived ``cache_state`` labels are never trusted as evidence.
     """
     pool = list(samples)
     if predicate is not None:
@@ -305,11 +308,29 @@ def derive_cache_state(bundle: dict) -> tuple[str, str, dict[str, Any]]:
 
 
 def sample_served_from(sample: dict) -> str:
-    """Served-from of a recorded sample, with a legacy ``cache_state`` fallback."""
+    """Served-from of a recorded sample, with a legacy ``cache_state`` fallback.
+
+    The legacy fallback ``cache_state='cold' -> 'network'`` is only applied when
+    there is observed request_summary evidence (network_calls > 0 or cache_hits > 0).
+    If the sample carries no per-request evidence at all, ``cold`` maps to ``'unknown'``
+    so a file-cache read is never published as OpenCaseLaw latency.
+    """
     explicit = str(sample.get("served_from") or "")
     if explicit in SERVED_FROM_VALUES:
         return explicit
-    legacy = {"cold": "network", "warm": "cache", "fixture": "fixture"}.get(
+    # Check for observed request_summary evidence before falling back to legacy cache_state.
+    rs = sample.get("request_summary") or {}
+    network_calls = int(rs.get("network_calls") or 0)
+    cache_hits = int(rs.get("cache_hits") or 0)
+    if network_calls > 0 or cache_hits > 0:
+        # Evidence observed: classify from the evidence itself.
+        if network_calls > 0 and cache_hits > 0:
+            return "mixed"
+        if network_calls > 0:
+            return "network"
+        return "cache"
+    # No observed evidence: legacy index-derived labels cannot support an upstream claim.
+    legacy = {"cold": "unknown", "warm": "cache", "fixture": "fixture"}.get(
         str(sample.get("cache_state") or "")
     )
     return legacy or "unknown"
