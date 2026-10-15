@@ -30,7 +30,7 @@
       "p50": 0.346,
       "p95": 0.4898
     },
-    "upstream_retrieval_s": {
+    "retrieval_s": {
       "estimator": "nearest-rank (ceil(q*n)), no interpolation",
       "max": 0.3034,
       "mean": 0.2842,
@@ -38,13 +38,253 @@
       "n": 5,
       "p50": 0.2774,
       "p95": 0.3034
+    },
+    "upstream_retrieval_s": {
+      "n": 0
     }
   },
   "budget_source": "docs/product/QUERY_MAP_MVP.md 9A + product lane runtime performance mandate",
+  "correction": {
+    "any_sample_exercised_network": false,
+    "applied_by": "product/latency_budget.py annotate_legacy_report",
+    "as_recorded_report": {
+      "all_samples": {
+        "detail_click_local_ms": {
+          "estimator": "nearest-rank (ceil(q*n)), no interpolation",
+          "max": 0.0004,
+          "mean": 0.0004,
+          "min": 0.0002,
+          "n": 5,
+          "p50": 0.0004,
+          "p95": 0.0004
+        },
+        "enrich_total_s": {
+          "n": 0
+        },
+        "local_map_s": {
+          "estimator": "nearest-rank (ceil(q*n)), no interpolation",
+          "max": 0.212,
+          "mean": 0.086,
+          "min": 0.0506,
+          "n": 5,
+          "p50": 0.0536,
+          "p95": 0.212
+        },
+        "map_total_s": {
+          "estimator": "nearest-rank (ceil(q*n)), no interpolation",
+          "max": 0.4898,
+          "mean": 0.3708,
+          "min": 0.323,
+          "n": 5,
+          "p50": 0.346,
+          "p95": 0.4898
+        },
+        "upstream_retrieval_s": {
+          "estimator": "nearest-rank (ceil(q*n)), no interpolation",
+          "max": 0.3034,
+          "mean": 0.2842,
+          "min": 0.2703,
+          "n": 5,
+          "p50": 0.2774,
+          "p95": 0.3034
+        }
+      },
+      "budget_source": "docs/product/QUERY_MAP_MVP.md 9A + product lane runtime performance mandate",
+      "generated_at": "2026-10-14T22:49:58Z",
+      "n_cold_samples": 1,
+      "n_samples": 5,
+      "n_warm_samples": 4,
+      "note": null,
+      "queries": [
+        "Kündigung Mietvertrag Mietrecht"
+      ],
+      "record_type": "lex_query_map_latency_budget",
+      "run_id": "38649613677",
+      "samples": [
+        {
+          "cache_state": "cold",
+          "detail_click_local_ms": 0.0002,
+          "index": 0,
+          "local_map_s": 0.212,
+          "map_total_s": 0.4898,
+          "mode": "live",
+          "n_clusters": 8,
+          "n_decisions": 151,
+          "query": "Kündigung Mietvertrag Mietrecht",
+          "upstream_retrieval_s": 0.2774
+        },
+        {
+          "cache_state": "warm",
+          "detail_click_local_ms": 0.0004,
+          "index": 1,
+          "local_map_s": 0.0618,
+          "map_total_s": 0.3659,
+          "mode": "live",
+          "n_clusters": 8,
+          "n_decisions": 151,
+          "query": "Kündigung Mietvertrag Mietrecht",
+          "upstream_retrieval_s": 0.3034
+        },
+        {
+          "cache_state": "warm",
+          "detail_click_local_ms": 0.0004,
+          "index": 2,
+          "local_map_s": 0.0536,
+          "map_total_s": 0.3293,
+          "mode": "live",
+          "n_clusters": 8,
+          "n_decisions": 151,
+          "query": "Kündigung Mietvertrag Mietrecht",
+          "upstream_retrieval_s": 0.275
+        },
+        {
+          "cache_state": "warm",
+          "detail_click_local_ms": 0.0004,
+          "index": 3,
+          "local_map_s": 0.0521,
+          "map_total_s": 0.323,
+          "mode": "live",
+          "n_clusters": 8,
+          "n_decisions": 151,
+          "query": "Kündigung Mietvertrag Mietrecht",
+          "upstream_retrieval_s": 0.2703
+        },
+        {
+          "cache_state": "warm",
+          "detail_click_local_ms": 0.0004,
+          "index": 4,
+          "local_map_s": 0.0506,
+          "map_total_s": 0.346,
+          "mode": "live",
+          "n_clusters": 8,
+          "n_decisions": 151,
+          "query": "Kündigung Mietvertrag Mietrecht",
+          "upstream_retrieval_s": 0.2948
+        }
+      ],
+      "separation_rule": "upstream_retrieval_s is OpenCaseLaw network+adapter time and is never attributed to local code; local_map_s is the product-owned remainder of the map phase",
+      "verdicts": {
+        "cached_map_total_s": {
+          "budget_s": 1.0,
+          "budgeted": true,
+          "headroom_p95_s": 0.6341,
+          "metric": "cached_map_total_s",
+          "n": 4,
+          "p50": 0.3293,
+          "p95": 0.3659,
+          "source": "QUERY_MAP_MVP 9A / lane runtime mandate: 'cached map <1s'",
+          "verdict": "PASS"
+        },
+        "detail_click_local_ms": {
+          "budget_s": 150.0,
+          "budgeted": true,
+          "headroom_p95_s": 149.9996,
+          "metric": "detail_click_local_ms",
+          "n": 4,
+          "p50": 0.0004,
+          "p95": 0.0004,
+          "source": "lane runtime mandate: detail click <150ms where data is local",
+          "verdict": "PASS"
+        },
+        "enrich_total_s": {
+          "budget_s": null,
+          "budgeted": false,
+          "metric": "enrich_total_s",
+          "p50": null,
+          "p95": null,
+          "source": "QUERY_MAP_MVP 9A: the initial map MUST NOT wait for generation or the adversarial pass; reported for cost accounting only, never budgeted",
+          "verdict": "not_budgeted"
+        },
+        "local_map_s": {
+          "budget_s": 1.5,
+          "budgeted": true,
+          "headroom_p95_s": 1.4382,
+          "metric": "local_map_s",
+          "n": 4,
+          "p50": 0.0521,
+          "p95": 0.0618,
+          "source": "lane runtime mandate: after the first upstream search page arrives, local map overhead <1.5s",
+          "verdict": "PASS"
+        },
+        "map_total_s": {
+          "budget_s": null,
+          "budgeted": false,
+          "metric": "map_total_s",
+          "p50": 0.3293,
+          "p95": 0.3659,
+          "source": "unknown metric",
+          "verdict": "not_budgeted"
+        },
+        "upstream_retrieval_s": {
+          "budget_s": null,
+          "budgeted": false,
+          "metric": "upstream_retrieval_s",
+          "p50": 0.275,
+          "p95": 0.3034,
+          "source": "QUERY_MAP_MVP 9A / lane runtime mandate: 'Measure upstream OpenCaseLaw latency separately rather than blaming local code'. Public infrastructure; explicitly NOT a local performance budget",
+          "verdict": "not_budgeted"
+        }
+      },
+      "warm_samples": {
+        "detail_click_local_ms": {
+          "estimator": "nearest-rank (ceil(q*n)), no interpolation",
+          "max": 0.0004,
+          "mean": 0.0004,
+          "min": 0.0004,
+          "n": 4,
+          "p50": 0.0004,
+          "p95": 0.0004
+        },
+        "enrich_total_s": {
+          "n": 0
+        },
+        "local_map_s": {
+          "estimator": "nearest-rank (ceil(q*n)), no interpolation",
+          "max": 0.0618,
+          "mean": 0.0545,
+          "min": 0.0506,
+          "n": 4,
+          "p50": 0.0521,
+          "p95": 0.0618
+        },
+        "map_total_s": {
+          "estimator": "nearest-rank (ceil(q*n)), no interpolation",
+          "max": 0.3659,
+          "mean": 0.341,
+          "min": 0.323,
+          "n": 4,
+          "p50": 0.3293,
+          "p95": 0.3659
+        },
+        "upstream_retrieval_s": {
+          "estimator": "nearest-rank (ceil(q*n)), no interpolation",
+          "max": 0.3034,
+          "mean": 0.2859,
+          "min": 0.2703,
+          "n": 4,
+          "p50": 0.275,
+          "p95": 0.3034
+        }
+      },
+      "warnings": [
+        "only 4 warm sample(s): p95 from fewer than 5 samples is coarse"
+      ],
+      "within_budget": true
+    },
+    "network_sample_evidence": [],
+    "original_upstream_retrieval_s_p50": 0.275,
+    "original_upstream_retrieval_s_p95": 0.3034,
+    "reason": "per-sample cache_state was derived from the sample index and cache/fixture read time was published as upstream_retrieval_s"
+  },
   "generated_at": "2026-10-14T22:49:58Z",
-  "n_cold_samples": 1,
+  "n_cold_samples": 0,
+  "n_fixture_samples": 0,
+  "n_mixed_samples": 0,
+  "n_network_samples": 0,
   "n_samples": 5,
-  "n_warm_samples": 4,
+  "n_unknown_samples": 5,
+  "n_warm_basis": "unknown",
+  "n_warm_samples": 5,
   "note": null,
   "queries": [
     "Kündigung Mietvertrag Mietrecht"
@@ -53,7 +293,9 @@
   "run_id": "38649613677",
   "samples": [
     {
-      "cache_state": "cold",
+      "as_recorded_cache_state": "cold",
+      "as_recorded_upstream_retrieval_s": 0.2774,
+      "cache_state": "unknown",
       "detail_click_local_ms": 0.0002,
       "index": 0,
       "local_map_s": 0.212,
@@ -62,10 +304,14 @@
       "n_clusters": 8,
       "n_decisions": 151,
       "query": "Kündigung Mietvertrag Mietrecht",
-      "upstream_retrieval_s": 0.2774
+      "retrieval_s": 0.2774,
+      "served_from": "unknown",
+      "upstream_retrieval_s": null
     },
     {
-      "cache_state": "warm",
+      "as_recorded_cache_state": "warm",
+      "as_recorded_upstream_retrieval_s": 0.3034,
+      "cache_state": "unknown",
       "detail_click_local_ms": 0.0004,
       "index": 1,
       "local_map_s": 0.0618,
@@ -74,10 +320,14 @@
       "n_clusters": 8,
       "n_decisions": 151,
       "query": "Kündigung Mietvertrag Mietrecht",
-      "upstream_retrieval_s": 0.3034
+      "retrieval_s": 0.3034,
+      "served_from": "unknown",
+      "upstream_retrieval_s": null
     },
     {
-      "cache_state": "warm",
+      "as_recorded_cache_state": "warm",
+      "as_recorded_upstream_retrieval_s": 0.275,
+      "cache_state": "unknown",
       "detail_click_local_ms": 0.0004,
       "index": 2,
       "local_map_s": 0.0536,
@@ -86,10 +336,14 @@
       "n_clusters": 8,
       "n_decisions": 151,
       "query": "Kündigung Mietvertrag Mietrecht",
-      "upstream_retrieval_s": 0.275
+      "retrieval_s": 0.275,
+      "served_from": "unknown",
+      "upstream_retrieval_s": null
     },
     {
-      "cache_state": "warm",
+      "as_recorded_cache_state": "warm",
+      "as_recorded_upstream_retrieval_s": 0.2703,
+      "cache_state": "unknown",
       "detail_click_local_ms": 0.0004,
       "index": 3,
       "local_map_s": 0.0521,
@@ -98,10 +352,14 @@
       "n_clusters": 8,
       "n_decisions": 151,
       "query": "Kündigung Mietvertrag Mietrecht",
-      "upstream_retrieval_s": 0.2703
+      "retrieval_s": 0.2703,
+      "served_from": "unknown",
+      "upstream_retrieval_s": null
     },
     {
-      "cache_state": "warm",
+      "as_recorded_cache_state": "warm",
+      "as_recorded_upstream_retrieval_s": 0.2948,
+      "cache_state": "unknown",
       "detail_click_local_ms": 0.0004,
       "index": 4,
       "local_map_s": 0.0506,
@@ -110,19 +368,50 @@
       "n_clusters": 8,
       "n_decisions": 151,
       "query": "Kündigung Mietvertrag Mietrecht",
-      "upstream_retrieval_s": 0.2948
+      "retrieval_s": 0.2948,
+      "served_from": "unknown",
+      "upstream_retrieval_s": null
     }
   ],
-  "separation_rule": "upstream_retrieval_s is OpenCaseLaw network+adapter time and is never attributed to local code; local_map_s is the product-owned remainder of the map phase",
+  "separation_rule": "upstream_retrieval_s is recorded only for samples served by the OpenCaseLaw network (served_from=network) and is never attributed to local code; local_map_s is the product-owned remainder of the map phase. Cache reads, offline replays and fixtures keep their raw retrieval-phase time in retrieval_s and are NOT reported as upstream latency. cache_state/served_from are derived from observed bundle provenance (provenance.request_summary, provenance.cache_stats, provenance.fixture_mode), never from the sample index.",
+  "served_from_counts": {
+    "cache": 0,
+    "fixture": 0,
+    "mixed": 0,
+    "network": 0,
+    "unknown": 5
+  },
+  "superseded_by": "results/product/latency_budget/CYCLE_38654561273_live.json",
+  "upstream_measured": false,
+  "upstream_samples": {
+    "detail_click_local_ms": {
+      "n": 0
+    },
+    "enrich_total_s": {
+      "n": 0
+    },
+    "local_map_s": {
+      "n": 0
+    },
+    "map_total_s": {
+      "n": 0
+    },
+    "retrieval_s": {
+      "n": 0
+    },
+    "upstream_retrieval_s": {
+      "n": 0
+    }
+  },
   "verdicts": {
     "cached_map_total_s": {
       "budget_s": 1.0,
       "budgeted": true,
-      "headroom_p95_s": 0.6341,
+      "headroom_p95_s": 0.5102,
       "metric": "cached_map_total_s",
-      "n": 4,
-      "p50": 0.3293,
-      "p95": 0.3659,
+      "n": 5,
+      "p50": 0.346,
+      "p95": 0.4898,
       "source": "QUERY_MAP_MVP 9A / lane runtime mandate: 'cached map <1s'",
       "verdict": "PASS"
     },
@@ -131,7 +420,7 @@
       "budgeted": true,
       "headroom_p95_s": 149.9996,
       "metric": "detail_click_local_ms",
-      "n": 4,
+      "n": 5,
       "p50": 0.0004,
       "p95": 0.0004,
       "source": "lane runtime mandate: detail click <150ms where data is local",
@@ -149,11 +438,11 @@
     "local_map_s": {
       "budget_s": 1.5,
       "budgeted": true,
-      "headroom_p95_s": 1.4382,
+      "headroom_p95_s": 1.288,
       "metric": "local_map_s",
-      "n": 4,
-      "p50": 0.0521,
-      "p95": 0.0618,
+      "n": 5,
+      "p50": 0.0536,
+      "p95": 0.212,
       "source": "lane runtime mandate: after the first upstream search page arrives, local map overhead <1.5s",
       "verdict": "PASS"
     },
@@ -161,17 +450,30 @@
       "budget_s": null,
       "budgeted": false,
       "metric": "map_total_s",
-      "p50": 0.3293,
-      "p95": 0.3659,
+      "p50": 0.346,
+      "p95": 0.4898,
+      "source": "unknown metric",
+      "verdict": "not_budgeted"
+    },
+    "retrieval_s": {
+      "budget_s": null,
+      "budgeted": false,
+      "metric": "retrieval_s",
+      "p50": 0.2774,
+      "p95": 0.3034,
       "source": "unknown metric",
       "verdict": "not_budgeted"
     },
     "upstream_retrieval_s": {
       "budget_s": null,
       "budgeted": false,
+      "measured": false,
       "metric": "upstream_retrieval_s",
-      "p50": 0.275,
-      "p95": 0.3034,
+      "n_network_samples": 0,
+      "note": "UNMEASURED: no sample in this run was served by the OpenCaseLaw network, so upstream latency is not measured here. Cache/fixture read time is not OpenCaseLaw latency and is never reported as upstream_retrieval_s.",
+      "p50": null,
+      "p95": null,
+      "sample_source": "network-served samples only (cache/mixed/fixture/unknown excluded)",
       "source": "QUERY_MAP_MVP 9A / lane runtime mandate: 'Measure upstream OpenCaseLaw latency separately rather than blaming local code'. Public infrastructure; explicitly NOT a local performance budget",
       "verdict": "not_budgeted"
     }
@@ -181,8 +483,8 @@
       "estimator": "nearest-rank (ceil(q*n)), no interpolation",
       "max": 0.0004,
       "mean": 0.0004,
-      "min": 0.0004,
-      "n": 4,
+      "min": 0.0002,
+      "n": 5,
       "p50": 0.0004,
       "p95": 0.0004
     },
@@ -191,34 +493,39 @@
     },
     "local_map_s": {
       "estimator": "nearest-rank (ceil(q*n)), no interpolation",
-      "max": 0.0618,
-      "mean": 0.0545,
+      "max": 0.212,
+      "mean": 0.086,
       "min": 0.0506,
-      "n": 4,
-      "p50": 0.0521,
-      "p95": 0.0618
+      "n": 5,
+      "p50": 0.0536,
+      "p95": 0.212
     },
     "map_total_s": {
       "estimator": "nearest-rank (ceil(q*n)), no interpolation",
-      "max": 0.3659,
-      "mean": 0.341,
+      "max": 0.4898,
+      "mean": 0.3708,
       "min": 0.323,
-      "n": 4,
-      "p50": 0.3293,
-      "p95": 0.3659
+      "n": 5,
+      "p50": 0.346,
+      "p95": 0.4898
     },
-    "upstream_retrieval_s": {
+    "retrieval_s": {
       "estimator": "nearest-rank (ceil(q*n)), no interpolation",
       "max": 0.3034,
-      "mean": 0.2859,
+      "mean": 0.2842,
       "min": 0.2703,
-      "n": 4,
-      "p50": 0.275,
+      "n": 5,
+      "p50": 0.2774,
       "p95": 0.3034
+    },
+    "upstream_retrieval_s": {
+      "n": 0
     }
   },
   "warnings": [
-    "only 4 warm sample(s): p95 from fewer than 5 samples is coarse"
+    "cached-map budget computed from samples with NO observed cache/network evidence (served_from=unknown): these are unproven cache-served times",
+    "no network-served sample: OpenCaseLaw upstream p50/p95 is UNMEASURED in this run (cache/fixture read time is not upstream latency)",
+    "no cold sample recorded: the upstream cost of a first-time query is unmeasured"
   ],
   "within_budget": true
 }

@@ -30,16 +30,14 @@
   ],
   "current_run": {
     "conclusion_at_state_write": null,
-    "created_at": "2026-10-14T22:43:48Z",
     "event": "workflow_dispatch",
-    "head_branch": "main",
-    "head_sha_workflow": "f72955df",
+    "head_branch": "repair-base",
     "note": "The conclusion of this run is not observable while its own team job executes and is not asserted here.",
-    "role": "OPERATIONAL RESUME of the persisted producer snapshot of run 38648548635",
-    "run_id": 38649613677,
+    "role": "REPAIR of the exact rejected cycle 38649613677 (audit REVISE round 1)",
+    "run_id": 38654561273,
     "status_at_state_write": "in_progress"
   },
-  "cycle_status": "V51_HUMAN_GATE_AWAITED__STATE_CONTRACT_ENFORCED__SESSION_FINALIZE_AND_LATENCY_BUDGET_SHIPPED",
+  "cycle_status": "V51_REPAIR_ROUND1_LATENCY_LABEL_DEFECT_REPAIRED__HUMAN_GATE_STILL_AWAITED",
   "direction_version": 51,
   "evidence_tier": "DURABLE_CI_VERIFIED",
   "human_gate_criteria": [
@@ -176,7 +174,7 @@
     "status": "COMPLETE_AND_RECORDED",
     "v50_objective": "one durable, retrievable, GREEN core-lane run of lane=product whose own team job executes the four frozen reality legs LIVE"
   },
-  "next_recommendation": "Direction v51's two owner-independent deltas are both delivered and verified: the human-gate session finalizer (product/human_gate_finalize.py, 25 tests, proven live against the real accepted switch) and the 9A p50/p95 latency recorder with upstream/local separation (product/latency_budget.py, 16 tests, live measurement in results/product/latency_budget/). The orchestration defect that failed runs 38548957828 and 38648548635 is diagnosed from the GitHub jobs API, repaired, and can no longer recur silently (product/state_contract.py). continue_recommended stays true because human_gate_ready is still false and can only be earned by a real owner/jurist session; that session is now a one-command finish (export draft -> finalize with answers). Do NOT re-verify the machine gate. Do not add agent-simulated session records to results/product/human_gate_sessions/.",
+  "next_recommendation": "The 9A latency delta is now truthful end to end: upstream p50/p95 is measured only over network-served samples (7.8863 s / 9.8696 s, n=3) and the retracted cache-read claim is annotated out of the cycle-38649613677 artifact. Direction v51's two owner-independent deltas (session finalizer, latency budgets) are both delivered and verified. continue_recommended stays true because human_gate_ready is still false and can only be earned by a real owner/jurist session (export draft -> product/human_gate_finalize.py with answers -> comparative map-vs-list test). Do NOT re-verify the machine gate. Do not add agent-simulated session records to results/product/human_gate_sessions/.",
   "normal_path": {
     "generation_and_counter": "frontier-generative-audit contract 2.2 (independent adversarial pass)",
     "initial_map": "query-conditioned TF-IDF + SVD + KMeans rendered before generation",
@@ -404,8 +402,8 @@
     "fixtures": "offline/test only; never merged into live results",
     "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
   },
-  "state_updated_at": "2026-10-14",
-  "state_updated_by_run": 38649613677,
+  "state_updated_at": "2026-10-15",
+  "state_updated_by_run": 38654561273,
   "state_updated_from_resumed_snapshot_run": 38648548635,
   "supersedes_claims": {
     "prior_direction_version": 48,
@@ -518,29 +516,56 @@
     ],
     "latency_budget": {
       "code": "product/latency_budget.py",
+      "cold_path_observation": "107.6075 s upstream for 12 network calls with 0.1864 s local geometry, on the enriched live bundle of cycle 38649613677 (results/product/clickable_slice/bundle_live_enriched_CYCLE_38649613677.json); consistent with the 7.8863 s / 9.8696 s p50/p95 recorded here and NOT a local budget",
       "estimator": "nearest-rank (ceil(q*n)), no interpolation; n reported with every percentile",
-      "instrumentation": "product/query/pipeline.py provenance.timing (upstream_retrieval_s | local_map_s | map_total_s | enrich_total_s)",
-      "live_measurement": "results/product/latency_budget/CYCLE_38649613677_live.json",
-      "p50_p95_warm": {
+      "instrumentation": "product/query/pipeline.py provenance.timing (upstream_retrieval_s | local_map_s | map_total_s | enrich_total_s) + provenance.request_summary (requests_logged/network_calls/cache_hits) + provenance.cache_stats",
+      "live_measurement": "results/product/latency_budget/CYCLE_38654561273_live.json",
+      "p50_p95_cache_served": {
         "cached_map_total_s": [
-          0.3293,
-          0.3659
+          0.4656,
+          0.4816
         ],
         "detail_click_local_ms": [
-          0.0004,
-          0.0004
+          0.0003,
+          0.0003
         ],
         "local_map_s": [
-          0.0521,
-          0.0618
-        ],
-        "upstream_retrieval_s": [
-          0.275,
-          0.3034
+          0.06,
+          0.0602
         ]
       },
-      "tests": "product/tests/test_latency_budget.py (16 tests)",
-      "verdicts": "cached map <1s PASS, local map overhead <1.5s PASS, detail click <150ms PASS; upstream and enrichment reported but never budgeted"
+      "p50_p95_network_served": {
+        "upstream_retrieval_s": [
+          7.8863,
+          9.8696
+        ]
+      },
+      "retracted": {
+        "audit": "results/audit/product/CYCLE_38649613677_GATE.json (gate=REVISE, required_fixes[0]/[1])",
+        "repair": "the legacy artifact is annotated in place: original report preserved verbatim under correction.as_recorded_report, per-sample as_recorded_upstream_retrieval_s preserved, upstream claim nulled and re-aggregated over all 5 samples (budgeted p95s became 0.4898 s / 0.212 s / 0.0004 ms, still PASS)",
+        "superseded_by": "results/product/latency_budget/CYCLE_38654561273_live.json",
+        "values": {
+          "upstream_retrieval_s_p50": 0.275,
+          "upstream_retrieval_s_p95": 0.3034
+        },
+        "why": "every sample of CYCLE_38649613677_live.json ran with network_calls=0 (local file-cache reads) and cache_state was derived from the sample index ('cold' if index == 0); the values were never an OpenCaseLaw measurement"
+      },
+      "sample_provenance": "3 network samples (9 network calls, 0 cache hits each) + 6 cache-served samples (9 cache hits, 0 network calls each); query 'Kuendigung Mietvertrag Mietrecht', top_n 150, recorder wall time 28.238 s",
+      "served_from_rule": "upstream_retrieval_s is recorded ONLY for samples observed to be served by the OpenCaseLaw network (provenance.request_summary.network_calls > 0). Cache reads, offline replays and fixtures keep their raw retrieval-phase time in retrieval_s. cache_state/served_from are derived from observed provenance, never from the sample index; a run with no network-served sample reports upstream as measured=false with null percentiles.",
+      "supersedes": "results/product/latency_budget/CYCLE_38649613677_live.json",
+      "tests": "product/tests/test_latency_budget.py (27 tests, incl. 11 new repair guards)",
+      "verdicts": "cached map <1s PASS (p95 0.4816 s), local map overhead <1.5s PASS (p95 0.0602 s), detail click <150ms PASS (p95 0.0003 ms); OpenCaseLaw upstream measured separately over network-served samples only and never budgeted"
+    },
+    "latency_repair_round1": {
+      "artifacts": [
+        "results/product/latency_budget/CYCLE_38654561273_live.json",
+        "results/product/latency_budget/CYCLE_38649613677_live.json (annotated in place)"
+      ],
+      "audit_verdict_repaired": "results/audit/product/CYCLE_38649613677_GATE.json -> required_fixes[0] and [1]",
+      "code": "product/latency_budget.py (observed served_from/cache_state, upstream admissibility, retrieval_s for non-network samples, --refresh-first mixed recording, annotate_legacy_report + --annotate-legacy)",
+      "human_gate_ready": false,
+      "report": "reports/product/CYCLE_38654561273.md; reports/product/CYCLE_38649613677.md section 3.2 retracted and corrected",
+      "tests": "product/tests/test_latency_budget.py 27 passed (was 16; 11 added, 2 defect assertions corrected); 170 passed / 1 skipped over the 10 module suite of cycle 38649613677 (was 159 / 1)"
     },
     "live_slice_smoke": {
       "bundle": "results/product/clickable_slice/bundle_live_enriched_CYCLE_38649613677.json",
@@ -570,10 +595,33 @@
     "durable_actions_run": null,
     "durable_run_note": "No durable green core-lane run exists yet: 38600271324 was team-green but audit-failed; this run (38604340726) carries fresh 4/4 in-run legs and awaits its own audit+integrate conclusion, which is not observable while the team job executes. Observation command: python product/ci_run_evidence.py --run-id 38604340726 --apply",
     "evidence_reports": [
+      "reports/product/CYCLE_38654561273.md",
+      "reports/product/CYCLE_38649613677.md",
       "reports/product/CYCLE_38604340726.md",
       "reports/product/CYCLE_38600271324.md",
       "results/product/reality_check/"
     ],
+    "latency_budget_9a": {
+      "artifact": "results/product/latency_budget/CYCLE_38654561273_live.json",
+      "cache_served_cached_map_total_p50_p95_s": [
+        0.4656,
+        0.4816
+      ],
+      "cache_served_local_map_p50_p95_s": [
+        0.06,
+        0.0602
+      ],
+      "claim_ceiling": "engineering budgets on this machine and network path only; no browser-level click latency, no jurist-usefulness claim, no human-gate result",
+      "detail_click_p50_p95_ms": [
+        0.0003,
+        0.0003
+      ],
+      "network_served_upstream_p50_p95_s": [
+        7.8863,
+        9.8696
+      ],
+      "verdicts": "cached map <1s PASS | local map <1.5s PASS | detail click <150ms PASS | upstream measured, not budgeted"
+    },
     "live_clickable_slice_this_cycle": {
       "artifacts": [
         "results/product/clickable_slice/api_query_start_20261014T214600Z.json",
