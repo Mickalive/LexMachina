@@ -24,11 +24,29 @@ guards demanded by results/audit/product/CYCLE_38766812030_GATE.json
 (gate=REVISE) required_fixes[0] ``must_add_guard``: no citation string may be
 shared by two decisions, no citation-channel row may carry a citation seed's
 own reference, and an unhydrated citation shell's citation must be its own
-docket number or its own decision_id. The superseded artifact that failed
+docket number or its own decision_id.  The superseded artifact that failed
 those guards (sha256
 bc1165bcd3b6c5da660a0818342a3926429e35442cb224d4f2ff966a19365322) is
 preserved byte-for-byte at
 reports/product/incidents/foreign_citations_bundle_38759730609.RETIRED.json.
+
+Run 38807538467 (operational resume of 38806623637) repairs required fix D1
+of results/audit/product/CYCLE_38799024807_GATE.json.  Cycle 38799024807
+committed 123 live-preflight envelopes (cache 392 -> 515 keys) while
+``content_sha256`` keeps ``cache_stats.n_keys`` in its payload, so
+``test_claim_bundle_content_hash_matches_a_fresh_replay`` went red at the
+final head (committed 0837ee73... vs fresh replay f0726cc4..., and the audit
+confirmed the ONLY differing leaves were the two ``n_keys`` counters).  The
+identity function is deliberately NOT weakened: ``n_keys`` stays inside the
+hash, so a partial-cache replay still cannot masquerade as the real one.
+What is frozen instead is the *cache the replay reads* — the 392 envelopes
+the claim bundle was generated from, pinned byte-for-byte in
+``results/product/CYCLE_38759730609_cache_manifest.json``.  Two tests keep
+both halves of the property honest: the subset replay must reproduce the
+committed identity exactly, and a full-cache replay may differ ONLY at the
+two ``n_keys`` leaves (so appending unrelated envelopes can never be read as
+a claim-content change, and a real content change can never hide behind the
+cache-size statistic).
 """
 from __future__ import annotations
 
@@ -268,7 +286,78 @@ def test_citation_shell_never_emits_the_seeds_reference():
     assert findings["pending_shell_identity"] == []
 
 
-def test_claim_bundle_content_hash_matches_a_fresh_replay():
+#: Leaves of the hashed payload that record *how big* the cache directory
+#: happened to be when a replay ran.  They stay inside ``content_sha256`` by
+#: design (a partial-cache replay must not hash like a full one), so the only
+#: difference a grown cache may introduce between the committed claim bundle
+#: and a full-cache replay of it is these two counters.
+CACHE_SIZE_LEAVES = frozenset({
+    "provenance.cache_stats.n_keys",
+    "provenance.retrieval.remote.cache_stats.n_keys",
+})
+
+
+def _leaf_differences(a, b, path: str = "") -> set:
+    """Dotted paths at which two canonical bundle payloads disagree."""
+    if type(a) is not type(b):
+        return {f"{path or '<root>'}:type"}
+    if isinstance(a, dict):
+        out: set = set()
+        for key in sorted(set(a) | set(b)):
+            here = f"{path}.{key}" if path else str(key)
+            if key not in a or key not in b:
+                out.add(here)
+            else:
+                out |= _leaf_differences(a[key], b[key], here)
+        return out
+    if isinstance(a, list):
+        if len(a) != len(b):
+            return {f"{path or '<root>'}:len"}
+        out = set()
+        for i, (x, y) in enumerate(zip(a, b)):
+            out |= _leaf_differences(x, y, f"{path}[{i}]")
+        return out
+    return set() if a == b else {path or "<root>"}
+
+
+def test_claim_cache_manifest_is_intact_and_append_tolerant():
+    """The frozen claim-cache subset must still be present, byte-for-byte.
+
+    Required fix D1 of the cycle-38799024807 gate, first half: the manifest
+    pins the 392 envelopes the claim bundle was generated from.  The repository
+    cache is allowed to hold MORE than that (that growth is what turned the
+    replay red); every pinned envelope must still exist with the recorded
+    bytes, and the pinned count must still equal the ``n_keys`` the claim
+    bundle recorded, or the freeze proves nothing.
+    """
+    from product.replay_bundle import (
+        CLAIM_CACHE_ROOT_RELPATH,
+        verify_claim_cache_manifest,
+    )
+
+    findings = verify_claim_cache_manifest()
+    assert findings["ok"], f"frozen claim-cache manifest is broken: {findings}"
+    assert findings["missing"] == [] and findings["mismatched"] == []
+    assert findings["n_entries"] == findings["manifest_n_keys"]
+    assert findings["n_entries"] == findings["bundle_cache_n_keys"], (
+        "the frozen subset size no longer equals the n_keys the claim bundle "
+        "recorded, so the subset cannot be the cache it was generated from"
+    )
+    assert findings["cache_files_present"] >= findings["n_entries"], (
+        "the live cache holds fewer envelopes than the frozen subset: an "
+        "envelope the claim bundle needs has been deleted"
+    )
+    for entry in json.loads(
+        (PRODUCT_ROOT / "results/product/CYCLE_38759730609_cache_manifest.json").read_text(
+            encoding="utf-8"
+        )
+    )["entries"]:
+        assert entry["path"].startswith(f"{CLAIM_CACHE_ROOT_RELPATH}/"), (
+            f"manifest entry escapes the product-owned cache root: {entry['path']}"
+        )
+
+
+def test_claim_bundle_content_hash_matches_a_fresh_replay(tmp_path):
     """The artifact's identity must be reproducible off the generating machine.
 
     Audit F2 (cycle 38779139471) compared raw file sha256 values across
@@ -276,17 +365,81 @@ def test_claim_bundle_content_hash_matches_a_fresh_replay():
     timings.  ``content_sha256`` excludes exactly the five re-measured timing
     fields, so the committed claim bundle and a fresh replay of the same query
     out of the same cache must agree on it.
+
+    Required fix D1 of the cycle-38799024807 gate (run 38807538467) changes
+    WHICH cache that replay reads, not what is hashed: the committed cache has
+    since grown from 392 to 515 envelopes with unrelated live-preflight
+    entries, and ``n_keys`` is claim-relevant, so a full-cache replay of an
+    older artifact can only ever disagree on the cache-size counters.  The
+    replay is therefore pointed at the frozen subset; against that subset the
+    committed bytes, the committed code and the committed identity must still
+    meet exactly.
     """
-    from product.replay_bundle import content_sha256
+    from product.replay_bundle import (
+        content_sha256,
+        replay_claim_bundle_against_frozen_cache,
+        verify_claim_cache_manifest,
+    )
+
+    findings = verify_claim_cache_manifest()
+    assert findings["ok"], f"frozen claim-cache manifest is broken: {findings}"
 
     with open(BUNDLE_PATH, encoding="utf-8") as f:
         committed = json.load(f)
-    fresh = run_query_initial(RECORDED_QUERY, top_n=RECORDED_TOP_N, retrieval_mode="offline")
+    fresh, subset_root = replay_claim_bundle_against_frozen_cache(tmp_path)
 
     assert content_sha256(committed) == content_sha256(fresh), (
-        "the committed claim bundle is not reproducible from the committed cache "
-        "with the committed code"
+        "the committed claim bundle is not reproducible from its frozen claim "
+        "cache subset with the committed code"
     )
+    stats = fresh["provenance"]["cache_stats"]
+    assert stats["n_keys"] == findings["n_entries"], (
+        "the frozen-subset replay did not read exactly the frozen subset"
+    )
+    assert stats.get("misses") == 0, (
+        f"the frozen subset is missing envelopes the replay needed: {stats}"
+    )
+    assert stats.get("writes") == 0, (
+        f"the frozen-subset replay wrote to the cache, so n_keys is no longer "
+        f"the frozen count: {stats}"
+    )
+    assert subset_root.is_dir()
+
+
+def test_claim_bundle_full_cache_replay_differs_only_in_cache_size():
+    """Appending unrelated cache envelopes must not look like a content change.
+
+    Second half of required fix D1 of the cycle-38799024807 gate: the same
+    query replayed against the whole (grown) committed cache must produce
+    byte-identical claim content, with the two ``n_keys`` counters as the only
+    tolerated difference.  If a future cache change ever moves a *different*
+    leaf, this test names it instead of letting the identity hash silently
+    absorb a claim-content regression; and if a real content change ever
+    happens, the first test (frozen subset) fails rather than being excused by
+    a bigger cache.
+    """
+    from product.replay_bundle import canonical_payload, content_sha256
+
+    with open(BUNDLE_PATH, encoding="utf-8") as f:
+        committed = json.load(f)
+    fresh_full = run_query_initial(RECORDED_QUERY, top_n=RECORDED_TOP_N, retrieval_mode="offline")
+
+    diffs = _leaf_differences(
+        canonical_payload(committed), canonical_payload(fresh_full)
+    )
+    assert diffs <= CACHE_SIZE_LEAVES, (
+        "a full-cache replay of the claim bundle differs from the committed "
+        f"artifact on non-cache-size leaves: {sorted(diffs - CACHE_SIZE_LEAVES)[:20]}"
+    )
+    committed_keys = committed["provenance"]["cache_stats"]["n_keys"]
+    fresh_keys = fresh_full["provenance"]["cache_stats"]["n_keys"]
+    assert fresh_keys >= committed_keys, (
+        "the cache shrank below the size the claim bundle was generated at"
+    )
+    assert diffs == set() or diffs == CACHE_SIZE_LEAVES, (
+        f"unexpected cache-size difference shape: {sorted(diffs)}"
+    )
+    assert content_sha256(committed) != content_sha256(fresh_full) or fresh_keys == committed_keys
 
 
 def test_replay_refuses_a_dangling_relation():

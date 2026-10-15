@@ -24,6 +24,15 @@ Exit codes:
     7  dangling relation detected: a relation names an endpoint that is not
        among the bundle's decisions, or a relation the cached /citations
        envelopes for this query's citation seeds do not support
+    8  --check-claim-cache-manifest: the frozen claim-cache manifest is
+       broken (entry missing or byte-drifted, or its key count no longer
+       equals the n_keys the claim bundle recorded)
+    9  --check-claim-cache-manifest: the manifest is intact but a replay
+       against that frozen subset does not reproduce the committed
+       content_sha256
+
+``--check-claim-cache-manifest`` and ``--build-claim-cache-manifest`` are the
+``--query``-free modes (exit 2 if ``--query`` is omitted in replay mode).
 """
 from __future__ import annotations
 
@@ -33,7 +42,9 @@ import hashlib
 import json
 import math
 import re
+import shutil
 import sys
+import tempfile
 import urllib.parse
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -237,6 +248,27 @@ def _portable_cache_root(root) -> str | None:
         return root
 
 
+def canonical_payload(bundle: dict) -> dict:
+    """The exact structure ``content_sha256`` hashes.
+
+    Exposed as its own function (run 38807538467, required fix D1 of the
+    cycle-38799024807 gate) so a test can name *which leaves* two replays
+    disagree on instead of only seeing two opaque digests.  Timings are
+    dropped, declared cache roots are tokenised, every other absolute
+    filesystem path is scrubbed; nothing else is touched.
+    """
+    canonical = copy.deepcopy(bundle)
+    for path in TIMING_PATHS:
+        _pop_path(canonical, path)
+    for path in CACHE_ROOT_PATHS:
+        node = canonical
+        for key in path[:-1]:
+            node = node.get(key) if isinstance(node, dict) else None
+        if isinstance(node, dict) and path[-1] in node:
+            node[path[-1]] = CACHE_ROOT_TOKEN
+    return _scrub_machine_paths(canonical)
+
+
 def content_sha256(bundle: dict) -> str:
     """Path- and machine-independent sha256 of a query_result_bundle.
 
@@ -261,19 +293,219 @@ def content_sha256(bundle: dict) -> str:
     ``reports/product/CYCLE_38789874982.md`` and the regression test
     ``product/tests/test_cache_non_orphan.py::
     test_content_hash_is_invariant_under_a_rewritten_cache_root``.
+
+    ``cache_stats.n_keys`` deliberately STAYS in the payload (see
+    ``CACHE_ROOT_PATHS``): a replay that silently ran against a partial cache
+    must not hash like the real one.  Because the committed cache keeps
+    growing with unrelated envelopes, the reproducibility test replays the
+    claim query against the frozen subset in
+    ``results/product/CYCLE_38759730609_cache_manifest.json`` — not against
+    whatever the cache happens to hold today.  The identity function itself is
+    unchanged by that (required fix D1, run 38807538467).
     """
-    canonical = copy.deepcopy(bundle)
-    for path in TIMING_PATHS:
-        _pop_path(canonical, path)
-    for path in CACHE_ROOT_PATHS:
-        node = canonical
-        for key in path[:-1]:
-            node = node.get(key) if isinstance(node, dict) else None
-        if isinstance(node, dict) and path[-1] in node:
-            node[path[-1]] = CACHE_ROOT_TOKEN
-    canonical = _scrub_machine_paths(canonical)
+    canonical = canonical_payload(bundle)
     payload = json.dumps(canonical, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+# ---------------------------------------------------------------------------
+# Frozen claim-cache subset
+#
+# Required fix D1 of results/audit/product/CYCLE_38799024807_GATE.json
+# (gate=REVISE, repair round 1): after run 38799024807 committed 123 live
+# preflight envelopes (392 -> 515 keys) the frozen test
+# ``test_claim_bundle_content_hash_matches_a_fresh_replay`` turned red, because
+# ``content_sha256`` deliberately keeps ``cache_stats.n_keys`` in its payload
+# (see CACHE_ROOT_PATHS: "a differing cache root never changes the hash while a
+# differing key count still does").  A full-cache replay therefore reported a
+# different identity for byte-identical claim content.
+#
+# The rule is NOT weakened here — ``n_keys`` stays inside the hash, so a replay
+# run against an empty or partial cache still fails the equality.  What changes
+# is the *cache the replay is pointed at*: the claim artifact is reproducible
+# from the cache subset that existed when it was generated, frozen here as a
+# manifest of content-addressed entries.  Appending unrelated envelopes (another
+# query's live preflight, a new decision's citations) can no longer move the
+# identity of an older claim artifact, because those envelopes are outside the
+# frozen subset.  The other half of the property is asserted separately by
+# ``test_claim_bundle_full_cache_replay_differs_only_in_cache_size``: against
+# the *whole* growing cache the only leaves that may differ are the two
+# ``n_keys`` counters.
+# ---------------------------------------------------------------------------
+
+CLAIM_BUNDLE_RELPATH = "results/product/CYCLE_38759730609_bundle.json"
+CLAIM_CACHE_MANIFEST_RELPATH = "results/product/CYCLE_38759730609_cache_manifest.json"
+CLAIM_CACHE_ROOT_RELPATH = "results/product/query_cache"
+
+CLAIM_BUNDLE_PATH = REPO_ROOT / CLAIM_BUNDLE_RELPATH
+CLAIM_CACHE_MANIFEST_PATH = REPO_ROOT / CLAIM_CACHE_MANIFEST_RELPATH
+
+#: Exit codes for the manifest mode of this CLI (documented in the module
+#: docstring): 8 = manifest integrity failure, 9 = subset replay identity
+#: mismatch.  0 = verified.
+EXIT_MANIFEST_INTEGRITY = 8
+EXIT_SUBSET_IDENTITY_MISMATCH = 9
+
+
+def load_claim_cache_manifest(path: Path | None = None) -> dict:
+    """Read the frozen claim-cache manifest (default: the committed one)."""
+    src = Path(path) if path else CLAIM_CACHE_MANIFEST_PATH
+    with open(src, encoding="utf-8") as fh:
+        manifest = json.load(fh)
+    if manifest.get("schema") != "product-claim-cache-manifest/1":
+        raise ValueError(f"unsupported claim-cache manifest schema in {src}")
+    return manifest
+
+
+def build_claim_cache_manifest(frozen_from_commit: str, *, out: Path | None = None) -> dict:
+    """Freeze the cache entries a claim bundle was generated against.
+
+    ``frozen_from_commit`` is the commit whose tree still holds exactly the
+    cache the bundle recorded (``provenance.cache_stats.n_keys``).  The command
+    that produced the committed manifest is recorded inside it, so the freeze
+    is re-derivable from git history without this function being trusted.
+    """
+    import subprocess  # noqa: PLC0415  (build path only; git is CI-local)
+
+    with open(CLAIM_BUNDLE_PATH, encoding="utf-8") as fh:
+        bundle = json.load(fh)
+    listed = subprocess.run(
+        ["git", "ls-tree", "-r", "--name-only", frozen_from_commit, CLAIM_CACHE_ROOT_RELPATH],
+        cwd=REPO_ROOT, capture_output=True, text=True, check=True,
+    ).stdout.splitlines()
+    entries = []
+    for relpath in sorted(p for p in listed if p.endswith(".json")):
+        blob = (REPO_ROOT / relpath).read_bytes()
+        entries.append({
+            "key": Path(relpath).stem,
+            "path": relpath,
+            "sha256": hashlib.sha256(blob).hexdigest(),
+        })
+    n_keys = ((bundle.get("provenance") or {}).get("cache_stats") or {}).get("n_keys")
+    manifest = {
+        "schema": "product-claim-cache-manifest/1",
+        "bundle": CLAIM_BUNDLE_RELPATH,
+        "bundle_query": bundle.get("query"),
+        "bundle_top_n": ((bundle.get("provenance") or {}).get("targets") or {}).get("target"),
+        "bundle_content_sha256": content_sha256(bundle),
+        "bundle_cache_n_keys": n_keys,
+        "n_keys": len(entries),
+        "frozen_from_commit": frozen_from_commit,
+        "freeze_command": (
+            "python product/replay_bundle.py --build-claim-cache-manifest "
+            f"--frozen-from-commit {frozen_from_commit}"
+        ),
+        "verify_command": "python product/replay_bundle.py --check-claim-cache-manifest",
+        "purpose": (
+            "Frozen subset of results/product/query_cache that "
+            f"{CLAIM_BUNDLE_RELPATH} was generated from. The offline claim "
+            "replay is pointed at exactly these envelopes so that cache "
+            "entries appended later by unrelated queries cannot change the "
+            "recorded content_sha256 of this artifact. cache_stats.n_keys "
+            "stays inside content_sha256; it is the subset, not the hash, that "
+            "is frozen."
+        ),
+        "entries": entries,
+    }
+    if n_keys is not None and n_keys != len(entries):
+        raise ValueError(
+            f"freeze mismatch: bundle records n_keys={n_keys} but commit "
+            f"{frozen_from_commit} holds {len(entries)} cache entries"
+        )
+    if out is not None:
+        Path(out).write_text(
+            json.dumps(manifest, ensure_ascii=False, indent=1, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+    return manifest
+
+
+def verify_claim_cache_manifest(manifest: dict | None = None) -> dict:
+    """Check the frozen subset against the committed cache and the claim bundle.
+
+    Append-tolerant by construction: the repository cache may hold *more*
+    envelopes than the manifest (that is the growth that caused D1); every
+    manifest entry must still exist with the recorded bytes, and the count must
+    still equal the ``n_keys`` the claim bundle recorded when it was written.
+    """
+    man = manifest if manifest is not None else load_claim_cache_manifest()
+    missing, mismatched = [], []
+    for entry in man["entries"]:
+        path = REPO_ROOT / entry["path"]
+        if not path.is_file():
+            missing.append(entry["path"])
+            continue
+        if hashlib.sha256(path.read_bytes()).hexdigest() != entry["sha256"]:
+            mismatched.append(entry["path"])
+    bundle = {}
+    if CLAIM_BUNDLE_PATH.is_file():
+        with open(CLAIM_BUNDLE_PATH, encoding="utf-8") as fh:
+            bundle = json.load(fh)
+    bundle_n_keys = ((bundle.get("provenance") or {}).get("cache_stats") or {}).get("n_keys")
+    bundle_hash = content_sha256(bundle) if bundle else None
+    findings = {
+        "manifest": CLAIM_CACHE_MANIFEST_RELPATH,
+        "n_entries": len(man["entries"]),
+        "manifest_n_keys": man.get("n_keys"),
+        "cache_files_present": sum(
+            1 for _ in (REPO_ROOT / CLAIM_CACHE_ROOT_RELPATH).rglob("*.json")
+        ),
+        "missing": missing,
+        "mismatched": mismatched,
+        "bundle_cache_n_keys": bundle_n_keys,
+        "bundle_content_sha256": bundle_hash,
+        "manifest_bundle_content_sha256": man.get("bundle_content_sha256"),
+    }
+    findings["ok"] = bool(bundle) and not missing and not mismatched and (
+        man.get("n_keys") == len(man["entries"]) == bundle_n_keys
+        and man.get("bundle_content_sha256") == bundle_hash
+    )
+    return findings
+
+
+def materialize_claim_cache(dest, manifest: dict | None = None) -> Path:
+    """Copy the frozen subset into ``dest`` so a replay can be pointed at it."""
+    import shutil  # noqa: PLC0415  (only used on this path)
+
+    man = manifest if manifest is not None else load_claim_cache_manifest()
+    root = Path(dest) / "claim_cache_subset"
+    if root.exists():
+        shutil.rmtree(root)
+    for entry in man["entries"]:
+        src = REPO_ROOT / entry["path"]
+        target = root / Path(entry["path"]).relative_to(CLAIM_CACHE_ROOT_RELPATH)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, target)
+    return root
+
+
+def replay_claim_bundle_against_frozen_cache(dest=None) -> tuple[dict, Path]:
+    """Offline replay of the claim query with ``product_cache_dir`` pointed at
+    the frozen subset.
+
+    Returns ``(bundle, cache_root)``.  ``product.query.pipeline`` reads the
+    cache root at configuration time, so the module-global binding is swapped
+    for the duration of the replay and restored in ``finally`` — no frontier
+    code is touched and the process is left exactly as it was found.
+    """
+    import tempfile  # noqa: PLC0415
+
+    from product.query import pipeline as _pipeline  # noqa: PLC0415
+
+    with open(CLAIM_BUNDLE_PATH, encoding="utf-8") as fh:
+        committed = json.load(fh)
+    query = committed["query"]
+    top_n = int(((committed.get("provenance") or {}).get("targets") or {}).get("target") or 120)
+
+    base = Path(dest) if dest else Path(tempfile.mkdtemp(prefix="lex_claim_cache_"))
+    root = materialize_claim_cache(base)
+    original = _pipeline.product_cache_dir
+    _pipeline.product_cache_dir = lambda: root
+    try:
+        bundle = run_query_initial(query, top_n=top_n, retrieval_mode="offline")
+    finally:
+        _pipeline.product_cache_dir = original
+    return bundle, root
 
 
 def _cache_bodies(cache_root) -> list[dict]:
@@ -543,11 +775,64 @@ def genuine(insp: dict) -> bool:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--query", required=True, help="recorded research query")
+    ap.add_argument("--query", required=False, help="recorded research query")
     ap.add_argument("--top-n", type=int, default=120)
     ap.add_argument("--out", default=None, help="write the replayed bundle here")
     ap.add_argument("--retrieval-mode", default="offline", choices=["offline", "live"])
+    ap.add_argument(
+        "--check-claim-cache-manifest", action="store_true",
+        help="verify the frozen claim-cache subset and that it reproduces the "
+             "committed claim bundle's content_sha256 (no --query needed)",
+    )
+    ap.add_argument(
+        "--build-claim-cache-manifest", action="store_true",
+        help="(re)freeze results/product/CYCLE_38759730609_cache_manifest.json "
+             "from --frozen-from-commit after the claim bundle is regenerated",
+    )
+    ap.add_argument("--frozen-from-commit", default=None,
+                    help="commit whose cache tree the claim bundle was generated from")
+    ap.add_argument("--manifest-out", default=None,
+                    help="where to write a rebuilt manifest (default: the committed path)")
     args = ap.parse_args(argv)
+
+    if args.check_claim_cache_manifest:
+        findings = verify_claim_cache_manifest()
+        print(json.dumps(findings, ensure_ascii=False, indent=1))
+        if not findings["ok"]:
+            return EXIT_MANIFEST_INTEGRITY
+        bundle, root = replay_claim_bundle_against_frozen_cache()
+        committed_hash = findings["bundle_content_sha256"]
+        replay_hash = content_sha256(bundle)
+        report = {
+            "committed_content_sha256": committed_hash,
+            "frozen_subset_replay_sha256": replay_hash,
+            "frozen_subset_cache_root": _portable_cache_root(str(root)),
+            "frozen_subset_n_keys": (bundle.get("provenance") or {}).get("cache_stats", {}).get("n_keys"),
+            "network_calls": ((bundle.get("provenance") or {}).get("request_summary") or {}).get("network_calls"),
+            "match": replay_hash == committed_hash,
+        }
+        print(json.dumps(report, ensure_ascii=False, indent=1))
+        # The subset lives in a scratch tree, never inside results/product/.
+        shutil.rmtree(root.parent, ignore_errors=True)
+        return 0 if report["match"] else EXIT_SUBSET_IDENTITY_MISMATCH
+
+    if args.build_claim_cache_manifest:
+        if not args.frozen_from_commit:
+            print(json.dumps({"error": "frozen_from_commit_required"}))
+            return 2
+        out = Path(args.manifest_out) if args.manifest_out else CLAIM_CACHE_MANIFEST_PATH
+        manifest = build_claim_cache_manifest(args.frozen_from_commit, out=out)
+        print(json.dumps({
+            "written": str(out),
+            "n_keys": manifest["n_keys"],
+            "bundle_content_sha256": manifest["bundle_content_sha256"],
+            "frozen_from_commit": manifest["frozen_from_commit"],
+        }, ensure_ascii=False, indent=1))
+        return 0
+
+    if not args.query:
+        print(json.dumps({"error": "query_required_without_manifest_mode"}))
+        return 2
 
     bundle = run_query_initial(args.query, top_n=args.top_n, retrieval_mode=args.retrieval_mode)
     insp = inspect_bundle(bundle)
