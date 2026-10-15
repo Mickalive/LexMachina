@@ -313,3 +313,51 @@ def test_shipped_blocked_bundle_becomes_admissible_with_the_shortfall_stated():
         haystack = " ".join(" ".join(str(row.get(k) or "") for k in
                                     ("full_text", "regeste", "snippet", "title")).split())
         assert statement["text"].rstrip() in haystack
+
+
+# --------------------------------------------------------------------------- #
+# counter-authority provenance (adopted from the accepted frontier verdict)
+# --------------------------------------------------------------------------- #
+def test_counter_rows_without_their_own_channel_are_disclosed():
+    """frontier-adversarial-discoverability (accepted, cycle 38794235870, FAIL).
+
+    On the 227-row bundle that team measured counter yield 1.3% against a 2%
+    threshold and every counter row coming from the INITIAL retrieval channels.
+    Gate question 3 asks whether the map increased confidence that contrary
+    authority had not been hidden; without this disclosure the jurist judges
+    something the artifact cannot show.  Disclosure only, never a refusal.
+    """
+    decisions = [_decision(i, regeste="Poursorgepflicht du bailleur." if i < 6 else "Autre sujet.")
+                 for i in range(1, 11)]
+    decisions[0]["counter_status"] = "candidate-limiting"
+    decisions[1]["counter_status"] = "candidate-contrary"
+    bundle = _bundle(decisions=decisions, answer={
+        "prose": "Réponse fondée sur les décisions citées [d001].",
+        "statements": [], "cited_decision_ids": ["d001"],
+        "method": "generative_audit_llm_v2", "model": "m", "status": "ready",
+    })
+    verdict = ga.verify_bundle(bundle, question={"qid": "de", "language": "de"},
+                               min_decisions=1)
+    assert verdict["admissible"]
+    assert verdict["measured"]["n_counter_authorities"] == 2
+    assert verdict["measured"]["counter_rows_from_citation_channels"] == 0
+    assert verdict["measured"]["counter_yield"] == 0.2
+    finding = next(f for f in verdict["findings"]
+                   if f["code"] == "counter_authority_has_no_own_channel")
+    assert finding["severity"] == "warning"
+    assert "cannot surface contrary authority" in finding["detail"]
+
+
+def test_counter_rows_reached_through_a_citation_channel_are_not_disclosed():
+    decisions = [_decision(i, regeste="Autre sujet.") for i in range(1, 5)]
+    decisions[0]["counter_status"] = "candidate-limiting"
+    decisions[0]["channels"] = ["citation.incoming"]
+    decisions[0]["detail_status"] = "pending"
+    bundle = _bundle(decisions=decisions, answer={
+        "prose": "Antwort [d001].", "statements": [], "cited_decision_ids": ["d001"],
+        "method": "generative_audit_llm_v2", "model": "m", "status": "ready",
+    })
+    verdict = ga.verify_bundle(bundle, question={"qid": "de", "language": "de"},
+                               min_decisions=1)
+    assert verdict["measured"]["counter_rows_from_citation_channels"] == 1
+    assert "counter_authority_has_no_own_channel" not in {f["code"] for f in verdict["findings"]}

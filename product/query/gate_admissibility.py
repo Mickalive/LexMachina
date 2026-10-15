@@ -309,6 +309,30 @@ def verify_bundle(
                                 "no row carries a counter-authority status: gate question 3 "
                                 "(did the map increase confidence that contrary authority had not "
                                 "been hidden?) cannot be answered on this bundle"))
+    # Where the counter rows came from.  The accepted frontier-adversarial-
+    # discoverability measurement (cycle 38794235870, gate=FAIL) found on the
+    # 227-row bundle that counter yield was 1.3% against a 2% threshold, that
+    # every counter row came from the INITIAL retrieval channels, and that the
+    # adversarial channel contributed 0 rows of its own.  That is a property of
+    # the product's counter pass, so the packet recomputes it per question and
+    # discloses it: without it, gate question 3 asks the jurist to judge
+    # something the artifact cannot show.
+    counter_channels: Counter = Counter()
+    for d in decisions:
+        if str(d.get("decision_id") or "") in set(counters):
+            counter_channels.update(str(c) for c in (d.get("channels") or ()))
+    n_counter_from_citations = sum(
+        count for channel, count in counter_channels.items() if channel in CITE_CHANNELS
+    )
+    if counters and not n_counter_from_citations:
+        findings.append(_finding(
+            "counter_authority_has_no_own_channel", "warning",
+            f"all {len(counters)} counter rows were found in the initial retrieval channels "
+            f"({dict(counter_channels)}); this pass has no adversarial-specific retrieval channel, "
+            "so the map cannot surface contrary authority that the ranked list did not already "
+            "contain — judge gate question 3 with that in mind",
+            n_counter_rows=len(counters), counter_channels=dict(counter_channels),
+        ))
 
     # --- map-semantics disclosures (warnings, never claims) ---------------
     clusters = [c for c in (bundle.get("clusters") or []) if isinstance(c, dict)]
@@ -360,6 +384,9 @@ def verify_bundle(
         "counter_ranks": sorted(
             int(d.get("rank") or 0) for d in decisions if str(d.get("decision_id") or "") in set(counters)
         )[:25],
+        "counter_channels": dict(counter_channels),
+        "counter_rows_from_citation_channels": n_counter_from_citations,
+        "counter_yield": round(len(counters) / n, 4) if n else 0.0,
         "n_outliers": sum(1 for d in decisions if d.get("is_outlier") is True),
         "languages": dict(sorted((k, v) for k, v in lang_counts.items() if k)),
         "largest_cluster_share": round(mega_share, 4),
