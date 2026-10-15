@@ -1,0 +1,68 @@
+{
+  "artifact": "repair verification (provenance, not a claim-bearing measurement)",
+  "charter_version": 1,
+  "network_calls": 0,
+  "repair_cycle": {
+    "mode": "REPAIR exact rejected cycle 38797568256, round 1",
+    "prior_audit_gate": "REVISE",
+    "prior_audit": "results/audit/frontier/frontier-adversarial-discoverability/CYCLE_38797568256_GATE.json",
+    "required_fixes_from_prior_audit": ["F1", "F2", "F3"],
+    "fixes_landed_this_cycle": [
+      {
+        "id": "F1",
+        "kind": "false provenance claim (TEXT ONLY)",
+        "status": "LANDED",
+        "summary": "The D9 assertion that freeze commits 1d50633 / 4c83b45 are 'not resolvable in the published branch (the producer's history was squashed)' and that pre-registration ordering is not verifiable was replaced, in state/frontier/frontier-adversarial-discoverability.json (D9 entry + claim_ceiling), reports/frontier/frontier-adversarial-discoverability/CYCLE_38797568256.md (section 5 claim ceiling) and frontier/frontier-adversarial-discoverability/README.md (headline + rule 1), with the auditor-verified statement: freeze commit 1d50633 is a DIRECT ancestor of measurement commit 72ecb19 (git merge-base --is-ancestor = TRUE), both commits are resolvable on the team's published lab branch origin/lab/frontier/frontier-adversarial-discoverability, RULES.json as committed at the freeze hashes identically to the current file (5e78d8f156b99d220e34037d829f44ac66e70a597e2073013a4b82adb42a674b), freeze 2026-10-15T19:21:34Z precedes measurement 2026-10-15T19:28:13Z. The D10-inherited headline phrasing '0 of 8 counter rows ... did not use' now carries D10's declared limitation inline. No number, threshold, metric definition or the frozen report changed."
+      },
+      {
+        "id": "F2",
+        "kind": "absence of evidence presented as evidence of absence (ADDITIVE artifact code fix)",
+        "status": "LANDED",
+        "summary": "adversarial_paths.stage_evidence now emits NOT_APPLICABLE_NO_PROVENANCE with observed_channel_count=0 for artifacts carrying no retrieval provenance (the four slimmed reality-check legs), following the convention the frozen report already uses for metric (b); build_evidence scopes adversarial_retrieval_detected_anywhere to the inputs carrying retrieval provenance (the 3 bundles) and states the scope in the artifact. The frozen report is untouched and reproduces byte-identically. The old additive artifact CYCLE_38797568256_PATH_EVIDENCE.json is preserved unchanged as the historical record of the pre-fix behaviour."
+      },
+      {
+        "id": "F3",
+        "kind": "test suite not reproducible as claimed (mount guards)",
+        "status": "LANDED",
+        "summary": "Every test whose subject is the accepted mount is now guarded by MOUNT_PRESENT (module-level constant; class-level or test-level skipUnless). The suite is green-with-skips in any checkout: 80 collected, 80 executed OK with the mount, 42 skipped / 38 OK with the mount absent. The executed-count figure is stated as mount-conditional in CYCLE_38797568256.md section 1 and in this cycle's report."
+      }
+    ],
+    "published_numbers_changed": 0,
+    "thresholds_changed": 0,
+    "metric_definitions_changed": 0,
+    "rules_sha256_unchanged_since_freeze": "5e78d8f156b99d220e34037d829f44ac66e70a597e2073013a4b82adb42a674b"
+  },
+  "verification_this_cycle": {
+    "accepted_mount_commit": "49d659364a2ee8f989352911e464764e23fd99aa",
+    "frozen_inputs_rehashed": 7,
+    "all_inputs_match_frozen_sha256": true,
+    "frozen_report_byte_identical_reproduced": true,
+    "frozen_report_sha256": "b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd",
+    "this_cycle_report": "results/frontier/frontier-adversarial-discoverability/CYCLE_38799078780_REPORT.json",
+    "this_cycle_report_sha256": "b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd",
+    "cmp_frozen_vs_this_cycle": "byte-identical (cmp exit 0)",
+    "named_verdict": "CLASSIFICATION_ONLY",
+    "non_vacuity_gate": "PASS",
+    "path_evidence_artifact": "results/frontier/frontier-adversarial-discoverability/CYCLE_38799078780_PATH_EVIDENCE.json",
+    "path_evidence_sha256": "7e0efc8131951ca1bc3372757c009a76f612ecb9853b008f24ffec24bb8a2132",
+    "path_evidence_self_test_gate": "PASS",
+    "freeze_ancestry_producer_verified": {
+      "git_merge_base_ancestor_1d50633_72ecb19": "TRUE (direct ancestor; history not squashed)",
+      "branches_containing_1d50633": ["remotes/origin/lab/frontier/frontier-adversarial-discoverability"],
+      "rules_json_sha256_at_freeze_commit": "5e78d8f156b99d220e34037d829f44ac66e70a597e2073013a4b82adb42a674b",
+      "rules_json_sha256_current": "5e78d8f156b99d220e34037d829f44ac66e70a597e2073013a4b82adb42a674b",
+      "freeze_commit_utc": "2026-10-15T19:21:34Z",
+      "measurement_commit_utc": "2026-10-15T19:28:13Z"
+    },
+    "tests": {
+      "collected": 80,
+      "with_mount": "80 executed, OK (0 skipped)",
+      "without_mount": "38 executed, 42 skipped, OK - green-with-skips in any checkout",
+      "executed_count_is_mount_conditional": true
+    },
+    "write_scope_held": true,
+    "writes_outside_namespace": 0,
+    "product_evaluation_human_gate_untouched": true
+  },
+  "note": "This file records that the repair landed and the frozen measurement still reproduces. It is deliberately not claim-bearing: the claim-bearing artifacts remain CYCLE_38792663259_REPORT.json (frozen) and its byte-identical copies, and the additive PATH_EVIDENCE artifacts."
+}

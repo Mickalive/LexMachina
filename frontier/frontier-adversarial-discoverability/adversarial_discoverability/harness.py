@@ -329,7 +329,7 @@ def run_path_evidence(mount: str = DEFAULT_MOUNT,
     every counter-authority mechanism the accepted tree ships.
     """
     rules = load_rules()
-    docs: List[Tuple[str, Dict[str, Any]]] = []
+    docs: List[Tuple[str, Dict[str, Any], str]] = []
     self_test_doc: Optional[Dict[str, Any]] = None
     for spec in rules["inputs"]["bundles"]:
         path, observation = verify_input_observed(spec, mount)
@@ -337,7 +337,7 @@ def run_path_evidence(mount: str = DEFAULT_MOUNT,
         if observed_out is not None:
             observed_out.append(observation)
         doc = _read_json(path)
-        docs.append((spec["id"], doc))
+        docs.append((spec["id"], doc, "bundle"))
         if self_test_doc is None:
             self_test_doc = doc
     for spec in rules["inputs"]["frozen_legs"]:
@@ -345,7 +345,7 @@ def run_path_evidence(mount: str = DEFAULT_MOUNT,
         observation["kind"] = "leg"
         if observed_out is not None:
             observed_out.append(observation)
-        docs.append((spec["id"], _read_json(path)))
+        docs.append((spec["id"], _read_json(path), "leg"))
     return AP.build_evidence(mount, docs, self_test_doc=self_test_doc)
 
 

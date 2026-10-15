@@ -8,7 +8,10 @@ Pre-registered, audited measurement of one question:
 > re-labelled at the top of the conventional ranked list?
 
 **Run 38792663259 verdict: `CLASSIFICATION_ONLY`.** 0 of 8 counter rows across 3 accepted
-bundles entered through a retrieval route the initial broad pass did not use. Details:
+bundles entered through a retrieval route the initial broad pass did not use — as far as
+the pool's declared channel vocabulary can show (metric b1's declared D10 limitation;
+the run-38797568256 stage-evidence channel closes it: no frozen artifact declares or
+logs an adversarial retrieval stage at all). Details:
 `reports/frontier/frontier-adversarial-discoverability/CYCLE_38792663259.md`.
 
 **Run 38794235870 (operational resume): re-verified, not re-measured.** The frozen matrix was
@@ -33,6 +36,17 @@ Three defects in that new code were caught by running it (D13 line-shifting pros
 D14 `re.search(` read as a retrieval call, D15 overlapping scan roots double-counting).
 `reports/frontier/frontier-adversarial-discoverability/CYCLE_38797568256.md`.
 
+**Run 38799078780 (audit repair, round 1): F1–F3 landed, verdict unchanged.** The audit of
+run 38797568256 required three fixes and no re-measurement: **F1** the "freeze commits
+unresolvable / history squashed" disclosure was false and is replaced by the verified
+statement (freeze `1d50633` is a direct ancestor of measurement `72ecb19` on the published
+lab branch; `RULES.json` at the freeze hashes identically to the current file); **F2**
+no-provenance artifacts now report `NOT_APPLICABLE_NO_PROVENANCE` (observed_channel_count=0)
+instead of a vacuous negative, and the aggregate claim is scoped to the three bundles;
+**F3** the test suite is green-with-skips in any checkout and the executed-count figure is
+stated as mount-conditional. The frozen report reproduces byte-identically again
+(`b15ea198…`). `reports/frontier/frontier-adversarial-discoverability/CYCLE_38799078780.md`.
+
 ## Layout
 
 ```
@@ -45,7 +59,11 @@ adversarial_discoverability/
   adversarial_paths.py  ADDITIVE evidence (run 38797568256): retrieval stage inventory, per-stage
                         request log, unaccounted channels, mechanism discovery + structural
                         capability reads, execution fingerprints, self-test. Never touches the
-                        frozen report.
+                        frozen report. (Run 38799078780, audit F2: inputs carrying no retrieval
+                        provenance report NOT_APPLICABLE_NO_PROVENANCE with
+                        observed_channel_count=0 — the frozen report's own convention for
+                        metric (b) — and the aggregate detection claim is scoped to the
+                        provenance-carrying bundles.)
   harness.py            integrity-verified CLI: --matrix / --input / --corrupt / --non-vacuity
                         / --run-id / --path-evidence
 independent_crosscheck.py  second implementation, imports nothing from the harness
@@ -87,8 +105,15 @@ with different bytes.
 
 1. **Freeze first.** Every input sha256, metric definition and threshold lives in
    `results/frontier/frontier-adversarial-discoverability/RULES.json`, committed at `1d50633`
-   (2026-10-15T19:21:04Z) before any measured artifact existed. A later threshold edit
-   invalidates the run; none was made.
+   (2026-10-15T19:21:34Z; `RULES.json`'s own `frozen_at_utc` records 2026-10-15T19:21:04Z)
+   before any measured artifact existed: `1d50633` is a direct ancestor of the
+   measurement commit `72ecb19` (2026-10-15T19:28:13Z) on the published lab branch
+   `origin/lab/frontier/frontier-adversarial-discoverability`, and `RULES.json` as
+   committed at the freeze hashes identically to the current file (`5e78d8f1…`). The
+   pre-registration order is therefore verifiable, not merely asserted. A later
+   threshold edit invalidates the run; none was made. (An earlier "squashed /
+   unresolvable" disclosure was an artifact of the workflow's depth-1 fetch of the
+   cycle team branch; corrected in the run-38799078780 repair, audit F1.)
 2. **Integrity abort.** Inputs are re-hashed before any metric runs. A mismatch aborts with
    no report written.
 3. **Missing is not zero.** A metric whose input the artifact does not export returns

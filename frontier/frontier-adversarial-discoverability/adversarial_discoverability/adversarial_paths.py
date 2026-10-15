@@ -44,6 +44,18 @@ accepted tree for the declared counter-authority vocabulary rather than trusting
 a hardcoded list, and reports the exact source line of every structural check so
 an auditor can read the evidence rather than trust it.
 
+**Repair of audit F2 (cycle 38799078256 → 38799078780) — no-provenance inputs
+must not be scored as measured negatives.**  The four slimmed reality-check legs
+carry no retrieval provenance at all.  The first version of this module reported
+``NO_ADVERSARIAL_RETRIEVAL_STAGE`` / ``channel_vocabulary_closed=true`` for them —
+the vacuous truth of an empty set — and pooled that into an "everywhere" claim.
+That is absence of evidence presented as evidence of absence.  Artifacts carrying
+no provenance now report ``NOT_APPLICABLE_NO_PROVENANCE`` with
+``observed_channel_count=0``, following the convention the frozen report already
+uses for metric (b) on exactly those inputs, and the aggregate
+``adversarial_retrieval_detected_anywhere`` is scoped to the inputs that carry
+retrieval provenance (the three bundles) with the scope stated in the artifact.
+
 WHAT THIS MODULE DOES NOT DO
 ----------------------------
 It changes no threshold, no metric definition, no population and no verdict. It
@@ -444,6 +456,14 @@ def stage_evidence(doc: Dict[str, Any]) -> Dict[str, Any]:
     ``provenance.request_summary.requests_by_stage``; a channel that no declared
     stage produced must still appear in the pool's channel union or show up on a
     row as an unaccounted channel.  All three are checked here.
+
+    Artifacts that carry no retrieval provenance at all (the four slimmed
+    reality-check legs expose no ``provenance`` object) are reported
+    ``NOT_APPLICABLE_NO_PROVENANCE`` with ``observed_channel_count = 0``
+    instead of a negative verdict: an empty stage inventory on an artifact with
+    nothing to inventory is the vacuous truth of an empty set, not a
+    measurement.  This follows the convention the frozen report already uses
+    for metric (b), which reports ``NOT_APPLICABLE`` on exactly those inputs.
     """
     prov = doc.get("provenance") or {}
     ret = prov.get("retrieval") or {}
@@ -451,6 +471,41 @@ def stage_evidence(doc: Dict[str, Any]) -> Dict[str, Any]:
 
     def _as_list(x: Any) -> List[str]:
         return [str(v) for v in x] if isinstance(x, list) else []
+
+    observed: set = set()
+    for d in pop.decisions_of(doc):
+        observed |= set(pop.channels_of(d))
+    observed_count = len(observed)
+    n_rows = len(pop.decisions_of(doc))
+
+    # An artifact that carries no retrieval provenance has no stage inventory to
+    # read and no channel union to check.  Scoring it NO_ADVERSARIAL_RETRIEVAL_STAGE
+    # would report the vacuous truth of an empty set as a measurement; the
+    # frozen report already answers NOT_APPLICABLE for such inputs (metric b),
+    # and this channel follows the same convention.
+    if not (isinstance(prov, dict) and prov):
+        return {
+            "n_bundle_rows": n_rows,
+            "carries_retrieval_provenance": False,
+            "observed_channel_count": observed_count,
+            "retrieval_stage_inventory": [],
+            "request_log_stages": [],
+            "requests_logged": None,
+            "pool_declared_channels": [],
+            "channels_observed_on_rows": sorted(observed),
+            "channels_unaccounted_for_by_the_pool": [],
+            "adversarial_named_stages_declared": {},
+            "adversarial_named_stages_logged": {},
+            "adversarial_retrieval_detected": False,
+            "channel_vocabulary_closed": None,
+            "verdict": "NOT_APPLICABLE_NO_PROVENANCE",
+            "note": (
+                "The artifact carries no retrieval provenance (no provenance object at "
+                "all), so there is no stage inventory to read and no declared channel "
+                "union to check. This is the NOT_APPLICABLE convention the frozen "
+                "report already uses for metric (b) on exactly these inputs, not a "
+                "measured negative."),
+        }
 
     declared = sorted(set(_as_list(prov.get("stages"))) | set(_as_list(remote.get("stages"))))
     logged: set = set()
@@ -460,9 +515,6 @@ def stage_evidence(doc: Dict[str, Any]) -> Dict[str, Any]:
     logged = sorted(logged)
 
     ch = _channel_block(prov)
-    observed: set = set()
-    for d in pop.decisions_of(doc):
-        observed |= set(pop.channels_of(d))
 
     declared_adv = {s: _stage_vocab_hit(s) for s in declared if _stage_vocab_hit(s)}
     logged_adv = {s: _stage_vocab_hit(s) for s in logged if _stage_vocab_hit(s)}
@@ -476,7 +528,9 @@ def stage_evidence(doc: Dict[str, Any]) -> Dict[str, Any]:
 
     detected = bool(declared_adv or logged_adv or unaccounted)
     return {
-        "n_bundle_rows": len(pop.decisions_of(doc)),
+        "n_bundle_rows": n_rows,
+        "carries_retrieval_provenance": True,
+        "observed_channel_count": observed_count,
         "retrieval_stage_inventory": declared,
         "request_log_stages": logged,
         "requests_logged": total_requests,
@@ -614,13 +668,22 @@ def self_test(doc: Dict[str, Any]) -> Dict[str, Any]:
 # CLI-facing assembly
 # ---------------------------------------------------------------------------
 
-def build_evidence(mount: str, docs: Sequence[Tuple[str, Dict[str, Any]]],
+def build_evidence(mount: str,
+                   docs: Sequence[Tuple[str, Dict[str, Any], str]],
                    self_test_doc: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    """Assemble the additive evidence artifact body (timestamp-free)."""
+    """Assemble the additive evidence artifact body (timestamp-free).
+
+    ``docs`` entries are ``(name, doc, kind)`` with ``kind`` in
+    ``{"bundle", "leg"}``.  The aggregate detection claim is scoped to the
+    inputs that carry retrieval provenance (the bundles): a no-provenance
+    artifact's ``NOT_APPLICABLE_NO_PROVENANCE`` verdict is not evidence of
+    anything, so it must not be pooled into an "everywhere" statement.
+    """
     inv = mechanism_inventory(mount)
     per_input: Dict[str, Any] = {}
-    for name, doc in docs:
+    for name, doc, kind in docs:
         per_input[name] = {
+            "kind": kind,
             "stage_evidence": stage_evidence(doc),
             "execution_fingerprint": execution_fingerprint(doc),
         }
@@ -633,6 +696,10 @@ def build_evidence(mount: str, docs: Sequence[Tuple[str, Dict[str, Any]]],
         for sym, rec in fp["execution_fingerprint"].items()
         if isinstance(rec, dict) and rec.get("executed") is True
     })
+    applicable = [v for v in per_input.values()
+                  if v["stage_evidence"]["carries_retrieval_provenance"]]
+    detected_applicable = [v["stage_evidence"]["adversarial_retrieval_detected"]
+                           for v in applicable]
     body: Dict[str, Any] = {
         "evidence_version": "fad-path-evidence/1",
         "rules_version": RULES_VERSION,
@@ -685,14 +752,21 @@ def build_evidence(mount: str, docs: Sequence[Tuple[str, Dict[str, Any]]],
                                     for k, v in per_input.items()},
         "execution_fingerprint_by_input": {k: v["execution_fingerprint"]
                                            for k, v in per_input.items()},
-        "adversarial_retrieval_detected_anywhere": any(
-            v["stage_evidence"]["adversarial_retrieval_detected"] for v in per_input.values()),
+        "adversarial_retrieval_detected_anywhere": any(detected_applicable),
+        "adversarial_retrieval_detected_anywhere_scope": (
+            "inputs_carrying_retrieval_provenance_only: the 3 accepted bundles. The 4 "
+            "frozen reality-check legs carry no retrieval provenance and report "
+            "NOT_APPLICABLE_NO_PROVENANCE (observed_channel_count=0); pooling their "
+            "empty stage inventories into an 'everywhere' claim would report the "
+            "vacuous truth of an empty set as a measurement."),
+        "n_inputs_carrying_retrieval_provenance": len(applicable),
+        "n_inputs_not_applicable_no_provenance": len(per_input) - len(applicable),
         "complete_cause_statement": (
             "Every counter-authority mechanism the accepted tree ships was enumerated and "
             "structurally measured. None of them can reach a decision the initial broad "
             "retrieval did not already return: each is pool-internal, and the retrieval "
-            "stage inventory plus per-stage request log of every artifact shows no "
-            "adversarial retrieval stage."),
+            "stage inventory plus per-stage request log of every bundle (the only inputs "
+            "carrying retrieval provenance) shows no adversarial retrieval stage."),
     }
     if self_test_doc is not None:
         body["stage_evidence_self_test"] = self_test(self_test_doc)

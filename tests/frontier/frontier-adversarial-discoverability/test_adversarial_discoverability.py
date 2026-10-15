@@ -30,6 +30,12 @@ TEAM_DIR = REPO_ROOT / "frontier" / "frontier-adversarial-discoverability"
 RESULTS_DIR = REPO_ROOT / "results" / "frontier" / "frontier-adversarial-discoverability"
 MOUNT = Path(os.environ.get("LEX_PRODUCT_MOUNT", "/tmp/lex_accepted/core/product"))
 RULES_PATH = RESULTS_DIR / "RULES.json"
+#: Mount-conditional suite: the suite is green WITH SKIPS in any checkout.  Tests
+#: whose subject is the accepted mount itself skip when the mount is absent;
+#: the executed-count figure is therefore mount-conditional (audit F3, run
+#: 38799078780).
+MOUNT_PRESENT = (MOUNT / "results" / "product").is_dir()
+_MOUNT_GUARD = "accepted product mount absent"
 
 if str(TEAM_DIR) not in sys.path:
     sys.path.insert(0, str(TEAM_DIR))
@@ -254,7 +260,7 @@ class TestIntegrityAndReproducibility(unittest.TestCase):
         self.assertEqual(H.canonical(one), H.canonical(two))
 
 
-@unittest.skipUnless((MOUNT / "results" / "product").is_dir(), "accepted product mount absent")
+@unittest.skipUnless(MOUNT_PRESENT, _MOUNT_GUARD)
 class TestAcceptedArtifacts(unittest.TestCase):
     """Locks the published numbers against the frozen accepted inputs."""
 
@@ -351,6 +357,7 @@ class TestAcceptedArtifacts(unittest.TestCase):
 
 
 class TestCliAndScope(unittest.TestCase):
+    @unittest.skipUnless(MOUNT_PRESENT, _MOUNT_GUARD)
     def test_cli_matrix_is_reproducible_and_stays_in_scope(self):
         with tempfile.TemporaryDirectory() as td:
             outs = []
@@ -434,6 +441,7 @@ class TestHistoricalArtifactProtection(unittest.TestCase):
             forced = H.write_report({"x": 2}, td, run_id="1", overwrite=True)
             self.assertTrue(forced["overwrote_existing"])
 
+    @unittest.skipUnless(MOUNT_PRESENT, _MOUNT_GUARD)
     def test_cli_refuses_to_overwrite_and_exits_4(self):
         with tempfile.TemporaryDirectory() as td:
             first = subprocess.run(
@@ -458,6 +466,7 @@ class TestHistoricalArtifactProtection(unittest.TestCase):
             self.assertEqual(Path(H.report_path(td, "42")).read_bytes(),
                              b'{"tampered": true}\n')
 
+    @unittest.skipUnless(MOUNT_PRESENT, _MOUNT_GUARD)
     def test_envelope_records_observed_input_hashes(self):
         rules = json.loads(RULES_PATH.read_text(encoding="utf-8"))
         spec = rules["inputs"]["bundles"][0]
@@ -468,6 +477,7 @@ class TestHistoricalArtifactProtection(unittest.TestCase):
         self.assertEqual(obs["path"], spec["path"])
         self.assertTrue(os.path.isfile(path))
 
+    @unittest.skipUnless(MOUNT_PRESENT, _MOUNT_GUARD)
     def test_envelope_has_a_clock_but_the_report_body_never_does(self):
         with tempfile.TemporaryDirectory() as td:
             w = H.write_report({"body": True}, td, run_id="7")
@@ -479,6 +489,7 @@ class TestHistoricalArtifactProtection(unittest.TestCase):
             self.assertRegex(env["generated_at_utc"], r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
             self.assertNotIn("generated_at_utc", H.canonical(body).decode("utf-8"))
 
+    @unittest.skipUnless(MOUNT_PRESENT, _MOUNT_GUARD)
     def test_envelope_says_whether_it_reproduces_the_frozen_report(self):
         with tempfile.TemporaryDirectory() as td:
             # non_vacuity=True: the frozen report was produced with the full gate.
@@ -500,7 +511,7 @@ class TestHistoricalArtifactProtection(unittest.TestCase):
             self.assertFalse(env_nv["reproduces_frozen_report"]["byte_identical_to_frozen_report"])
 
 
-@unittest.skipUnless((MOUNT / "results" / "product").is_dir(), "accepted product mount absent")
+@unittest.skipUnless(MOUNT_PRESENT, _MOUNT_GUARD)
 class TestNarrativeNumbersAreMachineChecked(unittest.TestCase):
     """The prose report states these numbers; they are recomputed from the
     published report JSON so a wording drift cannot survive a rerun."""
@@ -546,7 +557,7 @@ class TestNarrativeNumbersAreMachineChecked(unittest.TestCase):
             self.assertTrue(set(h) <= {"search", "search.language_filter"}, i["id"])
 
 
-@unittest.skipUnless((MOUNT / "results" / "product").is_dir(), "accepted product mount absent")
+@unittest.skipUnless(MOUNT_PRESENT, _MOUNT_GUARD)
 class TestIndependentCrossCheckAgrees(unittest.TestCase):
     """A second, independent implementation must reproduce the same numbers.
 
@@ -660,25 +671,36 @@ class TestD12UnknownLanguageIsNotAMinorityLanguage(unittest.TestCase):
             self.assertTrue(pop.language_known({"language": real}), real)
 
 
+@unittest.skipUnless(MOUNT_PRESENT, _MOUNT_GUARD)
 class TestD10StageEvidence(unittest.TestCase):
     """The falsification channel metric b cannot obtain, and its non-vacuity."""
 
     @classmethod
     def setUpClass(cls):
+        rules = json.load(open(RULES_PATH, encoding="utf-8"))
         cls.bundles = {
             s["id"]: json.load(open(MOUNT / s["path"], encoding="utf-8"))
-            for s in json.load(open(RULES_PATH, encoding="utf-8"))["inputs"]["bundles"]
+            for s in rules["inputs"]["bundles"]
         }
         cls.legs = {
             s["id"]: json.load(open(MOUNT / s["path"], encoding="utf-8"))
-            for s in json.load(open(RULES_PATH, encoding="utf-8"))["inputs"]["frozen_legs"]
+            for s in rules["inputs"]["frozen_legs"]
         }
+        cls.evidence = H.run_path_evidence(str(MOUNT))
 
-    def test_no_artifact_declares_an_adversarial_retrieval_stage(self):
-        for name, doc in list(self.bundles.items()) + list(self.legs.items()):
+    def test_only_provenance_carrying_inputs_get_a_measured_verdict(self):
+        """Audit F2: no-provenance artifacts are NOT_APPLICABLE, not negatives."""
+        for name, doc in self.bundles.items():
             ev = AP.stage_evidence(doc)
+            self.assertTrue(ev["carries_retrieval_provenance"], name)
             self.assertFalse(ev["adversarial_retrieval_detected"], name)
             self.assertEqual(ev["verdict"], "NO_ADVERSARIAL_RETRIEVAL_STAGE", name)
+        for name, doc in self.legs.items():
+            ev = AP.stage_evidence(doc)
+            self.assertFalse(ev["carries_retrieval_provenance"], name)
+            self.assertEqual(ev["verdict"], "NOT_APPLICABLE_NO_PROVENANCE", name)
+            self.assertEqual(ev["observed_channel_count"], 0, name)
+            self.assertIsNone(ev["channel_vocabulary_closed"], name)
 
     def test_the_every_bundle_declares_only_the_four_initial_stages(self):
         for name, doc in self.bundles.items():
@@ -688,11 +710,23 @@ class TestD10StageEvidence(unittest.TestCase):
             for stage in ev["retrieval_stage_inventory"]:
                 self.assertEqual(AP._stage_vocab_hit(stage), [], f"{name}:{stage}")
 
-    def test_channel_vocabulary_is_closed_on_every_artifact(self):
-        for name, doc in list(self.bundles.items()) + list(self.legs.items()):
+    def test_channel_vocabulary_is_closed_on_every_provenance_carrying_bundle(self):
+        for name, doc in self.bundles.items():
             ev = AP.stage_evidence(doc)
             self.assertTrue(ev["channel_vocabulary_closed"], name)
             self.assertEqual(ev["channels_unaccounted_for_by_the_pool"], [], name)
+
+    def test_aggregation_is_scoped_to_the_provenance_carrying_inputs(self):
+        """Audit F2: the 'anywhere' claim must not pool vacuous empty-set negatives."""
+        self.assertFalse(self.evidence["adversarial_retrieval_detected_anywhere"])
+        self.assertEqual(self.evidence["n_inputs_carrying_retrieval_provenance"], 3)
+        self.assertEqual(self.evidence["n_inputs_not_applicable_no_provenance"], 4)
+        scope = self.evidence["adversarial_retrieval_detected_anywhere_scope"]
+        self.assertIn("3 accepted bundles", scope)
+        for name, v in self.evidence["stage_evidence_by_input"].items():
+            if name.startswith("L"):
+                self.assertEqual(v["verdict"], "NOT_APPLICABLE_NO_PROVENANCE", name)
+                self.assertEqual(v["observed_channel_count"], 0, name)
 
     def test_self_test_proves_the_detector_can_fire(self):
         st = AP.self_test(self.bundles["B1_gate_rehearsal_live_227"])
@@ -743,6 +777,63 @@ class TestD10StageEvidence(unittest.TestCase):
             "can_retrieve_outside_the_initial_pool"])
 
 
+class TestNoProvenanceArtifactsAreNotApplicable(unittest.TestCase):
+    """Audit F2: the no-provenance branch, tested without the mount.
+
+    The real no-provenance inputs (the four frozen legs) can only be read from
+    the mount, so the branch itself is pinned here against synthetic documents:
+    a leg-like artifact with no ``provenance`` key must report
+    ``NOT_APPLICABLE_NO_PROVENANCE`` (not a measured negative), while an
+    artifact that DOES carry provenance must still get the applicable verdict —
+    including the adversarial-present case, so the applicable branch is proven
+    not to have been swallowed by the new guard.
+    """
+
+    def _leg_like_doc(self):
+        return {
+            "question": "synthetic leg",
+            "decision_count": 50,
+            "cited_decisions": [
+                {"decision_id": "c1", "rank": 1,
+                 "counter_status": "candidate-contrary"},
+            ],
+            "clusters": [],
+            "answer_prose": "synthetic",
+        }
+
+    def test_a_document_without_provenance_is_not_scored_as_a_negative(self):
+        ev = AP.stage_evidence(self._leg_like_doc())
+        self.assertFalse(ev["carries_retrieval_provenance"])
+        self.assertEqual(ev["verdict"], "NOT_APPLICABLE_NO_PROVENANCE")
+        self.assertEqual(ev["observed_channel_count"], 0)
+        self.assertIsNone(ev["channel_vocabulary_closed"])
+        self.assertFalse(ev["adversarial_retrieval_detected"])
+        self.assertEqual(ev["retrieval_stage_inventory"], [])
+
+    def test_an_empty_provenance_object_is_treated_as_no_provenance(self):
+        doc = self._leg_like_doc()
+        doc["provenance"] = {}
+        self.assertEqual(AP.stage_evidence(doc)["verdict"], "NOT_APPLICABLE_NO_PROVENANCE")
+
+    def test_a_provenance_carrying_document_still_gets_the_applicable_verdicts(self):
+        rows = [_dec("c1", 1, "candidate-contrary", channels=["search"]),
+                _dec("n1", 2)]
+        doc = _bundle(rows)
+        ev = AP.stage_evidence(doc)
+        self.assertTrue(ev["carries_retrieval_provenance"])
+        self.assertEqual(ev["verdict"], "NO_ADVERSARIAL_RETRIEVAL_STAGE")
+        self.assertEqual(ev["observed_channel_count"], 1)
+        self.assertTrue(ev["channel_vocabulary_closed"])
+        # and the applicable branch still fires when an adversarial stage exists
+        doc["provenance"]["stages"] = ["search", "adversarial.negation_search"]
+        doc["provenance"].setdefault("request_summary", {}).setdefault(
+            "requests_by_stage", {})["adversarial.negation_search"] = 3
+        ev2 = AP.stage_evidence(doc)
+        self.assertEqual(ev2["verdict"], "ADVERSARIAL_RETRIEVAL_PRESENT")
+        self.assertTrue(ev2["adversarial_retrieval_detected"])
+
+
+@unittest.skipUnless(MOUNT_PRESENT, _MOUNT_GUARD)
 class TestD11MechanismInventory(unittest.TestCase):
     """The single named cause must cover every mechanism the product ships."""
 
@@ -821,6 +912,7 @@ class TestAdditiveArtifactDiscipline(unittest.TestCase):
         self.assertEqual(H.sha256_file(str(p)),
                          "b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd")
 
+    @unittest.skipUnless(MOUNT_PRESENT, _MOUNT_GUARD)
     def test_matrix_reproduces_the_frozen_report_byte_for_byte_after_the_fixes(self):
         body = H.run_matrix(str(MOUNT))
         self.assertEqual(H.sha256_bytes(H.canonical(body)),
@@ -828,6 +920,7 @@ class TestAdditiveArtifactDiscipline(unittest.TestCase):
         self.assertEqual(body["named_verdict"], "CLASSIFICATION_ONLY")
         self.assertEqual(body["non_vacuity_gate"], "PASS")
 
+    @unittest.skipUnless(MOUNT_PRESENT, _MOUNT_GUARD)
     def test_path_evidence_is_deterministic_and_timestamp_free(self):
         a = H.run_path_evidence(str(MOUNT))
         b = H.run_path_evidence(str(MOUNT))
@@ -850,6 +943,7 @@ class TestAdditiveArtifactDiscipline(unittest.TestCase):
             with open(w1["path"], encoding="utf-8") as fh:
                 self.assertEqual(json.load(fh), {"a": 1})
 
+    @unittest.skipUnless(MOUNT_PRESENT, _MOUNT_GUARD)
     def test_cli_path_evidence_stays_inside_the_team_namespace(self):
         with tempfile.TemporaryDirectory() as td:
             out = subprocess.run(
