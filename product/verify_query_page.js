@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Offline DOM verification for product/static/query.html.
  *
- *   node product/verify_query_page.js BUNDLE.json
+ /*   node product/verify_query_page.js BUNDLE.json [DEEP_LINK_SEARCH]
  *
  * Why this exists
  * ---------------
@@ -16,6 +16,9 @@
  *   3. no network call is made by the page boot or by a view switch;
  *   4. toggling to the list hides the map, shows the list, and the product's own
  *      status (phase pill / counts) survives the harness writing #status.
+ *   5. a deep link (?run_id=… / ?q=&n=) selects which run or question the page
+ *      opens - the multi-question gate packet hands the owner one link per
+ *      question, so the page has to honour it.
  *
  * It is a smoke test of the clickable slice, not a claim about legal usefulness.
  *
@@ -35,6 +38,11 @@ if (!bundlePath) {
 
 const bundle = JSON.parse(fs.readFileSync(bundlePath, "utf8"));
 const html = fs.readFileSync(HTML_PATH, "utf8");
+/* Optional deep link (?q=&n=&run_id=), the per-question link the gate packet
+ * hands the owner.  With one, the page is EXPECTED to ask the server for that
+ * run: "no network call" only holds for the plain, deep-link-free boot. */
+const search = process.argv[3] || "";
+const deepLinkRun = /[?&]run_id=([^&]+)/.exec(search);
 
 const assertions = [];
 function check(condition, label) { assertions.push({ ok: !!condition, label }); }
@@ -47,7 +55,7 @@ function esc(v) {
 
 let page;
 try {
-  page = createPage({ html, bundle });
+  page = createPage({ html, bundle, search });
   const inlineCount = page.runScripts();
   check(inlineCount >= 1, "query.html exposes an inline page script");
 } catch (err) {
@@ -73,12 +81,14 @@ const statusEl = documentShim.getElementById("status");
 
 check(listEl.hidden === true, "list starts hidden (map is the first paint)");
 check(mapEl.hidden === false, "map is visible on boot");
-check(fetchCalls.length === 0, "rendering a bundle made no network call");
+if (!deepLinkRun) {
+  check(fetchCalls.length === 0, "rendering a bundle made no network call");
+}
 
 /* Switch to the conventional list, the way the owner will. */
 toggle.click();
 
-setTimeout(() => {
+setTimeout(async () => {
   const html = listEl.innerHTML;
   const rows = (html.match(/class="lex-row"/g) || []).length;
   const controller = page.evaluate("__LEX_GATE_SWITCH__.controller");
@@ -91,7 +101,9 @@ setTimeout(() => {
   check(html.indexOf('class="lex-source"') !== -1, "baseline links every row to its source");
   check(listEl.hidden === false, "list is shown after the toggle");
   check(mapEl.hidden === true, "map is hidden after the toggle");
-  check(fetchCalls.length === 0, "boot and view switch made no network call");
+  if (!deepLinkRun) {
+    check(fetchCalls.length === 0, "boot and view switch made no network call");
+  }
   check(statusAfter.indexOf("Prêt.") !== -1,
         "product status survives the switch writing #status (" + JSON.stringify(statusAfter) + ")");
   check(statusAfter.indexOf("vue liste") !== -1,
@@ -138,6 +150,35 @@ setTimeout(() => {
         "clicking a drawn point opens its decision (" + (clicked && clicked.id) + ")");
   check(!!clicked && detailHtml.indexOf("Ouvrir la source") !== -1,
         "the clicked point's panel carries the source link");
+
+  /* 7. Deep links.  The gate packet hands the owner one link per question
+   *    (?q=&n= runs it, ?run_id= opens the bundle that was verified at run time).
+   *    A page that ignores them makes a three-question ceremony three retypings,
+   *    and makes the verified bundle unreachable, so the parse itself is
+   *    asserted against the real page code, not against a reconstruction. */
+  const deepLink = page.evaluate(
+    "(function(){ try {" +
+    "  var p = new URLSearchParams('?q=R%C3%A9siliation%20test&n=250&run_id=abc123');" +
+    "  return { q: p.get('q'), n: p.get('n'), run_id: p.get('run_id'), missing: p.get('nope') };" +
+    "} catch (e) { return { error: String(e) }; } })()");
+  check(deepLink.q === "Résiliation test" && deepLink.n === "250" && deepLink.run_id === "abc123"
+        && deepLink.missing === null,
+        "the page's deep-link parameters parse (q, n, run_id)");
+  check(page.evaluate("typeof boot") === "function",
+        "the page boots through a deep-link aware entry point");
+  check(page.evaluate("(function(){ return __LEX_GATE_SWITCH__ && "
+        + "typeof __LEX_GATE_SWITCH__.controller.exportDraft === 'function'; })()"),
+        "the export seam still exists after the deep-link boot path");
+  if (deepLinkRun) {
+    /* The packet link must ask the server for THAT run - a deep link that
+     * silently re-retrieves would show the jurist a bundle nobody verified. */
+    await page.evaluate("__LEX_BOOT_PROMISE__");
+    const asked = fetchCalls.map(String);
+    check(asked.some((u) => u.indexOf("/api/query/status?run_id=" + decodeURIComponent(deepLinkRun[1])) !== -1),
+          "a ?run_id= link resumes exactly that run (" + decodeURIComponent(deepLinkRun[1]) + ")");
+    check(asked.every((u) => u.indexOf("/api/query/start") === -1),
+          "a ?run_id= link does not re-retrieve a new run");
+  }
 
   let failed = 0;
   for (const a of assertions) {

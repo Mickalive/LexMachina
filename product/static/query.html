@@ -309,27 +309,52 @@ async function advance(firstTiming){
   document.getElementById("prose").textContent=final.answer.prose||"";
   renderAnswer();
 }
-/* Resume after a reload: the run is server-side, so the same map/answer comes
-   back without re-retrieving.  If the server no longer knows the run (restart),
-   the query is re-run from the warm OpenCaseLaw cache instead of losing the
-   session. */
-async function resumeLastRun(){
-  let saved=null;try{saved=JSON.parse(localStorage.getItem(RUN_STORE_KEY)||"null")}catch(e){}
-  if(!saved||!saved.run_id)return;
+/* Resume an existing run (after a reload, or from a link).  The run is
+   server-side, so the same map/answer comes back without re-retrieving.  If the
+   server no longer knows the run (restart), the query is re-run from the warm
+   OpenCaseLaw cache instead of losing the session. */
+async function resumeRun(saved,origin){
+  if(!saved||!saved.run_id)return false;
   RUN_ID=saved.run_id;
-  document.getElementById("q").value=saved.q||document.getElementById("q").value;
-  document.getElementById("n").value=saved.n||document.getElementById("n").value;
+  if(saved.q)document.getElementById("q").value=saved.q;
+  if(saved.n)document.getElementById("n").value=saved.n;
   document.getElementById("run").disabled=true;
   try{
     const s=(await getJSON("/api/query/status?run_id="+encodeURIComponent(RUN_ID)));
     await fetchBundle();
     const jobs=s.jobs||{},pending=jobs.expand?.status==="running"||jobs.enrich?.status==="running";
-    status(s.counts.decisions+" décisions restaurées"+(pending?" · traitements en cours…":""),"repris");
+    status(s.counts.decisions+" décisions restaurées"+(origin?" · "+origin:"")+(pending?" · traitements en cours…":""),"repris");
     if(pending)await advance();
+    return true;
   }catch(e){
     try{localStorage.removeItem(RUN_STORE_KEY)}catch(_){}
     if(saved.q){status("Session précédente introuvable, nouvelle exécution…","repris");await run()}
+    return false;
   }finally{document.getElementById("run").disabled=false}
+}
+async function resumeLastRun(){
+  let saved=null;try{saved=JSON.parse(localStorage.getItem(RUN_STORE_KEY)||"null")}catch(e){}
+  return await resumeRun(saved);
+}
+/* Deep links.  The comparative human gate is a MULTI-question ceremony
+   (product/gate_packet.py): the owner is handed one link per question instead of
+   retyping it, and a packet question is served as the bundle that was verified
+   at run time (?run_id=…), not as a fresh retrieval that merely looks similar.
+     ?q=<question>&n=<top_n>   run that question on the served app
+     ?run_id=<id>              open that run's bundle as it stands
+   Anything else keeps the old behaviour (resume the last local run). */
+async function boot(){
+  let p=null;try{p=new URLSearchParams((window.location&&window.location.search)||"")}catch(e){}
+  const q=(p&&p.get("q")||"").trim(),n=p&&p.get("n"),runId=(p&&p.get("run_id")||"").trim();
+  const sel=document.getElementById("n");
+  if(n&&sel&&sel.options&&Array.prototype.some.call(sel.options,o=>String(o.value)===String(n)))sel.value=n;
+  if(q)document.getElementById("q").value=q;
+  if(runId){
+    const ok=await resumeRun({run_id:runId,q:q,n:n||document.getElementById("n").value},"lien direct");
+    if(ok)return;
+  }
+  if(q){await run();return}
+  await resumeLastRun();
 }
 document.getElementById("run").onclick=run;
 document.getElementById("q").addEventListener("keydown",e=>{if(e.key==="Enter")run()});
@@ -403,7 +428,9 @@ function wireGateAnswers(controller){
 }
 if(window.__LEX_PRODUCT_SWITCH__)wireGateAnswers(window.__LEX_PRODUCT_SWITCH__.controller);
 window.__LEX_GATE_ANSWERS__={questions:GATE_UI_QUESTIONS,read:readGateAnswers,wire:wireGateAnswers};
-resumeLastRun();
+/* The boot promise is published so an offline harness can await the deep-link
+   decision instead of racing it; the page itself never uses it. */
+window.__LEX_BOOT_PROMISE__=boot();
 </script>
 </body>
 </html>

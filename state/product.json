@@ -38,9 +38,9 @@
       "scope": "control-plane / auditor-card scope; .github/** is not product-writable (run 38575541439 precedent). Recorded, not silently dropped; producer side made audit-ready in run 38766812030 instead."
     }
   ],
-  "current_run": "38789874982",
-  "cycle_status": "V51_REPAIR_ROUND4_OF_38785927063__CONTENT_SHA256_PATH_INDEPENDENT__CLAIM_BUNDLE_REGENERATED_CONTENT_0837EE73__SUITE_272_PASSED_1_SKIPPED_0_FAILED_VERIFIED_AT_TWO_CHECKOUT_PATHS__DOM_22_ASSERTIONS_INCLUDING_CANVAS_CLICK__RELATION_RECALL_30_OF_37_DISCLOSED__HUMAN_GATE_STILL_AWAITED",
-  "direction_version": 51,
+  "current_run": "38792650692",
+  "cycle_status": "V52_GATE_PACKET_DELIVERED__3_PREREGISTERED_FR_DE_IT_QUESTIONS__RUN_TIME_ADMISSIBILITY_REVERIFIED_PER_BUNDLE__PER_QUERY_DRAFTS_ONLY__EXIT_7_8_GUARDS_EXERCISED__DEEP_LINKS__LIVE_PREFLIGHT_NOT_RUN_THIS_CYCLE_NO_NETWORK__HUMAN_GATE_STILL_AWAITED",
+  "direction_version": 52,
   "evidence_tier": "DURABLE_CI_VERIFIED",
   "human_gate_criteria": [
     {
@@ -277,7 +277,7 @@
     "observed_at": "2026-10-15T16:2xZ",
     "run_id": 38763217418
   },
-  "prior_current_run": "38779139471",
+  "prior_current_run": "38789874982",
   "product": "query-specific Swiss legal research: broad OpenCaseLaw retrieval -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map",
   "reality_check_status": {
     "blocking_leg": "durable gate blocking leg: rent-default (Art. 257d(2) residential termination) — the answer must state the 30-day/end-of-month notice rule AND the good-faith/Rechtsmissbrauch limitation. That leg now PASSES locally in live mode (results/product/reality_check/rent-default_live_20261014T122313Z.json); only the durable Actions run remains red.",
@@ -430,13 +430,14 @@
     "fixtures": "offline/test only; never merged into live results",
     "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
   },
-  "state_updated_at": "2026-10-15",
-  "state_updated_by_run": "38789874982",
+  "state_updated_at": "2026-10-15T20:10:00Z",
+  "state_updated_by_run": "38792650692",
   "state_updated_from_resumed_snapshot_run": 38763217418,
   "supersedes_claims": {
     "prior_direction_version": 48,
     "reason": "Pre-red claim was written 2026-10-12T18:27:34Z, before the contradicting reality checks at 19:11-19:21Z, and cited run ids that now return HTTP 404. It is no longer current status and is not re-asserted anywhere in this state.",
-    "removed_claim": "V45_QUERY_MAP_MACHINE_GATE_GREEN / LIVE_E2E_VERIFIED"
+    "removed_claim": "V45_QUERY_MAP_MACHINE_GATE_GREEN / LIVE_E2E_VERIFIED",
+    "gate_ceremony_is_one_query_only": "SUPERSEDED BY RUN 38792650692: the packet pre-registers three questions (FR/DE/IT), re-verifies each bundle at run time and hands the owner one deep link per question. The single-query path still works (product/human_gate_session.py is unchanged) and is still the way ONE session is finalized."
   },
   "unresolvable_run_ids": {
     "consequence": "Any prior claim that depended on them (including 'LIVE_E2E_VERIFIED with run 38290597414') is withdrawn, not merely relabelled.",
@@ -1250,5 +1251,94 @@
       "run_id": 38763217418,
       "status": "completed"
     }
-  ]
+  ],
+  "v52_delivery": {
+    "gate_audited": "results/audit/product/CYCLE_38789874982_GATE.json (gate=PASS, safe_to_integrate=true, required_fixes=[]) and the accept commit 49d6593 'accept product cycle 38789874982' on origin/lab/product: direction v52 backlog item (1), the citation-identity repair, HAS LANDED. This cycle therefore did not reopen it.",
+    "backlog_item_2_source_url_null_misattribution": {
+      "status": "MACHINE-CHECKED, not only disclosed in prose",
+      "was": "results/audit/product/CYCLE_38766812030_GATE.json required_fixes[1] recorded 30 null source_url values; the cycle report attributed them to OpenCaseLaw omitting URLs.",
+      "now": "product/query/gate_admissibility.py::source_url_null_on_hydrated_row makes the corrected causal claim falsifiable: a null source_url is only excused on an un-hydrated citation-channel shell (record_kind=citation_neighbour, detail_status=pending, or channels <= CITE_CHANNELS, the same predicate product/query/pipeline.py::_citation_shell uses); a null on a hydrated row is a blocking provenance defect. Every bundle the packet ships reports source_url_null_rows and source_url_null_rows_explained_by_unhydrated_shells side by side.",
+      "measured_on_the_committed_claim_bundle": "results/product/CYCLE_38759730609_bundle.json: 30 null source_url rows, 30 of them explained by un-hydrated citation shells, 0 unexplained. Measured this cycle with `python -m product.query.gate_admissibility results/product/CYCLE_38759730609_bundle.json`.",
+      "note": "that same bundle is NOT admissible as gate material (answer status pending, zero counter rows) - recorded as a finding, not as a repair: it is a map-only replay artifact and was never meant to back the gate."
+    },
+    "backlog_item_3_multi_query_gate_packet": {
+      "status": "DELIVERED (machinery executed offline; the live packet is NOT executed - see limits)",
+      "why": "Master Prompt section 12 asks the human gate to be answered on a SMALL SET of real research tasks; the shipped path was one query per owner ceremony, which cannot separate 'this map helped' from 'this map happened to help on this question'.",
+      "pre_registration": {
+        "file": "product/data/gate_packet_questions.json",
+        "sha256": "32eace355b70edc6a8dcc6cca97ec745b1a1c8985a7afd13668fa752008d34cb",
+        "pinned_in": "product/gate_packet.py::PREREGISTERED_MANIFEST_SHA256",
+        "questions": [
+          "fr-bail-entretien (FR): resiliation du bail pour defaut d'entretien - CP 257d ss.",
+          "de-kapitalverletzung (DE): aktive Fuer(sorge)pflicht des Arbeitgebers bei Kapitalverletzung - OR 321 ff., EOG",
+          "it-responsabilita-medica (IT): responsabilita del medico per errore terapeutico - c.c. 2052 ss."
+        ],
+        "frozen_before_results": "written and digested before any retrieval ran against them; each carries the hypothesis it is meant to test and the success rule is fixed in the manifest. load_manifest() refuses a manifest whose digest does not match, so a question cannot be chosen after seeing what retrieval returned (test_editing_the_pre_registration_after_the_fact_is_refused).",
+        "success_rule": "positive product result only if, on at least two of the three questions, the jurist answers q1 or q3 yes/partly AND names a specific decision/branch/exception that was less visible in the ranked list; a blanket yes with no named authority does not count; a 'no' is recorded as a negative result."
+      },
+      "run_time_admissibility": {
+        "module": "product/query/gate_admissibility.py::verify_bundle",
+        "reuses": [
+          "product.query.bundle.validate_bundle",
+          "product.replay_bundle.inspect_bundle (synthetic ids/labels, required fields, orphan cluster members, dangling relations, citation forensics, field coverage, content_sha256)",
+          "product.query.pipeline.CITE_CHANNELS"
+        ],
+        "blocking": [
+          "validate_bundle errors",
+          "synthetic_decision_ids / synthetic_cluster_labels",
+          "missing_required_fields",
+          "orphan_cluster_member",
+          "dangling_relation",
+          "citation_duplicates",
+          "citation_channel_seed_refs",
+          "pending_shell_identity",
+          "foreign_source_host",
+          "map_too_small (below the 100-300 comparative window)",
+          "answer_missing / answer_cites_nothing / answer_cites_off_map_decision",
+          "source_url_null_on_hydrated_row"
+        ],
+        "disclosed_not_blocking": [
+          "no_counter_authority (gate question 3 cannot be answered on such a bundle - disclosed on the owner card)",
+          "map_is_one_mega_cluster and no_relations_on_map (the two map-semantics weaknesses the director observed on accepted bundles; frontier-map-semantics owns the accepted measurement, so these are numbers on a card, not map-quality claims)",
+          "question_language_underrepresented"
+        ],
+        "never_frozen": "every question is retrieved at preflight time and re-verified again by `gate_packet.py verify` / `card`; a bundle whose content_sha256 changed since preflight is blocked as bundle_drifted_since_preflight."
+      },
+      "per_query_drafts": {
+        "emitted": "results/product/gate_packet/<run>/questions/<qid>.question.json (record_type product-gate-packet-question)",
+        "not_a_session_record": "human_gate_finalize.validate_draft refuses it with exit 4, asserted by test_the_packet_question_file_can_never_be_finalized_as_evidence. No artifact in a packet carries answers, a finalized status or a simulated session record.",
+        "contents": "question, hypothesis, what to look for, the four gate questions, the bundle binding (content_sha256 + canonical_sha256), the measured numbers, every blocking finding and every disclosure, the deep link and the exact finalize command."
+      },
+      "existing_guards_exercised": {
+        "where": "product/gate_packet.py::probe_guards, per bundle, writing only into a temp directory",
+        "results": "exit 4 for finalizing a packet question file; exit 3 (unanswered, simulated) + an admissible evidence scan for the temp-dir probe; exit 8 for a simulated record in the canonical directory; exit 8 for an undeclared session there; and an in-memory proof that a REAL answered declared session on THIS bundle would be accepted (exit 0)."
+      },
+      "ceremony": {
+        "cli": "python product/gate_packet.py card --packet results/product/gate_packet/<run> --serve",
+        "serves_verified_bundles": "seed_runs() registers each admissible bundle in the served app's run registry, so the deep link (?run_id=...) shows the jurist the artifact that was checked instead of a fresh retrieval that merely looks similar; ?q=&n= still runs a question directly.",
+        "ui": "product/static/query.html boot() honours ?q=&n=&run_id=; product/dom_shim.js gained location, URLSearchParams, localStorage and select.options; product/verify_query_page.js asserts the deep link resumes exactly that run and never re-retrieves (PASS 25 assertions).",
+        "finalize_per_question": "python product/human_gate_session.py finalize <exported draft> --bundle <packet bundle> --run-id <run> --operator <name> --owner-session"
+      },
+      "cli": {
+        "preflight": "python product/gate_packet.py preflight --live --run-id <run> --operator <name>",
+        "card": "python product/gate_packet.py card --packet <dir> [--serve]",
+        "verify": "python product/gate_packet.py verify --packet <dir>",
+        "exit_codes": "0 ready, 2 bad arguments or edited pre-registration, 5 a question is blocked, 6 I/O, 9 no packet"
+      },
+      "tests": "product/tests/test_gate_packet.py - 28 tests, all passing offline (full chain in a module fixture)"
+    },
+    "limits_and_honesty": [
+      "THE LIVE PACKET WAS NOT EXECUTED THIS CYCLE. This runner has no outbound network (python urllib to api.opencaselaw.ch fails with DNS error), so `preflight --live` could not retrieve the three questions. What executed is the identical code path against the deterministic offline fixture corpus, plus 28 tests. The live run shares every line of the chain except the transport; it is NOT evidence that these three questions retrieve good bundles.",
+      "The fixture corpus is ONE recorded scenario ('Kundigung Mietvertrag Mietrecht'), so the offline rehearsal used a clearly-labelled machinery manifest (product/tests/fixtures/gate_packet_machinery_questions.json) whose three entries ask that same recorded question under three language expectations. A fixture packet is never reported owner-ready (ready_for_owner_session is hard-wired false in fixture mode) and its claim ceiling says so.",
+      "No claim about map quality, retrieval quality, cluster semantics or counter-authority yield is made or implied by any of this.",
+      "human_gate_ready stays false. No gate question is answered, invented or implied anywhere in this delivery.",
+      "frontier-map-semantics and frontier-adversarial-discoverability were inspected at the start of the cycle: both state files still read accepted_run_id=null, evidence_tier=UNTESTED, cycle_status=INITIALIZED, so no frontier verdict is adopted or claimed here. The two map-semantics weaknesses the director observed are DISCLOSED per question as warnings, attributed as observations, not as frontier results."
+    ],
+    "what_is_left_for_the_owner": [
+      "python product/gate_packet.py preflight --live --run-id <run> --operator <name>   (needs network; run from a checkout with outbound access)",
+      "python product/gate_packet.py card --packet results/product/gate_packet/<run> --serve",
+      "per question: work map and list, answer q1-q4 in the sidebar, 'Exporter la session', then the question's finalize command",
+      "the director reads the finalized records and only then decides human_gate_ready"
+    ]
+  }
 }

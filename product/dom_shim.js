@@ -142,6 +142,15 @@ function createPage(opts) {
         const value = /\bvalue="([^"]*)"/.exec(option[1]);
         el.value = value ? value[1] : "";
       }
+      /* select.options, as a browser exposes it: query.html's deep-link boot
+       * only accepts ?n= values that are real options of this select. */
+      el.options = [];
+      const optionRe = /<option\b([^>]*)>/g;
+      let opt;
+      while ((opt = optionRe.exec(inner)) !== null) {
+        const value = /\bvalue="([^"]*)"/.exec(opt[1]);
+        el.options.push({ value: value ? value[1] : (opt[1].trim() || "") });
+      }
     }
     registry.set(idMatch[1], el);
   }
@@ -192,6 +201,36 @@ function createPage(opts) {
       sandbox.__BLOBS__.push(this);
     },
     URL: { createObjectURL: () => "blob:offline", revokeObjectURL: () => {} },
+    /* Minimal URLSearchParams: the page parses its deep link (?q=&n=&run_id=) with
+     * it at boot.  Parsing only, which is all boot() needs. */
+    URLSearchParams: function URLSearchParams(query) {
+      const params = new Map();
+      String(query == null ? "" : query).replace(/^\?/, "").split("&").forEach((pair) => {
+        if (!pair) return;
+        const i = pair.indexOf("=");
+        const key = decodeURIComponent(i < 0 ? pair : pair.slice(0, i));
+        const value = i < 0 ? "" : decodeURIComponent(pair.slice(i + 1).replace(/\+/g, " "));
+        if (!params.has(key)) params.set(key, value);
+      });
+      return {
+        get(name) { return params.has(name) ? params.get(name) : null; },
+        has(name) { return params.has(name); },
+        keys() { return Array.from(params.keys()); },
+      };
+    },
+    /* A page URL.  query.html reads window.location.search exactly once, at
+     * boot, to decide whether to resume a deep-linked run or run a question.
+     * The default empty search keeps the pre-deep-link behaviour (resume the
+     * last local run) for every existing harness. */
+    location: { search: (options && options.search) || "", href: "http://127.0.0.1/" },
+    /* localStorage keeps resumeLastRun() honest offline: an empty store means
+     * "nothing to resume", which is what a fresh browser looks like. */
+    localStorage: {
+      _store: new Map(),
+      getItem(key) { return this._store.has(String(key)) ? this._store.get(String(key)) : null; },
+      setItem(key, value) { this._store.set(String(key), String(value)); },
+      removeItem(key) { this._store.delete(String(key)); },
+    },
     __TEST_BUNDLE__: bundle,
     __FETCHES__: fetchCalls,
   };
