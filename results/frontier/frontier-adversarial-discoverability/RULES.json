@@ -1,0 +1,220 @@
+{
+  "rules_version": "fad-rules/1",
+  "team_id": "frontier-adversarial-discoverability",
+  "charter_version": 1,
+  "frozen_at_utc": "2026-10-15T19:21:04Z",
+  "frozen_at_commit": "4c83b455a3fd538f2203fec681092f6cc6294f73",
+  "purpose": "Pre-registered, audited measurement of whether the product genuinely EXECUTES the Master Prompt's independent adversarial retrieval pass, and whether contrary/limiting authority is made discoverable by the map rather than only re-labelled at the top of the conventional ranked list. Frozen BEFORE any measured artifact was produced.",
+  "freeze_disclosure": {
+    "what_was_inspected_before_the_freeze": [
+      "Read-only schema inspection of bundle and leg-report structure (key names, nesting).",
+      "Read-only source inspection of frontier/frontier-generative-audit/generative_audit/adversarial.py and integration_contract.py on the read-only lab/product mount, to confirm that metric inputs actually exist in the artifacts.",
+      "One spot-check of bundle CYCLE_38754777366_live_bundle.json counter_status values and the ranks of the 3 decisions whose counter_status is candidate-limiting or candidate-contrary (ranks 1, 3, 13), which revealed that the charter premise counted the 3 'cited' rows as counter rows."
+    ],
+    "what_was_NOT_done_before_the_freeze": [
+      "No harness, metric computation, PASS/FAIL evaluation, or measured report artifact was produced.",
+      "No threshold was adjusted after seeing a metric value. Every threshold below is derived from the Master Prompt's own wording (gate questions 1 and 3, retrieval-first doctrine, the 100-300 decision map scale) and is justified in prose next to it."
+    ],
+    "why_disclosed": "The charter premise quotes counter ranks '1, 2, 3, 4, 6, 13' for the 227-bundle. Those are the 3 counter rows PLUS the 3 'cited' rows. This team freezes the stricter charter-literal definition (counter_status in the 4 counter values, excluding 'cited') as primary, and reports the 6-row 'challenged' series read-only as a secondary series. Disclosing the spot-check prevents any accusation of post-hoc definition fitting."
+  },
+
+  "corpus_source": {
+    "mount": "/tmp/lex_accepted/core/product",
+    "read_only": true,
+    "note": "Accepted lab/product checkout, mounted by the workflow. Never modified. All inputs are addressed by repo-relative path inside that mount."
+  },
+
+  "inputs": {
+    "bundles": [
+      {
+        "id": "B1_gate_rehearsal_live_227",
+        "path": "results/product/gate_rehearsal/CYCLE_38754777366_live_bundle.json",
+        "sha256": "c1e3d9917e34c13d4e36e02266a990960a2f11045fa8a658bd4a67cc6a10ebe8",
+        "bytes": 1299224,
+        "why": "Charter-named accepted live bundle, query 'Responsabilite penale de l'entreprise selon l'art. 102 CP'. Highest counter count of any accepted bundle."
+      },
+      {
+        "id": "B2_clickable_slice_live_enriched_287",
+        "path": "results/product/clickable_slice/bundle_live_enriched_CYCLE_38740365477.json",
+        "sha256": "7f73099cd9d73f2a8373f833c71419be54e0e0f8a37ed8dae844f70221ae50cf",
+        "bytes": 1432196,
+        "why": "Charter-named accepted live bundle behind the clickable slice; the artifact the human gate renders."
+      },
+      {
+        "id": "B3_kundigung_fixture_100",
+        "path": "results/product/clickable_slice/bundle_fixture_kundigung_100.json",
+        "sha256": "02bba5c70b679d4a4954804f5bbf34e71db4ee047cd0539921ec1dec1e23f3f6",
+        "bytes": 282028,
+        "why": "Charter-named third bundle; deterministic fixture at the low end of the MP map scale, tests whether the yield finding survives when retrieval is fully deterministic."
+      }
+    ],
+    "frozen_legs": [
+      {
+        "id": "L1_rent-default",
+        "path": "results/product/reality_check/rent-default_live_ci-38604340726_20261014T172752Z.json",
+        "sha256": "5b56956dc091ccd664688c57be3569db6c1c65725cada54556c8c9c0222892d9",
+        "bytes": 15593,
+        "truth_assertion": "Good-faith / Rechtsmissbrauch limitation: the answer is required to state the limitation, so a correct answer makes the leg the most likely site of a genuine limiting finding."
+      },
+      {
+        "id": "L2_petty-theft-dismissal",
+        "path": "results/product/reality_check/petty-theft-dismissal_live_ci-38604340726_20261014T172447Z.json",
+        "sha256": "bb7783276b5deaf2e8175f31ea27aaa2253cc1d2ec063a2bb3d92a9394eace49",
+        "bytes": 11374,
+        "truth_assertion": "Ordinances/dismissal reasoning; low-authority secondary line expected."
+      },
+      {
+        "id": "L3_corporate-criminal-liability",
+        "path": "results/product/reality_check/corporate-criminal-liability_live_ci-38604340726_20261014T172930Z.json",
+        "sha256": "9e91d07384347ce64357a06ef09b52e1de3fa79de79e0e698355fc78a1d80afe",
+        "bytes": 10506,
+        "truth_assertion": "Art. 102 CP corporate criminal liability; the same legal question as B1, reached by the durable CI leg."
+      },
+      {
+        "id": "L4_business-judgment-rule",
+        "path": "results/product/reality_check/business-judgment-rule_live_ci-38604340726_20261014T173225Z.json",
+        "sha256": "671b9c83142779b4bd65846fa058fb8d844dc80ab74725fc8a75ec40b2815589",
+        "bytes": 10876,
+        "truth_assertion": "Business judgment rule / business judgment exception."
+      }
+    ],
+    "frozen_leg_rationale": "All four legs are the durable CI-38604340726 reports, the newest committed truth-assertion-bearing reality-check reports on lab/product. The leg reports are themselves the frozen evidence for this measurement: re-execution of this team's measurement over them is offline, deterministic and byte-identical. Re-running product/reality_check.py itself is NOT used for any claim-bearing number because it (a) calls a live LLM provider and is therefore not byte-reproducible, and (b) requires numpy/sklearn, which are not installed in this runner (verified 2026-10-15T19:20Z: 'No module named numpy').",
+    "reused_code": [
+      {
+        "path": "frontier/frontier-generative-audit/generative_audit/adversarial.py",
+        "import": "AdversarialPass",
+        "use": "REUSE-FIRST: the harness instantiates the ACCEPTED AdversarialPass on each bundle in fixture_mode (no network, no runner) and calls its deterministic _prompt_decisions() to recompute EXACTLY which decisions the adversarial pass was able to see. This turns the shortlist from an unmeasured provenance string into a measured, reproduced set.",
+        "mutated": false
+      }
+    ]
+  },
+
+  "input_integrity": {
+    "rule": "Every input sha256 above is re-verified by the harness before any metric is computed. A mismatch aborts the run with INTEGRITY_ABORT and no report is written.",
+    "on_mismatch": "abort, do not recompute thresholds, do not substitute inputs"
+  },
+
+  "populations": {
+    "COUNTER_VALUES": ["candidate-limiting", "candidate-contrary", "contrary_or_exception", "limiting"],
+    "C_strict": "PRIMARY. C_strict(B) = {d in B.decisions : d.counter_status in COUNTER_VALUES}. Charter-literal; excludes 'cited' and 'none'.",
+    "C_challenged": "SECONDARY, read-only, reported alongside every primary number. C_challenged(B) = {d in B.decisions : d.counter_status not in {'none'}}. This is the 6-row / 14-row series the charter quotes. No threshold uses C_challenged.",
+    "B_all": "B_all(B) = all decisions in B.decisions.",
+    "consensus_cluster": "consensus_cluster(B) = cluster_id of the decision with rank == 1 (the top of the conventional ranked list). If rank 1 is absent, the cluster with the largest size; ties broken by lowest cluster_id.",
+    "rationale": "The Master Prompt says 'These authorities must remain visible in the result set even when they are not top-ranked by the initial search' and gate question 1 asks whether the map exposed authority 'LESS VISIBLE in the ranked list'. A 'cited' decision is answer-supporting, not counter-authority, so counting it as counter would inflate the numerator and flatter the product. Both series are therefore reported so the charter's own premise is also checkable."
+  },
+
+  "metrics": {
+    "a_counter_yield": {
+      "definition": "a_counter_yield(B) = |C_strict(B)| / |B_all(B)|",
+      "threshold": {"rule": "PASS iff a_counter_yield >= MIN_COUNTER_YIELD", "MIN_COUNTER_YIELD": 0.02},
+      "justification": "The MP map scale is 100-300 decisions and the MP requires that contrary/limiting authority remain visible in the result set. A yield below 2% means fewer than 2 counter rows in a 100-row bundle and fewer than 6 in a 300-row bundle, which cannot populate a discoverable counter-authority state. 2% is the minimum density at which 'counter-authorities are visually discoverable' is even satisfiable, so it is the lowest non-vacuous bar rather than a performance target.",
+      "also_reported": ["C_challenged share", "absolute counts"]
+    },
+    "b_marginal_retrieval_contribution": {
+      "definition": "initial_channel_set(B) = keys of provenance.retrieval.dedupe.candidates_by_channel, unioned with keys of provenance.retrieval.candidate_channels, unioned with keys of provenance.retrieval_first_page.candidate_channels. For legs (which carry no retrieval provenance) initial_channel_set is the empty set and metric (b) is reported as NOT_APPLICABLE, never as PASS.",
+      "b1_adversarial_channel_rows": "count of d in C_strict with (channels(d) setminus initial_channel_set) non-empty. This is the count of counter rows whose provenance includes a channel the initial broad retrieval never used.",
+      "b2_new_channels": "sorted set of channels appearing on C_strict rows but not in initial_channel_set.",
+      "b3_counter_channel_histogram": "histogram of every channel value over C_strict rows (each channel of each row counts once).",
+      "b4_adversarial_only_ids": "count of d in C_strict whose decision_id is absent from B_all(B). Must be 0 by construction; reported as a construction check on the bundle, never as a contribution.",
+      "b5_shortlist_reach_rate": "|C_strict intersect SHORTLIST(B)| / |C_strict(B)| where SHORTLIST(B) is recomputed by importing the accepted AdversarialPass._prompt_decisions() with MAX_PROMPT_SOURCES = 24 and running it offline on B.",
+      "b6_pool_never_seen_rate": "|B_all(B) setminus SHORTLIST(B)| / |B_all(B)|. The share of the retrieved corpus the adversarial pass was structurally unable to inspect.",
+      "threshold": {"rule": "PASS iff b1_adversarial_channel_rows >= 1 OR b4_adversarial_only_ids >= 1", "note": "This is the retrieval-independence test. Any counter row must have entered through a retrieval route the initial broad pass did not use. With zero such rows the pass cannot be retrieval-independent, by definition, on this bundle."},
+      "context_only": ["provenance.progressive.n_before/n_after/n_added", "provenance.evidence_hydration.n_hydrated", "generative_audit.adversarial.bundle_decisions and prompt_decisions as recorded by the product"]
+    },
+    "c_rank_placement": {
+      "definition": "rank(d) = d.rank, the conventional ranked-list position the product already shows. counter_ranks = sorted list of ranks of C_strict. beyond_top20_share = share of C_strict with rank > 20. top10_share = share with rank <= 10. top20_share = share with rank <= 20.",
+      "threshold": {"rule": "PASS iff beyond_top20_share >= MIN_BEYOND_TOP20_SHARE", "MIN_BEYOND_TOP20_SHARE": 0.30},
+      "justification": "Gate question 1 asks whether the map exposed an authority LESS VISIBLE in the ranked list. If at least 30% of counter rows sit below rank 20, the conventional list genuinely buries a substantial minority of them and the map has something to expose. If instead all counter rows are inside the top ranks, the map's discoverability claim is not what produced the counter status.",
+      "also_reported": ["counter_ranks", "min rank", "median rank", "max rank", "share inside the consensus cluster's rank band"]
+    },
+    "d_placement_visibility": {
+      "definition": "discoverable_placement_share(B) = share of C_strict with (is_outlier == true) OR (cluster_id != consensus_cluster(B)). is_outlier_share and distinct_cluster_share reported separately. counter_cluster_ids reported as the raw histogram.",
+      "threshold": {"rule": "PASS iff discoverable_placement_share >= MIN_DISCOVERABLE_PLACEMENT_SHARE", "MIN_DISCOVERABLE_PLACEMENT_SHARE": 0.50},
+      "justification": "The MP visual-map requirement lists 'outlier = weakly connected/isolated result worth inspecting', 'counter-authorities are visually discoverable', and gate question 3 asks whether the map increased confidence that contrary authority had not simply been hidden. A counter row that is neither flagged as an outlier nor separated from the consensus cluster carries no positional signal; a majority of such rows means discoverability is carried entirely by the counter label, i.e. by re-labelling."
+    },
+    "e_evidence_quality": {
+      "definition": "PLACEHOLDER = 'cited in generated answer' (exact, after strip). substantive_reason(d) = counter_reason is a non-empty string that is not a placeholder. verified_with_reason_share = share of C_strict with counter_evidence_verified == true AND substantive_reason(d). placeholder_evidence_count = number of C_strict rows whose stripped counter_evidence equals PLACEHOLDER. empty_evidence_count = number whose stripped counter_evidence is empty.",
+      "thresholds": {
+        "verified_share": {"rule": "PASS iff verified_with_reason_share >= MIN_VERIFIED_EVIDENCE_SHARE", "MIN_VERIFIED_EVIDENCE_SHARE": 0.50},
+        "placeholder": {"rule": "PASS iff placeholder_evidence_share <= MAX_PLACEHOLDER_EVIDENCE_SHARE", "MAX_PLACEHOLDER_EVIDENCE_SHARE": 0.50}
+      },
+      "justification": "MP: 'Never classify a case as supporting/contrary/limiting unless the evidence supports that label.' A majority threshold of 0.5 is the natural reading: a counter-authority capability whose labels are at least half evidence-backed clears MP §6; below half it does not. The placeholder cap is symmetric."
+    },
+    "f_answer_linkage": {
+      "definition": "answer_mentions_counter_share = share of C_strict whose decision_id appears in answer.prose OR in answer.cited_decision_ids (string containment on the raw prose, plus exact membership on the id list). Reported per row as a boolean.",
+      "threshold": {"rule": "OBSERVED only. No PASS/FAIL. Per MP §8 the answer is a sibling surface to the map, so linkage is reported, not gated. Gate question 1 asks whether the MAP exposed it, and the map can be the only surface that shows a counter row."},
+      "justification": "Reporting rather than gating avoids penalising a correct product decision to keep a counter row out of the answer while still surfacing it on the map."
+    },
+    "g_language_minority_reach": {
+      "definition": "consensus_language = modal value of d.language over decisions in consensus_cluster(B). non_consensus_language_share = share of C_strict with language != consensus_language. bundle_median_year = median of int(decision_date[0:4]) over B_all. older_than_median_share = share of C_strict with year < bundle_median_year. minority_reach_share = share of C_strict that is EITHER non-consensus-language OR older-than-median.",
+      "threshold": {"rule": "PASS iff minority_reach_share >= MIN_MINORITY_REACH_SHARE", "MIN_MINORITY_REACH_SHARE": 0.20},
+      "justification": "The MP retrieval-first doctrine requires searching FR/DE/IT and preserving lower-ranked candidates that may represent contrary or minority lines, and the adversarial requirement lists 'expose an older/minority line' and 'reveal a language-specific branch'. If a fifth of counter rows are genuinely outside the consensus language band or older than the bundle median, the pass reaches minority authority; otherwise the labels mark more of the same."
+    }
+  },
+
+  "verdict_rule": {
+    "per_input": {
+      "retrieval_independence": "PASS iff metric b threshold passes, else FAIL. NOT_APPLICABLE for legs.",
+      "discoverability": "PASS iff metric a AND metric c AND metric d thresholds all pass, else FAIL.",
+      "evidence_quality": "PASS iff metric e verified_share AND metric e placeholder both pass, else FAIL.",
+      "minority_reach": "PASS iff metric g passes, else FAIL.",
+      "note": "Metric f is OBSERVED and never enters a verdict."
+    },
+    "overall_named_verdict": {
+      "RETRIEVAL_INDEPENDENT_AND_DISCOVERABLE": "every bundle that has provenance (B1,B2,B3) reports retrieval_independence == PASS AND discoverability == PASS",
+      "CLASSIFICATION_ONLY": "every bundle that has provenance reports retrieval_independence == FAIL",
+      "MIXED": "otherwise: at least one bundle PASSes retrieval_independence and at least one FAILs it",
+      "precedence": "CLASSIFICATION_ONLY is evaluated first, then RETRIEVAL_INDEPENDENT_AND_DISCOVERABLE, then MIXED. The rule is total and evaluated on bundle evidence only; leg evidence never changes the named verdict, it only corroborates."
+    },
+    "product_question_answer": "The named verdict IS the answer to the charter question: is the counter-authority capability retrieval-independent or classification-only?"
+  },
+
+  "non_vacuity": {
+    "purpose": "A metric that cannot ever report PASS is not evidence. Five deterministic corruptions of the real bundle 227 must each flip exactly the corresponding metric from FAIL to PASS. If any corruption fails to flip its metric, the harness raises NON_VACUITY_FAILED for that metric and the run is invalid.",
+    "corruptions": [
+      {"id": "N1_inject_adversarial_channel", "applies_to": "b_marginal_retrieval_contribution", "transformation": "add the channel 'adversarial.negation_search.v1' to the channels list of every C_strict row, which is by construction not in initial_channel_set", "must_flip": "b1_adversarial_channel_rows >= 1"},
+      {"id": "N2_deep_permute_ranks", "applies_to": "c_rank_placement", "transformation": "deterministically reassign ranks so that the N counter rows take the N largest ranks in the bundle and the displaced rows take the counter rows' original ranks (stable by decision_id)", "must_flip": "beyond_top20_share >= 0.30"},
+      {"id": "N3_separate_placement", "applies_to": "d_placement_visibility", "transformation": "set is_outlier = true and cluster_id = 9999 on every C_strict row", "must_flip": "discoverable_placement_share >= 0.50"},
+      {"id": "N4_evidence_backing", "applies_to": "e_evidence_quality", "transformation": "set counter_evidence_verified = true, counter_reason = 'contradictory', counter_evidence = a non-placeholder string on every C_strict row", "must_flip": "verified_with_reason_share >= 0.50 and placeholder_evidence_share <= 0.50"},
+      {"id": "N5_yield_boost", "applies_to": "a_counter_yield", "transformation": "relabel the N lowest-ranked decisions whose counter_status == 'none' as 'candidate-contrary', choosing N = ceil(MIN_COUNTER_YIELD * |B_all|)", "must_flip": "a_counter_yield >= 0.02"}
+    ],
+    "determinism": "Every corruption is a pure function of the input bundle and a fixed seed constant 20261015; no randomness source is consulted.",
+    "gate": "non_vacuity == PASS iff all five corruptions flip their metric on the real bundle whose clean verdict for that metric is FAIL; if a clean metric already PASSes, that corruption is recorded as NOT_APPLICABLE_NO_FLIP_NEEDED and the run continues, because a PASSing metric on real data is already positive evidence."
+  },
+
+  "reproducibility": {
+    "rule": "The harness is a pure function of (input bytes, RULES.json bytes). It performs no network I/O, no wall-clock reads inside any metric, and no dict-order-dependent iteration. Running it twice over the same inputs must produce byte-identical report JSON.",
+    "timestamp_handling": "generated_at is written only into a sidecar 'run_envelope.json'. The report body contains no timestamps at all, so report sha256 is stable across runs.",
+    "proof_requirement": "The harness emits report_sha256; running it twice and diffing the two reports must produce no difference."
+  },
+
+  "termination": {
+    "promote_when": "The frozen rule has been applied to >= 3 bundles and >= 2 frozen legs with non-vacuity proven. Both a PASS verdict and a FAIL verdict are promotions; the FAIL is the more valuable one.",
+    "terminate_immediately_after": "the named verdict plus exactly ONE bounded candidate cause (only if the verdict is CLASSIFICATION_ONLY or a yield threshold FAILs).",
+    "forbidden": [
+      "prompt engineering",
+      "provider work",
+      "benchmark construction",
+      "a product patch",
+      "more than one candidate cause",
+      "writing a human-gate answer",
+      "touching human_gate_ready",
+      "asserting that any case is supporting/contrary/limiting without evidence",
+      "re-running because a yield number was disappointing"
+    ],
+    "max_candidate_causes": 1,
+    "cause_must_be": "identified from the evidence already gathered in this run, named concretely, with the evidence that points at it, and an explicit statement that this team did NOT test the fix."
+  },
+
+  "write_scope": {
+    "allowed": [
+      "frontier/frontier-adversarial-discoverability/**",
+      "tests/frontier/frontier-adversarial-discoverability/**",
+      "results/frontier/frontier-adversarial-discoverability/**",
+      "reports/frontier/frontier-adversarial-discoverability/**",
+      "state/frontier/frontier-adversarial-discoverability.json"
+    ],
+    "forbidden_explicitly": ["product/**", "evaluation/**", "results/product/**", "state/product.json", ".github/**", "results/product/human_gate_sessions/**", "results/product/human_gate_sessions_simulated/**"],
+    "audit_artifact_placement_note": "The charter's operational_revision_reason asks for results/audit/frontier/frontier-adversarial-discoverability/CYCLE_<run_id>_GATE.json and reports/audit/frontier/frontier-adversarial-discoverability/CYCLE_<run_id>.md. Those two paths are WRITTEN BY THE AUDIT JOB, which the workflow provisions separately and whose own scope guard permits exactly results/audit/frontier/<team>/** and reports/audit/frontier/<team>/**. The team job's 'Enforce team scope' step hard-fails (exit 4) on any path outside the five allowed prefixes above, so a team-side write into results/audit/ would destroy the run and the audit. This team therefore writes zero bytes under results/audit/ or reports/audit/ and supplies the audit its evidence in results/frontier/frontier-adversarial-discoverability/. This is recorded rather than silently resolved."
+  }
+}
