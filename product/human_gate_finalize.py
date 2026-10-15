@@ -31,20 +31,51 @@ What this tool will never do
   times is a valid, valuable, *negative* result — that is the Master Prompt's
   "if not, stop the standalone product" case and it must survive the pipeline
   just like a positive one.
+* It never writes a record that contradicts itself: :func:`write_record` refuses
+  a record whose ``claim_ceiling`` disagrees with its ``simulated`` flag, and
+  refuses a simulated record in the canonical evidence directory (exit 8).
+  This guard lives in the write path, not only in the test suite, so it cannot
+  be bypassed by calling the CLI.
+
+What this tool cannot do
+------------------------
+This is an **attestation mechanism, not an authentication one**. ``--run-id``
+and ``--finalized-by`` are self-asserted strings; nothing here can distinguish
+an autonomous agent from an owner typing their own name. What *is* mechanical
+and enforced is the part that does not depend on trust: the record must bind to
+a supplied bundle that verifies against the draft, it must carry a plausible
+number of decisions, and it may not claim to be an owner session while being
+marked simulated (or the reverse). Authentication of a human is out of scope
+and belongs in the human gate itself.
 
 Usage
 -----
     # 1. owner exports the draft from the browser, answers q1..q4
     python product/human_gate_finalize.py --draft ~/Downloads/lex_session_draft.json \
         --bundle results/product/clickable_slice/bundle_live_enriched_*.json \
-        --answers answers.json --out results/product/human_gate_sessions
+        --answers answers.json --run-id <core-lane run> --finalized-by <operator> \
+        --out results/product/human_gate_sessions
+
+    # provenance may also come from an attestation file instead of two flags:
+    #   echo '{"run_id": "<run>", "finalized_by": "<operator>"}' > session_attest.json
+    python product/human_gate_finalize.py --draft ... --bundle ... \
+        --answers ... --attest session_attest.json --out results/product/human_gate_sessions
 
     answers.json (owner verbatim, either shape accepted):
         {"q1": "yes - the exception branch in FR 4A was invisible in the list", ...}
         {"q1": {"rating": "yes", "note": "..."}, ...}
 
+Output directories
+------------------
+``results/product/human_gate_sessions/`` (canonical, real owner sessions only)
+and ``results/product/human_gate_sessions_simulated/`` (machine-generated
+validation records). Both are overridable with ``LEX_HUMAN_GATE_OUT_DIR`` and
+``LEX_HUMAN_GATE_SIMULATED_OUT_DIR`` so that a test run can never write into the
+repository's immutable results tree.
+
 Exit codes: 0 finalized, 3 incomplete (answers missing), 4 invalid draft,
-5 bundle mismatch, 6 I/O error.
+5 bundle mismatch, 6 I/O error, 7 real-session provenance failure,
+8 record refused as inadmissible (contradictory provenance or wrong directory).
 """
 from __future__ import annotations
 
@@ -52,6 +83,7 @@ import argparse
 import datetime as dt
 import hashlib
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any, Iterable, Sequence
@@ -69,8 +101,47 @@ GATE_QUESTIONS: dict[str, str] = {
 }
 
 ALLOWED_RATINGS = ("yes", "partly", "no", "mixed", "not_applicable")
-DEFAULT_OUT_DIR = REPO_ROOT / "results" / "product" / "human_gate_sessions"
-SIMULATED_OUT_DIR = REPO_ROOT / "results" / "product" / "human_gate_sessions_simulated"
+
+
+def _env_dir(variable: str, default: Path) -> Path:
+    """Resolve an output directory, honouring an environment override.
+
+    Tests (and any sandboxed run) set ``LEX_HUMAN_GATE_OUT_DIR`` /
+    ``LEX_HUMAN_GATE_SIMULATED_OUT_DIR`` so a unit run can never append records
+    to the repository's immutable ``results/`` tree.
+    """
+    raw = os.environ.get(variable)
+    return Path(raw).expanduser() if raw else default
+
+
+#: Hard-coded repository locations, used by the evidence scanner and tests.
+CANONICAL_DIR_DEFAULT = REPO_ROOT / "results" / "product" / "human_gate_sessions"
+SIMULATED_DIR_DEFAULT = REPO_ROOT / "results" / "product" / "human_gate_sessions_simulated"
+
+DEFAULT_OUT_DIR = _env_dir("LEX_HUMAN_GATE_OUT_DIR", CANONICAL_DIR_DEFAULT)
+SIMULATED_OUT_DIR = _env_dir("LEX_HUMAN_GATE_SIMULATED_OUT_DIR", SIMULATED_DIR_DEFAULT)
+
+#: A human-gate session is run on a query-specific map of 100-300 decisions. A
+#: bundle with fewer decisions than this cannot be the bundle a jurist compared,
+#: so it cannot back human-gate evidence. Overridable for tests/edge cases.
+MIN_REAL_BUNDLE_DECISIONS = int(os.environ.get("LEX_HUMAN_GATE_MIN_DECISIONS", "10"))
+
+#: The two claim ceilings, as named constants so that every reader, writer and
+#: test compares against one literal instead of re-typing prose.
+CLAIM_CEILING_SIMULATED = (
+    "SIMULATED SESSION: this record was machine-generated for CI validation purposes only. "
+    "It does NOT document a real owner/jurist session and must not be counted as human-gate evidence. "
+    "human_gate_ready remains false."
+)
+CLAIM_CEILING_REAL = (
+    "human gate EVIDENCE only: this record documents one owner/jurist session. "
+    "human_gate_ready is set by the director from these records, never by this tool."
+)
+
+
+def claim_ceiling_for(simulated: bool) -> str:
+    """The one claim ceiling a record of this kind is allowed to carry."""
+    return CLAIM_CEILING_SIMULATED if simulated else CLAIM_CEILING_REAL
 
 
 class FinalizeError(RuntimeError):
@@ -130,13 +201,24 @@ def validate_draft(draft: Any) -> list[str]:
     return problems
 
 
-def validate_real_session(record: dict) -> list[str]:
-    """Additional validation for real (non-simulated) owner/jurist sessions.
-    
-    Real sessions must have:
-    - finalized_by: who finalized the session
-    - run_id: the core-lane run this session belongs to
-    - wall_clock_seconds > 0: a real session takes non-zero time
+def validate_real_session(record: dict, *, min_decisions: int | None = None) -> list[str]:
+    """Validation for real (non-simulated) owner/jurist sessions.
+
+    A real session must carry:
+
+    * ``finalized_by`` — who ran the finalizer;
+    * ``run_id`` — the core-lane run this session belongs to;
+    * ``wall_clock_seconds > 0`` — a real session takes non-zero time;
+    * a **supplied bundle that verifies** against the draft
+      (``bundle_hash_status == "verified"``). A session bound to no bundle, or to
+      a bundle whose query does not match, stays draft evidence and may not be
+      written into the canonical directory;
+    * a bound bundle with a **plausible decision count** — the comparative gate is
+      run on a query-specific map, not on a two-decision test fixture.
+
+    Provenance here is an *attestation* (``finalized_by``/``run_id`` are
+    self-asserted). What this function enforces is the mechanical part: the
+    record must bind to a real, verifiable bundle.
     """
     problems: list[str] = []
     if not record.get("finalized_by"):
@@ -146,6 +228,70 @@ def validate_real_session(record: dict) -> list[str]:
     wall = record.get("session_metrics", {}).get("wall_clock_seconds")
     if wall is None or wall <= 0:
         problems.append("real session requires wall_clock_seconds > 0 (a real session takes non-zero time)")
+
+    evidence = record.get("bundle_evidence") or {}
+    status = record.get("bundle_hash_status")
+    if evidence.get("bundle_supplied") is not True or status != "verified":
+        problems.append(
+            "real session requires a supplied bundle that verifies against the draft "
+            f"(bundle_supplied={evidence.get('bundle_supplied')!r}, bundle_hash_status={status!r}); "
+            "an unverified binding is draft evidence, not human-gate evidence"
+        )
+    limit = MIN_REAL_BUNDLE_DECISIONS if min_decisions is None else min_decisions
+    count = evidence.get("bundle_decision_count")
+    if not isinstance(count, int) or isinstance(count, bool) or count < limit:
+        problems.append(
+            f"real session requires a bound bundle with at least {limit} decisions, got {count!r}; "
+            "the comparative gate is run on a query-specific map, not on a fixture"
+        )
+    return problems
+
+
+def record_admissibility_problems(record: dict, out_dir: Path) -> list[str]:
+    """Reasons this record must not be written to ``out_dir`` (empty = admissible).
+
+    This is the load-bearing half of the human-gate evidence invariant and it
+    lives in the write path, not only in the test suite: a record that claims to
+    document an owner/jurist session while carrying ``simulated: true`` — the
+    pathology committed in cycle 38726191935 — is refused on write, and so is a
+    record that lands in the canonical evidence directory without an explicit
+    human-session declaration.
+    """
+    problems: list[str] = []
+    simulated = record.get("simulated") is True
+    ceiling = str(record.get("claim_ceiling") or "")
+    if simulated and "SIMULATED SESSION" not in ceiling:
+        problems.append(
+            "simulated record must carry the SIMULATED SESSION claim ceiling; "
+            "a machine-generated record may not claim to document an owner/jurist session"
+        )
+    if not simulated and "SIMULATED SESSION" in ceiling:
+        problems.append("non-simulated record carries the simulated claim ceiling")
+    if not simulated and record.get("claim_ceiling") != CLAIM_CEILING_REAL:
+        problems.append("real record must carry the canonical human-gate claim ceiling verbatim")
+
+    target = Path(out_dir).resolve()
+    canonical = DEFAULT_OUT_DIR.resolve()
+    simulated_dir = SIMULATED_OUT_DIR.resolve()
+    in_canonical = target == canonical or canonical in target.parents
+    if simulated and in_canonical:
+        problems.append(
+            f"simulated record cannot be written into the canonical evidence directory ({canonical}); "
+            f"write it to {simulated_dir} with --simulated"
+        )
+    if not simulated and target == simulated_dir:
+        problems.append(
+            "non-simulated record cannot be written into the simulated directory; "
+            "a machine-generated record directory may not hold records claiming to be owner sessions"
+        )
+    if in_canonical and record.get("owner_session_confirmed") is not True:
+        problems.append(
+            "the canonical evidence directory only accepts a declared human session: "
+            "re-run with --owner-session when a person is actually answering the four gate questions. "
+            "Rehearsals, tests and autonomous runs must use --out/--simulated."
+        )
+    if simulated and record.get("owner_session_confirmed") is True:
+        problems.append("a simulated record cannot carry owner_session_confirmed")
     return problems
 
 
@@ -257,6 +403,7 @@ def finalize(
     session_id: str | None = None,
     now: str | None = None,
     simulated: bool = False,
+    owner_session: bool = False,
 ) -> dict:
     """Return the finalized session record. Raises :class:`FinalizeError`."""
     problems = validate_draft(draft)
@@ -297,14 +444,14 @@ def finalize(
             "finalized_at": stamp,
             "finalized_by": finalized_by,
             "run_id": run_id,
-            "claim_ceiling": (
-                "SIMULATED SESSION: this record was machine-generated for CI validation purposes only. "
-                "It does NOT document a real owner/jurist session and must not be counted as human-gate evidence. "
-                "human_gate_ready remains false."
-            ) if simulated else (
-                "human gate EVIDENCE only: this record documents one owner/jurist session. "
-                "human_gate_ready is set by the director from these records, never by this tool."
+            "owner_session_confirmed": bool(owner_session),
+            "provenance_strength": "self_attested",
+            "provenance_note": (
+                "finalized_by and run_id are attested by whoever ran this CLI. This is an "
+                "attestation mechanism, not authentication: nothing in this toolchain can "
+                "verify that a human typed them."
             ),
+            "claim_ceiling": claim_ceiling_for(simulated),
             "simulated": simulated,
         }
     )
@@ -361,6 +508,18 @@ def load_answers(source: Iterable[str] | str | None) -> Any:
 
 
 def write_record(record: dict, out_dir: Path) -> Path:
+    """Write a finalized record, refusing anything inadmissible.
+
+    The refusal lives here — the write path — rather than only in the tests, so
+    that neither the CLI nor a direct call can put a contradictory record into
+    the evidence directories (audit required_fix F3/F5, cycle 38726191935).
+    """
+    problems = record_admissibility_problems(record, out_dir)
+    if problems:
+        raise FinalizeError(
+            "refusing to write inadmissible session record: " + "; ".join(problems),
+            exit_code=8,
+        )
     out_dir.mkdir(parents=True, exist_ok=True)
     safe_id = "".join(ch if ch.isalnum() or ch in "-_" else "-" for ch in str(record["session_id"]))
     target = out_dir / f"session_{safe_id}.json"
@@ -381,17 +540,36 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT_DIR)
     parser.add_argument("--run-id", default=None, help="core-lane run this session belongs to")
     parser.add_argument("--finalized-by", default=None, help="who ran the finalizer (free text)")
+    parser.add_argument(
+        "--attest",
+        default=None,
+        help="JSON attestation file {run_id, finalized_by}; values missing on the CLI are taken from it",
+    )
     parser.add_argument("--session-id", default=None, help="override the session id")
     parser.add_argument("--simulated", action="store_true", help="mark session as simulated (CI validation only); writes to simulated directory and skips real-session provenance checks")
+    parser.add_argument(
+        "--owner-session",
+        action="store_true",
+        help="declare that a person is actually answering the four gate questions; "
+        "required to write into the canonical evidence directory",
+    )
     parser.add_argument("--dry-run", action="store_true", help="validate and print, write nothing")
     args = parser.parse_args(argv)
+
+    # Provenance may come from flags or from an attestation file.
+    attestation = load_json(Path(args.attest)) if args.attest else {}
+    if not isinstance(attestation, dict):
+        print("::error::--attest must be a JSON object with run_id / finalized_by", file=sys.stderr)
+        return 4
+    run_id = args.run_id or attestation.get("run_id")
+    finalized_by = args.finalized_by or attestation.get("finalized_by")
 
     # Simulated sessions must not go to the canonical evidence directory
     if args.simulated and args.out == DEFAULT_OUT_DIR:
         args.out = SIMULATED_OUT_DIR
         print(f"  [simulated] redirecting output to {args.out}", file=sys.stderr)
     elif not args.simulated and args.out == SIMULATED_OUT_DIR:
-        print(f"  [warning] non-simulated session writing to simulated directory", file=sys.stderr)
+        print("  [warning] non-simulated session writing to simulated directory", file=sys.stderr)
 
     try:
         draft = load_json(Path(args.draft))
@@ -401,14 +579,19 @@ def main(argv: Sequence[str] | None = None) -> int:
             draft,
             answers,
             bundle,
-            run_id=args.run_id,
-            finalized_by=args.finalized_by,
+            run_id=run_id,
+            finalized_by=finalized_by,
             session_id=args.session_id,
             simulated=args.simulated,
+            owner_session=args.owner_session,
         )
     except IncompleteSession as incomplete:
         if not args.dry_run:
-            path = write_record(incomplete.record, args.out)
+            try:
+                path = write_record(incomplete.record, args.out)
+            except FinalizeError as refused:
+                print(f"::error::{refused}", file=sys.stderr)
+                return refused.exit_code
             print(f"incomplete session recorded: {path}")
         print(f"::error::{incomplete}", file=sys.stderr)
         print(
@@ -424,7 +607,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     if args.dry_run:
         print(json.dumps(record, indent=2, ensure_ascii=False, sort_keys=True))
         return 0
-    path = write_record(record, args.out)
+    try:
+        path = write_record(record, args.out)
+    except FinalizeError as refused:
+        print(f"::error::{refused}", file=sys.stderr)
+        return refused.exit_code
     print(f"finalized: {path}")
     print(
         f"  session={record['session_id']} status={record['status']} "

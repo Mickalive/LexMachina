@@ -9,11 +9,18 @@ allowed to become lane evidence:
 * it never marks a session usable when the bundle it was run on is a different
   bundle, or when the session claims to have opened decisions that do not exist;
 * it binds the record to the bundle digest, so a hand-edited draft is detectable;
-* a negative session (the jurist answered "no") survives as valid evidence.
+* a negative session (the jurist answered "no") survives as valid evidence;
+* a record that contradicts itself is refused **in the write path**, and the
+  tests assert on the exact file the CLI reports, not on a directory listing.
+
+Cycle 38726191935 shipped a guard test that could not fail; the tests below are
+built so that the regression it missed is detected both here and in
+``product/human_gate_evidence.py``.
 """
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -25,15 +32,22 @@ REPO_ROOT = PRODUCT_ROOT.parent
 if str(PRODUCT_ROOT) not in sys.path:
     sys.path.insert(0, str(PRODUCT_ROOT))
 
+import human_gate_finalize as hgf  # noqa: E402
 from human_gate_finalize import (  # noqa: E402
+    CANONICAL_DIR_DEFAULT,
+    CLAIM_CEILING_REAL,
+    CLAIM_CEILING_SIMULATED,
     DEFAULT_OUT_DIR,
-    SIMULATED_OUT_DIR,
     GATE_QUESTIONS,
+    MIN_REAL_BUNDLE_DECISIONS,
+    SIMULATED_OUT_DIR,
     IncompleteSession,
     FinalizeError,
     bundle_evidence,
     canonical_sha256,
+    claim_ceiling_for,
     finalize,
+    record_admissibility_problems,
     session_metrics,
     validate_draft,
     validate_real_session,
@@ -43,15 +57,34 @@ from human_gate_finalize import (  # noqa: E402
 COUNTER_ID = "SR 123/2020"
 PLAIN_ID = "SR 999/2020"
 
+#: A query-specific map carries 100-300 decisions in production; the fixture
+#: bundle is deliberately larger than MIN_REAL_BUNDLE_DECISIONS so that the
+#: "plausible bundle" guard is exercised, not bypassed.
+FILLER_DECISIONS = 24
 
-def make_bundle(query: str = "Kündigung Mietvertrag Mietrecht") -> dict:
+
+def make_bundle(
+    query: str = "Kündigung Mietvertrag Mietrecht",
+    *,
+    n_filler: int = FILLER_DECISIONS,
+) -> dict:
+    decisions = [
+        {"decision_id": COUNTER_ID, "counter_status": "candidate-limiting", "citation": "SR 123/2020"},
+        {"decision_id": PLAIN_ID, "counter_status": "none", "citation": "SR 999/2020"},
+    ]
+    decisions += [
+        {
+            "decision_id": f"SR {400 + i}/2021",
+            "counter_status": "none",
+            "citation": f"SR {400 + i}/2021",
+            "canonical_url": f"https://mcp.opencaselaw.ch/api/decisions/SR-{400 + i}-2021",
+        }
+        for i in range(n_filler)
+    ]
     return {
         "bundle_version": "query_result_bundle v1.0",
         "query": query,
-        "decisions": [
-            {"decision_id": COUNTER_ID, "counter_status": "candidate-limiting", "citation": "SR 123/2020"},
-            {"decision_id": PLAIN_ID, "counter_status": "none", "citation": "SR 999/2020"},
-        ],
+        "decisions": decisions,
         "clusters": [],
         "relations": [],
         "provenance": {},
@@ -328,26 +361,142 @@ def test_cli_exits_3_on_incomplete_session_but_still_records_it(tmp_path: Path) 
 
 
 # --------------------------------------------------------------------------
-# simulated session guard (F1 repair)
+# simulated-session guard (audit F3/F5, cycle 38726191935)
+#
+# The previous guard asserted on `list(SIMULATED_OUT_DIR.glob(...))[-1]`;
+# Path.glob() is unsorted, so it read whatever entry the filesystem listed last
+# and passed green on the exact defect it was written for. Every assertion below
+# reads the path the CLI itself reports, and the negative tests below genuinely
+# fail when the claim ceiling or the write guard regresses.
 # --------------------------------------------------------------------------
 
 
-def test_simulated_flag_redirects_to_simulated_dir_and_marks_record(tmp_path: Path) -> None:
-    """--simulated writes to human_gate_sessions_simulated/ and sets simulated=true."""
+def _run_cli(argv: list[str], *, env: dict[str, str] | None = None) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        [sys.executable, str(PRODUCT_ROOT / "human_gate_finalize.py"), *argv],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=False,
+        env={**os.environ, **(env or {})},
+    )
+
+
+def _write_inputs(tmp_path: Path, *, n_filler: int = FILLER_DECISIONS) -> tuple[Path, Path, Path]:
     draft_path = tmp_path / "draft.json"
     bundle_path = tmp_path / "bundle.json"
     answers_path = tmp_path / "answers.json"
     draft_path.write_text(json.dumps(make_draft()), encoding="utf-8")
-    bundle_path.write_text(json.dumps(make_bundle()), encoding="utf-8")
+    bundle_path.write_text(json.dumps(make_bundle(n_filler=n_filler)), encoding="utf-8")
     answers_path.write_text(json.dumps(all_yes()), encoding="utf-8")
+    return draft_path, bundle_path, answers_path
 
-    # Test default behavior (no --out): should redirect to SIMULATED_OUT_DIR
+
+def _finalized_path(stdout: str, tmp_path: Path) -> Path:
+    """The exact file the CLI says it wrote (never a directory listing)."""
+    reported = [line.split(":", 1)[1].strip() for line in stdout.splitlines() if line.startswith("finalized:")]
+    assert len(reported) == 1, f"expected exactly one 'finalized:' line, got {reported} in {stdout!r}"
+    path = Path(reported[0])
+    assert path.is_file(), f"CLI reported {path} but it does not exist"
+    assert path.parent == tmp_path, f"record escaped the requested directory: {path}"
+    return path
+
+
+def test_simulated_flag_redirects_to_simulated_dir_and_marks_record(tmp_path: Path) -> None:
+    """--simulated writes to the simulated directory and stamps the simulated ceiling.
+
+    Non-vacuous by construction: the assertion reads the exact path printed by
+    the CLI, so a stale record left in the directory by an earlier run cannot
+    satisfy it.
+    """
+    draft_path, bundle_path, answers_path = _write_inputs(tmp_path)
+    out_dir = tmp_path / "sessions_simulated"
+    env = {
+        "LEX_HUMAN_GATE_SIMULATED_OUT_DIR": str(out_dir),
+        "LEX_HUMAN_GATE_OUT_DIR": str(tmp_path / "canonical_untouched"),
+    }
+    result = _run_cli(
+        ["--draft", str(draft_path), "--bundle", str(bundle_path), "--answers", str(answers_path), "--simulated"],
+        env=env,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "redirecting output" in result.stderr
+    path = _finalized_path(result.stdout, out_dir)
+    assert path.parent == out_dir
+    record = json.loads(path.read_text(encoding="utf-8"))
+    assert record.get("simulated") is True
+    assert record.get("claim_ceiling") == CLAIM_CEILING_SIMULATED
+    assert "SIMULATED SESSION" in record["claim_ceiling"]
+    assert "documents one owner/jurist session" not in record["claim_ceiling"]
+    assert record["bundle_hash_status"] == "verified"
+    assert not (tmp_path / "canonical_untouched").exists(), "simulated run wrote into the canonical directory"
+
+
+def test_simulated_record_is_refused_in_the_canonical_directory(tmp_path: Path) -> None:
+    """A simulated record aimed anywhere under the canonical directory is refused (exit 8)."""
+    draft_path, bundle_path, answers_path = _write_inputs(tmp_path)
+    canonical = tmp_path / "human_gate_sessions"
+    result = _run_cli(
+        [
+            "--draft", str(draft_path), "--bundle", str(bundle_path), "--answers", str(answers_path),
+            "--simulated", "--out", str(canonical / "nested"),
+        ],
+        env={"LEX_HUMAN_GATE_OUT_DIR": str(canonical), "LEX_HUMAN_GATE_SIMULATED_OUT_DIR": str(tmp_path / "sim")},
+    )
+    assert result.returncode == 8, result.stdout + result.stderr
+    assert "inadmissible" in result.stderr
+    assert "::error::" in result.stderr, "the refusal must be a clean CLI error, not a traceback"
+    assert not list(tmp_path.rglob("session_*.json")), "the refused record was written anyway"
+
+
+def test_claim_ceiling_regression_is_refused_by_the_write_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """NEGATIVE TEST: reintroduce the cycle-38726191935 defect and prove it is caught.
+
+    The defect was a simulated record whose claim ceiling claimed it documented
+    an owner/jurist session. Here that regression is injected into the ceiling
+    function and the *production write path* must refuse the record.
+    """
+    monkeypatch.setattr(hgf, "claim_ceiling_for", lambda simulated: CLAIM_CEILING_REAL)
+    record = finalize(make_draft(), all_yes(), make_bundle(), simulated=True)
+    assert record["simulated"] is True
+    assert record["claim_ceiling"] == CLAIM_CEILING_REAL  # the defect is present
+
+    problems = record_admissibility_problems(record, SIMULATED_OUT_DIR)
+    assert any("SIMULATED SESSION claim ceiling" in problem for problem in problems), problems
+
+    target = tmp_path / "written"
+    with pytest.raises(FinalizeError) as excinfo:
+        write_record(record, target)
+    assert excinfo.value.exit_code == 8
+    assert not list(target.glob("*.json")) if target.exists() else True
+
+
+def test_ceiling_regression_is_caught_end_to_end_through_the_cli(tmp_path: Path) -> None:
+    """NEGATIVE TEST at process level: a regressed CLI must exit 8 and write nothing.
+
+    The mutation is applied to a copy of the module so the CLI subprocess loads
+    a build in which simulated records claim to document owner sessions — the
+    exact shipped pathology. If the source anchor ever moves, this test fails
+    loudly instead of silently passing.
+    """
+    source = (PRODUCT_ROOT / "human_gate_finalize.py").read_text(encoding="utf-8")
+    anchor = "return CLAIM_CEILING_SIMULATED if simulated else CLAIM_CEILING_REAL"
+    assert anchor in source, "mutation anchor missing: claim_ceiling_for changed shape; update this test"
+    regressed = source.replace(
+        anchor,
+        "return CLAIM_CEILING_REAL  # REGRESSION: simulated records claim to be owner sessions",
+    )
+    module_copy = tmp_path / "human_gate_finalize.py"
+    module_copy.write_text(regressed, encoding="utf-8")
+
+    draft_path, bundle_path, answers_path = _write_inputs(tmp_path)
+    out_dir = tmp_path / "regressed_out"
     result = subprocess.run(
         [
-            sys.executable, str(PRODUCT_ROOT / "human_gate_finalize.py"),
-            "--draft", str(draft_path), "--bundle", str(bundle_path),
-            "--answers", str(answers_path),
-            "--simulated",
+            sys.executable, str(module_copy),
+            "--draft", str(draft_path), "--bundle", str(bundle_path), "--answers", str(answers_path),
+            "--simulated", "--out", str(out_dir),
         ],
         cwd=str(REPO_ROOT),
         capture_output=True,
@@ -355,67 +504,166 @@ def test_simulated_flag_redirects_to_simulated_dir_and_marks_record(tmp_path: Pa
         timeout=120,
         check=False,
     )
-    assert result.returncode == 0, result.stdout + result.stderr
-    written = list(SIMULATED_OUT_DIR.glob("session_*.json"))
-    assert len(written) >= 1
-    record = json.loads(written[-1].read_text(encoding="utf-8"))
-    assert record.get("simulated") is True
-    assert "SIMULATED SESSION" in record.get("claim_ceiling", "")
-    assert record["bundle_hash_status"] == "verified"
+    assert result.returncode == 8, result.stdout + result.stderr
+    assert "inadmissible" in result.stderr
+    assert not out_dir.exists() or not list(out_dir.glob("*.json"))
+
+
+def test_claim_ceiling_constants_are_distinct_and_authoritative() -> None:
+    assert claim_ceiling_for(True) == CLAIM_CEILING_SIMULATED
+    assert claim_ceiling_for(False) == CLAIM_CEILING_REAL
+    assert "SIMULATED SESSION" not in CLAIM_CEILING_REAL
+    assert "SIMULATED SESSION" in CLAIM_CEILING_SIMULATED
+    assert claim_ceiling_for(False).startswith("human gate EVIDENCE only")
+
+
+# --------------------------------------------------------------------------
+# real-session provenance (audit F5)
+# --------------------------------------------------------------------------
+
+
+def _real_record(**overrides) -> dict:
+    record = finalize(
+        make_draft(), all_yes(), make_bundle(), run_id="38649613677", finalized_by="test-user", **overrides
+    )
+    return record
 
 
 def test_real_session_requires_finalized_by_run_id_and_wall_clock() -> None:
-    """Real (non-simulated) sessions must have finalized_by, run_id, and wall_clock > 0."""
-    # Test validate_real_session directly with constructed records
-    
-    # Missing finalized_by
-    record = {
-        "finalized_by": None,
-        "run_id": "38649613677",
-        "session_metrics": {"wall_clock_seconds": 10.0},
-    }
-    problems = validate_real_session(record)
-    assert any("finalized_by" in p for p in problems)
-    
-    # Provide finalized_by but no run_id
-    record2 = {
-        "finalized_by": "test-user",
-        "run_id": None,
-        "session_metrics": {"wall_clock_seconds": 10.0},
-    }
-    problems2 = validate_real_session(record2)
-    assert any("run_id" in p for p in problems2)
-    
-    # Provide both but zero wall_clock
-    record3 = {
-        "finalized_by": "test-user",
-        "run_id": "38649613677",
-        "session_metrics": {"wall_clock_seconds": 0.0},
-    }
-    problems3 = validate_real_session(record3)
-    assert any("wall_clock_seconds" in p for p in problems3)
-    
-    # All three present -> should pass
-    record4 = {
-        "finalized_by": "test-user",
-        "run_id": "38649613677",
-        "session_metrics": {"wall_clock_seconds": 10.0},
-    }
-    problems4 = validate_real_session(record4)
-    assert problems4 == []
+    """The three self-attested fields are still required."""
+    base = _real_record()
+    assert validate_real_session(base) == []
+
+    for field, value, needle in (
+        ("finalized_by", None, "finalized_by"),
+        ("run_id", None, "run_id"),
+    ):
+        broken = dict(base)
+        broken[field] = value
+        problems = validate_real_session(broken)
+        assert any(needle in problem for problem in problems), problems
+
+    broken_clock = json.loads(json.dumps(base))
+    broken_clock["session_metrics"]["wall_clock_seconds"] = 0.0
+    assert any("wall_clock_seconds" in p for p in validate_real_session(broken_clock))
 
 
-def test_canonical_dir_contains_only_real_sessions() -> None:
-    """Assert every record in the canonical human_gate_sessions/ carries finalized_by, run_id and non-zero wall clock."""
-    if not DEFAULT_OUT_DIR.exists():
-        return  # Directory doesn't exist yet, which is fine
-    
-    for path in DEFAULT_OUT_DIR.glob("session_*.json"):
-        record = json.loads(path.read_text(encoding="utf-8"))
-        # Real sessions must have these fields
-        assert record.get("finalized_by"), f"{path.name}: missing finalized_by"
-        assert record.get("run_id"), f"{path.name}: missing run_id"
-        wall = record.get("session_metrics", {}).get("wall_clock_seconds")
-        assert wall is not None and wall > 0, f"{path.name}: wall_clock_seconds must be > 0 for real sessions"
-        # And must NOT be simulated
-        assert record.get("simulated") is not True, f"{path.name}: simulated session in canonical directory"
+def test_real_session_requires_a_bundle_that_verifies(tmp_path: Path) -> None:
+    """A session bound to no bundle is draft evidence and cannot be promoted."""
+    with pytest.raises(FinalizeError) as excinfo:
+        finalize(make_draft(), all_yes(), None, run_id="38649613677", finalized_by="owner")
+    assert excinfo.value.exit_code == 7
+    assert "bundle" in str(excinfo.value)
+
+    unverified = _real_record()
+    unverified["bundle_hash_status"] = "not_verified"
+    assert any("verifies against the draft" in p for p in validate_real_session(unverified))
+
+
+def test_real_session_requires_a_plausible_number_of_decisions() -> None:
+    """A two-decision fixture cannot back a human-gate claim."""
+    with pytest.raises(FinalizeError) as excinfo:
+        finalize(make_draft(), all_yes(), make_bundle(n_filler=0), run_id="38649613677", finalized_by="owner")
+    assert excinfo.value.exit_code == 7
+    assert "at least %d decisions" % MIN_REAL_BUNDLE_DECISIONS in str(excinfo.value)
+
+
+def test_provenance_is_recorded_as_self_attested() -> None:
+    record = _real_record()
+    assert record["provenance_strength"] == "self_attested"
+    assert "not authentication" in record["provenance_note"]
+
+
+def test_cli_reads_provenance_from_an_attestation_file(tmp_path: Path) -> None:
+    draft_path, bundle_path, answers_path = _write_inputs(tmp_path)
+    attest_path = tmp_path / "session_attest.json"
+    attest_path.write_text(json.dumps({"run_id": "38732097101", "finalized_by": "owner-attest"}), encoding="utf-8")
+    out_dir = tmp_path / "sessions"
+    result = _run_cli(
+        [
+            "--draft", str(draft_path), "--bundle", str(bundle_path), "--answers", str(answers_path),
+            "--attest", str(attest_path), "--out", str(out_dir),
+        ]
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    record = json.loads(_finalized_path(result.stdout, out_dir).read_text(encoding="utf-8"))
+    assert record["run_id"] == "38732097101"
+    assert record["finalized_by"] == "owner-attest"
+
+
+def test_documented_invocation_in_the_module_docstring_works(tmp_path: Path) -> None:
+    """F7: the command the owner will run for the last milestone must not exit 7."""
+    docstring = (PRODUCT_ROOT / "human_gate_finalize.py").read_text(encoding="utf-8").split('"""')[1]
+    assert "--run-id" in docstring and "--finalized-by" in docstring, "usage example lost its provenance flags"
+
+    draft_path, bundle_path, answers_path = _write_inputs(tmp_path)
+    out_dir = tmp_path / "sessions"
+    result = _run_cli(
+        [
+            "--draft", str(draft_path), "--bundle", str(bundle_path), "--answers", str(answers_path),
+            "--run-id", "38732097101", "--finalized-by", "owner", "--out", str(out_dir),
+        ]
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "human_gate_ready is NOT set" in result.stdout
+
+
+# --------------------------------------------------------------------------
+# the repository's own evidence directories
+# --------------------------------------------------------------------------
+
+
+def test_unit_run_never_writes_into_the_repository_results_tree() -> None:
+    """F4: conftest redirects the output dirs, so DEFAULT_OUT_DIR is outside the repo."""
+    assert CANONICAL_DIR_DEFAULT.is_dir() or not CANONICAL_DIR_DEFAULT.exists()
+    assert DEFAULT_OUT_DIR != CANONICAL_DIR_DEFAULT
+    assert SIMULATED_OUT_DIR != CANONICAL_DIR_DEFAULT
+    assert not str(DEFAULT_OUT_DIR).startswith(str(REPO_ROOT / "results"))
+    assert not str(SIMULATED_OUT_DIR).startswith(str(REPO_ROOT / "results"))
+
+
+def test_repository_evidence_directories_are_admissible() -> None:
+    """The committed tree must hold no inadmissible human-gate record (audit F1/F2)."""
+    from human_gate_evidence import CANONICAL_DIR, SIMULATED_DIR, scan_dir
+
+    blocking = [f for d in (CANONICAL_DIR, SIMULATED_DIR) for f in scan_dir(d) if f["severity"] == "blocking"]
+    assert blocking == [], blocking
+
+
+def test_canonical_directory_requires_a_declared_owner_session(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The canonical evidence directory only accepts a declared human session.
+
+    Found by accident in this cycle: the one-command runner dropped ``--out`` and a
+    machine-authored rehearsal was written into the canonical directory, where it
+    satisfied every other rule. The declaration is the mechanical difference
+    between a person answering the four questions and an agent rehearsing.
+    """
+    canonical = tmp_path / "human_gate_sessions"
+    monkeypatch.setattr(hgf, "DEFAULT_OUT_DIR", canonical)
+    monkeypatch.setattr(hgf, "SIMULATED_OUT_DIR", tmp_path / "human_gate_sessions_simulated")
+
+    undeclared = finalize(make_draft(), all_yes(), make_bundle(), run_id="38732097101", finalized_by="agent")
+    assert undeclared["owner_session_confirmed"] is False
+    problems = record_admissibility_problems(undeclared, canonical)
+    assert any("--owner-session" in problem for problem in problems), problems
+    with pytest.raises(FinalizeError) as excinfo:
+        write_record(undeclared, canonical)
+    assert excinfo.value.exit_code == 8
+    assert not canonical.exists()
+
+    declared = finalize(
+        make_draft(), all_yes(), make_bundle(), run_id="38732097101", finalized_by="owner", owner_session=True
+    )
+    assert declared["owner_session_confirmed"] is True
+    assert record_admissibility_problems(declared, canonical) == []
+    written = write_record(declared, canonical)
+    assert written.is_file()
+
+
+def test_a_simulated_record_cannot_declare_an_owner_session(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(hgf, "DEFAULT_OUT_DIR", tmp_path / "human_gate_sessions")
+    monkeypatch.setattr(hgf, "SIMULATED_OUT_DIR", tmp_path / "human_gate_sessions_simulated")
+    record = finalize(make_draft(), all_yes(), make_bundle(), simulated=True, owner_session=True)
+    assert "a simulated record cannot carry owner_session_confirmed" in "; ".join(
+        record_admissibility_problems(record, tmp_path / "human_gate_sessions_simulated")
+    )
