@@ -1,9 +1,53 @@
 {
   "accepted_commit": null,
   "accepted_run_id": null,
+  "adversarial_path_evidence": {
+    "adversarial_retrieval_detected_anywhere": false,
+    "artifact": "results/frontier/frontier-adversarial-discoverability/CYCLE_38797568256_PATH_EVIDENCE.json",
+    "can_retrieve_outside_the_initial_pool": false,
+    "channel_vocabulary_closed_everywhere": true,
+    "counter_authority_pass_executed_on_any_frozen_artifact": false,
+    "mechanisms_discovered": 4,
+    "mechanisms_that_actually_ran": [
+      "AdversarialPass"
+    ],
+    "metric_definitions_changed": 0,
+    "published_numbers_changed": 0,
+    "python_files_scanned": 116,
+    "residual_blind_spot_declared": true,
+    "self_test_gate": "PASS",
+    "sha256": "0108f3d230613f5b4c311b5d034b242461cd8b89315f4ba6d7ffa41333e85103",
+    "stage_inventories": {
+      "B1": [
+        "citations",
+        "lang",
+        "leading",
+        "search"
+      ],
+      "B2": [
+        "citations",
+        "lang",
+        "leading",
+        "search"
+      ],
+      "B3": [
+        "citations",
+        "lang",
+        "leading",
+        "search"
+      ],
+      "legs": []
+    },
+    "thresholds_changed": 0
+  },
   "artifacts": {
+    "adversarial_path_evidence": "results/frontier/frontier-adversarial-discoverability/CYCLE_38797568256_PATH_EVIDENCE.json",
+    "adversarial_path_module": "frontier/frontier-adversarial-discoverability/adversarial_discoverability/adversarial_paths.py",
+    "audit_report": "reports/frontier/frontier-adversarial-discoverability/CYCLE_38797568256.md",
     "crosscheck": "frontier/frontier-adversarial-discoverability/independent_crosscheck.py",
     "harness": "frontier/frontier-adversarial-discoverability/adversarial_discoverability/",
+    "harness_38797568256_envelope": "results/frontier/frontier-adversarial-discoverability/CYCLE_38797568256_ENVELOPE.json",
+    "harness_38797568256_report": "results/frontier/frontier-adversarial-discoverability/CYCLE_38797568256_REPORT.json",
     "integration_contract": "reports/frontier/frontier-adversarial-discoverability/INTEGRATION_CONTRACT.md",
     "report": "results/frontier/frontier-adversarial-discoverability/CYCLE_38792663259_REPORT.json",
     "report_md": "reports/frontier/frontier-adversarial-discoverability/CYCLE_38792663259.md",
@@ -18,7 +62,7 @@
   "charter_version": 1,
   "claim_ceiling": "This cycle may claim: on the three named accepted bundles and four named frozen reality-check legs, as of the sha256-pinned inputs re-verified at mount commit 49d6593, the counter-authority pass produced zero counter rows via any retrieval route absent from the initial broad retrieval, and the accepted implementation's declared independence is model-call independence over a bounded 24-decision shortlist. This cycle may NOT claim: that no contrary authority exists in the corpus, that any case is supporting/contrary/limiting (labels are the product's, reported not endorsed), that a fix would work, anything about projection/clustering quality (frontier-map-semantics' lane), or that the pre-registration is ordered beyond what RULES.json's own timestamp and the threshold-lock test support (D9).",
   "continue_recommended": false,
-  "continue_recommended_reason": "Unchanged from run 38792663259 and re-confirmed by the 38794235870 resume. The charter's stop_promote_rule terminates this team immediately after the named verdict plus exactly ONE bounded candidate cause. Both were delivered in 38792663259 and re-verified byte-identically here against the current accepted mount (49d6593), with an independent second implementation agreeing on every number. The only defect found this run was in this team's own harness/report (the writer could overwrite a claim-bearing artifact; integrity evidence was unrecorded) and it is fixed, so no concrete harness defect remains open. Another cycle under this same charter would re-measure the same sha256-pinned inputs, which the charter forbids ('never rerun because a yield number was disappointing'). The remaining work -- giving the adversarial pass a retrieval capability, repositioning counter rows, revisiting the status gate -- is product-owned.",
+  "continue_recommended_reason": "Still false, for a sharper reason than in run 38794235870. That run could not recommend continuation because no concrete harness defect was open. This run found three (D10 b1 falsifiability gap, D11 the cause named one of two shipped mechanisms, D12 an absent language scored as a minority language) plus three in the new code itself, and ALL SIX are now fixed and pinned by 24 new tests. No concrete harness defect remains open, so the charter's only permitted reason to continue is spent. The charter terminates the team after the verdict plus one bounded candidate cause: both stand, and the cause is now COMPLETE (both shipped mechanisms measured) rather than expanded into a second one. A further cycle would re-execute the same sha256-pinned inputs against unchanged thresholds against unchanged code, which the charter forbids ('never rerun because a yield number was disappointing'). Remaining work - giving the adversarial pass a retrieval capability, repositioning counter rows, revisiting the status gate - is product-owned and, per lane_discharge, belongs in product backlog item (4) / the evaluation lane.",
   "counter_row_ranks_by_bundle": {
     "B1_gate_rehearsal_live_227": [
       1,
@@ -38,34 +82,76 @@
   "cycle_status": "TERMINATED_WITH_VERDICT",
   "declared_corrections_this_run": [
     {
-      "id": "D5_report_overwrite_guard",
-      "kind": "harness defect",
+      "id": "D10_b1_channel_inventory_falsifiability_gap",
+      "kind": "harness defect (falsifiability)",
+      "published_numbers_changed": false,
+      "severity": "MAJOR",
+      "summary": "b1 defines the initial channel inventory as the keys of provenance.retrieval.candidate_channels, which is the channel union of the FINAL persisted pool. An adversarial retrieval round would add its channel to exactly that object, leaving b1 at 0 for a genuinely retrieval-independent pass. Fixed by reading the retrieval stage inventory (provenance.stages, provenance.retrieval.remote.stages), the per-stage request log (provenance.request_summary.requests_by_stage) and the unaccounted-channel set, none of which the frozen report read.",
+      "threshold_changed": false,
+      "verdict_effect": "none - the bias ran against the product, so the instrument could only under-claim; the verdict stands and is now corroborated by an independent channel"
+    },
+    {
+      "id": "D11_cause_scoped_to_one_of_two_mechanisms",
+      "kind": "deliverable completeness defect",
+      "published_numbers_changed": false,
+      "severity": "MAJOR",
+      "summary": "The published cause named only frontier-generative-audit.AdversarialPass. The accepted product also ships product/query/answer.py::counter_authority_pass ('Independent adversarial retrieval'), reachable only from _extractive_degraded_fallback and executed for none of the 7 frozen artifacts. Both mechanisms are now discovered by scanning the accepted tree and structurally measured.",
+      "threshold_changed": false,
+      "verdict_effect": "none - the cause is completed, not replaced; still exactly one cause"
+    },
+    {
+      "id": "D12_unknown_language_counted_as_minority_language",
+      "kind": "harness defect (metric g)",
+      "published_numbers_changed": false,
+      "severity": "LATENT",
+      "summary": "populations.modal_language excludes '?'/empty as a missing value, but metric_g_minority_reach compared the raw value with != , counting an absent language as a non-consensus language and inflating minority_reach_share - the one metric PASSing on all three bundles. Fixed with an explicit populations.language_known() predicate and a reported n_counter_rows_with_unknown_language.",
+      "threshold_changed": false,
+      "verdict_effect": "none on the frozen inputs - every counter row in B1/B2/B3 carries a real de/fr/it value; the report still hashes to b15ea198. Proven capable of flipping the verdict on an artifact with unlabelled counter rows (PASS 1.0 -> FAIL 0.0)."
+    },
+    {
+      "id": "D13_prose_stripper_shifted_line_numbers",
+      "kind": "harness defect (new code, self-caught)",
+      "published_numbers_changed": false,
+      "severity": "LATENT",
+      "summary": "_strip_prose collapsed docstrings to a single space, shifting every subsequent line number so the code-only copy was no longer evidence for the source it cited; it mislabelled AdversarialPass as not pool-internal. Fixed to blank characters while preserving newlines; pinned by a test.",
       "threshold_changed": false,
       "verdict_effect": "none"
     },
     {
-      "id": "D6_integrity_evidence_not_recorded",
-      "kind": "harness defect",
+      "id": "D14_regex_search_mistaken_for_retrieval_call",
+      "kind": "harness defect (new code, self-caught)",
+      "published_numbers_changed": false,
+      "severity": "LATENT",
+      "summary": "FETCH_CALL_TOKENS contained '.search(' which matched re.search( and credited AdversarialPass with retrieval capability. Replaced with regexes carrying (?<!re)/(?<!str)/(?<!dict) lookbehinds; pinned by a test.",
       "threshold_changed": false,
       "verdict_effect": "none"
     },
     {
-      "id": "D7_narrative_distinct_cluster_count",
-      "kind": "report prose error",
+      "id": "D15_overlapping_scan_roots_double_counted",
+      "kind": "harness defect (new code, self-caught)",
+      "published_numbers_changed": false,
+      "severity": "LATENT",
+      "summary": "SCAN_ROOTS overlaps (product/query sits inside product), so every discovered mechanism was counted twice. De-duplicated by realpath; test-symbols are excluded from the shipped inventory but listed so the exclusion is auditable.",
       "threshold_changed": false,
-      "verdict_effect": "none - corrects '2 of 8' to '3 of 8' outside the consensus cluster, which cuts against this team's own hypothesis"
+      "verdict_effect": "none"
     },
     {
-      "id": "D8_defect_count_heading",
-      "kind": "report prose error",
+      "id": "D16_candidate_channel_union_definition_stated_more_broadly_than_measured",
+      "kind": "claim-scope disclosure",
+      "published_numbers_changed": false,
+      "severity": "DISCLOSURE",
+      "summary": "RULES.json metrics.b states b4 'must be 0 by construction; reported as a construction check, never as a contribution' while the b threshold reads 'PASS iff b1>=1 OR b4>=1'. The second PASS route is therefore dead on this artifact schema. Reported, not edited: RULES.json is frozen and editing a threshold invalidates the run.",
       "threshold_changed": false,
       "verdict_effect": "none"
     },
     {
       "id": "D9_freeze_commit_unresolvable",
-      "kind": "provenance disclosure",
+      "kind": "provenance disclosure (carried forward, still open)",
+      "published_numbers_changed": false,
+      "severity": "DISCLOSURE",
+      "summary": "The freeze commits 1d50633 / 4c83b45 are not resolvable in the published branch (the producer's history was squashed). Disclosed in run 38794235870, never reconstructed. Threshold immutability remains independently locked by test_thresholds_match_the_frozen_rules_file.",
       "threshold_changed": false,
-      "verdict_effect": "none - the producer's history was squashed, so the freeze-FIRST claim rests on RULES.json's own timestamp plus the threshold-lock test, not a verifiable commit sequence; disclosed, never reconstructed"
+      "verdict_effect": "none"
     }
   ],
   "declared_harness_corrections": 4,
@@ -73,8 +159,15 @@
   "executed_run_id": "38792663259",
   "lane_discharge_followup": "Per the charter's lane_discharge fallback, the single named candidate cause is handed to product as decision input. If product does not act, this measurement should be folded into product backlog item (4) / the evaluation lane rather than continued as a separate Frontier program. This charter is not to be re-scoped into prompt engineering, provider work, benchmark construction or a product patch.",
   "last_report_sha256": "b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd",
-  "last_run_id": "38794235870",
+  "last_run_id": "38797568256",
   "measurement_coverage": {
+    "additive_evidence": [
+      "stage_evidence",
+      "mechanism_inventory",
+      "execution_fingerprint",
+      "call_sites",
+      "residual_blind_spot"
+    ],
     "bundles_measured": 3,
     "bundles_required": 3,
     "frozen_legs_measured": 4,
@@ -92,12 +185,15 @@
     "network_calls": 0
   },
   "named_verdict": "CLASSIFICATION_ONLY",
-  "named_verdict_answer": "The counter-authority capability is classification-only, not retrieval-independent. Across 3 accepted bundles, 0 of 8 counter-authority rows entered through any retrieval channel the initial broad pass did not use; the accepted AdversarialPass holds no retrieval client and sees a deterministic 24-decision shortlist of the initial pool, leaving 89.4% / 91.6% / 76.0% of the retrieved corpus structurally uninspected. Re-verified byte-identically in run 38794235870.",
+  "named_verdict_answer": "The counter-authority capability is classification-only, not retrieval-independent. Across 3 accepted bundles, 0 of 8 counter-authority rows entered through any retrieval channel the initial broad pass did not use. Re-verified byte-identically in run 38794235870 and again in run 38797568256, where two further channels were added and both agree: no frozen artifact declares or logs an adversarial retrieval stage (stage inventories are exactly ['search','lang','leading','citations'] on all three bundles; channel vocabulary closed on all 7 artifacts), and none of the 4 counter-authority mechanisms the accepted tree ships can reach a decision outside the initial pool. The accepted AdversarialPass still sees a deterministic 24-decision shortlist, leaving 89.4% / 91.6% / 76.0% of the retrieved corpus structurally uninspected.",
   "non_vacuity_gate": "PASS",
+  "operational_note": "Run 38794235870 diagnosed a workflow defect: .github/workflows/frontier-team.yml's 'Validate Frontier producer delta and state' step infers 'durable delta' from the ABSENCE of a clean tree and never consults git log, so a producer that commits its own work is failed with exit 67 AFTER its work is already durable, and the resilience job then re-dispatches the same charter. .github/** is outside this team's write scope, so it is reported, not patched. This run therefore leaves its delta UNCOMMITTED in the working tree, which is what that guard inspects; the workflow's 'Persist team snapshot' step commits it afterwards. A further re-dispatch of this charter after this run is therefore a control-plane symptom, not missing work.",
   "preserved_negative_results": [
-    "results/frontier/frontier-adversarial-discoverability/superseded/CYCLE_38792663259_REPORT_defect-v1.json"
+    "results/frontier/frontier-adversarial-discoverability/superseded/CYCLE_38792663259_REPORT_defect-v1.json",
+    "results/frontier/frontier-adversarial-discoverability/CYCLE_38792663259_REPORT.json (frozen, sha256 b15ea198..., re-hashed unchanged in this run)"
   ],
   "report_sha256_reproduced_38794235870": "b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd",
+  "report_sha256_reproduced_38797568256": "b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd",
   "reproducible_byte_identical": true,
   "resume_verification": {
     "accepted_mount_commit_at_resume": "49d6593",
@@ -123,7 +219,7 @@
     "restarted_from_scratch": false,
     "resumed_from_run_id": "38792663259"
   },
-  "resumed_from_run_id": "38792663259",
+  "resumed_from_run_id": "38794235870",
   "rules_frozen_at_commit": "1d50633a5cbae8a3c4a65038a4ac9596491ca038",
   "rules_frozen_at_utc": "2026-10-15T19:21:04Z",
   "rules_sha256": "5e78d8f156b99d220e34037d829f44ac66e70a597e2073013a4b82adb42a674b",
@@ -137,13 +233,16 @@
     "product_untouched": true,
     "zero_writes_outside_namespace": true
   },
-  "single_bounded_candidate_cause": "AdversarialPass.__init__ takes (bundle, answer) and holds no retrieval client; _prompt_decisions() selects only from that bundle, so the declared independence ('separate model call, challenge-only objective, bounded deterministic source shortlist') is model-call independence, not retrieval independence. Evidence: interface signature; the pass's own prompt_strategy/independence provenance strings; offline replay reproducing prompt_decisions=24 and b6_pool_never_seen_rate 0.894/0.916/0.760; b1_adversarial_channel_rows=0 and b2_new_channels=[] on all 3 bundles; provenance.retrieval_component='frontier-query-retrieval/v2' with stages=['search'] and no adversarial retrieval request attributed anywhere; and all 8 counter rows at ranks 1,3,5,6,13,14,27,3, i.e. where the ranked list already shows them. THIS TEAM DID NOT TEST THE FIX.",
-  "single_bounded_candidate_cause_unchanged": true,
+  "single_bounded_candidate_cause": "No product adversarial mechanism issues a retrieval request outside the initial pool. frontier-generative-audit.AdversarialPass(bundle, answer, ...) holds no retrieval client and selects a deterministic 24-decision shortlist (MAX_PROMPT_SOURCES=24), so the declared independence is model-call independence over the initial pool, leaving 89.4%/91.6%/76.0% of the retrieved corpus structurally uninspected. The product's SECOND mechanism, product/query/answer.py::counter_authority_pass, is pool-internal by construction (it scores only corpus_texts drawn from the retrieved rows) and is reachable only from _extractive_degraded_fallback at product/query/pipeline.py:416; no frozen artifact took that path, so it executed for none of the 7 artifacts. Evidence: mechanism inventory over 116 accepted Python files discovering 4 mechanisms with can_retrieve_outside_the_initial_pool=false; execution fingerprints; retrieval stage inventories and per-stage request logs showing no adversarial stage on any artifact; offline shortlist replay reproducing prompt_decisions=24; b6_pool_never_seen_rate 0.894/0.916/0.760; b1_adversarial_channel_rows=0 on all 3 bundles; and all 8 counter rows at ranks 1,3,5,6,13,14,27,3, i.e. where the ranked list already shows them. THIS TEAM DID NOT TEST THE FIX.",
+  "single_bounded_candidate_cause_completeness": "Completed in run 38797568256 (declared D11). The cause is still exactly ONE cause; it is not a second cause. The previously published text named only frontier-generative-audit.AdversarialPass while the accepted product also ships product/query/answer.py::counter_authority_pass, documented in its own docstring as 'Independent adversarial retrieval' and stamping method='independent_adversarial_tfidf_v1'. An auditor could have objected that the cause was named after one of two shipped mechanisms. Both are now enumerated by discovery and structurally measured.",
+  "single_bounded_candidate_cause_unchanged": false,
   "team_id": "frontier-adversarial-discoverability",
   "tests": {
+    "added_this_cycle": 24,
     "command": "python3 -m unittest discover -s tests/frontier/frontier-adversarial-discoverability -p 'test_*.py'",
-    "n_tests": 52,
+    "n_tests": 76,
     "n_tests_at_execution_run": 36,
+    "n_tests_previous_cycle": 52,
     "result": "OK"
   }
 }

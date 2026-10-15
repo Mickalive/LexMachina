@@ -39,6 +39,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from . import CHARTER_VERSION, RULES_VERSION, TEAM_ID, __version__
 from . import corrupt, metrics as M, populations as pop
+from . import adversarial_paths as AP
 from .shortlist import accepted_tree_available, recompute_shortlist
 
 #: Version tag for the CLI/IO layer (report writing, integrity sidecar).
@@ -318,6 +319,36 @@ def run_matrix(mount: str = DEFAULT_MOUNT, non_vacuity: bool = True,
     return body
 
 
+def run_path_evidence(mount: str = DEFAULT_MOUNT,
+                      observed_out: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+    """Declared D10/D11: the additive evidence artifact (never the frozen report).
+
+    Reads the same sha256-pinned inputs the report does, then adds the two things
+    the frozen report structurally could not record: the retrieval stage
+    inventory with its non-vacuity self-test, and the discovered inventory of
+    every counter-authority mechanism the accepted tree ships.
+    """
+    rules = load_rules()
+    docs: List[Tuple[str, Dict[str, Any]]] = []
+    self_test_doc: Optional[Dict[str, Any]] = None
+    for spec in rules["inputs"]["bundles"]:
+        path, observation = verify_input_observed(spec, mount)
+        observation["kind"] = "bundle"
+        if observed_out is not None:
+            observed_out.append(observation)
+        doc = _read_json(path)
+        docs.append((spec["id"], doc))
+        if self_test_doc is None:
+            self_test_doc = doc
+    for spec in rules["inputs"]["frozen_legs"]:
+        path, observation = verify_input_observed(spec, mount)
+        observation["kind"] = "leg"
+        if observed_out is not None:
+            observed_out.append(observation)
+        docs.append((spec["id"], _read_json(path)))
+    return AP.build_evidence(mount, docs, self_test_doc=self_test_doc)
+
+
 def report_path(outdir: str, run_id: str) -> str:
     """Claim-bearing report path for ``run_id``.  Never hardcoded to one run."""
     return os.path.join(outdir, f"CYCLE_{run_id}_REPORT.json")
@@ -442,6 +473,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument("--non-vacuity", action="store_true")
     p.add_argument("--no-non-vacuity", action="store_true")
     p.add_argument("--corrupt", help="apply one corruption id and print its metrics")
+    p.add_argument("--path-evidence", action="store_true",
+                   help="also write the additive adversarial-path evidence artifact "
+                        "(declared D10/D11); never touches the frozen report")
     p.add_argument("--mount", default=DEFAULT_MOUNT)
     p.add_argument("--out", default=os.path.join(REPO, "results", "frontier", TEAM_ID))
     p.add_argument("--run-id", default=FROZEN_RUN_ID,
@@ -471,7 +505,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 4
     env = write_envelope(build_envelope(body, observed, args.run_id, args.out,
                                         sys.argv, w), args.out, run_id=args.run_id)
-    print(json.dumps({
+    out_summary: Dict[str, Any] = {
         "report": w["path"],
         "report_sha256": w["report_sha256"],
         "written": w.get("written"),
@@ -480,7 +514,24 @@ def main(argv: Optional[List[str]] = None) -> int:
         "named_verdict": body["named_verdict"],
         "non_vacuity_gate": body["non_vacuity_gate"],
         "scope_counts": body["scope_counts"],
-    }, indent=2))
+    }
+    if args.path_evidence:
+        pe = run_path_evidence(args.mount)
+        pw = AP.write_evidence(pe, args.out, run_id=args.run_id)
+        out_summary["path_evidence"] = {
+            "path": pw["path"],
+            "evidence_sha256": pw["evidence_sha256"],
+            "written": pw.get("written"),
+            "identical_to_existing": pw.get("identical_to_existing"),
+            "refused": pw.get("refused", False),
+            "n_mechanisms_discovered": pe["mechanism_inventory"]["n_mechanisms_discovered"],
+            "can_retrieve_outside_the_initial_pool":
+                pe["mechanism_inventory"]["can_retrieve_outside_the_initial_pool"],
+            "adversarial_retrieval_detected_anywhere":
+                pe["adversarial_retrieval_detected_anywhere"],
+            "stage_evidence_self_test": pe["stage_evidence_self_test"]["gate"],
+        }
+    print(json.dumps(out_summary, indent=2))
     return 0 if body["non_vacuity_gate"] in ("PASS", "NOT_RUN") else 3
 
 

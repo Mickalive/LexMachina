@@ -388,10 +388,17 @@ def metric_g_minority_reach(doc: Dict[str, Any], rows: Sequence[Dict[str, Any]])
                          "finding")
     lang_rows, year_rows = [], []
     n = len(strict)
+    unknown_lang = 0
     for d in strict:
-        lang = str(d.get("language") or "?").lower()
+        # D12: a row whose language is not recorded ("?") is UNKNOWN, not a
+        # different language.  Counting it as non-consensus inflated
+        # minority_reach_share on any artifact with unlabelled rows.
+        known = pop.language_known(d)
+        if not known:
+            unknown_lang += 1
+        lang = pop.language_of(d)
+        non_lang = (cl is not None and known and lang != cl)
         y = pop.year_of(d)
-        non_lang = (cl is not None and lang != cl)
         older = (med is not None and y is not None and y < med)
         lang_rows.append(non_lang)
         year_rows.append(older)
@@ -417,6 +424,12 @@ def metric_g_minority_reach(doc: Dict[str, Any], rows: Sequence[Dict[str, Any]])
             "older_than_median": year_rows[i],
         } for i, d in enumerate(strict)],
     )
+    if unknown_lang:
+        out["n_counter_rows_with_unknown_language"] = unknown_lang
+        out["unknown_language_note"] = (
+            "rows whose language is not recorded are excluded from "
+            "non_consensus_language_share (declared D12): an absent value is not a "
+            "minority language")
     out["name"] = name
     return out
 

@@ -17,16 +17,37 @@ re-executed against the current accepted mount and reproduced the frozen report
 Two harness defects, two prose errors and one provenance limitation were found and declared:
 `reports/frontier/frontier-adversarial-discoverability/OPERATIONAL_RESUME_CYCLE_38794235870.md`.
 
+**Run 38797568256 (audit of the accepted measurement): verdict unchanged, three harness defects
+closed.** The charter permits continuation only for a concrete defect in the harness, so this run
+audited run 38792663259 rather than re-measuring it, reproduced the frozen report byte-identically
+again (`b15ea198…`), and fixed: **D10** the load-bearing metric `b1` reads the *final pool's*
+channel union and so cannot distinguish "no adversarial retrieval ran" from "one ran and was
+absorbed into that union"; **D11** the single named cause named one of **two** shipped
+counter-authority mechanisms (`product/query/answer.py::counter_authority_pass`, documented as
+"Independent adversarial retrieval", reachable only from the degraded fallback and executed for
+none of the 7 artifacts); **D12** an absent language marker (`"?"`) was scored as a non-consensus
+language, inflating the one metric that PASSes on all three bundles. `adversarial_paths.py` adds the
+missing falsification channel — retrieval stage inventory, per-stage request log, unaccounted-channel
+check, mechanism discovery and execution fingerprints — plus a self-test proving it can fire.
+Three defects in that new code were caught by running it (D13 line-shifting prose stripper,
+D14 `re.search(` read as a retrieval call, D15 overlapping scan roots double-counting).
+`reports/frontier/frontier-adversarial-discoverability/CYCLE_38797568256.md`.
+
 ## Layout
 
 ```
 adversarial_discoverability/
-  __init__.py     frozen constants (counter values, placeholder, corruption seed)
-  populations.py  C_strict / C_challenged / consensus cluster / channel inventory / shortlist-aware helpers
-  metrics.py      the seven frozen metric families (a)-(g) + the per-input verdict rule
-  corrupt.py      five deterministic corruptions, one per metric (non-vacuity)
-  shortlist.py    offline replay of the ACCEPTED AdversarialPass._prompt_decisions()
-  harness.py      integrity-verified CLI: --matrix / --input / --corrupt / --non-vacuity / --run-id
+  __init__.py           frozen constants (counter values, placeholder, corruption seed)
+  populations.py        C_strict / C_challenged / consensus cluster / channel inventory / language helpers
+  metrics.py            the seven frozen metric families (a)-(g) + the per-input verdict rule
+  corrupt.py            five deterministic corruptions, one per metric (non-vacuity)
+  shortlist.py          offline replay of the ACCEPTED AdversarialPass._prompt_decisions()
+  adversarial_paths.py  ADDITIVE evidence (run 38797568256): retrieval stage inventory, per-stage
+                        request log, unaccounted channels, mechanism discovery + structural
+                        capability reads, execution fingerprints, self-test. Never touches the
+                        frozen report.
+  harness.py            integrity-verified CLI: --matrix / --input / --corrupt / --non-vacuity
+                        / --run-id / --path-evidence
 independent_crosscheck.py  second implementation, imports nothing from the harness
 ```
 
@@ -46,6 +67,9 @@ python3 -m adversarial_discoverability.harness --corrupt N2_deep_permute_ranks -
 
 # publish this run's copy alongside a prior run instead of overwriting it
 python3 -m adversarial_discoverability.harness --matrix --run-id <this_run_id>
+
+# + the additive adversarial-path evidence (stage inventory, mechanism discovery, self-test)
+python3 -m adversarial_discoverability.harness --matrix --path-evidence --run-id <this_run_id>
 
 # independent cross-check of every number the narrative report asserts
 python3 independent_crosscheck.py            # --json for a machine-readable block
@@ -91,3 +115,14 @@ with different bytes.
 9. **Two implementations.** `independent_crosscheck.py` re-derives the same numbers from the raw
    bundles while importing nothing from the harness, and the test suite asserts the two agree —
    so the published claim is not resting on one implementation's word alone.
+10. **A negative is only evidence if the instrument can fire.** Metric (b) reads the final pool's
+    channel union, so on its own it could not see an adversarial round whose channel was absorbed
+    into that union. `adversarial_paths.py` reads the retrieval stage inventory and the per-stage
+    request log instead, and its self-test injects a synthetic adversarial retrieval and asserts
+    the detector fires — with `b1_adversarial_channel_rows` still reading `0`, which is the defect
+    made visible. The residual blind spot of the stage channel is declared in the artifact and
+    covered by the complementary mechanism-capability read; neither channel is load-bearing alone.
+11. **Fixes are additive, never interpretive.** No defect fix since the freeze changed a threshold,
+    a metric definition or a published number. `CYCLE_38792663259_REPORT.json` still hashes to
+    `b15ea198…` and every later run reproduces it byte for byte; new evidence is published beside
+    it under its own name and sha256.

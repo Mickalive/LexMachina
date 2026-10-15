@@ -143,6 +143,30 @@ def median_year(doc: Dict[str, Any]) -> Optional[float]:
     return float(years[mid]) if n % 2 else (years[mid - 1] + years[mid]) / 2.0
 
 
+#: Markers that record a MISSING language, not a language.  Same rule as
+#: ``modal_language`` below: letting one of these win, or count as a language
+#: DIFFERENT from the consensus one, would fabricate a minority-language
+#: finding the artifact cannot support.
+UNKNOWN_LANGUAGE_MARKERS = ("", "?", "unknown", "n/a", "na", "none", "null", "-")
+
+
+def language_of(d: Dict[str, Any]) -> str:
+    """Normalised ``language`` value, or ``""`` when the artifact does not record one."""
+    return str(d.get("language") or "").strip().lower()
+
+
+def language_known(d: Dict[str, Any]) -> bool:
+    """True only when the row records a real language band.
+
+    Declared D12: ``modal_language`` already refused to let ``"?"`` win a
+    consensus band, but metric (g) compared the raw value against it, so a row
+    whose language was simply absent counted as a NON-consensus language and
+    inflated ``minority_reach_share`` — the one metric that PASSes on all three
+    frozen bundles.  Callers must use this predicate instead of ``!=``.
+    """
+    return language_of(d) not in UNKNOWN_LANGUAGE_MARKERS
+
+
 def modal_language(doc: Dict[str, Any], cluster_id: Optional[int]) -> Optional[str]:
     """Modal ``language`` over the consensus cluster; ties -> alphabetically first.
 

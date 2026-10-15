@@ -37,6 +37,7 @@ if str(TEAM_DIR) not in sys.path:
 from adversarial_discoverability import (  # noqa: E402
     COUNTER_VALUES, PLACEHOLDER_EVIDENCE, corrupt, metrics as M, populations as pop,
 )
+from adversarial_discoverability import adversarial_paths as AP  # noqa: E402
 from adversarial_discoverability import harness as H  # noqa: E402
 
 
@@ -602,6 +603,271 @@ class TestIndependentCrossCheckAgrees(unittest.TestCase):
             a = by_id[l["id"]]["metrics"]["a_counter_yield"]
             self.assertEqual(l["counter_rows"], a["n_counter_strict"], l["id"])
             self.assertEqual(l["decision_count"], a["n_bundle_total"], l["id"])
+
+
+# ---------------------------------------------------------------------------
+# declared D10/D11/D12 — fixes applied after the verdict was published
+# ---------------------------------------------------------------------------
+
+class TestD12UnknownLanguageIsNotAMinorityLanguage(unittest.TestCase):
+    """A missing language marker is a missing value, not a different language."""
+
+    def test_question_mark_language_is_not_counted_as_non_consensus(self):
+        rows = [_dec("a", 1, "candidate-contrary", language="de"),
+                _dec("b", 2, "candidate-contrary", language="?")]
+        doc = _bundle(rows)
+        g = M.metric_g_minority_reach(doc, rows)
+        self.assertEqual(g["non_consensus_language_share"], 0.0)
+        self.assertEqual(g["n_counter_rows_with_unknown_language"], 1)
+        self.assertIn("D12", g["unknown_language_note"])
+
+    def test_a_real_second_language_still_counts(self):
+        rows = [_dec("a", 1, "candidate-contrary", language="de"),
+                _dec("b", 2, "candidate-contrary", language="fr")]
+        doc = _bundle(rows)
+        g = M.metric_g_minority_reach(doc, rows)
+        self.assertEqual(g["non_consensus_language_share"], 0.5)
+        self.assertNotIn("n_counter_rows_with_unknown_language", g)
+
+    def test_unknown_language_can_flip_minority_reach_from_pass_to_fail(self):
+        """The defect was capable of flattering the product; prove it no longer can.
+
+        The pre-D12 formula is reproduced inline rather than by calling the code,
+        so the comparison states exactly what changed instead of comparing the
+        fixed function with itself.
+        """
+        base = [_dec("a", 1, "candidate-contrary", language="de", decision_date="2015-01-01"),
+                _dec("b", 2, "candidate-contrary", language="de", decision_date="2015-01-01")]
+        unknown = [dict(r, language="?") for r in base]
+        doc = _bundle(unknown)
+        cl = pop.modal_language(doc, 0)
+        pre_d12 = sum(1 for r in unknown if str(r.get("language") or "?").lower() != cl)
+        self.assertEqual(pre_d12, 2, "pre-D12 formula would score '?' as non-consensus")
+        self.assertEqual(pre_d12 / len(unknown), 1.0)
+        fixed = M.metric_g_minority_reach(doc, unknown)
+        self.assertEqual(fixed["non_consensus_language_share"], 0.0)
+        self.assertEqual(fixed["minority_reach_share"], 0.0)
+        self.assertEqual(fixed["verdict"], "FAIL")
+        # a genuinely older minority row still passes - the fix does not gut the metric
+        mixed = [dict(base[0]), dict(base[1], language="fr", decision_date="1990-01-01")]
+        self.assertEqual(
+            M.metric_g_minority_reach(_bundle(mixed), mixed)["verdict"], "PASS")
+
+    def test_population_predicate_matches_modal_language_exclusions(self):
+        for marker in pop.UNKNOWN_LANGUAGE_MARKERS:
+            self.assertFalse(pop.language_known({"language": marker}), marker)
+        for real in ("de", "fr", "it", "DE"):
+            self.assertTrue(pop.language_known({"language": real}), real)
+
+
+class TestD10StageEvidence(unittest.TestCase):
+    """The falsification channel metric b cannot obtain, and its non-vacuity."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.bundles = {
+            s["id"]: json.load(open(MOUNT / s["path"], encoding="utf-8"))
+            for s in json.load(open(RULES_PATH, encoding="utf-8"))["inputs"]["bundles"]
+        }
+        cls.legs = {
+            s["id"]: json.load(open(MOUNT / s["path"], encoding="utf-8"))
+            for s in json.load(open(RULES_PATH, encoding="utf-8"))["inputs"]["frozen_legs"]
+        }
+
+    def test_no_artifact_declares_an_adversarial_retrieval_stage(self):
+        for name, doc in list(self.bundles.items()) + list(self.legs.items()):
+            ev = AP.stage_evidence(doc)
+            self.assertFalse(ev["adversarial_retrieval_detected"], name)
+            self.assertEqual(ev["verdict"], "NO_ADVERSARIAL_RETRIEVAL_STAGE", name)
+
+    def test_the_every_bundle_declares_only_the_four_initial_stages(self):
+        for name, doc in self.bundles.items():
+            ev = AP.stage_evidence(doc)
+            self.assertEqual(ev["retrieval_stage_inventory"],
+                             ["citations", "lang", "leading", "search"], name)
+            for stage in ev["retrieval_stage_inventory"]:
+                self.assertEqual(AP._stage_vocab_hit(stage), [], f"{name}:{stage}")
+
+    def test_channel_vocabulary_is_closed_on_every_artifact(self):
+        for name, doc in list(self.bundles.items()) + list(self.legs.items()):
+            ev = AP.stage_evidence(doc)
+            self.assertTrue(ev["channel_vocabulary_closed"], name)
+            self.assertEqual(ev["channels_unaccounted_for_by_the_pool"], [], name)
+
+    def test_self_test_proves_the_detector_can_fire(self):
+        st = AP.self_test(self.bundles["B1_gate_rehearsal_live_227"])
+        self.assertEqual(st["gate"], "PASS")
+        self.assertTrue(st["all_cases_flipped"])
+        self.assertEqual([c["case"] for c in st["cases"]],
+                         ["stage_only", "channel_and_stage"])
+        for c in st["cases"]:
+            self.assertTrue(c["flipped"], c["case"])
+            self.assertTrue(c["adversarial_retrieval_detected"], c["case"])
+
+    def test_case_two_is_exactly_the_situation_b1_cannot_detect(self):
+        """An adversarial channel absorbed into the pool union keeps b1 at zero."""
+        doc = copy.deepcopy(self.bundles["B1_gate_rehearsal_live_227"])
+        rows = pop.decisions_of(doc)
+        self.assertEqual(M.metric_b_marginal_retrieval(doc, rows)[
+            "b1_adversarial_channel_rows"], 0)
+        stage = "adversarial.negation_search"
+        doc["provenance"]["retrieval"]["candidate_channels"][stage] = 3
+        for d in rows:
+            if pop.counter_status(d) in COUNTER_VALUES:
+                d["channels"] = list(pop.channels_of(d)) + [stage]
+        m2 = M.metric_b_marginal_retrieval(doc, pop.decisions_of(doc))
+        self.assertEqual(m2["b1_adversarial_channel_rows"], 0,
+                         "b1 must still read zero - that is the point of the defect")
+        # ...but a declared+logged retrieval stage is visible where b1 is blind
+        doc["provenance"]["stages"] = list(doc["provenance"].get("stages") or []) + [stage]
+        doc["provenance"].setdefault("request_summary", {}).setdefault(
+            "requests_by_stage", {})[stage] = 3
+        ev = AP.stage_evidence(doc)
+        self.assertTrue(ev["adversarial_retrieval_detected"],
+                        "stage evidence must fire where b1 is structurally blind")
+        self.assertEqual(set(ev["adversarial_named_stages_declared"]), {stage})
+        self.assertIn("adversar", ev["adversarial_named_stages_declared"][stage])
+
+    def test_residual_blind_spot_is_declared_not_hidden(self):
+        """A channel absorbed with NO stage declaration is not visible to stage evidence.
+
+        That residual is real; the artifact must say so and name the channel that
+        covers it, instead of presenting stage evidence as sufficient on its own.
+        """
+        st = AP.self_test(self.bundles["B1_gate_rehearsal_live_227"])
+        rb = st["residual_blind_spot"]
+        self.assertEqual(rb["closed_by"], "mechanism_inventory")
+        self.assertTrue(rb["verified_here"])
+        # the covering channel really is closed on the accepted tree
+        self.assertFalse(AP.mechanism_inventory(str(MOUNT))[
+            "can_retrieve_outside_the_initial_pool"])
+
+
+class TestD11MechanismInventory(unittest.TestCase):
+    """The single named cause must cover every mechanism the product ships."""
+
+    @classmethod
+    def setUpClass(cls):
+        if not AP.mechanism_inventory.__doc__:  # pragma: no cover
+            raise unittest.SkipTest("no doc")
+        cls.inv = AP.mechanism_inventory(str(MOUNT))
+        cls.by_symbol = {m["symbol"]: m for m in cls.inv["mechanisms"]}
+
+    def test_both_shipped_mechanisms_are_discovered(self):
+        self.assertIn("counter_authority_pass", self.by_symbol)
+        self.assertIn("AdversarialPass", self.by_symbol)
+
+    def test_no_discovered_mechanism_can_reach_beyond_the_initial_pool(self):
+        self.assertFalse(self.inv["can_retrieve_outside_the_initial_pool"],
+                         self.inv["mechanisms_that_can_reach_beyond_the_initial_pool"])
+        for m in self.inv["mechanisms"]:
+            self.assertFalse(m["fetch_capable"], f"{m['symbol']} {m['fetch_patterns']}")
+            self.assertFalse(m["network_capable"], f"{m['symbol']} {m['network_tokens']}")
+
+    def test_the_product_mechanism_is_reachable_only_from_the_degraded_fallback(self):
+        sites = [c for c in AP.call_sites(str(MOUNT), "counter_authority_pass")
+                 if not c["is_definition"]]
+        self.assertEqual(len(sites), 1)
+        self.assertEqual(sites[0]["enclosing"], "_extractive_degraded_fallback")
+
+    def test_the_degraded_mechanism_never_ran_for_any_frozen_artifact(self):
+        rules = json.load(open(RULES_PATH, encoding="utf-8"))
+        specs = rules["inputs"]["bundles"] + rules["inputs"]["frozen_legs"]
+        for spec in specs:
+            doc = json.load(open(MOUNT / spec["path"], encoding="utf-8"))
+            fp = AP.execution_fingerprint(doc)
+            self.assertFalse(fp["counter_authority_pass"]["executed"], spec["id"])
+            self.assertFalse(fp["degraded_path_taken"], spec["id"])
+
+    def test_the_challenge_pass_did_run_for_all_three_bundles(self):
+        rules = json.load(open(RULES_PATH, encoding="utf-8"))
+        for spec in rules["inputs"]["bundles"]:
+            doc = json.load(open(MOUNT / spec["path"], encoding="utf-8"))
+            fp = AP.execution_fingerprint(doc)
+            self.assertTrue(fp["AdversarialPass"]["executed"], spec["id"])
+
+    def test_overlapping_scan_roots_do_not_double_count(self):
+        # product/query sits inside product; a file must be scanned once
+        rels, _ = AP._scan_files(str(MOUNT))
+        self.assertEqual(len(rels), len(set(rels)))
+
+    def test_test_symbols_are_excluded_but_listed(self):
+        excluded = {e["symbol"] for e in self.inv["excluded_test_symbols"]}
+        self.assertTrue(any(s.startswith("test_") for s in excluded))
+        for m in self.inv["mechanisms"]:
+            self.assertNotIn("/tests/", m["module"])
+
+    def test_prose_stripping_preserves_line_numbering(self):
+        """Regression: collapsing a docstring shifted every later line number."""
+        src = 'def f():\n    """doc\n    with\n    lines""".\n    return 1\n'
+        stripped = AP._strip_prose(src)
+        self.assertEqual(len(stripped.splitlines()), len(src.splitlines()))
+        self.assertNotIn("doc", stripped)
+        self.assertIn("return 1", stripped)
+
+    def test_regex_search_is_not_mistaken_for_a_retrieval_call(self):
+        """Regression: re.search() credited AdversarialPass with fetch capability."""
+        mod = MOUNT / "frontier/frontier-generative-audit/generative_audit/adversarial.py"
+        body = AP._strip_prose(mod.read_text(encoding="utf-8", errors="replace"))
+        self.assertIn("re.search(", body)
+        self.assertFalse(re.search(r"(?<!re)\.search\(", body))
+
+
+class TestAdditiveArtifactDiscipline(unittest.TestCase):
+    """The new evidence is additive: it may never disturb the frozen report."""
+
+    def test_frozen_report_still_hashes_to_its_recorded_sha256(self):
+        p = RESULTS_DIR / "CYCLE_38792663259_REPORT.json"
+        self.assertEqual(H.sha256_file(str(p)),
+                         "b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd")
+
+    def test_matrix_reproduces_the_frozen_report_byte_for_byte_after_the_fixes(self):
+        body = H.run_matrix(str(MOUNT))
+        self.assertEqual(H.sha256_bytes(H.canonical(body)),
+                         "b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd")
+        self.assertEqual(body["named_verdict"], "CLASSIFICATION_ONLY")
+        self.assertEqual(body["non_vacuity_gate"], "PASS")
+
+    def test_path_evidence_is_deterministic_and_timestamp_free(self):
+        a = H.run_path_evidence(str(MOUNT))
+        b = H.run_path_evidence(str(MOUNT))
+        self.assertEqual(H.canonical(a), H.canonical(b))
+        blob = json.dumps(a)
+        self.assertNotIn("generated_at", blob)
+        self.assertEqual(a["scope"]["thresholds_changed"], 0)
+        self.assertEqual(a["scope"]["published_numbers_changed"], 0)
+        self.assertEqual(a["scope"]["frozen_report_untouched"], True)
+
+    def test_writing_different_bytes_over_the_evidence_is_refused_not_silent(self):
+        with tempfile.TemporaryDirectory() as td:
+            w1 = AP.write_evidence({"a": 1}, td, "T")
+            self.assertTrue(w1["written"])
+            w2 = AP.write_evidence({"a": 1}, td, "T")
+            self.assertFalse(w2["written"])
+            self.assertTrue(w2["identical_to_existing"])
+            w3 = AP.write_evidence({"a": 2}, td, "T")
+            self.assertTrue(w3["refused"])
+            with open(w1["path"], encoding="utf-8") as fh:
+                self.assertEqual(json.load(fh), {"a": 1})
+
+    def test_cli_path_evidence_stays_inside_the_team_namespace(self):
+        with tempfile.TemporaryDirectory() as td:
+            out = subprocess.run(
+                [sys.executable, "-m", "adversarial_discoverability.harness",
+                 "--matrix", "--path-evidence", "--out", td, "--run-id", "CLIPTEST"],
+                cwd=str(TEAM_DIR), capture_output=True, text=True, timeout=900)
+            self.assertEqual(out.returncode, 0, out.stderr[-2000:])
+            payload = json.loads(out.stdout)
+            self.assertEqual(payload["path_evidence"]["stage_evidence_self_test"], "PASS")
+            self.assertEqual(
+                payload["report_sha256"],
+                "b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd")
+            produced = sorted(os.listdir(td))
+            self.assertEqual(produced,
+                             ["CYCLE_CLIPTEST_ENVELOPE.json",
+                              "CYCLE_CLIPTEST_PATH_EVIDENCE.json",
+                              "CYCLE_CLIPTEST_REPORT.json"])
+
 
 
 if __name__ == "__main__":
