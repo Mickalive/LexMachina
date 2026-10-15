@@ -129,8 +129,8 @@ def _candidate_to_product(candidate_bundle: dict) -> dict:
     return out
 
 
-def _map_bundle(product_bundle: dict, started_at: float) -> dict:
-    mapped, clusters, relations = build_map(product_bundle["decisions"])
+def _map_bundle(product_bundle: dict, started_at: float, n_clusters: int = 0) -> dict:
+    mapped, clusters, relations = build_map(product_bundle["decisions"], n_clusters=n_clusters)
     decisions = []
     for d in mapped:
         decisions.append({

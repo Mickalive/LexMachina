@@ -177,23 +177,88 @@ async function getJSON(url){
   if(!res.ok||data.error)throw new Error(data.error||("HTTP "+res.status));
   return data;
 }
+/* Progressive job pipeline (product/query_app.py): the map appears after one
+   upstream page, the wider retrieval is expanded in the background, and the
+   sourced answer + counter-authority pass run last.  Each stage is a server-side
+   job, so nothing here ever blocks on a multi-minute request; a page reload can
+   resume the same run from /api/query/bundle. */
+const RUN_STORE_KEY="lexmachina.lastRun";
+function rememberRun(q,n){try{localStorage.setItem(RUN_STORE_KEY,JSON.stringify({run_id:RUN_ID,q,n,at:Date.now()}))}catch(e){}}
+async function fetchBundle(){
+  const data=await getJSON("/api/query/bundle?run_id="+encodeURIComponent(RUN_ID));
+  renderBundle(data.bundle);return data;
+}
+function jobText(j){return j?j.status+(j.elapsed_s!=null?" · "+j.elapsed_s+" s":""):"—"}
+async function waitJob(name,onTick){
+  for(;;){
+    const s=await getJSON("/api/query/status?run_id="+encodeURIComponent(RUN_ID));
+    const j=(s.jobs||{})[name]||{};if(onTick)onTick(s,j);
+    if(j.status==="done"||j.status==="error")return{s,job:j};
+    await new Promise(r=>setTimeout(r,1500));
+  }
+}
 async function run(){
   const q=document.getElementById("q").value.trim(),n=document.getElementById("n").value;if(!q)return;
   document.getElementById("run").disabled=true;RUN_ID=null;BUNDLE=null;draw();
   document.getElementById("prose").textContent="";document.getElementById("answerMeta").innerHTML="";
-  status("Récupération et construction de la carte…","1/2");
+  status("Première page OpenCaseLaw…","1/3");
   try{
     const first=await getJSON("/api/query/start?q="+encodeURIComponent(q)+"&n="+n);
-    RUN_ID=first.run_id;renderBundle(first.bundle);
-    const ndec=first.bundle.decisions.length,lat=first.bundle.provenance?.latency_seconds;
-    status(ndec+" décisions · carte prête"+(lat!=null?" · "+lat+" s":"")+" · audit de la réponse en cours…","carte");
-    const second=await getJSON("/api/query/enrich?run_id="+encodeURIComponent(RUN_ID));
-    renderBundle(second.bundle);
-    const final=second.bundle,ga=final.provenance?.generative_audit||{},count=final.decisions.filter(isCounter).length;
-    status(final.decisions.length+" décisions · "+final.clusters.length+" clusters · "+count+" contre-autorités"+(ga.degraded?" · mode dégradé":""),"terminé");
+    RUN_ID=first.run_id;rememberRun(q,n);renderBundle(first.bundle);
+    const t0=first.bundle.provenance?.timing||{};
+    status(first.bundle.decisions.length+" décisions · carte livrée en "+(t0.local_total_s??t0.upstream_retrieval_s??"?")+" s · élargissement de la recherche…","2/3");
+    await advance(t0);
   }catch(err){
     status(err.message,"erreur");
     document.getElementById("answerMeta").innerHTML='<div class="warn">'+esc(err.message)+'</div>';
+  }finally{document.getElementById("run").disabled=false}
+}
+/* Drive an existing run to completion: expansion -> map -> answer/counter pass. */
+async function advance(firstTiming){
+  const exp=await waitJob("expand",(s,j)=>{
+    if(BUNDLE&&s.counts.decisions!==BUNDLE.decisions.length)status(s.counts.decisions+" décisions en carte · expansion "+jobText(j),"2/3");
+  });
+  if(exp.job.status==="error")throw new Error("expansion: "+exp.job.error);
+  await fetchBundle();
+  const t0=firstTiming||BUNDLE?.provenance?.timing||{},up=t0.upstream_retrieval_s,ex=exp.s.timing?.expand_upstream_s;
+  status((exp.s.counts.decisions)+" décisions · "+exp.s.counts.clusters+" clusters"
+    +(up!=null&&ex!=null?" · retrieval "+Math.round(up+ex)+" s":"")+" · réponse et contre-autorités en cours…","3/3");
+  if((exp.s.jobs||{}).enrich?.status!=="running"){
+    await getJSON("/api/query/enrich?run_id="+encodeURIComponent(RUN_ID));
+  }
+  const fin=await waitJob("enrich",(s,j)=>{
+    document.getElementById("prose").textContent="Analyse en cours… "+jobText(j);
+    status(s.counts.decisions+" décisions · génération "+jobText(j),"3/3");
+  });
+  if(fin.job.status==="error")throw new Error("réponse: "+fin.job.error);
+  const data=await fetchBundle(),final=data.bundle,ga=final.provenance?.generative_audit||{};
+  const count=final.decisions.filter(isCounter).length;
+  status(final.decisions.length+" décisions · "+final.clusters.length+" clusters · "
+    +final.answer.cited_decision_ids.length+" citations · "+count+" contre-autorités"
+    +(ga.degraded?" · mode dégradé":""),"terminé");
+  document.getElementById("prose").textContent=final.answer.prose||"";
+  renderAnswer();
+}
+/* Resume after a reload: the run is server-side, so the same map/answer comes
+   back without re-retrieving.  If the server no longer knows the run (restart),
+   the query is re-run from the warm OpenCaseLaw cache instead of losing the
+   session. */
+async function resumeLastRun(){
+  let saved=null;try{saved=JSON.parse(localStorage.getItem(RUN_STORE_KEY)||"null")}catch(e){}
+  if(!saved||!saved.run_id)return;
+  RUN_ID=saved.run_id;
+  document.getElementById("q").value=saved.q||document.getElementById("q").value;
+  document.getElementById("n").value=saved.n||document.getElementById("n").value;
+  document.getElementById("run").disabled=true;
+  try{
+    const s=(await getJSON("/api/query/status?run_id="+encodeURIComponent(RUN_ID)));
+    await fetchBundle();
+    const jobs=s.jobs||{},pending=jobs.expand?.status==="running"||jobs.enrich?.status==="running";
+    status(s.counts.decisions+" décisions restaurées"+(pending?" · traitements en cours…":""),"repris");
+    if(pending)await advance();
+  }catch(e){
+    try{localStorage.removeItem(RUN_STORE_KEY)}catch(_){}
+    if(saved.q){status("Session précédente introuvable, nouvelle exécution…","repris");await run()}
   }finally{document.getElementById("run").disabled=false}
 }
 document.getElementById("run").onclick=run;
@@ -230,6 +295,7 @@ if(window.LexGateSwitch){
   });
   window.__LEX_PRODUCT_SWITCH__={controller:switchController,lastStatus:()=>LAST_STATUS};
 }
+resumeLastRun();
 </script>
 </body>
 </html>

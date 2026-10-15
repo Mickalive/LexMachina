@@ -42,7 +42,109 @@ def _canonicalise_axes(coords: np.ndarray) -> np.ndarray:
     return out
 
 
-def build_map(ranked: list[dict], n_clusters: int = 0) -> tuple[list[dict], list[dict], list[dict]]:
+class MapModel:
+    """A fitted query-conditioned projection that later decisions can join.
+
+    The progressive product path renders a map from the first retrieved page and
+    then patches in the rest of the retrieval.  Refitting TF-IDF + SVD + KMeans
+    on the larger set would silently move points the researcher already looked
+    at, so the projection is fitted **once** and later decisions are projected
+    into that same space and attached to their nearest existing cluster.
+
+    Fitting once also makes expansion cheap: new decisions cost one vectorizer
+    transform and one SVD transform, not a full refit.
+    """
+
+    __slots__ = (
+        "vectorizer", "svd", "scale", "coords", "cluster_ids", "centroids",
+        "labels", "n_clusters", "decision_ids", "outliers",
+    )
+
+    def __init__(self, vectorizer, svd, scale: float, coords, cluster_ids,
+                 centroids, labels, n_clusters: int, decision_ids, outliers=None):
+        self.vectorizer = vectorizer
+        self.svd = svd
+        self.scale = scale
+        self.coords = coords
+        self.cluster_ids = cluster_ids
+        self.centroids = centroids
+        self.labels = labels
+        self.n_clusters = n_clusters
+        self.decision_ids = decision_ids
+        self.outliers = dict(outliers or {})
+
+
+def fit_map_model(ranked: list[dict], n_clusters: int = 0) -> MapModel | None:
+    """Fit the projection/clusters for ``ranked`` and keep them reusable."""
+    decisions, clusters, _relations = build_map(ranked, n_clusters=n_clusters)
+    if not decisions:
+        return None
+    coords = np.array([[d["x"], d["y"]] for d in decisions], dtype=float)
+    centroids = {}
+    for c in clusters:
+        pts = np.array(
+            [[d["x"], d["y"]] for d in decisions if int(d["cluster_id"]) == int(c["cluster_id"])],
+            dtype=float,
+        )
+        if len(pts):
+            centroids[int(c["cluster_id"])] = pts.mean(axis=0)
+    return MapModel(
+        vectorizer=_LAST_FIT_VECTORIZER[0],
+        svd=_LAST_FIT_SVD[0],
+        scale=_LAST_FIT_SCALE[0],
+        coords=coords,
+        cluster_ids=np.array([int(d["cluster_id"]) for d in decisions], dtype=int),
+        centroids=centroids,
+        labels={int(c["cluster_id"]): str(c.get("label") or "") for c in clusters},
+        n_clusters=len(clusters),
+        decision_ids=[d["decision_id"] for d in decisions],
+        outliers={d["decision_id"]: bool(d.get("is_outlier")) for d in decisions},
+    )
+
+
+def project_into_model(model: MapModel, new_ranked: list[dict]) -> list[dict]:
+    """Project new decisions into an existing map and attach a cluster id.
+
+    Returns copies of ``new_ranked`` with ``x``, ``y`` and ``cluster_id`` set.
+    Decisions whose text is entirely empty still receive the decision id as a
+    pseudo-term, exactly as ``build_map`` does, so they are never dropped.
+    """
+    if not new_ranked:
+        return []
+    texts = [_body(d)[:6000] for d in new_ranked]
+    if not any(t.strip() for t in texts):
+        texts = [str(d.get("decision_id") or i) for i, d in enumerate(new_ranked)]
+    X = model.vectorizer.transform(texts)
+    if model.svd is not None and X.shape[1] >= 2:
+        coords = model.svd.transform(X)
+    else:
+        coords = np.column_stack([np.linspace(-1, 1, len(texts)), np.zeros(len(texts))])
+    coords = np.asarray(coords, dtype=float) / (model.scale or 1.0)
+    # The rendered map lives in [-1, 1] and the client maps it straight to
+    # pixels.  A decision that projects outside that box is clipped rather than
+    # rescaled, because rescaling would move points the researcher already saw.
+    coords = np.clip(coords, -1.0, 1.0)
+
+    out = []
+    for i, d in enumerate(new_ranked):
+        point = coords[i]
+        cid = 0
+        if model.centroids:
+            cid = int(min(
+                model.centroids,
+                key=lambda k: (float(np.linalg.norm(point - model.centroids[k])), k),
+            ))
+        out.append({
+            **d,
+            "x": round(float(point[0]), 4),
+            "y": round(float(point[1]), 4),
+            "cluster_id": cid,
+        })
+    return out
+
+
+def build_map(ranked: list[dict], n_clusters: int = 0, model: "MapModel | None" = None
+              ) -> tuple[list[dict], list[dict], list[dict]]:
     from sklearn.cluster import KMeans
     from sklearn.decomposition import TruncatedSVD
     from sklearn.feature_extraction.text import TfidfVectorizer
@@ -50,6 +152,8 @@ def build_map(ranked: list[dict], n_clusters: int = 0) -> tuple[list[dict], list
     n = len(ranked)
     if n == 0:
         return [], [], []
+    if model is not None:
+        return _build_map_with_model(ranked, model)
 
     texts = [_body(d)[:6000] for d in ranked]
     if not any(t.strip() for t in texts):
@@ -66,12 +170,15 @@ def build_map(ranked: list[dict], n_clusters: int = 0) -> tuple[list[dict], list
     )
     X = vectorizer.fit_transform(texts)
 
+    svd = None
     if X.shape[1] >= 2 and n >= 2:
-        coords = TruncatedSVD(n_components=2, random_state=42).fit_transform(X)
+        svd = TruncatedSVD(n_components=2, random_state=42)
+        coords = svd.fit_transform(X)
         coords = _canonicalise_axes(coords)
     else:
         coords = np.column_stack([np.linspace(-1, 1, n), np.zeros(n)])
-    coords = coords / (float(np.abs(coords).max()) or 1.0)
+    fit_scale = float(np.abs(coords).max()) or 1.0
+    coords = coords / fit_scale
 
     if n_clusters <= 0:
         n_clusters = max(2, min(8, n // 12 + 1)) if n >= 6 else 1
@@ -122,6 +229,25 @@ def build_map(ranked: list[dict], n_clusters: int = 0) -> tuple[list[dict], list
             "member_ids": [ranked[i]["decision_id"] for i in idx][:50],
         })
 
+    # Remember the fitted artefacts so progressive expansion can project later
+    # decisions into this exact space instead of refitting and moving points.
+    _LAST_FIT_VECTORIZER[0] = vectorizer
+    _LAST_FIT_SVD[0] = svd
+    _LAST_FIT_SCALE[0] = fit_scale
+
+    return _finalise(ranked, decisions, clusters)
+
+
+#: Artefacts of the most recent ``build_map`` fit (``fit_map_model`` reads them).
+_LAST_FIT_VECTORIZER = [None]
+_LAST_FIT_SVD = [None]
+_LAST_FIT_SCALE = [1.0]
+
+
+def _finalise(ranked: list[dict], decisions: list[dict], clusters: list[dict]
+              ) -> tuple[list[dict], list[dict], list[dict]]:
+    """Outlier flags + shared-citation relations over an already-projected set."""
+    n = len(decisions)
     if n >= 10:
         order = sorted(
             range(n),
@@ -146,3 +272,88 @@ def build_map(ranked: list[dict], n_clusters: int = 0) -> tuple[list[dict], list
                     "shared": shared[:5],
                 })
     return decisions, clusters, relations[:500]
+
+
+def _cluster_label(model: MapModel, members: list[dict], top_k: int = 5) -> str:
+    """Top TF-IDF terms of a cluster's members, in the fitted vectorizer space.
+
+    Recomputed from the merged membership whenever decisions are added: a label
+    explains *why a group exists*, and more members are better evidence for it.
+    The cluster id stays the same, so nothing the researcher already read moves.
+    """
+    if not members or model.vectorizer is None:
+        return ""
+    try:
+        X = model.vectorizer.transform([_body(d)[:6000] for d in members])
+        mean = np.asarray(X.mean(axis=0)).ravel()
+        terms = np.array(model.vectorizer.get_feature_names_out())
+        return ", ".join(terms[np.argsort(-mean)[:top_k]])
+    except ValueError:  # empty vocabulary (e.g. every member is empty text)
+        return ""
+
+
+def _build_map_with_model(ranked: list[dict], model: MapModel
+                          ) -> tuple[list[dict], list[dict], list[dict]]:
+    """Map for ``ranked`` reusing an existing projection.
+
+    Decisions the model already placed keep their coordinates and cluster id
+    byte-for-byte (already-rendered points never move); new decisions are
+    projected into the same space and attached to the nearest existing cluster.
+    Cluster labels are recomputed from the merged membership, because more
+    evidence for a group is better evidence, not a move.
+    """
+    n = len(ranked)
+    if n == 0:
+        return [], [], []
+    frozen = {did: i for i, did in enumerate(model.decision_ids)}
+    known = [(i, d) for i, d in enumerate(ranked) if d.get("decision_id") in frozen]
+    fresh = [(i, d) for i, d in enumerate(ranked) if d.get("decision_id") not in frozen]
+    projected = {d["decision_id"]: (p["x"], p["y"], p["cluster_id"])
+                 for d, p in zip([d for _i, d in fresh],
+                                 project_into_model(model, [d for _i, d in fresh]))}
+
+    coords = np.zeros((n, 2), dtype=float)
+    cluster_of = np.zeros(n, dtype=int)
+    for i, d in enumerate(ranked):
+        did = d.get("decision_id")
+        if did in frozen:
+            point = model.coords[frozen[did]]
+            coords[i] = (float(point[0]), float(point[1]))
+            cluster_of[i] = int(model.cluster_ids[frozen[did]])
+        else:
+            x, y, c = projected.get(did, (0.0, 0.0, 0))
+            coords[i] = (float(x), float(y))
+            cluster_of[i] = int(c)
+
+    cluster_ids = sorted({int(c) for c in cluster_of})
+    clusters = []
+    for cid in cluster_ids:
+        idx = np.where(cluster_of == cid)[0]
+        clusters.append({
+            "cluster_id": int(cid),
+            "label": _cluster_label(model, [ranked[i] for i in idx]) or f"Cluster {int(cid)}",
+            "size": int(len(idx)),
+            "member_ids": [ranked[i]["decision_id"] for i in idx][:50],
+        })
+
+    decisions = []
+    for i, d in enumerate(ranked):
+        members = np.where(cluster_of == int(cluster_of[i]))[0]
+        center = coords[members].mean(axis=0)
+        dist = float(np.linalg.norm(coords[i] - center))
+        decisions.append({
+            **d,
+            "x": round(float(coords[i, 0]), 4),
+            "y": round(float(coords[i, 1]), 4),
+            "cluster_id": int(cluster_of[i]),
+            "_outlier_dist": dist,
+        })
+    decisions, clusters, relations = _finalise(ranked, decisions, clusters)
+    # Outlier status is a statement about the rendered map ("weakly connected
+    # result worth inspecting"), so a point already shown as an outlier keeps
+    # that status; only newly added points are scored.
+    for d in decisions:
+        did = d.get("decision_id")
+        if did in frozen and did in model.outliers:
+            d["is_outlier"] = bool(model.outliers[did])
+    return decisions, clusters, relations

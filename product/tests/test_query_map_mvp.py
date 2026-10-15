@@ -6,6 +6,7 @@ suites test their own internals; this file tests the product seam.
 """
 import math
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -125,6 +126,14 @@ def test_fixture_mode_is_explicit_not_a_live_padding_source():
 
 
 def test_one_command_server_contract_start_then_enrich():
+    """One command -> map -> answer, now over the progressive job API.
+
+    Contract change in run 38665681083: ``/api/query/enrich`` answers 202
+    immediately and the client polls ``/api/query/status`` (a 136.79 s start
+    plus a 150.70 s enrich made the blocking form unusable in a browser).
+    ``wait_s`` keeps the blocking single-call form for scripts and CI, and is
+    asserted at the end of this test.
+    """
     import json
     import threading
     import urllib.parse
@@ -145,13 +154,60 @@ def test_one_command_server_contract_start_then_enrich():
         with urllib.request.urlopen(url, timeout=60) as resp:
             first = json.loads(resp.read())
         assert first["bundle"]["provenance"]["phase"] == "map_ready"
+        assert first["bundle"]["provenance"]["progressive"]["expanded"] is False
         run_id = first["run_id"]
 
-        with urllib.request.urlopen(base + "/api/query/enrich?" + urllib.parse.urlencode({"run_id": run_id}), timeout=60) as resp:
+        # Expansion is already running in the background; the request returned.
+        assert first["expand_started"] is True
+        deadline = time.time() + 120
+        while time.time() < deadline:
+            with urllib.request.urlopen(
+                base + "/api/query/status?" + urllib.parse.urlencode({"run_id": run_id}), timeout=30
+            ) as resp:
+                status = json.loads(resp.read())
+            if status["jobs"]["expand"]["status"] in {"done", "error"}:
+                break
+            time.sleep(0.2)
+        assert status["jobs"]["expand"]["status"] == "done", status["jobs"]["expand"]
+
+        with urllib.request.urlopen(
+            base + "/api/query/enrich?" + urllib.parse.urlencode({"run_id": run_id}), timeout=30
+        ) as resp:
+            ack = json.loads(resp.read())
+            assert resp.status == 202
+        assert ack["status"] == "running"
+
+        deadline = time.time() + 120
+        while time.time() < deadline:
+            with urllib.request.urlopen(
+                base + "/api/query/status?" + urllib.parse.urlencode({"run_id": run_id}), timeout=30
+            ) as resp:
+                status = json.loads(resp.read())
+            if status["jobs"]["enrich"]["status"] in {"done", "error"}:
+                break
+            time.sleep(0.2)
+        assert status["jobs"]["enrich"]["status"] == "done", status["jobs"]["enrich"]
+
+        with urllib.request.urlopen(
+            base + "/api/query/bundle?" + urllib.parse.urlencode({"run_id": run_id}), timeout=30
+        ) as resp:
             second = json.loads(resp.read())
         assert second["run_id"] == run_id
         assert second["bundle"]["provenance"]["phase"] == "complete"
         assert second["bundle"]["answer"]["status"] == "ready"
+
+        # Backwards-compatible blocking form for scripts/CI.
+        with urllib.request.urlopen(
+            base + "/api/query/start?" + urllib.parse.urlencode({"q": QUERY, "n": 100}), timeout=60
+        ) as resp:
+            blocking_run = json.loads(resp.read())["run_id"]
+        with urllib.request.urlopen(
+            base + "/api/query/enrich?"
+            + urllib.parse.urlencode({"run_id": blocking_run, "wait_s": 120}),
+            timeout=180,
+        ) as resp:
+            blocking = json.loads(resp.read())
+        assert blocking["bundle"]["provenance"]["phase"] == "complete"
     finally:
         srv.shutdown()
         srv.server_close()

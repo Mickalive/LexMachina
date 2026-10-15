@@ -37,13 +37,13 @@
     "run_id": 38654561273,
     "status_at_state_write": "in_progress"
   },
-  "cycle_status": "V51_REPAIR_ROUND1_LATENCY_LABEL_DEFECT_REPAIRED__HUMAN_GATE_STILL_AWAITED",
+  "cycle_status": "V51_PROGRESSIVE_SLICE_SHIPPED__HUMAN_GATE_STILL_AWAITED",
   "direction_version": 51,
   "evidence_tier": "DURABLE_CI_VERIFIED",
   "human_gate_criteria": [
     {
       "criterion": "one-command local launch",
-      "status": "PASS (python product/query_app.py --port 8791)"
+      "status": "PASS (python product/query_app.py --port 8791; three-stage job API /start -> /expand -> /enrich + /status)"
     },
     {
       "criterion": "verified live OpenCaseLaw query",
@@ -63,7 +63,7 @@
     },
     {
       "criterion": "offline deterministic tests",
-      "status": "PASS (91 product tests incl. the new human-gate suite)"
+      "status": "PASS (192 product tests incl. the new progressive/job suite)"
     },
     {
       "criterion": "measured provenance and latency",
@@ -79,7 +79,7 @@
     },
     {
       "criterion": "real owner/jurist session on the map-vs-list comparison",
-      "status": "PENDING (human_gate_ready=false; this is the only remaining item)"
+      "status": "PENDING (human_gate_ready=false; the session is now survivable: map in seconds, jobs never block, reload resumes; only a real jurist can pass it)"
     }
   ],
   "human_gate_integration": {
@@ -174,7 +174,7 @@
     "status": "COMPLETE_AND_RECORDED",
     "v50_objective": "one durable, retrievable, GREEN core-lane run of lane=product whose own team job executes the four frozen reality legs LIVE"
   },
-  "next_recommendation": "The 9A latency delta is now truthful end to end: upstream p50/p95 is measured only over network-served samples (7.8863 s / 9.8696 s, n=3) and the retracted cache-read claim is annotated out of the cycle-38649613677 artifact. Direction v51's two owner-independent deltas (session finalizer, latency budgets) are both delivered and verified. continue_recommended stays true because human_gate_ready is still false and can only be earned by a real owner/jurist session (export draft -> product/human_gate_finalize.py with answers -> comparative map-vs-list test). Do NOT re-verify the machine gate. Do not add agent-simulated session records to results/product/human_gate_sessions/.",
+  "next_recommendation": "The comparative human gate is the only remaining milestone and only a real owner/jurist session can pass it. Its preconditions are now in place: one command, map visible in ~6 s cold instead of ~137 s, generation/counter pass as a pollable job that never blocks or double-runs, reload-safe resume, and the accepted list<->map switch on the same bundle. Do not re-verify the machine gate or re-record latency budgets; if the owner's session surfaces a UI defect, fix the UI. If a Frontier team delivers a retrieval/answer/map component, integrate it behind the same query_result_bundle seam.",
   "normal_path": {
     "generation_and_counter": "frontier-generative-audit contract 2.2 (independent adversarial pass)",
     "initial_map": "query-conditioned TF-IDF + SVD + KMeans rendered before generation",
@@ -403,7 +403,7 @@
     "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
   },
   "state_updated_at": "2026-10-15",
-  "state_updated_by_run": 38654561273,
+  "state_updated_by_run": "38665681083",
   "state_updated_from_resumed_snapshot_run": 38648548635,
   "supersedes_claims": {
     "prior_direction_version": 48,
@@ -576,6 +576,57 @@
       "server": "python product/query_app.py --port 8791"
     },
     "objective": "the two owner-independent deltas named in direction v51, plus a durable repair of the orchestration failure that blocked runs 38548957828 and 38648548635",
+    "progressive_slice": {
+      "budgets_9A": {
+        "cached_map_total": "<1 s warm (0.1619 s first page + 0.4465 s expansion end to end)",
+        "detail_click": "unchanged, local <150 ms",
+        "first_map_visible": "6.157 s cold / 0.166 s warm (was 136.79 s blocking)",
+        "local_map_overhead": "0.1433 s first page + 0.0557 s expansion, budget <1.5 s / <2 s",
+        "upstream": "OpenCaseLaw still measured separately (first page cold 6.0254 s upstream; warm 0.0185 s cache read); never folded into local numbers"
+      },
+      "code": {
+        "evidence_recorder": "product/slice_smoke.py",
+        "first_page_and_expansion": "product/query/progressive.py (run_query_first_page, expand_query_bundle, map_model_from_bundle, target_clusters)",
+        "job_server": "product/query_app.py (start/expand/enrich/status/bundle, ThreadPoolExecutor(2), per-run job dedup, job errors isolated, wait_s backwards-compatible blocking form)",
+        "stable_projection": "product/query/qmap.py (MapModel, fit_map_model, project_into_model, build_map(model=...), per-cluster label recomputation)",
+        "ui": "product/static/query.html (3-stage progress, polling, localStorage resume; accepted lex_gate_switch assets untouched)"
+      },
+      "contract_change": "/api/query/enrich now answers 202 + poll URL instead of blocking; wait_s=<seconds> restores the blocking single-call form for scripts and CI. /api/query/start returns the first-page map and starts the expansion job. product/tests/test_query_map_mvp.py's server-contract test was updated to the new contract and now also asserts wait_s.",
+      "defects_found_and_fixed_by_this_cycle": [
+        "enrich started while expansion was running answered from the partial first-page set and the expansion then replaced the bundle (answer lost): enrich now waits for the expansion job, expansion preserves a ready answer, regression test added",
+        "expansion re-flagged 15 already-rendered outliers because the merged refit recomputed outlier status: frozen points keep their outlier status, regression test added",
+        "cluster granularity was capped by the small first page (4 clusters for 194 decisions instead of 8): the first page now uses the cluster count of the finished map",
+        "cluster labels were frozen on 38 decisions of evidence: labels are recomputed from merged membership while cluster ids stay stable"
+      ],
+      "human_gate_ready": false,
+      "live_evidence": {
+        "adversarial": "independent_llm_adversarial_v2 / opencode/space-bunny-free, 10 findings, 10 challenging, 0 rejected ids",
+        "answer": "ready / generative_audit_llm_v2 / opencode/nemotron-3-ultra-free",
+        "artifact": "results/product/progressive_slice/CYCLE_38665681083_v2.json (+ bundle_, cold run CYCLE_38665681083.json)",
+        "cited": 7,
+        "cold_first_map_local_s": 0.1275,
+        "cold_first_map_s": 6.157,
+        "cold_first_map_upstream_s": 6.0254,
+        "counter_authorities": 16,
+        "enrich_ack_s": 0.001,
+        "enrich_job_s": 84.7,
+        "expand_added": 156,
+        "expand_local_s": 0.0557,
+        "expand_s": 0.4,
+        "expanded_decisions": 194,
+        "first_map_clusters": 8,
+        "first_map_decisions": 38,
+        "points_moved_after_first_map": 0,
+        "query": "Responsabilite penale de l'entreprise selon l'art. 102 CP",
+        "server_probe_failures": 0,
+        "server_probe_max_s": 0.002,
+        "server_probes_during_jobs": 89,
+        "warm_first_map_s": 0.166
+      },
+      "negative_result": "the previous audit's 'ThreadingHTTPServer hangs/crashes on /api/query/enrich or /api/query/run' did NOT reproduce on the shipped blocking path: 288 concurrent /api/health probes, 0 failures, server alive after enrich, answer ready. Recorded as-is; the fix delivered here is the blocking itself, not a crash fix.",
+      "tests": "product/tests/test_progressive_query.py (21 tests) + updated server-contract test; full MVP suite 192 passed / 1 skipped (1 skip = accepted frontier mount absent)",
+      "why": "the human gate is one owner session away, but the session itself started with 2.3 minutes of empty page: /api/query/start blocked 136.79 s before the first point was drawn and /api/query/enrich blocked a further 150.70 s (live OpenCaseLaw + real free model, measured this cycle on the pre-change server)"
+    },
     "run": 38649613677,
     "state_contract": {
       "cli": "python product/state_contract.py --check --direction-version 51",
