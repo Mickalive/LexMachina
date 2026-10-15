@@ -335,3 +335,169 @@ def test_replay_bundle_exits_7_on_a_dangling_relation(monkeypatch, tmp_path):
     out = tmp_path / "must_not_exist.json"
     assert rb.main(["--query", RECORDED_QUERY, "--top-n", "120", "--out", str(out)]) == 7
     assert not out.exists(), "the replay must not write a bundle it just refused"
+
+
+def test_content_hash_is_invariant_under_a_rewritten_cache_root():
+    """Required fix D1 of cycle 38785927063: the identity must not encode a path.
+
+    Audit finding: ``content_sha256`` stripped the five wall-clock fields but
+    left ``provenance.cache_stats.root`` and
+    ``provenance.retrieval.remote.cache_stats.root`` — absolute machine paths —
+    inside the hashed payload.  The artifact therefore hashed differently on
+    every checkout, and the test that claimed to encode machine independence
+    passed only on the machine that generated it.
+
+    This is the regression test the gate named.  It rewrites both cache roots
+    to foreign absolute paths and requires the hash to be unchanged, and it
+    separately requires a genuine content change to move the hash.
+    """
+    from product.replay_bundle import content_sha256
+
+    with open(BUNDLE_PATH, encoding="utf-8") as f:
+        committed = json.load(f)
+
+    original = content_sha256(committed)
+
+    moved = json.loads(json.dumps(committed))
+    for path in (("provenance", "cache_stats", "root"),
+                 ("provenance", "retrieval", "remote", "cache_stats", "root")):
+        node = moved
+        for key in path[:-1]:
+            node = node[key]
+        node[path[-1]] = "/some/completely/different/checkout/on/another/machine/query_cache"
+
+    assert content_sha256(moved) == original, (
+        "content_sha256 must be invariant under a rewritten cache_stats.root; "
+        "the artifact's identity is still bound to one checkout path"
+    )
+
+    changed = json.loads(json.dumps(committed))
+    changed["decisions"][0]["citation"] = str(changed["decisions"][0]["citation"]) + " X"
+    assert content_sha256(changed) != original, (
+        "neutralising the cache root must not also neutralise real content: "
+        "a changed decision has to move the hash"
+    )
+
+
+def test_committed_bundle_has_no_unaccounted_absolute_paths():
+    """The only machine paths in the claim bundle are the two declared cache roots.
+
+    Anything else would mean the artifact's portability rests entirely on the
+    scrub being correct rather than on a named, reviewable exclusion - the
+    shape of defect D1.  The recorded upstream endpoints (``/citations``,
+    ``/leading-cases``) start with ``/`` too but are claim content, so they are
+    listed separately and must be present.
+    """
+    from product.replay_bundle import CACHE_ROOT_PATHS, hashed_payload_paths
+
+    with open(BUNDLE_PATH, encoding="utf-8") as f:
+        committed = json.load(f)
+
+    paths = hashed_payload_paths(committed)
+    expected_machine = sorted(".".join(("",) + path) for path in CACHE_ROOT_PATHS)
+    assert paths["machine_paths"] == expected_machine, (
+        f"unexpected machine-specific paths in the hashed payload: {paths['machine_paths']}"
+    )
+    assert any(p.endswith("citations.endpoint") for p in paths["api_endpoints"]), (
+        "the recorded /citations endpoint must stay inside the hashed payload, "
+        "not be swept up with the cache roots"
+    )
+    assert any(p.endswith("leading.endpoint") for p in paths["api_endpoints"]), (
+        "the recorded /leading-cases endpoint must stay inside the hashed payload"
+    )
+
+
+def test_is_machine_path_separates_paths_from_upstream_endpoints():
+    """The scrub's classifier itself, so a future edit cannot widen it silently."""
+    from product.replay_bundle import is_absolute_fs_path, is_machine_path
+
+    assert is_absolute_fs_path("/home/runner/work/results/product/query_cache")
+    assert is_absolute_fs_path("C:\\Users\\runner\\query_cache")
+    assert not is_absolute_fs_path("//mcp.opencaselaw.ch/decisions")  # protocol-relative URL
+    assert not is_absolute_fs_path("https://mcp.opencaselaw.ch/decisions")
+    assert not is_absolute_fs_path("bge_BGE_142_IV_333")
+
+    assert is_machine_path("/home/runner/work/results/product/query_cache")
+    assert not is_machine_path("/citations")
+    assert not is_machine_path("/leading-cases")
+    assert not is_machine_path("/decisions")
+
+
+def test_relation_recall_is_disclosed_and_nothing_is_fabricated():
+    """Advisory A1 of cycle 38785927063: coverage must ship, not stay in a report.
+
+    The bundle presented its recovered typed edges as "the" relation view
+    without saying how much of the on-map evidence they cover.  The replay now
+    recomputes the denominator from the raw cached /citations envelopes for this
+    query's own citation seeds, so a partial recovery is disclosed on the claim
+    path and an unsupported edge is caught instead of shipped.
+    """
+    from product.replay_bundle import genuine, inspect_bundle, relation_recall
+
+    with open(BUNDLE_PATH, encoding="utf-8") as f:
+        committed = json.load(f)
+
+    recall = relation_recall(committed)
+    assert recall["seeds"], "the recorded query must have citation seeds to measure against"
+    assert recall["on_map_typed_edges"] > 0, "the denominator must be non-empty to be meaningful"
+    assert recall["fabricated"] == [], (
+        f"every shipped relation must exist in the cached upstream records: {recall['fabricated']}"
+    )
+    assert recall["in_bundle"] == len(committed["relations"]), (
+        "the shipped relation count and the measured denominator must agree"
+    )
+    assert 0 < recall["recall"] <= 1.0
+    # The drop is disclosed by name, not silently absorbed.
+    assert recall["dropped_on_map"] == sorted(
+        e for e in recall["dropped_on_map"]
+    ), "dropped edges must be listed deterministically"
+    assert len(recall["dropped_on_map"]) == recall["on_map_typed_edges"] - recall["in_bundle"]
+
+    findings = inspect_bundle(committed)
+    assert findings["relation_recall"]["fabricated"] == []
+    assert genuine(findings) is True, (
+        "the committed claim bundle must still pass every replay guard with the "
+        "fabrication guard switched on"
+    )
+
+
+def test_an_unsupported_relation_edge_is_not_genuine():
+    """A relation the upstream records do not contain must refuse the artifact."""
+    from product.replay_bundle import genuine, inspect_bundle
+
+    with open(BUNDLE_PATH, encoding="utf-8") as f:
+        bundle = json.load(f)
+    # Both endpoints on the map, so the dangling guard does not fire; neither is
+    # a citation seed, so the edge cannot appear in this query's upstream
+    # /citations records either.  That isolates the fabrication guard alone.
+    seeds = {
+        str(e["seed"])
+        for e in ((bundle["provenance"].get("stage_notes") or {}).get("citations") or {})
+        .get("per_seed", [])
+    }
+    off_seed = [d["decision_id"] for d in bundle["decisions"] if d["decision_id"] not in seeds]
+    assert len(off_seed) >= 2, "the recorded bundle must have non-seed decisions"
+    bundle["relations"].append({"source": off_seed[0], "target": off_seed[1], "kind": "citation"})
+
+    findings = inspect_bundle(bundle)
+    assert findings["relation_recall"]["fabricated"], "the invented edge must be detected"
+    assert genuine(findings) is False, "an invented edge must not count as genuine"
+
+
+def test_decision_field_coverage_discloses_null_source_urls():
+    """Advisory A7: a required key may be present and still be null on some rows."""
+    from product.replay_bundle import field_coverage
+
+    with open(BUNDLE_PATH, encoding="utf-8") as f:
+        bundle = json.load(f)
+
+    coverage = field_coverage(bundle["decisions"])
+    assert coverage["decision_id"]["populated"] == len(bundle["decisions"])
+    assert coverage["canonical_url"]["populated"] == len(bundle["decisions"]), (
+        "every row must stay openable through canonical_url"
+    )
+    # The key is guaranteed, the value is not: the two facts are reported apart.
+    assert all("source_url" in d for d in bundle["decisions"])
+    s = coverage["source_url"]
+    assert s["populated"] + s["null_or_empty"] == len(bundle["decisions"])
+    assert s["null_or_empty"] >= 0

@@ -119,11 +119,31 @@ function createPage(opts) {
     return el;
   }
 
-  /* Register every id the page declares so getElementById resolves statically. */
-  const idRe = /id="([A-Za-z_][\w-]*)"/g;
+  /* Register every id the page declares so getElementById resolves statically.
+   *
+   * A <select> must report the value a browser would give it: its first
+   * <option>'s value.  Stubbing value as "" made query.html's filtered() see
+   * langFilter !== "all" and return [], so draw() never ran and no assertion
+   * could touch the canvas - the harness certified a map it could not see. */
+  const tagRe = /<([a-zA-Z][\w-]*)\b([^>]*)>/g;
   let match;
-  while ((match = idRe.exec(html)) !== null) {
-    if (!registry.has(match[1])) registry.set(match[1], makeEl("div", match[1]));
+  while ((match = tagRe.exec(html)) !== null) {
+    const tag = match[1];
+    const attrs = match[2];
+    const idMatch = /\bid="([A-Za-z_][\w-]*)"/.exec(attrs);
+    if (!idMatch || registry.has(idMatch[1])) continue;
+    const el = makeEl(tag, idMatch[1]);
+    if (tag === "select") {
+      const rest = html.slice(match.index + match[0].length);
+      const close = rest.indexOf("</select>");
+      const inner = close >= 0 ? rest.slice(0, close) : rest;
+      const option = /<option\b([^>]*)>/.exec(inner);
+      if (option) {
+        const value = /\bvalue="([^"]*)"/.exec(option[1]);
+        el.value = value ? value[1] : "";
+      }
+    }
+    registry.set(idMatch[1], el);
   }
   /* The canvas measures itself against its parent pane. */
   if (registry.has("cv") && registry.has("mapWrap")) {

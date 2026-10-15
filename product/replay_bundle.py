@@ -22,7 +22,8 @@ Exit codes:
        reference, or an unhydrated citation shell whose citation is neither
        its docket number nor its decision_id
     7  dangling relation detected: a relation names an endpoint that is not
-       among the bundle's decisions
+       among the bundle's decisions, or a relation the cached /citations
+       envelopes for this query's citation seeds do not support
 """
 from __future__ import annotations
 
@@ -38,6 +39,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 from product.query.bundle import validate_bundle
+from product.query.cache_path import product_cache_dir
 from product.query.pipeline import CITE_CHANNELS, run_query_initial
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -146,10 +148,9 @@ def citation_findings(bundle: dict) -> dict:
     }
 
 
-#: The only bundle fields a replay legitimately re-measures every run.  Every
-#: other byte must be reproducible off the generating machine, so the canonical
-#: content hash excludes exactly these five paths (verified by diffing two
-#: replays under different PYTHONHASHSEED values: these, and only these, vary).
+#: Wall-clock fields a replay legitimately re-measures every run.  They are
+#: removed from the hashed payload because their value is the measurement, not
+#: the artifact.
 TIMING_PATHS = (
     ("provenance", "latency_seconds"),
     ("provenance", "timing", "local_total_s"),
@@ -158,24 +159,223 @@ TIMING_PATHS = (
     ("provenance", "retrieval", "remote", "latency_seconds"),
 )
 
+#: Machine-specific absolute cache roots.  These are NOT timings, and leaving
+#: them inside the hashed payload is exactly the portability defect recorded in
+#: results/audit/product/CYCLE_38785927063_GATE.json required_fixes[0] (D1):
+#: the artifact's "reproducible identity" was one checkout path away from
+#: reproducing, and the test that encoded the property only passed on the
+#: machine that generated it.  They are replaced by a constant token, so a
+#: differing cache root never changes the hash while a differing key count
+#: still does.
+CACHE_ROOT_PATHS = (
+    ("provenance", "cache_stats", "root"),
+    ("provenance", "retrieval", "remote", "cache_stats", "root"),
+)
+
+CACHE_ROOT_TOKEN = "<cache-root>"
+
+#: Upstream OpenCaseLaw API paths recorded in provenance.stage_notes.*.endpoint.
+#: They begin with "/" exactly like a filesystem path but are endpoint
+#: identifiers — claim content — so they stay inside the hashed payload.
+API_ENDPOINT_PREFIXES = ("/decisions", "/structure", "/citations", "/leading-cases")
+
+#: Defence in depth for D1: any *other* absolute filesystem path that later
+#: lands in a bundle is rewritten to this token too, so the next field someone
+#: adds cannot silently re-break portability the same way.  ``https://`` URLs,
+#: protocol-relative ``//host`` URLs and the API endpoints above are not paths.
+ABSOLUTE_PATH_TOKEN = "<absolute-path>"
+_WINDOWS_ABS_RE = re.compile(r"^[A-Za-z]:[\\/]")
+
+
+def is_absolute_fs_path(value) -> bool:
+    """True only for a single-machine filesystem path string."""
+    if not isinstance(value, str) or len(value) < 2:
+        return False
+    if value.startswith("//"):  # protocol-relative URL, not a path
+        return False
+    return value.startswith("/") or bool(_WINDOWS_ABS_RE.match(value))
+
+
+def is_machine_path(value) -> bool:
+    """``is_absolute_fs_path`` minus the recorded upstream API endpoints."""
+    if not is_absolute_fs_path(value):
+        return False
+    return not str(value).startswith(API_ENDPOINT_PREFIXES)
+
+
+def _scrub_machine_paths(node):
+    """Recursively replace machine-specific absolute paths with a constant token."""
+    if isinstance(node, dict):
+        return {k: _scrub_machine_paths(v) for k, v in node.items()}
+    if isinstance(node, list):
+        return [_scrub_machine_paths(v) for v in node]
+    if is_machine_path(node):
+        return ABSOLUTE_PATH_TOKEN
+    return node
+
+
+def _pop_path(root: dict, path: tuple[str, ...]):
+    node = root
+    for key in path[:-1]:
+        node = node.get(key) if isinstance(node, dict) else None
+    if isinstance(node, dict):
+        node.pop(path[-1], None)
+
+
+def _portable_cache_root(root) -> str | None:
+    """Report the cache root repo-relative when it lives inside the checkout.
+
+    Keeps the CLI's own output stable across machines, for the same reason the
+    hash excludes it; an out-of-tree root is still reported verbatim so the
+    reviewer can see exactly where the replay read from.
+    """
+    if not isinstance(root, str) or not root:
+        return root
+    try:
+        return str(Path(root).resolve().relative_to(REPO_ROOT))
+    except (ValueError, OSError):
+        return root
+
 
 def content_sha256(bundle: dict) -> str:
-    """sha256 of the bundle with the re-measured timing fields removed.
+    """Path- and machine-independent sha256 of a query_result_bundle.
 
     The raw file hash can never match across runs because it embeds wall-clock
     timings; audit F2 of cycle 38779139471 compared raw hashes across machines
-    and read the difference as a data difference.  This is the identity that is
-    supposed to be stable: same cache, same query, same code -> same value.
+    and read the difference as a data difference.
+
+    This is the identity that is supposed to be stable: same cache, same query,
+    same code -> same value, *regardless of where the checkout lives*.  Three
+    classes of value are excluded, and nothing else is:
+
+    1. ``TIMING_PATHS`` - wall-clock measurements.
+    2. ``CACHE_ROOT_PATHS`` - absolute cache roots, replaced by
+       ``CACHE_ROOT_TOKEN`` (required fix D1 of cycle 38785927063).
+    3. Any remaining machine-specific absolute filesystem path, replaced by
+       ``ABSOLUTE_PATH_TOKEN``.  The recorded upstream API endpoints
+       (``/citations``, ``/leading-cases``, ...) begin with ``/`` but are claim
+       content, not locations, so they stay in the payload.
+
+    Verified off the generating machine, not merely under a different
+    ``PYTHONHASHSEED`` on the generating host: see
+    ``reports/product/CYCLE_38789874982.md`` and the regression test
+    ``product/tests/test_cache_non_orphan.py::
+    test_content_hash_is_invariant_under_a_rewritten_cache_root``.
     """
     canonical = copy.deepcopy(bundle)
     for path in TIMING_PATHS:
+        _pop_path(canonical, path)
+    for path in CACHE_ROOT_PATHS:
         node = canonical
         for key in path[:-1]:
             node = node.get(key) if isinstance(node, dict) else None
-        if isinstance(node, dict):
-            node.pop(path[-1], None)
+        if isinstance(node, dict) and path[-1] in node:
+            node[path[-1]] = CACHE_ROOT_TOKEN
+    canonical = _scrub_machine_paths(canonical)
     payload = json.dumps(canonical, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _cache_bodies(cache_root) -> list[dict]:
+    """Every cached envelope body under ``cache_root``, reusing the adapter's reader."""
+    try:
+        from ocl_adapter.cache import FileCache  # noqa: PLC0415  (frontier adapter, sys.path set by product.query.pipeline)
+    except Exception:  # adapter unavailable: disclosure degrades, the claim stands
+        return []
+    out = []
+    for key in FileCache(cache_root).keys():
+        entry = FileCache(cache_root).get(key)
+        if not entry:
+            continue
+        body = entry.get("body")
+        if isinstance(body, str):
+            try:
+                body = json.loads(body)
+            except ValueError:
+                continue
+        if isinstance(body, dict):
+            out.append({"path": str(entry.get("path") or entry.get("url") or ""), "body": body})
+    return out
+
+
+def relation_recall(bundle: dict, cache_root=None) -> dict:
+    """How much of the available on-map citation evidence the bundle kept.
+
+    Advisory A1 of cycle 38785927063: the recovered relation set was presented
+    as "the" typed-relation view without saying how much of the on-map evidence
+    it covers.  This recomputes the denominator from the raw cached
+    ``/citations`` envelopes for the bundle's own citation seeds, so the number
+    ships with the artifact instead of living only in an audit report.
+
+    ``fabricated`` must stay 0: every bundle edge has to appear in the raw
+    upstream records.  ``recall`` below 1.0 is a disclosed coverage limit, not a
+    fabrication, and the dropped edges are named.
+    """
+    decisions = bundle.get("decisions") or []
+    on_map = {str(d.get("decision_id")) for d in decisions}
+    shipped = {
+        (str(r.get("source")), str(r.get("target")), str(r.get("kind") or ""))
+        for r in (bundle.get("relations") or [])
+    }
+    notes = ((bundle.get("provenance") or {}).get("stage_notes") or {}).get("citations") or {}
+    seeds = [
+        str(e.get("seed"))
+        for e in (notes.get("per_seed") or [])
+        if isinstance(e, dict) and e.get("seed")
+    ]
+    raw: set[tuple[str, str, str]] = set()
+    if seeds and cache_root is None:
+        cache_root = product_cache_dir()
+    for envelope in _cache_bodies(cache_root) if cache_root else []:
+        if "/citations" not in envelope["path"]:
+            continue
+        body = envelope["body"]
+        seed = str(body.get("decision_id") or "")
+        if seed not in seeds:
+            continue
+        for edge in body.get("outgoing") or []:
+            target = edge.get("target_decision_id") or edge.get("target_ref")
+            if target:
+                raw.add((seed, str(target), "citation"))
+        for edge in body.get("incoming") or []:
+            source = edge.get("source_decision_id") or edge.get("source_ref")
+            if source:
+                raw.add((str(source), seed, "citation"))
+
+    available = {e for e in raw if e[0] in on_map and e[1] in on_map}
+    kept = shipped & available
+    return {
+        "seeds": seeds,
+        "raw_typed_edges": len(raw),
+        "on_map_typed_edges": len(available),
+        "in_bundle": len(kept),
+        "recall": (len(kept) / len(available)) if available else None,
+        "fabricated": sorted(f"{s}->{t}" for s, t, _ in (shipped - available)),
+        "dropped_on_map": sorted(f"{s}->{t}" for s, t, _ in (available - shipped)),
+        "scope_note": (
+            "denominator is the typed edges recorded in the cached /citations envelopes "
+            "for this query's own citation seeds whose BOTH endpoints reached the map; "
+            "it is not a verified citation graph over the whole corpus"
+        ),
+    }
+
+
+def field_coverage(decisions: list[dict]) -> dict:
+    """Which per-decision claim fields are actually populated, not merely present.
+
+    Advisory A7 of cycle 38785927063: ``source_url`` is a *required key* but is
+    null on some rows, so "N/N rows are source-linked" holds through
+    ``canonical_url`` and must not be read as both fields being populated.
+    Reporting the split keeps the claim honest without weakening the key
+    requirement in REQUIRED_DECISION_KEYS.
+    """
+    total = len(decisions)
+    out: dict[str, dict] = {}
+    for field in ("decision_id", "citation", "canonical_url", "source_url",
+                  "court", "language", "decision_date", "x", "y", "cluster_id"):
+        populated = sum(1 for d in decisions if d.get(field) not in (None, "", []))
+        out[field] = {"populated": populated, "null_or_empty": total - populated, "of": total}
+    return out
 
 
 def inspect_bundle(bundle: dict) -> dict:
@@ -231,6 +431,8 @@ def inspect_bundle(bundle: dict) -> dict:
         "relation_kinds": dict(sorted(relation_kinds.items())),
         "dangling_relations": dangling_relations,
         "content_sha256": content_sha256(bundle),
+        "relation_recall": relation_recall(bundle),
+        "decision_field_coverage": field_coverage(decisions),
         "n_outliers": sum(1 for d in decisions if d.get("is_outlier") is True),
         "languages": dict(sorted(languages.items())),
         "hosts": dict(sorted(hosts.items())),
@@ -281,8 +483,46 @@ def inspect_bundle(bundle: dict) -> dict:
         "latency_seconds": prov.get("latency_seconds"),
         "answer_status": (bundle.get("answer") or {}).get("status"),
         "answer_method": (bundle.get("answer") or {}).get("method"),
-        "cache_root": (prov.get("cache_stats") or {}).get("root"),
+        "cache_root": _portable_cache_root((prov.get("cache_stats") or {}).get("root")),
         "cache_keys": (prov.get("cache_stats") or {}).get("n_keys"),
+        "hashed_payload_paths": hashed_payload_paths(bundle),
+    }
+
+
+def hashed_payload_paths(bundle: dict) -> dict:
+    """What ``content_sha256`` had to neutralise, and what it deliberately kept.
+
+    ``content_sha256`` rewrites every machine path to a constant token, so the
+    hash stays portable; this lists those locations so a reviewer can see *what*
+    was neutralised instead of trusting the hash.  ``api_endpoints`` are the
+    recorded upstream paths (``/citations``, ``/leading-cases``, ...) that begin
+    with ``/`` but are claim content, so they stay inside the payload and are
+    listed to show they were not swept up with the machine paths.
+    """
+    canonical = copy.deepcopy(bundle)
+    for path in TIMING_PATHS:
+        _pop_path(canonical, path)
+
+    machine: list[str] = []
+    endpoints: list[str] = []
+
+    def walk(node, where: str):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                walk(v, f"{where}.{k}")
+        elif isinstance(node, list):
+            for i, v in enumerate(node):
+                walk(v, f"{where}[{i}]")
+        elif is_machine_path(node):
+            machine.append(where)
+        elif is_absolute_fs_path(node):
+            endpoints.append(where)
+
+    walk(canonical, "")
+    return {
+        "machine_paths": sorted(machine),
+        "api_endpoints": sorted(endpoints),
+        "timings_dropped": len(TIMING_PATHS),
     }
 
 
@@ -296,6 +536,7 @@ def genuine(insp: dict) -> bool:
         or insp["citation_channel_seed_refs"]
         or insp["pending_shell_identity"]
         or insp["dangling_relations"]
+        or insp["relation_recall"]["fabricated"]
         or insp["validate_bundle_errors"]
     )
 

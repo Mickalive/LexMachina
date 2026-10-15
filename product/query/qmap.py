@@ -314,9 +314,14 @@ def _cluster_label(model: MapModel, members: list[dict], top_k: int = LABEL_TOP_
 
     Only terms present in the cluster are eligible, and the order is
     ``(-round(mean, LABEL_MEAN_DECIMALS), term)`` — deterministic across
-    environments, so the artifact's sha256 is reproducible off the generating
-    machine.  A cluster with fewer than ``top_k`` present terms is labelled with
-    the terms it actually has rather than padded with absent ones.
+    environments.  Note the scope: that fixes the *label ordering*, which was
+    the defect audit F2 of cycle 38779139471 found; it is not what makes the
+    artifact reproducible.  Artifact identity is
+    ``product/replay_bundle.py::content_sha256``, which since run 38789874982
+    also excludes the machine's absolute cache root and is verified at two
+    different checkout paths.  A cluster with fewer than ``top_k`` present terms
+    is labelled with the terms it actually has rather than padded with absent
+    ones.
     """
     if not members or model.vectorizer is None:
         return ""

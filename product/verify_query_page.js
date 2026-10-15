@@ -117,6 +117,28 @@ setTimeout(() => {
     check(true, "bundle carries no relation row (nothing to exercise)");
   }
 
+  /* 6. The canvas map itself.  Advisory A2 of cycle 38785927063: the shim
+   *    stubbed every <select>'s value as "", so filtered() saw langFilter !==
+   *    "all", returned [], and draw() drew nothing — the harness certified a
+   *    clickable map it could not reach.  These assertions exercise draw() and
+   *    the canvas click handler for real. */
+  const drawn = page.evaluate("(function(){ draw(); return PTS.length; })()");
+  check(drawn === bundle.decisions.length,
+        "map draws one canvas point per decision (" + drawn + "/" + bundle.decisions.length + ")");
+
+  const clicked = page.evaluate(
+    "(function(){" +
+    "  const p = PTS[0]; if (!p) return null;" +
+    "  const r = cv.getBoundingClientRect();" +
+    "  cv.onclick({ clientX: r.left + p._px, clientY: r.top + p._py });" +
+    "  return { id: p.decision_id, cx: p._px, cy: p._py };" +
+    "})()");
+  const detailHtml = documentShim.getElementById("detail").innerHTML;
+  check(!!clicked && detailHtml.indexOf(esc(clicked.id)) !== -1,
+        "clicking a drawn point opens its decision (" + (clicked && clicked.id) + ")");
+  check(!!clicked && detailHtml.indexOf("Ouvrir la source") !== -1,
+        "the clicked point's panel carries the source link");
+
   let failed = 0;
   for (const a of assertions) {
     if (!a.ok) failed += 1;
