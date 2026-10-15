@@ -1,0 +1,257 @@
+{
+  "charter_version": 1,
+  "claim_ceiling": "This cycle may claim: on the three named accepted bundles and four named frozen reality-check legs, as of the sha256-pinned inputs re-verified at mount commit 49d6593, the counter-authority pass produced zero counter rows via any retrieval route absent from the initial broad retrieval, and the accepted implementation's declared independence is model-call independence over a bounded 24-decision shortlist. It may NOT claim: that no contrary authority exists in the corpus, that any case is supporting/contrary/limiting (labels are the product's, reported not endorsed), that a fix would work, anything about projection or clustering quality (frontier-map-semantics' lane), or that the pre-registration is cryptographically ordered beyond what RULES.json's own timestamp and the threshold-lock test support (see D9).",
+  "continuation": {
+    "continue_recommended": false,
+    "reason": "Both charter preconditions for another cycle are met and the charter's stop_promote_rule is exhausted: the named verdict plus exactly one bounded candidate cause were delivered in run 38792663259 and re-verified here. The only defect found this run was in this team's own harness/report, and it is fixed. Re-measuring the same sha256-pinned inputs under the same charter is forbidden ('never rerun because a yield number was disappointing'). The remaining work - giving the adversarial pass a retrieval capability, repositioning counter rows, or revisiting the status gate - is product-owned."
+  },
+  "declared_corrections_this_run": [
+    {
+      "effect_on_verdict": "none - the report body is unchanged and still hashes to b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd",
+      "fix": "--run-id parameterises the output name; rewriting identical bytes is a no-op; rewriting DIFFERENT bytes over an existing claim-bearing report raises ReportOverwriteRefused and exits 4 unless --overwrite is passed explicitly. Locked by 3 new tests including a CLI test that tampers with a report and asserts the refused write leaves the bytes intact.",
+      "found": "resume review of harness.write_report",
+      "id": "D5_report_overwrite_guard",
+      "impact": "write_report hardcoded the output name CYCLE_38792663259_REPORT.json and overwrote it unconditionally, so any later run of the matrix could silently destroy another run's claim-bearing artifact (AGENTS.md rule 6). During this resume the reproduction was byte-identical, so nothing was actually lost - by luck, not by design.",
+      "kind": "harness defect (MAJOR)",
+      "threshold_changed": false
+    },
+    {
+      "effect_on_verdict": "none",
+      "fix": "verify_input_observed() returns the observed digest/byte size next to the frozen one, and a per-run ENVELOPE sidecar records the full observed-vs-frozen table, the argv, the clock, the python version and whether the body reproduces the frozen report. The observed hashes are deliberately kept OUT of the report body so the frozen artifact stays byte-stable.",
+      "found": "resume review; the report body's 'integrity' key was a hardcoded empty list",
+      "id": "D6_integrity_evidence_not_recorded",
+      "impact": "the harness re-hashed every input before computing but recorded no evidence of it, so the published report asserted nothing about the hashes it depended on and an auditor could not distinguish 'verified' from 'not checked'.",
+      "kind": "harness defect (MAJOR)",
+      "threshold_changed": false
+    },
+    {
+      "effect_on_verdict": "none - the verdict is driven by metric (b) on all three bundles; the correction makes the placement finding marginally LESS unfavourable to the product, i.e. it cuts against our own hypothesis.",
+      "fix": "the sentence now reads 3 of 8, carries an inline correction note naming the cycle that changed it, and the number is recomputed from the report JSON by TestNarrativeNumbersAreMachineChecked so it cannot drift again.",
+      "found": "independent cross-check + independent recomputation from the raw bundles",
+      "id": "D7_narrative_distinct_cluster_count",
+      "impact": "CYCLE_38792663259.md section 4 said 'only 2 of 8 sit outside the consensus mega-cluster'. The report's own metric (d) column reads 0.33, 0.25 and 1.00, i.e. 1/3 + 1/4 + 1/1 = 3 rows (verified directly from the bundles: B1 one row in cluster 2 vs consensus 0, B2 one in cluster 5 vs consensus 6, B3 one in cluster 4 vs consensus 5).",
+      "kind": "report prose error",
+      "threshold_changed": false
+    },
+    {
+      "effect_on_verdict": "none",
+      "fix": "heading reads 'Four harness defects found and declared'",
+      "found": "same review",
+      "id": "D8_defect_count_heading",
+      "impact": "section 7 was headed 'Two harness defects found and declared' and then listed D1, D2, D3 and D4.",
+      "kind": "report prose error",
+      "threshold_changed": false
+    },
+    {
+      "effect_on_verdict": "none",
+      "fix": "disclosed in CYCLE_38792663259.md section 1 and here. The commits were NOT reconstructed or re-authored: doing so would fabricate provenance. Threshold immutability remains independently locked by test_thresholds_match_the_frozen_rules_file.",
+      "found": "git cat-file / reflog / fsck on the resumed snapshot",
+      "id": "D9_freeze_commit_unresolvable",
+      "impact": "RULES.json records frozen_at_commit 4c83b45 and the report cites 1d50633, but neither object exists in the published branch: the producer's history was squashed into the single commit 72ecb19 before the snapshot was taken, with no reflog and no dangling objects. The freeze-FIRST claim therefore rests on the frozen timestamp inside RULES.json plus the threshold-lock test, not on a verifiable commit sequence.",
+      "kind": "provenance disclosure",
+      "threshold_changed": false
+    }
+  ],
+  "frozen_report_integrity": {
+    "path": "results/frontier/frontier-adversarial-discoverability/CYCLE_38792663259_REPORT.json",
+    "sha256_expected": "b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd",
+    "sha256_now": "b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd",
+    "unchanged": true
+  },
+  "generated_at_utc": "2026-10-15T19:36:00Z",
+  "independent_crosscheck": {
+    "agrees_with_harness_report": true,
+    "all_inputs_verified": true,
+    "legs": {
+      "L1_rent-default": {
+        "counter_rows": 1,
+        "decision_count": 165,
+        "yield_over_decision_count": 0.006061
+      },
+      "L2_petty-theft-dismissal": {
+        "counter_rows": 2,
+        "decision_count": 180,
+        "yield_over_decision_count": 0.011111
+      },
+      "L3_corporate-criminal-liability": {
+        "counter_rows": 5,
+        "decision_count": 164,
+        "yield_over_decision_count": 0.030488
+      },
+      "L4_business-judgment-rule": {
+        "counter_rows": 3,
+        "decision_count": 180,
+        "yield_over_decision_count": 0.016667
+      }
+    },
+    "per_bundle": {
+      "B1_gate_rehearsal_live_227": {
+        "counter_ranks": [
+          1,
+          3,
+          13
+        ],
+        "counter_rows": 3,
+        "rows_flagged_outlier": 0,
+        "rows_outside_consensus_cluster": 1,
+        "rows_with_channel_absent_from_initial_retrieval": 0
+      },
+      "B2_clickable_slice_live_enriched_287": {
+        "counter_ranks": [
+          5,
+          6,
+          14,
+          27
+        ],
+        "counter_rows": 4,
+        "rows_flagged_outlier": 0,
+        "rows_outside_consensus_cluster": 1,
+        "rows_with_channel_absent_from_initial_retrieval": 0
+      },
+      "B3_kundigung_fixture_100": {
+        "counter_ranks": [
+          3
+        ],
+        "counter_rows": 1,
+        "rows_flagged_outlier": 0,
+        "rows_outside_consensus_cluster": 1,
+        "rows_with_channel_absent_from_initial_retrieval": 0
+      }
+    },
+    "prose_claims": {
+      "counter_channels_are_search_or_language_filter_only": true,
+      "no_counter_row_is_an_outlier": true,
+      "seven_of_eight_counter_rows_sit_inside_the_top20": true,
+      "three_of_eight_counter_rows_sit_outside_the_consensus_cluster": true,
+      "zero_of_eight_counter_rows_came_from_a_new_channel": true
+    },
+    "tool": "frontier/frontier-adversarial-discoverability/independent_crosscheck.py",
+    "why": "a second implementation that imports nothing from the harness, so the audit can confirm the numbers without trusting the measuring code"
+  },
+  "mode": "OPERATIONAL_RESUME",
+  "narrative_corrections": {
+    "files_changed": [
+      {
+        "corrections": [
+          "D7: 'only 2 of 8 sit outside the consensus mega-cluster' -> '3 of 8'",
+          "D9: added a freeze-order provenance disclosure to section 1"
+        ],
+        "path": "reports/frontier/frontier-adversarial-discoverability/CYCLE_38792663259.md",
+        "sha256_after_correction": "715b348f0d6e83dbd2e0610207a2bb20d9eb56800fe1a4f9331cf75c5707cc0b",
+        "sha256_before_correction_at_commit_72ecb19": "be4fba0ac8816ec78b727a8ce345853eaae4fd0694e102f3ef36946e105f7756"
+      }
+    ],
+    "measured_artifacts_unchanged": [
+      {
+        "path": "results/frontier/frontier-adversarial-discoverability/CYCLE_38792663259_REPORT.json",
+        "sha256": "b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd"
+      },
+      {
+        "path": "results/frontier/frontier-adversarial-discoverability/RULES.json",
+        "sha256": "5e78d8f156b99d220e34037d829f44ac66e70a597e2073013a4b82adb42a674b"
+      },
+      {
+        "path": "results/frontier/frontier-adversarial-discoverability/CYCLE_38792663259_REPRODUCIBILITY.json",
+        "sha256": "aa392bbe273683ad6fbbda391c01a59caaf53d89a53069e48230226f6c1cf902"
+      },
+      {
+        "path": "results/frontier/frontier-adversarial-discoverability/superseded/CYCLE_38792663259_REPORT_defect-v1.json",
+        "sha256": "3a0537362c9a1ccc94363f064495ddc24623915056e7e3d6ceee65eb91710538"
+      }
+    ],
+    "note": "the preserved_from_38792663259 digests above are post-correction for this markdown file; the before/after pair is recorded here.",
+    "policy": "prose errors in a claim-bearing report are corrected in place with an inline correction note; the pre-correction text remains in git at commit 72ecb19 and both digests are recorded here. No measured JSON artifact was altered."
+  },
+  "operational_failure": {
+    "diagnosis": "The guard detects a durable delta only by the ABSENCE of a clean tree. Run 38792663259 committed its own work (its snapshot HEAD is the producer's own commit 72ecb19, message 'Frontier frontier-adversarial-discoverability v1 run 38792663259: ...'), so the working tree was clean at the guard, all three conditions held, and the step exited 67. The work was already durable and complete; the guard, not the producer, failed. The resilience job then correctly dispatched this operational resume from the snapshot branch cycle/frontier/frontier-adversarial-discoverability/38792663259/team.",
+    "failing_step": "Validate Frontier producer delta and state",
+    "guard_shell": "if git diff --quiet && git diff --cached --quiet && [[ -z \"$(git status --porcelain -uall)\" ]]; then echo '::error::Frontier producer returned success with zero durable delta'; exit 67; fi",
+    "rejected_alternatives": [
+      "exit 68 (missing state file) / exit 69 (state not advanced past INITIALIZED): the state file exists and satisfies every jq condition.",
+      "Enforce team scope exit 4: the snapshot contains no path outside this team's five prefixes.",
+      "Job timeout: the Persist team snapshot step runs with if: always() and the snapshot branch exists, so the job reached the end of its step list."
+    ],
+    "remediation_applied": "This run leaves its delta in the working tree UNCOMMITTED, which is what the guard inspects; the workflow's own 'Persist team snapshot' step (if: always()) commits it into the snapshot. Committing here would have reproduced the same exit 67 and an infinite resume loop.",
+    "reproduction": "Replaying the guard verbatim in the resumed checkout, with the same clean tree the producer left, prints '::error::Frontier producer returned success with zero durable delta' and trips exit 67. The state checks in the same step pass (charter_version==1, cycle_status!=INITIALIZED, evidence_tier non-empty), so exit 68/69 were not the cause.",
+    "residual_risk": "The guard is a workflow-level false negative: any producer that commits its own work is failed after the fact. This team cannot change .github/ (forbidden by the charter's write scope), so the finding is handed to the factory owner in reports/frontier/frontier-adversarial-discoverability/OPERATIONAL_RESUME_CYCLE_38794235870.md rather than patched.",
+    "workflow": ".github/workflows/frontier-team.yml"
+  },
+  "preserved_from_38792663259": [
+    {
+      "path": "results/frontier/frontier-adversarial-discoverability/RULES.json",
+      "sha256_now": "5e78d8f156b99d220e34037d829f44ac66e70a597e2073013a4b82adb42a674b"
+    },
+    {
+      "path": "results/frontier/frontier-adversarial-discoverability/CYCLE_38792663259_REPORT.json",
+      "sha256_now": "b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd"
+    },
+    {
+      "path": "results/frontier/frontier-adversarial-discoverability/CYCLE_38792663259_REPRODUCIBILITY.json",
+      "sha256_now": "aa392bbe273683ad6fbbda391c01a59caaf53d89a53069e48230226f6c1cf902"
+    },
+    {
+      "path": "results/frontier/frontier-adversarial-discoverability/superseded/CYCLE_38792663259_REPORT_defect-v1.json",
+      "sha256_now": "3a0537362c9a1ccc94363f064495ddc24623915056e7e3d6ceee65eb91710538"
+    },
+    {
+      "path": "reports/frontier/frontier-adversarial-discoverability/CYCLE_38792663259.md",
+      "sha256_now": "715b348f0d6e83dbd2e0610207a2bb20d9eb56800fe1a4f9331cf75c5707cc0b"
+    },
+    {
+      "path": "reports/frontier/frontier-adversarial-discoverability/INTEGRATION_CONTRACT.md",
+      "sha256_now": "31aca534061f78bacfc6f22ad249724a4db054f8946656650dedd6ef90b74b8d"
+    }
+  ],
+  "record_version": "fad-resume-verification/1",
+  "resumed_from_run_id": "38792663259",
+  "reverification": {
+    "accepted_mount_commit": "49d6593 (accept product cycle 38789874982)",
+    "all_inputs_match_frozen_sha256": true,
+    "bundles_measured": 3,
+    "frozen_legs_measured": 4,
+    "inputs_rehashed": 7,
+    "mount_advanced_since_freeze": true,
+    "named_verdict": "CLASSIFICATION_ONLY",
+    "network_calls": 0,
+    "non_vacuity_gate": "PASS",
+    "reproduction": {
+      "byte_identical_to_frozen_report": true,
+      "envelope": "results/frontier/frontier-adversarial-discoverability/CYCLE_38794235870_ENVELOPE.json",
+      "path": "results/frontier/frontier-adversarial-discoverability/CYCLE_38794235870_REPORT.json",
+      "sha256": "b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd"
+    },
+    "tests": {
+      "command": "python3 -m unittest discover -s tests/frontier/frontier-adversarial-discoverability -p 'test_*.py'",
+      "n_tests": 52,
+      "result": "OK"
+    }
+  },
+  "run_id": "38794235870",
+  "scope_held": {
+    "accepted_mount_read_only": true,
+    "audit_artifacts": "not written by this team: results/audit/** and reports/audit/** are outside the team scope guard (Enforce team scope exits 4 on any other path) and are written by the audit job into its own checkout, exactly as the charter's operational_revision_reason describes.",
+    "citation_identity_defect_not_relitigated": true,
+    "evaluation_untouched": true,
+    "geometry_reported_read_only_only": true,
+    "github_workflows_untouched": true,
+    "human_gate_ready_untouched": true,
+    "human_gate_sessions_untouched": true,
+    "product_untouched": true,
+    "writes_confined_to": [
+      "frontier/frontier-adversarial-discoverability/**",
+      "tests/frontier/frontier-adversarial-discoverability/**",
+      "results/frontier/frontier-adversarial-discoverability/**",
+      "reports/frontier/frontier-adversarial-discoverability/**",
+      "state/frontier/frontier-adversarial-discoverability.json"
+    ]
+  },
+  "summary": "The charter was already executed and terminated by run 38792663259 (verdict CLASSIFICATION_ONLY, one bounded candidate cause). This resume preserved that work, re-verified it byte-for-byte against the current accepted mount, diagnosed why the run failed operationally, and fixed two concrete harness defects and one narrative error it found in the process. No threshold, metric definition, population, verdict or candidate cause was changed.",
+  "team_id": "frontier-adversarial-discoverability",
+  "verdict_after_resume": {
+    "answer": "The counter-authority capability is classification-only, not retrieval-independent: 0 of 8 counter-authority rows across the 3 accepted bundles entered through a retrieval channel the initial broad pass did not use, and the accepted AdversarialPass holds no retrieval client.",
+    "named_verdict": "CLASSIFICATION_ONLY",
+    "note": "The charter permits exactly one candidate cause and forbids adding more. This resume adds none; it only re-verified the evidence for the existing one.",
+    "single_bounded_candidate_cause_unchanged": true,
+    "unchanged_from": "38792663259"
+  }
+}

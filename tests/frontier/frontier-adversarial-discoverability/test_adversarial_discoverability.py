@@ -389,5 +389,220 @@ class TestCliAndScope(unittest.TestCase):
         self.assertNotIn("results/audit", default_out)
 
 
+# ---------------------------------------------------------------------------
+# D5/D6 — the claim-bearing report must survive a later run (IO revision 2)
+# ---------------------------------------------------------------------------
+
+FROZEN_REPORT = RESULTS_DIR / "CYCLE_38792663259_REPORT.json"
+#: sha256 of the published run-38792663259 report, also recorded in RULES-derived
+#: state and in CYCLE_38792663259_REPRODUCIBILITY.json.  If this changes, a
+#: published claim-bearing artifact was rewritten.
+FROZEN_REPORT_SHA256 = "b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd"
+
+
+class TestHistoricalArtifactProtection(unittest.TestCase):
+    def test_published_frozen_report_still_hashes_to_its_recorded_sha256(self):
+        if not FROZEN_REPORT.is_file():
+            self.skipTest("frozen report not present")
+        self.assertEqual(H.sha256_file(str(FROZEN_REPORT)), FROZEN_REPORT_SHA256)
+
+    def test_report_path_is_derived_from_run_id_not_hardcoded(self):
+        with tempfile.TemporaryDirectory() as td:
+            self.assertTrue(H.report_path(td, "111").endswith("CYCLE_111_REPORT.json"))
+            self.assertTrue(H.envelope_path(td, "222").endswith("CYCLE_222_ENVELOPE.json"))
+            self.assertNotEqual(H.report_path(td, "111"), H.report_path(td, "222"))
+
+    def test_identical_bytes_rewrite_is_a_noop_not_a_modification(self):
+        body = {"x": 1}
+        with tempfile.TemporaryDirectory() as td:
+            first = H.write_report(body, td, run_id="1")
+            second = H.write_report(body, td, run_id="1")
+            self.assertTrue(first["written"])
+            self.assertFalse(second["written"])
+            self.assertTrue(second["identical_to_existing"])
+            self.assertEqual(first["report_sha256"], second["report_sha256"])
+
+    def test_overwriting_a_claim_bearing_report_with_different_bytes_is_refused(self):
+        with tempfile.TemporaryDirectory() as td:
+            H.write_report({"x": 1}, td, run_id="1")
+            with self.assertRaises(H.ReportOverwriteRefused):
+                H.write_report({"x": 2}, td, run_id="1")
+            # the historical bytes survived the refused write
+            self.assertEqual(H.canonical({"x": 1}), Path(H.report_path(td, "1")).read_bytes())
+            # explicit override is possible and is recorded
+            forced = H.write_report({"x": 2}, td, run_id="1", overwrite=True)
+            self.assertTrue(forced["overwrote_existing"])
+
+    def test_cli_refuses_to_overwrite_and_exits_4(self):
+        with tempfile.TemporaryDirectory() as td:
+            first = subprocess.run(
+                [sys.executable, "-m", "adversarial_discoverability.harness",
+                 "--matrix", "--no-non-vacuity", "--out", td, "--run-id", "42"],
+                cwd=str(TEAM_DIR), capture_output=True, text=True, timeout=900)
+            self.assertEqual(first.returncode, 0, first.stderr[-2000:])
+            # Re-publishing the same run id with identical bytes stays a success.
+            again = subprocess.run(
+                [sys.executable, "-m", "adversarial_discoverability.harness",
+                 "--matrix", "--no-non-vacuity", "--out", td, "--run-id", "42"],
+                cwd=str(TEAM_DIR), capture_output=True, text=True, timeout=900)
+            self.assertEqual(again.returncode, 0, again.stderr[-2000:])
+            # Destroy the report, then force a different body onto the same path.
+            Path(H.report_path(td, "42")).write_bytes(b'{"tampered": true}\n')
+            clash = subprocess.run(
+                [sys.executable, "-m", "adversarial_discoverability.harness",
+                 "--matrix", "--no-non-vacuity", "--out", td, "--run-id", "42"],
+                cwd=str(TEAM_DIR), capture_output=True, text=True, timeout=900)
+            self.assertEqual(clash.returncode, 4, clash.stdout[-2000:])
+            self.assertIn("already holds different bytes", clash.stderr)
+            self.assertEqual(Path(H.report_path(td, "42")).read_bytes(),
+                             b'{"tampered": true}\n')
+
+    def test_envelope_records_observed_input_hashes(self):
+        rules = json.loads(RULES_PATH.read_text(encoding="utf-8"))
+        spec = rules["inputs"]["bundles"][0]
+        path, obs = H.verify_input_observed(spec, str(MOUNT))
+        self.assertTrue(obs["verified"])
+        self.assertEqual(obs["sha256_observed"], obs["sha256_frozen"])
+        self.assertEqual(obs["bytes_observed"], obs["bytes_frozen"])
+        self.assertEqual(obs["path"], spec["path"])
+        self.assertTrue(os.path.isfile(path))
+
+    def test_envelope_has_a_clock_but_the_report_body_never_does(self):
+        with tempfile.TemporaryDirectory() as td:
+            w = H.write_report({"body": True}, td, run_id="7")
+            body = H.run_matrix(str(MOUNT), non_vacuity=False)
+            env = H.build_envelope(body, [], "7", td, ["harness"], w)
+            H.write_envelope(env, td, run_id="7")
+            env_path = Path(H.envelope_path(td, "7"))
+            self.assertTrue(env_path.is_file())
+            self.assertRegex(env["generated_at_utc"], r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+            self.assertNotIn("generated_at_utc", H.canonical(body).decode("utf-8"))
+
+    def test_envelope_says_whether_it_reproduces_the_frozen_report(self):
+        with tempfile.TemporaryDirectory() as td:
+            # non_vacuity=True: the frozen report was produced with the full gate.
+            body = H.run_matrix(str(MOUNT), non_vacuity=True)
+            w = H.write_report(body, td, run_id="7")
+            # copy the frozen report in, so the comparison target exists
+            if FROZEN_REPORT.is_file():
+                Path(H.report_path(td, H.FROZEN_RUN_ID)).write_bytes(FROZEN_REPORT.read_bytes())
+            env = H.build_envelope(body, [], "7", td, ["harness"], w)
+            if FROZEN_REPORT.is_file():
+                self.assertTrue(env["reproduces_frozen_report"]["byte_identical_to_frozen_report"])
+                self.assertEqual(env["reproduces_frozen_report"]["frozen_report_sha256"],
+                                 FROZEN_REPORT_SHA256)
+            # A body computed WITHOUT the non-vacuity gate must not claim to
+            # reproduce the frozen (gate-carrying) report.
+            body_nv = H.run_matrix(str(MOUNT), non_vacuity=False)
+            w_nv = H.write_report(body_nv, td, run_id="8")
+            env_nv = H.build_envelope(body_nv, [], "8", td, ["harness"], w_nv)
+            self.assertFalse(env_nv["reproduces_frozen_report"]["byte_identical_to_frozen_report"])
+
+
+@unittest.skipUnless((MOUNT / "results" / "product").is_dir(), "accepted product mount absent")
+class TestNarrativeNumbersAreMachineChecked(unittest.TestCase):
+    """The prose report states these numbers; they are recomputed from the
+    published report JSON so a wording drift cannot survive a rerun."""
+
+    @classmethod
+    def setUpClass(cls):
+        if not FROZEN_REPORT.is_file():
+            raise unittest.SkipTest("frozen report not present")
+        cls.body = json.loads(FROZEN_REPORT.read_text(encoding="utf-8"))
+
+    def bundles(self):
+        return [i for i in self.body["inputs"] if i["kind"] == "bundle"]
+
+    def test_counter_row_totals_in_the_prose(self):
+        n = sum(i["metrics"]["a_counter_yield"]["n_counter_strict"] for i in self.bundles())
+        self.assertEqual(n, 8)  # "0 of 8", "7 of 8", "8 counter rows"
+
+    def test_counter_rows_outside_the_consensus_cluster_is_three_not_two(self):
+        """CYCLE_38792663259.md said "only 2 of 8 sit outside the consensus
+        mega-cluster"; the report's own metric (d) gives 1/3 + 1/4 + 1/1 = 3."""
+        distinct = 0
+        for i in self.bundles():
+            m = i["metrics"]["d_placement_visibility"]
+            distinct += round(m["distinct_cluster_share"] * m["n_counter"])
+        self.assertEqual(distinct, 3)
+
+    def test_no_counter_row_is_an_outlier(self):
+        for i in self.bundles():
+            m = i["metrics"]["d_placement_visibility"]
+            self.assertEqual(m["is_outlier_share"], 0.0, i["id"])
+
+    def test_seven_of_eight_counter_rows_sit_inside_the_top20(self):
+        n = tot = 0
+        for i in self.bundles():
+            c = i["metrics"]["c_rank_placement"]
+            tot += c["n_counter"]
+            n += round(c["top20_share"] * c["n_counter"])
+        self.assertEqual((n, tot), (7, 8))
+
+    def test_every_counter_row_channel_is_search_or_language_filter(self):
+        for i in self.bundles():
+            h = i["metrics"]["b_marginal_retrieval_contribution"]["b3_counter_channel_histogram"]
+            self.assertTrue(set(h) <= {"search", "search.language_filter"}, i["id"])
+
+
+@unittest.skipUnless((MOUNT / "results" / "product").is_dir(), "accepted product mount absent")
+class TestIndependentCrossCheckAgrees(unittest.TestCase):
+    """A second, independent implementation must reproduce the same numbers.
+
+    ``frontier/frontier-adversarial-discoverability/independent_crosscheck.py`` imports
+    nothing from the harness and re-expresses the populations, metrics and thresholds
+    from RULES.json.  If the two implementations ever diverge, this test fails rather
+    than letting one of them quietly back the published claim.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        script = TEAM_DIR / "independent_crosscheck.py"
+        if not script.is_file():
+            raise unittest.SkipTest("cross-check tool absent")
+        r = subprocess.run([sys.executable, str(script), "--json"],
+                           capture_output=True, text=True, timeout=900)
+        if r.returncode not in (0, 1):
+            raise unittest.SkipTest(f"cross-check could not run: {r.stderr[-500:]}")
+        cls.x = json.loads(r.stdout)
+
+    def test_crosscheck_verifies_every_frozen_input(self):
+        self.assertTrue(self.x["all_inputs_verified"])
+
+    def test_crosscheck_confirms_every_prose_claim(self):
+        checks = self.x["prose_claims"]["checks"]
+        for name, ok in checks.items():
+            self.assertTrue(ok, f"prose claim failed cross-check: {name}")
+
+    def test_crosscheck_numbers_match_the_harness_report(self):
+        if not FROZEN_REPORT.is_file():
+            self.skipTest("frozen report not present")
+        body = json.loads(FROZEN_REPORT.read_text(encoding="utf-8"))
+        by_id = {i["id"]: i for i in body["inputs"]}
+        for x in self.x["bundles"]:
+            m = by_id[x["id"]]["metrics"]
+            self.assertEqual(x["counter_rows"],
+                             m["a_counter_yield"]["n_counter_strict"], x["id"])
+            self.assertEqual(x["counter_ranks"], m["c_rank_placement"]["counter_ranks"], x["id"])
+            self.assertEqual(x["counter_rows_with_a_channel_absent_from_initial_retrieval"],
+                             m["b_marginal_retrieval_contribution"]["b1_adversarial_channel_rows"],
+                             x["id"])
+            self.assertEqual(x["counter_rows_flagged_outlier"],
+                             round(m["d_placement_visibility"]["is_outlier_share"]
+                                   * m["d_placement_visibility"]["n_counter"]), x["id"])
+            self.assertEqual(x["counter_rows_verified_with_substantive_reason"],
+                             m["e_evidence_quality"]["n_verified_with_reason"], x["id"])
+            self.assertEqual(x["counter_rows_with_placeholder_evidence"],
+                             m["e_evidence_quality"]["n_placeholder_evidence"], x["id"])
+            self.assertEqual(x["counter_rows_linked_into_the_answer"],
+                             m["f_answer_linkage"]["n_linked"], x["id"])
+            self.assertEqual(x["consensus_cluster_id"],
+                             m["d_placement_visibility"]["consensus_cluster_id"], x["id"])
+        for l in self.x["legs"]:
+            a = by_id[l["id"]]["metrics"]["a_counter_yield"]
+            self.assertEqual(l["counter_rows"], a["n_counter_strict"], l["id"])
+            self.assertEqual(l["decision_count"], a["n_bundle_total"], l["id"])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

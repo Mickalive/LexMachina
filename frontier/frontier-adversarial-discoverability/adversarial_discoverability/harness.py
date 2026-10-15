@@ -12,6 +12,17 @@ Hard rules enforced in code (RULES.json):
 * the report body carries no timestamp, so identical inputs -> byte-identical
   report bytes;
 * no network I/O and no writes outside this team's namespace.
+
+IO revision 2 (declared D5/D6, no metric definition changed):
+
+* the output file name is derived from ``--run-id`` instead of being hardcoded,
+  and a claim-bearing report is never overwritten with different bytes;
+* per-invocation provenance (observed input hashes, argv, clock, which frozen
+  report the bytes reproduce) is written to a per-run ENVELOPE sidecar, so the
+  report body stays byte-stable while the evidence for its hashes is recorded.
+
+``__version__`` continues to denote the frozen METRIC DEFINITIONS only, so a
+frozen report reproduced after an IO fix still hashes identically.
 """
 
 from __future__ import annotations
@@ -21,12 +32,21 @@ import copy
 import hashlib
 import json
 import os
+import platform
 import sys
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 from . import CHARTER_VERSION, RULES_VERSION, TEAM_ID, __version__
 from . import corrupt, metrics as M, populations as pop
 from .shortlist import accepted_tree_available, recompute_shortlist
+
+#: Version tag for the CLI/IO layer (report writing, integrity sidecar).
+#: Deliberately NOT the metric-definition version; see the module docstring.
+IO_REVISION = 2
+
+#: The run whose claim-bearing report this harness reproduces by default.
+FROZEN_RUN_ID = "38792663259"
 
 DEFAULT_MOUNT = os.environ.get("LEX_PRODUCT_MOUNT", "/tmp/lex_accepted/core/product")
 #: Repository root: <root>/frontier/<team>/adversarial_discoverability/harness.py
@@ -67,7 +87,18 @@ class IntegrityAbort(RuntimeError):
     pass
 
 
-def verify_input(spec: Dict[str, Any], mount: str) -> str:
+class ReportOverwriteRefused(RuntimeError):
+    """Raised when a new run would overwrite a claim-bearing report with
+    different bytes.  Overwriting a historical claim-bearing result is
+    forbidden by AGENTS.md rule 6, so the harness stops instead of doing it."""
+
+
+def verify_input_observed(spec: Dict[str, Any], mount: str) -> Tuple[str, Dict[str, Any]]:
+    """Verify one frozen input and return ``(path, observation)``.
+
+    The observation records the hash actually observed on disk next to the hash
+    frozen in RULES.json, so an artifact can carry its own integrity evidence.
+    """
     path = os.path.join(mount, spec["path"])
     if not os.path.isfile(path):
         raise IntegrityAbort(f"missing input {spec['path']}")
@@ -79,7 +110,20 @@ def verify_input(spec: Dict[str, Any], mount: str) -> str:
     if "bytes" in spec and size != spec["bytes"]:
         raise IntegrityAbort(
             f"byte-size mismatch for {spec['path']}: frozen {spec['bytes']} != actual {size}")
-    return path
+    return path, {
+        "id": spec.get("id"),
+        "kind": spec.get("kind"),
+        "path": spec["path"],
+        "sha256_frozen": spec["sha256"],
+        "sha256_observed": got,
+        "bytes_frozen": spec.get("bytes"),
+        "bytes_observed": size,
+        "verified": True,
+    }
+
+
+def verify_input(spec: Dict[str, Any], mount: str) -> str:
+    return verify_input_observed(spec, mount)[0]
 
 
 def rows_of(doc: Dict[str, Any]) -> Tuple[List[Dict[str, Any]], str]:
@@ -198,8 +242,12 @@ def run_non_vacuity(doc: Dict[str, Any], clean_metrics: Dict[str, Any]) -> Dict[
 
 
 def measure_input(spec: Dict[str, Any], mount: str, kind: str,
-                  non_vacuity: bool = False) -> Dict[str, Any]:
-    path = verify_input(spec, mount)
+                  non_vacuity: bool = False,
+                  observed_out: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+    path, observation = verify_input_observed(spec, mount)
+    observation["kind"] = kind
+    if observed_out is not None:
+        observed_out.append(observation)
     doc = _read_json(path)
     out = measure(doc)
     rec: Dict[str, Any] = {
@@ -217,14 +265,16 @@ def measure_input(spec: Dict[str, Any], mount: str, kind: str,
     return rec
 
 
-def run_matrix(mount: str = DEFAULT_MOUNT, non_vacuity: bool = True) -> Dict[str, Any]:
+def run_matrix(mount: str = DEFAULT_MOUNT, non_vacuity: bool = True,
+               observed_out: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
     rules = load_rules()
     per_input: List[Dict[str, Any]] = []
     integrity: List[Dict[str, Any]] = []
     for spec in rules["inputs"]["bundles"]:
-        per_input.append(measure_input(spec, mount, "bundle", non_vacuity=non_vacuity))
+        per_input.append(measure_input(spec, mount, "bundle", non_vacuity=non_vacuity,
+                                       observed_out=observed_out))
     for spec in rules["inputs"]["frozen_legs"]:
-        per_input.append(measure_input(spec, mount, "leg"))
+        per_input.append(measure_input(spec, mount, "leg", observed_out=observed_out))
 
     verdict, verdict_why = named_verdict(per_input)
     nv = [p["non_vacuity"] for p in per_input if "non_vacuity" in p]
@@ -245,6 +295,9 @@ def run_matrix(mount: str = DEFAULT_MOUNT, non_vacuity: bool = True) -> Dict[str
             "corruption_seed": corrupt.SEED,
         },
         "thresholds": M.THRESHOLDS,
+        # Kept as an empty list on purpose: the observed input hashes are per-run
+        # provenance and belong in the ENVELOPE sidecar (D6).  Adding them here
+        # would change the body of a frozen, already-published report.
         "integrity": integrity,
         "inputs": per_input,
         "named_verdict": verdict,
@@ -265,13 +318,121 @@ def run_matrix(mount: str = DEFAULT_MOUNT, non_vacuity: bool = True) -> Dict[str
     return body
 
 
-def write_report(body: Dict[str, Any], outdir: str) -> Dict[str, Any]:
+def report_path(outdir: str, run_id: str) -> str:
+    """Claim-bearing report path for ``run_id``.  Never hardcoded to one run."""
+    return os.path.join(outdir, f"CYCLE_{run_id}_REPORT.json")
+
+
+def envelope_path(outdir: str, run_id: str) -> str:
+    return os.path.join(outdir, f"CYCLE_{run_id}_ENVELOPE.json")
+
+
+def write_report(body: Dict[str, Any], outdir: str, run_id: str = FROZEN_RUN_ID,
+                 overwrite: bool = False) -> Dict[str, Any]:
+    """Write the claim-bearing report, refusing to destroy a prior one.
+
+    Re-writing identical bytes is a no-op (the frozen report is reproduced, not
+    modified).  Writing DIFFERENT bytes over an existing claim-bearing report is
+    refused unless ``overwrite`` is set explicitly, because an audit trail must
+    never silently lose an earlier run's published numbers (AGENTS.md rule 6).
+    """
     os.makedirs(outdir, exist_ok=True)
-    path = os.path.join(outdir, "CYCLE_38792663259_REPORT.json")
+    path = report_path(outdir, run_id)
     data = canonical(body)
+    digest = sha256_bytes(data)
+    res: Dict[str, Any] = {"path": path, "report_sha256": digest, "bytes": len(data)}
+    if os.path.exists(path):
+        with open(path, "rb") as fh:
+            existing = fh.read()
+        if existing == data:
+            res.update(written=False, identical_to_existing=True,
+                       note="existing report already has these bytes; left untouched")
+            return res
+        if not overwrite:
+            raise ReportOverwriteRefused(
+                f"{path} already holds different bytes "
+                f"(existing sha256 {sha256_bytes(existing)}, new sha256 {digest}). "
+                "Pass --run-id <this run's id> to publish alongside it, or --overwrite "
+                "to replace it deliberately.")
+        res.update(written=True, identical_to_existing=False, overwrote_existing=True)
+    else:
+        res.update(written=True, identical_to_existing=False, overwrote_existing=False)
     with open(path, "wb") as fh:
         fh.write(data)
-    return {"path": path, "report_sha256": sha256_bytes(data), "bytes": len(data)}
+    return res
+
+
+def write_envelope(envelope: Dict[str, Any], outdir: str,
+                   run_id: str = FROZEN_RUN_ID) -> Dict[str, Any]:
+    """Write the per-invocation provenance sidecar.
+
+    The envelope carries everything that must NOT enter the report body: the
+    wall clock, the argv, the observed input hashes, and which frozen report the
+    body reproduces.  It is deliberately not claim-bearing and is rewritten on
+    every invocation.
+    """
+    os.makedirs(outdir, exist_ok=True)
+    path = envelope_path(outdir, run_id)
+    data = canonical(envelope)
+    with open(path, "wb") as fh:
+        fh.write(data)
+    return {"path": path, "sha256": sha256_bytes(data), "bytes": len(data)}
+
+
+def _rel(path: str) -> str:
+    """Repo-relative when inside the repo, absolute otherwise (never ugly ../..)."""
+    ap = os.path.abspath(path)
+    if ap.startswith(os.path.abspath(REPO) + os.sep):
+        return os.path.relpath(ap, REPO)
+    return ap
+
+
+def build_envelope(body: Dict[str, Any], observed: List[Dict[str, Any]],
+                   run_id: str, outdir: str, argv: List[str],
+                   report_res: Dict[str, Any]) -> Dict[str, Any]:
+    """Per-run provenance sidecar.  Never part of the report body."""
+    frozen = report_path(outdir, FROZEN_RUN_ID)
+    reproduces: Optional[Dict[str, Any]] = None
+    if os.path.isfile(frozen):
+        with open(frozen, "rb") as fh:
+            frozen_bytes = fh.read()
+        reproduces = {
+            "frozen_report": _rel(frozen),
+            "frozen_report_sha256": sha256_bytes(frozen_bytes),
+            "this_report_sha256": report_res["report_sha256"],
+            "byte_identical_to_frozen_report": frozen_bytes == canonical(body),
+        }
+    return {
+        "envelope_version": "fad-envelope/1",
+        "team_id": TEAM_ID,
+        "charter_version": CHARTER_VERSION,
+        "rules_version": RULES_VERSION,
+        "metric_definition_version": __version__,
+        "io_revision": IO_REVISION,
+        "run_id": run_id,
+        "generated_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "argv": list(argv),
+        "cwd": os.getcwd(),
+        "python": platform.python_version(),
+        "mount": body.get("mount"),
+        "mount_read_only": True,
+        "network_calls": body.get("network_calls"),
+        "rules_sha256": body.get("rules_sha256"),
+        "named_verdict": body.get("named_verdict"),
+        "non_vacuity_gate": body.get("non_vacuity_gate"),
+        "report": {"path": _rel(report_res["path"]),
+                   "sha256": report_res["report_sha256"],
+                   "bytes": report_res["bytes"],
+                   "written": report_res.get("written"),
+                   "identical_to_existing": report_res.get("identical_to_existing")},
+        "input_integrity": observed,
+        "input_integrity_note": (
+            "every frozen input was re-hashed on disk immediately before the "
+            "metrics ran; observed == frozen for all inputs or the run aborted"),
+        "reproduces_frozen_report": reproduces,
+        "note": ("This sidecar is provenance, not evidence: it is excluded from the "
+                 "report body so the body stays byte-identical across runs."),
+    }
 
 
 def main(argv: Optional[List[str]] = None) -> int:
@@ -283,6 +444,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument("--corrupt", help="apply one corruption id and print its metrics")
     p.add_argument("--mount", default=DEFAULT_MOUNT)
     p.add_argument("--out", default=os.path.join(REPO, "results", "frontier", TEAM_ID))
+    p.add_argument("--run-id", default=FROZEN_RUN_ID,
+                   help=f"run id stamped on the output files (default {FROZEN_RUN_ID})")
+    p.add_argument("--overwrite", action="store_true",
+                   help="allow replacing an existing claim-bearing report whose bytes differ")
     args = p.parse_args(argv)
 
     do_nv = not args.no_non_vacuity
@@ -297,11 +462,21 @@ def main(argv: Optional[List[str]] = None) -> int:
         print(canonical(res).decode("utf-8"))
         return 0
 
-    body = run_matrix(args.mount, non_vacuity=do_nv)
-    w = write_report(body, args.out)
+    observed: List[Dict[str, Any]] = []
+    body = run_matrix(args.mount, non_vacuity=do_nv, observed_out=observed)
+    try:
+        w = write_report(body, args.out, run_id=args.run_id, overwrite=args.overwrite)
+    except ReportOverwriteRefused as exc:
+        print(f"::error::{exc}", file=sys.stderr)
+        return 4
+    env = write_envelope(build_envelope(body, observed, args.run_id, args.out,
+                                        sys.argv, w), args.out, run_id=args.run_id)
     print(json.dumps({
         "report": w["path"],
         "report_sha256": w["report_sha256"],
+        "written": w.get("written"),
+        "identical_to_existing": w.get("identical_to_existing"),
+        "envelope": env["path"],
         "named_verdict": body["named_verdict"],
         "non_vacuity_gate": body["non_vacuity_gate"],
         "scope_counts": body["scope_counts"],
