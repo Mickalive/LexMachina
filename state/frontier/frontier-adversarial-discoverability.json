@@ -1,9 +1,59 @@
 {
   "team_id": "frontier-adversarial-discoverability",
   "charter_version": 1,
-  "evidence_tier": "UNTESTED",
-  "cycle_status": "INITIALIZED",
-  "continue_recommended": true,
+  "evidence_tier": "REPRODUCED",
+  "cycle_status": "TERMINATED_WITH_VERDICT",
+  "continue_recommended": false,
+  "continue_recommended_reason": "The charter's stop_promote_rule terminates this team immediately after the named verdict plus exactly ONE bounded candidate cause. Both were delivered: verdict CLASSIFICATION_ONLY over 3 accepted bundles and all 4 frozen reality-check legs, with non-vacuity proven on all 3 real bundles and byte-identical reproducibility across 3 independent runs. No concrete defect in the harness remains open (the 4 defects found were fixed and locked by tests). A further cycle under this same charter would only re-measure the same frozen inputs, which the charter forbids ('never rerun because a yield number was disappointing'). The remaining work -- giving the adversarial pass a retrieval capability, repositioning counter rows, or reconsidering the status gate -- is product-owned and is out of this team's scope.",
   "accepted_run_id": null,
-  "accepted_commit": null
+  "accepted_commit": null,
+  "last_run_id": "38792663259",
+  "last_report_sha256": "b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd",
+  "rules_sha256": "5e78d8f156b99d220e34037d829f44ac66e70a597e2073013a4b82adb42a674b",
+  "rules_frozen_at_utc": "2026-10-15T19:21:04Z",
+  "rules_frozen_at_commit": "1d50633a5cbae8a3c4a65038a4ac9596491ca038",
+  "named_verdict": "CLASSIFICATION_ONLY",
+  "named_verdict_answer": "The counter-authority capability is classification-only, not retrieval-independent. Across 3 accepted bundles, 0 of 8 counter-authority rows entered through any retrieval channel the initial broad pass did not use; the accepted AdversarialPass holds no retrieval client and sees a deterministic 24-decision shortlist of the initial pool, leaving 89.4% / 91.6% / 76.0% of the retrieved corpus structurally uninspected.",
+  "single_bounded_candidate_cause": "AdversarialPass.__init__ takes (bundle, answer) and holds no retrieval client; _prompt_decisions() selects only from that bundle, so the declared independence ('separate model call, challenge-only objective, bounded deterministic source shortlist') is model-call independence, not retrieval independence. Evidence: interface signature; the pass's own prompt_strategy/independence provenance strings; offline replay reproducing prompt_decisions=24 and b6_pool_never_seen_rate 0.894/0.916/0.760; b1_adversarial_channel_rows=0 and b2_new_channels=[] on all 3 bundles; provenance.retrieval_component='frontier-query-retrieval/v2' with stages=['search'] and no adversarial retrieval request attributed anywhere; and all 8 counter rows at ranks 1,3,5,6,13,14,27,3, i.e. where the ranked list already shows them. THIS TEAM DID NOT TEST THE FIX.",
+  "measurement_coverage": {
+    "bundles_measured": 3,
+    "bundles_required": 3,
+    "frozen_legs_measured": 4,
+    "frozen_legs_required": 2,
+    "metrics": ["a_counter_yield", "b_marginal_retrieval_contribution", "c_rank_placement", "d_placement_visibility", "e_evidence_quality", "f_answer_linkage", "g_language_minority_reach"],
+    "network_calls": 0,
+    "inputs_sha256_verified": true
+  },
+  "non_vacuity_gate": "PASS",
+  "reproducible_byte_identical": true,
+  "tests": {
+    "command": "python3 -m unittest discover -s tests/frontier/frontier-adversarial-discoverability -p 'test_*.py'",
+    "n_tests": 36,
+    "result": "OK"
+  },
+  "declared_harness_corrections": 4,
+  "preserved_negative_results": [
+    "results/frontier/frontier-adversarial-discoverability/superseded/CYCLE_38792663259_REPORT_defect-v1.json"
+  ],
+  "artifacts": {
+    "rules": "results/frontier/frontier-adversarial-discoverability/RULES.json",
+    "report": "results/frontier/frontier-adversarial-discoverability/CYCLE_38792663259_REPORT.json",
+    "reproducibility": "results/frontier/frontier-adversarial-discoverability/CYCLE_38792663259_REPRODUCIBILITY.json",
+    "report_md": "reports/frontier/frontier-adversarial-discoverability/CYCLE_38792663259.md",
+    "integration_contract": "reports/frontier/frontier-adversarial-discoverability/INTEGRATION_CONTRACT.md",
+    "harness": "frontier/frontier-adversarial-discoverability/adversarial_discoverability/",
+    "tests": "tests/frontier/frontier-adversarial-discoverability/"
+  },
+  "scope_held": {
+    "zero_writes_outside_namespace": true,
+    "product_untouched": true,
+    "evaluation_untouched": true,
+    "human_gate_sessions_untouched": true,
+    "human_gate_ready_untouched": true,
+    "citation_identity_defect_not_relitigated": true,
+    "geometry_reported_read_only_only": true,
+    "accepted_mount_read_only": true
+  },
+  "lane_discharge_followup": "Per the charter's lane_discharge fallback, the single named candidate cause is handed to product as decision input. If product does not act, this measurement should be folded into product backlog item (4) / the evaluation lane rather than continued as a separate Frontier program. This charter is not to be re-scoped into prompt engineering, provider work, benchmark construction or a product patch.",
+  "claim_ceiling": "This cycle may claim: on the three named accepted bundles and four named frozen reality-check legs, as of sha256-pinned inputs, the counter-authority pass produced zero counter rows via any retrieval route absent from the initial broad retrieval, and the accepted implementation's declared independence is model-call independence over a bounded shortlist. This cycle may NOT claim: that no contrary authority exists in the corpus, that any case is supporting/contrary/limiting (labels are the product's, reported not endorsed), that a fix would work, or anything about projection/clustering quality, which is frontier-map-semantics' lane."
 }

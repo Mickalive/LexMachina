@@ -1,0 +1,66 @@
+{
+  "byte_identical": true,
+  "charter_version": 1,
+  "command": "python3 -m adversarial_discoverability.harness --matrix   # from frontier/frontier-adversarial-discoverability",
+  "declared_harness_corrections": [
+    {
+      "effect_on_verdict": "none - CLASSIFICATION_ONLY was already reported; the gate went NON_VACUITY_FAILED -> PASS, which is the expected outcome once the harness actually measures the corruption",
+      "fix": "harness.run_non_vacuity now takes applied['doc']",
+      "found": "first harness run",
+      "id": "D1_corruption_wrapper_defect",
+      "impact": "the non-vacuity runner passed the corruption wrapper dict instead of the mutated document, so all five corruptions scored NOT_APPLICABLE/0 and the gate correctly reported NON_VACUITY_FAILED",
+      "threshold_changed": false
+    },
+    {
+      "fix": "populations.bundle_total + rows_carry; metric (a) denominator is now the bundle total, (e)/(g) return NOT_APPLICABLE with a stated reason",
+      "found": "after the non-vacuity gate passed",
+      "id": "D2_leg_denominator_and_missing_schema",
+      "impact": "reality-check legs were scored against cited_decisions (7-12 rows) instead of their own decision_count (164-180), inflating leg yield up to 23x (L3 read 0.714 instead of 0.030); and metrics (e)/(g) reported NOT_APPLICABLE inputs as a FAIL of 0.0",
+      "preserved_defective_run": "results/frontier/frontier-adversarial-discoverability/superseded/CYCLE_38792663259_REPORT_defect-v1.json",
+      "threshold_changed": false
+    },
+    {
+      "effect_on_verdict": "none - the gate stayed PASS; the corrupted values reported for N2 changed",
+      "fix": "N2 now hands the vacated ranks to exactly the rows that occupied the depths the counter rows move into",
+      "found": "test suite",
+      "id": "D3_n2_rank_multiset",
+      "impact": "corruption N2 handed vacated ranks to the alphabetically-first displaced rows and destroyed one rank from the multiset, so the corrupted bundle was not a permutation",
+      "threshold_changed": false
+    },
+    {
+      "effect_on_verdict": "none - 'de' is the modal language of the consensus cluster in all three bundles with or without the placeholder",
+      "fix": "populations.modal_language excludes '?'/empty and returns None when no real language exists",
+      "found": "test suite",
+      "id": "D4_modal_language_placeholder",
+      "impact": "'?' (missing-language marker, 21/218 candidates in B1) could win the modal-language vote and fabricate a consensus language band",
+      "threshold_changed": false
+    }
+  ],
+  "determinism_basis": {
+    "corruption_seed": 20261015,
+    "randomness_sources": [],
+    "rule": "report body contains no timestamp; identical inputs -> byte-identical report"
+  },
+  "distinct_hashes_across_runs": 1,
+  "harness_version": "1.0.0",
+  "independent_run_report_sha256": [
+    "b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd",
+    "b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd",
+    "b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd"
+  ],
+  "named_verdict": "CLASSIFICATION_ONLY",
+  "network_calls": 0,
+  "non_vacuity_gate": "PASS",
+  "record_version": "fad-reproducibility/1",
+  "report": "results/frontier/frontier-adversarial-discoverability/CYCLE_38792663259_REPORT.json",
+  "report_bytes": 91369,
+  "report_sha256": "b15ea198c2df9a1bedeaff6a33d12d96153a84e331f8ce91e601c124292006bd",
+  "rules_sha256": "5e78d8f156b99d220e34037d829f44ac66e70a597e2073013a4b82adb42a674b",
+  "rules_version": "fad-rules/1",
+  "team_id": "frontier-adversarial-discoverability",
+  "tests": {
+    "command": "python3 -m unittest discover -s tests/frontier/frontier-adversarial-discoverability -p 'test_*.py'",
+    "n_tests": 36,
+    "result": "OK"
+  }
+}
