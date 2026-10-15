@@ -219,6 +219,45 @@ def test_runner_never_writes_a_simulated_record(tmp_path: Path) -> None:
     assert written["claim_ceiling"] == hgf.CLAIM_CEILING_REAL
 
 
+def test_finish_simulated_marks_the_record_and_stays_out_of_the_gate(tmp_path: Path, capsys) -> None:
+    """A machine rehearsal is labelled SIMULATED and can never claim a human gate.
+
+    Direction v51 delta 1 requires a rehearsal path that exercises the accepted
+    finalizer without ever putting a machine record where a jurist's evidence
+    belongs. The label is produced by the same write path the CLI uses
+    (``claim_ceiling_for(simulated)``), never asserted in prose.
+    """
+    draft_path = write_draft(tmp_path, make_draft())
+    out = tmp_path / "human_gate_sessions_simulated"
+    code = runner.finish(
+        draft_path, run_id="38747797021", operator="rehearsal",
+        bundle=make_bundle(), out_dir=out, simulated=True,
+    )
+    assert code == 0, capsys.readouterr().out
+    record = json.loads(next(out.glob("session_*.json")).read_text(encoding="utf-8"))
+    assert record["simulated"] is True
+    assert record["claim_ceiling"] == hgf.CLAIM_CEILING_SIMULATED
+    assert record["owner_session_confirmed"] is False
+    assert not _has_gate_key(record)
+    printed = capsys.readouterr().out
+    assert "simulated=true" in printed
+    assert "ADMISSIBLE" in printed
+
+
+def test_cli_refuses_simulated_and_owner_session_together() -> None:
+    """The two labels contradict each other; the runner refuses before it starts."""
+    result = subprocess.run(
+        [
+            sys.executable, str(PRODUCT_ROOT / "human_gate_session.py"),
+            "--simulated", "--owner-session", "--wait-s", "0.01",
+        ],
+        cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=120, check=False,
+    )
+    assert result.returncode == 8, result.stdout + result.stderr
+    assert "contradict" in result.stderr
+    assert "cannot be a declared human session" in result.stderr
+
+
 # --------------------------------------------------------------------------
 # CLI surface
 # --------------------------------------------------------------------------
@@ -247,6 +286,41 @@ def test_cli_finalize_subcommand_runs_without_starting_a_server(tmp_path: Path) 
     )
     assert result.returncode == 0, result.stdout + result.stderr
     assert json.loads(next(out.glob("session_*.json")).read_text(encoding="utf-8"))["status"] == "finalized"
+
+
+def test_cli_finalize_answers_complete_a_draft_exported_without_answers(tmp_path: Path) -> None:
+    """The ``--answers`` seam: a draft exported before answering can complete.
+
+    This is the path a rehearsal (and an owner who exported too early) uses —
+    the same one the one-command runner passes ``--answers`` to. The answers
+    merge is the finalizer's own, so a draft with ``answers: {}`` finalizes
+    instead of being recorded incomplete.
+    """
+    draft_path = write_draft(tmp_path, make_draft(answers=False))
+    bundle_path = tmp_path / "bundle.json"
+    bundle_path.write_text(json.dumps(make_bundle()), encoding="utf-8")
+    answers_path = tmp_path / "answers.json"
+    answers_path.write_text(
+        json.dumps({qid: {"rating": "no", "note": "verbatim owner words"} for qid in ("q1", "q2", "q3", "q4")}),
+        encoding="utf-8",
+    )
+    out = tmp_path / "sessions"
+    result = subprocess.run(
+        [
+            sys.executable, str(PRODUCT_ROOT / "human_gate_session.py"), "finalize", str(draft_path),
+            "--bundle", str(bundle_path), "--answers", str(answers_path),
+            "--run-id", "38747797021", "--operator", "owner", "--out", str(out),
+        ],
+        cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=120, check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    record = json.loads(next(out.glob("session_*.json")).read_text(encoding="utf-8"))
+    assert record["status"] == "finalized"
+    assert record["missing_answers"] == []
+    assert set(record["answers"]) == {"q1", "q2", "q3", "q4"}
+    # a negative answer is valid evidence and is kept verbatim
+    assert record["answers"]["q1"]["rating"] == "no"
+    assert record["answers"]["q1"]["note"] == "verbatim owner words"
 
 
 def test_cli_finalize_without_a_bundle_is_refused_with_exit_7(tmp_path: Path) -> None:

@@ -32,6 +32,12 @@ h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#737b88;ma
 #detail{position:absolute;right:14px;top:14px;width:min(360px,45%);max-height:calc(100% - 28px);overflow:auto;background:rgba(255,255,255,.98);border:1px solid #d9dde5;border-radius:10px;padding:13px;box-shadow:0 8px 30px rgba(20,25,35,.12);display:none;font-size:12px;line-height:1.45}
 #detail .close{float:right;border:0;padding:0 5px;font-size:18px}.muted{color:#737b88}.pill{display:inline-block;border-radius:20px;padding:2px 7px;background:#eef0f4;margin:2px 3px 2px 0}.pill.red{background:#fdecef;color:#941d2c}.pill.gold{background:#fff4d5;color:#815c00}
 #legend{position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.9);border:1px solid #e2e5ea;border-radius:8px;padding:7px 9px;font-size:11px;color:#59616d}
+/* owner-gate answer card (product-owned): four Master Prompt questions, no
+   invented answers — an untouched question simply stays out of the export */
+.gate-q{display:grid;gap:4px;margin:9px 0}
+.gate-q .gate-label{font-size:11.5px;line-height:1.35;color:#3d4450}
+.gate-q select,.gate-q input{border:1px solid #d7dbe2;border-radius:7px;padding:6px;font-size:12px;width:100%;background:#fff}
+.gate-note{font-size:11px;line-height:1.4;color:#737b88;margin-top:7px}
 @media(max-width:850px){body{grid-template-columns:1fr;grid-template-rows:44% 56%}aside{border-right:0;border-bottom:1px solid #e2e5ea}.brand{font-size:18px}#detail{width:70%}}
 </style>
 </head>
@@ -52,6 +58,65 @@ h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#737b88;ma
   <div id="counterList" class="muted">—</div>
   <h3>Clusters</h3>
   <div id="clusterList" class="muted">—</div>
+  <!-- Owner-gate answer card (product-owned). The accepted switch exports
+       answers:{} by charter — it has no form — so the four Master Prompt gate
+       questions are collected here and merged into the draft at export time.
+       An untouched question is NEVER filled in: it stays missing and the
+       finalizer records the session as incomplete instead. -->
+  <h3>Test propriétaire — 4 questions</h3>
+  <div id="lexGateAnswers" class="card">
+    <div class="gate-q">
+      <span class="gate-label" id="gate_q1_label">Q1 · Did the map expose a relevant branch, exception or decision that was less visible in the list/answer ?</span>
+      <select id="gate_q1" aria-labelledby="gate_q1_label">
+        <option value="">— non répondu / unbeantwortet —</option>
+        <option value="yes">Oui / yes</option>
+        <option value="partly">Partiellement / partly</option>
+        <option value="no">Non / no</option>
+        <option value="mixed">Mixte / mixed</option>
+        <option value="not_applicable">Sans objet / not_applicable</option>
+      </select>
+      <input id="gate_q1_note" placeholder="note (facultatif)">
+    </div>
+    <div class="gate-q">
+      <span class="gate-label" id="gate_q2_label">Q2 · Did the map make the jurisprudential structure easier to understand ?</span>
+      <select id="gate_q2" aria-labelledby="gate_q2_label">
+        <option value="">— non répondu / unbeantwortet —</option>
+        <option value="yes">Oui / yes</option>
+        <option value="partly">Partiellement / partly</option>
+        <option value="no">Non / no</option>
+        <option value="mixed">Mixte / mixed</option>
+        <option value="not_applicable">Sans objet / not_applicable</option>
+      </select>
+      <input id="gate_q2_note" placeholder="note (facultatif)">
+    </div>
+    <div class="gate-q">
+      <span class="gate-label" id="gate_q3_label">Q3 · Did the map increase confidence that contrary authority had not been hidden ?</span>
+      <select id="gate_q3" aria-labelledby="gate_q3_label">
+        <option value="">— non répondu / unbeantwortet —</option>
+        <option value="yes">Oui / yes</option>
+        <option value="partly">Partiellement / partly</option>
+        <option value="no">Non / no</option>
+        <option value="mixed">Mixte / mixed</option>
+        <option value="not_applicable">Sans objet / not_applicable</option>
+      </select>
+      <input id="gate_q3_note" placeholder="note (facultatif)">
+    </div>
+    <div class="gate-q">
+      <span class="gate-label" id="gate_q4_label">Q4 · Was the combined answer + map preferable to the conventional interface ?</span>
+      <select id="gate_q4" aria-labelledby="gate_q4_label">
+        <option value="">— non répondu / unbeantwortet —</option>
+        <option value="yes">Oui / yes</option>
+        <option value="partly">Partiellement / partly</option>
+        <option value="no">Non / no</option>
+        <option value="mixed">Mixte / mixed</option>
+        <option value="not_applicable">Sans objet / not_applicable</option>
+      </select>
+      <input id="gate_q4_note" placeholder="note (facultatif)">
+    </div>
+    <p class="gate-note">Ces quatre réponses partent avec «&nbsp;Exporter la session&nbsp;».
+      Question sans réponse = session incomplète au finaliseur (rien n'est inventé).
+      Un «&nbsp;non&nbsp;» est un résultat de test valable et il est conservé tel quel.</p>
+  </div>
 </aside>
 <main>
   <div id="toolbar">
@@ -295,6 +360,44 @@ if(window.LexGateSwitch){
   });
   window.__LEX_PRODUCT_SWITCH__={controller:switchController,lastStatus:()=>LAST_STATUS};
 }
+/* ---------------------------------------------------------------------------
+   Owner-gate answers — product-owned seam, accepted switch untouched.
+   lex_gate_switch.exportDraft() ships answers:{} by charter (the accepted file
+   has no form). The four Master Prompt questions are collected by the answer
+   card in the sidebar and merged into the draft AT EXPORT TIME by decorating
+   the controller method the switch's own export button calls — the button, the
+   Blob download and the draft schema all stay the accepted code path.
+   Nothing is invented: an unanswered question stays out of `answers`, so the
+   finalizer records status=incomplete and names the missing questions instead
+   of fabricating an opinion.
+   --------------------------------------------------------------------------- */
+const GATE_UI_QUESTIONS=["q1","q2","q3","q4"];
+function readGateAnswers(){
+  const out={};
+  for(const q of GATE_UI_QUESTIONS){
+    const sel=document.getElementById("gate_"+q);
+    if(!sel)continue;
+    const rating=String(sel.value||"").trim().toLowerCase();
+    const noteEl=document.getElementById("gate_"+q+"_note");
+    const note=String(noteEl?noteEl.value:"").trim();
+    if(rating||note)out[q]={rating:rating,note:note};
+  }
+  return out;
+}
+function wireGateAnswers(controller){
+  if(!controller||typeof controller.exportDraft!=="function")return false;
+  const baseExport=controller.exportDraft;
+  controller.exportDraft=function(meta){
+    const draft=baseExport.call(controller,meta);
+    const answers=readGateAnswers();
+    draft.answers=answers;
+    draft.missing_answers=GATE_UI_QUESTIONS.filter(q=>!answers[q]);
+    return draft;
+  };
+  return true;
+}
+if(window.__LEX_PRODUCT_SWITCH__)wireGateAnswers(window.__LEX_PRODUCT_SWITCH__.controller);
+window.__LEX_GATE_ANSWERS__={questions:GATE_UI_QUESTIONS,read:readGateAnswers,wire:wireGateAnswers};
 resumeLastRun();
 </script>
 </body>

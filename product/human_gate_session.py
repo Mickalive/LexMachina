@@ -19,6 +19,17 @@ that loop: it serves the product, prints the four gate questions, watches for th
 exported draft, finalizes it into ``results/product/human_gate_sessions/`` with
 attested provenance, then runs the admissibility scanner and prints the verdict.
 
+Two things the owner does NOT have to leave the page for:
+
+* **answers** — ``product/static/query.html`` carries the four-question answer
+  card, and the export merges them into the draft (``readGateAnswers`` in that
+  page). ``--answers <file>`` is the same seam for a draft exported before the
+  owner answered, or for a rehearsal script;
+* **simulated records** — a machine rehearsal passes ``--simulated`` and lands
+  in ``results/product/human_gate_sessions_simulated/`` under the SIMULATED
+  claim ceiling, so an autonomous run can exercise the whole chain without ever
+  putting a machine record where a jurist's evidence belongs.
+
 What it will never do
 ---------------------
 * It never answers a gate question. The four answers are the jurist's words; a
@@ -26,6 +37,9 @@ What it will never do
   still returned to the owner as evidence.
 * It never writes ``human_gate_ready: true``. The director sets that, from the
   records, after reading them.
+* It never lets a rehearsal pose as an owner session (or the reverse): the
+  record's ``simulated`` flag and the target directory must agree, or the write
+  path refuses with exit 8 — the flag is threaded here, never asserted in prose.
 * ``--run-id`` / ``--operator`` are **attested**, not authenticated: the runner
   cannot tell an autonomous agent from an owner typing their own name. It records
   what it was told, and says so in every record it writes.
@@ -39,9 +53,18 @@ Usage
     python product/human_gate_session.py --fixture --run-id <run> --operator <name> \
         --owner-session   # or drop --owner-session and pass --out <dir> to rehearse
 
+    # a MACHINE rehearsal (no jurist is present): honestly labelled, and it may
+    # only land in the simulated evidence directory
+    python product/human_gate_session.py --simulated --run-id <run> --operator <name> \
+        --watch-dir <dir>       # --out defaults to results/product/human_gate_sessions_simulated/
+
     # finalize a draft that was already exported, without starting a server
     python product/human_gate_session.py finalize <draft.json> --bundle <bundle.json> \
         --run-id <run> --operator <name>
+
+    # answers can also be supplied as a file (same JSON shapes as the finalizer)
+    python product/human_gate_session.py finalize <draft.json> --bundle <bundle.json> \
+        --answers answers.json --run-id <run> --operator <name>
 
     # just re-check the evidence directories
     python product/human_gate_session.py check
@@ -83,7 +106,9 @@ def owner_card(base_url: str) -> str:
         "  2. Work the case in the MAP, then switch to LIST (the conventional",
         "     baseline) and work it again. Open the decisions and the counter",
         "     authorities in both views — the export records which you opened.",
-        "  3. Answer these four questions (the harness marks them before export):",
+        "  3. Answer these four questions in the answer card in the sidebar —",
+        "     « Exporter la session » carries your answers with the draft (an",
+        "     unanswered question is recorded as incomplete, never invented):",
     ]
     for qid, question in GATE_QUESTIONS.items():
         lines.append(f"       {qid}: {question}")
@@ -149,11 +174,19 @@ def finalize_draft(
     operator: str | None,
     out_dir: Path,
     owner_session: bool = False,
+    answers: dict | None = None,
+    simulated: bool = False,
 ) -> tuple[int, Path | None, dict | None]:
     """Finalize one exported draft. Returns (exit_code, written_path, record)."""
     try:
         record = hgf.finalize(
-            draft, None, bundle, run_id=run_id, finalized_by=operator, owner_session=owner_session
+            draft,
+            answers,
+            bundle,
+            run_id=run_id,
+            finalized_by=operator,
+            owner_session=owner_session,
+            simulated=simulated,
         )
         path = hgf.write_record(record, out_dir)
     except hgf.IncompleteSession as incomplete:
@@ -182,6 +215,8 @@ def serve(
     verbose: bool = True,
     out_dir: Path | None = None,
     owner_session: bool = False,
+    answers: dict | None = None,
+    simulated: bool = False,
 ) -> int:
     """Serve the product and finalize the exported draft when it lands.
 
@@ -203,7 +238,12 @@ def serve(
     if verbose:
         print(f"LexMachina query map ({'fixture/offline' if fixture else 'live OpenCaseLaw'}): {base_url}/")
         print(owner_card(base_url))
+        target = out_dir or (hgf.SIMULATED_OUT_DIR if simulated else hgf.DEFAULT_OUT_DIR)
+        kind = "SIMULATED (machine rehearsal — never human-gate evidence)" if simulated else (
+            "owner session" if owner_session else "unconfirmed (must use --owner-session for the canonical dir)"
+        )
         print(f"watching {watch_dir} for the exported session draft (Ctrl-C to stop)")
+        print(f"record target: {target} [{kind}]")
 
     thread = threading.Thread(target=srv.serve_forever, name="lex-gate-server", daemon=True)
     thread.start()
@@ -246,6 +286,8 @@ def serve(
         bundle=bundle,
         out_dir=out_dir,
         owner_session=owner_session,
+        answers=answers,
+        simulated=simulated,
     )
 
 
@@ -258,9 +300,11 @@ def finish(
     bundle_path: Path | None = None,
     out_dir: Path | None = None,
     owner_session: bool = False,
+    answers: dict | None = None,
+    simulated: bool = False,
 ) -> int:
     """Finalize a draft, then print the admissibility verdict. The whole tail."""
-    target = out_dir or hgf.DEFAULT_OUT_DIR
+    target = out_dir or (hgf.SIMULATED_OUT_DIR if simulated else hgf.DEFAULT_OUT_DIR)
     if bundle is None and bundle_path is not None:
         bundle = load_json(bundle_path)
     try:
@@ -269,7 +313,14 @@ def finish(
         print(f"::error::{exc}", file=sys.stderr)
         return exc.exit_code
     code, written, record = finalize_draft(
-        draft, bundle=bundle, run_id=run_id, operator=operator, out_dir=target, owner_session=owner_session
+        draft,
+        bundle=bundle,
+        run_id=run_id,
+        operator=operator,
+        out_dir=target,
+        owner_session=owner_session,
+        answers=answers,
+        simulated=simulated,
     )
     if written is not None and code == 0:
         print(f"finalized: {written}")
@@ -282,6 +333,7 @@ def finish(
             f"opened={record['session_metrics']['n_decisions_opened']} "
             f"counters_opened={record['session_metrics']['n_counter_authorities_opened']} "
             f"used_baseline={record['session_metrics']['used_conventional_baseline']}"
+            f"{' simulated=true' if record.get('simulated') else ''}"
         )
         if code == 3:
             print(f"  answers still required: {', '.join(record.get('missing_answers') or [])}")
@@ -323,8 +375,32 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="declare that a person is answering the four gate questions right now; "
         "required to write into the canonical evidence directory",
     )
+    parser.add_argument(
+        "--simulated",
+        action="store_true",
+        help="machine rehearsal: label the record SIMULATED and write it to the simulated "
+        "directory (default --out becomes results/product/human_gate_sessions_simulated/); "
+        "a simulated record is refused in the canonical directory and vice versa",
+    )
+    parser.add_argument(
+        "--answers",
+        action="append",
+        default=None,
+        metavar="FILE",
+        help="gate answers as JSON ({q1:...} or [{question_id, answer} rows]); repeatable, "
+        "merged over whatever the page's answer card already put in the draft",
+    )
     parser.add_argument("--quiet", action="store_true")
     args = parser.parse_args(argv)
+
+    if args.simulated and args.owner_session:
+        print(
+            "::error::--simulated and --owner-session contradict each other: a machine "
+            "rehearsal cannot be a declared human session",
+            file=sys.stderr,
+        )
+        return 8
+    answers = hgf.load_answers(args.answers)
 
     if args.command == "check":
         return human_gate_evidence.main([])
@@ -340,6 +416,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             bundle_path=args.bundle,
             out_dir=args.out,
             owner_session=args.owner_session,
+            answers=answers,
+            simulated=args.simulated,
         )
 
     try:
@@ -354,6 +432,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             verbose=not args.quiet,
             out_dir=args.out,
             owner_session=args.owner_session,
+            answers=answers,
+            simulated=args.simulated,
         )
     except KeyboardInterrupt:  # pragma: no cover - interactive
         print("\nstopped without a session; nothing was recorded")
