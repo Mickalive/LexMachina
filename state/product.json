@@ -38,8 +38,8 @@
       "scope": "control-plane / auditor-card scope; .github/** is not product-writable (run 38575541439 precedent). Recorded, not silently dropped; producer side made audit-ready in run 38766812030 instead."
     }
   ],
-  "current_run": "38792650692",
-  "cycle_status": "V52_GATE_PACKET_DELIVERED__3_PREREGISTERED_FR_DE_IT_QUESTIONS__RUN_TIME_ADMISSIBILITY_REVERIFIED_PER_BUNDLE__PER_QUERY_DRAFTS_ONLY__EXIT_7_8_GUARDS_EXERCISED__DEEP_LINKS__LIVE_PREFLIGHT_NOT_RUN_THIS_CYCLE_NO_NETWORK__HUMAN_GATE_STILL_AWAITED",
+  "current_run": "38799024807",
+  "cycle_status": "V52_OPERATIONAL_RESUME_OF_38792650692__QUANTUM_EXPIRY_RC78_DIAGNOSED__SNAPSHOT_AD92672_REVERIFIED_301_PASSED_1_SKIPPED_0_FAILED__LIVE_OPEN_CASELAW_GATE_PACKET_DELIVERED__HUMAN_GATE_STILL_AWAITED",
   "direction_version": 52,
   "evidence_tier": "DURABLE_CI_VERIFIED",
   "human_gate_criteria": [
@@ -256,7 +256,48 @@
         "durable artifacts under results/product/gate_rehearsal/CYCLE_38754777366_*.json; session records in results/product/human_gate_sessions_simulated/"
       ]
     },
-    "secondary_risk_noted": "Earlier cycles also wrote outside product scope (frontier/frontier-generative-audit/generative_audit/provider.py and results/frontier/frontier-query-retrieval/cache/*). Those writes are already committed in the snapshot; 'Enforce lane write scope' only inspects pending changes, so they cannot be cleaned without tripping the scope check in the same run. They are recorded as pre-existing snapshot content, not current-cycle work. Live-run cache by-products created inside a cycle are removed before the scope step (reports/product/CYCLE_38559540834.md section 4)."
+    "secondary_risk_noted": "Earlier cycles also wrote outside product scope (frontier/frontier-generative-audit/generative_audit/provider.py and results/frontier/frontier-query-retrieval/cache/*). Those writes are already committed in the snapshot; 'Enforce lane write scope' only inspects pending changes, so they cannot be cleaned without tripping the scope check in the same run. They are recorded as pre-existing snapshot content, not current-cycle work. Live-run cache by-products created inside a cycle are removed before the scope step (reports/product/CYCLE_38559540834.md section 4).",
+    "run_38792650692": {
+      "run_id": 38792650692,
+      "observed_at": "2026-10-15T20:20:00Z",
+      "conclusion": "failure",
+      "status": "completed",
+      "event": "workflow_dispatch",
+      "workflow": ".github/workflows/core-lane.yml",
+      "display_title": "Core product dirV52 repair0",
+      "created_at": "2026-10-15T19:17:15Z",
+      "head_branch": "main",
+      "head_sha": "18b2c351375cdd053b91b781534dd6547de7b21e",
+      "jobs": {
+        "team": "failure at step 6 'Run lane cycle' (exit 78); step 7 'Validate active MVP producer state' SKIPPED; step 8 'Clean generated junk' success; step 9 'Enforce lane write scope' SKIPPED; step 10 'Persist team snapshot' SUCCESS -> refs/heads/cycle/core/product/38792650692/team = ad92672",
+        "audit": "skipped (needs: team == success)",
+        "integrate": "skipped (needs: audit success)",
+        "resilience": "success - 'Recover failed chain and wake supervisor' dispatched the operational resume with resume_from_run_id=38792650692 (this run) and woke the supervisor"
+      },
+      "failing_exit_signature": "rc 78 - LEX_WORK_QUANTUM_EXPIRED (LEX_AGENT_QUANTUM_SECONDS=2700)",
+      "annotations": [
+        "Process completed with exit code 78.",
+        "Agent quantum ended cleanly; workflow must snapshot and resume rather than hang.",
+        "LEX_WORK_QUANTUM_EXPIRED seconds=2700 pid=2293"
+      ],
+      "timing": "team job 2026-10-15T19:17:19Z -> 20:04:32Z = 2773 s total; step 6 consumed the 2700 s wrapper work quantum",
+      "root_cause": "The OpenCode producer hit the deliberate 45-minute work quantum of .github/scripts/run-ox-with-retry.sh while finishing the v52 backlog item (3) gate-packet cycle. The wrapper kills the process group and exits 78 so the workflow snapshots and resumes instead of hanging; with 'set -euo pipefail' the following validation steps never ran, so team!=success and audit/integrate were skipped.",
+      "not": [
+        "NOT a product-code failure (the produced work verifies green, see verification below)",
+        "NOT a state-validation failure ('Validate active MVP producer state' was SKIPPED, never executed)",
+        "NOT a lane-write-scope failure ('Enforce lane write scope' was SKIPPED, never executed)",
+        "NOT the audit-artifact-placement pathology (the audit job never started; no results/audit/product/CYCLE_38792650692_GATE.json exists)"
+      ],
+      "evidence": [
+        "public REST api.github.com/repos/Mickalive/LexMachina/actions/runs/38792650692/jobs (fetched 2026-10-15T20:18Z)",
+        "check-run annotations of the team job (same API): the three exit-78/quantum annotations above",
+        "run conclusion failure, resilience success; /tmp/opencode cache of the jobs payload",
+        "snapshot refs/heads/cycle/core/product/38792650692/team = ad92672 'product cycle 38792650692 repair 0' (22 files, +3131)"
+      ],
+      "preserved_work": "The persisted producer snapshot ad92672 is valid and was NOT restarted: report reports/product/CYCLE_38792650692.md, product/gate_packet.py, product/query/gate_admissibility.py, product/data/gate_packet_questions.json, product/tests/test_gate_packet.py (28 tests), the offline rehearsal packet and state/product.json all survived and were re-verified this run.",
+      "resumed_by_run": 38799024807,
+      "repaired_by_this_resume": "Diagnosis recorded here (the state file itself was the only thing missing for an audit reader to tell 'quantum expiry' from 'product failure'), the whole snapshot re-verified, and the live OpenCaseLaw preflight that run 38792650692 could not run (its report section 5 records no network) was executed end to end this run."
+    }
   },
   "run_38763217418": {
     "failing_step": "Enforce audit scope and read gate (audit job step 6), exit code 3",
@@ -277,7 +318,7 @@
     "observed_at": "2026-10-15T16:2xZ",
     "run_id": 38763217418
   },
-  "prior_current_run": "38789874982",
+  "prior_current_run": "38792650692",
   "product": "query-specific Swiss legal research: broad OpenCaseLaw retrieval -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map",
   "reality_check_status": {
     "blocking_leg": "durable gate blocking leg: rent-default (Art. 257d(2) residential termination) — the answer must state the 30-day/end-of-month notice rule AND the good-faith/Rechtsmissbrauch limitation. That leg now PASSES locally in live mode (results/product/reality_check/rent-default_live_20261014T122313Z.json); only the durable Actions run remains red.",
@@ -430,9 +471,9 @@
     "fixtures": "offline/test only; never merged into live results",
     "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
   },
-  "state_updated_at": "2026-10-15T20:10:00Z",
-  "state_updated_by_run": "38792650692",
-  "state_updated_from_resumed_snapshot_run": 38763217418,
+  "state_updated_at": "2026-10-15T20:45:00Z",
+  "state_updated_by_run": "38799024807",
+  "state_updated_from_resumed_snapshot_run": "38792650692",
   "supersedes_claims": {
     "prior_direction_version": 48,
     "reason": "Pre-red claim was written 2026-10-12T18:27:34Z, before the contradicting reality checks at 19:11-19:21Z, and cited run ids that now return HTTP 404. It is no longer current status and is not re-asserted anywhere in this state.",
@@ -1250,6 +1291,23 @@
       "observed_at": "2026-10-15T16:3xZ",
       "run_id": 38763217418,
       "status": "completed"
+    },
+    {
+      "run_id": 38792650692,
+      "conclusion": "failure",
+      "status": "completed",
+      "event": "workflow_dispatch",
+      "created_at": "2026-10-15T19:17:15Z",
+      "head_branch": "main",
+      "head_sha": "18b2c351375cdd053b91b781534dd6547de7b21e",
+      "jobs": {
+        "team": "failure at step 6 'Run lane cycle' (rc 78 quantum expiry); steps 7 and 9 SKIPPED; step 10 snapshot success (ad92672)",
+        "audit": "skipped",
+        "integrate": "skipped",
+        "resilience": "success (dispatched operational resume 38799024807 with resume_from_run_id=38792650692)"
+      },
+      "note": "OPERATIONAL failure by design: 2700 s work-quantum expiry (rc-78 signature), not a product-code or state-validation failure. Producer snapshot ad92672 preserved and resumed by run 38799024807 - not restarted. Diagnosis: orchestration_failure_diagnosis.run_38792650692.",
+      "observed_at": "2026-10-15T20:20:00Z"
     }
   ],
   "v52_delivery": {
@@ -1339,6 +1397,117 @@
       "python product/gate_packet.py card --packet results/product/gate_packet/<run> --serve",
       "per question: work map and list, answer q1-q4 in the sidebar, 'Exporter la session', then the question's finalize command",
       "the director reads the finalized records and only then decides human_gate_ready"
-    ]
+    ],
+    "backlog_item_3_multi_query_gate_packet_live": {
+      "status": "LIVE PREFLIGHT DELIVERED THIS RUN",
+      "prior_state": "Run 38792650692 delivered the packet machinery and an OFFLINE fixture rehearsal only (its report section 5: 'Did NOT run: the live packet').",
+      "this_run": "python product/gate_packet.py preflight --live --run-id 38799024807 --operator autonomous-resume --n 100 --keep-going --wait-s 420",
+      "live_retrieval_evidence": "mcp.opencaselaw.ch resolves and serves (the adapter DEFAULT_BASE_URL); a 30-row live smoke search returned in 15.9 s with canonical https://mcp.opencaselaw.ch/entscheid/ URLs. api.opencaselaw.ch is NXDOMAIN at the authoritative NS for opencaselaw.ch (Google DoH Status=3, queried this run) - that host is not used by the product and must not be reported as 'OpenCaseLaw is down'.",
+      "packet": {
+        "packet_dir": "results/product/gate_packet/38799024807",
+        "mode": "live",
+        "ok": false,
+        "n_questions": 3,
+        "admissible_questions": [
+          "fr-bail-entretien",
+          "it-responsabilita-medica"
+        ],
+        "blocked": [
+          "de-kapitalverletzung"
+        ],
+        "guards_all_ok": true,
+        "ready_for_owner_session": false,
+        "claim_ceiling": "GATE PACKET MATERIAL, NOT GATE EVIDENCE: this packet pre-registers the questions, re-verifies their bundles and prepares the ceremony. It contains no jurist answer and no session record; human_gate_ready stays false until real owner/jurist sessions are finalized through product/human_gate_session.py and read by the director.",
+        "questions": [
+          {
+            "qid": "fr-bail-entretien",
+            "status": "admissible",
+            "blocking": [],
+            "warnings": [],
+            "timing": {
+              "start_s": 23.217,
+              "first_page_decisions": 35,
+              "expand_s": 44.5746,
+              "expand_job": "done",
+              "enrich_s": 93.8384,
+              "enrich_job": "done",
+              "total_s": 161.63
+            },
+            "n_decisions": 131,
+            "n_clusters": 8,
+            "n_relations": 25,
+            "n_counter_authorities": 1,
+            "languages": {
+              "de": 43,
+              "fr": 38,
+              "it": 25
+            },
+            "answer_status": "ready",
+            "answer_cited": 4,
+            "content_sha256": "b3380de9b730e908b6f642338a504ccf6da42daa11c65fe7099d47b25d1522dd"
+          },
+          {
+            "qid": "de-kapitalverletzung",
+            "status": "blocked",
+            "blocking": [
+              {
+                "code": "answer_cites_nothing",
+                "severity": "blocking",
+                "detail": "the answer cites no decision"
+              }
+            ],
+            "warnings": [],
+            "timing": {
+              "start_s": 11.4919,
+              "first_page_decisions": 50,
+              "expand_s": 32.7778,
+              "expand_job": "done",
+              "enrich_s": 101.8507,
+              "enrich_job": "done",
+              "total_s": 146.1204
+            },
+            "n_decisions": 134,
+            "n_clusters": 8,
+            "n_relations": 25,
+            "n_counter_authorities": 3,
+            "languages": {
+              "de": 50,
+              "fr": 25,
+              "it": 25
+            },
+            "answer_status": "ready",
+            "answer_cited": 0,
+            "content_sha256": "2e79bf179917dd36735f2f4ab20d928248ad24c62ac66e5b7a8fc3838966dd2c"
+          },
+          {
+            "qid": "it-responsabilita-medica",
+            "status": "admissible",
+            "blocking": [],
+            "warnings": [],
+            "timing": {
+              "start_s": 14.4216,
+              "first_page_decisions": 50,
+              "expand_s": 29.5232,
+              "expand_job": "done",
+              "enrich_s": 97.8355,
+              "enrich_job": "done",
+              "total_s": 141.7803
+            },
+            "n_decisions": 132,
+            "n_clusters": 8,
+            "n_relations": 25,
+            "n_counter_authorities": 3,
+            "languages": {
+              "de": 25,
+              "fr": 25,
+              "it": 50
+            },
+            "answer_status": "ready",
+            "answer_cited": 4,
+            "content_sha256": "7449819edc372653cb3a42897b5e70680a5a6329f333eed9e46f8304dbcf210a"
+          }
+        ]
+      }
+    }
   }
 }
