@@ -26,6 +26,8 @@ if str(PRODUCT_ROOT) not in sys.path:
     sys.path.insert(0, str(PRODUCT_ROOT))
 
 from human_gate_finalize import (  # noqa: E402
+    DEFAULT_OUT_DIR,
+    SIMULATED_OUT_DIR,
     GATE_QUESTIONS,
     IncompleteSession,
     FinalizeError,
@@ -34,6 +36,7 @@ from human_gate_finalize import (  # noqa: E402
     finalize,
     session_metrics,
     validate_draft,
+    validate_real_session,
     write_record,
 )
 
@@ -130,7 +133,7 @@ def test_finalize_rejects_invalid_draft_with_exit_4() -> None:
 
 def test_missing_answers_yield_incomplete_evidence_and_exit_3() -> None:
     with pytest.raises(IncompleteSession) as excinfo:
-        finalize(make_draft(), {"q1": "yes", "q2": "yes"}, make_bundle())
+        finalize(make_draft(), {"q1": "yes", "q2": "yes"}, make_bundle(), simulated=True)
     assert excinfo.value.exit_code == 3
     assert excinfo.value.missing == ["q3", "q4"]
     record = excinfo.value.record
@@ -140,12 +143,12 @@ def test_missing_answers_yield_incomplete_evidence_and_exit_3() -> None:
 
 def test_no_answers_at_all_is_rejected() -> None:
     with pytest.raises(IncompleteSession) as excinfo:
-        finalize(make_draft(), None, make_bundle())
+        finalize(make_draft(), None, make_bundle(), simulated=True)
     assert excinfo.value.missing == list(GATE_QUESTIONS)
 
 
 def test_finalized_record_binds_to_the_bundle_digest() -> None:
-    record = finalize(make_draft(), all_yes(), make_bundle())
+    record = finalize(make_draft(), all_yes(), make_bundle(), simulated=True)
     assert record["status"] == "finalized"
     assert record["bundle_hash_status"] == "verified"
     assert record["bundle_sha256"] == canonical_sha256(make_bundle())
@@ -159,6 +162,7 @@ def test_negative_session_is_valid_evidence() -> None:
         make_draft(),
         {qid: {"rating": "no", "note": "the map hid nothing I could not see in the list"} for qid in GATE_QUESTIONS},
         make_bundle(),
+        simulated=True,
     )
     assert record["status"] == "finalized"
     assert all(record["answers"][q]["rating"] == "no" for q in GATE_QUESTIONS)
@@ -166,7 +170,7 @@ def test_negative_session_is_valid_evidence() -> None:
 
 def test_free_text_answers_are_kept_verbatim() -> None:
     note = "FR 4A exception invisible in the ranked list"
-    record = finalize(make_draft(), {**{q: "yes" for q in ("q1", "q2", "q4")}, "q3": note}, make_bundle())
+    record = finalize(make_draft(), {**{q: "yes" for q in ("q1", "q2", "q4")}, "q3": note}, make_bundle(), simulated=True)
     assert record["answers"]["q3"]["note"] == note
     assert record["answers"]["q3"]["rating"] == ""
     assert record["answers"]["q1"]["rating"] == "yes"
@@ -174,14 +178,14 @@ def test_free_text_answers_are_kept_verbatim() -> None:
 
 def test_answers_can_be_taken_from_the_draft_itself() -> None:
     draft = make_draft(answers={"q1": {"rating": "yes"}, "q2": "partly", "q3": "no", "q4": "mixed"})
-    record = finalize(draft, None, make_bundle())
+    record = finalize(draft, None, make_bundle(), simulated=True)
     assert record["status"] == "finalized"
     assert record["answers"]["q3"]["rating"] == "no"
 
 
 def test_tool_never_claims_human_gate_ready() -> None:
     """No field may assert the gate is passed; the director decides from records."""
-    record = finalize(make_draft(), all_yes(), make_bundle())
+    record = finalize(make_draft(), all_yes(), make_bundle(), simulated=True)
     assert "human_gate_ready" not in record
     def walk(node):
         if isinstance(node, dict):
@@ -223,7 +227,7 @@ def test_counter_opened_without_counter_status_is_refused() -> None:
 
 
 def test_draft_without_bundle_stays_unverified_evidence() -> None:
-    record = finalize(make_draft(), all_yes(), None)
+    record = finalize(make_draft(), all_yes(), None, simulated=True)
     assert record["bundle_hash_status"] == "not_verified"
     assert record["bundle_evidence"]["bundle_supplied"] is False
 
@@ -262,7 +266,7 @@ def test_session_metrics_tolerate_missing_timestamps() -> None:
 
 
 def test_write_record_lands_in_results_product(tmp_path: Path) -> None:
-    record = finalize(make_draft(), all_yes(), make_bundle(), run_id="38649613677")
+    record = finalize(make_draft(), all_yes(), make_bundle(), run_id="38649613677", finalized_by="test-user", simulated=True)
     path = write_record(record, tmp_path)
     assert path.is_file()
     stored = json.loads(path.read_text(encoding="utf-8"))
@@ -284,6 +288,7 @@ def test_cli_end_to_end(tmp_path: Path) -> None:
             sys.executable, str(PRODUCT_ROOT / "human_gate_finalize.py"),
             "--draft", str(draft_path), "--bundle", str(bundle_path),
             "--answers", str(answers_path), "--out", str(out_dir), "--run-id", "38649613677",
+            "--finalized-by", "test-user",
         ],
         cwd=str(REPO_ROOT),
         capture_output=True,
@@ -308,6 +313,7 @@ def test_cli_exits_3_on_incomplete_session_but_still_records_it(tmp_path: Path) 
         [
             sys.executable, str(PRODUCT_ROOT / "human_gate_finalize.py"),
             "--draft", str(draft_path), "--bundle", str(bundle_path), "--out", str(out_dir),
+            "--simulated",
         ],
         cwd=str(REPO_ROOT),
         capture_output=True,
@@ -319,3 +325,97 @@ def test_cli_exits_3_on_incomplete_session_but_still_records_it(tmp_path: Path) 
     written = list(out_dir.glob("session_*.json"))
     assert len(written) == 1
     assert json.loads(written[0].read_text(encoding="utf-8"))["status"] == "incomplete"
+
+
+# --------------------------------------------------------------------------
+# simulated session guard (F1 repair)
+# --------------------------------------------------------------------------
+
+
+def test_simulated_flag_redirects_to_simulated_dir_and_marks_record(tmp_path: Path) -> None:
+    """--simulated writes to human_gate_sessions_simulated/ and sets simulated=true."""
+    draft_path = tmp_path / "draft.json"
+    bundle_path = tmp_path / "bundle.json"
+    answers_path = tmp_path / "answers.json"
+    draft_path.write_text(json.dumps(make_draft()), encoding="utf-8")
+    bundle_path.write_text(json.dumps(make_bundle()), encoding="utf-8")
+    answers_path.write_text(json.dumps(all_yes()), encoding="utf-8")
+
+    # Test default behavior (no --out): should redirect to SIMULATED_OUT_DIR
+    result = subprocess.run(
+        [
+            sys.executable, str(PRODUCT_ROOT / "human_gate_finalize.py"),
+            "--draft", str(draft_path), "--bundle", str(bundle_path),
+            "--answers", str(answers_path),
+            "--simulated",
+        ],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    written = list(SIMULATED_OUT_DIR.glob("session_*.json"))
+    assert len(written) >= 1
+    record = json.loads(written[-1].read_text(encoding="utf-8"))
+    assert record.get("simulated") is True
+    assert "SIMULATED SESSION" in record.get("claim_ceiling", "")
+    assert record["bundle_hash_status"] == "verified"
+
+
+def test_real_session_requires_finalized_by_run_id_and_wall_clock() -> None:
+    """Real (non-simulated) sessions must have finalized_by, run_id, and wall_clock > 0."""
+    # Test validate_real_session directly with constructed records
+    
+    # Missing finalized_by
+    record = {
+        "finalized_by": None,
+        "run_id": "38649613677",
+        "session_metrics": {"wall_clock_seconds": 10.0},
+    }
+    problems = validate_real_session(record)
+    assert any("finalized_by" in p for p in problems)
+    
+    # Provide finalized_by but no run_id
+    record2 = {
+        "finalized_by": "test-user",
+        "run_id": None,
+        "session_metrics": {"wall_clock_seconds": 10.0},
+    }
+    problems2 = validate_real_session(record2)
+    assert any("run_id" in p for p in problems2)
+    
+    # Provide both but zero wall_clock
+    record3 = {
+        "finalized_by": "test-user",
+        "run_id": "38649613677",
+        "session_metrics": {"wall_clock_seconds": 0.0},
+    }
+    problems3 = validate_real_session(record3)
+    assert any("wall_clock_seconds" in p for p in problems3)
+    
+    # All three present -> should pass
+    record4 = {
+        "finalized_by": "test-user",
+        "run_id": "38649613677",
+        "session_metrics": {"wall_clock_seconds": 10.0},
+    }
+    problems4 = validate_real_session(record4)
+    assert problems4 == []
+
+
+def test_canonical_dir_contains_only_real_sessions() -> None:
+    """Assert every record in the canonical human_gate_sessions/ carries finalized_by, run_id and non-zero wall clock."""
+    if not DEFAULT_OUT_DIR.exists():
+        return  # Directory doesn't exist yet, which is fine
+    
+    for path in DEFAULT_OUT_DIR.glob("session_*.json"):
+        record = json.loads(path.read_text(encoding="utf-8"))
+        # Real sessions must have these fields
+        assert record.get("finalized_by"), f"{path.name}: missing finalized_by"
+        assert record.get("run_id"), f"{path.name}: missing run_id"
+        wall = record.get("session_metrics", {}).get("wall_clock_seconds")
+        assert wall is not None and wall > 0, f"{path.name}: wall_clock_seconds must be > 0 for real sessions"
+        # And must NOT be simulated
+        assert record.get("simulated") is not True, f"{path.name}: simulated session in canonical directory"

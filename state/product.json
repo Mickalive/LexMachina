@@ -33,11 +33,11 @@
     "event": "workflow_dispatch",
     "head_branch": "repair-base",
     "note": "The conclusion of this run is not observable while its own team job executes and is not asserted here.",
-    "role": "REPAIR of the exact rejected cycle 38649613677 (audit REVISE round 1)",
-    "run_id": 38654561273,
+    "role": "REPAIR of the exact rejected cycle 38720785188 (audit REVISE round 1)",
+    "run_id": 38720785188,
     "status_at_state_write": "in_progress"
   },
-  "cycle_status": "V51_PROGRESSIVE_SLICE_SHIPPED__HUMAN_GATE_STILL_AWAITED",
+  "cycle_status": "V51_REPAIR_ROUND2_HUMAN_GATE_INTEGRITY_REPAIRED__LATENCY_ARTIFACTS_RUN_SCOPED__HUMAN_GATE_STILL_AWAITED",
   "direction_version": 51,
   "evidence_tier": "DURABLE_CI_VERIFIED",
   "human_gate_criteria": [
@@ -403,7 +403,7 @@
     "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
   },
   "state_updated_at": "2026-10-15",
-  "state_updated_by_run": "38665681083",
+  "state_updated_by_run": "38720785188",
   "state_updated_from_resumed_snapshot_run": 38648548635,
   "supersedes_claims": {
     "prior_direction_version": 48,
@@ -501,7 +501,7 @@
         "session metrics and addressable record"
       ],
       "code": "product/human_gate_finalize.py",
-      "integrity_note": "agent-simulated sessions were written to /tmp only; results/product/human_gate_sessions/ is intentionally empty until a real owner/jurist session exists",
+      "integrity_note": "simulated sessions are in results/product/human_gate_sessions_simulated/ with simulated=true and honest claim_ceiling; results/product/human_gate_sessions/ is intentionally empty until a real owner/jurist session exists; CLI --simulated flag enforces this separation",
       "output_default": "results/product/human_gate_sessions/",
       "refuses": [
         "fabricating gate answers (exit 3, status=incomplete)",
@@ -566,6 +566,18 @@
       "human_gate_ready": false,
       "report": "reports/product/CYCLE_38654561273.md; reports/product/CYCLE_38649613677.md section 3.2 retracted and corrected",
       "tests": "product/tests/test_latency_budget.py 27 passed (was 16; 11 added, 2 defect assertions corrected); 170 passed / 1 skipped over the 10 module suite of cycle 38649613677 (was 159 / 1)"
+    },
+    "latency_repair_round2": {
+      "artifacts": [
+        "results/product/latency_budget/CYCLE_38720785188_fixture.json",
+        "results/product/latency_budget/CYCLE_38720785188_offline.json",
+        "results/product/latency_budget/CYCLE_38720785188_live.json"
+      ],
+      "audit_verdict_repaired": "results/audit/product/CYCLE_38720785188_GATE.json -> required_fixes[0], [1], [2], [3], [4]",
+      "code": "product/human_gate_finalize.py (--simulated guard, validate_real_session, exit 7), product/tests/test_human_gate_finalize.py (3 new guards)",
+      "human_gate_ready": false,
+      "report": "reports/product/CYCLE_38720785188.md",
+      "tests": "product/tests/test_human_gate_finalize.py 28 passed (was 25; 3 added)"
     },
     "live_slice_smoke": {
       "bundle": "results/product/clickable_slice/bundle_live_enriched_CYCLE_38649613677.json",
@@ -646,6 +658,7 @@
     "durable_actions_run": null,
     "durable_run_note": "No durable green core-lane run exists yet: 38600271324 was team-green but audit-failed; this run (38604340726) carries fresh 4/4 in-run legs and awaits its own audit+integrate conclusion, which is not observable while the team job executes. Observation command: python product/ci_run_evidence.py --run-id 38604340726 --apply",
     "evidence_reports": [
+      "reports/product/CYCLE_38720785188.md",
       "reports/product/CYCLE_38654561273.md",
       "reports/product/CYCLE_38649613677.md",
       "reports/product/CYCLE_38604340726.md",

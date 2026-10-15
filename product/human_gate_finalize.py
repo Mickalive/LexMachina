@@ -70,6 +70,7 @@ GATE_QUESTIONS: dict[str, str] = {
 
 ALLOWED_RATINGS = ("yes", "partly", "no", "mixed", "not_applicable")
 DEFAULT_OUT_DIR = REPO_ROOT / "results" / "product" / "human_gate_sessions"
+SIMULATED_OUT_DIR = REPO_ROOT / "results" / "product" / "human_gate_sessions_simulated"
 
 
 class FinalizeError(RuntimeError):
@@ -126,6 +127,25 @@ def validate_draft(draft: Any) -> list[str]:
     started, ended = _parse_time(draft.get("started_at")), _parse_time(draft.get("ended_at"))
     if started and ended and ended < started:
         problems.append("ended_at precedes started_at")
+    return problems
+
+
+def validate_real_session(record: dict) -> list[str]:
+    """Additional validation for real (non-simulated) owner/jurist sessions.
+    
+    Real sessions must have:
+    - finalized_by: who finalized the session
+    - run_id: the core-lane run this session belongs to
+    - wall_clock_seconds > 0: a real session takes non-zero time
+    """
+    problems: list[str] = []
+    if not record.get("finalized_by"):
+        problems.append("real session requires finalized_by (who ran the finalizer)")
+    if not record.get("run_id"):
+        problems.append("real session requires run_id (core-lane run this session belongs to)")
+    wall = record.get("session_metrics", {}).get("wall_clock_seconds")
+    if wall is None or wall <= 0:
+        problems.append("real session requires wall_clock_seconds > 0 (a real session takes non-zero time)")
     return problems
 
 
@@ -236,6 +256,7 @@ def finalize(
     finalized_by: str | None = None,
     session_id: str | None = None,
     now: str | None = None,
+    simulated: bool = False,
 ) -> dict:
     """Return the finalized session record. Raises :class:`FinalizeError`."""
     problems = validate_draft(draft)
@@ -277,11 +298,26 @@ def finalize(
             "finalized_by": finalized_by,
             "run_id": run_id,
             "claim_ceiling": (
+                "SIMULATED SESSION: this record was machine-generated for CI validation purposes only. "
+                "It does NOT document a real owner/jurist session and must not be counted as human-gate evidence. "
+                "human_gate_ready remains false."
+            ) if simulated else (
                 "human gate EVIDENCE only: this record documents one owner/jurist session. "
                 "human_gate_ready is set by the director from these records, never by this tool."
             ),
+            "simulated": simulated,
         }
     )
+    
+    # For real (non-simulated) sessions, enforce additional provenance requirements
+    if not simulated:
+        real_problems = validate_real_session(record)
+        if real_problems:
+            raise FinalizeError(
+                "real session validation failed: " + "; ".join(real_problems),
+                exit_code=7,
+            )
+    
     if missing and status == "incomplete":
         raise IncompleteSession(record, missing, exit_code=3)
     return record
@@ -346,8 +382,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--run-id", default=None, help="core-lane run this session belongs to")
     parser.add_argument("--finalized-by", default=None, help="who ran the finalizer (free text)")
     parser.add_argument("--session-id", default=None, help="override the session id")
+    parser.add_argument("--simulated", action="store_true", help="mark session as simulated (CI validation only); writes to simulated directory and skips real-session provenance checks")
     parser.add_argument("--dry-run", action="store_true", help="validate and print, write nothing")
     args = parser.parse_args(argv)
+
+    # Simulated sessions must not go to the canonical evidence directory
+    if args.simulated and args.out == DEFAULT_OUT_DIR:
+        args.out = SIMULATED_OUT_DIR
+        print(f"  [simulated] redirecting output to {args.out}", file=sys.stderr)
+    elif not args.simulated and args.out == SIMULATED_OUT_DIR:
+        print(f"  [warning] non-simulated session writing to simulated directory", file=sys.stderr)
 
     try:
         draft = load_json(Path(args.draft))
@@ -360,6 +404,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             run_id=args.run_id,
             finalized_by=args.finalized_by,
             session_id=args.session_id,
+            simulated=args.simulated,
         )
     except IncompleteSession as incomplete:
         if not args.dry_run:
@@ -387,6 +432,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"opened={record['session_metrics']['n_decisions_opened']} "
         f"counters_opened={record['session_metrics']['n_counter_authorities_opened']} "
         f"used_baseline={record['session_metrics']['used_conventional_baseline']}"
+        f"{' simulated=true' if record.get('simulated') else ''}"
     )
     print("  human_gate_ready is NOT set by this tool; it records one session's evidence.")
     return 0
