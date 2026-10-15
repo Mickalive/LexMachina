@@ -265,6 +265,17 @@ def verify_bundle(
     decision_ids = {str(d.get("decision_id")) for d in decisions if d.get("decision_id")}
     cited = [str(x) for x in (answer.get("cited_decision_ids") or [])]
     off_map = sorted({c for c in cited if c not in decision_ids})
+    # Query-concept coverage of the retrieved set. Measured for every verdict so
+    # a *blocked* bundle says WHY: an uncited answer on a question whose second
+    # concept has zero supporting rows upstream is a corpus fact, not a defect
+    # of the generator, and the jurist must be able to see the difference.
+    coverage: dict = {}
+    try:
+        from product.query.concept_coverage import coverage_report
+
+        coverage = coverage_report(str(bundle.get("query") or ""), decisions)
+    except Exception as exc:  # coverage is a disclosure, never a refusal reason
+        coverage = {"error": f"{type(exc).__name__}: {exc}"}
     if require_answer:
         if str(answer.get("status") or "") not in ("ready", "degraded"):
             findings.append(_finding("answer_missing", "blocking",
@@ -272,8 +283,20 @@ def verify_bundle(
                                     "answer against a map and cannot run without one",
                                     status=answer.get("status")))
         if not cited:
-            findings.append(_finding("answer_cites_nothing", "blocking",
-                                    "the answer cites no decision"))
+            gap = (bundle.get("provenance") or {}).get("answer_gap_contract") or {}
+            findings.append(_finding(
+                "answer_cites_nothing", "blocking",
+                "the answer cites no decision"
+                + ("" if gap.get("fired") else
+                   "; the product's zero-citation contract did not fire either, so neither the "
+                   "generative answer nor the product fallback could ground this answer"
+                   + (f" (query concepts without any supporting row: "
+                      f"{', '.join(coverage.get('under_covered') or []) or 'unknown'})"
+                      if coverage.get("under_covered") else "")),
+                coverage_under_covered=coverage.get("under_covered"),
+                coverage_rows_per_concept=coverage.get("rows_per_concept"),
+                gap_contract_fired=bool(gap.get("fired")),
+            ))
         if off_map:
             findings.append(_finding("answer_cites_off_map_decision", "blocking",
                                     "the answer cites decisions that are not on the map",
@@ -324,7 +347,7 @@ def verify_bundle(
 
     blocking = [f for f in findings if f["severity"] == "blocking"]
     warnings = [f for f in findings if f["severity"] != "blocking"]
-    coverage = (inspection.get("decision_field_coverage") or {})
+    coverage_field_coverage = (inspection.get("decision_field_coverage") or {})
     rows_with_status = sum(
         1 for d in decisions if (d.get("counter_status") or "none") not in ("none", "", None)
     )
@@ -342,10 +365,16 @@ def verify_bundle(
         "largest_cluster_share": round(mega_share, 4),
         "source_url_null_rows": len(null_rows),
         "source_url_null_rows_explained_by_unhydrated_shells": len(null_rows) - len(unjustified),
-        "canonical_url_populated": (coverage.get("canonical_url") or {}).get("populated"),
+        "canonical_url_populated": (coverage_field_coverage or {}).get("canonical_url", {}).get("populated"),
         "answer_status": answer.get("status"),
         "answer_method": answer.get("method"),
         "answer_cited": len(cited),
+        "answer_gap_contract_fired": bool(
+            ((bundle.get("provenance") or {}).get("answer_gap_contract") or {}).get("fired")
+        ),
+        "query_concepts": coverage.get("concepts"),
+        "query_concept_rows": coverage.get("rows_per_concept"),
+        "query_concepts_under_covered": coverage.get("under_covered"),
         "content_sha256": inspection.get("content_sha256"),
     }
     return {

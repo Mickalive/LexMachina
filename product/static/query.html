@@ -197,12 +197,17 @@ function renderBundle(b){
      replacement, otherwise it would show the previous query's results */
   if(window.LexGateSwitch)LexGateSwitch.notifyBundleChanged();
 }
+function degradedNote(a){
+  if(a.method==="concept_coverage_extractive_v1")
+    return "Le modèle génératif n’a cité aucune décision. La réponse ci-dessous est composée par le produit à partir d’extraits verbatim des décisions citées, et nomme les notions de la question que le corpus récupéré ne couvre pas (voir « provenance.answer_gap_contract »).";
+  return "Le fournisseur génératif est indisponible : réponse extractive de secours. La carte et les sources restent valides, mais ce n’est pas le mode produit cible.";
+}
 function renderAnswer(){
   const a=BUNDLE?.answer||{},ready=a.status==="ready",degraded=a.status==="degraded";
   document.getElementById("prose").textContent=a.prose|| (ready?"":"Analyse en cours…");
   let meta="";
   if(a.method)meta+='<div class="card muted">'+esc(a.method)+(a.model?" · "+esc(a.model):"")+"</div>";
-  if(degraded)meta+='<div class="warn">Le fournisseur génératif est indisponible : réponse extractive de secours. La carte et les sources restent valides, mais ce n’est pas le mode produit cible.</div>';
+  if(degraded)meta+='<div class="warn">'+esc(degradedNote(a))+'</div>';
   document.getElementById("answerMeta").innerHTML=meta;
 }
 function renderCounters(){

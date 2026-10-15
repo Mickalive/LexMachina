@@ -269,3 +269,100 @@ def test_product_reranker_prefers_direct_legal_issue_over_broad_remote_hit():
     reranked = rerank_product_bundle(bundle)
     assert reranked["decisions"][0]["decision_id"] == "BJR"
     assert reranked["decisions"][0]["score"] > reranked["decisions"][1]["score"]
+
+
+# --------------------------------------------------------------------------- #
+# one decision, one point: court + docket identity merge
+# --------------------------------------------------------------------------- #
+def _row(decision_id, docket, *, court="bvger", date="", status="pending", rank=10, text=""):
+    return {
+        "decision_id": decision_id,
+        "court": court,
+        "language": "de",
+        "rank": rank,
+        "score": 1.0,
+        "provenance": "test",
+        "snippet": text or f"{decision_id} snippet",
+        "citation": docket,
+        "docket_number": docket,
+        "decision_date": date,
+        "detail_status": status,
+        "channels": ["citation.incoming"] if status == "pending" else ["search"],
+        "counter_status": "none",
+        "canonical_url": f"https://mcp.opencaselaw.ch/entscheid/{decision_id}",
+        "title": None, "regeste": None, "full_text": text or None,
+    }
+
+
+def test_same_decision_arrives_twice_under_two_ids_is_one_row():
+    """Live run 38812599575: A-2789/2024 sat on the map twice.
+
+    Both rows were citation-channel shells, so the run-time admissibility check
+    refused the question (``citation_duplicates``).  Court + docket identify one
+    decision, so the product merges them and exports which ids went away.
+    """
+    from query.pipeline import merge_duplicate_identities
+
+    rows = [
+        _row("bvger_A-2789_2024", "A-2789/2024", date="2025-07-04", rank=148),
+        _row("bvger_A-2789_2024_d20240318", "A-2789/2024", date="2024-03-18", rank=149),
+        _row("bge_132_III_257", "132 III 257", court="bge", date="2006-02-08", rank=3),
+    ]
+    kept, merges = merge_duplicate_identities(rows)
+    ids = [d["decision_id"] for d in kept]
+    assert ids == ["bvger_A-2789_2024_d20240318", "bge_132_III_257"]
+    assert merges[0]["merged_decision_ids"] == ["bvger_A-2789_2024"]
+    assert merges[0]["identity"] == {"court": "bvger", "docket": "a27892024"}
+    # the dropped row's retrieval channel survives on the kept row
+    assert kept[0]["merged_duplicate_ids"] == ["bvger_A-2789_2024"]
+
+
+def test_hydrated_row_wins_over_a_shell_of_the_same_decision_and_keeps_its_text():
+    """Run 38799024807 shipped the milder form: a shell next to a search hit.
+
+    The shell carried a different citation string for the same decision
+    ("A-1979/2024" vs "BVGer A-1979/2024 vom 26. März 2024").  Evidence wins,
+    so the hydrated row is kept and the shell is merged into it.
+    """
+    from query.pipeline import merge_duplicate_identities
+
+    rows = [
+        _row("bvger_A-1979_2024", "A-1979/2024", date="2025-03-28", status="pending", rank=101),
+        _row("bvger_A-1979_2024_d20240326", "A-1979/2024", date="2024-03-26",
+             status="search_hit", rank=16, text="Das Bundesgericht erwacht."),
+        _row("bge_119_IA_134", "119 IA 134", court="bge", date="1993-06-08", rank=7),
+    ]
+    kept, merges = merge_duplicate_identities(rows)
+    assert [d["decision_id"] for d in kept] == [
+        "bvger_A-1979_2024_d20240326", "bge_119_IA_134",
+    ]
+    assert kept[0]["full_text"] == "Das Bundesgericht erwacht."
+    assert merges[0]["kept_detail_status"] == "search_hit"
+    assert merges[0]["merged_decision_ids"] == ["bvger_A-1979_2024"]
+
+
+def test_identity_merge_is_a_no_op_when_no_two_rows_share_a_docket():
+    from query.pipeline import merge_duplicate_identities
+
+    rows = [
+        _row("bge_132_III_257", "132 III 257", court="bge", rank=1),
+        _row("bge_132_III_115", "132 III 115", court="bge", rank=2),
+        _row("no_docket_row", "", rank=3),
+    ]
+    kept, merges = merge_duplicate_identities(rows)
+    assert merges == []
+    assert [d["decision_id"] for d in kept] == [
+        "bge_132_III_257", "bge_132_III_115", "no_docket_row",
+    ]
+
+
+def test_merged_map_has_no_shared_citation_string_between_decisions():
+    from query.pipeline import merge_duplicate_identities
+
+    rows = [
+        _row("bvger_A-2789_2024", "A-2789/2024", date="2025-07-04", rank=148),
+        _row("bvger_A-2789_2024_d20240318", "A-2789/2024", date="2024-03-18", rank=149),
+    ]
+    kept, _ = merge_duplicate_identities(rows)
+    citations = [d["citation"] for d in kept]
+    assert len(citations) == len(set(citations)), "one decision, one citation string"

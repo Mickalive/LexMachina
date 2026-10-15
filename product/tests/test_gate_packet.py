@@ -541,3 +541,45 @@ def test_query_html_exposes_the_deep_link_entry_point():
     call = "await resumeLastRun();"
     assert call in html, "boot() still falls back to the last local run"
     assert html.index(call) > html.index("function boot()"), "resumeLastRun is called from boot()"
+
+# --------------------------------------------------------------------------- #
+# 8. the verdict roll-up: a fully passing LIVE packet must not crash
+# --------------------------------------------------------------------------- #
+def test_finalize_summary_handles_the_all_pass_live_case():
+    """Regression for the crash that lost live run 38812599575's packet.
+
+    ``ready_for_owner_session`` read ``summary["guards_all_ok"]`` before that
+    key was written.  Python short-circuits, so only a packet where every
+    question passed *and* the mode was live reached it - the single outcome the
+    ceremony needs.  The 3/3 packet was produced, then lost to the KeyError.
+    """
+    passing = [
+        {"qid": "a", "status": "admissible", "guards_ok": True},
+        {"qid": "b", "status": "admissible", "guards_ok": True},
+        {"qid": "c", "status": "admissible", "guards_ok": True},
+    ]
+    live = gp.finalize_summary({"questions": list(passing)}, 3, "live")
+    assert live["ok"] is True
+    assert live["admissible_questions"] == ["a", "b", "c"]
+    assert live["guards_all_ok"] is True
+    assert live["ready_for_owner_session"] is True
+
+    fixture = gp.finalize_summary({"questions": list(passing)}, 3, "fixture")
+    assert fixture["ok"] is True
+    assert fixture["ready_for_owner_session"] is False
+    assert "NOT gate material" in fixture["fixture_note"]
+
+    blocked = gp.finalize_summary(
+        {"questions": passing[:2] + [{"qid": "c", "status": "blocked", "guards_ok": True}]},
+        3, "live",
+    )
+    assert blocked["ok"] is False and blocked["blocked"] == ["c"]
+    assert blocked["ready_for_owner_session"] is False
+
+
+def test_finalize_summary_refuses_ready_when_a_guard_failed():
+    passing = [{"qid": "a", "status": "admissible", "guards_ok": False}]
+    out = gp.finalize_summary({"questions": passing}, 1, "live")
+    assert out["ok"] is True          # admissibility passed ...
+    assert out["guards_all_ok"] is False
+    assert out["ready_for_owner_session"] is False, "... but the ceremony guards did not"

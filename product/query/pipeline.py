@@ -7,6 +7,7 @@ through narrow adapters rather than reimplemented here.
 from __future__ import annotations
 
 import copy
+import re
 import sys
 import time
 from pathlib import Path
@@ -14,6 +15,7 @@ from typing import Any
 
 from .answer import build_answer, counter_authority_pass
 from .answer_contract import ensure_coverage
+from .answer_gap import ensure_cited_answer
 from .bundle import build_bundle, validate_bundle
 from .qmap import build_map
 from .relevance import rerank_product_bundle
@@ -139,6 +141,106 @@ def _citation_shell(c: dict) -> bool:
     )
 
 
+def _decision_identity(decision: dict) -> tuple[str, str] | None:
+    """(court, docket) identity of a row, or None when it has no docket.
+
+    Upstream ids are not identity enough on their own: the same decision arrives
+    both as ``bvger_A-1979_2024`` (from a citation edge) and as
+    ``bvger_A-1979_2024_d20240326`` (from a search hit).  Court plus docket is
+    what identifies it, and both are already product-row fields.
+    """
+    docket = str(decision.get("docket_number") or "").strip()
+    if not docket:
+        return None
+    court = str(decision.get("court") or "").strip().lower()
+    return (court, re.sub(r"[^a-z0-9]", "", docket.lower()))
+
+
+def _row_strength(decision: dict) -> tuple[int, int, int, str]:
+    """Deterministic preference between two rows of the same decision.
+
+    1. real evidence beats a synthesised shell (a shell has no detail payload);
+    2. a row whose own id embeds its own date beats one whose date contradicts
+       it (``bvger_A-2789_2024_d20240318`` dated 2024-03-18 is the decision;
+       ``bvger_A-2789_2024`` dated 2025-07-04 is the later appeal in the edge);
+    3. better rank wins; then lexicographic id, so the order never depends on
+       dict iteration order.
+    """
+    shell = 0 if _citation_shell(decision) else 1
+    decision_id = str(decision.get("decision_id") or "")
+    match = re.search(r"_d(\d{8})$", decision_id)
+    date = str(decision.get("decision_date") or "").replace("-", "")
+    consistent = 1 if (match and match.group(1) == date) else 0
+    try:
+        rank = int(decision.get("rank") or 10**9)
+    except (TypeError, ValueError):
+        rank = 10**9
+    return (shell, consistent, -rank, decision_id)
+
+
+def merge_duplicate_identities(decisions: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Collapse rows that are the same decision under different upstream ids.
+
+    Live run 38812599575 found ``bvger_A-2789_2024`` and
+    ``bvger_A-2789_2024_d20240318`` on the same map - both citation-channel
+    shells for docket A-2789/2024 - which is one decision counted twice and
+    rendered as two points, and which the run-time admissibility check refuses
+    (``citation_duplicates``).  Run 38799024807 shipped the same defect in a
+    milder form (``bvger_A-1979_2024`` shell beside the hydrated
+    ``..._d20240326`` row, carrying two different citation strings for one
+    decision).
+
+    Merging is product-owned because identity is the product's contract here -
+    the same reason the citation repair below lives in this module rather than
+    in the accepted adapter.  The kept row gains the other rows' channels, and
+    the merge is exported so an auditor can see exactly which ids disappeared.
+    """
+    order: list[tuple[tuple[str, str], list[int]]] = []
+    groups: dict[tuple[str, str], list[int]] = {}
+    for index, decision in enumerate(decisions):
+        key = _decision_identity(decision)
+        if key is None:
+            continue
+        if key not in groups:
+            groups[key] = []
+            order.append((key, groups[key]))
+        groups[key].append(index)
+
+    dropped: set[int] = set()
+    merges: list[dict] = []
+    for key, indices in order:
+        if len(indices) < 2:
+            continue
+        ranked = sorted(indices, key=lambda i: _row_strength(decisions[i]), reverse=True)
+        keep = decisions[ranked[0]]
+        merged_ids: list[str] = []
+        channels = list(keep.get("channels") or [])
+        for index in ranked[1:]:
+            other = decisions[index]
+            dropped.add(index)
+            merged_ids.append(str(other.get("decision_id") or ""))
+            for channel in other.get("channels") or []:
+                if channel not in channels:
+                    channels.append(channel)
+            for field in ("full_text", "regeste", "snippet", "title", "source_url",
+                          "decision_date", "canonical_url"):
+                if not keep.get(field) and other.get(field):
+                    keep[field] = other[field]
+        keep["channels"] = channels
+        keep["merged_duplicate_ids"] = merged_ids
+        merges.append({
+            "identity": {"court": key[0], "docket": key[1]},
+            "kept_decision_id": str(keep.get("decision_id") or ""),
+            "merged_decision_ids": merged_ids,
+            "kept_detail_status": keep.get("detail_status"),
+            "n_rows_before": len(indices),
+        })
+    if not merges:
+        return decisions, []
+    kept_rows = [d for i, d in enumerate(decisions) if i not in dropped]
+    return kept_rows, merges
+
+
 def _candidate_to_product(candidate_bundle: dict) -> dict:
     out = to_product_bundle(candidate_bundle)
     by_id = {c.get("decision_id"): c for c in candidate_bundle.get("candidates", [])}
@@ -161,6 +263,22 @@ def _candidate_to_product(candidate_bundle: dict) -> dict:
             own = str(c.get("docket_number") or "").strip() or str(d.get("decision_id") or "").strip()
             if own:
                 d["citation"] = own
+    decisions, merges = merge_duplicate_identities(out.get("decisions") or [])
+    out["decisions"] = decisions
+    for position, decision in enumerate(decisions, start=1):
+        if decision.get("rank") is None:
+            decision["rank"] = position
+    if merges:
+        out.setdefault("provenance", {})["identity_merge"] = {
+            "method": "court_docket_identity_merge_v1",
+            "n_merges": len(merges),
+            "n_rows_removed": sum(len(m["merged_decision_ids"]) for m in merges),
+            "merges": merges,
+            "claim_ceiling": (
+                "rows were collapsed because court + docket identify one decision; the kept id is "
+                "deterministic and the dropped ids are listed per merge"
+            ),
+        }
     return out
 
 
@@ -495,6 +613,19 @@ def enrich_query_bundle(
     coverage = ensure_coverage(audited)
     if coverage.get("changed"):
         audited["provenance"]["answer_coverage"] = coverage
+
+    # Zero-citation contract: a sourced answer that cites nothing is either a
+    # generator failure or an honest "the corpus does not cover this".  Measured
+    # on the shipped gate packet (run 38799024807, question de-kapitalverletzung)
+    # it was the second: 23 retrieved rows carry the employer's Fürsorgepflicht
+    # and 0 carry *Kapitalverletzung*.  The product therefore surfaces the
+    # covered concepts verbatim and cited, and states the uncovered ones with
+    # their measured counts, instead of shipping an uncited answer (which the
+    # gate-admissibility check blocks) or forcing a citation onto a proposition
+    # the decision does not contain (the defect of run 38766812030).
+    gap = ensure_cited_answer(audited)
+    if gap.get("fired"):
+        audited["provenance"]["answer_gap_contract"] = gap
 
     # The adversarial/generative stage must never move the already visible map.
     original_geo = {

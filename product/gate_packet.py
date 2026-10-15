@@ -386,6 +386,32 @@ def _run_one_query(base: str, question: dict, *, top_n: int, wait_s: float, stag
     return bundle, {"stages": stage, "server_run_id": server_run_id}
 
 
+def finalize_summary(summary: dict, n_questions: int, mode: str) -> dict:
+    """Roll per-question outcomes up into the packet verdict.
+
+    Extracted so the ordering is testable: the previous inline version read
+    ``summary["guards_all_ok"]`` while computing ``ready_for_owner_session`` and
+    only wrote it afterwards.  Python short-circuits, so that only raised when
+    ``ok`` was true AND the mode was live - i.e. exactly the run the ceremony
+    needs (live run 38812599575 reached 3/3 admissible and died on the
+    KeyError, losing the whole packet).
+    """
+    done = [q for q in summary["questions"] if q["status"] != "pending"]
+    summary["n_questions"] = n_questions
+    summary["n_attempted"] = len(done)
+    summary["blocked"] = [q["qid"] for q in done if q["status"] == "blocked"]
+    summary["admissible_questions"] = [q["qid"] for q in done if q["status"] == "admissible"]
+    summary["ok"] = bool(done) and not summary["blocked"] and len(done) == n_questions
+    summary["guards_all_ok"] = all(q.get("guards_ok") for q in done)
+    summary["ready_for_owner_session"] = bool(
+        summary["ok"] and mode == "live" and summary["guards_all_ok"]
+    )
+    if mode == "fixture":
+        summary["ready_for_owner_session"] = False
+        summary["fixture_note"] = FIXTURE_CLAIM_CEILING
+    return summary
+
+
 def preflight(args: argparse.Namespace) -> tuple[int, dict]:
     from query_app import make_server  # local import: only the runner needs the server
 
@@ -500,19 +526,7 @@ def preflight(args: argparse.Namespace) -> tuple[int, dict]:
         srv.shutdown()
         srv.server_close()
 
-    done = [q for q in summary["questions"] if q["status"] != "pending"]
-    summary["n_questions"] = len(manifest["questions"])
-    summary["n_attempted"] = len(done)
-    summary["blocked"] = [q["qid"] for q in done if q["status"] == "blocked"]
-    summary["admissible_questions"] = [q["qid"] for q in done if q["status"] == "admissible"]
-    summary["ok"] = bool(done) and not summary["blocked"] and len(done) == len(manifest["questions"])
-    summary["ready_for_owner_session"] = bool(
-        summary["ok"] and mode == "live" and summary["guards_all_ok"]
-    )
-    summary["guards_all_ok"] = all(q.get("guards_ok") for q in done)
-    if mode == "fixture":
-        summary["ready_for_owner_session"] = False
-        summary["fixture_note"] = FIXTURE_CLAIM_CEILING
+    summary = finalize_summary(summary, len(manifest["questions"]), mode)
     (out / "packet.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return (0 if summary["ok"] else 5), summary
 
@@ -717,6 +731,21 @@ def owner_card(recheck: dict, *, base_url: str, top_n: int, run_ids: dict[str, s
             f"      answer:    {measured.get('answer_status')} ({measured.get('answer_method')}), "
             f"{measured.get('answer_cited')} cited",
         ]
+        under = measured.get("query_concepts_under_covered") or []
+        if under:
+            # The jurist judges the answer against the map, so the boundary of
+            # what the corpus supports is part of the result, not a footnote.
+            lines.append(
+                "      coverage:  the retrieved corpus supports NO decision for these concepts of "
+                f"the question: {', '.join(under)}. The answer cites only the concepts it can "
+                "support; judge that boundary, do not read it as the corpus having nothing to say."
+            )
+        if measured.get("answer_gap_contract_fired"):
+            lines.append(
+                "      note:      the generative model cited nothing here, so the cited extract is "
+                "the product's verbatim fallback (concept_coverage_extractive_v1, status degraded); "
+                "the model's own assessment is kept verbatim at the top of the answer."
+            )
         disclosures = _disclosure_lines(verdict)
         if disclosures:
             lines.append("      disclose before judging the map:")
