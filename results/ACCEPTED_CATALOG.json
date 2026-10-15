@@ -1461,15 +1461,16 @@
           }
         ],
         "current_run": {
+          "run_id": "38754777366",
+          "role": "OPERATIONAL RESUME of the persisted producer snapshot of run 38747797021 (resume_from_run_id; team job failed at 'Run lane cycle' by work-quantum expiry, rc-78 signature). Snapshot f6dd333 preserved all code work; this resume verified it, finished the unverified deliverable (fixture + LIVE gate rehearsal through the committed chain) and made the snapshot audit-ready.",
+          "status_at_state_write": "in_progress",
           "conclusion_at_state_write": null,
           "event": "workflow_dispatch",
-          "head_branch": "repair-base",
-          "note": "The conclusion of this run is not observable while its own team job executes and is not asserted here.",
-          "role": "REPAIR of the exact rejected cycle 38649613677 (audit REVISE round 1)",
-          "run_id": 38654561273,
-          "status_at_state_write": "in_progress"
+          "head_branch": "operational-resume",
+          "resumed_snapshot_run": 38747797021,
+          "resumed_snapshot_commit": "f6dd333a6ca7e3ed08a919d20fd9dc84b055fabf"
         },
-        "cycle_status": "V51_PROGRESSIVE_SLICE_SHIPPED__HUMAN_GATE_STILL_AWAITED",
+        "cycle_status": "V51_OPERATIONAL_RESUME_OF_38747797021__GATE_REHEARSAL_CHAIN_VERIFIED_FIXTURE_AND_LIVE__SUITE_245_PASSED_1_SKIPPED_0_FAILED__HUMAN_GATE_STILL_AWAITED",
         "direction_version": 51,
         "evidence_tier": "DURABLE_CI_VERIFIED",
         "human_gate_criteria": [
@@ -1495,7 +1496,7 @@
           },
           {
             "criterion": "offline deterministic tests",
-            "status": "PASS (192 product tests incl. the new progressive/job suite)"
+            "status": "PASS (236 product tests across 13 MVP suites in DEFAULT collection order, 1 skipped, 0 failed, recomputed at run 38740365477). The earlier '235 passed' figure was collected-total arithmetic and was WITHDRAWN by the independent audit of cycle 38732097101: at commit aae6f90 the same 13 modules gave 8 failed / 227 passed / 1 skipped because human_gate_session.serve() shut down the process-global query_app.POOL. Repaired and falsification-verified in run 38740365477."
           },
           {
             "criterion": "measured provenance and latency",
@@ -1511,7 +1512,7 @@
           },
           {
             "criterion": "real owner/jurist session on the map-vs-list comparison",
-            "status": "PENDING (human_gate_ready=false; the session is now survivable: map in seconds, jobs never block, reload resumes; only a real jurist can pass it)"
+            "status": "PENDING (human_gate_ready=false). The session is one command: python product/human_gate_session.py --port 8791 --run-id <run> --operator <name> --owner-session serves the product, prints the four gate questions, binds the exported draft to the exact served bundle and records the admissibility verdict. The whole chain is now machine-rehearsed fixture AND live through the committed artifacts (results/product/gate_rehearsal/, run 38754777366), so a real session is the only unexecuted step. No agent can produce this criterion."
           }
         ],
         "human_gate_integration": {
@@ -1606,7 +1607,7 @@
           "status": "COMPLETE_AND_RECORDED",
           "v50_objective": "one durable, retrievable, GREEN core-lane run of lane=product whose own team job executes the four frozen reality legs LIVE"
         },
-        "next_recommendation": "The comparative human gate is the only remaining milestone and only a real owner/jurist session can pass it. Its preconditions are now in place: one command, map visible in ~6 s cold instead of ~137 s, generation/counter pass as a pollable job that never blocks or double-runs, reload-safe resume, and the accepted list<->map switch on the same bundle. Do not re-verify the machine gate or re-record latency budgets; if the owner's session surfaces a UI defect, fix the UI. If a Frontier team delivers a retrieval/answer/map component, integrate it behind the same query_result_bundle seam.",
+        "next_recommendation": "The gate chain is now fully machine-rehearsed (fixture and LIVE) end to end through the committed artifacts; the only remaining product milestone is the comparative human gate itself, which requires a real owner/jurist session: python product/human_gate_session.py --port 8791 --run-id <run> --operator <name> --owner-session (one command against LIVE OpenCaseLaw), then finalize the exported session. Do not re-verify the machine gate, latency budgets or the rehearsal chain. Owner-independent work if a cycle must run before the session: extend product/human_gate_evidence.py to the frontier teams' evidence directories, and keep the canonical human_gate_sessions/ directory free of anything a machine wrote.",
         "normal_path": {
           "generation_and_counter": "frontier-generative-audit contract 2.2 (independent adversarial pass)",
           "initial_map": "query-conditioned TF-IDF + SVD + KMeans rendered before generation",
@@ -1669,6 +1670,22 @@
               "workflow_name": "Core product dirV51 repair0"
             },
             "status": "REPAIRED THIS CYCLE - canonical state/product.json now carries direction_version 51 and a non-INITIALIZED cycle_status; the shadow copy is deleted and a product-owned guard now fails locally in seconds instead of after a 45-minute workflow quantum."
+          },
+          "run_38747797021": {
+            "failing_step": "Run lane cycle (step 6)",
+            "window": "team job 2026-10-15T14:03:44Z -> 14:48:48Z = exactly 2704s (the 2700s LEX_WORK_QUANTUM budget)",
+            "failing_exit_signature": "rc 78 - LEX_WORK_QUANTUM_EXPIRED (same operational signature as run 38554018429)",
+            "root_cause": "The producer spent the whole 45-minute quantum building the committed gate-rehearsal chain (gate_rehearsal.py, export_session_draft.js, dom_shim.js, query.html answer card, 24 tests) and was killed before it could run the tests, rehearse the chain, update state/product.json or write its report. 'Validate active MVP producer state' was SKIPPED, i.e. it never asserted anything false. Not a state-validation failure and not a product-code failure.",
+            "snapshot": "cycle/core/product/38747797021/team @ f6dd333 ('product cycle 38747797021 repair 0'), parent 76afaa4 = accept product cycle 38740365477",
+            "status": "OPERATIONAL, NOT A VALIDATION DEFECT - snapshot preserved and resumed by run 38754777366; no restart from scratch",
+            "resume_actions": [
+              "all 24 new snapshot tests pass; full 14-module MVP suite recomputed 245 passed / 1 skipped / 0 failed in default order",
+              "python product/gate_rehearsal.py --fixture (honest incomplete record, ADMISSIBLE)",
+              "python product/gate_rehearsal.py --fixture --answers <canonical> (finalized, ratings land in the record, ADMISSIBLE)",
+              "python product/gate_rehearsal.py --live --query 'Responsabilite penale de l'entreprise selon l'art. 102 CP' (227 live OpenCaseLaw decisions, bundle_hash_status=verified, finalized, ADMISSIBLE)",
+              "node product/verify_query_page.js on the live rehearsal bundle: PASS 16 assertions",
+              "durable artifacts under results/product/gate_rehearsal/CYCLE_38754777366_*.json; session records in results/product/human_gate_sessions_simulated/"
+            ]
           },
           "secondary_risk_noted": "Earlier cycles also wrote outside product scope (frontier/frontier-generative-audit/generative_audit/provider.py and results/frontier/frontier-query-retrieval/cache/*). Those writes are already committed in the snapshot; 'Enforce lane write scope' only inspects pending changes, so they cannot be cleaned without tripping the scope check in the same run. They are recorded as pre-existing snapshot content, not current-cycle work. Live-run cache by-products created inside a cycle are removed before the scope step (reports/product/CYCLE_38559540834.md section 4)."
         },
@@ -1835,8 +1852,8 @@
           "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
         },
         "state_updated_at": "2026-10-15",
-        "state_updated_by_run": "38665681083",
-        "state_updated_from_resumed_snapshot_run": 38648548635,
+        "state_updated_by_run": "38754777366",
+        "state_updated_from_resumed_snapshot_run": 38747797021,
         "supersedes_claims": {
           "prior_direction_version": 48,
           "reason": "Pre-red claim was written 2026-10-12T18:27:34Z, before the contradicting reality checks at 19:11-19:21Z, and cited run ids that now return HTTP 404. It is no longer current status and is not re-asserted anywhere in this state.",
@@ -1933,15 +1950,22 @@
               "session metrics and addressable record"
             ],
             "code": "product/human_gate_finalize.py",
-            "integrity_note": "agent-simulated sessions were written to /tmp only; results/product/human_gate_sessions/ is intentionally empty until a real owner/jurist session exists",
+            "integrity_note": "enforced in the write path, not asserted in prose: product/human_gate_finalize.py refuses (exit 8) a record whose claim_ceiling disagrees with its simulated flag, a simulated record in the canonical directory, a record in the simulated directory that claims to be an owner session, and any record in results/product/human_gate_sessions/ without an explicit owner_session_confirmed declaration (--owner-session). A real session additionally requires a supplied bundle that verifies against the draft and at least 10 bound decisions (exit 7). results/product/human_gate_sessions/ is empty and stays empty until a person answers the four gate questions; results/product/human_gate_sessions_simulated/ holds only the annotated F0 retraction. provenance is an ATTESTATION mechanism, not authentication: finalized_by/run_id/owner_session_confirmed are self-asserted and every record says so in its own provenance_note. The invariant is machine-checkable: python product/human_gate_evidence.py (exit 0 admissible / 1 defect).",
             "output_default": "results/product/human_gate_sessions/",
             "refuses": [
               "fabricating gate answers (exit 3, status=incomplete)",
               "bundle/session mismatch (exit 5)",
-              "writing human_gate_ready"
+              "writing human_gate_ready",
+              "a real session not bound to a verifying bundle or bound to a fixture-sized one (exit 7)",
+              "any self-contradictory or undeclared record, at write time (exit 8)"
             ],
-            "tests": "product/tests/test_human_gate_finalize.py (25 tests)",
-            "verified_live": "real accepted switch (node) against the live enriched bundle: draft 12 actions / 4 decisions / 2 counter authorities -> finalized, bundle_hash_status=verified; same draft vs another bundle -> exit 5"
+            "tests": "product/tests/test_human_gate_finalize.py (40 tests) + product/tests/test_human_gate_evidence.py (14, not 13 as previously written) + product/tests/test_human_gate_session.py (15); non-vacuity proven by injection (ceiling regression -> 5 failures; write guard removed -> 3 failures)",
+            "verified_live": "real accepted switch (node) against the live enriched bundle: draft 12 actions / 4 decisions / 2 counter authorities -> finalized, bundle_hash_status=verified; same draft vs another bundle -> exit 5",
+            "evidence_scan": {
+              "command": "python product/human_gate_evidence.py",
+              "verdict_this_run": "0 blocking, 1 warning (admissible)",
+              "note": "the scanner reproduced the audit's F2 verdict independently on the pre-repair tree"
+            }
           },
           "known_exclusions": [
             "product/tests/test_http_api_integration.py imports the legacy 174k product/server.py (needs sentence-transformers); off the MVP critical path and already recorded by the v50 audit"
@@ -1998,6 +2022,18 @@
             "human_gate_ready": false,
             "report": "reports/product/CYCLE_38654561273.md; reports/product/CYCLE_38649613677.md section 3.2 retracted and corrected",
             "tests": "product/tests/test_latency_budget.py 27 passed (was 16; 11 added, 2 defect assertions corrected); 170 passed / 1 skipped over the 10 module suite of cycle 38649613677 (was 159 / 1)"
+          },
+          "latency_repair_round2": {
+            "artifacts": [
+              "results/product/latency_budget/CYCLE_38720785188_fixture.json",
+              "results/product/latency_budget/CYCLE_38720785188_offline.json",
+              "results/product/latency_budget/CYCLE_38720785188_live.json"
+            ],
+            "audit_verdict_repaired": "results/audit/product/CYCLE_38720785188_GATE.json -> required_fixes[0], [1], [2], [3], [4]",
+            "code": "product/human_gate_finalize.py (--simulated guard, validate_real_session, exit 7), product/tests/test_human_gate_finalize.py (3 new guards)",
+            "human_gate_ready": false,
+            "report": "reports/product/CYCLE_38720785188.md",
+            "tests": "product/tests/test_human_gate_finalize.py 28 passed (was 25; 3 added)"
           },
           "live_slice_smoke": {
             "bundle": "results/product/clickable_slice/bundle_live_enriched_CYCLE_38649613677.json",
@@ -2072,12 +2108,120 @@
             ],
             "tests": "product/tests/test_state_contract.py (28 tests, <1s, no network)"
           },
-          "tests": "159 passed, 1 skipped across 10 product suites (69 of them new this cycle)"
+          "tests": "159 passed, 1 skipped across 10 product suites (69 of them new this cycle)",
+          "human_gate_session_runner": {
+            "code": "product/human_gate_session.py",
+            "why": "the last milestone is a comparative human session; the mechanical part of it was four manual steps with two ways to fail (missing provenance -> exit 7, wrong bundle -> a session bound to nothing)",
+            "one_command": "python product/human_gate_session.py --port 8791 --run-id <run> --operator <name> --owner-session",
+            "does": "serves the product, prints the four gate questions and the negative-result contract, watches for the harness export, binds the draft to the exact served bundle (same in-memory run registry the UI reads), finalizes with attested provenance, then prints the evidence-admissibility verdict",
+            "subcommands": [
+              "serve (default)",
+              "finalize <draft> --bundle ...",
+              "check"
+            ],
+            "verified": "full offline rehearsal this run (fixture corpus): server -> /api/query/start -> /api/query/enrich (answer ready, 3 counter statuses) -> export -> auto-bind 100 decisions, bundle_hash_status=verified -> finalized -> 0 blocking, ADMISSIBLE",
+            "negative_case": "an earlier rehearsal was REFUSED (exit 5) because its draft opened a counter authority that carried no counter status",
+            "defect_found_and_fixed_by_this_cycle": "serve() dropped --out and a machine-authored rehearsal landed in results/product/human_gate_sessions/; --out is now threaded through and the canonical directory requires --owner-session, so that class of accident is refused at write time",
+            "tests": "product/tests/test_human_gate_session.py (14 tests at that cycle; 15 after repair round 3 added test_serve_does_not_shut_down_the_process_global_job_pool)",
+            "human_gate_ready": false
+          },
+          "human_gate_evidence_scanner": {
+            "code": "product/human_gate_evidence.py",
+            "command": "python product/human_gate_evidence.py  (exit 0 admissible, 1 blocking defect)",
+            "roles": "directory-role based (human_gate_sessions / human_gate_sessions_simulated), so it also judges a copy or a synthetic tree",
+            "blocking_codes": [
+              "contradictory_claim_ceiling",
+              "simulated_in_canonical_dir",
+              "real_record_in_simulated_dir",
+              "missing_finalized_by",
+              "missing_run_id",
+              "non_positive_wall_clock",
+              "bundle_not_verified",
+              "implausible_decision_count",
+              "unconfirmed_owner_session",
+              "claims_human_gate_ready",
+              "test_scratch_session_id",
+              "unreadable_record"
+            ],
+            "tests": "product/tests/test_human_gate_evidence.py (14 tests; this field previously said 13 and was corrected by the round-3 audit of cycle 38732097101)",
+            "why": "cycle 38726191935 was the second occurrence of machine-generated records in results/product/; the audit set BLOCKED as the verdict for a third. A scanner turns that from an auditor's reading into a command."
+          },
+          "latency_repair_round3": {
+            "audit_verdict_repaired": "results/audit/product/CYCLE_38726191935_GATE.json -> required_fixes F1..F8",
+            "code": "product/human_gate_finalize.py (env-overridable dirs, claim-ceiling constants, write-path admissibility refusal, real-session bundle verification + minimum decisions, --attest, --owner-session), product/human_gate_evidence.py (new), product/human_gate_session.py (new), product/tests/conftest.py (new)",
+            "artifacts_removed": "five pytest byproducts from results/product/human_gate_sessions_simulated/, preserved in reports/product/incidents/pytest_byproducts_human_gate_sessions_38726191935.RETIRED.json and in git history",
+            "reports": "reports/product/CYCLE_38732097101.md (this run), reports/product/CYCLE_38726191935.md (retrospective provenance, F6), reports/product/CYCLE_38720785188.md section 7 (appended corrections)",
+            "tests": "CORRECTED (audit of cycle 38732097101, required fix 2): the claimed '235 passed / 1 skipped over 13 MVP suites' was WITHDRAWN - recomputed at commit aae6f90 in default collection order it was 8 failed / 227 passed / 1 skipped. After the round-3 pool-ownership repair (run 38740365477) the same 13 modules give 236 passed / 1 skipped / 0 failed (237 collected).",
+            "falsification": "injected ceiling regression -> 5 failures (the previous suite reported 0); write-path guard deleted -> 3 failures",
+            "latency": "re-verified live this run: 84.8811 s upstream + 0.1362 s local map for the first page; 9A budgets were audited closed and are not re-litigated",
+            "human_gate_ready": false
+          },
+          "audit_repair_round3_38732097101": {
+            "repair_round": 3,
+            "repair_of": "audit of cycle 38732097101 -> gate=REVISE, results/audit/product/CYCLE_38732097101_GATE.json (read from the mounted prior-audit tree at commit 77e6e7a; its numbers were reproduced here, not trusted)",
+            "required_fix_1": {
+              "defect": "product/human_gate_session.py::serve() called POOL.shutdown(wait=False, cancel_futures=True) on the process-global query_app.POOL; one in-process serve() call then made every later POOL.submit raise 'RuntimeError: cannot schedule new futures after shutdown' and /api/query/start answer HTTP 500 in 8 pre-existing server tests collected after test_human_gate_session.py",
+              "repair": "serve() now owns only what it creates: it shuts down the HTTP server it made and leaves query_app.POOL alone. Process-global teardown moved to the __main__ entry point.",
+              "guard": "product/tests/test_human_gate_session.py::test_serve_does_not_shut_down_the_process_global_job_pool asserts the mechanism (the executor still accepts a submission after serve()) and the symptom (a server started afterwards still answers /api/query/start with map_ready)"
+            },
+            "suite_recomputed_default_order": {
+              "modules": 13,
+              "before_repair_at_aae6f90": "8 failed, 227 passed, 1 skipped (independent audit's number, reproduced)",
+              "after_repair": "236 passed, 1 skipped, 0 failed (237 collected)",
+              "defect_reinjected": "9 failed, 227 passed, 1 skipped - the 8 original failures plus the new guard",
+              "venv": "pytest 9.1.1, numpy 2.5.4, scikit-learn 1.9.1",
+              "results_tree_after_run": "clean apart from the designed persistent query_cache (documented in the report)"
+            },
+            "required_fix_2": {
+              "corrected": "reports/product/CYCLE_38732097101.md section 4 now carries the withdrawn claim struck through, the audit's recomputed value (8 failed / 227 passed / 1 skipped) and the round-3 value (236 passed / 1 skipped); the test_human_gate_evidence.py count is 14, not 13, in the report and in this state",
+              "historical_text_preserved": "the original 235-passed sentence is preserved struck-through, not deleted",
+              "also_corrected": [
+                "human_gate_criteria[5].status",
+                "v51_delivery.human_gate_finalize.tests",
+                "v51_delivery.human_gate_evidence_scanner.tests",
+                "v51_delivery.human_gate_session_runner.tests",
+                "v51_delivery.latency_repair_round3.tests"
+              ]
+            },
+            "live_slice_redriven": "warm live /api/query/start (cache-served, network_calls=0) -> 200 in 0.176s, 37/37 canonical_url; expand+enrich -> 287/287 canonical_url, 287/287 x-y, 287/287 cluster_id, answer ready (generative_audit_llm_v2, opencode/nemotron-3-ultra-free, 11 cited ids all in bundle), 14 counter-status decisions; node verify_query_page.js PASS 16 assertions",
+            "report": "reports/product/CYCLE_38740365477.md",
+            "not_claimed": "no human-gate result (human_gate_ready=false); no benchmark, threshold, metric or success rule was weakened; the machine gate was not re-verified",
+            "human_gate_ready": false
+          },
+          "gate_rehearsal_chain": {
+            "what": "The whole one-sitting gate chain is now a committed, reproducible product artifact: query -> progressive bundle (start/expand/enrich) -> REAL page in the minimal DOM -> accepted LexGateSwitch (conventional list baseline + map) -> answer card -> 'Exporter la session' export -> human_gate_finalize.py binding to the exact served bundle -> human_gate_evidence.py admissibility verdict. Previously the export half was an ad-hoc uncommitted node harness; nobody, least of all a test, could reproduce it.",
+            "code": [
+              "product/gate_rehearsal.py (one command, --fixture or --live; refuses --owner-session; simulated records only land in the simulated directory)",
+              "product/export_session_draft.js (committed driver; non-vacuity exit 3 if supplied answers fail to reach the export)",
+              "product/dom_shim.js (the runtime verify_query_page.js already used; no second shim)",
+              "product/static/query.html owner-gate answer card (q1-q4 select+note; unanswered question NEVER invented, stays in missing_answers)",
+              "product/human_gate_session.py (threads --out through serve(); owns only the HTTP server it creates)"
+            ],
+            "verified_this_resume": {
+              "fixture_no_answers": "runner_exit=3 record=incomplete (honest) scan=0 blocking -> ADMISSIBLE",
+              "fixture_with_answers": "runner_exit=0 record=finalized bundle_hash_status=verified ratings q1..q4 present in the record scan=0 blocking -> ADMISSIBLE",
+              "live": "query 'Responsabilite penale de l'entreprise selon l'art. 102 CP : subsidiaire ou primaire ?'; start 35 decisions 6.83s; expand +192 -> 227 decisions 20.78s (20.51s upstream, 0 points moved); enrich 89.62s (real free models); export -> draft bound to the 227-decision served bundle; finalize bundle_hash_status=verified; session metrics: 3 decisions opened, 2 counter authorities opened, 2 view switches, used_conventional_baseline=true; scan ADMISSIBLE",
+              "dom_smoke": "node product/verify_query_page.js results/product/gate_rehearsal/CYCLE_38754777366_live_bundle.json -> PASS 16 assertions",
+              "suite": "24 new snapshot tests pass; full 14-module MVP suite 245 passed / 1 skipped / 0 failed (default order)"
+            },
+            "artifacts": [
+              "results/product/gate_rehearsal/CYCLE_38754777366_fixture_answers.json",
+              "results/product/gate_rehearsal/CYCLE_38754777366_live.json",
+              "results/product/gate_rehearsal/CYCLE_38754777366_live_bundle.json (227 live decisions)",
+              "results/product/gate_rehearsal/CYCLE_38754777366_live_draft.json",
+              "results/product/human_gate_sessions_simulated/session_session-20261015T150041Z.json (live record)"
+            ],
+            "answers_format": "the driver accepts {\"q1\":\"yes\"} or {\"q1\":{\"rating\":\"yes\",\"note\":\"…\"}}; a {\"value\": ...} key silently degrades to note-only (record shows rating empty) — canonical shape verified this resume, not an API change",
+            "known_warning": "evidence scan: 0 blocking, 1 warning (test_scratch_session_id on the committed historical session_test-session-20261015T120000Z.json from cycle 38726191935; warning-only, left in place as snapshot history)",
+            "human_gate_ready": false,
+            "claim_ceiling": "machine-rehearsed chain evidence (fixture and live). NOT a jurist session; human_gate_ready stays false; only a real owner/jurist run of python product/human_gate_session.py --owner-session can set it."
+          }
         },
         "verification": {
           "durable_actions_run": null,
           "durable_run_note": "No durable green core-lane run exists yet: 38600271324 was team-green but audit-failed; this run (38604340726) carries fresh 4/4 in-run legs and awaits its own audit+integrate conclusion, which is not observable while the team job executes. Observation command: python product/ci_run_evidence.py --run-id 38604340726 --apply",
           "evidence_reports": [
+            "reports/product/CYCLE_38720785188.md",
             "reports/product/CYCLE_38654561273.md",
             "reports/product/CYCLE_38649613677.md",
             "reports/product/CYCLE_38604340726.md",
@@ -2305,6 +2449,23 @@
             "note": "NOT a product-code failure: canonical state/product.json carried direction_version 50 while the run was dispatched dirV51. Diagnosis, repair and recurrence guard: reports/product/CYCLE_38649613677.md section 1-2.",
             "observed_at": "2026-10-14T22:52Z",
             "run_id": 38648548635,
+            "status": "completed"
+          },
+          {
+            "conclusion": "failure",
+            "created_at": "2026-10-15T14:01:59Z",
+            "event": "workflow_dispatch",
+            "head_branch": "main",
+            "head_sha": "78d3d12b98790624e15e384f09bb3fdaebc1de0f",
+            "jobs": {
+              "audit": "skipped",
+              "integrate": "skipped",
+              "resilience": "success (dispatched operational resume 38754777366 with resume_from_run_id=38747797021)",
+              "team": "failure at step 6 'Run lane cycle' (exactly 2704s = work-quantum expiry, rc-78 signature; step 7 SKIPPED; step 10 snapshot success)"
+            },
+            "note": "NOT a product-code failure and NOT a state-validation failure: the producer built the committed gate-rehearsal chain (1428 insertions, snapshot f6dd333) and was killed by the 45-minute quantum before tests/state/report. Verified and completed by the operational resume; see orchestration_failure_diagnosis.run_38747797021.",
+            "observed_at": "2026-10-15T14:52Z",
+            "run_id": 38747797021,
             "status": "completed"
           }
         ]
