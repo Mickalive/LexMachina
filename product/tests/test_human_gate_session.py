@@ -266,3 +266,47 @@ def test_cli_finalize_without_a_bundle_is_refused_with_exit_7(tmp_path: Path) ->
 def test_serve_returns_9_when_no_session_is_exported(tmp_path: Path) -> None:
     """A missed session is reported, not silently recorded as evidence."""
     assert runner.serve(host="127.0.0.1", port=0, fixture=True, watch_dir=tmp_path, wait_s=0.01, verbose=False) == 9
+
+
+def test_serve_does_not_shut_down_the_process_global_job_pool(tmp_path: Path) -> None:
+    """``serve()`` may only tear down what it created.
+
+    Regression guard for audit CYCLE_38732097101 (repair round 3, required fix 1).
+    ``serve()`` used to call ``POOL.shutdown()`` on the module-level
+    ``query_app.POOL`` executor. Because that pool is process-global, one
+    in-process ``serve()`` call permanently disabled background jobs: every later
+    ``POOL.submit`` raised ``RuntimeError: cannot schedule new futures after
+    shutdown`` and ``/api/query/start`` answered HTTP 500 in eight pre-existing
+    server tests that happen to be collected after this module.
+
+    Both halves are asserted here — the mechanism (the executor still accepts
+    work) and the user-visible symptom (a fresh server still starts a query) —
+    so re-introducing the shutdown line fails this test in isolation, not only
+    through default-order cross-module pollution.
+    """
+    import json
+    import threading
+    import urllib.parse
+    import urllib.request
+
+    import query_app
+
+    assert runner.serve(host="127.0.0.1", port=0, fixture=True, watch_dir=tmp_path, wait_s=0.01, verbose=False) == 9
+
+    # mechanism: the shared executor must still accept submissions
+    assert query_app.POOL.submit(lambda: "alive").result(timeout=15) == "alive"
+
+    # symptom: a server started afterwards must still be able to run a query job
+    srv = query_app.make_server("127.0.0.1", 0, fixture_mode=True, verbose=False)
+    thread = threading.Thread(target=srv.serve_forever, daemon=True)
+    thread.start()
+    base = f"http://127.0.0.1:{srv.server_address[1]}"
+    try:
+        url = base + "/api/query/start?" + urllib.parse.urlencode({"q": QUERY, "n": 100})
+        with urllib.request.urlopen(url, timeout=60) as resp:
+            started = json.loads(resp.read())
+        assert started["bundle"]["provenance"]["phase"] == "map_ready"
+        assert len(started["bundle"]["decisions"]) > 0
+    finally:
+        srv.shutdown()
+        srv.server_close()

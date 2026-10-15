@@ -183,8 +183,19 @@ def serve(
     out_dir: Path | None = None,
     owner_session: bool = False,
 ) -> int:
-    """Serve the product and finalize the exported draft when it lands."""
-    from query_app import POOL, make_server  # local import: only the runner needs the server
+    """Serve the product and finalize the exported draft when it lands.
+
+    Ownership contract (repair round 3, audit CYCLE_38732097101): ``serve()``
+    creates the HTTP server, so it closes that server. It does **not** own the
+    process-global ``query_app.POOL`` executor — that object is created at
+    ``query_app`` import time and is shared by every in-process server test and
+    by any caller that keeps running after ``serve()`` returns. Shutting it down
+    here poisoned the interpreter for the rest of the process: every later
+    ``POOL.submit`` raised ``RuntimeError: cannot schedule new futures after
+    shutdown`` and ``/api/query/start`` answered HTTP 500. Process-level pool
+    teardown therefore happens only in the ``__main__`` entry point below.
+    """
+    from query_app import make_server  # local import: only the runner needs the server
 
     srv = make_server(host, port, fixture_mode=fixture, verbose=verbose)
     bound_port = srv.server_address[1]
@@ -211,7 +222,8 @@ def serve(
 
     srv.shutdown()
     srv.server_close()
-    POOL.shutdown(wait=False, cancel_futures=True)
+    # NB: query_app.POOL is deliberately left running — it was not created here.
+    # See the ownership contract in this function's docstring.
     if draft_path is None:
         return 9
 
@@ -349,4 +361,19 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 if __name__ == "__main__":  # pragma: no cover - CLI
-    sys.exit(main())
+    # Process-global teardown lives at the process entry point, not in serve():
+    # this is the only place that owns the interpreter the pool belongs to.
+    _code = 1
+    try:
+        _code = main()
+    finally:
+        try:
+            # Only if serve() already pulled it in: the 'check'/'finalize'
+            # subcommands must not pay the import cost of the server stack
+            # (sklearn and friends) just to tear down a pool they never made.
+            _query_app = sys.modules.get("query_app")
+            if _query_app is not None:
+                _query_app.POOL.shutdown(wait=False, cancel_futures=True)
+        except Exception:  # pragma: no cover - teardown must never mask the exit code
+            pass
+    sys.exit(_code)

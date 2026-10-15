@@ -29,15 +29,15 @@
   }
  ],
  "current_run": {
-  "run_id": "38732097101",
-  "role": "REPAIR of the exact rejected cycle 38726191935 (audit REVISE round 2)",
+  "run_id": "38740365477",
+  "role": "REPAIR of the exact rejected cycle 38732097101 (audit REVISE round 2 -> round 3); both required fixes applied",
   "status_at_state_write": "in_progress",
   "conclusion_at_state_write": null,
   "event": "workflow_dispatch",
   "head_branch": "repair-base",
-  "note": "The conclusion of this run is not observable while its own team job executes and is not asserted here."
+  "repair_objective": "required fix 1: serve() must not shut down a pool it did not create; required fix 2: correct the falsified suite claims and the test_human_gate_evidence.py count"
  },
- "cycle_status": "V51_HUMAN_GATE_EVIDENCE_INTEGRITY_ENFORCED_IN_WRITE_PATH_AT_RUN_38732097101__ONE_COMMAND_GATE_RUNNER_SHIPPED__HUMAN_GATE_STILL_AWAITED",
+ "cycle_status": "V51_POOL_OWNERSHIP_REPAIR_OF_38732097101__SUITE_GREEN_IN_DEFAULT_ORDER_236_PASSED_1_SKIPPED_0_FAILED__FALSIFICATION_VERIFIED__HUMAN_GATE_STILL_AWAITED",
  "direction_version": 51,
  "evidence_tier": "DURABLE_CI_VERIFIED",
  "human_gate_criteria": [
@@ -63,7 +63,7 @@
   },
   {
    "criterion": "offline deterministic tests",
-   "status": "PASS (235 product tests across 13 MVP suites, 1 skipped; +40 this cycle, none of them weakening a prior assertion)"
+   "status": "PASS (236 product tests across 13 MVP suites in DEFAULT collection order, 1 skipped, 0 failed, recomputed at run 38740365477). The earlier '235 passed' figure was collected-total arithmetic and was WITHDRAWN by the independent audit of cycle 38732097101: at commit aae6f90 the same 13 modules gave 8 failed / 227 passed / 1 skipped because human_gate_session.serve() shut down the process-global query_app.POOL. Repaired and falsification-verified in run 38740365477."
   },
   {
    "criterion": "measured provenance and latency",
@@ -252,7 +252,7 @@
  },
  "product": "query-specific Swiss legal research: broad OpenCaseLaw retrieval -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map",
  "reality_check_status": {
-  "blocking_leg": "durable gate blocking leg: rent-default (Art. 257d(2) residential termination) — the answer must state the 30-day/end-of-month notice rule AND the good-faith/Rechtsmissbrauch limitation. That leg now PASSES locally in live mode (results/product/reality_check/rent-default_live_20261014T122313Z.json); only the durable Actions run remains red.",
+  "blocking_leg": "durable gate blocking leg: rent-default (Art. 257d(2) residential termination) \u2014 the answer must state the 30-day/end-of-month notice rule AND the good-faith/Rechtsmissbrauch limitation. That leg now PASSES locally in live mode (results/product/reality_check/rent-default_live_20261014T122313Z.json); only the durable Actions run remains red.",
   "ci_leg_runner": {
    "command": "python product/ci_reality_legs.py --run-id $GITHUB_RUN_ID --mode live",
    "exit_codes": {
@@ -403,7 +403,7 @@
   "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
  },
  "state_updated_at": "2026-10-15",
- "state_updated_by_run": "38732097101",
+ "state_updated_by_run": "38740365477",
  "state_updated_from_resumed_snapshot_run": 38648548635,
  "supersedes_claims": {
   "prior_direction_version": 48,
@@ -510,7 +510,7 @@
     "a real session not bound to a verifying bundle or bound to a fixture-sized one (exit 7)",
     "any self-contradictory or undeclared record, at write time (exit 8)"
    ],
-   "tests": "product/tests/test_human_gate_finalize.py (40 tests) + product/tests/test_human_gate_evidence.py (13) + product/tests/test_human_gate_session.py (14); non-vacuity proven by injection (ceiling regression -> 5 failures; write guard removed -> 3 failures)",
+   "tests": "product/tests/test_human_gate_finalize.py (40 tests) + product/tests/test_human_gate_evidence.py (14, not 13 as previously written) + product/tests/test_human_gate_session.py (15); non-vacuity proven by injection (ceiling regression -> 5 failures; write guard removed -> 3 failures)",
    "verified_live": "real accepted switch (node) against the live enriched bundle: draft 12 actions / 4 decisions / 2 counter authorities -> finalized, bundle_hash_status=verified; same draft vs another bundle -> exit 5",
    "evidence_scan": {
     "command": "python product/human_gate_evidence.py",
@@ -591,7 +591,7 @@
    "phase1_start": "191 decisions, 8 clusters, per-decision x/y/cluster_id/canonical_url, answer pending; upstream 107.6075s, local_map_s 0.1864s",
    "phase2_enrich": "answer ready, generative_audit_llm_v2 / opencode/nemotron-3-ultra-free, 10 cited ids subset of bundle, 12 counter-status decisions (candidate-limiting, cited), enrich_total_s 89.7664 (model 30.1867, non-model/evidence hydration 59.5797)",
    "purpose": "confirm the v45/v50 clickable slice is unregressed by the v51 contract work",
-   "query": "Responsabilité pénale de l'entreprise selon l'art. 102 CP",
+   "query": "Responsabilit\u00e9 p\u00e9nale de l'entreprise selon l'art. 102 CP",
    "server": "python product/query_app.py --port 8791"
   },
   "objective": "the two owner-independent deltas named in direction v51, plus a durable repair of the orchestration failure that blocked runs 38548957828 and 38648548635",
@@ -673,7 +673,7 @@
    "verified": "full offline rehearsal this run (fixture corpus): server -> /api/query/start -> /api/query/enrich (answer ready, 3 counter statuses) -> export -> auto-bind 100 decisions, bundle_hash_status=verified -> finalized -> 0 blocking, ADMISSIBLE",
    "negative_case": "an earlier rehearsal was REFUSED (exit 5) because its draft opened a counter authority that carried no counter status",
    "defect_found_and_fixed_by_this_cycle": "serve() dropped --out and a machine-authored rehearsal landed in results/product/human_gate_sessions/; --out is now threaded through and the canonical directory requires --owner-session, so that class of accident is refused at write time",
-   "tests": "product/tests/test_human_gate_session.py (14 tests)",
+   "tests": "product/tests/test_human_gate_session.py (14 tests at that cycle; 15 after repair round 3 added test_serve_does_not_shut_down_the_process_global_job_pool)",
    "human_gate_ready": false
   },
   "human_gate_evidence_scanner": {
@@ -694,7 +694,7 @@
     "test_scratch_session_id",
     "unreadable_record"
    ],
-   "tests": "product/tests/test_human_gate_evidence.py (13 tests)",
+   "tests": "product/tests/test_human_gate_evidence.py (14 tests; this field previously said 13 and was corrected by the round-3 audit of cycle 38732097101)",
    "why": "cycle 38726191935 was the second occurrence of machine-generated records in results/product/; the audit set BLOCKED as the verdict for a third. A scanner turns that from an auditor's reading into a command."
   },
   "latency_repair_round3": {
@@ -702,9 +702,41 @@
    "code": "product/human_gate_finalize.py (env-overridable dirs, claim-ceiling constants, write-path admissibility refusal, real-session bundle verification + minimum decisions, --attest, --owner-session), product/human_gate_evidence.py (new), product/human_gate_session.py (new), product/tests/conftest.py (new)",
    "artifacts_removed": "five pytest byproducts from results/product/human_gate_sessions_simulated/, preserved in reports/product/incidents/pytest_byproducts_human_gate_sessions_38726191935.RETIRED.json and in git history",
    "reports": "reports/product/CYCLE_38732097101.md (this run), reports/product/CYCLE_38726191935.md (retrospective provenance, F6), reports/product/CYCLE_38720785188.md section 7 (appended corrections)",
-   "tests": "235 passed / 1 skipped over 13 MVP suites (base 195 + 1; +40 new)",
+   "tests": "CORRECTED (audit of cycle 38732097101, required fix 2): the claimed '235 passed / 1 skipped over 13 MVP suites' was WITHDRAWN - recomputed at commit aae6f90 in default collection order it was 8 failed / 227 passed / 1 skipped. After the round-3 pool-ownership repair (run 38740365477) the same 13 modules give 236 passed / 1 skipped / 0 failed (237 collected).",
    "falsification": "injected ceiling regression -> 5 failures (the previous suite reported 0); write-path guard deleted -> 3 failures",
    "latency": "re-verified live this run: 84.8811 s upstream + 0.1362 s local map for the first page; 9A budgets were audited closed and are not re-litigated",
+   "human_gate_ready": false
+  },
+  "audit_repair_round3_38732097101": {
+   "repair_round": 3,
+   "repair_of": "audit of cycle 38732097101 -> gate=REVISE, results/audit/product/CYCLE_38732097101_GATE.json (read from the mounted prior-audit tree at commit 77e6e7a; its numbers were reproduced here, not trusted)",
+   "required_fix_1": {
+    "defect": "product/human_gate_session.py::serve() called POOL.shutdown(wait=False, cancel_futures=True) on the process-global query_app.POOL; one in-process serve() call then made every later POOL.submit raise 'RuntimeError: cannot schedule new futures after shutdown' and /api/query/start answer HTTP 500 in 8 pre-existing server tests collected after test_human_gate_session.py",
+    "repair": "serve() now owns only what it creates: it shuts down the HTTP server it made and leaves query_app.POOL alone. Process-global teardown moved to the __main__ entry point.",
+    "guard": "product/tests/test_human_gate_session.py::test_serve_does_not_shut_down_the_process_global_job_pool asserts the mechanism (the executor still accepts a submission after serve()) and the symptom (a server started afterwards still answers /api/query/start with map_ready)"
+   },
+   "suite_recomputed_default_order": {
+    "modules": 13,
+    "before_repair_at_aae6f90": "8 failed, 227 passed, 1 skipped (independent audit's number, reproduced)",
+    "after_repair": "236 passed, 1 skipped, 0 failed (237 collected)",
+    "defect_reinjected": "9 failed, 227 passed, 1 skipped - the 8 original failures plus the new guard",
+    "venv": "pytest 9.1.1, numpy 2.5.4, scikit-learn 1.9.1",
+    "results_tree_after_run": "clean apart from the designed persistent query_cache (documented in the report)"
+   },
+   "required_fix_2": {
+    "corrected": "reports/product/CYCLE_38732097101.md section 4 now carries the withdrawn claim struck through, the audit's recomputed value (8 failed / 227 passed / 1 skipped) and the round-3 value (236 passed / 1 skipped); the test_human_gate_evidence.py count is 14, not 13, in the report and in this state",
+    "historical_text_preserved": "the original 235-passed sentence is preserved struck-through, not deleted",
+    "also_corrected": [
+     "human_gate_criteria[5].status",
+     "v51_delivery.human_gate_finalize.tests",
+     "v51_delivery.human_gate_evidence_scanner.tests",
+     "v51_delivery.human_gate_session_runner.tests",
+     "v51_delivery.latency_repair_round3.tests"
+    ]
+   },
+   "live_slice_redriven": "warm live /api/query/start (cache-served, network_calls=0) -> 200 in 0.176s, 37/37 canonical_url; expand+enrich -> 287/287 canonical_url, 287/287 x-y, 287/287 cluster_id, answer ready (generative_audit_llm_v2, opencode/nemotron-3-ultra-free, 11 cited ids all in bundle), 14 counter-status decisions; node verify_query_page.js PASS 16 assertions",
+   "report": "reports/product/CYCLE_38740365477.md",
+   "not_claimed": "no human-gate result (human_gate_ready=false); no benchmark, threshold, metric or success rule was weakened; the machine gate was not re-verified",
    "human_gate_ready": false
   }
  },
@@ -781,12 +813,12 @@
     "rejected_ids": 0,
     "wall_seconds": 141.35
    },
-   "query": "Responsabilité pénale de l'entreprise selon l'art. 102 CP subsidiaire ou primaire",
+   "query": "Responsabilit\u00e9 p\u00e9nale de l'entreprise selon l'art. 102 CP subsidiaire ou primaire",
    "report": "reports/product/CYCLE_38641080245.md",
    "run_id": 38641080245,
    "server": "python product/query_app.py --port 8793 (one command, stdlib ThreadingHTTPServer)"
   },
-  "live_legs_this_run": "results/product/reality_check/summary_ci_38604340726.json (4/4 structural+truth, sequential) — durable run conclusion=success observed 2026-10-14T21:36:10Z",
+  "live_legs_this_run": "results/product/reality_check/summary_ci_38604340726.json (4/4 structural+truth, sequential) \u2014 durable run conclusion=success observed 2026-10-14T21:36:10Z",
   "pre_existing_collection_errors": "18 legacy 174k test modules fail collection with ModuleNotFoundError: sentence_transformers (optional dep, PAUSE'd legacy lane); unchanged by this cycle and not on the query-map path",
   "product_integration_tests": "91 passed (ci_reality_legs 20 + ci_run_evidence 26 + reality_check + audit_seam + query_map_mvp + answer_contract + human_gate_integration 12)",
   "status": "PASS (local, offline + LIVE OpenCaseLaw end-to-end this cycle; 91 product tests)",
@@ -880,7 +912,7 @@
     "corporate-criminal-liability",
     "business-judgment-rule"
    ],
-   "note": "Team job fully green (4/4 live frozen legs, summary_ci_38600271324.json); run conclusion is failure ONLY because the independent audit job failed at the auditor agent step itself — NOT the v49 misplaced-artifact pathology (that failed at step 6 'Enforce audit scope and read gate'). Job logs require admin rights (HTTP 403 unauthenticated), so the wrapper exit code is not retrievable from the lane; observable facts recorded from the public REST jobs endpoint at 2026-10-14T17:21Z.",
+   "note": "Team job fully green (4/4 live frozen legs, summary_ci_38600271324.json); run conclusion is failure ONLY because the independent audit job failed at the auditor agent step itself \u2014 NOT the v49 misplaced-artifact pathology (that failed at step 6 'Enforce audit scope and read gate'). Job logs require admin rights (HTTP 403 unauthenticated), so the wrapper exit code is not retrievable from the lane; observable facts recorded from the public REST jobs endpoint at 2026-10-14T17:21Z.",
    "observed_at": "2026-10-14T17:30:36Z",
    "run_head_sha": null,
    "run_id": 38600271324,
