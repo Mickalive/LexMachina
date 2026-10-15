@@ -18,6 +18,17 @@ synthetic ``bge_BGE_test_*`` decisions labelled ``test decision group N``
 instead of the offline replay. The synthetic bytes are preserved at
 reports/product/incidents/synthetic_bundle_38759730609.RETIRED.json
 (sha256 3f90bd560842c74d93f0dc3abde8b5e5acded2103eb31a541a819a132ba5a0d4).
+
+Run 38779139471 (operational resume of 38776384327) freezes the citation
+guards demanded by results/audit/product/CYCLE_38766812030_GATE.json
+(gate=REVISE) required_fixes[0] ``must_add_guard``: no citation string may be
+shared by two decisions, no citation-channel row may carry a citation seed's
+own reference, and an unhydrated citation shell's citation must be its own
+docket number or its own decision_id. The superseded artifact that failed
+those guards (sha256
+bc1165bcd3b6c5da660a0818342a3926429e35442cb224d4f2ff966a19365322) is
+preserved byte-for-byte at
+reports/product/incidents/foreign_citations_bundle_38759730609.RETIRED.json.
 """
 from __future__ import annotations
 
@@ -27,7 +38,8 @@ import urllib.parse
 from pathlib import Path
 
 from product.query.bundle import validate_bundle
-from product.query.pipeline import run_query_initial
+from product.query.pipeline import CITE_CHANNELS, _candidate_to_product, run_query_initial
+from product.replay_bundle import citation_findings
 
 PRODUCT_ROOT = Path(__file__).resolve().parents[2]
 BUNDLE_PATH = PRODUCT_ROOT / "results/product/CYCLE_38759730609_bundle.json"
@@ -39,6 +51,44 @@ RECORDED_TOP_N = 120
 REQUIRED_NON_NULL = ("decision_id", "citation", "canonical_url", "x", "y", "cluster_id")
 REQUIRED_KEYS = ("is_outlier", "source_url")
 SOURCE_HOST_SUFFIX = "opencaselaw.ch"
+
+
+def _assert_citations_are_own(bundle: dict) -> None:
+    """required_fixes[0] guards: no foreign/duplicated citation ever ships.
+
+    The three assertions are the gate's own ``must_add_guard`` plus the
+    product's stronger shell-identity check; the helper
+    ``product.replay_bundle.citation_findings`` implements them once and is
+    also enforced by ``replay_bundle.py`` (exit 6).
+    """
+    decisions = bundle["decisions"]
+    cited = [d for d in decisions if d.get("citation")]
+    # Gate formula, verbatim: distinct citations == distinct citing decisions.
+    assert len({d["citation"] for d in cited}) == len({d["decision_id"] for d in cited}), (
+        "a citation string is shared by two decisions: "
+        + str(citation_findings(bundle)["citation_duplicates"])
+    )
+
+    findings = citation_findings(bundle)
+    assert findings["citation_channel_seed_refs"] == [], (
+        "a citation-channel row carries a citation seed's own reference "
+        f"(foreign attribution): {findings['citation_channel_seed_refs'][:5]}"
+    )
+    assert findings["pending_shell_identity"] == [], (
+        "an unhydrated citation shell shows a citation that is neither its "
+        f"docket number nor its decision_id: {findings['pending_shell_identity'][:5]}"
+    )
+    assert findings["citation_duplicates"] == {}, (
+        f"duplicate citations across decisions: {findings['citation_duplicates']}"
+    )
+    has_cite_rows = any(
+        set(d.get("channels") or ()) & CITE_CHANNELS for d in decisions
+    )
+    if has_cite_rows:
+        assert findings["citation_seeds_checked"], (
+            "citation-channel rows exist but provenance.stage_notes.citations."
+            "per_seed recorded no seeds — the contamination guard would be blind"
+        )
 
 
 def _request_summary(bundle: dict) -> dict:
@@ -93,6 +143,8 @@ def _assert_map_contract(bundle: dict, *, expect_offline_replay: bool) -> None:
         orphans = [m for m in members if m not in decision_ids]
         assert not orphans, f"Cluster[{i}] member ids not present in decisions: {orphans[:5]}"
 
+    _assert_citations_are_own(bundle)
+
     errors = validate_bundle(bundle)
     assert errors == [], f"validate_bundle errors: {errors}"
 
@@ -136,3 +188,81 @@ def test_cache_entries_unchanged_leg_replays():
     assert summary.get("legs_complete") is True, (
         "Leg replay completeness must still be true"
     )
+
+
+def _shell_candidate(decision_id: str, *, direction_channel: str, citation: str,
+                     docket: str | None, seed: str = "bger_6B_31_2019") -> dict:
+    return {
+        "decision_id": decision_id,
+        "court": "Bundesgericht",
+        "language": "de",
+        "rank": 1,
+        "score": 0.9,
+        "score_kind": "citation_confidence",
+        "provenance": f"ocl:{direction_channel} seed={seed}",
+        "snippet": "",
+        "canonical_url": f"https://mcp.opencaselaw.ch/decision/{decision_id}",
+        "citation": citation,
+        "docket_number": docket,
+        "channels": [direction_channel],
+        "detail_status": "pending",
+        "record_kind": "citation_neighbour",
+        "decision_date": "2025-11-03",
+    }
+
+
+def test_citation_shell_never_emits_the_seeds_reference():
+    """required_fixes[0] root-cause unit test (foreign_citation_on_citation_channel_rows).
+
+    For an *incoming* citation edge the adapter's ``target_ref`` is the CITED
+    seed's reference (live payload shape: ``{source_decision_id: bger_7B_1163_2025,
+    target_ref: '6B_31_2019', docket_number: '7B_1163/2025'}``), so the citing
+    decision used to ship another decision's citation.  Product assembly must
+    derive the row's own identity instead — docket number when the edge carries
+    one, decision_id otherwise — while a non-shell search hit keeps the API's
+    own citation untouched.
+    """
+    incoming = _shell_candidate(
+        "bger_7B_1163_2025",
+        direction_channel="citation.incoming",
+        citation="6B_31_2019",          # the SEED's reference — the defect
+        docket="7B 1163/2025",          # the citing decision's own docket
+    )
+    outgoing_no_docket = _shell_candidate(
+        "bger_9C_55_2020",
+        direction_channel="citation.outgoing",
+        citation="9C_55_2020",
+        docket=None,
+    )
+    search_hit = {
+        "decision_id": "bge_BGE_142_IV_333",
+        "court": "Bundesgericht",
+        "language": "de",
+        "rank": 2,
+        "score": 0.8,
+        "provenance": "ocl:search",
+        "snippet": "regeste text",
+        "canonical_url": "https://mcp.opencaselaw.ch/decision/bge_BGE_142_IV_333",
+        "citation": "BGE 142 IV 333",   # the search hit's OWN citation
+        "docket_number": "BGE 142 IV 333",
+        "channels": ["search"],
+        "detail_status": "search_hit",
+        "record_kind": "search_hit",
+    }
+    out = _candidate_to_product({"query": "q", "candidates": [incoming, outgoing_no_docket, search_hit]})
+    by_id = {d["decision_id"]: d for d in out["decisions"]}
+
+    assert by_id["bger_7B_1163_2025"]["citation"] == "7B 1163/2025", (
+        "an incoming citation shell must show its own docket, not the seed's target_ref"
+    )
+    assert by_id["bger_9C_55_2020"]["citation"] == "bger_9C_55_2020", (
+        "without a docket the shell falls back to its own decision_id"
+    )
+    assert by_id["bge_BGE_142_IV_333"]["citation"] == "BGE 142 IV 333", (
+        "non-citation-shell rows keep the API's own citation"
+    )
+
+    findings = citation_findings(out)
+    assert findings["citation_duplicates"] == {}
+    assert findings["citation_channel_seed_refs"] == []
+    assert findings["pending_shell_identity"] == []

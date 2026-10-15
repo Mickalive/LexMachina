@@ -112,6 +112,33 @@ def _retrieve(
     )
 
 
+#: Citation-expansion channels.  A record that only exists because of one of
+#: these channels is a *shell*: it was synthesised from an edge payload, not
+#: from the decision's own record (QUERY_MAP_MVP 2/10A: typed relations stay
+#: provenance-preserving).
+CITE_CHANNELS = frozenset({"citation.incoming", "citation.outgoing"})
+
+
+def _citation_shell(c: dict) -> bool:
+    """True when ``c`` is an unhydrated citation-expansion shell.
+
+    Required-fix provenance: results/audit/product/CYCLE_38766812030_GATE.json
+    (gate=REVISE, required_fixes[0] ``foreign_citation_on_citation_channel_rows``).
+    The accepted adapter's ``normalize_citation()`` sets
+    ``citation = raw['target_ref']``.  For an *incoming* edge ``target_ref``
+    belongs to the CITED seed, not to the citing decision, so 13% of the claim
+    bundle's rows displayed another decision's citation (``bger_6B_21_2023``
+    rendered ``6B_31_2019``).  frontier/** is outside product write scope, so
+    the product's own bundle assembly repairs the field here instead.
+    """
+    channels = set(c.get("channels") or ())
+    return bool(
+        c.get("record_kind") == "citation_neighbour"
+        or c.get("detail_status") == "pending"
+        or (channels and channels <= CITE_CHANNELS)
+    )
+
+
 def _candidate_to_product(candidate_bundle: dict) -> dict:
     out = to_product_bundle(candidate_bundle)
     by_id = {c.get("decision_id"): c for c in candidate_bundle.get("candidates", [])}
@@ -126,6 +153,14 @@ def _candidate_to_product(candidate_bundle: dict) -> dict:
                 d[key] = copy.deepcopy(c.get(key))
         d["snippet"] = d.get("snippet") or c.get("regeste") or c.get("title") or ""
         d["counter_status"] = "none"
+        if _citation_shell(c):
+            # Never emit a citation that belongs to a different record: derive
+            # this row's own identity instead (own docket number when the edge
+            # payload carries it, else the row's own decision_id).  Hydrated
+            # rows keep the API's own citation for the same decision.
+            own = str(c.get("docket_number") or "").strip() or str(d.get("decision_id") or "").strip()
+            if own:
+                d["citation"] = own
     return out
 
 
