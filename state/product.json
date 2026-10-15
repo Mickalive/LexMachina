@@ -26,19 +26,30 @@
    "precedent": "run 38559540834 passed team->audit->integrate->resilience with the same auditor using relative paths from the audit checkout",
    "product_lane_action": "None available: .github/** and the auditor agent card are outside product write scope (the attempt to add a dispatch trigger already burned run 38575541439 with `lane crossed protected scope`).",
    "status": "restated by the director in factory_wide_operational_requirements as a FILE-LOCATION contract only; recorded here once so the lane stops re-investigating it"
+  },
+  {
+   "item": "auditor_scope_violation_exit_3_recurrence",
+   "detail": "Run 38763217418: audit job failed at step 6 'Enforce audit scope and read gate' with exit 3 and annotation 'auditor crossed scope:' - i.e. the independent_auditor agent wrote at least one path outside results/audit/product/* and reports/audit/product/* in the audit job checkout. Step 5 'Independent audit' itself succeeded, so the auditor ran and chose wrong write paths; step 7 was skipped, so no audit branch exists. Distinct from the jq-missing-file placement pathology (exit 1), which was already restated in factory_wide_operational_requirements.",
+   "evidence": "check-runs/116529139394/annotations (public API); jobs endpoint for run 38763217418; absence of refs/heads/cycle/core/product/38763217418/audit; job logs HTTP 403 admin-only so the offending path itself is unobservable",
+   "candidate_fixes": [
+    "independent_auditor card: make the two output paths absolute against $GITHUB_WORKSPACE and forbid every other write, or",
+    "core-lane.yml audit step 6: print the offending paths with %0A-encoded annotation and fall back to re-reading the gate from the producer mount if the checkout copy is absent (workflow scope)"
+   ],
+   "scope": "control-plane / auditor-card scope; .github/** is not product-writable (run 38575541439 precedent). Recorded, not silently dropped; producer side made audit-ready in run 38766812030 instead."
   }
  ],
-"current_run": {
-   "run_id": 38759730609,
-   "role": "OPERATIONAL RESUME of the persisted producer snapshot of run 38747797021 (resume_from_run_id; team job failed at 'Run lane cycle' by work-quantum expiry, rc-78 signature). Snapshot f6dd333 preserved all code work; this resume verified it, finished the unverified deliverable (fixture + LIVE gate rehearsal through the committed chain) and made the snapshot audit-ready.",
-   "status_at_state_write": "in_progress",
-   "conclusion_at_state_write": null,
-   "event": "workflow_dispatch",
-   "head_branch": "operational-resume",
-   "resumed_snapshot_run": 38747797021,
-   "resumed_snapshot_commit": "f6dd333a6ca7e3ed08a919d20fd9dc84b055fabf"
-  },
-  "cycle_status": "V51_PRODUCT_CYCLE_38759730609__OFFLINE_CACHE_REFRESH__HUMAN_GATE_STILL_AWAITED",
+ "current_run": {
+  "run_id": 38766812030,
+  "role": "OPERATIONAL RESUME of the persisted producer snapshot of run 38763217418 (resume_from_run_id; that chain's team job was fully green but its audit job failed at step 6 'Enforce audit scope and read gate' with exit 3 'auditor crossed scope'). Snapshot 3cf89b2 preserved all completed REVISE-fix work; this resume verified it, found and repaired a synthetic-bundle defect on the claim path, fixed the audit-seam cross-identity crash that broke mixed-suite collection, and made the snapshot audit-ready.",
+  "status_at_state_write": "in_progress",
+  "conclusion_at_state_write": null,
+  "event": "workflow_dispatch",
+  "head_branch": "operational-resume",
+  "resumed_snapshot_run": 38763217418,
+  "resumed_snapshot_commit": "3cf89b244f52dac4783e765053012512f64db2fd",
+  "dispatch": "resilience job of run 38763217418 (resume_from_run_id + repair_round=1), observed run created 2026-10-15T16:10:59Z at head dc27fcc"
+ },
+ "cycle_status": "V51_OPERATIONAL_RESUME_OF_38763217418__SYNTHETIC_BUNDLE_RETIRED_AND_REBUILT_GENUINE__AUDIT_SEAM_IDENTITY_CRASH_FIXED__SUITE_249_PASSED_1_SKIPPED_0_FAILED__AUDIT_SCOPE_EXIT3_DIAGNOSED__HUMAN_GATE_STILL_AWAITED",
  "direction_version": 51,
  "evidence_tier": "DURABLE_CI_VERIFIED",
  "human_gate_criteria": [
@@ -64,7 +75,7 @@
   },
   {
    "criterion": "offline deterministic tests",
-   "status": "PASS (236 product tests across 13 MVP suites in DEFAULT collection order, 1 skipped, 0 failed, recomputed at run 38740365477). The earlier '235 passed' figure was collected-total arithmetic and was WITHDRAWN by the independent audit of cycle 38732097101: at commit aae6f90 the same 13 modules gave 8 failed / 227 passed / 1 skipped because human_gate_session.serve() shut down the process-global query_app.POOL. Repaired and falsification-verified in run 38740365477."
+   "status": "PASS (236 product tests across 13 MVP suites in DEFAULT collection order, 1 skipped, 0 failed, recomputed at run 38740365477). The earlier '235 passed' figure was collected-total arithmetic and was WITHDRAWN by the independent audit of cycle 38732097101: at commit aae6f90 the same 13 modules gave 8 failed / 227 passed / 1 skipped because human_gate_session.serve() shut down the process-global query_app.POOL. Repaired and falsification-verified in run 38740365477. REFRESHED by run 38766812030: the explicit 15-module MVP suite (13 prior modules + test_gate_rehearsal lineage + new test_cache_non_orphan; module list in reports/product/CYCLE_38759730609.md section 4) gives 249 passed / 1 skipped / 0 failed in default order, machine-recorded in results/product/resume_38763217418/CYCLE_38766812030_verify.json."
   },
   {
    "criterion": "measured provenance and latency",
@@ -175,7 +186,7 @@
   "status": "COMPLETE_AND_RECORDED",
   "v50_objective": "one durable, retrievable, GREEN core-lane run of lane=product whose own team job executes the four frozen reality legs LIVE"
  },
- "next_recommendation": "The gate chain is now fully machine-rehearsed (fixture and LIVE) end to end through the committed artifacts; the only remaining product milestone is the comparative human gate itself, which requires a real owner/jurist session: python product/human_gate_session.py --port 8791 --run-id <run> --operator <name> --owner-session (one command against LIVE OpenCaseLaw), then finalize the exported session. Do not re-verify the machine gate, latency budgets or the rehearsal chain. Owner-independent work if a cycle must run before the session: extend product/human_gate_evidence.py to the frontier teams' evidence directories, and keep the canonical human_gate_sessions/ directory free of anything a machine wrote.",
+ "next_recommendation": "The gate chain is now fully machine-rehearsed (fixture and LIVE) end to end through the committed artifacts; the only remaining product milestone is the comparative human gate itself, which requires a real owner/jurist session: python product/human_gate_session.py --port 8791 --run-id <run> --operator <name> --owner-session (one command against LIVE OpenCaseLaw), then finalize the exported session. Do not re-verify the machine gate, latency budgets or the rehearsal chain. Snapshot of run 38763217418 is now audit-ready (genuine bundle, required-fix-compliant tests, completed report content, machine-recorded verification, annotation-backed failure diagnosis). Owner-independent work if a cycle must run before the session: extend product/human_gate_evidence.py to the frontier teams' evidence directories, and keep the canonical human_gate_sessions/ directory free of anything a machine wrote.",
  "normal_path": {
   "generation_and_counter": "frontier-generative-audit contract 2.2 (independent adversarial pass)",
   "initial_map": "query-conditioned TF-IDF + SVD + KMeans rendered before generation",
@@ -256,6 +267,25 @@
     ]
    },
    "secondary_risk_noted": "Earlier cycles also wrote outside product scope (frontier/frontier-generative-audit/generative_audit/provider.py and results/frontier/frontier-query-retrieval/cache/*). Those writes are already committed in the snapshot; 'Enforce lane write scope' only inspects pending changes, so they cannot be cleaned without tripping the scope check in the same run. They are recorded as pre-existing snapshot content, not current-cycle work. Live-run cache by-products created inside a cycle are removed before the scope step (reports/product/CYCLE_38559540834.md section 4)."
+  },
+  "run_38763217418": {
+   "failing_step": "Enforce audit scope and read gate (audit job step 6), exit code 3",
+   "annotations_observed": [
+    "failure: Process completed with exit code 3.",
+    "failure: auditor crossed scope:"
+   ],
+   "annotation_source": "GET https://api.github.com/repos/Mickalive/LexMachina/check-runs/116529139394/annotations (public)",
+   "jobs": {
+    "audit": "failure at step 6 (step 5 'Independent audit' SUCCESS; step 7 'Persist audit snapshot' skipped)",
+    "integrate": "skipped",
+    "resilience": "success (dispatched operational resume 38766812030 with resume_from_run_id=38763217418, repair_round=1)",
+    "team": "SUCCESS all 10 steps: step 7 'Validate active MVP producer state' PASS, step 9 'Enforce lane write scope' PASS, snapshot pushed at 3cf89b2"
+   },
+   "root_cause": "The independent auditor wrote at least one path outside results/audit/product/* and reports/audit/product/* in the audit job checkout; the scope guard exits 3 BEFORE the jq gate read runs. Not a producer state-validation failure (step 7 passed) and NOT the jq-placement pathology of runs 38571087814/38578725589 (that one exits 1 inside jq).",
+   "evidence_limit": "job logs are admin-only (HTTP 403 unauthenticated), so the exact offending path cannot be read from the lane; no cycle/core/product/38763217418/audit branch exists because step 7 never ran, so there is no gate artifact to recover (and none was fabricated - state_contract reports audit-artifact ownership pending=[])",
+   "status": "DIAGNOSED, NOT LANE-FIXABLE - the failing check lives in .github/workflows/core-lane.yml and the independent_auditor card (control-plane scope, recorded as control_plane_hardening_items.auditor_scope_violation_exit_3_recurrence). Producer-side snapshot made audit-ready by run 38766812030 instead.",
+   "observed_at": "2026-10-15T16:2xZ",
+   "run_id": 38763217418
   },
  "prior_current_run": {
   "created_at": "2026-10-14T11:51:29Z",
@@ -420,8 +450,8 @@
   "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
  },
 "state_updated_at": "2026-10-15",
-  "state_updated_by_run": 38759730609,
-  "state_updated_from_resumed_snapshot_run": 38747797021,
+  "state_updated_by_run": 38766812030,
+  "state_updated_from_resumed_snapshot_run": 38763217418,
  "supersedes_claims": {
   "prior_direction_version": 48,
   "reason": "Pre-red claim was written 2026-10-12T18:27:34Z, before the contradicting reality checks at 19:11-19:21Z, and cited run ids that now return HTTP 404. It is no longer current status and is not re-asserted anywhere in this state.",
@@ -783,6 +813,30 @@
     "known_warning": "evidence scan: 0 blocking, 1 warning (test_scratch_session_id on the committed historical session_test-session-20261015T120000Z.json from cycle 38726191935; warning-only, left in place as snapshot history)",
     "human_gate_ready": false,
     "claim_ceiling": "machine-rehearsed chain evidence (fixture and live). NOT a jurist session; human_gate_ready stays false; only a real owner/jurist run of python product/human_gate_session.py --owner-session can set it."
+   },
+   "operational_resume_38766812030": {
+    "role": "OPERATIONAL RESUME of the persisted producer snapshot of run 38763217418 (all five REVISE required_fixes of cycle 38759730609 were already committed at 3cf89b2; verified, completed and corrected here - no restart)",
+    "diagnosis_delivered": "run_38763217418 entry under orchestration_failure_diagnosis: audit-job scope-guard exit 3 ('auditor crossed scope:' annotation), team job fully green, jq-placement pathology ruled out, logs admin-only; control-plane hardening item auditor_scope_violation_exit_3_recurrence added",
+    "defect_1_synthetic_bundle": {
+     "found": "results/product/CYCLE_38759730609_bundle.json held 120 synthetic bge_BGE_test_* decisions with 'Cluster N: test decision group N' labels, no is_outlier, no source_url - while the cycle report described a 154-decision cache replay; the generating string exists nowhere else in the repo",
+     "retired": "reports/product/incidents/synthetic_bundle_38759730609.RETIRED.json (byte-preserved, sha256 3f90bd560842c74d93f0dc3abde8b5e5acded2103eb31a541a819a132ba5a0d4)",
+     "rebuilt": "genuine offline replay via new product/replay_bundle.py: 154 real OpenCaseLaw decisions, 8 clusters, 15 relations, 15 outliers, 154/154 canonical_url on mcp.opencaselaw.ch, validate_bundle [], network_calls 0 / cache_hits 8, sha256 bc1165bcd3b6c5da660a0818342a3926429e35442cb224d4f2ff966a19365322",
+     "guard": "product/tests/test_cache_non_orphan.py now calls run_query_initial per required_fixes[3] AND validates the persisted artifact (synthetic ids, synthetic labels, source host, is_outlier/source_url keys); would fail on recurrence",
+     "accepted_evidence_destroyed": "none - never promoted to lab/product; gate was REVISE"
+    },
+    "defect_2_audit_seam_identity_crash": "first mixed-suite collection raised KeyError: 'timeout' at product/query/audit_seam.py:71 because seam idempotence was per-module-instance while the wrap target is process-global (suite loads query.* and product.query.*); repaired with _lex_original_init + already_wrapped_by_other_module_instance provenance + regression test test_seam_survives_a_second_module_identity; live behaviour (180s budget, explicit timeout wins, pinned model order) unchanged",
+    "defect_3_required_fix_test_shape": "the committed test loaded the bundle file but never called run_query_initial as required_fixes[3] demands; rewritten",
+    "report_content_completed": "reports/product/CYCLE_38759730609.md sections 3/3A/4/6/7 now carry the audit's minimum content (queries, endpoints+params, channel counts, dedupe, counts, timing split, degraded flag, language distribution, claim ceiling) plus the correction/incident record; reports/product/CYCLE_38766812030.md is this run's own report",
+    "verification": {
+     "artifact": "results/product/resume_38763217418/CYCLE_38766812030_verify.json (machine-generated: every check re-executed, real exit codes)",
+     "pytest_required_fix_and_seam": "10 passed",
+     "pytest_full_mvp_suite_15_modules_default_order": "249 passed, 1 skipped, 0 failed (24s); known exclusion test_http_api_integration.py (legacy 174k, sentence_transformers) unchanged",
+     "dom_smoke": "node product/verify_query_page.js results/product/CYCLE_38759730609_bundle.json -> PASS 16 assertions (154/154 rows source-linked)",
+     "state_contract": "python product/state_contract.py --check --direction-version 51 -> PASS (state, lane scope, audit-artifact ownership pending=[])",
+     "human_gate_evidence": "0 blocking, 1 pre-existing warning -> ADMISSIBLE"
+    },
+    "human_gate_ready": false,
+    "claim_ceiling": "audit-readiness and repair evidence only: the snapshot is complete, genuine, reproducible offline and its failure diagnosis is annotation-backed. No human-gate result, no answer-quality claim, no machine-gate re-verification, no fix to the auditor's own path discipline (out of scope)."
    }
   },
  "verification": {
@@ -1034,6 +1088,39 @@
     "note": "NOT a product-code failure and NOT a state-validation failure: the producer built the committed gate-rehearsal chain (1428 insertions, snapshot f6dd333) and was killed by the 45-minute quantum before tests/state/report. Verified and completed by the operational resume; see orchestration_failure_diagnosis.run_38747797021.",
     "observed_at": "2026-10-15T14:52Z",
     "run_id": 38747797021,
+    "status": "completed"
+   },
+   {
+    "conclusion": "success",
+    "created_at": "2026-10-15T15:22:22Z",
+    "event": "workflow_dispatch",
+    "head_branch": "main",
+    "head_sha": "73088d8136ad281fecb43820302b5008440dc230",
+    "jobs": {
+     "audit": "success (audit snapshot branch cycle/core/product/38759730609/audit exists, gate=REVISE)",
+     "integrate": "success (dispatched repair 38763217418, repair_round=1)",
+     "team": "success (snapshot e1c971f: 20 cache envelopes only)"
+    },
+    "note": "Producer delta was 20 cache envelopes with no report/state/bundle/test; independent audit gate REVISE with 5 required_fixes (results/audit/product/CYCLE_38759730609_GATE.json on the audit branch). Repairs were committed by 38763217418 and verified/completed by 38766812030.",
+    "observed_at": "2026-10-15T16:3xZ",
+    "run_id": 38759730609,
+    "status": "completed"
+   },
+   {
+    "conclusion": "failure",
+    "created_at": "2026-10-15T15:46:04Z",
+    "event": "workflow_dispatch",
+    "head_branch": "main",
+    "head_sha": "73088d8136ad281fecb43820302b5008440dc230",
+    "jobs": {
+     "audit": "failure at step 6 'Enforce audit scope and read gate' exit 3 ('auditor crossed scope:' annotation on check run 116529139394); step 7 skipped -> no cycle/core/product/38763217418/audit branch",
+     "integrate": "skipped",
+     "resilience": "success (dispatched operational resume 38766812030, resume_from_run_id=38763217418, repair_round=1)",
+     "team": "SUCCESS all 10 steps (state validation + lane scope green); snapshot 3cf89b2 = the five REVISE-fix deliverables"
+    },
+    "note": "Run failed on the AUDIT side, not the producer side. Logs admin-only (HTTP 403) so the offending path is unobservable; diagnosis and hardening item recorded under orchestration_failure_diagnosis.run_38763217418 and control_plane_hardening_items.auditor_scope_violation_exit_3_recurrence. Snapshot preserved and resumed by 38766812030 - not restarted.",
+    "observed_at": "2026-10-15T16:3xZ",
+    "run_id": 38763217418,
     "status": "completed"
    }
   ]

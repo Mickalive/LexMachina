@@ -59,7 +59,20 @@ def adversarial_timeout_seconds() -> float:
 
 
 def apply() -> dict[str, Any]:
-    """Install the seam (idempotent) and describe what it changed."""
+    """Install the seam (idempotent) and describe what it changed.
+
+    Idempotence has to hold across *module identities*, not only across calls
+    on one module object.  The suite loads the product tree twice (``query.*``
+    via the tests' ``sys.path`` insert and ``product.query.*`` via the package
+    path), so ``_APPLIED`` can be None in a freshly imported ``audit_seam``
+    while ``generative_audit.adversarial.AdversarialPass.__init__`` is already
+    wrapped by the other identity.  Run 38766812030 hit exactly that:
+    collection of the new cache-non-orphan test raised ``KeyError: 'timeout'``
+    because ``inspect.signature`` saw the wrapper's ``(*args, **kwargs)``
+    instead of the original ``timeout`` parameter.  The wrapper therefore
+    carries a reference to the pristine ``__init__``, and a second application
+    records the same provenance without stacking another wrapper.
+    """
     global _APPLIED
     if _APPLIED is not None:
         return dict(_APPLIED)
@@ -67,14 +80,21 @@ def apply() -> dict[str, Any]:
     from generative_audit import adversarial as adv_mod
     from generative_audit import paths
 
-    original_init = adv_mod.AdversarialPass.__init__
-    before_timeout = float(inspect.signature(original_init).parameters["timeout"].default)
+    current_init = adv_mod.AdversarialPass.__init__
+    original_init = getattr(current_init, "_lex_original_init", current_init)
+    already_wrapped = original_init is not current_init
 
-    def _init_with_budget(self, *args: Any, **kwargs: Any) -> None:
-        kwargs.setdefault("timeout", adversarial_timeout_seconds())
-        original_init(self, *args, **kwargs)
+    params = inspect.signature(original_init).parameters
+    before_timeout = float(params["timeout"].default) if "timeout" in params else None
 
-    adv_mod.AdversarialPass.__init__ = _init_with_budget  # type: ignore[method-assign]
+    if not already_wrapped:
+
+        def _init_with_budget(self: Any, *args: Any, **kwargs: Any) -> None:
+            kwargs.setdefault("timeout", adversarial_timeout_seconds())
+            original_init(self, *args, **kwargs)
+
+        _init_with_budget._lex_original_init = original_init  # type: ignore[attr-defined]
+        adv_mod.AdversarialPass.__init__ = _init_with_budget  # type: ignore[method-assign]
 
     previous_order = list(paths.DEFAULT_FREE_MODELS)
     paths.DEFAULT_FREE_MODELS[:] = list(MODEL_ORDER)
@@ -83,6 +103,7 @@ def apply() -> dict[str, Any]:
         "applied": True,
         "adversarial_timeout_seconds": adversarial_timeout_seconds(),
         "adversarial_timeout_default_before": before_timeout,
+        "already_wrapped_by_other_module_instance": already_wrapped,
         "model_order": list(MODEL_ORDER),
         "model_order_before": previous_order,
         "reason": (

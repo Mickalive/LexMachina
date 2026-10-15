@@ -70,3 +70,32 @@ def test_pipeline_applies_seam_and_exports_provenance():
     import query.pipeline as pipeline
     assert pipeline.AUDIT_SEAM["applied"] is True
     assert pipeline.AUDIT_SEAM["adversarial_timeout_seconds"] == audit_seam.adversarial_timeout_seconds()
+
+
+def test_seam_survives_a_second_module_identity(monkeypatch):
+    """Regression for run 38766812030 (collection KeyError: 'timeout').
+
+    The suite loads the product tree under two module identities: ``query.*``
+    (tests insert ``product/`` on sys.path) and ``product.query.*`` (package
+    imports, used by product/tests/test_cache_non_orphan.py and any host that
+    imports the app as a package).  The seam's idempotence state lives on the
+    module object, so a fresh identity used to re-enter apply() while
+    ``AdversarialPass.__init__`` was already wrapped, and
+    ``inspect.signature`` then saw the wrapper's ``(*args, **kwargs)`` instead
+    of ``timeout``.  The second application must record the same provenance,
+    keep the pristine default and must NOT stack another wrapper.
+    """
+    audit_seam.apply()  # ensure the target is wrapped at least once
+    wrapped_once = adv_mod.AdversarialPass.__init__
+    monkeypatch.setattr(audit_seam, "_APPLIED", None)  # fresh module identity
+
+    info = audit_seam.apply()
+
+    assert info["applied"] is True
+    assert info["already_wrapped_by_other_module_instance"] is True
+    assert info["adversarial_timeout_default_before"] == 60.0
+    assert info["adversarial_timeout_seconds"] == 180.0
+    assert adv_mod.AdversarialPass.__init__ is wrapped_once, "seam stacked a second wrapper"
+
+    instance = adv_mod.AdversarialPass(None, "answer", fixture_mode=True)
+    assert instance.timeout == 180.0

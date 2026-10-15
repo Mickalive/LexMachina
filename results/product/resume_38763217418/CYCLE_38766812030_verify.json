@@ -1,0 +1,288 @@
+{
+ "all_checks_passed": true,
+ "artifact": {
+  "bytes": 248331,
+  "path": "results/product/CYCLE_38759730609_bundle.json",
+  "regenerate_command": "PYTHONPATH=. python3 product/replay_bundle.py --query \"Responsabilite penale de l'entreprise selon l'art. 102 CP\" --top-n 120 --out results/product/CYCLE_38759730609_bundle.json",
+  "sha256": "bc1165bcd3b6c5da660a0818342a3926429e35442cb224d4f2ff966a19365322",
+  "stats": {
+   "answer_status": "pending",
+   "channels": {
+    "citation.incoming": 20,
+    "citation.outgoing": 10,
+    "leading_case": 12,
+    "search": 56,
+    "search.language_filter": 85
+   },
+   "dedupe": {
+    "input_records": 192,
+    "merged_away": 38,
+    "unique_candidates": 154
+   },
+   "degraded": false,
+   "languages": {
+    "?": 38,
+    "de": 59,
+    "fr": 27,
+    "it": 30
+   },
+   "n_candidates": 154,
+   "n_clusters": 8,
+   "n_decisions": 154,
+   "n_outliers": 15,
+   "n_relations": 15,
+   "query": "Responsabilite penale de l'entreprise selon l'art. 102 CP",
+   "request_summary": {
+    "budget_max": 40,
+    "budget_used": 8,
+    "cache_hits": 8,
+    "failures": 0,
+    "min_interval_seconds": 0.25,
+    "network_calls": 0,
+    "rate_limit_rps": 4.0,
+    "requests_by_stage": {
+     "citations": 2,
+     "lang": 3,
+     "leading": 1,
+     "search": 2
+    },
+    "requests_logged": 8
+   },
+   "source_host_decisions": 154,
+   "timing": {
+    "fixture_mode": false,
+    "local_map_s": 0.1172,
+    "local_total_s": 0.3164,
+    "mode": "offline",
+    "n_clusters": 8,
+    "n_decisions": 154,
+    "upstream_retrieval_s": 0.1992
+   }
+  }
+ },
+ "checks": {
+  "human_gate_evidence": {
+   "cmd": [
+    "/usr/bin/python3",
+    "product/human_gate_evidence.py"
+   ],
+   "exit_code": 0,
+   "seconds": 0.032,
+   "stderr_tail": [],
+   "stdout_tail": [
+    "scanned /home/runner/work/LexMachina/LexMachina/results/product/human_gate_sessions (canonical)",
+    "scanned /home/runner/work/LexMachina/LexMachina/results/product/human_gate_sessions_simulated (simulated)",
+    "  [warning] test_scratch_session_id: session_test-session-20261015T120000Z.json — session_id='test-session-20261015T120000Z' is a unit-test identifier, not a harness export",
+    "human-gate evidence: 0 blocking, 1 warning -> ADMISSIBLE"
+   ]
+  },
+  "node_verify_query_page": {
+   "cmd": [
+    "node",
+    "product/verify_query_page.js",
+    "results/product/CYCLE_38759730609_bundle.json"
+   ],
+   "exit_code": 0,
+   "seconds": 0.039,
+   "stderr_tail": [],
+   "stdout_tail": [
+    "ok - list is shown after the toggle",
+    "ok - map is hidden after the toggle",
+    "ok - boot and view switch made no network call",
+    "ok - product status survives the switch writing #status (\"<span class=\\\"phase\\\">vue liste</span>Prêt.\")",
+    "ok - view indicator survives the product status re-render",
+    "PASS 16 assertions"
+   ]
+  },
+  "pytest_full_mvp_suite": {
+   "cmd": [
+    "/usr/bin/python3",
+    "-m",
+    "pytest",
+    "-q",
+    "product/tests/test_query_map_mvp.py",
+    "product/tests/test_answer_contract.py",
+    "product/tests/test_audit_seam.py",
+    "product/tests/test_reality_check.py",
+    "product/tests/test_state_contract.py",
+    "product/tests/test_human_gate_session.py",
+    "product/tests/test_human_gate_finalize.py",
+    "product/tests/test_human_gate_evidence.py",
+    "product/tests/test_human_gate_integration.py",
+    "product/tests/test_latency_budget.py",
+    "product/tests/test_progressive_query.py",
+    "product/tests/test_gate_rehearsal.py",
+    "product/tests/test_ci_reality_legs.py",
+    "product/tests/test_ci_run_evidence.py",
+    "product/tests/test_cache_non_orphan.py"
+   ],
+   "exit_code": 0,
+   "seconds": 24.221,
+   "stderr_tail": [],
+   "stdout_tail": [
+    "product/tests/test_query_map_mvp.py::test_product_reranker_prefers_direct_legal_issue_over_broad_remote_hit",
+    "  /home/runner/.local/lib/python3.12/site-packages/sklearn/feature_extraction/text.py:412: UserWarning: Your stop_words may be inconsistent with your preprocessing. Tokenizing the stop words generated tokens ['arret', 'considerant', 'erwagung', 'fur', 'perche', 'piu', 'puo', 'uber'] not in stop_words.",
+    "    warnings.warn(",
+    "",
+    "-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html",
+    "249 passed, 1 skipped, 1 warning in 23.84s"
+   ]
+  },
+  "pytest_required_fix_tests": {
+   "cmd": [
+    "/usr/bin/python3",
+    "-m",
+    "pytest",
+    "-q",
+    "product/tests/test_cache_non_orphan.py",
+    "product/tests/test_audit_seam.py"
+   ],
+   "exit_code": 0,
+   "seconds": 1.4,
+   "stderr_tail": [],
+   "stdout_tail": [
+    "..........                                                               [100%]",
+    "10 passed in 1.03s"
+   ]
+  },
+  "replay_bundle_determinism": {
+   "cmd": [
+    "/usr/bin/python3",
+    "product/replay_bundle.py",
+    "--query",
+    "Responsabilite penale de l'entreprise selon l'art. 102 CP",
+    "--top-n",
+    "120"
+   ],
+   "exit_code": 0,
+   "seconds": 1.166,
+   "stderr_tail": [],
+   "stdout_tail": [
+    " \"answer_status\": \"pending\",",
+    " \"answer_method\": \"pending_generative_audit\",",
+    " \"cache_root\": \"/home/runner/work/LexMachina/LexMachina/results/product/query_cache\",",
+    " \"cache_keys\": 384,",
+    " \"genuine\": true",
+    "}"
+   ]
+  },
+  "state_contract": {
+   "cmd": [
+    "/usr/bin/python3",
+    "product/state_contract.py",
+    "--check",
+    "--direction-version",
+    "51"
+   ],
+   "exit_code": 0,
+   "seconds": 0.045,
+   "stderr_tail": [],
+   "stdout_tail": [
+    "[PASS] Validate active MVP producer state: /home/runner/work/LexMachina/LexMachina/state/product.json: direction_version=51, cycle_status='V51_OPERATIONAL_RESUME_OF_38763217418__SYNTHETIC_BUNDLE_RETIRED_AND_REBUILT_GENUINE__AUDIT_SEAM_IDENTITY_CRASH_FIXED__SUITE_249_PASSED_1_SKIPPED_0_FAILED__AUDIT_SCOPE_EXIT3_DIAGNOSED__HUMAN_GATE_STILL_AWAITED' -> workflow step passes",
+    "[PASS] Enforce lane write scope: 10 path(s) checked",
+    "[PASS] Independent audit artifact ownership: pending=[] committed=['reports/audit/product/CYCLE_38559540834.md', 'reports/audit/product/CYCLE_38604340726.md', 'reports/audit/product/CYCLE_38641080245.md', 'reports/audit/product/CYCLE_38660218975.md', 'reports/audit/product/CYCLE_38665681083.md', 'reports/audit/product/CYCLE_38740365477.md', 'reports/audit/product/CYCLE_38754777366.md', 'results/audit/product/CYCLE_38559540834_GATE.json', 'results/audit/product/CYCLE_38604340726_GATE.json', 'results/audit/product/CYCLE_38641080245_GATE.json', 'results/audit/product/CYCLE_38660218975_GATE.json', 'results/audit/product/CYCLE_38665681083_GATE.json', 'results/audit/product/CYCLE_38740365477_GATE.json', 'results/audit/product/CYCLE_38754777366_GATE.json']"
+   ]
+  }
+ },
+ "claim_ceiling": "Verification evidence only: the repaired snapshot is complete, genuine and locally reproducible; the 38763217418 failure is diagnosed as an audit-job scope-guard exit 3 (annotations observed). No human-gate result, no answer-quality claim, no machine-gate re-verification, no auditor-path fix.",
+ "continue_recommended": true,
+ "defects_found_and_fixed": [
+  {
+   "accepted_evidence_destroyed": "none - this artifact was never promoted to lab/product; the cycle's audit gate was REVISE",
+   "detected_by": "operational-resume verification (replay counts vs committed artifact)",
+   "evidence": "committed artifact held 120 bge_BGE_test_* decisions with labels 'Cluster N: test decision group N' and no is_outlier/source_url keys; string occurs nowhere else in the repo",
+   "id": "synthetic_bundle_on_claim_path",
+   "repair": "genuine replay regenerated by product/replay_bundle.py; two tests now fail on recurrence",
+   "retired_bytes": {
+    "bytes": 75544,
+    "path": "reports/product/incidents/synthetic_bundle_38759730609.RETIRED.json",
+    "sha256": "3f90bd560842c74d93f0dc3abde8b5e5acded2103eb31a541a819a132ba5a0d4"
+   }
+  },
+  {
+   "detected_by": "first mixed-suite collection: KeyError 'timeout' at product/query/audit_seam.py:71",
+   "id": "audit_seam_cross_identity_keyerror",
+   "repair": "product/query/audit_seam.py wrapper records _lex_original_init, skips re-wrap across identities, records already_wrapped_by_other_module_instance; regression test test_seam_survives_a_second_module_identity added",
+   "root_cause": "seam idempotence was per-module-instance but the wrap target is process-global; suite loads query.* and product.query.* identities"
+  },
+  {
+   "detected_by": "reading the committed test against required_fixes[3]",
+   "id": "required_fix_test_did_not_call_run_query_initial",
+   "repair": "test rewritten to call run_query_initial and to assert is_outlier/source_url/source-host/synthetic-id guards"
+  }
+ ],
+ "diagnosis_38763217418": {
+  "annotation_source": "GET https://api.github.com/repos/Mickalive/LexMachina/check-runs/116529139394/annotations",
+  "annotations": [
+   {
+    "level": "failure",
+    "message": "Process completed with exit code 3."
+   },
+   {
+    "level": "failure",
+    "message": "auditor crossed scope:"
+   }
+  ],
+  "audit_job": "failure at step 6 'Enforce audit scope and read gate', exit 3; step 5 'Independent audit' succeeded; step 7 'Persist audit snapshot' skipped",
+  "consequences": [
+   "no cycle/core/product/38763217418/audit branch exists (nothing to recover)",
+   "integrate skipped; no gate verdict exists for 38763217418",
+   "resilience dispatched this operational resume (resume_from_run_id=38763217418, repair_round=1)"
+  ],
+  "job_logs": "HTTP 403 admin-only; exact offending path unobservable from the lane",
+  "lane_scope_verdict": "failing check is .github/workflows/core-lane.yml + independent_auditor card = control-plane scope; recorded in state/product.json as control_plane_hardening_items entry auditor_scope_violation_exit_3_recurrence; no .github edit attempted",
+  "not_a_producer_failure": "the producer-side workflow gates (state validation, lane write scope) both passed for this run",
+  "not_the_jq_placement_pathology": "runs 38571087814/38578725589 failed the jq line (exit 1); this run failed the scope line (exit 3)",
+  "root_cause_class": "independent_auditor wrote >=1 path outside results/audit/product/* and reports/audit/product/* in the audit job checkout; the scope guard exits 3 before jq runs",
+  "team_job": "success (all 10 steps: Validate active MVP producer state PASS, Enforce lane write scope PASS, snapshot pushed at 3cf89b2)"
+ },
+ "generated_at": "2026-10-15T17:01:00Z",
+ "generated_by": "ephemeral verifier invoked by the product producer; every field below is an observation, not an assertion",
+ "human_gate_ready": false,
+ "kind": "operational_resume_verification",
+ "lane": "product",
+ "machine_gate_ready": true,
+ "preserved_snapshot_work": {
+  "gate_addressed": "results/audit/product/CYCLE_38759730609_GATE.json (REVISE, 5 required_fixes)",
+  "required_fixes_status": {
+   "0_report": "reports/product/CYCLE_38759730609.md completed with minimum content (queries, endpoints+params, channel counts, dedupe, counts, timing split, degraded flag, language distribution, claim ceiling) + corrections",
+   "1_state": "state/product.json direction_version=51, non-INITIALIZED cycle_status (workflow step 7 green in 38763217418; re-verified locally by state_contract PASS)",
+   "2_bundle": "genuine offline replay persisted at results/product/CYCLE_38759730609_bundle.json (synthetic bytes retired, see defects_found)",
+   "3_test": "product/tests/test_cache_non_orphan.py calls run_query_initial per the fix text and guards the persisted artifact",
+   "4_scope": "no paid inference, no 174k/dense-embedding/citation-graph work, no frozen baseline weakened (full suite green)"
+  }
+ },
+ "resumed_snapshot_commit": "3cf89b244f52dac4783e765053012512f64db2fd",
+ "resumed_snapshot_run": 38763217418,
+ "run_id": 38766812030,
+ "run_id_policy_snapshots": {
+  "38759730609": {
+   "conclusion": "success",
+   "created_at": "2026-10-15T15:22:22Z",
+   "event": "workflow_dispatch",
+   "head_branch": "main",
+   "head_sha": "73088d8136ad281fecb43820302b5008440dc230",
+   "id": 38759730609,
+   "name": "Core product dirV51 repair0"
+  },
+  "38763217418": {
+   "conclusion": "failure",
+   "created_at": "2026-10-15T15:46:04Z",
+   "event": "workflow_dispatch",
+   "head_branch": "main",
+   "head_sha": "73088d8136ad281fecb43820302b5008440dc230",
+   "id": 38763217418,
+   "name": "Core product dirV51 repair1"
+  },
+  "38766812030": {
+   "conclusion": null,
+   "created_at": "2026-10-15T16:10:59Z",
+   "event": "workflow_dispatch",
+   "head_branch": "main",
+   "head_sha": "dc27fcc1ef00fb8ce6a543eea33086842b4f905b",
+   "id": 38766812030,
+   "name": "Core product dirV51 repair1",
+   "note": "conclusion not observable while this producer session runs"
+  }
+ }
+}
