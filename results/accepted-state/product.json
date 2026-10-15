@@ -1,1040 +1,1254 @@
 {
- "continue_recommended": true,
- "control_plane_hardening_items": [
-  {
-   "candidate_fixes": [
-    "core-lane.yml integrate: append ' [reality-check]' to the accept commit message when lane == product",
-    "or: add workflow_dispatch to product-reality-check.yml and publish it on main"
-   ],
-   "detail": "product-reality-check.yml fires only on a push to lab/product whose head commit message contains '[reality-check]'. The core-lane integrate job is the only automation that pushes to lab/product, and its commit message is 'accept product cycle <id>', which never carries the marker. No workflow with workflow_dispatch exists for it, and the file is not on main. Therefore a durable Product Reality Check run cannot be produced through the audit+integrate chain as currently configured.",
-   "item": "durable_reality_check_trigger_gap",
-   "precedent": "same routing as the results-publisher validity check and housekeeper claim-id exemption recorded in reports/director/RUN_38457866172.md",
-   "scope": "control-plane workflow scope (.github/ is outside product write scope); recorded, not silently dropped"
-  },
-  {
-   "candidate_fixes": [
-    "drop the DEFAULT_FREE_MODELS override from the workflow and let the seam/health snapshot decide",
-    "or refresh the override against the current healthy pool"
-   ],
-   "detail": "product-reality-check.yml reassigns paths.DEFAULT_FREE_MODELS to a list containing opencode/space-bunny-free, which was absent from the 2026-10-14T11:29:15Z health snapshot. This undoes product/query/audit_seam.py's pinned healthy order at exactly the point where the durable gate runs.",
-   "item": "reality_check_workflow_model_list_overrides_the_product_seam",
-   "scope": "control-plane workflow scope; recorded so a durable red is not misdiagnosed as an answer-content failure"
-  },
-  {
-   "detail": "The independent auditor wrote results/audit/product/CYCLE_<run>_GATE.json into the producer worktree /tmp/lex_team instead of the audit job checkout in runs 38571087814 and 38578725589, so `Enforce audit scope and read gate` died on jq, integrate was skipped and lab/product stopped advancing (the producer work itself had already passed).",
-   "item": "audit_artifact_placement_deadlock",
-   "precedent": "run 38559540834 passed team->audit->integrate->resilience with the same auditor using relative paths from the audit checkout",
-   "product_lane_action": "None available: .github/** and the auditor agent card are outside product write scope (the attempt to add a dispatch trigger already burned run 38575541439 with `lane crossed protected scope`).",
-   "status": "restated by the director in factory_wide_operational_requirements as a FILE-LOCATION contract only; recorded here once so the lane stops re-investigating it"
-  }
- ],
- "current_run": {
-  "run_id": "38754777366",
-  "role": "OPERATIONAL RESUME of the persisted producer snapshot of run 38747797021 (resume_from_run_id; team job failed at 'Run lane cycle' by work-quantum expiry, rc-78 signature). Snapshot f6dd333 preserved all code work; this resume verified it, finished the unverified deliverable (fixture + LIVE gate rehearsal through the committed chain) and made the snapshot audit-ready.",
-  "status_at_state_write": "in_progress",
-  "conclusion_at_state_write": null,
-  "event": "workflow_dispatch",
-  "head_branch": "operational-resume",
-  "resumed_snapshot_run": 38747797021,
-  "resumed_snapshot_commit": "f6dd333a6ca7e3ed08a919d20fd9dc84b055fabf"
- },
- "cycle_status": "V51_OPERATIONAL_RESUME_OF_38747797021__GATE_REHEARSAL_CHAIN_VERIFIED_FIXTURE_AND_LIVE__SUITE_245_PASSED_1_SKIPPED_0_FAILED__HUMAN_GATE_STILL_AWAITED",
- "direction_version": 51,
- "evidence_tier": "DURABLE_CI_VERIFIED",
- "human_gate_criteria": [
-  {
-   "criterion": "one-command local launch",
-   "status": "PASS (python product/query_app.py --port 8791; three-stage job API /start -> /expand -> /enrich + /status)"
-  },
-  {
-   "criterion": "verified live OpenCaseLaw query",
-   "status": "PASS (live OpenCaseLaw retrieval; see clickable_slice_smoke)"
-  },
-  {
-   "criterion": "clickable clusters/outliers/source links",
-   "status": "PASS (clusters, outliers, canonical source links, list<->map switch)"
-  },
-  {
-   "criterion": "source-constrained real generative answer",
-   "status": "PASS (source-constrained generative answer, cited decision ids only)"
-  },
-  {
-   "criterion": "independent counter-authority pass updates the existing map",
-   "status": "PASS (independent counter-authority pass updates the same bundle/map)"
-  },
-  {
-   "criterion": "offline deterministic tests",
-   "status": "PASS (236 product tests across 13 MVP suites in DEFAULT collection order, 1 skipped, 0 failed, recomputed at run 38740365477). The earlier '235 passed' figure was collected-total arithmetic and was WITHDRAWN by the independent audit of cycle 38732097101: at commit aae6f90 the same 13 modules gave 8 failed / 227 passed / 1 skipped because human_gate_session.serve() shut down the process-global query_app.POOL. Repaired and falsification-verified in run 38740365477."
-  },
-  {
-   "criterion": "measured provenance and latency",
-   "status": "PASS (provenance + latency in every bundle; upstream measured separately)"
-  },
-  {
-   "criterion": "no 174k startup dependency",
-   "status": "PASS (query mode never loads 174k representations)"
-  },
-  {
-   "criterion": "durable Product Reality Check 4/4 green",
-   "status": "PASS (durable core-lane run 38604340726, 4/4 live legs in-run, conclusion=success observed)"
-  },
-  {
-   "criterion": "real owner/jurist session on the map-vs-list comparison",
-     "status": "PENDING (human_gate_ready=false). The session is one command: python product/human_gate_session.py --port 8791 --run-id <run> --operator <name> --owner-session serves the product, prints the four gate questions, binds the exported draft to the exact served bundle and records the admissibility verdict. The whole chain is now machine-rehearsed fixture AND live through the committed artifacts (results/product/gate_rehearsal/, run 38754777366), so a real session is the only unexecuted step. No agent can produce this criterion."
-  }
- ],
- "human_gate_integration": {
-  "accepted_mount_observed": "/tmp/lex_accepted/frontier/frontier-human-gate-harness/frontier/frontier-human-gate-harness/static",
-  "assets": {
-   "lex_gate_switch.css": {
-    "byte_identical_to_accepted": true,
-    "digest_matches": true,
-    "expected_sha256": "1a8cf48683ae80c673f00ba4747ff4312f4ad8b6faeef8fcfb8dd79ba6ff3a21",
-    "installed_path": "/home/runner/work/LexMachina/LexMachina/product/static/lex_gate_switch.css",
-    "provides": [
-     "baseline row styling",
-     "toggle styling"
-    ],
-    "sha256": "1a8cf48683ae80c673f00ba4747ff4312f4ad8b6faeef8fcfb8dd79ba6ff3a21"
-   },
-   "lex_gate_switch.js": {
-    "byte_identical_to_accepted": true,
-    "digest_matches": true,
-    "expected_sha256": "38d4b20fd08b68ac1fc76753fd080a3f67dfbdf908641134bbd7857ac2e3aaa3",
-    "installed_path": "/home/runner/work/LexMachina/LexMachina/product/static/lex_gate_switch.js",
-    "provides": [
-     "list<->map switch",
-     "capture draft export"
-    ],
-    "sha256": "38d4b20fd08b68ac1fc76753fd080a3f67dfbdf908641134bbd7857ac2e3aaa3"
-   }
-  },
-  "claim_ceiling": "The gate is now answerable in one sitting from the same bundle. It is NOT answered: only a real owner/jurist session can set human_gate_ready.",
-  "defect_found_and_fixed_by_integration": "First toggle rendered an EMPTY list: the accepted switch renders rows at attach() (bundle was null) and on bundle change only while already in list view. Product bridges this with a documented API call (notifyBundleChanged) after the switch listener, not by forking the accepted file.",
-  "evidence": {
-   "asset_and_hook_tests": 12,
-   "bundle_used_for_dom_smoke": "results/product/clickable_slice/2026-10-14T22:0xZ bundle from the local fixture server (105 decisions, answer ready, 2 cited, 1 counter)",
-   "dom_assertions": 16
-  },
-  "html_hooks": {
-   "attach_call": true,
-   "bundle_changed": true,
-   "bundle_hook": true,
-   "list_element": true,
-   "map_element": true,
-   "script_asset": true,
-   "style_asset": true,
-   "toolbar_host": true
-  },
-  "product_owned_adapters": [
-   "product/query/human_gate.py (digest-pinned adoption + hook verification)",
-   "product/verify_query_page.js (DOM smoke of the real page)"
-  ],
-  "product_side_integration": [
-   "product/static/query.html loads /static/lex_gate_switch.{js,css}",
-   "<div id=\"lexListView\" hidden> added beside #mapWrap inside <main>; map stays the first paint",
-   "LexGateSwitch.attach({getBundle:function(){return BUNDLE}, mapEl, listEl, toolbarEl, statusEl, mountExportButton:true})",
-   "renderBundle() calls LexGateSwitch.notifyBundleChanged() on every bundle replacement",
-   "a click listener registered AFTER attach() re-renders the list pane and re-applies the product status, because attach() runs before the first query and the harness overwrites #status"
-  ],
-  "team_id": "frontier-human-gate-harness",
-  "verification": "python product/query/human_gate.py ; node product/verify_query_page.js <bundle.json> ; pytest product/tests/test_human_gate_integration.py",
-  "why": "The comparative human gate (answer+map vs answer+ranked list) was unanswerable: the clickable slice had no conventional baseline. The accepted team frontier-human-gate-harness owns that baseline; product adopted it instead of rebuilding it (v50 direction: adopt when accepted)."
- },
- "human_gate_ready": false,
- "integration_origin_direction_version": 45,
- "lane": "product",
- "machine_gate": {
-  "criteria": [
-   "run conclusion == success (observed on the GitHub REST API)",
-   "summary_ci_<run_id>.json exists for THIS run id",
-   "summary mode == live (CI_TEAM_JOB_LIVE)",
-   "legs_complete == true and all_legs_passed == true",
-   "summary provenance: it records the run head sha (GITHUB_SHA) or the lab-branch head this run executed, as documented for this run id in state/product.json"
-  ],
-  "decided_at": "2026-10-14T21:36:10Z",
-  "decided_for_run_id": 38604340726,
-  "provenance_note": "summary records the run head sha",
-  "ready": true,
-  "reasons": []
- },
- "machine_gate_ready": true,
- "machine_repair": {
-  "jobs": {
-   "audit": "success",
-   "integrate": "success",
-   "resilience": "success",
-   "team": "success"
-  },
-  "observed_at": "2026-10-14T21:36:10Z",
-  "observed_conclusion": "success",
-  "promotion_chain_green": true,
-  "recorder": "python product/ci_run_evidence.py --run-id 38604340726 --apply (machine-observed, never hand-asserted)",
-  "remaining": "none for the machine gate; the human gate needs a real owner/jurist session and is deliberately not self-declared",
-  "run_id": 38604340726,
-  "status": "COMPLETE_AND_RECORDED",
-  "v50_objective": "one durable, retrievable, GREEN core-lane run of lane=product whose own team job executes the four frozen reality legs LIVE"
- },
- "next_recommendation": "The gate chain is now fully machine-rehearsed (fixture and LIVE) end to end through the committed artifacts; the only remaining product milestone is the comparative human gate itself, which requires a real owner/jurist session: python product/human_gate_session.py --port 8791 --run-id <run> --operator <name> --owner-session (one command against LIVE OpenCaseLaw), then finalize the exported session. Do not re-verify the machine gate, latency budgets or the rehearsal chain. Owner-independent work if a cycle must run before the session: extend product/human_gate_evidence.py to the frontier teams' evidence directories, and keep the canonical human_gate_sessions/ directory free of anything a machine wrote.",
- "normal_path": {
-  "generation_and_counter": "frontier-generative-audit contract 2.2 (independent adversarial pass)",
-  "initial_map": "query-conditioned TF-IDF + SVD + KMeans rendered before generation",
-  "retrieval": "frontier-query-retrieval/v2 (OCL adapter) behind product/query/retrieval.py",
-  "ui": "product/static/query.html progressive start -> map -> enrich answer/counter statuses"
- },
- "orchestration_failure_diagnosis": {
-  "prior_resume_run": 38548957828,
-  "resumed_by_run": 38559540834,
-  "resumed_run": 38554018429,
-  "run_38548957828": {
-   "failing_assertion": "jq '.direction_version == 49 and .cycle_status != \"INITIALIZED\"' on state/product.json",
-   "failing_step": "Validate active MVP producer state (step 7)",
-   "root_cause": "The producer wrote its direction-v49 state to product/state/product.json while the workflow validates state/product.json, which still carried direction_version 48 and the withdrawn V45_QUERY_MAP_MACHINE_GATE_GREEN claim.",
-   "status": "REPAIRED - state/product.json now carries direction_version 49 and a non-INITIALIZED cycle_status; step 7 passes in run 38559540834."
-  },
-  "run_38554018429": {
-   "evidence": "run created 2026-10-14T11:04:31Z (job 115818581173); snapshot commit 4d2fc49 authored 2026-10-14 11:51:15Z; agent start ~11:06Z + 2700s = ~11:51Z; 'Validate active MVP producer state' recorded SKIPPED, i.e. it never asserted anything false.",
-   "failing_exit_signature": "rc 78 - LEX_WORK_QUANTUM_EXPIRED (LEX_AGENT_QUANTUM_SECONDS=2700)",
-   "failing_step": "Run lane cycle (step 6)",
-   "root_cause": "The OpenCode producer exceeded the 45-minute wrapper work quantum. run-ox-with-retry.sh deliberately exits 78 after killing the process group so the workflow snapshots instead of hanging.",
-   "status": "OPERATIONAL, NOT A VALIDATION DEFECT - snapshot preserved and resumed; no restart from scratch."
-  },
-  "run_38600271324": {
-   "detail": [
-    "Team job success (all steps). Audit job failed at the independent_auditor agent step itself; 'Enforce audit scope and read gate' and 'Persist audit snapshot' were SKIPPED, so this is NOT the misplaced-artifact jq failure of runs 38571087814/38578725589. Job logs are admin-only (HTTP 403 via public API); the wrapper's possible non-zero exits (78 quantum, 76 model-auth pool exhausted, 75 network retries exhausted) cannot be distinguished from the lane. Integrate skipped; resilience dispatched this operational resume (38604340726)."
-   ],
-   "failing_job": "audit (step 5 'Independent audit')",
-   "lane_levers": [
-    "re-executed the four frozen legs LIVE inside this resume run so a green audit+integrate chain here completes v50 (a) in-run",
-    "recorded the observed 38600271324 conclusion=failure + jobs detail into verified_runs via product/ci_run_evidence.py",
-    "dependency preflight added to product/ci_reality_legs.py (fresh-runner ModuleNotFoundError crash of this run's attempt 1 converted to one actionable exit-4 error)",
-    "cycle report written as a minutes-scale audit guide"
-   ],
-   "not_the_v49_pathology": true
-  },
-  "run_38648548635": {
-   "failing_assertion": "jq --argjson dirv 51 '(.direction_version // -1) == $dirv and (.cycle_status // \"INITIALIZED\") != \"INITIALIZED\"' state/product.json",
-   "failing_step": "Validate active MVP producer state (step 7)",
-   "observed_at": "2026-10-14T22:52Z via https://api.github.com/repos/Mickalive/LexMachina/actions/runs/38648548635/jobs",
-   "observed_job_steps": {
-    "audit": "skipped",
-    "integrate": "skipped",
-    "resilience": "success (dispatched this operational resume, resume_from_run_id=38648548635)",
-    "team": "failure at step 7; step 8 (if: always) success; step 9 'Enforce lane write scope' skipped; step 10 snapshot success"
-   },
-   "producer_step_6": "SUCCESS - 'Run lane cycle' completed successfully; the producer's code work in this run was valid and is preserved by this resume",
-   "recurrence": "This is the SAME defect as run 38548957828 (v48 vs v49). The earlier repair held only while the canonical file was written; the shadow copy made the regression invisible until CI.",
-   "root_cause": "The producer wrote direction_version 51 into the SHADOW copy product/state/product.json instead of the workflow-validated canonical state/product.json, which still carried direction_version 50. product/state/product.json satisfies the shell lane-scope check (it starts with 'product/'), so 'Enforce lane write scope' could not detect the mistake; only the workflow's state assertion could, and it did.",
-   "run_observation": {
-    "conclusion": "failure",
-    "created_at": "2026-10-14T22:34:16Z",
-    "direction_version_input": 51,
-    "event": "workflow_dispatch",
-    "head_branch": "main",
-    "head_sha": "f72955d",
-    "observed_by": "python product/ci_run_evidence.py --run-id 38648548635 (dry run) + jobs REST endpoint",
-    "run_id": 38648548635,
-    "status": "completed",
-    "workflow_name": "Core product dirV51 repair0"
-   },
-   "status": "REPAIRED THIS CYCLE - canonical state/product.json now carries direction_version 51 and a non-INITIALIZED cycle_status; the shadow copy is deleted and a product-owned guard now fails locally in seconds instead of after a 45-minute workflow quantum."
-  },
-   "run_38747797021": {
-    "failing_step": "Run lane cycle (step 6)",
-    "window": "team job 2026-10-15T14:03:44Z -> 14:48:48Z = exactly 2704s (the 2700s LEX_WORK_QUANTUM budget)",
-    "failing_exit_signature": "rc 78 - LEX_WORK_QUANTUM_EXPIRED (same operational signature as run 38554018429)",
-    "root_cause": "The producer spent the whole 45-minute quantum building the committed gate-rehearsal chain (gate_rehearsal.py, export_session_draft.js, dom_shim.js, query.html answer card, 24 tests) and was killed before it could run the tests, rehearse the chain, update state/product.json or write its report. 'Validate active MVP producer state' was SKIPPED, i.e. it never asserted anything false. Not a state-validation failure and not a product-code failure.",
-    "snapshot": "cycle/core/product/38747797021/team @ f6dd333 ('product cycle 38747797021 repair 0'), parent 76afaa4 = accept product cycle 38740365477",
-    "status": "OPERATIONAL, NOT A VALIDATION DEFECT - snapshot preserved and resumed by run 38754777366; no restart from scratch",
-    "resume_actions": [
-      "all 24 new snapshot tests pass; full 14-module MVP suite recomputed 245 passed / 1 skipped / 0 failed in default order",
-      "python product/gate_rehearsal.py --fixture (honest incomplete record, ADMISSIBLE)",
-      "python product/gate_rehearsal.py --fixture --answers <canonical> (finalized, ratings land in the record, ADMISSIBLE)",
-      "python product/gate_rehearsal.py --live --query 'Responsabilite penale de l'entreprise selon l'art. 102 CP' (227 live OpenCaseLaw decisions, bundle_hash_status=verified, finalized, ADMISSIBLE)",
-      "node product/verify_query_page.js on the live rehearsal bundle: PASS 16 assertions",
-      "durable artifacts under results/product/gate_rehearsal/CYCLE_38754777366_*.json; session records in results/product/human_gate_sessions_simulated/"
-    ]
-   },
-   "secondary_risk_noted": "Earlier cycles also wrote outside product scope (frontier/frontier-generative-audit/generative_audit/provider.py and results/frontier/frontier-query-retrieval/cache/*). Those writes are already committed in the snapshot; 'Enforce lane write scope' only inspects pending changes, so they cannot be cleaned without tripping the scope check in the same run. They are recorded as pre-existing snapshot content, not current-cycle work. Live-run cache by-products created inside a cycle are removed before the scope step (reports/product/CYCLE_38559540834.md section 4)."
-  },
- "prior_current_run": {
-  "created_at": "2026-10-14T11:51:29Z",
-  "event": "workflow_dispatch",
-  "head_branch": "main",
-  "head_sha": "c0013d7bd38bd35a7edaa0a4f0e7493643f5a5b7",
-  "note": "Not cited as verified evidence: conclusion is not available while this producer session runs. Snapshot {run_id, head_sha, conclusion, created_at} is recorded only for runs whose conclusion is already observable.",
-  "role": "OPERATIONAL RESUME of the persisted producer snapshot of run 38554018429 (resume_from_run_id)",
-  "run_id": 38559540834,
-  "status_at_state_write": "in_progress"
- },
- "product": "query-specific Swiss legal research: broad OpenCaseLaw retrieval -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map",
- "reality_check_status": {
-  "blocking_leg": "durable gate blocking leg: rent-default (Art. 257d(2) residential termination) \u2014 the answer must state the 30-day/end-of-month notice rule AND the good-faith/Rechtsmissbrauch limitation. That leg now PASSES locally in live mode (results/product/reality_check/rent-default_live_20261014T122313Z.json); only the durable Actions run remains red.",
-  "ci_leg_runner": {
-   "command": "python product/ci_reality_legs.py --run-id $GITHUB_RUN_ID --mode live",
-   "exit_codes": {
-    "0": "all four legs ran in this run and passed",
-    "1": "a leg ran and failed its gates (negative evidence retained)",
-    "3": "incomplete: deadline reached, legs_missing names exactly which legs did not run"
-   },
-   "last_in_job_run": {
-    "legs": 4,
-    "note": "OPERATIONAL RESUME of run 38600271324's snapshot; legs re-executed LIVE in this run (run-scoped filenames; cross-run reuse refused).",
-    "passed": 4,
-    "run_id": 38604340726,
-    "seconds": 369.769,
-    "summary": "results/product/reality_check/summary_ci_38604340726.json"
-   },
-   "prior_in_job_run_38600271324": {
-    "legs": 4,
-    "passed": 4,
-    "run_id": 38600271324,
-    "seconds": 683.5,
-    "summary": "results/product/reality_check/summary_ci_38600271324.json"
-   },
-   "summary_name": "results/product/reality_check/summary_ci_<run_id>.json"
-  },
-  "ci_reality_summary": "results/product/reality_check/summary_ci_38604340726.json",
-  "durable_green_run_id": 38604340726,
-  "frozen_legs": [
-   "rent-default",
-   "petty-theft-dismissal",
-   "corporate-criminal-liability",
-   "business-judgment-rule"
-  ],
-  "last_durable_run": {
-   "conclusion": "failure",
-   "created_at": "2026-10-12T19:21:54Z",
-   "head_sha": "7cb314285b08814ba5af62a463ac733156e0561b",
-   "matrix_result": "3/4 success; rent-default leg failed",
-   "run_id": 38297155377
-  },
-  "legs_ran_in_this_run": [
-   "petty-theft-dismissal",
-   "rent-default",
-   "corporate-criminal-liability",
-   "business-judgment-rule"
-  ],
-  "local_live_prevalidation_2026_10_14": {
-   "answers_already_satisfied_rent_truth_assertions": "The 11:32Z rent-default answer already contained '30', 'fin du mois' and 'abus'; that leg failed only on the adversarial structural gate, which product/query/audit_seam.py (60s -> 180s) was written to fix.",
-   "batch_20261014T120802Z_parallel_4_legs": [
+  "continue_recommended": true,
+  "control_plane_hardening_items": [
     {
-     "adversarial_model": "opencode/mimo-v2.6-flash-free",
-     "answer_model": "opencode/nemotron-3-ultra-free",
-     "gates": "structural PASS, truth PASS",
-     "leg_passed": true,
-     "report": "results/product/reality_check/petty-theft-dismissal_live_20261014T120805Z.json",
-     "seconds": 340.8,
-     "slug": "petty-theft-dismissal"
+      "candidate_fixes": [
+        "core-lane.yml integrate: append ' [reality-check]' to the accept commit message when lane == product",
+        "or: add workflow_dispatch to product-reality-check.yml and publish it on main"
+      ],
+      "detail": "product-reality-check.yml fires only on a push to lab/product whose head commit message contains '[reality-check]'. The core-lane integrate job is the only automation that pushes to lab/product, and its commit message is 'accept product cycle <id>', which never carries the marker. No workflow with workflow_dispatch exists for it, and the file is not on main. Therefore a durable Product Reality Check run cannot be produced through the audit+integrate chain as currently configured.",
+      "item": "durable_reality_check_trigger_gap",
+      "precedent": "same routing as the results-publisher validity check and housekeeper claim-id exemption recorded in reports/director/RUN_38457866172.md",
+      "scope": "control-plane workflow scope (.github/ is outside product write scope); recorded, not silently dropped"
     },
     {
-     "adversarial_model": "opencode/mimo-v2.6-flash-free",
-     "answer_model": "opencode/nemotron-3-ultra-free",
-     "gates": "structural PASS, truth PASS",
-     "leg_passed": true,
-     "report": "results/product/reality_check/corporate-criminal-liability_live_20261014T120808Z.json",
-     "seconds": 548.5,
-     "slug": "corporate-criminal-liability"
+      "candidate_fixes": [
+        "drop the DEFAULT_FREE_MODELS override from the workflow and let the seam/health snapshot decide",
+        "or refresh the override against the current healthy pool"
+      ],
+      "detail": "product-reality-check.yml reassigns paths.DEFAULT_FREE_MODELS to a list containing opencode/space-bunny-free, which was absent from the 2026-10-14T11:29:15Z health snapshot. This undoes product/query/audit_seam.py's pinned healthy order at exactly the point where the durable gate runs.",
+      "item": "reality_check_workflow_model_list_overrides_the_product_seam",
+      "scope": "control-plane workflow scope; recorded so a durable red is not misdiagnosed as an answer-content failure"
     },
     {
-     "adversarial_model": "opencode/mimo-v2.6-flash-free",
-     "answer_model": "opencode/nemotron-3-ultra-free",
-     "gates": "structural PASS, truth PASS",
-     "leg_passed": true,
-     "report": "results/product/reality_check/business-judgment-rule_live_20261014T120811Z.json",
-     "seconds": 463.8,
-     "slug": "business-judgment-rule"
+      "detail": "The independent auditor wrote results/audit/product/CYCLE_<run>_GATE.json into the producer worktree /tmp/lex_team instead of the audit job checkout in runs 38571087814 and 38578725589, so `Enforce audit scope and read gate` died on jq, integrate was skipped and lab/product stopped advancing (the producer work itself had already passed).",
+      "item": "audit_artifact_placement_deadlock",
+      "precedent": "run 38559540834 passed team->audit->integrate->resilience with the same auditor using relative paths from the audit checkout",
+      "product_lane_action": "None available: .github/** and the auditor agent card are outside product write scope (the attempt to add a dispatch trigger already burned run 38575541439 with `lane crossed protected scope`).",
+      "status": "restated by the director in factory_wide_operational_requirements as a FILE-LOCATION contract only; recorded here once so the lane stops re-investigating it"
     },
     {
-     "gates": "structural FAIL (adversarial timeout 180s on all four healthy models under 4-way parallel contention), truth skipped",
-     "leg_passed": false,
-     "report": "results/product/reality_check/rent-default_live_20261014T120802Z.json",
-     "seconds": 861.4,
-     "slug": "rent-default"
+      "item": "auditor_scope_violation_exit_3_recurrence",
+      "detail": "Run 38763217418: audit job failed at step 6 'Enforce audit scope and read gate' with exit 3 and annotation 'auditor crossed scope:' - i.e. the independent_auditor agent wrote at least one path outside results/audit/product/* and reports/audit/product/* in the audit job checkout. Step 5 'Independent audit' itself succeeded, so the auditor ran and chose wrong write paths; step 7 was skipped, so no audit branch exists. Distinct from the jq-missing-file placement pathology (exit 1), which was already restated in factory_wide_operational_requirements.",
+      "evidence": "check-runs/116529139394/annotations (public API); jobs endpoint for run 38763217418; absence of refs/heads/cycle/core/product/38763217418/audit; job logs HTTP 403 admin-only so the offending path itself is unobservable",
+      "candidate_fixes": [
+        "independent_auditor card: make the two output paths absolute against $GITHUB_WORKSPACE and forbid every other write, or",
+        "core-lane.yml audit step 6: print the offending paths with %0A-encoded annotation and fall back to re-reading the gate from the producer mount if the checkout copy is absent (workflow scope)"
+      ],
+      "scope": "control-plane / auditor-card scope; .github/** is not product-writable (run 38575541439 precedent). Recorded, not silently dropped; producer side made audit-ready in run 38766812030 instead."
     }
-   ],
-   "evidence_tier": "LOCAL_NOT_DURABLE",
-   "local_4_of_4": true,
-   "local_4_of_4_note": "All four frozen legs passed the structural gates AND their substantive Swiss-law truth gates in local live mode on 2026-10-14 (three uncontended, rent-default on an uncontended retry after a contended parallel batch). This is LOCAL evidence only and does not satisfy the durable-gate criterion.",
-   "note": "The parallel batch ran four legs concurrently in one session; rent-default's adversarial pass timed out on all four healthy models under that contention and passed on an uncontended retry. Contention, not answer content, was the differentiator: the rent-default answer already satisfied all three truth assertions in both the 11:32Z and the contended 12:08Z runs.",
-   "retry_20261014T122313Z_uncontended": [
+  ],
+  "current_run": "38789874982",
+  "cycle_status": "V51_REPAIR_ROUND4_OF_38785927063__CONTENT_SHA256_PATH_INDEPENDENT__CLAIM_BUNDLE_REGENERATED_CONTENT_0837EE73__SUITE_272_PASSED_1_SKIPPED_0_FAILED_VERIFIED_AT_TWO_CHECKOUT_PATHS__DOM_22_ASSERTIONS_INCLUDING_CANVAS_CLICK__RELATION_RECALL_30_OF_37_DISCLOSED__HUMAN_GATE_STILL_AWAITED",
+  "direction_version": 51,
+  "evidence_tier": "DURABLE_CI_VERIFIED",
+  "human_gate_criteria": [
     {
-     "gates": "structural PASS, truth::rent-default PASS",
-     "leg_passed": true,
-     "report": "results/product/reality_check/rent-default_live_20261014T122313Z.json",
-     "slug": "rent-default",
-     "summary": "results/product/reality_check/summary_live_20261014T122313Z.json"
+      "criterion": "one-command local launch",
+      "status": "PASS (python product/query_app.py --port 8791; three-stage job API /start -> /expand -> /enrich + /status)"
+    },
+    {
+      "criterion": "verified live OpenCaseLaw query",
+      "status": "PASS (live OpenCaseLaw retrieval; see clickable_slice_smoke)"
+    },
+    {
+      "criterion": "clickable clusters/outliers/source links",
+      "status": "PASS (clusters, outliers, canonical source links, list<->map switch)"
+    },
+    {
+      "criterion": "source-constrained real generative answer",
+      "status": "PASS (source-constrained generative answer, cited decision ids only)"
+    },
+    {
+      "criterion": "independent counter-authority pass updates the existing map",
+      "status": "PASS (independent counter-authority pass updates the same bundle/map)"
+    },
+    {
+      "criterion": "offline deterministic tests",
+      "status": "PASS (236 product tests across 13 MVP suites in DEFAULT collection order, 1 skipped, 0 failed, recomputed at run 38740365477). The earlier '235 passed' figure was collected-total arithmetic and was WITHDRAWN by the independent audit of cycle 38732097101: at commit aae6f90 the same 13 modules gave 8 failed / 227 passed / 1 skipped because human_gate_session.serve() shut down the process-global query_app.POOL. Repaired and falsification-verified in run 38740365477. REFRESHED by run 38766812030: the explicit 15-module MVP suite (13 prior modules + test_gate_rehearsal lineage + new test_cache_non_orphan; module list in reports/product/CYCLE_38759730609.md section 4) gives 249 passed / 1 skipped / 0 failed in default order, machine-recorded in results/product/resume_38763217418/CYCLE_38766812030_verify.json."
+    },
+    {
+      "criterion": "measured provenance and latency",
+      "status": "PASS (provenance + latency in every bundle; upstream measured separately)"
+    },
+    {
+      "criterion": "no 174k startup dependency",
+      "status": "PASS (query mode never loads 174k representations)"
+    },
+    {
+      "criterion": "durable Product Reality Check 4/4 green",
+      "status": "PASS (durable core-lane run 38604340726, 4/4 live legs in-run, conclusion=success observed)"
+    },
+    {
+      "criterion": "real owner/jurist session on the map-vs-list comparison",
+      "status": "PENDING (human_gate_ready=false). The session is one command: python product/human_gate_session.py --port 8791 --run-id <run> --operator <name> --owner-session serves the product, prints the four gate questions, binds the exported draft to the exact served bundle and records the admissibility verdict. The whole chain is now machine-rehearsed fixture AND live through the committed artifacts (results/product/gate_rehearsal/, run 38754777366), so a real session is the only unexecuted step. No agent can produce this criterion."
     }
-   ],
-   "runner": "python product/reality_check.py --slug <leg> --mode live",
-   "workflows_parity": "product/reality_check.py reproduces the frozen questions and assertions of product-reality-check.yml; product/tests/test_reality_check.py::test_reality_check_parity fails if they drift"
-  },
-  "outcome_log_2026_10_12": [
-   {
-    "conclusion": "success",
-    "created_at": "2026-10-12T19:11:14Z",
-    "detail": "structural asserts only",
-    "run_id": 38295955819
-   },
-   {
-    "conclusion": "failure",
-    "created_at": "2026-10-12T19:17:54Z",
-    "detail": "3/4",
-    "run_id": 38296709657
-   },
-   {
-    "conclusion": "failure",
-    "created_at": "2026-10-12T19:21:54Z",
-    "detail": "3/4, rent-default leg",
-    "run_id": 38297155377
-   }
   ],
-  "substantive_4_of_4_green": true,
-  "substantive_4_of_4_scope": "the flags substantive_4_of_4_green / durable_green_run_id refer to the DURABLE Product Reality Check run only; local live 4/4 is recorded separately under local_live_prevalidation_2026_10_14.local_4_of_4",
-  "workflow": "product-reality-check.yml (push to lab/product whose head commit message contains [reality-check])"
- },
- "run_id_policy": {
-  "rule": "Cite a GitHub run id only after snapshotting {run_id, head_sha, conclusion, created_at} from the GitHub REST API in this state file; ids that do not resolve are listed under unresolvable_run_ids and are never presented as latest/verified evidence.",
-  "verified_at": "2026-10-14 via https://api.github.com/repos/Mickalive/LexMachina/actions/runs/{id} (unauthenticated, HTTP 200/404 recorded); step-level conclusions via /actions/runs/{id}/jobs"
- },
- "self_minted_audit_incident": {
-  "action": "REMOVED from results/audit/product and reports/audit/product; byte-preserved incident evidence archived at reports/product/incidents/self_minted_gate_38648548635.RETIRED.json (sha256 f8e4706c6389e4dcb5c9a8dfeb9435ecbd6bcdf4de32280c3b4638299a7d000b) and self_minted_report_38648548635.RETIRED.md.",
-  "enforcement": "product/state_contract.py reports committed audit artifacts and fails on producer-written audit paths; product/tests/test_state_contract.py freezes the rule.",
-  "not_on_control_plane": "origin/main:results/audit/ is empty; the file was never read by the audit job and never integrated.",
-  "provenance_proof": "git log --diff-filter=A -- results/audit/product/CYCLE_38648548635_GATE.json yields exactly one commit, 92d4bfb 'product cycle 38648548635 repair 0' (the team snapshot). The three legitimate gate files each appear from an 'accept product cycle <id>' integrate commit (387630f, fb71974, b821929).",
-  "run_id": 38648548635,
-  "self_reported_fields": {
-   "claim_ceiling": "in_run_ci_4of4_source_linked_map__durable_green_run_pending",
-   "gate": "PASS",
-   "resumed_snapshot_run": 38647386235,
-   "safe_to_integrate": true,
-   "state_written_during_run": 38648548635
-  },
-  "what": "The producer committed its own independent-audit verdict into the auditor's exclusive paths: results/audit/product/CYCLE_38648548635_GATE.json (gate=PASS) and reports/audit/product/CYCLE_38648548635.md.",
-  "why_not_preserved_as_result": "AGENTS.md 5 and the Master Prompt non-negotiable 'never fabricate data, labels, citations or results'. A producer-authored PASS gate is fabricated audit evidence; keeping it in place would let a future green gate promote it onto the accepted branch. It was never accepted evidence, so no accepted claim is destroyed."
- },
- "source_policy": {
-  "canonical_urls": "mcp.opencaselaw.ch decision URLs",
-  "external_spend": "none; free OpenCode models and public OpenCaseLaw endpoints only",
-  "fixtures": "offline/test only; never merged into live results",
-  "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
- },
- "state_updated_at": "2026-10-15",
- "state_updated_by_run": "38754777366",
- "state_updated_from_resumed_snapshot_run": 38747797021,
- "supersedes_claims": {
-  "prior_direction_version": 48,
-  "reason": "Pre-red claim was written 2026-10-12T18:27:34Z, before the contradicting reality checks at 19:11-19:21Z, and cited run ids that now return HTTP 404. It is no longer current status and is not re-asserted anywhere in this state.",
-  "removed_claim": "V45_QUERY_MAP_MACHINE_GATE_GREEN / LIVE_E2E_VERIFIED"
- },
- "unresolvable_run_ids": {
-  "consequence": "Any prior claim that depended on them (including 'LIVE_E2E_VERIFIED with run 38290597414') is withdrawn, not merely relabelled.",
-  "ids": [
-   38290597414,
-   38275529752,
-   38204133740,
-   38215168853,
-   38185297811
-  ],
-  "status": "HTTP 404 after housekeeper pruning"
- },
- "v50_delivery": {
-  "audit_artifact_placement": "The v50 blocker (independent auditor writing results/audit/<lane>/CYCLE_<run>_GATE.json into /tmp/lex_team instead of the audit checkout, runs 38571087814 / 38578725589) is control-plane scope and is now restated in factory_wide_operational_requirements. The product lane cannot edit .github/**; this cycle therefore concentrates on making the TEAM job itself green and self-evidencing.",
-  "clickable_slice_smoke_this_cycle": {
-   "checked_at": "2026-10-14T17:0xZ inside run 38600271324",
-   "phase_1_start": "GET /api/query/start -> 156 decisions, 8 clusters, per-decision x/y + cluster_id + canonical_url; answer status pending (map before generation)",
-   "phase_2_enrich": "GET /api/query/enrich -> answer ready, method generative_audit_llm_v2, model opencode/nemotron-3-ultra-free, 5 cited decision ids, 2 counter-status decisions, adversarial pass independent_llm_adversarial_v2 / opencode/space-bunny-free with error=None",
-   "purpose": "confirm the v45 clickable slice is unregressed by the v50 CI-evidence work; not a human gate result (human_gate_ready stays false)",
-   "query": "Responsabilite penale de l'entreprise selon l'art. 102 CP : subsidiaire ou primaire ?",
-   "server": "python product/query_app.py --port 8791 (one command, stdlib ThreadingHTTPServer)"
-  },
-  "dependency_preflight": {
-   "change": "product/ci_reality_legs.py preflight_imports(): missing numpy/scikit-learn now exits 4 with an actionable message before any leg runs",
-   "tests": "product/tests/test_ci_reality_legs.py (+2 tests, suite 18->20)",
-   "why": "run 38604340726 attempt 1 recorded four fatal ModuleNotFoundError legs on a fresh runner"
-  },
-  "guarantees": [
-   "sequential by construction; assert_disjoint_intervals fails the run if two legs ever overlap (the 4-way parallel batch of 2026-10-14 that pushed every adversarial pass past its 180 s ceiling cannot return)",
-   "durable partial progress: every leg result and the summary are flushed to disk immediately, so a killed job keeps its work and --resume continues inside the SAME run id",
-   "no older green leg can be presented as current: cross-run filenames are rejected on write and ignored on resume",
-   "machine_gate_ready is flipped by observation, never by assertion; a 404 run is recorded under unresolvable_run_ids and can never be cited as evidence"
-  ],
-  "live_evidence_this_run": {
-   "adversarial_model": "opencode/space-bunny-free",
-   "answer_model": "opencode/nemotron-3-ultra-free",
-   "cross_run_reuse": "REFUSED_BY_RUN_SCOPED_FILENAMES",
-   "evidence_tier": "CI_TEAM_JOB_LIVE (executed inside this run's own team job; petty-theft executed earlier in the same run id and was resumed within-run)",
-   "legs": [
-    "petty-theft-dismissal",
-    "rent-default",
-    "corporate-criminal-liability",
-    "business-judgment-rule"
-   ],
-   "per_leg_seconds": {
-    "business-judgment-rule": 95.91,
-    "corporate-criminal-liability": 175.733,
-    "petty-theft-dismissal": 101.796,
-    "rent-default": 98.123
-   },
-   "result": "4/4 structural + truth PASS, sequential/uncontended, 369.8 s total",
-   "resume_chain_within_run": [
-    "attempt 1 (17:23Z): fresh runner lacked numpy/scikit-learn; 4 fatal legs recorded then archived as *.attempt1-missing-deps.json",
-    "attempt 2: deps installed from product/requirements-query.txt; petty-theft-dismissal PASSED; process group killed by a local tool timeout mid rent-default; summary flushed with 1/4",
-    "attempt 3: setsid-detached --resume; petty-theft reused within run; remaining 3 legs PASSED; summary_ci_38604340726.json 4/4"
-   ],
-   "run_id": 38604340726,
-   "summary": "results/product/reality_check/summary_ci_38604340726.json"
-  },
-  "outcome": "one durable, retrievable, GREEN core-lane run whose own team job executes the four frozen reality legs LIVE and writes results/product/reality_check/summary_ci_<run_id>.json",
-  "prior_live_evidence_38600271324": {
-   "adversarial_model": "opencode/space-bunny-free",
-   "answer_model": "opencode/nemotron-3-ultra-free",
-   "cross_run_reuse": "REFUSED_BY_RUN_SCOPED_FILENAMES (every leg artefact carries ci-<run_id> in its name; assert_run_scoped rejects anything else)",
-   "evidence_tier": "CI_TEAM_JOB_LIVE (executed inside this run's own team job, not a prior local run)",
-   "legs": [
-    "petty-theft-dismissal",
-    "rent-default",
-    "corporate-criminal-liability",
-    "business-judgment-rule"
-   ],
-   "per_leg_seconds": {
-    "business-judgment-rule": 67.7,
-    "corporate-criminal-liability": 293.2,
-    "petty-theft-dismissal": 230.2,
-    "rent-default": 92.3
-   },
-   "result": "4/4 structural + truth PASS, sequential/uncontended, 683.5 s total",
-   "summary": "results/product/reality_check/summary_ci_38600271324.json"
-  },
-  "recorder": "product/ci_run_evidence.py (observes the run on the GitHub REST API, records {run_id, head_sha, conclusion, created_at}, opens machine_gate_ready only on an observed green run + complete live leg summary)",
-  "runner": "product/ci_reality_legs.py (reuse-first: run_leg/evaluate/strip_bundle from product/reality_check.py, no gate logic re-implemented)",
-  "tests": "product/tests/test_ci_reality_legs.py (18) + product/tests/test_ci_run_evidence.py (15); 66 passed together with the pre-existing reality/audit-seam/query-map/answer-contract suites"
- },
- "v51_delivery": {
-  "human_gate_finalize": {
-   "closes": [
-    "bundle_sha256/query_sha256 binding",
-    "opened-decision and counter-opening integrity",
-    "session metrics and addressable record"
-   ],
-   "code": "product/human_gate_finalize.py",
-   "integrity_note": "enforced in the write path, not asserted in prose: product/human_gate_finalize.py refuses (exit 8) a record whose claim_ceiling disagrees with its simulated flag, a simulated record in the canonical directory, a record in the simulated directory that claims to be an owner session, and any record in results/product/human_gate_sessions/ without an explicit owner_session_confirmed declaration (--owner-session). A real session additionally requires a supplied bundle that verifies against the draft and at least 10 bound decisions (exit 7). results/product/human_gate_sessions/ is empty and stays empty until a person answers the four gate questions; results/product/human_gate_sessions_simulated/ holds only the annotated F0 retraction. provenance is an ATTESTATION mechanism, not authentication: finalized_by/run_id/owner_session_confirmed are self-asserted and every record says so in its own provenance_note. The invariant is machine-checkable: python product/human_gate_evidence.py (exit 0 admissible / 1 defect).",
-   "output_default": "results/product/human_gate_sessions/",
-   "refuses": [
-    "fabricating gate answers (exit 3, status=incomplete)",
-    "bundle/session mismatch (exit 5)",
-    "writing human_gate_ready",
-    "a real session not bound to a verifying bundle or bound to a fixture-sized one (exit 7)",
-    "any self-contradictory or undeclared record, at write time (exit 8)"
-   ],
-   "tests": "product/tests/test_human_gate_finalize.py (40 tests) + product/tests/test_human_gate_evidence.py (14, not 13 as previously written) + product/tests/test_human_gate_session.py (15); non-vacuity proven by injection (ceiling regression -> 5 failures; write guard removed -> 3 failures)",
-   "verified_live": "real accepted switch (node) against the live enriched bundle: draft 12 actions / 4 decisions / 2 counter authorities -> finalized, bundle_hash_status=verified; same draft vs another bundle -> exit 5",
-   "evidence_scan": {
-    "command": "python product/human_gate_evidence.py",
-    "verdict_this_run": "0 blocking, 1 warning (admissible)",
-    "note": "the scanner reproduced the audit's F2 verdict independently on the pre-repair tree"
-   }
-  },
-  "known_exclusions": [
-   "product/tests/test_http_api_integration.py imports the legacy 174k product/server.py (needs sentence-transformers); off the MVP critical path and already recorded by the v50 audit"
-  ],
-  "latency_budget": {
-   "code": "product/latency_budget.py",
-   "cold_path_observation": "107.6075 s upstream for 12 network calls with 0.1864 s local geometry, on the enriched live bundle of cycle 38649613677 (results/product/clickable_slice/bundle_live_enriched_CYCLE_38649613677.json); consistent with the 7.8863 s / 9.8696 s p50/p95 recorded here and NOT a local budget",
-   "estimator": "nearest-rank (ceil(q*n)), no interpolation; n reported with every percentile",
-   "instrumentation": "product/query/pipeline.py provenance.timing (upstream_retrieval_s | local_map_s | map_total_s | enrich_total_s) + provenance.request_summary (requests_logged/network_calls/cache_hits) + provenance.cache_stats",
-   "live_measurement": "results/product/latency_budget/CYCLE_38654561273_live.json",
-   "p50_p95_cache_served": {
-    "cached_map_total_s": [
-     0.4656,
-     0.4816
-    ],
-    "detail_click_local_ms": [
-     0.0003,
-     0.0003
-    ],
-    "local_map_s": [
-     0.06,
-     0.0602
-    ]
-   },
-   "p50_p95_network_served": {
-    "upstream_retrieval_s": [
-     7.8863,
-     9.8696
-    ]
-   },
-   "retracted": {
-    "audit": "results/audit/product/CYCLE_38649613677_GATE.json (gate=REVISE, required_fixes[0]/[1])",
-    "repair": "the legacy artifact is annotated in place: original report preserved verbatim under correction.as_recorded_report, per-sample as_recorded_upstream_retrieval_s preserved, upstream claim nulled and re-aggregated over all 5 samples (budgeted p95s became 0.4898 s / 0.212 s / 0.0004 ms, still PASS)",
-    "superseded_by": "results/product/latency_budget/CYCLE_38654561273_live.json",
-    "values": {
-     "upstream_retrieval_s_p50": 0.275,
-     "upstream_retrieval_s_p95": 0.3034
+  "human_gate_integration": {
+    "accepted_mount_observed": "/tmp/lex_accepted/frontier/frontier-human-gate-harness/frontier/frontier-human-gate-harness/static",
+    "assets": {
+      "lex_gate_switch.css": {
+        "byte_identical_to_accepted": true,
+        "digest_matches": true,
+        "expected_sha256": "1a8cf48683ae80c673f00ba4747ff4312f4ad8b6faeef8fcfb8dd79ba6ff3a21",
+        "installed_path": "/home/runner/work/LexMachina/LexMachina/product/static/lex_gate_switch.css",
+        "provides": [
+          "baseline row styling",
+          "toggle styling"
+        ],
+        "sha256": "1a8cf48683ae80c673f00ba4747ff4312f4ad8b6faeef8fcfb8dd79ba6ff3a21"
+      },
+      "lex_gate_switch.js": {
+        "byte_identical_to_accepted": true,
+        "digest_matches": true,
+        "expected_sha256": "38d4b20fd08b68ac1fc76753fd080a3f67dfbdf908641134bbd7857ac2e3aaa3",
+        "installed_path": "/home/runner/work/LexMachina/LexMachina/product/static/lex_gate_switch.js",
+        "provides": [
+          "list<->map switch",
+          "capture draft export"
+        ],
+        "sha256": "38d4b20fd08b68ac1fc76753fd080a3f67dfbdf908641134bbd7857ac2e3aaa3"
+      }
     },
-    "why": "every sample of CYCLE_38649613677_live.json ran with network_calls=0 (local file-cache reads) and cache_state was derived from the sample index ('cold' if index == 0); the values were never an OpenCaseLaw measurement"
-   },
-   "sample_provenance": "3 network samples (9 network calls, 0 cache hits each) + 6 cache-served samples (9 cache hits, 0 network calls each); query 'Kuendigung Mietvertrag Mietrecht', top_n 150, recorder wall time 28.238 s",
-   "served_from_rule": "upstream_retrieval_s is recorded ONLY for samples observed to be served by the OpenCaseLaw network (provenance.request_summary.network_calls > 0). Cache reads, offline replays and fixtures keep their raw retrieval-phase time in retrieval_s. cache_state/served_from are derived from observed provenance, never from the sample index; a run with no network-served sample reports upstream as measured=false with null percentiles.",
-   "supersedes": "results/product/latency_budget/CYCLE_38649613677_live.json",
-   "tests": "product/tests/test_latency_budget.py (27 tests, incl. 11 new repair guards)",
-   "verdicts": "cached map <1s PASS (p95 0.4816 s), local map overhead <1.5s PASS (p95 0.0602 s), detail click <150ms PASS (p95 0.0003 ms); OpenCaseLaw upstream measured separately over network-served samples only and never budgeted"
-  },
-  "latency_repair_round1": {
-   "artifacts": [
-    "results/product/latency_budget/CYCLE_38654561273_live.json",
-    "results/product/latency_budget/CYCLE_38649613677_live.json (annotated in place)"
-   ],
-   "audit_verdict_repaired": "results/audit/product/CYCLE_38649613677_GATE.json -> required_fixes[0] and [1]",
-   "code": "product/latency_budget.py (observed served_from/cache_state, upstream admissibility, retrieval_s for non-network samples, --refresh-first mixed recording, annotate_legacy_report + --annotate-legacy)",
-   "human_gate_ready": false,
-   "report": "reports/product/CYCLE_38654561273.md; reports/product/CYCLE_38649613677.md section 3.2 retracted and corrected",
-   "tests": "product/tests/test_latency_budget.py 27 passed (was 16; 11 added, 2 defect assertions corrected); 170 passed / 1 skipped over the 10 module suite of cycle 38649613677 (was 159 / 1)"
-  },
-  "latency_repair_round2": {
-   "artifacts": [
-    "results/product/latency_budget/CYCLE_38720785188_fixture.json",
-    "results/product/latency_budget/CYCLE_38720785188_offline.json",
-    "results/product/latency_budget/CYCLE_38720785188_live.json"
-   ],
-   "audit_verdict_repaired": "results/audit/product/CYCLE_38720785188_GATE.json -> required_fixes[0], [1], [2], [3], [4]",
-   "code": "product/human_gate_finalize.py (--simulated guard, validate_real_session, exit 7), product/tests/test_human_gate_finalize.py (3 new guards)",
-   "human_gate_ready": false,
-   "report": "reports/product/CYCLE_38720785188.md",
-   "tests": "product/tests/test_human_gate_finalize.py 28 passed (was 25; 3 added)"
-  },
-  "live_slice_smoke": {
-   "bundle": "results/product/clickable_slice/bundle_live_enriched_CYCLE_38649613677.json",
-   "phase1_start": "191 decisions, 8 clusters, per-decision x/y/cluster_id/canonical_url, answer pending; upstream 107.6075s, local_map_s 0.1864s",
-   "phase2_enrich": "answer ready, generative_audit_llm_v2 / opencode/nemotron-3-ultra-free, 10 cited ids subset of bundle, 12 counter-status decisions (candidate-limiting, cited), enrich_total_s 89.7664 (model 30.1867, non-model/evidence hydration 59.5797)",
-   "purpose": "confirm the v45/v50 clickable slice is unregressed by the v51 contract work",
-   "query": "Responsabilit\u00e9 p\u00e9nale de l'entreprise selon l'art. 102 CP",
-   "server": "python product/query_app.py --port 8791"
-  },
-  "objective": "the two owner-independent deltas named in direction v51, plus a durable repair of the orchestration failure that blocked runs 38548957828 and 38648548635",
-  "progressive_slice": {
-   "budgets_9A": {
-    "cached_map_total": "<1 s warm (0.1619 s first page + 0.4465 s expansion end to end)",
-    "detail_click": "unchanged, local <150 ms",
-    "first_map_visible": "6.157 s cold / 0.166 s warm (was 136.79 s blocking)",
-    "local_map_overhead": "0.1433 s first page + 0.0557 s expansion, budget <1.5 s / <2 s",
-    "upstream": "OpenCaseLaw still measured separately (first page cold 6.0254 s upstream; warm 0.0185 s cache read); never folded into local numbers"
-   },
-   "code": {
-    "evidence_recorder": "product/slice_smoke.py",
-    "first_page_and_expansion": "product/query/progressive.py (run_query_first_page, expand_query_bundle, map_model_from_bundle, target_clusters)",
-    "job_server": "product/query_app.py (start/expand/enrich/status/bundle, ThreadPoolExecutor(2), per-run job dedup, job errors isolated, wait_s backwards-compatible blocking form)",
-    "stable_projection": "product/query/qmap.py (MapModel, fit_map_model, project_into_model, build_map(model=...), per-cluster label recomputation)",
-    "ui": "product/static/query.html (3-stage progress, polling, localStorage resume; accepted lex_gate_switch assets untouched)"
-   },
-   "contract_change": "/api/query/enrich now answers 202 + poll URL instead of blocking; wait_s=<seconds> restores the blocking single-call form for scripts and CI. /api/query/start returns the first-page map and starts the expansion job. product/tests/test_query_map_mvp.py's server-contract test was updated to the new contract and now also asserts wait_s.",
-   "defects_found_and_fixed_by_this_cycle": [
-    "enrich started while expansion was running answered from the partial first-page set and the expansion then replaced the bundle (answer lost): enrich now waits for the expansion job, expansion preserves a ready answer, regression test added",
-    "expansion re-flagged 15 already-rendered outliers because the merged refit recomputed outlier status: frozen points keep their outlier status, regression test added",
-    "cluster granularity was capped by the small first page (4 clusters for 194 decisions instead of 8): the first page now uses the cluster count of the finished map",
-    "cluster labels were frozen on 38 decisions of evidence: labels are recomputed from merged membership while cluster ids stay stable"
-   ],
-   "human_gate_ready": false,
-   "live_evidence": {
-    "adversarial": "independent_llm_adversarial_v2 / opencode/space-bunny-free, 10 findings, 10 challenging, 0 rejected ids",
-    "answer": "ready / generative_audit_llm_v2 / opencode/nemotron-3-ultra-free",
-    "artifact": "results/product/progressive_slice/CYCLE_38665681083_v2.json (+ bundle_, cold run CYCLE_38665681083.json)",
-    "cited": 7,
-    "cold_first_map_local_s": 0.1275,
-    "cold_first_map_s": 6.157,
-    "cold_first_map_upstream_s": 6.0254,
-    "counter_authorities": 16,
-    "enrich_ack_s": 0.001,
-    "enrich_job_s": 84.7,
-    "expand_added": 156,
-    "expand_local_s": 0.0557,
-    "expand_s": 0.4,
-    "expanded_decisions": 194,
-    "first_map_clusters": 8,
-    "first_map_decisions": 38,
-    "points_moved_after_first_map": 0,
-    "query": "Responsabilite penale de l'entreprise selon l'art. 102 CP",
-    "server_probe_failures": 0,
-    "server_probe_max_s": 0.002,
-    "server_probes_during_jobs": 89,
-    "warm_first_map_s": 0.166
-   },
-   "negative_result": "the previous audit's 'ThreadingHTTPServer hangs/crashes on /api/query/enrich or /api/query/run' did NOT reproduce on the shipped blocking path: 288 concurrent /api/health probes, 0 failures, server alive after enrich, answer ready. Recorded as-is; the fix delivered here is the blocking itself, not a crash fix.",
-   "tests": "product/tests/test_progressive_query.py (21 tests) + updated server-contract test; full MVP suite 192 passed / 1 skipped (1 skip = accepted frontier mount absent)",
-   "why": "the human gate is one owner session away, but the session itself started with 2.3 minutes of empty page: /api/query/start blocked 136.79 s before the first point was drawn and /api/query/enrich blocked a further 150.70 s (live OpenCaseLaw + real free model, measured this cycle on the pre-change server)"
-  },
-  "run": 38649613677,
-  "state_contract": {
-   "cli": "python product/state_contract.py --check --direction-version 51",
-   "code": "product/state_contract.py",
-   "regression_closed": "a shadow copy of the canonical state inside the write scope can no longer pass unnoticed; the in-repo state/factory_direction.json is stale (v34) and the mounted control plane is preferred",
-   "reproduces": [
-    "Validate active MVP producer state (jq exit 68/69)",
-    "Enforce lane write scope (case-glob match)",
-    "independent-audit artifact ownership",
-    "shadow-state detection"
-   ],
-   "tests": "product/tests/test_state_contract.py (28 tests, <1s, no network)"
-  },
-  "tests": "159 passed, 1 skipped across 10 product suites (69 of them new this cycle)",
-  "human_gate_session_runner": {
-   "code": "product/human_gate_session.py",
-   "why": "the last milestone is a comparative human session; the mechanical part of it was four manual steps with two ways to fail (missing provenance -> exit 7, wrong bundle -> a session bound to nothing)",
-   "one_command": "python product/human_gate_session.py --port 8791 --run-id <run> --operator <name> --owner-session",
-   "does": "serves the product, prints the four gate questions and the negative-result contract, watches for the harness export, binds the draft to the exact served bundle (same in-memory run registry the UI reads), finalizes with attested provenance, then prints the evidence-admissibility verdict",
-   "subcommands": [
-    "serve (default)",
-    "finalize <draft> --bundle ...",
-    "check"
-   ],
-   "verified": "full offline rehearsal this run (fixture corpus): server -> /api/query/start -> /api/query/enrich (answer ready, 3 counter statuses) -> export -> auto-bind 100 decisions, bundle_hash_status=verified -> finalized -> 0 blocking, ADMISSIBLE",
-   "negative_case": "an earlier rehearsal was REFUSED (exit 5) because its draft opened a counter authority that carried no counter status",
-   "defect_found_and_fixed_by_this_cycle": "serve() dropped --out and a machine-authored rehearsal landed in results/product/human_gate_sessions/; --out is now threaded through and the canonical directory requires --owner-session, so that class of accident is refused at write time",
-   "tests": "product/tests/test_human_gate_session.py (14 tests at that cycle; 15 after repair round 3 added test_serve_does_not_shut_down_the_process_global_job_pool)",
-   "human_gate_ready": false
-  },
-  "human_gate_evidence_scanner": {
-   "code": "product/human_gate_evidence.py",
-   "command": "python product/human_gate_evidence.py  (exit 0 admissible, 1 blocking defect)",
-   "roles": "directory-role based (human_gate_sessions / human_gate_sessions_simulated), so it also judges a copy or a synthetic tree",
-   "blocking_codes": [
-    "contradictory_claim_ceiling",
-    "simulated_in_canonical_dir",
-    "real_record_in_simulated_dir",
-    "missing_finalized_by",
-    "missing_run_id",
-    "non_positive_wall_clock",
-    "bundle_not_verified",
-    "implausible_decision_count",
-    "unconfirmed_owner_session",
-    "claims_human_gate_ready",
-    "test_scratch_session_id",
-    "unreadable_record"
-   ],
-   "tests": "product/tests/test_human_gate_evidence.py (14 tests; this field previously said 13 and was corrected by the round-3 audit of cycle 38732097101)",
-   "why": "cycle 38726191935 was the second occurrence of machine-generated records in results/product/; the audit set BLOCKED as the verdict for a third. A scanner turns that from an auditor's reading into a command."
-  },
-  "latency_repair_round3": {
-   "audit_verdict_repaired": "results/audit/product/CYCLE_38726191935_GATE.json -> required_fixes F1..F8",
-   "code": "product/human_gate_finalize.py (env-overridable dirs, claim-ceiling constants, write-path admissibility refusal, real-session bundle verification + minimum decisions, --attest, --owner-session), product/human_gate_evidence.py (new), product/human_gate_session.py (new), product/tests/conftest.py (new)",
-   "artifacts_removed": "five pytest byproducts from results/product/human_gate_sessions_simulated/, preserved in reports/product/incidents/pytest_byproducts_human_gate_sessions_38726191935.RETIRED.json and in git history",
-   "reports": "reports/product/CYCLE_38732097101.md (this run), reports/product/CYCLE_38726191935.md (retrospective provenance, F6), reports/product/CYCLE_38720785188.md section 7 (appended corrections)",
-   "tests": "CORRECTED (audit of cycle 38732097101, required fix 2): the claimed '235 passed / 1 skipped over 13 MVP suites' was WITHDRAWN - recomputed at commit aae6f90 in default collection order it was 8 failed / 227 passed / 1 skipped. After the round-3 pool-ownership repair (run 38740365477) the same 13 modules give 236 passed / 1 skipped / 0 failed (237 collected).",
-   "falsification": "injected ceiling regression -> 5 failures (the previous suite reported 0); write-path guard deleted -> 3 failures",
-   "latency": "re-verified live this run: 84.8811 s upstream + 0.1362 s local map for the first page; 9A budgets were audited closed and are not re-litigated",
-   "human_gate_ready": false
-  },
-  "audit_repair_round3_38732097101": {
-   "repair_round": 3,
-   "repair_of": "audit of cycle 38732097101 -> gate=REVISE, results/audit/product/CYCLE_38732097101_GATE.json (read from the mounted prior-audit tree at commit 77e6e7a; its numbers were reproduced here, not trusted)",
-   "required_fix_1": {
-    "defect": "product/human_gate_session.py::serve() called POOL.shutdown(wait=False, cancel_futures=True) on the process-global query_app.POOL; one in-process serve() call then made every later POOL.submit raise 'RuntimeError: cannot schedule new futures after shutdown' and /api/query/start answer HTTP 500 in 8 pre-existing server tests collected after test_human_gate_session.py",
-    "repair": "serve() now owns only what it creates: it shuts down the HTTP server it made and leaves query_app.POOL alone. Process-global teardown moved to the __main__ entry point.",
-    "guard": "product/tests/test_human_gate_session.py::test_serve_does_not_shut_down_the_process_global_job_pool asserts the mechanism (the executor still accepts a submission after serve()) and the symptom (a server started afterwards still answers /api/query/start with map_ready)"
-   },
-   "suite_recomputed_default_order": {
-    "modules": 13,
-    "before_repair_at_aae6f90": "8 failed, 227 passed, 1 skipped (independent audit's number, reproduced)",
-    "after_repair": "236 passed, 1 skipped, 0 failed (237 collected)",
-    "defect_reinjected": "9 failed, 227 passed, 1 skipped - the 8 original failures plus the new guard",
-    "venv": "pytest 9.1.1, numpy 2.5.4, scikit-learn 1.9.1",
-    "results_tree_after_run": "clean apart from the designed persistent query_cache (documented in the report)"
-   },
-   "required_fix_2": {
-    "corrected": "reports/product/CYCLE_38732097101.md section 4 now carries the withdrawn claim struck through, the audit's recomputed value (8 failed / 227 passed / 1 skipped) and the round-3 value (236 passed / 1 skipped); the test_human_gate_evidence.py count is 14, not 13, in the report and in this state",
-    "historical_text_preserved": "the original 235-passed sentence is preserved struck-through, not deleted",
-    "also_corrected": [
-     "human_gate_criteria[5].status",
-     "v51_delivery.human_gate_finalize.tests",
-     "v51_delivery.human_gate_evidence_scanner.tests",
-     "v51_delivery.human_gate_session_runner.tests",
-     "v51_delivery.latency_repair_round3.tests"
-    ]
-   },
-   "live_slice_redriven": "warm live /api/query/start (cache-served, network_calls=0) -> 200 in 0.176s, 37/37 canonical_url; expand+enrich -> 287/287 canonical_url, 287/287 x-y, 287/287 cluster_id, answer ready (generative_audit_llm_v2, opencode/nemotron-3-ultra-free, 11 cited ids all in bundle), 14 counter-status decisions; node verify_query_page.js PASS 16 assertions",
-    "report": "reports/product/CYCLE_38740365477.md",
-    "not_claimed": "no human-gate result (human_gate_ready=false); no benchmark, threshold, metric or success rule was weakened; the machine gate was not re-verified",
-    "human_gate_ready": false
-   },
-   "gate_rehearsal_chain": {
-    "what": "The whole one-sitting gate chain is now a committed, reproducible product artifact: query -> progressive bundle (start/expand/enrich) -> REAL page in the minimal DOM -> accepted LexGateSwitch (conventional list baseline + map) -> answer card -> 'Exporter la session' export -> human_gate_finalize.py binding to the exact served bundle -> human_gate_evidence.py admissibility verdict. Previously the export half was an ad-hoc uncommitted node harness; nobody, least of all a test, could reproduce it.",
-    "code": [
-     "product/gate_rehearsal.py (one command, --fixture or --live; refuses --owner-session; simulated records only land in the simulated directory)",
-     "product/export_session_draft.js (committed driver; non-vacuity exit 3 if supplied answers fail to reach the export)",
-     "product/dom_shim.js (the runtime verify_query_page.js already used; no second shim)",
-     "product/static/query.html owner-gate answer card (q1-q4 select+note; unanswered question NEVER invented, stays in missing_answers)",
-     "product/human_gate_session.py (threads --out through serve(); owns only the HTTP server it creates)"
-    ],
-    "verified_this_resume": {
-     "fixture_no_answers": "runner_exit=3 record=incomplete (honest) scan=0 blocking -> ADMISSIBLE",
-     "fixture_with_answers": "runner_exit=0 record=finalized bundle_hash_status=verified ratings q1..q4 present in the record scan=0 blocking -> ADMISSIBLE",
-     "live": "query 'Responsabilite penale de l'entreprise selon l'art. 102 CP : subsidiaire ou primaire ?'; start 35 decisions 6.83s; expand +192 -> 227 decisions 20.78s (20.51s upstream, 0 points moved); enrich 89.62s (real free models); export -> draft bound to the 227-decision served bundle; finalize bundle_hash_status=verified; session metrics: 3 decisions opened, 2 counter authorities opened, 2 view switches, used_conventional_baseline=true; scan ADMISSIBLE",
-     "dom_smoke": "node product/verify_query_page.js results/product/gate_rehearsal/CYCLE_38754777366_live_bundle.json -> PASS 16 assertions",
-     "suite": "24 new snapshot tests pass; full 14-module MVP suite 245 passed / 1 skipped / 0 failed (default order)"
+    "claim_ceiling": "The gate is now answerable in one sitting from the same bundle. It is NOT answered: only a real owner/jurist session can set human_gate_ready.",
+    "defect_found_and_fixed_by_integration": "First toggle rendered an EMPTY list: the accepted switch renders rows at attach() (bundle was null) and on bundle change only while already in list view. Product bridges this with a documented API call (notifyBundleChanged) after the switch listener, not by forking the accepted file.",
+    "evidence": {
+      "asset_and_hook_tests": 12,
+      "bundle_used_for_dom_smoke": "results/product/clickable_slice/2026-10-14T22:0xZ bundle from the local fixture server (105 decisions, answer ready, 2 cited, 1 counter)",
+      "dom_assertions": 16
     },
-    "artifacts": [
-     "results/product/gate_rehearsal/CYCLE_38754777366_fixture_answers.json",
-     "results/product/gate_rehearsal/CYCLE_38754777366_live.json",
-     "results/product/gate_rehearsal/CYCLE_38754777366_live_bundle.json (227 live decisions)",
-     "results/product/gate_rehearsal/CYCLE_38754777366_live_draft.json",
-     "results/product/human_gate_sessions_simulated/session_session-20261015T150041Z.json (live record)"
-    ],
-    "answers_format": "the driver accepts {\"q1\":\"yes\"} or {\"q1\":{\"rating\":\"yes\",\"note\":\"…\"}}; a {\"value\": ...} key silently degrades to note-only (record shows rating empty) — canonical shape verified this resume, not an API change",
-    "known_warning": "evidence scan: 0 blocking, 1 warning (test_scratch_session_id on the committed historical session_test-session-20261015T120000Z.json from cycle 38726191935; warning-only, left in place as snapshot history)",
-    "human_gate_ready": false,
-    "claim_ceiling": "machine-rehearsed chain evidence (fixture and live). NOT a jurist session; human_gate_ready stays false; only a real owner/jurist run of python product/human_gate_session.py --owner-session can set it."
-   }
-  },
- "verification": {
-  "durable_actions_run": null,
-  "durable_run_note": "No durable green core-lane run exists yet: 38600271324 was team-green but audit-failed; this run (38604340726) carries fresh 4/4 in-run legs and awaits its own audit+integrate conclusion, which is not observable while the team job executes. Observation command: python product/ci_run_evidence.py --run-id 38604340726 --apply",
-  "evidence_reports": [
-   "reports/product/CYCLE_38720785188.md",
-   "reports/product/CYCLE_38654561273.md",
-   "reports/product/CYCLE_38649613677.md",
-   "reports/product/CYCLE_38604340726.md",
-   "reports/product/CYCLE_38600271324.md",
-   "results/product/reality_check/"
-  ],
-  "latency_budget_9a": {
-   "artifact": "results/product/latency_budget/CYCLE_38654561273_live.json",
-   "cache_served_cached_map_total_p50_p95_s": [
-    0.4656,
-    0.4816
-   ],
-   "cache_served_local_map_p50_p95_s": [
-    0.06,
-    0.0602
-   ],
-   "claim_ceiling": "engineering budgets on this machine and network path only; no browser-level click latency, no jurist-usefulness claim, no human-gate result",
-   "detail_click_p50_p95_ms": [
-    0.0003,
-    0.0003
-   ],
-   "network_served_upstream_p50_p95_s": [
-    7.8863,
-    9.8696
-   ],
-   "verdicts": "cached map <1s PASS | local map <1.5s PASS | detail click <150ms PASS | upstream measured, not budgeted"
-  },
-  "live_clickable_slice_this_cycle": {
-   "artifacts": [
-    "results/product/clickable_slice/api_query_start_20261014T214600Z.json",
-    "results/product/clickable_slice/bundle_live_map_only_20261014T214600Z.json",
-    "results/product/clickable_slice/bundle_live_enriched_20261014T214600Z.json",
-    "results/product/clickable_slice/dom_smoke_20261014T214600Z.txt"
-   ],
-   "claim_ceiling": "pipeline and UI verification only; no claim that the map helps a jurist",
-   "dom_smoke": "node product/verify_query_page.js -> PASS 16 assertions against the live enriched bundle",
-   "phase_1_start": {
-    "answer_status": "pending",
-    "canonical_urls": "220/220",
-    "clusters": 8,
-    "decisions": 220,
-    "fixture_mode": false,
-    "languages": {
-     "de": 133,
-     "fr": 26,
-     "it": 37,
-     "none": 24
+    "html_hooks": {
+      "attach_call": true,
+      "bundle_changed": true,
+      "bundle_hook": true,
+      "list_element": true,
+      "map_element": true,
+      "script_asset": true,
+      "style_asset": true,
+      "toolbar_host": true
     },
-    "mode": "live",
-    "outliers": 22,
-    "query_variants": 8,
-    "upstream_attribution": "one GET /api/decisions page measured 13.7 s from this workspace; the 66 s is upstream-dominated, not local",
-    "wall_seconds": 66.04
-   },
-   "phase_2_enrich": {
-    "adversarial": "independent_llm_adversarial_v2 on a different model (opencode/space-bunny-free)",
-    "adversarial_findings": 11,
-    "answer_model": "opencode/nemotron-3-ultra-free",
-    "answer_status": "ready",
-    "challenging_findings": 11,
-    "cited_decision_ids": 8,
-    "counter_status_decisions": 11,
-    "degraded": false,
-    "method": "generative_audit_llm_v2",
-    "provider_error": null,
-    "rejected_ids": 0,
-    "wall_seconds": 141.35
-   },
-   "query": "Responsabilit\u00e9 p\u00e9nale de l'entreprise selon l'art. 102 CP subsidiaire ou primaire",
-   "report": "reports/product/CYCLE_38641080245.md",
-   "run_id": 38641080245,
-   "server": "python product/query_app.py --port 8793 (one command, stdlib ThreadingHTTPServer)"
+    "product_owned_adapters": [
+      "product/query/human_gate.py (digest-pinned adoption + hook verification)",
+      "product/verify_query_page.js (DOM smoke of the real page)"
+    ],
+    "product_side_integration": [
+      "product/static/query.html loads /static/lex_gate_switch.{js,css}",
+      "<div id=\"lexListView\" hidden> added beside #mapWrap inside <main>; map stays the first paint",
+      "LexGateSwitch.attach({getBundle:function(){return BUNDLE}, mapEl, listEl, toolbarEl, statusEl, mountExportButton:true})",
+      "renderBundle() calls LexGateSwitch.notifyBundleChanged() on every bundle replacement",
+      "a click listener registered AFTER attach() re-renders the list pane and re-applies the product status, because attach() runs before the first query and the harness overwrites #status"
+    ],
+    "team_id": "frontier-human-gate-harness",
+    "verification": "python product/query/human_gate.py ; node product/verify_query_page.js <bundle.json> ; pytest product/tests/test_human_gate_integration.py",
+    "why": "The comparative human gate (answer+map vs answer+ranked list) was unanswerable: the clickable slice had no conventional baseline. The accepted team frontier-human-gate-harness owns that baseline; product adopted it instead of rebuilding it (v50 direction: adopt when accepted)."
   },
-  "live_legs_this_run": "results/product/reality_check/summary_ci_38604340726.json (4/4 structural+truth, sequential) \u2014 durable run conclusion=success observed 2026-10-14T21:36:10Z",
-  "pre_existing_collection_errors": "18 legacy 174k test modules fail collection with ModuleNotFoundError: sentence_transformers (optional dep, PAUSE'd legacy lane); unchanged by this cycle and not on the query-map path",
-  "product_integration_tests": "91 passed (ci_reality_legs 20 + ci_run_evidence 26 + reality_check + audit_seam + query_map_mvp + answer_contract + human_gate_integration 12)",
-  "status": "PASS (local, offline + LIVE OpenCaseLaw end-to-end this cycle; 91 product tests)",
-  "verified_on": "2026-10-14 (run 38641080245 workspace)"
- },
- "verified_runs": [
-  {
-   "conclusion": "success",
-   "created_at": "2026-10-12T19:11:14Z",
-   "head_branch": "lab/product",
-   "head_sha": "3081b65bac30239304fcf156834f569f9a707122",
-   "note": "Only all-green Product Reality Check run, but it contains structural asserts only; the substantive Swiss-law truth gates added in f7994a3 were not yet in force.",
-   "run_id": 38295955819
+  "human_gate_ready": false,
+  "integration_origin_direction_version": 45,
+  "lane": "product",
+  "machine_gate": {
+    "criteria": [
+      "run conclusion == success (observed on the GitHub REST API)",
+      "summary_ci_<run_id>.json exists for THIS run id",
+      "summary mode == live (CI_TEAM_JOB_LIVE)",
+      "legs_complete == true and all_legs_passed == true",
+      "summary provenance: it records the run head sha (GITHUB_SHA) or the lab-branch head this run executed, as documented for this run id in state/product.json"
+    ],
+    "decided_at": "2026-10-14T21:36:10Z",
+    "decided_for_run_id": 38604340726,
+    "provenance_note": "summary records the run head sha",
+    "ready": true,
+    "reasons": []
   },
-  {
-   "conclusion": "failure",
-   "created_at": "2026-10-12T19:17:54Z",
-   "head_branch": "lab/product",
-   "head_sha": "65b28198bb058577424b996012352cfe00b0c89c",
-   "note": "3/4 matrix legs failed.",
-   "run_id": 38296709657
-  },
-  {
-   "conclusion": "failure",
-   "created_at": "2026-10-12T19:21:54Z",
-   "head_branch": "lab/product",
-   "head_sha": "7cb314285b08814ba5af62a463ac733156e0561b",
-   "note": "Latest durable Product Reality Check at lab/product HEAD (7cb3142). rent-default leg failed; substantive truth gates have never passed 4/4 on a durable run.",
-   "run_id": 38297155377
-  },
-  {
-   "conclusion": "failure",
-   "created_at": "2026-10-14T09:33:57Z",
-   "head_branch": "main",
-   "head_sha": "876a61650618d13e00085990c28faa6c9039680a",
-   "note": "Core product cycle. team job failed at 'Run lane cycle' (step 6); audit/integrate skipped.",
-   "run_id": 38543277176
-  },
-  {
-   "conclusion": "failure",
-   "created_at": "2026-10-14T10:21:08Z",
-   "head_branch": "main",
-   "head_sha": "f334bb298e14cb7ec84d984ef1078fa74ece588d",
-   "note": "Producer work itself succeeded; team job failed at step 7 'Validate active MVP producer state' because state/product.json still said direction_version 48. REPAIRED in the following cycle: state/product.json now carries direction_version 49 and a non-INITIALIZED cycle_status, so step 7 passes. Team snapshot persisted on cycle/core/product/38548957828/team.",
-   "run_id": 38548957828
-  },
-  {
-   "conclusion": "failure",
-   "created_at": "2026-10-14T11:04:31Z",
-   "head_branch": "main",
-   "head_sha": "097f00daedfe8b2f0be6020acf6146836f99a3f7",
-   "job_id_team": 115818581173,
-   "jobs": {
-    "audit": "skipped",
-    "integrate": "skipped",
-    "resilience": "success",
-    "team": "failure (step 6 'Run lane cycle'; step 7 'Validate active MVP producer state' SKIPPED, not failed; step 10 'Persist team snapshot' success)"
-   },
-   "note": "OPERATIONAL failure by design: work-quantum expiry (wrapper rc 78, LEX_WORK_QUANTUM_EXPIRED, 2700s budget started ~11:06Z; snapshot commit 4d2fc49 authored 11:51:15Z). Not a state-validation failure. Producer snapshot preserved and resumed by run 38559540834. Details: reports/product/CYCLE_38554018429_RESUME.md",
-   "run_id": 38554018429
-  },
-  {
-   "all_legs_passed": true,
-   "ci_reality_summary": "results/product/reality_check/summary_ci_38600271324.json",
-   "conclusion": "failure",
-   "created_at": "2026-10-14T16:41:50Z",
-   "event": "workflow_dispatch",
-   "execution": {
-    "concurrency": 1,
-    "mode": "sequential",
-    "rationale": "4-way parallel execution pushed every adversarial pass past its ceiling on 2026-10-14; only an uncontended sequential run is admissible",
-    "requested_order": [
-     "petty-theft-dismissal",
-     "rent-default",
-     "corporate-criminal-liability",
-     "business-judgment-rule"
-    ]
-   },
-   "head_branch": "main",
-   "head_sha": "43652aa75c0141681e0afb48c44a84f623f01c50",
-   "jobs": {
-    "audit": "failure at step 5 'Independent audit' (independent_auditor agent step); steps 6-7 skipped",
-    "integrate": "skipped",
-    "resilience": "success (dispatched operational resume 38604340726 with resume_from_run_id=38600271324)",
-    "team": "success (all 10 steps; 4/4 live legs in-run; scope and state validation green)"
-   },
-   "legs_complete": true,
-   "legs_ran_in_this_run": [
-    "petty-theft-dismissal",
-    "rent-default",
-    "corporate-criminal-liability",
-    "business-judgment-rule"
-   ],
-   "note": "Team job fully green (4/4 live frozen legs, summary_ci_38600271324.json); run conclusion is failure ONLY because the independent audit job failed at the auditor agent step itself \u2014 NOT the v49 misplaced-artifact pathology (that failed at step 6 'Enforce audit scope and read gate'). Job logs require admin rights (HTTP 403 unauthenticated), so the wrapper exit code is not retrievable from the lane; observable facts recorded from the public REST jobs endpoint at 2026-10-14T17:21Z.",
-   "observed_at": "2026-10-14T17:30:36Z",
-   "run_head_sha": null,
-   "run_id": 38600271324,
-   "workspace_head_sha": "ea161e6dd575985374093cd6306dcd6a4a3cb095"
-  },
-  {
-   "all_legs_passed": true,
-   "ci_reality_summary": "results/product/reality_check/summary_ci_38604340726.json",
-   "conclusion": "success",
-   "created_at": "2026-10-14T17:10:09Z",
-   "event": "workflow_dispatch",
-   "execution": {
-    "concurrency": 1,
-    "mode": "sequential",
-    "rationale": "4-way parallel execution pushed every adversarial pass past its ceiling on 2026-10-14; only an uncontended sequential run is admissible",
-    "requested_order": [
-     "petty-theft-dismissal",
-     "rent-default",
-     "corporate-criminal-liability",
-     "business-judgment-rule"
-    ]
-   },
-   "head_branch": "main",
-   "head_sha": "cfef528f883641fb9bbb3b4d9b3763be7cf0f59f",
-   "jobs": {
-    "audit": "success",
-    "integrate": "success",
-    "resilience": "success",
-    "team": "success"
-   },
-   "legs_complete": true,
-   "legs_ran_in_this_run": [
-    "petty-theft-dismissal",
-    "rent-default",
-    "corporate-criminal-liability",
-    "business-judgment-rule"
-   ],
-   "observed_at": "2026-10-14T21:36:10Z",
-   "promotion_chain_green": true,
-   "run_head_sha": "cfef528f883641fb9bbb3b4d9b3763be7cf0f59f",
-   "run_id": 38604340726,
-   "workspace_head_sha": "9a3b746bdd459f9c3025a800ab34925c34b7cdd1"
-  },
-  {
-   "conclusion": "failure",
-   "created_at": "2026-10-14T22:34:16Z",
-   "direction_version_input": 51,
-   "event": "workflow_dispatch",
-   "head_branch": "main",
-   "head_sha": "f72955df",
-   "jobs": {
-    "audit": "skipped",
-    "integrate": "skipped",
-    "resilience": "success (dispatched resume 38649613677)",
-    "team": "failure at step 7 'Validate active MVP producer state' (step 6 producer work SUCCESS; step 9 skipped; step 10 snapshot success)"
-   },
-   "note": "NOT a product-code failure: canonical state/product.json carried direction_version 50 while the run was dispatched dirV51. Diagnosis, repair and recurrence guard: reports/product/CYCLE_38649613677.md section 1-2.",
-   "observed_at": "2026-10-14T22:52Z",
-    "run_id": 38648548635,
-    "status": "completed"
-   },
-   {
-    "conclusion": "failure",
-    "created_at": "2026-10-15T14:01:59Z",
-    "event": "workflow_dispatch",
-    "head_branch": "main",
-    "head_sha": "78d3d12b98790624e15e384f09bb3fdaebc1de0f",
+  "machine_gate_ready": true,
+  "machine_repair": {
     "jobs": {
-     "audit": "skipped",
-     "integrate": "skipped",
-     "resilience": "success (dispatched operational resume 38754777366 with resume_from_run_id=38747797021)",
-     "team": "failure at step 6 'Run lane cycle' (exactly 2704s = work-quantum expiry, rc-78 signature; step 7 SKIPPED; step 10 snapshot success)"
+      "audit": "success",
+      "integrate": "success",
+      "resilience": "success",
+      "team": "success"
     },
-    "note": "NOT a product-code failure and NOT a state-validation failure: the producer built the committed gate-rehearsal chain (1428 insertions, snapshot f6dd333) and was killed by the 45-minute quantum before tests/state/report. Verified and completed by the operational resume; see orchestration_failure_diagnosis.run_38747797021.",
-    "observed_at": "2026-10-15T14:52Z",
-    "run_id": 38747797021,
-    "status": "completed"
-   }
+    "observed_at": "2026-10-14T21:36:10Z",
+    "observed_conclusion": "success",
+    "promotion_chain_green": true,
+    "recorder": "python product/ci_run_evidence.py --run-id 38604340726 --apply (machine-observed, never hand-asserted)",
+    "remaining": "none for the machine gate; the human gate needs a real owner/jurist session and is deliberately not self-declared",
+    "run_id": 38604340726,
+    "status": "COMPLETE_AND_RECORDED",
+    "v50_objective": "one durable, retrievable, GREEN core-lane run of lane=product whose own team job executes the four frozen reality legs LIVE"
+  },
+  "next_recommendation": "Do NOT spend another cycle re-verifying the machine gate or the artifact identity: run 38789874982 closed required fix D1 by making content_sha256 path-independent and reproducing the whole suite and the DOM harness at a second checkout path, which is the condition the 38785927063 gate set for round 4. The claim path is now state-accurate and machine-independent. The single remaining product milestone is still the comparative human gate, which no agent may fabricate: run `python product/human_gate_session.py --port 8791 --run-id <run> --operator <name> --owner-session` (one command against LIVE OpenCaseLaw, the map/list switch and the session export are already wired and now reachable by the committed DOM harness), then finalize the exported draft into results/product/ via the accepted CLI. The two owner-independent deltas from direction v51 remain open and are the right next product work: (1) finalize an exported session draft into results/product/, (2) record p50/p95 latency against QUERY_MAP_MVP 9A with upstream and local time separated - the last local measurement predates this round's map changes and should be re-taken. Carried forward from the 38785927063 advisories, in priority order: wire rerank_product_bundle into the claim path and MEASURE the effect rather than assuming one (A5); zoom/pan via the VIEW transform that fit() already sets and screenPos() ignores (A3); cluster structure - C0 still holds 86% of the map (A4). Advisory A1's dropped relations are disclosed, not fixed: recovering them needs a change in the Frontier adapter's provenance events, which is outside product write scope.",
+  "normal_path": {
+    "generation_and_counter": "frontier-generative-audit contract 2.2 (independent adversarial pass)",
+    "initial_map": "query-conditioned TF-IDF + SVD + KMeans rendered before generation",
+    "retrieval": "frontier-query-retrieval/v2 (OCL adapter) behind product/query/retrieval.py",
+    "ui": "product/static/query.html progressive start -> map -> enrich answer/counter statuses"
+  },
+  "orchestration_failure_diagnosis": {
+    "prior_resume_run": 38548957828,
+    "resumed_by_run": 38559540834,
+    "resumed_run": 38554018429,
+    "run_38548957828": {
+      "failing_assertion": "jq '.direction_version == 49 and .cycle_status != \"INITIALIZED\"' on state/product.json",
+      "failing_step": "Validate active MVP producer state (step 7)",
+      "root_cause": "The producer wrote its direction-v49 state to product/state/product.json while the workflow validates state/product.json, which still carried direction_version 48 and the withdrawn V45_QUERY_MAP_MACHINE_GATE_GREEN claim.",
+      "status": "REPAIRED - state/product.json now carries direction_version 49 and a non-INITIALIZED cycle_status; step 7 passes in run 38559540834."
+    },
+    "run_38554018429": {
+      "evidence": "run created 2026-10-14T11:04:31Z (job 115818581173); snapshot commit 4d2fc49 authored 2026-10-14 11:51:15Z; agent start ~11:06Z + 2700s = ~11:51Z; 'Validate active MVP producer state' recorded SKIPPED, i.e. it never asserted anything false.",
+      "failing_exit_signature": "rc 78 - LEX_WORK_QUANTUM_EXPIRED (LEX_AGENT_QUANTUM_SECONDS=2700)",
+      "failing_step": "Run lane cycle (step 6)",
+      "root_cause": "The OpenCode producer exceeded the 45-minute wrapper work quantum. run-ox-with-retry.sh deliberately exits 78 after killing the process group so the workflow snapshots instead of hanging.",
+      "status": "OPERATIONAL, NOT A VALIDATION DEFECT - snapshot preserved and resumed; no restart from scratch."
+    },
+    "run_38600271324": {
+      "detail": [
+        "Team job success (all steps). Audit job failed at the independent_auditor agent step itself; 'Enforce audit scope and read gate' and 'Persist audit snapshot' were SKIPPED, so this is NOT the misplaced-artifact jq failure of runs 38571087814/38578725589. Job logs are admin-only (HTTP 403 via public API); the wrapper's possible non-zero exits (78 quantum, 76 model-auth pool exhausted, 75 network retries exhausted) cannot be distinguished from the lane. Integrate skipped; resilience dispatched this operational resume (38604340726)."
+      ],
+      "failing_job": "audit (step 5 'Independent audit')",
+      "lane_levers": [
+        "re-executed the four frozen legs LIVE inside this resume run so a green audit+integrate chain here completes v50 (a) in-run",
+        "recorded the observed 38600271324 conclusion=failure + jobs detail into verified_runs via product/ci_run_evidence.py",
+        "dependency preflight added to product/ci_reality_legs.py (fresh-runner ModuleNotFoundError crash of this run's attempt 1 converted to one actionable exit-4 error)",
+        "cycle report written as a minutes-scale audit guide"
+      ],
+      "not_the_v49_pathology": true
+    },
+    "run_38648548635": {
+      "failing_assertion": "jq --argjson dirv 51 '(.direction_version // -1) == $dirv and (.cycle_status // \"INITIALIZED\") != \"INITIALIZED\"' state/product.json",
+      "failing_step": "Validate active MVP producer state (step 7)",
+      "observed_at": "2026-10-14T22:52Z via https://api.github.com/repos/Mickalive/LexMachina/actions/runs/38648548635/jobs",
+      "observed_job_steps": {
+        "audit": "skipped",
+        "integrate": "skipped",
+        "resilience": "success (dispatched this operational resume, resume_from_run_id=38648548635)",
+        "team": "failure at step 7; step 8 (if: always) success; step 9 'Enforce lane write scope' skipped; step 10 snapshot success"
+      },
+      "producer_step_6": "SUCCESS - 'Run lane cycle' completed successfully; the producer's code work in this run was valid and is preserved by this resume",
+      "recurrence": "This is the SAME defect as run 38548957828 (v48 vs v49). The earlier repair held only while the canonical file was written; the shadow copy made the regression invisible until CI.",
+      "root_cause": "The producer wrote direction_version 51 into the SHADOW copy product/state/product.json instead of the workflow-validated canonical state/product.json, which still carried direction_version 50. product/state/product.json satisfies the shell lane-scope check (it starts with 'product/'), so 'Enforce lane write scope' could not detect the mistake; only the workflow's state assertion could, and it did.",
+      "run_observation": {
+        "conclusion": "failure",
+        "created_at": "2026-10-14T22:34:16Z",
+        "direction_version_input": 51,
+        "event": "workflow_dispatch",
+        "head_branch": "main",
+        "head_sha": "f72955d",
+        "observed_by": "python product/ci_run_evidence.py --run-id 38648548635 (dry run) + jobs REST endpoint",
+        "run_id": 38648548635,
+        "status": "completed",
+        "workflow_name": "Core product dirV51 repair0"
+      },
+      "status": "REPAIRED THIS CYCLE - canonical state/product.json now carries direction_version 51 and a non-INITIALIZED cycle_status; the shadow copy is deleted and a product-owned guard now fails locally in seconds instead of after a 45-minute workflow quantum."
+    },
+    "run_38747797021": {
+      "failing_step": "Run lane cycle (step 6)",
+      "window": "team job 2026-10-15T14:03:44Z -> 14:48:48Z = exactly 2704s (the 2700s LEX_WORK_QUANTUM budget)",
+      "failing_exit_signature": "rc 78 - LEX_WORK_QUANTUM_EXPIRED (same operational signature as run 38554018429)",
+      "root_cause": "The producer spent the whole 45-minute quantum building the committed gate-rehearsal chain (gate_rehearsal.py, export_session_draft.js, dom_shim.js, query.html answer card, 24 tests) and was killed before it could run the tests, rehearse the chain, update state/product.json or write its report. 'Validate active MVP producer state' was SKIPPED, i.e. it never asserted anything false. Not a state-validation failure and not a product-code failure.",
+      "snapshot": "cycle/core/product/38747797021/team @ f6dd333 ('product cycle 38747797021 repair 0'), parent 76afaa4 = accept product cycle 38740365477",
+      "status": "OPERATIONAL, NOT A VALIDATION DEFECT - snapshot preserved and resumed by run 38754777366; no restart from scratch",
+      "resume_actions": [
+        "all 24 new snapshot tests pass; full 14-module MVP suite recomputed 245 passed / 1 skipped / 0 failed in default order",
+        "python product/gate_rehearsal.py --fixture (honest incomplete record, ADMISSIBLE)",
+        "python product/gate_rehearsal.py --fixture --answers <canonical> (finalized, ratings land in the record, ADMISSIBLE)",
+        "python product/gate_rehearsal.py --live --query 'Responsabilite penale de l'entreprise selon l'art. 102 CP' (227 live OpenCaseLaw decisions, bundle_hash_status=verified, finalized, ADMISSIBLE)",
+        "node product/verify_query_page.js on the live rehearsal bundle: PASS 16 assertions",
+        "durable artifacts under results/product/gate_rehearsal/CYCLE_38754777366_*.json; session records in results/product/human_gate_sessions_simulated/"
+      ]
+    },
+    "secondary_risk_noted": "Earlier cycles also wrote outside product scope (frontier/frontier-generative-audit/generative_audit/provider.py and results/frontier/frontier-query-retrieval/cache/*). Those writes are already committed in the snapshot; 'Enforce lane write scope' only inspects pending changes, so they cannot be cleaned without tripping the scope check in the same run. They are recorded as pre-existing snapshot content, not current-cycle work. Live-run cache by-products created inside a cycle are removed before the scope step (reports/product/CYCLE_38559540834.md section 4)."
+  },
+  "run_38763217418": {
+    "failing_step": "Enforce audit scope and read gate (audit job step 6), exit code 3",
+    "annotations_observed": [
+      "failure: Process completed with exit code 3.",
+      "failure: auditor crossed scope:"
+    ],
+    "annotation_source": "GET https://api.github.com/repos/Mickalive/LexMachina/check-runs/116529139394/annotations (public)",
+    "jobs": {
+      "audit": "failure at step 6 (step 5 'Independent audit' SUCCESS; step 7 'Persist audit snapshot' skipped)",
+      "integrate": "skipped",
+      "resilience": "success (dispatched operational resume 38766812030 with resume_from_run_id=38763217418, repair_round=1)",
+      "team": "SUCCESS all 10 steps: step 7 'Validate active MVP producer state' PASS, step 9 'Enforce lane write scope' PASS, snapshot pushed at 3cf89b2"
+    },
+    "root_cause": "The independent auditor wrote at least one path outside results/audit/product/* and reports/audit/product/* in the audit job checkout; the scope guard exits 3 BEFORE the jq gate read runs. Not a producer state-validation failure (step 7 passed) and NOT the jq-placement pathology of runs 38571087814/38578725589 (that one exits 1 inside jq).",
+    "evidence_limit": "job logs are admin-only (HTTP 403 unauthenticated), so the exact offending path cannot be read from the lane; no cycle/core/product/38763217418/audit branch exists because step 7 never ran, so there is no gate artifact to recover (and none was fabricated - state_contract reports audit-artifact ownership pending=[])",
+    "status": "DIAGNOSED, NOT LANE-FIXABLE - the failing check lives in .github/workflows/core-lane.yml and the independent_auditor card (control-plane scope, recorded as control_plane_hardening_items.auditor_scope_violation_exit_3_recurrence). Producer-side snapshot made audit-ready by run 38766812030 instead.",
+    "observed_at": "2026-10-15T16:2xZ",
+    "run_id": 38763217418
+  },
+  "prior_current_run": "38779139471",
+  "product": "query-specific Swiss legal research: broad OpenCaseLaw retrieval -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map",
+  "reality_check_status": {
+    "blocking_leg": "durable gate blocking leg: rent-default (Art. 257d(2) residential termination) — the answer must state the 30-day/end-of-month notice rule AND the good-faith/Rechtsmissbrauch limitation. That leg now PASSES locally in live mode (results/product/reality_check/rent-default_live_20261014T122313Z.json); only the durable Actions run remains red.",
+    "ci_leg_runner": {
+      "command": "python product/ci_reality_legs.py --run-id $GITHUB_RUN_ID --mode live",
+      "exit_codes": {
+        "0": "all four legs ran in this run and passed",
+        "1": "a leg ran and failed its gates (negative evidence retained)",
+        "3": "incomplete: deadline reached, legs_missing names exactly which legs did not run"
+      },
+      "last_in_job_run": {
+        "legs": 4,
+        "note": "OPERATIONAL RESUME of run 38600271324's snapshot; legs re-executed LIVE in this run (run-scoped filenames; cross-run reuse refused).",
+        "passed": 4,
+        "run_id": 38604340726,
+        "seconds": 369.769,
+        "summary": "results/product/reality_check/summary_ci_38604340726.json"
+      },
+      "prior_in_job_run_38600271324": {
+        "legs": 4,
+        "passed": 4,
+        "run_id": 38600271324,
+        "seconds": 683.5,
+        "summary": "results/product/reality_check/summary_ci_38600271324.json"
+      },
+      "summary_name": "results/product/reality_check/summary_ci_<run_id>.json"
+    },
+    "ci_reality_summary": "results/product/reality_check/summary_ci_38604340726.json",
+    "durable_green_run_id": 38604340726,
+    "frozen_legs": [
+      "rent-default",
+      "petty-theft-dismissal",
+      "corporate-criminal-liability",
+      "business-judgment-rule"
+    ],
+    "last_durable_run": {
+      "conclusion": "failure",
+      "created_at": "2026-10-12T19:21:54Z",
+      "head_sha": "7cb314285b08814ba5af62a463ac733156e0561b",
+      "matrix_result": "3/4 success; rent-default leg failed",
+      "run_id": 38297155377
+    },
+    "legs_ran_in_this_run": [
+      "petty-theft-dismissal",
+      "rent-default",
+      "corporate-criminal-liability",
+      "business-judgment-rule"
+    ],
+    "local_live_prevalidation_2026_10_14": {
+      "answers_already_satisfied_rent_truth_assertions": "The 11:32Z rent-default answer already contained '30', 'fin du mois' and 'abus'; that leg failed only on the adversarial structural gate, which product/query/audit_seam.py (60s -> 180s) was written to fix.",
+      "batch_20261014T120802Z_parallel_4_legs": [
+        {
+          "adversarial_model": "opencode/mimo-v2.6-flash-free",
+          "answer_model": "opencode/nemotron-3-ultra-free",
+          "gates": "structural PASS, truth PASS",
+          "leg_passed": true,
+          "report": "results/product/reality_check/petty-theft-dismissal_live_20261014T120805Z.json",
+          "seconds": 340.8,
+          "slug": "petty-theft-dismissal"
+        },
+        {
+          "adversarial_model": "opencode/mimo-v2.6-flash-free",
+          "answer_model": "opencode/nemotron-3-ultra-free",
+          "gates": "structural PASS, truth PASS",
+          "leg_passed": true,
+          "report": "results/product/reality_check/corporate-criminal-liability_live_20261014T120808Z.json",
+          "seconds": 548.5,
+          "slug": "corporate-criminal-liability"
+        },
+        {
+          "adversarial_model": "opencode/mimo-v2.6-flash-free",
+          "answer_model": "opencode/nemotron-3-ultra-free",
+          "gates": "structural PASS, truth PASS",
+          "leg_passed": true,
+          "report": "results/product/reality_check/business-judgment-rule_live_20261014T120811Z.json",
+          "seconds": 463.8,
+          "slug": "business-judgment-rule"
+        },
+        {
+          "gates": "structural FAIL (adversarial timeout 180s on all four healthy models under 4-way parallel contention), truth skipped",
+          "leg_passed": false,
+          "report": "results/product/reality_check/rent-default_live_20261014T120802Z.json",
+          "seconds": 861.4,
+          "slug": "rent-default"
+        }
+      ],
+      "evidence_tier": "LOCAL_NOT_DURABLE",
+      "local_4_of_4": true,
+      "local_4_of_4_note": "All four frozen legs passed the structural gates AND their substantive Swiss-law truth gates in local live mode on 2026-10-14 (three uncontended, rent-default on an uncontended retry after a contended parallel batch). This is LOCAL evidence only and does not satisfy the durable-gate criterion.",
+      "note": "The parallel batch ran four legs concurrently in one session; rent-default's adversarial pass timed out on all four healthy models under that contention and passed on an uncontended retry. Contention, not answer content, was the differentiator: the rent-default answer already satisfied all three truth assertions in both the 11:32Z and the contended 12:08Z runs.",
+      "retry_20261014T122313Z_uncontended": [
+        {
+          "gates": "structural PASS, truth::rent-default PASS",
+          "leg_passed": true,
+          "report": "results/product/reality_check/rent-default_live_20261014T122313Z.json",
+          "slug": "rent-default",
+          "summary": "results/product/reality_check/summary_live_20261014T122313Z.json"
+        }
+      ],
+      "runner": "python product/reality_check.py --slug <leg> --mode live",
+      "workflows_parity": "product/reality_check.py reproduces the frozen questions and assertions of product-reality-check.yml; product/tests/test_reality_check.py::test_reality_check_parity fails if they drift"
+    },
+    "outcome_log_2026_10_12": [
+      {
+        "conclusion": "success",
+        "created_at": "2026-10-12T19:11:14Z",
+        "detail": "structural asserts only",
+        "run_id": 38295955819
+      },
+      {
+        "conclusion": "failure",
+        "created_at": "2026-10-12T19:17:54Z",
+        "detail": "3/4",
+        "run_id": 38296709657
+      },
+      {
+        "conclusion": "failure",
+        "created_at": "2026-10-12T19:21:54Z",
+        "detail": "3/4, rent-default leg",
+        "run_id": 38297155377
+      }
+    ],
+    "substantive_4_of_4_green": true,
+    "substantive_4_of_4_scope": "the flags substantive_4_of_4_green / durable_green_run_id refer to the DURABLE Product Reality Check run only; local live 4/4 is recorded separately under local_live_prevalidation_2026_10_14.local_4_of_4",
+    "workflow": "product-reality-check.yml (push to lab/product whose head commit message contains [reality-check])"
+  },
+  "run_id_policy": {
+    "rule": "Cite a GitHub run id only after snapshotting {run_id, head_sha, conclusion, created_at} from the GitHub REST API in this state file; ids that do not resolve are listed under unresolvable_run_ids and are never presented as latest/verified evidence.",
+    "verified_at": "2026-10-14 via https://api.github.com/repos/Mickalive/LexMachina/actions/runs/{id} (unauthenticated, HTTP 200/404 recorded); step-level conclusions via /actions/runs/{id}/jobs"
+  },
+  "self_minted_audit_incident": {
+    "action": "REMOVED from results/audit/product and reports/audit/product; byte-preserved incident evidence archived at reports/product/incidents/self_minted_gate_38648548635.RETIRED.json (sha256 f8e4706c6389e4dcb5c9a8dfeb9435ecbd6bcdf4de32280c3b4638299a7d000b) and self_minted_report_38648548635.RETIRED.md.",
+    "enforcement": "product/state_contract.py reports committed audit artifacts and fails on producer-written audit paths; product/tests/test_state_contract.py freezes the rule.",
+    "not_on_control_plane": "origin/main:results/audit/ is empty; the file was never read by the audit job and never integrated.",
+    "provenance_proof": "git log --diff-filter=A -- results/audit/product/CYCLE_38648548635_GATE.json yields exactly one commit, 92d4bfb 'product cycle 38648548635 repair 0' (the team snapshot). The three legitimate gate files each appear from an 'accept product cycle <id>' integrate commit (387630f, fb71974, b821929).",
+    "run_id": 38648548635,
+    "self_reported_fields": {
+      "claim_ceiling": "in_run_ci_4of4_source_linked_map__durable_green_run_pending",
+      "gate": "PASS",
+      "resumed_snapshot_run": 38647386235,
+      "safe_to_integrate": true,
+      "state_written_during_run": 38648548635
+    },
+    "what": "The producer committed its own independent-audit verdict into the auditor's exclusive paths: results/audit/product/CYCLE_38648548635_GATE.json (gate=PASS) and reports/audit/product/CYCLE_38648548635.md.",
+    "why_not_preserved_as_result": "AGENTS.md 5 and the Master Prompt non-negotiable 'never fabricate data, labels, citations or results'. A producer-authored PASS gate is fabricated audit evidence; keeping it in place would let a future green gate promote it onto the accepted branch. It was never accepted evidence, so no accepted claim is destroyed."
+  },
+  "source_policy": {
+    "canonical_urls": "mcp.opencaselaw.ch decision URLs",
+    "external_spend": "none; free OpenCode models and public OpenCaseLaw endpoints only",
+    "fixtures": "offline/test only; never merged into live results",
+    "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
+  },
+  "state_updated_at": "2026-10-15",
+  "state_updated_by_run": "38789874982",
+  "state_updated_from_resumed_snapshot_run": 38763217418,
+  "supersedes_claims": {
+    "prior_direction_version": 48,
+    "reason": "Pre-red claim was written 2026-10-12T18:27:34Z, before the contradicting reality checks at 19:11-19:21Z, and cited run ids that now return HTTP 404. It is no longer current status and is not re-asserted anywhere in this state.",
+    "removed_claim": "V45_QUERY_MAP_MACHINE_GATE_GREEN / LIVE_E2E_VERIFIED"
+  },
+  "unresolvable_run_ids": {
+    "consequence": "Any prior claim that depended on them (including 'LIVE_E2E_VERIFIED with run 38290597414') is withdrawn, not merely relabelled.",
+    "ids": [
+      38290597414,
+      38275529752,
+      38204133740,
+      38215168853,
+      38185297811
+    ],
+    "status": "HTTP 404 after housekeeper pruning"
+  },
+  "v50_delivery": {
+    "audit_artifact_placement": "The v50 blocker (independent auditor writing results/audit/<lane>/CYCLE_<run>_GATE.json into /tmp/lex_team instead of the audit checkout, runs 38571087814 / 38578725589) is control-plane scope and is now restated in factory_wide_operational_requirements. The product lane cannot edit .github/**; this cycle therefore concentrates on making the TEAM job itself green and self-evidencing.",
+    "clickable_slice_smoke_this_cycle": {
+      "checked_at": "2026-10-14T17:0xZ inside run 38600271324",
+      "phase_1_start": "GET /api/query/start -> 156 decisions, 8 clusters, per-decision x/y + cluster_id + canonical_url; answer status pending (map before generation)",
+      "phase_2_enrich": "GET /api/query/enrich -> answer ready, method generative_audit_llm_v2, model opencode/nemotron-3-ultra-free, 5 cited decision ids, 2 counter-status decisions, adversarial pass independent_llm_adversarial_v2 / opencode/space-bunny-free with error=None",
+      "purpose": "confirm the v45 clickable slice is unregressed by the v50 CI-evidence work; not a human gate result (human_gate_ready stays false)",
+      "query": "Responsabilite penale de l'entreprise selon l'art. 102 CP : subsidiaire ou primaire ?",
+      "server": "python product/query_app.py --port 8791 (one command, stdlib ThreadingHTTPServer)"
+    },
+    "dependency_preflight": {
+      "change": "product/ci_reality_legs.py preflight_imports(): missing numpy/scikit-learn now exits 4 with an actionable message before any leg runs",
+      "tests": "product/tests/test_ci_reality_legs.py (+2 tests, suite 18->20)",
+      "why": "run 38604340726 attempt 1 recorded four fatal ModuleNotFoundError legs on a fresh runner"
+    },
+    "guarantees": [
+      "sequential by construction; assert_disjoint_intervals fails the run if two legs ever overlap (the 4-way parallel batch of 2026-10-14 that pushed every adversarial pass past its 180 s ceiling cannot return)",
+      "durable partial progress: every leg result and the summary are flushed to disk immediately, so a killed job keeps its work and --resume continues inside the SAME run id",
+      "no older green leg can be presented as current: cross-run filenames are rejected on write and ignored on resume",
+      "machine_gate_ready is flipped by observation, never by assertion; a 404 run is recorded under unresolvable_run_ids and can never be cited as evidence"
+    ],
+    "live_evidence_this_run": {
+      "adversarial_model": "opencode/space-bunny-free",
+      "answer_model": "opencode/nemotron-3-ultra-free",
+      "cross_run_reuse": "REFUSED_BY_RUN_SCOPED_FILENAMES",
+      "evidence_tier": "CI_TEAM_JOB_LIVE (executed inside this run's own team job; petty-theft executed earlier in the same run id and was resumed within-run)",
+      "legs": [
+        "petty-theft-dismissal",
+        "rent-default",
+        "corporate-criminal-liability",
+        "business-judgment-rule"
+      ],
+      "per_leg_seconds": {
+        "business-judgment-rule": 95.91,
+        "corporate-criminal-liability": 175.733,
+        "petty-theft-dismissal": 101.796,
+        "rent-default": 98.123
+      },
+      "result": "4/4 structural + truth PASS, sequential/uncontended, 369.8 s total",
+      "resume_chain_within_run": [
+        "attempt 1 (17:23Z): fresh runner lacked numpy/scikit-learn; 4 fatal legs recorded then archived as *.attempt1-missing-deps.json",
+        "attempt 2: deps installed from product/requirements-query.txt; petty-theft-dismissal PASSED; process group killed by a local tool timeout mid rent-default; summary flushed with 1/4",
+        "attempt 3: setsid-detached --resume; petty-theft reused within run; remaining 3 legs PASSED; summary_ci_38604340726.json 4/4"
+      ],
+      "run_id": 38604340726,
+      "summary": "results/product/reality_check/summary_ci_38604340726.json"
+    },
+    "outcome": "one durable, retrievable, GREEN core-lane run whose own team job executes the four frozen reality legs LIVE and writes results/product/reality_check/summary_ci_<run_id>.json",
+    "prior_live_evidence_38600271324": {
+      "adversarial_model": "opencode/space-bunny-free",
+      "answer_model": "opencode/nemotron-3-ultra-free",
+      "cross_run_reuse": "REFUSED_BY_RUN_SCOPED_FILENAMES (every leg artefact carries ci-<run_id> in its name; assert_run_scoped rejects anything else)",
+      "evidence_tier": "CI_TEAM_JOB_LIVE (executed inside this run's own team job, not a prior local run)",
+      "legs": [
+        "petty-theft-dismissal",
+        "rent-default",
+        "corporate-criminal-liability",
+        "business-judgment-rule"
+      ],
+      "per_leg_seconds": {
+        "business-judgment-rule": 67.7,
+        "corporate-criminal-liability": 293.2,
+        "petty-theft-dismissal": 230.2,
+        "rent-default": 92.3
+      },
+      "result": "4/4 structural + truth PASS, sequential/uncontended, 683.5 s total",
+      "summary": "results/product/reality_check/summary_ci_38600271324.json"
+    },
+    "recorder": "product/ci_run_evidence.py (observes the run on the GitHub REST API, records {run_id, head_sha, conclusion, created_at}, opens machine_gate_ready only on an observed green run + complete live leg summary)",
+    "runner": "product/ci_reality_legs.py (reuse-first: run_leg/evaluate/strip_bundle from product/reality_check.py, no gate logic re-implemented)",
+    "tests": "product/tests/test_ci_reality_legs.py (18) + product/tests/test_ci_run_evidence.py (15); 66 passed together with the pre-existing reality/audit-seam/query-map/answer-contract suites"
+  },
+  "v51_delivery": {
+    "human_gate_finalize": {
+      "closes": [
+        "bundle_sha256/query_sha256 binding",
+        "opened-decision and counter-opening integrity",
+        "session metrics and addressable record"
+      ],
+      "code": "product/human_gate_finalize.py",
+      "integrity_note": "enforced in the write path, not asserted in prose: product/human_gate_finalize.py refuses (exit 8) a record whose claim_ceiling disagrees with its simulated flag, a simulated record in the canonical directory, a record in the simulated directory that claims to be an owner session, and any record in results/product/human_gate_sessions/ without an explicit owner_session_confirmed declaration (--owner-session). A real session additionally requires a supplied bundle that verifies against the draft and at least 10 bound decisions (exit 7). results/product/human_gate_sessions/ is empty and stays empty until a person answers the four gate questions; results/product/human_gate_sessions_simulated/ holds only the annotated F0 retraction. provenance is an ATTESTATION mechanism, not authentication: finalized_by/run_id/owner_session_confirmed are self-asserted and every record says so in its own provenance_note. The invariant is machine-checkable: python product/human_gate_evidence.py (exit 0 admissible / 1 defect).",
+      "output_default": "results/product/human_gate_sessions/",
+      "refuses": [
+        "fabricating gate answers (exit 3, status=incomplete)",
+        "bundle/session mismatch (exit 5)",
+        "writing human_gate_ready",
+        "a real session not bound to a verifying bundle or bound to a fixture-sized one (exit 7)",
+        "any self-contradictory or undeclared record, at write time (exit 8)"
+      ],
+      "tests": "product/tests/test_human_gate_finalize.py (40 tests) + product/tests/test_human_gate_evidence.py (14, not 13 as previously written) + product/tests/test_human_gate_session.py (15); non-vacuity proven by injection (ceiling regression -> 5 failures; write guard removed -> 3 failures)",
+      "verified_live": "real accepted switch (node) against the live enriched bundle: draft 12 actions / 4 decisions / 2 counter authorities -> finalized, bundle_hash_status=verified; same draft vs another bundle -> exit 5",
+      "evidence_scan": {
+        "command": "python product/human_gate_evidence.py",
+        "verdict_this_run": "0 blocking, 1 warning (admissible)",
+        "note": "the scanner reproduced the audit's F2 verdict independently on the pre-repair tree"
+      }
+    },
+    "known_exclusions": [
+      "product/tests/test_http_api_integration.py imports the legacy 174k product/server.py (needs sentence-transformers); off the MVP critical path and already recorded by the v50 audit"
+    ],
+    "latency_budget": {
+      "code": "product/latency_budget.py",
+      "cold_path_observation": "107.6075 s upstream for 12 network calls with 0.1864 s local geometry, on the enriched live bundle of cycle 38649613677 (results/product/clickable_slice/bundle_live_enriched_CYCLE_38649613677.json); consistent with the 7.8863 s / 9.8696 s p50/p95 recorded here and NOT a local budget",
+      "estimator": "nearest-rank (ceil(q*n)), no interpolation; n reported with every percentile",
+      "instrumentation": "product/query/pipeline.py provenance.timing (upstream_retrieval_s | local_map_s | map_total_s | enrich_total_s) + provenance.request_summary (requests_logged/network_calls/cache_hits) + provenance.cache_stats",
+      "live_measurement": "results/product/latency_budget/CYCLE_38654561273_live.json",
+      "p50_p95_cache_served": {
+        "cached_map_total_s": [
+          0.4656,
+          0.4816
+        ],
+        "detail_click_local_ms": [
+          0.0003,
+          0.0003
+        ],
+        "local_map_s": [
+          0.06,
+          0.0602
+        ]
+      },
+      "p50_p95_network_served": {
+        "upstream_retrieval_s": [
+          7.8863,
+          9.8696
+        ]
+      },
+      "retracted": {
+        "audit": "results/audit/product/CYCLE_38649613677_GATE.json (gate=REVISE, required_fixes[0]/[1])",
+        "repair": "the legacy artifact is annotated in place: original report preserved verbatim under correction.as_recorded_report, per-sample as_recorded_upstream_retrieval_s preserved, upstream claim nulled and re-aggregated over all 5 samples (budgeted p95s became 0.4898 s / 0.212 s / 0.0004 ms, still PASS)",
+        "superseded_by": "results/product/latency_budget/CYCLE_38654561273_live.json",
+        "values": {
+          "upstream_retrieval_s_p50": 0.275,
+          "upstream_retrieval_s_p95": 0.3034
+        },
+        "why": "every sample of CYCLE_38649613677_live.json ran with network_calls=0 (local file-cache reads) and cache_state was derived from the sample index ('cold' if index == 0); the values were never an OpenCaseLaw measurement"
+      },
+      "sample_provenance": "3 network samples (9 network calls, 0 cache hits each) + 6 cache-served samples (9 cache hits, 0 network calls each); query 'Kuendigung Mietvertrag Mietrecht', top_n 150, recorder wall time 28.238 s",
+      "served_from_rule": "upstream_retrieval_s is recorded ONLY for samples observed to be served by the OpenCaseLaw network (provenance.request_summary.network_calls > 0). Cache reads, offline replays and fixtures keep their raw retrieval-phase time in retrieval_s. cache_state/served_from are derived from observed provenance, never from the sample index; a run with no network-served sample reports upstream as measured=false with null percentiles.",
+      "supersedes": "results/product/latency_budget/CYCLE_38649613677_live.json",
+      "tests": "product/tests/test_latency_budget.py (27 tests, incl. 11 new repair guards)",
+      "verdicts": "cached map <1s PASS (p95 0.4816 s), local map overhead <1.5s PASS (p95 0.0602 s), detail click <150ms PASS (p95 0.0003 ms); OpenCaseLaw upstream measured separately over network-served samples only and never budgeted"
+    },
+    "latency_repair_round1": {
+      "artifacts": [
+        "results/product/latency_budget/CYCLE_38654561273_live.json",
+        "results/product/latency_budget/CYCLE_38649613677_live.json (annotated in place)"
+      ],
+      "audit_verdict_repaired": "results/audit/product/CYCLE_38649613677_GATE.json -> required_fixes[0] and [1]",
+      "code": "product/latency_budget.py (observed served_from/cache_state, upstream admissibility, retrieval_s for non-network samples, --refresh-first mixed recording, annotate_legacy_report + --annotate-legacy)",
+      "human_gate_ready": false,
+      "report": "reports/product/CYCLE_38654561273.md; reports/product/CYCLE_38649613677.md section 3.2 retracted and corrected",
+      "tests": "product/tests/test_latency_budget.py 27 passed (was 16; 11 added, 2 defect assertions corrected); 170 passed / 1 skipped over the 10 module suite of cycle 38649613677 (was 159 / 1)"
+    },
+    "latency_repair_round2": {
+      "artifacts": [
+        "results/product/latency_budget/CYCLE_38720785188_fixture.json",
+        "results/product/latency_budget/CYCLE_38720785188_offline.json",
+        "results/product/latency_budget/CYCLE_38720785188_live.json"
+      ],
+      "audit_verdict_repaired": "results/audit/product/CYCLE_38720785188_GATE.json -> required_fixes[0], [1], [2], [3], [4]",
+      "code": "product/human_gate_finalize.py (--simulated guard, validate_real_session, exit 7), product/tests/test_human_gate_finalize.py (3 new guards)",
+      "human_gate_ready": false,
+      "report": "reports/product/CYCLE_38720785188.md",
+      "tests": "product/tests/test_human_gate_finalize.py 28 passed (was 25; 3 added)"
+    },
+    "live_slice_smoke": {
+      "bundle": "results/product/clickable_slice/bundle_live_enriched_CYCLE_38649613677.json",
+      "phase1_start": "191 decisions, 8 clusters, per-decision x/y/cluster_id/canonical_url, answer pending; upstream 107.6075s, local_map_s 0.1864s",
+      "phase2_enrich": "answer ready, generative_audit_llm_v2 / opencode/nemotron-3-ultra-free, 10 cited ids subset of bundle, 12 counter-status decisions (candidate-limiting, cited), enrich_total_s 89.7664 (model 30.1867, non-model/evidence hydration 59.5797)",
+      "purpose": "confirm the v45/v50 clickable slice is unregressed by the v51 contract work",
+      "query": "Responsabilité pénale de l'entreprise selon l'art. 102 CP",
+      "server": "python product/query_app.py --port 8791"
+    },
+    "objective": "the two owner-independent deltas named in direction v51, plus a durable repair of the orchestration failure that blocked runs 38548957828 and 38648548635",
+    "progressive_slice": {
+      "budgets_9A": {
+        "cached_map_total": "<1 s warm (0.1619 s first page + 0.4465 s expansion end to end)",
+        "detail_click": "unchanged, local <150 ms",
+        "first_map_visible": "6.157 s cold / 0.166 s warm (was 136.79 s blocking)",
+        "local_map_overhead": "0.1433 s first page + 0.0557 s expansion, budget <1.5 s / <2 s",
+        "upstream": "OpenCaseLaw still measured separately (first page cold 6.0254 s upstream; warm 0.0185 s cache read); never folded into local numbers"
+      },
+      "code": {
+        "evidence_recorder": "product/slice_smoke.py",
+        "first_page_and_expansion": "product/query/progressive.py (run_query_first_page, expand_query_bundle, map_model_from_bundle, target_clusters)",
+        "job_server": "product/query_app.py (start/expand/enrich/status/bundle, ThreadPoolExecutor(2), per-run job dedup, job errors isolated, wait_s backwards-compatible blocking form)",
+        "stable_projection": "product/query/qmap.py (MapModel, fit_map_model, project_into_model, build_map(model=...), per-cluster label recomputation)",
+        "ui": "product/static/query.html (3-stage progress, polling, localStorage resume; accepted lex_gate_switch assets untouched)"
+      },
+      "contract_change": "/api/query/enrich now answers 202 + poll URL instead of blocking; wait_s=<seconds> restores the blocking single-call form for scripts and CI. /api/query/start returns the first-page map and starts the expansion job. product/tests/test_query_map_mvp.py's server-contract test was updated to the new contract and now also asserts wait_s.",
+      "defects_found_and_fixed_by_this_cycle": [
+        "enrich started while expansion was running answered from the partial first-page set and the expansion then replaced the bundle (answer lost): enrich now waits for the expansion job, expansion preserves a ready answer, regression test added",
+        "expansion re-flagged 15 already-rendered outliers because the merged refit recomputed outlier status: frozen points keep their outlier status, regression test added",
+        "cluster granularity was capped by the small first page (4 clusters for 194 decisions instead of 8): the first page now uses the cluster count of the finished map",
+        "cluster labels were frozen on 38 decisions of evidence: labels are recomputed from merged membership while cluster ids stay stable"
+      ],
+      "human_gate_ready": false,
+      "live_evidence": {
+        "adversarial": "independent_llm_adversarial_v2 / opencode/space-bunny-free, 10 findings, 10 challenging, 0 rejected ids",
+        "answer": "ready / generative_audit_llm_v2 / opencode/nemotron-3-ultra-free",
+        "artifact": "results/product/progressive_slice/CYCLE_38665681083_v2.json (+ bundle_, cold run CYCLE_38665681083.json)",
+        "cited": 7,
+        "cold_first_map_local_s": 0.1275,
+        "cold_first_map_s": 6.157,
+        "cold_first_map_upstream_s": 6.0254,
+        "counter_authorities": 16,
+        "enrich_ack_s": 0.001,
+        "enrich_job_s": 84.7,
+        "expand_added": 156,
+        "expand_local_s": 0.0557,
+        "expand_s": 0.4,
+        "expanded_decisions": 194,
+        "first_map_clusters": 8,
+        "first_map_decisions": 38,
+        "points_moved_after_first_map": 0,
+        "query": "Responsabilite penale de l'entreprise selon l'art. 102 CP",
+        "server_probe_failures": 0,
+        "server_probe_max_s": 0.002,
+        "server_probes_during_jobs": 89,
+        "warm_first_map_s": 0.166
+      },
+      "negative_result": "the previous audit's 'ThreadingHTTPServer hangs/crashes on /api/query/enrich or /api/query/run' did NOT reproduce on the shipped blocking path: 288 concurrent /api/health probes, 0 failures, server alive after enrich, answer ready. Recorded as-is; the fix delivered here is the blocking itself, not a crash fix.",
+      "tests": "product/tests/test_progressive_query.py (21 tests) + updated server-contract test; full MVP suite 192 passed / 1 skipped (1 skip = accepted frontier mount absent)",
+      "why": "the human gate is one owner session away, but the session itself started with 2.3 minutes of empty page: /api/query/start blocked 136.79 s before the first point was drawn and /api/query/enrich blocked a further 150.70 s (live OpenCaseLaw + real free model, measured this cycle on the pre-change server)"
+    },
+    "run": 38649613677,
+    "state_contract": {
+      "cli": "python product/state_contract.py --check --direction-version 51",
+      "code": "product/state_contract.py",
+      "regression_closed": "a shadow copy of the canonical state inside the write scope can no longer pass unnoticed; the in-repo state/factory_direction.json is stale (v34) and the mounted control plane is preferred",
+      "reproduces": [
+        "Validate active MVP producer state (jq exit 68/69)",
+        "Enforce lane write scope (case-glob match)",
+        "independent-audit artifact ownership",
+        "shadow-state detection"
+      ],
+      "tests": "product/tests/test_state_contract.py (28 tests, <1s, no network)"
+    },
+    "tests": "159 passed, 1 skipped across 10 product suites (69 of them new this cycle)",
+    "human_gate_session_runner": {
+      "code": "product/human_gate_session.py",
+      "why": "the last milestone is a comparative human session; the mechanical part of it was four manual steps with two ways to fail (missing provenance -> exit 7, wrong bundle -> a session bound to nothing)",
+      "one_command": "python product/human_gate_session.py --port 8791 --run-id <run> --operator <name> --owner-session",
+      "does": "serves the product, prints the four gate questions and the negative-result contract, watches for the harness export, binds the draft to the exact served bundle (same in-memory run registry the UI reads), finalizes with attested provenance, then prints the evidence-admissibility verdict",
+      "subcommands": [
+        "serve (default)",
+        "finalize <draft> --bundle ...",
+        "check"
+      ],
+      "verified": "full offline rehearsal this run (fixture corpus): server -> /api/query/start -> /api/query/enrich (answer ready, 3 counter statuses) -> export -> auto-bind 100 decisions, bundle_hash_status=verified -> finalized -> 0 blocking, ADMISSIBLE",
+      "negative_case": "an earlier rehearsal was REFUSED (exit 5) because its draft opened a counter authority that carried no counter status",
+      "defect_found_and_fixed_by_this_cycle": "serve() dropped --out and a machine-authored rehearsal landed in results/product/human_gate_sessions/; --out is now threaded through and the canonical directory requires --owner-session, so that class of accident is refused at write time",
+      "tests": "product/tests/test_human_gate_session.py (14 tests at that cycle; 15 after repair round 3 added test_serve_does_not_shut_down_the_process_global_job_pool)",
+      "human_gate_ready": false
+    },
+    "human_gate_evidence_scanner": {
+      "code": "product/human_gate_evidence.py",
+      "command": "python product/human_gate_evidence.py  (exit 0 admissible, 1 blocking defect)",
+      "roles": "directory-role based (human_gate_sessions / human_gate_sessions_simulated), so it also judges a copy or a synthetic tree",
+      "blocking_codes": [
+        "contradictory_claim_ceiling",
+        "simulated_in_canonical_dir",
+        "real_record_in_simulated_dir",
+        "missing_finalized_by",
+        "missing_run_id",
+        "non_positive_wall_clock",
+        "bundle_not_verified",
+        "implausible_decision_count",
+        "unconfirmed_owner_session",
+        "claims_human_gate_ready",
+        "test_scratch_session_id",
+        "unreadable_record"
+      ],
+      "tests": "product/tests/test_human_gate_evidence.py (14 tests; this field previously said 13 and was corrected by the round-3 audit of cycle 38732097101)",
+      "why": "cycle 38726191935 was the second occurrence of machine-generated records in results/product/; the audit set BLOCKED as the verdict for a third. A scanner turns that from an auditor's reading into a command."
+    },
+    "latency_repair_round3": {
+      "audit_verdict_repaired": "results/audit/product/CYCLE_38726191935_GATE.json -> required_fixes F1..F8",
+      "code": "product/human_gate_finalize.py (env-overridable dirs, claim-ceiling constants, write-path admissibility refusal, real-session bundle verification + minimum decisions, --attest, --owner-session), product/human_gate_evidence.py (new), product/human_gate_session.py (new), product/tests/conftest.py (new)",
+      "artifacts_removed": "five pytest byproducts from results/product/human_gate_sessions_simulated/, preserved in reports/product/incidents/pytest_byproducts_human_gate_sessions_38726191935.RETIRED.json and in git history",
+      "reports": "reports/product/CYCLE_38732097101.md (this run), reports/product/CYCLE_38726191935.md (retrospective provenance, F6), reports/product/CYCLE_38720785188.md section 7 (appended corrections)",
+      "tests": "CORRECTED (audit of cycle 38732097101, required fix 2): the claimed '235 passed / 1 skipped over 13 MVP suites' was WITHDRAWN - recomputed at commit aae6f90 in default collection order it was 8 failed / 227 passed / 1 skipped. After the round-3 pool-ownership repair (run 38740365477) the same 13 modules give 236 passed / 1 skipped / 0 failed (237 collected).",
+      "falsification": "injected ceiling regression -> 5 failures (the previous suite reported 0); write-path guard deleted -> 3 failures",
+      "latency": "re-verified live this run: 84.8811 s upstream + 0.1362 s local map for the first page; 9A budgets were audited closed and are not re-litigated",
+      "human_gate_ready": false
+    },
+    "audit_repair_round3_38732097101": {
+      "repair_round": 3,
+      "repair_of": "audit of cycle 38732097101 -> gate=REVISE, results/audit/product/CYCLE_38732097101_GATE.json (read from the mounted prior-audit tree at commit 77e6e7a; its numbers were reproduced here, not trusted)",
+      "required_fix_1": {
+        "defect": "product/human_gate_session.py::serve() called POOL.shutdown(wait=False, cancel_futures=True) on the process-global query_app.POOL; one in-process serve() call then made every later POOL.submit raise 'RuntimeError: cannot schedule new futures after shutdown' and /api/query/start answer HTTP 500 in 8 pre-existing server tests collected after test_human_gate_session.py",
+        "repair": "serve() now owns only what it creates: it shuts down the HTTP server it made and leaves query_app.POOL alone. Process-global teardown moved to the __main__ entry point.",
+        "guard": "product/tests/test_human_gate_session.py::test_serve_does_not_shut_down_the_process_global_job_pool asserts the mechanism (the executor still accepts a submission after serve()) and the symptom (a server started afterwards still answers /api/query/start with map_ready)"
+      },
+      "suite_recomputed_default_order": {
+        "modules": 13,
+        "before_repair_at_aae6f90": "8 failed, 227 passed, 1 skipped (independent audit's number, reproduced)",
+        "after_repair": "236 passed, 1 skipped, 0 failed (237 collected)",
+        "defect_reinjected": "9 failed, 227 passed, 1 skipped - the 8 original failures plus the new guard",
+        "venv": "pytest 9.1.1, numpy 2.5.4, scikit-learn 1.9.1",
+        "results_tree_after_run": "clean apart from the designed persistent query_cache (documented in the report)"
+      },
+      "required_fix_2": {
+        "corrected": "reports/product/CYCLE_38732097101.md section 4 now carries the withdrawn claim struck through, the audit's recomputed value (8 failed / 227 passed / 1 skipped) and the round-3 value (236 passed / 1 skipped); the test_human_gate_evidence.py count is 14, not 13, in the report and in this state",
+        "historical_text_preserved": "the original 235-passed sentence is preserved struck-through, not deleted",
+        "also_corrected": [
+          "human_gate_criteria[5].status",
+          "v51_delivery.human_gate_finalize.tests",
+          "v51_delivery.human_gate_evidence_scanner.tests",
+          "v51_delivery.human_gate_session_runner.tests",
+          "v51_delivery.latency_repair_round3.tests"
+        ]
+      },
+      "live_slice_redriven": "warm live /api/query/start (cache-served, network_calls=0) -> 200 in 0.176s, 37/37 canonical_url; expand+enrich -> 287/287 canonical_url, 287/287 x-y, 287/287 cluster_id, answer ready (generative_audit_llm_v2, opencode/nemotron-3-ultra-free, 11 cited ids all in bundle), 14 counter-status decisions; node verify_query_page.js PASS 16 assertions",
+      "report": "reports/product/CYCLE_38740365477.md",
+      "not_claimed": "no human-gate result (human_gate_ready=false); no benchmark, threshold, metric or success rule was weakened; the machine gate was not re-verified",
+      "human_gate_ready": false
+    },
+    "gate_rehearsal_chain": {
+      "what": "The whole one-sitting gate chain is now a committed, reproducible product artifact: query -> progressive bundle (start/expand/enrich) -> REAL page in the minimal DOM -> accepted LexGateSwitch (conventional list baseline + map) -> answer card -> 'Exporter la session' export -> human_gate_finalize.py binding to the exact served bundle -> human_gate_evidence.py admissibility verdict. Previously the export half was an ad-hoc uncommitted node harness; nobody, least of all a test, could reproduce it.",
+      "code": [
+        "product/gate_rehearsal.py (one command, --fixture or --live; refuses --owner-session; simulated records only land in the simulated directory)",
+        "product/export_session_draft.js (committed driver; non-vacuity exit 3 if supplied answers fail to reach the export)",
+        "product/dom_shim.js (the runtime verify_query_page.js already used; no second shim)",
+        "product/static/query.html owner-gate answer card (q1-q4 select+note; unanswered question NEVER invented, stays in missing_answers)",
+        "product/human_gate_session.py (threads --out through serve(); owns only the HTTP server it creates)"
+      ],
+      "verified_this_resume": {
+        "fixture_no_answers": "runner_exit=3 record=incomplete (honest) scan=0 blocking -> ADMISSIBLE",
+        "fixture_with_answers": "runner_exit=0 record=finalized bundle_hash_status=verified ratings q1..q4 present in the record scan=0 blocking -> ADMISSIBLE",
+        "live": "query 'Responsabilite penale de l'entreprise selon l'art. 102 CP : subsidiaire ou primaire ?'; start 35 decisions 6.83s; expand +192 -> 227 decisions 20.78s (20.51s upstream, 0 points moved); enrich 89.62s (real free models); export -> draft bound to the 227-decision served bundle; finalize bundle_hash_status=verified; session metrics: 3 decisions opened, 2 counter authorities opened, 2 view switches, used_conventional_baseline=true; scan ADMISSIBLE",
+        "dom_smoke": "node product/verify_query_page.js results/product/gate_rehearsal/CYCLE_38754777366_live_bundle.json -> PASS 16 assertions",
+        "suite": "24 new snapshot tests pass; full 14-module MVP suite 245 passed / 1 skipped / 0 failed (default order)"
+      },
+      "artifacts": [
+        "results/product/gate_rehearsal/CYCLE_38754777366_fixture_answers.json",
+        "results/product/gate_rehearsal/CYCLE_38754777366_live.json",
+        "results/product/gate_rehearsal/CYCLE_38754777366_live_bundle.json (227 live decisions)",
+        "results/product/gate_rehearsal/CYCLE_38754777366_live_draft.json",
+        "results/product/human_gate_sessions_simulated/session_session-20261015T150041Z.json (live record)"
+      ],
+      "answers_format": "the driver accepts {\"q1\":\"yes\"} or {\"q1\":{\"rating\":\"yes\",\"note\":\"…\"}}; a {\"value\": ...} key silently degrades to note-only (record shows rating empty) — canonical shape verified this resume, not an API change",
+      "known_warning": "evidence scan: 0 blocking, 1 warning (test_scratch_session_id on the committed historical session_test-session-20261015T120000Z.json from cycle 38726191935; warning-only, left in place as snapshot history)",
+      "human_gate_ready": false,
+      "claim_ceiling": "machine-rehearsed chain evidence (fixture and live). NOT a jurist session; human_gate_ready stays false; only a real owner/jurist run of python product/human_gate_session.py --owner-session can set it."
+    },
+    "operational_resume_38766812030": {
+      "role": "OPERATIONAL RESUME of the persisted producer snapshot of run 38763217418 (all five REVISE required_fixes of cycle 38759730609 were already committed at 3cf89b2; verified, completed and corrected here - no restart)",
+      "diagnosis_delivered": "run_38763217418 entry under orchestration_failure_diagnosis: audit-job scope-guard exit 3 ('auditor crossed scope:' annotation), team job fully green, jq-placement pathology ruled out, logs admin-only; control-plane hardening item auditor_scope_violation_exit_3_recurrence added",
+      "defect_1_synthetic_bundle": {
+        "found": "results/product/CYCLE_38759730609_bundle.json held 120 synthetic bge_BGE_test_* decisions with 'Cluster N: test decision group N' labels, no is_outlier, no source_url - while the cycle report described a 154-decision cache replay; the generating string exists nowhere else in the repo",
+        "retired": "reports/product/incidents/synthetic_bundle_38759730609.RETIRED.json (byte-preserved, sha256 3f90bd560842c74d93f0dc3abde8b5e5acded2103eb31a541a819a132ba5a0d4)",
+        "rebuilt": "SUPERSEDED by run 38779139471. As first written (run 38766812030) this entry read: 'genuine offline replay via new product/replay_bundle.py: 154 real OpenCaseLaw decisions, 8 clusters, 15 relations, 15 outliers, 154/154 canonical_url on mcp.opencaselaw.ch, validate_bundle [], network_calls 0 / cache_hits 8, sha256 bc1165bcd3b6c5da660a0818342a3926429e35442cb224d4f2ff966a19365322'. Those 15 relations and that sha256 described the artifact run 38779139471 then retired (foreign citations on citation-channel rows); they are kept here only as the historical record of what this run originally reported. The current claim path is current_claim_path below, and the defect that superseded these bytes is defect_foreign_citation_38779139471.",
+        "rebuilt_status": "SUPERSEDED",
+        "superseded_by_run": 38779139471,
+        "superseded_artifact": "reports/product/incidents/foreign_citations_bundle_38759730609.RETIRED.json (byte-identical to commit a10a2d5, sha256 bc1165bcd3b6c5da660a0818342a3926429e35442cb224d4f2ff966a19365322)",
+        "current_claim_path": "SUPERSEDED BY RUN 38789874982 - the digests below were path-bound (required fix D1 of 38785927063) and the phrase 'reproducible off-environment' was false: content_sha256 still hashed two absolute cache roots, so the identity changed on every checkout and the suite behind it was green only on the generating machine. The live artifact is now results/product/CYCLE_38759730609_bundle.json, file sha256 6f830bd5e0dd33d83b85670c14e7d359434f4826278ce701685548c151ed728c, content_sha256 0837ee73800ab1d85ccf295865466df46cf252d91df338fc1fe613389d59194b (path-independent, reproduced at two checkout paths), still 154 real OpenCaseLaw decisions / 8 clusters / 30 typed citation relations / 15 outliers, 154/154 canonical_url on mcp.opencaselaw.ch, source_url 124/154, relation recall 30/37, validate_bundle [], citation guards clean, network_calls 0 / cache_hits 8, answer pending. The byte-preserved predecessor of this record's artifact is reports/product/incidents/pathbound_bundle_38785927063.RETIRED.json (sha256 1efde4b2...). The earlier typed-relation predecessor it already referenced (9839014a...) remains at reports/product/incidents/pre_typed_relations_bundle_38779139471.RETIRED.json. Claim: map-phase vertical slice only - no generative answer, no counter-authority classification, no human-gate result. As first written (run 38779139471 round 3) this field read: results/product/CYCLE_38759730609_bundle.json - sha256 1efde4b2581d8d568e37d24c6564a283fae00aa2a0b5ce1b5e275bbd900a9b6b, content_sha256 (timing-free, reproducible off-environment) 6b5a08b0170e40ecf792a30d00d627047a710977318b0568ed61d14e2a7873e5, 154 real OpenCaseLaw decisions / 8 clusters / 30 typed citation relations / 15 outliers, 154/154 canonical_url on mcp.opencaselaw.ch, validate_bundle [], citation guards clean, network_calls 0 / cache_hits 8, answer pending. Regenerated by run 38779139471 round 3; the sha256 9839014a1823507257137db892b56273f077f302f3da1972e5785e71e5b5a5cd artifact it replaced is byte-preserved at reports/product/incidents/pre_typed_relations_bundle_38779139471.RETIRED.json. Claim: map-phase vertical slice only - no generative answer, no counter-authority classification, no human-gate result.",
+        "guard": "product/tests/test_cache_non_orphan.py now calls run_query_initial per required_fixes[3] AND validates the persisted artifact (synthetic ids, synthetic labels, source host, is_outlier/source_url keys); would fail on recurrence",
+        "accepted_evidence_destroyed": "none - never promoted to lab/product; gate was REVISE"
+      },
+      "defect_2_audit_seam_identity_crash": "first mixed-suite collection raised KeyError: 'timeout' at product/query/audit_seam.py:71 because seam idempotence was per-module-instance while the wrap target is process-global (suite loads query.* and product.query.*); repaired with _lex_original_init + already_wrapped_by_other_module_instance provenance + regression test test_seam_survives_a_second_module_identity; live behaviour (180s budget, explicit timeout wins, pinned model order) unchanged",
+      "defect_3_required_fix_test_shape": "the committed test loaded the bundle file but never called run_query_initial as required_fixes[3] demands; rewritten",
+      "report_content_completed": "reports/product/CYCLE_38759730609.md sections 3/3A/4/6/7 now carry the audit's minimum content (queries, endpoints+params, channel counts, dedupe, counts, timing split, degraded flag, language distribution, claim ceiling) plus the correction/incident record; reports/product/CYCLE_38766812030.md is this run's own report",
+      "verification": {
+        "artifact": "results/product/resume_38763217418/CYCLE_38766812030_verify.json (machine-generated: every check re-executed, real exit codes)",
+        "pytest_required_fix_and_seam": "10 passed",
+        "pytest_full_mvp_suite_15_modules_default_order": "249 passed, 1 skipped, 0 failed (24s); known exclusion test_http_api_integration.py (legacy 174k, sentence_transformers) unchanged",
+        "dom_smoke": "node product/verify_query_page.js results/product/CYCLE_38759730609_bundle.json -> PASS 16 assertions (154/154 rows source-linked)",
+        "state_contract": "python product/state_contract.py --check --direction-version 51 -> PASS (state, lane scope, audit-artifact ownership pending=[])",
+        "human_gate_evidence": "0 blocking, 1 pre-existing warning -> ADMISSIBLE"
+      },
+      "human_gate_ready": false,
+      "claim_ceiling": "audit-readiness and repair evidence only: the snapshot is complete, genuine, reproducible offline and its failure diagnosis is annotation-backed. No human-gate result, no answer-quality claim, no machine-gate re-verification, no fix to the auditor's own path discipline (out of scope)."
+    },
+    "repair_38779139471_round3": {
+      "gate_audited": "results/audit/product/CYCLE_38779139471_GATE.json (gate=REVISE, repair_round=2, audited_head cb8b9e60b573611e1b50a94d659f5f174e28ef91, accepted_base 0f0e9f79a1c2dd3060af84c1ebb673ae71eff5d6)",
+      "required_fix_F1_state_accuracy": "RESOLVED in this file: the bc1165... '15 relations' claim is qualified as superseded, a current_claim_path entry names the live artifact, the foreign-citation defect is recorded below, state_updated_by_run/current_run advanced to 38779139471 with the in-progress pattern, and run 38776384327's delta is recorded as run_38776384327_delta below. python product/state_contract.py --check --direction-version 51 -> PASS.",
+      "defect_foreign_citation_38779139471": {
+        "found": "all 20/20 citation.incoming rows of the claim bundle carried a citation seed's own reference instead of their own (bge_BGE_142_IV_333 seed -> rows showing 'BGE 142 IV 333'/'142 IV 333', bger_6B_31_2019 seed -> rows showing '6B_31_2019'); 22/154 rows shared a citation string in 3 duplicate groups (12+7+3), which also produced 15 phantom shared_citation relations - the complete graph C(6,2) over the six decisions that all displayed 'BGE 142 IV 333'",
+        "root_cause": "frontier/frontier-query-retrieval/ocl_adapter/normalize.py:271 - normalize_citation() sets citation = raw['target_ref'], while for an incoming edge decision_id = source_decision_id (line 257), i.e. the row is the CITING decision but target_ref is the CITED seed's reference. frontier/** is outside product write scope.",
+        "product_repair": "product/query/pipeline.py::_citation_shell + _candidate_to_product: an unhydrated citation-channel row derives its own identity (docket_number when the edge payload carries one, else its own decision_id) instead of the adapter's foreign target_ref; hydrated rows keep the API's own citation. The predicate fires on exactly the 30 citation-channel shells and 0 of the other 124 rows, and no live path can reach a hydrated citation-channel row (run_query_initial uses hydrate_top=0; _merge_hydrated_evidence patches full_text/structure onto an existing bundle without re-running _candidate_to_product).",
+        "guards": "product/tests/test_cache_non_orphan.py::test_citation_shell_never_emits_the_seeds_reference (root-cause behavioural unit test), _assert_citations_are_own applied to both the live replay and the persisted artifact, and product/replay_bundle.py::citation_findings + exit 6 (foreign_citation_content_refused, writes nothing). Round 3 adds a fourth guard family: replay_bundle.py exit 7 refuses a relation whose endpoint is not on the map.",
+        "retired_bytes": "reports/product/incidents/foreign_citations_bundle_38759730609.RETIRED.json, sha256 bc1165bcd3b6c5da660a0818342a3926429e35442cb224d4f2ff966a19365322, byte-identical to commit a10a2d5",
+        "claim_ceiling": "This is a removal of false attribution, not a quality gain: prettier coordinates are not evidence. The auditor independently recomputed the repair (sha match, 154/8/0/15, 26 citation changes, relations 15->0 over the same six decisions, guards failing on both retired defects, exit 6 refusing to write) and marked it explicitly_not_required for re-litigation in round 3; nothing here re-argues it.",
+        "status": "FIXED AND VERIFIED (not re-litigated this round)"
+      },
+      "run_38776384327_delta": "NO claim-path delta. Run 38776384327 committed 8 additional product-owned OpenCaseLaw cache envelopes for the query 'Kundigung Mietvertrag Mietrecht' (cache_stats.n_keys 384 -> 392) plus a simulated human-gate session record; it changed no claim-path artifact, no bundle and no test. Its envelopes are genuinely consumed - re-verified this round by offline replay: 172 decisions, 8 clusters, network_calls 0, cache_hits 9.",
+      "advisory_F2_cluster_label_environment_sensitive": "FIXED for the label-ordering defect it diagnosed. RESTATED BY RUN 38789874982: the repair's *environment-independence* evidence was produced by varying PYTHONHASHSEED on the generating host, where the absolute cache path is constant by construction, so it did not establish the property being claimed. The label determinism itself is real (0 of 37 label terms across all 8 clusters are absent from their cluster; stable under 1e-16 last-bit noise). Artifact identity is now established by v51_delivery.repair_38789874982_round4 instead. Original finding, preserved: FIXED. Cause measured rather than assumed: six replays of the claim query produced three different file sha256 values locally (three with default hash randomisation, three with PYTHONHASHSEED 0/1/2); exactly five fields vary between replays and all five are wall-clock timings, so a raw file hash can never match across runs. The data difference the auditor saw came from build_map's terms[np.argsort(-mean)[:5]] over the whole 5000-term vocabulary: for clusters of 1-5 decisions only a few terms have a non-zero mean, so the 4th/5th label slots came from thousands of exactly tied zero-mean terms. Repair: product/query/qmap.py::label_terms is now the single ranking for both the initial fit and the recompute-on-merge path, admits only mean > 0 and orders by (-round(mean, 9), term). Effect measured on the claim bundle: no label names an absent term any more (the one-decision cluster C7 read 'ptt, betriebe, unterstehen, zugefagt, privatrecht' where three of those five terms occur in no member; it now reads 'ptt, betriebe, benutzern, betrieben, beurteilt'), and x/y/is_outlier/citation/source_url/rank/score are byte-identical on 154/154 rows with identical per-cluster membership sets.",
+      "advisory_F3_citation_view_empty_no_followup": "FIXED. Relations were produced only by find_citations string matching over decision bodies, which are empty for 30 of 154 unhydrated citation shells, so the map's 'reveal relations on selection' affordance (QUERY_MAP_MVP 7) was empty for the whole query. The OpenCaseLaw /citations channel already returns typed edges and the accepted adapter records each on the candidate row's provenance_events (seed_decision_id, direction, confidence, mention_count), but to_product_bundle emits relations: [] and frontier/** is outside product write scope. Repair: product/query/pipeline.py::typed_citation_relations rebuilds each edge with one reading direction (source cites target), emits it only when both endpoints are on the map, de-duplicates; _merge_relations prefers typed edges and de-duplicates per decision pair; progressive.py re-derives them after expansion; query.html states the direction ('a cite X' / 'a cite par X') with the upstream confidence. Measured: claim query 0 -> 30 typed citation relations covering 32 decisions, 0 dangling; the fixture server run of 'Kundigung Mietvertrag Mietrecht' 0 -> 4.",
+      "advisory_F4_no_cycle_report": "FIXED: reports/product/CYCLE_38779139471.md is this run's own report.",
+      "advisory_F5_report_quotes_previous_run_test_counts": "FIXED: reports/product/CYCLE_38759730609.md section 4 keeps run 38766812030's 249/1 as that run's own record and adds a per-run supplement table (249 -> 250 -> 266 passed, 1 skipped, 0 failed).",
+      "advisory_F6_missing_durable_prior_audit_artifact": "NOT ACTIONABLE from this lane: results/audit/product/CYCLE_38766812030_GATE.json is a REVISE gate and REVISE gates are not merged. Recorded here so the evidence chain is not assumed durable; the foreign-citation claims above stand on the artifact and the adapter source, both of which are in the repository.",
+      "verification_this_round": {
+        "mvp_suite_16_modules": "SUPERSEDED BY RUN 38789874982 (round 4 of 38785927063) - the count below is what this run measured ON THE GENERATING MACHINE ONLY and is not a machine-independent fact. As first written (run 38779139471 round 3) this field read: '266 passed, 1 skipped, 0 failed (24s, default order); was 250/1/0'. See v51_delivery.repair_38789874982_round4.verification_this_round for the count reproduced at two distinct checkout paths.",
+        "new_test_module": "product/tests/test_relations_and_labels.py - 13 tests (deterministic cluster labels incl. a 1e-16 last-bit noise test; typed citation relation direction, dangling drop, dedupe, merge cap; end-to-end offline claim-query invariants)",
+        "dom_smoke": "SUPERSEDED BY RUN 38789874982 - the committed harness could not reach the map it certified (advisory A2). As first written (run 38779139471 round 3) this field read: 'node product/verify_query_page.js results/product/CYCLE_38759730609_bundle.json -> PASS 19 assertions (16 previous, none removed or relaxed, + 3 typed-relation assertions); bundles without relations -> PASS 17'. Current harness: PASS 22.",
+        "server_slice": "python3 product/query_app.py --port 8799 --fixture then /api/query/start -> /api/query/expand: 100 decisions / 8 clusters / 4 relations, answer pending",
+        "replay": "SUPERSEDED BY RUN 38789874982 - the out_sha256/content_sha256 below were path-bound (required fix D1 of 38785927063) and did not reproduce off the generating machine. As first written (run 38779139471 round 3) this field read: 'PYTHONPATH=. python3 product/replay_bundle.py --query \"Responsabilite penale de l'entreprise selon l'art. 102 CP\" --top-n 120 --out results/product/CYCLE_38759730609_bundle.json -> exit 0, genuine true, network_calls 0, cache_hits 8, n_decisions 154, n_clusters 8, n_relations 30 (all citation), n_outliers 15, dangling_relations [], validate_bundle [], citation guards clean, out_sha256 1efde4b2581d8d568e37d24c6564a283fae00aa2a0b5ce1b5e275bbd900a9b6b, content_sha256 6b5a08b0170e40ecf792a30d00d627047a710977318b0568ed61d14e2a7873e5'.",
+        "state_contract": "python3 product/state_contract.py --check --direction-version 51 -> PASS (state step, lane write scope, audit-artifact ownership pending=[])",
+        "human_gate_evidence": "python3 product/human_gate_evidence.py -> 0 blocking, 1 pre-existing warning -> ADMISSIBLE",
+        "pre_existing_not_caused_here": "python3 product/reality_check.py --slug all --mode fixture fails all four legs with 'OpenCaseLaw retrieval returned no decisions'; reproduced identically on the pristine cb8b9e6 head via git stash. Fixture-mode limitation of this workspace, not a regression; the frozen legs (test_ci_reality_legs, test_cache_entries_unchanged_leg_replays) still pass."
+      },
+      "artifacts": [
+        "results/product/CYCLE_38759730609_bundle.json (sha256 1efde4b2..., content_sha256 6b5a08b0...; 154/8/30/15) - SUPERSEDED BY RUN 38789874982, both digests path-bound; byte-preserved at reports/product/incidents/pathbound_bundle_38785927063.RETIRED.json",
+        "results/product/CYCLE_38759730609_bundle.json (sha256 1efde4b2..., content_sha256 6b5a08b0...; 154/8/30/15)",
+        "reports/product/incidents/pre_typed_relations_bundle_38779139471.RETIRED.json (byte-preserved superseded artifact, sha256 9839014a...)",
+        "reports/product/CYCLE_38779139471.md (this round's own report)",
+        "reports/product/CYCLE_38759730609.md (section 8 kept; section 4 supplemented with the per-run suite table)",
+        "product/tests/test_relations_and_labels.py",
+        "product/query/qmap.py, product/query/pipeline.py, product/query/progressive.py, product/replay_bundle.py, product/static/query.html, product/verify_query_page.js"
+      ],
+      "human_gate_ready": false,
+      "machine_gate_ready": true,
+      "continue_recommended": true,
+      "claim_ceiling": "SUPERSEDED BY RUN 38789874982 for the identity clause only: the 'reproducible identity' was path-bound (two absolute cache roots inside the hashed payload) and is now measured at two checkout paths. The data claims below stand and were re-verified. NOT claimed: any generative answer or answer-quality result (bundle answer still pending); any counter-authority classification; any human-gate result (human_gate_ready stays false); any jurist-usefulness, map-quality or navigation-quality claim; any machine-gate re-verification; a verified citation graph (the edges are the upstream channel's own seed/direction records, now with measured recall 30/37); byte-identical reproduction of a raw file sha256 across runs (use content_sha256, which is path-independent as of 38789874982)."
+    },
+    "repair_38789874982_round4": {
+      "gate_audited": "results/audit/product/CYCLE_38785927063_GATE.json (gate=REVISE, repair_round=3, audited_head d5187db), audited off-machine at /tmp/opencode/audit/work",
+      "required_fix_D1_content_sha256_not_portable": {
+        "status": "RESOLVED IN CODE, REGENERATED ARTIFACT, AND RE-VERIFIED OFF THE GENERATING MACHINE",
+        "cause": "product/replay_bundle.py::content_sha256 dropped only the five wall-clock entries in TIMING_PATHS. Two absolute filesystem paths stayed inside the hashed payload: provenance.cache_stats.root and provenance.retrieval.remote.cache_stats.root. Field-by-field diff of committed vs fresh bundle: 7 differing leaves, 5 timings, 2 cache roots.",
+        "fix": [
+          "TIMING_PATHS kept for timings only; new CACHE_ROOT_PATHS names both cache roots and content_sha256 rewrites them to the constant CACHE_ROOT_TOKEN, so a differing cache root can never move the hash while a differing key count still does.",
+          "Defence in depth: _scrub_machine_paths rewrites any other machine-specific absolute filesystem path to ABSOLUTE_PATH_TOKEN, so the next field someone adds cannot silently re-break portability the same way.",
+          "The scrub is deliberately narrow. The recorded upstream endpoints (/citations, /leading-cases) also begin with '/' and are claim content, not locations; is_machine_path excludes API_ENDPOINT_PREFIXES so they stay inside the hashed payload. A first draft that scrubbed them was rejected during this round because it collapsed two distinct endpoints onto one token.",
+          "inspect_bundle now reports hashed_payload_paths {machine_paths, api_endpoints, timings_dropped} so a reviewer sees what was neutralised instead of trusting the hash, and cache_root is reported repo-relative."
+        ],
+        "regression_tests": [
+          "product/tests/test_cache_non_orphan.py::test_content_hash_is_invariant_under_a_rewritten_cache_root - rewrites both cache roots to a foreign absolute path and requires an unchanged hash, then requires a real content change to move it (so the fix cannot silently neutralise claim content).",
+          "product/tests/test_cache_non_orphan.py::test_committed_bundle_has_no_unaccounted_absolute_paths - the only machine paths in the committed payload are the two declared cache roots, and the /citations and /leading-cases endpoints are still present.",
+          "product/tests/test_cache_non_orphan.py::test_is_machine_path_separates_paths_from_upstream_endpoints - the classifier itself, incl. Windows drive paths, '//host' protocol-relative URLs and https URLs."
+        ],
+        "regenerated_artifact": {
+          "path": "results/product/CYCLE_38759730609_bundle.json",
+          "file_sha256": "6f830bd5e0dd33d83b85670c14e7d359434f4826278ce701685548c151ed728c",
+          "file_sha256_note": "the raw file hash still embeds wall-clock timings and therefore still changes on every replay; content_sha256 is the identity",
+          "content_sha256": "0837ee73800ab1d85ccf295865466df46cf252d91df338fc1fe613389d59194b",
+          "superseded_artifact": "reports/product/incidents/pathbound_bundle_38785927063.RETIRED.json - byte-preserved predecessor, sha256 1efde4b2581d8d568e37d24c6564a283fae00aa2a0b5ce1b5e275bbd900a9b6b, content_sha256 6b5a08b0...",
+          "unchanged_by_the_repair": "154 decisions / 8 clusters / 30 typed relations / 15 outliers / validate_bundle [] / network_calls 0 / cache_hits 8 out of 392 cached envelopes - the D1 repair changes the identity function, not the data"
+        },
+        "off_machine_proof": {
+          "condition_set_by_the_gate": "do not re-verify environment independence by varying a hash seed on one host; demonstrate green from a checkout whose path differs from the generating one, or add the path-invariance regression test",
+          "both_demands_met": true,
+          "generating_path": "/home/runner/work/LexMachina/LexMachina",
+          "second_path": "/tmp/opencode/offmachine/deeply/nested/offmachine-checkout",
+          "replay": "the committed artifact still physically contains cache root '/home/runner/work/LexMachina/LexMachina/results/product/query_cache' while the replay runs from the second path; content_sha256 = 0837ee73800ab1d85ccf295865466df46cf252d91df338fc1fe613389d59194b at BOTH paths, with 154/8/30 and genuine true at both",
+          "suite": "272 passed, 1 skipped, 0 failed at BOTH paths (26s and 25s), same 16-module MVP command",
+          "dom_harness": "node product/verify_query_page.js -> PASS 22 assertions at both paths",
+          "environment": "python 3.12.3, numpy 2.5.4, scikit-learn 1.9.1, pytest 9.1.1, node v22.23.3 - unpinned on both sides",
+          "before_the_fix": "the same command at the same second path was 1 failed, 265 passed, 1 skipped: test_claim_bundle_content_hash_matches_a_fresh_replay asserted 6b5a08b0 != b5c915b7 - the exact failure the auditor reported"
+        }
+      },
+      "advisories_disclosed_this_round": {
+        "A1_relation_recall_30_of_37": {
+          "status": "FIXED BY MAKING IT MACHINE-READABLE ON THE CLAIM PATH, not by widening the adapter",
+          "independently_recomputed_by_product": "57 raw typed edges for this query's two citation seeds from the raw cached /citations envelopes; 37 with both endpoints on the map; 30 in the bundle = recall 0.811; 0 fabricated; 7 named dropped edges",
+          "change": "product/replay_bundle.py::relation_recall recomputes the denominator from the cached /citations envelopes (reusing ocl_adapter.cache.FileCache) and inspect_bundle now reports relation_recall on every replay. genuine() additionally refuses a relation the upstream records do not support, extending the exit-7 family from 'dangling' to 'unsupported'.",
+          "scope_unchanged": "the dropped edges all have an 'other' endpoint that reached the map through a search channel; the adapter attaches /citations provenance_events only to citation-channel rows and frontier/** is outside product write scope. The recall number is disclosed, not fixed.",
+          "tests": [
+            "product/tests/test_cache_non_orphan.py::test_relation_recall_is_disclosed_and_nothing_is_fabricated",
+            "product/tests/test_cache_non_orphan.py::test_an_unsupported_relation_edge_is_not_genuine"
+          ]
+        },
+        "A2_dom_harness_could_not_exercise_the_map": {
+          "status": "FIXED",
+          "cause": "product/dom_shim.js registered every id with value '', so query.html's filtered() saw langFilter !== 'all' and returned []; draw() drew nothing and no assertion could reach cv.onclick. The 19 passing assertions certified a clickable map the harness could not see.",
+          "change": "the shim now registers the real tag name and gives a <select> its first <option>'s value, as a browser does; verify_query_page.js gains three assertions that call draw() and the canvas click handler for real.",
+          "negative_control": "reverting only the select-value line makes exactly the three new assertions fail (0/154 drawn, click returns null); restoring it returns PASS 22. The new assertions cannot pass vacuously.",
+          "also_recorded": "product/tests/test_human_gate_integration.py::test_real_page_boots_renders_and_switches_without_network runs the same harness against a 100-decision fixture and asserts no 'FAIL' in stdout, so the new assertions are covered there too."
+        },
+        "A5_relevance_reranker_dead_on_the_claim_path": {
+          "status": "RECORDED, NOT CHANGED",
+          "finding_confirmed": "rerank_product_bundle is imported at product/query/pipeline.py:19 but never called by run_query_initial, _map_bundle or progressive.py; its only caller is product/tests/test_query_map_mvp.py. The claim map is built on raw retrieval order.",
+          "why_not_changed_this_round": "wiring the reranker in would change the ordering and membership of the 154-row claim artifact this repair is re-verifying; that is a next-milestone claim-path change, not a D1 repair, and doing it mid-repair would invalidate the very numbers this round must state.",
+          "measured_context": "only 28/154 rows mention art. 102 CP / art. 104a / art. 103 at all and language is null on 38 rows, so the reranker's headroom on this query is small; it must be measured on the gate query before it is trusted.",
+          "next_milestone": "wire it, then re-measure the claim artifact rather than assuming an improvement"
+        },
+        "A6_reproducible_numbers_need_their_parameter": {
+          "status": "RECORDED",
+          "fixture_slice": "'python3 product/query_app.py --port 8799 --fixture' -> 100 decisions / 8 clusters / 4 relations reproduces only at top_n=100; at top_n=120 or the default 150 the auditor measures 105 / 8 / 9",
+          "run_38776384327_slice": "'172 decisions, 8 clusters, network_calls 0, cache_hits 9' reproduces exactly at the default top_n=150 (124 decisions at top_n=120)",
+          "this_round": "every count in this section names its parameter: claim bundle = the recorded query at --top-n 120; suite = the explicit 16-module list in verification_this_round.mvp_suite_16_modules"
+        },
+        "A7_source_url_null_on_30_rows": {
+          "status": "DISCLOSED MACHINE-READABLY",
+          "change": "product/replay_bundle.py::field_coverage reports populated / null_or_empty / of per claim field; inspect_bundle publishes it as decision_field_coverage on every replay.",
+          "measured": "canonical_url 154/154 populated; source_url 124/154 populated, 30 null; language 116/154, 38 null. '154/154 rows source-linked' holds through canonical_url only - a reader must not infer both fields are populated. The source_url KEY requirement in REQUIRED_DECISION_KEYS is unchanged."
+        },
+        "A3_no_zoom": "CARRIED, unchanged: query.html still sets VIEW in fit() and ignores it in screenPos(); no zoom or pan, correctly not claimed.",
+        "A4_map_is_one_super_cluster": "CARRIED, unchanged: C0 holds 133/154 (86%); the auditor's boilerplate ablation did not move it. Correctly not claimed as navigation quality.",
+        "A8_machine_gate_ready_without_durable_green_run": "CARRIED, pre-existing and predates this delta: state machine_gate.ready is true for run 38604340726 while verification.durable_run_note states no durable green core-lane run exists yet. Not touched by this repair."
+      },
+      "verification_this_round": {
+        "mvp_suite_16_modules": "272 passed, 1 skipped, 0 failed at BOTH /home/runner/work/LexMachina/LexMachina (26s) and /tmp/opencode/offmachine/deeply/nested/offmachine-checkout (25s); was 266/1/0 on the generating machine only. Command: pytest -q product/tests/test_{query_map_mvp,progressive_query,cache_non_orphan,relations_and_labels,answer_contract,audit_seam,human_gate_integration,human_gate_evidence,human_gate_finalize,human_gate_session,latency_budget,gate_rehearsal,reality_check,ci_reality_legs,ci_run_evidence,state_contract}.py. The six new tests are the three D1 regression tests and the three A1/A7 disclosure tests; no test was deleted, relaxed or removed.",
+        "dom_smoke": "node product/verify_query_page.js results/product/CYCLE_38759730609_bundle.json -> PASS 22 assertions at both paths (19 previous, none removed or relaxed, +3 canvas draw/click assertions covering the A2 gap)",
+        "replay": "PYTHONPATH=. python3 product/replay_bundle.py --query \"Responsabilite penale de l'entreprise selon l'art. 102 CP\" --top-n 120 --out results/product/CYCLE_38759730609_bundle.json -> exit 0, genuine true, network_calls 0, cache_hits 8, n_decisions 154, n_clusters 8, n_relations 30 (all citation), n_outliers 15, dangling_relations [], fabricated_relations [], validate_bundle [], citation guards clean, relation_recall 30/37 = 0.811, hashed_payload_paths.machine_paths = the 2 declared cache roots, api_endpoints = the 4 recorded endpoints, out_sha256 6f830bd5e0dd33d83b85670c14e7d359434f4826278ce701685548c151ed728c, content_sha256 0837ee73800ab1d85ccf295865466df46cf252d91df338fc1fe613389d59194b",
+        "state_contract": "python3 product/state_contract.py --check --direction-version 51 -> PASS",
+        "human_gate_evidence": "python3 product/human_gate_evidence.py -> unchanged admissibility"
+      },
+      "no_baseline_weakened": "No frozen baseline, metric, success rule or scope was changed. product/ci_reality_legs.py, product/reality_check.py, product/latency_budget.py and the four frozen reality-leg replays are untouched; no line under product/tests was deleted; human_gate_ready stays false and continue_recommended stays true. The only guard that got STRICTER is genuine(), which now also refuses a relation the upstream records do not support.",
+      "artifacts": [
+        "product/replay_bundle.py (CACHE_ROOT_PATHS, machine-path scrub, hashed_payload_paths, relation_recall, field_coverage, stricter genuine())",
+        "product/tests/test_cache_non_orphan.py (+6 tests: 3 for D1 path-invariance, 1 for the unsupported-edge guard, 2 for the A1/A7 disclosures)",
+        "product/dom_shim.js (a <select> reports its first option's value; ids keep their real tag)",
+        "product/verify_query_page.js (+3 canvas draw/click assertions)",
+        "results/product/CYCLE_38759730609_bundle.json (regenerated: content_sha256 0837ee73...)",
+        "reports/product/incidents/pathbound_bundle_38785927063.RETIRED.json (byte-preserved superseded artifact)",
+        "reports/product/CYCLE_38789874982.md (this round's report)",
+        "reports/product/CYCLE_38779139471.md (sections 2 and 5 corrected in place, with a correction note)"
+      ],
+      "claim_ceiling": "Unchanged in substance and now measured rather than asserted. Claimed: a recorded OpenCaseLaw query replays offline (network_calls 0, cache_hits 8, 392 genuine cached envelopes) into a validate_bundle-clean, source-linked bundle of 154 real decisions (canonical_url 154/154 on mcp.opencaselaw.ch, source_url 124/154 - disclosed), clustered into 8 groups and drawn as a clickable canvas map that the committed harness now actually clicks (154/154 points; a click opens a detail panel with the decision, its cluster label and a source link); cluster labels naming only terms present in their cluster (0/37 absent); 30 typed citation relations recovered from the upstream channel's own records with 0 dangling, 0 unsupported and measured recall 30/37; a replay tool that refuses a dangling or unsupported relation; and an artifact identity that is path-independent, verified at two checkout paths. NOT claimed: any generative answer or answer quality (answer.status = pending, method = pending_generative_audit); any counter-authority classification; any human-gate result (human_gate_ready = false); any jurist-usefulness, map-quality or navigation-quality claim (C0 alone holds 133/154); any machine-gate re-verification; a verified citation graph; a zoomable or multi-resolution map; or a reproducible raw file sha256 (it embeds timings - use content_sha256).",
+      "human_gate_ready": false,
+      "machine_gate_ready": true,
+      "continue_recommended": true
+    }
+  },
+  "verification": {
+    "durable_actions_run": null,
+    "durable_run_note": "No durable green core-lane run exists yet: 38600271324 was team-green but audit-failed; this run (38604340726) carries fresh 4/4 in-run legs and awaits its own audit+integrate conclusion, which is not observable while the team job executes. Observation command: python product/ci_run_evidence.py --run-id 38604340726 --apply",
+    "evidence_reports": [
+      "reports/product/CYCLE_38779139471.md",
+      "reports/product/CYCLE_38720785188.md",
+      "reports/product/CYCLE_38654561273.md",
+      "reports/product/CYCLE_38649613677.md",
+      "reports/product/CYCLE_38604340726.md",
+      "reports/product/CYCLE_38600271324.md",
+      "results/product/reality_check/"
+    ],
+    "latency_budget_9a": {
+      "artifact": "results/product/latency_budget/CYCLE_38654561273_live.json",
+      "cache_served_cached_map_total_p50_p95_s": [
+        0.4656,
+        0.4816
+      ],
+      "cache_served_local_map_p50_p95_s": [
+        0.06,
+        0.0602
+      ],
+      "claim_ceiling": "engineering budgets on this machine and network path only; no browser-level click latency, no jurist-usefulness claim, no human-gate result",
+      "detail_click_p50_p95_ms": [
+        0.0003,
+        0.0003
+      ],
+      "network_served_upstream_p50_p95_s": [
+        7.8863,
+        9.8696
+      ],
+      "verdicts": "cached map <1s PASS | local map <1.5s PASS | detail click <150ms PASS | upstream measured, not budgeted"
+    },
+    "live_clickable_slice_this_cycle": {
+      "artifacts": [
+        "results/product/clickable_slice/api_query_start_20261014T214600Z.json",
+        "results/product/clickable_slice/bundle_live_map_only_20261014T214600Z.json",
+        "results/product/clickable_slice/bundle_live_enriched_20261014T214600Z.json",
+        "results/product/clickable_slice/dom_smoke_20261014T214600Z.txt"
+      ],
+      "claim_ceiling": "pipeline and UI verification only; no claim that the map helps a jurist",
+      "dom_smoke": "node product/verify_query_page.js -> PASS 16 assertions against the live enriched bundle",
+      "phase_1_start": {
+        "answer_status": "pending",
+        "canonical_urls": "220/220",
+        "clusters": 8,
+        "decisions": 220,
+        "fixture_mode": false,
+        "languages": {
+          "de": 133,
+          "fr": 26,
+          "it": 37,
+          "none": 24
+        },
+        "mode": "live",
+        "outliers": 22,
+        "query_variants": 8,
+        "upstream_attribution": "one GET /api/decisions page measured 13.7 s from this workspace; the 66 s is upstream-dominated, not local",
+        "wall_seconds": 66.04
+      },
+      "phase_2_enrich": {
+        "adversarial": "independent_llm_adversarial_v2 on a different model (opencode/space-bunny-free)",
+        "adversarial_findings": 11,
+        "answer_model": "opencode/nemotron-3-ultra-free",
+        "answer_status": "ready",
+        "challenging_findings": 11,
+        "cited_decision_ids": 8,
+        "counter_status_decisions": 11,
+        "degraded": false,
+        "method": "generative_audit_llm_v2",
+        "provider_error": null,
+        "rejected_ids": 0,
+        "wall_seconds": 141.35
+      },
+      "query": "Responsabilité pénale de l'entreprise selon l'art. 102 CP subsidiaire ou primaire",
+      "report": "reports/product/CYCLE_38641080245.md",
+      "run_id": 38641080245,
+      "server": "python product/query_app.py --port 8793 (one command, stdlib ThreadingHTTPServer)"
+    },
+    "live_legs_this_run": "results/product/reality_check/summary_ci_38604340726.json (4/4 structural+truth, sequential) — durable run conclusion=success observed 2026-10-14T21:36:10Z",
+    "pre_existing_collection_errors": "18 legacy 174k test modules fail collection with ModuleNotFoundError: sentence_transformers (optional dep, PAUSE'd legacy lane); unchanged by this cycle and not on the query-map path",
+    "product_integration_tests": "91 passed (ci_reality_legs 20 + ci_run_evidence 26 + reality_check + audit_seam + query_map_mvp + answer_contract + human_gate_integration 12)",
+    "status": "PASS (local, offline + LIVE OpenCaseLaw end-to-end this cycle; 91 product tests)",
+    "verified_on": "2026-10-14 (run 38641080245 workspace)"
+  },
+  "verified_runs": [
+    {
+      "conclusion": "success",
+      "created_at": "2026-10-12T19:11:14Z",
+      "head_branch": "lab/product",
+      "head_sha": "3081b65bac30239304fcf156834f569f9a707122",
+      "note": "Only all-green Product Reality Check run, but it contains structural asserts only; the substantive Swiss-law truth gates added in f7994a3 were not yet in force.",
+      "run_id": 38295955819
+    },
+    {
+      "conclusion": "failure",
+      "created_at": "2026-10-12T19:17:54Z",
+      "head_branch": "lab/product",
+      "head_sha": "65b28198bb058577424b996012352cfe00b0c89c",
+      "note": "3/4 matrix legs failed.",
+      "run_id": 38296709657
+    },
+    {
+      "conclusion": "failure",
+      "created_at": "2026-10-12T19:21:54Z",
+      "head_branch": "lab/product",
+      "head_sha": "7cb314285b08814ba5af62a463ac733156e0561b",
+      "note": "Latest durable Product Reality Check at lab/product HEAD (7cb3142). rent-default leg failed; substantive truth gates have never passed 4/4 on a durable run.",
+      "run_id": 38297155377
+    },
+    {
+      "conclusion": "failure",
+      "created_at": "2026-10-14T09:33:57Z",
+      "head_branch": "main",
+      "head_sha": "876a61650618d13e00085990c28faa6c9039680a",
+      "note": "Core product cycle. team job failed at 'Run lane cycle' (step 6); audit/integrate skipped.",
+      "run_id": 38543277176
+    },
+    {
+      "conclusion": "failure",
+      "created_at": "2026-10-14T10:21:08Z",
+      "head_branch": "main",
+      "head_sha": "f334bb298e14cb7ec84d984ef1078fa74ece588d",
+      "note": "Producer work itself succeeded; team job failed at step 7 'Validate active MVP producer state' because state/product.json still said direction_version 48. REPAIRED in the following cycle: state/product.json now carries direction_version 49 and a non-INITIALIZED cycle_status, so step 7 passes. Team snapshot persisted on cycle/core/product/38548957828/team.",
+      "run_id": 38548957828
+    },
+    {
+      "conclusion": "failure",
+      "created_at": "2026-10-14T11:04:31Z",
+      "head_branch": "main",
+      "head_sha": "097f00daedfe8b2f0be6020acf6146836f99a3f7",
+      "job_id_team": 115818581173,
+      "jobs": {
+        "audit": "skipped",
+        "integrate": "skipped",
+        "resilience": "success",
+        "team": "failure (step 6 'Run lane cycle'; step 7 'Validate active MVP producer state' SKIPPED, not failed; step 10 'Persist team snapshot' success)"
+      },
+      "note": "OPERATIONAL failure by design: work-quantum expiry (wrapper rc 78, LEX_WORK_QUANTUM_EXPIRED, 2700s budget started ~11:06Z; snapshot commit 4d2fc49 authored 11:51:15Z). Not a state-validation failure. Producer snapshot preserved and resumed by run 38559540834. Details: reports/product/CYCLE_38554018429_RESUME.md",
+      "run_id": 38554018429
+    },
+    {
+      "all_legs_passed": true,
+      "ci_reality_summary": "results/product/reality_check/summary_ci_38600271324.json",
+      "conclusion": "failure",
+      "created_at": "2026-10-14T16:41:50Z",
+      "event": "workflow_dispatch",
+      "execution": {
+        "concurrency": 1,
+        "mode": "sequential",
+        "rationale": "4-way parallel execution pushed every adversarial pass past its ceiling on 2026-10-14; only an uncontended sequential run is admissible",
+        "requested_order": [
+          "petty-theft-dismissal",
+          "rent-default",
+          "corporate-criminal-liability",
+          "business-judgment-rule"
+        ]
+      },
+      "head_branch": "main",
+      "head_sha": "43652aa75c0141681e0afb48c44a84f623f01c50",
+      "jobs": {
+        "audit": "failure at step 5 'Independent audit' (independent_auditor agent step); steps 6-7 skipped",
+        "integrate": "skipped",
+        "resilience": "success (dispatched operational resume 38604340726 with resume_from_run_id=38600271324)",
+        "team": "success (all 10 steps; 4/4 live legs in-run; scope and state validation green)"
+      },
+      "legs_complete": true,
+      "legs_ran_in_this_run": [
+        "petty-theft-dismissal",
+        "rent-default",
+        "corporate-criminal-liability",
+        "business-judgment-rule"
+      ],
+      "note": "Team job fully green (4/4 live frozen legs, summary_ci_38600271324.json); run conclusion is failure ONLY because the independent audit job failed at the auditor agent step itself — NOT the v49 misplaced-artifact pathology (that failed at step 6 'Enforce audit scope and read gate'). Job logs require admin rights (HTTP 403 unauthenticated), so the wrapper exit code is not retrievable from the lane; observable facts recorded from the public REST jobs endpoint at 2026-10-14T17:21Z.",
+      "observed_at": "2026-10-14T17:30:36Z",
+      "run_head_sha": null,
+      "run_id": 38600271324,
+      "workspace_head_sha": "ea161e6dd575985374093cd6306dcd6a4a3cb095"
+    },
+    {
+      "all_legs_passed": true,
+      "ci_reality_summary": "results/product/reality_check/summary_ci_38604340726.json",
+      "conclusion": "success",
+      "created_at": "2026-10-14T17:10:09Z",
+      "event": "workflow_dispatch",
+      "execution": {
+        "concurrency": 1,
+        "mode": "sequential",
+        "rationale": "4-way parallel execution pushed every adversarial pass past its ceiling on 2026-10-14; only an uncontended sequential run is admissible",
+        "requested_order": [
+          "petty-theft-dismissal",
+          "rent-default",
+          "corporate-criminal-liability",
+          "business-judgment-rule"
+        ]
+      },
+      "head_branch": "main",
+      "head_sha": "cfef528f883641fb9bbb3b4d9b3763be7cf0f59f",
+      "jobs": {
+        "audit": "success",
+        "integrate": "success",
+        "resilience": "success",
+        "team": "success"
+      },
+      "legs_complete": true,
+      "legs_ran_in_this_run": [
+        "petty-theft-dismissal",
+        "rent-default",
+        "corporate-criminal-liability",
+        "business-judgment-rule"
+      ],
+      "observed_at": "2026-10-14T21:36:10Z",
+      "promotion_chain_green": true,
+      "run_head_sha": "cfef528f883641fb9bbb3b4d9b3763be7cf0f59f",
+      "run_id": 38604340726,
+      "workspace_head_sha": "9a3b746bdd459f9c3025a800ab34925c34b7cdd1"
+    },
+    {
+      "conclusion": "failure",
+      "created_at": "2026-10-14T22:34:16Z",
+      "direction_version_input": 51,
+      "event": "workflow_dispatch",
+      "head_branch": "main",
+      "head_sha": "f72955df",
+      "jobs": {
+        "audit": "skipped",
+        "integrate": "skipped",
+        "resilience": "success (dispatched resume 38649613677)",
+        "team": "failure at step 7 'Validate active MVP producer state' (step 6 producer work SUCCESS; step 9 skipped; step 10 snapshot success)"
+      },
+      "note": "NOT a product-code failure: canonical state/product.json carried direction_version 50 while the run was dispatched dirV51. Diagnosis, repair and recurrence guard: reports/product/CYCLE_38649613677.md section 1-2.",
+      "observed_at": "2026-10-14T22:52Z",
+      "run_id": 38648548635,
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "created_at": "2026-10-15T14:01:59Z",
+      "event": "workflow_dispatch",
+      "head_branch": "main",
+      "head_sha": "78d3d12b98790624e15e384f09bb3fdaebc1de0f",
+      "jobs": {
+        "audit": "skipped",
+        "integrate": "skipped",
+        "resilience": "success (dispatched operational resume 38754777366 with resume_from_run_id=38747797021)",
+        "team": "failure at step 6 'Run lane cycle' (exactly 2704s = work-quantum expiry, rc-78 signature; step 7 SKIPPED; step 10 snapshot success)"
+      },
+      "note": "NOT a product-code failure and NOT a state-validation failure: the producer built the committed gate-rehearsal chain (1428 insertions, snapshot f6dd333) and was killed by the 45-minute quantum before tests/state/report. Verified and completed by the operational resume; see orchestration_failure_diagnosis.run_38747797021.",
+      "observed_at": "2026-10-15T14:52Z",
+      "run_id": 38747797021,
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "created_at": "2026-10-15T15:22:22Z",
+      "event": "workflow_dispatch",
+      "head_branch": "main",
+      "head_sha": "73088d8136ad281fecb43820302b5008440dc230",
+      "jobs": {
+        "audit": "success (audit snapshot branch cycle/core/product/38759730609/audit exists, gate=REVISE)",
+        "integrate": "success (dispatched repair 38763217418, repair_round=1)",
+        "team": "success (snapshot e1c971f: 20 cache envelopes only)"
+      },
+      "note": "Producer delta was 20 cache envelopes with no report/state/bundle/test; independent audit gate REVISE with 5 required_fixes (results/audit/product/CYCLE_38759730609_GATE.json on the audit branch). Repairs were committed by 38763217418 and verified/completed by 38766812030.",
+      "observed_at": "2026-10-15T16:3xZ",
+      "run_id": 38759730609,
+      "status": "completed"
+    },
+    {
+      "conclusion": "failure",
+      "created_at": "2026-10-15T15:46:04Z",
+      "event": "workflow_dispatch",
+      "head_branch": "main",
+      "head_sha": "73088d8136ad281fecb43820302b5008440dc230",
+      "jobs": {
+        "audit": "failure at step 6 'Enforce audit scope and read gate' exit 3 ('auditor crossed scope:' annotation on check run 116529139394); step 7 skipped -> no cycle/core/product/38763217418/audit branch",
+        "integrate": "skipped",
+        "resilience": "success (dispatched operational resume 38766812030, resume_from_run_id=38763217418, repair_round=1)",
+        "team": "SUCCESS all 10 steps (state validation + lane scope green); snapshot 3cf89b2 = the five REVISE-fix deliverables"
+      },
+      "note": "Run failed on the AUDIT side, not the producer side. Logs admin-only (HTTP 403) so the offending path is unobservable; diagnosis and hardening item recorded under orchestration_failure_diagnosis.run_38763217418 and control_plane_hardening_items.auditor_scope_violation_exit_3_recurrence. Snapshot preserved and resumed by 38766812030 - not restarted.",
+      "observed_at": "2026-10-15T16:3xZ",
+      "run_id": 38763217418,
+      "status": "completed"
+    }
   ]
- }
+}
