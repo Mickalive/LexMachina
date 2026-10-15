@@ -39,17 +39,23 @@
     }
   ],
   "current_run": {
-    "run_id": 38766812030,
-    "role": "OPERATIONAL RESUME of the persisted producer snapshot of run 38763217418 (resume_from_run_id; that chain's team job was fully green but its audit job failed at step 6 'Enforce audit scope and read gate' with exit 3 'auditor crossed scope'). Snapshot 3cf89b2 preserved all completed REVISE-fix work; this resume verified it, found and repaired a synthetic-bundle defect on the claim path, fixed the audit-seam cross-identity crash that broke mixed-suite collection, and made the snapshot audit-ready.",
+    "run_id": 38779139471,
+    "role": "REPAIR ROUND 3 of run 38779139471 (repair_round=2 dispatch). The independent audit (results/audit/product/CYCLE_38779139471_GATE.json, gate=REVISE, audited head cb8b9e6) returned one blocking required fix - state/product.json still identified the claim-path bundle by the sha256 and relation count that the same run had retired - plus five advisories. This run repaired the canonical state (supersession chain, foreign-citation defect record, run-id advance, run 38776384327 delta), and took the two user-visible advisories as the owner-independent product delta: F2 cluster-label reproducibility and F3 typed citation relations on the map. The foreign-citation repair itself was explicitly not re-litigated.",
     "status_at_state_write": "in_progress",
     "conclusion_at_state_write": null,
     "event": "workflow_dispatch",
-    "head_branch": "operational-resume",
-    "resumed_snapshot_run": 38763217418,
-    "resumed_snapshot_commit": "3cf89b244f52dac4783e765053012512f64db2fd",
-    "dispatch": "resilience job of run 38763217418 (resume_from_run_id + repair_round=1), observed run created 2026-10-15T16:10:59Z at head dc27fcc"
+    "head_branch": "repair-base",
+    "repair_round": 3,
+    "repairs_run_id": 38779139471,
+    "parent_run_chain": [
+      "38776384327 (repair 2: 8 Kündigung Mietvertrag cache envelopes + simulated session record; no claim-path delta)",
+      "38779139471 (repair 2: foreign-citation root-cause fix, guards, exit 6, bundle 9839014a)",
+      "38779139471 round 3 (this run: state accuracy + deterministic labels + typed citation relations)"
+    ],
+    "audited_head_sha": "cb8b9e60b573611e1b50a94d659f5f174e28ef91",
+    "accepted_base_sha": "0f0e9f79a1c2dd3060af84c1ebb673ae71eff5d6"
   },
-  "cycle_status": "V51_OPERATIONAL_RESUME_OF_38763217418__SYNTHETIC_BUNDLE_RETIRED_AND_REBUILT_GENUINE__AUDIT_SEAM_IDENTITY_CRASH_FIXED__SUITE_249_PASSED_1_SKIPPED_0_FAILED__AUDIT_SCOPE_EXIT3_DIAGNOSED__HUMAN_GATE_STILL_AWAITED",
+  "cycle_status": "V51_REPAIR_ROUND3_OF_38779139471__STATE_CLAIM_PATH_RESOLVED__CLUSTER_LABELS_DETERMINISTIC_AND_UNPADDED__TYPED_CITATION_RELATIONS_RESTORED_0_TO_30__SUITE_266_PASSED_1_SKIPPED_0_FAILED__DOM_19_ASSERTIONS__HUMAN_GATE_STILL_AWAITED",
   "direction_version": 51,
   "evidence_tier": "DURABLE_CI_VERIFIED",
   "human_gate_criteria": [
@@ -186,7 +192,7 @@
     "status": "COMPLETE_AND_RECORDED",
     "v50_objective": "one durable, retrievable, GREEN core-lane run of lane=product whose own team job executes the four frozen reality legs LIVE"
   },
-  "next_recommendation": "The gate chain is now fully machine-rehearsed (fixture and LIVE) end to end through the committed artifacts; the only remaining product milestone is the comparative human gate itself, which requires a real owner/jurist session: python product/human_gate_session.py --port 8791 --run-id <run> --operator <name> --owner-session (one command against LIVE OpenCaseLaw), then finalize the exported session. Do not re-verify the machine gate, latency budgets or the rehearsal chain. Snapshot of run 38763217418 is now audit-ready (genuine bundle, required-fix-compliant tests, completed report content, machine-recorded verification, annotation-backed failure diagnosis). Owner-independent work if a cycle must run before the session: extend product/human_gate_evidence.py to the frontier teams' evidence directories, and keep the canonical human_gate_sessions/ directory free of anything a machine wrote.",
+  "next_recommendation": "The gate chain is fully machine-rehearsed (fixture and LIVE) and the claim path is now state-accurate, label-deterministic and relation-populated; the only remaining product milestone is the comparative human gate itself, which requires a real owner/jurist session: python product/human_gate_session.py --port 8791 --run-id <run> --operator <name> --owner-session (one command against LIVE OpenCaseLaw), then finalize the exported session. Do not re-verify the machine gate, latency budgets or the rehearsal chain. The two owner-independent deltas named in direction v51 remain: (1) finalize an exported session draft into results/product/ via the accepted CLI, (2) record p50/p95 latency against QUERY_MAP_MVP 9A with upstream and local time separated (the last local measurement is in verification.latency_budget_9a and predates this round's map changes, so it should be re-taken). If a further owner-independent cycle runs first, the highest-value next step is the map's relation view going further than the citation channel: render typed edges on the canvas between selected nodes, and extend relation recovery to hydrated decisions' own reference lists - not more retrieval work, not the universal-174k lanes.",
   "normal_path": {
     "generation_and_counter": "frontier-generative-audit contract 2.2 (independent adversarial pass)",
     "initial_map": "query-conditioned TF-IDF + SVD + KMeans rendered before generation",
@@ -450,7 +456,7 @@
     "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
   },
   "state_updated_at": "2026-10-15",
-  "state_updated_by_run": 38766812030,
+  "state_updated_by_run": 38779139471,
   "state_updated_from_resumed_snapshot_run": 38763217418,
   "supersedes_claims": {
     "prior_direction_version": 48,
@@ -820,7 +826,11 @@
       "defect_1_synthetic_bundle": {
         "found": "results/product/CYCLE_38759730609_bundle.json held 120 synthetic bge_BGE_test_* decisions with 'Cluster N: test decision group N' labels, no is_outlier, no source_url - while the cycle report described a 154-decision cache replay; the generating string exists nowhere else in the repo",
         "retired": "reports/product/incidents/synthetic_bundle_38759730609.RETIRED.json (byte-preserved, sha256 3f90bd560842c74d93f0dc3abde8b5e5acded2103eb31a541a819a132ba5a0d4)",
-        "rebuilt": "genuine offline replay via new product/replay_bundle.py: 154 real OpenCaseLaw decisions, 8 clusters, 15 relations, 15 outliers, 154/154 canonical_url on mcp.opencaselaw.ch, validate_bundle [], network_calls 0 / cache_hits 8, sha256 bc1165bcd3b6c5da660a0818342a3926429e35442cb224d4f2ff966a19365322",
+      "rebuilt": "SUPERSEDED by run 38779139471. As first written (run 38766812030) this entry read: 'genuine offline replay via new product/replay_bundle.py: 154 real OpenCaseLaw decisions, 8 clusters, 15 relations, 15 outliers, 154/154 canonical_url on mcp.opencaselaw.ch, validate_bundle [], network_calls 0 / cache_hits 8, sha256 bc1165bcd3b6c5da660a0818342a3926429e35442cb224d4f2ff966a19365322'. Those 15 relations and that sha256 described the artifact run 38779139471 then retired (foreign citations on citation-channel rows); they are kept here only as the historical record of what this run originally reported. The current claim path is current_claim_path below, and the defect that superseded these bytes is defect_foreign_citation_38779139471.",
+      "rebuilt_status": "SUPERSEDED",
+      "superseded_by_run": 38779139471,
+      "superseded_artifact": "reports/product/incidents/foreign_citations_bundle_38759730609.RETIRED.json (byte-identical to commit a10a2d5, sha256 bc1165bcd3b6c5da660a0818342a3926429e35442cb224d4f2ff966a19365322)",
+      "current_claim_path": "results/product/CYCLE_38759730609_bundle.json - sha256 1efde4b2581d8d568e37d24c6564a283fae00aa2a0b5ce1b5e275bbd900a9b6b, content_sha256 (timing-free, reproducible off-environment) 6b5a08b0170e40ecf792a30d00d627047a710977318b0568ed61d14e2a7873e5, 154 real OpenCaseLaw decisions / 8 clusters / 30 typed citation relations / 15 outliers, 154/154 canonical_url on mcp.opencaselaw.ch, validate_bundle [], citation guards clean, network_calls 0 / cache_hits 8, answer pending. Regenerated by run 38779139471 round 3; the sha256 9839014a1823507257137db892b56273f077f302f3da1972e5785e71e5b5a5cd artifact it replaced is byte-preserved at reports/product/incidents/pre_typed_relations_bundle_38779139471.RETIRED.json. Claim: map-phase vertical slice only - no generative answer, no counter-authority classification, no human-gate result.",
         "guard": "product/tests/test_cache_non_orphan.py now calls run_query_initial per required_fixes[3] AND validates the persisted artifact (synthetic ids, synthetic labels, source host, is_outlier/source_url keys); would fail on recurrence",
         "accepted_evidence_destroyed": "none - never promoted to lab/product; gate was REVISE"
       },
@@ -837,12 +847,54 @@
       },
       "human_gate_ready": false,
       "claim_ceiling": "audit-readiness and repair evidence only: the snapshot is complete, genuine, reproducible offline and its failure diagnosis is annotation-backed. No human-gate result, no answer-quality claim, no machine-gate re-verification, no fix to the auditor's own path discipline (out of scope)."
+    },
+    "repair_38779139471_round3": {
+      "gate_audited": "results/audit/product/CYCLE_38779139471_GATE.json (gate=REVISE, repair_round=2, audited_head cb8b9e60b573611e1b50a94d659f5f174e28ef91, accepted_base 0f0e9f79a1c2dd3060af84c1ebb673ae71eff5d6)",
+      "required_fix_F1_state_accuracy": "RESOLVED in this file: the bc1165... '15 relations' claim is qualified as superseded, a current_claim_path entry names the live artifact, the foreign-citation defect is recorded below, state_updated_by_run/current_run advanced to 38779139471 with the in-progress pattern, and run 38776384327's delta is recorded as run_38776384327_delta below. python product/state_contract.py --check --direction-version 51 -> PASS.",
+      "defect_foreign_citation_38779139471": {
+        "found": "all 20/20 citation.incoming rows of the claim bundle carried a citation seed's own reference instead of their own (bge_BGE_142_IV_333 seed -> rows showing 'BGE 142 IV 333'/'142 IV 333', bger_6B_31_2019 seed -> rows showing '6B_31_2019'); 22/154 rows shared a citation string in 3 duplicate groups (12+7+3), which also produced 15 phantom shared_citation relations - the complete graph C(6,2) over the six decisions that all displayed 'BGE 142 IV 333'",
+        "root_cause": "frontier/frontier-query-retrieval/ocl_adapter/normalize.py:271 - normalize_citation() sets citation = raw['target_ref'], while for an incoming edge decision_id = source_decision_id (line 257), i.e. the row is the CITING decision but target_ref is the CITED seed's reference. frontier/** is outside product write scope.",
+        "product_repair": "product/query/pipeline.py::_citation_shell + _candidate_to_product: an unhydrated citation-channel row derives its own identity (docket_number when the edge payload carries one, else its own decision_id) instead of the adapter's foreign target_ref; hydrated rows keep the API's own citation. The predicate fires on exactly the 30 citation-channel shells and 0 of the other 124 rows, and no live path can reach a hydrated citation-channel row (run_query_initial uses hydrate_top=0; _merge_hydrated_evidence patches full_text/structure onto an existing bundle without re-running _candidate_to_product).",
+        "guards": "product/tests/test_cache_non_orphan.py::test_citation_shell_never_emits_the_seeds_reference (root-cause behavioural unit test), _assert_citations_are_own applied to both the live replay and the persisted artifact, and product/replay_bundle.py::citation_findings + exit 6 (foreign_citation_content_refused, writes nothing). Round 3 adds a fourth guard family: replay_bundle.py exit 7 refuses a relation whose endpoint is not on the map.",
+        "retired_bytes": "reports/product/incidents/foreign_citations_bundle_38759730609.RETIRED.json, sha256 bc1165bcd3b6c5da660a0818342a3926429e35442cb224d4f2ff966a19365322, byte-identical to commit a10a2d5",
+        "claim_ceiling": "This is a removal of false attribution, not a quality gain: prettier coordinates are not evidence. The auditor independently recomputed the repair (sha match, 154/8/0/15, 26 citation changes, relations 15->0 over the same six decisions, guards failing on both retired defects, exit 6 refusing to write) and marked it explicitly_not_required for re-litigation in round 3; nothing here re-argues it.",
+        "status": "FIXED AND VERIFIED (not re-litigated this round)"
+      },
+      "run_38776384327_delta": "NO claim-path delta. Run 38776384327 committed 8 additional product-owned OpenCaseLaw cache envelopes for the query 'Kundigung Mietvertrag Mietrecht' (cache_stats.n_keys 384 -> 392) plus a simulated human-gate session record; it changed no claim-path artifact, no bundle and no test. Its envelopes are genuinely consumed - re-verified this round by offline replay: 172 decisions, 8 clusters, network_calls 0, cache_hits 9.",
+      "advisory_F2_cluster_label_environment_sensitive": "FIXED. Cause measured rather than assumed: six replays of the claim query produced three different file sha256 values locally (three with default hash randomisation, three with PYTHONHASHSEED 0/1/2); exactly five fields vary between replays and all five are wall-clock timings, so a raw file hash can never match across runs. The data difference the auditor saw came from build_map's terms[np.argsort(-mean)[:5]] over the whole 5000-term vocabulary: for clusters of 1-5 decisions only a few terms have a non-zero mean, so the 4th/5th label slots came from thousands of exactly tied zero-mean terms. Repair: product/query/qmap.py::label_terms is now the single ranking for both the initial fit and the recompute-on-merge path, admits only mean > 0 and orders by (-round(mean, 9), term). Effect measured on the claim bundle: no label names an absent term any more (the one-decision cluster C7 read 'ptt, betriebe, unterstehen, zugefagt, privatrecht' where three of those five terms occur in no member; it now reads 'ptt, betriebe, benutzern, betrieben, beurteilt'), and x/y/is_outlier/citation/source_url/rank/score are byte-identical on 154/154 rows with identical per-cluster membership sets.",
+      "advisory_F3_citation_view_empty_no_followup": "FIXED. Relations were produced only by find_citations string matching over decision bodies, which are empty for 30 of 154 unhydrated citation shells, so the map's 'reveal relations on selection' affordance (QUERY_MAP_MVP 7) was empty for the whole query. The OpenCaseLaw /citations channel already returns typed edges and the accepted adapter records each on the candidate row's provenance_events (seed_decision_id, direction, confidence, mention_count), but to_product_bundle emits relations: [] and frontier/** is outside product write scope. Repair: product/query/pipeline.py::typed_citation_relations rebuilds each edge with one reading direction (source cites target), emits it only when both endpoints are on the map, de-duplicates; _merge_relations prefers typed edges and de-duplicates per decision pair; progressive.py re-derives them after expansion; query.html states the direction ('a cite X' / 'a cite par X') with the upstream confidence. Measured: claim query 0 -> 30 typed citation relations covering 32 decisions, 0 dangling; the fixture server run of 'Kundigung Mietvertrag Mietrecht' 0 -> 4.",
+      "advisory_F4_no_cycle_report": "FIXED: reports/product/CYCLE_38779139471.md is this run's own report.",
+      "advisory_F5_report_quotes_previous_run_test_counts": "FIXED: reports/product/CYCLE_38759730609.md section 4 keeps run 38766812030's 249/1 as that run's own record and adds a per-run supplement table (249 -> 250 -> 266 passed, 1 skipped, 0 failed).",
+      "advisory_F6_missing_durable_prior_audit_artifact": "NOT ACTIONABLE from this lane: results/audit/product/CYCLE_38766812030_GATE.json is a REVISE gate and REVISE gates are not merged. Recorded here so the evidence chain is not assumed durable; the foreign-citation claims above stand on the artifact and the adapter source, both of which are in the repository.",
+      "verification_this_round": {
+        "mvp_suite_16_modules": "266 passed, 1 skipped, 0 failed (24s, default order); was 250/1/0",
+        "new_test_module": "product/tests/test_relations_and_labels.py - 13 tests (deterministic cluster labels incl. a 1e-16 last-bit noise test; typed citation relation direction, dangling drop, dedupe, merge cap; end-to-end offline claim-query invariants)",
+        "dom_smoke": "node product/verify_query_page.js results/product/CYCLE_38759730609_bundle.json -> PASS 19 assertions (16 previous, none removed or relaxed, + 3 typed-relation assertions); bundles without relations -> PASS 17",
+        "server_slice": "python3 product/query_app.py --port 8799 --fixture then /api/query/start -> /api/query/expand: 100 decisions / 8 clusters / 4 relations, answer pending",
+        "replay": "PYTHONPATH=. python3 product/replay_bundle.py --query \"Responsabilite penale de l'entreprise selon l'art. 102 CP\" --top-n 120 --out results/product/CYCLE_38759730609_bundle.json -> exit 0, genuine true, network_calls 0, cache_hits 8, n_decisions 154, n_clusters 8, n_relations 30 (all citation), n_outliers 15, dangling_relations [], validate_bundle [], citation guards clean, out_sha256 1efde4b2581d8d568e37d24c6564a283fae00aa2a0b5ce1b5e275bbd900a9b6b, content_sha256 6b5a08b0170e40ecf792a30d00d627047a710977318b0568ed61d14e2a7873e5",
+        "state_contract": "python3 product/state_contract.py --check --direction-version 51 -> PASS (state step, lane write scope, audit-artifact ownership pending=[])",
+        "human_gate_evidence": "python3 product/human_gate_evidence.py -> 0 blocking, 1 pre-existing warning -> ADMISSIBLE",
+        "pre_existing_not_caused_here": "python3 product/reality_check.py --slug all --mode fixture fails all four legs with 'OpenCaseLaw retrieval returned no decisions'; reproduced identically on the pristine cb8b9e6 head via git stash. Fixture-mode limitation of this workspace, not a regression; the frozen legs (test_ci_reality_legs, test_cache_entries_unchanged_leg_replays) still pass."
+      },
+      "artifacts": [
+        "results/product/CYCLE_38759730609_bundle.json (sha256 1efde4b2..., content_sha256 6b5a08b0...; 154/8/30/15)",
+        "reports/product/incidents/pre_typed_relations_bundle_38779139471.RETIRED.json (byte-preserved superseded artifact, sha256 9839014a...)",
+        "reports/product/CYCLE_38779139471.md (this round's own report)",
+        "reports/product/CYCLE_38759730609.md (section 8 kept; section 4 supplemented with the per-run suite table)",
+        "product/tests/test_relations_and_labels.py",
+        "product/query/qmap.py, product/query/pipeline.py, product/query/progressive.py, product/replay_bundle.py, product/static/query.html, product/verify_query_page.js"
+      ],
+      "human_gate_ready": false,
+      "machine_gate_ready": true,
+      "continue_recommended": true,
+      "claim_ceiling": "Map-phase slice plus a real capability gain (populated relation view) and a real label-quality gain (no absent terms, reproducible identity). NOT claimed: any generative answer or answer-quality result (bundle answer still pending); any counter-authority classification; any human-gate result (human_gate_ready stays false); any jurist-usefulness, map-quality or navigation-quality claim; any machine-gate re-verification; a verified citation graph (the edges are the upstream channel's own seed/direction records); byte-identical reproduction of a raw file sha256 across runs (use content_sha256)."
     }
   },
   "verification": {
     "durable_actions_run": null,
     "durable_run_note": "No durable green core-lane run exists yet: 38600271324 was team-green but audit-failed; this run (38604340726) carries fresh 4/4 in-run legs and awaits its own audit+integrate conclusion, which is not observable while the team job executes. Observation command: python product/ci_run_evidence.py --run-id 38604340726 --apply",
     "evidence_reports": [
+      "reports/product/CYCLE_38779139471.md",
       "reports/product/CYCLE_38720785188.md",
       "reports/product/CYCLE_38654561273.md",
       "reports/product/CYCLE_38649613677.md",

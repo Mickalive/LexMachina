@@ -222,6 +222,11 @@ function showDetail(id){
   const d=BUNDLE?.decisions.find(x=>x.decision_id===id);if(!d)return;
   const c=BUNDLE.clusters.find(x=>x.cluster_id===d.cluster_id);
   const rels=BUNDLE.relations.filter(r=>r.source===id||r.target===id).slice(0,8);
+  // A typed citation edge has a direction the jurist cares about: whether this
+  // decision cites the other one, or is cited by it.
+  const relLine=r=>r.kind==="citation"
+    ?(r.source===id?"→ cite ":"← cité par ")+esc(r.target)+(r.confidence!=null?" (conf "+esc(r.confidence)+")":"")
+    :"↔ "+esc(r.source===id?r.target:r.source)+" · "+esc(r.kind);
   const cites=Array.isArray(d.citation)?d.citation.join("<br>"):esc(d.citation||"");
   const panel=document.getElementById("detail");panel.style.display="block";
   panel.innerHTML='<button class="close" onclick="this.parentElement.style.display=\'none\'">×</button>'+
@@ -232,7 +237,7 @@ function showDetail(id){
     '<p>'+esc(d.snippet||"")+'</p>'+
     (d.counter_evidence?'<p><b>Élément contraire :</b> '+esc(d.counter_evidence)+'</p>':"")+
     (c?'<p><b>Cluster :</b> '+esc(c.label)+'</p>':"")+
-    (rels.length?'<p><b>Relations :</b><br>'+rels.map(r=>"↔ "+esc(r.source===id?r.target:r.source)+" · "+esc(r.kind)).join("<br>")+"</p>":"")+
+    (rels.length?'<p><b>Relations :</b><br>'+rels.map(relLine).join("<br>")+"</p>":"")+
     (cites?'<p><b>Citation :</b><br>'+cites+"</p>":"")+
     (d.canonical_url?'<p><a target="_blank" rel="noopener" href="'+esc(d.canonical_url)+'">Ouvrir la source ↗</a></p>':"");
 }

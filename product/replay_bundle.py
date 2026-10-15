@@ -21,10 +21,13 @@ Exit codes:
        decisions, a citation-channel row carrying a citation seed's own
        reference, or an unhydrated citation shell whose citation is neither
        its docket number nor its decision_id
+    7  dangling relation detected: a relation names an endpoint that is not
+       among the bundle's decisions
 """
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import math
@@ -143,6 +146,38 @@ def citation_findings(bundle: dict) -> dict:
     }
 
 
+#: The only bundle fields a replay legitimately re-measures every run.  Every
+#: other byte must be reproducible off the generating machine, so the canonical
+#: content hash excludes exactly these five paths (verified by diffing two
+#: replays under different PYTHONHASHSEED values: these, and only these, vary).
+TIMING_PATHS = (
+    ("provenance", "latency_seconds"),
+    ("provenance", "timing", "local_total_s"),
+    ("provenance", "timing", "upstream_retrieval_s"),
+    ("provenance", "timing", "local_map_s"),
+    ("provenance", "retrieval", "remote", "latency_seconds"),
+)
+
+
+def content_sha256(bundle: dict) -> str:
+    """sha256 of the bundle with the re-measured timing fields removed.
+
+    The raw file hash can never match across runs because it embeds wall-clock
+    timings; audit F2 of cycle 38779139471 compared raw hashes across machines
+    and read the difference as a data difference.  This is the identity that is
+    supposed to be stable: same cache, same query, same code -> same value.
+    """
+    canonical = copy.deepcopy(bundle)
+    for path in TIMING_PATHS:
+        node = canonical
+        for key in path[:-1]:
+            node = node.get(key) if isinstance(node, dict) else None
+        if isinstance(node, dict):
+            node.pop(path[-1], None)
+    payload = json.dumps(canonical, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
 def inspect_bundle(bundle: dict) -> dict:
     """Return the machine-readable inspection used by the CLI and the tests."""
     decisions = bundle.get("decisions") or []
@@ -179,11 +214,23 @@ def inspect_bundle(bundle: dict) -> dict:
     hosts = Counter(urllib.parse.urlparse(str(d.get("canonical_url") or "")).netloc for d in decisions)
     languages = Counter(str(d.get("language")) for d in decisions)
     citations = citation_findings(bundle)
+    # A relation is only useful if the researcher can open both endpoints, so a
+    # relation naming a decision that is not on the map is refused exactly like
+    # an orphan cluster member (cycle-38779139471 typed-relation guard).
+    dangling_relations = [
+        {"index": i, "source": r.get("source"), "target": r.get("target"), "kind": r.get("kind")}
+        for i, r in enumerate(bundle.get("relations") or [])
+        if r.get("source") not in decision_ids or r.get("target") not in decision_ids
+    ]
+    relation_kinds = Counter(str(r.get("kind") or "?") for r in (bundle.get("relations") or []))
 
     return {
         "n_decisions": len(decisions),
         "n_clusters": len(clusters),
         "n_relations": len(bundle.get("relations") or []),
+        "relation_kinds": dict(sorted(relation_kinds.items())),
+        "dangling_relations": dangling_relations,
+        "content_sha256": content_sha256(bundle),
         "n_outliers": sum(1 for d in decisions if d.get("is_outlier") is True),
         "languages": dict(sorted(languages.items())),
         "hosts": dict(sorted(hosts.items())),
@@ -248,6 +295,7 @@ def genuine(insp: dict) -> bool:
         or insp["citation_duplicates"]
         or insp["citation_channel_seed_refs"]
         or insp["pending_shell_identity"]
+        or insp["dangling_relations"]
         or insp["validate_bundle_errors"]
     )
 
@@ -280,6 +328,12 @@ def main(argv: list[str] | None = None) -> int:
             "pending_shell_identity": insp["pending_shell_identity"][:20],
         }, ensure_ascii=False, indent=2))
         return 6
+    if insp["dangling_relations"]:
+        print(json.dumps({
+            "error": "dangling_relation_refused",
+            "dangling_relations": insp["dangling_relations"][:20],
+        }, ensure_ascii=False, indent=2))
+        return 7
 
     out_path = Path(args.out) if args.out else None
     if out_path is not None:

@@ -188,15 +188,14 @@ def build_map(ranked: list[dict], n_clusters: int = 0, model: "MapModel | None" 
         if n_clusters > 1 else np.zeros(n, dtype=int)
     )
 
-    terms = np.array(vectorizer.get_feature_names_out())
+    terms = [str(t) for t in vectorizer.get_feature_names_out()]
     meta = []
     for old in range(n_clusters):
         idx = np.where(raw_labels == old)[0]
         if len(idx) == 0:
             continue
         mean = np.asarray(X[idx].mean(axis=0)).ravel()
-        top = terms[np.argsort(-mean)[:5]]
-        label = ", ".join(top)
+        label = ", ".join(label_terms(mean, terms))
         centroid = coords[idx].mean(axis=0)
         meta.append((old, idx, label, float(centroid[0]), float(centroid[1])))
 
@@ -274,20 +273,58 @@ def _finalise(ranked: list[dict], decisions: list[dict], clusters: list[dict]
     return decisions, clusters, relations[:500]
 
 
-def _cluster_label(model: MapModel, members: list[dict], top_k: int = 5) -> str:
+#: Cluster-label term means are rounded to this many decimals before ranking, and
+#: only terms that actually occur in the cluster are eligible.
+#:
+#: Audit advisory F2 of cycle 38779139471: the committed bundle's sha256 was not
+#: reproducible outside the environment that generated it — the same 154 decision
+#: rows produced two different label orders elsewhere.  Root cause, measured on
+#: the claim bundle rather than assumed: for a cluster of 1-5 decisions only a
+#: handful of the 5000-vocabulary terms have a non-zero mean, so the 4th/5th label
+#: slots were filled from *thousands of exactly tied zero-mean terms*, i.e. from
+#: ``argsort``'s internal ordering rather than from the data.  Eligibility
+#: (mean > 0) makes those slots meaningful, and ranking the remainder by
+#: ``(-round(mean, LABEL_MEAN_DECIMALS), term)`` makes the label a pure function
+#: of the cluster's text.
+LABEL_MEAN_DECIMALS = 9
+LABEL_TOP_K = 5
+
+
+def label_terms(mean, terms, top_k: int = LABEL_TOP_K) -> list[str]:
+    """The terms that explain one cluster, in a reproducible order.
+
+    Shared by the initial fit (:func:`build_map`) and by the recompute-on-merge
+    path (:func:`_cluster_label`), which previously ranked terms independently
+    and could therefore disagree about the same cluster.
+    """
+    mean = np.asarray(mean, dtype=float).ravel()
+    order = sorted(
+        (i for i in range(len(terms)) if mean[i] > 0.0),
+        key=lambda i: (-round(float(mean[i]), LABEL_MEAN_DECIMALS), str(terms[i])),
+    )
+    return [str(terms[i]) for i in order[:top_k]]
+
+
+def _cluster_label(model: MapModel, members: list[dict], top_k: int = LABEL_TOP_K) -> str:
     """Top TF-IDF terms of a cluster's members, in the fitted vectorizer space.
 
     Recomputed from the merged membership whenever decisions are added: a label
     explains *why a group exists*, and more members are better evidence for it.
     The cluster id stays the same, so nothing the researcher already read moves.
+
+    Only terms present in the cluster are eligible, and the order is
+    ``(-round(mean, LABEL_MEAN_DECIMALS), term)`` — deterministic across
+    environments, so the artifact's sha256 is reproducible off the generating
+    machine.  A cluster with fewer than ``top_k`` present terms is labelled with
+    the terms it actually has rather than padded with absent ones.
     """
     if not members or model.vectorizer is None:
         return ""
     try:
         X = model.vectorizer.transform([_body(d)[:6000] for d in members])
         mean = np.asarray(X.mean(axis=0)).ravel()
-        terms = np.array(model.vectorizer.get_feature_names_out())
-        return ", ".join(terms[np.argsort(-mean)[:top_k]])
+        terms = [str(t) for t in model.vectorizer.get_feature_names_out()]
+        return ", ".join(label_terms(mean, terms, top_k))
     except ValueError:  # empty vocabulary (e.g. every member is empty text)
         return ""
 

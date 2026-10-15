@@ -164,8 +164,113 @@ def _candidate_to_product(candidate_bundle: dict) -> dict:
     return out
 
 
-def _map_bundle(product_bundle: dict, started_at: float, n_clusters: int = 0) -> dict:
-    mapped, clusters, relations = build_map(product_bundle["decisions"], n_clusters=n_clusters)
+def typed_citation_relations(candidates: list[dict], decisions: list[dict]) -> list[dict]:
+    """Typed citation edges recovered from the adapter's own provenance events.
+
+    The OpenCaseLaw ``/citations`` channel returns *typed* edges
+    (seed -> direction -> other end, with confidence and mention count).  The
+    accepted adapter stores each edge on the candidate row's
+    ``provenance_events`` (``seed_decision_id`` + ``direction``), but
+    ``to_product_bundle`` emits ``relations: []`` and the bundle contract has no
+    adapter-owned relation list.  ``frontier/**`` is outside product write scope,
+    so the product recovers the typed edges here.
+
+    Without them the only relation source is ``find_citations`` string matching
+    over decision bodies, which is necessarily empty on an unhydrated map
+    (audit advisory F3 of cycle 38779139471: 0 relations for a query where
+    retrieval had found 30 typed citation neighbours).  A map whose "reveal
+    relations on selection" affordance is always empty hides exactly the
+    citation structure QUERY_MAP_MVP 7 asks for.
+
+    Direction semantics, normalised to one reading direction for the reader:
+    an ``incoming`` row is a decision that *cites* the seed, an ``outgoing`` row
+    is a decision *cited by* the seed.  Both are emitted as ``source`` cites
+    ``target``.  Only edges whose two endpoints are both on the map are emitted,
+    so the UI never renders a relation to a decision it cannot open.
+    """
+    on_map = {d.get("decision_id") for d in decisions if d.get("decision_id")}
+    edges: dict[tuple[str, str, str], dict] = {}
+    for c in candidates:
+        channels = set(c.get("channels") or ())
+        if not (channels & CITE_CHANNELS):
+            continue
+        other = str(c.get("decision_id") or "")
+        if not other:
+            continue
+        for ev in c.get("provenance_events") or ():
+            if not isinstance(ev, dict) or ev.get("endpoint") != "/citations":
+                continue
+            seed = str(ev.get("seed_decision_id") or "")
+            direction = str(ev.get("direction") or "")
+            if not seed or direction not in {"incoming", "outgoing"}:
+                continue
+            source, target = (other, seed) if direction == "incoming" else (seed, other)
+            if source not in on_map or target not in on_map:
+                continue
+            edges.setdefault((source, target, "citation"), {
+                "source": source,
+                "target": target,
+                "kind": "citation",
+                "evidence": (
+                    f"OpenCaseLaw /citations {direction} "
+                    f"(seed {seed}, confidence {ev.get('confidence')})"
+                ),
+                "seed_decision_id": seed,
+                "direction": direction,
+                "confidence": ev.get("confidence"),
+                "mention_count": ev.get("mention_count"),
+            })
+    typed = list(edges.values())
+    typed.sort(key=lambda r: (r["source"], r["target"], r["kind"]))
+    return typed
+
+
+def _merge_relations(typed: list[dict], shared: list[dict], limit: int = 500) -> list[dict]:
+    """Union of typed-citation and shared-citation edges, de-duplicated, capped.
+
+    Typed edges are listed first because they carry the upstream confidence,
+    while a shared-citation edge is only a text coincidence.  De-duplication is
+    per *pair of decisions*, not per kind: the detail panel renders one line per
+    relation, so the same pair arriving as both kinds must show once.
+    """
+    out: list[dict] = []
+    seen: set[tuple[str, str]] = set()
+    for rel in list(typed) + list(shared):
+        key = (str(rel.get("source")), str(rel.get("target")))
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(rel)
+        if len(out) >= limit:
+            break
+    return out
+
+
+def _relations_provenance(candidates: list[dict] | None, typed: list[dict], shared: list[dict]) -> dict:
+    """How the relation list was built, exported so an auditor need not infer it."""
+    candidates = list(candidates or [])
+    citation_rows = sum(
+        1 for c in candidates if set(c.get("channels") or ()) & CITE_CHANNELS
+    )
+    ids = {r["source"] for r in typed} | {r["target"] for r in typed}
+    return {
+        "typed_citation_relations": len(typed),
+        "shared_citation_relations": len(shared),
+        "citation_channel_rows": citation_rows,
+        "decisions_with_typed_relation": len(ids),
+        "typed_source": "ocl_adapter provenance_events (endpoint=/citations, seed_decision_id + direction)",
+        "claim_ceiling": (
+            "typed edges are the upstream citation channel's own seed/direction records for this "
+            "query; they are not a verified citation graph and are not re-derived from decision text"
+        ),
+    }
+
+
+def _map_bundle(product_bundle: dict, started_at: float, n_clusters: int = 0,
+                candidates: list[dict] | None = None) -> dict:
+    mapped, clusters, shared_relations = build_map(product_bundle["decisions"], n_clusters=n_clusters)
+    typed_relations = typed_citation_relations(list(candidates or []), mapped)
+    relations = _merge_relations(typed_relations, shared_relations)
     decisions = []
     for d in mapped:
         decisions.append({
@@ -182,6 +287,7 @@ def _map_bundle(product_bundle: dict, started_at: float, n_clusters: int = 0) ->
         "retrieval_component": "frontier-query-retrieval/v2",
         "map_component": "query-conditioned-tfidf-v45",
         "fixture_mode": False,
+        "relations_provenance": _relations_provenance(candidates, typed_relations, shared_relations),
     })
     return build_bundle(
         query=product_bundle["query"],
@@ -217,7 +323,7 @@ def run_query_initial(query: str, top_n: int = 150, *, retrieval_mode: str = "li
     if not candidate.get("candidates"):
         raise RuntimeError("OpenCaseLaw retrieval returned no decisions")
     product = _candidate_to_product(candidate)
-    bundle = _map_bundle(product, t0)
+    bundle = _map_bundle(product, t0, candidates=list(candidate.get("candidates") or []))
     candidate_languages = {}
     candidate_channels = {}
     for c in candidate.get("candidates", []):

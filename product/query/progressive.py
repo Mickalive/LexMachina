@@ -189,7 +189,8 @@ def run_query_first_page(query: str, top_n: int = 150, *, retrieval_mode: str = 
     if not candidate.get("candidates"):
         raise RuntimeError("OpenCaseLaw retrieval returned no decisions")
     product = _candidate_to_product(candidate)
-    bundle = _map_bundle(product, t0, n_clusters=target_clusters(target))
+    bundle = _map_bundle(product, t0, n_clusters=target_clusters(target),
+                         candidates=list(candidate.get("candidates") or []))
     total_s = time.time() - t0
     prov = bundle["provenance"]
     prov["retrieval"] = _retrieval_provenance(candidate)
@@ -272,7 +273,10 @@ def expand_query_bundle(
     the same space.  The answer stays ``pending``: the generative and
     counter-authority stages remain the separate ``enrich_query_bundle`` job.
     """
-    from .pipeline import _candidate_to_product, _map_bundle, _retrieve, _retrieval_config
+    from .pipeline import (
+        _candidate_to_product, _map_bundle, _merge_relations, _retrieve,
+        _retrieval_config, typed_citation_relations,
+    )
 
     base_errors = validate_bundle(initial_bundle)
     if base_errors:
@@ -298,7 +302,15 @@ def expand_query_bundle(
         for d in existing
     }
     model = map_model_from_bundle(initial_bundle)
-    decisions, clusters, relations = build_map(merged, model=model)
+    decisions, clusters, shared_relations = build_map(merged, model=model)
+    # The expanded bundle sees strictly more upstream rows than the first page,
+    # so it re-derives the typed citation edges from its own candidate set: a
+    # relation revealed only after expansion must not be lost, and an edge whose
+    # second endpoint never reached the map is dropped rather than dangling.
+    relations = _merge_relations(
+        typed_citation_relations(list(candidate.get("candidates") or []), decisions),
+        shared_relations,
+    )
     for d in decisions:
         d["counter_status"] = d.get("counter_status") or "none"
         d["counter_evidence"] = d.get("counter_evidence") or ""

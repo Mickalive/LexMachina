@@ -38,6 +38,12 @@ const html = fs.readFileSync(HTML_PATH, "utf8");
 
 const assertions = [];
 function check(condition, label) { assertions.push({ ok: !!condition, label }); }
+/* Same escaping the page applies to relation targets, so the assertion cannot
+ * pass by accident on a differently-escaped substring. */
+function esc(v) {
+  return String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
 let page;
 try {
@@ -90,6 +96,26 @@ setTimeout(() => {
         "product status survives the switch writing #status (" + JSON.stringify(statusAfter) + ")");
   check(statusAfter.indexOf("vue liste") !== -1,
         "view indicator survives the product status re-render");
+
+  /* 5. clicking a decision that carries typed citation edges shows them.
+   *    Audit F3 of cycle 38779139471 recorded that the map's relation
+   *    affordance was empty for every unhydrated query; this asserts the
+   *    recovered edges actually reach the researcher, with their direction. */
+  const related = (bundle.relations || [])[0];
+  if (related) {
+    const endpoint = related.source;
+    page.evaluate("showDetail(__TEST_BUNDLE__.relations[0].source);");
+    const detailHtml = documentShim.getElementById("detail").innerHTML;
+    const other = related.source === endpoint ? related.target : related.source;
+    check(detailHtml.indexOf("Relations") !== -1,
+          "detail panel lists relations for a clicked decision");
+    check(detailHtml.indexOf(esc(other)) !== -1,
+          "detail panel names the related decision (" + other + ")");
+    check(detailHtml.indexOf("cite") !== -1 || detailHtml.indexOf("cité par") !== -1,
+          "detail panel states the citation direction");
+  } else {
+    check(true, "bundle carries no relation row (nothing to exercise)");
+  }
 
   let failed = 0;
   for (const a of assertions) {

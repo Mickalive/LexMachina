@@ -266,3 +266,72 @@ def test_citation_shell_never_emits_the_seeds_reference():
     assert findings["citation_duplicates"] == {}
     assert findings["citation_channel_seed_refs"] == []
     assert findings["pending_shell_identity"] == []
+
+
+def test_claim_bundle_content_hash_matches_a_fresh_replay():
+    """The artifact's identity must be reproducible off the generating machine.
+
+    Audit F2 (cycle 38779139471) compared raw file sha256 values across
+    machines; those can never agree because the bundle embeds wall-clock
+    timings.  ``content_sha256`` excludes exactly the five re-measured timing
+    fields, so the committed claim bundle and a fresh replay of the same query
+    out of the same cache must agree on it.
+    """
+    from product.replay_bundle import content_sha256
+
+    with open(BUNDLE_PATH, encoding="utf-8") as f:
+        committed = json.load(f)
+    fresh = run_query_initial(RECORDED_QUERY, top_n=RECORDED_TOP_N, retrieval_mode="offline")
+
+    assert content_sha256(committed) == content_sha256(fresh), (
+        "the committed claim bundle is not reproducible from the committed cache "
+        "with the committed code"
+    )
+
+
+def test_replay_refuses_a_dangling_relation():
+    """A relation naming a decision that is not on the map is unusable.
+
+    ``replay_bundle.py`` exits 7 on it, in the same family as the exit-4/5/6
+    guards: the claim path may not ship a relation the researcher cannot open.
+    """
+    from product.replay_bundle import genuine, inspect_bundle
+
+    with open(BUNDLE_PATH, encoding="utf-8") as f:
+        bundle = json.load(f)
+    assert bundle["relations"], "the claim bundle is expected to carry typed relations"
+
+    def on_map(b):
+        return all(r["source"] in {d["decision_id"] for d in b["decisions"]}
+                   and r["target"] in {d["decision_id"] for d in b["decisions"]}
+                   for r in b["relations"])
+
+    assert on_map(bundle), "shipped relations must reference mapped decisions"
+
+    broken = json.loads(json.dumps(bundle))
+    broken["relations"].append({
+        "source": broken["decisions"][0]["decision_id"],
+        "target": "bger_not_retrieved_0000",
+        "kind": "citation",
+    })
+    findings = inspect_bundle(broken)
+    assert findings["dangling_relations"], "the dangling relation must be detected"
+    assert genuine(findings) is False, "a dangling relation must not count as genuine"
+
+
+def test_replay_bundle_exits_7_on_a_dangling_relation(monkeypatch, tmp_path):
+    """The CLI must refuse to write an artifact carrying an unopenable edge."""
+    import product.replay_bundle as rb
+
+    with open(BUNDLE_PATH, encoding="utf-8") as f:
+        bundle = json.load(f)
+    bundle["relations"].append({
+        "source": bundle["decisions"][0]["decision_id"],
+        "target": "bger_not_retrieved_0000",
+        "kind": "citation",
+    })
+    monkeypatch.setattr(rb, "run_query_initial", lambda *a, **k: bundle)
+
+    out = tmp_path / "must_not_exist.json"
+    assert rb.main(["--query", RECORDED_QUERY, "--top-n", "120", "--out", str(out)]) == 7
+    assert not out.exists(), "the replay must not write a bundle it just refused"
