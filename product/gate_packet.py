@@ -73,6 +73,7 @@ for _p in (str(PRODUCT_ROOT), str(REPO_ROOT)):
 
 import frontier_verdict_adoption as fva  # noqa: E402
 import human_gate_evidence  # noqa: E402
+from product.query import bar_admission  # noqa: E402  (v50 obligation 1: bar verdicts gate admission)
 import human_gate_finalize as hgf  # noqa: E402
 import human_gate_session as runner  # noqa: E402
 from gate_rehearsal import free_port, http_json, _wait_health  # noqa: E402  (existing shell helpers)
@@ -410,6 +411,20 @@ def finalize_summary(summary: dict, n_questions: int, mode: str) -> dict:
     if mode == "fixture":
         summary["ready_for_owner_session"] = False
         summary["fixture_note"] = FIXTURE_CLAIM_CEILING
+    # Factory direction v50, product obligation (1): the two accepted frozen
+    # bars are a MACHINE-READABLE INPUT of packet admission.  While either is
+    # unmet, no packet may claim ready_for_owner_session=true — the accepted
+    # DO-NOT-SERVE order is enforced here at the source, not by discipline.
+    try:
+        bar_admission.enforce_packet_admission(summary)
+    except bar_admission.BarSourceError as exc:
+        summary["ready_for_owner_session"] = False
+        summary["accepted_bars"] = {"error": f"BarSourceError: {exc}"}
+        summary["ready_for_owner_session_blocked_by_bars"] = {
+            "unmet_bars": ["bar_source_unreadable"],
+            "would_have_been_ready": False,
+            "note": "the accepted bar snapshot could not be read; admission fails closed",
+        }
     return summary
 
 
@@ -636,7 +651,7 @@ def recheck_packet(path: Path, *, strict_manifest: bool = True) -> dict:
         questions.append(record)
 
     blocked = [q["qid"] for q in questions if not q.get("admissible")]
-    return {
+    out = {
         "schema": "product-gate-packet-recheck/1",
         "packet_id": packet.get("packet_id"),
         "packet_dir": str(path),
@@ -655,6 +670,14 @@ def recheck_packet(path: Path, *, strict_manifest: bool = True) -> dict:
         "questions": questions,
         "claim_ceiling": packet.get("claim_ceiling"),
     }
+    # v50 obligation (1): the same bar gate applies to a RE-verified packet, so
+    # `card --serve` cannot re-open a session on an inadmissible packet either.
+    try:
+        bar_admission.enforce_packet_admission(out)
+    except bar_admission.BarSourceError as exc:
+        out["ready_for_owner_session"] = False
+        out["accepted_bars"] = {"error": f"BarSourceError: {exc}"}
+    return out
 
 
 def _disclosure_lines(verdict: dict) -> list[str]:
@@ -792,6 +815,50 @@ def _frontier_verdict_lines() -> list[str]:
     return lines
 
 
+def _bar_admission_lines() -> list[str]:
+    """The two accepted frozen bars, as packet-admission input (v50 item 1).
+
+    These are consumed, not re-measured: the card prints the accepted numbers
+    verbatim with their owner (Frontier/Evaluation) and states that the packet
+    is inadmissible for an owner session while either bar is unmet.
+    """
+    try:
+        bars = bar_admission.accepted_bars()
+    except bar_admission.BarSourceError as exc:
+        return [
+            "",
+            "  Accepted frozen bars (packet-admission input):",
+            f"    UNREADABLE accepted bar snapshot ({exc}); admission fails closed.",
+        ]
+    label = bars["bars"]["counter_label_support"]
+    geometry = bars["bars"]["map_geometry_semantics"]
+    lines = [
+        "",
+        "  Accepted frozen bars (packet-admission input, direction v50 obligation 1):",
+        f"    counter-label support ({label['rules_sha256'][:8]}…): "
+        f"{label['n_supported']} of {label['n_scored']} supported "
+        f"(rate {label['measured_support_rate']}) against the absolute bar 1.0 "
+        f"-> {'MET' if label['met'] else 'UNMET'} [{label['verdict']}]",
+        f"    map-geometry semantics ({geometry['rules_sha256'][:8]}…): "
+        f"{geometry['n_bundles_pass']} of {geometry['n_bundles']} served bundles pass "
+        f"all 11 criteria; FR largest-cluster share {geometry['french_largest_share']} "
+        f"against the {geometry['french_bar']} bar "
+        f"-> {'MET' if geometry['met'] else 'UNMET'} [{geometry['verdict']}]",
+        "    Measured by frontier-served-packet-falsification run 38880639079 (accepted,",
+        "    audit gate=PASS, accept 464c45f7) and consumed here — this product never",
+        "    re-measures a frozen bar.",
+    ]
+    if not bars["all_bars_met"]:
+        lines += [
+            f"    ADMISSION: BLOCKED while these bars are unmet: {', '.join(bars['unmet_bars'])}.",
+            "    No owner session may be opened on this packet, and no state field may",
+            "    claim ready_for_owner_session / human_gate_ready until they are met or an",
+            "    accepted bounded negative converts the map-versus-ranked-list choice into",
+            "    one explicit owner product decision.",
+        ]
+    return lines
+
+
 def owner_card(recheck: dict, *, base_url: str, top_n: int, run_ids: dict[str, str] | None = None) -> str:
     """The one page the owner needs: three questions, their deep links, their disclosures."""
     mode = recheck.get("mode")
@@ -871,6 +938,7 @@ def owner_card(recheck: dict, *, base_url: str, top_n: int, run_ids: dict[str, s
         for qid, text in hgf.GATE_QUESTIONS.items():
             lines.append(f"        {qid}: {text}")
     lines += _frontier_verdict_lines()
+    lines += _bar_admission_lines()
     lines += [
         "",
         "  human_gate_ready is set by the director from your finalized records, never",

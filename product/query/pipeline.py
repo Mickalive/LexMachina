@@ -766,6 +766,16 @@ def enrich_query_bundle(
             fixture_findings=fixture_findings,
         )
 
+    # Abstain-and-disclose adoption of the accepted Frontier counter-anchor
+    # classifier (v50 obligation 4; INTEGRATION_CONTRACT adopt_mode).  The
+    # component decides whether each scored counter label's OWN cited passage
+    # licenses it under the frozen rubric; unsupported labels stay visible as
+    # explicitly-unevidenced rows instead of shipping as confident counters.
+    # Geometry is untouched: the gate only rewrites status/evidence fields.
+    from .counter_label_gate import apply_counter_label_gate
+
+    audited = apply_counter_label_gate(audited)
+
     # The adversarial/generative stage must never move the already visible map.
     original_geo = {
         d["decision_id"]: (d.get("x"), d.get("y"), d.get("cluster_id"), d.get("is_outlier", False))

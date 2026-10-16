@@ -259,7 +259,7 @@ function showDetail(id){
     (d.counter_status==="cited"?'<span class="pill gold">citée</span>':"")+
     '<p>'+esc(d.snippet||"")+'</p>'+
     (counterEvidenced(d)?'<p><b>Élément contraire :</b> '+esc(d.counter_evidence)+'</p>':"")+
-    (isCounter(d)&&!counterEvidenced(d)?'<p class="warn"><b>Contre-autorité non étayée :</b> aucune preuve textuelle à l’appui (incertitude '+esc(d.counter_uncertainty??"?")+'). Ligne conservée pour visibilité, sans valeur de classification.</p>':"")+
+    (isCounter(d)&&!counterEvidenced(d)?'<p class="warn"><b>Contre-autorité non étayée :</b> '+(String(d.counter_evidence||"").trim()?"passage cité présent, mais non étayant sous le barème figé"+(d.counter_label_anchor?.reason_code?" (raison : "+esc(d.counter_label_anchor.reason_code)+")":"")+". ":"aucune preuve textuelle à l’appui ")+'(incertitude '+esc(d.counter_uncertainty??"?")+'). Ligne conservée pour visibilité, sans valeur de classification.</p>':"")+
     (c?'<p><b>Cluster :</b> '+esc(c.label)+'</p>':"")+
     (rels.length?'<p><b>Relations :</b><br>'+rels.map(relLine).join("<br>")+"</p>":"")+
     (cites?'<p><b>Citation :</b><br>'+cites+"</p>":"")+
@@ -328,9 +328,17 @@ async function advance(firstTiming){
   const data=await fetchBundle(),final=data.bundle,ga=final.provenance?.generative_audit||{};
   const count=final.decisions.filter(isCounter).length;
   const unevid=final.decisions.filter(d=>isCounter(d)&&!counterEvidenced(d)).length;
+  // Abstain-and-disclose adoption (accepted counter-anchor classifier): the
+  // emitted/abstained counts are published SIDE BY SIDE so the yield/support
+  // trade is visible in the status line, never traded one for the other.
+  const clg=final.provenance?.counter_label_gate||{};
+  const gateBit=(clg.enabled&&clg.n_proposed_labels
+    ?" · barème figé: "+clg.n_emitted+" étayée"+(clg.n_emitted===1?"":"s")
+      +" / "+clg.n_abstained+" abstention"+(clg.n_abstained===1?"":"s"):"");
   status(final.decisions.length+" décisions · "+final.clusters.length+" clusters · "
     +final.answer.cited_decision_ids.length+" citations · "+count+" contre-autorités"
     +(unevid?" · dont "+unevid+" non étayée"+(unevid>1?"s":""):"")
+    +gateBit
     +(ga.degraded?" · mode dégradé":""),"terminé");
   document.getElementById("prose").textContent=final.answer.prose||"";
   renderAnswer();

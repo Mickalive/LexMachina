@@ -568,7 +568,17 @@ def test_finalize_summary_handles_the_all_pass_live_case():
     assert live["ok"] is True
     assert live["admissible_questions"] == ["a", "b", "c"]
     assert live["guards_all_ok"] is True
-    assert live["ready_for_owner_session"] is True
+    # v50 obligation (1): the two ACCEPTED frozen bars are a machine-readable
+    # input of packet admission.  Both are unmet today (counter-label support
+    # 5/65 against the absolute 1.0 bar; geometry 0/3 bundles passing all 11
+    # criteria), so a live all-pass packet is NOT owner-ready even when every
+    # guard passed.  This is the accepted DO-NOT-SERVE order, enforced at the
+    # source instead of by discipline.
+    assert live["ready_for_owner_session"] is False
+    assert live["accepted_bars"]["all_bars_met"] is False
+    blocked_by = live["ready_for_owner_session_blocked_by_bars"]
+    assert blocked_by["would_have_been_ready"] is True
+    assert set(blocked_by["unmet_bars"]) == {"counter_label_support", "map_geometry_semantics"}
 
     fixture = gp.finalize_summary({"questions": list(passing)}, 3, "fixture")
     assert fixture["ok"] is True
@@ -581,6 +591,43 @@ def test_finalize_summary_handles_the_all_pass_live_case():
     )
     assert blocked["ok"] is False and blocked["blocked"] == ["c"]
     assert blocked["ready_for_owner_session"] is False
+
+
+def test_finalize_summary_reaches_ready_only_when_both_bars_are_met(tmp_path):
+    """Positive control for the bar gate: with both accepted bars met, a live
+    all-pass packet is owner-ready again.  Without this control the bar gate
+    could be silently sticky and every packet would stay blocked forever."""
+    met_snapshot = {
+        "team_run_id": "38880639079",
+        "status": "PROMOTED",
+        "measured_packet": "gate_packet/synthetic",
+        "serve_recommendation": "SERVE (synthetic control only)",
+        "label_half": {
+            "verdict": "LABEL_SOUND", "n_scored": 65, "n_supported": 65,
+            "support_rate": 1.0,
+            "claim_text": f"rules sha {gp.bar_admission.LABEL_RULES_SHA256} all supported",
+        },
+        "geometry_half": {
+            "verdict": "PASS", "n_bundles_pass": 3, "n_bundles": 3,
+            "pass_counts": {"a": 11, "b": 11, "c": 11},
+            "baseline_pass_counts": {"a": 11, "b": 11, "c": 11},
+            "french_largest_share": 0.2, "french_bar": 0.6,
+            "claim_text": f"rules sha {gp.bar_admission.GEOMETRY_RULES_SHA256} all pass",
+        },
+    }
+    path = tmp_path / "ACCEPTED_BARS_synthetic.json"
+    path.write_text(json.dumps(met_snapshot), encoding="utf-8")
+
+    import product.query.bar_admission as ba
+    bars = ba.accepted_bars(path)
+    assert bars["all_bars_met"] is True and bars["unmet_bars"] == []
+
+    passing = [{"qid": "a", "status": "admissible", "guards_ok": True}]
+    before = ba.enforce_packet_admission(
+        {"questions": list(passing), "ok": True, "guards_all_ok": True,
+         "ready_for_owner_session": True}, path=path)
+    assert before["ready_for_owner_session"] is True
+    assert "ready_for_owner_session_blocked_by_bars" not in before
 
 
 def test_finalize_summary_refuses_ready_when_a_guard_failed():

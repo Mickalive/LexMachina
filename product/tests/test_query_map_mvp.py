@@ -110,12 +110,28 @@ def test_independent_adversarial_result_patches_visible_counter_status():
     )
     ga = final["provenance"]["generative_audit"]
     assert ga["adversarial"]["method"] == "fixture_adversarial_v2"
-    counters = [
-        d for d in final["decisions"]
-        if d.get("counter_status") in {"candidate-limiting", "candidate-contrary"}
-    ]
-    assert counters
-    assert counters[0].get("counter_uncertainty") is not None
+    # v50 adoption (accepted counter-anchor classifier, abstain-and-disclose):
+    # the adversarial finding still REACHES the map as a counter row, and the
+    # accepted component then decides whether that row's own cited passage
+    # licenses the label. Either the label is kept (emitted) or the row stays
+    # visible as explicitly-unevidenced — it is never silently dropped.
+    gate = final["provenance"]["counter_label_gate"]
+    assert gate["enabled"] is True
+    assert gate["frozen_rules_rehash_verified"] is True
+    assert gate["n_proposed_labels"] == gate["n_emitted"] + gate["n_abstained"]
+    assert gate["n_proposed_labels"] >= 1
+    # Support-among-emitted and yield are published side by side; the product
+    # never computes the frozen-rubric support rate itself.
+    assert gate["support_rate_computed_here"] is False
+    labelled = [d for d in final["decisions"] if d.get("counter_label_anchor")]
+    assert labelled, "the fixture's adversarial finding must still reach the map"
+    row = labelled[0]
+    if row["counter_status"] == "abstained_unevidenced":
+        assert row["counter_label_anchor"]["abstained"] is True
+        assert row["counter_uncertainty"] is not None
+    else:
+        assert row["counter_status"] in {"candidate-limiting", "candidate-contrary"}
+        assert row["counter_label_anchor"]["reason_code"] == "supported"
 
 
 def test_fixture_mode_is_explicit_not_a_live_padding_source():
