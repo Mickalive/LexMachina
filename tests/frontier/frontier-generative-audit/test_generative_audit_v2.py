@@ -75,7 +75,7 @@ from generative_audit.opencaselaw import (  # noqa: E402
     PostGenerationValidator,
 )
 from generative_audit.product_compat import validate_product_bundle  # noqa: E402
-from generative_audit.provider import (Provider, ProviderError, ProviderResult, _select_prompt_decisions)  # noqa: E402
+from generative_audit.provider import (Provider, ProviderError, ProviderResult, _select_prompt_decisions, _output_quality_error, _ordered_answer_models)  # noqa: E402
 from generative_audit.source_packing import (  # noqa: E402
     CitationValidator,
     Decision,
@@ -156,6 +156,27 @@ def test_fixture_mode_deterministic():
     assert r1.cited_decision_ids == r2.cited_decision_ids == ["CH-001"]
     assert r1.model_used == r2.model_used == "fixture://generative-audit"
     print("  PASS: fixture mode is deterministic")
+    return True
+
+
+def test_answer_provider_rejects_corrupt_or_wrong_language_output():
+    print(">>> test_answer_provider_rejects_corrupt_or_wrong_language_output")
+    q = "Quelle est la règle selon le droit suisse et la jurisprudence ?"
+    good = (
+        "Selon le Tribunal fédéral, la règle doit être appréciée au regard de la "
+        "jurisprudence et des circonstances concrètes. Le juge examine la portée "
+        "de la norme, les conditions applicables et les limites reconnues."
+    )
+    assert _output_quality_error(good, q) is None
+    assert _output_quality_error(
+        "According to Swiss law, the rule depends on the circumstances and the court.",
+        q,
+    ) is not None
+    assert _output_quality_error(good + " 公司", q) is not None
+    ordered = _ordered_answer_models()
+    if "opencode/mimo-v2.6-flash-free" in ordered:
+        assert ordered[0] == "opencode/mimo-v2.6-flash-free", ordered
+    print("  PASS: corrupt/wrong-language output rejected; fast model preferred")
     return True
 
 
@@ -1142,6 +1163,7 @@ ALL_TESTS = [
     test_real_path_fixture_and_contract_surface,
     test_fixture_mode_deterministic,
     test_provider_preserves_multi_paragraph_answer,
+    test_answer_provider_rejects_corrupt_or_wrong_language_output,
     test_answer_prompt_prefers_hydrated_supreme_authority_and_stays_small,
     test_prompt_surfaces_relevant_passage_beyond_judgment_prefix,
     test_fixture_rejects_invented_cited_ids,
