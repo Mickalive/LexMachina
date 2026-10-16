@@ -1,0 +1,39 @@
+{
+  "schema": "frontier-served-packet-falsification/integration-contract/1",
+  "team_id": "frontier-served-packet-falsification",
+  "charter_version": 1,
+  "status": "PROMOTED",
+  "run_id": "38877700234",
+  "what_product_may_claim": {
+    "label_half": "The served gate packet 38839347028 issues 65 counter-authority labels. Under the frozen frontier-counter-label-integrity rubric (rules_sha256 4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608), 5 of 65 (7.69%) are SUPPORTED by the row's own cited evidence. Verdict: LABEL_UNSOUND (frozen bar is absolute: support_rate must equal 1.0; ANY single unsupported label makes the label set unsound). Defect classes: OFF-DOMAIN 38, UNBACKED 22, SUPPORTED 5, INVERTED 0, BOILERPLATE-ONLY 0, FRAGMENT 0. The 16 rows with empty counter_evidence at counter_uncertainty >= 0.95 each score UNBACKED with reason_code=evidence_absent. counter_evidence_verified is present-true on 49 rows, present-false on 0, absent on exactly the 16 empty-evidence rows.",
+    "geometry_half": "Under the frozen frontier-map-semantics rule (rules_sha256 a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633), 0 of 3 served bundles pass all 11 criteria. Pass counts: de 6/11 (baseline 5/11, IMPROVED), fr 5/11 (baseline 5/11, SAME), it 5/11 (baseline 4/11, IMPROVED). The French bundle's largest cluster is 167 of 217 decisions (77.0% by the cluster size field), FAILING the frozen STRUCTURE_LARGEST bar of 0.60 (baseline was 55.7%). The un-hydrated-row ablation: ARTIFACT=False on fr (dominant unhydrated fraction 0.293 < 0.40), hydrated-only recompute collapses the share to 0.268 with dominant-member Jaccard 0.235, but the frozen ARTIFACT predicate does not fire because the shell-fraction clause is not met; the cluster nonetheless fails the shipped bar and the dominant cluster contains only 4 of 217 French-language rows (2.4%).",
+    "before_after": "The D2 repair produced a GENUINE but INSUFFICIENT improvement on the label axis: 0/46 supported (0.0%) pre-repair -> 5/65 (7.69%) served. This improvement must NOT be explained away by the pre-repair baseline; it is a real product-improving result on the axis measured, but it does not reach the frozen 1.0 bar, so the overall label verdict remains LABEL_UNSOUND. Geometry pass counts improved on de and it (5->6, 4->5) but fr's mega-cluster share REGRESSED 0.557->0.770.",
+    "serve_recommendation": "DO-NOT-SERVE this packet unchanged. Both halves fail their frozen bars. The label improvement is real but the packet still ships 60 unsupported counter labels including 16 with empty evidence at maximal uncertainty. The French map still renders one 167-row cluster at 77% that contains 4 French-language rows. An imminent owner session on this packet would consume the scarcest resource on an artifact that should not have been served unchanged."
+  },
+  "what_product_may_NOT_claim": [
+    "That any specific decision IS supporting, contrary or limiting. This measurement never asserts that; those remain the product's labels.",
+    "That the D2 repair failed. On the label axis it improved 0.0% -> 7.69%; on geometry de and it improved. The repair worked partially; the absolute bars were not reached.",
+    "That the geometry is worse overall than baseline. de and it improved on pass counts; fr's mega-cluster share regressed. Mixed.",
+    "That the 16 empty-evidence rows are the product of the D2 classifier specifically; they reach the render predicate with empty evidence regardless of which classifier wrote them.",
+    "Any placement, rank or findability claim. Those are out of scope for this charter and are reported as read-only context only."
+  ],
+  "integration_points": {
+    "harness_entry": "python -m frontier_served_packet_falsification.cli --out <dir> [--half label|geometry|both]",
+    "label_result": "results/frontier/frontier-served-packet-falsification/LABEL_HALF.json",
+    "geometry_result": "results/frontier/frontier-served-packet-falsification/GEOMETRY_HALF.json",
+    "before_after": "results/frontier/frontier-served-packet-falsification/BEFORE_AFTER.json",
+    "reproducibility": "results/frontier/frontier-served-packet-falsification/REPRODUCIBILITY.json",
+    "scope_check": "results/frontier/frontier-served-packet-falsification/SCOPE_CHECK.json",
+    "freeze": "results/frontier/frontier-served-packet-falsification/FREEZE.json",
+    "input_list": "results/frontier/frontier-served-packet-falsification/INPUT_LIST.json"
+  },
+  "artifacts_product_may_COPY_ADAPT": [
+    "frontier/frontier-served-packet-falsification/frontier_served_packet_falsification/vendored/ (frozen rubric and geometry modules, byte-identical to accepted branches)",
+    "tests/frontier/frontier-served-packet-falsification/ (freeze, scope, claim-ceiling and half smoke tests)"
+  ],
+  "artifacts_product_must_NOT_COPY_AS_TRUTH": [
+    "LABEL_HALF.json / GEOMETRY_HALF.json as statements about a FUTURE packet. They are statements about gate packet 38839347028 only. A rebuilt packet requires a NEW charter and a NEW measurement.",
+    "Any baseline number as a statement about the served packet. Baselines are marked pre_repair=true throughout."
+  ],
+  "hard_stop": "Exactly one verdict cycle. continue_recommended=false. A second cycle under this charter is FORBIDDEN. If the packet is rebuilt or a further product repair lands and needs re-scoring, that is a NEW charter raised by the director against the NEW packet."
+}
