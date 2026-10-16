@@ -751,11 +751,19 @@ def apply_adversarial_pass(
         intent = str(cand.get("adversarial_intent") or "exception")
         status, evidence, markers = classify_against_intent(text, intent, topic_terms=topic_terms)
         labels[did] = (status, evidence, markers)
-        row["counter_status"] = status or "none"
-        row["counter_evidence"] = evidence
-        row["counter_markers"] = markers
-        row["counter_uncertainty"] = 0.4 if status else None
-        row["counter_evidence_verified"] = bool(status and evidence)
+        # Retrieval heuristics are admission signals only. They MUST NOT become
+        # product-visible legal labels. The independent LLM reviewer runs later
+        # over the final bounded set and is the sole writer of counter_status.
+        row["counter_status"] = "none"
+        row["counter_evidence"] = ""
+        row["counter_markers"] = []
+        row["counter_uncertainty"] = None
+        row["counter_evidence_verified"] = False
+        row["adversarial_retrieval_signal"] = {
+            "heuristic_status": status,
+            "evidence": evidence,
+            "markers": markers,
+        }
         row["adversarial_channel"] = str(cand.get("channel") or "")
         row["adversarial_intent"] = intent
         # Per-row probe attribution (audit advisory 2): which probe string
@@ -768,11 +776,79 @@ def apply_adversarial_pass(
         row["rank"] = None  # placed after the initial ranked list, deterministically
         rows.append(row)
 
+    # The product has a hard result budget. Answer-conditioned retrieval may
+    # discover unseen authorities, but it is not allowed to inflate a 100-row
+    # product into 140+ rows. Admit a tiny challenger set and replace the weakest
+    # conventional tail while protecting cited/visible authorities.
+    from .relevance import rerank_product_bundle
+
+    target_size = len(out.get("decisions") or [])
+    candidate_packet = {
+        "query": out.get("query", ""),
+        "query_variants": list(out.get("query_variants") or []),
+        "decisions": copy.deepcopy(rows),
+        "provenance": {},
+    }
+    ranked_rows = (
+        rerank_product_bundle(candidate_packet).get("decisions") or []
+        if rows else []
+    )
+
+    def _admission_key(row: dict) -> tuple:
+        did = str(row.get("decision_id") or "")
+        status, evidence, _markers = labels.get(did, (None, "", []))
+        signalled = 1 if status and evidence else 0
+        try:
+            score = float(row.get("score") or 0.0)
+        except (TypeError, ValueError):
+            score = 0.0
+        return (signalled, score, str(did))
+
+    ranked_rows.sort(key=_admission_key, reverse=True)
+    max_adversarial_slots = min(8, target_size)
+    proposed = ranked_rows[:max_adversarial_slots]
+
+    cited_ids = {
+        str(x) for x in (out.get("answer") or {}).get("cited_decision_ids") or []
+    }
+    protected_ids = set(cited_ids)
+    for d in out.get("decisions") or []:
+        if str(d.get("counter_status") or "none") not in {"none", "cited", "unclassified"}:
+            protected_ids.add(str(d.get("decision_id") or ""))
+
+    def _existing_rank(row: dict) -> int:
+        try:
+            return int(row.get("rank") or 10**9)
+        except (TypeError, ValueError):
+            return 10**9
+
+    droppable = [
+        d for d in sorted(out.get("decisions") or [], key=_existing_rank, reverse=True)
+        if str(d.get("decision_id") or "") not in protected_ids
+    ]
+    admitted = proposed[: min(len(proposed), len(droppable))]
+    dropped = droppable[: len(admitted)]
+    dropped_ids = {str(d.get("decision_id") or "") for d in dropped}
+    admitted_ids = {str(d.get("decision_id") or "") for d in admitted}
+
+    retained = [
+        copy.deepcopy(d)
+        for d in out.get("decisions") or []
+        if str(d.get("decision_id") or "") not in dropped_ids
+    ]
+    # New rows are candidates only until the independent reviewer classifies
+    # them after this function returns.
+    for row in admitted:
+        row["counter_status"] = "none"
+        row["counter_evidence"] = ""
+        row["counter_evidence_verified"] = False
+        row["counter_uncertainty"] = None
+
     frozen = {
         str(d["decision_id"]): (d.get("x"), d.get("y"), d.get("cluster_id"), bool(d.get("is_outlier")))
-        for d in out.get("decisions") or []
+        for d in retained
     }
-    combined = list(out["decisions"]) + rows
+    combined = retained + admitted
     decisions, clusters, shared_relations = build_map(combined, model=model)
     for d in decisions:
         did = str(d.get("decision_id") or "")
@@ -781,33 +857,46 @@ def apply_adversarial_pass(
         d["counter_status"] = d.get("counter_status") or "none"
         d["counter_evidence"] = d.get("counter_evidence") or ""
         d["counter_uncertainty"] = d.get("counter_uncertainty")
-        # v55: the flag is normalised like the status itself — every row
-        # carries it as a real boolean, so the render predicate never has to
-        # distinguish "absent" from "checked and found nothing".
         d["counter_evidence_verified"] = bool(d.get("counter_evidence_verified", False))
-        if did in labels:
-            status, evidence, markers = labels[did]
-            d["counter_status"] = status or "none"
-            d["counter_evidence"] = evidence
-            d["counter_markers"] = markers
-            d["counter_uncertainty"] = 0.4 if status else None
-            d["counter_evidence_verified"] = bool(status and evidence)
-    # Adversarial rows are appended after the conventional ranking: they were not
-    # found by the conventional search, so they must not inherit its order.
-    rank_of = {str(d.get("decision_id")): d.get("rank") for d in out["decisions"]}
-    next_rank = max([r for r in rank_of.values() if isinstance(r, int)] or [len(out["decisions"])])
-    appended = [str(d.get("decision_id")) for d in decisions
-                if str(d.get("decision_id")) not in rank_of]
-    for position, did in enumerate(appended, start=1):
-        for d in decisions:
-            if str(d.get("decision_id")) == did:
-                d["rank"] = next_rank + position
-                break
 
+    # Preserve the conventional order for retained rows; newly discovered
+    # adversarial candidates occupy only the replaced tail slots.
+    original_rank = {
+        str(d.get("decision_id")): _existing_rank(d)
+        for d in retained
+    }
+    decisions.sort(
+        key=lambda d: (
+            0 if str(d.get("decision_id")) in original_rank else 1,
+            original_rank.get(str(d.get("decision_id")), 10**9),
+            -float(d.get("score") or 0.0) if isinstance(d.get("score"), (int, float)) else 0.0,
+            str(d.get("decision_id") or ""),
+        )
+    )
+    for position, d in enumerate(decisions, start=1):
+        d["rank"] = position
+
+    appended = [
+        str(d.get("decision_id"))
+        for d in decisions
+        if str(d.get("decision_id")) in admitted_ids
+    ]
     out["decisions"] = decisions
     out["clusters"] = clusters
     from .pipeline import _merge_relations
     out["relations"] = _merge_relations(out.get("relations") or [], shared_relations)
+
+    prov.update({
+        "admission_policy": "bounded_replace_tail_v1",
+        "max_adversarial_slots": max_adversarial_slots,
+        "n_proposed_rows": len(proposed),
+        "n_admitted_rows": len(admitted),
+        "admitted_row_ids": appended,
+        "n_replaced_rows": len(dropped_ids),
+        "replaced_row_ids": sorted(dropped_ids),
+        "final_decision_count": len(decisions),
+        "heuristic_labels_surfaceable": False,
+    })
 
     hist: dict[str, int] = {}
     for d in decisions:
@@ -815,14 +904,9 @@ def apply_adversarial_pass(
         hist[k] = hist.get(k, 0) + 1
     prov.update({
         "n_new_rows": len(appended),
-        "n_counter_rows": sum(1 for d in decisions
-                              if d.get("counter_status") in {"candidate-limiting", "candidate-contrary",
-                                                            "contrary_or_exception", "limiting"}
-                              and str(d.get("decision_id")) in set(appended)),
+        "n_counter_rows": 0,
         "new_row_ids": appended,
-        "new_counter_ids": [str(d.get("decision_id")) for d in decisions
-                            if str(d.get("decision_id")) in set(appended)
-                            and str(d.get("counter_status")) not in {"none", "unclassified"}],
+        "new_counter_ids": [],
         "counter_status_histogram": dict(sorted(hist.items())),
         "channels": sorted({str(d.get("adversarial_channel")) for d in decisions
                             if d.get("adversarial_channel")}),
