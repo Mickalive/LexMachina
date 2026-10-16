@@ -380,7 +380,7 @@ class Provider:
         fixture_cited_ids: Optional[List[str]] = None,
         use_attestation: Optional[bool] = None,
         runner: Optional[Runner] = None,
-        timeout: float = 180.0,
+        timeout: float = 120.0,
     ):
         self.fixture_mode = fixture_mode
         self.fixture_answer = fixture_answer or ""
