@@ -50,6 +50,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:  # product-owned import shim, matches query/*
     sys.path.insert(0, str(REPO_ROOT))
 
+from product.query import gate_admissibility as ga  # noqa: E402
 from product.query.adversarial_retrieval import (  # noqa: E402
     DEFAULT_MAX_REQUESTS,
     apply_adversarial_pass,
@@ -65,7 +66,15 @@ SCHEMA = "product-counter-budget-sensitivity/1"
 FULL_BUDGET = DEFAULT_MAX_REQUESTS
 REDUCED_BUDGET = 8
 
-NON_COUNTER_STATUSES = frozenset({"none", "", None, "unclassified", "supporting-candidate", "context"})
+#: Single source of truth for "this row is not a counter-authority finding".
+#: Imported from ``gate_admissibility`` (not redefined) so the disclosed counter
+#: set is exactly the set the map rings (``isCounter()`` in
+#: product/static/query.html) and exactly what ``gate_admissibility.counter_ids``
+#: reports.  Audit 38839347028 D2: a local copy omitted ``"cited"``, so the
+#: disclosure counted answer-cited *supporting* rows as counter authorities
+#: (21/26/29 disclosed vs 15/25/25 ringed).  Keep the alias for callers that
+#: import the name from this module.
+NON_COUNTER_STATUSES = ga.NON_COUNTER_STATUSES
 
 
 def _strip_adversarial_rows(bundle: dict) -> dict:

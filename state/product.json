@@ -49,7 +49,7 @@
     }
   ],
   "current_run": 38839347028,
-  "cycle_status": "PACKET_REBUILT_LIVE_3_OF_3_ADMISSIBLE__R2_MEGA_CLUSTER_SHARE_NOW_FROM_CLUSTER_SIZE__R3_DOMINANT_CLUSTER_LANGUAGE_AND_HYDRATION_COMPOSITION_DISCLOSED__R5_SOURCE_URL_HOST_DISTRIBUTION_DISCLOSED_IP_LITERAL_BLOCKING__R4_COUNTER_SET_BUDGET_DEPENDENCE_MEASURED_PER_QUESTION__OWNER_CARD_CARRIES_EVERY_DISCLOSURE__SUITE_407_PASSED_1_SKIPPED__CLAIM_IDENTITY_0837EE73_UNCHANGED__HUMAN_GATE_STILL_AWAITED",
+  "cycle_status": "REPAIR_1_OF_AUDIT_38839347028__D1_PATH_BOUND_TEST_NOW_VIA_GATE_PACKET_RESOLVE_ARTIFACT__D2_COUNTER_SET_DEFINITION_ALIGNED_WITH_GATE_ADMISSIBILITY_DISCLOSED_SET_NOW_15_25_25_JACCARDS_0_6364_0_92_0_72__D3_CARD_WORDING_OVERLAP_N_OF_FULL_N_SURVIVE__ARTIFACTS_REGENERATED_OFFLINE_CACHE_REPLAY_NETWORK_CALLS_0__SUITE_407_PASSED_1_SKIPPED__CLAIM_IDENTITY_0837EE73_UNCHANGED__PACKET_STILL_3_OF_3_ADMISSIBLE__HUMAN_GATE_STILL_AWAITED",
   "direction_version": 54,
   "evidence_tier": "DURABLE_CI_VERIFIED",
   "human_gate_criteria": [
@@ -71,7 +71,7 @@
     },
     {
       "criterion": "independent counter-authority pass",
-      "status": "PASS (3/7/5 ringed counter rows on the three packet questions; provenance.generative_audit.adversarial)"
+      "status": "PASS (15/25/25 ringed counter rows on the three packet questions; provenance.generative_audit.adversarial)"
     },
     {
       "criterion": "answer never claims what the corpus does not support",
@@ -520,7 +520,7 @@
     "fixtures": "offline/test only; never merged into live results",
     "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
   },
-  "state_updated_at": "2026-10-16T02:40:00Z",
+  "state_updated_at": "2026-10-16T03:48:30Z",
   "state_updated_by_run": 38839347028,
   "state_updated_from_resumed_snapshot_run": "38806623637",
   "supersedes_claims": {
@@ -1776,6 +1776,21 @@
       "note": "Zero-delta repair attempt: the agent returned 0 with an unchanged, clean worktree, so the wrapper refused it. Diagnosis: orchestration_failure_diagnosis.run_38806623637. No work lost (there was none) and no restart was needed beyond re-applying the two required fixes.",
       "run_id": 38806623637,
       "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "created_at": "2026-10-16T03:48:30Z",
+      "event": "repair_round_1_of_rejected_cycle_38839347028",
+      "head_branch": "repair-base",
+      "head_sha": "d97c4b8",
+      "jobs": {
+        "producer": "success - all three required fixes applied (D1 path-bound test, D2 counter-set definition, D3 card wording); budget-sensitivity artifacts and disclosures.json regenerated with the product's own tool in cache-replay mode",
+        "suite": "407 passed, 1 skipped on every module that imports in this container (the only failures are the 38 pre-existing sentence_transformers environment gaps in test_cycle_33035450227.py); the D1 test moved from failed to passed",
+        "claim_cache": "replay_bundle --check-claim-cache-manifest -> exit 0, match=true, 392 envelopes, network_calls=0, identity 0837ee73 unchanged"
+      },
+      "note": "REPAIR of audit 38839347028 (gate=REVISE, required_fixes D1/D2/D3). D1: the packet test now resolves committed absolute paths through gate_packet._resolve_artifact instead of relative_to(src), so it passes at any checkout path. D2: counter_budget_sensitivity.NON_COUNTER_STATUSES now imports the single source of truth from gate_admissibility (which is kept in step with the map's isCounter()); the disclosed counter set is now exactly the map's ringed set (15/25/25, Jaccards 0.6364/0.92/0.72) instead of the inflated 21/26/29. D3: _budget_sensitivity_line now prints '{overlap_n} of {full_n} survive'. No frozen threshold, baseline, metric, success rule or pre-registration was touched; MEGA_CLUSTER_SHARE stays 0.5.",
+      "run_id": 38839347028,
+      "status": "completed"
     }
   ],
   "v54_delivery": {
@@ -1812,6 +1827,27 @@
       "supersedes": "results/product/gate_packet/38838116453 (2/3 questions only) and results/product/gate_packet/38799024807 (DE inadmissible, built before the adversarial route)",
       "artifacts_preserved": "every earlier packet directory is left byte-for-byte in place"
     },
+    "repair_1_audit_38839347028": {
+      "audit_verdict": "REVISE, safe_to_integrate=false, required_fixes D1/D2/D3",
+      "D1_path_bound_test": {
+        "defect": "test_gate_composition.py::test_packet_disclosures_publish_all_four_for_every_question rewrote committed packet paths via Path(entry[key]).relative_to(src); the committed packet.json stores absolute producing-machine paths, so at any other checkout the test raised ValueError",
+        "fix": "the test now resolves paths through gate_packet._resolve_artifact (the same portable mechanism recheck_packet uses), which falls back to the packet's own directory when the recorded absolute path does not exist",
+        "verification": "passes at this checkout (recorded paths exist) and at a simulated foreign checkout (fallback finds the copied packet)"
+      },
+      "D2_counter_set_definition": {
+        "defect": "counter_budget_sensitivity.NON_COUNTER_STATUSES omitted 'cited', so the disclosure counted answer-cited supporting rows as counter authorities: 21/26/29 disclosed vs 15/25/25 ringed on the map",
+        "fix": "the constant is now imported from gate_admissibility (single source of truth, kept in step with the map's isCounter()); no divergent copy remains",
+        "regeneration": "questions/*.budget_sensitivity.json and disclosures.json regenerated with the product's own tool in cache-replay mode (--mode offline; network_calls=0, cache_hits 16/8 - the committed mechanism)",
+        "corrected_numbers": "fr 15/21, shared 14, union 22, Jaccard 0.6364; de 25/23, shared 23, union 25, Jaccard 0.92; it 25/18, shared 18, union 25, Jaccard 0.72",
+        "removed_ids_verified": "every removed id carries counter_status='cited' in the shipped bundle (6/1/4 rows)",
+        "regression_test": "test_the_counter_set_definition_is_the_maps_ringed_set_not_a_divergent_copy asserts cbs.NON_COUNTER_STATUSES is ga.NON_COUNTER_STATUSES and that _counter_ids excludes 'cited' rows"
+      },
+      "D3_card_wording": {
+        "defect": "_budget_sensitivity_line printed '{full_n} of the surfaced counter rows survive ... ({overlap_n} shared ...)'",
+        "fix": "it now prints '{overlap_n} of {full_n} survive'; the owner-card test asserts the new wording and asserts the old wording is absent"
+      },
+      "untouched": "no frozen threshold, baseline, metric, success rule or pre-registration; MEGA_CLUSTER_SHARE stays 0.5; claim-cache identity stays 0837ee73; regenerated *.admissibility.json files differ from the rejected cycle's only in verified_at"
+    },
     "v54_disclosure_a_dominant_cluster_composition": {
       "code": "dominant_cluster_language_composition (warning) / dominant_cluster_composition (info)",
       "threshold": "reuses the existing frozen MIN_QUESTION_LANGUAGE_SHARE = 0.25; no new threshold",
@@ -1837,11 +1873,11 @@
       "code": "product/query/counter_budget_sensitivity.py (one command, per question)",
       "method": "same plan, same exclusions, same cache, same page size; only max_requests differs (24 vs 8). The budget is consumed before the cache is consulted, so a warm cache does not soften the difference. Everything else is held constant by construction.",
       "measured_this_run": {
-        "fr-bail-entretien": "21 vs 27 counter ids, 20 shared of 28 in the union, Jaccard 0.7143",
-        "de-kapitalverletzung": "26 vs 24, 24 shared of 26, Jaccard 0.9231",
-        "it-responsabilita-medica": "29 vs 22, 22 shared of 29, Jaccard 0.7586"
+        "fr-bail-entretien": "15 vs 21 counter ids, 14 shared of 22 in the union, Jaccard 0.6364",
+        "de-kapitalverletzung": "25 vs 23, 23 shared of 25, Jaccard 0.92",
+        "it-responsabilita-medica": "25 vs 18, 18 shared of 25, Jaccard 0.72"
       },
-      "honest_negative": "on the FR question the SMALLER budget surfaced MORE counter rows (27 vs 21), so the counter count is not a monotone function of budget at all. This is stronger than the audit's 1-of-27 observation and is reported as measured, with the mechanism left open: the label comes from full_text for hydrated rows and from regeste for the rest, so hydrating fewer rows changes which sentences are available to the classifier.",
+      "honest_negative": "on the FR question the SMALLER budget surfaced MORE counter rows (21 vs 15), so the counter count is not a monotone function of budget at all. This is stronger than the audit's 1-of-27 observation and is reported as measured, with the mechanism left open: the label comes from full_text for hydrated rows and from regeste for the rest, so hydrating fewer rows changes which sentences are available to the classifier.",
       "surfaced_to_the_jurist": "owner_card prints one line per question stating the retention and instructing the reader to treat the count as 'what this run surfaced', never as how much contrary authority exists"
     },
     "v54_disclosure_d_mega_cluster_share_definition": {

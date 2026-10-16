@@ -721,7 +721,7 @@ def _budget_sensitivity_line(packet_dir: Path | None, qid: str | None) -> str | 
     full_budget = (data.get("full") or {}).get("budget")
     reduced_budget = (data.get("reduced") or {}).get("budget")
     return (
-        f"      counter count: {cs.get('full_n')} of the surfaced counter rows survive a "
+        f"      counter count: {cs.get('overlap_n')} of {cs.get('full_n')} survive a "
         f"{full_budget}-request budget down to {reduced_budget} requests "
         f"({cs.get('overlap_n')} shared of {cs.get('union_n')} in the union, Jaccard "
         f"{cs.get('jaccard')}); the surfaced SET is budget-dependent, so read the count as "

@@ -331,6 +331,29 @@ def test_an_empty_counter_set_compares_to_none_rather_than_to_zero_evidence():
     assert out["full_retained_by_reduced_budget"] is None
 
 
+def test_the_counter_set_definition_is_the_maps_ringed_set_not_a_divergent_copy():
+    """Audit 38839347028 D2: the disclosed counter ids must be exactly the rows
+    the map rings.  ``gate_admissibility.NON_COUNTER_STATUSES`` is the single
+    source of truth (kept in step with ``isCounter()`` in query.html); this
+    module must import it, never redefine it.  The rejected cycle's local copy
+    omitted ``"cited"`` and disclosed 21/26/29 counter ids where the map ringed
+    15/25/25 — answer-cited *supporting* rows counted as contrary authority.
+    """
+    assert cbs.NON_COUNTER_STATUSES is ga.NON_COUNTER_STATUSES
+    assert "cited" in cbs.NON_COUNTER_STATUSES
+    rows = [
+        {"decision_id": "d1", "counter_status": "candidate-contrary"},
+        {"decision_id": "d2", "counter_status": "cited"},          # answer-cited: NOT counter
+        {"decision_id": "d3", "counter_status": "candidate-limiting"},
+        {"decision_id": "d4", "counter_status": "none"},
+        {"decision_id": "d5", "counter_status": "supporting-candidate"},
+        {"decision_id": "d6"},                                      # unset: NOT counter
+    ]
+    assert cbs._counter_ids({"decisions": rows}) == ["d1", "d3"]
+    # and the gate's own counter_ids agrees on the same population
+    assert ga.counter_ids({"decisions": rows}) == ["d1", "d3"]
+
+
 def test_an_empty_answer_vocabulary_records_a_skip_instead_of_a_measurement():
     """D4's vacuous guard reaches this tool too: nothing to compare, say so."""
     bundle = _bundle(n=120, dominant=120)
@@ -384,6 +407,7 @@ def test_packet_disclosures_publish_all_four_for_every_question(tmp_path):
     """One command re-verifies the packet and writes the v54 disclosures."""
     import shutil
 
+    import gate_packet as gp
     import gate_packet_disclosures as gpd
 
     src = ROOT / "results" / "product" / "gate_packet" / "38839347028"
@@ -392,10 +416,14 @@ def test_packet_disclosures_publish_all_four_for_every_question(tmp_path):
     packet = tmp_path / "packet"
     shutil.copytree(src, packet)
     summary = json.loads((packet / "packet.json").read_text(encoding="utf-8"))
+    # The committed packet stores the absolute paths it was written with; a
+    # copy at another checkout must not ``relative_to`` them (audit 38839347028
+    # D1: ValueError at any path other than the producing machine).  Resolve
+    # through the product's own portable mechanism instead.
     for entry in summary["questions"]:          # the copy is self-contained
         for key in ("bundle_path", "question_path"):
             if entry.get(key):
-                entry[key] = str(packet / Path(entry[key]).relative_to(src))
+                entry[key] = str(gp._resolve_artifact(entry[key], packet))
     (packet / "packet.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
 
     (packet / "disclosures.json").unlink(missing_ok=True)   # the copy ships one
@@ -432,6 +460,11 @@ def test_the_owner_card_carries_the_budget_sensitivity_line(tmp_path):
     assert "budget-dependent" in card
     assert "'what this run surfaced'" in card
     assert "20 shared of 28" in card
+    # audit 38839347028 D3: the leading clause names the survivors, not the
+    # full set — "{overlap_n} of {full_n} survive", never "{full_n} of the
+    # surfaced counter rows".
+    assert "20 of 21 survive" in card
+    assert "21 of the surfaced counter rows survive" not in card
 
 
 def test_a_skipped_budget_measurement_is_stated_on_the_card_rather_than_hidden(tmp_path):
