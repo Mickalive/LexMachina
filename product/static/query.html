@@ -30,7 +30,7 @@ h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#737b88;ma
    scrolling pane; inside this flex column it must claim the same row as #mapWrap) */
 #lexListView{flex:1;min-height:0}
 #detail{position:absolute;right:14px;top:14px;width:min(360px,45%);max-height:calc(100% - 28px);overflow:auto;background:rgba(255,255,255,.98);border:1px solid #d9dde5;border-radius:10px;padding:13px;box-shadow:0 8px 30px rgba(20,25,35,.12);display:none;font-size:12px;line-height:1.45}
-#detail .close{float:right;border:0;padding:0 5px;font-size:18px}.muted{color:#737b88}.pill{display:inline-block;border-radius:20px;padding:2px 7px;background:#eef0f4;margin:2px 3px 2px 0}.pill.red{background:#fdecef;color:#941d2c}.pill.gold{background:#fff4d5;color:#815c00}
+#detail .close{float:right;border:0;padding:0 5px;font-size:18px}.muted{color:#737b88}.pill{display:inline-block;border-radius:20px;padding:2px 7px;background:#eef0f4;margin:2px 3px 2px 0}.pill.red{background:#fdecef;color:#941d2c}.pill.gold{background:#fff4d5;color:#815c00}.pill.amber{background:#fdf3e0;color:#7a5410;border:1px dashed #c9a24d}
 #legend{position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.9);border:1px solid #e2e5ea;border-radius:8px;padding:7px 9px;font-size:11px;color:#59616d}
 /* owner-gate answer card (product-owned): four Master Prompt questions, no
    invented answers — an untouched question simply stays out of the export */
@@ -132,7 +132,7 @@ h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#737b88;ma
   </div>
   <div id="mapWrap">
     <canvas id="cv"></canvas><div id="detail"></div>
-    <div id="legend">couleur = cluster · contour rouge = contre-autorité · or = citée · point pâle = outlier</div>
+    <div id="legend">couleur = cluster · contour rouge = contre-autorité étayée · contour pointillé ambré = non étayée (conservée pour visibilité) · or = citée · point pâle = outlier</div>
   </div>
   <div id="lexListView" hidden></div>
 </main>
@@ -148,6 +148,11 @@ function viewPhase(){const s=window.__LEX_GATE_SWITCH__;return s?'<span class="p
 function status(text,phase){LAST_STATUS={text,phase:phase||""};document.getElementById("status").innerHTML=viewPhase()+(phase?'<span class="phase">'+esc(phase)+'</span>':"")+esc(text)}
 function restoreStatus(){status(LAST_STATUS.text,LAST_STATUS.phase)}
 function isCounter(d){return d.counter_status&& !["none","cited","supporting-candidate","context","unclassified"].includes(d.counter_status)}
+/* v55 render-truth fix: the ring/pill state the EVIDENCE, not the status
+   alone.  A counter row with no verbatim evidence (or without the verified
+   flag) stays on the map for visibility, but it must never render as a
+   confident counter — it renders as an explicitly marked unevidenced row. */
+function counterEvidenced(d){return isCounter(d)&&!!(d.counter_evidence||"").trim()&&d.counter_evidence_verified===true}
 function bodyText(d){return [d.decision_id,d.court,d.docket_number,d.snippet,Array.isArray(d.citation)?d.citation.join(" "):d.citation].join(" ").toLowerCase()}
 
 function filtered(){
@@ -181,7 +186,8 @@ function draw(){
     const s=screenPos(p);p._px=s.x;p._py=s.y;
     ctx.beginPath();ctx.arc(s.x,s.y,p.counter_status==="cited"?7:5,0,Math.PI*2);
     ctx.fillStyle=COLORS[(p.cluster_id??0)%COLORS.length];ctx.globalAlpha=p.is_outlier?.48:.88;ctx.fill();ctx.globalAlpha=1;
-    if(isCounter(p)){ctx.lineWidth=2.5;ctx.strokeStyle="#b72736";ctx.stroke()}
+    if(counterEvidenced(p)){ctx.lineWidth=2.5;ctx.strokeStyle="#b72736";ctx.stroke()}
+    else if(isCounter(p)){ctx.lineWidth=2;ctx.strokeStyle="#8a6d1f";ctx.setLineDash([4,3]);ctx.stroke();ctx.setLineDash([])}
     if(p.counter_status==="cited"){ctx.lineWidth=2.2;ctx.strokeStyle="#d59b00";ctx.stroke()}
   }
 }
@@ -210,11 +216,22 @@ function renderAnswer(){
   if(degraded)meta+='<div class="warn">'+esc(degradedNote(a))+'</div>';
   document.getElementById("answerMeta").innerHTML=meta;
 }
+/* v55: the owner card states how many of this session's counter rows are
+   unevidenced — the count is disclosed, never silently dropped. */
+function counterHead(){
+  const cs=(BUNDLE?.decisions||[]).filter(isCounter);
+  const unevid=cs.filter(d=>!counterEvidenced(d));
+  if(!cs.length)return"";
+  let h=cs.length+" contre-autorité"+(cs.length>1?"s":"");
+  if(unevid.length)h+=" · "+unevid.length+" non étayée"+(unevid.length>1?"s":"")+" (conservée"+(unevid.length>1?"s":"")+" pour visibilité)";
+  return h;
+}
 function renderCounters(){
   const cs=(BUNDLE?.decisions||[]).filter(isCounter);
-  document.getElementById("counterList").innerHTML=cs.length?cs.slice(0,20).map(d=>
-    '<div class="card counter"><a href="#" data-id="'+esc(d.decision_id)+'">'+esc(d.decision_id)+'</a> <b>'+esc(d.counter_status)+'</b><br>'+esc(d.counter_evidence||d.snippet).slice(0,260)+'</div>'
-  ).join(""):'<span class="muted">Aucune contre-autorité qualifiée à ce stade.</span>';
+  const head=counterHead();
+  document.getElementById("counterList").innerHTML=(head?'<div class="muted" style="margin-bottom:6px">'+esc(head)+"</div>":"")+(cs.length?cs.slice(0,20).map(d=>
+    '<div class="card counter"><a href="#" data-id="'+esc(d.decision_id)+'">'+esc(d.decision_id)+'</a> <b>'+esc(d.counter_status)+'</b>'+(counterEvidenced(d)?'':' <span class="pill amber">non étayée · conservée pour visibilité</span>')+'<br>'+esc(d.counter_evidence||d.snippet).slice(0,260)+'</div>'
+  ).join(""):'<span class="muted">Aucune contre-autorité qualifiée à ce stade.</span>');
   document.querySelectorAll("#counterList a[data-id]").forEach(a=>a.onclick=e=>{e.preventDefault();showDetail(a.dataset.id)});
 }
 function renderClusters(){
@@ -237,10 +254,12 @@ function showDetail(id){
   panel.innerHTML='<button class="close" onclick="this.parentElement.style.display=\'none\'">×</button>'+
     '<b>'+esc(d.decision_id)+'</b><br><span class="muted">'+esc(d.court)+' · '+esc(d.language)+' · '+esc(d.decision_date||"")+'</span><br>'+
     '<span class="pill">rang '+esc(d.rank)+'</span><span class="pill">C'+esc(d.cluster_id)+'</span>'+
-    (isCounter(d)?'<span class="pill red">'+esc(d.counter_status)+'</span>':"")+
+    (counterEvidenced(d)?'<span class="pill red">'+esc(d.counter_status)+'</span>':"")+
+    (isCounter(d)&&!counterEvidenced(d)?'<span class="pill amber">non étayée · conservée pour visibilité</span>':"")+
     (d.counter_status==="cited"?'<span class="pill gold">citée</span>':"")+
     '<p>'+esc(d.snippet||"")+'</p>'+
-    (d.counter_evidence?'<p><b>Élément contraire :</b> '+esc(d.counter_evidence)+'</p>':"")+
+    (counterEvidenced(d)?'<p><b>Élément contraire :</b> '+esc(d.counter_evidence)+'</p>':"")+
+    (isCounter(d)&&!counterEvidenced(d)?'<p class="warn"><b>Contre-autorité non étayée :</b> aucune preuve textuelle à l’appui (incertitude '+esc(d.counter_uncertainty??"?")+'). Ligne conservée pour visibilité, sans valeur de classification.</p>':"")+
     (c?'<p><b>Cluster :</b> '+esc(c.label)+'</p>':"")+
     (rels.length?'<p><b>Relations :</b><br>'+rels.map(relLine).join("<br>")+"</p>":"")+
     (cites?'<p><b>Citation :</b><br>'+cites+"</p>":"")+
@@ -308,8 +327,10 @@ async function advance(firstTiming){
   if(fin.job.status==="error")throw new Error("réponse: "+fin.job.error);
   const data=await fetchBundle(),final=data.bundle,ga=final.provenance?.generative_audit||{};
   const count=final.decisions.filter(isCounter).length;
+  const unevid=final.decisions.filter(d=>isCounter(d)&&!counterEvidenced(d)).length;
   status(final.decisions.length+" décisions · "+final.clusters.length+" clusters · "
     +final.answer.cited_decision_ids.length+" citations · "+count+" contre-autorités"
+    +(unevid?" · dont "+unevid+" non étayée"+(unevid>1?"s":""):"")
     +(ga.degraded?" · mode dégradé":""),"terminé");
   document.getElementById("prose").textContent=final.answer.prose||"";
   renderAnswer();

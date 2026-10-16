@@ -86,10 +86,10 @@ def test_workflow_validation_rejects_non_integer_direction_version(tmp_path: Pat
 
 #: The direction version this cycle was dispatched with. Hard-pinned so the
 #: test asserts the real workflow assertion rather than whatever the control
-#: plane happens to say at test time.  Run 38839347028 was dispatched with
-#: direction v54 (the run that rebuilt the live gate packet and published the
-#: four per-bundle composition disclosures); the previous pin was 52.
-RUN_DIRECTION_VERSION = 54
+#: plane happens to say at test time.  Run 38877693206 was dispatched with
+#: direction v55 (the run that fixed the unevidenced counter-authority ring);
+#: the previous pin was 54 (run 38839347028, gate-packet rebuild).
+RUN_DIRECTION_VERSION = 55
 
 
 def test_canonical_state_in_this_worktree_is_current() -> None:

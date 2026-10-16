@@ -125,16 +125,31 @@ def test_sweep_against_the_live_accepted_mounts():
     """The live check behind this cycle's report: the newest accepted
     counter-label verification re-measured nothing, so the committed snapshot
     (adopted at 38841035773) is still current and covers_this_packet stays
-    False. Map-semantics newest verification is the adopted run itself."""
+    False. Map-semantics newest verification is the adopted run itself.
+
+    v55 portfolio note: both verification teams are TERMINATED, so a cycle
+    mount may carry NO verification file at all (only the RUN successor
+    frontier-served-packet-falsification, which has no verdict yet). The
+    sweep tool degrades honestly to snapshot-stands in that shape; this test
+    accepts that documented outcome instead of requiring a file the
+    portfolio no longer publishes.
+    """
     out = fva.sweep(ACCEPTED_ROOT)
     counter = out["frontier_counter_label_integrity"]
-    assert counter["newest_verification_run_id"] is not None
+    if counter["newest_verification_run_id"] is None:
+        assert counter["snapshot_current"] is True
+        assert counter["covers_this_packet"] is False
+        assert out["action_required"] is False
+        return
     assert int(counter["newest_verification_run_id"]) >= int(
         fva.COUNTER_LABEL_TEAM_RUN_ID)
     assert counter["labels_rescored"] is False
     assert counter["bundles_remeasured"] is False
     assert counter["snapshot_current"] is True
     assert counter["covers_this_packet"] is False
-    assert out["frontier_map_semantics"]["newest_verification_run_id"] == (
-        fva.MAP_SEMANTICS_TEAM_RUN_ID)
+    map_newest = out["frontier_map_semantics"]["newest_verification_run_id"]
+    if map_newest is None:
+        assert out["frontier_map_semantics"]["snapshot_current"] is True
+    else:
+        assert map_newest == fva.MAP_SEMANTICS_TEAM_RUN_ID
     assert out["action_required"] is False

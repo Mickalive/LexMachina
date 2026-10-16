@@ -781,6 +781,10 @@ def apply_adversarial_pass(
         d["counter_status"] = d.get("counter_status") or "none"
         d["counter_evidence"] = d.get("counter_evidence") or ""
         d["counter_uncertainty"] = d.get("counter_uncertainty")
+        # v55: the flag is normalised like the status itself — every row
+        # carries it as a real boolean, so the render predicate never has to
+        # distinguish "absent" from "checked and found nothing".
+        d["counter_evidence_verified"] = bool(d.get("counter_evidence_verified", False))
         if did in labels:
             status, evidence, markers = labels[did]
             d["counter_status"] = status or "none"

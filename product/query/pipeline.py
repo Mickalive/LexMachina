@@ -546,10 +546,19 @@ def _extractive_degraded_fallback(bundle: dict, error: str, max_cites: int) -> d
             d["counter_status"] = h["counter_status"]
             d["counter_evidence"] = h.get("evidence_sentence") or ""
             d["counter_markers"] = h.get("markers") or []
+            # v55 render-truth fix: the flag is WRITTEN, never omitted.  A
+            # label whose evidence sentence came back empty is unevidenced;
+            # the map's render predicate reads this field and an absent key
+            # would read as "not yet checked" instead of "checked, nothing
+            # found".  False is the honest value (Master Prompt: never
+            # classify without evidence the label's own row can support).
+            d["counter_evidence_verified"] = bool(h.get("evidence_sentence"))
         elif d["decision_id"] in cited:
             d["counter_status"] = "cited"
+            d["counter_evidence_verified"] = False
         else:
             d["counter_status"] = "none"
+            d["counter_evidence_verified"] = False
     answer["status"] = "degraded"
     out["answer"] = answer
     out.setdefault("provenance", {})["generative_audit"] = {

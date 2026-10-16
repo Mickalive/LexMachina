@@ -180,6 +180,95 @@ setTimeout(async () => {
           "a ?run_id= link does not re-retrieve a new run");
   }
 
+  /* 8. v55 render-truth: the ring/pill state the EVIDENCE, not the status
+   *    alone.  The served packet carries counter rows whose counter_evidence
+   *    is empty and whose counter_evidence_verified is ABSENT (never false);
+   *    the page must render those as an explicitly marked unevidenced state,
+   *    never as a confident counter ring/pill, and the owner card must state
+   *    how many of the session's counter rows are unevidenced.  The two
+   *    synthetic rows below reproduce the served packet's exact shape. */
+  const synth = {
+    query: "synthetic", query_variants: [],
+    answer: {status: "ready", prose: "", cited_decision_ids: []},
+    decisions: [
+      {decision_id: "evidenced-1", court: "BGER", language: "de", rank: 1, score: 1.0,
+       provenance: {}, snippet: "s", cluster_id: 0, x: 0, y: 0,
+       counter_status: "candidate-limiting", counter_evidence: "Die Ausnahme greift nur eng.",
+       counter_evidence_verified: true, canonical_url: "https://example.com/1", citation: ""},
+      {decision_id: "unevidenced-1", court: "BGER", language: "de", rank: 2, score: 0.9,
+       provenance: {}, snippet: "s", cluster_id: 0, x: 0.1, y: 0.1,
+       counter_status: "candidate-contrary", counter_evidence: "", counter_uncertainty: 0.95,
+       canonical_url: "https://example.com/2", citation: ""}
+    ],
+    clusters: [{cluster_id: 0, size: 2, label: "synthetic"}],
+    relations: [],
+    provenance: {}
+  };
+  page.evaluate("renderBundle(" + JSON.stringify(synth) + ");");
+  const pred = page.evaluate("(function(){"
+    + "var ev = " + JSON.stringify(synth) + ".decisions[0],"
+    + " un = " + JSON.stringify(synth) + ".decisions[1];"
+    + "return {evIsCounter: isCounter(ev), evEvidenced: counterEvidenced(ev),"
+    + "        unIsCounter: isCounter(un), unEvidenced: counterEvidenced(un)};"
+    + "})()");
+  check(pred.evIsCounter === true && pred.evEvidenced === true,
+        "an evidenced counter row predicates as a confident counter");
+  check(pred.unIsCounter === true,
+        "an unevidenced row stays a counter row (visibility preserved)");
+  check(pred.unEvidenced === false,
+        "an unevidenced row is never an evidenced counter");
+
+  page.evaluate("showDetail('unevidenced-1');");
+  let synthDetailHtml = documentShim.getElementById("detail").innerHTML;
+  check(synthDetailHtml.indexOf("non étayée · conservée pour visibilité") !== -1,
+        "unevidenced detail panel carries the explicit unevidenced pill");
+  check(synthDetailHtml.indexOf("Contre-autorité non étayée") !== -1,
+        "unevidenced detail panel states the missing evidence, not silence");
+  check(synthDetailHtml.indexOf("0.95") !== -1,
+        "unevidenced detail panel discloses its uncertainty");
+  check(synthDetailHtml.indexOf('pill red') === -1,
+        "unevidenced detail panel never carries the confident red pill");
+
+  page.evaluate("showDetail('evidenced-1');");
+  synthDetailHtml = documentShim.getElementById("detail").innerHTML;
+  check(synthDetailHtml.indexOf('pill red') !== -1 && synthDetailHtml.indexOf("candidate-limiting") !== -1,
+        "evidenced detail panel keeps the red status pill");
+  check(synthDetailHtml.indexOf("Élément contraire") !== -1
+        && synthDetailHtml.indexOf("Die Ausnahme greift nur eng.") !== -1,
+        "evidenced detail panel shows the verbatim evidence");
+
+  const counterHtml = documentShim.getElementById("counterList").innerHTML;
+  check(counterHtml.indexOf("2 contre-autorités · 1 non étayée (conservée pour visibilité)") !== -1,
+        "owner card states the unevidenced count of the session");
+  check(counterHtml.indexOf("non étayée · conservée pour visibilité") !== -1,
+        "unevidenced sidebar card is explicitly marked");
+
+  const filterEl = documentShim.getElementById("counterFilter");
+  filterEl.value = "counter";
+  const visibleToCounterFilter = page.evaluate("(function(){ draw(); return PTS.length; })()");
+  check(visibleToCounterFilter === 2,
+        "the counter filter keeps unevidenced rows visible (" + visibleToCounterFilter + "/2)");
+  filterEl.value = "all";
+
+  /* The bundle actually handed to the owner must disclose its unevidenced
+   * counter rows: count them from the data IN THE PAGE (the predicates are
+   * the page's own), then require the card to state the same number.  A
+   * bundle with none simply has nothing to disclose. */
+  const realUnevid = page.evaluate("(function(){"
+    + "return (__TEST_BUNDLE__.decisions || []).filter(function (d) {"
+    + "  return isCounter(d) && !counterEvidenced(d); }).length; })()");
+  page.evaluate("renderBundle(__TEST_BUNDLE__);");
+  const realCounterHtml = documentShim.getElementById("counterList").innerHTML;
+  if (realUnevid) {
+    check(realCounterHtml.indexOf(realUnevid + " non étayée") !== -1,
+          "owner card states the unevidenced count of the served bundle ("
+          + realUnevid + " non étayées)");
+    check(realCounterHtml.indexOf("conservée pour visibilité") !== -1,
+          "served bundle's unevidenced rows are explicitly marked");
+  } else {
+    check(true, "served bundle carries no unevidenced counter row (nothing to disclose)");
+  }
+
   let failed = 0;
   for (const a of assertions) {
     if (!a.ok) failed += 1;

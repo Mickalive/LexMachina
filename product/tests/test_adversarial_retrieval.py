@@ -594,3 +594,51 @@ def test_independence_check_requires_a_real_population(tmp_path):
     bad.write_text(json.dumps({"decisions": []}), encoding="utf-8")
     assert mod.main(["--bundle", str(bad)]) == 4
     assert mod.main(["--bundle", str(tmp_path / "missing.json")]) == 4
+
+
+# --------------------------------------------------------------------------
+# 6. v55 render-truth: counter_evidence_verified is WRITTEN, never omitted
+# --------------------------------------------------------------------------
+
+def test_degraded_fallback_writes_verified_false_when_evidence_is_empty():
+    """v55 top item, server side.  A counter label whose evidence sentence came
+    back empty must carry ``counter_evidence_verified=False`` in the bundle —
+    an absent key would read as "not yet checked" instead of "checked, nothing
+    found", and the map's render predicate depends on the distinction.
+    """
+    from product.query import pipeline
+
+    bundle = _map_bundle(n=10)
+    # A hit needs an adversarial marker in the text; a text that carries the
+    # marker inside no splittable sentence yields an EMPTY evidence sentence
+    # (split_sentences keeps only parts longer than 40 chars).
+    target = bundle["decisions"][0]
+    target["decision_id"] = "bger_x_1_2020"
+    target["snippet"] = "ausnahme"
+    target["regeste"] = "ausnahme"
+    target["full_text"] = "ausnahme"
+    out = pipeline._extractive_degraded_fallback(bundle, "ProviderError: down", max_cites=4)
+    row = next(d for d in out["decisions"] if d["decision_id"] == "bger_x_1_2020")
+    assert row["counter_status"] == "candidate-limiting"
+    assert row["counter_evidence"] == ""
+    assert "counter_evidence_verified" in row, "the flag must be written, not omitted"
+    assert row["counter_evidence_verified"] is False
+    # cited and unlabelled rows get the same honest False, never an absent key
+    for d in out["decisions"]:
+        if d["decision_id"] != "bger_x_1_2020":
+            assert d.get("counter_evidence_verified") is False
+
+
+def test_apply_adversarial_pass_always_writes_the_verified_flag(fake_client):
+    """Every row leaving the adversarial pass carries the flag as a real
+    boolean — the render predicate reads it on every counter row."""
+    bundle = _map_bundle(n=40)
+    fetched = adv.fetch_adversarial_candidates(
+        bundle["query"], adv.plan_adversarial_queries(bundle["query"], ANSWER_DE),
+        mode="offline", exclude_ids={d["decision_id"] for d in bundle["decisions"]},
+        exclude_identities=set())
+    out = adv.apply_adversarial_pass(bundle, fetched["candidates"], fetched["provenance"])
+    assert out["decisions"]
+    for d in out["decisions"]:
+        assert "counter_evidence_verified" in d
+        assert isinstance(d["counter_evidence_verified"], bool)
