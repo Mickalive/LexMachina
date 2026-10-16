@@ -1,0 +1,219 @@
+{
+  "schema": "lexmachina.audit.gate/v1",
+  "team": "frontier-map-semantics",
+  "charter": "/tmp/lex_frontier_charter.json",
+  "charter_version": 2,
+  "run": "38851887303",
+  "producer": "/tmp/lex_team",
+  "producer_head": "36962a7",
+  "producer_base": "a3c7b59",
+  "measurement_run": "38839351403",
+  "audit_date": "2026-10-16",
+  "gate": "BLOCKED",
+  "safe_to_integrate": false,
+  "gate_rationale": "The MEASUREMENT layer is sound and independently reproduced: the harness runs offline, is byte-deterministic, and every one of the 11 frozen criteria, the ablation, the alternatives and the non-vacuity numbers reproduce exactly under my own implementation written from RULES.json. The charter's scientific deliverable (a CLOSED negative result that closes the geometry question) is VALID and is preserved by this gate. BLOCKED is a verdict on the CYCLE, not on the science: this cycle's entire purpose was to close the recurring prose-falsification pathology, and it introduced three fresh claim-vs-artifact defects while doing so — one of them (REPORT.md L148-149 / L543-544, repeated in the state file and in VERIFICATION_38851887303.json) is a sentence falsified by the SAME report's own tables, which is exactly charter-1 RF1, the fourth consecutive cycle it has recurred. The class-level fix asserted this cycle (D-8, 'every cell derived from alternatives.json by check_report_numbers.py, not typed by hand') is empirically false: I falsified two §5 table cells (DE A1 6/11->9/11, IT A1 5/11->6/11) and the checker still exits 0 ALL-CHECKS-PASSED, because it binds numbers by global substring presence on the flattened document, not to their table cell. Another prose-repair cycle would be the fifth iteration of the same pattern and is NOT an admissible continuation ground under this charter, whose stop_promote_rule permits continuation ONLY for 'a concrete defect in this team's own harness' and forbids 're-verify the machine gate' (which is what this cycle spent itself on). The structural cause of the 3-cycle dispatch loop is outside the team's write namespace: state/frontier_portfolio.json still carries frontier-map-semantics at charter_version 1 / status RUN while the team runs charter v2, so factory-supervisor keeps re-dispatching; and the prior cycle's audit gate (CYCLE_38849595347_GATE.json) does not exist in the audit checkout, in git history or anywhere on disk, so the R1-R4 premise of this cycle is unverifiable from an authoritative source and acceptance test 10 forbids this team from writing results/audit/ or reports/audit/ to repair the handoff. Breaking either requires a factory/human-level decision.",
+  "required_fixes": [
+    {
+      "id": "F1",
+      "severity": "blocking",
+      "repair_class": "recurring_pathology_structural",
+      "where": "reports/frontier/frontier-map-semantics/REPORT.md L148-149 and L543-544; state/frontier/frontier-map-semantics.json ('FR/IT loss of OUTLIER_VALIDITY'); results/frontier/frontier-map-semantics/VERIFICATION_38851887303.json audit_repaired.R2.how",
+      "defect": "The R2 repair introduced a NEW claim falsified by the same report's own artifacts: 'FR/IT additionally give back OUTLIER_VALIDITY'. Measured: shipped IT OUTLIER_VALIDITY is already FAIL (citation graph degenerate, degree sum 0.0/0.0, read from the artifact per RF2), and the measured losses-versus-shipped on IT are RELATIONS only for A1, A2 and A3 — a criterion that already fails cannot be 'given back'. On FR the claim is also over-general: A2 keeps OUTLIER_VALIDITY True, only A1 and A3 lose it. REPORT.md §5's own IT cells correctly list only 'loses RELATIONS' and §2's table shows IT OUTLIER_VALIDITY FAIL.",
+      "required": "Restate as measured: RELATIONS is lost by every alternative on every bundle (25 -> 1 DE, 25 -> 0 FR and IT); OUTLIER_VALIDITY is additionally lost by A1 and A3 on FR only; on IT it was already failing pre-alternative.",
+      "admissible_as_another_prose_repair_cycle": false,
+      "why_not": "This is the fourth consecutive cycle in which a claim-bearing sentence in this document is falsified by its own artifacts. Fixing it by hand and adding one more targeted check is the exact pattern that has now failed three times."
+    },
+    {
+      "id": "F2",
+      "severity": "blocking",
+      "repair_class": "recurring_pathology_structural",
+      "where": "reports/frontier/frontier-map-semantics/REPORT.md L125-127 ('Every cell below is derived from the committed alternatives.json by check_report_numbers.py (§9d D-8), not typed by hand') and L408 (D-8 row); state/frontier/frontier-map-semantics.json 'recurring_pathology_fix'",
+      "defect": "The cycle's class-level pathology fix is overstated and demonstrably false. I copied REPORT.md, changed the §5 DE-A1 cell from 'FAIL 6/11' to 'FAIL 9/11' and the IT-A1 cell from 'FAIL 5/11' to 'FAIL 6/11' (two falsified cells), and check_report_numbers.py still exited 0 with 184 CHECK-OK / ALL-CHECKS-PASSED. Its §5 checks are `f'FAIL {n}/{total}' in flat` and `g in flat` — global substring presence on the whitespace-flattened document — so a number only has to appear SOMEWHERE, not in the right cell. The §5 table remains hand-typed prose; the five mutation controls prove the checker rejects the four specific needle patterns they inject, not that it binds table cells to artifacts.",
+      "required": "Either bind every §5 cell to its (bundle, alternative) artifact key positionally, or stop claiming the prose is derived. Do not ship a checker-strength claim that a falsification refutes.",
+      "admissible_as_another_prose_repair_cycle": false,
+      "why_not": "The cycle was dispatched specifically to stop prose drift; a further cycle would be the fifth iteration of edit-prose-add-a-check. The structural fix (generate the claim surface from artifacts, or delete the narrative and publish only derived tables) is a harness redesign, not a same-cycle patch."
+    },
+    {
+      "id": "F3",
+      "severity": "material",
+      "repair_class": "recurring_pathology_structural",
+      "where": "results/frontier/frontier-map-semantics/VERIFICATION_38851887303.json input_identity",
+      "defect": "Self-contradictory verification claim in the artifact created by this cycle: it asserts accepted_mount_available=true, all_three_way_sha256_identical=true and 'it is available in the team environment here and is hashed directly', while all four per-bundle accepted_mount_sha256 and accepted_mount_path fields are null. Three-way identity cannot be true when the third side is null. Unverifiable in this audit environment (/tmp/lex_accepted does not exist here either).",
+      "required": "Either populate the accepted-mount hashes or restate the disclosure as carried-forward rather than measured.",
+      "admissible_as_another_prose_repair_cycle": false
+    },
+    {
+      "id": "F4",
+      "severity": "minor",
+      "repair_class": "record_accuracy",
+      "where": "results/frontier/frontier-map-semantics/VERIFICATION_38851887303.json write_scope.paths_modified",
+      "defect": "Lists 3 of the 5 files this cycle actually modified; omits VERIFICATION_38851887303.json itself and state/frontier/frontier-map-semantics.json. All five are inside the team's namespace, so this is an incomplete record, not a scope violation.",
+      "required": "Record all five modified paths.",
+      "admissible_as_another_prose_repair_cycle": false
+    },
+    {
+      "id": "F5",
+      "severity": "minor",
+      "repair_class": "record_accuracy",
+      "where": "reports/frontier/frontier-map-semantics/REPORT.md L97-101 (§3b), L577-583 (§11c item 2), L606-612 (note to audit lane)",
+      "defect": "Carried-over / stale prose: (a) 'Projection fidelity improves on every bundle' is contradicted by its own parenthetical, where IT's rho(2d,cos) DECREASES 0.184 -> 0.138 and only kNN@10 improves (0.226 -> 0.259); (b) §11c item 2 and the note to the audit lane describe the base as a3c7b59 depth-1 and call it 'the tip', while the run's own tip is 36962a7; (c) §11c describes the freeze-ordering proof as re-derived at 15362f68, which is true but is itself unverifiable from this checkout.",
+      "required": "Restate the projection sentence to match the numbers; fix the tip reference.",
+      "admissible_as_another_prose_repair_cycle": false
+    },
+    {
+      "id": "F6",
+      "severity": "blocking_process",
+      "repair_class": "outside_team_namespace",
+      "where": "state/frontier_portfolio.json; results/audit/frontier/frontier-map-semantics/CYCLE_38849595347_GATE.json (absent)",
+      "defect": "The re-dispatch loop has a structural cause outside the team's write scope: state/frontier_portfolio.json still carries team frontier-map-semantics at charter_version 1 / status RUN while the team runs charter_version 2, and there is no state/blockers/frontier/frontier-map-semantics.json, so factory-supervisor keeps dispatching a discharged charter. Separately, the prior cycle's audit gate CYCLE_38849595347_GATE.json exists in NO branch, NO git object and nowhere on disk, so this cycle's entire premise (four required_fixes R1-R4, classified same_cycle_prose_only) is unverifiable from an authoritative source. Acceptance test 10 forbids this team from writing results/audit/ or reports/audit/, so it cannot repair the handoff itself. The charter itself names this exact failure mode: audit gates written where 'the gate reader cannot see them and the lane re-dispatches forever'.",
+      "required": "Portfolio/housekeeper action: retire or re-charter the team so the RUN dispatch stops, and re-establish the 38849595347 gate record from the audit job's own history. Both are factory/human-level decisions, not team-level repairs.",
+      "admissible_as_another_prose_repair_cycle": false,
+      "why_blocked": "Repeated repair of the prose would be repetitive; the structural cause is outside the team's acceptance-test-10 write namespace."
+    }
+  ],
+  "claim_ceiling": {
+    "may_claim": [
+      "The frozen-rule measurement on the three gate-packet bundles is VALID and independently reproduced. Under RULES.json the shipped query-map geometry FAILS 0/3: de-kapitalverletzung 5/11, fr-bail-entretien 5/11, it-responsabilita-medica 4/11; the additional-287 render-path context bundle is 3/11 FAIL and is context only, outside the promotion rule.",
+      "Dominant-cluster query-language shares are 0.0545 / 0.0411 / 0.1111 against bundle baselines 0.3731 / 0.2901 / 0.3788 (bar max(0.25, 0.5*base)), and query-term shares 0.0364 / 0.3288 / 0.1778 against baselines 0.3284 / 0.5878 / 0.4470. This is the charter's why_now(b) read-out, reproduced exactly.",
+      "PROJ_RANK 0.296886 / 0.186691 / 0.204488 vs a 0.30 bar; PROJ_SPEARMAN 0.007084 / -0.122612 / 0.188385 vs 0.50; PROJ_KNN10 0.197015 / 0.140458 / 0.203030 vs 0.40 — all FAIL. The DE rank-fidelity near miss is an honest FAIL, not rounded up.",
+      "STRUCTURE_LARGEST 0.4104 / 0.5573 / 0.3409 all PASS (<= 0.60); the charter-1 81.9% mega-cluster is on SUPERSEDED artifacts and must not be quoted against these bundles.",
+      "Un-hydrated-row ablation: pending fraction of the shipped dominant cluster 24/55=0.4364 (DE), 25/73=0.3425 (FR), 25/45=0.5556 (IT); hydrated-only largest share 0.273 / 0.217 / 0.411 against shipped 0.410 / 0.557 / 0.341; dominant-member Jaccard 0.1509 / 0.1639 / 0.1034. Frozen ARTIFACT booleans TRUE / FALSE / TRUE, FR false ONLY on the frozen 0.40 shell-fraction clause (the dissolution clause is satisfied).",
+      "Charter-1 RELATIONS failure is fixed on current artifacts: 25 typed citation edges per gate bundle, 0 missing endpoints, 0 without kind, every edge carrying direction/confidence/seed_decision_id/mention_count. Measured caveat, disclosed: 24/25 (DE), 25/25 (FR), 25/25 (IT) edges touch a pending shell row. The 287 context bundle still carries 0 relations and FAILS RELATIONS.",
+      "Alternatives A1 (drop un-hydrated), A2 (language-aware TF-IDF), A3 (metric MDS on cosine) all FAIL under the identical frozen rule inside the frozen 2.0 s §9A budget; best is None on every bundle; every committed elapsed_s <= 0.1497 s. The branch terminated at three candidates per the stop rule. Every alternative drops RELATIONS (25 -> 1 on DE, 25 -> 0 on FR and IT), i.e. the coherence gain is purchased by deleting the rows that carry the edges.",
+      "The geometry question is CLOSED as an accepted negative result: keep the shipped geometry; no further geometry work (3D, dense embeddings, UMAP, multilingual-embedding projects, the 174k corpus) until after the human gate is answered.",
+      "Non-vacuity, reported per control as measured: the frozen C-charter corruption control flips 2 / 2 / 1 criteria on DE / FR / IT and 1 on the 287 context bundle, corrupted geometry FAILs overall on all four, and nonvacuity.passed is TRUE on DE and FR and FALSE on IT and 287. The frozen assertion is MET on DE and FR and NOT MET on IT — this is the accurate statement and the team's report now says so.",
+      "The frozen permutation control is structurally under-powered: only 3/11 criteria (5/11 under C-full) are movable under an id+label permutation, and this is measured per control (movable_criteria) rather than asserted.",
+      "A separately declared POSITIVE control (query-relevant cluster re-assignment, no RNG, feeds no verdict) attains the hard upper bound query-language share on each gate bundle — 50/55=0.9091 (DE), 38/73=0.5205 (FR), 45/45=1.000 (IT) — flipping both coherence criteria and establishing that the failing coherence bars are reachable, not vacuous. It is a different control from the frozen corruption control and does NOT substitute for acceptance test 4.",
+      "On the 287 context bundle COHERENCE_QUERY_LANG is provably unreachable under ANY partition: 37 French rows of 287 with a 195-row dominant cluster gives a maximum attainable share of 0.1897 against a 0.25 bar.",
+      "Zero-cost and reproducible: the harness has no network code path (zero network calls) and regenerated all four report.json / alternatives.json byte-identically in a fresh environment (python 3.12.3, numpy 2.5.4, scikit-learn 1.9.1, scipy 1.18.1), differing only in 20 wall-clock leaves and one NaN-vs-NaN field with zero verdict impact. check_decision.py 49 CHECK-OK and check_report_numbers.py 184 CHECK-OK, both exit 0; regenerated CHECK.log byte-identical to the committed one; 12 test functions / 16 pytest cases pass.",
+      "Write scope held: this cycle touched only frontier/frontier-map-semantics/, tests/frontier/frontier-map-semantics/, reports/frontier/frontier-map-semantics/, results/frontier/frontier-map-semantics/ and state/frontier/frontier-map-semantics.json. No product/, evaluation/, results/product/, state/product.json or .github/ write; human_gate_ready untouched; no human-gate answer written."
+    ],
+    "may_not_claim": [
+      "Must not present this cycle as integrated or accepted: gate BLOCKED, safe_to_integrate false, accepted_run_id and accepted_commit are both null.",
+      "Must not claim the report's prose is derived from the artifacts. It is not: check_report_numbers.py binds numbers by global substring presence, and falsifying two §5 table cells leaves it exiting 0 ALL-CHECKS-PASSED. The §5 table, the §3b narrative and the §11 prose remain hand-typed.",
+      "Must not claim alternatives 'lose OUTLIER_VALIDITY on FR and IT'. Shipped IT OUTLIER_VALIDITY already FAILs (citation graph degenerate, degree sum 0.0); on FR only A1 and A3 lose it, A2 keeps it. This is the defect F1 this cycle introduced.",
+      "Must not claim the accepted product mount was hashed directly in this cycle: every per-bundle accepted_mount_sha256 and accepted_mount_path in VERIFICATION_38851887303.json is null, and /tmp/lex_accepted does not exist in the audit environment either.",
+      "Must not claim the frozen >=2-shift non-vacuity assertion passes on all three gate bundles. It passes on DE and FR only; nonvacuity.passed is false on it-responsabilita-medica and on the 287 context bundle, and it cannot be repaired without redefining a frozen assertion or re-drawing a seed until it passes.",
+      "Must not quote charter-1's 81.9% mega-cluster, zero relation edges, LABEL_CONTENT ~0.6-0.7 or PROJ_RANK ~0.15 as properties of the current accepted gate bundles — those are superseded artifacts. Equally, must not quote them as fixed-on-current without naming the artifacts each number belongs to.",
+      "Must not read LABEL_CONTENT_FRACTION = 1.000 as evidence that labels are informative. The frozen bar only excludes stopwords and BGE/ATF citation fragments; the measured label terms are dominated by two-character fragments ('co', 'in', 'ii', 'fr', 'bis', 'qu', 'am', 'os', 'ja', 'ai') that are not in the vendored stopword list. The charter's why_now(d) concern — administrative/procedural vocabulary on substantive queries — is REPRODUCED in the measured dominant labels ('bundespersonal, stgb, marz, ii, fristen'; 'acjc, grave, cantonal, jusqu, cour'; 'ii, atti, causale, rinvio, nesso') and is NOT detected by any frozen criterion. Whether a cluster label 'explains why the group exists' remains UNMEASURED and must not be reported as satisfied.",
+      "Must not assert any cause for the FR ARTIFACT=false boolean, the shipped-vs-recompute drift (largest share 0.410 vs 0.537 DE, 0.557 vs 0.305 FR, 0.341 vs 0.848 IT), or the earlier cross-environment float movement. All are UNMEASURED and disclosed as such (RF3 honored).",
+      "Must not assert a mechanism for the relation-edge collapse beyond 'the rows A1 deletes are the rows the edges attach to'. What survives on the single surviving DE edge was not measured this cycle.",
+      "Must not claim any geometry could make the 287 context bundle pass COHERENCE_QUERY_LANG: provably unreachable (0.1897 vs a 0.25 bar).",
+      "Must not re-measure an already-measured bundle, re-draw a control seed, edit RULES.json or any frozen bar, widen into 3D / dense embeddings / UMAP / the 174k corpus, write a human-gate answer, touch human_gate_ready, or write outside the team's acceptance-test-10 namespace.",
+      "Must not rely on CYCLE_38849595347_GATE.json as an authoritative record: it exists in no branch, no git object and no filesystem path. The R1-R4 premise of this cycle rests on the producer's own account of it."
+    ]
+  },
+  "evidence_summary": {
+    "method": "Read-only audit of the producer worktree at /tmp/lex_team (head 36962a7, base a3c7b59). The produced component was first RUN against its acceptance contract in a fresh venv (python 3.12.3, numpy 2.5.4, scikit-learn 1.9.1, scipy 1.18.1), then every verdict-relevant number was recomputed with independent implementations written from the frozen RULES.json definitions, importing no harness metric code. The report's prose claims were then attacked by injecting falsifications into a copy of REPORT.md.",
+    "smoke_test": {
+      "harness_executed": true,
+      "command": "PYTHONPATH=frontier/frontier-map-semantics python -m frontier_map_semantics.cli --bundle <vendored> --out <dir> --rules results/frontier/frontier-map-semantics/RULES.json --bundle-key <key> --alternatives",
+      "bundles_run": ["de-kapitalverletzung", "fr-bail-entretien", "it-responsabilita-medica", "additional-287"],
+      "network_calls": 0,
+      "reproduces_committed_artifacts": "YES — 0 material leaf diffs on all 8 artifacts; 20 wall-clock leaves differ and 1 NaN-vs-NaN field (additional-287 relations mean_confidence). Stronger than cycle 38846038296, which observed 3 cross-environment float movements; this rerun showed none.",
+      "frozen_rules_mode_works": true,
+      "check_decision": "exit 0 ALL-CHECKS-PASSED, 49 CHECK-OK; regenerated CHECK.log byte-identical to the committed one",
+      "check_report_numbers": "exit 0 ALL-CHECKS-PASSED, 184 CHECK-OK",
+      "tests": "12 test functions / 16 pytest cases, all passing"
+    },
+    "independent_recompute": {
+      "method": "auditor-written implementations of the 11 frozen criteria from RULES.json; only the vendored STOPWORDS/CIT_RE constants transcribed, no harness code imported",
+      "verdicts": {"de-kapitalverletzung": "FAIL 5/11", "fr-bail-entretien": "FAIL 5/11", "it-responsabilita-medica": "FAIL 4/11", "additional-287": "FAIL 3/11"},
+      "matches_committed_artifacts_exactly": true,
+      "criterion_values": {
+        "COHERENCE_QUERY_LANG": [0.054545, 0.041096, 0.111111],
+        "COHERENCE_QUERY_LANG_baseline": [0.373134, 0.290076, 0.378788],
+        "COHERENCE_QUERY_TERM": [0.036364, 0.328767, 0.177778],
+        "COHERENCE_QUERY_TERM_baseline": [0.328358, 0.587786, 0.446970],
+        "PROJ_RANK": [0.296886, 0.186691, 0.204488],
+        "PROJ_SPEARMAN": [0.007084, -0.122612, 0.188385],
+        "PROJ_KNN10": [0.197015, 0.140458, 0.203030],
+        "STRUCTURE_LARGEST": [0.410448, 0.557252, 0.340909],
+        "STRUCTURE_SEP": [0.976944, 1.003023, 0.974835],
+        "LABEL_CONTENT_FRACTION": [1.0, 1.0, 1.0],
+        "LABEL_JACCARD": [0.022817, 0.067319, 0.066681],
+        "OUTLIER_VALIDITY": ["PASS", "PASS", "FAIL (citation graph degenerate, degree sum 0.0)"],
+        "RELATIONS": ["25 edges PASS", "25 edges PASS", "25 edges PASS"]
+      },
+      "dominant_clusters_reproduce_director_readout": "DE 'bundespersonal, stgb, marz, ii, fristen' 55/134; FR 'acjc, grave, cantonal, jusqu, cour' 73/131; IT 'ii, atti, causale, rinvio, nesso' 45/132",
+      "relations_detail": "25 edges per gate bundle, all kind='citation', directions incoming/outgoing, 0 missing endpoints, 0 without kind",
+      "nonvacuity_reproduced": "charter flips 2/2/1 (DE/FR/IT), movable 3/11 charter and 5/11 full, passed true/true/false; positive control 2 flips on each gate bundle attaining the exact upper bounds 50/55, 38/73, 45/45; 287 max attainable 37/195=0.1897",
+      "alternatives_reproduced": "A1/A2/A3 all FAIL, best None on every bundle, all elapsed <= 0.15 s, RELATIONS collapse 1/0/0 on DE/FR/IT; measured losses versus shipped: DE [RELATIONS] x3; FR [RELATIONS] x3 plus [OUTLIER_VALIDITY] for A1 and A3 only; IT [RELATIONS] x3",
+      "287_context": "287 decisions, 0 relations, largest share 0.6794 (FAIL), overall 3/11"
+    },
+    "adversarial_findings": [
+      {
+        "id": "F1",
+        "severity": "blocking",
+        "introduced_by": "this cycle's R2 repair",
+        "claim": "REPORT.md L148-149 and L543-544: 'FR/IT additionally give back OUTLIER_VALIDITY'; repeated in state/frontier/frontier-map-semantics.json and VERIFICATION_38851887303.json audit_repaired.R2.how",
+        "falsified_by": "shipped IT OUTLIER_VALIDITY is already FAIL (criteria table L35 'FAIL (graph degenerate 0.0/0.0)', report.json pass=false) and measured IT losses vs shipped are RELATIONS only; FR A2 keeps OUTLIER_VALIDITY True",
+        "same_document_contradiction": "L131-L133 (§5 IT cells) list only 'loses RELATIONS'; L35 shows IT OUTLIER_VALIDITY FAIL",
+        "checker_caught_it": false
+      },
+      {
+        "id": "F2",
+        "severity": "blocking",
+        "introduced_by": "this cycle's D-8 class-level fix",
+        "claim": "REPORT.md L125-127 'Every cell below is derived from the committed alternatives.json by check_report_numbers.py (§9d D-8), not typed by hand'",
+        "falsified_by": "auditor mutation: DE A1 cell 'FAIL 6/11' -> 'FAIL 9/11' and IT A1 cell 'FAIL 5/11' -> 'FAIL 6/11'; check_report_numbers.py exit 0, 184 CHECK-OK, ALL-CHECKS-PASSED",
+        "root_cause": "the checker tests `in flat` on the whitespace-flattened document, so numbers are bound to the document, not to the table cell",
+        "checker_caught_it": false
+      },
+      {
+        "id": "F3",
+        "severity": "material",
+        "introduced_by": "this cycle's verification artifact",
+        "claim": "VERIFICATION_38851887303.json input_identity: accepted_mount_available=true, all_three_way_sha256_identical=true, 'hashed directly', 'closes_prior_disclosure'",
+        "falsified_by": "all four per-bundle accepted_mount_sha256 and accepted_mount_path are null; /tmp/lex_accepted does not exist in this audit environment either",
+        "checker_caught_it": false
+      },
+      {
+        "id": "F4",
+        "severity": "minor",
+        "claim": "VERIFICATION_38851887303.json write_scope.paths_modified lists 3 files",
+        "falsified_by": "git diff --name-only a3c7b59 36962a7 shows 5 (omits the verification file and the state file); all inside the namespace, so record inaccuracy only",
+        "checker_caught_it": false
+      },
+      {
+        "id": "F5",
+        "severity": "minor",
+        "claim": "REPORT.md L97-101 'Projection fidelity improves on every bundle (rho ... 0.184 -> 0.138 IT ...)'",
+        "falsified_by": "IT rho(2d,cos) DECREASES 0.184 -> 0.138 on the hydrated-only panel; only kNN@10 improves 0.226 -> 0.259. Pre-existing prose from an earlier cycle, not introduced this cycle, but never caught by any checker across four cycles.",
+        "checker_caught_it": false
+      }
+    ],
+    "positive_findings": [
+      "R1, R3 and R4 of the prior audit's required fixes are genuinely paid: the acceptance-test-4 sentence is now the accurate per-bundle statement, the wall-time column carries the nine committed elapsed_s values, and the test count is derived from the suite.",
+      "The five R1-R4 mutation controls are well constructed and non-vacuous by construction: they assert needle presence/absence, assert the clean report passes, assert the mutated report is rejected, and assert the CHECK-FAIL names the check targeting THAT defect.",
+      "DECISION.txt is true of the tables — every number independently cross-checked (0/3, DE 5/11, FR 5/11, IT 4/11, 0.055/0.041/0.111, ARTIFACT DE+IT, FR 0.557->0.217, RELATIONS 25 and LABEL_CONTENT 1.0 pass on all three, A1/A2/A3 FAIL under 2 s, best None).",
+      "No threshold edit: RULES.json sha256 a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633 is byte-identical to the freeze commit c6d6c1e; git diff over every report.json / alternatives.json / DECISION.txt / CHECK.log / inputs path is empty; no frozen_at_utc field written.",
+      "No bundle re-measured and no control seed redrawn; all 11 criterion verdicts, the whole ablation block, the non-vacuity flags and the ARTIFACT booleans are unchanged across the cycle.",
+      "State file is otherwise honest: cycle_status COMPLETE_NEGATIVE_RESULT, continue_recommended false, accepted_run_id null, accepted_commit null, no overclaim in geometry_decision.",
+      "Write scope clean: the 5 modified files are all inside the team's namespace; the results/audit/ and reports/audit/ entries present in the history are the audit job's own outputs, not the producer's."
+    ],
+    "provenance_defect": {
+      "finding": "CYCLE_38849595347_GATE.json — the audit gate that this cycle exists to repair — does not exist in any branch, in any git object (searched every commit of every ref), or anywhere on the filesystem. The audit checkout at audit-base 15362f6 contains only CYCLE_38846038296_GATE.json.",
+      "consequence": "The four required_fixes this cycle claims to pay (R1 blocking, R2 material, R3 minor, R4 minor, all same_cycle_prose_only) are known only from the producer's own account in REPORT.md §11 and VERIFICATION_38851887303.json. I verified the four DESCRIBED defects are in fact absent from the current REPORT.md, so the substance of the repairs can be assessed, but the premise is unauthenticated.",
+      "note": "The charter itself names this failure mode in FACTORY-WIDE: audit gates written where the gate reader cannot see them cause the lane to re-dispatch forever. Acceptance test 10 forbids the producer from writing results/audit/ or reports/audit/, so the handoff gap is a workflow-level defect, not a team defect."
+    },
+    "loop_diagnosis": {
+      "runs_after_the_discharged_measurement": ["38840496500", "38846038296", "38849595347", "38851887303"],
+      "new_science_after_run_38840496500": "none — zero measurement artifacts changed in the last three cycles",
+      "portfolio_state": "state/frontier_portfolio.json still carries team frontier-map-semantics at charter_version 1 with status RUN, while the team runs charter_version 2; state/blockers/frontier/frontier-map-semantics.json does not exist (only frontier-human-gate-harness.json).",
+      "consequence": "factory-supervisor's charter_version-matching dispatch logic keeps re-dispatching a charter the team itself records as discharged with continue_recommended=false. Three consecutive cycles have produced zero new measurement and one new prose defect each.",
+      "ownership": "outside the team's acceptance-test-10 write namespace; requires factory-supervisor / factory-housekeeper or a human decision"
+    },
+    "freeze_ordering": {
+      "re_derived_here": true,
+      "freeze_commit": "c6d6c1e @ 2026-10-16T02:17:54Z",
+      "harness_commit": "d0dc6ff @ 2026-10-16T02:24:28Z",
+      "first_measurement_commit": "c1aaaca @ 2026-10-16T02:26:39Z",
+      "ordering_valid": true,
+      "note": "The producer could not re-derive this (depth-1 clone, c6d6c1e7 absent) and said so honestly. I re-derived it from the full producer clone. RULES.json is byte-identical to its freeze value, so acceptance test 1 holds."
+    },
+    "acceptability_of_the_science": "VALID — the frozen measurement, the ablation, the alternatives and the negative result are sound, reproducible and honestly reported, and this gate preserves them. BLOCKED applies to the producer cycle's claim surface and to the re-dispatch loop, not to the measurement."
+  },
+  "product_recommendation": "Product backlog item (4) may adopt the geometry verdict as input without waiting, exactly as with charter 1: the shipped geometry FAILS the frozen rule on all three gate bundles, A1/A2/A3 all FAIL inside the 2 s budget, so keep the shipped geometry and close geometry work (3D, dense embeddings, UMAP, multilingual embeddings, 174k corpus) until after the human gate is answered. Product must not cite the report's §5 narrative (F1) or the D-8 derivation claim (F2); it should cite report.json and alternatives.json directly, which are sound.",
+  "report": "reports/audit/frontier/frontier-map-semantics/CYCLE_38851887303.md"
+}
