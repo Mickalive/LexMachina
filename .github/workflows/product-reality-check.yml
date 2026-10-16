@@ -48,6 +48,7 @@ jobs:
           python - <<'PY'
           import json
           import os
+          import re
           import sys
           import time
           import unicodedata
@@ -137,6 +138,7 @@ jobs:
               "counter_count": len(counter_rows),
               "counter_decisions": counter_rows[:12],
               "provider_error": ga.get("provider_error"),
+              "provider_attempts": ga.get("provider_attempts"),
               "adversarial_method": adv.get("method"),
               "adversarial_model": adv.get("model"),
               "adversarial_error": adv.get("error"),
@@ -168,18 +170,35 @@ jobs:
               value = "".join(ch for ch in value if not unicodedata.combining(ch))
               return " ".join(value.casefold().split())
 
-          prose = norm(answer.get("prose"))
+          prose_raw = str(answer.get("prose") or "")
+          prose = norm(prose_raw)
           cited_ids = set(answer.get("cited_decision_ids") or [])
 
+          # All four frozen questions are in French. A Swiss-law answer may quote
+          # German/Italian sources, but the synthesis itself must remain French
+          # and must not contain corrupted CJK/token garbage.
+          assert not re.search(r"[\u3400-\u9fff]", prose_raw), "corrupted/non-French token leakage"
+          french_markers = sum(
+              marker in f" {prose} "
+              for marker in (" le ", " la ", " les ", " selon ", " doit ", " lorsque ", " tribunal ", " responsabilite ", " resiliation ")
+          )
+          assert french_markers >= 3, "answer is not synthesized in the user's language"
+
+          # Product latency gate: the map can be progressive, but a full answer
+          # taking five-to-eight minutes is not acceptable even if legally sound.
+          assert total_seconds < 300, f"full product answer too slow: {total_seconds}s"
+
           if slug == "rent-default":
-              assert "30" in prose, report
-              assert (
-                  "fin d'un mois" in prose
-                  or "fin d’un mois" in prose
-                  or "fin de mois" in prose
-                  or "fin du mois" in prose
-                  or "ende eines monats" in prose
-              ), "missing Art. 257d(2) residential termination notice period"
+              # Do not allow the 30-day cure period + a separate month-end phrase
+              # to masquerade as the distinct Art. 257d(2) termination notice.
+              notice_patterns = (
+                  r"(?:preavis|delai de conge|kundigungsfrist)[^.!?\n]{0,100}30\s+jours[^.!?\n]{0,120}(?:fin (?:d'un|du|de) mois|ende eines monats|monatsende)",
+                  r"30\s+jours[^.!?\n]{0,100}(?:pour|jusqu.a|sur)[^.!?\n]{0,50}(?:fin (?:d'un|du|de) mois|ende eines monats|monatsende)",
+                  r"30\s+tage[^.!?\n]{0,100}(?:ende eines monats|monatsende)",
+              )
+              assert any(re.search(p, prose) for p in notice_patterns), (
+                  "missing distinct Art. 257d(2) 30-day notice to month-end"
+              )
               assert (
                   "abus" in prose or "bonne foi" in prose or "rechtsmissbrauch" in prose
               ), "missing jurisprudential limitation / good-faith branch"
@@ -187,11 +206,13 @@ jobs:
           elif slug == "corporate-criminal-liability":
               assert "subsidi" in prose, "missing Art. 102(1) subsidiary branch"
               assert (
-                  "responsabilite primaire" in prose or "originar" in prose
+                  "responsabilite primaire" in prose or "responsabilite originaire" in prose
+                  or "originar" in prose
               ), "missing Art. 102(2) primary/original liability"
               assert "ne cree pas une responsabilite primaire" not in prose, (
                   "answer reverses the Federal Supreme Court's Art. 102(2) classification"
               )
+              assert ("organisation" in prose or "organis" in prose), "missing organizational-fault requirement"
               assert cited_ids & {"bge_BGE_142_IV_333", "bger_6B_124_2016"}, (
                   "answer must use direct Federal Supreme Court Art. 102(2) authority"
               )
@@ -202,12 +223,19 @@ jobs:
                   "conflit" in prose or "interessenkonflikt" in prose
               ), "missing conflict-of-interest criterion"
               assert (
+                  "processus" in prose or "verfahren" in prose
+              ), "missing decision-process criterion"
+              assert (
                   "retenue" in prose or "zuruckhaltung" in prose or "deference" in prose
                   or "abstient" in prose or "abstenir" in prose
               ), "missing judicial-restraint proposition"
+              assert (
+                  "defendable" in prose or "vertretbar" in prose or "justifiable" in prose
+                  or "plausible" in prose
+              ), "missing residual merits threshold"
               assert cited_ids & {
                   "bger_4A_219_2015", "bger_4A_259_2016", "bger_4A_626_2013",
-                  "bger_4A_603_2014", "bger_4A_62_2024",
+                  "bger_4A_603_2014", "bger_4A_62_2024", "bge_BGE_139_III_24",
               }, "answer must cite direct Federal Supreme Court BJR authority"
 
           elif slug == "petty-theft-dismissal":
@@ -215,6 +243,18 @@ jobs:
               assert ids & direct, "retrieval missed direct Federal Supreme Court petty-theft authority"
               assert cited_ids & direct, "answer ignored direct Federal Supreme Court petty-theft authority"
               assert (
-                  "faible valeur" in prose or "geringfug" in prose or "bagatell" in prose
-              ), "answer does not address the low-value fact pattern"
+                  "confiance" in prose or "vertrauen" in prose or "treuepflicht" in prose
+              ), "missing trust relationship / duty-of-loyalty analysis"
+              low_value_rule = (
+                  r"(?:meme|y compris)[^.!?\n]{0,60}(?:faible valeur|peu de valeur)[^.!?\n]{0,100}(?:peut|justif)",
+                  r"(?:faible valeur|peu de valeur)[^.!?\n]{0,120}(?:n.est pas decisive|n.est pas determinante|n.exclut pas|ne fait pas obstacle|peut justifier)",
+                  r"(?:geringfug|bagatell)[^.!?\n]{0,120}(?:nicht ausschlaggebend|kann[^.!?\n]{0,50}fristlos)",
+              )
+              assert any(re.search(p, prose) for p in low_value_rule), (
+                  "answer must state that low value is not itself decisive/exclusive"
+              )
+              assert not re.search(
+                  r"(?:faible valeur|peu de valeur)[^.!?\n]{0,100}ne justifie (?:generalement )?pas",
+                  prose,
+              ), "answer improperly turns low value into a presumptive bar"
           PY
