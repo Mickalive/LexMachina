@@ -3,14 +3,14 @@
   "charter_version": 1,
   "direction_version": 50,
   "evidence_tier": "ACCEPTED",
-  "cycle_status": "COMPLETE_OUTCOME_A_ADOPTABLE_COMPONENT",
+  "cycle_status": "COMPLETE_OUTCOME_A_ADOPTABLE_COMPONENT_REPAIRED_AND_STOP_CONTRACT_BUILT",
   "continue_recommended": false,
   "accepted_run_id": "38964146628",
   "accepted_commit": null,
   "measured_packet": "gate_packet/38839347028",
   "frozen_rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
   "outcome": "A",
-  "outcome_note": "Adoptable component. Sentence-anchored abstain-first decision function raises counter-label support from 5/65 = 0.0769 (incumbent, reproduced byte-identical) to 5/5 = 1.0 among emitted labels, INVERTED == 0, on the same 65 rows of the same 3 bundles under the FROZEN rubric. Yield 65 -> 5; 60 unsupported labels converted to COUNTED abstentions. Acceptance tests (1)-(8) pass. Core Product remains the integrator and decides adoption.",
+  "outcome_note": "Adoptable component, unchanged by run 38970902524. The sentence-anchored abstain-first decision function raises counter-label support from 5/65 = 0.0769 (incumbent, reproduced) to 5/5 = 1.0 among emitted labels, INVERTED == 0, converting 60 unsupported labels into COUNTED abstentions. Outcome A was accepted in run 38964146628; run 38970902524 independently re-verified every number and repaired four defects (accepted-audit advisories C, D, E plus a broken CLI default path) without changing any measurement. Core Product remains the integrator and decides adoption.",
   "head_to_head": {
     "incumbent_support_rate": 0.07692307692307693,
     "incumbent_n_scored": 65,
@@ -32,6 +32,13 @@
       "inverted_label_control_support_rate": 0.0,
       "swapped_evidence_control_support_rate": 0.0,
       "all_controls_strictly_below_candidate": true
+    },
+    "accepted_comparison_coverage": {
+      "rows_compared": 65,
+      "rows_matched": 65,
+      "rows_divergent": 0,
+      "duplicate_decision_ids": 4,
+      "note": "run 38970902524: the accepted comparison previously keyed by decision_id and covered only 61 of the 65 rows; it is now a multiset comparison over full verdict tuples and covers all 65."
     }
   },
   "run_history": [
@@ -54,6 +61,199 @@
       ],
       "tests": "22 passed",
       "note": "Outcome A reached; charter terminates here. No further cycle under the same charter is justified: the rubric is frozen and post-hoc tuning would invalidate it. Adoption is Core Product's decision."
+    },
+    {
+      "run_id": "38970902524",
+      "charter_version": 1,
+      "cycle_kind": "VERIFICATION_AND_REPAIR_OF_AN_ACCEPTED_OUTCOME",
+      "cycle_status": "COMPLETE_OUTCOME_A_ADOPTABLE_COMPONENT_REPAIRED",
+      "evidence_tier": "ACCEPTED",
+      "continue_recommended": false,
+      "frozen_rules_sha256_reproven": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+      "independent_reverification": {
+        "incumbent": "5/65 = 0.07692307692307693, INVERTED 0, reproduced",
+        "multiset_vs_LABEL_HALF": "65/65 matched, 0 divergent",
+        "candidate": "5 emitted / 60 abstained / support 1.0 among emitted / yield 0.0769 / INVERTED 0",
+        "non_vacuity": "inverted-label 0/2 = 0.0, swapped-evidence 0/5 = 0.0, both strictly below 1.0",
+        "verdict": "the accepted Outcome A claim is sound as stated"
+      },
+      "repairs": [
+        "D accepted-comparison coverage 61 -> 65 rows",
+        "E unmapped counter_status abstains instead of defaulting to limiting",
+        "C corrected the published swapped-control reason to pivot_absent",
+        "CLI fixed the documented invocation and the default output path"
+      ],
+      "tests": "46 passed",
+      "artifacts": [
+        "frontier/frontier-counter-anchor-classifier/frontier_counter_anchor_classifier/counter_anchor_classifier.py",
+        "frontier/frontier-counter-anchor-classifier/frontier_counter_anchor_classifier/run_head_to_head.py",
+        "results/frontier/frontier-counter-anchor-classifier/HEAD_TO_HEAD_R2_38970902524.json",
+        "results/frontier/frontier-counter-anchor-classifier/CYCLE_38970902524_VERIFICATION.json",
+        "results/frontier/frontier-counter-anchor-classifier/INTEGRATION_CONTRACT.json (revision 2)",
+        "reports/frontier/frontier-counter-anchor-classifier/REPORT.md (cycle 38970902524 section)",
+        "tests/frontier/frontier-counter-anchor-classifier/test_repair_38970902524.py",
+        "tests/frontier/frontier-counter-anchor-classifier/test_repair_population_preserved.py",
+        "tests/frontier/frontier-counter-anchor-classifier/fixtures/real_emitted_rows.json"
+      ],
+      "artifacts_untouched": [
+        "results/frontier/frontier-counter-anchor-classifier/HEAD_TO_HEAD.json",
+        "results/frontier/frontier-counter-anchor-classifier/RULES_LABEL.json",
+        "results/frontier/frontier-counter-anchor-classifier/CLAIM_CEILING.json"
+      ],
+      "note": "Outcome A stands and the charter stays TERMINATED. The component now needs an independent audit of run 38970902524, not another charter cycle; adoption is Core Product's decision."
+    },
+    {
+      "run_id": "38971898060",
+      "charter_version": 1,
+      "cycle_kind": "OPERATIONAL_RESUME_OF_A_TERMINATED_CHARTER",
+      "cycle_status": "COMPLETE_OUTCOME_A_ADOPTABLE_COMPONENT_REPAIRED_PORTFOLIO_STOP_FIXED",
+      "evidence_tier": "ACCEPTED",
+      "continue_recommended": false,
+      "dispatch_anomaly": {
+        "detected_run": "38971898060",
+        "condition": "charter v1 re-dispatched a THIRD time after its stop/promote rule had already fired at Outcome A (run 38964146628, gate=PASS, continue_recommended=false)",
+        "root_cause": "state/frontier_portfolio.json still carried status=RUN, run_history=[], continue_recommended=true, promotion_status=null after both the acceptance and the verification-and-repair cycle; the producer dispatch query select(.status==\"RUN\") therefore re-dispatched the terminated charter every cycle",
+        "handling": "absorbed as operational resume: no new charter cycle opened, no new claim issued, no re-measurement; the portfolio entry was fixed to status=TERMINATED per the factory-direction v50 route-around (the .status field is the only reliable stop; continue_recommended is unreadable through jq //)"
+      },
+      "accepted_work_reverification": {
+        "frozen_rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+        "frozen_rules_reproven": true,
+        "tests": "46 passed (22 accepted + 24 repair tests)",
+        "incumbent_reproduction": "5/65 = 0.07692307692307693 reproduced byte-identically against LABEL_HALF.json re-staged from origin cycle/frontier/frontier-served-packet-falsification/38877700234/team (sha256 582b4f941af4a6e8cf68b4888944ea68332cdd022c49129ff6c214c8c0668260)",
+        "environmental_note": "the resume environment did not have /tmp/LABEL_HALF.json staged; it was re-fetched from the accepted origin branch and re-hashed before use. No repository artifact was modified to make tests pass.",
+        "headline_numbers_unchanged": true
+      },
+      "portfolio_fix": {
+        "file": "state/frontier_portfolio.json",
+        "before": {
+          "status": "RUN",
+          "continue_recommended": true,
+          "promotion_status": null,
+          "run_history": []
+        },
+        "after": {
+          "status": "TERMINATED",
+          "continue_recommended": false,
+          "promotion_status": "PROMOTED_TO_PRODUCT"
+        },
+        "authority": "factory direction v50 standing route-around: set .status to TERMINATED the moment a charter stop/promote rule is met and independently accepted; never rely on continue_recommended, never wait for the housekeeper",
+        "status": "RETRACTED_NEVER_APPLIED",
+        "retracted_by_run": "38973221261",
+        "retraction_reason": "This lane may not write state/frontier_portfolio.json: the CI scope gate at .github/workflows/frontier-team.yml:161 whitelists only the team namespace, so a team job touching that file exits 4 'Frontier crossed scope'. Only .github/workflows/factory-director.yml:94 may write it. The before/after block above is retained verbatim as evidence of the failure mode; no such edit ever reached main, which is why the charter was dispatched a fourth time.",
+        "corrected_to": {
+          "status": "OUTSTANDING",
+          "owner": "factory_director / repository owner",
+          "single_field": ".teams[frontier-counter-anchor-classifier].status -> \"TERMINATED\"",
+          "verify_with": "python frontier/frontier-counter-anchor-classifier/frontier_counter_anchor_classifier/control_plane_stop_contract.py (expect exit 0)"
+        }
+      },
+      "artifacts": [
+        "results/frontier/frontier-counter-anchor-classifier/CYCLE_38971898060_OPERATIONAL_RESUME.json",
+        "reports/frontier/frontier-counter-anchor-classifier/REPORT.md (cycle 38971898060 section)"
+      ],
+      "note": "Outcome A stands; the charter stays TERMINATED and continue_recommended=false because another cycle under the SAME charter is not justified (stop_promote_rule: never re-dispatch it with the same charter_version). The component needs an independent AUDIT of run 38970902524, not another charter cycle; adoption is Core Product's decision."
+    },
+    {
+      "run_id": "38973221261",
+      "charter_version": 1,
+      "cycle_kind": "OPERATIONAL_RESUME_AND_CONTROL_PLANE_STOP_CONTRACT",
+      "cycle_status": "COMPLETE_OUTCOME_A_ADOPTABLE_COMPONENT_REPAIRED_AND_STOP_CONTRACT_BUILT",
+      "evidence_tier": "ACCEPTED",
+      "continue_recommended": false,
+      "new_claim": false,
+      "frozen_rules_sha256_reproven": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+      "rubric_or_threshold_edited": false,
+      "accepted_work_reverification": {
+        "method": "fresh-context subagent recomputed every headline number from /tmp/LABEL_HALF.json + frozen rubric + candidate module WITHOUT importing run_head_to_head.py",
+        "incumbent": "5/65 = 0.07692307692307693, INVERTED 0",
+        "candidate": "5 emitted / 60 abstained / support 1.0 among emitted / yield 0.0769 / INVERTED 0",
+        "abstention_reasons": {
+          "evidence_absent": 16,
+          "pivot_absent": 38,
+          "no_intent_marker": 4,
+          "no_domain_anchor": 2
+        },
+        "multiset_vs_LABEL_HALF": "65/65 matched, 0 divergent",
+        "non_vacuity": "inverted-label 0/2 = 0.0, swapped-evidence 0/5 = 0.0, both strictly below 1.0",
+        "agrees_with_accepted_claim": true,
+        "divergences": [],
+        "provenance": "LABEL_HALF.json sha256 582b4f941af4a6e8cf68b4888944ea68332cdd022c49129ff6c214c8c0668260 re-fetched from origin cycle/frontier/frontier-served-packet-falsification/38877700234/team (not pre-staged in this environment); accepted verdict snapshot sha256 511962a9232065667dc54a126f728a6da8dba1629752f4b81469d35a7e1a65e0 on origin lab/product",
+        "headline_numbers_unchanged": true
+      },
+      "built_this_cycle": {
+        "module": "frontier/frontier-counter-anchor-classifier/frontier_counter_anchor_classifier/control_plane_stop_contract.py",
+        "tests": "tests/frontier/frontier-counter-anchor-classifier/test_control_plane_stop_contract.py",
+        "what": "read-only, machine-checkable stop contract: evaluates the EXACT supervisor dispatch predicate under real jq, probes the dead exhausted-charter guard, computes the minimal portfolio patch, and exits 3 while the loop is live / 0 once stopped",
+        "observed_exit_code": 3,
+        "contract_satisfied": false,
+        "proposed_patch_applied_by_this_team": false,
+        "why": "the lane cannot apply the patch; it can make the defect reproducible, falsifiable and trivially fixable by the control plane"
+      },
+      "bugs_found_by_new_tests": [
+        "dispatch_predicate ran jq without -c, so the pretty-printed charter stream failed to parse and it reported would_dispatch=false — a false negative that would have hidden the live loop; now invokes jq exactly as the workflow does with a recorded fallback",
+        "probe_exhausted_guard raised TypeError on a None/absent state path instead of degrading"
+      ],
+      "owner_attention_requested": {
+        "one_line": "factory_director/owner: set state/frontier_portfolio.json .teams[frontier-counter-anchor-classifier].status = \"TERMINATED\"; confirm with the stop-contract CLI (expect exit 0)",
+        "why_owner_level": "it is the only write no lane is authorised to make; it is a control-plane state change, not a technical failure"
+      },
+      "artifacts": [
+        "results/frontier/frontier-counter-anchor-classifier/CYCLE_38973221261_STOP_CONTRACT.json",
+        "reports/frontier/frontier-counter-anchor-classifier/REPORT.md (Cycle 38973221261 section + retraction of the 38971898060 'fix' claim)",
+        "frontier/frontier-counter-anchor-classifier/frontier_counter_anchor_classifier/control_plane_stop_contract.py",
+        "tests/frontier/frontier-counter-anchor-classifier/test_control_plane_stop_contract.py"
+      ],
+      "artifacts_untouched": [
+        "results/frontier/frontier-counter-anchor-classifier/HEAD_TO_HEAD.json",
+        "results/frontier/frontier-counter-anchor-classifier/HEAD_TO_HEAD_R2_38970902524.json",
+        "results/frontier/frontier-counter-anchor-classifier/RULES_LABEL.json",
+        "results/frontier/frontier-counter-anchor-classifier/CLAIM_CEILING.json",
+        "results/frontier/frontier-counter-anchor-classifier/CYCLE_38970902524_VERIFICATION.json"
+      ],
+      "tests": "73 passed (46 accepted + repair, 27 new stop-contract)",
+      "note": "Outcome A stands and the charter stays TERMINATED. continue_recommended=false: the stop/promote rule forbids another cycle at charter_version 1. Outstanding: the control-plane portfolio status (owner/director) and an INDEPENDENT AUDIT of run 38970902524."
     }
-  ]
+  ],
+  "repairs": [
+    {
+      "id": "D",
+      "class": "measurement",
+      "summary": "accepted comparison collapsed 4 duplicate decision_ids (61 of 65 rows covered); now a multiset comparison over full verdict tuples",
+      "accepted_measurement_changed": false
+    },
+    {
+      "id": "E",
+      "class": "soundness",
+      "summary": "an unmapped issued counter_status defaulted to the polarity 'limiting', letting the component name a position the row never carried; now a counted abstention (unmapped_proposed_status)",
+      "accepted_measurement_changed": false
+    },
+    {
+      "id": "C",
+      "class": "documentation",
+      "summary": "REPORT.md misstated the swapped-evidence control's gate reason as no_intent_marker; the frozen-precedence truth is pivot_absent",
+      "accepted_measurement_changed": false
+    },
+    {
+      "id": "CLI",
+      "class": "runnability",
+      "summary": "the documented module invocation resolved default paths one directory too shallow and crashed on the frozen rubric; fixed, and the default output can no longer overwrite the accepted claim artifact",
+      "accepted_measurement_changed": false
+    }
+  ],
+  "dispatch_anomaly": {
+    "detected_run": "38973221261 (FOURTH dispatch of charter v1 after its stop/promote rule fired)",
+    "condition": "charter v1 re-dispatched although Outcome A was accepted at run 38964146628 (gate=PASS), re-verified/repaired at 38970902524, and operationally resumed at 38971898060",
+    "root_cause": "WRITE-AUTHORITY, not bookkeeping: main's state/frontier_portfolio.json still carries .status=RUN (run_history=[], continue_recommended=true, promotion_status=null), and the supervisor dispatch predicate is a plain select(.status==\"RUN\"). The team lane is structurally forbidden from writing that file (frontier-team.yml:161 scope gate exits 4); only factory-director.yml:94 may. The intended exhausted-charter guard at factory-supervisor.yml:277 is dead code because jq's // falls through on literal false.",
+    "handling": "absorbed as operational resume; no new charter cycle, no new claim, no re-measurement. The accepted Outcome A was re-verified end to end, the prior cycle's false portfolio_fix claim was retracted in place (preserved, not deleted), and a machine-checkable stop contract was built inside the team namespace.",
+    "cost": "four producer cycles to a charter that terminated at its first outcome",
+    "factory_signal": "a terminated charter must not be re-dispatched at the same charter_version; and a lane that cannot write the field that stops it must not be asked to stop it"
+  },
+  "integration_contract_revision": 2,
+  "tests": "73 passed (46 accepted + repair, 27 new stop-contract tests)",
+  "outstanding_owner_action": {
+    "single_line": "factory_director/owner: set state/frontier_portfolio.json .teams[frontier-counter-anchor-classifier].status = \"TERMINATED\"",
+    "verify": "python frontier/frontier-counter-anchor-classifier/frontier_counter_anchor_classifier/control_plane_stop_contract.py  (exit 3 = loop live, exit 0 = stopped)",
+    "blocking_reason": "no lane is authorised to write that file",
+    "next_team_step": "independent AUDIT of run 38970902524 (not another charter cycle); adoption remains Core Product's decision"
+  }
 }

@@ -1,0 +1,168 @@
+{
+  "schema": "frontier-counter-anchor-classifier/cycle-verification/1",
+  "team_id": "frontier-counter-anchor-classifier",
+  "charter_version": 1,
+  "run_id": "38970902524",
+  "direction_version": 50,
+  "cycle_kind": "VERIFICATION_AND_REPAIR_OF_AN_ACCEPTED_OUTCOME",
+  "dispatch_anomaly": {
+    "charter_already_terminated": true,
+    "terminated_at_run": "38964146628",
+    "terminated_outcome": "A",
+    "accepted_gate": "results/audit/frontier/frontier-counter-anchor-classifier/CYCLE_38964146628_GATE.json gate=PASS safe_to_integrate=true",
+    "charter_stop_rule": "TERMINATE the charter after either outcome; never re-dispatch it with the same charter_version",
+    "handling": "This cycle did NOT open a new charter cycle and did not issue a new claim. It absorbed the duplicate dispatch by independently re-verifying the accepted numbers and repairing the four defects the accepted gate recorded as non-binding advisories. A duplicate dispatch is still a factory-level condition: this component now needs an independent AUDIT of run 38970902524, not another cycle."
+  },
+  "freeze_first_rehash": {
+    "expected_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "team_copy_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "matches": true,
+    "refetched_from_origin_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "origin_source": "origin/cycle/frontier/frontier-served-packet-falsification/38877700234/team:results/frontier/frontier-served-packet-falsification/RULES_LABEL.json",
+    "byte_identical": true,
+    "rubric_edited_this_cycle": false,
+    "lexicon_bar_or_threshold_edited_this_cycle": false
+  },
+  "measurement_population": {
+    "packet": "gate_packet/38839347028",
+    "bundles": [
+      "de-kapitalverletzung",
+      "fr-bail-entretien",
+      "it-responsabilita-medica"
+    ],
+    "languages": 3,
+    "n_scored_counter_rows": 65,
+    "bundle_decision_counts": {
+      "de-kapitalverletzung": 214,
+      "fr-bail-entretien": 217,
+      "it-responsabilita-medica": 211
+    },
+    "accepted_label_half_sha256": "582b4f941af4a6e8cf68b4888944ea68332cdd022c49129ff6c214c8c0668260"
+  },
+  "independent_reverification": {
+    "method": "Fresh recomputation from origin data, not from the committed artifact: the bundles' issued counter labels re-scored with the vendored frozen rubric, compared to LABEL_HALF.json as a MULTISET over full verdict tuples, and the candidate re-run on the same 65 rows.",
+    "incumbent_n_scored": 65,
+    "incumbent_n_supported": 5,
+    "incumbent_support_rate": 0.07692307692307693,
+    "incumbent_INVERTED": 0,
+    "incumbent_accepted_result_reproduced": true,
+    "multiset_rows_compared_accepted": 65,
+    "multiset_rows_compared_reproduced": 65,
+    "multiset_rows_matched": 65,
+    "multiset_rows_divergent": 0,
+    "multiset_equal": true,
+    "duplicate_decision_ids_in_population": [
+      "bge_105 II 114",
+      "bge_131 III 459",
+      "bge_135 III 556",
+      "bge_140 II 112"
+    ],
+    "candidate_n_emitted": 5,
+    "candidate_n_abstained": 60,
+    "candidate_support_rate_among_emitted": 1.0,
+    "candidate_yield": 0.07692307692307693,
+    "candidate_INVERTED": 0,
+    "candidate_abstention_reasons": {
+      "evidence_absent": 16,
+      "no_domain_anchor": 2,
+      "no_intent_marker": 4,
+      "pivot_absent": 38
+    },
+    "issued_counter_statuses_present": {
+      "candidate-contrary": 11,
+      "candidate-limiting": 45,
+      "contrary_or_exception": 9
+    },
+    "unmapped_counter_statuses_present": [],
+    "non_vacuity_inverted_label_control": 0.0,
+    "non_vacuity_swapped_evidence_control": 0.0,
+    "non_vacuity_controls_strictly_below_candidate": true,
+    "headline_numbers_unchanged_vs_accepted_run_38964146628": true,
+    "verdict": "ACCEPTED OUTCOME A CLAIM IS SOUND AS STATED"
+  },
+  "repairs": [
+    {
+      "id": "D",
+      "source": "accepted audit advisory D",
+      "class": "measurement defect",
+      "defect": "_compare_to_accepted keyed both sides by decision_id into plain dicts. 4 decision_ids occur twice in the 65-row population, so 65 rows collapsed to 61 keys and reproduced_byte_identical_verdicts was asserted on 61 rows; a disagreement between the two copies of a duplicated id would have been invisible.",
+      "impact_if_unrepaired": "the reproduction proof covered 61 of 65 rows",
+      "fix": "multiset (Counter) comparison over (bundle, decision_id, counter_status, primary_defect_class, reason_code, supported), plus coverage_is_full_population and explicit duplicate-id reporting",
+      "coverage_before": 61,
+      "coverage_after": 65,
+      "accepted_measurement_changed": false
+    },
+    {
+      "id": "E",
+      "source": "accepted audit advisory E",
+      "class": "soundness defect",
+      "defect": "STATUS_TO_LABEL.get(proposed, LABEL_LIMITING) turned any unrecognised issued counter_status into the label 'limiting', so the component could name a polarity the row never carried, which its own claim ceiling forbids.",
+      "impact_if_unrepaired": "an adapter feeding a status outside the six documented values would ship a fabricated 'limiting' label",
+      "fix": "an unmapped or empty counter_status now yields a COUNTED abstention with reason unmapped_proposed_status (uncertainty 0.9), audited as criterion vi_proposed_status_mappable; the check is placed LAST in the gate so the four frozen precedence steps and their accepted counts are untouched by construction",
+      "behaviour_preservation_proof": "all 65 rows carry candidate-limiting (45), candidate-contrary (11) or contrary_or_exception (9), all mapped, so the path is unreachable on the measured population; proven by test_repair_population_preserved.py::test_unmapped_status_path_is_unreachable_on_this_population",
+      "accepted_measurement_changed": false
+    },
+    {
+      "id": "C",
+      "source": "accepted audit advisory C",
+      "class": "documentation error in a claim-bearing artifact",
+      "defect": "REPORT.md stated the swapped-evidence control abstains with no_intent_marker",
+      "fix": "corrected in place with a visible correction note; the true frozen-precedence reason is pivot_absent (all 5 control rows), pinned by test_repair_38970902524.py",
+      "note": "both controls scored 0/5 and abstained, so only the stated reason was wrong; the non-vacuity result is unchanged",
+      "accepted_measurement_changed": false
+    },
+    {
+      "id": "CLI",
+      "source": "found this cycle",
+      "class": "runnability defect",
+      "defect": "run_head_to_head.main() resolved the repo root with three dirname() hops, so --rules defaulted to <repo>/frontier/results/.../RULES_LABEL.json and the documented module invocation crashed with FileNotFoundError before scoring. Only the explicit-path test call ever worked.",
+      "fix": "four hops; and the default --out now targets the repair-cycle artifact so a CLI run can never overwrite the accepted HEAD_TO_HEAD.json",
+      "verified": "the documented invocation was re-run end to end and wrote results/frontier/frontier-counter-anchor-classifier/HEAD_TO_HEAD_R2_38970902524.json",
+      "accepted_measurement_changed": false
+    }
+  ],
+  "also_corrected": [
+    "the decide_label docstring listed the frozen precedence with polarity-inversion at step 3 and procedural-formula at step 4; the frozen RULES_LABEL.json order is the reverse, which is what the code and the vendored scorer both apply"
+  ],
+  "tests": {
+    "before": "22 passed",
+    "after": "46 passed",
+    "new_files": [
+      "tests/frontier/frontier-counter-anchor-classifier/test_repair_38970902524.py",
+      "tests/frontier/frontier-counter-anchor-classifier/test_repair_population_preserved.py",
+      "tests/frontier/frontier-counter-anchor-classifier/fixtures/real_emitted_rows.json"
+    ],
+    "fixture_provenance": "the 5 rows the component really emits on the served packet, copied verbatim, so repair tests mutate real rows instead of invented ones",
+    "anti_post_hoc_tuning_guard": "test_repair_population_preserved.py pins every accepted headline number, so a future edit that moved one on the accepted population fails instead of silently rewriting accepted evidence"
+  },
+  "claim_ceiling_machine_check": {
+    "forbidden_construction_patterns_source": "results/frontier/frontier-counter-anchor-classifier/CLAIM_CEILING.json (copied verbatim from the accepted product snapshot)",
+    "artifacts_scanned": [
+      "HEAD_TO_HEAD_R2_38970902524.json",
+      "CYCLE_38970902524_VERIFICATION.json",
+      "REPORT.md",
+      "INTEGRATION_CONTRACT.json",
+      "counter_anchor_classifier.py",
+      "run_head_to_head.py",
+      "test_repair_38970902524.py",
+      "test_repair_population_preserved.py"
+    ],
+    "hits": 0,
+    "claim_ceiling_unchanged": true
+  },
+  "artifacts_untouched": [
+    "results/frontier/frontier-counter-anchor-classifier/HEAD_TO_HEAD.json",
+    "results/frontier/frontier-counter-anchor-classifier/RULES_LABEL.json",
+    "results/frontier/frontier-counter-anchor-classifier/CLAIM_CEILING.json"
+  ],
+  "out_of_scope_writes": "none: this cycle touched only frontier/, results/frontier/, reports/frontier/, state/frontier/ and tests/frontier/ paths; nothing under product/, evaluation/, results/product/, state/product.json, .github/ or any UI asset",
+  "outcome": {
+    "outcome": "A",
+    "changed_this_cycle": false,
+    "outcome_note": "Outcome A stands as accepted in run 38964146628 and was re-verified independently here. This cycle repaired defects in the component and its harness; it produced no new claim.",
+    "charter_status": "TERMINATED",
+    "continue_recommended": false,
+    "next_step_for_product": "Core Product remains the integrator and decides adoption or decline using INTEGRATION_CONTRACT.json revision 2. The component needs an independent AUDIT of run 38970902524, not another charter cycle."
+  },
+  "generated_at": "2026-10-16T00:00:00Z"
+}

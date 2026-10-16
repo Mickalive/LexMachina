@@ -6,9 +6,7 @@
   "measured_packet": "gate_packet/38839347028",
   "frozen_rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
   "head_to_head_report": "results/frontier/frontier-counter-anchor-classifier/HEAD_TO_HEAD.json",
-
   "claim_ceiling": "This component measures and decides the SUPPORT OF COUNTER LABELS AS ISSUED under the frozen support rubric. It NEVER asserts that any specific decision IS supporting, contrary or limiting. Those remain the product's labels: the component confirms or abstains on them, it does not re-assign them. The abstention count, support rate and yield are published side by side so the yield/support trade is auditable, not hidden.",
-
   "forbidden_construction_patterns": [
     "\\bdecision\\s+[A-Za-z0-9_.\\-]+\\s+is\\s+(supporting|contrary|limiting)\\b",
     "\\bdecision\\s+[A-Za-z0-9_.\\-]+\\s+is\\s+not\\s+(supporting|contrary|limiting)\\b",
@@ -17,7 +15,6 @@
     "\\basserts?\\s+that\\s+[A-Za-z0-9_.\\-]+\\s+is\\s+(supporting|contrary|limiting)\\b"
   ],
   "forbidden_construction_patterns_provenance": "copied verbatim from the accepted snapshot results/product/frontier_verdicts/ACCEPTED_frontier-served-packet-falsification_38880639079.json (forbidden_construction_patterns)",
-
   "adoption": {
     "decision_owner": "Core Product",
     "integrator": "Core Product remains the sole integrator and decides adoption or decline. This team builds and measures the component only; it does not edit product/query/adversarial_retrieval.py or the served packet.",
@@ -25,7 +22,6 @@
     "adopt_mode": "Product adopts the component in abstain-and-disclose mode: emitted labels keep their evidence-backed counter_status; abstained rows are kept visible as unevidenced rows with an explicit marker (see abstained_row_contract below), never silently dropped.",
     "decline_path": "Product may decline. The component is then an accepted negative/positive measurement only; the incumbent chain is unchanged and the DO-NOT-SERVE order on the packet stands."
   },
-
   "required_bundle_fields": {
     "note": "decide_label reads the row's OWN fields. A drop-in adapter must pass these through; missing text fields change the decision (the frozen criterion (v) checks the PIVOT anchor in the cited evidence, the title OR the regeste).",
     "row_fields": [
@@ -41,16 +37,16 @@
     "question_profile": "The row's own question anchor profile (domain, pivot, expected_languages, foreign_legal_area_fields) from the frozen RULES_LABEL.json question_anchors block, keyed by the bundle qid.",
     "frozen_rules": "RULES_LABEL.json, byte-identical, sha256 4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608. Any edit invalidates the run."
   },
-
   "input_output_contract": {
     "input": "one candidate decision row (its own counter_status, counter_evidence, title, regeste, language, legal_area, rank) plus the frozen rules and the row's question anchor profile",
     "output": {
       "label": "one of {supporting, contrary, limiting, ABSTAIN}",
       "cited_sentence": "the row's own counter_evidence string (the exact cited passage; empty when the row cites nothing)",
-      "reason_code": "supported | evidence_absent | pointer_only | procedural_formula_no_intent | polarity_inverted | pivot_absent | no_intent_marker | no_domain_anchor",
-      "uncertainty": "deterministic per-reason value: 1.0 evidence_absent, 0.9 pointer_only/polarity_inverted, 0.85 procedural_formula_no_intent, 0.8 pivot_absent/no_intent_marker/no_domain_anchor, 0.2 for an emitted label"
+      "reason_code": "supported | evidence_absent | pointer_only | procedural_formula_no_intent | polarity_inverted | pivot_absent | no_intent_marker | no_domain_anchor | unmapped_proposed_status",
+      "uncertainty": "deterministic per-reason value: 1.0 evidence_absent, 0.9 pointer_only/polarity_inverted/unmapped_proposed_status, 0.85 procedural_formula_no_intent, 0.8 pivot_absent/no_intent_marker/no_domain_anchor, 0.2 for an emitted label"
     },
     "label_mapping": {
+      "_note": "TOTAL mapping over the six documented issued counter_status values. A row whose counter_status is outside this table is ABSTAINed with reason unmapped_proposed_status (uncertainty 0.9): the component refuses to assign a polarity it was not given, instead of defaulting to 'limiting'. Rows carrying no usable counter_status fall here too.",
       "candidate-contrary": "contrary",
       "contrary": "contrary",
       "contrary_or_exception": "limiting",
@@ -60,13 +56,11 @@
     },
     "determinism": "Identical inputs produce an identical decision. No wall-clock, no randomness, no dict-order dependence."
   },
-
   "abstained_row_contract": {
     "visibility": "ABSTAIN rows remain visible to the product as unevidenced rows with an explicit marker; abstentions are COUNTED, never silently dropped.",
     "marker": "counter_status is set to a product-visible abstain marker (e.g. 'abstained_unevidenced') with counter_uncertainty set to the per-reason value and the reason code recorded, so the map can render them as unevidenced rather than as counter-authority.",
     "counting": "The product publishes support rate, abstention count and yield side by side. On the measured packet: incumbent 65 labels / 5 supported / 0.0769; candidate 5 emitted / 5 supported / 1.0 among emitted / 60 abstained / yield 0.0769."
   },
-
   "effect_on_yield_and_counter_ring": {
     "yield": "The candidate lowers label YIELD from 65 to 5 on the measured packet. This is the correct, auditable trade: the incumbent maximised yield while support sat at 7.7%.",
     "support_rate": "Among the labels the candidate emits, support is 5/5 = 1.0 under the frozen rubric (vs the incumbent's 5/65 = 0.0769).",
@@ -74,14 +68,67 @@
     "visible_counter_ring": "The counter ring shrinks to the 5 evidence-backed counter labels; the other 60 decisions stay on the map as ordinary (non-counter) or explicitly-unevidenced rows, so unevidenced authority remains visible rather than being hidden.",
     "publication": "Product must publish support rate, abstention count and yield together on the owner card; it must not trade one silently for the other."
   },
-
   "measured_results": {
-    "incumbent": {"n_scored": 65, "n_supported": 5, "support_rate": 0.07692307692307693, "INVERTED": 0, "reproduced_byte_identical": true},
-    "candidate": {"n_emitted": 5, "n_abstained": 60, "support_rate_among_emitted": 1.0, "INVERTED": 0, "yield": 0.07692307692307693, "abstention_reasons": {"evidence_absent": 16, "no_domain_anchor": 2, "no_intent_marker": 4, "pivot_absent": 38}},
-    "non_vacuity": {"inverted_label_control_support_rate": 0.0, "swapped_evidence_control_support_rate": 0.0, "candidate_support_rate": 1.0, "all_controls_strictly_below_candidate": true}
+    "incumbent": {
+      "n_scored": 65,
+      "n_supported": 5,
+      "support_rate": 0.07692307692307693,
+      "INVERTED": 0,
+      "reproduced_byte_identical": true
+    },
+    "candidate": {
+      "n_emitted": 5,
+      "n_abstained": 60,
+      "support_rate_among_emitted": 1.0,
+      "INVERTED": 0,
+      "yield": 0.07692307692307693,
+      "abstention_reasons": {
+        "evidence_absent": 16,
+        "no_domain_anchor": 2,
+        "no_intent_marker": 4,
+        "pivot_absent": 38
+      }
+    },
+    "non_vacuity": {
+      "inverted_label_control_support_rate": 0.0,
+      "swapped_evidence_control_support_rate": 0.0,
+      "candidate_support_rate": 1.0,
+      "all_controls_strictly_below_candidate": true
+    }
   },
-
   "regression_tests": "tests/frontier/frontier-counter-anchor-classifier/ pins the ABSTAIN contract: an empty-evidence row can never receive a confident label, and the 16 accepted evidence_absent rows at counter_uncertainty 0.95-1.0 all come out ABSTAIN.",
-
-  "out_of_scope_writes": "This team wrote nothing under product/, evaluation/, results/product/, state/product.json or .github/, and no UI or rendering code. The component is a pure decision function; rendering the abstain marker is Product's job."
+  "out_of_scope_writes": "This team wrote nothing under product/, evaluation/, results/product/, state/product.json or .github/, and no UI or rendering code. The component is a pure decision function; rendering the abstain marker is Product's job.",
+  "revision": 2,
+  "revision_history": [
+    {
+      "revision": 1,
+      "run_id": "38964146628",
+      "note": "initial integration contract accepted with Outcome A"
+    },
+    {
+      "revision": 2,
+      "run_id": "38970902524",
+      "charter_version": 1,
+      "kind": "repair, not re-measurement",
+      "changes": [
+        "input_output_contract.output.reason_code now also admits 'unmapped_proposed_status'",
+        "input_output_contract.output.uncertainty documents the 0.9 value for that reason",
+        "label_mapping is declared TOTAL: an issued counter_status outside this table now ABSTAINs instead of defaulting to the polarity 'limiting'",
+        "adapter_must_map_only_documented_statuses is stated explicitly"
+      ],
+      "why": "The accepted audit advisory E: STATUS_TO_LABEL.get(proposed, LABEL_LIMITING) defaulted an unrecognised issued counter_status to a real polarity, so the component could name a position the row never carried, which the claim ceiling forbids. No measurement changed: all 65 rows of the measured population carry one of the three mapped statuses, so the path is unreachable there and the accepted 5/65 -> 5/5 result is unchanged.",
+      "accepted_measurement_artifacts_untouched": [
+        "results/frontier/frontier-counter-anchor-classifier/HEAD_TO_HEAD.json",
+        "results/frontier/frontier-counter-anchor-classifier/RULES_LABEL.json",
+        "results/frontier/frontier-counter-anchor-classifier/CLAIM_CEILING.json"
+      ],
+      "superseding_measurement_artifact": "results/frontier/frontier-counter-anchor-classifier/HEAD_TO_HEAD_R2_38970902524.json"
+    }
+  ],
+  "adapter_must_map_only_documented_statuses": "Drop-in adapters should pass rows through unchanged and let decide_label decide. They MUST NOT normalise, coerce or default counter_status themselves: the component owns the abstention, so that an unmappable status is counted as unevidenced rather than silently renamed. If Product's own vocabulary differs, the mapping table is the single place to extend it -- and an unmapped value must stay an abstention.",
+  "known_limitations": {
+    "fr_bundle_yields_no_emitted_labels": "On fr-bail-entretien the component abstains on all 15 rows (the incumbent also supported 0 there). The candidate cannot be wrong on that bundle, but it also produces no counter-authority for it. A Product integrator should treat the fr bundle as 'no evidenced counter-authority found', not as 'no counter-authority'.",
+    "support_rate_among_emitted_is_structural": "The 1.0 support rate among emitted labels is a property of the emission gate, which is built from the frozen rubric's own criteria. It must always be published beside the abstention count (60) and the yield (5/65 = 0.0769), never alone.",
+    "no_free_model_inference": "decide_label is a pure lexical/rule function: no provider, prompt, model or network. It cannot recover evidence that was never extracted from the row, so the 16 evidence_absent rows are unreachable by construction, not by tuning."
+  }
 }

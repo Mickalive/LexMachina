@@ -36,9 +36,10 @@ import hashlib
 import json
 import os
 import sys
+from collections import Counter
 from typing import Any
 
-from .counter_anchor_classifier import LABEL_ABSTAIN, decide_label
+from .counter_anchor_classifier import LABEL_ABSTAIN, STATUS_TO_LABEL, decide_label
 from .vendored.extract import ROW_FIELDS, counter_rows, load_bundle, sha256_file
 from .vendored.injection import run_non_vacuity
 from .vendored.rubric import VARIANT_PRIMARY, make_context, score_row
@@ -100,42 +101,97 @@ def _per_row_verdict(r: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _verdict_key(bundle: Any, row: dict[str, Any], defect: Any = None,
+                 reason: Any = None, supported: Any = None) -> tuple:
+    """A COMPOSITE, duplicate-safe key for one row's verdict.
+
+    REPAIR (cycle 38970902524, accepted-audit advisory D): the accepted
+    population contains 4 decision_ids that occur TWICE (bge_140 II 112,
+    bge_105 II 114, bge_135 III 556, bge_131 III 459), so a dict keyed by
+    decision_id alone silently collapsed 65 rows into 61 keys and dropped 4
+    rows from the reproduction proof.  The key is now the full verdict tuple,
+    and comparison is a MULTISET (Counter) comparison.
+    """
+    if defect is None:
+        verdict = row.get("_verdict") if isinstance(row.get("_verdict"), dict) else row
+        defect = verdict.get("primary_defect_class")
+        reason = verdict.get("reason_code")
+        supported = verdict.get("supported")
+    return (
+        str(bundle or ""),
+        str(row.get("decision_id")),
+        str(row.get("counter_status")),
+        str(defect),
+        str(reason),
+        bool(supported),
+    )
+
+
 def _compare_to_accepted(
-    reproduced: list[dict[str, Any]], accepted_rows: list[dict[str, Any]]
+    reproduced: list[dict[str, Any]], accepted_rows: list[dict[str, Any]],
+    accepted_by_bundle: dict[str, list[dict[str, Any]]] | None = None,
 ) -> dict[str, Any]:
-    """Per-row comparison of this run's incumbent scoring vs LABEL_HALF.json."""
-    acc_by_id = {str(r["decision_id"]): r for r in accepted_rows}
-    rep_by_id = {str(r["decision_id"]): r for r in reproduced}
-    accepted_ids = set(acc_by_id)
-    reproduced_ids = set(rep_by_id)
-    matched = 0
-    divergent: list[dict[str, Any]] = []
-    for did in sorted(accepted_ids & reproduced_ids):
-        a = acc_by_id[did]
-        b = rep_by_id[did]
-        same = (
-            a.get("primary_defect_class") == b.get("primary_defect_class")
-            and a.get("reason_code") == b.get("reason_code")
-            and bool(a.get("supported")) == bool(b.get("supported"))
-        )
-        if same:
-            matched += 1
-        else:
-            divergent.append({
-                "decision_id": did,
-                "accepted": _per_row_verdict(a),
-                "reproduced": _per_row_verdict(b),
-            })
+    """MULTISET comparison of this run's incumbent scoring vs LABEL_HALF.json.
+
+    REPAIR 38970902524 (advisory D).  The previous version keyed both sides by
+    ``decision_id`` into plain dicts.  Because 4 decision_ids appear twice in
+    the 65-row population, that compared only 61 of the 65 rows and reported
+    ``reproduced_byte_identical_verdicts`` on the strength of 61 keys.  This
+    version compares full verdict tuples as multisets and ALSO reports the
+    duplicate ids explicitly, so the coverage claim cannot silently shrink
+    again.
+    """
+    if accepted_by_bundle is None:
+        # Callers that do not carry per-bundle provenance fall back to a single
+        # unnamed bucket; the comparison stays duplicate-safe either way.
+        accepted_by_bundle = {"": list(accepted_rows)}
+
+    acc_counter: Counter = Counter()
+    for qid, rows in accepted_by_bundle.items():
+        for r in rows:
+            acc_counter[_verdict_key(qid, r)] += 1
+    rep_counter: Counter = Counter()
+    for r in reproduced:
+        rep_counter[_verdict_key(r.get("_bundle"), r)] += 1
+
+    matched = sum((acc_counter & rep_counter).values())
+    only_accepted = acc_counter - rep_counter
+    only_reproduced = rep_counter - acc_counter
+    only_accepted_rows = sorted(only_accepted.elements())
+    only_reproduced_rows = sorted(only_reproduced.elements())
+    divergent = [{"accepted": list(k)} for k in only_accepted_rows]
+    n_accepted = sum(acc_counter.values())
+    n_reproduced = sum(rep_counter.values())
+    dup_ids = sorted({
+        str(r.get("decision_id")) for r in reproduced
+        if sum(1 for x in reproduced if str(x.get("decision_id")) == str(r.get("decision_id"))) > 1
+    })
     return {
-        "n_accepted_rows": len(accepted_ids),
-        "n_reproduced_rows": len(reproduced_ids),
+        "comparison": "multiset over full verdict tuples (bundle, decision_id, counter_status, primary_defect_class, reason_code, supported)",
+        "repair": "38970902524 advisory D: was a dict keyed by decision_id, which collapsed the 4 duplicated decision_ids (65 rows -> 61 keys)",
+        "n_accepted_rows": n_accepted,
+        "n_reproduced_rows": n_reproduced,
+        "n_accepted_unique_decision_id_keys": len({
+            str(r.get("decision_id")) for rows in accepted_by_bundle.values() for r in rows}),
         "n_rows_matched": matched,
-        "n_rows_divergent": len(divergent),
-        "only_in_accepted": sorted(accepted_ids - reproduced_ids),
-        "only_in_reproduced": sorted(reproduced_ids - accepted_ids),
+        "n_rows_divergent": len(only_accepted_rows) + len(only_reproduced_rows),
+        "duplicate_decision_ids_in_population": dup_ids,
+        "n_duplicate_decision_ids": len(dup_ids),
+        "only_in_accepted": [
+            {"bundle": k[0], "decision_id": k[1], "counter_status": k[2],
+             "primary_defect_class": k[3], "reason_code": k[4], "supported": k[5]}
+            for k in only_accepted_rows
+        ],
+        "only_in_reproduced": [
+            {"bundle": k[0], "decision_id": k[1], "counter_status": k[2],
+             "primary_defect_class": k[3], "reason_code": k[4], "supported": k[5]}
+            for k in only_reproduced_rows
+        ],
         "divergent_rows": divergent,
+        "coverage_is_full_population": (n_accepted == len(accepted_rows) == n_reproduced),
         "reproduced_byte_identical_verdicts": (
-            matched == len(accepted_ids) == len(reproduced_ids) and not divergent
+            matched == n_accepted == n_reproduced
+            and not only_accepted and not only_reproduced
         ),
     }
 
@@ -261,10 +317,15 @@ def run(
     accepted_comparison = None
     if accepted_label_half_path and os.path.exists(accepted_label_half_path):
         accepted = _load_json(accepted_label_half_path)
-        accepted_rows = [
-            r for b in accepted.get("bundles", []) for r in b.get("rows", [])
-        ]
-        accepted_comparison = _compare_to_accepted(all_incumbent_rows, accepted_rows)
+        # Per-bundle provenance is required for a duplicate-safe comparison:
+        # the same decision_id can legitimately appear in two bundles.
+        accepted_by_bundle = {
+            str(b.get("qid") or b.get("bundle") or ""): list(b.get("rows", []))
+            for b in accepted.get("bundles", [])
+        }
+        accepted_rows = [r for rows in accepted_by_bundle.values() for r in rows]
+        accepted_comparison = _compare_to_accepted(
+            all_incumbent_rows, accepted_rows, accepted_by_bundle)
         accepted_comparison["accepted_n_scored"] = accepted.get("n_scored")
         accepted_comparison["accepted_n_supported"] = accepted.get("n_supported")
         accepted_comparison["accepted_support_rate"] = accepted.get("support_rate")
@@ -447,6 +508,10 @@ def run(
             "abstention_count": n_abstained,
             "abstention_reasons": dict(sorted(abstention_reasons.items())),
             "abstention_by_bundle": dict(sorted(abstention_by_bundle.items())),
+            "issued_counter_statuses_present": dict(sorted(Counter(
+                str(d.proposed_status) for d in candidate_decisions).items())),
+            "unmapped_counter_statuses_present": sorted(
+                {str(d.proposed_status) for d in candidate_decisions} - set(STATUS_TO_LABEL)),
             "yield": (n_emitted / len(candidate_decisions)) if candidate_decisions else None,
             "n_candidate_labels_supported": n_candidate_supported,
             "candidate_support_rate": candidate_support_rate,
@@ -571,12 +636,17 @@ def run(
 
 
 def main(argv: list[str] | None = None) -> int:
-    here = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    # REPAIR 38970902524: this used three dirname() hops, which resolved to
+    # <repo>/frontier and made every default path below point at
+    # <repo>/frontier/results/... -- i.e. the documented CLI invocation crashed
+    # with FileNotFoundError on the frozen rubric. Four hops reach the repo root.
+    here = os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
     ap = argparse.ArgumentParser(prog="frontier-counter-anchor-classifier.run_head_to_head")
     ap.add_argument("--rules", default=os.path.join(here, "results/frontier/frontier-counter-anchor-classifier/RULES_LABEL.json"))
     ap.add_argument("--bundles-dir", default="/tmp/lex_accepted/core/product/results/product/gate_packet/38839347028/questions")
     ap.add_argument("--accepted-label-half", default="/tmp/LABEL_HALF.json")
-    ap.add_argument("--out", default=os.path.join(here, "results/frontier/frontier-counter-anchor-classifier/HEAD_TO_HEAD.json"))
+    ap.add_argument("--out", default=os.path.join(here, "results/frontier/frontier-counter-anchor-classifier/HEAD_TO_HEAD_R2_38970902524.json"))
     args = ap.parse_args(argv)
 
     report = run(args.rules, args.bundles_dir, args.accepted_label_half, args.out)
