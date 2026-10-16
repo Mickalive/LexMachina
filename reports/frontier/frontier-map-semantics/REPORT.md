@@ -1,7 +1,9 @@
 # frontier-map-semantics charter v2 — verdict report (run 38839351403,
 measurement freeze; completed and verified under operational resume run
 38840496500 — see §8; verified again and non-vacuity repaired under operational
-resume run 38846038296 — see §9)
+resume run 38846038296 — see §9; re-dispatch on byte-identical material with
+the freeze-ordering caveat closed under operational resume run 38849595347 —
+see §10)
 
 Promoted decision (machine-checked by `frontier/frontier-map-semantics/check_decision.py`, ALL-CHECKS-PASSED):
 
@@ -421,3 +423,49 @@ Charter v2 is **discharged**: frozen measurement, machine-checked one-sentence
 decision, three in-budget alternatives all FAIL, a negative result that closes
 the geometry question, and — now — an acceptance test 4 that is MET on all three
 gate bundles instead of merely reported as unmet on two of them.
+
+## 10. Operational resume (run 38849595347) — re-dispatch on unchanged material; freeze-ordering caveat closed
+
+Run 38846038296 self-committed its non-vacuity repair (`15362f68`) and was
+accepted; the portfolio still marks the team `RUN` at charter_version 2, so the
+supervisor re-dispatched the same charter. This cycle found the gate material
+**byte-identical** to the material measured under this charter and correctly
+produced no new measurement — the charter forbids re-measuring an
+already-measured bundle, and there was nothing to re-measure.
+
+What this cycle did, all inside the team's own evidence base:
+
+- **Input identity re-verified at this mount** (measured, recorded in
+  `results/frontier/frontier-map-semantics/VERIFICATION_38849595347.json`): all
+  three gate bundles and the 287 context bundle are byte-identical across the
+  frozen `RULES.json` values, the accepted product mount and the vendored
+  copies; decision counts 134/131/132 match the charter; `38799024807` is
+  still the only live gate packet; `bundle_live_enriched_CYCLE_38740365477.json`
+  is still the newest render-path bundle. No post-D2-repair packet exists to
+  add as an additional input.
+- **Freeze-ordering caveat CLOSED.** Run 38846038296 stated that the ordering
+  proof was not re-derivable in its depth-1 checkout. This checkout
+  (`15362f68`, full history) contains all three commits, so acceptance test 1
+  is now satisfied *in-environment*: freeze `c6d6c1e7`
+  (2026-10-16T02:17:54Z) before harness `d0dc6ff7` (02:24:28Z) before first
+  measurement `c1aaaca4` (02:26:39Z), demonstrated from git commit times. No
+  `frozen_at_utc` field was written (RF5).
+- **Verification ritual re-run:** 11 tests passed;
+  `check_decision.py` exits 0 `ALL-CHECKS-PASSED` with the regenerated
+  `CHECK.log` byte-identical to the committed one; `check_report_numbers.py`
+  exits 0 `ALL-CHECKS-PASSED`.
+
+What did NOT change: `RULES.json` (byte-identical to freeze, sha256
+`a7452748…`), every frozen bar, every criterion verdict on all four bundles,
+the whole ablation block, the three alternatives and their `best: None`, the
+non-vacuity numbers of the frozen control, `DECISION.txt`, and the promoted
+one-sentence decision above — which remains the one geometry decision product
+is asked to adopt.
+
+Charter v2 remains **discharged**, and `continue_recommended` stays false: the
+only remaining known gaps are the three documented items that cannot be
+closed without violating the charter — the structurally under-powered frozen
+corruption control (3 of 11 criteria movable), the provably unreachable
+`COHERENCE_QUERY_LANG` bar on the 287 context bundle (max 37/195 = 0.190 vs
+0.25), and the UNMEASURED cause of the cross-environment float movement /
+shipped-vs-recompute drift.
