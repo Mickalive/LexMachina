@@ -75,7 +75,7 @@ from generative_audit.opencaselaw import (  # noqa: E402
     PostGenerationValidator,
 )
 from generative_audit.product_compat import validate_product_bundle  # noqa: E402
-from generative_audit.provider import Provider, ProviderError, ProviderResult  # noqa: E402
+from generative_audit.provider import (Provider, ProviderError, ProviderResult, _select_prompt_decisions)  # noqa: E402
 from generative_audit.source_packing import (  # noqa: E402
     CitationValidator,
     Decision,
@@ -156,6 +156,56 @@ def test_fixture_mode_deterministic():
     assert r1.cited_decision_ids == r2.cited_decision_ids == ["CH-001"]
     assert r1.model_used == r2.model_used == "fixture://generative-audit"
     print("  PASS: fixture mode is deterministic")
+    return True
+
+
+def test_answer_prompt_prefers_hydrated_supreme_authority_and_stays_small():
+    """The answer model should see a tight authority-first evidence set."""
+    print(">>> test_answer_prompt_prefers_hydrated_supreme_authority_and_stays_small")
+    decisions = []
+    for i in range(20):
+        decisions.append(
+            Decision(
+                decision_id=f"LOW-{i:02d}",
+                title=f"Lower {i}",
+                text="Generic lower-court employment discussion.",
+                metadata={
+                    "court": "ge_gerichte",
+                    "rank": i + 1,
+                    "score": 0.8 if i == 0 else 0.2,
+                    "query_similarity": 0.2,
+                    "evidence_hydrated": i < 10,
+                },
+            )
+        )
+    direct = Decision(
+        decision_id="bger_4A_177_2017",
+        title="BGer 4A_177/2017",
+        text="Geringfügiger Diebstahl; Vertrauensverhältnis; fristlose Kündigung.",
+        metadata={
+            "court": "bger",
+            "rank": 3,
+            "score": 0.75,
+            "query_similarity": 0.7,
+            "evidence_hydrated": True,
+        },
+    )
+    decisions.append(direct)
+    bundle = DecisionBundle(
+        query="Un vol de faible valeur justifie-t-il un licenciement immédiat ?",
+        decision_ids=[d.decision_id for d in decisions],
+        decisions=decisions,
+    )
+    chosen = _select_prompt_decisions(bundle, max_sources=12)
+    ids = [d.decision_id for d in chosen]
+    assert len(chosen) == 12
+    assert ids[0] == "bger_4A_177_2017", ids
+    assert "bger_4A_177_2017" in ids
+    prompt = Provider(fixture_mode=True).build_prompt(bundle)
+    assert "SAME LANGUAGE" in prompt
+    assert "highest-authority decision" in prompt
+    assert prompt.count("authority=") <= 12
+    print("  PASS: compact authority-first prompt")
     return True
 
 
@@ -1092,6 +1142,7 @@ ALL_TESTS = [
     test_real_path_fixture_and_contract_surface,
     test_fixture_mode_deterministic,
     test_provider_preserves_multi_paragraph_answer,
+    test_answer_prompt_prefers_hydrated_supreme_authority_and_stays_small,
     test_prompt_surfaces_relevant_passage_beyond_judgment_prefix,
     test_fixture_rejects_invented_cited_ids,
     test_hallucinated_citation_rejection_and_redaction,
