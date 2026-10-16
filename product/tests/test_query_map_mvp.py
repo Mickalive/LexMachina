@@ -32,7 +32,9 @@ def test_initial_phase_is_real_map_not_fake_answer():
     b = initial()
     assert b["provenance"]["phase"] == "map_ready"
     assert b["provenance"]["fixture_mode"] is True
-    assert len(b["decisions"]) >= 100
+    assert len(b["decisions"]) == 100
+    assert b["provenance"]["product_selection"]["served_decisions"] == 100
+    assert b["provenance"]["product_selection"]["requested_top_n"] == 100
     assert len(b["clusters"]) >= 2
     assert b["answer"]["status"] == "pending"
     assert b["answer"]["cited_decision_ids"] == []
