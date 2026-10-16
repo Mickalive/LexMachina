@@ -2,10 +2,10 @@
   "lane": "evaluation",
   "direction_version": 49,
   "evidence_tier": "REPRODUCED",
-  "cycle_status": "V49_LANE_DELIVERABLE_FALSIFIED_AND_HARDENED_38945976309",
+  "cycle_status": "V49_BARE_CHECKOUT_FALSE_RED_FIXED_38951152192",
   "continue_recommended": false,
   "accepted_run_id": "38928722878",
-  "proposed_run_id": "38945976309",
+  "proposed_run_id": "38951152192",
   "repair_round": 0,
   "repair_audit_ref": "results/audit/evaluation/CYCLE_38920872324_GATE.json (independent audit checkout, gate=REVISE)",
   "repair_fixes_applied": {
@@ -40,6 +40,11 @@
     "results/evaluation/retrieval_benchmark/cache/90/90c23e15265bd747f2f9f65717cd1228d5a46eb44c43e7bd023597308d36451c.json",
     "results/evaluation/retrieval_benchmark/cache/f7/f7252e0dd503d5aa94327b10bfaac62a0cbad24e96ccda94484e872ddceb3a2b.json",
     "reports/evaluation/retrieval_counter_authority_benchmark_38939239917.md",
+    "evaluation/lane_suite.py",
+    "tests/evaluation/test_lane_suite.py",
+    "results/evaluation/lane_suite/38951152192.json",
+    "results/evaluation/lane_suite/38951152192_bare.json",
+    "reports/evaluation/CYCLE_38951152192.md",
     "state/evaluation.json"
   ],
   "human_gate_ready": false,
@@ -366,5 +371,51 @@
     "results/evaluation/lane_suite/38945976309.json (new)",
     "reports/evaluation/CYCLE_38945976309.md (new)"
   ],
-  "report": "reports/evaluation/CYCLE_38945976309.md"
+  "report": "reports/evaluation/CYCLE_38951152192.md",
+  "next_recommendation_38951152192": "HAND OFF TO PRODUCT, then stop this lane's proposal chain. The v49 evaluation question is encoded, enforced, self-falsified twice (F6 cached-replay latency erasure, closed 38945976309; F7 bare-checkout pytest false-red, closed this cycle), and both falsifications are closed without moving any frozen bar. What remains is not lane work: audit and promote (or reject) the stacked proposals 38939239917 (retrieval benchmark) and 38945976309 (hardening) so their deliverables stop shadowing every re-dispatch, and set the portfolio .status stop per factory-direction item 13 — continue_recommended:false cannot stop re-dispatch while the supervisor jq // defect stands. continue_recommended stays false: the next dispatch must carry a NEW question, never a re-run of this one. Product's open falsifications are unchanged and restated without re-measurement (FR/IT authority recall 0/N vs DE 2/2, 2/5, 1/2; fresh BJR leg cites 0/5 frozen BJR authorities; retrieval live pass 256.827s vs frozen 240s budget; duplicate::unique_ids fails on all four questions; 6 unusable ids among 960 rows; rent-default authority gates permanently not_measurable). human_gate_ready stays false. No 174k/global-map benchmarks rerun; none was run this cycle.",
+  "orchestration_diagnosis_38949870162": {
+    "symptom": "origin/cycle/core/evaluation/38949870162/team == 9766de64 (byte-identical to its base); zero producer commit; working tree clean",
+    "root_cause": "same pathology as 38945774110, one layer deeper: TWO complete proposals now stacked unpromoted (38939239917 retrieval benchmark: no CYCLE_38939239917_GATE.json, no accept commit; 38945976309 hardening: no CYCLE_38945976309_GATE.json, no accept commit; last accept remains 38934722443 at 1e12bfc2). The dispatch carried the same v49 question while lane state (continue_recommended:false) demanded a NEW question, so the producer found nothing to add. Additionally observed: accepted_run_id in lane state reads 38928722878 while the branch history already contains 'accept evaluation cycle 38934722443' — stale pointer, left unchanged because only an audit gate can move acceptance.",
+    "also_observed_this_cycle": "In a bare container without pytest, python -m evaluation.lane_suite reported FAIL (41/42) — a validator running the suite first in a fresh checkout would see red for an environment gap. Closed as F7 (see falsifying_finding_38951152192); not claimed as the cause of 38949870162, which is a zero-delta dispatch failure.",
+    "route_around_used": "new question (is the lane suite credible in a bare checkout?) with a concrete durable deliverable; no .github edits; no self-audit files written"
+  },
+  "falsifying_finding_38951152192": {
+    "id": "F7_bare_checkout_pytest_false_red",
+    "severity": "medium",
+    "finding": "evaluation/lane_suite.py advertises a stdlib-only entry point but its pytest sub-check FAILED the whole suite (41/42, exit 1) when pytest was absent — reproduced in this container before pip install. A red verdict measuring the environment rather than the product is a false red for any fresh-checkout validator.",
+    "fix": "_Log.skip() as a first-class third state (passed None, skipped True); run_pytest records SKIP when pytest is absent, unchanged otherwise (present-but-red still fails); report schema lex-evaluation-lane-suite/1 -> /2 (adds n_skipped, skipped_checks, per-check skipped flag; lane-owned, unfrozen); claim_ceiling and docstring state the pytest-optional semantics. Committed /1 record 38945976309.json preserved untouched.",
+    "not_weakened": "no frozen spec, threshold, token, budget, question, gate success rule or recorded verdict touched; both retrieval records re-score byte-identically after the change; frozen digests re-verified (ff57f556, 187b0e54, 06781743)",
+    "regression_tests": [
+      "test_pytest_absent_is_a_skip_not_a_failure (python -S end-to-end: exit 0, 0 failed, 1 skipped, stdlib checks ran)",
+      "test_skip_pytest_flag_emits_no_pytest_check",
+      "test_present_but_red_pytest_is_still_a_failure (monkeypatched red subprocess still fails; skip is not an amnesty)"
+    ],
+    "durable_evidence": "results/evaluation/lane_suite/38951152192.json (42/42 PASS, schema /2) and results/evaluation/lane_suite/38951152192_bare.json (41 pass + 1 skip, 0 failed, exit 0 under python -S)"
+  },
+  "execution_records_38951152192": {
+    "lane_suite_38951152192": "results/evaluation/lane_suite/38951152192.json — 42/42 PASS, schema lex-evaluation-lane-suite/2",
+    "lane_suite_bare_38951152192": "results/evaluation/lane_suite/38951152192_bare.json — 41 pass + 1 skip + 0 failed, exit 0, run under python -S (pytest unimportable); the end-to-end proof F7 is closed",
+    "frozen_rescore_verification": "--rescore of results/evaluation/retrieval_benchmark/38939239917.json reproduces the stored verdict byte-for-byte (12 failed / 24 passed / 4 n-m); --rescore of 38945976309_cached_replay.json likewise byte-identical. No live network pass run; no 174k benchmark rerun."
+  },
+  "count_reconciliation_38951152192": {
+    "why": "definitions unchanged from the prior cycle (factory_direction set-identity rule: never match by cardinality). Function-definition counts vs pytest-collected items differ only by parametrization in test_reality_gate.py.",
+    "test_functions_this_cycle": {
+      "tests/evaluation/test_reality_gate.py": 49,
+      "tests/evaluation/test_retrieval_gate.py": 43,
+      "tests/evaluation/test_lane_suite.py": 8,
+      "evaluation/query_map/test_harness.py": 6,
+      "tests/evaluation/test_audit_correction_verification.py": 4,
+      "active_lane_total_functions": 110
+    },
+    "pytest_collected_items_this_cycle": 129,
+    "delta_vs_prior_cycle": "test_lane_suite.py 5 -> 8 functions (+3 new: bare-skip end-to-end, skip-flag semantics, red-still-fails); collected 126 -> 129. All 129 PASS.",
+    "excluded_unchanged": "tests/evaluation/test_frontier_verdict_adoption.py stays EXCLUDED (different lane's adopted-verdict check; precondition failure on origin/main paths, not a benchmark failure)"
+  },
+  "durable_delta_38951152192": [
+    "evaluation/lane_suite.py (SKIP semantics for absent pytest, report schema lex-evaluation-lane-suite/2, pytest-optional claim ceiling)",
+    "tests/evaluation/test_lane_suite.py (5 -> 8 functions)",
+    "results/evaluation/lane_suite/38951152192.json (new, 42/42 PASS)",
+    "results/evaluation/lane_suite/38951152192_bare.json (new, 41+1skip/0failed under python -S)",
+    "reports/evaluation/CYCLE_38951152192.md (new)"
+  ]
 }

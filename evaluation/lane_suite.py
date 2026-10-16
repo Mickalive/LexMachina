@@ -25,9 +25,18 @@ It performs the checks a unit test cannot:
   report a latency PASS (the false green found this cycle);
 * a falsification matrix: for every gate family, a fixture that MUST fail.
 
-Exit 0 = every check passed.  Exit 1 = at least one check failed (a falsifying
+Exit 0 = no check failed (skips allowed; they are listed in the report).
+Exit 1 = at least one check failed (a falsifying
 result, which is legitimate evidence, not a crash).  Exit 2 = the environment
 could not be evaluated (missing digests, unreadable records).
+
+ADDENDUM (cycle 38951152192): the pytest sub-check is optional.  When pytest
+is absent the suite records a SKIP, not a failure: the stdlib checks above
+are authoritative and a bare checkout must stay green.  A present-but-red
+pytest run is still a failure.  Report schema is lex-evaluation-lane-suite/2
+(identical to /1 plus n_skipped/skipped_checks and an explicit "skipped" flag
+on every check); the committed /1 record from cycle 38945976309 is preserved
+untouched.
 
 No Product code is imported and no network call is made.
 """
@@ -103,16 +112,40 @@ class _Log:
         self.checks: list[dict] = []
 
     def add(self, name: str, passed: bool, detail: str = "") -> None:
-        self.checks.append({"check": name, "passed": bool(passed), "detail": detail})
+        self.checks.append({"check": name, "passed": bool(passed),
+                            "skipped": False, "detail": detail})
         mark = "PASS" if passed else "FAIL"
         line = f"  [{mark}] {name}"
         if detail:
             line += f"  {detail}"
         print(line, flush=True)
 
+    def skip(self, name: str, detail: str = "") -> None:
+        """A check that could not run for a declared environment reason.
+
+        Skips are neither passes nor failures: they are listed separately in
+        the report and never turn the suite red.  Cycle 38951152192: the
+        pytest sub-check used to FAIL the whole suite in a bare checkout
+        without pytest installed — a false red, since the module contract is
+        stdlib-only and the missing dependency measures the environment, not
+        the product.  An absent pytest is now a skip; a present-but-red
+        pytest run is still a failure.
+        """
+        self.checks.append({"check": name, "passed": None,
+                            "skipped": True, "detail": detail})
+        line = f"  [SKIP] {name}"
+        if detail:
+            line += f"  {detail}"
+        print(line, flush=True)
+
     @property
     def failed(self) -> list[dict]:
-        return [c for c in self.checks if not c["passed"]]
+        return [c for c in self.checks
+                if not c.get("skipped") and not c["passed"]]
+
+    @property
+    def skipped(self) -> list[dict]:
+        return [c for c in self.checks if c.get("skipped")]
 
 
 # --------------------------------------------------------------------------- #
@@ -454,9 +487,10 @@ def run_pytest(log: _Log) -> None:
     try:
         import pytest  # noqa: F401
     except ModuleNotFoundError:
-        log.add("pytest available", False,
-                "pytest is not installed; the stdlib checks above still ran "
-                "(this is a dependency gap, not a benchmark failure)")
+        log.skip("pytest pass (pytest absent)",
+                 "pytest is not installed; the stdlib checks above still ran "
+                 "and are authoritative. Install pytest to also run the "
+                 "active lane test files.")
         return
     proc = subprocess.run(
         [sys.executable, "-m", "pytest", "-q",
@@ -497,12 +531,14 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     report = {
-        "schema": "lex-evaluation-lane-suite/1",
+        "schema": "lex-evaluation-lane-suite/2",
         "direction_version": 49,
         "n_checks": len(log.checks),
-        "n_passed": len(log.checks) - len(log.failed),
+        "n_passed": len(log.checks) - len(log.failed) - len(log.skipped),
         "n_failed": len(log.failed),
+        "n_skipped": len(log.skipped),
         "failed_checks": log.failed,
+        "skipped_checks": log.skipped,
         "overall_pass": not log.failed,
         "wall_seconds": round(time.time() - started, 3),
         "falsifiable_families": FALSIFIABLE_FAMILIES,
@@ -511,7 +547,9 @@ def main(argv: list[str] | None = None) -> int:
             "are self-consistent and re-score byte-identically, that every "
             "declared gate family can be falsified, and that a cached replay "
             "cannot report a latency pass. It does not re-measure Product, and a "
-            "green suite is not a product pass."),
+            "green suite is not a product pass. The pytest sub-check is "
+            "optional: when pytest is absent it is recorded as a skip, never as "
+            "a failure, and the stdlib checks remain authoritative."),
         "checks": log.checks,
     }
     print(f"\nlane suite: {'PASS' if report['overall_pass'] else 'FAIL'} "
