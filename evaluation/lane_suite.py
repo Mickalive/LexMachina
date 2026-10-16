@@ -61,9 +61,13 @@ from evaluation.reality_gate import run_benchmark                      # noqa: E
 from evaluation.retrieval_gate import frozen as retrieval_frozen      # noqa: E402
 from evaluation.retrieval_gate import gates as retrieval_gates        # noqa: E402
 from evaluation.retrieval_gate import run_retrieval_benchmark         # noqa: E402
+from evaluation.map_gate import frozen as map_frozen                   # noqa: E402
+from evaluation.map_gate import gates as map_gates                     # noqa: E402
+from evaluation.map_gate import run_map_benchmark                     # noqa: E402
 
 REALITY_RECORDS = _LANE_ROOT / "results" / "evaluation" / "reality_benchmark"
 RETRIEVAL_RECORDS = _LANE_ROOT / "results" / "evaluation" / "retrieval_benchmark"
+MAP_RECORDS = _LANE_ROOT / "results" / "evaluation" / "map_benchmark"
 
 #: side artefacts live next to the run records (id-hygiene measurements), so the
 #: record set is selected by schema, not by file name.
@@ -104,6 +108,11 @@ FALSIFIABLE_FAMILIES = [
     "retrieval::full_pass_latency",
     "retrieval::cached_replay_latency",
     "retrieval::reproducibility",
+    "map::cluster_membership_enumerable",
+    "map::points_distinguishable",
+    "map::outlier_degree_consistent",
+    "map::label_language_matches_query",
+    "map::counter_authority_selectable",
 ]
 
 
@@ -162,6 +171,8 @@ def check_digests(log: _Log) -> None:
          retrieval_frozen._PATH, retrieval_frozen.FROZEN_SHA256),
         ("reality gate contract",
          gate_contract._PATH, gate_contract.GATE_CONTRACT_SHA256),
+        ("map frozen contract benchmark",
+         map_frozen._PATH, map_frozen.FROZEN_SHA256),
     ):
         digest = hashlib.sha256(path.read_bytes()).hexdigest()
         log.add(label, digest == pin, f"{digest[:16]}…")
@@ -169,6 +180,11 @@ def check_digests(log: _Log) -> None:
     log.add("retrieval freeze precedes execution",
             bool(freeze.get("frozen_before_execution")),
             f"frozen_at={freeze.get('frozen_at')}")
+    map_freeze = map_frozen.freeze_record()
+    log.add("map freeze precedes execution",
+            bool(map_freeze.get("frozen_before_execution")),
+            f"frozen_at={map_freeze.get('frozen_at')} "
+            f"inputs={len(map_frozen.bundle_specs())}")
 
 
 # --------------------------------------------------------------------------- #
@@ -267,6 +283,107 @@ def check_cached_replay_cannot_fake_latency(log: _Log, out_dir: Path) -> None:
                 live_failures.issubset(replay_failures | {
                     g["gate"] for g in latency if g["passed"] is None}),
                 f"live={sorted(live_failures)} replay={sorted(replay_failures)}")
+
+
+def check_map_contract_record(log: _Log) -> None:
+    """Audit + re-score the committed map-contract record.
+
+    Two things are checked that no other record gets: internal consistency of
+    a record whose expected verdict is FAIL (a falsifying record must still be
+    self-consistent, or it is not evidence), and a full re-score from the
+    frozen spec plus the accepted mount, which is the only way to know the
+    stored verdicts were produced rather than typed.
+    """
+    print("map-contract record:")
+    paths = sorted(MAP_RECORDS.glob("*.json"))
+    log.add("a committed map record exists", bool(paths), f"{len(paths)} record(s)")
+    if not paths:
+        return
+    spec = map_frozen.load_frozen()
+    for path in paths:
+        record = run_map_benchmark.load_record(path)
+        problems = check_map_record_integrity(record, spec)
+        log.add(f"record integrity {path.name}", not problems,
+                "; ".join(problems[:2]) if problems else
+                f"overall_pass={record['summary']['overall_pass']} "
+                f"(a FAIL is the expected verdict)")
+        summary = map_gates.summarize(record["bundles"])
+        log.add(f"{path.name} summary is arithmetically derived from its rows",
+                summary == record["summary"])
+        log.add(f"{path.name} was produced by the pinned frozen spec",
+                record.get("frozen_sha256") == map_frozen.FROZEN_SHA256)
+        log.add(f"{path.name} declares no product import and no network",
+                record.get("imports_product_code") is False
+                and record.get("network") is False
+                and record.get("recomputed_geometry") is False)
+        root = Path(record.get("product_root") or "")
+        if root.is_dir() and (root / "results" / "product").is_dir():
+            try:
+                payload, code = run_map_benchmark.rescore(path)
+            except (OSError, ValueError, KeyError) as exc:
+                log.add(f"{path.name} re-scores from the frozen spec", False,
+                        f"{type(exc).__name__}: {exc}")
+                continue
+            log.add(f"{path.name} re-scores from the frozen spec", code == 0,
+                    "summary reproduced" if code == 0
+                    else "recomputed summary differs from the stored one")
+            log.add(f"{path.name} pinned inputs still hash to their freeze",
+                    all((root / e["path"]).exists() for e in map_frozen.bundle_specs(spec)))
+            del payload
+        else:
+            log.skip(f"{path.name} re-score",
+                     f"accepted product mount {root} is not mounted in this "
+                     "checkout; integrity and arithmetic were still checked")
+
+
+def check_map_record_integrity(record: dict, spec: dict) -> list[str]:
+    """Problems in a committed map-contract record. Empty list == consistent."""
+    problems: list[str] = []
+    if record.get("frozen_sha256") != map_frozen.FROZEN_SHA256:
+        problems.append("record was produced by a different frozen spec")
+    frozen_paths = {e["path"] for e in map_frozen.bundle_specs(spec)}
+    seen: set[str] = set()
+    for entry in record.get("bundles", []):
+        path = entry.get("bundle_path")
+        if path not in frozen_paths:
+            problems.append(f"{path} is not in the frozen inventory")
+        if path in seen:
+            problems.append(f"{path} appears twice in the record")
+        seen.add(path)
+        gates = entry.get("gates") or {}
+        if sorted(gates) != sorted(map_frozen.GATE_IDS):
+            problems.append(f"{path} does not carry exactly the frozen gate set")
+            continue
+        failed = {g for g, r in gates.items()
+                  if not r.get("not_measurable") and r.get("passed") is False}
+        nm = {g for g, r in gates.items() if r.get("not_measurable")}
+        if set(entry.get("failed_gates") or []) != failed:
+            problems.append(f"{path} failed_gates contradicts its own gate rows")
+        if {n.get("gate") for n in entry.get("not_measurable_gates") or []} != nm:
+            problems.append(f"{path} not_measurable_gates contradicts its gate rows")
+        for gate, res in gates.items():
+            if res.get("not_measurable"):
+                if not res.get("reason"):
+                    problems.append(f"{path} {gate} is not_measurable without a reason")
+                if res.get("passed") is not False:
+                    problems.append(f"{path} {gate} not_measurable reads as a pass")
+            elif res.get("passed"):
+                if res.get("detail") != "":
+                    problems.append(f"{path} {gate} passes but carries a detail")
+            elif not res.get("detail"):
+                problems.append(f"{path} {gate} fails without a detail")
+        counted = (entry.get("n_gates_passed", 0) + entry.get("n_gates_failed", 0)
+                   + entry.get("n_gates_not_measurable", 0))
+        if counted != len(map_frozen.GATE_IDS):
+            problems.append(f"{path} gate counts sum to {counted}, expected "
+                            f"{len(map_frozen.GATE_IDS)}")
+        if bool(entry.get("passed")) is not (entry.get("n_gates_failed") == 0):
+            problems.append(f"{path} bundle verdict contradicts its failed count")
+    if len(seen) != record.get("n_input_bundles"):
+        problems.append("n_input_bundles does not match the number of recorded bundles")
+    if map_gates.summarize(record.get("bundles") or []) != record.get("summary"):
+        problems.append("stored summary is not the roll-up of the stored rows")
+    return problems
 
 
 # --------------------------------------------------------------------------- #
@@ -465,9 +582,115 @@ def _broken_retrieval_fixtures() -> list[tuple[str, bool]]:
     return out
 
 
+def _broken_map_fixtures() -> list[tuple[str, bool]]:
+    """(family, does this fixture break it?) -- every entry must be True.
+
+    The map fixtures are minimal hand-built bundles, not accepted Product
+    artifacts, so the suite stays runnable in a bare checkout.
+    """
+    spec = map_frozen.load_frozen()
+
+    def bundle() -> dict:
+        rows = [{"decision_id": f"d{i:03d}", "cluster_id": 0 if i < 10 else 1,
+                 "x": round(-1.0 + i * 0.1, 4), "y": 0.25,
+                 "is_outlier": False, "counter_status": "none", "language": "fr"}
+                for i in range(20)]
+        rows[18]["is_outlier"] = True
+        rows[18]["counter_status"] = "candidate-limiting"
+        rows[19]["is_outlier"] = True
+        return {
+            "provenance": {"query": "La résiliation du bail pour défaut d'entretien",
+                           "phase": "complete"},
+            "decisions": rows,
+            "clusters": [
+                {"cluster_id": 0, "label": "bail, résiliation, pour, loyer",
+                 "size": 10, "member_ids": [f"d{i:03d}" for i in range(10)]},
+                {"cluster_id": 1, "label": "locataire, cocontractual, loyer",
+                 "size": 10, "member_ids": [f"d{i:03d}" for i in range(10, 20)]},
+            ],
+            "relations": [{"source": "d000", "target": f"d{i:03d}",
+                           "kind": "citation"} for i in range(1, 6)],
+        }
+
+    out: list[tuple[str, bool]] = []
+
+    broken = bundle()
+    broken["clusters"][0]["member_ids"] = broken["clusters"][0]["member_ids"][:4]
+    out.append(("map::cluster_membership_enumerable",
+                map_gates.evaluate_cluster_membership_enumerable(broken, spec)["passed"]
+                is False))
+
+    broken = bundle()
+    for row in broken["decisions"]:
+        row["x"] = row["y"] = 0.0
+    out.append(("map::points_distinguishable",
+                map_gates.evaluate_points_distinguishable(broken, spec)["passed"] is False))
+
+    broken = bundle()
+    broken["relations"] = []
+    out.append(("map::outlier_degree_consistent",
+                map_gates.evaluate_outlier_degree_consistent(broken, spec)["passed"]
+                is False))
+
+    broken = bundle()
+    broken["clusters"][0]["label"] = "abs, nicht, zu, wenn"
+    broken["clusters"][1]["label"] = "oder, aber, auch, noch"
+    res = map_gates.evaluate_label_language_matches_query(
+        broken, spec, query_language="fr", language_votes={"de": 4, "fr": 1, "it": 0})
+    out.append(("map::label_language_matches_query", res["passed"] is False))
+
+    broken = bundle()
+    broken["clusters"][1]["member_ids"] = [
+        m for m in broken["clusters"][1]["member_ids"] if m != "d018"]
+    out.append(("map::counter_authority_selectable",
+                map_gates.evaluate_counter_authority_selectable(broken, spec)["passed"]
+                is False))
+    return out
+
+
+def check_map_is_satisfiable(log: _Log) -> None:
+    """A benchmark whose gates cannot all pass on a well-formed bundle is broken.
+
+    The complement of the falsification matrix: every gate must be able to
+    fail AND a clean bundle must be able to clear them all, otherwise a FAIL
+    measures the benchmark rather than the product.
+    """
+    print("map-contract gates are satisfiable (not merely breakable):")
+    spec = map_frozen.load_frozen()
+    rows = [{"decision_id": f"d{i:03d}", "cluster_id": 0 if i < 196 else 1,
+             "x": round(-1.0 + (i % 40) * 0.05, 4),
+             "y": round(-1.0 + (i // 40) * 0.05, 4),
+             "is_outlier": False, "counter_status": "none", "language": "fr"}
+            for i in range(200)]
+    rows[196]["is_outlier"] = True
+    rows[196]["counter_status"] = "candidate-limiting"
+    rows[197]["is_outlier"] = True
+    clean = {
+        "provenance": {"query": "La résiliation du bail pour défaut d'entretien",
+                       "phase": "complete"},
+        "decisions": rows,
+        "clusters": [
+            {"cluster_id": 0, "label": "bail, résiliation, pour, loyer",
+             "size": 196, "member_ids": [f"d{i:03d}" for i in range(196)]},
+            {"cluster_id": 1, "label": "locataire, cocontractual, loyer, bail",
+             "size": 4, "member_ids": [f"d{i:03d}" for i in range(196, 200)]},
+        ],
+        "relations": [{"source": f"d{i:03d}", "target": f"d{(i + 1) % 196:03d}",
+                       "kind": "citation"} for i in range(12)],
+    }
+    result = map_gates.evaluate_bundle(clean, spec, bundle_path="synthetic:clean")
+    log.add("a well-formed bundle clears every map gate",
+            result["passed"] is True,
+            f"query_language={result['query_language']} "
+            f"failed={result['failed_gates']}")
+    log.add("the clean bundle is measurable on every gate (no free passes)",
+            result["n_gates_not_measurable"] == 0)
+
+
 def check_falsification_matrix(log: _Log) -> None:
     print("falsification matrix (every gate family must be breakable):")
-    observed = dict(_broken_reality_fixtures() + _broken_retrieval_fixtures())
+    observed = dict(_broken_reality_fixtures() + _broken_retrieval_fixtures()
+                    + _broken_map_fixtures())
     missing = [f for f in FALSIFIABLE_FAMILIES if f not in observed]
     log.add("every declared gate family has a breaking fixture", not missing,
             f"missing={missing}" if missing else f"{len(FALSIFIABLE_FAMILIES)} families")
@@ -496,6 +719,7 @@ def run_pytest(log: _Log) -> None:
         [sys.executable, "-m", "pytest", "-q",
          "tests/evaluation/test_reality_gate.py",
          "tests/evaluation/test_retrieval_gate.py",
+         "tests/evaluation/test_map_gate.py",
          "evaluation/query_map/test_harness.py",
          "tests/evaluation/test_audit_correction_verification.py"],
         cwd=str(_LANE_ROOT), capture_output=True, text=True, timeout=900)
@@ -522,6 +746,8 @@ def main(argv: list[str] | None = None) -> int:
         check_reality_records(log)
         check_retrieval_rescore(log)
         check_cached_replay_cannot_fake_latency(log, out_dir)
+        check_map_contract_record(log)
+        check_map_is_satisfiable(log)
         check_falsification_matrix(log)
         if not args.skip_pytest:
             run_pytest(log)

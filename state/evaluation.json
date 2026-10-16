@@ -2,10 +2,10 @@
   "lane": "evaluation",
   "direction_version": 49,
   "evidence_tier": "REPRODUCED",
-  "cycle_status": "V49_NEW_BENCHMARK_RUN_38953399026",
-  "continue_recommended": false,
-  "accepted_run_id": "38928722878",
-  "proposed_run_id": "38953399026",
+  "cycle_status": "V49_MAP_CONTRACT_BENCHMARK_RUN_38959325856",
+  "continue_recommended": true,
+  "accepted_run_id": "38951152192",
+  "proposed_run_id": "38959325856",
   "repair_round": 0,
   "repair_audit_ref": "results/audit/evaluation/CYCLE_38920872324_GATE.json (independent audit checkout, gate=REVISE)",
   "repair_fixes_applied": {
@@ -18,33 +18,27 @@
     "R6b": "producer-authored self-audit files dropped from this branch; the independent audit checkout remains the only audit of record"
   },
   "evidence_refs": [
+    "evaluation/map_gate/frozen_map_benchmark.json",
+    "evaluation/map_gate/FREEZE_RECORD.json",
+    "evaluation/map_gate/build_frozen_spec.py",
+    "evaluation/map_gate/frozen.py",
+    "evaluation/map_gate/gates.py",
+    "evaluation/map_gate/run_map_benchmark.py",
+    "evaluation/map_gate/__init__.py",
+    "tests/evaluation/test_map_gate.py",
+    "results/evaluation/map_benchmark/38959325856.json",
+    "results/evaluation/lane_suite/38959325856.json",
+    "reports/evaluation/CYCLE_38959325856.md",
     "evaluation/reality_gate/frozen_benchmark.json",
-    "evaluation/reality_gate/frozen.py",
-    "evaluation/reality_gate/gates.py",
-    "evaluation/reality_gate/run_benchmark.py",
-    "tests/evaluation/test_reality_gate.py",
-    "results/evaluation/reality_benchmark/38934722443.json",
-    "results/evaluation/reality_benchmark/38920872324.json",
-    "reports/evaluation/evaluation_v49_cycle_report_38934722443.md",
-    "reports/evaluation/evaluation_v49_cycle_report.md",
     "evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
-    "evaluation/retrieval_gate/FREEZE_RECORD.json",
-    "evaluation/retrieval_gate/frozen.py",
-    "evaluation/retrieval_gate/client.py",
-    "evaluation/retrieval_gate/gates.py",
-    "evaluation/retrieval_gate/run_retrieval_benchmark.py",
-    "evaluation/retrieval_gate/build_frozen_spec.py",
-    "tests/evaluation/test_retrieval_gate.py",
+    "results/evaluation/reality_benchmark/38934722443.json",
+    "results/evaluation/reality_benchmark/38945976309.json",
     "results/evaluation/retrieval_benchmark/38939239917.json",
-    "results/evaluation/retrieval_benchmark/cache/be/be6a1fee48be3745b69ecdfcf49b5b420976066ba17514d7d8d07261cbca6d3d.json",
-    "results/evaluation/retrieval_benchmark/cache/90/90c23e15265bd747f2f9f65717cd1228d5a46eb44c43e7bd023597308d36451c.json",
-    "results/evaluation/retrieval_benchmark/cache/f7/f7252e0dd503d5aa94327b10bfaac62a0cbad24e96ccda94484e872ddceb3a2b.json",
-    "reports/evaluation/retrieval_counter_authority_benchmark_38939239917.md",
-    "evaluation/lane_suite.py",
-    "tests/evaluation/test_lane_suite.py",
+    "results/evaluation/retrieval_benchmark/38945976309_cached_replay.json",
+    "results/evaluation/retrieval_benchmark/38953399026.json",
     "results/evaluation/lane_suite/38951152192.json",
-    "results/evaluation/lane_suite/38951152192_bare.json",
-    "reports/evaluation/CYCLE_38951152192.md",
+    "evaluation/lane_suite.py",
+    "evaluation/frontier_verdict_adoption.json",
     "state/evaluation.json"
   ],
   "human_gate_ready": false,
@@ -168,7 +162,19 @@
     "automated": "python -m evaluation.reality_gate.run_benchmark --evidence-dir <product reality_check dir> ... ; must be GREEN on a product's own live packet before the human gate can be considered. Exit 2 = environment/empty-input error (no record emitted).",
     "human": "Map usefulness remains a jurist product gate: branch/exception discovery, structural comprehension, confidence about contrary authority, preference over answer+ranked list."
   },
-  "next_recommendation": "HAND OFF TO PRODUCT, then stop this lane's proposal. This cycle asked a NEW question (can the frozen benchmark actually falsify a product?) and the answer was no: a cached replay erased a recorded latency failure, eight gate thresholds sat under no digest, the reality records had no integrity check, and one advertised metric did not exist. All four are fixed with no frozen threshold, token, budget, question or success rule moved, and both recorded negative results are preserved byte-for-byte. Product's open falsifications are unchanged: FR/IT authority recall 0/N while DE returns 2/2, 2/5, 1/2; BJR leg cites 0 of 5 frozen direct-TF authorities; retrieval live pass 256.827s vs the frozen 240s budget; duplicate::unique_ids fails on all four questions (63 alnum-core collisions over 7 of 24 responses); 6 unusable ids among 960 rows; rent-default's 4 authority gates remain permanently not_measurable because the frozen reality benchmark carries no controlling-authority set for that question. That last one is a benchmark weakness, not a product one, and needs a deliberate disclosed re-freeze rather than a silent fill-in. human_gate_ready stays false. Do not rerun 174k/global-map benchmarks; none was run this cycle.",
+  "next_recommendation": {
+    "decision": "HAND OFF TO PRODUCT with three named, located defects; keep the lane open for exactly one new question",
+    "product_items": [
+      "F9: enumerate full cluster membership, or ship an explicit member_ids_truncated flag beside the true size so no consumer can read a capped list as the group.",
+      "F10: resolve the coordinate pile-up; until then the map cannot present 'point = decision'.",
+      "F11: make every counter-authority row reachable; 22.76% are not, which undercuts the adversarial requirement."
+    ],
+    "next_cycle_new_question": "LOCALISE F10: is the origin pile-up a projection fallback or a serialization default of 0.0 for rows that never received a coordinate? The two have opposite fixes (re-cluster vs stop writing a default), and the frozen gate MAP::points_distinguishable can score both candidate repairs without moving a bar.",
+    "disallowed": "A re-run of this cycle's question, any restart of 174k/universal-geometry work, any edit to .github/**, any change to an accepted frozen bar.",
+    "prior_cycle_recs_still_open": "Product's own falsifications are unchanged and were NOT re-measured this cycle: FR/IT authority recall 0/N vs DE 2/2, 2/5, 1/2; fresh BJR leg cites 0/5 frozen BJR authorities; retrieval live pass 205.879s (run 38953399026) and 256.827s (run 38939239917) vs the frozen 240s budget; duplicate::unique_ids failing on all four questions; 6 unusable ids among 960 rows; rent-default authority gates permanently not_measurable.",
+    "human_gate_ready": false,
+    "continue_recommended": true
+  },
   "prior_proposal_unpromoted": {
     "run_id": "38939239917",
     "note": "The 38939239917 producer commit (660ad896) was never audited and never promoted: no results/audit/evaluation/CYCLE_38939239917_GATE.json exists, no 'accept evaluation cycle 38939239917' commit exists, and origin/lab/evaluation is still 1e12bfc2 (accept cycle 38934722443). This is the cause of run 38945774110's zero-delta exit: it started from a tree already containing all of 38939239917's work and had nothing to add. The zero-delta exit is a symptom, not a lane defect.",
@@ -176,7 +182,7 @@
     "deliverable_in_that_commit": "evaluation/retrieval_gate/* and tests/evaluation/test_retrieval_gate.py (the frozen retrieval/counter-authority benchmark, sha 187b0e54..., executed FAIL 12/40)",
     "action_required": "promote or reject 38939239917 explicitly so it stops shadowing lane state"
   },
-  "continue_recommended_reason": "The v49 question is now encoded and enforced end to end, and this cycle's own instrument was falsified and repaired. Do NOT rely on this field to stop re-dispatch: the supervisor's check uses jq '//' which treats literal false as empty (factory_direction item 13). The reliable stop is the portfolio/lane .status field, which this lane cannot set. Until then, the next cycle must take a NEW question, never a re-run of this one.",
+  "continue_recommended_reason": "TRUE for exactly one bounded purpose, and it is NOT a request to keep looping. The v49 map-contract question is now encoded and executed and it falsified the product (0/31 bundles). The single discriminating follow-up is to LOCALISE F10: determine from the accepted artifacts whether the coordinate pile-up is a projection fallback or a serialization default that writes 0.0 for rows which never received a coordinate. The two have opposite fixes (re-cluster vs stop writing a default), and the frozen gate MAP::points_distinguishable can score both candidate repairs without moving a bar. That question has not been asked yet. DO NOT rely on this field to stop re-dispatch: factory_direction item 13 shows the supervisor tests it with jq '//', which treats a literal false as empty, so it can never fire; the reliable stop is the portfolio .status field, which this lane cannot set. The next dispatch must carry a NEW question, never a re-run of this one.",
   "orchestration_diagnosis_38945774110": {
     "symptom": "origin/cycle/core/evaluation/38945774110/team == 660ad896 (byte-identical to its base); zero producer commit",
     "root_cause": "the preceding proposal 38939239917 was never audited nor promoted (see prior_proposal_unpromoted)",
@@ -418,5 +424,226 @@
     "results/evaluation/lane_suite/38951152192.json (new, 42/42 PASS)",
     "results/evaluation/lane_suite/38951152192_bare.json (new, 41+1skip/0failed under python -S)",
     "reports/evaluation/CYCLE_38951152192.md (new)"
-  ]
+  ],
+  "accepted_run_id_correction": {
+    "was": "38928722878",
+    "now": "38951152192",
+    "accepted_commit": "bfdd44441905631436d7f1310c7600cf9cf39f88",
+    "reason": "Factual sync of a stale pointer, not a change of claim. origin/lab/evaluation is bfdd4444, whose subject is 'accept evaluation cycle 38951152192', on top of aaf614d0 (38951152192) <- 9766de64 (38945976309) <- 660ad896 (38939239917) -- exactly the three-cycle stack the accepted audit CYCLE_38951152192_GATE.json required to be promoted together. The stale value was recorded as unflagged observation D3 by that audit and left in place; acceptance demonstrably happened, so the pointer was simply never updated. No evidence tier, verdict, threshold or recorded result was touched."
+  },
+  "v49_map_contract_benchmark": {
+    "question": "Can the evaluation lane falsify the MAP, or can it only prove the map did not move?",
+    "why_this_question": "The accepted audit of cycle 38951152192 (gate=PASS) closed with the coverage gap 'no map-geometry gate anywhere; geometry_signature is used only for order-independent reproducibility, never for coordinates, cluster coherence or outliers' and named that this lane's next NEW question. Confirmed in code: evaluation/query_map/harness.py checks only geometry_preserved_after_enrichment.",
+    "frozen_spec": "evaluation/map_gate/frozen_map_benchmark.json",
+    "frozen_sha256": "7f3e7cb1515baec5f55a3191d115ffe71b2ef28057a8d4e68930ece45f8090a4",
+    "freeze_record": "evaluation/map_gate/FREEZE_RECORD.json (frozen_at 2026-10-16T20:07:34Z, frozen_before_execution=true)",
+    "direction_version_at_freeze": 49,
+    "input_selection": "NONE. The inventory is the complete accepted product bundle set matching a mechanical rule declared in the spec (>=50 decisions, >=2 clusters, finite x/y on every row, ascending path order): 31 bundles, each with its sha256 pinned. No bundle was picked, dropped or reordered after results were seen.",
+    "n_inputs": 31,
+    "gates": [
+      "MAP::cluster_membership_enumerable (0 unreachable, 0 size mismatches)",
+      "MAP::points_distinguishable (max coincident cell share <= 0.01)",
+      "MAP::outlier_degree_consistent (mean outlier degree < mean other degree; empty graph = DEGENERATE = FAIL)",
+      "MAP::label_language_matches_query (>= 0.8 of clusters not unambiguously off-language)",
+      "MAP::counter_authority_selectable (all counter rows enumerable and un-stranded; no new threshold)"
+    ],
+    "reuse_boundary": "Deliberately does NOT restate or re-run the accepted Frontier geometry rubric RULES_GEOMETRY.json (sha256 a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633, adopted by this lane as metrics B1/B2): PROJ_RANK, PROJ_SPEARMAN, PROJ_KNN10, STRUCTURE_SEP, STRUCTURE_LARGEST, LABEL_CONTENT_FRACTION, LABEL_JACCARD, OUTLIER_VALIDITY, RELATIONS, COHERENCE_QUERY_LANG, COHERENCE_QUERY_TERM. It measures the map CONTRACT layer, which that rubric does not test. The frozen spec's not_in_scope block states this in machine-readable form.",
+    "execution_record": "results/evaluation/map_benchmark/38959325856.json",
+    "execution_record_reproducible": "yes -- --rescore re-derives every verdict from the frozen spec plus the accepted mount and reproduces the stored summary exactly; two independent executions are byte-identical modulo wall_seconds/product_root",
+    "verdict": "FAIL -- 0/31 bundles pass; no bundle clears all five gates",
+    "runtime_seconds": 0.16,
+    "no_product_import": true,
+    "no_network": true,
+    "no_geometry_recomputation": true,
+    "no_174k_rerun": true,
+    "gate_results": {
+      "MAP::points_distinguishable": "0/31 pass, 31 fail",
+      "MAP::cluster_membership_enumerable": "8/31 pass, 23 fail",
+      "MAP::counter_authority_selectable": "14/29 measurable pass, 15 fail, 2 not_measurable",
+      "MAP::outlier_degree_consistent": "21/31 pass, 10 fail",
+      "MAP::label_language_matches_query": "22/26 measurable pass, 4 fail, 5 not_measurable"
+    },
+    "per_bundle_failed_gate_counts": "5 bundles fail 1 gate, 7 fail 2, 12 fail 3, 7 fail 4",
+    "claim_ceiling": "Proves or falsifies whether the SHIPPED bundle satisfies five map-contract properties on the accepted product artifacts as shipped. No UX, preference, cluster-correctness, legal-label or answer-correctness claim. A green gate would be necessary, never sufficient, for the visual gate.",
+    "disclosure_tokenizer_change": "One code change landed between two PRE-RECORD probe runs and is disclosed: the tokenizer gained the same <mark> stripping the reality and retrieval benchmarks already have. Verified to change zero verdicts and zero query-language inferences across all 31 bundles and all five gates. The frozen spec digest was unaffected and the claim-bearing record was produced after the change."
+  },
+  "falsifying_findings_38959325856": [
+    {
+      "id": "F9_cluster_membership_truncated",
+      "severity": "high",
+      "gate": "MAP::cluster_membership_enumerable",
+      "finding": "clusters[].member_ids stops while clusters[].size keeps counting. 23 of 31 accepted bundles have both symptoms and the two sets are provably the SAME 23 (intersection 23, both set differences 0, union equals the gate failure set). 1799 of 5313 cluster-assigned decisions (33.86%) cannot be enumerated through the membership the bundle ships; on the FR served packet size=167 against len(member_ids)=50 (also 81/50 and 78/50 on DE, 99/50 on IT). No bundle has a member_id naming an absent decision, so this is truncation, not a dangling reference.",
+      "product_decision": "Cluster drill-down, cluster-scoped relation edges and cluster-level counter sweeps are all truncated at the same place. This is the mechanism behind the 0.3731-vs-0.557 French-share divergence recorded in factory_direction: both numbers are correct for the field they read."
+    },
+    {
+      "id": "F10_points_not_distinguishable",
+      "severity": "high",
+      "gate": "MAP::points_distinguishable",
+      "finding": "0 of 31 bundles pass. The worst rounded (x,y) cell holds 4.76%-44.60% of a bundle's decisions (median 14.29%) against a 1% bar; 11.11%-75.33% of rows (median 28.91%) share a cell with another row; 24 of 31 bundles put their worst cell at exactly (0.0, 0.0). Worst artifact clickable_slice/bundle_live_enriched_CYCLE_38740365477.json: cell (0,0) holds 128 of 287 and 185 of 287 rows are not individually addressable.",
+      "honest_limitation": "x and y are present and numeric on every row of every bundle, so this is not a missing-field defect. The gate cannot distinguish a genuine projection placement from a serializer default of 0.0; localising which is the named next cycle.",
+      "product_decision": "Until understood, the map cannot present 'point = decision' and coordinate-based selection is unsound."
+    },
+    {
+      "id": "F11_counter_authorities_unreachable_on_the_map",
+      "severity": "high",
+      "gate": "MAP::counter_authority_selectable",
+      "finding": "15 of 29 measurable bundles fail. The failure set is exactly the union of unselectable_count>0 (7 bundles) and unreachable_count>0 (10 bundles), intersection 2, union 15, verified against the gate's own failure set. 71 of 312 counter-authority rows (22.76%) are cluster-assigned but not enumerable; on the FR served packet 12 of 15.",
+      "does_not_reopen": "The accepted label-soundness verdicts A1/A2 (support_rate 5/65, LABEL_UNSOUND) are untouched. This gate assumes the labels are right as issued and asks only whether a jurist can reach the labelled rows on the map.",
+      "product_decision": "Directly undercuts the product's adversarial requirement that counter-authorities remain visible and discoverable."
+    },
+    {
+      "id": "F12_outlier_flag_contradicts_the_shipped_relation_graph",
+      "severity": "medium",
+      "gate": "MAP::outlier_degree_consistent",
+      "finding": "10 of 31 fail. Failure set = degenerate 5 (ship ZERO relations, so the claim is unfalsifiable on the artifact -- a FAIL by frozen bar, not a free pass) union genuine ordering violation 5, intersection 5. On the genuine violations flagged outliers are BETTER connected than the rest: bundle_fr 1.8000 vs 0.2832, bundle_fr_repaired 2.0000 vs 0.3143, bundle_it 0.3529 vs 0.1468, bundle_it_repaired 0.3529 vs 0.1495, bundle_live_enriched_CYCLE_38649613677 0.3158 vs 0.0349. The flag tracks the rank tail, not connectivity.",
+      "relationship_to_accepted_evidence": "NOT a claim that the accepted Frontier criterion OUTLIER_VALIDITY is wrong. That criterion is adopted as metric B1/B2 and is unchanged. This is an independent second measurement from the shipped relations field alone, which happens to agree with it."
+    },
+    {
+      "id": "F13_cluster_labels_in_the_wrong_language",
+      "severity": "medium",
+      "gate": "MAP::label_language_matches_query",
+      "finding": "4 of 26 measurable bundles fail. bundle_it and bundle_it_repaired: 5 of 8 clusters off-language on an Italian query (share_ok 0.375). bundle_live_enriched_20261014T214600Z and bundle_live_map_only_20261014T214600Z: 2 of 8 off-language on a French query (share_ok 0.750 < 0.80). 5 bundles are not_measurable because the query text carries no unambiguous function word under the frozen inference rule.",
+      "under_reports_by_construction": "A label is convicted only when EVERY lexicon-attributed token belongs to exactly one language and that language is not the query's; multi-language tokens (in: de/it; la, il, non, ne: fr/it) and unattributed content words are ignored. The FR served packet's dominant cluster (size 167, 77% of the map) is labelled 'abs, nicht, iii, in, zu' and IS convicted, but 1 of 8 sits inside the 0.80 bar so the bundle passes while the observation remains in the row's measured fields. The Italian labels reading 'indennita, assicurato, decisione, scheda' are NOT convicted because those are content words; a benchmark that guessed would be worse than one that under-reports."
+    }
+  ],
+  "orchestration_diagnosis_38959086174": {
+    "symptom": "origin/cycle/core/evaluation/38959086174/team is byte-identical to origin/cycle/core/evaluation/38953399026/team (both 00aafc37, which is also this run's HEAD). The prior producer left no commit of its own; the persist step's 'git commit || true' fails silently and re-pushes the unchanged HEAD.",
+    "established_from_durable_evidence": [
+      "Neither cycle has an /audit branch (38953399026, 38959086174), while every cycle that reached audit does (38920872324, 38928722878, 38934722443, 38951152192).",
+      "origin/lab/evaluation = bfdd4444 = 'accept evaluation cycle 38951152192', i.e. the accepted stack 660ad896 (38939239917) + 9766de64 (38945976309) + aaf614d0 (38951152192) was promoted together exactly as the accepted audit required.",
+      "The F8 retrieval benchmark record (results/evaluation/retrieval_benchmark/38953399026.json) is present in the working snapshot but has no accept commit: still unpromoted."
+    ],
+    "root_cause_reproduced_this_cycle": "core-lane.yml:58 issues ONE 'git fetch origin' carrying two refspecs -- the team branch and the audit branch -- under 'set -euo pipefail'. Reproduced locally: a fetch with one existing and one missing refspec exits 128 ('fatal: couldn't find remote ref .../38953399026/audit') and updates NEITHER ref ('git rev-parse --verify' then fails). The step therefore aborts before 'git switch -C repair-base' runs, the agent is never invoked, and the 'if: always()' persist step re-pushes whatever HEAD the checkout left behind. CHICKEN-AND-EGG: a cycle that died before audit can never be repaired, because repairing it requires the audit branch it never produced. 38953399026 is exactly such a cycle, so a repair_from_run_id=38953399026 dispatch was guaranteed to be a no-op -- which is precisely the observed zero-delta state.",
+    "second_independent_defect_this_runs_own_input": "This run was dispatched with resume_from_run_id=38959086174. core-lane.yml's on.workflow_dispatch.inputs declares only lane, direction_version, repair_from_run_id and repair_round, so resume_from_run_id is UNDECLARED and silently ignored; inputs.repair_from_run_id is empty and the workflow takes the FRESH path rooted at lab/evaluation (=bfdd4444), discarding the snapshot it was told to resume. That is why this cycle was handed an explicit OPERATIONAL RESUME instruction and is checked out on branch 'operational-resume' at 00aafc37.",
+    "not_verified": "Whether 38959086174 was dispatched with repair_from_run_id=38953399026 (mechanism A) or with resume_from_run_id (mechanism B) cannot be read back: this container has no GH_TOKEN, so 'gh run view 38959086174' is unavailable. FLAGGED, NOT ASSERTED. The outcome itself is not in doubt: no producer commit, no audit branch, no promotion.",
+    "control_plane_fixes_recorded_not_edited": [
+      "core-lane.yml:58 -- fetch the team and audit refs in SEPARATE commands and tolerate an absent audit ref; only mount /tmp/lex_prior_audit when the audit ref actually resolved. Otherwise pre-audit cycles are permanently unrepairable.",
+      "core-lane.yml on.workflow_dispatch.inputs -- either declare resume_from_run_id (defaulting to repair_from_run_id) or stop dispatching an undeclared name, which currently degrades every resume into a fresh cycle."
+    ],
+    "route_around_used": "Preserve the persisted snapshot and give the repair a concrete NEW question, so the cycle has a deliverable. All completed work from 38953399026 was preserved and re-verified, not redone: its three frozen digests, its three retrieval records and the active lane suite all re-ran green under this cycle's suite."
+  },
+  "lane_suite_38959325856": {
+    "entrypoint": "python -m evaluation.lane_suite",
+    "report": "results/evaluation/lane_suite/38959325856.json",
+    "result": "62/62 PASS in 2.65 s (was 42/42 before this cycle)",
+    "falsifiable_families": "25 (was 20); the 5 new map families all have breaking fixtures",
+    "new_checks": [
+      "map frozen contract benchmark digest (7f3e7cb1...)",
+      "map freeze precedes execution",
+      "map record integrity + summary arithmetic + pinned spec + no-import/no-network declarations",
+      "map record re-scores from the frozen spec against the accepted mount",
+      "map record pinned inputs still hash to their freeze",
+      "a well-formed bundle clears every map gate (gates are satisfiable, not merely breakable)",
+      "the clean bundle is measurable on every gate (no free passes)",
+      "5 new map entries in the falsification matrix"
+    ],
+    "bare_checkout": "python -S -m evaluation.lane_suite --skip-pytest -> 61/61 PASS, exit 0. F7 not reintroduced.",
+    "absent_mount": "with the accepted mount absent the map re-score degrades to SKIP and the suite stays green (verified with a transient probe record, since removed).",
+    "stdlib_only": true,
+    "network": false,
+    "imports_product_code": false
+  },
+  "count_reconciliation_38959325856": {
+    "why": "definitions unchanged from prior cycles (factory_direction set-identity rule: never match by cardinality; state WHICH field defines each set)",
+    "test_functions": {
+      "tests/evaluation/test_reality_gate.py": 49,
+      "tests/evaluation/test_retrieval_gate.py": 43,
+      "tests/evaluation/test_lane_suite.py": 8,
+      "tests/evaluation/test_map_gate.py": 30,
+      "evaluation/query_map/test_harness.py": 6,
+      "tests/evaluation/test_audit_correction_verification.py": 4,
+      "total": 140
+    },
+    "pytest_collected_items": {
+      "tests/evaluation/test_reality_gate.py": 68,
+      "tests/evaluation/test_retrieval_gate.py": 43,
+      "tests/evaluation/test_lane_suite.py": 8,
+      "tests/evaluation/test_map_gate.py": 40,
+      "evaluation/query_map/test_harness.py": 6,
+      "tests/evaluation/test_audit_correction_verification.py": 4,
+      "total_active_lane_set": 169,
+      "suite_internal_pytest_invocation": 161,
+      "why_the_two_differ": "the suite excludes tests/evaluation/test_lane_suite.py (8 items) to avoid recursion; accepted audit observation D5 still stands. The 40 map items ARE executed by the suite."
+    },
+    "map_benchmark_counts": {
+      "n_inputs": 31,
+      "n_gates": 5,
+      "n_bundles_passed": 0,
+      "n_bundles_failed": 31,
+      "gate_measurable_pass_fail_nm": {
+        "MAP::points_distinguishable": [
+          31,
+          0,
+          31,
+          0
+        ],
+        "MAP::cluster_membership_enumerable": [
+          31,
+          8,
+          23,
+          0
+        ],
+        "MAP::counter_authority_selectable": [
+          29,
+          14,
+          15,
+          2
+        ],
+        "MAP::outlier_degree_consistent": [
+          31,
+          21,
+          10,
+          0
+        ],
+        "MAP::label_language_matches_query": [
+          26,
+          22,
+          4,
+          5
+        ]
+      }
+    },
+    "set_identity_checks_performed": [
+      "membership: {unreachable>0} and {size_mismatch>0} are the SAME 23 bundles -- intersection 23, both differences 0, union equals the gate failure set (23).",
+      "outlier: failure set (10) = degenerate (5) UNION genuine ordering violation (5), intersection 5, so the degenerate set is a PROPER SUBSET. Never collapse the two.",
+      "counter: failure set (15) = {unselectable>0} (7) UNION {unreachable>0} (10), intersection 2, union 15 == failure set."
+    ],
+    "basename_collision_correction_38959325856": "RECORDED SELF-CORRECTION. Three of the 31 bundles are named de-kapitalverletzung.bundle.json and three fr-bail-entretien.bundle.json on different gate_packet runs. An early pass of this cycle's own set analysis keyed on basename and therefore under-counted the counter and label failure sets (13 and 9 instead of 15 and 4). Every number now reported is keyed on the full repository-relative path and was re-derived after the error; the erroneous intermediate counts appear nowhere in the report or the record."
+  },
+  "non_vacuity_38959325856": {
+    "every_gate_can_fail": "5 breaking fixtures, one per gate, in evaluation/lane_suite.py::_broken_map_fixtures and mirrored in tests/evaluation/test_map_gate.py; all 25 declared families break",
+    "every_gate_can_pass": "evaluation/lane_suite.py::check_map_is_satisfiable builds a well-formed 200-row bundle that clears all five gates with zero not_measurable; pinned by test_clean_bundle_passes_every_gate_so_a_fail_is_a_real_finding",
+    "bars_are_bars": "2/200 coincident pairs PASS and 3/200 FAIL (frozen bar 0.01); 1 bad label out of 8 clusters PASSES and out of 3 FAILS (frozen bar 0.8)",
+    "record_cannot_be_typed": "--rescore re-derives every verdict from the frozen spec plus the accepted mount and the suite requires an exact summary match",
+    "spec_cannot_be_weakened": "8 loader-rejection tests: weakened bar, dropped gate, reordered inventory, stripped sha256, changed schema, emptied lexicon, changed coordinate precision"
+  },
+  "durable_delta_38959325856": [
+    "evaluation/map_gate/build_frozen_spec.py (new; refuses to overwrite; mechanical input selection, no discretion)",
+    "evaluation/map_gate/frozen_map_benchmark.json (new, frozen, sha256 7f3e7cb1...)",
+    "evaluation/map_gate/FREEZE_RECORD.json (new; pre-execution assertion + reconnaissance disclosure)",
+    "evaluation/map_gate/frozen.py (new; digest-pinned loader, validator, tokenizer, query-language rule)",
+    "evaluation/map_gate/gates.py (new; 5 map-contract gates, every bar read from the spec, no literal)",
+    "evaluation/map_gate/run_map_benchmark.py (new; runner + --rescore, exit 0/1/2 per the frozen success rule)",
+    "evaluation/map_gate/__init__.py (new)",
+    "tests/evaluation/test_map_gate.py (new; 30 functions / 40 items)",
+    "results/evaluation/map_benchmark/38959325856.json (new; FAIL, 31 bundles)",
+    "results/evaluation/lane_suite/38959325856.json (new; 62/62 PASS)",
+    "evaluation/lane_suite.py (map digest + freeze ordering + record integrity + re-score + satisfiability checks; 5 new falsifiable families; map tests added to the pytest invocation)",
+    "reports/evaluation/CYCLE_38959325856.md (new)",
+    "state/evaluation.json (this file)"
+  ],
+  "external_evidence_refs": {
+    "why_separate": "tests/evaluation/test_audit_correction_verification.py::test_evidence_refs_exist requires every evidence_refs entry to be a plain path that is_file() on disk. Annotating a ref inline (path plus a parenthetical) makes it a filename that does not exist and turns the whole lane state red. That test caught this cycle's first draft of the list; the annotations now live here instead.",
+    "results/audit/evaluation/CYCLE_38951152192_GATE.json": "Independent audit of accepted evaluation cycle 38951152192, gate=PASS, safe_to_integrate=true. Lives on the audit branch cycle/core/evaluation/38951152192/audit (b3b42c3) and is NOT mirrored into this lane's tree or into main, so it cannot be an evidence_refs path. Its 'coverage gap' passage -- 'no map-geometry gate anywhere ... geometry_signature is used only for order-independent reproducibility, never for coordinates, cluster coherence or outliers ... These belong to this lane's next NEW question' -- is the question this cycle answers.",
+    "results/audit/evaluation/CYCLE_38920872324_GATE.json": "Independent audit of cycle 38920872324, gate=REVISE; the R1-R6 fixes it demanded are recorded in state.repair_fixes_applied. Also an audit-branch artifact, not a path in this tree."
+  },
+  "pre_existing_environmental_gap_38959325856": {
+    "test": "tests/evaluation/test_frontier_verdict_adoption.py::test_numbers_match_accepted_spf_state_where_durable",
+    "symptom": "git show origin/main:results/accepted-state/frontier/frontier-served-packet-falsification.json exits 128; the path exists neither on origin/main (c2ab0680) nor in this checkout.",
+    "introduced_by_this_cycle": false,
+    "evidence": "git diff --stat over tests/evaluation/test_frontier_verdict_adoption.py and evaluation/frontier_verdict_adoption.json is empty; nothing this cycle executed touches either.",
+    "gated_by_the_lane_suite": false,
+    "why_that_matters": "The suite's pytest invocation covers reality, retrieval, map, query_map/test_harness and audit_correction. This file is outside it, so the suite stays green while this test is red -- recorded rather than silently ignored, for the next cycle that touches adopted Frontier verdicts.",
+    "caught_by_this_cycle": "tests/evaluation/test_audit_correction_verification.py::test_evidence_refs_exist caught a broken draft of this cycle's own evidence_refs; the annotations were moved to a new external_evidence_refs block and the suite returned to 62/62."
+  }
 }
