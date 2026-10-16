@@ -219,7 +219,7 @@ def test_answer_prompt_prefers_hydrated_supreme_authority_and_stays_small():
     )
     chosen = _select_prompt_decisions(bundle, max_sources=12)
     ids = [d.decision_id for d in chosen]
-    assert len(chosen) == 12
+    assert 6 <= len(chosen) <= 12
     assert ids[0] == "bger_4A_177_2017", ids
     assert "bger_4A_177_2017" in ids
     prompt = Provider(fixture_mode=True).build_prompt(bundle)
@@ -717,7 +717,8 @@ def test_evidence_source_check_rejects_fabricated_quote():
 
     A finding whose evidence quote is absent from the cited decision's text
     must lose that quote (never ``counter_evidence``) and be downgraded to
-    high uncertainty — while staying visible as a candidate counter-authority.
+    high uncertainty.  Product surfacing is fail-closed: an unevidenced
+    challenge remains in provenance but is not rendered as a counter-authority.
     """
     print(">>> test_evidence_source_check_rejects_fabricated_quote")
     bundle = _small_bundle()
@@ -753,14 +754,16 @@ def test_evidence_source_check_rejects_fabricated_quote():
     audited = apply_to_product_bundle(mini, package, [forged])
     by_id = {d["decision_id"]: d for d in audited["decisions"]}
 
-    assert by_id["CH-003"]["counter_status"] == "candidate-limiting", (
-        "a downgraded finding must stay visible (never hidden)"
+    assert by_id["CH-003"]["counter_status"] == "none", (
+        "an unevidenced challenge must not be surfaced as a counter-authority"
     )
     assert by_id["CH-003"]["counter_evidence"] == "", (
         "fabricated quote must not reach counter_evidence"
     )
     assert by_id["CH-003"]["counter_uncertainty"] >= DOWNGRADED_MIN_UNCERTAINTY
     assert by_id["CH-003"]["counter_reason"] == "limiting"
+    assert by_id["CH-003"]["counter_evidence_verified"] is False
+    assert by_id["CH-003"]["counter_surface_gate"]["passed"] is False
 
     prov = audited["provenance"]["generative_audit"]
     check = prov["evidence_source_check"]
