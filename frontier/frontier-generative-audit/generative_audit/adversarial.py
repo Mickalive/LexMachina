@@ -57,7 +57,7 @@ UNCERTAINTY_WORDS = {"certain": 0.0, "low": 0.2, "medium": 0.5, "high": 0.8, "un
 # selection is deterministic and based on retrieval rank, multilingual challenge
 # markers and answer-cited IDs; classification is still performed by a separate
 # model call and evidence is still verified against the full bundle afterwards.
-MAX_PROMPT_SOURCES = 24
+MAX_PROMPT_SOURCES = 12
 ADVERSARIAL_MODEL_PREFERENCE = (
     "opencode/space-bunny-free",
     "opencode/nemotron-3.5-lightning-free",
@@ -213,20 +213,36 @@ class AdversarialPass:
         # 3) Preserve language branches (two early authorities per language).
         for lang in ("de", "fr", "it"):
             kept = 0
-            for pos, dec in enumerate(decisions, start=1):
+            for _hits, rel, rank, _did, dec in sorted(scored, key=lambda x: (x[2], -x[1], x[3])):
+                if rank > 60 or (max_relevance > 0.0 and rel < relevance_floor):
+                    continue
                 if str((dec.metadata or {}).get("language") or "").lower() == lang:
                     before = len(selected)
                     add(dec)
                     if len(selected) > before:
                         kept += 1
-                    if kept >= 2:
+                    if kept >= 1:
                         break
 
-        # 4) Fill with retrieval-ranked context until the bounded prompt is full.
-        for _hits, _rel, _rank, _did, dec in sorted(scored, key=lambda x: (x[2], -x[1], x[3])):
+        # 4) Fill only from the high-relevance head.  Counter-recall is useful,
+        # but shipping an off-domain "exception" as a contrary authority is
+        # materially worse than returning no counter at all.
+        for _hits, rel, rank, _did, dec in sorted(scored, key=lambda x: (x[2], -x[1], x[3])):
+            if rank > 60 or (max_relevance > 0.0 and rel < relevance_floor):
+                continue
             add(dec)
             if len(selected) >= max_sources:
                 break
+
+        # If aggressive precision filters leave a tiny shortlist, backfill the
+        # very top retrieval head only (never the long tail).
+        if len(selected) < min(6, max_sources):
+            for _hits, _rel, rank, _did, dec in sorted(scored, key=lambda x: (x[2], -x[1], x[3])):
+                if rank > 20:
+                    break
+                add(dec)
+                if len(selected) >= min(6, max_sources):
+                    break
         return selected
 
     def build_prompt(self) -> str:
@@ -237,9 +253,11 @@ class AdversarialPass:
             "limitations, distinguishing facts, exceptions, older or minority "
             "lines, or language-specific branches.",
             "",
+            f"Original legal question: {self.bundle.query}",
+            "",
             f"Provisional answer under review: {self.answer[:3500]}",
             "",
-            "Retrieved decision sources (deterministic challenge shortlist):",
+            "Retrieved decision sources (deterministic challenge shortlist):"
         ]
         prompt_decisions = self._prompt_decisions()
         lines.append(
@@ -247,7 +265,7 @@ class AdversarialPass:
             f"{len(self.bundle.decisions)} retrieved decisions"
         )
         for dec in prompt_decisions:
-            snippet = " ".join((dec.text or "").split())[:260]
+            snippet = " ".join((dec.text or "").split())[:520]
             lines.append(f"  [{dec.decision_id}] {dec.title}: {snippet}")
         lines += [
             "",
@@ -379,7 +397,7 @@ class AdversarialPass:
                 "attempts": attempts,
                 "bundle_decisions": len(self.bundle.decisions),
                 "prompt_decisions": len(prompt_decisions),
-                "prompt_strategy": "rank+challenge-markers+cited-ids+language-balance",
+                "prompt_strategy": "query+high-relevance-head+challenge-markers+cited-ids+bounded-language-balance",
                 "independence": "separate model call, challenge-only objective, bounded deterministic "
                                 "source shortlist, unknown IDs rejected; unclassified findings stay "
                                 "in the audit record but map to counter_status 'none'",
@@ -397,7 +415,7 @@ class AdversarialPass:
             "attempts": attempts,
             "bundle_decisions": len(self.bundle.decisions),
             "prompt_decisions": len(prompt_decisions),
-            "prompt_strategy": "rank+challenge-markers+cited-ids+language-balance",
+            "prompt_strategy": "query+high-relevance-head+challenge-markers+cited-ids+bounded-language-balance",
             "independence": "separate model call; all healthy-model attempts failed closed",
         }
 
