@@ -1,0 +1,115 @@
+{
+  "schema": "lex-director-audit-gate/1",
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "lane": "director",
+  "run": "38939599816",
+  "repair_round": 0,
+  "audit_date": "2026-10-16",
+  "human_decision_required": false,
+  "required_fixes": [
+    {
+      "id": "RF-1",
+      "severity": "blocking",
+      "class": "claim-bearing quantitative defect (recomputed from accepted artifacts)",
+      "files": ["state/factory_direction.json", "reports/director/RUN_<repair_run>.md"],
+      "locations": [
+        "lanes.product.question -> CURRENT BLOCKER 2 (\"17 unsupported rows across all six failing bundles\")",
+        "lanes.evaluation.question -> deliverable (a) (\"inventory with all 17 unsupported ids\", \"all 17, not truncated\")",
+        "reports/director/RUN_38939599816.md sections 2, 3.1, 3.2, 4.3 (\"17 unsupported counter rows\", \"17 rows\", \"all 17\")"
+      ],
+      "defect": "The counter-row failure inventory is 24, not 17. 17 is the sum of the benchmark record's detail strings, which gates.py:302 caps at unsupported_counter_ids[:4]; only it-responsabilita-medica exceeds four (11 real vs 4 shown), so 7 ids are omitted.",
+      "recomputed_truth": {
+        "total_unsupported_across_6_failing_bundles": 24,
+        "served_gate_packet_38839347028": 16,
+        "served_partition": {"de-kapitalverletzung": 1, "fr-bail-entretien": 4, "it-responsabilita-medica": 11},
+        "adversarial_retrieval_38828034436": 8,
+        "adversarial_partition": {"bundle_de": 3, "bundle_fr": 1, "bundle_it": 0, "bundle_mietvertrag_kuendigung": 4},
+        "truncated_detail_sum_misquoted_as_total": 17,
+        "omitted_it_ids": ["ti_gerichte_35.2005.94", "ti_gerichte_31.2021.9", "ti_gerichte_12.2025.23", "ti_gerichte_35.2010.56", "ti_gerichte_35.2017.113", "ti_gerichte_35.2013.90", "bge_122 V 415"],
+        "corroboration": [
+          "base requirement factory_wide_operational_requirements[11] (untouched) states served partition 'de 1 / fr 4 / it 11' and canvas-lock amber 1/4/11",
+          "accepted verdict results/product/frontier_verdicts/ACCEPTED_frontier-served-packet-falsification_38880639079.json: 'The 16 rows with empty counter_evidence at counter_uncertainty >= 0.95'"
+        ]
+      },
+      "required_change": "State 24 total = 16 served (1/4/11) + 8 adversarial (3/1/0/4) with the full 24-id list; state that record detail strings are capped by gates.py:302 [:4] and that inventories must be recomputed from bundle files, never summed from details. Do not edit the rejected report RUN_38939599816.md; supersede it in the repair report. This also unblocks evaluation deliverable (a), which would otherwise pin a test to a wrong inventory."
+    },
+    {
+      "id": "RF-2",
+      "severity": "blocking",
+      "class": "false measurement-mechanics claim + internal contradiction in claim-bearing state",
+      "files": ["state/factory_direction.json", "reports/director/RUN_<repair_run>.md"],
+      "locations": [
+        "factory_wide_operational_requirements[15] (report numbering requirement (16)) clause (b)",
+        "lanes.evaluation.question clause (c)"
+      ],
+      "defect": "Both state 'recall::retrieval_controlling_authority is always not_measurable on legs (passed=None)' and 'only genuinely measured on a full bundle', and evaluation (c) says shipping one full bundle per question makes geometry_preserved/progressive_phases measurable 'at all' - contradicting the same requirement's own final sentence that those two are permanently not_measurable for a single bundle.",
+      "recomputed_truth": {
+        "legs_slim_report_evaluated": 29,
+        "retrieval_recall_passed_true_vacuous": 22,
+        "retrieval_recall_passed_none_not_measurable": 7,
+        "vacuous_true_breakdown": {"rent-default": 11, "corporate-criminal-liability": 6, "business-judgment-rule": 5},
+        "not_measurable_breakdown": {"petty-theft-dismissal": 7},
+        "mechanism": "gates.py:224-230 returns the vacuous True branch when required_retrieval_ids is empty, BEFORE the available=False check; frozen_benchmark.json has non-empty required_retrieval_ids only for petty-theft-dismissal (bger_4A_228_2015, bger_4A_177_2017)",
+        "full_bundles_in_record": 7,
+        "full_bundles_evaluation_scope": "question_independent_only",
+        "full_bundle_retrieval_recall_verdicts": "all 7 passed=None (gates.py:390-391) - this gate has never been genuinely measured on any artifact in record 38934722443",
+        "geometry_gates": "gates.py:303-306 emit not_measurable 'needs initial+final pair; single recorded bundle' on every bundle path; one bundle per question never makes them measurable"
+      },
+      "required_change": "Restate (b)/(c) from the measured facts: not_measurable only when the frozen question defines a retrieval set (7/29 legs), vacuous passed=True otherwise (22/29, never citable as recall evidence); no artifact in record 38934722443 measured the gate at all; full bundles are required for counter support (bundle-only, true) and for retrieval recall only on questions defining a retrieval set whose bundle matches a frozen question; geometry/progressive gates remain unmeasurable from a single bundle - delete or re-scope the 'for those to be measurable at all' clause. Keep the ship-a-full-bundle-per-question rule itself."
+    },
+    {
+      "id": "RF-3",
+      "severity": "blocking",
+      "class": "weak acceptance test / accepted-evidence drop from the operative lane questions",
+      "files": ["state/factory_direction.json"],
+      "locations": ["lanes.product.question -> CURRENT BLOCKER 2 and ORDERED DELIVERABLE (3)", "lanes.evaluation.question (mirroring sentence)"],
+      "defect": "The product lane names blocker 2 'counter soundness' and accepts it at structural::counter_classifications_supported 3/3, while neither RUN question carries the accepted Frontier verdict on the packet being modified (LABEL_UNSOUND 5/65 = 7.69%, GEOMETRY FAIL 0/3, SERVE RECOMMENDATION DO-NOT-SERVE, HARD-STOPPED, accept commit 464c45f7) nor forbids a soundness/servability claim derived from the structural gate. The verdict currently survives only in director_note, the report and the untouched portfolio - not in what producers read.",
+      "why_it_lauunders": [
+        "gates.py:119-125 skips any decision whose counter_status is outside COUNTER_STATUSES (harness.py:15) with continue, so the sanctioned fail-closed relabelling route removes rows from the gate population and the gate passes with zero new evidence",
+        "served packet census recomputed: 65 counter rows (25/15/25); 16 empty-evidence rows; 49 evidence-bearing rows of which only 5 are SUPPORTED under the frozen rubric (OFF-DOMAIN 38, UNBACKED 22, SUPPORTED 5, INVERTED 0) per accepted ACCEPTED_frontier-served-packet-falsification_38880639079.json (evidence_tier MEASURED, covers_this_packet true)",
+        "so deliverable (3) can reach structural 3/3 while 44 of the remaining 49 labelled rows stay rubric-unsupported (~10% support), i.e. blocker 2 could be reported resolved and the packet servable on structural evidence alone"
+      ],
+      "required_change": "Add to the product question (and mirror in evaluation): (i) describe blocker 2 as counter-evidence completeness, not soundness; (ii) state that the structural gate cannot establish label soundness (population membership gates.py:121; 44 evidence-bearing rubric-unsupported rows pass it); (iii) carry forward as binding accepted evidence LABEL_UNSOUND 5/65 (7.69%), geometry FAIL 0/3, DO-NOT-SERVE on gate_packet/38839347028, standing until a successor charter supersedes it; (iv) forbid any LABEL_SOUND / 'counter soundness fixed' / 'servable' claim resting on the structural gate alone, with measurement belonging to the pre-registered Frontier successor against the NEW packet. Keep the relabelling route and the director_note trigger unchanged."
+    }
+  ],
+  "claim_ceiling": "AFTER the three fixes land, this cycle may claim: owner v49 mission preserved byte-identical; all frozen gates/thresholds/authority sets/digests/served-packet claim history untouched; no team chartered, portfolio byte-identical at v21 (0 RUN); no new pauses; no HUMAN_DECISION_REQUIRED (correct); and the accepted-record facts independently recomputed here (82 artifacts/36 evaluated = 29 full_match + 7 question_independent, 46 excluded, 0 unreadable, 35 bundle-structural executions, 7/7 multilingual, 29 producer verdicts, 19 failing gate rows over 17 artifacts with class counts 6/5/4/2/2, fresh legs 111.774/276.119/111.158/150.401s, BJR 0-of-5 vs 4/4/4/3 historically, local-vs-frozen BJR superset, worst fresh leg 276.119s vs 300s ceiling). The restated exit measure is an attribution rule reported ALONGSIDE overall_pass=false, never instead of it, and is not a green light. NEVER claimable from this cycle: overall_pass=true, machine_gate_ready=true, human_gate_ready=true, any owner/jurist session, any map-usefulness result, any LABEL_SOUND or servability verdict on gate_packet/38839347028, any 'counter soundness fixed' derived from structural::counter_classifications_supported, any claim that recall::retrieval_controlling_authority was measured green (vacuously True or not_measurable on every artifact in record 38934722443), any use of the number 17 as the counter-row inventory (truth is 24 until RF-1 is applied), and any latency margin beyond the disclosed near-miss.",
+  "evidence_summary": {
+    "accepted_evidence_tier": "ACCEPTED (gate verdicts) + recomputed arithmetic from accepted bundle/record files; non-accepted material used only as tagged operational instruction",
+    "key_findings": [
+      "GATE=REVISE, safe_to_integrate=false: three concrete same-cycle repairs in state/factory_direction.json (+ mirrored report text); no owner-level decision, no HUMAN_DECISION_REQUIRED warranted or raised (proposal correctly raises none)",
+      "RF-1: counter-row inventory is 24 (16 served de1/fr4/it11 + 8 adversarial 3/1/0/4), not 17; 17 is the sum of [:4]-truncated record detail strings (gates.py:302), contradicting base requirement (11) 'de 1 / fr 4 / it 11' and the accepted Frontier verdict's 16 empty-evidence rows; 7 it-bundle ids omitted; deliverable (a) would pin a test to the wrong total",
+      "RF-2: recall::retrieval_controlling_authority is passed=True vacuously on 22/29 legs (rent 11, corporate 6, BJR 5) and None on 7/29 (petty only), not 'always not_measurable'; all 7 accepted full bundles are question_independent_only so the gate was never genuinely measured in the record; evaluation (c) 'ship a full bundle per question for those to be measurable at all' contradicts the proposal's own requirement (16) that geometry/progressive are permanently not_measurable for a single bundle",
+      "RF-3: product question defines the counter-soundness acceptance as the structural gate alone while gates.py:121 skips non-COUNTER_STATUSES rows (relabelling escapes the check) and 44 of 49 evidence-bearing rows are rubric-unsupported; the accepted DO-NOT-SERVE / LABEL_UNSOUND 5/65 (7.69%) verdict on gate_packet/38839347028 is absent from both operative lane questions",
+      "Mission intact: owner v49 mission, all 3 PAUSE questions and all lane statuses/priorities byte-identical; requirements[0..11] byte-identical, 5 appended (17 total); Main Prompt sha 0ff45652 identical in proposal and checkout",
+      "Write scope clean: exactly 3 files changed (BASE_DIRECTION_SHA, RUN_38939599816.md, state/factory_direction.json), all inside factory-director.yml:94 scope; frontier_portfolio.json sha 5fd427e0... unchanged, v21, 8 teams, 0 RUN (4 PAUSE+PROMOTED_TO_PRODUCT, 4 TERMINATED)",
+      "Version 49->57 justified: state/product.json carries v50_delivery/v51_delivery/v52_delivery/v54_delivery/v55_delivery, so re-using 50 would collide with claim-bearing history; base sha 326c9ded... equals origin/main and the proposal parent; base-sha guard did not misfire",
+      "Stale blockers clean: 3 state/blockers/frontier files, all requires_human=false, all on TERMINATED teams (inert: dispatch selects .status==RUN), correctly outside director write scope",
+      "No product starvation, no duplicated/curiosity teams, no fake parallelism beyond unverifiable-in-container in-flight run ids (gh unauthenticated), no unjustified pauses; future charter is a bounded pre-registered trigger on a newer accepted packet",
+      "Exit-criterion restatement is NOT a benchmark weakening: frozen digest ff57f556... untouched, no threshold/scope/pruning, overall_pass still reported, wording matches the accepted evaluation report lines 98-101"
+    ],
+    "artifacts_verified": [
+      "proposal commit 390b3178 vs parent a16603c1 (3-file diff; state/frontier_portfolio.json byte-identical)",
+      "/tmp/lex_accepted/core/product/results/audit/product/CYCLE_38924869286_GATE.json (PASS, safe_to_integrate=true) and origin/lab/product 3250a52b",
+      "/tmp/lex_accepted/core/evaluation/results/audit/evaluation/CYCLE_38934722443_GATE.json (PASS, safe_to_integrate=true) and origin/lab/evaluation 1e12bfc2",
+      "/tmp/lex_accepted/core/evaluation/results/evaluation/reality_benchmark/38934722443.json (82/36/46/0/29/7, 35 bundle executions, 7/7 multilingual, 29 producer verdicts, 19 rows/17 artifacts, overall_pass=false)",
+      "/tmp/lex_accepted/core/evaluation/evaluation/reality_gate/{gates.py,run_benchmark.py,frozen_benchmark.json} line-read (gates.py:121,131,147-149,224-230,299-306,321-326,390-391; run_benchmark.py:16,114-118,138-141,348,368-370)",
+      "recomputation of bundle_structural over gate_packet/38839347028/questions/*.bundle.json and adversarial_retrieval/38828034436/bundle_*.json -> 24 unsupported rows (16 served + 8 adversarial)",
+      "/tmp/lex_accepted/core/product/results/product/frontier_verdicts/ACCEPTED_frontier-served-packet-falsification_38880639079.json (LABEL_UNSOUND 5/65=7.69%, OFF-DOMAIN 38/UNBACKED 22/SUPPORTED 5, 16 empty-evidence rows, covers_this_packet=true, MEASURED, accept 464c45f7)",
+      "business-judgment-rule_live_20261016T161006Z.json (cites BGE 110 II 391 / BGE 139 III 24 / zh HG120149 -> 0-of-5) vs 120811Z/142443Z/ci-38600271324/ci-38604340726_173225Z (4/4/4/3)",
+      "product/reality_check.py:232-235 and .github/workflows/product-reality-check.yml:256-260 (local BJR superset incl. bge_BGE_139_III_24); product/tests/test_state_contract.py:92/97/104 (pin 55, dirv >= pin)",
+      "proposal state/model_health.json (run 38938748669, FREE_MODEL_POOL_ACTIVE, 4 healthy incl. nemotron-3.5-lightning-free tool_probe PASS)",
+      "evaluation_v49_cycle_report_38934722443.md lines 98-101 (exact quote), state/evaluation.json (frozen_sha256_unchanged_after_repair=true), state/product.json (dir 49, human/machine false, REALITY_CHECK_FAILED)",
+      "state/blockers/frontier/*.json (3 files, requires_human=false, TERMINATED teams) and factory-director.yml:89-107 (director write scope, version-bump rule)"
+    ],
+    "minor_observations": [
+      "O-1: 'the evaluation run's only possible output was byte-identical' is an inference stated as fact - re-execution byte-identity is accepted-verified (state/evaluation.json execution_record_reproducible) but the wording also presumes unchanged code; prefer 'could not be promoted anyway (DIRV != CURRENT); branch content survives'. In-flight run ids unverifiable here (gh unauthenticated).",
+      "O-2: evaluation deliverable (a) acknowledges per-bundle truncation yet totals 17 - resolved by RF-1.",
+      "O-3: 'a regression in the current pipeline, not a missing corpus' is an operational prior, not an established finding (slim reports carry no candidate set, so retrieved-vs-packed is indistinguishable); keep hedged.",
+      "O-4: results/accepted-state/evaluation.json in the proposal tree reads direction_version 45 while the accepted mount reads 49 - results-publisher staleness, outside director write scope, not this run's doing.",
+      "O-5: three inert state/blockers/frontier files and the .github/** control-plane items (base-sha guard on repair runs, local-vs-frozen BJR superset, dead jq // guard) are recorded, not edited - correct per factory-director.yml:94 and requirement (2).",
+      "O-6: product-reality-check.yml cite '258-260' sits inside the true 256-260 span of the local BJR assertion; accurate."
+    ],
+    "consistency_check": "INCOMPLETE - three blocking claim defects (RF-1 count, RF-2 measurement mechanics, RF-3 acceptance-test/accepted-verdict carry-forward) contradict accepted artifacts recomputed this audit; every other material claim in the proposal traced to ACCEPTED evidence or control-plane state and was reproduced. No frozen artifact, threshold, authority set, digest, portfolio entry, blocker file or .github file was modified by the proposal; no evidence was deleted or overwritten."
+  }
+}
