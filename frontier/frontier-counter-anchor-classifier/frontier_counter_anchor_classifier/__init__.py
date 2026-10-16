@@ -8,6 +8,12 @@ FROZEN rubric RULES_LABEL.json (sha256
 The frozen-rubric scoring modules are vendored byte-identically from the
 accepted cycle branch (see ``vendored/``); the candidate decision function is
 the new build (see ``counter_anchor_classifier.py``).
+
+Run 38970902524 verified the accepted Outcome A claim independently and repaired
+four defects in it; see
+``results/frontier/frontier-counter-anchor-classifier/CYCLE_38970902524_VERIFICATION.json``.
+The status mapping is TOTAL: a counter_status outside STATUS_TO_LABEL abstains
+with REASON_UNMAPPED_STATUS rather than being renamed to a polarity.
 """
 
 from .counter_anchor_classifier import (
@@ -15,6 +21,8 @@ from .counter_anchor_classifier import (
     LABEL_CONTRARY,
     LABEL_LIMITING,
     LABEL_SUPPORTING,
+    REASON_UNMAPPED_STATUS,
+    STATUS_TO_LABEL,
     LabelDecision,
     decide_label,
 )
@@ -24,6 +32,8 @@ __all__ = [
     "LABEL_CONTRARY",
     "LABEL_LIMITING",
     "LABEL_SUPPORTING",
+    "REASON_UNMAPPED_STATUS",
+    "STATUS_TO_LABEL",
     "LabelDecision",
     "decide_label",
 ]

@@ -25,23 +25,31 @@ under the frozen normalization and lexicons:
 
   1. a non-empty cited evidence string (else ABSTAIN / evidence_absent),
   2. no frozen fragment-pointer pattern (else ABSTAIN / pointer_only),
-  3. no frozen polarity-inversion construction (else ABSTAIN / polarity_inverted),
-  4. no procedural-formula-only construction without an intent marker
+  3. no procedural-formula-only construction without an intent marker
      (else ABSTAIN / procedural_formula_no_intent),
-  5. at least one frozen counter-intent marker in the cited evidence itself
-     (else ABSTAIN / no_intent_marker),
-  6. at least one frozen DOMAIN-tier anchor of the row's own question in the
-     cited evidence or the row title/regeste (else ABSTAIN / no_domain_anchor),
-  7. at least one frozen PIVOT-tier anchor of the row's own question in the
+  4. no frozen polarity-inversion construction (else ABSTAIN / polarity_inverted),
+  5. at least one frozen PIVOT-tier anchor of the row's own question in the
      cited evidence, title or regeste, AND the row language inside the
      question's expected languages, AND a non-foreign legal_area
-     (else ABSTAIN / pivot_absent).
+     (else ABSTAIN / pivot_absent),
+  6. at least one frozen counter-intent marker in the cited evidence itself
+     (else ABSTAIN / no_intent_marker),
+  7. at least one frozen DOMAIN-tier anchor of the row's own question in the
+     cited evidence or the row title/regeste (else ABSTAIN / no_domain_anchor),
+  8. an issued counter_status that maps to a polarity (else ABSTAIN /
+     unmapped_proposed_status).
 
-Only when every step passes is the row's own proposed counter label emitted.
-The gate is exactly the frozen rubric's criteria (i)-(v) read as emission
-conditions, so an emitted label is supported by construction and an abstained
-row is counted with the reason it failed.  No rubric, lexicon bar or threshold
-is edited; the frozen RULES_LABEL.json bytes are the only judgement input.
+Steps 1-7 are the frozen rubric's assignment precedence read as emission
+conditions, in the FROZEN step order (corrected in cycle 38970902524: the
+frozen precedence puts the procedural-formula test at step 3 and the
+polarity-inversion test at step 4, which is what this module and the vendored
+scorer both apply).  Step 8 is the component's own refusal to invent a
+polarity.  Only when every step passes is the row's own proposed counter label
+emitted.  The gate is exactly the frozen rubric's criteria (i)-(v) read as
+emission conditions, so an emitted label is supported by construction and an
+abstained row is counted with the reason it failed.  No rubric, lexicon bar or
+threshold is edited; the frozen RULES_LABEL.json bytes are the only judgement
+input.
 
 The decision is a pure function of (row, frozen rules): no network, no model,
 no clock, no randomness.
@@ -68,6 +76,17 @@ LABEL_ABSTAIN = "ABSTAIN"
 #: contrary position.  The mapping is immaterial to the frozen score (the
 #: rubric scores the evidence, not the polarity match) and is documented in the
 #: integration contract.
+#:
+#: REPAIR (cycle 38970902524, accepted-audit advisory E): an issued
+#: counter_status that is NOT in this table is NO LONGER defaulted to
+#: ``limiting``.  Defaulting an unrecognised status to a real polarity would
+#: assert a position the row never carried, which the claim ceiling forbids.
+#: An unmappable status now produces a COUNTED abstention with reason
+#: ``unmapped_proposed_status``.  Proven behaviour-preserving on the accepted
+#: measurement population: all 65 scored rows of gate_packet/38839347028 carry
+#: one of the three statuses this table maps (candidate-limiting 45,
+#: candidate-contrary 11, contrary_or_exception 9), so the path is unreachable
+#: there and the accepted 5/65 -> 5/5 measurement is unchanged.
 STATUS_TO_LABEL = {
     "candidate-contrary": LABEL_CONTRARY,
     "contrary": LABEL_CONTRARY,
@@ -76,6 +95,11 @@ STATUS_TO_LABEL = {
     "limiting": LABEL_LIMITING,
     "supporting": LABEL_SUPPORTING,
 }
+
+#: Reason code for a row whose issued counter_status is not in
+#: STATUS_TO_LABEL.  The row may be perfectly well evidenced; the component
+#: simply refuses to name a polarity it was not given.
+REASON_UNMAPPED_STATUS = "unmapped_proposed_status"
 
 #: Deterministic per-reason uncertainty for ABSTAIN decisions.  An abstained
 #: row is unevidenced BY CONSTRUCTION, so its uncertainty is high; the exact
@@ -86,6 +110,7 @@ ABSTAIN_UNCERTAINTY = {
     "pointer_only": 0.9,
     "polarity_inverted": 0.9,
     "procedural_formula_no_intent": 0.85,
+    REASON_UNMAPPED_STATUS: 0.9,
     "no_intent_marker": 0.8,
     "no_domain_anchor": 0.8,
     "pivot_absent": 0.8,
@@ -232,6 +257,12 @@ def decide_label(
             "matches": pivot_ctx,
             "language_ok": lang_ok,
             "legal_area_ok": area_ok},
+        # REPAIR 38970902524: the emitted label may never be a polarity the
+        # issued row did not carry, so mappability is audited like a criterion.
+        "vi_proposed_status_mappable": {
+            "pass": proposed in STATUS_TO_LABEL,
+            "matches": [proposed] if proposed in STATUS_TO_LABEL else [],
+            "mapped_to": STATUS_TO_LABEL.get(proposed)},
     }
 
     base = {
@@ -284,8 +315,19 @@ def decide_label(
             uncertainty=ABSTAIN_UNCERTAINTY["no_domain_anchor"],
             label=LABEL_ABSTAIN, **base)
 
-    # Every frozen criterion passes: emit the row's own proposed label.
-    emitted = STATUS_TO_LABEL.get(proposed, LABEL_LIMITING)
+    # Every frozen criterion passes.  Emit the row's OWN proposed label --
+    # and only if that proposed status is one this component maps to a
+    # polarity.  REPAIR 38970902524 (advisory E): an unmapped status abstains
+    # instead of defaulting to ``limiting``.  This step is deliberately LAST so
+    # that the four existing abstention reason codes keep their accepted
+    # counts on the measured population; only a row that would otherwise have
+    # been emitted can be diverted here.
+    if proposed not in STATUS_TO_LABEL:
+        return LabelDecision(
+            reason_code=REASON_UNMAPPED_STATUS,
+            uncertainty=ABSTAIN_UNCERTAINTY[REASON_UNMAPPED_STATUS],
+            label=LABEL_ABSTAIN, **base)
+    emitted = STATUS_TO_LABEL[proposed]
     return LabelDecision(
         reason_code="supported",
         uncertainty=EMITTED_UNCERTAINTY,
@@ -300,6 +342,7 @@ __all__ = [
     "LABEL_LIMITING",
     "LABEL_SUPPORTING",
     "LabelDecision",
+    "REASON_UNMAPPED_STATUS",
     "STATUS_TO_LABEL",
     "decide_label",
 ]

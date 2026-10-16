@@ -3,14 +3,14 @@
   "charter_version": 1,
   "direction_version": 50,
   "evidence_tier": "ACCEPTED",
-  "cycle_status": "COMPLETE_OUTCOME_A_ADOPTABLE_COMPONENT",
+  "cycle_status": "COMPLETE_OUTCOME_A_ADOPTABLE_COMPONENT_REPAIRED",
   "continue_recommended": false,
   "accepted_run_id": "38964146628",
   "accepted_commit": null,
   "measured_packet": "gate_packet/38839347028",
   "frozen_rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
   "outcome": "A",
-  "outcome_note": "Adoptable component. Sentence-anchored abstain-first decision function raises counter-label support from 5/65 = 0.0769 (incumbent, reproduced byte-identical) to 5/5 = 1.0 among emitted labels, INVERTED == 0, on the same 65 rows of the same 3 bundles under the FROZEN rubric. Yield 65 -> 5; 60 unsupported labels converted to COUNTED abstentions. Acceptance tests (1)-(8) pass. Core Product remains the integrator and decides adoption.",
+  "outcome_note": "Adoptable component, unchanged by run 38970902524. The sentence-anchored abstain-first decision function raises counter-label support from 5/65 = 0.0769 (incumbent, reproduced) to 5/5 = 1.0 among emitted labels, INVERTED == 0, converting 60 unsupported labels into COUNTED abstentions. Outcome A was accepted in run 38964146628; run 38970902524 independently re-verified every number and repaired four defects (accepted-audit advisories C, D, E plus a broken CLI default path) without changing any measurement. Core Product remains the integrator and decides adoption.",
   "head_to_head": {
     "incumbent_support_rate": 0.07692307692307693,
     "incumbent_n_scored": 65,
@@ -32,6 +32,13 @@
       "inverted_label_control_support_rate": 0.0,
       "swapped_evidence_control_support_rate": 0.0,
       "all_controls_strictly_below_candidate": true
+    },
+    "accepted_comparison_coverage": {
+      "rows_compared": 65,
+      "rows_matched": 65,
+      "rows_divergent": 0,
+      "duplicate_decision_ids": 4,
+      "note": "run 38970902524: the accepted comparison previously keyed by decision_id and covered only 61 of the 65 rows; it is now a multiset comparison over full verdict tuples and covers all 65."
     }
   },
   "run_history": [
@@ -54,6 +61,80 @@
       ],
       "tests": "22 passed",
       "note": "Outcome A reached; charter terminates here. No further cycle under the same charter is justified: the rubric is frozen and post-hoc tuning would invalidate it. Adoption is Core Product's decision."
+    },
+    {
+      "run_id": "38970902524",
+      "charter_version": 1,
+      "cycle_kind": "VERIFICATION_AND_REPAIR_OF_AN_ACCEPTED_OUTCOME",
+      "cycle_status": "COMPLETE_OUTCOME_A_ADOPTABLE_COMPONENT_REPAIRED",
+      "evidence_tier": "ACCEPTED",
+      "continue_recommended": false,
+      "frozen_rules_sha256_reproven": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+      "independent_reverification": {
+        "incumbent": "5/65 = 0.07692307692307693, INVERTED 0, reproduced",
+        "multiset_vs_LABEL_HALF": "65/65 matched, 0 divergent",
+        "candidate": "5 emitted / 60 abstained / support 1.0 among emitted / yield 0.0769 / INVERTED 0",
+        "non_vacuity": "inverted-label 0/2 = 0.0, swapped-evidence 0/5 = 0.0, both strictly below 1.0",
+        "verdict": "the accepted Outcome A claim is sound as stated"
+      },
+      "repairs": [
+        "D accepted-comparison coverage 61 -> 65 rows",
+        "E unmapped counter_status abstains instead of defaulting to limiting",
+        "C corrected the published swapped-control reason to pivot_absent",
+        "CLI fixed the documented invocation and the default output path"
+      ],
+      "tests": "46 passed",
+      "artifacts": [
+        "frontier/frontier-counter-anchor-classifier/frontier_counter_anchor_classifier/counter_anchor_classifier.py",
+        "frontier/frontier-counter-anchor-classifier/frontier_counter_anchor_classifier/run_head_to_head.py",
+        "results/frontier/frontier-counter-anchor-classifier/HEAD_TO_HEAD_R2_38970902524.json",
+        "results/frontier/frontier-counter-anchor-classifier/CYCLE_38970902524_VERIFICATION.json",
+        "results/frontier/frontier-counter-anchor-classifier/INTEGRATION_CONTRACT.json (revision 2)",
+        "reports/frontier/frontier-counter-anchor-classifier/REPORT.md (cycle 38970902524 section)",
+        "tests/frontier/frontier-counter-anchor-classifier/test_repair_38970902524.py",
+        "tests/frontier/frontier-counter-anchor-classifier/test_repair_population_preserved.py",
+        "tests/frontier/frontier-counter-anchor-classifier/fixtures/real_emitted_rows.json"
+      ],
+      "artifacts_untouched": [
+        "results/frontier/frontier-counter-anchor-classifier/HEAD_TO_HEAD.json",
+        "results/frontier/frontier-counter-anchor-classifier/RULES_LABEL.json",
+        "results/frontier/frontier-counter-anchor-classifier/CLAIM_CEILING.json"
+      ],
+      "note": "Outcome A stands and the charter stays TERMINATED. The component now needs an independent audit of run 38970902524, not another charter cycle; adoption is Core Product's decision."
     }
-  ]
+  ],
+  "repairs": [
+    {
+      "id": "D",
+      "class": "measurement",
+      "summary": "accepted comparison collapsed 4 duplicate decision_ids (61 of 65 rows covered); now a multiset comparison over full verdict tuples",
+      "accepted_measurement_changed": false
+    },
+    {
+      "id": "E",
+      "class": "soundness",
+      "summary": "an unmapped issued counter_status defaulted to the polarity 'limiting', letting the component name a position the row never carried; now a counted abstention (unmapped_proposed_status)",
+      "accepted_measurement_changed": false
+    },
+    {
+      "id": "C",
+      "class": "documentation",
+      "summary": "REPORT.md misstated the swapped-evidence control's gate reason as no_intent_marker; the frozen-precedence truth is pivot_absent",
+      "accepted_measurement_changed": false
+    },
+    {
+      "id": "CLI",
+      "class": "runnability",
+      "summary": "the documented module invocation resolved default paths one directory too shallow and crashed on the frozen rubric; fixed, and the default output can no longer overwrite the accepted claim artifact",
+      "accepted_measurement_changed": false
+    }
+  ],
+  "dispatch_anomaly": {
+    "detected_run": "38970902524",
+    "condition": "charter v1 was re-dispatched after its stop/promote rule had already fired at Outcome A (run 38964146628, gate=PASS, continue_recommended=false)",
+    "handling": "absorbed as verification-and-repair of an accepted outcome; no new charter cycle opened and no new claim issued",
+    "factory_signal": "a terminated charter must not be re-dispatched at the same charter_version; run 38970902524 now needs an independent audit, not another cycle"
+  },
+  "integration_contract_revision": 2,
+  "tests": "46 passed (22 accepted + 24 repair tests)"
 }
