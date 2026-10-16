@@ -2190,9 +2190,9 @@
   },
   "human_gate_note": "Human review is premature. The product now retrieves materially better authorities, but answer synthesis and latency have not yet passed the hardened four-question reality gate.",
   "reality_gate": {
-    "status": "RERUN_REQUESTED",
+    "status": "RERUN_REQUESTED_AFTER_BOUNDED_ADVERSARIAL_REVIEW",
     "requested_at": "2026-10-16",
-    "code_head": "ac43e2ad806ea11937fe2fef3bd46261a006dab8",
+    "code_head": "42f7ebdf8eb9f3f1334a6282e469c07ed5605e67",
     "requirements": [
       "four frozen Swiss-law questions substantively correct",
       "top_n=100 serves no more than 100 reranked decisions",
@@ -2200,6 +2200,14 @@
       "French synthesis for French questions",
       "full answer latency < 300 seconds"
     ],
-    "note": "Rerun after legal rerank cap, hydrated-only answer packing, query-aware adversarial shortlist and fail-closed counter surfacing."
+    "note": "Rerun after legal rerank cap, hydrated-only answer packing, query-aware adversarial shortlist and fail-closed counter surfacing.",
+    "architecture": [
+      "initial retrieval reranked and capped to top_n",
+      "answer generated from hydrated relevant authorities",
+      "answer-conditioned adversarial retrieval replaces at most 8 weak tail rows",
+      "heuristics cannot surface legal counter labels",
+      "one independent adversarial LLM classifies the final bounded set",
+      "visible counters require verified source evidence"
+    ]
   }
 }
