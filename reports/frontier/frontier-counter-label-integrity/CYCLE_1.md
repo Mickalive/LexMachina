@@ -14,7 +14,7 @@ those remain the product's labels — reported here, not endorsed, not re-assign
 | frozen rubric | `results/frontier/frontier-counter-label-integrity/RULES.json` |
 | `rules_sha256` | `4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608` |
 | freeze commit | `416c2aec` @ `2026-10-16T02:22:36Z` |
-| results commit | `6f4f3e0e`+ @ after the freeze (see `FREEZE_PROOF.json`) |
+| results commits | `0849f6e` @ `2026-10-16T02:29:04Z`, `7601fb1` @ `2026-10-16T02:32:24Z` (both after the freeze; see `FREEZE_PROOF.json`) |
 | report | `REPORT.json`, sha256 `e97a4e9c9377d85837309597aafd36ba9252c3f1f8859096ce219618c588de4c` |
 | coverage | 9 accepted live bundles (3 primary + 6 replication), all pre-repair |
 | non-vacuity | PASSED — 7/7 injected classes, 5 defect criteria exercised |
@@ -106,6 +106,12 @@ The lenient variant is the only one that can rescue any row, and it rescues 2 of
 below the pre-registered soundness threshold of 1.0. **The verdict is the same under every
 pre-declared interpretation.** The only interpretive choice in the whole rubric (the PIVOT
 anchor) is therefore bounded, not decisive.
+
+**Sample-size counterargument, addressed.** n = 7 alone would be a weak base. It is not what the
+verdict rests on: the same rubric applied to 39 further accepted labels also returns **0
+supported**, and the failures are criterion-level and systematic rather than marginal — criterion
+(i) fails on 36 of 39 replication rows and criterion (v) on 33 of 39. A single unlucky row class
+cannot produce that pattern.
 
 **Independent re-derivation.** `test_independent_recheck.py` re-implements the frozen rubric a
 second time, importing nothing from the harness, and reproduces all seven verdicts and the 0/7
