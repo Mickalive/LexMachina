@@ -45,8 +45,11 @@ _EVIDENCE_CUES = (
     "subsidi", "primair", "originar", "originar", "unabhangig", "independ",
     # Exceptions/limitations
     "exception", "ausnahme", "limit", "voraussetz", "condition",
-    # Organization/conflict of interest
+    # Organization/conflict of interest / concrete organizational standard
     "organis", "interessenkonflikt", "information", "geschaeftsentscheid",
+    "erforderlich", "zumutbar", "vorkehr", "necessaire", "raisonnable",
+    # Residual merits/deference threshold
+    "vertretbar", "inhaltlich", "zuruckhaltung", "retenue", "defendable",
     # Time periods/deadlines
     "frist", "delai", "délai",
     # Good faith / abuse of rights / trust
@@ -484,6 +487,12 @@ class Provider:
             "broader or lower-court generalities.",
             "  - Do not turn a lower-court caveat into the general rule when a direct "
             "Federal Supreme Court authority is present.",
+            "  - When a doctrine limits merits review after procedural conditions are met, "
+            "state any residual substantive threshold found in the controlling source "
+            "(for example whether the decision must still be defensible/vertretbar).",
+            "  - When the question asks what organizational measures are required, state "
+            "the concrete standard from the evidence (required/necessary/reasonably "
+            "exigible measures), not merely the label 'organizational deficit'.",
             "  - Answer every distinct sub-question in the query. If a statute "
             "contains different paragraphs/alternatives (for example al. 1 "
             "versus al. 2), state each branch separately and do not collapse them.",
