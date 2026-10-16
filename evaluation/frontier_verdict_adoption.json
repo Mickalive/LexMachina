@@ -1,0 +1,141 @@
+{
+  "schema": "lex-evaluation-frontier-verdict-adoption/1",
+  "lane": "evaluation",
+  "direction_version": 56,
+  "adopted_by_run": "38918468438",
+  "adopted_at": "2026-10-16T00:00:00Z",
+  "method": "ADOPTED_WITHOUT_REMEASURE",
+  "method_note": "v55 deferred adoption behind frontier-served-packet-falsification; that team reported and was independently audited PASS, and the served packet carries DO-NOT-SERVE so the owner session is not imminent. This file folds the three accepted Frontier verdicts in as named metrics carrying their frozen rule sha256s. Nothing was re-measured, nothing re-frozen, no threshold raised or lowered, no Frontier harness re-run, no synthetic benchmark added.",
+  "frozen_rules": {
+    "counter_label_soundness": {
+      "rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+      "frozen_bar": "absolute 1.0: support_rate must equal 1.0; ANY single unsupported label makes the label set unsound",
+      "bar_changed_by_this_lane": false
+    },
+    "geometry_semantics": {
+      "rules_sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+      "frozen_bar_example": "STRUCTURE_LARGEST 0.60 (French mega-cluster share must be < 0.60)",
+      "bar_changed_by_this_lane": false
+    }
+  },
+  "metrics": {
+    "A1_counter_label_integrity_pre_repair": {
+      "team_id": "frontier-counter-label-integrity",
+      "measurement_run": "38839354961",
+      "audit_of_record": "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38841035773_GATE.json",
+      "audit_gate": "PASS",
+      "accept_commit_on_main": "7c960b4",
+      "verdict": "LABEL_UNSOUND",
+      "accepted_chain": "0/46 supported",
+      "charter_primary": "0/7 supported",
+      "covers_this_packet": false,
+      "packet_covered": "gate_packet/38799024807 (pre-repair; every scored bundle is pre-repair)",
+      "product_snapshot_provenance": "results/product/frontier_verdicts/ACCEPTED_counter_label_38841035773__map_semantics_38846038296.json on origin/lab/product (team_run_id 38841035773, support_rate_primary 0.0, n_scored_primary 7)"
+    },
+    "A2_served_packet_label_before_after": {
+      "team_id": "frontier-served-packet-falsification",
+      "measurement_run": "38877700234",
+      "operational_resume_run": "38880639079",
+      "audit_of_record": "results/audit/frontier/frontier-served-packet-falsification/CYCLE_38880639079_GATE.json",
+      "audit_gate": "PASS",
+      "audit_safe_to_integrate": true,
+      "promote_commit": "464c45f7e4bf741b6a67adbef35dc587d8cfa21f",
+      "verdict": "LABEL_UNSOUND",
+      "n_scored": 65,
+      "n_supported": 5,
+      "support_rate": 0.07692307692307693,
+      "support_rate_display": "5/65 = 7.69% SUPPORTED",
+      "direction_vs_baseline": "IMPROVED",
+      "baseline": "0.0% pre-repair",
+      "baseline_note": "Genuine improvement from 0.0% pre-repair to 7.69% served. Must not be explained away. Absolute frozen bar (1.0) not reached, so the verdict remains LABEL_UNSOUND.",
+      "defect_classes": {
+        "OFF_DOMAIN": 38,
+        "UNBACKED": 22,
+        "SUPPORTED": 5,
+        "INVERTED": 0,
+        "BOILERPLATE_ONLY": 0,
+        "FRAGMENT": 0
+      },
+      "set_identity_note": "The 16 empty-evidence rows (counter_evidence_verified absent, reason_code evidence_absent, counter_uncertainty 0.95-1.0; per bundle de 1 / fr 4 / it 11) are a PROPER SUBSET of the 22 UNBACKED rows, not identical to them. The other 6 UNBACKED rows carry counter_evidence_verified=true with cited quotes and fail for content reasons (no_domain_anchor 2, no_intent_marker 4; counter_uncertainty 0.25-0.65). Never collapse the two sets.",
+      "counter_evidence_verified": {
+        "present_true": 49,
+        "present_false": 0,
+        "absent": 16
+      },
+      "covers_this_packet": true,
+      "packet_covered": "gate_packet/38839347028 (served packet itself: its 65 counter labels)",
+      "accepted_provenance": "results/accepted-state/frontier/frontier-served-packet-falsification.json on origin/main (verdict LABEL_UNSOUND 5/65, direction_vs_baseline IMPROVED)"
+    },
+    "B1_map_semantics_pre_rebuild": {
+      "team_id": "frontier-map-semantics",
+      "charter_version": 2,
+      "measurement_run": "38839351403",
+      "audit_of_record": "results/audit/frontier/frontier-map-semantics/CYCLE_38846038296_GATE.json",
+      "audit_gate": "PASS",
+      "accept_commit_on_main": "15362f68",
+      "verdict": "FAIL",
+      "n_bundles_pass": 0,
+      "n_bundles": 3,
+      "criteria_axes": "A1/A2/A3 all FAIL",
+      "per_bundle_pass_counts": {
+        "de-kapitalverletzung": "5/11",
+        "fr-bail-entretien": "5/11",
+        "it-responsabilita-medica": "4/11"
+      },
+      "promoted_decision": "FAIL with NO working in-budget alternative: keep the shipped geometry and CLOSE geometry work until after the human gate.",
+      "covers_this_packet": false,
+      "packet_covered": "gate_packet/38799024807 pre-rebuild bundles (134/131/132 decisions) plus the 287-row progressive-slice bundle; NOT the served packet bundles",
+      "product_snapshot_provenance": "results/product/frontier_verdicts/ACCEPTED_counter_label_38841035773__map_semantics_38846038296.json on origin/lab/product (per-bundle criteria lists verified this run)"
+    },
+    "B2_served_packet_geometry_before_after": {
+      "team_id": "frontier-served-packet-falsification",
+      "measurement_run": "38877700234",
+      "operational_resume_run": "38880639079",
+      "audit_of_record": "results/audit/frontier/frontier-served-packet-falsification/CYCLE_38880639079_GATE.json",
+      "audit_gate": "PASS",
+      "promote_commit": "464c45f7e4bf741b6a67adbef35dc587d8cfa21f",
+      "verdict": "FAIL",
+      "n_bundles_pass": 0,
+      "n_bundles": 3,
+      "pass_counts": {
+        "de-kapitalverletzung": "6/11",
+        "fr-bail-entretien": "5/11",
+        "it-responsabilita-medica": "5/11"
+      },
+      "baseline_pass_counts": {
+        "de-kapitalverletzung": "5/11",
+        "fr-bail-entretien": "5/11",
+        "it-responsabilita-medica": "4/11"
+      },
+      "delta_note": "de and it improved pass counts (5->6, 4->5); fr unchanged at 5/11.",
+      "french_mega_cluster": {
+        "share": 0.7696,
+        "baseline_share": 0.557,
+        "direction": "REGRESSED",
+        "frozen_bar": 0.6,
+        "inside_frozen_rule": false
+      },
+      "covers_this_packet": true,
+      "packet_covered": "gate_packet/38839347028 (served packet itself: its three bundles)",
+      "accepted_provenance": "results/accepted-state/frontier/frontier-served-packet-falsification.json on origin/main (FAIL 0/3, french_largest_share 0.7696, french_bar 0.6)"
+    }
+  },
+  "serve_recommendation_adopted": "DO-NOT-SERVE this packet unchanged (frontier-served-packet-falsification's own words, adopted as input, quoted not endorsed).",
+  "claim_ceiling": "These metrics are about the SUPPORT OF THE LABELS AS ISSUED and the SEMANTICS OF THE SHIPPED MAP GEOMETRY under frozen rubrics. They NEVER assert that any specific decision IS supporting, contrary or limiting. Those remain the product's labels: reported here, not endorsed, not re-assigned.",
+  "hard_constraints_compliance": {
+    "froze_nothing_new": true,
+    "no_bar_raised_or_lowered": true,
+    "no_frontier_harness_rerun": true,
+    "no_synthetic_benchmark_churn": true,
+    "no_write_under_product_or_state_product": true,
+    "no_disclosure_wording_owned": true,
+    "no_human_gate_answer": true
+  },
+  "superseded_artifact_guard": "Every metric above carries covers_this_packet plus packet_covered so the superseded-artifact error (quoting a pre-repair/pre-rebuild verdict against the served packet, or vice versa) cannot recur inside evaluation.",
+  "evaluation_harness_status": {
+    "path": "evaluation/query_map",
+    "contract": "JSON query_result_bundle only; does not import Product",
+    "role": "The lane's executable falsifier: counter_classifications_supported and geometry_preserved_after_enrichment checks already enforce the same integrity properties the adopted verdicts measure. Adoption adds named verdicts; it does not replace running the harness.",
+    "tests": "tests/evaluation/test_frontier_verdict_adoption.py"
+  }
+}
