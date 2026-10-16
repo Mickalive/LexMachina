@@ -18,6 +18,27 @@ ROOT = Path("results/frontier/frontier-map-semantics")
 REPORT = Path("reports/frontier/frontier-map-semantics/REPORT.md")
 GATE = ["de-kapitalverletzung", "fr-bail-entretien", "it-responsabilita-medica"]
 CONTEXT = "additional-287"
+ALTS = ["A1_drop_unhydrated", "A2_language_aware_tfidf", "A3_mds_cosine"]
+SUITE = Path("tests/frontier/frontier-map-semantics/test_harness.py")
+
+# The 8 repeats of the same RF1 shape across four cycles: a claim-bearing report
+# section asserting something its own artifacts contradict. Audit CYCLE_38849595347
+# fixes R1-R4 for exactly this document, so each fixed claim now gets a checker.
+# Anything below that is only a string test is worthless: every number is derived
+# from the emitted artifact and the rendered text is required to carry it.
+OVERCLAIM_PATTERNS = [
+    r"MET on all three gate bundles",
+    r"MET on all 3 gate bundles",
+    r"test 4[^.]{0,80}\bis\b[^.]{0,40}\bMET\b[^.]{0,40}\ball (?:three|3)\b",
+    r"acceptance test 4[^.]{0,80}\bMET on (?:all|every)\b",
+]
+
+
+def check_absent(cond, msg):
+    if not cond:
+        print(f"CHECK-FAIL: {msg}")
+        sys.exit(1)
+    print(f"CHECK-OK: {msg}")
 
 
 def check(cond, msg):
@@ -27,8 +48,20 @@ def check(cond, msg):
     print(f"CHECK-OK: {msg}")
 
 
-def main():
-    text = REPORT.read_text()
+def main(report_path=None, root=None):
+    global ROOT, SUITE
+    if root is not None:
+        ROOT = Path(root)
+    if report_path is not None:
+        REPORT_OVERRIDE = Path(report_path)
+    else:
+        REPORT_OVERRIDE = REPORT
+    text = REPORT_OVERRIDE.read_text()
+    # Markdown hard-wraps inside sentences, so any prose claim can straddle a
+    # newline. Collapse whitespace once and do every substring/count check on the
+    # flattened text: a claim must not be able to pass or fail merely because the
+    # author wrapped the line differently.
+    flat = " ".join(text.split())
     check("## 9. Operational resume (run 38846038296)" in text,
           "report carries the section-9 addendum for this run")
 
@@ -118,7 +151,112 @@ def main():
     import re
     check(re.search(r"\[\s*truncated\s+\d+\s+chars?\]", text) is None,
           "report carries no numeric tool truncation marker")
+
+    # ---- R2: the section-5 table states the relation collapse, derived ------
+    # Audit CYCLE_38849595347 R2: the DE cell claimed A1 "fixes COH x2" and left
+    # out the five criteria A1 actually fails, the decisive one being RELATIONS.
+    SHIPPED_REL = 25
+    rel_by_bundle = {}
+    for b in GATE:
+        rep = json.loads((ROOT / b / "report.json").read_text())
+        shipped = {k: v["pass"] for k, v in rep["criteria"].items()}
+        check(rep["criteria"]["RELATIONS"]["value"] == SHIPPED_REL,
+              f"{b} shipped RELATIONS really is {SHIPPED_REL} edges")
+        check(shipped["RELATIONS"] is True,
+              f"{b} shipped RELATIONS is a PASS (the alternatives must lose it)")
+        alt = json.loads((ROOT / b / "alternatives.json").read_text())
+        for a in ALTS:
+            v = alt[a]
+            check(v["error"] is None and v["overall"] == "FAIL",
+                  f"{b} {a} measured FAIL with no error")
+            check(alt["best"] is None, f"{b} best alternative is None")
+            check(v["within_budget"] is True and v["elapsed_s"] < 2.0,
+                  f"{b} {a} inside the frozen 2 s budget")
+            # the verdict delta the cell must be derived from
+            n_alt = sum(v["criteria"].values())
+            gains = sorted(k for k in v["criteria"]
+                           if v["criteria"][k] and not shipped[k])
+            check(f"FAIL {n_alt}/{len(v['criteria'])}" in flat,
+                  f"{b} {a} pass count {n_alt}/{len(v['criteria'])} rendered")
+            for g in gains:
+                check(g in flat, f"{b} {a} gain {g} named in the report")
+            # R2: every alternative flips RELATIONS PASS -> FAIL.
+            check(not v["criteria"]["RELATIONS"] and shipped["RELATIONS"],
+                  f"{b} {a} flips RELATIONS PASS -> FAIL")
+            check(v["values"]["RELATIONS"] < 10,
+                  f"{b} {a} drops RELATIONS below the frozen 10-edge bar")
+            rel_by_bundle.setdefault(b, []).append(v["values"]["RELATIONS"])
+    n_cells = len(GATE) * len(ALTS)
+    check(flat.count("loses RELATIONS") >= n_cells,
+          f"alternatives table names the RELATIONS loss in all {n_cells} "
+          f"alt-bundle cells (found {flat.count('loses RELATIONS')})")
+    for b in GATE:
+        rels = rel_by_bundle[b]
+        check(len(set(rels)) == 1 and rels[0] < SHIPPED_REL,
+              f"{b} all three alternatives collapse RELATIONS to {rels[0]}")
+    check(f"{SHIPPED_REL} -> {rel_by_bundle[GATE[0]][0]} on DE" in flat
+          or f"{SHIPPED_REL} → {rel_by_bundle[GATE[0]][0]} on DE" in flat,
+          "report states the DE relation collapse 25 -> 1 explicitly")
+    check(f"{SHIPPED_REL} -> {rel_by_bundle[GATE[1]][0]} on FR and IT" in flat
+          or f"{SHIPPED_REL} → {rel_by_bundle[GATE[1]][0]} on FR and IT" in flat,
+          "report states the FR/IT relation collapse 25 -> 0 explicitly")
+
+    # ---- R3: the wall-time column carries the committed elapsed_s values ----
+    # Audit CYCLE_38849595347 R3: three hand-typed ranges matched nothing in
+    # alternatives.json. The committed number is now required to appear.
+    slowest = 0.0
+    for b in GATE:
+        alt = json.loads((ROOT / b / "alternatives.json").read_text())
+        for a in ALTS:
+            e = alt[a]["elapsed_s"]
+            slowest = max(slowest, e)
+            check(f"{e:.4f}" in flat,
+                  f"{b} {a} committed elapsed_s {e:.4f} in the report")
+    check(slowest < 2.0 and f"{slowest:.4f} s" in flat,
+          f"report compares the slowest committed cell {slowest:.4f} s "
+          f"against the frozen 2.0 s budget")
+
+    # ---- R4: the quoted test count is the suite's own count ----------------
+    n_tests = len(re.findall(r"^def test_", SUITE.read_text(), re.M))
+    check(n_tests >= 11, f"suite still holds >= 11 test functions (has {n_tests})")
+    for stale in ("**10 passed**", "**6 passed**", "— 6 passed"):
+        check_absent(stale not in flat,
+                     f"no stale test count {stale!r} survives in the report")
+    check(flat.count(f"**{n_tests} test functions**") >= 2,
+          f"report quotes the suite's real count (**{n_tests} test functions**) "
+          f"in >= 2 places (found {flat.count(f'**{n_tests} test functions**')})")
+
+    # ---- R1: the acceptance-test-4 sentence matches the frozen artifacts ----
+    flips = {b: json.loads((ROOT / b / "report.json").read_text())["nonvacuity"]
+             ["charter"]["n_flips"] for b in GATE + [CONTEXT]}
+    passed = {b: json.loads((ROOT / b / "report.json").read_text())["nonvacuity"]
+              ["passed"] for b in GATE + [CONTEXT]}
+    check(flips[GATE[0]] == 2 and flips[GATE[1]] == 2 and flips[GATE[2]] == 1,
+          "frozen control flips are 2 / 2 / 1 on DE / FR / IT")
+    check(passed[GATE[0]] is True and passed[GATE[1]] is True
+          and passed[GATE[2]] is False,
+          "frozen nonvacuity.passed is true / true / false on DE / FR / IT")
+    for b in GATE:
+        pc = json.loads((ROOT / b / "report.json").read_text())[
+            "nonvacuity"]["positive_control"]
+        check(pc["n_flips"] == 2,
+              f"{b} positive control independently reaches 2 flips")
+    met = [b for b in GATE if flips[b] >= 2]
+    unmet = [b for b in GATE if flips[b] < 2]
+    check(len(met) == 2 and len(unmet) == 1,
+          "the frozen assertion is MET on exactly 2 of 3 gate bundles")
+    check(f"2 / 2 / **{flips[GATE[2]]}**" in flat,
+          "report renders the per-bundle frozen flip counts 2 / 2 / 1")
+    check("MET on DE and FR and NOT MET on IT" in flat,
+          "report states acceptance test 4 MET on DE+FR and NOT MET on IT")
+    check("does **not** substitute for it" in flat,
+          "report states the positive control is not a substitute for the frozen control")
+    for pat in OVERCLAIM_PATTERNS:
+        check_absent(re.search(pat, text) is None,
+                     f"no acceptance-test-4 overclaim matching /{pat}/")
+
     print("ALL-CHECKS-PASSED")
+    return 0
 
 
 if __name__ == "__main__":

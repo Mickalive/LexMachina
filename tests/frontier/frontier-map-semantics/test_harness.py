@@ -1,4 +1,6 @@
 """Offline tests for the frontier-map-semantics harness (no network, no /tmp)."""
+import contextlib
+import io
 import json
 import subprocess
 import sys
@@ -300,3 +302,77 @@ def test_claim_checkers_pass_against_committed_artifacts():
                            capture_output=True, text=True, env=env)
         assert r.returncode == 0, f"{script}: {r.stdout}\n{r.stderr}"
         assert "ALL-CHECKS-PASSED" in r.stdout, script
+
+
+# The four R1-R4 defects repaired in run 38851887303 were all prose drifting out
+# of agreement with the artifacts. A checker that is never shown to FAIL is not
+# evidence (charter-1 RF2 discipline applied to this team's own tooling), so each
+# fixed claim gets a mutation control below: re-introduce the exact defect into a
+# copy of REPORT.md and assert check_report_numbers.py rejects it, AND rejects it
+# for the reason that targets that defect rather than an unrelated one.
+#
+# (label, mode, needle, replacement, substring of the expected CHECK-FAIL message)
+_R1_R2_R3_R4_MUTATIONS = [
+    # R1: the exact audited overclaim, re-asserted.
+    ("R1 acceptance-test-4 overclaim", "inject",
+     "Charter v2 is discharged and an acceptance test 4 that is MET on all "
+     "three gate bundles.",
+     None, "acceptance-test-4 overclaim"),
+    # R2: the audited DE cell, which omitted the RELATIONS collapse.
+    ("R2 alternatives table omits the RELATIONS collapse", "substitute",
+     "| A1 drop un-hydrated | FAIL 6/11 — gains COH_LANG+COH_TERM, "
+     "**loses RELATIONS**;",
+     "| A1 drop un-hydrated | FAIL (fixes COH x2; PROJ x3+SEP still fail) |",
+     "alt-bundle cells"),
+    # R3: the audited hand-typed wall-time range that matched no artifact.
+    ("R3 wall-time range absent from alternatives.json", "substitute",
+     "0.0747 / 0.0662 / 0.0661", "0.07-0.17 s",
+     "committed elapsed_s"),
+    # R4: both audited stale test counts.
+    ("R4 stale 10-passed test count", "substitute",
+     "**12 test functions**,\nall passing — 6 pre-existing",
+     "**10 passed**,\nall passing — 6 pre-existing",
+     "no stale test count"),
+    ("R4 stale 6-passed test count", "inject",
+     "- Tests: `tests/frontier/frontier-map-semantics/test_harness.py` — 6 passed",
+     None, "no stale test count"),
+]
+
+
+@pytest.mark.parametrize(
+    "label,mode,needle,replacement,expected_check", _R1_R2_R3_R4_MUTATIONS)
+def test_report_fidelity_checks_are_non_vacuous(tmp_path, label, mode, needle,
+                                                replacement, expected_check):
+    """Re-introduce each audited prose defect; the report-fidelity checker must
+    reject it, and reject it for the check that targets THAT defect. A checker
+    that passes on the defect is worse than no checker, so this is the control
+    that makes the R1-R4 repairs durable rather than a one-off prose edit."""
+    sys.path.insert(0, str(PKG))
+    import check_report_numbers as crn
+    clean = crn.REPORT.read_text()
+    # inject mode adds text the report must NOT already contain; substitute mode
+    # edits text it must contain. Both directions are asserted so a mutation
+    # control cannot silently become a no-op.
+    if mode == "inject":
+        assert needle not in clean, f"{label}: injected text already in REPORT.md"
+    else:
+        assert needle in clean, f"{label}: mutation needle absent from REPORT.md"
+    assert crn.main() == 0, "unmutated report must pass"
+
+    mutated = (clean + "\n" + needle + "\n") if mode == "inject" else \
+        clean.replace(needle, replacement)
+    assert mutated != clean, f"{label}: mutation did not change the report"
+    p = tmp_path / "REPORT_mutated.md"
+    p.write_text(mutated)
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        with pytest.raises(SystemExit) as exc:
+            crn.main(report_path=p)
+    assert exc.value.code == 1, f"{label}: mutated report was not rejected"
+    out = buf.getvalue()
+    assert "CHECK-FAIL" in out, f"{label}: rejection was not a CHECK-FAIL"
+    # the failure must come from the check that targets THIS defect, not from an
+    # unrelated one that happens to fire on the injected text.
+    assert expected_check in out, (
+        f"{label}: rejected by an unrelated check, expected {expected_check!r}\n"
+        + "\n".join(l for l in out.splitlines() if "CHECK-FAIL" in l))

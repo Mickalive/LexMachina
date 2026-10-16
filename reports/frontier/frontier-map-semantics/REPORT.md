@@ -3,7 +3,8 @@ measurement freeze; completed and verified under operational resume run
 38840496500 — see §8; verified again and non-vacuity repaired under operational
 resume run 38846038296 — see §9; re-dispatch on byte-identical material with
 the freeze-ordering caveat closed under operational resume run 38849595347 —
-see §10)
+see §10; audit repair of CYCLE_38849595347 R1–R4 under run 38851887303 —
+see §11. The promoted decision and every verdict below are UNCHANGED by §11.)
 
 Promoted decision (machine-checked by `frontier/frontier-map-semantics/check_decision.py`, ALL-CHECKS-PASSED):
 
@@ -121,11 +122,31 @@ Measured readings, no mechanism asserted beyond these numbers:
 
 ## 5. Alternatives (identical frozen rule, §9A < 2 s)
 
-| alt | DE | FR | IT | wall time |
-|---|---|---|---|---|
-| A1 drop un-hydrated | FAIL (fixes COH×2; PROJ×3+SEP still fail) | FAIL | FAIL | 0.07–0.17 s |
-| A2 language-aware TF-IDF | FAIL | FAIL | FAIL | 0.11–0.12 s |
-| A3 metric MDS on cosine | FAIL | FAIL | FAIL | 0.13–0.18 s |
+Every cell below is derived from the committed `alternatives.json` by
+`check_report_numbers.py` (§9d D-8), not typed by hand. `gains`/`loses` are the
+criteria that change verdict against the shipped geometry on the same bundle.
+
+| alt | DE (shipped 5/11) | FR (shipped 5/11) | IT (shipped 4/11) | RELATIONS edges, shipped 25 each | committed `elapsed_s` DE / FR / IT |
+|---|---|---|---|---|---|
+| A1 drop un-hydrated | FAIL 6/11 — gains COH_LANG+COH_TERM, **loses RELATIONS**; KNN10+RANK+SPEAR+SEP still fail | FAIL 4/11 — gains COH_LANG, **loses RELATIONS and OUTLIER_VALIDITY** | FAIL 5/11 — gains COH×2, **loses RELATIONS** | **1 / 0 / 0** | 0.0747 / 0.0662 / 0.0661 |
+| A2 language-aware TF-IDF | FAIL 5/11 — gains COH_LANG, **loses RELATIONS** | FAIL 5/11 — gains COH_LANG, **loses RELATIONS** | FAIL 5/11 — gains COH×2, **loses RELATIONS** | **1 / 0 / 0** | 0.1497 / 0.0718 / 0.0762 |
+| A3 metric MDS on cosine | FAIL 6/11 — gains COH_LANG+COH_TERM, **loses RELATIONS** | FAIL 4/11 — gains COH_LANG, **loses RELATIONS and OUTLIER_VALIDITY** | FAIL 5/11 — gains COH×2, **loses RELATIONS** | **1 / 0 / 0** | 0.0620 / 0.0667 / 0.0708 |
+
+`best: None` on every bundle; every `within_budget` is true and the slowest
+committed cell is 0.1497 s against the frozen 2.0 s §9A budget.
+
+**The relation collapse is the decisive cost, and it is measured, not inferred.**
+Every alternative drops the shipped `RELATIONS` verdict — a PASS on all three
+gate bundles (25 typed `citation` edges, 0 missing endpoints) — because each
+alternative is built on A1, which removes exactly the un-hydrated pending shells
+that carry the edges: 25 → 1 on DE and 25 → 0 on FR and IT, i.e. A1/A2/A3 do not
+reach the frozen 10-edge bar anywhere. §4 already measured why those rows exist
+in the edge set (24/25 DE, 25/25 FR, 25/25 IT edges touch a pending shell), and
+this cycle did **not** measure what the surviving edge endpoints are, so no
+mechanism beyond "the rows A1 deletes are the rows the edges attach to" is
+asserted (RF3). The product-relevant reading is therefore not "A1 improves
+coherence": it is that the coherence gain is purchased by deleting the rows that
+make the map navigable, and FR/IT additionally give back OUTLIER_VALIDITY.
 
 `best: None` on every bundle. The alternative branch TERMINATES here (none
 beats the current geometry inside budget); no fourth candidate is tried.
@@ -167,9 +188,13 @@ short). No seed was re-drawn, no bar touched.
   ZERO `nonvacuity.passed` flags and ZERO `ARTIFACT` booleans change (field-level
   diff recorded in VERIFICATION_38840496500.json). The CAUSE of the
   cross-environment difference is not measured and is not asserted (RF3).
-- Tests: `tests/frontier/frontier-map-semantics/test_harness.py` — 6 passed
-  (schema/frozen bars, byte-identical rerun, `--frozen-rules`, offline
-  alternatives, side-by-side ablation panels, `--alternatives`).
+- Tests: `tests/frontier/frontier-map-semantics/test_harness.py` — **12 test
+  functions**, all passing: 6 pre-existing (schema/frozen
+  bars, byte-identical rerun, `--frozen-rules`, offline alternatives, side-by-side
+  ablation panels, `--alternatives`), 5 added by run 38846038296 and counted in
+  §9e, and 1 added by run 38851887303 (the R1–R4 mutation controls, §9d D-8).
+  `check_report_numbers.py` re-counts `def test_` in the suite itself, so this
+  line cannot drift from the suite again.
 - Machine check: `frontier/frontier-map-semantics/check_decision.py` re-run in
   38840496500 exits 0 with `ALL-CHECKS-PASSED`; the regenerated CHECK.log is
   byte-identical to the one committed by run 38839351403.
@@ -380,6 +405,7 @@ redefined to hide that.
 | D-5 | low | `alternatives.py` | `_finalise_clusters()` was never called, read a `_terms` attribute that does not exist, and re-ran KMeans for nothing. |
 | D-6 | low | `cli.py` | `best = max(out[m]["n_flips"] for m in out)` would have silently folded any future non-control key into the frozen `passed` flag; now explicit over `("charter", "full")`. |
 | D-7 | low | `cli.py` | dead local `decisions` in `nonvacuity()`. |
+| D-8 | high | `check_report_numbers.py`, `test_harness.py` | **recurring-pathology fix, run 38851887303.** The checker verified the §9 addendum but nothing in §5, §7 or the §9f verdict paragraph, which is exactly where all four audited defects sat across three cycles. It now derives the §5 per-alternative pass counts, gains, `RELATIONS` collapse and committed `elapsed_s` from `alternatives.json`/`report.json`, counts the suite's own `def test_` for the §7/§9e quote, and asserts the acceptance-test-4 sentence against the frozen per-bundle flips with four negative overclaim patterns. 184 `CHECK-OK`, exit 0. Five new mutation-control cases re-introduce R1, R2, R3 and both R4 counts into a copy of `REPORT.md` and require the checker to reject each **for the check that targets that defect**; measured: 5/5 rejected, 0 vacuous. |
 
 Two further audits came back clean and are recorded so they are not re-litigated:
 **bar fidelity** — all 11 pass booleans in `metrics.verdicts()` implement the
@@ -395,11 +421,17 @@ the scope RULES.json freezes ("local geometry recompute for 100–300 decisions"
 
 ### 9e. Tests
 
-`tests/frontier/frontier-map-semantics/test_harness.py`: **10 passed** (6
-pre-existing, 4 added). The four new tests cover the positive control meeting the
+`tests/frontier/frontier-map-semantics/test_harness.py`: **12 test functions**,
+all passing — 6 pre-existing, 5 added here, 1 added by run
+38851887303 (the R1–R4 mutation controls, D-8 below). Six new tests cover the
+positive control meeting the
 frozen assertion, movability being measured rather than asserted, the
-reachability bound being machine-checkable, and the added control being inert for
-every verdict. They needed a purpose-built fixture: the original synthetic bundle
+reachability bound being machine-checkable, the added control being inert for
+every verdict, and both claim checkers passing against the committed artifacts.
+(§7 previously read "6 passed" and this line previously read "10 passed (6 + 4)";
+both were stale counts of the same suite and are corrected in run 38851887303 —
+no test was ever missing.) They needed a purpose-built fixture: the
+original synthetic bundle
 is *already* perfectly coherent (a pure-language dominant cluster with on-term
 bodies), so it cannot exercise a flip at all — a vacuous test that would have
 passed for the wrong reason. `_synth_incoherent_bundle` supplies 24 rows whose
@@ -420,9 +452,26 @@ drift in §3b remains UNKNOWN, and the cause of the cross-environment float
 movement remains UNMEASURED.
 
 Charter v2 is **discharged**: frozen measurement, machine-checked one-sentence
-decision, three in-budget alternatives all FAIL, a negative result that closes
-the geometry question, and — now — an acceptance test 4 that is MET on all three
-gate bundles instead of merely reported as unmet on two of them.
+decision, three in-budget alternatives all FAIL, and a negative result that
+closes the geometry question.
+
+**Acceptance test 4, stated exactly as the artifacts read it.** The frozen
+assertion (`>= 2` criterion flips under the frozen corruption control) is **MET
+on DE and FR and NOT MET on IT**: `nonvacuity.charter.n_flips` is 2 / 2 / **1**
+on DE / FR / IT, `corrupted_overall` is FAIL on all three, and
+`nonvacuity.passed` is `true` / `true` / **`false`** in the emitted
+`report.json` files (1 flip on the 287 context bundle as well). This report's
+§6, §9c and §10 say the same thing, and nothing here redefines the frozen flag.
+An earlier draft of this paragraph asserted that test 4 was met on every gate
+bundle; that sentence was false on the same report's own tables — the IT
+shortfall is structural and measured in §9c, not repaired — and is deleted here
+and replaced by the per-bundle statement above, which `check_report_numbers.py`
+now enforces against the artifacts (§9d D-8).
+Separately, the **declared positive control** of §9c meets the `>= 2` assertion
+on all three gate bundles (2 / 2 / 2 flips) and establishes bar reachability
+(50/55, 38/73, 45/45). That is a different control from the frozen corruption
+control named by acceptance test 4 and it does **not** substitute for it; it
+feeds no verdict.
 
 ## 10. Operational resume (run 38849595347) — re-dispatch on unchanged material; freeze-ordering caveat closed
 
@@ -469,3 +518,95 @@ corruption control (3 of 11 criteria movable), the provably unreachable
 `COHERENCE_QUERY_LANG` bar on the 287 context bundle (max 37/195 = 0.190 vs
 0.25), and the UNMEASURED cause of the cross-environment float movement /
 shipped-vs-recompute drift.
+
+## 11. Audit repair (run 38851887303) — CYCLE_38849595347 `REVISE`, R1–R4 paid
+
+Audit `CYCLE_38849595347_GATE.json` returned **REVISE / `safe_to_integrate:false`**
+on run 38849595347. All four `required_fixes` were classified
+`repair_class: same_cycle_prose_only`, `requires_remeasurement: false`,
+`requires_frozen_threshold_edit: false`, `requires_human_decision: false`. This
+cycle is exactly that: prose, no re-measurement.
+
+### 11a. What each fix changed, and the artifact that makes it true
+
+| fix | audited defect | repair | now derived from |
+|---|---|---|---|
+| **R1** (blocking) | §9f claimed the frozen test-4 assertion held on every gate bundle; `report.json` carries `nonvacuity.passed=false` on IT (1 flip) | sentence deleted and replaced with the per-bundle statement: MET on DE and FR, **NOT MET on IT**; the positive control is explicitly stated *not* to substitute | `nonvacuity.charter.n_flips` = 2 / 2 / **1** and `nonvacuity.passed` = true / true / **false** on DE / FR / IT |
+| **R2** (material) | §5 DE cell read "fixes COH×2; PROJ×3+SEP still fail", omitting that A1 fails **five** criteria — the fifth is RELATIONS | every one of the nine alt-bundle cells now names its gains *and* its losses, and the paragraph states the 3×3 collapse | `alternatives.json` `values.RELATIONS` = 1 / 0 / 0 against a shipped 25 on every bundle |
+| **R3** (minor) | §5 quoted `0.07–0.17`, `0.11–0.12`, `0.13–0.18 s`; the committed `elapsed_s` are none of those | wall-time column replaced by the nine committed per-bundle values | `alternatives.json` `elapsed_s`, max 0.1497 s vs the frozen 2.0 s |
+| **R4** (minor) | §7 said "6 passed", §9e said "10 passed (6 + 4)", §10 said 11 | both corrected; both now state the count `check_report_numbers.py` reads from the suite itself (**12 test functions** = 6 pre-existing + 5 from run 38846038296 + 1 from this cycle) | `len(re.findall("^def test_", test_harness.py))` |
+
+R2 is the one that changes what a reader should conclude. The old cell implied
+coherence was fixable and the rest was projection noise; the measured fact is the
+opposite, and it is now the table's headline: **every** alternative removes the
+un-hydrated rows that carry the relation edges, so the coherence gain is bought
+by deleting the navigable rows — 25 → 1 edges on DE, 25 → 0 on FR and IT — and
+FR/IT additionally give back `OUTLIER_VALIDITY`. No mechanism beyond "the rows A1
+deletes are the rows the edges attach to" is asserted: what survives on the one
+surviving DE edge was not measured (RF3).
+
+### 11b. The audit also recorded this class of defect as recurring
+
+`gate_rationale.recurring_pathology_note`: harness defects get repaired each cycle
+while report prose drifts, and §5 / §7 / §9e defects flagged by cycle 38846038296
+were still unrepaired when 38849595347 added a new §9f overclaim. Editing the four
+sentences again would leave the same door open, so the repair is **D-8**: the
+checker now derives each fixed claim from the artifacts and refuses it otherwise,
+and five mutation controls re-introduce the four audited defects and require
+rejection *by the check that targets that defect*. Measured this cycle: 5/5
+rejected, `check_report_numbers.py` 184 `CHECK-OK` / exit 0,
+`check_decision.py` 49 `CHECK-OK` / exit 0, 16 pytest cases passed.
+
+### 11c. Frozen items untouched, and the honest residual
+
+Not touched, and re-measured as unchanged rather than assumed: `RULES.json`
+(byte-identical to freeze, sha256 `a7452748…`), every frozen bar, all 11 criterion
+verdicts on all four bundles (`DE 5/11`, `FR 5/11`, `IT 4/11`, context `3/11`),
+the whole ablation block, the three alternatives and their `best: None`, the
+frozen control's flip counts, `DECISION.txt`, and the promoted one-sentence
+decision — still machine-checked `ALL-CHECKS-PASSED`. **No bundle was
+re-measured** and no control seed was re-drawn, both forbidden.
+
+Two residuals are stated rather than papered over, and both are unchanged:
+
+1. **Acceptance test 4 is still not met on IT.** It cannot be met on that bundle
+   without redefining a frozen assertion or re-drawing a seed until it passes,
+   both forbidden. The audit placed this in the claim ceiling rather than as a
+   repair, and that placement stands. What this cycle changed is only the honesty
+   of the sentence about it.
+2. **This checkout is depth-1 again.** Base `a3c7b59`, `git rev-list --count HEAD`
+   = 1, and `c6d6c1e7` is absent from the object store, so the freeze-ordering
+   proof that §10 re-derived at `15362f68` is **not re-derivable here**. It is
+   carried forward as previously recorded evidence and is explicitly *not*
+   re-asserted as measured in this cycle. This is the §9 caveat recurring for a
+   second time and it is recorded here rather than glossed; no `frozen_at_utc`
+   field was written (RF5).
+
+Input identity was re-verified at this mount against
+`/tmp/lex_accepted/core/product` — the three gate bundles hash to
+`90914482…` / `dfb4e804…` / `737c9112…`, identical to the frozen `RULES.json`
+values and the vendored copies, decision counts 134 / 131 / 132 as the charter
+states; `38799024807` is still the only live gate packet, so there is no
+post-D2-repair bundle to add; and
+`bundle_live_enriched_CYCLE_38740365477.json` (`7f73099c…`) is still the newest
+render-path bundle. This also closes a disclosure the previous audit had to leave
+open: the accepted mount **is** available in the team environment, so
+`accepted_mount_sha256` is now hashed directly rather than inferred
+(recorded in `VERIFICATION_38851887303.json`).
+
+`continue_recommended` stays **false**. This cycle closed every repairable item
+in the audit; what remains cannot be closed without violating the charter, which
+is the charter's own stop condition. The one geometry decision for product is
+unchanged and still the one in the header.
+
+**Note for the audit lane.** Per acceptance test 10 this team writes only under
+`frontier/`, `tests/frontier/`, `results/frontier/`, `reports/frontier/` and
+`state/frontier/frontier-map-semantics.json`. It does **not** write
+`results/audit/` or `reports/audit/`; the gate file for this cycle belongs to the
+audit job's own checkout. As in runs 38840496500 and 38846038296, the delta is
+left **uncommitted** in the working tree for the workflow's own persist step —
+self-committing is the documented cause of the step-7 `exit 67` loop (§8 item 4),
+and the tip `a3c7b59` was produced by that persist step, not by this team. The
+five files a validator should see are: `check_report_numbers.py`,
+`test_harness.py`, `REPORT.md`, `VERIFICATION_38851887303.json` and this state
+file.
