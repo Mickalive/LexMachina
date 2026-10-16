@@ -1,0 +1,147 @@
+{
+  "schema": "lexmachina/audit-gate/1",
+  "team_id": "frontier-query-conditioned-map-geometry",
+  "cycle_run_id": 38976645446,
+  "auditor": "independent_auditor",
+  "audited_branch": "origin/cycle/frontier/frontier-query-conditioned-map-geometry/38976645446/team",
+  "audited_head": "b74aef8",
+  "audited_head_parent": "be5eba7 (accept of audit 38973386164)",
+  "audit_base": "audit-base@be5eba7",
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "cycle_nature": {
+    "classification": "DUPLICATE_DISPATCH_OF_TERMINATED_CHARTER",
+    "producer_delta": "README run-history row (+2), results/frontier/frontier-query-conditioned-map-geometry/REVERIFICATION_38976645446.json (+138), state/frontier/frontier-query-conditioned-map-geometry.json (+35/-3)",
+    "code_changes": 0,
+    "new_variants": 0,
+    "threshold_bar_or_control_edits": 0,
+    "producer_behaviour": "Correct. The team recognised the charter as already terminated at OUTCOME A, refused to open a fourth variant or re-tune anything, re-verified the frozen-rule result on the byte-identical rule and served bundles, and recorded the duplicate dispatch plainly in the README, the state file and a new evidence artifact.",
+    "why_not_revise": "A REVISE mechanically re-dispatches this charter (frontier-team.yml -> gh workflow run with repair_round+1), manufacturing exactly the re-dispatch the charter's stop_promote_rule forbids and starting another empty cycle. The producer has nothing to repair. The unresolved item is a control-plane state error outside the team's write scope.",
+    "why_not_blocked": "BLOCKED would write state/blockers/frontier/<team>.json and record a COMPLETE, PROMOTE-eligible charter (OUTCOME A, accepted at be5eba7) as 'AUDIT_BLOCKED / Director must redirect or kill', and would discard this cycle's re-verification artifact from the promoted lab branch. Nothing about this team is blocked; its charter is finished."
+  },
+  "claim_ceiling": {
+    "what_this_run_supports": [
+      "This cycle adds no new capability. It independently re-verifies, without alteration, the already-accepted OUTCOME A result: under the frozen geometry rule (sha256 a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633) applied byte-identically to the three served bundles of gate_packet/38839347028 (de 214, fr 217, it 211), the relevance_ordered variant (V2) passes 22/33 criteria versus the incumbent's 16/33, with zero criterion regressions on any bundle (de 7/11, fr 8/11, it 7/11 versus incumbent 6/5/5).",
+      "The gains come from removing un-hydrated shells from the clusterable INPUT, not from the relevance axis: the frozen scorer computes PROJ_RANK without reading x/y, so no axis placement can move it.",
+      "The component is a pure, deterministic, drop-in function behind the query_result_bundle seam emitting the shipped qmap shape (cluster_id, x, y, label, size, member_ids) with no rendering, UI, colour or interaction change; source-linking fields are preserved on every row and no decision is dropped or duplicated.",
+      "The accepted ablation numbers reproduce independently: fr largest-cluster share 0.7696, dominant un-hydrated fraction 0.2934, hydrated-only dominant-member Jaccard 0.2348, frozen ARTIFACT predicate False on the shipped fr input, and 4 of 217 French-language rows inside the dominant cluster (2.4%). Under either variant the dominant cluster contains zero un-hydrated shells (fraction 0.0000 on all three bundles), so the predicate is False for a structural reason, correctly stated."
+    ],
+    "what_this_run_does_not_support": [
+      "THAT THE PROMOTED AXIS IS A RERANK SCORE IN THE MEASUREMENT POPULATION. In served packet 38839347028, provenance.stages == ['search'], there is no provenance.product_rerank key, and 0 rows carry retrieval_score_raw; decisions[].score is therefore the RAW SEARCH-STAGE score (ranges 0.5-35917 de, 0.5-57.7 fr, 0.8-3132 it; Spearman(score, rank) = -0.11 / -0.30 / -0.49). On the product hot path the same field IS the rerank score, because pipeline.py calls rerank_product_bundle, which rewrites row['score'] to a 0..1 local-legal TF-IDF relevance score. The artifacts' metadata label ('rerank_score_axis_with_query_language_bands', 'x = min-max normalised rerank score') and README line 34 are therefore inaccurate for what was measured; the user-facing disclosure text ('horizontal position is the retrieval relevance score') and the contract's field list (decisions[].score) are correct. The charter supplied the 'rerank score' premise; the team adopted its wording without testing it.",
+      "THAT THE PROMOTED PER-CRITERION NUMBERS TRANSFER UNSTATED TO PRODUCTION. Because the identical drop-in on the hot path would place points on a different quantity (a 0..1 rerank score coherent with rank, not an anti-correlated raw search score), Core Product must re-run the frozen rule on a bundle that has actually been through rerank_product_bundle and compare against the 7/8/7 baseline before serving V2. This item is absent from the contract's what_product_must_re_measure_if_it_adopts list.",
+      "That the map is USEFUL to a jurist. Usefulness remains the human product gate's question and is not answered here.",
+      "That proximity now means query-conditioned similarity: PROJ_SPEARMAN and PROJ_KNN10 still fail on every bundle under both variants; STRUCTURE_SEP fails on every bundle and is measurably unreachable on de and it under any clustering.",
+      "That any decision supports, limits or contradicts the answer.",
+      "That the shipped map should be served unchanged: 0 of 3 bundles pass all 11 criteria under the promoted variant, exactly as under the incumbent.",
+      "That OUTLIER_VALIDITY is reachable on it: the co-citation graph is empty there, so the frozen DEGENERATE->FAIL clause fires under any variant."
+    ],
+    "accepted_fail_is_preserved": "The accepted frontier-map-semantics verdict (run 38846038296, accept commit 15362f6, 0 of 3 bundles passing, promoted decision 'FAIL with NO working in-budget alternative: keep the shipped geometry and CLOSE geometry work until after the human gate') remains the verdict of record for the SHIPPED geometry. Neither this cycle nor the accepted one retracts it.",
+    "integrator_action_required_before_serving_v2": [
+      "Re-run the frozen 11-criteria rule on a reranked bundle (post rerank_product_bundle) and compare per-criterion counts against the measured 7/8/7.",
+      "Relabel the V2 axis metadata from 'rerank score' to 'retrieval relevance score' so no downstream disclosure inherits the wrong word."
+    ]
+  },
+  "evidence_summary": {
+    "freeze_first": {
+      "rules_sha256_team_copy": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+      "rules_sha256_independently_fetched_from_cycle/frontier/frontier-served-packet-falsification/38877700234/team": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+      "rules_sha256_expected": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+      "match": true,
+      "threshold_or_bar_edits": [],
+      "measurement_population": "results/product/gate_packet/38839347028/questions/*.bundle.json on origin lab/product; sha256 de=2441ff2b16722afcd22dca9ad39eafcbeb079b2dfc367d763fbe53fce1356f9c fr=6c5ea31d4b9af4abfa39e9f8025cfa3d34279ff1f04d0f643e571e27b23a2618 it=76e7f7ad998f3878e7b08635663e2d594a7a77bdaeb33bcf5fa52d0af00b7aff (214/217/211 decisions), recomputed by the auditor and equal to the team's records"
+    },
+    "component_smoke_test": {
+      "ran_end_to_end": true,
+      "cli_exit_code": 0,
+      "wall_seconds_all_bundles_both_variants": 10.0,
+      "frozen_budget_geometry_seconds_max": 2.0,
+      "measured_geometry_seconds_per_bundle": "0.08-0.19",
+      "tests_passed": "15/15 (after rebuilding the /tmp/lex_accepted/core/product mount the suite hard-codes; the tests were not weakened)",
+      "cross_process_determinism": "geometry output hashes byte-identical across two independent interpreter processes on fr-bail-entretien",
+      "artifact_reproduction": "16 of 17 emitted artifacts identical after stripping run-id/timing keys; the two that differ are RULES_GEOMETRY.json (frozen copy, not re-emitted) and SUMMARY.json (out-dir paths), exactly as the team states. No criterion value, verdict or boolean differs anywhere."
+    },
+    "independent_scoring": {
+      "method": "auditor-written scorer implementing the 11 frozen criteria directly from RULES_GEOMETRY.json definition blocks, no team scoring code; geometry taken from the team's variant functions, verdicts computed independently",
+      "incumbent": {"de-kapitalverletzung": 6, "fr-bail-entretien": 5, "it-responsabilita-medica": 5, "total": 16, "matches_accepted_verdict_of_record": true},
+      "hydrate_then_cluster": {"de-kapitalverletzung": 7, "fr-bail-entretien": 7, "it-responsabilita-medica": 7, "total": 21},
+      "relevance_ordered": {"de-kapitalverletzung": 7, "fr-bail-entretien": 8, "it-responsabilita-medica": 7, "total": 22, "regressions": [], "verdict_agreement_with_team_artifacts": "33/33 identical", "strictly_better": true},
+      "single_disagreement": "V1 on de, OUTLIER_VALIDITY only: auditor PASS (21/33) versus team FAIL (20/33). Both means are ~0.02-0.05 on a near-empty co-citation graph, so the comparison's sign turns on citation-extraction detail. The team's reading is the more conservative one (it costs the team a point on a variant it did not promote). No acceptance test or OUTCOME A condition depends on it.",
+      "harness_note": "A relation-edge reading of OUTLIER_VALIDITY yields an incumbent of 17/33 and does NOT reproduce the accepted verdict of record. Only the frozen rule's 'shared-citation' (co-citation) reading reproduces 6/5/5, which is how the metric was settled."
+    },
+    "non_vacuity": {
+      "frozen_rule_own_clause": "permute cluster_id + labels, >=2 verdict flips — MET and independently replicated: fr-bail-entretien flips COHERENCE_QUERY_LANG and COHERENCE_QUERY_TERM under both variants (7->5 for V1, 8->6 for V2)",
+      "charter_literal_coordinate_control": "still UNSATISFIABLE as written; the frozen scorer computes PROJ_RANK without reading x/y",
+      "handling": "divergence preserved as REPORTED_NOT_RESOLVED and escalated; no bar, threshold, control or criterion altered, in this cycle or the previous one",
+      "corollary": "V2's axis placement cannot be the cause of any score gain; the gains are input-side (hydration)"
+    },
+    "ablation_before_after": {
+      "french_largest_share_shipped": 0.7696,
+      "french_dominant_unhydrated_fraction": 0.2934,
+      "hydrated_only_dominant_member_jaccard": 0.2348,
+      "artifact_predicate_shipped_fr": false,
+      "fr_language_rows_in_shipped_dominant": "4/217 (2.4%)",
+      "variant_french_largest_share": 0.2074,
+      "variant_dominant_unhydrated_fraction_all_bundles": 0.0,
+      "artifact_predicate_under_variants": false,
+      "artifact_non_firing_reason": "the variant dominant cluster contains no un-hydrated shell, so the >=0.40 shell-fraction clause is structurally unmeetable; stated explicitly per variant per bundle by the team and confirmed here",
+      "all_values_independently_reproduced": true
+    },
+    "regression_suite": {
+      "checks_per_bundle_per_variant": 18,
+      "all_passed": true,
+      "auditor_spot_checks": "0 dropped, 0 duplicated decision ids, n_clusters 8 on every bundle and variant, member_ids capped at 50 while size is true membership, every row has coordinates, source_url/canonical_url preserved on every row"
+    },
+    "write_scope": {
+      "files_touched_this_cycle": ["frontier/frontier-query-conditioned-map-geometry/README.md", "results/frontier/frontier-query-conditioned-map-geometry/REVERIFICATION_38976645446.json", "state/frontier/frontier-query-conditioned-map-geometry.json"],
+      "forbidden_prefixes": ["product/", "evaluation/", "results/product/", "state/product.json", ".github/", "product/static/"],
+      "violations": []
+    },
+    "state_file": {
+      "charter_version": 1,
+      "direction_version": 50,
+      "cycle_status": "COMPLETED",
+      "evidence_tier": "REPRODUCED",
+      "outcome": "A",
+      "continue_recommended": false,
+      "duplicate_dispatch_note_factual": true,
+      "duplicate_dispatch_note_check": "state/frontier_portfolio.json on main still reads status=RUN for this team — the producer's stated reason for the dispatch is correct"
+    },
+    "minor_observations": [
+      "state/frontier/frontier-query-conditioned-map-geometry.json still carries accepted_run_id: null and accepted_commit: null although the accept commit be5eba7f is quoted in its own text and in REVERIFICATION_38976645446.json",
+      "REVERIFICATION summary_only_difference_keys omits the two nested SUMMARY variant_totals.*.wall_seconds timing keys (timing only; the self-report is understated, not wrong in substance)",
+      "the acceptance-check map in REVERIFICATION carries a stray 9_reproducible key numbered among checks 1-8 (cosmetic)",
+      "FREEZE.json's rules_inputs_recorded_by_the_rule section still carries the rule's own stale embedded inputs metadata (packet 38799024807); accurately labeled, and every measured field uses the correct 38839347028 packet"
+    ]
+  },
+  "declared_divergences": [
+    {
+      "id": "charter_check_4b_coordinate_shuffle_control",
+      "status": "REPORTED_NOT_RESOLVED",
+      "escalated_to_director": true,
+      "carried_forward_unchanged": true,
+      "summary": "Charter acceptance check (4)'s second control (shuffled coordinates must fail PROJ_RANK/PROJ_SPEARMAN) is unsatisfiable under the frozen scorer, which computes PROJ_RANK from retrieval rank and TF-IDF cosine distance to the query vector and never reads x/y. Non-vacuity is proven against the binding frozen rule's own clause (2 flips on fr-bail-entretien, independently replicated here). No bar, threshold, control or criterion was altered.",
+      "director_decision": "Accept the frozen-rule-based non-vacuity proof as satisfying the intent of check (4), or rule the charter-literal control voiding."
+    }
+  ],
+  "acceptance_checks": {
+    "1_freeze_first_by_rehash": "PASS",
+    "2_two_runnable_variants_behind_bundle_seam": "PASS",
+    "3_all_three_bundles_scored_with_side_by_side": "PASS",
+    "4_non_vacuity_proven": "PASS under the binding frozen rule's own non_vacuity clause; charter-literal coordinate control remains DECLARED unsatisfiable",
+    "5_before_after_on_accepted_ablation": "PASS",
+    "6_regression_suite": "PASS",
+    "7_integration_contract_and_claim_ceiling": "PASS, with the integrator-facing axis-provenance finding recorded in claim_ceiling",
+    "8_zero_out_of_scope_writes": "PASS"
+  },
+  "control_plane_escalation": {
+    "pathology": "fifth dispatch of a charter that terminated at OUTCOME A on run 38970483941 and was accepted at be5eba7; not a producer repair loop",
+    "mechanism": "the supervisor's guard (skip when the lab branch's state file has continue_recommended == false) was evaluated against a portfolio snapshot taken before the accept landed, while the producer branch for this run was cut from the accepted commit be5eba7 itself",
+    "not_repairable_by_the_team": "state/frontier_portfolio.json and .github/** are outside the team's write scope; the team recorded the item instead of acting on it, which is correct",
+    "director_actions": [
+      "Move frontier-query-conditioned-map-geometry off status: RUN in state/frontier_portfolio.json (or otherwise close charter v1). The team's state file already sets continue_recommended: false; the portfolio entry is what keeps the loop alive.",
+      "Treat any further charter_version: 1 dispatch of this team as illegitimate under the charter's stop_promote_rule; if it recurs, use the blocker path rather than another producer cycle.",
+      "If the guard race is to be closed in general, re-read the lab-branch state immediately before dispatch in factory-supervisor.yml or record a dispatch watermark — a director-level workflow decision, not a team repair."
+    ]
+  }
+}
