@@ -2,37 +2,16 @@
   "team_id": "frontier-served-packet-falsification",
   "charter_version": 1,
   "status": "PROMOTED",
-  "run_id": "38889472353",
+  "run_id": "38893866335",
   "charter_status": "TERMINATED",
   "continue_recommended": false,
-  "continue_recommended_reason": "HARD STOP under the charter's stop_promote_rule: exactly ONE verdict cycle. That cycle is complete, independently audited gate=PASS (run 38880639079, CYCLE_38880639079_GATE.json) and promoted at commit 464c45f7. Run 38889472353 performed NO second verdict cycle: it was an operational re-dispatch caused by state/frontier_portfolio.json on main still carrying status=RUN with run_history=[], and it only re-verified freeze byte-identity, input identity (no rebuild, no further product repair), the pre-registered population, byte-identical reproduction and zero out-of-scope writes. A second cycle under this charter is FORBIDDEN. If the packet is rebuilt or a further product repair lands and needs re-scoring, that is a NEW charter raised by the director against the NEW packet, not a continuation of this one. To stop the re-dispatch loop the director must move this team's portfolio entry off status=RUN.",
+  "continue_recommended_reason": "HARD STOP under the charter's stop_promote_rule: exactly ONE verdict cycle. That cycle is complete, independently audited gate=PASS (run 38880639079, CYCLE_38880639079_GATE.json) and promoted at commit 464c45f7e4bf741b6a67adbef35dc587d8cfa21f; the verdict and serve recommendation of record are unchanged by run 38893866335, which performed NO second verdict cycle. Run 38893866335 re-verified only freeze byte-identity, input identity (no rebuild, no further product repair), the pre-registered population, byte-identical reproduction, state honesty and zero out-of-scope writes, all PASS. Another cycle under the SAME charter is FORBIDDEN. If the packet is rebuilt or a further product repair lands and needs re-scoring, that is a NEW charter raised by the director against the NEW packet, not a continuation of this one. To stop the re-dispatch loop the director must move this team's portfolio entry off status=RUN.",
   "promoted_verdict_run_id": "38880639079",
   "promoted_commit": "464c45f7e4bf741b6a67adbef35dc587d8cfa21f",
   "promoted_independent_audit": {
     "gate_path": "results/audit/frontier/frontier-served-packet-falsification/CYCLE_38880639079_GATE.json",
     "gate": "PASS",
     "safe_to_integrate": true
-  },
-  "re_dispatch_adjudication": {
-    "run_id": "38889472353",
-    "dispatch_class": "OPERATIONAL_RE_DISPATCH_OF_AN_ALREADY_PROMOTED_CHARTER",
-    "second_verdict_cycle_performed": false,
-    "new_threshold_introduced": false,
-    "re_frozen": false,
-    "new_population_scored": false,
-    "verdict_changed": false,
-    "cause": "state/frontier_portfolio.json on main still lists this team with status=RUN and run_history=[] although the single verdict cycle is complete, audited gate=PASS and promoted at 464c45f7; only the factory-director workflow may write that file and this team's enforced write scope forbids it.",
-    "new_charter_trigger_test": {
-      "packet_rebuilt": false,
-      "further_product_repair_needs_re_scoring": false,
-      "evidence": "three served bundles re-hash to 2441ff2b.../6c5ea31d.../76e7f7ad... identical to INPUT_LIST.json; lab/product head fe240105 (cycle 38877693206) predates measurement run 38877700234 and has not advanced."
-    },
-    "checks_all_pass": true,
-    "verification_artifact": "results/frontier/frontier-served-packet-falsification/REDISPATCH_VERIFICATION_38889472353.json",
-    "report": "reports/frontier/frontier-served-packet-falsification/REDISPATCH_38889472353.md",
-    "harness_module": "frontier/frontier-served-packet-falsification/frontier_served_packet_falsification/redispatch.py",
-    "test": "tests/frontier/frontier-served-packet-falsification/test_redispatch_adjudication.py",
-    "control_plane_blocker_recorded_for_director": "Move this team's entry in state/frontier_portfolio.json off status=RUN; otherwise the frontier workflow's resilience finalizer will keep re-dispatching a finished, HARD-STOPped charter. This team cannot write that file or state/blockers/."
   },
   "verdict": {
     "label_half": {
@@ -98,7 +77,7 @@
     "audit_artifact_placement_documented": true
   },
   "promotion_outcome": "A",
-  "promotion_outcome_note": "Outcome A under the charter's three-way promotion rule: the served packet HOLDS OR REGRESSES on label support and/or geometry \u2014 the promoted verdict is that this packet is NOT FIT TO SERVE UNCHANGED, which product must act on before any owner session. The label half additionally shows a genuine partial improvement (outcome B's axis) that must not be explained away; both facts are reported together.",
+  "promotion_outcome_note": "Outcome A under the charter's three-way promotion rule: the served packet HOLDS OR REGRESSES on label support and/or geometry — the promoted verdict is that this packet is NOT FIT TO SERVE UNCHANGED, which product must act on before any owner session. The label half additionally shows a genuine partial improvement (outcome B's axis) that must not be explained away; both facts are reported together.",
   "cycle_status": "COMPLETE_NEGATIVE_RESULT",
   "evidence_tier": "MEASURED",
   "resumed_from_run_id": "38877700234",
@@ -124,5 +103,43 @@
     "work_preserved": true,
     "work_restarted_from_scratch": false,
     "delta_contract_fix": "This cycle does not self-commit; it leaves an in-scope uncommitted delta for the workflow's persist step."
+  },
+  "re_dispatch_adjudications": [
+    {
+      "run_id": "38889472353",
+      "dispatch_class": "OPERATIONAL_RE_DISPATCH_OF_AN_ALREADY_PROMOTED_CHARTER",
+      "second_verdict_cycle_performed": false,
+      "checks_all_pass": true,
+      "verification_artifact": "results/frontier/frontier-served-packet-falsification/REDISPATCH_VERIFICATION_38889472353.json",
+      "report": "reports/frontier/frontier-served-packet-falsification/REDISPATCH_38889472353.md",
+      "harness_module": "frontier/frontier-served-packet-falsification/frontier_served_packet_falsification/redispatch.py",
+      "test": "tests/frontier/frontier-served-packet-falsification/test_redispatch_adjudication.py",
+      "note": "Completed and independently audited gate=PASS (CYCLE_38889472353_GATE.json); retained verbatim for provenance."
+    }
+  ],
+  "re_dispatch_adjudication": {
+    "run_id": "38893866335",
+    "dispatch_class": "OPERATIONAL_RE_DISPATCH_OF_AN_ALREADY_PROMOTED_CHARTER",
+    "second_verdict_cycle_performed": false,
+    "new_threshold_introduced": false,
+    "re_frozen": false,
+    "new_population_scored": false,
+    "verdict_changed": false,
+    "cause": "state/frontier_portfolio.json on main still lists this team with status=RUN and run_history=[] (portfolio v20, byte-identical between the workflow control mount /tmp/lex_control/state/frontier_portfolio.json and origin/main) although the single verdict cycle is complete, audited gate=PASS and promoted at 464c45f7; only the factory-director workflow may write that file and this team's enforced write scope forbids it.",
+    "new_charter_trigger_test": {
+      "packet_rebuilt": false,
+      "further_product_repair_needs_re_scoring": false,
+      "evidence": "three served bundles re-hash to 2441ff2b16722afcd22dca9ad39eafcbeb079b2dfc367d763fbe53fce1356f9c / 6c5ea31d4b9af4abfa39e9f8025cfa3d34279ff1f04d0f643e571e27b23a2618 / 76e7f7ad998f3878e7b08635663e2d594a7a77bdaeb33bcf5fa52d0af00b7aff, identical to INPUT_LIST.json; lab/product head fe2401059962763a5c0807cc862d38d0e6abe9e3 (accept product cycle 38877693206, 2026-10-16T10:06:24Z) is unchanged from the prior re-dispatch and still predates measurement run 38877700234; gate_packet/38839347028 remains the newest packet directory on lab/product (siblings 38799024807, 38812599575, 38838116453 are older run ids), so it is still the packet a human session will render."
+    },
+    "drift_since_prior_re_dispatch": "NONE on any charter-relevant control plane: origin/main head cad39c447d341f66a2a5392299c413f03169afe1 (2026-10-16T11:14:36Z) is a model-health refresh only; frontier_portfolio.json and factory_direction.json are byte-identical to the mounted control plane; lab/product did not advance; the accepted team branch head is still 53f563589dc67f12362c74d0b2c685df47a398a9.",
+    "checks_all_pass": true,
+    "verification_artifact": "results/frontier/frontier-served-packet-falsification/REDISPATCH_VERIFICATION_38893866335.json",
+    "report": "reports/frontier/frontier-served-packet-falsification/REDISPATCH_38893866335.md",
+    "harness_module": "frontier/frontier-served-packet-falsification/frontier_served_packet_falsification/redispatch.py",
+    "test": "tests/frontier/frontier-served-packet-falsification/test_redispatch_adjudication.py",
+    "tests_this_run": "python -m unittest discover -s tests/frontier/frontier-served-packet-falsification -> Ran 55 tests OK (skipped=1); pytest -> 54 passed, 1 skipped. The 1 skip is environment-conditional (no results/product tree in this checkout; the packet is mounted at /tmp/lex_accepted).",
+    "environment_note": "This runner image ships without numpy/scikit-learn; they were installed from product/requirements-query.txt pins (numpy 2.5.4, scikit-learn 1.9.1) so the geometry half could replay offline. No product, evaluation, packet or frozen-rules file was touched.",
+    "control_plane_blocker_recorded_for_director": "Move this team's entry in state/frontier_portfolio.json off status=RUN; otherwise the frontier workflow keeps re-dispatching a finished, HARD-STOPped charter. This is the third identical re-dispatch (38880639079, 38889472353, 38893866335). This team cannot write that file or state/blockers/.",
+    "self_commit_must_not_happen": "This cycle leaves the in-scope delta UNCOMMITTED for the workflow persist step (a self-committed clean tree trips the zero-durable-delta guard, exit 67)."
   }
 }
