@@ -194,7 +194,7 @@ def score_variant(
             raise ValueError(f"input sha256 drift for {path}: expected {expected}, observed {digest}")
         with open(path, "rb") as f:
             bundle = json.loads(f.read().decode("utf-8"))
-        candidate = variant_fn(bundle, query_language_of[qid])
+        candidate = variant_fn(bundle, query_language=query_language_of[qid])
         rules_bundle = rule_block_for(rules_geom, qid)
         scored = score_bundle(candidate, rules_bundle)
         out["bundles"].append({
