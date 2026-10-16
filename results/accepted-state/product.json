@@ -48,8 +48,8 @@
       "scope": "control-plane workflow scope; recorded, not edited from the lane"
     }
   ],
-  "current_run": 38924869286,
-  "cycle_status": "V49_TARGETED_REALITY_REPAIR_4OF4_LIVE",
+  "current_run": 38939730386,
+  "cycle_status": "RUN_38939730386_V49_REPAIR_ROUND_1_OF_REJECTED_CYCLE_38933925523__MATERIAL_PROVENANCE_AND_CAUSALITY_CORRECTIONS_PLUS_WORKFLOW_OVERRIDE_PARITY_TEST__MECHANISM_GATES_AND_LEGS_UNCHANGED",
   "direction_version": 49,
   "evidence_tier": "REALITY_CHECK_FAILED",
   "frontier_verdict_adoption": {
@@ -450,7 +450,7 @@
       "resumed_by_run": 38860652237
     }
   },
-  "prior_current_run": 38892001925,
+  "prior_current_run": 38933925523,
   "product": "query-specific Swiss legal research: broad OpenCaseLaw retrieval -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map",
   "reality_check_status": {
     "blocking_leg": "durable gate blocking leg: rent-default (Art. 257d(2) residential termination) — the answer must state the 30-day/end-of-month notice rule AND the good-faith/Rechtsmissbrauch limitation. That leg now PASSES locally in live mode (results/product/reality_check/rent-default_live_20261014T122313Z.json); only the durable Actions run remains red.",
@@ -622,10 +622,11 @@
     "fixtures": "offline/test only; never merged into live results",
     "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
   },
-  "state_updated_at": "2026-10-16T16:14:42Z",
-  "state_updated_by_run": 38924869286,
+  "state_updated_at": "2026-10-16T17:55:27Z",
+  "state_updated_by_run": 38939730386,
   "state_updated_from_resumed_snapshot_run": 38862025900,
   "supersedes_claims": {
+    "v49_dead_model_filter_provenance_and_latency_claims": "WITHDRAWN AS SUPERSEDED BY RUN 38939730386 (repair r1 of rejected cycle 38933925523, audit round 1 required fixes): (a) 'the 2026-10-16 health snapshot run 38919946016 proved nemotron-3.5-lightning-free dead (FAIL exit 124)' — run 38919946016 exists nowhere in the repository and the only model-health artifact reports lightning tool_probe PASS exit 0; (b) 'the corporate leg dropped from 276s to 188s because dead models no longer burn timeouts' — the prior run had no workflow_override and both runs used identical attempt chains with no excluded model attempted, so the delta is unattributed run-to-run provider variance. Corrected text lives in reports/product/CYCLE_38933925523.md sections 1 and 4 (marked correction blocks), product/query/audit_seam.py (MODEL_ORDER/DEAD_MODEL_JUSTIFICATION comments + docstring), product/tests/test_audit_seam.py docstrings, and state/product.json v49_dead_model_filter_20261016 (problem_addressed / corporate note / basis annotations). The original wording is preserved in git history at commit 1fbe3bc and in the accepted prior report reports/product/CYCLE_38924869286.md (left untouched as historical evidence; the run id it cites is equally unresolvable).",
     "gate_ceremony_is_one_query_only": "SUPERSEDED BY RUN 38792650692: the packet pre-registers three questions (FR/DE/IT), re-verifies each bundle at run time and hands the owner one deep link per question. The single-query path still works (product/human_gate_session.py is unchanged) and is still the way ONE session is finalized.",
     "prior_direction_version": 48,
     "reason": "Pre-red claim was written 2026-10-12T18:27:34Z, before the contradicting reality checks at 19:11-19:21Z, and cited run ids that now return HTTP 404. It is no longer current status and is not re-asserted anywhere in this state.",
@@ -2212,12 +2213,12 @@
   },
   "v49_targeted_repair_20261016": {
     "code_delta": [
-      "product/query/audit_seam.py: MODEL_ORDER refreshed to the 2026-10-16 verified healthy pool (mimo, space-bunny, longcat, muse-spark); dead nemotron-3-ultra/lightning excluded so fallback chains stop burning full provider timeouts; KNOWN_DEAD_MODELS blocklist added",
+      "product/query/audit_seam.py: MODEL_ORDER refreshed to the 2026-10-16 verified healthy pool (mimo, space-bunny, longcat, muse-spark); nemotron-3-ultra (tool_probe FAIL 124) and nemotron-3.5-lightning excluded so fallback chains stop burning full provider timeouts [CORRECTION repair r1 run 38939730386: lightning is control-plane PASS and is excluded on adversarial-budget grounds, not as a tool-probe-dead model — see DEAD_MODEL_JUSTIFICATION]; KNOWN_DEAD_MODELS blocklist added",
       "product/reality_check.py: structural + truth gates brought to durable-workflow parity (distinct Art.257d(2) notice regexes, Art.102 originaire/organisation/necessaire-raisonnable, BJR processus/defendable + BGE 139 III 24, petty confiance + low-value-not-decisive + negative bar; plus <=100 decisions, verified-counter/rank<=40, French-synthesis>=3, CJK rejection, total<300s latency gate)",
       "product/query/relevance.py: bounded remote-index safeguard (v2->v3) + remote-head recall: federal rows the source index ranked top-5 but local scoring left below rank 10 are spliced into the evidence-head tail (max 3, order-preserving, provenance-recorded)",
       "fixtures: PASSING_PROSE x4 rewritten to satisfy the hardened gates; _report fixtures carry total_seconds + verified counter evidence"
     ],
-    "control_plane_record": "durable workflow product-reality-check.yml re-overrides paths.DEFAULT_FREE_MODELS with [ultra, lightning, space-bunny, mimo] AFTER the product seam applies (both dead models first). Primaries stay healthy (mimo/space-bunny) so impact is fallback-only, but a mimo failure on the durable path still burns 2x120s before space-bunny. Extends the existing state hardening item reality_check_workflow_model_list_overrides_the_product_seam; .github/** not edited from the lane.",
+    "control_plane_record": "durable workflow product-reality-check.yml re-overrides paths.DEFAULT_FREE_MODELS with [ultra, lightning, space-bunny, mimo] AFTER the product seam applies (both excluded models first — ultra FAIL 124; lightning control-plane PASS, excluded on adversarial-budget grounds, corrected by repair r1 run 38939730386). Primaries stay healthy (mimo/space-bunny) so impact is fallback-only, but a mimo failure on the durable path still burns 2x120s before space-bunny. Extends the existing state hardening item reality_check_workflow_model_list_overrides_the_product_seam; .github/** not edited from the lane.",
     "live_evidence_local_only": {
       "business-judgment-rule": {
         "cited": 3,
@@ -2262,5 +2263,142 @@
     "offline_verification": "432 passed in the runnable subset; the only failures are the 10 pre-existing/environmental ones verified identical on the pristine tree (4 adversarial_retrieval, 2 cache_non_orphan sklearn-drift, 1 ci_run_evidence, 3 state_contract worktree-vs-dispatch), plus 16 legacy collection errors for missing sentence_transformers",
     "question_answered": "direction v49 product question: exit only when the frozen four-question substantive benchmark is reliably green without weakening truth/authority/language/latency gates",
     "run_id": 38924869286
-  }
+  },
+  "v49_dead_model_filter_20261016": {
+    "factory_direction": "v49: exit only when the frozen four-question substantive benchmark is reliably green without weakening truth/authority/language/latency gates",
+    "problem_addressed": "The durable reality-check workflow re-assigns paths.DEFAULT_FREE_MODELS AFTER the product seam runs, with nemotron-3-ultra-free (control-plane tool_probe FAIL, exit 124) and nemotron-3.5-lightning-free FIRST. CORRECTION OF RECORD (repair r1, run 38939730386): the original wording called these 'the two models the 2026-10-16 health snapshot proved dead', citing run 38919946016 — that run id exists nowhere in the repository (no commit, tag, ref or blob), and the only model-health artifact, control-plane state/model_health.json (audit-recomputed run 38933507133 at 16:40:57Z; newest run 38938748669 at 17:22:22Z), reports nemotron-3.5-lightning-free tool_probe PASS exit 0 and lists it healthy; only nemotron-3-ultra-free is FAIL exit 124. Lightning therefore stays excluded on adversarial-budget / hot-path-latency grounds per DEAD_MODEL_JUSTIFICATION in product/query/audit_seam.py (the frontier component's own comment records it hitting the 60s bounded-challenge ceiling while space-bunny completed; the only in-repo leg it answered, results/product/reality_check/rent-default_live_20261014T113201Z.json, recorded a 60s adversarial timeout and 281.065s total) — conservative and revocable on re-probe, NOT a tool-health claim. Mechanism text, corrected only for classification: with no state/model_health.json on the branch, healthy_models() returned the workflow list verbatim, so an answer attempt whose primary model failed walked into the excluded models as fallback candidates (120s answer + 180s adversarial each) — the ~316-469s latency band and a direct breach of the 300s gate. Pinning DEFAULT_FREE_MODELS at apply time (prior cycle) was necessary but not sufficient because the workflow overrides it afterwards.",
+    "code_delta": [
+      "product/query/audit_seam.py: apply() now also wraps paths.healthy_models and paths.preferred_model so KNOWN_DEAD_MODELS are filtered from the RESULT at call time, no matter what the caller last wrote into DEFAULT_FREE_MODELS. If filtering would empty the list, the wrapper falls back to MODEL_ORDER so a healthy model is always available. Idempotent via the same _lex_original sentinel as the __init__ wrapper (safe across the query.*/product.query.* module identities).",
+      "product/reality_check.py: added --workflow-override flag that reproduces the durable workflow's exact post-seam model-list override (excluded models first: ultra FAIL 124; lightning control-plane PASS but excluded — see DEAD_MODEL_JUSTIFICATION) before running a leg, so a green local run is evidence the durable gate's model condition is harmless. The override is recorded per-report."
+    ],
+    "tests_added": [
+      "product/tests/test_audit_seam.py::test_healthy_models_filters_dead_after_workflow_override",
+      "product/tests/test_audit_seam.py::test_preferred_model_never_returns_dead_after_override",
+      "product/tests/test_audit_seam.py::test_filtering_falls_back_to_model_order_when_all_dead",
+      "product/tests/test_audit_seam.py::test_dead_model_wrapping_is_idempotent_across_module_identities"
+    ],
+    "live_evidence_local_only": {
+      "note": "All four frozen legs re-run LIVE with the durable workflow's model-list override simulated (--workflow-override). Every leg used a HEALTHY model and passed structural+truth gates well under the 300s budget. Evidence tier LOCAL_NOT_DURABLE; the durable Actions run itself still cannot be triggered from the lane (control-plane: no workflow_dispatch, core-lane integrate never adds [reality-check]).",
+      "legs": {
+        "rent-default": {
+          "answer_model": "opencode/mimo-v2.6-flash-free",
+          "adversarial_model": "opencode/space-bunny-free",
+          "total_s": 175.11,
+          "gates": "structural PASS, truth PASS"
+        },
+        "petty-theft-dismissal": {
+          "answer_model": "opencode/mimo-v2.6-flash-free",
+          "adversarial_model": "opencode/space-bunny-free",
+          "total_s": 162.391,
+          "gates": "structural PASS, truth PASS"
+        },
+        "corporate-criminal-liability": {
+          "answer_model": "opencode/space-bunny-free",
+          "adversarial_model": "opencode/space-bunny-free",
+          "total_s": 188.727,
+          "gates": "structural PASS, truth PASS",
+          "note": "CORRECTION OF RECORD (repair r1, run 38939730386): the original note attributed 276s -> 188s to 'dead models no longer burn timeouts'. The attribution is withdrawn as unsupported: the prior run carried no workflow_override, BOTH runs report model_order [mimo, space-bunny, longcat, muse-spark] (no excluded model in either chain), both ended answer=space-bunny / adversarial=space-bunny under the identical attempt chain (mimo first, fallback space-bunny; adversarial preference picks space-bunny first), neither recorded a provider error — so the filter was inactive in the baseline run and cannot explain the delta. Restated as UNATTRIBUTED run-to-run provider variance. The verified part stands: 188.727s inside the 300s gate; this cycle's four legs 142.924-188.727s"
+        },
+        "business-judgment-rule": {
+          "answer_model": "opencode/mimo-v2.6-flash-free",
+          "adversarial_model": "opencode/space-bunny-free",
+          "total_s": 142.924,
+          "gates": "structural PASS, truth PASS"
+        }
+      },
+      "dead_models_avoided": [
+        "opencode/nemotron-3-ultra-free",
+        "opencode/nemotron-3.5-lightning-free"
+      ],
+      "dead_models_avoided_basis": {
+        "opencode/nemotron-3-ultra-free": "control-plane tool_probe FAIL exit 124 (state/model_health.json runs 38933507133 / 38938748669) — tool-health exclusion",
+        "opencode/nemotron-3.5-lightning-free": "control-plane tool_probe PASS exit 0, listed healthy — NOT dead by tool probe; excluded on adversarial-budget / hot-path-latency grounds per product/query/audit_seam.py::DEAD_MODEL_JUSTIFICATION, revocable on re-probe (repair r1 run 38939730386)"
+      }
+    },
+    "offline_verification": "438 passed / 2 skipped / 48 failed / 48 collection errors. The 48 failures are pre-existing and identical on the pristine tree: 38 legacy test_cycle_33035450227 sentence_transformers/174k-era + 10 non-legacy (4 adversarial_retrieval, 2 cache_non_orphan, 1 ci_run_evidence, 3 state_contract worktree-vs-dispatch direction-49-vs-55). Zero new failures from this cycle.",
+    "not_touched": [
+      "frozen gate thresholds (none weakened; this cycle only adds a robustness filter)",
+      "served gate packets",
+      "frontier/** accepted components (generative_audit.paths is frontier scope; the seam wraps it, does not edit it)",
+      ".github/** control-plane scope (the workflow's override is now harmless but the file is not edited from the lane)",
+      "human_gate_ready (still false: durable Actions run + real jurist session outstanding)"
+    ],
+    "claim_ceiling": "human_gate_ready=false, machine_gate_ready=false, durable_green_run_id=null. The frozen four-question benchmark is green locally under the durable workflow's exact model-list condition; the durable Actions run and the real owner/jurist session remain outstanding and are not claimed."
+  },
+  "v49_dead_model_filter_repair_r1_20261016": {
+    "repair_of": "rejected cycle 38933925523 (audit round 1: gate REVISE, safe_to_integrate=false, three required_fixes) read from /tmp/lex_prior_audit/results/audit/product/CYCLE_38933925523_GATE.json and reports/audit/product/CYCLE_38933925523.md",
+    "factory_direction": "v49: exit only when the frozen four-question substantive benchmark is reliably green without weakening its truth/authority/language/latency gates",
+    "required_fixes": {
+      "F1_MATERIAL_false_model_health_provenance": {
+        "finding": "KNOWN_DEAD_MODELS, the seam docstring, report section 1 and this state file asserted that run 38919946016 proved nemotron-3.5-lightning-free dead (FAIL exit 124); that run id exists nowhere in the repository and the only control-plane state/model_health.json reports it tool_probe PASS exit 0 and healthy (only nemotron-3-ultra-free is FAIL 124).",
+        "fix": "KEPT both exclusions (the audit's option B) so the mechanism, the four committed green legs and their recorded chains stay valid, and corrected every provenance claim. Per-model basis is now machine-readable in product/query/audit_seam.py::DEAD_MODEL_JUSTIFICATION; KNOWN_DEAD_MODELS is derived from it; apply() records dead_model_justification plus control_plane_health (the probe table verbatim when state/model_health.json is readable) into every bundle's product_audit_seam provenance.",
+        "lightning_exclusion_basis": "NOT tool health. Adversarial-budget / hot-path-latency grounds: frontier/frontier-generative-audit/generative_audit/adversarial.py:130-133 records lightning hitting the 60s bounded-challenge ceiling while space-bunny completed, and results/product/reality_check/rent-default_live_20261014T113201Z.json (answer_model=lightning) recorded adversarial 'timeout after 60s' and 281.065s total vs the 300s gate; both observations predate the seam's 180s budget and no committed artifact shows lightning completing that pass under the new budget, so the exclusion is conservative and revocable on re-probe. Newest snapshot: run 38938748669, 2026-10-16T17:22:22Z (origin/main a16603c), lightning PASS 0 + listed healthy, ultra FAIL 124; audit-recomputed predecessor run 38933507133 at 16:40:57Z identical.",
+        "corrected_in": [
+          "product/query/audit_seam.py (MODEL_ORDER + DEAD_MODEL_JUSTIFICATION comments, module docstring section 3)",
+          "reports/product/CYCLE_38933925523.md section 1 (marked correction-of-record block; original preserved at git commit 1fbe3bc)",
+          "state/product.json v49_dead_model_filter_20261016.problem_addressed (R1) + dead_models_avoided_basis (R6) + supersedes_claims.v49_dead_model_filter_provenance_and_latency_claims",
+          "product/tests/test_audit_seam.py docstrings that cited the unresolvable run id",
+          "left untouched as historical evidence: reports/product/CYCLE_38924869286.md (same unresolvable run id, accepted prior cycle) — withdrawal recorded in supersedes_claims instead of rewriting accepted history"
+        ]
+      },
+      "F2_MATERIAL_unsupported_causal_attribution": {
+        "finding": "Report section 4 and this state file attributed the corporate leg 276s -> 188s to 'dead models no longer burn timeouts'; recomputation contradicts it (prior run had no workflow_override; both runs' model_order = [mimo, space-bunny, longcat, muse-spark] with no excluded model; identical attempt chains; both ended answer=space-bunny / adversarial=space-bunny; no provider errors).",
+        "fix": "Restated in both places as UNATTRIBUTED run-to-run provider variance with the attempt-chain facts spelled out; the causal clause is withdrawn, not softened. The verified part kept: this cycle's four legs ran 142.924-188.727s against the 300s gate (re-verified from the committed reports: 175.110 / 162.391 / 188.727 / 142.924).",
+        "corrected_in": [
+          "reports/product/CYCLE_38933925523.md section 4 (marked correction-of-record block with the recomputation table)",
+          "state/product.json v49_dead_model_filter_20261016.live_evidence_local_only.legs.corporate-criminal-liability.note"
+        ]
+      },
+      "F3_MODERATE_missing_drift_guard": {
+        "finding": "WORKFLOW_MODEL_OVERRIDE is a hand-copied constant with no test although the whole --workflow-override evidence claim rests on it being byte-exact to .github/workflows/product-reality-check.yml lines 63-68.",
+        "fix": "product/tests/test_reality_check.py::test_workflow_model_override_matches_durable_workflow parses the workflow's paths.DEFAULT_FREE_MODELS[:] block (fails if there is not exactly one) and asserts equality with reality_check.WORKFLOW_MODEL_OVERRIDE — fail-closed in both directions, mirroring test_runner_legs_match_workflow_matrix.",
+        "recommended_second_guard_also_added": "product/tests/test_audit_seam.py::test_known_dead_models_agree_with_control_plane_health — when state/model_health.json is readable (env override LEX_MODEL_HEALTH_PATH, branch copy, or git show origin/main), every recorded exclusion basis must equal the snapshot probe for that model, a PASS-probed model may only stay excluded under a non-tool-health basis that explicitly records the PASS, and any snapshot FAIL(exit 124) model sitting in MODEL_ORDER fails the test; skips (never silently passes) when no snapshot is readable."
+      }
+    },
+    "code_delta": [
+      "product/query/audit_seam.py: provenance corrections (MODEL_ORDER comment, module docstring section 3) + new DEAD_MODEL_JUSTIFICATION per-model basis records + KNOWN_DEAD_MODELS derived from them + control_plane_health_snapshot() helper (read-only, no subprocess, never raises) recorded into apply() provenance as dead_model_justification / control_plane_health",
+      "product/tests/test_reality_check.py: fail-closed WORKFLOW_MODEL_OVERRIDE parity test + _workflow_model_override() parser (exactly-one-block assertion)",
+      "product/tests/test_audit_seam.py: control-plane health consistency guard + corrected docstrings (unresolvable run id, lightning classification, muse-spark probe status)",
+      "reports/product/CYCLE_38933925523.md sections 1 and 4 + state/product.json corrections (R1-R8): claim-bearing text only; NO mechanism, threshold, gate or leg change"
+    ],
+    "tests_added": [
+      "product/tests/test_reality_check.py::test_workflow_model_override_matches_durable_workflow",
+      "product/tests/test_audit_seam.py::test_known_dead_models_agree_with_control_plane_health"
+    ],
+    "non_vacuity": {
+      "parity_as_is": "PASS",
+      "parity_with_mutated_constant": "AssertionError raised as required (WORKFLOW_MODEL_OVERRIDE drifted from workflow block)",
+      "health_faithful_snapshot": "PASS (snapshot origin/main run 38938748669 via git show; branch copy absent)",
+      "health_lightning_probe_flipped_to_FAIL": "AssertionError raised as required (recorded PASS vs snapshot FAIL)",
+      "health_pinned_model_reported_DEAD_124": "AssertionError raised as required (longcat FAIL 124 still in MODEL_ORDER)",
+      "health_no_snapshot_readable": "pytest.skip raised as designed (never a silent pass)",
+      "method": "each guard invoked directly against a doctored fixture under LEX_MODEL_HEALTH_PATH, then restored"
+    },
+    "verification": {
+      "targeted": "pytest product/tests/test_audit_seam.py product/tests/test_reality_check.py -> 23 passed (13 seam incl. the new health guard, 10 reality_check incl. the new parity guard)",
+      "full_suite_head": "48 failed / 440 passed / 2 skipped / 48 collection errors (pytest 9.1.1, numpy 2.5.4, scikit-learn 1.9.1, networkx 3.7.0, sentence_transformers absent)",
+      "full_suite_accepted_base_3250a52": "48 failed / 434 passed / 2 skipped / 48 collection errors (same environment, worktree /tmp/opencode/base3250a52)",
+      "failure_id_diff_base_vs_head": "EMPTY in both directions (96 FAILED/ERROR ids identical; +6 passed = the rejected cycle's 4 seam tests + this repair's 2 guards)",
+      "vs_audit_recomputation": "the audit recorded head 437/3/48/48 and base 433/3/48/48 in its own environment; the environment-dependent pass/skip split differs by one here, the failure population does not - the invariant (empty diff) holds in both environments",
+      "frozen_gates": "structural_gates, truth_gates, .github/**, frontier/**, served gate packet, all committed leg reports: untouched by this repair (git diff limited to product/**, reports/product/**, state/product.json, results/product/repair_38939730386/)"
+    },
+    "carry_forward_from_audit_observations": {
+      "O1": "MODEL_ORDER still ends in unprobed muse-spark (control-plane probe stops at MAX_HEALTHY=4); when filtering would empty the list the wrapper falls back to MODEL_ORDER and can hand back an unverified model. Inherited from base; now disclosed in the MODEL_ORDER comment and the oct16 pool test docstring.",
+      "O2": "trigger-gap wording: product-reality-check.yml fires on any push to lab/product whose head commit contains [reality-check]; the real gap is that the core-lane integrate commit (accept <lane> cycle <run>) never carries the marker. Correct wording recorded in reports/product/CYCLE_38939730386.md; the control-plane item stays recorded, not edited from the lane.",
+      "O3": "prior_current_run was self-referential (38933925523 == current_run); now current_run=38939730386, prior_current_run=38933925523.",
+      "O4": "seam tests still leave generative_audit.paths wrapped for the pytest session (fixtures restore DEFAULT_FREE_MODELS only); no live test depends on the unfiltered behaviour. Inherited, unchanged.",
+      "next_step_for_lightning": "re-probe nemotron-3.5-lightning-free against the bounded adversarial pass under the seam's 180s budget before treating its exclusion as permanent"
+    },
+    "not_touched": [
+      "frozen structural/truth gates and their literals",
+      ".github/** (control-plane scope)",
+      "frontier/** (accepted components)",
+      "results/product/reality_check/* (all committed leg reports, including the four green --workflow-override legs, byte-identical)",
+      "human_gate_ready (still false: durable Actions run + real jurist session outstanding)",
+      "KNOWN_DEAD_MODELS membership (kept per the audit's option B so the mechanism and recorded legs remain valid)"
+    ],
+    "claim_ceiling": "LOCAL_NOT_DURABLE, repair-only: claimable is (1) every one of the audit's three required_fixes is fixed in code, tests and claim-bearing text with the mechanism unchanged, (2) two new fail-closed guards demonstrated non-vacuous, (3) zero new test failures (failure population byte-identical to the accepted base), (4) claim withdrawals recorded in supersedes_claims with originals preserved in git history. NOT claimed: any durable Actions green, any leg re-run this cycle, any new live retrieval/answer/map evidence, any human-gate readiness.",
+    "state_recorded_at": "2026-10-16T17:58:47Z"
+  },
+  "next_recommended": "continue_recommended=true; human_gate_ready=false. REPAIR ROUND 1 of rejected cycle 38933925523 is complete: all three required_fixes from /tmp/lex_prior_audit are addressed (F1 lightning-provenance corrected everywhere it was asserted, F2 corporate-latency causality withdrawn as unattributed, F3 fail-closed WORKFLOW_MODEL_OVERRIDE parity test plus the recommended health-consistency guard, both demonstrated non-vacuous), with zero new test failures (failure population byte-identical to accepted base 3250a52) and no mechanism/gate/threshold/leg change. Concrete next steps toward the human gate: (1) durable [reality-check] Actions run still needs a control-plane trigger (workflow_dispatch or a '[reality-check]' marker on the core-lane integrate commit) — recorded as a control-plane hardening item, not fixable from the lane; (2) re-probe nemotron-3.5-lightning-free against the bounded adversarial pass under the 180s budget to either confirm or revoke its exclusion; (3) once triggerable, the durable gate should pass because the product filters excluded models at call time. Product work itself remains at the human gate: the local end-to-end path (question -> retrieval -> bundle -> sourced answer -> counter-authority -> clickable map) is green under the hardened gates and the next real owner interaction is the jurist session."
 }

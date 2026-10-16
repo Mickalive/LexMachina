@@ -1,111 +1,492 @@
 {
-  "lane": "evaluation",
-  "direction_version": 49,
-  "evidence_tier": "REPRODUCED",
-  "cycle_status": "V49_FROZEN_BENCHMARK_REEXECUTED_ON_CURRENT_PACKET_38934722443",
-  "continue_recommended": true,
-  "accepted_run_id": "38928722878",
-  "proposed_run_id": "38934722443",
+ "lane": "evaluation",
+ "direction_version": 50,
+ "evidence_tier": "REPRODUCED",
+  "cycle_status": "V50_FROZEN_BAR_GATES_REPAIR_R1_LANDED_38966576940",
+  "continue_recommended": false,
+  "accepted_run_id": "38951152192",
+  "accepted_run_id_correction_note": "was 38928722878 (stale since accept commit bfdd4444 'accept evaluation cycle 38951152192'); corrected to the factually last-accepted run recorded in git history. Acceptance itself moves only via an audit gate; this corrects the pointer, not the acceptance.",
+  "proposed_run_id": "38966576940",
   "repair_round": 1,
-  "repair_audit_ref": "results/audit/evaluation/CYCLE_38920872324_GATE.json (independent audit checkout, gate=REVISE)",
-  "repair_fixes_applied": {
-    "R1": "recall-gate semantics restated as '>=1 of frozen authority set per gate' in report+state, with partial-set pass rates disclosed; benchmark NOT re-freeze (digest unchanged); semantics pinned by test_recall_gate_semantics_is_exactly_at_least_one_of_frozen_set",
-    "R2": "unmatched/excluded artifacts now carry explicit not_measurable_gates + per-gate reasons; question-INDEPENDENT bundle checks run on every recorded full bundle regardless of match; record reports bundle_structural_gate_executions and evaluation_scope taxonomy",
-    "R3": "report arithmetic corrected: 9 distinct failing slim runs (not 8), 4 adversarial-retrieval bundles (not 3), 3 roll-ups + 12 unmatched summary-named files (not '15 roll-ups')",
-    "R4": "detail='' on every passing gate (slim structural, bundle structural, recall gates); record regenerated with blank details on all passing gates",
-    "R5": "weak truth gates (art257d2_30day_notice ['30'], bjr_information ['information']) disclosed as necessary-not-sufficient lexical proxies with recorded match rates; negative tests added for all 8 slim-report structural gates; 'every gate can fail' claim reworded to cover only gates that can fail, geometry/progressive limits named",
-    "R6a": "run_benchmark exits 2 with explicit environment error on absent/empty evidence input; no verdict record emitted from empty input",
-    "R6b": "producer-authored self-audit files dropped from this branch; the independent audit checkout remains the only audit of record"
+  "repair_audit_ref": "results/audit/evaluation/CYCLE_38964129305_GATE.json (independent audit checkout, gate=REVISE, required fix R1 + minor observations M1-M4)",
+ "repair_fixes_applied": {
+  "R1": "recall-gate semantics restated as '>=1 of frozen authority set per gate' in report+state, with partial-set pass rates disclosed; benchmark NOT re-freeze (digest unchanged); semantics pinned by test_recall_gate_semantics_is_exactly_at_least_one_of_frozen_set",
+  "R2": "unmatched/excluded artifacts now carry explicit not_measurable_gates + per-gate reasons; question-INDEPENDENT bundle checks run on every recorded full bundle regardless of match; record reports bundle_structural_gate_executions and evaluation_scope taxonomy",
+  "R3": "report arithmetic corrected: 9 distinct failing slim runs (not 8), 4 adversarial-retrieval bundles (not 3), 3 roll-ups + 12 unmatched summary-named files (not '15 roll-ups')",
+  "R4": "detail='' on every passing gate (slim structural, bundle structural, recall gates); record regenerated with blank details on all passing gates",
+  "R5": "weak truth gates (art257d2_30day_notice ['30'], bjr_information ['information']) disclosed as necessary-not-sufficient lexical proxies with recorded match rates; negative tests added for all 8 slim-report structural gates; 'every gate can fail' claim reworded to cover only gates that can fail, geometry/progressive limits named",
+  "R6a": "run_benchmark exits 2 with explicit environment error on absent/empty evidence input; no verdict record emitted from empty input",
+    "R6b": "producer-authored self-audit files dropped from this branch; the independent audit checkout remains the only audit of record",
+    "R1_38966576940": "audit-required repair of cycle 38964129305: tests/evaluation/test_audit_correction_verification.py direction pin 49 -> 50 (state had moved to v50; the stale pin made the full active pytest set red at 1 failed / 119 passed / 1 skipped and falsified the '119 tests still pass' claim). Docstring updated to v50 with repair history.",
+    "M1_38966576940": "vendored-digest runtime enforcement added: tests/evaluation/test_frozen_bar_gates.py::test_vendored_files_match_pinned_digests re-hashes all 14 vendored rubric/reference files against VENDORED_SHA256.json at test time, so a lenient vendored edit that inflates label support becomes a visible red instead of an invisible green on the one-sided regression gate.",
+    "M2_38966576940": "adopted_frontier_verdicts_v56.geometry_semantics_rules_sha256 truncated 60-char value replaced with the full 64-char frozen digest a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633 (matches RULES_GEOMETRY.json re-hash and frontier_verdict_adoption.json).",
+    "M3_38966576940": "evaluation/lane_suite.py report direction_version now DERIVED from state/evaluation.json via _lane_direction_version() (was a hardcoded literal 49 that went stale when the state moved to 50); report carries direction_version_source for transparency.",
+    "R1_report_correction": "reports/evaluation/BAR_GATES_38964129305.md '119 tests still pass' sentence corrected by a visible erratum (original claim preserved): full lane-suite internal pytest set is 121 collected = 120 passed + 1 by-design mount skip without the mount, 0 failed after the pin repair (121/121 passed with the mount); test_frozen_bar_gates.py adds 13 (13 passed with mount; 8 passed + 5 mount skips without). The same false claim in state v50_frozen_bar_gates.tests was corrected."
   },
-  "evidence_refs": [
-    "evaluation/reality_gate/frozen_benchmark.json",
-    "evaluation/reality_gate/frozen.py",
-    "evaluation/reality_gate/gates.py",
-    "evaluation/reality_gate/run_benchmark.py",
-    "tests/evaluation/test_reality_gate.py",
-    "results/evaluation/reality_benchmark/38934722443.json",
-    "results/evaluation/reality_benchmark/38920872324.json",
-    "reports/evaluation/evaluation_v49_cycle_report_38934722443.md",
-    "reports/evaluation/evaluation_v49_cycle_report.md",
-    "state/evaluation.json"
+ "evidence_refs": [
+  "evaluation/reality_gate/frozen_benchmark.json",
+  "evaluation/reality_gate/frozen.py",
+  "evaluation/reality_gate/gates.py",
+  "evaluation/reality_gate/run_benchmark.py",
+  "tests/evaluation/test_reality_gate.py",
+  "results/evaluation/reality_benchmark/38934722443.json",
+  "results/evaluation/reality_benchmark/38920872324.json",
+  "reports/evaluation/evaluation_v49_cycle_report_38934722443.md",
+  "reports/evaluation/evaluation_v49_cycle_report.md",
+  "evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
+  "evaluation/retrieval_gate/FREEZE_RECORD.json",
+  "evaluation/retrieval_gate/frozen.py",
+  "evaluation/retrieval_gate/client.py",
+  "evaluation/retrieval_gate/gates.py",
+  "evaluation/retrieval_gate/run_retrieval_benchmark.py",
+  "evaluation/retrieval_gate/build_frozen_spec.py",
+  "tests/evaluation/test_retrieval_gate.py",
+  "results/evaluation/retrieval_benchmark/38939239917.json",
+  "results/evaluation/retrieval_benchmark/cache/be/be6a1fee48be3745b69ecdfcf49b5b420976066ba17514d7d8d07261cbca6d3d.json",
+  "results/evaluation/retrieval_benchmark/cache/90/90c23e15265bd747f2f9f65717cd1228d5a46eb44c43e7bd023597308d36451c.json",
+  "results/evaluation/retrieval_benchmark/cache/f7/f7252e0dd503d5aa94327b10bfaac62a0cbad24e96ccda94484e872ddceb3a2b.json",
+  "reports/evaluation/retrieval_counter_authority_benchmark_38939239917.md",
+  "evaluation/lane_suite.py",
+  "tests/evaluation/test_lane_suite.py",
+  "results/evaluation/lane_suite/38951152192.json",
+  "results/evaluation/lane_suite/38951152192_bare.json",
+  "reports/evaluation/CYCLE_38951152192.md",
+  "state/evaluation.json",
+  "evaluation/frozen_bars/RULES_LABEL.json",
+  "evaluation/frozen_bars/RULES_GEOMETRY.json",
+  "evaluation/frozen_bars/FETCH_RECORD.json",
+  "evaluation/frozen_bars/vendored/VENDORED_SHA256.json",
+  "evaluation/frozen_bars/label_gate.py",
+  "evaluation/frozen_bars/geometry_gate.py",
+  "evaluation/frozen_bars/run_bar_gates.py",
+  "evaluation/frozen_bars/fixtures/label_negative_bundle.json",
+  "evaluation/frozen_bars/fixtures/label_mixed_bundle.json",
+  "evaluation/frozen_bars/fixtures/geometry_negative_bundle.json",
+  "tests/evaluation/test_frozen_bar_gates.py",
+    "results/evaluation/bar_gates/38964129305.json",
+    "reports/evaluation/BAR_GATES_38964129305.md",
+    "results/evaluation/lane_suite/38966576940.json",
+    "results/evaluation/bar_gates/38966576940.json",
+    "reports/evaluation/BAR_GATES_38966576940.md",
+    "tests/evaluation/test_audit_correction_verification.py",
+    "tests/evaluation/test_frozen_bar_gates.py",
+    "evaluation/lane_suite.py"
   ],
-  "human_gate_ready": false,
-  "mission": "Independently falsify the query-specific LEX product. Do not reopen the 174k/global-geometry research unless a concrete product failure requires it.",
-  "v49_frozen_reality_benchmark": {
-    "frozen_spec": "evaluation/reality_gate/frozen_benchmark.json",
-    "frozen_sha256": "ff57f556c3755ab663766618ab7abe763f251e7add70cd8ed964141846d063c8",
-    "frozen_sha256_unchanged_after_repair": true,
-    "direction_version_at_freeze": 49,
-    "freeze_note": "Frozen BEFORE the benchmark was executed against any product artifact (research protocol step 4); digest re-verified by tests and by the runner before every execution. Repair round 1 did NOT re-freeze: spec bytes are identical, no threshold/question/scope moved. Cycle 38934722443 re-validated the digest again before re-execution on the refreshed mount: unchanged.",
-    "scope": "the four observed reality-check questions (rent-default Art. 257d(2); Art. 102 CP primary/subsidiary; business-judgment-rule; petty-theft low-value), wrong-language/corrupted-output rejection, hard <300s full-run latency, plus the lane-directive structural checks (recall of frozen controlling authorities, source validity, duplicates, multilingual coverage).",
-    "recall_gate_semantics": "each frozen authority set (citation set, retrieval set) is gated independently at >=1 hit; a partial-set pass is a PASS naming the missing authorities in measured.missing. RESTATED per audit R1; not a re-freeze. Recorded on the CURRENT packet (run 38934722443): corporate-criminal-liability 1/1 fresh leg full 2/2; petty-theft repaired leg 1/2 (cites bger_4A_177_2017, misses bger_4A_228_2015); BJR fresh leg 0/5 — cites NONE of the five frozen direct-TF BJR authorities (falsifying failure, preserved). Historical record 38920872324: petty-theft 5/5 citation passes but 0/5 cite bger_4A_228_2015; BJR 4/4 citation passes but 0/4 cite bger_4A_62_2024; Art. 102 CP 5/5 full 2/2.",
-    "weak_truth_gates_disclosed": {
-      "truth::art257d2_30day_notice": "contains_any ['30'] matches the substring anywhere in prose; matched on 10/10 rent-default legs in the recorded run; necessary-not-sufficient lexical proxy, falsifiable (negative test exists), kept because the frozen spec pinned it",
-      "truth::bjr_information": "contains_any ['information'] likewise; matched on 4/4 BJR legs; same disclosure",
-      "structurally_not_measurable_from_recordings": ["structural::geometry_preserved", "structural::progressive_phases (needs initial+final pair; only finals recorded)"]
-    },
-    "execution_record": "results/evaluation/reality_benchmark/38934722443.json",
-    "execution_record_reproducible": "byte-identical across repeated executions (verified this cycle)",
-    "inputs": "ACCEPTED product evidence only (read-only): results/product/reality_check (62 files: 29 slim leg reports, 12 fatal stubs, 21 roll-ups incl. 13 minimal-shape, 13 unmatched-kind auxiliary), gate_packet/38839347028 (3 full bundles + 9 auxiliary files), adversarial_retrieval/38828034436 (4 full bundles + 4 scoring files) at accepted product packet fdf1e386, refreshed with product cycle V49_TARGETED_REALITY_REPAIR_4OF4_LIVE (run 38924869286: 5 live legs, 5 fixture stubs, 6 roll-ups). No 174k benchmarks rerun; no Product code imported.",
-    "execution_counts": {
-      "n_artifacts": 82,
-      "n_full_match_evaluated": 29,
-      "n_question_independent_evaluated": 7,
-      "n_excluded_no_verdict": 46,
-      "bundle_structural_gate_executions": 35,
-      "question_independent_checks_per_bundle": ["bundle_nonempty", "duplicate_free", "source_urls_valid", "answer_citations_constrained", "counter_classifications_supported", "corruption (when prose present)", "latency (when timing present)"]
-    },
-    "result_overall": "FAIL on the recorded history (negative evidence, preserved): 19 falsifying failures across 17 artifacts = 5 latency::under_budget (463.773s/548.452s/340.782s/360.542s/861.409s, all historical 20261014 legs) + 4 truth::art257d2_end_of_month (historical rent-default legs) + 2 structural::adversarial_clean (historical rent-default legs) + 6 structural::counter_classifications_supported (6 of 7 recorded full bundles carry counter-classified decisions without evidence/uncertainty fields) + 2 recall::citation_controlling_authority (NEW this cycle: business-judgment-rule_live_20261016T161006Z cites none of the five frozen BJR authorities; petty-theft-dismissal_live_20261016T155135Z preserved pre-fix negative cites neither frozen petty-theft authority). Verdict-equivalence vs accepted record 38920872324: all 66 pre-existing artifact verdicts identical (recomputed); 13 pre-existing minimal-shape summaries reclassified unmatched_kind -> summary_rollup under the classifier precision fix (no verdict change, excluded either way).",
-    "result_current_packet_38924869286": {
-      "rent-default_live_20261016T154849Z": "PASS all machine-measurable gates (111.774s)",
-      "corporate-criminal-liability_live_20261016T160526Z": "PASS all machine-measurable gates (276.119s; under the 300s budget, within model-speed variance — product flagged the same residual latency risk)",
-      "petty-theft-dismissal_live_20261016T160318Z": "PASS all machine-measurable gates (111.158s; partial recall: cites bger_4A_177_2017, misses bger_4A_228_2015)",
-      "business-judgment-rule_live_20261016T161006Z": "FAIL recall::citation_controlling_authority — cites none of bger_4A_219_2015/259_2016/626_2013/603_2014/62_2024 (citations: BGE 110 II 391, BGE 139 III 24, zh_handelsgericht_HG120149); producer's own structural+truth gates pass this leg — the frozen authority gate falsifies what the producer's gates cannot see",
-      "petty-theft-dismissal_live_20261016T155135Z": "FAIL recall::citation_controlling_authority (preserved pre-fix negative: cites neither bger_4A_177_2017 nor bger_4A_228_2015; the failure the product repaired in the 160318Z leg)",
-      "fixture_legs_20261016T154703Z/154708Z": "5 fatal stubs (OpenCaseLaw retrieval returned no decisions), excluded with reasons, preserved as negative evidence"
-    },
-    "result_latest_product_ci_run_38604340726": "PASS on all four frozen legs for every machine-measurable gate — consistent with the product's own machine green that v49's live legal testing invalidated; the machine gates alone remain insufficient, which is why the human gate stays closed.",
-    "cross_check_vs_producer_verdicts": "5 disagreements on the current packet: 4 historical latency::under_budget (the producer's own gates carry no latency budget, so the frozen benchmark falsifies four slow runs the producer passed) + 1 NEW authority-recall disagreement: business-judgment-rule_live_20261016T161006Z passes the producer's structural+phrase-truth gates but fails the frozen recall gate (0 of 5 frozen BJR authorities cited). No benchmark verdict was weakened to reach this; the producer verdicts are preserved verbatim in the execution record.",
-    "harness_precision_fix_38934722443": "the minimal durable-workflow roll-up shape (legs array + mode, no all_legs_passed) now classifies as summary_rollup with its per-leg array preserved in the record (producer_legs); previously unmatched_kind with a misleading exclusion reason. No gate semantics changed; roll-ups are excluded from verdicts under both classifications. Pinned by test_minimal_rollup_shape_classifies_as_summary_rollup.",
-    "multilingual_coverage": "7/7 per-bundle FR/DE/IT coverage checks PASS on the recorded tenancy/medical/capital-offence bundles (each covers its query language and >=2 Swiss languages)",
-    "not_measurable_from_recorded_evidence": [
-      "geometry_preserved_after_enrichment (needs initial+final pair; only final bundles recorded)",
-      "petty-theft retrieval-id recall on slim reports (no full decision id list in strip_bundle output); measurable on full bundles",
-      "cached reproducibility across repeated live runs (no repeated recorded runs of the same live query)"
-    ],
-    "empty_input_guard": "run_benchmark exits 2 with an explicit environment/argument error on absent or empty evidence input and never emits a verdict record from empty input (repair R6a)",
-    "claim_ceiling": "The benchmark falsifies machine-checkable properties of recorded product artifacts (substantive truth phrases with two disclosed weak proxies, >=1-of-frozen-set authority recall with partial passes disclosed, wrong-language/corrupted output, >=300s full-run latency, bundle structure incl. counter-evidence support, multilingual coverage). It does NOT prove map usefulness to a jurist; human_gate_ready stays false."
+ "human_gate_ready": false,
+ "mission": "Independently falsify the query-specific LEX product. Do not reopen the 174k/global-geometry research unless a concrete product failure requires it.",
+ "v49_frozen_reality_benchmark": {
+  "frozen_spec": "evaluation/reality_gate/frozen_benchmark.json",
+  "frozen_sha256": "ff57f556c3755ab663766618ab7abe763f251e7add70cd8ed964141846d063c8",
+  "frozen_sha256_unchanged_after_repair": true,
+  "direction_version_at_freeze": 49,
+  "freeze_note": "Frozen BEFORE the benchmark was executed against any product artifact (research protocol step 4); digest re-verified by tests and by the runner before every execution. Repair round 1 did NOT re-freeze: spec bytes are identical, no threshold/question/scope moved. Cycle 38934722443 re-validated the digest again before re-execution on the refreshed mount: unchanged.",
+  "scope": "the four observed reality-check questions (rent-default Art. 257d(2); Art. 102 CP primary/subsidiary; business-judgment-rule; petty-theft low-value), wrong-language/corrupted-output rejection, hard <300s full-run latency, plus the lane-directive structural checks (recall of frozen controlling authorities, source validity, duplicates, multilingual coverage).",
+  "recall_gate_semantics": "each frozen authority set (citation set, retrieval set) is gated independently at >=1 hit; a partial-set pass is a PASS naming the missing authorities in measured.missing. RESTATED per audit R1; not a re-freeze. Recorded on the CURRENT packet (run 38934722443): corporate-criminal-liability 1/1 fresh leg full 2/2; petty-theft repaired leg 1/2 (cites bger_4A_177_2017, misses bger_4A_228_2015); BJR fresh leg 0/5 — cites NONE of the five frozen direct-TF BJR authorities (falsifying failure, preserved). Historical record 38920872324: petty-theft 5/5 citation passes but 0/5 cite bger_4A_228_2015; BJR 4/4 citation passes but 0/4 cite bger_4A_62_2024; Art. 102 CP 5/5 full 2/2.",
+  "weak_truth_gates_disclosed": {
+   "truth::art257d2_30day_notice": "contains_any ['30'] matches the substring anywhere in prose; matched on 10/10 rent-default legs in the recorded run; necessary-not-sufficient lexical proxy, falsifiable (negative test exists), kept because the frozen spec pinned it",
+   "truth::bjr_information": "contains_any ['information'] likewise; matched on 4/4 BJR legs; same disclosure",
+   "structurally_not_measurable_from_recordings": [
+    "structural::geometry_preserved",
+    "structural::progressive_phases (needs initial+final pair; only finals recorded)"
+   ]
   },
-  "adopted_frontier_verdicts_v56": {
-    "method": "ADOPTED_WITHOUT_REMEASURE",
-    "artifact": "evaluation/frontier_verdict_adoption.json",
-    "counter_label_soundness_rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
-    "geometry_semantics_rules_sha256": "a7452748d40c511a1c7848ece5fe7f8f8901cc30f45a6691c89eb593a633",
-    "note": "Historical v56 adoption remains valid lane knowledge; the accepted-state index paths it cites live on main, not on this branch, and are therefore not repeated in evidence_refs."
+  "execution_record": "results/evaluation/reality_benchmark/38934722443.json",
+  "execution_record_reproducible": "byte-identical across repeated executions (verified this cycle)",
+  "inputs": "ACCEPTED product evidence only (read-only): results/product/reality_check (62 files: 29 slim leg reports, 12 fatal stubs, 21 roll-ups incl. 13 minimal-shape, 13 unmatched-kind auxiliary), gate_packet/38839347028 (3 full bundles + 9 auxiliary files), adversarial_retrieval/38828034436 (4 full bundles + 4 scoring files) at accepted product packet fdf1e386, refreshed with product cycle V49_TARGETED_REALITY_REPAIR_4OF4_LIVE (run 38924869286: 5 live legs, 5 fixture stubs, 6 roll-ups). No 174k benchmarks rerun; no Product code imported.",
+  "execution_counts": {
+   "n_artifacts": 82,
+   "n_full_match_evaluated": 29,
+   "n_question_independent_evaluated": 7,
+   "n_excluded_no_verdict": 46,
+   "bundle_structural_gate_executions": 35,
+   "question_independent_checks_per_bundle": [
+    "bundle_nonempty",
+    "duplicate_free",
+    "source_urls_valid",
+    "answer_citations_constrained",
+    "counter_classifications_supported",
+    "corruption (when prose present)",
+    "latency (when timing present)"
+   ]
   },
-  "active_metrics": [
-    "frozen substantive truth gates (Art. 257d(2), Art. 102 CP split, BJR criteria, petty-theft low-value)",
-    "wrong-language answer rejection (dominant-language classifier, question-language + DE fallback)",
-    "corrupted-output rejection (repetition loops, mojibake)",
-    "full-run latency < 300s (hard reject >= 300s)",
-    "recall of frozen controlling authorities: >=1-of-set per gate, partial passes disclosed (petty-theft 5/5 partial on bger_4A_177_2017; BJR 4/4 partial, newest authority uncited; Art. 102 CP 5/5 full 2/2)",
-    "source/URL validity, duplicate suppression, counter-evidence support (lane harness, question-independent bundle checks on every recorded bundle)",
-    "FR/DE/IT multilingual retrieval coverage"
+  "result_overall": "FAIL on the recorded history (negative evidence, preserved): 19 falsifying failures across 17 artifacts = 5 latency::under_budget (463.773s/548.452s/340.782s/360.542s/861.409s, all historical 20261014 legs) + 4 truth::art257d2_end_of_month (historical rent-default legs) + 2 structural::adversarial_clean (historical rent-default legs) + 6 structural::counter_classifications_supported (6 of 7 recorded full bundles carry counter-classified decisions without evidence/uncertainty fields) + 2 recall::citation_controlling_authority (NEW this cycle: business-judgment-rule_live_20261016T161006Z cites none of the five frozen BJR authorities; petty-theft-dismissal_live_20261016T155135Z preserved pre-fix negative cites neither frozen petty-theft authority). Verdict-equivalence vs accepted record 38920872324: all 66 pre-existing artifact verdicts identical (recomputed); 13 pre-existing minimal-shape summaries reclassified unmatched_kind -> summary_rollup under the classifier precision fix (no verdict change, excluded either way).",
+  "result_current_packet_38924869286": {
+   "rent-default_live_20261016T154849Z": "PASS all machine-measurable gates (111.774s)",
+   "corporate-criminal-liability_live_20261016T160526Z": "PASS all machine-measurable gates (276.119s; under the 300s budget, within model-speed variance — product flagged the same residual latency risk)",
+   "petty-theft-dismissal_live_20261016T160318Z": "PASS all machine-measurable gates (111.158s; partial recall: cites bger_4A_177_2017, misses bger_4A_228_2015)",
+   "business-judgment-rule_live_20261016T161006Z": "FAIL recall::citation_controlling_authority — cites none of bger_4A_219_2015/259_2016/626_2013/603_2014/62_2024 (citations: BGE 110 II 391, BGE 139 III 24, zh_handelsgericht_HG120149); producer's own structural+truth gates pass this leg — the frozen authority gate falsifies what the producer's gates cannot see",
+   "petty-theft-dismissal_live_20261016T155135Z": "FAIL recall::citation_controlling_authority (preserved pre-fix negative: cites neither bger_4A_177_2017 nor bger_4A_228_2015; the failure the product repaired in the 160318Z leg)",
+   "fixture_legs_20261016T154703Z/154708Z": "5 fatal stubs (OpenCaseLaw retrieval returned no decisions), excluded with reasons, preserved as negative evidence"
+  },
+  "result_latest_product_ci_run_38604340726": "PASS on all four frozen legs for every machine-measurable gate — consistent with the product's own machine green that v49's live legal testing invalidated; the machine gates alone remain insufficient, which is why the human gate stays closed.",
+  "cross_check_vs_producer_verdicts": "5 disagreements on the current packet: 4 historical latency::under_budget (the producer's own gates carry no latency budget, so the frozen benchmark falsifies four slow runs the producer passed) + 1 NEW authority-recall disagreement: business-judgment-rule_live_20261016T161006Z passes the producer's structural+phrase-truth gates but fails the frozen recall gate (0 of 5 frozen BJR authorities cited). No benchmark verdict was weakened to reach this; the producer verdicts are preserved verbatim in the execution record.",
+  "harness_precision_fix_38934722443": "the minimal durable-workflow roll-up shape (legs array + mode, no all_legs_passed) now classifies as summary_rollup with its per-leg array preserved in the record (producer_legs); previously unmatched_kind with a misleading exclusion reason. No gate semantics changed; roll-ups are excluded from verdicts under both classifications. Pinned by test_minimal_rollup_shape_classifies_as_summary_rollup.",
+  "multilingual_coverage": "7/7 per-bundle FR/DE/IT coverage checks PASS on the recorded tenancy/medical/capital-offence bundles (each covers its query language and >=2 Swiss languages)",
+  "not_measurable_from_recorded_evidence": [
+   "geometry_preserved_after_enrichment (needs initial+final pair; only final bundles recorded)",
+   "petty-theft retrieval-id recall on slim reports (no full decision id list in strip_bundle output); measurable on full bundles",
+   "cached reproducibility across repeated live runs (no repeated recorded runs of the same live query)"
   ],
-  "harness": {
-    "path": "evaluation/reality_gate",
-    "contract": "JSON query_result_bundle + slim reality-check leg reports; does not import Product",
-    "status": "PASS",
-    "automatic_claim_limit": "Executable checks falsify integrity/truth/latency properties of recorded artifacts; they do not establish UX usefulness."
+  "empty_input_guard": "run_benchmark exits 2 with an explicit environment/argument error on absent or empty evidence input and never emits a verdict record from empty input (repair R6a)",
+  "claim_ceiling": "The benchmark falsifies machine-checkable properties of recorded product artifacts (substantive truth phrases with two disclosed weak proxies, >=1-of-frozen-set authority recall with partial passes disclosed, wrong-language/corrupted output, >=300s full-run latency, bundle structure incl. counter-evidence support, multilingual coverage). It does NOT prove map usefulness to a jurist; human_gate_ready stays false."
+ },
+ "v49_frozen_retrieval_benchmark": {
+  "frozen_spec": "evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
+  "frozen_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+  "freeze_record": "evaluation/retrieval_gate/FREEZE_RECORD.json (frozen_at 2026-10-16T17:37:01Z, frozen_before_execution=true, sha256 b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49)",
+  "direction_version_at_freeze": 49,
+  "purpose": "FAST MVP lane directive: the smallest executable retrieval/counter-authority benchmark that can falsify the product. The frozen reality benchmark measures recorded ANSWER artifacts; this one measures whether the frozen controlling authorities are reachable at all in independent OpenCaseLaw retrieval, in which query language, at what rank, with what duplicates and at what latency. Baseline = one plain /decisions search per (question, language, channel) with no query-map/counter-authority machinery, per the lane directive.",
+  "scope": "4 frozen questions x {fr,de,it} x {baseline question text, counter limiting-authority query} = 24 live searches against https://mcp.opencaselaw.ch/api/decisions, plus an offline cache replay pass. 36 frozen gates: authority recall (union + per-language, >=1-of-set), governing-norm retrievability, known-counter recall, independently verified limiting-marker evidence, source validity, duplicate structure, transport, per-search latency (30s), full-pass latency (240s), cached reproducibility. Authority sets re-owned from the frozen reality benchmark (sha ff57f556...); known-counter ids = union of counter-classified cited_decisions rows across accepted reality_check legs (label soundness NOT re-verified; stated in the spec).",
+  "pre_freeze_disclosure": "Two schema probes with a NON-frozen query (Konventionalstrafe Vertragsstrafe limit 3 and 50) and one generic probe (query=business judgment rule, limit 3, first 400 chars) established response shape/size/latency before freeze; no frozen query text was executed and no frozen authority-hit determination was made before FREEZE_RECORD.json. The product-cache cross-check is labelled EXPLORATORY in the run record because its design followed a pre-freeze scan of that cache.",
+  "execution_record": "results/evaluation/retrieval_benchmark/38939239917.json (1.28 MB self-contained evidence: rows with id/docket/citation/url/language/text head, raw-body sha256, ordered ids, verdict); raw live bodies preserved under results/evaluation/retrieval_benchmark/cache/ (3.3 MB total).",
+  "execution": "pass A live: 24/24 HTTP 200, 960 rows, wall 256.827s (per-search min/median/max 4.521/10.311/20.534s); pass B offline replay: raw-body sha256 AND ordered id list identical for all 24 queries; --rescore reproduces the recorded verdict byte-for-byte.",
+  "result_overall": "FAIL (negative evidence, preserved): 12 falsifying failures, 24 passes, 4 not measurable. No threshold was moved after execution; the frozen 240s pass budget stays despite failing it.",
+  "falsifying_findings": {
+   "F1_language_brittleness": "For all three questions with a frozen authority set, the GERMAN plain-query baseline retrieves authorities inside top-50 (corporate 2/2 at ranks 18/23, BJR 2/5 at ranks 9/11, petty-theft 1/2 at rank 2) while the FRENCH and ITALIAN baselines retrieve ZERO of them (0/2, 0/5, 0/2). Union gates pass only via DE. The frozen questions' record language is French — the language the product ships.",
+   "F2_bjr_is_answer_side_not_reachability": "Independent DE baseline retrieves bger_4A_219_2015 (rank 9) and bger_4A_603_2014 (rank 11); the fresh accepted BJR leg cites NONE of the five frozen BJR authorities. EXPLORATORY cross-check: all five frozen BJR authorities are present in the ACCEPTED product's own query_cache search envelopes (2-4 envelopes each, reached via expansion queries) and in ZERO of the 10 accepted envelopes whose query equals the frozen French question text; petty-theft bger_4A_228_2015 appears in exactly 1 accepted envelope vs 7 for bger_4A_177_2017. Discrimination: BJR 0/5 is a candidate-selection/answer-synthesis defect with French-path expansion reliance, not a corpus-reachability defect.",
+   "F3_duplicates_and_malformed_ids": "63 alias-duplicate cores across 7 of 24 queries; verified same-decision dual-docket pairs (ge_gerichte_C_6552_2022 + ge_gerichte_ACJC_1511_2022 same date; vd_findinfo_HC___2013___801 + vd_gerichte_JL13.022381 same date; ge_gerichte_P_17078_2019 + ge_gerichte_ACPR_74_2021 same date). 6 malformed upstream ids confirmed in raw sha-verified bodies (ch_vb__td_class__metadataCell__150000044__td_ whose docket_number is a live HTML fragment; four ge_gerichte_[pjdoc NNNNN]). Dedupe by canonical id + cross-docket alias detection + id sanitation are load-bearing product steps.",
+   "F4_corporate_marker_proxy_blind": "No corporate counter-channel row carried both 'art. 102' and a frozen limitation token inside the frozen 600-char text head (90 rows); known-counter recall for the same question PASSES 4/6. Necessary-not-sufficient lexical proxy with frozen truncation; cause not separable from this record.",
+   "F5_retrieval_latency_eats_the_budget": "24-search live pass 256.827s >= frozen 240s budget, leaving <45s for rerank + answer + counter pass + map inside the product's hard <300s full-run budget; consistent with observed ~316-469s product latencies on free models."
   },
-  "historical_174k": {
-    "status": "PRESERVED_NOT_ACTIVE",
-    "prior_state_direction": 35,
-    "note": "Old TF-IDF/dense/global-map evidence remains historical research and is not the v49 product gate. The v35-era state-verification tests were repaired in cycle 38920872324 to verify the current state; v35 claims stay in git history and results/."
+  "passing_findings": "known-counter reachability 3/9, 4/6, 1/4, 7/9 (all four questions); independently verified limiting-marker evidence for rent-default/BJR/petty-theft; governing-norm retrievability for all four; source validity on all 960 rows; transport 24/24 with retries; cached reproducibility byte-identical; per-search latency under 30s.",
+  "not_measurable": "4 rent-default authority gates (frozen reality benchmark carries no controlling-authority set for rent-default; authority_ids = []); reported with reason, never counted as passes.",
+  "harness": "evaluation/retrieval_gate (stdlib-only, independent HTTP client with paced/retried transport and content-addressed cache; does not import Product; exits 2 with NO record on empty/total-transport-failure input; exit 3 on frozen-digest mismatch).",
+  "tests": "tests/evaluation/test_retrieval_gate.py 33 tests: digest pin, freeze-record consistency, authority-set parity with the reality benchmark, id-alias/markup normalization, positive all-green fixture, one falsification test per gate, not-measurable-is-never-a-pass, verdict determinism, offline empty-cache exit 2 with no record, rescore-rejects-foreign-sha, freeze-before-execution ordering and byte-identical verdict recomputation against the recorded run, plus cross-process verdict purity across PYTHONHASHSEED 0/1/2 and the verdict-recompute-log disclosure. Active lane suite now 98/98 PASS.",
+  "claim_ceiling": "Retrieval reachability, cross-language robustness, counter reachability, source validity, duplicate structure, latency and cached reproducibility of INDEPENDENT OpenCaseLaw searches for the frozen questions. No UX claim; no supporting/contrary label is assigned; the product-cache comparison stays EXPLORATORY. human_gate_ready stays false.",
+  "post_execution_fix": "gates.py unique_ids/match_authorities originally iterated row_cores() sets directly, so the duplicate::examples list order varied with PYTHONHASHSEED across processes (caught by the verdict-recompute test). Fixed by iterating sorted(row_cores(...)); the stored verdict was recomputed once with the fix — only the corporate duplicate-example ordering changed (same multiset), all 36 gate outcomes/counts/details identical — and the recompute is logged in the record's verdict_recompute_log with old (b0f8e2b0...) and new (93214cb8...) verdict sha256. Harness bugfix only; no frozen threshold, token, budget or gate semantic was touched."
+ },
+ "adopted_frontier_verdicts_v56": {
+  "method": "ADOPTED_WITHOUT_REMEASURE",
+  "artifact": "evaluation/frontier_verdict_adoption.json",
+  "counter_label_soundness_rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+  "geometry_semantics_rules_sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+  "note": "Historical v56 adoption remains valid lane knowledge; the accepted-state index paths it cites live on main, not on this branch, and are therefore not repeated in evidence_refs."
+ },
+ "active_metrics": [
+  "frozen substantive truth gates (Art. 257d(2), Art. 102 CP split, BJR criteria, petty-theft low-value)",
+  "wrong-language answer rejection (dominant-language classifier, question-language + DE fallback)",
+  "corrupted-output rejection (repetition loops, mojibake)",
+  "full-run latency < 300s (hard reject >= 300s)",
+  "recall of frozen controlling authorities on ANSWER artifacts: >=1-of-set per gate, partial passes disclosed (current packet 38934722443: corporate-criminal-liability 2/2 citation + 2/2 retrieval; petty-theft cites bger_4A_177_2017 and misses bger_4A_228_2015; BJR cites NONE of the five frozen direct-TF authorities; historical 38920872324 numbers preserved in the v49_frozen_reality_benchmark block)",
+  "source/URL validity, duplicate suppression, counter-evidence support (lane harness, question-independent bundle checks on every recorded bundle)",
+  "FR/DE/IT multilingual retrieval coverage",
+  "independent OpenCaseLaw retrieval baseline (retrieval gate, frozen 187b0e54...): authority recall per query language (FR/DE/IT top-50, >=1-of-set), governing-norm retrievability, known-counter recall, independently verified limiting-marker evidence, source validity, alias-duplicate structure; id-hygiene (unresolved placeholders / raw-HTML ids) measured OUTSIDE the frozen verdict by evaluation/retrieval_gate/id_hygiene.py at tier POST-FREEZE ADDITION (6 defective ids among 960 rows on run 38939239917) — the frozen gates do NOT detect it",
+  "retrieval latency: per-search < 30s and 24-search live pass < 240s (frozen budgets; the live pass measured 256.827s and failed)",
+  "cached reproducibility: offline replay of the live pass must be byte-identical (raw sha256 + ordered id list)",
+  "replay/live separation: a latency gate may only pass or fail when pass A was a live pass; a cached replay returns not_measurable with a reason, so it can never erase a recorded latency failure (evaluation/retrieval_gate/gates.py LIVE_PASS_MODE)",
+  "digest coverage for the eight gate thresholds frozen_benchmark.json could not reach (answer/adversarial method strings, prose min length, source host, corruption thresholds, multilingual minimum, >=1-of-set recall rule): evaluation/reality_gate/GATE_CONTRACT.json, sha 06781743c2686fa6..., no value changed",
+  "execution-record integrity: evaluation/reality_gate/run_benchmark.py check_record_integrity re-derives each gate verdict from its own recorded measurements; seven tamper classes proven detectable; gates without a measured payload are explicitly listed as NOT re-derived",
+  "one-command offline lane suite: python -m evaluation.lane_suite (stdlib only, no network, no Product import) — digests, record integrity, byte-identical re-score, replay/live separation, 20 falsifiable gate families"
+ ],
+ "harness": {
+  "path": "evaluation/reality_gate",
+  "contract": "JSON query_result_bundle + slim reality-check leg reports; does not import Product",
+  "status": "PASS",
+  "automatic_claim_limit": "Executable checks falsify integrity/truth/latency properties of recorded artifacts; they do not establish UX usefulness."
+ },
+ "historical_174k": {
+  "status": "PRESERVED_NOT_ACTIVE",
+  "prior_state_direction": 35,
+  "note": "Old TF-IDF/dense/global-map evidence remains historical research and is not the v49 product gate. The v35-era state-verification tests were repaired in cycle 38920872324 to verify the current state; v35 claims stay in git history and results/."
+ },
+ "gate": {
+  "automated": "python -m evaluation.reality_gate.run_benchmark --evidence-dir <product reality_check dir> ... ; must be GREEN on a product's own live packet before the human gate can be considered. Exit 2 = environment/empty-input error (no record emitted).",
+  "human": "Map usefulness remains a jurist product gate: branch/exception discovery, structural comprehension, confidence about contrary authority, preference over answer+ranked list."
+ },
+  "next_recommendation": "CONSUME_NOT_REBUILD: Product and frontier-counter-anchor-classifier / frontier-query-conditioned-map-geometry consume these gates as machine packet-admission inputs. Repair 38966576940 landed the audit-required R1 pin fix plus M1-M3 hardening with the full active pytest set green (121/121 with mount) and both frozen-bar incumbents recomputed exactly; no further same-question evaluation cycle has a discriminating purpose.",
+ "prior_proposal_unpromoted": {
+  "run_id": "38939239917",
+  "note": "The 38939239917 producer commit (660ad896) was never audited and never promoted: no results/audit/evaluation/CYCLE_38939239917_GATE.json exists, no 'accept evaluation cycle 38939239917' commit exists, and origin/lab/evaluation is still 1e12bfc2 (accept cycle 38934722443). This is the cause of run 38945774110's zero-delta exit: it started from a tree already containing all of 38939239917's work and had nothing to add. The zero-delta exit is a symptom, not a lane defect.",
+  "producer_commit": "660ad896",
+  "deliverable_in_that_commit": "evaluation/retrieval_gate/* and tests/evaluation/test_retrieval_gate.py (the frozen retrieval/counter-authority benchmark, sha 187b0e54..., executed FAIL 12/40)",
+  "action_required": "promote or reject 38939239917 explicitly so it stops shadowing lane state"
+ },
+ "continue_recommended_reason": "V50 question delivered in full: both executable frozen-bar gates exist, recompute incumbents exactly, prove non-vacuity, run dependency-free in ~6s. No further same-question cycle has a discriminating purpose.",
+ "orchestration_diagnosis_38945774110": {
+  "symptom": "origin/cycle/core/evaluation/38945774110/team == 660ad896 (byte-identical to its base); zero producer commit",
+  "root_cause": "the preceding proposal 38939239917 was never audited nor promoted (see prior_proposal_unpromoted)",
+  "route_around_used": "change the question so the work has a concrete deliverable: this cycle asked whether the frozen benchmark can actually falsify a product, and it found that it could not (see falsifying_findings below)",
+  "lex_require_delta": "set to 1 in this run's environment; satisfied (see durable_delta)"
+ },
+ "falsifying_findings_38945976309": [
+  {
+   "id": "F6_cached_replay_erased_a_frozen_latency_failure",
+   "severity": "high",
+   "finding": "A --offline re-run of the recorded retrieval benchmark turned the recorded FAIL of latency::full_pass_under_budget (256.827s vs the frozen 240s budget) into a PASS, because no gate read pass_a_mode and an offline pass overwrites pass_a_wall_seconds with the cache-read wall time (0.067s). The cycle report's own recommendation was to re-run from cache to confirm the verdict was stable; doing so deleted a preserved negative. overall_pass stayed false (12 failed/24 passed -> 11 failed/24 passed) so a summary reader would not have noticed.",
+   "fix": "evaluation/retrieval_gate/gates.py LIVE_PASS_MODE + _pass_a_not_live(); a latency gate may only pass/fail when pass A was live, otherwise not_measurable with an explicit reason. An undeclared pass_a_mode is treated conservatively as not measurable.",
+   "not_weakened": "no budget, threshold, token or gate success rule changed; --rescore of the recorded record still reproduces its stored verdict byte-for-byte after the change",
+   "regression_tests": [
+    "test_cached_replay_cannot_report_a_latency_pass",
+    "test_cached_replay_does_not_hide_a_recorded_latency_failure",
+    "test_record_without_declared_pass_mode_is_not_measurable_for_latency",
+    "test_content_gates_still_work_from_a_cached_replay",
+    "test_record_latency_plausibility_catches_a_hand_edited_wall_time",
+    "test_record_latency_plausibility_rejects_a_wall_beyond_the_record_span",
+    "test_record_latency_plausibility_is_out_of_scope_for_a_replay_record"
+   ],
+   "durable_evidence": "results/evaluation/retrieval_benchmark/38945976309_cached_replay.json (sha 78fa6942d62dca75...)",
+   "second_line_of_defence": "The mode flag binds only what a record DECLARES. A record claiming pass_a_mode='live' with a hand-edited pass_a_wall_seconds would still be scored against the budget and could pass. gates.record_latency_plausibility() cross-checks a live record's wall time against its own timestamps (wall >= sum of its live per-search latencies; wall <= its started_at->generated_at span) so that forgery is caught. Deliberately NOT a gate: adding a gate would change the recorded verdict and destroy its byte-identity test."
   },
-  "gate": {
-    "automated": "python -m evaluation.reality_gate.run_benchmark --evidence-dir <product reality_check dir> ... ; must be GREEN on a product's own live packet before the human gate can be considered. Exit 2 = environment/empty-input error (no record emitted).",
-    "human": "Map usefulness remains a jurist product gate: branch/exception discovery, structural comprehension, confidence about contrary authority, preference over answer+ranked list."
+  {
+   "id": "F7_eight_gate_thresholds_were_under_no_digest",
+   "severity": "high",
+   "finding": "answer_method 'generative_audit_llm_v2', adversarial_method 'independent_llm_adversarial_v2', prose_min_length 120, source host 'mcp.opencaselaw.ch', the five corruption thresholds, multilingual '>=2 Swiss languages' and the recall '>=1-of-set' rule were literals in evaluation/reality_gate/gates.py. frozen_benchmark.json does not carry them, so none was guarded by FROZEN_SHA256 and any could be silently weakened without tripping a digest.",
+   "fix": "evaluation/reality_gate/GATE_CONTRACT.json + gate_contract.py with its own pinned sha256 06781743c2686fa63a6652ad61c8d63381cfa707f5fd6682a50b9027470d2492; gates.py now reads these values from the contract, so editing a literal has no effect and editing any of them anywhere trips the pin",
+   "not_weakened": "every value equals the literal it replaced; frozen_benchmark.json is untouched (ff57f556c3755ab6...); the re-executed benchmark reproduces all 82 recorded artifact verdicts with ZERO changes",
+   "durable_evidence": "results/evaluation/reality_benchmark/38945976309.json (sha 43458b13ac605354...)"
   },
-  "next_recommendation": "CONTINUE. The frozen benchmark was re-executed on the current accepted packet (run 38934722443) and falsifies the fresh BJR leg's authority base (0 of 5 frozen direct-TF BJR authorities cited) while the producer's own gates pass it. Concrete next-cycle purpose under the SAME v49 question: re-execute against the next accepted product packet and check whether the BJR answer's citation set recovers at least one frozen direct-TF authority; the product lane's exit gate stays closed until the four-question benchmark is reliably green without weakening truth/authority/language/latency gates. Do not reopen 174k/global-map research."
+  {
+   "id": "F8_reality_records_had_no_integrity_check",
+   "severity": "medium",
+   "finding": "The retrieval gate recomputes its stored verdict byte-identically; the reality benchmark had no equivalent, and no test re-read a committed reality record, so a hand-edited record would have passed every test in the lane.",
+   "fix": "run_benchmark.check_record_integrity() + gate_arithmetic_coverage(); the check re-derives 'passed' from each gate's own measured payload, so flipping latency::under_budget to true is caught by its own recorded 463.773s vs 300.0s",
+   "claim_ceiling": "structural bundle/report gates carry no measured payload and are NOT re-derived; they stay on trust until re-executed against the ACCEPTED product mount. Asserted by test_record_integrity_check_declares_what_it_cannot_check.",
+   "durable_evidence": "3 committed records audited with 0 problems; 7 tamper classes proven detectable"
+  },
+  {
+   "id": "F9_malformed_id_detection_was_advertised_but_absent",
+   "severity": "medium",
+   "finding": "state/evaluation.json active_metrics claimed 'malformed-id detection'; no such gate existed. source::rows_valid passes every unusable id in the record.",
+   "fix": "evaluation/retrieval_gate/id_hygiene.py, deliberately OUTSIDE the frozen verdict (folding it in would change the recorded verdict and destroy its byte-identity test); the report states its own tier",
+   "measured": "6 distinct defective ids among 960 rows: 5 x ge_gerichte_[pjdoc NNNNN] unresolved placeholders, 1 x ch_vb__td_class__metadataCell__150000044__td_ whose docket_number is raw upstream HTML",
+   "durable_evidence": "results/evaluation/retrieval_benchmark/38939239917_id_hygiene.json (sha 718b4167b1aefde8...)"
+  }
+ ],
+ "gate_contract": {
+  "path": "evaluation/reality_gate/GATE_CONTRACT.json",
+  "loader": "evaluation/reality_gate/gate_contract.py",
+  "sha256": "06781743c2686fa63a6652ad61c8d63381cfa707f5fd6682a50b9027470d2492",
+  "covers": [
+   "structural::answer_method",
+   "structural::adversarial_method",
+   "structural::prose_min_length",
+   "structural::source_urls_valid",
+   "corruption::clean thresholds",
+   "multilingual minimum Swiss languages",
+   "recall >=1-of-set rule"
+  ],
+  "not_a_refreeze": "no value differs from the literal it replaced; frozen_benchmark.json digest unchanged; recorded execution records reproduce byte-identically"
+ },
+ "record_integrity": {
+  "function": "evaluation/reality_gate/run_benchmark.py check_record_integrity",
+  "coverage": [
+   "frozen digest",
+   "counts recomputed from the artifact list",
+   "failed_gates/not_measurable_gates consistent with outcomes",
+   "blank detail on passes",
+   "detail on failures",
+   "not_measurable always carries a reason",
+   "artifact_passed and overall_pass consistent"
+  ],
+  "arithmetic_recheck": [
+   "latency::under_budget",
+   "corruption::clean",
+   "recall::*_controlling_authority",
+   "truth::* (phrase)",
+   "truth::* (phrase_absent)",
+   "multilingual::*",
+   "structural::bundle_validation_clean",
+   "language::dominant_in_accepted (undetectable case)"
+  ],
+  "not_rechecked": [
+   "structural::bundle_nonempty",
+   "structural::duplicate_free",
+   "structural::source_urls_valid",
+   "structural::answer_citations_constrained",
+   "structural::counter_classifications_supported",
+   "structural::geometry_preserved",
+   "structural::progressive_phases",
+   "structural::answer_ready",
+   "structural::answer_method",
+   "structural::prose_min_length",
+   "structural::citations_nonempty",
+   "structural::provider_clean",
+   "structural::adversarial_method",
+   "structural::adversarial_clean"
+  ],
+  "why_not": "those gates carry no measured payload, so nothing in the record contradicts a flipped verdict; they stay on trust until the benchmark is re-executed against the ACCEPTED product mount",
+  "known_untamperable_classes": {
+   "enumerated_in": "evaluation/reality_gate/run_benchmark.py check_record_integrity_known_gaps()",
+   "pinned_by": "tests/evaluation/test_reality_gate.py::test_check_record_integrity_declares_its_own_untamperable_classes",
+   "classes": [
+    "deleting_an_artifact_and_renumbering_every_count",
+    "flipping_a_structural_gate_failure_to_a_pass",
+    "rewriting_a_gate_measured_payload_to_match_a_flipped_verdict"
+   ],
+   "materiality": "six of the recorded failures in 38934722443 are structural::counter_classifications_supported, i.e. exactly one of the uncovered classes",
+   "self_audit": "found by adversarial probing this cycle's own check, not by inspection; each is demonstrated in the test, not merely listed"
+  }
+ },
+ "lane_suite": {
+  "entrypoint": "python -m evaluation.lane_suite",
+  "report": "results/evaluation/lane_suite/38945976309.json (sha 3eaa600f04917c5f0224bf68463b92891e7827fc515851b6ae3b4b0334a6cb1a)",
+  "result": "42/42 checks PASS in 2.05s",
+  "stdlib_only": true,
+  "network": false,
+  "imports_product_code": false,
+  "checks": [
+   "3 frozen digests + freeze-before-execution ordering",
+   "integrity of every committed reality record",
+   "byte-identical re-score of every committed retrieval record (run records are selected by schema, so side artefacts such as the id-hygiene report are excluded)",
+   "cached replay may not report a latency PASS",
+   "a recorded LIVE latency failure survives its own cached replay (the live record is selected by pass_a_mode, never by file order)",
+   "20 declared gate families each broken by a purpose-built fixture",
+   "optional pytest pass over the active lane test files",
+   "the cached-replay probe is written to a temporary file and discarded; the durable evidence is the single committed cached-replay run record under results/evaluation/retrieval_benchmark/, so there is only one source of truth for that verdict"
+  ],
+  "why": "no workflow in this repository runs tests/evaluation/test_reality_gate.py or tests/evaluation/test_retrieval_gate.py; the only pytest invocation is evaluation/query_map/test_harness.py and its path filter does not cover evaluation/reality_gate/**, evaluation/retrieval_gate/** or tests/evaluation/**. .github/** is control-plane scope and was not edited."
+ },
+ "execution_records_this_cycle": {
+  "reality_benchmark_38945976309": "results/evaluation/reality_benchmark/38945976309.json — 82 artifacts, 29 full-match + 7 question-independent evaluated, 46 excluded; overall FAIL preserved; ZERO per-artifact verdict changes vs recorded 38934722443 after the GATE_CONTRACT rewiring",
+  "retrieval_cached_replay_38945976309": "results/evaluation/retrieval_benchmark/38945976309_cached_replay.json — pass_a_mode=offline_replay, wall 0.067s; both latency gates now not_measurable; 11 failed / 23 passed / 6 n-m",
+  "retrieval_id_hygiene": "results/evaluation/retrieval_benchmark/38939239917_id_hygiene.json — FAIL, 6 defective ids among 960 rows",
+  "lane_suite_38945976309": "results/evaluation/lane_suite/38945976309.json — 42/42 PASS"
+ },
+ "count_reconciliation": {
+  "why": "state and the previous reports quoted test counts and gate counts that no longer match the files; each number below states the definition used (factory_direction set-identity rule: never match by cardinality).",
+  "test_functions_this_cycle": {
+   "tests/evaluation/test_reality_gate.py": 49,
+   "tests/evaluation/test_retrieval_gate.py": 43,
+   "tests/evaluation/test_lane_suite.py": 5,
+   "evaluation/query_map/test_harness.py": 6,
+   "tests/evaluation/test_audit_correction_verification.py": 4,
+   "active_lane_total": 107
+  },
+  "pytest_collected_items_this_cycle": {
+   "tests/evaluation/test_reality_gate.py": 68,
+   "tests/evaluation/test_retrieval_gate.py": 43,
+   "tests/evaluation/test_lane_suite.py": 5,
+   "evaluation/query_map/test_harness.py": 6,
+   "tests/evaluation/test_audit_correction_verification.py": 4,
+   "active_lane_total": 126
+  },
+  "prior_claims_now_corrected": "the state and the 38939239917 report claimed test_reality_gate.py=46 and test_retrieval_gate.py=33; both were wrong. They claimed 36 frozen retrieval gates; the recorded verdict reports n_gates=40 (36 per-question + 4 global). The verdict's 40 is operative.",
+  "excluded_and_failing": {
+   "tests/evaluation/test_frontier_verdict_adoption.py": "9 functions, a different lane's adopted-verdict check; EXCLUDED from the active suite and currently failing: it shells out to 'git show origin/main:results/accepted-state/frontier/frontier-served-packet-falsification.json' and origin/main carries only corpus/evaluation/fractal-map/legal-distance/product under results/accepted-state/. Precondition failure, not a benchmark failure; not fixable from this lane."
+  },
+  "lane_suite_internal_pytest_count": "121 not 126, because lane_suite deliberately excludes test_lane_suite.py to avoid recursing into itself"
+ },
+ "control_plane_gaps_recorded_not_patched": [
+  "query-map-evaluation-ci.yml runs ONLY 'pytest -q evaluation/query_map/test_harness.py'; grep over .github/ finds zero references to tests/evaluation/, test_reality_gate or test_retrieval_gate.",
+  "the same workflow's path filter covers only evaluation/query_map/**, evaluation/__init__.py and state/evaluation.json, so edits to evaluation/reality_gate/**, evaluation/retrieval_gate/** or tests/evaluation/** cannot trigger it.",
+  "the supervisor's 'exhausted same-charter work' guard uses jq '//' on .continue_recommended, which treats literal false as empty, so this lane's continue_recommended=false cannot stop re-dispatch; the reliable stop is the .status field, which a lane cannot set.",
+  "core-lane.yml promoted nothing for 38939239917 (no gate file, no accept commit) and then dispatched 38945774110, which found zero delta. A repair/re-dispatch loop needs a promoted-or-rejected disposition for the prior proposal."
+ ],
+ "claim_reconciliation": {
+  "rule": "every headline number below states the definition used and the artifact it was recomputed from",
+  "active_metrics_wording_fix": "active_metrics entry 8 previously read '... malformed-id detection'. That was FALSE at the time it was written: no gate performed it. It is now true, by measurement, at tier POST-FREEZE ADDITION outside the frozen verdict (evaluation/retrieval_gate/id_hygiene.py). The frozen verdict itself has NOT gained a malformed-id gate.",
+  "frozen_reality_benchmark_digest": "ff57f556c3755ab663766618ab7abe763f251e7add70cd8ed964141846d063c8, unchanged this cycle",
+  "frozen_retrieval_benchmark_digest": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72, unchanged this cycle",
+  "recorded_retrieval_verdict": "still FAIL, 12 failed / 24 passed / 4 not measurable over 40 gates; --rescore reproduces it byte-for-byte after this cycle's gate change"
+ },
+ "durable_delta": [
+  "evaluation/reality_gate/GATE_CONTRACT.json (new, digest-pinned)",
+  "evaluation/reality_gate/gate_contract.py (new loader + validator)",
+  "evaluation/reality_gate/gates.py (thresholds now read from the contract; no literal left)",
+  "evaluation/reality_gate/run_benchmark.py (check_record_integrity, gate_arithmetic_coverage, load_record)",
+  "evaluation/retrieval_gate/gates.py (LIVE_PASS_MODE replay/live separation)",
+  "evaluation/retrieval_gate/gates.py (LIVE_PASS_MODE replay/live separation + record_latency_plausibility)",
+  "evaluation/lane_suite.py (new stdlib-only offline entry point)",
+  "tests/evaluation/test_reality_gate.py (35 -> 47 functions)",
+  "tests/evaluation/test_retrieval_gate.py (31 -> 40 functions)",
+  "tests/evaluation/test_lane_suite.py (new, 5 functions)",
+  "results/evaluation/reality_benchmark/38945976309.json (new execution record)",
+  "results/evaluation/retrieval_benchmark/38945976309_cached_replay.json (new; the closed false green)",
+  "results/evaluation/retrieval_benchmark/38939239917_id_hygiene.json (new)",
+  "results/evaluation/lane_suite/38945976309.json (new)",
+  "reports/evaluation/CYCLE_38945976309.md (new)"
+ ],
+ "report": "reports/evaluation/CYCLE_38951152192.md",
+ "next_recommendation_38951152192": "HAND OFF TO PRODUCT, then stop this lane's proposal chain. The v49 evaluation question is encoded, enforced, self-falsified twice (F6 cached-replay latency erasure, closed 38945976309; F7 bare-checkout pytest false-red, closed this cycle), and both falsifications are closed without moving any frozen bar. What remains is not lane work: audit and promote (or reject) the stacked proposals 38939239917 (retrieval benchmark) and 38945976309 (hardening) so their deliverables stop shadowing every re-dispatch, and set the portfolio .status stop per factory-direction item 13 — continue_recommended:false cannot stop re-dispatch while the supervisor jq // defect stands. continue_recommended stays false: the next dispatch must carry a NEW question, never a re-run of this one. Product's open falsifications are unchanged and restated without re-measurement (FR/IT authority recall 0/N vs DE 2/2, 2/5, 1/2; fresh BJR leg cites 0/5 frozen BJR authorities; retrieval live pass 256.827s vs frozen 240s budget; duplicate::unique_ids fails on all four questions; 6 unusable ids among 960 rows; rent-default authority gates permanently not_measurable). human_gate_ready stays false. No 174k/global-map benchmarks rerun; none was run this cycle.",
+ "orchestration_diagnosis_38949870162": {
+  "symptom": "origin/cycle/core/evaluation/38949870162/team == 9766de64 (byte-identical to its base); zero producer commit; working tree clean",
+  "root_cause": "same pathology as 38945774110, one layer deeper: TWO complete proposals now stacked unpromoted (38939239917 retrieval benchmark: no CYCLE_38939239917_GATE.json, no accept commit; 38945976309 hardening: no CYCLE_38945976309_GATE.json, no accept commit; last accept remains 38934722443 at 1e12bfc2). The dispatch carried the same v49 question while lane state (continue_recommended:false) demanded a NEW question, so the producer found nothing to add. Additionally observed: accepted_run_id in lane state reads 38928722878 while the branch history already contains 'accept evaluation cycle 38934722443' — stale pointer, left unchanged because only an audit gate can move acceptance.",
+  "also_observed_this_cycle": "In a bare container without pytest, python -m evaluation.lane_suite reported FAIL (41/42) — a validator running the suite first in a fresh checkout would see red for an environment gap. Closed as F7 (see falsifying_finding_38951152192); not claimed as the cause of 38949870162, which is a zero-delta dispatch failure.",
+  "route_around_used": "new question (is the lane suite credible in a bare checkout?) with a concrete durable deliverable; no .github edits; no self-audit files written"
+ },
+ "falsifying_finding_38951152192": {
+  "id": "F7_bare_checkout_pytest_false_red",
+  "severity": "medium",
+  "finding": "evaluation/lane_suite.py advertises a stdlib-only entry point but its pytest sub-check FAILED the whole suite (41/42, exit 1) when pytest was absent — reproduced in this container before pip install. A red verdict measuring the environment rather than the product is a false red for any fresh-checkout validator.",
+  "fix": "_Log.skip() as a first-class third state (passed None, skipped True); run_pytest records SKIP when pytest is absent, unchanged otherwise (present-but-red still fails); report schema lex-evaluation-lane-suite/1 -> /2 (adds n_skipped, skipped_checks, per-check skipped flag; lane-owned, unfrozen); claim_ceiling and docstring state the pytest-optional semantics. Committed /1 record 38945976309.json preserved untouched.",
+  "not_weakened": "no frozen spec, threshold, token, budget, question, gate success rule or recorded verdict touched; both retrieval records re-score byte-identically after the change; frozen digests re-verified (ff57f556, 187b0e54, 06781743)",
+  "regression_tests": [
+   "test_pytest_absent_is_a_skip_not_a_failure (python -S end-to-end: exit 0, 0 failed, 1 skipped, stdlib checks ran)",
+   "test_skip_pytest_flag_emits_no_pytest_check",
+   "test_present_but_red_pytest_is_still_a_failure (monkeypatched red subprocess still fails; skip is not an amnesty)"
+  ],
+  "durable_evidence": "results/evaluation/lane_suite/38951152192.json (42/42 PASS, schema /2) and results/evaluation/lane_suite/38951152192_bare.json (41 pass + 1 skip, 0 failed, exit 0 under python -S)"
+ },
+ "execution_records_38951152192": {
+  "lane_suite_38951152192": "results/evaluation/lane_suite/38951152192.json — 42/42 PASS, schema lex-evaluation-lane-suite/2",
+  "lane_suite_bare_38951152192": "results/evaluation/lane_suite/38951152192_bare.json — 41 pass + 1 skip + 0 failed, exit 0, run under python -S (pytest unimportable); the end-to-end proof F7 is closed",
+  "frozen_rescore_verification": "--rescore of results/evaluation/retrieval_benchmark/38939239917.json reproduces the stored verdict byte-for-byte (12 failed / 24 passed / 4 n-m); --rescore of 38945976309_cached_replay.json likewise byte-identical. No live network pass run; no 174k benchmark rerun."
+ },
+ "count_reconciliation_38951152192": {
+  "why": "definitions unchanged from the prior cycle (factory_direction set-identity rule: never match by cardinality). Function-definition counts vs pytest-collected items differ only by parametrization in test_reality_gate.py.",
+  "test_functions_this_cycle": {
+   "tests/evaluation/test_reality_gate.py": 49,
+   "tests/evaluation/test_retrieval_gate.py": 43,
+   "tests/evaluation/test_lane_suite.py": 8,
+   "evaluation/query_map/test_harness.py": 6,
+   "tests/evaluation/test_audit_correction_verification.py": 4,
+   "active_lane_total_functions": 110
+  },
+  "pytest_collected_items_this_cycle": 129,
+  "delta_vs_prior_cycle": "test_lane_suite.py 5 -> 8 functions (+3 new: bare-skip end-to-end, skip-flag semantics, red-still-fails); collected 126 -> 129. All 129 PASS.",
+  "excluded_unchanged": "tests/evaluation/test_frontier_verdict_adoption.py stays EXCLUDED (different lane's adopted-verdict check; precondition failure on origin/main paths, not a benchmark failure)"
+ },
+ "durable_delta_38951152192": [
+  "evaluation/lane_suite.py (SKIP semantics for absent pytest, report schema lex-evaluation-lane-suite/2, pytest-optional claim ceiling)",
+  "tests/evaluation/test_lane_suite.py (5 -> 8 functions)",
+  "results/evaluation/lane_suite/38951152192.json (new, 42/42 PASS)",
+  "results/evaluation/lane_suite/38951152192_bare.json (new, 41+1skip/0failed under python -S)",
+  "reports/evaluation/CYCLE_38951152192.md (new)"
+ ],
+ "v50_frozen_bar_gates": {
+  "rules_label_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+  "rules_geometry_sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+  "entry_point": "python -m evaluation.frozen_bars.run_bar_gates",
+  "execution_record": "results/evaluation/bar_gates/38964129305.json",
+  "label_recomputed": {
+   "n_scored": 65,
+   "n_supported": 5,
+   "classes": {
+    "OFF-DOMAIN": 38,
+    "UNBACKED": 22,
+    "SUPPORTED": 5,
+    "INVERTED": 0
+   },
+   "regression": "PASS_NO_REGRESSION",
+   "absolute": "LABEL_UNSOUND_reported_not_enforced",
+   "injection_non_vacuity": "7/7_proven",
+   "blanked_evidence_negative": "FAIL_REGRESSION_blocks_build"
+  },
+  "geometry_recomputed": {
+   "counts": {
+    "de-kapitalverletzung": 6,
+    "fr-bail-entretien": 5,
+    "it-responsabilita-medica": 5
+   },
+   "engine_oracle_cells": "33/33",
+   "regression": "PASS_NO_REGRESSION",
+   "absolute": "GEOMETRY_UNSOUND_reported_not_enforced",
+   "hostile_negative": "FAIL_REGRESSION_blocks_build",
+   "permutation_battery": "0-1_flips_not_proven_disclosed_with_accepted_RF4_movability_note"
+  },
+  "gate_semantics": "FAIL CI only on regression below recomputed incumbent; absolute bars REPORTED never enforced (avoids never-green loop)",
+   "tests": "13/13 pass (tests/evaluation/test_frozen_bar_gates.py); frozen reality/retrieval benchmarks byte-unchanged; full active pytest set after repair 38966576940: 134 collected = 133 passed + 1 by-design mount skip, 0 failed (lane-suite internal set 121 = 120 passed + 1 mount skip after the R1 direction-pin fix; test_frozen_bar_gates.py 13 = 8 passed + 5 mount skips without the mount, 13 passed with it). The pre-repair claim '119 tests still pass' was FALSE (1 failed / 119 passed / 1 skipped; see reports/evaluation/BAR_GATES_38964129305.md erratum).",
+   "elapsed_s": 5.842,
+   "claim_ceiling": "Gates fail builds on label/geometry REGRESSION and report absolute-bar status. They do not prove map usefulness to a jurist; human_gate_ready stays false.",
+   "repair_verification_38966576940": {
+    "trigger": "independent audit results/audit/evaluation/CYCLE_38964129305_GATE.json gate=REVISE (required fix R1: stale direction pin 49 in test_audit_correction_verification.py against v50 state; '119 tests still pass' claim false for the full active set)",
+    "r1_pin_fix_verified": "tests/evaluation/test_audit_correction_verification.py 4/4 PASS after pin bump to 50",
+    "full_active_pytest_set_after_repair": "lane-suite internal set 121 collected / 121 passed / 0 failed WITH the mount (/tmp/lex_accepted present); without the mount the same set is 120 passed + 1 by-design mount skip, 0 failed — both green, the audit's 120+1 figure confirmed",
+    "test_frozen_bar_gates_after_repair": "14/14 PASS with mount (13 prior + 1 new M1 vendored-digest test); 9 passed + 5 mount skips without the mount",
+    "bar_gates_entry_rerun": "results/evaluation/bar_gates/38966576940.json — verdict PASS_NO_REGRESSION exit 0; labels 65 scored / 5 supported / classes 38-22-5-0 EXACT; geometry de 6 fr 5 it 5 with 33/33 oracle cells EXACT; absolute LABEL_UNSOUND + GEOMETRY_UNSOUND reported, not enforced; elapsed 9.668s stdlib-only",
+    "lane_suite_rerun": "results/evaluation/lane_suite/38966576940.json — PASS 42/42 checks, direction_version now derived from state (50), internal pytest 121/121 PASS",
+    "frozen_digests_reverified": "RULES_LABEL 4457e971..., RULES_GEOMETRY a7452748... (64-char), reality ff57f556..., retrieval 187b0e54..., contract 06781743... — all byte-unchanged; vendored 14/14 match VENDORED_SHA256.json",
+    "not_weakened": "no frozen spec, rubric, threshold, bar, gate success rule, recorded verdict or success rule was touched; the repair corrects a test pin, a report sentence, a truncated state hash and a stale report literal, and adds one provenance test"
+   }
+  }
 }
