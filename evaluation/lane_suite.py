@@ -513,7 +513,11 @@ def run_pytest(log: _Log) -> None:
          "tests/evaluation/test_reality_gate.py",
          "tests/evaluation/test_retrieval_gate.py",
          "evaluation/query_map/test_harness.py",
-         "tests/evaluation/test_audit_correction_verification.py"],
+         "tests/evaluation/test_audit_correction_verification.py",
+         # run 38972887369 (disclosed scope extension, not a re-freeze):
+         # verdict-contract digest pin, exit-code reachability matrix and the
+         # naive-consumer trap of the frozen-bar gates.
+         "tests/evaluation/test_bar_gate_verdict_contract.py"],
         cwd=str(_LANE_ROOT), capture_output=True, text=True, timeout=900)
     tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
     log.add("active lane pytest suite", proc.returncode == 0, tail[0])

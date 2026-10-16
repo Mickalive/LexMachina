@@ -1,0 +1,39 @@
+{
+  "schema": "lex-evaluation-freeze/1",
+  "run": 38972887369,
+  "lane": "evaluation",
+  "direction_version": 50,
+  "frozen_before_implementation": true,
+  "frozen_before_outcome_inspection_of_new_code": true,
+  "question": "The two accepted frozen-bar gates (run_bar_gates entry point) advertise exit 1 = REGRESSION below the recomputed incumbent as their CI build-blocking semantics (direction v50). Is that blocking path REACHABLE through the entry point on any input, and can a Product packet-admission consumer that reads only exit==0 / gate_blocks_build be falsified into admitting a packet whose counter-label support has collapsed?",
+  "hypotheses": {
+    "H1_baseline_continuity": "Default served-lineage execution of python -m evaluation.frozen_bars.run_bar_gates on the accepted-product mount reproduces the accepted record results/evaluation/bar_gates/38971202786.json byte-identically except elapsed_s.",
+    "H2_falsifying_exit1_unreachable": "Through the accepted CLI entry point the exit-1 (FAIL_REGRESSION) path is UNREACHABLE on every input: served bytes imply the frozen rubric recomputes the incumbent exactly (never a regression), and any byte drift is refused as ENVIRONMENT_ERROR exit 2 before scoring. Probe classes: (a) blanked counter evidence, (b) hostile geometry, (c) one-byte drift, (d) halved decisions.",
+    "H3_blocking_reachable_only_at_library_level": "At library level (score_packet, bypassing the served-bytes identity pin) the blocking paths ARE reachable: blanked evidence at the pinned 65-row population -> label FAIL_REGRESSION blocks; hostile geometry on the three frozen qids -> geometry FAIL_REGRESSION blocks; blanked evidence PLUS a changed decision population -> label regression_verdict=NOT_APPLICABLE, gate_blocks_build=False EVEN THOUGH support collapsed to 0, while geometry on the same packet still blocks (asymmetry).",
+    "H4_naive_consumer_falsifiable": "A consumer that treats exit==0 (or gate_blocks_build=False) as 'the packet met the label bar' is falsified by one reachable input: the collapsed-support changed-population packet yields exit 0 with n_supported=0 and regression_verdict=NOT_APPLICABLE in the same record."
+  },
+  "baseline": {
+    "entry_point": "python -m evaluation.frozen_bars.run_bar_gates",
+    "accepted_record": "results/evaluation/bar_gates/38971202786.json (accepted cycle 38971202786, audit R1-corrected)",
+    "accepted_test_count": "tests/evaluation/test_frozen_bar_gates.py 16/16 with mount",
+    "accepted_lane_suite": "42/42",
+    "incumbents_recomputed_this_run_before_freeze": {
+      "labels": "65 scored / 5 supported (0.076923); classes OFF-DOMAIN 38 / UNBACKED 22 / SUPPORTED 5 / INVERTED 0",
+      "geometry": "de 6 / fr 5 / it 5; engine oracle 33/33"
+    }
+  },
+  "metric_and_success_rule": {
+    "H1": "PASS if default-mode record equals accepted 38971202786.json after removing elapsed_s; FAIL otherwise.",
+    "H2": "PASS if all four probe classes exit 2 and the served execution exits 0 (zero exit-1 outcomes across the probe matrix); FAIL if any probe exits 1 through the default mode (that would mean the pin is weaker than believed).",
+    "H3": "PASS if library-level scoring shows exactly: blanked@65 label blocks; hostile-geometry label does not block but geometry blocks; blanked+halved label NOT_APPLICABLE/no block with n_supported=0 AND geometry blocks on the same packet.",
+    "H4": "PASS if one and the same adjudicated record simultaneously carries exit 0, gate_blocks_build False and n_supported 0 (naive-consumer trap proven by construction, then pinned as a test)."
+  },
+  "planned_durable_delta": [
+    "evaluation/frozen_bars/verdict_contract.py + VERDICT_CONTRACT.json: machine-readable enumeration of every verdict state the two gates emit (process verdict PASS_NO_REGRESSION/FAIL_REGRESSION/ENVIRONMENT_ERROR; per-gate regression_verdict PASS/FAIL/NOT_APPLICABLE; absolute_status SOUND/UNSOUND) with the EXACT accepted predicate and an explicit certifies/does_not_certify block. NO threshold, bar, rubric or incumbent value invented or changed; every predicate is a restatement of the accepted label_gate.score_packet / geometry_gate.score_packet code.",
+    "run_bar_gates.py gains an --adjudicate <packet-dir> mode for future frozen-anchor packets: skips ONLY the served-bytes identity pin (a served-lineage provenance check, not a threshold), scores both gates with the frozen rules, exits 1 when either gate_blocks_build, 2 on environment/unknown-qid/sha-mismatch errors, 0 otherwise; record carries mode=adjudicate and observed input shas. Default mode stays byte-identical.",
+    "tests/evaluation/test_bar_gate_verdict_contract.py (new file; accepted test file left byte-unchanged): CLI exit-code reachability matrix, naive-consumer falsification pin, default-mode byte identity, verdict-contract digest pin, unreachable-state disclosure (default-mode exit 1 proven unreachable).",
+    "results/evaluation/verdict_contract/38972887369_reachability.json + results/evaluation/bar_gates/38972887369*.json + reports/evaluation/BAR_GATES_38972887369.md + state/evaluation.json cycle block."
+  ],
+  "explicit_non_goals": "No new threshold, bar, support definition, regression definition or lineage rule; no re-measurement of either Frontier candidate; no change to the served-bytes pin in default mode; no 174k rerun; no Product code imported; no network; no .github/** edit; no frozen rubric/spec re-freeze; no audit files authored.",
+  "frozen_artifact_sha256_note": "This file is the freeze of record for run 38972887369; its own sha256 is recorded in the cycle report and lane state."
+}

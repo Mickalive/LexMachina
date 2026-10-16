@@ -1,14 +1,26 @@
 """Single entry point: run both frozen-bar gates (stdlib only, no network).
 
-Verifies both RULES sha256 before scoring anything, re-scores the served
-packet bundles from accepted product evidence, checks regression against the
-recomputed incumbents, runs the proven negative controls, and writes one
-self-contained record.
+Two modes, one set of frozen rules, incumbents and predicates:
+
+* served_lineage (default): verifies both RULES sha256, verifies the three
+  served bundle shas against the accepted LABEL_HALF inputs BEFORE scoring,
+  re-scores the served packet, checks regression against the recomputed
+  incumbents, runs the proven negative controls, and writes one
+  self-contained record.
+* adjudicate (--adjudicate <packet-dir>): scores a FUTURE packet on the same
+  three frozen qids with the same frozen rules/incumbents/predicates. The
+  served-bytes identity pin is a served-lineage provenance check, not a
+  threshold, so it is not applied; observed shas are recorded instead. See
+  evaluation/frozen_bars/VERDICT_CONTRACT.json for what each verdict state
+  does and does NOT certify before consuming an exit 0 as a pass.
 
 Exit 0 = gates executed; no REGRESSION below incumbent (absolute-bar status
 is reported, never enforced). Exit 1 = REGRESSION below incumbent on the
-served-packet lineage. Exit 2 = environment error (missing inputs, sha
-mismatch, engine/oracle divergence).
+scored packet (unreachable through served_lineage mode on any input — served
+bytes recompute the incumbent by construction and any drift exits 2 first;
+reachable through adjudicate mode). Exit 2 = environment error (missing
+inputs, sha mismatch, unknown qid, engine/oracle divergence, unproven
+negative control) — never a product verdict, never a pass.
 
 No Product code is imported. No frozen benchmark is touched.
 """
@@ -26,7 +38,7 @@ _BAR_DIR = Path(__file__).resolve().parent
 if str(_BAR_DIR.parent.parent) not in sys.path:
     sys.path.insert(0, str(_BAR_DIR.parent.parent))
 
-from evaluation.frozen_bars import geometry_gate, label_gate  # noqa: E402
+from evaluation.frozen_bars import geometry_gate, label_gate, verdict_contract  # noqa: E402
 
 SERVED_PACKET_DIR = Path(
     "/tmp/lex_accepted/product/results/product/gate_packet/38839347028/questions"
@@ -97,10 +109,19 @@ def _hostile_geometry(bundle: dict) -> dict:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--packet-dir", default=str(SERVED_PACKET_DIR))
+    ap.add_argument("--adjudicate", default=None, metavar="PACKET_DIR",
+                    help="adjudicate a FUTURE packet on the three frozen qids with the same "
+                         "frozen rules/incumbents/predicates, WITHOUT the served-bytes identity "
+                         "pin (that pin is a served-lineage provenance check, not a threshold). "
+                         "Exit 1 when either gate reports a regression below the accepted "
+                         "incumbent; exit 2 on environment/unknown-qid errors; exit 0 otherwise. "
+                         "See evaluation/frozen_bars/VERDICT_CONTRACT.json before consuming "
+                         "an exit 0 as a pass.")
     ap.add_argument("--out", default=None)
     args = ap.parse_args(argv)
     t0 = time.time()
-    packet_dir = Path(args.packet_dir)
+    mode = "adjudicate" if args.adjudicate else "served_lineage"
+    packet_dir = Path(args.adjudicate) if args.adjudicate else Path(args.packet_dir)
     missing = [f"{qid}.bundle.json" for qid in QIDS if not (packet_dir / f"{qid}.bundle.json").exists()]
     if missing:
         print(f"bar_gates environment error: missing inputs in {packet_dir}: {missing}", file=sys.stderr)
@@ -125,13 +146,21 @@ def main(argv=None) -> int:
     sha_match = {qid: observed_shas[qid] == EXPECTED_BUNDLE_SHA256[qid] for qid in QIDS}
     record["input_bundle_sha256"] = observed_shas
     record["input_sha_matches_accepted_label_half"] = sha_match
-    if not all(sha_match.values()):
+    if mode == "served_lineage" and not all(sha_match.values()):
         record["verdict"] = "ENVIRONMENT_ERROR"
         record["detail"] = "served bundle bytes drifted from the accepted LABEL_HALF inputs; refusing verdict"
         print(json.dumps(record, indent=1))
         if args.out:
             Path(args.out).write_text(json.dumps(record, indent=1), encoding="utf-8")
         return 2
+    if mode == "adjudicate":
+        # Disclosed scope difference only: the served-bytes pin is a
+        # provenance check on the HISTORICAL packet, not a threshold, so it
+        # is not applied to a future packet. Observed shas stay in the record.
+        record["mode"] = "adjudicate"
+        record["served_byte_pin"] = "not_applicable_in_adjudicate_mode"
+        record["engine_oracle_check"] = "served_lineage_only"
+
 
     # ---- label gate ------------------------------------------------------
     label_paths = {qid: str(p) for qid, p in bundle_paths.items()}
@@ -155,6 +184,13 @@ def main(argv=None) -> int:
                             "regression_verdict": label_neg["regression_verdict"],
                             "gate_blocks_build": label_neg["gate_blocks_build"]}
         label_neg_proven = bool(label_neg["gate_blocks_build"])
+        if label_neg["regression_verdict"] == "NOT_APPLICABLE":
+            # Frozen label regression predicate is population-pinned; outside
+            # the 65-row incumbent population the control cannot fire and is
+            # recorded as not-applicable, never silently dropped.
+            label_neg_detail["not_applicable_reason"] = (
+                "label regression predicate is pinned to the 65-row incumbent population; "
+                "this control cannot fire on the adjudicated packet's population")
     except Exception as e:  # noqa: BLE001 -- negative control must report, never crash the gate
         label_neg_detail = {"error": f"{type(e).__name__}: {e}"}
         label_neg_proven = False
@@ -217,7 +253,7 @@ def main(argv=None) -> int:
             "gate_blocks_build": geom_neg["gate_blocks_build"]},
         "negative_control_proven": bool(geom_neg["gate_blocks_build"]),
     }
-    if oracle_match_cells != oracle_cells:
+    if mode == "served_lineage" and oracle_match_cells != oracle_cells:
         record["verdict"] = "ENVIRONMENT_ERROR"
         record["detail"] = ("stdlib geometry engine diverged from the accepted GEOMETRY_HALF "
                             "oracle; refusing verdict (engine fidelity gate, not a product verdict)")
@@ -225,13 +261,28 @@ def main(argv=None) -> int:
         if args.out:
             Path(args.out).write_text(json.dumps(record, indent=1), encoding="utf-8")
         return 2
+    if mode == "adjudicate":
+        # The 33-cell oracle is a served-lineage engine-fidelity check; an
+        # adjudicated packet legitimately differs cell-by-cell. Engine
+        # fidelity is established once per execution by the default-mode run.
+        record["engine_oracle_cells_observed"] = f"{oracle_match_cells}/{oracle_cells}"
 
     # ---- overall ----------------------------------------------------------
     regressed = bool(label_res["gate_blocks_build"] or geom_res["gate_blocks_build"])
-    neg_ok = bool(record["label_gate"]["negative_control_proven"]
+    label_neg_required = bool(mode == "served_lineage"
+                              or label_neg_detail.get("regression_verdict") != "NOT_APPLICABLE")
+    neg_ok = bool(label_nv["proven_non_vacuous"]
                   and record["geometry_gate"]["negative_control_proven"]
-                  and label_nv["proven_non_vacuous"])
+                  and (record["label_gate"]["negative_control_proven"]
+                       if label_neg_required else True))
     record["negative_controls_all_proven"] = neg_ok
+    if mode == "adjudicate":
+        record["label_negative_control_required"] = label_neg_required
+        # Machine-readable admission input (Product obligation (1) consumes it):
+        # what the observed verdict DOES and DOES NOT certify, per the frozen
+        # contract. Policy stays with the consumer; misreadings do not.
+        record["admission_reading"] = verdict_contract.admission_reading(
+            label_res, geom_res, 1 if regressed else 0)
     record["verdict"] = "FAIL_REGRESSION" if regressed else "PASS_NO_REGRESSION"
     record["absolute_status_summary"] = {
         "labels": label_res["absolute_status"],

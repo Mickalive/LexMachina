@@ -1,0 +1,88 @@
+{
+  "schema": "lex-evaluation-bar-verdict-contract/1",
+  "run": 38972887369,
+  "lane": "evaluation",
+  "direction_version": 50,
+  "purpose": "Machine-readable enumeration of EVERY verdict state the two accepted frozen-bar gates emit, with the exact accepted predicate and an explicit certifies / does_not_certify block, so a Product packet-admission consumer cannot misread a state. NO threshold, bar, rubric, lineage rule or incumbent value is invented or changed here: every predicate is a literal restatement of the accepted evaluation/frozen_bars/label_gate.py, evaluation/frozen_bars/geometry_gate.py and evaluation/frozen_bars/run_bar_gates.py code as accepted in cycle 38971202786.",
+  "frozen_inputs": {
+    "rules_label_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "rules_geometry_sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+    "incumbent_label": {"n_scored": 65, "n_supported": 5, "classes": {"OFF-DOMAIN": 38, "UNBACKED": 22, "SUPPORTED": 5, "INVERTED": 0}},
+    "incumbent_geometry": {"de-kapitalverletzung": 6, "fr-bail-entretien": 5, "it-responsabilita-medica": 5},
+    "incumbent_qids": ["de-kapitalverletzung", "fr-bail-entretien", "it-responsabilita-medica"]
+  },
+  "label_gate": {
+    "absolute_status": {
+      "states": {
+        "LABEL_SOUND": "n_scored > 0 and n_supported == n_scored (every scored counter row is supported under the frozen rubric)",
+        "LABEL_UNSOUND": "otherwise"
+      },
+      "absolute_enforced_as_build_blocker": false,
+      "certifies": {"LABEL_SOUND": "every scored counter row on THIS packet carries evidence the frozen rubric accepts", "LABEL_UNSOUND": "at least one scored counter row on THIS packet fails the frozen rubric"},
+      "does_not_certify": "either state says nothing about map geometry, retrieval recall or jurist usefulness; LABEL_UNSOUND is REPORTED, never a build blocker (direction v50)"
+    },
+    "regression_verdict": {
+      "predicate": "lineage := (set(per_bundle) == {de-kapitalverletzung, fr-bail-entretien, it-responsabilita-medica}) AND (n_scored == 65); FAIL_REGRESSION := lineage AND n_supported < 5; PASS_NO_REGRESSION := lineage AND NOT FAIL; NOT_APPLICABLE := NOT lineage",
+      "states": {
+        "FAIL_REGRESSION": "counter-label support on the incumbent population fell below the accepted 5/65",
+        "PASS_NO_REGRESSION": "counter-label support on the incumbent population is at or above the accepted 5/65",
+        "NOT_APPLICABLE": "the packet is not the incumbent population (different qid set, or a scored-row count other than 65); the frozen incumbent comparison does not apply"
+      },
+      "certifies": {
+        "FAIL_REGRESSION": "a build-blocking regression on the served-packet lineage",
+        "PASS_NO_REGRESSION": "no regression on the served-packet lineage only",
+        "NOT_APPLICABLE": "NOTHING about label soundness. It is an inapplicability marker, not a pass."
+      },
+      "does_not_certify": {
+        "NOT_APPLICABLE": "NOT_APPLICABLE does NOT certify that counter-label support met any bar. A packet whose scored support collapsed to 0 outside the 65-row population still reports NOT_APPLICABLE with gate_blocks_build=false. Absolute status (LABEL_SOUND/UNSOUND) is the only label statement the gate makes about such a packet, and it is never enforced as a build blocker.",
+        "PASS_NO_REGRESSION": "does not certify the absolute bar (support_rate 1.0); the accepted served packet itself passes regression at 5/65 and is LABEL_UNSOUND"
+      }
+    },
+    "gate_blocks_build": "lineage AND n_supported < 5. Equal to regression_verdict == FAIL_REGRESSION. gate_blocks_build == false is NOT a statement that the label bar was met."
+  },
+  "geometry_gate": {
+    "absolute_status": {
+      "states": {
+        "GEOMETRY_SOUND": "every bundle passes all 11 frozen minimum-semantics criteria",
+        "GEOMETRY_UNSOUND": "otherwise"
+      },
+      "absolute_enforced_as_build_blocker": false,
+      "certifies": {"GEOMETRY_SOUND": "all 11 criteria pass on every scored bundle", "GEOMETRY_UNSOUND": "at least one criterion fails on at least one bundle"},
+      "does_not_certify": "either state says nothing about counter-label support or jurist usefulness; GEOMETRY_UNSOUND is REPORTED, never a build blocker (direction v50)"
+    },
+    "regression_verdict": {
+      "predicate": "lineage := (set(per_bundle) == the three incumbent qids)  [no population pin]; regressed_qids := [qid in per_bundle where lineage AND n_pass < incumbent_count(qid)]; FAIL_REGRESSION := lineage AND regressed_qids non-empty; PASS_NO_REGRESSION := lineage AND empty; NOT_APPLICABLE := NOT lineage",
+      "states": {
+        "FAIL_REGRESSION": "at least one bundle's criterion-count fell below its accepted incumbent (de 6 / fr 5 / it 5)",
+        "PASS_NO_REGRESSION": "no bundle fell below its accepted incumbent criterion-count",
+        "NOT_APPLICABLE": "the qid set is not the incumbent set; the frozen incumbent comparison does not apply"
+      },
+      "certifies": {"FAIL_REGRESSION": "a build-blocking geometry regression on the three frozen qids", "PASS_NO_REGRESSION": "no criterion-count regression on the three frozen qids", "NOT_APPLICABLE": "NOTHING about geometry semantics; inapplicability marker"},
+      "does_not_certify": {"PASS_NO_REGRESSION": "does not certify the absolute 11/11 bar (accepted served bundles pass regression at 6/5/5 and are GEOMETRY_UNSOUND)"}
+    },
+    "gate_blocks_build": "lineage AND regressed_qids non-empty. Note the ASYMMETRY of record: geometry regressions block on ANY packet carrying the three frozen qids regardless of decision count, while label regressions block ONLY at the pinned 65-row population."
+  },
+  "process": {
+    "modes": {
+      "served_lineage": "default: python -m evaluation.frozen_bars.run_bar_gates [--packet-dir ...]. Verifies the three served bundle shas against the accepted LABEL_HALF inputs BEFORE scoring; a mismatch is refused without a verdict.",
+      "adjudicate": "python -m evaluation.frozen_bars.run_bar_gates --adjudicate <packet-dir>. For a FUTURE packet on the three frozen qids. The served-bytes identity pin (a served-lineage provenance check, not a threshold) is not applied; observed shas are recorded instead. Same frozen rules, same incumbents, same predicates. Engine fidelity: the 33-cell GEOMETRY_HALF oracle comparison is a SERVED-LINEAGE check enforced only in served_lineage mode (an adjudicated packet legitimately differs cell-by-cell); adjudicate-mode records carry engine_oracle_check=served_lineage_only and engine fidelity is established once per execution by the default-mode run. Negative controls: the frozen injection battery is always required; the geometry hostile control is required whenever the qid lineage holds; the label blanked-evidence control is required when (and only when) the adjudicated packet's scored population equals the pinned 65 rows, because outside that population the frozen label regression predicate is NOT_APPLICABLE by construction; every non-required control outcome is still recorded, with a not_applicable reason, never dropped."
+    },
+    "exit_codes": {
+      "0": "PASS_NO_REGRESSION — gates executed, no gate_blocks_build. In served_lineage mode this additionally certifies the served bytes are unchanged and the incumbents recompute exactly. In adjudicate mode it does NOT certify that the label bar was met; read the per-gate regression_verdict and absolute_status first.",
+      "1": "FAIL_REGRESSION — at least one gate reported gate_blocks_build on the scored packet. Unreachable through served_lineage mode on any input (served bytes recompute the incumbent by construction; any drift exits 2 before scoring); reachable through adjudicate mode.",
+      "2": "ENVIRONMENT_ERROR — rules sha mismatch, missing inputs, unknown qid (frozen anchor/lexicon refusal), served-byte drift in served_lineage mode, geometry engine-oracle divergence, or an unproven negative control. NOT a product verdict, NOT a regression, and never a pass."
+    },
+    "naive_consumer_trap": {
+      "state": "adjudicate mode, exit 0, label regression_verdict NOT_APPLICABLE, gate_blocks_build false, n_supported 0",
+      "meaning": "the packet's scored counter-label support is ZERO and the regression comparison did not apply because the population is not the incumbent 65 rows",
+      "falsifies": "any consumer rule of the form 'exit==0 / gate_blocks_build==false => the packet met the counter-label bar'",
+      "required_reading": "for packets outside the incumbent population, only absolute_status (LABEL_SOUND/UNSOUND, reported not enforced) says anything about label soundness; a packet-admission consumer that must not serve LABEL_UNSOUND packets has to test that field explicitly"
+    }
+  },
+  "reachability_of_record": {
+    "served_lineage_exit_1": "UNREACHABLE by construction (proven executably this run, run 38972887369: four byte-drift probe classes all exit 2; served execution exits 0)",
+    "adjudicate_exit_1_label": "REACHABLE at the pinned 65-row population with blanked counter evidence (support 5 -> 0)",
+    "adjudicate_exit_1_geometry": "REACHABLE on any three-frozen-qid packet whose criterion counts drop (e.g. hostile single stopword mega-cluster)",
+    "adjudicate_exit_0_with_zero_label_support": "REACHABLE on a changed-population packet with blanked evidence (the naive-consumer trap above)"
+  }
+}
