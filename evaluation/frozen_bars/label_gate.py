@@ -106,7 +106,21 @@ def score_bundle(bundle_path: str | Path, rules, profile_key: str) -> dict:
 
 
 def score_packet(bundles: dict[str, str], rules) -> dict:
-    """Score a {qid: bundle_path} packet; profile key == qid (frozen anchors)."""
+    """Score a {qid: bundle_path} packet; profile key == qid (frozen anchors).
+
+    Qids without a frozen anchor profile are refused with an actionable
+    ValueError (mirroring geometry_gate's lexicon refusal) instead of
+    leaking a raw KeyError: the gates never invent anchor profiles for
+    qids the frozen RULES_LABEL.json does not define. Admitting a genuinely
+    new packet requires a disclosed rules re-freeze.
+    """
+    known_anchors = set(rules.anchors)
+    unknown = [qid for qid in bundles if qid not in known_anchors]
+    if unknown:
+        raise ValueError(
+            f"no frozen anchor profile for bundle(s) {unknown!r}; refusing to invent one "
+            "(admitting a new packet requires a disclosed RULES_LABEL re-freeze)"
+        )
     per_bundle = {qid: score_bundle(path, rules, qid) for qid, path in bundles.items()}
     n_scored = sum(b["n_scored"] for b in per_bundle.values())
     n_supported = sum(b["n_supported"] for b in per_bundle.values())

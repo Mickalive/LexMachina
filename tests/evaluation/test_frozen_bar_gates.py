@@ -109,6 +109,18 @@ def test_geometry_unknown_bundle_refuses_invented_lexicon():
         geometry_gate.score_packet({"made-up-qid": {"decisions": []}}, rules)
 
 
+def test_label_unknown_anchor_refuses_invented_profile(tmp_path):
+    """Label-side boundary pin, symmetric with the geometry refusal (R1 repair
+    optional hardening, run 38971202786): a qid outside the 5 frozen
+    question_anchors is refused with an actionable ValueError, never scored
+    with an invented profile. Needs no mount: fixture bytes are committed."""
+    rules = label_gate.load_frozen_rules()
+    neg = tmp_path / "fr-bail-entretien.bundle.json"
+    neg.write_bytes((BAR_DIR / "fixtures" / "label_negative_bundle.json").read_bytes())
+    with pytest.raises(ValueError, match="no frozen anchor profile"):
+        label_gate.score_packet({"made-up-qid": str(neg)}, rules)
+
+
 @needs_mount
 def test_label_incumbent_recomputed_on_served_packet():
     rules = label_gate.load_frozen_rules()
@@ -188,14 +200,22 @@ def test_served_bundle_bytes_match_accepted_inputs():
 
 
 def test_bar_gates_score_arbitrary_packet_without_regression_verdict(tmp_path):
-    """Generalization (run 38968781838): both gates score a non-served packet.
+    """Off-lineage scoring (run 38968781838; scope corrected R1, run 38971202786).
 
-    A single-fixture packet is outside the served-packet lineage, so each
-    gate must report its measurement with regression_verdict NOT_APPLICABLE
-    and gate_blocks_build False. This proves the gates are CI-executable on
-    ANY future Frontier/product packet (the v50 "nobody owns the BAR" gap)
+    A single-fixture packet built from a FROZEN anchor qid
+    (fr-bail-entretien) at a non-incumbent population is outside the
+    served-packet lineage, so each gate must report its measurement with
+    regression_verdict NOT_APPLICABLE and gate_blocks_build False. Proven
+    scope is exactly this: frozen-anchor qids at a non-incumbent population
+    do not take a spurious regression verdict and do not block the build,
     without inventing a threshold, without a new absolute bar, and without
-    re-measuring any candidate. Needs no mount: fixture bytes are committed.
+    re-measuring any candidate. NOT claimed: executability on genuinely new
+    packets — qids outside the frozen anchor/lexicon/language set are
+    refused BY DESIGN (geometry ValueError, label refusal; see
+    test_geometry_unknown_bundle_refuses_invented_lexicon and
+    test_label_unknown_anchor_refuses_invented_profile), so a new product
+    packet needs a disclosed rules re-freeze. Needs no mount: fixture bytes
+    are committed.
     """
     rules_l = label_gate.load_frozen_rules()
     neg = tmp_path / "fr-bail-entretien.bundle.json"

@@ -2,15 +2,16 @@
  "lane": "evaluation",
  "direction_version": 50,
  "evidence_tier": "REPRODUCED",
- "cycle_status": "V50_FROZEN_BAR_GATES_REVERIFIED_38968781838",
- "continue_recommended": false,
- "accepted_run_id": "38951152192",
- "accepted_run_id_correction_note": "was 38928722878 (stale since accept commit bfdd4444 'accept evaluation cycle 38951152192'); corrected to the factually last-accepted run recorded in git history. Acceptance itself moves only via an audit gate; this corrects the pointer, not the acceptance.",
- "proposed_run_id": "38968781838",
- "repair_round": 0,
- "repair_audit_ref": "results/audit/evaluation/CYCLE_38964129305_GATE.json (independent audit checkout, gate=REVISE, required fix R1 + minor observations M1-M4)",
- "repair_fixes_applied": {
-  "R1": "recall-gate semantics restated as '>=1 of frozen authority set per gate' in report+state, with partial-set pass rates disclosed; benchmark NOT re-freeze (digest unchanged); semantics pinned by test_recall_gate_semantics_is_exactly_at_least_one_of_frozen_set",
+  "cycle_status": "V50_FROZEN_BAR_GATES_REPAIR_R1_LANDED_38971202786",
+  "continue_recommended": false,
+  "accepted_run_id": "38951152192",
+  "accepted_run_id_correction_note": "was 38928722878 (stale since accept commit bfdd4444 'accept evaluation cycle 38951152192'); corrected to the factually last-accepted run recorded in git history. Acceptance itself moves only via an audit gate; this corrects the pointer, not the acceptance.",
+  "proposed_run_id": "38971202786",
+  "repair_round": 1,
+  "repair_audit_ref": "results/audit/evaluation/CYCLE_38968781838_GATE.json (independent audit checkout, gate=REVISE, required fix R1 + optional hardening x3)",
+  "repair_fixes_applied": {
+   "R1_38971202786_repair_of_38968781838": "audit-required R1 scope correction (gate=REVISE on CYCLE_38968781838): withdrew 'CI-executable on ANY future Frontier/product packet' / 'score arbitrary packets' in 4 locations (report BAR_GATES_38968781838.md title+ss1+ss5 with R1 erratum preserving original wording; test docstring; continue_recommended_reason; v50_bar_gates_38968781838.claim_ceiling). True proven scope: frozen-anchor qids at non-incumbent population score NOT_APPLICABLE with no build block; unknown qids refused by design; new packets need a disclosed rules re-freeze. Optional hardening x3 all adopted: label unknown-qid ValueError guard in label_gate.score_packet (was raw KeyError) + new pinning test test_label_unknown_anchor_refuses_invented_profile; bare-checkout incumbent-pin coverage gap disclosed.",
+   "R1": "recall-gate semantics restated as '>=1 of frozen authority set per gate' in report+state, with partial-set pass rates disclosed; benchmark NOT re-freeze (digest unchanged); semantics pinned by test_recall_gate_semantics_is_exactly_at_least_one_of_frozen_set",
   "R2": "unmatched/excluded artifacts now carry explicit not_measurable_gates + per-gate reasons; question-INDEPENDENT bundle checks run on every recorded full bundle regardless of match; record reports bundle_structural_gate_executions and evaluation_scope taxonomy",
   "R3": "report arithmetic corrected: 9 distinct failing slim runs (not 8), 4 adversarial-retrieval bundles (not 3), 3 roll-ups + 12 unmatched summary-named files (not '15 roll-ups')",
   "R4": "detail='' on every passing gate (slim structural, bundle structural, recall gates); record regenerated with blank details on all passing gates",
@@ -69,10 +70,13 @@
   "results/evaluation/bar_gates/38966576940.json",
   "reports/evaluation/BAR_GATES_38966576940.md",
   "tests/evaluation/test_audit_correction_verification.py",
-  "results/evaluation/bar_gates/38968781838.json",
-  "results/evaluation/lane_suite/38968781838.json",
-  "reports/evaluation/BAR_GATES_38968781838.md"
- ],
+   "results/evaluation/bar_gates/38968781838.json",
+   "results/evaluation/lane_suite/38968781838.json",
+   "reports/evaluation/BAR_GATES_38968781838.md",
+   "results/evaluation/bar_gates/38971202786.json",
+   "results/evaluation/lane_suite/38971202786.json",
+   "reports/evaluation/BAR_GATES_38971202786.md"
+  ],
  "human_gate_ready": false,
  "mission": "Independently falsify the query-specific LEX product. Do not reopen the 174k/global-geometry research unless a concrete product failure requires it.",
  "v49_frozen_reality_benchmark": {
@@ -202,7 +206,7 @@
   "deliverable_in_that_commit": "evaluation/retrieval_gate/* and tests/evaluation/test_retrieval_gate.py (the frozen retrieval/counter-authority benchmark, sha 187b0e54..., executed FAIL 12/40)",
   "action_required": "promote or reject 38939239917 explicitly so it stops shadowing lane state"
  },
- "continue_recommended_reason": "V50 question delivered and re-verified: both executable frozen-bar gates recompute incumbents exactly, prove negative controls, run dependency-free, and now demonstrably score arbitrary packets. No further same-question cycle has a discriminating purpose.",
+  "continue_recommended_reason": "V50 question delivered and re-verified: both executable frozen-bar gates recompute incumbents exactly, prove negative controls, run dependency-free, and score frozen-anchor off-lineage packets with NOT_APPLICABLE and no spurious build block (R1-corrected scope: qids outside the frozen anchor/lexicon/language set are refused by design pending a disclosed rules re-freeze). No further same-question cycle has a discriminating purpose.",
  "orchestration_diagnosis_38945774110": {
   "symptom": "origin/cycle/core/evaluation/38945774110/team == 660ad896 (byte-identical to its base); zero producer commit",
   "root_cause": "the preceding proposal 38939239917 was never audited nor promoted (see prior_proposal_unpromoted)",
@@ -524,6 +528,27 @@
   "negative_controls": "injection 7/7, blanked-evidence FAIL_REGRESSION, hostile-geometry FAIL_REGRESSION; permutation battery honestly not proven (accepted RF4 movability note), not counted",
   "cosmetic_repairs": "evidence_refs de-duplicated (47->45 after removing both duplicated lines, plus 3 new refs = 48); repair_audit_ref location disclosed without rewriting the historical pointer",
   "not_touched": "no frozen spec/rubric/threshold/bar/gate rule/recorded verdict; no Frontier candidate re-measured; no 174k rerun; no Product import; no network",
-  "claim_ceiling": "Gates fail builds on REGRESSION and now prove arbitrary-packet scoring; they do not prove jurist map usefulness; human_gate_ready stays false."
- }
+   "claim_ceiling": "Gates fail builds on REGRESSION and score frozen-anchor off-lineage packets with NOT_APPLICABLE and no spurious block (R1-corrected scope: unknown qids refused by design, new packets need a disclosed re-freeze); they do not prove jurist map usefulness; human_gate_ready stays false."
+  },
+  "v50_bar_gates_38971202786_repair_r1": {
+   "run": "38971202786",
+   "repairs_rejected_cycle": "38968781838",
+   "repair_round": 1,
+   "repair_audit_ref": "results/audit/evaluation/CYCLE_38968781838_GATE.json (gate=REVISE, required fix R1 + optional hardening x3)",
+   "entry_point": "python -m evaluation.frozen_bars.run_bar_gates",
+   "execution_record": "results/evaluation/bar_gates/38971202786.json",
+   "verdict": "PASS_NO_REGRESSION",
+   "label_recomputed": {"n_scored": 65, "n_supported": 5, "classes": {"OFF-DOMAIN": 38, "UNBACKED": 22, "SUPPORTED": 5, "INVERTED": 0}},
+   "geometry_recomputed": {"counts": {"de-kapitalverletzung": 6, "fr-bail-entretien": 5, "it-responsabilita-medica": 5}, "engine_oracle_cells": "33/33"},
+   "record_byte_identical_to_38968781838_except_elapsed_s": true,
+   "r1_scope_corrections": "report BAR_GATES_38968781838.md title+ss1+ss5 (original overclaim preserved in R1 erratum note); test docstring of test_bar_gates_score_arbitrary_packet_without_regression_verdict (function name kept); continue_recommended_reason; v50_bar_gates_38968781838.claim_ceiling",
+   "optional_hardening_adopted": "label_gate.score_packet raises actionable ValueError on unknown qids (was raw KeyError); new test_label_unknown_anchor_refuses_invented_profile pins it; bare-checkout incumbent-pin coverage gap disclosed in report+state",
+   "bar_gate_tests": "16/16 passed with mount (15 prior + 1 new label-refusal pin; bare form 11 passed + 5 mount skips)",
+   "lane_suite": "results/evaluation/lane_suite/38971202786.json PASS 42/42 (pytest sub-check 121 passed over its fixed 4-file scope)",
+   "frozen_digests": "RULES_LABEL 4457e971..., RULES_GEOMETRY a7452748... (64-char), reality ff57f556..., retrieval 187b0e54..., contract 06781743... — all byte-unchanged; vendored 14/14 match",
+   "absolute_status": "LABEL_UNSOUND + GEOMETRY_UNSOUND reported, not enforced (direction v50 gate semantics)",
+   "negative_controls": "injection 7/7, blanked-evidence FAIL_REGRESSION, hostile-geometry FAIL_REGRESSION; permutation battery honestly not proven (accepted RF4 movability note), not counted",
+   "not_touched": "no frozen spec/rubric/threshold/bar/success rule/recorded verdict; no Frontier candidate re-measured; no 174k rerun; no Product import; no network; no audit files authored",
+   "claim_ceiling": "Gates fail builds on REGRESSION, score frozen-anchor off-lineage packets without spurious block, and refuse unknown qids with actionable errors; new packets need a disclosed re-freeze. No jurist-usefulness claim; human_gate_ready stays false."
+  }
 }
