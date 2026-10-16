@@ -18,7 +18,9 @@ import pytest
 
 from conftest import REPO_ROOT
 from frontier_counter_label_integrity.audit_contract import (
+    AUDIT_GATE_VALUES,
     AUTHORITY_CLAIM_KEYS,
+    MEASUREMENT_VERDICTS,
     PLACEMENT_DISPOSITIONS,
     UNCLASSIFIED,
     check_gate_files,
@@ -133,6 +135,66 @@ def test_the_disposition_allow_list_is_closed_and_declared():
 def test_authority_claiming_keys_are_rejected(key):
     problems = check_producer_placement_copy(_placement(**{key: "PASS"}), AUDIT_RUNTIME)
     assert any(key in p for p in problems), problems
+
+
+# --------------------------------- verdict value-scoping (the precision fix)
+
+@pytest.mark.parametrize(
+    "value",
+    ["PASS", "REVISE", "BLOCKED", "PASS_WITH_CAVEATS", "AUDIT_PASS", "ACCEPTED", "PASSED", "", None, 42],
+)
+def test_a_verdict_outside_the_measurement_vocabulary_is_rejected(value):
+    """Audit dispositions, near-misses, empties and non-strings all still fail."""
+    problems = check_producer_placement_copy(_placement(verdict=value), AUDIT_RUNTIME)
+    assert any("verdict" in p for p in problems), problems
+
+
+@pytest.mark.parametrize("value", MEASUREMENT_VERDICTS)
+def test_a_measurement_verdict_is_accepted(value):
+    """The team's own REPORT/state verdict is the one legitimate ``verdict``."""
+    assert check_producer_placement_copy(_placement(verdict=value), AUDIT_RUNTIME) == []
+
+
+@pytest.mark.parametrize("key", sorted(set(AUTHORITY_CLAIM_KEYS)))
+def test_the_remaining_authority_claim_keys_are_rejected_flat(key):
+    """Still flat-banned: a measurement-looking value changes nothing for them."""
+    problems = check_producer_placement_copy(_placement(**{key: "LABEL_UNSOUND"}), AUDIT_RUNTIME)
+    assert any(key in p for p in problems), problems
+
+
+def test_verdict_left_the_flat_ban_only_gained_a_value_scope():
+    """Coverage compensation: the removal from the set must stay explicit.
+
+    ``test_authority_claiming_keys_are_rejected`` is parametrized over
+    ``AUTHORITY_CLAIM_KEYS`` and lost its ``verdict`` case when ``verdict``
+    became value-scoped; the value-scoped tests above re-cover it, and these
+    assertions stop any *further* key from being removed silently.
+    """
+    assert "verdict" not in AUTHORITY_CLAIM_KEYS
+    assert set(AUTHORITY_CLAIM_KEYS) == {
+        "audit_verdict",
+        "independently_audited",
+        "audit_of_record",
+        "integrate",
+        "audit_pass",
+    }
+
+
+def test_measurement_verdicts_are_disjoint_from_every_audit_bucket():
+    """Anti-collision invariant: no word may live in both vocabularies.
+
+    If a future edit put a measurement word into an audit bucket (or an audit
+    word into ``MEASUREMENT_VERDICTS``), a placement copy's ``verdict`` could
+    start reading as an audit disposition, so this must fail loudly.
+    """
+    measurement = set(MEASUREMENT_VERDICTS)
+    audit_buckets = (
+        set(AUDIT_GATE_VALUES),
+        set(PLACEMENT_DISPOSITIONS),
+        {"PASS", "REVISE", "BLOCKED", "PASS_WITH_CAVEATS", "AUDIT_PASS", "ACCEPTED", "PASSED", ""},
+    )
+    for bucket in audit_buckets:
+        assert measurement.isdisjoint(bucket), measurement & bucket
 
 
 def test_a_self_contradicting_provenance_warning_is_rejected():

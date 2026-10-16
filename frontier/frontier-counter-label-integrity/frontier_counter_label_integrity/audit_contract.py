@@ -35,6 +35,22 @@ This module does NOT relax anything:
 * an audit-impersonating placement copy (carrying ``safe_to_integrate`` or a
   ``PASS``/``REVISE`` gate) is rejected.
 
+PRECISION FIX (``verdict``): the key ``verdict`` was originally flat-banned in
+``AUTHORITY_CLAIM_KEYS``, but its only real-world value on a placement copy is
+this team's OWN measurement verdict (``LABEL_UNSOUND``), the vocabulary of
+``state/frontier/frontier-counter-label-integrity.json`` and ``REPORT.json`` --
+NOT the audit-disposition vocabulary.  The key is therefore removed from the
+flat ban and given a value-scoped check instead: ``verdict`` is accepted only
+for the closed ``MEASUREMENT_VERDICTS`` vocabulary and rejected for every other
+value (including every audit disposition and near-miss, non-strings, and
+empties).  The invariant preserved is "a placement copy must never be
+mistakable for an independent audit": ``gate`` stays a closed allow-list,
+``AUDIT_ONLY_KEYS`` and the remaining ``AUTHORITY_CLAIM_KEYS`` stay flat-banned,
+class routing stays signature-based, the anti-vacuity invariant stays
+enforced, and the measurement vocabulary is asserted disjoint from every audit
+disposition bucket, so a placement copy carrying a measurement ``verdict`` can
+still never be read as wearing an audit verdict.
+
 Nothing here reads or writes the frozen ``RULES.json``: this is artifact
 hygiene, not a judgement input, so it must never be able to move a verdict.
 """
@@ -76,12 +92,23 @@ AUDIT_SIGNATURE_KEYS = ("required_fixes", "safe_to_integrate", "team")
 #: self-declares as a producer placement copy must not carry them.
 AUDIT_ONLY_KEYS = ("safe_to_integrate", "required_fixes", "recommendation", "team")
 
-#: Extra authority-claiming keys a placement copy must not carry.  A denylist
-#: alone can never be exhaustive, so this list backs the closed disposition
-#: allow-list and the closed signature requirement rather than replacing them.
+#: The CLOSED measurement vocabulary of this team's REPORT/state: the only
+#: values ``verdict`` may take on a producer placement copy.  This vocabulary
+#: is disjoint from every audit disposition (``AUDIT_GATE_VALUES``,
+#: ``PLACEMENT_DISPOSITIONS`` and their invented near-misses), so wearing one
+#: of these strings can never be mistaken for an audit gate verdict.
+MEASUREMENT_VERDICTS = ("LABEL_SOUND", "LABEL_UNSOUND", "INSUFFICIENT_POPULATION")
+
+#: Extra authority-claiming keys a placement copy must not carry, each flat-
+#: banned with no value exception.  A denylist alone can never be exhaustive,
+#: so this list backs the closed disposition allow-list and the closed
+#: signature requirement rather than replacing them.  ``verdict`` is NOT in
+#: this set: it is value-scoped by ``MEASUREMENT_VERDICTS`` in
+#: ``check_producer_placement_copy`` (see the module docstring's precision-fix
+#: paragraph), which rejects every value outside this team's measurement
+#: vocabulary -- a strictly additional check for all such values.
 AUTHORITY_CLAIM_KEYS = (
     "audit_verdict",
-    "verdict",
     "independently_audited",
     "audit_of_record",
     "integrate",
@@ -223,6 +250,19 @@ def check_producer_placement_copy(payload: dict[str, Any], audit_of_record_runs:
     for key in AUDIT_ONLY_KEYS + AUTHORITY_CLAIM_KEYS:
         if key in payload:
             problems.append(f"placement copy asserts the audit-only key {key!r}")
+
+    # Value-scoped check (STRICTLY ADDITIONAL for every non-measurement value):
+    # ``verdict`` left the flat ban only because its legitimate value here is
+    # this team's own measurement verdict.  Anything else -- an audit
+    # disposition, an invented near-miss, a non-string, an empty -- is still
+    # rejected, and the message says so in audit-verdict terms.
+    if "verdict" in payload:
+        value = payload["verdict"]
+        if not (isinstance(value, str) and value in MEASUREMENT_VERDICTS):
+            problems.append(
+                f"placement copy verdict {value!r} is not one of this team's measurement "
+                f"verdicts {MEASUREMENT_VERDICTS} and therefore reads as an audit verdict"
+            )
 
     gate = payload.get("gate")
     # CLOSED allow-list, not a denylist: an invented near-miss verdict such as

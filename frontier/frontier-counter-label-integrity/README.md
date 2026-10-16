@@ -51,6 +51,22 @@ longer match the frozen `sha256`, or an unregistered copy of a frozen input, is 
 | `report.py` | population summaries, per-class breakdown, criterion failures, language/rank/uncertainty/marker distributions, verdict, coverage, drift |
 | `cli.py` | the command line above |
 | `verify_freeze.py` | proves freeze ordering from git commit times and re-hashes every frozen input |
+| `scope_guard.py` | mirrors the workflow's `Enforce team scope` allow-list offline, so the producer can run the same check before the workflow does. Mirrors the WORKFLOW rule, never `RULES.json`: the frozen `write_scope` lists the audit dirs because it describes the audit job's checkout, while the producer's enforced allow-list does not include them. |
+| `disposition.py` | emits the in-scope audit-tree provenance ledger (`AUDIT_TREE_PROVENANCE.json`): every audit artifact, its sha256, its machine class and the team's **declared** provenance, flagging every file where the two disagree. Reads the audit tree read-only. |
+| `audit_contract.py` | routes each gate artifact to the contract of its own class (independent audit of record vs producer placement copy) and validates it; enforces an anti-vacuity invariant that an audit of record must exist |
+
+## Write scope — read this before adding an artifact
+
+The producer writes **only** under `frontier/<team>/`, `tests/frontier/<team>/`,
+`results/frontier/<team>/`, `reports/frontier/<team>/`, `state/frontier/<team>.json` and
+`data/frontier/<team>/`. It writes **nothing** under `results/audit/**` or
+`reports/audit/**`: those paths belong to the audit job, are absent from the workflow's
+`Enforce team scope` allow-list, and are outside charter acceptance test (12).
+
+Eight dispatches (`38845649012` → `38851515402`) failed at exactly that step because the team
+wrote its own placement copies there; the following `if: always()` persist step committed them
+into a clean-looking tree and the lane re-dispatched. Use `--disposition` for the in-scope
+provenance ledger and `--scope-check` to verify before you finish.
 
 ## Two implementation notes worth knowing
 

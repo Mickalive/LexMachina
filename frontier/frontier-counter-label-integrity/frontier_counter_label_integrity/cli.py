@@ -11,6 +11,13 @@
         --frozen-rules results/frontier/frontier-counter-label-integrity/RULES.json --all \\
         --out results/frontier/frontier-counter-label-integrity
 
+    # scope self-check (offline write-scope runbook; --out is required by the
+    # parser but never read or written in this mode)
+    python3 -m frontier_counter_label_integrity.cli --scope-check --out /tmp/lex_scope_check
+
+    # audit-tree provenance ledger (in scope; the audit tree is read-only)
+    python3 -m frontier_counter_label_integrity.cli --disposition --out <dir>
+
 Offline, deterministic, no network, no provider, no clock.
 """
 
@@ -22,6 +29,7 @@ import os
 import sys
 from typing import Any
 
+from . import disposition, scope_guard
 from .injection import run_non_vacuity
 from .report import build_report, score_bundle
 from .rules import load_rules, rules_digest
@@ -56,8 +64,26 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--population", choices=["primary", "secondary"], help="restrict --all to one population")
     ap.add_argument("--out", required=True, help="output directory")
     ap.add_argument("--non-vacuity-only", action="store_true", help="run only the injection test")
+    ap.add_argument("--scope-check", action="store_true",
+                    help="check the working tree against the workflow's producer write scope "
+                         "and exit (0 clean, 1 out of scope, 2 git error); --out untouched")
+    ap.add_argument("--disposition", action="store_true",
+                    help="emit the in-scope audit-tree provenance ledger and exit; "
+                         "reads the audit tree read-only, writes only under --out")
     ap.add_argument("--quiet", action="store_true")
     args = ap.parse_args(argv)
+
+    if args.scope_check:
+        scope_argv = ["--repo-root", "."]
+        if args.quiet:
+            scope_argv.append("--quiet")
+        return scope_guard.main(scope_argv)
+
+    if args.disposition:
+        disp_argv = ["--repo-root", "."]
+        if args.quiet:
+            disp_argv.append("--quiet")
+        return disposition.main([*disp_argv, "--out", args.out])
 
     if not os.path.exists(args.frozen_rules):
         print(f"frozen rules not found: {args.frozen_rules}", file=sys.stderr)
