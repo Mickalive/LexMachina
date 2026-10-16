@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import time
 import unicodedata
@@ -89,7 +90,13 @@ def _require(condition: bool, report: dict, message: str) -> None:
 
 
 def structural_gates(report: dict) -> None:
-    """Assertions that run for every leg before the substantive truth gates."""
+    """Assertions that run for every leg before the substantive truth gates.
+
+    Workflow parity: this mirrors ``.github/workflows/product-reality-check.yml``
+    (structural block + language/latency block).  The local copy exists so a
+    leg can be debugged before it is burned into a durable Actions run; the
+    parity test fails if the two drift apart.
+    """
     final = report["bundle"]
     answer = final.get("answer", {})
     ga = final.get("provenance", {}).get("generative_audit", {}) or {}
@@ -109,10 +116,52 @@ def structural_gates(report: dict) -> None:
     _require(adv.get("method") == "independent_llm_adversarial_v2", report,
              f"adversarial method: {adv.get('method')}")
     _require(adv.get("error") in (None, ""), report, f"adversarial error: {adv.get('error')}")
+    _require(len(final.get("decisions") or []) <= 100, report,
+             f"top_n=100 must not serve {len(final.get('decisions') or [])} decisions")
+    counter_rows = [
+        d for d in final.get("decisions") or []
+        if d.get("counter_status") in {"candidate-limiting", "candidate-contrary",
+                                       "limiting", "contrary_or_exception"}
+    ]
+    for counter in counter_rows:
+        _require(counter.get("counter_evidence_verified") is True, report,
+                 f"surfaced counter lacks verified evidence: {counter.get('decision_id')}")
+        _require(str(counter.get("counter_evidence") or "").strip(), report,
+                 f"surfaced counter has empty evidence: {counter.get('decision_id')}")
+        _require((counter.get("rank") or 10**9) <= 40 or bool(counter.get("adversarial_channel")),
+                 report,
+                 f"surfaced counter escaped precision policy: {counter.get('decision_id')}")
+
+    prose_raw = str(answer.get("prose") or "")
+    prose = norm(prose_raw)
+    # All four frozen questions are in French. A Swiss-law answer may quote
+    # German/Italian sources, but the synthesis itself must remain French
+    # and must not contain corrupted CJK/token garbage.
+    _require(not re.search(r"[\u3400-\u9fff]", prose_raw), report,
+             "corrupted/non-French token leakage")
+    french_markers = sum(
+        marker in f" {prose} "
+        for marker in (" le ", " la ", " les ", " selon ", " doit ", " lorsque ",
+                       " tribunal ", " responsabilite ", " resiliation ")
+    )
+    _require(french_markers >= 3, report, "answer is not synthesized in the user's language")
+
+    # Product latency gate: the map can be progressive, but a full answer
+    # taking five-to-eight minutes is not acceptable even if legally sound.
+    total_seconds = report.get("total_seconds")
+    _require(total_seconds is not None and total_seconds < 300, report,
+             f"full product answer too slow: {total_seconds}s")
 
 
 def truth_gates(slug: str, report: dict) -> None:
-    """Substantive Swiss-law truth gates — workflow parity, one branch per slug."""
+    """Substantive Swiss-law truth gates — workflow parity, one branch per slug.
+
+    This mirrors ``.github/workflows/product-reality-check.yml`` verbatim
+    (same patterns, same literals, same messages): structural green is not
+    enough, and a fluent but materially wrong answer must fail.  The parity
+    test fails if the two drift apart.  Gates are only ever strengthened
+    here, never weakened to make a run green.
+    """
     final = report["bundle"]
     answer = final.get("answer", {})
     prose = norm(answer.get("prose"))
@@ -120,16 +169,15 @@ def truth_gates(slug: str, report: dict) -> None:
     ids = {d["decision_id"] for d in final["decisions"]}
 
     if slug == "rent-default":
-        _require("30" in prose, report, "missing Art. 257d(2) 30-day notice period")
-        _require(
-            "fin d'un mois" in prose
-            or "fin d’un mois" in prose
-            or "fin de mois" in prose
-            or "fin du mois" in prose
-            or "ende eines monats" in prose,
-            report,
-            "missing Art. 257d(2) residential termination notice period",
+        # Do not allow the 30-day cure period + a separate month-end phrase
+        # to masquerade as the distinct Art. 257d(2) termination notice.
+        notice_patterns = (
+            r"(?:preavis|delai de conge|kundigungsfrist)[^.!?\n]{0,100}30\s+jours[^.!?\n]{0,120}(?:fin (?:d'un|du|de) mois|ende eines monats|monatsende)",
+            r"30\s+jours[^.!?\n]{0,100}(?:pour|jusqu.a|sur)[^.!?\n]{0,50}(?:fin (?:d'un|du|de) mois|ende eines monats|monatsende)",
+            r"30\s+tage[^.!?\n]{0,100}(?:ende eines monats|monatsende)",
         )
+        _require(any(re.search(p, prose) for p in notice_patterns), report,
+                 "missing distinct Art. 257d(2) 30-day notice to month-end")
         _require(
             "abus" in prose or "bonne foi" in prose or "rechtsmissbrauch" in prose,
             report,
@@ -139,28 +187,51 @@ def truth_gates(slug: str, report: dict) -> None:
     elif slug == "corporate-criminal-liability":
         _require("subsidi" in prose, report, "missing Art. 102(1) subsidiary branch")
         _require(
-            "responsabilite primaire" in prose or "originar" in prose,
+            "responsabilite primaire" in prose or "responsabilite originaire" in prose
+            or "originar" in prose,
             report,
             "missing Art. 102(2) primary/original liability",
         )
         _require("ne cree pas une responsabilite primaire" not in prose, report,
                  "answer reverses the Federal Supreme Court's Art. 102(2) classification")
+        _require(("organisation" in prose or "organis" in prose), report,
+                 "missing organizational-fault requirement")
+        _require(
+            (("necessair" in prose and "raisonnabl" in prose)
+             or ("erforderlich" in prose and "zumutbar" in prose)),
+            report,
+            "missing concrete Art. 102(2) necessary/reasonable organizational-measures standard",
+        )
         _require(bool(cited_ids & {"bge_BGE_142_IV_333", "bger_6B_124_2016"}), report,
                  "answer must use direct Federal Supreme Court Art. 102(2) authority")
 
     elif slug == "business-judgment-rule":
         _require("information" in prose, report, "missing adequate-information criterion")
-        _require("conflit" in prose or "interessenkonflikt" in prose, report,
-                 "missing conflict-of-interest criterion")
+        _require(
+            "conflit" in prose or "interessenkonflikt" in prose,
+            report,
+            "missing conflict-of-interest criterion",
+        )
+        _require(
+            "processus" in prose or "verfahren" in prose,
+            report,
+            "missing decision-process criterion",
+        )
         _require(
             "retenue" in prose or "zuruckhaltung" in prose or "deference" in prose
             or "abstient" in prose or "abstenir" in prose,
             report,
             "missing judicial-restraint proposition",
         )
+        _require(
+            "defendable" in prose or "vertretbar" in prose or "justifiable" in prose
+            or "plausible" in prose or "plausibilite" in prose,
+            report,
+            "missing residual merits threshold",
+        )
         _require(bool(cited_ids & {
             "bger_4A_219_2015", "bger_4A_259_2016", "bger_4A_626_2013",
-            "bger_4A_603_2014", "bger_4A_62_2024",
+            "bger_4A_603_2014", "bger_4A_62_2024", "bge_BGE_139_III_24",
         }), report, "answer must cite direct Federal Supreme Court BJR authority")
 
     elif slug == "petty-theft-dismissal":
@@ -170,10 +241,21 @@ def truth_gates(slug: str, report: dict) -> None:
         _require(bool(cited_ids & direct), report,
                  "answer ignored direct Federal Supreme Court petty-theft authority")
         _require(
-            "faible valeur" in prose or "geringfug" in prose or "bagatell" in prose,
+            "confiance" in prose or "vertrauen" in prose or "treuepflicht" in prose,
             report,
-            "answer does not address the low-value fact pattern",
+            "missing trust relationship / duty-of-loyalty analysis",
         )
+        low_value_rule = (
+            r"(?:meme|y compris)[^.!?\n]{0,60}(?:faible valeur|peu de valeur)[^.!?\n]{0,100}(?:peut|justif)",
+            r"(?:faible valeur|peu de valeur)[^.!?\n]{0,120}(?:n.est pas decisive|n.est pas determinante|n.exclut pas|ne fait pas obstacle|peut justifier)",
+            r"(?:geringfug|bagatell)[^.!?\n]{0,120}(?:nicht ausschlaggebend|kann[^.!?\n]{0,50}fristlos)",
+        )
+        _require(any(re.search(p, prose) for p in low_value_rule), report,
+                 "answer must state that low value is not itself decisive/exclusive")
+        _require(not re.search(
+            r"(?:faible valeur|peu de valeur)[^.!?\n]{0,100}ne justifie (?:generalement )?pas",
+            prose,
+        ), report, "answer improperly turns low value into a presumptive bar")
     else:
         raise GateFailure(f"unknown slug {slug}")
 

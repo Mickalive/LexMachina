@@ -84,12 +84,14 @@ def test_norm_matches_workflow_normalisation():
 
 
 def _report(prose: str, cited=None, ids=None, method="generative_audit_llm_v2",
-            adv_method="independent_llm_adversarial_v2"):
+            adv_method="independent_llm_adversarial_v2", total_seconds=12.0):
     ids = ids or {"bge_1", "bge_2"}
     return {
         "validation_errors": [],
+        "total_seconds": total_seconds,
         "bundle": {
-            "decisions": [{"decision_id": i, "x": 0, "y": 0} for i in sorted(ids)],
+            "decisions": [{"decision_id": i, "x": 0, "y": 0, "rank": 1,
+                           "counter_status": "none"} for i in sorted(ids)],
             "answer": {
                 "status": "ready",
                 "method": method,
@@ -106,11 +108,10 @@ def _report(prose: str, cited=None, ids=None, method="generative_audit_llm_v2",
 
 def test_rent_default_truth_gate_passes_on_correct_answer():
     prose = (
-        "Le bailleur ne peut résilier que pour cause d'importantes difficultés "
-        "financières. Pour un local d'habitation, la résiliation doit prendre effet "
-        "à la fin d'un mois et doit être annoncée au moins 30 jours à l'avance "
-        "(art. 257d al. 2 CO). En outre, la résiliation exercée de mauvaise foi "
-        "constitue un abus de droit et peut être contestée."
+        "Pour un local d'habitation, le bailleur doit notifier la resiliation "
+        "avec un preavis de 30 jours pour la fin du mois selon l'art. 257d al. 2 CO ; "
+        "une resiliation exercee de mauvaise foi constitue un abus de droit "
+        "et peut etre annulee par le tribunal."
     )
     report = _report(prose)
     gates = evaluate("rent-default", report)
@@ -119,8 +120,9 @@ def test_rent_default_truth_gate_passes_on_correct_answer():
 
 def test_rent_default_truth_gate_fails_without_good_faith_branch():
     prose = (
-        "La résiliation doit prendre effet à la fin d'un mois avec 30 jours de préavis "
-        "selon l'art. 257d al. 2 CO pour les locaux d'habitation."
+        "Pour un local d'habitation, la resiliation pour retard de loyer prend effet "
+        "avec un preavis de 30 jours pour la fin du mois selon l'art. 257d al. 2 CO ; "
+        "le tribunal verifie le respect du delai."
     )
     report = _report(prose)
     gates = {g["gate"]: g for g in evaluate("rent-default", report)}
@@ -131,8 +133,8 @@ def test_rent_default_truth_gate_fails_without_good_faith_branch():
 
 def test_rent_default_truth_gate_fails_without_notice_period():
     prose = (
-        "La résiliation est soumise à la bonne foi et à l'interdiction de l'abus de droit ; "
-        "aucune durée de préavis n'est toutefois imposée par ce texte."
+        "La resiliation est soumise a la bonne foi et a l'interdiction de l'abus de droit ; "
+        "aucune duree de preavis n'est toutefois imposee par ce texte, selon le tribunal."
     )
     report = _report(prose)
     gates = {g["gate"]: g for g in evaluate("rent-default", report)}

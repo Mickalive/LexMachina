@@ -15,6 +15,33 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 TAG_RE = re.compile(r"<[^>]+>")
+#: Bounded remote-index safeguard (same observed failure): when local lexical
+#: evidence is silent (cross-language similarity below threshold) the blend
+#: defers to the source index instead of vetoing it, but only for rows with
+#: genuine remote support (upper half of remote scores), real text, and
+#: federal-court standing — and the ceiling sits below the range where
+#: discriminating local evidence lives.  Never demotes.
+REMOTE_SAFEGUARD_SIM_THRESHOLD = 0.05
+REMOTE_SAFEGUARD_WEIGHT = 0.22
+REMOTE_SAFEGUARD_MIN_TEXT = 120
+REMOTE_SAFEGUARD_MIN_REMOTE = 0.5
+#: Remote-head recall (product reality leg 2026-10-16 petty-theft): the
+#: bounded safeguard alone left bger_4A_177_2017 at rank 16 — still outside
+#: the top-10 hydration/evidence packs, so the leg still failed.  The product
+#: invariant is stronger than any score blend: a Federal Supreme Court row the
+#: source index itself ranked top-5 must reach the generator.  After local
+#: scoring, up to this many such rows sitting below the evidence head are
+#: spliced into its tail (positions HEAD_RECALL_AT..10), preserving their
+#: relative local order and pushing other rows down without reordering them.
+#: Bounded by construction: at most 3 rows move, only federal courts qualify,
+#: only when the index ranked them top-5, and rows already in the head are
+#: never touched.  Rows the generator still ignores remain subject to the
+#: citation-validation and adversarial passes downstream.
+REMOTE_HEAD_RECALL_REMOTE_TOP = 5
+REMOTE_HEAD_RECALL_LOCAL_HEAD = 10
+REMOTE_HEAD_RECALL_MAX_MOVED = 3
+REMOTE_HEAD_RECALL_INSERT_AT = 8
+REMOTE_FEDERAL_COURTS = frozenset({"bger", "bge", "bstger"})
 ARTICLE_RE = re.compile(
     r"(?i)\bart(?:\.|icle)?\s*(\d+[a-z]?)"
     r"(?:\s*(?:al\.|alin[ée]a|abs\.|cpv\.)\s*(\d+))?"
@@ -36,8 +63,7 @@ CODE_FAMILY = {
     "BGG": {"LTF", "BGG"},
 }
 
-STOPWORDS = frozenset("""
-der die das und des den dem ein eine einer eines einem einen auch als bei nach noch nur oder vom von
+STOPWORDS = frozenset("""der die das und des den dem ein eine einer eines einem einen auch als bei nach noch nur oder vom von
 vor zum zur über fuer für mit sich sie sind ist war wird werden wurde wurden haben hat hatte aus auf an am
 im ins aber doch denn le la les de des du un une est sont et en dans que qui pour pas sur plus par
 au aux il ils elle elles nous vous leur son sa ses ce cette ces dont comme avec di del della dello
@@ -95,6 +121,55 @@ def _anchor_score(text: str, anchors: Iterable[tuple[str, str | None]]) -> float
     return min(1.0, score)
 
 
+def _remote_head_recall(scored: list[dict]) -> list[dict]:
+    """Federal rows the source index ranked top-5 but local scoring left below
+    the evidence head.  Returned in current relative order (best local first),
+    capped so displacement stays bounded."""
+    raws = [
+        (float(d.get("retrieval_score_raw"))
+         if isinstance(d.get("retrieval_score_raw"), (int, float)) else 0.0)
+        for d in scored
+    ]
+    order = sorted(range(len(scored)), key=lambda i: (-raws[i], i))
+    remote_rank = {i: r + 1 for r, i in enumerate(order)}
+    out = []
+    for pos, dec in enumerate(scored):
+        if pos < REMOTE_HEAD_RECALL_LOCAL_HEAD:
+            continue
+        if str(dec.get("court") or "").lower() not in REMOTE_FEDERAL_COURTS:
+            continue
+        if remote_rank[pos] > REMOTE_HEAD_RECALL_REMOTE_TOP:
+            continue
+        out.append({
+            "pos": pos,
+            "decision_id": dec.get("decision_id"),
+            "from_rank": pos + 1,
+            "remote_rank": remote_rank[pos],
+        })
+        if len(out) >= REMOTE_HEAD_RECALL_MAX_MOVED:
+            break
+    return out
+
+
+def _apply_head_recall(scored: list[dict], recalls: list[dict]) -> list[dict]:
+    """Splice recalled rows into the head tail, preserving relative order of
+    every row.  No row is reordered except by the insertion shift."""
+    moving = {r["pos"] for r in recalls}
+    staying = [d for i, d in enumerate(scored) if i not in moving]
+    insert_at = min(REMOTE_HEAD_RECALL_INSERT_AT - 1, len(staying))
+    head, tail = staying[:insert_at], staying[insert_at:]
+    moved_rows = [scored[r["pos"]] for r in recalls]
+    for k, rec in enumerate(recalls):
+        rec["to_rank"] = insert_at + k + 1
+    out = head + moved_rows + tail
+    for rank, dec in enumerate(out, start=1):
+        dec["rank"] = rank
+        dec["remote_head_recall"] = any(
+            r["decision_id"] == dec.get("decision_id") for r in recalls
+        )
+    return out
+
+
 def rerank_product_bundle(product_bundle: dict) -> dict:
     """Reorder decisions by query-conditioned local legal relevance.
 
@@ -148,11 +223,25 @@ def rerank_product_bundle(product_bundle: dict) -> dict:
             + 0.12 * anchor
             + 0.02 * federal
         )
+        safeguard = (
+            float(sims[idx]) < REMOTE_SAFEGUARD_SIM_THRESHOLD
+            and float(raw_norm[idx]) >= REMOTE_SAFEGUARD_MIN_REMOTE
+            and len(text) >= REMOTE_SAFEGUARD_MIN_TEXT
+            and federal > 0.0
+        )
+        lifted = False
+        if safeguard:
+            floor = REMOTE_SAFEGUARD_WEIGHT * float(raw_norm[idx])
+            if floor > value:
+                value = floor
+                lifted = True
         value = max(0.0, min(1.0, value))
         row = dict(dec)
         row["retrieval_score_raw"] = dec.get("score")
         row["query_similarity"] = round(float(sims[idx]), 6)
         row["legal_anchor_score"] = round(anchor, 6)
+        row["remote_safeguard"] = bool(lifted)
+        row["remote_head_recall"] = False
         row["score"] = round(value, 6)
         scored.append(row)
 
@@ -166,12 +255,40 @@ def rerank_product_bundle(product_bundle: dict) -> dict:
     for rank, dec in enumerate(scored, start=1):
         dec["rank"] = rank
 
+    recalls = _remote_head_recall(scored)
+    if recalls:
+        scored = _apply_head_recall(scored, recalls)
+
     product_bundle["decisions"] = scored
     prov = product_bundle.setdefault("provenance", {})
     prov["product_rerank"] = {
-        "method": "local_legal_tfidf_v1",
+        "method": "local_legal_tfidf_v3_remote_head_recall",
         "query_variants_used": len(variants),
         "statute_anchors": [{"article": n, "code": c} for n, c in anchors],
+        "remote_safeguard": {
+            "sim_threshold": REMOTE_SAFEGUARD_SIM_THRESHOLD,
+            "weight": REMOTE_SAFEGUARD_WEIGHT,
+            "min_text": REMOTE_SAFEGUARD_MIN_TEXT,
+            "min_remote": REMOTE_SAFEGUARD_MIN_REMOTE,
+            "requires_federal_court": True,
+            "n_lifted": sum(1 for d in scored if d.get("remote_safeguard")),
+            "lifted_ids": [d.get("decision_id") for d in scored if d.get("remote_safeguard")],
+        },
+        "remote_head_recall": {
+            "remote_top": REMOTE_HEAD_RECALL_REMOTE_TOP,
+            "local_head": REMOTE_HEAD_RECALL_LOCAL_HEAD,
+            "max_moved": REMOTE_HEAD_RECALL_MAX_MOVED,
+            "insert_at": REMOTE_HEAD_RECALL_INSERT_AT,
+            "moved": [
+                {
+                    "decision_id": m["decision_id"],
+                    "from_rank": m["from_rank"],
+                    "to_rank": m["to_rank"],
+                    "remote_rank": m["remote_rank"],
+                }
+                for m in recalls
+            ],
+        },
         "top": [
             {
                 "decision_id": d.get("decision_id"),

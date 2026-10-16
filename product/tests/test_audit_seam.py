@@ -53,9 +53,28 @@ def test_env_override_is_clamped(monkeypatch):
 
 
 def test_seam_pins_verified_free_model_order():
+    """The pinned order must lead with a live model and contain no dead one.
+
+    Regression for the ~316-469 s full-answer latency band (direction v49):
+    the 2026-10-14 order led the adversarial fallback chain with
+    nemotron-3-ultra, which the 2026-10-16 health snapshot (run 38919946016)
+    proves dead (tool probe exit 124).  Every dead entry left in the list
+    burns a full provider timeout before the next model is tried.
+    """
     info = audit_seam.apply()
-    assert info["model_order"][0] == "opencode/nemotron-3-ultra-free"
+    assert info["model_order"][0] == "opencode/mimo-v2.6-flash-free"
     assert list(paths.DEFAULT_FREE_MODELS) == audit_seam.MODEL_ORDER
+    assert not (set(audit_seam.MODEL_ORDER) & set(audit_seam.KNOWN_DEAD_MODELS))
+
+
+def test_seam_order_matches_oct16_healthy_pool():
+    """The pinned order is exactly the snapshot-verified healthy pool."""
+    assert list(audit_seam.MODEL_ORDER) == [
+        "opencode/mimo-v2.6-flash-free",
+        "opencode/space-bunny-free",
+        "opencode/longcat-2.5-preview-free",
+        "opencode/muse-spark-1.3-contributor-free",
+    ]
 
 
 def test_seam_is_idempotent():

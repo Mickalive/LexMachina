@@ -30,28 +30,29 @@ from reality_check import LEGS  # noqa: E402
 # --------------------------------------------------------------------------- #
 PASSING_PROSE = {
     "rent-default": (
-        "Le bailleur doit respecter un delai de 30 jours, c'est-a-dire la fin d'un mois, "
-        "sous peine d'abus de droit; la bonne foi du locataire est une limite "
-        "jurisprudentielle constante."
+        "Pour un local d'habitation, le bailleur doit notifier la resiliation "
+        "avec un preavis de 30 jours pour la fin du mois selon l'art. 257d al. 2 CO ; "
+        "une resiliation abusive constitue un abus de droit et la bonne foi "
+        "du locataire est une limite controlee par le tribunal."
     ),
     "petty-theft-dismissal": (
-        "Un vol de faible valeur peut justifier le licenciement immediate selon "
-        "l'art. 337 CO quand le confiance dans l'entreprise est rompu de maniere "
-        "objective; bge 4A 228/2015 admet aussi la confiance abstraitement "
-        "insuffisante dans le cas d'espece de l'employe restitue."
+        "Un vol de faible valeur peut justifier le licenciement immediat selon "
+        "l'art. 337 CO quand la confiance dans l'entreprise est rompue ; le tribunal "
+        "doit apprecier la rupture du rapport de confiance et la faible valeur "
+        "n'est pas determinante a elle seule ; bge 4A 228/2015."
     ),
     "corporate-criminal-liability": (
         "La responsabilite penale de l'entreprise est subsidiaire en principe, sauf "
         "une responsabilite primaire de l'entreprise elle-meme lorsque l'infraction "
-        "lui est personnellement imputable; bge 142 IV 333 exige en outre une "
-        "organisation deficiente demontree."
+        "lui est personnellement imputable ; selon le tribunal, bge 142 IV 333 exige "
+        "en outre une organisation deficiente demontree et des mesures necessaires "
+        "et raisonnablement exigibles non prises."
     ),
     "business-judgment-rule": (
-        "Le juge s'abstient de reviser une decision commerciale et retient son "
-        "jugement lorsque le conseil "
-        "d'administration a ete information de maniere adequate, qu'il n'y a pas de "
-        "conflit d'interets et que la decision repose sur des hypotheses "
-        "pertinentes; bger 4A 219/2015."
+        "Le juge s'abstient de revoir une decision commerciale et fait preuve de "
+        "retenue lorsque le conseil d'administration, sur la base d'une information "
+        "adequate et d'un processus decisionnel complet, sans conflit d'interets, "
+        "a pris une decision encore defendable ; selon le tribunal, bger 4A 219/2015."
     ),
 }
 
@@ -66,7 +67,10 @@ DIRECT_AUTHORITY = {
 def _report(slug: str, prose: str, cited: list[str] | None = None) -> dict:
     cited = cited if cited is not None else DIRECT_AUTHORITY[slug]
     decisions = [{"decision_id": d, "rank": 1, "citation": d, "language": "de",
-                  "counter_status": "candidate-limiting", "canonical_url": "https://x",
+                  "counter_status": "candidate-limiting",
+                  "counter_evidence": "la decision limite la portee du moyen",
+                  "counter_evidence_verified": True,
+                  "canonical_url": "https://x",
                   "snippet": "s"} for d in cited]
     bundle = {
         "decisions": decisions,
@@ -86,7 +90,8 @@ def _report(slug: str, prose: str, cited: list[str] | None = None) -> dict:
             }
         },
     }
-    return {"slug": slug, "mode": "fixture", "validation_errors": [], "bundle": bundle}
+    return {"slug": slug, "mode": "fixture", "validation_errors": [], "total_seconds": 12.0,
+            "bundle": bundle}
 
 
 class FakeClock:

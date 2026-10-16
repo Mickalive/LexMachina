@@ -37,14 +37,28 @@ from typing import Any
 
 DEFAULT_ADVERSARIAL_TIMEOUT_SECONDS = 180.0
 
-#: Order verified by the 2026-10-14T13:50Z free-model health snapshot
-#: (``/tmp/lex_control/state/model_health.json``: ultra, mimo, space-bunny, longcat).
+#: Order verified by the 2026-10-16T15:01:41Z free-model health snapshot
+#: (control-plane ``state/model_health.json``, run 38919946016): mimo,
+#: space-bunny, longcat and muse-spark PASS their tool probes; nemotron-3-ultra
+#: and nemotron-3.5-lightning FAIL (exit 124).  Dead models are EXCLUDED, not
+#: demoted: ``healthy_models()`` returns this list verbatim when the
+#: control-plane snapshot is absent from the branch, so every dead entry left
+#: in the list becomes a fallback candidate that burns a full provider timeout
+#: (120 s answer / 180 s adversarial) before the next model is tried.  Two
+#: such burns explain the observed ~316-469 s full-answer latency band.
 MODEL_ORDER = [
-    "opencode/nemotron-3-ultra-free",
     "opencode/mimo-v2.6-flash-free",
     "opencode/space-bunny-free",
     "opencode/longcat-2.5-preview-free",
+    "opencode/muse-spark-1.3-contributor-free",
 ]
+
+#: Models the 2026-10-16 snapshot proved dead.  Kept as a machine-checkable
+#: blocklist so a future order refresh cannot silently re-admit them.
+KNOWN_DEAD_MODELS = frozenset({
+    "opencode/nemotron-3-ultra-free",
+    "opencode/nemotron-3.5-lightning-free",
+})
 
 _APPLIED: dict[str, Any] | None = None
 

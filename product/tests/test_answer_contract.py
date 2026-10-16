@@ -155,6 +155,7 @@ def test_filled_answer_also_survives_full_gate_evaluation():
     answer = bundle["answer"]
     report = {
         "validation_errors": [],
+        "total_seconds": 12.0,
         "bundle": {
             "decisions": bundle["decisions"],
             "answer": answer,

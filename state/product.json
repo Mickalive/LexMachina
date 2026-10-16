@@ -48,8 +48,8 @@
       "scope": "control-plane workflow scope; recorded, not edited from the lane"
     }
   ],
-  "current_run": 38892001925,
-  "cycle_status": "V49_PRODUCT_REALITY_GATE_REOPENED",
+  "current_run": 38924869286,
+  "cycle_status": "V49_TARGETED_REALITY_REPAIR_4OF4_LIVE",
   "direction_version": 49,
   "evidence_tier": "REALITY_CHECK_FAILED",
   "frontier_verdict_adoption": {
@@ -450,7 +450,7 @@
       "resumed_by_run": 38860652237
     }
   },
-  "prior_current_run": 38877693206,
+  "prior_current_run": 38892001925,
   "product": "query-specific Swiss legal research: broad OpenCaseLaw retrieval -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map",
   "reality_check_status": {
     "blocking_leg": "durable gate blocking leg: rent-default (Art. 257d(2) residential termination) — the answer must state the 30-day/end-of-month notice rule AND the good-faith/Rechtsmissbrauch limitation. That leg now PASSES locally in live mode (results/product/reality_check/rent-default_live_20261014T122313Z.json); only the durable Actions run remains red.",
@@ -622,8 +622,8 @@
     "fixtures": "offline/test only; never merged into live results",
     "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
   },
-  "state_updated_at": "2026-10-16T11:33:18Z",
-  "state_updated_by_run": 38892001925,
+  "state_updated_at": "2026-10-16T16:14:42Z",
+  "state_updated_by_run": 38924869286,
   "state_updated_from_resumed_snapshot_run": 38862025900,
   "supersedes_claims": {
     "gate_ceremony_is_one_query_only": "SUPERSEDED BY RUN 38792650692: the packet pre-registers three questions (FR/DE/IT), re-verifies each bundle at run time and hands the owner one deep link per question. The single-query path still works (product/human_gate_session.py is unchanged) and is still the way ONE session is finalized.",
@@ -2209,5 +2209,58 @@
       "one independent adversarial LLM classifies the final bounded set",
       "visible counters require verified source evidence"
     ]
+  },
+  "v49_targeted_repair_20261016": {
+    "code_delta": [
+      "product/query/audit_seam.py: MODEL_ORDER refreshed to the 2026-10-16 verified healthy pool (mimo, space-bunny, longcat, muse-spark); dead nemotron-3-ultra/lightning excluded so fallback chains stop burning full provider timeouts; KNOWN_DEAD_MODELS blocklist added",
+      "product/reality_check.py: structural + truth gates brought to durable-workflow parity (distinct Art.257d(2) notice regexes, Art.102 originaire/organisation/necessaire-raisonnable, BJR processus/defendable + BGE 139 III 24, petty confiance + low-value-not-decisive + negative bar; plus <=100 decisions, verified-counter/rank<=40, French-synthesis>=3, CJK rejection, total<300s latency gate)",
+      "product/query/relevance.py: bounded remote-index safeguard (v2->v3) + remote-head recall: federal rows the source index ranked top-5 but local scoring left below rank 10 are spliced into the evidence-head tail (max 3, order-preserving, provenance-recorded)",
+      "fixtures: PASSING_PROSE x4 rewritten to satisfy the hardened gates; _report fixtures carry total_seconds + verified counter evidence"
+    ],
+    "control_plane_record": "durable workflow product-reality-check.yml re-overrides paths.DEFAULT_FREE_MODELS with [ultra, lightning, space-bunny, mimo] AFTER the product seam applies (both dead models first). Primaries stay healthy (mimo/space-bunny) so impact is fallback-only, but a mimo failure on the durable path still burns 2x120s before space-bunny. Extends the existing state hardening item reality_check_workflow_model_list_overrides_the_product_seam; .github/** not edited from the lane.",
+    "live_evidence_local_only": {
+      "business-judgment-rule": {
+        "cited": 3,
+        "gates": "structural PASS, truth PASS",
+        "report": "results/product/reality_check/business-judgment-rule_live_20261016T161006Z.json",
+        "total_s": 150.442
+      },
+      "corporate-criminal-liability": {
+        "cited": 10,
+        "gates": "structural PASS, truth PASS",
+        "latency_risk": "276s < 300s gate but within model-speed variance; residual risk recorded",
+        "report": "results/product/reality_check/corporate-criminal-liability_live_20261016T160526Z.json",
+        "total_s": 276.061
+      },
+      "petty-theft-dismissal": {
+        "adversarial": "space-bunny",
+        "answer": "mimo",
+        "cited": 7,
+        "counters": 6,
+        "gates": "structural PASS, truth PASS (was FAIL pre-fix: answer ignored 4A_177/2017 at local rank 50; recall moved 16->8, remote_rank 3)",
+        "pre_fix_negative": "results/product/reality_check/petty-theft-dismissal_live_20261016T155135Z.json",
+        "report": "results/product/reality_check/petty-theft-dismissal_live_20261016T160318Z.json",
+        "total_s": 111.158
+      },
+      "rent-default": {
+        "adversarial": "space-bunny",
+        "answer": "mimo",
+        "cited": 9,
+        "counters": 3,
+        "gates": "structural PASS, truth PASS",
+        "report": "results/product/reality_check/rent-default_live_20261016T154849Z.json",
+        "total_s": 111.774
+      }
+    },
+    "not_touched": [
+      "frozen gate thresholds (all strengthened-or-identical, none weakened)",
+      "served gate packets",
+      "frontier/** accepted components",
+      ".github/** control-plane scope",
+      "human_gate_ready (still false: durable Actions run + real jurist session outstanding)"
+    ],
+    "offline_verification": "432 passed in the runnable subset; the only failures are the 10 pre-existing/environmental ones verified identical on the pristine tree (4 adversarial_retrieval, 2 cache_non_orphan sklearn-drift, 1 ci_run_evidence, 3 state_contract worktree-vs-dispatch), plus 16 legacy collection errors for missing sentence_transformers",
+    "question_answered": "direction v49 product question: exit only when the frozen four-question substantive benchmark is reliably green without weakening truth/authority/language/latency gates",
+    "run_id": 38924869286
   }
 }

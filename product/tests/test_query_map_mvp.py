@@ -280,6 +280,128 @@ def test_product_reranker_prefers_direct_legal_issue_over_broad_remote_hit():
     assert reranked["decisions"][0]["score"] > reranked["decisions"][1]["score"]
 
 
+def test_reranker_remote_safeguard_lifts_index_top_judgment_when_local_is_silent():
+    """Observed 2026-10-16 (petty-theft leg): the source index ranked the
+    directly on-point Federal Supreme Court dismissal authority remote-#3, but
+    cross-language TF-IDF similarity collapsed (~0.017: the shared dismissal
+    terms saturate IDF across a dismissal-heavy pool) and the unhydrated
+    snippet carries no article number, so the local blend buried it at rank
+    50 — outside every evidence pack and the answer then ignored the
+    controlling authority.  The safeguard defers to the index in a bounded way
+    instead of vetoing it.  The flooded pool below reproduces the mechanism:
+    German dismissal terms saturate IDF, so only the French-overlap row keeps
+    discriminating local similarity."""
+    french = (
+        "Un vol de faible valeur commis par un employe justifie-t-il un "
+        "licenciement immediat selon l'art. 337 CO ?"
+    )
+    german_core = "fristlose Kundigung Diebstahl Arbeitnehmer geringfugig Vertrauen "
+    decisions = [
+        {
+            "decision_id": "DIRECT-TF",
+            "court": "bger",
+            "score": 49.0,
+            "title": "Arbeitsrecht",
+            "citation": "TF 4A_177/2017",
+            "regeste": "",
+            "snippet": (
+                "Das Bezirksgericht wies die Klage ab: die " + german_core
+                + "rechtfertigt die Kundigung. "
+                "Bundesgericht Verweigerung sachverhalt erwogen."
+            ),
+        },
+        {
+            "decision_id": "REMOTE-TOP-FR",
+            "court": "ge_gerichte",
+            "score": 53.0,
+            "title": "Contrat de travail",
+            "citation": "GE CAPH",
+            "regeste": "",
+            "snippet": french + " employe voleur circonstance attenuante specificite",
+        },
+    ]
+    for i in range(40):
+        decisions.append({
+            "decision_id": f"FILL-{i:02d}",
+            "court": "ge_gerichte",
+            "score": 30.0 - i * 0.1,
+            "title": "t",
+            "citation": "c",
+            "regeste": "",
+            "snippet": german_core + (
+                f"entscheidung nummer {i} kanton das gericht stellt fest dass "
+                "das arbeitsverhaltnis beendet wurde."
+            ),
+        })
+    bundle = {
+        "query": french,
+        "query_variants": [
+            "geringfugiger Diebstahl fristlose Kundigung",
+            "Diebstahl Arbeitnehmer fristlose Kundigung",
+        ],
+        "decisions": decisions,
+        "provenance": {},
+    }
+    reranked = rerank_product_bundle(bundle)
+    order = [d["decision_id"] for d in reranked["decisions"]]
+    by_id = {d["decision_id"]: d for d in reranked["decisions"]}
+    # local similarity is genuinely silent on the direct authority ...
+    assert by_id["DIRECT-TF"]["query_similarity"] < 0.05
+    # ... so the index's top judgment stays usable: inside the evidence head
+    assert order.index("DIRECT-TF") <= 1, order
+    assert by_id["DIRECT-TF"]["remote_safeguard"] is True
+    # the genuinely on-point French row still wins outright, without safeguard
+    assert order[0] == "REMOTE-TOP-FR"
+    assert by_id["REMOTE-TOP-FR"]["remote_safeguard"] is False
+    # exactly one row lifted: the safeguard is narrow, not a blanket boost
+    assert reranked["provenance"]["product_rerank"]["remote_safeguard"]["n_lifted"] == 1
+
+
+def test_reranker_head_recall_places_remote_top_federal_row_in_evidence_head():
+    """The safeguard alone left the observed authority at rank 16 — still out
+    of the top-10 hydration/evidence packs.  Remote-head recall is the backstop
+    for the product invariant: a federal row the source index ranked top-5
+    must reach the generator.  Bounded: at most 3 rows move, head rows are
+    never reordered among themselves, non-federal and remote-tail rows never
+    move."""
+    decisions = []
+    for i in range(30):
+        decisions.append({
+            "decision_id": f"CANT-{i:02d}",
+            "court": "ge_gerichte",
+            "score": 60.0 - i,
+            "title": "Contrat de travail licenciement",
+            "citation": f"GE {i}",
+            "regeste": "",
+            "snippet": "contrat de travail licenciement employe circonstances " * 8,
+        })
+    decisions.append({
+        "decision_id": "DIRECT-TF",
+        "court": "bger",
+        "score": 59.5,  # remote top-5, but lexically silent below
+        "title": "Arbeitsrecht",
+        "citation": "TF 4A_177/2017",
+        "regeste": "",
+        "snippet": "curia deliberanda est sine mora.",  # short, zero overlap: no local signal
+    })
+    bundle = {
+        "query": "licenciement contrat de travail circonstances",
+        "query_variants": [],
+        "decisions": decisions,
+        "provenance": {},
+    }
+    reranked = rerank_product_bundle(bundle)
+    order = [d["decision_id"] for d in reranked["decisions"]]
+    by_id = {d["decision_id"]: d for d in reranked["decisions"]}
+    assert order.index("DIRECT-TF") < 10, order[:12]
+    assert by_id["DIRECT-TF"]["remote_head_recall"] is True
+    moved = reranked["provenance"]["product_rerank"]["remote_head_recall"]["moved"]
+    assert len(moved) == 1 and moved[0]["decision_id"] == "DIRECT-TF"
+    assert moved[0]["remote_rank"] <= 5 and moved[0]["from_rank"] > 10
+    # ranks stay dense and unique after the splice
+    assert sorted(d["rank"] for d in reranked["decisions"]) == list(range(1, 32))
+
+
 # --------------------------------------------------------------------------- #
 # one decision, one point: court + docket identity merge
 # --------------------------------------------------------------------------- #
