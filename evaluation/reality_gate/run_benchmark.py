@@ -42,14 +42,21 @@ from evaluation.reality_gate import gates  # noqa: E402
 
 def _classify(data: dict) -> str:
     """Artifact kind, by shape. Fatal-error stubs and roll-ups are evidence too:
-    they are recorded with their exclusion reason, never silently dropped."""
+    they are recorded with their exclusion reason, never silently dropped.
+
+    Roll-ups come in two recorded shapes: the run-level summary carrying
+    ``all_legs_passed`` (with a ``legs`` array) and the minimal durable-workflow
+    summary carrying only ``legs``/``mode``/``generated_at``.  Both are
+    recognized by the ``legs`` list without a top-level ``slug``; a slim leg
+    report always carries its own ``slug``+``leg_passed``.
+    """
     if isinstance(data.get("decisions"), list) and isinstance(data.get("answer"), dict):
         return "full_bundle"
     if "slug" in data and "leg_passed" in data and "answer_prose" in data:
         return "slim_report"
     if "slug" in data and "leg_passed" in data and "fatal_error" in data:
         return "fatal_stub"
-    if "all_legs_passed" in data:
+    if isinstance(data.get("legs"), list) and "slug" not in data:
         return "summary_rollup"
     return "unmatched_kind"
 
@@ -229,7 +236,7 @@ def evaluate_artifacts(artifacts: list[dict], spec: dict) -> dict:
                 "rollup", None, questions,
                 "run roll-up aggregate, not an individual leg artifact; "
                 "no per-leg fields to check")
-            records.append({
+            rollup_record = {
                 "artifact": art["artifact"], "kind": art["kind"],
                 "matched_slug": None,
                 "exclusion": "run roll-up, not an individual artifact",
@@ -238,7 +245,17 @@ def evaluate_artifacts(artifacts: list[dict], spec: dict) -> dict:
                 "gates": [], "not_measurable_gates": names,
                 "not_measurable_reasons": reasons,
                 "artifact_passed": None,
-            })
+            }
+            # both recorded roll-up shapes carry a per-leg array; preserve it
+            # so the roll-up's own per-leg verdicts stay visible in the record
+            legs = art["data"].get("legs")
+            if isinstance(legs, list):
+                rollup_record["producer_legs"] = [
+                    {"slug": leg.get("slug"), "passed": leg.get("passed"),
+                     "report": leg.get("report")}
+                    for leg in legs if isinstance(leg, dict)
+                ]
+            records.append(rollup_record)
             continue
         if art["kind"] == "unmatched_kind":
             names, reasons = _excluded_not_measurable(

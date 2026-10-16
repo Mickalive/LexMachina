@@ -6,6 +6,7 @@ tampered with (digest pin) and they prove every gate CAN fail — a gate that
 cannot fail is not a benchmark.  Pure standard library + pytest.
 """
 import json
+from pathlib import Path
 
 import pytest
 
@@ -496,3 +497,136 @@ def test_empty_evidence_dir_exits_2_without_record(tmp_path, capsys):
     assert not out.exists()
     err = capsys.readouterr().err
     assert "no readable artifacts" in err
+
+
+# ---------------------------------------------------------------------------
+# cycle 38934722443: the minimal durable-workflow roll-up shape (legs array,
+# no all_legs_passed) must classify as a roll-up, not as an unrecognized blob
+# ---------------------------------------------------------------------------
+
+
+def test_minimal_rollup_shape_classifies_as_summary_rollup():
+    from evaluation.reality_gate import run_benchmark
+    minimal = {
+        "durable_run_required": "product-reality-check.yml",
+        "generated_at": "2026-10-16T16:10:06Z",
+        "legs": [{"slug": "business-judgment-rule", "passed": True,
+                  "report": "results/product/reality_check/bjr_live_x.json"}],
+        "local_evidence_only": True,
+        "mode": "live",
+    }
+    assert run_benchmark._classify(minimal) == "summary_rollup"
+    rep = run_benchmark.evaluate_artifacts(
+        [{"artifact": "x/summary_live.json", "kind": "summary_rollup",
+          "data": minimal}], SPEC)
+    rec = rep["artifacts"][0]
+    assert rec["evaluation_scope"] == "none"
+    assert rec["producer_legs"] == [
+        {"slug": "business-judgment-rule", "passed": True,
+         "report": "results/product/reality_check/bjr_live_x.json"}]
+    # a slim leg report still wins its own classification (slug present)
+    assert run_benchmark._classify(
+        {**minimal, "slug": "x", "leg_passed": True,
+         "answer_prose": "prose"}) == "slim_report"
+    # an old-style run summary keeps classifying too
+    assert run_benchmark._classify({"all_legs_passed": True, "legs": []}) == "summary_rollup"
+
+
+# ---------------------------------------------------------------------------
+# cycle 38934722443: pins the CURRENT accepted product packet's verdicts.
+# Skipped cleanly when the accepted-product mount is absent (plain CI).
+# ---------------------------------------------------------------------------
+
+_MOUNT = "/tmp/lex_accepted/product/results/product/reality_check"
+
+_CURRENT_PACKET_LEG_PINS = {
+    # fresh live legs of product cycle V49_TARGETED_REALITY_REPAIR_4OF4_LIVE
+    "rent-default_live_20261016T154849Z.json": (
+        True, []),
+    "corporate-criminal-liability_live_20261016T160526Z.json": (
+        True, []),
+    "petty-theft-dismissal_live_20261016T160318Z.json": (
+        True, []),  # partial recall pass: cites bger_4A_177_2017, misses 4A_228_2015
+    # FALSIFYING: the fresh BJR leg cites none of the five frozen direct-TF
+    # BJR authorities (bger_4A_219_2015/259_2016/626_2013/603_2014/62_2024);
+    # the producer's own structural+truth gates pass it.
+    "business-judgment-rule_live_20261016T161006Z.json": (
+        False, ["recall::citation_controlling_authority"]),
+    # PRESERVED pre-fix negative: answer ignored direct TF petty-theft
+    # authority (bger_4A_177/228) — the failure the product repaired.
+    "petty-theft-dismissal_live_20261016T155135Z.json": (
+        False, ["recall::citation_controlling_authority"]),
+}
+
+_CURRENT_PACKET_EXCLUDED_PINS = {
+    "rent-default_fixture_20261016T154703Z.json": "fatal_stub",
+    "rent-default_fixture_20261016T154708Z.json": "fatal_stub",
+    "business-judgment-rule_fixture_20261016T154708Z.json": "fatal_stub",
+    "corporate-criminal-liability_fixture_20261016T154708Z.json": "fatal_stub",
+    "petty-theft-dismissal_fixture_20261016T154708Z.json": "fatal_stub",
+    "summary_fixture_20261016T154708Z.json": "summary_rollup",
+    "summary_live_20261016T154849Z.json": "summary_rollup",
+    "summary_live_20261016T155135Z.json": "summary_rollup",
+    "summary_live_20261016T160318Z.json": "summary_rollup",
+    "summary_live_20261016T160526Z.json": "summary_rollup",
+    "summary_live_20261016T161006Z.json": "summary_rollup",
+}
+
+
+@pytest.mark.skipif(not Path(_MOUNT).is_dir(),
+                    reason="accepted-product mount not present")
+def test_current_accepted_packet_leg_verdicts_pinned():
+    """Re-execute the frozen benchmark over the refreshed accepted mount and
+    pin each current-packet leg's verdict.  The frozen spec is NOT modified by
+    this test; it only records what the frozen gates decide on this packet."""
+    import hashlib
+    from evaluation.reality_gate import run_benchmark
+    raw = frozen._PATH.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == frozen.FROZEN_SHA256
+
+    artifacts = run_benchmark._load_artifacts(Path(_MOUNT), [])
+    rep = run_benchmark.evaluate_artifacts(artifacts, SPEC)
+    by_name = {a["artifact"].rsplit("/", 1)[-1]: a for a in rep["artifacts"]}
+
+    for name, (expected_pass, expected_failed) in _CURRENT_PACKET_LEG_PINS.items():
+        assert name in by_name, name
+        rec = by_name[name]
+        assert rec["kind"] == "slim_report", (name, rec["kind"])
+        assert rec["artifact_passed"] is expected_pass, (
+            name, rec["failed_gates"])
+        assert rec["failed_gates"] == expected_failed, (
+            name, rec["failed_gates"])
+        if expected_pass:
+            # every passing leg still names its partial recall misses, if any
+            for gate in rec["gates"]:
+                if gate["gate"] == "recall::citation_controlling_authority":
+                    assert gate["passed"] is True
+                    assert gate["detail"] == ""
+        else:
+            recall = next(g for g in rec["gates"]
+                          if g["gate"] == "recall::citation_controlling_authority")
+            assert recall["measured"]["hits"] == [], name
+            assert recall["measured"]["missing"], name
+
+    for name, expected_kind in _CURRENT_PACKET_EXCLUDED_PINS.items():
+        assert name in by_name, name
+        assert by_name[name]["kind"] == expected_kind, (
+            name, by_name[name]["kind"])
+        assert by_name[name]["evaluation_scope"] == "none"
+
+    # the recorded history carries falsifying failures (preserved negatives:
+    # latency >=300s runs, end-of-month misses, unsupported counter rows),
+    # so the whole-mount verdict stays FAIL — honest, not a product pass.
+    assert rep["overall_pass"] is False
+    # the fresh BJR leg's missing list is exactly the five frozen authorities
+    bjr = by_name["business-judgment-rule_live_20261016T161006Z.json"]
+    recall = next(g for g in bjr["gates"]
+                  if g["gate"] == "recall::citation_controlling_authority")
+    assert set(recall["measured"]["missing"]) == set(
+        QUESTIONS["business-judgment-rule"]["required_citation_ids"])
+    # the repaired petty-theft leg cites the authority the pre-fix leg missed
+    petty = by_name["petty-theft-dismissal_live_20261016T160318Z.json"]
+    petty_recall = next(g for g in petty["gates"]
+                        if g["gate"] == "recall::citation_controlling_authority")
+    assert petty_recall["measured"]["hits"] == ["bger_4A_177_2017"]
+    assert petty_recall["measured"]["missing"] == ["bger_4A_228_2015"]
