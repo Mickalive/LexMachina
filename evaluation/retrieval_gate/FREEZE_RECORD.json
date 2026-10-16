@@ -1,0 +1,31 @@
+{
+  "schema": "lex-freeze-record/1",
+  "frozen_at": "2026-10-16T17:37:01Z",
+  "frozen_before_execution": true,
+  "frozen_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+  "frozen_spec_path": "evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
+  "builder": "evaluation/retrieval_gate/build_frozen_spec.py (refuses to overwrite an existing spec)",
+  "direction_version": 49,
+  "run_id_at_freeze": "38939239917",
+  "hypothesis": "For the four observed reality-check questions, a plain single-shot OpenCaseLaw /decisions search (baseline, no query-map/counter-authority machinery) retrieves at least one frozen controlling authority per question-with-a-frozen-set in each of FR/DE/IT top-50, and an explicit counter/limiting pass reaches known counter authority; if it does not, the product's observed authority failures are retrieval-side, not answer-side.",
+  "baseline": "one plain OpenCaseLaw /decisions call per (question, language, channel); no lexicon expansion, no reranking, no citation-neighbourhood expansion (lane directive: baseline = the same OpenCaseLaw search/result set without the additional query-map/counter-authority machinery)",
+  "metrics_pinned": [
+    "authority::baseline_recall::<slug> and authority::baseline_lang_recall::<slug>::<lang> (>=1-of-set)",
+    "norm::retrievable::<slug> (>=1 retrieved row text contains a frozen norm token)",
+    "counter::known_counter_recall::<slug> (>=1-of-set over product-known counter ids)",
+    "counter::limiting_marker_verified::<slug> (>=1 counter-channel row with norm AND limitation token)",
+    "source::rows_valid::<slug> (decision_id, https mcp.opencaselaw.ch canonical_url, language in de/fr/it)",
+    "duplicate::unique_ids::<slug> (alnum-core unique within a query response)",
+    "transport::all_queries_ok",
+    "latency::search_under_budget (30s per call) and latency::full_pass_under_budget (240s)",
+    "reproducible::cached_second_pass_identical (offline replay matches live pass byte-for-byte)"
+  ],
+  "success_rule": "exit 0 only when every measurable gate passes; a falsifying failure is exit 1 with the record preserved; not_measurable gates carry an explicit reason and never count as passes",
+  "claim_ceiling": "retrieval/counter reachability and integrity of independent OpenCaseLaw searches; no UX claim, no supporting/contrary label is assigned by this benchmark",
+  "pre_freeze_disclosure": "two schema probes with a NON-frozen query (Konventionalstrafe Vertragsstrafe, limit 3 and 50) and one generic probe (query=business judgment rule, limit 3, first 400 chars read) were made BEFORE this record to establish response shape/size/latency. No frozen query text was executed and no frozen authority-hit determination was made before this record was written. An exploratory scan of the ACCEPTED product query_cache preceded the design of the exploratory product-cache comparison, which is therefore labelled EXPLORATORY in the run record and is NOT a claim-bearing gate.",
+  "derived_from": {
+    "reality_benchmark_sha256": "ff57f556c3755ab663766618ab7abe763f251e7add70cd8ed964141846d063c8",
+    "counter_ids_source": "accepted /tmp/lex_accepted/product/results/product/reality_check/*.json cited_decisions rows with counter_status in COUNTER_STATUSES",
+    "no_174k_rerun": true
+  }
+}

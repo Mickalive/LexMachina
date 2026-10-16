@@ -1,0 +1,374 @@
+{
+  "schema": "lex-frozen-retrieval-benchmark/1",
+  "direction_version": 49,
+  "frozen_at": "2026-10-16",
+  "purpose": "Smallest executable retrieval/counter-authority benchmark that can falsify the query-map product: does a plain OpenCaseLaw search (baseline, no query-map/counter-authority machinery) retrieve the frozen controlling authorities for the four observed reality-check questions, in FR/DE/IT, and can an explicit counter/limiting pass reach known counter authority?",
+  "baseline_definition": "one OpenCaseLaw GET /decisions call per (question, language, channel) with sort=relevance, fields=full, offset=0, limit from top_k — i.e. the same OpenCaseLaw result set WITHOUT query-map reranking, lexicon expansion or citation-neighbourhood expansion",
+  "endpoint": "https://mcp.opencaselaw.ch/api/decisions",
+  "user_agent": "LexMachina-Eval-RetrievalGate/1.0 (evaluation lane)",
+  "max_requests_per_second": 2.5,
+  "transport": {
+    "timeout_seconds": 30.0,
+    "retries": 3,
+    "backoff_seconds": 1.5
+  },
+  "top_k": {
+    "baseline": 50,
+    "counter": 30
+  },
+  "latency_budgets": {
+    "per_search_seconds": 30.0,
+    "full_pass_seconds": 240.0,
+    "rule": "one search call must return in < 30s; the whole live pass (24 searches) must finish in < 240s"
+  },
+  "gate_semantics": ">=1-of-set per authority/counter gate; a partial-set pass is a PASS naming the missing ids in measured.missing (same semantics as the frozen reality benchmark recall gates)",
+  "language_rule": "the baseline pool of a question is evaluated per query language (fr/de/it) and as the union of the three; cross-language gates fail when one language's own top-k misses every frozen authority",
+  "reproducibility_rule": "pass A is fetched live and written to the lane cache; pass B replays the same 24 URLs strictly offline and must reproduce identical raw-body sha256 and identical ordered id list per query",
+  "pre_freeze_disclosure": "two schema probes with a NON-frozen query (Konventionalstrafe Vertragsstrafe, limit 3 and 50; plus one generic probe query=business judgment rule limit=3 whose payload was only read to the first 400 chars) established response shape, field names, size and latency before freeze. No frozen query text was executed and no frozen authority-hit determination was made before the freeze record was written. The product-cache comparison in the run record is labelled EXPLORATORY because its design followed an exploratory scan of the accepted cache.",
+  "id_match_rules": {
+    "method": "a frozen authority id matches a retrieved row when the alnum-core of any of (row decision_id, canonical_decision_id, docket_number, citation_string_de/fr/it) equals the alnum-core of the frozen id; alnum-core = lowercase, drop every non-alphanumeric character, then strip repeated leading court tokens (bgestger, bstger, bger, bge, bg)",
+    "rationale": "frozen ids are legacy BGE-style (bger_4A_219_2015) while OpenCaseLaw returns ATF-style ids (bge_4A 219/2015) and citation strings (BGE 142 IV 333); the core mapping is recorded per match in the run record so every hit is auditable",
+    "min_core_length": 6
+  },
+  "source_validity_rule": "every retrieved row must carry a non-empty decision_id, a canonical_url on https with host mcp.opencaselaw.ch, and a language in {de, fr, it}",
+  "duplicate_rule": "within one query response the alnum-core id must be unique",
+  "weak_proxy_disclosure": "norm_tokens and limitation_tokens are NECESSARY-NOT-SUFFICIENT lexical proxies (the same disclosure class as the frozen reality benchmark's weak truth gates): a hit shows the retrieved text speaks about the norm and about an exception/limitation term, it does not prove the decision is contrary or limiting authority. Nothing in this benchmark assigns a supporting/contrary label to any decision.",
+  "marker_rule": "counter::limiting_marker_verified::<slug> passes when at least one COUNTER-channel row's text (title + regeste + snippet, HTML marks stripped, NFKD/diacritic-stripped/casefolded) contains at least one norm_token AND at least one limitation_token; the matching row (id, url, tokens, text head) is recorded as evidence",
+  "exploratory_comparison_rule": "with --accepted-product-root, the runner scans the ACCEPTED product query_cache search envelopes (params.query present, status 200) and reports, per question, how many frozen authority ids appear in ANY accepted search envelope and in the envelope whose query equals the frozen fr baseline query. TIER = EXPLORATORY (design followed an exploratory scan of that cache before this spec was frozen); reported as discrimination between an unreachable authority (retrieval-side) and an uncited-but-retrieved authority (answer-side), never as a claim-bearing gate.",
+  "questions": [
+    {
+      "slug": "rent-default",
+      "record_language": "fr",
+      "queries": {
+        "baseline": {
+          "fr": "Sous quelles conditions un bailleur peut-il résilier un bail d'habitation pour retard dans le paiement du loyer selon le droit suisse, et quelles exceptions ou limites jurisprudentielles existent ?",
+          "de": "Unter welchen Voraussetzungen kann der Vermieter einen Wohnmietvertrag wegen Zahlungsverzug kündigen, und welche Ausnahmen oder Grenzen der Rechtsprechung bestehen nach Schweizer Recht?",
+          "it": "In quali condizioni il locatore può risolvere un contratto di locazione per ritardo nel pagamento dell'affitto secondo il diritto svizzero, e quali eccezioni o limiti giurisprudenziali esistono?"
+        },
+        "counter": {
+          "fr": "Art. 257d al. 2 CO résiliation abusive exception limite reprise du loyer impayé",
+          "de": "Art. 257d OR Kündigung Rechtsmissbrauch Ausnahme Grenze Mietzinsrückstand",
+          "it": "art. 257d CO risoluzione abuso eccezione limite ritardo affitto arretrato"
+        },
+        "norm_tokens": [
+          "257d"
+        ],
+        "limitation_tokens": [
+          "abus",
+          "rechtsmissbrauch",
+          "abusiv",
+          "abuso",
+          "unbillig",
+          "eccezione",
+          "exception",
+          "ausnahme",
+          "buona fede",
+          "treu und glauben"
+        ]
+      },
+      "authority_ids": [],
+      "authority_set_provenance": "required_citation_ids ∪ required_retrieval_ids of the frozen reality benchmark evaluation/reality_gate/frozen_benchmark.json (sha256 ff57f556c3755ab663766618ab7abe763f251e7add70cd8ed964141846d063c8)",
+      "known_counter_ids": [
+        {
+          "id": "bge_BGE_117_II_415",
+          "counter_status": "candidate-limiting",
+          "source_file": "rent-default_live_20261014T122313Z.json",
+          "snippet": "Regeste Art. 272a Abs. 1 lit. a OR. Ausschluss der Mieterstreckung. Der Erstreckungsausschluss wegen Zahlungsrückstand des Mieters setzt eine gültige, bei Familienwohnungen überdies dem Ehegatten des Mieters separat zugestellte (Art. 266n O"
+        },
+        {
+          "id": "bger_4A_332_2025",
+          "counter_status": "candidate-limiting",
+          "source_file": "rent-default_live_ci-38600271324_20261014T165001Z.json",
+          "snippet": "Mietkündigung, Zahlungsrückstand,"
+        },
+        {
+          "id": "bs_appellationsgericht_AG.2014.783",
+          "counter_status": "candidate-limiting",
+          "source_file": "rent-default_live_20261014T122313Z.json",
+          "snippet": "2.1 Die Kündigung des Mietverhältnisses wegen Zahlungsrückstands des Mieters nach Art. <mark>257d</mark> OR setzt bei Geschäftsräumen voraus, dass der Mieter mit der Zahlung fälliger Mietzinse oder Nebenkosten im Rückstand ist sowie dass de"
+        },
+        {
+          "id": "gr_gerichte_PKG_2010_20",
+          "counter_status": "candidate-limiting",
+          "source_file": "rent-default_live_20261014T142206Z.json",
+          "snippet": "20 PKG 2010 156 20 – <mark>Miete</mark>. Zahlungsrückstand ( Art. <mark>257d</mark> OR). Bei Mängeln der Mietsache ist der Mietzins grundsätzlich zu hinterle- gen ( Art. 259g OR); die Kündigung wegen Zahlungsrück- stands kann durch Verrechn"
+        },
+        {
+          "id": "gr_gerichte_PZ_2006_125",
+          "counter_status": "candidate-limiting",
+          "source_file": "rent-default_live_20261014T122313Z.json",
+          "snippet": "8 - dass dafür vom Mieter eine Herabsetzungserklärung verlangt wird, in der er gegenüber dem Vermieter in sachlicher und zeitlicher Hinsicht unmissverständlich das genaue Mass der Herabsetzung und ein kon- kreter Bezug zu einem Mangel angeb"
+        },
+        {
+          "id": "lu_gerichte_11_05_126",
+          "counter_status": "candidate-contrary",
+          "source_file": "rent-default_live_20261014T140446Z.json",
+          "snippet": "Rechtsprechung Luzern Instanz: Obergericht Abteilung: I. Kammer Rechtsgebiet: OR (Obligationenrecht) Entscheiddatum: 04.11.2005 Fallnummer: 11 05 126 LGVE: 2006 I Nr. 16 Leitsatz: Art. <mark>257d</mark> OR; Art. 2 Abs. 2 ZGB. Um eine wegen "
+        },
+        {
+          "id": "so_gerichte_ZKREK.2004.338",
+          "counter_status": "candidate-limiting",
+          "source_file": "rent-default_live_20261014T140133Z.json",
+          "snippet": "Art. <mark>257d</mark> OR.Ausserordentliche Kündigung wegen Zahlungsverzugs. Falls der Mieter im massgeblichen Zeitraum davon ausgehen muss, dass sein Zahlungsrückstand nicht vollständig ausgeglichen ist, stellt eine Mahnung mit Kündigungsa"
+        },
+        {
+          "id": "zh_mietgericht_MB170006-L",
+          "counter_status": "candidate-contrary",
+          "source_file": "rent-default_live_20261014T122313Z.json",
+          "snippet": "- 4 - III. Prozessuales (…) 2. Zulässigkeit der Widerklage Wie die Beklagte zu recht und unbestritten ausführte, erweist sich die Widerklage als zulässig, denn das Ausweisungsbegehren ist letztlich nur das Spiegelbild des Antrags auf Abweis"
+        },
+        {
+          "id": "zh_obergericht_NL100149",
+          "counter_status": "candidate-limiting",
+          "source_file": "rent-default_live_20261014T140446Z.json",
+          "snippet": "Art. 253a OR, Art. 259d OR. Zahlungsverzugskündigung, mehrere Mietobjek- te. Zahlungsverzugskündigung bezüglich aller Objekte mehrerer formell separater Mietverträge über Wohnung und Parkplätze mit funktionellem Zusammenhang, aber unterschi"
+        }
+      ],
+      "known_counter_provenance": "union of accepted results/product/reality_check/* legs for this slug: cited_decisions rows with a counter_status in ['candidate-contrary', 'contrary_or_exception', 'candidate-limiting', 'limiting']; product-classified, label soundness NOT re-verified by this benchmark"
+    },
+    {
+      "slug": "corporate-criminal-liability",
+      "record_language": "fr",
+      "queries": {
+        "baseline": {
+          "fr": "La responsabilité pénale de l'entreprise selon l'art. 102 CP est-elle subsidiaire ou primaire, et pour quelles infractions ? Quelles exigences d'organisation doivent être prouvées ?",
+          "de": "Ist die Verantwortlichkeit des Unternehmens nach Art. 102 StGB subsidiär oder primär, und für welche Straftaten? Welche Organisationspflichten müssen nachgewiesen werden?",
+          "it": "La responsabilità penale dell'impresa ex art. 102 CP è sussidiaria o primaria, e per quali reati? Quali esigenze organizzative devono essere provate?"
+        },
+        "counter": {
+          "fr": "Art. 102 CP responsabilité primaire subsidiaire exception limite jurisprudence organisation",
+          "de": "Art. 102 StGB primäre subsidiäre Verantwortlichkeit Ausnahme Grenze Rechtsprechung Organisationsmangel",
+          "it": "art. 102 CP responsabilità primaria sussidiaria eccezione limite giurisprudenza organizzazione"
+        },
+        "norm_tokens": [
+          "art. 102"
+        ],
+        "limitation_tokens": [
+          "ausnahme",
+          "eccezione",
+          "exception",
+          "grenze",
+          "limite",
+          "einschränkung",
+          "nicht eigenständig",
+          "keine eigenständige",
+          "non costituisce",
+          "ne deroga",
+          "kein eigenständiger",
+          "delimitation",
+          "abgrenzung"
+        ]
+      },
+      "authority_ids": [
+        "bge_BGE_142_IV_333",
+        "bger_6B_124_2016"
+      ],
+      "authority_set_provenance": "required_citation_ids ∪ required_retrieval_ids of the frozen reality benchmark evaluation/reality_gate/frozen_benchmark.json (sha256 ff57f556c3755ab663766618ab7abe763f251e7add70cd8ed964141846d063c8)",
+      "known_counter_ids": [
+        {
+          "id": "bge_BGE_146_IV_68",
+          "counter_status": "candidate-limiting",
+          "source_file": "corporate-criminal-liability_live_20261016T160526Z.json",
+          "snippet": "Urteilskopf 146 IV 68 7. Auszug aus dem Urteil der Strafrechtlichen Abteilung i.S. Oberstaatsanwaltschaft des Kantons Aargau gegen A. (Beschwerde in Strafsachen) 6B_31/2019 vom 12. Dezember 2019 Regeste Art. 102 <mark>StGB</mark> , Art. 319"
+        },
+        {
+          "id": "bger_6B_7_2014",
+          "counter_status": "candidate-limiting",
+          "source_file": "corporate-criminal-liability_live_ci-38604340726_20261014T172930Z.json",
+          "snippet": "Bundesgericht Tribunal fédéral Tribunale federale Tribunal federal {T 0/2} 6B_7/2014 Arrêt du 21 juillet 2014 Cour de droit pénal Composition MM. et Mme les Juges fédéraux Mathys, Président, Jacquemoud-Rossari et Oberholzer. Greffier : M. V"
+        },
+        {
+          "id": "bstger_BG.2016.5",
+          "counter_status": "candidate-limiting",
+          "source_file": "corporate-criminal-liability_live_20261014T140446Z.json",
+          "snippet": "D. Mit Schreiben vom 8. Februar 2016 ersuchte die Oberstaatsanwaltschaft des Kantons Zürich die Generalstaatsanwaltschaft Bern um Verfahrensüber- nahme. Ergänzend führte sie aus, dass bei den nicht in Art. 102 Abs. 2 <mark>StGB</mark> angef"
+        },
+        {
+          "id": "so_gerichte_BKBES.2026.74",
+          "counter_status": "candidate-limiting",
+          "source_file": "corporate-criminal-liability_live_20261014T120808Z.json",
+          "snippet": "4.2 Art. 102 <mark>StGB</mark> begründet keine eigenständige Strafnorm. Die Bestimmung setzt voraus, dass in einem <mark>Unternehmen</mark> in Ausübung geschäftlicher Verrichtung ein Verbrechen oder Vergehen begangen wurde und dieses wegen "
+        },
+        {
+          "id": "so_gerichte_STBER.2011.32",
+          "counter_status": "candidate-contrary",
+          "source_file": "corporate-criminal-liability_live_20261014T120808Z.json",
+          "snippet": "Der eigentliche Strafgrund liegt sowohl für Abs. 1 als auch Abs. 2 in Organisationsmängeln. Sie führen im Fall von Abs. 1 dazu, dass das Verbrechen oder Vergehen keiner bestimmten natürlichen Person zugeordnet werden kann, während es im Abs"
+        },
+        {
+          "id": "zh_obergericht_UE220221",
+          "counter_status": "candidate-limiting",
+          "source_file": "corporate-criminal-liability_live_ci-38604340726_20261014T172930Z.json",
+          "snippet": "- 12 - ven und subjektiven Tatbestandsmerkmale erfüllt sind. Gelingt dieser Nachweis nicht, entfällt die Strafbarkeit des Unternehmens (BGE 142 IV 333 E. 4.1). Dass ein entsprechendes Delikt begangen wurde, genügt als Beweis dafür, dass das"
+        }
+      ],
+      "known_counter_provenance": "union of accepted results/product/reality_check/* legs for this slug: cited_decisions rows with a counter_status in ['candidate-contrary', 'contrary_or_exception', 'candidate-limiting', 'limiting']; product-classified, label soundness NOT re-verified by this benchmark"
+    },
+    {
+      "slug": "business-judgment-rule",
+      "record_language": "fr",
+      "queries": {
+        "baseline": {
+          "fr": "Dans quelles conditions le juge suisse s'abstient-il de revoir une décision commerciale d'un conseil d'administration au titre de la business judgment rule, et quelles exceptions ou limites ressortent de la jurisprudence ?",
+          "de": "Unter welchen Bedingungen enthält sich der Schweizer Richter der Überprüfung eines Geschäftsentscheids des Verwaltungsrats aufgrund der Business Judgment Rule, und welche Ausnahmen oder Grenzen ergeben sich aus der Rechtsprechung?",
+          "it": "In quali condizioni il giudice svizzero si astiene dal riesaminare una decisione commerciale del consiglio di amministrazione in applicazione della business judgment rule, e quali eccezioni o limiti discendono dalla giurisprudenza?"
+        },
+        "counter": {
+          "fr": "business judgment rule exception limite responsabilité conseil d'administration information conflit d'intérêts",
+          "de": "Business Judgment Rule Ausnahme Grenze Verwaltungsrat Informationspflicht Interessenkonflikt Haftung",
+          "it": "business judgment rule eccezione limite consiglio di amministrazione informazioni conflitto di interessi responsabilità"
+        },
+        "norm_tokens": [
+          "business judgment rule",
+          "bjr"
+        ],
+        "limitation_tokens": [
+          "ausnahme",
+          "eccezione",
+          "exception",
+          "grenze",
+          "limite",
+          "grenzen",
+          "limiti",
+          "pflichtwidrig",
+          "violazione",
+          "interessenkonflikt",
+          "conflitto d'interessi",
+          "conflit d'interets",
+          "nicht hinreichend informiert"
+        ]
+      },
+      "authority_ids": [
+        "bger_4A_219_2015",
+        "bger_4A_259_2016",
+        "bger_4A_603_2014",
+        "bger_4A_626_2013",
+        "bger_4A_62_2024"
+      ],
+      "authority_set_provenance": "required_citation_ids ∪ required_retrieval_ids of the frozen reality benchmark evaluation/reality_gate/frozen_benchmark.json (sha256 ff57f556c3755ab663766618ab7abe763f251e7add70cd8ed964141846d063c8)",
+      "known_counter_ids": [
+        {
+          "id": "bge_BGE_139_III_24",
+          "counter_status": "candidate-limiting",
+          "source_file": "business-judgment-rule_live_20261014T142443Z.json",
+          "snippet": "Urteilskopf 139 III 24 4. Auszug aus dem Urteil der I. zivilrechtlichen Abteilung i.S. A. und Mitb. gegen X. AG (Beschwerde in Zivilsachen) 4A_375/2012 vom 20. November 2012 Regeste a Art. 754 OR ; aktienrechtliche Verantwortlichkeit. Haftu"
+        },
+        {
+          "id": "bger_4A_130_2023",
+          "counter_status": "candidate-limiting",
+          "source_file": "business-judgment-rule_live_ci-38604340726_20261014T173225Z.json",
+          "snippet": "Bundesgericht Tribunal fédéral Tribunale federale Tribunal federal 4A_130/2023 Urteil vom 9. Oktober 2023 I. zivilrechtliche Abteilung Besetzung Bundesrichterin Jametti, Präsidentin, Bundesrichterin Kiss, Bundesrichter Rüedi, Gerichtsschrei"
+        },
+        {
+          "id": "bger_4A_642_2016",
+          "counter_status": "candidate-limiting",
+          "source_file": "business-judgment-rule_live_20261014T142443Z.json",
+          "snippet": "A.a. Am 22. Dezember 2008 schloss A.________ (Klägerin, Beschwerdeführerin) mit der C.________ GmbH als Darlehensnehmerin einen Darlehensvertrag über Fr. 200'000.-- und zahlte eine erste Tranche von Fr. 100'000.-- aus. Diese Fr. 100'000.-- "
+        },
+        {
+          "id": "zh_handelsgericht_HG120149",
+          "counter_status": "candidate-limiting",
+          "source_file": "business-judgment-rule_live_ci-38604340726_20261014T173225Z.json",
+          "snippet": "- 4 - 7.2. Pflichtwidrigkeit .................................................................................. 50 7.3. Business Judgment Rule? ................................................................. 51 7.3.1. <mark>Interessenkonf"
+        }
+      ],
+      "known_counter_provenance": "union of accepted results/product/reality_check/* legs for this slug: cited_decisions rows with a counter_status in ['candidate-contrary', 'contrary_or_exception', 'candidate-limiting', 'limiting']; product-classified, label soundness NOT re-verified by this benchmark"
+    },
+    {
+      "slug": "petty-theft-dismissal",
+      "record_language": "fr",
+      "queries": {
+        "baseline": {
+          "fr": "Un vol de faible valeur commis par un employé justifie-t-il un licenciement immédiat selon l'art. 337 CO ? Quelles circonstances font varier la réponse ?",
+          "de": "Rechtfertigt ein geringfügiger Diebstahl durch einen Arbeitnehmer die fristlose Kündigung nach Art. 337 OR? Welche Umstände verändern die Antwort?",
+          "it": "Un furto di lieve entità commesso da un dipendente giustifica il licenziamento immediato ex art. 337 CO? Quali circostanze modificano la risposta?"
+        },
+        "counter": {
+          "fr": "art. 337 CO licenciement immédiat vol de faible valeur exception proportionnalité limite",
+          "de": "Art. 337 OR fristlose Kündigung geringfügiger Diebstahl Ausnahme Verhältnismäßigkeit Grenze",
+          "it": "art. 337 CO licenziamento immediato lieve entità eccezione proporzionalità limite"
+        },
+        "norm_tokens": [
+          "art. 337"
+        ],
+        "limitation_tokens": [
+          "verhältnismäßig",
+          "proportion",
+          "proporz",
+          "billigkeit",
+          "eccezione",
+          "exception",
+          "ausnahme",
+          "grenze",
+          "limite",
+          "treu und glauben",
+          "buona fede",
+          "angemessen"
+        ]
+      },
+      "authority_ids": [
+        "bger_4A_177_2017",
+        "bger_4A_228_2015"
+      ],
+      "authority_set_provenance": "required_citation_ids ∪ required_retrieval_ids of the frozen reality benchmark evaluation/reality_gate/frozen_benchmark.json (sha256 ff57f556c3755ab663766618ab7abe763f251e7add70cd8ed964141846d063c8)",
+      "known_counter_ids": [
+        {
+          "id": "ar_gerichte_KG_ARGVP_2005_3462",
+          "counter_status": "candidate-limiting",
+          "source_file": "petty-theft-dismissal_live_20261016T155135Z.json",
+          "snippet": "116 3462 Arbeitsvertrag. Konsum von Cannabis und Alkohol am Arbeitsplatz als wichtiger Grund für eine <mark>fristlose</mark> Kündigung einer Service- Angestellten (Art. 337 OR)."
+        },
+        {
+          "id": "bge_BGE_121_III_467",
+          "counter_status": "candidate-limiting",
+          "source_file": "petty-theft-dismissal_live_20261016T155135Z.json",
+          "snippet": "Regeste Arbeitsvertrag; fristlose Kündigung (<mark>Art. 337</mark> OR). Es ist zwar ausgeschlossen als Gründe für eine fristlose Kündigung Umstände anzuführen, welche sich nach der Kündigungserklärung zugetragen haben. Es ist aber unter gew"
+        },
+        {
+          "id": "bge_BGE_124_III_25",
+          "counter_status": "candidate-contrary",
+          "source_file": "petty-theft-dismissal_live_20261016T155135Z.json",
+          "snippet": "Regeste Arbeitsvertrag. <mark>Fristlose</mark> Auflösung (Art. 337 OR). Treuepflicht des Arbeitnehmers, der eine Vertrauensposition im Betrieb innehat; Verletzung dieser Pflicht durch Beschaffung geldwerter Vorteile zu Lasten des Arbeitgebe"
+        },
+        {
+          "id": "bge_BGE_130_III_28",
+          "counter_status": "candidate-contrary",
+          "source_file": "petty-theft-dismissal_live_20261016T155135Z.json",
+          "snippet": "Regeste <mark>Fristlose</mark> Kündigung; wichtiger Grund; Art. 337 OR; neues rechtliches Vorbringen. Der Arbeitgeber ist befugt, einen <mark>Arbeitnehmer</mark>, welcher die gesamte elektronische Post seines Vorgesetzten ohne dessen Wissen"
+        },
+        {
+          "id": "bge_BGE_138_I_113",
+          "counter_status": "candidate-limiting",
+          "source_file": "petty-theft-dismissal_live_20261014T140446Z.json",
+          "snippet": "Urteilskopf 138 I 113 9. Auszug aus dem Urteil der I. sozialrechtlichen Abteilung i.S. A. gegen Gemeinde X. (Beschwerde in öffentlich-rechtlichen Angelegenheiten) 8C_294/2011 vom 29. Dezember 2011 Regeste Art. 9 BV ; Art. 10 des Gesetzes vo"
+        },
+        {
+          "id": "ch_vb_JAAC_68.7__",
+          "counter_status": "candidate-limiting",
+          "source_file": "petty-theft-dismissal_live_20261014T140446Z.json",
+          "snippet": "prestations) - peuvent constituer un juste motif, lorsque leur accumulation rend la poursuite des rapports de service intolérable pour l’administration (dans ce sens Schroff/Gerber, op. cit., n° 109, p. 85 et n° 139, p. 98; Minh Son Nguyen,"
+        },
+        {
+          "id": "ge_gerichte_ATAS_1103_2006",
+          "counter_status": "candidate-limiting",
+          "source_file": "petty-theft-dismissal_live_20261016T160318Z.json",
+          "snippet": "<mark>Par</mark> décision du 26 avril 2005, la Caisse cantonale genevoise de chômage (ci-après la caisse), constatant que <mark>par</mark> son comportement l'intéressé avait donné à son employeur un motif de résiliation avec effet immédiat "
+        },
+        {
+          "id": "ge_gerichte_CAPH_107_2004",
+          "counter_status": "candidate-limiting",
+          "source_file": "petty-theft-dismissal_live_20261016T160318Z.json",
+          "snippet": "<mark>Selon</mark> l’art. 337 CO, l’employeur et le travailleur peuvent résilier immédiatement le contrat de travail en tout temps pour de justes motifs. Sont notamment considé- rées comme tels, toutes les <mark>circonstances</mark> qui, <m"
+        },
+        {
+          "id": "so_gerichte_ZZ.1990.7",
+          "counter_status": "candidate-limiting",
+          "source_file": "petty-theft-dismissal_live_ci-38604340726_20261014T172447Z.json",
+          "snippet": "5. Die Beklagte hat die <mark>fristlose</mark> Kündigung unter Berufung auf ihre Haus- und Betriebsordnung damit begründet, die Klägerin habe einen Personaldiebstahl begangen. Den ihr im Streitfall obliegenden Beweis, dass dieser Kündigungs"
+        }
+      ],
+      "known_counter_provenance": "union of accepted results/product/reality_check/* legs for this slug: cited_decisions rows with a counter_status in ['candidate-contrary', 'contrary_or_exception', 'candidate-limiting', 'limiting']; product-classified, label soundness NOT re-verified by this benchmark"
+    }
+  ],
+  "claim_ceiling": "the benchmark measures retrieval reachability, source validity, duplicate suppression, cross-language robustness, counter reachability, latency and cached reproducibility of independent OpenCaseLaw searches for frozen questions; it cannot show that the map is useful to a jurist and it never re-classifies a decision as supporting/contrary"
+}

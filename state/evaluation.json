@@ -2,10 +2,10 @@
   "lane": "evaluation",
   "direction_version": 49,
   "evidence_tier": "REPRODUCED",
-  "cycle_status": "V49_FROZEN_BENCHMARK_REEXECUTED_ON_CURRENT_PACKET_38934722443",
+  "cycle_status": "V49_RETRIEVAL_COUNTER_AUTHORITY_BENCHMARK_FROZEN_AND_EXECUTED_38939239917",
   "continue_recommended": true,
   "accepted_run_id": "38928722878",
-  "proposed_run_id": "38934722443",
+  "proposed_run_id": "38939239917",
   "repair_round": 1,
   "repair_audit_ref": "results/audit/evaluation/CYCLE_38920872324_GATE.json (independent audit checkout, gate=REVISE)",
   "repair_fixes_applied": {
@@ -27,6 +27,19 @@
     "results/evaluation/reality_benchmark/38920872324.json",
     "reports/evaluation/evaluation_v49_cycle_report_38934722443.md",
     "reports/evaluation/evaluation_v49_cycle_report.md",
+    "evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
+    "evaluation/retrieval_gate/FREEZE_RECORD.json",
+    "evaluation/retrieval_gate/frozen.py",
+    "evaluation/retrieval_gate/client.py",
+    "evaluation/retrieval_gate/gates.py",
+    "evaluation/retrieval_gate/run_retrieval_benchmark.py",
+    "evaluation/retrieval_gate/build_frozen_spec.py",
+    "tests/evaluation/test_retrieval_gate.py",
+    "results/evaluation/retrieval_benchmark/38939239917.json",
+    "results/evaluation/retrieval_benchmark/cache/be/be6a1fee48be3745b69ecdfcf49b5b420976066ba17514d7d8d07261cbca6d3d.json",
+    "results/evaluation/retrieval_benchmark/cache/90/90c23e15265bd747f2f9f65717cd1228d5a46eb44c43e7bd023597308d36451c.json",
+    "results/evaluation/retrieval_benchmark/cache/f7/f7252e0dd503d5aa94327b10bfaac62a0cbad24e96ccda94484e872ddceb3a2b.json",
+    "reports/evaluation/retrieval_counter_authority_benchmark_38939239917.md",
     "state/evaluation.json"
   ],
   "human_gate_ready": false,
@@ -42,7 +55,10 @@
     "weak_truth_gates_disclosed": {
       "truth::art257d2_30day_notice": "contains_any ['30'] matches the substring anywhere in prose; matched on 10/10 rent-default legs in the recorded run; necessary-not-sufficient lexical proxy, falsifiable (negative test exists), kept because the frozen spec pinned it",
       "truth::bjr_information": "contains_any ['information'] likewise; matched on 4/4 BJR legs; same disclosure",
-      "structurally_not_measurable_from_recordings": ["structural::geometry_preserved", "structural::progressive_phases (needs initial+final pair; only finals recorded)"]
+      "structurally_not_measurable_from_recordings": [
+        "structural::geometry_preserved",
+        "structural::progressive_phases (needs initial+final pair; only finals recorded)"
+      ]
     },
     "execution_record": "results/evaluation/reality_benchmark/38934722443.json",
     "execution_record_reproducible": "byte-identical across repeated executions (verified this cycle)",
@@ -53,7 +69,15 @@
       "n_question_independent_evaluated": 7,
       "n_excluded_no_verdict": 46,
       "bundle_structural_gate_executions": 35,
-      "question_independent_checks_per_bundle": ["bundle_nonempty", "duplicate_free", "source_urls_valid", "answer_citations_constrained", "counter_classifications_supported", "corruption (when prose present)", "latency (when timing present)"]
+      "question_independent_checks_per_bundle": [
+        "bundle_nonempty",
+        "duplicate_free",
+        "source_urls_valid",
+        "answer_citations_constrained",
+        "counter_classifications_supported",
+        "corruption (when prose present)",
+        "latency (when timing present)"
+      ]
     },
     "result_overall": "FAIL on the recorded history (negative evidence, preserved): 19 falsifying failures across 17 artifacts = 5 latency::under_budget (463.773s/548.452s/340.782s/360.542s/861.409s, all historical 20261014 legs) + 4 truth::art257d2_end_of_month (historical rent-default legs) + 2 structural::adversarial_clean (historical rent-default legs) + 6 structural::counter_classifications_supported (6 of 7 recorded full bundles carry counter-classified decisions without evidence/uncertainty fields) + 2 recall::citation_controlling_authority (NEW this cycle: business-judgment-rule_live_20261016T161006Z cites none of the five frozen BJR authorities; petty-theft-dismissal_live_20261016T155135Z preserved pre-fix negative cites neither frozen petty-theft authority). Verdict-equivalence vs accepted record 38920872324: all 66 pre-existing artifact verdicts identical (recomputed); 13 pre-existing minimal-shape summaries reclassified unmatched_kind -> summary_rollup under the classifier precision fix (no verdict change, excluded either way).",
     "result_current_packet_38924869286": {
@@ -76,6 +100,31 @@
     "empty_input_guard": "run_benchmark exits 2 with an explicit environment/argument error on absent or empty evidence input and never emits a verdict record from empty input (repair R6a)",
     "claim_ceiling": "The benchmark falsifies machine-checkable properties of recorded product artifacts (substantive truth phrases with two disclosed weak proxies, >=1-of-frozen-set authority recall with partial passes disclosed, wrong-language/corrupted output, >=300s full-run latency, bundle structure incl. counter-evidence support, multilingual coverage). It does NOT prove map usefulness to a jurist; human_gate_ready stays false."
   },
+  "v49_frozen_retrieval_benchmark": {
+    "frozen_spec": "evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
+    "frozen_sha256": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+    "freeze_record": "evaluation/retrieval_gate/FREEZE_RECORD.json (frozen_at 2026-10-16T17:37:01Z, frozen_before_execution=true, sha256 b06a2ad024040c38312686ab7aacc5ab18c663f1ef0b77494caf6ce3b3b52e49)",
+    "direction_version_at_freeze": 49,
+    "purpose": "FAST MVP lane directive: the smallest executable retrieval/counter-authority benchmark that can falsify the product. The frozen reality benchmark measures recorded ANSWER artifacts; this one measures whether the frozen controlling authorities are reachable at all in independent OpenCaseLaw retrieval, in which query language, at what rank, with what duplicates and at what latency. Baseline = one plain /decisions search per (question, language, channel) with no query-map/counter-authority machinery, per the lane directive.",
+    "scope": "4 frozen questions x {fr,de,it} x {baseline question text, counter limiting-authority query} = 24 live searches against https://mcp.opencaselaw.ch/api/decisions, plus an offline cache replay pass. 36 frozen gates: authority recall (union + per-language, >=1-of-set), governing-norm retrievability, known-counter recall, independently verified limiting-marker evidence, source validity, duplicate structure, transport, per-search latency (30s), full-pass latency (240s), cached reproducibility. Authority sets re-owned from the frozen reality benchmark (sha ff57f556...); known-counter ids = union of counter-classified cited_decisions rows across accepted reality_check legs (label soundness NOT re-verified; stated in the spec).",
+    "pre_freeze_disclosure": "Two schema probes with a NON-frozen query (Konventionalstrafe Vertragsstrafe limit 3 and 50) and one generic probe (query=business judgment rule, limit 3, first 400 chars) established response shape/size/latency before freeze; no frozen query text was executed and no frozen authority-hit determination was made before FREEZE_RECORD.json. The product-cache cross-check is labelled EXPLORATORY in the run record because its design followed a pre-freeze scan of that cache.",
+    "execution_record": "results/evaluation/retrieval_benchmark/38939239917.json (1.28 MB self-contained evidence: rows with id/docket/citation/url/language/text head, raw-body sha256, ordered ids, verdict); raw live bodies preserved under results/evaluation/retrieval_benchmark/cache/ (3.3 MB total).",
+    "execution": "pass A live: 24/24 HTTP 200, 960 rows, wall 256.827s (per-search min/median/max 4.521/10.311/20.534s); pass B offline replay: raw-body sha256 AND ordered id list identical for all 24 queries; --rescore reproduces the recorded verdict byte-for-byte.",
+    "result_overall": "FAIL (negative evidence, preserved): 12 falsifying failures, 24 passes, 4 not measurable. No threshold was moved after execution; the frozen 240s pass budget stays despite failing it.",
+    "falsifying_findings": {
+      "F1_language_brittleness": "For all three questions with a frozen authority set, the GERMAN plain-query baseline retrieves authorities inside top-50 (corporate 2/2 at ranks 18/23, BJR 2/5 at ranks 9/11, petty-theft 1/2 at rank 2) while the FRENCH and ITALIAN baselines retrieve ZERO of them (0/2, 0/5, 0/2). Union gates pass only via DE. The frozen questions' record language is French — the language the product ships.",
+      "F2_bjr_is_answer_side_not_reachability": "Independent DE baseline retrieves bger_4A_219_2015 (rank 9) and bger_4A_603_2014 (rank 11); the fresh accepted BJR leg cites NONE of the five frozen BJR authorities. EXPLORATORY cross-check: all five frozen BJR authorities are present in the ACCEPTED product's own query_cache search envelopes (2-4 envelopes each, reached via expansion queries) and in ZERO of the 10 accepted envelopes whose query equals the frozen French question text; petty-theft bger_4A_228_2015 appears in exactly 1 accepted envelope vs 7 for bger_4A_177_2017. Discrimination: BJR 0/5 is a candidate-selection/answer-synthesis defect with French-path expansion reliance, not a corpus-reachability defect.",
+      "F3_duplicates_and_malformed_ids": "63 alias-duplicate cores across 7 of 24 queries; verified same-decision dual-docket pairs (ge_gerichte_C_6552_2022 + ge_gerichte_ACJC_1511_2022 same date; vd_findinfo_HC___2013___801 + vd_gerichte_JL13.022381 same date; ge_gerichte_P_17078_2019 + ge_gerichte_ACPR_74_2021 same date). 6 malformed upstream ids confirmed in raw sha-verified bodies (ch_vb__td_class__metadataCell__150000044__td_ whose docket_number is a live HTML fragment; four ge_gerichte_[pjdoc NNNNN]). Dedupe by canonical id + cross-docket alias detection + id sanitation are load-bearing product steps.",
+      "F4_corporate_marker_proxy_blind": "No corporate counter-channel row carried both 'art. 102' and a frozen limitation token inside the frozen 600-char text head (90 rows); known-counter recall for the same question PASSES 4/6. Necessary-not-sufficient lexical proxy with frozen truncation; cause not separable from this record.",
+      "F5_retrieval_latency_eats_the_budget": "24-search live pass 256.827s >= frozen 240s budget, leaving <45s for rerank + answer + counter pass + map inside the product's hard <300s full-run budget; consistent with observed ~316-469s product latencies on free models."
+    },
+    "passing_findings": "known-counter reachability 3/9, 4/6, 1/4, 7/9 (all four questions); independently verified limiting-marker evidence for rent-default/BJR/petty-theft; governing-norm retrievability for all four; source validity on all 960 rows; transport 24/24 with retries; cached reproducibility byte-identical; per-search latency under 30s.",
+    "not_measurable": "4 rent-default authority gates (frozen reality benchmark carries no controlling-authority set for rent-default; authority_ids = []); reported with reason, never counted as passes.",
+    "harness": "evaluation/retrieval_gate (stdlib-only, independent HTTP client with paced/retried transport and content-addressed cache; does not import Product; exits 2 with NO record on empty/total-transport-failure input; exit 3 on frozen-digest mismatch).",
+    "tests": "tests/evaluation/test_retrieval_gate.py 33 tests: digest pin, freeze-record consistency, authority-set parity with the reality benchmark, id-alias/markup normalization, positive all-green fixture, one falsification test per gate, not-measurable-is-never-a-pass, verdict determinism, offline empty-cache exit 2 with no record, rescore-rejects-foreign-sha, freeze-before-execution ordering and byte-identical verdict recomputation against the recorded run, plus cross-process verdict purity across PYTHONHASHSEED 0/1/2 and the verdict-recompute-log disclosure. Active lane suite now 98/98 PASS.",
+    "claim_ceiling": "Retrieval reachability, cross-language robustness, counter reachability, source validity, duplicate structure, latency and cached reproducibility of INDEPENDENT OpenCaseLaw searches for the frozen questions. No UX claim; no supporting/contrary label is assigned; the product-cache comparison stays EXPLORATORY. human_gate_ready stays false.",
+    "post_execution_fix": "gates.py unique_ids/match_authorities originally iterated row_cores() sets directly, so the duplicate::examples list order varied with PYTHONHASHSEED across processes (caught by the verdict-recompute test). Fixed by iterating sorted(row_cores(...)); the stored verdict was recomputed once with the fix — only the corporate duplicate-example ordering changed (same multiset), all 36 gate outcomes/counts/details identical — and the recompute is logged in the record's verdict_recompute_log with old (b0f8e2b0...) and new (93214cb8...) verdict sha256. Harness bugfix only; no frozen threshold, token, budget or gate semantic was touched."
+  },
   "adopted_frontier_verdicts_v56": {
     "method": "ADOPTED_WITHOUT_REMEASURE",
     "artifact": "evaluation/frontier_verdict_adoption.json",
@@ -88,9 +137,12 @@
     "wrong-language answer rejection (dominant-language classifier, question-language + DE fallback)",
     "corrupted-output rejection (repetition loops, mojibake)",
     "full-run latency < 300s (hard reject >= 300s)",
-    "recall of frozen controlling authorities: >=1-of-set per gate, partial passes disclosed (petty-theft 5/5 partial on bger_4A_177_2017; BJR 4/4 partial, newest authority uncited; Art. 102 CP 5/5 full 2/2)",
+    "recall of frozen controlling authorities on ANSWER artifacts: >=1-of-set per gate, partial passes disclosed (current packet 38934722443: corporate-criminal-liability 2/2 citation + 2/2 retrieval; petty-theft cites bger_4A_177_2017 and misses bger_4A_228_2015; BJR cites NONE of the five frozen direct-TF authorities; historical 38920872324 numbers preserved in the v49_frozen_reality_benchmark block)",
     "source/URL validity, duplicate suppression, counter-evidence support (lane harness, question-independent bundle checks on every recorded bundle)",
-    "FR/DE/IT multilingual retrieval coverage"
+    "FR/DE/IT multilingual retrieval coverage",
+    "independent OpenCaseLaw retrieval baseline (retrieval gate, frozen 187b0e54...): authority recall per query language (FR/DE/IT top-50, >=1-of-set), governing-norm retrievability, known-counter recall, independently verified limiting-marker evidence, source validity, alias-duplicate structure, malformed-id detection",
+    "retrieval latency: per-search < 30s and 24-search live pass < 240s (frozen budgets; the live pass measured 256.827s and failed)",
+    "cached reproducibility: offline replay of the live pass must be byte-identical (raw sha256 + ordered id list)"
   ],
   "harness": {
     "path": "evaluation/reality_gate",
@@ -107,5 +159,5 @@
     "automated": "python -m evaluation.reality_gate.run_benchmark --evidence-dir <product reality_check dir> ... ; must be GREEN on a product's own live packet before the human gate can be considered. Exit 2 = environment/empty-input error (no record emitted).",
     "human": "Map usefulness remains a jurist product gate: branch/exception discovery, structural comprehension, confidence about contrary authority, preference over answer+ranked list."
   },
-  "next_recommendation": "CONTINUE. The frozen benchmark was re-executed on the current accepted packet (run 38934722443) and falsifies the fresh BJR leg's authority base (0 of 5 frozen direct-TF BJR authorities cited) while the producer's own gates pass it. Concrete next-cycle purpose under the SAME v49 question: re-execute against the next accepted product packet and check whether the BJR answer's citation set recovers at least one frozen direct-TF authority; the product lane's exit gate stays closed until the four-question benchmark is reliably green without weakening truth/authority/language/latency gates. Do not reopen 174k/global-map research."
+  "next_recommendation": "CONTINUE under the same v49 question. Run 38939239917 froze (187b0e54..., before execution) and executed the lane's first independent retrieval/counter-authority benchmark: FAIL overall (12 falsifying failures preserved). The discriminating result for Product: the frozen controlling authorities ARE reachable from OpenCaseLaw (German plain-query top-50 hits them at ranks 2-23; all five BJR authorities are present in the product's own accepted query_cache via expansion queries), yet the French and Italian plain-query baselines retrieve ZERO of them and the fresh accepted BJR leg cites none — so the BJR 0/5 failure is candidate-selection/answer-synthesis plus French-path expansion reliance, not corpus unreachability; and the raw result pages carry same-decision dual-docket duplicates plus malformed scraped ids, so dedupe/id sanitation are load-bearing. Concrete next-cycle purpose: when Product publishes a new accepted packet, re-run the frozen reality benchmark (BJR citation recovery is the headline) and re-run this retrieval benchmark from cache (fresh live pass only if the retrieval stack changed), checking FR/IT authority recall and retrieval-pass latency against the same frozen budgets. Do not weaken the 240s pass budget or the 300s product budget; do not reopen 174k/global-map research."
 }
