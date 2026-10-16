@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urlparse
 
@@ -310,8 +311,42 @@ def transport_ok(spec: dict, queries: list[dict]) -> dict:
                 n_queries=len(queries), failures=failed)
 
 
-def search_latency(spec: dict, queries: list[dict]) -> dict:
+#: The only pass-A mode under which wall-clock latency is a measurement at all.
+#:
+#: REPLAY/LIVE SEPARATION (cycle 38945976309).  Content gates may legitimately be
+#: satisfied from the committed response cache: replaying the same raw bytes is a
+#: reproducibility check, and it is what makes this benchmark re-runnable without
+#: network.  Wall-clock latency is NOT such a property.  A cached replay measures
+#: the disk, so before this rule the recorded negative finding
+#: ``latency::full_pass_under_budget`` FAIL (256.827s >= 240s) silently became a
+#: PASS on a plain ``--offline`` re-run of the SAME record's data, with no gate
+#: reporting the substitution.  That is a false green on a claim-bearing gate and
+#: the exact re-run the cycle report recommends.  A latency gate may therefore
+#: only return a pass/fail verdict when pass A was a live pass; otherwise it is
+#: ``not_measurable`` with an explicit reason and is never counted as a pass.
+#: This changes no budget and no threshold; it only refuses to let a replay
+#: stand in for a measurement.
+LIVE_PASS_MODE = "live"
+
+
+def _pass_a_not_live(record: dict) -> str:
+    """Reason string when pass A was not a live pass (empty string when it was)."""
+    mode = record.get("pass_a_mode")
+    if mode == LIVE_PASS_MODE:
+        return ""
+    return (
+        f"pass_a_mode={mode!r} is not {LIVE_PASS_MODE!r}: wall-clock latency is only "
+        "measurable on a live pass; a cached replay measures the disk. Re-run the "
+        "live pass (or --rescore the live record) to obtain a latency verdict."
+    )
+
+
+def search_latency(spec: dict, queries: list[dict], record: dict | None = None) -> dict:
     budget = float(spec["latency_budgets"]["per_search_seconds"])
+    if record is not None:
+        reason = _pass_a_not_live(record)
+        if reason:
+            return _nm("latency::search_under_budget", reason)
     latencies = [q["latency_seconds"] for q in queries
                  if q.get("status") == 200 and isinstance(q.get("latency_seconds"), (int, float))]
     if not latencies:
@@ -324,6 +359,9 @@ def search_latency(spec: dict, queries: list[dict]) -> dict:
 
 def full_pass_latency(spec: dict, record: dict) -> dict:
     budget = float(spec["latency_budgets"]["full_pass_seconds"])
+    reason = _pass_a_not_live(record)
+    if reason:
+        return _nm("latency::full_pass_under_budget", reason)
     wall = record.get("pass_a_wall_seconds")
     if wall is None:
         return _nm("latency::full_pass_under_budget", "record carries no live-pass wall time")
@@ -392,7 +430,7 @@ def evaluate(spec: dict, record: dict) -> dict:
 
     global_gates = [
         transport_ok(spec, queries),
-        search_latency(spec, queries),
+        search_latency(spec, queries, record),
         full_pass_latency(spec, record),
         reproducible(spec, record),
     ]
@@ -423,3 +461,65 @@ def verdict_sha256(verdict: dict) -> str:
     payload = json.dumps(verdict, ensure_ascii=False, sort_keys=True,
                          separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
+
+
+# --------------------------------------------------------------------------- #
+# record-level latency plausibility (cycle 38945976309)
+# --------------------------------------------------------------------------- #
+
+
+def record_latency_plausibility(record: dict) -> list[str]:
+    """Cross-checks a record's ``pass_a_wall_seconds`` against its own timestamps.
+
+    The replay/live rule above only binds what the record DECLARES. A record that
+    claims ``pass_a_mode: "live"`` while carrying a hand-edited wall time would
+    still be scored against the budget and could pass. This closes that gap
+    without touching the verdict: on a live sequential pass the wall time cannot
+    be shorter than the sum of the per-search latencies it contains, and cannot
+    exceed the interval between the pass start and the record's ``generated_at``.
+
+    Returns a list of problems; empty means the latency claim is self-consistent.
+    Deliberately a separate function, not a gate: adding a gate would change the
+    recorded 38939239917 verdict and destroy its byte-identity test.
+    """
+    problems: list[str] = []
+    if record.get("pass_a_mode") != LIVE_PASS_MODE:
+        return problems
+    wall = record.get("pass_a_wall_seconds")
+    if not isinstance(wall, (int, float)):
+        return [f"live record carries no numeric pass_a_wall_seconds ({wall!r})"]
+
+    latencies = [q["latency_seconds"] for q in record.get("queries") or []
+                 if isinstance(q.get("latency_seconds"), (int, float))
+                 and not q.get("from_cache")]
+    if latencies:
+        total = round(sum(latencies), 3)
+        if float(wall) + 1e-9 < total:
+            problems.append(
+                f"pass_a_wall_seconds {wall}s is shorter than the sum of the "
+                f"{len(latencies)} live search latencies it contains ({total}s); "
+                "a sequential live pass cannot be faster than its parts")
+
+    started, generated = record.get("started_at"), record.get("generated_at")
+    elapsed = _utc_span_seconds(started, generated)
+    if elapsed is not None and float(wall) > elapsed + 1e-6:
+        problems.append(
+            f"pass_a_wall_seconds {wall}s exceeds the whole record's own "
+            f"started_at->generated_at span ({elapsed}s)")
+    return problems
+
+
+def _utc_span_seconds(started: object, generated: object) -> float | None:
+    def parse(value: object) -> float | None:
+        text = str(value or "")
+        if not text:
+            return None
+        try:
+            return datetime.strptime(text, "%Y-%m-%dT%H:%M:%SZ").replace(
+                tzinfo=timezone.utc).timestamp()
+        except ValueError:
+            return None
+    a, b = parse(started), parse(generated)
+    if a is None or b is None or b < a:
+        return None
+    return round(b - a, 3)

@@ -1,0 +1,36 @@
+{
+  "schema": "lex-reality-gate-contract/1",
+  "direction_version": 49,
+  "frozen_at": "2026-10-16",
+  "frozen_before_any_execution_under_this_contract": true,
+  "purpose": "Gate thresholds that gate values directly but that frozen_benchmark.json does not carry. Before this contract these values were literals inside evaluation/reality_gate/gates.py, so a silent edit (120 -> 12, 0.35 -> 0.9, an answer-method string, an allowed source host) changed what the frozen reality benchmark accepts WITHOUT tripping FROZEN_SHA256. AGENTS.md forbids weakening a frozen benchmark; this contract is the mechanical guard for the thresholds the frozen spec could not reach.",
+  "what_did_not_change": "No value here differs from the literal it replaced. frozen_benchmark.json is untouched (sha256 ff57f556c3755ab663766618ab7abe763f251e7add70cd8ed964141846d063c8) and the recorded execution record results/evaluation/reality_benchmark/38934722443.json recomputes to a byte-identical verdict with gates.py reading these values instead of literals. This is added coverage, not a re-freeze and not a threshold change.",
+  "success_rule": "A gate threshold may only change together with a new digest pin for this file and a report entry naming the old and new value. Edit the literal in gates.py instead and the digest test fails.",
+  "answer": {
+    "expected_answer_method": "generative_audit_llm_v2",
+    "expected_adversarial_method": "independent_llm_adversarial_v2",
+    "min_prose_chars": 120
+  },
+  "source": {
+    "required_scheme": "https",
+    "allowed_host": "mcp.opencaselaw.ch"
+  },
+  "corruption": {
+    "repetition_ngram": 8,
+    "repetition_min_words": 60,
+    "repetition_max_share": 0.35,
+    "repeated_sentence_min_chars": 20,
+    "repeated_sentence_min_sentences": 5,
+    "repeated_sentence_min_repeats": 4,
+    "control_char_min_chars": 200,
+    "control_char_max_ratio": 0.01
+  },
+  "multilingual": {
+    "swiss_languages": ["fr", "de", "it"],
+    "min_swiss_languages": 2,
+    "require_query_language_present": true
+  },
+  "recall": {
+    "min_hits_of_frozen_set": 1
+  }
+}

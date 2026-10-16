@@ -16,6 +16,19 @@ from typing import Any
 from urllib.parse import urlparse
 
 from evaluation.query_map.harness import COUNTER_STATUSES
+from evaluation.reality_gate import gate_contract
+
+# Thresholds that decide pass/fail but are NOT carried by frozen_benchmark.json
+# now come from the digest-pinned GATE_CONTRACT.json instead of being literals
+# here, so editing them in this file does nothing and editing them anywhere
+# trips the pin. See evaluation/reality_gate/gate_contract.py.
+_CONTRACT = gate_contract.cached()
+_ANSWER = _CONTRACT["answer"]
+_SOURCE = _CONTRACT["source"]
+_CORRUPTION = _CONTRACT["corruption"]
+_MULTILINGUAL = _CONTRACT["multilingual"]
+#: the only pass rule recall uses: >= this many hits of the frozen set (>=1-of-set)
+MIN_RECALL_HITS = int(_CONTRACT["recall"]["min_hits_of_frozen_set"])
 
 # --------------------------------------------------------------------------- #
 # normalization (parity with the product's frozen reality gates)
@@ -71,21 +84,25 @@ def detect_corruption(prose: str) -> list[str]:
     words = norm.split()
     n = len(words)
 
-    # repetition loop: one 8-gram covering >35% of all 8-grams (min 60 words)
-    if n >= 60:
-        grams = [tuple(words[i:i + 8]) for i in range(n - 7)]
+    ngram = int(_CORRUPTION["repetition_ngram"])
+    # repetition loop: one n-gram covering more than
+    # ``repetition_max_share`` of all n-grams (min ``repetition_min_words``)
+    if n >= int(_CORRUPTION["repetition_min_words"]):
+        grams = [tuple(words[i:i + ngram]) for i in range(n - ngram + 1)]
         if grams:
             top = Counter(grams).most_common(1)[0]
-            if top[1] / len(grams) > 0.35:
+            if top[1] / len(grams) > float(_CORRUPTION["repetition_max_share"]):
                 reasons.append(
-                    f"repetition loop: 8-gram {top[0][:4]}... covers "
-                    f"{top[1]}/{len(grams)} of all 8-grams"
+                    f"repetition loop: {ngram}-gram {top[0][:4]}... covers "
+                    f"{top[1]}/{len(grams)} of all {ngram}-grams"
                 )
-    # repeated sentence: any sentence appearing >= 4 times (min 5 sentences)
-    sentences = [s.strip() for s in re.split(r"[.!?]+\s+", norm) if len(s.strip()) >= 20]
-    if len(sentences) >= 5:
+    # repeated sentence: a sentence repeated at least
+    # ``repeated_sentence_min_repeats`` times (min ``repeated_sentence_min_sentences``)
+    sentences = [s.strip() for s in re.split(r"[.!?]+\s+", norm)
+                 if len(s.strip()) >= int(_CORRUPTION["repeated_sentence_min_chars"])]
+    if len(sentences) >= int(_CORRUPTION["repeated_sentence_min_sentences"]):
         top_sentence = Counter(sentences).most_common(1)[0]
-        if top_sentence[1] >= 4:
+        if top_sentence[1] >= int(_CORRUPTION["repeated_sentence_min_repeats"]):
             reasons.append(
                 f"repeated sentence x{top_sentence[1]}: {top_sentence[0][:60]!r}"
             )
@@ -95,7 +112,8 @@ def detect_corruption(prose: str) -> list[str]:
     if re.search(r"[À-ÿ]{2,}", text) and re.search(r"[ÃÂ][\x80-ÿ]", text):
         reasons.append("utf-8-decoded-as-latin1 mojibake pattern")
     control = sum(1 for ch in text if ord(ch) < 32 and ch not in "\n\t")
-    if len(text) > 200 and control / len(text) > 0.01:
+    if (len(text) > int(_CORRUPTION["control_char_min_chars"])
+            and control / len(text) > float(_CORRUPTION["control_char_max_ratio"])):
         reasons.append(f"control-character ratio {control}/{len(text)}")
     return reasons
 
@@ -114,7 +132,8 @@ def bundle_structural(bundle: dict) -> dict:
     for d in bundle.get("decisions", []):
         u = str(d.get("canonical_url") or "")
         p = urlparse(u)
-        if p.scheme != "https" or p.hostname != "mcp.opencaselaw.ch":
+        if (p.scheme != _SOURCE["required_scheme"]
+                or p.hostname != _SOURCE["allowed_host"]):
             bad_sources.append(str(d.get("decision_id") or ""))
     unsupported_counters = []
     for d in bundle.get("decisions", []):
@@ -232,8 +251,9 @@ def evaluate_required_hits(required: list[str], found: set[str], kind: str,
     missing = sorted(set(required) - found)
     return _out(
         f"recall::{kind}_controlling_authority",
-        bool(hits),
-        "" if hits else f"missing {kind} of frozen controlling authority: {missing}",
+        len(hits) >= MIN_RECALL_HITS,
+        "" if len(hits) >= MIN_RECALL_HITS
+        else f"missing {kind} of frozen controlling authority: {missing}",
         required=required, hits=hits, missing=missing,
     )
 
@@ -251,6 +271,9 @@ def evaluate_structural_from_report(report: dict) -> list[dict]:
     errors = report.get("validation_errors") or []
     prose = str(report.get("answer_prose") or "")
     cited = report.get("cited_decision_ids") or []
+    expected_answer = _ANSWER["expected_answer_method"]
+    expected_adversarial = _ANSWER["expected_adversarial_method"]
+    min_chars = int(_ANSWER["min_prose_chars"])
     out = [
         _out("structural::bundle_validation_clean", not errors,
              "" if not errors else f"bundle validation errors: {errors}",
@@ -259,11 +282,11 @@ def evaluate_structural_from_report(report: dict) -> list[dict]:
              "" if report.get("answer_status") == "ready"
              else f"answer status {report.get('answer_status')!r} != ready"),
         _out("structural::answer_method",
-             report.get("answer_method") == "generative_audit_llm_v2",
-             "" if report.get("answer_method") == "generative_audit_llm_v2"
+             report.get("answer_method") == expected_answer,
+             "" if report.get("answer_method") == expected_answer
              else f"unexpected answer method: {report.get('answer_method')}"),
-        _out("structural::prose_min_length", len(prose) >= 120,
-             "" if len(prose) >= 120 else "answer prose too short"),
+        _out("structural::prose_min_length", len(prose) >= min_chars,
+             "" if len(prose) >= min_chars else "answer prose too short"),
         _out("structural::citations_nonempty", bool(cited),
              "" if cited else "answer cites nothing"),
         _out("structural::provider_clean",
@@ -271,8 +294,8 @@ def evaluate_structural_from_report(report: dict) -> list[dict]:
              "" if report.get("provider_error") in (None, "")
              else f"provider error: {report.get('provider_error')}"),
         _out("structural::adversarial_method",
-             report.get("adversarial_method") == "independent_llm_adversarial_v2",
-             "" if report.get("adversarial_method") == "independent_llm_adversarial_v2"
+             report.get("adversarial_method") == expected_adversarial,
+             "" if report.get("adversarial_method") == expected_adversarial
              else f"adversarial method: {report.get('adversarial_method')}"),
         _out("structural::adversarial_clean",
              report.get("adversarial_error") in (None, ""),
@@ -425,9 +448,11 @@ def evaluate_multilingual_coverage(bundles: list[dict]) -> list[dict]:
         langs = Counter(str(d.get("language") or "?") for d in b.get("decisions", []))
         n = sum(langs.values())
         qlang_n = langs.get(qlang, 0)
-        n_swiss_langs = sum(1 for k in langs if k in ("fr", "de", "it"))
+        swiss = set(_MULTILINGUAL["swiss_languages"])
+        n_swiss_langs = sum(1 for k in langs if k in swiss)
         label = b.get("_label", q[:40])
-        ok = n > 0 and qlang_n > 0 and n_swiss_langs >= 2
+        min_swiss = int(_MULTILINGUAL["min_swiss_languages"])
+        ok = n > 0 and qlang_n > 0 and n_swiss_langs >= min_swiss
         out.append(_out(
             f"multilingual::{label}",
             ok,

@@ -5,15 +5,18 @@ These tests pin the benchmark itself: they fail if the frozen spec is
 tampered with (digest pin) and they prove every gate CAN fail — a gate that
 cannot fail is not a benchmark.  Pure standard library + pytest.
 """
+import copy
+import hashlib
 import json
 from pathlib import Path
 
 import pytest
 
-from evaluation.reality_gate import frozen, gates
+from evaluation.reality_gate import frozen, gate_contract, gates, run_benchmark
 
 SPEC = frozen.load_frozen()
 QUESTIONS = frozen.question_by_slug(SPEC)
+REPO = Path(__file__).resolve().parents[2]
 
 # --------------------------------------------------------------------------- #
 # freeze discipline
@@ -630,3 +633,223 @@ def test_current_accepted_packet_leg_verdicts_pinned():
                         if g["gate"] == "recall::citation_controlling_authority")
     assert petty_recall["measured"]["hits"] == ["bger_4A_177_2017"]
     assert petty_recall["measured"]["missing"] == ["bger_4A_228_2015"]
+
+
+# --------------------------------------------------------------------------- #
+# gate-contract digest coverage (cycle 38945976309)
+#
+# frozen_benchmark.json pins the questions, phrases, authority sets, the answer
+# language set and the 300 s budget.  These gate values were NOT in it: they were
+# literals in gates.py, so a silent edit changed what the frozen benchmark
+# accepted without tripping FROZEN_SHA256.  GATE_CONTRACT.json gives them their
+# own digest.
+# --------------------------------------------------------------------------- #
+
+
+def test_gate_contract_digest_pin():
+    raw = gate_contract._PATH.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == gate_contract.GATE_CONTRACT_SHA256
+
+
+def test_gate_contract_values_equal_the_literals_they_replaced():
+    """No threshold moved; this is added coverage, not a relaxation."""
+    c = gate_contract.load_contract()
+    assert c["answer"]["expected_answer_method"] == "generative_audit_llm_v2"
+    assert c["answer"]["expected_adversarial_method"] == "independent_llm_adversarial_v2"
+    assert c["answer"]["min_prose_chars"] == 120
+    assert c["source"] == {"required_scheme": "https",
+                           "allowed_host": "mcp.opencaselaw.ch"}
+    assert c["corruption"] == {"repetition_ngram": 8, "repetition_min_words": 60,
+                               "repetition_max_share": 0.35,
+                               "repeated_sentence_min_chars": 20,
+                               "repeated_sentence_min_sentences": 5,
+                               "repeated_sentence_min_repeats": 4,
+                               "control_char_min_chars": 200,
+                               "control_char_max_ratio": 0.01}
+    assert c["multilingual"]["swiss_languages"] == ["fr", "de", "it"]
+    assert c["multilingual"]["min_swiss_languages"] == 2
+    assert c["recall"]["min_hits_of_frozen_set"] == 1
+
+
+def test_gates_read_their_thresholds_from_the_contract_not_from_literals():
+    assert gates.MIN_RECALL_HITS == 1
+
+    def report(n_chars: int) -> dict:
+        return {"answer_status": "ready",
+                "answer_method": gate_contract.load_contract()["answer"]["expected_answer_method"],
+                "answer_prose": "x" * n_chars, "cited_decision_ids": ["d1"],
+                "provider_error": None,
+                "adversarial_method": gate_contract.load_contract()["answer"]["expected_adversarial_method"],
+                "adversarial_error": None}
+
+    # prose_min_length still separates at exactly the contract's 120 chars
+    short = gates.evaluate_structural_from_report(report(119))
+    long = gates.evaluate_structural_from_report(report(120))
+    assert short[3]["gate"] == long[3]["gate"] == "structural::prose_min_length"
+    assert short[3]["passed"] is False and long[3]["passed"] is True
+
+    # the allowed source host still comes from the contract
+    from urllib.parse import urlparse
+    host = gate_contract.load_contract()["source"]["allowed_host"]
+    assert urlparse(f"https://{host}/entscheid/x").hostname == host
+
+
+def test_gate_contract_tamper_is_refused(tmp_path, monkeypatch):
+    contract = gate_contract.load_contract()
+    contract["answer"]["min_prose_chars"] = 12          # the weakening edit
+    tmp = tmp_path / "GATE_CONTRACT.json"
+    tmp.write_text(json.dumps(contract, indent=2), encoding="utf-8")
+    monkeypatch.setattr(gate_contract, "_PATH", tmp)
+    monkeypatch.setattr(gate_contract, "_CACHED", None)
+    with pytest.raises(gate_contract.GateContractError) as excinfo:
+        gate_contract.load_contract()
+    assert "digest mismatch" in str(excinfo.value)
+
+
+# --------------------------------------------------------------------------- #
+# execution-record integrity (cycle 38945976309)
+#
+# The retrieval gate recomputes its stored verdict byte-identically; this lane
+# had no equivalent, so a hand-edited record passed every test.  These tests
+# close that hole and prove each tamper class is detected.
+# --------------------------------------------------------------------------- #
+
+
+RECORDS_DIR = REPO / "results" / "evaluation" / "reality_benchmark"
+COMMITTED_RECORDS = sorted(RECORDS_DIR.glob("*.json"))
+
+
+def test_execution_records_exist():
+    assert COMMITTED_RECORDS, "no committed reality-benchmark execution record"
+
+
+@pytest.mark.parametrize("path", COMMITTED_RECORDS, ids=lambda p: p.name)
+def test_committed_execution_record_is_internally_consistent(path):
+    problems = run_benchmark.check_record_integrity(run_benchmark.load_record(path), SPEC)
+    assert problems == [], problems
+
+
+def _tampered_record() -> dict:
+    return copy.deepcopy(run_benchmark.load_record(RECORDS_DIR / "38934722443.json"))
+
+
+def _flip_first_failure(record: dict, gate_name: str) -> bool:
+    for entry in record["artifacts"]:
+        for g in entry.get("gates") or []:
+            if g["gate"] == gate_name and g["passed"] is False:
+                g["passed"] = True
+                g["detail"] = ""
+                entry["failed_gates"] = [x for x in entry["failed_gates"]
+                                         if x != gate_name]
+                entry["artifact_passed"] = not entry["failed_gates"]
+                return True
+    return False
+
+
+def test_record_tamper_flipping_a_latency_failure_to_a_pass_is_detected():
+    rec = _tampered_record()
+    assert _flip_first_failure(rec, "latency::under_budget") is True
+    problems = run_benchmark.check_record_integrity(rec, SPEC)
+    assert problems, "a flipped latency verdict must be detected"
+    assert any("its own measurements say" in p and "latency::under_budget" in p
+               for p in problems), problems
+
+
+def test_record_tamper_flipping_an_authority_recall_failure_is_detected():
+    rec = _tampered_record()
+    assert _flip_first_failure(rec, "recall::citation_controlling_authority") is True
+    problems = run_benchmark.check_record_integrity(rec, SPEC)
+    assert any("hit(s) of" in p for p in problems), problems
+
+
+def test_record_tamper_flipping_a_truth_failure_is_detected():
+    rec = _tampered_record()
+    assert _flip_first_failure(rec, "truth::art257d2_end_of_month") is True
+    problems = run_benchmark.check_record_integrity(rec, SPEC)
+    assert any("matched phrase" in p for p in problems), problems
+
+
+@pytest.mark.parametrize("label,mutate", [
+    ("dropped_artifact", lambda r: r["artifacts"].pop()),
+    ("inflated_n_evaluated", lambda r: r.__setitem__("n_evaluated", 99)),
+    ("foreign_frozen_digest", lambda r: r.__setitem__("frozen_sha256", "0" * 64)),
+    ("overall_pass_flipped", lambda r: r.__setitem__("overall_pass", True)),
+    ("excluded_artifact_gains_a_verdict",
+     lambda r: r["artifacts"][0].__setitem__("evaluation_scope", "full_match")),
+])
+def test_record_tamper_classes_are_detected(label, mutate):
+    rec = _tampered_record()
+    mutate(rec)
+    assert run_benchmark.check_record_integrity(rec, SPEC), label
+
+
+def test_record_tamper_blanking_a_failure_detail_is_detected():
+    rec = _tampered_record()
+    n = 0
+    for entry in rec["artifacts"]:
+        for g in entry.get("gates") or []:
+            if g["passed"] is False:
+                g["detail"] = ""
+                n += 1
+    assert n > 0, "fixture record carries no failing gate to tamper with"
+    assert run_benchmark.check_record_integrity(rec, SPEC)
+
+
+def test_record_integrity_check_declares_what_it_cannot_check():
+    """Claim ceiling: gates without a measured payload stay on trust."""
+    coverage = run_benchmark.gate_arithmetic_coverage()
+    assert any("recall" in c for c in coverage)
+    assert any("latency" in c for c in coverage)
+    assert not any("counter_classifications" in c for c in coverage), (
+        "structural bundle gates carry no measured payload and are NOT re-derived "
+        "from the record; keep them out of the coverage claim")
+
+
+def test_check_record_integrity_declares_its_own_untamperable_classes():
+    """Self-audit: the check must name what it cannot catch.
+
+    Three tamper classes were found by adversarial probing of this cycle's own
+    check. If the list ever shrinks without a test failing, a reader would
+    believe the check is stronger than it is.
+    """
+    gaps = run_benchmark.check_record_integrity_known_gaps()
+    assert len(gaps) == 3, gaps
+    assert "deleting_an_artifact_and_renumbering_every_count" in gaps
+    assert "flipping_a_structural_gate_failure_to_a_pass" in gaps
+    assert "rewriting_a_gate_measured_payload_to_match_a_flipped_verdict" in gaps
+    # and each really is undetectable, so the list is not self-flattering
+    spec = frozen.load_frozen()
+    rec = copy.deepcopy(run_benchmark.load_record(RECORDS_DIR / "38934722443.json"))
+    for entry in rec["artifacts"]:
+        for g in entry.get("gates") or []:
+            if g["gate"].startswith("structural::") and g["passed"] is False:
+                g["passed"], g["detail"] = True, ""
+                entry["failed_gates"] = [x for x in entry["failed_gates"]
+                                         if not x.startswith("structural::")]
+                entry["artifact_passed"] = not entry["failed_gates"]
+                break
+    assert run_benchmark.check_record_integrity(rec, spec) == []
+
+
+def test_bundle_validation_clean_is_re_derived_from_its_measurements():
+    """The one structural gate that does carry a payload is now covered.
+
+    Synthesised, because no committed record contains a bundle_validation_clean
+    failure — it passes everywhere on the accepted packet, so a test that waited
+    for one would silently never run.
+    """
+    contract = "structural::bundle_validation_clean"
+    assert any(contract in c for c in run_benchmark.gate_arithmetic_coverage())
+    spec = frozen.load_frozen()
+    rec = copy.deepcopy(run_benchmark.load_record(RECORDS_DIR / "38934722443.json"))
+    entry = next(e for e in rec["artifacts"] if e.get("gates"))
+    for g in entry["gates"]:
+        if g["gate"] == contract:
+            assert g["passed"] is True
+            g["measured"] = {"validation_errors": ["answer cites unknown id dX"]}
+            break
+    else:
+        pytest.fail(f"{contract} not present in the fixture record")
+    problems = run_benchmark.check_record_integrity(rec, spec)
+    assert any(contract in p for p in problems), problems
+    assert any("bundle validation errors" in p for p in problems), problems

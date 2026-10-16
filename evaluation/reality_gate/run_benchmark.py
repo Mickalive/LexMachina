@@ -37,6 +37,7 @@ if str(_LANE_ROOT) not in sys.path:
     sys.path.insert(0, str(_LANE_ROOT))
 
 from evaluation.reality_gate import frozen  # noqa: E402
+from evaluation.reality_gate import gate_contract as _gate_contract  # noqa: E402
 from evaluation.reality_gate import gates  # noqa: E402
 
 
@@ -175,6 +176,211 @@ def _excluded_not_measurable(mode: str, slug: str | None, questions: dict[str, d
     add("recall::citation_controlling_authority")
     add("recall::retrieval_controlling_authority")
     return names, reasons
+
+
+def _gate_arithmetic_problems(gate: str, passed, measured: dict, spec: dict) -> list[str]:
+    """Re-derive ``passed`` from the gate's OWN ``measured`` payload.
+
+    ``measured`` is written by the gate at the moment it decides, so the
+    arithmetic is recoverable from the stored record alone — no ACCEPTED product
+    mount needed.  This is what makes a hand-edited verdict detectable: flipping
+    ``latency::under_budget`` to ``true`` leaves ``total_seconds: 463.773`` and
+    ``budget_seconds: 300.0`` sitting right there in the record.
+
+    Only gates whose pass rule is a pure function of ``measured`` are covered;
+    the uncovered ones are returned by :func:`gate_arithmetic_coverage` so the
+    check's own claim ceiling stays visible instead of being assumed.
+    """
+    bad: list[str] = []
+    m = measured or {}
+
+    def rule(ok: bool, why: str) -> None:
+        if passed is not None and bool(passed) != ok:
+            bad.append(f"{gate}: recorded passed={passed!r} but {why}")
+
+    if gate == "latency::under_budget" and {"total_seconds", "budget_seconds"} <= set(m):
+        total, budget = m["total_seconds"], m["budget_seconds"]
+        rule(float(total) < float(budget),
+             f"its own measurements say {total}s vs {budget}s budget")
+    elif gate == "corruption::clean" and "corruption_reasons" in m:
+        rule(not m["corruption_reasons"],
+             f"its own measurements list corruption reasons {m['corruption_reasons']}")
+    elif gate.startswith("recall::") and {"required", "hits"} <= set(m):
+        if m["required"]:
+            rule(len(m["hits"]) >= gates.MIN_RECALL_HITS,
+                 f"its own measurements record {len(m['hits'])} hit(s) of "
+                 f"{len(m['required'])} required")
+        else:
+            rule(True, "no frozen set")
+    elif gate.startswith("truth::") and "matched_phrase" in m:
+        rule(m["matched_phrase"] is not None,
+             f"its own measurements record no matched phrase ({m['matched_phrase']!r})")
+    elif gate.startswith("truth::") and "matched_absent_phrase" in m:
+        rule(m["matched_absent_phrase"] is None,
+             f"its own measurements record a forbidden phrase "
+             f"({m['matched_absent_phrase']!r})")
+    elif gate.startswith("multilingual::") and {"n_decisions", "n_swiss_languages"} <= set(m):
+        qlang_n = int((m.get("languages") or {}).get(m.get("query_language"), 0))
+        min_swiss = int(_gate_contract.cached()["multilingual"]["min_swiss_languages"])
+        rule(int(m["n_decisions"]) > 0 and qlang_n > 0
+             and int(m["n_swiss_languages"]) >= min_swiss,
+             f"its own measurements say n={m['n_decisions']} query_language_n={qlang_n} "
+             f"n_swiss_languages={m['n_swiss_languages']}")
+    elif gate == "language::dominant_in_accepted" and m.get("dominant") is None:
+        rule(False, "its own measurements say the answer language is undetectable")
+    elif gate == "structural::bundle_validation_clean" and "validation_errors" in m:
+        rule(not m["validation_errors"],
+             f"its own measurements list bundle validation errors "
+             f"{m['validation_errors'][:2]}")
+    return bad
+
+
+def gate_arithmetic_coverage() -> list[str]:
+    """Gate ids whose stored verdict can be re-derived from their own ``measured``.
+
+    Everything else in the record is carried on trust until the benchmark is
+    re-executed against the ACCEPTED product mount; this list is the honest
+    statement of how far the mount-free integrity check reaches.
+    """
+    return ["latency::under_budget", "corruption::clean", "recall::*_controlling_authority",
+            "truth::* (phrase and phrase_absent)", "multilingual::*",
+            "structural::bundle_validation_clean",
+            "language::dominant_in_accepted (undetectable-language case)"]
+
+
+def check_record_integrity_known_gaps() -> list[str]:
+    """Tamper classes this check demonstrably does NOT catch (self-audited).
+
+    Found by adversarial probing this cycle, not by inspection. Each one is a
+    real limitation, so they are stated rather than left for a reader to
+    discover. ``tests/evaluation/test_reality_gate.py`` asserts this list so it
+    cannot quietly shrink.
+
+    1. Deleting a whole artifact and renumbering every count passes: the check is
+       self-consistency, not provenance. Catching it needs the evidence tree, so
+       only a re-execution against the ACCEPTED product mount can.
+    2. Flipping a ``structural::*`` failure to a pass passes: those gates carry
+       no ``measured`` payload, so there is nothing in the record to contradict
+       the flipped verdict. This matters — six of the recorded failures in
+       38934722443 are ``structural::counter_classifications_supported``.
+    3. Rewriting a gate's own ``measured`` values alongside its flipped verdict
+       passes: the measurements themselves are carried on trust. The check
+       proves internal consistency, not measurement authenticity.
+    """
+    return [
+        "deleting_an_artifact_and_renumbering_every_count",
+        "flipping_a_structural_gate_failure_to_a_pass",
+        "rewriting_a_gate_measured_payload_to_match_a_flipped_verdict",
+    ]
+
+
+def check_record_integrity(record: dict, spec: dict | None = None) -> list[str]:
+    """Structural audit of a STORED execution record (cycle 38945976309).
+
+    The reality benchmark has no equivalent of the retrieval gate's
+    ``--rescore`` byte-identity test, so before this function a stored record
+    could be hand-edited — one ``passed`` flipped to ``true``, one entry removed
+    from ``failed_gates`` — and every test in the lane would still pass, because
+    the tests never re-read the record.  This is the gate-side answer: it does
+    not recompute the verdicts from the evidence (that needs the ACCEPTED
+    product mount), but it proves the record is internally consistent and was
+    produced by the pinned frozen spec.
+
+    Returns a list of human-readable problems; empty means consistent.
+    """
+    problems: list[str] = []
+
+    def want(cond: bool, msg: str) -> None:
+        if not cond:
+            problems.append(msg)
+
+    want(record.get("frozen_sha256") == frozen.FROZEN_SHA256,
+         f"record frozen_sha256 {record.get('frozen_sha256')!r} != pinned "
+         f"{frozen.FROZEN_SHA256!r}: the record was not produced by this frozen spec")
+    if spec is not None:
+        want(record.get("frozen_direction_version") == spec.get("direction_version"),
+             "record direction_version disagrees with the frozen spec")
+        want(record.get("latency_budget_seconds") == spec.get("latency_budget_seconds"),
+             "record latency budget disagrees with the frozen spec")
+
+    artifacts = record.get("artifacts") or []
+    want(record.get("n_artifacts") == len(artifacts),
+         f"n_artifacts {record.get('n_artifacts')} != {len(artifacts)} recorded artifacts")
+
+    evaluated = excluded = unreadable = unmatched_kind = 0
+    for entry in artifacts:
+        path = str(entry.get("artifact") or "?").rsplit("/", 1)[-1]
+        if entry.get("kind") == "unmatched_kind":
+            unmatched_kind += 1
+        if entry.get("error"):
+            unreadable += 1
+        if entry.get("evaluation_scope") == "none":
+            # every non-evaluated record carries scope "none" (fatal stub,
+            # roll-up, unreadable file or unmatched shape) and no verdict
+            excluded += 1
+            want(entry.get("gates") in ([], None),
+                 f"{path}: excluded artifact carries gate outcomes")
+            continue
+
+        evaluated += 1
+        outcomes = entry.get("gates") or []
+        want(bool(outcomes), f"{path}: evaluated artifact carries no gate outcomes")
+        names = [g.get("gate") for g in outcomes]
+        want(len(names) == len(set(names)), f"{path}: duplicate gate ids in one artifact")
+
+        failed = [g["gate"] for g in outcomes if g.get("passed") is False]
+        n_m = [g["gate"] for g in outcomes if g.get("passed") is None]
+        want(sorted(failed) == sorted(entry.get("failed_gates") or []),
+             f"{path}: failed_gates {entry.get('failed_gates')} does not match the "
+             f"gate outcomes {failed}")
+        want(sorted(n_m) == sorted(entry.get("not_measurable_gates") or []),
+             f"{path}: not_measurable_gates {entry.get('not_measurable_gates')} does "
+             f"not match the gate outcomes {n_m}")
+        for g in outcomes:
+            gate, passed, detail = g.get("gate"), g.get("passed"), str(g.get("detail") or "")
+            if passed is None:
+                want(detail.startswith("not_measurable: "),
+                     f"{path}/{gate}: not_measurable without a not_measurable reason")
+            elif passed is True:
+                want(detail == "",
+                     f"{path}/{gate}: passing gate carries failure prose {detail[:60]!r}")
+            elif passed is False:
+                want(detail != "",
+                     f"{path}/{gate}: failing gate carries no failure detail")
+            else:
+                problems.append(f"{path}/{gate}: passed is {passed!r}, not True/False/None")
+            for problem in _gate_arithmetic_problems(gate, passed, g.get("measured") or {},
+                                                     spec or {}):
+                problems.append(f"{path}/{problem}")
+        want(entry.get("artifact_passed") == (not failed),
+             f"{path}: artifact_passed {entry.get('artifact_passed')!r} contradicts "
+             f"failed gates {failed}")
+
+    want(record.get("n_evaluated") == evaluated,
+         f"n_evaluated {record.get('n_evaluated')} != {evaluated} evaluated artifacts")
+    want(record.get("n_excluded_no_verdict") == excluded,
+         f"n_excluded_no_verdict {record.get('n_excluded_no_verdict')} != {excluded} "
+         "records carrying evaluation_scope=none")
+    want(record.get("n_unreadable") == unreadable,
+         f"n_unreadable {record.get('n_unreadable')} != {unreadable} records carrying an error")
+    # NB the record's own definition: n_unmatched = all records minus evaluated
+    # ones, which for every recorded run so far EQUALS n_excluded_no_verdict.
+    # Checked against that definition, not against a count of unmatched_kind
+    # records, which is a different (smaller) set.
+    want(record.get("n_unmatched") == len(artifacts) - evaluated,
+         f"n_unmatched {record.get('n_unmatched')} != {len(artifacts)} - {evaluated}")
+    want(record.get("n_full_match_evaluated", 0)
+         <= record.get("n_evaluated", 0) <= record.get("n_artifacts", 0),
+         "n_evaluated does not lie between n_full_match_evaluated and n_artifacts")
+    all_failed = sorted(f for e in artifacts
+                        for f in (e.get("failed_gates") or []))
+    want(record.get("overall_pass") == (not all_failed),
+         "overall_pass contradicts the recorded failed gates")
+    return problems
+
+
+def load_record(path: str | Path) -> dict:
+    return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
 def evaluate_artifacts(artifacts: list[dict], spec: dict) -> dict:

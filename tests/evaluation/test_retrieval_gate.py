@@ -18,7 +18,8 @@ from pathlib import Path
 
 import pytest
 
-from evaluation.retrieval_gate import client, frozen, gates, run_retrieval_benchmark
+from evaluation.retrieval_gate import (client, frozen, gates, id_hygiene,
+                                       run_retrieval_benchmark)
 
 REPO = Path(__file__).resolve().parents[2]
 SPEC = frozen.load_frozen()
@@ -226,6 +227,7 @@ def make_record(spec: dict, *, wall: float = 50.0) -> dict:
         "run_id": "fixture",
         "frozen_sha256": frozen.FROZEN_SHA256,
         "started_at": "2026-10-16T17:40:00Z",
+        "pass_a_mode": gates.LIVE_PASS_MODE,
         "pass_a_wall_seconds": wall,
         "pass_b_wall_seconds": 1.0,
         "transport": {"n_queries": len(queries),
@@ -329,6 +331,76 @@ def test_gate_per_search_latency_can_fail():
 def test_gate_full_pass_latency_can_fail():
     rec = make_record(SPEC, wall=300.0)
     assert "latency::full_pass_under_budget" in _failed(rec)
+
+
+# --------------------------------------------------------------------------- #
+# replay/live separation (cycle 38945976309)
+#
+# A cached replay legitimately re-measures CONTENT (same raw bytes) but it does
+# not measure wall-clock time.  Before this guard a plain ``--offline`` re-run of
+# the SAME committed data turned the recorded falsifying failure
+# ``latency::full_pass_under_budget`` (256.827s >= 240s) into a PASS, because
+# ``pass_a_wall_seconds`` then held the cache-read wall time (~0.07s) and no gate
+# looked at ``pass_a_mode``.  These tests pin the closed hole.
+# --------------------------------------------------------------------------- #
+
+
+def test_cached_replay_cannot_report_a_latency_pass():
+    rec = make_record(SPEC, wall=0.07)
+    rec["pass_a_mode"] = "offline_replay"
+    for q in rec["queries"]:           # replayed rows carry no latency at all
+        q["from_cache"] = True
+        q["latency_seconds"] = None
+    verdict = gates.evaluate(SPEC, rec)
+    for gate in ("latency::search_under_budget", "latency::full_pass_under_budget"):
+        assert gate in verdict["not_measurable_gates"], verdict
+        assert gate not in verdict["failed_gates"]
+        assert gate not in [g["gate"] for g in verdict["gates"] if g["passed"] is True]
+        reason = verdict["not_measurable_reasons"][gate]
+        assert "pass_a_mode" in reason and "live" in reason, reason
+
+
+def test_cached_replay_does_not_hide_a_recorded_latency_failure():
+    """The exact regression: replay of a slow live pass must not read green."""
+    slow = make_record(SPEC, wall=256.827)
+    live_verdict = gates.evaluate(SPEC, slow)
+    assert "latency::full_pass_under_budget" in live_verdict["failed_gates"]
+
+    replay = copy.deepcopy(slow)
+    replay["pass_a_mode"] = "offline_replay"
+    replay["pass_a_wall_seconds"] = 0.07
+    replay_verdict = gates.evaluate(SPEC, replay)
+    assert "latency::full_pass_under_budget" not in replay_verdict["failed_gates"]
+    # ...and not a pass either: the verdict becomes not-measurable, never green.
+    assert "latency::full_pass_under_budget" in replay_verdict["not_measurable_gates"]
+
+
+def test_record_without_declared_pass_mode_is_not_measurable_for_latency():
+    """Conservative default: an undeclared mode cannot certify a latency verdict."""
+    rec = make_record(SPEC, wall=1.0)
+    rec.pop("pass_a_mode")
+    verdict = gates.evaluate(SPEC, rec)
+    assert "latency::full_pass_under_budget" in verdict["not_measurable_gates"]
+    assert "latency::full_pass_under_budget" not in verdict["failed_gates"]
+
+
+def test_content_gates_still_work_from_a_cached_replay():
+    """The guard is scoped: replay must NOT invalidate the content gates."""
+    rec = make_record(SPEC, wall=0.07)
+    rec["pass_a_mode"] = "offline_replay"
+    for q in rec["queries"]:
+        q["from_cache"] = True
+        q["latency_seconds"] = None
+    verdict = gates.evaluate(SPEC, rec)
+    assert verdict["overall_pass"] is True, verdict["failed_gates"]
+    live = gates.evaluate(SPEC, make_record(SPEC, wall=1.0))
+    content = lambda v: sorted(g["gate"] for g in v["gates"]  # noqa: E731
+                               if g["passed"] is True
+                               and not g["gate"].startswith("latency::"))
+    # identical content verdicts to the live run: only the two latency gates differ
+    assert content(verdict) == content(live)
+    assert content(verdict)                                   # not vacuously empty
+    assert len(content(verdict)) == live["n_passed"] - 2
 
 
 def test_gate_cached_reproducibility_can_fail():
@@ -507,3 +579,98 @@ def test_verdict_recompute_log_documents_ordering_fix():
     assert "ordering only" in " ".join(last["changed_fields"]).lower()
     assert last["old_verdict_sha256"] != last["new_verdict_sha256"]
     assert "PYTHONHASHSEED" in last["reason"]
+
+
+# --------------------------------------------------------------------------- #
+# id hygiene (cycle 38945976309)
+#
+# A post-freeze measurement, deliberately kept OUT of the frozen verdict: the
+# recorded 38939239917 verdict must stay byte-reproducible. It makes the lane
+# state's "malformed-id detection" claim true with provenance instead of by
+# assertion.
+# --------------------------------------------------------------------------- #
+
+
+def test_id_hygiene_flags_unresolved_placeholders_and_html_fragments():
+    assert id_hygiene.id_defects({"decision_id": "ge_gerichte_[pjdoc 15442]"}) \
+        == ["unresolved_placeholder_in_id"]
+    # recorded verbatim from the run: the id is a slugified HTML fragment and the
+    # docket_number it was built from is raw upstream markup
+    assert id_hygiene.id_defects(
+        {"decision_id": "ch_vb__td_class__metadataCell__150000044__td_",
+         "docket_number": '<td class="metadataCell">150000044</td>'}) \
+        == ["html_markup_in_docket"]
+    assert id_hygiene.id_defects({"decision_id": ""}) == ["empty_id"]
+    assert id_hygiene.id_defects({"decision_id": "bger_4A_228_2015",
+                                  "docket_number": "4A 228/2015"}) == []
+
+
+def test_id_hygiene_reproduces_the_recorded_defect_count():
+    """Same six unusable ids the previous cycle reported, independently counted."""
+    record = json.loads((RECORDS / "38939239917.json").read_text(encoding="utf-8"))
+    report = id_hygiene.measure(record)
+    assert report["n_distinct_defective_ids"] == 6, report["defective_ids"]
+    assert report["defects_by_class"] == {
+        "html_markup_in_docket": 1,
+        "unresolved_placeholder_in_docket": 5,
+        "unresolved_placeholder_in_id": 5,
+    }, report["defects_by_class"]
+    assert report["n_rows"] == 960
+    # ...and the frozen duplicate gate still fails on the same record
+    assert all(g["passed"] is False for g in report["frozen_duplicate_gate_status"])
+
+
+def test_id_hygiene_cli_refuses_a_foreign_record(tmp_path):
+    record = json.loads((RECORDS / "38939239917.json").read_text(encoding="utf-8"))
+    record["frozen_sha256"] = "0" * 64
+    foreign = tmp_path / "foreign.json"
+    foreign.write_text(json.dumps(record), encoding="utf-8")
+    assert id_hygiene.main(["--record", str(foreign)]) == 2
+    assert id_hygiene.main(["--record", str(tmp_path / "absent.json")]) == 2
+
+
+def test_id_hygiene_cli_refuses_empty_input(tmp_path):
+    record = json.loads((RECORDS / "38939239917.json").read_text(encoding="utf-8"))
+    record["queries"] = []
+    empty = tmp_path / "empty.json"
+    empty.write_text(json.dumps(record), encoding="utf-8")
+    out = tmp_path / "out.json"
+    assert id_hygiene.main(["--record", str(empty), "--out", str(out)]) == 2
+    assert not out.exists()
+
+
+def test_id_hygiene_cli_records_the_failure_and_exits_1(tmp_path):
+    out = tmp_path / "hygiene.json"
+    rc = id_hygiene.main(["--record", str(RECORDS / "38939239917.json"),
+                          "--out", str(out)])
+    assert rc == 1
+    report = json.loads(out.read_text(encoding="utf-8"))
+    assert report["passed"] is False
+    assert "POST-FREEZE" in report["tier"]
+
+
+def test_record_latency_plausibility_catches_a_hand_edited_wall_time():
+    """The mode flag binds what a record DECLARES; this binds what it carries."""
+    record = json.loads((RECORDS / "38939239917.json").read_text(encoding="utf-8"))
+    assert gates.record_latency_plausibility(record) == []
+    forged = copy.deepcopy(record)
+    forged["pass_a_wall_seconds"] = 0.067        # replay wall, live declaration
+    problems = gates.record_latency_plausibility(forged)
+    assert any("shorter than the sum" in p for p in problems), problems
+
+
+def test_record_latency_plausibility_rejects_a_wall_beyond_the_record_span():
+    record = json.loads((RECORDS / "38939239917.json").read_text(encoding="utf-8"))
+    forged = copy.deepcopy(record)
+    for q in forged["queries"]:                  # drop the per-search evidence
+        q["latency_seconds"] = 0.0
+    forged["pass_a_wall_seconds"] = 99999.0
+    problems = gates.record_latency_plausibility(forged)
+    assert any("started_at->generated_at span" in p for p in problems), problems
+
+
+def test_record_latency_plausibility_is_out_of_scope_for_a_replay_record():
+    record = json.loads((RECORDS / "38939239917.json").read_text(encoding="utf-8"))
+    replay = copy.deepcopy(record)
+    replay["pass_a_mode"] = "offline_replay"
+    assert gates.record_latency_plausibility(replay) == []
