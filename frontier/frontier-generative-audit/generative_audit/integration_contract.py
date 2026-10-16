@@ -272,6 +272,7 @@ def run_generative_audit(
     model: Optional[str] = None,
     quote_auditor: Optional[Any] = None,
     validate_draft_live: bool = False,
+    defer_adversarial: bool = False,
 ) -> Dict[str, Any]:
     """ONE-CALL product seam: query_result_bundle in, audited bundle out.
 
@@ -301,6 +302,61 @@ def run_generative_audit(
         for k in ("mode", "api_base", "hallucinated_ids", "verified_ids", "unverified_ids")
     }
 
+    if defer_adversarial:
+        findings = []
+        adv_info = {
+            "method": "deferred_adversarial_v2",
+            "model": "",
+            "n_findings": 0,
+            "deferred": True,
+            "independence": (
+                "classification intentionally deferred until answer-conditioned "
+                "adversarial retrieval has produced the final bounded source set"
+            ),
+        }
+    else:
+        adv = AdversarialPass(
+            bundle=bundle,
+            answer=result.answer,
+            model=model,
+            fixture_mode=fixture_mode,
+            fixture_findings=fixture_findings,
+        )
+        findings, adv_info = adv.run_with_info()
+    prov["adversarial"] = adv_info
+
+    package = package_answer(result, findings, bundle, quote_auditor=quote_auditor)
+    if validate_draft_live:
+        prov["draft_source_validation"] = _live_draft_validation(result, bundle)
+    audited = apply_to_product_bundle(product_bundle, package, findings, provenance=prov)
+    return audited
+
+
+def run_adversarial_audit(
+    product_bundle: Dict[str, Any],
+    *,
+    model: Optional[str] = None,
+    fixture_mode: bool = False,
+    fixture_findings: Optional[List[AdversarialFinding]] = None,
+    quote_auditor: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Classify counter-authorities on the final bounded retrieval set.
+
+    Generation may defer its adversarial pass. After the answer has driven an
+    independent retrieval pass, this function performs exactly one
+    challenge-only model call over that final source set. It preserves the
+    already-generated answer and updates only statuses, evidence and
+    adversarial provenance.
+    """
+    out = copy.deepcopy(product_bundle)
+    bundle = from_product_bundle(out)
+    answer_dict = dict(out.get("answer") or {})
+    result = ProviderResult(
+        answer=str(answer_dict.get("prose") or ""),
+        cited_decision_ids=list(answer_dict.get("cited_decision_ids") or []),
+        model_used=str(answer_dict.get("model") or ""),
+    )
+
     adv = AdversarialPass(
         bundle=bundle,
         answer=result.answer,
@@ -309,12 +365,22 @@ def run_generative_audit(
         fixture_findings=fixture_findings,
     )
     findings, adv_info = adv.run_with_info()
-    prov["adversarial"] = adv_info
-
     package = package_answer(result, findings, bundle, quote_auditor=quote_auditor)
-    if validate_draft_live:
-        prov["draft_source_validation"] = _live_draft_validation(result, bundle)
-    audited = apply_to_product_bundle(product_bundle, package, findings, provenance=prov)
+
+    existing_ga = dict((out.get("provenance") or {}).get("generative_audit") or {})
+    existing_ga["adversarial"] = adv_info
+    existing_ga["adversarial_stage"] = "post_answer_conditioned_retrieval"
+    audited = apply_to_product_bundle(
+        out,
+        package,
+        findings,
+        provenance=existing_ga,
+    )
+    audited["answer"] = {
+        **answer_dict,
+        "prose": package.answer,
+        "cited_decision_ids": list(package.cited_decision_ids),
+    }
     return audited
 
 
@@ -349,4 +415,5 @@ __all__ = [
     "to_product_answer",
     "apply_to_product_bundle",
     "run_generative_audit",
+    "run_adversarial_audit",
 ]
