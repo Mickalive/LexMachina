@@ -76,7 +76,7 @@ def _clean_evidence_text(value: object) -> str:
     return " ".join(text.split())
 
 
-def _evidence_excerpt(decision: Any, query: str, max_chars: int = 1800) -> str:
+def _evidence_excerpt(decision: Any, query: str, max_chars: int = 1400) -> str:
     """Pack search evidence plus query-relevant windows from hydrated full text.
 
     Hydration is useful only if the model sees the decisive passage.  Taking
@@ -153,6 +153,74 @@ def _evidence_excerpt(decision: Any, query: str, max_chars: int = 1800) -> str:
         # Preserve a little context when no query-aware window can be found.
         selected.append(full[:700])
     return " … ".join(selected)[:max_chars].strip()
+
+
+def _prompt_source_priority(decision: Any) -> tuple:
+    """Order answer evidence by legal usefulness, not raw retrieval order.
+
+    Directly relevant Federal Supreme Court authority is the strongest signal.
+    Hydrated sources come next because the generator can inspect the actual
+    holding rather than a search snippet.
+    """
+    meta = decision.metadata or {}
+    court = str(meta.get("court") or "").lower()
+    supreme = 1 if court in {"bger", "bge"} else 0
+    hydrated = 1 if meta.get("evidence_hydrated") else 0
+    try:
+        relevance = float(meta.get("score") or 0.0)
+    except (TypeError, ValueError):
+        relevance = 0.0
+    try:
+        similarity = float(meta.get("query_similarity") or 0.0)
+    except (TypeError, ValueError):
+        similarity = 0.0
+    rank = meta.get("rank")
+    rank_value = int(rank) if isinstance(rank, int) and rank > 0 else 10**6
+    return (
+        supreme,
+        hydrated,
+        max(relevance, similarity),
+        -rank_value,
+        str(decision.decision_id),
+    )
+
+
+def _select_prompt_decisions(bundle: DecisionBundle, max_sources: int = 12) -> List[Any]:
+    """Small, authority-aware evidence set for answer generation.
+
+    The map/retrieval bundle remains broad. The answer model gets only a tight
+    set of the best evidence; this reduces dilution, hallucination pressure and
+    free-model latency.
+    """
+    decisions = list(bundle.decisions)
+    if len(decisions) <= max_sources:
+        return decisions
+
+    selected: List[Any] = []
+    seen = set()
+
+    def add(decision: Any) -> None:
+        if decision.decision_id in seen or len(selected) >= max_sources:
+            return
+        seen.add(decision.decision_id)
+        selected.append(decision)
+
+    # First: direct Supreme Court + hydrated evidence, by relevance.
+    for dec in sorted(decisions, key=_prompt_source_priority, reverse=True):
+        meta = dec.metadata or {}
+        if str(meta.get("court") or "").lower() in {"bger", "bge"} and meta.get("evidence_hydrated"):
+            add(dec)
+
+    # Second: remaining hydrated evidence (typically the product's top 10).
+    for dec in sorted(decisions, key=_prompt_source_priority, reverse=True):
+        if (dec.metadata or {}).get("evidence_hydrated"):
+            add(dec)
+
+    # Third: best remaining authority/relevance candidates.
+    for dec in sorted(decisions, key=_prompt_source_priority, reverse=True):
+        add(dec)
+
+    return selected
 
 
 #: runner(prompt, model, timeout) -> raw assistant text
@@ -333,7 +401,7 @@ class Provider:
         # The full bundle remains the citation-validation boundary, but dumping
         # 100+ weak lexical hits into the answer model diluted the strongest
         # authorities. Product reranking places the best legal evidence first.
-        prompt_decisions = list(bundle.decisions[:30])
+        prompt_decisions = _select_prompt_decisions(bundle, max_sources=12)
         lines = [
             "You are a legal research assistant answering a Swiss case-law "
             "question using ONLY the retrieved decision sources listed below. "
@@ -341,8 +409,8 @@ class Provider:
             "",
             f"Query: {bundle.query}",
             "",
-            f"Retrieved decision sources: {len(prompt_decisions)} highest-ranked "
-            f"of {len(bundle.decisions)} retrieved decisions.",
+            f"Retrieved decision sources: {len(prompt_decisions)} authority/relevance-selected "
+            f"from {len(bundle.decisions)} retrieved decisions.",
         ]
         for dec in prompt_decisions:
             evidence = _evidence_excerpt(dec, bundle.query)
@@ -350,7 +418,11 @@ class Provider:
             court = str(meta.get("court") or "?")
             rank = meta.get("rank")
             score = meta.get("score")
-            authority = "FEDERAL" if court.lower() in {"bger", "bge", "bstger"} else "OTHER"
+            authority = (
+                "FEDERAL_SUPREME" if court.lower() in {"bger", "bge"}
+                else "FEDERAL_OTHER" if court.lower() == "bstger"
+                else "OTHER"
+            )
             lines.append(
                 f"  [{dec.decision_id}] {dec.title} "
                 f"(authority={authority}; court={court}; rank={rank}; relevance={score}): "
@@ -359,6 +431,14 @@ class Provider:
         lines += [
             "",
             "Instructions:",
+            "  - Answer in the SAME LANGUAGE as the user's query. Keep foreign-language "
+            "text only inside short quotations or official titles; explain it in the query language.",
+            "  - Start from the highest-authority decision that directly matches the "
+            "specific fact pattern. If a Federal Supreme Court/BGE source directly "
+            "addresses the exact issue, its holding controls the synthesis over "
+            "broader or lower-court generalities.",
+            "  - Do not turn a lower-court caveat into the general rule when a direct "
+            "Federal Supreme Court authority is present.",
             "  - Answer every distinct sub-question in the query. If a statute "
             "contains different paragraphs/alternatives (for example al. 1 "
             "versus al. 2), state each branch separately and do not collapse them.",
