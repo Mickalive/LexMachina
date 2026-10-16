@@ -261,21 +261,33 @@ def _load_control_plane_health() -> dict | None:
 
 
 def test_known_dead_models_agree_with_control_plane_health():
-    """No exclusion may contradict what the health snapshot actually reports.
+    """Every exclusion must remain substantively justified by the live snapshot.
 
     The independent audit of cycle 38933925523 found this file asserting, as
     machine-readable load-bearing provenance, that a nonexistent snapshot
     (``run 38919946016``) proved ``nemotron-3.5-lightning-free`` dead while the
-    only real control-plane snapshot reports it PASS.  Two fail-closed checks
-    prevent both halves of that defect recurring:
+    only real control-plane snapshot reports it PASS.  Three fail-closed checks
+    prevent both halves of that defect recurring, tuned to the SUBSTANCE the
+    product depends on (is the model usable?) rather than volatile metadata
+    (which non-zero exit code the unusable probe returned):
 
-    1. every recorded exclusion basis must equal the snapshot's probe result
-       for that model (a health refresh flips the recorded value -> failure),
-       and a PASS-probed model may only stay excluded under a basis that is
-       explicitly *not* tool-health;
-    2. every model the snapshot reports FAIL (exit 124) that also sits in the
-       pinned ``MODEL_ORDER`` fallback must be excluded — a refreshed dead
-       model cannot silently re-enter the hot path.
+    1. a ``control_plane_tool_probe_fail`` basis requires the newest snapshot
+       to actually report FAIL for that model — a snapshot that reports PASS
+       contradicts the stated basis and must fail the test;
+    2. a non-tool-health basis may never claim to be a tool-probe failure, and
+       must record explicitly that health does not justify the exclusion
+       (the record is as-of provenance, disclosed, never narrated away);
+    3. no model the newest snapshot reports FAIL (any exit code — 1 and 124
+       are the same unusable substance) may sit in the pinned ``MODEL_ORDER``
+       fallback, where it would be handed to every fallback chain as healthy.
+
+    Exit codes are deliberately NOT compared as invariants: the same FAILing
+    model has been observed with exit 124 (timeout) and exit 1 (upstream
+    error) across control-plane refreshes (runs 38938748669 and 38947845257).
+    Any as-of divergence between the record and the newest snapshot is instead
+    required to ship machine-readably in every bundle's provenance via
+    ``dead_model_record_divergence()`` (asserted in
+    ``test_apply_ships_the_health_record_divergence``).
 
     Skips (never silently passes) when no health snapshot is readable.
     """
@@ -289,45 +301,147 @@ def test_known_dead_models_agree_with_control_plane_health():
         if isinstance(p, dict) and p.get("model")
     }
 
-    # 1a. recorded basis agrees with the snapshot probe, per excluded model.
     for model, basis in audit_seam.DEAD_MODEL_JUSTIFICATION.items():
         probe = probes.get(model)
         if probe is None:
             continue  # not probed (probe is capped) -> snapshot says nothing
-        assert basis["control_plane_tool_probe"] == probe.get("tool_probe"), (
-            f"{model}: seam records tool_probe "
-            f"{basis['control_plane_tool_probe']!r} but the control-plane "
-            f"snapshot (run {snapshot.get('last_checked_run_id')}) reports "
-            f"{probe.get('tool_probe')!r} — update DEAD_MODEL_JUSTIFICATION "
-            f"or the exclusion itself, never the claim alone"
-        )
-        if probe.get("tool_probe") == "FAIL":
-            assert basis["control_plane_exit_code"] == probe.get("exit_code")
+        if basis["basis"] == "control_plane_tool_probe_fail":
+            assert probe.get("tool_probe") == "FAIL", (
+                f"{model}: excluded on the stated basis of a tool-probe failure "
+                f"while the control-plane snapshot (run "
+                f"{snapshot.get('last_checked_run_id')}) reports "
+                f"{probe.get('tool_probe')!r} exit {probe.get('exit_code')} — "
+                f"the basis is contradicted; re-probe and re-justify or drop "
+                f"the exclusion, never the claim alone"
+            )
             assert model in audit_seam.KNOWN_DEAD_MODELS
         else:
-            # PASS (or anything not FAIL): health does not justify exclusion,
-            # so the recorded basis must say it is not tool-health based.
-            assert basis["basis"] != "control_plane_tool_probe_fail", (
-                f"{model}: excluded as a tool-probe failure while the "
-                f"control-plane snapshot reports {probe.get('tool_probe')} "
-                f"exit {probe.get('exit_code')}"
-            )
-            assert basis.get("control_plane_reported_healthy") is True, (
-                f"{model}: exclusion must record explicitly that the newest "
-                f"control-plane snapshot does NOT report it dead"
+            # Health does not justify this exclusion on the record's own
+            # terms; the record must say so explicitly — unless the newest
+            # snapshot independently reports FAIL, in which case health would
+            # justify it as well and the stale PASS record is disclosed via
+            # dead_model_record_divergence() instead of failing here.
+            assert probe.get("tool_probe") == "FAIL" or (
+                basis.get("control_plane_reported_healthy") is True
+            ), (
+                f"{model}: excluded outside tool-health while the snapshot "
+                f"reports {probe.get('tool_probe')!r} and the record does not "
+                f"acknowledge that health does not justify the exclusion"
             )
 
-    # 1b. the claims themselves are complete: an excluded model's record must
+    # the claims themselves are complete: an excluded model's record must
     # exist (KNOWN_DEAD_MODELS is derived from DEAD_MODEL_JUSTIFICATION, this
     # guards the derivation against being hand-broken).
     assert audit_seam.KNOWN_DEAD_MODELS == frozenset(audit_seam.DEAD_MODEL_JUSTIFICATION)
 
-    # 2. a snapshot-FAIL(124) model must never sit in the pinned fallback order.
+    # 3. a snapshot-FAIL model (any exit code) must never sit in MODEL_ORDER.
     for model in audit_seam.MODEL_ORDER:
         probe = probes.get(model)
-        if probe and probe.get("tool_probe") == "FAIL" and probe.get("exit_code") == 124:
+        if probe and probe.get("tool_probe") == "FAIL":
             raise AssertionError(
-                f"{model} is reported dead (exit 124) by the control-plane "
-                f"snapshot yet still sits in MODEL_ORDER — it would be handed "
-                f"to every fallback chain as a healthy candidate"
+                f"{model} is reported FAIL (exit {probe.get('exit_code')}) by "
+                f"the control-plane snapshot yet still sits in MODEL_ORDER — "
+                f"it would be handed to every fallback chain as a healthy candidate"
             )
+
+
+# --------------------------------------------------------------------------
+# divergence disclosure (repair r1 of 38948310517): a health refresh must be
+# DISCLOSED in shipped provenance, never silently contradict the as-of record
+# and never fail the suite merely for being newer.
+# --------------------------------------------------------------------------
+
+
+def test_apply_ships_the_health_record_divergence():
+    """Every bundle's provenance carries the as-of-vs-newest comparison.
+
+    The old guard pinned ``control_plane_exit_code``/``tool_probe`` equality
+    against the NEWEST snapshot, so a refresh (ultra exit 124 -> 1, same FAIL)
+    turned the suite red without any product contradiction — observed on
+    snapshots 38938748669 / 38943488237 / 38947845257 in one day.  The fix is
+    not to weaken the claim: the divergence is computed at apply time and
+    shipped, and the SUBSTANTIVE checks (tool-probe basis requires FAIL;
+    non-tool basis must acknowledge health does not justify exclusion) remain
+    fail-closed in the test above.
+    """
+    prov = audit_seam.apply()
+    div = prov.get("dead_model_record_divergence")
+    assert isinstance(div, dict), "apply() must ship the divergence block"
+    assert "snapshot_readable" in div and "differences" in div
+    if div["snapshot_readable"]:
+        assert isinstance(div["differences"], dict)
+        for model, diff in div["differences"].items():
+            assert model in audit_seam.KNOWN_DEAD_MODELS
+            assert set(diff) <= {"tool_probe", "exit_code"}
+            for side in diff.values():
+                assert set(side) == {"record", "snapshot"}
+
+
+def test_divergence_helper_flags_only_actual_differences(monkeypatch, tmp_path):
+    """A same-run snapshot produces no differences; a refreshed exit code does.
+
+    Non-vacuity in both directions: identical values -> empty (so the block is
+    not decorative), flipped exit code -> recorded (so a real refresh cannot
+    hide), flipped tool_probe -> recorded (so a dead-model revival cannot hide).
+    """
+    ultra = "opencode/nemotron-3-ultra-free"
+    lightning = "opencode/nemotron-3.5-lightning-free"
+
+    def _snap(ultra_exit: int, lightning_probe: str, lightning_exit: int) -> dict:
+        return {
+            "last_checked_run_id": "99999999999",
+            "last_checked_at": "2026-10-16T23:59:59Z",
+            "probe_results": [
+                {"model": ultra, "tool_probe": "FAIL", "exit_code": ultra_exit,
+                 "catalog_present": True},
+                {"model": lightning, "tool_probe": lightning_probe,
+                 "exit_code": lightning_exit, "catalog_present": True},
+            ],
+        }
+
+    # (a) identical probe facts as the as-of record -> no differences at all.
+    same = _snap(ultra_exit=audit_seam.DEAD_MODEL_JUSTIFICATION[ultra]["control_plane_exit_code"],
+                 lightning_probe="PASS", lightning_exit=0)
+    div = audit_seam.dead_model_record_divergence(
+        {"run_id": same["last_checked_run_id"], "checked_at": same["last_checked_at"],
+         "excluded_models": {ultra: same["probe_results"][0],
+                             lightning: same["probe_results"][1]}})
+    assert div["differences"] == {}, div["differences"]
+    assert div["same_run"] is False  # record pins run 38947845257, fixture 999...
+
+    # (b) ultra exit flips 1 <-> 124, same FAIL: only the exit code diverges
+    # and the tool-probe substance does not — this is the exact refresh that
+    # used to fail the suite (audit O1 on snapshot 38943488237).
+    refreshed = _snap(ultra_exit=124, lightning_probe="PASS", lightning_exit=0)
+    div = audit_seam.dead_model_record_divergence(
+        {"run_id": refreshed["last_checked_run_id"],
+         "checked_at": refreshed["last_checked_at"],
+         "excluded_models": {ultra: refreshed["probe_results"][0],
+                             lightning: refreshed["probe_results"][1]}})
+    assert set(div["differences"]) == {ultra}
+    assert set(div["differences"][ultra]) == {"exit_code"}
+    assert div["differences"][ultra]["exit_code"] == {
+        "record": audit_seam.DEAD_MODEL_JUSTIFICATION[ultra]["control_plane_exit_code"],
+        "snapshot": 124,
+    }
+
+    # (c) lightning flips PASS -> FAIL: the tool-probe substance diverges and
+    # must be disclosed (the exclusion itself stays correct either way).
+    revived = _snap(ultra_exit=1, lightning_probe="FAIL", lightning_exit=124)
+    div = audit_seam.dead_model_record_divergence(
+        {"run_id": revived["last_checked_run_id"],
+         "checked_at": revived["last_checked_at"],
+         "excluded_models": {ultra: revived["probe_results"][0],
+                             lightning: revived["probe_results"][1]}})
+    assert set(div["differences"]) == {lightning}
+    assert "tool_probe" in div["differences"][lightning]
+    assert div["differences"][lightning]["tool_probe"] == {"record": "PASS", "snapshot": "FAIL"}
+
+
+def test_divergence_helper_handles_unreadable_snapshot():
+    div = audit_seam.dead_model_record_divergence(None) if (
+        audit_seam.control_plane_health_snapshot() is None
+    ) else audit_seam.dead_model_record_divergence(
+        {"run_id": "x", "checked_at": "y", "excluded_models": {}})
+    assert "snapshot_readable" in div and "differences" in div
+    assert set(div["differences"]) <= set(audit_seam.KNOWN_DEAD_MODELS)

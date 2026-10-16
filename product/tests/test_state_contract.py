@@ -14,6 +14,7 @@ defect is a file-placement/contract error and must be caught in seconds.
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -84,12 +85,24 @@ def test_workflow_validation_rejects_non_integer_direction_version(tmp_path: Pat
     assert "integer" in message
 
 
-#: The direction version this cycle was dispatched with. Hard-pinned so the
-#: test asserts the real workflow assertion rather than whatever the control
-#: plane happens to say at test time.  Run 38877693206 was dispatched with
-#: direction v55 (the run that fixed the unevidenced counter-authority ring);
-#: the previous pin was 54 (run 38839347028, gate-packet rebuild).
-RUN_DIRECTION_VERSION = 55
+#: The direction version this cycle was dispatched with.  In CI the workflow
+#: exports the real dispatch input as ``DIRECTION_VERSION`` (core-lane.yml),
+#: so that value is authoritative there; the constant below is the local
+#: fallback and is re-pinned every time the lane is dispatched under a new
+#: factory direction.  Pin history: 54 (run 38839347028, gate-packet rebuild),
+#: 55 (run 38877693206, unevidenced counter-authority ring), 49 (run
+#: 38948310517 and the whole current series) — direction numbering follows the
+#: factory director: the v50-v55 proposal series was superseded on main by the
+#: v49 "PRODUCT REALITY GATE REOPENED" direction (2026-10-16), so a LOWER
+#: number is the CURRENT direction here.  The invariant the tests below freeze
+#: is always the same one the workflow enforces: state/product.json must carry
+#: the direction version the run was actually dispatched with.
+_DISPATCHED_DIRECTION_VERSION = os.environ.get("DIRECTION_VERSION", "").strip()
+RUN_DIRECTION_VERSION = (
+    int(_DISPATCHED_DIRECTION_VERSION)
+    if _DISPATCHED_DIRECTION_VERSION.isdigit()
+    else 49
+)
 
 
 def test_canonical_state_in_this_worktree_is_current() -> None:

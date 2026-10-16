@@ -466,74 +466,129 @@ def test_bundle_topic_terms_bridges_languages_via_the_pool():
 
 
 # --------------------------------------------------------------------------
-# 4. the pass joins the map without moving anything the jurist already sees
+# 4. the pass joins the map under the shipped admission policy:
+#    bounded_replace_tail_v1 + deferred legal labels
+#    (commits 1381ed0 "bound adversarial retrieval and defer legal labels",
+#     4955b16, 883f9e4; direction v49 honesty gates)
 # --------------------------------------------------------------------------
 
-def test_apply_appends_unseen_rows_and_freezes_rendered_geometry(fake_client):
-    bundle = _map_bundle(n=40)
-    before = {d["decision_id"]: (d["x"], d["y"], d["cluster_id"], bool(d.get("is_outlier")))
-              for d in bundle["decisions"]}
+def _fetch_and_apply(fake_client, bundle):
     fetched = adv.fetch_adversarial_candidates(
         bundle["query"], adv.plan_adversarial_queries(bundle["query"], ANSWER_DE),
         mode="offline",
-        exclude_ids=set(before),
+        exclude_ids={d["decision_id"] for d in bundle["decisions"]},
         exclude_identities=set())
-    out = adv.apply_adversarial_pass(bundle, fetched["candidates"], fetched["provenance"])
+    return adv.apply_adversarial_pass(bundle, fetched["candidates"], fetched["provenance"])
+
+
+def test_apply_bounded_replace_keeps_size_and_freezes_retained_geometry(fake_client):
+    """Adversarial discovery must not inflate the map pool.
+
+    The shipped policy (``bounded_replace_tail_v1``) swaps the weakest
+    unprotected conventional tail rows for the strongest challengers, and a
+    retained rendered point never moves under the jurist.
+    """
+    bundle = _map_bundle(n=40)
+    before = {d["decision_id"]: (d["x"], d["y"], d["cluster_id"], bool(d.get("is_outlier")))
+              for d in bundle["decisions"]}
+    out = _fetch_and_apply(fake_client, bundle)
     assert validate_bundle(out) == []
+    prov = out["provenance"]["adversarial_retrieval"]
+    assert prov["admission_policy"] == "bounded_replace_tail_v1"
+    assert len(out["decisions"]) == len(before), "the map pool stays bounded"
+
+    dropped = set(prov["replaced_row_ids"])
+    # ranks are i+1 in _map_bundle, so the weakest tail is exactly these four.
+    assert dropped == {f"bger_1A_{i}_2020" for i in (36, 37, 38, 39)}
     after = {d["decision_id"]: (d["x"], d["y"], d["cluster_id"], bool(d.get("is_outlier")))
              for d in out["decisions"]}
     for did, geo in before.items():
-        assert after[did] == geo, "an already-rendered point must never move"
-    assert len(out["decisions"]) == len(before) + 4
+        if did in dropped:
+            assert did not in after, "a replaced row must leave the pool"
+        else:
+            assert after[did] == geo, "a retained rendered point must never move"
+
+    assert prov["n_admitted_rows"] == 4
+    assert set(prov["admitted_row_ids"]) == set(prov["new_row_ids"])
+    assert prov["n_replaced_rows"] == 4
+    assert prov["final_decision_count"] == 40
+
+
+def test_apply_never_drops_cited_or_labelled_counter_rows(fake_client):
+    """Cited authorities and already-surfaced counter rows are protected:
+    replacement may only consume the unprotected conventional tail."""
+    bundle = _map_bundle(n=40)
+    protected_counter = bundle["decisions"][-2]["decision_id"]
+    protected_cited = bundle["decisions"][-1]["decision_id"]
+    bundle["decisions"][-2]["counter_status"] = "candidate-limiting"
+    bundle["answer"]["cited_decision_ids"] = [protected_cited]
+    out = _fetch_and_apply(fake_client, bundle)
     prov = out["provenance"]["adversarial_retrieval"]
-    assert prov["n_new_rows"] == 4
-    assert prov["n_counter_rows"] == 3, "three of four carry a real limitation marker"
-    assert prov["channels"]
+    ids = {d["decision_id"] for d in out["decisions"]}
+    assert protected_cited in ids, "a cited row must never be dropped"
+    assert protected_counter in ids, "a counter row must never be dropped"
+    assert not (dropped := set(prov["replaced_row_ids"])) & {protected_cited, protected_counter}
+    assert prov["n_replaced_rows"] == prov["n_admitted_rows"] == 4
 
 
-def test_apply_labels_only_marker_carrying_rows(fake_client):
+def test_apply_defers_legal_labels_to_the_independent_reviewer(fake_client):
+    """Heuristic markers may not surface legal counter labels from this pass.
+
+    Direction v49 honesty gates: only an independent reviewer may classify a
+    row as supporting/limiting/contrary, so admitted rows arrive as candidates
+    (``counter_status == "none"``, no evidence, unverified) even when the
+    heuristic classifier sees a limitation marker in the text.
+    """
     bundle = _map_bundle(n=40)
-    fetched = adv.fetch_adversarial_candidates(
-        bundle["query"], adv.plan_adversarial_queries(bundle["query"], ANSWER_DE),
-        mode="offline", exclude_ids={d["decision_id"] for d in bundle["decisions"]},
-        exclude_identities=set())
-    out = adv.apply_adversarial_pass(bundle, fetched["candidates"], fetched["provenance"])
+    out = _fetch_and_apply(fake_client, bundle)
+    prov = out["provenance"]["adversarial_retrieval"]
+    assert prov["heuristic_labels_surfaceable"] is False
+    assert prov["n_counter_rows"] == 0 and prov["new_counter_ids"] == []
     by_id = {d["decision_id"]: d for d in out["decisions"]}
+    for did in prov["new_row_ids"]:
+        row = by_id[did]
+        assert row["counter_status"] == "none"
+        assert row["counter_evidence"] == ""
+        assert row["counter_evidence_verified"] is False
+        assert row["counter_uncertainty"] is None
+    # the marker-carrying fixture row IS admitted, just unlabelled:
+    assert by_id["bger_9Z_77_2019"]["counter_status"] == "none", (
+        "a heuristic Ausnahme marker must not become a legal label in this pass")
     assert by_id["bger_9Z_80_2017"]["counter_status"] == "none"
-    assert by_id["bger_9Z_80_2017"]["counter_evidence"] == ""
-    labelled = by_id["bger_9Z_77_2019"]
-    assert labelled["counter_status"] == "candidate-limiting"
-    assert labelled["counter_evidence_verified"] is True
-    assert labelled["counter_evidence"].strip()
 
 
-def test_apply_ranks_new_rows_after_the_conventional_list(fake_client):
+def test_apply_ranks_retained_rows_in_order_and_new_rows_after(fake_client):
     bundle = _map_bundle(n=40)
-    max_initial = max(d["rank"] for d in bundle["decisions"])
-    fetched = adv.fetch_adversarial_candidates(
-        bundle["query"], adv.plan_adversarial_queries(bundle["query"], ANSWER_DE),
-        mode="offline", exclude_ids={d["decision_id"] for d in bundle["decisions"]},
-        exclude_identities=set())
-    out = adv.apply_adversarial_pass(bundle, fetched["candidates"], fetched["provenance"])
-    new_ids = set(out["provenance"]["adversarial_retrieval"]["new_row_ids"])
-    new_ranks = [d["rank"] for d in out["decisions"] if d["decision_id"] in new_ids]
-    assert all(r > max_initial for r in new_ranks)
+    before_order = [d["decision_id"] for d in bundle["decisions"]]
+    out = _fetch_and_apply(fake_client, bundle)
+    prov = out["provenance"]["adversarial_retrieval"]
+    new_ids = set(prov["new_row_ids"])
+    max_retained_rank = max(d["rank"] for d in out["decisions"]
+                            if d["decision_id"] not in new_ids)
+    min_new_rank = min(d["rank"] for d in out["decisions"]
+                       if d["decision_id"] in new_ids)
+    assert min_new_rank > max_retained_rank, (
+        "challengers occupy the replaced tail slots, never the ranked head")
+    after_retained = [d["decision_id"] for d in out["decisions"]
+                      if d["decision_id"] in set(before_order)]
+    expected = [did for did in before_order if did not in set(prov["replaced_row_ids"])]
+    assert after_retained == expected, "retained rows keep their conventional order"
 
 
-def test_apply_records_counter_rows_outside_the_initial_channel_inventory(fake_client):
+def test_apply_records_adversarial_channels_outside_the_initial_inventory(fake_client):
     bundle = _map_bundle(n=40)
-    fetched = adv.fetch_adversarial_candidates(
-        bundle["query"], adv.plan_adversarial_queries(bundle["query"], ANSWER_DE),
-        mode="offline", exclude_ids={d["decision_id"] for d in bundle["decisions"]},
-        exclude_identities=set())
-    out = adv.apply_adversarial_pass(bundle, fetched["candidates"], fetched["provenance"])
+    out = _fetch_and_apply(fake_client, bundle)
+    prov = out["provenance"]["adversarial_retrieval"]
     initial = set(out["provenance"]["retrieval"]["candidate_channels"])
-    counter = [d for d in out["decisions"]
-               if d.get("counter_status") in {"candidate-limiting", "candidate-contrary",
-                                               "contrary_or_exception", "limiting"}]
-    assert counter, "the pass must produce at least one labelled counter row"
-    assert all(set(d["channels"]) - initial for d in counter), \
-        "every counter row must carry a channel the initial retrieval never used"
+    assert prov["channels"], "the pass must record the channels it probed"
+    assert all(ch.startswith("adversarial.") for ch in prov["channels"])
+    assert not (set(prov["channels"]) & initial)
+    by_id = {d["decision_id"]: d for d in out["decisions"]}
+    for did in prov["new_row_ids"]:
+        row = by_id[did]
+        assert set(row["channels"]) & set(prov["channels"])
+        assert set(row["channels"]) - initial, (
+            "every admitted row must carry a channel the initial retrieval never used")
 
 
 def test_apply_is_a_noop_when_nothing_new_is_retrieved():

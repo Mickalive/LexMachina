@@ -124,24 +124,34 @@ MODEL_ORDER = [
 #: models remain, so the exclusion costs no fallback depth the latency gate
 #: can afford.
 #:
-#: ``control_plane_tool_probe`` mirrors what the newest control-plane snapshot
-#: reports for that model, so a health refresh that flips a probe result
-#: without this record being updated is a test failure
-#: (``test_audit_seam.py::test_known_dead_models_agree_with_control_plane_health``),
-#: not a silent contradiction.  ``control_plane_run_id`` /
-#: ``control_plane_checked_at`` record when the values were read from
-#: ``state/model_health.json``; they are provenance, not asserted invariants.
+#: ``control_plane_tool_probe`` / ``control_plane_exit_code`` are AS-OF
+#: provenance: they mirror what the snapshot named by ``control_plane_run_id``
+#: reported when this record was last refreshed (run 38947845257,
+#: 2026-10-16T18:33:23Z).  They are not invariants of the newest snapshot —
+#: control-plane health refreshes on every probe run and the exit code alone
+#: has already been observed to flip between 124 (timeout) and 1 (upstream
+#: error) for the same FAILing model.  The consistency test
+#: (``test_audit_seam.py::test_known_dead_models_agree_with_control_plane_health``)
+#: therefore asserts SUBSTANCE against the newest snapshot (a tool-probe-fail
+#: basis requires a FAIL probe; a non-tool-health basis may never claim one)
+#: and requires any as-of divergence to be disclosed machine-readably via
+#: ``dead_model_record_divergence()`` in every bundle's provenance — never
+#: silently picked in either direction (factory-direction rule: state which
+#: definition each number used, flag the divergence, do not narrate it away).
 DEAD_MODEL_JUSTIFICATION = {
     "opencode/nemotron-3-ultra-free": {
         "basis": "control_plane_tool_probe_fail",
+        "record_kind": "as_of_probe_provenance",
         "control_plane_tool_probe": "FAIL",
-        "control_plane_exit_code": 124,
+        "control_plane_exit_code": 1,
         "control_plane_reported_healthy": False,
-        "control_plane_run_id": "38938748669",
-        "control_plane_checked_at": "2026-10-16T17:22:22Z",
+        "control_plane_run_id": "38947845257",
+        "control_plane_checked_at": "2026-10-16T18:33:23Z",
         "note": (
-            "tool_probe FAIL exit 124 in the newest control-plane snapshot; "
-            "the same failure is the only one the repository's health history records"
+            "tool_probe FAIL in every control-plane snapshot observed since the "
+            "record was introduced (exit code observed as 124 in run 38938748669 "
+            "and as 1 in run 38947845257 — same failure, different upstream "
+            "symptom; the substance is FAIL, the exit code is volatile metadata)"
         ),
     },
     "opencode/nemotron-3.5-lightning-free": {
@@ -214,6 +224,64 @@ def control_plane_health_snapshot() -> dict[str, Any] | None:
         "run_id": data.get("last_checked_run_id"),
         "checked_at": data.get("last_checked_at"),
         "excluded_models": {m: probes.get(m) for m in sorted(KNOWN_DEAD_MODELS)},
+    }
+
+
+def dead_model_record_divergence(
+    snapshot: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Disclose where the as-of exclusion record differs from the live snapshot.
+
+    Control-plane health refreshes on every probe run (``exit_code`` for the
+    same FAILing model has been observed as both 124 and 1; a PASS model has
+    been observed to flip to FAIL and back between refreshes).  The exclusion
+    *record* is as-of provenance by design, so a refresh must never be able to
+    silently contradict it in either direction: every difference is returned
+    here and shipped in each bundle's provenance, where a reviewer (or the
+    consistency test) can see which snapshot each side came from.
+    """
+    if snapshot is None:
+        snapshot = control_plane_health_snapshot()
+    if snapshot is None:
+        return {
+            "snapshot_readable": False,
+            "record_run_ids": sorted(
+                {str(b.get("control_plane_run_id"))
+                 for b in DEAD_MODEL_JUSTIFICATION.values()}
+            ),
+            "differences": {},
+        }
+    probes = snapshot.get("excluded_models") or {}
+    differences: dict[str, Any] = {}
+    for model, basis in sorted(DEAD_MODEL_JUSTIFICATION.items()):
+        probe = probes.get(model) or {}
+        if not probe:
+            continue  # not probed in this snapshot: it says nothing
+        diff: dict[str, Any] = {}
+        if probe.get("tool_probe") != basis.get("control_plane_tool_probe"):
+            diff["tool_probe"] = {
+                "record": basis.get("control_plane_tool_probe"),
+                "snapshot": probe.get("tool_probe"),
+            }
+        if probe.get("exit_code") != basis.get("control_plane_exit_code"):
+            diff["exit_code"] = {
+                "record": basis.get("control_plane_exit_code"),
+                "snapshot": probe.get("exit_code"),
+            }
+        if diff:
+            differences[model] = diff
+    return {
+        "snapshot_readable": True,
+        "snapshot_run_id": snapshot.get("run_id"),
+        "record_run_ids": sorted(
+            {str(b.get("control_plane_run_id"))
+             for b in DEAD_MODEL_JUSTIFICATION.values()}
+        ),
+        "same_run": all(
+            str(b.get("control_plane_run_id")) == str(snapshot.get("run_id"))
+            for b in DEAD_MODEL_JUSTIFICATION.values()
+        ),
+        "differences": differences,
     }
 
 
@@ -314,6 +382,10 @@ def apply() -> dict[str, Any]:
             m: dict(DEAD_MODEL_JUSTIFICATION[m]) for m in sorted(KNOWN_DEAD_MODELS)
         },
         "control_plane_health": control_plane_health_snapshot(),
+        # As-of record vs newest snapshot, computed at apply time: a health
+        # refresh that flips a probe result is DISCLOSED in every bundle, not
+        # silently narrated in either direction.
+        "dead_model_record_divergence": dead_model_record_divergence(),
         "reason": (
             "counter-authority pass exceeded the 60s per-model ceiling on every "
             "healthy free model; product spec 9A allows late counter-authority "
