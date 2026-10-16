@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from .answer import build_answer, counter_authority_pass
-from .answer_contract import ensure_coverage
+from .answer_contract import ensure_coverage, state_conditions
 from .answer_gap import ensure_cited_answer
 from .bundle import build_bundle, validate_bundle
 from .contract_guided import build_provider
@@ -748,6 +748,18 @@ def enrich_query_bundle(
     coverage = ensure_coverage(audited)
     if coverage.get("changed"):
         audited["provenance"]["answer_coverage"] = coverage
+
+    # Deterministic, evidence-gated statement of a registered material
+    # condition the model left implicit.  ensure_coverage can only re-state a
+    # condition a retrieved decision already carries verbatim, and the live
+    # petty-theft legs of 2026-10-16 (19:42Z, 20:15Z) showed the model stating
+    # the low-value condition correctly in its own words without any retrieved
+    # sentence matching it — legally complete, structurally incomplete.  This
+    # step states it, cites the retrieved authority that supports it, refuses
+    # when no such authority is present, and records both outcomes.
+    ledger = state_conditions(audited)
+    if ledger.get("changed") or ledger.get("refused"):
+        audited["provenance"]["answer_condition_ledger"] = ledger
 
     # Zero-citation contract: a sourced answer that cites nothing is either a
     # generator failure or an honest "the corpus does not cover this".  Measured

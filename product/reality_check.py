@@ -354,6 +354,7 @@ def run_leg(slug: str, mode: str, top_n: int, evidence_count: int, max_cites: in
         "adversarial_bundle_decisions": adv.get("bundle_decisions"),
         "product_audit_seam": (final.get("provenance") or {}).get("product_audit_seam"),
         "answer_coverage": (final.get("provenance") or {}).get("answer_coverage"),
+        "answer_condition_ledger": (final.get("provenance") or {}).get("answer_condition_ledger"),
         "bundle": final,
     }
     return report

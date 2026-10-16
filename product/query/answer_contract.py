@@ -47,6 +47,9 @@ ABBREV_RE = re.compile(
 )
 MAX_FILLS = 3
 MAX_QUOTE_CHARS = 700
+#: Supporting authorities recorded per stated condition (the statement cites
+#: at most this many, so the answer does not turn into a citation dump).
+MAX_SUPPORT = 2
 
 #: One contract per research topic the product claims to answer completely.
 #: ``patterns`` are applied to the *normalised* text of the answer and of every
@@ -109,6 +112,35 @@ CONTRACTS: list[dict[str, Any]] = [
                     r"kann[^.!?\n]{0,50}fristlos)",
                 ],
                 "anchor": r"diebstahl|vol |337|wichtiger grund|licenciement|kuendigung",
+                # Product-shipped statement of the condition itself, in the three
+                # languages the frozen questions are asked in. Used ONLY by
+                # ``state_conditions`` below, and only when the evidence
+                # predicate holds; never as a licence to assert the rule alone.
+                "statement": {
+                    "fr": ("La faible valeur du bien volé n'est pas décisive à elle seule : "
+                            "elle peut justifier un licenciement immédiat, comme elle peut "
+                            "l'exclure ; c'est l'atteinte concrète à la relation de confiance "
+                            "et l'ensemble des circonstances qui décident."),
+                    "de": ("Der geringfügige Wert der gestohlenen Sache ist für sich genommen "
+                            "nicht entscheidend: Er kann eine fristlose Kündigung ebenso "
+                            "rechtfertigen wie ausschliessen; entscheidend sind der konkrete "
+                            "Vertrauensbruch und die Gesamtumstände."),
+                    "it": ("Il valore modesto della cosa rubata non è di per sé decisivo: può "
+                           "giustificare il licenziamento immediato come escluderlo; "
+                           "decidono la lesione concreta del rapporto di fiducia e le "
+                           "circostanze complessive."),
+                    "en": ("The low value of the stolen item is not decisive in itself: it can "
+                           "justify summary dismissal as much as exclude it; what decides is "
+                           "the concrete breach of trust and the circumstances as a whole."),
+                },
+                # Evidence predicate: ALL concepts must occur in the same
+                # retrieved decision for it to support the condition.
+                "support": [
+                    r"faible valeur|peu de valeur|geringf.g|bagatell|modique|"
+                    r"petit montant|kleinen wert|geringfugig|petty theft|valore modesto",
+                    r"fristlos|licenciement|k.ndig|resiliation|dismissal|arbeitsverh.ltnis|"
+                    r"337|licenziamento",
+                ],
             },
         ],
     },
@@ -322,4 +354,166 @@ def ensure_coverage(bundle: dict, *, max_fills: int = MAX_FILLS) -> dict[str, An
     return report
 
 
-__all__ = ["CONTRACTS", "match_contract", "missing_elements", "ensure_coverage", "norm"]
+# ---------------------------------------------------------------------------
+# Deterministic, evidence-gated statement of a registered material condition
+# ---------------------------------------------------------------------------
+#: Filled when a registered condition is missing from the model's prose AND a
+#: retrieved decision supports it. Not a fallback for weak retrieval: if no
+#: retrieved decision satisfies the element's ``support`` predicate the ledger
+#: refuses and records the refusal.
+LEDGER_METHOD = "answer_condition_ledger_v1"
+
+#: Query-language detection for the statement table. Deliberately conservative:
+#: an undetected language falls back to English, never to a wrong language.
+LANGUAGE_MARKERS: dict[str, tuple[str, ...]] = {
+    "fr": (" le ", " la ", " les ", " selon ", " doit ", " lorsque ", " quelles ",
+           " des ", " une "),
+    "de": (" nach ", " unter ", " welche ", " welche ", " bedingungen ", " oder ",
+           " fristlose ", " kuendigung ", " arbeitsverhaeltnis ", " gemass "),
+    "it": (" secondo ", " quali ", " della ", " delle ", " degli ", " condizioni ",
+           " licenziamento ", " immediato "),
+}
+
+
+def detect_language(query: str) -> str:
+    """Best-effort query language for the statement table ('fr'|'de'|'it'|'en')."""
+    body = f" {norm(query)} "
+    best, best_hits = "en", 0
+    for language, markers in LANGUAGE_MARKERS.items():
+        hits = sum(1 for marker in markers if marker in body)
+        if hits > best_hits:
+            best, best_hits = language, hits
+    return best if best_hits >= 3 else "en"
+
+
+def _supporting_decisions(bundle: dict, element: dict) -> list[dict]:
+    """Retrieved decisions whose own text satisfies the element's support predicate."""
+    concepts = element.get("support") or []
+    if not concepts:
+        return []
+    found: list[dict] = []
+    decisions = sorted(
+        bundle.get("decisions", []),
+        key=lambda d: (0 if _is_federal(d) else 1, d.get("rank") or 10**9),
+    )
+    for decision in decisions:
+        text = _decision_texts(decision)
+        body = norm(text)
+        if not all(re.search(c, body, flags=re.IGNORECASE) for c in concepts):
+            continue
+        matched = [
+            s[:MAX_QUOTE_CHARS]
+            for s in _sentences(text)
+            if all(re.search(c, norm(s), flags=re.IGNORECASE) for c in concepts)
+        ]
+        citation = str(decision.get("citation") or "").strip()
+        found.append({
+            "decision_id": decision.get("decision_id"),
+            "rank": decision.get("rank"),
+            "court": decision.get("court"),
+            "language": decision.get("language"),
+            "cited_as": f"[{decision.get('decision_id')}]" + (f" ({citation})" if citation else ""),
+            "evidence": matched[:2],
+        })
+        if len(found) >= MAX_SUPPORT:
+            break
+    return found
+
+
+def state_conditions(bundle: dict, *, max_statements: int = MAX_FILLS) -> dict[str, Any]:
+    """State registered material conditions the model left implicit — or refuse.
+
+    Complements :func:`ensure_coverage`, which can only re-state what a
+    retrieved decision already says *verbatim*. A model may state a condition
+    correctly in its own words ("la faible valeur du bien volé n'est pas en
+    elle-même déterminante") while never using the phrasing the completeness
+    check looks for; that answer is legally fine and structurally incomplete.
+
+    Two rules make this safe rather than a canned-legal-claims generator:
+
+    1. **Evidence-gated.** The condition is stated only when a decision already
+       in the bundle satisfies the element's ``support`` predicate (every
+       concept present in the same decision's own text). No supporting
+       authority -> no statement, and the refusal is recorded, so the
+       completeness gate stays red rather than being satisfied by assertion.
+    2. **Always attributed.** Every emitted statement carries its supporting
+       ``[decision_id]`` citations and lands in
+       ``provenance.answer_condition_ledger`` with the evidence sentences that
+       justify it, ``authored_by`` and ``model_authored: false``. A jurist can
+       see what was product-authored instead of model-written.
+
+    Mutates ``bundle["answer"]``; returns the provenance report.
+    """
+    report: dict[str, Any] = {
+        "method": LEDGER_METHOD,
+        "contract": None,
+        "language": None,
+        "statements": [],
+        "refused": [],
+        "changed": False,
+    }
+    answer = bundle.get("answer") or {}
+    if answer.get("status") not in ("ready", "degraded", "pending"):
+        bundle.setdefault("provenance", {})["answer_condition_ledger"] = report
+        return report
+    contract = match_contract(bundle.get("query") or "")
+    if not contract:
+        bundle.setdefault("provenance", {})["answer_condition_ledger"] = report
+        return report
+
+    language = detect_language(bundle.get("query") or "")
+    report["contract"] = contract["topic"]
+    report["language"] = language
+    prose = str(answer.get("prose") or "")
+    missing = missing_elements(contract, prose)
+    if not missing:
+        bundle.setdefault("provenance", {})["answer_condition_ledger"] = report
+        return report
+
+    cited = list(answer.get("cited_decision_ids") or [])
+    additions: list[str] = []
+    for element in missing:
+        if len(report["statements"]) >= max_statements:
+            report["refused"].append({"element": element["id"],
+                                      "reason": "statement_budget_exhausted"})
+            continue
+        statements = element.get("statement") or {}
+        if not statements:
+            report["refused"].append({"element": element["id"],
+                                      "reason": "no_statement_registered"})
+            continue
+        support = _supporting_decisions(bundle, element)
+        if not support:
+            report["refused"].append({
+                "element": element["id"],
+                "reason": "no_retrieved_authority_meets_support_predicate",
+            })
+            continue
+        text = statements.get(language) or statements.get("en")
+        cited_as = " ".join(s["cited_as"] for s in support)
+        additions.append(f"**{element['label']}.** {text} {cited_as}")
+        for entry in support:
+            if entry["decision_id"] and entry["decision_id"] not in cited:
+                cited.append(entry["decision_id"])
+        report["statements"].append({
+            "element": element["id"],
+            "label": element["label"],
+            "language": language,
+            "statement": text,
+            "support": support,
+            "authored_by": LEDGER_METHOD,
+            "model_authored": False,
+        })
+
+    if additions:
+        answer["prose"] = (prose.rstrip() + "\n\n" + "\n\n".join(additions)).strip()
+        answer["cited_decision_ids"] = cited
+        report["changed"] = True
+        report["still_missing"] = [e["id"] for e in missing_elements(
+            contract, str(answer.get("prose") or ""))]
+    bundle.setdefault("provenance", {})["answer_condition_ledger"] = report
+    return report
+
+
+__all__ = ["CONTRACTS", "LEDGER_METHOD", "detect_language", "match_contract",
+           "missing_elements", "ensure_coverage", "state_conditions", "norm"]
