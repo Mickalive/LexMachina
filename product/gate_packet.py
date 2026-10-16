@@ -511,7 +511,8 @@ def preflight(args: argparse.Namespace) -> tuple[int, dict]:
                 "deep_link": qfile["deep_link"],
                 "measured": verdict["measured"],
                 "blocking": blocked,
-                "warnings": [f for f in verdict["findings"] if f["severity"] != "blocking"],
+                "warnings": [f for f in verdict["findings"] if f["severity"] == "warning"],
+                "notices": [f for f in verdict["findings"] if f["severity"] == "info"],
                 "guards_ok": guards.get("ok"),
             })
             summary["questions"].append(entry)
@@ -656,10 +657,21 @@ def recheck_packet(path: Path, *, strict_manifest: bool = True) -> dict:
 
 
 def _disclosure_lines(verdict: dict) -> list[str]:
-    return [
-        f"    - {f['code']}: {f['detail']}"
-        for f in (verdict.get("findings") or []) if f.get("severity") != "blocking"
-    ]
+    """Render every non-blocking finding, labelled by what it is.
+
+    An ``info`` row is a POSITIVE disclosure (e.g. "N of the counter rows came
+    through the independent adversarial route").  Printing it with the same
+    bullet as a warning taught the owner to read the card as a list of defects;
+    printing it unlabelled, next to a stale negative, is how the reverse error
+    happens.  Both severities are shown; the label says which is which.
+    """
+    out = []
+    for f in (verdict.get("findings") or []):
+        if f.get("severity") == "blocking":
+            continue
+        tag = "note" if f.get("severity") == "info" else "warning"
+        out.append(f"    - [{tag}] {f['code']}: {f['detail']}")
+    return out
 
 
 def seed_runs(recheck: dict) -> dict[str, str]:

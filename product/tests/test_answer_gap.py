@@ -341,11 +341,17 @@ def test_counter_rows_without_their_own_channel_are_disclosed():
     assert verdict["admissible"]
     assert verdict["measured"]["n_counter_authorities"] == 2
     assert verdict["measured"]["counter_rows_from_citation_channels"] == 0
+    assert verdict["measured"]["counter_rows_from_product_owned_channels"] == 0
     assert verdict["measured"]["counter_yield"] == 0.2
     finding = next(f for f in verdict["findings"]
                    if f["code"] == "counter_authority_has_no_own_channel")
     assert finding["severity"] == "warning"
+    # Wording corrected in repair 38838116453: the old sentence hard-coded the
+    # claim that there is no product-owned route, which became false the moment the
+    # adversarial retrieval route shipped.  The check itself is unchanged - it is
+    # still a warning, and it still fires here.
     assert "cannot surface contrary authority" in finding["detail"]
+    assert "none of the 2 counter rows came through a product-owned retrieval channel" in finding["detail"]
 
 
 def test_counter_rows_reached_through_a_citation_channel_are_not_disclosed():
@@ -361,3 +367,94 @@ def test_counter_rows_reached_through_a_citation_channel_are_not_disclosed():
                                min_decisions=1)
     assert verdict["measured"]["counter_rows_from_citation_channels"] == 1
     assert "counter_authority_has_no_own_channel" not in {f["code"] for f in verdict["findings"]}
+
+
+# --------------------------------------------------------------------------- #
+# the adversarial route IS a product-owned channel (repair 38838116453)
+# --------------------------------------------------------------------------- #
+def test_counter_rows_reached_through_the_adversarial_route_are_not_disclosed_as_channel_less():
+    """Regression for the stale predicate found in run 38838116453.
+
+    The disclosure fired on ``not n_counter_from_citations`` - i.e. it treated
+    CITATION channels as the only product-owned route.  After repair 38831241913
+    shipped the independent adversarial retrieval route (``adversarial.*``), that
+    predicate told the jurist, on the owner card, that "the map cannot surface
+    contrary authority that the ranked list did not already contain" for bundles
+    where 10 of 15 counter rows had arrived exactly that way.
+    """
+    decisions = [_decision(i, regeste="Autre sujet.") for i in range(1, 6)]
+    decisions[0]["counter_status"] = "candidate-limiting"
+    decisions[0]["channels"] = ["adversarial.contrary"]
+    decisions[0]["adversarial_channel"] = "adversarial.contrary"
+    decisions[1]["counter_status"] = "candidate-contrary"
+    decisions[1]["channels"] = ["adversarial.minority"]
+    decisions[1]["adversarial_channel"] = "adversarial.minority"
+    decisions[2]["counter_status"] = "candidate-limiting"
+    decisions[2]["channels"] = ["search"]
+    bundle = _bundle(decisions=decisions, answer={
+        "prose": "Antwort [d001].", "statements": [], "cited_decision_ids": ["d001"],
+        "method": "generative_audit_llm_v2", "model": "m", "status": "ready",
+    })
+    verdict = ga.verify_bundle(bundle, question={"qid": "de", "language": "de"},
+                               min_decisions=1)
+    codes = {f["code"] for f in verdict["findings"]}
+    assert "counter_authority_has_no_own_channel" not in codes
+    m = verdict["measured"]
+    assert m["counter_rows_from_adversarial_channels"] == 2
+    assert m["counter_rows_from_citation_channels"] == 0
+    assert m["counter_rows_from_product_owned_channels"] == 2
+    notice = next(f for f in verdict["findings"]
+                  if f["code"] == "counter_authority_has_product_owned_channel")
+    assert notice["severity"] == "info"
+    # a positive disclosure is not a defect and must not inflate warning_count
+    assert verdict["warning_count"] == sum(1 for f in verdict["findings"]
+                                           if f["severity"] == "warning")
+    assert verdict["notice_count"] == 1
+
+
+def test_low_ranked_product_owned_counter_rows_are_published():
+    """The point of the route is rows the ranked list shows last, so say which."""
+    decisions = [_decision(i, regeste="Autre sujet.") for i in range(1, 7)]
+    decisions[0]["counter_status"] = "candidate-contrary"
+    decisions[0]["channels"] = ["adversarial.older_line"]
+    decisions[0]["adversarial_channel"] = "adversarial.older_line"
+    decisions[0]["rank"] = 41
+    decisions[1]["counter_status"] = "candidate-limiting"
+    decisions[1]["channels"] = ["adversarial.exception"]
+    decisions[1]["adversarial_channel"] = "adversarial.exception"
+    decisions[1]["rank"] = 2
+    bundle = _bundle(decisions=decisions, answer={
+        "prose": "Antwort [d001].", "statements": [], "cited_decision_ids": ["d001"],
+        "method": "generative_audit_llm_v2", "model": "m", "status": "ready",
+    })
+    verdict = ga.verify_bundle(bundle, question={"qid": "de", "language": "de"},
+                               min_decisions=1)
+    m = verdict["measured"]
+    assert m["counter_rows_beyond_top20"] == 1
+    assert m["counter_ranks_beyond_top20_from_product_owned_channels"] == [41]
+    assert m["counter_ranks_from_product_owned_channels"] == [2, 41]
+    assert "adversarial.contrary" in m["product_owned_channels"]
+    assert "citation.incoming" in m["product_owned_channels"]
+    notice = next(f for f in verdict["findings"]
+                  if f["code"] == "counter_authority_has_product_owned_channel")
+    assert "beyond\nrank 20" in notice["detail"] or "beyond rank 20" in notice["detail"]
+
+
+def test_product_owned_channels_include_every_adversarial_channel():
+    from product.query.adversarial_retrieval import ADVERSARIAL_CHANNELS
+    assert set(ADVERSARIAL_CHANNELS) <= ga.PRODUCT_OWNED_CHANNELS
+    assert ga.CITE_CHANNELS <= ga.PRODUCT_OWNED_CHANNELS
+
+
+def test_disclosure_lines_label_a_positive_disclosure_as_a_note():
+    import gate_packet
+    verdict = {"findings": [
+        {"code": "counter_authority_has_product_owned_channel", "severity": "info",
+         "detail": "2/2 counter rows came through a product-owned retrieval channel"},
+        {"code": "map_is_one_mega_cluster", "severity": "warning", "detail": "the largest cluster ..."},
+        {"code": "answer_missing", "severity": "blocking", "detail": "never shown"},
+    ]}
+    lines = gate_packet._disclosure_lines(verdict)
+    assert len(lines) == 2
+    assert lines[0].startswith("    - [note] counter_authority_has_product_owned_channel:")
+    assert lines[1].startswith("    - [warning] map_is_one_mega_cluster:")

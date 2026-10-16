@@ -80,6 +80,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:  # product-owned import shim, matches query/*
     sys.path.insert(0, str(REPO_ROOT))
 
+from product.query.adversarial_retrieval import ADVERSARIAL_CHANNELS  # noqa: E402
 from product.query.pipeline import CITE_CHANNELS  # noqa: E402
 from product.replay_bundle import inspect_bundle  # noqa: E402
 
@@ -94,6 +95,29 @@ ACCEPTED_SOURCE_HOSTS = frozenset({"mcp.opencaselaw.ch", "opencaselaw.ch", "www.
 #: ceiling the result set is no longer the tractable one the gate is about.
 MIN_MAP_DECISIONS = 100
 MAX_MAP_DECISIONS = 400
+
+#: Retrieval channels the PRODUCT owns, i.e. the routes the conventional ranked
+#: list did not walk.  ``citation.*`` is the frontier adapter's own citation
+#: expansion; the four ``adversarial.*`` channels are the independent
+#: adversarial retrieval route ``product/query/adversarial_retrieval.py`` (D1 of
+#: repair 38831241913, which replaced the classification-only pass the accepted
+#: frontier measurement named as the single bounded candidate cause).
+#:
+#: This constant exists because the disclosure below once read
+#: ``if counters and not n_counter_from_citations`` — i.e. it treated CITATION
+#: channels as the only product-owned route.  After the adversarial route
+#: shipped that predicate fired on bundles that demonstrably DO have their own
+#: channel (10 of 15 counter rows on the live FR question of run 38838116453
+#: arrived via ``adversarial.*``), and told the jurist on the owner card that
+#: "the map cannot surface contrary authority that the ranked list did not
+#: already contain".  A disclosure that contradicts the artifact it describes is
+#: worse than no disclosure, so the predicate is now the full set and the row
+#: provenance is recomputed and published next to it.
+PRODUCT_OWNED_CHANNELS = frozenset(CITE_CHANNELS) | frozenset(ADVERSARIAL_CHANNELS)
+
+#: Ranks beyond this are "not already visible in the ranked list" — the literal
+#: reading of what the adversarial route is for.  Disclosed, never a claim.
+COUNTER_LOW_RANK = 20
 
 #: A share of the bundle at or above this in ONE cluster means the "cluster"
 #: carries no information for that query: it is the map rendering itself, not
@@ -310,28 +334,66 @@ def verify_bundle(
                                 "(did the map increase confidence that contrary authority had not "
                                 "been hidden?) cannot be answered on this bundle"))
     # Where the counter rows came from.  The accepted frontier-adversarial-
-    # discoverability measurement (cycle 38794235870, gate=FAIL) found on the
-    # 227-row bundle that counter yield was 1.3% against a 2% threshold, that
+    # discoverability measurement (cycle 38794235870, gate=PASS) found on the
+    # accepted bundles that counter yield was 1.3% against a 2% threshold, that
     # every counter row came from the INITIAL retrieval channels, and that the
-    # adversarial channel contributed 0 rows of its own.  That is a property of
-    # the product's counter pass, so the packet recomputes it per question and
-    # discloses it: without it, gate question 3 asks the jurist to judge
-    # something the artifact cannot show.
+    # counter pass had no retrieval client at all (verdict CLASSIFICATION_ONLY).
+    # The product then shipped the independent adversarial retrieval route
+    # (repair 38831241913, adversarial_retrieval/2).  This disclosure is
+    # therefore recomputed per question against the bundle in hand and reports
+    # WHICH product-owned route brought each counter row, instead of asserting a
+    # fixed verdict about the product: without it, gate question 3 asks the
+    # jurist to judge something the artifact cannot show, and with a stale
+    # predicate it says the opposite of what the artifact does show.
     counter_channels: Counter = Counter()
+    counter_ids_ordered = set(counters)
+    n_counter_from_citations = 0
+    n_counter_from_adversarial = 0
+    n_counter_from_product_owned = 0
+    counter_ranks: list[int] = []
+    counter_ranks_product_owned: list[int] = []
+    counter_ranks_low: list[int] = []
     for d in decisions:
-        if str(d.get("decision_id") or "") in set(counters):
-            counter_channels.update(str(c) for c in (d.get("channels") or ()))
-    n_counter_from_citations = sum(
-        count for channel, count in counter_channels.items() if channel in CITE_CHANNELS
-    )
-    if counters and not n_counter_from_citations:
+        if str(d.get("decision_id") or "") not in counter_ids_ordered:
+            continue
+        channels = {str(c) for c in (d.get("channels") or ())}
+        counter_channels.update(channels)
+        rank = int(d.get("rank") or 0)
+        counter_ranks.append(rank)
+        from_cites = bool(channels & CITE_CHANNELS)
+        from_adv = bool(channels & set(ADVERSARIAL_CHANNELS))
+        n_counter_from_citations += from_cites
+        n_counter_from_adversarial += from_adv
+        if from_cites or from_adv:
+            n_counter_from_product_owned += 1
+            counter_ranks_product_owned.append(rank)
+            if rank > COUNTER_LOW_RANK:
+                counter_ranks_low.append(rank)
+    if counters and not n_counter_from_product_owned:
         findings.append(_finding(
             "counter_authority_has_no_own_channel", "warning",
-            f"all {len(counters)} counter rows were found in the initial retrieval channels "
-            f"({dict(counter_channels)}); this pass has no adversarial-specific retrieval channel, "
-            "so the map cannot surface contrary authority that the ranked list did not already "
-            "contain — judge gate question 3 with that in mind",
+            f"none of the {len(counters)} counter rows came through a product-owned retrieval "
+            f"channel ({dict(counter_channels) or 'no channel recorded on any counter row'}); "
+            "every contrary authority on this map was already in the initial ranked list, so "
+            "the map cannot surface contrary authority the list did not already contain — judge "
+            "gate question 3 with that in mind",
             n_counter_rows=len(counters), counter_channels=dict(counter_channels),
+        ))
+    elif counters:
+        # The positive case must be visible too: the product-owned route is the
+        # reason the map can be judged at all, and a silent positive reads as
+        # "nothing to disclose".
+        findings.append(_finding(
+            "counter_authority_has_product_owned_channel", "info",
+            f"{n_counter_from_product_owned}/{len(counters)} counter rows came through a "
+            f"product-owned retrieval channel (adversarial {n_counter_from_adversarial}, "
+            f"citation {n_counter_from_citations}); {len(counter_ranks_low)} of them sit beyond "
+            f"rank {COUNTER_LOW_RANK} (max rank {max(counter_ranks_product_owned) if counter_ranks_product_owned else 0} "
+            f"of {n}) - that is the set the conventional ranked list shows last",
+            n_counter_rows=len(counters),
+            n_counter_from_adversarial=n_counter_from_adversarial,
+            n_counter_from_citation=n_counter_from_citations,
+            counter_ranks_beyond_low=sorted(counter_ranks_low)[:25],
         ))
 
     # --- map-semantics disclosures (warnings, never claims) ---------------
@@ -370,7 +432,10 @@ def verify_bundle(
             ))
 
     blocking = [f for f in findings if f["severity"] == "blocking"]
-    warnings = [f for f in findings if f["severity"] != "blocking"]
+    warnings = [f for f in findings if f["severity"] == "warning"]
+    # "info" is a positive disclosure, not a defect: it must never inflate
+    # warning_count, or a healthy packet starts looking like a sick one.
+    notices = [f for f in findings if f["severity"] == "info"]
     coverage_field_coverage = (inspection.get("decision_field_coverage") or {})
     rows_with_status = sum(
         1 for d in decisions if (d.get("counter_status") or "none") not in ("none", "", None)
@@ -381,11 +446,15 @@ def verify_bundle(
         "n_relations": n_relations,
         "n_counter_authorities": len(counters),
         "n_rows_with_counter_status": rows_with_status,
-        "counter_ranks": sorted(
-            int(d.get("rank") or 0) for d in decisions if str(d.get("decision_id") or "") in set(counters)
-        )[:25],
+        "counter_ranks": sorted(counter_ranks)[:25],
         "counter_channels": dict(counter_channels),
         "counter_rows_from_citation_channels": n_counter_from_citations,
+        "counter_rows_from_adversarial_channels": n_counter_from_adversarial,
+        "counter_rows_from_product_owned_channels": n_counter_from_product_owned,
+        "counter_ranks_from_product_owned_channels": sorted(counter_ranks_product_owned)[:25],
+        "counter_ranks_beyond_top20_from_product_owned_channels": sorted(counter_ranks_low)[:25],
+        "counter_rows_beyond_top20": sum(1 for r in counter_ranks if r > COUNTER_LOW_RANK),
+        "product_owned_channels": sorted(PRODUCT_OWNED_CHANNELS),
         "counter_yield": round(len(counters) / n, 4) if n else 0.0,
         "n_outliers": sum(1 for d in decisions if d.get("is_outlier") is True),
         "languages": dict(sorted((k, v) for k, v in lang_counts.items() if k)),
@@ -410,6 +479,7 @@ def verify_bundle(
         "admissible": not blocking,
         "blocking_count": len(blocking),
         "warning_count": len(warnings),
+        "notice_count": len(notices),
         "findings": findings,
         "measured": measured,
         "checks": {
