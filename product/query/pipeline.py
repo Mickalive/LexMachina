@@ -512,11 +512,45 @@ def _merge_hydrated_evidence(bundle: dict, *, retrieval_mode: str, evidence_coun
     if n == 0 or evidence_count <= 0:
         return out
     try:
-        requested_ids = [
-            d["decision_id"]
-            for d in sorted(out["decisions"], key=lambda row: row.get("rank") or 10**9)
-            [: min(max(1, evidence_count), n)]
+        ranked_rows = sorted(
+            out["decisions"],
+            key=lambda row: row.get("rank") or 10**9,
+        )
+        evidence_budget = min(max(1, evidence_count), n)
+        # Legal evidence selection is deliberately not identical to display
+        # ranking. Keep a strong relevance head, but reserve part of the small
+        # hydration budget for the best Federal Supreme Court/BGE authorities.
+        # This prevents an exact controlling case at rank 15-30 from being
+        # invisible to generation merely because several canton-level snippets
+        # are lexically closer.
+        relevance_slots = min(
+            evidence_budget,
+            max(6, int(round(evidence_budget * 0.6))),
+        )
+        selected_rows = list(ranked_rows[:relevance_slots])
+        selected_ids = {str(d.get("decision_id") or "") for d in selected_rows}
+
+        federal_rows = [
+            d for d in ranked_rows
+            if str(d.get("decision_id") or "") not in selected_ids
+            and str(d.get("court") or "").lower() in {"bger", "bge"}
         ]
+        for d in federal_rows:
+            if len(selected_rows) >= evidence_budget:
+                break
+            selected_rows.append(d)
+            selected_ids.add(str(d.get("decision_id") or ""))
+
+        for d in ranked_rows:
+            if len(selected_rows) >= evidence_budget:
+                break
+            did = str(d.get("decision_id") or "")
+            if did in selected_ids:
+                continue
+            selected_rows.append(d)
+            selected_ids.add(did)
+
+        requested_ids = [str(d["decision_id"]) for d in selected_rows]
         hydrated = _retrieve(
             out["query"],
             n,
