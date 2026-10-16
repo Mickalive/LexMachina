@@ -752,7 +752,7 @@ def _frontier_verdict_lines() -> list[str]:
     ) or "n/a"
     lines = [
         "",
-        "  Independent Frontier measurements, adopted as input (v54 item 4):",
+        "  Independent Frontier measurements, adopted as input (v54 item 4 / v55 second item):",
         f"    counter-label integrity (run {counter.get('team_run_id')}, "
         f"accept {counter.get('accept_commit_on_main')}):",
         f"      {counter.get('verdict')} — {counter.get('n_scored_primary')} scored "
@@ -767,6 +767,28 @@ def _frontier_verdict_lines() -> list[str]:
         "      promoted decision: keep the shipped geometry and CLOSE geometry",
         "      work until after the human gate (no in-budget alternative passed).",
     ]
+    # v55 SECOND ITEM: the one Frontier measurement that DID cover this packet.
+    # Its covers_this_packet flag is TRUE, which is exactly why it must be on
+    # the card in full — a warning scoped to the served rows, not to a
+    # superseded artifact.
+    spf = d.get("frontier_served_packet_falsification") or {}
+    if spf.get("published"):
+        serve = str(spf.get("serve_recommendation") or "").split(".")[0]
+        lines += [
+            f"    served-packet falsification (run {spf.get('team_run_id')}, "
+            f"accept {(spf.get('accept_commit') or '')[:7]}):",
+            f"      MEASURED ON THIS PACKET (gate_packet/38839347028) — labels: "
+            f"{spf.get('label_verdict')}, {spf.get('n_supported')} of "
+            f"{spf.get('n_scored')} supported by the row's own cited evidence; "
+            f"geometry: {spf.get('geometry_verdict')}, "
+            f"{spf.get('n_bundles_pass')} of {spf.get('n_bundles')} bundles pass "
+            "all 11 criteria.",
+            f"      serve recommendation (their words): {serve}.",
+            "      Adopted as INPUT (v55 second item): the team's own numbers and",
+            "      claim ceiling, reported and never endorsed — this product still",
+            "      never asserts that any decision IS supporting, contrary or",
+            "      limiting, and human_gate_ready stays false.",
+        ]
     return lines
 
 

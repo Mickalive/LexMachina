@@ -1,0 +1,77 @@
+{
+  "schema": "product-frontier-verdict-adoption/served-packet-falsification/1",
+  "harvested_at": "2026-10-16T11:28:50Z",
+  "harvested_from_accepted_root": "/tmp/lex_accepted/frontier",
+  "source_files": [
+    {
+      "path": "/tmp/lex_accepted/frontier/frontier-served-packet-falsification/state/frontier/frontier-served-packet-falsification.json",
+      "sha256": "db3d7c824dc38208ff6d0b71f8b99e6fd4af7c8b6eaff0528323edba099b2a13"
+    },
+    {
+      "path": "/tmp/lex_accepted/frontier/frontier-served-packet-falsification/results/frontier/frontier-served-packet-falsification/INTEGRATION_CONTRACT.json",
+      "sha256": "b17fd23d83ace0817a026e5f9f956e70d18809ccf728f503fc0543cb9bf75a6b"
+    },
+    {
+      "path": "/tmp/lex_accepted/frontier/frontier-served-packet-falsification/results/frontier/frontier-served-packet-falsification/CLAIM_CEILING.json",
+      "sha256": "1a7f8539fc81429cf7ea74add147da85d84f98b7fb03d714e3c9f03540ce4d4c"
+    }
+  ],
+  "team_id": "frontier-served-packet-falsification",
+  "team_run_id": "38880639079",
+  "accept_commit": "464c45f7e4bf741b6a67adbef35dc587d8cfa21f",
+  "charter_version": 1,
+  "status": "PROMOTED",
+  "evidence_tier": "MEASURED",
+  "cycle_status": "COMPLETE_NEGATIVE_RESULT",
+  "measured_packet": "gate_packet/38839347028 (the packet that will be served)",
+  "covers_this_packet": true,
+  "label_half": {
+    "verdict": "LABEL_UNSOUND",
+    "n_scored": 65,
+    "n_supported": 5,
+    "support_rate": 0.07692307692307693,
+    "direction_vs_baseline": "IMPROVED",
+    "note": "Genuine improvement from 0.0% pre-repair to 7.69% served. Must not be explained away. Absolute frozen bar (1.0) not reached.",
+    "claim_text": "The served gate packet 38839347028 issues 65 counter-authority labels. Under the frozen frontier-counter-label-integrity rubric (rules_sha256 4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608), 5 of 65 (7.69%) are SUPPORTED by the row's own cited evidence. Verdict: LABEL_UNSOUND (frozen bar is absolute: support_rate must equal 1.0; ANY single unsupported label makes the label set unsound). Defect classes: OFF-DOMAIN 38, UNBACKED 22, SUPPORTED 5, INVERTED 0, BOILERPLATE-ONLY 0, FRAGMENT 0. The 16 rows with empty counter_evidence at counter_uncertainty >= 0.95 each score UNBACKED with reason_code=evidence_absent. counter_evidence_verified is present-true on 49 rows, present-false on 0, absent on exactly the 16 empty-evidence rows."
+  },
+  "geometry_half": {
+    "verdict": "FAIL",
+    "n_bundles_pass": 0,
+    "n_bundles": 3,
+    "pass_counts": {
+      "de-kapitalverletzung": 6,
+      "fr-bail-entretien": 5,
+      "it-responsabilita-medica": 5
+    },
+    "baseline_pass_counts": {
+      "de-kapitalverletzung": 5,
+      "fr-bail-entretien": 5,
+      "it-responsabilita-medica": 4
+    },
+    "french_largest_share": 0.7696,
+    "french_bar": 0.6,
+    "french_inside_frozen_rule": false,
+    "note": "de and it improved pass counts (5->6, 4->5). fr mega-cluster share REGRESSED 0.557->0.770. 0/3 bundles pass all 11 criteria.",
+    "claim_text": "Under the frozen frontier-map-semantics rule (rules_sha256 a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633), 0 of 3 served bundles pass all 11 criteria. Pass counts: de 6/11 (baseline 5/11, IMPROVED), fr 5/11 (baseline 5/11, SAME), it 5/11 (baseline 4/11, IMPROVED). The French bundle's largest cluster is 167 of 217 decisions (77.0% by the cluster size field), FAILING the frozen STRUCTURE_LARGEST bar of 0.60 (baseline was 55.7%). The un-hydrated-row ablation: ARTIFACT=False on fr (dominant unhydrated fraction 0.293 < 0.40), hydrated-only recompute collapses the share to 0.268 with dominant-member Jaccard 0.235, but the frozen ARTIFACT predicate does not fire because the shell-fraction clause is not met; the cluster nonetheless fails the shipped bar and the dominant cluster contains only 4 of 217 French-language rows (2.4%)."
+  },
+  "before_after": "The D2 repair produced a GENUINE but INSUFFICIENT improvement on the label axis: 0/46 supported (0.0%) pre-repair -> 5/65 (7.69%) served. This improvement must NOT be explained away by the pre-repair baseline; it is a real product-improving result on the axis measured, but it does not reach the frozen 1.0 bar, so the overall label verdict remains LABEL_UNSOUND. Geometry pass counts improved on de and it (5->6, 4->5) but fr's mega-cluster share REGRESSED 0.557->0.770.",
+  "serve_recommendation": "DO-NOT-SERVE this packet unchanged. Both halves fail their frozen bars. The label improvement is real but the packet still ships 60 unsupported counter labels including 16 with empty evidence at maximal uncertainty. The French map still renders one 167-row cluster at 77% that contains 4 French-language rows. An imminent owner session on this packet would consume the scarcest resource on an artifact that should not have been served unchanged.",
+  "promotion_outcome": "A",
+  "promotion_outcome_note": "Outcome A under the charter's three-way promotion rule: the served packet HOLDS OR REGRESSES on label support and/or geometry — the promoted verdict is that this packet is NOT FIT TO SERVE UNCHANGED, which product must act on before any owner session. The label half additionally shows a genuine partial improvement (outcome B's axis) that must not be explained away; both facts are reported together.",
+  "what_product_may_NOT_claim": [
+    "That any specific decision IS supporting, contrary or limiting. This measurement never asserts that; those remain the product's labels.",
+    "That the D2 repair failed. On the label axis it improved 0.0% -> 7.69%; on geometry de and it improved. The repair worked partially; the absolute bars were not reached.",
+    "That the geometry is worse overall than baseline. de and it improved on pass counts; fr's mega-cluster share regressed. Mixed.",
+    "That the 16 empty-evidence rows are the product of the D2 classifier specifically; they reach the render predicate with empty evidence regardless of which classifier wrote them.",
+    "Any placement, rank or findability claim. Those are out of scope for this charter and are reported as read-only context only."
+  ],
+  "claim_ceiling": "This measurement is about the SUPPORT OF THE LABELS AS ISSUED by the product's counter-authority pass, and about the SEMANTICS OF THE SHIPPED MAP GEOMETRY. It NEVER asserts that any specific decision IS supporting, contrary or limiting. Those remain the product's labels: reported here, not endorsed, not re-assigned. is_outlier, cluster placement, rank position and jurist findability are emitted as READ-ONLY CONTEXT only and are never a verdict of this charter.",
+  "forbidden_construction_patterns": [
+    "\\bdecision\\s+[A-Za-z0-9_.\\-]+\\s+is\\s+(supporting|contrary|limiting)\\b",
+    "\\bdecision\\s+[A-Za-z0-9_.\\-]+\\s+is\\s+not\\s+(supporting|contrary|limiting)\\b",
+    "\\b[A-Za-z0-9_.\\-]+\\s+is\\s+(a\\s+)?(supporting|contrary|limiting)\\s+(authority|decision|case)\\b",
+    "\\bwe\\s+(classify|label|find)\\s+[A-Za-z0-9_.\\-]+\\s+as\\s+(supporting|contrary|limiting)\\b",
+    "\\basserts?\\s+that\\s+[A-Za-z0-9_.\\-]+\\s+is\\s+(supporting|contrary|limiting)\\b"
+  ],
+  "harvest_note": "Adopted as INPUT in the same cycle it was accepted (v55 SECOND ITEM). The product copies the team's own numbers and ceiling; it never re-scores a label, never re-measures geometry and never asserts that any specific decision is supporting, contrary or limiting."
+}

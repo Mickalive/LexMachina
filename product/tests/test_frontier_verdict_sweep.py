@@ -128,11 +128,16 @@ def test_sweep_against_the_live_accepted_mounts():
     False. Map-semantics newest verification is the adopted run itself.
 
     v55 portfolio note: both verification teams are TERMINATED, so a cycle
-    mount may carry NO verification file at all (only the RUN successor
-    frontier-served-packet-falsification, which has no verdict yet). The
-    sweep tool degrades honestly to snapshot-stands in that shape; this test
-    accepts that documented outcome instead of requiring a file the
-    portfolio no longer publishes.
+    mount may carry NO verification file at all (the RUN successor
+    frontier-served-packet-falsification publishes its verdict through its own
+    accepted state and its OWN product-owned snapshot, not through a
+    VERIFICATION_<run>.json in this directory). The sweep tool degrades
+    honestly to snapshot-stands in that shape; this test accepts that
+    documented outcome instead of requiring a file the portfolio no longer
+    publishes. Its separate verdict (v55 second item, adopted by run
+    38892001925 with covers_this_packet=true) is asserted by
+    test_served_packet_falsification_adoption.py, never here: this sweep only
+    ever covers the two PRE-FIX/PRE-REBUILD verdicts.
     """
     out = fva.sweep(ACCEPTED_ROOT)
     counter = out["frontier_counter_label_integrity"]

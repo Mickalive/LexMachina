@@ -50,6 +50,10 @@ Usage
     # check the accepted mounts for a newer measurement without re-measuring
     python product/frontier_verdict_adoption.py sweep \
         --accepted-root /tmp/lex_accepted/frontier
+
+    # v55 second item: harvest the one verdict that DID measure THIS packet
+    python product/frontier_verdict_adoption.py harvest-served-packet \
+        --accepted-root /tmp/lex_accepted/frontier
 """
 from __future__ import annotations
 
@@ -67,6 +71,28 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 #: packet/disclosure/card path never depends on the CI mount being present.
 SNAPSHOT_PATH = (REPO_ROOT / "results" / "product" / "frontier_verdicts"
                  / "ACCEPTED_counter_label_38841035773__map_semantics_38846038296.json")
+
+#: v55 SECOND ITEM — the Frontier team that measured THIS packet.
+#:
+#: ``frontier-served-packet-falsification`` (charter 1, team run 38880639079,
+#: accept commit ``464c45f`` on ``origin/lab/frontier/frontier-served-packet-falsification``,
+#: independent audit ``CYCLE_38880639079_GATE.json`` = PASS / safe_to_integrate /
+#: ``required_fixes=[]``) is the measurement the two earlier verdicts could not
+#: make: it scored the 65 counter labels AND the three bundles of gate packet
+#: ``38839347028`` under the two byte-identical frozen rubrics.  It gets its own
+#: product-owned snapshot so that the original snapshot stays byte-identical to
+#: the sha256 the frozen packet recorded at build time.
+SPF_TEAM_RUN_ID = "38880639079"
+SPF_ACCEPT_COMMIT = "464c45f7e4bf741b6a67adbef35dc587d8cfa21f"
+SPF_STATE = Path("state/frontier/frontier-served-packet-falsification.json")
+SPF_INTEGRATION_CONTRACT = Path(
+    "results/frontier/frontier-served-packet-falsification/INTEGRATION_CONTRACT.json")
+SPF_CLAIM_CEILING = Path(
+    "results/frontier/frontier-served-packet-falsification/CLAIM_CEILING.json")
+SPF_TEAM = "frontier-served-packet-falsification"
+SPF_SNAPSHOT_PATH = (REPO_ROOT / "results" / "product" / "frontier_verdicts"
+                     / f"ACCEPTED_{SPF_TEAM}_{SPF_TEAM_RUN_ID}.json")
+SCHEMA_SPF = "product-frontier-verdict-adoption/served-packet-falsification/1"
 
 #: Provenance constants: the accepted Frontier runs, as recorded by the
 #: director (factory_direction v54, item (4)) and verified on origin/main.
@@ -296,6 +322,148 @@ def sweep(accepted_root: Path, snapshot_path: Path | None = None) -> dict[str, A
     }
 
 
+def harvest_served_packet_falsification(accepted_root: Path) -> dict[str, Any]:
+    """Read the accepted ``frontier-served-packet-falsification`` verdict.
+
+    v55 SECOND ITEM.  The two verdicts above were measured on PRE-FIX /
+    PRE-REBUILD artifacts; this one is measured on the packet the owner is
+    about to be served, so its ``covers_this_packet`` is TRUE and the product
+    must carry it to the jurist rather than wait for it.
+
+    The product NEVER re-measures: this copies the accepted team's own numbers
+    and its own claim ceiling, with source sha256s, into a product-owned
+    snapshot.  Nothing here asserts that any decision IS supporting, contrary
+    or limiting — that construction is forbidden by the team's claim ceiling
+    and by the Master Prompt.
+    """
+    root = Path(accepted_root)
+    state_path = root / SPF_TEAM / SPF_STATE
+    if not state_path.is_file():
+        raise FileNotFoundError(
+            f"served-packet-falsification verdict not found: {state_path}")
+    contract_path = root / SPF_TEAM / SPF_INTEGRATION_CONTRACT
+    if not contract_path.is_file():
+        raise FileNotFoundError(
+            f"served-packet-falsification integration contract not found: {contract_path}")
+    ceiling_path = root / SPF_TEAM / SPF_CLAIM_CEILING
+    if not ceiling_path.is_file():
+        raise FileNotFoundError(
+            f"served-packet-falsification claim ceiling not found: {ceiling_path}")
+
+    doc = _read_json(state_path)
+    contract = _read_json(contract_path)
+    ceiling = _read_json(ceiling_path)
+    verdict = doc.get("verdict") or {}
+    label = verdict.get("label_half") or {}
+    geometry = verdict.get("geometry_half") or {}
+    claimed = contract.get("what_product_may_claim") or {}
+    if doc.get("status") != "PROMOTED":
+        raise ValueError(
+            f"served-packet-falsification state is not PROMOTED (status={doc.get('status')!r})")
+
+    return {
+        "schema": SCHEMA_SPF,
+        "harvested_at": _now(),
+        "harvested_from_accepted_root": str(root),
+        "source_files": [
+            {"path": str(state_path), "sha256": _sha256(state_path)},
+            {"path": str(contract_path), "sha256": _sha256(contract_path)},
+            {"path": str(ceiling_path), "sha256": _sha256(ceiling_path)},
+        ],
+        "team_id": doc.get("team_id"),
+        "team_run_id": doc.get("team_run_id") or SPF_TEAM_RUN_ID,
+        "accept_commit": SPF_ACCEPT_COMMIT,
+        "charter_version": doc.get("charter_version"),
+        "status": doc.get("status"),
+        "evidence_tier": doc.get("evidence_tier"),
+        "cycle_status": doc.get("cycle_status"),
+        "measured_packet": "gate_packet/38839347028 (the packet that will be served)",
+        "covers_this_packet": True,
+        "label_half": {
+            "verdict": label.get("verdict"),
+            "n_scored": label.get("n_scored"),
+            "n_supported": label.get("n_supported"),
+            "support_rate": label.get("support_rate"),
+            "direction_vs_baseline": label.get("direction_vs_baseline"),
+            "note": label.get("note"),
+            "claim_text": claimed.get("label_half"),
+        },
+        "geometry_half": {
+            "verdict": geometry.get("verdict"),
+            "n_bundles_pass": geometry.get("n_bundles_pass"),
+            "n_bundles": geometry.get("n_bundles"),
+            "pass_counts": geometry.get("pass_counts"),
+            "baseline_pass_counts": geometry.get("baseline_pass_counts"),
+            "french_largest_share": geometry.get("french_largest_share"),
+            "french_bar": geometry.get("french_bar"),
+            "french_inside_frozen_rule": geometry.get("french_inside_frozen_rule"),
+            "note": geometry.get("note"),
+            "claim_text": claimed.get("geometry_half"),
+        },
+        "before_after": claimed.get("before_after"),
+        "serve_recommendation": claimed.get("serve_recommendation"),
+        "promotion_outcome": doc.get("promotion_outcome"),
+        "promotion_outcome_note": doc.get("promotion_outcome_note"),
+        "what_product_may_NOT_claim": contract.get("what_product_may_NOT_claim"),
+        "claim_ceiling": ceiling.get("claim_ceiling"),
+        "forbidden_construction_patterns": ceiling.get("forbidden_construction_patterns"),
+        "harvest_note": (
+            "Adopted as INPUT in the same cycle it was accepted (v55 SECOND ITEM). "
+            "The product copies the team's own numbers and ceiling; it never "
+            "re-scores a label, never re-measures geometry and never asserts that "
+            "any specific decision is supporting, contrary or limiting."),
+    }
+
+
+def load_served_packet_falsification(path: Path | None = None) -> dict[str, Any] | None:
+    """Load the product-owned served-packet-falsification snapshot."""
+    p = Path(path) if path else SPF_SNAPSHOT_PATH
+    if not p.is_file():
+        return None
+    return _read_json(p)
+
+
+def served_packet_falsification_disclosure(path: Path | None = None) -> dict[str, Any]:
+    """The packet-scoped disclosure block (published only once harvested)."""
+    p = Path(path) if path else SPF_SNAPSHOT_PATH
+    snap = load_served_packet_falsification(p)
+    if snap is None:
+        return {
+            "published": False,
+            "skip_reason": (
+                "no accepted served-packet-falsification snapshot found; run "
+                "python product/frontier_verdict_adoption.py harvest-served-packet "
+                "--accepted-root <accepted mounts root>"),
+        }
+    label = snap.get("label_half") or {}
+    geometry = snap.get("geometry_half") or {}
+    return {
+        "published": True,
+        "snapshot_path": str(p),
+        "snapshot_sha256": _sha256(p),
+        "harvested_at": snap.get("harvested_at"),
+        "team_id": snap.get("team_id"),
+        "team_run_id": snap.get("team_run_id"),
+        "accept_commit": snap.get("accept_commit"),
+        "measured_packet": snap.get("measured_packet"),
+        # The one honest difference from the two earlier verdicts: this one WAS
+        # measured on the served packet's own rows and bundles.
+        "covers_this_packet": True,
+        "label_verdict": label.get("verdict"),
+        "n_scored": label.get("n_scored"),
+        "n_supported": label.get("n_supported"),
+        "support_rate": label.get("support_rate"),
+        "geometry_verdict": geometry.get("verdict"),
+        "n_bundles_pass": geometry.get("n_bundles_pass"),
+        "n_bundles": geometry.get("n_bundles"),
+        "pass_counts": geometry.get("pass_counts"),
+        "serve_recommendation": snap.get("serve_recommendation"),
+        "promotion_outcome_note": snap.get("promotion_outcome_note"),
+        "claim_ceiling": snap.get("claim_ceiling"),
+        "harvest_note": snap.get("harvest_note"),
+    }
+
+
 def load(path: Path | None = None) -> dict[str, Any] | None:
     """Load the product-owned snapshot (None when it has never been harvested)."""
     p = Path(path) if path else SNAPSHOT_PATH
@@ -329,6 +497,12 @@ def disclosure(path: Path | None = None) -> dict[str, Any]:
         "snapshot_sha256": _sha256(Path(path) if path else SNAPSHOT_PATH),
         "harvested_at": snap.get("harvested_at"),
         "claim_ceiling": snap.get("claim_ceiling"),
+        "claim_ceiling_scope": (
+            "the claim_ceiling above scopes the two v54 verdicts "
+            "(frontier_counter_label_integrity + frontier_map_semantics, both "
+            "measured on superseded artifacts). frontier_served_packet_falsification "
+            "carries its OWN claim_ceiling inside its block, and that is the one "
+            "that applies to gate packet 38839347028."),
         "frontier_counter_label_integrity": {
             "team_run_id": counter.get("team_run_id"),
             "accept_commit_on_main": counter.get("accept_commit_on_main"),
@@ -362,12 +536,17 @@ def disclosure(path: Path | None = None) -> dict[str, Any]:
                 "disclosed to the jurist, not hidden"
             ),
         },
+        # v55 SECOND ITEM: unlike the two blocks above, this one WAS measured on
+        # the served packet's own rows and bundles, so it carries
+        # covers_this_packet=True and a serve recommendation.
+        "frontier_served_packet_falsification": served_packet_falsification_disclosure(),
     }
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("command", choices=("harvest", "disclosure", "sweep"))
+    ap.add_argument("command",
+                    choices=("harvest", "harvest-served-packet", "disclosure", "sweep"))
     ap.add_argument("--accepted-root", type=Path,
                     default=Path("/tmp/lex_accepted/frontier"),
                     help="accepted Frontier mounts root (harvest only)")
@@ -375,6 +554,23 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--snapshot", type=Path, default=None,
                     help="alternate snapshot to read (disclosure only)")
     args = ap.parse_args(argv)
+    if args.command == "harvest-served-packet":
+        try:
+            snap = harvest_served_packet_falsification(args.accepted_root)
+        except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
+            print(f"harvest-served-packet failed: {type(exc).__name__}: {exc}",
+                  file=sys.stderr)
+            return 6
+        out = SPF_SNAPSHOT_PATH if args.out == SNAPSHOT_PATH else args.out
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(snap, indent=2, ensure_ascii=False) + "\n",
+                       encoding="utf-8")
+        print(json.dumps({"harvested": str(out),
+                          "label_verdict": snap["label_half"]["verdict"],
+                          "geometry_verdict": snap["geometry_half"]["verdict"],
+                          "covers_this_packet": snap["covers_this_packet"]},
+                         indent=2))
+        return 0
     if args.command == "harvest":
         try:
             snap = harvest(args.accepted_root)
