@@ -16,7 +16,8 @@ sys.path.insert(0, str(ROOT))
 
 from query import enrich_query_bundle, run_query_initial
 from query.bundle import validate_bundle
-from query.relevance import rerank_product_bundle
+from query import relevance as relevance_mod
+from query.relevance import _variant_texts, rerank_product_bundle
 from ocl_adapter.expansion import build_variants
 
 QUERY = "Kündigung Mietvertrag Mietrecht"
@@ -400,6 +401,96 @@ def test_reranker_head_recall_places_remote_top_federal_row_in_evidence_head():
     assert moved[0]["remote_rank"] <= 5 and moved[0]["from_rank"] > 10
     # ranks stay dense and unique after the splice
     assert sorted(d["rank"] for d in reranked["decisions"]) == list(range(1, 32))
+
+
+def _silent_federal_pool(n_fill=30):
+    """French-question pool where German federal rows are lexically silent.
+
+    Mirrors the observed 2026-10-16 business-judgment-rule shape: the source
+    index ranks the federal controlling authorities on its first page
+    (remote 6..15) but cross-language TF-IDF similarity collapses, so local
+    scoring buries them below the evidence head.
+    """
+    french = (
+        "Dans quelles conditions le juge suisse s'abstient-il de revoir une "
+        "decision commerciale du conseil d'administration ?"
+    )
+    decisions = []
+    for i in range(n_fill):
+        decisions.append({
+            "decision_id": f"CANT-{i:02d}",
+            "court": "ge_gerichte",
+            "score": 90.0 - i,
+            "title": "Decision commerciale",
+            "citation": f"GE {i}",
+            "regeste": "",
+            "snippet": "decision commerciale conseil administration juge abstient revoir " * 6,
+        })
+    return french, decisions
+
+
+def test_reranker_dict_variants_do_not_dilute_concept_vocabulary():
+    """Production bundles carry adapter variant *dicts*; the reranker must
+    use their text, not their Python repr.
+
+    Non-vacuous: the repr form injects ~10x boilerplate tokens
+    (variant_id/kind/digests) that demonstrably change the TF-IDF query
+    document; the fixed extractor keeps the query document identical to the
+    plain-string form used by fixtures.
+    """
+    dict_variants = [
+        {"variant_id": "legal_concept:any:ab12cd34", "text": "Geschaftsentscheid Verwaltungsrat",
+         "kind": "legal_concept", "language_filter": None, "terms_added": ["x"],
+         "terms_added_from": "y", "note": "z"},
+    ]
+    texts, kinds = _variant_texts(dict_variants)
+    assert texts == ["Geschaftsentscheid Verwaltungsrat"]
+    assert kinds == ["legal_concept"]
+    # legacy string fixtures keep working
+    texts2, kinds2 = _variant_texts(["plain variant", None, "  "])
+    assert texts2 == ["plain variant"] and kinds2 == ["text"]
+    # the repr form must never reach the query document
+    assert "variant_id" not in " ".join(texts)
+
+
+def test_reranker_recalls_first_page_federal_row_buried_by_language_gap(monkeypatch):
+    """Observed 2026-10-16 (business-judgment-rule leg): the five frozen TF
+    BJR authorities sat at remote ranks 12/13/14/17/31 with local similarity
+    0.000-0.016, so the old top-5 window recalled only off-domain federal
+    rows while every controlling authority stayed below the hydration head and
+    the answer cited none of them.  A federal row at remote rank 12 must now
+    reach the evidence head; with the old window it must not (pins the
+    window's role without touching production constants)."""
+    french, decisions = _silent_federal_pool()
+    decisions.append({
+        "decision_id": "DIRECT-TF",
+        "court": "bger",
+        "score": 79.5,  # remote rank 12 inside a 31-row pool, lexically silent below
+        "title": "Verwaltungsrat",
+        "citation": "TF 4A_219/2015",
+        "regeste": "",
+        "snippet": "curia deliberanda est sine mora.",
+    })
+    bundle = {"query": french, "query_variants": [], "decisions": decisions,
+              "provenance": {}}
+    reranked = rerank_product_bundle(bundle)
+    order = [d["decision_id"] for d in reranked["decisions"]]
+    by_id = {d["decision_id"]: d for d in reranked["decisions"]}
+    assert order.index("DIRECT-TF") < 10, order[:12]
+    assert by_id["DIRECT-TF"]["remote_head_recall"] is True
+    moved = reranked["provenance"]["product_rerank"]["remote_head_recall"]["moved"]
+    assert any(m["decision_id"] == "DIRECT-TF" and m["remote_rank"] == 12 for m in moved)
+    assert len(moved) <= 3  # displacement stays bounded
+
+    # negative control: the retired top-5 window leaves the same row buried
+    monkeypatch.setattr(relevance_mod, "REMOTE_HEAD_RECALL_REMOTE_TOP", 5)
+    buried = rerank_product_bundle(
+        {"query": french, "query_variants": [], "decisions": decisions,
+         "provenance": {}})
+    by_id_old = {d["decision_id"]: d for d in buried["decisions"]}
+    order_old = [d["decision_id"] for d in buried["decisions"]]
+    assert order_old.index("DIRECT-TF") >= 10, order_old[:12]
+    assert by_id_old["DIRECT-TF"]["remote_head_recall"] is False
 
 
 # --------------------------------------------------------------------------- #

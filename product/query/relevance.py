@@ -37,7 +37,17 @@ REMOTE_SAFEGUARD_MIN_REMOTE = 0.5
 #: only when the index ranked them top-5, and rows already in the head are
 #: never touched.  Rows the generator still ignores remain subject to the
 #: citation-validation and adversarial passes downstream.
-REMOTE_HEAD_RECALL_REMOTE_TOP = 5
+#:
+#: Window widened 5 -> 15 (2026-10-16, business-judgment-rule leg): the five
+#: frozen TF BJR authorities sit at remote ranks 12/13/14/17/31 with local
+#: TF-IDF similarity 0.000-0.016 (French question vs German texts, no
+#: statute anchor in the thin snippets), so the top-5 window recalled only
+#: off-domain federal rows (remote 4/5) while every controlling authority
+#: stayed below the hydration head and the answer cited none of them.  The
+#: window stays inside the source index's first result page (page_size 25 at
+#: top_n=100); every other bound (federal-only, max 3 moved, insert at 8..10,
+#: head order preserved) is unchanged.
+REMOTE_HEAD_RECALL_REMOTE_TOP = 15
 REMOTE_HEAD_RECALL_LOCAL_HEAD = 10
 REMOTE_HEAD_RECALL_MAX_MOVED = 3
 REMOTE_HEAD_RECALL_INSERT_AT = 8
@@ -74,6 +84,34 @@ that this have has had were was will bundesgericht tribunal tribunale federale r
 ricorso arrêt urteil sentenza entscheid entscheidung considérant erwägung considerando ordonnance
 verordnung ordinanza code droit recht diritto mark regeste regesto consid bger bge atf dtf
 """.split())
+
+
+def _variant_texts(raw_variants) -> tuple[list[str], list[str]]:
+    """Extract search text from product-bundle query variants.
+
+    Production bundles carry the accepted adapter's variant *dicts*
+    (``{"variant_id": ..., "text": ..., "kind": ...}``); older fixtures and
+    unit tests carry plain strings.  ``str()``-ing a dict injects Python-repr
+    boilerplate (``variant_id``, ``kind``, hex digests, ``None`` ...) into the
+    TF-IDF query document and dilutes the curated cross-language concept
+    vocabulary — observed 2026-10-16 on the business-judgment-rule leg, where
+    the German ``legal_concept`` variants were present but buried ~10x under
+    repr noise while French lexical rows kept the evidence head.  Returns
+    (texts, kinds) so provenance can record which variant kinds contributed.
+    """
+    texts: list[str] = []
+    kinds: list[str] = []
+    for v in raw_variants or []:
+        if isinstance(v, dict):
+            text = str(v.get("text") or "").strip()
+            kind = str(v.get("kind") or "?")
+        else:
+            text = str(v or "").strip()
+            kind = "text"
+        if text:
+            texts.append(text)
+            kinds.append(kind)
+    return texts, kinds
 
 
 def clean_text(value: object) -> str:
@@ -122,9 +160,9 @@ def _anchor_score(text: str, anchors: Iterable[tuple[str, str | None]]) -> float
 
 
 def _remote_head_recall(scored: list[dict]) -> list[dict]:
-    """Federal rows the source index ranked top-5 but local scoring left below
-    the evidence head.  Returned in current relative order (best local first),
-    capped so displacement stays bounded."""
+    """Federal rows the source index ranked inside the recall window but local
+    scoring left below the evidence head.  Returned in current relative order
+    (best local first), capped so displacement stays bounded."""
     raws = [
         (float(d.get("retrieval_score_raw"))
          if isinstance(d.get("retrieval_score_raw"), (int, float)) else 0.0)
@@ -181,7 +219,7 @@ def rerank_product_bundle(product_bundle: dict) -> dict:
     if not decisions:
         return product_bundle
 
-    variants = [str(v) for v in product_bundle.get("query_variants") or [] if str(v).strip()]
+    variants, variant_kinds = _variant_texts(product_bundle.get("query_variants"))
     query = str(product_bundle.get("query") or "")
     query_doc = clean_text(" ".join([query, *variants]))
     docs = [decision_text(d) for d in decisions]
@@ -264,6 +302,7 @@ def rerank_product_bundle(product_bundle: dict) -> dict:
     prov["product_rerank"] = {
         "method": "local_legal_tfidf_v3_remote_head_recall",
         "query_variants_used": len(variants),
+        "query_variant_kinds": sorted(set(variant_kinds)),
         "statute_anchors": [{"article": n, "code": c} for n, c in anchors],
         "remote_safeguard": {
             "sim_threshold": REMOTE_SAFEGUARD_SIM_THRESHOLD,
