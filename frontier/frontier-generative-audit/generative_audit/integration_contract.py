@@ -213,6 +213,7 @@ def apply_to_product_bundle(
             and float(finding.confidence) >= 0.5
             and (
                 did in package.cited_decision_ids
+                or bool(dec.get("adversarial_channel"))
                 or (rank <= 40 and score_ok)
             )
         )
@@ -254,7 +255,7 @@ def apply_to_product_bundle(
         "status_summary": package.summary(),
         "evidence_source_check": package.evidence_check or None,
         "evidence_boundary_rejected_refs": boundary_rejected,
-        "counter_surface_policy": "verified_evidence+rank<=40+relative_relevance+confidence>=0.5+uncertainty<0.9",
+        "counter_surface_policy": "verified_evidence+confidence>=0.5+uncertainty<0.9+(cited|adversarial_retrieval|rank<=40+relative_relevance)",
         "counter_surface_suppressed": suppressed_challenges,
         **(provenance or {}),
     }
