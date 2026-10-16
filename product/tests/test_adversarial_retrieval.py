@@ -137,17 +137,18 @@ class _FakeClient:
 
 _TEXT_BY_ID = {
     "bger_9Z_77_2019": (
-        "Das Bundesgericht hat erwogen, dass die Partieabweichung eine Ausnahme "
-        "darstellt und der Vorbehalt der Parteien zu beachten ist. Die Ausnahme "
-        "greift nur unter engen Voraussetzungen."
+        "Das Bundesgericht hat erwogen, dass der Mietvertrag und die "
+        "Partieabweichung eine Ausnahme darstellt und der Vorbehalt der "
+        "Parteien zu beachten ist. Die Ausnahme greift nur unter engen "
+        "Voraussetzungen."
     ),
     "bger_9Z_78_2019": (
-        "Die Vorinstanz vertritt eine abweichende Auffassung; der Entscheid wurde "
-        "abweichend begründet und im Ergebnis abgewiesen."
+        "Die Vorinstanz vertritt eine abweichende Auffassung zum Mietvertrag; "
+        "der Entscheid wurde abweichend begründet und im Ergebnis abgewiesen."
     ),
     "bger_9Z_79_2018": (
-        "Eine Minderheitsmeinung wurde ausdrücklich vertreten und in der "
-        "älteren Rechtsprechung bereits angelegt."
+        "Eine Minderheitsmeinung wurde zum Mietvertrag ausdrücklich vertreten "
+        "und in der älteren Rechtsprechung bereits angelegt."
     ),
     # no limitation marker anywhere -> must NOT be labelled
     "bger_9Z_80_2017": (
@@ -155,6 +156,10 @@ _TEXT_BY_ID = {
         "der Nebenkosten und die Abrechnung nach Verbrauch."
     ),
 }
+
+#: The topic gate (audit D2) needs a topical vocabulary; the offline bundles
+#: carry an empty answer prose, so the query words play that role.
+_TOPIC = ["mietvertrag", "kündigung"]
 
 
 @pytest.fixture()
@@ -190,6 +195,41 @@ def test_plan_probes_carry_the_intent_vocabulary():
     assert "ausnahme" in plan[0]["query"]
     assert "abweichend" in plan[1]["query"]
     assert "minderheit" in plan[2]["query"]
+    # audit D1 (38828034436): the /1 probes carried ZERO Italian vocabulary
+    # while the report claimed DE+FR+IT.  Every probe must now show an IT
+    # marker term as well.
+    assert "eccezione" in plan[0]["query"]
+    assert "contrario" in plan[1]["query"]
+    assert "minoranza" in plan[2]["query"]
+    assert ("in passato" in plan[3]["query"]
+            or "precedente giurisprudenza" in plan[3]["query"])
+
+
+def test_plan_interleaves_de_fr_it_in_every_probe():
+    for probe in adv.plan_adversarial_queries("Mietvertrag", ANSWER_DE):
+        assert set(probe["intent_term_languages"]) == {"de", "fr", "it"}, probe["intent"]
+
+
+def test_interleave_round_robins_languages():
+    terms = [("de", "d1"), ("de", "d2"), ("fr", "f1"), ("it", "i1"), ("it", "i2")]
+    assert adv.interleave_intent_terms(terms, 6) == ["d1", "f1", "i1", "d2", "i2"]
+    assert adv.interleave_intent_terms(terms, 99) == ["d1", "f1", "i1", "d2", "i2"]
+
+
+def test_plan_is_vacuous_on_an_empty_answer():
+    """audit D4 (38828034436): the documented vacuous-pass guard must exist."""
+    assert adv.plan_adversarial_queries("Mietvertrag", "") == []
+    assert adv.plan_adversarial_queries("Mietvertrag", "   \n") == []
+
+
+def test_pipeline_records_a_vacuous_pass_on_an_empty_answer():
+    from product.query import pipeline
+    bundle = _map_bundle(n=10)  # fixture answer prose is empty
+    out = pipeline.adversarial_retrieval_pass(bundle, retrieval_mode="offline")
+    prov = out["provenance"]["adversarial_retrieval"]
+    assert prov["skipped"] is True
+    assert "vacuous" in prov["skip_reason"]
+    assert prov["n_new_rows"] == 0
 
 
 def test_plan_changes_with_the_answer():
@@ -306,20 +346,123 @@ def test_fetch_survives_upstream_failure_and_reports_it(monkeypatch):
     ("older_line", "bger_9Z_79_2018", "candidate-limiting"),
 ])
 def test_marker_in_own_text_authorises_a_counter_label(intent, did, status):
-    got, evidence, markers = adv.classify_against_intent(_TEXT_BY_ID[did], intent)
+    got, evidence, markers = adv.classify_against_intent(
+        _TEXT_BY_ID[did], intent, topic_terms=_TOPIC)
     assert got == status
     assert evidence, "a label must point at a verbatim sentence"
     assert markers
 
 
 def test_no_marker_means_no_label():
-    got, evidence, markers = adv.classify_against_intent(_TEXT_BY_ID["bger_9Z_80_2017"], "exception")
+    got, evidence, markers = adv.classify_against_intent(
+        _TEXT_BY_ID["bger_9Z_80_2017"], "exception", topic_terms=_TOPIC)
     assert got is None and evidence == "" and markers == []
 
 
 def test_label_requires_the_decisions_own_text():
-    got, _, _ = adv.classify_against_intent("", "exception")
+    got, _, _ = adv.classify_against_intent("", "exception", topic_terms=_TOPIC)
     assert got is None
+
+
+def test_topic_gate_refuses_offdomain_markers():
+    """audit D2 off-domain: an Arbeitsvertrag decision must not be labelled
+    inside a Mietvertrag/locazione research question."""
+    text = ("Der Arbeitsvertrag kann ausserordentlich gekündigt werden. "
+            "Die Kündigung stellt eine Ausnahme von der Vertragsfreiheit dar.")
+    got, _, _ = adv.classify_against_intent(
+        text, "exception", topic_terms=["mietvertrag", "locazione"])
+    assert got is None, "no topical overlap -> no label"
+    got2, evidence, _ = adv.classify_against_intent(
+        text, "exception", topic_terms=["arbeitsvertrag"])
+    assert got2 == "candidate-limiting" and evidence
+
+
+def test_topic_gate_without_vocabulary_issues_no_label():
+    """No answer/query vocabulary -> the pass keeps the row unlabelled rather
+    than licensing from markers alone."""
+    got, _, _ = adv.classify_against_intent(_TEXT_BY_ID["bger_9Z_77_2019"],
+                                           "exception", topic_terms=[])
+    assert got is None
+
+
+def test_eintretens_boilerplate_never_licenses_a_label():
+    """audit D2 boilerplate: the BGer admissibility formula must not carry a
+    limiting label by itself."""
+    text = ("Auf die Beschwerde des Mieters ist, unter Vorbehalt der genügenden "
+            "Begründung, einzutreten. Im Übrigen wird die Beschwerde abgewiesen.")
+    got, _, _ = adv.classify_against_intent(
+        text, "exception", topic_terms=["mieter", "beschwerde"])
+    assert got is None
+
+
+def test_dismissal_narration_never_licenses_contrary():
+    """audit D2 inverted: a rejected Berufung means the challenged ruling stood."""
+    text = ("Die abweichende Auffassung der Vorinstanz wurde mit der Berufung "
+            "des Vermieters abgewiesen; der Mietvertrag bleibt in Kraft.")
+    got, _, _ = adv.classify_against_intent(
+        text, "contrary", topic_terms=["mietvertrag", "vermieter"])
+    assert got is None
+
+
+def test_audit_inverted_examples_get_no_label():
+    """The four affirmatively inverted rows of audit 38828034436, verbatim."""
+    cases = [
+        # bge_136 III 190 — "nicht entgegen" affirms the landlord may terminate
+        ("Steht dem Recht des Vermieters nicht entgegen, den Mietvertrag zu "
+         "kündigen.", ["mietvertrag", "vermieter"]),
+        # bge_115 II 78 / bge_111 II 384 — recours rejected, judgment confirmed
+        ("Le Tribunal fédéral a rejeté le recours et confirmé l'arrêt attaqué "
+         "concernant le bail commercial.", ["bail", "commercial"]),
+        # bge_123 III 124 — Berufung dismissed
+        ("Die eidgenössische Berufung, welche vom Bundesgericht abgewiesen "
+         "wird, betrifft den Mietvertrag.", ["mietvertrag"]),
+    ]
+    for text, topic in cases:
+        got, _, _ = adv.classify_against_intent(text, "contrary", topic_terms=topic)
+        assert got is None, f"inverted label licensed: {text!r}"
+
+
+def test_markers_are_reported_from_the_evidence_sentence_only():
+    """audit D2: counter_markers must not be the union over the whole text."""
+    text = ("Ausgenommen von dieser Regelung sind die Nebenkosten. "
+            "Der Mietvertrag bildet eine Ausnahme von der allgemeinen "
+            "Kündigungsfreiheit.")
+    got, evidence, markers = adv.classify_against_intent(
+        text, "exception", topic_terms=["mietvertrag"])
+    assert got == "candidate-limiting"
+    assert "ausnahme" in markers
+    assert "ausgenommen" not in markers, "markers outside the cited sentence must not be reported"
+    assert "mietvertrag" in evidence.lower()
+
+
+def test_bundle_topic_terms_prefers_the_answer_then_the_query():
+    bundle = {"query": "Mietvertrag Kündigung", "answer": {"prose": ANSWER_DE}}
+    terms = adv.bundle_topic_terms(bundle)
+    # answer-derived terms lead; query tokens fill in
+    assert "mietvertrag" in terms
+    assert "kündigung" in terms
+    assert adv.bundle_topic_terms({"query": "", "answer": {"prose": ""}}) == []
+
+
+def test_bundle_topic_terms_bridges_languages_via_the_pool():
+    """Swiss case law is trilingual: an Italian answer must still license a
+    German BGE abstract that the initial pool already deemed on-topic."""
+    pool = []
+    for i in range(10):
+        one_off = " Aufhebungsvereinbarung" if i == 0 else ""
+        pool.append({"regeste": (f"Mietvertrag; Kündigung; Mietzins {i}. "
+                                 f"Wohnraummieter Vermieter Mietverhältnis{one_off}")})
+    bundle = {
+        "query": "Quando può il locatore sciogliere il contratto di locazione?",
+        "answer": {"prose": "Il locatore può disdetta il contratto di locazione "
+                            "solo in casi eccezionali."},
+        "decisions": pool,
+    }
+    terms = adv.bundle_topic_terms(bundle)
+    assert "mietvertrag" in terms, "pool vocabulary must bridge IT answer -> DE decision"
+    assert "contratto" in terms and "locazione" in terms, "answer terms lead"
+    # a one-off token in a single decision must not become topical
+    assert "aufhebungsvereinbarung" not in terms
 
 
 # --------------------------------------------------------------------------

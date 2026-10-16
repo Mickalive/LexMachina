@@ -20,6 +20,7 @@ from .bundle import build_bundle, validate_bundle
 from .qmap import build_map
 from .relevance import rerank_product_bundle
 from .adversarial_retrieval import (
+    ADVERSARIAL_RETRIEVAL_VERSION,
     apply_adversarial_pass,
     fetch_adversarial_candidates,
     plan_adversarial_queries,
@@ -586,6 +587,21 @@ def adversarial_retrieval_pass(
         str((bundle.get("answer") or {}).get("prose") or ""),
         max_intents=max_intents,
     )
+    if not plan:
+        # Vacuous pass (cycle 38828034436 audit D4): the answer carries no
+        # usable legal vocabulary, so no probe is fabricated and the pass is
+        # recorded as skipped — not as "found nothing adversarial".
+        out = copy.deepcopy(bundle)
+        out.setdefault("provenance", {})["adversarial_retrieval"] = {
+            "component": "adversarial_retrieval/2",
+            "attempted": True,
+            "skipped": True,
+            "skip_reason": "vacuous_pass: the provisional answer carries no usable legal vocabulary; no probe fabricated",
+            "n_new_rows": 0,
+            "n_counter_rows": 0,
+            "claim_ceiling": "no adversarial retrieval ran; no claim of independence is made",
+        }
+        return out
     existing_ids = {str(d.get("decision_id")) for d in bundle.get("decisions") or []}
     exclude_identities = set()
     for d in bundle.get("decisions") or []:
@@ -617,7 +633,7 @@ def adversarial_retrieval_pass(
         # failure is recorded verbatim so it can never read as "found nothing".
         out = copy.deepcopy(bundle)
         out.setdefault("provenance", {})["adversarial_retrieval"] = {
-            "component": "adversarial_retrieval/1",
+            "component": ADVERSARIAL_RETRIEVAL_VERSION,
             "attempted": True,
             "degraded": True,
             "error": f"{type(exc).__name__}: {exc}",

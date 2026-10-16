@@ -42,9 +42,12 @@ A real second retrieval route, run **after** the provisional answer exists:
 Classification honesty (Master Prompt non-negotiable: "Never classify a case as
 supporting/contrary/limiting unless the evidence supports that label"): a row is
 only labelled as counter-authority when a verbatim sentence from its own decision
-text contains an explicit limitation marker.  Hydration is bounded and lazy, and
-unlabelled survivors stay ``counter_status="none"`` - they keep recall without
-inventing a legal label.
+text contains an explicit limitation marker **and** shares a topical term with the
+answer/query, **and** the sentence is neither procedural Eintretens boilerplate
+nor a disposal/dismissal narration (a rejected appeal means the challenged ruling
+stood, which is the opposite of counter-authority).  Hydration is bounded and
+lazy, and unlabelled survivors stay ``counter_status="none"`` - they keep recall
+without inventing a legal label.
 
 Scope: this module is product-owned by construction.  ``frontier/**`` is outside
 product write scope, so the new channel is declared here and recorded in bundle
@@ -77,7 +80,16 @@ from .retrieval import tokenize  # noqa: E402
 #: Bumped whenever the plan, the channel names or the labelling rule change, so
 #: a bundle's provenance identifies the exact adversarial contract it was built
 #: under.  Never reuse an old value for new behaviour.
-ADVERSARIAL_RETRIEVAL_VERSION = "adversarial_retrieval/1"
+#:
+#: /2 (cycle 38831241913, audit-required repair of 38828034436):
+#: - probes interleave the per-language intent terms (D1: /1 truncated every
+#:   intent list to German-first entries, so no Italian term was ever issued);
+#: - an empty answer vocabulary now yields an *empty* plan (D4: /1's docstring
+#:   documented a vacuous-pass guard that did not exist);
+#: - labelling is topic-gated, disposal/boilerplate-guarded, and reports only
+#:   the markers present in the cited evidence sentence (D2: /1 licensed labels
+#:   from negation-blind, boilerplate-blind, topic-blind substrings).
+ADVERSARIAL_RETRIEVAL_VERSION = "adversarial_retrieval/2"
 
 #: The product's *own* channels.  These strings are disjoint from the accepted
 #: adapter's channel inventory (``search``, ``search.language_filter``,
@@ -93,58 +105,88 @@ ADVERSARIAL_CHANNELS = (CHANNEL_EXCEPTION, CHANNEL_CONTRARY, CHANNEL_MINORITY, C
 
 #: Counter-directed intents.  Each is a distinct *purpose*, so its rows can be
 #: explained to a jurist instead of appearing as undifferentiated "counter".
+#:
+#: Terms are ``(language, term)`` pairs.  The planner interleaves them across
+#: languages (cycle 38828034436 audit D1: truncating the flat list kept only
+#: German-first entries, so the shipped probes carried zero Italian vocabulary
+#: while the report claimed DE+FR+IT).  Probe-only disposal words (``abgelehnt``,
+#: ``rejeté`` …) are kept here on purpose — they *retrieve* contrary discussion —
+#: but they are deliberately absent from :data:`EVIDENCE_MARKERS`, because on a
+#: real decision they usually mean an appeal failed and the challenged ruling
+#: stood, which is the opposite of counter-authority.
 INTENTS: dict[str, dict[str, Any]] = {
     "exception": {
         "channel": CHANNEL_EXCEPTION,
         "label": "Ausnahme / exception / eccezione",
         # the decision states an exception, reservation or carve-out
         "terms": [
-            "ausnahme", "vorbehalt", "einschränkung", "ausgenommen", "vorbehalten",
-            "exception", "réserve", "excepté", "sous réserve", "sauf",
-            "eccezione", "riserva", "fatta eccezione",
+            ("de", "ausnahme"), ("fr", "exception"), ("it", "eccezione"),
+            ("de", "vorbehalt"), ("fr", "réserve"), ("it", "riserva"),
+            ("de", "einschränkung"), ("fr", "excepté"), ("it", "fatta eccezione"),
+            ("de", "ausgenommen"), ("fr", "sous réserve"), ("fr", "sauf"),
+            ("de", "vorbehalten"),
         ],
     },
     "contrary": {
         "channel": CHANNEL_CONTRARY,
         "label": "abweichende Auffassung / contrary position / posizione contraria",
         "terms": [
-            "abweichend", "entgegen", "anderer auffassung", "abgelehnt", "abgewiesen",
-            "a contrario", "contrairement", "contraire", "rejeté", "écarté",
-            "contrario", "respinto", "inammissibile",
+            ("de", "abweichend"), ("fr", "a contrario"), ("it", "contrario"),
+            ("de", "entgegen"), ("fr", "contraire"), ("it", "respinto"),
+            ("de", "anderer auffassung"), ("fr", "contrairement"), ("it", "inammissibile"),
+            ("de", "abgelehnt"), ("fr", "rejeté"),
+            ("de", "abgewiesen"), ("fr", "écarté"),
         ],
     },
     "minority": {
         "channel": CHANNEL_MINORITY,
         "label": "Minderheitslinie / ligne minoritaire / minoranza",
         "terms": [
-            "minderheit", "minderheitsmeinung", "dissens", "abweichende meinung",
-            "minorité", "minoritaire", "avis minoritaire",
-            "minoranza", "dissenso",
+            ("de", "minderheit"), ("fr", "minorité"), ("it", "minoranza"),
+            ("de", "minderheitsmeinung"), ("fr", "minoritaire"), ("it", "dissenso"),
+            ("de", "dissens"), ("fr", "avis minoritaire"),
+            ("de", "abweichende meinung"),
         ],
     },
     "older_line": {
         "channel": CHANNEL_OLDER_LINE,
         "label": "ältere Rechtsprechung / ligne plus ancienne / linea precedente",
         "terms": [
-            "ältere rechtsprechung", "früher", "früheren rechtsprechung", "mittlerweile",
-            "ancienne jurisprudence", "autrefois", "désormais",
-            "precedente giurisprudenza", "in passato",
+            ("de", "ältere rechtsprechung"), ("fr", "ancienne jurisprudence"),
+            ("it", "precedente giurisprudenza"),
+            ("de", "früher"), ("fr", "autrefois"), ("it", "in passato"),
+            ("de", "früheren rechtsprechung"), ("fr", "désormais"),
+            ("de", "mittlerweile"),
         ],
     },
 }
+
+#: Languages in probe interleaving order.  Every intent above carries at least
+#: two terms per listed language, so a 9-term probe is always DE+FR+IT.
+PROBE_LANGUAGES = ("de", "fr", "it")
 
 #: Cheap, high-precision *marker* lexicon used only to decide whether a retrieved
 #: decision's own text licenses a counter label.  Kept separate from the query
 #: vocabulary above: these are substrings matched in the hydrated decision text,
 #: so they are language- and morphology-tolerant.
+#:
+#: Two deliberate omissions versus /1 (audit D2):
+#: - disposal/dismissal words (``abgelehnt``, ``abgewiesen``, ``rejeté``,
+#:   ``écarté``, ``respinto``, bare ``entgegen``) are NOT here.  On real Swiss
+#:   decisions they usually mark that an appeal was *rejected* and the challenged
+#:   ruling *stood*, so a substring hit on them licensed affirmatively inverted
+#:   counter labels (audit examples: ``bge_136 III 190``, ``bge_115 II 78``,
+#:   ``bge_111 II 384``, ``bge_123 III 124``).  They remain in the probe
+#:   vocabulary above, where they help *retrieve* contrary discussion;
+#: - procedural Eintretens formulas are handled at sentence level by
+#:   :data:`BOILERPLATE_SENTENCE_PATTERNS`.
 EVIDENCE_MARKERS: dict[str, tuple[str, ...]] = {
     "exception": (
         "ausnahme", "vorbehalt", "einschränkung", "ausgenommen",
         "exception", "réserve", "excepté", "sauf", "eccezione", "riserva",
     ),
     "contrary": (
-        "abweichend", "entgegen", "abgelehnt", "abgewiesen", "a contrario",
-        "contraire", "contrairement", "rejeté", "écarté", "contrario", "respinto",
+        "abweichend", "a contrario", "contraire", "contrairement", "contrario",
     ),
     "minority": (
         "minderheit", "minderheitsmeinung", "dissens", "minorité", "minoritaire",
@@ -156,6 +198,32 @@ EVIDENCE_MARKERS: dict[str, tuple[str, ...]] = {
         "ancienne jurisprudence", "autrefois", "in passato",
     ),
 }
+
+#: Sentences matching these patterns are procedural boilerplate (the BGer
+#: Eintretens formula and its siblings).  A marker inside such a sentence never
+#: licenses a counter label: routine procedural passages carry no legal weight
+#: (audit D2, boilerplate-only category).
+BOILERPLATE_SENTENCE_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"unter vorbehalt der gen[üu]ndenden begr[üu]ndung", re.I),
+    re.compile(r"vorbehalt[^.]{0,60}einzutreten", re.I),
+    re.compile(r"einzutreten[^.]{0,60}vorbehalt", re.I),
+    re.compile(r"vereinfachten verfahren als ausnahme", re.I),
+    re.compile(r"vorbehalt des rechtsmissbrauchs", re.I),
+)
+
+#: Sentences matching these patterns narrate a *dismissal*: a recours/Berufung/
+#: Beschwerde was rejected, so the challenged ruling stood.  Such a sentence
+#: cannot license ``candidate-contrary`` — the audit's four affirmatively
+#: inverted rows were all licensed by exactly this construction.
+DISPOSAL_SENTENCE_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(
+        r"(recours|berufung|beschwerde|recurso|ricorso)[^.]{0,80}"
+        r"(rejet\w*|abgewiesen|abgelehnt|\u00e9cart\w*|inammissibile|respinto)", re.I),
+    re.compile(
+        r"(rejet\w*|abgewiesen|abgelehnt|\u00e9cart\w*|inammissibile|respinto)[^.]{0,80}"
+        r"(recours|berufung|beschwerde|recurso|ricorso)", re.I),
+    re.compile(r"nicht entgegen", re.I),
+)
 
 #: Legal terms lifted from the provisional answer.  Keeping the probe close to
 #: the answer's own vocabulary is what makes the pass *adversarial to the
@@ -212,24 +280,60 @@ def answer_key_terms(answer_prose: str, *, limit: int = 8) -> list[str]:
     return [t for t, _ in ranked[:limit]]
 
 
+def interleave_intent_terms(terms: list[tuple[str, str]], k: int) -> list[str]:
+    """Round-robin the ``(language, term)`` pairs so a truncated probe stays multilingual.
+
+    Cycle 38828034436 audit D1: slicing the flat German-first list kept only DE
+    (+ latin/FR stragglers) terms, so no Italian term was ever issued while the
+    report claimed DE+FR+IT coverage.  Interleaving keeps every language the
+    intent defines alive at any ``k >= number of languages``.
+    """
+    by_lang: dict[str, list[str]] = {lang: [] for lang in PROBE_LANGUAGES}
+    for lang, term in terms:
+        by_lang.setdefault(lang, []).append(term)
+    out: list[str] = []
+    idx = {lang: 0 for lang in by_lang}
+    while len(out) < max(0, int(k)):
+        added = False
+        for lang in PROBE_LANGUAGES:
+            if len(out) >= max(0, int(k)):
+                break
+            i = idx.get(lang, 0)
+            if i < len(by_lang.get(lang, [])):
+                out.append(by_lang[lang][i])
+                idx[lang] = i + 1
+                added = True
+        if not added:
+            break
+    return out
+
+
 def plan_adversarial_queries(
     query: str,
     answer_prose: str = "",
     *,
     max_intents: int = 4,
-    per_intent_terms: int = 6,
+    per_intent_terms: int = 9,
 ) -> list[dict[str, Any]]:
     """Build the counter-directed probes. Pure and deterministic.
 
     Returns ``[{intent, channel, label, query, terms}]``.  An empty list means
-    the answer carries no usable legal vocabulary; the caller then records a
-    vacuous pass rather than fabricating probes.
+    the answer carries no usable legal vocabulary — the caller records a
+    vacuous pass with a skip reason rather than fabricating topic-free probes
+    (cycle 38828034436 audit D4: the /1 docstring documented this guard but the
+    code issued four marker-word-only searches against an empty answer).
+
+    Default ``per_intent_terms=9`` interleaves three terms per language for
+    every intent (audit D1); the intent vocabulary is round-robined across
+    DE/FR/IT so no language can be silently truncated away.
     """
     key_terms = answer_key_terms(answer_prose)
+    if not key_terms:
+        return []
     out: list[dict[str, Any]] = []
     for intent in list(INTENTS)[:max(0, int(max_intents))]:
         spec = INTENTS[intent]
-        terms = list(spec["terms"][:per_intent_terms])
+        terms = interleave_intent_terms(list(spec["terms"]), per_intent_terms)
         # The topic anchor keeps the probe on the legal question; the intent
         # vocabulary is what turns it into a counter-directed search.
         probe_terms = [t for t in key_terms[:4]] + terms
@@ -241,6 +345,9 @@ def plan_adversarial_queries(
             "query": probe,
             "terms": probe_terms,
             "answer_terms_used": key_terms[:4],
+            "intent_term_languages": sorted({
+                lang for lang, t in spec["terms"] if t in set(terms)
+            }),
         })
     return out
 
@@ -423,7 +530,9 @@ def fetch_adversarial_candidates(
             "claim_ceiling": (
                 "rows reached this map only through the product's adversarial probes; "
                 "counter_status is assigned solely when a verbatim sentence of the "
-                "decision's own text carries a limitation marker"
+                "decision's own text carries a limitation marker, shares a topical "
+                "term with the answer/query, and is neither procedural boilerplate "
+                "nor a dismissal narration"
             ),
         },
     }
@@ -433,37 +542,127 @@ def fetch_adversarial_candidates(
 # 3. label: evidence-gated counter classification
 # --------------------------------------------------------------------------
 
-def classify_against_intent(text: str, intent: str) -> tuple[str | None, str, list[str]]:
+def bundle_topic_terms(bundle: dict) -> list[str]:
+    """Topical vocabulary a counter-evidence sentence must share.
+
+    Three sources, in order (all deterministic, all recorded in provenance):
+
+    1. the answer's own key terms (the pass attacks the *proposition*);
+    2. the query tokens (fallback when the answer is degraded);
+    3. the initial pool's shared regeste/snippet vocabulary — the
+       **cross-lingual bridge**.  Swiss case law is trilingual: an Italian
+       answer's terms will never appear in a German BGE abstract, yet the
+       initial retrieval already established that those decisions are
+       on-topic for this query.  A token qualifies when it occurs in
+       >= max(3, n_pool/12) distinct decisions, which surfaces the pool's
+       dominant legal nouns (``mietvertrag``, ``locazione`` …) without
+       admitting one-off noise.
+
+    The gate exists to stop off-domain markers (Arbeitsvertrag, KVG, maritime
+    …) from licensing a label inside a locazione/bail bundle (cycle
+    38828034436 audit D2, off-domain category).
+    """
+    answer_prose = str((bundle.get("answer") or {}).get("prose") or "")
+    terms: list[str] = list(answer_key_terms(answer_prose, limit=8))
+    seen = set(terms)
+    for token in tokenize(str(bundle.get("query") or "")):
+        if len(token) >= 4 and token not in seen:
+            terms.append(token)
+            seen.add(token)
+    pool = list(bundle.get("decisions") or [])
+    if pool and len(terms) < 24:
+        counts: dict[str, int] = {}
+        for d in pool:
+            for field in ("regeste", "snippet", "title"):
+                for token in tokenize(str(d.get(field) or "")):
+                    if len(token) >= 6 and token not in _ANSWER_STOP and not token.isdigit():
+                        counts[token] = counts.get(token, 0) + 1
+        threshold = max(3, len(pool) // 12)
+        ranked = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
+        for token, count in ranked:
+            if len(terms) >= 24:
+                break
+            if count >= threshold and token not in seen:
+                terms.append(token)
+                seen.add(token)
+    return terms[:24]
+
+
+def _sentence_eligible(sentence: str, markers: tuple[str, ...] | list[str],
+                       *, intent: str) -> bool:
+    """Guards a candidate evidence sentence (audit D2).
+
+    A sentence licenses a counter label only when it
+    1. carries at least one intent marker (caller-checked),
+    2. is not procedural Eintretens boilerplate,
+    3. is not a pure disposal/dismissal narration when the status in play is
+       ``candidate-contrary`` (an appeal that failed is not counter-authority).
+    """
+    low = (sentence or "").lower()
+    if any(p.search(low) for p in BOILERPLATE_SENTENCE_PATTERNS):
+        return False
+    if intent == "contrary" and any(p.search(low) for p in DISPOSAL_SENTENCE_PATTERNS):
+        return False
+    return any(m in low for m in markers)
+
+
+def classify_against_intent(
+    text: str,
+    intent: str,
+    *,
+    topic_terms: list[str] | tuple[str, ...] | None = None,
+) -> tuple[str | None, str, list[str]]:
     """Return ``(counter_status, evidence_sentence, markers)`` or ``(None, "", [])``.
 
     A row is labelled only on a verbatim sentence of its own text, so the
     product never asserts a legal label it cannot point at.
 
+    Guards (cycle 38828034436 audit D2, replacing the negation/boilerplate/
+    topic-blind substring match of /1):
+    - the matched sentence must carry a topical term from the answer's/query's
+      own vocabulary (``topic_terms``); with no topical vocabulary available no
+      label is issued — an unlabelled row keeps recall without inventing law;
+    - standard Eintretens formulas and disposal/dismissal narrations never
+      license a label (a rejected appeal means the challenged ruling stood);
+    - the reported markers are only those present in the *cited evidence
+      sentence*, not the union of markers anywhere in the decision text.
+
     The probe that retrieved a row only expresses *what was searched for*; the
-    evidence in the decision decides *what the row is*.  A row found by the
-    exception probe whose text carries a dissent marker is therefore labelled
-    from that marker, and the matched intent is reported so the UI can explain
-    the label.  Intent order is fixed, never score-ranked, so the result is
-    deterministic.
+    evidence in the decision decides *what the row is*.  Intent order is fixed,
+    never score-ranked, so the result is deterministic.
     """
+    lowered = (text or "").lower()
+    topical = [str(t).lower() for t in (topic_terms or []) if str(t).strip()]
+    if not lowered or not topical:
+        return None, "", []
     probe_first = [intent] + [i for i in INTENT_ORDER if i != intent]
     for candidate_intent in probe_first:
         markers = [m for m in EVIDENCE_MARKERS.get(candidate_intent, ())
-                   if m in (text or "").lower()]
+                   if m in lowered]
         if not markers:
             continue
         status = COUNTER_STATUS_BY_INTENT.get(candidate_intent, "candidate-limiting")
-        lowered = (text or "").lower()
         for sentence in split_sentences(text):
             low = sentence.lower()
-            if any(m in low for m in markers[:8]):
-                return status, sentence[:400], sorted(set(markers))[:6]
+            if not _sentence_eligible(sentence, markers, intent=candidate_intent):
+                continue
+            if not any(t in low for t in topical):
+                continue
+            sent_markers = sorted({m for m in markers if m in low})
+            return status, sentence[:400], sent_markers[:6]
         # The marker exists in the decision but not inside a long enough
-        # sentence: report the decision's own line rather than invent prose.
-        anchor = next((line for line in (text or "").splitlines()
-                       if any(m in line.lower() for m in markers)), "")
-        if anchor:
-            return status, anchor.strip()[:400], sorted(set(markers))[:6]
+        # sentence: report the decision's own line rather than invent prose,
+        # under the very same guards.
+        for line in (text or "").splitlines():
+            if not _sentence_eligible(line, markers, intent=candidate_intent):
+                continue
+            low = line.lower()
+            if not any(t in low for t in topical):
+                continue
+            sent_markers = sorted({m for m in markers if m in low})
+            anchor = line.strip()
+            if anchor:
+                return status, anchor[:400], sent_markers[:6]
     return None, "", []
 
 
@@ -520,6 +719,11 @@ def apply_adversarial_pass(
         out.setdefault("provenance", {})["adversarial_retrieval"] = prov
         return out
 
+    # Topic vocabulary for the labelling gate (audit D2): the matched evidence
+    # sentence must share a term with the answer/query or no label is issued.
+    topic_terms = bundle_topic_terms(out)
+    prov["label_topic_terms"] = topic_terms
+
     # Turn adapter candidates into product rows with the same conversion the
     # initial pass uses, so an adversarial row is indistinguishable in shape.
     from .pipeline import _candidate_to_product
@@ -545,7 +749,7 @@ def apply_adversarial_pass(
             row["docket_number"] = cand["docket_number"]
         text = texts.get(did) or str(cand.get("full_text") or "") or str(row.get("regeste") or "")
         intent = str(cand.get("adversarial_intent") or "exception")
-        status, evidence, markers = classify_against_intent(text, intent)
+        status, evidence, markers = classify_against_intent(text, intent, topic_terms=topic_terms)
         labels[did] = (status, evidence, markers)
         row["counter_status"] = status or "none"
         row["counter_evidence"] = evidence
@@ -554,6 +758,10 @@ def apply_adversarial_pass(
         row["counter_evidence_verified"] = bool(status and evidence)
         row["adversarial_channel"] = str(cand.get("channel") or "")
         row["adversarial_intent"] = intent
+        # Per-row probe attribution (audit advisory 2): which probe string
+        # actually retrieved this row, so the answer-derived-probe claim is
+        # auditable per row and not only in aggregate probes[].new_rows.
+        row["adversarial_probe"] = str(cand.get("adversarial_probe") or "")
         row.setdefault("channels", [])
         if row["adversarial_channel"] and row["adversarial_channel"] not in row["channels"]:
             row["channels"] = [*row["channels"], row["adversarial_channel"]]
@@ -624,9 +832,12 @@ __all__ = [
     "ADVERSARIAL_CHANNELS",
     "ADVERSARIAL_RETRIEVAL_VERSION",
     "INTENTS",
+    "PROBE_LANGUAGES",
     "answer_key_terms",
     "apply_adversarial_pass",
+    "bundle_topic_terms",
     "classify_against_intent",
     "fetch_adversarial_candidates",
+    "interleave_intent_terms",
     "plan_adversarial_queries",
 ]
