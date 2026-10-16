@@ -227,6 +227,52 @@ def _select_prompt_decisions(bundle: DecisionBundle, max_sources: int = 12) -> L
 Runner = Callable[[str, str, float], str]
 
 
+ANSWER_MODEL_PREFERENCE = (
+    "opencode/mimo-v2.6-flash-free",
+    "opencode/nemotron-3.5-lightning-free",
+    "opencode/nemotron-3-ultra-free",
+    "opencode/space-bunny-free",
+    "opencode/ling-3.1-flash-free",
+)
+
+
+def _ordered_answer_models() -> List[str]:
+    healthy = list(paths.healthy_models())
+    out: List[str] = []
+    for model in [*ANSWER_MODEL_PREFERENCE, *healthy]:
+        if model in healthy and model not in out:
+            out.append(model)
+    return out or list(ANSWER_MODEL_PREFERENCE)
+
+
+def _output_quality_error(answer: str, query: str) -> Optional[str]:
+    """Cheap fail-closed checks for visibly corrupted/wrong-language output."""
+    answer = str(answer or "").strip()
+    if len(answer) < 120:
+        return "answer too short"
+
+    query_has_cjk = bool(re.search(r"[\u3400-\u9fff]", query or ""))
+    if not query_has_cjk and re.search(r"[\u3400-\u9fff]", answer):
+        return "unexpected CJK/token corruption"
+
+    q = _normalize_for_matching(query or "")
+    a = _normalize_for_matching(answer)
+    french_query_markers = sum(
+        marker in f" {q} "
+        for marker in (" le ", " la ", " les ", " un ", " une ", " selon ", " quelles ", " quel ", " droit ")
+    )
+    if french_query_markers >= 2:
+        french_answer_markers = sum(
+            marker in f" {a} "
+            for marker in (" le ", " la ", " les ", " selon ", " doit ", " lorsque ", " tribunal ", " responsabilite ", " resiliation ", " jurisprudence ")
+        )
+        if french_answer_markers < 3:
+            return "answer not synthesized in French"
+        if answer.lstrip().lower().startswith(("according to", "based on", "under swiss")):
+            return "answer opens in English for a French query"
+    return None
+
+
 class ProviderError(RuntimeError):
     """Raised when a provider backend cannot produce output."""
 
@@ -393,7 +439,8 @@ class Provider:
         elif fixture_mode:
             self.model = "fixture://generative-audit"
         else:
-            self.model = paths.preferred_model()
+            ordered = _ordered_answer_models()
+            self.model = ordered[0] if ordered else paths.preferred_model()
 
     # ---- prompt construction ----
 
@@ -487,6 +534,9 @@ class Provider:
             try:
                 raw = self.runner(prompt, attempt_model, self.timeout)
                 result = self._parse_output(raw, bundle, model_used=attempt_model)
+                quality_error = _output_quality_error(result.answer, bundle.query)
+                if quality_error:
+                    raise ProviderError(f"unusable model output: {quality_error}")
                 result.attempts = attempts
                 return result
             except Exception as exc:  # noqa: BLE001 - record and fall through
@@ -510,7 +560,7 @@ class Provider:
         )
 
     def _fallback_models(self, exclude: Optional[str] = None) -> List[str]:
-        return [m for m in paths.healthy_models() if m != exclude]
+        return [m for m in _ordered_answer_models() if m != exclude]
 
     def _parse_output(self, raw: str, bundle: DecisionBundle, model_used: str) -> ProviderResult:
         cited_raw = extract_citation_ids(raw)
