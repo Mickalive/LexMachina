@@ -303,3 +303,196 @@ def test_loader_round_trip():
     spec = frozen.load_frozen()
     assert spec["schema"] == "lex-frozen-reality-benchmark/1"
     assert len(spec["questions"]) == 4
+
+
+# ---------------------------------------------------------------------------
+# audit repair R1: recall-gate semantics are ">=1 of the frozen set", per gate
+# ---------------------------------------------------------------------------
+
+
+def test_recall_gate_semantics_is_exactly_at_least_one_of_frozen_set():
+    """A partial-set pass still PASSES and names the missing authorities; the
+    frozen wording is '>=1 of frozen authority set' (restated, not re-frozen)."""
+    bjr = QUESTIONS["business-judgment-rule"]
+    required = bjr["required_citation_ids"]
+    assert len(required) == 5
+    one_hit = gates.evaluate_required_hits(required, {required[0]}, "citation", True)
+    assert one_hit["passed"] is True
+    assert one_hit["detail"] == ""
+    assert set(one_hit["measured"]["missing"]) == set(required) - {required[0]}
+    zero = gates.evaluate_required_hits(required, set(), "citation", True)
+    assert zero["passed"] is False
+    empty_set = gates.evaluate_required_hits(set(), {"x"}, "citation", True)
+    assert empty_set["passed"] is True
+    assert empty_set["detail"] == ""  # informational note lives in measured.note
+
+
+# ---------------------------------------------------------------------------
+# audit repair R4: passing gates never carry failure-flavoured detail
+# ---------------------------------------------------------------------------
+
+
+def test_all_passing_gates_carry_blank_detail():
+    clean_report = {
+        "answer_status": "ready", "answer_method": "generative_audit_llm_v2",
+        "answer_prose": "x" * 200, "cited_decision_ids": ["d1"],
+        "provider_error": None, "adversarial_method": "independent_llm_adversarial_v2",
+        "adversarial_error": None,
+    }
+    for outcome in gates.evaluate_structural_from_report(clean_report):
+        assert outcome["passed"] is True
+        assert outcome["detail"] == "", outcome
+    clean_bundle = _bundle([_decision(1), _decision(2)], ["d1"])
+    for outcome in gates.evaluate_structural_from_bundle(clean_bundle):
+        if outcome["passed"] is True:
+            assert outcome["detail"] == "", outcome
+    empty_required = gates.evaluate_required_hits([], {"d1"}, "citation", True)
+    assert empty_required["passed"] is True and empty_required["detail"] == ""
+
+
+# ---------------------------------------------------------------------------
+# audit repair R5: negative tests for the eight slim-report structural gates
+# ---------------------------------------------------------------------------
+
+_CLEAN_REPORT = {
+    "answer_status": "ready", "answer_method": "generative_audit_llm_v2",
+    "answer_prose": "x" * 200, "cited_decision_ids": ["d1"],
+    "provider_error": None, "adversarial_method": "independent_llm_adversarial_v2",
+    "adversarial_error": None,
+}
+
+_STRUCTURAL_MUTATIONS = [
+    ({"validation_errors": ["schema mismatch"]}, "structural::bundle_validation_clean"),
+    ({"answer_status": "partial"}, "structural::answer_ready"),
+    ({"answer_method": "rule_based"}, "structural::answer_method"),
+    ({"answer_prose": "trop court"}, "structural::prose_min_length"),
+    ({"cited_decision_ids": []}, "structural::citations_nonempty"),
+    ({"provider_error": "timeout"}, "structural::provider_clean"),
+    ({"adversarial_method": "none"}, "structural::adversarial_method"),
+    ({"adversarial_error": "llm unavailable"}, "structural::adversarial_clean"),
+]
+
+
+@pytest.mark.parametrize("mutation,gate", _STRUCTURAL_MUTATIONS)
+def test_each_slim_structural_gate_can_fail(mutation, gate):
+    mutated = {**_CLEAN_REPORT, **mutation}
+    outcomes = {o["gate"]: o for o in gates.evaluate_structural_from_report(mutated)}
+    assert outcomes[gate]["passed"] is False, gate
+    assert outcomes[gate]["detail"] != "", gate
+    # the other seven gates still pass (mutation is isolated)
+    for name, outcome in outcomes.items():
+        if name != gate:
+            assert outcome["passed"] is True, (gate, name)
+
+
+def test_slim_structural_gates_all_pass_on_clean_report():
+    outcomes = gates.evaluate_structural_from_report(_CLEAN_REPORT)
+    assert len(outcomes) == 8
+    assert all(o["passed"] for o in outcomes)
+
+
+# ---------------------------------------------------------------------------
+# audit repair R2: coverage honesty for excluded/unmatched artifacts
+# ---------------------------------------------------------------------------
+
+
+def test_excluded_kinds_carry_explicit_not_measurable_with_reasons():
+    from evaluation.reality_gate import run_benchmark
+    arts = [
+        {"artifact": "x/fatal.json", "kind": "fatal_stub",
+         "data": {"slug": "rent-default", "leg_passed": False, "fatal_error": "boom"}},
+        {"artifact": "x/rollup.json", "kind": "summary_rollup",
+         "data": {"all_legs_passed": True}},
+        {"artifact": "x/other.json", "kind": "unmatched_kind", "data": {"foo": 1}},
+    ]
+    rep = run_benchmark.evaluate_artifacts(arts, SPEC)
+    for rec in rep["artifacts"]:
+        assert rec["evaluation_scope"] == "none", rec
+        assert rec["gates"] == []
+        assert rec["artifact_passed"] is None
+        assert rec["not_measurable_gates"], rec
+        assert rec["not_measurable_reasons"], rec
+        assert set(rec["not_measurable_gates"]) == set(rec["not_measurable_reasons"])
+    fatal = next(r for r in rep["artifacts"] if r["artifact"] == "x/fatal.json")
+    # slug known -> concrete frozen truth gates enumerated, with reasons
+    assert "truth::art257d2_30day_notice" in fatal["not_measurable_gates"]
+    assert "truth::art257d2_end_of_month" in fatal["not_measurable_gates"]
+    rollup = next(r for r in rep["artifacts"] if r["artifact"] == "x/rollup.json")
+    # no slug -> whole truth family under one placeholder
+    assert "truth::*" in rollup["not_measurable_gates"]
+
+
+def test_unmatched_bundle_gets_question_independent_checks():
+    from evaluation.reality_gate import run_benchmark
+    bundle = {
+        "query": "a question that matches no frozen leg",
+        "decisions": [_decision(1), _decision(2)],
+        "answer": {"prose": "x" * 200, "cited_decision_ids": ["d1"],
+                   "status": "ready", "method": "generative_audit_llm_v2"},
+        "provenance": {"latency_seconds_total": 10.0},
+    }
+    rep = run_benchmark.evaluate_artifacts(
+        [{"artifact": "x/b.json", "kind": "full_bundle", "data": bundle}], SPEC)
+    rec = rep["artifacts"][0]
+    assert rec["evaluation_scope"] == "question_independent_only"
+    names = [g["gate"] for g in rec["gates"]]
+    for g in ("structural::bundle_nonempty", "structural::duplicate_free",
+              "structural::source_urls_valid", "structural::answer_citations_constrained",
+              "structural::counter_classifications_supported",
+              "corruption::clean", "latency::under_budget"):
+        assert g in names, g
+    # question-dependent gates explicitly not measurable, with reasons
+    for g in ("truth::*", "language::dominant_in_accepted",
+              "recall::citation_controlling_authority",
+              "recall::retrieval_controlling_authority",
+              "structural::geometry_preserved", "structural::progressive_phases"):
+        assert g in rec["not_measurable_gates"], g
+        assert rec["not_measurable_reasons"][g]
+    assert rec["artifact_passed"] is True
+    # multilingual coverage still runs over the unmatched bundle
+    assert len(rep["multilingual_checks"]) == 1
+
+
+def test_unmatched_bundle_counter_gate_falsifies():
+    """A recorded bundle with evidence-free counter rows FAILS the
+    question-independent structural gate — negative evidence must be visible."""
+    from evaluation.reality_gate import run_benchmark
+    bundle = {
+        "query": "another unknown question",
+        "decisions": [_decision(1, counter_status="contrary_or_exception")],
+        "answer": {"prose": "x" * 200, "cited_decision_ids": ["d1"]},
+    }
+    rep = run_benchmark.evaluate_artifacts(
+        [{"artifact": "x/b.json", "kind": "full_bundle", "data": bundle}], SPEC)
+    rec = rep["artifacts"][0]
+    assert rec["evaluation_scope"] == "question_independent_only"
+    assert rec["failed_gates"] == ["structural::counter_classifications_supported"]
+    assert rec["artifact_passed"] is False
+    assert rep["overall_pass"] is False
+
+
+# ---------------------------------------------------------------------------
+# audit repair R6a: empty/absent evidence input is an environment error,
+# never a plausible-looking FAIL verdict record
+# ---------------------------------------------------------------------------
+
+
+def test_absent_evidence_dir_exits_2_without_record(tmp_path, capsys):
+    from evaluation.reality_gate import run_benchmark
+    out = tmp_path / "out.json"
+    rc = run_benchmark.main(["--evidence-dir", str(tmp_path / "absent"),
+                             "--out", str(out)])
+    assert rc == 2
+    assert not out.exists()
+    err = capsys.readouterr().err
+    assert "does not exist" in err
+
+
+def test_empty_evidence_dir_exits_2_without_record(tmp_path, capsys):
+    from evaluation.reality_gate import run_benchmark
+    out = tmp_path / "out.json"
+    rc = run_benchmark.main(["--evidence-dir", str(tmp_path), "--out", str(out)])
+    assert rc == 2
+    assert not out.exists()
+    err = capsys.readouterr().err
+    assert "no readable artifacts" in err

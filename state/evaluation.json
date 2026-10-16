@@ -2,9 +2,20 @@
   "lane": "evaluation",
   "direction_version": 49,
   "evidence_tier": "REPRODUCED",
-  "cycle_status": "V49_FROZEN_REALITY_BENCHMARK_EXECUTED",
+  "cycle_status": "V49_FROZEN_REALITY_BENCHMARK_EXECUTED_REPAIR_R1",
   "continue_recommended": true,
   "accepted_run_id": "38920872324",
+  "repair_round": 1,
+  "repair_audit_ref": "results/audit/evaluation/CYCLE_38920872324_GATE.json (independent audit checkout, gate=REVISE)",
+  "repair_fixes_applied": {
+    "R1": "recall-gate semantics restated as '>=1 of frozen authority set per gate' in report+state, with partial-set pass rates disclosed; benchmark NOT re-freeze (digest unchanged); semantics pinned by test_recall_gate_semantics_is_exactly_at_least_one_of_frozen_set",
+    "R2": "unmatched/excluded artifacts now carry explicit not_measurable_gates + per-gate reasons; question-INDEPENDENT bundle checks run on every recorded full bundle regardless of match; record reports bundle_structural_gate_executions and evaluation_scope taxonomy",
+    "R3": "report arithmetic corrected: 9 distinct failing slim runs (not 8), 4 adversarial-retrieval bundles (not 3), 3 roll-ups + 12 unmatched summary-named files (not '15 roll-ups')",
+    "R4": "detail='' on every passing gate (slim structural, bundle structural, recall gates); record regenerated with blank details on all passing gates",
+    "R5": "weak truth gates (art257d2_30day_notice ['30'], bjr_information ['information']) disclosed as necessary-not-sufficient lexical proxies with recorded match rates; negative tests added for all 8 slim-report structural gates; 'every gate can fail' claim reworded to cover only gates that can fail, geometry/progressive limits named",
+    "R6a": "run_benchmark exits 2 with explicit environment error on absent/empty evidence input; no verdict record emitted from empty input",
+    "R6b": "producer-authored self-audit files dropped from this branch; the independent audit checkout remains the only audit of record"
+  },
   "evidence_refs": [
     "evaluation/reality_gate/frozen_benchmark.json",
     "evaluation/reality_gate/frozen.py",
@@ -12,6 +23,7 @@
     "evaluation/reality_gate/run_benchmark.py",
     "tests/evaluation/test_reality_gate.py",
     "results/evaluation/reality_benchmark/38920872324.json",
+    "reports/evaluation/evaluation_v49_cycle_report.md",
     "state/evaluation.json"
   ],
   "human_gate_ready": false,
@@ -19,12 +31,27 @@
   "v49_frozen_reality_benchmark": {
     "frozen_spec": "evaluation/reality_gate/frozen_benchmark.json",
     "frozen_sha256": "ff57f556c3755ab663766618ab7abe763f251e7add70cd8ed964141846d063c8",
+    "frozen_sha256_unchanged_after_repair": true,
     "direction_version_at_freeze": 49,
-    "freeze_note": "Frozen BEFORE the benchmark was executed against any product artifact (research protocol step 4); digest re-verified by tests and by the runner before every execution.",
+    "freeze_note": "Frozen BEFORE the benchmark was executed against any product artifact (research protocol step 4); digest re-verified by tests and by the runner before every execution. Repair round 1 did NOT re-freeze: spec bytes are identical, no threshold/question/scope moved.",
     "scope": "the four observed reality-check questions (rent-default Art. 257d(2); Art. 102 CP primary/subsidiary; business-judgment-rule; petty-theft low-value), wrong-language/corrupted-output rejection, hard <300s full-run latency, plus the lane-directive structural checks (recall of frozen controlling authorities, source validity, duplicates, multilingual coverage).",
+    "recall_gate_semantics": "each frozen authority set (citation set, retrieval set) is gated independently at >=1 hit; a partial-set pass is a PASS naming the missing authorities in measured.missing. RESTATED per audit R1; not a re-freeze. Recorded partial passes: petty-theft 5/5 citation passes but 0/5 cite bger_4A_228_2015; BJR 4/4 citation passes but 0/4 cite bger_4A_62_2024 (latest CI leg also misses bger_4A_603_2014); Art. 102 CP 5/5 passes with the full 2/2 set.",
+    "weak_truth_gates_disclosed": {
+      "truth::art257d2_30day_notice": "contains_any ['30'] matches the substring anywhere in prose; matched on 10/10 rent-default legs in the recorded run; necessary-not-sufficient lexical proxy, falsifiable (negative test exists), kept because the frozen spec pinned it",
+      "truth::bjr_information": "contains_any ['information'] likewise; matched on 4/4 BJR legs; same disclosure",
+      "structurally_not_measurable_from_recordings": ["structural::geometry_preserved", "structural::progressive_phases (needs initial+final pair; only finals recorded)"]
+    },
     "execution_record": "results/evaluation/reality_benchmark/38920872324.json",
-    "inputs": "ACCEPTED product evidence only (read-only): results/product/reality_check (24 leg reports), gate_packet/38839347028 bundles, adversarial_retrieval/38828034436 bundles at accepted product packet fdf1e386. No 174k benchmarks rerun; no Product code imported.",
-    "result_overall": "FAIL on the recorded history (negative evidence, preserved): 5 latency::under_budget (463.8s/548.5s/340.8s/360.5s/861.4s observed reality-check latency failures), 4 truth::art257d2_end_of_month, 2 structural::adversarial_clean",
+    "inputs": "ACCEPTED product evidence only (read-only): results/product/reality_check (24 leg reports, 7 fatal stubs, 3 roll-ups, 12 unmatched summary-named files), gate_packet/38839347028 (3 full bundles + 9 auxiliary files), adversarial_retrieval/38828034436 (4 full bundles + 4 scoring files) at accepted product packet fdf1e386. No 174k benchmarks rerun; no Product code imported.",
+    "execution_counts": {
+      "n_artifacts": 66,
+      "n_full_match_evaluated": 24,
+      "n_question_independent_evaluated": 7,
+      "n_excluded_no_verdict": 35,
+      "bundle_structural_gate_executions": 35,
+      "question_independent_checks_per_bundle": ["bundle_nonempty", "duplicate_free", "source_urls_valid", "answer_citations_constrained", "counter_classifications_supported", "corruption (when prose present)", "latency (when timing present)"]
+    },
+    "result_overall": "FAIL on the recorded history (negative evidence, preserved): 17 falsifying failures across 15 artifacts = 5 latency::under_budget (463.8s/548.5s/340.8s/360.5s/861.4s observed reality-check latency failures) + 4 truth::art257d2_end_of_month + 2 structural::adversarial_clean (11 slim-report failures, 9 distinct runs) + 6 structural::counter_classifications_supported (NEWLY SURFACED by repair R2: 6 of 7 recorded full bundles carry counter-classified decisions without evidence/uncertainty fields). Verdict-equivalence: the 24 slim-report verdicts are identical to the pre-repair record.",
     "result_latest_product_ci_run_38604340726": "PASS on all four frozen legs for every machine-measurable gate — consistent with the product's own machine green that v49's live legal testing invalidated; the machine gates alone remain insufficient, which is why the human gate stays closed.",
     "cross_check_vs_producer_verdicts": "4 disagreements, all latency::under_budget: the producer's own gates carry no latency budget, so the frozen evaluation benchmark falsifies four slow runs the producer passed. No benchmark verdict was weakened to reach this; the producer verdicts are preserved verbatim in the execution record.",
     "multilingual_coverage": "7/7 per-bundle FR/DE/IT coverage checks PASS on the recorded tenancy/medical/capital-offence bundles (each covers its query language and >=2 Swiss languages)",
@@ -33,7 +60,8 @@
       "petty-theft retrieval-id recall on slim reports (no full decision id list in strip_bundle output); measurable on full bundles",
       "cached reproducibility across repeated live runs (no repeated recorded runs of the same live query)"
     ],
-    "claim_ceiling": "The benchmark falsifies machine-checkable properties of recorded product artifacts. It does NOT prove map usefulness to a jurist; human_gate_ready stays false."
+    "empty_input_guard": "run_benchmark exits 2 with an explicit environment/argument error on absent or empty evidence input and never emits a verdict record from empty input (repair R6a)",
+    "claim_ceiling": "The benchmark falsifies machine-checkable properties of recorded product artifacts (substantive truth phrases with two disclosed weak proxies, >=1-of-frozen-set authority recall with partial passes disclosed, wrong-language/corrupted output, >=300s full-run latency, bundle structure incl. counter-evidence support, multilingual coverage). It does NOT prove map usefulness to a jurist; human_gate_ready stays false."
   },
   "adopted_frontier_verdicts_v56": {
     "method": "ADOPTED_WITHOUT_REMEASURE",
@@ -47,8 +75,8 @@
     "wrong-language answer rejection (dominant-language classifier, question-language + DE fallback)",
     "corrupted-output rejection (repetition loops, mojibake)",
     "full-run latency < 300s (hard reject >= 300s)",
-    "recall of frozen controlling authorities in retrieval and citations",
-    "source/URL validity, duplicate suppression, counter-evidence support (lane harness)",
+    "recall of frozen controlling authorities: >=1-of-set per gate, partial passes disclosed (petty-theft 5/5 partial on bger_4A_177_2017; BJR 4/4 partial, newest authority uncited; Art. 102 CP 5/5 full 2/2)",
+    "source/URL validity, duplicate suppression, counter-evidence support (lane harness, question-independent bundle checks on every recorded bundle)",
     "FR/DE/IT multilingual retrieval coverage"
   ],
   "harness": {
@@ -60,11 +88,11 @@
   "historical_174k": {
     "status": "PRESERVED_NOT_ACTIVE",
     "prior_state_direction": 35,
-    "note": "Old TF-IDF/dense/global-map evidence remains historical research and is not the v49 product gate. The v35-era state-verification tests were repaired this cycle to verify the current state; v35 claims stay in git history and results/."
+    "note": "Old TF-IDF/dense/global-map evidence remains historical research and is not the v49 product gate. The v35-era state-verification tests were repaired in cycle 38920872324 to verify the current state; v35 claims stay in git history and results/."
   },
   "gate": {
-    "automated": "python -m evaluation.reality_gate.run_benchmark --evidence-dir <product reality_check dir> ... ; must be GREEN on a product's own live packet before the human gate can be considered.",
+    "automated": "python -m evaluation.reality_gate.run_benchmark --evidence-dir <product reality_check dir> ... ; must be GREEN on a product's own live packet before the human gate can be considered. Exit 2 = environment/empty-input error (no record emitted).",
     "human": "Map usefulness remains a jurist product gate: branch/exception discovery, structural comprehension, confidence about contrary authority, preference over answer+ranked list."
   },
-  "next_recommendation": "CONTINUE. The frozen benchmark is built and falsifying. Concrete next-cycle purpose under the SAME v49 question: re-execute it against the next accepted product packet (live, this-run-scoped), and re-validate the frozen spec digest before execution. The product lane exits only when the four-question benchmark is reliably green on a live packet without weakening truth/authority/language/latency gates. Do not reopen 174k/global-map research."
+  "next_recommendation": "CONTINUE. The frozen benchmark is built, falsifying and honestly labelled after repair round 1. Concrete next-cycle purpose under the SAME v49 question: re-execute it against the next accepted product packet (live, this-run-scoped), and re-validate the frozen spec digest before execution. The product lane exits only when the four-question benchmark is reliably green on a live packet without weakening truth/authority/language/latency gates. Do not reopen 174k/global-map research."
 }

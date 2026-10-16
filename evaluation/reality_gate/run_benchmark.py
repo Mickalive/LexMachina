@@ -20,7 +20,10 @@ Usage:
 
 Exit codes: 0 every evaluated artifact passes every measurable gate;
            1 at least one falsifying failure (negative evidence, preserved);
-           2 bad arguments; 3 frozen benchmark integrity failure.
+           2 bad arguments or absent/empty evidence input (NO verdict record is
+             emitted from empty input — an empty run is an environment error,
+             never a FAIL verdict);
+           3 frozen benchmark integrity failure.
 """
 from __future__ import annotations
 
@@ -132,46 +135,124 @@ def _evaluate_full_bundle(data: dict, question: dict, spec: dict) -> dict:
     return out
 
 
+def _excluded_not_measurable(mode: str, slug: str | None, questions: dict[str, dict],
+                              reason: str) -> tuple[list[str], dict[str, str]]:
+    """Explicit not_measurable gate list + per-gate reasons for artifacts that
+    carry no measurable fields (fatal stubs, roll-ups, unrecognized shapes).
+
+    Truth gates are enumerated concretely when the artifact's slug matches a
+    frozen question; otherwise the whole truth family is reported under one
+    named placeholder.  Never silently passed, never an empty promise.
+    """
+    names: list[str] = []
+    reasons: dict[str, str] = {}
+
+    def add(gate: str, r: str = reason) -> None:
+        names.append(gate)
+        reasons[gate] = r
+
+    structural = (gates._BUNDLE_STRUCTURAL_GATES + ("structural::geometry_preserved",
+                                                    "structural::progressive_phases")
+                  if mode == "full_bundle" else gates._SLIM_STRUCTURAL_GATES)
+    for g in structural:
+        add(g)
+    question = questions.get(slug) if slug else None
+    if question is not None:
+        for gate in question["truth_gates"]:
+            add(f"truth::{gate['id']}")
+    else:
+        add("truth::*")
+    add("language::dominant_in_accepted")
+    add("corruption::clean")
+    add("latency::under_budget")
+    add("recall::citation_controlling_authority")
+    add("recall::retrieval_controlling_authority")
+    return names, reasons
+
+
 def evaluate_artifacts(artifacts: list[dict], spec: dict) -> dict:
     questions = frozen.question_by_slug(spec)
     records: list[dict] = []
     unmatched_bundles: list[dict] = []
     producer_verdicts: list[dict] = []
+    bundle_structural_executions = 0
+
+    def finalize(gate_outcomes: list[dict], **extra) -> dict:
+        not_measurable = [g["gate"] for g in gate_outcomes if g["passed"] is None]
+        failed = [g for g in gate_outcomes if g["passed"] is False]
+        return {
+            "gates": gate_outcomes,
+            "not_measurable_gates": not_measurable,
+            "not_measurable_reasons": {g["gate"]: g["detail"] for g in gate_outcomes
+                                       if g["passed"] is None},
+            "failed_gates": [g["gate"] for g in failed],
+            "artifact_passed": not failed,
+            **extra,
+        }
 
     for art in artifacts:
         if art["kind"] == "unreadable":
+            names, reasons = _excluded_not_measurable(
+                "full_blob", None, questions,
+                f"unreadable file: {art.get('error')}")
             records.append({
                 "artifact": art["artifact"], "kind": art["kind"],
                 "matched_slug": None,
                 "error": art.get("error"),
-                "gates": [], "artifact_passed": None,
+                "exclusion": "file could not be read as JSON",
+                "evaluation_scope": "none",
+                "gates": [], "not_measurable_gates": names,
+                "not_measurable_reasons": reasons,
+                "artifact_passed": None,
             })
             continue
         if art["kind"] == "fatal_stub":
+            slug = art["data"].get("slug")
+            names, reasons = _excluded_not_measurable(
+                "slim_report", slug, questions,
+                "fatal-error stub: leg died before answer/provenance existed; "
+                "error preserved as negative evidence")
             records.append({
                 "artifact": art["artifact"], "kind": art["kind"],
-                "matched_slug": art["data"].get("slug"),
+                "matched_slug": slug,
                 "exclusion": "fatal-error leg stub; error preserved as negative evidence",
                 "fatal_error": art["data"].get("fatal_error"),
                 "producer_leg_passed": art["data"].get("leg_passed"),
-                "gates": [], "artifact_passed": None,
+                "evaluation_scope": "none",
+                "gates": [], "not_measurable_gates": names,
+                "not_measurable_reasons": reasons,
+                "artifact_passed": None,
             })
             continue
         if art["kind"] == "summary_rollup":
+            names, reasons = _excluded_not_measurable(
+                "rollup", None, questions,
+                "run roll-up aggregate, not an individual leg artifact; "
+                "no per-leg fields to check")
             records.append({
                 "artifact": art["artifact"], "kind": art["kind"],
                 "matched_slug": None,
                 "exclusion": "run roll-up, not an individual artifact",
                 "producer_all_legs_passed": art["data"].get("all_legs_passed"),
-                "gates": [], "artifact_passed": None,
+                "evaluation_scope": "none",
+                "gates": [], "not_measurable_gates": names,
+                "not_measurable_reasons": reasons,
+                "artifact_passed": None,
             })
             continue
         if art["kind"] == "unmatched_kind":
+            names, reasons = _excluded_not_measurable(
+                "unknown", None, questions,
+                "artifact shape not recognized as leg report, bundle, stub "
+                "or roll-up; preserved as recorded, nothing measured")
             records.append({
                 "artifact": art["artifact"], "kind": art["kind"],
                 "matched_slug": None,
                 "exclusion": "neither a leg report, bundle, stub nor roll-up",
-                "gates": [], "artifact_passed": None,
+                "evaluation_scope": "none",
+                "gates": [], "not_measurable_gates": names,
+                "not_measurable_reasons": reasons,
+                "artifact_passed": None,
             })
             continue
 
@@ -188,16 +269,31 @@ def evaluate_artifacts(artifacts: list[dict], spec: dict) -> dict:
             mode = "full_bundle"
 
         if question is None:
-            record = {
-                "artifact": art["artifact"], "kind": mode,
-                "matched_slug": None,
-                "match_note": ("unknown report slug" if mode == "slim_report"
-                               else "bundle question text matches no frozen leg"),
-                "gates": [], "artifact_passed": None,
-            }
+            # Unmatched but still measurable where the artifact alone suffices
+            # (audit repair R2): question-INDEPENDENT checks run on every
+            # recorded artifact of report/bundle shape, matched or not.
+            match_note = ("unknown report slug" if mode == "slim_report"
+                          else "bundle question text matches no frozen leg")
             if mode == "full_bundle":
+                gate_outcomes = gates.evaluate_question_independent_bundle(data, spec)
                 unmatched_bundles.append(data)
-            records.append(record)
+                qdep_reason = ("bundle question matches no frozen leg; frozen "
+                               "truth/language/recall gate set unknown")
+            else:
+                gate_outcomes = gates.evaluate_question_independent_report(data, spec)
+                qdep_reason = ("report slug matches no frozen leg; frozen "
+                               "truth/language/recall gate set unknown")
+            qdep = gates.question_dependent_gates(mode, None, questions, qdep_reason)
+            gate_outcomes = gate_outcomes + qdep
+            bundle_structural_executions += sum(
+                1 for g in gate_outcomes
+                if g["gate"] in gates._BUNDLE_STRUCTURAL_GATES and g["passed"] is not None)
+            records.append(finalize(
+                gate_outcomes,
+                artifact=art["artifact"], kind=mode,
+                matched_slug=None, match_note=match_note,
+                evaluation_scope="question_independent_only",
+            ))
             continue
 
         if mode == "slim_report":
@@ -209,17 +305,16 @@ def evaluate_artifacts(artifacts: list[dict], spec: dict) -> dict:
             })
         else:
             gate_outcomes = _evaluate_full_bundle(data, question, spec)
+            bundle_structural_executions += sum(
+                1 for g in gate_outcomes
+                if g["gate"] in gates._BUNDLE_STRUCTURAL_GATES and g["passed"] is not None)
 
-        not_measurable = [g["gate"] for g in gate_outcomes if g["passed"] is None]
-        failed = [g for g in gate_outcomes if g["passed"] is False]
-        records.append({
-            "artifact": art["artifact"], "kind": mode,
-            "matched_slug": slug,
-            "gates": gate_outcomes,
-            "not_measurable_gates": not_measurable,
-            "failed_gates": [g["gate"] for g in failed],
-            "artifact_passed": not failed,
-        })
+        records.append(finalize(
+            gate_outcomes,
+            artifact=art["artifact"], kind=mode,
+            matched_slug=slug,
+            evaluation_scope="full_match",
+        ))
 
     # per-bundle multilingual robustness over the unmatched recorded bundles
     ml_records: list[dict] = []
@@ -241,8 +336,15 @@ def evaluate_artifacts(artifacts: list[dict], spec: dict) -> dict:
         "latency_budget_seconds": spec["latency_budget_seconds"],
         "n_artifacts": len(artifacts),
         "n_evaluated": len(evaluated),
+        "n_full_match_evaluated": sum(
+            1 for r in records if r.get("evaluation_scope") == "full_match"),
+        "n_question_independent_evaluated": sum(
+            1 for r in records if r.get("evaluation_scope") == "question_independent_only"),
+        "n_excluded_no_verdict": sum(
+            1 for r in records if r.get("evaluation_scope") == "none"),
         "n_unmatched": len(records) - len(evaluated),
         "n_unreadable": sum(1 for r in records if r.get("error")),
+        "bundle_structural_gate_executions": bundle_structural_executions,
         "artifacts": records,
         "multilingual_checks": ml_records,
         "producer_verdicts_preserved": producer_verdicts,
@@ -267,8 +369,26 @@ def main(argv: list[str] | None = None) -> int:
         print(f"::error::frozen benchmark integrity failure: {exc}", file=sys.stderr)
         return 3
 
-    artifacts = _load_artifacts(Path(args.evidence_dir),
-                                [Path(p) for p in args.extra_bundle_dir])
+    evidence = Path(args.evidence_dir)
+    if not evidence.is_dir():
+        print(f"::error::evidence directory does not exist: {evidence}",
+              file=sys.stderr)
+        return 2
+    extra_dirs: list[Path] = []
+    for raw in args.extra_bundle_dir:
+        p = Path(raw)
+        if not p.is_dir():
+            print(f"::warning::extra bundle directory not found, skipped: {p}",
+                  file=sys.stderr)
+        else:
+            extra_dirs.append(p)
+
+    artifacts = _load_artifacts(evidence, extra_dirs)
+    if not artifacts:
+        print("::error::no readable artifacts found in any evidence directory; "
+              "refusing to emit a verdict record from empty input",
+              file=sys.stderr)
+        return 2
     report = evaluate_artifacts(artifacts, spec)
 
     text = json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
@@ -294,7 +414,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  [UNMATCHED]  {name} — {rec.get('match_note', '')[:60]}")
         else:
             mark = "PASS" if rec["artifact_passed"] else "FAIL"
-            line = f"  [{mark}] {rec['matched_slug']:32s} {name}"
+            slug = rec.get("matched_slug") or f"<{rec.get('evaluation_scope', '?')}>"
+            line = f"  [{mark}] {slug:32s} {name}"
             if rec["failed_gates"]:
                 line += f"  failed={rec['failed_gates']}"
             if rec["not_measurable_gates"]:
@@ -304,7 +425,11 @@ def main(argv: list[str] | None = None) -> int:
         mark = "PASS" if m["passed"] else "FAIL"
         print(f"  [{mark}] {m['gate']}: {m['detail'][:70]}")
     print(f"\noverall: {'PASS' if report['overall_pass'] else 'FAIL'} "
-          f"({report['n_evaluated']} evaluated, {report['n_unmatched']} unmatched)")
+          f"({report['n_full_match_evaluated']} full-match + "
+          f"{report['n_question_independent_evaluated']} question-independent "
+          f"evaluated, {report['n_excluded_no_verdict']} excluded without verdict; "
+          f"{report['bundle_structural_gate_executions']} bundle-structural gate "
+          f"executions)")
     return 0 if report["overall_pass"] else 1
 
 

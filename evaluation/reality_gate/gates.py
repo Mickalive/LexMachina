@@ -223,7 +223,8 @@ def evaluate_required_hits(required: list[str], found: set[str], kind: str,
     """
     if not required:
         return _out(f"recall::{kind}_controlling_authority", True,
-                    "no frozen controlling set for this question", required=[], found=0)
+                    "", required=[], found=0,
+                    note="no frozen controlling set for this question")
     if not available:
         return _not_measurable(f"recall::{kind}_controlling_authority",
                                "artifact does not carry the full decision id list")
@@ -243,6 +244,9 @@ def evaluate_structural_from_report(report: dict) -> list[dict]:
     Slim reports are flat: ``answer_status`` / ``answer_method`` /
     ``answer_prose`` / ``provider_error`` / ``adversarial_*`` are top-level
     fields (see the producer's ``strip_bundle`` output shape).
+
+    Detail is blank whenever a gate passes: a passing gate must not carry
+    failure-flavoured prose into the record (record-readability rule).
     """
     errors = report.get("validation_errors") or []
     prose = str(report.get("answer_prose") or "")
@@ -252,23 +256,28 @@ def evaluate_structural_from_report(report: dict) -> list[dict]:
              "" if not errors else f"bundle validation errors: {errors}",
              validation_errors=errors[:4]),
         _out("structural::answer_ready", report.get("answer_status") == "ready",
-             f"answer status {report.get('answer_status')!r} != ready"),
+             "" if report.get("answer_status") == "ready"
+             else f"answer status {report.get('answer_status')!r} != ready"),
         _out("structural::answer_method",
              report.get("answer_method") == "generative_audit_llm_v2",
-             f"unexpected answer method: {report.get('answer_method')}"),
+             "" if report.get("answer_method") == "generative_audit_llm_v2"
+             else f"unexpected answer method: {report.get('answer_method')}"),
         _out("structural::prose_min_length", len(prose) >= 120,
-             "answer prose too short"),
+             "" if len(prose) >= 120 else "answer prose too short"),
         _out("structural::citations_nonempty", bool(cited),
-             "answer cites nothing"),
+             "" if cited else "answer cites nothing"),
         _out("structural::provider_clean",
              report.get("provider_error") in (None, ""),
-             f"provider error: {report.get('provider_error')}"),
+             "" if report.get("provider_error") in (None, "")
+             else f"provider error: {report.get('provider_error')}"),
         _out("structural::adversarial_method",
              report.get("adversarial_method") == "independent_llm_adversarial_v2",
-             f"adversarial method: {report.get('adversarial_method')}"),
+             "" if report.get("adversarial_method") == "independent_llm_adversarial_v2"
+             else f"adversarial method: {report.get('adversarial_method')}"),
         _out("structural::adversarial_clean",
              report.get("adversarial_error") in (None, ""),
-             f"adversarial error: {report.get('adversarial_error')}"),
+             "" if report.get("adversarial_error") in (None, "")
+             else f"adversarial error: {report.get('adversarial_error')}"),
     ]
     return out
 
@@ -277,22 +286,125 @@ def evaluate_structural_from_bundle(bundle: dict) -> list[dict]:
     checks = bundle_structural(bundle)
     out = [
         _out("structural::bundle_nonempty", checks["bundle_nonempty"],
-             "bundle has no decisions"),
+             "" if checks["bundle_nonempty"] else "bundle has no decisions"),
         _out("structural::duplicate_free", checks["duplicate_free"],
-             "duplicate decision ids in bundle"),
+             "" if checks["duplicate_free"] else "duplicate decision ids in bundle"),
         _out("structural::source_urls_valid", checks["source_urls_valid"],
-             f"non-OpenCaseLaw source urls: {checks['bad_source_ids'][:4]}"),
+             "" if checks["source_urls_valid"]
+             else f"non-OpenCaseLaw source urls: {checks['bad_source_ids'][:4]}"),
         _out("structural::answer_citations_constrained",
              checks["answer_citations_constrained"],
-             f"answer cites ids outside the bundle: {checks['invalid_cited_ids'][:4]}"),
+             "" if checks["answer_citations_constrained"]
+             else f"answer cites ids outside the bundle: {checks['invalid_cited_ids'][:4]}"),
         _out("structural::counter_classifications_supported",
              checks["counter_classifications_supported"],
-             f"counter rows without evidence/uncertainty: {checks['unsupported_counter_ids'][:4]}"),
+             "" if checks["counter_classifications_supported"]
+             else f"counter rows without evidence/uncertainty: {checks['unsupported_counter_ids'][:4]}"),
         _not_measurable("structural::geometry_preserved",
                           "needs initial+final pair; single recorded bundle"),
         _not_measurable("structural::progressive_phases",
                           "needs initial+final pair; single recorded bundle"),
     ]
+    return out
+
+
+# --------------------------------------------------------------------------- #
+# question-INDEPENDENT checks: run on EVERY recorded artifact of the relevant
+# kind regardless of frozen-question match (audit repair R2).  Only gates whose
+# inputs are the artifact alone are eligible: bundle structure, answer-prose
+# corruption and recorded wall-time do not need the frozen question.  Truth /
+# language / recall gates stay question-dependent and are reported
+# ``not_measurable`` for unmatched artifacts, never silently passed.
+# --------------------------------------------------------------------------- #
+
+
+_BUNDLE_STRUCTURAL_GATES = (
+    "structural::bundle_nonempty",
+    "structural::duplicate_free",
+    "structural::source_urls_valid",
+    "structural::answer_citations_constrained",
+    "structural::counter_classifications_supported",
+)
+
+_SLIM_STRUCTURAL_GATES = (
+    "structural::bundle_validation_clean",
+    "structural::answer_ready",
+    "structural::answer_method",
+    "structural::prose_min_length",
+    "structural::citations_nonempty",
+    "structural::provider_clean",
+    "structural::adversarial_method",
+    "structural::adversarial_clean",
+)
+
+
+def evaluate_question_independent_bundle(bundle: dict, spec: dict) -> list[dict]:
+    """The bundle-structural subset that needs no frozen question match.
+
+    Corruption and latency are measured whenever the artifact carries prose /
+    timing; otherwise they are reported not_measurable with the reason.
+    geometry/progressive stay not_measurable by construction (single bundle).
+    """
+    out = [g for g in evaluate_structural_from_bundle(bundle)
+           if g["gate"] in _BUNDLE_STRUCTURAL_GATES]
+    answer = bundle.get("answer") or {}
+    prose = str(answer.get("prose") or "")
+    out.append(evaluate_corruption_gate(prose) if prose
+               else _not_measurable("corruption::clean",
+                                    "recorded bundle carries no answer prose"))
+    total = (bundle.get("provenance") or {}).get("latency_seconds_total")
+    if total is None:
+        total = ((bundle.get("provenance") or {}).get("stages") or {}).get("total_s")
+    out.append(evaluate_latency(total, spec["latency_budget_seconds"]))
+    return out
+
+
+def evaluate_question_independent_report(report: dict, spec: dict) -> list[dict]:
+    """The slim-report subset that needs no frozen question match."""
+    out = list(evaluate_structural_from_report(report))
+    prose = str(report.get("answer_prose") or "")
+    out.append(evaluate_corruption_gate(prose) if prose
+               else _not_measurable("corruption::clean",
+                                    "recorded report carries no answer prose"))
+    out.append(evaluate_latency(report.get("total_seconds"),
+                                spec["latency_budget_seconds"]))
+    return out
+
+
+def question_dependent_gates(mode: str, question: dict | None,
+                             questions: dict[str, dict],
+                             exclusion_reason: str) -> list[dict]:
+    """Question-dependent gates for an unmatched artifact: not_measurable with
+    the reason, so the record shows exactly what could not be checked."""
+    out: list[dict] = []
+    if mode == "full_bundle":
+        if question is not None:  # pragma: no cover - caller guarantees None
+            for gate in question["truth_gates"]:
+                out.append(_not_measurable(f"truth::{gate['id']}", exclusion_reason))
+        else:
+            out.append(_not_measurable("truth::*", exclusion_reason))
+        out += [
+            _not_measurable("language::dominant_in_accepted", exclusion_reason),
+            _not_measurable("recall::citation_controlling_authority", exclusion_reason),
+            _not_measurable("recall::retrieval_controlling_authority", exclusion_reason),
+            _not_measurable("structural::geometry_preserved",
+                           "needs initial+final pair; single recorded bundle"),
+            _not_measurable("structural::progressive_phases",
+                           "needs initial+final pair; single recorded bundle"),
+        ]
+    else:  # slim_report
+        if question is not None:  # pragma: no cover - caller guarantees None
+            for gate in question["truth_gates"]:
+                out.append(_not_measurable(f"truth::{gate['id']}", exclusion_reason))
+        else:
+            out.append(_not_measurable("truth::*", exclusion_reason))
+        out += [
+            _not_measurable("language::dominant_in_accepted", exclusion_reason),
+            _not_measurable("corruption::clean", exclusion_reason),
+            _not_measurable("latency::under_budget", exclusion_reason),
+            _not_measurable("recall::citation_controlling_authority", exclusion_reason),
+            _not_measurable("recall::retrieval_controlling_authority", exclusion_reason),
+        ]
     return out
 
 
