@@ -218,7 +218,7 @@ def _select_prompt_decisions(bundle: DecisionBundle, max_sources: int = 10) -> L
                 relevance = float(meta.get("score") or 0.0)
             except (TypeError, ValueError):
                 relevance = 0.0
-            return (-rank_value, supreme, relevance, str(dec.decision_id))
+            return (supreme, -rank_value, relevance, str(dec.decision_id))
 
         chosen = sorted(hydrated, key=hydrated_key, reverse=True)[:max_sources]
         if len(chosen) >= min(6, max_sources):
