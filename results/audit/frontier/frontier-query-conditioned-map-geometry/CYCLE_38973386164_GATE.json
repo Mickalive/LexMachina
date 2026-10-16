@@ -1,0 +1,124 @@
+{
+  "schema": "lexmachina/audit-gate/1",
+  "team_id": "frontier-query-conditioned-map-geometry",
+  "cycle_run_id": 38973386164,
+  "auditor": "independent_auditor",
+  "audited_branch": "origin/cycle/frontier/frontier-query-conditioned-map-geometry/38973386164/team",
+  "audited_head": "63aee08",
+  "audit_base": "audit-base@d163037",
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "claim_ceiling": {
+    "what_this_run_supports": [
+      "Under the frozen geometry rule (sha256 a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633) applied byte-identically to the three served bundles of gate_packet/38839347028 (de 214, fr 217, it 211 decisions), the relevance_ordered variant (V2) passes 22/33 criteria vs the accepted incumbent's 16/33, with zero criterion regressions on any bundle (de 7/11, fr 8/11, it 7/11 vs incumbent 6/5/5).",
+      "Removing un-hydrated shells (detail_status != 'search_hit') from the clusterable input is what moves COHERENCE_QUERY_LANG, COHERENCE_QUERY_TERM and STRUCTURE_LARGEST; the accepted ablation localised the cause and this run builds the input change it implied.",
+      "The component is a pure, deterministic, drop-in function behind the query_result_bundle seam emitting the shipped qmap shape (cluster_id, x, y, label, size, member_ids) with no rendering, UI, colour or interaction change; source-linking fields (source_url, canonical_url, citation, court, decision_date, docket_number) are preserved on every row."
+    ],
+    "what_this_run_does_not_support": [
+      "That the map is USEFUL to a jurist. Usefulness remains the human product gate's question and is not answered here.",
+      "That proximity now means query-conditioned similarity: PROJ_SPEARMAN and PROJ_KNN10 still fail on every bundle under both variants; STRUCTURE_SEP fails on every bundle and is measurably unreachable on de and it under any clustering (oracle-best ratio 0.914/0.919 vs 0.90 bar at the operative k=8).",
+      "That PROJ_RANK can be moved by any layout: it is coordinate-invariant under the frozen scorer (Spearman of TF-IDF cosine distance to the query vector vs retrieval rank).",
+      "That any decision supports, limits or contradicts the answer.",
+      "That the shipped map should be served unchanged: 0 of 3 bundles pass all 11 criteria under the promoted variant, exactly as under the incumbent.",
+      "That OUTLIER_VALIDITY is reachable on it: the citation graph is empty (total degree 0), so the frozen DEGENERATE->FAIL clause fires under any variant."
+    ],
+    "accepted_fail_is_preserved": "The accepted frontier-map-semantics verdict (run 38846038296, accept commit 15362f6, 0 of 3 bundles passing, promoted decision 'FAIL with NO working in-budget alternative') remains the verdict of record for the SHIPPED geometry. This run does not retract it."
+  },
+  "evidence_summary": {
+    "freeze_first": {
+      "rules_sha256_observed": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+      "rules_sha256_expected": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+      "match": true,
+      "threshold_or_bar_edits": [],
+      "measurement_population": "results/product/gate_packet/38839347028/questions/*.bundle.json on origin lab/product; bundle sha256 de=2441ff2b16722afcd22dca9ad39eafcbeb079b2dfc367d763fbe53fce1356f9c fr=6c5ea31d4b9af4abfa39e9f8025cfa3d34279ff1f04d0f643e571e27b23a2618 it=76e7f7ad998f3878e7b08635663e2d594a7a77bdaeb33bcf5fa52d0af00b7aff (214/217/211 decisions) — verified correct, not the stale 38799024807 packet recorded in the rule's embedded inputs metadata"
+    },
+    "component_smoke_test": {
+      "ran_end_to_end": true,
+      "wall_seconds_all_bundles_both_variants": 7.7,
+      "frozen_budget_geometry_seconds_max": 2.0,
+      "emits_qmap_shape": true,
+      "pure_function_of_bundle": true,
+      "no_rendering_or_ui_change": true,
+      "tests_passed": "15/15",
+      "source_linking_preserved": "source_url/canonical_url/citation/court/decision_date/docket_number byte-identical on every row; 179/214, 180/217, 176/211 rows carry source_url"
+    },
+    "independent_scoring": {
+      "method": "auditor-written scorer implementing the 11 frozen criteria directly from RULES_GEOMETRY.json definitions, no team code",
+      "incumbent": {"de-kapitalverletzung": 6, "fr-bail-entretien": 5, "it-responsabilita-medica": 5, "total": 16, "matches_accepted_verdict": true},
+      "hydrate_then_cluster": {"de-kapitalverletzung": 6, "fr-bail-entretien": 7, "it-responsabilita-medica": 7, "total": 20, "regresses_OUTLIER_VALIDITY_on": ["de-kapitalverletzung", "fr-bail-entretien"]},
+      "relevance_ordered": {"de-kapitalverletzung": 7, "fr-bail-entretien": 8, "it-responsabilita-medica": 7, "total": 22, "regressions": [], "strictly_better": true},
+      "per_criterion_value_agreement_with_team_artifacts": "all values within 0.01, zero verdict flips",
+      "outcome": "A (component) — relevance_ordered promoted as adoptable"
+    },
+    "non_vacuity": {
+      "frozen_rule_own_clause": "cluster_id/label permutation control, >=2 verdict flips — MET on fr-bail-entretien for both variants (COHERENCE_QUERY_LANG + COHERENCE_QUERY_TERM flip; replicated with the team's exact control implementation)",
+      "charter_literal_coordinate_control": "UNSATISFIABLE as written: the frozen scorer computes PROJ_RANK without reading x/y (verified by code inspection and empirically bit-identical under seeded coordinate permutation on all three bundles); PROJ_SPEARMAN/PROJ_KNN10 do read coordinates and collapse sharply (fr 0.2296->-0.0058, 0.1461->0.0419) but cannot flip verdicts already below bar",
+      "handling": "declared as divergence (NON_VACUITY_DIVERGENCE.json, README, state file), escalated to director, no bar/threshold/control/criterion altered",
+      "is_same_cycle_repairable_defect": false
+    },
+    "ablation_before_after": {
+      "french_largest_share_shipped": 0.7696,
+      "french_largest_share_hydrated_only": 0.2679,
+      "dominant_member_jaccard_hydrated": 0.2348,
+      "dominant_unhydrated_fraction": 0.2934,
+      "artifact_predicate_fires": false,
+      "V1_french_largest_share": 0.2074,
+      "V1_artifact_predicate_fires": false,
+      "V1_artifact_non_firing_reason": "variant dominant cluster contains zero un-hydrated shells, so the >=0.40 shell-fraction clause is structurally unmeetable; stated explicitly per variant per bundle",
+      "all_values_independently_reproduced": true
+    },
+    "regression_suite": {
+      "checks_per_bundle_per_variant": 18,
+      "all_passed": true,
+      "no_drop_no_duplicate": true,
+      "truncation_contract_member_ids_capped_50_size_true": true,
+      "outlier_budget_respected": true,
+      "bundle_headers_payloads_relations_untouched": true
+    },
+    "ceilings_independently_verified": {
+      "STRUCTURE_SEP_unreachable_k8": {"de-kapitalverletzung": 0.9137, "it-responsabilita-medica": 0.9185, "bar": 0.90},
+      "PROJ_RANK_coordinate_invariant_all_bundles": true,
+      "OUTLIER_VALIDITY_structurally_unreachable_it": "citation graph total degree 0 -> DEGENERATE->FAIL under any variant"
+    },
+    "write_scope": {
+      "forbidden_prefixes": ["product/", "evaluation/", "results/product/", "state/product.json", ".github/", "product/static/"],
+      "violations": [],
+      "team_branch_touches": ["frontier/ (17 files)", "results/frontier/ (18 files)", "state/frontier/ (1 file)"]
+    },
+    "state_file": {
+      "charter_version": 1,
+      "direction_version": 50,
+      "cycle_status": "COMPLETED",
+      "evidence_tier": "REPRODUCED",
+      "run_history_recorded": [38964153228, 38969741834, 38970483941],
+      "continue_recommended": false
+    },
+    "reproducibility": {
+      "independent_rerun_all_artifacts": "all verdicts and boolean leaves identical; REGRESSION/BEFORE_AFTER/HYDRATION/REPRODUCIBILITY identical; SCORES/CONTROLS/CEILINGS differ only in 4th-decimal FP values and wall-clock timings; zero verdict flips"
+    },
+    "minor_observations": [
+      "FREEZE.json 'rules_inputs_recorded_by_the_rule' section carries the rule's stale embedded inputs metadata (38799024807 paths, 134/131/132 counts); accurately labeled and not a measurement error, but potentially confusing",
+      "accept commit 15362f6 is not resolvable in the current repo object DB (main history has moved on); the charter cites it and the team disambiguates it from 464c45f (confirmed on origin/lab/product as 464c45f7e4bf741b6a67adbef35dc587d8cfa21f)"
+    ]
+  },
+  "declared_divergences": [
+    {
+      "id": "charter_check_4b_coordinate_shuffle_control",
+      "status": "REPORTED_NOT_RESOLVED",
+      "escalated_to_director": true,
+      "summary": "Charter acceptance check (4)'s second control (shuffled coordinates must fail PROJ_RANK/PROJ_SPEARMAN) is unsatisfiable under the frozen scorer, which computes PROJ_RANK without reading coordinates. Non-vacuity is proven against the binding frozen rule's own non_vacuity clause (met: 2 flips on fr-bail-entretien for both variants) plus demonstrated value sensitivity of the coordinate-reading criteria. Not a same-cycle repairable defect; no bar, threshold, control or criterion was altered.",
+      "director_decision": "Accept the frozen-rule-based non-vacuity proof as satisfying the intent of check (4), or rule the charter-literal control voiding."
+    }
+  ],
+  "acceptance_checks": {
+    "1_freeze_first_by_rehash": "PASS",
+    "2_two_runnable_variants_behind_bundle_seam": "PASS",
+    "3_all_three_bundles_scored_with_side_by_side": "PASS",
+    "4_non_vacuity_proven": "PASS under the binding frozen rule's own non_vacuity clause; charter-literal coordinate control DECLARED unsatisfiable (see declared_divergences)",
+    "5_before_after_on_accepted_ablation": "PASS",
+    "6_regression_suite": "PASS",
+    "7_integration_contract_and_claim_ceiling": "PASS",
+    "8_zero_out_of_scope_writes": "PASS"
+  }
+}
