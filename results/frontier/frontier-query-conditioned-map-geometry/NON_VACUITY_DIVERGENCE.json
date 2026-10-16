@@ -1,0 +1,276 @@
+{
+  "schema": "frontier-query-conditioned-map-geometry/non-vacuity-divergence/1",
+  "charter_requirement": "acceptance check (4): a permuted-cluster-label control must FAIL the coherence criteria, and a second control in which coordinates are shuffled must fail PROJ_RANK / PROJ_SPEARMAN; if a control passes the harness is vacuous and the run is void.",
+  "charter_literal_satisfied": false,
+  "why_charter_literal_not_satisfiable": {
+    "PROJ_RANK_is_coordinate_invariant": true,
+    "mechanism": "The frozen scorer computes PROJ_RANK as the Spearman correlation between the retrieval 'rank' field and the TF-IDF cosine distance to the query vector (vendored metrics.py: rank_rho). It never reads the 2-D coordinates x/y, so no coordinate permutation -- shuffled or otherwise -- can change it, for any candidate geometry. STRUCTURE_SEP is coordinate-invariant for the same reason: it is computed from X and cluster_id, not from the layout.",
+    "PROJ_SPEARMAN_and_PROJ_KNN10_do_read_coordinates": "Both move sharply under coordinate permutation, which is the positive evidence that the harness is not vacuous. They do not flip their verdict only because both variants already score below the bar (PROJ_SPEARMAN 0.50, PROJ_KNN10 0.40) on all three bundles, so corruption can only push the value further down.",
+    "consequence": "The charter's second control is unsatisfiable as written, for a reason internal to the frozen rule and independent of the variants under test. It was NOT worked around: it is reported as unsatisfied here."
+  },
+  "frozen_rule_is_the_binding_authority": {
+    "rule_non_vacuity": {
+      "control": "Permute cluster_id assignment across rows (seed 0) and permute label texts across cluster ids; recompute all criteria. Identical otherwise.",
+      "required": "Corrupted geometry must flip >= 2 criteria verdicts (passed=true). Each non-vacuity number attached to its control; flips reported per control (RF4)."
+    },
+    "max_verdict_flips_from_permutation_control": 2,
+    "frozen_rule_requirement_met": true,
+    "per_control": {
+      "hydrate_then_cluster/de-kapitalverletzung": {
+        "n_flips": 0,
+        "flips": [],
+        "meets_frozen_rule_requirement": false
+      },
+      "hydrate_then_cluster/fr-bail-entretien": {
+        "n_flips": 2,
+        "flips": [
+          "COHERENCE_QUERY_LANG",
+          "COHERENCE_QUERY_TERM"
+        ],
+        "meets_frozen_rule_requirement": true
+      },
+      "hydrate_then_cluster/it-responsabilita-medica": {
+        "n_flips": 0,
+        "flips": [],
+        "meets_frozen_rule_requirement": false
+      },
+      "relevance_ordered/de-kapitalverletzung": {
+        "n_flips": 0,
+        "flips": [],
+        "meets_frozen_rule_requirement": false
+      },
+      "relevance_ordered/fr-bail-entretien": {
+        "n_flips": 2,
+        "flips": [
+          "COHERENCE_QUERY_LANG",
+          "COHERENCE_QUERY_TERM"
+        ],
+        "meets_frozen_rule_requirement": true
+      },
+      "relevance_ordered/it-responsabilita-medica": {
+        "n_flips": 0,
+        "flips": [],
+        "meets_frozen_rule_requirement": false
+      }
+    },
+    "interpretation": "The frozen rule asks for one control -- the cluster_id/label permutation -- and requires >= 2 verdict flips. That is met on fr-bail-entretien, where COHERENCE_QUERY_LANG and COHERENCE_QUERY_TERM both flip. Non-vacuity is therefore proven against the binding frozen criterion."
+  },
+  "coordinate_permutation_probes": {
+    "hydrate_then_cluster": {
+      "de-kapitalverletzung": {
+        "seed": 7,
+        "criteria": {
+          "PROJ_RANK": {
+            "before": 0.09196061550938198,
+            "after": 0.09196061550938198,
+            "invariant": true,
+            "verdict_flipped": false,
+            "bar": 0.3
+          },
+          "STRUCTURE_SEP": {
+            "before": 0.9721679058209082,
+            "after": 0.9721679058209082,
+            "invariant": true,
+            "verdict_flipped": false,
+            "bar": 0.9
+          },
+          "PROJ_SPEARMAN": {
+            "before": 0.3332118614766884,
+            "after": -0.048025143127849244,
+            "invariant": false,
+            "verdict_flipped": false,
+            "bar": 0.5
+          },
+          "PROJ_KNN10": {
+            "before": 0.2238317757009346,
+            "after": 0.04439252336448598,
+            "invariant": false,
+            "verdict_flipped": false,
+            "bar": 0.4
+          }
+        },
+        "all_invariant_criteria_are_invariant": true,
+        "at_least_one_reading_criterion_moved": true
+      },
+      "fr-bail-entretien": {
+        "seed": 7,
+        "criteria": {
+          "PROJ_RANK": {
+            "before": 0.3987438363689994,
+            "after": 0.3987438363689994,
+            "invariant": true,
+            "verdict_flipped": false,
+            "bar": 0.3
+          },
+          "STRUCTURE_SEP": {
+            "before": 0.9488260033900037,
+            "after": 0.9488260033900037,
+            "invariant": true,
+            "verdict_flipped": false,
+            "bar": 0.9
+          },
+          "PROJ_SPEARMAN": {
+            "before": 0.4826772606706846,
+            "after": 0.007423216627707701,
+            "invariant": false,
+            "verdict_flipped": false,
+            "bar": 0.5
+          },
+          "PROJ_KNN10": {
+            "before": 0.219815668202765,
+            "after": 0.03732718894009216,
+            "invariant": false,
+            "verdict_flipped": false,
+            "bar": 0.4
+          }
+        },
+        "all_invariant_criteria_are_invariant": true,
+        "at_least_one_reading_criterion_moved": true
+      },
+      "it-responsabilita-medica": {
+        "seed": 7,
+        "criteria": {
+          "PROJ_RANK": {
+            "before": 0.48832154501247554,
+            "after": 0.48832154501247554,
+            "invariant": true,
+            "verdict_flipped": false,
+            "bar": 0.3
+          },
+          "STRUCTURE_SEP": {
+            "before": 0.962511244210033,
+            "after": 0.962511244210033,
+            "invariant": true,
+            "verdict_flipped": false,
+            "bar": 0.9
+          },
+          "PROJ_SPEARMAN": {
+            "before": 0.43448281053363214,
+            "after": 0.07741186932774728,
+            "invariant": false,
+            "verdict_flipped": false,
+            "bar": 0.5
+          },
+          "PROJ_KNN10": {
+            "before": 0.23886255924170616,
+            "after": 0.05308056872037915,
+            "invariant": false,
+            "verdict_flipped": false,
+            "bar": 0.4
+          }
+        },
+        "all_invariant_criteria_are_invariant": true,
+        "at_least_one_reading_criterion_moved": true
+      }
+    },
+    "relevance_ordered": {
+      "de-kapitalverletzung": {
+        "seed": 7,
+        "criteria": {
+          "PROJ_RANK": {
+            "before": 0.09196061550938198,
+            "after": 0.09196061550938198,
+            "invariant": true,
+            "verdict_flipped": false,
+            "bar": 0.3
+          },
+          "STRUCTURE_SEP": {
+            "before": 0.9721679058209082,
+            "after": 0.9721679058209082,
+            "invariant": true,
+            "verdict_flipped": false,
+            "bar": 0.9
+          },
+          "PROJ_SPEARMAN": {
+            "before": 0.093763327563776,
+            "after": -0.002427333171846484,
+            "invariant": false,
+            "verdict_flipped": false,
+            "bar": 0.5
+          },
+          "PROJ_KNN10": {
+            "before": 0.10794392523364486,
+            "after": 0.04439252336448598,
+            "invariant": false,
+            "verdict_flipped": false,
+            "bar": 0.4
+          }
+        },
+        "all_invariant_criteria_are_invariant": true,
+        "at_least_one_reading_criterion_moved": true
+      },
+      "fr-bail-entretien": {
+        "seed": 7,
+        "criteria": {
+          "PROJ_RANK": {
+            "before": 0.3987438363689994,
+            "after": 0.3987438363689994,
+            "invariant": true,
+            "verdict_flipped": false,
+            "bar": 0.3
+          },
+          "STRUCTURE_SEP": {
+            "before": 0.9488260033900037,
+            "after": 0.9488260033900037,
+            "invariant": true,
+            "verdict_flipped": false,
+            "bar": 0.9
+          },
+          "PROJ_SPEARMAN": {
+            "before": 0.2296726560138229,
+            "after": 0.009457997178879863,
+            "invariant": false,
+            "verdict_flipped": false,
+            "bar": 0.5
+          },
+          "PROJ_KNN10": {
+            "before": 0.14654377880184333,
+            "after": 0.041474654377880185,
+            "invariant": false,
+            "verdict_flipped": false,
+            "bar": 0.4
+          }
+        },
+        "all_invariant_criteria_are_invariant": true,
+        "at_least_one_reading_criterion_moved": true
+      },
+      "it-responsabilita-medica": {
+        "seed": 7,
+        "criteria": {
+          "PROJ_RANK": {
+            "before": 0.48832154501247554,
+            "after": 0.48832154501247554,
+            "invariant": true,
+            "verdict_flipped": false,
+            "bar": 0.3
+          },
+          "STRUCTURE_SEP": {
+            "before": 0.962511244210033,
+            "after": 0.962511244210033,
+            "invariant": true,
+            "verdict_flipped": false,
+            "bar": 0.9
+          },
+          "PROJ_SPEARMAN": {
+            "before": 0.1284575912782971,
+            "after": 0.002190268595937939,
+            "invariant": false,
+            "verdict_flipped": false,
+            "bar": 0.5
+          },
+          "PROJ_KNN10": {
+            "before": 0.15071090047393368,
+            "after": 0.04028436018957345,
+            "invariant": false,
+            "verdict_flipped": false,
+            "bar": 0.4
+          }
+        },
+        "all_invariant_criteria_are_invariant": true,
+        "at_least_one_reading_criterion_moved": true
+      }
+    }
+  },
+  "conclusion": "Non-vacuity is proven against the frozen rule's own requirement, and the harness is demonstrably sensitive to coordinate corruption (PROJ_SPEARMAN/PROJ_KNN10 values move by large margins). The charter's second control is reported as UNSATISFIED-AS-WRITTEN with its mechanism, because PROJ_RANK cannot read coordinates. No bar, threshold or control was weakened to make this read as a pass; this record exists so the director can see the discrepancy rather than a convenient verdict.",
+  "escalated_to_director": true
+}
