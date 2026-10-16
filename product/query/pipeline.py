@@ -38,7 +38,10 @@ for _p in (RETRIEVAL_ROOT, GENAUDIT_ROOT):
 
 from ocl_adapter import AdapterConfig, build_candidate_bundle, to_product_bundle  # noqa: E402
 from ocl_adapter.fixtures import fixture_config, replay_fixtures  # noqa: E402
-from generative_audit.integration_contract import run_generative_audit  # noqa: E402
+from generative_audit.integration_contract import (  # noqa: E402
+    run_adversarial_audit,
+    run_generative_audit,
+)
 from generative_audit.adversarial import AdversarialFinding  # noqa: E402
 
 from .audit_seam import apply as _apply_audit_seam  # noqa: E402
@@ -712,6 +715,7 @@ def enrich_query_bundle(
             fixture_answer=("Fixture grounded answer " + " ".join(f"[{x}]" for x in fixture_ids)) if fixture_generation else None,
             fixture_cited_ids=fixture_ids if fixture_generation else None,
             fixture_findings=fixture_findings,
+            defer_adversarial=bool(adversarial_retrieval),
         )
         ga = audited.get("provenance", {}).get("generative_audit", {})
         provider_error = ga.get("provider_error")
@@ -749,8 +753,17 @@ def enrich_query_bundle(
         audited = adversarial_retrieval_pass(
             audited,
             retrieval_mode=retrieval_mode,
-            max_new=0 if fixture_generation else 40,
+            max_new=0 if fixture_generation else 20,
             hydrate_top=0 if fixture_generation else 12,
+        )
+        # Now that answer-conditioned retrieval has produced the FINAL bounded
+        # source set, classify counters once. This replaces the old ordering
+        # where the LLM classified the initial pool and a heuristic labelled
+        # newly fetched rows afterward.
+        audited = run_adversarial_audit(
+            audited,
+            fixture_mode=fixture_generation,
+            fixture_findings=fixture_findings,
         )
 
     # The adversarial/generative stage must never move the already visible map.
