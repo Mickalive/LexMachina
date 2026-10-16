@@ -1,0 +1,327 @@
+"""Executable gates for the frozen reality benchmark (evaluation lane).
+
+Every gate returns a dict ``{"gate", "passed", "detail", "measured"}`` so a
+verdict can always be recomputed from the artifact alone.  Gates that an
+artifact cannot support are reported ``not_measurable`` with the reason;
+they are never silently treated as passes.
+
+Pure standard library; reuses the lane's bundle harness
+(``evaluation/query_map/harness.py``) for the single-bundle structural checks.
+"""
+from __future__ import annotations
+
+import re
+from collections import Counter
+from typing import Any
+from urllib.parse import urlparse
+
+from evaluation.query_map.harness import COUNTER_STATUSES
+
+# --------------------------------------------------------------------------- #
+# normalization (parity with the product's frozen reality gates)
+# --------------------------------------------------------------------------- #
+
+
+def normalize_text(value: object) -> str:
+    import unicodedata
+    text = unicodedata.normalize("NFKD", str(value or ""))
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    return " ".join(text.casefold().split())
+
+
+# --------------------------------------------------------------------------- #
+# language + corruption
+# --------------------------------------------------------------------------- #
+
+_STOPWORDS: dict[str, tuple[str, ...]] = {
+    "fr": ("le", "la", "les", "un", "une", "des", "du", "de", "est", "dans",
+           "pour", "par", "sur", "avec", "que", "qui", "son", "sa", "ses",
+           "au", "aux", "pas", "plus", "entre", "sans", "chez", "ou"),
+    "de": ("der", "die", "das", "und", "den", "dem", "des", "ist", "fuer",
+           "von", "mit", "zu", "im", "sich", "eine", "ein", "auf", "nicht",
+           "auch", "als", "bei", "nach", "ueber", "unter", "einem", "einer"),
+    "it": ("il", "lo", "la", "i", "gli", "le", "un", "una", "di", "del",
+           "della", "dei", "delle", "e", "per", "con", "che", "non", "sono",
+           "piu", "tra", "fra", "nel", "nella", "allo", "alla"),
+    "en": ("the", "a", "an", "of", "to", "in", "and", "is", "are", "for",
+           "with", "that", "this", "be", "by", "as", "at", "from", "or"),
+}
+
+
+def classify_language(prose: str) -> dict:
+    """Stopword-based dominant-language classification over normalized prose."""
+    words = re.findall(r"[a-zà-ÿ']+", normalize_text(prose))
+    counts = {}
+    for lang, stops in _STOPWORDS.items():
+        stops_set = set(stops)
+        counts[lang] = sum(1 for w in words if w in stops_set)
+    dominant = max(counts, key=lambda k: counts[k]) if any(counts.values()) else None
+    return {"counts": counts, "dominant": dominant, "n_words": len(words)}
+
+
+def detect_corruption(prose: str) -> list[str]:
+    """Detect degenerate model output. Returns a list of corruption reasons.
+
+    Deliberately conservative: only clear degeneration is flagged (repetition
+    loops, mojibake), never style.
+    """
+    reasons: list[str] = []
+    text = str(prose or "")
+    norm = normalize_text(text)
+    words = norm.split()
+    n = len(words)
+
+    # repetition loop: one 8-gram covering >35% of all 8-grams (min 60 words)
+    if n >= 60:
+        grams = [tuple(words[i:i + 8]) for i in range(n - 7)]
+        if grams:
+            top = Counter(grams).most_common(1)[0]
+            if top[1] / len(grams) > 0.35:
+                reasons.append(
+                    f"repetition loop: 8-gram {top[0][:4]}... covers "
+                    f"{top[1]}/{len(grams)} of all 8-grams"
+                )
+    # repeated sentence: any sentence appearing >= 4 times (min 5 sentences)
+    sentences = [s.strip() for s in re.split(r"[.!?]+\s+", norm) if len(s.strip()) >= 20]
+    if len(sentences) >= 5:
+        top_sentence = Counter(sentences).most_common(1)[0]
+        if top_sentence[1] >= 4:
+            reasons.append(
+                f"repeated sentence x{top_sentence[1]}: {top_sentence[0][:60]!r}"
+            )
+    # mojibake / replacement chars
+    if "�" in text:
+        reasons.append("U+FFFD replacement characters present")
+    if re.search(r"[À-ÿ]{2,}", text) and re.search(r"[ÃÂ][\x80-ÿ]", text):
+        reasons.append("utf-8-decoded-as-latin1 mojibake pattern")
+    control = sum(1 for ch in text if ord(ch) < 32 and ch not in "\n\t")
+    if len(text) > 200 and control / len(text) > 0.01:
+        reasons.append(f"control-character ratio {control}/{len(text)}")
+    return reasons
+
+
+# --------------------------------------------------------------------------- #
+# single-bundle structural checks (reuse the lane harness's semantics)
+# --------------------------------------------------------------------------- #
+
+
+def bundle_structural(bundle: dict) -> dict:
+    """Structural checks computable from one final bundle (no initial needed)."""
+    ids = [str(d.get("decision_id") or "") for d in bundle.get("decisions", [])]
+    id_set = set(ids)
+    cited = {str(x) for x in (bundle.get("answer") or {}).get("cited_decision_ids", [])}
+    bad_sources = []
+    for d in bundle.get("decisions", []):
+        u = str(d.get("canonical_url") or "")
+        p = urlparse(u)
+        if p.scheme != "https" or p.hostname != "mcp.opencaselaw.ch":
+            bad_sources.append(str(d.get("decision_id") or ""))
+    unsupported_counters = []
+    for d in bundle.get("decisions", []):
+        if d.get("counter_status") not in COUNTER_STATUSES:
+            continue
+        evidence = str(d.get("counter_evidence") or "").strip()
+        if not evidence or d.get("counter_uncertainty") is None:
+            unsupported_counters.append(str(d.get("decision_id") or ""))
+    return {
+        "bundle_nonempty": bool(ids),
+        "duplicate_free": len(ids) - len(id_set) == 0,
+        "source_urls_valid": not bad_sources,
+        "answer_citations_constrained": cited <= id_set,
+        "counter_classifications_supported": not unsupported_counters,
+        "bad_source_ids": bad_sources,
+        "invalid_cited_ids": sorted(cited - id_set),
+        "unsupported_counter_ids": unsupported_counters,
+    }
+
+
+# --------------------------------------------------------------------------- #
+# gate evaluation
+# --------------------------------------------------------------------------- #
+
+
+def _out(gate: str, passed: bool, detail: str = "", **measured) -> dict:
+    return {"gate": gate, "passed": bool(passed), "detail": detail, "measured": measured}
+
+
+def _not_measurable(gate: str, reason: str) -> dict:
+    return {"gate": gate, "passed": None, "detail": f"not_measurable: {reason}",
+            "measured": {}}
+
+
+def evaluate_truth_gates(question: dict, prose: str) -> list[dict]:
+    norm = normalize_text(prose)
+    out = []
+    for gate in question["truth_gates"]:
+        if gate["kind"] == "phrase":
+            hit = next((p for p in gate["contains_any"] if p in norm), None)
+            out.append(_out(
+                f"truth::{gate['id']}",
+                hit is not None,
+                "" if hit else gate["detail"],
+                matched_phrase=hit,
+            ))
+        elif gate["kind"] == "phrase_absent":
+            bad = next((p for p in gate["absent_any"] if p in norm), None)
+            out.append(_out(
+                f"truth::{gate['id']}",
+                bad is None,
+                gate["detail"] if bad else "",
+                matched_absent_phrase=bad,
+            ))
+        else:  # pragma: no cover - frozen spec is validated at load
+            out.append(_out(f"truth::{gate['id']}", False, f"unknown gate kind {gate['kind']}"))
+    return out
+
+
+def evaluate_language_gate(question: dict, prose: str, spec: dict) -> dict:
+    accepted = {question["language"]} | set(spec["accepted_answer_languages"]["fallback_languages"])
+    info = classify_language(prose)
+    dominant = info["dominant"]
+    if dominant is None:
+        return _out("language::dominant_in_accepted", False,
+                    f"answer language undetectable (stopword counts {info['counts']})",
+                    **info)
+    counts = info["counts"]
+    # a tie between two accepted languages (mixed FR/DE Swiss prose) is admissible
+    tied = {k for k, v in counts.items() if v == counts[dominant]}
+    ok = dominant in accepted or bool(tied & accepted)
+    return _out(
+        "language::dominant_in_accepted", ok,
+        "" if ok else f"wrong-language answer: dominant={dominant}, accepted={sorted(accepted)}",
+        **info,
+    )
+
+
+def evaluate_corruption_gate(prose: str) -> dict:
+    reasons = detect_corruption(prose)
+    return _out(
+        "corruption::clean", not reasons,
+        "; ".join(reasons),
+        corruption_reasons=reasons,
+    )
+
+
+def evaluate_latency(total_seconds: float | None, budget: float) -> dict:
+    if total_seconds is None:
+        return _not_measurable("latency::under_budget", "artifact carries no full-run wall time")
+    return _out(
+        "latency::under_budget",
+        total_seconds < budget,
+        "" if total_seconds < budget
+        else f"full run {total_seconds}s >= {budget}s budget",
+        total_seconds=total_seconds, budget_seconds=budget,
+    )
+
+
+def evaluate_required_hits(required: list[str], found: set[str], kind: str,
+                           available: bool) -> dict:
+    """kind is 'citation' (answer cites) or 'retrieval' (bundle retrieved).
+
+    At least one of the frozen controlling authorities must appear; the
+    missing list is always reported so a regression names the exact authority.
+    """
+    if not required:
+        return _out(f"recall::{kind}_controlling_authority", True,
+                    "no frozen controlling set for this question", required=[], found=0)
+    if not available:
+        return _not_measurable(f"recall::{kind}_controlling_authority",
+                               "artifact does not carry the full decision id list")
+    hits = sorted(set(required) & found)
+    missing = sorted(set(required) - found)
+    return _out(
+        f"recall::{kind}_controlling_authority",
+        bool(hits),
+        "" if hits else f"missing {kind} of frozen controlling authority: {missing}",
+        required=required, hits=hits, missing=missing,
+    )
+
+
+def evaluate_structural_from_report(report: dict) -> list[dict]:
+    """Structural signals a slim reality-check leg report can carry.
+
+    Slim reports are flat: ``answer_status`` / ``answer_method`` /
+    ``answer_prose`` / ``provider_error`` / ``adversarial_*`` are top-level
+    fields (see the producer's ``strip_bundle`` output shape).
+    """
+    errors = report.get("validation_errors") or []
+    prose = str(report.get("answer_prose") or "")
+    cited = report.get("cited_decision_ids") or []
+    out = [
+        _out("structural::bundle_validation_clean", not errors,
+             "" if not errors else f"bundle validation errors: {errors}",
+             validation_errors=errors[:4]),
+        _out("structural::answer_ready", report.get("answer_status") == "ready",
+             f"answer status {report.get('answer_status')!r} != ready"),
+        _out("structural::answer_method",
+             report.get("answer_method") == "generative_audit_llm_v2",
+             f"unexpected answer method: {report.get('answer_method')}"),
+        _out("structural::prose_min_length", len(prose) >= 120,
+             "answer prose too short"),
+        _out("structural::citations_nonempty", bool(cited),
+             "answer cites nothing"),
+        _out("structural::provider_clean",
+             report.get("provider_error") in (None, ""),
+             f"provider error: {report.get('provider_error')}"),
+        _out("structural::adversarial_method",
+             report.get("adversarial_method") == "independent_llm_adversarial_v2",
+             f"adversarial method: {report.get('adversarial_method')}"),
+        _out("structural::adversarial_clean",
+             report.get("adversarial_error") in (None, ""),
+             f"adversarial error: {report.get('adversarial_error')}"),
+    ]
+    return out
+
+
+def evaluate_structural_from_bundle(bundle: dict) -> list[dict]:
+    checks = bundle_structural(bundle)
+    out = [
+        _out("structural::bundle_nonempty", checks["bundle_nonempty"],
+             "bundle has no decisions"),
+        _out("structural::duplicate_free", checks["duplicate_free"],
+             "duplicate decision ids in bundle"),
+        _out("structural::source_urls_valid", checks["source_urls_valid"],
+             f"non-OpenCaseLaw source urls: {checks['bad_source_ids'][:4]}"),
+        _out("structural::answer_citations_constrained",
+             checks["answer_citations_constrained"],
+             f"answer cites ids outside the bundle: {checks['invalid_cited_ids'][:4]}"),
+        _out("structural::counter_classifications_supported",
+             checks["counter_classifications_supported"],
+             f"counter rows without evidence/uncertainty: {checks['unsupported_counter_ids'][:4]}"),
+        _not_measurable("structural::geometry_preserved",
+                          "needs initial+final pair; single recorded bundle"),
+        _not_measurable("structural::progressive_phases",
+                          "needs initial+final pair; single recorded bundle"),
+    ]
+    return out
+
+
+def evaluate_multilingual_coverage(bundles: list[dict]) -> list[dict]:
+    """FR/DE/IT robustness over a recorded same-area multilingual set.
+
+    Each recorded run must (a) have retrieved decisions, (b) cover the query's
+    own language, (c) cover at least two Swiss languages (broad retrieval is
+    the product's own retrieval-first doctrine).
+    """
+    out = []
+    for b in bundles:
+        q = str(b.get("query") or "")
+        lang_by_query = {"fr": "fr", "de": "de", "it": "it"}
+        # detect query language from the question text itself
+        info = classify_language(q)
+        qlang = info["dominant"] or "?"
+        langs = Counter(str(d.get("language") or "?") for d in b.get("decisions", []))
+        n = sum(langs.values())
+        qlang_n = langs.get(qlang, 0)
+        n_swiss_langs = sum(1 for k in langs if k in ("fr", "de", "it"))
+        label = b.get("_label", q[:40])
+        ok = n > 0 and qlang_n > 0 and n_swiss_langs >= 2
+        out.append(_out(
+            f"multilingual::{label}",
+            ok,
+            "" if ok
+            else f"query_lang={qlang} n={n} query_lang_n={qlang_n} langs={dict(langs)}",
+            query_language=qlang, n_decisions=n, n_swiss_languages=n_swiss_langs,
+            languages=dict(langs),
+        ))
+    return out

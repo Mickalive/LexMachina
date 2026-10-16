@@ -1,0 +1,114 @@
+{
+  "schema": "lex-frozen-reality-benchmark/1",
+  "direction_version": 49,
+  "frozen_at": "2026-10-16",
+  "provenance": {
+    "source": "Factory direction v49 (product reality gate reopened) + the frozen four-question reality legs in product/product/reality_check.py at the accepted product packet (commit fdf1e386, results/product/reality_check/)",
+    "note": "Evaluation-lane INDEPENDENT encoding of the observed reality-check failures. The same four questions and the same substantive assertions the product froze are re-owned here so the gate under test cannot weaken its own benchmark. Phrase gates are normalized NFKD/diacritic-stripped/casefolded exactly as the product normalizes them; the semantics are deliberately identical to the frozen product legs at freeze time."
+  },
+  "latency_budget_seconds": 300.0,
+  "latency_rule": "a full run (one question: retrieval -> map -> sourced answer -> counter-authority pass) must complete in strictly less than 300s wall; >= 300s is rejected",
+  "accepted_answer_languages": {
+    "rule": "answer prose must be predominantly in the question's language, or in German (the product's frozen truth gates accept FR or DE phrasing); a predominantly non-Swiss answer (e.g. English) is wrong-language and is rejected",
+    "fallback_languages": ["de"],
+    "question_languages": ["fr"]
+  },
+  "questions": [
+    {
+      "slug": "rent-default",
+      "question": "Sous quelles conditions un bailleur peut-il résilier un bail d'habitation pour retard dans le paiement du loyer selon le droit suisse, et quelles exceptions ou limites jurisprudentielles existent ?",
+      "language": "fr",
+      "truth_gates": [
+        {
+          "id": "art257d2_30day_notice",
+          "kind": "phrase",
+          "contains_any": ["30"],
+          "detail": "missing Art. 257d(2) 30-day notice period"
+        },
+        {
+          "id": "art257d2_end_of_month",
+          "kind": "phrase",
+          "contains_any": ["fin d'un mois", "fin d’un mois", "fin de mois", "fin du mois", "ende eines monats"],
+          "detail": "missing Art. 257d(2) residential termination notice period"
+        },
+        {
+          "id": "rent_good_faith_limitation",
+          "kind": "phrase",
+          "contains_any": ["abus", "bonne foi", "rechtsmissbrauch"],
+          "detail": "missing jurisprudential limitation / good-faith branch"
+        }
+      ],
+      "required_citation_ids": [],
+      "required_retrieval_ids": []
+    },
+    {
+      "slug": "corporate-criminal-liability",
+      "question": "La responsabilité pénale de l'entreprise selon l'art. 102 CP est-elle subsidiaire ou primaire, et pour quelles infractions ? Quelles exigences d'organisation doivent être prouvées ?",
+      "language": "fr",
+      "truth_gates": [
+        {
+          "id": "art102_subsidiary",
+          "kind": "phrase",
+          "contains_any": ["subsidi"],
+          "detail": "missing Art. 102(1) subsidiary branch"
+        },
+        {
+          "id": "art102_primary",
+          "kind": "phrase",
+          "contains_any": ["responsabilite primaire", "originar"],
+          "detail": "missing Art. 102(2) primary/original liability"
+        },
+        {
+          "id": "art102_no_reversal",
+          "kind": "phrase_absent",
+          "absent_any": ["ne cree pas une responsabilite primaire"],
+          "detail": "answer reverses the Federal Supreme Court's Art. 102(2) classification"
+        }
+      ],
+      "required_citation_ids": ["bge_BGE_142_IV_333", "bger_6B_124_2016"],
+      "required_retrieval_ids": []
+    },
+    {
+      "slug": "business-judgment-rule",
+      "question": "Dans quelles conditions le juge suisse s'abstient-il de revoir une décision commerciale d'un conseil d'administration au titre de la business judgment rule, et quelles exceptions ou limites ressortent de la jurisprudence ?",
+      "language": "fr",
+      "truth_gates": [
+        {
+          "id": "bjr_information",
+          "kind": "phrase",
+          "contains_any": ["information"],
+          "detail": "missing adequate-information criterion"
+        },
+        {
+          "id": "bjr_conflict",
+          "kind": "phrase",
+          "contains_any": ["conflit", "interessenkonflikt"],
+          "detail": "missing conflict-of-interest criterion"
+        },
+        {
+          "id": "bjr_restraint",
+          "kind": "phrase",
+          "contains_any": ["retenue", "zuruckhaltung", "deference", "abstient", "abstenir"],
+          "detail": "missing judicial-restraint proposition"
+        }
+      ],
+      "required_citation_ids": ["bger_4A_219_2015", "bger_4A_259_2016", "bger_4A_626_2013", "bger_4A_603_2014", "bger_4A_62_2024"],
+      "required_retrieval_ids": []
+    },
+    {
+      "slug": "petty-theft-dismissal",
+      "question": "Un vol de faible valeur commis par un employé justifie-t-il un licenciement immédiat selon l'art. 337 CO ? Quelles circonstances font varier la réponse ?",
+      "language": "fr",
+      "truth_gates": [
+        {
+          "id": "petty_low_value",
+          "kind": "phrase",
+          "contains_any": ["faible valeur", "geringfug", "bagatell"],
+          "detail": "answer does not address the low-value fact pattern"
+        }
+      ],
+      "required_citation_ids": ["bger_4A_228_2015", "bger_4A_177_2017"],
+      "required_retrieval_ids": ["bger_4A_228_2015", "bger_4A_177_2017"]
+    }
+  ]
+}
