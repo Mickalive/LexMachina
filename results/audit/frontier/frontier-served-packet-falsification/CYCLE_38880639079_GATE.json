@@ -1,0 +1,124 @@
+{
+  "schema": "lexmachina/independent-audit-gate/1",
+  "team_id": "frontier-served-packet-falsification",
+  "charter_version": 1,
+  "run_id": "38880639079",
+  "resumed_from_run_id": "38877700234",
+  "auditor": "independent_auditor",
+  "audited_at": "2026-10-16",
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "required_fixes": [],
+  "non_blocking_notes": [
+    "geometry_half.py / _largest_share_both_definitions map cluster_id 0 to -1 via a falsy `or` (display-only; all scored values, sizes, shares and language mixes independently recomputed correct; documented by the producer in RESUME_38880639079.md).",
+    "The charter acceptance command needs PYTHONPATH=frontier/frontier-served-packet-falsification (or invocation from the package directory) plus --repo-root because the module is nested two dirs below repo root; documented by the producer and verified working.",
+    "INTEGRATION_CONTRACT.json carries run_id 38877700234 (the measurement run) rather than the resume run 38880639079; the state file names both correctly and the artifacts were required to stay byte-identical, so this is consistent with the operational-resume contract.",
+    "SCOPE_CHECK.json's git_status_porcelain_uall is a run-time untracked snapshot; the committed delta (b83513d + eb4b52d) was independently swept by this audit and touches only in-scope paths plus the team's own state file."
+  ],
+  "operational_resume_adjudication": {
+    "is_second_verdict_cycle": false,
+    "reason": "Run 38877700234 completed the single verdict cycle and committed the full producer snapshot b83513d but failed the workflow's state-schema validation (missing cycle_status/evidence_tier), so the audit job never ran. Run 38880639079 performed an operational resume: it added the two missing state fields, preserved every claim-bearing artifact byte-identically, re-scored nothing, re-froze nothing, changed no verdict, and touched no product/evaluation/audit path. This audit is the FIRST independent audit of this charter's work. The charter's HARD STOP targets a second MEASUREMENT cycle after a rebuild or further repair; neither occurred."
+  },
+  "acceptance_contract_results": {
+    "1_freeze_byte_identity": {
+      "result": "PASS",
+      "evidence": "RULES_LABEL.json sha256 4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608 and RULES_GEOMETRY.json sha256 a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633 independently re-hashed by the auditor: byte-identical to the charter pins AND to origin/lab/frontier/frontier-counter-label-integrity and origin/lab/frontier/frontier-map-semantics. No frozen_at_utc field present. All 12 vendored frontier_counter_label_integrity modules and all 6 vendored frontier_map_semantics modules re-compared blob-by-blob against their accepted origin branches: 18/18 byte-identical. No new threshold anywhere in the team's own code; INPUT_LIST.json is the only new frozen artifact."
+    },
+    "2_runnable_offline_harness": {
+      "result": "PASS",
+      "evidence": "Auditor recovered the served packet 38839347028 from origin/lab/product (bundle sha256 2441ff2b.../6c5ea31d.../76e7f7ad... all match the charter and INPUT_LIST pins), materialized it at the harness's expected path, and ran `python -m frontier_served_packet_falsification.cli --out <dir> --half both --repo-root <repo>` twice. Both runs exited 0, produced LABEL_UNSOUND 5/65 and GEOMETRY FAIL 0/3, and emitted LABEL_HALF.json, GEOMETRY_HALF.json, BEFORE_AFTER.json, CLAIM_CEILING.json, FREEZE.json, SUMMARY.json, CLAIM_CEILING_CHECK.json BYTE-IDENTICAL to the producer's committed artifacts and to the producer's recorded REPRODUCIBILITY.json run1/run2 shas (7/7 files). Imports restricted to stdlib + numpy/scipy/sklearn; zero network, zero clock, zero subprocess in the scoring path."
+    },
+    "3_label_half": {
+      "result": "PASS",
+      "evidence": "Independent recount on the served files: 65 scored rows (de 25 / fr 15 / it 25), all counter_status in the frozen scored set; 11 counter_status='cited' placeholder rows (de 1 / fr 6 / it 4, evidence exactly 'cited in generated answer') correctly reported-only and never scored. Verdict LABEL_UNSOUND at 5/65 SUPPORTED (7.69%) under the frozen absolute 1.0 bar. Defect classes OFF-DOMAIN 38 / UNBACKED 22 / SUPPORTED 5 / INVERTED 0 / BOILERPLATE-ONLY 0 / FRAGMENT 0, class counts sum to 65. All 16 empty-evidence rows at counter_uncertainty >= 0.95 appear individually with UNBACKED / evidence_absent / supported=false. counter_evidence_verified distribution present-true 49 / present-false 0 / absent 16 (absent on exactly the 16). Sensitivity variants: lenient-domain-only 7/65, primary 5/65, strict-no-product-vocabulary 2/65. Spot-check of the 5 SUPPORTED rows shows real multi-sentence cited evidence passing criteria i-v; spot-check of OFF-DOMAIN rows shows caption-only or subject-matter-unrelated evidence with reason_code pivot_absent, consistent with the frozen precedence ladder."
+    },
+    "4_geometry_half": {
+      "result": "PASS",
+      "evidence": "0/3 bundles pass all 11 frozen criteria (de 6/11, fr 5/11, it 5/11). Auditor independently re-derived from the raw bundles: French largest cluster id=1 size=167/217 = 0.7695852534562212 by the size field (frozen STRUCTURE_LARGEST bar 0.60 -> FAIL); member_ids capped at 50 (share 0.2304) flagged on all three bundles; dominant-cluster language mix de 92 / it 34 / null 37 / fr 4 (2.4% query-language) and 12 of the French bundle's own 15 counter rows, matching the charter's pre-registered composition. Un-hydrated-row ablation side by side present: fr shipped 0.7696 vs hydrated-recompute 0.2679, dominant-member Jaccard 0.235, unhydrated fraction 49/167=0.2934 < 0.40 so ARTIFACT=False under the frozen predicate; it ARTIFACT=True. Bars in the vendored metrics.py match the RULES_GEOMETRY.json strings exactly (0.30/0.40/0.50/0.60/<0.90/0.80/0.25-flex/0.40 ARTIFACT shell clause)."
+    },
+    "5_before_after": {
+      "result": "PASS",
+      "evidence": "BEFORE_AFTER.json pairs every served number with its accepted pre-repair baseline, marks every baseline pre_repair=true with explicit 'NOT a statement about the served packet' notes, and states DIRECTION+DELTA. Label: 0.0% -> 7.69% IMPROVED, promoted as a genuine product-improving result NOT explained away. Geometry: de 5->6 IMPROVED, fr 5->5 SAME with share 0.557->0.770 REGRESSED, it 4->5 IMPROVED with share 0.341->0.469 REGRESSED. Baseline pins (runs 38839354961 / 38839351403, audits CYCLE_38841035773 / CYCLE_38846038296, commit 15362f68) match the charter dependencies and the accepted-state catalog."
+    },
+    "6_non_vacuity": {
+      "result": "PASS",
+      "evidence": "Population non-vacuity resolved: 5 real served-packet rows reach SUPPORTED under the frozen rubric (bge_110 IB 280, bger_9C_749_2012, finma_versicherungsrecht_20020507_i_ti_o_01, ti_gerichte_36.2001.90, zh_kassationsgericht_AC040036) — not injection. Injection non-vacuity also passed (7/7). The harness demonstrably produces both SUPPORTED and UNSUPPORTED verdicts on real rows."
+    },
+    "7_reproducibility": {
+      "result": "PASS",
+      "evidence": "Producer run1/run2 byte-identical (REPRODUCIBILITY.json, 7/7 files). This audit additionally reproduced all 7 emitted files byte-identical to both the producer's run1/run2 shas AND the committed artifacts on a different machine with different numpy (2.5.4) / scikit-learn (1.9.1) versions than the producer — a third and fourth independent reproduction."
+    },
+    "8_exact_scope": {
+      "result": "PASS",
+      "evidence": "git show --name-only sweep of both producer commits (b83513d measurement, eb4b52d operational resume): every path under frontier/frontier-served-packet-falsification/, tests/frontier/frontier-served-packet-falsification/, reports/frontier/frontier-served-packet-falsification/, results/frontier/frontier-served-packet-falsification/ or the team's own state file. Zero paths under results/audit/, reports/audit/, product/, evaluation/, results/product/, state/product.json, state/blockers/, .github/. SCOPE_CHECK.json files_outside_scope=[]. The team wrote nothing into results/audit/ or reports/audit/."
+    },
+    "9_claim_ceiling": {
+      "result": "PASS",
+      "evidence": "CLAIM_CEILING.json present; CLAIM_CEILING_CHECK.json pass with 0 violations; test suite pins both directions of the 5 syntactic regexes. Auditor re-ran the claim-ceiling scanner over REPORT.md, RESUME_38880639079.md and the state file: 0 violations. The deliverable reports the SUPPORT of labels AS ISSUED and GEOMETRY SEMANTICS only; it never asserts any specific decision IS or IS NOT supporting/contrary/limiting; is_outlier/placement/rank/findability appear only as read-only context; INTEGRATION_CONTRACT.json explicitly lists what product may and may not claim."
+    },
+    "10_audit_artifact_placement": {
+      "result": "PASS",
+      "evidence": "This auditor writes results/audit/frontier/frontier-served-packet-falsification/CYCLE_38880639079_GATE.json and reports/audit/frontier/frontier-served-packet-falsification/CYCLE_38880639079.md into the audit job checkout at exactly those relative paths. No prior audit artifacts for this team existed (directories empty before this write)."
+    }
+  },
+  "adversarial_checks": {
+    "benchmark_gaming": "None found. Both rubrics byte-identical to frozen pins; verdict threshold 1.0 read from RULES_LABEL.json verdict_rule; geometry bars live only in the byte-identical vendored metrics.py matching the RULES strings; the team introduced no threshold, no lexicon, no prompt, no re-tuned anchor. Sensitivity variants are part of the frozen rubric, not new bars.",
+    "leakage": "Scoring-path import graph is stdlib + numpy/scipy/sklearn only; reads only the three pinned bundle files, the manifest-free packet dir, and the two RULES files; writes only under --out. Zero network, zero clock, zero subprocess in cli/label_half/geometry_half/before_after/claim_ceiling.",
+    "post_hoc_metrics": "All charter pre-registered population counts were re-derived from the raw served files and match exactly (65=25/15/25; 16 empty-evidence; verified 49/0/11-absent-on-16; 11 placeholders; fr share 0.7696; cluster composition 92/34/37/4 and 12/15 counter rows). No count was tuned after the fact.",
+    "weak_baseline": "Baselines are the charter's own accepted pre-repair pins with audit gates PASS, marked pre_repair=true and population-differentiated everywhere; they are quoted, never re-measured, and never presented as statements about the served packet.",
+    "prettiness_as_quality": "Not applicable: the verdict is negative on both halves; no aesthetic claim is made or rewarded.",
+    "boilerplate_confounding": "The 11 'cited in generated answer' placeholder rows are excluded from the scored population exactly as the frozen rubric prescribes (status 'cited' is reported_separately_never_scored) and are reported separately; they neither inflate nor deflate the 5/65 rate.",
+    "vacuous_pass_paths": "None found in code review: verdict paths are fail-closed (INSUFFICIENT_POPULATION if non-vacuity fails or n=0; LABEL_UNSOUND on any unsupported row; geometry FAIL unless 3/3 bundles pass 11/11).",
+    "recurring_repair_pathology": "Not present for this team: this is the first audit of this charter's work (the prior run never reached audit). The single operational resume fixed a state-schema packaging defect in one bounded step and preserved all claim-bearing artifacts byte-identically."
+  },
+  "independently_reproduced_numbers": {
+    "bundle_sha256": {
+      "de-kapitalverletzung": "2441ff2b16722afcd22dca9ad39eafcbeb079b2dfc367d763fbe53fce1356f9c",
+      "fr-bail-entretien": "6c5ea31d4b9af4abfa39e9f8025cfa3d34279ff1f04d0f643e571e27b23a2618",
+      "it-responsabilita-medica": "76e7f7ad998f3878e7b08635663e2d594a7a77bdaeb33bcf5fa52d0af00b7aff"
+    },
+    "rules_sha256": {
+      "label": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+      "geometry": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633"
+    },
+    "label_half": {
+      "verdict": "LABEL_UNSOUND",
+      "n_scored": 65,
+      "n_supported": 5,
+      "support_rate": 0.07692307692307693,
+      "per_bundle_scored": {"de-kapitalverletzung": 25, "fr-bail-entretien": 15, "it-responsabilita-medica": 25},
+      "per_bundle_supported": {"de-kapitalverletzung": 2, "fr-bail-entretien": 0, "it-responsabilita-medica": 3},
+      "defect_classes": {"OFF-DOMAIN": 38, "UNBACKED": 22, "SUPPORTED": 5, "INVERTED": 0, "BOILERPLATE-ONLY": 0, "FRAGMENT": 0},
+      "empty_evidence_at_uncertainty_ge_0_95": 16,
+      "counter_evidence_verified": {"present_true": 49, "present_false": 0, "absent": 16},
+      "reported_only_cited_placeholders": 11,
+      "sensitivity": {"lenient-domain-only": "7/65", "primary": "5/65", "strict-no-product-vocabulary": "2/65"}
+    },
+    "geometry_half": {
+      "verdict": "FAIL",
+      "n_bundles_pass": 0,
+      "pass_counts": {"de-kapitalverletzung": "6/11", "fr-bail-entretien": "5/11", "it-responsabilita-medica": "5/11"},
+      "largest_share_size_field": {"de-kapitalverletzung": 0.37850467289719625, "fr-bail-entretien": 0.7695852534562212, "it-responsabilita-medica": 0.46919431279620855},
+      "french_dominant_cluster": {"cluster_id": 1, "size": 167, "n_decisions": 217, "share": 0.7695852534562212, "frozen_bar": 0.6, "inside_frozen_rule": false, "language_mix": {"de": 92, "it": 34, "null": 37, "fr": 4}, "n_counter_rows_contained": 12},
+      "ablation_french": {"shipped_share": 0.7695852534562212, "hydrated_recompute_share": 0.26785714285714285, "dominant_member_jaccard": 0.235, "dominant_unhydrated_fraction": 0.2934131736526946, "ARTIFACT": false},
+      "ablation_it_ARTIFACT": true
+    },
+    "before_after": {
+      "label_direction": "IMPROVED (0.0% pre-repair -> 7.69% served, genuine, not explained away)",
+      "geometry_pass_direction": {"de-kapitalverletzung": "IMPROVED 5->6", "fr-bail-entretien": "SAME 5->5", "it-responsabilita-medica": "IMPROVED 4->5"},
+      "geometry_share_direction": {"de-kapitalverletzung": "IMPROVED 0.4104->0.3785", "fr-bail-entretien": "REGRESSED 0.5573->0.7696", "it-responsabilita-medica": "REGRESSED 0.3409->0.4692"}
+    }
+  },
+  "tests": {
+    "command": "PYTHONPATH=frontier/frontier-served-packet-falsification python3 -m unittest discover -s tests/frontier/frontier-served-packet-falsification",
+    "result": "34 passed, 1 skipped (environment-conditional: 'no results/product in this checkout')",
+    "auditor_environment_note": "Skip cleared when the served packet was materialized; the remaining 34 tests then all pass, matching the producer's claim."
+  },
+  "verdict_of_record": {
+    "label_half": "LABEL_UNSOUND (5/65 supported; frozen absolute bar 1.0 not reached; genuine 0.0%->7.69% improvement promoted, not explained away)",
+    "geometry_half": "FAIL (0/3 bundles pass all 11 frozen criteria; French mega-cluster 167/217=77.0% outside the frozen 0.60 bar and REGRESSED from the pre-repair 0.557)",
+    "serve_recommendation": "DO-NOT-SERVE this packet unchanged (promotion outcome A; HARD STOP, exactly one verdict cycle, continue_recommended=false)"
+  },
+  "claim_ceiling": "This audit confirms a MEASUREMENT about gate packet 38839347028 only: the SUPPORT of the counter-authority labels AS ISSUED under the frozen byte-identical rubric, and the SEMANTICS of the shipped map geometry under the frozen byte-identical 11-criterion rule. It NEVER asserts that any specific decision IS or IS NOT supporting, contrary or limiting; those remain the product's labels, reported not endorsed. Baselines are pre-repair statements about different packets (38799024807), never about the served packet. is_outlier, placement, rank and jurist findability are read-only context, never a verdict. Nothing here licenses claims about any future or rebuilt packet; a rebuild or further repair requires a NEW charter and a NEW measurement. The DO-NOT-SERVE recommendation binds this packet unchanged only; it is not a claim that the D2 repair failed — the label axis improved 0.0%->7.69% and de/it geometry pass counts improved, but no frozen absolute bar was reached.",
+  "evidence_summary": "PASS. All 10 charter acceptance tests verified independently. Freeze byte-identity: both RULES files re-hashed to the charter pins and to their accepted origin branches; 18/18 vendored rubric/geometry modules blob-identical. The auditor recovered the served packet from origin/lab/product (sha256-verified to the charter pins) and re-ran the harness twice: LABEL 5/65 SUPPORTED LABEL_UNSOUND, GEOMETRY 0/3 FAIL (de 6/11, fr 5/11, it 5/11), French mega-cluster 167/217=0.769585 outside the frozen 0.60 bar — byte-identical to the producer's committed artifacts and recorded reproducibility shas, on different numpy/sklearn versions (4th independent reproduction). Population recount on the raw bundles matches every charter pre-registration: 65 scored rows (25/15/25), 16 empty-evidence rows at uncertainty>=0.95 each UNBACKED/evidence_absent, verified present-true 49 / false 0 / absent 16, 11 'cited in generated answer' placeholders reported-only, French dominant cluster de 92 / it 34 / null 37 / fr 4 with 12 of 15 counter rows, ablation unhydrated fraction 0.2934<0.40 ARTIFACT=False with hydrated recompute 0.2679. Non-vacuity resolved on the population (5 real rows SUPPORTED). Scope: both producer commits touch only in-scope paths plus the team's own state file; zero writes under results/audit/, reports/audit/, product/, evaluation/, state/product.json. Claim ceiling genuine (0 violations on report, resume and state). Tests 34/34 pass with the environment-conditional skip cleared. The single operational resume (state-schema packaging defect from run 38877700234) is NOT a second verdict cycle: no re-scoring, no re-freezing, byte-identical preservation, verdict unchanged; this audit is the first independent audit of this charter's work, so no recurring-repair pathology exists. No benchmark gaming, no leakage, no post-hoc tuning, no weak-baseline abuse, no vacuous-pass path found. The promoted verdict — DO-NOT-SERVE gate packet 38839347028 unchanged, LABEL_UNSOUND with a genuine but insufficient 0.0%->7.69% label improvement, geometry FAIL 0/3 with a REGRESSED French 77% mega-cluster — is honest, charter-faithful and safe to integrate."
+}
