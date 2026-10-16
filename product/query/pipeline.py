@@ -447,6 +447,23 @@ def run_query_initial(query: str, top_n: int = 150, *, retrieval_mode: str = "li
     if not candidate.get("candidates"):
         raise RuntimeError("OpenCaseLaw retrieval returned no decisions")
     product = _candidate_to_product(candidate)
+    # Remote retrieval deliberately over-fetches across multilingual, leading-
+    # case and citation channels.  The product must nevertheless honour top_n:
+    # rerank locally against the user's question, then map only the strongest
+    # requested slice.  Mapping the whole expansion pool was the direct cause
+    # of 200+ point maps and off-domain counter-authority noise.
+    product = rerank_product_bundle(product)
+    before_cap = len(product.get("decisions") or [])
+    product["decisions"] = list(product.get("decisions") or [])[:top_n]
+    for rank, decision in enumerate(product["decisions"], start=1):
+        decision["rank"] = rank
+    product.setdefault("provenance", {})["product_selection"] = {
+        "method": "legal_rerank_then_top_n_v1",
+        "retrieved_pool": before_cap,
+        "served_decisions": len(product["decisions"]),
+        "requested_top_n": top_n,
+        "dropped_after_rerank": max(0, before_cap - len(product["decisions"])),
+    }
     bundle = _map_bundle(product, t0, candidates=list(candidate.get("candidates") or []))
     candidate_languages = {}
     candidate_channels = {}
