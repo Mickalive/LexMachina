@@ -233,6 +233,13 @@ def test_legal_query_expansion_bridges_swiss_statute_languages_and_doctrine():
     assert "Bagatelldiebstahl fristlose Kündigung" in theft_texts
     assert "geringfügiger Diebstahl fristlose Kündigung" in theft_texts
 
+    rent_variants = build_variants(
+        "Sous quelles conditions un bailleur peut-il résilier un bail d'habitation pour retard dans le paiement du loyer ?",
+        include_language_filters=False,
+    )
+    rent_texts = {v.text for v in rent_variants}
+    assert "Art. 257d Abs. 2 OR Kündigungsfrist 30 Tage Ende eines Monats" in rent_texts
+
 
 def test_product_reranker_prefers_direct_legal_issue_over_broad_remote_hit():
     bundle = {
