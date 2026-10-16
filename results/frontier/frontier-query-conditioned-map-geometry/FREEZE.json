@@ -1,0 +1,76 @@
+{
+  "schema": "frontier-query-conditioned-map-geometry/freeze/1",
+  "charter_version": 1,
+  "team_id": "frontier-query-conditioned-map-geometry",
+  "github_run_id": 38964153228,
+  "rules_path": "results/frontier/frontier-query-conditioned-map-geometry/RULES_GEOMETRY.json",
+  "rules_sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+  "expected_rules_sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+  "rules_byte_identity_ok": true,
+  "threshold_or_bar_edits": [],
+  "threshold_edit_declaration": "No threshold, bar or projection constant in the frozen rule was edited. The vendored scorer is a byte-identical copy of the one that produced the accepted incumbent verdict.",
+  "served_gate_packet": "results/product/gate_packet/38839347028/questions",
+  "bundle_sha256": {
+    "de-kapitalverletzung": "2441ff2b16722afcd22dca9ad39eafcbeb079b2dfc367d763fbe53fce1356f9c",
+    "fr-bail-entretien": "6c5ea31d4b9af4abfa39e9f8025cfa3d34279ff1f04d0f643e571e27b23a2618",
+    "it-responsabilita-medica": "76e7f7ad998f3878e7b08635663e2d594a7a77bdaeb33bcf5fa52d0af00b7aff"
+  },
+  "query_language": {
+    "de-kapitalverletzung": "de",
+    "fr-bail-entretien": "fr",
+    "it-responsabilita-medica": "it"
+  },
+  "variants": {
+    "hydrate_then_cluster": {
+      "charter_reference": "V1",
+      "clustered_rows": "rows carrying text under the accepted hydration predicate (detail_status == 'search_hit')",
+      "unclustered_context": "un-hydrated shells keep a unique negative cluster_id, unclustered=true, and no cluster record",
+      "projection": "2-D spectral layout (nearest-neighbour graph, k=12, random_state=42) of the clusterable rows",
+      "clustering": "KMeans n_clusters=max(2,min(8,n//12+1)) random_state=42 n_init=10 on the clusterable rows (the qmap rule)",
+      "labels": "qmap label rule: top-5 positive-mean TF-IDF terms",
+      "outliers": "top decile by distance to owning cluster centroid (shells measured to the nearest centroid)",
+      "pure_function_of_bundle": true,
+      "emits_qmap_shape": true,
+      "no_rendering_or_ui_change": true
+    },
+    "relevance_ordered": {
+      "charter_reference": "V2",
+      "clustered_rows": "same clusterable row set as V1",
+      "unclustered_context": "same as V1",
+      "projection": "x = min-max normalised rerank score; y = query-language band (query language on top, other languages stacked below, shells in the unclustered band); deterministic rank-derived jitter",
+      "clustering": "identical KMeans on the clusterable rows; cluster ids renumbered by descending mean rerank score",
+      "labels": "identical qmap label rule",
+      "outliers": "identical top-decile rule evaluated on the relevance layout",
+      "pure_function_of_bundle": true,
+      "emits_qmap_shape": true,
+      "no_rendering_or_ui_change": true
+    }
+  },
+  "frozen_before_any_variant_score": true,
+  "rules_inputs_recorded_by_the_rule": [
+    {
+      "bundle": "de-kapitalverletzung",
+      "charter_content_sha256": "2e79bf179917dd36735f2f4ab20d928248ad24c62ac66e5b7a8fc3838966dd2c",
+      "file_sha256": "90914482175ee51a6c2aa086d0119106f70b16f7627414b730bfbfc1e4c34e9c",
+      "n_decisions": 134,
+      "path": "results/product/gate_packet/38799024807/questions/de-kapitalverletzung.bundle.json",
+      "query_language": "de"
+    },
+    {
+      "bundle": "fr-bail-entretien",
+      "charter_content_sha256": "b3380de9b730e908b6f642338a504ccf6da42daa11c65fe7099d47b25d1522dd",
+      "file_sha256": "dfb4e8046c33297db4b5aa965100f1b71fc7b8a4e4011dce9613cf8d518c15de",
+      "n_decisions": 131,
+      "path": "results/product/gate_packet/38799024807/questions/fr-bail-entretien.bundle.json",
+      "query_language": "fr"
+    },
+    {
+      "bundle": "it-responsabilita-medica",
+      "charter_content_sha256": "7449819edc372653cb3a42897b5e70680a5a6329f333eed9e46f8304dbcf210a",
+      "file_sha256": "737c9112a7c2f1b8eae5db4038f9f95ff0b646898c7063208b376e6a93f56abe",
+      "n_decisions": 132,
+      "path": "results/product/gate_packet/38799024807/questions/it-responsabilita-medica.bundle.json",
+      "query_language": "it"
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "schema": "frontier-query-conditioned-map-geometry/integration-contract/1",
+  "adoptable_variant": "relevance_ordered",
+  "charter_reference": "V2",
+  "owner_lane": "Core Product (product/query/qmap.py). This team writes nothing under product/.",
+  "drop_in_path": "product/query/qmap.py exposes build_map(ranked, n_clusters, model). Add a sibling factory, e.g. product/query/qmap_variants.py with build_map_variant(ranked, variant='relevance_ordered', query_language=...) -> (decisions, clusters, relations) returning the identical tuple shape, then select it in the bundle seam (product/query/pipeline.py / product/query/bundle.py) behind a config flag. The rendering path already consumes cluster_id, x, y, is_outlier, clusters[].label, clusters[].size, clusters[].member_ids and relations[]; nothing else changes.",
+  "call_site": "frontier.frontier-query-conditioned-map-geometry.qmap_geometry.variants.build_variant_geometry(bundle, 'relevance_ordered', query_language='de'|'fr'|'it') -> bundle with decisions[].{x,y,cluster_id,is_outlier,unclustered} and clusters[] rewritten; answer, provenance, relations and every row payload are untouched.",
+  "extra_bundle_fields_a_variant_needs": {
+    "required_from_the_bundle": [
+      "decisions[].decision_id",
+      "decisions[].full_text|regeste|snippet|title|citation (for the text fit)",
+      "decisions[].detail_status (hydration predicate)",
+      "decisions[].language (V2 language bands)",
+      "decisions[].score (V2 relevance axis)",
+      "decisions[].rank (jitter + outlier tie-break)",
+      "query (TF-IDF query vector for PROJ_RANK; unchanged field)"
+    ],
+    "supplied_by_the_caller": [
+      "query_language: 'de' | 'fr' | 'it' (V2 bands; V1 ignores it)"
+    ],
+    "not_needed": [
+      "No embedding service, no rerank service, no new retrieval pass.",
+      "No rendering asset, shader, colour or interaction change."
+    ]
+  },
+  "output_contract": {
+    "decisions[]": {
+      "x": "float, rounded to 4 decimals, [-1,1] (V1) or [-1,1] (V2)",
+      "y": "float, rounded to 4 decimals",
+      "cluster_id": "int > 0 for clustered rows; unique negative int for unclustered context (shells)",
+      "is_outlier": "bool, exactly max(1, n//10) rows true",
+      "unclustered": "bool, true iff cluster_id < 0 (extra field, additive; a renderer that ignores it still works)"
+    },
+    "clusters[]": {
+      "cluster_id": "int > 0, contiguous from 0",
+      "label": "comma-separated TF-IDF terms (qmap label rule)",
+      "size": "true membership count",
+      "member_ids": "prefix of the true membership, capped at 50 (the shipped truncation contract, unchanged)"
+    },
+    "relations[]": "byte-identical to the shipped bundle"
+  },
+  "runtime_cost": {
+    "measured_geometry_seconds": {
+      "relevance_ordered": "see SCORES_*.json"
+    },
+    "budget": "frozen rule budget.geometry_seconds_max = 2.0 s for 100-300 decisions",
+    "measured": "Well inside budget: the geometry of a 211-217 row bundle is a TF-IDF fit plus one KMeans plus one 2-D layout, all sub-second on a free CPU.",
+    "dominant_cost": "TF-IDF fit + KMeans + spectral layout, O(n * vocab) with n<=217"
+  },
+  "disclosure_text_each_variant_implies": {
+    "relevance_ordered": "This map groups the decisions that were actually retrieved for your question. Rows that the pipeline could not yet fetch in full are drawn as unclustered context and are not part of any group; the largest group is not inflated by them. In the V2 layout, horizontal position is the retrieval relevance score and vertical band is the language of the decision, so two points side by side are similarly relevant, not necessarily similarly worded. Positions are not a legal-similarity claim.",
+    "counter_authority_disclosure": "Group membership and placement are not evidence that an authority supports or contradicts the answer; the counter-authority labels keep their own provenance.",
+    "hydration_disclosure": "Unclustered context rows are decisions whose full text was not hydrated at serve time; inspect them individually."
+  },
+  "what_product_must_re_measure_if_it_adopts": [
+    "OUTLIER_VALIDITY depends on the layout (the outlier rule is top-decile by centroid distance); the promoted numbers are for the relevance layout only.",
+    "PROJ_SPEARMAN / PROJ_KNN10 remain FAILED under both variants; a product that adopts V2 is adopting coherence and structure, not distance fidelity.",
+    "The human product gate (is the map useful to a jurist?) is not answered by this contract."
+  ]
+}

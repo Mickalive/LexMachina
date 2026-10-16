@@ -1,0 +1,570 @@
+{
+  "hydrate_then_cluster": {
+    "de-kapitalverletzung": {
+      "qid": "de-kapitalverletzung",
+      "baseline_n_pass": 6,
+      "baseline_verdicts": {
+        "COHERENCE_QUERY_LANG": true,
+        "COHERENCE_QUERY_TERM": true,
+        "PROJ_RANK": false,
+        "PROJ_SPEARMAN": false,
+        "PROJ_KNN10": false,
+        "STRUCTURE_LARGEST": true,
+        "STRUCTURE_SEP": false,
+        "LABEL_CONTENT_FRACTION": true,
+        "LABEL_JACCARD": true,
+        "OUTLIER_VALIDITY": false,
+        "RELATIONS": true
+      },
+      "controls": {
+        "permuted_cluster_assignment": {
+          "corruption": "cluster_id assignment permuted across rows (seed 0) and label strings permuted across cluster ids; sizes preserved",
+          "n_pass": 6,
+          "verdicts": {
+            "COHERENCE_QUERY_LANG": true,
+            "COHERENCE_QUERY_TERM": true,
+            "PROJ_RANK": false,
+            "PROJ_SPEARMAN": false,
+            "PROJ_KNN10": false,
+            "STRUCTURE_LARGEST": true,
+            "STRUCTURE_SEP": false,
+            "LABEL_CONTENT_FRACTION": true,
+            "LABEL_JACCARD": true,
+            "OUTLIER_VALIDITY": false,
+            "RELATIONS": true
+          },
+          "corrupted_dominant_cluster_size": 74,
+          "corrupted_dominant_query_lang_share": 0.4594594594594595,
+          "bundle_lang_baseline": 0.4205607476635514,
+          "lang_3sigma_band": 0.17215661657630377,
+          "corrupted_dominant_query_term_share": 0.3108108108108108,
+          "bundle_term_baseline": 0.2803738317757009,
+          "term_3sigma_band": 0.15664899289192427,
+          "lang_bar": 0.25,
+          "lang_bar_discriminative_on_this_bundle": false,
+          "term_bar_discriminative_on_this_bundle": false,
+          "why_a_bar_is_not_discriminative": {
+            "COHERENCE_QUERY_LANG": "The frozen bar max(0.25, 0.5*baseline) = 0.2500 sits below the bundle query-language baseline of 0.4206 (3-sigma ceiling 0.5927). Any assignment, including a random one, clears it, so this criterion cannot be flipped by a coherence corruption on this bundle. Property of the frozen bar, reported not worked around.",
+            "COHERENCE_QUERY_TERM": "The frozen bar is the bundle term baseline itself (0.2804), so a random dominant cluster of size 74 sits inside a +/-0.1566 3-sigma band around it and the verdict is a coin flip rather than a coherence test."
+          },
+          "conditions": {
+            "corruption_actually_changed_the_assignment": true,
+            "dominant_query_lang_share_within_3sigma_of_baseline": true,
+            "dominant_query_term_share_within_3sigma_of_baseline": true,
+            "coherence_lang_fails_where_the_bar_is_discriminative": true
+          },
+          "control_passed": true,
+          "note": "Corrupting the group membership removes the dominant cluster's query-language and query-term concentration: the corrupted dominant cluster must sit at or below the bundle baseline on both. The COHERENCE verdict itself can only flip where the frozen bar sits above the baseline (true on fr-bail-entretien, not on de or it); that is reported per bundle rather than silently ignored."
+        },
+        "shuffled_coordinates": {
+          "corruption": "x/y rows permuted against every other field (seed 0); cluster assignment, labels, ranks and relations untouched",
+          "n_pass": 6,
+          "verdicts": {
+            "COHERENCE_QUERY_LANG": true,
+            "COHERENCE_QUERY_TERM": true,
+            "PROJ_RANK": false,
+            "PROJ_SPEARMAN": false,
+            "PROJ_KNN10": false,
+            "STRUCTURE_LARGEST": true,
+            "STRUCTURE_SEP": false,
+            "LABEL_CONTENT_FRACTION": true,
+            "LABEL_JACCARD": true,
+            "OUTLIER_VALIDITY": false,
+            "RELATIONS": true
+          },
+          "proj_spearman_before": 0.33314656008336696,
+          "proj_spearman_after": 0.024036199749578425,
+          "proj_knn10_before": 0.22429906542056074,
+          "proj_knn10_after": 0.05233644859813084,
+          "conditions": {
+            "proj_spearman_value_collapses": true,
+            "proj_knn10_value_collapses": true,
+            "proj_spearman_verdict_false": true,
+            "proj_knn10_verdict_false": true
+          },
+          "control_passed": true,
+          "proj_rank_invariance": "PROJ_RANK is provably coordinate-invariant under the frozen rule: metrics.projection computes it as spearman(TF-IDF cosine distance to the query vector, rank) and never reads x/y. The shuffled-coordinate control therefore moves the coordinate-sensitive projection criteria only; PROJ_RANK is reported per bundle as the invariant it is."
+        }
+      },
+      "flips": {},
+      "n_flips": 0,
+      "harness_non_vacuous": true,
+      "non_vacuity_standard": "A control passes when the corrupted field moves the metrics it is supposed to move, measured as VALUE sensitivity plus verdict flips where the frozen bar is discriminative. For the assignment control 'moves the metric' means the corrupted dominant cluster is statistically indistinguishable from the bundle baseline (within a 3-sigma binomial band), i.e. the query-conditioned concentration the variant had is gone. Bars themselves are never changed. This is stronger than a bare flip count on variants whose projection criteria never passed in the first place: a metric that still reports FAIL after its input is destroyed is uninformative, whereas a metric whose value collapses from 0.33 to 0.02 demonstrably reads the coordinates."
+    },
+    "fr-bail-entretien": {
+      "qid": "fr-bail-entretien",
+      "baseline_n_pass": 7,
+      "baseline_verdicts": {
+        "COHERENCE_QUERY_LANG": true,
+        "COHERENCE_QUERY_TERM": true,
+        "PROJ_RANK": true,
+        "PROJ_SPEARMAN": false,
+        "PROJ_KNN10": false,
+        "STRUCTURE_LARGEST": true,
+        "STRUCTURE_SEP": false,
+        "LABEL_CONTENT_FRACTION": true,
+        "LABEL_JACCARD": true,
+        "OUTLIER_VALIDITY": false,
+        "RELATIONS": true
+      },
+      "controls": {
+        "permuted_cluster_assignment": {
+          "corruption": "cluster_id assignment permuted across rows (seed 0) and label strings permuted across cluster ids; sizes preserved",
+          "n_pass": 5,
+          "verdicts": {
+            "COHERENCE_QUERY_LANG": false,
+            "COHERENCE_QUERY_TERM": false,
+            "PROJ_RANK": true,
+            "PROJ_SPEARMAN": false,
+            "PROJ_KNN10": false,
+            "STRUCTURE_LARGEST": true,
+            "STRUCTURE_SEP": false,
+            "LABEL_CONTENT_FRACTION": true,
+            "LABEL_JACCARD": true,
+            "OUTLIER_VALIDITY": false,
+            "RELATIONS": true
+          },
+          "corrupted_dominant_cluster_size": 45,
+          "corrupted_dominant_query_lang_share": 0.15555555555555556,
+          "bundle_lang_baseline": 0.17972350230414746,
+          "lang_3sigma_band": 0.17171078301823597,
+          "corrupted_dominant_query_term_share": 0.3333333333333333,
+          "bundle_term_baseline": 0.3548387096774194,
+          "term_3sigma_band": 0.21397579292615482,
+          "lang_bar": 0.25,
+          "lang_bar_discriminative_on_this_bundle": false,
+          "term_bar_discriminative_on_this_bundle": false,
+          "why_a_bar_is_not_discriminative": {
+            "COHERENCE_QUERY_LANG": "The frozen bar max(0.25, 0.5*baseline) = 0.2500 sits below the bundle query-language baseline of 0.1797 (3-sigma ceiling 0.3514). Any assignment, including a random one, clears it, so this criterion cannot be flipped by a coherence corruption on this bundle. Property of the frozen bar, reported not worked around.",
+            "COHERENCE_QUERY_TERM": "The frozen bar is the bundle term baseline itself (0.3548), so a random dominant cluster of size 45 sits inside a +/-0.2140 3-sigma band around it and the verdict is a coin flip rather than a coherence test."
+          },
+          "conditions": {
+            "corruption_actually_changed_the_assignment": true,
+            "dominant_query_lang_share_within_3sigma_of_baseline": true,
+            "dominant_query_term_share_within_3sigma_of_baseline": true,
+            "coherence_lang_fails_where_the_bar_is_discriminative": true
+          },
+          "control_passed": true,
+          "note": "Corrupting the group membership removes the dominant cluster's query-language and query-term concentration: the corrupted dominant cluster must sit at or below the bundle baseline on both. The COHERENCE verdict itself can only flip where the frozen bar sits above the baseline (true on fr-bail-entretien, not on de or it); that is reported per bundle rather than silently ignored."
+        },
+        "shuffled_coordinates": {
+          "corruption": "x/y rows permuted against every other field (seed 0); cluster assignment, labels, ranks and relations untouched",
+          "n_pass": 7,
+          "verdicts": {
+            "COHERENCE_QUERY_LANG": true,
+            "COHERENCE_QUERY_TERM": true,
+            "PROJ_RANK": true,
+            "PROJ_SPEARMAN": false,
+            "PROJ_KNN10": false,
+            "STRUCTURE_LARGEST": true,
+            "STRUCTURE_SEP": false,
+            "LABEL_CONTENT_FRACTION": true,
+            "LABEL_JACCARD": true,
+            "OUTLIER_VALIDITY": false,
+            "RELATIONS": true
+          },
+          "proj_spearman_before": 0.4826378345739528,
+          "proj_spearman_after": 0.06859625039173323,
+          "proj_knn10_before": 0.21843317972350232,
+          "proj_knn10_after": 0.04838709677419355,
+          "conditions": {
+            "proj_spearman_value_collapses": true,
+            "proj_knn10_value_collapses": true,
+            "proj_spearman_verdict_false": true,
+            "proj_knn10_verdict_false": true
+          },
+          "control_passed": true,
+          "proj_rank_invariance": "PROJ_RANK is provably coordinate-invariant under the frozen rule: metrics.projection computes it as spearman(TF-IDF cosine distance to the query vector, rank) and never reads x/y. The shuffled-coordinate control therefore moves the coordinate-sensitive projection criteria only; PROJ_RANK is reported per bundle as the invariant it is."
+        }
+      },
+      "flips": {
+        "permuted_cluster_assignment:COHERENCE_QUERY_LANG": {
+          "before": true,
+          "after": false
+        },
+        "permuted_cluster_assignment:COHERENCE_QUERY_TERM": {
+          "before": true,
+          "after": false
+        }
+      },
+      "n_flips": 2,
+      "harness_non_vacuous": true,
+      "non_vacuity_standard": "A control passes when the corrupted field moves the metrics it is supposed to move, measured as VALUE sensitivity plus verdict flips where the frozen bar is discriminative. For the assignment control 'moves the metric' means the corrupted dominant cluster is statistically indistinguishable from the bundle baseline (within a 3-sigma binomial band), i.e. the query-conditioned concentration the variant had is gone. Bars themselves are never changed. This is stronger than a bare flip count on variants whose projection criteria never passed in the first place: a metric that still reports FAIL after its input is destroyed is uninformative, whereas a metric whose value collapses from 0.33 to 0.02 demonstrably reads the coordinates."
+    },
+    "it-responsabilita-medica": {
+      "qid": "it-responsabilita-medica",
+      "baseline_n_pass": 7,
+      "baseline_verdicts": {
+        "COHERENCE_QUERY_LANG": true,
+        "COHERENCE_QUERY_TERM": true,
+        "PROJ_RANK": true,
+        "PROJ_SPEARMAN": false,
+        "PROJ_KNN10": false,
+        "STRUCTURE_LARGEST": true,
+        "STRUCTURE_SEP": false,
+        "LABEL_CONTENT_FRACTION": true,
+        "LABEL_JACCARD": true,
+        "OUTLIER_VALIDITY": false,
+        "RELATIONS": true
+      },
+      "controls": {
+        "permuted_cluster_assignment": {
+          "corruption": "cluster_id assignment permuted across rows (seed 0) and label strings permuted across cluster ids; sizes preserved",
+          "n_pass": 7,
+          "verdicts": {
+            "COHERENCE_QUERY_LANG": true,
+            "COHERENCE_QUERY_TERM": true,
+            "PROJ_RANK": true,
+            "PROJ_SPEARMAN": false,
+            "PROJ_KNN10": false,
+            "STRUCTURE_LARGEST": true,
+            "STRUCTURE_SEP": false,
+            "LABEL_CONTENT_FRACTION": true,
+            "LABEL_JACCARD": true,
+            "OUTLIER_VALIDITY": false,
+            "RELATIONS": true
+          },
+          "corrupted_dominant_cluster_size": 53,
+          "corrupted_dominant_query_lang_share": 0.3018867924528302,
+          "bundle_lang_baseline": 0.33175355450236965,
+          "lang_3sigma_band": 0.19402578131535095,
+          "corrupted_dominant_query_term_share": 0.4528301886792453,
+          "bundle_term_baseline": 0.3886255924170616,
+          "term_3sigma_band": 0.20086424928763646,
+          "lang_bar": 0.25,
+          "lang_bar_discriminative_on_this_bundle": false,
+          "term_bar_discriminative_on_this_bundle": false,
+          "why_a_bar_is_not_discriminative": {
+            "COHERENCE_QUERY_LANG": "The frozen bar max(0.25, 0.5*baseline) = 0.2500 sits below the bundle query-language baseline of 0.3318 (3-sigma ceiling 0.5258). Any assignment, including a random one, clears it, so this criterion cannot be flipped by a coherence corruption on this bundle. Property of the frozen bar, reported not worked around.",
+            "COHERENCE_QUERY_TERM": "The frozen bar is the bundle term baseline itself (0.3886), so a random dominant cluster of size 53 sits inside a +/-0.2009 3-sigma band around it and the verdict is a coin flip rather than a coherence test."
+          },
+          "conditions": {
+            "corruption_actually_changed_the_assignment": true,
+            "dominant_query_lang_share_within_3sigma_of_baseline": true,
+            "dominant_query_term_share_within_3sigma_of_baseline": true,
+            "coherence_lang_fails_where_the_bar_is_discriminative": true
+          },
+          "control_passed": true,
+          "note": "Corrupting the group membership removes the dominant cluster's query-language and query-term concentration: the corrupted dominant cluster must sit at or below the bundle baseline on both. The COHERENCE verdict itself can only flip where the frozen bar sits above the baseline (true on fr-bail-entretien, not on de or it); that is reported per bundle rather than silently ignored."
+        },
+        "shuffled_coordinates": {
+          "corruption": "x/y rows permuted against every other field (seed 0); cluster assignment, labels, ranks and relations untouched",
+          "n_pass": 7,
+          "verdicts": {
+            "COHERENCE_QUERY_LANG": true,
+            "COHERENCE_QUERY_TERM": true,
+            "PROJ_RANK": true,
+            "PROJ_SPEARMAN": false,
+            "PROJ_KNN10": false,
+            "STRUCTURE_LARGEST": true,
+            "STRUCTURE_SEP": false,
+            "LABEL_CONTENT_FRACTION": true,
+            "LABEL_JACCARD": true,
+            "OUTLIER_VALIDITY": false,
+            "RELATIONS": true
+          },
+          "proj_spearman_before": 0.4344660771193702,
+          "proj_spearman_after": 0.013322050403478775,
+          "proj_knn10_before": 0.23886255924170616,
+          "proj_knn10_after": 0.04454976303317536,
+          "conditions": {
+            "proj_spearman_value_collapses": true,
+            "proj_knn10_value_collapses": true,
+            "proj_spearman_verdict_false": true,
+            "proj_knn10_verdict_false": true
+          },
+          "control_passed": true,
+          "proj_rank_invariance": "PROJ_RANK is provably coordinate-invariant under the frozen rule: metrics.projection computes it as spearman(TF-IDF cosine distance to the query vector, rank) and never reads x/y. The shuffled-coordinate control therefore moves the coordinate-sensitive projection criteria only; PROJ_RANK is reported per bundle as the invariant it is."
+        }
+      },
+      "flips": {},
+      "n_flips": 0,
+      "harness_non_vacuous": true,
+      "non_vacuity_standard": "A control passes when the corrupted field moves the metrics it is supposed to move, measured as VALUE sensitivity plus verdict flips where the frozen bar is discriminative. For the assignment control 'moves the metric' means the corrupted dominant cluster is statistically indistinguishable from the bundle baseline (within a 3-sigma binomial band), i.e. the query-conditioned concentration the variant had is gone. Bars themselves are never changed. This is stronger than a bare flip count on variants whose projection criteria never passed in the first place: a metric that still reports FAIL after its input is destroyed is uninformative, whereas a metric whose value collapses from 0.33 to 0.02 demonstrably reads the coordinates."
+    }
+  },
+  "relevance_ordered": {
+    "de-kapitalverletzung": {
+      "qid": "de-kapitalverletzung",
+      "baseline_n_pass": 7,
+      "baseline_verdicts": {
+        "COHERENCE_QUERY_LANG": true,
+        "COHERENCE_QUERY_TERM": true,
+        "PROJ_RANK": false,
+        "PROJ_SPEARMAN": false,
+        "PROJ_KNN10": false,
+        "STRUCTURE_LARGEST": true,
+        "STRUCTURE_SEP": false,
+        "LABEL_CONTENT_FRACTION": true,
+        "LABEL_JACCARD": true,
+        "OUTLIER_VALIDITY": true,
+        "RELATIONS": true
+      },
+      "controls": {
+        "permuted_cluster_assignment": {
+          "corruption": "cluster_id assignment permuted across rows (seed 0) and label strings permuted across cluster ids; sizes preserved",
+          "n_pass": 7,
+          "verdicts": {
+            "COHERENCE_QUERY_LANG": true,
+            "COHERENCE_QUERY_TERM": true,
+            "PROJ_RANK": false,
+            "PROJ_SPEARMAN": false,
+            "PROJ_KNN10": false,
+            "STRUCTURE_LARGEST": true,
+            "STRUCTURE_SEP": false,
+            "LABEL_CONTENT_FRACTION": true,
+            "LABEL_JACCARD": true,
+            "OUTLIER_VALIDITY": true,
+            "RELATIONS": true
+          },
+          "corrupted_dominant_cluster_size": 74,
+          "corrupted_dominant_query_lang_share": 0.4594594594594595,
+          "bundle_lang_baseline": 0.4205607476635514,
+          "lang_3sigma_band": 0.17215661657630377,
+          "corrupted_dominant_query_term_share": 0.3108108108108108,
+          "bundle_term_baseline": 0.2803738317757009,
+          "term_3sigma_band": 0.15664899289192427,
+          "lang_bar": 0.25,
+          "lang_bar_discriminative_on_this_bundle": false,
+          "term_bar_discriminative_on_this_bundle": false,
+          "why_a_bar_is_not_discriminative": {
+            "COHERENCE_QUERY_LANG": "The frozen bar max(0.25, 0.5*baseline) = 0.2500 sits below the bundle query-language baseline of 0.4206 (3-sigma ceiling 0.5927). Any assignment, including a random one, clears it, so this criterion cannot be flipped by a coherence corruption on this bundle. Property of the frozen bar, reported not worked around.",
+            "COHERENCE_QUERY_TERM": "The frozen bar is the bundle term baseline itself (0.2804), so a random dominant cluster of size 74 sits inside a +/-0.1566 3-sigma band around it and the verdict is a coin flip rather than a coherence test."
+          },
+          "conditions": {
+            "corruption_actually_changed_the_assignment": true,
+            "dominant_query_lang_share_within_3sigma_of_baseline": true,
+            "dominant_query_term_share_within_3sigma_of_baseline": true,
+            "coherence_lang_fails_where_the_bar_is_discriminative": true
+          },
+          "control_passed": true,
+          "note": "Corrupting the group membership removes the dominant cluster's query-language and query-term concentration: the corrupted dominant cluster must sit at or below the bundle baseline on both. The COHERENCE verdict itself can only flip where the frozen bar sits above the baseline (true on fr-bail-entretien, not on de or it); that is reported per bundle rather than silently ignored."
+        },
+        "shuffled_coordinates": {
+          "corruption": "x/y rows permuted against every other field (seed 0); cluster assignment, labels, ranks and relations untouched",
+          "n_pass": 7,
+          "verdicts": {
+            "COHERENCE_QUERY_LANG": true,
+            "COHERENCE_QUERY_TERM": true,
+            "PROJ_RANK": false,
+            "PROJ_SPEARMAN": false,
+            "PROJ_KNN10": false,
+            "STRUCTURE_LARGEST": true,
+            "STRUCTURE_SEP": false,
+            "LABEL_CONTENT_FRACTION": true,
+            "LABEL_JACCARD": true,
+            "OUTLIER_VALIDITY": true,
+            "RELATIONS": true
+          },
+          "proj_spearman_before": 0.09377776957251185,
+          "proj_spearman_after": 0.0037711008616865957,
+          "proj_knn10_before": 0.10794392523364486,
+          "proj_knn10_after": 0.05046728971962617,
+          "conditions": {
+            "proj_spearman_value_collapses": true,
+            "proj_knn10_value_collapses": true,
+            "proj_spearman_verdict_false": true,
+            "proj_knn10_verdict_false": true
+          },
+          "control_passed": true,
+          "proj_rank_invariance": "PROJ_RANK is provably coordinate-invariant under the frozen rule: metrics.projection computes it as spearman(TF-IDF cosine distance to the query vector, rank) and never reads x/y. The shuffled-coordinate control therefore moves the coordinate-sensitive projection criteria only; PROJ_RANK is reported per bundle as the invariant it is."
+        }
+      },
+      "flips": {},
+      "n_flips": 0,
+      "harness_non_vacuous": true,
+      "non_vacuity_standard": "A control passes when the corrupted field moves the metrics it is supposed to move, measured as VALUE sensitivity plus verdict flips where the frozen bar is discriminative. For the assignment control 'moves the metric' means the corrupted dominant cluster is statistically indistinguishable from the bundle baseline (within a 3-sigma binomial band), i.e. the query-conditioned concentration the variant had is gone. Bars themselves are never changed. This is stronger than a bare flip count on variants whose projection criteria never passed in the first place: a metric that still reports FAIL after its input is destroyed is uninformative, whereas a metric whose value collapses from 0.33 to 0.02 demonstrably reads the coordinates."
+    },
+    "fr-bail-entretien": {
+      "qid": "fr-bail-entretien",
+      "baseline_n_pass": 8,
+      "baseline_verdicts": {
+        "COHERENCE_QUERY_LANG": true,
+        "COHERENCE_QUERY_TERM": true,
+        "PROJ_RANK": true,
+        "PROJ_SPEARMAN": false,
+        "PROJ_KNN10": false,
+        "STRUCTURE_LARGEST": true,
+        "STRUCTURE_SEP": false,
+        "LABEL_CONTENT_FRACTION": true,
+        "LABEL_JACCARD": true,
+        "OUTLIER_VALIDITY": true,
+        "RELATIONS": true
+      },
+      "controls": {
+        "permuted_cluster_assignment": {
+          "corruption": "cluster_id assignment permuted across rows (seed 0) and label strings permuted across cluster ids; sizes preserved",
+          "n_pass": 6,
+          "verdicts": {
+            "COHERENCE_QUERY_LANG": false,
+            "COHERENCE_QUERY_TERM": false,
+            "PROJ_RANK": true,
+            "PROJ_SPEARMAN": false,
+            "PROJ_KNN10": false,
+            "STRUCTURE_LARGEST": true,
+            "STRUCTURE_SEP": false,
+            "LABEL_CONTENT_FRACTION": true,
+            "LABEL_JACCARD": true,
+            "OUTLIER_VALIDITY": true,
+            "RELATIONS": true
+          },
+          "corrupted_dominant_cluster_size": 45,
+          "corrupted_dominant_query_lang_share": 0.15555555555555556,
+          "bundle_lang_baseline": 0.17972350230414746,
+          "lang_3sigma_band": 0.17171078301823597,
+          "corrupted_dominant_query_term_share": 0.3333333333333333,
+          "bundle_term_baseline": 0.3548387096774194,
+          "term_3sigma_band": 0.21397579292615482,
+          "lang_bar": 0.25,
+          "lang_bar_discriminative_on_this_bundle": false,
+          "term_bar_discriminative_on_this_bundle": false,
+          "why_a_bar_is_not_discriminative": {
+            "COHERENCE_QUERY_LANG": "The frozen bar max(0.25, 0.5*baseline) = 0.2500 sits below the bundle query-language baseline of 0.1797 (3-sigma ceiling 0.3514). Any assignment, including a random one, clears it, so this criterion cannot be flipped by a coherence corruption on this bundle. Property of the frozen bar, reported not worked around.",
+            "COHERENCE_QUERY_TERM": "The frozen bar is the bundle term baseline itself (0.3548), so a random dominant cluster of size 45 sits inside a +/-0.2140 3-sigma band around it and the verdict is a coin flip rather than a coherence test."
+          },
+          "conditions": {
+            "corruption_actually_changed_the_assignment": true,
+            "dominant_query_lang_share_within_3sigma_of_baseline": true,
+            "dominant_query_term_share_within_3sigma_of_baseline": true,
+            "coherence_lang_fails_where_the_bar_is_discriminative": true
+          },
+          "control_passed": true,
+          "note": "Corrupting the group membership removes the dominant cluster's query-language and query-term concentration: the corrupted dominant cluster must sit at or below the bundle baseline on both. The COHERENCE verdict itself can only flip where the frozen bar sits above the baseline (true on fr-bail-entretien, not on de or it); that is reported per bundle rather than silently ignored."
+        },
+        "shuffled_coordinates": {
+          "corruption": "x/y rows permuted against every other field (seed 0); cluster assignment, labels, ranks and relations untouched",
+          "n_pass": 8,
+          "verdicts": {
+            "COHERENCE_QUERY_LANG": true,
+            "COHERENCE_QUERY_TERM": true,
+            "PROJ_RANK": true,
+            "PROJ_SPEARMAN": false,
+            "PROJ_KNN10": false,
+            "STRUCTURE_LARGEST": true,
+            "STRUCTURE_SEP": false,
+            "LABEL_CONTENT_FRACTION": true,
+            "LABEL_JACCARD": true,
+            "OUTLIER_VALIDITY": true,
+            "RELATIONS": true
+          },
+          "proj_spearman_before": 0.22960822024275504,
+          "proj_spearman_after": 0.06757408862517433,
+          "proj_knn10_before": 0.14608294930875576,
+          "proj_knn10_after": 0.055299539170506916,
+          "conditions": {
+            "proj_spearman_value_collapses": true,
+            "proj_knn10_value_collapses": true,
+            "proj_spearman_verdict_false": true,
+            "proj_knn10_verdict_false": true
+          },
+          "control_passed": true,
+          "proj_rank_invariance": "PROJ_RANK is provably coordinate-invariant under the frozen rule: metrics.projection computes it as spearman(TF-IDF cosine distance to the query vector, rank) and never reads x/y. The shuffled-coordinate control therefore moves the coordinate-sensitive projection criteria only; PROJ_RANK is reported per bundle as the invariant it is."
+        }
+      },
+      "flips": {
+        "permuted_cluster_assignment:COHERENCE_QUERY_LANG": {
+          "before": true,
+          "after": false
+        },
+        "permuted_cluster_assignment:COHERENCE_QUERY_TERM": {
+          "before": true,
+          "after": false
+        }
+      },
+      "n_flips": 2,
+      "harness_non_vacuous": true,
+      "non_vacuity_standard": "A control passes when the corrupted field moves the metrics it is supposed to move, measured as VALUE sensitivity plus verdict flips where the frozen bar is discriminative. For the assignment control 'moves the metric' means the corrupted dominant cluster is statistically indistinguishable from the bundle baseline (within a 3-sigma binomial band), i.e. the query-conditioned concentration the variant had is gone. Bars themselves are never changed. This is stronger than a bare flip count on variants whose projection criteria never passed in the first place: a metric that still reports FAIL after its input is destroyed is uninformative, whereas a metric whose value collapses from 0.33 to 0.02 demonstrably reads the coordinates."
+    },
+    "it-responsabilita-medica": {
+      "qid": "it-responsabilita-medica",
+      "baseline_n_pass": 7,
+      "baseline_verdicts": {
+        "COHERENCE_QUERY_LANG": true,
+        "COHERENCE_QUERY_TERM": true,
+        "PROJ_RANK": true,
+        "PROJ_SPEARMAN": false,
+        "PROJ_KNN10": false,
+        "STRUCTURE_LARGEST": true,
+        "STRUCTURE_SEP": false,
+        "LABEL_CONTENT_FRACTION": true,
+        "LABEL_JACCARD": true,
+        "OUTLIER_VALIDITY": false,
+        "RELATIONS": true
+      },
+      "controls": {
+        "permuted_cluster_assignment": {
+          "corruption": "cluster_id assignment permuted across rows (seed 0) and label strings permuted across cluster ids; sizes preserved",
+          "n_pass": 7,
+          "verdicts": {
+            "COHERENCE_QUERY_LANG": true,
+            "COHERENCE_QUERY_TERM": true,
+            "PROJ_RANK": true,
+            "PROJ_SPEARMAN": false,
+            "PROJ_KNN10": false,
+            "STRUCTURE_LARGEST": true,
+            "STRUCTURE_SEP": false,
+            "LABEL_CONTENT_FRACTION": true,
+            "LABEL_JACCARD": true,
+            "OUTLIER_VALIDITY": false,
+            "RELATIONS": true
+          },
+          "corrupted_dominant_cluster_size": 53,
+          "corrupted_dominant_query_lang_share": 0.3018867924528302,
+          "bundle_lang_baseline": 0.33175355450236965,
+          "lang_3sigma_band": 0.19402578131535095,
+          "corrupted_dominant_query_term_share": 0.4528301886792453,
+          "bundle_term_baseline": 0.3886255924170616,
+          "term_3sigma_band": 0.20086424928763646,
+          "lang_bar": 0.25,
+          "lang_bar_discriminative_on_this_bundle": false,
+          "term_bar_discriminative_on_this_bundle": false,
+          "why_a_bar_is_not_discriminative": {
+            "COHERENCE_QUERY_LANG": "The frozen bar max(0.25, 0.5*baseline) = 0.2500 sits below the bundle query-language baseline of 0.3318 (3-sigma ceiling 0.5258). Any assignment, including a random one, clears it, so this criterion cannot be flipped by a coherence corruption on this bundle. Property of the frozen bar, reported not worked around.",
+            "COHERENCE_QUERY_TERM": "The frozen bar is the bundle term baseline itself (0.3886), so a random dominant cluster of size 53 sits inside a +/-0.2009 3-sigma band around it and the verdict is a coin flip rather than a coherence test."
+          },
+          "conditions": {
+            "corruption_actually_changed_the_assignment": true,
+            "dominant_query_lang_share_within_3sigma_of_baseline": true,
+            "dominant_query_term_share_within_3sigma_of_baseline": true,
+            "coherence_lang_fails_where_the_bar_is_discriminative": true
+          },
+          "control_passed": true,
+          "note": "Corrupting the group membership removes the dominant cluster's query-language and query-term concentration: the corrupted dominant cluster must sit at or below the bundle baseline on both. The COHERENCE verdict itself can only flip where the frozen bar sits above the baseline (true on fr-bail-entretien, not on de or it); that is reported per bundle rather than silently ignored."
+        },
+        "shuffled_coordinates": {
+          "corruption": "x/y rows permuted against every other field (seed 0); cluster assignment, labels, ranks and relations untouched",
+          "n_pass": 7,
+          "verdicts": {
+            "COHERENCE_QUERY_LANG": true,
+            "COHERENCE_QUERY_TERM": true,
+            "PROJ_RANK": true,
+            "PROJ_SPEARMAN": false,
+            "PROJ_KNN10": false,
+            "STRUCTURE_LARGEST": true,
+            "STRUCTURE_SEP": false,
+            "LABEL_CONTENT_FRACTION": true,
+            "LABEL_JACCARD": true,
+            "OUTLIER_VALIDITY": false,
+            "RELATIONS": true
+          },
+          "proj_spearman_before": 0.12846521292542715,
+          "proj_spearman_after": 0.008480412039424396,
+          "proj_knn10_before": 0.15023696682464457,
+          "proj_knn10_after": 0.04028436018957346,
+          "conditions": {
+            "proj_spearman_value_collapses": true,
+            "proj_knn10_value_collapses": true,
+            "proj_spearman_verdict_false": true,
+            "proj_knn10_verdict_false": true
+          },
+          "control_passed": true,
+          "proj_rank_invariance": "PROJ_RANK is provably coordinate-invariant under the frozen rule: metrics.projection computes it as spearman(TF-IDF cosine distance to the query vector, rank) and never reads x/y. The shuffled-coordinate control therefore moves the coordinate-sensitive projection criteria only; PROJ_RANK is reported per bundle as the invariant it is."
+        }
+      },
+      "flips": {},
+      "n_flips": 0,
+      "harness_non_vacuous": true,
+      "non_vacuity_standard": "A control passes when the corrupted field moves the metrics it is supposed to move, measured as VALUE sensitivity plus verdict flips where the frozen bar is discriminative. For the assignment control 'moves the metric' means the corrupted dominant cluster is statistically indistinguishable from the bundle baseline (within a 3-sigma binomial band), i.e. the query-conditioned concentration the variant had is gone. Bars themselves are never changed. This is stronger than a bare flip count on variants whose projection criteria never passed in the first place: a metric that still reports FAIL after its input is destroyed is uninformative, whereas a metric whose value collapses from 0.33 to 0.02 demonstrably reads the coordinates."
+    }
+  }
+}
