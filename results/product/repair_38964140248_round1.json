@@ -1,0 +1,66 @@
+{
+  "schema": "product_repair_record_v1",
+  "repaired_run_id": 38964140248,
+  "repair_round": 1,
+  "repaired_against_audit": "results/audit/product/CYCLE_38964140248_GATE.json (gate=REVISE, safe_to_integrate=false)",
+  "factory_direction_version": 50,
+  "repairs_applied": {
+    "F1a_correct_variant_hygiene_claim": {
+      "status": "applied",
+      "change": "product/query/relevance.py: _variant_texts deleted (dict branch unreachable: adapter bundle.py flattens variant dicts to [v.get('text','')]; product/query/bundle.py types query_variants as list[str]); call site reverted to plain string handling, behaviour-identical; measured no-op documented in-code and in reports/product/CYCLE_38964140248.md",
+      "verification": "product/tests/test_query_map_mvp.py 19/19 pass; auditor-measured replay facts (query_variants_used=7, kinds=['text'] on base and head) recorded as the correction of record"
+    },
+    "F1b_guard_the_integration_point": {
+      "status": "applied",
+      "change": "test_reranker_dict_variants_do_not_dilute_concept_vocabulary (isolation test of the dead helper) replaced by test_reranker_variant_contract_string_list_reaches_query_document asserting through the public entry point rerank_product_bundle that variant text reaches the TF-IDF query document and provenance records the list[str] contract (query_variant_kinds always ['text'])",
+      "verification": "product/tests/test_query_map_mvp.py 19/19 pass"
+    },
+    "F2_disclose_measured_collateral_head_changes": {
+      "status": "applied",
+      "change": "report section 5 and state/product.json v50_bjr_recall_repair_20261016.collateral_head_change_disclosure now record the auditor-measured base-vs-head deltas: petty-theft-dismissal moves 3 rows instead of 1 (bge_BGE_116_II_142 remote 7->9, bge_BGE_117_II_560 remote 12->10; displaces bl_gerichte_2022-10-18_zr_1 9->11 and bge_BGE_121_III_467 10->12; displaced sims 0.0538/0.0521 vs one promoted 0.0126 — precision trade-off); corporate-criminal-liability moves 3 rows where base moved none (bstger_SK.2020.21 remote 13->8, bstger_BB.2017.35 remote 11->9, bstger_BB.2017.51 remote 10->10; displaces bstger_CA.2022.12 8->11, bstger_SK.2025.57B 9->12, bstger_BG.2016.5 10->13). Producer judgment: NEUTRAL overall, disclosed not hidden."
+    },
+    "F3_replace_false_constant_rationale": {
+      "status": "applied",
+      "change": "product/query/relevance.py REMOTE_HEAD_RECALL_REMOTE_TOP comment: false 'window stays inside the source index first result page (page_size 25 at top_n=100)' replaced by measured semantics — remote_rank is a global sort of retrieval_score_raw over all 180 candidates from four channels; channels mix scales (leading_case rows at 6984/5710/4138/502/361/359 occupy remote ranks 1-10 on the frozen BJR leg while search rows score ~40-70); real effect 'up to three additional federal rows at remote ranks 11-15'; channel scale-mixing dependency noted",
+      "verification": "structural check of the accepted adapter: frontier/frontier-query-retrieval/ocl_adapter/normalize.py::normalize_leading_case sets rec['score'] = citation_count (score_kind citation_count); relevance.py::_remote_head_recall sorts by retrieval_score_raw across channels with no page/channel restriction"
+    },
+    "F4a_downgrade_or_evidence_the_x2_claim": {
+      "status": "restated_as_n1",
+      "change": "exactly one BJR live artifact exists from this cycle (results/product/reality_check/business-judgment-rule_live_20261016T210854Z.json); the two 20261016T16xx artifacts are inherited from accepted cycle 38939730386 (git commit 1fbe3bc). Report, state cycle_status/next_recommended/next_recommendation/live_measurements corrected; stability across repeated live runs explicitly not claimed",
+      "verification": "git log --oneline -2 -- results/product/reality_check/business-judgment-rule_live_20261016T16*.json -> 1fbe3bc (ancestor of accept 62b12fb); sha256 of the three artifacts distinct; filesystem search for 20261016T2* returns only the 210854Z file"
+    },
+    "F4b_correct_the_sweep_claim": {
+      "status": "restated_honestly",
+      "change": "report section 5 and state regression_sweep: base 50 failed / 436 passed / 4 skipped / 48 errors; rejected head 49 failed / 439 passed / 4 skipped / 48 errors (auditor-measured, same command+environment both trees); the single red->green flip is test_state_contract.py::test_cli_returns_zero_when_the_contract_holds (state direction_version 49->50 equals mounted control plane v50), re-verified PASS on the repaired tree; remaining state-contract failure pre-existing and out of scope (test_state_contract.py:92 pins RUN_DIRECTION_VERSION=55 vs control plane v50)",
+      "verification": "repair-cycle re-measurement on the repaired tree (numpy 2.5.4 / sklearn 1.9.1 / pytest 9.1.1): 49 failed / 441 passed / 2 skipped / 30 errors — same failing set, environment-dependent counts; pytest product/tests/test_state_contract.py::test_cli_returns_zero_when_the_contract_holds -> 1 passed"
+    },
+    "F4c_correct_the_cache_count": {
+      "status": "corrected",
+      "change": "report section 5 and state cache_addition: 70 files added under results/product/query_cache/ (git diff --name-status 62b12fb..591c661 -> 70 'A'), not 54",
+      "verification": "git diff --name-status 62b12fb..591c661 -- results/product/query_cache | wc -l -> 70"
+    },
+    "F4d_fix_ff57f556_provenance": {
+      "status": "corrected",
+      "change": "report section 6 and state not_claimed: ff57f556 is not a git object (git cat-file -t -> fatal: Not a valid object name); it is the prefix of frozen_sha256 ff57f556c3755ab663766618ab7abe763f251e7add70cd8ed964141846d063c8 recorded in results/accepted-state/evaluation.json (v49_frozen_reality_benchmark, accepted frontier mounts); the frozen-benchmark recompute is Core Evaluation's execution over accepted product evidence, not the durable product-reality-check.yml workflow",
+      "verification": "git cat-file -t ff57f556 -> invalid; grep frozen_sha256 /tmp/lex_accepted/frontier/*/results/accepted-state/evaluation.json -> exact digest match"
+    }
+  },
+  "verification_this_repair": {
+    "test_file": "product/tests/test_query_map_mvp.py",
+    "test_file_result": "19 passed",
+    "state_json_valid": true,
+    "state_direction_version": 50,
+    "control_plane_direction_version": 50,
+    "cycle_status_non_initialized": true,
+    "frozen_gates_touched": false,
+    "suite_re_measurement": "49 failed / 441 passed / 2 skipped / 30 errors (numpy 2.5.4, sklearn 1.9.1, pytest 9.1.1; same failing set as rejected head; counts environment-dependent)"
+  },
+  "human_gate_ready": false,
+  "machine_gate_ready": false,
+  "owner_session_requested": false,
+  "not_claimed": [
+    "durable Actions evidence for this delta",
+    "BJR citation stability across repeated live runs (n=1 this cycle)",
+    "any human-gate or jurist result"
+  ]
+}

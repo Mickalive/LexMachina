@@ -17,7 +17,7 @@ sys.path.insert(0, str(ROOT))
 from query import enrich_query_bundle, run_query_initial
 from query.bundle import validate_bundle
 from query import relevance as relevance_mod
-from query.relevance import _variant_texts, rerank_product_bundle
+from query.relevance import rerank_product_bundle
 from ocl_adapter.expansion import build_variants
 
 QUERY = "Kündigung Mietvertrag Mietrecht"
@@ -406,10 +406,11 @@ def test_reranker_head_recall_places_remote_top_federal_row_in_evidence_head():
 def _silent_federal_pool(n_fill=30):
     """French-question pool where German federal rows are lexically silent.
 
-    Mirrors the observed 2026-10-16 business-judgment-rule shape: the source
-    index ranks the federal controlling authorities on its first page
-    (remote 6..15) but cross-language TF-IDF similarity collapses, so local
-    scoring buries them below the evidence head.
+    Mirrors the observed 2026-10-16 business-judgment-rule shape: the
+    federal controlling authorities sit at mixed-channel raw-score remote
+    ranks 6..15 (see REMOTE_HEAD_RECALL_REMOTE_TOP's measured-semantics
+    note) but cross-language TF-IDF similarity collapses, so local scoring
+    buries them below the evidence head.
     """
     french = (
         "Dans quelles conditions le juge suisse s'abstient-il de revoir une "
@@ -429,43 +430,66 @@ def _silent_federal_pool(n_fill=30):
     return french, decisions
 
 
-def test_reranker_dict_variants_do_not_dilute_concept_vocabulary():
-    """Production bundles carry adapter variant *dicts*; the reranker must
-    use their text, not their Python repr.
+def test_reranker_variant_contract_string_list_reaches_query_document():
+    """Public entry point: query_variants is the adapter contract's
+    ``list[str]`` — variant text must reach the TF-IDF query document and
+    provenance must record the measured shape.
 
-    Non-vacuous: the repr form injects ~10x boilerplate tokens
-    (variant_id/kind/digests) that demonstrably change the TF-IDF query
-    document; the fixed extractor keeps the query document identical to the
-    plain-string form used by fixtures.
+    Measured truth (2026-10-16, auditor replay): the accepted adapter
+    flattens its variant dicts to ``[v.get("text", "")]`` before the product
+    sees them, so the dict form cannot reach the reranker and
+    ``query_variant_kinds`` is always ['text'].  The old in-isolation helper
+    test could not fail for the behaviour it documented (auditor mutation:
+    call site reverted to str(), helper retained, file stayed green); this
+    test asserts the real contract through ``rerank_product_bundle``:
+    variant tokens demonstrably change the query document (a decision
+    containing the token scores > 0) and provenance records
+    query_variants_used/query_variant_kinds per the string-list contract.
     """
-    dict_variants = [
-        {"variant_id": "legal_concept:any:ab12cd34", "text": "Geschaftsentscheid Verwaltungsrat",
-         "kind": "legal_concept", "language_filter": None, "terms_added": ["x"],
-         "terms_added_from": "y", "note": "z"},
+    distinctive = "zweckmabigkeitsprufung"  # not in the query, not stopwords
+    decisions = [
+        {"decision_id": "VARIANT-HIT", "court": "bger", "score": 50.0,
+         "title": "Verwaltungsrat", "citation": "TF 1", "regeste": "",
+         "snippet": f"der Verwaltungsrat handelte mit {distinctive} und Sorgfalt."},
+        {"decision_id": "VARIANT-MISS", "court": "bger", "score": 49.0,
+         "title": "Verwaltungsrat", "citation": "TF 2", "regeste": "",
+         "snippet": "curia deliberanda est sine mora."},
     ]
-    texts, kinds = _variant_texts(dict_variants)
-    assert texts == ["Geschaftsentscheid Verwaltungsrat"]
-    assert kinds == ["legal_concept"]
-    # legacy string fixtures keep working
-    texts2, kinds2 = _variant_texts(["plain variant", None, "  "])
-    assert texts2 == ["plain variant"] and kinds2 == ["text"]
-    # the repr form must never reach the query document
-    assert "variant_id" not in " ".join(texts)
+    for variants in ([], [distinctive]):
+        bundle = {"query": "conseil d'administration",
+                  "query_variants": variants, "decisions": decisions,
+                  "provenance": {}}
+        reranked = rerank_product_bundle(bundle)
+        by_id = {d["decision_id"]: d for d in reranked["decisions"]}
+        prov = reranked["provenance"]["product_rerank"]
+        if variants:
+            assert by_id["VARIANT-HIT"]["query_similarity"] > 0
+            assert by_id["VARIANT-MISS"]["query_similarity"] == 0
+            assert prov["query_variants_used"] == 1
+        else:
+            assert by_id["VARIANT-HIT"]["query_similarity"] == 0
+            assert prov["query_variants_used"] == 0
+        # provenance shape per the string-list adapter contract (measured:
+        # kinds are always ['text']; the dict form cannot reach here)
+        assert prov["query_variant_kinds"] == (["text"] if variants else [])
+        assert "variant_id" not in prov["query_variant_kinds"]
 
 
-def test_reranker_recalls_first_page_federal_row_buried_by_language_gap(monkeypatch):
+def test_reranker_recalls_federal_row_at_remote_rank_12_buried_by_language_gap(monkeypatch):
     """Observed 2026-10-16 (business-judgment-rule leg): the five frozen TF
     BJR authorities sat at remote ranks 12/13/14/17/31 with local similarity
     0.000-0.016, so the old top-5 window recalled only off-domain federal
     rows while every controlling authority stayed below the hydration head and
-    the answer cited none of them.  A federal row at remote rank 12 must now
-    reach the evidence head; with the old window it must not (pins the
-    window's role without touching production constants)."""
+    the answer cited none of them.  "Remote rank" is the global mixed-channel
+    raw-score ordering documented on REMOTE_HEAD_RECALL_REMOTE_TOP, not a
+    source page position.  A federal row at remote rank 12 must now reach the
+    evidence head; with the old window it must not (pins the window's role
+    without touching production constants)."""
     french, decisions = _silent_federal_pool()
     decisions.append({
         "decision_id": "DIRECT-TF",
         "court": "bger",
-        "score": 79.5,  # remote rank 12 inside a 31-row pool, lexically silent below
+        "score": 79.5,  # remote rank 12 in the mixed-channel raw-score sort, lexically silent below
         "title": "Verwaltungsrat",
         "citation": "TF 4A_219/2015",
         "regeste": "",

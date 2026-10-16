@@ -43,10 +43,23 @@ REMOTE_SAFEGUARD_MIN_REMOTE = 0.5
 #: TF-IDF similarity 0.000-0.016 (French question vs German texts, no
 #: statute anchor in the thin snippets), so the top-5 window recalled only
 #: off-domain federal rows (remote 4/5) while every controlling authority
-#: stayed below the hydration head and the answer cited none of them.  The
-#: window stays inside the source index's first result page (page_size 25 at
-#: top_n=100); every other bound (federal-only, max 3 moved, insert at 8..10,
-#: head order preserved) is unchanged.
+#: stayed below the hydration head and the answer cited none of them.  Every
+#: other bound (federal-only, max 3 moved, insert at 8..10, head order
+#: preserved) is unchanged.
+#:
+#: MEASURED SEMANTICS (2026-10-16, auditor replay of the frozen BJR
+#: candidate set — 180 candidates from four retrieval channels): "remote
+#: rank" here is NOT a source-index page position.  ``_remote_head_recall``
+#: sorts ALL candidates globally by ``retrieval_score_raw`` across channels,
+#: and the channels mix scales: the accepted adapter scores leading-case rows
+#: by raw citation count (6984/5710/4138/502/361/359 occupy remote ranks 1-10
+#: on this leg) while lexical search rows score ~40-70.  The real effect of
+#: the widened window on this leg is "up to three additional federal rows
+#: from the mixed-channel raw-score ranking at positions 11-15" — the frozen
+#: BJR authorities at 12/13/14 sit just outside the retired top-5 window and
+#: inside the new one.  The window's effective membership therefore depends
+#: on how many non-relevance-channel rows outrank search rows; it is a
+#: channel-scale-mixing dependency, not a source-page bound.
 REMOTE_HEAD_RECALL_REMOTE_TOP = 15
 REMOTE_HEAD_RECALL_LOCAL_HEAD = 10
 REMOTE_HEAD_RECALL_MAX_MOVED = 3
@@ -84,34 +97,6 @@ that this have has had were was will bundesgericht tribunal tribunale federale r
 ricorso arrêt urteil sentenza entscheid entscheidung considérant erwägung considerando ordonnance
 verordnung ordinanza code droit recht diritto mark regeste regesto consid bger bge atf dtf
 """.split())
-
-
-def _variant_texts(raw_variants) -> tuple[list[str], list[str]]:
-    """Extract search text from product-bundle query variants.
-
-    Production bundles carry the accepted adapter's variant *dicts*
-    (``{"variant_id": ..., "text": ..., "kind": ...}``); older fixtures and
-    unit tests carry plain strings.  ``str()``-ing a dict injects Python-repr
-    boilerplate (``variant_id``, ``kind``, hex digests, ``None`` ...) into the
-    TF-IDF query document and dilutes the curated cross-language concept
-    vocabulary — observed 2026-10-16 on the business-judgment-rule leg, where
-    the German ``legal_concept`` variants were present but buried ~10x under
-    repr noise while French lexical rows kept the evidence head.  Returns
-    (texts, kinds) so provenance can record which variant kinds contributed.
-    """
-    texts: list[str] = []
-    kinds: list[str] = []
-    for v in raw_variants or []:
-        if isinstance(v, dict):
-            text = str(v.get("text") or "").strip()
-            kind = str(v.get("kind") or "?")
-        else:
-            text = str(v or "").strip()
-            kind = "text"
-        if text:
-            texts.append(text)
-            kinds.append(kind)
-    return texts, kinds
 
 
 def clean_text(value: object) -> str:
@@ -219,7 +204,17 @@ def rerank_product_bundle(product_bundle: dict) -> dict:
     if not decisions:
         return product_bundle
 
-    variants, variant_kinds = _variant_texts(product_bundle.get("query_variants"))
+    # Contract (product/query/bundle.py): ``query_variants`` is ``list[str]``.
+    # The accepted adapter's ``to_product_bundle`` flattens its variant dicts
+    # to ``[v.get("text", "")]`` before the product ever sees them, so the
+    # dict form cannot reach this reranker.  Measured 2026-10-16 (auditor
+    # offline replay of the frozen BJR leg): ``query_variants_used``=7 and
+    # ``query_variant_kinds``=['text'] identically with the dict-extraction
+    # helper present or reverted — the dict branch was dead code and its
+    # removal/reversion is a no-op on the product path.
+    raw_variants = product_bundle.get("query_variants") or []
+    variants = [v for v in (str(v or "").strip() for v in raw_variants) if v]
+    variant_kinds = ["text"] * len(variants)
     query = str(product_bundle.get("query") or "")
     query_doc = clean_text(" ".join([query, *variants]))
     docs = [decision_text(d) for d in decisions]
