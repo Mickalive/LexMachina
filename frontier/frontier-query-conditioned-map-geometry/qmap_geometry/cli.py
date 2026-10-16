@@ -21,6 +21,7 @@ from .design_notes import (DEFECTS_FIXED_DURING_BUILD, DESIGN_PHASE_PROBES,
 from .hydration import hydration_report
 from .nonvac_divergence import divergence_record
 from .regression import ACCEPTED_N_DECISIONS, check_variant
+from .renderer_precondition import default_product_root, renderer_precondition
 from .scoring import (
     CRITERIA_ORDER,
     EXPECTED_RULES_SHA256,
@@ -308,6 +309,29 @@ def acceptance_checks(
     return checks
 
 
+def _environment_versions() -> dict[str, Any]:
+    """Python + numeric-stack versions behind the frozen scores.
+
+    Best-effort by design: a missing optional library must not fail the run, it
+    must simply be recorded as absent so a reader knows the stack was different.
+    """
+    import platform
+
+    out: dict[str, Any] = {
+        "python": platform.python_version(),
+        "implementation": platform.python_implementation(),
+        "platform": platform.platform(),
+    }
+    for mod in ("numpy", "scipy", "sklearn"):
+        try:
+            m = __import__(mod)
+        except Exception as exc:  # pragma: no cover - environment probe
+            out[mod] = f"ABSENT ({type(exc).__name__})"
+        else:
+            out[mod] = getattr(m, "__version__", "unknown")
+    return out
+
+
 def run(rules_path: str, packet_questions: str, out_dir: str,
         github_run_id: int | str | None = None) -> dict[str, Any]:
     os.makedirs(out_dir, exist_ok=True)
@@ -544,6 +568,32 @@ def run(rules_path: str, packet_questions: str, out_dir: str,
             _cands[n][qid] = build_variant_geometry(_b, n, query_language=QUERY_LANGUAGE[qid])
     divergence = divergence_record(_rules_geom, _cands, _rules_bundles, controls)
     dump("NON_VACUITY_DIVERGENCE.json", divergence)
+
+    # ---------- environment provenance ----------
+    # Added in run 38978981369. No earlier artifact in this team recorded which
+    # numeric-stack produced the scores, so a reproduction elsewhere could not
+    # tell "the rule is deterministic" from "the libraries happened to match".
+    # qmap.py's own audit advisory F2 (cycle 38779139471) was a cross-environment
+    # reproducibility failure, so the stack belongs with the numbers.
+    dump("ENVIRONMENT.json", {
+        "schema": "frontier-query-conditioned-map-geometry/environment/1",
+        "github_run_id": run_id,
+        "why": (
+            "Which numeric stack produced the frozen scores. Recorded because no "
+            "prior artifact carried it and because a cross-environment drift "
+            "defect is exactly what qmap.py advisory F2 was about."
+        ),
+        "versions": _environment_versions(),
+    })
+
+    # ---------- renderer readiness for the negative cluster_id convention ----
+    # cluster_ids for unclustered shells, and the live query-map renderer
+    # indexes its colour palette with `(cluster_id % COLORS.length)`, which JS
+    # evaluates to a negative index for a negative id. This team writes no
+    # rendering code, so the probe measures the exposure and hands the one-line
+    # fix to the owning lane. It changes no score.
+    dump("RENDERER_PRECONDITION.json", renderer_precondition(
+        _cands, product_root=default_product_root()))
 
     # ---------- acceptance checks + outcome ----------
     checks = acceptance_checks(

@@ -65,7 +65,49 @@ python3 -m unittest discover -s frontier/frontier-query-conditioned-map-geometry
 15 stdlib-only tests (no pytest dependency). They pin the frozen-rule hash, the
 refusal to score a tampered bar, the keyword-only seam signature, determinism,
 the no-drop/no-duplicate and `member_ids[:50]` truncation contracts, and the
-non-vacuity divergence described below.
+non-vacuity divergence described below. Run 38978981369 added 5 more for the
+renderer precondition (20 total).
+
+## Blocking precondition for adoption — read this before dropping it in
+
+Found in producer run **38978981369**. The variants mark un-hydrated shells
+with a **unique negative `cluster_id`**, and the live query-map renderer indexes
+its colour palette by that id:
+
+```js
+const COLORS = [ …8 entries… ];                                      // query.html:141
+ctx.fillStyle = COLORS[(p.cluster_id??0)%COLORS.length];            // query.html:188
+```
+
+JavaScript's `%` truncates toward zero, so `cluster_id = -1` gives index `-1` and
+`COLORS[-1]` is `undefined`. Assigning `undefined` to `ctx.fillStyle` is an
+invalid value that the canvas **ignores**, leaving the previous point's colour
+in place. Every unclustered-shell point is therefore painted in whatever colour
+was drawn before it — **47/214 (de), 49/217 (fr), 47/211 (it)**.
+
+The accepted `INTEGRATION_CONTRACT.json` says "nothing else changes" for the
+rendering path. That holds for `x`, `y`, `is_outlier` and the cluster records,
+but the negative id is a value class the page has never received. **The
+original artifact is left byte-identical for provenance**; the correction is
+`results/frontier/frontier-query-conditioned-map-geometry/RENDERER_PRECONDITION.json`,
+regenerated on every run by `qmap_geometry/renderer_precondition.py`.
+
+This team writes no rendering code and touches no cluster colour, so the one-line
+fix belongs to `frontier-query-map-ui` / Core Product — e.g. a non-negative
+lookup, or paint shells from the variant's own additive `unclustered` flag.
+It is also **not** worked around on the variant side: giving the shells one
+shared non-negative id would change how vendored `structure()` splits intra- vs
+inter-cluster pairs and therefore move the frozen `STRUCTURE_SEP` score, which
+this charter may not do after the scores are seen.
+
+## Provenance now proven, not just asserted
+
+Run 38978981369 proved the vendored scorer's byte-identity by **git blob hash**
+against the evaluation lane's canonical frozen reference
+(`evaluation/frozen_bars/vendored/frontier_map_semantics_reference`, commit
+`59fde886`): `metrics.py` → `3fc32b55…`, `textgeo.py` → `425e70fa…`, both
+identical to the team's vendored copies. It also added `ENVIRONMENT.json`
+recording the numeric stack behind the scores, which no earlier artifact carried.
 
 ## Known divergence — charter check (4), read this before promoting
 
@@ -101,6 +143,7 @@ Full record with the code citations and the probe data:
 | 38970483941 | This resume. Found a *second* defect: the reproducibility check compared the first scoring pass — which is annotated in place with a `schema` key — against a bare second pass, so it always reported non-reproducible and silently flipped the charter outcome from **A to B**. The geometry and scores are deterministic (confirmed across independent processes). Also declared the charter (4) divergence above. |
 | 38973386164 | Independent audit: **PASS**, `safe_to_integrate: true`; integrator accepted the lab branch at `be5eba7f`. |
 | 38976645446 | **Duplicate dispatch** of the already-terminated charter (the portfolio still reads `status=RUN`). No new variant and no fourth variant; re-ran the component on the byte-identical frozen rule and served bundles, reproduced all 16 claim-bearing artifacts and the OUTCOME A result, and added `REVERIFICATION_38976645446.json`. `continue_recommended` stays `false`. |
+| 38978981369 | **Duplicate dispatch again.** Re-verified OUTCOME A (20/20 tests, every criterion byte-identical). Found and closed one adoption blocker: the negative `cluster_id` renderer hazard above. Added `renderer_precondition.py`, 5 tests, `RENDERER_PRECONDITION.json`, `ENVIRONMENT.json`, `REVERIFICATION_38978981369.json`. No score, bar, control or variant changed. |
 
 ## Claim ceiling
 

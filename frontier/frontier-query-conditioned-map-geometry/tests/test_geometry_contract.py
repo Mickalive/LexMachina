@@ -34,6 +34,7 @@ sys.path.insert(0, os.path.dirname(_HERE))
 import numpy as np  # noqa: E402,F401  (imported early to fail fast on a broken env)
 
 from qmap_geometry import cli  # noqa: E402
+from qmap_geometry import renderer_precondition as rp  # noqa: E402
 from qmap_geometry.nonvac_divergence import probe_coordinate_invariance  # noqa: E402
 from qmap_geometry.scoring import (  # noqa: E402
     EXPECTED_RULES_SHA256,
@@ -221,6 +222,80 @@ class NonVacuityDivergenceTests(unittest.TestCase):
                             - probe["criteria"]["PROJ_SPEARMAN"]["after"]), 1.0)
         self.assertGreater(probe["criteria"]["PROJ_SPEARMAN"]["before"],
                            probe["criteria"]["PROJ_SPEARMAN"]["after"] + 0.05)
+
+
+class RendererPreconditionTests(unittest.TestCase):
+    """Pins the negative-``cluster_id`` hazard found in producer run 38978981369.
+
+    The variants mark un-hydrated shells with unique NEGATIVE cluster ids so a
+    shell can never swell a legal group.  The live query-map renderer indexes
+    its colour palette with ``(cluster_id % COLORS.length)``; JS ``%`` truncates
+    toward zero, so a negative id yields a negative index and ``COLORS[-n]`` is
+    ``undefined``.  These tests pin the *measured exposure* and the fact that it
+    is reported to the owning lane rather than silently worked around on the
+    variant side (which would move the frozen STRUCTURE_SEP score).
+    """
+
+    def test_js_mod_matches_javascript_on_negatives(self):
+        """Python's % cannot emulate JS; (-8) % 8 is 0, not 8."""
+        for a, expected in [(-1, -1), (-7, -7), (-8, 0), (-9, -1), (-47, -7), (-214, -6)]:
+            self.assertEqual(rp.js_mod(a, 8), expected, f"{a} % 8")
+        self.assertEqual(rp.js_mod(7, 8), 7)
+        self.assertEqual(rp.js_mod(8, 8), 0)
+        with self.assertRaises(ZeroDivisionError):
+            rp.js_mod(1, 0)
+
+    def test_negative_ids_index_outside_the_palette(self):
+        """A negative cluster id must never resolve to a real colour."""
+        palette = rp.FALLBACK_COLORS
+        for cid in (-1, -3, -47, -49):
+            idx = rp.js_color_index(cid, len(palette))
+            self.assertNotIn(idx, range(len(palette)),
+                             f"cluster_id {cid} resolved inside the palette")
+
+    def test_probe_counts_the_exposed_rows_on_every_served_bundle(self):
+        """The exposed population is exactly the un-hydrated shell set."""
+        palette = rp.FALLBACK_COLORS
+        for qid in QIDS:
+            bundle = _load_bundle(qid)
+            shells = sum(1 for d in bundle["decisions"]
+                         if d.get("detail_status") != "search_hit")
+            self.assertGreater(shells, 0, qid)
+            for name in VARIANTS:
+                with self.subTest(qid=qid, variant=name):
+                    cand = build_variant_geometry(copy.deepcopy(bundle), name,
+                                                  query_language=QUERY_LANGUAGE[qid])
+                    probe = rp.probe_bundle(cand, palette)
+                    self.assertEqual(probe["n_negative_cluster_ids"], shells)
+                    self.assertEqual(probe["n_rows_flagged_unclustered"], shells)
+                    # every cluster record keeps a non-negative id, so the
+                    # cluster legend is untouched
+                    for c in cand["clusters"]:
+                        self.assertGreaterEqual(int(c["cluster_id"]), 0)
+                    self.assertFalse(probe["legend_affected"])
+                    # and almost every shell id misses the palette
+                    self.assertGreater(probe["negative_ids_index_outside_palette"],
+                                       shells - len(palette))
+
+    def test_probe_degrades_without_a_mounted_product_lane(self):
+        """A bare checkout still gets the pinned palette, and says so."""
+        pal = rp.read_palette(None)
+        self.assertFalse(pal["live_file_read"])
+        self.assertEqual(pal["palette"], rp.FALLBACK_COLORS)
+        self.assertIn("fallback", pal["palette_source"])
+
+    def test_record_declares_the_blocking_precondition(self):
+        """The committed record must not read as a clean drop-in."""
+        path = os.path.join(
+            REPO,
+            "results/frontier/frontier-query-conditioned-map-geometry/RENDERER_PRECONDITION.json")
+        with open(path, encoding="utf-8") as fh:
+            rec = json.load(fh)
+        self.assertFalse(rec["drop_in_safe_as_written"])
+        self.assertTrue(rec["drop_in_safe_after_owning_lane_fix"])
+        self.assertTrue(rec["frozen_scores_untouched"])
+        self.assertIn("query-map-ui", rec["owning_lane"])
+        self.assertGreater(rec["max_negative_cluster_id_share"], 0.2)
 
 
 class OutcomeTests(unittest.TestCase):
