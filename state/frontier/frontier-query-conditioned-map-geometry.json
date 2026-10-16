@@ -6,7 +6,7 @@
   "cycle_status": "COMPLETED",
   "evidence_tier": "REPRODUCED",
   "continue_recommended": false,
-  "continue_recommended_reason": "The charter's stop_promote_rule terminates the charter at the first outcome reached and forbids re-dispatching the same charter_version or opening a fourth variant after seeing the frozen scores. OUTCOME A was reached, so no further cycle under charter v1 is justified. continue_recommended stays false.",
+  "continue_recommended_reason": "The charter terminated at OUTCOME A on producer run 38970483941 and was independently accepted on run 38973386164 (audit gate PASS, safe_to_integrate true, accept commit be5eba7f2203db323cb2ae21f0794041908a5711). Run 38976645446 is a duplicate dispatch of the same charter_version 1 because the portfolio still reads status=RUN. The stop_promote_rule forbids re-dispatching the same charter_version and forbids opening a fourth variant. This run re-verified the frozen-rule result byte-identically and changed no threshold, bar, control, candidate or verdict, so no further cycle under charter v1 is justified. continue_recommended stays false.",
   "outcome": "A",
   "winner": "relevance_ordered",
   "adoptable_variant": "relevance_ordered",
@@ -98,6 +98,19 @@
         "unit_tests": "15/15 pass",
         "freeze_rehash": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633"
       }
+    },
+    {
+      "run_id": 38976645446,
+      "status": "COMPLETED",
+      "outcome": "A",
+      "commit": null,
+      "note": "Duplicate dispatch. Recognized the charter as already terminated at OUTCOME A and accepted (audit 38973386164 PASS, safe_to_integrate true, accept commit be5eba7f). Re-ran the component end-to-end on the frozen rule (sha256 a7452748...) and served bundles 38839347028; reproduced every claim-bearing artifact and the OUTCOME A result. No new variant, no fourth variant, no threshold/bar/control edit. Added REVERIFICATION_38976645446.json as the durable delta.",
+      "verification": {
+        "freeze_rehash": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+        "unit_tests": "15/15 pass",
+        "artifacts_reproduced": "16/16 claim-bearing artifacts identical (SUMMARY write_scope path differs by construction; RULES_GEOMETRY.json is the frozen copy itself)",
+        "outcome_reproduced": "A, relevance_ordered, 22/33 vs incumbent 16/33, zero regressions"
+      }
     }
   ],
   "run_history": [
@@ -131,9 +144,28 @@
       "non_vacuity_proven": true,
       "regression_suite_passed": true,
       "reproducible": true
+    },
+    {
+      "run_id": 38976645446,
+      "commit": null,
+      "status": "COMPLETED",
+      "outcome": "A",
+      "winner": "relevance_ordered",
+      "total_criteria_passed": 22,
+      "incumbent_total": 16,
+      "acceptance_checks_passed": true,
+      "non_vacuity_proven": true,
+      "regression_suite_passed": true,
+      "reproducible": true,
+      "note": "Duplicate dispatch of an already-terminated charter (portfolio status still RUN). Independent re-verification only: 15/15 unit tests pass; the component re-run on the byte-identical frozen rule and served bundles reproduces all 16 claim-bearing artifacts and the OUTCOME A result with no threshold, bar, control or candidate change. Evidence: results/frontier/frontier-query-conditioned-map-geometry/REVERIFICATION_38976645446.json."
     }
   ],
   "integration_contract": "results/frontier/frontier-query-conditioned-map-geometry/INTEGRATION_CONTRACT.json",
   "claim_ceiling": "results/frontier/frontier-query-conditioned-map-geometry/CLAIM_CEILING.json",
-  "product_decision_required": "Core Product decides adoption of relevance_ordered behind the bundle seam with no rendering change. This team's charter does not claim the map is useful to a jurist; that remains the human product gate's question, and 0 of 3 bundles still pass all 11 criteria under the promoted variant."
+  "product_decision_required": "Core Product decides adoption of relevance_ordered behind the bundle seam with no rendering change. This team's charter does not claim the map is useful to a jurist; that remains the human product gate's question, and 0 of 3 bundles still pass all 11 criteria under the promoted variant.",
+  "last_verified_run_id": 38976645446,
+  "reverification_runs": [
+    38976645446
+  ],
+  "duplicate_dispatch_note": "Run 38976645446 arrived after the charter's first outcome (A) and independent acceptance. The portfolio status=RUN was the only trigger. Per the charter's stop_promote_rule this charter is not re-opened: no fourth variant, no new threshold/bar/control. The control-plane fix (move this team off RUN in state/frontier_portfolio.json) is outside this team's write scope and is recorded here."
 }

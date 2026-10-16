@@ -99,6 +99,8 @@ Full record with the code citations and the probe data:
 | 38964153228 | First producer run. Produced the artifact set; artifacts are committed. |
 | 38969741834 | **Crashed**: the `variant_fn` seam was declared positionally while `score_variant` calls `variant_fn(bundle, query_language=...)`. Fixed in `d971e67`. |
 | 38970483941 | This resume. Found a *second* defect: the reproducibility check compared the first scoring pass — which is annotated in place with a `schema` key — against a bare second pass, so it always reported non-reproducible and silently flipped the charter outcome from **A to B**. The geometry and scores are deterministic (confirmed across independent processes). Also declared the charter (4) divergence above. |
+| 38973386164 | Independent audit: **PASS**, `safe_to_integrate: true`; integrator accepted the lab branch at `be5eba7f`. |
+| 38976645446 | **Duplicate dispatch** of the already-terminated charter (the portfolio still reads `status=RUN`). No new variant and no fourth variant; re-ran the component on the byte-identical frozen rule and served bundles, reproduced all 16 claim-bearing artifacts and the OUTCOME A result, and added `REVERIFICATION_38976645446.json`. `continue_recommended` stays `false`. |
 
 ## Claim ceiling
 

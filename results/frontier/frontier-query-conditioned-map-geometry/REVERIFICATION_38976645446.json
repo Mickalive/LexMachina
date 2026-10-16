@@ -1,0 +1,138 @@
+{
+  "schema": "frontier-query-conditioned-map-geometry/reverification/1",
+  "team_id": "frontier-query-conditioned-map-geometry",
+  "charter_version": 1,
+  "direction_version": 50,
+  "github_run_id": 38976645446,
+  "charter_status": "ALREADY_TERMINATED_AT_OUTCOME_A",
+  "prior_completion": {
+    "original_producer_run": 38964153228,
+    "resume_producer_run": 38970483941,
+    "audit_run": 38973386164,
+    "audit_gate": "PASS",
+    "audit_safe_to_integrate": true,
+    "audit_gate_file": "results/audit/frontier/frontier-query-conditioned-map-geometry/CYCLE_38973386164_GATE.json",
+    "accept_commit": "be5eba7f",
+    "outcome": "A",
+    "winner": "relevance_ordered",
+    "incumbent_total_criteria_passed": 16,
+    "promoted_total_criteria_passed": 22
+  },
+  "why_this_is_a_duplicate_dispatch": {
+    "fact": "The portfolio entry for this team still reads status=RUN, so the supervisor re-dispatched the same charter_version 1 after the charter had already reached its first outcome and been independently accepted.",
+    "stop_promote_rule_quote": "TERMINATE the charter after either outcome; never re-dispatch it with the same charter_version, and never open a fourth variant after seeing the frozen scores.",
+    "resolution": "No new variant, threshold, bar, control or candidate was opened by this run. The component and every artifact it produced are byte-identical to the accepted set (modulo run id and wall-clock timings).",
+    "control_plane_item": "The portfolio must move this team off RUN in a later director version. That is a control-plane edit (.github/** and state/frontier_portfolio.json are outside this team's write scope); it is recorded here, not performed."
+  },
+  "reverification": {
+    "rules_path": "results/frontier/frontier-query-conditioned-map-geometry/RULES_GEOMETRY.json",
+    "rules_sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+    "rules_expected_sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+    "rules_byte_identity_ok": true,
+    "threshold_or_bar_edits": [],
+    "served_packet": "results/product/gate_packet/38839347028/questions",
+    "bundle_sha256": {
+      "de-kapitalverletzung": "2441ff2b16722afcd22dca9ad39eafcbeb079b2dfc367d763fbe53fce1356f9c",
+      "fr-bail-entretien": "6c5ea31d4b9af4abfa39e9f8025cfa3d34279ff1f04d0f643e571e27b23a2618",
+      "it-responsabilita-medica": "76e7f7ad998f3878e7b08635663e2d594a7a77bdaeb33bcf5fa52d0af00b7aff"
+    },
+    "component_command": "PYTHONPATH=frontier/frontier-query-conditioned-map-geometry python3 -m qmap_geometry.cli --rules <frozen rule> --packet-questions <served packet> --out <fresh dir> --github-run-id 38976645446",
+    "component_exit_code": 0,
+    "unit_tests": {
+      "command": "PYTHONPATH=frontier/frontier-query-conditioned-map-geometry python3 -m unittest discover -s frontier/frontier-query-conditioned-map-geometry/tests -v",
+      "n_tests": 15,
+      "passed": true,
+      "exit_code": 0
+    },
+    "artifacts_reproduced": {
+      "compared": 18,
+      "identical_after_stripping_run_and_timing_keys": 16,
+      "identical_artifacts": [
+        "ACCEPTANCE_CHECKS.json",
+        "BEFORE_AFTER.json",
+        "CEILINGS.json",
+        "CLAIM_CEILING.json",
+        "CONTROLS.json",
+        "FREEZE.json",
+        "FROZEN_RULE_PROPERTIES.json",
+        "HYDRATION.json",
+        "INCUMBENT_REPRODUCTION.json",
+        "INTEGRATION_CONTRACT.json",
+        "NON_VACUITY_DIVERGENCE.json",
+        "REGRESSION.json",
+        "REPRODUCIBILITY.json",
+        "SCORES_hydrate_then_cluster.json",
+        "SCORES_relevance_ordered.json",
+        "SIDE_BY_SIDE.json"
+      ],
+      "differences": [
+        {
+          "artifact": "RULES_GEOMETRY.json",
+          "note": "not reproduced (missing in fresh run)"
+        },
+        {
+          "artifact": "SUMMARY.json",
+          "note": "content differs after stripping run/timing keys"
+        }
+      ],
+      "summary_only_difference_keys": [
+        "elapsed_seconds",
+        "github_run_id",
+        "write_scope"
+      ],
+      "note": "SUMMARY.json write_scope.files_written points at the fresh temporary out dir by construction; every claim-bearing value is identical."
+    },
+    "outcome_reproduced": {
+      "outcome": "A",
+      "winner": "relevance_ordered",
+      "incumbent_total_criteria_passed": 16,
+      "variant_totals": {
+        "hydrate_then_cluster": {
+          "total": 20,
+          "regressions": 2,
+          "strictly_better": false,
+          "per_bundle": {
+            "de-kapitalverletzung": 6,
+            "fr-bail-entretien": 7,
+            "it-responsabilita-medica": 7
+          }
+        },
+        "relevance_ordered": {
+          "total": 22,
+          "regressions": 0,
+          "strictly_better": true,
+          "per_bundle": {
+            "de-kapitalverletzung": 7,
+            "fr-bail-entretien": 8,
+            "it-responsabilita-medica": 7
+          }
+        }
+      },
+      "all_blocking_acceptance_checks_passed": true,
+      "blocking_failures": {},
+      "acceptance_checks": {
+        "1_freeze_first_by_rehash": true,
+        "2_two_runnable_variants_behind_bundle_seam": true,
+        "3_all_three_bundles_scored_with_side_by_side": true,
+        "4_non_vacuity_proven": true,
+        "declared_divergence_4b_charter_literal_coordinate_control": false,
+        "5_before_after_on_accepted_ablation": true,
+        "6_regression_suite": true,
+        "9_reproducible": true,
+        "7_integration_contract_and_claim_ceiling": true,
+        "8_zero_out_of_scope_writes": true
+      },
+      "reproducibility_all_identical": true
+    },
+    "declared_divergence_preserved": {
+      "criterion": "charter check (4): a shuffled-coordinate control must fail PROJ_RANK / PROJ_SPEARMAN",
+      "status": "REPORTED_NOT_RESOLVED",
+      "reason": "The frozen scorer computes PROJ_RANK from the retrieval rank and TF-IDF cosine distance to the query vector and never reads x/y, so the control cannot move that criterion for any candidate geometry. Non-vacuity is proven against the frozen rule's own non_vacuity clause (>=2 flips under the cluster_id/label permutation).",
+      "artifact": "results/frontier/frontier-query-conditioned-map-geometry/NON_VACUITY_DIVERGENCE.json",
+      "escalated_to_director": true
+    }
+  },
+  "continue_recommended": false,
+  "continue_recommended_reason": "The charter terminated at OUTCOME A on run 38970483941 and was independently accepted on run 38973386164 (audit PASS, safe_to_integrate true, accept commit be5eba7f). The stop_promote_rule forbids re-dispatching the same charter_version and forbids opening a fourth variant. This run re-verified the frozen-rule result and changed no threshold, bar, control, candidate or verdict, so no further cycle under charter v1 is justified. continue_recommended stays false.",
+  "verified_by_run": 38976645446
+}
