@@ -20,6 +20,7 @@ for _p in (str(ROOT / "product"), str(ROOT)):
         sys.path.insert(0, _p)
 
 from query.answer_contract import (  # noqa: E402
+    CONTRACTS,
     LEDGER_METHOD,
     detect_language,
     match_contract,
@@ -213,3 +214,71 @@ def test_ledger_does_not_touch_a_failed_answer():
     report = state_conditions(bundle)
     assert report["changed"] is False
     assert report["statements"] == [] and report["refused"] == []
+
+def test_every_registered_statement_has_an_evidence_predicate():
+    """Invariant: no element may ship a statement without a support predicate.
+
+    A statement without ``support`` would be an unbacked product-authored legal
+    assertion (state_conditions would have to skip it, so the gate would go
+    dark), which is the failure mode this module exists to prevent.
+    """
+    for contract in CONTRACTS:
+        for element in contract["elements"]:
+            if "statement" in element:
+                assert element.get("support"), (
+                    f"{contract['topic']}/{element['id']} ships a statement with no "
+                    "support predicate"
+                )
+                assert set(element["statement"]) == {"fr", "de", "it", "en"}
+
+
+def test_statements_are_distinct_per_language_and_speak_the_condition():
+    """The shipped statements must actually differ by language (no silent reuse)."""
+    statements = [
+        e["statement"]
+        for c in CONTRACTS for e in c["elements"] if "statement" in e
+    ]
+    for statement in statements:
+        values = [statement[k] for k in ("fr", "de", "it", "en")]
+        assert len(set(values)) == len(values)
+        for value in values:
+            assert len(value) > 40, "a condition statement too short to stand alone"
+
+
+def test_rent_joint_statement_is_visible_to_the_frozen_rent_gate():
+    """The joint Art. 257d(2) statement must satisfy the durable gate's patterns.
+
+    Fixture is the verbatim failing answer of rent-default 2026-10-16T20:35:39Z
+    under --workflow-override: correct law ("prend effet a la fin d'un mois, avec
+    un preavis d'au moins trente jours"), gate-invisible because the gate reads
+    the digit 30.
+    """
+    from query.answer_contract import CONTRACTS as _C
+
+    rent = next(c for c in _C if c["topic"] == "rent-arrears-termination")
+    joint = next(e for e in rent["elements"] if e["id"] == "notice-and-month-end")
+    failing = ("Selon l'art. 257d CO, ... prend effet à la fin d'un mois, avec un "
+               "préavis d'au moins trente jours, et non avec effet immédiat.")
+    frozen = (
+        r"(?:preavis|delai de conge|kundigungsfrist)[^.!?\n]{0,100}30\s+jours[^.!?\n]{0,120}"
+        r"(?:fin (?:d'un|du|de) mois|ende eines monats|monatsende)",
+        r"30\s+jours[^.!?\n]{0,100}(?:pour|jusqu.a|sur)[^.!?\n]{0,50}"
+        r"(?:fin (?:d'un|du|de) mois|ende eines monats|monatsende)",
+        r"30\s+tage[^.!?\n]{0,100}(?:ende eines monats|monatsende)",
+    )
+    assert not any(re.search(p, norm(failing)) for p in frozen)
+    assert any(re.search(p, norm(joint["statement"]["fr"])) for p in frozen)
+
+
+def test_rent_notice_element_no_longer_accepts_a_bare_number():
+    """A COVID-exception sentence must not stand in for the operative rule."""
+    from query.answer_contract import CONTRACTS as _C, missing_elements
+
+    rent = next(c for c in _C if c["topic"] == "rent-arrears-termination")
+    prose = ("Un délai de 90 jours était substitué au délai de 30 jours en raison des "
+             "mesures COVID-19, et la résiliation est prorogée.")
+    missing = {e["id"] for e in missing_elements(rent, prose)}
+    assert "notice-and-month-end" in missing
+    # and a prose that does state the pair in one sentence is complete
+    complete = "Le delai de conge est de 30 jours et la resiliation prend effet a la fin du mois."
+    assert "notice-and-month-end" not in {e["id"] for e in missing_elements(rent, complete)}

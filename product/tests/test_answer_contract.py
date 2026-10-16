@@ -106,7 +106,11 @@ def test_contract_matches_the_rent_question_and_not_an_unrelated_one():
 def test_missing_elements_are_detected_with_gate_normalisation():
     contract = match_contract(RENT_QUESTION)
     missing = {e["id"] for e in missing_elements(contract, PARTIAL_ANSWER)}
-    assert missing == {"effective-dating-end-of-month"}
+    # 2026-10-16 (run 38961254857): the joint Art. 257d(2) pair is a third,
+    # separate gap — PARTIAL_ANSWER states the 30-day period and the month-end
+    # effect in DIFFERENT sentences, which is what the durable rent gate
+    # rejects (its patterns cannot cross a sentence boundary).
+    assert missing == {"effective-dating-end-of-month", "notice-and-month-end"}
     # apostrophe/accent variants the durable gate accepts must count as present
     assert not missing_elements(contract, PARTIAL_ANSWER + " à la fin d'un mois.")
 
@@ -115,7 +119,7 @@ def test_fill_quotes_a_retrieved_decision_and_passes_the_truth_gate():
     bundle = _bundle(PARTIAL_ANSWER)
     report = ensure_coverage(bundle)
     assert report["changed"] is True
-    assert report["missing_before"] == ["effective-dating-end-of-month"]
+    assert report["missing_before"] == ["effective-dating-end-of-month", "notice-and-month-end"]
     assert report["fills"][0]["decision_id"] == "gr_gerichte_ERZ 2010 25"
     # verbatim, markup-free, cited with its own id
     assert SOURCE_SENTENCE in bundle["answer"]["prose"]
@@ -134,13 +138,15 @@ def test_fill_never_fabricates_when_no_source_states_the_condition():
     assert report["changed"] is False
     assert bundle["answer"]["prose"] == PARTIAL_ANSWER
     assert bundle["answer"]["cited_decision_ids"] == ["bge_BGE_117_II_415"]
-    assert [u["element"] for u in report["unfilled"]] == ["effective-dating-end-of-month"]
+    assert [u["element"] for u in report["unfilled"]] == ["effective-dating-end-of-month",
+                                                         "notice-and-month-end"]
 
 
 def test_complete_answer_is_left_untouched():
+    # The pair must live in ONE sentence: that is what the durable gate reads.
     prose = (
-        PARTIAL_ANSWER + " La résiliation prend effet à la fin du mois suivant "
-        "l'expiration du délai (art. 257d al. 2 CO)."
+        PARTIAL_ANSWER + " Le délai de congé est de 30 jours et la résiliation prend "
+        "effet à la fin du mois (art. 257d al. 2 CO)."
     )
     bundle = _bundle(prose)
     report = ensure_coverage(bundle)
@@ -155,6 +161,7 @@ def test_all_contract_elements_are_detectable_by_the_real_truth_gates():
     assert [e["id"] for e in rent["elements"]] == [
         "notice-period-30-days",
         "effective-dating-end-of-month",
+        "notice-and-month-end",
         "good-faith-limitation",
     ]
     assert len(CONTRACTS) == 4

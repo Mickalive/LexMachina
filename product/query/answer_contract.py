@@ -64,7 +64,14 @@ CONTRACTS: list[dict[str, Any]] = [
             {
                 "id": "notice-period-30-days",
                 "label": "30-day payment/notice period before termination",
-                "patterns": [r"30"],
+                # Strengthened 2026-10-16 (run 38961254857): a bare "30" anywhere
+                # in the answer satisfied this element, so a COVID-exception
+                # sentence ("un delai de 90 jours etait substitue au delai de 30
+                # jours") could stand in for the operative Art. 257d(2) rule and
+                # the answer could omit the rule entirely while the completeness
+                # check stayed green. Digits or words, but always the period.
+                "patterns": [r"(?:30|trente|dreissig|thirty)\s+jours?",
+                              r"(?:30|trente|dreissig|thirty)[^.!?\n]{0,40}(?:tage|tage?\b)"],
                 "anchor": r"257d|k.ndigen|r.sili|cong|notice|frist|d.lay|préavis|preavis",
             },
             {
@@ -77,6 +84,44 @@ CONTRACTS: list[dict[str, Any]] = [
                     r"ende eines monats",
                 ],
                 "anchor": r"257d|k.ndigen|r.sili|cong|wirkung|tritt in kraft|prend effet",
+            },
+            # Joint statement: the durable gate requires the cure period AND the
+            # month-end effect inside ONE sentence ([^.!?\n]), and a free model
+            # routinely splits them ("prend effet a la fin d'un mois, avec un
+            # preavis d'au moins trente jours" — correct law, gate-invisible
+            # because the gate reads the digit "30"). Stating the pair in one
+            # sentence is both what a jurist reads and what the check sees.
+            # Fires only when the retrieved authorities support the pair.
+            {
+                "id": "notice-and-month-end",
+                "label": "Art. 257d(2): a 30-day payment period, termination effective at the end of a month",
+                # The PAIR inside one sentence, in either order. A sentence that
+                # mentions 30 days and a different sentence that mentions the
+                # month-end effect does not satisfy it: that is exactly the
+                # 2026-10-16T20:35:39Z rent-default failure.
+                "patterns": [
+                    r"(?:30|trente|dreissig|thirty)\s+jours?[^.!?\n]{0,120}"
+                    r"(?:fin (?:d'un|du|de) mois|fin de mois|ende eines monats|monatsende|fine del mese)",
+                    r"(?:fin (?:d'un|du|de) mois|fin de mois|ende eines monats|monatsende|fine del mese)"
+                    r"[^.!?\n]{0,120}(?:30|trente|dreissig|thirty)\s+jours?",
+                ],
+                "anchor": r"257d|k.ndigen|r.sili|cong|fin d.un mois|fin du mois|fin de mois|"
+                          r"ende eines monats|monatsende|prend effet|tritt in kraft",
+                "statement": {
+                    "fr": ("Le délai de congé est de 30 jours : la résiliation pour retard de "
+                           "loyer prend effet à la fin du mois qui suit le non-paiement."),
+                    "de": ("Die Kündigungsfrist beträgt 30 Tage: Die Kündigung wegen "
+                           "Mietzinsverzugs wirkt am Ende des Monats."),
+                    "it": ("Il preaviso è di 30 giorni: la risoluzione per morosità del fitto "
+                           "produce effetto alla fine del mese."),
+                    "en": ("The notice period is 30 days: termination for rent arrears takes "
+                           "effect at the end of the month."),
+                },
+                "support": [
+                    r"257d|257 d|mietzinsverzugsr.ckstand|morosit. del fitto|retard (?:de|dans le) paiement",
+                    r"fin d.un mois|fin du mois|fin de mois|fin d.un mois|ende eines monats|monatsende|"
+                    r"fine del mese|k.ndigungsfrist|preavis|30 tage|30 jours|30 giorni",
+                ],
             },
             {
                 "id": "good-faith-limitation",
