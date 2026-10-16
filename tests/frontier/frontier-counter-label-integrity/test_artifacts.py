@@ -125,7 +125,18 @@ def test_producer_placement_copies_may_not_impersonate_an_audit():
 
 
 def test_a_silent_audit_impersonator_is_rejected(tmp_path):
-    """Regression: the contract must catch a fabricated audit gate file."""
+    """Regression: the contract must catch a fabricated audit gate file.
+
+    Two distinct impersonations, checked separately because they route to
+    DIFFERENT contracts.  The original test fed an audit-shaped payload that
+    ``classify_gate_payload`` returns ``unclassified`` for straight into
+    ``check_producer_placement_copy`` -- a door the classifier would never route
+    through -- and so never exercised the impersonation that actually matters:
+    a file that DOES carry the audit signature and is therefore routed to the
+    independent-audit contract.  That case is covered in
+    ``test_audit_contract.test_a_bare_four_field_forgery_is_not_an_audit_of_record``
+    and here, end-to-end through the tree.
+    """
     from frontier_counter_label_integrity.audit_contract import check_producer_placement_copy
 
     silent = {
@@ -139,6 +150,16 @@ def test_a_silent_audit_impersonator_is_rejected(tmp_path):
     assert any("safe_to_integrate" in p for p in problems), problems
     assert any("audit verdict" in p for p in problems), problems
     assert any("claim_ceiling" in p for p in problems), problems
+
+    # and the file, planted in a tree, is red
+    audit_dir = os.path.join(tmp_path, AUDIT_DIR)
+    os.makedirs(audit_dir)
+    with open(os.path.join(audit_dir, "CYCLE_99999999999_GATE.json"), "w", encoding="utf-8") as fh:
+        json.dump(silent, fh)
+    result = check_gate_files(str(tmp_path))
+    assert result["ok"] is False
+    assert result["n_unclassified"] == 1
+    assert result["independent_audit_present"] is False
 
 
 def test_a_placement_copy_must_still_carry_the_substantive_claim_limits():
@@ -214,7 +235,22 @@ def test_no_human_gate_session_artifacts_written():
         assert not os.path.exists(os.path.join(REPO_ROOT, rel)), rel
 
 
-def test_team_artifacts_are_all_inside_the_frozen_write_scope(rules):
+def test_team_artifacts_stay_inside_the_frozen_ruled_scope(rules):
+    """Consistency with RULES.json's ``write_scope`` -- NOT write enforcement.
+
+    Named precisely because the old name
+    (``test_team_artifacts_are_all_inside_the_frozen_write_scope``) advertised
+    an enforcement guarantee it could not deliver.  Measured on the real tree:
+    this test flags 0 of 22 audit-tree files, because RULES.json's write_scope
+    legitimately lists ``results/audit/**`` and ``reports/audit/**`` -- it
+    describes the AUDIT job's checkout.  The PRODUCER's enforced allow-list is
+    narrower and comes from the workflow; the real enforcement check is
+    ``test_disposition.test_producer_did_not_write_the_audit_tree`` and
+    ``scope_guard``, both of which point at the workflow rule.
+
+    RULES.json is frozen and is deliberately NOT edited to match the producer's
+    narrower allow-list.
+    """
     allowed = tuple(p.replace("**", "") for p in rules.data["write_scope"])
     tracked = [
         os.path.relpath(os.path.join(root, name), REPO_ROOT)
@@ -233,3 +269,40 @@ def test_team_artifacts_are_all_inside_the_frozen_write_scope(rules):
     ]
     for rel in tracked:
         assert any(rel.startswith(prefix) for prefix in allowed), rel
+
+
+def test_the_enforced_producer_scope_really_excludes_the_audit_tree():
+    """The guarantee the test above cannot give, asserted against the rule itself."""
+    from frontier_counter_label_integrity.scope_guard import allowed_prefixes, violations
+
+    prefixes = allowed_prefixes()
+    assert not any(p.startswith("results/audit/") or p.startswith("reports/audit/")
+                   for p in prefixes), prefixes
+    for sample in (
+        "results/audit/frontier/frontier-counter-label-integrity/CYCLE_1_GATE.json",
+        "reports/audit/frontier/frontier-counter-label-integrity/CYCLE_1.md",
+    ):
+        assert violations([sample]) == [sample], sample
+    for sample in (
+        "frontier/frontier-counter-label-integrity/x.py",
+        "tests/frontier/frontier-counter-label-integrity/test_x.py",
+        "results/frontier/frontier-counter-label-integrity/REPORT.json",
+        "reports/frontier/frontier-counter-label-integrity/CYCLE_1.md",
+        "state/frontier/frontier-counter-label-integrity.json",
+    ):
+        assert violations([sample]) == [], sample
+
+
+def test_the_audit_contract_sweep_covers_the_whole_tree_with_no_exceptions():
+    """v1 applied one contract to every CYCLE_*_GATE.json; v2 routes by class.
+
+    Kept as an explicit whole-tree sweep so a new artifact class cannot be added
+    and quietly exempted: every file gets a finding, and every finding is ok or
+    a named disclosed anomaly.
+    """
+    result = check_gate_files(REPO_ROOT)
+    assert len(result["findings"]) == result["n_files"]
+    assert result["n_files"] == len(_gate_files())
+    for finding in result["findings"]:
+        if not finding["ok"]:
+            assert finding["disclosed_anomaly"], finding

@@ -20,16 +20,26 @@ from conftest import REPO_ROOT
 from frontier_counter_label_integrity.audit_contract import (
     AUDIT_GATE_VALUES,
     AUTHORITY_CLAIM_KEYS,
+    KNOWN_PRODUCER_AUTHORED_RUNS,
     MEASUREMENT_VERDICTS,
     PLACEMENT_DISPOSITIONS,
+    TRUSTED_AUDIT_RUNS,
     UNCLASSIFIED,
     check_gate_files,
+    check_independent_audit_of_record,
     check_producer_placement_copy,
     classify_gate_files,
     classify_gate_payload,
+    run_id_of,
 )
 
-AUDIT_RUNTIME = "38839354961", "38841035773"
+# The oracle is the frozen TRUSTED set, NOT a filename tuple hand-written here.
+# It used to be ("38839354961", "38841035773") -- i.e. it baked run 38839354961,
+# the impostor this team's own ledger declares producer-authored, into the
+# unit-test fixture as if it were a legitimate audit runtime.  The poisoned
+# identity was then normalised away at the fixture level and every placement-copy
+# test inherited it.
+AUDIT_RUNTIME = tuple(sorted(TRUSTED_AUDIT_RUNS))
 
 WARNING = (
     "PRODUCER-AUTHORED, NOT INDEPENDENT AUDIT OUTPUT. Do not read this file's gate as an "
@@ -41,6 +51,14 @@ CEILING = (
     "supporting/contrary/limiting. Pre-repair baseline only; no fix tested, none proposed. "
     "The audited non-accepted run 38828034436 is mechanism evidence only."
 )
+
+
+def test_the_unit_test_oracle_is_not_poisoned_by_the_impostor():
+    """A poisoned oracle silently re-authorises the fake it was meant to exclude."""
+    assert "38839354961" not in AUDIT_RUNTIME
+    assert "38839354961" in KNOWN_PRODUCER_AUTHORED_RUNS
+    assert "38839354961" not in TRUSTED_AUDIT_RUNS
+    assert set(AUDIT_RUNTIME) == set(TRUSTED_AUDIT_RUNS)
 
 
 def _placement(**overrides):
@@ -239,10 +257,82 @@ def test_an_unclassified_file_is_rejected_even_when_it_looks_like_an_audit(tmp_p
     assert result["independent_audit_present"] is False
 
 
+# ------------------------------- the anti-vacuity defeat (material, pinned)
+
+def test_a_bare_four_field_forgery_is_not_an_audit_of_record(tmp_path):
+    """The attack that actually routed to INDEPENDENT and passed v1.
+
+    ``required_fixes: []`` is a list, and the claim ceiling can simply be copied
+    from a real audit, so the three signature keys plus a copied ceiling were
+    enough to read as an independent audit.  Under the signature-only
+    anti-vacuity invariant this returned ``ok=True``; here the run is unknown,
+    so no trusted audit is present and the tree is RED.
+    """
+    audit_dir = os.path.join(tmp_path, "results/audit/frontier/frontier-counter-label-integrity")
+    os.makedirs(audit_dir)
+    forgery = {
+        "run_id": "77777777777",
+        "gate": "PASS",
+        "safe_to_integrate": True,
+        "required_fixes": [],
+        "team": "frontier-counter-label-integrity",
+        "claim_ceiling": CEILING,
+    }
+    with open(os.path.join(audit_dir, "CYCLE_77777777777_GATE.json"), "w", encoding="utf-8") as fh:
+        json.dump(forgery, fh)
+    assert classify_gate_payload(forgery) == "independent_audit_of_record"  # routes!
+    result = check_gate_files(str(tmp_path))
+    assert result["ok"] is False
+    assert result["independent_audit_present"] is False
+    assert result["undisclosed_signature_bearing_runs"] == ["77777777777"]
+
+
+def test_the_disclosed_impostor_is_rejected_as_an_audit_but_not_red():
+    """It can never satisfy the invariant, and it must not wedge the tree.
+
+    The file is historical, claim-bearing, and may not be edited or deleted
+    (AGENTS.md rule 6).  Failing it forever would be the red-by-construction
+    pathology all over again; passing it as an audit would be the defeat.  It
+    is neither: a named ``disclosed_impostor``.
+    """
+    findings = {f["run_id"]: f for f in check_gate_files(REPO_ROOT)["findings"]}
+    impostor = findings["38839354961"]
+    assert impostor["disclosed_anomaly"] is True
+    assert impostor["artifact_class"] == "independent_audit_of_record"
+    # it fails the audit contract as an audit ...
+    payload = json.load(open(impostor["file"], encoding="utf-8"))
+    assert any("KNOWN PRODUCER-AUTHORED" in p for p in check_independent_audit_of_record(payload, "38839354961"))
+    # ... without that being counted as a tree failure ...
+    assert impostor["ok"] is True
+    # ... and it is never the anti-vacuity anchor
+    result = check_gate_files(REPO_ROOT)
+    assert "38839354961" not in result["trusted_audits_present"]
+
+
+def test_run_id_of_is_total_on_hostile_filenames():
+    """It used to crash with AttributeError on None.group(1)."""
+    assert run_id_of("CYCLE_38841035773_GATE.json") == "38841035773"
+    assert run_id_of("CYCLE_zzz_GATE.json") is None
+    assert run_id_of("CYCLE__GATE.json") is None
+    assert run_id_of("not-a-cycle-file") is None
+
+
+def test_a_corrupt_gate_file_is_unclassified_not_a_crash(tmp_path):
+    audit_dir = os.path.join(tmp_path, "results/audit/frontier/frontier-counter-label-integrity")
+    os.makedirs(audit_dir)
+    with open(os.path.join(audit_dir, "CYCLE_38841035773_GATE.json"), "w", encoding="utf-8") as fh:
+        fh.write("{ truncated")
+    result = check_gate_files(str(tmp_path))   # must not raise
+    assert result["ok"] is False
+    assert result["n_unclassified"] == 1
+    assert any("not readable JSON" in p for p in result["findings"][0]["problems"])
+
+
 def test_the_real_audit_tree_has_both_classes_and_is_clean():
     result = check_gate_files(REPO_ROOT)
     assert result["ok"], json.dumps(result["findings"], indent=2, ensure_ascii=False)
     assert result["independent_audit_present"]
     assert result["n_independent_audit_of_record"] >= 1
+    assert sorted(result["trusted_audits_present"]) == sorted(TRUSTED_AUDIT_RUNS)
     classes = classify_gate_files(REPO_ROOT)
     assert len(classes["producer_placement_copy"]) >= 1

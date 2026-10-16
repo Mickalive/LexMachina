@@ -24,10 +24,14 @@ because it teaches the gate reader to ignore test failures.
 This module does NOT relax anything:
 
 * the independent-audit contract is enforced verbatim, exact literals included;
-* a new anti-vacuity invariant requires at least one independent audit of
-  record to exist, so routing classes apart can never make the audit
-  requirement vacuous -- that is precisely what a naive "just skip them" fix
-  would have broken;
+* an anti-vacuity invariant requires at least one *genuine* independent audit
+  of record -- one named in the frozen ``TRUSTED_AUDIT_RUNS`` set, not merely
+  one that carries the audit signature -- so routing classes apart can never
+  make the audit requirement vacuous.  See the "ANTI-VACUITY WAS DEFEATED"
+  paragraph below, which records why the signature heuristic was not enough;
+* every run this team knows it authored itself is in
+  ``KNOWN_PRODUCER_AUTHORED_RUNS`` and can never satisfy the independent-audit
+  contract, whatever signature it carries;
 * the producer-placement-copy contract is NEW and did not exist before: a
   placement copy must self-declare its provenance, must not assert independent
   audit authority, must not wear an audit gate verdict, and must still carry
@@ -50,6 +54,36 @@ class routing stays signature-based, the anti-vacuity invariant stays
 enforced, and the measurement vocabulary is asserted disjoint from every audit
 disposition bucket, so a placement copy carrying a measurement ``verdict`` can
 still never be read as wearing an audit verdict.
+
+ANTI-VACUITY WAS DEFEATED (material defect, found by adversarial review of run
+38852056955 and repaired here)
+---------------------------------------------------------------
+The earlier version of this module computed the anti-vacuity invariant as
+``independent_audit_present = bool(classes[INDEPENDENT])``, i.e. "some file
+carries the audit signature".  That is exactly the test the impostor
+``CYCLE_38839354961_GATE.json`` passes: the team's OWN provenance ledger
+declares that file to be PRODUCER-AUTHORED, while its signature routes it to
+``INDEPENDENT``.  So the anti-vacuity invariant was being satisfied by the very
+artifact the ledger exists to disclose, and a bare four-field stub
+(``gate`` + ``safe_to_integrate`` + ``required_fixes: []`` + a claim ceiling
+carrying the three literals) satisfied it too.  Both were executed and both
+returned ``ok=True``.
+
+The invariant is therefore re-anchored on a frozen, human-curated run set.
+``TRUSTED_AUDIT_RUNS`` names the runs whose gate artifact the team knows to be
+genuine audit-job output; ``independent_audit_present`` is now
+``TRUSTED_AUDIT_RUNS & signature-classified runs != {}``, and a run in
+``KNOWN_PRODUCER_AUTHORED_RUNS`` is rejected by
+``check_independent_audit_of_record`` no matter what it carries.
+
+RESIDUAL, DECLARED, NOT FIXABLE HERE: a run that is in NEITHER set is reported
+as ``undisclosed_signature_bearing_runs`` and does NOT fail the tree.  That is
+deliberate.  The audit job appends one genuine audit per successful dispatch,
+and a producer cannot know it in advance, so failing on an unknown run would
+re-create the red-by-construction suite this team has already suffered through
+nine dispatches.  The names are surfaced by the in-scope provenance ledger
+(``disposition.py``) as ``UNDISCLOSED`` rather than absorbed silently, and each
+is re-derived on every cycle.
 
 Nothing here reads or writes the frozen ``RULES.json``: this is artifact
 hygiene, not a judgement input, so it must never be able to move a verdict.
@@ -115,6 +149,42 @@ AUTHORITY_CLAIM_KEYS = (
     "audit_pass",
 )
 
+#: Runs whose ``CYCLE_<run_id>_GATE.json`` is genuine INDEPENDENT AUDIT output,
+#: written by the workflow's separate audit job.  Frozen and human-curated: the
+#: anti-vacuity invariant is anchored here, NOT on the signature heuristic,
+#: because the signature heuristic is satisfied by the impostor this team has
+#: already disclosed (see the module docstring, "ANTI-VACUITY WAS DEFEATED").
+#: Adding a run here is a claim that the audit job produced it; deleting one
+#: must fail the tree.
+TRUSTED_AUDIT_RUNS = frozenset({"38841035773", "38852056955"})
+
+#: Runs whose gate artifact was written BY THIS TEAM into a tree it does not
+#: own.  They are producer placement copies by declaration, whatever the
+#: contract's signature routing makes of them.
+KNOWN_PRODUCER_AUTHORED_RUNS = frozenset({
+    "38839354961", "38845649012", "38846758718", "38848314260", "38849513219",
+    "38849940657", "38850302366", "38850765576", "38851515402",
+})
+
+#: Invariant: the two sets are disjoint and together non-empty.  A run that is
+#: in both would mean the team's own disclosure contradicts its own anti-vacuity
+#: anchor, which is precisely the confusion that made the impostor load-bearing.
+assert not (TRUSTED_AUDIT_RUNS & KNOWN_PRODUCER_AUTHORED_RUNS)
+assert TRUSTED_AUDIT_RUNS and KNOWN_PRODUCER_AUTHORED_RUNS
+
+_RUN_RE = re.compile(r"^CYCLE_(\d+)_GATE\.json$")
+
+
+def run_id_of(name: str) -> str | None:
+    """The run id encoded in a gate artifact's FILENAME, or None.
+
+    Total by construction: a ``CYCLE_*_GATE.json`` whose name carries no digits
+    returns None instead of raising, so a hostile or corrupt filename degrades
+    to "unknown run" instead of crashing the tree sweep.
+    """
+    match = _RUN_RE.match(os.path.basename(name))
+    return match.group(1) if match else None
+
 
 def _norm(text: str) -> str:
     """Lowercase, drop punctuation, collapse whitespace.
@@ -170,7 +240,12 @@ def classify_gate_payload(payload: dict[str, Any]) -> str:
     Anything else -- an audit-shaped file with one field removed, or a hybrid --
     is UNCLASSIFIED and is rejected by the contract checks rather than being
     quietly routed to whichever contract suits it.
+
+    NOTE: this is machine routing only.  It is deliberately NOT sufficient for
+    ``independent_audit_present`` -- see ``check_gate_files``.
     """
+    if "__unreadable__" in payload:
+        return UNCLASSIFIED
     has_signature = all(k in payload for k in AUDIT_SIGNATURE_KEYS)
     if has_signature:
         return INDEPENDENT
@@ -180,13 +255,40 @@ def classify_gate_payload(payload: dict[str, Any]) -> str:
 
 
 
-def check_independent_audit_of_record(payload: dict[str, Any]) -> list[str]:
-    """The independent-audit contract, enforced verbatim (exact literals)."""
+def check_independent_audit_of_record(payload: dict[str, Any], run_id: str | None = None) -> list[str]:
+    """The independent-audit contract, enforced verbatim (exact literals).
+
+    ``run_id`` is the id parsed from the artifact's FILENAME.  When supplied
+    (the tree sweep always supplies it) two further checks apply, both of which
+    the signature heuristic could not do on its own:
+
+    * a run this team is on record as having authored itself can never be an
+      independent audit, whatever signature it carries;
+    * the ``run_id`` inside the payload must agree with the one in the filename,
+      so a forged body cannot be filed under another run's name.
+    """
     problems: list[str] = []
 
     for key in AUDIT_SIGNATURE_KEYS:
         if key not in payload:
             problems.append(f"independent audit is missing the signature key {key!r}")
+
+    if run_id is None:
+        problems.append(
+            f"gate artifact filename carries no numeric run id, so it cannot be "
+            f"matched to a run of record (expected CYCLE_<digits>_GATE.json)"
+        )
+    else:
+        if run_id in KNOWN_PRODUCER_AUTHORED_RUNS:
+            problems.append(
+                f"run {run_id} is a KNOWN PRODUCER-AUTHORED artifact of this team; "
+                f"it is not an independent audit whatever signature it carries"
+            )
+        payload_run = payload.get("run_id")
+        if payload_run is not None and str(payload_run) != run_id:
+            problems.append(
+                f"payload run_id {payload_run!r} disagrees with filename run id {run_id!r}"
+            )
 
     gate = payload.get("gate")
     if gate not in AUDIT_GATE_VALUES:
@@ -288,6 +390,23 @@ def check_producer_placement_copy(payload: dict[str, Any], audit_of_record_runs:
     return problems
 
 
+def load_gate_payload(path: str) -> dict[str, Any]:
+    """Read a gate artifact, degrading a corrupt file instead of raising.
+
+    Total on purpose: a truncated or non-JSON file in the audit tree must
+    surface as an UNCLASSIFIED finding that fails the contract, not as an
+    uncaught ``JSONDecodeError`` that crashes the whole suite.
+    """
+    try:
+        with open(path, encoding="utf-8") as fh:
+            payload = json.load(fh)
+    except (ValueError, OSError) as exc:
+        return {"__unreadable__": str(exc)}
+    if not isinstance(payload, dict):
+        return {"__unreadable__": f"gate artifact is a {type(payload).__name__}, not a JSON object"}
+    return payload
+
+
 def load_gate_files(repo_root: str, audit_dir: str = AUDIT_DIR) -> list[str]:
     return sorted(glob.glob(os.path.join(repo_root, audit_dir, GATE_GLOB)))
 
@@ -296,33 +415,67 @@ def classify_gate_files(repo_root: str, audit_dir: str = AUDIT_DIR) -> dict[str,
     """Split the audit tree into the artifact classes, by signature then self-declaration."""
     classes: dict[str, list[str]] = {INDEPENDENT: [], PLACEMENT: [], UNCLASSIFIED: []}
     for path in load_gate_files(repo_root, audit_dir):
-        with open(path, encoding="utf-8") as fh:
-            payload = json.load(fh)
-        classes[classify_gate_payload(payload)].append(path)
+        classes[classify_gate_payload(load_gate_payload(path))].append(path)
     return classes
 
 
 def check_gate_files(repo_root: str, audit_dir: str = AUDIT_DIR) -> dict[str, Any]:
     """Validate every gate artifact against the contract of its own class.
 
-    Returns a report whose ``ok`` is False if ANY artifact fails, plus an
-    explicit ``independent_audit_present`` invariant so that routing the two
-    classes apart can never silently empty the audit requirement.
+    Returns a report whose ``ok`` is False if ANY artifact fails, plus the
+    anti-vacuity invariant ``independent_audit_present``.
+
+    ANTI-VACUITY IS ANCHORED ON ``TRUSTED_AUDIT_RUNS``, NOT ON THE SIGNATURE.
+    ``independent_audit_present`` is True only when a run this team knows to be
+    genuine audit-job output is actually present AND still classifies as an
+    independent audit.  The previous signature-only formulation was satisfied by
+    ``CYCLE_38839354961_GATE.json`` -- an impostor this team's own ledger
+    declares to be producer-authored -- and by a bare four-field stub; both
+    proofs are recorded in the module docstring.
     """
     classes = classify_gate_files(repo_root, audit_dir)
-    audit_runs = []
+
+    signature_runs: list[str] = []
     for path in classes[INDEPENDENT]:
-        audit_runs.append(re.search(r"CYCLE_(\d+)_GATE\.json", os.path.basename(path)).group(1))
+        signature_runs.append(run_id_of(os.path.basename(path)))  # type: ignore[arg-type]
+
+    trusted_present = sorted(set(signature_runs) & TRUSTED_AUDIT_RUNS)
+    trusted_missing = sorted(TRUSTED_AUDIT_RUNS - set(signature_runs))
+    undisclosed = sorted(
+        set(signature_runs) - TRUSTED_AUDIT_RUNS - KNOWN_PRODUCER_AUTHORED_RUNS
+    )
 
     findings: list[dict[str, Any]] = []
+    disclosed: list[str] = []
     for cls in (INDEPENDENT, PLACEMENT, UNCLASSIFIED):
         for path in classes[cls]:
-            with open(path, encoding="utf-8") as fh:
-                payload = json.load(fh)
+            payload = load_gate_payload(path)
+            run_id = run_id_of(os.path.basename(path))
+            # A run this team is ON RECORD as having authored itself cannot be an
+            # independent audit.  That is the disclosed impostor, not a new
+            # defect: it is reported loudly and pinned by the in-scope
+            # provenance ledger, but it must not make the tree permanently red,
+            # because it cannot be edited or deleted (AGENTS.md rule 6) and a
+            # permanently red suite is the pathology this team has already
+            # suffered through nine dispatches.  What matters is that it can
+            # never SATISFY the anti-vacuity invariant, which it no longer can.
+            is_disclosed_impostor = (
+                cls == INDEPENDENT and run_id in KNOWN_PRODUCER_AUTHORED_RUNS
+            )
             if cls == INDEPENDENT:
-                problems = check_independent_audit_of_record(payload)
+                problems = check_independent_audit_of_record(payload, run_id)
+                if is_disclosed_impostor:
+                    disclosed.append(os.path.relpath(path, repo_root))
+                    problems = [
+                        p for p in problems
+                        if "KNOWN PRODUCER-AUTHORED" not in p
+                    ]
             elif cls == PLACEMENT:
-                problems = check_producer_placement_copy(payload, audit_runs)
+                problems = check_producer_placement_copy(payload, trusted_present or signature_runs)
+            elif "__unreadable__" in payload:
+                problems = [
+                    f"gate artifact is not readable JSON: {payload['__unreadable__']}"
+                ]
             else:
                 problems = [
                     "gate artifact is neither an independent audit of record (missing one of "
@@ -333,21 +486,30 @@ def check_gate_files(repo_root: str, audit_dir: str = AUDIT_DIR) -> dict[str, An
                 {
                     "file": os.path.relpath(path, repo_root),
                     "artifact_class": cls,
+                    "run_id": run_id,
                     "gate": payload.get("gate"),
+                    "disclosed_anomaly": is_disclosed_impostor,
                     "ok": not problems,
                     "problems": problems,
                 }
             )
 
     return {
-        "schema": "frontier-counter-label-integrity/audit-contract/1",
+        "schema": "frontier-counter-label-integrity/audit-contract/2",
         "audit_dir": audit_dir,
         "n_files": len(findings),
         "n_independent_audit_of_record": len(classes[INDEPENDENT]),
         "n_producer_placement_copy": len(classes[PLACEMENT]),
         "n_unclassified": len(classes[UNCLASSIFIED]),
-        "independent_audit_present": bool(classes[INDEPENDENT]),
-        "ok": bool(classes[INDEPENDENT])
+        "signature_classified_runs": sorted(r for r in signature_runs if r),
+        "trusted_audit_runs": sorted(TRUSTED_AUDIT_RUNS),
+        "trusted_audits_present": trusted_present,
+        "trusted_audits_missing": trusted_missing,
+        "known_producer_authored_runs": sorted(KNOWN_PRODUCER_AUTHORED_RUNS),
+        "undisclosed_signature_bearing_runs": undisclosed,
+        "disclosed_impostors": sorted(disclosed),
+        "independent_audit_present": bool(trusted_present),
+        "ok": bool(trusted_present)
         and not classes[UNCLASSIFIED]
         and all(f["ok"] for f in findings),
         "findings": findings,

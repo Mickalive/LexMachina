@@ -1,12 +1,22 @@
 {
   "audit_of_record": "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38841035773_GATE.json",
+  "audit_of_record_runs": [
+    "38841035773",
+    "38852056955"
+  ],
   "claim_ceiling": "This ledger reports artifact provenance only. It makes no claim that any decision IS supporting, contrary or limiting, proposes no fix, and is not an audit: it is a producer-written disclosure about who wrote which file.",
   "counts": {
     "declaration_machine_class_mismatches": 1,
-    "gate_files": 10,
-    "independent_audits_of_record": 1,
+    "gate_files": 11,
+    "independent_audits_of_record": 2,
+    "orphaned_reports": 0,
     "producer_authored_placement_copies": 9,
-    "report_files": 10
+    "report_files": 11,
+    "undisclosed_gate_files": 0
+  },
+  "coverage": {
+    "closed_over": "the audit tree as it stands when this ledger was generated",
+    "why_not_a_closure_assertion_over_the_live_tree": "The audit job appends one genuine independent audit to the audit tree after every successful producer dispatch (frontier-team.yml: audit job runs `if: needs.team.result == 'success'`, and its output is merged into the accepted base). The producer therefore NEVER sees its own run's audit and the tree it sees grows by one file per dispatch. Schema v1 asserted that this committed ledger equalled a fresh build over the live tree; that assertion was unsatisfiable by construction and made the suite red on every dispatch. The ledger is now an append-only RECORD: every file it names must still exist with the recorded sha256 (nothing edited, nothing deleted), and files it does not name yet are reported as UNDISCLOSED rather than treated as corruption. See results/frontier/<team>/AUDIT_TREE_PROVENANCE.schema.md."
   },
   "declaration_machine_class_mismatches": [
     {
@@ -15,8 +25,9 @@
       "file": "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38839354961_GATE.json",
       "gate_value": "PASS",
       "machine_class": "independent_audit_of_record",
+      "run_id": "38839354961",
       "sha256": "b523aee79a1295edfabea2f4f33ffe2e6d1dcd53179f8f97583a79c633e0aad1",
-      "why": "This file carries the COMPLETE independent-audit signature (required_fixes + safe_to_integrate + team) and no artifact_provenance_warning, so the contract's signature-based routing classifies it as an audit of record. It was in fact written by this team. No test reading the file can tell the difference -- that is the residual weakness declared in run 38848314260, now realised in the live tree. The file is left byte-for-byte untouched (rule 6: never overwrite or delete a claim-bearing historical artifact) and is NOT to be read as an independent gate."
+      "why": "This file carries the COMPLETE independent-audit signature (required_fixes + safe_to_integrate + team) and no artifact_provenance_warning, so the contract's signature-based routing classifies it as an audit of record. It was in fact written by this team. No test reading the file can tell the difference -- that is the residual weakness declared in run 38848314260, now realised in the live tree. The file is left byte-for-byte untouched (rule 6: never overwrite or delete a claim-bearing historical artifact) and is NOT to be read as an independent gate. It is also, as of the run 38852056955 repair, barred from satisfying the anti-vacuity invariant that requires a genuine audit of record to exist."
     }
   ],
   "gate_files": [
@@ -27,6 +38,8 @@
       "file": "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38839354961_GATE.json",
       "gate_value": "PASS",
       "machine_class": "independent_audit_of_record",
+      "relation": "CONTRADICTED",
+      "run_id": "38839354961",
       "sha256": "b523aee79a1295edfabea2f4f33ffe2e6d1dcd53179f8f97583a79c633e0aad1",
       "team": "frontier-counter-label-integrity"
     },
@@ -37,6 +50,8 @@
       "file": "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38841035773_GATE.json",
       "gate_value": "PASS",
       "machine_class": "independent_audit_of_record",
+      "relation": "AGREES",
+      "run_id": "38841035773",
       "sha256": "20c9ba25f438dace3bdb9214b90dda83c808173d969e63e0f1a9c6cec7bb378d",
       "team": "frontier-counter-label-integrity"
     },
@@ -47,6 +62,8 @@
       "file": "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38845649012_GATE.json",
       "gate_value": "TERMINATE",
       "machine_class": "producer_placement_copy",
+      "relation": "AGREES",
+      "run_id": "38845649012",
       "sha256": "998969f8f15f2a457305d3f1f6ca44d9fb3297d1a53b831187678f216c3c8f19",
       "team": null
     },
@@ -57,6 +74,8 @@
       "file": "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38846758718_GATE.json",
       "gate_value": "TERMINATE",
       "machine_class": "producer_placement_copy",
+      "relation": "AGREES",
+      "run_id": "38846758718",
       "sha256": "c47b58cf48797b48c34a540d160bf894624c091d25fcde3a5535a8b403bc63ab",
       "team": null
     },
@@ -67,6 +86,8 @@
       "file": "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38848314260_GATE.json",
       "gate_value": "TERMINATE",
       "machine_class": "producer_placement_copy",
+      "relation": "AGREES",
+      "run_id": "38848314260",
       "sha256": "a9489efb15cbc64bfb4163f3ee69a93931961359f17883222c912acfd8d4bce0",
       "team": null
     },
@@ -77,6 +98,8 @@
       "file": "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38849513219_GATE.json",
       "gate_value": "TERMINATE",
       "machine_class": "producer_placement_copy",
+      "relation": "AGREES",
+      "run_id": "38849513219",
       "sha256": "120ba90294c0a1bb34b51064f8a555067faef3be35de37715800f029c07e714b",
       "team": null
     },
@@ -87,6 +110,8 @@
       "file": "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38849940657_GATE.json",
       "gate_value": "TERMINATE",
       "machine_class": "producer_placement_copy",
+      "relation": "AGREES",
+      "run_id": "38849940657",
       "sha256": "3168e174c3d18f469dc2141f098f4b8b42e9b9d7dab6b90459422fca7761a87d",
       "team": null
     },
@@ -97,6 +122,8 @@
       "file": "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38850302366_GATE.json",
       "gate_value": "TERMINATE",
       "machine_class": "producer_placement_copy",
+      "relation": "AGREES",
+      "run_id": "38850302366",
       "sha256": "4e1b2b0a9cf469044a7c95528c6699770dfc5172d5a096ee42270e3bc673c2db",
       "team": null
     },
@@ -107,6 +134,8 @@
       "file": "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38850765576_GATE.json",
       "gate_value": "TERMINATE",
       "machine_class": "producer_placement_copy",
+      "relation": "AGREES",
+      "run_id": "38850765576",
       "sha256": "9bb7469e3c743cae2c191f0648cbd5fe8c2b016fcc9c1d7371ba081d5b999d6c",
       "team": null
     },
@@ -117,12 +146,27 @@
       "file": "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38851515402_GATE.json",
       "gate_value": "TERMINATE",
       "machine_class": "producer_placement_copy",
+      "relation": "AGREES",
+      "run_id": "38851515402",
       "sha256": "b21bb0b1988742862801f3fbef8da7eba8a2d4bef9903e6100a7196627748bf5",
       "team": null
+    },
+    {
+      "carries_provenance_warning": false,
+      "declaration_matches_machine_class": true,
+      "declared_provenance": "INDEPENDENT_AUDIT_OF_RECORD",
+      "file": "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38852056955_GATE.json",
+      "gate_value": "PASS",
+      "machine_class": "independent_audit_of_record",
+      "relation": "AGREES",
+      "run_id": "38852056955",
+      "sha256": "4528652d7ce5da7f86f543a28e8cc479d51967831eba113c06ae799d4598e487",
+      "team": "frontier-counter-label-integrity"
     }
   ],
   "independent_audits_of_record": [
-    "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38841035773_GATE.json"
+    "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38841035773_GATE.json",
+    "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38852056955_GATE.json"
   ],
   "producer_authored_placement_copies": [
     "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38839354961_GATE.json",
@@ -135,59 +179,109 @@
     "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38850765576_GATE.json",
     "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38851515402_GATE.json"
   ],
-  "producer_write_policy": "The producer does NOT write results/audit/** or reports/audit/**. Those paths are absent from the workflow's 'Enforce team scope' allow-list and from charter acceptance test (12); the eight dispatches 38845649012 -> 38851515402 each failed the producer job at exactly that step. This ledger is the in-scope home of the provenance disclosure the placement copies used to carry in a tree the producer does not own.",
+  "producer_write_policy": "The producer does NOT write results/audit/** or reports/audit/**. Those paths are absent from the workflow's 'Enforce team scope' allow-list and from charter acceptance test (12); the eight dispatches 38845649012 -> 38851515402 each failed the producer job at exactly that step. This ledger is the in-scope home of the provenance disclosure the placement copies used to carry in a tree the producer does not own. disposition.py also refuses an --out outside that allow-list, so the loop cannot be re-armed by pointing this module at the audit tree.",
   "report_files": [
     {
       "declared_provenance": "PRODUCER_AUTHORED_PLACEMENT_COPY",
       "file": "reports/audit/frontier/frontier-counter-label-integrity/CYCLE_38839354961.md",
-      "sha256": "2fe9cba343c9c856c899ee7507629116896610d64c924ed2b59c0a599e5df0e8"
+      "orphaned_report": false,
+      "relation": "CONTRADICTED",
+      "run_id": "38839354961",
+      "sha256": "2fe9cba343c9c856c899ee7507629116896610d64c924ed2b59c0a599e5df0e8",
+      "sibling_gate_relation": "CONTRADICTED"
     },
     {
       "declared_provenance": "INDEPENDENT_AUDIT_OF_RECORD",
       "file": "reports/audit/frontier/frontier-counter-label-integrity/CYCLE_38841035773.md",
-      "sha256": "d85438c1e383f71c675ebc27eb33c45c09a47a6b4c1b5467784f032603bd3cbf"
+      "orphaned_report": false,
+      "relation": "AGREES",
+      "run_id": "38841035773",
+      "sha256": "d85438c1e383f71c675ebc27eb33c45c09a47a6b4c1b5467784f032603bd3cbf",
+      "sibling_gate_relation": "AGREES"
     },
     {
       "declared_provenance": "PRODUCER_AUTHORED_PLACEMENT_COPY",
       "file": "reports/audit/frontier/frontier-counter-label-integrity/CYCLE_38845649012.md",
-      "sha256": "e57976e553268aee95a75ea5635d878dfd51806aa04dd526a96f993aaa5bd44d"
+      "orphaned_report": false,
+      "relation": "AGREES",
+      "run_id": "38845649012",
+      "sha256": "e57976e553268aee95a75ea5635d878dfd51806aa04dd526a96f993aaa5bd44d",
+      "sibling_gate_relation": "AGREES"
     },
     {
       "declared_provenance": "PRODUCER_AUTHORED_PLACEMENT_COPY",
       "file": "reports/audit/frontier/frontier-counter-label-integrity/CYCLE_38846758718.md",
-      "sha256": "b512dd24a4301d6eb90a1c3a119f95a720960409f382bd8c5077620b43e8844e"
+      "orphaned_report": false,
+      "relation": "AGREES",
+      "run_id": "38846758718",
+      "sha256": "b512dd24a4301d6eb90a1c3a119f95a720960409f382bd8c5077620b43e8844e",
+      "sibling_gate_relation": "AGREES"
     },
     {
       "declared_provenance": "PRODUCER_AUTHORED_PLACEMENT_COPY",
       "file": "reports/audit/frontier/frontier-counter-label-integrity/CYCLE_38848314260.md",
-      "sha256": "801735d66a5f2b6c0e7f51cee3ba2226e247901b336b9734d7532e36b7e1e194"
+      "orphaned_report": false,
+      "relation": "AGREES",
+      "run_id": "38848314260",
+      "sha256": "801735d66a5f2b6c0e7f51cee3ba2226e247901b336b9734d7532e36b7e1e194",
+      "sibling_gate_relation": "AGREES"
     },
     {
       "declared_provenance": "PRODUCER_AUTHORED_PLACEMENT_COPY",
       "file": "reports/audit/frontier/frontier-counter-label-integrity/CYCLE_38849513219.md",
-      "sha256": "9c80ca761caaf964115542e60fc2ddcc5a12737ec5a64d725f367e531c676acd"
+      "orphaned_report": false,
+      "relation": "AGREES",
+      "run_id": "38849513219",
+      "sha256": "9c80ca761caaf964115542e60fc2ddcc5a12737ec5a64d725f367e531c676acd",
+      "sibling_gate_relation": "AGREES"
     },
     {
       "declared_provenance": "PRODUCER_AUTHORED_PLACEMENT_COPY",
       "file": "reports/audit/frontier/frontier-counter-label-integrity/CYCLE_38849940657.md",
-      "sha256": "2ac158ef76cdb33f9e0280f580ce1ea327d587650fd6d0284678dd6760a2b05d"
+      "orphaned_report": false,
+      "relation": "AGREES",
+      "run_id": "38849940657",
+      "sha256": "2ac158ef76cdb33f9e0280f580ce1ea327d587650fd6d0284678dd6760a2b05d",
+      "sibling_gate_relation": "AGREES"
     },
     {
       "declared_provenance": "PRODUCER_AUTHORED_PLACEMENT_COPY",
       "file": "reports/audit/frontier/frontier-counter-label-integrity/CYCLE_38850302366.md",
-      "sha256": "1de349730218c6a22031b8f744c4d027741cc0734d35b3188bef0f8e934e087d"
+      "orphaned_report": false,
+      "relation": "AGREES",
+      "run_id": "38850302366",
+      "sha256": "1de349730218c6a22031b8f744c4d027741cc0734d35b3188bef0f8e934e087d",
+      "sibling_gate_relation": "AGREES"
     },
     {
       "declared_provenance": "PRODUCER_AUTHORED_PLACEMENT_COPY",
       "file": "reports/audit/frontier/frontier-counter-label-integrity/CYCLE_38850765576.md",
-      "sha256": "a308e647332ba6e3600b641bf1e939b1f092b56d5ce724cea576d6ac3bfee8c6"
+      "orphaned_report": false,
+      "relation": "AGREES",
+      "run_id": "38850765576",
+      "sha256": "a308e647332ba6e3600b641bf1e939b1f092b56d5ce724cea576d6ac3bfee8c6",
+      "sibling_gate_relation": "AGREES"
     },
     {
       "declared_provenance": "PRODUCER_AUTHORED_PLACEMENT_COPY",
       "file": "reports/audit/frontier/frontier-counter-label-integrity/CYCLE_38851515402.md",
-      "sha256": "8e9af459cc69b9901ad620b8e27f27c022433e98c85032b9eeed26b3a2bc75f8"
+      "orphaned_report": false,
+      "relation": "AGREES",
+      "run_id": "38851515402",
+      "sha256": "8e9af459cc69b9901ad620b8e27f27c022433e98c85032b9eeed26b3a2bc75f8",
+      "sibling_gate_relation": "AGREES"
+    },
+    {
+      "declared_provenance": "INDEPENDENT_AUDIT_OF_RECORD",
+      "file": "reports/audit/frontier/frontier-counter-label-integrity/CYCLE_38852056955.md",
+      "orphaned_report": false,
+      "relation": "AGREES",
+      "run_id": "38852056955",
+      "sha256": "1cba46fc3109cc0ba15556586cd58b1f308908be551066bbfbaa97a206fdec5c",
+      "sibling_gate_relation": "AGREES"
     }
   ],
-  "schema": "frontier-counter-label-integrity/audit_tree_provenance/v1",
-  "team_id": "frontier-counter-label-integrity"
+  "schema": "frontier-counter-label-integrity/audit_tree_provenance/v2",
+  "team_id": "frontier-counter-label-integrity",
+  "undisclosed_gate_files": []
 }
