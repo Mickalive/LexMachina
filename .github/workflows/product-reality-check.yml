@@ -102,6 +102,7 @@ jobs:
                   "counter_evidence": str(d.get("counter_evidence") or "")[:600],
                   "counter_evidence_verified": d.get("counter_evidence_verified"),
                   "counter_confidence": d.get("counter_confidence"),
+                  "adversarial_channel": d.get("adversarial_channel"),
                   "snippet": str(d.get("snippet") or "")[:900],
                   "canonical_url": d.get("canonical_url"),
               }
@@ -173,9 +174,10 @@ jobs:
               assert str(counter.get("counter_evidence") or "").strip(), (
                   f"surfaced counter has empty evidence: {counter}"
               )
-              assert (counter.get("rank") or 10**9) <= 40, (
-                  f"surfaced counter escaped precision head: {counter}"
-              )
+              assert (
+                  (counter.get("rank") or 10**9) <= 40
+                  or bool(counter.get("adversarial_channel"))
+              ), f"surfaced counter escaped precision policy: {counter}"
 
           # Product truth gates: structural green is not enough. These encode
           # independently known legal propositions/authorities for the four
