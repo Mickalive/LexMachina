@@ -100,6 +100,8 @@ jobs:
                   "cluster_id": d.get("cluster_id"),
                   "counter_status": d.get("counter_status"),
                   "counter_evidence": str(d.get("counter_evidence") or "")[:600],
+                  "counter_evidence_verified": d.get("counter_evidence_verified"),
+                  "counter_confidence": d.get("counter_confidence"),
                   "snippet": str(d.get("snippet") or "")[:900],
                   "canonical_url": d.get("canonical_url"),
               }
@@ -161,6 +163,19 @@ jobs:
           assert ga.get("provider_error") in (None, ""), report
           assert adv.get("method") == "independent_llm_adversarial_v2", report
           assert adv.get("error") in (None, ""), report
+          assert len(final.get("decisions") or []) <= 100, (
+              f"top_n=100 must not serve {len(final.get('decisions') or [])} decisions"
+          )
+          for counter in counter_rows:
+              assert counter.get("counter_evidence_verified") is True, (
+                  f"surfaced counter lacks verified evidence: {counter}"
+              )
+              assert str(counter.get("counter_evidence") or "").strip(), (
+                  f"surfaced counter has empty evidence: {counter}"
+              )
+              assert (counter.get("rank") or 10**9) <= 40, (
+                  f"surfaced counter escaped precision head: {counter}"
+              )
 
           # Product truth gates: structural green is not enough. These encode
           # independently known legal propositions/authorities for the four
@@ -235,7 +250,7 @@ jobs:
               ), "missing judicial-restraint proposition"
               assert (
                   "defendable" in prose or "vertretbar" in prose or "justifiable" in prose
-                  or "plausible" in prose
+                  or "plausible" in prose or "plausibilite" in prose
               ), "missing residual merits threshold"
               assert cited_ids & {
                   "bger_4A_219_2015", "bger_4A_259_2016", "bger_4A_626_2013",
