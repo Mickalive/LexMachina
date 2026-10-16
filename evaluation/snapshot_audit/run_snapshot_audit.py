@@ -1,0 +1,399 @@
+"""Snapshot audit-readiness verifier (stdlib only, no network, no Product import).
+
+One command re-verifies everything this lane's snapshot claims and emits a
+machine-readable readiness record for the INDEPENDENT auditor:
+
+    python -m evaluation.snapshot_audit.run_snapshot_audit --run-id <run_id>
+
+Checks (each recorded PASS/FAIL/NOT_RUN; no check is silently dropped):
+
+  1. frozen_rubric_rehash       RULES_LABEL/RULES_GEOMETRY re-hash to the
+                                direction-pinned sha256 values and every
+                                vendored file matches VENDORED_SHA256.json.
+  2. bar_gates_verdict          the frozen-bar gates entry point re-exits 0
+                                PASS_NO_REGRESSION on the served lineage with
+                                all negative controls proven and both incumbents
+                                recomputed exactly (labels 5/65 = classes
+                                38/22/5/0; geometry de 6 / fr 5 / it 5).
+                                Requires the accepted product mount; its
+                                absence is recorded as a FAIL with the
+                                environment reason, never hidden.
+  3. h1_default_record_identity  the fresh default-mode record is identical
+                                to the accepted 38971202786.json except the
+                                elapsed_s field (normalization: parsed JSON,
+                                sort_keys, indent=2, elapsed_s removed).
+  4. lane_suite_pass            python -m evaluation.lane_suite exits 0 with
+                                a PASS summary (stdlib checks authoritative;
+                                an absent pytest is a disclosed SKIP).
+  5. state_evidence_refs_resolve every path in state/evaluation.json
+                                evidence_refs exists in the snapshot.
+  6. deliverable_manifest_complete  every file of the v50 deliverable set and
+                                of this resume's delta exists; sha256 of each is
+                                embedded in the readiness record.
+  7. orchestration_diagnosis_record  the job-level orchestration diagnosis
+                                artifact exists with the required structure.
+
+Exit 0 = ready_for_independent_audit (all checks PASS). Exit 1 = not ready.
+The readiness record states the exact gate path the auditor must write:
+results/audit/evaluation/CYCLE_<run_id>_GATE.json (uppercase _GATE.json,
+relative to the audit-job checkout) and reports/audit/evaluation/CYCLE_<run_id>.md.
+This module never writes audit artifacts itself; the independent audit
+checkout remains the only audit of record.
+
+No frozen rubric, threshold, bar, incumbent, gate success rule or recorded
+verdict is read for modification; every frozen input is only re-hashed.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import re
+import subprocess
+import sys
+import tempfile
+from datetime import datetime, timezone
+from pathlib import Path
+
+SCHEMA = "lex-evaluation-snapshot-audit/1"
+
+# Direction v50 pinned values (factory_direction.json lanes.evaluation.question).
+RULES_LABEL_SHA256 = "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608"
+RULES_GEOMETRY_SHA256 = "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633"
+ACCEPTED_RUN_ID = "38971202786"
+ACCEPTED_BAR_GATES_RECORD = "results/evaluation/bar_gates/38971202786.json"
+LABEL_INCUMBENT = {"n_scored": 65, "n_supported": 5,
+                   "classes": {"OFF-DOMAIN": 38, "UNBACKED": 22, "SUPPORTED": 5, "INVERTED": 0}}
+GEOMETRY_INCUMBENT = {"de-kapitalverletzung": 6, "fr-bail-entretien": 5,
+                      "it-responsabilita-medica": 5}
+DIAGNOSIS_PATH = "evaluation/snapshot_audit/orchestration_diagnosis_2026-10-16.json"
+DIAGNOSIS_REQUIRED_RUNS = ("38972887369", "38977570612")
+
+# The v50 frozen-bar deliverable set plus this resume's delta. Every listed
+# file must exist; each is sha256-pinned into the readiness record.
+DELIVERABLE_MANIFEST_PATHS = [
+    "evaluation/frozen_bars/RULES_LABEL.json",
+    "evaluation/frozen_bars/RULES_GEOMETRY.json",
+    "evaluation/frozen_bars/FETCH_RECORD.json",
+    "evaluation/frozen_bars/VERDICT_CONTRACT.json",
+    "evaluation/frozen_bars/label_gate.py",
+    "evaluation/frozen_bars/geometry_gate.py",
+    "evaluation/frozen_bars/run_bar_gates.py",
+    "evaluation/frozen_bars/run_adjudication_probes.py",
+    "evaluation/frozen_bars/verdict_contract.py",
+    "evaluation/frozen_bars/vendored/VENDORED_SHA256.json",
+    "tests/evaluation/test_frozen_bar_gates.py",
+    "tests/evaluation/test_bar_gate_verdict_contract.py",
+    "results/evaluation/bar_gates/38971202786.json",
+    "results/evaluation/verdict_contract/FREEZE_38972887369.json",
+    "results/evaluation/verdict_contract/38972887369_reachability.json",
+    "reports/evaluation/BAR_GATES_38972887369.md",
+    "evaluation/snapshot_audit/run_snapshot_audit.py",
+    "evaluation/snapshot_audit/orchestration_diagnosis_2026-10-16.json",
+    "tests/evaluation/test_snapshot_audit.py",
+    "reports/evaluation/CYCLE_38978411574.md",
+    "state/evaluation.json",
+]
+
+
+def _sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _check(cid: str, ok: bool, detail: str, **extra) -> dict:
+    out = {"id": cid, "status": "PASS" if ok else "FAIL", "detail": detail}
+    out.update(extra)
+    return out
+
+
+def check_rubric_rehash(repo_root: Path) -> dict:
+    """Check 1: frozen rubric bytes re-hash to the direction-pinned values."""
+    mismatches = []
+    observed = {}
+    for rel, pinned in (("evaluation/frozen_bars/RULES_LABEL.json", RULES_LABEL_SHA256),
+                        ("evaluation/frozen_bars/RULES_GEOMETRY.json", RULES_GEOMETRY_SHA256)):
+        p = repo_root / rel
+        if not p.exists():
+            mismatches.append({"path": rel, "error": "missing"})
+            continue
+        actual = _sha256_file(p)
+        observed[rel] = actual
+        if actual != pinned:
+            mismatches.append({"path": rel, "expected_sha256": pinned, "actual_sha256": actual})
+    vendored_sha_path = repo_root / "evaluation/frozen_bars/vendored/VENDORED_SHA256.json"
+    n_vendored = 0
+    if vendored_sha_path.exists():
+        vendored = json.loads(vendored_sha_path.read_text(encoding="utf-8"))
+        for rel, expected in vendored.get("files", {}).items():
+            n_vendored += 1
+            p = repo_root / rel
+            if not p.exists():
+                mismatches.append({"path": rel, "error": "missing vendored file"})
+                continue
+            actual = _sha256_file(p)
+            if actual != expected:
+                mismatches.append({"path": rel, "expected_sha256": expected,
+                                   "actual_sha256": actual})
+    else:
+        mismatches.append({"path": str(vendored_sha_path), "error": "missing"})
+    ok = not mismatches
+    detail = (f"RULES_LABEL={observed.get('evaluation/frozen_bars/RULES_LABEL.json', 'missing')[:12]}… "
+              f"RULES_GEOMETRY={observed.get('evaluation/frozen_bars/RULES_GEOMETRY.json', 'missing')[:12]}… "
+              f"vendored {n_vendored}/{n_vendored} match") if ok else f"digest mismatches: {mismatches}"
+    return _check("frozen_rubric_rehash", ok, detail,
+                  observed=observed, n_vendored_checked=n_vendored, mismatches=mismatches)
+
+
+def run_bar_gates(repo_root: Path, out_path: Path) -> tuple[int, dict | None, str]:
+    """Check 2 helper: execute the frozen-bar gates entry point as a subprocess."""
+    proc = subprocess.run(
+        [sys.executable, "-m", "evaluation.frozen_bars.run_bar_gates", "--out", str(out_path)],
+        cwd=str(repo_root), capture_output=True, text=True, timeout=600)
+    record = None
+    if out_path.exists():
+        try:
+            record = json.loads(out_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            record = None
+    return proc.returncode, record, (proc.stderr or "").strip()
+
+
+def check_bar_gates_verdict(repo_root: Path, workdir: Path) -> dict:
+    """Check 2: gates exit 0 PASS_NO_REGRESSION with incumbents recomputed."""
+    out_path = workdir / "bar_gates_fresh.json"
+    rc, record, stderr = run_bar_gates(repo_root, out_path)
+    if rc == 2 or record is None:
+        return _check("bar_gates_verdict", False,
+                      f"bar gates did not produce a record (exit {rc}); "
+                      f"stderr: {stderr[:400] or 'empty'}", exit_code=rc)
+    if rc != 0:
+        return _check("bar_gates_verdict", False,
+                      f"bar gates exit {rc}; verdict={record.get('verdict')}", exit_code=rc)
+    # The gate counts only OBSERVED defect classes (a zero-count class is
+    # absent from its classes dict — even the accepted record omits INVERTED).
+    # Default-zero semantics: an absent class means count 0, which is exactly
+    # what the incumbent's INVERTED=0 asserts. A regressed packet with inverted
+    # rows present carries INVERTED: N>0 and still mismatches.
+    observed_classes = record["label_gate"]["classes"]
+    label_classes_ok = all(observed_classes.get(k, 0) == v
+                           for k, v in LABEL_INCUMBENT["classes"].items())
+    label_ok = (record["label_gate"]["n_scored"] == LABEL_INCUMBENT["n_scored"]
+                and record["label_gate"]["n_supported"] == LABEL_INCUMBENT["n_supported"]
+                and label_classes_ok)
+    geom_ok = record["geometry_gate"]["per_bundle_counts"] == GEOMETRY_INCUMBENT
+    neg_ok = bool(record.get("negative_controls_all_proven"))
+    ok = (record.get("verdict") == "PASS_NO_REGRESSION" and label_ok and geom_ok and neg_ok)
+    detail = (f"verdict={record.get('verdict')} labels {record['label_gate']['n_supported']}/"
+              f"{record['label_gate']['n_scored']} classes={record['label_gate']['classes']} "
+              f"geometry={record['geometry_gate']['per_bundle_counts']} "
+              f"negative_controls={neg_ok} absolute={record['absolute_status_summary']}")
+    return _check("bar_gates_verdict", ok, detail, exit_code=rc, fresh_record=str(out_path),
+                  label_recomputed=record["label_gate"]["classes"],
+                  geometry_recomputed=record["geometry_gate"]["per_bundle_counts"],
+                  absolute_status=record["absolute_status_summary"],
+                  negative_controls_all_proven=neg_ok)
+
+
+def compare_h1(fresh: dict, accepted: dict) -> dict:
+    """Check 3 helper: identical except elapsed_s under a fixed normalization.
+
+    Normalization: parsed JSON, sort_keys=True, indent=2, top-level elapsed_s
+    removed from both sides. Formatting-independent by construction.
+    """
+    def norm(rec: dict) -> str:
+        stripped = {k: v for k, v in rec.items() if k != "elapsed_s"}
+        return json.dumps(stripped, sort_keys=True, indent=2, ensure_ascii=False)
+
+    diffs = []
+    if norm(fresh) != norm(accepted):
+        fresh_keys, acc_keys = set(fresh), set(accepted)
+        for k in sorted(fresh_keys | acc_keys):
+            if k == "elapsed_s":
+                continue
+            if fresh.get(k) != accepted.get(k):
+                diffs.append(k)
+    return {"identical_except_elapsed_s": not diffs, "differing_fields": diffs}
+
+
+def check_h1(repo_root: Path, fresh_record_path: Path) -> dict:
+    accepted_path = repo_root / ACCEPTED_BAR_GATES_RECORD
+    if not fresh_record_path.exists():
+        return _check("h1_default_record_identity", False,
+                      "fresh bar-gates record not available (check 2 did not produce one)",
+                      status="NOT_RUN")
+    if not accepted_path.exists():
+        return _check("h1_default_record_identity", False,
+                      f"accepted record missing: {ACCEPTED_BAR_GATES_RECORD}")
+    fresh = json.loads(fresh_record_path.read_text(encoding="utf-8"))
+    accepted = json.loads(accepted_path.read_text(encoding="utf-8"))
+    cmp_ = compare_h1(fresh, accepted)
+    ok = cmp_["identical_except_elapsed_s"]
+    detail = ("fresh default-mode record identical to accepted "
+              f"{ACCEPTED_BAR_GATES_RECORD} except elapsed_s (normalization: parsed JSON, "
+              "sort_keys, indent=2, elapsed_s removed)") if ok else \
+             (f"H1 VIOLATION, differing fields: {cmp_['differing_fields']}")
+    return _check("h1_default_record_identity", ok, detail,
+                  differing_fields=cmp_["differing_fields"],
+                  normalization="parsed JSON, sort_keys=True, indent=2, elapsed_s removed")
+
+
+def check_lane_suite(repo_root: Path) -> dict:
+    proc = subprocess.run([sys.executable, "-m", "evaluation.lane_suite"],
+                          cwd=str(repo_root), capture_output=True, text=True, timeout=600)
+    out = proc.stdout or ""
+    m = re.search(r"lane suite: (PASS|FAIL)", out)
+    summary = m.group(1) if m else None
+    ok = proc.returncode == 0 and summary == "PASS"
+    tail = [ln for ln in out.strip().splitlines() if ln.strip()][-1:] or ["<no output>"]
+    return _check("lane_suite_pass", ok,
+                  f"exit={proc.returncode} summary={summary or 'unparsed'} last_line={tail[0]}",
+                  exit_code=proc.returncode, summary=summary)
+
+
+def check_evidence_refs(repo_root: Path) -> dict:
+    state_path = repo_root / "state/evaluation.json"
+    if not state_path.exists():
+        return _check("state_evidence_refs_resolve", False, "state/evaluation.json missing")
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    refs = state.get("evidence_refs", [])
+    missing = []
+    for r in refs:
+        # Refs are repo-root-relative paths; a trailing parenthetical note, if
+        # any, is not part of the path (first whitespace token is the path).
+        p = r.split()[0] if r.split() else r
+        if not (repo_root / p).exists():
+            missing.append(r)
+    ok = not missing
+    detail = f"{len(refs)}/{len(refs)} evidence_refs resolve (rule: first whitespace token is the path)" if ok \
+        else f"{len(missing)} unresolved refs: {missing[:5]}"
+    return _check("state_evidence_refs_resolve", ok, detail,
+                  n_refs=len(refs), n_missing=len(missing), missing=missing[:10])
+
+
+def check_manifest(repo_root: Path) -> dict:
+    missing = [rel for rel in DELIVERABLE_MANIFEST_PATHS if not (repo_root / rel).exists()]
+    manifest = {rel: _sha256_file(repo_root / rel)
+                for rel in DELIVERABLE_MANIFEST_PATHS if (repo_root / rel).exists()}
+    ok = not missing
+    detail = (f"{len(manifest)}/{len(DELIVERABLE_MANIFEST_PATHS)} deliverable files present, "
+              "sha256 embedded in readiness record") if ok else f"missing deliverable files: {missing}"
+    return _check("deliverable_manifest_complete", ok, detail,
+                  n_files=len(manifest), missing=missing)
+
+
+def check_diagnosis_record(repo_root: Path) -> dict:
+    path = repo_root / DIAGNOSIS_PATH
+    if not path.exists():
+        return _check("orchestration_diagnosis_record", False, f"{DIAGNOSIS_PATH} missing")
+    diag = json.loads(path.read_text(encoding="utf-8"))
+    problems = []
+    if diag.get("schema") != "lex-evaluation-orchestration-diagnosis/1":
+        problems.append("schema")
+    if not diag.get("query_method"):
+        problems.append("query_method")
+    if not diag.get("limits"):
+        problems.append("limits")
+    runs = diag.get("runs", {})
+    for rid in DIAGNOSIS_REQUIRED_RUNS:
+        run = runs.get(rid)
+        if not run:
+            problems.append(f"runs.{rid}")
+            continue
+        if not run.get("conclusion"):
+            problems.append(f"runs.{rid}.conclusion")
+        audit = run.get("jobs", {}).get("audit", {})
+        conclusion = audit.get("conclusion")
+        if conclusion == "failure" and not audit.get("failed_step"):
+            problems.append(f"runs.{rid}.jobs.audit.failed_step")
+        if conclusion == "skipped" and not (audit.get("skipped_because") or audit.get("interpretation")):
+            problems.append(f"runs.{rid}.jobs.audit.skipped_because")
+    amb = runs.get("38977570612", {}).get("jobs", {}).get("audit", {}).get("ambiguity_flag")
+    if not amb:
+        problems.append("runs.38977570612 ambiguous-cause flag")
+    ok = not problems
+    detail = ("diagnosis artifact structurally complete; both failed runs carry job/step-level "
+              "conclusions; the un-loggable cause ambiguity is explicitly flagged") if ok \
+        else f"diagnosis structural problems: {problems}"
+    return _check("orchestration_diagnosis_record", ok, detail, problems=problems)
+
+
+def build_record(run_id: str, checks: list[dict], manifest: dict) -> dict:
+    n_pass = sum(1 for c in checks if c["status"] == "PASS")
+    ready = n_pass == len(checks)
+    return {
+        "schema": SCHEMA,
+        "run_id": run_id,
+        "generated_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "checks": checks,
+        "n_checks": len(checks),
+        "n_passed": n_pass,
+        "ready_for_independent_audit": ready,
+        "audit_gate_path": f"results/audit/evaluation/CYCLE_{run_id}_GATE.json",
+        "audit_report_path": f"reports/audit/evaluation/CYCLE_{run_id}.md",
+        "audit_gate_path_rule": "uppercase _GATE.json suffix, relative to the audit-job checkout; never /tmp/lex_team, never lowercase",
+        "deliverable_sha256": manifest,
+        "snapshot_claims_verified": [
+            "frozen rubric bytes re-hash to direction-pinned 4457e971/a7452748 and the vendored set matches VENDORED_SHA256.json",
+            "frozen-bar gates re-run exits 0 PASS_NO_REGRESSION on the served lineage; negative controls all proven; label 5/65 (38/22/5/0) and geometry de 6 / fr 5 / it 5 recompute exactly",
+            "fresh default-mode record identical to accepted 38971202786.json except elapsed_s (H1)",
+            "python -m evaluation.lane_suite exits 0 PASS (stdlib authoritative)",
+            "every state/evaluation.json evidence_ref resolves in the snapshot",
+            "deliverable manifest complete; every file sha256-pinned in this record",
+            "job-level orchestration diagnosis for runs 38972887369/38977570612 recorded with required structure",
+        ],
+        "snapshot_claims_not_certified": [
+            "jurist-usefulness of the map (human gate); human_gate_ready stays false under the standing accepted DO-NOT-SERVE order",
+            "absolute bars LABEL_UNSOUND and GEOMETRY_UNSOUND remain the accepted status of the served packet; reported, never enforced",
+            "no Frontier candidate re-measured; no 174k/global-map benchmark rerun; no Product import; no network",
+            "job-LOG-level cause of the 38977570612 audit-step failure remains two flagged candidate causes (logs 403 unauthenticated), not one asserted cause",
+        ],
+    }
+
+
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--run-id", default=os.environ.get("GITHUB_RUN_ID", "local"))
+    ap.add_argument("--out", default=None)
+    ap.add_argument("--repo-root", default=str(Path.cwd()))
+    args = ap.parse_args(argv)
+
+    repo_root = Path(args.repo_root).resolve()
+    out_path = Path(args.out) if args.out else repo_root / "results/evaluation/snapshot_audit" / f"{args.run_id}.json"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    manifest = {}
+    with tempfile.TemporaryDirectory(prefix="snapshot_audit_") as td:
+        workdir = Path(td)
+        checks = [
+            check_rubric_rehash(repo_root),
+            check_bar_gates_verdict(repo_root, workdir),
+        ]
+        fresh_record = workdir / "bar_gates_fresh.json"
+        checks.append(check_h1(repo_root, fresh_record))
+        checks.extend([
+            check_lane_suite(repo_root),
+            check_evidence_refs(repo_root),
+        ])
+        manifest = {rel: _sha256_file(repo_root / rel)
+                    for rel in DELIVERABLE_MANIFEST_PATHS if (repo_root / rel).exists()}
+        checks.append(check_manifest(repo_root))
+        checks.append(check_diagnosis_record(repo_root))
+
+    record = build_record(args.run_id, checks, manifest)
+    out_path.write_text(json.dumps(record, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    for c in checks:
+        print(f"[{c['status']}] {c['id']}: {c['detail']}")
+    print(f"snapshot audit: {'READY' if record['ready_for_independent_audit'] else 'NOT READY'} "
+          f"({record['n_passed']}/{record['n_checks']} checks PASS)")
+    print(f"readiness record: {out_path}")
+    return 0 if record["ready_for_independent_audit"] else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

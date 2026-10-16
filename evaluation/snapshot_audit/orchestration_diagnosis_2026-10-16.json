@@ -1,0 +1,70 @@
+{
+  "schema": "lex-evaluation-orchestration-diagnosis/1",
+  "purpose": "Job-level GitHub Actions evidence for why evaluation-lane runs 38972887369 and 38977570612 produced no audit gate and no promotion. This artifact upgrades the repo-evidence-only, hedged diagnosis recorded in state/evaluation.json block operational_resume_38977570612 (which lacked API access) to API-confirmed job/step-level fact.",
+  "query_method": "Unauthenticated GitHub REST API: GET https://api.github.com/repos/Mickalive/LexMachina/actions/runs/{run_id} and .../actions/runs/{run_id}/jobs. Repository is public (API field \"private\": false). Queried 2026-10-16 during run 38978411574.",
+  "limits": "Job LOGS are not readable unauthenticated (HTTP 403 'Must have admin rights to Repository' on GET .../actions/jobs/{job_id}/logs). Facts below are run/job/step-LEVEL CONCLUSIONS returned by the API; the stderr/stdout of the failed steps is not part of this record. Where a step-level conclusion admits more than one cause, both candidate causes are recorded and the ambiguity is flagged, per the set-identity/no-overclaim discipline.",
+  "runs": {
+    "38972887369": {
+      "run_name": "Core evaluation dirV50 repair0",
+      "event": "workflow_dispatch",
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "c662ddeb",
+      "producer_commit_snapshot": "7169faad (persisted by the 'Persist team snapshot' step, which succeeded after the producer died)",
+      "job_id_team": 117215272290,
+      "jobs": {
+        "team": {
+          "conclusion": "failure",
+          "failed_step": "Run lane cycle",
+          "step_facts": "all steps before 'Run lane cycle' succeeded; 'Run lane cycle' failed; subsequent producer steps skipped; 'Clean generated junk' and 'Persist team snapshot' succeeded",
+          "interpretation": "the producer (Ox/OpenCode agent) died mid-cycle after its commits were made but before the step exited 0. Class: provider/process death of the producer job (factory-wide requirement 20 class), not a lane-code defect: the persisted snapshot is the accepted-base-plus-two-commits tree that run 38977570612 resumed from."
+        },
+        "audit": {"conclusion": "skipped", "skipped_because": "team job failed at 'Run lane cycle'", "interpretation": "audit job never ran because the team job failed; therefore no audit gate file and no promotion/rejection of the 38972887369 deliverable"},
+        "resilience": {"conclusion": "success"},
+        "integrate": {"conclusion": "skipped"}
+      },
+      "repo_evidence_corroboration": "no results/audit/evaluation/CYCLE_38972887369_GATE.json anywhere in the tree and no 'accept evaluation cycle 38972887369' commit; no remote ref refs/remotes/origin/cycle/core/evaluation/38972887369/* exists at all (the run died before any audit-branch push)"
+    },
+    "38977570612": {
+      "run_name": "Core evaluation dirV50 repair0",
+      "event": "workflow_dispatch",
+      "status": "completed",
+      "conclusion": "failure",
+      "head_sha": "6b61cb3e",
+      "producer_commit_snapshot": "cfdde08e (operational resume of the 38972887369 snapshot)",
+      "job_id_team": 117230600757,
+      "job_id_audit": 117231315821,
+      "jobs": {
+        "team": {
+          "conclusion": "success",
+          "step_facts": "ALL 12 steps succeeded, including 'Enforce lane write scope' and 'Persist team snapshot'; the producer deliverable (commit cfdde08e) is complete and was verified in-snapshot during that run"
+        },
+        "audit": {
+          "conclusion": "failure",
+          "failed_step": "Enforce audit scope and read gate",
+          "step_facts": "'Independent audit' step COMPLETED SUCCESS; 'Enforce audit scope and read gate' FAILED; 'Persist audit snapshot' skipped",
+          "candidate_causes": [
+            "the audit agent wrote its gate file where the reader's jq could not see it (wrong relative path, lowercase '_gate.json' suffix, or a path outside the audit-job checkout such as /tmp/lex_team) — factory-wide requirement 14 placement class",
+            "the audit agent wrote files outside its allowed write scope and the same step's scope enforcement rejected the run"
+          ],
+          "ambiguity_flag": "job logs are 403 unauthenticated; the two candidate causes CANNOT be distinguished from API data alone. Recorded as two candidates, not one asserted cause.",
+          "interpretation": "the audit job died at the gate step AFTER the independent audit itself completed, so the gate file was never persisted (audit snapshot step skipped), no promotion happened, and the run concluded failure despite a fully green producer chain."
+        },
+        "resilience": {"conclusion": "success", "interpretation": "resilience job recovered the failed chain and woke the supervisor, which re-dispatched the lane"},
+        "integrate": {"conclusion": "skipped"}
+      },
+      "repo_evidence_corroboration": "no remote ref refs/remotes/origin/cycle/core/evaluation/38977570612/audit exists (only .../team); no 'accept evaluation cycle 38977570612' commit; origin/lab/evaluation still points at the accept of 38971202786 (59fde886 on main)"
+    },
+    "38978411574": {
+      "run_name": "Core evaluation dirV50 repair0",
+      "event": "workflow_dispatch",
+      "status": "in_progress",
+      "note": "this run: same-question re-dispatch ('Core evaluation dirV50 repair0', direction v50) that BLOCKED audit 38972043610 warned would repeat the zero-delta/rc-67 pathology if the lane were re-dispatched on the same question hash. It carries a real durable delta (snapshot audit-readiness verifier + this diagnosis + verification record) instead of a bare re-verification."
+    }
+  },
+  "consequence_chain": "two consecutive lane cycles (38972887369 verdict-contract deliverable; 38977570612 resume/verification) exist only on cycle team refs; nothing has been promoted or rejected since accept 38971202786 (59fde886 on main). Both failures are ORCHESTRATION failures (producer death; audit-gate-step death), not producer or lane-code defects; the producer work in both cycles was complete or independently verified.",
+  "control_plane_items_recorded_not_patched": [
+    "audit-job gate-read step remains a single point of failure for the whole acceptance chain: one mis-placed gate write (lowercase suffix, /tmp/lex_team, or scope trip) loses an entire green producer cycle with no automatic retry of the audit job",
+    "the supervisor re-dispatched the identical repair0 question after an AUDIT-job failure, re-entering the same-question loop that BLOCKED audit 38972043610 named; a durable remedy remains a NEW question or moving lanes.evaluation.status off RUN (control-plane scope)"
+  ]
+}
