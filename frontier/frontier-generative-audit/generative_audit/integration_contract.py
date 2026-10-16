@@ -242,6 +242,7 @@ def run_generative_audit(
     result = provider.generate(bundle)
     prov["model"] = result.model_used
     prov["provider_error"] = result.error
+    prov["provider_attempts"] = list(result.attempts or [])
     prov["citation_validation"] = {
         k: result.validation_report.get(k)
         for k in ("mode", "api_base", "hallucinated_ids", "verified_ids", "unverified_ids")
