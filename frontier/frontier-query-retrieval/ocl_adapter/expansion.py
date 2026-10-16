@@ -89,6 +89,8 @@ CONCEPT_VARIANTS: Tuple[Tuple[Tuple[str, ...], Tuple[str, ...]], ...] = (
         (
             "Zahlungsrückstand Miete Kündigung Art. 257d OR",
             "Zahlungsfrist 30 Tage Art. 257d OR",
+            "Art. 257d Abs. 2 OR Kündigungsfrist 30 Tage Ende eines Monats",
+            "Art. 257d al. 2 CO préavis 30 jours fin d'un mois",
         ),
     ),
 )
