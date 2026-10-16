@@ -48,8 +48,8 @@
       "scope": "control-plane workflow scope; recorded, not edited from the lane"
     }
   ],
-  "current_run": 38924869286,
-  "cycle_status": "V49_TARGETED_REALITY_REPAIR_4OF4_LIVE",
+  "current_run": 38933925523,
+  "cycle_status": "V49_DEAD_MODEL_FILTER_WORKFLOW_OVERRIDE_PASS",
   "direction_version": 49,
   "evidence_tier": "REALITY_CHECK_FAILED",
   "frontier_verdict_adoption": {
@@ -450,7 +450,7 @@
       "resumed_by_run": 38860652237
     }
   },
-  "prior_current_run": 38892001925,
+  "prior_current_run": 38933925523,
   "product": "query-specific Swiss legal research: broad OpenCaseLaw retrieval -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map",
   "reality_check_status": {
     "blocking_leg": "durable gate blocking leg: rent-default (Art. 257d(2) residential termination) — the answer must state the 30-day/end-of-month notice rule AND the good-faith/Rechtsmissbrauch limitation. That leg now PASSES locally in live mode (results/product/reality_check/rent-default_live_20261014T122313Z.json); only the durable Actions run remains red.",
@@ -622,8 +622,8 @@
     "fixtures": "offline/test only; never merged into live results",
     "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
   },
-  "state_updated_at": "2026-10-16T16:14:42Z",
-  "state_updated_by_run": 38924869286,
+  "state_updated_at": "2026-10-16T17:12:19Z",
+  "state_updated_by_run": 38933925523,
   "state_updated_from_resumed_snapshot_run": 38862025900,
   "supersedes_claims": {
     "gate_ceremony_is_one_query_only": "SUPERSEDED BY RUN 38792650692: the packet pre-registers three questions (FR/DE/IT), re-verifies each bundle at run time and hands the owner one deep link per question. The single-query path still works (product/human_gate_session.py is unchanged) and is still the way ONE session is finalized.",
@@ -2262,5 +2262,63 @@
     "offline_verification": "432 passed in the runnable subset; the only failures are the 10 pre-existing/environmental ones verified identical on the pristine tree (4 adversarial_retrieval, 2 cache_non_orphan sklearn-drift, 1 ci_run_evidence, 3 state_contract worktree-vs-dispatch), plus 16 legacy collection errors for missing sentence_transformers",
     "question_answered": "direction v49 product question: exit only when the frozen four-question substantive benchmark is reliably green without weakening truth/authority/language/latency gates",
     "run_id": 38924869286
-  }
+  },
+  "v49_dead_model_filter_20261016": {
+    "factory_direction": "v49: exit only when the frozen four-question substantive benchmark is reliably green without weakening truth/authority/language/latency gates",
+    "problem_addressed": "The durable reality-check workflow re-assigns paths.DEFAULT_FREE_MODELS AFTER the product seam runs, with the two models the 2026-10-16 health snapshot proved dead (nemotron-3-ultra, nemotron-3.5-lightning) FIRST. With no state/model_health.json on the branch, healthy_models() returned that list verbatim, so the durable gate burned a 120s answer + 180s adversarial timeout per dead model before reaching a healthy one — the ~316-469s latency band and a direct breach of the 300s gate. Pinning DEFAULT_FREE_MODELS at apply time (prior cycle) was necessary but not sufficient because the workflow overrides it afterwards.",
+    "code_delta": [
+      "product/query/audit_seam.py: apply() now also wraps paths.healthy_models and paths.preferred_model so KNOWN_DEAD_MODELS are filtered from the RESULT at call time, no matter what the caller last wrote into DEFAULT_FREE_MODELS. If filtering would empty the list, the wrapper falls back to MODEL_ORDER so a healthy model is always available. Idempotent via the same _lex_original sentinel as the __init__ wrapper (safe across the query.*/product.query.* module identities).",
+      "product/reality_check.py: added --workflow-override flag that reproduces the durable workflow's exact post-seam model-list override (dead models first) before running a leg, so a green local run is evidence the durable gate's model condition is harmless. The override is recorded per-report."
+    ],
+    "tests_added": [
+      "product/tests/test_audit_seam.py::test_healthy_models_filters_dead_after_workflow_override",
+      "product/tests/test_audit_seam.py::test_preferred_model_never_returns_dead_after_override",
+      "product/tests/test_audit_seam.py::test_filtering_falls_back_to_model_order_when_all_dead",
+      "product/tests/test_audit_seam.py::test_dead_model_wrapping_is_idempotent_across_module_identities"
+    ],
+    "live_evidence_local_only": {
+      "note": "All four frozen legs re-run LIVE with the durable workflow's model-list override simulated (--workflow-override). Every leg used a HEALTHY model and passed structural+truth gates well under the 300s budget. Evidence tier LOCAL_NOT_DURABLE; the durable Actions run itself still cannot be triggered from the lane (control-plane: no workflow_dispatch, core-lane integrate never adds [reality-check]).",
+      "legs": {
+        "rent-default": {
+          "answer_model": "opencode/mimo-v2.6-flash-free",
+          "adversarial_model": "opencode/space-bunny-free",
+          "total_s": 175.11,
+          "gates": "structural PASS, truth PASS"
+        },
+        "petty-theft-dismissal": {
+          "answer_model": "opencode/mimo-v2.6-flash-free",
+          "adversarial_model": "opencode/space-bunny-free",
+          "total_s": 162.391,
+          "gates": "structural PASS, truth PASS"
+        },
+        "corporate-criminal-liability": {
+          "answer_model": "opencode/space-bunny-free",
+          "adversarial_model": "opencode/space-bunny-free",
+          "total_s": 188.727,
+          "gates": "structural PASS, truth PASS",
+          "note": "down from 276s (prior cycle) — dead models no longer burn timeouts, restoring latency headroom vs the O3 concern"
+        },
+        "business-judgment-rule": {
+          "answer_model": "opencode/mimo-v2.6-flash-free",
+          "adversarial_model": "opencode/space-bunny-free",
+          "total_s": 142.924,
+          "gates": "structural PASS, truth PASS"
+        }
+      },
+      "dead_models_avoided": [
+        "opencode/nemotron-3-ultra-free",
+        "opencode/nemotron-3.5-lightning-free"
+      ]
+    },
+    "offline_verification": "438 passed / 2 skipped / 48 failed / 48 collection errors. The 48 failures are pre-existing and identical on the pristine tree: 38 legacy test_cycle_33035450227 sentence_transformers/174k-era + 10 non-legacy (4 adversarial_retrieval, 2 cache_non_orphan, 1 ci_run_evidence, 3 state_contract worktree-vs-dispatch direction-49-vs-55). Zero new failures from this cycle.",
+    "not_touched": [
+      "frozen gate thresholds (none weakened; this cycle only adds a robustness filter)",
+      "served gate packets",
+      "frontier/** accepted components (generative_audit.paths is frontier scope; the seam wraps it, does not edit it)",
+      ".github/** control-plane scope (the workflow's override is now harmless but the file is not edited from the lane)",
+      "human_gate_ready (still false: durable Actions run + real jurist session outstanding)"
+    ],
+    "claim_ceiling": "human_gate_ready=false, machine_gate_ready=false, durable_green_run_id=null. The frozen four-question benchmark is green locally under the durable workflow's exact model-list condition; the durable Actions run and the real owner/jurist session remain outstanding and are not claimed."
+  },
+  "next_recommended": "continue_recommended=true. Concrete next steps toward the human gate: (1) the durable [reality-check] Actions run needs a control-plane trigger (workflow_dispatch or core-lane integrate marker) — recorded as a control-plane hardening item, not fixable from the lane; (2) once triggerable, the durable gate should pass because the product now filters dead models at call time (proven by the four-leg --workflow-override run). Product work itself is at the human gate: the local end-to-end path (question -> retrieval -> bundle -> sourced answer -> counter-authority -> clickable map) is green under the hardened gates."
 }

@@ -24,6 +24,20 @@ caller were miscalibrated for the *current* healthy free-model pool:
    order is then the only lever, so the seam pins the order the factory health
    snapshot verified.
 
+3. **Dead-model filtering at call time (robust to external override).**
+   Pinning ``DEFAULT_FREE_MODELS`` at apply time is necessary but not
+   sufficient: the durable reality-check workflow re-assigns
+   ``paths.DEFAULT_FREE_MODELS`` *after* the seam runs, with the two dead
+   models first.  Every dead entry left in the list becomes a fallback
+   candidate that burns a full provider timeout (120 s answer / 180 s
+   adversarial) before the next model is tried — the observed ~316-469 s
+   full-answer latency band, and a direct breach of the 300 s gate.  The seam
+   therefore also wraps ``paths.healthy_models`` and ``paths.preferred_model``
+   so ``KNOWN_DEAD_MODELS`` are filtered out at call time, no matter what the
+   caller last wrote into ``DEFAULT_FREE_MODELS``.  If filtering would empty
+   the list, the wrapper falls back to ``MODEL_ORDER`` so a healthy model is
+   always available.
+
 Everything the seam changes is recorded in bundle provenance under
 ``product_audit_seam`` so the independent auditor can see it rather than infer
 it.  Fixture/offline mode is untouched: the same 60 s default only ever applied
@@ -110,6 +124,45 @@ def apply() -> dict[str, Any]:
         _init_with_budget._lex_original_init = original_init  # type: ignore[attr-defined]
         adv_mod.AdversarialPass.__init__ = _init_with_budget  # type: ignore[method-assign]
 
+    # --- Dead-model filtering at call time -------------------------------
+    # Pinning DEFAULT_FREE_MODELS above is not sufficient: the durable
+    # reality-check workflow re-assigns it after this seam runs.  These
+    # wrappers filter KNOWN_DEAD_MODELS from the *result* of healthy_models()
+    # at call time, so any external override of DEFAULT_FREE_MODELS becomes
+    # harmless.  Idempotence uses the same _lex_original sentinel as the
+    # __init__ wrapper so a second module identity cannot stack a wrapper.
+    current_healthy = paths.healthy_models
+    original_healthy = getattr(current_healthy, "_lex_original", current_healthy)
+    healthy_already_wrapped = original_healthy is not current_healthy
+
+    if not healthy_already_wrapped:
+
+        def _healthy_models_filtered() -> list[str]:
+            models = [m for m in original_healthy() if m not in KNOWN_DEAD_MODELS]
+            return models if models else list(MODEL_ORDER)
+
+        _healthy_models_filtered._lex_original = original_healthy  # type: ignore[attr-defined]
+        paths.healthy_models = _healthy_models_filtered
+
+    current_preferred = paths.preferred_model
+    original_preferred = getattr(current_preferred, "_lex_original", current_preferred)
+    preferred_already_wrapped = original_preferred is not current_preferred
+
+    if not preferred_already_wrapped:
+
+        def _preferred_model_safe(fallback: str | None = None) -> str:
+            # paths.healthy_models is already the filtered wrapper at this
+            # point, so this never returns a dead model.
+            models = paths.healthy_models()
+            if models:
+                return models[0]
+            if fallback and fallback not in KNOWN_DEAD_MODELS:
+                return fallback
+            return MODEL_ORDER[0]
+
+        _preferred_model_safe._lex_original = original_preferred  # type: ignore[attr-defined]
+        paths.preferred_model = _preferred_model_safe
+
     previous_order = list(paths.DEFAULT_FREE_MODELS)
     paths.DEFAULT_FREE_MODELS[:] = list(MODEL_ORDER)
 
@@ -120,6 +173,9 @@ def apply() -> dict[str, Any]:
         "already_wrapped_by_other_module_instance": already_wrapped,
         "model_order": list(MODEL_ORDER),
         "model_order_before": previous_order,
+        "healthy_models_wrapped": not healthy_already_wrapped,
+        "preferred_model_wrapped": not preferred_already_wrapped,
+        "known_dead_models": sorted(KNOWN_DEAD_MODELS),
         "reason": (
             "counter-authority pass exceeded the 60s per-model ceiling on every "
             "healthy free model; product spec 9A allows late counter-authority "

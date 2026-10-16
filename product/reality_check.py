@@ -280,13 +280,32 @@ def evaluate(slug: str, report: dict) -> list[dict]:
     return results
 
 
-def run_leg(slug: str, mode: str, top_n: int, evidence_count: int, max_cites: int) -> dict:
+#: Exact list the durable reality-check workflow writes into
+#: ``paths.DEFAULT_FREE_MODELS`` after the seam runs (workflow lines 63-67).
+#: Used by ``--workflow-override`` to reproduce the durable gate's model-list
+#: condition locally, so a green local run is evidence the durable gate is green.
+WORKFLOW_MODEL_OVERRIDE = [
+    "opencode/nemotron-3-ultra-free",
+    "opencode/nemotron-3.5-lightning-free",
+    "opencode/space-bunny-free",
+    "opencode/mimo-v2.6-flash-free",
+]
+
+
+def run_leg(slug: str, mode: str, top_n: int, evidence_count: int, max_cites: int,
+            workflow_override: bool = False) -> dict:
     from query import enrich_query_bundle, run_query_initial
     from query.bundle import validate_bundle
 
     question = LEGS[slug]
     fixture_generation = mode == "fixture"
     retrieval_mode = "fixture" if fixture_generation else "live"
+
+    if workflow_override:
+        # Reproduce the durable workflow's post-seam model-list override.
+        # The seam's call-time dead-model filter must make this harmless.
+        from generative_audit import paths
+        paths.DEFAULT_FREE_MODELS[:] = list(WORKFLOW_MODEL_OVERRIDE)
 
     t0 = time.time()
     initial = run_query_initial(question, top_n=top_n, retrieval_mode=retrieval_mode)
@@ -314,6 +333,7 @@ def run_leg(slug: str, mode: str, top_n: int, evidence_count: int, max_cites: in
         "slug": slug,
         "mode": mode,
         "question": question,
+        "workflow_override": workflow_override,
         "map_seconds": map_seconds,
         "total_seconds": total_seconds,
         "validation_errors": validate_bundle(final),
@@ -372,6 +392,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--top-n", type=int, default=100)
     parser.add_argument("--evidence-count", type=int, default=10)
     parser.add_argument("--max-cites", type=int, default=8)
+    parser.add_argument("--workflow-override", action="store_true",
+                        help="reproduce the durable workflow's post-seam model-list "
+                             "override (dead models first) before running the leg")
     parser.add_argument("--out", default=str(REPO_ROOT / "results" / "product" / "reality_check"))
     parser.add_argument("--list", action="store_true", help="print frozen legs and exit")
     args = parser.parse_args(argv)
@@ -402,7 +425,8 @@ def main(argv: list[str] | None = None) -> int:
     for slug in slugs:
         print(f"== reality leg: {slug} (mode={args.mode}) ==", flush=True)
         try:
-            report = run_leg(slug, args.mode, args.top_n, args.evidence_count, args.max_cites)
+            report = run_leg(slug, args.mode, args.top_n, args.evidence_count, args.max_cites,
+                             workflow_override=args.workflow_override)
             gates = evaluate(slug, report)
         except Exception as exc:  # keep negative results as evidence
             report = {"slug": slug, "mode": args.mode, "question": LEGS[slug],
