@@ -119,3 +119,49 @@ def test_alternatives_offline(tmp_path):
     for name in ("A1_drop_unhydrated", "A2_language_aware_tfidf", "A3_mds_cosine"):
         assert out[name]["error"] is None, out[name]["error"]
         assert out[name]["elapsed_s"] < 2.0
+
+
+SBS_REQUIRED = {"dominant_query_lang_share", "bundle_lang_baseline",
+                "dominant_query_term_share", "bundle_term_baseline",
+                "largest_share", "sep_ratio", "spearman_2d_vs_cosine",
+                "knn10_overlap", "rank_rho"}
+
+
+def test_ablation_side_by_side_numbers(tmp_path):
+    """Acceptance test 2b: coherence, separation AND projection numbers are
+    computed twice (all rows vs un-hydrated rows excluded) and reported side by
+    side inside the per-bundle report."""
+    rep = _run_cli(_synth_bundle(tmp_path / "b.json"), str(tmp_path / "o1"))
+    sbs = rep["ablation"]["side_by_side"]
+    assert sbs["predicate_used"] == "detail_status != 'search_hit'"
+    for side in ("shipped_fields", "all_rows", "hydrated_only"):
+        assert side in sbs and sbs[side] is not None, side
+        missing = SBS_REQUIRED - set(sbs[side])
+        assert not missing, f"{side} missing {sorted(missing)}"
+    # panel 1 is literally what the frozen criteria read over all rows
+    assert (sbs["shipped_fields"]["dominant_query_lang_share"]
+            == rep["criteria"]["COHERENCE_QUERY_LANG"]["value"])
+    assert sbs["shipped_fields"]["knn10_overlap"] == rep["criteria"]["PROJ_KNN10"]["value"]
+    # both sides are computed on their own row set: same method, different rows
+    assert sbs["all_rows"]["n_rows"] == rep["n_decisions"]
+    assert sbs["hydrated_only"]["n_rows"] <= sbs["all_rows"]["n_rows"]
+    # the block is additive: frozen criterion verdicts still carry their bars
+    assert rep["criteria"]["PROJ_RANK"]["bar"] == 0.30
+    assert isinstance(rep["ablation"]["ARTIFACT"], bool)
+
+
+def test_alternatives_flag_writes_alternatives_json(tmp_path):
+    env = {"PYTHONPATH": str(PKG), "PATH": "/usr/bin:/bin"}
+    cmd = [sys.executable, "-m", "frontier_map_semantics.cli",
+           "--bundle", _synth_bundle(tmp_path / "b.json"),
+           "--out", str(tmp_path / "o2"), "--rules", str(RULES),
+           "--bundle-key", "de-kapitalverletzung", "--alternatives"]
+    r = subprocess.run(cmd, capture_output=True, text=True, env=env)
+    assert r.returncode == 0, r.stderr
+    alts = json.loads(Path(tmp_path, "o2", "alternatives.json").read_text())
+    assert set(alts) >= {"A1_drop_unhydrated", "A2_language_aware_tfidf",
+                         "A3_mds_cosine", "best"}
+    for name in ("A1_drop_unhydrated", "A2_language_aware_tfidf", "A3_mds_cosine"):
+        assert alts[name]["error"] is None, alts[name]["error"]
+        assert alts[name]["elapsed_s"] < 2.0
+    assert json.loads(r.stdout)["alternatives_best"] == alts["best"]

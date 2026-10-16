@@ -239,7 +239,114 @@ def verdicts(bundle, rules, X, query_vec):
     return V, detail
 
 
-def ablate(bundle, rules):
+def sbs_metrics(g, rows, rules, query_text):
+    """One side of the un-hydrated-row ablation.
+
+    Recomputes EVERY coherence, separation and projection number the frozen rule
+    defines (acceptance test 2b) on one row set, using the geometry `g` fitted on
+    exactly that row set. Both sides use the identical method, so the pair is a
+    like-for-like comparison; no bar is applied here (bars live in verdicts and
+    are evaluated on the SHIPPED fields only).
+    """
+    coords = np.asarray(g["coords"], dtype=float)
+    X = g["X"]
+    cid = np.asarray(g["cluster_ids"], dtype=int)
+    n = len(rows)
+    qlang = rules["query_language"]
+    lex = rules["query_term_lexicon"]
+    langs = [d.get("language") for d in rows]
+    bodies = [body(d).casefold() for d in rows]
+    ranks = np.array([int(d.get("rank", 0)) for d in rows], dtype=float)
+    base_lang = sum(1 for l in langs if l == qlang) / max(1, n)
+    base_term = sum(1 for b in bodies if any(q in b for q in lex)) / max(1, n)
+    sizes = np.bincount(cid, minlength=int(cid.max()) + 1) if n else np.array([0])
+    dom = int(np.argmax(sizes)) if n else -1
+    mem = cid == dom
+    n_mem = int(mem.sum())
+    dom_lang = (sum(1 for i in range(n) if mem[i] and langs[i] == qlang) / max(1, n_mem)) if n else 0.0
+    dom_term = (sum(1 for i in range(n)
+                    if mem[i] and any(q in bodies[i] for q in lex)) / max(1, n_mem)) if n else 0.0
+    cos_d = _cosine_dist(X) if n else np.zeros((0, 0))
+    euc_d = _euclid(coords) if n else np.zeros((0, 0))
+    intra, inter = [], []
+    for i in range(n):
+        for j in range(i + 1, n):
+            (intra if cid[i] == cid[j] else inter).append(cos_d[i, j])
+    sep = (float(np.mean(intra)) / float(np.mean(inter))
+           if intra and inter and np.mean(inter) else float("nan"))
+    if n >= 3:
+        iu = np.triu_indices(n, k=1)
+        rho, deg_2d = _spearman(cos_d[iu], euc_d[iu])
+        k = min(10, n - 1)
+        overlaps = []
+        for i in range(n):
+            nn_e = np.argsort(euc_d[i])[1:k + 1]
+            nn_c = np.argsort(cos_d[i])[1:k + 1]
+            overlaps.append(len(set(nn_e.tolist()) & set(nn_c.tolist())) / max(1, k))
+        knn = float(np.mean(overlaps)) if overlaps else float("nan")
+    else:
+        rho, deg_2d, knn = float("nan"), True, float("nan")
+    from sklearn.metrics.pairwise import cosine_distances
+    if n and X.shape[1]:
+        q = g["vectorizer"].transform([str(query_text)])
+        qd = np.nan_to_num(np.asarray(cosine_distances(X, q)).ravel(), nan=1.0)
+        rank_rho, deg_rank = _spearman(qd, ranks)
+        qnnz = int(q.getnnz())
+    else:
+        rank_rho, deg_rank, qnnz = float("nan"), True, 0
+    return {
+        "n_rows": n,
+        "n_clusters": int(len(set(cid.tolist()))) if n else 0,
+        "dominant_cluster_id": dom,
+        "dominant_cluster_size": n_mem,
+        "dominant_query_lang_share": float(dom_lang),
+        "bundle_lang_baseline": float(base_lang),
+        "dominant_query_term_share": float(dom_term),
+        "bundle_term_baseline": float(base_term),
+        "largest_share": float(n_mem / max(1, n)),
+        "sep_ratio": float(sep),
+        "spearman_2d_vs_cosine": float(rho),
+        "degenerate_2d": bool(deg_2d),
+        "knn10_overlap": float(knn),
+        "rank_rho": float(rank_rho),
+        "rank_degenerate": bool(deg_rank),
+        "query_vector_nnz": qnnz,
+    }
+
+
+def shipped_sbs(bundle, rules, X, qvec):
+    """The all-rows side of the ablation as the GATE RENDERS it: read from the
+    SHIPPED x/y, cluster assignment and labels (the fields the criteria use)."""
+    decisions = bundle["decisions"]
+    clusters = bundle.get("clusters", []) or []
+    qlang = rules["query_language"]
+    lex = rules["query_term_lexicon"]
+    coh = coherence(decisions, clusters, qlang, lex)
+    projection._query_vec = qvec
+    proj = projection(decisions, X, bundle.get("query", ""))
+    st = structure(decisions, X, clusters)
+    dom = coh["dominant"] or {}
+    return {
+        "n_rows": len(decisions),
+        "n_clusters": len(clusters),
+        "dominant_cluster_id": dom.get("cluster_id"),
+        "dominant_cluster_size": dom.get("size"),
+        "dominant_query_lang_share": float(dom.get("query_lang_share") or 0.0),
+        "bundle_lang_baseline": float(coh["bundle_lang_baseline"]),
+        "dominant_query_term_share": float(dom.get("query_term_share") or 0.0),
+        "bundle_term_baseline": float(coh["bundle_term_baseline"]),
+        "largest_share": float(st["largest_share"]),
+        "sep_ratio": float(st["sep_ratio"]),
+        "spearman_2d_vs_cosine": float(proj["spearman_2d_vs_cosine"]),
+        "degenerate_2d": bool(proj["degenerate_2d"]),
+        "knn10_overlap": float(proj["knn10_overlap"]),
+        "rank_rho": float(proj["rank_rho"]),
+        "rank_degenerate": bool(proj["rank_degenerate"]),
+        "query_vector_nnz": int(proj["query_vector_nnz"]),
+    }
+
+
+def ablate(bundle, rules, X=None, qvec=None):
     """Decisive ablation: recompute geometry on hydrated-only rows, side by side."""
     decisions = bundle["decisions"]
     mask = np.array([not is_unhydrated(d) for d in decisions])
@@ -292,4 +399,27 @@ def ablate(bundle, rules):
             "recompute_all_time_s": g_all["elapsed"],
             "hydrated_time_s": g_hyd["elapsed"] if g_hyd else None,
             "ARTIFACT": artifact}
+    # ACCEPTANCE TEST 2b: every coherence/separation/projection number computed
+    # twice — once over all rows, once with the un-hydrated rows excluded —
+    # reported side by side. Three panels: SHIPPED fields over all rows (what the
+    # gate renders and what the frozen criteria read), and the identical vendored
+    # pipeline recomputed on (i) all rows and (ii) hydrated-only rows, so the
+    # exclusion effect is isolated from any shipped-vs-recompute drift. Frozen
+    # bars are NOT applied inside this block; criterion verdicts above are
+    # computed from the SHIPPED fields only and are untouched by it.
+    query_text = str(bundle.get("query", ""))
+    hyd_rows = [decisions[i] for i in hyd_idx]
+    side["side_by_side"] = {
+        "note": ("Panel 1 (shipped_fields) reads SHIPPED x/y + cluster assignment over ALL rows — the "
+                 "frozen criteria come from exactly these numbers. Panels 2-3 (all_rows, hydrated_only) "
+                 "are recomputed with the identical vendored qmap-equivalent pipeline on their own row "
+                 "set; comparing them isolates the un-hydrated-row exclusion from shipped-vs-recompute "
+                 "drift. No bar is applied here."),
+        "predicate_used": "detail_status != 'search_hit'",
+        "shipped_fields": (shipped_sbs(bundle, rules, X, qvec)
+                           if X is not None and qvec is not None else None),
+        "all_rows": sbs_metrics(g_all, decisions, rules, query_text),
+        "hydrated_only": (sbs_metrics(g_hyd, hyd_rows, rules, query_text)
+                          if g_hyd and hyd_rows else None),
+    }
     return side, g_all, g_hyd

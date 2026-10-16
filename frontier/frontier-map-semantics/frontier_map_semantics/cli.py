@@ -49,7 +49,7 @@ def run_bundle(bundle_path, rules_bundle, out_dir, run_id):
     qtext = str(bundle.get("query", ""))
     qvec = vec.transform([qtext])
     V, detail = verdicts(bundle, rules_bundle, X, qvec)
-    side, g_all, g_hyd = ablate(bundle, rules_bundle)
+    side, g_all, g_hyd = ablate(bundle, rules_bundle, X=X, qvec=qvec)
     ctrl = nonvacuity(bundle, rules_bundle, X, qvec)
     report = {
         "run_id": run_id,
@@ -138,6 +138,9 @@ def main(argv=None):
     ap.add_argument("--frozen-rules", action="store_true")
     ap.add_argument("--bundle-key", default=None,
                     help="key into RULES inputs/additional_bundle selecting lexicon/language")
+    ap.add_argument("--alternatives", action="store_true",
+                    help="also evaluate A1/A2/A3 under the identical frozen rule "
+                         "(§9A < 2 s) and write <out>/alternatives.json")
     args = ap.parse_args(argv)
     if args.frozen_rules:
         rules = json.load(open(args.rules))
@@ -160,10 +163,20 @@ def main(argv=None):
         lex = rules["query_term_lexicons"].get(args.bundle_key, [])
         rb = {"query_language": m["query_language"], "query_term_lexicon": lex}
     rep = run_bundle(args.bundle, rb, args.out, args.run_id)
+    alt_best = None
+    if args.alternatives:
+        from .alt_eval import evaluate
+
+        bundle = json.load(open(args.bundle))
+        alts = evaluate(bundle, rb)
+        alt_best = alts.get("best")
+        with open(Path(args.out) / "alternatives.json", "w") as f:
+            json.dump(alts, f, ensure_ascii=False, sort_keys=True, indent=1)
     print(json.dumps({"overall": rep["overall"],
                       "criteria": {c: rep["criteria"][c]["pass"] for c in CRITERIA_ORDER},
                       "ARTIFACT": rep["ablation"]["ARTIFACT"],
-                      "nonvacuity_passed": rep["nonvacuity"]["passed"]},
+                      "nonvacuity_passed": rep["nonvacuity"]["passed"],
+                      "alternatives_best": alt_best},
                      sort_keys=True))
     return 0
 

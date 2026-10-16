@@ -14,6 +14,12 @@ This package changes NO product code and requires NO product import.
   `detail` (per-cluster coherence, projection/structure/label/outlier/
   relation diagnostics), `ablation` (side-by-side + ARTIFACT boolean +
   predicate note), `nonvacuity` (per-control flips + values).
+  `ablation.side_by_side` carries three panels of the same nine numbers —
+  `shipped_fields` (all rows, SHIPPED x/y + cluster assignment: the fields the
+  frozen criteria read), `all_rows` and `hydrated_only` (identical vendored
+  pipeline recomputed on their own row set) — so the un-hydrated-row exclusion
+  effect can be read without confusing it with shipped-vs-recompute drift.
+  No bar lives in this block; verdicts come from `criteria` only.
 - `results/frontier/frontier-map-semantics/<bundle>/alternatives.json`
   A1/A2/A3 overall + per-criterion verdicts + measured wall time + budget flag.
 - `results/frontier/frontier-map-semantics/DECISION.txt`
@@ -35,10 +41,18 @@ This package changes NO product code and requires NO product import.
 PYTHONPATH=frontier/frontier-map-semantics python -m frontier_map_semantics.cli \
   --bundle results/frontier/frontier-map-semantics/inputs/<bundle>.bundle.json \
   --out <dir> --rules results/frontier/frontier-map-semantics/RULES.json \
-  --bundle-key <de-kapitalverletzung|fr-bail-entretien|it-responsabilita-medica|additional>
+  --bundle-key <de-kapitalverletzung|fr-bail-entretien|it-responsabilita-medica|additional> \
+  [--alternatives]
 ```
 
-Byte-identical `report.json` on rerun (asserted in
+`--alternatives` additionally evaluates A1/A2/A3 under the identical frozen
+rule and writes `<out>/alternatives.json` (needed to reproduce that file; the
+bare command writes only `report.json`).
+
+Byte-identical `report.json` on rerun in the same environment (asserted in
 `tests/frontier/frontier-map-semantics/test_harness.py`; wall-clock
-`*time_s`/`elapsed_s` fields excluded — environment-dependent by nature,
-always < §9A 2 s budget and asserted as such).
+`*time_s`/`elapsed_s`/`hydrated_time_s`/`recompute_all_time_s` fields excluded
+— environment-dependent by nature, always < §9A 2 s budget and asserted as
+such). Across runner environments, three projection floats move without
+changing any verdict; the exact old/new pairs are recorded in
+`results/frontier/frontier-map-semantics/VERIFICATION_38840496500.json`.
