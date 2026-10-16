@@ -46,6 +46,10 @@ Usage
 
     # print the disclosure that the packet will carry (reads the snapshot)
     python product/frontier_verdict_adoption.py disclosure
+
+    # check the accepted mounts for a newer measurement without re-measuring
+    python product/frontier_verdict_adoption.py sweep \
+        --accepted-root /tmp/lex_accepted/frontier
 """
 from __future__ import annotations
 
@@ -70,6 +74,15 @@ COUNTER_LABEL_TEAM_RUN_ID = "38841035773"
 COUNTER_LABEL_ACCEPT_COMMIT = "7c960b4"
 COUNTER_LABEL_REPORT = Path("frontier-counter-label-integrity/results/frontier"
                             "/frontier-counter-label-integrity/REPORT.json")
+#: Newest-verdict sweep (v54 item (4) subsequent-measurement rule): per-team
+#: verification files published by the Frontier teams under their accepted
+#: results tree. A newer file does NOT automatically obsolete the snapshot —
+#: only a verification that re-measured (labels_rescored / bundles_remeasured)
+#: can move the measurement; anything else leaves the snapshot valid.
+COUNTER_LABEL_RESULTS_DIR = Path("frontier-counter-label-integrity/results/frontier"
+                                 "/frontier-counter-label-integrity")
+MAP_SEMANTICS_RESULTS_DIR = Path("frontier-map-semantics/results/frontier"
+                                 "/frontier-map-semantics")
 
 MAP_SEMANTICS_TEAM_RUN_ID = "38846038296"
 MAP_SEMANTICS_ACCEPT_COMMIT = "15362f6"
@@ -171,6 +184,118 @@ def harvest(accepted_root: Path) -> dict[str, Any]:
     }
 
 
+def _newest_verification(results_dir: Path) -> dict[str, Any] | None:
+    """Return the newest VERIFICATION_<run_id>.json in a Frontier results dir.
+
+    Newest = largest numeric run id. Returns None when the directory holds no
+    verification file (a team that has never published one).
+    """
+    if not results_dir.is_dir():
+        return None
+    best: dict[str, Any] | None = None
+    best_run = -1
+    for child in sorted(results_dir.iterdir()):
+        if not (child.name.startswith("VERIFICATION_") and child.name.endswith(".json")):
+            continue
+        stem = child.name[len("VERIFICATION_"):-len(".json")]
+        if not stem.isdigit():
+            continue
+        run = int(stem)
+        if run > best_run:
+            try:
+                doc = _read_json(child)
+            except (json.JSONDecodeError, OSError):
+                continue
+            best, best_run = {"path": str(child), "run_id": stem, "doc": doc}, run
+    return best
+
+
+def sweep(accepted_root: Path, snapshot_path: Path | None = None) -> dict[str, Any]:
+    """Check the accepted mounts for a newer Frontier measurement (read-only).
+
+    Implements the v54 item (4) subsequent-measurement rule: *if Frontier
+    later measures THIS packet's post-D2-fix labels or the current geometry,
+    harvest that verdict the same way and update the snapshot; never
+    re-measure labels or geometry in the product lane.*
+
+    This function performs the *check*, never the measurement: it reports the
+    newest accepted verification per team, whether that verification
+    re-measured anything (``labels_rescored`` / ``bundles_remeasured``), and
+    therefore whether the committed snapshot is still current and whether
+    ``covers_this_packet`` may stay False. A newer verification that changed
+    nothing observable leaves the snapshot valid — that is the expected
+    steady state, not a defect.
+    """
+    root = Path(accepted_root)
+    snap = load(snapshot_path)
+    if snap is None:
+        return {"ok": False,
+                "skip_reason": "no committed verdict snapshot; run harvest first"}
+    counter = snap.get("frontier_counter_label_integrity") or {}
+    semantics = snap.get("frontier_map_semantics") or {}
+
+    newest_counter = _newest_verification(root / COUNTER_LABEL_RESULTS_DIR)
+    newest_map = _newest_verification(root / MAP_SEMANTICS_RESULTS_DIR)
+
+    def _counter_block() -> dict[str, Any]:
+        if newest_counter is None:
+            return {"newest_verification_run_id": None,
+                    "snapshot_team_run_id": counter.get("team_run_id"),
+                    "re_measured": None,
+                    "snapshot_current": True,
+                    "covers_this_packet": False,
+                    "note": "no verification file on the mount; snapshot stands"}
+        doc = newest_counter["doc"] or {}
+        re_measured = bool(doc.get("labels_rescored") or doc.get("bundles_remeasured"))
+        return {
+            "newest_verification_run_id": newest_counter["run_id"],
+            "newest_verdict": doc.get("verdict"),
+            "labels_rescored": bool(doc.get("labels_rescored", False)),
+            "bundles_remeasured": bool(doc.get("bundles_remeasured", False)),
+            "rules_edited": bool(doc.get("rules_edited", False)),
+            "measurement_unchanged": doc.get("measurement_unchanged"),
+            "snapshot_team_run_id": counter.get("team_run_id"),
+            "re_measured": re_measured,
+            # The snapshot stays valid unless a newer verification re-measured.
+            # A newer run id alone (operational repair, harness delta, scope
+            # fix) is explicitly NOT a new measurement.
+            "snapshot_current": not re_measured,
+            "covers_this_packet": False,
+        }
+
+    def _map_block() -> dict[str, Any]:
+        if newest_map is None:
+            return {"newest_verification_run_id": None,
+                    "snapshot_team_run_id": semantics.get("team_run_id"),
+                    "snapshot_current": True,
+                    "covers_this_packet": False,
+                    "note": "no verification file on the mount; snapshot stands"}
+        doc = newest_map["doc"] or {}
+        return {
+            "newest_verification_run_id": newest_map["run_id"],
+            "snapshot_team_run_id": semantics.get("team_run_id"),
+            "snapshot_current": newest_map["run_id"] == str(semantics.get("team_run_id")),
+            "covers_this_packet": False,
+        }
+
+    cb, mb = _counter_block(), _map_block()
+    return {
+        "schema": "product-frontier-verdict-sweep/1",
+        "checked_at": _now(),
+        "accepted_root": str(root),
+        "snapshot_path": str(Path(snapshot_path) if snapshot_path else SNAPSHOT_PATH),
+        "frontier_counter_label_integrity": cb,
+        "frontier_map_semantics": mb,
+        "covers_this_packet": False,
+        "action_required": bool(cb.get("re_measured")),
+        "claim_ceiling": (
+            "Read-only freshness check, not a measurement. covers_this_packet "
+            "stays False until a Frontier verification re-measures this "
+            "packet's own bundles; only then does the snapshot need a harvest."
+        ),
+    }
+
+
 def load(path: Path | None = None) -> dict[str, Any] | None:
     """Load the product-owned snapshot (None when it has never been harvested)."""
     p = Path(path) if path else SNAPSHOT_PATH
@@ -242,7 +367,7 @@ def disclosure(path: Path | None = None) -> dict[str, Any]:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("command", choices=("harvest", "disclosure"))
+    ap.add_argument("command", choices=("harvest", "disclosure", "sweep"))
     ap.add_argument("--accepted-root", type=Path,
                     default=Path("/tmp/lex_accepted/frontier"),
                     help="accepted Frontier mounts root (harvest only)")
@@ -263,6 +388,10 @@ def main(argv: list[str] | None = None) -> int:
                           "counter_verdict": snap["frontier_counter_label_integrity"]["verdict"],
                           "map_promoted": snap["frontier_map_semantics"]["promoted_decision"][:80]},
                          indent=2))
+        return 0
+    if args.command == "sweep":
+        print(json.dumps(sweep(args.accepted_root, args.snapshot), indent=2,
+                         ensure_ascii=False))
         return 0
     print(json.dumps(disclosure(args.snapshot), indent=2, ensure_ascii=False))
     return 0
