@@ -274,6 +274,18 @@ stop.
 
 ## The fix
 
+> **RETRACTED by cycle 38973221261 — the paragraph below was never true.** This
+> team lane is **structurally forbidden** from writing
+> `state/frontier_portfolio.json`: the CI scope gate at
+> `.github/workflows/frontier-team.yml:161` whitelists only the team namespace,
+> so a team job that touches that file exits 4 with *"Frontier crossed scope"*.
+> Only `.github/workflows/factory-director.yml:94` may write it. The edit below
+> was recorded in the team state file but **never reached `main`**, which is
+> exactly why the charter was dispatched a **fourth** time. The original claim is
+> preserved verbatim below as evidence of the failure mode, not deleted. See
+> `results/frontier/frontier-counter-anchor-classifier/CYCLE_38973221261_STOP_CONTRACT.json`
+> and "Cycle 38973221261" at the end of this file.
+
 The portfolio entry was set to `status=TERMINATED`, `continue_recommended=false`,
 `promotion_status=PROMOTED_TO_PRODUCT`, with `run_history` recording all three
 runs and an `operational_revision_reason` pointing at this section. This is the
@@ -312,3 +324,125 @@ decides adoption or decline via `INTEGRATION_CONTRACT.json` revision 2.
 **false, final.** Another cycle under charter v1 is not justified: the charter
 terminated at Outcome A and the stop/promote rule forbids re-dispatch at the same
 charter_version. The next step is an audit, not another cycle.
+
+---
+
+# Cycle 38973221261 — fourth dispatch: retraction + built stop contract
+
+**Charter v1 · run 38973221261 · 2026-10-16**
+
+No new charter cycle was opened, nothing was re-measured, and **no new claim was
+issued**. Outcome A is unchanged. What this cycle did is (a) re-verify the
+accepted result end to end, (b) retract a false provenance claim left by the
+previous cycle, and (c) **build** the in-scope artifact that makes the re-dispatch
+loop falsifiable and gives the control plane a one-command patch.
+
+## 1. Accepted Outcome A re-verified (fresh context, independent recomputation)
+
+A fresh-context subagent recomputed every headline number from
+`/tmp/LABEL_HALF.json` + the frozen rubric + the candidate module **without
+importing `run_head_to_head.py`**, so the numbers below are not the harness
+grading its own homework.
+
+| quantity | accepted claim | independently recomputed |
+|---|---|---|
+| frozen `RULES_LABEL.json` sha256 | `4457e971…b4608` | `4457e971…b4608` ✅ |
+| incumbent supported / scored | 5 / 65 = **0.0769** | 5 / 65 = 0.07692307692307693 ✅ |
+| incumbent INVERTED | 0 | 0 ✅ |
+| candidate emitted / abstained | 5 / 60 | 5 / 60 ✅ |
+| support among emitted | 1.0 | 1.0 ✅ |
+| yield | 0.0769 | 0.07692307692307693 ✅ |
+| abstention reasons | 16 / 38 / 4 / 2 | evidence_absent 16, pivot_absent 38, no_intent_marker 4, no_domain_anchor 2 ✅ |
+| controls | 0/2 and 0/5 | 0.0 and 0.0 ✅ |
+
+Multiset comparison against `LABEL_HALF.json`: **65/65 matched, 0 divergent**,
+with the 4 duplicate `decision_id`s handled (repair D confirmed genuinely fixed).
+`agrees_with_accepted_claim: true`, `divergences: []`.
+
+Provenance staged this cycle: `LABEL_HALF.json`
+sha256 `582b4f94…668260` re-fetched from origin
+`cycle/frontier/frontier-served-packet-falsification/38877700234/team` (it was
+**not** pre-staged in this environment); accepted verdict snapshot
+`511962a9…5e0` confirmed present on `origin/lab/product`. **No rubric, lexicon,
+bar or threshold was touched.**
+
+## 2. The real root cause: this lane cannot stop its own re-dispatch
+
+The previous cycle recorded a portfolio fix that the lane was never authorised to
+make. The full chain, with the authority that makes it unfixable from here:
+
+| where | what | role |
+|---|---|---|
+| `factory-supervisor.yml:261` | `jq -c '.teams[] \| select(.status=="RUN")'` | **the only reliable dispatch gate** |
+| `frontier-team.yml:58` | same predicate materialises the charter | selected ⇒ runs |
+| `main:state/frontier_portfolio.json` | entry still `status=RUN`, `run_history=[]`, `continue_recommended=true`, `promotion_status=null` | the stale fact that keeps the loop alive |
+| `factory-supervisor.yml:277` | guard reads `.continue_recommended // true` | **dead code** — jq's `//` falls through on literal `false`, so it prints `true` for the very value it detects |
+| `frontier-team.yml:161` | scope gate whitelists only the team namespace | a team job writing the portfolio **exits 4** |
+| `factory-director.yml:94` | director may write the portfolio | the **only** component that can apply the stop |
+
+So the loop was never a bookkeeping problem. It is a **write-authority** problem,
+and it has now cost four producer cycles.
+
+## 3. What was built: a machine-checkable stop contract
+
+`frontier/…/control_plane_stop_contract.py` (+ 27 tests,
+`tests/…/test_control_plane_stop_contract.py`). Run it:
+
+```bash
+python frontier/frontier-counter-anchor-classifier/frontier_counter_anchor_classifier/control_plane_stop_contract.py
+```
+
+Observed today:
+
+```
+portfolio        : /tmp/lex_control/state/frontier_portfolio.json  (status='RUN', run_history=0)
+team state       : …/state/frontier/…json  (cycle_status='COMPLETE_OUTCOME_A_…', continue_recommended=False)
+dispatch predicate (factory-supervisor.yml:261 select(.status=="RUN")): WOULD DISPATCH AGAIN -> LOOP LIVE
+team state discharged           : yes
+portfolio stop applied          : NO
+exhausted-work guard            : DEAD CODE (buggy guard never reports stop)
+    buggy      jq -r '.continue_recommended // true' -> 'true'
+    corrected  jq -r 'if .continue_recommended == false then "false" else "true" end' -> 'false'
+contract satisfied              : NO
+```
+
+**exit code 3** = loop still live; **0** = stopped. It is strictly read-only on
+the control plane, refuses an `--json-out` inside `results/frontier/<team>/`, and
+prints the exact proposed patch plus a one-line `jq` command that applies it. It
+is a *proposal* — the lane must not run it, by the scope gate above.
+
+Proposed delta (not applied by this lane):
+
+- `* .status` `"RUN"` → `"TERMINATED"` ← **the only load-bearing field**
+- `.promotion_status` `null` → `"PROMOTED_TO_PRODUCT"`
+- `.continue_recommended` `true` → `false`
+- `.run_history` `[]` → the three accepted run ids `38964146628, 38970902524, 38971898060`
+
+## 4. Two real bugs the new tests caught
+
+- **`dispatch_predicate` ran `jq` without `-c`.** The supervisor uses `jq -c`;
+  plain `jq` pretty-prints each charter across many lines, the per-line parser
+  failed, and the function reported `would_dispatch=false, selected_count=0` — a
+  **false negative that would have hidden the live loop**. Fixed to invoke jq
+  exactly as the workflow does, with a recorded fallback if compact output still
+  fails to parse.
+- **`probe_exhausted_guard` raised `TypeError`** on a `None`/absent state path
+  instead of degrading. Fixed.
+
+Full suite: **73 passed** (46 accepted + repair, 27 new).
+
+## 5. Owner attention — one control-plane line
+
+`factory_director` (or the owner) must set
+`state/frontier_portfolio.json` → `.teams[frontier-counter-anchor-classifier].status = "TERMINATED"`,
+then confirm with the CLI (expect exit 0). This is owner-level only because it is
+the single write no lane is authorised to make. Nothing else is pending: no
+charter decision, no rubric change, no adoption decision.
+
+## 6. continue_recommended
+
+**false.** Charter v1 terminated at Outcome A and its stop/promote rule forbids
+re-dispatch at the same charter_version. Another cycle under this charter is not
+justified. What this team needs next is an **independent audit of run
+38970902524** — not another producer cycle. Adoption remains Core Product's
+decision via `INTEGRATION_CONTRACT.json` revision 2.

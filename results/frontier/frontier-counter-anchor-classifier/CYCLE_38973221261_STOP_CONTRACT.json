@@ -1,0 +1,204 @@
+{
+  "run_id": "38973221261",
+  "team_id": "frontier-counter-anchor-classifier",
+  "charter_version": 1,
+  "direction_version": 50,
+  "cycle_kind": "OPERATIONAL_RESUME_AND_CONTROL_PLANE_STOP_CONTRACT",
+  "cycle_status": "COMPLETE_OUTCOME_A_ADOPTABLE_COMPONENT_REPAIRED_AND_STOP_CONTRACT_BUILT",
+  "outcome": "A",
+  "new_claim": false,
+  "charter_discharged": true,
+  "why_this_cycle": "Fourth dispatch of a charter whose stop/promote rule fired at Outcome A. Run 38971898060 recorded a 'portfolio_fix' that it could not and did not make; the control plane still selects this charter. This cycle (a) re-verifies the accepted Outcome A end to end, (b) corrects the false provenance, and (c) BUILDS the in-scope, machine-checkable stop contract that makes the loop falsifiable and hands the control plane a one-command patch.",
+  "freeze_first": {
+    "rules": "results/frontier/frontier-counter-anchor-classifier/RULES_LABEL.json",
+    "sha256_observed": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "sha256_expected": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "matches": true,
+    "rubric_edited": false,
+    "lexicon_bar_or_threshold_edited": false
+  },
+  "provenance_staged_this_cycle": {
+    "LABEL_HALF.json": {
+      "sha256": "582b4f941af4a6e8cf68b4888944ea68332cdd022c49129ff6c214c8c0668260",
+      "source": "origin cycle/frontier/frontier-served-packet-falsification/38877700234/team",
+      "path": "results/frontier/frontier-served-packet-falsification/LABEL_HALF.json",
+      "matches_prior_cycle_record": true,
+      "note": "not staged in this environment; re-fetched from the accepted origin branch and re-hashed"
+    },
+    "accepted_verdict_snapshot": {
+      "sha256": "511962a9232065667dc54a126f728a6da8dba1629752f4b81469d35a7e1a65e0",
+      "path": "results/product/frontier_verdicts/ACCEPTED_frontier-served-packet-falsification_38880639079.json",
+      "on": "origin lab/product"
+    }
+  },
+  "accepted_measurement_reverified": {
+    "independent_recomputation": "a fresh-context subagent recomputed every headline number from /tmp/LABEL_HALF.json + the frozen rubric + the candidate module WITHOUT importing run_head_to_head.py",
+    "incumbent": {
+      "n_scored": 65,
+      "n_supported": 5,
+      "support_rate": 0.07692307692307693,
+      "INVERTED": 0
+    },
+    "candidate": {
+      "n_emitted": 5,
+      "n_abstained": 60,
+      "support_among_emitted": 1.0,
+      "yield": 0.07692307692307693,
+      "INVERTED": 0,
+      "abstention_reasons": {
+        "evidence_absent": 16,
+        "pivot_absent": 38,
+        "no_intent_marker": 4,
+        "no_domain_anchor": 2
+      }
+    },
+    "non_vacuity": {
+      "inverted_label_control": "0/2 = 0.0",
+      "swapped_evidence_control": "0/5 = 0.0",
+      "all_controls_strictly_below_candidate": true
+    },
+    "multiset_vs_label_half": "65/65 matched, 0 divergent, 4 duplicate decision_ids handled",
+    "tests": "46 accepted+repair tests pass; 73 pass this cycle including 27 new stop-contract tests",
+    "agrees_with_accepted_claim": true,
+    "divergences": [],
+    "verdict": "Outcome A stands unchanged. No measurement was re-issued, re-tuned or altered."
+  },
+  "root_cause_of_the_dispatch_loop": {
+    "headline": "The team lane is STRUCTURALLY INCAPABLE of stopping its own re-dispatch. Run 38971898060 recorded a portfolio fix that the lane never had authority to make, so the control plane still selects this charter and the loop costs a full cycle per dispatch.",
+    "chain": [
+      {
+        "where": ".github/workflows/factory-supervisor.yml:261",
+        "what": "jq -c '.teams[] | select(.status==\"RUN\")' state/frontier_portfolio.json",
+        "role": "the ONLY reliable dispatch gate; a plain string compare on .status"
+      },
+      {
+        "where": ".github/workflows/frontier-team.yml:58",
+        "what": "the same select(.status==\"RUN\") materialises the executable charter",
+        "role": "selected by the supervisor == runs"
+      },
+      {
+        "where": "main:state/frontier_portfolio.json",
+        "what": "team entry still .status=RUN, run_history=[], continue_recommended=true, promotion_status=null",
+        "role": "the stale control-plane fact that keeps the loop alive"
+      },
+      {
+        "where": ".github/workflows/factory-supervisor.yml:277",
+        "what": "guard evaluates jq -r '.continue_recommended // true' and compares to the string false",
+        "role": "DEAD CODE: jq's // falls through on literal false, so it prints true for exactly the value it is written to detect and the guard can never fire (reproduced with real jq this cycle)"
+      },
+      {
+        "where": ".github/workflows/frontier-team.yml:161",
+        "what": "scope gate whitelists only frontier/$TEAM, tests/frontier/$TEAM, results/frontier/$TEAM, reports/frontier/$TEAM, state/frontier/$TEAM.json, data/frontier/$TEAM",
+        "role": "a team job writing state/frontier_portfolio.json exits 4 'Frontier crossed scope'"
+      },
+      {
+        "where": ".github/workflows/factory-director.yml:94",
+        "what": "director scope whitelists state/factory_direction.json and state/frontier_portfolio.json",
+        "role": "the ONLY component that can apply the stop"
+      }
+    ],
+    "correction_of_run_38971898060": {
+      "claim_recorded_then": "portfolio_fix applied to state/frontier_portfolio.json: status RUN->TERMINATED, continue_recommended true->false, promotion_status null->PROMOTED_TO_PRODUCT",
+      "claim_status_now": "FALSE PROVENANCE, CORRECTED",
+      "why": "the team lane may not write that file; the entry was never changed on main and the charter was re-dispatched again",
+      "correction": "the state file now records the fix as OUTSTANDING, not applied, and the portfolio field is left untouched by the lane",
+      "constitution_rule": "rule 5 accepted evidence beats narrative; a claim-bearing record must not assert a mutation that did not happen"
+    }
+  },
+  "stop_contract": {
+    "module": "frontier/frontier-counter-anchor-classifier/frontier_counter_anchor_classifier/control_plane_stop_contract.py",
+    "tests": "tests/frontier/frontier-counter-anchor-classifier/test_control_plane_stop_contract.py (27 tests)",
+    "invocation": "python frontier/frontier-counter-anchor-classifier/frontier_counter_anchor_classifier/control_plane_stop_contract.py",
+    "read_only": "never writes the portfolio, /tmp/lex_control, or any accepted artifact; refuses an --json-out inside results/frontier/<team>/",
+    "observed": {
+      "loop_live": true,
+      "team_state_discharged": true,
+      "portfolio_stop_applied": false,
+      "contract_satisfied": false,
+      "portfolio_status": "RUN",
+      "portfolio_run_history_len": 0,
+      "team_cycle_status": "COMPLETE_OUTCOME_A_ADOPTABLE_COMPONENT_REPAIRED",
+      "team_continue_recommended": false,
+      "guard_is_dead_code": true,
+      "guard_buggy_output": "true",
+      "guard_corrected_output": "false",
+      "exit_code": 3
+    },
+    "proposed_patch_fields": [
+      {
+        "path": ".teams[team_id=frontier-counter-anchor-classifier].status",
+        "before": "RUN",
+        "after": "TERMINATED",
+        "load_bearing": true
+      },
+      {
+        "path": ".teams[team_id=frontier-counter-anchor-classifier].promotion_status",
+        "before": null,
+        "after": "PROMOTED_TO_PRODUCT",
+        "load_bearing": false
+      },
+      {
+        "path": ".teams[team_id=frontier-counter-anchor-classifier].continue_recommended",
+        "before": true,
+        "after": false,
+        "load_bearing": false
+      },
+      {
+        "path": ".teams[team_id=frontier-counter-anchor-classifier].run_history",
+        "before": [],
+        "after": [
+          {
+            "run_id": "38964146628",
+            "status": "PROMOTED",
+            "notes": "charter v1; cycle_status=COMPLETE_OUTCOME_A_ADOPTABLE_COMPONENT; evidence_tier=ACCEPTED; continue_recommended=false; Outcome A reached; charter terminates here. No further cycle under the same charter is justified: the rubric is frozen and post-hoc tuning would invalidate it. Adoption is Core [...]"
+          },
+          {
+            "run_id": "38970902524",
+            "status": "PROMOTED",
+            "notes": "charter v1; cycle_status=COMPLETE_OUTCOME_A_ADOPTABLE_COMPONENT_REPAIRED; evidence_tier=ACCEPTED; continue_recommended=false; Outcome A stands and the charter stays TERMINATED. The component now needs an independent audit of run 38970902524, not another charter cycle; adoption is Core Product's decision."
+          },
+          {
+            "run_id": "38971898060",
+            "status": "OPERATIONAL_RESUME_NO_NEW_CLAIM",
+            "notes": "charter v1; cycle_status=COMPLETE_OUTCOME_A_ADOPTABLE_COMPONENT_REPAIRED_PORTFOLIO_STOP_FIXED; evidence_tier=ACCEPTED; continue_recommended=false; the portfolio stop this run claimed was NEVER applied to the control plane (team scope forbids it); this entry is the outstanding fix"
+          }
+        ],
+        "load_bearing": false
+      }
+    ],
+    "proposed_patch_applied_by_this_team": false,
+    "authority_note": "PROPOSAL FOR THE CONTROL PLANE ONLY. This team lane must not apply it: the CI scope gate at .github/workflows/frontier-team.yml:161 whitelists only the team namespace, so a team job that writes state/frontier_portfolio.json exits 4 with 'Frontier crossed scope'. Only .github/workflows/factory-director.yml:94 may write that file.",
+    "jq_command": "jq --arg t 'frontier-counter-anchor-classifier' --argjson rh '[{\"run_id\":\"38964146628\",\"status\":\"PROMOTED\",\"notes\":\"charter v1; cycle_status=COMPLETE_OUTCOME_A_ADOPTABLE_COMPONENT; evidence_tier=ACCEPTED; continue_recommended=false; Outcome A reached; charter terminates here. No further cycle under the same charter is justified: the rubric is frozen and post-hoc tuning would invalidate it. Adoption is Core [...]\"},{\"run_id\":\"38970902524\",\"status\":\"PROMOTED\",\"notes\":\"charter v1; cycle_status=COMPLETE_OUTCOME_A_ADOPTABLE_COMPONENT_REPAIRED; evidence_tier=ACCEPTED; continue_recommended=false; Outcome A stands and the charter stays TERMINATED. The component now needs an independent audit of run 38970902524, not another charter cycle; adoption is Core Product's decision.\"},{\"run_id\":\"38971898060\",\"status\":\"OPERATIONAL_RESUME_NO_NEW_CLAIM\",\"notes\":\"charter v1; cycle_status=COMPLETE_OUTCOME_A_ADOPTABLE_COMPONENT_REPAIRED_PORTFOLIO_STOP_FIXED; evidence_tier=ACCEPTED; continue_recommended=false; the portfolio stop this run claimed was NEVER applied to the control plane (team scope forbids it); this entry is the outstanding fix\"}]' '(.teams[] | select(.team_id==$t)) |= (.status=\"TERMINATED\" | .promotion_status=\"PROMOTED_TO_PRODUCT\" | .continue_recommended=false | .run_history=$rh)' state/frontier_portfolio.json > state/frontier_portfolio.json.tmp && mv state/frontier_portfolio.json.tmp state/frontier_portfolio.json",
+    "why_this_is_in_scope": "The lane cannot write state/frontier_portfolio.json, but it CAN make the defect reproducible, machine-checkable and impossible to mistake for a fix, and hand the control plane a one-command patch. That is the single bounded in-budget path left to it."
+  },
+  "bugs_found_by_the_new_tests_this_cycle": [
+    {
+      "where": "control_plane_stop_contract.dispatch_predicate",
+      "defect": "ran jq without -c, so the pretty-printed charter stream failed the per-line parse and reported would_dispatch=false, selected_count=0 -- a FALSE NEGATIVE that would have hidden the live loop",
+      "fix": "invoke jq exactly as the supervisor does (jq -c -r), and fall back to a recorded python emulation if compact output still fails to parse"
+    },
+    {
+      "where": "control_plane_stop_contract.probe_exhausted_guard / stop_contract_state",
+      "defect": "a None or absent team-state path raised TypeError instead of degrading",
+      "fix": "treat a falsy or absent path as 'no state' and record it"
+    },
+    {
+      "where": "_emulate_buggy_guard / note clipping",
+      "defect": "dead branch and a mid-word truncation",
+      "fix": "emulation made explicit and auditable; notes clipped on a word boundary"
+    }
+  ],
+  "owner_attention": {
+    "requested": true,
+    "one_line": "factory_director (or owner): set state/frontier_portfolio.json .teams[frontier-counter-anchor-classifier].status to TERMINATED; run the stop-contract CLI to confirm exit 0.",
+    "why_owner_level": "it is the only write no lane is authorised to make, and it is a control-plane state change, not a technical failure",
+    "not_requested": "nothing else; no charter decision, no rubric change, no adoption decision is pending from the owner"
+  },
+  "charter_disposition": {
+    "outcome": "A (unchanged)",
+    "continue_recommended": false,
+    "reason": "charter stop_promote_rule: TERMINATE after either outcome and never re-dispatch at the same charter_version. Another cycle under charter v1 is not justified. What the team needs next is an INDEPENDENT AUDIT of run 38970902524, not a producer cycle.",
+    "blocked_on": "control-plane portfolio status change, which is outside this lane's write scope"
+  },
+  "out_of_scope_writes": "none: no writes under product/, evaluation/, results/product/, state/product.json, .github/, state/factory_direction.json, state/frontier_portfolio.json, or any UI asset"
+}
