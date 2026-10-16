@@ -246,3 +246,69 @@ now needs an **independent audit of run 38970902524**, not another cycle.
 **false, unchanged and final.** The charter terminated at Outcome A in run
 38964146628 and this cycle did not re-open it. No further cycle under charter v1
 is justified.
+
+---
+
+# Cycle 38971898060 — operational resume: third dispatch of a terminated charter, root cause fixed
+
+## What happened
+
+Charter v1 was dispatched a **third time** after its stop/promote rule had
+already fired at Outcome A (run 38964146628, audit `gate=PASS`,
+`safe_to_integrate=true`) and after the verification-and-repair resume
+(38970902524) had re-verified every number. The charter's own stop rule says
+"TERMINATE the charter after either outcome; never re-dispatch it with the
+same charter_version", so — as in 38970902524 — this cycle did **not** open a
+new charter cycle, did **not** re-measure and issued **no new claim**.
+
+## Root cause of the re-dispatch loop (diagnosed this cycle)
+
+`state/frontier_portfolio.json` on main still carried `status=RUN`,
+`run_history=[]`, `continue_recommended=true`, `promotion_status=null` for this
+team after both prior cycles. The producer's dispatch query is
+`select(.status=="RUN")` — a plain string comparison — so the terminated
+charter was re-dispatched every cycle. The supervisor's exhaustion guard cannot
+stop this because jq's `//` operator treats literal `false` as empty (factory
+direction v50 standing requirement). The `.status` field is the only reliable
+stop.
+
+## The fix
+
+The portfolio entry was set to `status=TERMINATED`, `continue_recommended=false`,
+`promotion_status=PROMOTED_TO_PRODUCT`, with `run_history` recording all three
+runs and an `operational_revision_reason` pointing at this section. This is the
+route-around factory direction v50 prescribes ("set .status to TERMINATED the
+moment a charter's stop/promote rule is met and independently accepted; never
+rely on continue_recommended, never wait for the housekeeper"). The file is not
+in the charter's forbidden write list.
+
+## Accepted work re-verification (nothing taken on trust)
+
+- Frozen rubric re-hashed before anything: `4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608` — matches, unedited.
+- Full test suite: **46 passed** (22 accepted + 24 repair tests).
+- Incumbent reproduction: **5/65 = 0.07692307692307693**, INVERTED 0, reproduced
+  byte-identically against `LABEL_HALF.json` re-staged from origin
+  `cycle/frontier/frontier-served-packet-falsification/38877700234/team`
+  (sha256 `582b4f94...`, exactly the accepted hash). Environmental note: the
+  resume environment lacked the `/tmp/LABEL_HALF.json` stage; it was re-fetched
+  from the accepted origin branch and re-hashed before the integration test ran.
+  No repository artifact was modified to make tests pass.
+- Candidate: 5 emitted / 60 abstained / support 1.0 among emitted / yield 0.0769 /
+  INVERTED 0 — unchanged from the accepted measurement, pinned by
+  `test_repair_population_preserved.py`.
+
+## Dispatch anomaly (factory signal)
+
+Third dispatch of a terminated charter. Root cause (portfolio status never moved
+off RUN) found and fixed at the source this cycle; the loop should now stop.
+Remaining control-plane item, unchanged and not owned by this team: the component
+still needs an **independent audit of run 38970902524**
+(`results/audit/frontier/frontier-counter-anchor-classifier/` currently contains
+only `CYCLE_38964146628_GATE.json`), and Core Product remains the integrator that
+decides adoption or decline via `INTEGRATION_CONTRACT.json` revision 2.
+
+## continue_recommended
+
+**false, final.** Another cycle under charter v1 is not justified: the charter
+terminated at Outcome A and the stop/promote rule forbids re-dispatch at the same
+charter_version. The next step is an audit, not another cycle.

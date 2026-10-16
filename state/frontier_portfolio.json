@@ -380,7 +380,7 @@
     {
       "team_id": "frontier-counter-anchor-classifier",
       "charter_version": 1,
-      "status": "RUN",
+      "status": "TERMINATED",
       "human_authorized": false,
       "product_capability": "A drop-in, sentence-anchored counter-authority label decision component. Given one candidate decision row and its retrieved text, it emits a counter label (supporting / contrary / limiting) ONLY when a specific cited sentence of that same decision supports it under the accepted frozen support rubric, and otherwise emits an explicit, COUNTED abstention. The product can then stop shipping unsupported counter labels while keeping unevidenced authority visible on the map, and can publish support rate and yield together instead of trading one silently for the other.",
       "question": "On the three served bundles of results/product/gate_packet/38839347028 (de-kapitalverletzung 214, fr-bail-entretien 217, it-responsabilita-medica 211 decisions; 65 scored counter rows), can a sentence-anchored label decision function that is allowed to ABSTAIN raise counter-label support above the accepted incumbent result of 5/65 = 0.0769 under the FROZEN rubric RULES_LABEL.json (sha256 4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608), with zero INVERTED labels and no rubric, lexicon bar or threshold edit — and if it cannot, what is the single bounded in-budget path that was tried?",
@@ -406,9 +406,27 @@
       ],
       "stop_promote_rule": "PROMOTE at the FIRST outcome reached; the charter ends there and MUST NOT continue into prompt or threshold tuning after an outcome, because the rubric is frozen and post-hoc tuning invalidates it. OUTCOME A (component): the candidate is strictly better than the incumbent on the frozen rubric across >= 3 bundles with INVERTED == 0 and acceptance (1)-(8) pass — promote an ADOPTABLE component plus its measured support rate, abstention count and yield, and hand the integration contract to Product, which remains the integrator and decides adoption. OUTCOME B (bounded negative): the candidate is not strictly better — promote an accepted NEGATIVE that names the single bounded in-budget path tried and its measured numbers, and state plainly whether the remaining defect is mechanical (reachable by abstention and topical guards) or a limit of free-model evidence quality. In Outcome B the counter-authority feature may still ship, but only in an explicit abstain-and-disclose mode whose support rate Product publishes on the owner card. TERMINATE the charter after either outcome; never re-dispatch it with the same charter_version.",
       "created_at": "2026-10-16T19:30:00Z",
-      "run_history": [],
+      "run_history": [
+        {
+          "run_id": "38964146628",
+          "status": "OUTCOME_A_ACCEPTED",
+          "notes": "Adoptable component; audit CYCLE_38964146628_GATE.json gate=PASS safe_to_integrate=true; charter terminated per stop_promote_rule."
+        },
+        {
+          "run_id": "38970902524",
+          "status": "VERIFICATION_AND_REPAIR_OF_AN_ACCEPTED_OUTCOME",
+          "notes": "Independent re-verification plus four repairs (accepted comparison coverage 61->65, unmapped-status abstain, swapped-control reason correction, CLI default path); no new claim."
+        },
+        {
+          "run_id": "38971898060",
+          "status": "OPERATIONAL_RESUME_PORTFOLIO_STOP_FIXED",
+          "notes": "Third dispatch of the terminated charter. Diagnosed: portfolio entry never moved off status=RUN after the accepted Outcome A termination, so the dispatch query re-dispatched it forever. Fixed: status=TERMINATED, continue_recommended=false. Accepted work re-verified intact (rubric re-hash 4457e971..., 46 tests pass, incumbent 5/65 reproduced against re-staged LABEL_HALF.json sha 582b4f94...). No new claim."
+        }
+      ],
       "lane_discharge": "LANE-DISCHARGE (docs/agents/AGENT_CARDS.md factory_director: before the query-map human product gate prefer the existing product/evaluation lanes; create a Frontier team only for a concrete blocker that cannot be solved inside them). (i) Lane that would otherwise absorb this work: Core Product, which owns product/query/adversarial_retrieval.py and the render predicate, but is explicitly forbidden by factory direction v50 from rebuilding this component or re-measuring labels, and Core Evaluation, which owns the executable bars but must not build a candidate. (ii) Why it cannot be absorbed: the last two measurement charters on this axis both terminated with an UNSOUND verdict and explicitly handed the fix back; the accepted product state forbids product-side label measurement; and the deliverable is an independent candidate that must be able to lose to the incumbent, which an integrating lane has no incentive to build. (iii) Why now: the accepted DO-NOT-SERVE order is live and the owner session is the next claimed step, so this is on the critical path of the human gate, not curiosity.",
-      "continue_recommended": true
+      "continue_recommended": false,
+      "promotion_status": "PROMOTED_TO_PRODUCT",
+      "operational_revision_reason": "Charter v1 TERMINATED at Outcome A (run 38964146628, gate=PASS) and must never be re-dispatched at the same charter_version. Runs 38970902524 and 38971898060 were duplicate dispatches absorbed as verification/repair and operational resume; this entry was still status=RUN with run_history=[] after both, which is the standing re-dispatch defect factory direction v50 names (the .status field is the only reliable stop; continue_recommended is unreadable through jq //). Set to TERMINATED here per the documented route-around. Next step is not another charter cycle: an independent AUDIT of run 38970902524, then Core Product adoption/decline via INTEGRATION_CONTRACT.json revision 2."
     },
     {
       "team_id": "frontier-query-conditioned-map-geometry",

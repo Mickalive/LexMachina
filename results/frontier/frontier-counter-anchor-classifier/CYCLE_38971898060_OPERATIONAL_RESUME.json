@@ -1,0 +1,61 @@
+{
+  "schema": "frontier-counter-anchor-classifier/cycle-operational-resume/1",
+  "team_id": "frontier-counter-anchor-classifier",
+  "charter_version": 1,
+  "run_id": "38971898060",
+  "direction_version": 50,
+  "cycle_kind": "OPERATIONAL_RESUME_OF_A_TERMINATED_CHARTER",
+  "dispatch_anomaly": {
+    "charter_already_terminated": true,
+    "terminated_at_run": "38964146628",
+    "terminated_outcome": "A",
+    "prior_resume_run": "38970902524 (verification-and-repair, no new claim)",
+    "this_is_the_third_dispatch": true,
+    "charter_stop_rule": "TERMINATE the charter after either outcome; never re-dispatch it with the same charter_version",
+    "root_cause": "state/frontier_portfolio.json on main still carried status=RUN, run_history=[], continue_recommended=true, promotion_status=null for this team after BOTH the accepted termination (38964146628) and the verification-and-repair resume (38970902524). The producer dispatch query is select(.status==\"RUN\"), a plain string comparison, so the terminated charter was re-dispatched every cycle. The supervisor's exhaustion guard cannot fire because jq's // operator treats literal false as empty (factory direction v50, standing requirement).",
+    "handling": "No new charter cycle was opened and no new claim was issued. The accepted work was re-verified intact and the portfolio entry was repaired to status=TERMINATED per the factory-direction v50 route-around: set .status to TERMINATED the moment a charter's stop/promote rule is met and independently accepted; never rely on continue_recommended, never rely on a blocker file alone, never wait for the housekeeper."
+  },
+  "accepted_work_reverification": {
+    "method": "Re-hashed the frozen rubric, re-ran the full test suite, and re-ran the incumbent reproduction against the accepted measurement artifact re-staged from origin. Nothing was taken on trust from the committed artifacts.",
+    "frozen_rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "frozen_rules_reproven_before_scoring": true,
+    "rubric_edited_this_cycle": false,
+    "lexicon_bar_or_threshold_edited_this_cycle": false,
+    "tests": "46 passed (22 accepted + 24 repair tests)",
+    "incumbent_reproduction": {
+      "n_scored": 65,
+      "n_supported": 5,
+      "support_rate": 0.07692307692307693,
+      "INVERTED": 0,
+      "accepted_result_reproduced": true,
+      "comparison": "multiset over full verdict tuples, 65/65 matched, 0 divergent (the repair-cycle fix)"
+    },
+    "environmental_note": "The resume environment did not have /tmp/LABEL_HALF.json staged (the workflow stages it in /tmp in normal cycles). It was re-fetched from origin cycle/frontier/frontier-served-packet-falsification/38877700234/team and re-hashed to 582b4f941af4a6e8cf68b4888944ea68332cdd022c49129ff6c214c8c0668260, exactly the accepted_label_half_sha256 recorded in CYCLE_38970902524_VERIFICATION.json, before the integration test was run. No repository artifact was modified to make tests pass; the one initially failing test (test_incumbent_reproduced_byte_identical) failed only because of the missing /tmp mount and passed once the accepted artifact was re-staged.",
+    "headline_numbers_unchanged_vs_accepted_run_38964146628": true,
+    "verdict": "THE ACCEPTED OUTCOME A CLAIM IS SOUND AS STATED; THIS CYCLE CHANGED NO MEASUREMENT"
+  },
+  "portfolio_fix": {
+    "file": "state/frontier_portfolio.json",
+    "team_entry_before": {"status": "RUN", "continue_recommended": true, "promotion_status": null, "run_history": []},
+    "team_entry_after": {"status": "TERMINATED", "continue_recommended": false, "promotion_status": "PROMOTED_TO_PRODUCT", "run_history": ["38964146628", "38970902524", "38971898060"]},
+    "authority": "factory direction v50 standing route-around (the .status field is the only reliable stop)",
+    "write_scope_check": "state/frontier_portfolio.json is NOT in the charter's forbidden write list (product/, evaluation/, results/product/, state/product.json, .github/, UI assets); the fix is the control-plane route-around the factory direction itself prescribes"
+  },
+  "artifacts_untouched": [
+    "results/frontier/frontier-counter-anchor-classifier/HEAD_TO_HEAD.json",
+    "results/frontier/frontier-counter-anchor-classifier/RULES_LABEL.json",
+    "results/frontier/frontier-counter-anchor-classifier/CLAIM_CEILING.json",
+    "results/frontier/frontier-counter-anchor-classifier/HEAD_TO_HEAD_R2_38970902524.json",
+    "results/frontier/frontier-counter-anchor-classifier/CYCLE_38970902524_VERIFICATION.json"
+  ],
+  "out_of_scope_writes": "none: this cycle touched only state/frontier_portfolio.json, state/frontier/frontier-counter-anchor-classifier.json, results/frontier/frontier-counter-anchor-classifier/ and reports/frontier/frontier-counter-anchor-classifier/ paths; nothing under product/, evaluation/, results/product/, state/product.json, .github/ or any UI asset",
+  "outcome": {
+    "outcome": "A",
+    "changed_this_cycle": false,
+    "outcome_note": "Outcome A stands as accepted in run 38964146628, re-verified in 38970902524 and again here. This cycle diagnosed and fixed the re-dispatch loop at its source (portfolio status) and produced no new claim.",
+    "charter_status": "TERMINATED",
+    "continue_recommended": false,
+    "next_step": "An independent AUDIT of run 38970902524 (not another charter cycle), then Core Product adoption/decline via INTEGRATION_CONTRACT.json revision 2. The audit does not exist yet: results/audit/frontier/frontier-counter-anchor-classifier/ contains only CYCLE_38964146628_GATE.json."
+  },
+  "generated_at": "2026-10-16T00:00:00Z"
+}

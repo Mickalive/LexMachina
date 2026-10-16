@@ -101,6 +101,48 @@
         "results/frontier/frontier-counter-anchor-classifier/CLAIM_CEILING.json"
       ],
       "note": "Outcome A stands and the charter stays TERMINATED. The component now needs an independent audit of run 38970902524, not another charter cycle; adoption is Core Product's decision."
+    },
+    {
+      "run_id": "38971898060",
+      "charter_version": 1,
+      "cycle_kind": "OPERATIONAL_RESUME_OF_A_TERMINATED_CHARTER",
+      "cycle_status": "COMPLETE_OUTCOME_A_ADOPTABLE_COMPONENT_REPAIRED_PORTFOLIO_STOP_FIXED",
+      "evidence_tier": "ACCEPTED",
+      "continue_recommended": false,
+      "dispatch_anomaly": {
+        "detected_run": "38971898060",
+        "condition": "charter v1 re-dispatched a THIRD time after its stop/promote rule had already fired at Outcome A (run 38964146628, gate=PASS, continue_recommended=false)",
+        "root_cause": "state/frontier_portfolio.json still carried status=RUN, run_history=[], continue_recommended=true, promotion_status=null after both the acceptance and the verification-and-repair cycle; the producer dispatch query select(.status==\"RUN\") therefore re-dispatched the terminated charter every cycle",
+        "handling": "absorbed as operational resume: no new charter cycle opened, no new claim issued, no re-measurement; the portfolio entry was fixed to status=TERMINATED per the factory-direction v50 route-around (the .status field is the only reliable stop; continue_recommended is unreadable through jq //)"
+      },
+      "accepted_work_reverification": {
+        "frozen_rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+        "frozen_rules_reproven": true,
+        "tests": "46 passed (22 accepted + 24 repair tests)",
+        "incumbent_reproduction": "5/65 = 0.07692307692307693 reproduced byte-identically against LABEL_HALF.json re-staged from origin cycle/frontier/frontier-served-packet-falsification/38877700234/team (sha256 582b4f941af4a6e8cf68b4888944ea68332cdd022c49129ff6c214c8c0668260)",
+        "environmental_note": "the resume environment did not have /tmp/LABEL_HALF.json staged; it was re-fetched from the accepted origin branch and re-hashed before use. No repository artifact was modified to make tests pass.",
+        "headline_numbers_unchanged": true
+      },
+      "portfolio_fix": {
+        "file": "state/frontier_portfolio.json",
+        "before": {
+          "status": "RUN",
+          "continue_recommended": true,
+          "promotion_status": null,
+          "run_history": []
+        },
+        "after": {
+          "status": "TERMINATED",
+          "continue_recommended": false,
+          "promotion_status": "PROMOTED_TO_PRODUCT"
+        },
+        "authority": "factory direction v50 standing route-around: set .status to TERMINATED the moment a charter stop/promote rule is met and independently accepted; never rely on continue_recommended, never wait for the housekeeper"
+      },
+      "artifacts": [
+        "results/frontier/frontier-counter-anchor-classifier/CYCLE_38971898060_OPERATIONAL_RESUME.json",
+        "reports/frontier/frontier-counter-anchor-classifier/REPORT.md (cycle 38971898060 section)"
+      ],
+      "note": "Outcome A stands; the charter stays TERMINATED and continue_recommended=false because another cycle under the SAME charter is not justified (stop_promote_rule: never re-dispatch it with the same charter_version). The component needs an independent AUDIT of run 38970902524, not another charter cycle; adoption is Core Product's decision."
     }
   ],
   "repairs": [
@@ -130,11 +172,11 @@
     }
   ],
   "dispatch_anomaly": {
-    "detected_run": "38970902524",
+    "detected_run": "38971898060 (third dispatch; root cause found and fixed in state/frontier_portfolio.json)",
     "condition": "charter v1 was re-dispatched after its stop/promote rule had already fired at Outcome A (run 38964146628, gate=PASS, continue_recommended=false)",
     "handling": "absorbed as verification-and-repair of an accepted outcome; no new charter cycle opened and no new claim issued",
     "factory_signal": "a terminated charter must not be re-dispatched at the same charter_version; run 38970902524 now needs an independent audit, not another cycle"
   },
   "integration_contract_revision": 2,
-  "tests": "46 passed (22 accepted + 24 repair tests)"
+  "tests": "46 passed (22 accepted + 24 repair tests); re-verified this cycle with LABEL_HALF.json re-staged from origin"
 }
