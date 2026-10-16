@@ -1060,8 +1060,12 @@ def test_cited_but_contrary_stays_visible_as_counter():
         fixture_answer="Valid when limited [CH-2020-FR-001].",
         fixture_cited_ids=["CH-2020-FR-001"],
         fixture_findings=[
-            AdversarialFinding(decision_id="CH-2020-FR-001", reason="limiting",
-                               evidence_refs=["but only for two years"], uncertainty=0.2),
+            AdversarialFinding(
+                decision_id="CH-2020-FR-001",
+                reason="limiting",
+                evidence_refs=["La duree de deux ans est en principe admissible lorsque le secret des affaires est en cause."],
+                uncertainty=0.2,
+            ),
         ],
     )
     by_id = {d["decision_id"]: d for d in audited["decisions"]}
