@@ -17,6 +17,7 @@ from .answer import build_answer, counter_authority_pass
 from .answer_contract import ensure_coverage
 from .answer_gap import ensure_cited_answer
 from .bundle import build_bundle, validate_bundle
+from .contract_guided import build_provider
 from .qmap import build_map
 from .relevance import rerank_product_bundle
 from .adversarial_retrieval import (
@@ -709,11 +710,25 @@ def enrich_query_bundle(
                 uncertainty=0.2,
                 confidence=0.9,
             )]
-        audited = run_generative_audit(
-            work,
+        # Contract-guided generation: the completeness contract already knows,
+        # before the model writes, which material conditions this query's
+        # answer must contain (product/query/answer_contract.py).  Handing the
+        # labels to the prompt is the missing seam for the three consecutive
+        # petty-theft legs that stated the low-value nuance only in a
+        # paraphrase no reader could quote (results/product/reality_check/
+        # petty-theft-dismissal_live_20261016T{184421,193340,194228}Z.json).
+        # When no contract matches, build_provider returns the unchanged
+        # parent Provider, so the other three legs keep their exact prompt.
+        provider = build_provider(
+            str(work.get("query") or ""),
             fixture_mode=fixture_generation,
             fixture_answer=("Fixture grounded answer " + " ".join(f"[{x}]" for x in fixture_ids)) if fixture_generation else None,
             fixture_cited_ids=fixture_ids if fixture_generation else None,
+        )
+        audited = run_generative_audit(
+            work,
+            provider=provider,
+            fixture_mode=fixture_generation,
             fixture_findings=fixture_findings,
             defer_adversarial=bool(adversarial_retrieval),
         )

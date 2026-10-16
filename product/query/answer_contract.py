@@ -86,12 +86,28 @@ CONTRACTS: list[dict[str, Any]] = [
     {
         "topic": "petty-theft-dismissal",
         "match": r"art(?:\.|icle)?\s*337|vol de faible valeur|geringf.iger diebstahl|"
-                 r"bagatell|petty theft",
+                  r"bagatell|petty theft",
         "elements": [
             {
-                "id": "low-value-fact-pattern",
-                "label": "the answer addresses the low-value (petty) fact pattern",
-                "patterns": [r"faible valeur", r"geringfug", r"bagatell"],
+                # The material condition is the NUANCE, not the bare phrase: low
+                # value neither automatically bars nor automatically justifies
+                # summary dismissal (4A_177/2017, 4A_228/2015, BGE 142 III 579).
+                # An answer that merely says "faible valeur" and stops has not
+                # stated the condition a jurist needs, so the element patterns
+                # require the non-decisiveness phrasing itself. Same normalisation
+                # as the frozen gate, so a fill would be gate-visible; the corpus
+                # currently holds no sentence that states it, which the contract
+                # records as an unfillable gap rather than papering over.
+                "id": "low-value-not-decisive",
+                "label": "low value is not itself decisive for or against summary dismissal",
+                "patterns": [
+                    r"(?:faible valeur|peu de valeur)[^.!?\n]{0,120}(?:n.est pas decisive|"
+                    r"n.est pas determinante|n.exclut pas|ne fait pas obstacle|peut justifier)",
+                    r"(?:meme|y compris)[^.!?\n]{0,60}(?:faible valeur|peu de valeur)"
+                    r"[^.!?\n]{0,100}(?:peut|justif)",
+                    r"(?:geringfug|bagatell)[^.!?\n]{0,120}(?:nicht ausschlaggebend|"
+                    r"kann[^.!?\n]{0,50}fristlos)",
+                ],
                 "anchor": r"diebstahl|vol |337|wichtiger grund|licenciement|kuendigung",
             },
         ],
