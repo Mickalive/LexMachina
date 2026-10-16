@@ -58,7 +58,13 @@ def coherence(decisions, clusters, query_lang, lexicon):
             "per_cluster": per_cluster, "dominant": dom}
 
 
-def projection(decisions, X, query_text):
+def projection(decisions, X, query_text, query_vec=None):
+    """Projection fidelity on the SHIPPED x/y.
+
+    `query_vec` is an explicit argument (was a module-global function attribute
+    `projection._query_vec`, a latent cross-call staleness defect found in cycle
+    38846038296; the numbers are unchanged, the coupling is removed).
+    """
     coords = np.array([[float(d.get("x", 0)), float(d.get("y", 0))] for d in decisions])
     cos_d = _cosine_dist(X)
     euc_d = _euclid(coords)
@@ -74,10 +80,7 @@ def projection(decisions, X, query_text):
         overlaps.append(len(set(nn_e.tolist()) & set(nn_c.tolist())) / max(1, k))
     knn = float(np.mean(overlaps)) if overlaps else float("nan")
     # rank fidelity: distance to query vector vs retrieval rank
-    from .textgeo import fit_tfidf  # noqa
-    vec = getattr(projection, "_vec", None)
-    # query vector in the same fitted space: use stored vectorizer when available
-    Q = getattr(projection, "_query_vec", None)
+    Q = query_vec
     ranks = np.array([int(d.get("rank", 0)) for d in decisions], dtype=float)
     if Q is None:
         rho_r, deg2 = float("nan"), True
@@ -173,9 +176,6 @@ def relations_metric(bundle):
             nokind += 1
         if r.get("source") not in ids or r.get("target") not in ids:
             missing += 1
-    # kind histogram (single pass)
-    kinds = {}
-    for r in rels:
         kinds[str(r.get("kind"))] = kinds.get(str(r.get("kind")), 0) + 1
     endpoint_ok = (len(rels) - missing) / len(rels) if rels else 0.0
     return {"edge_count": len(rels), "kinds": kinds, "directions": dirs,
@@ -196,8 +196,7 @@ def verdicts(bundle, rules, X, query_vec):
     lang_bar = max(0.25, 0.5 * base)
     v_lang = dom["query_lang_share"] >= lang_bar if dom else False
     v_term = dom["query_term_share"] >= coh["bundle_term_baseline"] if dom else False
-    projection._query_vec = query_vec
-    proj = projection(decisions, X, bundle.get("query", ""))
+    proj = projection(decisions, X, bundle.get("query", ""), query_vec)
     st = structure(decisions, X, clusters)
     lab = labels_metric(clusters)
     out = outliers_metric(decisions)
@@ -322,8 +321,7 @@ def shipped_sbs(bundle, rules, X, qvec):
     qlang = rules["query_language"]
     lex = rules["query_term_lexicon"]
     coh = coherence(decisions, clusters, qlang, lex)
-    projection._query_vec = qvec
-    proj = projection(decisions, X, bundle.get("query", ""))
+    proj = projection(decisions, X, bundle.get("query", ""), qvec)
     st = structure(decisions, X, clusters)
     dom = coh["dominant"] or {}
     return {

@@ -4,13 +4,13 @@
   "dominant_member_jaccard": 0.1509433962264151,
   "dominant_unhydrated_fraction": 0.43636363636363634,
   "hydrated_largest_share": 0.2727272727272727,
-  "hydrated_time_s": 0.05819361800013212,
+  "hydrated_time_s": 0.08049531000006027,
   "n_all": 134,
   "n_hydrated": 110,
   "predicate_note": "charter-equivalence measured FALSE on gate material: full_text_status=='lazy' on 100% of rows incl. search_hits with KBs of body; language==null covers all pending rows plus 0-10 search_hit rows with real bodies; pending-row bodies average ~10 chars (decision id only). Harness defect fixed pre-run; RULES bars unchanged.",
   "predicate_used": "detail_status != 'search_hit'",
   "recompute_all_largest_share": 0.5373134328358209,
-  "recompute_all_time_s": 0.10308947099997567,
+  "recompute_all_time_s": 0.16012154899999587,
   "shipped_largest_share": 0.41044776119402987,
   "side_by_side": {
    "all_rows": {
@@ -300,7 +300,14 @@
     "COHERENCE_QUERY_LANG",
     "COHERENCE_QUERY_TERM"
    ],
+   "movable_criteria": [
+    "COHERENCE_QUERY_LANG",
+    "COHERENCE_QUERY_TERM",
+    "STRUCTURE_SEP"
+   ],
    "n_flips": 2,
+   "n_invariant_criteria": 8,
+   "n_movable_criteria": 3,
    "original_criteria": {
     "COHERENCE_QUERY_LANG": false,
     "COHERENCE_QUERY_TERM": false,
@@ -313,6 +320,22 @@
     "RELATIONS": true,
     "STRUCTURE_LARGEST": true,
     "STRUCTURE_SEP": false
+   },
+   "original_values": {
+    "COHERENCE_QUERY_LANG": 0.05454545454545454,
+    "COHERENCE_QUERY_TERM": 0.03636363636363636,
+    "LABEL_CONTENT_FRACTION": 1.0,
+    "LABEL_JACCARD": 0.022817460317460316,
+    "OUTLIER_VALIDITY": [
+     0.0,
+     0.016
+    ],
+    "PROJ_KNN10": 0.1970149253731343,
+    "PROJ_RANK": 0.2968863599497235,
+    "PROJ_SPEARMAN": 0.007084082826254877,
+    "RELATIONS": 25,
+    "STRUCTURE_LARGEST": 0.41044776119402987,
+    "STRUCTURE_SEP": 0.9769441952682895
    }
   },
   "full": {
@@ -350,7 +373,16 @@
     "COHERENCE_QUERY_LANG",
     "COHERENCE_QUERY_TERM"
    ],
+   "movable_criteria": [
+    "COHERENCE_QUERY_LANG",
+    "COHERENCE_QUERY_TERM",
+    "PROJ_SPEARMAN",
+    "PROJ_KNN10",
+    "STRUCTURE_SEP"
+   ],
    "n_flips": 2,
+   "n_invariant_criteria": 6,
+   "n_movable_criteria": 5,
    "original_criteria": {
     "COHERENCE_QUERY_LANG": false,
     "COHERENCE_QUERY_TERM": false,
@@ -363,9 +395,74 @@
     "RELATIONS": true,
     "STRUCTURE_LARGEST": true,
     "STRUCTURE_SEP": false
+   },
+   "original_values": {
+    "COHERENCE_QUERY_LANG": 0.05454545454545454,
+    "COHERENCE_QUERY_TERM": 0.03636363636363636,
+    "LABEL_CONTENT_FRACTION": 1.0,
+    "LABEL_JACCARD": 0.022817460317460316,
+    "OUTLIER_VALIDITY": [
+     0.0,
+     0.016
+    ],
+    "PROJ_KNN10": 0.1970149253731343,
+    "PROJ_RANK": 0.2968863599497235,
+    "PROJ_SPEARMAN": 0.007084082826254877,
+    "RELATIONS": 25,
+    "STRUCTURE_LARGEST": 0.41044776119402987,
+    "STRUCTURE_SEP": 0.9769441952682895
    }
   },
-  "passed": true
+  "movability_note": "MEASURED per control, not asserted: a criterion appears in `movable_criteria` iff its emitted value differs between the shipped geometry and the corrupted one. Under the frozen C-charter control (cluster ids permuted across rows + labels permuted across cluster ids) only COHERENCE_QUERY_LANG, COHERENCE_QUERY_TERM and STRUCTURE_SEP can move; the other 8 read only x/y, the pooled label multiset, the cluster-size multiset, the relation list or the outlier flags, all of which that permutation provably preserves. The frozen >=2-flip assertion is therefore capped at 3 achievable flips and cannot be met by any permutation control on a geometry that already fails those axes.",
+  "passed": true,
+  "positive_control": {
+   "coherence_lang_reachable": true,
+   "coherence_term_reachable": true,
+   "control_kind": "positive_control_not_corruption",
+   "criteria": {
+    "COHERENCE_QUERY_LANG": true,
+    "COHERENCE_QUERY_TERM": true,
+    "LABEL_CONTENT_FRACTION": true,
+    "LABEL_JACCARD": true,
+    "OUTLIER_VALIDITY": true,
+    "PROJ_KNN10": false,
+    "PROJ_RANK": false,
+    "PROJ_SPEARMAN": false,
+    "RELATIONS": true,
+    "STRUCTURE_LARGEST": true,
+    "STRUCTURE_SEP": false
+   },
+   "dominant_cluster_size": 55,
+   "flips": [
+    "COHERENCE_QUERY_LANG",
+    "COHERENCE_QUERY_TERM"
+   ],
+   "max_reachable_query_lang_share": 0.9090909090909091,
+   "max_reachable_query_term_share": 0.8181818181818182,
+   "n_decisions": 134,
+   "n_flips": 2,
+   "n_rows_query_language": 50,
+   "n_rows_query_term_hit": 45,
+   "note": "DECLARED ADDITION, cycle 38846038296. Positive control (see heal()): cluster ids re-assigned by query-language/query-term relevance into the shipped size profile; no RNG. It is not a corruption, not a candidate geometry and not an alternative. It exists to show the criteria that FAIL on the shipped geometry can PASS, i.e. the FAILs are about the shipped geometry rather than about unreachable bars. It feeds no verdict: `overall`, `passed`, the criterion table, the ablation, the alternatives and DECISION.txt are all computed without it.",
+   "overall": "FAIL",
+   "passed": true,
+   "values": {
+    "COHERENCE_QUERY_LANG": 0.9090909090909091,
+    "COHERENCE_QUERY_TERM": 0.8181818181818182,
+    "LABEL_CONTENT_FRACTION": 1.0,
+    "LABEL_JACCARD": 0.022817460317460316,
+    "OUTLIER_VALIDITY": [
+     0.0,
+     0.016
+    ],
+    "PROJ_KNN10": 0.1970149253731343,
+    "PROJ_RANK": 0.2968863599497235,
+    "PROJ_SPEARMAN": 0.007084082826254877,
+    "RELATIONS": 25,
+    "STRUCTURE_LARGEST": 0.41044776119402987,
+    "STRUCTURE_SEP": 0.9603559445625346
+   }
+  }
  },
  "overall": "FAIL",
  "query": "Aktive Fürsorgepflicht des Arbeitgebers bei einer Kapitalverletzung: wie weit geht der aktive Eingriff, und welche Entscheidungen begrenzen ihn gegenüber einer blossen Überwachungspflicht?",

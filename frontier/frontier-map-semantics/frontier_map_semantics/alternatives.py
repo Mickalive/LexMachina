@@ -9,12 +9,6 @@ from .textgeo import (STOPWORDS, VECTORIZER_PARAMS, body, cluster_kmeans,
                       label_terms, project_svd)
 
 
-def _finalise_clusters(X, coords, ids):
-    raw, _k = cluster_kmeans(X, len(ids))
-    terms = list(getattr(_finalise_clusters, "_terms", []))
-    return raw
-
-
 def _clusters_from_labels(raw, coords, ids, X, terms):
     meta = []
     for old in sorted(set(int(v) for v in raw)):

@@ -20,13 +20,31 @@ This package changes NO product code and requires NO product import.
   pipeline recomputed on their own row set) — so the un-hydrated-row exclusion
   effect can be read without confusing it with shipped-vs-recompute drift.
   No bar lives in this block; verdicts come from `criteria` only.
+  `nonvacuity` carries three things product should not confuse:
+  `charter` / `full` are the FROZEN corruption controls (permute cluster ids
+  across rows + labels across cluster ids; `full` also permutes x/y) — their
+  `flips`, `corrupted_overall` and `passed` are the frozen non-vacuity result
+  and are reported unchanged;
+  `movable_criteria` / `n_movable_criteria` / `n_invariant_criteria` are the
+  measured audit of which criteria that control can move at all;
+  `positive_control` is a DECLARED ADDITION (cycle 38846038296) — a deliberately
+  query-relevant re-assignment of cluster ids, no RNG — whose only purpose is to
+  show the criteria that fail on the shipped geometry are reachable bars. It is
+  not a corruption, not a candidate geometry, not a fourth alternative, and it
+  feeds **no** verdict: `overall`, `passed`, `criteria`, `ablation`,
+  `alternatives.json` and `DECISION.txt` are all computed without it. Its
+  `max_reachable_query_lang_share` / `max_reachable_query_term_share` are hard
+  upper bounds on those criteria under *any* partition of the bundle's rows.
 - `results/frontier/frontier-map-semantics/<bundle>/alternatives.json`
   A1/A2/A3 overall + per-criterion verdicts + measured wall time + budget flag.
 - `results/frontier/frontier-map-semantics/DECISION.txt`
   Exactly one geometry-decision sentence, machine-checked by
   `frontier/frontier-map-semantics/check_decision.py` (exit 0 recorded).
 - `reports/frontier/frontier-map-semantics/REPORT.md`
-  Human-readable verdict + tables + negative-result closure.
+  Human-readable verdict + tables + negative-result closure. Every number in
+  its section-9 addendum is machine-checked against the emitted artifacts by
+  `frontier/frontier-map-semantics/check_report_numbers.py`, so the prose
+  cannot drift from the tables (charter-1 RF1).
 
 ## What product must NOT depend on
 

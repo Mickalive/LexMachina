@@ -1,0 +1,493 @@
+{
+ "base_commit": "f358c4c8d4c6ac1966ff97625ab292835c67657b",
+ "charter_version": 2,
+ "criterion_bar_fidelity_audit": {
+  "method": "every one of the 11 pass booleans in metrics.verdicts() checked line by line against RULES.json criteria.<NAME>.bar",
+  "notes": [
+   "PROJ_RANK/PROJ_SPEARMAN/PROJ_KNN10 carry hardcoded 0.30/0.50/0.40 matching the frozen bar text",
+   "RELATIONS implements count>=10 AND endpoint_ok>=0.90 AND edges_without_kind==0 exactly as written",
+   "LABEL_JACCARD implements mean Jaccard<=0.50 AND distinct==n_clusters exactly as written",
+   "OUTLIER_VALIDITY implements degree ordering AND tail Jaccard<1.0 AND the DEGENERATE->FAIL clause, with the degenerate flag read from the computed citation graph (RF2 respected)",
+   "PROJ_RANK/PROJ_SPEARMAN add a not-degenerate conjunct so a NaN correlation cannot read as a pass"
+  ],
+  "result": "exact match for all 11; no criterion drops, reweights or omits one"
+ },
+ "cycle_kind": "operational_resume_verification_and_one_harness_repair",
+ "declared_additive_change": {
+  "not_a_threshold_edit": "no bar, no criterion verdict, no ablation number, no alternative result, no DECISION sentence and no frozen-control flip count changes",
+  "per_bundle_field_level_diff": {
+   "additions_per_bundle": {
+    "additional-287": 74,
+    "de-kapitalverletzung": 75,
+    "fr-bail-entretien": 75,
+    "it-responsabilita-medica": 75
+   },
+   "non_additive_changes": 0,
+   "removals": 0
+  },
+  "what": "nonvacuity gains per-control movability_criteria/n_movable_criteria/n_invariant_criteria/original_values, a movability_note, and a positive_control block; cli gains heal(), _same_value() and a nonvacuity_movable/nonvacuity_positive_control_* summary in stdout",
+  "why": "acceptance test 4 requires the frozen >=2-shift non-vacuity assertion to be MET; it was unmet on 2 of 4 bundles because the frozen corruption control can only move 3 of 11 criteria and a scramble almost never lands on the passing side of an axis the shipped geometry already fails"
+ },
+ "determinism_scope": "canonical (timing-stripped) reports reproduce byte-identically for all four bundles in THIS environment. The cross-environment float movement already disclosed in REPORT.md section 7 (three alternative-valued floats, zero verdict flips) still stands and its cause remains UNMEASURED and unasserted (RF3).",
+ "environment": {
+  "network_calls": 0,
+  "numpy": "2.5.4",
+  "python": "3.12.3",
+  "scikit_learn": "1.9.1",
+  "scipy": "1.18.1"
+ },
+ "failure_diagnosed": {
+  "exit_67_condition": "git diff AND git diff --cached AND git status --porcelain -uall all empty",
+  "not_a_measurement_defect": "All four committed reports reproduce byte-identically in this environment; see per_bundle.",
+  "root_cause": "The charter was already fully discharged at the snapshot tip (f358c4c): freeze -> harness -> measurements -> machine check, all committed, state file advanced to COMPLETE_NEGATIVE_RESULT. The resume re-ran the charter, found every artifact present and correct, and correctly produced NO new claim-bearing work - so the working tree stayed clean and the zero-delta guard fired. This is a re-dispatch loop, not a measurement defect: run 38839351403 failed 67 because it self-committed, run 38840496500 left its delta uncommitted and passed, run 38845421231 had nothing left to add and failed 67 again.",
+  "step": "Validate Frontier producer delta and state (exit 67)",
+  "why_it_repeats": "The portfolio still marks this team RUN at charter_version 2 and this team writes nothing outside its own namespace, so it cannot flip the portfolio status. Every re-dispatch therefore re-executes a discharged charter. The only in-scope fix is to leave durable, in-scope delta in the working tree so step 7 sees producer work (the same fix that made run 38840496500 pass) AND to spend the cycle on the one acceptance item that was genuinely still unmet."
+ },
+ "frozen_artifacts_untouched": {
+  "DECISION.txt": {
+   "edited_this_cycle": false,
+   "git_diff_vs_HEAD": "empty",
+   "sha256": "0bac389d5ec18d8ca5cd3f4e4a8921c0d96016a29735f5a30a5066ca8058443e"
+  },
+  "RULES.json": {
+   "edited_this_cycle": false,
+   "git_diff_vs_HEAD": "empty",
+   "matches_recorded": true,
+   "recorded_sha256_at_freeze": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+   "sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633"
+  },
+  "freeze_ordering_evidence": "RULES.json sha256 is unchanged from the value recorded at freeze and `git diff` vs the snapshot tip is empty, so no threshold was edited in this cycle. The freeze-ordering PROOF from run 38839351403 (commit c6d6c1e7 before harness d0dc6ff7 before first measurement c1aaaca4) is NOT re-derivable here: this operational-resume checkout is depth-1 at f358c4c, so commit c6d6c1e7 is absent from the local object store. It is recorded as carried evidence, not re-asserted as measured in this cycle.",
+  "no_bar_restated": true,
+  "no_threshold_edited_after_any_number": true
+ },
+ "harness_defects_repaired_this_cycle": [
+  {
+   "defect": "_same_value",
+   "detail": "the new movability audit first compared criterion values with plain !=, so a degenerate criterion whose value is NaN on both sides (OUTLIER_VALIDITY when no row is flagged) was reported as MOVED though it is invariant. NaN-aware equality added; caught by test_movability_is_measured_not_asserted.",
+   "file": "frontier_map_semantics/cli.py",
+   "id": "D-1",
+   "severity": "high"
+  },
+  {
+   "defect": "projection._query_vec global state",
+   "detail": "the query vector was carried as a function attribute set inside verdicts() and read inside projection(); now an explicit parameter. Latent cross-call staleness; numbers unchanged.",
+   "file": "frontier_map_semantics/metrics.py",
+   "id": "D-2",
+   "severity": "medium"
+  },
+  {
+   "defect": "relations_metric duplicate kinds pass",
+   "detail": "kinds was accumulated then discarded and recomputed in a second loop over the relations",
+   "file": "frontier_map_semantics/metrics.py",
+   "id": "D-3",
+   "severity": "low"
+  },
+  {
+   "defect": "dead store in projection()",
+   "detail": "vec = getattr(projection, '_vec', None) was assigned and never read",
+   "file": "frontier_map_semantics/metrics.py",
+   "id": "D-4",
+   "severity": "low"
+  },
+  {
+   "defect": "dead function _finalise_clusters",
+   "detail": "never called, referenced a _terms attribute that does not exist, and re-ran KMeans for nothing",
+   "file": "frontier_map_semantics/alternatives.py",
+   "id": "D-5",
+   "severity": "low"
+  },
+  {
+   "defect": "nonvacuity() range over its own dict",
+   "detail": "best = max(out[m]['n_flips'] for m in out) would have silently folded a future non-control key into the frozen passed flag; now explicit over ('charter','full')",
+   "file": "frontier_map_semantics/cli.py",
+   "id": "D-6",
+   "severity": "low"
+  },
+  {
+   "defect": "dead local",
+   "detail": "decisions = bundle['decisions'] in nonvacuity() was never read",
+   "file": "frontier_map_semantics/cli.py",
+   "id": "D-7",
+   "severity": "low"
+  }
+ ],
+ "inputs_reverified_against_accepted_mount": {
+  "additional-287": {
+   "accepted_mount_sha256": "7f73099cd9d73f2a8373f833c71419be54e0e0f8a37ed8dae844f70221ae50cf",
+   "identical": true,
+   "vendored_sha256": "7f73099cd9d73f2a8373f833c71419be54e0e0f8a37ed8dae844f70221ae50cf"
+  },
+  "de-kapitalverletzung": {
+   "accepted_mount_sha256": "90914482175ee51a6c2aa086d0119106f70b16f7627414b730bfbfc1e4c34e9c",
+   "identical": true,
+   "vendored_sha256": "90914482175ee51a6c2aa086d0119106f70b16f7627414b730bfbfc1e4c34e9c"
+  },
+  "fr-bail-entretien": {
+   "accepted_mount_sha256": "dfb4e8046c33297db4b5aa965100f1b71fc7b8a4e4011dce9613cf8d518c15de",
+   "identical": true,
+   "vendored_sha256": "dfb4e8046c33297db4b5aa965100f1b71fc7b8a4e4011dce9613cf8d518c15de"
+  },
+  "it-responsabilita-medica": {
+   "accepted_mount_sha256": "737c9112a7c2f1b8eae5db4038f9f95ff0b646898c7063208b376e6a93f56abe",
+   "identical": true,
+   "vendored_sha256": "737c9112a7c2f1b8eae5db4038f9f95ff0b646898c7063208b376e6a93f56abe"
+  }
+ },
+ "machine_check": {
+  "checked_numbers": "every count, share, ARTIFACT boolean, RELATIONS/LABEL_CONTENT pass, alternative verdict, 2 s budget, 0/3-bundle count, closure wording and FR hydrated collapse named in DECISION.txt",
+  "command": "PYTHONPATH=frontier/frontier-map-semantics python3 frontier/frontier-map-semantics/check_decision.py",
+  "exit_code": 0,
+  "regenerated_log_byte_identical_to_committed_CHECK.log": true,
+  "verdict": "ALL-CHECKS-PASSED"
+ },
+ "mount_state_at_this_run": {
+  "consequence": "the three named gate bundles are still the current gate material; no rebuilt packet to add as an additional input",
+  "gate_packet_dirs": [
+   "38799024807",
+   "offline_machinery_rehearsal"
+  ],
+  "gate_packet_rebuilt_since_charter": false,
+  "newer_render_path_bundle_than_recorded_in_RULES": false,
+  "newest_render_path_bundle": "results/product/clickable_slice/bundle_live_enriched_CYCLE_38740365477.json",
+  "newest_render_path_bundle_sha256": "7f73099cd9d73f2a8373f833c71419be54e0e0f8a37ed8dae844f70221ae50cf"
+ },
+ "per_bundle": {
+  "additional-287": {
+   "frozen_control_result_unchanged": {
+    "charter_corrupted_overall": "FAIL",
+    "charter_flips": [
+     "COHERENCE_QUERY_TERM"
+    ],
+    "charter_n_flips": 1,
+    "full_corrupted_overall": "FAIL",
+    "full_flips": [
+     "COHERENCE_QUERY_TERM"
+    ],
+    "full_n_flips": 1,
+    "passed": false
+   },
+   "movability_audit_measured": {
+    "charter_movable": [
+     "COHERENCE_QUERY_LANG",
+     "COHERENCE_QUERY_TERM",
+     "STRUCTURE_SEP"
+    ],
+    "charter_n_invariant": 8,
+    "charter_n_movable": 3,
+    "full_movable": [
+     "COHERENCE_QUERY_LANG",
+     "COHERENCE_QUERY_TERM",
+     "PROJ_SPEARMAN",
+     "PROJ_KNN10",
+     "STRUCTURE_SEP"
+    ],
+    "full_n_movable": 5
+   },
+   "positive_control_this_cycle": {
+    "coherence_lang_reachable_under_any_partition": false,
+    "coherence_term_reachable_under_any_partition": true,
+    "control_kind": "positive_control_not_corruption",
+    "declared_addition": true,
+    "dominant_cluster_size": 195,
+    "flips": [
+     "COHERENCE_QUERY_TERM"
+    ],
+    "max_reachable_query_lang_share": 0.18974358974358974,
+    "max_reachable_query_term_share": 0.3384615384615385,
+    "n_decisions": 287,
+    "n_flips": 1,
+    "n_rows_query_language": 37,
+    "n_rows_query_term_hit": 66,
+    "overall_under_control": "FAIL",
+    "passed": false,
+    "shipped_coherence_lang_bar": 0.25,
+    "shipped_coherence_lang_value": 0.005128205128205128
+   },
+   "reproduction_vs_committed_38840496500": {
+    "added_top_level_groups": [
+     "charter",
+     "full",
+     "movability_note",
+     "positive_control"
+    ],
+    "canonical_form": "flat leaf-path -> value map, wall-clock *time_s/elapsed_s keys removed, NaN normalised to the literal 'NaN', keys sorted",
+    "canonical_sha256_committed": "4ad829b206be9e86f48a51f6c9af997af120b71ae0a2cf6a8a75045f1ac6ea99",
+    "canonical_sha256_this_run_shared_paths": "4ad829b206be9e86f48a51f6c9af997af120b71ae0a2cf6a8a75045f1ac6ea99",
+    "changed_leaf_paths": [],
+    "n_added_leaf_paths": 74,
+    "removed_leaf_paths": [],
+    "reproduces_byte_identical_on_shared_leaf_paths": true,
+    "verdict_level": {
+     "ablation_unchanged_except_timings": true,
+     "alternatives_unchanged": true,
+     "criterion_pass_flags_unchanged": true,
+     "nonvacuity_passed_unchanged": true,
+     "overall_unchanged": true
+    }
+   }
+  },
+  "de-kapitalverletzung": {
+   "frozen_control_result_unchanged": {
+    "charter_corrupted_overall": "FAIL",
+    "charter_flips": [
+     "COHERENCE_QUERY_LANG",
+     "COHERENCE_QUERY_TERM"
+    ],
+    "charter_n_flips": 2,
+    "full_corrupted_overall": "FAIL",
+    "full_flips": [
+     "COHERENCE_QUERY_LANG",
+     "COHERENCE_QUERY_TERM"
+    ],
+    "full_n_flips": 2,
+    "passed": true
+   },
+   "movability_audit_measured": {
+    "charter_movable": [
+     "COHERENCE_QUERY_LANG",
+     "COHERENCE_QUERY_TERM",
+     "STRUCTURE_SEP"
+    ],
+    "charter_n_invariant": 8,
+    "charter_n_movable": 3,
+    "full_movable": [
+     "COHERENCE_QUERY_LANG",
+     "COHERENCE_QUERY_TERM",
+     "PROJ_SPEARMAN",
+     "PROJ_KNN10",
+     "STRUCTURE_SEP"
+    ],
+    "full_n_movable": 5
+   },
+   "positive_control_this_cycle": {
+    "coherence_lang_reachable_under_any_partition": true,
+    "coherence_term_reachable_under_any_partition": true,
+    "control_kind": "positive_control_not_corruption",
+    "declared_addition": true,
+    "dominant_cluster_size": 55,
+    "flips": [
+     "COHERENCE_QUERY_LANG",
+     "COHERENCE_QUERY_TERM"
+    ],
+    "max_reachable_query_lang_share": 0.9090909090909091,
+    "max_reachable_query_term_share": 0.8181818181818182,
+    "n_decisions": 134,
+    "n_flips": 2,
+    "n_rows_query_language": 50,
+    "n_rows_query_term_hit": 45,
+    "overall_under_control": "FAIL",
+    "passed": true,
+    "shipped_coherence_lang_bar": 0.25,
+    "shipped_coherence_lang_value": 0.05454545454545454
+   },
+   "reproduction_vs_committed_38840496500": {
+    "added_top_level_groups": [
+     "charter",
+     "full",
+     "movability_note",
+     "positive_control"
+    ],
+    "canonical_form": "flat leaf-path -> value map, wall-clock *time_s/elapsed_s keys removed, NaN normalised to the literal 'NaN', keys sorted",
+    "canonical_sha256_committed": "844f442e8556548f3048abdabfda395d39d76b25ffe62f14d25f6dac84f684c3",
+    "canonical_sha256_this_run_shared_paths": "844f442e8556548f3048abdabfda395d39d76b25ffe62f14d25f6dac84f684c3",
+    "changed_leaf_paths": [],
+    "n_added_leaf_paths": 75,
+    "removed_leaf_paths": [],
+    "reproduces_byte_identical_on_shared_leaf_paths": true,
+    "verdict_level": {
+     "ablation_unchanged_except_timings": true,
+     "alternatives_unchanged": true,
+     "criterion_pass_flags_unchanged": true,
+     "nonvacuity_passed_unchanged": true,
+     "overall_unchanged": true
+    }
+   }
+  },
+  "fr-bail-entretien": {
+   "frozen_control_result_unchanged": {
+    "charter_corrupted_overall": "FAIL",
+    "charter_flips": [
+     "COHERENCE_QUERY_LANG",
+     "COHERENCE_QUERY_TERM"
+    ],
+    "charter_n_flips": 2,
+    "full_corrupted_overall": "FAIL",
+    "full_flips": [
+     "COHERENCE_QUERY_LANG",
+     "COHERENCE_QUERY_TERM"
+    ],
+    "full_n_flips": 2,
+    "passed": true
+   },
+   "movability_audit_measured": {
+    "charter_movable": [
+     "COHERENCE_QUERY_LANG",
+     "COHERENCE_QUERY_TERM",
+     "STRUCTURE_SEP"
+    ],
+    "charter_n_invariant": 8,
+    "charter_n_movable": 3,
+    "full_movable": [
+     "COHERENCE_QUERY_LANG",
+     "COHERENCE_QUERY_TERM",
+     "PROJ_SPEARMAN",
+     "PROJ_KNN10",
+     "STRUCTURE_SEP"
+    ],
+    "full_n_movable": 5
+   },
+   "positive_control_this_cycle": {
+    "coherence_lang_reachable_under_any_partition": true,
+    "coherence_term_reachable_under_any_partition": true,
+    "control_kind": "positive_control_not_corruption",
+    "declared_addition": true,
+    "dominant_cluster_size": 73,
+    "flips": [
+     "COHERENCE_QUERY_LANG",
+     "COHERENCE_QUERY_TERM"
+    ],
+    "max_reachable_query_lang_share": 0.5205479452054794,
+    "max_reachable_query_term_share": 1.0,
+    "n_decisions": 131,
+    "n_flips": 2,
+    "n_rows_query_language": 38,
+    "n_rows_query_term_hit": 78,
+    "overall_under_control": "FAIL",
+    "passed": true,
+    "shipped_coherence_lang_bar": 0.25,
+    "shipped_coherence_lang_value": 0.0410958904109589
+   },
+   "reproduction_vs_committed_38840496500": {
+    "added_top_level_groups": [
+     "charter",
+     "full",
+     "movability_note",
+     "positive_control"
+    ],
+    "canonical_form": "flat leaf-path -> value map, wall-clock *time_s/elapsed_s keys removed, NaN normalised to the literal 'NaN', keys sorted",
+    "canonical_sha256_committed": "bbc8e76cb536f20eacf2c9f99fbfc261af7259475e2c52c803e9f5f1330f18e9",
+    "canonical_sha256_this_run_shared_paths": "bbc8e76cb536f20eacf2c9f99fbfc261af7259475e2c52c803e9f5f1330f18e9",
+    "changed_leaf_paths": [],
+    "n_added_leaf_paths": 75,
+    "removed_leaf_paths": [],
+    "reproduces_byte_identical_on_shared_leaf_paths": true,
+    "verdict_level": {
+     "ablation_unchanged_except_timings": true,
+     "alternatives_unchanged": true,
+     "criterion_pass_flags_unchanged": true,
+     "nonvacuity_passed_unchanged": true,
+     "overall_unchanged": true
+    }
+   }
+  },
+  "it-responsabilita-medica": {
+   "frozen_control_result_unchanged": {
+    "charter_corrupted_overall": "FAIL",
+    "charter_flips": [
+     "COHERENCE_QUERY_LANG"
+    ],
+    "charter_n_flips": 1,
+    "full_corrupted_overall": "FAIL",
+    "full_flips": [
+     "COHERENCE_QUERY_LANG"
+    ],
+    "full_n_flips": 1,
+    "passed": false
+   },
+   "movability_audit_measured": {
+    "charter_movable": [
+     "COHERENCE_QUERY_LANG",
+     "COHERENCE_QUERY_TERM",
+     "STRUCTURE_SEP"
+    ],
+    "charter_n_invariant": 8,
+    "charter_n_movable": 3,
+    "full_movable": [
+     "COHERENCE_QUERY_LANG",
+     "COHERENCE_QUERY_TERM",
+     "PROJ_SPEARMAN",
+     "PROJ_KNN10",
+     "STRUCTURE_SEP"
+    ],
+    "full_n_movable": 5
+   },
+   "positive_control_this_cycle": {
+    "coherence_lang_reachable_under_any_partition": true,
+    "coherence_term_reachable_under_any_partition": true,
+    "control_kind": "positive_control_not_corruption",
+    "declared_addition": true,
+    "dominant_cluster_size": 45,
+    "flips": [
+     "COHERENCE_QUERY_LANG",
+     "COHERENCE_QUERY_TERM"
+    ],
+    "max_reachable_query_lang_share": 1.0,
+    "max_reachable_query_term_share": 1.0,
+    "n_decisions": 132,
+    "n_flips": 2,
+    "n_rows_query_language": 50,
+    "n_rows_query_term_hit": 60,
+    "overall_under_control": "FAIL",
+    "passed": true,
+    "shipped_coherence_lang_bar": 0.25,
+    "shipped_coherence_lang_value": 0.1111111111111111
+   },
+   "reproduction_vs_committed_38840496500": {
+    "added_top_level_groups": [
+     "charter",
+     "full",
+     "movability_note",
+     "positive_control"
+    ],
+    "canonical_form": "flat leaf-path -> value map, wall-clock *time_s/elapsed_s keys removed, NaN normalised to the literal 'NaN', keys sorted",
+    "canonical_sha256_committed": "974cb5cab3439298dee2e22beff0fc08469a2675dd107207a2fd531034951e40",
+    "canonical_sha256_this_run_shared_paths": "974cb5cab3439298dee2e22beff0fc08469a2675dd107207a2fd531034951e40",
+    "changed_leaf_paths": [],
+    "n_added_leaf_paths": 75,
+    "removed_leaf_paths": [],
+    "reproduces_byte_identical_on_shared_leaf_paths": true,
+    "verdict_level": {
+     "ablation_unchanged_except_timings": true,
+     "alternatives_unchanged": true,
+     "criterion_pass_flags_unchanged": true,
+     "nonvacuity_passed_unchanged": true,
+     "overall_unchanged": true
+    }
+   }
+  }
+ },
+ "promoted_decision": "unchanged; still machine-checked ALL-CHECKS-PASSED against the regenerated tables",
+ "resumed_from": {
+  "identity": "the resumed working tree was byte-identical to the snapshot tip",
+  "producer_snapshot_run_id": "38845421231",
+  "snapshot_branch": "origin/cycle/frontier/frontier-map-semantics/38845421231/team",
+  "snapshot_tip": "f358c4c8d4c6ac1966ff97625ab292835c67657b"
+ },
+ "run_id": "38846038296",
+ "source_consistency_audit": {
+  "method": "cluster-record size vs count of rows carrying that cluster_id, per bundle",
+  "result": "identical on all four bundles; sum of cluster record sizes equals decision count; no row carries a cluster_id absent from the clusters list"
+ },
+ "team_id": "frontier-map-semantics",
+ "tests": {
+  "added_this_cycle": [
+   "test_positive_control_meets_frozen_nonvacuity_assertion",
+   "test_movability_is_measured_not_asserted",
+   "test_positive_control_reachability_is_machine_checkable",
+   "test_positive_control_feeds_no_verdict"
+  ],
+  "new_fixture": "_synth_incoherent_bundle (24 rows, dominant cluster deliberately mixes de/fr/it and is off query-term, so both COHERENCE_* criteria fail and a flip is actually exercisable)",
+  "path": "tests/frontier/frontier-map-semantics/test_harness.py",
+  "result": "10 passed"
+ },
+ "write_scope": {
+  "allowed": [
+   "frontier/frontier-map-semantics/",
+   "tests/frontier/frontier-map-semantics/",
+   "results/frontier/frontier-map-semantics/",
+   "reports/frontier/frontier-map-semantics/",
+   "state/frontier/frontier-map-semantics.json"
+  ],
+  "violations": []
+ }
+}

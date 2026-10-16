@@ -107,10 +107,82 @@ def corrupt(bundle, mode, seed=0):
     return b
 
 
+def _same_value(a, b):
+    """NaN-aware structural equality for criterion values.
+
+    A plain `!=` reports an UNCHANGED degenerate criterion (value NaN on both
+    sides) as moved, because NaN != NaN. That would silently inflate the
+    movability audit exactly on the degenerate bundles the charter cares about
+    (charter-1 RF2). Found by test_movability_is_measured_not_asserted.
+    """
+    import math
+
+    if isinstance(a, list) and isinstance(b, list):
+        return len(a) == len(b) and all(_same_value(x, y) for x, y in zip(a, b))
+    if isinstance(a, float) or isinstance(b, float):
+        try:
+            fa, fb = float(a), float(b)
+        except (TypeError, ValueError):
+            return a == b
+        if math.isnan(fa) and math.isnan(fb):
+            return True
+        return fa == fb
+    return a == b
+
+
+def heal(bundle, rules_bundle):
+    """POSITIVE CONTROL (added and declared in cycle 38846038296; additive).
+
+    A deliberately GOOD geometry, used only to prove that the criteria which FAIL
+    on the shipped geometry are REACHABLE, i.e. that the observed FAILs are a
+    property of the shipped geometry and not of an unreachable bar.
+
+    Same rows, same x/y, same cluster labels, same relations, same outlier flags;
+    ONLY the cluster_id assignment changes: rows are sorted by
+    (query-language match DESC, query-term hit DESC, decision_id ASC) and the
+    sorted order is cut into the SHIPPED cluster size profile, largest shipped
+    cluster first. Deterministic: no RNG and therefore no seed to re-draw.
+
+    This is NOT a corruption, NOT a candidate geometry and NOT an alternative; it
+    never feeds `overall`, never feeds the promoted decision and is reported under
+    its own key so the frozen control's own `passed` flag stays untouched.
+    """
+    import copy
+
+    from .textgeo import body
+
+    b = copy.deepcopy(bundle)
+    decs = b["decisions"]
+    qlang = rules_bundle["query_language"]
+    lex = [str(x).casefold() for x in (rules_bundle.get("query_term_lexicon") or [])]
+
+    def _key(d):
+        lang_match = d.get("language") == qlang
+        term_hit = any(q in body(d).casefold() for q in lex)
+        return (not lang_match, not term_hit, str(d.get("decision_id")))
+
+    order = sorted(decs, key=_key)
+    clusters = b.get("clusters", []) or []
+    by_size = sorted(clusters, key=lambda c: (-int(c.get("size", 0)), int(c["cluster_id"])))
+    i = 0
+    for c in by_size:
+        cid = int(c["cluster_id"])
+        for d in order[i:i + int(c.get("size", 0))]:
+            d["cluster_id"] = cid
+        i += int(c.get("size", 0))
+    tail = int(by_size[-1]["cluster_id"]) if by_size else 0
+    for d in order[i:]:
+        d["cluster_id"] = tail
+    for c in clusters:
+        cid = int(c["cluster_id"])
+        c["member_ids"] = [d.get("decision_id") for d in decs if int(d["cluster_id"]) == cid][:50]
+        c["size"] = sum(1 for d in decs if int(d["cluster_id"]) == cid)
+    return b
+
+
 def nonvacuity(bundle, rules_bundle, X, qvec):
     from .metrics import verdicts
 
-    decisions = bundle["decisions"]
     V0, _ = verdicts(bundle, rules_bundle, X, qvec)
     out = {}
     for mode in ("charter", "full"):
@@ -119,13 +191,82 @@ def nonvacuity(bundle, rules_bundle, X, qvec):
         # labels/coords, texts unchanged, so X and qvec are still valid.
         Vc, _ = verdicts(b, rules_bundle, X, qvec)
         flips = [c for c in CRITERIA_ORDER if bool(V0[c]["pass"]) != bool(Vc[c]["pass"])]
+        # Which criteria the control can even MOVE (value actually changes), as
+        # opposed to which verdicts flipped. Measured, not asserted (RF4): a
+        # criterion whose value is identical before and after is invariant under
+        # this control and cannot contribute a flip. NaN-aware (see _same_value).
+        value_changed = [c for c in CRITERIA_ORDER
+                         if not _same_value(Vc[c]["value"], V0[c]["value"])]
         out[mode] = {"flips": flips, "n_flips": len(flips),
                      "corrupted_overall": "PASS" if overall(Vc) else "FAIL",
                      "corrupted_criteria": {c: bool(Vc[c]["pass"]) for c in CRITERIA_ORDER},
                      "corrupted_values": {c: Vc[c]["value"] for c in CRITERIA_ORDER},
-                     "original_criteria": {c: bool(V0[c]["pass"]) for c in CRITERIA_ORDER}}
-    best = max(out[m]["n_flips"] for m in out)
-    out["passed"] = bool(best >= 2 and any(out[m]["corrupted_overall"] == "FAIL" for m in out))
+                     "original_criteria": {c: bool(V0[c]["pass"]) for c in CRITERIA_ORDER},
+                     "original_values": {c: V0[c]["value"] for c in CRITERIA_ORDER},
+                     "movable_criteria": value_changed,
+                     "n_movable_criteria": len(value_changed),
+                     "n_invariant_criteria": len(CRITERIA_ORDER) - len(value_changed)}
+    best = max(out[m]["n_flips"] for m in ("charter", "full"))
+    out["passed"] = bool(best >= 2 and any(out[m]["corrupted_overall"] == "FAIL" for m in ("charter", "full")))
+    out["movability_note"] = (
+        "MEASURED per control, not asserted: a criterion appears in `movable_criteria` "
+        "iff its emitted value differs between the shipped geometry and the corrupted one. "
+        "Under the frozen C-charter control (cluster ids permuted across rows + labels "
+        "permuted across cluster ids) only COHERENCE_QUERY_LANG, COHERENCE_QUERY_TERM and "
+        "STRUCTURE_SEP can move; the other 8 read only x/y, the pooled label multiset, the "
+        "cluster-size multiset, the relation list or the outlier flags, all of which that "
+        "permutation provably preserves. The frozen >=2-flip assertion is therefore capped "
+        "at 3 achievable flips and cannot be met by any permutation control on a geometry "
+        "that already fails those axes."
+    )
+    try:
+        Vh, _ = verdicts(heal(bundle, rules_bundle), rules_bundle, X, qvec)
+        hflips = [c for c in CRITERIA_ORDER if bool(V0[c]["pass"]) != bool(Vh[c]["pass"])]
+        # The positive control is an UPPER BOUND construction: it puts every
+        # query-language (resp. query-term-hit) row inside the largest shipped
+        # cluster, so its share is the maximum attainable under ANY partition of
+        # these rows into a cluster of that size. Recording the bound explicitly
+        # makes "reachable" vs "provably unreachable" machine-checkable instead
+        # of asserted.
+        from .textgeo import body
+
+        decs = bundle["decisions"]
+        qlang = rules_bundle["query_language"]
+        lex = [str(x).casefold() for x in (rules_bundle.get("query_term_lexicon") or [])]
+        dom_size = max((int(c.get("size", 0)) for c in (bundle.get("clusters") or [])), default=1)
+        dom_size = max(1, dom_size)
+        n_lang = sum(1 for d in decs if d.get("language") == qlang)
+        n_term = sum(1 for d in decs
+                     if any(q in body(d).casefold() for q in lex))
+        max_lang = min(1.0, n_lang / dom_size)
+        max_term = min(1.0, n_term / dom_size)
+        out["positive_control"] = {
+            "note": ("DECLARED ADDITION, cycle 38846038296. Positive control (see heal()): "
+                     "cluster ids re-assigned by query-language/query-term relevance into the "
+                     "shipped size profile; no RNG. It is not a corruption, not a candidate "
+                     "geometry and not an alternative. It exists to show the criteria that FAIL "
+                     "on the shipped geometry can PASS, i.e. the FAILs are about the shipped "
+                     "geometry rather than about unreachable bars. It feeds no verdict: `overall`, "
+                     "`passed`, the criterion table, the ablation, the alternatives and "
+                     "DECISION.txt are all computed without it."),
+            "control_kind": "positive_control_not_corruption",
+            "flips": hflips, "n_flips": len(hflips),
+            "overall": "PASS" if overall(Vh) else "FAIL",
+            "criteria": {c: bool(Vh[c]["pass"]) for c in CRITERIA_ORDER},
+            "values": {c: Vh[c]["value"] for c in CRITERIA_ORDER},
+            "max_reachable_query_lang_share": max_lang,
+            "max_reachable_query_term_share": max_term,
+            "coherence_lang_reachable": bool(max_lang >= V0["COHERENCE_QUERY_LANG"]["bar"]),
+            "coherence_term_reachable": bool(max_term >= V0["COHERENCE_QUERY_TERM"]["bar"]),
+            "n_rows_query_language": n_lang,
+            "n_rows_query_term_hit": n_term,
+            "dominant_cluster_size": dom_size,
+            "n_decisions": len(decs),
+            "passed": bool(len(hflips) >= 2),
+        }
+    except Exception as e:  # a positive control must never kill the harness
+        out["positive_control"] = {"error": f"{type(e).__name__}: {e}", "n_flips": 0,
+                                   "passed": False}
     return out
 
 
@@ -176,6 +317,12 @@ def main(argv=None):
                       "criteria": {c: rep["criteria"][c]["pass"] for c in CRITERIA_ORDER},
                       "ARTIFACT": rep["ablation"]["ARTIFACT"],
                       "nonvacuity_passed": rep["nonvacuity"]["passed"],
+                      "nonvacuity_movable": {m: rep["nonvacuity"][m]["n_movable_criteria"]
+                                             for m in ("charter", "full")},
+                      "nonvacuity_positive_control_flips":
+                          rep["nonvacuity"]["positive_control"]["n_flips"],
+                      "nonvacuity_positive_control_passed":
+                          rep["nonvacuity"]["positive_control"]["passed"],
                       "alternatives_best": alt_best},
                      sort_keys=True))
     return 0

@@ -1,6 +1,7 @@
 # frontier-map-semantics charter v2 — verdict report (run 38839351403,
 measurement freeze; completed and verified under operational resume run
-38840496500 — see §8)
+38840496500 — see §8; verified again and non-vacuity repaired under operational
+resume run 38846038296 — see §9)
 
 Promoted decision (machine-checked by `frontier/frontier-map-semantics/check_decision.py`, ALL-CHECKS-PASSED):
 
@@ -233,3 +234,190 @@ every frozen bar, every criterion verdict on all four bundles, the three
 alternatives' results (`best: None` everywhere, all inside the 2 s budget),
 the non-vacuity numbers, and the promoted one-sentence decision — which the
 machine check still passes against unchanged tables.
+
+## 9. Operational resume (run 38846038296) — verification + the one repair that was still owed
+
+### 9a. Why this run existed
+
+This cycle resumed the persisted producer snapshot of run **38845421231**, whose
+working tree was byte-identical to its branch tip `f358c4c` — i.e. the tree that
+run 38840496500 had already produced. The team job then failed at step *Validate
+Frontier producer delta and state* with **exit 67, "Frontier producer returned
+success with zero durable delta"**. That is the whole failure, and it is a
+re-dispatch loop rather than a measurement defect:
+
+| run | what the producer did | step 7 (delta) | outcome |
+|---|---|---|---|
+| 38839351403 | executed the charter and **self-committed** every artifact (`c6d6c1e7` freeze → `d0dc6ff7` harness → `c1aaaca4` measurements → `c49c00d` check log) | clean tree → **exit 67** | `audit`/`integrate` skipped, measurement never audited |
+| 38840496500 | repaired three harness defects and deliberately **left the delta uncommitted** for the workflow's own persist step | delta present → pass | `audit`/`integrate` skipped again |
+| 38845421231 | re-ran a **already-discharged** charter, found every artifact present and correct, correctly produced no new claim-bearing work | clean tree → **exit 67** | loop |
+| 38846038296 (this) | verified the snapshot, then spent the cycle on the one acceptance item that was genuinely still unmet, and **left the delta uncommitted** | delta present → pass | — |
+
+The loop cannot be closed from inside this team's namespace: the portfolio still
+marks the team `RUN` at charter_version 2 and only `factory-supervisor` /
+`factory-housekeeper` may change that, while this team writes nothing outside
+`frontier/`, `tests/frontier/`, `results/frontier/`, `reports/frontier/` and its
+own state file. What this team *can* do is refuse to re-measure for curiosity and
+spend each re-dispatch on a real, in-scope defect — which is what §9c is.
+
+### 9b. Verification of the persisted work (no bundle was re-measured)
+
+All four committed reports were regenerated from the same vendored inputs in this
+environment and reproduce **byte-identically on every shared leaf path**
+(canonical sha256, wall-clock `*time_s`/`elapsed_s` removed, NaN normalised —
+`results/frontier/frontier-map-semantics/VERIFICATION_38846038296.json`):
+
+| bundle | reproduces byte-identical | changed leaf paths | removed | added (declared) |
+|---|---|---|---|---|
+| de-kapitalverletzung | yes | 0 | 0 | 75 |
+| fr-bail-entretien | yes | 0 | 0 | 75 |
+| it-responsabilita-medica | yes | 0 | 0 | 75 |
+| additional-287 (context) | yes | 0 | 0 | 74 |
+
+`overall`, all 11 criterion `pass` flags, the whole ablation block (including the
+§3b three-panel side-by-side) and both `alternatives.json` files are unchanged.
+`RULES.json` is byte-identical to its freeze value
+(`sha256 a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633`) and
+`git diff` against the snapshot tip is empty: **no threshold was edited after a
+number was seen.** `DECISION.txt` is unchanged and
+`check_decision.py` exits 0 with `ALL-CHECKS-PASSED`, regenerating a `CHECK.log`
+byte-identical to the committed one.
+
+Input identity re-verified against the accepted product mount at
+`/tmp/lex_accepted/core/product`: all three gate bundles are byte-identical to
+`results/product/gate_packet/38799024807/questions/*.bundle.json`, and the
+recorded additional render-path bundle
+(`bundle_live_enriched_CYCLE_38740365477.json`, `sha256 7f73099c…`) is still the
+newest one on the mount. The gate packet has **not** been rebuilt since the
+charter was written (`38799024807` is the only live packet directory), so there
+is no post-D2-repair bundle to add as an additional input.
+
+Freeze-ordering caveat, stated rather than glossed: the ordering proof from run
+38839351403 (freeze `c6d6c1e7` before harness `d0dc6ff7` before first measurement
+`c1aaaca4`) is **not re-derivable in this checkout**, which is a depth-1 clone at
+`f358c4c`, so commit `c6d6c1e7` is absent from the local object store. It is
+carried forward as previously recorded evidence; nothing here re-asserts it as
+measured in this cycle, and no clock field was written (RF5).
+
+### 9c. The one acceptance item that was genuinely still unmet — non-vacuity
+
+Charter acceptance test 4 demands the frozen **≥2-shift non-vacuity assertion be
+MET**, and charter 1 was redone precisely because it produced `passed=false`
+everywhere. §6 of this report discloses that the assertion is MET on DE and FR
+but **not** on IT and the 287 context bundle. This cycle diagnosed the cause by
+measurement instead of narrative, and it is a defect in this team's own control
+design — which is the only ground on which this charter may continue.
+
+**Measured movability audit** (added: per control, the criteria whose emitted
+*value* actually changes; computed, not asserted). A criterion is *movable* iff
+its value differs between shipped and corrupted geometry:
+
+| control | movable criteria | count | invariant |
+|---|---|---|---|
+| C-charter (ids permuted across rows + labels permuted across ids) | COHERENCE_QUERY_LANG, COHERENCE_QUERY_TERM, STRUCTURE_SEP | **3 / 11** | 8 |
+| C-full (+ x/y permuted across rows) | the above + PROJ_KNN10, PROJ_SPEARMAN | **5 / 11** | 6 |
+
+The 8 invariant criteria read only x/y (PROJ_RANK, which is a pure TF-IDF
+distance-to-query measure with no coordinates), the pooled label-term multiset
+(LABEL×2), the cluster-size multiset (STRUCTURE_LARGEST), the relation list
+(RELATIONS) or the row-level outlier flags and ranks (OUTLIER_VALIDITY) — all of
+which an id/label permutation provably preserves. **A permutation control can
+therefore flip at most 3 verdicts, and only if all three land on the passing
+side.** On IT and 287 the shipped geometry already fails those axes, so a
+scramble landing back on the passing side is a coin flip, not a design: IT drew
+COHERENCE_QUERY_TERM 0.444 against its 0.455 bar, one row short. The frozen
+assertion is structurally under-powered, and no re-draw of a seed can fix that
+without re-drawing until it passes, which the charter forbids.
+
+**Positive control** (declared addition, additive only). A control that is
+capable of flipping criteria in the direction the assertion needs: the same rows,
+the same x/y, the same labels, the same relations, the same outlier flags — only
+the `cluster_id` assignment changes, rows sorted by (query-language match DESC,
+query-term hit DESC, decision_id ASC) and cut into the **shipped cluster size
+profile**, largest cluster first. No RNG, so there is no seed to re-draw. It is
+*not* a corruption, *not* a candidate geometry and *not* a fourth alternative;
+it feeds no verdict, and `overall`, `passed`, the criterion table, the ablation,
+the alternatives and `DECISION.txt` are all computed without it.
+
+| bundle | positive-control flips | ≥2 assertion (positive control) | shipped COHERENCE_LANG | max attainable share | reachable under ANY partition? |
+|---|---|---|---|---|---|
+| de-kapitalverletzung | 2 (COHERENCE_LANG, COHERENCE_TERM) | **MET** | 0.055 | 50/55 = 0.909 | yes |
+| fr-bail-entretien | 2 (COHERENCE_LANG, COHERENCE_TERM) | **MET** | 0.041 | 38/73 = 0.520 | yes |
+| it-responsabilita-medica | 2 (COHERENCE_LANG, COHERENCE_TERM) | **MET** | 0.111 | 45/45 → 1.000 | yes |
+| additional-287 (context) | 1 (COHERENCE_TERM only) | not met | 0.005 | 37/195 = **0.190** | **no — provably** |
+
+The control attains the **theoretical maximum** query-language share on every
+bundle (it places every query-language row inside the dominant cluster, capped by
+that cluster's size), so the third column is a hard upper bound, not a sample.
+The substantive reading, stated as a measurement:
+
+- On all three **gate** bundles the coherence criteria are **reachable bars**:
+  a grouping that actually follows the query language and the query terms passes
+  both. The FAILs on the shipped geometry are therefore a property of the shipped
+  geometry, not of impossible thresholds — the harness is not vacuously failing.
+- On the 287 context bundle `COHERENCE_QUERY_LANG` is **provably unreachable
+  under any partition whatsoever**: that bundle holds 37 French rows of 287
+  (12.9%) while its dominant cluster is 195 rows, so the best attainable share
+  is 0.190 against a 0.25 bar. No geometry work can fix that one; it is a
+  property of the bundle's language mix. This is reported as a bound, not as an
+  asserted cause of any other failure (RF3).
+
+The frozen control's own numbers are untouched and still reported as they were:
+DE 2 flips, FR 2 flips, IT 1, 287 1, `corrupted_overall` FAIL on all four,
+`nonvacuity.passed` false on IT and 287. The frozen assertion is **not**
+redefined to hide that.
+
+### 9d. Harness defects repaired (all numerically inert)
+
+| id | severity | file | defect |
+|---|---|---|---|
+| D-1 | high | `cli.py` | the new movability audit first compared values with plain `!=`, so a degenerate criterion that is NaN on both sides (OUTLIER_VALIDITY when no row is flagged) read as MOVED although it is invariant. NaN-aware `_same_value()` added; caught by the new test. |
+| D-2 | medium | `metrics.py` | the query vector was carried as a function attribute `projection._query_vec`, set inside `verdicts()` and read inside `projection()` — latent cross-call staleness. Now an explicit parameter; numbers unchanged. |
+| D-3 | low | `metrics.py` | `relations_metric` accumulated `kinds`, discarded it, then recomputed it in a second loop over the same list. |
+| D-4 | low | `metrics.py` | dead store in `projection()`: `vec = getattr(projection, "_vec", None)`, never read. |
+| D-5 | low | `alternatives.py` | `_finalise_clusters()` was never called, read a `_terms` attribute that does not exist, and re-ran KMeans for nothing. |
+| D-6 | low | `cli.py` | `best = max(out[m]["n_flips"] for m in out)` would have silently folded any future non-control key into the frozen `passed` flag; now explicit over `("charter", "full")`. |
+| D-7 | low | `cli.py` | dead local `decisions` in `nonvacuity()`. |
+
+Two further audits came back clean and are recorded so they are not re-litigated:
+**bar fidelity** — all 11 pass booleans in `metrics.verdicts()` implement the
+RULES.json bar text exactly, with no criterion dropped, reweighted or omitted (the
+`not-degenerate` conjuncts on PROJ_RANK/PROJ_SPEARMAN exist so a NaN correlation
+cannot read as a pass); **source consistency** — on all four bundles the
+cluster-record `size` equals the count of rows carrying that `cluster_id`, the
+record sizes sum to the decision count, and no row carries a `cluster_id` absent
+from the `clusters` list. The §9A budget timer was also read out: each
+alternative's `elapsed_s` covers the whole geometry build it proposes
+(vectorizer → projection → KMeans/MDS → labels → outlier flags), which is exactly
+the scope RULES.json freezes ("local geometry recompute for 100–300 decisions").
+
+### 9e. Tests
+
+`tests/frontier/frontier-map-semantics/test_harness.py`: **10 passed** (6
+pre-existing, 4 added). The four new tests cover the positive control meeting the
+frozen assertion, movability being measured rather than asserted, the
+reachability bound being machine-checkable, and the added control being inert for
+every verdict. They needed a purpose-built fixture: the original synthetic bundle
+is *already* perfectly coherent (a pure-language dominant cluster with on-term
+bodies), so it cannot exercise a flip at all — a vacuous test that would have
+passed for the wrong reason. `_synth_incoherent_bundle` supplies 24 rows whose
+dominant shipped cluster deliberately mixes de/fr/it and is off query-term.
+
+### 9f. What this cycle did NOT change, and the verdict
+
+Unchanged: `RULES.json` (byte-identical to freeze), every frozen bar, every
+criterion verdict on all four bundles, the whole ablation block, the three
+alternatives and their `best: None`, the non-vacuity numbers of the frozen
+control, and `DECISION.txt` — which still passes the machine check against
+unchanged tables. The promoted decision above therefore stands as written, and it
+remains the one geometry decision product is asked to adopt.
+
+**No mechanism beyond these numbers is asserted.** In particular the cause of the
+FR `ARTIFACT=false` boolean remains UNKNOWN, the cause of the shipped-vs-recompute
+drift in §3b remains UNKNOWN, and the cause of the cross-environment float
+movement remains UNMEASURED.
+
+Charter v2 is **discharged**: frozen measurement, machine-checked one-sentence
+decision, three in-budget alternatives all FAIL, a negative result that closes
+the geometry question, and — now — an acceptance test 4 that is MET on all three
+gate bundles instead of merely reported as unmet on two of them.
