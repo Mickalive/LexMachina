@@ -53,6 +53,7 @@ for _p in (str(PRODUCT_ROOT), str(REPO_ROOT)):
         sys.path.insert(0, _p)
 
 import gate_packet as gp  # noqa: E402
+import frontier_verdict_adoption as fva  # noqa: E402
 from product.query import counter_budget_sensitivity as cbs  # noqa: E402
 from product.query import gate_admissibility as ga  # noqa: E402
 
@@ -167,11 +168,19 @@ def run(packet_dir: Path, *, mode: str = "live", write_verdicts: bool = True) ->
     out["admissible_questions"] = [q["qid"] for q in done if q["admissible"]]
     out["blocked_questions"] = [q["qid"] for q in done if not q["admissible"]]
     out["ok"] = bool(done) and len(done) == out["n_questions"] and not out["blocked_questions"]
+    # v54 backlog item (4): the two accepted Frontier verdicts travel with the
+    # packet as INPUT.  Packet-level, not per-question: both were measured on
+    # pre-fix/pre-rebuild populations, so neither can honestly attach to a
+    # single question's rows.  The disclosure's covers_this_packet=False flags
+    # are what keep the adoption from becoming an implied endorsement.
+    out["frontier_verdict_adoption"] = fva.disclosure()
     out["claim_ceiling"] = (
         "Composition disclosures about the bundles this run produced. They are facts about "
         "these artifacts, not claims about map quality (frontier-map-semantics owns that "
         "measurement), and the budget comparison is a property of this product's own "
-        "adversarial route at two budget settings - not a recall bound."
+        "adversarial route at two budget settings - not a recall bound. The adopted "
+        "Frontier verdicts (frontier_verdict_adoption) were measured on pre-fix "
+        "accepted-chain artifacts, not on this packet's rows."
     )
     if write_verdicts:
         (Path(packet_dir) / "disclosures.json").write_text(

@@ -71,6 +71,7 @@ for _p in (str(PRODUCT_ROOT), str(REPO_ROOT)):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
+import frontier_verdict_adoption as fva  # noqa: E402
 import human_gate_evidence  # noqa: E402
 import human_gate_finalize as hgf  # noqa: E402
 import human_gate_session as runner  # noqa: E402
@@ -729,6 +730,46 @@ def _budget_sensitivity_line(packet_dir: Path | None, qid: str | None) -> str | 
     )
 
 
+def _frontier_verdict_lines() -> list[str]:
+    """The accepted Frontier verdicts, adopted as input (v54 backlog item 4).
+
+    The jurist about to judge gate question 3 ("did the map increase confidence
+    that contrary authority had not hidden anything?") must see the external
+    measurement of the *previous* labels and of the geometry — and must equally
+    see that neither was measured on THIS packet's rows. Both halves of that
+    sentence are load-bearing; printing only the first half would turn an
+    adopted warning into an implied verdict.
+    """
+    d = fva.disclosure()
+    if not d.get("published"):
+        return []
+    counter = d.get("frontier_counter_label_integrity") or {}
+    semantics = d.get("frontier_map_semantics") or {}
+    per_bundle = semantics.get("per_bundle") or {}
+    bundle_bits = ", ".join(
+        f"{qid} {v.get('overall')} ({len(v.get('criteria_passed') or [])}/{len(v.get('criteria_passed') or []) + len(v.get('criteria_failed') or [])})"
+        for qid, v in sorted(per_bundle.items()) if qid != "additional-287"
+    ) or "n/a"
+    lines = [
+        "",
+        "  Independent Frontier measurements, adopted as input (v54 item 4):",
+        f"    counter-label integrity (run {counter.get('team_run_id')}, "
+        f"accept {counter.get('accept_commit_on_main')}):",
+        f"      {counter.get('verdict')} — {counter.get('n_scored_primary')} scored "
+        "pre-fix candidate-limiting rows, support rate "
+        f"{counter.get('support_rate_primary')}.",
+        "      Measured on the PRE-FIX packet 38799024807, NOT on this packet's",
+        "      post-D2-fix rows: this packet claims no label soundness, and an",
+        "      INSUFFICIENT_POPULATION verdict is a non-result, never LABEL_SOUND.",
+        f"    map semantics (run {semantics.get('team_run_id')}, "
+        f"accept {semantics.get('accept_commit_on_main')}):",
+        f"      {bundle_bits} on the PRE-REBUILD bundles under the frozen rule;",
+        "      promoted decision: keep the shipped geometry and CLOSE geometry",
+        "      work until after the human gate (no in-budget alternative passed).",
+    ]
+    return lines
+
+
 def owner_card(recheck: dict, *, base_url: str, top_n: int, run_ids: dict[str, str] | None = None) -> str:
     """The one page the owner needs: three questions, their deep links, their disclosures."""
     mode = recheck.get("mode")
@@ -807,6 +848,7 @@ def owner_card(recheck: dict, *, base_url: str, top_n: int, run_ids: dict[str, s
         lines.append("      answer these four for THIS question (in the page's sidebar card):")
         for qid, text in hgf.GATE_QUESTIONS.items():
             lines.append(f"        {qid}: {text}")
+    lines += _frontier_verdict_lines()
     lines += [
         "",
         "  human_gate_ready is set by the director from your finalized records, never",
