@@ -1,0 +1,110 @@
+{
+  "schema": "lexmachina.audit.director.gate.v1",
+  "run_id": 38961079797,
+  "auditor_role": "independent_auditor",
+  "audited_artifact": "/tmp/lex_director_proposal (branch commit d06ffc3a)",
+  "control_plane_base": {
+    "ref": "origin/main",
+    "commit": "26d01105",
+    "factory_direction_sha256": "326c9ded6969908a57a0c9b09cd6a24ec83152a2f7b1d62896b7b8002a73314a",
+    "factory_direction_version": 49,
+    "frontier_portfolio_version": 21
+  },
+  "proposal_outputs": {
+    "factory_direction_version": 50,
+    "frontier_portfolio_version": 22,
+    "frontier_portfolio_sha256": "30b48f283c7758080a516f03d27e7202c72943ee071ca55ea30bce94d2e57951",
+    "files_changed": [
+      "state/factory_direction.json",
+      "reports/director/RUN_38955569409.md",
+      "reports/director/RUN_38961079797.md",
+      "reports/director/BASE_DIRECTION_SHA_38961079797.txt"
+    ],
+    "write_scope_violations": []
+  },
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    {
+      "id": "D4",
+      "severity": "material",
+      "location": "state/factory_direction.json :: .director_note (final sentence, plus leading round tag)",
+      "defect_class": "false statement of record in the only artifact that lands on main",
+      "defect": "director_note asserts that a v50 landing 'will cancel the in-flight core cycles 38954295518 (product) and 38953399026 (evaluation), which are running against v49'. The same run's report (RUN_38961079797.md sections 3, 4 and 7) states the opposite: 38954295518 -> cancelled and 38953399026 -> completed failure, and the cycles actually at risk are 38961254857 (Core product, team job in_progress) and 38959325856 (Core evaluation, audit in_progress). The field's leading tag also still says 'REPAIR ROUND 1 of rejected proposal 38953607596 ... fixes R1-R3', omitting the round that actually shipped these bytes (round 2, D2 one-string pointer fix). The contradiction is provable inside the mounted proposal alone and does not depend on any gh/network fact.",
+      "why_material": "factory-director.yml:189 lands ONLY state/factory_direction.json and state/frontier_portfolio.json on main; reports/director/*.md never reaches main. After integration the only operator-facing record of what the v50 bump costs would name two already-resolved runs and omit the two live ones, with nothing on main to correct it. The immediately preceding audit in this chain set the precedent that a statement of record which is not true is a required fix (its D1 and D3 were the same class).",
+      "required_change": "One field, two strings. (1) Make the cost disclosure true or remove it from the landing file: either name the genuinely in-flight cycles (38961254857 product, 38959325856 evaluation) and record the resolution of the previously named pair, or preferably replace the volatile enumeration with a pointer such as 'cost of supersession is disclosed in reports/director/RUN_<this round>.md; no run IDs are recorded in this file'. (2) Update the leading tag to name the round that shipped these bytes, without deleting the record that R1-R3 were applied earlier. (3) Consistency, same cycle and same write scope: annotate or mark as historical the stale in-flight table in reports/director/RUN_38955569409.md section 3, which still presents 38954295518 / 38953399026 as in flight.",
+      "acceptance_test": "jq -r .director_note state/factory_direction.json must contain neither 38954295518 nor 38953399026, OR must contain a pointer to reports/director/RUN_<round>.md; and the leading tag must name round 38961079797 (or its successor round that ships the corrected bytes).",
+      "out_of_scope": "No lane status, question, priority, mission, requirement, bar, threshold, rubric, charter, portfolio entry or version may change. factory_direction.version stays 50; frontier_portfolio stays byte-identical 30b48f28... . Round 3 is a two-string repair, not a re-plan."
+    }
+  ],
+  "verified_true": [
+    "D1: grep -c x-preview / catalog_present / using_fallback on proposal v50 = 0/0/0 and on origin/main v49 = 0/0/0; requirement 16 is the provider-rotation entry in v50; the W6 pin condition is not recorded as any factory-wide requirement.",
+    "D2: requirement [8] = HEADLINE NUMBERS... and [9] = THE SUPERVISOR'S 'EXHAUSTED SAME-CHARTER WORK' GUARD IS DEAD CODE in BOTH v49 and v50; entries 1-12 are byte-identical across versions (diff = 5 additions, 0 removals). The corrected pointer is right in both.",
+    "D3: the two chartered teams cannot have dispatched. They exist only in the rejected proposal f7f4bd9a (portfolio v22, never integrated); origin/main portfolio is v21 and contains 0 of them; supervisor dispatches select(.status==\"RUN\") from main (factory-supervisor.yml:261) and frontier-team.yml:45/58 requires the (team_id, charter_version, status==RUN) tuple on main.",
+    "Base-sha route-around is honest, not guard evasion: restore step is factory-director.yml:60, record step is line 69; the misfire value 918b7973... is exactly sha256 of the restored proposal's direction; the republished value 326c9ded... is exactly origin/main's direction sha; the supersession guard at lines 184-188 still fires whenever main moves after the base is observed; both values are disclosed in the report.",
+    "Claim ceiling item 1: bundle_live_enriched_CYCLE_38740365477.json has 287 rows / 287 unique decision_ids / 287 canonical_url all on mcp.opencaselaw.ch / 287 numeric x,y / 8 clusters [5,10,21,13,4,8,195,31] summing to 287 / provenance adapter=ocl_adapter mode=live degraded=false failures=[] cache hits 1 misses 0 latency 75.539s / answer status=ready model=opencode/nemotron-3.ultra-free with 11/11 cited ids resolvable as a set / 22 rows detail_status=pending / 34 rows language=null. Zero-cost correctly bounded to provenance level only.",
+    "Claim ceiling item 2: ACCEPTED_frontier-served-packet-falsification_38880639079.json has covers_this_packet=true, label_half LABEL_UNSOUND 5/65=0.076923 vs frozen absolute bar 1.0 (classes OFF-DOMAIN 38 / UNBACKED 22 / SUPPORTED 5 / INVERTED 0), geometry_half FAIL 0/3 with de 6, fr 5, it 5 vs baselines 5/5/4, french_largest_share 0.7696 vs bar 0.60 (167/217), ablation 0.268 with Jaccard 0.235, serve_recommendation DO-NOT-SERVE this packet unchanged.",
+    "Accepted product state contradiction is exact: human_gate_ready=false, machine_gate_ready=false, evidence_tier=REALITY_CHECK_FAILED, next_recommended contains 'the next real owner interaction is the jurist session', next_recommendation says DO NOT ask the owner/jurist to review yet.",
+    "Claim ceiling item 3: overall_pass=false at reality_benchmark 38920872324, 38934722443, 38945976309, all frozen_sha256 ff57f556c375...; the BJR frozen required set is exactly the five named bger_4A_* ids and that leg records hits=[] passed=false; business-judgment-rule_live_20261016T165604Z cites only bge_BGE_110_II_391, bge_BGE_139_III_24, zh_handelsgericht_HG120149, zero occurrences of the five frozen ids, gates=[structural, truth::business-judgment-rule] only, evidence_tier LOCAL_NOT_DURABLE; evaluation accepted state continue_recommended=false.",
+    "Requirement 17's code pointers are accurate: product/query/qmap.py:227-228 and 377-378 (size=len(idx), member_ids[:50]); gate_admissibility.py:153 MEGA_CLUSTER_SHARE=0.5, R2 comment at 564, size_share/member_ids_share/member_ids_truncated at 254-257, mega-cluster check on size_share at 572-573.",
+    "Evaluation-lane grounding is accurate: accepted results/audit/evaluation/CYCLE_38951152192_GATE.json is gate=PASS safe_to_integrate=true required_fixes=[] and its claim ceiling contains 'map geometry/clickability has no gate'.",
+    "Model-health observations are exact: origin/main state/model_health.json (run 38959135675, 20:04:30Z) preferred_model opencode/x-preview-f-free with catalog_present=false and using_fallback=true; healthy pool mimo-v2.6-flash-free / space-bunny-free / longcat-2.5-preview-free / muse-spark-1.3-contributor-free; nemotron-3.5-lightning-free probe FAIL exit 124; run-ox-with-retry.sh:93-107 builds MODEL_POOL from healthy_models and core-lane.yml:36 pins LEX_MODEL opencode/x-preview-f-free.",
+    "main advanced exactly one commit past c2ab0680 and that commit touches only state/model_health.json.",
+    "Blockers: all three state/blockers/frontier/*.json are AUDIT_BLOCKED, requires_human=false, owned by TERMINATED teams, and are evaluated inside the supervisor's select(.status==\"RUN\") loop (lines 261-266) so they can never fire.",
+    "No unaccepted evidence laundered: the 9.2e-4 / 2.78e-2 quantities and CYCLE_38893866335_GATE.json are absent from /tmp/lex_accepted, and the proposal explicitly refuses the cross-machine byte-identity claim."
+  ],
+  "mandate_attacks": {
+    "mission_drift": "none",
+    "curiosity_or_frontier_proliferation": "none - frontier RUN count stays at 2, each is a build with a lane-discharge justification matching the factory_director card, each terminal at promote-or-bounded-negative; a third team was declined with a reason",
+    "duplicated_teams": "none - the classifier charter forces a same-run head-to-head against the incumbent product/query/adversarial_retrieval.py; the geometry charter satisfies the reopen contract of factory-wide requirement 15 point by point (same frozen rule by re-hash, no bar or projection-constant edit, accepted FAIL published side by side, terminal stop rule); no promoted component is rerun or rescoped",
+    "unaccepted_evidence_laundering": "none (negative result)",
+    "stale_blocked_questions": "three AUDIT_BLOCKED blockers for TERMINATED teams are inert, correctly not deleted, correctly not claimed as blocking anything",
+    "product_starvation": "none - product is RUN p1 with five obligations independent of the Frontier teams, including a measurable non-weakening attack on the red recall::citation_controlling_authority leg and the obligation to integrate accepted Frontier components in the cycle they are promoted",
+    "fake_parallelism": "none - four concurrent efforts with disjoint write scopes; both charters read lab/product read-only and forbid writes under product/, results/product/, state/product.json and .github/",
+    "weak_acceptance_tests": "none - both charters require freeze-by-re-hash proof, >=3 bundles / >=2 languages, per-class counts including INVERTED and abstention, proven non-vacuity negative controls (strictly-below, tie = void), a regression suite, an integration contract with an explicit claim ceiling, zero-out-of-scope-write tests, and terminal stop rules",
+    "unjustified_lane_pauses": "none - corpus / legal-distance / fractal-map PAUSE with concrete re-open conditions, exactly as the Main Prompt's data-source doctrine and broad-means-narrow-end require; the auditor does not demand the legacy universal-174k line back on the critical path",
+    "human_decision_required_misuse": "none this cycle - no lane or team carries it, none was warranted, and nothing found is an unavoidable owner-level choice; one prospective framing risk is recorded as observation O-3 (escalation keyed to a bounded negative must be shown unavoidable and owner-level, not presented as 'we ran out of in-budget ideas')"
+  },
+  "product_slice_status": {
+    "shortest_user_visible_capability": "real/cached OpenCaseLaw input -> source-linked bundle + clickable map: VERIFIED on accepted evidence (287/287 source-linked, 287/287 coordinates, 8 clusters summing to 287, answer ready with 11/11 resolvable citations)",
+    "zero_cost_claim": "TRUE at provenance level only (free-tier OpenCode model + public OpenCaseLaw); explicitly NOT measured end-to-end and correctly bounded as such",
+    "source_validity": "TRUE - all 287 canonical URLs resolve to mcp.opencaselaw.ch decision pages; 22 unhydrated rows disclosed as detail_status=pending and 34 rows disclosed as language=null rather than fabricated",
+    "caveat": "that same bundle carries a 195/287 = 68% dominant cluster and 0 relation edges, so linkability must never be restated as map semantics or usefulness",
+    "later_milestones_incomplete": "answer-generation quality, counter-authority label soundness and map semantics remain incomplete; the producer state marks them correctly (machine_gate_ready=false, human_gate_ready=false, REALITY_CHECK_FAILED, DO-NOT-SERVE) and recommends continuation via the two chartered teams plus the product red-leg obligation"
+  },
+  "observations": [
+    {"id": "O-1", "blocking": false, "note": "regression-only frozen-bar gates exert no improvement pressure; require the gate output to publish a trend against the incumbent and file an accepted-improvement backlog item"},
+    {"id": "O-2", "blocking": false, "note": "requirement-index pointer discipline failed twice in this chain; enumerate requirement indices from the shipped file in the same run rather than citing a remembered number"},
+    {"id": "O-3", "blocking": false, "note": "geometry Outcome B, the product exit arm and report section 8 item 7 key an owner escalation to a bounded negative; valid only if the choice is shown unavoidable and owner-level (it changes the product mission), never as a wrapper for a weak result or dead end"},
+    {"id": "O-4", "blocking": false, "note": "RULES_LABEL.json / RULES_GEOMETRY.json remain a single-point-of-failure on one cycle branch; contained by the re-hash-before-use contract but should be mirrored next to the accepted verdict snapshot"},
+    {"id": "O-5", "blocking": false, "note": "LABEL_HALF.json absent from the accepted mount; totals independently confirmed from the accepted snapshot, per-bundle splits must stay provenance-disclosed"},
+    {"id": "O-6", "blocking": false, "note": "claim-ceiling bundle is 68% one cluster with 0 relation edges; keep the claim phrased at linkability only"},
+    {"id": "O-7", "blocking": false, "note": "main never receives reports/director/*.md because integration checks out only the two state files; this is why D4 would be uncorrected on main - control-plane hardening item"},
+    {"id": "O-8", "blocking": false, "note": "live gh/ls-remote facts were not reachable from this read-only audit environment; they are not refuted, and every structurally provable one checked out, but the in-flight run enumeration is contradicted by the proposal's own report rather than by this audit"}
+  ],
+  "claim_ceiling": {
+    "defensible_now": [
+      "A real live/cached OpenCaseLaw slice produces a source-linked bundle and a clickable map: 287 unique decisions, 287/287 canonical URLs on mcp.opencaselaw.ch, 287/287 numeric coordinates, 8 clusters summing to 287, degraded=false, failures=[], answer ready on a free OpenCode model with 11/11 citations resolvable; 22 rows honestly pending and 34 rows honestly language=null. Zero-cost holds at provenance level only.",
+      "That bundle is not evidence of map semantics: 195/287 rows sit in one cluster and it carries 0 relation edges.",
+      "The served packet is independently measured and independently rejected on two frozen axes under an accepted DO-NOT-SERVE order (labels 5/65 = 0.0769 vs absolute 1.0; geometry 0/3 with the French largest cluster 167/217 = 0.7696 vs 0.60).",
+      "The four-question frozen reality benchmark is RED and the newest accepted live BJR leg does not repair it (0 of 5 frozen direct-TF authorities, producer-only gates, LOCAL_NOT_DURABLE).",
+      "factory_direction v50 and frontier_portfolio v22 are a faithful, minimal, non-destructive encoding of an evidence-based block on the owner session; this round's delta is one pointer string plus report text corrections.",
+      "Both new charters are non-duplicative builds with proven-non-vacuity acceptance tests and terminal promote-or-bounded-negative rules - chartered only."
+    ],
+    "not_claimable": [
+      "owner-gate or machine-gate readiness (human_gate_ready, machine_gate_ready, 'ready for the human gate')",
+      "that any frozen reality leg is green beyond the producer's own structural and truth-phrase gates",
+      "that either new team has been dispatched, has run, or has produced anything accepted - they are chartered; neither team id exists on main",
+      "that the map is useful to a jurist or satisfies the Master Prompt minimum semantics",
+      "that any specific decision IS supporting, contrary or limiting",
+      "cross-machine byte-identity of measurement artifacts; the 9.2e-4 / 2.78e-2 quantities remain unaccepted and absent from the accepted mount",
+      "measured end-to-end zero-cost",
+      "with D4 outstanding: any statement made from the state file on main about which cycles the v50 bump cancels, and about which director round shipped these bytes"
+    ]
+  },
+  "evidence_summary": "Recomputed every material claim from /tmp/lex_accepted and from git objects rather than inheriting the prior report. All three prior required fixes (D1 grep counts 0/0/0 in both v49 and v50; D2 requirement indices 8=headline-numbers and 9=exhausted-same-charter-guard in both versions; D3 no dispatch possible because the two team ids exist only on the never-integrated rejected proposal while main's portfolio is v21) verified true, as is the base-sha route-around (restore at line 60 before record at line 69; 918b7973 = the restored proposal's own direction sha; 326c9ded = main's current direction sha; the supersession guard still fires; both values disclosed). The claim ceiling recomputed exactly: 287-row source-linked bundle with 11/11 resolvable citations and honest pending/null disclosures; accepted DO-NOT-SERVE snapshot with 5/65 labels and 0/3 geometry; frozen reality benchmark RED at three executions with the BJR leg citing 0 of 5 frozen authorities. Mandate attacks found no mission drift, no frontier proliferation, no duplicated teams, no laundering, no unjustified pauses, no product starvation, no fake parallelism and no weak acceptance tests; both new charters carry proven-non-vacuity controls, regression suites and terminal stop rules. Exactly one defect: state/factory_direction.json's director_note ships a cost disclosure naming two runs the same run's own report says have already resolved, omits the two runs actually at risk, and carries a stale round tag - and because factory-director.yml:189 lands only the two state files, that false statement would become the uncorrected control-plane record on main. It is a one-field, same-cycle repair; everything else in the operative content is sound and needs no rework.",
+  "artifacts_written": [
+    "reports/audit/director/CYCLE_38961079797.md",
+    "results/audit/director/CYCLE_38961079797_GATE.json"
+  ]
+}
