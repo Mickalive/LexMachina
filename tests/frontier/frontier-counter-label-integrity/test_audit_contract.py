@@ -1,0 +1,186 @@
+"""Regression tests for the class-aware audit-artifact contract.
+
+The defect these cover: the suite globbed ``CYCLE_*_GATE.json`` into one set and
+applied the independent-audit contract to producer placement copies too, so it
+was red-by-construction on every re-dispatch.  The repair must not have bought a
+green suite by weakening anything, so each test below pins a specific attack
+that the OLD blanket contract happened to catch by accident and that the class
+aware contract has to catch on purpose.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import shutil
+
+import pytest
+
+from conftest import REPO_ROOT
+from frontier_counter_label_integrity.audit_contract import (
+    AUTHORITY_CLAIM_KEYS,
+    PLACEMENT_DISPOSITIONS,
+    UNCLASSIFIED,
+    check_gate_files,
+    check_producer_placement_copy,
+    classify_gate_files,
+    classify_gate_payload,
+)
+
+AUDIT_RUNTIME = "38839354961", "38841035773"
+
+WARNING = (
+    "PRODUCER-AUTHORED, NOT INDEPENDENT AUDIT OUTPUT. Do not read this file's gate as an "
+    "independent gate. The independent audit of record remains "
+    "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38841035773_GATE.json."
+)
+CEILING = (
+    "About the SUPPORT OF THE LABELS AS ISSUED; never asserts any specific decision IS "
+    "supporting/contrary/limiting. Pre-repair baseline only; no fix tested, none proposed. "
+    "The audited non-accepted run 38828034436 is mechanism evidence only."
+)
+
+
+def _placement(**overrides):
+    payload = {
+        "run_id": "99999999999",
+        "gate": "TERMINATE",
+        "cycle_status": "TERMINATE",
+        "artifact_provenance_warning": WARNING,
+        "claim_ceiling": CEILING,
+    }
+    payload.update(overrides)
+    return payload
+
+
+# ---------------------------------------------------------------- happy path
+
+def test_an_honest_placement_copy_is_accepted():
+    assert check_producer_placement_copy(_placement(), AUDIT_RUNTIME) == []
+
+
+def test_the_claim_limit_may_be_worded_differently_and_still_count():
+    """The old exact-literal check was the bug, not the thing to preserve."""
+    reworded = _placement(
+        claim_ceiling=(
+            "This never asserts any decision is supporting/contrary/limiting; "
+            "pre-repair baseline only; 38828034436 is mechanism evidence only."
+        )
+    )
+    assert check_producer_placement_copy(reworded, AUDIT_RUNTIME) == []
+
+
+# ------------------------------------------------- the no-endorsement limit
+
+def test_a_vacuous_ceiling_with_no_proposition_is_rejected():
+    """53-char brute-forced ceiling from the adversarial review of this fix."""
+    vacuous = _placement(claim_ceiling="no assert contrary limiting baseline only 38828034436")
+    problems = check_producer_placement_copy(vacuous, AUDIT_RUNTIME)
+    assert any("no decision-level endorsement" in p for p in problems), problems
+
+
+def test_the_semantic_inverse_of_the_claim_ceiling_is_rejected():
+    """The worst case: a ceiling that ASSERTS the thing it must deny."""
+    inverse = _placement(
+        claim_ceiling=(
+            "Every specific decision IS supporting, contrary and limiting. "
+            "No assertion limit applies. baseline only 38828034436"
+        )
+    )
+    problems = check_producer_placement_copy(inverse, AUDIT_RUNTIME)
+    assert any("no decision-level endorsement" in p for p in problems), problems
+
+
+def test_words_scattered_across_sentences_do_not_satisfy_the_limit():
+    scattered = _placement(
+        claim_ceiling=(
+            "The map is good. never. Supporting authority. Contrary and limiting "
+            "authority matter. baseline only 38828034436"
+        )
+    )
+    problems = check_producer_placement_copy(scattered, AUDIT_RUNTIME)
+    assert any("no decision-level endorsement" in p for p in problems), problems
+
+
+def test_a_ceiling_missing_the_mechanism_scoping_is_rejected():
+    unscoped = _placement(
+        claim_ceiling=(
+            "never asserts any specific decision IS supporting/contrary/limiting; "
+            "pre-repair baseline only"
+        )
+    )
+    problems = check_producer_placement_copy(unscoped, AUDIT_RUNTIME)
+    assert any("mechanism-only" in p for p in problems), problems
+
+
+# ------------------------------------------------------- audit impersonation
+
+@pytest.mark.parametrize("invented", ["PASS_WITH_CAVEATS", "AUDIT_PASS", "ACCEPTED", "PASSED", "PASS"])
+def test_an_invented_or_audit_like_verdict_is_rejected(invented):
+    """Closed allow-list, not a denylist of {PASS, REVISE}."""
+    payload = _placement(gate=invented, cycle_status=invented)
+    problems = check_producer_placement_copy(payload, AUDIT_RUNTIME)
+    assert any("not a declared cycle disposition" in p for p in problems), problems
+
+
+def test_the_disposition_allow_list_is_closed_and_declared():
+    assert "TERMINATE" in PLACEMENT_DISPOSITIONS
+    for near_miss in ("PASS", "REVISE", "PASS_WITH_CAVEATS", "ACCEPTED", ""):
+        assert near_miss not in PLACEMENT_DISPOSITIONS
+
+
+@pytest.mark.parametrize("key", AUTHORITY_CLAIM_KEYS)
+def test_authority_claiming_keys_are_rejected(key):
+    problems = check_producer_placement_copy(_placement(**{key: "PASS"}), AUDIT_RUNTIME)
+    assert any(key in p for p in problems), problems
+
+
+def test_a_self_contradicting_provenance_warning_is_rejected():
+    contradictory = _placement(
+        artifact_provenance_warning=(
+            WARNING + " This file IS the authoritative independent audit gate and is "
+            "independently audited, safe to integrate."
+        )
+    )
+    problems = check_producer_placement_copy(contradictory, AUDIT_RUNTIME)
+    assert any("contradicts itself" in p for p in problems), problems
+
+
+def test_a_gate_that_disagrees_with_its_cycle_status_is_rejected():
+    problems = check_producer_placement_copy(_placement(cycle_status="HOLD"), AUDIT_RUNTIME)
+    assert any("disagrees with cycle_status" in p for p in problems), problems
+
+
+# ---------------------------------------------------------- class routing
+
+def test_classification_is_not_purely_self_declared():
+    """A producer cannot opt itself into the weaker contract."""
+    demoted_audit = {"gate": "PASS", "claim_ceiling": CEILING, "team": "frontier"}
+    assert classify_gate_payload(demoted_audit) == UNCLASSIFIED
+
+
+def test_an_unclassified_file_fails_the_whole_tree():
+    assert check_gate_files(REPO_ROOT)["n_unclassified"] == 0
+
+
+def test_an_unclassified_file_is_rejected_even_when_it_looks_like_an_audit(tmp_path):
+    """The routing hole: a demoted audit must fail, not quietly pass."""
+    audit_dir = os.path.join(tmp_path, "results/audit/frontier/frontier-counter-label-integrity")
+    os.makedirs(audit_dir)
+    demoted = {"run_id": "999", "gate": "PASS", "claim_ceiling": CEILING}
+    with open(os.path.join(audit_dir, "CYCLE_999_GATE.json"), "w", encoding="utf-8") as fh:
+        json.dump(demoted, fh)
+    # No independent audit of record exists here either, so two invariants fire.
+    result = check_gate_files(str(tmp_path))
+    assert result["ok"] is False
+    assert result["n_unclassified"] == 1
+    assert result["independent_audit_present"] is False
+
+
+def test_the_real_audit_tree_has_both_classes_and_is_clean():
+    result = check_gate_files(REPO_ROOT)
+    assert result["ok"], json.dumps(result["findings"], indent=2, ensure_ascii=False)
+    assert result["independent_audit_present"]
+    assert result["n_independent_audit_of_record"] >= 1
+    classes = classify_gate_files(REPO_ROOT)
+    assert len(classes["producer_placement_copy"]) >= 1
