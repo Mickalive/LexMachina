@@ -188,41 +188,66 @@ def _prompt_source_priority(decision: Any) -> tuple:
     )
 
 
-def _select_prompt_decisions(bundle: DecisionBundle, max_sources: int = 12) -> List[Any]:
+def _select_prompt_decisions(bundle: DecisionBundle, max_sources: int = 10) -> List[Any]:
     """Small, authority-aware evidence set for answer generation.
 
-    The map/retrieval bundle remains broad. The answer model gets only a tight
-    set of the best evidence; this reduces dilution, hallucination pressure and
-    free-model latency.
+    Retrieval may return a broad pool, but generation should normally use the
+    evidence we explicitly hydrated.  Falling back to non-hydrated high-court
+    rows caused unrelated BGE decisions to leak into otherwise good answers
+    merely because "court=BGE" outweighed topical relevance.
     """
     decisions = list(bundle.decisions)
     if len(decisions) <= max_sources:
         return decisions
 
+    hydrated = [
+        dec for dec in decisions
+        if (dec.metadata or {}).get("evidence_hydrated")
+    ]
+    if hydrated:
+        # Keep the local product rank as the primary relevance signal; use
+        # Supreme Court status only as a tie-breaker among already relevant
+        # hydrated rows.
+        def hydrated_key(dec: Any) -> tuple:
+            meta = dec.metadata or {}
+            rank = meta.get("rank")
+            rank_value = int(rank) if isinstance(rank, int) and rank > 0 else 10**6
+            court = str(meta.get("court") or "").lower()
+            supreme = 1 if court in {"bger", "bge"} else 0
+            try:
+                relevance = float(meta.get("score") or 0.0)
+            except (TypeError, ValueError):
+                relevance = 0.0
+            return (-rank_value, supreme, relevance, str(dec.decision_id))
+
+        chosen = sorted(hydrated, key=hydrated_key, reverse=True)[:max_sources]
+        if len(chosen) >= min(6, max_sources):
+            return chosen
+
+    # Sparse/degraded hydration: fill from the best locally ranked rows, not
+    # from remote authority alone.
+    def fill_key(dec: Any) -> tuple:
+        meta = dec.metadata or {}
+        rank = meta.get("rank")
+        rank_value = int(rank) if isinstance(rank, int) and rank > 0 else 10**6
+        try:
+            relevance = float(meta.get("score") or 0.0)
+        except (TypeError, ValueError):
+            relevance = 0.0
+        court = str(meta.get("court") or "").lower()
+        supreme = 1 if court in {"bger", "bge"} else 0
+        return (-rank_value, relevance, supreme, str(dec.decision_id))
+
     selected: List[Any] = []
     seen = set()
-
-    def add(decision: Any) -> None:
-        if decision.decision_id in seen or len(selected) >= max_sources:
-            return
-        seen.add(decision.decision_id)
-        selected.append(decision)
-
-    # First: direct Supreme Court + hydrated evidence, by relevance.
-    for dec in sorted(decisions, key=_prompt_source_priority, reverse=True):
-        meta = dec.metadata or {}
-        if str(meta.get("court") or "").lower() in {"bger", "bge"} and meta.get("evidence_hydrated"):
-            add(dec)
-
-    # Second: remaining hydrated evidence (typically the product's top 10).
-    for dec in sorted(decisions, key=_prompt_source_priority, reverse=True):
-        if (dec.metadata or {}).get("evidence_hydrated"):
-            add(dec)
-
-    # Third: best remaining authority/relevance candidates.
-    for dec in sorted(decisions, key=_prompt_source_priority, reverse=True):
-        add(dec)
-
+    for dec in [*sorted(hydrated, key=fill_key, reverse=True),
+                *sorted(decisions, key=fill_key, reverse=True)]:
+        if dec.decision_id in seen:
+            continue
+        seen.add(dec.decision_id)
+        selected.append(dec)
+        if len(selected) >= max_sources:
+            break
     return selected
 
 
@@ -449,7 +474,7 @@ class Provider:
         # The full bundle remains the citation-validation boundary, but dumping
         # 100+ weak lexical hits into the answer model diluted the strongest
         # authorities. Product reranking places the best legal evidence first.
-        prompt_decisions = _select_prompt_decisions(bundle, max_sources=12)
+        prompt_decisions = _select_prompt_decisions(bundle, max_sources=10)
         lines = [
             "You are a legal research assistant answering a Swiss case-law "
             "question using ONLY the retrieved decision sources listed below. "
@@ -504,6 +529,8 @@ class Provider:
             "decisions when both directly address the same proposition.",
             "  - A source that merely mentions a statute or topic is not enough "
             "to support a proposition; rely on sources that actually address it.",
+            "  - Do NOT mention or cite a retrieved decision merely to say that it "
+            "is irrelevant or unrelated. Omit irrelevant sources entirely.",
             "  - Give a concise structured answer (normally 2-5 short paragraphs).",
             "  - Support propositions by citing sources as [DECISION_ID], "
             "using ONLY the retrieved IDs listed above.",
