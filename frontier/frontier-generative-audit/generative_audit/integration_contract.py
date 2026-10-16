@@ -211,8 +211,10 @@ def apply_to_product_bundle(
             and verified_finding_refs
             and float(finding.uncertainty) < 0.9
             and float(finding.confidence) >= 0.5
-            and rank <= 40
-            and score_ok
+            and (
+                did in package.cited_decision_ids
+                or (rank <= 40 and score_ok)
+            )
         )
 
         # Fail closed on counter labels.  A challenge stays in the audit record,
