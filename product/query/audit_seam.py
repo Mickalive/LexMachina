@@ -27,16 +27,21 @@ caller were miscalibrated for the *current* healthy free-model pool:
 3. **Dead-model filtering at call time (robust to external override).**
    Pinning ``DEFAULT_FREE_MODELS`` at apply time is necessary but not
    sufficient: the durable reality-check workflow re-assigns
-   ``paths.DEFAULT_FREE_MODELS`` *after* the seam runs, with the two dead
-   models first.  Every dead entry left in the list becomes a fallback
-   candidate that burns a full provider timeout (120 s answer / 180 s
-   adversarial) before the next model is tried — the observed ~316-469 s
-   full-answer latency band, and a direct breach of the 300 s gate.  The seam
-   therefore also wraps ``paths.healthy_models`` and ``paths.preferred_model``
-   so ``KNOWN_DEAD_MODELS`` are filtered out at call time, no matter what the
-   caller last wrote into ``DEFAULT_FREE_MODELS``.  If filtering would empty
-   the list, the wrapper falls back to ``MODEL_ORDER`` so a healthy model is
-   always available.
+   ``paths.DEFAULT_FREE_MODELS`` *after* the seam runs, listing
+   ``nemotron-3-ultra-free`` (control-plane tool probe FAIL, exit 124) and
+   ``nemotron-3.5-lightning-free`` first.  Every excluded entry left in the
+   list becomes a fallback candidate that burns a full provider timeout
+   (120 s answer / 180 s adversarial) before the next model is tried — the
+   observed ~316-469 s full-answer latency band, and a direct breach of the
+   300 s gate.  The seam therefore also wraps ``paths.healthy_models`` and
+   ``paths.preferred_model`` so ``KNOWN_DEAD_MODELS`` are filtered out at
+   call time, no matter what the caller last wrote into
+   ``DEFAULT_FREE_MODELS``.  If filtering would empty the list, the wrapper
+   falls back to ``MODEL_ORDER`` so a healthy model is always available.
+   The two exclusions are **not** asserted to share one cause: each carries
+   its own machine-readable basis in ``DEAD_MODEL_JUSTIFICATION`` (see
+   below), because ``nemotron-3.5-lightning-free`` is *not* dead by tool
+   probe — the newest control-plane snapshot reports it PASS.
 
 Everything the seam changes is recorded in bundle provenance under
 ``product_audit_seam`` so the independent auditor can see it rather than infer
@@ -46,20 +51,40 @@ to live subprocess calls.
 from __future__ import annotations
 
 import inspect
+import json
 import os
+from pathlib import Path
 from typing import Any
 
 DEFAULT_ADVERSARIAL_TIMEOUT_SECONDS = 180.0
 
-#: Order verified by the 2026-10-16T15:01:41Z free-model health snapshot
-#: (control-plane ``state/model_health.json``, run 38919946016): mimo,
-#: space-bunny, longcat and muse-spark PASS their tool probes; nemotron-3-ultra
-#: and nemotron-3.5-lightning FAIL (exit 124).  Dead models are EXCLUDED, not
-#: demoted: ``healthy_models()`` returns this list verbatim when the
-#: control-plane snapshot is absent from the branch, so every dead entry left
-#: in the list becomes a fallback candidate that burns a full provider timeout
-#: (120 s answer / 180 s adversarial) before the next model is tried.  Two
-#: such burns explain the observed ~316-469 s full-answer latency band.
+#: Pinned fallback order for the current healthy free-model pool.
+#:
+#: Correction (cycle 38939730386, repair r1 of 38933925523): the original
+#: comment here claimed a health snapshot "run 38919946016" proved four models
+#: PASS and both nemotron models FAIL.  That run id does not exist anywhere in
+#: this repository (no commit, tag, ref or blob), and the only model-health
+#: artifact — control-plane ``state/model_health.json`` — says something
+#: different.  Verified facts, per that artifact (newest snapshot run
+#: 38938748669, ``last_checked_at`` 2026-10-16T17:22:22Z, on ``origin/main``
+#: a16603c; the audit recomputed the immediately preceding run 38933507133 at
+#: 16:40:57Z with the same probe results):
+#:
+#: * ``mimo-v2.6-flash-free``, ``space-bunny-free``, ``longcat-2.5-preview-free``
+#:   — tool_probe PASS, exit 0 (probe-verified healthy);
+#: * ``nemotron-3.5-lightning-free`` — tool_probe **PASS**, exit 0, and listed
+#:   in ``healthy_models`` (NOT dead by tool probe);
+#: * ``nemotron-3-ultra-free`` — tool_probe FAIL, exit 124 (the only FAIL);
+#: * ``muse-spark-1.3-contributor-free`` — not probed at all (the control-plane
+#:   probe stops at ``MAX_HEALTHY=4``), kept only as a last-resort fallback —
+#:   independent audit observation O1, inherited from the base.
+#:
+#: Dead/excluded models are EXCLUDED, not demoted: ``healthy_models()`` returns
+#: this list verbatim when the control-plane snapshot is absent from the branch,
+#: so every excluded entry left in the list becomes a fallback candidate that
+#: burns a full provider timeout (120 s answer / 180 s adversarial) before the
+#: next model is tried.  Two such burns explain the observed ~316-469 s
+#: full-answer latency band.
 MODEL_ORDER = [
     "opencode/mimo-v2.6-flash-free",
     "opencode/space-bunny-free",
@@ -67,12 +92,80 @@ MODEL_ORDER = [
     "opencode/muse-spark-1.3-contributor-free",
 ]
 
-#: Models the 2026-10-16 snapshot proved dead.  Kept as a machine-checkable
-#: blocklist so a future order refresh cannot silently re-admit them.
-KNOWN_DEAD_MODELS = frozenset({
-    "opencode/nemotron-3-ultra-free",
-    "opencode/nemotron-3.5-lightning-free",
-})
+#: Per-exclusion evidence.  Models excluded from every fallback chain keep the
+#: **actual** basis for their exclusion machine-readable so no blanket
+#: "proved dead" claim can drift away from its evidence again (the defect the
+#: independent audit of cycle 38933925523 found in the previous wording of
+#: this file).
+#:
+#: ``opencode/nemotron-3-ultra-free`` — tool-health exclusion: control-plane
+#: ``state/model_health.json`` reports tool_probe FAIL / exit 124 in the newest
+#: snapshot (run 38938748669, 2026-10-16T17:22:22Z) and in the audit-recomputed
+#: predecessor (run 38933507133, 16:40:57Z).  Correctly classified; unchanged.
+#:
+#: ``opencode/nemotron-3.5-lightning-free`` — **not** a tool-health exclusion.
+#: The newest control-plane snapshot reports tool_probe PASS / exit 0 and lists
+#: it as healthy; that is stated explicitly below because the previous version
+#: of this file claimed the opposite on the strength of a snapshot run id that
+#: does not exist in the repository.  The exclusion is retained on
+#: adversarial-budget / hot-path-latency grounds instead: the frontier
+#: component's own comment records lightning hitting the 60 s bounded-challenge
+#: ceiling while space-bunny completed
+#: (``frontier/frontier-generative-audit/generative_audit/adversarial.py``:130-133),
+#: and the only in-repo reality leg where lightning acted as ``answer_model``
+#: (``results/product/reality_check/rent-default_live_20261014T113201Z.json``)
+#: recorded ``timeout after 60s`` on the adversarial call and 281.065 s total
+#: against the 300 s gate — a single confounded observation, cited as
+#: observation and not as cause.  Both observations predate this seam's 180 s
+#: budget; no committed artifact shows lightning completing the bounded
+#: adversarial pass under the new budget, so the exclusion is conservative and
+#: revocable: re-probe before treating it as permanent (carried as a product
+#: backlog item in ``state/product.json``).  Three probe-verified healthy
+#: models remain, so the exclusion costs no fallback depth the latency gate
+#: can afford.
+#:
+#: ``control_plane_tool_probe`` mirrors what the newest control-plane snapshot
+#: reports for that model, so a health refresh that flips a probe result
+#: without this record being updated is a test failure
+#: (``test_audit_seam.py::test_known_dead_models_agree_with_control_plane_health``),
+#: not a silent contradiction.  ``control_plane_run_id`` /
+#: ``control_plane_checked_at`` record when the values were read from
+#: ``state/model_health.json``; they are provenance, not asserted invariants.
+DEAD_MODEL_JUSTIFICATION = {
+    "opencode/nemotron-3-ultra-free": {
+        "basis": "control_plane_tool_probe_fail",
+        "control_plane_tool_probe": "FAIL",
+        "control_plane_exit_code": 124,
+        "control_plane_reported_healthy": False,
+        "control_plane_run_id": "38938748669",
+        "control_plane_checked_at": "2026-10-16T17:22:22Z",
+        "note": (
+            "tool_probe FAIL exit 124 in the newest control-plane snapshot; "
+            "the same failure is the only one the repository's health history records"
+        ),
+    },
+    "opencode/nemotron-3.5-lightning-free": {
+        "basis": "adversarial_budget_not_tool_health",
+        "control_plane_tool_probe": "PASS",
+        "control_plane_exit_code": 0,
+        "control_plane_reported_healthy": True,
+        "control_plane_run_id": "38938748669",
+        "control_plane_checked_at": "2026-10-16T17:22:22Z",
+        "note": (
+            "NOT dead by tool probe: the newest control-plane snapshot reports "
+            "tool_probe PASS exit 0 and lists it healthy; excluded only because "
+            "the bounded adversarial challenge hit its 60s ceiling for this model "
+            "in the component's recorded evidence and no committed run shows it "
+            "completing that pass under the seam's 180s budget; revocable on a "
+            "successful re-probe"
+        ),
+    },
+}
+
+#: Models excluded from every fallback chain, so a future order refresh cannot
+#: silently re-admit them.  Derived from ``DEAD_MODEL_JUSTIFICATION`` (single
+#: source of truth: membership and basis cannot diverge).
+KNOWN_DEAD_MODELS = frozenset(DEAD_MODEL_JUSTIFICATION)
 
 _APPLIED: dict[str, Any] | None = None
 
@@ -84,6 +177,44 @@ def adversarial_timeout_seconds() -> float:
     except ValueError:
         value = DEFAULT_ADVERSARIAL_TIMEOUT_SECONDS
     return max(30.0, value)
+
+
+def control_plane_health_snapshot() -> dict[str, Any] | None:
+    """Read control-plane ``state/model_health.json`` when it is readable.
+
+    Read-only, no subprocess, never raises: returns ``None`` when the
+    control-plane file is absent from this branch (the normal case for a
+    ``lab/product`` checkout) or unreadable.  When present, the probe results
+    for the excluded models are recorded verbatim so every bundle's provenance
+    shows *what the health snapshot actually said at apply time* instead of a
+    hand-asserted summary — the exact defect the independent audit of cycle
+    38933925523 found.  ``LEX_MODEL_HEALTH_PATH`` overrides the location, which
+    is how the consistency test exercises it without writing control-plane
+    paths.
+    """
+    raw = os.environ.get("LEX_MODEL_HEALTH_PATH", "")
+    if raw:
+        path = Path(raw)
+    else:
+        path = Path(__file__).resolve().parents[2] / "state" / "model_health.json"
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    probes = {
+        p.get("model"): {
+            "tool_probe": p.get("tool_probe"),
+            "exit_code": p.get("exit_code"),
+            "catalog_present": p.get("catalog_present"),
+        }
+        for p in data.get("probe_results", [])
+        if p.get("model")
+    }
+    return {
+        "run_id": data.get("last_checked_run_id"),
+        "checked_at": data.get("last_checked_at"),
+        "excluded_models": {m: probes.get(m) for m in sorted(KNOWN_DEAD_MODELS)},
+    }
 
 
 def apply() -> dict[str, Any]:
@@ -176,6 +307,13 @@ def apply() -> dict[str, Any]:
         "healthy_models_wrapped": not healthy_already_wrapped,
         "preferred_model_wrapped": not preferred_already_wrapped,
         "known_dead_models": sorted(KNOWN_DEAD_MODELS),
+        # Machine-readable basis per exclusion (fix for the audit finding that
+        # a blanket "proved dead" claim hid which model had which evidence),
+        # plus the control-plane probe table verbatim when that file is present.
+        "dead_model_justification": {
+            m: dict(DEAD_MODEL_JUSTIFICATION[m]) for m in sorted(KNOWN_DEAD_MODELS)
+        },
+        "control_plane_health": control_plane_health_snapshot(),
         "reason": (
             "counter-authority pass exceeded the 60s per-model ceiling on every "
             "healthy free model; product spec 9A allows late counter-authority "
@@ -190,4 +328,6 @@ def status() -> dict[str, Any]:
 
 
 __all__ = ["apply", "status", "adversarial_timeout_seconds",
-           "DEFAULT_ADVERSARIAL_TIMEOUT_SECONDS", "MODEL_ORDER"]
+           "control_plane_health_snapshot",
+           "DEFAULT_ADVERSARIAL_TIMEOUT_SECONDS", "MODEL_ORDER",
+           "KNOWN_DEAD_MODELS", "DEAD_MODEL_JUSTIFICATION"]

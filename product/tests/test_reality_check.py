@@ -16,7 +16,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "product"))
 
-from reality_check import LEGS, norm, structural_gates, truth_gates, evaluate, GateFailure  # noqa: E402
+from reality_check import (  # noqa: E402
+    LEGS,
+    WORKFLOW_MODEL_OVERRIDE,
+    norm,
+    structural_gates,
+    truth_gates,
+    evaluate,
+    GateFailure,
+)
 
 WORKFLOW = ROOT / ".github" / "workflows" / "product-reality-check.yml"
 
@@ -33,8 +41,43 @@ def _workflow_questions() -> dict[str, str]:
     return found
 
 
+def _workflow_model_override() -> list[str]:
+    """The exact ``paths.DEFAULT_FREE_MODELS[:] = [...]`` block in the workflow."""
+    text = _workflow_text()
+    blocks = re.findall(r"paths\.DEFAULT_FREE_MODELS\[:\]\s*=\s*\[(.*?)\]", text, re.S)
+    assert len(blocks) == 1, (
+        f"expected exactly one DEFAULT_FREE_MODELS override in the durable "
+        f"workflow, found {len(blocks)} — reality_check.WORKFLOW_MODEL_OVERRIDE "
+        f"cannot be assumed to reproduce a layout it does not mirror"
+    )
+    models = re.findall(r'"([^"]+)"', blocks[0])
+    assert models, "could not parse the workflow's model-list override"
+    return models
+
+
 def test_runner_legs_match_workflow_matrix():
     assert _workflow_questions() == LEGS
+
+
+def test_workflow_model_override_matches_durable_workflow():
+    """Fail-closed parity for the constant ``--workflow-override`` reproduces.
+
+    ``reality_check.WORKFLOW_MODEL_OVERRIDE`` is a hand-copied mirror of the
+    durable workflow's post-seam ``paths.DEFAULT_FREE_MODELS[:] = [...]`` block,
+    and it is the entire evidentiary basis for "the four legs are green under
+    the durable gate's *exact* model-list condition".  Until this guard existed
+    (independent audit of cycle 38933925523, MODERATE fix) nothing kept the
+    constant in step: if the control plane reorders or edits that list — which
+    happens whenever model health is refreshed — ``--workflow-override`` would
+    keep reproducing a stale condition while reports still claimed exactness.
+
+    Fail-closed in both directions: a workflow edit without a constant update
+    fails, and a constant edit without a workflow update fails too.
+    """
+    assert WORKFLOW_MODEL_OVERRIDE == _workflow_model_override(), (
+        "product/reality_check.py WORKFLOW_MODEL_OVERRIDE has drifted from the "
+        "durable .github/workflows/product-reality-check.yml override block"
+    )
 
 
 def test_truth_gate_literals_present_in_both_directions():

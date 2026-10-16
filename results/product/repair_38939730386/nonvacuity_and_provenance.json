@@ -1,0 +1,48 @@
+{
+  "parity_as_is": "PASS",
+  "parity_mutated_constant": "AssertionError as required: product/reality_check.py WORKFLOW_MODEL_OVERRIDE has drifted from the durable .github/workflows/product-reality-check.ym",
+  "snapshot_used": {
+    "source": "git show origin/main:state/model_health.json (branch copy absent)",
+    "run_id": "38938748669",
+    "checked_at": "2026-10-16T17:22:22Z"
+  },
+  "health_faithful_snapshot": "PASS",
+  "health_lightning_flipped_FAIL": "AssertionError as required: opencode/nemotron-3.5-lightning-free: seam records tool_probe 'PASS' but the control-plane snapshot (run 38938748669) reports 'FAI",
+  "health_pinned_MODEL_ORDER_model_DEAD124": "AssertionError as required: opencode/longcat-2.5-preview-free is reported dead (exit 124) by the control-plane snapshot yet still sits in MODEL_ORDER — it wou",
+  "health_no_snapshot": "Skipped: control-plane state/model_health.json not readable here",
+  "seam_provenance_keys": [
+    "adversarial_timeout_default_before",
+    "adversarial_timeout_seconds",
+    "already_wrapped_by_other_module_instance",
+    "applied",
+    "control_plane_health",
+    "dead_model_justification",
+    "healthy_models_wrapped",
+    "known_dead_models",
+    "model_order",
+    "model_order_before",
+    "preferred_model_wrapped",
+    "reason"
+  ],
+  "dead_model_justification": {
+    "opencode/nemotron-3-ultra-free": {
+      "basis": "control_plane_tool_probe_fail",
+      "control_plane_tool_probe": "FAIL",
+      "control_plane_exit_code": 124,
+      "control_plane_reported_healthy": false,
+      "control_plane_run_id": "38938748669",
+      "control_plane_checked_at": "2026-10-16T17:22:22Z",
+      "note": "tool_probe FAIL exit 124 in the newest control-plane snapshot; the same failure is the only one the repository's health history records"
+    },
+    "opencode/nemotron-3.5-lightning-free": {
+      "basis": "adversarial_budget_not_tool_health",
+      "control_plane_tool_probe": "PASS",
+      "control_plane_exit_code": 0,
+      "control_plane_reported_healthy": true,
+      "control_plane_run_id": "38938748669",
+      "control_plane_checked_at": "2026-10-16T17:22:22Z",
+      "note": "NOT dead by tool probe: the newest control-plane snapshot reports tool_probe PASS exit 0 and lists it healthy; excluded only because the bounded adversarial challenge hit its 60s ceiling for this model in the component's recorded evidence and no committed run shows it completing that pass under the seam's 180s budget; revocable on a successful re-probe"
+    }
+  },
+  "control_plane_health_at_apply": null
+}
