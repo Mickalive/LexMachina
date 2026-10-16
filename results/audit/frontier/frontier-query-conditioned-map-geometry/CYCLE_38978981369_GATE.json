@@ -1,0 +1,277 @@
+{
+  "schema": "lexmachina/audit-gate/1",
+  "team_id": "frontier-query-conditioned-map-geometry",
+  "cycle_run_id": 38978981369,
+  "auditor": "independent_auditor",
+  "audited_branch": "origin/cycle/frontier/frontier-query-conditioned-map-geometry/38978981369/team",
+  "audited_head": "dc3ffc6ca00347fcd01689d3356cc5a5abe8493c",
+  "audited_head_parent": "76bef497 (accept of audit 38976645446)",
+  "audit_base": "audit-base@dc3ffc6 (= origin/lab/frontier/frontier-query-conditioned-map-geometry)",
+  "gate": "BLOCKED",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    {
+      "id": "RF1_contract_coordinate_range_is_false",
+      "severity": "MATERIAL_CLAIM_BEARING_DEFECT",
+      "artifact": "results/frontier/frontier-query-conditioned-map-geometry/INTEGRATION_CONTRACT.json",
+      "field": "output_contract.decisions[].x",
+      "false_claim": "\"x\": \"float, rounded to 4 decimals, [-1,1] (V1) or [-1,1] (V2)\"",
+      "measured": {
+        "hydrate_then_cluster": "x,y in [-1.696, +1.700] on all three served bundles; 47/214, 49/217, 47/211 rows outside [-1,1]",
+        "relevance_ordered": "x in [-1.000, +1.000]; y in [-1.0249, +0.640]; 25/214, 22/217, 28/211 rows outside [-1,1] (all on y)"
+      },
+      "product_lane_contract_violated": "product/query/qmap.py:120-124 documents and enforces the box: 'The rendered map lives in [-1, 1] and the client maps it straight to pixels. A decision that projects outside that box is clipped rather than rescaled' followed by coords = np.clip(coords, -1.0, 1.0)",
+      "rendering_consequence_computed_against_live_screenPos": {
+        "method": "pad=46, H=canvas_height-92; a point is off-canvas on an axis when 0.5*(|coord|-1)*H > pad",
+        "plot_height_300px": {"hydrate_then_cluster": [41, 43, 41], "relevance_ordered": [0, 0, 0]},
+        "plot_height_400px": {"hydrate_then_cluster": [45, 47, 45], "relevance_ordered": [0, 0, 0]},
+        "plot_height_800px": {"hydrate_then_cluster": [47, 49, 47], "relevance_ordered": [0, 0, 0]},
+        "reading": "the promoted variant's 1.245% excursion is fully absorbed by the renderer's bottom padding, so nothing is off-canvas; the non-promoted V1's un-hydrated shell ring is substantially drawn outside the canvas"
+      },
+      "required_repair": "Add an amending record (do not edit the accepted INTEGRATION_CONTRACT.json) with the measured ranges and the above consequence. Do NOT clamp coordinates: clamping changes PROJ_SPEARMAN and PROJ_KNN10, two coordinate-dependent criteria, and would move frozen scores after they have been seen.",
+      "note": "This cycle declared itself an adoption-readiness audit, amended the contract's drop_in_path field, and left this false output guarantee untouched."
+    },
+    {
+      "id": "RF2_exposed_row_counts_overstated",
+      "severity": "DOCUMENTATION_PRECISION",
+      "artifacts": [
+        "frontier/frontier-query-conditioned-map-geometry/README.md",
+        "results/frontier/frontier-query-conditioned-map-geometry/REVERIFICATION_38978981369.json (exposed_rows)",
+        "state/frontier/frontier-query-conditioned-map-geometry.json (adoption_preconditions)"
+      ],
+      "stated": "47/214, 49/217, 47/211 rows exposed; 'Every unclustered-shell point is therefore painted in whatever colour was drawn before it'",
+      "measured": "rows carrying a negative cluster_id = 47/49/47, but negative_ids_index_outside_palette = 42/43/42; ids that are exact multiples of the palette length (8) resolve to a real but wrong colour (cluster_id -8 -> COLORS[0])",
+      "required_repair": "State both numbers with explicit labels; the team's own artifact and its own test ('almost every shell id misses the palette') already carry the precise figure."
+    },
+    {
+      "id": "RF3_environment_record_does_not_match_its_stated_purpose",
+      "severity": "REPRODUCIBILITY_CLAIM_OVERSTATEMENT",
+      "artifacts": [
+        "results/frontier/frontier-query-conditioned-map-geometry/ENVIRONMENT.json",
+        "results/frontier/frontier-query-conditioned-map-geometry/REVERIFICATION_38978981369.json"
+      ],
+      "stated": "criterion_level_identical_to_accepted_run: true; SCORES_* listed as differing 'only in wall clock and stamped run id'",
+      "measured_on_a_second_machine": {
+        "declared_stack_match": "python 3.12.3, numpy 2.5.4, scipy 1.18.1, sklearn 1.9.1 - all four identical to ENVIRONMENT.json, installed independently for this audit",
+        "verdicts": "99/99 identical; pass counts identical (incumbent 16, V1 20, V2 22)",
+        "criterion_value_drift": {
+          "PROJ_KNN10": 1.382e-03,
+          "PROJ_RANK": 7.793e-04,
+          "STRUCTURE_SEP": 1.707e-04,
+          "PROJ_SPEARMAN": 1.048e-04,
+          "bit_identical_criteria": ["COHERENCE_QUERY_LANG", "COHERENCE_QUERY_TERM", "STRUCTURE_LARGEST", "LABEL_CONTENT_FRACTION", "LABEL_JACCARD", "RELATIONS"]
+        },
+        "thread_count_is_not_the_cause": "OMP_NUM_THREADS=OPENBLAS_NUM_THREADS=MKL_NUM_THREADS=1 reproduces the 4-thread values exactly",
+        "localisation": "the four drifting criteria are exactly those computed through sklearn pairwise cosine distances on SVD coordinates inside the vendored scorer; the drift affects the incumbent numbers too, so it is scorer numerics and not variant geometry",
+        "margin_analysis": "nearest decision margin anywhere in the run is 0.0169, i.e. 12x the largest observed drift; no verdict, count, total or outcome is affected"
+      },
+      "required_repair": "Record the measured cross-environment tolerance and its localisation, and reframe 'byte-identical' as 'identical within one environment; four cosine-derived values drift at ~1e-3 across environments'. ENVIRONMENT.json was added to make reproduction elsewhere meaningful; as written it over-promises."
+    },
+    {
+      "id": "RF4_renderer_precondition_incomplete_for_the_owning_lane",
+      "severity": "COVERAGE_GAP_IN_THE_CYCLES_NEW_ARTIFACT",
+      "artifact": "results/frontier/frontier-query-conditioned-map-geometry/RENDERER_PRECONDITION.json",
+      "gaps": [
+        "drop_in_safe_after_owning_lane_fix is true while RF1 stands: fixing the palette lookup alone does not make the drop-in render inside the canvas for V1",
+        "the same JavaScript % expression exists in the rendering lane's own surfaces, ui/canvas2d_renderer.js:531 and product/static/bundle_adapter.js:94, which the record does not name"
+      ],
+      "required_repair": "Name the sibling lookups and set drop_in_safe_after_owning_lane_fix to false until RF1 is amended."
+    }
+  ],
+  "claim_ceiling": {
+    "what_this_run_supports": [
+      "The accepted OUTCOME A result is independently reproduced and is NOT retracted. Under the frozen geometry rule (sha256 a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633, re-hashed identically from three independent sources) applied to the served bundles of gate_packet/38839347028 (de 214, fr 217, it 211 decisions, all three sha256 re-verified), relevance_ordered passes 22/33 criteria against the incumbent's 16/33, with ZERO regressions on any bundle (de 7/11, fr 8/11, it 7/11 versus 6/5/5). hydrate_then_cluster passes 20/33 and regresses on OUTLIER_VALIDITY on de and fr.",
+      "The incumbent reproduction lands exactly on the accepted verdict of record (ACCEPTED_frontier-served-packet-falsification_38880639079.json, pass_counts de 6 / fr 5 / it 5, baselines 5/5/4, french_largest_share 0.7696). All 99 criterion verdicts computed by the auditor agree with the committed artifacts, degenerate flags included.",
+      "The cycle's headline finding is TRUE and verified at source: the variants emit unique negative cluster_ids for un-hydrated shells, and product/static/query.html:188 computes ctx.fillStyle=COLORS[(p.cluster_id??0)%COLORS.length] against an 8-entry palette (:141). JavaScript % truncates toward zero, so a negative id yields a negative index, COLORS[negative] is undefined, and the canvas ignores an invalid fillStyle and keeps the previous point's colour. Independently confirmed: the negative-id set is exactly the un-hydrated shell set (detail_status != search_hit), 47/49/47 rows, with the additive unclustered flag set on exactly those rows; every emitted cluster record has a non-negative id, so the legend (:240) is unaffected.",
+      "This is an ADOPTION-TIME hazard, not a live production bug: the shipped geometry derives cluster ids from sklearn labels and nearest-centroid assignment (product/query/qmap.py:353-390) and never emits a negative id. The team's characterisation and its refusal to fix rendering code or to work around the id on the variant side are both correct under the charter.",
+      "The vendored scorer's byte-identity is now PROVEN rather than asserted, and the auditor confirmed it independently: metrics.py blob 3fc32b5562a612fa1afc7e91a50960f21dcba168 and textgeo.py blob 425e70face1fb1549e20e3075640b076c2134831 are identical in the team's vendored copy and in evaluation/frozen_bars/vendored/frontier_map_semantics_reference on origin/lab/evaluation.",
+      "The component is a pure, deterministic function of the bundle behind the query_result_bundle seam: no rendering, UI, colour or interaction file is touched, relations[] is untouched, every row keeps source_url/canonical_url and decision_id, no decision is dropped or duplicated, member_ids stays capped at 50 with size as true membership, and per-bundle geometry cost is 0.05-0.17 s against the frozen 2.0 s budget.",
+      "The accepted ablation numbers reproduce independently: fr largest-cluster share 0.7696, dominant un-hydrated fraction 0.293, hydrated-only dominant-member Jaccard 0.235, frozen ARTIFACT predicate False on the shipped fr input, 4 of 217 French-language rows inside the dominant cluster. Under either variant the dominant cluster contains zero un-hydrated shells (fraction 0.0000 on all three bundles), so the predicate is False for a structural reason, correctly stated per variant per bundle.",
+      "Non-vacuity is proven against the binding frozen rule's own clause and independently replicated: on fr-bail-entretien the permutation control flips exactly COHERENCE_QUERY_LANG and COHERENCE_QUERY_TERM under both variants (8->6 for V2, 7->5 for V1), meeting the >= 2 flip requirement; on de and it it flips nothing, correctly, because those criteria already fail there.",
+      "ENVIRONMENT.json's declared numeric stack is accurate: this audit independently installed and observed python 3.12.3, numpy 2.5.4, scipy 1.18.1, sklearn 1.9.1 - every version matches the record."
+    ],
+    "what_this_run_does_not_support": [
+      "THAT THE INTEGRATION CONTRACT'S OUTPUT GUARANTEE HOLDS. INTEGRATION_CONTRACT.json states x (and by implication y) in [-1,1] for both variants. Measured: hydrate_then_cluster reaches |1.70| and relevance_ordered has y down to -1.0249. The product lane enforces and documents the [-1,1] box with clipping (product/query/qmap.py:120-124). See RF1.",
+      "THAT THE PROMOTED VARIANT IS A CLEAN DROP-IN FOR TODAY'S RENDERER. With the palette lookup fixed, relevance_ordered still emits 25/22/28 rows marginally below the nominal floor; the excursion is inside the renderer's 46 px padding so 0 points are off-canvas at 300/400/800 px plot heights, but the contract's range claim must be corrected. hydrate_then_cluster is NOT a safe drop-in at all: 41-49 points per bundle fall outside the canvas.",
+      "THAT CRITERION VALUES REPRODUCE BIT-IDENTICALLY ACROSS MACHINES. Four cosine-derived criteria drift by up to 1.4e-3 with the identical declared library stack; thread count is not the cause. All verdicts, counts, totals and the outcome are unaffected. See RF3.",
+      "THAT 47/214, 49/217 AND 47/211 ROWS HAVE A BROKEN COLOUR. 42/43/42 do; the remainder are ids that are exact multiples of the palette length and resolve to a real but wrong colour. See RF2.",
+      "That the promoted axis is a rerank score in the measurement population. decisions[].score is the raw search-stage score here (provenance.stages == ['search'], no provenance.product_rerank key, 0 rows with retrieval_score_raw), while the product hot path rewrites that field to a rerank score. The user-facing disclosure text is correct; the internal metadata label ('rerank_score_axis_with_query_language_bands', README line 34) is not. Still open from audit 38976645446 and not mentioned in this cycle's record.",
+      "That proximity now means query-conditioned similarity: PROJ_SPEARMAN and PROJ_KNN10 still fail on every bundle under both variants, and STRUCTURE_SEP fails on every bundle and is unreachable on de and it under any clustering.",
+      "That the map is USEFUL to a jurist. Usefulness remains the human product gate's question and is not answered here.",
+      "That any decision supports, limits or contradicts the answer.",
+      "That the shipped map should be served unchanged: 0 of 3 bundles pass all 11 criteria under the promoted variant, exactly as under the incumbent."
+    ],
+    "accepted_fail_is_preserved": "The accepted frontier-map-semantics verdict (run 38846038296, accept commit 15362f6, 0 of 3 bundles passing, promoted decision 'FAIL with NO working in-budget alternative: keep the shipped geometry and CLOSE geometry work until after the human gate') remains the verdict of record for the SHIPPED geometry. No cycle retracts it.",
+    "adoption_recommendation_to_the_director": "Adopt relevance_ordered after amendments RF1-RF4. The promoted variant scores 22/33 against 16/33 with zero regressions, renders every point inside the canvas, and its only open item is a one-line renderer fix owned by another lane plus a contract correction. Do not adopt hydrate_then_cluster against today's renderer.",
+    "integrator_action_required_before_serving_v2": [
+      "Amend the integration contract's coordinate guarantee (RF1) - disclosure, not clamping.",
+      "Make the point-fill colour lookup tolerate negative cluster ids in product/static/query.html:188 and in the rendering lane's ui/canvas2d_renderer.js:531 and product/static/bundle_adapter.js:94, or paint shells from the additive unclustered flag.",
+      "Re-run the frozen 11-criteria rule on a bundle that has actually been through rerank_product_bundle and compare per-criterion counts against the measured 7/8/7.",
+      "Relabel the V2 axis metadata from 'rerank score' to 'retrieval relevance score'."
+    ]
+  },
+  "evidence_summary": {
+    "cycle_nature": {
+      "classification": "THIRD_DISPATCH_OF_A_CHARTER_TERMINATED_AT_OUTCOME_A",
+      "charter_reached_outcome_on_run": 38970483941,
+      "accepted_at": "be5eba7f2203db323cb2ae21f0794041908a5711 (audit 38973386164, PASS)",
+      "producer_delta": "8 files: README.md, qmap_geometry/cli.py, qmap_geometry/renderer_precondition.py (new), tests/test_geometry_contract.py (5 new tests), results ENVIRONMENT.json, RENDERER_PRECONDITION.json, REVERIFICATION_38978981369.json, state/frontier/frontier-query-conditioned-map-geometry.json",
+      "variants_opened": 0,
+      "threshold_bar_or_control_edits": 0,
+      "claim_bearing_artifacts_overwritten": 0,
+      "producer_behaviour": "Correct. Recognised the charter as already terminated at OUTCOME A, opened no variant, retuned nothing, left every pre-existing claim-bearing artifact byte-identical, found a real adoption blocker instead of chasing a better score, proved the vendored scorer byte-identical by git blob hash where earlier cycles only asserted it, and recorded the numeric stack for the first time."
+    },
+    "freeze_first": {
+      "rules_sha256_team_copy": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+      "rules_sha256_independently_fetched_from_cycle/frontier/frontier-served-packet-falsification/38877700234/team": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+      "rules_sha256_expected": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+      "match": true,
+      "threshold_or_bar_edits": [],
+      "measurement_population": "results/product/gate_packet/38839347028/questions/*.bundle.json on origin/lab/product (2213e5b4); sha256 de=2441ff2b16722afcd22dca9ad39eafcbeb079b2dfc367d763fbe53fce1356f9c fr=6c5ea31d4b9af4abfa39e9f8025cfa3d34279ff1f04d0f643e571e27b23a2618 it=76e7f7ad998f3878e7b08635663e2d594a7a77bdaeb33bcf5fa52d0af00b7aff; recomputed by the auditor and equal to the team's records; 214/217/211 decisions"
+    },
+    "component_smoke_test": {
+      "ran_end_to_end": true,
+      "cli_exit_code": 0,
+      "wall_seconds_all_bundles_both_variants": 7.907,
+      "frozen_budget_geometry_seconds_max": 2.0,
+      "measured_geometry_seconds_per_bundle": "0.05-0.17",
+      "tests_passed": "20/20 (the mount /tmp/lex_accepted/core/product that the suite hard-codes was rebuilt from origin/lab/product; no test was weakened)",
+      "in_environment_determinism": "two consecutive runs differ only in timings and output paths; every criterion value bit-identical",
+      "artifact_reproduction": "18 artifacts emitted; 7 differ from the committed set and every difference was resolved leaf by leaf: timings, output paths, stamped run id, plus the cross-environment numeric drift quantified in RF3. No boolean, string or integer leaf differs anywhere except run id and out_dir."
+    },
+    "independent_scoring": {
+      "method": "auditor re-ran the frozen pipeline on the frozen rule and the correct served bundles, then compared every criterion verdict and every numeric leaf against the committed artifacts; 1,927 boolean/string/int leaves compared separately from numeric leaves so path and timing noise could not mask a verdict change",
+      "incumbent": {"de-kapitalverletzung": 6, "fr-bail-entretien": 5, "it-responsabilita-medica": 5, "total": 16, "matches_accepted_verdict_of_record": true},
+      "hydrate_then_cluster": {"de-kapitalverletzung": 6, "fr-bail-entretien": 7, "it-responsabilita-medica": 7, "total": 20, "regressions": ["de/OUTLIER_VALIDITY", "fr/OUTLIER_VALIDITY"]},
+      "relevance_ordered": {"de-kapitalverletzung": 7, "fr-bail-entretien": 8, "it-responsabilita-medica": 7, "total": 22, "regressions": [], "strictly_better": true},
+      "criterion_verdicts_compared": 99,
+      "criterion_verdict_mismatches": 0,
+      "degenerate_flag_mismatches": 0
+    },
+    "vendored_scorer_provenance": {
+      "verified_by": "auditor, git blob hash against origin/lab/evaluation",
+      "metrics.py": {"canonical": "3fc32b5562a612fa1afc7e91a50960f21dcba168", "team_vendored": "3fc32b5562a612fa1afc7e91a50960f21dcba168", "identical": true},
+      "textgeo.py": {"canonical": "425e70face1fb1549e20e3075640b076c2134831", "team_vendored": "425e70face1fb1549e20e3075640b076c2134831", "identical": true},
+      "__init__.py": {"canonical": null, "team_vendored": "de5d67f6bdc8c65a33be098dd073f5e99b93d02a", "note": "the reference tree contains no __init__.py; the team's file is a one-line docstring and no code. The record's 'identical: false' reads as a mismatch when it means 'no counterpart'."}
+    },
+    "renderer_precondition_finding": {
+      "verdict": "TRUE, VERIFIED AT SOURCE, CORRECTLY OWNED BY ANOTHER LANE",
+      "evidence": "product/static/query.html:141 COLORS has 8 entries; :188 ctx.fillStyle=COLORS[(p.cluster_id??0)%COLORS.length]; JS % truncates toward zero so cluster_id -1 gives index -1, COLORS[-1] is undefined, and assigning undefined to fillStyle is ignored by the canvas, keeping the previous point's colour.",
+      "independent_recomputation": {
+        "negative_cluster_ids_per_bundle": [47, 49, 47],
+        "identical_to_the_un_hydrated_shell_set": true,
+        "shell_predicate": "detail_status != search_hit",
+        "unclustered_flag_set_on_exactly_those_rows": true,
+        "ids_resolving_outside_the_palette": [42, 43, 42],
+        "cluster_records_with_non_negative_ids": 8,
+        "legend_unaffected": true
+      },
+      "adoption_time_not_live": "the shipped geometry derives cluster ids from sklearn labels and nearest-centroid assignment (product/query/qmap.py:353-390) and never emits a negative id",
+      "sibling_exposure_not_named_by_the_record": ["frontier-query-map-ui ui/canvas2d_renderer.js:531", "frontier-query-map-ui product/static/bundle_adapter.js:94"]
+    },
+    "independent_finding_coordinate_domain": {
+      "contract_claim": "INTEGRATION_CONTRACT.json output_contract.decisions[].x: '[-1,1] (V1) or [-1,1] (V2)'",
+      "measured_ranges": {
+        "hydrate_then_cluster": {"de": [-1.696, 1.700], "fr": [-1.696, 1.700], "it": [-1.696, 1.700]},
+        "relevance_ordered": {"x": [-1.000, 1.000], "y": [-1.0249, 0.640]}
+      },
+      "rows_outside_pm1": {"hydrate_then_cluster": [47, 49, 47], "relevance_ordered": [25, 22, 28]},
+      "product_lane_convention": "product/query/qmap.py:120-124 documents and enforces the [-1,1] box and clips rather than rescales",
+      "off_canvas_points_at_plot_heights_300_400_800": {"hydrate_then_cluster": [[41, 43, 41], [45, 47, 45], [47, 49, 47]], "relevance_ordered": [[0, 0, 0], [0, 0, 0], [0, 0, 0]]},
+      "severity_reading": "material as a false contract guarantee; cosmetic for the promoted variant at render time; genuinely blocking for the non-promoted V1",
+      "clamp_trap": "clamping coordinates would change PROJ_SPEARMAN and PROJ_KNN10 and therefore move frozen scores after they have been seen, so disclosure is the only charter-safe repair"
+    },
+    "reproducibility_envelope": {
+      "same_machine_two_runs": "bit-identical criterion values; only timings and paths differ",
+      "second_machine_same_declared_stack": "all 99 verdicts and all pass counts identical; four cosine-derived criterion values drift",
+      "max_drift": {"PROJ_KNN10": 1.382e-03, "PROJ_RANK": 7.793e-04, "STRUCTURE_SEP": 1.707e-04, "PROJ_SPEARMAN": 1.048e-04},
+      "thread_count_ruled_out": "OMP/OPENBLAS/MKL_NUM_THREADS=1 reproduces the 4-thread values exactly",
+      "nearest_decision_margin": 0.016923,
+      "margin_to_drift_ratio": 12,
+      "verdict_impact": "none"
+    },
+    "non_vacuity": {
+      "frozen_rule_own_clause": "MET and independently replicated: fr-bail-entretien flips COHERENCE_QUERY_LANG and COHERENCE_QUERY_TERM under both variants (V2 8->6, V1 7->5); de and it flip nothing because those criteria already fail there",
+      "charter_literal_coordinate_control": "still UNSATISFIABLE as written; the frozen scorer computes PROJ_RANK without reading x/y",
+      "handling": "divergence preserved as REPORTED_NOT_RESOLVED and escalated across three cycles; no bar, threshold, control or criterion altered",
+      "corollary": "V2's axis placement cannot be the cause of any score gain; the gains are input-side (removing un-hydrated shells from the clusterable set)"
+    },
+    "ablation_before_after": {
+      "french_largest_share_shipped": 0.7696,
+      "french_dominant_unhydrated_fraction": 0.293,
+      "hydrated_only_dominant_member_jaccard": 0.235,
+      "artifact_predicate_shipped_fr": false,
+      "fr_language_rows_in_shipped_dominant": "4/217 (2.4%)",
+      "variant_french_largest_share": 0.2074,
+      "variant_dominant_unhydrated_fraction_all_bundles": 0.0,
+      "artifact_predicate_under_variants": false,
+      "artifact_non_firing_reason": "the variant dominant cluster contains no un-hydrated shell, so the >=0.40 shell-fraction clause is structurally unmeetable; stated explicitly per variant per bundle",
+      "all_values_independently_reproduced": true
+    },
+    "regression_suite": {
+      "false_leaves_in_auditor_run": 0,
+      "auditor_spot_checks": "0 dropped, 0 duplicated decision ids, n_clusters 8 on every bundle and variant, member_ids capped at 50 while size is true membership, every row has coordinates, source_url/canonical_url preserved on every row in both variants"
+    },
+    "write_scope": {
+      "files_touched_this_cycle": [
+        "frontier/frontier-query-conditioned-map-geometry/README.md",
+        "frontier/frontier-query-conditioned-map-geometry/qmap_geometry/cli.py",
+        "frontier/frontier-query-conditioned-map-geometry/qmap_geometry/renderer_precondition.py",
+        "frontier/frontier-query-conditioned-map-geometry/tests/test_geometry_contract.py",
+        "results/frontier/frontier-query-conditioned-map-geometry/ENVIRONMENT.json",
+        "results/frontier/frontier-query-conditioned-map-geometry/RENDERER_PRECONDITION.json",
+        "results/frontier/frontier-query-conditioned-map-geometry/REVERIFICATION_38978981369.json",
+        "state/frontier/frontier-query-conditioned-map-geometry.json"
+      ],
+      "forbidden_prefixes": ["product/", "evaluation/", "results/product/", "state/product.json", ".github/", "product/static/"],
+      "violations": [],
+      "claim_bearing_artifacts_unchanged": "18 of 18 pre-existing claim-bearing artifacts byte-identical to the accepted run (verified file by file)",
+      "state_file_note": "rewritten with 1-space indentation, turning roughly 40 lines of real change into a 369-line diff; every claim field preserved, no claim deleted"
+    },
+    "minor_observations": [
+      "vendored provenance record labels __init__.py 'identical: false' when the canonical reference tree simply has no counterpart",
+      "the state file's whole-file reindentation creates review noise for a small delta",
+      "the two integrator actions from audit 38976645446 (re-measure on a reranked bundle; relabel the axis metadata from 'rerank score' to 'retrieval relevance score') are still open and are not mentioned in this cycle's re-verification record; README line 34, FREEZE.json and SCORES_relevance_ordered.json still carry the 'rerank score' label although decisions[].score is the raw search-stage score in this population",
+      "ENVIRONMENT.json's own rationale cites qmap.py advisory F2 as a cross-environment reproducibility failure, which makes the unrecorded cross-environment value drift in this run the more pointed instance of the same class"
+    ]
+  },
+  "declared_divergences": [
+    {
+      "id": "charter_check_4b_coordinate_shuffle_control",
+      "status": "REPORTED_NOT_RESOLVED",
+      "escalated_to_director": true,
+      "carried_forward_unchanged": true,
+      "summary": "Charter acceptance check (4)'s second control (shuffled coordinates must fail PROJ_RANK/PROJ_SPEARMAN) is unsatisfiable under the frozen scorer, which computes PROJ_RANK from retrieval rank and TF-IDF cosine distance to the query vector and never reads x/y. Non-vacuity is proven against the binding frozen rule's own clause (2 flips on fr-bail-entretien, independently replicated here). No bar, threshold, control or criterion was altered in any of the three cycles.",
+      "director_decision": "Accept the frozen-rule-based non-vacuity proof as satisfying the intent of check (4), or rule the charter-literal control voiding."
+    }
+  ],
+  "acceptance_checks": {
+    "1_freeze_first_by_rehash": "PASS (three independent sources byte-identical)",
+    "2_two_runnable_variants_behind_bundle_seam": "PASS (exit 0, 20/20 tests, 0.05-0.17 s per bundle, no rendering file touched)",
+    "3_all_three_bundles_scored_with_side_by_side": "PASS (99/99 verdicts independently reproduced; incumbent matches the verdict of record)",
+    "4_non_vacuity_proven": "PASS under the binding frozen rule's own non-vacuity clause; charter-literal coordinate control remains DECLARED unsatisfiable",
+    "5_before_after_on_accepted_ablation": "PASS (every accepted number reproduced; ARTIFACT predicate status stated per variant per bundle with the structural reason)",
+    "6_regression_suite": "PASS (zero false leaves; no-drop, no-duplicate, truncation and source-link invariants independently confirmed)",
+    "7_integration_contract_and_claim_ceiling": "FAIL - the contract's output_contract coordinate guarantee is false (RF1); the cycle's own renderer-precondition record is incomplete for the owning lane (RF4). The claim ceiling itself is honest and no jurist-usefulness claim is made.",
+    "8_zero_out_of_scope_writes": "PASS (8 files, zero forbidden prefixes, 18/18 claim-bearing artifacts unchanged)"
+  },
+  "gate_rationale": {
+    "why_not_pass": "A material, claim-bearing field of the accepted INTEGRATION_CONTRACT.json is false (the [-1,1] coordinate guarantee) and the cycle that declared itself an adoption-readiness audit amended drop_in_path but not this. Passing would integrate a component whose delivered contract advertises a guarantee it does not meet, against a product lane that documents and enforces the opposite convention.",
+    "why_not_revise": "REVISE mechanically re-dispatches frontier-team.yml with repair_round+1, manufacturing a THIRD dispatch of a charter whose stop_promote_rule says 'never re-dispatch it with the same charter_version', bypassing the supervisor guard entirely and guaranteeing another audit cycle of this same kind. The defects are addressed to Core Product and frontier-query-map-ui, not to another producer cycle.",
+    "why_blocked": "Two independent reasons. (1) Recurring pathology must become BLOCKED rather than infinite REVISE: this is the third dispatch of a closed charter and the pathology has already survived one prose escalation. (2) BLOCKED is the only gate value that writes state/blockers/frontier/<team>.json, which the supervisor tests with a LOCAL FILE TEST rather than the fail-open 'gh api contents ... || true' pipeline that let two consecutive dispatches through despite correct, unchanged data on the lab branch. From that point the supervisor prints 'blocked under current charter; Director must redirect/kill/recharter it' and sets NEED_DIRECTOR, which is the correct resting state for a finished charter carrying two lane-owned adoption preconditions.",
+    "what_blocked_does_not_do": "It does not un-publish this cycle's delta: the producer works directly on lab/frontier/<team> by workflow design, so dc3ffc6 is already the lab branch head whatever the gate says. It does not retract OUTCOME A, the 22/33 result, or the team's renderer finding, all of which are verified and stand. It does not discard the evidence: the team's own artifacts are on the lab branch and this audit report lands on cycle/frontier/frontier-query-conditioned-map-geometry/38978981369/audit, referenced by blocked_by_run.",
+    "fairness_note": "The producer was honest, added real verified value, and broke no charter rule. BLOCKED here is an instrument choice, not a judgement of the work: the recommendation to the Director is to ADOPT relevance_ordered after RF1-RF4, not to discard it."
+  },
+  "control_plane_escalation": {
+    "pathology": "third dispatch of a charter that terminated at OUTCOME A on run 38970483941 and was accepted at be5eba7; not a producer repair loop - both real producer defects were found, fixed, and stayed fixed, and nothing regressed this cycle",
+    "dispatch_evidence": "run 38978981369 is event workflow_dispatch, name 'Frontier frontier-query-conditioned-map-geometry v1 repair0', actor github-actions[bot]; only factory-supervisor.yml dispatches frontier-team.yml in that shape",
+    "mechanism": "factory-supervisor.yml:275-281 reads the lab branch state file via 'gh api .../contents/...?ref=lab/frontier/$team | base64 -d || true'. The lab branch state has read charter_version 1, continue_recommended false, cycle_status COMPLETED since at least commit 63aee08c (verified across four refs), and the guard nonetheless failed to stop two consecutive fresh dispatches. The || true makes the guard fail OPEN on a transient API failure or secondary rate limit, which is why the previous audit's prose escalation did not take effect.",
+    "director_actions": [
+      "Decide adoption of relevance_ordered with amendments RF1-RF4 applied by the owning lanes; the auditor's recommendation is to adopt.",
+      "Route the renderer precondition to frontier-query-map-ui / Core Product, including the sibling % lookups at ui/canvas2d_renderer.js:531 and product/static/bundle_adapter.js:94 that the record does not name.",
+      "Close charter v1 in state/frontier_portfolio.json, or clear state/blockers/frontier/frontier-query-conditioned-map-geometry.json once the amendments land. Any further charter_version 1 dispatch of this team is illegitimate under its own stop_promote_rule.",
+      "Make the supervisor guard fail CLOSED - require a non-empty raw before dispatching, or key the dispatch decision off a locally fetched state file. This workflow change is the actual bug behind three cycles of duplicate work and is a director-level decision.",
+      "Leave the accepted frontier-map-semantics FAIL (run 38846038296, accept commit 15362f6) in place; the human product gate question of whether the map is useful to a jurist remains open."
+    ]
+  }
+}
