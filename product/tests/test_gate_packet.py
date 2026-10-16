@@ -266,6 +266,12 @@ def test_map_semantics_limits_are_disclosed_not_claimed(fixture_bundle):
     mega = copy.deepcopy(fixture_bundle)
     for cluster in mega["clusters"]:
         cluster["member_ids"] = [d["decision_id"] for d in mega["decisions"]]
+        # `size` is the definition the share is computed from (v54 R2): qmap.py
+        # truncates member_ids at 50, so a cluster whose whole population is in
+        # member_ids must also declare that population in `size`, otherwise the
+        # two published definitions disagree and this test would only be
+        # asserting one of them.
+        cluster["size"] = len(mega["decisions"])
     verdict = ga.verify_bundle(mega)
     codes = {f["code"]: f for f in verdict["findings"]}
     assert "map_is_one_mega_cluster" in codes

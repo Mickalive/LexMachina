@@ -86,10 +86,10 @@ def test_workflow_validation_rejects_non_integer_direction_version(tmp_path: Pat
 
 #: The direction version this cycle was dispatched with. Hard-pinned so the
 #: test asserts the real workflow assertion rather than whatever the control
-#: plane happens to say at test time.  Run 38792650692 was dispatched with
-#: direction v52 (the run that delivered the multi-query gate packet); the
-#: previous cycle's pin was 51, which is why the canonical state had to move.
-RUN_DIRECTION_VERSION = 52
+#: plane happens to say at test time.  Run 38839347028 was dispatched with
+#: direction v54 (the run that rebuilt the live gate packet and published the
+#: four per-bundle composition disclosures); the previous pin was 52.
+RUN_DIRECTION_VERSION = 54
 
 
 def test_canonical_state_in_this_worktree_is_current() -> None:

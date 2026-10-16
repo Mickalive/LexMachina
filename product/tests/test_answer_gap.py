@@ -409,7 +409,12 @@ def test_counter_rows_reached_through_the_adversarial_route_are_not_disclosed_as
     # a positive disclosure is not a defect and must not inflate warning_count
     assert verdict["warning_count"] == sum(1 for f in verdict["findings"]
                                            if f["severity"] == "warning")
-    assert verdict["notice_count"] == 1
+    # ...and notice_count is exactly the number of info findings, whatever else the
+    # verdict discloses alongside this one (the dominant-cluster composition and the
+    # source-host distribution are info notices too, v54 item 3(a)/(b)).
+    assert verdict["notice_count"] == sum(1 for f in verdict["findings"]
+                                          if f["severity"] == "info")
+    assert verdict["notice_count"] >= 1
 
 
 def test_low_ranked_product_owned_counter_rows_are_published():

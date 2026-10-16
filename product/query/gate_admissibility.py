@@ -58,6 +58,31 @@ Added here (each one is a claim this lane has already been audited for making):
     *discloses* the numbers per question instead of claiming anything about map
     quality. They are warnings, never blocking claims.
 
+``dominant_cluster_composition`` (warning / info)
+    the pre-registered ``language_coverage_expectation`` is about the bundle, but
+    the jurist reads the *dominant cluster* - the circle the map renders at the
+    centre.  A bundle can clear the bundle-level language check while its
+    dominant cluster is mostly other-language, mostly un-hydrated rows.  Without
+    a finding for that composition the packet can ship the same failure and still
+    verify ``admissible=true`` (factory direction v54, item 3(a)), so it is
+    measured and disclosed per question against the pre-registered expectation.
+
+``unverifiable_source_url_host`` (blocking) + host distribution (info)
+    ``source_url`` is the *court's own* host as OpenCaseLaw returns it, so a
+    spread of cantonal hosts is normal and disclosed, not a defect.  A bare IP
+    literal is different: nothing about that row can be verified by a human, and
+    the direction requires it to be flagged explicitly rather than averaged into
+    a host histogram (v54 item 3(b)).
+
+Measurement-definition discipline (v54 R2)
+    the largest-cluster share is computed from each cluster's ``size`` field, NOT
+    from ``len(member_ids)``: ``product/query/qmap.py`` truncates ``member_ids``
+    at :data:`CLUSTER_MEMBER_IDS_CAP`, so the two definitions diverge by up to
+    17.5 points on real bundles and the divergence silently suppressed the
+    mega-cluster disclosure.  Both numbers are now published side by side and the
+    truncation is recorded, so a reader never has to guess which definition an
+    artifact used.  :data:`MEGA_CLUSTER_SHARE` is unchanged.
+
 Severity contract: ``blocking`` findings mean the bundle must not be shown to
 the owner as gate material. ``warning`` findings are disclosed on the owner
 card so the jurist is never asked a question the artifact cannot support.
@@ -71,7 +96,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
+import urllib.parse
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -122,7 +149,32 @@ COUNTER_LOW_RANK = 20
 #: A share of the bundle at or above this in ONE cluster means the "cluster"
 #: carries no information for that query: it is the map rendering itself, not
 #: structure. Disclosed per question (advisory, never a claim about map quality).
+#: FROZEN. Never changed to make a disclosure fire (v54 R2).
 MEGA_CLUSTER_SHARE = 0.5
+
+#: ``product/query/qmap.py`` emits ``member_ids`` truncated to the first 50 rows
+#: (``member_ids: [...][:50]``) while ``size`` keeps the true cluster population.
+#: Any share computed from ``len(member_ids)`` therefore understates the cluster
+#: by exactly the truncation on every cluster larger than the cap (v54 R2). The
+#: cap is recorded in every verdict so the two definitions can be reconciled
+#: without re-deriving either.
+CLUSTER_MEMBER_IDS_CAP = 50
+
+#: The Federal Courts' own publication domain. Disclosed as a *share* of the
+#: hydrated rows whose ``source_url`` points there: the product never promised a
+#: federal-only corpus, so a low share is context for the jurist, not a defect.
+FEDERAL_COURT_HOST_SUFFIX = "bger.ch"
+
+#: A host that is an IPv4 literal, or an IPv6 literal (two or more colons and only
+#: hex/colon/dot characters). Nothing about such a row can be opened, checked or
+#: re-verified by the researcher who follows the source link, so it is a blocking
+#: provenance finding instead of one more bar in a histogram.
+_IPV4_LITERAL = re.compile(r"^(\d{1,3}\.){3}\d{1,3}$")
+_IPV6_LITERAL = re.compile(r"^(?=.*:.*:)[0-9a-f:.]+$", re.I)
+
+
+def _is_ip_literal(host: str) -> bool:
+    return bool(_IPV4_LITERAL.match(host) or _IPV6_LITERAL.match(host))
 
 #: Statuses that mean "this row is not a counter-authority finding". Kept in step
 #: with ``isCounter()`` in product/static/query.html, so the packet's disclosed
@@ -172,6 +224,118 @@ def _finding(code: str, severity: str, detail: str, **extra: Any) -> dict:
     row = {"code": code, "severity": severity, "detail": detail}
     row.update(extra)
     return row
+
+
+# --------------------------------------------------------------------------- #
+# measurement helpers (publication-ready, reused by the packet and by tests)
+# --------------------------------------------------------------------------- #
+
+def cluster_shares(bundle: dict) -> list[dict]:
+    """Per-cluster size, in BOTH published definitions, plus the truncation flag.
+
+    ``size`` is the definition the finding thresholds use (v54 R2); ``member_ids``
+    is what a reader counting ids by hand would get. Publishing both makes the
+    divergence explicit instead of letting one of them be silently chosen.
+    """
+    decisions = [d for d in (bundle.get("decisions") or []) if isinstance(d, dict)]
+    n = len(decisions)
+    out: list[dict] = []
+    for c in sorted((x for x in (bundle.get("clusters") or []) if isinstance(x, dict)),
+                    key=lambda x: x.get("cluster_id") or 0):
+        members = [str(m) for m in (c.get("member_ids") or [])]
+        try:
+            size = int(c.get("size"))
+        except (TypeError, ValueError):
+            size = len(members)
+        out.append({
+            "cluster_id": c.get("cluster_id"),
+            "label": str(c.get("label") or "")[:120],
+            "size": size,
+            "size_share": round(size / n, 4) if n else 0.0,
+            "member_ids_count": len(members),
+            "member_ids_share": round(len(members) / n, 4) if n else 0.0,
+            "member_ids_truncated": len(members) < size,
+            "member_ids_omitted": max(0, size - len(members)),
+        })
+    return sorted(out, key=lambda r: (-int(r["size"]), r["cluster_id"]))
+
+
+def dominant_cluster_composition(bundle: dict, question_language: str | None = None) -> dict:
+    """Language and hydration composition of the cluster the map renders at centre.
+
+    Computed from the *decisions* (``cluster_id``), not from ``member_ids``, so the
+    truncation at :data:`CLUSTER_MEMBER_IDS_CAP` cannot hide rows from the
+    measurement. ``unhydrated`` is the pre-registered definition
+    ``detail_status != "search_hit"`` (v54 item 3(a)).
+    """
+    decisions = [d for d in (bundle.get("decisions") or []) if isinstance(d, dict)]
+    clusters = cluster_shares(bundle)
+    if not clusters or not decisions:
+        return {}
+    top = clusters[0]
+    cid = top["cluster_id"]
+    members = [d for d in decisions if d.get("cluster_id") == cid]
+    langs = Counter(str(d.get("language") or "") for d in members)
+    # Rows whose language the upstream payload did not state are counted, never
+    # dropped: a composition that quietly omits 42 of 99 rows is not a composition.
+    unlabelled = langs.get("", 0)
+    statuses = Counter(str(d.get("detail_status") or "unrecorded") for d in members)
+    unhydrated = [d for d in members if str(d.get("detail_status") or "") != "search_hit"]
+    want = (question_language or "").lower() or None
+    share = (langs.get(want, 0) / len(members)) if (want and members) else 0.0
+    return {
+        "cluster_id": cid,
+        "label": top["label"],
+        "size": top["size"],
+        "bundle_size_share": top["size_share"],
+        "members": len(members),
+        "languages": dict(sorted((k, v) for k, v in langs.items() if k)),
+        "rows_without_language": unlabelled,
+        "question_language": want,
+        "question_language_rows": langs.get(want, 0) if want else None,
+        "question_language_share": round(share, 4) if want else None,
+        "detail_status": dict(sorted(statuses.items())),
+        "unhydrated_rows": len(unhydrated),
+        "unhydrated_share": round(len(unhydrated) / len(members), 4) if members else 0.0,
+    }
+
+
+def source_url_host_distribution(bundle: dict) -> dict:
+    """Where the source links the jurist will actually follow point.
+
+    ``source_url`` is the *court's own* host as OpenCaseLaw records it, so a wide
+    spread across cantonal and municipal hosts is the expected shape and is
+    published rather than flagged. What is flagged is a row a human cannot
+    verify at all: a bare IP literal (v54 item 3(b)).
+    """
+    decisions = [d for d in (bundle.get("decisions") or []) if isinstance(d, dict)]
+    hosts: Counter = Counter()
+    schemes: Counter = Counter()
+    ip_rows: list[dict] = []
+    linked = 0
+    for d in decisions:
+        raw = str(d.get("source_url") or "")
+        if not raw:
+            continue
+        linked += 1
+        parsed = urllib.parse.urlparse(raw)
+        host = parsed.hostname or parsed.netloc or ""
+        hosts[host] += 1
+        schemes[parsed.scheme or "none"] += 1
+        if _is_ip_literal(host):
+            ip_rows.append({"decision_id": d.get("decision_id"), "source_url": raw})
+    federal = sum(c for h, c in hosts.items() if h.endswith(FEDERAL_COURT_HOST_SUFFIX))
+    return {
+        "rows_with_source_url": linked,
+        "rows_without_source_url": len(decisions) - linked,
+        "hosts": dict(sorted(hosts.items())),
+        "n_hosts": len(hosts),
+        "schemes": dict(sorted(schemes.items())),
+        "federal_court_host": FEDERAL_COURT_HOST_SUFFIX,
+        "federal_court_hosted_rows": federal,
+        "federal_court_hosted_share_of_linked": round(federal / linked, 4) if linked else 0.0,
+        "ip_literal_rows": ip_rows,
+    }
 
 
 def verify_bundle(
@@ -397,17 +561,26 @@ def verify_bundle(
         ))
 
     # --- map-semantics disclosures (warnings, never claims) ---------------
+    # R2: the share comes from cluster["size"], NOT len(member_ids). qmap.py
+    # truncates member_ids at CLUSTER_MEMBER_IDS_CAP, so the old definition
+    # understated every large cluster and suppressed this disclosure entirely on
+    # a bundle whose true share was 55.7% (shipped as warning_count=0).
     clusters = [c for c in (bundle.get("clusters") or []) if isinstance(c, dict)]
-    sizes = [len(c.get("member_ids") or []) for c in clusters]
-    mega = max(sizes) if sizes else 0
-    mega_share = (mega / n) if n else 0.0
+    shares = cluster_shares(bundle)
+    largest = shares[0] if shares else None
+    mega = int(largest["size"]) if largest else 0
+    mega_share = float(largest["size_share"]) if largest else 0.0
     if n and mega_share >= MEGA_CLUSTER_SHARE:
         findings.append(_finding(
             "map_is_one_mega_cluster", "warning",
-            f"the largest cluster holds {mega}/{n} decisions ({mega_share:.0%}); disclose this to the "
-            "jurist before they judge the map's structure (frontier-map-semantics owns the accepted "
-            "measurement of map semantics)",
+            f"the largest cluster holds {mega}/{n} decisions ({mega_share:.0%}, measured from the "
+            f"cluster's own 'size' field; its member_ids list is capped at {CLUSTER_MEMBER_IDS_CAP} "
+            f"and covers {largest['member_ids_count']}); disclose this to the jurist before they "
+            "judge the map's structure (frontier-map-semantics owns the accepted measurement of "
+            "map semantics)",
             n_decisions=n, mega_cluster=mega, share=round(mega_share, 4),
+            mega_cluster_share_from_member_ids=round(float(largest["member_ids_share"]), 4),
+            member_ids_truncated=bool(largest["member_ids_truncated"]),
         ))
     n_relations = len(bundle.get("relations") or [])
     if n_relations == 0:
@@ -416,6 +589,73 @@ def verify_bundle(
             "no relation edge is on the map: 'reveal relations on selection' has nothing to reveal "
             "for this query",
         ))
+
+    # --- composition of the dominant cluster (v54 item 3(a)) --------------
+    # The bundle-level language check below can pass while the cluster the map
+    # renders at the centre is mostly another language and mostly un-hydrated
+    # rows, which is exactly the composition failure the pre-registered
+    # language_coverage_expectation is about. Same frozen 0.25 constant: no new
+    # threshold is introduced.
+    composition = dominant_cluster_composition(bundle, question.get("language") if question else None)
+    if composition:
+        share = composition.get("question_language_share")
+        expectation = str((question or {}).get("language_coverage_expectation") or "").strip()
+        detail = (
+            f"the dominant cluster holds {composition['size']}/{n} decisions "
+            f"({composition['bundle_size_share']:.0%} of the map"
+            + (f", languages {composition['languages']}" if composition.get("languages") else "")
+            + (f"; {composition['rows_without_language']} of its {composition['members']} rows "
+               "carry no language in the upstream payload"
+               if composition.get("rows_without_language") else "")
+            + (f"); {composition['unhydrated_rows']} of its {composition['members']} rows are "
+               f"un-hydrated (detail_status != search_hit, {composition['unhydrated_share']:.0%})."
+               if composition.get("members") else "")
+        )
+        if share is not None and share < MIN_QUESTION_LANGUAGE_SHARE:
+            findings.append(_finding(
+                "dominant_cluster_language_composition", "warning",
+                f"{composition['question_language_rows']}/{composition['members']} of the "
+                f"dominant cluster's rows are in the question's language ({share:.0%}, against the "
+                f"same {MIN_QUESTION_LANGUAGE_SHARE:.0%} floor the bundle-level check uses); "
+                + detail
+                + (f" Pre-registered expectation: {expectation}" if expectation else ""),
+                cluster_id=composition["cluster_id"], share=share, **{
+                    k: composition[k] for k in ("languages", "rows_without_language",
+                                                "unhydrated_rows", "unhydrated_share")
+                },
+            ))
+        elif share is not None:
+            findings.append(_finding(
+                "dominant_cluster_composition", "info",
+                f"{composition['question_language_rows']}/{composition['members']} of the dominant "
+                f"cluster's rows are in the question's language ({share:.0%}); " + detail,
+                cluster_id=composition["cluster_id"], share=share, **{
+                    k: composition[k] for k in ("languages", "rows_without_language",
+                                                "unhydrated_rows", "unhydrated_share")
+                },
+            ))
+
+    # --- where the source links point (v54 item 3(b)) --------------------
+    source_hosts = source_url_host_distribution(bundle)
+    if source_hosts["ip_literal_rows"]:
+        findings.append(_finding(
+            "unverifiable_source_url_host", "blocking",
+            f"{len(source_hosts['ip_literal_rows'])} row(s) carry a source_url whose host is a bare "
+            "IP literal: the researcher cannot open, check or re-verify that link, so it is a "
+            "provenance defect rather than a host-distribution fact",
+            count=len(source_hosts["ip_literal_rows"]),
+            rows=[r["decision_id"] for r in source_hosts["ip_literal_rows"]][:5],
+        ))
+    findings.append(_finding(
+        "source_url_host_distribution", "info",
+        f"{source_hosts['rows_with_source_url']} of {n} rows carry a source_url across "
+        f"{source_hosts['n_hosts']} court/aggregator hosts; "
+        f"{source_hosts['federal_court_hosted_rows']} of them "
+        f"({source_hosts['federal_court_hosted_share_of_linked']:.0%}) are hosted by the federal "
+        f"courts themselves, the rest on cantonal/municipal or aggregator sites "
+        f"({source_hosts['rows_without_source_url']} rows have no source_url at all)",
+        hosts=source_hosts["hosts"], schemes=source_hosts["schemes"],
+    ))
 
     # --- language of the question itself ----------------------------------
     lang_counts = Counter(str(d.get("language") or "") for d in decisions)
@@ -459,6 +699,21 @@ def verify_bundle(
         "n_outliers": sum(1 for d in decisions if d.get("is_outlier") is True),
         "languages": dict(sorted((k, v) for k, v in lang_counts.items() if k)),
         "largest_cluster_share": round(mega_share, 4),
+        "largest_cluster_share_definition": "cluster['size'] / n_decisions",
+        "largest_cluster_member_ids_share": (
+            round(float(largest["member_ids_share"]), 4) if largest else 0.0),
+        "largest_cluster_member_ids_truncated": bool(largest["member_ids_truncated"]) if largest else False,
+        "cluster_member_ids_cap": CLUSTER_MEMBER_IDS_CAP,
+        "cluster_shares": shares[:8],
+        "dominant_cluster": composition,
+        "source_url_hosts": source_hosts["hosts"],
+        "source_url_n_hosts": source_hosts["n_hosts"],
+        "source_url_schemes": source_hosts["schemes"],
+        "source_url_rows_without_url": source_hosts["rows_without_source_url"],
+        "source_url_federal_court_hosted_rows": source_hosts["federal_court_hosted_rows"],
+        "source_url_federal_court_hosted_share_of_linked": source_hosts[
+            "federal_court_hosted_share_of_linked"],
+        "source_url_ip_literal_rows": len(source_hosts["ip_literal_rows"]),
         "source_url_null_rows": len(null_rows),
         "source_url_null_rows_explained_by_unhydrated_shells": len(null_rows) - len(unjustified),
         "canonical_url_populated": (coverage_field_coverage or {}).get("canonical_url", {}).get("populated"),

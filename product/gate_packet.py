@@ -696,6 +696,39 @@ def seed_runs(recheck: dict) -> dict[str, str]:
     return seeded
 
 
+def _budget_sensitivity_line(packet_dir: Path | None, qid: str | None) -> str | None:
+    """What the counter count on this card does and does not mean (v54 item 3(c)).
+
+    The card prints "N ringed counter rows", and the honest reading of N is "what
+    this run surfaced". The product's own budget comparison - same plan, same
+    exclusions, same cache, only ``max_requests`` different - says how much of
+    that set is a property of the budget, so the jurist is never invited to treat
+    N as a measure of how much contrary authority exists.
+    """
+    if not packet_dir or not qid:
+        return None
+    path = Path(packet_dir) / "questions" / f"{qid}.budget_sensitivity.json"
+    if not path.is_file():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if data.get("skipped"):
+        return (f"      counter count: not measured — {data.get('skip_reason')}; the count above "
+                f"is this run's own output, not a coverage measure")
+    cs = data.get("counter_set") or {}
+    full_budget = (data.get("full") or {}).get("budget")
+    reduced_budget = (data.get("reduced") or {}).get("budget")
+    return (
+        f"      counter count: {cs.get('full_n')} of the surfaced counter rows survive a "
+        f"{full_budget}-request budget down to {reduced_budget} requests "
+        f"({cs.get('overlap_n')} shared of {cs.get('union_n')} in the union, Jaccard "
+        f"{cs.get('jaccard')}); the surfaced SET is budget-dependent, so read the count as "
+        f"'what this run surfaced', never as how much contrary authority exists"
+    )
+
+
 def owner_card(recheck: dict, *, base_url: str, top_n: int, run_ids: dict[str, str] | None = None) -> str:
     """The one page the owner needs: three questions, their deep links, their disclosures."""
     mode = recheck.get("mode")
@@ -762,6 +795,9 @@ def owner_card(recheck: dict, *, base_url: str, top_n: int, run_ids: dict[str, s
         if disclosures:
             lines.append("      disclose before judging the map:")
             lines += disclosures
+        budget_line = _budget_sensitivity_line(recheck.get("packet_dir"), q.get("qid"))
+        if budget_line:
+            lines.append(budget_line)
         if not ok:
             for f in (verdict.get("findings") or []):
                 if f.get("severity") == "blocking":
