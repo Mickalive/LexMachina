@@ -185,3 +185,35 @@ def test_served_bundle_bytes_match_accepted_inputs():
     for qid in QIDS:
         h = hashlib.sha256((SERVED_PACKET_DIR / f"{qid}.bundle.json").read_bytes()).hexdigest()
         assert h == EXPECTED_BUNDLE_SHA256[qid], qid
+
+
+def test_bar_gates_score_arbitrary_packet_without_regression_verdict(tmp_path):
+    """Generalization (run 38968781838): both gates score a non-served packet.
+
+    A single-fixture packet is outside the served-packet lineage, so each
+    gate must report its measurement with regression_verdict NOT_APPLICABLE
+    and gate_blocks_build False. This proves the gates are CI-executable on
+    ANY future Frontier/product packet (the v50 "nobody owns the BAR" gap)
+    without inventing a threshold, without a new absolute bar, and without
+    re-measuring any candidate. Needs no mount: fixture bytes are committed.
+    """
+    rules_l = label_gate.load_frozen_rules()
+    neg = tmp_path / "fr-bail-entretien.bundle.json"
+    neg.write_bytes((BAR_DIR / "fixtures" / "label_negative_bundle.json").read_bytes())
+    res_l = label_gate.score_packet({"fr-bail-entretien": str(neg)}, rules_l)
+    assert res_l["lineage_matches_incumbent_population"] is False
+    assert res_l["n_scored"] == 3
+    assert res_l["n_supported"] == 0
+    assert res_l["absolute_status"] == "LABEL_UNSOUND"
+    assert res_l["absolute_enforced_as_build_blocker"] is False
+    assert res_l["regression_verdict"] == "NOT_APPLICABLE"
+    assert res_l["gate_blocks_build"] is False
+
+    rules_g = geometry_gate.load_frozen_geometry_rules()
+    bundle = json.loads((BAR_DIR / "fixtures" / "geometry_negative_bundle.json").read_text())
+    res_g = geometry_gate.score_packet({"fr-bail-entretien": bundle}, rules_g)
+    assert res_g["lineage_matches_incumbent"] is False
+    assert res_g["absolute_status"] == "GEOMETRY_UNSOUND"
+    assert res_g["absolute_enforced_as_build_blocker"] is False
+    assert res_g["regression_verdict"] == "NOT_APPLICABLE"
+    assert res_g["gate_blocks_build"] is False
