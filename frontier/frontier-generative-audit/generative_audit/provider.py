@@ -248,8 +248,6 @@ def _ordered_answer_models() -> List[str]:
 def _output_quality_error(answer: str, query: str) -> Optional[str]:
     """Cheap fail-closed checks for visibly corrupted/wrong-language output."""
     answer = str(answer or "").strip()
-    if len(answer) < 120:
-        return "answer too short"
 
     query_has_cjk = bool(re.search(r"[\u3400-\u9fff]", query or ""))
     if not query_has_cjk and re.search(r"[\u3400-\u9fff]", answer):
