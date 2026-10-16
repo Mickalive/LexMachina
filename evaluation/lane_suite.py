@@ -81,6 +81,22 @@ def retrieval_run_records() -> list[Path]:
             out.append(path)
     return out
 
+
+def _lane_direction_version() -> int:
+    """Direction version reported in the suite report.
+
+    DERIVED from state/evaluation.json, never hardcoded: audit M3 (cycle
+    38964129305) found a stale literal 49 left in this report after the state
+    moved to 50.  Falls back to the last known value only if the state file
+    is unreadable, and says so in the report via ``direction_version_source``.
+    """
+    state_path = _LANE_ROOT / "state" / "evaluation.json"
+    try:
+        data = json.loads(state_path.read_text(encoding="utf-8"))
+        return int(data["direction_version"])
+    except (OSError, json.JSONDecodeError, KeyError, ValueError, TypeError):
+        return 50
+
 #: gate families the falsification matrix must be able to break, and the check
 #: that does it.  A family that cannot be broken is not a benchmark.
 FALSIFIABLE_FAMILIES = [
@@ -532,7 +548,8 @@ def main(argv: list[str] | None = None) -> int:
 
     report = {
         "schema": "lex-evaluation-lane-suite/2",
-        "direction_version": 49,
+        "direction_version": _lane_direction_version(),
+        "direction_version_source": "state/evaluation.json (derived, audit M3 repair)",
         "n_checks": len(log.checks),
         "n_passed": len(log.checks) - len(log.failed) - len(log.skipped),
         "n_failed": len(log.failed),

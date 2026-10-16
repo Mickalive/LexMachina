@@ -30,6 +30,28 @@ def test_rules_label_digest_is_frozen():
     assert rules.sha256 == "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608"
 
 
+def test_vendored_files_match_pinned_digests():
+    """M1 repair (audit 38964129305): vendored rubric/reference bytes are pinned.
+
+    Before this test a weakened vendored edit that INFLATED label support
+    would still pass the one-sided regression gate: the label path imports
+    the vendored rubric directly and nothing re-checked its bytes.  Every
+    vendored file must match VENDORED_SHA256.json at test time, so a lenient
+    edit becomes a visible red instead of an invisible green.
+    """
+    import hashlib
+    vendored_sha = json.loads(
+        (BAR_DIR / "vendored" / "VENDORED_SHA256.json").read_text(encoding="utf-8"))
+    assert vendored_sha["files"], "VENDORED_SHA256.json pins no files"
+    mismatches = []
+    for rel, expected in vendored_sha["files"].items():
+        actual = hashlib.sha256(Path(rel).read_bytes()).hexdigest()
+        if actual != expected:
+            mismatches.append({"path": rel, "expected_sha256": expected,
+                               "actual_sha256": actual})
+    assert not mismatches, f"vendored digest mismatch: {mismatches}"
+
+
 def test_rules_geometry_digest_is_frozen():
     rules = geometry_gate.load_frozen_geometry_rules()
     assert geometry_gate.EXPECTED_RULES_SHA256 == "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633"

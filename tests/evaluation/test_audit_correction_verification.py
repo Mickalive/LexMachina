@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lane-state consistency verification (current direction v49).
+"""Lane-state consistency verification (current direction v50).
 
 HISTORY: this file originally verified the v35-era lane state (TF-IDF 174k
 freeze, dense criteria blockers).  That question is COMPLETE; its state was
@@ -11,6 +11,10 @@ lane state and are not re-asserted here.
 It now verifies the mandatory accepted-state fields required by
 docs/RESEARCH_PROTOCOL.md against the CURRENT state/evaluation.json, and that
 the active reality-benchmark assets exist and are non-empty.
+
+REPAIR 38966576940 (audit R1): the direction pin was bumped 49 -> 50 to match
+the v50 lane state; the prior pin made the full active pytest set red
+(1 failed / 119 passed / 1 skipped) and falsely contradicted the state file.
 """
 import json
 from pathlib import Path
@@ -28,7 +32,7 @@ def test_state_file_has_mandatory_fields():
                    "next_recommendation"):
         assert field in state, f"missing mandatory field {field}"
     assert state["lane"] == "evaluation"
-    assert state["direction_version"] == 49
+    assert state["direction_version"] == 50
 
 
 def test_evidence_refs_exist():

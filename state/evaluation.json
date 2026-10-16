@@ -2,12 +2,13 @@
  "lane": "evaluation",
  "direction_version": 50,
  "evidence_tier": "REPRODUCED",
- "cycle_status": "V50_FROZEN_BAR_GATES_DELIVERED_38964129305",
- "continue_recommended": false,
- "accepted_run_id": "38928722878",
- "proposed_run_id": "38964129305",
- "repair_round": 0,
- "repair_audit_ref": "results/audit/evaluation/CYCLE_38920872324_GATE.json (independent audit checkout, gate=REVISE)",
+  "cycle_status": "V50_FROZEN_BAR_GATES_REPAIR_R1_LANDED_38966576940",
+  "continue_recommended": false,
+  "accepted_run_id": "38951152192",
+  "accepted_run_id_correction_note": "was 38928722878 (stale since accept commit bfdd4444 'accept evaluation cycle 38951152192'); corrected to the factually last-accepted run recorded in git history. Acceptance itself moves only via an audit gate; this corrects the pointer, not the acceptance.",
+  "proposed_run_id": "38966576940",
+  "repair_round": 1,
+  "repair_audit_ref": "results/audit/evaluation/CYCLE_38964129305_GATE.json (independent audit checkout, gate=REVISE, required fix R1 + minor observations M1-M4)",
  "repair_fixes_applied": {
   "R1": "recall-gate semantics restated as '>=1 of frozen authority set per gate' in report+state, with partial-set pass rates disclosed; benchmark NOT re-freeze (digest unchanged); semantics pinned by test_recall_gate_semantics_is_exactly_at_least_one_of_frozen_set",
   "R2": "unmatched/excluded artifacts now carry explicit not_measurable_gates + per-gate reasons; question-INDEPENDENT bundle checks run on every recorded full bundle regardless of match; record reports bundle_structural_gate_executions and evaluation_scope taxonomy",
@@ -15,8 +16,13 @@
   "R4": "detail='' on every passing gate (slim structural, bundle structural, recall gates); record regenerated with blank details on all passing gates",
   "R5": "weak truth gates (art257d2_30day_notice ['30'], bjr_information ['information']) disclosed as necessary-not-sufficient lexical proxies with recorded match rates; negative tests added for all 8 slim-report structural gates; 'every gate can fail' claim reworded to cover only gates that can fail, geometry/progressive limits named",
   "R6a": "run_benchmark exits 2 with explicit environment error on absent/empty evidence input; no verdict record emitted from empty input",
-  "R6b": "producer-authored self-audit files dropped from this branch; the independent audit checkout remains the only audit of record"
- },
+    "R6b": "producer-authored self-audit files dropped from this branch; the independent audit checkout remains the only audit of record",
+    "R1_38966576940": "audit-required repair of cycle 38964129305: tests/evaluation/test_audit_correction_verification.py direction pin 49 -> 50 (state had moved to v50; the stale pin made the full active pytest set red at 1 failed / 119 passed / 1 skipped and falsified the '119 tests still pass' claim). Docstring updated to v50 with repair history.",
+    "M1_38966576940": "vendored-digest runtime enforcement added: tests/evaluation/test_frozen_bar_gates.py::test_vendored_files_match_pinned_digests re-hashes all 14 vendored rubric/reference files against VENDORED_SHA256.json at test time, so a lenient vendored edit that inflates label support becomes a visible red instead of an invisible green on the one-sided regression gate.",
+    "M2_38966576940": "adopted_frontier_verdicts_v56.geometry_semantics_rules_sha256 truncated 60-char value replaced with the full 64-char frozen digest a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633 (matches RULES_GEOMETRY.json re-hash and frontier_verdict_adoption.json).",
+    "M3_38966576940": "evaluation/lane_suite.py report direction_version now DERIVED from state/evaluation.json via _lane_direction_version() (was a hardcoded literal 49 that went stale when the state moved to 50); report carries direction_version_source for transparency.",
+    "R1_report_correction": "reports/evaluation/BAR_GATES_38964129305.md '119 tests still pass' sentence corrected by a visible erratum (original claim preserved): full lane-suite internal pytest set is 121 collected = 120 passed + 1 by-design mount skip without the mount, 0 failed after the pin repair (121/121 passed with the mount); test_frozen_bar_gates.py adds 13 (13 passed with mount; 8 passed + 5 mount skips without). The same false claim in state v50_frozen_bar_gates.tests was corrected."
+  },
  "evidence_refs": [
   "evaluation/reality_gate/frozen_benchmark.json",
   "evaluation/reality_gate/frozen.py",
@@ -57,9 +63,15 @@
   "evaluation/frozen_bars/fixtures/label_mixed_bundle.json",
   "evaluation/frozen_bars/fixtures/geometry_negative_bundle.json",
   "tests/evaluation/test_frozen_bar_gates.py",
-  "results/evaluation/bar_gates/38964129305.json",
-  "reports/evaluation/BAR_GATES_38964129305.md"
- ],
+    "results/evaluation/bar_gates/38964129305.json",
+    "reports/evaluation/BAR_GATES_38964129305.md",
+    "results/evaluation/lane_suite/38966576940.json",
+    "results/evaluation/bar_gates/38966576940.json",
+    "reports/evaluation/BAR_GATES_38966576940.md",
+    "tests/evaluation/test_audit_correction_verification.py",
+    "tests/evaluation/test_frozen_bar_gates.py",
+    "evaluation/lane_suite.py"
+  ],
  "human_gate_ready": false,
  "mission": "Independently falsify the query-specific LEX product. Do not reopen the 174k/global-geometry research unless a concrete product failure requires it.",
  "v49_frozen_reality_benchmark": {
@@ -147,7 +159,7 @@
   "method": "ADOPTED_WITHOUT_REMEASURE",
   "artifact": "evaluation/frontier_verdict_adoption.json",
   "counter_label_soundness_rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
-  "geometry_semantics_rules_sha256": "a7452748d40c511a1c7848ece5fe7f8f8901cc30f45a6691c89eb593a633",
+  "geometry_semantics_rules_sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
   "note": "Historical v56 adoption remains valid lane knowledge; the accepted-state index paths it cites live on main, not on this branch, and are therefore not repeated in evidence_refs."
  },
  "active_metrics": [
@@ -181,7 +193,7 @@
   "automated": "python -m evaluation.reality_gate.run_benchmark --evidence-dir <product reality_check dir> ... ; must be GREEN on a product's own live packet before the human gate can be considered. Exit 2 = environment/empty-input error (no record emitted).",
   "human": "Map usefulness remains a jurist product gate: branch/exception discovery, structural comprehension, confidence about contrary authority, preference over answer+ranked list."
  },
- "next_recommendation": "CONSUME_NOT_REBUILD: Product and frontier-counter-anchor-classifier / frontier-query-conditioned-map-geometry consume these gates as machine packet-admission inputs. No further same-question evaluation cycle.",
+  "next_recommendation": "CONSUME_NOT_REBUILD: Product and frontier-counter-anchor-classifier / frontier-query-conditioned-map-geometry consume these gates as machine packet-admission inputs. Repair 38966576940 landed the audit-required R1 pin fix plus M1-M3 hardening with the full active pytest set green (121/121 with mount) and both frozen-bar incumbents recomputed exactly; no further same-question evaluation cycle has a discriminating purpose.",
  "prior_proposal_unpromoted": {
   "run_id": "38939239917",
   "note": "The 38939239917 producer commit (660ad896) was never audited and never promoted: no results/audit/evaluation/CYCLE_38939239917_GATE.json exists, no 'accept evaluation cycle 38939239917' commit exists, and origin/lab/evaluation is still 1e12bfc2 (accept cycle 38934722443). This is the cause of run 38945774110's zero-delta exit: it started from a tree already containing all of 38939239917's work and had nothing to add. The zero-delta exit is a symptom, not a lane defect.",
@@ -463,8 +475,18 @@
    "permutation_battery": "0-1_flips_not_proven_disclosed_with_accepted_RF4_movability_note"
   },
   "gate_semantics": "FAIL CI only on regression below recomputed incumbent; absolute bars REPORTED never enforced (avoids never-green loop)",
-  "tests": "13/13 pass (tests/evaluation/test_frozen_bar_gates.py); 119 pre-existing gate tests still pass; frozen reality/retrieval benchmarks byte-unchanged",
-  "elapsed_s": 5.842,
-  "claim_ceiling": "Gates fail builds on label/geometry REGRESSION and report absolute-bar status. They do not prove map usefulness to a jurist; human_gate_ready stays false."
- }
+   "tests": "13/13 pass (tests/evaluation/test_frozen_bar_gates.py); frozen reality/retrieval benchmarks byte-unchanged; full active pytest set after repair 38966576940: 134 collected = 133 passed + 1 by-design mount skip, 0 failed (lane-suite internal set 121 = 120 passed + 1 mount skip after the R1 direction-pin fix; test_frozen_bar_gates.py 13 = 8 passed + 5 mount skips without the mount, 13 passed with it). The pre-repair claim '119 tests still pass' was FALSE (1 failed / 119 passed / 1 skipped; see reports/evaluation/BAR_GATES_38964129305.md erratum).",
+   "elapsed_s": 5.842,
+   "claim_ceiling": "Gates fail builds on label/geometry REGRESSION and report absolute-bar status. They do not prove map usefulness to a jurist; human_gate_ready stays false.",
+   "repair_verification_38966576940": {
+    "trigger": "independent audit results/audit/evaluation/CYCLE_38964129305_GATE.json gate=REVISE (required fix R1: stale direction pin 49 in test_audit_correction_verification.py against v50 state; '119 tests still pass' claim false for the full active set)",
+    "r1_pin_fix_verified": "tests/evaluation/test_audit_correction_verification.py 4/4 PASS after pin bump to 50",
+    "full_active_pytest_set_after_repair": "lane-suite internal set 121 collected / 121 passed / 0 failed WITH the mount (/tmp/lex_accepted present); without the mount the same set is 120 passed + 1 by-design mount skip, 0 failed — both green, the audit's 120+1 figure confirmed",
+    "test_frozen_bar_gates_after_repair": "14/14 PASS with mount (13 prior + 1 new M1 vendored-digest test); 9 passed + 5 mount skips without the mount",
+    "bar_gates_entry_rerun": "results/evaluation/bar_gates/38966576940.json — verdict PASS_NO_REGRESSION exit 0; labels 65 scored / 5 supported / classes 38-22-5-0 EXACT; geometry de 6 fr 5 it 5 with 33/33 oracle cells EXACT; absolute LABEL_UNSOUND + GEOMETRY_UNSOUND reported, not enforced; elapsed 9.668s stdlib-only",
+    "lane_suite_rerun": "results/evaluation/lane_suite/38966576940.json — PASS 42/42 checks, direction_version now derived from state (50), internal pytest 121/121 PASS",
+    "frozen_digests_reverified": "RULES_LABEL 4457e971..., RULES_GEOMETRY a7452748... (64-char), reality ff57f556..., retrieval 187b0e54..., contract 06781743... — all byte-unchanged; vendored 14/14 match VENDORED_SHA256.json",
+    "not_weakened": "no frozen spec, rubric, threshold, bar, gate success rule, recorded verdict or success rule was touched; the repair corrects a test pin, a report sentence, a truncated state hash and a stale report literal, and adds one provenance test"
+   }
+  }
 }
