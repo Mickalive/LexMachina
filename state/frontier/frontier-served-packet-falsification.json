@@ -2,10 +2,10 @@
   "team_id": "frontier-served-packet-falsification",
   "charter_version": 1,
   "status": "PROMOTED",
-  "run_id": "38877700234",
+  "run_id": "38880639079",
   "charter_status": "TERMINATED",
   "continue_recommended": false,
-  "continue_recommended_reason": "HARD STOP under the charter's stop_promote_rule: exactly ONE verdict cycle. Both halves are complete on all three served bundles with freeze byte-identity proven, non-vacuity resolved (5 real rows reach SUPPORTED), byte-identical reproduction demonstrated, and zero out-of-scope writes. A second cycle under this charter is FORBIDDEN. If the packet is rebuilt or a further product repair lands and needs re-scoring, that is a NEW charter raised by the director against the NEW packet — not a continuation of this one.",
+  "continue_recommended_reason": "HARD STOP under the charter's stop_promote_rule: exactly ONE verdict cycle. Both halves are complete on all three served bundles with freeze byte-identity proven, non-vacuity resolved (5 real rows reach SUPPORTED), byte-identical reproduction demonstrated, and zero out-of-scope writes. A second cycle under this charter is FORBIDDEN. If the packet is rebuilt or a further product repair lands and needs re-scoring, that is a NEW charter raised by the director against the NEW packet \u2014 not a continuation of this one.",
   "verdict": {
     "label_half": {
       "verdict": "LABEL_UNSOUND",
@@ -49,7 +49,9 @@
     "integration_contract": "results/frontier/frontier-served-packet-falsification/INTEGRATION_CONTRACT.json",
     "report": "reports/frontier/frontier-served-packet-falsification/REPORT.md",
     "harness": "frontier/frontier-served-packet-falsification/frontier_served_packet_falsification/",
-    "tests": "tests/frontier/frontier-served-packet-falsification/"
+    "tests": "tests/frontier/frontier-served-packet-falsification/",
+    "resume_verification": "results/frontier/frontier-served-packet-falsification/RESUME_VERIFICATION_38880639079.json",
+    "resume_report_md": "reports/frontier/frontier-served-packet-falsification/RESUME_38880639079.md"
   },
   "acceptance_tests": {
     "freeze_byte_identity": true,
@@ -64,5 +66,31 @@
     "audit_artifact_placement_documented": true
   },
   "promotion_outcome": "A",
-  "promotion_outcome_note": "Outcome A under the charter's three-way promotion rule: the served packet HOLDS OR REGRESSES on label support and/or geometry — the promoted verdict is that this packet is NOT FIT TO SERVE UNCHANGED, which product must act on before any owner session. The label half additionally shows a genuine partial improvement (outcome B's axis) that must not be explained away; both facts are reported together."
+  "promotion_outcome_note": "Outcome A under the charter's three-way promotion rule: the served packet HOLDS OR REGRESSES on label support and/or geometry \u2014 the promoted verdict is that this packet is NOT FIT TO SERVE UNCHANGED, which product must act on before any owner session. The label half additionally shows a genuine partial improvement (outcome B's axis) that must not be explained away; both facts are reported together.",
+  "cycle_status": "COMPLETE_NEGATIVE_RESULT",
+  "evidence_tier": "MEASURED",
+  "resumed_from_run_id": "38877700234",
+  "resumed_snapshot_commit": "b83513dbc7e6646a9f403f3df779108069aacd95",
+  "accepted_run_id": null,
+  "accepted_commit": null,
+  "operational_resume": {
+    "charter_version_retained": 1,
+    "failure_class": "OPERATIONAL_STATE_SCHEMA_DEFECT_NOT_A_CHARTER_OR_MEASUREMENT_FAILURE",
+    "failure_diagnosis": "Run 38877700234 executed the charter to completion and committed the full producer snapshot (b83513d on cycle/frontier/frontier-served-packet-falsification/38877700234/team), but its state/frontier/frontier-served-packet-falsification.json omitted the machine-readable fields cycle_status and evidence_tier. The workflow's 'Validate Frontier producer delta and state' step (.github/workflows/frontier-team.yml) requires charter_version == 1 AND cycle_status != INITIALIZED AND evidence_tier != ''; the jq check therefore failed with exit 69. The team job's result was failure, so the audit job (if: needs.team.result == 'success') was skipped: no cycle/frontier/frontier-served-packet-falsification/38877700234/audit branch exists on origin, the integrate job never promoted to lab/frontier/frontier-served-packet-falsification (which still carries only the bootstrap state), and the control-plane portfolio still shows the team RUN with empty run_history. The resilience finalizer re-dispatched with resume_from_run_id=38877700234, which is this run. Not a measurement failure, not a charter failure, not missing evidence: a producer state-packaging defect that prevented the independent audit from ever running.",
+    "fix": "This run adds cycle_status=COMPLETE_NEGATIVE_RESULT and evidence_tier=MEASURED to the state file (values follow the frontier-map-semantics convention for a negative-result measurement charter), retains charter_version=1 and continue_recommended=false, and leaves the in-scope delta uncommitted for the workflow's persist step (the counter-label-integrity precedent: a self-committed clean tree trips the workflow's zero-durable-delta guard, exit 67). Nothing was re-scored, nothing re-frozen, no product file touched, nothing written under results/audit/ or reports/audit/.",
+    "verification_summary": {
+      "freeze_byte_identity": "RULES_LABEL.json 4457e971... and RULES_GEOMETRY.json a7452748... re-hashed byte-identical to the charter pins",
+      "bundle_sha256": "de 2441ff2b... (214), fr 6c5ea31d... (217), it 76e7f7ad... (211) all match the charter prefixes",
+      "population_recount": "65 counter rows (de 25, fr 15, it 25); 16 empty-evidence rows at counter_uncertainty >= 0.95; counter_evidence_verified absent on exactly those 16, true on 49, false on 0; 11 exact 'cited in generated answer' placeholder rows -- all match the charter's pre-registered counts",
+      "harness_rerun": "python -m frontier_served_packet_falsification.cli --out <dir> --half both --repo-root <repo> reproduces LABEL_HALF.json, GEOMETRY_HALF.json, BEFORE_AFTER.json, CLAIM_CEILING.json BYTE-IDENTICAL to the committed artifacts",
+      "tests": "34 passed, 1 skipped (skip is environment-conditional: 'no results/product in this checkout'; the packet is mounted at /tmp/lex_accepted)",
+      "independent_geometry_recomputation": "a fresh independent implementation of the frozen rule recomputed 453/453 numbers in GEOMETRY_HALF.json with 0 mismatches (shares both definitions, language mix, ablation, all 11 criteria x 3 bundles)",
+      "adversarial_code_review": "reachable import graph reads only the served packet + the two frozen RULES files; writes only under --out; zero network calls; no vacuous-pass paths; claim-ceiling machine check 0 violations. Two documented non-blocking notes: (1) the charter's acceptance command must be invoked from the package directory or with --repo-root (module is nested two dirs below repo root; documented in the resume report); (2) the vendored frontier-map-semantics harness carries the frozen bars in code matching the RULES_GEOMETRY.json strings exactly -- the vendored harness is the charter-mandated accepted implementation and was reused unchanged per the freeze",
+      "scope": "zero files written outside frontier/frontier-served-packet-falsification/, tests/frontier/frontier-served-packet-falsification/, reports/frontier/frontier-served-packet-falsification/, results/frontier/frontier-served-packet-falsification/, state/frontier/frontier-served-packet-falsification.json; nothing under results/audit/ or reports/audit/"
+    },
+    "verdict_changed": false,
+    "work_preserved": true,
+    "work_restarted_from_scratch": false,
+    "delta_contract_fix": "This cycle does not self-commit; it leaves an in-scope uncommitted delta for the workflow's persist step."
+  }
 }
