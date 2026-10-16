@@ -1,0 +1,224 @@
+{
+  "schema": "frontier-counter-label-integrity/resume-verification/1",
+  "team_id": "frontier-counter-label-integrity",
+  "charter_version": 1,
+  "mode": "OPERATIONAL RESUME",
+  "resume_run_id": "38841035773",
+  "resumed_from_run_id": "38839354961",
+  "verdict_after_resume": "LABEL_UNSOUND",
+  "verdict_changed_by_resume": false,
+  "charter_execution_result": "VERIFIED, NOT RESTARTED. Every acceptance item (1)-(12) of charter v1 is satisfied by the resumed snapshot and was re-checked on the resume run. No label was re-scored, no bundle was re-measured, no rule was re-frozen and no threshold was touched.",
+
+  "operational_failure": {
+    "failed_run_id": "38839354961",
+    "failed_run_name": "Frontier frontier-counter-label-integrity v1 repair0",
+    "failed_run_event": "workflow_dispatch",
+    "failed_run_started_at": "2026-10-16T02:13:57Z",
+    "failed_run_updated_at": "2026-10-16T02:33:29Z",
+    "failed_run_conclusion": "failure",
+    "evidence_source": "GitHub Actions REST API GET /repos/Mickalive/LexMachina/actions/runs/38839354961/jobs (public read, unauthenticated), read during the resume run",
+    "job_conclusions": {
+      "team": "failure",
+      "audit": "skipped",
+      "integrate": "skipped",
+      "resilience": "success"
+    },
+    "team_job_steps": [
+      { "number": 3, "name": "Validate charter and initialize working base", "conclusion": "success" },
+      { "number": 4, "name": "Mount accepted evidence", "conclusion": "success" },
+      { "number": 5, "name": "Install Ox/OpenCode", "conclusion": "success" },
+      { "number": 6, "name": "Execute Frontier charter", "conclusion": "success" },
+      { "number": 7, "name": "Validate Frontier producer delta and state", "conclusion": "failure" },
+      { "number": 8, "name": "Clean generated junk", "conclusion": "success" },
+      { "number": 9, "name": "Enforce team scope", "conclusion": "skipped" },
+      { "number": 10, "name": "Persist team snapshot", "conclusion": "success" }
+    ],
+    "failing_step": {
+      "job": "team",
+      "number": 7,
+      "name": "Validate Frontier producer delta and state",
+      "guard": "if `git diff --quiet` AND `git diff --cached --quiet` AND `git status --porcelain -uall` is empty -> exit 67 'Frontier producer returned success with zero durable delta'"
+    },
+    "root_cause": "The producer executed the charter to completion (step 6 SUCCESS) and then committed all of its own artifacts itself, so the working tree was clean when the workflow's durable-delta guard ran. A clean tree is indistinguishable from 'the agent did nothing', so the guard failed the team job with exit 67. Because step 7 failed, the scope check was skipped and the audit job (needs: team, if: team success) never ran - no branch cycle/frontier/frontier-counter-label-integrity/38839354961/audit exists on the remote. The resilience job then correctly dispatched this operational resume from the surviving team snapshot.",
+    "corroborating_evidence": [
+      "Step 6 'Execute Frontier charter' = success, so this is NOT a charter, model, provider or network failure.",
+      "Step 7 is the first and only failing step; step 9 (scope) was skipped, so the scope check never rejected anything - this is NOT a team-scope violation failure.",
+      "The snapshot tip 207447c carries five producer-authored commits (author lexmachina-factory) and the workflow's own persist commit message 'Frontier frontier-counter-label-integrity v1 run 38839354961' is ABSENT from history, proving `git add -A; git commit` had nothing to commit, i.e. the tree was already clean at persist time.",
+      "refs/heads/cycle/frontier/frontier-counter-label-integrity/38839354961/team and .../team-attempt-1 both exist and both equal 207447c; refs/heads/cycle/frontier/frontier-counter-label-integrity/38839354961/audit does NOT exist.",
+      "Run 38841035773 (this run) started 2026-10-16T02:33:25Z, within seconds of run 38839354961 finishing at 02:33:29Z, matching the resilience job's resume dispatch."
+    ],
+    "not_a_charter_failure": "The charter was completed before the guard ran. The verdict, the frozen rules, the report, the freeze proof, the non-vacuity result and the state were all already produced and committed. Nothing about the measurement is invalidated by an operational packaging failure.",
+    "fix_applied_this_run": "The resume deliberately does NOT self-commit. It leaves an in-scope durable delta uncommitted in the working tree for the workflow's own persist step to commit, which is the contract the guard enforces. All resume outputs are written strictly inside the team namespace."
+  },
+
+  "preserved_producer_work": {
+    "snapshot_branch": "cycle/frontier/frontier-counter-label-integrity/38839354961/team",
+    "snapshot_tip": "207447c2444337761e477e11bc446fcd684cd26b",
+    "bootstrap_commit": "1f3524802cd781bd6ffcb7807565fc6c9b1fa4b7",
+    "producer_commits": [
+      { "commit": "416c2aec4b9899809e666ad69d379ad238bce7d9", "committed_at": "2026-10-16T02:22:36Z", "subject": "FREEZE (frontier-counter-label-integrity charter v1): sentence-level counter-label support rubric" },
+      { "commit": "0849f6ed51a45ba9e9e5d964a12359989aab4330", "committed_at": "2026-10-16T02:29:04Z", "subject": "frontier-counter-label-integrity: frozen-rubric harness + first scored run" },
+      { "commit": "5a239db5134d77e6d6115524f5627905d0280c17", "committed_at": "2026-10-16T02:29:23Z", "subject": "frontier-counter-label-integrity: stop tracking __pycache__ in the team namespace" },
+      { "commit": "7601fb1a9cb6c85d394de7284dd4480910189216", "committed_at": "2026-10-16T02:32:24Z", "subject": "frontier-counter-label-integrity: verdict LABEL_UNSOUND, audit gate, freeze proof, state" },
+      { "commit": "207447c2444337761e477e11bc446fcd684cd26b", "committed_at": "2026-10-16T02:32:50Z", "subject": "frontier-counter-label-integrity: record result commits and answer the sample-size counterargument in the report" }
+    ],
+    "unchanged_by_resume": [
+      "results/frontier/frontier-counter-label-integrity/RULES.json",
+      "results/frontier/frontier-counter-label-integrity/REPORT.json",
+      "results/frontier/frontier-counter-label-integrity/NON_VACUITY.json",
+      "results/frontier/frontier-counter-label-integrity/FREEZE_PROOF.json",
+      "frontier/frontier-counter-label-integrity/",
+      "tests/frontier/frontier-counter-label-integrity/"
+    ]
+  },
+
+  "verification": {
+    "frozen_rules": {
+      "path": "results/frontier/frontier-counter-label-integrity/RULES.json",
+      "rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+      "rules_sha256_at_freeze_commit": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+      "rules_unchanged_since_freeze": true,
+      "edited_this_run": false
+    },
+    "freeze_ordering_from_git_commit_times": {
+      "method": "python -m frontier_counter_label_integrity.verify_freeze --repo-root . --out <tmp>; ordering read from git commit times only, never from a written frozen_at_utc field",
+      "freeze_commit": "416c2aec4b9899809e666ad69d379ad238bce7d9",
+      "freeze_committed_at": "2026-10-16T02:22:36Z",
+      "results_commit": "0849f6ed51a45ba9e9e5d964a12359989aab4330",
+      "results_committed_at": "2026-10-16T02:29:04Z",
+      "freeze_precedes_results": true,
+      "margin_seconds": 388,
+      "rederived_this_run": true,
+      "regenerated_freeze_proof_byte_identical_to_committed": true,
+      "committed_freeze_proof_sha256": "7ca4d133810897f9f4e2095f1e466bf9dda1259890eac0c840ef8c1709072425"
+    },
+    "input_rehash": {
+      "n_inputs": 9,
+      "all_inputs_match_frozen_sha256": true,
+      "observed_sha256": {
+        "clickable_slice/bundle_live_enriched_20261014T214600Z.json": "beaa074f9bf21ae84e357e0e536b57bc614b203431782f607d6e37e85dd48cd9",
+        "clickable_slice/bundle_live_enriched_CYCLE_38649613677.json": "3090e146345748b909dc486d87e4cd866d3967a66b458d88229cf545e159d9c2",
+        "clickable_slice/bundle_live_enriched_CYCLE_38740365477.json": "7f73099cd9d73f2a8373f833c71419be54e0e0f8a37ed8dae844f70221ae50cf",
+        "gate_packet/38799024807/questions/de-kapitalverletzung.bundle.json": "90914482175ee51a6c2aa086d0119106f70b16f7627414b730bfbfc1e4c34e9c",
+        "gate_packet/38799024807/questions/fr-bail-entretien.bundle.json": "dfb4e8046c33297db4b5aa965100f1b71fc7b8a4e4011dce9613cf8d518c15de",
+        "gate_packet/38799024807/questions/it-responsabilita-medica.bundle.json": "737c9112a7c2f1b8eae5db4038f9f95ff0b646898c7063208b376e6a93f56abe",
+        "gate_rehearsal/CYCLE_38754777366_live_bundle.json": "c1e3d9917e34c13d4e36e02266a990960a2f11045fa8a658bd4a67cc6a10ebe8",
+        "progressive_slice/bundle_CYCLE_38665681083.json": "9757680e47650df6bf181e14a6171742468c9e4cc5efbb2022838206b5fcd2b3",
+        "progressive_slice/bundle_CYCLE_38665681083_v2.json": "6761359cddfd80abdb4711b71a10063a6625816f06bcc7dca53895d4b8bade6f"
+      },
+      "mount": "/tmp/lex_accepted/core/product (read-only)"
+    },
+    "byte_identical_reproduction": {
+      "command": "PYTHONPATH=frontier/frontier-counter-label-integrity python3 -m frontier_counter_label_integrity.cli --frozen-rules results/frontier/frontier-counter-label-integrity/RULES.json --all --out <tmp>",
+      "report_sha256": "e97a4e9c9377d85837309597aafd36ba9252c3f1f8859096ce219618c588de4c",
+      "committed_report_sha256": "e97a4e9c9377d85837309597aafd36ba9252c3f1f8859096ce219618c588de4c",
+      "report_byte_identical": true,
+      "non_vacuity_sha256": "0ad7c65de575df517e9fef3fb47e72896e9c77688dcf0008a8f23f02eaec2538",
+      "non_vacuity_byte_identical": true,
+      "exit_code": 0,
+      "verdict": "LABEL_UNSOUND",
+      "bundles_scored": 9,
+      "primary_n_scored": 7,
+      "primary_support_rate": 0.0,
+      "secondary_n_scored": 39,
+      "secondary_support_rate": 0.0,
+      "non_vacuity_passed": true
+    },
+    "cli_contract_forms": [
+      {
+        "form": "--frozen-rules <rules> --bundle <path> --out <dir>",
+        "result": "exit 0; scored 1 bundle; primary n=1 rate=0.0; verdict INSUFFICIENT_POPULATION with the 6 missing primary row ids and the coverage gap named - proves acceptance item (7) actually fires when the population is incomplete",
+        "verified": true
+      },
+      {
+        "form": "--frozen-rules <rules> --non-vacuity-only --out <dir>",
+        "result": "exit 0; passed=True (7/7 injected classes matched, 5 defect criteria exercised, threshold 2)",
+        "verified": true
+      },
+      {
+        "form": "--frozen-rules <rules> --all --out <dir>",
+        "result": "exit 0; verdict LABEL_UNSOUND; report byte-identical to the committed REPORT.json",
+        "verified": true
+      }
+    ],
+    "tests": {
+      "command": "PYTHONPATH=frontier/frontier-counter-label-integrity python3 -m pytest tests/frontier/frontier-counter-label-integrity -q",
+      "framework": "pytest 9.1.1",
+      "python": "3.12.3",
+      "passed": 66,
+      "failed": 0,
+      "errors": 0,
+      "deselect": 0,
+      "includes": [
+        "test_freeze.py (freeze ordering, no hard-coded legal vocabulary, frozen-blob immutability)",
+        "test_rubric.py (criteria i-v, defect precedence)",
+        "test_independent_recheck.py (second implementation importing nothing from the harness)",
+        "test_report.py (verdict, classes, distributions, claim ceiling)",
+        "test_artifacts.py (recorded sha256 and input re-hash integrity)"
+      ]
+    },
+    "post_repair_artifact_probe": {
+      "performed_this_run": true,
+      "results/product/adversarial_retrieval/ exists on the accepted mount": false,
+      "product/query/adversarial_retrieval.py exists on the accepted mount": false,
+      "consequence": "No post-repair artifact exists. The verdict stays a PRE-REPAIR BASELINE only; no before/after pair is claimed and none may be implied."
+    }
+  },
+
+  "acceptance_item_status": {
+    "1_freeze_first": "SATISFIED - freeze commit 416c2aec at 02:22:36Z precedes results commit 0849f6ed at 02:29:04Z by 388s; ordering re-derived from git commit times on the resume run; RULES.json untouched.",
+    "2_runnable_harness": "SATISFIED - all three required CLI forms executed on the resume run.",
+    "3_rubric": "SATISFIED - criteria (i)-(v) frozen in RULES.json; harness contains no lexicon, threshold or judgement (asserted by test_freeze.py).",
+    "4_defect_classes_and_marker_precision": "SATISFIED - populations.*.defect_classes carries count + row_ids for INVERTED/OFF-DOMAIN/BOILERPLATE-ONLY/FRAGMENT/UNBACKED/SUPPORTED; populations.*.marker_precision reports counter_markers absent (0 of 92 rows) with the document-wide-only proxy.",
+    "5_rates_language_rank": "SATISFIED - per-bundle support_rate in bundles[], overall in populations.*, language_distribution and rank_distribution present for both populations.",
+    "6_coverage": "SATISFIED - 9 bundles scored (>=3), all pre-repair; post-repair probe re-run this cycle and still negative; stated explicitly as baseline only.",
+    "7_minimum_population": "SATISFIED - all 7 charter-named candidate-limiting rows scored (zh_bezirksgericht_buelach_AH240008 r13, zh_obergericht_LA190008 r14, zh_obergericht_LA250006 r15, ge_gerichte_4A_286_2015 r14, ti_gerichte_13.2019.12 r4, ti_gerichte_16.2021.24 r9, ti_gerichte_12.2025.23 r18); verdict LABEL_UNSOUND, not INSUFFICIENT_POPULATION.",
+    "8_non_vacuity": "SATISFIED - passed=true, 7/7 classes matched, 5 defect criteria exercised against threshold 2.",
+    "9_one_verdict_and_claim_ceiling": "SATISFIED - verdict.verdict == 'LABEL_UNSOUND'; claim_ceiling present and states labels remain the product's, reported not endorsed.",
+    "10_one_bounded_cause": "SATISFIED - exactly one bounded cause recorded in state, with evidence pointers and an explicit no-fix/no-lexicon/no-threshold/no-prompt statement.",
+    "11_byte_identical_and_rehash": "SATISFIED - report sha256 e97a4e9c... reproduced byte-identically; all 9 inputs re-hashed to their frozen sha256.",
+    "12_write_scope": "SATISFIED FOR THIS RUN - see scope block. Two out-of-scope files written by the producer in run 38839354961 are disclosed below and are left untouched."
+  },
+
+  "scope": {
+    "allowed": [
+      "frontier/frontier-counter-label-integrity/",
+      "tests/frontier/frontier-counter-label-integrity/",
+      "results/frontier/frontier-counter-label-integrity/",
+      "reports/frontier/frontier-counter-label-integrity/",
+      "state/frontier/frontier-counter-label-integrity.json"
+    ],
+    "files_written_this_run": [
+      "results/frontier/frontier-counter-label-integrity/RESUME_VERIFICATION_38841035773.json",
+      "reports/frontier/frontier-counter-label-integrity/RESUME_38841035773.md",
+      "state/frontier/frontier-counter-label-integrity.json"
+    ],
+    "writes_outside_scope_this_run": [],
+    "human_gate_untouched": true,
+    "human_gate_sessions_untouched": true,
+    "product_evaluation_state_untouched": true
+  },
+
+  "provenance_disclosure": [
+    {
+      "item": "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38839354961_GATE.json and reports/audit/frontier/frontier-counter-label-integrity/CYCLE_38839354961.md are TEAM-AUTHORED, not independent audit output.",
+      "why": "They were written by the producer in commit 7601fb1a of run 38839354961, reading the charter's 'AUDIT ARTIFACT PLACEMENT REQUIREMENT' line as an instruction to itself. Run 38839354961 never produced an audit job (refs/heads/cycle/frontier/frontier-counter-label-integrity/38839354961/audit does not exist), so no independent auditor ever signed that file.",
+      "consequence": "That file's 'gate: PASS / safe_to_integrate: true' must NOT be read as the independent audit of record for this team. The audit of record is the audit job of run 38841035773, which writes results/audit/frontier/frontier-counter-label-integrity/CYCLE_38841035773_GATE.json.",
+      "action_taken": "Left byte-for-byte untouched. Deleting or editing them would itself be a write outside this team's allowed scope and would destroy a historical artifact (AGENTS.md 6); the correct remedy is disclosure plus the independent audit of this run.",
+      "factory_note": "The charter line that caused this belongs to the audit job's instructions. Routing it is the director's, not this team's; this team edits no charter, no portfolio and no workflow."
+    },
+    {
+      "item": "The audited non-accepted run 38828034436 (22 of 40 unsupported, 4 inverted) appears in no number of this report.",
+      "why": "It is mechanism evidence about a non-accepted implementation and is quoted only as such, exactly as the charter requires."
+    }
+  ],
+
+  "charter_state": {
+    "charter_version": 1,
+    "cycle_status": "TERMINATE",
+    "evidence_tier": "ACCEPTED",
+    "continue_recommended": false,
+    "continue_recommended_reason_ref": "state/frontier/frontier-counter-label-integrity.json#continue_recommended_reason",
+    "why_not_true": "The stop_promote_rule is satisfied and exhausted. Nothing specific to another cycle under THIS charter is open: no defect in this team's own harness remains, the verdict is reproduced byte-identically, and re-measuring the same bytes or an already-measured bundle is forbidden. A post-repair before/after measurement against this frozen RULES.json is a NEW charter for the director to raise, not a continuation of this one."
+  }
+}

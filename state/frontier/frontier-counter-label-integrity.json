@@ -5,7 +5,7 @@
   "evidence_tier": "ACCEPTED",
   "verdict": "LABEL_UNSOUND",
   "continue_recommended": false,
-  "continue_recommended_reason": "Charter stop_promote_rule satisfied and exhausted: the frozen rubric was applied to 9 accepted live bundles (>=3 required, all pre-repair), the minimum-population rule resolved with a real verdict rather than INSUFFICIENT_POPULATION, non-vacuity was actually proven (7/7 injected classes, 5 defect criteria), the verdict is unchanged under both pre-declared sensitivity variants and is reproduced by an independent second implementation. The charter mandates TERMINATE immediately after the verdict plus at most one bounded cause, and forbids growing into prompt engineering, provider work, lexicon design, benchmark construction or a product patch. Nothing specific to another cycle under THIS charter is justified: there is no known defect in this team's own harness left open (the one defect found this cycle, the frozen-digraph/regex interaction, was fixed and regression-covered). Re-measuring the same bytes, re-measuring an already-measured bundle, re-verifying the machine gate or re-running frontier-generative-audit are all forbidden by the charter. A post-repair re-measurement against this same frozen RULES.json is a NEW charter (it would be a before/after pair, not a continuation) and must be raised by the director, not continued here.",
+  "continue_recommended_reason": "Charter stop_promote_rule satisfied and exhausted: the frozen rubric was applied to 9 accepted live bundles (>=3 required, all pre-repair), the minimum-population rule resolved with a real verdict rather than INSUFFICIENT_POPULATION, non-vacuity was actually proven (7/7 injected classes, 5 defect criteria), the verdict is unchanged under both pre-declared sensitivity variants and is reproduced by an independent second implementation. The charter mandates TERMINATE immediately after the verdict plus at most one bounded cause, and forbids growing into prompt engineering, provider work, lexicon design, benchmark construction or a product patch. Nothing specific to another cycle under THIS charter is justified: there is no known defect in this team's own harness left open (the one defect found this cycle, the frozen-digraph/regex interaction, was fixed and regression-covered). Re-measuring the same bytes, re-measuring an already-measured bundle, re-verifying the machine gate or re-running frontier-generative-audit are all forbidden by the charter. A post-repair re-measurement against this same frozen RULES.json is a NEW charter (it would be a before/after pair, not a continuation) and must be raised by the director, not continued here. Operational resume 38841035773 re-verified all of this (freeze ordering re-derived from git commit times, all 9 inputs re-hashed, REPORT.json reproduced byte-identically, 66/66 tests, all three CLI forms) and changed nothing: no label re-scored, no rule re-frozen, no verdict change, so no new cycle is justified either.",
   "accepted_run_id": 38839354961,
   "accepted_commit": null,
   "charter_run_history": [
@@ -25,8 +25,46 @@
       "bounded_cause_count": 1,
       "fix_tested": false,
       "patch_proposed": false
+    },
+    {
+      "run_id": 38841035773,
+      "charter_version": 1,
+      "cycle": "operational_resume_of_1",
+      "outcome": "VERIFIED_LABEL_UNSOUND_NO_CHANGE",
+      "primary_support_rate": 0.0,
+      "primary_n_scored": 7,
+      "secondary_support_rate": 0.0,
+      "secondary_n_scored": 39,
+      "combined_support_rate": 0.0,
+      "combined_n_scored": 46,
+      "non_vacuity_passed": true,
+      "freeze_proven_from_git_commit_times": true,
+      "report_byte_identical_reproduction": true,
+      "tests_passed": 66,
+      "tests_failed": 0,
+      "labels_rescored": false,
+      "rules_edited": false,
+      "bounded_cause_count": 1,
+      "fix_tested": false,
+      "patch_proposed": false,
+      "note": "Operational resume of run 38839354961, which failed only at the workflow's durable-delta guard after the charter had already been executed to completion. Verification only: nothing re-scored, nothing re-frozen."
     }
   ],
+  "operational_resume": {
+    "resume_run_id": 38841035773,
+    "resumed_from_run_id": 38839354961,
+    "resumed_snapshot_branch": "cycle/frontier/frontier-counter-label-integrity/38839354961/team",
+    "resumed_snapshot_tip": "207447c2444337761e477e11bc446fcd684cd26b",
+    "failure_diagnosis": "Run 38839354961 concluded 'failure' at team-job step 7 'Validate Frontier producer delta and state' (exit 67, zero durable delta) AFTER step 6 'Execute Frontier charter' succeeded: the producer self-committed all five of its artifacts, leaving a clean tree, which the guard cannot distinguish from a no-op. Step 9 (scope) was skipped, so this was not a scope failure; the audit and integrate jobs never ran (no .../38839354961/audit branch exists), and the resilience job dispatched this resume. Evidence: GitHub Actions public API job/step conclusions for run 38839354961 plus the absence of the workflow's own persist commit message in snapshot history.",
+    "failure_class": "OPERATIONAL_PACKAGING_FAILURE_NOT_A_CHARTER_FAILURE",
+    "work_preserved": true,
+    "work_restarted_from_scratch": false,
+    "verification_summary": "Freeze ordering re-derived from git commit times (416c2aec 02:22:36Z -> 0849f6ed 02:29:04Z, 388s margin, regenerated FREEZE_PROOF byte-identical); all 9 inputs re-hashed to frozen sha256; REPORT.json and NON_VACUITY.json reproduced byte-identically (report_sha256 e97a4e9c9377d85837309597aafd36ba9252c3f1f8859096ce219618c588de4c); all three required CLI forms executed; 66/66 tests pass; post-repair probe re-run and still negative.",
+    "delta_contract_fix": "This resume does not self-commit; it leaves an in-scope uncommitted delta for the workflow's persist step, which is what the failed guard requires.",
+    "provenance_disclosure": "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38839354961_GATE.json and reports/audit/.../CYCLE_38839354961.md were written by the PRODUCER itself in commit 7601fb1a; run 38839354961 produced no audit branch, so they are not independent audit output and must not be read as gate PASS of record. They are left untouched (deleting them would be an out-of-scope write and would destroy a historical artifact). The audit of record is CYCLE_38841035773_GATE.json from this run's audit job.",
+    "charter_version_retained": 1,
+    "verdict_changed": false
+  },
   "product_inputs_for_backlog_item_4": {
     "adopt_as": "external falsification of the accepted chain's counter-label support",
     "must_not_read_as": [
@@ -49,8 +87,13 @@
     "freeze_generator": "frontier/frontier-counter-label-integrity/freeze_rules.py",
     "tests": "tests/frontier/frontier-counter-label-integrity/",
     "report_md": "reports/frontier/frontier-counter-label-integrity/CYCLE_1.md",
+    "resume_verification": "results/frontier/frontier-counter-label-integrity/RESUME_VERIFICATION_38841035773.json",
+    "resume_report_md": "reports/frontier/frontier-counter-label-integrity/RESUME_38841035773.md",
+    "resume_run_id": 38841035773,
     "audit_gate": "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38839354961_GATE.json",
-    "audit_md": "reports/audit/frontier/frontier-counter-label-integrity/CYCLE_38839354961.md"
+    "audit_md": "reports/audit/frontier/frontier-counter-label-integrity/CYCLE_38839354961.md",
+    "audit_gate_provenance_warning": "PRODUCER-AUTHORED DRAFT, NOT INDEPENDENT AUDIT OUTPUT. Written by the team in run 38839354961, which produced no audit branch. The independent audit of record for this team is results/audit/frontier/frontier-counter-label-integrity/CYCLE_38841035773_GATE.json written by the audit job of the resume run. Do not read the 38839354961 file's gate=PASS as an independent gate.",
+    "audit_gate_of_record": "results/audit/frontier/frontier-counter-label-integrity/CYCLE_38841035773_GATE.json"
   },
   "one_bounded_cause": {
     "statement": "The label survives the loss of its evidence by design, and the map's render predicate is counter_status alone: an unevidenced counter-authority ring is drawn with no warning.",
