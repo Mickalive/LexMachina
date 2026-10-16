@@ -138,22 +138,24 @@ class CitationValidator:
             seen.add(did)
             text = d.get("full_text") or d.get("text") or d.get("snippet") or ""
             title = d.get("title") or d.get("citation") or d.get("docket_number") or did
+            metadata = {
+                k: d.get(k)
+                for k in (
+                    "court", "language", "rank", "score", "decision_date",
+                    "docket_number", "cluster_id", "canonical_url",
+                    "provenance", "counter_status", "query_similarity",
+                    "legal_anchor_score", "retrieval_score_raw", "snippet",
+                )
+                if d.get(k) is not None
+            }
+            metadata["evidence_hydrated"] = bool(d.get("full_text"))
             objs.append(
                 Decision(
                     decision_id=did,
                     title=str(title),
                     text=str(text),
                     citations=list(d.get("citations") or []),
-                    metadata={
-                        k: d.get(k)
-                        for k in (
-                            "court", "language", "rank", "score", "decision_date",
-                            "docket_number", "cluster_id", "canonical_url",
-                            "provenance", "counter_status", "query_similarity",
-                            "legal_anchor_score", "retrieval_score_raw", "snippet",
-                        )
-                        if d.get(k) is not None
-                    },
+                    metadata=metadata,
                 )
             )
             ids.append(did)
