@@ -2,10 +2,38 @@
   "team_id": "frontier-served-packet-falsification",
   "charter_version": 1,
   "status": "PROMOTED",
-  "run_id": "38880639079",
+  "run_id": "38889472353",
   "charter_status": "TERMINATED",
   "continue_recommended": false,
-  "continue_recommended_reason": "HARD STOP under the charter's stop_promote_rule: exactly ONE verdict cycle. Both halves are complete on all three served bundles with freeze byte-identity proven, non-vacuity resolved (5 real rows reach SUPPORTED), byte-identical reproduction demonstrated, and zero out-of-scope writes. A second cycle under this charter is FORBIDDEN. If the packet is rebuilt or a further product repair lands and needs re-scoring, that is a NEW charter raised by the director against the NEW packet \u2014 not a continuation of this one.",
+  "continue_recommended_reason": "HARD STOP under the charter's stop_promote_rule: exactly ONE verdict cycle. That cycle is complete, independently audited gate=PASS (run 38880639079, CYCLE_38880639079_GATE.json) and promoted at commit 464c45f7. Run 38889472353 performed NO second verdict cycle: it was an operational re-dispatch caused by state/frontier_portfolio.json on main still carrying status=RUN with run_history=[], and it only re-verified freeze byte-identity, input identity (no rebuild, no further product repair), the pre-registered population, byte-identical reproduction and zero out-of-scope writes. A second cycle under this charter is FORBIDDEN. If the packet is rebuilt or a further product repair lands and needs re-scoring, that is a NEW charter raised by the director against the NEW packet, not a continuation of this one. To stop the re-dispatch loop the director must move this team's portfolio entry off status=RUN.",
+  "promoted_verdict_run_id": "38880639079",
+  "promoted_commit": "464c45f7e4bf741b6a67adbef35dc587d8cfa21f",
+  "promoted_independent_audit": {
+    "gate_path": "results/audit/frontier/frontier-served-packet-falsification/CYCLE_38880639079_GATE.json",
+    "gate": "PASS",
+    "safe_to_integrate": true
+  },
+  "re_dispatch_adjudication": {
+    "run_id": "38889472353",
+    "dispatch_class": "OPERATIONAL_RE_DISPATCH_OF_AN_ALREADY_PROMOTED_CHARTER",
+    "second_verdict_cycle_performed": false,
+    "new_threshold_introduced": false,
+    "re_frozen": false,
+    "new_population_scored": false,
+    "verdict_changed": false,
+    "cause": "state/frontier_portfolio.json on main still lists this team with status=RUN and run_history=[] although the single verdict cycle is complete, audited gate=PASS and promoted at 464c45f7; only the factory-director workflow may write that file and this team's enforced write scope forbids it.",
+    "new_charter_trigger_test": {
+      "packet_rebuilt": false,
+      "further_product_repair_needs_re_scoring": false,
+      "evidence": "three served bundles re-hash to 2441ff2b.../6c5ea31d.../76e7f7ad... identical to INPUT_LIST.json; lab/product head fe240105 (cycle 38877693206) predates measurement run 38877700234 and has not advanced."
+    },
+    "checks_all_pass": true,
+    "verification_artifact": "results/frontier/frontier-served-packet-falsification/REDISPATCH_VERIFICATION_38889472353.json",
+    "report": "reports/frontier/frontier-served-packet-falsification/REDISPATCH_38889472353.md",
+    "harness_module": "frontier/frontier-served-packet-falsification/frontier_served_packet_falsification/redispatch.py",
+    "test": "tests/frontier/frontier-served-packet-falsification/test_redispatch_adjudication.py",
+    "control_plane_blocker_recorded_for_director": "Move this team's entry in state/frontier_portfolio.json off status=RUN; otherwise the frontier workflow's resilience finalizer will keep re-dispatching a finished, HARD-STOPped charter. This team cannot write that file or state/blockers/."
+  },
   "verdict": {
     "label_half": {
       "verdict": "LABEL_UNSOUND",
@@ -51,7 +79,11 @@
     "harness": "frontier/frontier-served-packet-falsification/frontier_served_packet_falsification/",
     "tests": "tests/frontier/frontier-served-packet-falsification/",
     "resume_verification": "results/frontier/frontier-served-packet-falsification/RESUME_VERIFICATION_38880639079.json",
-    "resume_report_md": "reports/frontier/frontier-served-packet-falsification/RESUME_38880639079.md"
+    "resume_report_md": "reports/frontier/frontier-served-packet-falsification/RESUME_38880639079.md",
+    "redispatch_verification": "results/frontier/frontier-served-packet-falsification/REDISPATCH_VERIFICATION_38889472353.json",
+    "redispatch_report_md": "reports/frontier/frontier-served-packet-falsification/REDISPATCH_38889472353.md",
+    "redispatch_harness": "frontier/frontier-served-packet-falsification/frontier_served_packet_falsification/redispatch.py",
+    "redispatch_test": "tests/frontier/frontier-served-packet-falsification/test_redispatch_adjudication.py"
   },
   "acceptance_tests": {
     "freeze_byte_identity": true,
