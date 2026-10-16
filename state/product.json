@@ -36,10 +36,20 @@
         "core-lane.yml audit step 6: print the offending paths with %0A-encoded annotation and fall back to re-reading the gate from the producer mount if the checkout copy is absent (workflow scope)"
       ],
       "scope": "control-plane / auditor-card scope; .github/** is not product-writable (run 38575541439 precedent). Recorded, not silently dropped; producer side made audit-ready in run 38766812030 instead."
+    },
+    {
+      "item": "zero_delta_guard_is_conditional_on_repair_intent",
+      "detail": ".github/scripts/run-ox-with-retry.sh:108 enforces LEX_ZERO_DELTA_REPAIR (exit 67) only when REPAIR_INTENT is true. REPAIR_INTENT becomes true only for a 'REPAIR ...' prompt or LEX_REQUIRE_DELTA=1, both set solely by a repair_from_run_id dispatch. A fresh-cycle producer that writes no runnable code or test delta exits 0, and core-lane.yml:159 masks the empty snapshot with 'git commit ... || true'. Consequence measured 2026-10-16: runs 38822364429, 38822688733 and 38827376597 all snapshotted the identical tree 5004195, whose entire content is 37 OpenCaseLaw cache envelopes and zero product code, and the lane re-dispatched three times with no machine signal.",
+      "candidate_fixes": [
+        "apply the same zero-delta predicate to every producer invocation, not only to repair dispatches",
+        "and/or make core-lane.yml's snapshot step fail (or at least emit ::warning::LEX_ZERO_DELTA_CYCLE) when 'git add -A' stages nothing"
+      ],
+      "precedent": "same routing as durable_reality_check_trigger_gap in this file",
+      "scope": "control-plane workflow scope; recorded, not edited from the lane"
     }
   ],
-  "current_run": 38812599575,
-  "cycle_status": "V52_BACKLOG_ITEM_3_DELIVERED__MULTI_QUERY_GATE_PACKET_3_OF_3_ADMISSIBLE_LIVE__DE_QUESTION_BLOCKER_DIAGNOSED_AS_CORPUS_SHORTFALL_NOT_GENERATOR_DEFECT__ZERO_CITATION_ANSWER_CONTRACT_SHIPPED__COURT_DOCKET_IDENTITY_MERGE_SHIPPED__ALL_PASS_LIVE_PACKET_CRASH_FIXED__CLAIM_ARTIFACT_IDENTITY_0837ee73_UNCHANGED__SUITE_323_PASSED_1_SKIPPED_0_FAILED__HUMAN_GATE_STILL_AWAITED",
+  "current_run": 38828034436,
+  "cycle_status": "V52_BACKLOG_ITEM_4_DELIVERED_AS_CODE__INDEPENDENT_ADVERSARIAL_RETRIEVAL_CHANNEL_SHIPPED__ACCEPTED_FRONTIER_VERDICT_CLASSIFICATION_ONLY_OVERTURNED_ON_ALL_THREE_LIVE_BUNDLES__ADVERSARIAL_RETRIEVAL_VERSION_ADVERSARIAL_RETRIEVAL_1__BUNDLES_DE_PASS_PASS_PASS_FAIL_FR_ALL_PASS_IT_ALL_PASS__SUITE_352_PASSED_1_SKIPPED_0_FAILED__HUMAN_GATE_STILL_AWAITED",
   "direction_version": 52,
   "evidence_tier": "DURABLE_CI_VERIFIED",
   "human_gate_criteria": [
@@ -164,7 +174,7 @@
     "status": "COMPLETE_AND_RECORDED",
     "v50_objective": "one durable, retrievable, GREEN core-lane run of lane=product whose own team job executes the four frozen reality legs LIVE"
   },
-  "next_recommendation": "Direction v52 backlog items (1), (2) and (3) are LANDED: citation-identity repair (run 38789874982), source_url-null misattribution (machine-checked), and now the multi-query gate packet at 3/3 admissible live (results/product/gate_packet/38812599575, ready_for_owner_session=true, guards_all_ok=true). Do NOT re-verify the machine gate and do NOT regenerate the claim bundle (identity 0837ee73 is unchanged and replay-reproducible). Next: (a) adopt the frontier-map-semantics and frontier-adversarial-discoverability verdicts as input to what the owner is asked to look at - do not wait for them and never fabricate gate answers; (b) then run the owner/jurist session from the shipped packet: `python product/gate_packet.py card --serve --packet results/product/gate_packet/38812599575`, work the three questions, finalize each export through product/human_gate_finalize.py. human_gate_ready stays false until a real person answers the four questions. The honest negative (38799024807 de-kapitalverletzung blocked, exit 5) is preserved byte-for-byte; it is repaired in the product, not by editing a past artifact.",
+  "next_recommendation": "Direction v52 backlog item (4) is LANDED as code: the independent adversarial retrieval channel is shipped, wired and measured. The accepted frontier verdict CLASSIFICATION_ONLY is overturned on all three live bundles by the accepted team's own metrics (governing metric b FAIL->PASS; FR and IT pass all four, DE passes a/b/c and misses d at 0.4828 vs 0.5). Do NOT re-verify the machine gate and do NOT regenerate the claim bundle (identity 0837ee73 is unchanged). Next: (a) adopt frontier-map-semantics as the input that explains the remaining DE placement miss and the consensus-cluster dominance (129/172), without waiting for it; (b) rebuild the gate packet on the new bundles so the owner sees counter-authority the ranked list could not have shown - the packet at results/product/gate_packet/38812599575 predates this channel and its counter rows are still initial-pool only; (c) then request the owner/jurist session. human_gate_ready stays false until a real person answers the four questions. Never fabricate gate answers.",
   "normal_path": {
     "generation_and_counter": "frontier-generative-audit contract 2.2 (independent adversarial pass)",
     "initial_map": "query-conditioned TF-IDF + SVD + KMeans rendered before generation",
@@ -322,6 +332,20 @@
       "preserved_work": "None of its own - there was none. Everything valid on the base it inherited (the citation-identity repair landed at 49d6593, the live gate packet of run 38799024807, the v51 deliverables) is preserved untouched.",
       "resumed_by_run": 38807538467,
       "repaired_by_this_resume": "Both required fixes of results/audit/product/CYCLE_38799024807_GATE.json closed at code level: D1 (material) by a frozen claim-cache subset replay, D2 (accuracy) by an in-place dated correction plus a restated verification block. The claim artifact results/product/CYCLE_38759730609_bundle.json is byte-identical (sha256 6f830bd5e0dd33d83b85670c14e7d359434f4826278ce701685548c151ed728c) and its content_sha256 is unchanged (0837ee73800ab1d85ccf295865466df46cf252d91df338fc1fe613389d59194b)."
+    },
+    "run_38827376597": {
+      "failing_step": "none - the run produced no delta and still exited green",
+      "root_cause": "ZERO-DELTA PRODUCER ON A FRESH CYCLE, MASKED BY A CONDITIONAL GUARD. .github/scripts/run-ox-with-retry.sh:108 exits 67 (LEX_ZERO_DELTA_REPAIR) only when REPAIR_INTENT is true, which is set only by a 'REPAIR ...' prompt or LEX_REQUIRE_DELTA=1 - i.e. only for repair_from_run_id dispatches. A FRESH cycle producer that writes nothing therefore exits 0, and core-lane.yml:159 'git commit ... || true' persists an empty snapshot, so the workflow chains forward with an unchanged tree.",
+      "evidence": [
+        "refs/heads/cycle/core/product/38822364429/team == 38822688733/team == 38827376597/team == 50041957e9321a4fb37db2b1e2eb4c83e6b11347 (three consecutive runs, one tree)",
+        "5004195 ('product cycle 38819607858 repair 0') touches 37 files and 0 of them are product code: every path is an OpenCaseLaw cache envelope",
+        "git status is clean at every one of those three snapshots, so the commit step had nothing to record"
+      ],
+      "why_the_producer_stalled": "v52 backlog items (1), (2) and (3) were all LANDED before this cycle, and item (4) ('adopt the frontier verdicts') was framed as a reporting task with no executable target. With no code item queued, the producer re-primed the live OpenCaseLaw cache - which is exactly what commit 5004195 is - and produced no product delta.",
+      "classification": "ORCHESTRATION OBSERVABILITY GAP, not a product defect and not an audit defect",
+      "preserved_work": "All valid completed work is preserved untouched: citation-identity repair (49d6593), source_url-null disclosure, the multi-query gate packet results/product/gate_packet/38812599575 (3/3 admissible), the v51 session-finalize and latency-budget deliverables, and every claim-bearing artifact byte-for-byte.",
+      "repair_in_this_cycle": "The lane's lever was to convert backlog item (4) from a reporting task into shipped code: the accepted frontier verdict named a concrete product defect (no retrieval-independent adversarial pass), so the lane implemented and measured the fix rather than summarising it.",
+      "scope": "control-plane workflow scope (.github/** is not edited from a lane); recorded as a hardening item"
     }
   },
   "run_38763217418": {
@@ -343,7 +367,7 @@
     "observed_at": "2026-10-15T16:2xZ",
     "run_id": 38763217418
   },
-  "prior_current_run": "38807538467",
+  "prior_current_run": "38812599575",
   "product": "query-specific Swiss legal research: broad OpenCaseLaw retrieval -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map",
   "reality_check_status": {
     "blocking_leg": "durable gate blocking leg: rent-default (Art. 257d(2) residential termination) — the answer must state the 30-day/end-of-month notice rule AND the good-faith/Rechtsmissbrauch limitation. That leg now PASSES locally in live mode (results/product/reality_check/rent-default_live_20261014T122313Z.json); only the durable Actions run remains red.",
@@ -496,8 +520,8 @@
     "fixtures": "offline/test only; never merged into live results",
     "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
   },
-  "state_updated_at": "2026-10-15T22:30:00Z",
-  "state_updated_by_run": 38812599575,
+  "state_updated_at": "2026-10-16T00:45:00Z",
+  "state_updated_by_run": 38828034436,
   "state_updated_from_resumed_snapshot_run": "38806623637",
   "supersedes_claims": {
     "prior_direction_version": 48,
@@ -1643,5 +1667,64 @@
       "claim_identity": "python -m product.replay_bundle --check-claim-cache-manifest -> exit 0, match true, 0837ee73... unchanged, 392 envelopes, network_calls 0",
       "new_tests": "20 (14 test_answer_gap.py, 4 test_query_map_mvp.py, 2 test_gate_packet.py), all offline"
     }
+  },
+  "v52_backlog_item_4_adversarial_retrieval": {
+    "status": "DELIVERED AS EXECUTABLE CODE, not as a report",
+    "adopted_finding": "frontier-adversarial-discoverability, audit CYCLE_38794235870, gate=PASS, named verdict CLASSIFICATION_ONLY: every counter-authority row on three accepted bundles entered through a channel the initial broad retrieval had already used (counter channels = {search, search.language_filter}; counter ranks 1,2,3,4,6,13,14,27), so the map added nothing the ranked list had not already shown at the top.",
+    "product_fix": "product/query/adversarial_retrieval.py: a second, product-owned retrieval route that runs after the provisional answer exists. plan_adversarial_queries builds counter-directed probes from the ANSWER's own legal vocabulary (not the question wording) across four intents (exception / contrary / minority / older_line, each DE+FR+IT). fetch_adversarial_candidates issues them through the ACCEPTED adapter's client/cache/transport/normalizer - reused, not reimplemented - under their own channel names adversarial.*, and drops every decision the initial pass already saw, by id AND by court+docket identity. apply_adversarial_pass joins the survivors through the existing incremental projection seam (progressive.map_model_from_bundle + qmap.build_map) and restores every already-rendered point to its shipped coordinates.",
+    "channel_independence_is_structural_not_asserted": "the four channel strings are disjoint from the adapter's channel inventory (search, search.language_filter, leading_case, citation.incoming, citation.outgoing, decision_lookup) by construction, and a test asserts the disjointness; a second test asserts every counter row carries a channel absent from provenance.retrieval.candidate_channels.",
+    "classification_is_evidence_gated": "a row is labelled only when a verbatim sentence of its OWN decision text carries a limitation marker; the probe intent only orders the search, the evidence decides the label. Unmarked survivors keep counter_status 'none' so recall grows without inventing a legal label (Master Prompt non-negotiable).",
+    "wiring": "product/query/pipeline.py::adversarial_retrieval_pass, called from enrich_query_bundle after the answer is ready, on by default, off for fixture_generation.",
+    "degradation_is_explicit": "an upstream failure or an unplaceable projection contributes zero rows and is recorded verbatim in provenance.adversarial_retrieval.failures / skip_reason / error; the pass never removes a row the initial pass found and never raises out of enrich_query_bundle.",
+    "measurement_tool": "product/adversarial_independence_check.py, which imports the ACCEPTED team's own metric functions as a library and exits 3 rather than scoring with a private re-implementation",
+    "measured_on_three_live_bundles": {
+      "artifact_dir": "results/product/adversarial_retrieval/38828034436",
+      "consolidated": "results/product/adversarial_retrieval/38828034436/MEASUREMENT.json",
+      "de": {
+        "query": "Wann endet ein Mietvertrag? Kann der Vermieter kündigen?",
+        "n_decisions": 172,
+        "new_rows": 37,
+        "new_counter_rows": 12,
+        "pool_never_seen_rate": 0.215116,
+        "channels": 4,
+        "probes": 4,
+        "failures": 0,
+        "a_counter_yield": "PASS 0.168605",
+        "b_marginal_retrieval_contribution": "PASS b1=12",
+        "c_rank_placement": "PASS beyond_top20_share=0.586207",
+        "d_placement_visibility": "FAIL 0.482759 (threshold 0.5)"
+      },
+      "fr": {
+        "query": "Conditions de résiliation d'un bail commercial par le bailleur",
+        "n_decisions": 188,
+        "new_rows": 38,
+        "new_counter_rows": 16,
+        "pool_never_seen_rate": 0.202128,
+        "channels": 4,
+        "probes": 4,
+        "failures": 0,
+        "a_counter_yield": "PASS 0.12766",
+        "b_marginal_retrieval_contribution": "PASS b1=16",
+        "c_rank_placement": "PASS beyond_top20_share=0.75",
+        "d_placement_visibility": "PASS 0.75"
+      },
+      "it": {
+        "query": "Quando può il locatore sciogliere il contratto di locazione?",
+        "n_decisions": 126,
+        "new_rows": 29,
+        "new_counter_rows": 12,
+        "pool_never_seen_rate": 0.230159,
+        "channels": 4,
+        "probes": 4,
+        "failures": 0,
+        "a_counter_yield": "PASS 0.134921",
+        "b_marginal_retrieval_contribution": "PASS b1=12",
+        "c_rank_placement": "PASS beyond_top20_share=0.823529",
+        "d_placement_visibility": "PASS 0.823529"
+      }
+    },
+    "verdict_flip": "the accepted team's governing metric (b) is FAIL->PASS on all three live bundles, so the named verdict moves CLASSIFICATION_ONLY -> INDEPENDENT_RETRIEVAL on all three. FR and IT pass all four metrics; DE passes a/b/c and misses d at 0.482759 against a 0.5 threshold.",
+    "honest_negative_preserved": "DE d_placement_visibility = 0.482759 is NOT closed and was NOT tuned. Its cause is the consensus cluster holding 129 of 172 rows, which is the mega-cluster dominance frontier-map-semantics measures; the lane does not claim map-semantics semantics and did not game the placement number.",
+    "latency": "pass_seconds 35.70 on DE, of which fetch (upstream OpenCaseLaw, 15 network calls + 1 cache hit) = 35.47; local map for the same bundle = 0.171 s. Reported separately and never folded into the map budgets."
   }
 }

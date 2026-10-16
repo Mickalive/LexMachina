@@ -19,6 +19,11 @@ from .answer_gap import ensure_cited_answer
 from .bundle import build_bundle, validate_bundle
 from .qmap import build_map
 from .relevance import rerank_product_bundle
+from .adversarial_retrieval import (
+    apply_adversarial_pass,
+    fetch_adversarial_candidates,
+    plan_adversarial_queries,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RETRIEVAL_ROOT = REPO_ROOT / "frontier" / "frontier-query-retrieval"
@@ -555,6 +560,74 @@ def _extractive_degraded_fallback(bundle: dict, error: str, max_cites: int) -> d
     return out
 
 
+def adversarial_retrieval_pass(
+    bundle: dict,
+    *,
+    retrieval_mode: str = "live",
+    max_new: int = 40,
+    hydrate_top: int = 12,
+    max_intents: int = 4,
+) -> dict:
+    """Independent adversarial RETRIEVAL against the provisional answer.
+
+    Run after the answer exists and before the bundle is returned, because the
+    probes are built from the answer's own legal vocabulary: an adversarial pass
+    that re-ranks the initial pool is classification, not retrieval, and the
+    accepted measurement ``frontier-adversarial-discoverability``
+    (CYCLE_38794235870, gate=PASS, verdict CLASSIFICATION_ONLY) already recorded
+    that as the product's counter-authority behaviour.
+
+    Degradation is explicit: an upstream failure contributes zero rows and is
+    recorded in ``provenance.adversarial_retrieval.failures``.  It never removes
+    rows the initial pass found and never raises.
+    """
+    plan = plan_adversarial_queries(
+        bundle.get("query", ""),
+        str((bundle.get("answer") or {}).get("prose") or ""),
+        max_intents=max_intents,
+    )
+    existing_ids = {str(d.get("decision_id")) for d in bundle.get("decisions") or []}
+    exclude_identities = set()
+    for d in bundle.get("decisions") or []:
+        ident = _decision_identity(d)
+        if ident is not None:
+            exclude_identities.add(ident)
+    t_adv = time.time()
+    try:
+        fetched = fetch_adversarial_candidates(
+            bundle.get("query", ""),
+            plan,
+            mode=retrieval_mode if retrieval_mode in {"live", "offline", "refresh"} else "offline",
+            exclude_ids=existing_ids,
+            exclude_identities=exclude_identities,
+            max_new=max_new,
+            hydrate_top=hydrate_top,
+        )
+        out = apply_adversarial_pass(
+            bundle,
+            list(fetched.get("candidates") or []),
+            fetched.get("provenance"),
+        )
+        adv_prov = out.setdefault("provenance", {}).setdefault("adversarial_retrieval", {})
+        adv_prov["pass_seconds"] = round(time.time() - t_adv, 4)
+        adv_prov["fetch_seconds"] = adv_prov.get("seconds")
+        return out
+    except Exception as exc:
+        # A non-critical stage must never cost the researcher their bundle. The
+        # failure is recorded verbatim so it can never read as "found nothing".
+        out = copy.deepcopy(bundle)
+        out.setdefault("provenance", {})["adversarial_retrieval"] = {
+            "component": "adversarial_retrieval/1",
+            "attempted": True,
+            "degraded": True,
+            "error": f"{type(exc).__name__}: {exc}",
+            "n_new_rows": 0,
+            "n_counter_rows": 0,
+            "claim_ceiling": "the independent adversarial route did not complete; no claim of independence is made",
+        }
+        return out
+
+
 def enrich_query_bundle(
     initial_bundle: dict,
     *,
@@ -562,6 +635,7 @@ def enrich_query_bundle(
     evidence_count: int = 12,
     max_cites: int = 8,
     fixture_generation: bool = False,
+    adversarial_retrieval: bool = True,
 ) -> dict:
     """Slow phase: lazily hydrate evidence, generate sourced answer, adversarially challenge it.
 
@@ -626,6 +700,16 @@ def enrich_query_bundle(
     gap = ensure_cited_answer(audited)
     if gap.get("fired"):
         audited["provenance"]["answer_gap_contract"] = gap
+
+    # Independent adversarial RETRIEVAL, run only now that a provisional answer
+    # exists to attack.  It appends unseen rows and never moves a rendered point.
+    if adversarial_retrieval:
+        audited = adversarial_retrieval_pass(
+            audited,
+            retrieval_mode=retrieval_mode,
+            max_new=0 if fixture_generation else 40,
+            hydrate_top=0 if fixture_generation else 12,
+        )
 
     # The adversarial/generative stage must never move the already visible map.
     original_geo = {
