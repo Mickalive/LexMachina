@@ -362,6 +362,10 @@ class Provider:
             "  - Answer every distinct sub-question in the query. If a statute "
             "contains different paragraphs/alternatives (for example al. 1 "
             "versus al. 2), state each branch separately and do not collapse them.",
+            "  - For termination/deadline questions, distinguish the cure/payment "
+            "period from the later termination notice period and effective date. "
+            "Do not call a residential termination 'immediate' if the retrieved "
+            "authority requires a notice period to month-end.",
             "  - Prefer Federal Supreme Court/BGE holdings over lower-court "
             "decisions when both directly address the same proposition.",
             "  - A source that merely mentions a statute or topic is not enough "
