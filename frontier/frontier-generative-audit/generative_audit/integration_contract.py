@@ -170,32 +170,81 @@ def apply_to_product_bundle(
     checked_findings = list(package.checked_findings or findings or [])
     findings_by_id = {f.decision_id: f for f in checked_findings}
     boundary_rejected = 0
+    suppressed_challenges = 0
+    numeric_scores = [
+        float(d.get("score"))
+        for d in out.get("decisions", [])
+        if isinstance(d.get("score"), (int, float))
+    ]
+    max_score = max(numeric_scores, default=0.0)
+    relevance_floor = max_score * 0.12 if max_score > 0.0 else 0.0
+
     for dec in out.get("decisions", []):
         did = dec.get("decision_id")
         status = package.decision_statuses.get(did)
         if status is None:
             continue
-        # A decision that is cited AND limited/contrary must remain a visible
-        # counter-authority: the product UI hides only "none"/"cited".
-        if status.label in (StatusLabel.LIMITING, StatusLabel.CONTRARY_OR_EXCEPTION):
-            dec["counter_status"] = COUNTER_STATUS_FOR[status.label]
-        elif did in package.cited_decision_ids:
-            dec["counter_status"] = "cited"
-        else:
-            dec["counter_status"] = COUNTER_STATUS_FOR.get(status.label, "none")
+
         finding = findings_by_id.get(did)
         quote_refs = [r for r in status.evidence_refs if is_quote_ref(r)]
         kept_refs, rejected = verified_evidence_refs(
             list(status.evidence_refs), by_text.get(did, "")
         )
         boundary_rejected += rejected
-        dec["counter_evidence"] = "; ".join(kept_refs[:2])
+        verified_finding_refs = [
+            r for r in (finding.evidence_refs if finding is not None else [])
+            if is_quote_ref(r) and r in kept_refs
+        ]
+
+        try:
+            rank = int(dec.get("rank") or 10**9)
+        except (TypeError, ValueError):
+            rank = 10**9
+        score = dec.get("score")
+        score_ok = (
+            True
+            if not isinstance(score, (int, float)) or max_score <= 0.0
+            else float(score) >= relevance_floor
+        )
+        precision_gate = bool(
+            finding is not None
+            and verified_finding_refs
+            and float(finding.uncertainty) < 0.9
+            and float(finding.confidence) >= 0.5
+            and rank <= 40
+            and score_ok
+        )
+
+        # Fail closed on counter labels.  A challenge stays in the audit record,
+        # but the product surface only labels it limiting/contrary when its own
+        # decision supplies verified evidence and the row is still in the
+        # high-relevance head.  The previous behaviour rendered every model
+        # challenge, including empty-evidence and off-domain rows.
+        if (
+            status.label in (StatusLabel.LIMITING, StatusLabel.CONTRARY_OR_EXCEPTION)
+            and precision_gate
+        ):
+            dec["counter_status"] = COUNTER_STATUS_FOR[status.label]
+        elif did in package.cited_decision_ids:
+            dec["counter_status"] = "cited"
+        else:
+            if status.label in (StatusLabel.LIMITING, StatusLabel.CONTRARY_OR_EXCEPTION):
+                suppressed_challenges += 1
+            dec["counter_status"] = "none"
+
+        dec["counter_evidence"] = "; ".join(verified_finding_refs[:2]) if precision_gate else ""
         dec["counter_uncertainty"] = round(status.uncertainty, 4)
-        if quote_refs:
-            dec["counter_evidence_verified"] = rejected == 0
+        dec["counter_evidence_verified"] = bool(precision_gate and verified_finding_refs)
         if finding is not None:
             dec["counter_reason"] = finding.reason
             dec["counter_confidence"] = round(finding.confidence, 4)
+            dec["counter_surface_gate"] = {
+                "passed": precision_gate,
+                "rank": rank,
+                "score": score,
+                "relevance_floor": round(relevance_floor, 6),
+                "verified_evidence_refs": len(verified_finding_refs),
+            }
 
     prov = dict(out.get("provenance") or {})
     prov["generative_audit"] = {
@@ -203,6 +252,8 @@ def apply_to_product_bundle(
         "status_summary": package.summary(),
         "evidence_source_check": package.evidence_check or None,
         "evidence_boundary_rejected_refs": boundary_rejected,
+        "counter_surface_policy": "verified_evidence+rank<=40+relative_relevance+confidence>=0.5+uncertainty<0.9",
+        "counter_surface_suppressed": suppressed_challenges,
         **(provenance or {}),
     }
     out["provenance"] = prov
