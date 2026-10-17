@@ -229,14 +229,24 @@ function draw(){
   ctx.clearRect(0,0,cv.width,cv.height);PTS=filtered().map(d=>({...d}));
   for(const p of PTS){
     const s=screenPos(p);p._px=s.x;p._py=s.y;
-    ctx.beginPath();ctx.arc(s.x,s.y,p.counter_status==="cited"?7:5,0,Math.PI*2);
+    const r=p.counter_status==="cited"?7:5;
+    ctx.beginPath();ctx.arc(s.x,s.y,r,0,Math.PI*2);
     ctx.fillStyle=colorFor(p.cluster_id);ctx.globalAlpha=p.is_outlier?.48:.88;ctx.fill();ctx.globalAlpha=1;
     if(counterEvidenced(p)){ctx.lineWidth=2.5;ctx.strokeStyle="#b72736";ctx.stroke()}
     else if(isCounter(p)){ctx.lineWidth=2;ctx.strokeStyle="#8a6d1f";ctx.setLineDash([4,3]);ctx.stroke();ctx.setLineDash([])}
     if(p.counter_status==="cited"){ctx.lineWidth=2.2;ctx.strokeStyle="#d59b00";ctx.stroke()}
-    /* drawn last, so a row that is BOTH discovered and qualified never hides its
-       discovery mark behind the counter/citation ring */
-    if(isAdversarial(p)){ctx.lineWidth=1.6;ctx.strokeStyle=ADV_RING;ctx.stroke()}
+    /* Discovery provenance is a SEPARATE, wider concentric halo at r+2.6, never a
+       ring on the accepted contour's radius. Cycle 39063665073 audit F1 measured
+       the old same-radius 1.6px cyan ring underpainting 62-100% of the accepted
+       red evidenced-counter contours (fr 11/11, de 15/24, it 11/14) while the
+       stroke-count probe stayed green. The wider halo keeps BOTH marks fully
+       visible: the accepted evidence contour is never painted over, and a row that
+       is BOTH discovered and qualified still shows that the independent pass found
+       it. canvas_probe.js now records (x,y,r,lineWidth) and asserts no contract
+       ring is concentric-underpainted by a thinner later ring. */
+    if(isAdversarial(p)){ctx.lineWidth=1.6;
+      ctx.beginPath();ctx.arc(s.x,s.y,r+2.6,0,Math.PI*2);
+      ctx.strokeStyle=ADV_RING;ctx.stroke()}
   }
 }
 cv.onclick=e=>{

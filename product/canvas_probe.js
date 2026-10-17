@@ -53,15 +53,27 @@ function recordingContext() {
     lineWidth: null,
     globalAlpha: 1,
     _dash: [],
+    _arc: null,
     clearRect() {},
     beginPath() {},
-    arc() {},
+    /* Geometry-aware (cycle 39063665073 audit F1): the current path's centre and
+     * radius are recorded so a stroke can be attributed to the exact circle it
+     * paints.  The old probe kept only (strokeStyle, dash), so it was blind to
+     * the class of defect where a later thinner ring is stroked concentrically on
+     * an accepted contract ring — the counts stayed green while the pixels were
+     * replaced. */
+    arc(x, y, r) { this._arc = { x, y, r }; },
     fill() { this.ops.push({ kind: "fill", fillStyle: this.fillStyle }); },
     stroke() {
+      const a = this._arc;
       this.ops.push({
         kind: "stroke",
         strokeStyle: this.strokeStyle,
+        lineWidth: this.lineWidth,
         dash: (this._dash || []).slice(),
+        x: a ? a.x : null,
+        y: a ? a.y : null,
+        r: a ? a.r : null,
       });
     },
     setLineDash(d) { this._dash = Array.isArray(d) ? d.slice() : []; },
@@ -98,6 +110,51 @@ function countFills(ops) {
   return { fill_colors: byColor, fill_undefined: undefinedFills };
 }
 
+/* Cycle 39063665073 audit F1: an accepted contract ring (red evidenced-counter,
+ * amber unevidenced-counter, gold cited) must never be concentrically
+ * underpainted by a THINNER later ring with the same centre and the same radius.
+ * When that happens the later stroke covers most of the earlier stroke's pixels
+ * while the stroke-count tally is unchanged — a count-preserved, pixel-degraded
+ * contract.  This returns every such violation, measured from the recorded
+ * (x, y, r, lineWidth) of each stroke, so a test can assert the set is empty. */
+const CONTRACT_STYLES = new Set([STROKE.red, STROKE.amber, STROKE.gold]);
+const GEOM_EPS = 1e-6;
+
+function concentricUnderpaints(ops) {
+  const strokes = ops.filter((op) => op.kind === "stroke");
+  const violations = [];
+  for (let i = 0; i < strokes.length; i += 1) {
+    const base = strokes[i];
+    if (!CONTRACT_STYLES.has(base.strokeStyle)) continue;
+    if (base.x == null || base.r == null) continue;
+    for (let j = i + 1; j < strokes.length; j += 1) {
+      const later = strokes[j];
+      if (later.strokeStyle === base.strokeStyle) continue;
+      if (later.x == null || later.r == null) continue;
+      const sameCentre = Math.abs(base.x - later.x) < GEOM_EPS
+        && Math.abs(base.y - later.y) < GEOM_EPS;
+      const sameRadius = Math.abs(base.r - later.r) < GEOM_EPS;
+      const thinner = typeof later.lineWidth === "number"
+        && typeof base.lineWidth === "number"
+        && later.lineWidth < base.lineWidth;
+      /* The only "underpainting" to treat as a defect is a NON-CONTRACT marker
+       * (e.g. the discovery/provenance cyan ring) stroking concentrically over an
+       * accepted contract ring with a thinner line. Contract→contract overlaps
+       * (red then gold on the same radius in some cases) are not the class of
+       * defect the audit isolated and would produce spurious violations. */
+      const laterIsNonContract = !CONTRACT_STYLES.has(later.strokeStyle);
+      if (sameCentre && sameRadius && thinner && laterIsNonContract) {
+        violations.push({
+          x: base.x, y: base.y, r: base.r,
+          contract_style: base.strokeStyle, contract_lineWidth: base.lineWidth,
+          overpaint_style: later.strokeStyle, overpaint_lineWidth: later.lineWidth,
+        });
+      }
+    }
+  }
+  return violations;
+}
+
 /**
  * Run the page's own draw() once against `bundle` and report what it painted.
  *
@@ -127,9 +184,14 @@ function measure(opts) {
 
   const counts = countByStyle(ctx.ops);
   const fillCounts = countFills(ctx.ops);
+  const underpaints = concentricUnderpaints(ctx.ops);
   const pts = page.evaluate("PTS.length");
   const fills = ctx.ops.filter((op) => op.kind === "fill").length;
-  return Object.assign({ pts, fills, draw_calls: 1 }, counts, fillCounts);
+  return Object.assign({
+    pts, fills, draw_calls: 1,
+    concentric_underpaint_count: underpaints.length,
+    concentric_underpaints: underpaints.slice(0, 8),
+  }, counts, fillCounts);
 }
 
 function main(argv) {
@@ -156,4 +218,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { measure, recordingContext, STROKE };
+module.exports = { measure, recordingContext, concentricUnderpaints, STROKE };

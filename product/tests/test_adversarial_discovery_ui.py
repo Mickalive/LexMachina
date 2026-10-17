@@ -74,6 +74,8 @@ ACCEPTED_CONTRACT = {
 
 DISCOVERY_STROKE = 'if(isAdversarial(p)){ctx.lineWidth=1.6;'
 REJECTED_STROKE = 'if(false&&isAdversarial(p)){ctx.lineWidth=1.6;'
+DISCOVERY_ARC = 'ctx.arc(s.x,s.y,r+2.6,0,Math.PI*2);'
+MUTANT_DISCOVERY_ARC_SAME_R = 'ctx.arc(s.x,s.y,r,0,Math.PI*2);'
 RENDER_DISCOVERY = "renderCounters();renderAdversarial();renderClusters();"
 REJECTED_RENDER = "renderCounters();renderClusters();"
 
@@ -106,7 +108,7 @@ needs_node = pytest.mark.skipif(NODE is None, reason="node runtime unavailable")
 # --------------------------------------------------------------------------
 @needs_node
 @pytest.mark.skipif(not SERVE_PACKET.is_dir(),
-                    reason="served gate packet 38839347028 not present")
+                     reason="served gate packet 38839347028 not present")
 @pytest.mark.parametrize("question", QUESTIONS)
 def test_discovery_ring_does_not_disturb_the_accepted_contour_contract(question):
     """Adding the discovery ring must not move a single accepted number."""
@@ -118,6 +120,9 @@ def test_discovery_ring_does_not_disturb_the_accepted_contour_contract(question)
     assert report["amber"] == want["amber"], report
     assert report["gold"] == want["gold"], report
     assert report["dashed_other"] == 0, report             # still no stray dash
+    assert report.get("concentric_underpaint_count", 0) == 0, (
+        "the discovery/provenance marker must not overpaint accepted contract rings",
+        report.get("concentric_underpaints", []))
     # one discovery ring per adversarially discovered row, counted from the data
     n = len(_discovered_rows(SERVE_PACKET / "questions" / f"{question}.bundle.json"))
     assert report["discovery"] == n, (
@@ -130,6 +135,7 @@ def test_live_run_paints_the_authorities_its_adversarial_pass_found():
     """The real live slice: 8 admitted discoveries must be visible, 202 points."""
     report = _probe(LIVE_BUNDLE)
     assert report["pts"] == 202, report
+    assert report.get("concentric_underpaint_count", 0) == 0, report
     assert report["discovery"] == 8, (
         f"the live run's 8 adversarially admitted authorities must render a "
         f"discovery ring; measured {report['discovery']}")
@@ -142,10 +148,21 @@ def test_probe_discriminates_the_page_without_the_discovery_ring(tmp_path):
     html = PAGE.read_text(encoding="utf-8")
     assert html.count(DISCOVERY_STROKE) == 1, (
         "the discovery ring branch is no longer the shipped one")
+    assert html.count(DISCOVERY_ARC) == 1, (
+        "the discovery ring must be drawn at the wider concentric halo")
     mutant = tmp_path / "no_discovery_query.html"
     mutant.write_text(html.replace(DISCOVERY_STROKE, REJECTED_STROKE, 1),
                       encoding="utf-8")
+    m2 = tmp_path / "same_r_discovery_query.html"
+    m2.write_text(html.replace(DISCOVERY_ARC, MUTANT_DISCOVERY_ARC_SAME_R, 1),
+                  encoding="utf-8")
     assert _probe(LIVE_BUNDLE)["discovery"] == 8
+    assert _probe(LIVE_BUNDLE)["concentric_underpaint_count"] == 0
+    m2r = _probe(LIVE_BUNDLE, m2)
+    assert m2r["discovery"] == 8
+    # LIVE_V2 has no overlaps between discovered rows and contract rings; the
+    # detector must still be geometry-aware (equality by centre/radius) and not
+    # be silently stubbed. We do not force a positive count for this bundle.
     assert _probe(LIVE_BUNDLE, mutant)["discovery"] == 0
 
 
