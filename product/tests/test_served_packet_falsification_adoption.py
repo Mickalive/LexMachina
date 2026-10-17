@@ -164,7 +164,8 @@ def test_the_adoption_never_rewrites_the_frozen_packet():
     assert adoption["published"] is True
     assert set(k for k in adoption
                if k.startswith("frontier_")) == {
-        "frontier_counter_label_integrity", "frontier_map_semantics"}
+        "frontier_counter_label_integrity", "frontier_map_semantics",
+        "frontier_served_packet_falsification"}
     assert adoption["frontier_counter_label_integrity"]["covers_this_packet"] is False
     assert adoption["frontier_map_semantics"]["covers_this_packet"] is False
     # ... and the packet still verifies byte-for-byte.
