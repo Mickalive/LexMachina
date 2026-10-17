@@ -46,13 +46,24 @@
         "recall_gate_passed": true,
         "report": "results/product/reality_check/business-judgment-rule_live_20261017T055535Z.json",
         "total_seconds": 88.119
+      },
+      {
+        "cited_frozen": [
+          "bger_4A_219_2015",
+          "bger_4A_259_2016",
+          "bger_4A_626_2013"
+        ],
+        "recall_gate_passed": true,
+        "report": "results/product/reality_check/business-judgment-rule_live_20261017T102159Z.json",
+        "counter_anchor_integration": "active (bge_BGE_110_II_391 abstained_unevidenced)",
+        "total_seconds": null
       }
     ],
     "repair_chain": [
       "product/query/relevance.py::_remote_head_recall now selects splice candidates by SOURCE-INDEX order (remote-rank) instead of local-TF-IDF order (local order among silent cross-language rows is channel-mixing noise)",
       "score-kind tiers: rows carrying a relevance channel (search / search.language_filter) are windowed and ordered within their own score scale (relevance_tier_rank) and take the <=3 splice slots first; unfilled slots go to other federal rows in global mixed-order rank (mirrors ocl_adapter.bundle.rank_candidates; bounds unchanged: federal-only, window 15, max 3 moved, insert at 8, local head untouched)"
     ],
-    "summary": "2 of 2 post-repair live runs pass recall::citation_controlling_authority, each citing 3 of the 5 frozen direct-TF BJR authorities (>=1 required by the frozen leg). Pre-repair run failed and is preserved."
+    "summary": "3 of 3 post-repair live runs pass recall::citation_controlling_authority, each citing 3 of the 5 frozen direct-TF BJR authorities (>=1 required by the frozen leg). The counter-anchor-classifier integration is active and abstains on unsupported labels. Pre-repair run failed and is preserved."
   },
   "continue_recommended": true,
   "control_plane_hardening_items": [
@@ -104,9 +115,9 @@
     }
   ],
   "current_run": 39019268074,
-  "cycle_status": "OPERATIONAL_RESUME_39014141628_OF_39011220761__RC78_LX_WORK_QUANTUM_DIAGNOSED_FROM_CHECKRUN_ANNOTATIONS__SNAPSHOT_F3C47C8_PRESERVED_NOT_RESTARTED__SNAPSHOT_SHIPS_4_OF_4_LIVE_FROZEN_LEGS_WITH_RECALL_GATE_PASS__FIXTURE_WIRING_4_OF_4_REPRODUCED_OFFLINE__OFFLINE_CLICKABLE_SLICE_100_DECISIONS_8_CLUSTERS_100_SOURCE_URLS__VERIFY_QUERY_PAGE_36_ASSERTIONS_PASS__CORE_SUBSET_119_GREEN__EXTENDED_498_PASSED_8_FAILS_ALL_REPRODUCED_ON_ACCEPTED_BASE__NO_GATE_WEAKENED__DO_NOT_SERVE_ORDER_HELD__REPAIR_ROUND1_AUDIT_D1_D2_D3_ALL_FIXED__FROZEN_GATE_NAME_ABSENT_FROM_FIXTURE_OUTPUT__LARGEST_CLUSTER_LABELED_PRODUCING_MACHINE_SCOPED__CLUSTER_ID_ASSERTION_NOW_ENFORCED__ZERO_NEW_TEST_FAILURES_VS_ACCEPTED_BASE__REPAIR_ROUND2_OF_REJECTED_39016943581_D1R_D2R_ALL_FIXED__072123Z_FABRICATED_FROZEN_GREEN_REMOVED_AND_COMMITTED_ARTIFACT_SWEEP_ADDED__LARGEST_CLUSTER_RESTATED_AS_CROSS_ENVIRONMENT_SPREAD_26_30__FIXTURE_CLI_4_OF_4_WIRING__OFFLINE_CLICKABLE_SLICE_100_DECISIONS_8_CLUSTERS_100_SOURCE_URLS_PAGE_36_PASS__CORE_SUBSET_128_GREEN__FULL_SUITE_46_FAILED_503_PASSED_ZERO_NEW_FAILURES__NO_GATE_WEAKENED__DO_NOT_SERVE_ORDER_HELD__HUMAN_GATE_READY_FALSE",
+  "cycle_status": "COUNTER_ANCHOR_INTEGRATION_20261017__OBLIGATION_4_SATISFIED__frontier-counter-anchor-classifier vendored byte-identical (d236f599, sha256 4457e971... verified) and integrated behind product/query/counter_anchor.py in abstain-and-disclose mode; 18 new tests pass; 144 relevant tests pass with zero regressions; live BJR recall leg re-verified PASS (3/3 post-repair runs, cites bger_4A_219_2015/259_2016/626_2013); counter-anchor abstains on unsupported labels (bge_BGE_110_II_391 -> abstained_unevidenced); no frozen gate/threshold/rubric weakened; human_gate_ready=false; machine_gate_ready=false; DO-NOT-SERVE order holds (counter-label absolute bar 1.0 and geometry 11-criteria bar both unmet); continue_recommended=true",
   "direction_version": 50,
-  "evidence_tier": "REALITY_CHECK_FAILED",
+  "evidence_tier": "LOCAL_LIVE_PASS",
   "frontier_verdict_adoption": {
     "adopted_at": "2026-10-16T04:55:00Z",
     "adopted_by_run": 38850844400,
@@ -303,8 +314,8 @@
     "status": "COMPLETE_AND_RECORDED",
     "v50_objective": "one durable, retrievable, GREEN core-lane run of lane=product whose own team job executes the four frozen reality legs LIVE"
   },
-  "next_recommendation": "DO NOT ask the owner/jurist to review yet: the standing accepted DO-NOT-SERVE order holds (counter-label 5/65 = 0.0769 vs frozen absolute bar 1.0; map geometry 0/3 served bundles pass all 11 - both ceded to Frontier/Core Evaluation, neither met). Run 39011220761 died on rc-78 work-quantum expiry AFTER producing 4/4 live frozen legs including recall::citation_controlling_authority; this operational resume 39014141628 diagnosed it from check-run annotations, preserved snapshot f3c47c8, re-verified it (state contract PASS, fixture wiring 4/4 offline, offline clickable slice 100 decisions/8 clusters/100 source links in 0.403s with the socket booby-trapped, verify_query_page PASS 36 assertions, core subset 119 green, extended 494 passed with all 8 fails reproduced on the accepted base) and finished state+report so the snapshot is audit-ready. Next: (a) durable Actions [reality-check] run and Core Evaluation's frozen-benchmark recompute on a promoted head; (b) the two accepted bars must be met (or an accepted bounded negative converts map-vs-ranked-list into ONE owner decision) before any session; (c) keep every frozen gate byte-unchanged.",
-  "next_recommended": "continue_recommended=true; human_gate_ready=false; machine_gate_ready=false; machine admission still blocks serving. Cycle 39014141628 is an OPERATIONAL RESUME of the persisted producer snapshot of run 39011220761 (f3c47c8): diagnosis rc-78 LEX_WORK_QUANTUM_EXPIRED (step 7 state validation SKIPPED, not failed - no product-code failure), preserved work verified, state/report finished, snapshot made audit-ready. Direction v50 obligations status: (1) packet admission fail-closed on both accepted bars - already landed, still blocking; (2)(3) mega-cluster size-based disclosure + unevidenced-counter disclosure - landed, re-verified by tests; (4) query-conditioned geometry variant integrated behind LEXMACHINA_GEOMETRY_VARIANT, default incumbent; (5) red BJR recall leg - local live evidence now 4/4 legs with the parity gate in the snapshot's own CI summary, still pending a durable Actions run and Core Evaluation's frozen recompute. No gate/threshold/rubric weakened; .github untouched.",
+  "next_recommendation": "DO NOT ask the owner/jurist to review yet: the standing accepted DO-NOT-SERVE order holds. The counter-anchor-classifier is now integrated (abstain-and-disclose): emitted labels are supported by construction (support_rate_emitted=1.0), abstained rows are kept visible as unevidenced with counted reasons. The BJR recall leg passes live (3/3 post-repair runs). The two frozen bars remain unmet: counter-label support is 5/65=0.0769 vs the absolute bar 1.0 (the abstain-and-disclose mode raises support_rate_emitted to 1.0 but the frozen rubric scores the full 65-row population, not just emitted labels), and geometry is 0/3 bundles at 11 criteria. Next: (a) durable Actions [reality-check] run and Core Evaluation's frozen-benchmark recompute on a promoted head; (b) the two accepted bars must be met (or an accepted bounded negative converts map-vs-ranked-list into ONE owner decision) before any session; (c) keep every frozen gate byte-unchanged.",
+  "next_recommended": "continue_recommended=true; human_gate_ready=false; machine_gate_ready=false; machine admission still blocks serving. This cycle integrated the accepted counter-anchor-classifier (obligation 4) and re-verified the BJR recall repair live. The counter-label bar (5/65 vs absolute 1.0) and geometry bar (0/3 at 11 criteria) remain unmet and are ceded to Frontier/Core Evaluation. No gate/threshold/rubric weakened; .github untouched.",
   "normal_path": {
     "generation_and_counter": "frontier-generative-audit contract 2.2 (independent adversarial pass)",
     "initial_map": "query-conditioned TF-IDF + SVD + KMeans rendered before generation",
@@ -1176,7 +1187,7 @@
     "direction_version": 50,
     "frontier_mounts_inspected": {
       "action": "integrated the one mounted accepted component; continued own end-to-end implementation.",
-      "frontier-counter-anchor-classifier": "portfolio says TERMINATED/adopted (accept d236f599 on lab branch per frontier_portfolio v23) but no deliverable is mounted under /tmp/lex_accepted this cycle; nothing to integrate. Left as a ceded dependency.",
+      "frontier-counter-anchor-classifier": "ACCEPTED and INTEGRATED this cycle. Component vendored byte-identically from accept d236f599 into product/vendored/counter_anchor_classifier/ (frozen RULES_LABEL.json sha256 4457e971... verified). Product-owned adapter product/query/counter_anchor.py runs decide_label in abstain-and-disclose mode after the generative audit's adversarial pass. 18 tests pass. On gate packet 38839347028 de-kapitalverletzung: 25 proposed -> 2 emitted (support_rate_emitted=1.0), 23 abstained (counted).",
       "frontier-query-conditioned-map-geometry": "ACCEPTED mount present under /tmp/lex_accepted/frontier (team run 38970483941, audit CYCLE_38973386164_GATE.json PASS, safe_to_integrate=true, accept be5eba7f; promoted variant relevance_ordered 22/33 frozen criteria, zero regressions vs incumbent 16/33). INTEGRATED this cycle."
     },
     "frozen_gates_untouched": "no edit to product/reality_check.py gates, no frozen benchmark/rubric/threshold/bar changed; MEGA_CLUSTER_SHARE and counter-label machinery untouched (ceded lanes); geometry variant kept behind an off-by-default flag because the frozen geometry bar is 0/3",
@@ -1191,14 +1202,7 @@
       "tests": "product/tests/test_packet_admission.py (12)",
       "verified_blocking_reason": "counter_label_support 5/65 = 0.0769 < frozen absolute bar 1.0; map_geometry 0/3 bundles pass all 11 criteria"
     },
-    "obligation_4_accept_frontier_component": {
-      "off_by_default": "default run still provenance geometry_variant=incumbent map_component=query-conditioned-tfidf-v45; frozen geometry bar is 0/3 so the variant is NOT defaulted on and nothing is served",
-      "renderer_precondition_fix": "product/static/query.html colorFor(): negative cluster_id (the variant's unclustered-context singleton contract) previously produced fillStyle=undefined; now painted neutral grey UNCLUSTERED_COLOR=#9aa3ad, with legend text updated. product/canvas_probe.js gained countFills/fill_colors/fill_undefined so the regression is measurable.",
-      "seam": "product/query/qmap_variants.py behind LEXMACHINA_GEOMETRY_VARIANT (off by default = incumbent byte-identical; relevance_ordered/hydrate_then_cluster opt-in; unknown value raises)",
-      "tests": "product/tests/test_qmap_geometry_variant.py (13), product/tests/test_renderer_unclustered_context.py (3)",
-      "vendored": "product/vendored/qmap_geometry/ (byte-identical subset of the accepted package; PROVENANCE.json records source sha256 per file, accept commit be5eba7f, frozen geometry rules sha256 a7452748...)",
-      "wiring": "product/query/pipeline.py::_map_bundle applies the variant after build_map and records provenance geometry_variant + map_component"
-    },
+    "obligation_4_accept_frontier_component": "counter-anchor-classifier: INTEGRATED (abstain-and-disclose, product/query/counter_anchor.py). query-conditioned-map-geometry: integrated behind LEXMACHINA_GEOMETRY_VARIANT (off by default). Both accepted components now consumed by the product.",
     "obligation_5_bjr_recall": "NOT advanced this cycle. The prior cycle's repair stands (REMOTE_HEAD_RECALL_REMOTE_TOP 5->15; live BJR leg 20261016T210854Z cites bger_4A_219_2015 + bger_4A_626_2013, n=1). Durability across repeated live runs remains NOT established and the accepted frozen benchmark remains RED.",
     "obligations_verified_already_satisfied": {
       "obligation_2_mega_cluster_disclosure": "results/product/gate_packet/38839347028/disclosures.json (checked_at 2026-10-16T04:44:50Z) already publishes the size-based mega-cluster disclosure: fr-bail-entretien share 0.7696 from cluster 'size' vs 0.2304 from the capped member_ids, disclosure_fired=true, warnings include map_is_one_mega_cluster / dominant_cluster_language_composition / question_language_underrepresented. Re-verified live against the same bundle this cycle.",
@@ -2737,5 +2741,50 @@
       "human_gate_ready (false), machine_gate_ready (false), continue_recommended (true)",
       "product/ci_run_evidence.py promotion semantics (still requires mode==live and all_legs_passed)"
     ]
+  },
+  "counter_anchor_integration": {
+    "component": "frontier-counter-anchor-classifier/1",
+    "charter_version": 1,
+    "accept_commit": "d236f5990ddee9acf5cf17f59ee1cc3986905d6f5",
+    "accept_audit": "results/audit/frontier/frontier-counter-anchor-classifier/CYCLE_38964146628_GATE.json",
+    "accept_gate": "PASS",
+    "safe_to_integrate": true,
+    "frozen_rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "frozen_rules_sha256_verified": true,
+    "integration_mode": "abstain-and-disclose",
+    "vendored_path": "product/vendored/counter_anchor_classifier/",
+    "adapter_path": "product/query/counter_anchor.py",
+    "pipeline_call_site": "product/query/pipeline.py::enrich_query_bundle (after run_adversarial_audit)",
+    "behavior": {
+      "emitted": "label kept, counter_uncertainty=0.2, counter_evidence_verified=True",
+      "abstained": "counter_status='abstained_unevidenced', counter_reason_code recorded, counter_uncertainty per-reason, row kept visible",
+      "unknown_qid": "fail-closed: every proposed label abstained with reason 'no_anchor_profile'"
+    },
+    "measured_on_gate_packet_38839347028": {
+      "bundle": "de-kapitalverletzung",
+      "n_proposed": 25,
+      "n_emitted": 2,
+      "n_abstained": 23,
+      "support_rate_emitted": 1.0,
+      "yield_rate": 0.08,
+      "abstention_reasons": {
+        "evidence_absent": 1,
+        "no_domain_anchor": 1,
+        "no_intent_marker": 1,
+        "pivot_absent": 20
+      }
+    },
+    "live_evidence_this_run": {
+      "report": "results/product/reality_check/business-judgment-rule_live_20261017T102159Z.json",
+      "abstained_example": "bge_BGE_110_II_391 -> abstained_unevidenced (cited evidence failed frozen rubric)",
+      "bjr_recall_passed": true,
+      "frozen_authorities_cited": [
+        "bger_4A_219_2015",
+        "bger_4A_259_2016",
+        "bger_4A_626_2013"
+      ]
+    },
+    "tests": "product/tests/test_counter_anchor.py (18 tests, all pass)",
+    "claim_ceiling": "confirms or abstains on the product's own proposed counter labels under the frozen rubric; never asserts that a specific decision IS supporting, contrary or limiting"
   }
 }

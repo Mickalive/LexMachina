@@ -110,12 +110,22 @@ def test_independent_adversarial_result_patches_visible_counter_status():
     )
     ga = final["provenance"]["generative_audit"]
     assert ga["adversarial"]["method"] == "fixture_adversarial_v2"
-    counters = [
+    # The accepted counter-anchor-classifier (v50 obligation 4) verifies every
+    # proposed counter label under the frozen rubric.  The fixture query is not
+    # one of the five frozen benchmark queries, so the adapter abstains on every
+    # proposed label (fail-closed, no_anchor_profile) and keeps the rows visible
+    # as unevidenced.  The abstentions are counted in provenance.
+    ca = final["provenance"]["counter_anchor"]
+    assert ca["component"] == "frontier-counter-anchor-classifier/1"
+    assert ca["n_proposed"] > 0
+    assert ca["n_abstained"] == ca["n_proposed"]
+    abstained = [
         d for d in final["decisions"]
-        if d.get("counter_status") in {"candidate-limiting", "candidate-contrary"}
+        if d.get("counter_status") == "abstained_unevidenced"
     ]
-    assert counters
-    assert counters[0].get("counter_uncertainty") is not None
+    assert len(abstained) == ca["n_abstained"]
+    assert abstained[0].get("counter_uncertainty") is not None
+    assert abstained[0].get("counter_evidence_verified") is False
 
 
 def test_fixture_mode_is_explicit_not_a_live_padding_source():

@@ -26,6 +26,7 @@ from .adversarial_retrieval import (
     fetch_adversarial_candidates,
     plan_adversarial_queries,
 )
+from .counter_anchor import apply_counter_anchor_decisions
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RETRIEVAL_ROOT = REPO_ROOT / "frontier" / "frontier-query-retrieval"
@@ -829,6 +830,14 @@ def enrich_query_bundle(
             fixture_mode=fixture_generation,
             fixture_findings=fixture_findings,
         )
+
+    # Accepted Frontier component integration (v50 obligation 4): verify every
+    # proposed counter label under the FROZEN support rubric.  Emitted labels
+    # are served; abstained rows are kept visible as unevidenced with a
+    # counted reason — never silently dropped.  Runs after the generative
+    # audit's adversarial pass (the last label-writing step) so every proposed
+    # label is verified before the bundle is returned.
+    audited = apply_counter_anchor_decisions(audited)
 
     # The adversarial/generative stage must never move the already visible map.
     original_geo = {
