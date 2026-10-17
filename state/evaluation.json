@@ -2,13 +2,13 @@
  "lane": "evaluation",
  "direction_version": 50,
  "evidence_tier": "REPRODUCED",
- "cycle_status": "V50_COUNTER_AUTHORITY_LABEL_FALSIFICATION_39004097533",
+ "cycle_status": "V50_COUNTER_AUTHORITY_LABEL_FALSIFICATION_39004097533_REPAIR_R1",
  "continue_recommended": true,
  "accepted_run_id": "38971202786",
  "accepted_run_id_correction_note": "corrected this cycle (38972887369) per BLOCKED audit 38972043610 required fix D2: the pointer was 38951152192 while the accepted base commit 59fde886 is 'accept evaluation cycle 38971202786' (audit gate results/audit/evaluation/CYCLE_38971202786_GATE.json gate=PASS safe_to_integrate=true, verified on ref origin/cycle/core/evaluation/38971202786/audit). Pointer-only correction; acceptance itself moves only via an audit gate.",
  "proposed_run_id": "39004097533",
- "repair_round": 0,
- "repair_audit_ref": "origin/cycle/core/evaluation/38968781838/audit:results/audit/evaluation/CYCLE_38968781838_GATE.json (gate=REVISE; the file lives on the AUDIT BRANCH ref, not in any team tree or lab branch — pointer corrected per BLOCKED audit 38972043610 required fix D4, which had flagged it dangling for three cycles; the ref was fetched and re-read this cycle to prove it resolves)",
+ "repair_round": 1,
+ "repair_audit_ref": "origin/cycle/core/evaluation/39004097533/audit:results/audit/evaluation/CYCLE_39004097533_GATE.json (gate=REVISE; mounted read-only this round at /tmp/lex_prior_audit; required_fixes R1 and R2 are anchor-sensitivity claim corrections and are applied in this repair round 1)",
  "repair_fixes_applied": {
   "R1_38971202786_repair_of_38968781838": "audit-required R1 scope correction (gate=REVISE on CYCLE_38968781838): withdrew 'CI-executable on ANY future Frontier/product packet' / 'score arbitrary packets' in 4 locations (report BAR_GATES_38968781838.md title+ss1+ss5 with R1 erratum preserving original wording; test docstring; continue_recommended_reason; v50_bar_gates_38968781838.claim_ceiling). True proven scope: frozen-anchor qids at non-incumbent population score NOT_APPLICABLE with no build block; unknown qids refused by design; new packets need a disclosed rules re-freeze. Optional hardening x3 all adopted: label unknown-qid ValueError guard in label_gate.score_packet (was raw KeyError) + new pinning test test_label_unknown_anchor_refuses_invented_profile; bare-checkout incumbent-pin coverage gap disclosed.",
   "R1": "recall-gate semantics restated as '>=1 of frozen authority set per gate' in report+state, with partial-set pass rates disclosed; benchmark NOT re-freeze (digest unchanged); semantics pinned by test_recall_gate_semantics_is_exactly_at_least_one_of_frozen_set",
@@ -22,7 +22,10 @@
   "M1_38966576940": "vendored-digest runtime enforcement added: tests/evaluation/test_frozen_bar_gates.py::test_vendored_files_match_pinned_digests re-hashes all 14 vendored rubric/reference files against VENDORED_SHA256.json at test time, so a lenient vendored edit that inflates label support becomes a visible red instead of an invisible green on the one-sided regression gate.",
   "M2_38966576940": "adopted_frontier_verdicts_v56.geometry_semantics_rules_sha256 truncated 60-char value replaced with the full 64-char frozen digest a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633 (matches RULES_GEOMETRY.json re-hash and frontier_verdict_adoption.json).",
   "M3_38966576940": "evaluation/lane_suite.py report direction_version now DERIVED from state/evaluation.json via _lane_direction_version() (was a hardcoded literal 49 that went stale when the state moved to 50); report carries direction_version_source for transparency.",
-  "R1_report_correction": "reports/evaluation/BAR_GATES_38964129305.md '119 tests still pass' sentence corrected by a visible erratum (original claim preserved): full lane-suite internal pytest set is 121 collected = 120 passed + 1 by-design mount skip without the mount, 0 failed after the pin repair (121/121 passed with the mount); test_frozen_bar_gates.py adds 13 (13 passed with mount; 8 passed + 5 mount skips without). The same false claim in state v50_frozen_bar_gates.tests was corrected."
+  "R1_report_correction": "reports/evaluation/BAR_GATES_38964129305.md '119 tests still pass' sentence corrected by a visible erratum (original claim preserved): full lane-suite internal pytest set is 121 collected = 120 passed + 1 by-design mount skip without the mount, 0 failed after the pin repair (121/121 passed with the mount); test_frozen_bar_gates.py adds 13 (13 passed with mount; 8 passed + 5 mount skips without). The same false claim in state v50_frozen_bar_gates.tests was corrected.",
+  "R1_repair_39004097533_r1": "Audit CYCLE_39004097533_GATE.json required fix R1 applied: corrected the FALSE French anchor-independence claims. reports/evaluation/COUNTER_AUTHORITY_LABEL_BENCHMARK_39004097533.md section 1a 'Not one French counter-authority label is supported...' is now explicitly scoped to the MATCHED anchor (kuendigung-mietrecht), and section 1d no longer claims 'On FR every anchor gives 0.0000, so the French result is anchor-independent'. state/evaluation.json Q1_product_axis_L1_did_not_hold.FRENCH_RESULT corrected. Ground truth from the record's own by_anchor cells: fr-bail-entretien FR = 2/24 = 0.0833 before, 2/22 = 0.0909 after; four of five anchors return 0.0000 on FR. Added the correct replacement claim: the POOLED L1 regression holds under ALL five anchors (de-kap 1/70->0/58, fr-bail 3/70->2/58, it-resp 0/70->0/58, matched 11/70->7/58, resp-pen 0/70->0/58, improved=False everywhere). No frozen record, hypothesis, rubric, metric, threshold or verdict touched.",
+  "R2_repair_39004097533_r1": "Audit CYCLE_39004097533_GATE.json required fix R2 applied: the report section 1d 'best alternative anchor' column actually showed the record's min_other_anchor_support_rate (the MINIMUM other anchor), and derived margins were wrong. The report table now labels the record field 'minimum other anchor' AND adds the true best (maximum) alternative with its name; true best-alternative margins are +0.2069 before-de (not +0.2414), +0.1765 before-it (not +0.2353), and on FR the matched anchor is WORSE than the best alternative by -0.0833 before / -0.0909 after (not 0.0000). state/evaluation.json anchor_fit_sensitivity corrected; the frozen metric M4 definition (matched-minus-minimum) is untouched. The 'most generous anchor' sentence is now scoped to the POOLED figures (0.1571 vs <=0.0429 under every other anchor, true pooled).",
+  "hardening_repair_39004097533_r1": "Adopted the audit's recommended hardening: new mount-independent test tests/evaluation/test_counter_authority_label_benchmark.py::test_pooled_anchor_regression_holds_under_all_five_anchors recomputes from the committed record's anchor_fit_spread (a) improved == False for all five frozen anchors (matched pinned 11/70->7/58; fr-bail-entretien pinned 3/70->2/58) and (b) the fr-bail-entretien FR cells (2/24 before, 2/22 after) plus matched-anchor FR 0-supported, so neither corrected claim can silently regress."
  },
  "evidence_refs": [
   "evaluation/benchmark_retrieval_counter_authority.py",
@@ -69,6 +72,7 @@
   "reports/evaluation/CYCLE_38982728075.md",
   "reports/evaluation/CYCLE_38989947869.md",
   "reports/evaluation/CYCLE_38993062549.md",
+  "reports/evaluation/CYCLE_39007294442.md",
   "reports/evaluation/RETRIEVAL_CA_BENCHMARK_38989947869.md",
   "reports/evaluation/evaluation_v49_cycle_report.md",
   "reports/evaluation/evaluation_v49_cycle_report_38934722443.md",
@@ -110,6 +114,7 @@
   "results/evaluation/snapshot_audit/38982176936.json",
   "results/evaluation/snapshot_audit/38982176936_write_scope_repro.json",
   "results/evaluation/snapshot_audit/39004097533.json",
+  "results/evaluation/snapshot_audit/39007294442.json",
   "results/evaluation/snapshot_audit/void_self_audit_38982176936/CYCLE_38982176936.md",
   "results/evaluation/snapshot_audit/void_self_audit_38982176936/CYCLE_38982176936_GATE.json",
   "results/evaluation/snapshot_audit/void_self_audit_38982176936/VOID.json",
@@ -1120,7 +1125,7 @@
     "fr": "0/22",
     "it": "1/7"
    },
-   "FRENCH_RESULT": "0 supported French counter labels in BOTH arms; anchor-independent (every one of the five frozen anchors returns 0.0000 on FR)",
+   "FRENCH_RESULT": "0 supported French counter labels in BOTH arms UNDER THE MATCHED ANCHOR (kuendigung-mietrecht: 0/24 before, 0/22 after). NOT anchor-independent (this field was corrected in repair round 1 of rejected cycle 39004097533): FR is 0-supported under four of the five frozen anchors, but under fr-bail-entretien FR carries 2 supported rows in each arm (2/24 = 0.0833 before, 2/22 = 0.0909 after). The verdict does not rest on FR: the pooled L1 regression holds under ALL five anchors (matched 11/70 -> 7/58; fr-bail-entretien 3/70 -> 2/58; de-kapitalverletzung 1/70 -> 0/58; it-responsabilita-medica 0/70 -> 0/58; responsabilite-penale-entreprise-102cp 0/70 -> 0/58; improved=False everywhere).",
    "genuine_improvement_not_explained_away": "INVERTED-class rows 2 -> 0; the repair eliminated both affirmatively inverted labels the product audit named; UNBACKED share 0.471 -> 0.397",
    "genuine_regression_not_explained_away": "SUPPORTED share 0.157 -> 0.121; OFF-DOMAIN share 0.314 -> 0.466; three SUPPORTED Italian labels were among the ten the repair removed",
    "corroborates_product_own_report": "reports/product/CYCLE_38831241913.md records the IT counter-label yield dropping 12 -> 2 with 10 of 12 old IT labels in the off-domain/boilerplate/inverted/fragment class; this measurement adds that 3 of the 10 removed were SUPPORTED",
@@ -1132,7 +1137,7 @@
     "discipline": "enforced=false, part_of_frozen_predicate_L1=false; added AFTER the confound was known, i.e. in the direction that WEAKENS the falsification, and deliberately not allowed to relax the frozen rule",
     "pinned_by": "tests/evaluation/test_counter_authority_label_benchmark.py::test_shared_id_sensitivity_does_not_rescue_the_product"
    },
-   "anchor_fit_sensitivity": "every artifact scored under all five frozen anchors; kuendigung-mietrecht is the most generous by +0.24 (de) / +0.24 (it), so the falsification holds under the anchor most favourable to the product; enforced=false"
+   "anchor_fit_sensitivity": "every artifact scored under all five frozen anchors. POOLED, kuendigung-mietrecht is the most generous anchor by a wide margin (0.1571 before vs <= 0.0429 under every other anchor) and the pooled L1 regression holds under ALL five anchors (improved=False everywhere), so the falsification does not depend on the anchor choice. PER-ARTIFACT, the record's min_other_anchor_support_rate is the MINIMUM other anchor, NOT the best alternative (this field was corrected in repair round 1 of rejected cycle 39004097533): on DE/IT the matched anchor is the most generous (margins vs the true best alternative +0.2069 before-de, +0.1765 before-it, +0.2069 after-de, +0.1429 after-it, versus the larger minimum-other margins +0.2414/+0.2353/+0.2069/+0.1429), while on FR the matched anchor is WORSE than the best alternative (fr-bail-entretien) by -0.0833 before and -0.0909 after. enforced=false"
   },
   "Q2_bar_axis_gate_predicates_fired": {
    "gate_lineage_measured": {
@@ -1214,5 +1219,23 @@
   "evaluation/lane_suite.py (disclosed pytest scope extension: +1 file; no frozen benchmark touched)",
   "reports/evaluation/COUNTER_AUTHORITY_LABEL_BENCHMARK_39004097533.md (new)",
   "state/evaluation.json (this block and the two above)"
+ ],
+ "repair_39004097533_round_1": {
+  "rejected_cycle": "39004097533",
+  "rejected_audit": "results/audit/evaluation/CYCLE_39004097533_GATE.json (gate=REVISE, safe_to_integrate=false; mounted read-only this repair round at /tmp/lex_prior_audit)",
+  "required_fixes": [
+   "R1 corrected: false French anchor-independence claims in report sections 1a/1d and state Q1_product_axis_L1_did_not_hold.FRENCH_RESULT",
+   "R2 corrected: the report section 1d 'best alternative anchor' column was the record's MINIMUM other anchor; derived margins corrected; state anchor_fit_sensitivity corrected"
+  ],
+  "what_did_not_change": "the committed record results/evaluation/counter_authority_label_benchmark/39004097533.json, the frozen hypothesis, RULES_LABEL.json, RULES_GEOMETRY.json, any incumbent, any gate success rule, the PRODUCT_FALSIFIED verdict, the five fired gate predicates, the exit code and the claim ceiling. PRODUCT_FALSIFIED recomputes unchanged from the record under every one of the five frozen anchors.",
+  "hardening_adopted": "the audit's recommended mount-independent pin test was added: test_pooled_anchor_regression_holds_under_all_five_anchors (see repair_fixes_applied.hardening_repair_39004097533_r1)",
+  "corrected_claims_are_recomputable": "the audit independently recomputed the corrected claims this round: pooled L1 before/after under all five anchors (matched 11/70->7/58; fr-bail 3/70->2/58; de-kap 1/70->0/58; it-resp 0->0; resp-pen 0->0; improved=False everywhere) and the fr-bail-entretien FR cells (2/24 before, 2/22 after)",
+  "report": "reports/evaluation/COUNTER_AUTHORITY_LABEL_BENCHMARK_39004097533.md (corrected in place; the correction is disclosed in the text, not hidden by overwriting history)"
+ },
+ "durable_delta_39004097533_repair_r1": [
+  "reports/evaluation/COUNTER_AUTHORITY_LABEL_BENCHMARK_39004097533.md (section 1a scoped to the matched anchor; section 1d corrected: minimum-other vs best-alternative columns kept distinct, true best-alternative margins, pooled-regression-under-all-five-anchors table, false FR anchor-independence claim replaced)",
+  "state/evaluation.json (FRENCH_RESULT and anchor_fit_sensitivity corrected; repair_round 0 -> 1; R1/R2/hardening recorded; this block)",
+  "tests/evaluation/test_counter_authority_label_benchmark.py (new mount-independent pin test_pooled_anchor_regression_holds_under_all_five_anchors; test count 24 -> 25)",
+  "results/evaluation/snapshot_audit/39007294442.json (repair-round readiness record; the rejected 39004097533 record is preserved, not overwritten)"
  ]
 }

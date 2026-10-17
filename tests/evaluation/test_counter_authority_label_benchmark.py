@@ -301,3 +301,56 @@ def test_french_counter_rows_are_never_supported_in_either_arm():
         fr = rec["leg1_product_axis"][arm]["per_language"]["fr"]
         assert fr["n_supported"] == 0, arm
         assert fr["n_scored"] > 0, arm
+
+
+def test_pooled_anchor_regression_holds_under_all_five_anchors():
+    """Repair round 1 (rejected cycle 39004097533, audit fixes R1/R2) pin.
+
+    Mount-independent: recomputes from the committed record's ``anchor_fit_spread``
+    BOTH corrected claims, so neither can silently regress:
+
+    (a) the pooled before/after L1 regression holds under ALL five frozen anchors
+        (``improved`` is False for every anchor) -- this is the claim that actually
+        carries ``PRODUCT_FALSIFIED`` and it replaces the earlier false
+        "French result is anchor-independent" wording; and
+    (b) FR is NOT anchor-independent: the ``fr-bail-entretien`` FR cells carry
+        2 supported rows in each arm (2/24 before, 2/22 after), while the matched
+        anchor is 0-supported on FR in both arms.
+    """
+    rec = _record()
+    spread = rec["leg1_product_axis"]["anchor_fit_spread"]
+    anchors = sorted(label_gate.load_frozen_rules().anchors)
+    langs = ("de", "fr", "it")
+
+    per_anchor = {}
+    for anchor in anchors:
+        arm = {}
+        for arm_name in ("before", "after"):
+            scored = sum(spread[arm_name][lg]["by_anchor"][anchor]["n_scored"] for lg in langs)
+            supported = sum(spread[arm_name][lg]["by_anchor"][anchor]["n_supported"] for lg in langs)
+            arm[arm_name] = (supported, scored)
+        before_s, before_n = arm["before"]
+        after_s, after_n = arm["after"]
+        assert before_n > 0 and after_n > 0, anchor
+        per_anchor[anchor] = {
+            "before": (before_s, before_n),
+            "after": (after_s, after_n),
+            "improved": (after_s / after_n) > (before_s / before_n),
+        }
+
+    # (a) the pooled regression holds under every anchor, the matched one included
+    assert cab.MATCHED_ANCHOR in per_anchor
+    for anchor, v in per_anchor.items():
+        assert v["improved"] is False, f"pooled regression does NOT hold under {anchor}: {v}"
+    assert per_anchor[cab.MATCHED_ANCHOR]["before"] == (11, 70)
+    assert per_anchor[cab.MATCHED_ANCHOR]["after"] == (7, 58)
+    assert per_anchor["fr-bail-entretien"]["before"] == (3, 70)
+    assert per_anchor["fr-bail-entretien"]["after"] == (2, 58)
+
+    # (b) FR is NOT anchor-independent
+    for arm_name, expected in (("before", (2, 24)), ("after", (2, 22))):
+        cell = spread[arm_name]["fr"]["by_anchor"]["fr-bail-entretien"]
+        assert (cell["n_supported"], cell["n_scored"]) == expected, (arm_name, cell)
+    for arm_name in ("before", "after"):
+        cell = spread[arm_name]["fr"]["by_anchor"][cab.MATCHED_ANCHOR]
+        assert cell["n_supported"] == 0, (arm_name, cell)

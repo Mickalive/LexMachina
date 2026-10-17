@@ -51,7 +51,9 @@ execution, that is `PRODUCT_FALSIFIED`.
 
 ### 1a. Language robustness on the counter axis (FR/DE/IT)
 
-This is the lane-directive requirement, and it is the sharpest single result:
+This is the lane-directive requirement, and it is the sharpest single result. All
+figures below are the per-language split of the **matched-anchor** L1 population
+(`kuendigung-mietrecht`), the same anchor the frozen predicate L1 pools:
 
 | language | before | after | Δ rate | before classes | after classes |
 |---|---|---|---|---|---|
@@ -59,10 +61,18 @@ This is the lane-directive requirement, and it is the sharpest single result:
 | **fr** | **0/24 = 0.0000** | **0/22 = 0.0000** | 0.000 | OFF-DOMAIN 14, UNBACKED 9, **INVERTED 1** | OFF-DOMAIN 17, UNBACKED 5 |
 | **it** | 4/17 = 0.2353 | 1/7 = 0.1429 | −0.092 | FRAGMENT 2, INVERTED 1, OFF-DOMAIN 2, SUPPORTED 4, UNBACKED 8 | FRAGMENT 1, OFF-DOMAIN 2, SUPPORTED 1, UNBACKED 3 |
 
-**Not one French counter-authority label is supported by its own cited evidence,
-before or after the repair (0 of 24, then 0 of 22).** The repair did not touch
-that. Pinned by
-`tests/evaluation/test_counter_authority_label_benchmark.py::test_french_counter_rows_are_never_supported_in_either_arm`.
+**Under the matched anchor (`kuendigung-mietrecht`), not one French
+counter-authority label is supported by its own cited evidence, before or after
+the repair (0 of 24, then 0 of 22).** The repair did not touch that. This is a
+statement about the **matched anchor**, not about FR under every anchor: §1d
+shows FR is 0-supported under four of the five frozen anchors, but carries 2
+supported rows in each arm under `fr-bail-entretien` (2/24 before, 2/22 after),
+so the earlier unqualified "not one French label" wording was false and is
+corrected here. Pinned by
+`tests/evaluation/test_counter_authority_label_benchmark.py::test_french_counter_rows_are_never_supported_in_either_arm`
+(matched anchor) and
+`...::test_pooled_anchor_regression_holds_under_all_five_anchors` (the §1d
+correction including the `fr-bail-entretien` FR cells).
 
 ### 1b. The part of the repair that genuinely worked — not explained away
 
@@ -107,20 +117,45 @@ it is mandatory either way.
 
 ### 1d. Anchor-fit sensitivity (why the anchor choice is not cherry-picked)
 
-Every artifact was scored under **all five** frozen anchors. `kuendigung-mietrecht`
-is the most generous anchor available by a wide margin:
+Every artifact was scored under **all five** frozen anchors. The record's
+`anchor_fit_spread` stores, per artifact, the matched-anchor rate, the
+**minimum** other-anchor rate (`min_other_anchor_support_rate` — the field the
+frozen metric M4 `anchor_fit_margin` is computed from) and every anchor's cell.
+The minimum-other field is **not** the best alternative, so both comparisons are
+shown side by side and neither is misread:
 
-| artifact | matched anchor | best alternative anchor | margin |
-|---|---:|---:|---:|
-| before de | 0.2414 | 0.0000 | **+0.2414** |
-| before it | 0.2353 | 0.0000 | **+0.2353** |
-| before fr | 0.0000 | 0.0000 | 0.0000 |
-| after de | 0.2069 | 0.0000 | **+0.2069** |
-| after it | 0.1429 | 0.0000 | **+0.1429** |
+| artifact | matched anchor | minimum other anchor | best alternative anchor | margin vs minimum (frozen M4) | margin vs best alternative |
+|---|---:|---:|---:|---:|---:|
+| before de | 0.2414 | 0.0000 | 0.0345 (de-kapitalverletzung) | +0.2414 | +0.2069 |
+| before it | 0.2353 | 0.0000 | 0.0588 (fr-bail-entretien) | +0.2353 | +0.1765 |
+| before fr | 0.0000 | 0.0000 | 0.0833 (fr-bail-entretien) | 0.0000 | **−0.0833** |
+| after de | 0.2069 | 0.0000 | 0.0000 (de-kapitalverletzung) | +0.2069 | +0.2069 |
+| after it | 0.1429 | 0.0000 | 0.0000 (de-kapitalverletzung) | +0.1429 | +0.1429 |
 
-The falsification therefore holds under the anchor most favourable to the product.
-On FR every anchor gives 0.0000, so the French result is anchor-independent.
-Descriptive, `enforced: false`.
+Per artifact the matched anchor is the most generous on DE and IT, but **not on
+FR**: there `fr-bail-entretien` is strictly more generous than the matched anchor
+by 0.0833 (before) / 0.0909 (after), so an FR-only margin against the matched
+anchor is negative. (A prior version of this table labelled the
+`min_other_anchor_support_rate` column "best alternative anchor" and quoted the
+minimum-other margins as best-alternative margins; corrected here.) What carries
+the verdict is the **pooled** comparison, and that regression holds under
+**every** frozen anchor, including the one most favourable to the product:
+
+| anchor | pooled before | pooled after | improved? |
+|---|---:|---:|---|
+| `kuendigung-mietrecht` (matched) | 11/70 = 0.1571 | 7/58 = 0.1207 | no |
+| `fr-bail-entretien` | 3/70 = 0.0429 | 2/58 = 0.0345 | no |
+| `de-kapitalverletzung` | 1/70 = 0.0143 | 0/58 = 0.0000 | no |
+| `it-responsabilita-medica` | 0/70 = 0.0000 | 0/58 = 0.0000 | no |
+| `responsabilite-penale-entreprise-102cp` | 0/70 = 0.0000 | 0/58 = 0.0000 | no |
+
+Pooled, `kuendigung-mietrecht` remains the most generous anchor available by a
+wide margin: 0.1571 before against ≤ 0.0429 under every other anchor. The
+falsification therefore holds under the anchor most favourable to the product
+and, independently, under all four alternatives — it is **not** an artefact of
+the anchor choice. FR is **not** anchor-independent (§1a): the fr-bail-entretien
+cells above are the two supported FR rows in each arm. Descriptive,
+`enforced: false`.
 
 ---
 
