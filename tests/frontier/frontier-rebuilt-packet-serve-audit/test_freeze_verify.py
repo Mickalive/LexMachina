@@ -50,7 +50,9 @@ FROZEN_GEOMETRY_CRITERIA = [
 
 MEASUREMENT_ARTIFACT_PATHS = (
     f"results/frontier/{TEAM_ID}/AUDIT_RECORD.json",
-    f"reports/frontier/{TEAM_ID}",
+    f"results/frontier/{TEAM_ID}/REPRODUCTION.json",
+    f"results/frontier/{TEAM_ID}/INTEGRATION_CONTRACT.json",
+    f"reports/frontier/{TEAM_ID}/REPORT.md",
     f"state/frontier/{TEAM_ID}.json",
 )
 
@@ -63,6 +65,10 @@ MEASUREMENT_CONTENT_MARKERS = (
     "half_a_label",
     "classification_only_negative_reproduced",
     "n_abstained",
+    "byte_identical",
+    "cross_check_rows",
+    "freeze_precedes_measurement",
+    "SERVE RECOMMENDATION",
 )
 
 

@@ -80,7 +80,7 @@ Capability proven too: the resolver reaches all three frozen outcomes, including
 
 ## Reproducibility and scope
 
-Two consecutive offline runs → byte-identical records (`ebe0bd39…a87`). `26 passed` in the deterministic test suite. Zero writes to `product/`, `evaluation/`, `results/product/`, `state/product.json`, `.github/**` (enforced by test, not just asserted). No network, no paid API, no human gate touched.
+Two consecutive offline runs → byte-identical records (`ebe0bd39…a87`). `30 passed` in the deterministic test suite. Zero writes to `product/`, `evaluation/`, `results/product/`, `state/product.json`, `.github/**` (enforced by test, not just asserted). No network, no paid API, no human gate touched.
 
 ## Hard stop
 

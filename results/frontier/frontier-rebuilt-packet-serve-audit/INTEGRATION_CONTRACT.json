@@ -5,7 +5,6 @@
  "run_id": 39048947212,
  "evidence_tier": "ACCEPTED_CANDIDATE",
  "purpose": "Narrow contract naming the exact artifacts Core Product and Core Evaluation must consume to consume this team's independent serve verdict on the REBUILT packet. This team writes no product file and no evaluation file.",
-
  "publishes": [
   {
    "artifact": "frozen rules (freeze-first)",
@@ -44,11 +43,10 @@
   {
    "artifact": "deterministic offline tests",
    "path": "tests/frontier/frontier-rebuilt-packet-serve-audit/",
-   "purpose": "26 tests covering hash re-verification, abstention accounting, population-predicate handling, NOT_APPLICABLE-not-a-pass, marginal-discovery rank logic, before/after labelling, zero out-of-scope writes, enum capability, determinism, mega-cluster size basis, the frozen 11 criteria and freeze ordering.",
+   "purpose": "30 tests covering hash re-verification, abstention accounting, population-predicate handling, NOT_APPLICABLE-not-a-pass, marginal-discovery rank logic, before/after labelling, zero out-of-scope writes, enum capability, determinism, mega-cluster size basis, the frozen 11 criteria, freeze ordering and the cross-check table (absent vs supplied re-score).",
    "authority": "Executed with: python3 -m pytest tests/frontier/frontier-rebuilt-packet-serve-audit -q"
   }
  ],
-
  "consumers": {
   "core_product": {
    "reads": [
@@ -75,7 +73,6 @@
    "how_to_consume": "At the moment of this team's hard stop the lane's re-score of these bytes is ABSENT (see AUDIT_RECORD.json cross_check.evaluation_search_basis). The absence is recorded, never invented and never blocking; this team's numbers stand alone until the lane publishes, at which point the recipe above produces the side-by-side table."
   }
  },
-
  "harness_entrypoint": {
   "module": "python -m frontier_rebuilt_packet_serve_audit.cli",
   "cwd_requirement": "run from frontier/frontier-rebuilt-packet-serve-audit (the package root) or with that directory on PYTHONPATH",
@@ -88,9 +85,11 @@
    "--out": "caller-supplied output path; the harness writes nothing else",
    "--quiet": "suppress the human summary"
   },
-  "exit_codes": {"0": "audit completed and record written", "2": "environment error (freeze mismatch / missing input) — never a product verdict"}
+  "exit_codes": {
+   "0": "audit completed and record written",
+   "2": "environment error (freeze mismatch / missing input) — never a product verdict"
+  }
  },
-
  "verdict": {
   "serve_recommendation": "DO-NOT-SERVE-UNCHANGED",
   "charter_outcome": "B",
@@ -105,13 +104,12 @@
    "comparative_half_improving: marginal discovery EXISTS — issued counter authorities are absent from the initial-pool top-K and/or invisible in the list top-K, so the map adds a discovery channel the ranked list does not"
   ]
  },
-
  "reproduction": {
   "command": "cd frontier/frontier-rebuilt-packet-serve-audit && python3 -m frontier_rebuilt_packet_serve_audit.cli --packet /tmp/lex_work/results/product/gate_packet/rebuilt-39027045675 --frozen-rules --out <out.json>",
   "determinism": "two consecutive runs produced byte-identical records (sha256 ebe0bd39ba59206aac747a9d64db3cf00a61122db17988f8413fa9ac8c290a87); see REPRODUCTION.json",
-  "inputs_verified_by": "results/frontier/frontier-rebuilt-packet-serve-audit/AUDIT_RECORD.json :: freeze_verification (every pinned sha256 re-hashed before scoring; a mismatch is an environment error, never a verdict)"
+  "inputs_verified_by": "results/frontier/frontier-rebuilt-packet-serve-audit/AUDIT_RECORD.json :: freeze_verification (every pinned sha256 re-hashed before scoring; a mismatch is an environment error, never a verdict)",
+  "tests": "30 passed"
  },
-
  "write_scope": [
   "frontier/frontier-rebuilt-packet-serve-audit/",
   "tests/frontier/frontier-rebuilt-packet-serve-audit/",
@@ -119,7 +117,6 @@
   "reports/frontier/frontier-rebuilt-packet-serve-audit/",
   "state/frontier/frontier-rebuilt-packet-serve-audit.json"
  ],
-
  "write_scope_prohibitions": [
   "zero writes to product/",
   "zero writes to evaluation/",
@@ -127,13 +124,11 @@
   "zero writes to state/product.json",
   "zero writes to .github/**"
  ],
-
  "non_goals": [
   "lexicon design, classifier repair, prompt engineering, renderer work, benchmark construction, threshold design, product patches",
   "re-deriving, re-tuning or editing any frozen bar, rubric or accepted verdict contract",
   "asserting any case is supporting/contrary/limiting without evidence",
   "writing a human-gate answer or touching human_gate_ready"
  ],
-
  "supersession": "Exactly ONE verdict cycle (charter hard stop). If the packet is rebuilt again or a further product repair lands, that is a NEW charter raised by the director against the NEW bytes, never a continuation of this one. If a repair supersedes these bytes anyway, rebind by content_sha256, measure the accepted successor and record both; never overwrite a measured artifact."
 }
