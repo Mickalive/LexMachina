@@ -1,0 +1,89 @@
+{
+  "schema": "lex-evaluation-frozen-hypothesis/1",
+  "run_id": "38993062549",
+  "lane": "evaluation",
+  "direction_version": 50,
+  "frozen_at_utc": "2026-10-17T02:05:00Z",
+  "frozen_before": "execution of evaluation.packet_lineage_sweep on the accepted product mount",
+
+  "honest_disclosure_of_observation_order": {
+    "what_was_observed_before_this_freeze": "An EXPLORATORY manual probe (not a recorded claim-bearing run) already adjudicated two of the three three-qid packets on the accepted product mount with `python -m evaluation.frozen_bars.run_bar_gates --adjudicate` and observed exit 1 / FAIL_REGRESSION on both. That probe is disclosed here rather than hidden.",
+    "what_was_NOT_observed_before_this_freeze": [
+      "any per-criterion pass/fail mask comparison across packets",
+      "any cross-reference between a packet id and results/audit/product/CYCLE_<id>_GATE.json",
+      "any provenance comparison between RULES_GEOMETRY.json inputs[] and GEOMETRY_HALF.json bundles[] shas",
+      "the adjudicate verdict on packet 38838116453 (2 of 3 qids) or on the machinery packet (non-frozen qids)",
+      "the non-vacuity battery"
+    ],
+    "no_threshold_predicate_or_success_rule_in_this_file_was_changed_after_seeing_a_result": true,
+    "why_the_predicates_are_not_ad_hoc": "Every predicate below is a direct restatement of the gate semantics factory direction v50 already fixed for this lane: 'each gate FAILS CI on a REGRESSION BELOW ITS RECOMPUTED INCUMBENT' and Product direction obligation (1) 'make the two accepted bar verdicts a machine-readable input of packet admission'. A gate that blocks a packet an independent audit already accepted cannot serve as packet admission. This file tests exactly that, and invents no new bar."
+  },
+
+  "frozen_rubric_reuse_proof": {
+    "rule": "REUSE BY RE-HASH, NEVER RE-DERIVE (factory-wide requirement 18)",
+    "RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+    "source_ref": "cycle/frontier/frontier-served-packet-falsification/38877700234/team",
+    "source_paths": [
+      "results/frontier/frontier-served-packet-falsification/RULES_LABEL.json",
+      "results/frontier/frontier-served-packet-falsification/RULES_GEOMETRY.json"
+    ],
+    "local_copies_sha256_verbatim": {
+      "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+      "evaluation/frozen_bars/RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633"
+    },
+    "refused_if_mismatched": "exit 2 ENVIRONMENT, never a verdict"
+  },
+
+  "hypothesis": "H-GATE-VALIDITY. The two accepted frozen-bar gates are sound CI gates for the product's own query_result_bundle lineage: applied to every accepted product packet that carries the three frozen qids, a FAIL_REGRESSION verdict is emitted only for packets that an independent audit did NOT accept. If that holds, the gates are usable as the machine packet-admission input that Product direction obligation (1) requires.",
+
+  "baseline": "The accepted served packet 38839347028, which the accepted GEOMETRY_HALF.json measured at de 6/11, fr 5/11, it 5/11 and the accepted LABEL_HALF.json measured at 5/65 supported. This is the incumbent both frozen gates regress against.",
+
+  "population": "Every directory on the accepted product mount that contains <qid>.bundle.json for all three frozen qids de-kapitalverletzung, fr-bail-entretien, it-responsabilita-medica. Packets carrying a different qid set are DISCOVERED and RECORDED as out-of-scope with a reason, never silently dropped.",
+
+  "predicates": {
+    "F1_GATE_INVALID_ON_ACCEPTED_AUDITED_LINEAGE": {
+      "statement": "There EXISTS a packet p in the population such that (a) an independent audit record exists for p's cycle with gate == 'PASS' AND safe_to_integrate == true AND required_fixes == [], AND (b) the frozen geometry bar gate, run on p in its own documented adjudicate mode, returns regression_verdict == 'FAIL_REGRESSION'.",
+      "interpretation_if_true": "The frozen gate blocks a packet that an independent audit accepted. Wiring its exit code as packet admission (Product obligation (1)) would reject audited-good work. This is a defect in the GATE, not in the CANDIDATE, and it is the reason the lane owns the bar rather than the candidate.",
+      "interpretation_if_false": "The gate blocks only non-accepted packets and is admissible as a regression predicate on this lineage."
+    },
+    "F2_INCUMBENT_NOT_A_FLOOR": {
+      "statement": "There EXISTS a packet p in the population and qid q with per-bundle criterion count count_p(q) < INCUMBENT_COUNTS[q] = {de-kapitalverletzung: 6, fr-bail-entretien: 5, it-responsabilita-medica: 5}.",
+      "interpretation_if_true": "The accepted incumbent is not a floor over the accepted lineage; it is anchored to the single most recent packet build, so the regression gate measures recency relative to one arbitrary build rather than a quality level that the lineage always met.",
+      "interpretation_if_false": "The incumbent is a genuine floor every accepted packet meets or exceeds."
+    },
+    "F3_COUNT_MASK_CHURN": {
+      "statement": "Let earliest and latest be the first and last in-scope packet in run-id order. Report (i) the number of criterion cells in the 3x11 matrix whose boolean pass value differs between them, (ii) the difference in total passing cells, and (iii) whether at least one cell moved in each direction.",
+      "interpretation_if_true_with_both_directions_and_zero_net": "The per-bundle count vector is a cancellation of opposing per-criterion movements, so a count threshold cannot localize which product property changed and a net-zero change hides both an improvement and a degradation.",
+      "this_predicate_is_descriptive_not_build_blocking": "F3 is reported, never enforced. Enforcing a churn count would be inventing a threshold."
+    },
+    "F4_RUBRIC_INPUT_MISMATCH": {
+      "statement": "The file_sha256 values in RULES_GEOMETRY.json inputs[] are compared as a SET against the bundle sha256 values in the accepted GEOMETRY_HALF.json bundles[]. Report equality and, if unequal, both disjoint set differences explicitly (never infer equality from matching cardinalities).",
+      "interpretation_if_true": "The frozen rubric's declared measurement input and the packet the accepted incumbent was actually measured on are different bundles from the same product lineage, so the incumbent and the rubric's own declared input disagree."
+    }
+  },
+
+  "non_vacuity_requirement": {
+    "rule": "The sweep is worthless if its predicate can never fire, and worthless in the other direction if it always fires. Both must be demonstrated executably, or the sweep returns exit 2 and the result is void.",
+    "N1_POSITIVE_must_fire": "At least one packet in the population satisfies F1. If none does, the falsification path is unreachable in this environment and a negative result is not evidence.",
+    "N2_NEGATIVE_must_not_fire": "The incumbent packet itself does NOT satisfy F1 (it recomputes PASS_NO_REGRESSION by construction). A sweep that fires here is indiscriminate.",
+    "N3_NEGATIVE_provenance_must_not_fire": "A synthetic in-scope packet that scores FAIL_REGRESSION but has NO accepted-audit provenance is recorded as regression_without_accepted_audit and does NOT satisfy F1. F1 is about audited packets, not about regressions in general.",
+    "N4_NEGATIVE_audit_gate_must_not_fire": "The same synthetic FAIL_REGRESSION packet paired with an audit record whose gate is not PASS (gate=REVISE, safe_to_integrate=false, required_fixes non-empty) does NOT satisfy F1. Proves the audit filter is load-bearing rather than decorative.",
+    "N5_RULES_identity": "Both RULES files re-hash to the accepted sha256 before any scoring runs."
+  },
+
+  "success_rule": {
+    "0_GATE_VALID_ON_ACCEPTED_LINEAGE": "All five predicates FALSE and the whole non-vacuity battery proven. The gates are admissible as packet admission on this lineage.",
+    "1_GATE_FALSIFIED_ON_ACCEPTED_LINEAGE": "F1 TRUE (regardless of F2/F3/F4). The gates must NOT be wired as packet admission without the disclosed reading of VERDICT_CONTRACT.json. This is a first-class accepted NEGATIVE result about the bars, preserved, not a product defect.",
+    "2_ENVIRONMENT_OR_UNPROVEN": "Rules sha mismatch, missing inputs, an empty population, or any element of the non-vacuity battery that does not hold. NOT a product verdict, NOT a pass, and it suppresses any F1/F2/F3/F4 statement.",
+    "no_other_exit_code_is_meaningful": true
+  },
+
+  "what_this_freeze_does_not_claim": [
+    "It does not re-measure, re-tune or replace either frozen rubric, support test, threshold or bar.",
+    "It does not evaluate the two Frontier candidates (the evidence-anchored counter classifier and the query-conditioned geometry candidate); that is explicitly out of scope for this lane.",
+    "It does not rebuild a classifier or a layout.",
+    "It does not claim anything about jurist usefulness, and it does not meet, relax or touch the absolute bars.",
+    "It does not touch the four frozen reality legs, the retrieval/counter-authority recall gates, or the closed 174k suite."
+  ]
+}
