@@ -1,67 +1,103 @@
 {
-  "schema": "frontier-rebuilt-packet-serve-audit/reproduction/1",
-  "team_id": "frontier-rebuilt-packet-serve-audit",
-  "charter_version": 3,
-  "run_id": 39048947212,
-  "resume_run_id": 39053132092,
-  "repair_round": 1,
-  "repair_note": "Audit CYCLE_39053132092 gate=REVISE required_fixes FIX-1..FIX-4 repaired on the SAME frozen bytes (packet.json sha256 2942c3c2...): the evaluation-lane re-sweep was re-run at this final resume, Core Evaluation run 39049030442 was consumed as the CROSS-CHECK input, the cross-check mapper was rebuilt on an explicit schema mapping, and the label-bar status is published by instrument/text. The verdict enum DO-NOT-SERVE-UNCHANGED (outcome B) is unchanged. This completes charter acceptance test 2 on the same bytes; it is not a second measurement cycle and the one-verdict-cycle hard stop is unchanged.",
-  "determinism": {
-    "runs": 2,
-    "run1_record_sha256": "11eb58efd286f01f24462e74d3e2a9b5eb034c6fc03eae4d31a803a74f60b497",
-    "run2_record_sha256": "11eb58efd286f01f24462e74d3e2a9b5eb034c6fc03eae4d31a803a74f60b497",
-    "byte_identical": true,
-    "method": "two consecutive offline harness invocations on the same bytes, diff -q on the emitted JSON",
-    "network_used": false,
-    "randomness": "the only stochastic element is the ACCEPTED frozen geometry non-vacuity control at its OWN frozen seed 0"
-  },
-  "published_record_sha256": "11eb58efd286f01f24462e74d3e2a9b5eb034c6fc03eae4d31a803a74f60b497",
-  "cross_check_in_reproduced_record": {
-    "status": "CORE_EVALUATION_RESCORE_PRESENT",
-    "core_evaluation_run_id": 39049030442,
-    "core_evaluation_record": "results/evaluation/rebuilt_packet_adjudication_39049030442/39049030442_adjudication.json (origin/cycle/core/evaluation/39052366154/team @ 27a1d309ea6c76a05d0849351f1067a92c0e030d)",
-    "vendored_copy_consumed": "frontier/frontier-rebuilt-packet-serve-audit/vendored_cross_check_input/39049030442_adjudication.json",
-    "vendored_copy_sha256": "67656e943d749f7bde365b398b8150f70a828e66a2de528bfc8916a5040ba32f",
-    "quantities_published": 8,
-    "quantities_agreeing": 8,
-    "mega_cluster_quantity": "absent from Evaluation's record; recorded absent-not-divergent, never divergent",
-    "headline": "No divergence detected between this team's recomputation and Evaluation's published numbers."
-  },
-  "freeze_ordering": {
-    "rules_json_commit_time_iso": "2026-10-17T16:33:35Z",
-    "first_measurement_commit": "2026-10-17T17:14:39Z 4e4ad05b38fea445ef7a8b96e40709b76591a097",
-    "rule": "the freeze commit must be strictly earlier than any commit introducing a measurement artifact",
-    "hand_written_frozen_at_utc_is_not_evidence": true,
-    "threshold_edit_after_a_number_was_seen": false,
-    "rules_json_untouched_by_this_repair": true,
-    "declaration": "No threshold, rubric, verdict contract or K was edited after any number was observed in this cycle, and none was edited by this repair. RULES.json remains committed at 5b6dc8f9 @ 2026-10-17T16:33:35Z, strictly before the measurement commit 4e4ad05b @ 2026-10-17T17:14:39Z. The repair touched only harness code, tests and team-namespace artifacts.",
-    "freeze_precedes_measurement": true
-  },
-  "scope_discipline": {
-    "guarded_paths": [
-      "product/",
-      "evaluation/",
-      "results/product/",
-      "state/product.json",
-      ".github/**"
-    ],
-    "assertion": "byte-identical before and after a full harness run; enforced by tests/frontier/frontier-rebuilt-packet-serve-audit/test_verdict_and_scoping.py::test_harness_writes_nothing_outside_the_team_namespace",
-    "temp_writes": "non-vacuity controls write bundle copies only under tempfile.mkdtemp() and delete them; nothing is written inside the repository"
-  },
-  "tests": {
-    "command": "python3 -m pytest tests/frontier/frontier-rebuilt-packet-serve-audit -q",
-    "result": "34 passed",
-    "added_by_this_repair": [
-      "test_real_evaluation_adjudication_record_maps_through_the_explicit_schema (FIX-2: real 39049030442 record, 8 quantities agree, mega absent-not-divergent)",
-      "test_real_evaluation_record_is_discoverable_without_an_explicit_path",
-      "test_absence_claims_are_reverified_at_the_final_resume (FIX-4)",
-      "test_a_rescore_naming_different_bytes_is_refused"
-    ]
-  },
-  "verdict_recorded": "DO-NOT-SERVE-UNCHANGED (charter outcome B)",
-  "verification": {
-    "tests": "34 passed",
-    "byte_identical_reproduction": true,
-    "zero_writes_outside_team_namespace": true
+ "schema": "frontier-rebuilt-packet-serve-audit/reproduction/1",
+ "team_id": "frontier-rebuilt-packet-serve-audit",
+ "charter_version": 3,
+ "run_id": 39048947212,
+ "resume_run_id": 39053132092,
+ "repair_round": 2,
+ "repair_note": "Audit CYCLE_39056749213 gate=REVISE required_fix FIX-1 repaired as EVIDENCE PACKAGING ONLY on the SAME frozen bytes (packet.json sha256 2942c3c2...): AUDIT_RECORD.json was regenerated with the SHIPPED harness code via the INTEGRATION_CONTRACT.json reproduction.command recipe so the record and the code agree (the prior record had been generated before the last code edit of commit 24631a61), the prior published record sha is preserved below as superseded-by-regeneration with its cause, and every published pin was re-derived from two consecutive fresh runs byte-identical to each other AND to the published record, re-verified at the FINAL attempt after the last code edit. No measurement, number, threshold, rubric, verdict contract, packet byte or verdict enum changed: the regenerated record differs from its predecessor in exactly the prior_absent_claim disclosure block (now matching the code's emission) plus the process_rules block this FIX-1 step 5 ordered. A second packaging defect was found while repinning and is disclosed, not hidden: the shipped INTEGRATION_CONTRACT.json was INVALID JSON (the consumers object was never closed, so write_scope / write_scope_prohibitions / non_goals / supersession parsed inside consumers and the file had no closing root brace); it is repaired with no content change beyond the pins and is now guarded by a test. The verdict enum DO-NOT-SERVE-UNCHANGED (outcome B) is unchanged and the one-verdict-cycle hard stop is unchanged.",
+ "superseded_publications": [
+  {
+   "artifact": "results/frontier/frontier-rebuilt-packet-serve-audit/AUDIT_RECORD.json",
+   "record_sha256": "11eb58efd286f01f24462e74d3e2a9b5eb034c6fc03eae4d31a803a74f60b497",
+   "preserved_at_commit": "24631a6142be285e564c0c44547b281c1f3b8fc9",
+   "superseded_by": "regeneration with the shipped harness code (audit CYCLE_39056749213 FIX-1)",
+   "cause": "the LAST CODE EDIT of commit 24631a61 (cross_check.py's prior_absent_claim emission) happened AFTER the record had been generated inside the same commit, so the published record and the shipped code disagreed and the shipped harness could never re-emit the published sha; every measurement field of the regenerated record is byte-identical to the superseded one",
+   "sole_measurement_free_diff": "cross_check.evaluation_search_basis.prior_absent_claim: status text extended to '...and deleted from every claim-bearing artifact (audit FIX-1)' and the verbatim falsified-claim 'claim' key no longer emitted (the falsified text is preserved verbatim at commit 24631a61 and in reports/audit/frontier/frontier-rebuilt-packet-serve-audit/CYCLE_39056749213.md)",
+   "note": "a measured artifact hash is recorded here, never silently dropped; this sha must never again be published as a current pin"
   }
+ ],
+ "determinism": {
+  "runs": 2,
+  "run1_record_sha256": "55baed7423658932fa2620d38655885dd713cdcb79bfc7c6a97a4ca55884168d",
+  "run2_record_sha256": "55baed7423658932fa2620d38655885dd713cdcb79bfc7c6a97a4ca55884168d",
+  "byte_identical": true,
+  "method": "two consecutive offline invocations of the SHIPPED entrypoint (python -m frontier_rebuilt_packet_serve_audit.cli, the INTEGRATION_CONTRACT.json reproduction.command recipe, packets mounted at the freeze-pinned paths), sha256 of each emitted record compared, then compared again against the committed AUDIT_RECORD.json",
+  "reverified_at_final_attempt": true,
+  "reverified_after_last_code_edit": true,
+  "reverification_note": "the regeneration and both verification runs were executed AFTER the last code edit of this cycle (report.py process_rules + tests/.../test_reproduction_pin.py); no code or artifact was touched afterwards, and the same sha is re-asserted by the deterministic test suite",
+  "network_used": false,
+  "randomness": "the only stochastic element is the ACCEPTED frozen geometry non-vacuity control at its OWN frozen seed 0"
+ },
+ "published_record_sha256": "55baed7423658932fa2620d38655885dd713cdcb79bfc7c6a97a4ca55884168d",
+ "pins_updated_by_this_repair": [
+  "results/frontier/frontier-rebuilt-packet-serve-audit/REPRODUCTION.json",
+  "results/frontier/frontier-rebuilt-packet-serve-audit/INTEGRATION_CONTRACT.json (publishes[].sha256 and reproduction.determinism)",
+  "reports/frontier/frontier-rebuilt-packet-serve-audit/REPORT.md",
+  "state/frontier/frontier-rebuilt-packet-serve-audit.json"
+ ],
+ "cross_check_in_reproduced_record": {
+  "status": "CORE_EVALUATION_RESCORE_PRESENT",
+  "core_evaluation_run_id": 39049030442,
+  "core_evaluation_record": "results/evaluation/rebuilt_packet_adjudication_39049030442/39049030442_adjudication.json (origin/cycle/core/evaluation/39052366154/team @ 27a1d309ea6c76a05d0849351f1067a92c0e030d)",
+  "vendored_copy_consumed": "frontier/frontier-rebuilt-packet-serve-audit/vendored_cross_check_input/39049030442_adjudication.json",
+  "vendored_copy_sha256": "67656e943d749f7bde365b398b8150f70a828e66a2de528bfc8916a5040ba32f",
+  "quantities_published": 8,
+  "quantities_agreeing": 8,
+  "mega_cluster_quantity": "absent from Evaluation's record; recorded absent-not-divergent, never divergent",
+  "headline": "No divergence detected between this team's recomputation and Evaluation's published numbers."
+ },
+ "freeze_ordering": {
+  "rules_json_commit_time_iso": "2026-10-17T16:33:35Z",
+  "first_measurement_commit": "2026-10-17T17:14:39Z 4e4ad05b38fea445ef7a8b96e40709b76591a097",
+  "rule": "the freeze commit must be strictly earlier than any commit introducing a measurement artifact",
+  "hand_written_frozen_at_utc_is_not_evidence": true,
+  "threshold_edit_after_a_number_was_seen": false,
+  "rules_json_untouched_by_this_repair": true,
+  "declaration": "No threshold, rubric, verdict contract or K was edited after any number was observed in this cycle, and none was edited by this repair. RULES.json remains committed at 5b6dc8f9 @ 2026-10-17T16:33:35Z, strictly before the measurement commit 4e4ad05b @ 2026-10-17T17:14:39Z. The repair touched only one disclosure-emission constant block in the harness, one new test module and team-namespace artifacts.",
+  "freeze_precedes_measurement": true
+ },
+ "scope_discipline": {
+  "guarded_paths": [
+   "product/",
+   "evaluation/",
+   "results/product/",
+   "state/product.json",
+   ".github/**"
+  ],
+  "assertion": "byte-identical before and after a full harness run; enforced by tests/frontier/frontier-rebuilt-packet-serve-audit/test_verdict_and_scoping.py::test_harness_writes_nothing_outside_the_team_namespace",
+  "temp_writes": "non-vacuity controls write bundle copies only under tempfile.mkdtemp() and delete them; nothing is written inside the repository"
+ },
+ "tests": {
+  "command": "python3 -m pytest tests/frontier/frontier-rebuilt-packet-serve-audit -q",
+  "result": "39 passed (5 added by repair round 2)",
+  "added_by_this_repair": [
+   "test_two_fresh_runs_reproduce_the_pinned_record_sha (FIX-1: two fresh shipped-harness runs, byte-identical to each other and to the published record, equal to the INTEGRATION_CONTRACT.json pin and the REPRODUCTION.json pins)",
+   "test_emitted_record_carries_the_extended_process_rule (FIX-1 step 5)",
+   "test_superseded_record_sha_is_disclosed_never_silently_dropped (FIX-1 step 2)",
+   "test_process_rule_is_the_one_the_audit_ordered",
+   "test_every_published_team_json_artifact_parses (packaging guard for the malformed INTEGRATION_CONTRACT.json found during this repair)"
+  ]
+ },
+ "verdict_recorded": "DO-NOT-SERVE-UNCHANGED (charter outcome B)",
+ "verification": {
+  "tests": "39 passed (5 added by repair round 2)",
+  "byte_identical_reproduction": true,
+  "published_record_sha_reproducible_by_shipped_harness": true,
+  "zero_writes_outside_team_namespace": true
+ },
+ "packaging_defects_found_and_repaired": [
+  {
+   "id": "record_sha_not_reproducible_by_shipped_harness",
+   "source": "audit CYCLE_39056749213 required_fix FIX-1",
+   "defect": "AUDIT_RECORD.json was generated before the last code edit of commit 24631a61, so the shipped harness emitted f74564ef... / bcc1c6f4... and never the published 11eb58ef...; every pin referencing it was false as shipped",
+   "repair": "regenerated with the shipped harness via the contract recipe; pins re-derived from two fresh byte-identical runs, re-verified at the final attempt"
+  },
+  {
+   "id": "integration_contract_invalid_json",
+   "source": "found while executing audit CYCLE_39056749213 FIX-1 (not previously reported)",
+   "defect": "results/frontier/frontier-rebuilt-packet-serve-audit/INTEGRATION_CONTRACT.json did not parse as JSON: the consumers object was never closed before write_scope, so write_scope, write_scope_prohibitions, non_goals and supersession were nested inside consumers and the root object had no closing brace (17 '{' vs 16 '}')",
+   "repair": "the consumers object is closed after its last member (reproduction) and the four scope keys sit at the root; no key, value or pin was otherwise changed; guarded by test_every_published_team_json_artifact_parses"
+  }
+ ]
 }

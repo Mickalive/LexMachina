@@ -1,10 +1,12 @@
 # frontier-rebuilt-packet-serve-audit — independent serve verdict on the REBUILT packet
 
-**Team** `frontier-rebuilt-packet-serve-audit` · **charter v3** · **run** 39048947212 (resume 39053132092, repair round 1) · **evidence** ACCEPTED-candidate
+**Team** `frontier-rebuilt-packet-serve-audit` · **charter v3** · **run** 39048947212 (resume 39053132092, repair round 1) · **repair round 2** run 39061330426 (repair of rejected cycle 39056749213) · **evidence** ACCEPTED-candidate
 **Packet measured** `gate_packet/rebuilt-39027045675`, `packet.json` raw sha256 `2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170` (re-hashed before scoring; every pinned artifact verified).
-**Claim-bearing artifact** `results/frontier/frontier-rebuilt-packet-serve-audit/AUDIT_RECORD.json` (sha256 `11eb58ef…b497`). Freeze: `RULES.json`, committed `2026-10-17T16:33:35Z`, before any number was computed and untouched by this repair.
+**Claim-bearing artifact** `results/frontier/frontier-rebuilt-packet-serve-audit/AUDIT_RECORD.json` (sha256 `55baed74…168d`; superseded `11eb58ef…b497`, disclosed in `REPRODUCTION.json`). Freeze: `RULES.json`, committed `2026-10-17T16:33:35Z`, before any number was computed and untouched by either repair.
 
 **Repair provenance**: audit `CYCLE_39053132092` gate=REVISE — required fixes FIX-1..FIX-4 repaired on the SAME frozen bytes: (1) the evaluation-lane re-sweep was re-run at this final resume and Core Evaluation's real same-bytes adjudication (run 39049030442) is now consumed as the cross-check input; (2) the cross-check mapper was rebuilt on an explicit schema mapping to that record (the first-key resolver is demoted to a non-authoritative fallback); (3) the label-bar status is published **by instrument/text**; (4) absence claims are re-verified at the final resume and the falsified prior ABSENT claim is disclosed. The verdict enum is unchanged.
+
+**Repair round 2 (audit `CYCLE_39056749213`, FIX-1)** — evidence packaging, no re-measurement: the audit found **no gate failure of the measurement itself**, only that the published `AUDIT_RECORD.json` sha its pins named was **not reproducible by the delivered harness**, because the last code edit of commit `24631a61` landed after the record was generated in the same commit. Fixed here by the ordered regenerate-and-repin: the record was regenerated with the **shipped** harness via the contract's own recipe; two fresh runs are byte-identical to each other and to the committed record (`55baed74…168d`); the superseded `11eb58ef…b497` is disclosed (never silently dropped) in `REPRODUCTION.json :: superseded_publications`; all four pins were re-derived; the round-1 FIX-4 process rule was extended to reproduction/sha-pin claims; and a test now runs the harness twice and compares its sha to the contract pin. **Two disclosed packaging defects, zero measurement changes:** the record differed from its predecessor only in the `prior_absent_claim` disclosure block and the new `process_rules` block, and `INTEGRATION_CONTRACT.json` was invalid JSON as shipped (the `consumers` object was never closed — found while executing this fix, repaired).
 
 ---
 
@@ -91,6 +93,8 @@ Core Evaluation's re-score of these same bytes **had published** before this tea
 
 **Process rule (audit FIX-4):** any absence or "verified across every ref" claim must be re-verified at the FINAL resume/attempt of a run before promotion; the re-run timestamp and the found record are recorded in `cross_check.evaluation_search_basis`. A future produced-work cycle shipping a stale absence claim of this same class gates **BLOCKED** under the recurring-repair rule, not a further REVISE.
 
+**Reproduction/sha-pin process rule (repair round 2, audit `CYCLE_39056749213` FIX-1 step 5):** the same discipline now binds reproduction claims — any byte-identical-reproduction claim or published sha256 pin over a claim-bearing artifact must be re-verified at the FINAL attempt, AFTER the last code edit, by regenerating the artifact with the shipped harness via the integration contract's recipe and re-deriving the pins from two fresh byte-identical runs before promotion. A cycle shipping a published-record sha its own shipped harness cannot reproduce gates **BLOCKED**, not another REVISE. Both rules are published in `AUDIT_RECORD.json :: process_rules`.
+
 An independent recomputation by a separate agent using **only** the vendored accepted instruments reproduced every number here (label 5/5/1.0/60; geometry 7/5/7; mega-cluster not firing) and additionally reproduced the incumbent exactly on the old packet (65 scored / 5 supported / 0.0769, classes `OFF-DOMAIN 38, UNBACKED 22, SUPPORTED 5`; geometry 6/5/5). **No divergence.**
 
 ## Non-vacuity — proven, with one honest negative
@@ -109,7 +113,10 @@ Capability proven too: the resolver reaches all three frozen outcomes, including
 
 ## Reproducibility and scope
 
-Two consecutive offline runs → byte-identical records (`11eb58ef…b497`). `34 passed` in the deterministic test suite (four added by this repair, including the real-record explicit-mapping regression test). Zero writes to `product/`, `evaluation/`, `results/product/`, `state/product.json`, `.github/**` (enforced by test, not just asserted). No network, no paid API, no human gate touched.
+Two consecutive offline runs of the **shipped** harness on the same bytes → byte-identical records, equal to the committed `AUDIT_RECORD.json` (sha256 `55baed74…168d`) and to the pin in `INTEGRATION_CONTRACT.json`; re-verified at the final attempt after the last code edit of repair round 2 (repair round 1's `11eb58ef…b497` is disclosed as superseded — its harness could not re-emit it — in `REPRODUCTION.json :: superseded_publications`). `39 passed` in the deterministic test suite (5 added by repair round 2: the run-twice-pin test, the extended process rule, the superseded-sha disclosure, the contract-pin rule constants, and the JSON packaging guard; repair round 1 added 4, including the real-record explicit-mapping regression test). Zero writes to `product/`, `evaluation/`, `results/product/`, `state/product.json`, `.github/**` (enforced by test, not just asserted). No network, no paid API, no human gate touched.
+
+**Two packaging defects were found while executing this repair and are disclosed, not hidden:** (i) the audit's FIX-1 defect — the published record sha the pins named was not reproducible by the shipped harness (record generated before the last code edit within commit `24631a61`); (ii) while repinning, `INTEGRATION_CONTRACT.json` itself did not parse — the `consumers` object was never closed, so `write_scope`, `write_scope_prohibitions`, `non_goals` and `supersession` rested inside `consumers` and the root brace was missing. Both are fixed; a test now requires every published team JSON artifact to parse and the scope keys to sit at the root. No frozen bar, threshold, rubric, verdict contract, packet byte or verdict enum was touched by either fix.
+
 
 ## Hard stop
 

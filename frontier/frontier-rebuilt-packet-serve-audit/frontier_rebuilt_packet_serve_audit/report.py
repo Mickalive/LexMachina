@@ -1,4 +1,10 @@
-"""Assemble the full audit record (deterministic, offline)."""
+"""Assemble the full audit record (deterministic, offline).
+
+The record also publishes PROCESS_RULES: the claim-verification disciplines that
+bind this team's own absence claims (audit FIX-4) and its reproduction/sha-pin
+claims (audit CYCLE_39056749213 FIX-1). No clock, randomness or network input
+enters the record, so two runs on the same bytes are byte-identical.
+"""
 from __future__ import annotations
 
 import json
@@ -9,6 +15,28 @@ from . import marginal_discovery, non_vacuity, verdict
 from .paths import DEFAULT_OLD_PACKET_CANDIDATES, QIDS, resolve_packet
 
 SCHEMA = "frontier-rebuilt-packet-serve-audit/report/1"
+
+# PROCESS RULES published inside the record (audit CYCLE_39056749213 FIX-1
+# extends the round-1 FIX-4 rule to reproduction/sha-pinning claims). These are
+# constant strings: the record stays deterministic and clock-free.
+PROCESS_RULES = {
+    "absence_and_negativity_claims": cross_check.EVAL_RESCORE_SEARCH_BASIS["process_rule"],
+    "reproduction_and_sha_pin_claims": (
+        "Any byte-identical-reproduction claim or published sha256 pin over a "
+        "claim-bearing artifact must be re-verified at the FINAL attempt, AFTER the "
+        "last code edit of the cycle and BEFORE promotion: regenerate the artifact "
+        "with the SHIPPED harness via the INTEGRATION_CONTRACT.json "
+        "reproduction.command recipe, obtain the sha256 from two consecutive fresh "
+        "runs that are byte-identical to each other AND to the published artifact, "
+        "and only then pin it in REPRODUCTION.json, INTEGRATION_CONTRACT.json, "
+        "REPORT.md and the state file. A published sha the shipped harness cannot "
+        "reproduce is a false claim, never evidence. A subsequent produced-work "
+        "cycle shipping a published-record sha its own shipped harness/recipe "
+        "cannot reproduce (this same defect class) gates BLOCKED under the "
+        "recurring-repair rule, not a further REVISE (audit FIX-1 of "
+        "CYCLE_39056749213)."
+    ),
+}
 
 
 def run_audit(packet_dir: Path | None, old_packet_dir: Path | None,
@@ -47,6 +75,7 @@ def run_audit(packet_dir: Path | None, old_packet_dir: Path | None,
         "half_b_geometry": half_b,
         "half_c_marginal_discovery": half_c,
         "cross_check": cross,
+        "process_rules": PROCESS_RULES,
         "non_vacuity": vacuity,
         **before,
         "verdict": recommendation,

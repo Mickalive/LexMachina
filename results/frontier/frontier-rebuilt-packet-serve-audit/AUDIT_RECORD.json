@@ -240,9 +240,8 @@
    "git_refs_swept": "all origin/cycle/core/evaluation/* (including origin/cycle/core/evaluation/39052366154/team @ 27a1d309), origin/lab/evaluation, origin/main — re-swept at the final resume",
    "prior_absent_claim": {
     "cause": "the evaluation-lane sweep was never re-run at the final resume (detected_at_run 39048947212); the lane's same-bytes adjudication was published 2026-10-17T17:05:31Z, before the producer's measurement commit (17:14:39Z)",
-    "claim": "Core Evaluation's re-score of these bytes is ABSENT at hard stop (verified across every evaluation-lane ref and both accepted mounts)",
     "disclosed_in": "audit CYCLE_39053132092 required_fix FIX-1",
-    "status": "FALSIFIED at the final-resume re-sweep"
+    "status": "FALSIFIED at the final-resume re-sweep and deleted from every claim-bearing artifact (audit FIX-1)"
    },
    "process_rule": "Any absence or 'verified across every ref' claim must be re-verified at the FINAL resume/attempt of a run before promotion. A future produced-work cycle shipping a stale absence claim of this same class gates BLOCKED under the recurring-repair rule, not a further REVISE (audit FIX-4).",
    "rerun_timestamp_note": "UTC time the final-resume re-sweep was executed (process record; freeze ordering is proven separately by git commit times, never by hand-written timestamps)",
@@ -1363,6 +1362,10 @@
  },
  "packet_dir": "/tmp/lex_work/results/product/gate_packet/rebuilt-39027045675",
  "packet_json_sha256": "2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170",
+ "process_rules": {
+  "absence_and_negativity_claims": "Any absence or 'verified across every ref' claim must be re-verified at the FINAL resume/attempt of a run before promotion. A future produced-work cycle shipping a stale absence claim of this same class gates BLOCKED under the recurring-repair rule, not a further REVISE (audit FIX-4).",
+  "reproduction_and_sha_pin_claims": "Any byte-identical-reproduction claim or published sha256 pin over a claim-bearing artifact must be re-verified at the FINAL attempt, AFTER the last code edit of the cycle and BEFORE promotion: regenerate the artifact with the SHIPPED harness via the INTEGRATION_CONTRACT.json reproduction.command recipe, obtain the sha256 from two consecutive fresh runs that are byte-identical to each other AND to the published artifact, and only then pin it in REPRODUCTION.json, INTEGRATION_CONTRACT.json, REPORT.md and the state file. A published sha the shipped harness cannot reproduce is a false claim, never evidence. A subsequent produced-work cycle shipping a published-record sha its own shipped harness/recipe cannot reproduce (this same defect class) gates BLOCKED under the recurring-repair rule, not a further REVISE (audit FIX-1 of CYCLE_39056749213)."
+ },
  "schema": "frontier-rebuilt-packet-serve-audit/report/1",
  "team_id": "frontier-rebuilt-packet-serve-audit",
  "threshold_re_derived": false,
