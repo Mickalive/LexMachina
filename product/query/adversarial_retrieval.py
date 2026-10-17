@@ -776,12 +776,29 @@ def apply_adversarial_pass(
         row["rank"] = None  # placed after the initial ranked list, deterministically
         rows.append(row)
 
-    # The product has a hard result budget. Answer-conditioned retrieval may
-    # discover unseen authorities, but it is not allowed to inflate a 100-row
-    # product into 140+ rows. Admit a tiny challenger set and replace the weakest
-    # conventional tail while protecting cited/visible authorities.
+    # The rendered map is the product's contract: a point the jurist is already
+    # reading must not vanish because a challenger arrived.  The previous policy
+    # (``bounded_replace_tail_v1``) held the row count constant by evicting the
+    # weakest *unprotected* rows — and "unprotected" meant "not cited and not
+    # already counter-labelled", i.e. exactly the low-ranked rows the jurist
+    # already has on screen.  Measured on the live slice of product cycle
+    # 39060279436 (``results/product/progressive_slice/39060279436_LIVE.json``):
+    # 7 first-page rows were evicted by the counter-authority pass, the smoke's
+    # own stability gate reported ``points_moved_after_first_map=7`` /
+    # ``ok=false``, and the product's own
+    # ``test_apply_appends_unseen_rows_and_freezes_rendered_geometry`` failed
+    # with a KeyError on an evicted rendered id.
+    #
+    # Answer-conditioned retrieval stays budgeted: challengers are APPENDED only
+    # while the map remains inside the MVP tractable window (QUERY_MAP_MVP §2,
+    # 100–300 decisions — the same window ``progressive.TARGET_MAX`` and
+    # ``pipeline.MAX_RESULTS`` use).  At the ceiling a challenger is skipped and
+    # recorded in provenance instead of a rendered row being removed.  Nothing
+    # about the challenger ranking or the reranker changes.
+    from .progressive import TARGET_MAX
     from .relevance import rerank_product_bundle
 
+    map_row_ceiling = int(TARGET_MAX)
     target_size = len(out.get("decisions") or [])
     candidate_packet = {
         "query": out.get("query", ""),
@@ -808,34 +825,22 @@ def apply_adversarial_pass(
     max_adversarial_slots = min(8, target_size)
     proposed = ranked_rows[:max_adversarial_slots]
 
-    cited_ids = {
-        str(x) for x in (out.get("answer") or {}).get("cited_decision_ids") or []
-    }
-    protected_ids = set(cited_ids)
-    for d in out.get("decisions") or []:
-        if str(d.get("counter_status") or "none") not in {"none", "cited", "unclassified"}:
-            protected_ids.add(str(d.get("decision_id") or ""))
-
     def _existing_rank(row: dict) -> int:
         try:
             return int(row.get("rank") or 10**9)
         except (TypeError, ValueError):
             return 10**9
 
-    droppable = [
-        d for d in sorted(out.get("decisions") or [], key=_existing_rank, reverse=True)
-        if str(d.get("decision_id") or "") not in protected_ids
-    ]
-    admitted = proposed[: min(len(proposed), len(droppable))]
-    dropped = droppable[: len(admitted)]
-    dropped_ids = {str(d.get("decision_id") or "") for d in dropped}
+    #: How many rows the finished map may still take before the MVP ceiling.
+    room = max(0, map_row_ceiling - target_size)
+    admitted = proposed[:room]
+    skipped = proposed[len(admitted):]
     admitted_ids = {str(d.get("decision_id") or "") for d in admitted}
+    skipped_ids = [str(d.get("decision_id") or "") for d in skipped]
+    #: Nothing on a rendered map is ever evicted; kept for provenance readers.
+    dropped_ids: set[str] = set()
 
-    retained = [
-        copy.deepcopy(d)
-        for d in out.get("decisions") or []
-        if str(d.get("decision_id") or "") not in dropped_ids
-    ]
+    retained = [copy.deepcopy(d) for d in out.get("decisions") or []]
     # New rows are candidates only until the independent reviewer classifies
     # them after this function returns.
     for row in admitted:
@@ -859,8 +864,8 @@ def apply_adversarial_pass(
         d["counter_uncertainty"] = d.get("counter_uncertainty")
         d["counter_evidence_verified"] = bool(d.get("counter_evidence_verified", False))
 
-    # Preserve the conventional order for retained rows; newly discovered
-    # adversarial candidates occupy only the replaced tail slots.
+    # Preserve the conventional order for every row that was already rendered;
+    # newly discovered adversarial candidates rank strictly after them.
     original_rank = {
         str(d.get("decision_id")): _existing_rank(d)
         for d in retained
@@ -887,13 +892,19 @@ def apply_adversarial_pass(
     out["relations"] = _merge_relations(out.get("relations") or [], shared_relations)
 
     prov.update({
-        "admission_policy": "bounded_replace_tail_v1",
+        "admission_policy": "append_within_cap_v2",
         "max_adversarial_slots": max_adversarial_slots,
+        "map_row_ceiling": map_row_ceiling,
         "n_proposed_rows": len(proposed),
         "n_admitted_rows": len(admitted),
         "admitted_row_ids": appended,
+        # v2 never evicts a rendered row: these stay in the provenance schema
+        # (schema-stable readers) and are always 0 / [] under append_within_cap.
         "n_replaced_rows": len(dropped_ids),
         "replaced_row_ids": sorted(dropped_ids),
+        "n_skipped_rows_by_ceiling": len(skipped_ids),
+        "skipped_row_ids": skipped_ids,
+        "rendered_rows_evicted": 0,
         "final_decision_count": len(decisions),
         "heuristic_labels_surfaceable": False,
     })

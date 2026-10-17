@@ -487,7 +487,24 @@ def test_apply_appends_unseen_rows_and_freezes_rendered_geometry(fake_client):
     assert len(out["decisions"]) == len(before) + 4
     prov = out["provenance"]["adversarial_retrieval"]
     assert prov["n_new_rows"] == 4
-    assert prov["n_counter_rows"] == 3, "three of four carry a real limitation marker"
+    # Contract since commit 1381ed0 ("bound adversarial retrieval and defer
+    # legal labels"): the FETCH stage records marker evidence as an admission
+    # signal and writes no product-visible legal label — the independent
+    # reviewer (``run_adversarial_audit``) is the sole writer of counter_status.
+    # The original intent of this assertion ("three of four carry a real
+    # limitation marker") is therefore kept at the signal level, which is
+    # strictly stronger than a label the heuristic is no longer allowed to set.
+    assert prov["n_counter_rows"] == 0, "apply must not write product-visible legal labels"
+    admitted_ids = set(prov["admitted_row_ids"])
+    admitted = [d for d in out["decisions"] if d["decision_id"] in admitted_ids]
+    signalled = [d for d in admitted
+                 if (d.get("adversarial_retrieval_signal") or {}).get("heuristic_status")]
+    assert len(signalled) == 3, "three of four carry a real limitation marker (as signal)"
+    assert all((d.get("adversarial_retrieval_signal") or {}).get("evidence") for d in signalled)
+    # v2 admission: nothing the jurist already sees is ever evicted.
+    assert prov["admission_policy"] == "append_within_cap_v2"
+    assert prov["n_replaced_rows"] == 0 and prov["replaced_row_ids"] == []
+    assert prov["rendered_rows_evicted"] == 0
     assert prov["channels"]
 
 
@@ -499,12 +516,22 @@ def test_apply_labels_only_marker_carrying_rows(fake_client):
         exclude_identities=set())
     out = adv.apply_adversarial_pass(bundle, fetched["candidates"], fetched["provenance"])
     by_id = {d["decision_id"]: d for d in out["decisions"]}
-    assert by_id["bger_9Z_80_2017"]["counter_status"] == "none"
-    assert by_id["bger_9Z_80_2017"]["counter_evidence"] == ""
-    labelled = by_id["bger_9Z_77_2019"]
-    assert labelled["counter_status"] == "candidate-limiting"
-    assert labelled["counter_evidence_verified"] is True
-    assert labelled["counter_evidence"].strip()
+    # No marker, no signal: the row reaches the map as an ordinary candidate.
+    quiet = by_id["bger_9Z_80_2017"]
+    assert quiet["counter_status"] == "none"
+    assert quiet["counter_evidence"] == ""
+    assert not (quiet.get("adversarial_retrieval_signal") or {}).get("heuristic_status")
+    # A real marker is recorded as the reviewer's INPUT, never as a product
+    # label: a heuristic must not become a legal classification the jurist reads
+    # (Master Prompt: never classify unless the evidence supports that label).
+    marked = by_id["bger_9Z_77_2019"]
+    assert marked["counter_status"] == "none"
+    assert marked["counter_evidence"] == ""
+    assert marked["counter_evidence_verified"] is False
+    signal = marked["adversarial_retrieval_signal"]
+    assert signal["heuristic_status"] == "candidate-limiting"
+    assert signal["evidence"].strip()
+    assert signal["markers"]
 
 
 def test_apply_ranks_new_rows_after_the_conventional_list(fake_client):
@@ -520,7 +547,46 @@ def test_apply_ranks_new_rows_after_the_conventional_list(fake_client):
     assert all(r > max_initial for r in new_ranks)
 
 
+def test_apply_skips_challengers_at_the_map_ceiling_instead_of_evicting(fake_client, monkeypatch):
+    """Non-vacuity for append_within_cap_v2: the budget still binds.
+
+    At the MVP ceiling (``progressive.TARGET_MAX``) a challenger is SKIPPED and
+    recorded — never admitted by throwing a rendered row off the map.  Without
+    this branch the "never evict" rule would be unbounded inflation.
+    """
+    from product.query import progressive
+
+    bundle = _map_bundle(n=40)
+    rendered = {d["decision_id"] for d in bundle["decisions"]}
+    monkeypatch.setattr(progressive, "TARGET_MAX", len(rendered))  # already at ceiling
+    fetched = adv.fetch_adversarial_candidates(
+        bundle["query"], adv.plan_adversarial_queries(bundle["query"], ANSWER_DE),
+        mode="offline", exclude_ids=set(rendered), exclude_identities=set())
+    out = adv.apply_adversarial_pass(bundle, fetched["candidates"], fetched["provenance"])
+    assert validate_bundle(out) == []
+    prov = out["provenance"]["adversarial_retrieval"]
+    assert prov["map_row_ceiling"] == len(rendered)
+    assert prov["n_proposed_rows"] > 0, "the challenger set must be non-empty to prove the skip"
+    assert prov["n_admitted_rows"] == 0
+    assert prov["n_skipped_rows_by_ceiling"] == prov["n_proposed_rows"]
+    assert prov["admitted_row_ids"] == [] and prov["n_new_rows"] == 0
+    assert prov["n_replaced_rows"] == 0 and prov["replaced_row_ids"] == []
+    assert {d["decision_id"] for d in out["decisions"]} == rendered, \
+        "a full map keeps exactly the rows the jurist already sees"
+    before = {d["decision_id"]: (d["x"], d["y"], d["cluster_id"], bool(d.get("is_outlier")))
+              for d in bundle["decisions"]}
+    after = {d["decision_id"]: (d["x"], d["y"], d["cluster_id"], bool(d.get("is_outlier")))
+             for d in out["decisions"]}
+    assert after == before
+
+
 def test_apply_records_counter_rows_outside_the_initial_channel_inventory(fake_client):
+    """The adversarial ROUTE must reach the map through a channel the ranked
+    list never used, and (since 1381ed0) the fetch itself must not pre-label.
+
+    The reviewer writes the product-visible counter label later; what the pass
+    owns is proof that these rows could only have arrived via ``adversarial.*``.
+    """
     bundle = _map_bundle(n=40)
     fetched = adv.fetch_adversarial_candidates(
         bundle["query"], adv.plan_adversarial_queries(bundle["query"], ANSWER_DE),
@@ -528,12 +594,19 @@ def test_apply_records_counter_rows_outside_the_initial_channel_inventory(fake_c
         exclude_identities=set())
     out = adv.apply_adversarial_pass(bundle, fetched["candidates"], fetched["provenance"])
     initial = set(out["provenance"]["retrieval"]["candidate_channels"])
+    prov = out["provenance"]["adversarial_retrieval"]
+    admitted_ids = set(prov["admitted_row_ids"])
+    challengers = [d for d in out["decisions"] if d["decision_id"] in admitted_ids]
+    assert challengers, "the pass must admit at least one challenger row"
+    assert all(set(d["channels"]) - initial for d in challengers), \
+        "every challenger row must carry a channel the initial retrieval never used"
+    assert {d["adversarial_channel"] for d in challengers} <= set(adv.ADVERSARIAL_CHANNELS)
+    assert all(d.get("counter_status") == "none" for d in challengers), \
+        "labels belong to the independent reviewer; the fetch must not pre-label"
     counter = [d for d in out["decisions"]
                if d.get("counter_status") in {"candidate-limiting", "candidate-contrary",
-                                               "contrary_or_exception", "limiting"}]
-    assert counter, "the pass must produce at least one labelled counter row"
-    assert all(set(d["channels"]) - initial for d in counter), \
-        "every counter row must carry a channel the initial retrieval never used"
+                                              "contrary_or_exception", "limiting"}]
+    assert not counter, "no product-visible counter label exists before the reviewer runs"
 
 
 def test_apply_is_a_noop_when_nothing_new_is_retrieved():

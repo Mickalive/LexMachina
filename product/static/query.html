@@ -22,6 +22,9 @@ button{cursor:pointer;font-weight:650}.primary{grid-column:1/-1;background:#1719
 .warn{color:#9c5a00;background:#fff7e8;border:1px solid #f0d7a8;padding:8px;border-radius:8px;font-size:12px}
 h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#737b88;margin:18px 0 7px}
 #prose{font-size:13px;line-height:1.5;white-space:pre-wrap}.card{font-size:12px;padding:8px 9px;margin:6px 0;border-radius:8px;background:#f7f8fa;border:1px solid #eceef2}
+/* sourced answer → inspectable decision (QUERY_MAP_MVP §8): a cited id is a
+   link into the decision panel, not a bare string the jurist must retype */
+#prose .cited-ref,#answerMeta .cited-ref{color:#1a4f9c;text-decoration:underline;text-underline-offset:2px;cursor:pointer;font-weight:650;white-space:nowrap}
 .card.counter{border-left:3px solid #bd2d3a}.card a{color:#2459a8;text-decoration:none}.cluster{display:flex;gap:7px;align-items:flex-start}.dot{width:10px;height:10px;border-radius:50%;margin-top:3px;flex:0 0 auto}
 #toolbar{height:54px;background:#fff;border-bottom:1px solid #e2e5ea;display:flex;gap:7px;align-items:center;padding:9px 12px}
 #toolbar input{border:1px solid #d7dbe2;border-radius:7px;padding:7px;width:220px}#toolbar select{border:1px solid #d7dbe2;border-radius:7px;padding:7px}
@@ -223,12 +226,52 @@ function degradedNote(a){
     return "Le modèle génératif n’a cité aucune décision. La réponse ci-dessous est composée par le produit à partir d’extraits verbatim des décisions citées, et nomme les notions de la question que le corpus récupéré ne couvre pas (voir « provenance.answer_gap_contract »).";
   return "Le fournisseur génératif est indisponible : réponse extractive de secours. La carte et les sources restent valides, mais ce n’est pas le mode produit cible.";
 }
+/* Sourced answer → inspectable decision (QUERY_MAP_MVP §8: "provide links /
+   identifiers so the user can inspect the underlying decision").  A bare id in
+   the prose makes the jurist retype it into the filter; a link opens the same
+   decision panel the map click opens, so the answer and the map stay one
+   interface.  The handler takes `this.dataset.id`, never an id interpolated
+   into JS source, so a hostile id cannot break out of the attribute. */
+function citedLink(id){
+  return '<a class="cited-ref" data-id="'+esc(id)+'" href="#" onclick="return openCited(this.dataset.id)">'+esc(id)+"</a>";
+}
+function openCited(id){
+  if(!id)return false;
+  showDetail(id);
+  status("Source ouverte : "+id,"réponse sourcée");
+  return false;
+}
+/* Link only the ids the prose actually spells out, in one left-to-right pass,
+   longest-first so a prefix id (bge_1 vs bge_12) can never nest anchors. */
+function linkCitedIds(prose, ids){
+  const usable=(ids||[]).filter(id=>typeof id==="string"&&id.length>=4&&/^[A-Za-z0-9_.:/-]+$/.test(id));
+  if(!usable.length)return esc(prose);
+  const pattern=usable.slice().sort((a,b)=>b.length-a.length)
+    .map(id=>id.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|");
+  const re=new RegExp("("+pattern+")","g");
+  let out="",last=0,m;
+  while((m=re.exec(prose))!==null){
+    out+=esc(prose.slice(last,m.index))+citedLink(m[0]);
+    last=m.index+m[0].length;
+  }
+  return out+esc(prose.slice(last));
+}
 function renderAnswer(){
   const a=BUNDLE?.answer||{},ready=a.status==="ready",degraded=a.status==="degraded";
-  document.getElementById("prose").textContent=a.prose|| (ready?"":"Analyse en cours…");
+  const cited=(a.cited_decision_ids||[]).filter(id=>
+    (BUNDLE?.decisions||[]).some(d=>d.decision_id===id));
+  document.getElementById("prose").innerHTML=a.prose
+    ? linkCitedIds(a.prose,cited)
+    : (ready?"":"Analyse en cours…");
   let meta="";
   if(a.method)meta+='<div class="card muted">'+esc(a.method)+(a.model?" · "+esc(a.model):"")+"</div>";
   if(degraded)meta+='<div class="warn">'+esc(degradedNote(a))+'</div>';
+  /* A model that numbers its citations ([1], [2]) never writes the ids in the
+     prose. The source row keeps every cited decision one click away anyway,
+     so clickability does not depend on how the model chose to phrase itself. */
+  if(cited.length){
+    meta+='<div class="card" id="answerSources"><b>Sources</b> · '+cited.map(citedLink).join(" · ")+"</div>";
+  }
   document.getElementById("answerMeta").innerHTML=meta;
 }
 /* v55: the owner card states how many of this session's counter rows are

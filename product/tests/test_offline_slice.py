@@ -45,6 +45,56 @@ def test_one_command_slice_is_offline_clickable_and_verified(monkeypatch, tmp_pa
     assert bundle["provenance"]["product_fixture_replay"]["network"] == "none"
     # the page contract actually executed (node present in this environment)
     assert summary["page_contract"] is True
+    # Full loop, still offline: sourced answer + counter pass, geometry untouched.
+    assert stats["enriched"] is True, "the one-command slice runs the answer/counter pass"
+    assert stats["answer_status"] == "ready"
+    assert stats["cited_decision_ids"] >= 1, "a sourced answer must cite a retrieved decision"
+    assert stats["geometry_preserved_by_enrich"] is True, \
+        "enrichment must not move or drop a rendered point"
+    # Non-vacuity on the DOM side: the page contract must really have executed
+    # the answer-panel section (45 assertions as of this cycle; the pre-answer
+    # floor was 36), not just booted the page.
+    detail = summary.get("page_contract_detail") or ""
+    assert detail.startswith("PASS"), detail
+    assert int(detail.split()[-2]) >= 40, detail
+
+
+def test_map_only_mode_makes_no_answer_claim(monkeypatch, tmp_path, capsys):
+    """`--no-enrich` is a map-only slice: it must NOT be recorded as if the
+    answer half of the product had run."""
+    monkeypatch.setattr(socket.socket, "connect", _no_network)
+    rc = ofs.main(["--slug", "rent-default", "--out", str(tmp_path), "--no-enrich", "--verify"])
+    assert rc == 0, capsys.readouterr().out
+    summary = json.loads((tmp_path / "summary.json").read_text(encoding="utf-8"))
+    stats = summary["stats"]
+    assert stats["enriched"] is False
+    assert stats["answer_status"] == "pending"
+    assert stats["cited_decision_ids"] == 0
+    assert stats["geometry_preserved_by_enrich"] is None
+
+
+def test_verdict_fails_when_enrichment_moves_a_rendered_point(monkeypatch, tmp_path, capsys):
+    """Non-vacuity: the geometry-preservation claim is checked, not assumed."""
+    def _moved(*_a, **_k):
+        rows = [{"decision_id": f"bge_{n}", "x": float(n), "y": float(n),
+                 "cluster_id": n % 3, "counter_status": "none",
+                 "canonical_url": "https://mcp.opencaselaw.ch/d/x"}
+                for n in range(45)]
+        return {
+            "decisions": rows,
+            "answer": {"status": "ready", "cited_decision_ids": ["bge_0"],
+                       "prose": "x", "method": "synthetic", "model": "none"},
+            "provenance": {"offline_slice": {"enriched": True,
+                                             "geometry_preserved": False,
+                                             "network": "none"}},
+        }
+    monkeypatch.setattr(ofs, "build_bundle", _moved)
+    rc = ofs.main(["--slug", "rent-default", "--out", str(tmp_path)])
+    out = capsys.readouterr().out
+    assert rc == 1, out
+    assert "enrichment moved or dropped a rendered point" in out
+    summary = json.loads((tmp_path / "summary.json").read_text(encoding="utf-8"))
+    assert summary["verified"] is False
 
 
 def test_verdict_fails_when_the_map_is_degenerate(monkeypatch, tmp_path, capsys):

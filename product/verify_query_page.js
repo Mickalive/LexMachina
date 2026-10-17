@@ -19,6 +19,10 @@
  *   5. a deep link (?run_id=… / ?q=&n=) selects which run or question the page
  *      opens - the multi-question gate packet hands the owner one link per
  *      question, so the page has to honour it.
+ *   6. the sourced answer is inspectable: every decision the answer cites is
+ *      one click from the decision panel (inline id link, or the source chip
+ *      when the model numbers its citations), and prose is escaped, never
+ *      executed as markup.
  *
  * It is a smoke test of the clickable slice, not a claim about legal usefulness.
  *
@@ -268,6 +272,75 @@ setTimeout(async () => {
   } else {
     check(true, "served bundle carries no unevidenced counter row (nothing to disclose)");
   }
+
+  /* 9. The sourced answer is INSPECTABLE, not a wall of text (QUERY_MAP_MVP
+   *    §8: "provide links / identifiers so the user can inspect the underlying
+   *    decision").  Two independent routes are checked against the real page
+   *    code: an id the prose spells out becomes an inline link, and an id it
+   *    never spells out (a model that numbers its citations) still appears as
+   *    a clickable source chip.  Then the link target is executed, so the
+   *    assertion is behaviour, not markup presence. */
+  const citedIds = (bundle.answer && bundle.answer.cited_decision_ids) || [];
+  if (citedIds.length) {
+    const realProse = documentShim.getElementById("prose").innerHTML;
+    const realMeta = documentShim.getElementById("answerMeta").innerHTML;
+    const unreachable = citedIds.filter(
+      (id) => realProse.indexOf('data-id="' + esc(id) + '"') === -1 &&
+              realMeta.indexOf('data-id="' + esc(id) + '"') === -1);
+    check(unreachable.length === 0,
+          "every decision the answer cites is reachable from the answer panel ("
+          + citedIds.length + " cited, " + unreachable.length + " unreachable)");
+    page.evaluate("openCited(" + JSON.stringify(citedIds[0]) + ")");
+    const citedDetail = documentShim.getElementById("detail").innerHTML;
+    check(citedDetail.indexOf(esc(citedIds[0])) !== -1,
+          "opening a cited source opens that decision (" + citedIds[0] + ")");
+    check(citedDetail.indexOf("Ouvrir la source") !== -1,
+          "the cited decision's panel carries its source link");
+  } else {
+    check(true, "bundle answer cites no decision (nothing to link)");
+  }
+
+  /* Hostile prose must never become markup: the linker escapes the text it
+   * does not recognise, links only the exact cited ids, and cannot nest an
+   * anchor inside an anchor. */
+  const ansSynth = {
+    query: "answer-link", query_variants: [],
+    answer: {
+      status: "ready", method: "synthetic", model: "none",
+      prose: "Zu bge_ANS_1 siehe <script>alert(1)</script>; bge_ANS_1 nochmals.",
+      cited_decision_ids: ["bge_ANS_1", "bge_ANS_2_NOT_IN_PROSE"],
+    },
+    decisions: [
+      {decision_id: "bge_ANS_1", court: "BGER", language: "de", rank: 1, score: 1.0,
+       provenance: {}, snippet: "s", cluster_id: 0, x: 0, y: 0, counter_status: "none",
+       canonical_url: "https://mcp.opencaselaw.ch/d/1", citation: ""},
+      {decision_id: "bge_ANS_2_NOT_IN_PROSE", court: "BGER", language: "de", rank: 2,
+       score: 0.9, provenance: {}, snippet: "s", cluster_id: 0, x: 0.1, y: 0.1,
+       counter_status: "none", canonical_url: "https://mcp.opencaselaw.ch/d/2", citation: ""},
+    ],
+    clusters: [{cluster_id: 0, size: 2, label: "synthetic"}],
+    relations: [],
+    provenance: {},
+  };
+  page.evaluate("renderBundle(" + JSON.stringify(ansSynth) + ");");
+  const hostileProse = documentShim.getElementById("prose").innerHTML;
+  const hostileMeta = documentShim.getElementById("answerMeta").innerHTML;
+  check(hostileProse.indexOf("<script>") === -1,
+        "answer prose is escaped: injected markup never reaches the DOM");
+  check(hostileProse.indexOf("&lt;script&gt;") !== -1,
+        "the hostile markup survives as visible, readable text");
+  const inlineLinks = (hostileProse.match(/class="cited-ref"/g) || []).length;
+  check(inlineLinks === 2,
+        "each occurrence of a cited id in the prose becomes its own link (" + inlineLinks + "/2)");
+  check(hostileProse.indexOf("<a class=\"cited-ref\" data-id=\"bge_ANS_1\"") !== -1,
+        "the inline link carries the decision id as its data-id");
+  check(hostileMeta.indexOf('data-id="bge_ANS_2_NOT_IN_PROSE"') !== -1,
+        "a cited id the prose never spells out is still a clickable source chip");
+  page.evaluate("openCited('bge_ANS_2_NOT_IN_PROSE');");
+  const chipDetail = documentShim.getElementById("detail").innerHTML;
+  check(chipDetail.indexOf("bge_ANS_2_NOT_IN_PROSE") !== -1,
+        "clicking a source chip opens its decision");
+  page.evaluate("renderBundle(__TEST_BUNDLE__);");
 
   let failed = 0;
   for (const a of assertions) {
