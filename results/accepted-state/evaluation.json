@@ -2,13 +2,13 @@
  "lane": "evaluation",
  "direction_version": 50,
  "evidence_tier": "REPRODUCED",
- "cycle_status": "V50_GATE_VALIDITY_FALSIFICATION_38993062549",
+ "cycle_status": "V50_FROZEN_PROTOCOL_BJR_RECOMPUTE_39018005027__FROZEN_PROTOCOL_CONFIRMS_BJR_REPAIR__PACKET_ADMISSION_POPULATION_BYTE_IDENTICAL_PENDING_REBUILT_PACKET__RETRIEVAL_CA_BATTERY_VALID__LANE_SUITE_43_43",
  "continue_recommended": true,
- "accepted_run_id": "38971202786",
- "accepted_run_id_correction_note": "corrected this cycle (38972887369) per BLOCKED audit 38972043610 required fix D2: the pointer was 38951152192 while the accepted base commit 59fde886 is 'accept evaluation cycle 38971202786' (audit gate results/audit/evaluation/CYCLE_38971202786_GATE.json gate=PASS safe_to_integrate=true, verified on ref origin/cycle/core/evaluation/38971202786/audit). Pointer-only correction; acceptance itself moves only via an audit gate.",
- "proposed_run_id": "38993062549",
+ "accepted_run_id": "39012970379",
+ "accepted_run_id_correction_note": "pointer refreshed this cycle (39018005027): the accepted base of this snapshot is 68aa10d3 'accept evaluation cycle 39012970379', whose gate results/audit/evaluation/CYCLE_39012970379_GATE.json (gate=PASS, safe_to_integrate=true) is in this tree. Pointer-only refresh; acceptance itself moves only via an audit gate.",
+ "proposed_run_id": "39018005027",
  "repair_round": 0,
- "repair_audit_ref": "origin/cycle/core/evaluation/38968781838/audit:results/audit/evaluation/CYCLE_38968781838_GATE.json (gate=REVISE; the file lives on the AUDIT BRANCH ref, not in any team tree or lab branch — pointer corrected per BLOCKED audit 38972043610 required fix D4, which had flagged it dangling for three cycles; the ref was fetched and re-read this cycle to prove it resolves)",
+ "repair_audit_ref": "origin/cycle/core/evaluation/39004097533/audit:results/audit/evaluation/CYCLE_39004097533_GATE.json (gate=REVISE; mounted read-only this round at /tmp/lex_prior_audit; required_fixes R1 and R2 are anchor-sensitivity claim corrections and are applied in this repair round 1)",
  "repair_fixes_applied": {
   "R1_38971202786_repair_of_38968781838": "audit-required R1 scope correction (gate=REVISE on CYCLE_38968781838): withdrew 'CI-executable on ANY future Frontier/product packet' / 'score arbitrary packets' in 4 locations (report BAR_GATES_38968781838.md title+ss1+ss5 with R1 erratum preserving original wording; test docstring; continue_recommended_reason; v50_bar_gates_38968781838.claim_ceiling). True proven scope: frozen-anchor qids at non-incumbent population score NOT_APPLICABLE with no build block; unknown qids refused by design; new packets need a disclosed rules re-freeze. Optional hardening x3 all adopted: label unknown-qid ValueError guard in label_gate.score_packet (was raw KeyError) + new pinning test test_label_unknown_anchor_refuses_invented_profile; bare-checkout incumbent-pin coverage gap disclosed.",
   "R1": "recall-gate semantics restated as '>=1 of frozen authority set per gate' in report+state, with partial-set pass rates disclosed; benchmark NOT re-freeze (digest unchanged); semantics pinned by test_recall_gate_semantics_is_exactly_at_least_one_of_frozen_set",
@@ -22,103 +22,132 @@
   "M1_38966576940": "vendored-digest runtime enforcement added: tests/evaluation/test_frozen_bar_gates.py::test_vendored_files_match_pinned_digests re-hashes all 14 vendored rubric/reference files against VENDORED_SHA256.json at test time, so a lenient vendored edit that inflates label support becomes a visible red instead of an invisible green on the one-sided regression gate.",
   "M2_38966576940": "adopted_frontier_verdicts_v56.geometry_semantics_rules_sha256 truncated 60-char value replaced with the full 64-char frozen digest a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633 (matches RULES_GEOMETRY.json re-hash and frontier_verdict_adoption.json).",
   "M3_38966576940": "evaluation/lane_suite.py report direction_version now DERIVED from state/evaluation.json via _lane_direction_version() (was a hardcoded literal 49 that went stale when the state moved to 50); report carries direction_version_source for transparency.",
-  "R1_report_correction": "reports/evaluation/BAR_GATES_38964129305.md '119 tests still pass' sentence corrected by a visible erratum (original claim preserved): full lane-suite internal pytest set is 121 collected = 120 passed + 1 by-design mount skip without the mount, 0 failed after the pin repair (121/121 passed with the mount); test_frozen_bar_gates.py adds 13 (13 passed with mount; 8 passed + 5 mount skips without). The same false claim in state v50_frozen_bar_gates.tests was corrected."
+  "R1_report_correction": "reports/evaluation/BAR_GATES_38964129305.md '119 tests still pass' sentence corrected by a visible erratum (original claim preserved): full lane-suite internal pytest set is 121 collected = 120 passed + 1 by-design mount skip without the mount, 0 failed after the pin repair (121/121 passed with the mount); test_frozen_bar_gates.py adds 13 (13 passed with mount; 8 passed + 5 mount skips without). The same false claim in state v50_frozen_bar_gates.tests was corrected.",
+  "R1_repair_39004097533_r1": "Audit CYCLE_39004097533_GATE.json required fix R1 applied: corrected the FALSE French anchor-independence claims. reports/evaluation/COUNTER_AUTHORITY_LABEL_BENCHMARK_39004097533.md section 1a 'Not one French counter-authority label is supported...' is now explicitly scoped to the MATCHED anchor (kuendigung-mietrecht), and section 1d no longer claims 'On FR every anchor gives 0.0000, so the French result is anchor-independent'. state/evaluation.json Q1_product_axis_L1_did_not_hold.FRENCH_RESULT corrected. Ground truth from the record's own by_anchor cells: fr-bail-entretien FR = 2/24 = 0.0833 before, 2/22 = 0.0909 after; four of five anchors return 0.0000 on FR. Added the correct replacement claim: the POOLED L1 regression holds under ALL five anchors (de-kap 1/70->0/58, fr-bail 3/70->2/58, it-resp 0/70->0/58, matched 11/70->7/58, resp-pen 0/70->0/58, improved=False everywhere). No frozen record, hypothesis, rubric, metric, threshold or verdict touched.",
+  "R2_repair_39004097533_r1": "Audit CYCLE_39004097533_GATE.json required fix R2 applied: the report section 1d 'best alternative anchor' column actually showed the record's min_other_anchor_support_rate (the MINIMUM other anchor), and derived margins were wrong. The report table now labels the record field 'minimum other anchor' AND adds the true best (maximum) alternative with its name; true best-alternative margins are +0.2069 before-de (not +0.2414), +0.1765 before-it (not +0.2353), and on FR the matched anchor is WORSE than the best alternative by -0.0833 before / -0.0909 after (not 0.0000). state/evaluation.json anchor_fit_sensitivity corrected; the frozen metric M4 definition (matched-minus-minimum) is untouched. The 'most generous anchor' sentence is now scoped to the POOLED figures (0.1571 vs <=0.0429 under every other anchor, true pooled).",
+  "hardening_repair_39004097533_r1": "Adopted the audit's recommended hardening: new mount-independent test tests/evaluation/test_counter_authority_label_benchmark.py::test_pooled_anchor_regression_holds_under_all_five_anchors recomputes from the committed record's anchor_fit_spread (a) improved == False for all five frozen anchors (matched pinned 11/70->7/58; fr-bail-entretien pinned 3/70->2/58) and (b) the fr-bail-entretien FR cells (2/24 before, 2/22 after) plus matched-anchor FR 0-supported, so neither corrected claim can silently regress."
  },
  "evidence_refs": [
-  "evaluation/reality_gate/frozen_benchmark.json",
+  "evaluation/benchmark_retrieval_counter_authority.py",
+  "evaluation/counter_authority_label_benchmark.py",
+  "evaluation/frozen_bars/FETCH_RECORD.json",
+  "evaluation/frozen_bars/RULES_GEOMETRY.json",
+  "evaluation/frozen_bars/RULES_LABEL.json",
+  "evaluation/frozen_bars/VERDICT_CONTRACT.json",
+  "evaluation/frozen_bars/fixtures/geometry_negative_bundle.json",
+  "evaluation/frozen_bars/fixtures/label_mixed_bundle.json",
+  "evaluation/frozen_bars/fixtures/label_negative_bundle.json",
+  "evaluation/frozen_bars/geometry_gate.py",
+  "evaluation/frozen_bars/label_gate.py",
+  "evaluation/frozen_bars/run_adjudication_probes.py",
+  "evaluation/frozen_bars/run_bar_gates.py",
+  "evaluation/frozen_bars/vendored/VENDORED_SHA256.json",
+  "evaluation/frozen_bars/verdict_contract.py",
+  "evaluation/lane_suite.py",
+  "evaluation/packet_lineage_sweep.py",
   "evaluation/reality_gate/frozen.py",
+  "evaluation/reality_gate/frozen_benchmark.json",
   "evaluation/reality_gate/gates.py",
   "evaluation/reality_gate/run_benchmark.py",
-  "tests/evaluation/test_reality_gate.py",
-  "results/evaluation/reality_benchmark/38934722443.json",
-  "results/evaluation/reality_benchmark/38920872324.json",
-  "reports/evaluation/evaluation_v49_cycle_report_38934722443.md",
-  "reports/evaluation/evaluation_v49_cycle_report.md",
-  "evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
   "evaluation/retrieval_gate/FREEZE_RECORD.json",
-  "evaluation/retrieval_gate/frozen.py",
+  "evaluation/retrieval_gate/build_frozen_spec.py",
   "evaluation/retrieval_gate/client.py",
+  "evaluation/retrieval_gate/frozen.py",
+  "evaluation/retrieval_gate/frozen_retrieval_benchmark.json",
   "evaluation/retrieval_gate/gates.py",
   "evaluation/retrieval_gate/run_retrieval_benchmark.py",
-  "evaluation/retrieval_gate/build_frozen_spec.py",
-  "tests/evaluation/test_retrieval_gate.py",
-  "results/evaluation/retrieval_benchmark/38939239917.json",
-  "results/evaluation/retrieval_benchmark/cache/be/be6a1fee48be3745b69ecdfcf49b5b420976066ba17514d7d8d07261cbca6d3d.json",
-  "results/evaluation/retrieval_benchmark/cache/90/90c23e15265bd747f2f9f65717cd1228d5a46eb44c43e7bd023597308d36451c.json",
-  "results/evaluation/retrieval_benchmark/cache/f7/f7252e0dd503d5aa94327b10bfaac62a0cbad24e96ccda94484e872ddceb3a2b.json",
-  "reports/evaluation/retrieval_counter_authority_benchmark_38939239917.md",
-  "evaluation/lane_suite.py",
-  "tests/evaluation/test_lane_suite.py",
-  "results/evaluation/lane_suite/38951152192.json",
-  "results/evaluation/lane_suite/38951152192_bare.json",
-  "reports/evaluation/CYCLE_38951152192.md",
-  "state/evaluation.json",
-  "evaluation/frozen_bars/RULES_LABEL.json",
-  "evaluation/frozen_bars/RULES_GEOMETRY.json",
-  "evaluation/frozen_bars/FETCH_RECORD.json",
-  "evaluation/frozen_bars/vendored/VENDORED_SHA256.json",
-  "evaluation/frozen_bars/label_gate.py",
-  "evaluation/frozen_bars/geometry_gate.py",
-  "evaluation/frozen_bars/run_bar_gates.py",
-  "evaluation/frozen_bars/fixtures/label_negative_bundle.json",
-  "evaluation/frozen_bars/fixtures/label_mixed_bundle.json",
-  "evaluation/frozen_bars/fixtures/geometry_negative_bundle.json",
-  "tests/evaluation/test_frozen_bar_gates.py",
-  "results/evaluation/bar_gates/38964129305.json",
+  "evaluation/snapshot_audit/orchestration_diagnosis_2026-10-16.json",
+  "evaluation/snapshot_audit/orchestration_diagnosis_38982176936.json",
+  "evaluation/snapshot_audit/orchestration_diagnosis_38986445355.json",
+  "evaluation/snapshot_audit/run_snapshot_audit.py",
+  "evaluation/snapshot_audit/write_scope.py",
   "reports/evaluation/BAR_GATES_38964129305.md",
-  "results/evaluation/lane_suite/38966576940.json",
-  "results/evaluation/bar_gates/38966576940.json",
   "reports/evaluation/BAR_GATES_38966576940.md",
-  "tests/evaluation/test_audit_correction_verification.py",
-  "results/evaluation/bar_gates/38968781838.json",
-  "results/evaluation/lane_suite/38968781838.json",
   "reports/evaluation/BAR_GATES_38968781838.md",
-  "results/evaluation/bar_gates/38971202786.json",
-  "results/evaluation/lane_suite/38971202786.json",
   "reports/evaluation/BAR_GATES_38971202786.md",
-  "evaluation/frozen_bars/VERDICT_CONTRACT.json",
-  "evaluation/frozen_bars/verdict_contract.py",
-  "evaluation/frozen_bars/run_adjudication_probes.py",
-  "tests/evaluation/test_bar_gate_verdict_contract.py",
-  "results/evaluation/verdict_contract/FREEZE_38972887369.json",
-  "results/evaluation/verdict_contract/38972887369_reachability.json",
+  "reports/evaluation/BAR_GATES_38972887369.md",
+  "reports/evaluation/COUNTER_AUTHORITY_LABEL_BENCHMARK_39004097533.md",
+  "reports/evaluation/CYCLE_38951152192.md",
+  "reports/evaluation/CYCLE_38978411574.md",
+  "reports/evaluation/CYCLE_38982728075.md",
+  "reports/evaluation/CYCLE_38989947869.md",
+  "reports/evaluation/CYCLE_38993062549.md",
+  "reports/evaluation/CYCLE_39007294442.md",
+  "reports/evaluation/RETRIEVAL_CA_BENCHMARK_38989947869.md",
+  "reports/evaluation/evaluation_v49_cycle_report.md",
+  "reports/evaluation/evaluation_v49_cycle_report_38934722443.md",
+  "reports/evaluation/retrieval_counter_authority_benchmark_38939239917.md",
+  "results/evaluation/bar_gates/38964129305.json",
+  "results/evaluation/bar_gates/38966576940.json",
+  "results/evaluation/bar_gates/38968781838.json",
+  "results/evaluation/bar_gates/38971202786.json",
   "results/evaluation/bar_gates/38972887369.json",
   "results/evaluation/bar_gates/38972887369_adjudicate_blanked_full_population.json",
   "results/evaluation/bar_gates/38972887369_adjudicate_hostile_geometry.json",
   "results/evaluation/bar_gates/38972887369_adjudicate_naive_consumer_trap.json",
-  "results/evaluation/lane_suite/38972887369.json",
-  "reports/evaluation/BAR_GATES_38972887369.md",
-  "evaluation/snapshot_audit/run_snapshot_audit.py",
-  "evaluation/snapshot_audit/orchestration_diagnosis_2026-10-16.json",
-  "tests/evaluation/test_snapshot_audit.py",
-  "results/evaluation/snapshot_audit/38978411574.json",
-  "reports/evaluation/CYCLE_38978411574.md",
-  "evaluation/snapshot_audit/write_scope.py",
-  "evaluation/snapshot_audit/orchestration_diagnosis_38982176936.json",
-  "results/evaluation/snapshot_audit/38982176936_write_scope_repro.json",
-  "results/evaluation/snapshot_audit/void_self_audit_38982176936/VOID.json",
-  "results/evaluation/snapshot_audit/void_self_audit_38982176936/CYCLE_38982176936_GATE.json",
-  "results/evaluation/snapshot_audit/void_self_audit_38982176936/CYCLE_38982176936.md",
-  "results/evaluation/snapshot_audit/38982176936.json",
   "results/evaluation/bar_gates/38982176936.json",
   "results/evaluation/bar_gates/38982728075.json",
-  "reports/evaluation/CYCLE_38982728075.md",
-  "evaluation/benchmark_retrieval_counter_authority.py",
+  "results/evaluation/bar_gates/38989947869.json",
+  "results/evaluation/counter_authority_label_benchmark/39004097533.json",
+  "results/evaluation/counter_authority_label_benchmark/FROZEN_HYPOTHESIS_39004097533.json",
+  "results/evaluation/lane_suite/38951152192.json",
+  "results/evaluation/lane_suite/38951152192_bare.json",
+  "results/evaluation/lane_suite/38966576940.json",
+  "results/evaluation/lane_suite/38968781838.json",
+  "results/evaluation/lane_suite/38971202786.json",
+  "results/evaluation/lane_suite/38972887369.json",
+  "results/evaluation/packet_lineage_sweep/38993062549.json",
+  "results/evaluation/packet_lineage_sweep/FROZEN_HYPOTHESIS_38993062549.json",
+  "results/evaluation/packet_lineage_sweep/GEOMETRY_HALF_38877700234.json",
+  "results/evaluation/reality_benchmark/38920872324.json",
+  "results/evaluation/reality_benchmark/38934722443.json",
+  "results/evaluation/retrieval_benchmark/38939239917.json",
+  "results/evaluation/retrieval_benchmark/cache/90/90c23e15265bd747f2f9f65717cd1228d5a46eb44c43e7bd023597308d36451c.json",
+  "results/evaluation/retrieval_benchmark/cache/be/be6a1fee48be3745b69ecdfcf49b5b420976066ba17514d7d8d07261cbca6d3d.json",
+  "results/evaluation/retrieval_benchmark/cache/f7/f7252e0dd503d5aa94327b10bfaac62a0cbad24e96ccda94484e872ddceb3a2b.json",
   "results/evaluation/retrieval_counter_authority_benchmark/38989947869.json",
   "results/evaluation/retrieval_counter_authority_benchmark/38989947869_leg1_served_baseline.json",
   "results/evaluation/retrieval_counter_authority_benchmark/38989947869_leg2_hostile_geometry.json",
   "results/evaluation/retrieval_counter_authority_benchmark/38989947869_leg3_blanked_evidence.json",
-  "reports/evaluation/RETRIEVAL_CA_BENCHMARK_38989947869.md",
-  "results/evaluation/bar_gates/38989947869.json",
-  "evaluation/snapshot_audit/orchestration_diagnosis_38986445355.json",
-  "reports/evaluation/CYCLE_38989947869.md",
+  "results/evaluation/retrieval_counter_authority_benchmark/39004097533_n1.json",
+  "results/evaluation/snapshot_audit/38978411574.json",
+  "results/evaluation/snapshot_audit/38982176936.json",
+  "results/evaluation/snapshot_audit/38982176936_write_scope_repro.json",
+  "results/evaluation/snapshot_audit/39004097533.json",
+  "results/evaluation/snapshot_audit/39007294442.json",
+  "results/evaluation/snapshot_audit/void_self_audit_38982176936/CYCLE_38982176936.md",
+  "results/evaluation/snapshot_audit/void_self_audit_38982176936/CYCLE_38982176936_GATE.json",
+  "results/evaluation/snapshot_audit/void_self_audit_38982176936/VOID.json",
+  "results/evaluation/verdict_contract/38972887369_reachability.json",
+  "results/evaluation/verdict_contract/FREEZE_38972887369.json",
+  "state/evaluation.json",
+  "tests/evaluation/test_audit_correction_verification.py",
+  "tests/evaluation/test_bar_gate_verdict_contract.py",
   "tests/evaluation/test_benchmark_retrieval_counter_authority.py",
-  "results/evaluation/packet_lineage_sweep/38993062549.json",
-  "results/evaluation/packet_lineage_sweep/FROZEN_HYPOTHESIS_38993062549.json",
-  "results/evaluation/packet_lineage_sweep/GEOMETRY_HALF_38877700234.json",
-  "reports/evaluation/CYCLE_38993062549.md",
-  "evaluation/packet_lineage_sweep.py",
-  "tests/evaluation/test_packet_lineage_sweep.py"
+  "tests/evaluation/test_counter_authority_label_benchmark.py",
+  "tests/evaluation/test_frozen_bar_gates.py",
+  "tests/evaluation/test_lane_suite.py",
+  "tests/evaluation/test_packet_lineage_sweep.py",
+  "tests/evaluation/test_reality_gate.py",
+  "tests/evaluation/test_retrieval_gate.py",
+  "tests/evaluation/test_snapshot_audit.py",
+  "evaluation/packet_admission_conformance.py",
+  "tests/evaluation/test_packet_admission_conformance.py",
+  "results/evaluation/packet_admission_conformance/FROZEN_HYPOTHESIS_39010105493.json",
+  "results/evaluation/packet_admission_conformance/39010105493.json",
+  "results/evaluation/packet_admission_conformance/39012970379.json",
+  "evaluation/snapshot_audit/orchestration_diagnosis_39010105493.json",
+  "reports/evaluation/CYCLE_39012970379.md",
+  "results/evaluation/snapshot_audit/39012970379.json",
+  "results/evaluation/reality_benchmark/freeze/FROZEN_HYPOTHESIS_39018005027.json",
+  "results/evaluation/reality_benchmark/freeze/POPULATION_39018005027.tsv",
+  "results/evaluation/reality_benchmark/39018005027.json",
+  "results/evaluation/reality_benchmark/derived/39018005027_comparison.json",
+  "results/evaluation/packet_admission_conformance/39018005027.json",
+  "results/evaluation/packet_admission_conformance/39018005027_successor_comparison.json",
+  "results/evaluation/retrieval_counter_authority_benchmark/39018005027.json",
+  "results/evaluation/lane_suite/39018005027.json",
+  "reports/evaluation/CYCLE_39018005027.md"
  ],
  "human_gate_ready": false,
  "mission": "Independently falsify the query-specific LEX product. Do not reopen the 174k/global-geometry research unless a concrete product failure requires it.",
@@ -241,7 +270,7 @@
   "automated": "python -m evaluation.reality_gate.run_benchmark --evidence-dir <product reality_check dir> ... ; must be GREEN on a product's own live packet before the human gate can be considered. Exit 2 = environment/empty-input error (no record emitted).",
   "human": "Map usefulness remains a jurist product gate: branch/exception discovery, structural comprehension, confidence about contrary authority, preference over answer+ranked list."
  },
- "next_recommendation": "PRODUCT CONSUMES THE CORRECTED READING; ONE NEW DISCRIMINATING QUESTION FOR THIS LANE. (1) Product: wire packet admission on absolute_status (LABEL_SOUND/UNSOUND, GEOMETRY_SOUND/UNSOUND, reported never enforced) plus evaluation/frozen_bars/VERDICT_CONTRACT.json, NOT on exit != 0; on a non-incumbent packet the regression verdict is anchor-determined (F5). Use the regression verdict only as a served-lineage comparator against build 38839347028. Entry points: python -m evaluation.packet_lineage_sweep --run-id <id> (lineage validity; exit 1 = falsified) and python -m evaluation.frozen_bars.run_bar_gates [--adjudicate <packet-dir>]. (2) Product: the frozen geometry engine measures fr STRUCTURE_LARGEST = 0.7695852534562212 on the served packet against a <=0.60 bar, degrading monotonically 0.557 -> 0.718 -> 0.770 across the three accepted builds; the size-based mega-cluster disclosure should fire and this is the first independent frozen-rubric confirmation. (3) THIS LANE, successor cycle, one discriminating purpose and no threshold: decide whether the regression semantics can be re-grounded on a lineage-stable property (criterion-level pass vectors, or degradation-monotone criteria such as fr STRUCTURE_LARGEST) or whether the gate must be re-scoped to served_lineage only. Either outcome is falsifiable and neither touches a frozen bar. (4) Control plane: lanes.evaluation.status is still RUN; per factory-wide requirement 9 continue_recommended can never stop a redispatch, so move the status or dispatch the new question. Recorded and not patched from here.",
+ "next_recommendation": "THE BJR LEG IS NO LONGER THE OPEN QUESTION; THE COUNTER-LABEL BAR AND THE PACKET-ADMISSION INVARIANT ARE. (1) Product's obligation (5) is now REPRODUCED-UNDER-FROZEN-PROTOCOL (both post-tier runs pass recall 3/5 with preserved negatives proving no gate drift); the remaining Product ask - a durable Actions [reality-check] run - is control-plane, not lane, work. (2) Re-run python -m evaluation.packet_admission_conformance ONLY when Product ships a new served packet (any sha change of packet.json/state/product.json): the population is currently byte-identical and a re-run without new bytes would be a zero-delta repetition (rc-67 class). (3) Recompute the frozen reality benchmark per-artifact on each new Product head that claims a recall/label/geometry change; treat per-artifact/per-leg results as the actionable signal, because overall_pass over the append-only history population is structurally pinned false (13 immutable legacy failures + the 6 current-bundle structural::counter_classifications_supported failures that only the counter-label bar can move). (4) Any wish for a current-run green gate is a NEW frozen spec (new digest + population definition) for the control plane to commission; never an edit of ff57f556/06781743. (5) The two accepted absolute bars (4457e971... label 1.0; a7452748... geometry all-11) remain unmet and reported-not-enforced; the 174k suite stays closed; human_gate_ready stays false under the standing DO-NOT-SERVE order. continue_recommended=true for these successors only.",
  "prior_proposal_unpromoted": {
   "run_id": "38939239917",
   "note": "The 38939239917 producer commit (660ad896) was never audited and never promoted: no results/audit/evaluation/CYCLE_38939239917_GATE.json exists, no 'accept evaluation cycle 38939239917' commit exists, and origin/lab/evaluation is still 1e12bfc2 (accept cycle 38934722443). This is the cause of run 38945774110's zero-delta exit: it started from a tree already containing all of 38939239917's work and had nothing to add. The zero-delta exit is a symptom, not a lane defect.",
@@ -249,7 +278,7 @@
   "deliverable_in_that_commit": "evaluation/retrieval_gate/* and tests/evaluation/test_retrieval_gate.py (the frozen retrieval/counter-authority benchmark, sha 187b0e54..., executed FAIL 12/40)",
   "action_required": "promote or reject 38939239917 explicitly so it stops shadowing lane state"
  },
- "continue_recommended_reason": "continue_recommended=true is NOT a generic request to keep running. The v50 two-gate build question remains delivered, but this cycle's falsification raises ONE concrete, same-direction discriminating gap that a successor cycle can settle executably: the frozen geometry gate is provably anchor-determined (F5), so its incumbents are a temporal anchor rather than a floor. The next discriminating purpose is to decide, WITHOUT inventing a threshold and WITHOUT touching either frozen bar, whether the regression semantics can be re-grounded on a lineage-stable property (e.g. criterion-level pass vectors, or degradation-monotone criteria such as fr STRUCTURE_LARGEST) or whether the gate must be re-scoped to served_lineage only. That decision is not made in this cycle and is falsifiable. If the control plane instead considers the v50 question closed, move lanes.evaluation.status off RUN: factory-wide requirement 9 means continue_recommended can never stop a redispatch.",
+ "continue_recommended_reason": "Concrete discriminating successors under the SAME v50 question, not a generic keep-running: (a) packet-admission successor test is byte-identity-pending - it fires the moment Product ships ANY new packet.json/state/product.json sha (this run proved the population is still byte-identical, so the run was a repetition, not new evidence); (b) the frozen reality benchmark must be recomputed per-artifact on each new Product head that claims a recall/label/geometry change (this run delivered exactly that for obligation (5)); (c) track the 6 current-bundle structural::counter_classifications_supported failures as the only overall_pass failures Product can still move. A re-dispatch with no new Product bytes would be the rc-67 zero-delta pathology and must not be issued.",
  "orchestration_diagnosis_38945774110": {
   "symptom": "origin/cycle/core/evaluation/38945774110/team == 660ad896 (byte-identical to its base); zero producer commit",
   "root_cause": "the preceding proposal 38939239917 was never audited nor promoted (see prior_proposal_unpromoted)",
@@ -385,21 +414,27 @@
   "why": "no workflow in this repository runs tests/evaluation/test_reality_gate.py or tests/evaluation/test_retrieval_gate.py; the only pytest invocation is evaluation/query_map/test_harness.py and its path filter does not cover evaluation/reality_gate/**, evaluation/retrieval_gate/** or tests/evaluation/**. .github/** is control-plane scope and was not edited."
  },
  "execution_records_this_cycle": {
-  "run_id": "38989947869",
-  "bar_gates": {
-   "record": "results/evaluation/bar_gates/38989947869.json",
-   "verdict": "PASS_NO_REGRESSION",
-   "exit_code": 0,
-   "labels": "5/65 classes OFF-DOMAIN 38 / UNBACKED 22 / SUPPORTED 5 / INVERTED 0 (absent=0)",
-   "geometry": "de 6 / fr 5 / it 5; 0/3 bundles pass all 11",
-   "negative_controls_all_proven": true,
-   "absolute": "LABEL_UNSOUND + GEOMETRY_UNSOUND reported-not-enforced"
+  "run_id": "39018005027",
+  "frozen_reality_recompute": {
+   "record": "results/evaluation/reality_benchmark/39018005027.json",
+   "overall_pass": false,
+   "verdict_per_hypothesis": "FROZEN_PROTOCOL_CONFIRMS_BJR_REPAIR",
+   "note": "runner exit 1 == overall_pass false, frozen in H4; claim lives at per-artifact level"
   },
-  "retrieval_ca_benchmark": {
-   "record": "results/evaluation/retrieval_counter_authority_benchmark/38989947869.json",
+  "packet_admission": {
+   "record": "results/evaluation/packet_admission_conformance/39018005027.json",
+   "exit_code": 1,
+   "violations_total": 3,
+   "population_byte_identical_to_incumbent": true
+  },
+  "retrieval_ca_battery": {
+   "record": "results/evaluation/retrieval_counter_authority_benchmark/39018005027.json",
    "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
-   "exit_code": 0,
-   "falsification_proven": true
+   "exit_code": 0
+  },
+  "lane_suite": {
+   "record": "results/evaluation/lane_suite/39018005027.json (sha 4eaec81b1c61e25fa...)",
+   "verdict": "PASS 43/43 + pytest 189 passed"
   }
  },
  "count_reconciliation": {
@@ -456,7 +491,7 @@
   "results/evaluation/lane_suite/38945976309.json (new)",
   "reports/evaluation/CYCLE_38945976309.md (new)"
  ],
- "report": "reports/evaluation/CYCLE_38989947869.md",
+ "report": "reports/evaluation/CYCLE_39018005027.md",
  "next_recommendation_38951152192": "HAND OFF TO PRODUCT, then stop this lane's proposal chain. The v49 evaluation question is encoded, enforced, self-falsified twice (F6 cached-replay latency erasure, closed 38945976309; F7 bare-checkout pytest false-red, closed this cycle), and both falsifications are closed without moving any frozen bar. What remains is not lane work: audit and promote (or reject) the stacked proposals 38939239917 (retrieval benchmark) and 38945976309 (hardening) so their deliverables stop shadowing every re-dispatch, and set the portfolio .status stop per factory-direction item 13 — continue_recommended:false cannot stop re-dispatch while the supervisor jq // defect stands. continue_recommended stays false: the next dispatch must carry a NEW question, never a re-run of this one. Product's open falsifications are unchanged and restated without re-measurement (FR/IT authority recall 0/N vs DE 2/2, 2/5, 1/2; fresh BJR leg cites 0/5 frozen BJR authorities; retrieval live pass 256.827s vs frozen 240s budget; duplicate::unique_ids fails on all four questions; 6 unusable ids among 960 rows; rent-default authority gates permanently not_measurable). human_gate_ready stays false. No 174k/global-map benchmarks rerun; none was run this cycle.",
  "orchestration_diagnosis_38949870162": {
   "symptom": "origin/cycle/core/evaluation/38949870162/team == 9766de64 (byte-identical to its base); zero producer commit; working tree clean",
@@ -656,8 +691,8 @@
   "not_touched": "no frozen rubric/spec/threshold/bar/incumbent/lineage predicate/recorded verdict; no served-bytes pin weakened in default mode; no Frontier candidate re-measured; no 174k rerun; no Product import; no network; no .github/** edit; no audit files authored",
   "claim_ceiling": "the gates are now a LIVE discriminator for future packets on the three frozen qids (adjudicate mode), with an executable contract stating what every verdict does and does NOT certify; they still cannot admit genuinely new qids without a disclosed rules re-freeze, do not score Frontier candidates, do not prove jurist map usefulness, and move no bar. LABEL_UNSOUND and GEOMETRY_UNSOUND remain the accepted absolute status of the served packet and stay reported-not-enforced. human_gate_ready stays false under the standing accepted DO-NOT-SERVE order."
  },
- "recommendation": "PIVOT_WITHIN_MISSION",
- "recommendation_rationale": "RESEARCH_PROTOCOL step 9. The v50 two-gate build question stays delivered; this cycle did not rebuild it, it exercised it. The result is a first-class NEGATIVE result ABOUT THE BARS, which the mission explicitly preserves: the frozen geometry gate's regression verdict is anchor-determined over the product's own accepted lineage, so it cannot be wired as packet admission on exit != 0. Product obligation (1) still has a safe, already-published wiring (absolute_status + VERDICT_CONTRACT.json), so no owner decision is needed and no blocker is raised.",
+ "recommendation": "CONTINUE",
+ "recommendation_rationale": "RESEARCH_PROTOCOL step 9 for run 39012970379. The v50 two-gate question stays delivered and is NOT rebuilt this cycle; what this cycle adds is (a) the operational-resume diagnosis of the producer step that died at 2703 s before writing its report/state, (b) the verification in place of the frozen-hypothesis-first packet-admission conformance benchmark rescued from that snapshot, and (c) the executable pins (snapshot checks 14-16) so the new falsification and its diagnosis cannot be softened silently. The successor with a concrete discriminating purpose is the same-question regression gate named in next_recommendation. The prior cycle's declared-population re-freeze recommendation is preserved in recommendation_rationale_prior_39007294442 and still stands as a control-plane decision.",
  "operational_resume_38977570612": {
   "resume_from": "persisted producer snapshot of run 38972887369 (commits 767fb26a + 7169faad on accepted base 59fde886 'accept evaluation cycle 38971202786'); working tree was clean, no work discarded, no restart from scratch",
   "orchestration_diagnosis": "no audit gate file results/audit/evaluation/CYCLE_38972887369_GATE.json exists in the snapshot and no 'accept evaluation cycle 38972887369' commit exists: the producer deliverable was never independently audited, so nothing was promoted and nothing was rejected. No validation defect was found in the snapshot to explain it (write scope is lane-clean, all 63 evidence_refs resolve, frozen shas re-hash exactly, lane suite passes). Cause class is therefore orchestration/audit-scheduling (or provider death of the audit job, per factory-wide requirement 20), not a producer defect. gh CLI is unavailable in this container (no GH_TOKEN), so the run-38972887369 job log could not be read; the diagnosis rests on repo evidence only and is hedged accordingly.",
@@ -774,7 +809,7 @@
   },
   "claim_ceiling": "proves only that (a) the served packet currently does not regress below the recomputed incumbents and (b) both frozen gates can fail a deliberately regressed input. Does NOT prove jurist usefulness, does NOT meet the absolute LABEL_SOUND / GEOMETRY_SOUND bars, does NOT unblock the human gate (standing accepted DO-NOT-SERVE order)."
  },
- "human_gate_ready_reason": "unchanged and not advanced by this cycle. The standing accepted DO-NOT-SERVE order (frontier-served-packet-falsification, team run 38880639079) is untouched; both absolute bars remain unmet; and this result says nothing about jurist usefulness.",
+ "human_gate_ready_reason": "unchanged and NOT advanced by this cycle. The standing accepted DO-NOT-SERVE order (frontier-served-packet-falsification, team run 38880639079) is untouched; both absolute bars remain unmet (counter-label 5/65 vs 1.0; geometry 0/3 vs all-11). This cycle UPGRADES one product claim (BJR recall repair: local -> reproduced-under-frozen-protocol) but says nothing about jurist usefulness; the packet-admission invariant remains violated at 3 over an unchanged population. ready_for_owner_session stays forbidden while either bar is unmet.",
  "blockers": [],
  "v50_gate_validity_38993062549": {
   "question": "Are the two accepted frozen-bar gates sound as the machine packet-admission input that Product direction obligation (1) requires? Tested on the product's OWN accepted bundle lineage rather than on the single packet the incumbents were computed from.",
@@ -1083,5 +1118,341 @@
  "control_plane_gaps_recorded_not_patched_38993062549": [
   "factory-wide requirement 9 (dead jq // exhaustion guard) still unpatched; lanes.evaluation.status is still RUN while continue_recommended is the only stop signal. Recorded, not edited from this lane.",
   "tests/evaluation/test_benchmark_retrieval_counter_authority.py contains an accepted optional live end-to-end test that writes pytest_local* artifacts into the real results/ and reports/ directories on every suite run. Those are pre-existing behaviour of an accepted test, not this cycle's; they are removed before commit and the behaviour is recorded rather than patched, because editing an accepted, audit-pinned test is not this lane's scope."
- ]
+ ],
+ "counter_authority_label_benchmark_39004097533": {
+  "question": "Can the smallest executable counter-authority benchmark falsify LexMachina on the axis the standing accepted DO-NOT-SERVE order is predicated on (the SUPPORT OF THE COUNTER-AUTHORITY LABELS AS ISSUED), and can it decide whether the accepted frozen counter-label gate is safe for Product obligation (1) as a machine packet-admission input?",
+  "entry_point": "python -m evaluation.counter_authority_label_benchmark --run-id <id>",
+  "engine_reused": "evaluation.frozen_bars.label_gate (accepted) for every support test, defect class and bar; evaluation.benchmark_retrieval_counter_authority (accepted, unmodified) for non-vacuity N1",
+  "verdict": "PRODUCT_FALSIFIED",
+  "exit_code": 1,
+  "record": "results/evaluation/counter_authority_label_benchmark/39004097533.json",
+  "report": "reports/evaluation/COUNTER_AUTHORITY_LABEL_BENCHMARK_39004097533.md",
+  "frozen_hypothesis": {
+   "path": "results/evaluation/counter_authority_label_benchmark/FROZEN_HYPOTHESIS_39004097533.json",
+   "frozen_at_commit": "10135a0f",
+   "frozen_before_the_module_existed_or_ran": true,
+   "honest_pre_freeze_disclosure": "lists what exploratory inspection had already observed (the gate's exact-population predicate, the rubric's own 7-row primary population, the adversarial artifacts' rent-default queries) separately from what the benchmark measures"
+  },
+  "Q1_product_axis_L1_did_not_hold": {
+   "anchor_profile": "kuendigung-mietrecht",
+   "before": "adversarial_retrieval/38828034436 pool 11/70 = 0.1571",
+   "after": "adversarial_retrieval/38831241913 pool 7/58 = 0.1207",
+   "delta_support_rate": -0.0365,
+   "per_language_before": {
+    "de": "7/29",
+    "fr": "0/24",
+    "it": "4/17"
+   },
+   "per_language_after": {
+    "de": "6/29",
+    "fr": "0/22",
+    "it": "1/7"
+   },
+   "FRENCH_RESULT": "0 supported French counter labels in BOTH arms UNDER THE MATCHED ANCHOR (kuendigung-mietrecht: 0/24 before, 0/22 after). NOT anchor-independent (this field was corrected in repair round 1 of rejected cycle 39004097533): FR is 0-supported under four of the five frozen anchors, but under fr-bail-entretien FR carries 2 supported rows in each arm (2/24 = 0.0833 before, 2/22 = 0.0909 after). The verdict does not rest on FR: the pooled L1 regression holds under ALL five anchors (matched 11/70 -> 7/58; fr-bail-entretien 3/70 -> 2/58; de-kapitalverletzung 1/70 -> 0/58; it-responsabilita-medica 0/70 -> 0/58; responsabilite-penale-entreprise-102cp 0/70 -> 0/58; improved=False everywhere).",
+   "genuine_improvement_not_explained_away": "INVERTED-class rows 2 -> 0; the repair eliminated both affirmatively inverted labels the product audit named; UNBACKED share 0.471 -> 0.397",
+   "genuine_regression_not_explained_away": "SUPPORTED share 0.157 -> 0.121; OFF-DOMAIN share 0.314 -> 0.466; three SUPPORTED Italian labels were among the ten the repair removed",
+   "corroborates_product_own_report": "reports/product/CYCLE_38831241913.md records the IT counter-label yield dropping 12 -> 2 with 10 of 12 old IT labels in the off-domain/boilerplate/inverted/fragment class; this measurement adds that 3 of the 10 removed were SUPPORTED",
+   "disclosed_confound": {
+    "what": "the two arms carry the same query text but NOT the same retrieved decision population (de 14 out/12 in, fr 22/24, it 2/0); the repair also changed the probe plan (product audit fix D1 re-interleaved DE/FR/IT probe terms)",
+    "control": "shared_id_sensitivity: both arms re-scored restricted to the decision ids they share",
+    "result_pooled_on_shared": "before 11/53 = 0.2075 -> after 6/44 = 0.1364, delta -0.0712",
+    "conclusion": "controlling for retrieval non-determinism makes the product result WORSE, not better",
+    "discipline": "enforced=false, part_of_frozen_predicate_L1=false; added AFTER the confound was known, i.e. in the direction that WEAKENS the falsification, and deliberately not allowed to relax the frozen rule",
+    "pinned_by": "tests/evaluation/test_counter_authority_label_benchmark.py::test_shared_id_sensitivity_does_not_rescue_the_product"
+   },
+   "anchor_fit_sensitivity": "every artifact scored under all five frozen anchors. POOLED, kuendigung-mietrecht is the most generous anchor by a wide margin (0.1571 before vs <= 0.0429 under every other anchor) and the pooled L1 regression holds under ALL five anchors (improved=False everywhere), so the falsification does not depend on the anchor choice. PER-ARTIFACT, the record's min_other_anchor_support_rate is the MINIMUM other anchor, NOT the best alternative (this field was corrected in repair round 1 of rejected cycle 39004097533): on DE/IT the matched anchor is the most generous (margins vs the true best alternative +0.2069 before-de, +0.1765 before-it, +0.2069 after-de, +0.1429 after-it, versus the larger minimum-other margins +0.2414/+0.2353/+0.2069/+0.1429), while on FR the matched anchor is WORSE than the best alternative (fr-bail-entretien) by -0.0833 before and -0.0909 after. enforced=false"
+  },
+  "Q2_bar_axis_gate_predicates_fired": {
+   "gate_lineage_measured": {
+    "38799024807": {
+     "n_scored": 7,
+     "n_supported": 0,
+     "support_rate": 0.0,
+     "regression_verdict": "NOT_APPLICABLE",
+     "gate_blocks_build": false
+    },
+    "38812599575": {
+     "n_scored": 9,
+     "n_supported": 1,
+     "support_rate": 0.1111,
+     "regression_verdict": "NOT_APPLICABLE",
+     "gate_blocks_build": false
+    },
+    "38839347028": {
+     "n_scored": 65,
+     "n_supported": 5,
+     "support_rate": 0.0769,
+     "regression_verdict": "PASS_NO_REGRESSION",
+     "gate_blocks_build": false,
+     "classes_exact_match_to_accepted_state_of_record": {
+      "OFF-DOMAIN": 38,
+      "UNBACKED": 22,
+      "SUPPORTED": 5
+     }
+    }
+   },
+   "L2_gate_admits_total_label_collapse": "HOLDS: 38799024807 has 0/7 supported (rate 0.0 < 0.0769 AND count 0 < 5) yet returns NOT_APPLICABLE with gate_blocks_build=false. A complete failure of the axis the DO-NOT-SERVE order rests on is invisible to the gate as a build blocker.",
+   "L3_gate_population_predicate_is_confounded": "HOLDS: admissible packets 1 of 3; the predicate keys on counter-row VOLUME (populations 7 / 9 / 65), not on label quality",
+   "L4_rate_and_count_semantics_disagree": "HOLDS: 38812599575 has a strictly BETTER support rate (0.1111 > 0.0769) and a worse count (1 < 5); at a matched population the gate would FAIL an artifact with a better rate",
+   "L5_frozen_rubric_population_and_gate_incumbent_disagree": "HOLDS, compared as set relations with both differences computed: the incumbent packet's three bundle shas are absent from RULES_LABEL inputs[] (declared_not_incumbent 9, incumbent_not_declared 3) and required_min_population_primary (7) != label_gate.INCUMBENT n_scored (65); the rubric's own populations.primary names packet 38799024807, the ZERO-support packet. Re-freezing is OUT OF LANE SCOPE and was not attempted.",
+   "L6_anchor_ordering_is_not_quality_ordering": "HOLDS: order by supported count is 38799024807 < 38812599575 < 38839347028, order by support_rate is 38799024807 < 38839347028 < 38812599575. The label-side counterpart of accepted finding F5 for geometry."
+  },
+  "non_vacuity_battery_4_of_4_proven": {
+   "N1_positive_must_fire": "accepted 3-leg entry point unmodified: BENCHMARK_VALID_NO_FALSIFICATION, falsification_proven=true, legs 0/1/1",
+   "N2_negative_incumbent_must_not_fire": "PASS_NO_REGRESSION, gate_blocks_build false",
+   "N3_rules_identity": "RULES_LABEL 4457e971..., RULES_GEOMETRY a7452748..., re-hashed BEFORE any scoring",
+   "N4_population_sensitivity": "synthetic incumbent at 64 rows and at 66 rows both return NOT_APPLICABLE with gate_blocks_build false -> L3 is structural, not a data accident",
+   "N5_provenance": "all 6 artifacts re-hashed on the accepted mount; every gate-packet bundle sha re-hashed from the bytes the gate actually read"
+  },
+  "intermediate_negative_result_preserved": "the FIRST execution of this cycle returned exit 2 ENVIRONMENT_OR_UNPROVEN with gate findings computed but SUPPRESSED, because N1 read the accepted record's legs with the wrong key shape ('leg_exits' vs the record's 'legs' list). That is recorded in the report as the discipline working as designed: an unproven battery suppresses findings rather than shipping them. After the harness fix the battery holds and the verdict stands.",
+  "provenance_limits_stated": [
+   "no independent audit gate for the adversarial arms is on the accepted product mount; all six classify as product_artifact_without_on_mount_audit_record, so the falsification is pinned to artifact BYTES, not to an audit verdict",
+   "the pre-repair cycle WAS audited (results/audit/product/CYCLE_38828034436_GATE.json, gate=REVISE, fixes D1-D4) but that gate file lives on an audit branch, not the mount",
+   "packet 38839347028 has no on-mount audit record; it is identified by the accepted product verdict adoption file which names it (measured_packet gate_packet/38839347028, covers_this_packet true)",
+   "the adversarial_retrieval -> kuendigung-mietrecht anchor mapping is an INFERENCE from each artifact's own query string plus its MEASUREMENT.json artifact path, not a claim about how the product labelled them; the anchor-fit sensitivity bounds its consequence"
+  ],
+  "claim_ceiling": "Measures the SUPPORT of the counter-authority labels the product issued, on accepted product artifacts, under a frozen rubric. NEVER asserts that any specific decision IS supporting, contrary or limiting (self-scanned with the accepted forbidden_construction_patterns, 5 patterns, 0 violations). Does not meet or move the absolute LABEL_SOUND bar (reported 0.1207 after / 0.1571 before against 1.0), does not repair or re-freeze RULES_LABEL.json, does not prove jurist usefulness, does not unblock the human product gate. A falsification of the GATE is a fact about the gate's wiring, not a claim that the product's labels are correct.",
+  "product_decision_unlocked": "Product obligation (1) CANNOT be wired on gate_blocks_build alone. The safe wiring already exists and is published: admit on absolute_status plus the rubric's own verdict_rule, read through the accepted VERDICT_CONTRACT.json admission_reading. No owner decision and no new bar required.",
+  "deliberately_not_done": [
+   "no threshold invented; L2-L6 restate the accepted gate semantics and the accepted label_gate.py source",
+   "no frozen rubric, incumbent, gate success rule or recorded verdict modified; both RULES files re-hash byte-identically",
+   "the absolute LABEL_SOUND bar stays reported-not-enforced per direction v50, pinned by a red/green test",
+   "the two Frontier candidates under construction were NOT re-measured; only product artifacts on the accepted mount were scored",
+   "no universal-174k rerun; no network; no Product import; no .github/** edit; no audit artifact authored",
+   "evaluation/benchmark_retrieval_counter_authority.py left byte-unchanged and executed unmodified"
+  ],
+  "determinism_check_this_cycle": "the benchmark was re-executed under a different run id into a scratch directory and the record compared against the committed record of record: IDENTICAL on every field except run_id and the wall-clock fields (generated_at / started_at / elapsed_s, including the N1 subprocess elapsed_s). The verdict, all five fired predicates, the battery, the L1 figures and the coherence verdict reproduce exactly. The scratch record was not kept as a claim-bearing artifact and the committed record of record was not overwritten."
+ },
+ "pre_existing_defect_found_and_repaired_39004097533": {
+  "defect": "tests/evaluation/test_snapshot_audit.py CHECK_IDS omitted 'gate_validity_sweep', which accepted cycle 38993062549 added to the verifier",
+  "consequence": "the snapshot-audit suite has been RED (1 failed / 25 passed) on the accepted tree since that commit; it was never caught because that file is deliberately outside evaluation/lane_suite.py's pytest scope",
+  "proven_pre_existing": "this cycle's work was stashed and the suite re-run at accepted head 21b64ad0: 1 failed / 25 passed, identical failure",
+  "repair": "CHECK_IDS extended with 'gate_validity_sweep' and 'counter_authority_label_benchmark'; set-completeness repair only, no verifier behaviour changed, no check weakened or removed",
+  "result": "50 passed over the two files; snapshot audit READY 13/13"
+ },
+ "durable_delta_39004097533": [
+  "evaluation/counter_authority_label_benchmark.py (new executable benchmark: Q1 product-axis before/after on real accepted artifacts under the identical frozen rubric, Q2 gate-axis predicates L2-L6, non-vacuity battery N1-N5, in-code record-coherence checker, forbidden-construction self-scan)",
+  "results/evaluation/counter_authority_label_benchmark/FROZEN_HYPOTHESIS_39004097533.json (new; frozen at commit 10135a0f BEFORE the module existed)",
+  "results/evaluation/counter_authority_label_benchmark/39004097533.json (new; PRODUCT_FALSIFIED exit 1, battery 4/4, coherent)",
+  "results/evaluation/retrieval_counter_authority_benchmark/39004097533_n1.json + 3 leg records (N1 evidence from the accepted unmodified entry point)",
+  "results/evaluation/snapshot_audit/39004097533.json (new readiness record, READY 13/13)",
+  "tests/evaluation/test_counter_authority_label_benchmark.py (new, 24 tests incl. 5 red controls)",
+  "tests/evaluation/test_snapshot_audit.py (CHECK_IDS set-completeness repair, disclosed)",
+  "evaluation/snapshot_audit/run_snapshot_audit.py (new check 13 counter_authority_label_benchmark, pinning both negative results so neither can be softened silently; manifest extended)",
+  "evaluation/lane_suite.py (disclosed pytest scope extension: +1 file; no frozen benchmark touched)",
+  "reports/evaluation/COUNTER_AUTHORITY_LABEL_BENCHMARK_39004097533.md (new)",
+  "state/evaluation.json (this block and the two above)"
+ ],
+ "repair_39004097533_round_1": {
+  "rejected_cycle": "39004097533",
+  "rejected_audit": "results/audit/evaluation/CYCLE_39004097533_GATE.json (gate=REVISE, safe_to_integrate=false; mounted read-only this repair round at /tmp/lex_prior_audit)",
+  "required_fixes": [
+   "R1 corrected: false French anchor-independence claims in report sections 1a/1d and state Q1_product_axis_L1_did_not_hold.FRENCH_RESULT",
+   "R2 corrected: the report section 1d 'best alternative anchor' column was the record's MINIMUM other anchor; derived margins corrected; state anchor_fit_sensitivity corrected"
+  ],
+  "what_did_not_change": "the committed record results/evaluation/counter_authority_label_benchmark/39004097533.json, the frozen hypothesis, RULES_LABEL.json, RULES_GEOMETRY.json, any incumbent, any gate success rule, the PRODUCT_FALSIFIED verdict, the five fired gate predicates, the exit code and the claim ceiling. PRODUCT_FALSIFIED recomputes unchanged from the record under every one of the five frozen anchors.",
+  "hardening_adopted": "the audit's recommended mount-independent pin test was added: test_pooled_anchor_regression_holds_under_all_five_anchors (see repair_fixes_applied.hardening_repair_39004097533_r1)",
+  "corrected_claims_are_recomputable": "the audit independently recomputed the corrected claims this round: pooled L1 before/after under all five anchors (matched 11/70->7/58; fr-bail 3/70->2/58; de-kap 1/70->0/58; it-resp 0->0; resp-pen 0->0; improved=False everywhere) and the fr-bail-entretien FR cells (2/24 before, 2/22 after)",
+  "report": "reports/evaluation/COUNTER_AUTHORITY_LABEL_BENCHMARK_39004097533.md (corrected in place; the correction is disclosed in the text, not hidden by overwriting history)"
+ },
+ "durable_delta_39004097533_repair_r1": [
+  "reports/evaluation/COUNTER_AUTHORITY_LABEL_BENCHMARK_39004097533.md (section 1a scoped to the matched anchor; section 1d corrected: minimum-other vs best-alternative columns kept distinct, true best-alternative margins, pooled-regression-under-all-five-anchors table, false FR anchor-independence claim replaced)",
+  "state/evaluation.json (FRENCH_RESULT and anchor_fit_sensitivity corrected; repair_round 0 -> 1; R1/R2/hardening recorded; this block)",
+  "tests/evaluation/test_counter_authority_label_benchmark.py (new mount-independent pin test_pooled_anchor_regression_holds_under_all_five_anchors; test count 24 -> 25)",
+  "results/evaluation/snapshot_audit/39007294442.json (repair-round readiness record; the rejected 39004097533 record is preserved, not overwritten)"
+ ],
+ "accepted_run_id_history_prior": "pointer refreshed this cycle (39012970379): the accepted base of this snapshot is 76d04157 'accept evaluation cycle 39007294442', whose gate results/audit/evaluation/CYCLE_39007294442_GATE.json (gate=PASS, safe_to_integrate=true, required_fixes=[]) is in this tree. The pointer had been stale at 38971202786 across four later accepts (38978411574, 38989947869, 38993062549, 39007294442) - exactly the non-blocking observation carried by audit CYCLE_39007294442_GATE.json, which recorded it as 'safe to refresh via an accepted base move'. Acceptance itself still moves only via an audit gate. The pre-refresh note is preserved verbatim in accepted_run_id_history_prior.",
+ "repair_chain_closed_by": "the 39004097533 repair chain closed at 39007294442 (gate PASS, accept commit 76d04157, which is this snapshot's accepted base); repair_audit_ref below is retained as history, and this cycle is NOT a repair (fresh follow-on cycle whose producer step died)",
+ "resume_from_run_id": "39010105493",
+ "resume_from_snapshot": "origin/cycle/core/evaluation/39010105493/team == 5b3f56ff on accepted base 76d04157",
+ "recommendation_rationale_prior_39007294442": "RESEARCH_PROTOCOL step 9. The v50 two-gate build question stays delivered; this cycle did not rebuild it, it tested the LABEL half on real accepted product artifacts and produced the lane's first product-level falsification of the counter-authority labelling (PRODUCT_FALSIFIED, exit 1, battery 4/4 proven) plus five fired gate predicates. The next concrete discriminating purpose under the same mission is a declared-population re-freeze of the counter-label bar, which is the only thing that makes Product obligation (1) enforceable; that touches a FROZEN rubric and is therefore recorded as control-plane scope, not patched from this lane. continue_recommended stays true for that single successor, not as a generic keep-running.",
+ "packet_admission_conformance_39010105493": {
+  "question": "Direction v50 / product obligation (1) makes the two accepted frozen bars a machine-readable input of packet admission 'so no packet, owner card, disclosure or state field can carry ready_for_owner_session=true or human_gate_ready=true while counter-label support is below the frozen bar 4457e971... or geometry below a7452748...'. Is that invariant TRUE, executably, over the ACCEPTED product artifacts?",
+  "entry_point": "python -m evaluation.packet_admission_conformance --run-id <id>",
+  "frozen_hypothesis": {
+   "path": "results/evaluation/packet_admission_conformance/FROZEN_HYPOTHESIS_39010105493.json",
+   "frozen_at_commit": "29e01faa",
+   "frozen_before_implementation": true,
+   "frozen_before_execution": true,
+   "sha256": "8e86b13085f32ed07e18f25b45d41c7bcbd4171f130f303207f6a565c4cc3107",
+   "honest_pre_freeze_disclosure": "lists what source inspection had already observed (the two shipped packets with ready_for_owner_session true, the nested state claim, packet_admission.py's source, the 0.7696 FR disclosure) separately from what the benchmark measures (the complete violation set, block presence, the human_gate_ready scan, source agreement, N1-N4, H5 black-box output, verdict)"
+  },
+  "verdict": "PACKET_ADMISSION_INVARIANT_VIOLATED",
+  "exit_code": 1,
+  "violations_total": 3,
+  "violation_files": [
+   "results/product/gate_packet/38812599575/packet.json",
+   "results/product/gate_packet/38839347028/packet.json",
+   "state/product.json"
+  ],
+  "population": "8 files globbed over the frozen roots; 3 claims, 3 violations, 0 unbound, 0 incoherent",
+  "bar_status_source": "results/evaluation/packet_lineage_sweep/38993062549.json READ only (recomputed_by_this_benchmark=false, frontier_candidates_remeasured=false); cross-check against the accepted Frontier verdict snapshot AGREES (label 0.0769230769 < 1.0, geometry 0/3 pass)",
+  "non_vacuity_battery": "4/4 (N1 fires, N2/N3 do not, N4 re-hashes 4457e971/a7452748); a failed control would exit 2 and suppress every finding",
+  "hypotheses": {
+   "H1": "HOLDS - 3 violating records, so the frozen success rule gives exit 1",
+   "H2": "source-cited inference recorded, not executed; corroborated by the persistence check",
+   "H3": "HOLDS - size-based mega-cluster disclosure fired exactly when share >= 0.5 on all 3 questions (fr 0.7696 fired, de 0.3785 silent, it 0.4692 silent)",
+   "H4": "HOLDS - 0 records with human_gate_ready true; independent re-scan this cycle over 1574 JSON files gives 0 under both the textual pre-filter and a full parse, so the pre-filter loses nothing",
+   "H5": "HOLDS - product's own assess() in a child process returns ready_for_owner_session_allowed=false, packet_admitted=false, so the defect class is 'gate never applied to the shipped record', not 'gate broken'; reported positive control, never part of the pass rule"
+  },
+  "persistence_check": "none of the 4 shipped packets carries packet_admission / packet_admission_blocked / ready_for_owner_session_base on its own record; state/product.json contains 'packet_admission' only inside prose",
+  "records": {
+   "producer_execution_record": "results/evaluation/packet_admission_conformance/39010105493.json (sha c34c720127ae8f9a35d652177c9ca61d46676faaff8b0a8431355feb0749d07d)",
+   "resume_execution_record": "results/evaluation/packet_admission_conformance/39012970379.json",
+   "reproduction_delta": "identical after removing run_id/started_at_utc/elapsed_s/frozen_hypothesis EXCEPT one file_sha256 (state/product.json 018ff8a1... on the 06:30Z mount vs 75b48cfa... now), because lab/product advanced at 06:42:47Z 'accept product cycle 39006211027' AFTER the failing run had already mounted its peers; verdict, violation set, every bar-status cell, battery and cross-check unchanged"
+  },
+  "claim_ceiling": "Falsifies ONE machine-checkable invariant over accepted product artifacts. It does NOT score either frozen rubric, re-measure any Frontier candidate, prove map usefulness, move or meet either absolute bar, or unblock anything: both bars stay UNSOUND reported-not-enforced, the standing accepted DO-NOT-SERVE order stands, human_gate_ready stays false."
+ },
+ "operational_resume_39010105493_39012970379": {
+  "mode": "OPERATIONAL RESUME from persisted producer snapshot of run 39010105493",
+  "resume_from_run_id": "39010105493",
+  "resume_run_id": "39012970379",
+  "resume_from_snapshot": "origin/cycle/core/evaluation/39010105493/team == 5b3f56ff on accepted base 76d04157",
+  "diagnosis_artifact": "evaluation/snapshot_audit/orchestration_diagnosis_39010105493.json",
+  "orchestration_failure": {
+   "status": "CONFIRMED_AT_JOB_AND_STEP_LEVEL",
+   "run": "39010105493 (workflow_dispatch, Core evaluation dirV50 repair0, run_attempt 1, conclusion=failure, head_sha 9ad30a5a)",
+   "team_job": "117330671746 conclusion=failure; step 6 'Run lane cycle' 06:30:22Z->07:15:25Z = 2703 s FAILURE; steps 7 (Validate active MVP producer state) and 9 (Enforce lane write scope) SKIPPED because they are success()-gated; steps 8 and 10 success",
+   "audit_job": "117339185066 SKIPPED (needs team success) -> NO independent gate for 39010105493 exists anywhere; nothing promoted, nothing rejected; lab/evaluation stays at 76d04157",
+   "integrate_job": "117339185371 SKIPPED",
+   "resilience_job": "117339184601 success -> dispatched this resume run 39012970379",
+   "cause_ceiling": "Job logs are HTTP 403 unauthenticated, so NO exit code is established fact. Best supported cause: the documented work-quantum signature LEX_WORK_QUANTUM_EXPIRED seconds=2700 (factory-wide requirement 17, observed as rc 78 on product run 38822688733) - the failing step ran 2703 s = 2700 s + ~3 s wrapper overhead - but the mechanism's source is not in this checkout's run-ox-with-retry.sh, so this is arithmetic corroboration, not log-confirmed. Also recorded, not disambiguated: provider death with a non-transient signature (a transient match would have retried up to 8x with 90 s delays, which one continuous 2703 s step does not suggest); an uncaught producer exception after execution and before the report/state write.",
+   "not_rc67": "the LEX_ZERO_DELTA_REPAIR guard fires only on repair rounds with an unchanged HEAD (run-ox-with-retry.sh:108); this run's HEAD advanced and repair_round is 0",
+   "not_a_producer_validation_failure": "the deliverable left on disk re-executes to the same verdict (exit 1, 3 violations, battery 4/4) and its 30 tests pass"
+  },
+  "what_was_rescued_and_by_whom": {
+   "agent_commit": "29e01faa (07:06:35Z, author 'LexMachina Evaluation <evaluation@lexmachina.local>') - the frozen hypothesis only",
+   "workflow_commit": "5b3f56ff (07:15:26Z, author 'lex-evaluation-team <lex-team@autonomous.local>' = core-lane.yml 'Persist team snapshot' git config) - the module, the test file and the execution record, all UNCOMMITTED when the producer step died",
+   "reading": "the producer finished and EXECUTED its benchmark but was killed before committing the implementation; the workflow's catch-all 'git add -A' rescued three files, so nothing of the benchmark was lost",
+   "never_written_by_the_producer": [
+    "reports/evaluation/CYCLE_39010105493.md",
+    "state/evaluation.json update (state still read proposed_run_id 39004097533 at resume)",
+    "results/evaluation/snapshot_audit/39010105493.json"
+   ]
+  },
+  "verification_this_resume": "benchmark re-executed -> exit 1 PACKET_ADMISSION_INVARIANT_VIOLATED, 3 violations, battery 4/4, cross-check agree; tests/evaluation/test_packet_admission_conformance.py 30 passed; active pytest set 274 collected = 274 passed / 0 failed over 12 files; lane_suite PASS 42/42 with the extended pytest sub-check 188 passed; snapshot audit READY 16/16 with a 52-file manifest; fresh record vs producer's identical modulo run_id/started_at/elapsed_s/frozen_hypothesis plus ONE disclosed file_sha256 (mount drift)",
+  "audit_readiness": "snapshot is audit-ready: every file inside the evaluation lane namespace (evaluation/, tests/evaluation/, results/evaluation/, reports/evaluation/, state/evaluation.json); the auditor's gate path must be results/audit/evaluation/CYCLE_39012970379_GATE.json (UPPERCASE _GATE.json) written from the audit-job checkout, never /tmp/lex_team, never a lowercase suffix; this lane never authors it"
+ },
+ "durable_delta_39012970379": [
+  "evaluation/snapshot_audit/orchestration_diagnosis_39010105493.json (new; job/step diagnosis of the producer death, cause kept as a hedged candidate set, workflow-created commit identified, resume run recorded)",
+  "results/evaluation/packet_admission_conformance/39012970379.json (new; this resume's independent re-execution record, mount drift disclosed)",
+  "reports/evaluation/CYCLE_39012970379.md (new)",
+  "evaluation/snapshot_audit/run_snapshot_audit.py (checks 14 packet_admission_conformance [mount-independent integrity pin], 15 packet_admission_conformance_reexecution [live re-execution, environment_limited when the mount is absent], 16 orchestration_diagnosis_39010105493; 7-file manifest extension; 2 snapshot_claims_verified entries)",
+  "tests/evaluation/test_snapshot_audit.py (CHECK_IDS +3 set-completeness only; 9 new tests of which 7 are breaking fixtures: missing record, softened verdict, dropped violation, unproven battery, absent mount, missing diagnosis, single asserted cause)",
+  "evaluation/lane_suite.py (disclosed pytest scope extension +tests/evaluation/test_packet_admission_conformance.py; no frozen benchmark touched)",
+  "state/evaluation.json (this block; cycle_status/proposed_run_id/accepted_run_id pointer refresh/report/next_recommendation/evidence_refs +8)",
+  "results/evaluation/snapshot_audit/39012970379.json (new readiness record)"
+ ],
+ "count_reconciliation_39012970379": {
+  "why": "definitions unchanged; function-definition and pytest-collected counts are stated per file so no total is compared against a different file list (factory-direction set-identity rule)",
+  "active_lane_set_this_cycle": {
+   "tests/evaluation/test_reality_gate.py": 68,
+   "tests/evaluation/test_retrieval_gate.py": 43,
+   "tests/evaluation/test_lane_suite.py": 8,
+   "evaluation/query_map/test_harness.py": 6,
+   "tests/evaluation/test_audit_correction_verification.py": 4,
+   "tests/evaluation/test_bar_gate_verdict_contract.py": 12,
+   "tests/evaluation/test_frozen_bar_gates.py": 16,
+   "tests/evaluation/test_benchmark_retrieval_counter_authority.py": 5,
+   "tests/evaluation/test_packet_lineage_sweep.py": 22,
+   "tests/evaluation/test_counter_authority_label_benchmark.py": 25,
+   "tests/evaluation/test_snapshot_audit.py": 35,
+   "tests/evaluation/test_packet_admission_conformance.py": 30
+  },
+  "collected": 274,
+  "passed": 274,
+  "failed": 0,
+  "delta_vs_prior": "test_snapshot_audit.py 26 -> 35 (+9, of which 7 are breaking fixtures for checks 14-16); test_packet_admission_conformance.py 30 (new file, first collected this cycle). 184 (9 files at 38993062549) + 25 + 26 + 30 = 265 pre-cycle baseline re-measured as 274 because snapshot_audit grew by 9: 184+25+35+30 = 274.",
+  "lane_suite_pytest_scope": "6 files -> 7 files with this cycle's disclosed extension; sub-check 158 -> 188 passed; lane_suite 42/42 PASS",
+  "excluded_unchanged": "tests/evaluation/test_frontier_verdict_adoption.py (pre-existing origin/main accepted-state path precondition, recorded in accepted state); the five legacy 174k collection errors in tests/evaluation/ (numpy-absent, closed suite) - NOT part of the active set and NOT run"
+ },
+ "control_plane_gaps_recorded_not_patched_39012970379": [
+  "The producer work quantum (2700 s) killed run 39010105493's step 6 with 3 files uncommitted; the mechanism's source is not in the workflow tree read here. Recorded as a control-plane hardening item; .github/** is control-plane scope and is not edited from this lane.",
+  "core-lane.yml 'Validate active MVP producer state' asserts only direction_version==50 and cycle_status!=INITIALIZED, so it would have PASSED this snapshot's stale state (proposed_run_id 39004097533, cycle_status ..._39004097533_REPAIR_R1) had step 6 succeeded - the same pre-existing gap recorded at 38982176936, not re-raised as new.",
+  "Because steps 7 and 9 were both skipped, neither the producer-state validation nor the CI write-scope check ran on this snapshot; write-scope cleanliness is re-established this cycle by snapshot-audit check producer_write_scope_clean instead.",
+  "factory-wide requirement 9 (dead jq // exhaustion guard) stands; lanes.evaluation.status is still RUN while continue_recommended is the only stop signal. Not edited from this lane.",
+  "Job logs for run 39010105493 are HTTP 403 unauthenticated, so the failing step's exit code cannot be read; the cause stays a recorded candidate set rather than one asserted cause."
+ ],
+ "v50_frozen_protocol_bjr_recompute_39018005027": {
+  "question": "Does Product's accepted BJR recall repair (v50 obligation (5)) survive Core Evaluation's frozen four-question reality benchmark (ff57f556) re-executed over the accepted product mount containing the repair? Product's own state asked for exactly this recompute.",
+  "frozen_before_execution": "results/evaluation/reality_benchmark/freeze/FROZEN_HYPOTHESIS_39018005027.json + POPULATION_39018005027.tsv (113 files, manifest sha 27602ff34fd2...), committed at 48b57dc6 BEFORE the runner was executed; frozen success rule FROZEN_PROTOCOL_CONFIRMS_BJR_REPAIR = H1 AND H2 AND H3 AND H5.",
+  "record": "results/evaluation/reality_benchmark/39018005027.json (sha c95221a3ee0432a1...)",
+  "comparison": "results/evaluation/reality_benchmark/derived/39018005027_comparison.json",
+  "verdict": "FROZEN_PROTOCOL_CONFIRMS_BJR_REPAIR (H1-H5 all hold)",
+  "H1": "BOTH post-tier artifacts PASS recall::citation_controlling_authority with exactly 3 frozen hits (bger_4A_219_2015 / bger_4A_259_2016 / bger_4A_626_2013) and pass the whole artifact: business-judgment-rule_live_20261017T055309Z.json and ..._055535Z.json. The unlabelled intermediate ..._20261016T210854Z.json also passes with 2 frozen hits.",
+  "H2": "preserved negatives unchanged with 0 hits: ..._20261017T054330Z.json (Product's own pre-repair negative), ..._20261016T165604Z.json (the leg NAMED RED by direction v50), ..._20261016T161006Z.json (incumbent negative). No drift, gate intact.",
+  "H3": "0 verdict drift across all 82 incumbent artifacts of 38945976309.json (kind, matched_slug, artifact_passed, failed_gates, not_measurable_gates, evaluation_scope identical); 0 dropped, 31 added.",
+  "H4": "overall_pass stays FALSE, as frozen pre-execution: 19 failing artifacts (incumbent 17; the 2 extra are the newly added preserved negatives). Census: structural::counter_classifications_supported x6 (all CURRENT bundles - the counter-label bar surfacing structurally), latency::under_budget x5 (legacy 20261014 runs, walls 340-861s vs 300s budget), recall::citation_controlling_authority x4 (3 legacy BJR + petty-theft ..._20261016T155135Z), truth::art257d2_end_of_month x4 (legacy rent-default), structural::adversarial_clean x2 (legacy rent-default).",
+  "H5": "check_record_integrity 0 problems; frozen digests ff57f556... and 06781743... verified by the runner.",
+  "structural_finding_new": "overall_pass = evaluated AND no failed artifact AND multilingual all-pass over an APPEND-ONLY evidence population. 13 of the 19 failures are immutable historical runs that can never change, and AGENTS.md forbids deleting negative evidence - so overall_pass can NEVER flip true while the population is full history, regardless of current product quality. The actionable frozen signal is per-artifact/per-leg (which is what obligation (5) needed and what this cycle measured). A 'current-run green' gate would require a NEW frozen spec (new digest, new population definition) decided by the control plane; this lane proposes nothing, edits nothing, and the existing frozen benchmark stays byte-identical and RED.",
+  "obligation_5_evidence_tier_advance": "BJR recall repair upgraded from Product's LOCAL_NOT_DURABLE to REPRODUCED-UNDER-FROZEN-PROTOCOL on the accepted mount. Still NOT 'frozen benchmark green' (overall_pass false by H4 and by the structural finding). Product's remaining ask - a durable Actions [reality-check] run - is a workflow-run matter (control plane) and stays open.",
+  "claim_ceiling": "At most: Product's local BJR recall repair reproduces under the frozen instrument with preserved negatives proving no gate drift. Does NOT move overall_pass, does NOT meet either accepted absolute bar, does NOT score any Frontier rubric, does NOT prove map usefulness, does NOT unblock the human gate.",
+  "elapsed_s": 0.9,
+  "freeze_commit": "48b57dc6 (freeze commit before execution; the freeze files themselves are evidence_refs entries)"
+ },
+ "packet_admission_successor_39018005027": {
+  "entry_point": "python -m evaluation.packet_admission_conformance --run-id 39018005027",
+  "record": "results/evaluation/packet_admission_conformance/39018005027.json (sha 8930a24ebe69e4b1...)",
+  "comparison": "results/evaluation/packet_admission_conformance/39018005027_successor_comparison.json",
+  "exit_code": 1,
+  "verdict": "PACKET_ADMISSION_INVARIANT_VIOLATED, violations_total=3 (same 3 records as the accepted falsification)",
+  "not_counted_as_second_falsification": "all 3 violating files AND the whole claim population are byte-identical to incumbent 39012970379 (sha-by-sha verified, disk matches record): Product has NOT shipped the rebuilt packet the successor test waits for. Recorded as PENDING_PRODUCT_DATA, never as new evidence against a repair. The successor fires on ANY sha change.",
+  "non_vacuity_battery": "4/4 hold; Product's own assess() black box still denies readiness (defect class unchanged: gate never applied to the shipped records)"
+ },
+ "retrieval_ca_battery_39018005027": {
+  "entry_point": "python -m evaluation.benchmark_retrieval_counter_authority --run-id 39018005027",
+  "record": "results/evaluation/retrieval_counter_authority_benchmark/39018005027.json (sha 915e033b21045ecf...)",
+  "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
+  "exit_code": 0,
+  "falsification_proven": true,
+  "legs": "served_baseline PASS_NO_REGRESSION (packet 38839347028); geometry_falsification_hostile FAIL_REGRESSION; label_falsification_blanked_evidence FAIL_REGRESSION",
+  "incumbents_recomputed": "labels 5/65 classes 38/22/5/0; geometry de 6 / fr 5 / it 5 - unchanged",
+  "absolute_status": "LABEL_UNSOUND + GEOMETRY_UNSOUND reported-not-enforced (never weakened)",
+  "elapsed_s": 29.134
+ },
+ "lane_suite_39018005027": {
+  "record": "results/evaluation/lane_suite/39018005027.json (sha 4eaec81b1c61e25fa...; final green rerun after the evidence_refs git:-ref fix)",
+  "verdict": "PASS 43/43 checks; active lane pytest set 189 passed in 61s",
+  "placement_lesson_self_inflicted_and_fixed": "first attempt was 42/44 because a DERIVED comparison file was written into results/evaluation/reality_benchmark/ where lane_suite globs execution records; moved to results/evaluation/reality_benchmark/derived/ and re-run green. Same file-placement class as the standing _GATE.json case rules - execution-record dirs take execution records only."
+ },
+ "extra_test_subset_39018005027": {
+  "why": "FAST MVP instruction: reuse the existing multilingual/provenance tests (run beyond the active lane suite)",
+  "result": "65 passed, 7 failed - ALL 7 precondition failures, none a product or frozen-benchmark failure",
+  "classes": [
+   "legacy asset deliberately removed by commit 198c6a65 ('cleanup: slim active evaluation branch for query-map MVP'): test_cross_lingual_alignment_v10::test_cross_lingual_findings (needs evaluation/results/v3_extended/...), test_frozen_harness_v3_reproducibility (needs evaluation/results/v3/...)",
+   "legacy 174k metadata deliberately removed by the same cleanup: test_v25_174k_v17b_provenance x4 (needs evaluation/data/174k/metadata_174k.json, 1.39M lines; numpy+scikit-learn installed to even reach the file check; restoring it would reverse the deliberate MVP slimming - NOT done)",
+   "accepted-state precondition, already documented in results/ACCEPTED_CATALOG.json: test_frontier_verdict_adoption::test_numbers_match_accepted_spf_state_where_durable (origin/main carries no results/accepted-state/frontier/frontier-served-packet-falsification.json)"
+  ],
+  "none_hidden": "all 7 are tabulated in reports/evaluation/CYCLE_39018005027.md section 5; the active lane suite (189 tests) is green"
+ },
+ "v50_frozen_bar_gates_regression_39018005027": {
+  "how": "leg 1 of the retrieval/CA battery re-executes the accepted run_bar_gates entry point as a subprocess (no re-implementation)",
+  "labels": "5/65, classes OFF-DOMAIN 38 / UNBACKED 22 / SUPPORTED 5 / INVERTED 0 - no regression vs incumbent",
+  "geometry": "de 6 / fr 5 / it 5, 0/3 bundles pass all 11 - no regression vs incumbent",
+  "rubrics_rehashed": "RULES_LABEL 4457e971..., RULES_GEOMETRY a7452748... (byte-unchanged)"
+ },
+ "durable_delta_39018005027": [
+  "results/evaluation/reality_benchmark/freeze/FROZEN_HYPOTHESIS_39018005027.json + POPULATION_39018005027.tsv (frozen before execution, commit 48b57dc6)",
+  "results/evaluation/reality_benchmark/39018005027.json (frozen-protocol recompute: 113 artifacts, overall_pass false, BJR post-tier runs pass recall 3/5)",
+  "results/evaluation/reality_benchmark/derived/39018005027_comparison.json (H3 verdict-stability: 0 drift / 82 common / 31 added; H5 integrity 0 problems)",
+  "results/evaluation/packet_admission_conformance/39018005027.json + 39018005027_successor_comparison.json (successor test: still 3, population byte-identical => pending product data)",
+  "results/evaluation/retrieval_counter_authority_benchmark/39018005027.json (3-leg battery exit 0, falsification paths live)",
+  "results/evaluation/lane_suite/39018005027.json (PASS 43/43, pytest 189)",
+  "reports/evaluation/CYCLE_39018005027.md (cycle report incl. the structural overall_pass finding and the 7 precondition-failure table)"
+ ],
+ "count_reconciliation_39018005027": {
+  "reality_artifacts": "113 new (82 common with incumbent, 31 added, 0 dropped); evaluated 48 (41 full-match + 7 question-indep), excluded-no-verdict 65",
+  "failing_artifacts": "19 new vs 17 incumbent; the 2 added failures are exactly the newly added preserved negatives (BJR 054330Z, BJR 165604Z); 0 changed verdicts among common",
+  "packet_admission_violations": "3 new vs 3 incumbent, over a byte-identical population (set equality verified by sha, not by matching counts)",
+  "retrieval_ca_legs": "exit 0/1/1 identical to accepted first execution 38989947869 and to 39004097533",
+  "active_pytest": "189 passed (lane_suite list, 7 files)",
+  "extra_subset": "65 passed / 7 precondition-failed (3 test files asset-dependent, 1 accepted-state precondition)"
+ },
+ "control_plane_gaps_recorded_not_patched_39018005027": [
+  "results/accepted-state/frontier/frontier-served-packet-falsification.json absent on origin/main (only corpus/evaluation/fractal-map/legal-distance/product + query-conditioned-map-geometry present) while tests/evaluation/test_frontier_verdict_adoption.py shells out to it. Already documented as a known precondition failure inside results/ACCEPTED_CATALOG.json; still fails; not fixable from this lane (.github/** and main are control-plane scope).",
+  "The four legacy tests whose assets the deliberate branch slimming (198c6a65) removed still fail when collected outside the active suite. Not a control-plane file, but a lane test-hygiene backlog item: skip-with-reason on absent deliberately-removed assets (disclosed test hygiene, NOT a frozen-benchmark change) - not done this cycle to keep the delta claim-bearing."
+ ],
+ "claim_ceiling": "This cycle reproduces ONE product claim under the frozen instrument (BJR recall repair) and documents why the frozen benchmark's overall_pass is structurally pinned false over an append-only population of preserved negatives. It does NOT green the frozen benchmark, does NOT meet either accepted absolute bar, does NOT close the packet-admission invariant, and does NOT speak to jurist usefulness. human_gate_ready stays false.",
+ "state_updated_by_run": "39018005027",
+ "state_updated_at": "2026-10-17T09:06:20Z"
 }
