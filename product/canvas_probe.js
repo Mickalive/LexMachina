@@ -80,6 +80,21 @@ function countByStyle(ops) {
   return out;
 }
 
+/* direction v50 obligation (4): per-colour fill counts.  A fill with fillStyle === undefined or null is
+ * an INVALID value the real canvas ignores — exactly the negative-cluster_id
+ * defect RENDERER_PRECONDITION.json names.  `fill_undefined` makes that bug
+ * assertable from a test instead of invisible. */
+function countFills(ops) {
+  const byColor = {};
+  let undefinedFills = 0;
+  for (const op of ops) {
+    if (op.kind !== "fill") continue;
+    if (op.fillStyle === undefined || op.fillStyle === null) undefinedFills += 1;
+    else byColor[op.fillStyle] = (byColor[op.fillStyle] || 0) + 1;
+  }
+  return { fill_colors: byColor, fill_undefined: undefinedFills };
+}
+
 /**
  * Run the page's own draw() once against `bundle` and report what it painted.
  *
@@ -108,9 +123,10 @@ function measure(opts) {
   page.evaluate("draw();");
 
   const counts = countByStyle(ctx.ops);
+  const fillCounts = countFills(ctx.ops);
   const pts = page.evaluate("PTS.length");
   const fills = ctx.ops.filter((op) => op.kind === "fill").length;
-  return Object.assign({ pts, fills, draw_calls: 1 }, counts);
+  return Object.assign({ pts, fills, draw_calls: 1 }, counts, fillCounts);
 }
 
 function main(argv) {

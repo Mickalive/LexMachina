@@ -446,6 +446,29 @@ def test_card_prints_every_question_its_link_and_its_finalize_command(packet, ca
         assert qid in out
 
 
+def test_owner_card_carries_the_standing_do_not_serve_order(packet, capsys):
+    """v50 obligation (1): the card the owner sees must state the machine hold.
+
+    A card whose per-question verdicts are all admissible would otherwise read
+    as gate material; the accepted frozen bars deny that, and the card has to
+    say so.  main() re-verifies the packet, so its admission gate fires on the
+    real artifact (both bars are unmet in this tree).
+    """
+    gp.main(["card", "--packet", str(packet), "--quiet"])
+    out = capsys.readouterr().out
+    assert "STANDING DO-NOT-SERVE ORDER" in out
+    assert "NOT owner-ready" in out
+    assert "counter_label_support" in out or "map_geometry" in out
+
+
+def test_owner_card_says_nothing_extra_when_admission_is_allowed():
+    recheck = {
+        "packet_id": "p", "mode": "live", "checked_at": "t", "packet_dir": "/tmp/p",
+        "questions": [], "packet_admission_blocked": False,
+    }
+    assert "STANDING DO-NOT-SERVE ORDER" not in gp.owner_card(recheck, base_url="http://x", top_n=50)
+
+
 def test_the_guard_probe_writes_nothing_outside_a_temp_directory(packet, tmp_path, monkeypatch):
     written: list[Path] = []
     real_write = hgf.write_record
@@ -558,6 +581,13 @@ def test_finalize_summary_handles_the_all_pass_live_case():
     key was written.  Python short-circuits, so only a packet where every
     question passed *and* the mode was live reached it - the single outcome the
     ceremony needs.  The 3/3 packet was produced, then lost to the KeyError.
+
+    v50 obligation (1) changed the TOP of that verdict: a fully-admissible live
+    packet is still held back by the accepted frozen bars (counter-label
+    support, map geometry), so the assertion is now that the base roll-up is
+    true but admission denies the owner session.  A positive control with an
+    injected admitted admission proves the branch still opens when the bars are
+    met in the future.
     """
     passing = [
         {"qid": "a", "status": "admissible", "guards_ok": True},
@@ -568,7 +598,18 @@ def test_finalize_summary_handles_the_all_pass_live_case():
     assert live["ok"] is True
     assert live["admissible_questions"] == ["a", "b", "c"]
     assert live["guards_all_ok"] is True
-    assert live["ready_for_owner_session"] is True
+    # base roll-up was true (the crash regression), but the frozen bars deny it
+    assert live["ready_for_owner_session_base"] is True
+    assert live["ready_for_owner_session"] is False
+    assert live["packet_admission_blocked"] is True
+    assert live["packet_admission_reason"]
+
+    admitted_future = gp.finalize_summary(
+        {"questions": list(passing)}, 3, "live",
+        admission={"ready_for_owner_session_allowed": True},
+    )
+    assert admitted_future["ready_for_owner_session"] is True
+    assert admitted_future["packet_admission_blocked"] is False
 
     fixture = gp.finalize_summary({"questions": list(passing)}, 3, "fixture")
     assert fixture["ok"] is True

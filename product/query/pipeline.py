@@ -18,6 +18,7 @@ from .answer_contract import ensure_coverage
 from .answer_gap import ensure_cited_answer
 from .bundle import build_bundle, validate_bundle
 from .qmap import build_map
+from .qmap_variants import apply_geometry_variant, selected_variant
 from .relevance import rerank_product_bundle
 from .adversarial_retrieval import (
     ADVERSARIAL_RETRIEVAL_VERSION,
@@ -396,6 +397,18 @@ def _relations_provenance(candidates: list[dict] | None, typed: list[dict], shar
 def _map_bundle(product_bundle: dict, started_at: float, n_clusters: int = 0,
                 candidates: list[dict] | None = None) -> dict:
     mapped, clusters, shared_relations = build_map(product_bundle["decisions"], n_clusters=n_clusters)
+    # Accepted-frontier adoption seam (v50 obligation 4).  OFF by default: an
+    # operator opts in with LEXMACHINA_GEOMETRY_VARIANT=relevance_ordered to
+    # serve the promoted query-conditioned geometry behind this same bundle.
+    geometry_variant = ""
+    try:
+        geometry_variant = selected_variant()
+    except ValueError as exc:
+        raise ValueError(str(exc)) from exc
+    if geometry_variant:
+        mapped, clusters, _variant_meta = apply_geometry_variant(
+            mapped, clusters, str(product_bundle.get("query") or ""), geometry_variant,
+        )
     typed_relations = typed_citation_relations(list(candidates or []), mapped)
     relations = _merge_relations(typed_relations, shared_relations)
     decisions = []
@@ -412,7 +425,9 @@ def _map_bundle(product_bundle: dict, started_at: float, n_clusters: int = 0,
         "phase": "map_ready",
         "latency_seconds": round(time.time() - started_at, 3),
         "retrieval_component": "frontier-query-retrieval/v2",
-        "map_component": "query-conditioned-tfidf-v45",
+        "map_component": ("frontier-query-conditioned-map-geometry/" + geometry_variant
+                          if geometry_variant else "query-conditioned-tfidf-v45"),
+        "geometry_variant": geometry_variant or "incumbent",
         "fixture_mode": False,
         "relations_provenance": _relations_provenance(candidates, typed_relations, shared_relations),
     })

@@ -73,6 +73,7 @@ for _p in (str(PRODUCT_ROOT), str(REPO_ROOT)):
 
 import frontier_verdict_adoption as fva  # noqa: E402
 import human_gate_evidence  # noqa: E402
+from product.query import packet_admission  # noqa: E402
 import human_gate_finalize as hgf  # noqa: E402
 import human_gate_session as runner  # noqa: E402
 from gate_rehearsal import free_port, http_json, _wait_health  # noqa: E402  (existing shell helpers)
@@ -387,7 +388,8 @@ def _run_one_query(base: str, question: dict, *, top_n: int, wait_s: float, stag
     return bundle, {"stages": stage, "server_run_id": server_run_id}
 
 
-def finalize_summary(summary: dict, n_questions: int, mode: str) -> dict:
+def finalize_summary(summary: dict, n_questions: int, mode: str,
+                     *, admission: dict | None = None) -> dict:
     """Roll per-question outcomes up into the packet verdict.
 
     Extracted so the ordering is testable: the previous inline version read
@@ -396,6 +398,13 @@ def finalize_summary(summary: dict, n_questions: int, mode: str) -> dict:
     ``ok`` was true AND the mode was live - i.e. exactly the run the ceremony
     needs (live run 38812599575 reached 3/3 admissible and died on the
     KeyError, losing the whole packet).
+
+    v50 obligation (1): a fully-admissible live packet is NO LONGER sufficient
+    for ``ready_for_owner_session``.  The two accepted frozen bars (counter-label
+    support, map geometry) are a machine gate input of packet admission, so the
+    standing DO-NOT-SERVE order is enforced in code, not restated in prose.
+    ``admission`` is injectable for tests; production reads the committed
+    accepted-verdict snapshots.
     """
     done = [q for q in summary["questions"] if q["status"] != "pending"]
     summary["n_questions"] = n_questions
@@ -410,6 +419,7 @@ def finalize_summary(summary: dict, n_questions: int, mode: str) -> dict:
     if mode == "fixture":
         summary["ready_for_owner_session"] = False
         summary["fixture_note"] = FIXTURE_CLAIM_CEILING
+    packet_admission.enforce(summary, admission=admission)
     return summary
 
 
@@ -636,7 +646,7 @@ def recheck_packet(path: Path, *, strict_manifest: bool = True) -> dict:
         questions.append(record)
 
     blocked = [q["qid"] for q in questions if not q.get("admissible")]
-    return {
+    out = {
         "schema": "product-gate-packet-recheck/1",
         "packet_id": packet.get("packet_id"),
         "packet_dir": str(path),
@@ -655,6 +665,12 @@ def recheck_packet(path: Path, *, strict_manifest: bool = True) -> dict:
         "questions": questions,
         "claim_ceiling": packet.get("claim_ceiling"),
     }
+    # v50 obligation (1): the accepted frozen bars are a machine gate input, so
+    # a fully re-verified packet still cannot claim owner-readiness while either
+    # bar is unmet.  Same enforcement as finalize_summary; the hold-back is
+    # recorded, never silent.
+    packet_admission.enforce(out)
+    return out
 
 
 def _disclosure_lines(verdict: dict) -> list[str]:
@@ -807,6 +823,20 @@ def owner_card(recheck: dict, *, base_url: str, top_n: int, run_ids: dict[str, s
         lines.append(
             "  !! FIXTURE MODE — this packet is a machinery rehearsal, NOT gate material."
         )
+    # v50 obligation (1): the accepted frozen bars are a machine gate, so a card
+    # whose per-question verdicts are READY still carries the standing
+    # DO-NOT-SERVE order.  An owner can therefore never see a card that reads as
+    # gate material while either bar is unmet.
+    if recheck.get("packet_admission_blocked"):
+        lines += [
+            "",
+            "  " + "!" * 74,
+            "  !! STANDING DO-NOT-SERVE ORDER — this packet is NOT owner-ready.",
+            f"     {recheck.get('packet_admission_reason')}",
+            "     Both accepted frozen bars are a machine-readable input of packet",
+            "     admission; per-question admissibility does NOT lift this hold.",
+            "  " + "!" * 74,
+        ]
     lines += [
         "",
         "  For EACH question: open its link, work the MAP, switch to LIST and work it",
