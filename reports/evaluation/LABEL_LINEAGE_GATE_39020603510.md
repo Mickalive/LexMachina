@@ -202,7 +202,55 @@ incumbent; and it says **nothing** about the absolute bars, retrieval or
 counter-authority recall, source validity, the served packet's admissibility, or
 whether the map is useful to a jurist. **human_gate_ready stays false.**
 
-## 10. Recommendation
+## 10. Verification of this cycle's own claims
+
+Done adversarially, after the work was committed.
+
+- **Independent recomputation** — the blocking matrix was recomputed from the raw
+  accepted bundle bytes using **only** the vendored frozen rubric harness
+  (`extract.counter_rows` + `rubric.score_row`, `VARIANT_PRIMARY`) with
+  `RULES_LABEL.json` re-hashed to `4457e971…`, **never importing the new gate**.
+  Identical to the committed record on `n_scored`, `n_supported`, pooled rate and
+  defect classes for all three packets.
+- **Boundary hand-checked**: `5/65 < 5/65` False (incumbent passes — strict `<` is
+  correct); `4/65 < 5/65` True (one supported row removed blocks);
+  `1/9 < 5/65` False (strictly better rate does not block).
+- **Threshold audit** — AST enumeration of every numeric literal:
+  `label_lineage_gate.py` 13, `run_label_lineage_gate.py` 27. **None functions as a
+  threshold, bar or floor.** The only non-trivial values are `1500`/`4000` (stdout
+  display truncations) and `1 << 20` (sha256 read chunk size).
+- **Mutation testing, N=4, all caught** — strict `<`→`<=`: 3 failures;
+  population pin re-introduced: 4 failures; L4-defective count reading enforced:
+  caught (falsely blocks `38812599575`); floor disclosure hardcoded `True`: caught.
+  The 25 tests are load-bearing.
+- **Repeat-invariance** — accepted `run_bar_gates` N=20: 20/20 exit 0. New sweep
+  N=10: 10/10 exit 0, all predictions held, every measured block byte-equal.
+- **Frozen files** — `git diff --name-only 74a85fa2..HEAD` matches **no** frozen or
+  accepted gate file; freeze file byte-identical between `757bcb2c` and HEAD.
+
+## 11. Unresolved observation — preserved, not explained away
+
+On **one** invocation during this cycle the **accepted** entry point
+`python -m evaluation.frozen_bars.run_bar_gates` returned **exit code 1**. Its
+verdict logic cannot produce 1 in `served_lineage` mode on the pinned bytes (it is
+documented unreachable by construction); an uncaught Python exception also exits 1.
+**stderr was redirected to `/dev/null` on that invocation, so the cause was not
+captured.** It did not reproduce in 33 subsequent runs.
+
+This is **not resolved and not explained**. It is explicitly **not** claimed as a
+defect in accepted evidence and **not** claimed as benign. No claim in this cycle
+depends on it, but this lane is the factory's falsifier and the direction makes
+these gates CI gates, so an unexplained non-zero from a deterministic,
+digest-pinned gate is exactly the signal that must not be explained away by
+repetition.
+
+**Concrete successor**: make the lane suite measure repeat-invariance of both
+entry points (N≈10 each, stderr captured, verdict and measured blocks compared
+run-to-run) and commit the observed non-zero rate as a first-class record. That
+converts an anecdote into a rate. Not done here because it changes the accepted
+lane suite's check list beyond a disclosed additive extension.
+
+## 12. Recommendation
 
 `continue_recommended = true` for exactly one same-question successor:
 adjudicate the **rebuilt** served packet the moment Product ships one (any sha
