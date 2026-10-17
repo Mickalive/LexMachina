@@ -1,0 +1,109 @@
+{
+  "schema": "lex-evaluation-freeze-erratum/1",
+  "erratum_id": "ERRATUM_FROZEN_AT_38996043415",
+  "run_id": "38996043415",
+  "repair_round": 1,
+  "repair_run_id": "38999209353",
+  "repairs_audit_required_fix": "D1",
+  "severity": "high",
+  "published_at_utc": "2026-10-17T03:58:00Z",
+  "audit_gate_of_the_rejected_round": {
+    "path": "results/audit/evaluation/CYCLE_38996043415_GATE.json",
+    "ref": "origin/cycle/core/evaluation/38996043415/audit",
+    "gate": "REVISE",
+    "note": "the audit artifacts live on the AUDIT BRANCH ref, never in the producer tree; this erratum is producer-authored evidence and is not an audit artifact"
+  },
+
+  "subject": {
+    "file": "results/evaluation/reground_semantics/FROZEN_HYPOTHESIS_38996043415.json",
+    "sha256": "fccdbb9edeb4f592a93b20869cfbd5aa14a066c5d1dcb2d9c3ecfceb0acc991c",
+    "bytes_preserved_unchanged": true,
+    "edited_in_place": false,
+    "superseded_field_only": "frozen_at_utc",
+    "git_provenance": "added as the SOLE file of commit 9392ff8bcb8a8a64c1a193151564b8f420122158 (author date 2026-10-17T02:52:58Z, committer date 2026-10-17T02:52:58Z); `git log --oneline --all -- <subject file>` returns exactly that one commit, so the bytes have never been modified since"
+  },
+
+  "defect": {
+    "field": "frozen_at_utc",
+    "declared_value": "2026-10-17T03:05:00Z",
+    "contradicts_field": "frozen_before_execution",
+    "field_value": true,
+    "why_self_falsifying": "the declared frozen_at_utc postdates the only claim-bearing execution (2026-10-17T03:02:07+00:00), the companion 3-leg benchmark (03:03:06Z) and the snapshot-readiness record (03:04:07Z), while the same file asserts frozen_before_execution=true",
+    "classification": "self-falsifying provenance field in a claim-bearing frozen artifact",
+    "is_leakage": false,
+    "why_not_leakage": "the freeze CONTENT was demonstrably written and committed before execution; only its own timestamp field is wrong. The audit of record independently found the same: 'NOT leakage: git commit 9392ff8b at 02:52:58Z genuinely precedes execution ... the defect is a self-falsifying provenance field'",
+    "freeze_content_changed_by_this_erratum": false
+  },
+
+  "both_timestamps": {
+    "freeze_declared_frozen_at_utc_AS_WRITTEN_IN_THE_FROZEN_FILE": "2026-10-17T03:05:00Z",
+    "freeze_commit_utc_AUTHORITATIVE": "2026-10-17T02:52:58Z",
+    "execution_record_generated_at_utc": "2026-10-17T03:02:07+00:00",
+    "delta_between_authoritative_freeze_and_execution": "-6 minutes 9 seconds (freeze first)"
+  },
+
+  "authoritative_ordering_evidence": [
+    {
+      "seq": 1,
+      "utc": "2026-10-17T02:52:58Z",
+      "event": "commit 9392ff8b adds results/evaluation/reground_semantics/FROZEN_HYPOTHESIS_38996043415.json (131 lines, sole file of the commit)",
+      "source": "git show -s --format='%H %aI %cI' 9392ff8b + git show --stat 9392ff8b"
+    },
+    {
+      "seq": 2,
+      "utc": "2026-10-17T03:02:07Z",
+      "event": "the only claim-bearing execution record results/evaluation/reground_semantics/38996043415.json generated_at_utc (elapsed_s 2.722, verdict REGROUNDABLE)",
+      "source": "generated_at_utc field of the execution record"
+    },
+    {
+      "seq": 3,
+      "utc": "2026-10-17T03:03:06Z",
+      "event": "companion frozen 3-leg benchmark results/evaluation/retrieval_counter_authority_benchmark/38996043415.json generated_at_utc (BENCHMARK_VALID_NO_FALSIFICATION, legs 0/1/1)",
+      "source": "generated_at_utc field of the companion record"
+    },
+    {
+      "seq": 4,
+      "utc": "2026-10-17T03:04:07Z",
+      "event": "snapshot-readiness record results/evaluation/snapshot_audit/38996043415.json generated_at_utc (12/12 READY at round 0)",
+      "source": "generated_at_utc field of the readiness record"
+    },
+    {
+      "seq": 5,
+      "utc": "2026-10-17T03:05:00Z",
+      "event": "the value the frozen file WRITES into frozen_at_utc — wrong: it postdates events 2-4 while the file also asserts frozen_before_execution=true",
+      "source": "field frozen_at_utc inside the subject file"
+    },
+    {
+      "seq": 6,
+      "utc": "2026-10-17T03:09:17Z",
+      "event": "commit 7fe6bad first commits the implementing module evaluation/reground_lineage_semantics.py together with the execution record",
+      "source": "git log",
+      "bearing_on_this_erratum": "none: the freeze constrains the code, not the reverse. Disclosed for completeness so the full commit timeline is visible rather than curated."
+    }
+  ],
+
+  "supersession": {
+    "supersedes": "the single field frozen_at_utc inside the subject file",
+    "superseded_by": "this erratum record, which pins 2026-10-17T02:52:58Z (commit 9392ff8b) as the authoritative freeze instant",
+    "frozen_before_execution_remains_true": true,
+    "now_grounded_on": "VCS ordering (commit 9392ff8b precedes the 03:02:07Z execution), not on the file's own timestamp",
+    "nothing_else_reopened": "no predicate, discriminating requirement (R1-R5), non-vacuity element (N1-N5), success rule, population, claim ceiling or observation-order disclosure inside the freeze is changed, relaxed or re-opened by this erratum",
+    "no_corrected_freeze_file_created": "a corrected copy of the freeze was deliberately NOT created: one freeze file, one subject, original bytes preserved, correction published beside it. Creating a second 'fixed' freeze would split the pre-registration into two claim-bearing artifacts and invite a byte-comparison dispute."
+  },
+
+  "verification_commands": [
+    "sha256sum results/evaluation/reground_semantics/FROZEN_HYPOTHESIS_38996043415.json",
+    "git show 9392ff8b:results/evaluation/reground_semantics/FROZEN_HYPOTHESIS_38996043415.json | sha256sum",
+    "git log --oneline --all -- results/evaluation/reground_semantics/FROZEN_HYPOTHESIS_38996043415.json",
+    "git show -s --format='%H %aI %cI' 9392ff8b",
+    "python3 -c \"import json;print(json.load(open('results/evaluation/reground_semantics/38996043415.json'))['generated_at_utc'])\""
+  ],
+
+  "disclosure_locations": [
+    "reports/evaluation/CYCLE_38996043415.md section 9 (repair round 1)",
+    "state/evaluation.json keys erratum_frozen_at_38996043415 and repair_fixes_applied_38996043415_r1",
+    "state/evaluation.json v50_reground_semantics_38996043415.frozen_hypothesis.erratum"
+  ],
+
+  "claim_ceiling": "This is a provenance correction about ONE timestamp field of ONE frozen artifact. It does not change any result, verdict, metric, threshold, bar, incumbent, success rule or claim ceiling of evaluation cycle 38996043415; it does not re-execute anything; it does not meet or relax either frozen absolute bar (labels 5/65 = 0.0769 vs 1.0; geometry 0/3 vs all 11); it does not lift the standing accepted DO-NOT-SERVE order; human_gate_ready stays false."
+}

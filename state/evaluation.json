@@ -7,7 +7,7 @@
  "accepted_run_id": "38971202786",
  "accepted_run_id_correction_note": "corrected this cycle (38972887369) per BLOCKED audit 38972043610 required fix D2: the pointer was 38951152192 while the accepted base commit 59fde886 is 'accept evaluation cycle 38971202786' (audit gate results/audit/evaluation/CYCLE_38971202786_GATE.json gate=PASS safe_to_integrate=true, verified on ref origin/cycle/core/evaluation/38971202786/audit). Pointer-only correction; acceptance itself moves only via an audit gate.",
  "proposed_run_id": "38996043415",
- "repair_round": 0,
+ "repair_round": 1,
  "repair_audit_ref": "origin/cycle/core/evaluation/38968781838/audit:results/audit/evaluation/CYCLE_38968781838_GATE.json (gate=REVISE; the file lives on the AUDIT BRANCH ref, not in any team tree or lab branch — pointer corrected per BLOCKED audit 38972043610 required fix D4, which had flagged it dangling for three cycles; the ref was fetched and re-read this cycle to prove it resolves)",
  "repair_fixes_applied": {
   "R1_38971202786_repair_of_38968781838": "audit-required R1 scope correction (gate=REVISE on CYCLE_38968781838): withdrew 'CI-executable on ANY future Frontier/product packet' / 'score arbitrary packets' in 4 locations (report BAR_GATES_38968781838.md title+ss1+ss5 with R1 erratum preserving original wording; test docstring; continue_recommended_reason; v50_bar_gates_38968781838.claim_ceiling). True proven scope: frozen-anchor qids at non-incumbent population score NOT_APPLICABLE with no build block; unknown qids refused by design; new packets need a disclosed rules re-freeze. Optional hardening x3 all adopted: label unknown-qid ValueError guard in label_gate.score_packet (was raw KeyError) + new pinning test test_label_unknown_anchor_refuses_invented_profile; bare-checkout incumbent-pin coverage gap disclosed.",
@@ -125,7 +125,9 @@
   "results/evaluation/reground_semantics/38996043415.json",
   "reports/evaluation/CYCLE_38996043415.md",
   "results/evaluation/retrieval_counter_authority_benchmark/38996043415.json",
-  "results/evaluation/snapshot_audit/38996043415.json"
+  "results/evaluation/snapshot_audit/38996043415.json",
+  "results/evaluation/reground_semantics/ERRATUM_FROZEN_AT_38996043415.json",
+  "tests/evaluation/test_state_current_cycle_pointers.py"
  ],
  "human_gate_ready": false,
  "mission": "Independently falsify the query-specific LEX product. Do not reopen the 174k/global-geometry research unless a concrete product failure requires it.",
@@ -392,21 +394,27 @@
   "why": "no workflow in this repository runs tests/evaluation/test_reality_gate.py or tests/evaluation/test_retrieval_gate.py; the only pytest invocation is evaluation/query_map/test_harness.py and its path filter does not cover evaluation/reality_gate/**, evaluation/retrieval_gate/** or tests/evaluation/**. .github/** is control-plane scope and was not edited."
  },
  "execution_records_this_cycle": {
-  "run_id": "38989947869",
-  "bar_gates": {
-   "record": "results/evaluation/bar_gates/38989947869.json",
-   "verdict": "PASS_NO_REGRESSION",
+  "run_id": "38996043415",
+  "reground_semantics": {
+   "record": "results/evaluation/reground_semantics/38996043415.json",
+   "verdict": "REGROUNDABLE",
    "exit_code": 0,
-   "labels": "5/65 classes OFF-DOMAIN 38 / UNBACKED 22 / SUPPORTED 5 / INVERTED 0 (absent=0)",
-   "geometry": "de 6 / fr 5 / it 5; 0/3 bundles pass all 11",
-   "negative_controls_all_proven": true,
-   "absolute": "LABEL_UNSOUND + GEOMETRY_UNSOUND reported-not-enforced"
+   "S1_fired_cells": 2,
+   "S2_fired_cells": 15,
+   "note": "the cycle's claim-bearing execution; frozen hypothesis results/evaluation/reground_semantics/FROZEN_HYPOTHESIS_38996043415.json committed at 9392ff8b (2026-10-17T02:52:58Z) before it"
   },
   "retrieval_ca_benchmark": {
-   "record": "results/evaluation/retrieval_counter_authority_benchmark/38989947869.json",
+   "record": "results/evaluation/retrieval_counter_authority_benchmark/38996043415.json",
    "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
    "exit_code": 0,
-   "falsification_proven": true
+   "falsification_proven": true,
+   "legs": "served_baseline 0 / hostile-geometry 1 / blanked-evidence 1"
+  },
+  "snapshot_audit": {
+   "record": "results/evaluation/snapshot_audit/38996043415.json",
+   "result": "READY 12/12",
+   "regenerated_in_repair_r1": true,
+   "note": "regenerated as the LAST producer step of repair round 1, after the final state edit of this repair, so deliverable_sha256 [\"state/evaluation.json\"] verifies the committed state. Round 0 wrote this record before its final state edit and therefore pinned a stale state hash (audit required fix D3)."
   }
  },
  "count_reconciliation": {
@@ -463,7 +471,7 @@
   "results/evaluation/lane_suite/38945976309.json (new)",
   "reports/evaluation/CYCLE_38945976309.md (new)"
  ],
- "report": "reports/evaluation/CYCLE_38989947869.md",
+ "report": "reports/evaluation/CYCLE_38996043415.md",
  "next_recommendation_38951152192": "HAND OFF TO PRODUCT, then stop this lane's proposal chain. The v49 evaluation question is encoded, enforced, self-falsified twice (F6 cached-replay latency erasure, closed 38945976309; F7 bare-checkout pytest false-red, closed this cycle), and both falsifications are closed without moving any frozen bar. What remains is not lane work: audit and promote (or reject) the stacked proposals 38939239917 (retrieval benchmark) and 38945976309 (hardening) so their deliverables stop shadowing every re-dispatch, and set the portfolio .status stop per factory-direction item 13 — continue_recommended:false cannot stop re-dispatch while the supervisor jq // defect stands. continue_recommended stays false: the next dispatch must carry a NEW question, never a re-run of this one. Product's open falsifications are unchanged and restated without re-measurement (FR/IT authority recall 0/N vs DE 2/2, 2/5, 1/2; fresh BJR leg cites 0/5 frozen BJR authorities; retrieval live pass 256.827s vs frozen 240s budget; duplicate::unique_ids fails on all four questions; 6 unusable ids among 960 rows; rent-default authority gates permanently not_measurable). human_gate_ready stays false. No 174k/global-map benchmarks rerun; none was run this cycle.",
  "orchestration_diagnosis_38949870162": {
   "symptom": "origin/cycle/core/evaluation/38949870162/team == 9766de64 (byte-identical to its base); zero producer commit; working tree clean",
@@ -1108,7 +1116,18 @@
    "path": "results/evaluation/reground_semantics/FROZEN_HYPOTHESIS_38996043415.json",
    "frozen_at_commit": "9392ff8b",
    "frozen_before_execution": true,
-   "honest_disclosure": "the per-criterion masks of all three packets are published accepted evidence (cycle 38993062549), so the qualitative S1/S2 outcome on the real population was partially known in advance; the freeze lists the five things NOT observed before it (hostile non-vacuity, S1-variant discrimination, S2 coverage boundary, exact cardinalities, whole-battery outcome); no threshold, predicate or success rule changed after the commit"
+   "honest_disclosure": "the per-criterion masks of all three packets are published accepted evidence (cycle 38993062549), so the qualitative S1/S2 outcome on the real population was partially known in advance; the freeze lists the five things NOT observed before it (hostile non-vacuity, S1-variant discrimination, S2 coverage boundary, exact cardinalities, whole-battery outcome); no threshold, predicate or success rule changed after the commit",
+   "erratum": {
+    "path": "results/evaluation/reground_semantics/ERRATUM_FROZEN_AT_38996043415.json",
+    "repairs": "audit required fix D1 of CYCLE_38996043415_GATE.json",
+    "declared_frozen_at_utc_in_freeze_WRONG": "2026-10-17T03:05:00Z",
+    "authoritative_freeze_instant_COMMIT_9392ff8b": "2026-10-17T02:52:58Z",
+    "execution_generated_at_utc": "2026-10-17T03:02:07+00:00",
+    "freeze_bytes_preserved_unchanged": true,
+    "supersedes_field_only": "frozen_at_utc",
+    "frozen_before_execution_still_true": true
+   },
+   "erratum_note": "The freeze file's own frozen_at_utc (2026-10-17T03:05:00Z) postdates the execution it pre-registers and therefore contradicts its own frozen_before_execution flag; the erratum supersedes that ONE field with the commit instant 2026-10-17T02:52:58Z. Both timestamps are published. The frozen file itself is byte-unchanged."
   },
   "reuse_first": {
    "engine": "geometry_gate.score_packet via packet_lineage_sweep.criterion_mask (accepted)",
@@ -1295,7 +1314,11 @@
    "file": "tests/evaluation/test_reground_lineage_semantics.py",
    "count": 34,
    "result": "34 passed",
-   "active_lane_suite": "218 collected / 218 passed / 0 failed (per-file counts in the cycle report; this is the prior 184-test definition plus this cycles 34-test file)"
+   "repair_r1_added_file": "tests/evaluation/test_state_current_cycle_pointers.py",
+   "repair_r1_added_count": 11,
+   "repair_r1_added_result": "11 passed",
+   "active_lane_suite": "229 collected / 229 passed / 0 failed WITH the accepted product mount (10-file base 218 + repair-round-1 11), measured in repair round 1; the per-file table is in the cycle report. Bare checkout of the 10-file base definition as measured by the independent audit of this cycle: 205 passed + 13 mount-skipped, 0 failed; the 11 new tests are mount-independent, so the derived bare figure is 216 passed + 13 skipped (derived, not re-measured — SERVED_PACKET_DIR is a compile-time constant and mutating the accepted mount to fake a bare run is not done).",
+   "also_fixed": "tests/evaluation/test_snapshot_audit.py CHECK_IDS gained gate_validity_sweep (check 12) — that mount-gated test was red in every with-mount environment since cycle 38993062549 while a bare checkout skipped it"
   },
   "deliberately_not_done": [
    "the two Frontier candidates were NOT re-measured",
@@ -1309,5 +1332,47 @@
    "a malformed N2 boolean expression in the battery (debug pass only; fixed before the recorded run; no predicate touched)",
    "unit tests synthetic qids needed an explicit qids= parameter on score_lineage so the predicates could be pinned in isolation (no predicate touched)"
   ]
- }
+ },
+ "repair_audit_ref_r1_38996043415": "origin/cycle/core/evaluation/38996043415/audit:results/audit/evaluation/CYCLE_38996043415_GATE.json (gate=REVISE, safe_to_integrate=false, required_fixes D1/D2/D3, repair_round 0; the gate file lives on the AUDIT BRANCH ref only and is not present in this producer tree). The older top-level repair_audit_ref/repair_audit_ref_location are intentionally left byte-unchanged: they carry the BLOCKED-audit 38972043610 D4 pointer correction, which is historical evidence and must not be overwritten by a newer repair.",
+ "repair_fixes_applied_38996043415_r1": {
+  "D1": "DISCLOSED FREEZE-TIMESTAMP ERRATUM, frozen bytes NOT edited in place: new co-located record results/evaluation/reground_semantics/ERRATUM_FROZEN_AT_38996043415.json pins the authoritative ordering (commit 9392ff8b at 2026-10-17T02:52:58Z precedes the 2026-10-17T03:02:07Z execution) and states BOTH timestamps (wrong declared frozen_at_utc 2026-10-17T03:05:00Z vs authoritative commit 2026-10-17T02:52:58Z). Disclosed in reports/evaluation/CYCLE_38996043415.md section 9 and in this state (erratum_frozen_at_38996043415 + the cycle block's frozen_hypothesis.erratum). No corrected freeze filename was created: one freeze file, original bytes preserved, correction beside it. Pinned executable by tests/evaluation/test_state_current_cycle_pointers.py::test_freeze_erratum_exists_and_pins_the_untouched_subject (the erratum's subject sha256 must keep matching the live frozen file) and ::test_freeze_file_is_not_modified_by_the_repair (original digest fccdbb9e...).",
+  "D2": "TOP-LEVEL CURRENT-CYCLE POINTERS REFRESHED and made executable: state.report now reports/evaluation/CYCLE_38996043415.md and execution_records_this_cycle now carries run_id 38996043415 with the reground record, the companion 3-leg benchmark record and the snapshot-audit record (both previously named 38989947869 for the second consecutive cycle). New test file tests/evaluation/test_state_current_cycle_pointers.py (11 tests, wired into evaluation/lane_suite.py's pytest set so the snapshot audit's lane_suite check enforces it) asserts that run_id, proposed_run_id, report path, report body, execution_records_this_cycle.run_id, every named record path and every record's embedded run_id all agree with cycle_status. A D2 recurrence is now a red test, not a silent stale field.",
+  "D3": "READINESS RECORD REGENERATED after the final state edit: results/evaluation/snapshot_audit/38996043415.json is re-emitted by python -m evaluation.snapshot_audit.run_snapshot_audit --run-id 38996043415 so deliverable_sha256[\"state/evaluation.json\"] is the hash of the committed state instead of the round-0 pre-edit hash b64ca7963245841a8ae36dd00fccc53c4a5d133fc7a404987c3af38eb2b5132e. The round-0 hash is disclosed rather than deleted: the state edited post-audit was c75659c1f10c763fd9bd48d0736166098082b70adf1d956c685313469ab5334e, and the round-0 record itself pinned b64ca796... . All three hashes and the reason are stated in the cycle report section 9. GATE-PATH HONESTY: a readiness record's audit_gate_path is derived from its run id, so the cycle-keyed record names CYCLE_38996043415_GATE.json — which is the round-0 REVISE gate that lives on the audit ref and is the very gate this repair answers. The gate of record for THIS round is results/audit/evaluation/CYCLE_38999209353_GATE.json (run 38999209353, repair round 1), therefore a second readiness record with the SAME 12/12 checks and the SAME deliverable hashes was also emitted under that round id: results/evaluation/snapshot_audit/38999209353.json. Neither file is listed in evidence_refs (a record cannot verify its own existence during the run that writes it), and neither is in the deliverable manifest (a record cannot pin its own bytes).",
+  "beyond_required_fixes_1": "PRE-EXISTING WITH-MOUNT RED FIXED (found by running the suite with the accepted product mount, which a bare checkout cannot do): tests/evaluation/test_snapshot_audit.py::test_readiness_record_passes_on_current_snapshot asserted exact equality between the record's check-id set and CHECK_IDS, but CHECK_IDS was never extended when cycle 38993062549 added check 12 gate_validity_sweep. It has been failing in every with-mount environment while a bare checkout SKIPS it, so no prior audit saw it. Fix adds the missing id; the assertion stays exact equality, so it does not become an amnesty.",
+  "beyond_required_fixes_2": "SELF-DEPENDENCY HARDENING: evaluation/lane_suite.py's pytest pass now runs with -p no:cacheprovider. MEASURED FACT first: pytest writes a '*.gitignore' inside repo-root/.pytest_cache, so `git status --porcelain -uall` (the input of core-lane.yml's 'Enforce lane write scope' step, and therefore of the snapshot audit's own producer_write_scope_clean check) does NOT see the directory today — 0 porcelain entries matched pytest_cache this repair. The flag removes the readiness verifier's dependency on that quirk: without it, the verifier's lane_suite check could in principle invalidate its own write-scope check on an interrupted run or a changed pytest behaviour, and disabling the cache keeps repeated suite runs byte-deterministic. No check, threshold, metric or success rule changed.",
+  "beyond_required_fixes_3": "DELIVERABLE MANIFEST EXTENDED (additive, nothing removed): this cycle's own claim-bearing artifacts — the freeze, the D1 erratum, the execution record, the cycle report and the D2 test — are now sha256-pinned in the readiness record, so the D3 drift class manifests in the record itself instead of only in an audit.",
+  "not_done": "the pytest_local* benchmark duplicates (audit observation O2) were left in place: they are historical artifacts and this benchmark entry point has no --out flag, so fixing O2 would mean changing an accepted tool's CLI in a repair round that did not require it. Incidental byte-churn from re-running them during test runs was reverted so the repair diff carries only intentional changes."
+ },
+ "erratum_frozen_at_38996043415": {
+  "erratum_id": "ERRATUM_FROZEN_AT_38996043415",
+  "record": "results/evaluation/reground_semantics/ERRATUM_FROZEN_AT_38996043415.json",
+  "repairs_audit_required_fix": "D1",
+  "subject_file": "results/evaluation/reground_semantics/FROZEN_HYPOTHESIS_38996043415.json",
+  "subject_bytes_preserved_unchanged": true,
+  "subject_edited_in_place": false,
+  "freeze_declared_frozen_at_utc_WRONG": "2026-10-17T03:05:00Z",
+  "freeze_commit_utc_AUTHORITATIVE": "2026-10-17T02:52:58Z",
+  "execution_generated_at_utc": "2026-10-17T03:02:07+00:00",
+  "ordering": "commit 9392ff8b (sole file: the freeze) 02:52:58Z -> execution 03:02:07Z -> companion 3-leg benchmark 03:03:06Z -> snapshot readiness 03:04:07Z; the freeze's own declared 03:05:00Z is the erroneous field and postdates all three",
+  "freeze_before_execution_remains_true": true,
+  "freeze_before_execution_now_grounded_on": "VCS ordering (git commit 9392ff8b precedes the execution record), not on the file's own timestamp",
+  "freeze_content_changed": false,
+  "nothing_reopened": "no predicate, R1-R5, N1-N5, success rule, population, claim ceiling or observation-order disclosure in the freeze is changed or re-opened",
+  "is_leakage": false,
+  "why_not": "the freeze content was committed before execution; only its own timestamp field was wrong",
+  "readiness_records_of_repair_r1": [
+   "results/evaluation/snapshot_audit/38996043415.json (cycle-keyed: the D3 fix)",
+   "results/evaluation/snapshot_audit/38999209353.json (round-keyed: carries this round's audit gate path CYCLE_38999209353_GATE.json)"
+  ]
+ },
+ "durable_delta_repair_r1_38996043415": [
+  "results/evaluation/reground_semantics/ERRATUM_FROZEN_AT_38996043415.json (new: D1 disclosed erratum; freeze bytes untouched)",
+  "tests/evaluation/test_state_current_cycle_pointers.py (new: 11 D1/D2 durable guards)",
+  "reports/evaluation/CYCLE_38996043415.md (section 9 repair disclosure + section 5 erratum pointer + section 7 with-mount/bare pair)",
+  "state/evaluation.json (D2 pointers + D1 disclosure + repair block)",
+  "evaluation/lane_suite.py (pytest set + the D2 test; -p no:cacheprovider)",
+  "evaluation/snapshot_audit/run_snapshot_audit.py (deliverable manifest +5 files)",
+  "tests/evaluation/test_snapshot_audit.py (CHECK_IDS + gate_validity_sweep)",
+  "results/evaluation/snapshot_audit/38996043415.json (regenerated: D3)"
+ ]
 }

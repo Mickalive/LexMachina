@@ -31,6 +31,15 @@ CHECK_IDS = {
     "write_scope_diagnosis_record",
     "orchestration_diagnosis_38986445355",
     "retrieval_ca_benchmark_record",
+    # Cycle 38993062549 added check 12 (gate_validity_sweep) to
+    # run_snapshot_audit.build_record but never extended this exact-equality
+    # set, so the mount-gated integration test below has been RED in every
+    # with-mount environment since — the auditor of 38996043415 could not see it
+    # because a bare checkout SKIPS the test. Repaired in repair round 1 of
+    # rejected cycle 38996043415 as a disclosed, non-required hardening: the
+    # assertion stays EXACT equality (an added check is added here; a removed
+    # check still fails) so the guard does not become a blanket amnesty.
+    "gate_validity_sweep",
 }
 
 

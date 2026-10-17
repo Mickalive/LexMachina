@@ -510,6 +510,18 @@ def run_pytest(log: _Log) -> None:
         return
     proc = subprocess.run(
         [sys.executable, "-m", "pytest", "-q",
+         # Repair round 1 of rejected cycle 38996043415: run this suite's own
+         # pytest pass without a cache. Empirically pytest drops a "*.gitignore"
+         # inside repo-root/.pytest_cache, so `git status --porcelain -uall`
+         # (and therefore core-lane.yml's "Enforce lane write scope" step) does
+         # NOT see the directory today — verified this repair: 0 porcelain
+         # entries matched pytest_cache. The flag removes the readiness
+         # verifier's dependency on that quirk (an interrupted run or a changed
+         # pytest behaviour would otherwise be able to make check 8
+         # producer_write_scope_clean fail on this suite's own side effect) and
+         # keeps repeated suite runs byte-deterministic. No check, threshold or
+         # success rule changes.
+         "-p", "no:cacheprovider",
          "tests/evaluation/test_reality_gate.py",
          "tests/evaluation/test_retrieval_gate.py",
          "evaluation/query_map/test_harness.py",
@@ -517,7 +529,14 @@ def run_pytest(log: _Log) -> None:
          # run 38972887369 (disclosed scope extension, not a re-freeze):
          # verdict-contract digest pin, exit-code reachability matrix and the
          # naive-consumer trap of the frozen-bar gates.
-         "tests/evaluation/test_bar_gate_verdict_contract.py"],
+         "tests/evaluation/test_bar_gate_verdict_contract.py",
+         # Repair round 1 of rejected cycle 38996043415 (disclosed scope
+         # extension, not a re-freeze): audit required fix D2 demanded a test
+         # that pins state.report / execution_records_this_cycle to cycle_status.
+         # test_snapshot_audit.py is deliberately NOT in this list — its
+         # mount-gated integration test executes run_snapshot_audit, which runs
+         # this suite, so listing it here would recurse.
+         "tests/evaluation/test_state_current_cycle_pointers.py"],
         cwd=str(_LANE_ROOT), capture_output=True, text=True, timeout=900)
     tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
     log.add("active lane pytest suite", proc.returncode == 0, tail[0])

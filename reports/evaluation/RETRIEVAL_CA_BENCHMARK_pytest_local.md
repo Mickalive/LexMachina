@@ -5,7 +5,7 @@
 - Engine: `python -m evaluation.frozen_bars.run_bar_gates` (accepted entry point, reused as subprocess)
 - Combined verdict: **BENCHMARK_VALID_NO_FALSIFICATION** (exit 0)
 - Falsification proven: **True**
-- Elapsed: 22.588 s
+- Elapsed: 16.059 s
 
 ## Legs
 

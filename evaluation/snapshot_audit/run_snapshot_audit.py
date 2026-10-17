@@ -147,6 +147,21 @@ DELIVERABLE_MANIFEST_PATHS = [
     "results/evaluation/retrieval_counter_authority_benchmark/38989947869_leg3_blanked_evidence.json",
     "reports/evaluation/RETRIEVAL_CA_BENCHMARK_38989947869.md",
     "reports/evaluation/CYCLE_38989947869.md",
+    # Repair round 1 of rejected cycle 38996043415 (audit required fix D3):
+    # the round-0 readiness record pinned state/evaluation.json at a hash the
+    # committed state no longer had, because the state was edited after the
+    # record was written. Pinning this cycle's OWN claim-bearing artifacts
+    # (frozen hypothesis, the D1 erratum beside it, the execution record, the
+    # cycle report and the D2 pointer test) makes the same class of drift
+    # visible in the readiness record itself instead of only in an audit.
+    # Additive: no previously listed path is removed. The readiness record
+    # itself can never be listed — it embeds this manifest, so it cannot pin
+    # its own bytes.
+    "results/evaluation/reground_semantics/FROZEN_HYPOTHESIS_38996043415.json",
+    "results/evaluation/reground_semantics/ERRATUM_FROZEN_AT_38996043415.json",
+    "results/evaluation/reground_semantics/38996043415.json",
+    "reports/evaluation/CYCLE_38996043415.md",
+    "tests/evaluation/test_state_current_cycle_pointers.py",
 ]
 
 # Run 38986445355's team job died at step 6 ('Run lane cycle') after committing
