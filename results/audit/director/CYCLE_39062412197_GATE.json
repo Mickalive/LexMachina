@@ -1,0 +1,117 @@
+{
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "audited_run_id": "39062412197",
+  "auditor": "independent_auditor",
+  "audited_artifacts": [
+    "state/factory_direction.json (v55 -> v56)",
+    "state/frontier_portfolio.json (v27 -> v28)",
+    "reports/director/RUN_39062412197.md",
+    "reports/director/BASE_DIRECTION_SHA_39062412197.txt"
+  ],
+  "required_fixes": [
+    {
+      "id": "F1",
+      "severity": "material",
+      "title": "The human-gate trigger in v56 cannot fire; product is starved behind a dead exit",
+      "defect": "v56 routes the ONE owner question through requirement 13(b) on an accepted frontier outcome B. Requirement 13(b) supersedes the DO-NOT-SERVE order only via 'an accepted bounded negative converting the map-versus-ranked-list choice into ONE explicit owner product decision'. The RUN charter's own outcome (B) text says the accepted DO-NOT-SERVE order STANDS, and the team's accepted state records charter_outcome=B with owner_decision_required=false. Outcome (C) is the bounded-negative branch. So 'outcome B fires the owner question under 13(b)' asserts a supersession 13(b) does not describe, and the Master Prompt's Human product gate (canonical implementation step 7) has no defined firing condition.",
+      "evidence": "state/factory_direction.json mission CRITICAL PATH (P-FRONT) 'may fire the ONE owner question under requirement 13(b) if the accepted verdict is outcome B/C'; reports/director/RUN_39062412197.md section 6 'the owner map-versus-ranked-list gate re-opens as a genuine human gate under requirement 13(b)'; factory_wide_operational_requirements[13] supersession clause (b); state/frontier_portfolio.json frontier-rebuilt-packet-serve-audit.stop_promote_rule outcome (B) 'the accepted DO-NOT-SERVE order stands'; /tmp/lex_accepted/frontier/frontier-rebuilt-packet-serve-audit/state/frontier/frontier-rebuilt-packet-serve-audit.json verdict.charter_outcome='B', verdict.owner_decision_required=false.",
+      "required_fix": "State the trigger once as a disjunction over requirement 13's actual conditions: (i) an accepted outcome-A verdict that explicitly replaces DO-NOT-SERVE under 13(a); (ii) an accepted BOUNDED NEGATIVE under 13(b), which per the charter requires BOTH absolute bars unmet AND no in-budget fix; (iii) a recorded director determination that the product question can no longer be advanced from evidence, which the Master Prompt reserves as the owner's decision. Delete or correct the assertion that outcome B fires 13(b); B leaves DO-NOT-SERVE in force and opens no human gate. Re-point the product lane's ordered delta at the corrected trigger so the lane is not building a card for an event that cannot occur."
+    },
+    {
+      "id": "F2",
+      "severity": "material",
+      "title": "The determination that decides F1 rests on a label reading the frozen rubric forbids",
+      "defect": "The rebuilt packet issues n_scored=5. The frozen rubric RULES_LABEL.json verdict_rule states INSUFFICIENT_POPULATION applies when 'n_scored < required_min_population_primary' (7) and 'This is a NON-RESULT: it must not be read as LABEL_SOUND nor as a pass of any product fix'. The team instead used the instrument reading (label_gate.py:135 emits LABEL_SOUND when n_supported == n_scored) to conclude 'The label bar is met as written on the rebuilt bytes (LABEL_SOUND; 5/5 issued supported). The charter therefore does not convert the map-versus-ranked-list choice into an owner decision.' A NON-RESULT is thereby used, through a favourable instrument reading, to withhold the bounded negative that would have opened the owner gate.",
+      "evidence": "/tmp/lex_accepted/core/product/product/frozen/RULES_LABEL.json sha256 4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608 (re-hashed by the auditor; identical copy at frontier/.../vendored_accepted/evaluation/frozen_bars/RULES_LABEL.json): verdict_rule.INSUFFICIENT_POPULATION and populations.primary.required_min_population_primary=7; vendored label_gate.py line 135; /tmp/lex_accepted/frontier/frontier-rebuilt-packet-serve-audit/state/frontier/frontier-rebuilt-packet-serve-audit.json verdict.owner_decision_required_reason; ALREADY-ACCEPTED corroboration: /tmp/lex_accepted/core/product/results/audit/product/CYCLE_39056694835_GATE.json claim_ceiling 'instrument LABEL_SOUND at n_scored=5; frozen rules-text residual INSUFFICIENT_POPULATION at n_scored<7'.",
+      "required_fix": "Name the instrument-vs-text divergence on the label bar at n_scored=5 as an open item in the mission text and the critical path; stop restating outcome B's premise ('label bar met as written') as settled. Add the reconciliation to frontier repair2's residual scope and to Evaluation's residual-repair list, and publish both verdicts side by side wherever the label bar gates a decision, per factory-wide requirement 25. Do NOT re-derive, re-tune or edit RULES_LABEL.json, label_gate.py or any bar - re-hash and report only."
+    },
+    {
+      "id": "F3",
+      "severity": "material",
+      "title": "Requirement 28 pre-declares the gate value of a future independent audit",
+      "defect": "New factory-wide requirement 28 states 'If a THIRD cycle ships a claim-bearing reproduction/sha-pin defect of this class, the independent audit MUST return gate=BLOCKED (not REVISE)'. state/frontier_portfolio.json v28 policy repeats 'must gate BLOCKED (not REVISE)'. This writes a future independent audit's verdict into control-plane state that every agent, including independent_auditor, is required to read, and whose card forbids collaborating with the producer to obtain a verdict; factory_director card forbids overriding audits. A gate chosen in advance is not evidence and destroys the escalation's value.",
+      "evidence": "state/factory_direction.json factory_wide_operational_requirements[28]; state/frontier_portfolio.json policy 'ESCALATION: a THIRD cycle shipping a claim-bearing reproduction/sha-pin defect of this class must gate BLOCKED (not REVISE)'; docs/agents/AGENT_CARDS.md independent_auditor 'Do not: collaborate with the producer to obtain PASS' and factory_director 'Do not: override audits'.",
+      "required_fix": "Restate requirement 28's escalation as the director's own duty ('a third recurrence of this class is grounds for the director to recharter rather than re-dispatch') and delete every sentence naming the gate the independent audit must return, in both state/factory_direction.json and state/frontier_portfolio.json policy. Leave the gate to the audit."
+    },
+    {
+      "id": "F4",
+      "severity": "material",
+      "title": "portfolio v28 writes a false description of the run that carries the packet verdict",
+      "defect": "run_history[0] records run 39048947212 as 'failure (initial attempt); no measurement completed. Rescued by the workflow persist step.' Recomputation against the accepted mount shows 39048947212 completed the RULES.json freeze, the full three-half measurement, the serve verdict, the two-run byte-identical reproduction proof and the hard-stop close; only a later workflow step failed. v28 was written specifically to correct a stale empty run_history and has instead installed a false provenance record for the entire evidence base.",
+      "evidence": "/tmp/lex_accepted/frontier/frontier-rebuilt-packet-serve-audit (= origin/lab/frontier/frontier-rebuilt-packet-serve-audit @ 8a45c16d): REPRODUCTION.json run_id=39048947212, verdict_recorded='DO-NOT-SERVE-UNCHANGED', byte_identical=true; AUDIT_RECORD.json cross_check.evaluation_search_basis.detected_at_run=39048947212; state/frontier/frontier-rebuilt-packet-serve-audit.json measurement_commit=4e4ad05b at 2026-10-17T17:14:39Z; branch commits 5b6dc8f9 (freeze 16:33:35Z) -> 4e4ad05b (verdict 17:14:39Z) -> d1167245 ('close charter v3 cycle (verdict promoted, hard stop)') -> 8a45c16d (cross-check table, 30 tests).",
+      "required_fix": "Restate that run_history entry: conclusion 'failure (post-persist workflow step)' with the measured content recorded (RULES.json frozen first, full verdict, 2x byte-identical reproduction, hard-stop close at 8a45c16d), and correct the matching '39048947212 failure (initial attempt)' phrase in the portfolio policy string."
+    },
+    {
+      "id": "F5",
+      "severity": "material",
+      "title": "A hard-stopped charter is kept RUN by a director-authored carve-out the charter does not contain",
+      "defect": "The RUN charter's stop_promote_rule says 'TERMINATE IMMEDIATELY after the verdict; HARD STOP: exactly ONE verdict cycle ... that is a NEW charter raised by the director against the NEW bytes, never a continuation'. The team's accepted state reads cycle_status=COMPLETE, continue_recommended=false, accepted_run_id=null with reason 'No second cycle under charter v3 is justified'. v56 keeps status=RUN and dispatches repair1 (39056749213) and repair2 (39061330426) under charter v3, authorised by the new requirement 28 carve-out 'do NOT re-charter'. Requirement 18 forbids re-dispatching a closed charter for 'one more delta', and the supervisor guard that would honour continue_recommended=false is dead code (requirement 9). The narrow repair is defensible in substance; the governance is not.",
+      "evidence": "state/frontier_portfolio.json frontier-rebuilt-packet-serve-audit.stop_promote_rule ('HARD STOP: exactly ONE verdict cycle ... never a continuation') and run_history[1..3] (39053132092, 39056749213, 39061330426 all charter_version 3); /tmp/lex_accepted/frontier/frontier-rebuilt-packet-serve-audit/state/frontier/frontier-rebuilt-packet-serve-audit.json cycle_status='COMPLETE', continue_recommended=false, continue_recommended_reason; factory_wide_operational_requirements[9] and [18]; .github/workflows/factory-supervisor.yml frontier dispatch uses jq '.continue_recommended // true'.",
+      "required_fix": "Resolve explicitly with a stated reason: either (a) bump charter_version and add an explicit narrow record-regeneration clause (regenerate the claim-bearing record after the final code edit, re-pin referencing shas, re-run the harness twice, exit; measurements untouched) terminating on the next accepted verdict; or (b) set status=TERMINATED and raise charter v4 as the director, carrying the accepted measurement record forward verbatim. Either way record in the portfolio that charter v3's one-cycle hard stop has already fired, that repairs 1-2 are record-regeneration cycles and not re-measurements, and that the supervisor's continue_recommended path cannot honour this team's declared stop. 'do NOT re-charter' is not a third option."
+    },
+    {
+      "id": "F6",
+      "severity": "minor",
+      "title": "Run provenance mislabelled",
+      "defect": "state/factory_direction.json evaluation lane question credits 'the 8/8 cross-check agreement with frontier run 39049030442'. 39049030442 is a Core Evaluation cycle (cycle/core/evaluation/39049030442/team), as the same file and the portfolio state elsewhere. The accepted mount's AUDIT_RECORD.json also carries 9 cross_check_rows, all core_evaluation_published=null, so '8/8 agree' exists only on the unaccepted cycle branch.",
+      "evidence": "state/factory_direction.json lanes.evaluation.question ('frontier run 39049030442' vs 'Core Evaluation run 39049030442' in the same string and 'cycle/core/evaluation/39049030442/team' twice); state/frontier_portfolio.json policy 'Core Evaluation run 39049030442'; /tmp/lex_accepted/frontier/.../AUDIT_RECORD.json cross_check (9 rows, core_evaluation_published=null).",
+      "required_fix": "Correct the one label to Core Evaluation run 39049030442 and keep the operational/unaccepted provenance tag on the 8/8 sentence."
+    },
+    {
+      "id": "F7",
+      "severity": "minor",
+      "title": "Claim ceiling drops the accepted incompleteness qualifier",
+      "defect": "reports/director/RUN_39062412197.md section 4 lists 'a zero-cost vertical slice with source-linked bundle and clickable map from OpenCaseLaw input' under 'Defensible now' with no incompleteness marker, while the accepted independent audit of the most recent accepted product cycle states verbatim 'Shortest capability (source-linked bundle + clickable map from OpenCaseLaw input, zero-cost/source-validity true) is not claimed achieved; state is honest about incompleteness'. The capability evidence itself is real (auditor-verified), so this is a wording defect only.",
+      "evidence": "reports/director/RUN_39062412197.md section 4; /tmp/lex_accepted/core/product/results/audit/product/CYCLE_39056694835_GATE.json claim_ceiling; auditor recomputation of results/product/offline_slice/20261017T125931Z/summary.json (verified=true, page_contract=true, 100/100 rows_with_source_url, 100/100 rows_with_xy, 8 clusters, network none, 1.227s, but answer_status=pending, cited_decision_ids=0, counter_rows=0).",
+      "required_fix": "Carry the not-claimed-achieved qualifier and a pointer to the remaining answer / counter-authority / human-gate milestones into section 4's claim ceiling."
+    },
+    {
+      "id": "F8",
+      "severity": "minor",
+      "title": "Comparative marginal-discovery finding needs its denominator",
+      "defect": "Requirement 29 and section 4 present '5/5 issued counter authorities absent from the initial-pool top-20 ... ranks 51-164' without noting that the rebuilt packet issues zero counter authorities on the FR bundle (DE 2 / FR 0 / IT 3) and abstains on 60 of 65 candidate rows, so the map-side advantage rests on 5 rows in 2 of 3 languages at K=20.",
+      "evidence": "Auditor recomputation over /tmp/lex_accepted/core/product/results/product/gate_packet/rebuilt-39027045675/questions/*.bundle.json: issued counter labels are bge_110 IB 280 (de, rank 56), zh_kassationsgericht_AC040036 (de, rank 130), bger_9C_749_2012 (it, rank 51), finma_versicherungsrecht_20020507_i_ti_o_01 (it, rank 163), ti_gerichte_36.2001.90 (it, rank 164); fr-bail-entretien has zero candidate-limiting/candidate-contrary rows.",
+      "required_fix": "State the DE 2 / FR 0 / IT 3 split and the 60-of-65 abstention count beside the 5/5 finding wherever it is reported."
+    },
+    {
+      "id": "F9",
+      "severity": "minor",
+      "title": "Five stale blocker files, one contradicting accepted evidence, left undiscclaimed",
+      "defect": "All five state/blockers/frontier/*.json carry a charter_version EQUAL to the portfolio's, so factory-housekeeper.yml's prune rule (charter_version !=) can never fire on them and they persist indefinitely. frontier-counter-anchor-classifier.json records AUDIT_BLOCKED / blocked_by_run 38973221261, which contradicts that team's accepted verdict (accept d236f599; audit CYCLE_38964146628_GATE.json gate=PASS, safe_to_integrate=true). None blocks the live team and the director cannot delete them (write scope), but this cycle touched the portfolio and did not disclose them.",
+      "evidence": "state/blockers/frontier/{frontier-adversarial-discoverability cv1, frontier-counter-anchor-classifier cv1, frontier-map-semantics cv2, frontier-query-conditioned-map-geometry cv1, frontier-served-packet-falsification cv1}.json vs state/frontier_portfolio.json team charter_versions; .github/workflows/factory-housekeeper.yml prune predicate; /tmp/lex_director_proposal/factory_wide_operational_requirements[24].",
+      "required_fix": "Add one disclosure line to state/frontier_portfolio.json policy naming the five files, the charter_version-equals consequence, and the frontier-counter-anchor-classifier blocker as superseded by accepted evidence, so no future director reads them as live."
+    }
+  ],
+  "claim_ceiling": "Direction v56 and portfolio v28 are not integrable as written. After the F1-F5 repairs, the maximum defensible claim is: (1) a real, honest, zero-cost vertical slice exists - cached OpenCaseLaw input yields a source-linked 100-decision bundle with x/y/cluster_id on every row, 8 clusters and an asserted clickable page contract, network none - as offline wiring evidence with no legal-usefulness claim and NOT claimed achieved (accepted audit CYCLE_39056694835); (2) the comparative marginal-discovery result is REPRODUCED and reproduces exactly - 5 issued counter authorities on the rebuilt bytes, ranks 51-164, none visible in a top-20 ranked list, the old CLASSIFICATION_ONLY negative does not reproduce - while the frozen ABSOLUTE bars remain UNMET (counter-label yield 5/65=0.0769 vs 1.0; geometry 0/3 bundles at 11/11), published beside it and never as a bar substitute; (3) the frontier serve verdict is REPRODUCED, NOT accepted, outcome B, with the label-bar determination at n_scored=5 an OPEN instrument-vs-text question (instrument LABEL_SOUND vs frozen-text INSUFFICIENT_POPULATION), not 'met as written'; (4) the Core Evaluation adjudication is DELIVERED on the rescue tree at c3c04285, NOT accepted, with M1..M6 carried complete and the frozen leg-E prediction preserved falsified by measured exits [2,0]; (5) DO-NOT-SERVE on packet 38839347028 remains IN FORCE, packet_admitted=false, ready_for_owner_session=false, machine_gate_ready=false, human_gate_ready=false, owner question PREPARED_NOT_FIRED. NOT claimable under v56 even after repair: that the machine gate is green, that the owner session is ready, that the DO-NOT-SERVE order is lifted, that the label or geometry bar is met, LIVE_E2E_VERIFIED, that the owner gate has a working trigger, or any citation of the unaccepted cross-check, rescue-tree or repair2 run ids as accepted evidence.",
+  "evidence_summary": {
+    "audited_proposal": "/tmp/lex_director_proposal (branch origin/cycle/director/39062412197/proposal)",
+    "accepted_mount": "/tmp/lex_accepted (core/product, core/evaluation, frontier/frontier-rebuilt-packet-serve-audit)",
+    "verdict_summary": "REVISE - 5 material, 4 minor; all concrete and same-cycle repairable inside the director's own write scope (state/factory_direction.json, state/frontier_portfolio.json, reports/director/RUN_39062412197.md).",
+    "headline_finding": "F1: v56 routes the Master Prompt's human product gate through requirement 13(b) on frontier outcome B, but the charter's own outcome (B) text and the team's accepted state both say the DO-NOT-SERVE order stands and owner_decision_required=false. The bounded-negative branch is outcome (C). The owner gate therefore has no defined firing condition, and product's only ordered user-visible delta is a prepared-but-unfirable card.",
+    "compounding_finding": "F2: the premise of outcome B ('label bar met as written') comes from the instrument label_gate.py:135 while the frozen RULES_LABEL.json verdict_rule makes n_scored=5 (< required_min_population_primary=7) an INSUFFICIENT_POPULATION NON-RESULT that 'must not be read as LABEL_SOUND'. The accepted product audit CYCLE_39056694835_GATE.json already records this exact residual; v56 routes on the favourable reading without reconciling it.",
+    "clean_axes": [
+      "base-sha guard: 928bce6cc37477445c1a572b81c76300305eefe907c6fc4d4cf0dc3484508d42 matches origin/main v55 exactly; no misfire",
+      "write scope: only the two state files and reports/director/* differ from main; no scope crossing",
+      "frontier proliferation: portfolio 11 -> 11 teams, none added, removed or re-chartered (verified by field-level diff)",
+      "no duplicated team: the single RUN charter's non_duplication is specific and substantiated; no fake parallelism",
+      "lane pauses corpus / legal-distance / fractal-map are licensed by the Master Prompt's 'do not rebuild universal-174k' clauses",
+      "no HUMAN_DECISION_REQUIRED abuse: rc-67, rc-78, provider flapping and the REVISE loop are all routed as operational",
+      "frozen instruments intact: RULES_LABEL.json re-hashes to 4457e971..., RULES_GEOMETRY.json to a7452748... in both product/frozen and the team's vendored copy",
+      "acceptance citations verified: 633f5c4b = accept product cycle 39051003925; 26e6c9b4 = accept product cycle 39056694835; CYCLE_39056694835_GATE.json = PASS / safe_to_integrate=true / required_fixes=[]; origin/lab/evaluation unmoved at 09970e83"
+    ],
+    "auditor_reproductions": {
+      "shortest_user_visible_capability": "results/product/offline_slice/20261017T125931Z/summary.json: verified=true, page_contract=true, 100 decisions, 100/100 rows_with_source_url, 100/100 rows_with_xy, 100/100 rows_with_cluster_id, 8 clusters, fixture_replay offline from committed OpenCaseLaw cache, network none, 1.227s. Zero-cost and source-validity claims TRUE; answer_status=pending, cited_decision_ids=0, counter_rows=0 in this artifact.",
+      "comparative_marginal_discovery": "5 issued counter authorities exactly (de 2: bge_110 IB 280 rank 56, zh_kassationsgericht_AC040036 rank 130; fr 0; it 3: bger_9C_749_2012 rank 51, finma_versicherungsrecht_20020507_i_ti_o_01 rank 163, ti_gerichte_36.2001.90 rank 164). Rank range 51-164 matches the claim; all five outside a top-20 list. Finding is REAL and honestly bounded.",
+      "label_bar_determination": "RULES_LABEL.json verdict_rule.INSUFFICIENT_POPULATION applies at n_scored=5 < 7 and forbids reading it as LABEL_SOUND; label_gate.py:135 emits LABEL_SOUND at n_scored=n_supported=5. Instrument and frozen text disagree; accepted audit CYCLE_39056694835 already records the residual.",
+      "run_provenance": "REPRODUCTION.json run_id=39048947212 and AUDIT_RECORD.json detected_at_run=39048947212 on origin/lab/frontier/frontier-rebuilt-packet-serve-audit @ 8a45c16d refute v28's 'no measurement completed' entry.",
+      "supersession_text_audit": "Requirement 13(b) vs charter outcome (B) vs the team's owner_decision_required=false are mutually inconsistent as routed by v56 mission P-FRONT and report section 6."
+    },
+    "minor_accepted_state_observations_not_charged_as_proposal_defects": [
+      "state/frontier/frontier-rebuilt-packet-serve-audit.json verification.tests_result='26 passed' while REPRODUCTION.json on the same accepted branch head records 30 passed (8a45c16d); stale metric inside the team's own accepted branch",
+      "the accepted lab branch head still carries the 'Core Evaluation re-score ABSENT' claim (9 cross_check rows, core_evaluation_published=null) that audit 39053132092 found false; the repairs live only on cycle branches, so no consumer of the accepted branch sees the corrected record"
+    ],
+    "invalidated_by_this_gate": "none of the in-flight work: frontier repair2 (39061330426), evaluation (39060704006) and product (39060279436) are unaffected; the repair round is a state-text round plus at most one added residual item for repair2.",
+    "human_decision_assessment": "No HUMAN_DECISION_REQUIRED was raised by the proposal, and correctly so - every failure it found is operational. The audit does NOT require one. The F1 defect is a missing, not a missing-escalation: the director must define the trigger, not hand the problem to the owner."
+  }
+}
