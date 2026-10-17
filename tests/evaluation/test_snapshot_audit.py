@@ -56,6 +56,13 @@ CHECK_IDS = {
     # run (39027041693). The check re-derives it from git and requires the gap
     # to stay DISCLOSED, so a NEW ungated run at the head goes red.
     "accepted_base_gate_coverage_recorded",
+    # run 39047050629: no prose may assert a readiness verdict its record does
+    # not carry. Added after that run found 39043684319's snapshot committing a
+    # RED record (16/18) behind three green headlines and a state block with no
+    # n_passed at all. The same cycle repaired check 5's order dependence (the
+    # readiness record's own path is now a declared, post-write-verified self
+    # reference) and gave check 4 the failing lane-suite check names.
+    "readiness_claims_match_record",
 }
 
 
@@ -199,13 +206,40 @@ def test_manifest_checker_fails_on_missing_deliverables(tmp_path):
 
 # ------------------------------------------------------------ integration --
 
+def _current_state_run_id() -> str:
+    """The run id the committed state publishes as the current cycle.
+
+    Check 19 (added by cycle 39047050629) compares the state block of the run
+    the verifier is executing AS against the record it just computed, so the
+    integration test below must execute the verifier as that run. It used to
+    pin a hard-coded historical id, which no longer carries a state block; the
+    id is therefore derived from the committed state instead of being written
+    by hand, so the test keeps working as the run id advances.
+    """
+    state = json.loads(Path("state/evaluation.json").read_text())
+    candidates = []
+    for key, block in state.items():
+        if key.startswith("snapshot_audit_") and isinstance(block, dict) and block.get("record"):
+            rec = Path(block["record"])
+            if rec.exists():
+                candidates.append((key[len("snapshot_audit_"):], block))
+    assert candidates, "state/evaluation.json publishes no snapshot_audit_<run> block"
+    run_id, block = max(candidates, key=lambda kv: int(kv[0]))
+    # the block must already agree with its own record, or the integration test
+    # would be asserting READY over a snapshot that is not.
+    rec = json.loads(Path(block["record"]).read_text())
+    assert block.get("n_passed") == rec["n_passed"], (block, rec["n_passed"])
+    return run_id
+
+
 @needs_mount
 def test_readiness_record_passes_on_current_snapshot(tmp_path):
     out = tmp_path / "readiness.json"
-    # The run-id is a labeling input only; the readiness checks themselves are
-    # run-id-independent. Pin to the operational-resume run of record so the
-    # gate-path assertions below name the actual audit contract for this tree.
-    run_id = "38989947869"
+    # The run-id is a labeling input for every check EXCEPT 19, which compares
+    # the state block of this run with the record; run as the run the committed
+    # state publishes, so the gate-path assertions below name the actual audit
+    # contract for this tree.
+    run_id = _current_state_run_id()
     rc = rsa.main(["--run-id", run_id, "--out", str(out),
                    "--repo-root", str(Path.cwd())])
     assert rc == 0, "verifier must exit 0 (READY) on the current snapshot"
@@ -233,12 +267,18 @@ def test_main_exit_code_is_one_when_a_check_fails(tmp_path, monkeypatch):
                         lambda repo_root: {"id": "lane_suite_pass", "status": "FAIL",
                                           "detail": "forced red"})
     out = tmp_path / "readiness.json"
-    rc = rsa.main(["--run-id", "FORCEDRED", "--out", str(out),
+    # Execute as the run the committed state publishes, so the ONLY thing this
+    # fixture breaks is the lane suite. (An unknown run id would also fail
+    # check 19, and the "-1" arithmetic below would no longer isolate the
+    # forced red.)
+    run_id = _current_state_run_id()
+    rc = rsa.main(["--run-id", run_id, "--out", str(out),
                    "--repo-root", str(Path.cwd())])
     assert rc == 1
     record = json.loads(out.read_text(encoding="utf-8"))
     assert record["ready_for_independent_audit"] is False
-    assert record["n_passed"] == record["n_checks"] - 1
+    assert "lane_suite_pass" in record["failing_checks"]
+    assert record["n_passed"] < record["n_checks"]
 
 
 # ------------------------------------------- write-scope gate (run 38982176936) --
@@ -642,11 +682,48 @@ def test_accepted_base_coverage_is_disclosed_on_the_live_branch():
     assert res["declared_ungated_runs"] == res["derived_ungated_runs"]
 
 
+#: Captured at import, because the fixtures below monkeypatch the module
+#: constant to "rec.json" and must still read the COMMITTED record.
+_COMMITTED_COVERAGE_RECORD_PATH = rsa.ACCEPTED_BASE_COVERAGE_RECORD
+
+
+def _committed_coverage_record() -> dict:
+    """The committed disclosure record, read from the repo, not rebuilt."""
+    return json.loads(Path(_COMMITTED_COVERAGE_RECORD_PATH).read_text())
+
+
+def _fake_accepted_branch(monkeypatch, head: str = "1" * 40,
+                          gates=("38971202786", "39020603510")) -> None:
+    """Make ``git`` inside check 18 deterministic and hermetic.
+
+    PRE-EXISTING RED, repaired by cycle 39047050629: these four fixtures ran
+    ``git rev-parse`` with ``cwd=tmp_path``, which is not a git repository, so
+    the check returned its environment-limited branch BEFORE reaching the
+    ingredient each fixture breaks, and two of them then read a ``rec.json``
+    they had never created. Four committed tests were therefore red on the
+    committed tree while the file's own module docstring claims every check
+    has a breaking fixture. The stub restores the intent: the check runs to
+    completion against a FIXED branch and exactly one ingredient is broken.
+    """
+    def fake_git(repo_root, *args):
+        if args[:2] == ("rev-parse", "--verify"):
+            return head
+        if args[0] == "ls-tree":
+            return "\n".join(
+                f"results/audit/evaluation/CYCLE_{g}_GATE.json" for g in gates) + "\n"
+        if args[0] == "log":
+            # git log order is newest first, and check 18 reads the commits
+            # ABOVE the newest 'accept evaluation cycle' commit, i.e. the ones
+            # listed BEFORE it.
+            return ("evaluation cycle 39027041693: producer work\n"
+                    "accept evaluation cycle 39020603510\n")
+        return ""
+    monkeypatch.setattr(rsa, "_git", fake_git)
+
+
 def test_accepted_base_coverage_fails_without_the_disclosure_record(tmp_path, monkeypatch):
     """A clean snapshot must not pass by having no disclosure on disk."""
-    rec = Path(rsa.ACCEPTED_BASE_COVERAGE_RECORD)
-    tmp_rec = tmp_path / "rec.json"
-    tmp_rec.write_bytes(rec.read_bytes())
+    _fake_accepted_branch(monkeypatch)
     monkeypatch.setattr(rsa, "ACCEPTED_BASE_COVERAGE_RECORD", "rec.json")
     assert rsa.check_accepted_base_gate_coverage(tmp_path)["status"] == "FAIL"
     assert rsa.check_accepted_base_gate_coverage(tmp_path)["problems"] == ["disclosure record missing"]
@@ -654,8 +731,9 @@ def test_accepted_base_coverage_fails_without_the_disclosure_record(tmp_path, mo
 
 def test_accepted_base_coverage_flags_an_undisclosed_new_ungated_run(tmp_path, monkeypatch):
     """Dropping a disclosed run must read as a NEW ungated run, not as clean."""
+    _fake_accepted_branch(monkeypatch)
     monkeypatch.setattr(rsa, "ACCEPTED_BASE_COVERAGE_RECORD", "rec.json")
-    rec = json.loads(Path(rsa.ACCEPTED_BASE_COVERAGE_RECORD).read_text())
+    rec = _committed_coverage_record()
     rec["ungated_runs_above_the_newest_accept_commit"] = []
     (tmp_path / "rec.json").write_text(json.dumps(rec))
     res = rsa.check_accepted_base_gate_coverage(tmp_path)
@@ -665,8 +743,9 @@ def test_accepted_base_coverage_flags_an_undisclosed_new_ungated_run(tmp_path, m
 
 def test_accepted_base_coverage_flags_a_stale_branch_head(tmp_path, monkeypatch):
     """A disclosure pinned to a different head must not silently pass."""
+    _fake_accepted_branch(monkeypatch)
     monkeypatch.setattr(rsa, "ACCEPTED_BASE_COVERAGE_RECORD", "rec.json")
-    rec = json.loads(Path(rsa.ACCEPTED_BASE_COVERAGE_RECORD).read_text())
+    rec = _committed_coverage_record()
     rec["accepted_branch_head"] = "0" * 40
     (tmp_path / "rec.json").write_text(json.dumps(rec))
     res = rsa.check_accepted_base_gate_coverage(tmp_path)
@@ -676,13 +755,27 @@ def test_accepted_base_coverage_flags_a_stale_branch_head(tmp_path, monkeypatch)
 
 def test_accepted_base_coverage_requires_the_boundaries_of_the_gap(tmp_path, monkeypatch):
     """A coverage gap without 'what is NOT claimed' is an over-claim."""
+    _fake_accepted_branch(monkeypatch)
     monkeypatch.setattr(rsa, "ACCEPTED_BASE_COVERAGE_RECORD", "rec.json")
-    rec = json.loads(Path(rsa.ACCEPTED_BASE_COVERAGE_RECORD).read_text())
+    rec = _committed_coverage_record()
     rec["finding"]["what_is_NOT_claimed"] = []
     (tmp_path / "rec.json").write_text(json.dumps(rec))
     res = rsa.check_accepted_base_gate_coverage(tmp_path)
     assert res["status"] == "FAIL"
     assert any("what_is_NOT_claimed" in x for x in res["problems"]), res
+
+
+def test_accepted_base_coverage_passes_against_the_fake_branch(tmp_path, monkeypatch):
+    """The hermetic stub must actually exercise the PASS path, otherwise the
+    four repaired fixtures above could pass for the wrong reason."""
+    _fake_accepted_branch(monkeypatch)
+    monkeypatch.setattr(rsa, "ACCEPTED_BASE_COVERAGE_RECORD", "rec.json")
+    rec = _committed_coverage_record()
+    rec["accepted_branch_head"] = "1" * 40
+    rec["ungated_runs_above_the_newest_accept_commit"] = ["39027041693"]
+    (tmp_path / "rec.json").write_text(json.dumps(rec))
+    res = rsa.check_accepted_base_gate_coverage(tmp_path)
+    assert res["status"] == "PASS", res
 
 
 def test_accepted_base_coverage_is_environment_limited_without_the_ref(tmp_path):
@@ -691,3 +784,246 @@ def test_accepted_base_coverage_is_environment_limited_without_the_ref(tmp_path)
     assert res["status"] == "FAIL"
     assert res["environment_limited"] is True
     assert res["n_ungated_runs"] is None
+
+
+# ---------------- check 5 repair: the order-dependence of the self-reference --
+#
+# Run 39043684319 committed a readiness record that is RED (16/18) together
+# with three green prose headlines. One of the two root causes was that check 5
+# ran BEFORE the readiness record was written, so when state/evaluation.json
+# cited the record of the CURRENT run its verdict depended on whether the
+# verifier had been run before. These tests pin the repair and its guard.
+
+
+def test_evidence_refs_treats_the_current_record_as_a_self_reference(tmp_path):
+    """The record's own path must NOT be reported as unresolved..."""
+    (tmp_path / "state").mkdir()
+    rec_rel = "results/evaluation/snapshot_audit/999.json"
+    (tmp_path / "state/evaluation.json").write_text(json.dumps(
+        {"evidence_refs": ["state/evaluation.json", rec_rel]}))
+    res = rsa.check_evidence_refs(tmp_path, rec_rel)
+    assert res["status"] == "PASS", res
+    assert res["self_reference_refs"] == [rec_rel]
+    assert res["missing"] == []
+
+
+def test_evidence_refs_still_fails_on_a_genuinely_broken_ref_alongside_the_self_reference(tmp_path):
+    """The self-reference exemption must not launder another broken ref."""
+    (tmp_path / "state").mkdir()
+    rec_rel = "results/evaluation/snapshot_audit/999.json"
+    (tmp_path / "state/evaluation.json").write_text(json.dumps(
+        {"evidence_refs": [rec_rel, "does/not/exist.json"]}))
+    res = rsa.check_evidence_refs(tmp_path, rec_rel)
+    assert res["status"] == "FAIL"
+    assert res["missing"] == ["does/not/exist.json"]
+
+
+def test_post_write_self_reference_verifies_the_record_it_just_wrote(tmp_path):
+    out = tmp_path / "rec.json"
+    record = {"schema": rsa.SCHEMA, "run_id": "999", "ready_for_independent_audit": True}
+    out.write_text(json.dumps(record))
+    # the record under test is the in-flight dict, written twice by main()
+    assert rsa._post_write_self_reference(out, "999", ["rec.json"], record) is True
+    assert record["post_write_self_reference"]["status"] == "VERIFIED"
+
+
+def test_post_write_self_reference_fails_when_the_record_does_not_parse(tmp_path):
+    out = tmp_path / "rec.json"
+    out.write_text('{"schema": "x", ')          # truncated, the 39027041693 class
+    record = {"schema": rsa.SCHEMA, "run_id": "999", "ready_for_independent_audit": True}
+    assert rsa._post_write_self_reference(out, "999", ["rec.json"], record) is False
+    assert record["post_write_self_reference"]["status"] == "FAILED"
+    assert record["ready_for_independent_audit"] is False
+
+
+def test_post_write_self_reference_fails_on_another_run_record(tmp_path):
+    out = tmp_path / "rec.json"
+    out.write_text(json.dumps({"schema": rsa.SCHEMA, "run_id": "111"}))
+    record = {"schema": rsa.SCHEMA, "run_id": "999", "ready_for_independent_audit": True}
+    assert rsa._post_write_self_reference(out, "999", ["rec.json"], record) is False
+    assert "not this run's record" in record["post_write_self_reference"]["why"]
+
+
+def test_post_write_state_claim_catches_a_state_block_that_does_not_repeat_the_record(tmp_path):
+    (tmp_path / "state").mkdir()
+    (tmp_path / "state/evaluation.json").write_text(json.dumps(
+        {"snapshot_audit_999": {"record": "rec.json", "verdict": "READY",
+                                "n_checks": 19, "n_passed": 19}}))
+    record = {"n_checks": 19, "n_passed": 18, "ready_for_independent_audit": False,
+              "checks": []}
+    assert rsa._post_write_state_claim(tmp_path, "999", record) is False
+    assert record["post_write_state_claim"]["status"] == "FAILED"
+    assert record["ready_for_independent_audit"] is False
+
+
+# ---------------- check 19: readiness_claims_match_record ---------------------
+#
+# The defect that check 19 exists for, verbatim: run 39043684319's report said
+# "READY (18/18 checks PASS)" in its Status line AND in section 4, said
+# "READY 17/17" in its evidence list, and its state block said verdict READY
+# with n_checks 18 and NO n_passed - over a record reading 16/18 and
+# ready_for_independent_audit=false. Each reinstatement below must go RED.
+
+_RECORD_16_OF_18 = {
+    "n_checks": 18, "n_passed": 16, "ready_for_independent_audit": False,
+    "checks": [{"id": "lane_suite_pass", "status": "FAIL", "n_failed_checks": 1,
+                "detail": "exit=1 summary=FAIL"}],
+}
+
+
+def _claim_root(tmp_path: Path, block: dict, report: str | None = None) -> Path:
+    (tmp_path / "state").mkdir()
+    (tmp_path / "state/evaluation.json").write_text(
+        json.dumps({"evidence_refs": [], "snapshot_audit_999": block,
+                    "lane_suite_999": {}}))
+    if report is not None:
+        p = tmp_path / "reports/evaluation"
+        p.mkdir(parents=True)
+        (p / "CYCLE_999.md").write_text(report)
+    return tmp_path
+
+
+def test_readiness_claims_catch_the_exact_39043684319_state_green(tmp_path):
+    """verdict READY + n_checks 18 + NO n_passed, over a 16/18 record."""
+    block = {"record": "rec.json", "verdict": "READY", "n_checks": 18}
+    res = rsa.check_readiness_claims(_claim_root(tmp_path, block), "999", _RECORD_16_OF_18)
+    assert res["status"] == "FAIL", res
+    assert any("n_passed" in p for p in res["problems"]), res
+    assert any("verdict" in p for p in res["problems"]), res
+
+
+def test_readiness_claims_catch_the_18_of_18_headline(tmp_path):
+    block = {"record": "rec.json", "verdict": "NOT_READY", "n_checks": 18,
+             "n_passed": 16, "ready_for_independent_audit": False}
+    report = ("# Run 999\n\n**Status:** DELIVERED - snapshot audit READY "
+              "(18/18 checks PASS)\n")
+    res = rsa.check_readiness_claims(
+        _claim_root(tmp_path, block, report), "999", _RECORD_16_OF_18)
+    assert res["status"] == "FAIL", res
+    assert res["current_report_state"] == "MISMATCH"
+
+
+def test_readiness_claims_catch_a_lane_suite_green_over_a_red_suite(tmp_path):
+    block = {"record": "rec.json", "verdict": "NOT_READY", "n_checks": 18,
+             "n_passed": 16, "ready_for_independent_audit": False}
+    root = _claim_root(tmp_path, block)
+    state = json.loads((root / "state/evaluation.json").read_text())
+    state["lane_suite_999"] = {"overall_pass": True, "n_failed": 0, "n_checks": 49}
+    (root / "state/evaluation.json").write_text(json.dumps(state))
+    res = rsa.check_readiness_claims(root, "999", _RECORD_16_OF_18)
+    assert res["status"] == "FAIL", res
+    assert any("lane_suite.overall_pass" in p for p in res["problems"]), res
+
+
+def test_readiness_claims_pass_when_state_and_report_agree(tmp_path):
+    block = {"record": "rec.json", "verdict": "NOT_READY", "n_checks": 18,
+             "n_passed": 16, "ready_for_independent_audit": False}
+    report = "snapshot audit: NOT READY (16/18 checks PASS)\n"
+    res = rsa.check_readiness_claims(
+        _claim_root(tmp_path, block, report), "999", _RECORD_16_OF_18)
+    assert res["status"] == "PASS", res
+    assert res["current_report_state"] == "VERIFIED"
+
+
+def test_readiness_claims_tolerate_an_absent_current_report(tmp_path):
+    """A report written after the checks is a DISCLOSED pending item, not a
+    silent pass and not a red: the record lists it in post_write_pending."""
+    block = {"record": "rec.json", "verdict": "NOT_READY", "n_checks": 18,
+             "n_passed": 16, "ready_for_independent_audit": False}
+    res = rsa.check_readiness_claims(_claim_root(tmp_path, block), "999", _RECORD_16_OF_18)
+    assert res["status"] == "PASS", res
+    assert res["current_report_state"] == "ABSENT_FOR_THIS_RUN"
+
+
+def test_readiness_claims_flag_an_undisclosed_historical_disagreement(tmp_path):
+    """History is preserved, not silently corrected: an undisclosed mismatch
+    between a historical state block and ITS OWN record is red."""
+    rec = tmp_path / "rec.json"
+    rec.write_text(json.dumps(_RECORD_16_OF_18))
+    block = {"record": "rec.json", "verdict": "READY", "n_checks": 18}
+    (tmp_path / "state").mkdir()
+    (tmp_path / "state/evaluation.json").write_text(json.dumps(
+        {"evidence_refs": [], "snapshot_audit_888": block,
+         "snapshot_audit_999": {"record": "rec.json", "verdict": "NOT_READY",
+                                "n_checks": 18, "n_passed": 16,
+                                "ready_for_independent_audit": False}}))
+    res = rsa.check_readiness_claims(tmp_path, "999", _RECORD_16_OF_18)
+    assert res["status"] == "FAIL", res
+    assert any("UNDISCLOSED disagreement" in p and "888" in p for p in res["problems"]), res
+
+
+def test_readiness_claims_accept_a_disclosed_historical_disagreement(tmp_path):
+    """A disclosed historical disagreement is NOT red: history is preserved and
+    the disclosure is what keeps the check honest."""
+    rec = tmp_path / "rec.json"
+    rec.write_text(json.dumps(_RECORD_16_OF_18))
+    # the EXACT shape of run 39043684319's committed state block: verdict READY,
+    # n_checks 18, and no n_passed at all.
+    block = {"record": "rec.json", "verdict": "READY", "n_checks": 18}
+    disclosures = [
+        {"run_id": "888", "field": "verdict", "recorded_value": "READY",
+         "record_value": "NOT_READY",
+         "disclosure": "run 888 asserted a green over a red record; preserved, not rewritten"},
+        {"run_id": "888", "field": "n_passed", "recorded_value": None,
+         "record_value": 16,
+         "disclosure": "run 888 published no n_passed, so no comparison was possible"},
+        {"run_id": "888", "field": "lane_suite.overall_pass", "recorded_value": True,
+         "record_value": False,
+         "disclosure": "run 888 published overall_pass true over a FAIL lane_suite_pass"},
+        {"run_id": "888", "field": "lane_suite.n_failed", "recorded_value": 0,
+         "record_value": 1,
+         "disclosure": "run 888 published n_failed 0 over a lane_suite_pass that records 1 failing check"},
+    ]
+    (tmp_path / "state").mkdir()
+    (tmp_path / "state/evaluation.json").write_text(json.dumps({
+        "evidence_refs": [],
+        "snapshot_audit_888": block,
+        "lane_suite_888": {"overall_pass": True, "n_failed": 0},
+        "snapshot_audit_999": {"record": "rec.json", "verdict": "NOT_READY",
+                               "n_checks": 18, "n_passed": 16,
+                               "ready_for_independent_audit": False},
+        rsa.READINESS_DISAGREEMENT_KEY: disclosures}))
+    res = rsa.check_readiness_claims(tmp_path, "999", _RECORD_16_OF_18)
+    assert res["status"] == "PASS", res
+    assert len(res["historical_disagreements"]) == 4
+
+
+def test_readiness_claims_require_a_prose_disclosure_text(tmp_path):
+    rec = tmp_path / "rec.json"
+    rec.write_text(json.dumps(_RECORD_16_OF_18))
+    (tmp_path / "state").mkdir()
+    (tmp_path / "state/evaluation.json").write_text(json.dumps({
+        "evidence_refs": [],
+        "snapshot_audit_888": {"record": "rec.json", "verdict": "READY", "n_checks": 18},
+        "snapshot_audit_999": {"record": "rec.json", "verdict": "NOT_READY",
+                               "n_checks": 18, "n_passed": 16,
+                               "ready_for_independent_audit": False},
+        rsa.READINESS_DISAGREEMENT_KEY: [
+            {"run_id": "888", "field": "verdict", "recorded_value": "READY",
+             "record_value": "NOT_READY"},
+            {"run_id": "888", "field": "n_passed", "recorded_value": None,
+             "record_value": 16}]}))
+    res = rsa.check_readiness_claims(tmp_path, "999", _RECORD_16_OF_18)
+    assert res["status"] == "FAIL", res
+    assert any("without a prose disclosure" in p for p in res["problems"]), res
+
+
+def test_readiness_claims_require_a_current_state_block(tmp_path):
+    """A run that publishes no machine-checkable counts is not READY."""
+    (tmp_path / "state").mkdir()
+    (tmp_path / "state/evaluation.json").write_text(json.dumps({"evidence_refs": []}))
+    res = rsa.check_readiness_claims(tmp_path, "999", _RECORD_16_OF_18)
+    assert res["status"] == "FAIL", res
+    assert any("no snapshot_audit_999 block" in p for p in res["problems"]), res
+
+
+def test_readiness_claims_catch_a_report_lane_suite_green_over_a_red_suite(tmp_path):
+    block = {"record": "rec.json", "verdict": "NOT_READY", "n_checks": 18,
+             "n_passed": 16, "ready_for_independent_audit": False}
+    report = ("snapshot audit: NOT READY (16/18 checks PASS)\n\n"
+              "the lane suite is 49/49 with the accepted pytest scope green\n"
+              "lane suite: PASS (48/49 checks, 420.864s)\n")
+    res = rsa.check_readiness_claims(
+        _claim_root(tmp_path, block, report), "999", _RECORD_16_OF_18)
+    assert res["status"] == "FAIL", res
+    assert any("lane suite: PASS" in p for p in res["problems"]), res

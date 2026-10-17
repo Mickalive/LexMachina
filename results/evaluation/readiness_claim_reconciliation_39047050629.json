@@ -1,0 +1,80 @@
+{
+ "schema": "lex-evaluation-readiness-claim-reconciliation/1",
+ "run_id": "39047050629",
+ "generated_at_utc": "2026-10-17T16:12:00Z",
+ "what_this_is": "A machine-readable DISCLOSURE, not a correction. reports/evaluation/CYCLE_39043684319.md and the snapshot_audit_39043684319 block in state/evaluation.json are left byte-intact as committed history; this record states exactly how their readiness claims disagree with the readiness record that measures them, so the disagreement is visible instead of silently corrected or silently carried.",
+ "the_rule": "a readiness claim is REPORTED output and the readiness record is the MEASUREMENT. Where they disagree, the record wins for every future decision and the disagreement is disclosed here; no historical artifact is rewritten and no historical verdict is deleted.",
+ "measured_from": [
+  "results/evaluation/snapshot_audit/39043684319.json",
+  "reports/evaluation/CYCLE_39043684319.md",
+  "state/evaluation.json"
+ ],
+ "disagreements": [
+  {
+   "run_id": "39043684319",
+   "artifact": "reports/evaluation/CYCLE_39043684319.md",
+   "where": "Status line (line 6)",
+   "recorded_value": "DELIVERED - snapshot audit READY (18/18 checks PASS)",
+   "record_value": "16/18 checks PASS, ready_for_independent_audit=false",
+   "disclosure": "FALSE. The report's own readiness artifact records two failing checks. The claim was not read back from the artifact before it was written."
+  },
+  {
+   "run_id": "39043684319",
+   "artifact": "reports/evaluation/CYCLE_39043684319.md",
+   "where": "section 4 (Audit readiness)",
+   "recorded_value": "python -m evaluation.snapshot_audit.run_snapshot_audit --run-id 39043684319 -> READY (18/18 checks PASS)",
+   "record_value": "16/18 checks PASS, ready_for_independent_audit=false",
+   "disclosure": "FALSE, and it is the direct contradiction of the status line above it: the same document asserts two different totals (18/18 here, 17/17 in its own evidence list) over one record that says 16/18."
+  },
+  {
+   "run_id": "39043684319",
+   "artifact": "reports/evaluation/CYCLE_39043684319.md",
+   "where": "Evidence references",
+   "recorded_value": "results/evaluation/snapshot_audit/39043684319.json - readiness record, READY 17/17",
+   "record_value": "16/18 checks PASS, ready_for_independent_audit=false",
+   "disclosure": "FALSE. Three mutually inconsistent totals (18/18, 17/17, 16/18) appear in one report. Only the artifact's 16/18 is a measurement; the other two are prose."
+  },
+  {
+   "run_id": "39043684319",
+   "artifact": "state/evaluation.json",
+   "where": "snapshot_audit_39043684319",
+   "recorded_value": "verdict=READY, n_checks=18, n_passed ABSENT",
+   "record_value": "n_checks=18, n_passed=16, ready_for_independent_audit=false",
+   "disclosure": "FALSE and structurally unverifiable: the block published no n_passed at all, so no machine comparison against the record was even possible. That absence is what allowed the green to be written freehand, and it is why check 19 now REQUIRES n_checks, n_passed, verdict and ready_for_independent_audit."
+  },
+  {
+   "run_id": "39043684319",
+   "artifact": "state/evaluation.json",
+   "where": "lane_suite_39043684319",
+   "recorded_value": "n_checks=49, n_failed=0, n_skipped=0, overall_pass=true",
+   "record_value": "lane_suite_pass status=FAIL, exit_code=1, summary=FAIL, last_line='lane suite: FAIL (48/49 checks, 420.864s)'",
+   "disclosure": "FALSE. The state's lane-suite block contradicts the record's lane_suite_pass check. The underlying suite run in the GitHub runner did report one failing check; this cycle could NOT reproduce it in the resume environment (48/49 with one SKIP, summary PASS, accepted pytest scope green at 252 passed), so the CAUSE of that single failure is NOT established and the run's FAIL is reported as unreproduced rather than upgraded."
+  }
+ ],
+ "why_nothing_in_the_control_plane_caught_it": [
+  "step 7 'Validate active MVP producer state' and step 9 'Enforce lane write scope' were both success()-gated on producer step 6, which FAILED; both were SKIPPED, so the two steps whose purpose is validating the producer's output never ran.",
+  "the audit job was SKIPPED, so there was no independent comparison either.",
+  "the persist step (10) committed the tree anyway as 2eff7f5e, which is how a red record with three green headlines reached the accepted-branch lineage.",
+  "no check in evaluation/snapshot_audit/run_snapshot_audit.py compared a prose readiness claim with the record, and the state block carried no n_passed to compare."
+ ],
+ "what_is_preserved_and_still_valid_from_39043684319": [
+  "the job/step-level diagnosis of run 39040205229 and of its own producer death",
+  "the three measured producer-step durations (3484 s success, 3109 s success, 2868 s failure) and the FALSIFIED_AS_THE_EXPLANATION_FOR_39040205229 verdict, which this cycle neither reopens nor generalizes",
+  "the truncation repair of evaluation/snapshot_audit/orchestration_diagnosis_39027041693.json (one appended root brace; the pre-image is the exact prefix)",
+  "the restoration of reports/evaluation/CYCLE_39033797087.md to its own producer bytes",
+  "the accepted_base_gate_coverage disclosure of the one unaudited cycle at origin/lab/evaluation's head",
+  "the NO_NEW_PACKET trigger record and the three-leg benchmark record, both re-executed this cycle and unchanged in verdict"
+ ],
+ "what_is_NOT_claimed": [
+  "NOT claimed: that the 39043684319 measurements are wrong. The record is taken at face value as the RED it says it is.",
+  "NOT claimed: that the wrongness was deliberate. Nothing in this record speaks to intent; it states what the files say and where they disagree.",
+  "NOT claimed: that run 39043684319's producer step failed BECAUSE of this defect. Its step died at 2704 s; the cause is an inference (logs 403) and is diagnosed separately.",
+  "NOT claimed: that correcting the prose would have made the snapshot better. The two FAILING checks were real: one was an order-dependent harness defect (repaired) and one is a lane-suite failure that did not reproduce here (cause unknown)."
+ ],
+ "guard_added_this_cycle": {
+  "check_19_readiness_claims_match_record": "the current run's state block must repeat the record's n_checks/n_passed/verdict/ready_for_independent_audit; its report headline must match the record when present; a historical disagreement is allowed only when listed in state/evaluation.json under readiness_claim_disagreements with the recorded value, the record value and a prose disclosure.",
+  "check_5_repair": "state_evidence_refs_resolve no longer fails on the readiness record's own path; that path is a declared self-reference, verified after the write by reading the record back and matching its schema and run id, with the outcome published in record.post_write_self_reference.",
+  "check_4_attribution": "lane_suite_pass now publishes the names of the failing lane-suite checks, so an unattributable non-zero can no longer enter a record.",
+  "breaking_fixtures": "tests/evaluation/test_snapshot_audit.py reinstates each of the five claims above, the truncated self-reference record and a green state block over a red suite; each must go red."
+ }
+}

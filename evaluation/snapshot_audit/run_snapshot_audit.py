@@ -31,8 +31,23 @@ Checks (each recorded PASS/FAIL/NOT_RUN; no check is silently dropped):
   4. lane_suite_pass            python -m evaluation.lane_suite exits 0 with
                                 a PASS summary (stdlib checks authoritative;
                                 an absent pytest is a disclosed SKIP).
+                                REPAIRED 39047050629: the pass CONDITION is
+                                unchanged, but every ``[FAIL]`` line of the
+                                suite's stdout is now parsed into
+                                ``failed_checks``, so a red suite is
+                                attributable without job logs.
   5. state_evidence_refs_resolve every path in state/evaluation.json
                                 evidence_refs exists in the snapshot.
+                                REPAIRED 39047050629: this check used to run
+                                BEFORE the readiness record was written, so
+                                when state cites the record of the CURRENT run
+                                its verdict depended on whether the verifier
+                                had been run before - run 39043684319
+                                committed the resulting FAIL behind a green
+                                report. The record's own path is now a
+                                declared SELF-REFERENCE, excluded from the
+                                unresolved set, and VERIFIED after the write
+                                (:func:`_post_write_self_reference`).
   6. deliverable_manifest_complete  every file of the v50 deliverable set and
                                 of this resume's delta exists; sha256 of each is
                                 embedded in the readiness record.
@@ -70,6 +85,22 @@ Checks (each recorded PASS/FAIL/NOT_RUN; no check is silently dropped):
                                 head fails until it is disclosed. An absent
                                 accepted ref is an environment_limited FAIL, the
                                 same convention as check 15.
+
+ 19. readiness_claims_match_record  NO PROSE MAY ASSERT A READINESS VERDICT ITS
+                                RECORD DOES NOT CARRY. Added by cycle
+                                39047050629 after finding that run 39043684319
+                                committed THREE mutually inconsistent green
+                                headlines (READY 18/18 twice, READY 17/17 once)
+                                and a state block saying verdict READY with no
+                                n_passed at all, over a record that reads
+                                16/18 and ready_for_independent_audit=false.
+                                The current run's state block must repeat the
+                                record's counts; its report headline must match
+                                if the report exists; a HISTORICAL disagreement
+                                is allowed only when it is DISCLOSED in
+                                state[readiness_claim_disagreements], so history
+                                is preserved rather than rewritten and a new
+                                silent disagreement is red.
 
 Exit 0 = ready_for_independent_audit (all checks PASS). Exit 1 = not ready.
 environment_limited=true on a check discloses WHY it failed (an environment
@@ -242,6 +273,24 @@ DELIVERABLE_MANIFEST_PATHS = [
     "results/evaluation/retrieval_counter_authority_benchmark/39043684319_leg3_blanked_evidence.json",
     "reports/evaluation/RETRIEVAL_CA_BENCHMARK_39043684319.md",
     "reports/evaluation/CYCLE_39043684319.md",
+    # Operational resume of run 39043684319 (this run, 39047050629). That run
+    # died at producer step 6 after 2704 s with steps 7 and 9 skipped and audit
+    # and integrate skipped, so nothing validated its output; and the snapshot
+    # it persisted carried a RED readiness record (16/18) behind three green
+    # prose headlines. Check 19 was added for the second defect, check 5 was
+    # repaired for the first, and this run's diagnosis record carries both plus
+    # the measurement that the 2700 s attribution falsified for 39040205229
+    # must NOT be generalized to a step that lands on the boundary.
+    "evaluation/snapshot_audit/orchestration_diagnosis_39043684319.json",
+    "results/evaluation/orchestration_39047050629/api/SHA256SUMS.json",
+    "results/evaluation/orchestration_39047050629/api/log_access_probe_39043684319.json",
+    "results/evaluation/newhead_recompute_39047050629/39047050629_trigger.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39047050629.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39047050629_leg1_served_baseline.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39047050629_leg2_hostile_geometry.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39047050629_leg3_blanked_evidence.json",
+    "reports/evaluation/RETRIEVAL_CA_BENCHMARK_39047050629.md",
+    "reports/evaluation/CYCLE_39047050629.md",
 ]
 
 #: Run 39040205229's diagnosis. Check 17 requires it to carry the job/step
@@ -465,36 +514,135 @@ def check_h1(repo_root: Path, fresh_record_path: Path) -> dict:
 
 
 def check_lane_suite(repo_root: Path) -> dict:
+    """Check 4. ATTRIBUTION FIXED by cycle 39047050629.
+
+    Before the repair the readiness record kept only the exit code and the
+    LAST line of the suite's stdout, so a red lane suite entered the record as
+    ``exit=1 summary=FAIL last_line=lane suite: FAIL (48/49 checks, 420.864s)``
+    with no indication of WHICH check failed. That is the same unattributable
+    non-zero class as the workflow's producer step (requirement 20): a cause an
+    auditor cannot separate without log access it does not have.
+
+    The pass CONDITION is unchanged (exit 0 AND summary PASS). Only the
+    attribution is added: every ``[FAIL]`` line is parsed into ``failed_checks``.
+    """
     proc = subprocess.run([sys.executable, "-m", "evaluation.lane_suite"],
                           cwd=str(repo_root), capture_output=True, text=True, timeout=600)
     out = proc.stdout or ""
     m = re.search(r"lane suite: (PASS|FAIL)", out)
     summary = m.group(1) if m else None
     ok = proc.returncode == 0 and summary == "PASS"
+    failed = [ln.strip() for ln in out.splitlines() if ln.strip().startswith("[FAIL]")]
+    skipped = [ln.strip() for ln in out.splitlines() if ln.strip().startswith("[SKIP]")]
     tail = [ln for ln in out.strip().splitlines() if ln.strip()][-1:] or ["<no output>"]
+    attribution = ("no failing check (green)" if ok
+                   else f"{len(failed)} failing check(s) named in the suite output")
     return _check("lane_suite_pass", ok,
-                  f"exit={proc.returncode} summary={summary or 'unparsed'} last_line={tail[0]}",
-                  exit_code=proc.returncode, summary=summary)
+                  f"exit={proc.returncode} summary={summary or 'unparsed'} "
+                  f"last_line={tail[0]}; {attribution}",
+                  exit_code=proc.returncode, summary=summary,
+                  failed_checks=failed, n_failed_checks=len(failed),
+                  skipped_checks=skipped, n_skipped_checks=len(skipped))
 
 
-def check_evidence_refs(repo_root: Path) -> dict:
+def check_evidence_refs(repo_root: Path, record_path: str | None = None) -> dict:
+    """Check 5. REPAIRED by cycle 39047050629 - order-dependence defect.
+
+    Before the repair this check was order-dependent: it ran BEFORE the
+    readiness record was written, so when ``state/evaluation.json`` cited the
+    readiness record of the CURRENT run (which it must, the record is the
+    audit input) the ref could not exist yet and the check went red on a
+    correct snapshot. Run 39043684319 committed exactly that FAIL while its
+    report and state asserted a green - the check was structurally
+    unpassable on first execution and its verdict flipped depending on
+    whether the verifier had been run before.
+
+    The repair does NOT weaken the check. The record's own path is classified
+    as a SELF-REFERENCE and excluded from ``missing``; it is then VERIFIED
+    AFTER the write by :func:`_post_write_self_reference`, which requires the
+    path to exist AND to parse as the record for this run id. The record
+    carries ``self_reference_refs`` and ``post_write_self_reference`` so the
+    substitution is visible instead of silent.
+
+    With ``record_path=None`` (the default) the behaviour is byte-for-byte the
+    pre-repair behaviour, which is what the existing fixtures exercise.
+    """
     state_path = repo_root / "state/evaluation.json"
     if not state_path.exists():
         return _check("state_evidence_refs_resolve", False, "state/evaluation.json missing")
     state = json.loads(state_path.read_text(encoding="utf-8"))
     refs = state.get("evidence_refs", [])
     missing = []
+    self_refs = []
     for r in refs:
         # Refs are repo-root-relative paths; a trailing parenthetical note, if
         # any, is not part of the path (first whitespace token is the path).
         p = r.split()[0] if r.split() else r
+        if record_path is not None and p == record_path:
+            self_refs.append(r)
+            continue
         if not (repo_root / p).exists():
             missing.append(r)
     ok = not missing
-    detail = f"{len(refs)}/{len(refs)} evidence_refs resolve (rule: first whitespace token is the path)" if ok \
-        else f"{len(missing)} unresolved refs: {missing[:5]}"
+    if self_refs:
+        detail = (f"{len(refs) - len(self_refs)}/{len(refs)} evidence_refs resolve on disk; "
+                  f"{len(self_refs)} self-reference(s) {self_refs} are verified AFTER the write "
+                  "(they cannot exist before this record is written)")
+    elif ok:
+        detail = f"{len(refs)}/{len(refs)} evidence_refs resolve (rule: first whitespace token is the path)"
+    else:
+        detail = f"{len(missing)} unresolved refs: {missing[:5]}"
     return _check("state_evidence_refs_resolve", ok, detail,
-                  n_refs=len(refs), n_missing=len(missing), missing=missing[:10])
+                  n_refs=len(refs), n_missing=len(missing), missing=missing[:10],
+                  self_reference_refs=self_refs)
+
+
+def _post_write_self_reference(out_path: Path, run_id: str, self_refs: list[str],
+                               record: dict) -> bool:
+    """Verify, AFTER the readiness record exists, that the record's own path
+    resolves and parses as this run's record. Closes the order-dependence hole
+    check 5 used to have instead of excusing it.
+
+    Returns True/False. On False the record is downgraded to NOT READY with the
+    reason attached, so an unresolved self-reference can never ride along inside
+    a green verdict.
+    """
+    result = {"status": "VERIFIED", "path": str(out_path),
+              "run_id": run_id, "self_reference_refs": self_refs,
+              "why": ("the record cites itself; the file exists and parses as this run's "
+                      "record at the moment the record is complete")}
+    if not self_refs:
+        result = {"status": "NOT_APPLICABLE", "path": str(out_path),
+                  "run_id": run_id, "self_reference_refs": [],
+                  "why": "state/evaluation.json does not cite this record"}
+        record["post_write_self_reference"] = result
+        return True
+    if not out_path.exists():
+        result = {"status": "FAILED", "path": str(out_path), "run_id": run_id,
+                  "self_reference_refs": self_refs,
+                  "why": "the readiness record does not exist after being written"}
+        record["post_write_self_reference"] = result
+        record["ready_for_independent_audit"] = False
+        return False
+    try:
+        reread = json.loads(out_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        result = {"status": "FAILED", "path": str(out_path), "run_id": run_id,
+                  "self_reference_refs": self_refs,
+                  "why": f"the readiness record does not parse after being written: {exc}"}
+        record["post_write_self_reference"] = result
+        record["ready_for_independent_audit"] = False
+        return False
+    if reread.get("run_id") != run_id or reread.get("schema") != SCHEMA:
+        result = {"status": "FAILED", "path": str(out_path), "run_id": run_id,
+                  "self_reference_refs": self_refs,
+                  "why": f"the record at that path is not this run's record "
+                         f"(schema={reread.get('schema')} run_id={reread.get('run_id')})"}
+        record["post_write_self_reference"] = result
+        record["ready_for_independent_audit"] = False
+        return False
+    record["post_write_self_reference"] = result
+    return True
 
 
 def check_manifest(repo_root: Path) -> dict:
@@ -1177,6 +1325,261 @@ ACCEPTED_BASE_COVERAGE_RECORD = "results/evaluation/accepted_base_gate_coverage_
 ACCEPTED_BASE_REF = "origin/lab/evaluation"
 
 
+#: Cycle 39047050629. State key holding one disclosure per HISTORICAL run whose
+#: prose (report or state) disagrees with the readiness record of that run. A
+#: disagreement that is listed here is DISCLOSED and does not make check 19 red;
+#: a disagreement that is NOT listed makes it red. Correcting a false headline is
+#: allowed and expected; doing it silently is not.
+READINESS_DISAGREEMENT_KEY = "readiness_claim_disagreements"
+
+#: Prose patterns that state a readiness verdict, and the run they belong to.
+#: Each pattern must yield (n_passed, n_checks) or None.
+_READY_HEADLINE_RE = re.compile(
+    r"(?:READY|NOT READY)\s*\(\s*(\d+)\s*/\s*(\d+)\s*checks\s+PASS\s*\)", re.IGNORECASE)
+_LANE_SUITE_HEADLINE_RE = re.compile(
+    r"lane suite:\s*(PASS|FAIL)\s*\(\s*(\d+)\s*/\s*(\d+)\s*checks[^)]*\)", re.IGNORECASE)
+
+
+def _post_write_state_claim(repo_root: Path, run_id: str, record: dict) -> bool:
+    """Verify, AFTER the record is final, that the current run's state block
+    repeats the record's counts exactly.
+
+    Check 19 already compares them against the counts it can predict; this
+    second pass closes the loop against the counts that were actually written,
+    so a state block that guessed right for the wrong reason cannot ride along.
+    A mismatch downgrades the verdict and the exit code.
+    """
+    key = f"snapshot_audit_{run_id}"
+    result = {"status": "VERIFIED", "state_key": key,
+              "record_n_passed": record["n_passed"], "record_n_checks": record["n_checks"],
+              "record_ready": record["ready_for_independent_audit"],
+              "why": "state/evaluation.json repeats the readiness record's own counts"}
+    state_path = repo_root / "state/evaluation.json"
+    if not state_path.exists():
+        result = {"status": "FAILED", "state_key": key,
+                  "why": "state/evaluation.json is missing"}
+        record["post_write_state_claim"] = result
+        record["ready_for_independent_audit"] = False
+        return False
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    block = state.get(key)
+    if not isinstance(block, dict):
+        result = {"status": "FAILED", "state_key": key,
+                  "why": f"state/evaluation.json has no {key} block"}
+        record["post_write_state_claim"] = result
+        record["ready_for_independent_audit"] = False
+        return False
+    problems = [m for m in _block_mismatches(block, record)]
+    if problems:
+        result = {"status": "FAILED", "state_key": key, "mismatches": problems,
+                  "why": "the state block does not repeat the final record's counts"}
+        record["post_write_state_claim"] = result
+        record["ready_for_independent_audit"] = False
+        return False
+    record["post_write_state_claim"] = result
+    return True
+
+
+def _state_audit_blocks(state: dict) -> dict[str, dict]:
+    """Every ``snapshot_audit_<run_id>`` state block that names a record path."""
+    out: dict[str, dict] = {}
+    for key, val in state.items():
+        if key.startswith("snapshot_audit_") and isinstance(val, dict) and val.get("record"):
+            out[key[len("snapshot_audit_"):]] = val
+    return out
+
+
+def _block_mismatches(block: dict, record: dict) -> list[dict]:
+    """Field-by-field comparison of a state block against its readiness record.
+
+    Returns the list of disagreements. ``missing_counts`` is reported
+    separately by the caller: a block that states a verdict but no machine-
+    readable counts is exactly how run 39043684319 asserted 18/18 over a 16/18
+    record, so the absence of counts is itself a disagreement.
+    """
+    out: list[dict] = []
+
+    def cmp_field(field: str, recorded, expected) -> None:
+        if recorded != expected:
+            out.append({"field": field, "recorded_value": recorded,
+                        "record_value": expected})
+
+    verdict = "READY" if record.get("ready_for_independent_audit") else "NOT_READY"
+    if "verdict" in block:
+        cmp_field("verdict", block["verdict"], verdict)
+    cmp_field("n_checks", block.get("n_checks"), record.get("n_checks"))
+    cmp_field("n_passed", block.get("n_passed"), record.get("n_passed"))
+    if "ready_for_independent_audit" in block:
+        cmp_field("ready_for_independent_audit",
+                  block["ready_for_independent_audit"],
+                  record.get("ready_for_independent_audit"))
+    return out
+
+
+def _lane_suite_mismatches(suite_block: dict | None, record: dict) -> list[dict]:
+    """Compare a ``lane_suite_<run_id>`` state block with the record's own
+    lane_suite_pass check.
+
+    Run 39043684319 asserted ``overall_pass: true, n_failed: 0`` for a suite the
+    record records as FAIL, so the lane-suite numbers live in their own state key
+    and are compared against the check that measures them.
+    """
+    if not isinstance(suite_block, dict) or not suite_block:
+        return []
+    check = next((c for c in record.get("checks", []) if c.get("id") == "lane_suite_pass"), None)
+    if check is None:
+        return []
+    out: list[dict] = []
+    for field, key in (("overall_pass", "status"),
+                       ("n_failed", "n_failed_checks"),
+                       ("n_skipped", "n_skipped_checks")):
+        if key not in check:
+            # the record does not carry this measurement; comparing against a
+            # None would manufacture a disagreement out of an absence.
+            continue
+        expected = (check.get(key) == "PASS") if key == "status" else check.get(key)
+        if field in suite_block and suite_block[field] != expected:
+            out.append({"field": f"lane_suite.{field}",
+                        "recorded_value": suite_block[field],
+                        "record_value": expected})
+    return out
+
+
+def _claim_problems(block: dict, suite_block: dict | None, record: dict,
+                    run_id: str, where: str) -> list[str]:
+    return [f"{where}: {m['field']} recorded {m['recorded_value']!r} but the record "
+            f"says {m['record_value']!r}"
+            for m in _block_mismatches(block, record)
+            + _lane_suite_mismatches(suite_block, record)]
+
+
+def check_readiness_claims(repo_root: Path, run_id: str, record: dict,
+                           out_path_rel: str | None = None) -> dict:
+    """Check 19: no prose may assert a readiness verdict its record does not carry.
+
+    ADDED by cycle 39047050629 after finding that run 39043684319's snapshot
+    carried THREE mutually inconsistent readiness claims over a record that says
+    16/18 NOT READY:
+
+      * ``reports/evaluation/CYCLE_39043684319.md`` header and section 4:
+        "snapshot audit READY (18/18 checks PASS)";
+      * the same report's evidence list: "readiness record, READY 17/17";
+      * ``state/evaluation.json`` ``snapshot_audit_39043684319.verdict = "READY"``
+        with ``n_checks: 18`` and NO ``n_passed`` at all;
+      * ``state/evaluation.json`` ``lane_suite_39043684319``: ``overall_pass: true``,
+        ``n_failed: 0`` over a record whose lane_suite_pass is FAIL.
+
+    The workflow could not catch it: step 7 ("Validate active MVP producer state")
+    and step 9 ("Enforce lane write scope") were success()-gated on a producer
+    step that failed, and the audit job never ran. So nothing in the control plane
+    compares a claimed green against the artifact that measures it. This check is
+    that comparison, in-lane, and it is the regression guard for the defect that
+    actually happened.
+
+    Scope, so that history is preserved rather than rewritten:
+      * the CURRENT run's state block and report must match the record exactly;
+      * a HISTORICAL disagreement is allowed only when it is DISCLOSED in
+        ``state[READINESS_DISAGREEMENT_KEY]`` with the recorded value, the record
+        value and a prose disclosure. An undisclosed one is red.
+    """
+    problems: list[str] = []
+    state_path = repo_root / "state/evaluation.json"
+    if not state_path.exists():
+        return _check("readiness_claims_match_record", False,
+                      "state/evaluation.json missing; no claim can be reconciled",
+                      problems=["state/evaluation.json missing"])
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    blocks = _state_audit_blocks(state)
+    disclosures = state.get(READINESS_DISAGREEMENT_KEY) or []
+    disclosed = {(str(d.get("run_id")), str(d.get("field")), str(d.get("record_value")))
+                 for d in disclosures if isinstance(d, dict)}
+
+    current_block = blocks.get(run_id)
+    if current_block is None:
+        problems.append(f"state/evaluation.json has no snapshot_audit_{run_id} block; "
+                        "the current run must publish machine-checkable readiness counts")
+    else:
+        problems.extend(_claim_problems(current_block,
+                                        state.get(f"lane_suite_{run_id}"), record, run_id,
+                                        f"state snapshot_audit_{run_id}"))
+
+    # the current run's report: written after the checks, so its absence is a
+    # DISCLOSED pending item, never a silent pass.
+    report_rel = f"reports/evaluation/CYCLE_{run_id}.md"
+    report_state = "ABSENT_FOR_THIS_RUN"
+    if (repo_root / report_rel).exists():
+        text = (repo_root / report_rel).read_text(encoding="utf-8")
+        upper = text.upper()
+        ready_hits = _READY_HEADLINE_RE.findall(text)
+        if not ready_hits:
+            report_state = "NO_HEADLINE_CLAIM"
+        else:
+            bad = [(p, t) for p, t in ready_hits
+                   if (int(p), int(t)) != (record["n_passed"], record["n_checks"])]
+            # the verdict word itself, in BOTH directions: a NOT READY record
+            # may not be described as READY, and a READY record may not be
+            # described as NOT READY.
+            claims_not_ready = bool(re.search(r"NOT[\s_]+READY", upper))
+            verdict_ok = (claims_not_ready == (not record["ready_for_independent_audit"]))
+            if bad or not verdict_ok:
+                report_state = "MISMATCH"
+                problems.append(f"{report_rel} asserts a readiness headline "
+                                f"{[f'{p}/{t}' for p, t in bad] or 'READY'} that the record "
+                                f"contradicts ({record['n_passed']}/{record['n_checks']}, "
+                                f"ready={record['ready_for_independent_audit']})")
+            else:
+                report_state = "VERIFIED"
+        suite_hits = _LANE_SUITE_HEADLINE_RE.findall(text)
+        suite_check = next((c for c in record["checks"] if c["id"] == "lane_suite_pass"), None)
+        if suite_check is not None and suite_hits:
+            claimed = suite_hits[0][0].upper()
+            if (claimed == "PASS") != (suite_check.get("status") == "PASS"):
+                problems.append(f"{report_rel} claims 'lane suite: {claimed}' but the record's "
+                                f"lane_suite_pass is {suite_check.get('status')}")
+
+    # historical runs: disclosed disagreements only
+    historical: list[dict] = []
+    for other_run, block in sorted(blocks.items()):
+        if other_run == run_id:
+            continue
+        rec_rel = block.get("record")
+        rec_path = repo_root / rec_rel if rec_rel else None
+        if rec_path is None or not rec_path.exists():
+            continue
+        try:
+            other_record = json.loads(rec_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            problems.append(f"historical record {rec_rel} does not parse: {exc}")
+            continue
+        for m in _block_mismatches(block, other_record) + _lane_suite_mismatches(
+                state.get(f"lane_suite_{other_run}"), other_record):
+            entry = {"run_id": other_run, "record": rec_rel, **m}
+            historical.append(entry)
+            if (other_run, str(m["field"]), str(m["record_value"])) not in disclosed:
+                problems.append(
+                    f"UNDISCLOSED disagreement: state {other_run}."
+                    f"{m['field']} = {m['recorded_value']!r} but {rec_rel} says "
+                    f"{m['record_value']!r}; add a {READINESS_DISAGREEMENT_KEY} entry")
+
+    problems.extend(f"disclosure entry without a disagreement: {d}"
+                    for d in disclosures if isinstance(d, dict)
+                    and not any(h["run_id"] == d.get("run_id")
+                                and h["field"] == d.get("field") for h in historical))
+    problems.extend(f"disclosure without a prose disclosure text: {d}"
+                    for d in disclosures if isinstance(d, dict) and not d.get("disclosure"))
+
+    ok = not problems
+    detail = (f"current run state block matches the record "
+              f"({record['n_passed']}/{record['n_checks']}, ready="
+              f"{record['ready_for_independent_audit']}); current report {report_state}; "
+              f"{len(historical)} historical disagreement(s), all disclosed"
+              if ok else f"readiness-claim problems: {problems}")
+    return _check("readiness_claims_match_record", ok, detail,
+                  current_report_state=report_state,
+                  historical_disagreements=historical,
+                  n_disclosed=len(disclosures), problems=problems)
+
+
 def _git(repo_root: Path, *args: str) -> str | None:
     try:
         out = subprocess.run(["git", *args], cwd=repo_root, capture_output=True,
@@ -1258,7 +1661,8 @@ def check_accepted_base_gate_coverage(repo_root: Path) -> dict:
                   problems=problems)
 
 
-def build_record(run_id: str, checks: list[dict], manifest: dict) -> dict:
+def build_record(run_id: str, checks: list[dict], manifest: dict,
+                 pending: list[str] | None = None) -> dict:
     n_pass = sum(1 for c in checks if c["status"] == "PASS")
     ready = n_pass == len(checks)
     return {
@@ -1269,6 +1673,8 @@ def build_record(run_id: str, checks: list[dict], manifest: dict) -> dict:
         "n_checks": len(checks),
         "n_passed": n_pass,
         "ready_for_independent_audit": ready,
+        "failing_checks": [c["id"] for c in checks if c["status"] != "PASS"],
+        "post_write_pending": list(pending or []),
         "audit_gate_path": f"results/audit/evaluation/CYCLE_{run_id}_GATE.json",
         "audit_report_path": f"reports/audit/evaluation/CYCLE_{run_id}.md",
         "audit_gate_path_rule": "uppercase _GATE.json suffix, relative to the audit-job checkout; never /tmp/lex_team, never lowercase",
@@ -1292,6 +1698,9 @@ def build_record(run_id: str, checks: list[dict], manifest: dict) -> dict:
             "reports/evaluation/CYCLE_39033797087.md is restored byte-identical to its own producer commit and the repair-round content is preserved at the path that content itself cites (CYCLE_39033797087_repair_r1.md), so the run-39033797087 record that audit gate CYCLE_39033797087_GATE.json judged is the one in the tree again",
             "direction item (1) re-verified this run: the served-packet population at accepted product head cc719eeb is byte-identical to the pinned 56-file baseline (intersection == both operands, both differences empty) -> verdict NO_NEW_PACKET and the conformance re-run is correctly refused as the rc-67 zero-delta pathology",
             "the run set above the newest 'accept evaluation cycle' commit on origin/lab/evaluation is re-derived from git and matches the disclosure record: exactly one ungated run (39027041693) sits at the accepted branch head, it is DISCLOSED, and no frozen-bar gate is affected (all eight gate files are present on the branch)",
+            "run 39043684319's own readiness record was RED (16/18, ready_for_independent_audit=false, failing checks lane_suite_pass and state_evidence_refs_resolve) while its report asserted READY 18/18, READY 17/17 and its state asserted verdict READY with no n_passed at all; that disagreement is DISCLOSED here and check 19 now compares every readiness claim against the record that measures it",
+            "check 5 is no longer order-dependent: the record's own path is classified as a self-reference, excluded from the unresolved set, and VERIFIED after the write by reading the record back and matching its schema and run id",
+            "the lane_suite_pass check now names the failing lane-suite checks instead of recording only an exit code, so a red suite is attributable without job logs",
         ],
         "snapshot_claims_not_certified": [
             "jurist-usefulness of the map (human gate); human_gate_ready stays false under the standing accepted DO-NOT-SERVE order",
@@ -1300,7 +1709,7 @@ def build_record(run_id: str, checks: list[dict], manifest: dict) -> dict:
             "job-LOG-level cause of the 38977570612 audit-step failure remains two flagged candidate causes (logs 403 unauthenticated), not one asserted cause",
             "run 38982176936 has NO independent audit of record: its producer-authored gate is void, and only this run's audit job can produce the gate of record",
             "the cause of run 39040205229's step-6 death is an INFERENCE, not fact: job logs are HTTP 403 unauthenticated, so the wrapper's rc line was never read. The falsification of the quantum attribution is a fact about the arithmetic and the readable control plane; the replacement hypothesis (retry exhaustion / propagated provider failure) is NOT established",
-            "this run's readiness record certifies a SNAPSHOT, not a gate: only results/audit/evaluation/CYCLE_39043684319_GATE.json written by the independent audit job is the gate of record, and a READY verdict here is not a promotion",
+            f"this run's readiness record certifies a SNAPSHOT, not a gate: only results/audit/evaluation/CYCLE_{run_id}_GATE.json written by the independent audit job is the gate of record, and a READY verdict here is not a promotion",
             "the accepted evaluation branch origin/lab/evaluation currently carries one UNAUDITED cycle at its head (39027041693: five producer commits above the newest accept commit, no gate of record). That is UNVERIFIED, not UNSOUND; the eight accepted frozen-bar gate files are all present and unaffected, and this lane cites none of the 39027041693 work as accepted evidence",
         ],
     }
@@ -1316,6 +1725,10 @@ def main(argv=None) -> int:
     repo_root = Path(args.repo_root).resolve()
     out_path = Path(args.out) if args.out else repo_root / "results/evaluation/snapshot_audit" / f"{args.run_id}.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        out_path_rel = out_path.resolve().relative_to(repo_root).as_posix()
+    except ValueError:
+        out_path_rel = None
 
     manifest = {}
     with tempfile.TemporaryDirectory(prefix="snapshot_audit_") as td:
@@ -1328,7 +1741,7 @@ def main(argv=None) -> int:
         checks.append(check_h1(repo_root, fresh_record))
         checks.extend([
             check_lane_suite(repo_root),
-            check_evidence_refs(repo_root),
+            check_evidence_refs(repo_root, out_path_rel),
         ])
         manifest = {rel: _sha256_file(repo_root / rel)
                     for rel in DELIVERABLE_MANIFEST_PATHS if (repo_root / rel).exists()}
@@ -1346,15 +1759,52 @@ def main(argv=None) -> int:
         checks.append(check_diagnosis_39040205229(repo_root))
         checks.append(check_accepted_base_gate_coverage(repo_root))
 
-    record = build_record(args.run_id, checks, manifest)
+        # Check 19 needs the finished counts, so it is computed last. The counts
+        # it compares the current state block against are the POST-check-19
+        # counts, which are knowable in advance: n_checks is len(checks)+1 and
+        # n_passed additionally counts this check iff every other check passed.
+        # A state block that gets those numbers wrong is caught a second time by
+        # the post-write verification below, so the comparison is not circular.
+        all_other_pass = all(c["status"] == "PASS" for c in checks)
+        expected = {
+            "n_checks": len(checks) + 1,
+            "n_passed": len(checks) + (1 if all_other_pass else 0),
+            "ready_for_independent_audit": all_other_pass,
+            "checks": list(checks),
+        }
+        checks.append(check_readiness_claims(repo_root, args.run_id,
+                                             expected, out_path_rel))
+
+    pending = []
+    claims = next((c for c in checks if c["id"] == "readiness_claims_match_record"), None)
+    if claims is not None and claims.get("current_report_state") == "ABSENT_FOR_THIS_RUN":
+        pending.append(
+            "reports/evaluation/CYCLE_%s.md did not exist when the checks ran; "
+            "re-run the verifier after writing the report so check 19 verifies it"
+            % args.run_id)
+
+    record = build_record(args.run_id, checks, manifest, pending)
+    out_path.write_text(json.dumps(record, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    # Two-phase post-write verification (repair of the order-dependence hole
+    # that let run 39043684319 commit a red record behind a green headline).
+    ev = next((c for c in checks if c["id"] == "state_evidence_refs_resolve"), {})
+    ok_self = _post_write_self_reference(out_path, args.run_id,
+                                         ev.get("self_reference_refs") or [], record)
+    ok_claims = _post_write_state_claim(repo_root, args.run_id, record)
     out_path.write_text(json.dumps(record, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
 
     for c in checks:
         print(f"[{c['status']}] {c['id']}: {c['detail']}")
+    print(f"post-write self-reference: {record['post_write_self_reference']['status']}")
+    print(f"post-write state claim: {record['post_write_state_claim']['status']}")
+    if pending:
+        for p in pending:
+            print(f"[PENDING] {p}")
     print(f"snapshot audit: {'READY' if record['ready_for_independent_audit'] else 'NOT READY'} "
           f"({record['n_passed']}/{record['n_checks']} checks PASS)")
     print(f"readiness record: {out_path}")
-    return 0 if record["ready_for_independent_audit"] else 1
+    return 0 if (record["ready_for_independent_audit"] and ok_self and ok_claims) else 1
 
 
 if __name__ == "__main__":

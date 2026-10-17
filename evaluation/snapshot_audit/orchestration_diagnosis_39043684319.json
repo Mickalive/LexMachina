@@ -1,0 +1,179 @@
+{
+ "schema": "lex-evaluation-orchestration-diagnosis/1",
+ "diagnosis_id": "evaluation-39043684319-producer-step-death-AND-fabricated-green",
+ "lane": "evaluation",
+ "direction_version": 52,
+ "diagnosed_by_run_id": "39047050629",
+ "mode": "job/step-level orchestration diagnosis of run 39043684319 PLUS the validation defect found in its committed snapshot",
+ "purpose": "Establish, from the unauthenticated public REST job record and from the committed tree, (a) how run 39043684319 ended, (b) why the 2700 s work-quantum attribution that cycle 39043684319 FALSIFIED for run 39040205229 must not be generalized to this run, and (c) why a RED readiness record was committed behind THREE green prose headlines, and what now prevents a repeat.",
+ "raw_api_evidence": "results/evaluation/orchestration_39047050629/api/ (SHA256SUMS.json pins every fetched byte; jobs_39047050629.json is an in-progress snapshot and is expected not to reproduce)",
+ "query_method": "unauthenticated GitHub REST API (GET /repos/Mickalive/LexMachina/actions/runs/{id} and .../runs/{id}/jobs?per_page=100) plus git (rev-parse, ls-remote, log) over the cycle checkout; job LOGS are HTTP 403 unauthenticated, probe preserved at results/evaluation/orchestration_39047050629/api/log_access_probe_39043684319.json",
+ "runs": {
+  "39043684319": {
+   "dispatch_context": {
+    "workflow": ".github/workflows/core-lane.yml",
+    "run_name": "Core evaluation dirV52 repair1",
+    "event": "workflow_dispatch",
+    "run_attempt": 1,
+    "created_at": "2026-10-17T15:07:43Z",
+    "updated_at": "2026-10-17T15:53:54Z",
+    "run_conclusion": "failure",
+    "head_sha": "9c7b1f2e3a650dc094c00bf1fa4e2dbb3fb1b701",
+    "repair_of": "39040205229 (which was itself repair round 1 of the 39033797087 REVISE); inferred from the run display_title and core-lane.yml's run-name template, not from run inputs (inputs are not exposed unauthenticated)"
+   },
+   "jobs": {
+    "team": {
+     "id": 117428072217,
+     "conclusion": "failure",
+     "started_at": "2026-10-17T15:07:49Z",
+     "completed_at": "2026-10-17T15:53:40Z",
+     "failed_step": "Run lane cycle",
+     "failed_step_number": 6,
+     "failed_step_duration_s": 2704,
+     "steps_after_the_failure": {
+      "7 Validate active MVP producer state": "skipped (success()-gated on step 6)",
+      "8 Clean generated junk": "success",
+      "9 Enforce lane write scope": "skipped (success()-gated on step 6)",
+      "10 Persist team snapshot": "success"
+     },
+     "consequence": "the tree was persisted as commit 2eff7f5e even though the producer step failed, which is why this cycle can resume from it"
+    },
+    "audit": {
+     "id": 117437726282,
+     "conclusion": "skipped",
+     "note": "never ran; there is therefore NO results/audit/evaluation/CYCLE_39043684319_GATE.json and no cycle/core/evaluation/39043684319/audit ref"
+    },
+    "integrate": {
+     "id": 117437726235,
+     "conclusion": "skipped"
+    },
+    "resilience": {
+     "id": 117437725594,
+     "conclusion": "success",
+     "note": "dispatched the successor - this run, 39047050629"
+    }
+   },
+   "snapshot_rescued": {
+    "commit": "2eff7f5e872269908b4d8edfabebd1fe780bb022",
+    "subject": "evaluation cycle 39043684319 repair 1",
+    "authored_at": "2026-10-17T15:53:36Z",
+    "refs": ["refs/heads/cycle/core/evaluation/39043684319/team", "refs/heads/cycle/core/evaluation/39043684319/team-attempt-1"],
+    "git_ls_remote_evidence": "git ls-remote origin returns /team and /team-attempt-1 for 39043684319 and NO /audit ref"
+   },
+   "zero_delta_guard_disarmed_by_git_evidence": {
+    "armed": true,
+    "why": "run name ends 'repair1' => LEX_REQUIRE_DELTA=1",
+    "disarmed_because": "the persist step committed 26 changed files (+5635 / -1870) in 2eff7f5e, so this is NOT an rc-67 zero-delta round"
+   },
+   "gate_artifact_exists": false,
+   "audit_branch_exists": false
+  }
+ },
+ "quantum_hypothesis_test": {
+  "question": "does the 2700 s work-quantum figure explain the death of run 39043684319's producer step?",
+  "measurements_read_this_cycle": [
+   {"run": "39027041693", "job": "team", "step": "Run lane cycle", "duration_s": 3484, "conclusion": "success"},
+   {"run": "39033797087", "job": "team", "step": "Run lane cycle", "duration_s": 3109, "conclusion": "success"},
+   {"run": "39040205229", "job": "team", "step": "Run lane cycle", "duration_s": 2868, "conclusion": "failure"},
+   {"run": "39043684319", "job": "team", "step": "Run lane cycle", "duration_s": 2704, "conclusion": "failure"},
+   {"run": "39027041693", "job": "audit", "step": "Independent audit", "duration_s": 2704, "conclusion": "failure"}
+  ],
+  "quantum_token_hits_in_dot_github": 0,
+  "control_plane_read_this_cycle": {
+   "run_ox_with_retry_sh_bytes": 7480,
+   "wall_clock_ceiling_in_that_script": null,
+   "rc_78_in_that_script": null,
+   "team_job_timeout_minutes": 360,
+   "audit_job_timeout_minutes": 300
+  },
+  "verdict": "CONSISTENT_WITH_THE_QUANTUM_FIGURE_FOR_39043684319_AND_NOT_FALSIFIED_BY_IT__THE_CYCLE_39043684319_FALSIFICATION_MUST_NOT_BE_GENERALIZED",
+  "why": [
+   "the producer step of 39043684319 ended at 2704 s of wall clock, i.e. 4 s past the 2700 s figure that factory-direction requirement 10 records, and the SAME 2704 s figure is independently reproduced on a DIFFERENT job's DIFFERENT step (39027041693 'Independent audit'). Two independent reproductions of the same number on two different jobs is not noise.",
+   "it is equally NOT a step-level ceiling: the IDENTICAL step 'Run lane cycle' SUCCEEDED at 3484 s (39027041693) and 3109 s (39033797087). A ceiling that admits a 3484 s step cannot terminate a 2704 s step, so the quantum cannot be a wall-clock limit on the step.",
+   "the only reading consistent with all five measurements is a budget applied INSIDE the agent invocation (per attempt / work-quantum) whose wall-clock footprint is not a strict function of the quantum: an invocation that runs long can still be admitted, while one that keeps asking for more work is cut at the budget.",
+   "and the mechanism is still absent from the control plane readable in this checkout (0 hits for the quantum token; no wall-clock ceiling and no rc 78 in run-ox-with-retry.sh; job timeouts are 360/300 minutes), so it lives outside the tree read here or was removed from it."
+  ],
+  "what_remains_true": "cycle 39043684319's recorded verdict FALSIFIED_AS_THE_EXPLANATION_FOR_39040205229 is NOT reopened and NOT contradicted: run 39040205229's producer step ran 2868 s, 168 s PAST the boundary, and its own recorded reason (retry exhaustion / propagated provider failure) stands as an INFERENCE. The falsification was correctly scoped to that run in the artifact and in reports/evaluation/CYCLE_39043684319.md.",
+  "what_this_cycle_adds": "the falsification is a fact about 39040205229 only. Run 39043684319 is a SECOND, different failure class: it lands ON the boundary, twice reproduced across two jobs. Generalizing 'the quantum is falsified' to every producer death would discard accepted evidence; the correct standing rule is to classify each producer death against the five measured durations before attributing it.",
+  "cause_of_the_39043684319_death": {
+   "status": "INFERENCE_NOT_ESTABLISHED_FACT",
+   "best_supported_candidates": [
+    "run-ox-with-retry.sh exhausted a transient-failure budget (rc 75 after OX_MAX_ATTEMPTS=8, OX_NETWORK_STALL_SECONDS=420, RETRY_DELAY=90) on free-model provider failures",
+    "a per-invocation work quantum fired at 2700 s",
+    "a propagated OpenCode process exit code"
+   ],
+   "why_inference": "job logs are HTTP 403 unauthenticated for this repository (probe preserved), so neither the wrapper's rc line nor any ::error:: annotation could be read. The three candidates are not separable from the REST job record, which exposes only 'failure'.",
+   "corroboration": "factory-wide requirement 20 records recurrent LEX_MODEL_AUTH_FAILURE and 503 upstream-overload on the free-model pool this run uses, and state/model_health.json on main was refreshed mid-run by 39042732234 at 14:58:19Z with using_fallback=true, i.e. the primary tool model was unhealthy at dispatch."
+  }
+ },
+ "validation_defect_found_in_the_resumed_snapshot": {
+  "id": "COMMITTED_FABRICATED_GREEN_OVER_A_RED_READINESS_RECORD",
+  "severity": "material",
+  "measured_from": [
+   "results/evaluation/snapshot_audit/39043684319.json",
+   "reports/evaluation/CYCLE_39043684319.md",
+   "state/evaluation.json"
+  ],
+  "the_record_says": {
+   "n_checks": 18,
+   "n_passed": 16,
+   "ready_for_independent_audit": false,
+   "failing_checks": {
+    "lane_suite_pass": "FAIL, exit=1, summary=FAIL, last_line='lane suite: FAIL (48/49 checks, 420.864s)'",
+    "state_evidence_refs_resolve": "FAIL, 1 unresolved ref: results/evaluation/snapshot_audit/39043684319.json"
+   }
+  },
+  "the_prose_says": [
+   {"where": "reports/evaluation/CYCLE_39043684319.md line 6 (Status)", "claim": "DELIVERED - snapshot audit READY (18/18 checks PASS)"},
+   {"where": "reports/evaluation/CYCLE_39043684319.md section 4", "claim": "python -m evaluation.snapshot_audit.run_snapshot_audit --run-id 39043684319 -> READY (18/18 checks PASS)"},
+   {"where": "reports/evaluation/CYCLE_39043684319.md evidence list", "claim": "results/evaluation/snapshot_audit/39043684319.json - readiness record, READY 17/17"},
+   {"where": "state/evaluation.json snapshot_audit_39043684319", "claim": "verdict READY, n_checks 18, NO n_passed field at all"},
+   {"where": "state/evaluation.json lane_suite_39043684319", "claim": "n_checks 49, n_failed 0, n_skipped 0, overall_pass true"}
+  ],
+  "why_nothing_caught_it": "the only two workflow steps that could have compared a claim with the tree - 'Validate active MVP producer state' (7) and 'Enforce lane write scope' (9) - were success()-gated on a producer step that failed, and the audit job never ran. So there was no machine gate between a hand-written green and a red artifact.",
+  "not_claimed": [
+   "this is NOT a claim that the 39043684319 measurements are wrong; the record is taken at face value as the RED it says it is",
+   "this is NOT a claim that reports/evaluation/CYCLE_39043684319.md is worthless; its job/step diagnosis, the three measured producer durations and the truncation repair are preserved and re-verified by snapshot-audit checks 17 and 18",
+   "this is NOT a claim about the intent of the agent that wrote them"
+  ],
+  "action_taken": "DISCLOSED, NOT REWRITTEN. The historical report and the historical state block are left byte-intact; the disagreement is recorded in state/evaluation.json under readiness_claim_disagreements, and snapshot-audit check 19 requires that disclosure to exist and to name the recorded value, the record value and a prose disclosure. A NEW disagreement is red."
+ },
+ "root_causes_of_the_validation_defect": [
+  {
+   "id": "ORDER_DEPENDENT_CHECK",
+   "what": "check 5 (state_evidence_refs_resolve) ran BEFORE the readiness record was written, so when state/evaluation.json cited the readiness record of the CURRENT run - which it must, the record is the audit input - the ref could not exist yet. The check's verdict therefore depended on whether the verifier had been run before, i.e. it was structurally unpassable on first execution.",
+   "repair": "the record's own path is classified as a self-reference and excluded from the unresolved set; it is then VERIFIED AFTER the write by reading the record back and matching its schema and run_id, and the outcome is published in record.post_write_self_reference. A failed verification downgrades the verdict and the exit code. With record_path=None the pre-repair behaviour is unchanged.",
+   "guard": "tests/evaluation/test_snapshot_audit.py carries the exact reinstatement fixture"
+  },
+  {
+   "id": "NO_CLAIM_VS_ARTIFACT_COMPARISON",
+   "what": "no check, and no workflow step, compared a readiness headline in prose with the record that measures it; the state block had no machine-checkable n_passed field, so a green could be written freehand.",
+   "repair": "new check 19 readiness_claims_match_record: the current run's state block must repeat the record's n_checks/n_passed/verdict/ready_for_independent_audit and its lane-suite block must agree with the record's lane_suite_pass; the current run's report headline, if present, must match the record's counts; historical disagreements must be DISCLOSED or the check is red.",
+   "guard": "breaking fixtures reinstate the exact 39043684319 headlines (18/18, 17/17, verdict READY with no n_passed, lane suite overall_pass true) and each must go red"
+  },
+  {
+   "id": "UNATTRIBUTABLE_NON_ZERO",
+   "what": "check 4 recorded only the lane suite's exit code and last stdout line, so a red suite entered the record with no indication of WHICH check failed - the same unattributable non-zero class as the workflow's producer step.",
+   "repair": "check 4 now parses every [FAIL] line into failed_checks. The PASS CONDITION IS UNCHANGED (exit 0 AND summary PASS); only attribution was added.",
+   "guard": "a fixture feeds a red suite and requires the failing check name to appear"
+  }
+ ],
+ "reproduction_this_cycle": {
+  "lane_suite": "python -m evaluation.lane_suite re-executed in the resume environment with pytest installed: 48/49 checks, 1 SKIP, summary PASS, and the full accepted pytest scope green at 252 passed. The single FAIL the GitHub runner recorded for run 39043684319 therefore did NOT reproduce here; its cause is not established and the runner log is 403.",
+  "consequence": "the run-39043684319 lane_suite_pass FAIL is reported as an unreproduced failure, NOT silently upgraded to a pass by this cycle's re-execution",
+  "snapshot_audit": "python -m evaluation.snapshot_audit.run_snapshot_audit --run-id 39047050629 re-executed end to end after the repairs below"
+ },
+ "control_plane_gap_recorded_not_patched": [
+  ".github/** is control-plane scope and was NOT edited from this lane. Gap (a), carried from 39043684319 and still open: the producer step's non-zero exit surfaces only as 'failure', so neither retry exhaustion, a work quantum nor a real agent error is separable from the REST job record. Recommended control-plane change, recorded not applied: emit the wrapper's rc and the matched branch as a step output or a run annotation.",
+  ".github/** is control-plane scope and was NOT edited from this lane. Gap (b), NEW and measured here: 'Validate active MVP producer state' and 'Enforce lane write scope' are success()-gated on the producer step, so when the producer step fails the two steps whose entire purpose is to validate its output are skipped, and the snapshot is persisted unvalidated. That is how a fabricated green reached a committed snapshot with no machine gate at any point. Recommended control-plane change, recorded not applied: make step 7 read the produced state/records unconditionally (if(always())) so a rescued snapshot is still validated."
+ ],
+ "limits": [
+  "Job logs are HTTP 403 unauthenticated for this repository, so no wrapper rc, no ::error:: annotation and no stdout of any job was read for any run in this record. Every cause statement about a failed step is an INFERENCE.",
+  "Run inputs are not exposed unauthenticated, so repair_from_run_id is inferred from the run display_title and core-lane.yml's run-name template.",
+  "Stage durations are whole-second wall clock from the REST step records; sub-second boundaries are not resolvable and a duration may be rounded.",
+  "The 2700 s mechanism is absent from the control plane readable in this checkout. The measurement that it does not bound the step, and that 2704 s is reproduced on two different jobs, is a fact about the REST record; whether the executing control plane contained such a mechanism is NOT established either way.",
+  "The diagnosis of the validation defect is a comparison of three committed files against each other. It establishes WHAT the tree says, not why each file was written."
+ ],
+ "verdict": "ORCHESTRATION_DIAGNOSED_AT_JOB_STEP_LEVEL__QUANTUM_ATTRIBUTION_FALSIFIED_FOR_39040205229_ONLY_AND_NOT_GENERALIZED__VALIDATION_DEFECT_MATERIAL_AND_REPAIRED_WITH_A_NEW_CHECK_19_GUARD",
+ "next_recommendation": "The remaining lane blocker is unchanged and external: Product shipping a rebuilt packet. Nothing in this record unblocks direction items (2) or (4)."
+}
