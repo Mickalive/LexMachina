@@ -50,7 +50,7 @@
     "detection_control": "TRIAL C x1: python -m evaluation.frozen_bars.run_bar_gates --packet-dir <empty temp dir> --out <tmp>/c.json  - a deliberately broken input that must exit 2 with a missing-inputs message on stderr",
     "mechanism_probe": "TRIAL D x3 per entry point: same argv as A and B but stdout is a pipe whose read end is closed before the process writes, stderr captured to a file",
     "environment_rule": "The accepted product mount /tmp/lex_accepted/product is required by TRIAL A, B and D. If it is absent the whole measurement is recorded as ENVIRONMENT_ABSENT and skipped, never as a pass and never as a failure.",
-    "trial_count_total": 10 + 10 + 1 + 6
+    "trial_count_total": 27
   },
   "normalization_rule": {
     "statement": "Two trials are byte-invariant when the JSON record written by --out, after removing exactly the key 'elapsed_s' at any depth (the only runtime-varying field emitted by either entry point), serializes to an identical sha256. stdout is NOT used for the invariance comparison because run_bar_gates deliberately omits label_gate/geometry_gate from stdout; the --out file is the complete record.",
