@@ -3,23 +3,29 @@
 
 Why this module exists
 ----------------------
-Five consecutive product cycles produced a team snapshot but **no persisted
-audit verdict**.  The diagnosis of record is committed at
-``results/product/orchestration/NON_VERDICTED_RUNS.json`` and is verifiable
-from the repository and the remote alone (branch presence/absence, absence of
-``results/audit/product/CYCLE_<run>_GATE.json``); the observed failure
-signatures, where an exit code is recorded, are:
+Six consecutive product cycles produced a team snapshot but **no persisted
+audit verdict** (39025961835 through 39042713389).  The diagnosis of record is
+committed at ``results/product/orchestration/NON_VERDICTED_RUNS.json`` and is
+verifiable from the repository and the remote alone (branch presence/absence,
+absence of ``results/audit/product/CYCLE_<run>_GATE.json``).  Exit codes are
+recoverable only where a committed annotation exists; everything else stays
+UNATTRIBUTED or UNVERIFIED_IN_TREE rather than being assigned a mechanism it
+does not prove:
 
-* ``39031213637`` — audit step failed with **exit code 3, "auditor crossed
-  scope"** (wrote outside the two audit paths allowed in the audit checkout);
-* ``39034350468`` — audit step failed with **exit code 78,
-  ``LEX_WORK_QUANTUM_EXPIRED seconds=2700``** (the auditor agent spent its
-  whole 45-minute work quantum recomputing claims by hand and never wrote
-  ``results/audit/product/CYCLE_<run>_GATE.json``);
-* ``39027045675`` / ``39025961835`` — chain cancelled before/while auditing;
-* ``39039195228`` — audit job produced no snapshot branch and no gate file; the
-  exit code is NOT recoverable from the repository, so this one is recorded as
-  *unattributed* rather than assigned to a mechanism it does not prove.
+* ``39031213637`` / ``39034350468`` — earlier docstrings asserted exit 3
+  ("auditor crossed scope") and exit 78 (``LEX_WORK_QUANTUM_EXPIRED``) for
+  these runs; **no committed annotation for either run id exists in the
+  tree**, so both signatures are recorded UNVERIFIED_IN_TREE in the registry
+  and are NOT repeated here as fact;
+* ``39027045675`` / ``39025961835`` / ``39039195228`` / ``39042713389`` — no
+  audit branch, no gate file; exit codes NOT recoverable from the repository
+  (no GitHub API credential to a lane agent), recorded UNATTRIBUTED.
+
+The committed-annotation precedents that ARE established are the exit-3 case
+``38766812030`` and the provider-death cases recorded under factory-wide
+requirement 20.  The check ``non_verdicted_runs_registry`` re-derives the
+whole classification from local ``refs/remotes/origin/cycle/core/product/*``
+evidence, so the registry cannot silently drift from the remote.
 
 Both failure modes are addressed here, from the producer side, without
 touching ``.github/**`` (control-plane scope):
@@ -311,35 +317,83 @@ def dependency_status(root: Path | None = None) -> dict:
     }
 
 
+def probe_imports_fresh(modules=PACK_DEPENDENCIES, *, timeout: int = 120) -> dict:
+    """Import ``modules`` in a FRESH interpreter and report which succeed.
+
+    An in-process re-check after ``pip install`` can lie: CPython's finder
+    caches directory listings, so a module installed into an already-scanned
+    site directory stays invisible to ``find_spec`` until the cache expires.
+    Observed live in run 39047235085: the bootstrap's pip returned 0 and the
+    very next in-process ``missing_dependencies()`` still listed all four
+    modules, i.e. ``installed: true`` next to ``missing_after: [numpy, ...]`` —
+    a contradiction an independent auditor could read as a failed install.  A
+    fresh subprocess has a cold cache and is the authoritative answer.
+    """
+    code = ("import importlib.util, json, sys;"
+            "mods = %r;"
+            "print(json.dumps({m: (importlib.util.find_spec(m) is not None) "
+            "for m in mods}))" % (list(modules),))
+    try:
+        proc = subprocess.run([sys.executable, "-c", code], capture_output=True,
+                              text=True, timeout=timeout, check=False)
+    except (OSError, subprocess.SubprocessError) as exc:  # pragma: no cover - defensive
+        return {"error": f"{type(exc).__name__}: {exc}",
+                "missing": list(modules), "fresh_interpreter_ok": False}
+    if proc.returncode != 0:  # pragma: no cover - defensive
+        return {"error": (proc.stderr or "").strip().splitlines()[-1:] or f"rc={proc.returncode}",
+                "missing": list(modules), "fresh_interpreter_ok": False}
+    try:
+        seen = json.loads((proc.stdout or "").strip().splitlines()[-1])
+    except (ValueError, IndexError):  # pragma: no cover - defensive
+        return {"error": "unparseable fresh-interpreter probe output",
+                "missing": list(modules), "fresh_interpreter_ok": False}
+    missing = [m for m in modules if not seen.get(m)]
+    return {"missing": missing, "fresh_interpreter_ok": not missing, "seen": seen}
+
+
 def bootstrap_dependencies(root: Path | None = None, *, timeout: int = 600) -> dict:
     """Best-effort install of the pack's declared requirements.
 
     Writes nothing inside the repository, so it cannot break the audit job's
     write-scope check.  Failure is reported, never raised: the caller still gets
-    a triage that says *blocked*, which is the honest outcome.
+    a triage that says *blocked*, which is the honest outcome.  ``installed``
+    means the modules are importable in a FRESH interpreter, not merely that
+    pip exited 0 (see :func:`probe_imports_fresh`).
     """
     root = root or ROOT
     before = missing_dependencies()
     record = {"attempted": False, "installed": False, "missing_before": before,
-              "missing_after": None, "command": BOOTSTRAP_COMMAND, "error": None}
+              "missing_after": None, "command": BOOTSTRAP_COMMAND, "error": None,
+              "fresh_interpreter_probe": None}
     if not before:
-        record["missing_after"] = []
+        fresh = probe_imports_fresh()
+        record["missing_after"] = fresh["missing"]
+        record["fresh_interpreter_probe"] = fresh
+        record["installed"] = fresh["fresh_interpreter_ok"]
         return record
     record["attempted"] = True
     req = root / REQUIREMENTS_FILE
     cmd = ([sys.executable, "-m", "pip", "install", "-q", "-r", str(REQUIREMENTS_FILE)]
            if req.is_file() else [sys.executable, "-m", "pip", "install", "-q",
                                   *PACK_DEPENDENCIES])
+    pip_ok = False
     try:
         proc = subprocess.run(cmd, cwd=str(root), capture_output=True, text=True,
                               timeout=timeout, check=False)
-        record["installed"] = proc.returncode == 0
+        pip_ok = proc.returncode == 0
         if proc.returncode != 0:
             record["error"] = (proc.stderr or proc.stdout or "").strip().splitlines()[-1:]
             record["error"] = record["error"][0] if record["error"] else f"pip rc={proc.returncode}"
     except (OSError, subprocess.SubprocessError) as exc:
         record["error"] = f"{type(exc).__name__}: {exc}"
-    record["missing_after"] = missing_dependencies()
+    fresh = probe_imports_fresh()
+    record["fresh_interpreter_probe"] = fresh
+    record["missing_after"] = fresh["missing"]
+    record["installed"] = pip_ok and fresh["fresh_interpreter_ok"]
+    if pip_ok and not fresh["fresh_interpreter_ok"]:
+        record["error"] = ("pip exited 0 but a fresh interpreter still cannot import "
+                           + ", ".join(fresh["missing"])
+                           + "; the in-process finder cache is not trusted as evidence")
     return record
 
 
@@ -1083,6 +1137,179 @@ def check_state_run_coherence(root: Path, run_id: str | None = None) -> tuple:
             measured["verdict"], [str(path.relative_to(root))])
 
 
+def _git_at(root: Path, *args: str) -> str:
+    """``git`` in ``root``; empty string on any failure (never raises)."""
+    try:
+        out = subprocess.run(["git", *args], cwd=str(root), capture_output=True,
+                             text=True, timeout=60, check=False)
+        return (out.stdout or "").strip()
+    except (OSError, subprocess.SubprocessError):  # pragma: no cover - defensive
+        return ""
+
+
+def _origin_cycle_refs(root: Path) -> dict:
+    """Remote-tracking cycle refs: ``{run_id: {"team": sha|None, "audit": sha|None}}``.
+
+    Uses only local ``refs/remotes/origin/...`` so the check is offline and
+    deterministic.  ``core-lane.yml``'s audit checkout uses ``fetch-depth: 0``,
+    which fetches every branch, so the refs are present wherever the workflow
+    runs; a shallow clone without them yields ``{}`` and the check blocks
+    instead of guessing.
+    """
+    out = _git_at(root, "for-each-ref", "--format=%(refname) %(objectname)",
+                  "refs/remotes/origin/cycle/core/product")
+    refs: dict = {}
+    prefix = "refs/remotes/origin/cycle/core/product/"
+    for line in out.splitlines():
+        parts = line.split()
+        if len(parts) != 2 or not parts[0].startswith(prefix):
+            continue
+        run_id, kind = parts[0][len(prefix):].rsplit("/", 1)
+        if kind in ("team", "audit"):
+            refs.setdefault(run_id, {})[kind] = parts[1]
+    return refs
+
+
+def _gate_from_ref(root: Path, ref: str, run_id: str) -> dict | None:
+    raw = _git_at(root, "show",
+                  f"{ref}:results/audit/product/CYCLE_{run_id}_GATE.json")
+    if not raw:
+        return None
+    try:
+        return json.loads(raw)
+    except ValueError:  # pragma: no cover - defensive
+        return None
+
+
+def check_non_verdicted_runs_registry(root: Path) -> tuple:
+    """The orchestration registry cannot silently drift from the remote.
+
+    ``results/product/orchestration/NON_VERDICTED_RUNS.json`` is the lane's
+    machine-readable diagnosis of runs that produced a team snapshot but no
+    persisted audit verdict (six consecutive: 39025961835..39042713389).  Its
+    whole value is that a third party can re-derive it from refs; a registry
+    that no longer matches the refs is worse than no registry.  This check
+    re-derives the classification from local remote-tracking refs and asserts:
+
+    * every registry entry's branch facts (team sha, audit present/absent,
+      gate value and safe_to_integrate where an audit ref exists) match the
+      remote — any contradiction is a FAIL;
+    * every ref-detected non-verdicted run INSIDE the registry's streak window
+      (oldest..newest listed non-verdicted run) is covered — an uncovered run
+      inside the window is a FAIL (incomplete registry);
+    * ref-detected non-verdicted runs BELOW the window (older history, recorded
+      in ``historical_non_verdicted_below_window``) and NEWER than the registry
+      are reported for awareness but are not failures: the registry documents
+      the consecutive-streak diagnosis, the registry can only claim what its
+      writer knew, and an orchestration death downstream of the producer is not
+      a product failure (factory-wide requirement 20).
+    """
+    path = root / "results" / "product" / "orchestration" / "NON_VERDICTED_RUNS.json"
+    if not path.is_file():
+        return (False, {"error": "registry absent"}, {"present": True},
+                "orchestration registry missing", [str(path.relative_to(root))])
+    registry = _read(path)
+    refs = _origin_cycle_refs(root)
+    if not refs:
+        raise CheckBlocked(
+            "no local refs/remotes/origin/cycle/core/product/* exist in this "
+            "checkout (shallow clone?), so the registry cannot be re-derived "
+            "against the remote and nothing is proven",
+            measured={"registry_present": True, "refs_seen": 0,
+                      "registry_lists": len(registry.get("non_verdicted_runs", []))},
+            blocked_by="git remote-tracking refs",
+        )
+    listed_nv = {str(r["run_id"]): r for r in registry.get("non_verdicted_runs", [])}
+    listed_vp = {str(r["run_id"]): r for r in registry.get("verdicted_but_not_promoted_runs", [])}
+    listed_acc = {str(r["run_id"]): r for r in registry.get("accepted_runs", [])}
+    contradictions: list[str] = []
+
+    def _check_entry(run_id: str, entry: dict, expect_audit: bool, cls: str) -> None:
+        seen = refs.get(run_id)
+        if seen is None:
+            contradictions.append(f"{cls}:{run_id}: no team/audit ref on origin at all")
+            return
+        want_sha = entry.get("team_branch")
+        if want_sha and seen.get("team") and seen["team"] != want_sha:
+            contradictions.append(
+                f"{cls}:{run_id}: registry team_branch={want_sha} but origin={seen['team']}")
+        has_audit = bool(seen.get("audit"))
+        if has_audit != expect_audit:
+            contradictions.append(
+                f"{cls}:{run_id}: registry expects audit_present={expect_audit}, "
+                f"origin says {has_audit}")
+        if expect_audit and has_audit:
+            gate = _gate_from_ref(root, f"origin/cycle/core/product/{run_id}/audit", run_id)
+            if gate is None:
+                contradictions.append(
+                    f"{cls}:{run_id}: audit ref exists but its gate file is unreadable")
+            else:
+                if entry.get("gate") and gate.get("gate") != entry["gate"]:
+                    contradictions.append(
+                        f"{cls}:{run_id}: registry gate={entry['gate']} but "
+                        f"audit branch gate={gate.get('gate')}")
+                if ("safe_to_integrate" in entry
+                        and bool(gate.get("safe_to_integrate")) != bool(entry["safe_to_integrate"])):
+                    contradictions.append(
+                        f"{cls}:{run_id}: registry safe_to_integrate="
+                        f"{entry['safe_to_integrate']} but audit branch says "
+                        f"{gate.get('safe_to_integrate')}")
+
+    for run_id, entry in listed_nv.items():
+        _check_entry(run_id, entry, expect_audit=False, cls="non_verdicted")
+    for run_id, entry in listed_vp.items():
+        _check_entry(run_id, entry, expect_audit=True, cls="verdicted_not_promoted")
+    for run_id, entry in listed_acc.items():
+        _check_entry(run_id, entry, expect_audit=True, cls="accepted")
+
+    # Coverage over the STREAK WINDOW: every ref-detected non-verdicted run
+    # inside [oldest_listed, newest_listed] must be listed.  Below the window
+    # is older history (recorded for awareness); above it is newer than the
+    # registry's writer could have known (also awareness only).
+    detected_nv = sorted(r for r, kinds in refs.items() if not kinds.get("audit"))
+    listed_all = set(listed_nv) | set(listed_vp) | set(listed_acc)
+    listed_nv_ids = [int(r) for r in listed_nv] or [0]
+    window_floor, window_ceiling = min(listed_nv_ids), max(listed_nv_ids)
+    uncovered = [r for r in detected_nv if r not in listed_all]
+    in_window_uncovered = [r for r in uncovered
+                           if window_floor <= int(r) <= window_ceiling]
+    below_window = [r for r in uncovered if int(r) < window_floor]
+    newer_uncovered = [r for r in uncovered if int(r) > window_ceiling]
+    if in_window_uncovered:
+        contradictions.append(f"coverage: non-verdicted run(s) {in_window_uncovered} "
+                              f"fall inside the registry's streak window "
+                              f"[{window_floor}, {window_ceiling}] but are absent "
+                              f"from the registry")
+    measured = {
+        "registry_path": str(path.relative_to(root)),
+        "registry_written_by_run": registry.get("written_by_run"),
+        "refs_runs_seen": len(refs),
+        "listed": {"non_verdicted": len(listed_nv),
+                   "verdicted_not_promoted": len(listed_vp),
+                   "accepted": len(listed_acc)},
+        "streak_window": [window_floor, window_ceiling],
+        "detected_non_verdicted": detected_nv,
+        "in_window_uncovered": in_window_uncovered or None,
+        "historical_non_verdicted_below_window": below_window or None,
+        "newer_non_verdicted_runs": newer_uncovered or None,
+        "contradictions": contradictions or None,
+    }
+    ok = not contradictions
+    awareness = []
+    if below_window:
+        awareness.append(f"{len(below_window)} below-window historical run(s): {below_window}")
+    if newer_uncovered:
+        awareness.append(f"{len(newer_uncovered)} newer run(s): {newer_uncovered}")
+    return (ok, measured,
+            {"contradictions": None, "in_window_uncovered": None},
+            ("registry matches remote-tracking refs; streak window "
+             f"[{window_floor}, {window_ceiling}] fully covered"
+             + ("; " + "; ".join(awareness) if awareness else ""))
+            if ok else
+            f"registry drifts from the remote: {contradictions}",
+            [str(path.relative_to(root))])
+
+
 # --------------------------------------------------------------------------- #
 # Assembly
 # --------------------------------------------------------------------------- #
@@ -1104,6 +1331,7 @@ CHECKS: tuple[tuple[str, Callable[..., tuple]], ...] = (
     ("do_not_serve_order_stands", check_do_not_serve_order_stands),
     ("state_contract", check_state_contract),
     ("state_run_coherence", check_state_run_coherence),
+    ("non_verdicted_runs_registry", check_non_verdicted_runs_registry),
     ("producer_wrote_no_audit_artifact", check_no_producer_minted_audit_artifact),
     ("known_baseline_test_failures", check_known_baseline_test_failures),
     ("core_test_subsets", check_core_test_subsets),
@@ -1322,6 +1550,10 @@ def main(argv: list[str] | None = None) -> int:
         if pack["n_failed"]:
             print(f"{pack['n_failed']} PRODUCT check(s) FAILED: {', '.join(pack['failed_ids'])}")
         print("auditor write scope: " + ", ".join(pack["auditor_write_scope"]))
+        print("auditor quickstart: python3 product/audit_pack.py "
+              f"--run-id {pack['run_id']} --out /tmp/lex_audit_pack   "
+              "(run from the producer worktree; --out keeps it out of both checkouts; "
+              "bootstrap auto-installs missing deps)")
         print(f"exit contract: {pack['exit_code']} "
               f"(0 all ok, 1 product failure, 2 dependency-blocked, 3 harness error)")
     return pack["exit_code"]

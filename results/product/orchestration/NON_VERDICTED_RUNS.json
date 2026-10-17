@@ -2,13 +2,14 @@
  "schema": "product-orchestration-diagnosis/1",
  "lane": "product",
  "direction_version": 52,
- "written_by_run": "39042713389",
+ "written_by_run": "39047235085",
  "title": "Product runs whose team snapshot exists but whose independent audit persisted NO verdict",
- "why_this_file_exists": "Between runs 39025961835 and 39039195228 the product lane produced five consecutive team snapshots with no persisted audit verdict. The prior cycle's product/audit_pack.py docstring cited 'raw GitHub check-run annotations saved under results/product/orchestration/' for these failures; that directory was never committed, so the citations were not auditable from the tree. This file replaces them with evidence a third party can re-derive from the repository and the remote in one command, and it labels every claim by what it actually rests on.",
+ "why_this_file_exists": "Between runs 39025961835 and 39042713389 the product lane produced SIX consecutive team snapshots with no persisted audit verdict. The prior cycle's product/audit_pack.py docstring cited 'raw GitHub check-run annotations saved under results/product/orchestration/' for these failures; that directory was never committed, so the citations were not auditable from the tree. This file replaces them with evidence a third party can re-derive from the repository and the remote in one command, and it labels every claim by what it actually rests on. Run 39047235085 added the sixth entry and wired this registry into product/audit_pack.py check non_verdicted_runs_registry, which re-derives the whole classification from local refs/remotes/origin/cycle/core/product/* and fails on any drift.",
  "how_to_reproduce": [
-  "for r in 39039195228 39034350468 39031213637 39027045675 39025961835; do printf '%s team=%s audit=%s\\n' \"$r\" \"$(git ls-remote --heads origin refs/heads/cycle/core/product/$r/team | wc -l)\" \"$(git ls-remote --heads origin refs/heads/cycle/core/product/$r/audit | wc -l)\"; done",
-  "git ls-files -- results/audit/product/ | grep -E 'CYCLE_(39039195228|39034350468|39031213637|39027045675|39025961835)_GATE.json'   # expect no output",
-  "git show <audit-sha>:results/audit/product/CYCLE_<run>_GATE.json | jq -c '{gate,safe_to_integrate}'  # for the two runs that DID get a verdict"
+  "for r in 39042713389 39039195228 39034350468 39031213637 39027045675 39025961835; do printf '%s team=%s audit=%s\\n' \"$r\" \"$(git ls-remote --heads origin refs/heads/cycle/core/product/$r/team | wc -l)\" \"$(git ls-remote --heads origin refs/heads/cycle/core/product/$r/audit | wc -l)\"; done",
+  "git for-each-ref 'refs/remotes/origin/cycle/core/product/*/audit'   # offline equivalent: lists only runs that WERE audited; 39025961835..39042713389 are absent",
+  "git ls-files -- results/audit/product/ | grep -E 'CYCLE_(39042713389|39039195228|39034350468|39031213637|39027045675|39025961835)_GATE.json'   # expect no output",
+  "python3 product/audit_pack.py --run-id local --no-tests --json | jq '.checks[] | select(.id==\"non_verdicted_runs_registry\")'   # the same classification, asserted against refs"
  ],
  "detection_rule": {
   "non_verdicted": "refs/heads/cycle/core/product/<run>/audit is ABSENT on origin. The audit job's final step is 'Persist audit snapshot', which pushes that branch. Absence therefore means no gate file was ever persisted, so the run has no verdict of any kind - it is NOT a PASS, NOT a REVISE and NOT a BLOCKED.",
@@ -16,6 +17,19 @@
   "accepted": "the gate file is on the accepted base. Only 39019268074 is in this class."
  },
  "non_verdicted_runs": [
+  {
+   "run_id": "39042713389",
+   "team_branch": "804d350f5bea4201937d935d820c7ac86ea06481",
+   "team_attempt_1_branch": "804d350f5bea4201937d935d820c7ac86ea06481",
+   "audit_branch": null,
+   "gate_file_on_accepted_base": false,
+   "producer_work_preserved": true,
+   "producer_delta": "product/audit_pack.py extended to 20 committed-artifact checks (audit-environment dependency triage with BLOCKED_MISSING_DEPENDENCY + exit-code contract, check state_run_coherence, product/tests/test_audit_pack.py 27 tests, refusal to clobber existing pack artifacts), four state/product.json readiness-claim corrections preserved, orchestration registry committed",
+   "proven": "The team snapshot exists at 804d350 on both /team and /team-attempt-1; no /audit branch exists on origin (re-verified by git ls-remote and git for-each-ref in run 39047235085); no CYCLE_39042713389_GATE.json exists on the accepted base. The producer's own re-verification of this exact snapshot in run 39047235085 passed 20/20 audit-pack checks (67.79 s), so the work is healthy; what is absent is the independent verdict.",
+   "not_proven": "the exit code and the failing step of the audit job. No GitHub API credential is available to a lane agent (gh auth status: not logged in), so check-run annotations cannot be read. Recorded UNATTRIBUTED, same class as 39039195228.",
+   "classification": "PRODUCER WORK PRESENT AND PRESERVED; INDEPENDENT AUDIT VERDICT ABSENT",
+   "action_taken": "resumed operationally in run 39047235085 from this exact snapshot (git diff HEAD origin/cycle/core/product/39042713389/team empty at resume time); this entry added and the registry wired into the audit pack as check non_verdicted_runs_registry"
+  },
   {
    "run_id": "39039195228",
    "team_branch": "9275cc62d51a3cca2e81474a917cf6517f5ba895",
@@ -68,6 +82,10 @@
    "classification": "PRODUCER WORK PRESENT AND PRESERVED; INDEPENDENT AUDIT VERDICT ABSENT"
   }
  ],
+ "historical_non_verdicted_below_window": {
+  "runs": ["38948310517", "38954295518", "38961254857", "38984833779", "38988477028", "38995823263", "39011220761"],
+  "note": "Ref-derived in run 39047235085: these runs have a team branch and NO audit branch on origin, i.e. they are non-verdicted by the same detection rule, but they predate the consecutive-streak window this file diagnoses (39025961835..39042713389). They are recorded here for completeness; check non_verdicted_runs_registry treats below-window runs as awareness-only and fails only on contradictions or uncovered runs INSIDE the window. 39011220761's own resume report documents its chain cancellation; none of these is evidence against the v52 endgame."
+ },
  "verdicted_but_not_promoted_runs": [
   {
    "run_id": "39023182745",
@@ -100,14 +118,16 @@
   }
  ],
  "structural_reading": {
-  "consecutive_non_verdicted_runs": 5,
-  "runs_in_window": "39025961835, 39027045675, 39031213637, 39034350468, 39039195228",
-  "not_a_product_verdict": "Five non-verdicts in a row is an orchestration signal, not five product rejections. Factory-wide requirement 20 already governs the largest family of causes (provider rotation / overload: an audit or producer job that dies on provider death is NOT a verdict, NOT a product defect and NOT a human-gate problem). No run in this file is evidence against the v52 endgame, and none of it may be cited as if a bar had been missed.",
+  "consecutive_non_verdicted_runs": 6,
+  "runs_in_window": "39025961835, 39027045675, 39031213637, 39034350468, 39039195228, 39042713389",
+  "not_a_product_verdict": "Six non-verdicts in a row is an orchestration signal, not six product rejections. Factory-wide requirement 20 already governs the largest family of causes (provider rotation / overload: an audit or producer job that dies on provider death is NOT a verdict, NOT a product defect and NOT a human-gate problem). No run in this file is evidence against the v52 endgame, and none of it may be cited as if a bar had been missed.",
   "producer_side_mitigations_landed": [
-   "product/audit_pack.py: one command that recomputes every v52 endgame claim from committed artifacts in ~11s, so the auditor verifies instead of reconstructing under the 2700s work quantum (the mechanism that is documented, for other runs, in reports/product/CYCLE_39011220761_RESUME.md)",
-   "product/audit_pack.py: the auditor's write scope is stated in the pack's own output as the exact two relative paths the workflow permits, because exit 3 'auditor crossed scope' is the one failure mode with a committed annotation (reports/product/CYCLE_38766812030.md)",
+   "product/audit_pack.py: one command that recomputes every v52 endgame claim from committed artifacts in under 70 s, so the auditor verifies instead of reconstructing under the 2700s work quantum (the mechanism that is documented, for other runs, in reports/product/CYCLE_39011220761_RESUME.md)",
+   "product/audit_pack.py: the auditor's write scope is stated in the pack's own output as the exact two relative paths the workflow permits, because exit 3 'auditor crossed scope' is the one failure mode with a committed annotation (reports/product/CYCLE_38766812030.md); a one-line auditor quickstart (run from /tmp/lex_team with --out /tmp/lex_audit_pack) is printed on every console run since 39047235085",
    "product/audit_pack.py: BLOCKED_MISSING_DEPENDENCY triage, because core-lane.yml installs no Python dependencies in either the team or the audit job, so a bare audit checkout previously reported six environment failures as PRODUCT failures",
-   "product/audit_pack.py: check state_run_coherence, because the state of record shipped by run 39039195228 still named run 39034350468 and nothing detected that drift"
+   "product/audit_pack.py: bootstrap_dependencies now verifies pip's exit 0 against a FRESH-interpreter import probe (run 39047235085 observed installed:true alongside missing_after:[numpy,scipy,sklearn,pytest] from in-process finder-cache staleness, a contradiction an auditor could misread as a failed install)",
+   "product/audit_pack.py: check state_run_coherence, because the state of record shipped by run 39039195228 still named run 39034350468 and nothing detected that drift",
+   "product/audit_pack.py: check non_verdicted_runs_registry (run 39047235085) re-derives this file's classification from local remote-tracking refs, so the registry cannot silently drift from the remote and any newer non-verdicted run is surfaced to the auditor automatically"
   ]
  },
  "control_plane_items_recorded_not_edited": [
@@ -122,5 +142,5 @@
    "product_side_workaround": "this file: absence of the /audit branch is the reliable non-verdict signal and is re-derivable from the remote alone"
   }
  ],
- "claim_ceiling": "This file reports workflow-orchestration facts only: which branches exist and which gate files are committed. It asserts no product quality, re-measures no frozen bar, scores no label or geometry criterion, and makes no claim about whether any decision is supporting, contrary or limiting. It does not assert that any of these runs passed or failed an audit - five of them were never audited at all."
+ "claim_ceiling": "This file reports workflow-orchestration facts only: which branches exist and which gate files are committed. It asserts no product quality, re-measures no frozen bar, scores no label or geometry criterion, and makes no claim about whether any decision is supporting, contrary or limiting. It does not assert that any of these runs passed or failed an audit - six of them were never audited at all. The registry's consistency with the remote is asserted only by product-owned check non_verdicted_runs_registry, never by this file alone."
 }

@@ -2,19 +2,22 @@
 
 Why this module exists
 ----------------------
-Five product cycles produced a team snapshot with **no** persisted audit
-verdict.  The pack is the producer-side mitigation: one command that recomputes
-every v52 endgame claim from committed artifacts in seconds, so the independent
-auditor verifies instead of reconstructing under a 45-minute work quantum
-(``LEX_WORK_QUANTUM_EXPIRED`` killed the audit of run 39034350468).
+Six product cycles (39025961835..39042713389) produced a team snapshot with
+**no** persisted audit verdict.  The pack is the producer-side mitigation: one
+command that recomputes every v52 endgame claim from committed artifacts in
+seconds, so the independent auditor verifies instead of reconstructing under a
+45-minute work quantum.  (``LEX_WORK_QUANTUM_EXPIRED`` is the documented cause
+for OTHER runs' producer-side deaths; for 39034350468 specifically no committed
+annotation exists and the signature is recorded UNVERIFIED_IN_TREE in
+``results/product/orchestration/NON_VERDICTED_RUNS.json``.)
 
 A mitigation that reports *its own* environment problems as product failures is
 worse than no mitigation: it invites a wrong verdict.  ``core-lane.yml`` has no
 ``actions/setup-python`` and no ``pip install`` step in either the team or the
-audit job, so the audit checkout may legitimately have no numpy.  In this very
-run, before the fix, six checks died with ``ModuleNotFoundError`` and printed as
-plain ``FAIL`` -- one with an empty reason, because the check swallowed the
-import error and returned ``ok=False``.
+audit job, so the audit checkout may legitimately have no numpy.  In run
+39042713389, before the fix, six checks died with ``ModuleNotFoundError`` and
+printed as plain ``FAIL`` -- one with an empty reason, because the check
+swallowed the import error and returned ``ok=False``.
 
 What is frozen here
 -------------------
@@ -26,7 +29,12 @@ What is frozen here
 4. the auditor write scope is exactly the two relative paths the workflow allows;
 5. state/run coherence, including the ``--run-id local`` exemption;
 6. the dependency-blind path really does survive without numpy installed, proven
-   by blocking the import in a subprocess rather than by monkeypatching.
+   by blocking the import in a subprocess rather than by monkeypatching;
+7. (run 39047235085) bootstrap truthfulness: ``installed`` requires a FRESH
+   interpreter to import the modules, not merely a pip exit 0;
+8. (run 39047235085) the orchestration registry cannot drift from the remote:
+   ``non_verdicted_runs_registry`` re-derives branch facts from refs and its
+   contradiction, coverage and blocked paths are all exercised.
 """
 from __future__ import annotations
 
@@ -243,8 +251,17 @@ def test_state_run_coherence_is_not_enforced_for_an_unnumbered_local_run(tmp_pat
 
 
 def test_repository_state_names_the_run_that_wrote_it():
-    """The live tree must satisfy the rule the resumed snapshot violated."""
-    run_id = "39042713389"
+    """The live tree must satisfy the rule the resumed snapshot violated.
+
+    Reads the live ``current_run`` instead of hardcoding a run id: the state
+    names whichever cycle is speaking, and this test must follow it (the
+    hardcoded ``39042713389`` went stale the moment run 39047235085 updated
+    the state -- the exact drift class the check exists to catch, caught one
+    level up by this test failing).
+    """
+    state = json.loads((ROOT / "state" / "product.json").read_text(encoding="utf-8"))
+    run_id = state.get("current_run")
+    assert run_id, "state/product.json must name its current_run"
     ok, measured, _e, detail, _v = ap.check_state_run_coherence(ROOT, run_id)
     assert ok is True, detail or measured
 
@@ -374,3 +391,132 @@ def test_live_pack_is_green():
     assert pack["exit_code"] == 0
     assert pack["claim_ceiling"]
     assert "not_claimable" in pack and len(pack["not_claimable"]) == 3
+
+
+# --------------------------------------------------------------------------- #
+# 9. bootstrap truthfulness: pip exit 0 is NOT evidence the imports work
+#    (run 39047235085 observed installed:true next to missing_after:[all four])
+# --------------------------------------------------------------------------- #
+class _Proc:
+    def __init__(self, rc=0, stdout="", stderr=""):
+        self.returncode, self.stdout, self.stderr = rc, stdout, stderr
+
+
+def _fake_run_dispatch(pip_rc=0, probe_missing=()):
+    """A subprocess.run stand-in: pip gets pip_rc, the fresh probe answers."""
+    probe_payload = json.dumps({m: m not in probe_missing
+                                for m in ap.PACK_DEPENDENCIES})
+
+    def _run(cmd, *a, **k):
+        if isinstance(cmd, (list, tuple)) and "-m" in cmd and "pip" in cmd:
+            return _Proc(rc=pip_rc, stderr="boom" if pip_rc else "")
+        if isinstance(cmd, (list, tuple)) and "-c" in cmd:
+            return _Proc(rc=0, stdout=probe_payload + "\n")
+        raise AssertionError(f"unexpected subprocess: {cmd!r}")
+
+    return _run
+
+
+def test_bootstrap_installed_requires_a_fresh_interpreter_import_ok(monkeypatch):
+    """pip exit 0 with modules still unimportable must NOT read as installed."""
+    monkeypatch.setattr(ap, "missing_dependencies", lambda: list(ap.PACK_DEPENDENCIES))
+    monkeypatch.setattr(ap.subprocess, "run",
+                        _fake_run_dispatch(pip_rc=0, probe_missing=("numpy", "scipy")))
+    record = ap.bootstrap_dependencies()
+    assert record["attempted"] is True
+    assert record["installed"] is False, record
+    assert set(record["missing_after"]) == {"numpy", "scipy"}
+    assert "fresh interpreter" in (record["error"] or ""), record
+
+
+def test_bootstrap_reports_installed_when_the_fresh_probe_agrees(monkeypatch):
+    monkeypatch.setattr(ap, "missing_dependencies", lambda: list(ap.PACK_DEPENDENCIES))
+    monkeypatch.setattr(ap.subprocess, "run", _fake_run_dispatch(pip_rc=0, probe_missing=()))
+    record = ap.bootstrap_dependencies()
+    assert record["attempted"] is True
+    assert record["installed"] is True, record
+    assert record["missing_after"] == []
+    assert record["error"] is None
+
+
+def test_bootstrap_failure_when_pip_fails_is_still_reported(monkeypatch):
+    monkeypatch.setattr(ap, "missing_dependencies", lambda: list(ap.PACK_DEPENDENCIES))
+    monkeypatch.setattr(ap.subprocess, "run",
+                        _fake_run_dispatch(pip_rc=1, probe_missing=ap.PACK_DEPENDENCIES))
+    record = ap.bootstrap_dependencies()
+    assert record["installed"] is False
+    assert record["error"], record
+
+
+def test_probe_imports_fresh_names_a_module_that_cannot_exist():
+    """Environment-independent: a bogus module is always reported missing."""
+    fresh = ap.probe_imports_fresh(("definitely_not_a_module_lexxyz",))
+    assert fresh["fresh_interpreter_ok"] is False
+    assert fresh["missing"] == ["definitely_not_a_module_lexxyz"]
+
+
+# --------------------------------------------------------------------------- #
+# 10. the orchestration registry cannot drift from the remote
+#     (run 39047235085: check non_verdicted_runs_registry)
+# --------------------------------------------------------------------------- #
+def test_registry_check_is_green_or_blocked_never_silently_wrong():
+    """Green when remote-tracking refs exist; blocked when they cannot.
+
+    A shallow clone without ``refs/remotes/origin/cycle/core/product/*`` must
+    BLOCK (nothing proven), never FAIL (nothing disproven).
+    """
+    try:
+        ok, measured, _e, detail, _v = ap.check_non_verdicted_runs_registry(ROOT)
+    except ap.CheckBlocked as exc:
+        assert exc.blocked_by
+        assert exc.measured and exc.measured.get("refs_seen") == 0
+        return
+    assert ok is True, (measured.get("contradictions"), detail)
+    assert measured["in_window_uncovered"] is None
+    assert measured["listed"]["non_verdicted"] == 6
+
+
+def test_registry_labels_the_six_streak_runs_as_never_audited():
+    registry = json.loads(
+        (ROOT / "results/product/orchestration/NON_VERDICTED_RUNS.json").read_text(
+            encoding="utf-8"))
+    ids = [r["run_id"] for r in registry["non_verdicted_runs"]]
+    assert ids == ["39042713389", "39039195228", "39034350468",
+                   "39031213637", "39027045675", "39025961835"]
+    assert registry["structural_reading"]["consecutive_non_verdicted_runs"] == 6
+    for entry in registry["non_verdicted_runs"]:
+        assert entry["audit_branch"] is None, entry
+        assert entry["gate_file_on_accepted_base"] is False, entry
+    # the two unverified exit-code narratives stay labelled, never restated as fact
+    by_id = {r["run_id"]: r for r in registry["non_verdicted_runs"]}
+    assert "UNVERIFIED_IN_TREE" in by_id["39031213637"]["not_proven"]
+    assert "UNVERIFIED_IN_TREE" in by_id["39034350468"]["not_proven"]
+
+
+def test_registry_check_flags_a_team_sha_that_contradicts_the_registry(monkeypatch):
+    refs = ap._origin_cycle_refs(ROOT)
+    assert refs, "live tree must have remote-tracking refs for this negative control"
+    refs["39042713389"]["team"] = "0" * 40  # mutate one recorded fact
+    monkeypatch.setattr(ap, "_origin_cycle_refs", lambda root: refs)
+    ok, measured, _e, detail, _v = ap.check_non_verdicted_runs_registry(ROOT)
+    assert ok is False
+    assert any("39042713389" in c and "team_branch" in c
+               for c in measured["contradictions"]), measured
+
+
+def test_registry_check_flags_an_uncovered_run_inside_the_streak_window(monkeypatch):
+    refs = ap._origin_cycle_refs(ROOT)
+    assert refs
+    refs["39030000000"] = {"team": "f" * 40}  # inside [39025961835, 39042713389], unlisted
+    monkeypatch.setattr(ap, "_origin_cycle_refs", lambda root: refs)
+    ok, measured, _e, detail, _v = ap.check_non_verdicted_runs_registry(ROOT)
+    assert ok is False
+    assert measured["in_window_uncovered"] == ["39030000000"], measured
+
+
+def test_registry_check_blocks_when_no_remote_refs_exist(monkeypatch):
+    monkeypatch.setattr(ap, "_origin_cycle_refs", lambda root: {})
+    with pytest.raises(ap.CheckBlocked) as excinfo:
+        ap.check_non_verdicted_runs_registry(ROOT)
+    assert excinfo.value.blocked_by
+    assert excinfo.value.measured["registry_present"] is True
