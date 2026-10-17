@@ -1,0 +1,131 @@
+{
+  "schema": "lex-evaluation-reground-semantics-freeze/1",
+  "run_id": "38996043415",
+  "frozen_at_utc": "2026-10-17T03:05:00Z",
+  "frozen_before_execution": true,
+  "direction_version": 50,
+  "lane": "evaluation",
+  "question": "Can the frozen geometry gate's FAIL_REGRESSION semantics be re-grounded on a LINEAGE-STABLE property (criterion-level pass vectors, or degradation-monotone criterion values), or must the gate be re-scoped to served_lineage only? One discriminating purpose, no threshold invented, no frozen bar touched, no Frontier candidate re-measured.",
+
+  "prior_accepted_evidence_this_question_builds_on": {
+    "source_cycle": "38993062549",
+    "source_record": "results/evaluation/packet_lineage_sweep/38993062549.json",
+    "F5_accepted_finding": "the frozen geometry gate's regression verdict is ANCHOR-DETERMINED: re-pointing the frozen predicate 'regressed iff count < anchor count' at each of the three in-scope packets produces three DIFFERENT verdict sets over one immutable population; no anchor marks itself. FAIL_REGRESSION encodes 'differs from the anchor build', not 'degraded relative to the accepted product lineage'.",
+    "F3_accepted_finding": "the per-bundle COUNT vector conceals large bidirectional real criterion movement; five of 33 cells flip between earliest and latest with every |delta| >= 0.18 against bars of 0.25-0.60; de/PROJ_RANK degraded 0.339->0.129 against a >=0.30 bar; fr/STRUCTURE_LARGEST degraded monotonically 0.557->0.718->0.770 against a <=0.60 bar.",
+    "state_defined_successor_question": "state/evaluation.json next_recommendation item (3): decide whether the regression semantics can be re-grounded on a lineage-stable property (criterion-level pass vectors, or degradation-monotone criteria such as fr STRUCTURE_LARGEST) or whether the gate must be re-scoped to served_lineage only."
+  },
+
+  "honest_disclosure_of_observation_order": {
+    "what_was_already_known_before_this_freeze": [
+      "The per-criterion pass masks and values of all three in-scope packets are PUBLISHED ACCEPTED EVIDENCE in results/evaluation/packet_lineage_sweep/38993062549.json (F3 per_criterion_values and the per_packet masks). This freeze was written after reading that accepted record, so the QUALITATIVE outcome of applying S1/S2 to the REAL three-packet population is PARTIALLY KNOWN in advance: de/PROJ_RANK is P,P,F and fr/STRUCTURE_LARGEST is P,F,F, so a correctly implemented clean-prefix rule would fire on (latest, de, PROJ_RANK) and (middle, fr, STRUCTURE_LARGEST), and a correctly implemented monotone rule would fire on the same cells plus (latest, fr, STRUCTURE_LARGEST).",
+      "packet.json generated_at timestamps for the three packets were read before this freeze (2026-10-15T20:30:07Z, 2026-10-15T22:27:41Z, 2026-10-16T02:22:25Z), so the order-agreement check R1(a) is partially known: generated_at order matches packet-id sort order.",
+      "No cell in the real population oscillates (pass-fail-pass-fail); born-failing cells are it/PROJ_RANK (F,P,P), de/COHERENCE_QUERY_TERM (F,F,F) and several always-failing cells. This was read from the accepted mask cube before the freeze."
+    ],
+    "what_was_NOT_observed_before_this_freeze": [
+      "Whether the ACCEPTED hostile-geometry negative control (run_bar_gates._hostile_geometry), appended as a fourth newest lineage member, fires any S1 or S2 cell that the uncorrupted served packet does not fire. R4's outcome is genuinely unknown.",
+      "Whether the immediate-prior-only S1 variant (single-build reference) differs from full-prefix S1 on the hostile-geometry extension. On the real n=3 population the two are predicted to coincide (no oscillation exists), so the discrimination, if any, must come from the synthetic extension.",
+      "Whether S2's static-scalar-bar direction parsing covers exactly the expected criterion set and excludes exactly the compound/dynamic-bar criteria as designed.",
+      "The exact fired-set cardinalities once the semantics are executed by code rather than reasoned by hand.",
+      "Whether the whole R1-R5 battery holds together; if any of R1-R4 fails the verdict is MUST_RESCOPE, and that outcome is live."
+    ],
+    "freeze_immutability": "No threshold, predicate, success rule, population or non-vacuity element in this file may change after the first execution. A change requires a new freeze file and a disclosed re-run, never an edit."
+  },
+
+  "population": {
+    "discovery_method": "same discovery as the accepted sweep (evaluation/packet_lineage_sweep.discover_packets): every gate-packet directory on the accepted product mount /tmp/lex_accepted/product/results/product/gate_packet",
+    "in_scope_rule": "packet carries all three frozen qids (de-kapitalverletzung, fr-bail-entretien, it-responsabilita-medica)",
+    "in_scope_expected": ["38799024807", "38812599575", "38839347028"],
+    "out_of_scope_recorded_with_reason_expected": {
+      "38838116453": "missing it-responsabilita-medica",
+      "offline_machinery_rehearsal": "carries none of the three frozen qids"
+    },
+    "lineage_order_grounding": {
+      "primary": "packet.json generated_at, ascending (objective temporal production order)",
+      "cross_check": "packet-id string sort order",
+      "R1_requires": "the two orders are IDENTICAL; a disagreement is a finding and fails R1"
+    },
+    "n_expected": 3
+  },
+
+  "candidate_semantics": {
+    "S1_clean_prefix_cell_regression": {
+      "definition": "For cell (qid, criterion) and packet P at lineage position i (0-based, ordered by generated_at): S1_fires(P,q,c) = (NOT frozen_pass(P,q,c)) AND (frozen_pass(P_j,q,c) for ALL j < i). The first packet (i=0) can never fire (empty prefix). A cell born failing at position 0 can never fire under S1. Reference is the WHOLE prefix set, never one build.",
+      "pass_source": "the frozen per-criterion boolean verdict from the ACCEPTED engine geometry_gate.score_packet; no pass/fail is re-derived",
+      "threshold_invented": false,
+      "known_limitation_frozen_in_advance": "S1 cannot see a deficit that predates the observed lineage window (born-failing cells) and cannot see a degradation that recurs after an intervening failure (clean-prefix rule). Those cells are the absolute bar's job, which stays REPORTED, never enforced."
+    },
+    "S2_monotone_degradation_endpoint": {
+      "definition": "For cell (qid, criterion) with a STATIC scalar frozen bar and a parseable inequality direction, and numeric measured values v_0..v_k in lineage order: S2_fires(P_k,q,c) = (k >= 1) AND (v_0..v_k strictly monotone in the DEGRADING direction) AND (NOT frozen_pass(P_k,q,c)). The degrading direction is read from the frozen RULES_GEOMETRY bar string: '>=' means higher-is-better so decreasing is degrading; '<=' or '<' means lower-is-better so increasing is degrading.",
+      "applicable_criteria_static_scalar_bar": [
+        "PROJ_RANK", "PROJ_SPEARMAN", "PROJ_KNN10",
+        "STRUCTURE_LARGEST", "STRUCTURE_SEP",
+        "LABEL_CONTENT_FRACTION", "LABEL_JACCARD"
+      ],
+      "excluded_by_design": {
+        "COHERENCE_QUERY_LANG": "dynamic bar max(0.25, 0.5*baseline): baseline moves per packet, so monotone value movement is not comparable against a constant yardstick",
+        "COHERENCE_QUERY_TERM": "dynamic bar = bundle baseline: same reason",
+        "OUTLIER_VALIDITY": "compound predicate, no single scalar value/bar",
+        "RELATIONS": "compound predicate (edge_count AND endpoint_ok AND kind), no single scalar value/bar"
+      },
+      "threshold_invented": false,
+      "known_limitation_frozen_in_advance": "S2 requires at least two prior-consistent observations before the endpoint and only fires when the endpoint CROSSES the frozen bar; a monotone approach that never crosses is a warning, not a regression, and is deliberately not fired."
+    },
+    "S3_served_lineage_membership_re_scope": {
+      "definition": "The re-scope option: S3_fires(P) = P is NOT the served-lineage packet whose bundles the accepted GEOMETRY_HALF.json measured (sha256 set-relation against the measured bundle shas). S3 is an identity test; it makes no degradation claim.",
+      "purpose": "the honest fallback if S1/S2 fail any of R1-R4: the gate may then only state lineage membership, and regression language is withdrawn outside that one packet."
+    },
+    "old_semantics_for_contrast": {
+      "definition": "the accepted incumbent-count predicate 'regressed iff per-bundle count < anchor count', re-pointed at each in-scope packet as anchor, exactly as F5 computed it",
+      "purpose": "R2 contrastive control: the OLD semantics has an explicit anchor parameter and must reproduce >= 2 distinct verdict sets; S1/S2 have NO anchor parameter and must produce exactly one verdict set each"
+    }
+  },
+
+  "discriminating_predicates": {
+    "R1_order_grounding": {
+      "requirement": "lineage order from packet.json generated_at is IDENTICAL to packet-id sort order, AND V_S1 and V_S2 computed under that order are the single well-defined verdict sets (there is no second order to disagree with)",
+      "fails_if": "the two orderings disagree, or either verdict set is empty AND the non-vacuity battery cannot be satisfied"
+    },
+    "R2_anchor_freedom": {
+      "requirement": "the OLD anchor-count semantics reproduces F5 (>= 2 distinct verdict sets across the 3 anchors) while S1 and S2 each produce exactly ONE verdict set (structural: they have no anchor parameter). Additionally the designed single-build-reference CONTROL (S1-immediate-prior variant: reference is only P_{i-1}'s mask, not the whole prefix) is computed on both the real population and the hostile-geometry extension; if it differs from full-prefix S1 anywhere, that difference is recorded as load-bearing evidence that whole-prefix reference is not equivalent to a single-build reference.",
+      "fails_if": "the OLD semantics does NOT reproduce >= 2 distinct anchor verdict sets (the test would be insensitive), or S1/S2 somehow require an anchor choice to produce a verdict",
+      "disclosure_rule": "if the S1-immediate-prior variant coincides with full-prefix S1 on BOTH the real population and the extension, R2 still holds on the structural + F5-contrast argument, but the coincidence is disclosed as a limitation of this population's power, never hidden"
+    },
+    "R3_real_degradation_detection": {
+      "requirement": "V_S1 union V_S2 contains BOTH accepted F3 degradations: (latest packet, de-kapitalverletzung, PROJ_RANK) and (middle or latest packet, fr-bail-entretien, STRUCTURE_LARGEST)",
+      "fails_if": "either accepted real degradation is invisible to both semantics"
+    },
+    "R4_non_vacuity": {
+      "requirement": "the accepted hostile-geometry corruption (run_bar_gates._hostile_geometry) of the SERVED packet, appended as a FOURTH newest lineage member, fires at least one S1 or S2 cell that the uncorrupted served packet does not fire. A deliberately regressed input MUST make the semantics fail, or the whole result is void.",
+      "fails_if": "the hostile extension fires nothing new"
+    },
+    "R5_no_new_threshold": {
+      "requirement": "every pass/fail is the frozen per-criterion verdict from the accepted engine; every S2 direction flag is parsed from the frozen RULES_GEOMETRY bar string; no numeric constant outside the frozen artifacts is introduced as a bar. Verified by a static scan of the module for numeric literals compared against criterion values.",
+      "fails_if": "an implementation bug introduces a threshold; this is classified ENVIRONMENT, not evidence, and voids the run rather than counting as MUST_RESCOPE"
+    }
+  },
+
+  "success_rule_frozen": {
+    "REGROUNDABLE": "R1 AND R2 AND R3 AND R4 all hold (R5 is a correctness precondition; its failure is ENVIRONMENT, not a verdict). The verdict names which semantics regrounded (S1, S2 or both) and discloses every known limitation of the regrounded semantics.",
+    "MUST_RESCOPE": "any of R1, R2, R3 or R4 fails. The verdict names the failing requirement and recommends the gate be re-scoped to served_lineage membership only (S3), with regression language withdrawn outside the served packet.",
+    "ENVIRONMENT_OR_UNPROVEN": "frozen RULES sha drift, empty population, any engine environment failure, or R5 failure. NOT a product verdict; suppresses every finding."
+  },
+
+  "non_vacuity_battery_frozen": [
+    {"id": "N1", "must": ">= 1 real in-scope packet fires at least one S1 or S2 cell", "meaning_if_broken": "vacuous: a no-fire result would carry no information"},
+    {"id": "N2", "must": "the semantics do NOT fire on every packet indiscriminately (fired packets < all in-scope packets, on the real population)", "meaning_if_broken": "the semantics fires regardless of content and carries no information"},
+    {"id": "N3", "must": "the hostile-geometry extension fires a strictly larger fired-set than the uncorrupted served packet alone (this is R4 restated as the battery element)", "meaning_if_broken": "the semantics cannot detect a deliberately regressed input"},
+    {"id": "N4", "must": "the OLD semantics under the 3-anchor contrast produces >= 2 distinct verdict sets (F5 reproduction)", "meaning_if_broken": "the anchor-sensitivity test is insensitive; R2's contrast is void"},
+    {"id": "N5", "must": "both RULES files re-hash to the accepted sha256 before any scoring", "meaning_if_broken": "scoring ran against unverified frozen inputs; every statement is void"}
+  ],
+
+  "claim_ceiling": "Tests the GATE's regression SEMANTICS, not the CANDIDATE. Decides only whether a lineage-stable regression property exists over the frozen bars, and if so which of S1/S2 provides it. Does NOT re-measure either Frontier candidate, does NOT touch, relax or re-derive either frozen bar, does NOT meet the absolute bars, does NOT change any exit-code contract or packet-admission wiring, and says nothing about jurist usefulness or the human product gate. A MUST_RESCOPE verdict is a first-class negative result about the gate's expressiveness, not a product regression.",
+
+  "deliberately_not_in_scope": [
+    "the two Frontier candidates (evidence-anchored counter classifier, query-conditioned geometry candidate) are NOT re-measured",
+    "no frozen benchmark, RULES file, incumbent, verdict contract or exit-code contract is edited",
+    "the four frozen reality legs and the retrieval/counter-authority recall gates stay byte-unchanged",
+    "the 174k suite stays closed",
+    "no product packet-admission wiring is changed from here; the recommendation is consumed by Product",
+    "the standing accepted DO-NOT-SERVE order and human_gate_ready=false are untouched"
+  ]
+}
