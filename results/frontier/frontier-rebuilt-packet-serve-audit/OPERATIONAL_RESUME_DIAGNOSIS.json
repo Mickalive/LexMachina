@@ -1,0 +1,43 @@
+{
+  "schema": "frontier-rebuilt-packet-serve-audit/operational-resume-diagnosis/1",
+  "team_id": "frontier-rebuilt-packet-serve-audit",
+  "charter_version": 3,
+  "resume_run_id": 39053132092,
+  "resumed_producer_snapshot": 39048947212,
+  "resume_branch": "operational-resume",
+  "operational_failure": {
+    "symptom": "On resume, the team branch appeared as a SINGLE ROOT COMMIT (8a45c16, no parent). The freeze-ordering acceptance test failed ('AUDIT_RECORD.json carries measurement content in the freeze commit 8a45c16'), the state file's recorded measurement commit 4e4ad05b38fea445ef7a8b96e40709b76591a097 appeared to not exist in the repository, and the state file's freeze_ordering_proof (freeze 2026-10-17T16:33:35Z, first measurement 2026-10-17T17:14:39Z) could not be verified from git commit times.",
+    "root_cause": "The Frontier resume dispatch step (.github/workflows/frontier-team.yml, RESUME_FROM branch) performs `git fetch --depth=1 origin <team-branch>:refs/remotes/orin/<team-branch>` followed by `git switch -C operational-resume origin/<team-branch>`. The depth-1 fetch pulled ONLY the tip commit object 8a45c16 as a shallow boundary (.git/shallow listed 8a45c16 plus lane tips), so git treated the tip as a root commit. The full history was NEVER destroyed on the remote; it was merely INVISIBLE to the shallow resume checkout. Evidence: .git/shallow contained 8a45c16dbdc56427877b5fe46fd8fdfa2ab1c0f4; `git rev-parse --is-shallow-repository` was true; after `git fetch --deepen=100` / `--unshallow` the true parent chain reappeared intact.",
+    "impact": "Evidence-packaging only. No measurement artifact, frozen rule, rubric, verdict contract, threshold or verdict byte was affected. The charter's substance (verdict DO-NOT-SERVE-UNCHANGED, outcome B, promoted at commit d1167245) was intact and is unchanged.",
+    "repair": "Unshallowed the repository against the remote team branch (`git fetch --deepen=100`, then `git fetch --unshallow`, origin https://github.com/Mickalive/LexMachina). No commit was recreated, backdated, edited or fabricated; the recovered history is the producer's own. Recovered chain: 5b6dc8f9 2026-10-17T16:33:35Z (FREEZE RULES.json first) -> 4e4ad05b 2026-10-17T17:14:39Z (measurement, DO-NOT-SERVE-UNCHANGED) -> d1167245 2026-10-17T17:14:55Z (cycle close, hard stop) -> 8a45c16 2026-10-17T17:16:46Z (cross-check tests, 30 passed).",
+    "control_plane_note": "The depth-1 resume fetch is control-plane scope (.github/** is never edited from a lane or team). A durable upstream fix would deepen or unshallow the RESUME_FROM fetch so freeze-ordering evidence survives resume; recorded here for the director, not patched by this team."
+  },
+  "verification_after_repair": {
+    "git_history": "complete on the resume branch; 8a45c16 now has parent d1167245; repository is-shallow=false",
+    "measurement_commit_4e4ad05_recovered": true,
+    "measurement_commit_time_iso": "2026-10-17T17:14:39Z",
+    "freeze_commit": "5b6dc8f9",
+    "freeze_commit_time_iso": "2026-10-17T16:33:35Z",
+    "freeze_precedes_measurement": true,
+    "state_file_recorded_values_match_recovered_history": true,
+    "audit_record_sha256": "ebe0bd39ba59206aac747a9d64db3cf00a61122db17988f8413fa9ac8c290a87",
+    "audit_record_sha256_unchanged": true,
+    "rules_json_sha256": "2fbaa418eaea37d73348146644bcef35b8eb17880032e017c63f20606e48b06c",
+    "tests_command": "python3 -m pytest tests/frontier/frontier-rebuilt-packet-serve-audit -q",
+    "tests_result_resume_environment": "20 passed, 10 skipped, 0 failed",
+    "tests_result_original_run_environment": "30 passed (commit 8a45c16; packet mounted)",
+    "skipped_tests_reason": "The 10 skipped tests require the real rebuilt packet bytes (packet.json sha256 2942c3c2...) which are not mounted in the resume environment (/tmp/lex_work, repo results/product and /tmp/lex_accepted/core/product candidates all absent). conftest.py explicitly designs these as skipif needs_real_packet/needs_old_packet and never silently degrades to a synthetic stand-in.",
+    "byte_identical_reproduction": "stands on the original run's two consecutive offline invocations (REPRODUCTION.json, run1==run2==ebe0bd39...a87); not re-executable in the resume environment without the packet bytes",
+    "zero_writes_outside_team_namespace": true,
+    "threshold_re_derived": false,
+    "frozen_artifacts_edited": [],
+    "verdict_changed": false
+  },
+  "verdict_stands": {
+    "serve_recommendation": "DO-NOT-SERVE-UNCHANGED",
+    "charter_outcome": "B",
+    "continue_recommended": false,
+    "reason": "The charter hard stop allows exactly ONE verdict cycle; the verdict was already produced, promoted and recorded on the frozen bytes (2942c3c2...). This resume repaired evidence packaging only. A rebuilt packet or a further product repair would be a NEW charter against the NEW bytes raised by the director, never a continuation of this one.",
+    "portfolio_note": "state/frontier_portfolio.json still lists this team as status RUN with empty run_history (control-plane file, director's to reconcile); the team's own state/frontier/frontier-rebuilt-packet-serve-audit.json is the authoritative cycle index and records COMPLETE."
+  }
+}
