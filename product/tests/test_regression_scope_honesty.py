@@ -223,7 +223,14 @@ def test_the_repair_record_is_self_consistent_about_gate_positions():
     state = _load(STATE)
     rec = state["repair_39051003925_f1_f2_f3"]
     assert rec["run_id"] == "39051003925"
-    assert state["current_run"] == "39051003925"
+    # current_run legitimately advances each cycle; the historical repair record
+    # must stay self-consistent about gate positions regardless of which cycle is
+    # current. The CURRENT cycle must also carry honest gate positions.
+    assert state["current_run"] == "39056694835"
+    cur = state["cycle_39056694835_frontier_serve_audit_intake"]
+    assert cur["route_around_status"] == "PENDING_ACCEPTANCE_NOT_FIRED"
+    assert cur["do_not_serve_order"] == "IN_FORCE"
+    assert cur["admission"] == "fail-closed"
     gates = rec["gate_positions_unchanged"]
     assert gates["machine_gate_ready"] is False and gates["human_gate_ready"] is False
     assert gates["ready_for_owner_session"] is False
