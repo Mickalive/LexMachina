@@ -26,6 +26,7 @@ from .adversarial_retrieval import (
     fetch_adversarial_candidates,
     plan_adversarial_queries,
 )
+from .counter_anchor import apply_anchor_labels
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RETRIEVAL_ROOT = REPO_ROOT / "frontier" / "frontier-query-retrieval"
@@ -455,9 +456,24 @@ def _map_bundle(product_bundle: dict, started_at: float, n_clusters: int = 0,
     except ValueError as exc:
         raise ValueError(str(exc)) from exc
     if geometry_variant:
-        mapped, clusters, _variant_meta = apply_geometry_variant(
+        mapped, clusters, variant_meta = apply_geometry_variant(
             mapped, clusters, str(product_bundle.get("query") or ""), geometry_variant,
         )
+        # Pre-serving obligation: publish the product-owned axis labels so no
+        # downstream disclosure inherits the component's stale 'rerank score'
+        # word.  The variant's own projection string is byte-frozen.
+        provenance_axes = {
+            "geometry_variant": geometry_variant or "incumbent",
+            "axis_x_label": variant_meta.get("axis_x_label"),
+            "axis_y_label": variant_meta.get("axis_y_label"),
+            "axis_x_field": "score",
+            "axis_relabel_source": (
+                "CYCLE_38976645446_GATE.json claim_ceiling."
+                "integrator_action_required_before_serving_v2(b)"
+            ),
+        }
+    else:
+        provenance_axes = {"geometry_variant": "incumbent"}
     typed_relations = typed_citation_relations(list(candidates or []), mapped)
     relations = _merge_relations(typed_relations, shared_relations)
     decisions = []
@@ -477,6 +493,7 @@ def _map_bundle(product_bundle: dict, started_at: float, n_clusters: int = 0,
         "map_component": ("frontier-query-conditioned-map-geometry/" + geometry_variant
                           if geometry_variant else "query-conditioned-tfidf-v45"),
         "geometry_variant": geometry_variant or "incumbent",
+        "axis_metadata": provenance_axes,
         "fixture_mode": False,
         "relations_provenance": _relations_provenance(candidates, typed_relations, shared_relations),
     })
@@ -828,6 +845,19 @@ def enrich_query_bundle(
             audited,
             fixture_mode=fixture_generation,
             fixture_findings=fixture_findings,
+        )
+
+    # Adopted Frontier component (frontier-counter-anchor-classifier, Outcome A,
+    # accept d236f5990): confirm-or-abstain on the counter labels the
+    # adversarial stage issued, under the FROZEN rubric.  Abstained rows stay
+    # visible as explicitly-unevidenced rows; the seam publishes support-among-
+    # issued, the abstention count and the yield together.  It never moves
+    # geometry.  Default mode is the adopted 'anchor'; LEXMACHINA_COUNTER_LABELS
+    # selects 'incumbent' (historical path, comparison/tests) or 'off'.
+    if not fixture_generation:
+        audited = apply_anchor_labels(
+            audited,
+            qid=(initial_bundle.get("provenance") or {}).get("qid"),
         )
 
     # The adversarial/generative stage must never move the already visible map.

@@ -27,9 +27,20 @@ Claim ceiling
 -------------
 Adopting the variant does NOT make the map pass the frozen geometry bar: 0 of 3
 bundles pass all 11 criteria under any candidate.  ``relevance_ordered`` also
-changes the meaning of the axes (x = rerank score, y = query-language band) and
-its ``PROJ_SPEARMAN``/``PROJ_KNN10`` criteria remain FAILED.  This module only
-makes the accepted candidate selectable; the product gate remains the human one.
+changes the meaning of the axes (x = **retrieval relevance score**, y =
+query-language band) and its ``PROJ_SPEARMAN``/``PROJ_KNN10`` criteria remain
+FAILED.  This module only makes the accepted candidate selectable; the product
+gate remains the human one.
+
+V2 axis metadata (pre-serving obligation, verbatim)
+---------------------------------------------------
+The accepted geometry claim ceiling (CYCLE_38976645446_GATE.json
+``claim_ceiling.integrator_action_required_before_serving_v2``) requires the
+product to *"Relabel the V2 axis metadata from 'rerank score' to 'retrieval
+relevance score' so no downstream disclosure inherits the wrong word."*  The
+component's own ``projection`` string is byte-frozen and is NOT edited; the
+product-owned label is published here (``V2_AXIS_X_LABEL``) and flows into
+bundle provenance and the disclosure.
 """
 from __future__ import annotations
 
@@ -46,6 +57,13 @@ GEOMETRY_VARIANT_ENV = "LEXMACHINA_GEOMETRY_VARIANT"
 #: The frontier-promoted variant.  ``incumbent``/empty keeps the shipped map.
 ADOPTABLE_VARIANT = "relevance_ordered"
 KNOWN_VARIANTS = ("incumbent", "relevance_ordered", "hydrate_then_cluster")
+
+#: Product-owned axis labels for the adopted V2 layout.  ``x`` is the row's own
+#: retrieval relevance score (the adapter's ``score`` field), NOT a rerank
+#: score: no reranker runs in this pipeline, so the old word would misdescribe
+#: the axis.  Published into bundle provenance and the disclosure.
+V2_AXIS_X_LABEL = "retrieval relevance score"
+V2_AXIS_Y_LABEL = "query language band"
 
 
 def _load_variant_builder():
@@ -102,10 +120,17 @@ def apply_geometry_variant(decisions: list[dict], clusters: list[dict], query: s
     out = builder(bundle, variant, query_language=lang)
     meta = dict(out.get("geometry_variant") or {})
     meta["query_language"] = lang
+    # Product-owned relabel (pre-serving obligation).  The component's own
+    # projection string is byte-frozen; the human-readable axis labels are the
+    # product's and must not inherit the wrong word.
+    if variant == ADOPTABLE_VARIANT:
+        meta["axis_x_label"] = V2_AXIS_X_LABEL
+        meta["axis_y_label"] = V2_AXIS_Y_LABEL
     return list(out.get("decisions") or []), list(out.get("clusters") or []), meta
 
 
 __all__ = [
     "GEOMETRY_VARIANT_ENV", "ADOPTABLE_VARIANT", "KNOWN_VARIANTS",
+    "V2_AXIS_X_LABEL", "V2_AXIS_Y_LABEL",
     "selected_variant", "apply_geometry_variant",
 ]
