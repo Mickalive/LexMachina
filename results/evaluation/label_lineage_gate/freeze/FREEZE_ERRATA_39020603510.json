@@ -1,0 +1,34 @@
+{
+  "schema": "lex-evaluation-freeze-errata/1",
+  "run_id": "39020603510",
+  "lane": "evaluation",
+  "correction_of": "results/evaluation/label_lineage_gate/freeze/FROZEN_HYPOTHESIS_39020603510.json",
+  "principle": "The freeze file is PRESERVED BYTE-UNCHANGED. Nothing in it was edited after execution. This file records two defects in the freeze's own PROSE, both detected by executing its predictions, and states the correction of record for each. Original wording is quoted verbatim so the correction can never be read as the original having said the corrected thing.",
+  "no_result_bearing_value_changed": "Neither defect touches a PREDICTED value, an enforced threshold, a bar, an incumbent or a success rule. Both defects are in `statement` / `predicted`-prose fields that the operative prediction does not depend on.",
+  "errata": [
+    {
+      "id": "E1",
+      "against": "predicates.P1_label_gate_parity_on_accepted_lineage.statement",
+      "original_wording_verbatim": "Under the population-free rate predicate, the number of in-scope accepted-lineage packets on which the counter-label gate emits gate_blocks_build == true is 2 of 2 non-incumbent packets, matching the geometry gate's 2 of 2, and is 0 on the incumbent packet itself.",
+      "defect": "SELF_INCONSISTENT WITH ITS OWN PREDICTED TABLE. The same predicate's `predicted` block says 38799024807 -> FAIL_REGRESSION / gate_blocks_build true, and 38812599575 -> PASS_NO_REGRESSION / gate_blocks_build false, i.e. exactly 1 of the 2 non-incumbent packets blocks. The prose '2 of 2' matches neither the table nor, as execution then showed, reality.",
+      "correction_of_record": "The population-free rate predicate blocks exactly 1 of the 2 non-incumbent accepted-lineage packets - 38799024807, whose pooled support rate is 0.0 (0 supported of 7 scored) - and 0 on the incumbent packet. The geometry gate blocks 2 of 2. The two gates therefore do NOT agree on every packet, and must not be described as at parity.",
+      "why_the_correction_is_the_honest_one_not_the_convenient_one": "The measured divergence is on 38812599575, where the geometry gate blocks (per-bundle criterion-count fr 4 < incumbent 5) while the label gate does not (pooled support rate 1/9 = 0.1111 > incumbent 0.0769). Those are two DIFFERENT MEASURES, so a divergence is expected and is not a gate defect. Reporting parity would have been the flattering and false option; the divergence is reported instead and no gate was altered to manufacture agreement.",
+      "verified_by": "frozen_prediction_verification.statement_defects[0] in results/evaluation/label_lineage_gate/39020603510_sweep.json"
+    },
+    {
+      "id": "E2",
+      "against": "predicates.P4_no_false_block_on_the_accepted_record.predicted",
+      "original_wording_verbatim": "38812599575 gate_blocks_build false under the enforced reading and true under the reported-only count reading, and that divergence is published",
+      "defect": "MIS-STATED ABOUT WHICH COUNT READING. The freeze did not distinguish the two count variants. The count reading actually reported at freeze time was the ACCEPTED POPULATION-PINNED one (`n_scored == 65 AND n_supported < 5`), which by construction cannot fire on a 9-row population, so it could not have been `true` for 38812599575. The reading that does diverge from the rate on 38812599575 is the count comparison with the POPULATION PIN REMOVED.",
+      "correction_of_record": "38812599575 is gate_blocks_build false under the enforced RATE reading, and would be TRUE under the count reading with the population pin removed (1 < 5). That counterfactual is now COMPUTED and published on every packet as `reported_only_readings.count_reading_without_population_pin` and `rate_vs_count_nopin_disagree_on_this_packet`, so accepted finding L4_rate_and_count_semantics_disagree is a measured quantity in this record rather than an assertion.",
+      "verified_by": "frozen_prediction_verification.statement_defects[1] and the per-packet reported_only_readings block in results/evaluation/label_lineage_gate/39020603510_sweep.json"
+    }
+  ],
+  "operative_predictions_that_did_hold_unchanged": {
+    "P1_predicted_table_per_packet": "38799024807 FAIL_REGRESSION true / 38812599575 PASS_NO_REGRESSION false / 38839347028 PASS_NO_REGRESSION false - all three held exactly",
+    "P3_minimal_delta": "n_scored 65 -> 65, n_supported 5 -> 4, rate 0.076923 -> 0.061538, PASS_NO_REGRESSION -> FAIL_REGRESSION - held",
+    "P4_no_false_block": "no accepted packet at or above the incumbent rate is blocked - held",
+    "P5_off_lineage": "38838116453 (2 of 3 qids) and offline_machinery_rehearsal (0 of 3) recorded out-of-scope with reasons, never scored - held",
+    "P6_nothing_accepted_moves": "RULES_LABEL 4457e971, RULES_GEOMETRY a7452748, VERDICT_CONTRACT b9cdb894, LABEL_LINEAGE_VERDICT cb3b0143 all re-hash identical - held"
+  }
+}

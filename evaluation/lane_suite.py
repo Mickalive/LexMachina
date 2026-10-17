@@ -61,6 +61,10 @@ from evaluation.reality_gate import run_benchmark                      # noqa: E
 from evaluation.retrieval_gate import frozen as retrieval_frozen      # noqa: E402
 from evaluation.retrieval_gate import gates as retrieval_gates        # noqa: E402
 from evaluation.retrieval_gate import run_retrieval_benchmark         # noqa: E402
+from evaluation.frozen_bars import geometry_gate as frozen_bars_geometry_gate  # noqa: E402
+from evaluation.frozen_bars import label_gate as frozen_bars_label_gate  # noqa: E402
+from evaluation.frozen_bars import label_lineage_gate as frozen_bars_label_lineage  # noqa: E402
+from evaluation.frozen_bars import verdict_contract as frozen_bars_verdict_contract  # noqa: E402
 
 REALITY_RECORDS = _LANE_ROOT / "results" / "evaluation" / "reality_benchmark"
 RETRIEVAL_RECORDS = _LANE_ROOT / "results" / "evaluation" / "retrieval_benchmark"
@@ -178,6 +182,20 @@ def check_digests(log: _Log) -> None:
          retrieval_frozen._PATH, retrieval_frozen.FROZEN_SHA256),
         ("reality gate contract",
          gate_contract._PATH, gate_contract.GATE_CONTRACT_SHA256),
+        # run 39020603510 (disclosed scope extension, not a re-freeze): the two
+        # frozen bar rubrics and this cycle's additive verdict contract. The two
+        # RULES files are reused by re-hash and must never be edited; the new
+        # contract is pinned by its own module. No frozen benchmark, rubric,
+        # incumbent or success rule is touched by adding these entries.
+        ("counter-label frozen rubric",
+         frozen_bars_label_gate.RULES_LABEL_PATH, frozen_bars_label_gate.EXPECTED_RULES_SHA256),
+        ("map-geometry frozen rubric",
+         frozen_bars_geometry_gate.RULES_GEOMETRY_PATH, frozen_bars_geometry_gate.EXPECTED_RULES_SHA256),
+        ("accepted bar verdict contract",
+         frozen_bars_verdict_contract.CONTRACT_PATH, frozen_bars_verdict_contract.EXPECTED_CONTRACT_SHA256),
+        ("label-lineage verdict contract",
+         frozen_bars_label_lineage.VERDICT_CONTRACT_PATH,
+         frozen_bars_label_lineage.EXPECTED_VERDICT_CONTRACT_SHA256),
     ):
         digest = hashlib.sha256(path.read_bytes()).hexdigest()
         log.add(label, digest == pin, f"{digest[:16]}…")
@@ -528,7 +546,15 @@ def run_pytest(log: _Log) -> None:
          # binding, exit-code and frozen-hypothesis pins, plus its mount-gated
          # integration tests. No frozen benchmark, rubric, incumbent or success
          # rule is touched by adding the file.
-         "tests/evaluation/test_packet_admission_conformance.py"],
+         "tests/evaluation/test_packet_admission_conformance.py",
+         # run 39020603510 (disclosed scope extension, not a re-freeze): the
+         # additive counter-label LINEAGE gate - the derived 5/65 predicate, its
+         # verdict-contract pin, the minimal-delta non-vacuity control, the
+         # no-false-block control, the off-lineage refusals, the two-bar
+         # adjudicate verdict and the frozen-prediction execution. The gate is
+         # ADDITIVE: no accepted verdict is overwritten and no frozen benchmark,
+         # rubric, incumbent or success rule is touched by adding the file.
+         "tests/evaluation/test_label_lineage_gate.py"],
         cwd=str(_LANE_ROOT), capture_output=True, text=True, timeout=900)
     tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
     log.add("active lane pytest suite", proc.returncode == 0, tail[0])

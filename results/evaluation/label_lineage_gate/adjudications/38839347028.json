@@ -1,0 +1,174 @@
+{
+ "schema": "lex-evaluation-label-lineage-gate/1",
+ "mode": "adjudicate",
+ "rules_label_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+ "rules_geometry_sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+ "enforced_predicate_rate": 0.07692307692307693,
+ "enforced_predicate_rate_derivation": "label_gate.INCUMBENT[n_supported] / label_gate.INCUMBENT[n_scored] = 5/65",
+ "frozen_identity": {
+  "RULES_LABEL.json": {
+   "expected": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+   "observed": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+   "matches": true
+  },
+  "RULES_GEOMETRY.json": {
+   "expected": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+   "observed": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+   "matches": true
+  },
+  "LABEL_LINEAGE_VERDICT.json": {
+   "expected": "016bffe5914ffc9074c948c9e452d05c79639735ed32f6c82aefd3751afcca18",
+   "observed": "016bffe5914ffc9074c948c9e452d05c79639735ed32f6c82aefd3751afcca18",
+   "matches": true
+  },
+  "VERDICT_CONTRACT.json": {
+   "expected": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c",
+   "observed": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c",
+   "matches": true
+  }
+ },
+ "added": "ADDITIVE: no accepted verdict is overwritten; accepted verdicts are reported side by side",
+ "verdict": "PASS_NO_REGRESSION",
+ "verdict_scope": "two-bar admission verdict (label lineage OR accepted geometry blocks)",
+ "label_lineage_gate": {
+  "gate": "counter-label-support-lineage",
+  "rules_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+  "enforced_reading": {
+   "name": "direction_v50_rate",
+   "predicate": "lineage := set(bundles) == the three frozen qids; FAIL_REGRESSION := lineage AND n_scored > 0 AND support_rate < 5/65 (strict)",
+   "value": 0.07692307692307693,
+   "value_derivation": "label_gate.INCUMBENT[n_supported] / label_gate.INCUMBENT[n_scored]",
+   "enforced_as_build_blocker": true
+  },
+  "reported_only_readings": {
+   "accepted_count_at_pinned_population": {
+    "predicate": "lineage := set(bundles) == the three frozen qids AND n_scored == 65; FAIL := lineage AND n_supported < 5",
+    "n_scored": 65,
+    "n_supported": 5,
+    "regressed": false,
+    "enforced_as_build_blocker": false,
+    "why_not_enforced": "accepted finding L4_rate_and_count_semantics_disagree (enforced, holds): this reading FAILS accepted packet 38812599575 (1 supported of 9 scored, rate 0.1111) whose support rate is strictly BETTER than the incumbent 0.0769. Enforcing it would falsely block an accepted, strictly-better artifact. Retained verbatim as evidence, never enforced."
+   },
+   "readings_disagree_on_this_packet": false,
+   "count_reading_without_population_pin": {
+    "predicate": "lineage := set(bundles) == the three frozen qids; FAIL := lineage AND n_supported < 5  [population pin REMOVED]",
+    "n_supported": 5,
+    "regressed": false,
+    "enforced_as_build_blocker": false,
+    "purpose": "MEASURED counterfactual for accepted finding L4_rate_and_count_semantics_disagree: this is the variant that would falsely block an accepted packet whose support rate is strictly BETTER than the incumbent 0.0769. It is computed and published on every packet so the L4 divergence is a measurement, not an assertion."
+   },
+   "rate_vs_count_nopin_disagree_on_this_packet": false
+  },
+  "lineage_matches_frozen_qid_set": true,
+  "lineage_qids": [
+   "de-kapitalverletzung",
+   "fr-bail-entretien",
+   "it-responsabilita-medica"
+  ],
+  "n_scored": 65,
+  "n_supported": 5,
+  "support_rate": 0.07692307692307693,
+  "rate_comparison": {
+   "observed": 0.07692307692307693,
+   "predicate": 0.07692307692307693,
+   "comparison": "< (strict; equality passes)"
+  },
+  "classes": {
+   "OFF-DOMAIN": 38,
+   "UNBACKED": 22,
+   "SUPPORTED": 5
+  },
+  "absolute_status": "LABEL_UNSOUND",
+  "absolute_enforced_as_build_blocker": false,
+  "regression_verdict": "PASS_NO_REGRESSION",
+  "gate_blocks_build": false,
+  "is_pass": true,
+  "incumbent": {
+   "n_scored": 65,
+   "n_supported": 5,
+   "classes": {
+    "OFF-DOMAIN": 38,
+    "UNBACKED": 22,
+    "SUPPORTED": 5,
+    "INVERTED": 0
+   }
+  },
+  "accepted_gate_side_by_side": {
+   "source": "evaluation/frozen_bars/label_gate.py::score_packet (accepted 38971202786)",
+   "regression_verdict": "PASS_NO_REGRESSION",
+   "gate_blocks_build": false,
+   "lineage_matches_incumbent_population": true,
+   "why_reported": "the accepted gate is preserved unchanged; this gate is additive. Where the two disagree, the accepted verdict is NOT overwritten and the disagreement is the measured finding."
+  },
+  "per_bundle": {
+   "de-kapitalverletzung": {
+    "n_scored": 25,
+    "n_supported": 2,
+    "support_rate": 0.08,
+    "classes": {
+     "OFF-DOMAIN": 20,
+     "UNBACKED": 3,
+     "SUPPORTED": 2
+    },
+    "sha256": "2441ff2b16722afcd22dca9ad39eafcbeb079b2dfc367d763fbe53fce1356f9c"
+   },
+   "fr-bail-entretien": {
+    "n_scored": 15,
+    "n_supported": 0,
+    "support_rate": 0.0,
+    "classes": {
+     "UNBACKED": 4,
+     "OFF-DOMAIN": 11
+    },
+    "sha256": "6c5ea31d4b9af4abfa39e9f8025cfa3d34279ff1f04d0f643e571e27b23a2618"
+   },
+   "it-responsabilita-medica": {
+    "n_scored": 25,
+    "n_supported": 3,
+    "support_rate": 0.12,
+    "classes": {
+     "UNBACKED": 15,
+     "OFF-DOMAIN": 7,
+     "SUPPORTED": 3
+    },
+    "sha256": "76e7f7ad998f3878e7b08635663e2d594a7a77bdaeb33bcf5fa52d0af00b7aff"
+   }
+  }
+ },
+ "accepted_label_gate_side_by_side": {
+  "regression_verdict": "PASS_NO_REGRESSION",
+  "gate_blocks_build": false
+ },
+ "accepted_geometry_gate": {
+  "per_bundle_counts": {
+   "de-kapitalverletzung": 6,
+   "fr-bail-entretien": 5,
+   "it-responsabilita-medica": 5
+  },
+  "regression_verdict": "PASS_NO_REGRESSION",
+  "gate_blocks_build": false,
+  "absolute_status": "GEOMETRY_UNSOUND",
+  "n_bundles_pass_all_11": 0,
+  "incumbent_is_a_floor": {
+   "holds": false,
+   "disclosure": "accepted finding F2_INCUMBENT_NOT_A_FLOOR: over the accepted packet population the minimum per-bundle count is de 6 / fr 4 / it 4, below the enforced incumbent de 6 / fr 5 / it 5. The enforced incumbent is a 'no worse than the served packet' reference, not the worst case observed. Direction v50 fixes that incumbent; this gate does not change it and reports the divergence instead."
+  }
+ },
+ "admission_input": {
+  "schema": "lex-evaluation-admission-input/2",
+  "blocks_build": false,
+  "block_reasons": [],
+  "label_regression_verdict": "PASS_NO_REGRESSION",
+  "label_support_rate": 0.07692307692307693,
+  "label_enforced_predicate_rate": 0.07692307692307693,
+  "label_absolute_status": "LABEL_UNSOUND",
+  "geometry_regression_verdict": "PASS_NO_REGRESSION",
+  "geometry_absolute_status": "GEOMETRY_UNSOUND",
+  "n_bundles_pass_all_11": 0,
+  "absolute_bars_enforced": false,
+  "absolute_bar_note": "both absolute bars are REPORTED only (direction v50): label support_rate == 1.0 and geometry 11/11 on every bundle. Neither blocks a build.",
+  "never_certifies": "this input says nothing about retrieval or counter-authority recall, about source validity, or about jurist usefulness; and a verdict of NOT_APPLICABLE or NOT_MEASURED is never a pass."
+ },
+ "exit_code": 0,
+ "elapsed_s": 3.835
+}

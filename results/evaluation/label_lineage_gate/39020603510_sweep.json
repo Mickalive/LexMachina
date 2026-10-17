@@ -1,0 +1,558 @@
+{
+ "schema": "lex-evaluation-label-lineage-gate/1",
+ "mode": "sweep",
+ "rules_label_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+ "rules_geometry_sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+ "enforced_predicate_rate": 0.07692307692307693,
+ "enforced_predicate_rate_derivation": "label_gate.INCUMBENT[n_supported] / label_gate.INCUMBENT[n_scored] = 5/65",
+ "frozen_identity": {
+  "RULES_LABEL.json": {
+   "expected": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+   "observed": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+   "matches": true
+  },
+  "RULES_GEOMETRY.json": {
+   "expected": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+   "observed": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+   "matches": true
+  },
+  "LABEL_LINEAGE_VERDICT.json": {
+   "expected": "016bffe5914ffc9074c948c9e452d05c79639735ed32f6c82aefd3751afcca18",
+   "observed": "016bffe5914ffc9074c948c9e452d05c79639735ed32f6c82aefd3751afcca18",
+   "matches": true
+  },
+  "VERDICT_CONTRACT.json": {
+   "expected": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c",
+   "observed": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c",
+   "matches": true
+  }
+ },
+ "added": "ADDITIVE: no accepted verdict is overwritten; accepted verdicts are reported side by side",
+ "population": {
+  "root": "/tmp/lex_accepted/product/results/product/gate_packet",
+  "n_packet_dirs": 5,
+  "n_in_scope": 3,
+  "in_scope_packet_ids": [
+   "38799024807",
+   "38812599575",
+   "38839347028"
+  ],
+  "out_of_scope": [
+   {
+    "packet_id": "38838116453",
+    "n_frozen_qids_present": 2,
+    "reason": "packet does not carry all three frozen qids (missing: ['it-responsabilita-medica']); the frozen rubric's anchors are pinned to the three frozen qids, so no lineage verdict applies and the gate never invents an anchor profile for it"
+   },
+   {
+    "packet_id": "offline_machinery_rehearsal",
+    "n_frozen_qids_present": 0,
+    "reason": "packet carries no <qid>.bundle.json for any of the three frozen qids (de-kapitalverletzung, fr-bail-entretien, it-responsabilita-medica); the frozen rubric's anchors and query-term lexicons are pinned to those three qids, so the gate never invents an anchor profile for it"
+   }
+  ]
+ },
+ "blocking_matrix": [
+  {
+   "packet_id": "38799024807",
+   "bundle_sha256": {
+    "de-kapitalverletzung": "90914482175ee51a6c2aa086d0119106f70b16f7627414b730bfbfc1e4c34e9c",
+    "fr-bail-entretien": "dfb4e8046c33297db4b5aa965100f1b71fc7b8a4e4011dce9613cf8d518c15de",
+    "it-responsabilita-medica": "737c9112a7c2f1b8eae5db4038f9f95ff0b646898c7063208b376e6a93f56abe"
+   },
+   "lineage_gate": {
+    "n_scored": 7,
+    "n_supported": 0,
+    "support_rate": 0.0,
+    "enforced_predicate_rate": 0.07692307692307693,
+    "regression_verdict": "FAIL_REGRESSION",
+    "gate_blocks_build": true,
+    "absolute_status": "LABEL_UNSOUND",
+    "classes": {
+     "OFF-DOMAIN": 3,
+     "UNBACKED": 2,
+     "BOILERPLATE-ONLY": 1,
+     "FRAGMENT": 1
+    }
+   },
+   "accepted_label_gate": {
+    "regression_verdict": "NOT_APPLICABLE",
+    "gate_blocks_build": false,
+    "n_scored": 7,
+    "n_supported": 0
+   },
+   "accepted_geometry_gate": {
+    "per_bundle_counts": {
+     "de-kapitalverletzung": 6,
+     "fr-bail-entretien": 5,
+     "it-responsabilita-medica": 4
+    },
+    "regression_verdict": "FAIL_REGRESSION",
+    "gate_blocks_build": true,
+    "regressed_qids": [
+     "it-responsabilita-medica"
+    ],
+    "absolute_status": "GEOMETRY_UNSOUND",
+    "n_bundles_pass_all_11": 0
+   },
+   "parity": {
+    "lineage_blocks": true,
+    "accepted_label_blocks": false,
+    "geometry_blocks": true,
+    "readings_disagree_on_this_packet": true,
+    "label_geometry_parity_achieved": true
+   },
+   "closure": {
+    "packet_id": "38799024807",
+    "regression_verdict": "FAIL_REGRESSION",
+    "gate_blocks_build": true,
+    "support_rate": 0.0,
+    "L2_gate_admits_total_label_collapse": {
+     "closed_here": true,
+     "reading": "a packet whose pooled support rate is strictly below the incumbent rate and below the incumbent count now BLOCKS, instead of being admitted"
+    },
+    "L3_gate_population_predicate_is_confounded": {
+     "admissible_here": true,
+     "reading": "the population pin is gone; admissibility depends on the qid set only"
+    },
+    "L4_rate_and_count_semantics_disagree": {
+     "divergence_observed_here": false,
+     "divergence_against": "the enforced RATE reading vs the count reading WITH THE POPULATION PIN REMOVED (count_reading_without_population_pin) - this is the comparison L4 is about",
+     "divergence_against_the_population_pinned_count_reading_here": true,
+     "reading": "where the rate and count readings disagree, the enforced reading is the mandated rate one and the count reading is published. NOTE the two divergence flags are different quantities and must not be conflated: the population-pinned count reading is blind off the 65-row population and so disagrees with the enforced reading on ANY non-incumbent packet, which says nothing about L4; only the pin-removed counterfactual isolates the rate/count question itself."
+    },
+    "naive_consumer_trap": {
+     "fires_here": false,
+     "reading": "exit 0 / blocks false with n_supported == 0 on lineage is no longer reachable; the trap of VERDICT_CONTRACT.json is closed for this gate"
+    }
+   }
+  },
+  {
+   "packet_id": "38812599575",
+   "bundle_sha256": {
+    "de-kapitalverletzung": "c4077c6bf906cb99162583100b8791d7699ba5f45733d0ee38c1b91627b67762",
+    "fr-bail-entretien": "d5556ed8a3cb1a1fc378b29083e5c8c59bbced84ed4c0280394674d63d4afddc",
+    "it-responsabilita-medica": "ec2551860b1937be613ea861fcc08cff4ccf166d6c12749b541619e2796343ad"
+   },
+   "lineage_gate": {
+    "n_scored": 9,
+    "n_supported": 1,
+    "support_rate": 0.1111111111111111,
+    "enforced_predicate_rate": 0.07692307692307693,
+    "regression_verdict": "PASS_NO_REGRESSION",
+    "gate_blocks_build": false,
+    "absolute_status": "LABEL_UNSOUND",
+    "classes": {
+     "OFF-DOMAIN": 4,
+     "UNBACKED": 2,
+     "SUPPORTED": 1,
+     "BOILERPLATE-ONLY": 1,
+     "FRAGMENT": 1
+    }
+   },
+   "accepted_label_gate": {
+    "regression_verdict": "NOT_APPLICABLE",
+    "gate_blocks_build": false,
+    "n_scored": 9,
+    "n_supported": 1
+   },
+   "accepted_geometry_gate": {
+    "per_bundle_counts": {
+     "de-kapitalverletzung": 6,
+     "fr-bail-entretien": 4,
+     "it-responsabilita-medica": 5
+    },
+    "regression_verdict": "FAIL_REGRESSION",
+    "gate_blocks_build": true,
+    "regressed_qids": [
+     "fr-bail-entretien"
+    ],
+    "absolute_status": "GEOMETRY_UNSOUND",
+    "n_bundles_pass_all_11": 0
+   },
+   "parity": {
+    "lineage_blocks": false,
+    "accepted_label_blocks": false,
+    "geometry_blocks": true,
+    "readings_disagree_on_this_packet": false,
+    "label_geometry_parity_achieved": false
+   },
+   "closure": {
+    "packet_id": "38812599575",
+    "regression_verdict": "PASS_NO_REGRESSION",
+    "gate_blocks_build": false,
+    "support_rate": 0.1111111111111111,
+    "L2_gate_admits_total_label_collapse": {
+     "closed_here": false,
+     "reading": "a packet whose pooled support rate is strictly below the incumbent rate and below the incumbent count now BLOCKS, instead of being admitted"
+    },
+    "L3_gate_population_predicate_is_confounded": {
+     "admissible_here": true,
+     "reading": "the population pin is gone; admissibility depends on the qid set only"
+    },
+    "L4_rate_and_count_semantics_disagree": {
+     "divergence_observed_here": true,
+     "divergence_against": "the enforced RATE reading vs the count reading WITH THE POPULATION PIN REMOVED (count_reading_without_population_pin) - this is the comparison L4 is about",
+     "divergence_against_the_population_pinned_count_reading_here": false,
+     "reading": "where the rate and count readings disagree, the enforced reading is the mandated rate one and the count reading is published. NOTE the two divergence flags are different quantities and must not be conflated: the population-pinned count reading is blind off the 65-row population and so disagrees with the enforced reading on ANY non-incumbent packet, which says nothing about L4; only the pin-removed counterfactual isolates the rate/count question itself."
+    },
+    "naive_consumer_trap": {
+     "fires_here": false,
+     "reading": "exit 0 / blocks false with n_supported == 0 on lineage is no longer reachable; the trap of VERDICT_CONTRACT.json is closed for this gate"
+    }
+   }
+  },
+  {
+   "packet_id": "38839347028",
+   "bundle_sha256": {
+    "de-kapitalverletzung": "2441ff2b16722afcd22dca9ad39eafcbeb079b2dfc367d763fbe53fce1356f9c",
+    "fr-bail-entretien": "6c5ea31d4b9af4abfa39e9f8025cfa3d34279ff1f04d0f643e571e27b23a2618",
+    "it-responsabilita-medica": "76e7f7ad998f3878e7b08635663e2d594a7a77bdaeb33bcf5fa52d0af00b7aff"
+   },
+   "lineage_gate": {
+    "n_scored": 65,
+    "n_supported": 5,
+    "support_rate": 0.07692307692307693,
+    "enforced_predicate_rate": 0.07692307692307693,
+    "regression_verdict": "PASS_NO_REGRESSION",
+    "gate_blocks_build": false,
+    "absolute_status": "LABEL_UNSOUND",
+    "classes": {
+     "OFF-DOMAIN": 38,
+     "UNBACKED": 22,
+     "SUPPORTED": 5
+    }
+   },
+   "accepted_label_gate": {
+    "regression_verdict": "PASS_NO_REGRESSION",
+    "gate_blocks_build": false,
+    "n_scored": 65,
+    "n_supported": 5
+   },
+   "accepted_geometry_gate": {
+    "per_bundle_counts": {
+     "de-kapitalverletzung": 6,
+     "fr-bail-entretien": 5,
+     "it-responsabilita-medica": 5
+    },
+    "regression_verdict": "PASS_NO_REGRESSION",
+    "gate_blocks_build": false,
+    "regressed_qids": [],
+    "absolute_status": "GEOMETRY_UNSOUND",
+    "n_bundles_pass_all_11": 0
+   },
+   "parity": {
+    "lineage_blocks": false,
+    "accepted_label_blocks": false,
+    "geometry_blocks": false,
+    "readings_disagree_on_this_packet": false,
+    "label_geometry_parity_achieved": true
+   },
+   "closure": {
+    "packet_id": "38839347028",
+    "regression_verdict": "PASS_NO_REGRESSION",
+    "gate_blocks_build": false,
+    "support_rate": 0.07692307692307693,
+    "L2_gate_admits_total_label_collapse": {
+     "closed_here": false,
+     "reading": "a packet whose pooled support rate is strictly below the incumbent rate and below the incumbent count now BLOCKS, instead of being admitted"
+    },
+    "L3_gate_population_predicate_is_confounded": {
+     "admissible_here": true,
+     "reading": "the population pin is gone; admissibility depends on the qid set only"
+    },
+    "L4_rate_and_count_semantics_disagree": {
+     "divergence_observed_here": false,
+     "divergence_against": "the enforced RATE reading vs the count reading WITH THE POPULATION PIN REMOVED (count_reading_without_population_pin) - this is the comparison L4 is about",
+     "divergence_against_the_population_pinned_count_reading_here": false,
+     "reading": "where the rate and count readings disagree, the enforced reading is the mandated rate one and the count reading is published. NOTE the two divergence flags are different quantities and must not be conflated: the population-pinned count reading is blind off the 65-row population and so disagrees with the enforced reading on ANY non-incumbent packet, which says nothing about L4; only the pin-removed counterfactual isolates the rate/count question itself."
+    },
+    "naive_consumer_trap": {
+     "fires_here": false,
+     "reading": "exit 0 / blocks false with n_supported == 0 on lineage is no longer reachable; the trap of VERDICT_CONTRACT.json is closed for this gate"
+    }
+   }
+  }
+ ],
+ "parity_summary": {
+  "incumbent_packet": "38839347028",
+  "incumbent_lineage_blocks": false,
+  "non_incumbent_lineage_blocks": 1,
+  "n_non_incumbent": 2,
+  "non_incumbent_accepted_label_blocks": 0,
+  "non_incumbent_geometry_blocks": 2,
+  "label_geometry_parity_on_every_in_scope_packet": false,
+  "parity_note": "null when no in-scope packet exists; a parity claim over an empty population is never a pass. NOTE: equality of the two gates' block decisions is NOT an expected invariant - they measure different things (pooled counter-label support RATE vs per-bundle geometry criterion-COUNT), so a packet may be geometry-deficient while its label rate is fine. The measured divergence is reported, not closed.",
+  "packets_where_lineage_and_geometry_disagree_on_blocking": [
+   "38812599575"
+  ]
+ },
+ "geometry_incumbent_floor_disclosure": {
+  "incumbent_counts": {
+   "de-kapitalverletzung": 6,
+   "fr-bail-entretien": 5,
+   "it-responsabilita-medica": 5
+  },
+  "min_counts_over_in_scope_population": {
+   "de-kapitalverletzung": 6,
+   "fr-bail-entretien": 4,
+   "it-responsabilita-medica": 4
+  },
+  "incumbent_is_a_floor": false,
+  "qids_with_a_population_member_below_the_incumbent": {
+   "fr-bail-entretien": {
+    "incumbent": 5,
+    "min_over_population": 4
+   },
+   "it-responsabilita-medica": {
+    "incumbent": 5,
+    "min_over_population": 4
+   }
+  },
+  "disclosure": "the enforced geometry incumbent is NOT the worst case in the accepted population; it is the served packet's own score. The gate still blocks those packets, because the predicate is 'below the incumbent', but an admission consumer must not read 'PASS_NO_REGRESSION' as 'no geometry defect exists anywhere in the population'.",
+  "not_a_change": "direction v50 fixes the geometry incumbent at de 6 / fr 5 / it 5; this lane does not move it and invents no alternative floor"
+ },
+ "label_blindness_closed": {
+  "accepted_gate_blocked_non_incumbent_packets": 0,
+  "lineage_gate_blocked_non_incumbent_packets": 1,
+  "total_label_collapse_packets_now_blocked": [
+   "38799024807"
+  ],
+  "reading": "the accepted gate admitted every non-incumbent packet including the 0-supported collapse; the lineage gate blocks the collapse. Blocks are not restored to the accepted gate, whose verdicts are published unchanged alongside."
+ },
+ "non_vacuity_minimal_delta": {
+  "control": "one_supported_row_evidence_removed",
+  "purpose": "minimal-delta non-vacuity on the incumbent population itself",
+  "delta": {
+   "field_edited": "counter_evidence",
+   "rows_removed": 0,
+   "qid": "de-kapitalverletzung",
+   "decision_id": "zh_kassationsgericht_AC040036",
+   "n_scored_before": 65,
+   "n_scored_after": 65,
+   "n_supported_before": 5,
+   "n_supported_after": 4,
+   "support_rate_before": 0.07692307692307693,
+   "support_rate_after": 0.06153846153846154
+  },
+  "verdict_before": "PASS_NO_REGRESSION",
+  "verdict_after": "FAIL_REGRESSION",
+  "gate_blocks_build_after": true,
+  "flipped_to_red": true,
+  "population_unchanged": true,
+  "proven_non_vacuous": true
+ },
+ "non_vacuity_label_only_regression": {
+  "control": "all_scored_counter_evidence_blanked",
+  "purpose": "label-only regression: the geometry gate must NOT be able to see this",
+  "label_regression_verdict": "FAIL_REGRESSION",
+  "label_gate_blocks_build": true,
+  "label_n_scored": 65,
+  "label_n_supported": 0,
+  "label_support_rate": 0.0,
+  "geometry_regression_verdict": "PASS_NO_REGRESSION",
+  "geometry_gate_blocks_build": false,
+  "geometry_per_bundle_counts": {
+   "de-kapitalverletzung": 6,
+   "fr-bail-entretien": 5,
+   "it-responsabilita-medica": 5
+  },
+  "attributable_to_label_gate_alone": true,
+  "proven_non_vacuous": true,
+  "geometry_incumbent_unchanged": true
+ },
+ "off_lineage_control": {
+  "out_of_scope_recorded": [
+   {
+    "packet_id": "38838116453",
+    "n_frozen_qids_present": 2,
+    "reason": "packet does not carry all three frozen qids (missing: ['it-responsabilita-medica']); the frozen rubric's anchors are pinned to the three frozen qids, so no lineage verdict applies and the gate never invents an anchor profile for it"
+   },
+   {
+    "packet_id": "offline_machinery_rehearsal",
+    "n_frozen_qids_present": 0,
+    "reason": "packet carries no <qid>.bundle.json for any of the three frozen qids (de-kapitalverletzung, fr-bail-entretien, it-responsabilita-medica); the frozen rubric's anchors and query-term lexicons are pinned to those three qids, so the gate never invents an anchor profile for it"
+   }
+  ],
+  "off_lineage_state": "NOT_APPLICABLE",
+  "unknown_qid_refused_by": "label_gate.score_packet ValueError (accepted)"
+ },
+ "frozen_prediction_verification": {
+  "freeze_file": "results/evaluation/label_lineage_gate/freeze/FROZEN_HYPOTHESIS_39020603510.json",
+  "freeze_run_id": "39020603510",
+  "evaluated": [
+   {
+    "predicate": "P1",
+    "packet_id": "38799024807",
+    "status": "PASS",
+    "checks": {
+     "n_scored": true,
+     "n_supported": true,
+     "regression_verdict": true,
+     "gate_blocks_build": true
+    },
+    "predicted": {
+     "n_scored": 7,
+     "n_supported": 0,
+     "support_rate": 0.0,
+     "verdict": "FAIL_REGRESSION",
+     "gate_blocks_build": true
+    },
+    "observed": {
+     "n_scored": 7,
+     "n_supported": 0,
+     "support_rate": 0.0,
+     "regression_verdict": "FAIL_REGRESSION",
+     "gate_blocks_build": true
+    }
+   },
+   {
+    "predicate": "P1",
+    "packet_id": "38812599575",
+    "status": "PASS",
+    "checks": {
+     "n_scored": true,
+     "n_supported": true,
+     "regression_verdict": true,
+     "gate_blocks_build": true
+    },
+    "predicted": {
+     "n_scored": 9,
+     "n_supported": 1,
+     "support_rate": 0.1111111111111111,
+     "verdict": "PASS_NO_REGRESSION",
+     "gate_blocks_build": false
+    },
+    "observed": {
+     "n_scored": 9,
+     "n_supported": 1,
+     "support_rate": 0.1111111111111111,
+     "regression_verdict": "PASS_NO_REGRESSION",
+     "gate_blocks_build": false
+    }
+   },
+   {
+    "predicate": "P1",
+    "packet_id": "38839347028",
+    "status": "PASS",
+    "checks": {
+     "n_scored": true,
+     "n_supported": true,
+     "regression_verdict": true,
+     "gate_blocks_build": true
+    },
+    "predicted": {
+     "n_scored": 65,
+     "n_supported": 5,
+     "support_rate": 0.07692307692307693,
+     "verdict": "PASS_NO_REGRESSION",
+     "gate_blocks_build": false
+    },
+    "observed": {
+     "n_scored": 65,
+     "n_supported": 5,
+     "support_rate": 0.07692307692307693,
+     "regression_verdict": "PASS_NO_REGRESSION",
+     "gate_blocks_build": false
+    }
+   },
+   {
+    "predicate": "P3",
+    "status": "PASS",
+    "checks": {
+     "flipped_to_red": true,
+     "population_unchanged": true,
+     "blocks_after": true
+    },
+    "delta": {
+     "field_edited": "counter_evidence",
+     "rows_removed": 0,
+     "qid": "de-kapitalverletzung",
+     "decision_id": "zh_kassationsgericht_AC040036",
+     "n_scored_before": 65,
+     "n_scored_after": 65,
+     "n_supported_before": 5,
+     "n_supported_after": 4,
+     "support_rate_before": 0.07692307692307693,
+     "support_rate_after": 0.06153846153846154
+    }
+   },
+   {
+    "predicate": "P4",
+    "status": "PASS",
+    "checks": {
+     "false_blocks": []
+    },
+    "detail": "no accepted packet at or above the incumbent rate is blocked by the enforced reading"
+   },
+   {
+    "predicate": "P5",
+    "status": "PASS",
+    "checks": {
+     "out_of_scope_recorded_with_reason": true,
+     "n_out_of_scope": 2
+    },
+    "out_of_scope": [
+     {
+      "packet_id": "38838116453",
+      "n_frozen_qids_present": 2,
+      "reason": "packet does not carry all three frozen qids (missing: ['it-responsabilita-medica']); the frozen rubric's anchors are pinned to the three frozen qids, so no lineage verdict applies and the gate never invents an anchor profile for it"
+     },
+     {
+      "packet_id": "offline_machinery_rehearsal",
+      "n_frozen_qids_present": 0,
+      "reason": "packet carries no <qid>.bundle.json for any of the three frozen qids (de-kapitalverletzung, fr-bail-entretien, it-responsabilita-medica); the frozen rubric's anchors and query-term lexicons are pinned to those three qids, so the gate never invents an anchor profile for it"
+     }
+    ]
+   },
+   {
+    "predicate": "P2",
+    "status": "PASS",
+    "checks": {
+     "L2_closed": true,
+     "L3_closed": true,
+     "L4_measured_not_merely_asserted": true,
+     "naive_consumer_trap_closed": true
+    },
+    "evidence": {
+     "total_label_collapse_packets": [
+      "38799024807"
+     ],
+     "admissible_in_scope_packets": 3,
+     "n_in_scope_packets": 3,
+     "packets_where_rate_and_count_nopin_readings_diverge": [
+      "38812599575"
+     ],
+     "packets_where_the_trap_is_still_open": []
+    }
+   },
+   {
+    "predicate": "P6",
+    "status": "PASS",
+    "checks": {
+     "RULES_LABEL.json": true,
+     "RULES_GEOMETRY.json": true,
+     "LABEL_LINEAGE_VERDICT.json": true,
+     "VERDICT_CONTRACT.json": true
+    }
+   }
+  ],
+  "statement_defects": [
+   {
+    "predicate": "P1",
+    "field": "statement",
+    "defect": "internal_inconsistency_in_the_freeze",
+    "detail": "the P1 `statement` prose says '2 of 2 non-incumbent packets' block, but P1's own `predicted` table blocks exactly ['38799024807']. The predicted table is the operative pre-registered value and it held; the prose sentence was mis-written before execution. Preserved verbatim, corrected by erratum FREEZE_ERRATA_39020603510.json, never edited in the freeze file."
+   },
+   {
+    "predicate": "P4",
+    "field": "predicted",
+    "defect": "mis_stated_about_which_predicate_diverges",
+    "detail": "the freeze predicted that 38812599575 would be 'true under the reported-only count reading'. The count reading it referred to is the ACCEPTED population-pinned one, which cannot fire off the 65-row population at all, so the real divergence is between the enforced RATE reading and the count reading WITH THE POPULATION PIN REMOVED. That counterfactual is now measured on every packet as reported_only_readings.count_reading_without_population_pin; the freeze text is preserved verbatim and corrected by erratum."
+   }
+  ],
+  "verdict": "ALL_PREDICTIONS_HELD",
+  "n_statement_defects": 2
+ },
+ "elapsed_s": 12.904,
+ "verdict": "SWEEP_COMPLETE",
+ "exit_code": 0
+}
