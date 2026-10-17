@@ -107,9 +107,29 @@
     },
     "P6_nothing_accepted_moves": {
       "statement": "Every frozen and accepted digest re-verifies byte-identical after the cycle; the four frozen reality legs, the retrieval/counter-authority gates, the 174k suite and both Frontier candidates are not re-run, re-scored or re-measured; the accepted label/geometry numbers reproduced by TRIAL A are integrity reproductions, never new evidence.",
-      "predicted": "all digests in frozen_rubric_reuse_proof unchanged at 16 hex; git diff on every listed frozen file empty"
+      "predicted": "every file in frozen_read_only byte-identical; git diff on every file in frozen_read_only empty. EXCLUDED by construction: evaluation/lane_suite.py, which is NOT in frozen_read_only and is the single file this cycle is expected to change - an ADDITIVE, disclosed suite check (its pre-state sha256 prefix 882552316480204c is recorded in frozen_rubric_reuse_proof as a before/after disclosure, not as a must-not-move pin).",
+      "excluded_expected_change": ["evaluation/lane_suite.py (additive check), tests/evaluation/test_repeat_invariance.py (new), evaluation/frozen_bars/repeat_invariance.py (new)"]
     }
   },
+  "pre_execution_errata": [
+    {
+      "id": "E1",
+      "at": "2026-10-17T10:28Z",
+      "before_any_trial": true,
+      "defect": "population.trial_count_total was written as the arithmetic expression '10 + 10 + 1 + 6', which is not valid JSON, so the freeze file could not be parsed at all.",
+      "fix": "replaced by the integer 27 (commit 5b6c9021)",
+      "prediction_changed": false
+    },
+    {
+      "id": "E2",
+      "at": "2026-10-17T10:34Z",
+      "before_any_trial": true,
+      "defect": "P6.predicted said 'all digests in frozen_rubric_reuse_proof unchanged', but that pre-state table also records evaluation/lane_suite.py (882552316480204c), which this cycle IS expected to change through the disclosed additive suite check. As written, P6 would predict its own failure on an intended, disclosed edit and would be ambiguous about which files are pinned.",
+      "fix": "P6.predicted now keys the pin to the frozen_read_only list (which never contained lane_suite.py) and names the expected non-frozen changes explicitly.",
+      "prediction_changed": "no measured outcome changed: the entry points, the trial counts, the exit-code expectations, the normalization rule, P1-P5 and the success rule are untouched. The clarification was made before any trial ran.",
+      "why_recorded_rather_than_silently_edited": "a freeze that changes after results are seen is invalid; this one changes only to repair its own scope statement, before any result exists, and both errata are preserved here."
+    }
+  ],
   "success_rule": {
     "gate_passes_if": ["P1 holds exactly", "P2 holds exactly", "P3 holds", "P4 holds", "P6 holds"],
     "gate_fails_if": "any measured run of TRIAL A or B returns non-zero, any normalized record set has more than one distinct sha, any predicted accepted value differs, the detection control is not classified, or any frozen digest moves.",
