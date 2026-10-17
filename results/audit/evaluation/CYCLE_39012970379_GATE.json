@@ -1,0 +1,53 @@
+{
+  "gate": "PASS",
+  "safe_to_integrate": true,
+  "run": "39012970379",
+  "run_id": "39012970379",
+  "lane": "evaluation",
+  "direction_version": 50,
+  "repair_round": 0,
+  "audit_type": "independent_recompute_and_adversarial_inspection",
+  "audit_base": "76d0415",
+  "accepted_base": "76d0415",
+  "producer_head": "29d3245",
+  "producer_commits": [
+    "29d3245 (resume: readiness refresh)",
+    "0e5a37f (resume: diagnosis + report + state + pins)",
+    "5b3f56f (workflow persist of 39010105493: module + test + execution record)",
+    "29e01fa (frozen hypothesis, in the 39010105493 snapshot)"
+  ],
+  "resume_from_run_id": "39010105493",
+  "required_fixes": [],
+  "claim_ceiling": "Cycle 39012970379 falsifies ONE machine-checkable invariant over ACCEPTED Product artifacts, under a hypothesis frozen before the module existed and before execution: no packet/owner-card/disclosure/state field may carry ready_for_owner_session=true or human_gate_ready=true while an accepted frozen bar is unmet and no persisted admission block exists on the record. The result of record is PACKET_ADMISSION_INVARIANT_VIOLATED, exit 1, 3 violations (results/product/gate_packet/38812599575/packet.json, results/product/gate_packet/38839347028/packet.json, state/product.json v52_delivery.backlog_item_3_multi_query_gate_packet.measured.ready_for_owner_session), non-vacuity battery 4/4, served-packet cross-check agree=true. It does NOT score either frozen rubric, does NOT re-measure any Frontier candidate, does NOT prove map usefulness to a jurist, does NOT move or meet either absolute bar (LABEL_UNSOUND and GEOMETRY_UNSOUND remain reported-not-enforced), does NOT author any audit artifact, and leaves human_gate_ready false under the standing accepted DO-NOT-SERVE order. The query-map MVP (source-linked bundle + clickable map, zero-cost/source-validity) is untouched by this cycle and remains PASS per its prior independent audit CYCLE_38978411574_GATE.json; the legacy universal-174k science is not reopened.",
+  "evidence_summary": "Independent recompute-and-attack of /tmp/lex_team at 29d3245 (resume of 39010105493) against accepted base 76d0415. (1) Write scope: diff = exactly 12 in-lane files; zero diff on frozen_bars/reality_gate/retrieval_gate/.github/results-audit/reports-audit; producer_write_scope_clean PASS. (2) Freeze ordering: 29e01fa (07:06:35Z) adds only the 94-line hypothesis; the module/test/record appear only in workflow commit 5b3f56f; the producer's execution record started_at_utc=07:13:02Z is after the freeze. Frozen digests RULES_LABEL 4457e971... / RULES_GEOMETRY a7452748... unchanged; reality/retrieval frozen specs unchanged. (3) Mount reconstruction: no /tmp/lex_accepted in the audit container, so origin/lab/product was fetched to 3077b274 and re-executed; the producer module returns exit 1, PACKET_ADMISSION_INVARIANT_VIOLATED, 3 violations, byte-identical to the committed 39012970379.json modulo run_id/started_at_utc/elapsed_s/frozen_hypothesis and the mount path; Product packet_admission.py module_sha256 identical (16ab75c6...). (4) Population attacked independently: a from-scratch walk of 1584 JSON files under results/state/product/frontier/reports finds exactly the same 3 ready_for_owner_session=true claims and 0 human_gate_ready=true; the frozen 8-file glob captures every claim-bearing record. (5) Bar values re-read from packet_lineage_sweep/38993062549.json (all 3 packets LABEL_UNSOUND+GEOMETRY_UNSOUND; label 0/7, 1/9, 5/65; geometry de 6/fr 4-5/it 4-5); cross-check re-read (support_rate 0.0769230769, 0/3 bundles pass, agree=true). (6) Admission blocks absent on all 4 shipped packets; H5 verified from Product source: enforce() writes packet_admission/packet_admission_blocked/ready_for_owner_session_base, and assess() denies readiness. (7) Mount drift verified: failing run mounted lab/product=1dcd9e07 (state/product.json 018ff8a1...), resume mounted 3077b274 (75b48cfa...) after lab/product advanced 06:42:47Z; verdict unchanged. (8) Orchestration diagnosis verified against the public GitHub REST API: run failure; team failure 2703s at step 6; steps 7/9 skipped; steps 8/10 success; audit/integrate skipped; resilience success; no CYCLE_39010105493 gate anywhere; lab/evaluation still 76d0415. (9) Re-execution: packet-admission tests 30 passed; snapshot-audit tests 35 passed; 4-file set 51 passed; lane_suite PASS 42/42 with active pytest 188 passed over its 7-file scope (which already includes packet-admission 30); the remaining 5 files add 86 (51+35), giving the report's total 274 = 188+51+35, 0 failed; snapshot audit READY 16/16 with 52-file manifest; frozen-bar gates PASS_NO_REGRESSION with incumbents recomputed exactly. (10) Query-map MVP: harness 6 passed; prior independent gate CYCLE_38978411574_GATE.json PASS (source-linked bundle, geometry preserved, source URLs mcp.opencaselaw.ch https, stdlib-only); untouched by this cycle.",
+  "key_checks": {
+    "verdict_reproduces_independently": "PASS (reconstructed accepted mount; producer module exit 1, PACKET_ADMISSION_INVARIANT_VIOLATED, 3 violations; record byte-identical to committed 39012970379.json modulo run_id/wall-clock/mount-path)",
+    "population_complete": "PASS (independent 1584-file full-mount scan finds exactly the same 3 claims, 0 human_gate_ready; no undercount)",
+    "bar_status_read_not_recomputed": "PASS (values match packet_lineage_sweep/38993062549.json; record flags recomputed=false, frontier_remeasured=false)",
+    "crosscheck_agrees": "PASS (Frontier snapshot support_rate 0.0769230769, 0/3 bundles pass; lane record bars_unmet=true)",
+    "rules_identity_rehash": "PASS (RULES_LABEL 4457e971..., RULES_GEOMETRY a7452748..., vendored 14/14)",
+    "non_vacuity_battery": "PASS (N1 fires, N2/N3 do not, N4 matches; 4/4; a failed control exits 2 and suppresses findings)",
+    "admission_block_absence": "PASS (packet_admission / packet_admission_blocked / ready_for_owner_session_base absent on all 4 shipped packets)",
+    "h5_defect_class": "PASS (enforce() writes the block keys; assess() denies readiness => 'gate never applied', not 'gate broken')",
+    "freeze_before_implementation_and_execution": "PASS (29e01fa adds only the hypothesis; execution record started_at 07:13:02Z > freeze commit 07:06:35Z)",
+    "mount_drift_disclosed_and_true": "PASS (lab/product 1dcd9e07 -> 3077b274 at 06:42:47Z; state/product.json 018ff8a1... -> 75b48cfa...; verdict unchanged)",
+    "orchestration_diagnosis_api_verified": "PASS (run failure; team failure 2703s step 6; audit/integrate skipped; resilience success; no gate of record exists)",
+    "frozen_dirs_byte_untouched": "PASS (RULES_LABEL/RULES_GEOMETRY/reality/retrieval frozen specs UNCHANGED base->head)",
+    "write_scope_clean": "PASS (12 in-lane files; producer_write_scope_clean PASS; no audit artifact authored)",
+    "lane_suite_and_tests": "PASS (lane_suite PASS 42/42 with active pytest 188 over its 7-file scope, which includes packet-admission 30; snapshot-audit 35; 4-file set 51; remaining 5 files add 86 => report total 274 passed / 0 failed)",
+    "snapshot_audit_ready": "PASS (READY 16/16; 52-file manifest; checks 14-16 PASS)",
+    "query_map_mvp_context": "PASS (harness 6 passed; prior independent audit 38978411574 PASS; source-validity/clickable-map claims machine-checkable; untouched this cycle)",
+    "no_frozen_weakening": "PASS",
+    "no_benchmark_gaming": "PASS (frozen-rule negative against accepted artifacts; metric/success rule frozen pre-execution)",
+    "no_post_hoc_metric_change": "PASS",
+    "no_attack_leakage": "PASS (frozen hypothesis predates module/execution; honest pre-freeze disclosure present)",
+    "no_unsupported_product_claims": "PASS (human_gate_ready false; absolute bars reported-not-enforced; no 174k/Frontier re-measurement)",
+    "recurring_pathology": "NONE (repair round 0 resume; prior defects were different classes)"
+  },
+  "non_blocking_observations": [
+    "Report section 5 says the first snapshot-audit invocation (NOT READY 14/16) is 'preserved rather than hidden'; no such artifact exists (the committed readiness records are the 07:50:43Z and 07:52:54Z 16/16 versions; the 14/16 output was overwritten in place). The fact is disclosed in the report, so this is loose wording, not a hidden failure.",
+    "Report section 5 reports '12 porcelain entries' while the final readiness record reports 0 (the intermediate committed record reported 13, before the 29d3245 junk drop). Prose/count nit only; the write-scope check passes.",
+    "Snapshot checks 14-16 are producer-authored self-pinning of the new negative result; they are a preservation guard, not independent evidence. This audit's independent recomputation (verdict, population, bars, cross-check, mount drift, orchestration) is the independent layer and agrees."
+  ],
+  "verdict_rationale": "The frozen hypothesis predates the module and the execution; the verdict PACKET_ADMISSION_INVARIANT_VIOLATED (exit 1, 3 violations, battery 4/4, agreeing cross-check) independently reproduces byte-for-byte against a reconstructed accepted product mount, and an independent full-mount population scan finds exactly the same three claim-bearing records with no undercount. The bar status is read, not recomputed; the rules re-hash; the mount drift is disclosed and verified; the orchestration diagnosis is verified against the public GitHub API; and no frozen rubric, bar, incumbent, threshold, success rule or recorded verdict was touched. The claim ceiling is honest: one machine-checkable invariant is falsified, no absolute bar moves or is met, no Frontier candidate is re-measured, human_gate_ready stays false, and the query-map MVP is untouched and remains PASS per its prior independent audit. The remaining observations are non-blocking wording/count nits that do not affect the result; this is repair round 0 with no recurring pathology, so the gate is PASS, not REVISE and not BLOCKED."
+}
