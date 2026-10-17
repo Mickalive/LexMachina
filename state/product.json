@@ -759,7 +759,7 @@
    "network_calls": 0,
    "upstream_retrieval_s": 0.1141
   },
-  "packet": "results/product/gate_packet/38839347028 re-verified via product/gate_packet.py verify: 3/3 admissible (fr/de/it), ready_for_owner_session=true",
+  "packet": "results/product/gate_packet/38839347028 re-verified via product/gate_packet.py verify: 3/3 admissible (fr/de/it); READINESS_CLAIM_SUPERSEDED (run 39039195228): the original line also asserted ready_for_owner_session=true and that historical assertion is kept verbatim here, but it is NOT a live readiness claim - packet_admission.assess() denies (counter_label_support 5/65 = 0.0769 < frozen absolute bar 1.0; map_geometry 0/3 bundles pass all 11 criteria), gate_packet.recheck_packet() forces readiness false with ready_for_owner_session_base preserved, and this served packet remains under the accepted DO-NOT-SERVE order",
   "suite": "accepted importable subset 421 passed + 3 new = 424 passed, 1 skipped; 18 legacy modules excluded (sentence_transformers absent by design, corpus/legal-distance/fractal-map PAUSE); test_cycle_33035450227 likewise excluded (same missing dep)"
  },
  "run_38892001925": {
@@ -1933,7 +1933,11 @@
     },
     "mode": "live",
     "ok": true,
-    "ready_for_owner_session": true,
+    "ready_for_owner_session": false,
+    "ready_for_owner_session_base": true,
+    "packet_admission_blocked": true,
+    "packet_admission_reason": "counter_label_support 5/65 = 0.0769 < frozen absolute bar 1.0; map_geometry 0/3 bundles pass all 11 criteria",
+    "readiness_claim_correction": "READINESS_CLAIM_SUPERSEDED (run 39039195228): this measured block recorded ready_for_owner_session=true under the pre-admission gate (the value is preserved in ready_for_owner_session_base). Direction v52 forbids that field while either accepted bar is unmet, so the live field is forced false by the same packet_admission.enforce() convention gate_packet.finalize_summary/recheck_packet already apply. Re-verify: python3 product/query/packet_admission.py --json -> packet_admitted=false",
     "verify": "python product/gate_packet.py verify --packet results/product/gate_packet/38812599575 -> exit 0, no drift"
    },
    "packet": "results/product/gate_packet/38812599575/",
@@ -2170,13 +2174,13 @@
      "n_decisions": 211
     }
    },
-   "result": "3/3 admissible live, guards_all_ok=true, ready_for_owner_session=true, blocked=[]",
+   "result": "3/3 admissible live, guards_all_ok=true, blocked=[]; READINESS_CLAIM_SUPERSEDED (run 39039195228): the original line also asserted ready_for_owner_session=true, kept verbatim as the historical claim only - packet_admission.assess() denies while the accepted bars are unmet (5/65 and 0/3) and no packet may claim readiness in the current claim path",
    "supersedes": "results/product/gate_packet/38838116453 (2/3 questions only) and results/product/gate_packet/38799024807 (DE inadmissible, built before the adversarial route)",
    "validate_bundle": "clean on all three bundles"
   },
   "human_gate": {
    "requested_this_cycle": false,
-   "why_not": "the direction's ordered backlog puts the owner session after items (1)-(4); item (4) is to adopt the frontier verdicts, and neither frontier team has an accepted verdict yet (frontier-map-semantics accepted_run_id=null, evidence_tier UNTESTED). The packet is ready (ready_for_owner_session=true) and nothing blocks running it; no agent may write human_gate_ready."
+   "why_not": "the direction's ordered backlog puts the owner session after items (1)-(4); item (4) is to adopt the frontier verdicts, and neither frontier team has an accepted verdict yet (frontier-map-semantics accepted_run_id=null, evidence_tier UNTESTED). The packet passed its own admissibility checks then; READINESS_CLAIM_SUPERSEDED (run 39039195228): the original sentence also asserted ready_for_owner_session=true and that nothing blocked running it, kept verbatim as the historical claim only - packet_admission.assess() now denies and the served packet is under the accepted DO-NOT-SERVE order; no agent may write human_gate_ready."
   },
   "not_done_and_why": [
    "frontier-map-semantics / frontier-counter-label-integrity measurement is NOT taken up here: the direction's ordering rule forbids product from duplicating it, and both mounts report accepted_run_id=null (no verdict to adopt yet)",

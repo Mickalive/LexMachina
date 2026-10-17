@@ -1,0 +1,653 @@
+{
+  "schema": "product-audit-pack/1",
+  "run_id": "local",
+  "generated_at": "2026-10-17T14:52:08Z",
+  "lane": "product",
+  "direction_version": 52,
+  "producer_head": {
+    "sha": "6c56332cf9c0a836c69abf82082add5100ec3b12",
+    "subject": "product cycle 39034350468 repair 0"
+  },
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+    "packages": {
+      "numpy": "2.5.4",
+      "scipy": "1.18.1",
+      "sklearn": "1.9.1",
+      "pytest": "9.1.1"
+    }
+  },
+  "checks": [
+    {
+      "id": "state_direction_and_gate_flags",
+      "ok": true,
+      "measured": {
+        "direction_version": 52,
+        "control_plane_direction_version": 52,
+        "cycle_status": "V52_ENDGAME_OPERATIONAL_RESUME_OF_39031213637__P0_D1R_VERIFIED_LANDED_VIA_390192",
+        "continue_recommended": true,
+        "human_gate_ready": false,
+        "machine_gate_ready": false
+      },
+      "expected": {
+        "direction_version": ">=52 and equal to the mounted control plane",
+        "cycle_status": "!= INITIALIZED",
+        "continue_recommended": true,
+        "human_gate_ready": false,
+        "machine_gate_ready": false
+      },
+      "detail": "workflow step 'Validate active MVP producer state' equivalent + gate flags",
+      "evidence": [
+        "state/product.json"
+      ],
+      "seconds": 0.001
+    },
+    {
+      "id": "readiness_claim_guard",
+      "ok": true,
+      "measured": {
+        "occurrences": [
+          {
+            "where": "state/product.json.run_38862025900.packet",
+            "kind": "string_token:ready_for_owner_session=true",
+            "bucket": "corrected",
+            "corrected": true
+          },
+          {
+            "where": "state/product.json.v52_delivery.backlog_item_3_multi_query_gate_packet.measured.readiness_claim_correction",
+            "kind": "string_token:ready_for_owner_session=true",
+            "bucket": "corrected",
+            "corrected": true
+          },
+          {
+            "where": "state/product.json.v54_delivery.backlog_item_3_rebuilt_packet.result",
+            "kind": "string_token:ready_for_owner_session=true",
+            "bucket": "corrected",
+            "corrected": true
+          },
+          {
+            "where": "state/product.json.v54_delivery.human_gate.why_not",
+            "kind": "string_token:ready_for_owner_session=true",
+            "bucket": "corrected",
+            "corrected": true
+          },
+          {
+            "where": "results/product/gate_packet/38812599575/packet.json.ready_for_owner_session",
+            "kind": "boolean_true",
+            "bucket": "preserved_artifact",
+            "corrected": false,
+            "file": "results/product/gate_packet/38812599575/packet.json"
+          },
+          {
+            "where": "results/product/gate_packet/38839347028/packet.json.ready_for_owner_session",
+            "kind": "boolean_true",
+            "bucket": "preserved_artifact",
+            "corrected": false,
+            "file": "results/product/gate_packet/38839347028/packet.json"
+          }
+        ],
+        "n_occurrences": 6,
+        "n_corrected": 4,
+        "n_preserved_artifacts": 2,
+        "violations": null,
+        "current_gate_rechecks": {
+          "38839347028": {
+            "packet_id": "38839347028",
+            "ready_for_owner_session": false,
+            "ready_for_owner_session_base": true,
+            "packet_admission_blocked": true,
+            "packet_admission_reason": "counter_label_support 5/65 = 0.0769 < frozen absolute bar 1.0; map_geometry 0/3 bundles pass all 11 criteria",
+            "admissible_questions": [
+              "fr-bail-entretien",
+              "de-kapitalverletzung",
+              "it-responsabilita-medica"
+            ]
+          },
+          "38812599575": {
+            "packet_id": "38812599575",
+            "ready_for_owner_session": false,
+            "ready_for_owner_session_base": true,
+            "packet_admission_blocked": true,
+            "packet_admission_reason": "counter_label_support 5/65 = 0.0769 < frozen absolute bar 1.0; map_geometry 0/3 bundles pass all 11 criteria",
+            "admissible_questions": [
+              "fr-bail-entretien",
+              "de-kapitalverletzung",
+              "it-responsabilita-medica"
+            ]
+          }
+        },
+        "preserved_artifact_reasons": {
+          "results/product/gate_packet/38839347028/packet.json": "SERVED packet under the accepted DO-NOT-SERVE order; bytes preserved as the artifact of record (pre-admission-wiring, generated 2026-10-16T02:22Z). Current gate denial recomputed by check readiness_claim_guard.",
+          "results/product/gate_packet/38812599575/packet.json": "pre-admission multi-query packet from run 38812599575; bytes preserved, current gate denial recomputed by check readiness_claim_guard."
+        }
+      },
+      "expected": {
+        "violations": []
+      },
+      "detail": "owner-readiness claims are corrected in state, allowlisted only for preserved pre-admission bytes, and denied by today's admission gate",
+      "evidence": [
+        "state/product.json",
+        "results/product/gate_packet/38812599575/packet.json",
+        "results/product/gate_packet/38839347028/packet.json"
+      ],
+      "seconds": 1.529
+    },
+    {
+      "id": "frozen_rubric_rehash",
+      "ok": true,
+      "measured": {
+        "RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+        "RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633"
+      },
+      "expected": {
+        "RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+        "RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633"
+      },
+      "detail": "frozen rubrics reused by re-hash; never regenerated or re-derived",
+      "evidence": [
+        "product/frozen/RULES_LABEL.json",
+        "product/frozen/RULES_GEOMETRY.json"
+      ],
+      "seconds": 0.0
+    },
+    {
+      "id": "p0_fabricated_frozen_green_sweep",
+      "ok": true,
+      "measured": {
+        "artifacts_swept": 57,
+        "offenders": null
+      },
+      "expected": {},
+      "detail": "no committed fixture artifact reports a frozen gate as passed (audit D1-R)",
+      "evidence": [
+        "results/product/reality_check/business-judgment-rule_fixture_20261016T154708Z.json",
+        "results/product/reality_check/business-judgment-rule_fixture_20261017T055734Z.json",
+        "results/product/reality_check/business-judgment-rule_fixture_20261017T072123Z.json",
+        "results/product/reality_check/business-judgment-rule_fixture_20261017T074955Z.json",
+        "results/product/reality_check/business-judgment-rule_fixture_20261017T083008Z.json",
+        "results/product/reality_check/business-judgment-rule_fixture_20261017T091455Z.json",
+        "results/product/reality_check/business-judgment-rule_fixture_20261017T121806Z.json",
+        "results/product/reality_check/business-judgment-rule_fixture_20261017T125746Z.json",
+        "results/product/reality_check/corporate-criminal-liability_fixture_20261016T154708Z.json",
+        "results/product/reality_check/corporate-criminal-liability_fixture_20261017T055734Z.json",
+        "results/product/reality_check/corporate-criminal-liability_fixture_20261017T072123Z.json",
+        "results/product/reality_check/corporate-criminal-liability_fixture_20261017T074955Z.json",
+        "results/product/reality_check/corporate-criminal-liability_fixture_20261017T083008Z.json",
+        "results/product/reality_check/corporate-criminal-liability_fixture_20261017T091455Z.json",
+        "results/product/reality_check/corporate-criminal-liability_fixture_20261017T121806Z.json",
+        "results/product/reality_check/corporate-criminal-liability_fixture_20261017T125746Z.json",
+        "results/product/reality_check/petty-theft-dismissal_fixture_20261016T154708Z.json",
+        "results/product/reality_check/petty-theft-dismissal_fixture_20261017T055734Z.json",
+        "results/product/reality_check/petty-theft-dismissal_fixture_20261017T072123Z.json",
+        "results/product/reality_check/petty-theft-dismissal_fixture_20261017T074955Z.json",
+        "results/product/reality_check/petty-theft-dismissal_fixture_20261017T083008Z.json",
+        "results/product/reality_check/petty-theft-dismissal_fixture_20261017T091455Z.json",
+        "results/product/reality_check/petty-theft-dismissal_fixture_20261017T121806Z.json",
+        "results/product/reality_check/petty-theft-dismissal_fixture_20261017T125746Z.json",
+        "results/product/reality_check/rent-default_fixture_20261014T135709Z.json",
+        "results/product/reality_check/rent-default_fixture_20261014T135843Z.json",
+        "results/product/reality_check/rent-default_fixture_20261016T154703Z.json",
+        "results/product/reality_check/rent-default_fixture_20261016T154708Z.json",
+        "results/product/reality_check/rent-default_fixture_20261016T165553Z.json",
+        "results/product/reality_check/rent-default_fixture_20261017T055734Z.json",
+        "results/product/reality_check/rent-default_fixture_20261017T055751Z.json",
+        "results/product/reality_check/rent-default_fixture_20261017T065302Z.json",
+        "results/product/reality_check/rent-default_fixture_20261017T065345Z.json",
+        "results/product/reality_check/rent-default_fixture_20261017T070646Z.json",
+        "results/product/reality_check/rent-default_fixture_20261017T071414Z.json",
+        "results/product/reality_check/rent-default_fixture_20261017T072123Z.json",
+        "results/product/reality_check/rent-default_fixture_20261017T074955Z.json",
+        "results/product/reality_check/rent-default_fixture_20261017T083008Z.json",
+        "results/product/reality_check/rent-default_fixture_20261017T091455Z.json",
+        "results/product/reality_check/rent-default_fixture_20261017T121806Z.json",
+        "results/product/reality_check/rent-default_fixture_20261017T125746Z.json",
+        "results/product/reality_check/summary_fixture_20261014T135709Z.json",
+        "results/product/reality_check/summary_fixture_20261014T135843Z.json",
+        "results/product/reality_check/summary_fixture_20261016T154708Z.json",
+        "results/product/reality_check/summary_fixture_20261016T165553Z.json",
+        "results/product/reality_check/summary_fixture_20261017T055734Z.json",
+        "results/product/reality_check/summary_fixture_20261017T055751Z.json",
+        "results/product/reality_check/summary_fixture_20261017T065302Z.json",
+        "results/product/reality_check/summary_fixture_20261017T065345Z.json",
+        "results/product/reality_check/summary_fixture_20261017T070646Z.json",
+        "results/product/reality_check/summary_fixture_20261017T071414Z.json",
+        "results/product/reality_check/summary_fixture_20261017T072123Z.json",
+        "results/product/reality_check/summary_fixture_20261017T074955Z.json",
+        "results/product/reality_check/summary_fixture_20261017T083008Z.json",
+        "results/product/reality_check/summary_fixture_20261017T091455Z.json",
+        "results/product/reality_check/summary_fixture_20261017T121806Z.json",
+        "results/product/reality_check/summary_fixture_20261017T125746Z.json"
+      ],
+      "seconds": 0.004
+    },
+    {
+      "id": "p0_corrected_072123_marker_contract",
+      "ok": true,
+      "measured": {
+        "summary_fixture_20261017T072123Z.json": {
+          "fabricated_greens": [],
+          "mode": "fixture",
+          "frozen_gates_evaluated": []
+        },
+        "business-judgment-rule_fixture_20261017T072123Z.json": {
+          "fabricated_greens": [],
+          "mode": "fixture",
+          "marker_count": 1
+        }
+      },
+      "expected": {
+        "fabricated_greens": [],
+        "summary.frozen_gates_evaluated": []
+      },
+      "detail": "the two 072123Z artifacts carry the corrected non-evaluation contract",
+      "evidence": [
+        "results/product/reality_check/summary_fixture_20261017T072123Z.json",
+        "results/product/reality_check/business-judgment-rule_fixture_20261017T072123Z.json"
+      ],
+      "seconds": 0.0
+    },
+    {
+      "id": "p1_vendored_classifier_provenance",
+      "ok": true,
+      "measured": {
+        "files_checked": 9,
+        "drifted": null,
+        "accept_commit": "d236f5990",
+        "promoted_variant": "Outcome A (abstain-and-disclose)"
+      },
+      "expected": {
+        "files_checked": ">0",
+        "drifted": [],
+        "accept_commit": "d236f599*"
+      },
+      "detail": "accepted frontier-counter-anchor-classifier consumed byte-identically",
+      "evidence": [
+        "product/vendored/frontier_counter_anchor_classifier/PROVENANCE.json"
+      ],
+      "seconds": 0.0
+    },
+    {
+      "id": "p1_adoption_numbers",
+      "ok": true,
+      "measured": {
+        "n_scored": 65,
+        "n_emitted": 5,
+        "n_abstained": 60,
+        "yield": 0.076923,
+        "support_rate_among_issued": 1.0,
+        "per_bundle": {
+          "fr-bail-entretien": {
+            "n_scored": 15,
+            "n_emitted": 0,
+            "n_abstained": 15,
+            "support_rate_among_emitted": 0.0,
+            "yield": 0.0
+          },
+          "de-kapitalverletzung": {
+            "n_scored": 25,
+            "n_emitted": 2,
+            "n_abstained": 23,
+            "support_rate_among_emitted": 1.0,
+            "yield": 0.08
+          },
+          "it-responsabilita-medica": {
+            "n_scored": 25,
+            "n_emitted": 3,
+            "n_abstained": 22,
+            "support_rate_among_emitted": 1.0,
+            "yield": 0.12
+          }
+        }
+      },
+      "expected": {
+        "n_scored": 65,
+        "n_emitted": 5,
+        "n_abstained": 60,
+        "yield": 0.076923
+      },
+      "detail": "support-among-issued, abstention count and yield published side by side",
+      "evidence": [
+        "results/product/gate_packet/38839347028/questions/fr-bail-entretien.bundle.json",
+        "results/product/gate_packet/38839347028/questions/de-kapitalverletzung.bundle.json",
+        "results/product/gate_packet/38839347028/questions/it-responsabilita-medica.bundle.json"
+      ],
+      "seconds": 0.098
+    },
+    {
+      "id": "p1_abstained_rows_stay_visible",
+      "ok": true,
+      "measured": {
+        "fr-bail-entretien": {
+          "rows_before": 217,
+          "rows_after": 217,
+          "abstained": 15,
+          "abstained_with_geometry": 15
+        },
+        "de-kapitalverletzung": {
+          "rows_before": 214,
+          "rows_after": 214,
+          "abstained": 23,
+          "abstained_with_geometry": 23
+        },
+        "it-responsabilita-medica": {
+          "rows_before": 211,
+          "rows_after": 211,
+          "abstained": 22,
+          "abstained_with_geometry": 22
+        }
+      },
+      "expected": {
+        "rows_preserved": true,
+        "abstained>0": true,
+        "abstained_with_geometry": "all"
+      },
+      "detail": "abstained rows stay on the map as marked unevidenced rows, never dropped",
+      "evidence": [
+        "results/product/gate_packet/38839347028/questions/fr-bail-entretien.bundle.json",
+        "results/product/gate_packet/38839347028/questions/de-kapitalverletzung.bundle.json",
+        "results/product/gate_packet/38839347028/questions/it-responsabilita-medica.bundle.json"
+      ],
+      "seconds": 0.094
+    },
+    {
+      "id": "p2_obligation_a_post_rerank_counts",
+      "ok": true,
+      "measured": {
+        "fr-bail-entretien": {
+          "bundle_state": "post_rerank_product_bundle",
+          "n_pass_post_rerank": 5,
+          "pre_rerank_reference_n_pass": 8,
+          "measured_pass_count": 8,
+          "criterion_flips": [
+            "COHERENCE_QUERY_LANG",
+            "OUTLIER_VALIDITY",
+            "PROJ_RANK"
+          ],
+          "absolute_bar_met_post_rerank": false,
+          "rerank_applied": true,
+          "rerank_runs_once": true,
+          "rerank_call_count": 1
+        },
+        "de-kapitalverletzung": {
+          "bundle_state": "post_rerank_product_bundle",
+          "n_pass_post_rerank": 7,
+          "pre_rerank_reference_n_pass": 7,
+          "measured_pass_count": 7,
+          "criterion_flips": [
+            "COHERENCE_QUERY_TERM",
+            "PROJ_RANK"
+          ],
+          "absolute_bar_met_post_rerank": false,
+          "rerank_applied": true,
+          "rerank_runs_once": true,
+          "rerank_call_count": 1
+        },
+        "it-responsabilita-medica": {
+          "bundle_state": "post_rerank_product_bundle",
+          "n_pass_post_rerank": 7,
+          "pre_rerank_reference_n_pass": 7,
+          "measured_pass_count": 7,
+          "criterion_flips": [],
+          "absolute_bar_met_post_rerank": false,
+          "rerank_applied": true,
+          "rerank_runs_once": true,
+          "rerank_call_count": 1
+        }
+      },
+      "expected": {
+        "per_qid": "post_rerank_product_bundle + pre-rerank reference + criterion flips",
+        "absolute_bar_met_post_rerank": false
+      },
+      "detail": "pre-serving obligation (a): frozen 11-criteria counts re-run on the post-rerank bundle and published beside the measured 7/8/7 reference",
+      "evidence": [
+        "results/product/gate_packet/rebuilt-39027045675/handoff.json"
+      ],
+      "seconds": 0.0
+    },
+    {
+      "id": "p2_obligation_b_axis_label",
+      "ok": true,
+      "measured": {
+        "axis_x_label": {
+          "fr-bail-entretien": "retrieval relevance score",
+          "de-kapitalverletzung": "retrieval relevance score",
+          "it-responsabilita-medica": "retrieval relevance score"
+        },
+        "stale_word_files": null
+      },
+      "expected": {
+        "axis_x_label": "retrieval relevance score",
+        "stale_word_files": []
+      },
+      "detail": "pre-serving obligation (b): V2 axis relabelled, stale word absent",
+      "evidence": [
+        "results/product/gate_packet/rebuilt-39027045675/handoff.json",
+        "results/product/gate_packet/rebuilt-39027045675/disclosures.json",
+        "results/product/gate_packet/rebuilt-39027045675/packet.json"
+      ],
+      "seconds": 0.0
+    },
+    {
+      "id": "p2_mega_cluster_disclosure_size_based",
+      "ok": true,
+      "measured": {
+        "fr-bail-entretien": {
+          "bar": 0.5,
+          "threshold_edited": false,
+          "size_based_not_member_ids": true,
+          "definition": "largest_cluster_size / n_decisions (size-based, len(idx))",
+          "source_share": 0.7696,
+          "source_member_ids_share": 0.2304,
+          "source_fired": true,
+          "rebuilt_share": 0.2258,
+          "fired_on_any_check": true
+        },
+        "de-kapitalverletzung": {
+          "bar": 0.5,
+          "threshold_edited": false,
+          "size_based_not_member_ids": true,
+          "definition": "largest_cluster_size / n_decisions (size-based, len(idx))",
+          "source_share": 0.3785,
+          "source_member_ids_share": 0.2336,
+          "source_fired": false,
+          "rebuilt_share": 0.243,
+          "fired_on_any_check": false
+        },
+        "it-responsabilita-medica": {
+          "bar": 0.5,
+          "threshold_edited": false,
+          "size_based_not_member_ids": true,
+          "definition": "largest_cluster_size / n_decisions (size-based, len(idx))",
+          "source_share": 0.4692,
+          "source_member_ids_share": 0.237,
+          "source_fired": false,
+          "rebuilt_share": 0.2844,
+          "fired_on_any_check": false
+        }
+      },
+      "expected": {
+        "bar": 0.5,
+        "threshold_edited": false,
+        "source_fired_at": 0.7696
+      },
+      "detail": "size-based (len(idx)) mega-cluster disclosure, bar unchanged at 0.5",
+      "evidence": [
+        "results/product/gate_packet/rebuilt-39027045675/handoff.json"
+      ],
+      "seconds": 0.0
+    },
+    {
+      "id": "p2_forbidden_constructions",
+      "ok": true,
+      "measured": null,
+      "expected": {},
+      "detail": "claim ceiling: no committed rebuilt artifact asserts a legal supporting/contrary/limiting classification",
+      "evidence": [
+        "results/product/gate_packet/rebuilt-39027045675/handoff.json",
+        "results/product/gate_packet/rebuilt-39027045675/disclosures.json",
+        "results/product/gate_packet/rebuilt-39027045675/packet.json",
+        "results/product/gate_packet/rebuilt-39027045675/questions/fr-bail-entretien.question.json",
+        "results/product/gate_packet/rebuilt-39027045675/questions/de-kapitalverletzung.question.json",
+        "results/product/gate_packet/rebuilt-39027045675/questions/it-responsabilita-medica.question.json"
+      ],
+      "seconds": 0.011
+    },
+    {
+      "id": "p3_handoff_content_hashes",
+      "ok": true,
+      "measured": {
+        "packet_content_sha256": {
+          "published": "2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170",
+          "recomputed": "2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170",
+          "match": true
+        },
+        "fr-bail-entretien": {
+          "published": "d9c2f1919e572d01dd2af30edea2bef6f5d64d12d0f31d0bf98bc645e8fa0913",
+          "recomputed": "d9c2f1919e572d01dd2af30edea2bef6f5d64d12d0f31d0bf98bc645e8fa0913",
+          "match": true
+        },
+        "de-kapitalverletzung": {
+          "published": "4c5f415c8103f51a58ed48f3a3814885a5f4e4c6e1e4aa0f208fed10366f5981",
+          "recomputed": "4c5f415c8103f51a58ed48f3a3814885a5f4e4c6e1e4aa0f208fed10366f5981",
+          "match": true
+        },
+        "it-responsabilita-medica": {
+          "published": "caf7ecf900df4c4d6e5f205d798d10a5a49447a2f6d53ec1f7da65ed9ce54980",
+          "recomputed": "caf7ecf900df4c4d6e5f205d798d10a5a49447a2f6d53ec1f7da65ed9ce54980",
+          "match": true
+        }
+      },
+      "expected": {
+        "every bundle content_sha256 reproduces": true
+      },
+      "detail": "P3 handoff identities reproduce via the product's own hasher",
+      "evidence": [
+        "results/product/gate_packet/rebuilt-39027045675/handoff.json",
+        "results/product/gate_packet/rebuilt-39027045675/questions/fr-bail-entretien.bundle.json",
+        "results/product/gate_packet/rebuilt-39027045675/questions/de-kapitalverletzung.bundle.json",
+        "results/product/gate_packet/rebuilt-39027045675/questions/it-responsabilita-medica.bundle.json"
+      ],
+      "seconds": 0.045
+    },
+    {
+      "id": "p3_admission_denies",
+      "ok": true,
+      "measured": {
+        "packet_admitted": false,
+        "ready_for_owner_session_allowed": false,
+        "blocking_reason": "counter_label_support 5/65 = 0.0769 < frozen absolute bar 1.0; map_geometry 0/3 bundles pass all 11 criteria",
+        "binding_label": {
+          "n_supported": 5,
+          "n_scored": 65,
+          "support_rate": 0.07692307692307693
+        },
+        "binding_geometry": {
+          "n_bundles_pass": 0,
+          "n_bundles": 3
+        }
+      },
+      "expected": {
+        "packet_admitted": false,
+        "ready_for_owner_session_allowed": false
+      },
+      "detail": "machine gate consumes accepted bar verdicts; admission denied while bars unmet",
+      "evidence": [
+        "results/product/frontier_verdicts/ACCEPTED_frontier-served-packet-falsification_38880639079.json"
+      ],
+      "seconds": 0.0
+    },
+    {
+      "id": "do_not_serve_order_stands",
+      "ok": true,
+      "measured": {
+        "covers_this_packet": true,
+        "serve_recommendation": "DO-NOT-SERVE this packet unchanged. Both halves fail their frozen bars. The label improvement is real but the packet still ships 60 unsupported counter labels including 16 with empty evidence at maximal uncertainty. The French map still renders one 167-row cluster at 77% that contains 4 French-language rows. An imminent owner session on this packet would consume the scarcest resource on an artifact that should not have been served unchanged."
+      },
+      "expected": {
+        "covers_this_packet": true,
+        "serve_recommendation": "DO-NOT-SERVE ..."
+      },
+      "detail": "accepted DO-NOT-SERVE order preserved verbatim in a product-owned snapshot",
+      "evidence": [
+        "results/product/frontier_verdicts/ACCEPTED_frontier-served-packet-falsification_38880639079.json"
+      ],
+      "seconds": 0.0
+    },
+    {
+      "id": "state_contract",
+      "ok": true,
+      "measured": {
+        "workflow_validation": true,
+        "write_scope_ok": true,
+        "write_scope_violations": null,
+        "producer_wrote_audit_paths": null,
+        "committed_audit_artifacts": 40,
+        "shadow_state": null,
+        "ok": true
+      },
+      "expected": {
+        "ok": true
+      },
+      "detail": "lane state contract: direction pin, write scope, audit ownership, shadow state",
+      "evidence": [
+        "state/product.json"
+      ],
+      "seconds": 0.012
+    },
+    {
+      "id": "producer_wrote_no_audit_artifact",
+      "ok": true,
+      "measured": {
+        "committed_audit_artifacts": 40,
+        "mentions_this_run": null,
+        "auditor_write_scope": [
+          "results/audit/product/CYCLE_<run_id>_GATE.json",
+          "reports/audit/product/CYCLE_<run_id>.md"
+        ]
+      },
+      "expected": {
+        "mentions_this_run": null
+      },
+      "detail": "producer never mints its own gate; the gate is the auditor's alone",
+      "evidence": [
+        "reports/audit/product/CYCLE_38559540834.md",
+        "reports/audit/product/CYCLE_38604340726.md",
+        "reports/audit/product/CYCLE_38641080245.md",
+        "reports/audit/product/CYCLE_38660218975.md",
+        "reports/audit/product/CYCLE_38665681083.md",
+        "reports/audit/product/CYCLE_38740365477.md",
+        "reports/audit/product/CYCLE_38754777366.md",
+        "reports/audit/product/CYCLE_38789874982.md",
+        "reports/audit/product/CYCLE_38807538467.md",
+        "reports/audit/product/CYCLE_38812599575.md"
+      ],
+      "seconds": 0.001
+    },
+    {
+      "id": "core_test_subsets",
+      "ok": true,
+      "skipped": true,
+      "detail": "skipped by --no-tests"
+    }
+  ],
+  "n_checks": 18,
+  "n_passed": 18,
+  "n_failed": 0,
+  "all_ok": true,
+  "elapsed_seconds": 1.83,
+  "auditor_write_scope": [
+    "results/audit/product/CYCLE_<run_id>_GATE.json",
+    "reports/audit/product/CYCLE_<run_id>.md"
+  ],
+  "auditor_must_not_write": [
+    "anything outside the two paths above in the AUDIT checkout (exit 3 = 'auditor crossed scope', run 39031213637)",
+    "state/, product/, results/product/, reports/product/ \u2014 producer scope"
+  ],
+  "not_claimable": [
+    "any frozen bar met (counter-label 5/65 = 0.0769 vs absolute 1.0; geometry 0/3 bundles at 11 criteria) \u2014 Core Evaluation's ceded measurement",
+    "human_gate_ready / machine_gate_ready / ready_for_owner_session",
+    "any legal usefulness, or that any decision IS supporting/contrary/limiting"
+  ],
+  "claim_ceiling": "This pack recomputes product-owned claims from committed artifacts. It does NOT measure or re-measure any frozen bar: counter-label support (5/65 = 0.0769 vs frozen absolute 1.0) and map geometry (0/3 bundles at 11 criteria) are Core Evaluation's ceded measurements. It never asserts that any decision IS supporting, contrary or limiting. human_gate_ready and machine_gate_ready stay false while either accepted bar is unmet, and the accepted DO-NOT-SERVE order on served packet 38839347028 stands until an independent accepted audit of a rebuilt packet supersedes it."
+}

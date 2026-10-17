@@ -274,30 +274,23 @@ def test_fixture_cli_leg_passes_offline_and_declares_live_gates_not_evaluated(tm
 #
 # These tests close that gap: they sweep the committed artifact directory itself.
 # --------------------------------------------------------------------------- #
-FROZEN_GATE_PREFIXES = ("structural", "truth::", "recall::")
+# The predicate itself now lives in the product-owned audit pack
+# (product/audit_pack.py) so the independent auditor re-executes the SAME code
+# path in seconds instead of re-deriving it under a 45-minute work quantum
+# (rc 78 LEX_WORK_QUANTUM_EXPIRED killed the audit of run 39034350468).
+# The names and the assertions below are unchanged — only the implementation
+# moved to a shared, importable location (single source of truth).
+from product.audit_pack import (  # noqa: E402
+    FROZEN_GATE_PREFIXES,
+    fixture_artifact_paths,
+    sweep_fabricated_frozen_greens as _fabricated_passes,
+)
+
 REALITY_DIR = ROOT / "results" / "product" / "reality_check"
 
 
 def _committed_fixture_artifacts() -> list[Path]:
-    files = sorted(REALITY_DIR.glob("*fixture*.json"))
-    assert files, f"no committed fixture artifacts under {REALITY_DIR}"
-    return files
-
-
-def _fabricated_passes(node) -> list[str]:
-    """Frozen gate names reported as *passed* anywhere inside ``node``."""
-    found: list[str] = []
-    if isinstance(node, dict):
-        gate = node.get("gate")
-        if (isinstance(gate, str) and node.get("passed") is True
-                and gate.startswith(FROZEN_GATE_PREFIXES)):
-            found.append(gate)
-        for value in node.values():
-            found.extend(_fabricated_passes(value))
-    elif isinstance(node, list):
-        for value in node:
-            found.extend(_fabricated_passes(value))
-    return found
+    return fixture_artifact_paths(ROOT)
 
 
 def test_no_committed_fixture_artifact_carries_a_fabricated_frozen_green():
