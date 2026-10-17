@@ -1,0 +1,102 @@
+{
+  "schema": "lex-evaluation-frozen-hypothesis/1",
+  "run_id": "39020603510",
+  "lane": "evaluation",
+  "direction_version": 50,
+  "frozen_at_utc": "2026-10-17T09:40:00Z",
+  "frozen_before": "any execution of evaluation.frozen_bars.label_lineage_gate or python -m evaluation.frozen_bars.run_label_lineage_gate. Written and committed before the first line of the new gate module existed.",
+  "honest_disclosure_of_observation_order": {
+    "what_was_observed_before_this_freeze": "ONLY already-accepted, already-recorded measurements of OTHER lanes' artifacts. Specifically: (a) the pooled per-packet (n_scored, n_supported, support_rate) of every accepted-lineage packet, recorded in this lane's own ACCEPTED result results/evaluation/counter_authority_label_benchmark/39004097533.json leg2_bar_axis.per_packet; (b) the per-bundle geometry counts of the same packets, recorded in this lane's own ACCEPTED result results/evaluation/packet_lineage_sweep/38993062549.json per_packet[*].gate.geometry_per_bundle_counts; (c) the frozen verdict rules, read from their bytes; (d) one manual execution of the ACCEPTED entry point `python -m evaluation.frozen_bars.run_bar_gates` in default served_lineage mode against the accepted product mount (exit 0, PASS_NO_REGRESSION, labels 5/65, geometry 6/5/5), which reproduced already-accepted numbers exactly and produced no new information. Nothing else was run.",
+    "what_was_NOT_observed_before_this_freeze": [
+      "any execution of the new population-free counter-label regression predicate on any packet",
+      "any measurement of the one-row-removal control",
+      "any measurement of the blocking matrix under the new predicate",
+      "the existence or behaviour of this cycle's new module or record",
+      "any Frontier candidate (explicitly ceded to two Frontier teams and NOT re-measured here)"
+    ],
+    "why_the_predictions_are_not_peeking": "Every predicted value below is ARITHMETIC on numbers that were already frozen in accepted records before this cycle existed: the incumbent rate 5/65 is label_gate.INCUMBENT (a literal in accepted code), the packet rates 0.0 (0/7) and 0.1111111... (1/9) are recorded in the accepted 39004097533 record, and the incumbent 0.0769230769... is 5/65 exactly. The hypothesis is therefore a prediction AGAINST FROZEN ACCEPTED MEASUREMENTS, which is the strongest available form: the prediction can only be wrong if the accepted records are wrong or the frozen rule means something other than what it says.",
+    "no_threshold_predicate_or_success_rule_in_this_file_was_changed_after_seeing_a_result": true
+  },
+  "frozen_rubric_reuse_proof": {
+    "rule": "REUSE BY RE-HASH, NEVER RE-DERIVE (factory-wide requirement 18)",
+    "RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+    "source_ref": "cycle/frontier/frontier-served-packet-falsification/38877700234/team",
+    "local_copies_sha256_verbatim": {
+      "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+      "evaluation/frozen_bars/RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633"
+    },
+    "refused_if_mismatched": "exit 2 ENVIRONMENT, never a verdict",
+    "this_cycle_changes_no_rubric": "No criterion, lexicon, anchor, injection case, projection constant, bar or support test is added, removed, retuned or clarified. The new gate reads the same bytes through the same vendored harness as the accepted label gate."
+  },
+  "question": "Is the ACCEPTED counter-label-support gate able to observe a counter-label-support regression on any packet the product can actually ship, and can that ability be added WITHOUT inventing a threshold and WITHOUT falsely blocking an accepted artifact that is strictly better on the rate?",
+  "hypothesis": "H-LABEL-LINEAGE. The accepted counter-label gate is population-confounded: it can emit a regression verdict only when the scored-row population equals the incumbent 65 (accepted finding L3: 1 of 3 accepted-lineage packets admissible). Consequently a packet whose counter-label support has collapsed to 0.0 is admitted with gate_blocks_build=false (accepted finding L2, firing packet 38799024807 at 0/7), while the geometry gate blocks the same packet. Direction v50 mandates a RATE predicate ('label support below 5/65'), and the accepted implementation applies a COUNT predicate at a pinned population ('n_scored == 65 AND n_supported < 5'); accepted finding L4 shows those two readings disagree in the direction that fails a strictly BETTER artifact. Replacing the enforced predicate with direction's own rate reading, on the same qid-set lineage the geometry gate already uses, restores label-gate parity with geometry-gate blockability on the accepted lineage and removes the naive-consumer trap, inventing no number.",
+  "baseline": "The ACCEPTED counter-label gate as accepted in cycle 38971202786: evaluation/frozen_bars/label_gate.py::score_packet, enumerated and digest-described by the accepted evaluation/frozen_bars/VERDICT_CONTRACT.json (sha256 b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c, which this cycle keeps byte-unchanged). Baseline behaviour on the accepted lineage, from the accepted record 39004097533 leg2_bar_axis.per_packet: 38799024807 NOT_APPLICABLE / blocks=false at 0/7; 38812599575 NOT_APPLICABLE / blocks=false at 1/9; 38839347028 PASS_NO_REGRESSION / blocks=false at 5/65. Baseline geometry, from the accepted record 38993062549: the same three packets exit 1 / 1 / 0.",
+  "population": "Every directory under the accepted product mount results/product/gate_packet/ that contains <qid>.bundle.json for ALL THREE frozen qids de-kapitalverletzung, fr-bail-entretien, it-responsabilita-medica. This is the accepted population of record (38993062549.population: 5 packet dirs, 3 in scope). Packets with a different qid set are DISCOVERED and RECORDED as out-of-scope with a reason, never silently dropped. The frozen input bundles are read read-only; every derived input is written to a temporary directory and its sha256 recorded.",
+  "the_only_number_used": {
+    "enforced_predicate_rate": "5/65 = 0.07692307692307693, DERIVED at runtime as label_gate.INCUMBENT['n_supported'] / label_gate.INCUMBENT['n_scored'] from accepted pinned literals. It is not re-typed and not tuned.",
+    "why_rate_and_not_count": "Direction v50's own sentence is a rate sentence: 'label support below 5/65'. Accepted finding L4_rate_and_count_semantics_disagree (enforced, holds=true) shows the count reading would FAIL accepted packet 38812599575, whose support rate 1/9 = 0.1111 is STRICTLY BETTER than the incumbent 0.0769. Enforcing the count reading would therefore falsely block an accepted artifact that is better on the mandated measure, which is the never-green loop direction v50 exists to avoid. The count reading is therefore retained, REPORTED and NOT ENFORCED, and the report states exactly which packet the two readings disagree on.",
+    "absolute_bar_untouched": "The absolute frozen label bar remains support_rate == 1.0, REPORTED as LABEL_SOUND/LABEL_UNSOUND and NEVER enforced as a build blocker, unchanged."
+  },
+  "predicates": {
+    "P1_label_gate_parity_on_accepted_lineage": {
+      "statement": "Under the population-free rate predicate, the number of in-scope accepted-lineage packets on which the counter-label gate emits gate_blocks_build == true is 2 of 2 non-incumbent packets, matching the geometry gate's 2 of 2, and is 0 on the incumbent packet itself.",
+      "predicted": {
+        "38799024807": {"n_scored": 7, "n_supported": 0, "support_rate": 0.0, "verdict": "FAIL_REGRESSION", "gate_blocks_build": true},
+        "38812599575": {"n_scored": 9, "n_supported": 1, "support_rate": 0.1111111111111111, "verdict": "PASS_NO_REGRESSION", "gate_blocks_build": false},
+        "38839347028": {"n_scored": 65, "n_supported": 5, "support_rate": 0.07692307692307693, "verdict": "PASS_NO_REGRESSION", "gate_blocks_build": false}
+      }
+    },
+    "P2_accepted_findings_closed": {
+      "statement": "The population-free rate predicate closes accepted findings L2_gate_admits_total_label_collapse, L3_gate_population_predicate_is_confounded and L4_rate_and_count_semantics_disagree, and closes the accepted naive_consumer_trap of VERDICT_CONTRACT.json.",
+      "predicted": {"L2": "closed (38799024807 now FAIL_REGRESSION, blocks=true)", "L3": "closed (3 of 3 in-scope packets admissible, was 1 of 3)", "L4": "closed (count reading no longer the enforced predicate)", "naive_consumer_trap": "closed (exit 0 cannot be reached with n_supported == 0 on lineage)"}
+    },
+    "P3_minimal_delta_non_vacuity": {
+      "statement": "The gate is non-vacuous at MINIMAL delta on the incumbent population itself: deleting exactly ONE of the 5 supported rows from the accepted incumbent packet (65 scored -> 65 scored, 5 supported -> 4 supported, rate 4/65 = 0.0615) flips the verdict from PASS_NO_REGRESSION to FAIL_REGRESSION. No row population changes; a single evidence edit suffices.",
+      "predicted": "FAIL_REGRESSION, gate_blocks_build true, exit 1"
+    },
+    "P4_no_false_block_on_the_accepted_record": {
+      "statement": "Closing the population confound does NOT create a never-green loop: no packet in the accepted population is blocked other than the two whose support rate is strictly below the incumbent rate. In particular the strictly-better 38812599575 (1/9) is NOT blocked even though the non-enforced count reading would block it.",
+      "predicted": "0 false blocks; 38812599575 gate_blocks_build false under the enforced reading and true under the reported-only count reading, and that divergence is published"
+    },
+    "P5_off_lineage_still_refused": {
+      "statement": "Admitting the confound does not weaken the two existing refusals: a qid set that is not exactly the three frozen qids still yields NOT_APPLICABLE with no block (packet 38838116453, missing it-responsabilita-medica), and a non-frozen qid set is still refused by design with an actionable ValueError (offline_machinery_rehearsal: machinery-de/fr/it), never scored against an invented anchor profile.",
+      "predicted": "38838116453 NOT_APPLICABLE / blocks=false; machinery packet ValueError, no verdict"
+    },
+    "P6_nothing_accepted_moves": {
+      "statement": "Every frozen digest re-verifies byte-identical (RULES_LABEL 4457e971..., RULES_GEOMETRY a7452748..., reality ff57f556..., retrieval 187b0e54..., reality gate contract 06781743..., VERDICT_CONTRACT b9cdb894..., 14 vendored bytes), the accepted label_gate/geometry_gate/run_bar_gates/VERDICT_CONTRACT outputs are reproduced unchanged, and the four frozen reality legs plus the retrieval/counter-authority gates are not re-run or re-scored.",
+      "predicted": "all digests identical; accepted entry point still exit 0 with labels 5/65 and geometry 6/5/5"
+    }
+  },
+  "success_rule": {
+    "gate_passes_if": ["P1 holds exactly as predicted", "P2 holds", "P3 holds", "P4 holds", "P5 holds", "P6 holds"],
+    "gate_fails_if": "any predicted verdict differs from the observed verdict on any in-scope accepted packet, or any P3/P4/P5 non-vacuity or refusal control misbehaves",
+    "partial_credit_rule": "A failure of P1 for the 38812599575 row alone would mean the rate reading is not the sound one and the enforced predicate must be revisited; that is reported as a hypothesis failure, not silently re-picked.",
+    "explicitly_not_a_success_criterion": "Meeting the absolute label bar (support_rate == 1.0), meeting the absolute geometry bar (11/11 on every bundle), serving a packet, or anything about jurist usefulness. human_gate_ready stays false regardless of the outcome."
+  },
+  "product_decision_unlocked": "If P1-P6 hold, the two accepted bar verdicts become a complete machine-readable packet-admission input for Product direction obligation (1) over the whole accepted packet lineage, and the DO-NOT-SERVE order on the served packet 38839347028 becomes machine-enforced rather than narrative. If they fail, the label bar is not a usable admission gate and that is a bounded negative for the control plane.",
+  "claim_ceiling_if_it_passes": "At most: the counter-label regression gate blocks every accepted-lineage packet whose pooled counter-label support rate is strictly below the incumbent 5/65, including the 0/7 total collapse the accepted gate admitted; it reproduces every accepted incumbent number byte-for-byte; it invents no threshold; and it says nothing about the absolute bars, about retrieval or counter-authority recall, about the served packet's admissibility, or about whether the map is useful to a jurist. human_gate_ready stays false.",
+  "scope_and_non_goals": [
+    "NOT a repair of RULES_LABEL.json. Accepted finding L5 (the rubric's declared primary population is not the gate's incumbent population) is preserved verbatim and explicitly NOT resolved here; re-pointing or re-freezing the rubric is out of this lane's scope.",
+    "NOT a classifier and NOT a layout. The evidence-anchored counter classifier is frontier-counter-anchor-classifier's build; the query-conditioned geometry candidate is frontier-query-conditioned-map-geometry's build. Neither is re-measured, re-scored or re-graded here.",
+    "NOT a change to the accepted gate semantics. label_gate.py, geometry_gate.py, run_bar_gates.py and VERDICT_CONTRACT.json keep their accepted keys, values and exit-code contract; the accepted population-pinned reading is retained and reported alongside the new one so every previously accepted statement stays computable.",
+    "NOT an edit of the 174k suite, which stays closed, and NOT a re-run of the four frozen reality legs or the retrieval/counter-authority gates, whose frozen benchmarks stay byte-unchanged.",
+    "NOT .github/**, which is control-plane scope; every control-plane gap encountered is recorded in state, not patched."
+  ],
+  "frozen_read_only": [
+    "evaluation/frozen_bars/RULES_LABEL.json (4457e971...)",
+    "evaluation/frozen_bars/RULES_GEOMETRY.json (a7452748...)",
+    "evaluation/frozen_bars/VERDICT_CONTRACT.json (b9cdb894...)",
+    "evaluation/frozen_bars/label_gate.py (640abd8...)",
+    "evaluation/frozen_bars/geometry_gate.py (564dc6...)",
+    "evaluation/frozen_bars/run_bar_gates.py (564dc682...)",
+    "evaluation/reality_gate/frozen_benchmark.json (ff57f556...)",
+    "evaluation/reality_gate/GATE_CONTRACT.json (06781743...)",
+    "evaluation/retrieval_gate/frozen_retrieval_benchmark.json (187b0e54...)",
+    "the accepted product mount, read-only"
+  ],
+  "prediction_source_refs": [
+    "results/evaluation/counter_authority_label_benchmark/39004097533.json (leg2_bar_axis.per_packet: pooled n_scored/n_supported/support_rate per accepted-lineage packet; gate_findings_fired L2/L3/L4/L5/L6)",
+    "results/evaluation/packet_lineage_sweep/38993062549.json (per_packet[*].gate.geometry_per_bundle_counts and exit codes; F2_INCUMBENT_NOT_A_FLOOR)"
+  ]
+}
