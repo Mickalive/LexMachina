@@ -106,8 +106,19 @@ def test_expansion_keeps_cluster_ids_and_improves_cluster_labels():
     ids_first = [c["cluster_id"] for c in first["clusters"]]
     ids_after = [c["cluster_id"] for c in expanded["clusters"]]
     assert ids_after == [cid for cid in ids_first if cid in set(ids_after)]
+    declared = set(ids_after)
     for d in expanded["decisions"]:
-        assert d["cluster_id"] in set(ids_after)
+        # Same contract as the map test: a decision either belongs to a
+        # declared group or is explicitly flagged unclustered context.  The
+        # adopted geometry variant gives un-hydrated rows unique negative ids
+        # and no cluster record, so a bare membership check would no longer
+        # cover every point -- but an unflagged orphan id still must not
+        # appear.
+        if d["cluster_id"] not in declared:
+            assert d["cluster_id"] < 0 and d.get("unclustered") is True, (
+                f"decision {d['decision_id']} carries an undeclared, "
+                f"unflagged cluster_id {d['cluster_id']}"
+            )
     assert all(c.get("label") for c in expanded["clusters"])
     assert len(expanded["clusters"]) == len(first["clusters"])
 

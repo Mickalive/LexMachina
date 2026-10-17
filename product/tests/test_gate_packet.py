@@ -558,6 +558,18 @@ def test_finalize_summary_handles_the_all_pass_live_case():
     key was written.  Python short-circuits, so only a packet where every
     question passed *and* the mode was live reached it - the single outcome the
     ceremony needs.  The 3/3 packet was produced, then lost to the KeyError.
+
+    Factory direction v50 product obligation (1) changed exactly one line of
+    this test's expectation.  Run-time admissibility is no longer sufficient
+    for owner readiness: the two ACCEPTED frozen-bar verdicts are a
+    machine-readable input of packet admission, and both are unmet on the
+    committed packet (counter-label support 5/65 against a frozen absolute bar
+    of 1.0; 0 of 3 served bundles passing all 11 geometry criteria; plus the
+    independent accepted DO-NOT-SERVE order).  So the packet that passes every
+    run-time guard must now come back ``ready_for_owner_session=False`` with
+    the correction recorded, instead of True.  The crash regression itself --
+    all three questions admissible, guards all ok, no KeyError -- is what this
+    test still pins.
     """
     passing = [
         {"qid": "a", "status": "admissible", "guards_ok": True},
@@ -568,7 +580,12 @@ def test_finalize_summary_handles_the_all_pass_live_case():
     assert live["ok"] is True
     assert live["admissible_questions"] == ["a", "b", "c"]
     assert live["guards_all_ok"] is True
-    assert live["ready_for_owner_session"] is True
+    # Run-time computation alone would have claimed readiness...
+    assert live["packet_admission"]["run_time_ready_for_owner_session_before_gate"] is True
+    # ...and the accepted-bar gate corrects it while the bars are unmet.
+    assert live["packet_admission"]["gate_applied"] is True
+    assert live["ready_for_owner_session"] is False
+    assert live["packet_admission"]["admissible"] is False
 
     fixture = gp.finalize_summary({"questions": list(passing)}, 3, "fixture")
     assert fixture["ok"] is True

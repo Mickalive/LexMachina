@@ -139,6 +139,17 @@ h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#737b88;ma
 <script src="/static/lex_gate_switch.js"></script>
 <script>
 const COLORS=["#2459a8","#d4771d","#27845b","#a83b4b","#6d54a8","#8a653a","#b34d91","#65717f"];
+// Unclustered-context shells use UNCLUSTERED_COLOR, never a cluster colour:
+// they are not part of any group, so borrowing a group's hue would assert a
+// grouping that does not exist. Declared, not inherited from the previous
+// fillStyle.
+const UNCLUSTERED_COLOR="#98a2ad";
+function colorFor(cid){
+  if(cid==null||Number(cid)<0)return UNCLUSTERED_COLOR;
+  const n=Number(cid);
+  if(!Number.isFinite(n))return UNCLUSTERED_COLOR;
+  return COLORS[((n%COLORS.length)+COLORS.length)%COLORS.length];
+}
 const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
 let BUNDLE=null,PTS=[],RUN_ID=null,VIEW={scale:1,ox:0,oy:0};
 
@@ -185,7 +196,13 @@ function draw(){
   for(const p of PTS){
     const s=screenPos(p);p._px=s.x;p._py=s.y;
     ctx.beginPath();ctx.arc(s.x,s.y,p.counter_status==="cited"?7:5,0,Math.PI*2);
-    ctx.fillStyle=COLORS[(p.cluster_id??0)%COLORS.length];ctx.globalAlpha=p.is_outlier?.48:.88;ctx.fill();ctx.globalAlpha=1;
+    // Un-hydrated rows carry a NEGATIVE cluster_id (unique per unclustered
+    // context shell). JS % truncates toward zero, so the raw modulo gives a
+    // negative index and COLORS[-n] is undefined -> the canvas silently keeps
+    // the previous fillStyle and paints every shell the same wrong colour.
+    // colorFor() wraps into range and paints shells in the declared neutral
+    // slot; see the adopted-geometry precondition note.
+    ctx.fillStyle=colorFor(p.cluster_id);ctx.globalAlpha=p.is_outlier?.48:.88;ctx.fill();ctx.globalAlpha=1;
     if(counterEvidenced(p)){ctx.lineWidth=2.5;ctx.strokeStyle="#b72736";ctx.stroke()}
     else if(isCounter(p)){ctx.lineWidth=2;ctx.strokeStyle="#8a6d1f";ctx.setLineDash([4,3]);ctx.stroke();ctx.setLineDash([])}
     if(p.counter_status==="cited"){ctx.lineWidth=2.2;ctx.strokeStyle="#d59b00";ctx.stroke()}
@@ -237,7 +254,7 @@ function renderCounters(){
 function renderClusters(){
   const cs=BUNDLE?.clusters||[];
   document.getElementById("clusterList").innerHTML=cs.map(c=>
-    '<div class="card cluster"><span class="dot" style="background:'+COLORS[c.cluster_id%COLORS.length]+'"></span><div><b>C'+c.cluster_id+'</b> · '+c.size+' décisions<br>'+esc(c.label)+'</div></div>'
+    '<div class="card cluster"><span class="dot" style="background:'+colorFor(c.cluster_id)+'"></span><div><b>C'+c.cluster_id+'</b> · '+c.size+' décisions<br>'+esc(c.label)+'</div></div>'
   ).join("");
 }
 function showDetail(id){

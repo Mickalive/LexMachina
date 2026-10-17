@@ -78,6 +78,7 @@ import human_gate_session as runner  # noqa: E402
 from gate_rehearsal import free_port, http_json, _wait_health  # noqa: E402  (existing shell helpers)
 
 from product.query.gate_admissibility import verify_bundle  # noqa: E402
+from product.packet_admission import enforce_owner_session  # noqa: E402
 from product.replay_bundle import content_sha256  # noqa: E402
 
 QUESTIONS_PATH = PRODUCT_ROOT / "data" / "gate_packet_questions.json"
@@ -410,6 +411,15 @@ def finalize_summary(summary: dict, n_questions: int, mode: str) -> dict:
     if mode == "fixture":
         summary["ready_for_owner_session"] = False
         summary["fixture_note"] = FIXTURE_CLAIM_CEILING
+    # Factory direction v50 product obligation (1): run-time admissibility is
+    # NOT sufficient.  The two accepted frozen-bar verdicts are a
+    # machine-readable input of packet admission, so a packet that passes every
+    # run-time guard still cannot claim owner readiness while the accepted
+    # DO-NOT-SERVE order stands (counter-label support 5/65 against a frozen
+    # absolute bar of 1.0; 0 of 3 served bundles passing all 11 geometry
+    # criteria).  ``enforce_owner_session`` derives the field and records
+    # whether it had to correct a true run-time claim.
+    summary = enforce_owner_session(summary)
     return summary
 
 

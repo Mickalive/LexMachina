@@ -46,6 +46,7 @@ from typing import Any
 
 from .bundle import build_bundle, validate_bundle
 from .qmap import MapModel, build_map, fit_map_model
+from .qmap_variants import build_variant_geometry
 
 #: One upstream page is enough to draw a real map immediately.  The accepted
 #: adapter returns at most ``page_size`` hits for it.
@@ -274,8 +275,8 @@ def expand_query_bundle(
     counter-authority stages remain the separate ``enrich_query_bundle`` job.
     """
     from .pipeline import (
-        _candidate_to_product, _map_bundle, _merge_relations, _retrieve,
-        _retrieval_config, typed_citation_relations,
+        _candidate_to_product, _map_bundle, _merge_relations, _query_language,
+        _retrieve, _retrieval_config, _select_geometry, typed_citation_relations,
     )
 
     base_errors = validate_bundle(initial_bundle)
@@ -301,8 +302,24 @@ def expand_query_bundle(
         d["decision_id"]: (d.get("x"), d.get("y"), d.get("cluster_id"), bool(d.get("is_outlier")))
         for d in existing
     }
-    model = map_model_from_bundle(initial_bundle)
-    decisions, clusters, shared_relations = build_map(merged, model=model)
+    # Expansion must use the SAME geometry the first page was built with.
+    # Rebuilding the map with a different geometry here would re-label every
+    # group the researcher has already read, which is exactly what the
+    # cluster-id-stability contract forbids; measured this cycle, the incumbent
+    # produced a disjoint id space (0..N) from the variant's (-N..N) on the
+    # same rows.  The adopted variant is a pure function of the merged row set,
+    # so recomputing it over `merged` is the correct "same space, more rows".
+    geometry = _select_geometry()
+    if geometry["variant"]:
+        decisions, clusters, shared_relations = build_variant_geometry(
+            merged,
+            variant=geometry["variant"],
+            query_language=_query_language(product),
+        )
+        shared_relations = []
+    else:
+        model = map_model_from_bundle(initial_bundle)
+        decisions, clusters, shared_relations = build_map(merged, model=model)
     # The expanded bundle sees strictly more upstream rows than the first page,
     # so it re-derives the typed citation edges from its own candidate set: a
     # relation revealed only after expansion must not be lost, and an edge whose

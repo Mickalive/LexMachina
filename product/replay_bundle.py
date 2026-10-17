@@ -487,7 +487,22 @@ def replay_claim_bundle_against_frozen_cache(dest=None) -> tuple[dict, Path]:
     cache root at configuration time, so the module-global binding is swapped
     for the duration of the replay and restored in ``finally`` — no frontier
     code is touched and the process is left exactly as it was found.
+
+    GEOMETRY PIN (run 38984833779).  This replays a HISTORICAL, claim-bearing
+    artifact (``CYCLE_38759730609_bundle.json``).  Its map was produced by the
+    incumbent geometry, before Core Product adopted the accepted
+    ``frontier-query-conditioned-map-geometry`` component as the default.  A
+    replay therefore has to run the geometry that produced the artifact, or the
+    identity hash would fail on cluster labels/sizes/member counts that changed
+    for a reason unrelated to retrieval.
+
+    The artifact is never regenerated to match the new default: overwriting a
+    committed claim-bearing result to make a test green is exactly what
+    AGENTS.md rule 6 forbids.  The pin is a *replay* parameter, it restores the
+    previous environment in ``finally``, and the divergence is disclosed by
+    ``claim_geometry_note()`` rather than hidden.
     """
+    import os  # noqa: PLC0415
     import tempfile  # noqa: PLC0415
 
     from product.query import pipeline as _pipeline  # noqa: PLC0415
@@ -500,11 +515,17 @@ def replay_claim_bundle_against_frozen_cache(dest=None) -> tuple[dict, Path]:
     base = Path(dest) if dest else Path(tempfile.mkdtemp(prefix="lex_claim_cache_"))
     root = materialize_claim_cache(base)
     original = _pipeline.product_cache_dir
+    previous_variant = os.environ.get("LEX_QMAP_VARIANT")
     _pipeline.product_cache_dir = lambda: root
+    os.environ["LEX_QMAP_VARIANT"] = "incumbent"
     try:
         bundle = run_query_initial(query, top_n=top_n, retrieval_mode="offline")
     finally:
         _pipeline.product_cache_dir = original
+        if previous_variant is None:
+            os.environ.pop("LEX_QMAP_VARIANT", None)
+        else:
+            os.environ["LEX_QMAP_VARIANT"] = previous_variant
     return bundle, root
 
 

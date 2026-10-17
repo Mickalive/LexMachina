@@ -59,7 +59,23 @@ def test_map_coordinates_finite_bounded_and_clustered():
         assert math.isfinite(d["x"]) and math.isfinite(d["y"])
         assert -1.0001 <= d["x"] <= 1.0001
         assert -1.0001 <= d["y"] <= 1.0001
-        assert d["cluster_id"] in cluster_ids
+        # Every point must be accounted for: either it belongs to a declared
+        # group, or it is explicitly flagged unclustered context.  The adopted
+        # geometry variant (accepted frontier-query-conditioned-map-geometry)
+        # gives un-hydrated rows a unique NEGATIVE cluster_id and emits no
+        # cluster record for them, so "cluster_id in cluster_ids" alone is no
+        # longer the whole contract -- but an unflagged negative id would still
+        # be an orphan, which is what this pins.  A renderer that ignores the
+        # additive `unclustered` flag must still work (it is not required).
+        cid = d["cluster_id"]
+        if cid in cluster_ids:
+            assert cid >= 0, f"declared cluster id must be non-negative: {cid}"
+        else:
+            assert cid < 0, f"decision has an undeclared, unflagged cluster_id: {cid}"
+            assert d.get("unclustered") is True, (
+                f"unclustered context row {d['decision_id']} is not flagged "
+                f"unclustered, so the renderer cannot tell it apart from a group"
+            )
     assert any(d.get("is_outlier") for d in b["decisions"])
 
 
@@ -384,6 +400,10 @@ def test_reranker_head_recall_places_remote_top_federal_row_in_evidence_head():
         "citation": "TF 4A_177/2017",
         "regeste": "",
         "snippet": "curia deliberanda est sine mora.",  # short, zero overlap: no local signal
+        # The accepted adapter always emits `channels` (required field,
+        # frontier/frontier-query-retrieval/ocl_adapter/bundle.py:59); measured
+        # 0 of 704 served rows across the four frozen legs carry it empty.
+        "channels": ["search"],
     })
     bundle = {
         "query": "licenciement contrat de travail circonstances",
@@ -411,6 +431,13 @@ def _silent_federal_pool(n_fill=30):
     ranks 6..15 (see REMOTE_HEAD_RECALL_REMOTE_TOP's measured-semantics
     note) but cross-language TF-IDF similarity collapses, so local scoring
     buries them below the evidence head.
+
+    The filler rows carry ``channels: ["search"]`` because the accepted
+    adapter always emits that field (required field,
+    ocl_adapter/bundle.py:59; measured 0 of 704 served rows across the four
+    frozen legs are channel-less), and the head-recall window is now ranked
+    within the query-answering channels.  A filler pool with no channel
+    provenance would model a row shape the adapter cannot emit.
     """
     french = (
         "Dans quelles conditions le juge suisse s'abstient-il de revoir une "
@@ -426,6 +453,7 @@ def _silent_federal_pool(n_fill=30):
             "citation": f"GE {i}",
             "regeste": "",
             "snippet": "decision commerciale conseil administration juge abstient revoir " * 6,
+            "channels": ["search"],
         })
     return french, decisions
 
@@ -494,6 +522,7 @@ def test_reranker_recalls_federal_row_at_remote_rank_12_buried_by_language_gap(m
         "citation": "TF 4A_219/2015",
         "regeste": "",
         "snippet": "curia deliberanda est sine mora.",
+        "channels": ["search"],  # required adapter field; see the sibling test
     })
     bundle = {"query": french, "query_variants": [], "decisions": decisions,
               "provenance": {}}
@@ -515,6 +544,150 @@ def test_reranker_recalls_federal_row_at_remote_rank_12_buried_by_language_gap(m
     order_old = [d["decision_id"] for d in buried["decisions"]]
     assert order_old.index("DIRECT-TF") >= 10, order_old[:12]
     assert by_id_old["DIRECT-TF"]["remote_head_recall"] is False
+
+
+def test_head_recall_window_is_ranked_within_query_answering_channels(monkeypatch):
+    """Obligation (5), run 38984833779: a leading_case row must not be able to
+    consume the head-recall window.
+
+    Measured on the frozen business-judgment-rule leg (180 candidates,
+    offline replay of this repo's own cache): all five frozen direct-TF BJR
+    authorities were present in the pool -- none was a retrieval miss -- and
+    all five arrived through the ``search`` channel, where they rank 2/3/4/8/33.
+    But the retired global mixed-scale ordering ranked ``leading_case`` rows
+    (a *global citation-count leaderboard*, raw counts in the thousands) above
+    every lexical search row (raw scores ~40-70), so 6 of the 7 qualifying
+    federal rows were leading_case and the window recalled 0 of the 5 frozen
+    authorities.
+
+    This test pins the fix: the window is ranked within the query-answering
+    channels, so a high-scoring leading_case row above the window no longer
+    pushes a search-channel federal authority out of it.
+    """
+    # n_fill=14 is the measured discriminating shape (verified this cycle):
+    # DIRECT-TF sits at search-channel remote rank 15, i.e. exactly on the
+    # window edge.  LEADING-HEAVY scores above every filler row on the global
+    # citation-count scale, so under the retired mixed-scale ordering it takes
+    # remote rank 1 and pushes DIRECT-TF to 16 -- one past the window.
+    french, decisions = _silent_federal_pool(n_fill=14)
+    decisions.append({
+        "decision_id": "LEADING-HEAVY",
+        "court": "bger",
+        "score": 6984.0,
+        "title": "Verwaltungsrat",
+        "citation": "TF 9",
+        "regeste": "",
+        "snippet": "curia deliberanda est sine mora.",
+        "channels": ["leading_case"],
+    })
+    decisions.append({
+        "decision_id": "DIRECT-TF",
+        "court": "bger",
+        "score": 70.5,
+        "title": "Verwaltungsrat",
+        "citation": "TF 4A_219/2015",
+        "regeste": "",
+        "snippet": "curia deliberanda est sine mora.",
+        "channels": ["search"],
+    })
+    bundle = {"query": french, "query_variants": [], "decisions": decisions,
+              "provenance": {}}
+    reranked = rerank_product_bundle(bundle)
+    order = [d["decision_id"] for d in reranked["decisions"]]
+    by_id = {d["decision_id"]: d for d in reranked["decisions"]}
+    moved = reranked["provenance"]["product_rerank"]["remote_head_recall"]["moved"]
+
+    assert by_id["DIRECT-TF"]["remote_head_recall"] is True, order[:12]
+    assert order.index("DIRECT-TF") < 10
+    # The leading_case row is NOT recalled: it is not a per-question ranking.
+    assert by_id["LEADING-HEAVY"]["remote_head_recall"] is False
+    assert "LEADING-HEAVY" not in [m["decision_id"] for m in moved]
+    # Boundedness is unchanged: at most REMOTE_HEAD_RECALL_MAX_MOVED rows move.
+    assert len(moved) <= relevance_mod.REMOTE_HEAD_RECALL_MAX_MOVED
+
+    # Non-vacuity: re-instate the retired mixed-scale ordering and the same
+    # leading_case row takes the slot and DIRECT-TF is buried.  If this control
+    # could not fail, the shipped behaviour would not be doing any work.
+    def retired_mixed_scale(scored):
+        raws = [
+            float(d["retrieval_score_raw"])
+            if isinstance(d.get("retrieval_score_raw"), (int, float)) else 0.0
+            for d in scored
+        ]
+        order_i = sorted(range(len(scored)), key=lambda i: (-raws[i], i))
+        rank = {i: r + 1 for r, i in enumerate(order_i)}
+        out = []
+        for pos, dec in enumerate(scored):
+            if pos < relevance_mod.REMOTE_HEAD_RECALL_LOCAL_HEAD:
+                continue
+            if str(dec.get("court") or "").lower() not in relevance_mod.REMOTE_FEDERAL_COURTS:
+                continue
+            if rank[pos] > relevance_mod.REMOTE_HEAD_RECALL_REMOTE_TOP:
+                continue
+            out.append({"pos": pos, "decision_id": dec.get("decision_id"),
+                        "from_rank": pos + 1, "remote_rank": rank[pos]})
+            if len(out) >= relevance_mod.REMOTE_HEAD_RECALL_MAX_MOVED:
+                break
+        return out
+
+    monkeypatch.setattr(relevance_mod, "_remote_head_recall", retired_mixed_scale)
+    control = rerank_product_bundle(
+        {"query": french, "query_variants": [], "decisions": decisions,
+         "provenance": {}})
+    control_by_id = {d["decision_id"]: d for d in control["decisions"]}
+    control_order = [d["decision_id"] for d in control["decisions"]]
+    assert control_by_id["LEADING-HEAVY"]["remote_head_recall"] is True
+    assert control_by_id["DIRECT-TF"]["remote_head_recall"] is False
+    assert control_order.index("DIRECT-TF") >= 10
+
+
+def test_head_recall_window_never_moves_a_row_that_is_already_in_the_head():
+    """Boundedness invariants, re-pinned against the channel-ranked window:
+    a row that was ALREADY in the evidence head before the splice is never
+    re-spliced, head order is otherwise preserved, ranks stay dense and
+    unique, and nothing is promoted above the recall insert point."""
+    french, decisions = _silent_federal_pool(n_fill=20)
+    for i, channels in enumerate((["search"], ["leading_case"], ["citation.incoming"])):
+        decisions.append({
+            "decision_id": f"FED-{i}",
+            "court": "bger",
+            "score": 5000.0 - i,
+            "title": "Verwaltungsrat",
+            "citation": f"TF {i}",
+            "regeste": "",
+            "snippet": "curia deliberanda est sine mora.",
+            "channels": channels,
+        })
+    reranked = rerank_product_bundle(
+        {"query": french, "query_variants": [], "decisions": decisions,
+         "provenance": {}})
+    order = [d["decision_id"] for d in reranked["decisions"]]
+    moved = reranked["provenance"]["product_rerank"]["remote_head_recall"]["moved"]
+
+    # Every rank is dense and unique after the splice.
+    assert sorted(d["rank"] for d in reranked["decisions"]) == list(
+        range(1, len(decisions) + 1))
+
+    # FED-0 is the only qualifying row here (search channel, federal); FED-1 is
+    # leading_case and FED-2 a citation shell, so neither may be recalled.
+    assert [m["decision_id"] for m in moved] == ["FED-0"]
+    assert moved[0]["from_rank"] > relevance_mod.REMOTE_HEAD_RECALL_LOCAL_HEAD
+    assert moved[0]["to_rank"] >= relevance_mod.REMOTE_HEAD_RECALL_INSERT_AT
+    by_id = {d["decision_id"]: d for d in reranked["decisions"]}
+    assert by_id["FED-1"]["remote_head_recall"] is False
+    assert by_id["FED-2"]["remote_head_recall"] is False
+
+    # The head up to the insert point is untouched by the splice: recall only
+    # appends into the head tail and shifts the rest down by the moved count.
+    baseline = rerank_product_bundle(
+        {"query": french, "query_variants": [], "decisions": decisions,
+         "provenance": {}})
+    insert = relevance_mod.REMOTE_HEAD_RECALL_INSERT_AT - 1
+    assert order[:insert] == [d["decision_id"] for d in baseline["decisions"]][:insert]
+    # Nothing was demoted out of the head by the splice.
+    assert set(order[:relevance_mod.REMOTE_HEAD_RECALL_LOCAL_HEAD]) >= set(
+        d["decision_id"] for d in baseline["decisions"][
+            :relevance_mod.REMOTE_HEAD_RECALL_LOCAL_HEAD - len(moved)])
 
 
 # --------------------------------------------------------------------------- #

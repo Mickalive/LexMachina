@@ -7,9 +7,11 @@ through narrow adapters rather than reimplemented here.
 from __future__ import annotations
 
 import copy
+import os
 import re
 import sys
 import time
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +20,16 @@ from .answer_contract import ensure_coverage
 from .answer_gap import ensure_cited_answer
 from .bundle import build_bundle, validate_bundle
 from .qmap import build_map
+from .qmap_variants import (
+    DEFAULT_VARIANT as DEFAULT_GEOMETRY_VARIANT,
+    GEOMETRY_ACCEPT_COMMIT,
+    GEOMETRY_ACCEPT_RUN,
+    GEOMETRY_COMPONENT,
+    GEOMETRY_FROZEN_CRITERIA_PASSED,
+    GEOMETRY_RULES_SHA256,
+    build_variant_geometry,
+    variant_available,
+)
 from .relevance import rerank_product_bundle
 from .adversarial_retrieval import (
     ADVERSARIAL_RETRIEVAL_VERSION,
@@ -393,9 +405,65 @@ def _relations_provenance(candidates: list[dict] | None, typed: list[dict], shar
     }
 
 
+def _select_geometry() -> dict:
+    """Which geometry variant builds the map, and whether it is usable.
+
+    The accepted ``frontier-query-conditioned-map-geometry`` component is the
+    default because it was independently accepted (gate=PASS,
+    safe_to_integrate=true) and scores 22/33 frozen geometry criteria against
+    the incumbent's 16/33 with zero regressions.  Set
+    ``LEX_QMAP_VARIANT=incumbent`` to fall back to ``qmap.build_map``; set it to
+    the retired window's name or any unknown value and the product refuses to
+    guess, falling back to the incumbent and saying so in provenance.
+
+    The fallback is a hard requirement, not politeness: if the accepted
+    component is absent (frontier/** not vendored, dependency broken) the
+    product must still serve a clickable map.
+    """
+    requested = (os.environ.get("LEX_QMAP_VARIANT") or DEFAULT_GEOMETRY_VARIANT).strip()
+    if requested in ("incumbent", "v1", "build_map"):
+        return {"variant": None, "requested": requested, "available": None,
+                "fallback_reason": "incumbent explicitly requested"}
+    if not variant_available(requested):
+        return {"variant": None, "requested": requested, "available": False,
+                "fallback_reason": (
+                    f"accepted component or variant {requested!r} unavailable; "
+                    "serving the incumbent geometry instead of failing the query")}
+    return {"variant": requested, "requested": requested, "available": True,
+            "fallback_reason": ""}
+
+
+def _query_language(product_bundle: dict) -> str:
+    """Language band for the adopted layout, from the retrieval evidence.
+
+    The variant lays decisions out in language bands with the query's own
+    language on top.  The adapter reports the query language per candidate;
+    the modal served language is the product's answer and is measured rather
+    than guessed from the query string.
+    """
+    langs = Counter(
+        str(d.get("language") or "") for d in product_bundle.get("decisions") or []
+    )
+    langs.pop("", None)
+    langs.pop("None", None)
+    if not langs:
+        return "de"
+    top = max(langs.items(), key=lambda kv: (kv[1], kv[0] == "de", kv[0]))[0]
+    return top if top in ("de", "fr", "it") else "de"
+
+
 def _map_bundle(product_bundle: dict, started_at: float, n_clusters: int = 0,
                 candidates: list[dict] | None = None) -> dict:
-    mapped, clusters, shared_relations = build_map(product_bundle["decisions"], n_clusters=n_clusters)
+    geometry = _select_geometry()
+    if geometry["variant"]:
+        mapped, clusters, _variant_meta = build_variant_geometry(
+            product_bundle["decisions"],
+            variant=geometry["variant"],
+            query_language=_query_language(product_bundle),
+        )
+        shared_relations: list[dict] = []
+    else:
+        mapped, clusters, shared_relations = build_map(product_bundle["decisions"], n_clusters=n_clusters)
     typed_relations = typed_citation_relations(list(candidates or []), mapped)
     relations = _merge_relations(typed_relations, shared_relations)
     decisions = []
@@ -412,7 +480,30 @@ def _map_bundle(product_bundle: dict, started_at: float, n_clusters: int = 0,
         "phase": "map_ready",
         "latency_seconds": round(time.time() - started_at, 3),
         "retrieval_component": "frontier-query-retrieval/v2",
-        "map_component": "query-conditioned-tfidf-v45",
+        "map_component": (
+            f"{GEOMETRY_COMPONENT}/{geometry['variant']}" if geometry["variant"]
+            else "query-conditioned-tfidf-v45"
+        ),
+        "geometry": {
+            "variant": geometry["variant"] or "incumbent",
+            "requested": geometry["requested"],
+            "accepted_component": GEOMETRY_COMPONENT if geometry["variant"] else None,
+            "accept_run": GEOMETRY_ACCEPT_RUN if geometry["variant"] else None,
+            "accept_commit": GEOMETRY_ACCEPT_COMMIT if geometry["variant"] else None,
+            "frozen_rules_sha256": GEOMETRY_RULES_SHA256 if geometry["variant"] else None,
+            "frozen_criteria_passed_accepted": (
+                GEOMETRY_FROZEN_CRITERIA_PASSED if geometry["variant"] else None
+            ),
+            "fallback_reason": geometry["fallback_reason"],
+            "claim_ceiling": (
+                "This layout places rows by retrieval relevance and language "
+                "band, not by legal similarity: PROJ_SPEARMAN and PROJ_KNN10 "
+                "fail on every bundle under the adopted variant, and 0 of 3 "
+                "served bundles pass all 11 frozen criteria. Group membership "
+                "and placement are not evidence that an authority supports, "
+                "limits or contradicts the answer."
+            ) if geometry["variant"] else None,
+        },
         "fixture_mode": False,
         "relations_provenance": _relations_provenance(candidates, typed_relations, shared_relations),
     })

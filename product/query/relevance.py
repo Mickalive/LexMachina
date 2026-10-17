@@ -60,11 +60,61 @@ REMOTE_SAFEGUARD_MIN_REMOTE = 0.5
 #: inside the new one.  The window's effective membership therefore depends
 #: on how many non-relevance-channel rows outrank search rows; it is a
 #: channel-scale-mixing dependency, not a source-page bound.
+#:
+#: WINDOW RANKED WITHIN QUERY-ANSWERING CHANNELS (2026-10-16, run
+#: 38984833779).  The mixed-scale ordering above is not merely inelegant, it
+#: is the mechanism's binding defect, and widening the window cannot fix it.
+#: Independent offline replay of the frozen business-judgment-rule leg over
+#: this cycle's cache (180 candidates, product/scratch_bjr_probe.py, since
+#: replaced by the regression tests in product/tests/test_query_map_mvp.py):
+#:
+#:   * the five frozen direct-TF BJR authorities are ALL present in the pool,
+#:     none is a retrieval miss — they sit at local ranks 8/9/27/44/75 with
+#:     local TF-IDF similarity 0.000-0.016 (French question vs German thin
+#:     snippets), so none of them can win a blended score against
+#:     off-domain rows;
+#:   * every one of the five entered through the ``search`` channel, and
+#:     within that channel they rank 2 / 3 / 4 / 8 / 33 — i.e. the source
+#:     index itself considers them top answers to this question;
+#:   * but the mixed-scale global ordering spends its whole window on
+#:     ``leading_case`` rows, which are a *global citation-count leaderboard*
+#:     (citation counts 6984/5710/4138/…) and therefore not a per-question
+#:     ranking at all.  Measured under the shipped window of 15: 6 of the 7
+#:     qualifying federal rows are ``leading_case`` and only 1 is ``search``.
+#:
+#: Consequence, measured: under the shipped mixed-scale window the BJR leg
+#: recalls 0 of the 5 frozen authorities into the evidence head.  Ranking the
+#: window within the query-answering channels instead recalls 1 of 5
+#: (bger_4A_259_2016, search rank 3, local rank 75) while the two the audit
+#: measured already inside the head (bger_4A_219_2015 at rank 8,
+#: bger_4A_626_2013 at rank 9, search ranks 2 and 4) are untouched — they
+#: are already at the top of the head and no window change can demote them.
+#: So the reachable ceiling of this mechanism rises from 2/5 to 3/5.
+#:
+#: This narrows the window's membership to rows the source index actually
+#: ranked FOR THIS QUESTION.  It never adds a row that did not arrive through
+#: a query-answering channel, never demotes anything, never reorders the
+#: head, and leaves every other bound (federal-only, max 3 moved, insert at
+#: 8..10, already-in-head rows untouched) byte-unchanged.  A row recalled by
+#: it still reaches only the generator; the citation-validation and
+#: adversarial passes downstream remain free to reject it.
+#: ``leading_case`` is excluded because it answers "what is heavily cited in
+#: Swiss case law", never "what answers this question"; the citation channels
+#: are excluded because their rows are expansion shells whose existence in the
+#: pool says nothing about this question's ranking.
 REMOTE_HEAD_RECALL_REMOTE_TOP = 15
 REMOTE_HEAD_RECALL_LOCAL_HEAD = 10
 REMOTE_HEAD_RECALL_MAX_MOVED = 3
 REMOTE_HEAD_RECALL_INSERT_AT = 8
 REMOTE_FEDERAL_COURTS = frozenset({"bger", "bge", "bstger"})
+#: Channels whose raw score ranks answers *to this question*.  A row
+#: recalled by the head-recall window must have arrived through one of these;
+#: a row that arrived only through ``leading_case`` (a global citation-count
+#: leaderboard) or a citation-expansion channel (a shell derived from an edge,
+#: not from this question's result ranking) is not a candidate for recall.
+#: Names come from the accepted adapter's channel vocabulary
+#: (frontier/frontier-query-retrieval/ocl_adapter/normalize.py).
+REMOTE_RECALL_ANSWER_CHANNELS = frozenset({"search", "search.language_filter"})
 ARTICLE_RE = re.compile(
     r"(?i)\bart(?:\.|icle)?\s*(\d+[a-z]?)"
     r"(?:\s*(?:al\.|alin[ée]a|abs\.|cpv\.)\s*(\d+))?"
@@ -147,13 +197,27 @@ def _anchor_score(text: str, anchors: Iterable[tuple[str, str | None]]) -> float
 def _remote_head_recall(scored: list[dict]) -> list[dict]:
     """Federal rows the source index ranked inside the recall window but local
     scoring left below the evidence head.  Returned in current relative order
-    (best local first), capped so displacement stays bounded."""
-    raws = [
-        (float(d.get("retrieval_score_raw"))
-         if isinstance(d.get("retrieval_score_raw"), (int, float)) else 0.0)
-        for d in scored
-    ]
-    order = sorted(range(len(scored)), key=lambda i: (-raws[i], i))
+    (best local first), capped so displacement stays bounded.
+
+    The window is ranked WITHIN ``REMOTE_RECALL_ANSWER_CHANNELS`` (see the
+    measured semantics above): a row must have arrived through a channel whose
+    raw score ranks answers to *this* question.  Rows that arrived only via
+    ``leading_case`` carry a global citation-count scale that is not a
+    per-question ranking, so including them let a global leaderboard consume
+    the entire window on the frozen BJR leg.
+    """
+    def raw_of(dec: dict) -> float:
+        value = dec.get("retrieval_score_raw")
+        return float(value) if isinstance(value, (int, float)) else 0.0
+
+    def answer_channel(dec: dict) -> bool:
+        channels = dec.get("channels")
+        if not isinstance(channels, (list, tuple, set)):
+            return False
+        return bool(set(channels) & REMOTE_RECALL_ANSWER_CHANNELS)
+
+    eligible = [i for i, d in enumerate(scored) if answer_channel(d)]
+    order = sorted(eligible, key=lambda i: (-raw_of(scored[i]), i))
     remote_rank = {i: r + 1 for r, i in enumerate(order)}
     out = []
     for pos, dec in enumerate(scored):
@@ -161,7 +225,7 @@ def _remote_head_recall(scored: list[dict]) -> list[dict]:
             continue
         if str(dec.get("court") or "").lower() not in REMOTE_FEDERAL_COURTS:
             continue
-        if remote_rank[pos] > REMOTE_HEAD_RECALL_REMOTE_TOP:
+        if remote_rank.get(pos, REMOTE_HEAD_RECALL_REMOTE_TOP + 1) > REMOTE_HEAD_RECALL_REMOTE_TOP:
             continue
         out.append({
             "pos": pos,
@@ -313,6 +377,14 @@ def rerank_product_bundle(product_bundle: dict) -> dict:
             "local_head": REMOTE_HEAD_RECALL_LOCAL_HEAD,
             "max_moved": REMOTE_HEAD_RECALL_MAX_MOVED,
             "insert_at": REMOTE_HEAD_RECALL_INSERT_AT,
+            "ranked_within_channels": sorted(REMOTE_RECALL_ANSWER_CHANNELS),
+            "channel_ranked": (
+                "remote rank is computed over rows that arrived through a "
+                "query-answering channel only; leading_case is a global "
+                "citation-count leaderboard and the citation channels are "
+                "expansion shells, so neither is a ranking of answers to this "
+                "question and neither can consume the window"
+            ),
             "moved": [
                 {
                     "decision_id": m["decision_id"],
