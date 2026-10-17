@@ -23,7 +23,10 @@ It performs the checks a unit test cannot:
 * the retrieval benchmark is **replayed from its committed cache** and the
   latency gates must come back ``not_measurable`` — a cached replay may never
   report a latency PASS (the false green found this cycle);
-* a falsification matrix: for every gate family, a fixture that MUST fail.
+* a falsification matrix: for every gate family, a fixture that MUST fail;
+* the repeat-invariance of both frozen-bar entry points with stderr captured,
+  publishing the observed non-zero rate as a record rather than explaining an
+  anomaly away by repetition (added cycle 39027041693).
 
 Exit 0 = no check failed (skips allowed; they are listed in the report).
 Exit 1 = at least one check failed (a falsifying
@@ -72,6 +75,31 @@ RETRIEVAL_RECORDS = _LANE_ROOT / "results" / "evaluation" / "retrieval_benchmark
 #: side artefacts live next to the run records (id-hygiene measurements), so the
 #: record set is selected by schema, not by file name.
 RETRIEVAL_RECORD_SCHEMA = "lex-retrieval-benchmark/1"
+
+#: Runs per entry point for the repeat-invariance check.  Fixed here, before the
+#: check runs, so the sample size is not chosen after seeing a result.  Cycle
+#: 39018005027 used N=20 / N=10 for the same measurement.
+REPEAT_INVARIANCE_N = 10
+
+#: Keys excluded from the payload-identity comparison.  These are wall-clock
+#: measurements, not gate outcomes: comparing them would report a false
+#: non-invariance on a run that measured exactly the same thing.  The exclusion
+#: list is FIXED HERE, before the check runs, and is published in the record, so
+#: "the measurements repeated" is auditable rather than asserted.
+VOLATILE_PAYLOAD_KEYS = frozenset({
+    "elapsed_s", "elapsed_seconds", "wall_seconds", "wall_clock_s",
+    "generated_at", "timestamp", "started_at", "finished_at", "duration_s",
+})
+
+
+def _strip_volatile(obj):
+    """Recursively drop VOLATILE_PAYLOAD_KEYS from a JSON payload."""
+    if isinstance(obj, dict):
+        return {k: _strip_volatile(v) for k, v in obj.items()
+                if k not in VOLATILE_PAYLOAD_KEYS}
+    if isinstance(obj, list):
+        return [_strip_volatile(v) for v in obj]
+    return obj
 
 
 def retrieval_run_records() -> list[Path]:
@@ -554,13 +582,109 @@ def run_pytest(log: _Log) -> None:
          # adjudicate verdict and the frozen-prediction execution. The gate is
          # ADDITIVE: no accepted verdict is overwritten and no frozen benchmark,
          # rubric, incumbent or success rule is touched by adding the file.
-         "tests/evaluation/test_label_lineage_gate.py"],
+         "tests/evaluation/test_label_lineage_gate.py",
+         # run 39027041693 (disclosed scope extension, not a re-freeze): the
+         # rebuild-trigger set relation and its non-vacuity, the pinned
+         # served-packet baseline, the new-head recompute record and the
+         # harness shape-repair negative control (a list-shaped
+         # provenance.stages must yield not_measurable and NEVER a latency
+         # pass). Adding the file moves no frozen benchmark, rubric, incumbent
+         # or success rule.
+         "tests/evaluation/test_newhead_recompute.py"],
         cwd=str(_LANE_ROOT), capture_output=True, text=True, timeout=900)
     tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
     log.add("active lane pytest suite", proc.returncode == 0, tail[0])
 
 
 # --------------------------------------------------------------------------- #
+
+
+def check_repeat_invariance(log: _Log, out_dir: Path) -> None:
+    """Convert an anecdote into a rate (the named successor of cycle 39020603510).
+
+    Cycle 39020603510 preserved an UNRESOLVED observation: on one invocation the
+    ACCEPTED entry point ``python -m evaluation.frozen_bars.run_bar_gates``
+    returned exit code 1, with stderr redirected to /dev/null, and it did not
+    reproduce in 33 subsequent runs.  The report named the concrete successor:
+    measure the repeat-invariance of both entry points with stderr CAPTURED and
+    commit the observed non-zero rate as a first-class record, instead of
+    explaining the anomaly away by repetition.
+
+    This check does exactly that, and it is deliberately a REPORTING check rather
+    than a pass/fail threshold on the anomaly itself:
+
+    * a run is INVARIANT when exit code, verdict string and every measured block
+      match the first run, byte for byte;
+    * the recorded ``observed_nonzero_rate`` is published whatever it is.
+
+    An unexplained non-zero from a deterministic, digest-pinned gate that these
+    gates are made into by factory direction is a signal, not noise.  The
+    threshold that would decide whether a non-zero is acceptable is a CONTROL
+    PLANE decision and is NOT invented here; this cycle reports the rate and
+    keeps the lane suite's overall verdict tied to invariance, not to the rate.
+    """
+    print("gate entry-point repeat-invariance (stderr captured):")
+    specs = [
+        ("run_bar_gates", [sys.executable, "-m",
+                           "evaluation.frozen_bars.run_bar_gates"]),
+        ("label_lineage_sweep", [sys.executable, "-m",
+                                 "evaluation.frozen_bars.run_label_lineage_gate"]),
+    ]
+    n = REPEAT_INVARIANCE_N
+    measured: dict[str, dict] = {}
+    for label, argv in specs:
+        runs = []
+        for _ in range(n):
+            proc = subprocess.run(argv, cwd=str(_LANE_ROOT),
+                                  capture_output=True, text=True, timeout=600)
+            runs.append({"exit_code": proc.returncode,
+                         "stdout": proc.stdout, "stderr": proc.stderr})
+        codes = [r["exit_code"] for r in runs]
+        first = runs[0]
+        # the JSON payload, if any: identical payloads prove the MEASUREMENTS
+        # repeat, not merely the exit code
+        payloads = []
+        for r in runs:
+            try:
+                payloads.append(json.dumps(
+                    _strip_volatile(json.loads(r["stdout"])), sort_keys=True))
+            except json.JSONDecodeError:
+                payloads.append(None)
+        body_equal = len(set(payloads)) == 1
+        nonzero = sum(1 for c in codes if c != 0)
+        invariant = len(set(codes)) == 1 and body_equal
+        measured[label] = {
+            "n_runs": n,
+            "volatile_keys_excluded": sorted(VOLATILE_PAYLOAD_KEYS),
+            "exit_codes": codes,
+            "distinct_exit_codes": sorted(set(codes)),
+            "payload_identical_every_run": body_equal,
+            "observed_nonzero_count": nonzero,
+            "observed_nonzero_rate": nonzero / n if n else None,
+            "invariant": invariant,
+            "stderr_nonempty_runs": sum(1 for r in runs if r["stderr"].strip()),
+            "first_stderr_tail": first["stderr"][-400:],
+        }
+        log.add(f"repeat-invariance {label} (N={n})", invariant,
+                f"exit_codes={sorted(set(codes))} payload_identical={body_equal} "
+                f"nonzero_rate={nonzero}/{n} stderr_nonempty="
+                f"{measured[label]['stderr_nonempty_runs']}")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    path = out_dir / "gate_entry_point_repeat_invariance.json"
+    path.write_text(json.dumps(
+        {"schema": "lex-evaluation-repeat-invariance/1",
+         "n_per_entry_point": n,
+         "measured": measured,
+         "claim_ceiling": (
+             "A measured rate, not a threshold. Invariance is the lane suite's "
+             "pass/fail condition; whether an observed non-zero rate is "
+             "acceptable is a control-plane decision and is not invented here."),
+         "resolves": (
+             "the unresolved observation preserved in "
+             "reports/evaluation/LABEL_LINEAGE_GATE_39020603510.md section 11 is now "
+             "a measured rate instead of an anecdote")},
+        indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(f"  rate record: {path}")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -580,6 +704,7 @@ def main(argv: list[str] | None = None) -> int:
         check_retrieval_rescore(log)
         check_cached_replay_cannot_fake_latency(log, out_dir)
         check_falsification_matrix(log)
+        check_repeat_invariance(log, out_dir)
         if not args.skip_pytest:
             run_pytest(log)
     except (OSError, KeyError, ValueError) as exc:

@@ -377,7 +377,19 @@ def evaluate_question_independent_bundle(bundle: dict, spec: dict) -> list[dict]
                                     "recorded bundle carries no answer prose"))
     total = (bundle.get("provenance") or {}).get("latency_seconds_total")
     if total is None:
-        total = ((bundle.get("provenance") or {}).get("stages") or {}).get("total_s")
+        # SHAPE REPAIR, SECOND SITE (frozen amendment
+        # FROZEN_HYPOTHESIS_HARNESS_REPAIR_AMENDMENT_39027041693, HA1-HA6, success
+        # rule HARNESS_SHAPE_REPAIR_COMPLETE).  This line previously assumed
+        # ``provenance.stages`` is a mapping; the bundles this Product head emits
+        # carry it as a LIST of stage names, so an uncaught AttributeError killed
+        # the whole run with no record.  Same non-weakening argument as the first
+        # site: the total is derived only from a real mapping, otherwise it stays
+        # absent and evaluate_latency(None, budget) returns its pre-existing
+        # not_measurable verdict and reason.  It can never return a pass, and no
+        # 0.0 default is introduced.
+        stages = (bundle.get("provenance") or {}).get("stages")
+        if isinstance(stages, dict):
+            total = stages.get("total_s")
     out.append(evaluate_latency(total, spec["latency_budget_seconds"]))
     return out
 

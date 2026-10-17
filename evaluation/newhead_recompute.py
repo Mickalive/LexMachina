@@ -305,7 +305,7 @@ def recompute(product_mount: Path, run_id: str, baseline_record: Path | None,
             },
         }
 
-    drift = None
+    drift = {}
     if baseline_record is not None and Path(baseline_record).is_file():
         base = json.loads(Path(baseline_record).read_text(encoding="utf-8"))
         base_map = verdict_map(base)
