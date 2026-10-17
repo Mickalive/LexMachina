@@ -20,10 +20,23 @@ Two negatives preserved as evidence, each pinned here as a repair:
    fixture_adversarial_v2``), so the offline check could never distinguish a
    broken pipeline from an inherently unsatisfiable gate.
 
-   Repair: ``evaluate()`` emits ``wiring::*`` gates in fixture mode. The frozen
-   ``structural_gates`` / ``truth_gates`` / ``frozen_recall_gate`` functions are
-   byte-untouched, are never evaluated in fixture mode, and are never reported
-   as passed there; live mode is unchanged.
+    Repair: ``evaluate()`` emits ``wiring::*`` gates in fixture mode. The frozen
+    ``structural_gates`` / ``truth_gates`` / ``frozen_recall_gate`` functions are
+    byte-untouched, are never evaluated in fixture mode, and are never reported
+    as passed there; live mode is unchanged.
+
+3. **Fabricated frozen-gate green in fixture mode (audit D1, cycle 39014141628).**
+   The BJR fixture branch of ``evaluate()`` emitted the frozen gate name
+   ``recall::citation_controlling_authority`` with ``passed=true`` and a
+   'not applicable' detail — a pass on a gate that was never evaluated,
+   pinned by ``test_bjr_fixture_run_keeps_the_accepted_instrumented_recall_gate``
+   and ``test_reality_check.py::test_bjr_frozen_recall_gate_fixture_mode_is_instrumented_skip``.
+
+   Repair: the frozen gate name is absent from fixture output entirely; an
+   explicit ``wiring::frozen_recall_gate_not_evaluated`` marker records the
+   non-evaluation and the fixture summary carries
+   ``frozen_gates_evaluated: []``.  Both tests now pin that contract; the
+   frozen gate functions and the live path are byte-untouched.
 
 Everything here is deterministic and network-free.
 """
@@ -162,12 +175,26 @@ def test_fixture_mode_emits_only_wiring_gates_plus_instrumented_recall():
     assert all(g["passed"] for g in gates), gates
 
 
-def test_bjr_fixture_run_keeps_the_accepted_instrumented_recall_gate():
+def test_bjr_fixture_run_records_the_frozen_recall_gate_as_not_evaluated():
+    """The frozen recall gate must never be reported as passed in fixture mode.
+
+    Repair of audit D1 (cycle 39014141628): fixture mode used to emit the
+    frozen gate name ``recall::citation_controlling_authority`` with
+    ``passed=true`` and a 'not applicable' detail — a fabricated green on a
+    gate that was never evaluated.  The contract now: the frozen gate name is
+    absent from fixture output entirely, and an explicit
+    ``wiring::frozen_recall_gate_not_evaluated`` marker records the
+    non-evaluation.  The frozen gate itself is untouched (live-only).
+    """
     gates = {g["gate"]: g for g in evaluate("business-judgment-rule",
                                             _fixture_report())}
-    recall = gates["recall::citation_controlling_authority"]
-    assert recall["passed"]
-    assert "fixture" in recall["detail"]
+    assert "recall::citation_controlling_authority" not in gates, (
+        "fixture mode must never emit the frozen gate name, not even as a "
+        "'not applicable' pass")
+    marker = gates["wiring::frozen_recall_gate_not_evaluated"]
+    assert marker["passed"] is True
+    assert "not evaluated" in marker["detail"]
+    assert "fixture" in marker["detail"]
 
 
 def test_live_mode_gate_names_are_untouched():

@@ -104,7 +104,7 @@
     }
   ],
   "current_run": 39014141628,
-  "cycle_status": "OPERATIONAL_RESUME_39014141628_OF_39011220761__RC78_LX_WORK_QUANTUM_DIAGNOSED_FROM_CHECKRUN_ANNOTATIONS__SNAPSHOT_F3C47C8_PRESERVED_NOT_RESTARTED__SNAPSHOT_SHIPS_4_OF_4_LIVE_FROZEN_LEGS_WITH_RECALL_GATE_PASS__FIXTURE_WIRING_4_OF_4_REPRODUCED_OFFLINE__OFFLINE_CLICKABLE_SLICE_100_DECISIONS_8_CLUSTERS_100_SOURCE_URLS__VERIFY_QUERY_PAGE_36_ASSERTIONS_PASS__CORE_SUBSET_119_GREEN__EXTENDED_498_PASSED_8_FAILS_ALL_REPRODUCED_ON_ACCEPTED_BASE__NO_GATE_WEAKENED__DO_NOT_SERVE_ORDER_HELD",
+  "cycle_status": "OPERATIONAL_RESUME_39014141628_OF_39011220761__RC78_LX_WORK_QUANTUM_DIAGNOSED_FROM_CHECKRUN_ANNOTATIONS__SNAPSHOT_F3C47C8_PRESERVED_NOT_RESTARTED__SNAPSHOT_SHIPS_4_OF_4_LIVE_FROZEN_LEGS_WITH_RECALL_GATE_PASS__FIXTURE_WIRING_4_OF_4_REPRODUCED_OFFLINE__OFFLINE_CLICKABLE_SLICE_100_DECISIONS_8_CLUSTERS_100_SOURCE_URLS__VERIFY_QUERY_PAGE_36_ASSERTIONS_PASS__CORE_SUBSET_119_GREEN__EXTENDED_498_PASSED_8_FAILS_ALL_REPRODUCED_ON_ACCEPTED_BASE__NO_GATE_WEAKENED__DO_NOT_SERVE_ORDER_HELD__REPAIR_ROUND1_AUDIT_D1_D2_D3_ALL_FIXED__FROZEN_GATE_NAME_ABSENT_FROM_FIXTURE_OUTPUT__LARGEST_CLUSTER_LABELED_PRODUCING_MACHINE_SCOPED__CLUSTER_ID_ASSERTION_NOW_ENFORCED__ZERO_NEW_TEST_FAILURES_VS_ACCEPTED_BASE",
   "direction_version": 50,
   "evidence_tier": "REALITY_CHECK_FAILED",
   "frontier_verdict_adoption": {
@@ -853,7 +853,7 @@
     "fixtures": "offline/test only; never merged into live results",
     "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
   },
-  "state_updated_at": "2026-10-17T07:58:17Z",
+  "state_updated_at": "2026-10-17T08:45:00Z",
   "state_updated_by_run": 39014141628,
   "state_updated_from_resumed_snapshot_run": 39011220761,
   "supersedes_claims": {
@@ -1228,7 +1228,7 @@
     "question_answered": "OPERATIONAL RESUME (direction v50 product lane): diagnose the orchestration/validation failure of run 39011220761, finish or verify the lane deliverable, make the snapshot audit-ready, preserve all valid completed work.",
     "resumes_run_id": 39011220761,
     "run_id": 39014141628,
-    "runnable_delta_this_cycle": "NEW ONE-COMMAND ENTRY POINT: python product/offline_slice.py [--slug <leg>] [--verify] -> results/product/offline_slice/<utc>/{<leg>.bundle.json,summary.json}: builds the bundle with socket.connect booby-trapped (fixture replay only), asserts >=40 decisions, x/y/cluster_id on every row, a canonical_url on every row and >=2 clusters, and (with --verify) executes product/verify_query_page.js on the written bundle. Measured here: `python3 product/offline_slice.py --verify` -> verdict PASS, 100 decisions / 8 clusters / 100 source links / page contract PASS 36 assertions / 1.423 s total, network none. Tests: product/tests/test_offline_slice.py (4, green) - offline verdict, degenerate-bundle non-vacuity FAIL control, unknown-slug refusal, network-trap restore. Also fixed on first use: bundle path is repo-relative ONLY when inside the checkout (_repo_relative), so --out outside the repository cannot break the command (the same path-bound defect class audit 38839347028 D1 flagged).",
+    "runnable_delta_this_cycle": "NEW ONE-COMMAND ENTRY POINT: python product/offline_slice.py [--slug <leg>] [--verify] -> results/product/offline_slice/<utc>/{<leg>.bundle.json,summary.json}: builds the bundle with socket.connect booby-trapped (fixture replay only), asserts >=40 decisions, x/y/cluster_id on every row, a canonical_url on every row and >=2 clusters, and (with --verify) executes product/verify_query_page.js on the written bundle. Measured here: `python3 product/offline_slice.py --verify` -> verdict PASS, 100 decisions / 8 clusters / 100 source links / page contract PASS 36 assertions / 1.423 s total, network none. Tests: product/tests/test_offline_slice.py (4, green) - offline verdict, degenerate-bundle non-vacuity FAIL control, unknown-slug refusal, network-trap restore. Also fixed on first use: bundle path is repo-relative ONLY when inside the checkout (_repo_relative), so --out outside the repository cannot break the command (the same path-bound defect class audit 38839347028 D1 flagged). REPAIR 39014141628 r1 (audit D3): the 'cluster_id on every row' assertion is now actually computed and enforced - summarise() emits rows_with_cluster_id, main() fails the verdict when any row lacks cluster_id, None keys are excluded from n_clusters, and test_offline_slice.py pins the contract plus a None-cluster negative control (5 tests green). The largest_cluster=30 figure in the committed summary.json is labeled producing-machine-scoped (audit D2): the auditor and this repair run both recompute 26 on declared-identical toolchains; per-cluster sizes are machine-scoped, the invariants (100 rows / 8 clusters / 100/100 canonical_url / 100/100 x,y / 100/100 cluster_id / page contract PASS 36) are not.",
     "snapshot": "refs/heads/cycle/core/product/39011220761/team = f3c47c8 'product cycle 39011220761 repair 0'; local branch operational-resume",
     "snapshot_live_evidence": {
       "attempt1_negative_preserved": "summary_ci_39011220761.attempt1_20261017T0718Z.json: all_legs_passed=false, 2 truth failures - kept as evidence, never deleted",
@@ -1240,12 +1240,63 @@
       "core_subset": "pytest -q test_fixture_replay_and_wiring + test_ci_reality_legs + test_state_contract + test_reality_check + test_progressive_query + test_query_map_mvp -> 119 passed, 0 failed",
       "extended_subset": "33 modern product test files (incl. the new test_offline_slice.py) -> 498 passed, 2 skipped, 8 failed, 1 collection error, 62.44s; the same 8+1 reproduced byte-identically at accepted base 3077b27 (pre-existing, none introduced by this delta; see pre_existing_reproduction)",
       "offline_clickable_slice": "run_query_initial(rent-default, top_n=100, retrieval_mode='fixture') with socket.connect booby-trapped -> 100 decisions, 8 clusters, 100/100 canonical_url, x/y/cluster_id on every row, 0.403s local (cached-map <1s budget), replay source=product_query_cache_live_config_replay, network=none -> results/product/reality_check/offline_slice_rent-default_20261017T0755Z.bundle.json",
-      "offline_fixture_wiring": "python3 product/reality_check.py --slug all --mode fixture -> exit 0, 4/4 legs, 8 wiring::* gates each, summary_fixture_20261017T074955Z.json, live_gates_evaluated=false with OFFLINE WIRING EVIDENCE ONLY claim ceiling",
+      "offline_fixture_wiring": "python3 product/reality_check.py --slug all --mode fixture -> exit 0, 4/4 legs, 8 wiring::* gates on the three non-BJR legs and 9 on business-judgment-rule (the 9th is wiring::frozen_recall_gate_not_evaluated, the explicit not-evaluation marker added by the D1 repair of audit 39014141628), summary_fixture_20261017T074955Z.json, live_gates_evaluated=false, frozen_gates_evaluated=[] with OFFLINE WIRING EVIDENCE ONLY claim ceiling",
       "offline_slice_cli": "python3 product/offline_slice.py --verify -> exit 0, verdict PASS (offline_slice/20261017T080150Z/summary.json); pytest product/tests/test_offline_slice.py -> 4 passed",
       "page_contract": "node product/verify_query_page.js <that bundle> -> PASS 36 assertions (map render, list/map toggle, detail panel, source link, counter filter, unevidenced-ring contract)",
-      "pre_existing_reproduction": "ALL 8 failures + the 1 collection error reproduce IDENTICALLY at accepted base 3077b27 (git worktree /tmp/opencode/base_39006211027, same interpreter) -> none introduced by this snapshot delta: (a) test_adversarial_retrieval 4 failures (KeyError bger_1A_36_2020 / labels not applied); (b) test_cache_non_orphan claim-bundle identity 2 failures (cluster label/size leaves - numeric/environment-sensitive class already documented by the control plane for BLAS reduction-order drift; ALSO fails on base, so NOT caused by this delta); (c) test_audit_seam dead-model agreement (control-plane health refresh run 39012499120 reports opencode/nemotron-3.5-lightning-free FAIL while the seam still records PASS); (d) test_ci_run_evidence runner SHA recording (environment); (e) test_http_api_integration collection error = sentence_transformers not installed (legacy 174k dep, off the critical path per control plane).",
-      "state_contract": "python3 product/state_contract.py --check --direction-version 50 -> PASS (3 checks) before and after this state update"
+      "pre_existing_reproduction": "ALL 8 failures + the 1 collection error reproduce IDENTICALLY at accepted base 3077b27 (git worktree /tmp/opencode/base_39006211027, same interpreter) -> none introduced by this snapshot delta: (a) test_adversarial_retrieval 4 failures (KeyError bger_1A_36_2020 / labels not applied); (b) test_cache_non_orphan claim-bundle identity 2 failures - CORRECTED characterization (audit D2, repair 39014141628 r1): NOT only cluster label/size/member_ids; the auditor measured 2841 differing leaves because the committed claim bundle has 154 rows where a fresh replay from the frozen subset yields 120 (all 120 present in the committed set). Numeric/environment-sensitive class already documented by the control plane for BLAS reduction-order drift; identical at base and head, so NOT a delta regression; (c) test_audit_seam dead-model agreement (control-plane health refresh run 39012499120 reports opencode/nemotron-3.5-lightning-free FAIL while the seam still records PASS); (d) test_ci_run_evidence runner SHA recording (environment); (e) test_http_api_integration collection error = sentence_transformers not installed (legacy 174k dep, off the critical path per control plane).",
+      "state_contract": "python3 product/state_contract.py --check --direction-version 50 -> PASS (3 checks) before and after this state update",
+      "repair_round1_verification": "audit D1/D2/D3 of results/audit/product/CYCLE_39014141628_GATE.json all fixed and verified this round: (D1) pytest test_fixture_replay_and_wiring + test_reality_check -> 27 passed; fixture CLI exit 0 with wiring::frozen_recall_gate_not_evaluated and frozen_gates_evaluated=[] (summary_fixture_20261017T083008Z.json); committed 074955Z summary + BJR leg report corrected in place; (D2) offline_slice re-run reproduces largest_cluster=26 (auditor's number), committed summary.json carries largest_cluster_reproducibility=PRODUCING_MACHINE_SCOPED; (D3) pytest test_offline_slice -> 5 passed incl. None-cluster negative control; full suite base 49 failed vs head 46 failed (3 removed = state_contract reds fixed by the prior resume, zero new failures)"
     }
+  },
+  "repair_39014141628_round1": {
+    "audit_repaired": "results/audit/product/CYCLE_39014141628_GATE.json (gate=REVISE, safe_to_integrate=false, required_fixes D1/D2/D3), read from /tmp/lex_prior_audit",
+    "claim_ceiling": "REPAIR_ONLY: every required_fixes item is fixed in code, tests and claim-bearing text. NOT claimed: any frozen bar met (counter-label 5/65=0.0769 vs absolute 1.0; geometry 0/3 bundles at 11 criteria), any durable Actions run, any human-gate result. human_gate_ready=false, machine_gate_ready=false; DO-NOT-SERVE order holds; continue_recommended=true.",
+    "required_fixes": {
+      "D1_material_fabricated_frozen_gate_green": {
+        "defect": "evaluate() fixture branch emitted the frozen gate name recall::citation_controlling_authority with passed=true while the summary carried live_gates_evaluated=false; two tests pinned it; committed summary_fixture_20261017T074955Z.json contained the fabricated green.",
+        "fix": "frozen gate name absent from fixture output entirely; wiring::frozen_recall_gate_not_evaluated marker (detail 'not evaluated: fixture mode') on the BJR leg; frozen_gates_evaluated=[] in every fixture summary; both pinning tests rewritten to the new contract; committed 074955Z summary + BJR leg report corrected in place; fresh regenerated summary_fixture_20261017T083008Z.json demonstrates the corrected behavior; report sections 2/3/5 and state verification_this_cycle.offline_fixture_wiring corrected.",
+        "frozen_gates_untouched": "structural_gates / truth_gates / frozen_recall_gate and the live path are byte-unchanged; no frozen gate weakened"
+      },
+      "D2_material_non_reproducible_headline_statistic": {
+        "defect": "summary.json reported largest_cluster: 30 as verified; the auditor recomputed 26 deterministically on a declared-identical toolchain (KMeans random_state=42 local optimum sensitive to row-order drift below rank 5, max score delta 3.3e-4).",
+        "fix": "largest_cluster kept but labeled PRODUCING-MACHINE-SCOPED via summary.json.largest_cluster_reproducibility; this repair run reproduces 26 on a third machine; claimable invariants restated (100 rows / 8 clusters / 100/100 canonical_url / 100/100 x,y / 100/100 cluster_id / page contract PASS 36); report section 3 citation carries the label; test_cache_non_orphan characterization corrected in state (two places) and the report table: 2841 differing leaves, committed claim bundle 154 rows vs 120 from a fresh frozen-subset replay (all 120 present in the committed set), NOT only cluster label/size/member_ids; identical at base and head.",
+        "not_weakened": "content_sha256 and the audit-seam model exclusion untouched"
+      },
+      "D3_minor_unenforced_verification_claim": {
+        "defect": "offline_slice.py claimed 'x / y / cluster_id on every row' but computed only rows_with_xy and rows_with_source_url; no rows_with_cluster_id, no cluster-membership verdict, None keys counted in n_clusters.",
+        "fix": "summarise() emits rows_with_cluster_id; main() fails the verdict when any row lacks cluster_id; None keys excluded from n_clusters; test_offline_slice.py asserts the contract plus a None-cluster negative control (45 rows, cluster_id=None -> verdict FAIL, n_clusters==0); report section 5 names answer.status=pending / cited_decision_ids=0 / counter_rows=0 and the DOM/logic-level-only page contract (dom_shim getContext is a no-op proxy; canvas rasterisation not verified)."
+      }
+    },
+    "code_delta": [
+      "product/reality_check.py: evaluate() fixture branch emits wiring::frozen_recall_gate_not_evaluated instead of the frozen gate name with passed=true; fixture summaries carry frozen_gates_evaluated=[]; module docstring records the contract",
+      "product/offline_slice.py: summarise() emits rows_with_cluster_id and excludes None keys from n_clusters; main() fails the verdict on missing cluster_id and prints the new stat",
+      "product/tests/test_fixture_replay_and_wiring.py: test_bjr_fixture_run_records_the_frozen_recall_gate_as_not_evaluated replaces the fabricated-green pin; docstring records the defect as preserved evidence",
+      "product/tests/test_reality_check.py: test_bjr_frozen_recall_gate_fixture_mode_is_instrumented_skip asserts the new contract",
+      "product/tests/test_offline_slice.py: rows_with_cluster_id assertion + None-cluster non-vacuity negative control"
+    ],
+    "artifact_delta": [
+      "results/product/reality_check/summary_fixture_20261017T083008Z.json + 4 leg reports (regenerated, corrected)",
+      "results/product/reality_check/summary_fixture_20261017T074955Z.json + business-judgment-rule_fixture_20261017T074955Z.json (corrected in place: fabricated entry replaced, frozen_gates_evaluated=[] added)",
+      "results/product/offline_slice/20261017T080150Z/summary.json (largest_cluster_reproducibility label + rows_with_cluster_id=100)",
+      "reports/product/CYCLE_39011220761_RESUME.md (sections 2/3/5 corrected, D2/D3 disclosures added)",
+      "reports/product/CYCLE_39014141628_REPAIR1.md (this repair's report)"
+    ],
+    "verification": {
+      "d1_unit": "pytest product/tests/test_fixture_replay_and_wiring.py product/tests/test_reality_check.py -> 27 passed",
+      "d3_unit": "pytest product/tests/test_offline_slice.py -> 5 passed",
+      "core_subset": "7 test files -> 124 passed, 0 failed",
+      "fixture_cli": "python3 product/reality_check.py --slug all --mode fixture -> exit 0, 4/4 legs, BJR 9th gate wiring::frozen_recall_gate_not_evaluated, frozen_gates_evaluated=[]",
+      "offline_slice_rerun": "python3 product/offline_slice.py --slug rent-default --out <tmp> -> exit 0, verdict PASS, 100 decisions / 8 clusters / largest 26 (reproduces auditor) / 100 source links / 100 x,y / 100 cluster_id",
+      "full_suite_vs_accepted_base_3077b27": "base 49 failed vs head 46 failed (18 legacy sentence_transformers modules excluded, accepted convention); the 3 removed are test_state_contract reds fixed by the prior resume; zero new failures; no failure in any touched test file",
+      "state_contract": "python3 product/state_contract.py --check --direction-version 50 -> PASS"
+    },
+    "not_touched": [
+      "frozen structural/truth/recall gates and their literals",
+      ".github/** (control-plane scope)",
+      "served gate packets and the frozen benchmark",
+      "content_sha256 / audit-seam model exclusion",
+      "human_gate_ready (still false: the two accepted frozen bars are unmet and ceded to Frontier/Core Evaluation)"
+    ]
   },
   "v51_delivery": {
     "audit_repair_round3_38732097101": {
@@ -2342,7 +2393,7 @@
     "live_legs_this_run": "results/product/reality_check/summary_ci_38604340726.json (4/4 structural+truth, sequential) — durable run conclusion=success observed 2026-10-14T21:36:10Z",
     "pre_existing_collection_errors": "18 legacy 174k test modules fail collection with ModuleNotFoundError: sentence_transformers (optional dep, PAUSE'd legacy lane); unchanged by this cycle and not on the query-map path",
     "product_integration_tests": "91 passed (ci_reality_legs 20 + ci_run_evidence 26 + reality_check + audit_seam + query_map_mvp + answer_contract + human_gate_integration 12)",
-    "resume_39014141628": "reports/product/CYCLE_39011220761_RESUME.md is this cycle's report (written by run 39014141628). Pre-existing-red follow-up: product/tests/test_cache_non_orphan claim-bundle identity (cluster label/size leaves) and test_audit_seam dead-model agreement fail identically at accepted base 3077b27 in this environment - re-measure in the numeric environment that produced the accepted claim artifact before quoting claim-cache identity again; never weaken content_sha256 or the seam's exclusion to make them pass.",
+    "resume_39014141628": "reports/product/CYCLE_39011220761_RESUME.md is this cycle's report (written by run 39014141628). Pre-existing-red follow-up: product/tests/test_cache_non_orphan claim-bundle identity (CORRECTED characterization, audit D2 repair r1: 2841 differing leaves, committed claim bundle 154 rows vs 120 from a fresh frozen-subset replay, all 120 present in the committed set - NOT only cluster label/size/member_ids) and test_audit_seam dead-model agreement fail identically at accepted base 3077b27 in this environment - re-measure in the numeric environment that produced the accepted claim artifact before quoting claim-cache identity again; never weaken content_sha256 or the seam's exclusion to make them pass.",
     "status": "FAIL",
     "verified_on": "2026-10-14 (run 38641080245 workspace)"
   },

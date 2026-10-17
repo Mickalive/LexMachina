@@ -67,7 +67,10 @@ def summarise(bundle: dict) -> dict:
     rows = bundle.get("decisions") or []
     clusters: dict = {}
     for r in rows:
-        clusters[r.get("cluster_id")] = clusters.get(r.get("cluster_id"), 0) + 1
+        cid = r.get("cluster_id")
+        if cid is None:
+            continue  # a None-keyed bucket is not a cluster (audit D3)
+        clusters[cid] = clusters.get(cid, 0) + 1
     counter = sum(1 for r in rows if str(r.get("counter_status") or "").startswith("candidate"))
     return {
         "n_decisions": len(rows),
@@ -77,6 +80,9 @@ def summarise(bundle: dict) -> dict:
         "rows_with_xy": sum(1 for r in rows
                             if isinstance(r.get("x"), (int, float))
                             and isinstance(r.get("y"), (int, float))),
+        # audit D3: the docstring/report claim 'cluster_id on every row' —
+        # the tool must actually verify it, not just assert it.
+        "rows_with_cluster_id": sum(1 for r in rows if r.get("cluster_id") is not None),
         "counter_rows": counter,
         "answer_status": (bundle.get("answer") or {}).get("status"),
         "cited_decision_ids": len((bundle.get("answer") or {}).get("cited_decision_ids") or []),
@@ -125,6 +131,8 @@ def main(argv: list[str] | None = None) -> int:
         ok = False; reasons.append(f"only {stats['n_decisions']} decisions (<40)")
     if stats["rows_with_xy"] != stats["n_decisions"]:
         ok = False; reasons.append("rows missing map coordinates")
+    if stats["rows_with_cluster_id"] != stats["n_decisions"]:
+        ok = False; reasons.append("rows missing cluster_id")
     if stats["rows_with_source_url"] != stats["n_decisions"]:
         ok = False; reasons.append("rows missing canonical_url source link")
     if stats["n_clusters"] < 2:
@@ -139,7 +147,8 @@ def main(argv: list[str] | None = None) -> int:
     if not args.quiet:
         print(f"offline slice [{args.slug}] in {elapsed}s (network: none)")
         for k in ("n_decisions", "n_clusters", "largest_cluster", "rows_with_source_url",
-                  "rows_with_xy", "counter_rows", "answer_status", "cited_decision_ids"):
+                  "rows_with_xy", "rows_with_cluster_id", "counter_rows", "answer_status",
+                  "cited_decision_ids"):
             print(f"  {k}: {stats[k]}")
         print(f"  replay: {stats['fixture_replay'].get('source')}"
               f" (candidates={stats['fixture_replay'].get('n_candidates')})")

@@ -36,6 +36,10 @@ Usage
 envelopes → bundle → map coordinates → citations → adversarial recording).
 It emits ``wiring::*`` gates only; the frozen structural/truth/recall gates are
 live-only and are never evaluated — or reported as passed — in fixture mode.
+The business-judgment-rule leg additionally carries an explicit
+``wiring::frozen_recall_gate_not_evaluated`` marker recording that the frozen
+recall leg was not evaluated there (repair of audit D1, cycle 39014141628:
+the branch used to emit the frozen gate name with ``passed=true``).
 """
 from __future__ import annotations
 
@@ -432,10 +436,20 @@ def evaluate(slug: str, report: dict) -> list[dict]:
         # path below is byte-for-byte what the durable workflow gets.
         results.extend(fixture_wiring_gates(report))
         if slug == "business-judgment-rule":
-            results.append({"gate": "recall::citation_controlling_authority",
+            # Audit D1 (cycle 39014141628): this branch used to emit the
+            # FROZEN gate name `recall::citation_controlling_authority` with
+            # passed=true and a 'not applicable' detail — a fabricated green
+            # on a gate that was never evaluated, pinned by two tests.  The
+            # contract now records the non-evaluation as a wiring::* marker:
+            # the frozen gate name is absent from fixture output entirely
+            # and the summary carries frozen_gates_evaluated: [] (main()).
+            # No frozen gate is weakened: the live path below is unchanged.
+            results.append({"gate": "wiring::frozen_recall_gate_not_evaluated",
                             "passed": True,
-                            "detail": "fixture mode: frozen-recall parity not "
-                                      "applicable (wiring check only)"})
+                            "detail": "not evaluated: fixture mode "
+                                      "(frozen recall leg is live-only; "
+                                      "wiring check only, never a "
+                                      "frozen-gate pass)"})
         return results
 
     step("structural", lambda: structural_gates(report))
@@ -625,6 +639,9 @@ def main(argv: list[str] | None = None) -> int:
             "structural/truth/recall gates are NOT evaluated in fixture mode "
             "and no fixture result may be cited as a green frozen leg."
         )
+        # Audit D1 (cycle 39014141628): make the non-evaluation machine-
+        # readable — the frozen gate names that fixture mode did NOT run.
+        summary["frozen_gates_evaluated"] = []
     exit_code = 0
     for slug in slugs:
         print(f"== reality leg: {slug} (mode={args.mode}) ==", flush=True)

@@ -37,6 +37,7 @@ def test_one_command_slice_is_offline_clickable_and_verified(monkeypatch, tmp_pa
     assert summary["verified"] is True
     assert stats["n_decisions"] >= 40
     assert stats["rows_with_xy"] == stats["n_decisions"], "every row needs map coordinates"
+    assert stats["rows_with_cluster_id"] == stats["n_decisions"], "every row needs a cluster_id"
     assert stats["rows_with_source_url"] == stats["n_decisions"], "every row needs a source link"
     assert stats["n_clusters"] >= 2, "a map with one cluster is a list"
     assert "OFFLINE WIRING EVIDENCE ONLY" in summary["claim_ceiling"]
@@ -57,6 +58,27 @@ def test_verdict_fails_when_the_map_is_degenerate(monkeypatch, tmp_path, capsys)
     assert rc == 1
     summary = json.loads((tmp_path / "summary.json").read_text(encoding="utf-8"))
     assert summary["verified"] is False
+
+
+def test_verdict_fails_when_a_row_has_no_cluster_id(monkeypatch, tmp_path, capsys):
+    """Non-vacuity (audit D3): rows with x/y but cluster_id=None must FAIL the
+    verdict — the tool claims 'cluster_id on every row', so it checks it.
+    A single None-keyed bucket must not satisfy the n_clusters >= 2 check."""
+    def _unclustered(*_a, **_k):
+        return {"decisions": [
+                    {"decision_id": f"bge_{n}", "x": float(n), "y": float(n),
+                     "cluster_id": None, "counter_status": "none",
+                     "canonical_url": "https://mcp.opencaselaw.ch/d/x"}
+                    for n in range(45)],
+                "answer": {"status": "pending"}, "provenance": {}}
+    monkeypatch.setattr(ofs, "build_bundle", _unclustered)
+    rc = ofs.main(["--slug", "rent-default", "--out", str(tmp_path)])
+    out = capsys.readouterr().out
+    assert rc == 1, out
+    assert "rows missing cluster_id" in out
+    summary = json.loads((tmp_path / "summary.json").read_text(encoding="utf-8"))
+    assert summary["stats"]["rows_with_cluster_id"] == 0
+    assert summary["stats"]["n_clusters"] == 0  # None keys are not clusters
 
 
 def test_unknown_slug_is_refused(tmp_path):

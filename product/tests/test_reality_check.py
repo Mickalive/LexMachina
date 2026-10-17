@@ -257,12 +257,21 @@ def test_bjr_frozen_recall_gate_passes_when_a_frozen_tf_authority_cited():
 
 
 def test_bjr_frozen_recall_gate_fixture_mode_is_instrumented_skip():
-    """Fixture runs are a wiring check; they record an explicit not-applicable
-    detail instead of a false recall pass."""
+    """Fixture runs are a wiring check; they record the non-evaluation as an
+    explicit wiring::* marker instead of a false recall pass.
+
+    Repair of audit D1 (cycle 39014141628): this test used to pin the
+    fabricated green (frozen gate name + passed=true + 'not applicable'
+    detail).  The frozen gate name must now be absent from fixture output
+    entirely; the wiring marker carries the explicit not-evaluation.
+    """
     report = _bjr_report(["bge_BGE_139_III_24"], mode="fixture")
     gates = {g["gate"]: g for g in evaluate("business-judgment-rule", report)}
-    gate = gates["recall::citation_controlling_authority"]
-    assert gate["passed"]
+    assert "recall::citation_controlling_authority" not in gates, (
+        "fixture mode must never emit the frozen gate name")
+    gate = gates["wiring::frozen_recall_gate_not_evaluated"]
+    assert gate["passed"] is True
+    assert "not evaluated" in gate["detail"]
     assert "fixture" in gate["detail"]
 
 
