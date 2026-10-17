@@ -1,0 +1,100 @@
+{
+ "schema": "lex-evaluation-write-scope-repro/1",
+ "run_id_reproduced": "38982176936",
+ "run_id_reproducing": "38982728075",
+ "reconstruction_method": "step 9 ('Enforce lane write scope') runs BEFORE 'Persist team snapshot' (git add -A; git commit), so every path the snapshot commit ADDED was untracked working-tree state at step 9; added paths = git diff --name-status <parent>..<snapshot>",
+ "reconstruction": {
+  "base_sha": "c8735dd42be57b61433ef8c86ca6d995e77c2da6",
+  "snapshot_sha": "fff0536c518c028a2184d96d972c7d3232819aa9",
+  "added_paths": [
+   "reports/audit/evaluation/CYCLE_38982176936.md",
+   "results/audit/evaluation/CYCLE_38982176936_GATE.json",
+   "results/evaluation/bar_gates/38982176936.json",
+   "results/evaluation/snapshot_audit/38982176936.json"
+  ],
+  "modified_paths": [],
+  "porcelain_lines": [
+   "?? reports/audit/evaluation/CYCLE_38982176936.md",
+   "?? results/audit/evaluation/CYCLE_38982176936_GATE.json",
+   "?? results/evaluation/bar_gates/38982176936.json",
+   "?? results/evaluation/snapshot_audit/38982176936.json"
+  ]
+ },
+ "python_port_verdict": {
+  "schema": "lex-evaluation-write-scope/1",
+  "lane": "evaluation",
+  "generated_at_utc": "2026-10-16T23:54:12Z",
+  "workflow_step": "Enforce lane write scope (.github/workflows/core-lane.yml, control plane, read-only)",
+  "model": "faithful port of the step's case patterns; __pycache__/ *.pyc *.pyo modeled as already removed by the preceding 'Clean generated junk' step",
+  "n_entries": 4,
+  "n_bad": 2,
+  "bad_paths": [
+   "reports/audit/evaluation/CYCLE_38982176936.md",
+   "results/audit/evaluation/CYCLE_38982176936_GATE.json"
+  ],
+  "junk_dropped": [],
+  "verdict": "SCOPE_VIOLATION",
+  "scope_clean": false,
+  "entries": [
+   {
+    "porcelain": "?? reports/audit/evaluation/CYCLE_38982176936.md",
+    "path": "reports/audit/evaluation/CYCLE_38982176936.md",
+    "allowed": false
+   },
+   {
+    "porcelain": "?? results/audit/evaluation/CYCLE_38982176936_GATE.json",
+    "path": "results/audit/evaluation/CYCLE_38982176936_GATE.json",
+    "allowed": false
+   },
+   {
+    "porcelain": "?? results/evaluation/bar_gates/38982176936.json",
+    "path": "results/evaluation/bar_gates/38982176936.json",
+    "allowed": true
+   },
+   {
+    "porcelain": "?? results/evaluation/snapshot_audit/38982176936.json",
+    "path": "results/evaluation/snapshot_audit/38982176936.json",
+    "allowed": true
+   }
+  ]
+ },
+ "real_control_plane_step_fidelity": {
+  "method": "the exact 'Enforce lane write scope' step body extracted from origin/main core-lane.yml is executed with LANE=evaluation against a stubbed git(1) that emits the reconstructed porcelain; its printed BAD set is compared with the Python port's",
+  "workflow_ref": "origin/main:.github/workflows/core-lane.yml",
+  "workflow_sha256_of_file": "2bd0f49f2eb877abf4a8e080f15586168d773b780c3a531bd9bb05995efed1e1",
+  "workflow_commit": "20f780fb0428cc52692ad6342e2e71acd6d3b14c",
+  "real_step_exit_code": 3,
+  "real_step_bad_paths": [
+   "reports/audit/evaluation/CYCLE_38982176936.md",
+   "results/audit/evaluation/CYCLE_38982176936_GATE.json"
+  ],
+  "python_port_bad_paths": [
+   "reports/audit/evaluation/CYCLE_38982176936.md",
+   "results/audit/evaluation/CYCLE_38982176936_GATE.json"
+  ],
+  "identical_bad_set": true,
+  "expected_exit_code": 3
+ },
+ "api_corroboration": {
+  "source": "unauthenticated GitHub REST API, queried 2026-10-16 during run 38982728075",
+  "run": "https://api.github.com/repos/Mickalive/LexMachina/actions/runs/38982176936",
+  "run_conclusion": "failure",
+  "team_job_id": 117245339430,
+  "team_failed_step": "Enforce lane write scope",
+  "team_failed_step_conclusion": "failure",
+  "prior_steps": "steps 1-8 all success, including 'Run lane cycle', 'Validate active MVP producer state' and 'Clean generated junk'",
+  "audit_job_id": 117247026987,
+  "audit_conclusion": "skipped (needs: team.result == success)",
+  "integrate_conclusion": "skipped",
+  "resilience_job_id": 117247026402,
+  "resilience_conclusion": "success (dispatched this operational-resume run 38982728075)"
+ },
+ "causal_chain": [
+  "producer workspace contained two audit-of-record paths (self-authored 'independent audit')",
+  "those paths are outside the producer write scope -> step 9 exit 3 -> team job failure",
+  "audit job skipped -> no independent gate for 38982176936 exists -> no promotion",
+  "resilience job re-dispatched the same deliverable as an operational resume (this run)"
+ ],
+ "verdict": "ORCHESTRATION_AND_VALIDATION_FAILURE_CONFIRMED_AT_STEP_LEVEL_AND_REPRODUCED_EXECUTABLY",
+ "logs_limit": "job logs are HTTP 403 unauthenticated; step CONCLUSIONS come from the API jobs endpoint, and the step's only exit-3 path is the scope violation, which is reproduced here from the snapshot's own added paths"
+}

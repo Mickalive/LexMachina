@@ -1,0 +1,66 @@
+{
+ "schema": "lex-evaluation-orchestration-diagnosis/1",
+ "purpose": "Job-level, step-level evidence for why core evaluation run 38982176936 produced no independent audit gate and no promotion, plus the executable reproduction that converts the step conclusion into a falsifiable lane-side claim. Companion to orchestration_diagnosis_2026-10-16.json (runs 38972887369 / 38977570612); this file covers only 38982176936 and the resume run that consumed it.",
+ "query_method": "Unauthenticated GitHub REST API: GET https://api.github.com/repos/Mickalive/LexMachina/actions/runs/38982176936 and .../actions/runs/38982176936/jobs (public repository). Queried 2026-10-16 during run 38982728075. Step bodies read from the control plane at origin/main:.github/workflows/core-lane.yml (read-only; .github/** never edited).",
+ "limits": "Job LOGS are HTTP 403 unauthenticated, so no stderr line of the failed step was read. The step CONCLUSIONS below are API facts. The step's only non-zero exit path is `exit 3` after classifying the working tree, and the violation is reproduced executably from the snapshot's own added paths (results/evaluation/snapshot_audit/38982176936_write_scope_repro.json, real control-plane step body exit 3 with an identical BAD set), so the cause is established by reproduction, not by log inference. Where a conclusion admits more than one cause, every candidate is recorded.",
+ "runs": {
+  "38982176936": {
+   "run_name": "Core evaluation dirV50 repair0",
+   "event": "workflow_dispatch",
+   "status": "completed",
+   "conclusion": "failure",
+   "head_sha": "20f780fb0428cc52692ad6342e2e71acd6d3b14c",
+   "dispatch_mode": "fresh cycle (no repair_from_run_id, no resume_from_run_id) against the accepted lab/evaluation base",
+   "producer_commit_snapshot": "fff0536c518c028a2184d96d972c7d3232819aa9, persisted by 'Persist team snapshot' (which runs if: always() and therefore ran even after step 9 failed)",
+   "job_id_team": 117245339430,
+   "jobs": {
+    "team": {
+     "conclusion": "failure",
+     "failed_step": "Enforce lane write scope",
+     "step_number": 9,
+     "step_facts": "steps 1-8 all success ('Run lane cycle' success, 'Validate active MVP producer state' success, 'Clean generated junk' success); step 9 'Enforce lane write scope' FAILURE; step 10 'Persist team snapshot' success (if: always())",
+     "interpretation": "the producer agent finished and produced a tree, then the workflow's own scope gate rejected that tree. This is a producer write-scope violation, not a provider death: the deliverable exists and was persisted."
+    },
+    "audit": {
+     "conclusion": "skipped",
+     "skipped_because": "needs: team.result == 'success' was false because the team job failed at step 9",
+     "interpretation": "no independent audit ran; therefore NO gate of record exists for 38982176936 anywhere (no results/audit/evaluation/CYCLE_38982176936_GATE.json from the audit job, no cycle/.../38982176936/audit branch), and nothing was promoted or rejected"
+    },
+    "integrate": {"conclusion": "skipped", "skipped_because": "needs: audit.result == 'success' was false"},
+    "resilience": {
+     "conclusion": "success",
+     "interpretation": "detected team != success with no other active same-generation run, found the surviving team snapshot branch, and dispatched this operational resume (run 38982728075) with resume_from_run_id=38982176936"
+    }
+   },
+   "root_cause": {
+    "class": "producer wrote audit-of-record artifacts outside the producer write scope",
+    "out_of_scope_paths": [
+     "results/audit/evaluation/CYCLE_38982176936_GATE.json",
+     "reports/audit/evaluation/CYCLE_38982176936.md"
+    ],
+    "allowed_producer_scope": "evaluation/*, tests/evaluation/*, results/evaluation/*, reports/evaluation/*, state/evaluation.json, data/evaluation/* (core-lane.yml step 'Enforce lane write scope'; requirements.txt/pyproject.toml/uv.lock additionally allowed for the product lane only)",
+    "executable_reproduction": "results/evaluation/snapshot_audit/38982176936_write_scope_repro.json — reconstruction from the snapshot's own added paths, classified by the lane's port of the step AND by the real step body extracted from origin/main executed against a stubbed git(1): both produce the identical two-path BAD set and the real step exits 3",
+    "why_the_producer_had_them": "the producer agent authored a self-declared 'Independent audit' gate and report at the audit-of-record paths inside its own working tree; 'Persist team snapshot' then committed them verbatim into fff0536c",
+    "secondary_defect_the_files_carry": "they are not merely misplaced, they are invalid as evidence: the gate JSON lacks the two fields the auditor prompt MANDATES (safe_to_integrate, required_fixes), records producer_commit == audit_base == 20f780fb (main's head at dispatch) instead of audit_base c8735dd4 / producer commit fff0536c, and contains duplicate JSON keys. See results/evaluation/snapshot_audit/void_self_audit_38982176936/VOID.json."
+   },
+   "in_scope_work_preserved": [
+    "results/evaluation/bar_gates/38982176936.json — fresh frozen-bar gate re-run, verdict PASS_NO_REGRESSION, labels 5/65 classes 38/22/5/0, geometry de 6 / fr 5 / it 5 with 33/33 engine-oracle cells, negative controls proven, absolute LABEL_UNSOUND + GEOMETRY_UNSOUND reported-not-enforced",
+    "results/evaluation/snapshot_audit/38982176936.json — snapshot readiness record, 7/7 checks PASS, deliverable manifest 21/21 sha256-pinned"
+   ],
+   "not_done_by_that_producer": "state/evaluation.json was NOT updated by run 38982176936 (no new block, no cycle_status change, evidence_refs unchanged). Step 7 'Validate active MVP producer state' nevertheless PASSED, because its only assertions are direction_version == 50 and cycle_status != INITIALIZED, both of which were inherited from the accepted base. CONTROL-PLANE GAP, recorded not patched: that step cannot detect a producer that silently skips its state update."
+   },
+  "38982728075": {
+   "run_name": "Core evaluation dirV50 repair0",
+   "event": "workflow_dispatch",
+   "dispatch_mode": "operational resume (resume_from_run_id=38982176936) dispatched by the resilience job of 38982176936",
+   "head_sha": "20f780fb0428cc52692ad6342e2e71acd6d3b14c",
+   "team_branch_checked_out": "operational-resume, reset to origin/cycle/core/evaluation/38982176936/team == fff0536c",
+   "status_at_time_of_record": "team job in progress; this diagnosis is written by the producer of that job",
+   "what_this_resume_changes": "the two out-of-scope audit artifacts are removed from the producer deliverable and preserved verbatim under results/evaluation/snapshot_audit/void_self_audit_38982176936/; an executable write-scope gate and a per-cycle diagnosis check are added to the lane's snapshot verifier; the valid in-scope records of 38982176936 are kept unchanged"
+  }
+ },
+ "control_plane_gaps_recorded_not_patched": [
+  "'Validate active MVP producer state' passes on an inherited stale state (it cannot detect a producer that skips its state update); .github/** is control-plane scope",
+  "the producer has no in-lane pre-flight of the write-scope step; this cycle adds one on the lane side (evaluation/snapshot_audit/write_scope.py) rather than editing the workflow"
+ ]
+}

@@ -32,6 +32,15 @@ Checks (each recorded PASS/FAIL/NOT_RUN; no check is silently dropped):
                                 embedded in the readiness record.
   7. orchestration_diagnosis_record  the job-level orchestration diagnosis
                                 artifact exists with the required structure.
+  8. producer_write_scope_clean   the working tree would pass the workflow's
+                                own "Enforce lane write scope" step (the step
+                                that killed run 38982176936): every porcelain
+                                entry must sit inside the producer scope.
+  9. write_scope_diagnosis_record the 38982176936 write-scope diagnosis,
+                                its executable reproduction and the void
+                                manifest for the producer-authored self-audit
+                                are all present and consistent, and the two
+                                out-of-scope paths are ABSENT from the tree.
 
 Exit 0 = ready_for_independent_audit (all checks PASS). Exit 1 = not ready.
 The readiness record states the exact gate path the auditor must write:
@@ -56,6 +65,8 @@ import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
+from evaluation.snapshot_audit import write_scope as ws
+
 SCHEMA = "lex-evaluation-snapshot-audit/1"
 
 # Direction v50 pinned values (factory_direction.json lanes.evaluation.question).
@@ -69,6 +80,25 @@ GEOMETRY_INCUMBENT = {"de-kapitalverletzung": 6, "fr-bail-entretien": 5,
                       "it-responsabilita-medica": 5}
 DIAGNOSIS_PATH = "evaluation/snapshot_audit/orchestration_diagnosis_2026-10-16.json"
 DIAGNOSIS_REQUIRED_RUNS = ("38972887369", "38977570612")
+
+# Run 38982176936 died at the workflow's "Enforce lane write scope" step
+# because the producer authored audit-of-record files outside its write
+# scope. Check 8 re-runs that step's classifier on the live tree; check 9
+# requires the diagnosis + executable reproduction + void manifest.
+WRITE_SCOPE_DIAGNOSIS_PATH = "evaluation/snapshot_audit/orchestration_diagnosis_38982176936.json"
+WRITE_SCOPE_REPRO_PATH = "results/evaluation/snapshot_audit/38982176936_write_scope_repro.json"
+VOID_DIR = "results/evaluation/snapshot_audit/void_self_audit_38982176936"
+VOID_MANIFEST_PATH = f"{VOID_DIR}/VOID.json"
+OUT_OF_SCOPE_ORIGINALS = (
+    "results/audit/evaluation/CYCLE_38982176936_GATE.json",
+    "reports/audit/evaluation/CYCLE_38982176936.md",
+)
+# sha256 of the voided files as measured when they were removed (they are
+# also re-hashed here against the preserved copies, so a swapped copy fails).
+VOID_EXPECTED_SHA256 = {
+    "CYCLE_38982176936_GATE.json": "e8ce69f7f49feb66debc1b15e3fd221090140f362a3cdc7b040de4e11692ec5f",
+    "CYCLE_38982176936.md": "4e9a72afa710d365674fc4dc1087ca02ee7d8844d7370b94edb84acd34f2325f",
+}
 
 # The v50 frozen-bar deliverable set plus this resume's delta. Every listed
 # file must exist; each is sha256-pinned into the readiness record.
@@ -94,6 +124,17 @@ DELIVERABLE_MANIFEST_PATHS = [
     "tests/evaluation/test_snapshot_audit.py",
     "reports/evaluation/CYCLE_38978411574.md",
     "state/evaluation.json",
+    # Run 38982176936: the two IN-SCOPE records it produced are preserved
+    # unchanged, and this resume's write-scope delta is pinned below.
+    "results/evaluation/bar_gates/38982176936.json",
+    "results/evaluation/snapshot_audit/38982176936.json",
+    "evaluation/snapshot_audit/write_scope.py",
+    "evaluation/snapshot_audit/orchestration_diagnosis_38982176936.json",
+    "results/evaluation/snapshot_audit/38982176936_write_scope_repro.json",
+    "results/evaluation/snapshot_audit/void_self_audit_38982176936/VOID.json",
+    "results/evaluation/snapshot_audit/void_self_audit_38982176936/CYCLE_38982176936_GATE.json",
+    "results/evaluation/snapshot_audit/void_self_audit_38982176936/CYCLE_38982176936.md",
+    "reports/evaluation/CYCLE_38982728075.md",
 ]
 
 
@@ -322,6 +363,87 @@ def check_diagnosis_record(repo_root: Path) -> dict:
     return _check("orchestration_diagnosis_record", ok, detail, problems=problems)
 
 
+def check_producer_write_scope(repo_root: Path) -> dict:
+    """Check 8: the live tree would pass the workflow's write-scope step.
+
+    Same classifier as the "Enforce lane write scope" step of core-lane.yml
+    (see evaluation/snapshot_audit/write_scope.py for the fidelity note).
+    A FAIL here is exactly the failure mode that killed run 38982176936.
+    """
+    try:
+        verdict = ws.evaluate_porcelain(ws.live_porcelain(repo_root), "evaluation")
+    except (ValueError, subprocess.CalledProcessError) as exc:
+        return _check("producer_write_scope_clean", False, f"could not classify tree: {exc}")
+    ok = verdict["scope_clean"]
+    detail = (f"{verdict['n_entries']} porcelain entries, all inside the producer scope "
+              f"(junk modelled as removed by the workflow's 'Clean generated junk' step)") if ok else \
+             (f"SCOPE VIOLATION, {verdict['n_bad']} out-of-scope paths: {verdict['bad_paths']}")
+    return _check("producer_write_scope_clean", ok, detail,
+                  bad_paths=verdict["bad_paths"], n_entries=verdict["n_entries"],
+                  junk_dropped=verdict["junk_dropped"])
+
+
+def check_write_scope_diagnosis(repo_root: Path) -> dict:
+    """Check 9: the 38982176936 write-scope failure is diagnosed, reproduced
+    and its invalid self-audit is voided — and the offending paths are gone."""
+    problems = []
+    diag_path = repo_root / WRITE_SCOPE_DIAGNOSIS_PATH
+    if not diag_path.exists():
+        problems.append(f"{WRITE_SCOPE_DIAGNOSIS_PATH} missing")
+    else:
+        diag = json.loads(diag_path.read_text(encoding="utf-8"))
+        run = diag.get("runs", {}).get("38982176936", {})
+        team = run.get("jobs", {}).get("team", {})
+        if team.get("failed_step") != "Enforce lane write scope":
+            problems.append("diagnosis team.failed_step")
+        audit = run.get("jobs", {}).get("audit", {})
+        if audit.get("conclusion") != "skipped":
+            problems.append("diagnosis audit conclusion")
+        cause = run.get("root_cause", {})
+        if sorted(cause.get("out_of_scope_paths", [])) != sorted(OUT_OF_SCOPE_ORIGINALS):
+            problems.append("diagnosis root_cause.out_of_scope_paths")
+        if "38982728075" not in diag.get("runs", {}):
+            problems.append("diagnosis resume run 38982728075")
+    repro_path = repo_root / WRITE_SCOPE_REPRO_PATH
+    if not repro_path.exists():
+        problems.append(f"{WRITE_SCOPE_REPRO_PATH} missing")
+    else:
+        repro = json.loads(repro_path.read_text(encoding="utf-8"))
+        fidelity = repro.get("real_control_plane_step_fidelity", {})
+        if fidelity.get("identical_bad_set") is not True:
+            problems.append("repro real-step/python-port BAD sets not identical")
+        if fidelity.get("real_step_exit_code") != 3:
+            problems.append("repro real-step exit code")
+        if sorted(repro.get("python_port_verdict", {}).get("bad_paths", [])) != sorted(OUT_OF_SCOPE_ORIGINALS):
+            problems.append("repro python-port bad paths")
+    void_path = repo_root / VOID_MANIFEST_PATH
+    if not void_path.exists():
+        problems.append(f"{VOID_MANIFEST_PATH} missing")
+    else:
+        void = json.loads(void_path.read_text(encoding="utf-8"))
+        recorded = {a["original_path"]: a["sha256"] for a in void.get("artifacts", [])}
+        if sorted(recorded) != sorted(OUT_OF_SCOPE_ORIGINALS):
+            problems.append("void manifest artifact paths")
+        for name, expected in VOID_EXPECTED_SHA256.items():
+            copy = repo_root / VOID_DIR / name
+            if not copy.exists():
+                problems.append(f"void copy missing {name}")
+                continue
+            if _sha256_file(copy) != expected:
+                problems.append(f"void copy sha256 mismatch {name}")
+        if any(recorded.get(p) != VOID_EXPECTED_SHA256[Path(p).name] for p in OUT_OF_SCOPE_ORIGINALS):
+            problems.append("void manifest sha256 values")
+    for rel in OUT_OF_SCOPE_ORIGINALS:
+        if (repo_root / rel).exists():
+            problems.append(f"out-of-scope original still in tree: {rel}")
+    ok = not problems
+    detail = ("38982176936 write-scope failure diagnosed at step level, reproduced with the real "
+              "control-plane step (exit 3, identical BAD set), self-audit voided with byte-identical "
+              "copies, and both out-of-scope originals absent from the producer tree") if ok else \
+             f"write-scope diagnosis problems: {problems}"
+    return _check("write_scope_diagnosis_record", ok, detail, problems=problems)
+
+
 def build_record(run_id: str, checks: list[dict], manifest: dict) -> dict:
     n_pass = sum(1 for c in checks if c["status"] == "PASS")
     ready = n_pass == len(checks)
@@ -345,12 +467,15 @@ def build_record(run_id: str, checks: list[dict], manifest: dict) -> dict:
             "every state/evaluation.json evidence_ref resolves in the snapshot",
             "deliverable manifest complete; every file sha256-pinned in this record",
             "job-level orchestration diagnosis for runs 38972887369/38977570612 recorded with required structure",
+            "the live tree passes the workflow's own producer write-scope classifier (the step that failed run 38982176936)",
+            "run 38982176936's write-scope failure is reproduced with the real control-plane step body (exit 3, identical BAD set) and its producer-authored self-audit is voided with byte-identical preserved copies",
         ],
         "snapshot_claims_not_certified": [
             "jurist-usefulness of the map (human gate); human_gate_ready stays false under the standing accepted DO-NOT-SERVE order",
             "absolute bars LABEL_UNSOUND and GEOMETRY_UNSOUND remain the accepted status of the served packet; reported, never enforced",
             "no Frontier candidate re-measured; no 174k/global-map benchmark rerun; no Product import; no network",
             "job-LOG-level cause of the 38977570612 audit-step failure remains two flagged candidate causes (logs 403 unauthenticated), not one asserted cause",
+            "run 38982176936 has NO independent audit of record: its producer-authored gate is void, and only this run's audit job can produce the gate of record",
         ],
     }
 
@@ -383,6 +508,8 @@ def main(argv=None) -> int:
                     for rel in DELIVERABLE_MANIFEST_PATHS if (repo_root / rel).exists()}
         checks.append(check_manifest(repo_root))
         checks.append(check_diagnosis_record(repo_root))
+        checks.append(check_producer_write_scope(repo_root))
+        checks.append(check_write_scope_diagnosis(repo_root))
 
     record = build_record(args.run_id, checks, manifest)
     out_path.write_text(json.dumps(record, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")

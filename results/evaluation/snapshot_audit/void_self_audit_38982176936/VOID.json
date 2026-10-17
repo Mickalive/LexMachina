@@ -1,0 +1,42 @@
+{
+ "schema": "lex-evaluation-void-self-audit/1",
+ "run_id": "38982176936",
+ "lane": "evaluation",
+ "direction_version": 50,
+ "created_by_run": "38982728075",
+ "purpose": "Preserve, verbatim and with provenance, two audit-of-record artifacts that were AUTHORED IN THE PRODUCER WORKSPACE of run 38982176936 and then removed from the producer deliverable, because (a) a producer cannot produce its own audit of record and (b) their presence outside the producer write scope is the confirmed cause of that run's chain failure.",
+ "artifacts": [
+  {
+   "original_path": "results/audit/evaluation/CYCLE_38982176936_GATE.json",
+   "preserved_copy": "results/evaluation/snapshot_audit/void_self_audit_38982176936/CYCLE_38982176936_GATE.json",
+   "sha256": "e8ce69f7f49feb66debc1b15e3fd221090140f362a3cdc7b040de4e11692ec5f",
+   "byte_identical_to_original": true
+  },
+  {
+   "original_path": "reports/audit/evaluation/CYCLE_38982176936.md",
+   "preserved_copy": "results/evaluation/snapshot_audit/void_self_audit_38982176936/CYCLE_38982176936.md",
+   "sha256": "4e9a72afa710d365674fc4dc1087ca02ee7d8844d7370b94edb84acd34f2325f",
+   "byte_identical_to_original": true
+  }
+ ],
+ "immutable_git_provenance": {
+  "first_commit_touching_them": "fff0536c518c028a2184d96d972c7d3232819aa9",
+  "first_commit_subject": "evaluation cycle 38982176936 repair 0",
+  "first_commit_author": "lex-evaluation-team <lex-team@autonomous.local>",
+  "why_that_commit": "the workflow's 'Persist team snapshot' step runs `git add -A; git commit`, so it captured the producer working tree verbatim, including these two out-of-scope files",
+  "refs_still_carrying_them": [
+   "refs/heads/cycle/core/evaluation/38982176936/team",
+   "refs/heads/cycle/core/evaluation/38982176936/team-attempt-1"
+  ],
+  "note": "nothing is deleted from history; this directory only removes the files from the PRODUCER DELIVERABLE tree, where they are both invalid and chain-fatal"
+ },
+ "why_void": {
+  "1_independence": "The audit of record may only be produced by the workflow's own 'Independent audit' job, which checks out the accepted base (lab/evaluation) and mounts the producer snapshot read-only at /tmp/lex_team (core-lane.yml audit job). A producer-authored file at the gate path is not an independent audit under AGENTS.md rules 5/6 and factory-wide requirements 5/14.",
+  "2_write_scope": "results/audit/<lane>/* and reports/audit/<lane>/* are outside the producer write scope (allowed: evaluation/*, tests/evaluation/*, results/evaluation/*, reports/evaluation/*, state/evaluation.json, data/evaluation/*). Executable proof: python -m evaluation.snapshot_audit.write_scope --lane evaluation --repro-from-git c8735dd42be57b61433ef8c86ca6d995e77c2da6 fff0536c518c028a2184d96d972c7d3232819aa9 exits 1 with exactly these two paths BAD; the real control-plane step body, extracted from origin/main and fed the same porcelain through a stubbed git, exits 3 with the identical BAD set.",
+  "3_not_an_auditor_emission": "The file contradicts the auditor contract in three independent ways: (a) it lacks the two fields the audit prompt MANDATES (safe_to_integrate boolean, required_fixes array); (b) its producer_commit and audit_base are both 20f780fb0428cc52692ad6342e2e71acd6d3b14c, i.e. main's head at dispatch (GITHUB_SHA), whereas the real audit job records audit_base = lab/evaluation and reads the producer commit from the mounted /tmp/lex_team (for this run: c8735dd4 and fff0536c respectively); (c) the JSON carries duplicate keys (audit_base, integration_scope_note each appear twice).",
+  "4_chain_consequence": "Team job 117245339430 step 9 'Enforce lane write scope' concluded failure; the audit job (117247026987) and integrate were skipped; no independent gate for 38982176936 exists anywhere; nothing was promoted; the resilience job dispatched this operational resume."
+ },
+ "status_of_the_underlying_deliverable": "The two IN-SCOPE files the same producer run produced (results/evaluation/bar_gates/38982176936.json and results/evaluation/snapshot_audit/38982176936.json) are valid re-verification records and are preserved unchanged. Only the self-audit is void.",
+ "must_not_be_cited_as": "an audit of record, a gate verdict, a promotion, or an acceptance for run 38982176936",
+ "gate_path_of_record_for_the_resumed_deliverable": "results/audit/evaluation/CYCLE_38982728075_GATE.json, to be written ONLY by the independent audit job of run 38982728075 (uppercase _GATE.json, from the audit-job checkout, never /tmp/lex_team)"
+}
