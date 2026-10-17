@@ -53,6 +53,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -111,6 +112,58 @@ CHECK_FIELDS = (
 #: this tool therefore does not reproduce verbatim.  See ``counter_count`` in the
 #: emitted summary for the reconciled values.
 KNOWN_BUNDLE_SUMMARY_DIVERGENCE = "n_counter"
+
+#: The one *environment-scoped* subfield of ``packet_admission``.  ``packet_admission()``
+#: emits ``verdict_source`` as ``str(REPO_ROOT / "results/product/frontier_verdicts/...")``,
+#: an absolute path, so two checkouts that rebuild the same committed bundle emit
+#: two different strings for the same file (``/home/runner/work/LexMachina/...`` vs
+#: ``/tmp/lex_team/...``).  Independent audit of cycle 38993348615 (gate=REVISE,
+#: REQUIRED-1) established that this made the "19 deterministic fields" reproduction
+#: claim checkout-scoped: ``--check`` exited 1 and 3 of 12 tests failed in the
+#: producer workspace.
+#:
+#: Accepted repository standard (required fix D1 of cycle 38785927063): an
+#: artifact-identity claim must be path-independent and verified at two checkout
+#: paths, or state the dependence explicitly.  :func:`compare` therefore
+#: canonicalises BOTH sides of a ``packet_admission`` comparison to the
+#: repo-relative path below ``results/``.  The normalisation strips ONLY the
+#: checkout prefix -- the verdict file name, team, run, bars and every other
+#: subfield stay strictly compared, so a genuine verdict swap or content change
+#: still fails.  Nothing outside ``compare`` is rewritten; ``build_summary`` keeps
+#: reusing ``packet_admission()`` verbatim.
+VERDICT_SOURCE_MARKER = "results/product/frontier_verdicts/"
+_VERDICT_SOURCE_REL_RE = re.compile(
+    r"^results/product/frontier_verdicts/[^/\\]+$"
+)
+
+
+def canonical_verdict_source(value: object) -> str:
+    """Checkout-independent form of a ``packet_admission.verdict_source``.
+
+    ``/home/runner/work/LexMachina/LexMachina/results/product/frontier_verdicts/X.json``
+    and ``/tmp/lex_team/results/product/frontier_verdicts/X.json`` both canonicalise
+    to ``results/product/frontier_verdicts/X.json``.  A value that does not end in a
+    single ``results/product/frontier_verdicts/<file>`` tail is returned unchanged, so
+    this can never launder a different file, a nested path or an arbitrary string.
+    Idempotent.
+    """
+    text = str(value or "")
+    idx = text.rfind(VERDICT_SOURCE_MARKER)
+    if idx > 0:
+        tail = text[idx:]
+        if _VERDICT_SOURCE_REL_RE.match(tail):
+            return tail
+    return text
+
+
+def _normalise_packet_admission_for_compare(value: object) -> object:
+    """Copy ``packet_admission`` with only ``verdict_source`` canonicalised."""
+    if isinstance(value, dict):
+        out = dict(value)
+        if "verdict_source" in out:
+            out["verdict_source"] = canonical_verdict_source(out["verdict_source"])
+        return out
+    return value
 
 COUNTER_COUNT_NOTE = (
     "This tool counts counter rows with the product's own definition, "
@@ -292,6 +345,13 @@ def compare(rebuilt: dict, reference: dict,
     values and explanation travel in the rebuilt ``counter_count`` block.  A
     caller that wants to assert that divergence checks ``counter_count``
     directly, so it can never be an accident.
+
+    ``packet_admission`` is compared with its single environment-scoped subfield
+    ``verdict_source`` canonicalised on BOTH sides by
+    :func:`canonical_verdict_source`, so reproduction does not depend on the
+    directory that wrote the reference artifact.  Every other subfield (verdict
+    team, run, accept commit, bars, blocked_by, serve recommendation) is compared
+    strictly, and a changed verdict *file* still fails.
     """
     diffs: list[str] = []
     for field in fields:
@@ -302,6 +362,9 @@ def compare(rebuilt: dict, reference: dict,
                      if k != KNOWN_BUNDLE_SUMMARY_DIVERGENCE}
                 b = {k: v for k, v in b.items()
                      if k != KNOWN_BUNDLE_SUMMARY_DIVERGENCE}
+        elif field == "packet_admission":
+            a = _normalise_packet_admission_for_compare(a)
+            b = _normalise_packet_admission_for_compare(b)
         if a != b:
             diffs.append(f"{field}:\n  rebuilt   = "
                          f"{json.dumps(a, ensure_ascii=False, sort_keys=True)}\n"
@@ -351,7 +414,10 @@ def main(argv: list[str] | None = None) -> int:
                 print(d, file=sys.stderr)
         else:
             print(f"OK: rebuild reproduces {args.reference} on "
-                  f"{len(CHECK_FIELDS)} deterministic fields")
+                  f"{len(CHECK_FIELDS)} deterministic fields "
+                  f"(path-independent: packet_admission.verdict_source "
+                  f"canonicalised to its repo-relative form on both sides; "
+                  f"every other subfield compared strictly)")
         ref_nc = (reference.get("bundle_summary") or {}).get("n_counter")
         new_nc = summary["bundle_summary"]["n_counter"]
         if ref_nc != new_nc:

@@ -169,6 +169,92 @@ def test_compare_ignores_only_the_known_divergence_field():
 
 
 # --------------------------------------------------------------------------- #
+# 3b. path-independent reproduction (audit REQUIRED-1 of cycle 38993348615)
+# --------------------------------------------------------------------------- #
+def test_compare_is_path_independent_of_the_checkout_that_wrote_the_reference():
+    """The exact rejected-cycle defect, pinned.
+
+    ``packet_admission()`` emits ``verdict_source`` as an absolute checkout path.
+    The committed reference records ``/home/runner/work/LexMachina/LexMachina/...``;
+    a producer workspace at ``/tmp/lex_team`` rebuilds the same file under a
+    different prefix.  Before the repair, ``compare`` reported a diff and
+    ``--check`` exited 1 there.  Reproduction must not depend on the directory
+    that wrote the reference.
+    """
+    reference = json.loads(LEG.read_text(encoding="utf-8"))
+    foreign = copy.deepcopy(reference)
+    foreign["packet_admission"]["verdict_source"] = (
+        "/tmp/lex_team/results/product/frontier_verdicts/"
+        "ACCEPTED_frontier-served-packet-falsification_38880639079.json"
+    )
+    assert foreign["packet_admission"]["verdict_source"] != \
+        reference["packet_admission"]["verdict_source"]
+    assert RSP.compare(_rebuild(), foreign) == []
+
+
+def test_compare_canonicalises_both_sides_and_the_normaliser_is_bounded():
+    """Both sides are canonicalised; unrelated strings and file identity survive."""
+    tail = ("results/product/frontier_verdicts/"
+            "ACCEPTED_frontier-served-packet-falsification_38880639079.json")
+    # Canonicalisation is idempotent, strips any checkout prefix, and is bounded
+    # to a single results/product/frontier_verdicts/<file> tail.
+    assert RSP.canonical_verdict_source("/a/b/" + tail) == tail
+    assert RSP.canonical_verdict_source(tail) == tail
+    assert RSP.canonical_verdict_source("") == ""
+    assert RSP.canonical_verdict_source("/etc/passwd") == "/etc/passwd"
+    assert RSP.canonical_verdict_source("/x/results/other/y.json") == \
+        "/x/results/other/y.json"
+
+    # Rebuilt side with a foreign prefix also reproduces the committed reference.
+    reference = json.loads(LEG.read_text(encoding="utf-8"))
+    rebuilt = _rebuild()
+    rebuilt["packet_admission"]["verdict_source"] = "/tmp/lex_team/" + tail
+    assert RSP.compare(rebuilt, reference) == []
+
+
+def test_compare_still_fails_on_a_real_packet_admission_content_change():
+    """Non-vacuity: normalising the path must not hide any real change.
+
+    A hard-coded ``verdict_source``-only comparison would reproduce the artifact
+    while measuring nothing.  Each tampered subfield below is a genuine change to
+    the admission decision and MUST raise a diff.
+    """
+    reference = json.loads(LEG.read_text(encoding="utf-8"))
+    cases = {
+        "verdict_run": "99999999",
+        "verdict_team": "some-other-team",
+        "verdict_accept_commit": "0" * 40,
+        "verdict_covers_this_packet": False,
+        "blocked_by": [],
+        "admissible": True,
+        "ready_for_owner_session": True,
+        "human_gate_ready": True,
+        "serve_recommendation": "SERVE this packet",
+    }
+    for key, value in cases.items():
+        tampered = copy.deepcopy(reference)
+        assert key in tampered["packet_admission"], key
+        tampered["packet_admission"][key] = value
+        diffs = RSP.compare(_rebuild(), tampered)
+        assert diffs != [], f"a changed packet_admission.{key} was not reported"
+        assert any("packet_admission" in d for d in diffs), key
+
+
+def test_compare_fails_when_the_verdict_file_identity_changes():
+    """Normalisation strips a checkout prefix, never the verdict file name."""
+    reference = json.loads(LEG.read_text(encoding="utf-8"))
+    other = copy.deepcopy(reference)
+    other["packet_admission"]["verdict_source"] = (
+        "/tmp/lex_team/results/product/frontier_verdicts/"
+        "ACCEPTED_some-other-team_11111111111.json"
+    )
+    diffs = RSP.compare(_rebuild(), other)
+    assert diffs != []
+    assert any("packet_admission" in d for d in diffs)
+
+
+
+# --------------------------------------------------------------------------- #
 # 4. mega-cluster disclosure non-vacuity
 # --------------------------------------------------------------------------- #
 def test_mega_cluster_disclosure_fires_when_one_cluster_dominates():
