@@ -52,11 +52,13 @@ def test_one_command_slice_is_offline_clickable_and_verified(monkeypatch, tmp_pa
     assert stats["geometry_preserved_by_enrich"] is True, \
         "enrichment must not move or drop a rendered point"
     # Non-vacuity on the DOM side: the page contract must really have executed
-    # the answer-panel section (45 assertions as of this cycle; the pre-answer
-    # floor was 36), not just booted the page.
+    # the answer-panel section (45 assertions as of cycle 39060279436) and the
+    # adversarial-discovery section (56 as of cycle 39063665073: 45 + the honest
+    # empty-state assertion + the 10 synthetic discovery assertions), not just
+    # booted the page.  The pre-answer floor was 36.
     detail = summary.get("page_contract_detail") or ""
     assert detail.startswith("PASS"), detail
-    assert int(detail.split()[-2]) >= 40, detail
+    assert int(detail.split()[-2]) >= 56, detail
 
 
 def test_map_only_mode_makes_no_answer_claim(monkeypatch, tmp_path, capsys):

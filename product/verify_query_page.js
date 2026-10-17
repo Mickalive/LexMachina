@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Offline DOM verification for product/static/query.html.
  *
- /*   node product/verify_query_page.js BUNDLE.json [DEEP_LINK_SEARCH]
+ /*   node product/verify_query_page.js BUNDLE.json [DEEP_LINK_SEARCH] [HTML_PATH]
  *
  * Why this exists
  * ---------------
@@ -23,6 +23,11 @@
  *      one click from the decision panel (inline id link, or the source chip
  *      when the model numbers its citations), and prose is escaped, never
  *      executed as markup.
+ *   7. the independent adversarial pass is DISCOVERABLE and honestly labelled:
+ *      every row its probes found is named in the sidebar with the channel that
+ *      found it, one click opens it, the map filter isolates it, and the page
+ *      states on every card that this is retrieval provenance and not a legal
+ *      qualification.
  *
  * It is a smoke test of the clickable slice, not a claim about legal usefulness.
  *
@@ -41,7 +46,11 @@ if (!bundlePath) {
 }
 
 const bundle = JSON.parse(fs.readFileSync(bundlePath, "utf8"));
-const html = fs.readFileSync(HTML_PATH, "utf8");
+/* Optional page override, used ONLY by the product's own discrimination
+ * controls (product/tests/test_adversarial_discovery_ui.py) to run this same
+ * behavioural contract against a mutated page.  A real check reads the shipped
+ * page. */
+const html = fs.readFileSync(process.argv[4] || HTML_PATH, "utf8");
 /* Optional deep link (?q=&n=&run_id=), the per-question link the gate packet
  * hands the owner.  With one, the page is EXPECTED to ask the server for that
  * run: "no network call" only holds for the plain, deep-link-free boot. */
@@ -340,6 +349,128 @@ setTimeout(async () => {
   const chipDetail = documentShim.getElementById("detail").innerHTML;
   check(chipDetail.indexOf("bge_ANS_2_NOT_IN_PROSE") !== -1,
         "clicking a source chip opens its decision");
+  page.evaluate("renderBundle(__TEST_BUNDLE__);");
+
+  /* 10. The independent adversarial pass is the half of the product a ranked
+   *    list cannot show, and before cycle 39063665073 it was invisible: the
+   *    frozen reviewer legitimately abstains without verbatim evidence, so a
+   *    live session reported "aucune contre-autorité qualifiée" right after
+   *    the pass had ADMITTED new authorities through its contrary / exception /
+   *    minority / older-line probes.  These assertions run the page's own
+   *    predicates over the bundle it is actually given, so the panel cannot
+   *    quietly under-report what the pass found.
+   *
+   *    The label ceiling is asserted as hard as the discovery: discovery is
+   *    provenance, never a counter qualification. */
+  const discovered = page.evaluate("(function(){"
+    + "return (__TEST_BUNDLE__.decisions || []).filter(isAdversarial)"
+    + "  .map(function (d) { return { id: d.decision_id, channels: advChannels(d),"
+    + "    isCounter: isCounter(d), evidenced: counterEvidenced(d) }; });})()");
+  const advHtml = documentShim.getElementById("adversarialList").innerHTML;
+  if (discovered.length) {
+    const missing = discovered.filter(
+      (r) => advHtml.indexOf('data-id="' + esc(r.id) + '"') === -1);
+    check(missing.length === 0,
+          "every authority the adversarial pass found is named in the sidebar ("
+          + discovered.length + " found, " + missing.length + " unnamed)");
+    const unnamedChannels = discovered.filter(
+      (r) => r.channels.every((c) => advHtml.indexOf(esc(c)) === -1));
+    check(unnamedChannels.length === 0,
+          "each discovered authority names the probe channel that found it");
+    check(advHtml.indexOf("marqueur de provenance de recherche, pas une qualification juridique") !== -1,
+          "the discovery panel states that the marker is provenance, not a legal qualification");
+    check(advHtml.indexOf("découverte seule") !== -1 || discovered.every((r) => r.evidenced),
+          "an unqualified discovery is labelled as a discovery only");
+
+    /* Clicking it opens the decision, and the panel says how it was found. */
+    page.evaluate("openDiscovered(" + JSON.stringify(discovered[0].id) + ");");
+    const discDetail = documentShim.getElementById("detail").innerHTML;
+    check(discDetail.indexOf(esc(discovered[0].id)) !== -1,
+          "opening a discovered authority shows its decision (" + discovered[0].id + ")");
+    check(discDetail.indexOf("Passe contradictoire indépendante") !== -1
+          && discDetail.indexOf("marqueur indique comment la décision a été retrouvée") !== -1,
+          "the discovered decision's panel discloses its discovery provenance");
+    if (!discovered[0].isCounter) {
+      check(discDetail.indexOf('pill red') === -1 && discDetail.indexOf('pill amber') === -1,
+            "a discovery is never rendered as a counter qualification");
+    }
+
+    /* The map filter isolates exactly the discovered rows, no more, no less. */
+    const cfEl = documentShim.getElementById("counterFilter");
+    cfEl.value = "adversarial";
+    const shown = page.evaluate("(function(){ draw(); return PTS.length; })()");
+    const allDiscovered = page.evaluate(
+      "(function(){ return PTS.every(isAdversarial); })()");
+    check(shown === discovered.length && allDiscovered === true,
+          "the 'passe contradictoire' filter isolates exactly the discovered rows ("
+          + shown + "/" + discovered.length + ")");
+    cfEl.value = "all";
+    page.evaluate("draw();");
+  } else {
+    check(advHtml.indexOf("n’a trouvé aucune autorité nouvelle") !== -1,
+          "a bundle with no adversarial finding says so instead of inventing one");
+    check(true, "bundle carries no adversarially discovered authority (nothing to list)");
+  }
+
+  /* Discovery must never manufacture a counter claim: a row the probes found
+   * and nobody qualified stays out of the counter filter and out of the
+   * counter sidebar, while remaining on the map and listed as a discovery. */
+  const discSynth = {
+    query: "discovery", query_variants: [],
+    answer: {status: "ready", prose: "", cited_decision_ids: []},
+    decisions: [
+      {decision_id: "disc-only", court: "BGER", language: "de", rank: 1, score: 0.9,
+       provenance: {}, snippet: "s", cluster_id: 0, x: 0, y: 0, counter_status: "none",
+       channels: ["adversarial.minority"], canonical_url: "https://example.com/d1", citation: ""},
+      {decision_id: "disc-qualified", court: "BGER", language: "fr", rank: 2, score: 0.8,
+       provenance: {}, snippet: "s", cluster_id: 0, x: 0.1, y: 0.1,
+       counter_status: "candidate-limiting", counter_evidence: "La réserve est expresse.",
+       counter_evidence_verified: true, channels: ["adversarial.contrary"],
+       canonical_url: "https://example.com/d2", citation: ""},
+      {decision_id: "plain-row", court: "BGE", language: "it", rank: 3, score: 0.7,
+       provenance: {}, snippet: "s", cluster_id: 0, x: 0.2, y: 0.2, counter_status: "none",
+       channels: ["search"], canonical_url: "https://example.com/p", citation: ""},
+    ],
+    clusters: [{cluster_id: 0, size: 3, label: "synthetic"}],
+    relations: [],
+    provenance: {},
+  };
+  page.evaluate("renderBundle(" + JSON.stringify(discSynth) + ");");
+  const discPred = page.evaluate("(function(){ var b = " + JSON.stringify(discSynth) + ";"
+    + "var only = b.decisions[0], qual = b.decisions[1], plain = b.decisions[2];"
+    + "return { onlyDiscovered: isAdversarial(only), onlyCounter: isCounter(only),"
+    + "  onlyChannels: advChannels(only), qualBoth: isAdversarial(qual) && counterEvidenced(qual),"
+    + "  plainDiscovered: isAdversarial(plain), plainCounter: isCounter(plain) }; })()");
+  check(discPred.onlyDiscovered === true && discPred.onlyChannels[0] === "minority",
+        "an adversarial channel row predicates as discovered (channel: minority)");
+  check(discPred.onlyCounter === false && discPred.qualBoth === true,
+        "discovery never manufactures a counter claim, and never hides a qualified one");
+  check(discPred.plainDiscovered === false && discPred.plainCounter === false,
+        "an ordinary ranked retrieval row is not presented as a discovery");
+
+  const discHtml = documentShim.getElementById("adversarialList").innerHTML;
+  const counterHtmlDisc = documentShim.getElementById("counterList").innerHTML;
+  check(discHtml.indexOf('data-id="disc-only"') !== -1
+        && discHtml.indexOf('data-id="disc-qualified"') !== -1,
+        "the discovery panel lists both discovered rows");
+  check(discHtml.indexOf('data-id="plain-row"') === -1
+        && counterHtmlDisc.indexOf('data-id="plain-row"') === -1,
+        "an ordinary retrieval row appears in neither the discovery nor the counter panel");
+  check(counterHtmlDisc.indexOf('data-id="disc-only"') === -1,
+        "an unqualified discovery is NOT listed as a counter-authority");
+  check(discHtml.indexOf("qualifiée et étayée") !== -1,
+        "a discovered AND qualified row states both facts");
+
+  const cfDisc = documentShim.getElementById("counterFilter");
+  cfDisc.value = "counter";
+  const counterView = page.evaluate("(function(){ draw(); return PTS.length; })()");
+  check(counterView === 1,
+        "the counter filter still isolates only the qualified row (" + counterView + "/1)");
+  cfDisc.value = "adversarial";
+  const discView = page.evaluate("(function(){ draw(); return PTS.length; })()");
+  check(discView === 2,
+        "the discovery filter isolates the two discovered rows (" + discView + "/2)");
+  cfDisc.value = "all";
   page.evaluate("renderBundle(__TEST_BUNDLE__);");
 
   let failed = 0;

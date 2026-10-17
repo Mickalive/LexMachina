@@ -36,6 +36,8 @@ const STROKE = {
   red: "#b72736",     /* evidenced counter authority: confident ring      */
   amber: "#8a6d1f",   /* unevidenced counter, retained for visibility    */
   gold: "#d59b00",    /* cited authority                                 */
+  discovery: "#00b3c8", /* found by the independent adversarial pass:
+                            DISCOVERY provenance, never a qualification */
 };
 
 /**
@@ -68,13 +70,14 @@ function recordingContext() {
 }
 
 function countByStyle(ops) {
-  const out = { red: 0, amber: 0, gold: 0, dashed_other: 0, stroke_total: 0 };
+  const out = { red: 0, amber: 0, gold: 0, discovery: 0, dashed_other: 0, stroke_total: 0 };
   for (const op of ops) {
     if (op.kind !== "stroke") continue;
     out.stroke_total += 1;
     if (op.strokeStyle === STROKE.red) out.red += 1;
     else if (op.strokeStyle === STROKE.amber) out.amber += 1;
     else if (op.strokeStyle === STROKE.gold) out.gold += 1;
+    else if (op.strokeStyle === STROKE.discovery) out.discovery += 1;
     else if (op.dash && op.dash.length) out.dashed_other += 1;
   }
   return out;
@@ -99,7 +102,7 @@ function countFills(ops) {
  * Run the page's own draw() once against `bundle` and report what it painted.
  *
  * @param {{html?: string, bundle: object, search?: string}} opts
- * @returns {{pts:number, fills:number, red:number, amber:number, gold:number, ...}}
+ * @returns {{pts:number, fills:number, red:number, amber:number, gold:number, discovery:number, ...}}
  */
 function measure(opts) {
   const options = opts || {};
