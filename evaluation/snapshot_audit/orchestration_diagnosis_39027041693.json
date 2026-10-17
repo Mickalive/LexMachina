@@ -1,0 +1,79 @@
+{
+ "schema": "lex-evaluation-orchestration-diagnosis/1",
+ "purpose": "Job-level GitHub Actions evidence for why evaluation-lane run 39027041693 produced a complete, green producer snapshot but NO audit gate and NO promotion. This is the run this cycle (39033797087) operationally resumes from. It upgrades the repo-evidence-only diagnosis recorded in state/evaluation.json to API-confirmed job/step-level fact.",
+ "query_method": "Unauthenticated GitHub REST API: GET https://api.github.com/repos/Mickalive/LexMachina/actions/runs/39027041693, .../runs/39027041693/jobs, and the same for the two preceding evaluation cycles 39018005027 and 39020603510. The repository is public (API field \"private\": false). Queried 2026-10-17 during run 39033797087.",
+ "limits": "Job step LOGS are not readable unauthenticated. GET .../actions/jobs/117390591605/logs returns HTTP 403 {\"message\":\"Must have admin rights to Repository.\"} (verified in this cycle, both for the audit job and for the team job). Every fact below is therefore a run/job/step-LEVEL conclusion returned by the API plus arithmetic on durations and on the wrapper's own published constants; the stderr/stdout of the failed step is not part of this record. Candidate causes that the API cannot separate are kept as a candidate set with a named best-supported member.",
+ "runs": {
+  "39027041693": {
+   "run_name": "Core evaluation dirV52 repair0",
+   "event": "workflow_dispatch",
+   "status": "completed",
+   "conclusion": "failure",
+   "head_sha": "b3686b69c117c6c3d8bb3fb5a9e39185b36ba97e",
+   "producer_commit_snapshot": "09970e838a2c8b1252d6e6f07f6b74cfa525a310 (created by the 'Persist team snapshot' step, which SUCCEEDED)",
+   "job_id_team": 117379984869,
+   "job_id_audit": 117390591605,
+   "jobs": {
+    "team": {
+     "conclusion": "success",
+     "duration_s": 3536,
+     "step_facts": "ALL 11 steps succeeded, including 'Run lane cycle', 'Validate active MVP producer state', 'Enforce lane write scope' and 'Persist team snapshot'",
+     "interpretation": "the producer deliverable is COMPLETE and scope-clean. The lane did not fail; its deliverable is on origin/cycle/core/evaluation/39027041693/team and on origin/lab/evaluation (same sha 09970e83)."
+    },
+    "audit": {
+     "conclusion": "failure",
+     "duration_s": 2749,
+     "failed_step": "Independent audit",
+     "step_facts": "steps 1-4 (checkout main, checkout accepted base + mount team, install Ox/OpenCode) succeeded; step 5 'Independent audit' FAILED; steps 6 'Enforce audit scope and read gate' and 7 'Persist audit snapshot' were SKIPPED",
+     "timing_evidence": {
+      "audit_job_total_s": 2749,
+      "wrapper_work_quantum_s": 2700,
+      "constant_source": ".github/scripts/run-ox-with-retry.sh at origin/main: WORK_QUANTUM_SECONDS=\"${LEX_AGENT_QUANTUM_SECONDS:-2700}\"; the job env sets no override",
+      "quantum_return_code": 78,
+      "quantum_behaviour": "on reaching the quantum the wrapper prints ::warning::LEX_WORK_QUANTUM_EXPIRED, kills the whole OpenCode process group and returns 78; the caller then exits 78, which under `set -euo pipefail` fails the step",
+      "arithmetic": "2749 s total - ~49 s for the three pre-agent setup steps = ~2700 s inside the agent step, i.e. the step ran for exactly one quantum"
+     },
+     "candidate_causes_of_the_step_failure_not_disambiguated": [
+      "LEX_WORK_QUANTUM_EXPIRED: the auditor session consumed the whole 2700 s work quantum and was killed with rc=78 by the wrapper, which is what the step-level duration matches to within the setup time",
+      "the auditor provider/process died on its own at ~2700 s (transient or provider death), which is not distinguished from (1) without step logs",
+      "the auditor wrote its gate to a path the gate reader/jq could not see AND the wrapper surfaced that as a step failure - excluded by the API fact that the failing step is step 5, while the path/scope check is step 6, which was SKIPPED"
+     ],
+     "best_supported_cause": "LEX_WORK_QUANTUM_EXPIRED (rc=78): the audit step duration equals the wrapper's single 2700 s quantum plus setup, and the successor resume step is the one that reports an exhausted quantum. Cause (2) remains possible but is not supported by any positive evidence in API data; cause (3) is excluded by the step index.",
+     "interpretation": "the audit job died at the agent step AFTER a fully green producer chain, so the gate file was never written, the audit snapshot was never persisted, and the cycle was never promoted or rejected despite a complete deliverable sitting on origin/cycle/core/evaluation/39027041693/team."
+    },
+    "resilience": {
+     "conclusion": "success",
+     "duration_s": 8
+    },
+    "integrate": {
+     "conclusion": "skipped"
+    }
+   },
+   "repo_evidence_corroboration": "no results/audit/evaluation/CYCLE_39027041693_GATE.json anywhere in the tree; no remote ref refs/heads/cycle/core/evaluation/39027041693/audit exists (only .../team and .../team-attempt-1, both at 09970e83); no 'accept evaluation cycle 39027041693' commit on main; origin/lab/evaluation points at 09970e83, the producer snapshot itself"
+  },
+  "recurrence_set": {
+   "purpose": "whether the audit-job death is a one-off or a growing-workload pathology, measured on the three consecutive evaluation cycles",
+   "runs": {
+    "39018005027": {
+     "team_s": 2118,
+     "audit_s": 333,
+     "audit_conclusion": "success"
+    },
+    "39020603510": {
+     "team_s": 1838,
+     "audit_s": 1273,
+     "audit_conclusion": "success"
+    },
+    "39027041693": {
+     "team_s": 3536,
+     "audit_s": 2749,
+     "audit_conclusion": "failure at step 5 'Independent audit'"
+    }
+   },
+   "reading": "the audit job's wall time grew 333 s -> 1273 s -> >=2700 s across three consecutive cycles while the wrapper's per-session quantum stayed at 2700 s. The producer side shows the same growth (2118 -> 3536 s). This is a workload-vs-quantum trend, not a single unlucky death: the audit workload grows with every cycle's artifact surface, and the quantum does not.",
+   "not_claimed": "no claim that the audit content is wrong, only that the session outgrew the container the wrapper gives it"
+  },
+  "consequence_chain": "the 39027041693 deliverable (direction items (1), (4), (5), (7) plus the lane-directive FAST MVP falsification benchmark, five commits 410a1b26..09970e83) exists ONLY on a cycle team ref and on origin/lab/evaluation via the resume harness; it has NO independent audit of record and NO promotion decision. The standing accepted DO-NOT-SERVE order on served packet 38839347028 therefore stands unchallenged and the whole v52 endgame is blocked behind an orchestration quantum, not behind research.",
+  "lane_side_mitigation_executed_this_cycle": "the producer snapshot is made audit-ready at bounded cost: evaluation/snapshot_audit/run_snapshot_audit.py re-verifies every claim in ONE command and emits a machine-readable readiness record with measured wall-clock per check, so an independent auditor can attack the delta in minutes instead of re-deriving the lane from scratch. This is recorded as a control-plane mitigation; it cannot raise the quantum.",
+  "control_plane_gap_recorded_not_patched": "`.github/**` is control-plane scope and was NOT edited from this lane. The durable fix belongs to the control plane, not to the lane: (a) give the independent-audit step its own LEX_AGENT_QUANTUM_SECONDS (the audit job is a verification job, not a research job), or (b) split the audit into bounded per-artifact units with the readiness record as the worklist, or (c) let the auditor consume the machine-readable readiness record instead of re-deriving it. Recorded, not patched - same convention as the previously carried dead `jq //` exhaustion guard."
+}

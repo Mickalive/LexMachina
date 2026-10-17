@@ -1,0 +1,63 @@
+{
+ "schema": "lex-evaluation-frozen-hypothesis-rebuild-preflight/1",
+ "run_id": "39033797087",
+ "lane": "evaluation",
+ "direction_version": 52,
+ "frozen_before_any_execution_of_this_hypothesis": true,
+ "frozen_at_utc": "2026-10-17T12:58:00Z",
+ "freeze_commit": "PENDING_COMMITTED_BEFORE_EXECUTION",
+ "question_this_cycle_must_answer": "Factory direction v52, Core Evaluation lane question, deliverables (2) and (3): when Product ships the REBUILT served packet (direction item P2), the lane must re-score it end-to-end with the accepted frozen bars and apply the frozen label rubric's own exact-population predicate AS WRITTEN. Direction item (1) has been executed and refuses a zero-delta re-run (trigger verdict NO_NEW_PACKET on a byte-identical 56-file population), so the successor cannot be measured on the served bytes. The remaining question is therefore: DOES THAT SUCCESSOR COMMAND EXIST, DOES IT RUN END TO END, AND WHAT DOES IT ACTUALLY ENFORCE ON A REBUILT POPULATION?",
+ "hypothesis": "H-PREFLIGHT: the direction's successor adjudication path is executable as a single frozen-instrument command on an arbitrary future packet dir, and its ENFORCED verdict is not vacuous on any rebuilt packet. Concretely it is predicted to be vacuous for the LABEL bar and live for the GEOMETRY bar whenever the rebuilt packet's counter-row population differs from the pinned 65-row incumbent population, because label_gate.score_packet gates its regression verdict on `set(per_bundle) == set(INCUMBENT_QIDS) and n_scored == INCUMBENT[\"n_scored\"]` while geometry_gate gates only on the qid set.",
+ "instrument_pins_sha256": {
+  "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+  "evaluation/frozen_bars/RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+  "evaluation/frozen_bars/label_gate.py": "640abd8beeb7b8c86c835a9e485fb5c0be56f723ebda93a40b2b3b902baa4432",
+  "evaluation/frozen_bars/geometry_gate.py": "934d5cca9f362a3e4d1cf518f88085e4359da8242b9971e33ca632bb0d613baa",
+  "evaluation/frozen_bars/run_bar_gates.py": "564dc682da6fe012c6da9cdde12f8addc3c924ce12b30d80724270d6d09a6220",
+  "evaluation/frozen_bars/VERDICT_CONTRACT.json": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c",
+  "evaluation/reality_gate/frozen_benchmark.json": "ff57f556c3755ab663766618ab7abe763f251e7add70cd8ed964141846d063c8",
+  "evaluation/reality_gate/GATE_CONTRACT.json": "06781743c2686fa63a6652ad61c8d63381cfa707f5fd6682a50b9027470d2492"
+ },
+ "acceptance_instrument_is_the_accepted_one_not_a_reimplementation": "python -m evaluation.frozen_bars.run_bar_gates --adjudicate <packet-dir> --out <record>. Never re-derived here: the adjudicate mode is accepted code from cycle 38972887369/38971202786 and its verdict semantics are enumerated in the accepted VERDICT_CONTRACT.json.",
+ "population_of_the_rehearsal": "Synthetic rebuilt packets built ONLY in /tmp (never in the repository, never in the Product mount, never on the served lineage). Source bytes: the accepted served packet /tmp/lex_accepted/product/results/product/gate_packet/38839347028/questions/<qid>.bundle.json for the three frozen anchor qids de-kapitalverletzung, fr-bail-entretien, it-responsabilita-medica. The served packet itself is READ-ONLY in this cycle and is not modified, re-adjudicated or re-served.",
+ "legs_frozen": [
+  {
+   "leg": "A_identity_control",
+   "construction": "byte-identical copy of the three served bundles into a fresh packet dir",
+   "prediction": "exit 0; label n_scored=65, n_supported=5, classes {OFF-DOMAIN:38,UNBACKED:22,SUPPORTED:5,INVERTED:0}, regression_verdict=PASS_NO_REGRESSION, lineage_matches_incumbent_population=true; geometry per-qid criterion counts de 6 / fr 5 / it 5 with PASS_NO_REGRESSION; every per-anchor observed sha equals the accepted EXPECTED_BUNDLE_SHA256"
+  },
+  {
+   "leg": "B_population_plus_one",
+   "construction": "one additional counter-status decision row appended to de-kapitalverletzung.bundle.json (n_scored 65 -> 66), nothing else changed",
+   "prediction": "observed sha for that anchor differs from the incumbent; label regression_verdict becomes NOT_APPLICABLE and gate_blocks_build=false (THE PREDICTED VACUITY); absolute_status stays REPORTED and is still LABEL_UNSOUND; the adjudicate-mode negative control reports not_applicable_reason instead of proving a regression; overall exit 0"
+  },
+  {
+   "leg": "C_preserved_population_blanked_evidence",
+   "construction": "population preserved (65 rows, same qids) but every counter_evidence string in de-kapitalverletzung blanked",
+   "prediction": "label lineage still matches, n_supported drops, regression_verdict=FAIL_REGRESSION, gate_blocks_build=true, exit 1 -> the enforced path fires when the population is preserved"
+  },
+  {
+   "leg": "D_geometry_still_enforcing_on_changed_population",
+   "construction": "reuse leg B's packet dir and read the geometry verdict for the same changed population",
+   "prediction": "geometry lineage_matches_incumbent=true (qid-set only, no population pin) and regression_verdict stays an enforcing PASS/FAIL, i.e. the asymmetry between the two bars is real and not an artifact of leg B"
+  },
+  {
+   "leg": "E_refusal_negative_control",
+   "construction": "adjudicate an EMPTY packet dir, and a packet dir whose bundles have zero counter rows",
+   "prediction": "both exits are non-zero (2 environment error or 1 regression) and neither record may be consumed as a pass; a missing input must never produce exit 0"
+  }
+ ],
+ "negative_controls": [
+  "No served byte is written, renamed or deleted; the Product mount is opened read-only.",
+  "No frozen rubric, threshold, bar, incumbent or verdict contract is edited; their sha256 are re-hashed after execution and compared to instrument_pins_sha256.",
+  "The rehearsal never touches the network, never imports Product code, and never re-runs the 174k suite.",
+  "Leg A is the vacuity control for the whole rehearsal: if an unmodified copy of the served packet cannot reproduce the incumbents, every other leg is uninterpretable and the preflight is void."
+ ],
+ "success_rule": "PREFLIGHT_COMPLETE if (a) legs A, C and E behave exactly as predicted, (b) the entry point runs to completion on all five legs with no uncaught exception, and (c) every frozen input re-hashes to instrument_pins_sha256 afterwards. The outcome of legs B and D is RECORDED AS MEASURED and is NOT part of the pass condition: a confirmed vacuity (prediction) and a falsified vacuity (prediction wrong) are both acceptable preflight results, because either one is the honest envelope of what the direction's successor command can enforce. Predictions are not edited after observation; a falsified prediction is published as a falsification with its wording correction.",
+ "claim_ceiling_if_the_rule_holds": "At most: the direction's successor adjudication path is executable today as one command; its enforced verdict on a REBUILT packet equals the frozen predicate's envelope measured here (population-pinned label bar, qid-pinned geometry bar); and the recorded EXIT CODES are the only thing a rebuilt packet can be blocked on. This cycle does NOT adjudicate a real rebuilt packet, does NOT serve or un-serve anything, does NOT assert that any decision IS supporting/contrary/limiting, and does NOT move the standing accepted DO-NOT-SERVE order on packet 38839347028. human_gate_ready stays false.",
+ "what_must_not_happen": [
+  "editing label_gate.py / geometry_gate.py / run_bar_gates.py / RULES_LABEL.json / RULES_GEOMETRY.json / VERDICT_CONTRACT.json to remove the population pin or to make NOT_APPLICABLE blocking",
+  "re-running packet_admission_conformance or either bar sweep over the byte-identical served lineage (direction item 1 zero-delta pathology)",
+  "reporting the absolute status as an enforced verdict"
+ ]
+}
