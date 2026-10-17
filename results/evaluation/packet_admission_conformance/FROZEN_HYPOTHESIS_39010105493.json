@@ -1,0 +1,94 @@
+{
+  "schema": "lex-evaluation-frozen-hypothesis/packet-admission-conformance/1",
+  "run_id": "39010105493",
+  "lane": "evaluation",
+  "direction_version": 50,
+  "frozen_at_utc": "2026-10-17",
+  "frozen_before_implementation": true,
+  "frozen_before_execution": true,
+  "frozen_commit_note": "This file is committed BEFORE evaluation/packet_admission_conformance.py exists in the tree and before any outcome of this benchmark was computed. Nothing below may change after the first execution; a change would invalidate the run.",
+  "lane_question_anchored_to": "directives/lanes/evaluation.md + state/factory_direction.json lanes.evaluation.question (v50): build the two executable frozen-bar gates that nobody owns, with proven non-vacuity negative controls and a regression comparison against the accepted incumbents, so that a build fails when counter-label support or map semantics regress.",
+
+  "question": "Direction v50 makes the two accepted frozen bars a MACHINE-READABLE INPUT OF PACKET ADMISSION 'so no packet, owner card, disclosure or state field can carry ready_for_owner_session=true or human_gate_ready=true while counter-label support is below the frozen bar 4457e971... or geometry below a7452748...'. Is that invariant TRUE, executably, over the ACCEPTED product artifacts? Core Evaluation owns the bars; this benchmark tests whether the bars are actually BINDING where they are declared to bind.",
+
+  "baseline_under_test": {
+    "claim": "state/product.json -> next_recommended (accepted product cycle 39003037673): '(1) the two accepted frozen bars are now a machine-readable gate of packet admission (product/query/packet_admission.py, wired into finalize_summary/recheck_packet and the owner card), so no packet/card/state can carry ready_for_owner_session=true while counter-label support or geometry is below bar'",
+    "source": "/tmp/lex_accepted/product/state/product.json",
+    "why_this_baseline": "It is the product's own accepted statement of the invariant this lane's bars exist to enforce; it is the strongest available baseline and it is falsifiable."
+  },
+
+  "population_P_frozen_enumeration": {
+    "rule": "discovered by glob over the accepted product mount, NOT pre-assumed; the discovered count is recorded in the run record",
+    "roots": [
+      "results/product/gate_packet/*/packet.json",
+      "results/product/gate_packet/*/disclosures.json",
+      "results/product/frontier_verdicts/*.json",
+      "state/product.json"
+    ],
+    "traversal": "recursive over every dict/list; a hit is any key named 'ready_for_owner_session' or 'human_gate_ready' whose value is exactly true, recorded by its full JSON path"
+  },
+
+  "bar_status_source_frozen": {
+    "primary": "results/evaluation/packet_lineage_sweep/38993062549.json -> per_packet[<packet>].gate.{label_absolute_status, geometry_absolute_status, label_n_scored, label_n_supported, geometry_per_bundle_counts}",
+    "primary_is": "an ACCEPTED in-lane measurement record; it is READ, never recomputed. No Frontier candidate is re-measured and neither frozen rubric is re-scored by this benchmark.",
+    "crosscheck_served_packet": "results/product/frontier_verdicts/ACCEPTED_frontier-served-packet-falsification_38880639079.json -> label_half.support_rate < 1.0 and geometry_half.n_bundles_pass < geometry_half.n_bundles",
+    "crosscheck_rule": "the crosscheck must AGREE with the primary on the served packet (both bars unmet); disagreement is recorded as an environment/evidence error, not silently resolved"
+  },
+
+  "metric": "violations = |{ a in P : a carries ready_for_owner_session==true or human_gate_ready==true AND the accepted bar status of its packet is LABEL_UNSOUND or GEOMETRY_UNSOUND AND no persisted admission block (packet_admission or packet_admission_blocked key) exists on that same record }|",
+
+  "success_rule_frozen": {
+    "exit_1": "PACKET_ADMISSION_INVARIANT_VIOLATED when violations >= 1",
+    "exit_0": "PACKET_ADMISSION_INVARIANT_HELD when violations == 0",
+    "exit_2": "ENVIRONMENT_ERROR, NO record emitted, when the product mount is absent, when no gate_packet directory is discovered, or when the accepted bar record is absent/unreadable. Exit 2 is never a product verdict and never a pass.",
+    "never_changed_after_execution": true
+  },
+
+  "hypotheses": {
+    "H1": "At least one accepted artifact record carries ready_for_owner_session==true while its packet's accepted bar status is unsound and no persisted admission block exists on that record. (Fires => exit 1.)",
+    "H2": "product/query/packet_admission.enforce() provably persists 'packet_admission' and 'ready_for_owner_session_base' on the record it is given; therefore absence of those keys on a shipped packet.json is executable evidence that the admission gate was never applied to that record. (Source-cited inference; recorded, not executed.)",
+    "H3": "The served packet's disclosure 'd_mega_cluster_share_from_size' fired with share 0.7696 >= threshold_unchanged 0.5 (product direction obligation (2)). Expected HOLDS; a non-hold is reported as a product finding, not suppressed.",
+    "H4": "No record under results/product/ or state/ carries human_gate_ready==true. Expected HOLDS; a non-hold is reported as a product finding.",
+    "H5": "Product's own black-box packet_admission.assess(), executed in a child process on its committed snapshots, returns ready_for_owner_session_allowed==false, i.e. THE GATE ITSELF WORKS and the defect class is 'gate never applied to the shipped record', not 'gate broken'. Reported separately; NOT part of the pass rule (it needs the product mount's source tree)."
+  },
+
+  "non_vacuity_battery_frozen": {
+    "rule": "every control must hold, otherwise the run exits 2 ENVIRONMENT_OR_UNPROVEN and ALL findings are SUPPRESSED",
+    "N1_positive_must_fire": "synthetic record {ready_for_owner_session: true} evaluated against bars-unmet => must be counted as a violation",
+    "N2_negative_must_not_fire": "synthetic record {ready_for_owner_session: false} against bars-unmet => must NOT be a violation",
+    "N3_negative_must_not_fire": "synthetic record {ready_for_owner_session: true} against LABEL_SOUND + GEOMETRY_SOUND bars => must NOT be a violation (proves the gate is not a tautology)",
+    "N4_rules_identity": "RULES_LABEL.json re-hashes to 4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608 and RULES_GEOMETRY.json to a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633 before anything is scored"
+  },
+
+  "honest_pre_freeze_disclosure": {
+    "what_had_ALREADY_been_observed_by_source_inspection_before_this_freeze": [
+      "results/product/gate_packet/38839347028/packet.json contains a top-level 'ready_for_owner_session': true (generated_at 2026-10-16T02:22:25Z, run 38839347028)",
+      "results/product/gate_packet/38812599575/packet.json contains a top-level 'ready_for_owner_session': true (generated_at 2026-10-15T22:27:41Z, run 38812599575)",
+      "state/product.json contains a nested 'ready_for_owner_session': true at path v52_delivery.backlog_item_3_multi_query_gate_packet.measured.ready_for_owner_session",
+      "results/product/gate_packet/38799024807/packet.json and offline_machinery_rehearsal/packet.json carry ready_for_owner_session false",
+      "product/query/packet_admission.py source (read, not executed): assess() reads two committed Frontier verdict snapshots; enforce() writes ready_for_owner_session_base and packet_admission_blocked",
+      "results/product/gate_packet/38839347028/disclosures.json contains v54_disclosures.d_mega_cluster_share_from_size with disclosure_fired true and share 0.7696"
+    ],
+    "what_was_NOT_observed_before_this_freeze": [
+      "the complete violation set computed by the frozen rule over the frozen population P (including frontier_verdicts and disclosures files, which were not walked)",
+      "whether any packet record carries a persisted admission block (packet_admission / packet_admission_blocked key)",
+      "whether any record anywhere on the mount carries human_gate_ready==true (only two product TEST SOURCE files were seen to contain that literal)",
+      "whether the primary and cross-check bar sources AGREE on the served packet under the frozen rule",
+      "the outcome of any non-vacuity control N1-N4 as executed by the module, which does not yet exist",
+      "the black-box output of product's assess() (H5)",
+      "the verdict and exit code of this benchmark"
+    ],
+    "discipline": "the hypotheses above were written under that disclosure. No threshold, bar, rubric, incumbent or success rule of ANY existing frozen benchmark is read, re-tuned or re-derived by this file."
+  },
+
+  "not_touched": [
+    "evaluation/frozen_bars/** (both rubrics, VERDICT_CONTRACT, both gate modules, run_bar_gates)",
+    "evaluation/reality_gate/** and evaluation/retrieval_gate/** frozen specs and digests (ff57f556..., 187b0e54...)",
+    "any Frontier candidate or any Frontier measurement (read-only consumption of accepted verdict snapshots)",
+    "the closed universal-174k suite",
+    ".github/** (control-plane scope)",
+    "any results/audit/** or reports/audit/** path (this module never authors audit artifacts)"
+  ],
+
+  "claim_ceiling": "This benchmark can falsify ONE machine-checkable invariant: whether an accepted product artifact record claims owner/human-gate readiness while an accepted frozen bar is unmet and no admission block is persisted on that record. It does NOT measure labels or geometry, does NOT score either frozen rubric, does NOT re-measure any Frontier candidate, does NOT prove map usefulness to a jurist, and does not move or meet either absolute bar. human_gate_ready stays false."
+}
