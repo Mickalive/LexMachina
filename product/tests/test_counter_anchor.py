@@ -150,6 +150,41 @@ def test_unknown_qid_abstains_all_labels():
     assert prov["abstention_reasons"] == {NO_ANCHOR_REASON: 2}
 
 
+def test_bjr_frozen_leg_fail_closes_no_anchor_profile():
+    """Repair of audit R1 (cycle 39023182745).
+
+    The live business-judgment-rule leg abstained ``bge_BGE_110_II_391`` with
+    ``counter_status='abstained_unevidenced'``, and the cycle report/state
+    wrongly attributed that to "its cited evidence failed the frozen rubric".
+    The true cause is the fail-closed branch: the BJR question matches none of
+    the five authored ``question_anchors``, so ``resolve_qid`` returns ``None``
+    and the adapter records ``counter_reason_code='no_anchor_profile'`` without
+    ever invoking ``decide_label``/the frozen rubric.  This test pins that
+    distinction so the false causal claim cannot silently return.
+    """
+    from reality_check import LEGS  # noqa: E402  (frozen leg question strings)
+
+    bjr_question = LEGS["business-judgment-rule"]
+    assert resolve_qid(bjr_question, _rules()) is None, (
+        "the BJR frozen-leg question must match no authored anchor profile"
+    )
+    bundle = {"query": bjr_question, "decisions": [
+        _labeled_row("bge_BGE_110_II_391", evidence="cited evidence text"),
+    ]}
+    out = apply_counter_anchor_decisions(bundle)
+    d = out["decisions"][0]
+    assert d["counter_status"] == ABSTAINED_STATUS
+    assert d["counter_reason_code"] == NO_ANCHOR_REASON, (
+        "the abstention must be the fail-closed no_anchor_profile branch, "
+        "not a frozen-rubric verdict"
+    )
+    assert d["counter_uncertainty"] == 1.0
+    assert d["counter_evidence_verified"] is False
+    prov = out["provenance"]["counter_anchor"]
+    assert prov["qid"] is None
+    assert prov["abstention_reasons"] == {NO_ANCHOR_REASON: 1}
+
+
 # --------------------------------------------------------------------------
 # apply_counter_anchor_decisions: emit and abstain on a known qid
 # --------------------------------------------------------------------------

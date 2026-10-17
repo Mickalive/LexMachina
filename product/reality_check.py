@@ -578,6 +578,16 @@ def strip_bundle(report: dict) -> dict:
             "citation": d.get("citation"),
             "language": d.get("language"),
             "counter_status": d.get("counter_status"),
+            # Repair of audit R1 (cycle 39023182745): a row with
+            # counter_status='abstained_unevidenced' is ambiguous unless the
+            # cause is published.  Without counter_reason_code a reader cannot
+            # tell a frozen-rubric abstention from the fail-closed
+            # 'no_anchor_profile' branch, which is exactly the false causal
+            # claim R1 corrected.  Carry the cause (and its uncertainty /
+            # evidence flag) in the projection so the reason is verifiable.
+            "counter_reason_code": d.get("counter_reason_code"),
+            "counter_uncertainty": d.get("counter_uncertainty"),
+            "counter_evidence_verified": d.get("counter_evidence_verified"),
             "canonical_url": d.get("canonical_url"),
             "snippet": str(d.get("snippet") or "")[:400],
         }

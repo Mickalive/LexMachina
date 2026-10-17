@@ -24,6 +24,7 @@ from reality_check import (  # noqa: E402
     structural_gates,
     truth_gates,
     evaluate,
+    strip_bundle,
     GateFailure,
 )
 
@@ -285,6 +286,59 @@ def test_non_bjr_legs_gain_no_extra_gate():
     report["mode"] = "live"
     gates = evaluate("rent-default", report)
     assert [g["gate"] for g in gates] == ["structural", "truth::rent-default"]
+
+
+# --------------------------------------------------------------------------- #
+# repair of audit R1 (cycle 39023182745): the cited_decisions projection must
+# carry the abstention CAUSE, not only the status, or a reader cannot tell a
+# frozen-rubric abstention from the fail-closed 'no_anchor_profile' branch.
+# --------------------------------------------------------------------------- #
+
+def _report_with_abstained_cited_decision():
+    report = _report(BJR_PROSE, cited=["bge_BGE_110_II_391"])
+    report["cited_decision_ids"] = ["bge_BGE_110_II_391"]
+    report["bundle"]["decisions"] = [
+        {
+            "decision_id": "bge_BGE_110_II_391",
+            "rank": 3,
+            "citation": "BGE 110 II 391",
+            "language": "de",
+            "counter_status": "abstained_unevidenced",
+            "counter_reason_code": "no_anchor_profile",
+            "counter_uncertainty": 1.0,
+            "counter_evidence_verified": False,
+            "canonical_url": "https://mcp.opencaselaw.ch/entscheid/bge_BGE_110_II_391",
+            "snippet": "Regeste Aktienrecht.",
+        }
+    ]
+    return report
+
+
+def test_strip_bundle_carries_counter_reason_code_for_abstained_cited_row():
+    report = _report_with_abstained_cited_decision()
+    slim = strip_bundle(report)
+    rows = {r["decision_id"]: r for r in slim["cited_decisions"]}
+    row = rows["bge_BGE_110_II_391"]
+    assert row["counter_status"] == "abstained_unevidenced"
+    assert row["counter_reason_code"] == "no_anchor_profile"
+    assert row["counter_uncertainty"] == 1.0
+    assert row["counter_evidence_verified"] is False
+
+
+def test_strip_bundle_omits_reason_code_when_absent_not_fabricates_it():
+    """A row without a reason code must surface as null, never a guessed value."""
+    report = _report(BJR_PROSE, cited=["bge_BGE_110_II_391"])
+    report["cited_decision_ids"] = ["bge_BGE_110_II_391"]
+    report["bundle"]["decisions"] = [
+        {"decision_id": "bge_BGE_110_II_391", "rank": 3,
+         "counter_status": "cited", "snippet": ""}
+    ]
+    slim = strip_bundle(report)
+    row = slim["cited_decisions"][0]
+    assert row["counter_status"] == "cited"
+    assert row["counter_reason_code"] is None
+    assert row["counter_uncertainty"] is None
+    assert row["counter_evidence_verified"] is None
 
 
 def test_frozen_set_is_exactly_the_five_direct_tf_authorities():

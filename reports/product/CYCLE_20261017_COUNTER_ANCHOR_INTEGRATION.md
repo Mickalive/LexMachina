@@ -100,9 +100,16 @@ into counted abstentions.
 
 The answer cites 3 of the 5 frozen direct-TF BJR authorities
 (`bger_4A_219_2015`, `bger_4A_259_2016`, `bger_4A_626_2013`). The counter-anchor
-integration is active: `bge_BGE_110_II_391` → `abstained_unevidenced` (its cited
-evidence failed the frozen rubric). This is the 3rd consecutive post-repair live run
-passing the BJR recall gate.
+integration is active: `bge_BGE_110_II_391` → `abstained_unevidenced`.
+
+**Cause of that abstention (corrected in repair round 1).** It is the
+fail-closed branch, **not** a frozen-rubric verdict. The BJR question text
+matches none of the five authored `question_anchors`, so `resolve_qid` returns
+`None` and the adapter abstains every proposed label with
+`counter_reason_code='no_anchor_profile'` and `counter_uncertainty=1.0`
+(`product/query/counter_anchor.py` lines 210-221); the frozen rubric was never
+invoked on this query. This is the 3rd consecutive post-repair live run passing
+the BJR recall gate.
 
 ### Test suite
 
@@ -133,6 +140,12 @@ passing the BJR recall gate.
 - **No claim that any specific decision IS supporting, contrary or limiting.** The
   component confirms or abstains on the product's own proposed labels; it never
   assigns a polarity the row did not carry.
+- **No rubric-based verification on the live BJR query.** `bge_BGE_110_II_391`
+  was abstained with `counter_reason_code='no_anchor_profile'` because the BJR
+  question has no authored anchor profile; the frozen rubric was **not** applied
+  to it. (Correction of the prior report wording, which wrongly said "its cited
+  evidence failed the frozen rubric".) The rubric-based measurement remains the
+  offline gate-packet replay on `de-kapitalverletzung` above.
 
 ---
 

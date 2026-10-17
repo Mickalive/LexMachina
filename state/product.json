@@ -55,7 +55,7 @@
         ],
         "recall_gate_passed": true,
         "report": "results/product/reality_check/business-judgment-rule_live_20261017T102159Z.json",
-        "counter_anchor_integration": "active (bge_BGE_110_II_391 abstained_unevidenced)",
+        "counter_anchor_integration": "active (bge_BGE_110_II_391 abstained_unevidenced; counter_reason_code=no_anchor_profile: the BJR question matches no authored question_anchor, so the adapter fail-closes and the frozen rubric is NOT applied)",
         "total_seconds": null
       }
     ],
@@ -114,8 +114,8 @@
       "scope": "control-plane workflow scope; recorded, not edited from the lane"
     }
   ],
-  "current_run": 39019268074,
-  "cycle_status": "COUNTER_ANCHOR_INTEGRATION_20261017__OBLIGATION_4_SATISFIED__frontier-counter-anchor-classifier vendored byte-identical (d236f599, sha256 4457e971... verified) and integrated behind product/query/counter_anchor.py in abstain-and-disclose mode; 18 new tests pass; 144 relevant tests pass with zero regressions; live BJR recall leg re-verified PASS (3/3 post-repair runs, cites bger_4A_219_2015/259_2016/626_2013); counter-anchor abstains on unsupported labels (bge_BGE_110_II_391 -> abstained_unevidenced); no frozen gate/threshold/rubric weakened; human_gate_ready=false; machine_gate_ready=false; DO-NOT-SERVE order holds (counter-label absolute bar 1.0 and geometry 11-criteria bar both unmet); continue_recommended=true",
+  "current_run": 39023182745,
+  "cycle_status": "COUNTER_ANCHOR_INTEGRATION_20261017__OBLIGATION_4_SATISFIED__REPAIR_R1_OF_CYCLE_39023182745__frontier-counter-anchor-classifier vendored byte-identical (d236f599, sha256 4457e971... verified) and integrated behind product/query/counter_anchor.py in abstain-and-disclose mode; REPAIR: audit R1 false causal claim corrected in reports/product/CYCLE_20261017_COUNTER_ANCHOR_INTEGRATION.md and state/product.json (bge_BGE_110_II_391 abstained with counter_reason_code=no_anchor_profile, the fail-closed branch; the frozen rubric was NOT applied to the BJR query), and reality-check cited_decisions projection now carries counter_reason_code/counter_uncertainty/counter_evidence_verified; 3 new regression tests; 159 relevant tests pass (1 skipped); live BJR recall leg PASS (3/3 post-repair runs, cites bger_4A_219_2015/259_2016/626_2013); no frozen gate/threshold/rubric weakened; human_gate_ready=false; machine_gate_ready=false; DO-NOT-SERVE order holds (counter-label absolute bar 1.0 and geometry 11-criteria bar both unmet); continue_recommended=true",
   "direction_version": 50,
   "evidence_tier": "LOCAL_LIVE_PASS",
   "frontier_verdict_adoption": {
@@ -2776,7 +2776,11 @@
     },
     "live_evidence_this_run": {
       "report": "results/product/reality_check/business-judgment-rule_live_20261017T102159Z.json",
-      "abstained_example": "bge_BGE_110_II_391 -> abstained_unevidenced (cited evidence failed frozen rubric)",
+      "abstained_example": "bge_BGE_110_II_391 -> abstained_unevidenced",
+      "abstained_reason_code": "no_anchor_profile",
+      "abstained_uncertainty": 1.0,
+      "abstained_cause": "fail-closed: the business-judgment-rule question matches none of the five authored question_anchors (resolve_qid -> None), so the adapter abstains every proposed label with counter_reason_code='no_anchor_profile' and never invokes decide_label/the frozen rubric. Corrected in repair round 1; the prior wording 'cited evidence failed frozen rubric' was false.",
+      "rubric_applied_to_this_query": false,
       "bjr_recall_passed": true,
       "frozen_authorities_cited": [
         "bger_4A_219_2015",
