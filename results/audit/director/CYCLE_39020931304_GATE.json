@@ -1,0 +1,93 @@
+{
+  "schema": "lexmachina/audit-gate/1",
+  "team_id": "factory-director",
+  "run_id": "39020931304",
+  "charter_version": 1,
+  "producer_run_commit": "a0be9667",
+  "base_direction_sha256": "1465b35a27d0e954d0531c35d4bab1fd5a2748d578b5845d1596ca5671112f96",
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    {
+      "id": "D1",
+      "severity": "material",
+      "file": "state/factory_direction.json (v51: lanes.product.question P2/P3, or a factory-wide operational requirement)",
+      "defect": "Direction v51 drops both binding obligations carried in accepted gate CYCLE_38976645446_GATE.json claim_ceiling.integrator_action_required_before_serving_v2: (1) re-run the frozen 11-criteria rule on a reranked bundle (post rerank_product_bundle) and compare per-criterion counts against the measured 7/8/7; (2) relabel the V2 axis metadata from 'rerank score' to 'retrieval relevance score' so no downstream disclosure inherits the wrong word. Zero occurrences of rerank / axis metadata / relevance score / integrator anywhere in v51 (mission, all four lane questions, all 23 factory-wide requirements, director_note). Without carrying them, a rebuilt packet can be handed to Evaluation and an independent serve audit requested without the variant's frozen-criteria counts being re-measured on the actually-shipped reranked bundle, and with a false 'rerank score' word available to user-facing map disclosure.",
+      "evidence": "git show origin/tmp_cls_audit / accepted geometry mount: integrator_action_required_before_serving_v2 = ['Re-run the frozen 11-criteria rule on a reranked bundle (post rerank_product_bundle) and compare per-criterion counts against the measured 7/8/7.', \"Relabel the V2 axis metadata from 'rerank score' to 'retrieval relevance score' so no downstream disclosure inherits the wrong word.\"], gate=PASS, safe_to_integrate=true, required_fixes=[]; regex scan of v51 JSON: 0 hits for rerank, 'axis metadata', 'relevance score', integrator, integrator_action."
+    },
+    {
+      "id": "D2",
+      "severity": "minor",
+      "file": "reports/director/RUN_39020931304.md (line 44) + state/factory_direction.json (missing factory-wide requirement)",
+      "defect": "The report's blocker self-clearing story is false and the underlying control-plane defect is unrecorded. Writer .github/workflows/core-lane.yml:341-342 hashes with `jq -r .question | sha256sum` (newline included) producing dfa7ba2bb4dffc327b4f49257a292b9bcb397c38e9b0cc583da540bc9e2127f4 (product) and dbea4d2b73f973cb4028060153f5725dd4443e94920b437b3dbaf92b5bdcac2f (evaluation), which exactly match the committed blocker files; reader factory-supervisor.yml:215-218 hashes with `printf '%s' \"$q\"` (newline stripped) producing 01a31d8b... / 7b988108..., so the blocker question_hash comparison can never be true at any direction version. The blockers were therefore never matching, not made stale by v51; the durable stop is portfolio v24 .status=TERMINATED. Record the writer/reader mismatch as a factory-wide control-plane requirement (fix + fixture test).",
+      "evidence": "printf '%s' \"$(jq -r '.question' ...)\"|sha256sum vs jq -r '.question' ...|sha256sum recomputed for both lanes; state/blockers/product.json question_hash dfa7ba2bb4... and state/blockers/evaluation.json dbea4d2b73... verified byte-equal to the writer form; requires_human=false in both."
+    },
+    {
+      "id": "D3",
+      "severity": "minor",
+      "file": "reports/director/RUN_39020931304.md (lines 24, 28) + state/factory_direction.json lanes.product.question (P2 sentence)",
+      "defect": "Attribution imprecisions, no claim is false: (a) obligation (1) packet_admission wiring was accepted in cycle 39003037673 (CYCLE_39003037673_GATE.json, auditor replay of the exact blocking reason), not 39006211027 as line 28 implies by mount attribution; (b) product/static/query.html guard comment is at lines 143-151 with function colorFor at line 152, not 145-155; (c) 'the pre-fix packet 38839347028 suppressed [the mega-cluster disclosure] at warning_count=0 despite a 0.7696 French share' is inherited boilerplate - the currently accepted fr-bail-entretien.admissibility.json for that packet id has warning_count=3 WITH map_is_one_mega_cluster firing at share=0.7696 (mega_cluster_share_from_member_ids=0.2304); warning_count=0 was true only of the packet as originally shipped before the R2 size/member_ids fix. The actionable obligation (publish the size-based mega-cluster disclosure at share >= MEGA_CLUSTER_SHARE 0.5) is correct.",
+      "evidence": "CYCLE_39003037673_GATE.json claim ceiling item (1); grep -n 'function colorFor' product/static/query.html -> line 152; results/product/gate_packet/38839347028/questions/fr-bail-entretien.admissibility.json warning_count=3, findings[1].code=map_is_one_mega_cluster, share=0.7696; product/query/gate_admissibility.py:153 MEGA_CLUSTER_SHARE = 0.5."
+    }
+  ],
+  "claim_ceiling": "As proposed, direction v51 may claim, each verified by independent recomputation: (a) both Frontier capabilities (counter-anchor classifier d236f599; query-conditioned map geometry be5eba7f, reverification head dc3ffc6c) reached Outcome A, were independently audited gate=PASS, and are closed and promoted - portfolio v24 changes exactly one team (geometry RUN->TERMINATED with full termination record) and creates none; (b) the business-judgment-rule leg is closed as repaired under the frozen protocol by accepted evaluation cycle 39018005027 (3 frozen authorities 219/259/626, preserved negatives 0-hit, 0 verdict drift over 82 incumbents, overall_pass structurally pinned by 13 immutable legacy + 6 structural::counter_classifications_supported failures); (c) the owner session collapses to a product integration endgame (P0 land D1-R -> P1 adopt-or-decline the classifier under abstain-and-disclose -> P2 rebuild packet with mega-cluster disclosure -> P3 publish shas and hand to Evaluation) bounded by the accepted DO-NOT-SERVE order on packet 38839347028 (labels 5/65 = 0.0769 vs bar 1.0; geometry 0 of 3 bundles vs 11/11), liftable only by an independent accepted gate=PASS on a REBUILT packet with a superseding serve recommendation, or an accepted bounded negative -> one owner decision; (d) no lane is HUMAN_DECISION_REQUIRED and no blocker claims requires_human; (e) machine_gate_ready=false and human_gate_ready=false remain correct. It may NOT be treated as the authoritative pre-serving contract for a rebuilt packet until D1 is repaired: the accepted geometry claim ceiling's two integrator_action_required_before_serving_v2 obligations are uncarried, and its account of the blocker self-clearing mechanism is false (D2). No prettier-map, adoption, serve, owner-session or bar-met claim is available from this direction under any reading.",
+  "evidence_summary": {
+    "method": "Fresh-context recomputation over origin refs and accepted mounts: byte-compare of the base-sha guard against parent v50; git name-status of the proposal commit (4 files, all director scope); field-by-field v50->v51 direction diff and v23->v24 portfolio diff; independent read of accepted audit gates (classifier 38964146628 via fetched audit ref, geometry 38973386164 and 38976645446, evaluation 39018005027, product 39003037673/39006211027); origin fetch of product audits 39016943581 (REVISE, D1-R) and 39019268074 (PASS) and evaluation team 39020603510; regex machine-check of v51 against every accepted claim ceiling relevant to the endgame; recomputation of the blocker question-hash writer/reader discrepancy; direct artifact reads for the mega-cluster disclosure, renderer fix, model-health pool and gate-ready flags.",
+    "base_sha_guard": {
+      "expected": "1465b35a27d0e954d0531c35d4bab1fd5a2748d578b5845d1596ca5671112f96",
+      "observed_v50_bytes": "1465b35a27d0e954d0531c35d4bab1fd5a2748d578b5845d1596ca5671112f96",
+      "match": true,
+      "v51_sha256": "846a1086333df75369d8a0f7d635d0c0985204a73206c41d1ab6e4d0422c738"
+    },
+    "write_scope": "proposal commit a0be9667 touches exactly reports/director/BASE_DIRECTION_SHA_39020931304.txt, reports/director/RUN_39020931304.md, state/factory_direction.json (v50->v51), state/frontier_portfolio.json (v23->v24); nothing under .github/, product/, evaluation/ or any team lane",
+    "portfolio_diff": {
+      "teams_added": 0,
+      "teams_removed": 0,
+      "teams_changed": ["frontier-query-conditioned-map-geometry: status RUN->TERMINATED, continue_recommended true->false, promotion_status PROMOTED_TO_PRODUCT, promoted_from_run_id 38973386164, run_history 5 entries, termination record"],
+      "classifier_v23": "status TERMINATED, continue_recommended false, promotion_status PROMOTED_TO_PRODUCT, promoted_from_run_id 38964146628"
+    },
+    "classifier_numbers_verified": {
+      "gate": "PASS, safe_to_integrate=true, required_fixes=[]",
+      "population": "65 scored rows, per-bundle 25 de / 15 fr / 25 it (abstention_by_bundle 23/15/22 + 5 emitted)",
+      "candidate": "5 emitted all supported (1.0 among emitted), 60 abstentions (pivot_absent 38, evidence_absent 16, no_intent_marker 4, no_domain_anchor 2), INVERTED=0, yield 0.0769",
+      "incumbent": "5/65 = 0.0769 reproduced byte-identically, INVERTED=0",
+      "tests": "22 passed, 0 failed",
+      "claim_ceiling_mandates_abstention_and_yield_side_by_side": true
+    },
+    "geometry_numbers_verified": {
+      "audit_of_record": "CYCLE_38973386164_GATE.json PASS; accept be5eba7f is ancestor of lab head dc3ffc6c",
+      "variant_relevance_ordered": "22/33 vs incumbent 16/33; per-bundle 7/8/7 vs 6/5/5; zero regressions; 0 of 3 bundles pass all 11 under the variant",
+      "integrator_action_required_before_serving_v2": ["rerun frozen 11-criteria on reranked bundle vs 7/8/7", "relabel axis metadata 'rerank score' -> 'retrieval relevance score'"],
+      "carried_into_v51": false
+    },
+    "evaluation_numbers_verified": {
+      "gate": "CYCLE_39018005027_GATE.json PASS, safe_to_integrate=true",
+      "bjr": "both post-tier legs pass recall with exactly 3 frozen authorities (bger_4A_219_2015 / 4A_259_2016 / 4A_626_2013); preserved negatives 054330Z / 165604Z / 161006Z still FAIL with 0 hits",
+      "drift": "0 verdict drift across 82 incumbent artifacts",
+      "overall_pass": false,
+      "structurally_pinned": "13 immutable legacy failures + 6 current-bundle structural::counter_classifications_supported failures"
+    },
+    "product_chain_verified": {
+      "repair1_39016943581": "gate REVISE, safe_to_integrate=false, required fix D1-R (two NEW 072123Z fixture artifacts carry fabricated frozen-name passed=true under mode=fixture; repair report completeness sentence false)",
+      "repair2_39019268074": "gate PASS, safe_to_integrate=true, D1-R fixed with sweep test; audit commit efbd387d at 2026-10-17 09:54:37, i.e. AFTER the 09:50:46 proposal - 'in flight' at direction time was accurate",
+      "accepted_head": "lab/product 3077b274; human_gate_ready=false, machine_gate_ready=false; accepted state carries the standing DO-NOT-SERVE recommendation"
+    },
+    "blocker_pathology_recomputed": {
+      "writer": "core-lane.yml:341-342 `jq -r .question | sha256sum` (newline included) -> product dfa7ba2bb4dffc327b4f49257a292b9bcb397c38e9b0cc583da540bc9e2127f4, evaluation dbea4d2b73f973cb4028060153f5725dd4443e94920b437b3dbaf92b5bdcac2f (both byte-equal to the committed blocker files)",
+      "reader": "factory-supervisor.yml:215-218 `printf '%s' \"$q\" | sha256sum` (newline stripped) -> product 01a31d8b..., evaluation 7b988108... (never equal)",
+      "requires_human_in_all_blockers": false,
+      "conclusion": "blocker question-hash matching is dead code at any direction version; report's 'v51 makes it stale' causal claim is false (D2); durable stop is portfolio .status"
+    },
+    "side_claims_verified": {
+      "renderer_fix": "product/static/query.html:152 function colorFor(clusterId) guards negative ids on lab/product",
+      "mega_cluster_threshold": "product/query/gate_admissibility.py:153 MEGA_CLUSTER_SHARE = 0.5 (accepted code, not a new bar)",
+      "model_pool": "healthy_model_count=4 = mimo-v2.6-flash-free, space-bunny-free, longcat-2.5-preview-free, big-pickle; nemotron-3-ultra-free probe diagnostic '[503] Upstream error from Nvidia: Service temporarily overloaded'",
+      "falsification_order": "cycle/frontier/frontier-served-packet-falsification/38880639079/audit ref 75775625 exists; covers packet 38839347028"
+    },
+    "accepted_state_snapshot_note": "results/accepted-state/product.json on the proposal branch is a stale control-plane snapshot (state_updated_at 2026-10-16T21:12:45Z, run 38964140248) versus the accepted lab/product head (2026-10-17T04:53:44Z, run 39003037673); the report's product claims were taken from the live accepted mount and are correct, so no misstatement results. Snapshot hygiene is a workflow-owner item, not a director defect.",
+    "supervisor_inflight_guard": "factory-supervisor.yml:238 active_count skips a lane already active/queued in the current control epoch; core-lane.yml:378 skips duplicate same-generation recovery - no fake parallelism available"
+  },
+  "continue_recommended": true,
+  "audited_at": "2026-10-17T10:05:00Z",
+  "audit_report": "reports/audit/director/CYCLE_39020931304.md"
+}
