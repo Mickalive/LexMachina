@@ -1,0 +1,79 @@
+{
+  "schema": "lex-evaluation-label-lineage-verdict/1",
+  "run": 39020603510,
+  "lane": "evaluation",
+  "direction_version": 50,
+  "purpose": "Machine-readable enumeration of every verdict state the ADDITIVE counter-label-support LINEAGE gate emits, with the exact enforced and reported-only predicates and an explicit certifies / does_not_certify block, so a packet-admission consumer cannot read a NOT_APPLICABLE or a NOT_MEASURED as a pass. This contract defines NO threshold: the single enforced number is derived at runtime from accepted pinned literals as label_gate.INCUMBENT[n_supported] / label_gate.INCUMBENT[n_scored] = 5/65.",
+  "relationship_to_the_accepted_gates": "ADDITIVE ONLY. evaluation/frozen_bars/label_gate.py, geometry_gate.py, run_bar_gates.py and VERDICT_CONTRACT.json (sha256 b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c) are unchanged and remain the accepted instruments. Where this gate and the accepted label gate disagree, BOTH verdicts are published side by side and the disagreement is the measured finding; the accepted verdict is never overwritten.",
+  "frozen_inputs": {
+    "rules_label_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "rules_geometry_sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+    "incumbent_label": {"n_scored": 65, "n_supported": 5, "classes": {"OFF-DOMAIN": 38, "UNBACKED": 22, "SUPPORTED": 5, "INVERTED": 0}},
+    "enforced_predicate_rate": "5/65 = 0.07692307692307693, derived from incumbent_label, not re-typed",
+    "lineage_qids": ["de-kapitalverletzung", "fr-bail-entretien", "it-responsabilita-medica"],
+    "absolute_label_bar": "support_rate == 1.0, REPORTED as LABEL_SOUND/LABEL_UNSOUND and NEVER enforced as a build blocker (unchanged from direction v50)"
+  },
+  "regression_verdict": {
+    "enforced_predicate": "lineage := set(bundles) == the three frozen qids; FAIL_REGRESSION := lineage AND n_scored > 0 AND support_rate < 5/65 (STRICT: equality passes); PASS_NO_REGRESSION := lineage AND n_scored > 0 AND support_rate >= 5/65; NOT_MEASURED := lineage AND n_scored == 0; NOT_APPLICABLE := NOT lineage",
+    "states": {
+      "FAIL_REGRESSION": "pooled scored counter-label support on the three frozen qids is strictly below the incumbent rate 5/65; gate_blocks_build is true",
+      "PASS_NO_REGRESSION": "pooled scored counter-label support is at or above the incumbent rate 5/65; gate_blocks_build is false",
+      "NOT_MEASURED": "the packet carries the three frozen qids but has zero scored counter rows, so no support rate exists to compare; gate_blocks_build is false",
+      "NOT_APPLICABLE": "the qid set is not exactly the three frozen qids; no lineage verdict applies; gate_blocks_build is false"
+    },
+    "certifies": {
+      "FAIL_REGRESSION": "a build-blocking counter-label-support regression on any packet carrying the three frozen qids, including at populations other than the incumbent 65",
+      "PASS_NO_REGRESSION": "counter-label support is at or above the incumbent RATE on the three frozen qids",
+      "NOT_MEASURED": "NOTHING. It is an absence of measurement, not a pass",
+      "NOT_APPLICABLE": "NOTHING about counter-label support. It is an inapplicability marker, not a pass"
+    },
+    "does_not_certify": {
+      "FAIL_REGRESSION": "says nothing about WHICH rows are defective, about map geometry, about retrieval or counter-authority recall, or about jurist usefulness",
+      "PASS_NO_REGRESSION": "does NOT certify the absolute bar (support_rate == 1.0). The incumbent packet itself PASSES at 5/65 = 0.0769 and is LABEL_UNSOUND",
+      "NOT_MEASURED": "must never be consumed as a pass; a consumer requiring a label statement must treat it as unmeasured and re-observe with a packet that carries scored counter rows",
+      "NOT_APPLICABLE": "must never be consumed as a pass. Accepted packet 38838116453 (2 of 3 qids) and the machinery packet (0 of 3) are both in this state by design"
+    },
+    "gate_blocks_build": "regression_verdict == FAIL_REGRESSION. gate_blocks_build == false is NOT a statement that the counter-label bar was met; read support_rate and absolute_status explicitly."
+  },
+  "reported_only_readings": {
+    "accepted_count_at_pinned_population": "The accepted label_gate predicate, restated verbatim and never enforced. Kept so that every previously accepted statement stays computable and so accepted finding L4_rate_and_count_semantics_disagree stays visible: the count reading FAILS accepted packet 38812599575 (1 of 9 scored, rate 0.1111) whose rate is strictly BETTER than the incumbent 0.0769, which is why it is not the enforced reading.",
+    "readings_disagree_on_this_packet": "boolean; true when the enforced rate reading and the reported-only count reading would take opposite block decisions on this packet"
+  },
+  "accepted_findings_of_record_this_gate_targets": {
+    "L2_gate_admits_total_label_collapse": "accepted, enforced, holds=true - packet 38799024807 (0 supported of 7 scored, rate 0.0) was admitted with gate_blocks_build false while the geometry gate blocked the same packet",
+    "L3_gate_population_predicate_is_confounded": "accepted, enforced, holds=true - only 1 of 3 accepted-lineage packets could receive any regression verdict",
+    "L4_rate_and_count_semantics_disagree": "accepted, enforced, holds=true - the count-at-fixed-population reading and the rate reading encode different notions of improvement",
+    "L5_frozen_rubric_population_and_gate_incumbent_disagree": "accepted, enforced, holds=true - the frozen rubric's declared primary population is not the gate's incumbent population. PRESERVED AND NOT RESOLVED HERE: re-pointing or re-freezing RULES_LABEL.json is out of this lane's scope.",
+    "naive_consumer_trap_of_VERDICT_CONTRACT": "accepted - exit 0 with n_supported == 0 on lineage is no longer reachable through this gate"
+  },
+  "known_limitation_stated_not_hidden": {
+    "small_population_samples": "The enforced predicate is a rate comparison with no minimum-sample floor, because inventing a minimum-sample threshold is forbidden. A packet with very few scored counter rows can therefore carry a high rate on a small sample (e.g. 1 supported of 2 scored = 0.5 passes). This is disclosed rather than patched: no number outside the incumbent is introduced.",
+    "geometry_incumbent_is_not_a_floor": "Accepted finding F2_INCUMBENT_NOT_A_FLOOR holds: over the accepted packet population the minimum per-bundle geometry criterion-count is de 6 / fr 4 / it 4, BELOW the enforced incumbent de 6 / fr 5 / it 5. The geometry regression gate does block those packets, but the enforced incumbent is a 'no worse than the served packet' reference, not the worst case observed in the accepted population. This gate does not change the geometry incumbent (direction v50 fixes it) and reports the divergence instead.",
+    "off_lineage_packets_get_no_label_verdict": "A rebuilt product packet must carry all three frozen qids to receive a lineage verdict at all. A packet on new questions is NOT_APPLICABLE, not a pass; admitting genuinely new questions requires a disclosed RULES_LABEL re-freeze, which is out of this lane's scope."
+  },
+  "process": {
+    "entry_points": {
+      "sweep": "python -m evaluation.frozen_bars.run_label_lineage_gate [--packet-root <dir>] [--freeze <file>]. Discovers the accepted packet population, scores every in-scope packet with BOTH this gate and the ACCEPTED geometry gate, builds the blocking matrix for the two gates side by side, measures whether the enforced geometry incumbent is a floor over the population, runs the minimal-delta non-vacuity control and EXECUTES the pre-registered predictions of the freeze file (read-only), then writes one claim-bearing record. This is a MEASUREMENT over a population, so exit 0 means the measurement completed and its recorded predictions were confirmed, NOT that every packet passed.",
+      "adjudicate": "python -m evaluation.frozen_bars.run_label_lineage_gate --adjudicate <packet-dir>. Judges ONE packet and emits the machine-readable packet-admission input (schema lex-evaluation-admission-input/2) that Product direction obligation (1) consumes. The record-level `verdict` is the TWO-BAR verdict: FAIL_REGRESSION if EITHER this gate or the accepted geometry gate blocks, PASS_NO_REGRESSION if neither does. A per-gate verdict is never promoted to the record level while the other gate blocks."
+    },
+    "exit_codes": {
+      "0": "sweep mode: the population sweep completed and every evaluated frozen prediction held. adjudicate mode: neither bar regressed on this packet (label support rate >= 5/65 AND geometry criterion-counts >= de 6 / fr 5 / it 5).",
+      "1": "adjudicate mode only: at least one bar regressed on this packet. Never produced in sweep mode, because the accepted population legitimately CONTAINS packets below the incumbent rate (38799024807 at 0/7) and below the incumbent geometry count (38799024807 it 4, 38812599575 fr 4); a sweep that exited 1 on those would be a permanently red measurement, not a finding.",
+      "2": "NO LINEAGE VERDICT ISSUED. Two distinct findings share this code and are reported as different `verdict` values: (a) `NOT_APPLICABLE` - the packet genuinely carries only some of the three frozen qids (accepted packet 38838116453 carries 2 of 3), so the frozen anchors do not apply and the gate never invents one; (b) `ENVIRONMENT_ERROR` - the input path is broken or no bundle is present at all, or a rules sha256 mismatch, or an unproven negative control. Neither is a regression and neither is a pass. A consumer must read the `verdict` field, not the exit code alone."
+    },
+    "why_sweep_exit_semantics_differ_from_adjudicate": "The accepted packet_lineage_sweep already established that the accepted population CONTAINS artifacts below the incumbent on both bars. A sweep gate that exits 1 whenever any population member is below the incumbent is permanently red by construction and would be the exact never-green/never-red loop direction v50 forbids. The build-blocking decision therefore belongs to adjudicate mode, on a specific packet, which is also the only place Product needs it (direction v50 obligation (1)).",
+    "measured_not_asserted": [
+      "reported_only_readings.count_reading_without_population_pin - the count reading with the population pin REMOVED, computed on every packet. This is what makes accepted finding L4_rate_and_count_semantics_disagree a measurement: it diverges from the enforced rate reading on accepted packet 38812599575, whose rate 1/9 is strictly better than the incumbent 5/65 but whose supported count 1 is below 5.",
+      "reported_only_readings.readings_disagree_on_this_packet - the (different) divergence against the accepted POPULATION-PINNED count reading. It fires on every non-incumbent packet and says nothing about L4; the two flags must not be conflated.",
+      "geometry_incumbent_floor_disclosure - the minimum per-bundle geometry criterion-count recomputed from the measured rows, compared against the enforced incumbent. It reports incumbent_is_a_floor = false (measured minimum de 6 / fr 4 / it 4 against incumbent de 6 / fr 5 / it 5) rather than restating accepted finding F2."
+    ]
+  },
+  "never_do": [
+    "never overwrite or delete the accepted label_gate verdict",
+    "never enforce the absolute label bar as a build blocker",
+    "never introduce a number other than the incumbent 5/65",
+    "never score a qid outside the three frozen anchors",
+    "never resolve L5 here; re-pointing the frozen rubric is not this lane's scope",
+    "never re-measure or re-grade either Frontier candidate"
+  ]
+}
