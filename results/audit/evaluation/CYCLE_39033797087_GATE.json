@@ -1,0 +1,135 @@
+{
+  "schema": "lex-audit-gate/1",
+  "lane": "evaluation",
+  "run_id": "39033797087",
+  "repair_round": 0,
+  "audited_base": "09970e838a2c8b1252d6e6f07f6b74cfa525a310",
+  "producer_workspace": "/tmp/lex_team",
+  "producer_delta_commits": [
+    "01a4780d7",
+    "dce6cdbb8",
+    "ec2311051",
+    "825a22f6c"
+  ],
+  "direction_version_pinned_by_producer": 52,
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    {
+      "id": "M1",
+      "severity": "HIGH",
+      "class": "false product-facing admission claim contradicting accepted evidence in the same tree",
+      "where": [
+        "reports/evaluation/CYCLE_39033797087.md (Key Findings; enforcement table 'Label | Vacuous when | Scored counter-row count != 65')",
+        "evaluation/rebuild_preflight.py :: envelope_from_legs() -> enforcement_envelope.what_a_rebuilt_packet_cannot_be_blocked_on[1]",
+        "results/evaluation/rebuild_preflight_39033797087/39033797087_preflight.json :: enforcement_envelope",
+        "state/evaluation.json :: cycle_status ('LABEL_VERDICT_POPULATION_PINNED_65_VACUOUS_ON_REBUILT')"
+      ],
+      "defect": "The cycle measures only the accepted run_bar_gates label half and publishes its population-pinned vacuity as the whole enforcement envelope, with no reference to the accepted population-free counter-label lineage gate. It therefore states that 'any label regression once its scored counter-row count differs from 65' cannot block a rebuilt packet. That is false.",
+      "audit_recomputation": {
+        "accepted_evidence": "results/evaluation/label_lineage_gate/39020603510_sweep.json blocking_matrix entry for accepted packet 38799024807 (n_scored=7 != 65, n_supported=0): lineage_gate FAIL_REGRESSION / gate_blocks_build=true while accepted_label_gate NOT_APPLICABLE / gate_blocks_build=false; parity.readings_disagree_on_this_packet=true",
+        "live_independent_execution": "synthetic 3-qid packet, 21 scored counter rows with blank counter_evidence, 0 supported, built and adjudicated by this auditor: run_bar_gates --adjudicate -> label NOT_APPLICABLE, blocks false; run_label_lineage_gate --adjudicate -> label FAIL_REGRESSION, blocks true, admission_input.blocks_build=true, block_reasons[0]='counter-label support rate strictly below incumbent 5/65', exit 1",
+        "occurrences_of_the_sibling_instrument_in_this_cycles_new_artifacts": 0,
+        "affected_conclusion": "headline finding PF1 re-opens an accepted CLOSED finding (L2 / L3 / naive_consumer_trap), and the 'NO SAME-QUESTION SUCCESSOR JUSTIFIED / lane is blocked on Product' recommendation rests on it"
+      },
+      "fix": "Shell out to the already-accepted python -m evaluation.frozen_bars.run_label_lineage_gate --adjudicate over the same synthetic legs (B and E need no mount; A and C need only the served bytes the producer already has), publish both readings side by side, qualify every can/cannot-block statement by instrument, and name label_lineage_gate.py / run_label_lineage_gate.py / LABEL_LINEAGE_VERDICT.json in the freeze pins and the record. Cite the accepted 39020603510 sweep matrix rather than re-deriving the finding as new. No new instrument, threshold or frozen-file change."
+    },
+    {
+      "id": "M2",
+      "severity": "HIGH",
+      "class": "claim-bearing negative omitted from the user-visible report and lane state",
+      "where": [
+        "results/evaluation/rebuild_preflight_39033797087/39033797087_preflight.json (verdict=PREFLIGHT_INCOMPLETE, success_rule_holds=false, success_rule_falsified_legs=['E_refusal_negative_control'])",
+        "reports/evaluation/CYCLE_39033797087.md (header 'Status: DELIVERED'; no mention of the instrument's own verdict)",
+        "state/evaluation.json (cycle_status carries 'PREFLIGHT_EXECUTED' only)"
+      ],
+      "defect": "The preflight's own frozen success rule (PREFLIGHT_COMPLETE requires legs A, C AND E to behave exactly as predicted) was NOT met: leg E measured exit_codes [2, 0] against a frozen prediction of 'both exits are non-zero'. The record is honest; the report and the lane state never say so.",
+      "fix": "Report and state must carry verdict PREFLIGHT_INCOMPLETE, success_rule_holds false and the falsified leg, adjacent to the DELIVERED status. Preserve it; do not re-run to obtain a green rule."
+    },
+    {
+      "id": "M3",
+      "severity": "MEDIUM",
+      "class": "frozen prediction reframed post hoc in the report",
+      "where": [
+        "reports/evaluation/CYCLE_39033797087.md line ~40: 'Leg E prediction (label bar blocks a rebuilt packet) was falsified.'"
+      ],
+      "defect": "The frozen leg-E prediction is 'both exits are non-zero (2 environment error or 1 regression) ... a missing input must never produce exit 0'. The record states this correctly (PF3.prediction_source); the report substitutes a different prediction. The freeze's own doctrine forbids editing a prediction after observation.",
+      "fix": "Quote the frozen leg-E prediction verbatim and state the correction explicitly, or drop the parenthetical restatement."
+    },
+    {
+      "id": "M4",
+      "severity": "MEDIUM",
+      "class": "test integration gap, false self-description, non-skipping mount dependency, vacuous assertions, and a test that pins the M1 defect",
+      "where": ["tests/evaluation/test_rebuild_preflight.py", "evaluation/lane_suite.py (pytest scope)"],
+      "audit_recomputation": {
+        "lane_suite_scope_contains_the_new_file": false,
+        "lane_suite_scope_documented_extension_convention": "every previously added test file carries a rationale comment; this one was neither added nor justified",
+        "direct_pytest_run": "3 failed, 5 passed, 1 skipped",
+        "failing_tests": [
+          "test_write_packet_preserves_raw_bytes_for_untouched_bundles",
+          "test_write_packet_only_mutates_the_changed_bundle",
+          "test_counter_rows_counts_the_rows_the_frozen_scorer_scores"
+        ],
+        "lane_convention_violated": "mount-dependent tests elsewhere in the lane use pytest.mark.skipif (see tests/evaluation/test_label_lineage_gate.py:35); these hard-fail",
+        "docstring_false_claims": [
+          "'Fast, mount-independent checks run on every lane suite pass' - the file is in no lane suite",
+          "'The end-to-end legs ... run only when LEX_PREFLEIGHT_LIVE=1' - the three mount-dependent tests are not gated by that variable"
+        ],
+        "vacuous_assertions": [
+          "assert '.../lex_accepted/product' not in str(leg.get('packet_dir','')) or True",
+          "assert sum(len(counter_rows_of_served()) for _ in [0]) >= 0"
+        ],
+        "compounding": "test_measured_enforcement_envelope_is_pinned pins the M1 claim (n_scored==66, NOT_APPLICABLE, blocks False, zero-row exit 0) as settled, locking in the defective envelope"
+      },
+      "fix": "Add the file to the lane_suite pytest scope with the established disclosed-scope-extension comment (or state plainly it is out of scope); convert the three mount-dependent tests to skipif; correct the docstring; delete the two vacuous assertions; remove or re-scope test_measured_enforcement_envelope_is_pinned."
+    },
+    {
+      "id": "M5",
+      "severity": "LOW",
+      "class": "readiness record stale relative to the snapshot it certifies",
+      "audit_recomputation": "results/evaluation/snapshot_audit/39033797087.json check 5 records n_refs=156 ('156/156 evidence_refs resolve'); state/evaluation.json committed in the SAME commit carries 163 evidence_refs; auditor re-run computes 163/163, all resolving",
+      "fix": "Regenerate the readiness record after the state update so check 5 measures 163 refs."
+    },
+    {
+      "id": "M6",
+      "severity": "LOW",
+      "class": "pre-existing snapshot-audit instrument asymmetry; READY verdict not reproducible from the committed tree alone",
+      "audit_recomputation": "auditor re-run of python -m evaluation.snapshot_audit.run_snapshot_audit in a container without the accepted Product mount reports NOT READY (12/16): check 2 bar_gates_verdict FAILs on the entry point's own environment error (exit 2), check 3 NOT_RUN, check 4 lane_suite_pass 48/49 by inheritance, while check 15 correctly self-reports 'environment limit'. Checks 1,5,6,7,8,9,10,11,12,13,14,16 PASS independently.",
+      "attribution": "NOT charged against this cycle's producer; the producer ran with the mount present and its READY 16/16 is credible on that evidence. Recorded because checks 2 and 3 lack the environment_limited branch check 15 already implements.",
+      "fix": "Record-only for this lane: add the environment_limited branch to checks 2 and 3, or record the mount dependency of the READY verdict in snapshot_claims_not_certified. .github/** stays control-plane scope."
+    }
+  ],
+  "claim_ceiling": "At most, and only after M1 and M2 are repaired: (1) run 39027041693's audit job died at step 5 'Independent audit' after approximately one 2700 s wrapper quantum (job 2749 s, ~49 s setup, steps 6-7 skipped) - independently reproduced from the unauthenticated GitHub Actions REST API - with LEX_WORK_QUANTUM_EXPIRED (rc=78) the best-supported cause, a named candidate set retained and step logs (HTTP 403) disclosed as unreadable; (2) the direction's successor adjudication path is executable end to end today and its ENFORCED verdict on a rebuilt packet is the measured two-bar envelope, in which the accepted population-free label_lineage_gate DOES block a lineage packet whose pooled support rate is strictly below the incumbent rate 5/65 even when its scored counter-row count differs from 65; (3) the preflight's own frozen success rule was NOT MET (leg E falsified: a zero-counter-row packet is adjudicated exit 0), and such a packet is certified as sound by neither bar; (4) the committed FAST MVP falsification-benchmark results show the frozen gates can fail a deliberately regressed input (hostile geometry de 4 / fr 4 / it 5; blanked evidence 0/65). This cycle does NOT prove: that any real rebuilt packet meets any bar; that the served packet is admissible - the standing accepted DO-NOT-SERVE order on packet 38839347028 remains unchallenged; any absolute-bar status (LABEL_UNSOUND / GEOMETRY_UNSOUND stay REPORTED-not-enforced); that the label bar is vacuous on rebuilt populations; any source-linked-bundle, clickable-map, zero-cost or source-validity property (this cycle makes no such claim and no such claim is certified); any jurist usefulness; any movement of human_gate_ready, which stays false.",
+  "evidence_summary": {
+    "audited_base": "09970e838a2c8b1252d6e6f07f6b74cfa525a310",
+    "producer_delta": "14 files, 3 commits, 2417 insertions, all inside the evaluation lane namespace; git status clean; no .github/**, no accepted-state, no cross-lane or audit-path writes",
+    "verified_holding": [
+      "All 12 frozen/accepted instrument files byte-identical to the accepted base: RULES_LABEL 4457e971df3dc5d1, RULES_GEOMETRY a7452748d40c5111, label_gate 640abd8beeb7b8c8, geometry_gate 934d5cca9f362a3e, run_bar_gates 564dc682da6fe012c, VERDICT_CONTRACT b9cdb89438a8d16e, label_lineage_gate 754fdd11172f1468, LABEL_LINEAGE_VERDICT 016bffe5914ffc907, reality frozen_benchmark ff57f556c3755ab6, GATE_CONTRACT 06781743c2686fa63, reality gates.py 60577c68ff0f385f, run_benchmark.py 5c338e449e03eb8d - no benchmark weakening, no re-freeze, no retuned threshold or incumbent",
+      "Orchestration diagnosis of run 39027041693 reproduced exactly from the unauthenticated GitHub API: team job 117379984869 success 3536 s with 11/11 steps success; audit job 117390591605 failure 2749 s with step 5 failure and steps 6-7 skipped; resilience 8 s; integrate skipped; recurrence 333 s -> 1273 s -> 2749 s",
+      "FAST MVP falsification benchmark record internally coherent and non-vacuous: legs 0/1/1, label 65/5 classes 38/22/5/0, geometry 6/5/5 baseline; hostile geometry 4/4/5 blocks; blanked evidence 0/65 blocks; falsification_proven true; provenance correctly attributed to the prior run as preserved-and-committed",
+      "Rebuild trigger is a genuine set relation: NO_NEW_PACKET with 56/56 common, 56/56 byte-identical, 0 changed, both differences empty; zero-delta sweeps correctly not re-run",
+      "Freeze discipline held: freeze committed at 01a4780d before the module commit dce6cdbb8 and before execution; record success_rule byte-identical to the freeze and pinned by test",
+      "No product-capability claim inflation: 0 occurrences of opencaselaw, zero-cost/zero_cost, source_validity, clickable, source-linked, jurist_usefulness in the cycle's new module, tests or report; 174k programme correctly not re-opened",
+      "human_gate_ready stays false; standing DO-NOT-SERVE order on packet 38839347028 untouched; nothing served, un-served or admitted; no Frontier candidate re-measured"
+    ],
+    "verified_failing": [
+      "M1 the label-bar vacuity claim is false against accepted evidence in the same tree and against a live recomputation by this auditor",
+      "M2 the instrument's own PREFLIGHT_INCOMPLETE verdict is disclosed nowhere user-visible",
+      "M3 the frozen leg-E prediction is reframed post hoc in the report",
+      "M4 this cycle's tests are unintegrated, self-misdescribed, non-skipping without the mount, partly vacuous, and one of them pins the M1 defect",
+      "M5 the readiness record reports 156 refs against a committed state carrying 163",
+      "M6 the READY 16/16 verdict is not reproducible from the committed tree alone; checks 2 and 3 lack the environment_limited branch check 15 has"
+    ],
+    "not_attackable_here": [
+      "the accepted Product mount /tmp/lex_accepted is absent in the audit container, so the producer's legs A and C, the three benchmark legs and the newhead recompute could not be re-executed; their committed records were audited for internal consistency and against accepted incumbents instead, and the mount-absent exits were confirmed to be the instruments' own honest environment guards (exit 2), not silent passes"
+    ],
+    "user_visible_capability_note": "Audited first per the standing instruction: this cycle makes no claim about real or cached OpenCaseLaw input producing a source-linked result bundle and a clickable map, and no claim about zero-cost operation or source validity, so none is falsified here. The prior query-map MVP claim ceiling (gate CYCLE_39020603510) is untouched by this delta. The legacy universal-174k science was not demanded; the producer correctly kept it off the critical path.",
+    "verdict_rationale": "REVISE rather than BLOCKED: repair round 0, prior two gates carry required_fixes=[] so this is not a recurring repair pathology, and every fact required to repair M1-M5 is already in the accepted tree or reproducible by one command over synthetic packets (demonstrated live by this auditor). BLOCKED would require a new frozen spec, a new threshold, non-existent Product data or an owner decision; none applies.",
+    "preserved_negatives_must_survive_repair": [
+      "the audit-quantum death diagnosis and its hedged candidate cause set",
+      "NO_NEW_PACKET on a byte-identical 56-file population and the refusal to re-run zero-delta sweeps",
+      "the falsification of the frozen leg-E prediction, stated as it was actually frozen",
+      "the three disclosed in-cycle harness defects in rebuild_preflight.py (write_packet content equality, leg-A absent zero-valued classes, leg-D applicability read from the verdict string)"
+    ]
+  }
+}
