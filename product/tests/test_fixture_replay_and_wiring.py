@@ -259,3 +259,131 @@ def test_fixture_cli_leg_passes_offline_and_declares_live_gates_not_evaluated(tm
     assert "OFFLINE WIRING EVIDENCE ONLY" in summary["claim_ceiling"]
     gates = [g["gate"] for leg in summary["legs"] for g in leg["gates"]]
     assert gates and all(g.startswith("wiring::") for g in gates), gates
+
+
+# --------------------------------------------------------------------------- #
+# 4. committed-artifact sweep — audit D1-R (rejected cycle 39016943581, round 2)
+#
+# Round 1 of that repair fixed the CODE path and the 074955Z artifact pair but
+# left the earlier 072123Z pair of the same preserved snapshot (f3c47c8)
+# carrying `recall::citation_controlling_authority` with `passed=true` under
+# `mode=fixture`, while both the resume report and `state/product.json` cited it
+# as a clean 4/4 result — and while the repair report asserted "no committed
+# artifact carries a fabricated green".  The unit tests above only ever exercised
+# freshly *generated* output, so nothing failed on committed residue.
+#
+# These tests close that gap: they sweep the committed artifact directory itself.
+# --------------------------------------------------------------------------- #
+FROZEN_GATE_PREFIXES = ("structural", "truth::", "recall::")
+REALITY_DIR = ROOT / "results" / "product" / "reality_check"
+
+
+def _committed_fixture_artifacts() -> list[Path]:
+    files = sorted(REALITY_DIR.glob("*fixture*.json"))
+    assert files, f"no committed fixture artifacts under {REALITY_DIR}"
+    return files
+
+
+def _fabricated_passes(node) -> list[str]:
+    """Frozen gate names reported as *passed* anywhere inside ``node``."""
+    found: list[str] = []
+    if isinstance(node, dict):
+        gate = node.get("gate")
+        if (isinstance(gate, str) and node.get("passed") is True
+                and gate.startswith(FROZEN_GATE_PREFIXES)):
+            found.append(gate)
+        for value in node.values():
+            found.extend(_fabricated_passes(value))
+    elif isinstance(node, list):
+        for value in node:
+            found.extend(_fabricated_passes(value))
+    return found
+
+
+def test_no_committed_fixture_artifact_carries_a_fabricated_frozen_green():
+    """Sweep every committed fixture artifact for the D1 fabricated green.
+
+    A fixture artifact must never report a frozen gate (``structural``,
+    ``truth::*``, ``recall::*``) as passed: fixture mode evaluates wiring only
+    and records the frozen non-evaluation explicitly.  This is the regression
+    guard audit D1-R of cycle 39016943581 found missing — it fails on committed
+    residue, not only on freshly generated output.
+    """
+    offenders: dict[str, list[str]] = {}
+    for path in _committed_fixture_artifacts():
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        hits = _fabricated_passes(payload)
+        if hits:
+            offenders[str(path.relative_to(ROOT))] = sorted(set(hits))
+    assert not offenders, (
+        "committed fixture artifacts still report a frozen gate as passed: "
+        f"{offenders}")
+
+
+def test_fabricated_green_sweep_is_not_vacuous():
+    """Negative control: the sweep predicate must detect a deliberate regress."""
+    clean = [{"gate": "wiring::bundle_present", "passed": True, "detail": ""}]
+    assert _fabricated_passes(clean) == []
+    regressed = clean + [{
+        "gate": "recall::citation_controlling_authority",
+        "passed": True,
+        "detail": "fixture mode: frozen-recall parity not applicable (wiring check only)",
+    }]
+    assert _fabricated_passes(regressed) == ["recall::citation_controlling_authority"], (
+        "the sweep predicate must fire on the exact historical defect shape")
+    # a frozen gate honestly reported as FAILED is evidence, never fabrication
+    honest_failure = [{"gate": "truth::rent-default", "passed": False,
+                       "detail": "missing good-faith branch"}]
+    assert _fabricated_passes(honest_failure) == []
+
+
+def test_corrected_072123_pair_records_the_marker_and_the_frozen_non_evaluation():
+    """Audit D1-R's two named artifacts must carry the corrected contract."""
+    summary_path = REALITY_DIR / "summary_fixture_20261017T072123Z.json"
+    leg_path = REALITY_DIR / "business-judgment-rule_fixture_20261017T072123Z.json"
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    leg = json.loads(leg_path.read_text(encoding="utf-8"))
+
+    for name, payload in ((summary_path.name, summary), (leg_path.name, leg)):
+        assert payload["mode"] == "fixture"
+        assert _fabricated_passes(payload) == [], name
+    # summary: machine-readable non-evaluation, next to live_gates_evaluated
+    assert summary["frozen_gates_evaluated"] == []
+    assert summary["live_gates_evaluated"] is False
+    assert "OFFLINE WIRING EVIDENCE ONLY" in summary["claim_ceiling"]
+    # BJR leg: the explicit marker replaced the fabricated entry
+    marker = [g for g in leg["gates"]
+              if g["gate"] == "wiring::frozen_recall_gate_not_evaluated"]
+    assert len(marker) == 1 and marker[0]["passed"] is True
+    assert "not evaluated" in marker[0]["detail"]
+    bjr_leg = next(l for l in summary["legs"] if l["slug"] == "business-judgment-rule")
+    assert [g["gate"] for g in bjr_leg["gates"]][-1] == (
+        "wiring::frozen_recall_gate_not_evaluated")
+    # the fixture summary count itself must still be honest wiring evidence
+    assert all(g["gate"].startswith("wiring::")
+               for l in summary["legs"] for g in l["gates"])
+
+
+def test_every_committed_fixture_summary_declares_frozen_gates_not_evaluated():
+    """New fixture summaries must carry ``frozen_gates_evaluated: []``.
+
+    Only summaries produced from the D1 repair onward are held to this (older
+    historical summaries predate the key and never claimed it); the corrected
+    ``072123Z`` summary is one of them, and every future CLI run already emits
+    the key (see ``reality_check.main``).
+    """
+    required = {
+        "summary_fixture_20261017T072123Z.json",
+        "summary_fixture_20261017T074955Z.json",
+        "summary_fixture_20261017T083008Z.json",
+    }
+    seen = set()
+    for path in _committed_fixture_artifacts():
+        if not path.name.startswith("summary_fixture_"):
+            continue
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if "frozen_gates_evaluated" in payload:
+            seen.add(path.name)
+            assert payload["frozen_gates_evaluated"] == [], path.name
+    missing = required - seen
+    assert not missing, f"fixture summaries missing frozen_gates_evaluated: {sorted(missing)}"
