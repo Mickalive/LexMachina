@@ -1,0 +1,76 @@
+{
+  "schema": "lex-audit-gate/1",
+  "team_id": "frontier-rebuilt-packet-serve-audit",
+  "charter_version": 3,
+  "run_id": 39056749213,
+  "audited_branch": "origin/cycle/frontier/frontier-rebuilt-packet-serve-audit/39056749213/team",
+  "audited_commit": "24631a6142be285e564c0c44547b281c1f3b8fc9",
+  "audit_report": "reports/audit/frontier/frontier-rebuilt-packet-serve-audit/CYCLE_39056749213.md",
+  "prior_cycle": {
+    "cycle": "CYCLE_39053132092",
+    "gate": "REVISE",
+    "repair_round_audited": 1,
+    "prior_fixes_verified_repaired": {
+      "FIX-1": "Consumed Core Evaluation run 39049030442 as the cross-check input; vendored copy re-hashed by this audit byte-identical to the lane's real record (67656e94...ba32f, origin/cycle/core/evaluation/39052366154/team @ 27a1d309, published 17:05:31Z before the producer's measurement commit 17:14:39Z); the false ABSENT claim is gone from every live claim and disclosed as falsified",
+      "FIX-2": "Explicit schema mapping on every cross_check row; all 8 published quantities agree with this audit's own raw read of the Evaluation record; mega recorded absent-not-divergent (Evaluation publishes no mega quantity); a foreign-bytes re-score is refused (test passed)",
+      "FIX-3": "Label-bar status published BY INSTRUMENT/TEXT in AUDIT_RECORD.json, REPORT.md, state file and INTEGRATION_CONTRACT.json: instrument LABEL_SOUND at n_scored=5 governs the enum (charter question (a) 'predicate AS WRITTEN, never as prose'); frozen RULES_LABEL.json prose residual INSUFFICIENT_POPULATION at n_scored<7 disclosed, not re-derived",
+      "FIX-4": "No stale absence claim ships this cycle; search basis records the final-resume re-sweep and the BLOCKED-on-recurrence process rule"
+    }
+  },
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "safe_to_integrate_scope": {
+    "sound_and_reexecutable": [
+      "verdict enum DO-NOT-SERVE-UNCHANGED (charter outcome B) on packet 2942c3c2... - pure-function resolver over the measured halves, verified by this audit against the charter's outcome definitions; prior audit verified the same enum logic sound",
+      "label half numbers (5 issued / 5 supported / rate 1.0 / 60 abstentions / yield 0.076923... = 5/65; per-bundle de 2/2, fr 0/0, it 3/3) - independently recomputed by this audit with the vendored label_gate and the raw abstention count",
+      "both label instruments side by side: label_gate absolute LABEL_SOUND / regression NOT_APPLICABLE (population pin 65, NOT a pass) and label_lineage_gate PASS_NO_REGRESSION non-blocking (re-executed by this audit) with the by-instrument/text disclosure",
+      "geometry half numbers (de 7 / fr 5 / it 7 of 11; 0/3 bundles at 11/11; GEOMETRY_UNSOUND; PASS_NO_REGRESSION vs incumbent 6/5/5) - independently recomputed with the vendored geometry_gate",
+      "size-based mega-cluster non-firing (shares 0.2430 / 0.2258 / 0.2844 vs bar 0.5) - independently re-derived by this audit from raw cluster size fields",
+      "comparative marginal-discovery measurement (5/5 issued absent from initial-pool top-20 and invisible in list top-20, ranks 51-164, K=20 frozen pre-execution) - independently re-derived by this audit from raw bundle bytes; the CLASSIFICATION_ONLY negative does not reproduce",
+      "cross-check table: 8/8 quantities agree with Core Evaluation run 39049030442 (record re-hashed byte-identical by this audit); headline no divergence; mega absent-not-divergent",
+      "before/after pair (old packet c2e10295... incumbent reproduced exactly: 65 scored / 5 supported / 0.0769 / OFF-DOMAIN 38, UNBACKED 22, SUPPORTED 5)",
+      "freeze-first ordering (RULES.json 5b6dc8f9 @ 16:33:35Z, untouched, strictly before measurement 4e4ad05b @ 17:14:39Z), write-scope discipline (zero out-of-scope writes across the whole branch), non-vacuity battery (7 verdict flips, blanked-evidence control makes the lineage gate build-blocking), 34-test suite"
+    ],
+    "not_safe_until_fixed": [
+      "the published AUDIT_RECORD.json sha256 pin 11eb58ef...b497 - NOT reproducible by the delivered harness (see defect)",
+      "REPRODUCTION.json determinism claim (run1 = run2 = published record sha) - false against the shipped code",
+      "INTEGRATION_CONTRACT.json publishes[].sha256 pin and reproduction.determinism sentence - the contract's own recipe emits f74564ef... / bcc1c6f4..., never 11eb58ef...",
+      "REPORT.md line 112 and state file artifacts.audit_record_sha256 / verification.byte_identical_reproduction_note - repeat the same false reproduction claim"
+    ]
+  },
+  "defect": {
+    "id": "FIX-1",
+    "severity": "material",
+    "class": "claim-bearing reproduction/sha-pin drift (record generated before the final code edit within the same commit)",
+    "defect": "Commit 24631a61 edited cross_check.py's prior_absent_claim emission (status extended to '...and deleted from every claim-bearing artifact (audit FIX-1)'; the verbatim falsified-claim text dropped) but did not regenerate AUDIT_RECORD.json, which still carries the pre-edit block (shorter status, claim field present). The shipped harness run twice is byte-identical to itself but never emits the published record sha 11eb58ef...: the INTEGRATION_CONTRACT.json reproduction recipe emits f74564ef1e0fb33159b16e347a4d7978c39b01e8273a9a6623a938091ede7236 (auto-discovery run: bcc1c6f4...), differing from the committed record in exactly that one disclosure field. The charter promote condition 'byte-identical reproduction demonstrated' and the integration contract's own hash binding therefore fail as shipped. This audit verified the harness itself IS deterministic (two consecutive runs byte-identical to each other) and that every measurement field in my reruns matches the committed record exactly - the drift is confined to the one disclosure field and the sha pins that reference it.",
+    "not_blocked_because": "The prior gate's BLOCKED-on-recurrence escalation was explicitly scoped to 'a stale absence claim of this same class'; no stale absence claim ships this cycle. This is a different class, first offense, mechanically repairable same-cycle on the same frozen bytes without re-measurement."
+  },
+  "required_fixes": [
+    {
+      "id": "FIX-1",
+      "severity": "material",
+      "repair": "Regenerate-and-repin, re-verified at the final attempt: (1) regenerate AUDIT_RECORD.json with the SHIPPED harness code via the INTEGRATION_CONTRACT.json reproduction.command recipe so the prior_absent_claim block matches the code's emission (either direction - keep the code's current emission, or make the code emit the retained verbatim claim with the extended status; code and record must agree); (2) record the prior published sha 11eb58ef... (preserved at commit 24631a61) as superseded-by-regeneration in REPRODUCTION.json with the cause - never silently drop a measured artifact hash; (3) repin the regenerated record's sha256 in REPRODUCTION.json (run1/run2/published_record_sha256, from two consecutive fresh runs byte-identical to each other AND to the published record), INTEGRATION_CONTRACT.json (publishes[].sha256 and reproduction.determinism), REPORT.md line 112 and state/frontier/frontier-rebuilt-packet-serve-audit.json; (4) add/extend a deterministic test that runs the harness twice and asserts the emitted record sha equals the sha pinned in INTEGRATION_CONTRACT.json; (5) extend the FIX-4 process rule in the record and state to cover reproduction/sha-pinning claims: any byte-identical-reproduction or pinned-sha claim must be re-verified at the FINAL attempt after the last code edit, before promotion. ESCALATION: a subsequent produced-work cycle shipping a published-record sha its own shipped harness/recipe cannot reproduce (this same defect class) gates BLOCKED under the recurring-repair rule, not a further REVISE.",
+      "repair_must_not": [
+        "re-measure, re-threshold or re-tune anything; packet bytes 2942c3c2... and the frozen K/thresholds stay unchanged",
+        "edit RULES.json, RULES_LABEL.json, RULES_GEOMETRY.json, VERDICT_CONTRACT.json or LABEL_LINEAGE_VERDICT.json",
+        "change the verdict enum (DO-NOT-SERVE-UNCHANGED stands - the cross-check diverges nowhere)",
+        "open a second measurement cycle: this is evidence-packaging only under the charter's one-verdict-cycle hard stop"
+      ]
+    }
+  ],
+  "claim_ceiling": "The verdict may be asserted only as: DO-NOT-SERVE-UNCHANGED (charter outcome B) on rebuilt-39027045675, packet.json sha256 2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170, measured with the frozen rubrics applied as written by the ACCEPTED instruments, cross-checked against Core Evaluation run 39049030442 with no divergence on all 8 published quantities. It does NOT certify: (i) that the frozen RULES_LABEL.json prose verdict classes pass at n_scored=5 - the instrument's LABEL_SOUND is population-free; the population-conditioned INSUFFICIENT_POPULATION residual is disclosed, not resolved, and does not govern the enum; (ii) the 5/5 support-among-issued rate in isolation - it must always be quoted with 60 abstentions and yield 5/65 = 0.0769, with fr-bail-entretien contributing zero scored rows; (iii) map usefulness, jurist benefit, retrieval recall or any generalisation beyond this single packet - marginal discovery 5/5 at list ranks 51-164 is one packet, not a map-superiority theorem; (iv) acceptance of the rebuilt packet or supersession of the accepted DO-NOT-SERVE order; (v) that 'independent recomputation' means a second external implementation - it is re-execution of the vendored accepted instruments plus raw-byte re-derivation of the arithmetic; (vi) the non-firing mega-cluster disclosure as a product success (0.243/0.226/0.284 vs bar 0.5 is a non-event); (vii) until FIX-1 lands: the published AUDIT_RECORD.json sha256 pin, the REPRODUCTION.json determinism claim and the INTEGRATION_CONTRACT.json hash binding - the reproduction claim is false as shipped; (viii) no acceptance is implied by this gate (state accepted_run_id/accepted_commit remain null).",
+  "evidence_summary": {
+    "packet_verified": "fetched origin/cycle/core/product/39034350468/team @ 6c56332c; all 7 pinned files re-hashed identical (packet.json 2942c3c2..., manifest 8ea3c92d..., handoff 601dee4b..., disclosures d7de3cdd..., bundles c4005d4b... / 0b3a224e... / 6b433412...); origin/lab/product carries the same 2942c3c2... bytes, so no successor bytes exist; old packet 38839347028 = c2e10295... + 3 bundle shas match pins",
+    "instruments_rehashed": "all 9 vendored frozen files byte-identical to pins (RULES_LABEL 4457e971..., RULES_GEOMETRY a7452748..., VERDICT_CONTRACT b9cdb894..., LABEL_LINEAGE_VERDICT 016bffe5..., label_gate 640abd8b..., geometry_gate 934d5cca..., run_bar_gates 564dc682..., label_lineage_gate 754fdd11..., verdict_contract 8f63f3e4...)",
+    "freeze_ordering": "RULES.json committed 5b6dc8f9 @ 2026-10-17T16:33:35Z, git diff to HEAD empty (untouched), strictly before first measurement artifact 4e4ad05b @ 17:14:39Z; no threshold edit after any number was seen",
+    "label_independent": "this audit's direct vendored label_gate run: n_scored 5 (de 2 / fr 0 / it 3), n_supported 5, rate 1.0, absolute LABEL_SOUND, regression NOT_APPLICABLE (pin 65), abstentions 23+15+22=60; vendored label_lineage_gate --adjudicate: PASS_NO_REGRESSION, gate_blocks_build=false; old-packet incumbent reproduced exactly (65/5/0.076923..., OFF-DOMAIN 38, UNBACKED 22, SUPPORTED 5, LABEL_UNSOUND)",
+    "geometry_independent": "this audit's direct vendored geometry_gate run: de 7 / fr 5 / it 7 of 11, n_bundles_pass_all_11=0, GEOMETRY_UNSOUND, PASS_NO_REGRESSION vs incumbent 6/5/5, non-blocking",
+    "mega_cluster_independent": "this audit's own raw arithmetic on cluster['size']/n_decisions: 52/214=0.2430, 49/217=0.2258, 60/211=0.2844, all below bar 0.5, disclosure does not fire",
+    "marginal_discovery_independent": "this audit's own raw computation (K=20): 5 issued rows at ranks 51/130/51/163/164, none in initial-pool top-20, none visible in list top-20; marginal discovery exists; CLASSIFICATION_ONLY negative does not reproduce",
+    "cross_check": "Core Evaluation run 39049030442 record re-hashed by this audit = 67656e943d749f7bde365b398b8150f70a828e66a2de528bfc8916a5040ba32f, byte-identical to the producer's vendored copy, packet_json_raw_sha256 2942c3c2..., published 17:05:31Z before the producer's measurement commit (17:14:39Z); this audit's raw read of the record confirms 1.0 / 60 / 0.07692307692307693 and geometry fr 5 / de 7 / it 7 plus all instrument verdicts; no mega quantity anywhere in the record (absent-not-divergent correct); 8/8 agree, headline no divergence",
+    "verdict_logic": "resolver is a pure function of measured halves (not hardcoded); real data falls to the exactly-one-bar-unmet residual -> outcome (B), matching the charter: (A) needs both bars AND mega firing (geometry unmet, mega does not fire); (C) needs BOTH bars unmet (label bar met per the accepted instrument reading the charter's question (a) clause mandates); product-improving halves promoted as such per the hypothesis",
+    "non_vacuity": "7 instrument verdicts move (>=2 required); blanked-evidence control drives the accepted lineage gate to build-blocking FAIL_REGRESSION (the PASS is live); resolver reaches all three enum outcomes from synthetic inputs; the frozen geometry seeded control's honest 1-flip negative reported, not tuned",
+    "harness_tests_scope": "harness runs offline rc=0; 34 passed with packets mounted (24 passed / 10 skipped without); two consecutive runs byte-identical to each other (bcc1c6f4... auto-discovery, f74564ef... via the contract recipe); zero files outside the team namespace across the whole branch (git diff --name-only 6b36e04..HEAD filtered); no network client code in the package; no human-gate artifact touched",
+    "defect_evidence": "contract-recipe run emits f74564ef1e0fb33159b16e347a4d7978c39b01e8273a9a6623a938091ede7236 vs pinned 11eb58efd286f01f24462e74d3e2a9b5eb034c6fc03eae4d31a803a74f60b497; structured diff shows the SOLE difference is cross_check.evaluation_search_basis.prior_absent_claim (status text + claim key) - code edited after record generation inside commit 24631a61 without regeneration; every other field of my reruns is identical to the committed record"
+  }
+}
