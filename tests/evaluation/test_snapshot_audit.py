@@ -29,6 +29,8 @@ CHECK_IDS = {
     "orchestration_diagnosis_record",
     "producer_write_scope_clean",
     "write_scope_diagnosis_record",
+    "orchestration_diagnosis_38986445355",
+    "retrieval_ca_benchmark_record",
 }
 
 
@@ -175,20 +177,24 @@ def test_manifest_checker_fails_on_missing_deliverables(tmp_path):
 @needs_mount
 def test_readiness_record_passes_on_current_snapshot(tmp_path):
     out = tmp_path / "readiness.json"
-    rc = rsa.main(["--run-id", "38982728075", "--out", str(out),
+    # The run-id is a labeling input only; the readiness checks themselves are
+    # run-id-independent. Pin to the operational-resume run of record so the
+    # gate-path assertions below name the actual audit contract for this tree.
+    run_id = "38989947869"
+    rc = rsa.main(["--run-id", run_id, "--out", str(out),
                    "--repo-root", str(Path.cwd())])
     assert rc == 0, "verifier must exit 0 (READY) on the current snapshot"
     record = json.loads(out.read_text(encoding="utf-8"))
     assert record["schema"] == "lex-evaluation-snapshot-audit/1"
-    assert record["run_id"] == "38982728075"
+    assert record["run_id"] == run_id
     assert record["ready_for_independent_audit"] is True
     assert {c["id"] for c in record["checks"]} == CHECK_IDS
     assert all(c["status"] == "PASS" for c in record["checks"])
     assert record["n_passed"] == record["n_checks"]
     assert record["audit_gate_path"] == \
-        "results/audit/evaluation/CYCLE_38982728075_GATE.json"
+        f"results/audit/evaluation/CYCLE_{run_id}_GATE.json"
     assert record["audit_report_path"] == \
-        "reports/audit/evaluation/CYCLE_38982728075.md"
+        f"reports/audit/evaluation/CYCLE_{run_id}.md"
     assert len(record["deliverable_sha256"]) == len(rsa.DELIVERABLE_MANIFEST_PATHS)
     assert record["snapshot_claims_not_certified"], \
         "the record must state what it does NOT certify"

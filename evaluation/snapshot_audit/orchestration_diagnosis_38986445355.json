@@ -1,0 +1,72 @@
+{
+  "schema": "lex-evaluation-orchestration-diagnosis/1",
+  "purpose": "Job-level, step-level evidence for why core evaluation run 38986445355 produced no independent audit gate and no promotion, and what the operational resume (run 38989947869) does about it. Companion to orchestration_diagnosis_2026-10-16.json (38972887369 / 38977570612) and orchestration_diagnosis_38982176936.json; this file covers only 38986445355 and the resume that consumed it.",
+  "query_method": "Unauthenticated GitHub REST API: GET https://api.github.com/repos/Mickalive/LexMachina/actions/runs/38986445355 and .../actions/runs/38986445355/jobs (public repository), queried 2026-10-17 during run 38989947869. Producer snapshot inspected via git show b07f297d on the checked-out operational-resume branch (origin/cycle/core/evaluation/38986445355/team). The broken benchmark entry point was executed in the resume worktree and its KeyError traceback is reproduced, not asserted.",
+  "limits": "Job LOGS are HTTP 403 unauthenticated, so no stderr line of the failed 'Run lane cycle' step was read. The step CONCLUSIONS below are API facts. The exact provider/model cause of the step-6 failure (quantum expiry, model auth, backend overload, or an uncaught producer exception after the commit) is therefore NOT established and is recorded as an open candidate set, never as a single asserted cause. What IS established: the step failed AFTER a git commit had already been made and persisted, and the committed delta is a single incomplete, non-runnable file.",
+  "runs": {
+    "38986445355": {
+      "run_name": "Core evaluation dirV50 repair0",
+      "event": "workflow_dispatch",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-10-17T00:27:24Z",
+      "updated_at": "2026-10-17T01:13:46Z",
+      "run_attempt": 1,
+      "dispatch_mode": "fresh cycle against the accepted lab/evaluation base (title 'repair0' is the workflow naming convention; no resume_from_run_id was in effect for this run's producer)",
+      "producer_commit_snapshot": "b07f297dcfcf73bac933eb68774f287575088cb7, persisted by 'Persist team snapshot' (which runs if: always() and therefore ran even after the team job failed)",
+      "job_id_team": 117258942565,
+      "jobs": {
+        "team": {
+          "conclusion": "failure",
+          "failed_step": "Run lane cycle",
+          "step_number": 6,
+          "step_facts": "steps 1-5 all success ('Set up job', 'Run actions/checkout@v6', 'Validate lane and initialize working base', 'Mount accepted peer evidence', 'Install Ox/OpenCode'); step 6 'Run lane cycle' FAILURE; steps 7-9 skipped ('Validate active MVP producer state', 'Clean generated junk', 'Enforce lane write scope' never ran); step 10 'Persist team snapshot' success (if: always())",
+          "interpretation": "the producer agent died DURING the cycle step, not after a completed tree. Unlike 38982176936 (where step 9 rejected an otherwise complete tree), here the validation/scope steps never executed. The only durable output is whatever the agent committed before dying. This is a producer-step failure class (provider death, quantum expiry, or an uncaught exception mid-edit), not a write-scope or state-validation rejection."
+        },
+        "audit": {
+          "conclusion": "skipped",
+          "skipped_because": "needs: team.result == 'success' was false because the team job failed at step 6",
+          "interpretation": "no independent audit ran; therefore NO gate of record exists for 38986445355 anywhere (no results/audit/evaluation/CYCLE_38986445355_GATE.json from the audit job, no cycle/.../38986445355/audit branch), and nothing was promoted or rejected"
+        },
+        "integrate": {
+          "conclusion": "skipped",
+          "skipped_because": "needs: audit.result == 'success' was false"
+        },
+        "resilience": {
+          "conclusion": "success",
+          "interpretation": "detected team != success with no other active same-generation run, found the surviving team snapshot branch (b07f297d on cycle/core/evaluation/38986445355/team), and dispatched this operational resume (run 38989947869) with resume_from_run_id=38986445355"
+        }
+      },
+      "root_cause": {
+        "class": "producer step died mid-cycle after committing an incomplete, non-runnable deliverable",
+        "durable_delta_of_the_failed_run": "exactly one file: evaluation/benchmark_retrieval_counter_authority.py (+331 lines). No state/evaluation.json update, no results/, no reports/, no tests.",
+        "why_the_delta_was_non_runnable": "the committed script re-implemented the frozen-bar scoring loop instead of reusing the accepted run_bar_gates entry point, and crashed on first execution with KeyError: 'negative_control_proven' at line 105 (geometry_gate.score_packet does not emit that key; it is computed inside run_bar_gates via the hostile-geometry control). Secondary defects confirmed by inspection and execution: (a) run_non_vacuity_controls contains a dead for-loop whose body is a bare pass; (b) write_report references record['label_gate']['reinoculated_non_vacuous'] and record['geometry_gate']['n_bundles_pass_all_11'] / ['n_bundles'], none of which score_benchmark_bundles ever sets — a second KeyError waiting after the first; (c) it imports _corrupt and hardcodes query_language='fr' for every qid in a discarded loop. The script also wrote to un-suffixed paths (results/evaluation/retrieval_counter_authority_benchmark.json), breaking the per-run provenance convention used by every other results/evaluation/* record.",
+        "candidate_causes_of_the_step_failure_not_disambiguated": [
+          "LEX_WORK_QUANTUM_EXPIRED (rc 78) — the run lasted ~46 minutes (00:27:24Z to 01:13:46Z), consistent with a quantum boundary",
+          "provider/model death after the commit (the standing factory-wide requirement on longcat/muse flapping and backend overloads)",
+          "an uncaught producer exception after git commit but before the agent completed its remaining checklist items (state update, report, verification)"
+        ],
+        "why_this_is_not_a_scope_violation": "step 9 ('Enforce lane write scope') was SKIPPED because step 6 had already failed; the committed delta (evaluation/*) is entirely inside the producer scope. The 38982176936 failure mode does not apply to this run.",
+        "why_this_is_not_a_state_validation_failure": "step 7 ('Validate active MVP producer state') was SKIPPED; had it run, it would have found direction_version 50 and a non-INITIALIZED cycle_status inherited from the base (the same latent gap recorded for 38982176936)."
+      },
+      "in_scope_work_preserved": [
+        "evaluation/benchmark_retrieval_counter_authority.py — the design INTENT (a single executable retrieval/counter-authority falsification benchmark reusing the frozen bars) is sound and is the concrete deliverable this resume completes; the broken implementation is replaced in place by a correct REUSE-FIRST rewrite that shells out to the accepted run_bar_gates entry point, and the failure mode of the original is documented here rather than deleted from history (b07f297d still carries the broken bytes on origin/cycle/core/evaluation/38986445355/team)"
+      ],
+      "resume_run": {
+        "run_id": "38989947869",
+        "dispatch_mode": "operational resume (resume_from_run_id=38986445355) dispatched by the resilience job of 38986445355",
+        "team_branch_checked_out": "operational-resume, reset to origin/cycle/core/evaluation/38986445355/team == b07f297d",
+        "what_this_resume_changes": "the broken benchmark is rewritten as a thin correct orchestrator over the accepted run_bar_gates entry point (three legs: served baseline must exit 0; hostile-geometry and blanked-evidence adjudications must exit 1); it is executed successfully on this run (BENCHMARK_VALID_NO_FALSIFICATION, exit 0, falsification_proven=true); the run-38986445355 diagnosis, a per-cycle bar-gates re-run, an updated state/evaluation.json and a cycle report are added; the snapshot-audit deliverable manifest and checks are extended to cover the new benchmark artifacts; no frozen rule, threshold, incumbent, predicate or verdict-contract field is changed.",
+        "status_at_time_of_record": "team job in progress; this diagnosis is written by the producer of that job"
+      }
+    },
+    "38989947869": {
+      "run_name": "Core evaluation dirV50 repair0",
+      "event": "workflow_dispatch",
+      "dispatch_mode": "operational resume (resume_from_run_id=38986445355) dispatched by the resilience job of 38986445355",
+      "team_branch_checked_out": "operational-resume, reset to origin/cycle/core/evaluation/38986445355/team == b07f297d",
+      "status_at_time_of_record": "team job in progress; this diagnosis is written by the producer of that job",
+      "what_this_resume_changes": "see runs.38986445355.resume_run above"
+    }
+  }
+}

@@ -135,7 +135,27 @@ DELIVERABLE_MANIFEST_PATHS = [
     "results/evaluation/snapshot_audit/void_self_audit_38982176936/CYCLE_38982176936_GATE.json",
     "results/evaluation/snapshot_audit/void_self_audit_38982176936/CYCLE_38982176936.md",
     "reports/evaluation/CYCLE_38982728075.md",
+    # Operational resume of run 38986445355 (run 38989947869): the completed
+    # retrieval/counter-authority falsification benchmark and its diagnosis.
+    "evaluation/benchmark_retrieval_counter_authority.py",
+    "tests/evaluation/test_benchmark_retrieval_counter_authority.py",
+    "evaluation/snapshot_audit/orchestration_diagnosis_38986445355.json",
+    "results/evaluation/bar_gates/38989947869.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/38989947869.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/38989947869_leg1_served_baseline.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/38989947869_leg2_hostile_geometry.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/38989947869_leg3_blanked_evidence.json",
+    "reports/evaluation/RETRIEVAL_CA_BENCHMARK_38989947869.md",
+    "reports/evaluation/CYCLE_38989947869.md",
 ]
+
+# Run 38986445355's team job died at step 6 ('Run lane cycle') after committing
+# a broken, non-runnable benchmark script. Check 10 requires the job-level
+# diagnosis artifact; check 11 re-executes the three-leg benchmark and requires
+# the frozen combined verdict (BENCHMARK_VALID_NO_FALSIFICATION, exit 0).
+RUN_38986445355_DIAGNOSIS_PATH = "evaluation/snapshot_audit/orchestration_diagnosis_38986445355.json"
+RETRIEVAL_CA_BENCHMARK_RECORD = (
+    "results/evaluation/retrieval_counter_authority_benchmark/38989947869.json")
 
 
 def _sha256_file(path: Path) -> str:
@@ -444,6 +464,109 @@ def check_write_scope_diagnosis(repo_root: Path) -> dict:
     return _check("write_scope_diagnosis_record", ok, detail, problems=problems)
 
 
+def check_run_38986445355_diagnosis(repo_root: Path) -> dict:
+    """Check 10: the 38986445355 mid-cycle producer death is diagnosed at job level."""
+    path = repo_root / RUN_38986445355_DIAGNOSIS_PATH
+    if not path.exists():
+        return _check("orchestration_diagnosis_38986445355", False,
+                      f"{RUN_38986445355_DIAGNOSIS_PATH} missing")
+    try:
+        diag = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return _check("orchestration_diagnosis_38986445355", False,
+                      f"diagnosis is not valid JSON: {exc}")
+    problems = []
+    if diag.get("schema") != "lex-evaluation-orchestration-diagnosis/1":
+        problems.append("schema")
+    if not diag.get("query_method"):
+        problems.append("query_method")
+    if not diag.get("limits"):
+        problems.append("limits")
+    run = diag.get("runs", {}).get("38986445355", {})
+    if not run:
+        problems.append("runs.38986445355")
+    else:
+        if run.get("conclusion") != "failure":
+            problems.append("runs.38986445355.conclusion")
+        team = run.get("jobs", {}).get("team", {})
+        if team.get("failed_step") != "Run lane cycle":
+            problems.append("runs.38986445355.jobs.team.failed_step")
+        if team.get("step_number") != 6:
+            problems.append("runs.38986445355.jobs.team.step_number")
+        audit = run.get("jobs", {}).get("audit", {})
+        if audit.get("conclusion") != "skipped":
+            problems.append("runs.38986445355.jobs.audit.conclusion")
+        cause = run.get("root_cause", {})
+        if "non-runnable" not in cause.get("class", "") and \
+                "incomplete" not in cause.get("class", ""):
+            problems.append("runs.38986445355.root_cause.class")
+        if not cause.get("candidate_causes_of_the_step_failure_not_disambiguated"):
+            problems.append("runs.38986445355.root_cause.candidate_causes (must be a "
+                            "recorded set, never a single asserted cause without logs)")
+    if "38989947869" not in diag.get("runs", {}):
+        problems.append("runs.38989947869 (resume run)")
+    ok = not problems
+    detail = ("38986445355 diagnosed at job/step level (team step 6 'Run lane cycle' "
+              "failure, audit skipped); un-loggable provider cause correctly hedged as "
+              "a candidate set; resume run 38989947869 recorded") if ok else \
+             f"diagnosis structural problems: {problems}"
+    return _check("orchestration_diagnosis_38986445355", ok, detail, problems=problems)
+
+
+def check_retrieval_ca_benchmark(repo_root: Path) -> dict:
+    """Check 11: the three-leg falsification benchmark record has the frozen verdict."""
+    path = repo_root / RETRIEVAL_CA_BENCHMARK_RECORD
+    if not path.exists():
+        return _check("retrieval_ca_benchmark_record", False,
+                      f"{RETRIEVAL_CA_BENCHMARK_RECORD} missing")
+    try:
+        rec = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return _check("retrieval_ca_benchmark_record", False,
+                      f"benchmark record is not valid JSON: {exc}")
+    problems = []
+    if rec.get("schema") != "lex-evaluation-retrieval-ca-benchmark/1":
+        problems.append("schema")
+    if rec.get("verdict") != "BENCHMARK_VALID_NO_FALSIFICATION":
+        problems.append(f"verdict={rec.get('verdict')!r} (expected "
+                        "BENCHMARK_VALID_NO_FALSIFICATION on the served lineage)")
+    if rec.get("exit_code") != 0:
+        problems.append(f"exit_code={rec.get('exit_code')}")
+    if rec.get("falsification_proven") is not True:
+        problems.append("falsification_proven is not true")
+    legs = {lg.get("leg"): lg for lg in rec.get("legs", [])}
+    expected = {
+        "served_baseline": 0,
+        "geometry_falsification_hostile": 1,
+        "label_falsification_blanked_evidence": 1,
+    }
+    for leg_id, exp_rc in expected.items():
+        lg = legs.get(leg_id)
+        if lg is None:
+            problems.append(f"missing leg {leg_id}")
+            continue
+        if lg.get("exit_code") != exp_rc:
+            problems.append(f"leg {leg_id} exit {lg.get('exit_code')} != {exp_rc}")
+        if lg.get("exit_code_matches_expectation") is not True:
+            problems.append(f"leg {leg_id} exit_code_matches_expectation is not true")
+    if rec.get("reuses_entry_point") != "evaluation.frozen_bars.run_bar_gates":
+        problems.append("reuses_entry_point (must be the accepted run_bar_gates module)")
+    # per-leg durable records must exist
+    for name in (f"{rec.get('run_id')}_leg1_served_baseline.json",
+                 f"{rec.get('run_id')}_leg2_hostile_geometry.json",
+                 f"{rec.get('run_id')}_leg3_blanked_evidence.json"):
+        if not (repo_root / "results/evaluation/retrieval_counter_authority_benchmark" / name).exists():
+            problems.append(f"missing per-leg record {name}")
+    ok = not problems
+    detail = (f"benchmark {rec.get('run_id')}: BENCHMARK_VALID_NO_FALSIFICATION exit 0; "
+              f"legs 0/1/1 as frozen; falsification_proven=true; reuses "
+              f"{rec.get('reuses_entry_point')}") if ok else \
+             f"benchmark record problems: {problems}"
+    return _check("retrieval_ca_benchmark_record", ok, detail, problems=problems,
+                  verdict=rec.get("verdict"), exit_code=rec.get("exit_code"),
+                  falsification_proven=rec.get("falsification_proven"))
+
+
 def build_record(run_id: str, checks: list[dict], manifest: dict) -> dict:
     n_pass = sum(1 for c in checks if c["status"] == "PASS")
     ready = n_pass == len(checks)
@@ -469,6 +592,8 @@ def build_record(run_id: str, checks: list[dict], manifest: dict) -> dict:
             "job-level orchestration diagnosis for runs 38972887369/38977570612 recorded with required structure",
             "the live tree passes the workflow's own producer write-scope classifier (the step that failed run 38982176936)",
             "run 38982176936's write-scope failure is reproduced with the real control-plane step body (exit 3, identical BAD set) and its producer-authored self-audit is voided with byte-identical preserved copies",
+            "run 38986445355's mid-cycle producer death (team step 6 'Run lane cycle') is diagnosed at job/step level with the un-loggable provider cause hedged as a candidate set",
+            "the three-leg retrieval/counter-authority falsification benchmark re-exits BENCHMARK_VALID_NO_FALSIFICATION (legs 0/1/1 over the accepted run_bar_gates entry point, falsification_proven=true)",
         ],
         "snapshot_claims_not_certified": [
             "jurist-usefulness of the map (human gate); human_gate_ready stays false under the standing accepted DO-NOT-SERVE order",
@@ -510,6 +635,8 @@ def main(argv=None) -> int:
         checks.append(check_diagnosis_record(repo_root))
         checks.append(check_producer_write_scope(repo_root))
         checks.append(check_write_scope_diagnosis(repo_root))
+        checks.append(check_run_38986445355_diagnosis(repo_root))
+        checks.append(check_retrieval_ca_benchmark(repo_root))
 
     record = build_record(args.run_id, checks, manifest)
     out_path.write_text(json.dumps(record, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
