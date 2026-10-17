@@ -23,7 +23,16 @@ It performs the checks a unit test cannot:
 * the retrieval benchmark is **replayed from its committed cache** and the
   latency gates must come back ``not_measurable`` — a cached replay may never
   report a latency PASS (the false green found this cycle);
-* a falsification matrix: for every gate family, a fixture that MUST fail.
+* a falsification matrix: for every gate family, a fixture that MUST fail;
+* the two direction-v50 gate ENTRY POINTS are each invoked N times (cycle
+  39023900270, disclosed ADDITIVE extension: no accepted check, rubric,
+  incumbent or threshold is touched) and must return exit 0 with exactly ONE
+  byte-identical normalized record each. A measured non-zero exit is a FAIL -
+  this is the standing measurement that converts the report-section-11
+  unexplained exit-1 anecdote into a rate instead of a story. It is skipped,
+  never passed, when the accepted product mount is absent, and the mechanism
+  probe (closed stdout) is deliberately NOT run here because its non-zero
+  outcome is recorded evidence, not a bar.
 
 Exit 0 = no check failed (skips allowed; they are listed in the report).
 Exit 1 = at least one check failed (a falsifying
@@ -512,6 +521,96 @@ def check_falsification_matrix(log: _Log) -> None:
 
 
 # --------------------------------------------------------------------------- #
+# 3b. repeat-invariance of the two v50 gate entry points (ADDITIVE, cycle
+#     39023900270).  Owns no threshold: N is a sample size, not a bar, and the
+#     only pass condition is the frozen one - every measured invocation exits 0
+#     and every entry point yields ONE normalized record.
+# --------------------------------------------------------------------------- #
+
+REPEAT_INVARIANCE_DIR = _LANE_ROOT / "results" / "evaluation" / "repeat_invariance"
+#: committed P5 mechanism-probe record (produced once this cycle, never a bar)
+COMMITTED_PROBE_RECORD = REPEAT_INVARIANCE_DIR / "39023900270_probe.json"
+
+
+def check_repeat_invariance(log: _Log, n: int) -> None:
+    """Invoke both accepted entry points N times each and demand invariance.
+
+    Environment (accepted product mount) absent -> SKIP, never pass, never
+    fail - the same rule every mount-dependent check in this suite follows.
+    """
+    print(f"repeat-invariance of the two v50 gate entry points (N={n} each):")
+    import tempfile
+    with tempfile.TemporaryDirectory(prefix="lex_lane_suite_ri_") as td:
+        out = Path(td) / "record.json"
+        try:
+            proc = subprocess.run(
+                [sys.executable, "-m", "evaluation.frozen_bars.repeat_invariance",
+                 "--n", str(n), "--run-id", "lane_suite",
+                 "--out", str(out), "--skip-probe"],
+                cwd=str(_LANE_ROOT), capture_output=True, text=True,
+                timeout=max(900, 60 * n * 3))
+        except subprocess.TimeoutExpired:
+            log.add("repeat-invariance measurement completed", False,
+                    f"timed out after {max(900, 60 * n * 3)}s")
+            return
+        record = None
+        if out.exists():
+            try:
+                record = json.loads(out.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError) as exc:
+                log.add("repeat-invariance measurement completed", False,
+                        f"unreadable record: {type(exc).__name__}: {exc}")
+                return
+        if record is None:
+            if proc.returncode == 2:
+                log.skip("repeat-invariance (environment)",
+                         f"exit 2 without a record: {(proc.stderr or '').strip()[:200]}")
+                return
+            log.add("repeat-invariance measurement completed", False,
+                    f"exit {proc.returncode} and no record; "
+                    f"stderr={(proc.stderr or '').strip()[:200]}")
+            return
+        if record.get("exit_code") == 2:
+            log.skip("repeat-invariance (environment)",
+                     f"{record.get('environment')}: {record.get('detail', '')[:180]}")
+            return
+        inv = record.get("invariance", {})
+        a = inv.get("A_run_bar_gates", {})
+        b = inv.get("B_run_label_lineage_gate", {})
+        detail = (f"N={record.get('n_per_entry_point')} "
+                  f"A_nonzero={a.get('nonzero_count')} "
+                  f"B_nonzero={b.get('nonzero_count')} "
+                  f"A_records={a.get('distinct_normalized_records')} "
+                  f"B_records={b.get('distinct_normalized_records')} "
+                  f"exit={record.get('exit_code')}")
+        failures = record.get("failure_reasons") or []
+        if failures:
+            detail += f" failed={failures}"
+        log.add("both v50 gate entry points exit 0 and are byte-invariant",
+                record.get("exit_code") == 0, detail)
+
+    # the committed mechanism probe is evidence, not a bar: verify only that it
+    # is present, correctly separated and internally complete.
+    if COMMITTED_PROBE_RECORD.exists():
+        try:
+            probe = json.loads(COMMITTED_PROBE_RECORD.read_text(encoding="utf-8"))
+            p5 = probe.get("P5_closed_stdout_reaches_the_mechanism_class_separately", {})
+            ok = (probe.get("schema") == "lex-evaluation-closed-stdout-probe/1"
+                  and str(probe.get("separation_rule", "")).startswith("P5 is recorded separately")
+                  and p5.get("nonzero_trials", 0) >= 1
+                  and p5.get("empty_stderr_with_nonzero") == 0)
+            log.add("committed closed-stdout mechanism probe intact and separated",
+                    ok, f"nonzero={p5.get('nonzero_trials')}/{p5.get('all_trials')} "
+                        f"classes={p5.get('classes_observed')}")
+        except (OSError, json.JSONDecodeError) as exc:
+            log.add("committed closed-stdout mechanism probe intact and separated",
+                    False, f"unreadable: {type(exc).__name__}: {exc}")
+    else:
+        log.skip("closed-stdout mechanism probe (not committed)",
+                 "no committed probe record in this checkout")
+
+
+# --------------------------------------------------------------------------- #
 # 4. optional pytest pass
 # --------------------------------------------------------------------------- #
 
@@ -554,7 +653,14 @@ def run_pytest(log: _Log) -> None:
          # adjudicate verdict and the frozen-prediction execution. The gate is
          # ADDITIVE: no accepted verdict is overwritten and no frozen benchmark,
          # rubric, incumbent or success rule is touched by adding the file.
-         "tests/evaluation/test_label_lineage_gate.py"],
+         "tests/evaluation/test_label_lineage_gate.py",
+         # run 39023900270 (disclosed scope extension, not a re-freeze): the
+         # repeat-invariance harness - normalization rule, non-zero
+         # classification (including the UNEXPLAINED_EXIT_1 class of report
+         # section 11), the real detection control, the P5 probe/verdict
+         # separation and the frozen-digest pins. It invokes entry points but
+         # changes no accepted file, rubric, incumbent or success rule.
+         "tests/evaluation/test_repeat_invariance.py"],
         cwd=str(_LANE_ROOT), capture_output=True, text=True, timeout=900)
     tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
     log.add("active lane pytest suite", proc.returncode == 0, tail[0])
@@ -569,6 +675,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", default=None, help="where to write the suite report")
     ap.add_argument("--skip-pytest", action="store_true",
                     help="run only the stdlib checks")
+    ap.add_argument("--repeat-n", type=int, default=10,
+                    help="measured trials per v50 entry point in the repeat-invariance "
+                         "check (default 10 = the frozen sample of run 39023900270; a "
+                         "smaller N is a quicker re-measurement, never a weaker rule)")
+    ap.add_argument("--skip-repeat", action="store_true",
+                    help="skip the repeat-invariance check (records a SKIP, never a pass)")
     args = ap.parse_args(argv)
 
     started = time.time()
@@ -580,6 +692,11 @@ def main(argv: list[str] | None = None) -> int:
         check_retrieval_rescore(log)
         check_cached_replay_cannot_fake_latency(log, out_dir)
         check_falsification_matrix(log)
+        if args.skip_repeat:
+            log.skip("repeat-invariance (requested skip)",
+                     "--skip-repeat passed; the check is not a pass when skipped")
+        else:
+            check_repeat_invariance(log, args.repeat_n)
         if not args.skip_pytest:
             run_pytest(log)
     except (OSError, KeyError, ValueError) as exc:

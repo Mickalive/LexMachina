@@ -190,8 +190,14 @@ def evaluate_invariance(trials: list[dict]) -> dict:
 
 
 def _run_once(argv: list[str], out_path: Path | None, cwd: Path,
-              close_stdout_early: bool = False) -> dict:
+              close_stdout_early: bool = False,
+              python_unbuffered: bool = False) -> dict:
     t0 = time.time()
+    env = None
+    if python_unbuffered:
+        import os
+        env = dict(os.environ)
+        env["PYTHONUNBUFFERED"] = "1"
     with tempfile.TemporaryDirectory() as td:
         err_path = Path(td) / "stderr.txt"
         with open(err_path, "wb") as err_fh:
@@ -199,7 +205,8 @@ def _run_once(argv: list[str], out_path: Path | None, cwd: Path,
             if out_path is not None:
                 full = full + ["--out", str(out_path)]
             proc = subprocess.Popen(full, stdout=subprocess.PIPE,
-                                    stderr=err_fh, cwd=str(cwd))
+                                    stderr=err_fh, cwd=str(cwd), env=env)
+            timed_out = False
             if close_stdout_early:
                 # Close the READ end before the child can write: every later
                 # write by the child hits EPIPE.  Both entry points emit their
@@ -215,14 +222,16 @@ def _run_once(argv: list[str], out_path: Path | None, cwd: Path,
                 except subprocess.TimeoutExpired:
                     proc.kill()
                     proc.communicate()
-                    return {"exit_code": None, "stderr": "", "timed_out": True,
-                            "elapsed_s": round(time.time() - t0, 3)}
-            try:
-                rc = proc.wait(timeout=TRIAL_TIMEOUT_S)
-            except subprocess.TimeoutExpired:
-                proc.kill()
-                proc.wait()
+                    timed_out = True
+            if timed_out:
                 rc = None
+            else:
+                try:
+                    rc = proc.wait(timeout=TRIAL_TIMEOUT_S)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+                    proc.wait()
+                    rc = None
         stderr = err_path.read_text(encoding="utf-8", errors="replace")
     trial = {
         "argv": [a for a in argv if a != sys.executable] + (
@@ -231,9 +240,16 @@ def _run_once(argv: list[str], out_path: Path | None, cwd: Path,
         "stderr_bytes": len(stderr.encode("utf-8", errors="replace")),
         "stderr_head": stderr[:2000],
         "elapsed_s": round(time.time() - t0, 3),
-        "timed_out": False,
+        "timed_out": timed_out,
+        "variant": ("closed_stdout_unbuffered" if (close_stdout_early and python_unbuffered)
+                    else "closed_stdout_buffered" if close_stdout_early
+                    else "measured"),
     }
-    trial["classification"] = classify_exit(rc if rc is not None else -1, stderr)
+    if rc is None:
+        trial["classification"] = {"detected_nonzero": True,
+                                   "exit_class": "TIMEOUT", "signature": "TIMEOUT"}
+    else:
+        trial["classification"] = classify_exit(rc, stderr)
     if out_path is not None and out_path.exists():
         try:
             record = json.loads(out_path.read_text(encoding="utf-8"))
@@ -255,6 +271,8 @@ def _run_once(argv: list[str], out_path: Path | None, cwd: Path,
                     record["geometry_gate"].get("per_bundle_counts"))
             trial["negative_controls_all_proven"] = record.get(
                 "negative_controls_all_proven")
+            if "enforced_predicate_rate" in record:
+                trial["enforced_predicate_rate"] = record["enforced_predicate_rate"]
         except (json.JSONDecodeError, OSError) as exc:
             trial["record_error"] = f"{type(exc).__name__}: {exc}"
     elif out_path is not None:
@@ -337,6 +355,20 @@ def run_measurement(n: int, run_id: str, workdir: Path | None = None,
             for i in range(probe_trials):
                 probe_trials_out.append(_run_once(
                     LINEAGE_GATE, tmp / f"d_lin_{i}.json", cwd, close_stdout_early=True))
+            # P5b (additive variant of the SAME frozen P5 envelope): the
+            # buffered path fails at interpreter shutdown with exit 120; a CI
+            # job that runs python unbuffered (python -u / PYTHONUNBUFFERED=1)
+            # fails INSIDE print() instead, which is the exit-1 shape report
+            # section 11 recorded.  Same separation rule: recorded, never in
+            # the invariance verdict or this module's exit code.
+            for i in range(probe_trials):
+                probe_trials_out.append(_run_once(
+                    BAR_GATES, tmp / f"d_bar_u_{i}.json", cwd,
+                    close_stdout_early=True, python_unbuffered=True))
+            for i in range(probe_trials):
+                probe_trials_out.append(_run_once(
+                    LINEAGE_GATE, tmp / f"d_lin_u_{i}.json", cwd,
+                    close_stdout_early=True, python_unbuffered=True))
 
     inv_a = evaluate_invariance(trials_a)
     inv_b = evaluate_invariance(trials_b)
@@ -377,7 +409,7 @@ def run_measurement(n: int, run_id: str, workdir: Path | None = None,
         "verdict_matches": first_b.get("record_verdict") == "SWEEP_COMPLETE",
         "frozen_predictions_held": first_b.get("frozen_prediction_verification")
                                    == "ALL_PREDICTIONS_HELD",
-        "predicate_rate_is_5_over_65": None,  # filled below from the record
+        "predicate_rate_is_5_over_65": first_b.get("enforced_predicate_rate") == (5 / 65),
     }
     p3 = {
         "nonzero_A": inv_a["nonzero_count"],
@@ -405,17 +437,10 @@ def run_measurement(n: int, run_id: str, workdir: Path | None = None,
                        and p4["stderr_mentions_missing_inputs"])
     p6 = {"holds": bool(digests["all_matched"]), "detail": digests}
 
-    # P2's predicate-rate cell needs the sweep record itself
-    if trials_b and trials_b[0].get("record_verdict") is not None:
-        # re-read from the recorded normalized payload we cannot reopen (temp
-        # dir is gone), so the rate is asserted through the freeze-file default
-        # the sweep itself re-derives: 5/65 is label_gate.INCUMBENT, already
-        # covered by P1's label match and by the accepted sweep record.
-        p2["predicate_rate_is_5_over_65"] = "covered_by_accepted_sweep_record_and_P1_label_match"
-        p2["holds"] = all(v for k, v in p2.items()
-                          if k != "predicate_rate_is_5_over_65" and isinstance(v, bool))
-    else:
-        p2["holds"] = False
+    # P2 holds when every predicted cell holds (the five booleans above).
+    p2["holds"] = all(p2[k] for k in (
+        "all_exit_zero", "one_distinct_record", "verdict_matches",
+        "frozen_predictions_held", "predicate_rate_is_5_over_65"))
 
     record["predicates"] = {
         "P1_served_lineage_runs_are_invariant": {**p1, "observed": p1_values(first_a)},
@@ -434,9 +459,22 @@ def run_measurement(n: int, run_id: str, workdir: Path | None = None,
                                  if not v.get("holds", True)]
 
     if with_probe:
-        bar_probe = [t for t in probe_trials_out if t["argv"][0].endswith(
-            "run_bar_gates") or "run_bar_gates" in " ".join(t["argv"])]
-        lin_probe = [t for t in probe_trials_out if t not in bar_probe]
+        def _is_bar(t: dict) -> bool:
+            return "evaluation.frozen_bars.run_bar_gates" in " ".join(t["argv"])
+
+        bar_probe = [t for t in probe_trials_out if _is_bar(t)]
+        lin_probe = [t for t in probe_trials_out if not _is_bar(t)]
+
+        def _subset(trials: list[dict], variant: str) -> list[dict]:
+            return [t for t in trials if t.get("variant") == variant]
+
+        def _nonzero(trials: list[dict]) -> int:
+            return sum(1 for t in trials if t["exit_code"] not in (0, None))
+
+        buffered = [t for t in probe_trials_out
+                    if t.get("variant") == "closed_stdout_buffered"]
+        unbuffered = [t for t in probe_trials_out
+                      if t.get("variant") == "closed_stdout_unbuffered"]
         probe = {
             "schema": PROBE_SCHEMA,
             "run_id": run_id,
@@ -446,25 +484,46 @@ def run_measurement(n: int, run_id: str, workdir: Path | None = None,
                                 "(frozen FROZEN_HYPOTHESIS_39023900270.json P5)"),
             "statement": ("stdout closed before the first write; both entry "
                           "points emit their entire JSON payload as one write "
-                          "at the end of main()"),
-            "trials": {"run_bar_gates": bar_probe,
-                       "run_label_lineage_gate": lin_probe},
-            "P5_closed_stdout_reaches_the_mechanism_class": {
-                "run_bar_gates_nonzero": sum(1 for t in bar_probe
-                                             if t["exit_code"] not in (0, None)),
-                "run_label_lineage_gate_nonzero": sum(1 for t in lin_probe
-                                                      if t["exit_code"] not in (0, None)),
-                "empty_stderr_with_exit_1": sum(
+                          "at the end of main(). Two variants: buffered (the "
+                          "default python) and unbuffered (PYTHONUNBUFFERED=1, "
+                          "the common CI streaming setting)."),
+            "trials": {
+                "buffered": {"run_bar_gates": _subset(bar_probe, "closed_stdout_buffered"),
+                             "run_label_lineage_gate": _subset(lin_probe, "closed_stdout_buffered")},
+                "unbuffered": {"run_bar_gates": _subset(bar_probe, "closed_stdout_unbuffered"),
+                               "run_label_lineage_gate": _subset(lin_probe, "closed_stdout_unbuffered")},
+            },
+            "P5_closed_stdout_reaches_the_mechanism_class_separately": {
+                "buffered_nonzero": f"{_nonzero(buffered)}/{len(buffered)}",
+                "buffered_classes": sorted({t["classification"]["exit_class"]
+                                            for t in buffered}),
+                "buffered_exit_codes": sorted({t["exit_code"] for t in buffered}),
+                "unbuffered_nonzero": f"{_nonzero(unbuffered)}/{len(unbuffered)}",
+                "unbuffered_classes": sorted({t["classification"]["exit_class"]
+                                              for t in unbuffered}),
+                "unbuffered_exit_codes": sorted({t["exit_code"] for t in unbuffered}),
+                "empty_stderr_with_nonzero": sum(
                     1 for t in probe_trials_out
-                    if t["exit_code"] == 1 and t["stderr_bytes"] == 0),
+                    if t["exit_code"] not in (0, None) and t["stderr_bytes"] == 0),
+                "exit_1_observed": any(t["exit_code"] == 1 for t in probe_trials_out),
                 "classes_observed": sorted({t["classification"]["exit_class"]
                                             for t in probe_trials_out}),
+                "all_trials": len(probe_trials_out),
+                "nonzero_trials": _nonzero(probe_trials_out),
             },
+            "p5b_additive_variant": (
+                "unbuffered closed-stdout trials are an ADDITIVE variant of the "
+                "same frozen P5 envelope (P5 predicted exit 1 or 120 with a "
+                "captured signature and never an empty-stderr non-zero); no "
+                "P5 text, count of measured trials or pass rule changed."),
             "mechanism_class_only": (
                 "A non-zero here shows the accepted entry points are not robust "
-                "to an early-closed stdout, so an exit-1 from them is reachable "
-                "by INVOCATION ALONE. It is NOT claimed to be what happened in "
-                "report section 11, whose stderr was suppressed."),
+                "to an early-closed stdout, so a NON-ZERO exit from them is "
+                "reachable by INVOCATION ALONE while the gate's own verdict was "
+                "exit 0. It is NOT claimed to be what happened in report "
+                "section 11, whose stderr was suppressed and whose exit code "
+                "was 1; where the observed code matches or differs from that "
+                "anecdote is stated in the report, not smoothed over."),
             "elapsed_s": round(time.time() - started, 3),
         }
         record["probe_recorded_separately"] = bool(probe_out)
@@ -501,7 +560,7 @@ def main(argv: list[str] | None = None) -> int:
         out_path.write_text(payload, encoding="utf-8")
     print(payload[:6000])
     if probe is not None:
-        print(f"[probe] classes={probe['P5_closed_stdout_reaches_the_mechanism_class']}"
+        print(f"[probe] classes={probe['P5_closed_stdout_reaches_the_mechanism_class_separately']}"
               f" separate_record={'yes' if args.probe_out else 'in-memory only'}")
     return int(record.get("exit_code", 2))
 
