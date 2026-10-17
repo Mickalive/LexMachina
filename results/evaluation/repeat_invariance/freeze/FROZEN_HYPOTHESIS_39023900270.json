@@ -1,0 +1,155 @@
+{
+  "schema": "lex-evaluation-frozen-hypothesis/1",
+  "run_id": "39023900270",
+  "lane": "evaluation",
+  "direction_version": 50,
+  "frozen_at_utc": "2026-10-17T10:24:47Z",
+  "frozen_before": "any execution of python -m evaluation.frozen_bars.run_bar_gates, python -m evaluation.frozen_bars.run_label_lineage_gate, or any new repeat-invariance harness code. Written and committed before the first line of this cycle's harness module existed. No entry point named below has been invoked by this cycle at the moment of freezing.",
+  "honest_disclosure_of_observation_order": {
+    "what_was_observed_before_this_freeze": "ONLY already-accepted, already-recorded material: (a) the accepted reports and state entries of this lane, including the section 11 unresolved observation of reports/evaluation/LABEL_LINEAGE_GATE_39020603510.md (one invocation of the accepted run_bar_gates returned exit 1 with stderr sent to /dev/null; not reproduced in 33 subsequent runs; cause not captured); (b) committed record timings read WITHOUT running anything: results/evaluation/bar_gates/38972887369.json elapsed_s 7.447 and results/evaluation/label_lineage_gate/39020603510_sweep.json elapsed_s 12.904, from which N=10 per entry point was sized; (c) the source of both entry points (exit-code contracts, stdout/--out behaviour, default packet paths); (d) sha256 of the two accepted served inputs and of state/product.json on the accepted product mount, taken to state whether Product has shipped a rebuilt packet: packet.json c2e10295e6196162a344c887be13e708be18a946b96b990a3800845760da97a4 and state/product.json 1e478143f1e7e4d5490f6246364d0b8a7529458b7f5fa3b0947bb9d54751baf4, both byte-identical to the accepted adjudication inputs, i.e. NO rebuilt packet exists yet; (e) the frozen digests of every file this cycle must not move (recorded below).",
+    "what_was_NOT_observed_before_this_freeze": [
+      "any execution of either entry point by this cycle (no trial, no timing run, no smoke run)",
+      "any repeat-invariance exit code, payload hash, stderr capture or non-zero-exit rate",
+      "any pipe/closed-stdout outcome for either entry point",
+      "any result of this cycle's harness module, which does not exist yet",
+      "any Frontier candidate (evidence-anchored counter classifier, query-conditioned geometry) - neither is re-measured here"
+    ],
+    "why_the_predictions_are_not_peeking": "P1, P2 and P4 are arithmetic on accepted, already-recorded outputs: the served-packet verdict PASS_NO_REGRESSION, labels 5/65 with classes OFF-DOMAIN 38 / UNBACKED 22 / SUPPORTED 5 / INVERTED 0, geometry de 6 / fr 5 / it 5, the lineage sweep verdict SWEEP_COMPLETE and frozen_prediction_verification ALL_PREDICTIONS_HELD are the accepted values in results/evaluation/bar_gates/*.json, results/evaluation/label_lineage_gate/39020603510_sweep.json and the accepted audits. P3 is a prediction of NON-occurrence that the accepted record itself leaves open (one exit-1 was observed once with stderr suppressed), so it is the genuinely falsifiable part. P5 is a mechanism probe whose outcome is predicted from the source (both entry points write their whole JSON payload to stdout only at the end of main()), and it is deliberately separable from P1-P4 so a P5 outcome can never be silently folded into the invariance verdict.",
+    "no_threshold_predicate_or_success_rule_in_this_file_was_changed_after_seeing_a_result": true
+  },
+  "frozen_rubric_reuse_proof": {
+    "rule": "REUSE BY RE-HASH, NEVER RE-DERIVE (factory-wide requirement 18)",
+    "RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+    "source_ref": "cycle/frontier/frontier-served-packet-falsification/38877700234/team",
+    "local_copies_sha256_verbatim_at_freeze_time": {
+      "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d1",
+      "evaluation/frozen_bars/RULES_GEOMETRY.json": "a7452748d40c511a",
+      "evaluation/frozen_bars/VERDICT_CONTRACT.json": "b9cdb89438a8d16e",
+      "evaluation/reality_gate/frozen_benchmark.json": "ff57f556c3755ab6",
+      "evaluation/reality_gate/GATE_CONTRACT.json": "06781743c2686fa6",
+      "evaluation/retrieval_gate/frozen_retrieval_benchmark.json": "187b0e54b03b326c",
+      "evaluation/frozen_bars/run_bar_gates.py": "564dc682da6fe012",
+      "evaluation/frozen_bars/run_label_lineage_gate.py": "c9f4d6e1c9c0f9a0",
+      "evaluation/frozen_bars/label_gate.py": "640abd8beeb7b8c8",
+      "evaluation/frozen_bars/label_lineage_gate.py": "754fdd11172f1468",
+      "evaluation/frozen_bars/geometry_gate.py": "934d5cca9f362a3e",
+      "evaluation/lane_suite.py": "882552316480204c"
+    },
+    "digest_note": "local copies are hashed to 16 hex characters here and re-verified at full 64 by the suite; full-length pins live in each module's EXPECTED_* constant.",
+    "this_cycle_changes_no_rubric": "No criterion, lexicon, anchor, injection case, projection constant, bar, incumbent, support test, exit-code contract or verdict value is added, removed, retuned or clarified. This cycle only INVOKES the accepted entry points repeatedly and measures what they return."
+  },
+  "question": "Are the two direction-v50 gate entry points deterministic and CI-trustworthy across repeated invocations - i.e. does the one unexplained exit-1 of accepted record section 11 survive as a measurable non-zero rate, or is the pair byte-stable - and can that rate be measured by a harness that is itself proven non-vacuous?",
+  "hypothesis": "H-REPEAT-INVARIANCE. The accepted served-lineage invocation (run_bar_gates) and the accepted lineage sweep invocation (run_label_lineage_gate) are pure functions of pinned bytes: identical normalized records and exit 0 on every repetition, so the section-11 exit-1 does not reproduce at a measurable rate and the accepted 'cannot produce 1 by construction' statement holds operationally. The harness that measures this is itself falsifiable: it must classify a deliberately broken invocation (exit 2) as a detected non-zero, otherwise a 0-non-zero rate would be vacuous. Separately, the mechanism class of an unexplained exit-1 is reachable through a realistic CI invocation that closes stdout early (pipe to head/jq), because both entry points emit their entire JSON payload as a single write at the end of main(); this probe is recorded independently and can never change the invariance verdict.",
+  "baseline": "The accepted invocation behaviour of record: (a) results/evaluation/bar_gates/*.json - run_bar_gates in default served_lineage mode, verdict PASS_NO_REGRESSION, exit 0; (b) results/evaluation/label_lineage_gate/39020603510_sweep.json - sweep verdict SWEEP_COMPLETE, exit 0, frozen_prediction_verification ALL_PREDICTIONS_HELD; (c) reports/evaluation/LABEL_LINEAGE_GATE_39020603510.md section 11 - ONE observed exit 1 out of at least 34 recorded invocations of run_bar_gates in that cycle, cause not captured because stderr went to /dev/null, explicitly preserved as unresolved.",
+  "population": {
+    "measured_invariance_trials": [
+      "TRIAL A x10: python -m evaluation.frozen_bars.run_bar_gates --out <tmp>/a_<i>.json  (default served_lineage mode, default accepted packet dir /tmp/lex_accepted/product/results/product/gate_packet/38839347028/questions)",
+      "TRIAL B x10: python -m evaluation.frozen_bars.run_label_lineage_gate --out <tmp>/b_<i>.json  (default sweep mode, default accepted packet root, default freeze file)"
+    ],
+    "detection_control": "TRIAL C x1: python -m evaluation.frozen_bars.run_bar_gates --packet-dir <empty temp dir> --out <tmp>/c.json  - a deliberately broken input that must exit 2 with a missing-inputs message on stderr",
+    "mechanism_probe": "TRIAL D x3 per entry point: same argv as A and B but stdout is a pipe whose read end is closed before the process writes, stderr captured to a file",
+    "environment_rule": "The accepted product mount /tmp/lex_accepted/product is required by TRIAL A, B and D. If it is absent the whole measurement is recorded as ENVIRONMENT_ABSENT and skipped, never as a pass and never as a failure.",
+    "trial_count_total": 10 + 10 + 1 + 6
+  },
+  "normalization_rule": {
+    "statement": "Two trials are byte-invariant when the JSON record written by --out, after removing exactly the key 'elapsed_s' at any depth (the only runtime-varying field emitted by either entry point), serializes to an identical sha256. stdout is NOT used for the invariance comparison because run_bar_gates deliberately omits label_gate/geometry_gate from stdout; the --out file is the complete record.",
+    "also_compared": [
+      "exit code per trial",
+      "stderr byte length and, when non-zero, the captured stderr itself",
+      "for TRIAL B only: the sha256 of the freeze file it was invoked with (must not change across trials)"
+    ]
+  },
+  "predicates": {
+    "P1_served_lineage_runs_are_invariant": {
+      "statement": "All 10 TRIAL A runs exit 0, all 10 normalized --out records are sha256-identical, and that single record carries the accepted values.",
+      "predicted": {
+        "n_trials": 10,
+        "exit_codes": [0],
+        "distinct_normalized_records": 1,
+        "verdict": "PASS_NO_REGRESSION",
+        "label": {"n_scored": 65, "n_supported": 5,
+                  "classes_exactly": {"OFF-DOMAIN": 38, "UNBACKED": 22, "SUPPORTED": 5},
+                  "classes_note": "the record's classes dict carries exactly these three keys (verified against the accepted bar_gates/38972887369.json BEFORE freeze, not by running anything); label_gate.INCUMBENT additionally lists INVERTED 0 and the accepted comparison reads an absent class as 0 via .get(k, 0), so 'recomputed_matches_incumbent' is true either way. The prediction is the three-key dict as recorded, not an invented fourth key."},
+        "geometry_per_bundle_counts": {"de-kapitalverletzung": 6, "fr-bail-entretien": 5, "it-responsabilita-medica": 5},
+        "negative_controls_all_proven": true
+      }
+    },
+    "P2_lineage_sweep_runs_are_invariant": {
+      "statement": "All 10 TRIAL B runs exit 0, all 10 normalized --out records are sha256-identical, and that single record carries the accepted sweep values.",
+      "predicted": {
+        "n_trials": 10,
+        "exit_codes": [0],
+        "distinct_normalized_records": 1,
+        "verdict": "SWEEP_COMPLETE",
+        "frozen_prediction_verification": "ALL_PREDICTIONS_HELD",
+        "enforced_predicate_rate": 0.07692307692307693
+      }
+    },
+    "P3_section11_nonzero_does_not_reproduce": {
+      "statement": "No TRIAL A or TRIAL B run returns a non-zero exit code, so the section-11 unexplained exit-1 does not reproduce in this sample. The observed non-zero rate for each entry point is reported with its count over 10; the report discloses the rule-of-three 95% upper bound for a 0/10 observation (0.30) so a clean sample is never read as proof of impossibility.",
+      "predicted": {"nonzero_A": 0, "nonzero_B": 0, "total_nonzero_in_20": 0},
+      "if_falsified": "The run and its captured stderr become a first-class preserved finding: the anecdote has reproduced, the exit code and signature are evidence, and the cause is investigated from that stderr instead of being explained away by repetition. The suite check for this predicate then FAILS, which is the correct outcome for a falsifier."
+    },
+    "P4_detection_control_proves_the_harness_is_not_blind": {
+      "statement": "TRIAL C returns exit 2 with a stderr message naming the missing inputs, and the harness classifies it as a detected non-zero exit with the correct class. Without this control a 0-non-zero rate would be indistinguishable from a harness that cannot see non-zero exits at all.",
+      "predicted": {"exit_code": 2, "detected_nonzero": true, "class": "ENVIRONMENT_ERROR",
+                    "stderr_mentions_missing_inputs": true}
+    },
+    "P5_closed_stdout_reaches_the_mechanism_class_separately": {
+      "statement": "In TRIAL D at least one trial of each entry point exits NON-ZERO (1 or 120) with a BrokenPipeError / 'Exception ignored ... TextIOWrapper' signature on the captured stderr, because both entry points emit their entire JSON payload as one write at the end of main() and Python converts the EPIPE/SIGPIPE condition into a Python-level failure. This is a MECHANISM CLASS, not an explanation of the section-11 anecdote.",
+      "predicted": {"run_bar_gates_nonzero_trials": ">=1 of 3",
+                    "run_label_lineage_gate_nonzero_trials": ">=1 of 3",
+                    "signature_present_when_nonzero": true,
+                    "empty_stderr_with_exit_1": "never observed"},
+      "separation_rule": "P5 outcome is written to a separate record and NEVER enters the P1-P4 invariance verdict, the lane-suite check or any exit code of the invariance harness.",
+      "why_it_is_not_claim_creep": "A P5 result is reported as 'the accepted entry points are not robust to an early-closed stdout, and an exit-1 from them is therefore reachable by invocation alone; the section-11 anecdote had exactly that stderr suppression' - never as 'this is what happened in section 11'."
+    },
+    "P6_nothing_accepted_moves": {
+      "statement": "Every frozen and accepted digest re-verifies byte-identical after the cycle; the four frozen reality legs, the retrieval/counter-authority gates, the 174k suite and both Frontier candidates are not re-run, re-scored or re-measured; the accepted label/geometry numbers reproduced by TRIAL A are integrity reproductions, never new evidence.",
+      "predicted": "all digests in frozen_rubric_reuse_proof unchanged at 16 hex; git diff on every listed frozen file empty"
+    }
+  },
+  "success_rule": {
+    "gate_passes_if": ["P1 holds exactly", "P2 holds exactly", "P3 holds", "P4 holds", "P6 holds"],
+    "gate_fails_if": "any measured run of TRIAL A or B returns non-zero, any normalized record set has more than one distinct sha, any predicted accepted value differs, the detection control is not classified, or any frozen digest moves.",
+    "p5_is_not_part_of_the_pass_rule": "P5 is recorded and reported whatever its outcome; it can neither rescue nor fail the invariance verdict.",
+    "explicitly_not_a_success_criterion": "meeting the absolute label bar (1.0) or the absolute geometry bar (11/11), serving a packet, adjudicating a rebuilt packet, repairing product's red BJR recall leg, or anything about jurist usefulness. human_gate_ready stays false regardless of the outcome."
+  },
+  "product_decision_unlocked": "If P1-P6 hold, the lane can tell Product and the control plane that the two direction-v50 gates are safe to wire into CI as exit-code gates: repeated invocation of the accepted entry points is byte-stable, a non-zero exit is a real signal rather than flakiness, and the harness that claims this is itself proven able to see a non-zero. Combined with the P5 invocation contract this gives the control-plane maintainer the exact safe wiring (write to --out, never pipe stdout). If P3 is falsified, the gates are NOT safe to treat as deterministic and that bounded negative goes to the control plane instead.",
+  "claim_ceiling_if_it_passes": "At most: over 20 measured invocations of the two accepted direction-v50 entry points on pinned bytes, every exit code was 0 and every normalized record was byte-identical, so no run-to-run nondeterminism was observed at N=10 per entry point (0/10 is bounded by a rule-of-three 95% upper bound of 0.30, not zero); the measuring harness demonstrably detects a deliberately broken invocation; and one realistic invocation class (stdout closed early) deterministically reaches a non-zero exit with a captured signature. It says NOTHING about whether the two absolute bars are met, about label soundness, geometry soundness, retrieval or counter-authority recall, the served packet's admissibility, whether Product should rebuild the packet, or whether the map helps a jurist. human_gate_ready stays false.",
+  "scope_and_non_goals": [
+    "NOT a re-measurement of label support or geometry as new evidence. The 5/65 and de 6 / fr 5 / it 5 values read from the trials are integrity reproductions of already-accepted numbers and are reported as such; this cycle makes no new claim about either bar.",
+    "NOT the remaining same-question successor of state/evaluation.json: adjudicating Product's REBUILT served packet. That packet does not exist yet (shas verified identical at freeze time) and this cycle does not fabricate one.",
+    "NOT a classifier, NOT a layout, NOT a re-measure of either Frontier candidate.",
+    "NOT an edit of any accepted gate, rubric, contract, incumbent, exit-code code path or the accepted lane suite's existing checks; the lane-suite change is an ADDITIVE, disclosed check.",
+    "NOT .github/** - control-plane scope; the fact that no workflow currently invokes the bar gates is recorded as a control-plane wiring item with an exact one-line suggestion, never patched here.",
+    "NOT a rerun of the four frozen reality legs, the retrieval/counter-authority gates or the 174k suite."
+  ],
+  "frozen_read_only": [
+    "evaluation/frozen_bars/RULES_LABEL.json (4457e971...)",
+    "evaluation/frozen_bars/RULES_GEOMETRY.json (a7452748...)",
+    "evaluation/frozen_bars/VERDICT_CONTRACT.json (b9cdb894...)",
+    "evaluation/frozen_bars/LABEL_LINEAGE_VERDICT.json",
+    "evaluation/frozen_bars/label_gate.py (640abd8...)",
+    "evaluation/frozen_bars/label_lineage_gate.py (754fdd1...)",
+    "evaluation/frozen_bars/geometry_gate.py (934d5cca...)",
+    "evaluation/frozen_bars/run_bar_gates.py (564dc682...)",
+    "evaluation/frozen_bars/run_label_lineage_gate.py (c9f4d6e1...)",
+    "evaluation/reality_gate/frozen_benchmark.json (ff57f556...)",
+    "evaluation/reality_gate/GATE_CONTRACT.json (06781743...)",
+    "evaluation/retrieval_gate/frozen_retrieval_benchmark.json (187b0e54...)",
+    "results/evaluation/label_lineage_gate/freeze/FROZEN_HYPOTHESIS_39020603510.json",
+    "results/evaluation/label_lineage_gate/39020603510_sweep.json",
+    "results/evaluation/label_lineage_gate/adjudications/*.json",
+    "the accepted product mount, read-only"
+  ],
+  "prediction_source_refs": [
+    "reports/evaluation/LABEL_LINEAGE_GATE_39020603510.md section 11 (the unresolved exit-1) and section 4 (accepted blocking matrix)",
+    "results/evaluation/bar_gates/38972887369.json (accepted served-lineage record: verdict, labels, geometry, elapsed_s 7.447)",
+    "results/evaluation/label_lineage_gate/39020603510_sweep.json (accepted sweep: SWEEP_COMPLETE, ALL_PREDICTIONS_HELD, elapsed_s 12.904)",
+    "evaluation/frozen_bars/run_bar_gates.py lines 286-298 (exit-code contract) and line 292 (single end-of-main stdout write)",
+    "evaluation/frozen_bars/run_label_lineage_gate.py lines 402-411 (exit-code contract) and line 407 (single end-of-main stdout write)",
+    "state/evaluation.json next_recommendation (the rebuilt-packet adjudication successor, externally pending)"
+  ]
+}
