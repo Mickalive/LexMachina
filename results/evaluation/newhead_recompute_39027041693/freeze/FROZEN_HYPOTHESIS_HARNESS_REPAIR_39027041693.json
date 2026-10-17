@@ -1,0 +1,56 @@
+{
+  "schema": "lex-evaluation-frozen-hypothesis/harness-shape-repair/1",
+  "run_id": "39027041693",
+  "lane": "evaluation",
+  "direction_version": 52,
+  "frozen_at_utc": "2026-10-17",
+  "frozen_before_execution": true,
+  "frozen_before_any_code_change": true,
+  "frozen_commit_note": "Committed BEFORE the repair is applied and BEFORE any re-execution of the frozen runner. The defect was found by the frozen runner itself dying with an uncaught AttributeError; the diagnosis below was read off the traceback and off the artifact payloads, and no verdict under the repaired code had been observed at freeze time.",
+  "discovery": {
+    "how": "The deliverable-(4) recompute of run 39027041693 executed the ACCEPTED frozen runner as a subprocess. It exited 1 with an uncaught traceback and emitted NO record, so direction deliverable (4) was unexecutable on the current Product head.",
+    "traceback_site": "evaluation/reality_gate/run_benchmark.py:136 in _evaluate_full_bundle -> (prov.get(\"stages\") or {}).get(\"total_s\")",
+    "exception": "AttributeError: 'list' object has no attribute 'get'",
+    "root_cause": "The runner assumes provenance.stages is a mapping. On the bundles this Product head emits it is a LIST OF STAGE NAMES. The line is only reached when provenance.latency_seconds_total is absent, so the defect is latent for every bundle that carries a total and fires only for bundles that carry neither.",
+    "shape_observed": "e.g. provenance.stages == [\"search\", \"lang\", \"leading\", \"citations\"] and provenance.latency_seconds_total absent",
+    "crashing_artifacts_found": [
+      {
+        "path": "results/product/reality_check/offline_slice_rent-default_20261017T0755Z.bundle.json",
+        "in_invocation": "A (and B)",
+        "note": "NEW on this head; it is in the incumbent evidence dir reality_check, so even the byte-identical incumbent CLI cannot complete on the current mount."
+      },
+      {
+        "path": "results/product/clickable_slice/bundle_live_map_only_20261014T214600Z.json",
+        "in_invocation": "B only"
+      }
+    ],
+    "population_scan": "Of 28 full bundles in the recompute population, 26 carry provenance.latency_seconds_total and never reach the faulty line; exactly 2 have neither and crash. 28 of 28 carry stages as a list, so the shape assumption is wrong for the entire population and is merely masked by the total.",
+    "classification": "HARNESS DEFECT, not a product defect and not a frozen-bar defect. It is a shape assumption in the runner's own code path. The gate it blocks (latency::under_budget) is evaluated correctly by gates.evaluate_latency(None, budget), which returns not_measurable with a reason and can never return a pass."
+  },
+  "scope_of_repair": {
+    "file": "evaluation/reality_gate/run_benchmark.py",
+    "function": "_evaluate_full_bundle",
+    "change": "Read provenance.stages defensively: derive total_s only when stages is a mapping. Otherwise leave the total absent and let the EXISTING frozen gate produce not_measurable with its EXISTING reason.",
+    "explicitly_not_touched": [
+      "evaluation/reality_gate/frozen_benchmark.json (digest ff57f556...)",
+      "evaluation/reality_gate/GATE_CONTRACT.json (digest 06781743...)",
+      "evaluation/reality_gate/gates.py (every threshold is read from GATE_CONTRACT; no literal is touched)",
+      "evaluation/reality_gate/frozen.py",
+      "the latency budget value",
+      "any pass/fail rule, rubric or bar",
+      "any accepted record"
+    ],
+    "why_this_is_not_a_weakening": "The repair can only change the outcome of an artifact that today produces NO RECORD AT ALL. Every artifact that produced a record before the repair takes an identical code path, because the repaired branch is reached only where the old code raised. No verdict can move from fail to pass, and none can move from not_measurable to pass: the repaired path yields exactly the value the pre-existing not_measurable branch already yields."
+  },
+  "hypotheses": {
+    "HR1_repair_is_local": "The repair touches only _evaluate_full_bundle and adds no branch that can return a verdict.",
+    "HR2_byte_identical_on_the_unaffected_population": "With the two crashing artifacts excluded, the repaired runner reproduces the accepted incumbent record 39018005027.json for every artifact it has in common: same artifact_passed, same gate list, same measured payloads.",
+    "HR3_crash_becomes_not_measurable_never_pass": "Each of the 2 previously crashing artifacts is recorded with latency::under_budget == not_measurable carrying the pre-existing reason, and artifact_passed is computed from the remaining gates.",
+    "HR4_no_other_crash": "The repaired runner completes both invocations and emits a record for each, with no uncaught exception.",
+    "HR5_gate_semantics_unchanged": "gates.py is byte-identical before and after, and GATE_CONTRACT.json and frozen_benchmark.json re-hash to their frozen digests."
+  },
+  "success_rule_frozen": "HARNESS_SHAPE_REPAIR_SOUND iff HR1 AND HR2 AND HR3 AND HR4 AND HR5. HR2 and HR5 are the non-weakening proofs; a failure of either voids the repair.",
+  "negative_control": "A deliberately non-mapping provenance.stages must yield not_measurable, never a pass: without this control, a 'fix' that silently defaulted the total to 0.0 would turn every such artifact into a latency PASS, which is exactly the class of false green this lane exists to prevent.",
+  "claim_ceiling": "Fixing this defect restores the ability to RUN the frozen benchmark on the current Product head. It moves no bar, satisfies no gate, and says nothing about the product's quality. It is disclosed as a change to accepted harness code with its own frozen protocol, not smuggled into a result.",
+  "honest_pre_freeze_disclosure": "Observed before this freeze: the traceback text, the two crashing artifact paths, the provenance shape of the 28 full bundles in the recompute population, and the source of gates.evaluate_latency. NOT observed before this freeze: any output of the repaired runner on any population, including the incumbent one."
+}

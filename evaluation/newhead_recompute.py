@@ -63,6 +63,10 @@ MOVABLE_GATE = "structural::counter_classifications_supported"
 DEFAULT_PRODUCT_MOUNT = Path("/tmp/lex_accepted/product")
 
 
+class FrozenRunnerFailure(RuntimeError):
+    """The frozen runner emitted no record.  Never a measurement."""
+
+
 # --------------------------------------------------------------------------- #
 # primitives
 # --------------------------------------------------------------------------- #
@@ -239,11 +243,19 @@ def run_frozen_benchmark(evidence_dir: Path, bundle_dirs: list[Path],
     for d in bundle_dirs:
         cmd += ["--extra-bundle-dir", str(d)]
     proc = subprocess.run(cmd, cwd=str(_LANE_ROOT), capture_output=True, text=True)
-    if out_path.parent.is_dir() or out_path.parent.mkdir(parents=True, exist_ok=True):
-        out_path.write_text(proc.stdout, encoding="utf-8")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(proc.stdout, encoding="utf-8")
     stderr_path = out_path.with_suffix(".stderr.txt")
     stderr_path.write_text(proc.stderr, encoding="utf-8")
-    rec = json.loads(proc.stdout)
+    try:
+        rec = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        # The frozen runner exits 2 (environment/empty input) and 3 (integrity)
+        # WITHOUT emitting a record.  A caller must never turn that into a
+        # measurement; it is an environment failure, preserved verbatim.
+        raise FrozenRunnerFailure(
+            f"frozen runner produced no record (exit {proc.returncode}); "
+            f"stderr tail: {proc.stderr[-2000:]!r}")
     return {"argv": cmd, "exit_code": proc.returncode, "record_path": str(out_path),
             "stderr_path": str(stderr_path), "frozen_sha256": rec.get("frozen_sha256"),
             "overall_pass": rec.get("overall_pass"), "stderr": proc.stderr[-4000:]}
@@ -333,7 +345,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--baseline-record", default=None,
                     help="incumbent frozen reality record (drift comparison)")
     ap.add_argument("--invocation", action="append", default=[],
-                    help="name=evidence_dir[,bundle_dir|bundle_dir...] (repeatable)")
+                    help="name=evidence_dir[;bundle_dir;bundle_dir...] (repeatable). "
+                         "NOTE: the directory list separator is ';' - '|' was tried "
+                         "first and collided with the path list in an attempted run "
+                         "of 39027041693, producing a 'evidence directory does not "
+                         "exist' error before any artifact was scored.")
     ap.add_argument("--mode", choices=("trigger", "recompute"), default="recompute")
     args = ap.parse_args(argv)
 
@@ -347,32 +363,39 @@ def main(argv: list[str] | None = None) -> int:
         print(f"::error::frozen benchmark integrity failure: {exc}", file=sys.stderr)
         return 2
 
-    if args.mode == "trigger":
-        if not args.baseline_manifest:
-            print("::error::--mode trigger requires --baseline-manifest", file=sys.stderr)
-            return 2
-        base = json.loads(Path(args.baseline_manifest).read_text(encoding="utf-8"))
-        payload = rebuild_trigger(mount, base.get("manifest", base),
-                                  str(args.baseline_manifest))
-    else:
-        invocations = []
-        for spec in args.invocation:
-            parts = spec.split("=")
-            if len(parts) < 2:
-                print(f"::error::bad --invocation {spec!r}", file=sys.stderr)
+    try:
+        if args.mode == "trigger":
+            if not args.baseline_manifest:
+                print("::error::--mode trigger requires --baseline-manifest", file=sys.stderr)
                 return 2
-            invocations.append({
-                "name": parts[0],
-                "evidence_dir": parts[1],
-                "bundle_dirs": parts[2].split("|") if len(parts) > 2 and parts[2] else [],
-            })
-        if not invocations:
-            print("::error::at least one --invocation is required", file=sys.stderr)
-            return 2
-        payload = recompute(mount, args.run_id,
-                            Path(args.baseline_record) if args.baseline_record else None,
-                            invocations, out_dir)
-
+            base = json.loads(Path(args.baseline_manifest).read_text(encoding="utf-8"))
+            payload = rebuild_trigger(mount, base.get("manifest", base),
+                                      str(args.baseline_manifest))
+        else:
+            invocations = []
+            for spec in args.invocation:
+                if "=" not in spec:
+                    print(f"::error::bad --invocation {spec!r}", file=sys.stderr)
+                    return 2
+                name, _, dirs = spec.partition("=")
+                paths = [p for p in dirs.split(";") if p]
+                if not name or not paths:
+                    print(f"::error::bad --invocation {spec!r}", file=sys.stderr)
+                    return 2
+                invocations.append({
+                    "name": name,
+                    "evidence_dir": paths[0],
+                    "bundle_dirs": paths[1:],
+                })
+            if not invocations:
+                print("::error::at least one --invocation is required", file=sys.stderr)
+                return 2
+            payload = recompute(mount, args.run_id,
+                                Path(args.baseline_record) if args.baseline_record else None,
+                                invocations, out_dir)
+    except FrozenRunnerFailure as exc:
+        print(f"::error::{exc}", file=sys.stderr)
+        return 2
     out = out_dir / f"{args.run_id}_{args.mode}.json"
     out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps({k: v for k, v in payload.items()
