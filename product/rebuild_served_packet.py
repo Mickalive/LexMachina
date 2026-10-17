@@ -47,6 +47,12 @@ Usage
     # prove the rebuild reproduces a reference artifact field-for-field
     python product/rebuild_served_packet.py ... --reference <leg.json> --check
 
+    # citation-recall record straight from a ci_reality_legs leg report
+    # (live-leg durability evidence; same frozen table, no bundle required)
+    python product/rebuild_served_packet.py \
+        --leg-report results/product/reality_check/<leg>_live_<run>_<ts>.json \
+        --out results/product/CYCLE_<run>/leg_recall_<slug>.json
+
 Exit codes: 0 ok; 1 a ``--check`` comparison failed; 2 bad arguments.
 """
 from __future__ import annotations
@@ -68,6 +74,24 @@ from reality_check import LEGS  # noqa: E402  (frozen question strings)
 from evidence_pack_recall import FROZEN_AUTHORITIES  # noqa: E402
 
 SCHEMA = "product/rebuild-served-packet/1"
+
+#: Companion schema for the citation-recall half measured straight from a
+#: ``ci_reality_legs`` leg report (no bundle required).  Same frozen table,
+#: same ``_recall_gate``; used for live-leg durability evidence.
+SCHEMA_LEG_RECALL = "product/rebuild-served-packet-recall/1"
+
+#: Deterministic fields of a leg-recall record (timings excluded by design).
+LEG_RECALL_FIELDS = (
+    "schema",
+    "run_id",
+    "question_slug",
+    "retrieval_mode",
+    "cited_decision_ids",
+    "frozen_authorities_cited",
+    "recall_gate_recall_controlling_authority",
+    "leg_gates_passed",
+    "answer_model",
+)
 
 #: One cluster holding at least this share of the served map means the "cluster"
 #: is the map rendering itself, not structure.  FROZEN (matches
@@ -231,6 +255,39 @@ def _recall_gate(slug: str, cited: list[str]) -> tuple[list[str], dict]:
     return frozen_cited, gate
 
 
+def recall_from_leg_report(report: dict, *, source: str) -> dict:
+    """Citation-recall record for one executed ``ci_reality_legs`` leg report.
+
+    Why: live-leg durability evidence (does the frozen BJR recall gate keep
+    passing across repeated live executions?) lives in run-scoped leg reports,
+    not in query bundles.  This producer makes that headline claim recomputable
+    offline from the committed leg report with the SAME frozen authority table
+    and the SAME ``_recall_gate`` the bundle path uses, so the two can never
+    disagree about what counts as a controlling authority.
+    """
+    slug = str(report.get("slug") or "")
+    if slug not in FROZEN_AUTHORITIES:
+        raise ValueError(f"unknown slug {slug!r}; known: {sorted(FROZEN_AUTHORITIES)}")
+    cited = [str(x) for x in (report.get("cited_decision_ids") or [])]
+    frozen_cited, gate = _recall_gate(slug, cited)
+    gates = report.get("gates") or []
+    return {
+        "schema": SCHEMA_LEG_RECALL,
+        "run_id": report.get("run_id"),
+        "question_slug": slug,
+        "retrieval_mode": report.get("mode"),
+        "evidence_tier": report.get("evidence_tier"),
+        "cited_decision_ids": cited,
+        "frozen_authorities_cited": frozen_cited,
+        "recall_gate_recall_controlling_authority": gate,
+        "leg_gates_passed": bool(report.get("leg_passed")),
+        "leg_gate_names": [g.get("gate") for g in gates],
+        "answer_model": report.get("answer_model"),
+        "source": source,
+        "total_seconds_reported": report.get("total_seconds"),
+    }
+
+
 def _head_recall_moved(bundle: dict, slug: str) -> list[dict]:
     spec = FROZEN_AUTHORITIES.get(slug) or {}
     frozen = {str(x) for x in spec.get("direct", [])}  # type: ignore[arg-type]
@@ -375,8 +432,11 @@ def compare(rebuilt: dict, reference: dict,
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--bundle", type=Path, required=True,
+    parser.add_argument("--bundle", type=Path, default=None,
                         help="product bundle json to rebuild from")
+    parser.add_argument("--leg-report", type=Path, default=None,
+                        help="ci_reality_legs leg report: emit the citation-recall "
+                             "record (no bundle required)")
     parser.add_argument("--slug", default=None,
                         help="frozen leg slug (inferred from the bundle query if omitted)")
     parser.add_argument("--run-id", default="unknown")
@@ -389,6 +449,43 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
 
+    if args.leg_report is not None:
+        report = json.loads(args.leg_report.read_text(encoding="utf-8"))
+        try:
+            record = recall_from_leg_report(
+                report, source=str(args.leg_report))
+        except ValueError as exc:
+            parser.error(str(exc))
+        text = json.dumps(record, indent=2, ensure_ascii=False)
+        if args.out:
+            args.out.parent.mkdir(parents=True, exist_ok=True)
+            args.out.write_text(text + "\n", encoding="utf-8")
+        if args.json:
+            print(text)
+        rc = 0
+        if args.reference:
+            reference = json.loads(args.reference.read_text(encoding="utf-8"))
+            diffs = [f"{k}:\n  rebuilt   = {json.dumps(record.get(k), sort_keys=True)}\n"
+                     f"  reference = {json.dumps(reference.get(k), sort_keys=True)}"
+                     for k in LEG_RECALL_FIELDS
+                     if record.get(k) != reference.get(k)]
+            if diffs:
+                rc = 1
+                print("DIFFERENCES against reference:", file=sys.stderr)
+                for d in diffs:
+                    print(d, file=sys.stderr)
+            else:
+                print(f"OK: leg-recall rebuild reproduces {args.reference} "
+                      f"on {len(LEG_RECALL_FIELDS)} deterministic fields")
+        elif not args.json:
+            gate = record["recall_gate_recall_controlling_authority"]
+            print(f"{record['question_slug']}: frozen cited {gate['n']}/{gate['of']} "
+                  f"(passes={gate['passes']}); leg_gates_passed="
+                  f"{record['leg_gates_passed']}; mode={record['retrieval_mode']}")
+        return rc
+
+    if args.bundle is None:
+        parser.error("either --bundle or --leg-report is required")
     bundle = json.loads(args.bundle.read_text(encoding="utf-8"))
     slug = args.slug or _slug_from_query(bundle)
     if not slug:

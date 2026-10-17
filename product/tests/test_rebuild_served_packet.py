@@ -311,3 +311,96 @@ def test_slug_is_inferred_from_the_frozen_question_string():
 
     assert RSP._slug_from_query({"query": LEGS[SLUG]}) == SLUG
     assert RSP._slug_from_query({"query": "a question that is not frozen"}) is None
+
+
+# --------------------------------------------------------------------------- #
+# 9. leg-report citation-recall record (live-leg durability evidence)
+# --------------------------------------------------------------------------- #
+LEG_REPORT_LIVE = (ROOT / "results" / "product" / "reality_check"
+                   / "business-judgment-rule_live_ci-38999687700_opresume_20261017T035719Z.json")
+
+
+def _leg_report(**overrides) -> dict:
+    base = {
+        "slug": "business-judgment-rule",
+        "run_id": "SYNTHETIC",
+        "mode": "live",
+        "evidence_tier": "CI_TEAM_JOB_LIVE",
+        "leg_passed": True,
+        "answer_model": "opencode/mimo-v2.6-flash-free",
+        "cited_decision_ids": [
+            "bger_4A_219_2015", "bger_4A_259_2016", "bger_4A_626_2013",
+            "bger_4A_603_2014", "bger_4A_62_2024",
+        ],
+        "gates": [{"gate": "structural", "passed": True}],
+        "total_seconds": 10.0,
+    }
+    base.update(overrides)
+    return base
+
+
+def test_leg_recall_record_from_a_synthetic_full_citation_set():
+    rec = RSP.recall_from_leg_report(_leg_report(), source="synthetic")
+    gate = rec["recall_gate_recall_controlling_authority"]
+    assert rec["schema"] == "product/rebuild-served-packet-recall/1"
+    assert gate == {"passes": True, "n": 5, "of": 5,
+                    "baseline_accepted_base": "0/5"}
+    assert len(rec["frozen_authorities_cited"]) == 5
+    assert rec["leg_gates_passed"] is True
+
+
+def test_leg_recall_record_uses_the_single_frozen_authority_table():
+    rec = RSP.recall_from_leg_report(_leg_report(), source="synthetic")
+    direct = set(RSP.FROZEN_AUTHORITIES["business-judgment-rule"]["direct"])
+    assert set(rec["frozen_authorities_cited"]) <= direct
+    assert rec["recall_gate_recall_controlling_authority"]["of"] == len(direct)
+
+
+def test_leg_recall_partial_citation_set_is_counted_exactly():
+    rec = RSP.recall_from_leg_report(
+        _leg_report(cited_decision_ids=["bger_4A_219_2015", "unrelated_case"]),
+        source="synthetic")
+    gate = rec["recall_gate_recall_controlling_authority"]
+    assert gate["n"] == 1 and gate["passes"] is True  # bar is >= 1
+    assert rec["frozen_authorities_cited"] == ["bger_4A_219_2015"]
+
+
+def test_leg_recall_unknown_slug_is_refused():
+    with pytest.raises(ValueError, match="unknown slug"):
+        RSP.recall_from_leg_report(_leg_report(slug="not-a-leg"), source="x")
+
+
+def test_committed_third_live_run_recall_is_recomputable():
+    """The durability artifact of run 38999687700_opresume: the frozen BJR
+    citation-recall gate is green on a THIRD live execution (4/5), recomputed
+    from the committed leg report by the committed producer."""
+    assert LEG_REPORT_LIVE.exists(), LEG_REPORT_LIVE
+    report = json.loads(LEG_REPORT_LIVE.read_text(encoding="utf-8"))
+    rec = RSP.recall_from_leg_report(report, source=str(LEG_REPORT_LIVE))
+    gate = rec["recall_gate_recall_controlling_authority"]
+    assert rec["retrieval_mode"] == "live"
+    assert rec["leg_gates_passed"] is True
+    assert gate["passes"] is True
+    assert gate["n"] == 4 and gate["of"] == 5
+    assert set(rec["frozen_authorities_cited"]) == {
+        "bger_4A_219_2015", "bger_4A_259_2016",
+        "bger_4A_603_2014", "bger_4A_626_2013"}
+
+
+def test_leg_recall_cli_check_fails_on_a_tampered_reference(tmp_path, capsys):
+    """Non-vacuity of the --check path: dropping one frozen citation from the
+    reference must produce a diff and rc 1."""
+    leg_path = tmp_path / "leg.json"
+    leg_path.write_text(json.dumps(_leg_report()))
+    good = tmp_path / "good.json"
+    rc = RSP.main(["--leg-report", str(leg_path), "--out", str(good),
+                   "--reference", str(good), "--check"])
+    assert rc == 0, capsys.readouterr()
+    tampered = json.loads(good.read_text())
+    tampered["frozen_authorities_cited"] = tampered["frozen_authorities_cited"][:3]
+    bad = tmp_path / "bad.json"
+    bad.write_text(json.dumps(tampered))
+    rc = RSP.main(["--leg-report", str(leg_path),
+                   "--reference", str(bad), "--check"])
+    assert rc == 1
+    assert "DIFFERENCES" in capsys.readouterr().err
