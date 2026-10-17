@@ -1,0 +1,2014 @@
+{
+ "schema": "lex-evaluation-reground-semantics/1",
+ "run_id": "38996043415",
+ "generated_at_utc": "2026-10-17T03:02:07+00:00",
+ "verdict": "REGROUNDABLE",
+ "detail": "a lineage-stable regression property exists over the frozen bars; see which semantics regrounded below",
+ "exit_code": 0,
+ "regrounded_semantics": [
+  "S1_clean_prefix_cell_regression",
+  "S2_monotone_degradation_endpoint"
+ ],
+ "claim_ceiling": "Tests the GATE's regression SEMANTICS, not the CANDIDATE. Decides only whether a lineage-stable regression property exists over the frozen bars. Does NOT re-measure either Frontier candidate, does NOT touch either frozen bar, does NOT meet the absolute bars, does NOT change any exit-code contract or packet-admission wiring, and says nothing about jurist usefulness.",
+ "rules_identity": {
+  "RULES_LABEL.json": {
+   "path": "/home/runner/work/LexMachina/LexMachina/evaluation/frozen_bars/RULES_LABEL.json",
+   "present": true,
+   "sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+   "expected_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+   "matches": true
+  },
+  "RULES_GEOMETRY.json": {
+   "path": "/home/runner/work/LexMachina/LexMachina/evaluation/frozen_bars/RULES_GEOMETRY.json",
+   "present": true,
+   "sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+   "expected_sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+   "matches": true
+  },
+  "all_match": true
+ },
+ "population": {
+  "root": "/tmp/lex_accepted/product/results/product/gate_packet",
+  "n_in_scope": 3,
+  "in_scope_packet_ids": [
+   "38799024807",
+   "38812599575",
+   "38839347028"
+  ],
+  "out_of_scope": [
+   {
+    "packet_id": "38838116453",
+    "reason": "packet does not carry all three frozen qids (missing: ['it-responsabilita-medica']); the frozen rubric's anchors and query-term lexicons are pinned to the three frozen qids, so the gate cannot score it"
+   },
+   {
+    "packet_id": "offline_machinery_rehearsal",
+    "reason": "packet does not carry all three frozen qids (missing: ['de-kapitalverletzung', 'fr-bail-entretien', 'it-responsabilita-medica']); the frozen rubric's anchors and query-term lexicons are pinned to the three frozen qids, so the gate cannot score it"
+   }
+  ],
+  "lineage_order": [
+   "38799024807",
+   "38812599575",
+   "38839347028"
+  ]
+ },
+ "lineage_order_grounding": {
+  "ok": true,
+  "meta": {
+   "38799024807": {
+    "present": true,
+    "generated_at": "2026-10-15T20:30:07Z",
+    "path": "/tmp/lex_accepted/product/results/product/gate_packet/38799024807/packet.json"
+   },
+   "38812599575": {
+    "present": true,
+    "generated_at": "2026-10-15T22:27:41Z",
+    "path": "/tmp/lex_accepted/product/results/product/gate_packet/38812599575/packet.json"
+   },
+   "38839347028": {
+    "present": true,
+    "generated_at": "2026-10-16T02:22:25Z",
+    "path": "/tmp/lex_accepted/product/results/product/gate_packet/38839347028/packet.json"
+   }
+  },
+  "order_by_generated_at": [
+   "38799024807",
+   "38812599575",
+   "38839347028"
+  ],
+  "order_by_packet_id": [
+   "38799024807",
+   "38812599575",
+   "38839347028"
+  ],
+  "orders_identical": true,
+  "generated_at_values": {
+   "38799024807": "2026-10-15T20:30:07Z",
+   "38812599575": "2026-10-15T22:27:41Z",
+   "38839347028": "2026-10-16T02:22:25Z"
+  }
+ },
+ "S2_coverage_from_frozen_rubric": {
+  "per_criterion": {
+   "COHERENCE_QUERY_LANG": {
+    "applicable": false,
+    "bar": "dominant-cluster query-language share >= max(0.25, 0.5 * bundle_baseline_share)",
+    "reason": "compound or dynamic bar; no single static inequality"
+   },
+   "COHERENCE_QUERY_TERM": {
+    "applicable": false,
+    "bar": "dominant-cluster query-term hit rate >= bundle baseline hit rate",
+    "reason": "compound or dynamic bar; no single static inequality"
+   },
+   "PROJ_RANK": {
+    "applicable": true,
+    "bar": ">= 0.30",
+    "direction": "down_degrading"
+   },
+   "PROJ_SPEARMAN": {
+    "applicable": true,
+    "bar": ">= 0.50",
+    "direction": "down_degrading"
+   },
+   "PROJ_KNN10": {
+    "applicable": true,
+    "bar": ">= 0.40",
+    "direction": "down_degrading"
+   },
+   "STRUCTURE_LARGEST": {
+    "applicable": true,
+    "bar": "largest-cluster share <= 0.60",
+    "direction": "up_degrading"
+   },
+   "STRUCTURE_SEP": {
+    "applicable": true,
+    "bar": "< 0.90",
+    "direction": "up_degrading"
+   },
+   "LABEL_CONTENT_FRACTION": {
+    "applicable": true,
+    "bar": ">= 0.80",
+    "direction": "down_degrading"
+   },
+   "LABEL_JACCARD": {
+    "applicable": true,
+    "bar": "mean pairwise Jaccard between cluster label term sets <= 0.50, and distinct labels == n_clusters",
+    "direction": "up_degrading"
+   },
+   "OUTLIER_VALIDITY": {
+    "applicable": false,
+    "bar": "PASS iff (outlier mean shared-citation degree < non-outlier mean) AND (Jaccard(outliers, bottom-decile-by-rank) < 1.0). DEGENERATE->FAIL if citation graph empty (degree_degenerate flag read from artifact).",
+    "reason": "compound or dynamic bar; no single static inequality"
+   },
+   "RELATIONS": {
+    "applicable": false,
+    "bar": "edge count >= 10 AND >= 90% of edge endpoints exist as bundle rows AND every edge carries kind",
+    "reason": "compound or dynamic bar; no single static inequality"
+   }
+  },
+  "applicable": [
+   "PROJ_RANK",
+   "PROJ_SPEARMAN",
+   "PROJ_KNN10",
+   "STRUCTURE_LARGEST",
+   "STRUCTURE_SEP",
+   "LABEL_CONTENT_FRACTION",
+   "LABEL_JACCARD"
+  ],
+  "excluded": {
+   "COHERENCE_QUERY_LANG": {
+    "applicable": false,
+    "bar": "dominant-cluster query-language share >= max(0.25, 0.5 * bundle_baseline_share)",
+    "reason": "compound or dynamic bar; no single static inequality"
+   },
+   "COHERENCE_QUERY_TERM": {
+    "applicable": false,
+    "bar": "dominant-cluster query-term hit rate >= bundle baseline hit rate",
+    "reason": "compound or dynamic bar; no single static inequality"
+   },
+   "OUTLIER_VALIDITY": {
+    "applicable": false,
+    "bar": "PASS iff (outlier mean shared-citation degree < non-outlier mean) AND (Jaccard(outliers, bottom-decile-by-rank) < 1.0). DEGENERATE->FAIL if citation graph empty (degree_degenerate flag read from artifact).",
+    "reason": "compound or dynamic bar; no single static inequality"
+   },
+   "RELATIONS": {
+    "applicable": false,
+    "bar": "edge count >= 10 AND >= 90% of edge endpoints exist as bundle rows AND every edge carries kind",
+    "reason": "compound or dynamic bar; no single static inequality"
+   }
+  }
+ },
+ "real_population_scoring": {
+  "S1_clean_prefix": {
+   "fired": [
+    {
+     "packet_id": "38812599575",
+     "qid": "fr-bail-entretien",
+     "criterion": "STRUCTURE_LARGEST",
+     "position": 1,
+     "value": 0.7175141242937854
+    },
+    {
+     "packet_id": "38839347028",
+     "qid": "de-kapitalverletzung",
+     "criterion": "PROJ_RANK",
+     "position": 2,
+     "value": 0.12903163031846668
+    }
+   ],
+   "fired_keys": [
+    [
+     "38812599575",
+     "fr-bail-entretien",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "38839347028",
+     "de-kapitalverletzung",
+     "PROJ_RANK"
+    ]
+   ],
+   "n_fired": 2,
+   "firing_packets": [
+    "38812599575",
+    "38839347028"
+   ]
+  },
+  "S1_immediate_prior_CONTROL": {
+   "fired": [
+    {
+     "packet_id": "38812599575",
+     "qid": "fr-bail-entretien",
+     "criterion": "STRUCTURE_LARGEST",
+     "position": 1,
+     "value": 0.7175141242937854
+    },
+    {
+     "packet_id": "38839347028",
+     "qid": "de-kapitalverletzung",
+     "criterion": "PROJ_RANK",
+     "position": 2,
+     "value": 0.12903163031846668
+    }
+   ],
+   "fired_keys": [
+    [
+     "38812599575",
+     "fr-bail-entretien",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "38839347028",
+     "de-kapitalverletzung",
+     "PROJ_RANK"
+    ]
+   ],
+   "n_fired": 2,
+   "differs_from_S1": false
+  },
+  "S2_monotone": {
+   "fired": [
+    {
+     "packet_id": "38812599575",
+     "qid": "de-kapitalverletzung",
+     "criterion": "PROJ_KNN10",
+     "position": 1,
+     "sequence": [
+      0.1962686567164179,
+      0.15804597701149425
+     ],
+     "direction": "down_degrading",
+     "value": 0.15804597701149425,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38812599575",
+     "qid": "de-kapitalverletzung",
+     "criterion": "PROJ_SPEARMAN",
+     "position": 1,
+     "sequence": [
+      -0.017462300891895627,
+      -0.020522625562725542
+     ],
+     "direction": "down_degrading",
+     "value": -0.020522625562725542,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38812599575",
+     "qid": "de-kapitalverletzung",
+     "criterion": "STRUCTURE_SEP",
+     "position": 1,
+     "sequence": [
+      0.976714945472512,
+      0.9868212072333273
+     ],
+     "direction": "up_degrading",
+     "value": 0.9868212072333273,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38812599575",
+     "qid": "fr-bail-entretien",
+     "criterion": "PROJ_SPEARMAN",
+     "position": 1,
+     "sequence": [
+      -0.12586978558196477,
+      -0.13005227896562535
+     ],
+     "direction": "down_degrading",
+     "value": -0.13005227896562535,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38812599575",
+     "qid": "fr-bail-entretien",
+     "criterion": "STRUCTURE_LARGEST",
+     "position": 1,
+     "sequence": [
+      0.5572519083969466,
+      0.7175141242937854
+     ],
+     "direction": "up_degrading",
+     "value": 0.7175141242937854,
+     "subclass": "crossing_regression",
+     "ever_passed_in_prefix": true
+    },
+    {
+     "packet_id": "38812599575",
+     "qid": "it-responsabilita-medica",
+     "criterion": "PROJ_KNN10",
+     "position": 1,
+     "sequence": [
+      0.19772727272727275,
+      0.17719298245614035
+     ],
+     "direction": "down_degrading",
+     "value": 0.17719298245614035,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38812599575",
+     "qid": "it-responsabilita-medica",
+     "criterion": "PROJ_SPEARMAN",
+     "position": 1,
+     "sequence": [
+      0.1847151810466267,
+      0.15177710108927955
+     ],
+     "direction": "down_degrading",
+     "value": 0.15177710108927955,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38812599575",
+     "qid": "it-responsabilita-medica",
+     "criterion": "STRUCTURE_SEP",
+     "position": 1,
+     "sequence": [
+      0.9728285677300077,
+      0.9744719772452923
+     ],
+     "direction": "up_degrading",
+     "value": 0.9744719772452923,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38839347028",
+     "qid": "de-kapitalverletzung",
+     "criterion": "PROJ_KNN10",
+     "position": 2,
+     "sequence": [
+      0.1962686567164179,
+      0.15804597701149425,
+      0.14579439252336449
+     ],
+     "direction": "down_degrading",
+     "value": 0.14579439252336449,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38839347028",
+     "qid": "de-kapitalverletzung",
+     "criterion": "PROJ_RANK",
+     "position": 2,
+     "sequence": [
+      0.33877513142367716,
+      0.31013799934923686,
+      0.12903163031846668
+     ],
+     "direction": "down_degrading",
+     "value": 0.12903163031846668,
+     "subclass": "crossing_regression",
+     "ever_passed_in_prefix": true
+    },
+    {
+     "packet_id": "38839347028",
+     "qid": "de-kapitalverletzung",
+     "criterion": "PROJ_SPEARMAN",
+     "position": 2,
+     "sequence": [
+      -0.017462300891895627,
+      -0.020522625562725542,
+      -0.0878589389775002
+     ],
+     "direction": "down_degrading",
+     "value": -0.0878589389775002,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38839347028",
+     "qid": "fr-bail-entretien",
+     "criterion": "STRUCTURE_LARGEST",
+     "position": 2,
+     "sequence": [
+      0.5572519083969466,
+      0.7175141242937854,
+      0.7695852534562212
+     ],
+     "direction": "up_degrading",
+     "value": 0.7695852534562212,
+     "subclass": "crossing_regression",
+     "ever_passed_in_prefix": true
+    },
+    {
+     "packet_id": "38839347028",
+     "qid": "it-responsabilita-medica",
+     "criterion": "PROJ_KNN10",
+     "position": 2,
+     "sequence": [
+      0.19772727272727275,
+      0.17719298245614035,
+      0.17251184834123223
+     ],
+     "direction": "down_degrading",
+     "value": 0.17251184834123223,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38839347028",
+     "qid": "it-responsabilita-medica",
+     "criterion": "PROJ_SPEARMAN",
+     "position": 2,
+     "sequence": [
+      0.1847151810466267,
+      0.15177710108927955,
+      0.05651015268163983
+     ],
+     "direction": "down_degrading",
+     "value": 0.05651015268163983,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38839347028",
+     "qid": "it-responsabilita-medica",
+     "criterion": "STRUCTURE_SEP",
+     "position": 2,
+     "sequence": [
+      0.9728285677300077,
+      0.9744719772452923,
+      0.9888466409214834
+     ],
+     "direction": "up_degrading",
+     "value": 0.9888466409214834,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    }
+   ],
+   "fired_keys": [
+    [
+     "38812599575",
+     "de-kapitalverletzung",
+     "PROJ_KNN10"
+    ],
+    [
+     "38812599575",
+     "de-kapitalverletzung",
+     "PROJ_SPEARMAN"
+    ],
+    [
+     "38812599575",
+     "de-kapitalverletzung",
+     "STRUCTURE_SEP"
+    ],
+    [
+     "38812599575",
+     "fr-bail-entretien",
+     "PROJ_SPEARMAN"
+    ],
+    [
+     "38812599575",
+     "fr-bail-entretien",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "38812599575",
+     "it-responsabilita-medica",
+     "PROJ_KNN10"
+    ],
+    [
+     "38812599575",
+     "it-responsabilita-medica",
+     "PROJ_SPEARMAN"
+    ],
+    [
+     "38812599575",
+     "it-responsabilita-medica",
+     "STRUCTURE_SEP"
+    ],
+    [
+     "38839347028",
+     "de-kapitalverletzung",
+     "PROJ_KNN10"
+    ],
+    [
+     "38839347028",
+     "de-kapitalverletzung",
+     "PROJ_RANK"
+    ],
+    [
+     "38839347028",
+     "de-kapitalverletzung",
+     "PROJ_SPEARMAN"
+    ],
+    [
+     "38839347028",
+     "fr-bail-entretien",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "38839347028",
+     "it-responsabilita-medica",
+     "PROJ_KNN10"
+    ],
+    [
+     "38839347028",
+     "it-responsabilita-medica",
+     "PROJ_SPEARMAN"
+    ],
+    [
+     "38839347028",
+     "it-responsabilita-medica",
+     "STRUCTURE_SEP"
+    ]
+   ],
+   "n_fired": 15,
+   "firing_packets": [
+    "38812599575",
+    "38839347028"
+   ],
+   "n_not_applicable_cells": 36,
+   "subclass_split": {
+    "crossing_regression": [
+     [
+      "38812599575",
+      "fr-bail-entretien",
+      "STRUCTURE_LARGEST"
+     ],
+     [
+      "38839347028",
+      "de-kapitalverletzung",
+      "PROJ_RANK"
+     ],
+     [
+      "38839347028",
+      "fr-bail-entretien",
+      "STRUCTURE_LARGEST"
+     ]
+    ],
+    "worsening_while_always_failing": [
+     [
+      "38812599575",
+      "de-kapitalverletzung",
+      "PROJ_KNN10"
+     ],
+     [
+      "38812599575",
+      "de-kapitalverletzung",
+      "PROJ_SPEARMAN"
+     ],
+     [
+      "38812599575",
+      "de-kapitalverletzung",
+      "STRUCTURE_SEP"
+     ],
+     [
+      "38812599575",
+      "fr-bail-entretien",
+      "PROJ_SPEARMAN"
+     ],
+     [
+      "38812599575",
+      "it-responsabilita-medica",
+      "PROJ_KNN10"
+     ],
+     [
+      "38812599575",
+      "it-responsabilita-medica",
+      "PROJ_SPEARMAN"
+     ],
+     [
+      "38812599575",
+      "it-responsabilita-medica",
+      "STRUCTURE_SEP"
+     ],
+     [
+      "38839347028",
+      "de-kapitalverletzung",
+      "PROJ_KNN10"
+     ],
+     [
+      "38839347028",
+      "de-kapitalverletzung",
+      "PROJ_SPEARMAN"
+     ],
+     [
+      "38839347028",
+      "it-responsabilita-medica",
+      "PROJ_KNN10"
+     ],
+     [
+      "38839347028",
+      "it-responsabilita-medica",
+      "PROJ_SPEARMAN"
+     ],
+     [
+      "38839347028",
+      "it-responsabilita-medica",
+      "STRUCTURE_SEP"
+     ]
+    ]
+   },
+   "subclass_note": "descriptive only: crossing_regression = the monotone trend crossed the frozen bar from a previously-passing state (a true regression); worsening_while_always_failing = the cell never passed anywhere in the observed prefix and its value degraded monotonically while remaining failing (a trend warning, not a pass-to-fail transition). No predicate, threshold or verdict changes under this label."
+  },
+  "union_fired_keys": [
+   [
+    "38812599575",
+    "de-kapitalverletzung",
+    "PROJ_KNN10"
+   ],
+   [
+    "38812599575",
+    "de-kapitalverletzung",
+    "PROJ_SPEARMAN"
+   ],
+   [
+    "38812599575",
+    "de-kapitalverletzung",
+    "STRUCTURE_SEP"
+   ],
+   [
+    "38812599575",
+    "fr-bail-entretien",
+    "PROJ_SPEARMAN"
+   ],
+   [
+    "38812599575",
+    "fr-bail-entretien",
+    "STRUCTURE_LARGEST"
+   ],
+   [
+    "38812599575",
+    "it-responsabilita-medica",
+    "PROJ_KNN10"
+   ],
+   [
+    "38812599575",
+    "it-responsabilita-medica",
+    "PROJ_SPEARMAN"
+   ],
+   [
+    "38812599575",
+    "it-responsabilita-medica",
+    "STRUCTURE_SEP"
+   ],
+   [
+    "38839347028",
+    "de-kapitalverletzung",
+    "PROJ_KNN10"
+   ],
+   [
+    "38839347028",
+    "de-kapitalverletzung",
+    "PROJ_RANK"
+   ],
+   [
+    "38839347028",
+    "de-kapitalverletzung",
+    "PROJ_SPEARMAN"
+   ],
+   [
+    "38839347028",
+    "fr-bail-entretien",
+    "STRUCTURE_LARGEST"
+   ],
+   [
+    "38839347028",
+    "it-responsabilita-medica",
+    "PROJ_KNN10"
+   ],
+   [
+    "38839347028",
+    "it-responsabilita-medica",
+    "PROJ_SPEARMAN"
+   ],
+   [
+    "38839347028",
+    "it-responsabilita-medica",
+    "STRUCTURE_SEP"
+   ]
+  ]
+ },
+ "hostile_extension_scoring": {
+  "S1_clean_prefix": {
+   "fired": [
+    {
+     "packet_id": "38812599575",
+     "qid": "fr-bail-entretien",
+     "criterion": "STRUCTURE_LARGEST",
+     "position": 1,
+     "value": 0.7175141242937854
+    },
+    {
+     "packet_id": "38839347028",
+     "qid": "de-kapitalverletzung",
+     "criterion": "PROJ_RANK",
+     "position": 2,
+     "value": 0.12903163031846668
+    },
+    {
+     "packet_id": "__hostile__",
+     "qid": "de-kapitalverletzung",
+     "criterion": "OUTLIER_VALIDITY",
+     "position": 3,
+     "value": [
+      NaN,
+      0.018691588785046728
+     ]
+    },
+    {
+     "packet_id": "__hostile__",
+     "qid": "de-kapitalverletzung",
+     "criterion": "RELATIONS",
+     "position": 3,
+     "value": 0
+    },
+    {
+     "packet_id": "__hostile__",
+     "qid": "de-kapitalverletzung",
+     "criterion": "STRUCTURE_LARGEST",
+     "position": 3,
+     "value": 1.0
+    },
+    {
+     "packet_id": "__hostile__",
+     "qid": "fr-bail-entretien",
+     "criterion": "OUTLIER_VALIDITY",
+     "position": 3,
+     "value": [
+      NaN,
+      0.03686635944700461
+     ]
+    },
+    {
+     "packet_id": "__hostile__",
+     "qid": "fr-bail-entretien",
+     "criterion": "RELATIONS",
+     "position": 3,
+     "value": 0
+    },
+    {
+     "packet_id": "__hostile__",
+     "qid": "it-responsabilita-medica",
+     "criterion": "RELATIONS",
+     "position": 3,
+     "value": 0
+    },
+    {
+     "packet_id": "__hostile__",
+     "qid": "it-responsabilita-medica",
+     "criterion": "STRUCTURE_LARGEST",
+     "position": 3,
+     "value": 1.0
+    }
+   ],
+   "fired_keys": [
+    [
+     "38812599575",
+     "fr-bail-entretien",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "38839347028",
+     "de-kapitalverletzung",
+     "PROJ_RANK"
+    ],
+    [
+     "__hostile__",
+     "de-kapitalverletzung",
+     "OUTLIER_VALIDITY"
+    ],
+    [
+     "__hostile__",
+     "de-kapitalverletzung",
+     "RELATIONS"
+    ],
+    [
+     "__hostile__",
+     "de-kapitalverletzung",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "__hostile__",
+     "fr-bail-entretien",
+     "OUTLIER_VALIDITY"
+    ],
+    [
+     "__hostile__",
+     "fr-bail-entretien",
+     "RELATIONS"
+    ],
+    [
+     "__hostile__",
+     "it-responsabilita-medica",
+     "RELATIONS"
+    ],
+    [
+     "__hostile__",
+     "it-responsabilita-medica",
+     "STRUCTURE_LARGEST"
+    ]
+   ],
+   "n_fired": 9,
+   "firing_packets": [
+    "38812599575",
+    "38839347028",
+    "__hostile__"
+   ]
+  },
+  "S1_immediate_prior_CONTROL": {
+   "fired": [
+    {
+     "packet_id": "38812599575",
+     "qid": "fr-bail-entretien",
+     "criterion": "STRUCTURE_LARGEST",
+     "position": 1,
+     "value": 0.7175141242937854
+    },
+    {
+     "packet_id": "38839347028",
+     "qid": "de-kapitalverletzung",
+     "criterion": "PROJ_RANK",
+     "position": 2,
+     "value": 0.12903163031846668
+    },
+    {
+     "packet_id": "__hostile__",
+     "qid": "de-kapitalverletzung",
+     "criterion": "OUTLIER_VALIDITY",
+     "position": 3,
+     "value": [
+      NaN,
+      0.018691588785046728
+     ]
+    },
+    {
+     "packet_id": "__hostile__",
+     "qid": "de-kapitalverletzung",
+     "criterion": "RELATIONS",
+     "position": 3,
+     "value": 0
+    },
+    {
+     "packet_id": "__hostile__",
+     "qid": "de-kapitalverletzung",
+     "criterion": "STRUCTURE_LARGEST",
+     "position": 3,
+     "value": 1.0
+    },
+    {
+     "packet_id": "__hostile__",
+     "qid": "fr-bail-entretien",
+     "criterion": "OUTLIER_VALIDITY",
+     "position": 3,
+     "value": [
+      NaN,
+      0.03686635944700461
+     ]
+    },
+    {
+     "packet_id": "__hostile__",
+     "qid": "fr-bail-entretien",
+     "criterion": "RELATIONS",
+     "position": 3,
+     "value": 0
+    },
+    {
+     "packet_id": "__hostile__",
+     "qid": "it-responsabilita-medica",
+     "criterion": "RELATIONS",
+     "position": 3,
+     "value": 0
+    },
+    {
+     "packet_id": "__hostile__",
+     "qid": "it-responsabilita-medica",
+     "criterion": "STRUCTURE_LARGEST",
+     "position": 3,
+     "value": 1.0
+    }
+   ],
+   "fired_keys": [
+    [
+     "38812599575",
+     "fr-bail-entretien",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "38839347028",
+     "de-kapitalverletzung",
+     "PROJ_RANK"
+    ],
+    [
+     "__hostile__",
+     "de-kapitalverletzung",
+     "OUTLIER_VALIDITY"
+    ],
+    [
+     "__hostile__",
+     "de-kapitalverletzung",
+     "RELATIONS"
+    ],
+    [
+     "__hostile__",
+     "de-kapitalverletzung",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "__hostile__",
+     "fr-bail-entretien",
+     "OUTLIER_VALIDITY"
+    ],
+    [
+     "__hostile__",
+     "fr-bail-entretien",
+     "RELATIONS"
+    ],
+    [
+     "__hostile__",
+     "it-responsabilita-medica",
+     "RELATIONS"
+    ],
+    [
+     "__hostile__",
+     "it-responsabilita-medica",
+     "STRUCTURE_LARGEST"
+    ]
+   ],
+   "n_fired": 9,
+   "differs_from_S1": false
+  },
+  "S2_monotone": {
+   "fired": [
+    {
+     "packet_id": "38812599575",
+     "qid": "de-kapitalverletzung",
+     "criterion": "PROJ_KNN10",
+     "position": 1,
+     "sequence": [
+      0.1962686567164179,
+      0.15804597701149425
+     ],
+     "direction": "down_degrading",
+     "value": 0.15804597701149425,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38812599575",
+     "qid": "de-kapitalverletzung",
+     "criterion": "PROJ_SPEARMAN",
+     "position": 1,
+     "sequence": [
+      -0.017462300891895627,
+      -0.020522625562725542
+     ],
+     "direction": "down_degrading",
+     "value": -0.020522625562725542,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38812599575",
+     "qid": "de-kapitalverletzung",
+     "criterion": "STRUCTURE_SEP",
+     "position": 1,
+     "sequence": [
+      0.976714945472512,
+      0.9868212072333273
+     ],
+     "direction": "up_degrading",
+     "value": 0.9868212072333273,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38812599575",
+     "qid": "fr-bail-entretien",
+     "criterion": "PROJ_SPEARMAN",
+     "position": 1,
+     "sequence": [
+      -0.12586978558196477,
+      -0.13005227896562535
+     ],
+     "direction": "down_degrading",
+     "value": -0.13005227896562535,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38812599575",
+     "qid": "fr-bail-entretien",
+     "criterion": "STRUCTURE_LARGEST",
+     "position": 1,
+     "sequence": [
+      0.5572519083969466,
+      0.7175141242937854
+     ],
+     "direction": "up_degrading",
+     "value": 0.7175141242937854,
+     "subclass": "crossing_regression",
+     "ever_passed_in_prefix": true
+    },
+    {
+     "packet_id": "38812599575",
+     "qid": "it-responsabilita-medica",
+     "criterion": "PROJ_KNN10",
+     "position": 1,
+     "sequence": [
+      0.19772727272727275,
+      0.17719298245614035
+     ],
+     "direction": "down_degrading",
+     "value": 0.17719298245614035,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38812599575",
+     "qid": "it-responsabilita-medica",
+     "criterion": "PROJ_SPEARMAN",
+     "position": 1,
+     "sequence": [
+      0.1847151810466267,
+      0.15177710108927955
+     ],
+     "direction": "down_degrading",
+     "value": 0.15177710108927955,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38812599575",
+     "qid": "it-responsabilita-medica",
+     "criterion": "STRUCTURE_SEP",
+     "position": 1,
+     "sequence": [
+      0.9728285677300077,
+      0.9744719772452923
+     ],
+     "direction": "up_degrading",
+     "value": 0.9744719772452923,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38839347028",
+     "qid": "de-kapitalverletzung",
+     "criterion": "PROJ_KNN10",
+     "position": 2,
+     "sequence": [
+      0.1962686567164179,
+      0.15804597701149425,
+      0.14579439252336449
+     ],
+     "direction": "down_degrading",
+     "value": 0.14579439252336449,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38839347028",
+     "qid": "de-kapitalverletzung",
+     "criterion": "PROJ_RANK",
+     "position": 2,
+     "sequence": [
+      0.33877513142367716,
+      0.31013799934923686,
+      0.12903163031846668
+     ],
+     "direction": "down_degrading",
+     "value": 0.12903163031846668,
+     "subclass": "crossing_regression",
+     "ever_passed_in_prefix": true
+    },
+    {
+     "packet_id": "38839347028",
+     "qid": "de-kapitalverletzung",
+     "criterion": "PROJ_SPEARMAN",
+     "position": 2,
+     "sequence": [
+      -0.017462300891895627,
+      -0.020522625562725542,
+      -0.0878589389775002
+     ],
+     "direction": "down_degrading",
+     "value": -0.0878589389775002,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38839347028",
+     "qid": "fr-bail-entretien",
+     "criterion": "STRUCTURE_LARGEST",
+     "position": 2,
+     "sequence": [
+      0.5572519083969466,
+      0.7175141242937854,
+      0.7695852534562212
+     ],
+     "direction": "up_degrading",
+     "value": 0.7695852534562212,
+     "subclass": "crossing_regression",
+     "ever_passed_in_prefix": true
+    },
+    {
+     "packet_id": "38839347028",
+     "qid": "it-responsabilita-medica",
+     "criterion": "PROJ_KNN10",
+     "position": 2,
+     "sequence": [
+      0.19772727272727275,
+      0.17719298245614035,
+      0.17251184834123223
+     ],
+     "direction": "down_degrading",
+     "value": 0.17251184834123223,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38839347028",
+     "qid": "it-responsabilita-medica",
+     "criterion": "PROJ_SPEARMAN",
+     "position": 2,
+     "sequence": [
+      0.1847151810466267,
+      0.15177710108927955,
+      0.05651015268163983
+     ],
+     "direction": "down_degrading",
+     "value": 0.05651015268163983,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "38839347028",
+     "qid": "it-responsabilita-medica",
+     "criterion": "STRUCTURE_SEP",
+     "position": 2,
+     "sequence": [
+      0.9728285677300077,
+      0.9744719772452923,
+      0.9888466409214834
+     ],
+     "direction": "up_degrading",
+     "value": 0.9888466409214834,
+     "subclass": "worsening_while_always_failing",
+     "ever_passed_in_prefix": false
+    },
+    {
+     "packet_id": "__hostile__",
+     "qid": "fr-bail-entretien",
+     "criterion": "STRUCTURE_LARGEST",
+     "position": 3,
+     "sequence": [
+      0.5572519083969466,
+      0.7175141242937854,
+      0.7695852534562212,
+      1.0
+     ],
+     "direction": "up_degrading",
+     "value": 1.0,
+     "subclass": "crossing_regression",
+     "ever_passed_in_prefix": true
+    },
+    {
+     "packet_id": "__hostile__",
+     "qid": "it-responsabilita-medica",
+     "criterion": "STRUCTURE_LARGEST",
+     "position": 3,
+     "sequence": [
+      0.3409090909090909,
+      0.36257309941520466,
+      0.46919431279620855,
+      1.0
+     ],
+     "direction": "up_degrading",
+     "value": 1.0,
+     "subclass": "crossing_regression",
+     "ever_passed_in_prefix": true
+    }
+   ],
+   "fired_keys": [
+    [
+     "38812599575",
+     "de-kapitalverletzung",
+     "PROJ_KNN10"
+    ],
+    [
+     "38812599575",
+     "de-kapitalverletzung",
+     "PROJ_SPEARMAN"
+    ],
+    [
+     "38812599575",
+     "de-kapitalverletzung",
+     "STRUCTURE_SEP"
+    ],
+    [
+     "38812599575",
+     "fr-bail-entretien",
+     "PROJ_SPEARMAN"
+    ],
+    [
+     "38812599575",
+     "fr-bail-entretien",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "38812599575",
+     "it-responsabilita-medica",
+     "PROJ_KNN10"
+    ],
+    [
+     "38812599575",
+     "it-responsabilita-medica",
+     "PROJ_SPEARMAN"
+    ],
+    [
+     "38812599575",
+     "it-responsabilita-medica",
+     "STRUCTURE_SEP"
+    ],
+    [
+     "38839347028",
+     "de-kapitalverletzung",
+     "PROJ_KNN10"
+    ],
+    [
+     "38839347028",
+     "de-kapitalverletzung",
+     "PROJ_RANK"
+    ],
+    [
+     "38839347028",
+     "de-kapitalverletzung",
+     "PROJ_SPEARMAN"
+    ],
+    [
+     "38839347028",
+     "fr-bail-entretien",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "38839347028",
+     "it-responsabilita-medica",
+     "PROJ_KNN10"
+    ],
+    [
+     "38839347028",
+     "it-responsabilita-medica",
+     "PROJ_SPEARMAN"
+    ],
+    [
+     "38839347028",
+     "it-responsabilita-medica",
+     "STRUCTURE_SEP"
+    ],
+    [
+     "__hostile__",
+     "fr-bail-entretien",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "__hostile__",
+     "it-responsabilita-medica",
+     "STRUCTURE_LARGEST"
+    ]
+   ],
+   "n_fired": 17,
+   "firing_packets": [
+    "38812599575",
+    "38839347028",
+    "__hostile__"
+   ],
+   "n_not_applicable_cells": 48,
+   "subclass_split": {
+    "crossing_regression": [
+     [
+      "38812599575",
+      "fr-bail-entretien",
+      "STRUCTURE_LARGEST"
+     ],
+     [
+      "38839347028",
+      "de-kapitalverletzung",
+      "PROJ_RANK"
+     ],
+     [
+      "38839347028",
+      "fr-bail-entretien",
+      "STRUCTURE_LARGEST"
+     ],
+     [
+      "__hostile__",
+      "fr-bail-entretien",
+      "STRUCTURE_LARGEST"
+     ],
+     [
+      "__hostile__",
+      "it-responsabilita-medica",
+      "STRUCTURE_LARGEST"
+     ]
+    ],
+    "worsening_while_always_failing": [
+     [
+      "38812599575",
+      "de-kapitalverletzung",
+      "PROJ_KNN10"
+     ],
+     [
+      "38812599575",
+      "de-kapitalverletzung",
+      "PROJ_SPEARMAN"
+     ],
+     [
+      "38812599575",
+      "de-kapitalverletzung",
+      "STRUCTURE_SEP"
+     ],
+     [
+      "38812599575",
+      "fr-bail-entretien",
+      "PROJ_SPEARMAN"
+     ],
+     [
+      "38812599575",
+      "it-responsabilita-medica",
+      "PROJ_KNN10"
+     ],
+     [
+      "38812599575",
+      "it-responsabilita-medica",
+      "PROJ_SPEARMAN"
+     ],
+     [
+      "38812599575",
+      "it-responsabilita-medica",
+      "STRUCTURE_SEP"
+     ],
+     [
+      "38839347028",
+      "de-kapitalverletzung",
+      "PROJ_KNN10"
+     ],
+     [
+      "38839347028",
+      "de-kapitalverletzung",
+      "PROJ_SPEARMAN"
+     ],
+     [
+      "38839347028",
+      "it-responsabilita-medica",
+      "PROJ_KNN10"
+     ],
+     [
+      "38839347028",
+      "it-responsabilita-medica",
+      "PROJ_SPEARMAN"
+     ],
+     [
+      "38839347028",
+      "it-responsabilita-medica",
+      "STRUCTURE_SEP"
+     ]
+    ]
+   },
+   "subclass_note": "descriptive only: crossing_regression = the monotone trend crossed the frozen bar from a previously-passing state (a true regression); worsening_while_always_failing = the cell never passed anywhere in the observed prefix and its value degraded monotonically while remaining failing (a trend warning, not a pass-to-fail transition). No predicate, threshold or verdict changes under this label."
+  },
+  "union_fired_keys": [
+   [
+    "38812599575",
+    "de-kapitalverletzung",
+    "PROJ_KNN10"
+   ],
+   [
+    "38812599575",
+    "de-kapitalverletzung",
+    "PROJ_SPEARMAN"
+   ],
+   [
+    "38812599575",
+    "de-kapitalverletzung",
+    "STRUCTURE_SEP"
+   ],
+   [
+    "38812599575",
+    "fr-bail-entretien",
+    "PROJ_SPEARMAN"
+   ],
+   [
+    "38812599575",
+    "fr-bail-entretien",
+    "STRUCTURE_LARGEST"
+   ],
+   [
+    "38812599575",
+    "it-responsabilita-medica",
+    "PROJ_KNN10"
+   ],
+   [
+    "38812599575",
+    "it-responsabilita-medica",
+    "PROJ_SPEARMAN"
+   ],
+   [
+    "38812599575",
+    "it-responsabilita-medica",
+    "STRUCTURE_SEP"
+   ],
+   [
+    "38839347028",
+    "de-kapitalverletzung",
+    "PROJ_KNN10"
+   ],
+   [
+    "38839347028",
+    "de-kapitalverletzung",
+    "PROJ_RANK"
+   ],
+   [
+    "38839347028",
+    "de-kapitalverletzung",
+    "PROJ_SPEARMAN"
+   ],
+   [
+    "38839347028",
+    "fr-bail-entretien",
+    "STRUCTURE_LARGEST"
+   ],
+   [
+    "38839347028",
+    "it-responsabilita-medica",
+    "PROJ_KNN10"
+   ],
+   [
+    "38839347028",
+    "it-responsabilita-medica",
+    "PROJ_SPEARMAN"
+   ],
+   [
+    "38839347028",
+    "it-responsabilita-medica",
+    "STRUCTURE_SEP"
+   ],
+   [
+    "__hostile__",
+    "de-kapitalverletzung",
+    "OUTLIER_VALIDITY"
+   ],
+   [
+    "__hostile__",
+    "de-kapitalverletzung",
+    "RELATIONS"
+   ],
+   [
+    "__hostile__",
+    "de-kapitalverletzung",
+    "STRUCTURE_LARGEST"
+   ],
+   [
+    "__hostile__",
+    "fr-bail-entretien",
+    "OUTLIER_VALIDITY"
+   ],
+   [
+    "__hostile__",
+    "fr-bail-entretien",
+    "RELATIONS"
+   ],
+   [
+    "__hostile__",
+    "fr-bail-entretien",
+    "STRUCTURE_LARGEST"
+   ],
+   [
+    "__hostile__",
+    "it-responsabilita-medica",
+    "RELATIONS"
+   ],
+   [
+    "__hostile__",
+    "it-responsabilita-medica",
+    "STRUCTURE_LARGEST"
+   ]
+  ]
+ },
+ "old_semantics_contrast": {
+  "anchors": {
+   "38799024807": {
+    "anchor_counts": {
+     "de-kapitalverletzung": 6,
+     "fr-bail-entretien": 5,
+     "it-responsabilita-medica": 4
+    },
+    "marked_regressed": [
+     "38812599575"
+    ],
+    "includes_itself": false
+   },
+   "38812599575": {
+    "anchor_counts": {
+     "de-kapitalverletzung": 6,
+     "fr-bail-entretien": 4,
+     "it-responsabilita-medica": 5
+    },
+    "marked_regressed": [
+     "38799024807"
+    ],
+    "includes_itself": false
+   },
+   "38839347028": {
+    "anchor_counts": {
+     "de-kapitalverletzung": 6,
+     "fr-bail-entretien": 5,
+     "it-responsabilita-medica": 5
+    },
+    "marked_regressed": [
+     "38799024807",
+     "38812599575"
+    ],
+    "includes_itself": false
+   }
+  },
+  "n_distinct_verdict_sets": 3,
+  "verdict_set_is_anchor_determined": true,
+  "F5_reproduced": true
+ },
+ "R1_order_grounding": {
+  "orders_identical": true,
+  "order_by_generated_at": [
+   "38799024807",
+   "38812599575",
+   "38839347028"
+  ],
+  "order_by_packet_id": [
+   "38799024807",
+   "38812599575",
+   "38839347028"
+  ],
+  "generated_at_values": {
+   "38799024807": "2026-10-15T20:30:07Z",
+   "38812599575": "2026-10-15T22:27:41Z",
+   "38839347028": "2026-10-16T02:22:25Z"
+  },
+  "verdict_sets_single_valued": true,
+  "holds": true
+ },
+ "R2_anchor_freedom": {
+  "old_semantics_F5_reproduced": true,
+  "old_n_distinct_verdict_sets": 3,
+  "S1_n_verdict_sets": 1,
+  "S2_n_verdict_sets": 1,
+  "S1_vs_S1_immediate_prior_on_real_population": {
+   "S1": [
+    [
+     "38812599575",
+     "fr-bail-entretien",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "38839347028",
+     "de-kapitalverletzung",
+     "PROJ_RANK"
+    ]
+   ],
+   "S1_immediate_prior": [
+    [
+     "38812599575",
+     "fr-bail-entretien",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "38839347028",
+     "de-kapitalverletzung",
+     "PROJ_RANK"
+    ]
+   ],
+   "differ": false
+  },
+  "S1_vs_S1_immediate_prior_on_hostile_extension": {
+   "S1_extended": [
+    [
+     "38812599575",
+     "fr-bail-entretien",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "38839347028",
+     "de-kapitalverletzung",
+     "PROJ_RANK"
+    ],
+    [
+     "__hostile__",
+     "de-kapitalverletzung",
+     "OUTLIER_VALIDITY"
+    ],
+    [
+     "__hostile__",
+     "de-kapitalverletzung",
+     "RELATIONS"
+    ],
+    [
+     "__hostile__",
+     "de-kapitalverletzung",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "__hostile__",
+     "fr-bail-entretien",
+     "OUTLIER_VALIDITY"
+    ],
+    [
+     "__hostile__",
+     "fr-bail-entretien",
+     "RELATIONS"
+    ],
+    [
+     "__hostile__",
+     "it-responsabilita-medica",
+     "RELATIONS"
+    ],
+    [
+     "__hostile__",
+     "it-responsabilita-medica",
+     "STRUCTURE_LARGEST"
+    ]
+   ],
+   "S1_immediate_prior_extended": [
+    [
+     "38812599575",
+     "fr-bail-entretien",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "38839347028",
+     "de-kapitalverletzung",
+     "PROJ_RANK"
+    ],
+    [
+     "__hostile__",
+     "de-kapitalverletzung",
+     "OUTLIER_VALIDITY"
+    ],
+    [
+     "__hostile__",
+     "de-kapitalverletzung",
+     "RELATIONS"
+    ],
+    [
+     "__hostile__",
+     "de-kapitalverletzung",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "__hostile__",
+     "fr-bail-entretien",
+     "OUTLIER_VALIDITY"
+    ],
+    [
+     "__hostile__",
+     "fr-bail-entretien",
+     "RELATIONS"
+    ],
+    [
+     "__hostile__",
+     "it-responsabilita-medica",
+     "RELATIONS"
+    ],
+    [
+     "__hostile__",
+     "it-responsabilita-medica",
+     "STRUCTURE_LARGEST"
+    ]
+   ],
+   "differ": false
+  },
+  "whole_prefix_reference_load_bearing": false,
+  "holds": true,
+  "disclosure": "the S1-immediate-prior control is computed on both the real population and the hostile extension; if the two S1 variants coincide everywhere, R2 still holds on the structural + F5-contrast argument and the coincidence is disclosed as a limitation of this population's power"
+ },
+ "R3_real_degradation_detection": {
+  "expected_accepted_F3_degradations": [
+   [
+    "38839347028",
+    "de-kapitalverletzung",
+    "PROJ_RANK"
+   ],
+   [
+    "38812599575",
+    "fr-bail-entretien",
+    "STRUCTURE_LARGEST"
+   ]
+  ],
+  "found": {
+   "('38839347028', 'de-kapitalverletzung', 'PROJ_RANK')": true,
+   "('38812599575', 'fr-bail-entretien', 'STRUCTURE_LARGEST')": true
+  },
+  "holds": true
+ },
+ "R4_non_vacuity_hostile": {
+  "served_packet_fired_keys": [
+   [
+    "38839347028",
+    "de-kapitalverletzung",
+    "PROJ_KNN10"
+   ],
+   [
+    "38839347028",
+    "de-kapitalverletzung",
+    "PROJ_RANK"
+   ],
+   [
+    "38839347028",
+    "de-kapitalverletzung",
+    "PROJ_SPEARMAN"
+   ],
+   [
+    "38839347028",
+    "fr-bail-entretien",
+    "STRUCTURE_LARGEST"
+   ],
+   [
+    "38839347028",
+    "it-responsabilita-medica",
+    "PROJ_KNN10"
+   ],
+   [
+    "38839347028",
+    "it-responsabilita-medica",
+    "PROJ_SPEARMAN"
+   ],
+   [
+    "38839347028",
+    "it-responsabilita-medica",
+    "STRUCTURE_SEP"
+   ]
+  ],
+  "hostile_extension_fired_keys": [
+   [
+    "__hostile__",
+    "de-kapitalverletzung",
+    "OUTLIER_VALIDITY"
+   ],
+   [
+    "__hostile__",
+    "de-kapitalverletzung",
+    "RELATIONS"
+   ],
+   [
+    "__hostile__",
+    "de-kapitalverletzung",
+    "STRUCTURE_LARGEST"
+   ],
+   [
+    "__hostile__",
+    "fr-bail-entretien",
+    "OUTLIER_VALIDITY"
+   ],
+   [
+    "__hostile__",
+    "fr-bail-entretien",
+    "RELATIONS"
+   ],
+   [
+    "__hostile__",
+    "fr-bail-entretien",
+    "STRUCTURE_LARGEST"
+   ],
+   [
+    "__hostile__",
+    "it-responsabilita-medica",
+    "RELATIONS"
+   ],
+   [
+    "__hostile__",
+    "it-responsabilita-medica",
+    "STRUCTURE_LARGEST"
+   ]
+  ],
+  "hostile_fires_new_cells": true,
+  "new_cells": [
+   [
+    "__hostile__",
+    "de-kapitalverletzung",
+    "OUTLIER_VALIDITY"
+   ],
+   [
+    "__hostile__",
+    "de-kapitalverletzung",
+    "RELATIONS"
+   ],
+   [
+    "__hostile__",
+    "de-kapitalverletzung",
+    "STRUCTURE_LARGEST"
+   ],
+   [
+    "__hostile__",
+    "fr-bail-entretien",
+    "OUTLIER_VALIDITY"
+   ],
+   [
+    "__hostile__",
+    "fr-bail-entretien",
+    "RELATIONS"
+   ],
+   [
+    "__hostile__",
+    "fr-bail-entretien",
+    "STRUCTURE_LARGEST"
+   ],
+   [
+    "__hostile__",
+    "it-responsabilita-medica",
+    "RELATIONS"
+   ],
+   [
+    "__hostile__",
+    "it-responsabilita-medica",
+    "STRUCTURE_LARGEST"
+   ]
+  ],
+  "holds": true,
+  "control": "evaluation.frozen_bars.run_bar_gates._hostile_geometry (accepted, imported by value)",
+  "re_measured_through": "evaluation.frozen_bars.geometry_gate.score_bundle (accepted engine)",
+  "hostile_pass_counts": {
+   "de-kapitalverletzung": 4,
+   "fr-bail-entretien": 4,
+   "it-responsabilita-medica": 5
+  }
+ },
+ "R5_no_new_threshold": {
+  "scanned": "/home/runner/work/LexMachina/LexMachina/evaluation/reground_lineage_semantics.py",
+  "n_offending_lines": 0,
+  "offenders": [],
+  "holds": true,
+  "note": "the scan is a guard against an implementation bug, not a claim about the design; the frozen bars themselves contain thresholds and are read, never written, by this module"
+ },
+ "non_vacuity_battery": {
+  "N1_at_least_one_real_fire": {
+   "holds": true,
+   "union_fired_keys": [
+    [
+     "38812599575",
+     "de-kapitalverletzung",
+     "PROJ_KNN10"
+    ],
+    [
+     "38812599575",
+     "de-kapitalverletzung",
+     "PROJ_SPEARMAN"
+    ],
+    [
+     "38812599575",
+     "de-kapitalverletzung",
+     "STRUCTURE_SEP"
+    ],
+    [
+     "38812599575",
+     "fr-bail-entretien",
+     "PROJ_SPEARMAN"
+    ],
+    [
+     "38812599575",
+     "fr-bail-entretien",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "38812599575",
+     "it-responsabilita-medica",
+     "PROJ_KNN10"
+    ],
+    [
+     "38812599575",
+     "it-responsabilita-medica",
+     "PROJ_SPEARMAN"
+    ],
+    [
+     "38812599575",
+     "it-responsabilita-medica",
+     "STRUCTURE_SEP"
+    ],
+    [
+     "38839347028",
+     "de-kapitalverletzung",
+     "PROJ_KNN10"
+    ],
+    [
+     "38839347028",
+     "de-kapitalverletzung",
+     "PROJ_RANK"
+    ],
+    [
+     "38839347028",
+     "de-kapitalverletzung",
+     "PROJ_SPEARMAN"
+    ],
+    [
+     "38839347028",
+     "fr-bail-entretien",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "38839347028",
+     "it-responsabilita-medica",
+     "PROJ_KNN10"
+    ],
+    [
+     "38839347028",
+     "it-responsabilita-medica",
+     "PROJ_SPEARMAN"
+    ],
+    [
+     "38839347028",
+     "it-responsabilita-medica",
+     "STRUCTURE_SEP"
+    ]
+   ]
+  },
+  "N2_not_indiscriminate": {
+   "holds": true,
+   "firing_packets": [
+    "38812599575",
+    "38839347028"
+   ],
+   "n_in_scope": 3
+  },
+  "N3_hostile_detects_new": {
+   "holds": true,
+   "new_cells": [
+    [
+     "__hostile__",
+     "de-kapitalverletzung",
+     "OUTLIER_VALIDITY"
+    ],
+    [
+     "__hostile__",
+     "de-kapitalverletzung",
+     "RELATIONS"
+    ],
+    [
+     "__hostile__",
+     "de-kapitalverletzung",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "__hostile__",
+     "fr-bail-entretien",
+     "OUTLIER_VALIDITY"
+    ],
+    [
+     "__hostile__",
+     "fr-bail-entretien",
+     "RELATIONS"
+    ],
+    [
+     "__hostile__",
+     "fr-bail-entretien",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "__hostile__",
+     "it-responsabilita-medica",
+     "RELATIONS"
+    ],
+    [
+     "__hostile__",
+     "it-responsabilita-medica",
+     "STRUCTURE_LARGEST"
+    ]
+   ]
+  },
+  "N4_old_F5_reproduced": {
+   "holds": true,
+   "n_distinct": 3
+  },
+  "N5_rules_identity": {
+   "holds": true
+  },
+  "all_hold": true
+ },
+ "elapsed_s": 2.722
+}

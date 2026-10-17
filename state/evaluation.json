@@ -2,11 +2,11 @@
  "lane": "evaluation",
  "direction_version": 50,
  "evidence_tier": "REPRODUCED",
- "cycle_status": "V50_GATE_VALIDITY_FALSIFICATION_38993062549",
+ "cycle_status": "V50_REGROUND_SEMANTICS_38996043415",
  "continue_recommended": true,
  "accepted_run_id": "38971202786",
  "accepted_run_id_correction_note": "corrected this cycle (38972887369) per BLOCKED audit 38972043610 required fix D2: the pointer was 38951152192 while the accepted base commit 59fde886 is 'accept evaluation cycle 38971202786' (audit gate results/audit/evaluation/CYCLE_38971202786_GATE.json gate=PASS safe_to_integrate=true, verified on ref origin/cycle/core/evaluation/38971202786/audit). Pointer-only correction; acceptance itself moves only via an audit gate.",
- "proposed_run_id": "38993062549",
+ "proposed_run_id": "38996043415",
  "repair_round": 0,
  "repair_audit_ref": "origin/cycle/core/evaluation/38968781838/audit:results/audit/evaluation/CYCLE_38968781838_GATE.json (gate=REVISE; the file lives on the AUDIT BRANCH ref, not in any team tree or lab branch — pointer corrected per BLOCKED audit 38972043610 required fix D4, which had flagged it dangling for three cycles; the ref was fetched and re-read this cycle to prove it resolves)",
  "repair_fixes_applied": {
@@ -118,7 +118,14 @@
   "results/evaluation/packet_lineage_sweep/GEOMETRY_HALF_38877700234.json",
   "reports/evaluation/CYCLE_38993062549.md",
   "evaluation/packet_lineage_sweep.py",
-  "tests/evaluation/test_packet_lineage_sweep.py"
+  "tests/evaluation/test_packet_lineage_sweep.py",
+  "results/evaluation/reground_semantics/FROZEN_HYPOTHESIS_38996043415.json",
+  "evaluation/reground_lineage_semantics.py",
+  "tests/evaluation/test_reground_lineage_semantics.py",
+  "results/evaluation/reground_semantics/38996043415.json",
+  "reports/evaluation/CYCLE_38996043415.md",
+  "results/evaluation/retrieval_counter_authority_benchmark/38996043415.json",
+  "results/evaluation/snapshot_audit/38996043415.json"
  ],
  "human_gate_ready": false,
  "mission": "Independently falsify the query-specific LEX product. Do not reopen the 174k/global-geometry research unless a concrete product failure requires it.",
@@ -241,7 +248,7 @@
   "automated": "python -m evaluation.reality_gate.run_benchmark --evidence-dir <product reality_check dir> ... ; must be GREEN on a product's own live packet before the human gate can be considered. Exit 2 = environment/empty-input error (no record emitted).",
   "human": "Map usefulness remains a jurist product gate: branch/exception discovery, structural comprehension, confidence about contrary authority, preference over answer+ranked list."
  },
- "next_recommendation": "PRODUCT CONSUMES THE CORRECTED READING; ONE NEW DISCRIMINATING QUESTION FOR THIS LANE. (1) Product: wire packet admission on absolute_status (LABEL_SOUND/UNSOUND, GEOMETRY_SOUND/UNSOUND, reported never enforced) plus evaluation/frozen_bars/VERDICT_CONTRACT.json, NOT on exit != 0; on a non-incumbent packet the regression verdict is anchor-determined (F5). Use the regression verdict only as a served-lineage comparator against build 38839347028. Entry points: python -m evaluation.packet_lineage_sweep --run-id <id> (lineage validity; exit 1 = falsified) and python -m evaluation.frozen_bars.run_bar_gates [--adjudicate <packet-dir>]. (2) Product: the frozen geometry engine measures fr STRUCTURE_LARGEST = 0.7695852534562212 on the served packet against a <=0.60 bar, degrading monotonically 0.557 -> 0.718 -> 0.770 across the three accepted builds; the size-based mega-cluster disclosure should fire and this is the first independent frozen-rubric confirmation. (3) THIS LANE, successor cycle, one discriminating purpose and no threshold: decide whether the regression semantics can be re-grounded on a lineage-stable property (criterion-level pass vectors, or degradation-monotone criteria such as fr STRUCTURE_LARGEST) or whether the gate must be re-scoped to served_lineage only. Either outcome is falsifiable and neither touches a frozen bar. (4) Control plane: lanes.evaluation.status is still RUN; per factory-wide requirement 9 continue_recommended can never stop a redispatch, so move the status or dispatch the new question. Recorded and not patched from here.",
+ "next_recommendation": "PRODUCT CONSUMES THE REGROUNDED READING; THE EVALUATION QUESTION IS SUBSTANTIALLY ANSWERED. (1) Product: the regression layer of packet admission may be built on S1 (clean-prefix cell regression) as the regression signal and S2 crossing_regression as monotone-trend corroboration; both are lineage-stable (whole objective prefix, no anchor). Keep absolute statuses + VERDICT_CONTRACT.json as the admission gate; the lineage-regression layer is a DISCLOSURE, never a build blocker. S2 worsening_while_always_failing is a warning layer only. Entry point: python -m evaluation.reground_lineage_semantics --run-id <id>. (2) Product obligations (1)-(5) from v50 are UNCHANGED and UNTOUCHED by this result: the two frozen absolute bars are still unmet (labels 5/65 vs 1.0; geometry 0/3 vs all-11), the DO-NOT-SERVE order stands, human_gate_ready stays false, and the red BJR recall::citation_controlling_authority leg is still Product work. (3) Optional narrow successor for THIS lane: re-run the S1-variant control on a richer lineage (or a purpose-built oscillating-cell fixture measured through the accepted engine) to empirically discriminate whole-prefix from single-build reference; either outcome is falsifiable and touches no frozen bar. (4) Control plane: lanes.evaluation.status is still RUN; per factory-wide requirement 9 continue_recommended can never stop a redispatch, so move the status or dispatch the optional follow-up. Recorded and not patched from here.",
  "prior_proposal_unpromoted": {
   "run_id": "38939239917",
   "note": "The 38939239917 producer commit (660ad896) was never audited and never promoted: no results/audit/evaluation/CYCLE_38939239917_GATE.json exists, no 'accept evaluation cycle 38939239917' commit exists, and origin/lab/evaluation is still 1e12bfc2 (accept cycle 38934722443). This is the cause of run 38945774110's zero-delta exit: it started from a tree already containing all of 38939239917's work and had nothing to add. The zero-delta exit is a symptom, not a lane defect.",
@@ -249,7 +256,7 @@
   "deliverable_in_that_commit": "evaluation/retrieval_gate/* and tests/evaluation/test_retrieval_gate.py (the frozen retrieval/counter-authority benchmark, sha 187b0e54..., executed FAIL 12/40)",
   "action_required": "promote or reject 38939239917 explicitly so it stops shadowing lane state"
  },
- "continue_recommended_reason": "continue_recommended=true is NOT a generic request to keep running. The v50 two-gate build question remains delivered, but this cycle's falsification raises ONE concrete, same-direction discriminating gap that a successor cycle can settle executably: the frozen geometry gate is provably anchor-determined (F5), so its incumbents are a temporal anchor rather than a floor. The next discriminating purpose is to decide, WITHOUT inventing a threshold and WITHOUT touching either frozen bar, whether the regression semantics can be re-grounded on a lineage-stable property (e.g. criterion-level pass vectors, or degradation-monotone criteria such as fr STRUCTURE_LARGEST) or whether the gate must be re-scoped to served_lineage only. That decision is not made in this cycle and is falsifiable. If the control plane instead considers the v50 question closed, move lanes.evaluation.status off RUN: factory-wide requirement 9 means continue_recommended can never stop a redispatch.",
+ "continue_recommended_reason": "continue_recommended=true is NOT a generic request to keep running. The v50 two-gate build question, its gate-validity falsification (38993062549) and this regrounding (38996043415) are three distinct executable cycles under the SAME factory-direction question. The regrounding CLOSED the named successor question with a positive, executable, non-vacuity-proven verdict (REGROUNDABLE). One concrete same-direction discriminating purpose remains that a successor cycle could settle: the whole-prefix vs single-build S1 control coincided on this n=3 population + one hostile extension (no oscillating cell exists), so the empirical discrimination of that control is still open on a richer lineage. That is a narrow follow-up, not a blocker; if the control plane considers the evaluation question closed, move lanes.evaluation.status off RUN (factory-wide requirement 9: continue_recommended can never stop a redispatch).",
  "orchestration_diagnosis_38945774110": {
   "symptom": "origin/cycle/core/evaluation/38945774110/team == 660ad896 (byte-identical to its base); zero producer commit",
   "root_cause": "the preceding proposal 38939239917 was never audited nor promoted (see prior_proposal_unpromoted)",
@@ -656,8 +663,8 @@
   "not_touched": "no frozen rubric/spec/threshold/bar/incumbent/lineage predicate/recorded verdict; no served-bytes pin weakened in default mode; no Frontier candidate re-measured; no 174k rerun; no Product import; no network; no .github/** edit; no audit files authored",
   "claim_ceiling": "the gates are now a LIVE discriminator for future packets on the three frozen qids (adjudicate mode), with an executable contract stating what every verdict does and does NOT certify; they still cannot admit genuinely new qids without a disclosed rules re-freeze, do not score Frontier candidates, do not prove jurist map usefulness, and move no bar. LABEL_UNSOUND and GEOMETRY_UNSOUND remain the accepted absolute status of the served packet and stay reported-not-enforced. human_gate_ready stays false under the standing accepted DO-NOT-SERVE order."
  },
- "recommendation": "PIVOT_WITHIN_MISSION",
- "recommendation_rationale": "RESEARCH_PROTOCOL step 9. The v50 two-gate build question stays delivered; this cycle did not rebuild it, it exercised it. The result is a first-class NEGATIVE result ABOUT THE BARS, which the mission explicitly preserves: the frozen geometry gate's regression verdict is anchor-determined over the product's own accepted lineage, so it cannot be wired as packet admission on exit != 0. Product obligation (1) still has a safe, already-published wiring (absolute_status + VERDICT_CONTRACT.json), so no owner decision is needed and no blocker is raised.",
+ "recommendation": "PRODUCTIZE",
+ "recommendation_rationale": "The named successor question is answered executably: a lineage-stable regression property EXISTS over the frozen bars (REGROUNDABLE, exit 0, R1-R4 all hold, battery 5/5). Product can wire the disclosed reading immediately. This does NOT meet either absolute bar, does NOT lift the DO-NOT-SERVE order and says nothing about jurist usefulness.",
  "operational_resume_38977570612": {
   "resume_from": "persisted producer snapshot of run 38972887369 (commits 767fb26a + 7169faad on accepted base 59fde886 'accept evaluation cycle 38971202786'); working tree was clean, no work discarded, no restart from scratch",
   "orchestration_diagnosis": "no audit gate file results/audit/evaluation/CYCLE_38972887369_GATE.json exists in the snapshot and no 'accept evaluation cycle 38972887369' commit exists: the producer deliverable was never independently audited, so nothing was promoted and nothing was rejected. No validation defect was found in the snapshot to explain it (write scope is lane-clean, all 63 evidence_refs resolve, frozen shas re-hash exactly, lane suite passes). Cause class is therefore orchestration/audit-scheduling (or provider death of the audit job, per factory-wide requirement 20), not a producer defect. gh CLI is unavailable in this container (no GH_TOKEN), so the run-38972887369 job log could not be read; the diagnosis rests on repo evidence only and is hedged accordingly.",
@@ -774,7 +781,7 @@
   },
   "claim_ceiling": "proves only that (a) the served packet currently does not regress below the recomputed incumbents and (b) both frozen gates can fail a deliberately regressed input. Does NOT prove jurist usefulness, does NOT meet the absolute LABEL_SOUND / GEOMETRY_SOUND bars, does NOT unblock the human gate (standing accepted DO-NOT-SERVE order)."
  },
- "human_gate_ready_reason": "unchanged and not advanced by this cycle. The standing accepted DO-NOT-SERVE order (frontier-served-packet-falsification, team run 38880639079) is untouched; both absolute bars remain unmet; and this result says nothing about jurist usefulness.",
+ "human_gate_ready_reason": "Unchanged and untouched by this cycle. The two accepted frozen absolute bars remain unmet (counter-label support 5/65 = 0.0769 vs 1.0; geometry 0/3 bundles passing all 11), the standing accepted DO-NOT-SERVE order stands, and this cycle changed no product packet. The regrounding is a gate-semantics result, not a product-capability result.",
  "blockers": [],
  "v50_gate_validity_38993062549": {
   "question": "Are the two accepted frozen-bar gates sound as the machine packet-admission input that Product direction obligation (1) requires? Tested on the product's OWN accepted bundle lineage rather than on the single packet the incumbents were computed from.",
@@ -1083,5 +1090,224 @@
  "control_plane_gaps_recorded_not_patched_38993062549": [
   "factory-wide requirement 9 (dead jq // exhaustion guard) still unpatched; lanes.evaluation.status is still RUN while continue_recommended is the only stop signal. Recorded, not edited from this lane.",
   "tests/evaluation/test_benchmark_retrieval_counter_authority.py contains an accepted optional live end-to-end test that writes pytest_local* artifacts into the real results/ and reports/ directories on every suite run. Those are pre-existing behaviour of an accepted test, not this cycle's; they are removed before commit and the behaviour is recorded rather than patched, because editing an accepted, audit-pinned test is not this lane's scope."
- ]
+ ],
+ "accepted_run_id_note_this_cycle": "accepted_run_id stays 38971202786 (last cycle whose audit gate=PASS was promoted). This cycle 38996043415 is PROPOSED, pending independent audit. Pointer moves only via an audit gate, never from the producer.",
+ "claim_ceiling": "Tests the GATE's regression SEMANTICS, not the CANDIDATE. Establishes that a lineage-stable regression property exists over the frozen bars via two anchor-free semantics (S1 clean-prefix cell regression, S2 monotone-degradation endpoint), that both detect the accepted F3 degradations, and that a deliberately regressed input makes them fail. Does NOT re-measure either Frontier candidate, does NOT touch, relax or re-derive either frozen bar, does NOT meet the absolute bars, does NOT change any exit-code contract or packet-admission wiring, and says nothing about jurist usefulness or the human product gate.",
+ "v50_reground_semantics_38996043415": {
+  "question": "Can the frozen geometry gate FAIL_REGRESSION semantics be re-grounded on a lineage-stable property (criterion-level pass vectors, or degradation-monotone criterion values), or must the gate be re-scoped to served_lineage only?",
+  "entry_point": "python -m evaluation.reground_lineage_semantics --run-id <id>",
+  "verdict": "REGROUNDABLE",
+  "exit_code": 0,
+  "regrounded_semantics": [
+   "S1_clean_prefix_cell_regression",
+   "S2_monotone_degradation_endpoint"
+  ],
+  "record": "results/evaluation/reground_semantics/38996043415.json",
+  "report": "reports/evaluation/CYCLE_38996043415.md",
+  "frozen_hypothesis": {
+   "path": "results/evaluation/reground_semantics/FROZEN_HYPOTHESIS_38996043415.json",
+   "frozen_at_commit": "9392ff8b",
+   "frozen_before_execution": true,
+   "honest_disclosure": "the per-criterion masks of all three packets are published accepted evidence (cycle 38993062549), so the qualitative S1/S2 outcome on the real population was partially known in advance; the freeze lists the five things NOT observed before it (hostile non-vacuity, S1-variant discrimination, S2 coverage boundary, exact cardinalities, whole-battery outcome); no threshold, predicate or success rule changed after the commit"
+  },
+  "reuse_first": {
+   "engine": "geometry_gate.score_packet via packet_lineage_sweep.criterion_mask (accepted)",
+   "negative_control": "run_bar_gates._hostile_geometry (accepted, imported by value)",
+   "rules_label_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+   "rules_geometry_sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+   "rehashed_before_scoring": true,
+   "no_scoring_reimplemented": true,
+   "no_product_code_imported": true,
+   "no_threshold_invented": true
+  },
+  "lineage_order_grounding": {
+   "primary": "packet.json generated_at ascending",
+   "cross_check": "packet-id string sort",
+   "orders_identical": true,
+   "order": [
+    "38799024807",
+    "38812599575",
+    "38839347028"
+   ],
+   "R1_holds": true
+  },
+  "S1_clean_prefix_fired": [
+   {
+    "packet_id": "38812599575",
+    "qid": "fr-bail-entretien",
+    "criterion": "STRUCTURE_LARGEST",
+    "value": 0.7175141242937854
+   },
+   {
+    "packet_id": "38839347028",
+    "qid": "de-kapitalverletzung",
+    "criterion": "PROJ_RANK",
+    "value": 0.12903163031846668
+   }
+  ],
+  "S1_reading": "S1 fired EXACTLY the two accepted F3 pass-to-fail transitions, no more and no less. It is the cleanest regression signal: a genuine departure from a historically clean cell.",
+  "S2_monotone_fired": {
+   "n_total": 15,
+   "crossing_regression": 3,
+   "worsening_while_always_failing": 12,
+   "crossing_detail": [
+    [
+     "38812599575",
+     "fr-bail-entretien",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "38839347028",
+     "de-kapitalverletzung",
+     "PROJ_RANK"
+    ],
+    [
+     "38839347028",
+     "fr-bail-entretien",
+     "STRUCTURE_LARGEST"
+    ]
+   ],
+   "subclass_note": "descriptive only; no predicate, threshold or verdict changes under the label. crossing_regression = monotone trend crossed the frozen bar from a previously-passing state (true regression). worsening_while_always_failing = cell never passed anywhere in the observed prefix and degraded monotonically while remaining failing (trend warning, not a transition).",
+   "s2_applicable_criteria": [
+    "PROJ_RANK",
+    "PROJ_SPEARMAN",
+    "PROJ_KNN10",
+    "STRUCTURE_LARGEST",
+    "STRUCTURE_SEP",
+    "LABEL_CONTENT_FRACTION",
+    "LABEL_JACCARD"
+   ],
+   "s2_excluded_by_design": [
+    "COHERENCE_QUERY_LANG",
+    "COHERENCE_QUERY_TERM",
+    "OUTLIER_VALIDITY",
+    "RELATIONS"
+   ]
+  },
+  "R1_order_grounding": {
+   "holds": true,
+   "orders_identical": true
+  },
+  "R2_anchor_freedom": {
+   "holds": true,
+   "old_semantics_F5_reproduced": true,
+   "old_n_distinct_verdict_sets": 3,
+   "S1_n_verdict_sets": 1,
+   "S2_n_verdict_sets": 1,
+   "whole_prefix_reference_load_bearing": false,
+   "disclosure": "the S1-immediate-prior single-build control coincided with full-prefix S1 on BOTH the real population and the hostile extension; the only divergence mode is a pass-fail-pass-fail oscillation and neither population contains one. R2 rests on the structural argument (no anchor parameter exists) + the F5 contrast (OLD semantics produces 3 distinct verdict sets). The coincidence is a limitation of this population power, recorded not hidden."
+  },
+  "R3_real_degradation_detection": {
+   "holds": true,
+   "both_accepted_F3_degradations_found": true
+  },
+  "R4_non_vacuity_hostile": {
+   "holds": true,
+   "n_new_cells_fired": 8,
+   "new_cells": [
+    [
+     "__hostile__",
+     "de-kapitalverletzung",
+     "OUTLIER_VALIDITY"
+    ],
+    [
+     "__hostile__",
+     "de-kapitalverletzung",
+     "RELATIONS"
+    ],
+    [
+     "__hostile__",
+     "de-kapitalverletzung",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "__hostile__",
+     "fr-bail-entretien",
+     "OUTLIER_VALIDITY"
+    ],
+    [
+     "__hostile__",
+     "fr-bail-entretien",
+     "RELATIONS"
+    ],
+    [
+     "__hostile__",
+     "fr-bail-entretien",
+     "STRUCTURE_LARGEST"
+    ],
+    [
+     "__hostile__",
+     "it-responsabilita-medica",
+     "RELATIONS"
+    ],
+    [
+     "__hostile__",
+     "it-responsabilita-medica",
+     "STRUCTURE_LARGEST"
+    ]
+   ],
+   "control": "run_bar_gates._hostile_geometry appended as a 4th newest member, re-measured through the accepted engine"
+  },
+  "R5_no_new_threshold": {
+   "holds": true,
+   "n_offending_lines": 0
+  },
+  "non_vacuity_battery": {
+   "all_hold": true,
+   "N1_at_least_one_real_fire": true,
+   "N2_not_indiscriminate": true,
+   "N3_hostile_detects_new": true,
+   "N4_old_F5_reproduced": true,
+   "N5_rules_identity": true
+  },
+  "known_limitations_frozen_and_disclosed": [
+   "S1 cannot see a deficit that predates the observed lineage window (born-failing cells: it/PROJ_RANK F,P,P and de/COHERENCE_QUERY_TERM F,F,F are invisible to S1). Those cells remain the absolute bars job, which stays reported never enforced.",
+   "S1 only flags the FIRST departure from a clean history; continued failing is not re-flagged (clean-prefix rule, frozen by design).",
+   "S2 requires >= 2 observations and only fires when the endpoint CROSSES the frozen bar; a monotone approach without crossing is a warning, not a regression, and is deliberately not fired.",
+   "the whole-prefix vs single-build S1 control is empirically non-discriminating on this n=3 population + one hostile extension."
+  ],
+  "companion_records": {
+   "frozen_3leg_benchmark": {
+    "path": "results/evaluation/retrieval_counter_authority_benchmark/38996043415.json",
+    "verdict": "BENCHMARK_VALID_NO_FALSIFICATION",
+    "exit_code": 0,
+    "legs": {
+     "served_baseline": 0,
+     "geometry_falsification_hostile": 1,
+     "label_falsification_blanked_evidence": 1
+    },
+    "falsification_proven": true
+   },
+   "snapshot_audit": {
+    "path": "results/evaluation/snapshot_audit/38996043415.json",
+    "result": "READY 12/12"
+   },
+   "frozen_digests_reverified_unchanged": {
+    "evaluation/reality_gate/frozen_benchmark.json": "ff57f556c3755ab663766618ab7abe763f251e7add70cd8ed964141846d063c8",
+    "evaluation/retrieval_gate/frozen_retrieval_benchmark.json": "187b0e54b03b326c62d45d8ba48fc78dc88501086761cd91a84c304a7478ba72",
+    "evaluation/frozen_bars/RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+    "evaluation/frozen_bars/RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+    "evaluation/frozen_bars/VERDICT_CONTRACT.json": "b9cdb89438a8d16ee165fe2a5d73060524154d8e7ba8e0cab867e8ca17ff414c",
+    "git_diff_vs_accepted_head_46a94af0_for_frozen_dirs": "empty"
+   }
+  },
+  "tests_this_cycle": {
+   "file": "tests/evaluation/test_reground_lineage_semantics.py",
+   "count": 34,
+   "result": "34 passed",
+   "active_lane_suite": "218 collected / 218 passed / 0 failed (per-file counts in the cycle report; this is the prior 184-test definition plus this cycles 34-test file)"
+  },
+  "deliberately_not_done": [
+   "the two Frontier candidates were NOT re-measured",
+   "no frozen benchmark, RULES file, incumbent, verdict contract or exit-code contract was edited",
+   "the four frozen reality legs and the retrieval/counter-authority recall gates stay byte-unchanged",
+   "the 174k suite stays closed",
+   "no product packet-admission wiring was changed from here",
+   "the standing accepted DO-NOT-SERVE order and human_gate_ready=false are untouched"
+  ],
+  "defects_found_and_fixed_before_the_recorded_run": [
+   "a malformed N2 boolean expression in the battery (debug pass only; fixed before the recorded run; no predicate touched)",
+   "unit tests synthetic qids needed an explicit qids= parameter on score_lineage so the predicates could be pinned in isolation (no predicate touched)"
+  ]
+ }
 }
