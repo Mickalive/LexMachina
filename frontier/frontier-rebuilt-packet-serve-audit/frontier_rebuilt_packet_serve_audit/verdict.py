@@ -17,8 +17,11 @@ def _label_bar_met(half_a: dict) -> bool:
     """Absolute label bar AS WRITTEN: every issued label supported.
 
     Uses the ACCEPTED label_gate absolute_status on the scored issued
-    population (not prose). NOT_APPLICABLE from any regression instrument
-    is NOT a pass and never contributes to a SERVE.
+    population (the population-free instrument reading; see
+    half_a.label_bar_status_by_instrument_and_text for the frozen
+    rules-text INSUFFICIENT_POPULATION residual, disclosed not re-derived).
+    NOT_APPLICABLE from any regression instrument is NOT a pass and never
+    contributes to a SERVE.
     """
     gate = half_a.get("accepted_label_gate_as_written") or {}
     pooled = half_a.get("pooled") or {}
@@ -55,7 +58,9 @@ def resolve(half_a: dict, half_b: dict, half_c: dict) -> dict:
             f"label_half_improving: {pooled.get('n_supported')}/{pooled.get('n_issued')} "
             f"issued counter labels supported under the frozen rubric "
             f"(support_rate_among_issued=1.0; abstentions={pooled.get('n_abstained')}); "
-            "frozen scorer absolute_status as written = LABEL_SOUND"
+            "accepted instrument (label_gate) absolute_status as written = LABEL_SOUND "
+            "(population-free reading; frozen RULES_LABEL.json prose verdict_rule residual "
+            "INSUFFICIENT_POPULATION at n_scored<7 disclosed in the record, not re-derived)"
         )
     counts = half_b.get("criterion_counts") or {}
     incumbents = half_b.get("incumbent_counts") or {}

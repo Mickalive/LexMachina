@@ -122,6 +122,67 @@ def score_with_accepted_lineage_gate(packet_questions: Path) -> dict:
     }
 
 
+def _label_bar_status_by_instrument_and_text(absolute: dict) -> dict:
+    """Label-bar status published BY INSTRUMENT/TEXT (audit FIX-3).
+
+    instrument_reading: the ACCEPTED vendored label_gate.score_packet
+    predicate AS WRITTEN (population-free LABEL_SOUND := n_scored > 0 and
+    n_supported == n_scored, restated identically by the accepted
+    VERDICT_CONTRACT.json). This is the reading the charter's
+    stop_promote_rule outcome (A)/(B)/(C) uses ("the frozen scorer's own
+    exact-population predicate AS WRITTEN").
+
+    frozen_rules_text_residual: the frozen RULES_LABEL.json verdict_rule
+    (sha256 4457e971..., byte-identical, re-hashed before use) ALSO defines a
+    population-conditioned LABEL_SOUND (n_scored == required_min_population_
+    primary AND n_supported == n_scored) and an INSUFFICIENT_POPULATION
+    non-result class the accepted instrument never emits. At n_scored < 7 the
+    rules-text class is INSUFFICIENT_POPULATION. DISCLOSED, not re-derived;
+    no threshold, rubric or verdict contract is edited here.
+    """
+    rules = label_gate.load_frozen_rules(str(RULES_LABEL_PATH))
+    n_scored = absolute.get("n_scored") or 0
+    required_min = ((rules.data.get("populations") or {}).get("primary") or {}).get(
+        "required_min_population_primary")
+    if n_scored and required_min is not None and n_scored < required_min:
+        rules_text_reading = "INSUFFICIENT_POPULATION"
+    elif n_scored and required_min is not None and n_scored == required_min:
+        rules_text_reading = "LABEL_SOUND" if absolute.get("n_supported") == n_scored else "LABEL_UNSOUND"
+    else:
+        rules_text_reading = "NOT_DETERMINED_ON_THIS_PACKET"
+    return {
+        "instrument_reading": {
+            "source": ("ACCEPTED vendored label_gate.score_packet AS WRITTEN; accepted "
+                       "VERDICT_CONTRACT.json restates LABEL_SOUND := n_scored > 0 and "
+                       "n_supported == n_scored (population-free)"),
+            "reading": absolute.get("absolute_status"),
+            "n_scored": absolute.get("n_scored"),
+            "n_supported": absolute.get("n_supported"),
+            "governs_verdict_enum": True,
+        },
+        "frozen_rules_text_residual": {
+            "source": ("frozen RULES_LABEL.json verdict_rule (sha256 "
+                       "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608, "
+                       "byte-identical, re-hashed before use)"),
+            "reading": rules_text_reading,
+            "condition": "n_scored < required_min_population_primary",
+            "n_scored": n_scored,
+            "required_min_population_primary": required_min,
+            "rules_text_quote": ("INSUFFICIENT_POPULATION: n_scored < required_min_population_primary, "
+                                 "or any of the frozen primary rows could not be scored from the "
+                                 "accepted evidence fields. This is a NON-RESULT: it must not be read "
+                                 "as LABEL_SOUND nor as a pass of any product fix."),
+            "disclosed_not_rederived": True,
+            "governs_verdict_enum": False,
+        },
+        "note": ("The accepted instrument's population-free reading is what the verdict enum "
+                 "uses; the frozen rules text's population-conditioned LABEL_SOUND / "
+                 "INSUFFICIENT_POPULATION classes are disclosed here as a residual. Outcome (B) "
+                 "vs (C) turns on this reading; both are published, neither is re-derived."),
+        "threshold_re_derived": False,
+    }
+
+
 def measure(packet_questions: Path) -> dict:
     per_bundle = {qid: recompute_bundle(packet_questions, qid) for qid in QIDS}
     n_issued = sum(b["n_scored_issued"] for b in per_bundle.values())
@@ -159,6 +220,7 @@ def measure(packet_questions: Path) -> dict:
             "not_applicable_is_not_a_pass": True,
         },
         "accepted_label_lineage_gate_as_written": lineage,
+        "label_bar_status_by_instrument_and_text": _label_bar_status_by_instrument_and_text(absolute),
         "not_applicable_is_not_a_pass": True,
         "threshold_re_derived": False,
     }

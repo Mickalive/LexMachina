@@ -1,9 +1,12 @@
 {
- "schema": "frontier-rebuilt-packet-serve-audit/integration_contract/1",
- "team_id": "frontier-rebuilt-packet-serve-audit",
- "charter_version": 3,
- "run_id": 39048947212,
- "evidence_tier": "ACCEPTED_CANDIDATE",
+  "schema": "frontier-rebuilt-packet-serve-audit/integration_contract/1",
+  "team_id": "frontier-rebuilt-packet-serve-audit",
+  "charter_version": 3,
+  "run_id": 39048947212,
+  "resume_run_id": 39053132092,
+  "repair_round": 1,
+  "repair_note": "Audit CYCLE_39053132092 gate=REVISE required_fixes FIX-1..FIX-4 repaired on the SAME frozen bytes (packet.json sha256 2942c3c2...). The verdict enum DO-NOT-SERVE-UNCHANGED (outcome B) is unchanged. This completes charter acceptance test 2 on the same bytes; it is not a second measurement cycle.",
+  "evidence_tier": "ACCEPTED_CANDIDATE",
  "purpose": "Narrow contract naming the exact artifacts Core Product and Core Evaluation must consume to consume this team's independent serve verdict on the REBUILT packet. This team writes no product file and no evaluation file.",
  "publishes": [
   {
@@ -14,11 +17,11 @@
    "authority": "Freeze ordering is proven from git commit time (commit 5b6dc8f9) on branch lab/frontier/frontier-rebuilt-packet-serve-audit, strictly earlier than any measurement commit. A hand-written frozen_at_utc is NOT evidence."
   },
   {
-   "artifact": "independent audit record (the verdict)",
-   "path": "results/frontier/frontier-rebuilt-packet-serve-audit/AUDIT_RECORD.json",
-   "sha256": "ebe0bd39ba59206aac747a9d64db3cf00a61122db17988f8413fa9ac8c290a87",
+    "artifact": "independent audit record (the verdict)",
+    "path": "results/frontier/frontier-rebuilt-packet-serve-audit/AUDIT_RECORD.json",
+    "sha256": "11eb58efd286f01f24462e74d3e2a9b5eb034c6fc03eae4d31a803a74f60b497",
    "schema": "frontier-rebuilt-packet-serve-audit/report/1",
-   "purpose": "All three measured halves, both accepted label instruments' verdicts side by side, geometry per-criterion tables, the marginal-discovery measurement, the cross-check table, non-vacuity controls, the before/after pair and ONE machine-checked serve recommendation.",
+    "purpose": "All three measured halves, both accepted label instruments' verdicts side by side, the label-bar status by instrument/text, geometry per-criterion tables, the marginal-discovery measurement, the cross-check table (Core Evaluation run 39049030442 consumed; all 8 published quantities agree; mega absent-not-divergent), non-vacuity controls, the before/after pair and ONE machine-checked serve recommendation.",
    "authority": "The independent serve verdict. It does NOT adjudicate Core Evaluation's lane deliverable; its label/geometry numbers are published beside Evaluation's as a cross-check and no threshold, rubric or verdict contract is re-derived."
   },
   {
@@ -43,17 +46,17 @@
   {
    "artifact": "deterministic offline tests",
    "path": "tests/frontier/frontier-rebuilt-packet-serve-audit/",
-   "purpose": "30 tests covering hash re-verification, abstention accounting, population-predicate handling, NOT_APPLICABLE-not-a-pass, marginal-discovery rank logic, before/after labelling, zero out-of-scope writes, enum capability, determinism, mega-cluster size basis, the frozen 11 criteria, freeze ordering and the cross-check table (absent vs supplied re-score).",
+    "purpose": "34 tests covering hash re-verification, abstention accounting, population-predicate handling, NOT_APPLICABLE-not-a-pass, marginal-discovery rank logic, before/after labelling, zero out-of-scope writes, enum capability, determinism, mega-cluster size basis, the frozen 11 criteria, freeze ordering and the cross-check table (absent vs supplied re-score; the real Core Evaluation 39049030442 adjudication record through the explicit schema mapping; final-resume absence-claim re-verification; foreign-bytes refusal).",
    "authority": "Executed with: python3 -m pytest tests/frontier/frontier-rebuilt-packet-serve-audit -q"
   }
  ],
- "consumers": {
-  "core_product": {
-   "reads": [
-    "results/frontier/frontier-rebuilt-packet-serve-audit/AUDIT_RECORD.json",
-    "results/frontier/frontier-rebuilt-packet-serve-audit/RULES.json",
-    "results/frontier/frontier-rebuilt-packet-serve-audit/INTEGRATION_CONTRACT.md"
-   ],
+  "consumers": {
+    "core_product": {
+      "reads": [
+        "results/frontier/frontier-rebuilt-packet-serve-audit/AUDIT_RECORD.json",
+        "results/frontier/frontier-rebuilt-packet-serve-audit/RULES.json",
+        "results/frontier/frontier-rebuilt-packet-serve-audit/INTEGRATION_CONTRACT.json"
+      ],
    "must_not": [
     "treat DO-NOT-SERVE-UNCHANGED as permission to ship the packet",
     "read the label half's support_rate 1.0 as an absolute pass: it is a rate over 5 ISSUED rows, and 60 rows abstained",
@@ -63,16 +66,24 @@
    "how_to_consume": "Read verdict.serve_recommendation as the machine-checked answer and verdict.bounded_causes as the bounded list of what blocks serving. The record is read-only for Product."
   },
   "core_evaluation": {
-   "reads": [
-    "results/frontier/frontier-rebuilt-packet-serve-audit/AUDIT_RECORD.json (cross_check.cross_check_rows)",
-    "results/frontier/frontier-rebuilt-packet-serve-audit/RULES.json"
-   ],
-   "cross_check_input": "This team's independent recomputation of the frozen label and geometry numbers on packet content_sha256 2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170, published for side-by-side reading beside the lane's own re-score.",
-   "re_score_to_publish_at": "results/evaluation/rebuilt_packet_rescore/REBUILT_PACKET_RESCORE.json (lane-owned path; this team never writes it)",
-   "cross_check_recipe": "python -m frontier_rebuilt_packet_serve_audit.cli --packet <packet dir> --frozen-rules --evaluation-rescore <path to the lane's re-score json> --out <caller path>. The harness then places Evaluation's published number beside this team's recomputation for every quantity in cross_check_rows and names any divergence as the headline finding. No threshold is re-derived by either side.",
-   "how_to_consume": "At the moment of this team's hard stop the lane's re-score of these bytes is ABSENT (see AUDIT_RECORD.json cross_check.evaluation_search_basis). The absence is recorded, never invented and never blocking; this team's numbers stand alone until the lane publishes, at which point the recipe above produces the side-by-side table."
-  }
- },
+    "reads": [
+      "results/frontier/frontier-rebuilt-packet-serve-audit/AUDIT_RECORD.json (cross_check.cross_check_rows)",
+      "results/frontier/frontier-rebuilt-packet-serve-audit/RULES.json"
+    ],
+    "cross_check_input": "This team's independent recomputation of the frozen label and geometry numbers on packet content_sha256 2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170, published for side-by-side reading beside the lane's own re-score.",
+    "re_score_published_by_lane": {
+      "run_id": 39049030442,
+      "record": "results/evaluation/rebuilt_packet_adjudication_39049030442/39049030442_adjudication.json",
+      "git_ref": "origin/cycle/core/evaluation/39052366154/team",
+      "commit": "27a1d309ea6c76a05d0849351f1067a92c0e030d",
+      "commit_time_utc": "2026-10-17T17:05:31Z",
+      "status": "PRESENT and consumed as the CROSS-CHECK input (charter acceptance test 2 met on the same bytes)",
+      "cross_check_outcome": "all 8 published quantities agree; Evaluation publishes no mega-cluster quantity (recorded absent-not-divergent); headline = no divergence; this team's verdict enum unchanged"
+    },
+    "re_score_to_publish_at": "results/evaluation/rebuilt_packet_adjudication_39049030442/39049030442_adjudication.json (lane-owned path; this team never writes it)",
+    "cross_check_recipe": "python -m frontier_rebuilt_packet_serve_audit.cli --packet <packet dir> --frozen-rules --evaluation-rescore <path to the lane's re-score json> --out <caller path>. The harness then places Evaluation's published number beside this team's recomputation for every quantity in cross_check_rows via an explicit schema mapping (the first-key resolver is a non-authoritative fallback only) and names any divergence as the headline finding. No threshold is re-derived by either side.",
+    "how_to_consume": "The lane's re-score of these bytes is PRESENT (run 39049030442, published 2026-10-17T17:05:31Z, before this team's measurement commit). Read AUDIT_RECORD.json cross_check for the side-by-side table: all 8 published quantities agree, and the instrument verdicts agree (label_gate absolute LABEL_SOUND / regression NOT_APPLICABLE; lineage PASS_NO_REGRESSION; geometry GEOMETRY_UNSOUND / PASS_NO_REGRESSION; 0/3 bundles at 11/11). Evaluation publishes no mega-cluster quantity; that row is absent-not-divergent, never a divergence. The earlier ABSENT claim (audit CYCLE_39053132092 required_fix FIX-1) is disclosed as falsified in cross_check.evaluation_search_basis.prior_absent_claim."
+  },
  "harness_entrypoint": {
   "module": "python -m frontier_rebuilt_packet_serve_audit.cli",
   "cwd_requirement": "run from frontier/frontier-rebuilt-packet-serve-audit (the package root) or with that directory on PYTHONPATH",
@@ -90,26 +101,30 @@
    "2": "environment error (freeze mismatch / missing input) — never a product verdict"
   }
  },
- "verdict": {
-  "serve_recommendation": "DO-NOT-SERVE-UNCHANGED",
-  "charter_outcome": "B",
-  "one_sentence": "SERVE RECOMMENDATION: DO-NOT-SERVE-UNCHANGED — The rebuild does not change the serve conclusion: the frozen absolute geometry bar remains unmet on the rebuilt bytes; the accepted DO-NOT-SERVE order stands. Product-improving halves are promoted in this record and must not be explained away by the pre-rebuild baseline.",
-  "bounded_causes": [
-   "geometry_bar_unmet: per-criterion counts de-kapitalverletzung=7, fr-bail-entretien=5, it-responsabilita-medica=7 of 11 (no bundle reaches 11/11 on the frozen criteria)",
-   "comparative_marginal_discovery_present: some issued counter authorities are absent from the initial-pool top-K or invisible in the list top-K"
-  ],
-  "product_improving_findings": [
-   "label_half_improving: 5/5 issued counter labels supported under the frozen rubric (support_rate_among_issued=1.0; abstentions=60); frozen scorer absolute_status as written = LABEL_SOUND",
-   "geometry_half_improving: per-criterion count rose vs incumbent on de-kapitalverletzung 6->7, it-responsabilita-medica 5->7",
-   "comparative_half_improving: marginal discovery EXISTS — issued counter authorities are absent from the initial-pool top-K and/or invisible in the list top-K, so the map adds a discovery channel the ranked list does not"
-  ]
- },
- "reproduction": {
-  "command": "cd frontier/frontier-rebuilt-packet-serve-audit && python3 -m frontier_rebuilt_packet_serve_audit.cli --packet /tmp/lex_work/results/product/gate_packet/rebuilt-39027045675 --frozen-rules --out <out.json>",
-  "determinism": "two consecutive runs produced byte-identical records (sha256 ebe0bd39ba59206aac747a9d64db3cf00a61122db17988f8413fa9ac8c290a87); see REPRODUCTION.json",
-  "inputs_verified_by": "results/frontier/frontier-rebuilt-packet-serve-audit/AUDIT_RECORD.json :: freeze_verification (every pinned sha256 re-hashed before scoring; a mismatch is an environment error, never a verdict)",
-  "tests": "30 passed"
- },
+  "verdict": {
+    "serve_recommendation": "DO-NOT-SERVE-UNCHANGED",
+    "charter_outcome": "B",
+    "one_sentence": "SERVE RECOMMENDATION: DO-NOT-SERVE-UNCHANGED — The rebuild does not change the serve conclusion: the frozen absolute geometry bar remains unmet on the rebuilt bytes; the accepted DO-NOT-SERVE order stands. Product-improving halves are promoted in this record and must not be explained away by the pre-rebuild baseline.",
+    "bounded_causes": [
+      "geometry_bar_unmet: per-criterion counts de-kapitalverletzung=7, fr-bail-entretien=5, it-responsabilita-medica=7 of 11 (no bundle reaches 11/11 on the frozen criteria)",
+      "comparative_marginal_discovery_present: some issued counter authorities are absent from the initial-pool top-K or invisible in the list top-K"
+    ],
+    "product_improving_findings": [
+      "label_half_improving: 5/5 issued counter labels supported under the frozen rubric (support_rate_among_issued=1.0; abstentions=60); accepted instrument (label_gate) absolute_status as written = LABEL_SOUND (population-free reading; frozen RULES_LABEL.json prose verdict_rule residual INSUFFICIENT_POPULATION at n_scored<7 disclosed in the record, not re-derived)",
+      "geometry_half_improving: per-criterion count rose vs incumbent on de-kapitalverletzung 6->7, it-responsabilita-medica 5->7",
+      "comparative_half_improving: marginal discovery EXISTS — issued counter authorities are absent from the initial-pool top-K and/or invisible in the list top-K, so the map adds a discovery channel the ranked list does not"
+    ],
+    "label_bar_status_by_instrument_and_text": {
+      "instrument_reading": "LABEL_SOUND at n_scored=5 (ACCEPTED label_gate.score_packet AS WRITTEN; population-free) — governs the verdict enum",
+      "frozen_rules_text_residual": "INSUFFICIENT_POPULATION at n_scored=5 < required_min_population_primary=7 (frozen RULES_LABEL.json verdict_rule, sha 4457e971…, byte-identical) — disclosed, not re-derived; does not govern the verdict enum"
+    }
+  },
+  "reproduction": {
+    "command": "cd frontier/frontier-rebuilt-packet-serve-audit && python3 -m frontier_rebuilt_packet_serve_audit.cli --packet /tmp/lex_work/results/product/gate_packet/rebuilt-39027045675 --frozen-rules --evaluation-rescore vendored_cross_check_input/39049030442_adjudication.json --out <out.json>",
+    "determinism": "two consecutive runs produced byte-identical records (sha256 11eb58efd286f01f24462e74d3e2a9b5eb034c6fc03eae4d31a803a74f60b497); see REPRODUCTION.json",
+    "inputs_verified_by": "results/frontier/frontier-rebuilt-packet-serve-audit/AUDIT_RECORD.json :: freeze_verification (every pinned sha256 re-hashed before scoring; a mismatch is an environment error, never a verdict)",
+    "tests": "34 passed"
+  },
  "write_scope": [
   "frontier/frontier-rebuilt-packet-serve-audit/",
   "tests/frontier/frontier-rebuilt-packet-serve-audit/",
