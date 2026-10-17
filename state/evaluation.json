@@ -302,7 +302,7 @@
     "report": "reports/evaluation/COUNTER_AUTHORITY_LABEL_BENCHMARK_39004097533.md",
     "verdict": "PRODUCT_FALSIFIED"
   },
-  "cycle_status": "V55_OPERATIONAL_RESUME_39052366154__30S_PRODUCER_DEATH_ZERO_DELTA_DIAGNOSED_AT_JOB_STEP_LEVEL__PREDECESSOR_39049030442_QUANTUM_CLASS_2702S_DEATH_AFTER_FULL_DELIVERY__DELIVERED_TREE_C3C04285_ADOPTED_AND_REVERIFIED__LANE_SUITE_GREEN__SNAPSHOT_AUDIT_READY__INDEPENDENT_GATE_OUTSTANDING__HUMAN_GATE_READY_FALSE",
+  "cycle_status": "V55_OPERATIONAL_RESUME_39060149281__406S_MID_RUN_PRODUCER_DEATH_ZERO_DELTA_DIAGNOSED_AT_JOB_STEP_LEVEL__THIRD_DURATION_CLASS_NOT_16S30S_IMMEDIATE_NOT_2700S_QUANTUM__PREDECESSOR_39052477458_TEAM_SUCCESS_DELIVERED_D01A2D4D7_BUT_AUDIT_JOB_CANCELLED_63M_NO_GATE__FRONTIER_CORE_EVALUATION_RESCORE_ABSENT_RECONCILED_AS_TEMPORAL_MOUNT_SCOPE__LANE_SUITE_GREEN__SNAPSHOT_AUDIT_READY_20_20__INDEPENDENT_GATE_OUTSTANDING__HUMAN_GATE_READY_FALSE",
   "direction_item_1_trigger_39043684319": {
     "accepted_product_head": "cc719eeb accept product cycle 39019268074",
     "claim_ceiling": "This says the served population did not move. It is NOT a pass and says nothing about whether the served packet meets either frozen bar.",
@@ -620,7 +620,13 @@
     "results/evaluation/orchestration_39052477458/api/run_39052477458.json",
     "results/evaluation/orchestration_39052477458/api/jobs_39052477458.json",
     "results/evaluation/snapshot_audit/39052477458.json",
-    "reports/evaluation/CYCLE_39052477458.md"
+    "reports/evaluation/CYCLE_39052477458.md",
+    "evaluation/snapshot_audit/orchestration_diagnosis_39060149281.json",
+    "results/evaluation/orchestration_39060704006/api/SHA256SUMS.json",
+    "results/evaluation/frontier_cross_check_reconciliation_39060704006/39060704006_reconciliation.json",
+    "results/evaluation/snapshot_audit/39060704006.json",
+    "reports/evaluation/CYCLE_39060704006.md",
+    "results/evaluation/lane_suite/39060704006.json"
   ],
   "evidence_tier": "REPRODUCED",
   "execution_records_38951152192": {
@@ -1042,7 +1048,7 @@
     "verdict_driver": "python -m evaluation.newhead_verdict  (decides the frozen success rule from committed records only)",
     "verdict_record": "results/evaluation/newhead_recompute_39027041693/derived/VERDICT_39027041693.json"
   },
-  "next_recommendation": "CONSUME the rebuilt packet per-artifact/per-leg re-score (run 39049030442, preserved on this run) as the FINAL evidence if frontier-rebuilt-packet-serve-audit returns an ACCEPTED verdict (OUTCOME-B route-around: publish, keep every frozen gate byte-unchanged and STOP); that team's v3 repair0 (run 39048947212) is still running and no accepted verdict exists yet. The independent audit of THIS run (CYCLE_39052477458_GATE.json) is the concrete successor deliverable and remains outstanding. RE-DISPATCH ONLY when (a) origin/lab/product ADVANCES with an accepted packet audit, (b) the Frontier audit yields an accepted verdict, or (c) the direction commissions a new frozen question. Control plane, recorded not patched: (i) the three consecutive dirV55 repair0 dispatches of the SAME question (16 s death -> 2702 s quantum-class death after full delivery -> 30 s death) show the run-conclusion re-dispatch has no branch for a producer step that failed at the quantum boundary AFTER the deliverable was persisted; (ii) emit the wrapper rc from producer step 6 so a 16 s/30 s producer death is readable from the REST record alone; (iii) steps 7/9 remain success()-gated on the producer step.",
+  "next_recommendation": "The lane deliverable is COMPLETE and this snapshot is audit-ready (20/20). The successor deliverable is the INDEPENDENT AUDIT GATE results/audit/evaluation/CYCLE_39060704006_GATE.json (uppercase _GATE.json, relative to the audit-job checkout) for this d01a2d4d7 tree; the predecessor 39052477458 delivered this tree successfully but its audit job was CANCELLED after ~63 m with no gate, so the gate has been outstanding since. RE-DISPATCH ONLY when (a) origin/lab/product ADVANCES with an accepted packet audit, (b) frontier-rebuilt-packet-serve-audit returns an INDEPENDENTLY ACCEPTED verdict (then the direction v55 OUTCOME-B route-around binds: publish the per-artifact/per-leg re-score as the FINAL evidence, keep every frozen gate byte-unchanged and STOP), or (c) the direction commissions a new frozen question. Do NOT re-dispatch the identical dirV55 question: the 406 s zero-delta death of 39060149281 was the FIFTH dispatch of the same question and produced nothing. Control plane, recorded not patched: (i) the run-conclusion re-dispatch has no branch for a producer step that fails mid-run with zero delta or for an audit job cancelled after delivery; (ii) emit the wrapper rc from producer step 6 so a 16 s/30 s/406 s producer death is readable from the REST record alone; (iii) steps 7/9 remain success()-gated on the producer step.",
   "next_recommendation_38951152192": "HAND OFF TO PRODUCT, then stop this lane's proposal chain. The v49 evaluation question is encoded, enforced, self-falsified twice (F6 cached-replay latency erasure, closed 38945976309; F7 bare-checkout pytest false-red, closed this cycle), and both falsifications are closed without moving any frozen bar. What remains is not lane work: audit and promote (or reject) the stacked proposals 38939239917 (retrieval benchmark) and 38945976309 (hardening) so their deliverables stop shadowing every re-dispatch, and set the portfolio .status stop per factory-direction item 13 — continue_recommended:false cannot stop re-dispatch while the supervisor jq // defect stands. continue_recommended stays false: the next dispatch must carry a NEW question, never a re-run of this one. Product's open falsifications are unchanged and restated without re-measurement (FR/IT authority recall 0/N vs DE 2/2, 2/5, 1/2; fresh BJR leg cites 0/5 frozen BJR authorities; retrieval live pass 256.827s vs frozen 240s budget; duplicate::unique_ids fails on all four questions; 6 unusable ids among 960 rows; rent-default authority gates permanently not_measurable). human_gate_ready stays false. No 174k/global-map benchmarks rerun; none was run this cycle.",
   "operational_resume_38977570612": {
     "audit_readiness": "snapshot is audit-ready: 15 files, all inside the evaluation lane namespace (evaluation/, tests/evaluation/, results/evaluation/, reports/evaluation/, state/evaluation.json); auditor gate path must be results/audit/evaluation/CYCLE_38977570612_GATE.json (uppercase _GATE.json) written from the audit-job checkout, never /tmp/lex_team",
@@ -1329,7 +1335,7 @@
     "producer_commit": "660ad896",
     "run_id": "38939239917"
   },
-  "proposed_run_id": "39052477458",
+  "proposed_run_id": "39060704006",
   "recommendation": "CONTINUE",
   "recommendation_rationale": "RESEARCH_PROTOCOL step 9 for run 39027041693. The v52 lane question is honoured literally: deliverable (1)'s conditional trigger was EXECUTED and answered NO, so the forbidden zero-delta re-run was not issued; deliverable (4)'s per-artifact recompute was executed on the new Product head in two invocations and the frozen success rule NEWHEAD_RECOMPUTE_DELIVERED was met; deliverable (5)'s movable-gate set was recomputed and published as a verified superset rather than a matching count; deliverable (7)'s constraints were kept (no frozen digest, rubric, threshold or bar touched; 174k closed; no candidate building; human_gate_ready false). A harness defect that made deliverable (4) unrunnable was found by the frozen instrument itself, repaired under two separately frozen protocols, and proven non-weakening by differential execution against the pre-repair bytes.",
   "recommendation_rationale_prior_39007294442": "RESEARCH_PROTOCOL step 9. The v50 two-gate build question stays delivered; this cycle did not rebuild it, it tested the LABEL half on real accepted product artifacts and produced the lane's first product-level falsification of the counter-authority labelling (PRODUCT_FALSIFIED, exit 1, battery 4/4 proven) plus five fired gate predicates. The next concrete discriminating purpose under the same mission is a declared-population re-freeze of the counter-label bar, which is the only thing that makes Product obligation (1) enforceable; that touches a FROZEN rubric and is therefore recorded as control-plane scope, not patched from this lane. continue_recommended stays true for that single successor, not as a generic keep-running.",
@@ -1515,8 +1521,8 @@
     "report_path_for_the_auditor": "reports/audit/evaluation/CYCLE_39043684319.md",
     "verdict": "READY"
   },
-  "state_updated_at": "2026-10-17T16:51:38Z",
-  "state_updated_by_run": "39052477458",
+  "state_updated_at": "2026-10-17T19:30:00Z",
+  "state_updated_by_run": "39060704006",
   "unresolved_observation_39020603510": {
     "concrete_successor": "CHEAP AND WORTH DOING: make the lane suite measure repeat-invariance of BOTH entry points (say N=10 each, stderr captured, verdict + measured blocks compared run-to-run) and commit the observed non-zero rate as a first-class record. That converts an anecdote into a rate and would catch a real intermittent. NOT done in this cycle because it changes the accepted lane suite's check list beyond a disclosed additive extension.",
     "discipline": "The anomaly is preserved rather than deleted, exactly as any other negative observation in this lane.",
@@ -2250,5 +2256,44 @@
     "n_skipped": 1,
     "overall_pass": true,
     "claim_ceiling": "A green lane suite is not a product pass and not a promotion."
+  },
+  "snapshot_audit_39060704006": {
+    "command": "python -m evaluation.snapshot_audit.run_snapshot_audit --run-id 39060704006",
+    "record": "results/evaluation/snapshot_audit/39060704006.json",
+    "n_checks": 20,
+    "n_passed": 20,
+    "verdict": "READY",
+    "ready_for_independent_audit": true,
+    "gate_path_for_the_auditor": "results/audit/evaluation/CYCLE_39060704006_GATE.json (uppercase _GATE.json, relative to the audit-job checkout)",
+    "report_path_for_the_auditor": "reports/audit/evaluation/CYCLE_39060704006.md",
+    "new_check_this_chain": "check 20 frontier_cross_check_reconciliation (the accepted frontier team's CORE_EVALUATION_RESCORE_ABSENT cross-check reconciled against Core Evaluation's actual rebuilt-packet re-score on the evaluation cycle ref; frontier accepted_run_id stays null so the direction v55 OUTCOME-B route-around has NOT triggered)",
+    "pytest": "the lane suite's pytest sub-check SKIPs here (pytest is not installed in the producer image); the stdlib checks are the authoritative ones and are green at 48/49 (the 1 skip is the pytest sub-check)"
+  },
+  "lane_suite_39060704006": {
+    "entrypoint": "python -m evaluation.lane_suite",
+    "result": "PASS 48/49 checks (the 1 skipped check is the pytest sub-check, pytest absent in this image)",
+    "n_failed": 0,
+    "n_skipped": 1,
+    "overall_pass": true,
+    "claim_ceiling": "A green lane suite is not a product pass and not a promotion."
+  },
+  "durable_delta_39060704006": [
+    "evaluation/snapshot_audit/orchestration_diagnosis_39060149281.json (new; job/step-level diagnosis of the 406 s mid-run zero-delta producer death, a THIRD duration class: not the 16 s/30 s immediate class, not the 2700 s quantum class)",
+    "results/evaluation/orchestration_39060704006/api/{run,jobs}_{39060149281,39052477458,39060704006}.json + SHA256SUMS.json (new; unauthenticated REST evidence, every fetched byte sha256-pinned)",
+    "results/evaluation/frontier_cross_check_reconciliation_39060704006/39060704006_reconciliation.json (new; the accepted frontier team's cross_check.status=CORE_EVALUATION_RESCORE_ABSENT reconciled against Core Evaluation's actual re-score: re-score commit 27a1d309 (17:05:31Z) precedes the frontier measurement commit 4e4ad05b (17:14:39Z) by 548 s and lives on origin/cycle/core/evaluation/39049030442/team; 9 cross-check quantities compared, 0 divergences, the mega-cluster quantity geometry-scoped; the frontier accepted_run_id stays null so it is NOT independently accepted and the OUTCOME-B route-around has NOT triggered)",
+    "evaluation/snapshot_audit/run_snapshot_audit.py (check 20 frontier_cross_check_reconciliation added; the check-20 artifact, the orchestration diagnosis and the api SHA256SUMS are added to DELIVERABLE_MANIFEST_PATHS so check 6 pins them; the module docstring and build_record claims updated)",
+    "results/evaluation/snapshot_audit/39060704006.json (new; snapshot audit READY 20/20 with post_write_self_reference VERIFIED and post_write_state_claim VERIFIED)",
+    "reports/evaluation/CYCLE_39060704006.md (new; cycle report)"
+  ],
+  "frontier_cross_check_reconciliation_39060704006": {
+    "artifact": "results/evaluation/frontier_cross_check_reconciliation_39060704006/39060704006_reconciliation.json",
+    "question": "did the accepted frontier team frontier-rebuilt-packet-serve-audit wrongly record Core Evaluation's re-score of the rebuilt packet as ABSENT?",
+    "frontier_reading": "cross_check.status = CORE_EVALUATION_RESCORE_ABSENT at its hard stop (run 39048947212, measurement commit 4e4ad05b, 17:14:39Z)",
+    "core_evaluation_reading": "the re-score EXISTS: commit 27a1d309 (17:05:31Z) on origin/cycle/core/evaluation/39049030442/team (ref head c3c042854), artifact results/evaluation/rebuilt_packet_adjudication_39049030442/39049030442_adjudication.json",
+    "temporal_reconciliation": "the re-score commit precedes the frontier measurement commit by 548 s; the frontier's accepted-mount grep targeted /tmp/lex_accepted/core/evaluation, which is ABSENT in this environment; the git-sweep execution window is not exposed by the REST record",
+    "verdict": "RECONCILED_AS_TEMPORAL_AND_MOUNT_SCOPE__NOT_A_FALSE_CLAIM",
+    "quantity_cross_check": "9 quantities compared side by side, 0 divergences; the mega-cluster quantity is geometry-scoped (frontier false on the rebuilt relevance_ordered geometry, Core Evaluation false on the same rebuilt geometry, incumbent grouping fired at 0.7696 on fr-bail-entretien)",
+    "acceptance_status": "the frontier is NOT independently accepted (accepted_run_id null, portfolio status RUN, no gate=PASS); the direction v55 OUTCOME-B route-around has NOT triggered",
+    "pinned_by": "snapshot-audit check 20 frontier_cross_check_reconciliation"
   }
 }

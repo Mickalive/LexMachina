@@ -1,0 +1,123 @@
+{
+  "schema": "lex-evaluation-frontier-cross-check-reconciliation/1",
+  "run_id": "39060704006",
+  "lane": "evaluation",
+  "direction_version": 55,
+  "generated_at_utc": "2026-10-17T19:22:58Z",
+  "item": "reconcile the accepted frontier team's cross_check.status = CORE_EVALUATION_RESCORE_ABSENT against Core Evaluation's actual re-score of the rebuilt packet rebuilt-39027045675 on the evaluation cycle ref",
+  "frontier_team": {
+    "team_id": "frontier-rebuilt-packet-serve-audit",
+    "charter_version": 3,
+    "state_evidence_tier": "REPRODUCED",
+    "cycle_status": "COMPLETE",
+    "continue_recommended": false,
+    "accepted_run_id": null,
+    "accepted_commit": null,
+    "verdict": {
+      "serve_recommendation": "DO-NOT-SERVE-UNCHANGED",
+      "charter_outcome": "B"
+    },
+    "measurement_commit": "4e4ad05b38fea445ef7a8b96e40709b76591a097",
+    "measurement_commit_time_utc": "2026-10-17T17:14:39Z",
+    "workflow_run_id": 39048947212,
+    "workflow_run_created_at": "2026-10-17T16:20:05Z",
+    "workflow_run_updated_at": "2026-10-17T17:17:57Z",
+    "workflow_run_conclusion": "failure",
+    "audit_record_sha256": "ebe0bd39ba59206aac747a9d64db3cf00a61122db17988f8413fa9ac8c290a87",
+    "cross_check_status": "CORE_EVALUATION_RESCORE_ABSENT",
+    "cross_check_detected_at_run": 39048947212
+  },
+  "core_evaluation_re_score": {
+    "run_id": "39049030442",
+    "commit": "27a1d309ea6c76a05d0849351f1067a92c0e030d",
+    "commit_time_utc": "2026-10-17T17:05:31Z",
+    "ref": "origin/cycle/core/evaluation/39049030442/team",
+    "ref_head": "c3c042854ca8e12af6e8e3de321bea128df73a9e",
+    "artifact": "results/evaluation/rebuilt_packet_adjudication_39049030442/39049030442_adjudication.json",
+    "artifact_sha256": "67656e943d749f7bde365b398b8150f70a828e66a2de528bfc8916a5040ba32f",
+    "label_lineage_adjudication": "results/evaluation/label_lineage_gate/adjudications/rebuilt-39027045675_39049030442.json",
+    "label_lineage_adjudication_sha256": "ef95e9dafe26ffaeba56273acb5f9e5aa9b2d8739bef2e372061cb60e7f6b3be",
+    "note": "Core Evaluation re-scored the rebuilt packet end to end under BOTH frozen rubrics as written and published both instruments' readings side by side; the packet.json raw sha256 is 2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170 (matches the direction pin)."
+  },
+  "acceptance_status": {
+    "frontier_independently_accepted": false,
+    "why": "the frontier state carries accepted_run_id=null and accepted_commit=null and the portfolio entry is still status=RUN with run_history=[]; no CYCLE_<frontier_run>_GATE.json gate=PASS exists for it",
+    "outcome_b_route_around_triggered": false,
+    "what_would_trigger_it": "an independently accepted audit gate (gate=PASS, safe_to_integrate=true) on the frontier's AUDIT_RECORD.json; the direction v55 OUTCOME-B route-around binds only on an ACCEPTED verdict",
+    "recommendation": "do NOT treat this reconciliation as accepting or declining the frontier; publish the two re-scores side by side so no reader concludes Core Evaluation never re-scored"
+  },
+  "temporal_reconciliation": {
+    "core_evaluation_re_score_commit_time_utc": "2026-10-17T17:05:31Z",
+    "frontier_measurement_commit_time_utc": "2026-10-17T17:14:39Z",
+    "re_score_precedes_frontier_hard_stop": true,
+    "seconds_between": 548,
+    "frontier_evaluation_search_basis": {
+      "accepted_mounts_grepped": [
+        "/tmp/lex_accepted/core/evaluation (recursive grep for 2942c3c2, rebuilt-39027045675, 39034350468)",
+        "/tmp/lex_accepted/core/product (recursive grep for 2942c3c2, rebuilt-39027045675)"
+      ],
+      "git_refs_swept": "all origin/cycle/core/evaluation/*, origin/lab/evaluation, origin/main",
+      "git_commands": [
+        "git log --all --oneline -S2942c3c2...",
+        "git grep -l 'rebuilt-39027045675|2942c3c2|39034350468|6c56332c' <every ref> -- results/ reports/",
+        "git ls-tree -r --name-only <ref> | grep -iE 'rescore|rebuilt' on the four newest evaluation cycle refs"
+      ],
+      "result": "Zero evaluation-lane hits on every ref."
+    },
+    "what_is_and_is_not_established": [
+      "ESTABLISHED: the frontier's accepted-mount candidate paths live under /tmp/lex_accepted/core/evaluation, which is ABSENT in this environment (only /tmp/lex_accepted/{frontier,product} are mounted), so the accepted-mount grep was vacuous here.",
+      "ESTABLISHED: Core Evaluation's re-score commit 27a1d309 (17:05:31Z) precedes the frontier's measurement commit 4e4ad05b (17:14:39Z) by 548 s and lives on origin/cycle/core/evaluation/39049030442/team (ref head c3c042854).",
+      "NOT ESTABLISHED: whether the frontier's git sweep executed inside the 17:05:31Z-17:14:39Z window, or against a checkout that had the 39049030442 ref fetched; the frontier record exposes only the commands, not their execution time.",
+      "THEREFORE: this reconciliation does NOT assert the frontier made a false claim. It records that the re-score is present on the evaluation cycle ref and that the frontier's ABSENT reading is scoped to its hard stop and to an accepted-mount path that is absent here. Both readings are published side by side."
+    ],
+    "conclusion": "RECONCILED_AS_TEMPORAL_AND_MOUNT_SCOPE__NOT_A_FALSE_CLAIM"
+  },
+  "quantity_cross_check": {
+    "method": "the frontier's own cross_check_rows (this_team_recomputed) compared against Core Evaluation's rebuilt-packet adjudication artifact; every row states the scope used",
+    "n_rows": 9,
+    "n_divergences": 0,
+    "rows": [
+      {"quantity": "label.n_scored_on_issued_population", "frontier_recomputed": 5, "core_evaluation_published": 5, "divergence": false, "core_evaluation_source": "three_numbers_required_together.support_among_issued_derivation = '5 supported / 5 scored'"},
+      {"quantity": "label.n_supported_among_issued", "frontier_recomputed": 5, "core_evaluation_published": 5, "divergence": false, "core_evaluation_source": "three_numbers_required_together.support_among_issued_derivation"},
+      {"quantity": "label.support_rate_among_issued", "frontier_recomputed": 1.0, "core_evaluation_published": 1.0, "divergence": false, "core_evaluation_source": "three_numbers_required_together.support_rate_among_issued_labels_frozen_rubric"},
+      {"quantity": "label.n_abstained", "frontier_recomputed": 60, "core_evaluation_published": 60, "core_evaluation_source": "three_numbers_required_together.abstention_count", "divergence": false},
+      {"quantity": "label.yield_over_classifier_population", "frontier_recomputed": 0.07692307692307693, "core_evaluation_published": 0.07692307692307693, "divergence": false, "core_evaluation_source": "three_numbers_required_together.yield_on_packet_row_population"},
+      {"quantity": "geometry.de-kapitalverletzung.n_pass_of_11", "frontier_recomputed": 7, "core_evaluation_published": 7, "divergence": false, "core_evaluation_source": "instrument_1.geometry_per_bundle_criterion_counts['de-kapitalverletzung']"},
+      {"quantity": "geometry.fr-bail-entretien.n_pass_of_11", "frontier_recomputed": 5, "core_evaluation_published": 5, "divergence": false, "core_evaluation_source": "instrument_1.geometry_per_bundle_criterion_counts['fr-bail-entretien']"},
+      {"quantity": "geometry.it-responsabilita-medica.n_pass_of_11", "frontier_recomputed": 7, "core_evaluation_published": 7, "divergence": false, "core_evaluation_source": "instrument_1.geometry_per_bundle_criterion_counts['it-responsabilita-medica']"},
+      {"quantity": "geometry.mega_cluster_disclosure_fires_on_any_rebuilt_bundle", "frontier_recomputed": false, "core_evaluation_published": false, "divergence": false, "scope_note": "GEOMETRY-SCOPED, not a divergence: the frontier's quantity is the REBUILT packet's adopted relevance_ordered geometry (fr 0.2258 / de 0.243 / it 0.2844, none fire). Core Evaluation's vendored disclosures.json records the same rebuilt_packet.fired=false for all three bundles AND separately records that the INCUMBENT grouping of record fired at share 0.7696 on fr-bail-entretien. The two agree on the rebuilt geometry; the 'fired_on_any_check=true' Core Evaluation field names the incumbent grouping, not the rebuilt geometry."}
+    ],
+    "headline_finding": "No divergence detected between the frontier's recomputation and Core Evaluation's published numbers on all 9 cross-check quantities; the one quantity whose label could be misread (mega-cluster) is geometry-scoped and agrees on the rebuilt geometry."
+  },
+  "label_instrument_verdicts_side_by_side": {
+    "core_evaluation": {
+      "label_gate_population_pinned_regression": "NOT_APPLICABLE (n_scored 5 != pinned 65; NOT a pass)",
+      "label_lineage_population_free_regression": "PASS_NO_REGRESSION (support_rate 1.0 vs predicate 5/65)",
+      "absolute_label_status": "LABEL_SOUND (REPORTED, never enforced by either instrument)",
+      "record": "results/evaluation/rebuilt_packet_adjudication_39049030442/39049030442_adjudication.json"
+    },
+    "frontier": {
+      "label_half_support_among_issued": 1.0,
+      "label_half_abstentions": 60,
+      "label_half_yield": 0.07692307692307693,
+      "label_gate_absolute_status_as_written": "LABEL_SOUND",
+      "label_gate_population_pinned_regression": "NOT_APPLICABLE (n_scored 5 != pinned 65)",
+      "accepted_population_free_label_lineage_gate": "PASS_NO_REGRESSION, not blocking, on a 5-row population",
+      "headline": "the charter hypothesis that the lineage gate would still block was NOT confirmed on these bytes",
+      "record": "results/frontier/frontier-rebuilt-packet-serve-audit/AUDIT_RECORD.json"
+    },
+    "agreement": "both re-scores publish the same label numbers and the same two-instrument verdicts; the frontier's own recomputation of the lineage gate on these bytes matches Core Evaluation's accepted population-free instrument"
+  },
+  "claim_ceiling": "This is a cross-check reconciliation between two independent re-scores of the SAME rebuilt bytes. It is NOT an acceptance of the frontier's DO-NOT-SERVE-UNCHANGED verdict (the frontier is not independently accepted), it does NOT supersede the accepted DO-NOT-SERVE order on packet 38839347028, it does NOT meet either frozen absolute bar (geometry 0/3 bundles at 11/11; label support 1.0 is over 5 ISSUED rows with 60 abstentions, not an absolute pass), it changes no frozen artifact and adds no threshold, and it leaves human_gate_ready=false.",
+  "not_claimed": [
+    "this is NOT a claim that the frontier's CORE_EVALUATION_RESCORE_ABSENT reading was false; it is a claim that it is temporal/mount-scoped and that the re-score exists",
+    "this is NOT a claim that the frontier verdict is accepted; accepted_run_id is null",
+    "this is NOT a claim that the two re-scores agree because they share a code path; the frontier reuses the vendored accepted instruments, which is the accepted basis for comparison",
+    "this is NOT a claim that the mega-cluster quantity agrees without a scope qualifier; the scope qualifier is published"
+  ],
+  "limits": [
+    "the frontier's git sweep execution window is not exposed by the REST record; the temporal reconciliation therefore states what is and is not established",
+    "Core Evaluation's re-score is on the evaluation CYCLE ref (not yet on origin/lab/evaluation); acceptance of it moves only via an independent audit gate",
+    "no frozen rubric, threshold, bar, incumbent, gate success rule or recorded verdict was modified"
+  ]
+}

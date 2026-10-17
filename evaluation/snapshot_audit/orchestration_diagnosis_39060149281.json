@@ -1,0 +1,247 @@
+{
+  "schema": "lex-evaluation-orchestration-diagnosis/1",
+  "run_id": "39060704006",
+  "lane": "evaluation",
+  "direction_version": 55,
+  "subject_of_resume": "39060149281 (Core evaluation dirV55 repair0)",
+  "generated_at_utc": "2026-10-17T19:22:58Z",
+  "query_method": "unauthenticated GitHub REST API (GET /repos/Mickalive/LexMachina/actions/runs/{id} and .../runs/{id}/jobs?per_page=100) plus git (rev-parse, ls-remote, log, show, ls-tree) over the cycle checkout; job LOGS are HTTP 403 unauthenticated, so no wrapper rc, no ::error:: annotation and no step stdout was read for any run in this record. Every cause statement about a failed step is an INFERENCE.",
+  "raw_api_evidence": {
+    "note": "results/evaluation/orchestration_39060704006/api/ (SHA256SUMS.json pins every fetched byte)",
+    "run_39060149281.json": "e196d99dab55893675bda1e0839a85f5e0f408ba6979f13d96e1d73856575c4f",
+    "jobs_39060149281.json": "0c31bfb605d101c1da5b8bfae06bf2949b004dd6425a9d353c0f71594ffefc64",
+    "run_39052477458.json": "de1e065b6d7d43ed1ad6b0d99cac7ce6b980e0e6c82be7b473b0013f6d11946a",
+    "jobs_39052477458.json": "e77f71f83a496b1b377094f0a01c87f638653c100a460e6808eee4d289a5e47f",
+    "run_39060704006.json": "d094d3edf38fbfb4d46377641f43139df17a7b77e0e2a09d42e327ef17686fd2",
+    "jobs_39060704006.json": "075f2106bc0e5650a9f81bf246e1d4d14c6a5764c3b8fa1a971a70532c82e767"
+  },
+  "rest_facts": {
+    "39060149281": {
+      "name": "Core evaluation dirV55 repair0",
+      "conclusion": "failure",
+      "created_at": "2026-10-17T18:54:28Z",
+      "updated_at": "2026-10-17T19:02:20Z",
+      "head_sha": "177b93b548d474bc0b3379bee4a4c15d4172d30c",
+      "jobs": {
+        "team": {
+          "conclusion": "failure",
+          "started_at": "2026-10-17T18:54:35Z",
+          "completed_at": "2026-10-17T19:02:06Z",
+          "steps": [
+            {"name": "Set up job", "conclusion": "success", "started_at": "2026-10-17T18:54:35Z", "completed_at": "2026-10-17T18:54:36Z"},
+            {"name": "Run actions/checkout@v6", "conclusion": "success", "started_at": "2026-10-17T18:54:36Z", "completed_at": "2026-10-17T18:54:37Z"},
+            {"name": "Validate lane and initialize working base", "conclusion": "success", "started_at": "2026-10-17T18:54:37Z", "completed_at": "2026-10-17T18:55:09Z"},
+            {"name": "Mount accepted peer evidence", "conclusion": "success", "started_at": "2026-10-17T18:55:09Z", "completed_at": "2026-10-17T18:55:13Z"},
+            {"name": "Install Ox/OpenCode", "conclusion": "success", "started_at": "2026-10-17T18:55:13Z", "completed_at": "2026-10-17T18:55:15Z"},
+            {"name": "Run lane cycle", "conclusion": "failure", "started_at": "2026-10-17T18:55:15Z", "completed_at": "2026-10-17T19:02:01Z"},
+            {"name": "Validate active MVP producer state", "conclusion": "skipped", "started_at": "2026-10-17T19:02:01Z", "completed_at": "2026-10-17T19:02:01Z"},
+            {"name": "Clean generated junk", "conclusion": "success", "started_at": "2026-10-17T19:02:01Z", "completed_at": "2026-10-17T19:02:01Z"},
+            {"name": "Enforce lane write scope", "conclusion": "skipped", "started_at": "2026-10-17T19:02:01Z", "completed_at": "2026-10-17T19:02:01Z"},
+            {"name": "Persist team snapshot", "conclusion": "success", "started_at": "2026-10-17T19:02:01Z", "completed_at": "2026-10-17T19:02:04Z"}
+          ],
+          "failed_step": "Run lane cycle",
+          "failed_step_duration_s": 406,
+          "interpretation": "the producer step got PAST initialization (steps 3-5 completed 18:54:37Z->18:55:15Z) and ran 406 s before failing. This is NOT the immediate first-invocation class measured for 39048936311 (16 s) and 39052366154 (30 s), and NOT the 2700 s work-quantum class (2702/2704/2868/3109/3484 s). It is a THIRD duration class: a mid-run death after ~6 m 46 s of producer work, with zero durable delta."
+        },
+        "audit": {
+          "conclusion": "skipped",
+          "steps": [],
+          "interpretation": "never ran; success()-gated on the failed team step 6. There is therefore NO results/audit/evaluation/CYCLE_39060149281_GATE.json and no cycle/core/evaluation/39060149281/audit ref."
+        },
+        "integrate": {
+          "conclusion": "skipped",
+          "steps": [],
+          "interpretation": "never ran; success()-gated on the failed team step 6."
+        },
+        "resilience": {
+          "conclusion": "success",
+          "started_at": "2026-10-17T19:02:10Z",
+          "completed_at": "2026-10-17T19:02:19Z",
+          "interpretation": "dispatched the successor - this run, 39060704006."
+        }
+      },
+      "zero_durable_delta": {
+        "measured": true,
+        "how": "git ls-remote origin refs/heads/cycle/core/evaluation/39060149281/team returns d01a2d4d78799b6e98eb3f447c261d1abc5d168b, the SAME commit as the 39052477458 team head; the /team tree contains no CYCLE_39060149281.md, no results/evaluation/snapshot_audit/39060149281.json and no orchestration_diagnosis_39060149281.json; state/evaluation.json on that tree still reads state_updated_by_run=39052477458 and proposed_run_id=39052477458.",
+        "duration_s": 406,
+        "failed_step": "Run lane cycle",
+        "failed_step_started_at": "2026-10-17T18:55:15Z",
+        "failed_step_completed_at": "2026-10-17T19:02:01Z"
+      },
+      "dispatch_context": {
+        "workflow": ".github/workflows/core-lane.yml",
+        "event": "workflow_dispatch",
+        "run_attempt": 1,
+        "dispatched_by": "resilience job of run 39052477458 (Recover failed chain and wake supervisor, success 18:46:33Z->18:46:41Z)",
+        "trigger": "run 39052477458 concluded CANCELLED at run level (its team job SUCCEEDED and delivered d01a2d4d7 at 17:41:55Z, but its audit job was CANCELLED at 18:46:30Z after ~63 m with no gate file); the supervisor therefore re-dispatched the SAME dirV55 question as 'repair0'"
+      }
+    },
+    "39052477458": {
+      "name": "Core evaluation dirV55 repair0",
+      "conclusion": "cancelled",
+      "created_at": "2026-10-17T17:08:56Z",
+      "updated_at": "2026-10-17T18:46:42Z",
+      "head_sha": "071b13c6a071c87c5a4a058037bcadd499c4ae7e",
+      "jobs": {
+        "team": {
+          "conclusion": "success",
+          "started_at": "2026-10-17T17:09:03Z",
+          "completed_at": "2026-10-17T17:43:38Z",
+          "steps": [
+            {"name": "Run lane cycle", "conclusion": "success", "started_at": "2026-10-17T17:09:47Z", "completed_at": "2026-10-17T17:43:33Z"},
+            {"name": "Validate active MVP producer state", "conclusion": "success", "started_at": "2026-10-17T17:43:33Z", "completed_at": "2026-10-17T17:43:33Z"},
+            {"name": "Enforce lane write scope", "conclusion": "success", "started_at": "2026-10-17T17:43:33Z", "completed_at": "2026-10-17T17:43:33Z"},
+            {"name": "Persist team snapshot", "conclusion": "success", "started_at": "2026-10-17T17:43:33Z", "completed_at": "2026-10-17T17:43:36Z"}
+          ],
+          "interpretation": "the producer step SUCCEEDED (step 6: 17:09:47Z->17:43:33Z, ~33 m 46 s) and persisted d01a2d4d7 (authored 17:41:55Z). This is the tree this run resumes from. Steps 7 and 9 ran and passed."
+        },
+        "audit": {
+          "conclusion": "cancelled",
+          "started_at": "2026-10-17T17:43:40Z",
+          "completed_at": "2026-10-17T18:46:30Z",
+          "steps": [
+            {"name": "Set up job", "conclusion": "success"},
+            {"name": "Run actions/checkout@v6", "conclusion": "success"},
+            {"name": "Checkout accepted base and mount team", "conclusion": "success"},
+            {"name": "Install Ox/OpenCode", "conclusion": "success"},
+            {"name": "Independent audit", "conclusion": "cancelled"},
+            {"name": "Enforce audit scope and read gate", "conclusion": "skipped"},
+            {"name": "Persist audit snapshot", "conclusion": "skipped"}
+          ],
+          "interpretation": "the independent audit job was CANCELLED at 18:46:30Z, ~63 m after it started, while its step 5 'Independent audit' was still running. It produced NO results/audit/evaluation/CYCLE_39052477458_GATE.json. This is why the successor deliverable (the independent audit gate for the d01a2d4d7 tree) is STILL outstanding."
+        },
+        "integrate": {
+          "conclusion": "cancelled",
+          "steps": [],
+          "interpretation": "never ran; gated on the cancelled audit job."
+        },
+        "resilience": {
+          "conclusion": "success",
+          "started_at": "2026-10-17T18:46:33Z",
+          "completed_at": "2026-10-17T18:46:41Z",
+          "interpretation": "dispatched the successor - run 39060149281 (the 406 s zero-delta death this record's primary subject)."
+        }
+      }
+    },
+    "39060704006": {
+      "name": "Core evaluation dirV55 repair0",
+      "conclusion": null,
+      "status": "in_progress",
+      "created_at": "2026-10-17T19:02:15Z",
+      "head_sha": "177b93b548d474bc0b3379bee4a4c15d4172d30c",
+      "interpretation": "this run; team step 6 in progress at evidence-fetch time. Its base is the persisted d01a2d4d7 snapshot (identical to the 39060149281 /team ref)."
+    }
+  },
+  "model_health_at_dispatch_window": {
+    "source": "state/model_health.json on origin/main as fetched this cycle (run 39059145771 'LEX Free Model Health', completed 18:44:34Z, i.e. ~10 min before the 18:54Z dispatch window)",
+    "generated_at": "2026-10-17T18:44:34Z",
+    "healthy": true,
+    "using_fallback": true,
+    "preferred_model": "opencode/x-preview-f-free (catalog_absent, SKIPPED)",
+    "resolved_model": "opencode/mimo-v2.6-flash-free (tool_probe PASS)",
+    "healthy_models": [
+      "opencode/mimo-v2.6-flash-free",
+      "opencode/space-bunny-free",
+      "opencode/longcat-2.5-preview-free",
+      "opencode/big-pickle"
+    ],
+    "relevance": "the free-model pool was in fallback (preferred absent) but resolved a PASS model at the dispatch window. This is consistent with, but does not establish, a mid-run provider stall/overload candidate for the 406 s death; the exact model resolved by run 39060149281's producer invocation is not exposed by the REST record and is NOT asserted."
+  },
+  "failure_class_measurements": {
+    "question": "is the 406 s producer death of run 39060149281 the immediate first-invocation class or the 2700 s work-quantum class?",
+    "measured_durations_s": [
+      {"run": "39048936311", "job": "team", "step": "Run lane cycle", "duration_s": 16, "conclusion": "failure", "delta": "none"},
+      {"run": "39052366154", "job": "team", "step": "Run lane cycle", "duration_s": 30, "conclusion": "failure", "delta": "none"},
+      {"run": "39060149281", "job": "team", "step": "Run lane cycle", "duration_s": 406, "conclusion": "failure", "delta": "none"},
+      {"run": "39049030442", "job": "team", "step": "Run lane cycle", "duration_s": 2702, "conclusion": "failure", "delta": "FULL (c3c04285)"},
+      {"run": "39043684319", "job": "team", "step": "Run lane cycle", "duration_s": 2704, "conclusion": "failure", "delta": "none"},
+      {"run": "39040205229", "job": "team", "step": "Run lane cycle", "duration_s": 2868, "conclusion": "failure", "delta": "none"},
+      {"run": "39047050629", "job": "team", "step": "Run lane cycle", "duration_s": 1547, "conclusion": "cancelled", "delta": "none"},
+      {"run": "39052477458", "job": "team", "step": "Run lane cycle", "duration_s": 2026, "conclusion": "success", "delta": "FULL (d01a2d4d7)"},
+      {"run": "39052477458", "job": "audit", "step": "Independent audit", "duration_s": 3780, "conclusion": "cancelled", "delta": "no gate"},
+      {"run": "39033797087", "job": "team", "step": "Run lane cycle", "duration_s": 3109, "conclusion": "success", "delta": "FULL"},
+      {"run": "39027041693", "job": "team", "step": "Run lane cycle", "duration_s": 3484, "conclusion": "success", "delta": "FULL"}
+    ],
+    "verdict": "THIRD_DURATION_CLASS__MID_RUN_DEATH_AFTER_INIT",
+    "why": [
+      "406 s is 13x the longest immediate class (30 s) and 6.6x below the shortest quantum class (2702 s); it is neither.",
+      "steps 3-5 (Validate/ Mount/ Install) completed 18:54:37Z->18:55:15Z, so the first producer invocation began; the run died ~6 m 46 s later, i.e. after real producer work but before any commit (the /team ref is unchanged).",
+      "the free-model pool was in fallback with the preferred model absent at the dispatch window (model_health_at_dispatch_window), consistent with a recurrent mid-run provider stall/overload (factory-wide requirement 20) but not establishing it."
+    ]
+  },
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "material",
+      "statement": "Run 39060149281's team job failed in the 'Run lane cycle' step after 406 s (18:55:15Z -> 19:02:01Z); 'Validate active MVP producer state' (step 7) and 'Enforce lane write scope' (step 9) were SKIPPED as success()-gated; audit and integrate were SKIPPED; the 'Persist team snapshot' step succeeded and pushed d01a2d4d7 - the SAME commit as the 39052477458 team head - i.e. ZERO durable delta from this run.",
+      "evidence": "jobs_39060149281.json; git ls-remote origin refs/heads/cycle/core/evaluation/39060149281/team"
+    },
+    {
+      "id": "F2",
+      "severity": "material",
+      "statement": "The persisted /team tree of 39060149281 contains NO run-specific artifacts: no reports/evaluation/CYCLE_39060149281.md, no results/evaluation/snapshot_audit/39060149281.json, no orchestration_diagnosis_39060149281.json, and its state/evaluation.json still reads state_updated_by_run=39052477458 / proposed_run_id=39052477458.",
+      "evidence": "git ls-tree -r origin/cycle/core/evaluation/39060149281/team; git show origin/cycle/core/evaluation/39060149281/team:state/evaluation.json"
+    },
+    {
+      "id": "F3",
+      "severity": "material",
+      "statement": "The predecessor 39052477458 team step 6 SUCCEEDED (17:09:47Z->17:43:33Z) and delivered d01a2d4d7 (authored 17:41:55Z), but its independent audit job was CANCELLED at 18:46:30Z after ~63 m with step 5 'Independent audit' still running, so NO gate file exists for the delivered tree. The run-level conclusion was 'cancelled'. The successor deliverable - the independent audit gate for the d01a2d4d7 tree - is therefore STILL outstanding.",
+      "evidence": "jobs_39052477458.json; run_39052477458.json; git show -s d01a2d4d7"
+    },
+    {
+      "id": "F4",
+      "severity": "material",
+      "statement": "Chain pattern across the FIVE prior dirV55 'repair0' dispatches of the SAME question: 39048936311 died at 16 s (zero delta) -> 39049030442 died at 2702 s (FULL delta c3c04285, audit skipped) -> 39052366154 died at 30 s (zero delta) -> 39052477458 team step SUCCEEDED and delivered d01a2d4d7 (audit job CANCELLED ~63 m, no gate) -> 39060149281 died at 406 s (zero delta). Net durable delta across the five runs: exactly TWO delivered trees (c3c04285 and its child d01a2d4d7), both still ungated.",
+      "evidence": "failure_class_measurements; jobs_39048936311.json; jobs_39049030442.json; jobs_39052366154.json; jobs_39052477458.json; jobs_39060149281.json"
+    },
+    {
+      "id": "F5",
+      "severity": "material",
+      "statement": "The independent audit gate for the d01a2d4d7 tree is STILL outstanding: no /audit branch and no CYCLE_39052477458_GATE.json exists (audit job cancelled), and 39060149281's audit job was skipped. The lane's work since 39033797087 has never been independently gated. This run makes the snapshot audit-ready so the audit job has a READY record to gate.",
+      "evidence": "git ls-remote origin refs/heads/cycle/core/evaluation/39052477458 (no /audit ref); jobs_39052477458.json; jobs_39060149281.json"
+    },
+    {
+      "id": "F6",
+      "severity": "control-plane",
+      "statement": "The run-conclusion-driven re-dispatch loop: core-lane.yml re-dispatches when a run concludes non-success, with no branch for 'audit job cancelled after the deliverable was persisted'. Each cancellation or producer death re-issues the identical question and burns a full run. Factory-wide requirement 20's route-around ('re-dispatch after a fresh health probe instead of re-issuing the identical repair') is recorded policy but is not implemented as a control-plane gate. .github/** is control-plane scope and is recorded, not patched.",
+      "evidence": "run list 16:20Z-19:02Z (five 'Core evaluation dirV55 repair0' dispatches of the same question); factory-wide requirement 20"
+    },
+    {
+      "id": "F7",
+      "severity": "control-plane",
+      "statement": "Steps 7 ('Validate active MVP producer state') and 9 ('Enforce lane write scope') remain success()-gated on the producer step, so when the producer step fails the two steps whose purpose is to validate its output are skipped and the snapshot is persisted unvalidated. This is the same gap recorded at 39010105493, 39040205229 and 39043684319 and not yet patched. The in-lane snapshot-audit checks (5, 8, 17, 19) are the only machine gates that ran over the delivered tree.",
+      "evidence": "jobs_39060149281.json steps 7/9"
+    }
+  ],
+  "cause_of_the_406s_death": {
+    "status": "INFERENCE_NOT_ESTABLISHED_FACT",
+    "best_supported_candidates": [
+      "mid-run provider stall/overload on the free-model pool (pool was in fallback with the preferred model absent at the dispatch window; factory-wide requirement 20 records recurrent LEX_MODEL_AUTH_FAILURE and 503 upstream-overload on these models)",
+      "a propagated OpenCode process exit after real producer work",
+      "an agent-side error that aborted the producer before any commit"
+    ],
+    "why_inference": "job logs are HTTP 403 unauthenticated for this repository, so neither the wrapper's rc line nor any ::error:: annotation could be read. The REST record exposes only 'failure' for step 6. The candidates are not separable from the REST job record."
+  },
+  "this_cycle_action": "Operational resume: adopt the persisted base d01a2d4d7 (the 39052477458 team head, identical to the 39060149281 /team ref), diagnose the 406 s mid-run zero-delta death at job/step level, reconcile the accepted frontier team's 'Core Evaluation re-score ABSENT' cross-check against the Core Evaluation re-score that actually exists on the evaluation cycle ref, re-verify the delivered tree end to end (lane suite + snapshot audit), update the lane state to direction_version 55 at this run id, and make the snapshot audit-ready so the independent audit gate for the d01a2d4d7 tree can finally run.",
+  "human_blocker": false,
+  "not_claimed": [
+    "this is NOT a claim that the 406 s death has an established cause; it stays a hedged candidate set",
+    "this is NOT a claim that run 39052477458's delivered work is unsound; the tree is taken at face value and re-verified by this run's snapshot audit",
+    "this is NOT a claim that the 39060149281 producer did no work; it is a claim that it committed and persisted nothing",
+    "this is NOT a claim about the intent of any agent or the supervisor",
+    "no .github/** file was edited; all control-plane gaps are recorded, not patched",
+    "no frozen rubric, threshold, bar, incumbent, gate success rule or recorded verdict was modified"
+  ],
+  "limits": [
+    "job logs are HTTP 403 unauthenticated for this repository; every cause statement about a failed step is an INFERENCE",
+    "run inputs are not exposed unauthenticated, so repair_from_run_id is inferred from the run display_title and core-lane.yml's run-name template",
+    "stage durations are whole-second wall clock from the REST step records",
+    "the exact model resolved by the 39060149281 producer invocation is not exposed by the REST record and is not asserted",
+    "the diagnosis establishes WHAT the records say and the arithmetic of the durations, not why the provider failed",
+    "the 'independent audit cancelled ~63 m' duration is inferred from the audit job's start and cancel timestamps; the cancellation trigger is not exposed by the REST record"
+  ],
+  "artifact_paths": {
+    "diagnosis": "evaluation/snapshot_audit/orchestration_diagnosis_39060149281.json",
+    "raw_api_dir": "results/evaluation/orchestration_39060704006/api/"
+  }
+}

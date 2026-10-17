@@ -134,6 +134,22 @@ the diagnosis of that run's producer death:
                                            cause hedged as a candidate set and
                                            records the resume run.
 
+ADDENDUM (cycle 39060704006):
+
+ 20. frontier_cross_check_reconciliation   the accepted frontier team's
+                                           cross_check.status =
+                                           CORE_EVALUATION_RESCORE_ABSENT is
+                                           reconciled against Core Evaluation's
+                                           actual rebuilt-packet re-score on the
+                                           evaluation cycle ref (committed 548 s
+                                           EARLIER than the frontier's
+                                           measurement commit); the frontier's
+                                           accepted_run_id must stay null (it is
+                                           NOT independently accepted) and the
+                                           quantity cross-check must show zero
+                                           divergences or an explicit scope
+                                           qualifier on every divergent row.
+
 No frozen rubric, threshold, bar, incumbent, gate success rule or recorded
 verdict is read for modification; every frozen input is only re-hashed.
 """
@@ -291,6 +307,15 @@ DELIVERABLE_MANIFEST_PATHS = [
     "results/evaluation/retrieval_counter_authority_benchmark/39047050629_leg3_blanked_evidence.json",
     "reports/evaluation/RETRIEVAL_CA_BENCHMARK_39047050629.md",
     "reports/evaluation/CYCLE_39047050629.md",
+    # Operational resume of run 39052477458 (this run, 39060704006). The
+    # subject 39060149281 died at producer step 6 after 406 s with zero durable
+    # delta (a third duration class: not the 16 s/30 s immediate class, not the
+    # 2700 s quantum class). Check 20 pins the frontier cross-check
+    # reconciliation so the re-score cannot be dropped and the frontier verdict
+    # is never read as independently accepted.
+    "evaluation/snapshot_audit/orchestration_diagnosis_39060149281.json",
+    "results/evaluation/orchestration_39060704006/api/SHA256SUMS.json",
+    "results/evaluation/frontier_cross_check_reconciliation_39060704006/39060704006_reconciliation.json",
 ]
 
 #: Run 39040205229's diagnosis. Check 17 requires it to carry the job/step
@@ -1324,6 +1349,16 @@ def check_diagnosis_39040205229(repo_root: Path) -> dict:
 ACCEPTED_BASE_COVERAGE_RECORD = "results/evaluation/accepted_base_gate_coverage_39043684319.json"
 ACCEPTED_BASE_REF = "origin/lab/evaluation"
 
+#: Cycle 39060704006: reconciliation of the accepted frontier team's
+#: CORE_EVALUATION_RESCORE_ABSENT cross-check against Core Evaluation's actual
+#: rebuilt-packet re-score on the evaluation cycle ref. Check 20 pins it so
+#: the reconciliation cannot be softened silently, so the frontier verdict is
+#: never read as independently accepted, and so every cross-check quantity is
+#: either equal or carries an explicit scope qualifier.
+FRONTIER_CROSS_CHECK_RECONCILIATION = (
+    "results/evaluation/frontier_cross_check_reconciliation_39060704006/"
+    "39060704006_reconciliation.json")
+
 
 #: Cycle 39047050629. State key holding one disclosure per HISTORICAL run whose
 #: prose (report or state) disagrees with the readiness record of that run. A
@@ -1661,6 +1696,74 @@ def check_accepted_base_gate_coverage(repo_root: Path) -> dict:
                   problems=problems)
 
 
+def check_frontier_cross_check_reconciliation(repo_root: Path) -> dict:
+    """Check 20: the frontier CORE_EVALUATION_RESCORE_ABSENT cross-check is reconciled.
+
+    Added by cycle 39060704006. The accepted frontier team
+    ``frontier-rebuilt-packet-serve-audit`` published ``cross_check.status =
+    CORE_EVALUATION_RESCORE_ABSENT`` at its hard stop (run 39048947212, measurement
+    commit 4e4ad05b at 17:14:39Z). Core Evaluation's re-score of the SAME rebuilt
+    bytes was committed 548 s EARLIER (27a1d309 at 17:05:31Z) on
+    origin/cycle/core/evaluation/39049030442/team. The frontier's ABSENT reading is
+    therefore a temporal/mount-scope fact, not a false claim. This check pins the
+    reconciliation so that (a) the re-score cannot be dropped from the record,
+    (b) the frontier verdict is never read as independently accepted (its
+    accepted_run_id must stay null here), and (c) the quantity cross-check shows
+    zero divergences or every divergent row carries an explicit scope qualifier.
+    """
+    problems: list[str] = []
+    p = repo_root / FRONTIER_CROSS_CHECK_RECONCILIATION
+    if not p.exists():
+        return _check("frontier_cross_check_reconciliation", False,
+                      f"{FRONTIER_CROSS_CHECK_RECONCILIATION} missing",
+                      problems=["reconciliation artifact missing"])
+    try:
+        rec = json.loads(p.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        return _check("frontier_cross_check_reconciliation", False,
+                      f"reconciliation artifact unparseable: {exc}",
+                      problems=[f"unparseable: {exc}"])
+    if rec.get("schema") != "lex-evaluation-frontier-cross-check-reconciliation/1":
+        problems.append("schema")
+    ft = rec.get("frontier_team") or {}
+    if ft.get("team_id") != "frontier-rebuilt-packet-serve-audit":
+        problems.append("frontier_team.team_id")
+    if ft.get("accepted_run_id") is not None:
+        problems.append("frontier_team.accepted_run_id must stay null (not independently accepted)")
+    acc = rec.get("acceptance_status") or {}
+    if acc.get("frontier_independently_accepted") is not False:
+        problems.append("acceptance_status.frontier_independently_accepted must be false")
+    if acc.get("outcome_b_route_around_triggered") is not False:
+        problems.append("acceptance_status.outcome_b_route_around_triggered must be false")
+    ce = rec.get("core_evaluation_re_score") or {}
+    if ce.get("run_id") != "39049030442":
+        problems.append("core_evaluation_re_score.run_id")
+    if not ce.get("commit"):
+        problems.append("core_evaluation_re_score.commit")
+    cc = rec.get("quantity_cross_check") or {}
+    rows = cc.get("rows") or []
+    if not rows:
+        problems.append("quantity_cross_check.rows empty")
+    else:
+        div_rows = [r.get("quantity") for r in rows if r.get("divergence")]
+        if cc.get("n_divergences") != len(div_rows):
+            problems.append(f"n_divergences {cc.get('n_divergences')} != counted divergent rows "
+                            f"{len(div_rows)}")
+        for r in rows:
+            if r.get("divergence") and not r.get("scope_note"):
+                problems.append(f"divergent row {r.get('quantity')} must carry a scope_note")
+    if cc.get("headline_finding") is None:
+        problems.append("quantity_cross_check.headline_finding")
+    ok = not problems
+    detail = ("frontier CORE_EVALUATION_RESCORE_ABSENT reconciled as temporal/mount scope, not a "
+              "false claim; frontier accepted_run_id stays null; "
+              f"{len(rows)} cross-check quantities compared, {cc.get('n_divergences')} "
+              "divergence(s)" if ok else f"frontier reconciliation problems: {problems}")
+    return _check("frontier_cross_check_reconciliation", ok, detail,
+                  n_quantities=len(rows), n_divergences=cc.get("n_divergences"),
+                  frontier_accepted_run_id=ft.get("accepted_run_id"), problems=problems)
+
+
 def build_record(run_id: str, checks: list[dict], manifest: dict,
                  pending: list[str] | None = None) -> dict:
     n_pass = sum(1 for c in checks if c["status"] == "PASS")
@@ -1701,6 +1804,7 @@ def build_record(run_id: str, checks: list[dict], manifest: dict,
             "run 39043684319's own readiness record was RED (16/18, ready_for_independent_audit=false, failing checks lane_suite_pass and state_evidence_refs_resolve) while its report asserted READY 18/18, READY 17/17 and its state asserted verdict READY with no n_passed at all; that disagreement is DISCLOSED here and check 19 now compares every readiness claim against the record that measures it",
             "check 5 is no longer order-dependent: the record's own path is classified as a self-reference, excluded from the unresolved set, and VERIFIED after the write by reading the record back and matching its schema and run id",
             "the lane_suite_pass check now names the failing lane-suite checks instead of recording only an exit code, so a red suite is attributable without job logs",
+            "the accepted frontier team frontier-rebuilt-packet-serve-audit's cross_check.status = CORE_EVALUATION_RESCORE_ABSENT is reconciled as a temporal/mount-scope reading, not a false claim: Core Evaluation's re-score of the same rebuilt bytes (27a1d309, 17:05:31Z) precedes the frontier's measurement commit (4e4ad05b, 17:14:39Z) by 548 s and lives on origin/cycle/core/evaluation/39049030442/team; the reconciliation publishes all 9 cross-check quantities side by side (0 divergences, the mega-cluster quantity geometry-scoped) and keeps the frontier's accepted_run_id null (it is NOT independently accepted, so the direction v55 OUTCOME-B route-around has NOT triggered)",
         ],
         "snapshot_claims_not_certified": [
             "jurist-usefulness of the map (human gate); human_gate_ready stays false under the standing accepted DO-NOT-SERVE order",
@@ -1758,6 +1862,7 @@ def main(argv=None) -> int:
         checks.append(check_pac_diagnosis(repo_root))
         checks.append(check_diagnosis_39040205229(repo_root))
         checks.append(check_accepted_base_gate_coverage(repo_root))
+        checks.append(check_frontier_cross_check_reconciliation(repo_root))
 
         # Check 19 needs the finished counts, so it is computed last. The counts
         # it compares the current state block against are the POST-check-19
