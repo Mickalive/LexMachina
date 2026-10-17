@@ -1,0 +1,47 @@
+{
+ "schema": "product-rebuilt-packet-reproducibility-scope/1",
+ "packet": "results/product/gate_packet/rebuilt-39027045675",
+ "observed_at": "product cycle 39034350468 (operational resume of 39031213637)",
+ "source_packet": "38839347028",
+ "artifact_of_record": "The committed bundle bytes and packet.json are the artifact of record; their own content_sha256/packet_content_sha256 are stable file hashes (re-hashing the committed file always yields the published value).",
+ "scope_finding": "A from-source rebuild via apply_adopted_config(source_bundle) is NOT byte-identical across numeric environments: query_similarity drifts at ~1e-4..1e-3 because TF-IDF/SVD is float- and reduction-order sensitive, and for fr/de that drift reassigns cluster_id on a large fraction of rows. This is the documented BLAS-reduction-order class (frontier-served-packet-falsification FIX-2), NOT data tampering and NOT a change to any frozen rule. The frozen 11-criteria geometry rule runs on the COMMITTED bytes, whose hash is stable; a recomputation in a different environment may legitimately differ.",
+ "environment_of_generation_and_measurement": {
+  "python": "3.12.3",
+  "numpy": "2.5.4",
+  "scipy": "1.18.1",
+  "scikit_learn": "1.9.1",
+  "blas": "openblas pthreads, 4 threads (ThreadingEnvironment); see threadpoolctl",
+  "cpus": 4,
+  "note": "BLAS build / thread count / CPU are NOT pinned in the artifact; pin them before asserting cross-machine byte-identity."
+ },
+ "per_bundle": {
+  "fr-bail-entretien": {
+   "committed_content_sha256": "d9c2f1919e572d01dd2af30edea2bef6f5d64d12d0f31d0bf98bc645e8fa0913",
+   "fresh_rebuild_content_sha256": "a4cad82bfc7f7ef391acc064b826ad88883b8a258687145f5122781c8526717f",
+   "committed_bytes_reproduce": true,
+   "n_rows": 217,
+   "cluster_id_drift_rows": 98,
+   "max_query_similarity_drift": 0.001143
+  },
+  "de-kapitalverletzung": {
+   "committed_content_sha256": "4c5f415c8103f51a58ed48f3a3814885a5f4e4c6e1e4aa0f208fed10366f5981",
+   "fresh_rebuild_content_sha256": "ba5d2a0fbd829056e6b4f4101f4d932d66b8569ad85e3ffb94f8b479221cb6e2",
+   "committed_bytes_reproduce": true,
+   "n_rows": 214,
+   "cluster_id_drift_rows": 112,
+   "max_query_similarity_drift": 0.000892
+  },
+  "it-responsabilita-medica": {
+   "committed_content_sha256": "caf7ecf900df4c4d6e5f205d798d10a5a49447a2f6d53ec1f7da65ed9ce54980",
+   "fresh_rebuild_content_sha256": "a71b967ad4fd778550c02c737b0e35afba529e958a04616ec484162c7c7940da",
+   "committed_bytes_reproduce": true,
+   "n_rows": 211,
+   "cluster_id_drift_rows": 0,
+   "max_query_similarity_drift": 0.000167
+  }
+ },
+ "remediation_for_future_scoring": [
+  "pin and record BLAS build + thread count alongside any reproducibility sha, or",
+  "round query_similarity to a fixed precision before clustering if cross-env stability of cluster_id is required (NOT done here: it would change the committed bytes and the frozen-scored layout, which is ceded to Evaluation)."
+ ]
+}
