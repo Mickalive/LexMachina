@@ -1,0 +1,46 @@
+{
+  "schema": "product-regression-evidence/1",
+  "run_id": "39048942749",
+  "purpose": "Bound the blast radius of the D1/D2/A2 repair. A failing suite in this repo is mostly a missing-optional-dependency environment gap, so the honest claim is a SET COMPARISON against the untouched producer snapshot, not a count comparison: identical failing/erroring test IDs before and after.",
+  "baseline": {
+    "what": "pristine producer snapshot 6c56332c in a separate git worktree (/tmp/opencode/lex_root_b), unmodified",
+    "why": "the repair is the only difference between the two trees, so any status change is attributable to it"
+  },
+  "method": {
+    "command": "python3 -m pytest product/tests/ -q -p no:cacheprovider <19 --ignore flags>",
+    "ignore_rationale": "18 modules cannot be COLLECTED without sentence_transformers (a missing optional dep), so they are excluded from BOTH runs identically. This exclusion is disclosed, not silent.",
+    "comparison": "diff of the sorted FAILED/ERROR test-ID sets (both differences, not the two counts)"
+  },
+  "results": {
+    "unique_failing_or_erroring_ids_pristine": 77,
+    "unique_failing_or_erroring_ids_repaired": 76,
+    "set_difference_baseline_only_FIXED_BY_THIS_REPAIR": [
+      "FAILED product/tests/test_state_contract.py::test_cli_returns_zero_when_the_contract_holds"
+    ],
+    "set_difference_repaired_only_NEW_FAILURES": [],
+    "intersection": 76,
+    "no_new_failures": true,
+    "passed_count_pristine": 519,
+    "passed_count_repaired": 525,
+    "new_tests_added_by_this_repair": 5,
+    "note": "Counts are over UNIQUE test IDs (sort -u); the raw run emits some IDs under both FAILED and ERROR, so a raw line count exceeds the unique ID count. The comparison is a SET comparison (both differences + intersection), never a matching-count argument. Result: repaired-only difference is EMPTY (no new failures) and the baseline-only difference holds exactly one ID - the state-contract CLI check that was red on the pristine snapshot and is green after this cycle.",
+    "passed_count_note": "Re-measured directly: '46 failed, 525 passed, 2 skipped, 30 errors'. Pristine was '47 failed, 519 passed, 2 skipped, 30 errors'. The +6 delta is 5 new tests from this repair plus the one repaired state-contract test."
+  },
+  "verdict": "NO_REGRESSION, AND ONE PRE-EXISTING FAILURE REPAIRED. The repaired-only failing set is EMPTY, so this cycle introduced nothing. The baseline-only set holds exactly one ID: product/tests/test_state_contract.py::test_cli_returns_zero_when_the_contract_holds, which was red on the pristine snapshot and is green now (the state-contract direction pin tracked v52 while the dispatched control plane is v55). All remaining 76 IDs are pre-existing environment gaps in this container - overwhelmingly ModuleNotFoundError: sentence_transformers - NOT caused by this repair and NOT claimed fixed.",
+  "repaired_module": {
+    "path": "product/tests/test_v52_endgame_delivery.py",
+    "tests": 22,
+    "status": "22 passed",
+    "was": "17 passed on the producer snapshot (before the D1/D2/A2 repair)"
+  },
+  "environment_limited": true,
+  "environment_note": "18 further modules remain UNCOLLECTED here for want of sentence_transformers. Their status this cycle is UNMEASURED, not passed and not failed. A runner with that dep installed must collect them; this artifact does not certify them.",
+  "state_contract_repair": {
+    "finding": "test_state_contract.py pinned RUN_DIRECTION_VERSION=52 (run 39034350468's dispatch) while this cycle is dispatched against the v55 control plane, leaving the canonical-state contract red.",
+    "fix": "Re-pinned RUN_DIRECTION_VERSION to 55 and set state/product.json direction_version to the integer 55, following the file's own documented per-dispatch pattern.",
+    "verified_against": "the mounted /tmp/lex_control/state/factory_direction.json version field (=55)",
+    "not_weakened": "No assertion was removed or loosened; only the dispatch reference moved."
+  },
+  "run_summary_repaired": "46 failed, 525 passed, 2 skipped, 30 errors",
+  "run_summary_pristine": "47 failed, 519 passed, 2 skipped, 30 errors"
+}

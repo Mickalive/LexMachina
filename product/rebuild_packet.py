@@ -290,6 +290,41 @@ def _score_range(scores: list[Any]) -> dict[str, Any]:
     return {"min": min(nums), "max": max(nums)}
 
 
+def path_binding_disclosure(out_dir: Path) -> dict[str, Any]:
+    """D2: disclose that the packet's recorded paths are absolute workspace paths.
+
+    Factory direction v55 product item (1)/D2. The rebuilt packet embeds the
+    absolute CI workspace path in ``packet_dir``, ``packet_path`` and every
+    ``bundles[*].bundle_path``. These are claim-bearing measured artifacts whose
+    bytes must NOT be regenerated to store relative paths (that would change
+    packet.json's raw sha256 2942c3c2... and invalidate the published identity),
+    so the embedding is disclosed here and handled by re-rooting on the consumer
+    side instead. Single source of truth: the writer and any later repair both
+    emit this exact block.
+    """
+    return {
+        "paths_are_absolute": True,
+        "embedded_workspace_path": str(out_dir),
+        "root_marker": "results",
+        "statement": (
+            "packet_dir, packet_path and every bundles[*].bundle_path in this "
+            "packet and its handoff embed the ABSOLUTE workspace path of the "
+            "machine that produced them (e.g. /home/runner/work/...). They are "
+            "claim-bearing measured artifacts, so they are NOT regenerated to "
+            "store relative paths: doing so would change packet.json's raw "
+            "sha256 and invalidate the published identity. A consumer must "
+            "re-root them onto its own checkout by taking the path tail from the "
+            "'results' component onward, and must never open the embedded "
+            "absolute path (that reads the producer's tree, not the tree under "
+            "test). See product/tests/test_v52_endgame_delivery.py::"
+            "resolve_committed_path."
+        ),
+        "packet_json_regenerated_for_relative_paths": False,
+        "packet_content_sha256_remains": (
+            "2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170"),
+    }
+
+
 def rebuild_packet(
     source_dir: Path,
     out_dir: Path,
@@ -507,6 +542,7 @@ def rebuild_packet(
         "schema": "product-gate-packet-disclosures/1",
         "rebuilt_packet": True,
         "adopted_config": packet["adopted_config"],
+        "path_binding_disclosure": path_binding_disclosure(out_dir),
         "per_bundle": {
             q["qid"]: {
                 "warnings": q["warnings"],

@@ -1,47 +1,103 @@
 {
- "schema": "product-rebuilt-packet-reproducibility-scope/1",
- "packet": "results/product/gate_packet/rebuilt-39027045675",
- "observed_at": "product cycle 39034350468 (operational resume of 39031213637)",
- "source_packet": "38839347028",
- "artifact_of_record": "The committed bundle bytes and packet.json are the artifact of record; their own content_sha256/packet_content_sha256 are stable file hashes (re-hashing the committed file always yields the published value).",
- "scope_finding": "A from-source rebuild via apply_adopted_config(source_bundle) is NOT byte-identical across numeric environments: query_similarity drifts at ~1e-4..1e-3 because TF-IDF/SVD is float- and reduction-order sensitive, and for fr/de that drift reassigns cluster_id on a large fraction of rows. This is the documented BLAS-reduction-order class (frontier-served-packet-falsification FIX-2), NOT data tampering and NOT a change to any frozen rule. The frozen 11-criteria geometry rule runs on the COMMITTED bytes, whose hash is stable; a recomputation in a different environment may legitimately differ.",
- "environment_of_generation_and_measurement": {
-  "python": "3.12.3",
-  "numpy": "2.5.4",
-  "scipy": "1.18.1",
-  "scikit_learn": "1.9.1",
-  "blas": "openblas pthreads, 4 threads (ThreadingEnvironment); see threadpoolctl",
-  "cpus": 4,
-  "note": "BLAS build / thread count / CPU are NOT pinned in the artifact; pin them before asserting cross-machine byte-identity."
- },
- "per_bundle": {
-  "fr-bail-entretien": {
-   "committed_content_sha256": "d9c2f1919e572d01dd2af30edea2bef6f5d64d12d0f31d0bf98bc645e8fa0913",
-   "fresh_rebuild_content_sha256": "a4cad82bfc7f7ef391acc064b826ad88883b8a258687145f5122781c8526717f",
-   "committed_bytes_reproduce": true,
-   "n_rows": 217,
-   "cluster_id_drift_rows": 98,
-   "max_query_similarity_drift": 0.001143
+  "schema": "product-rebuilt-packet-reproducibility-scope/2",
+  "supersedes_schema": "product-rebuilt-packet-reproducibility-scope/1",
+  "packet": "results/product/gate_packet/rebuilt-39027045675",
+  "observed_at": "product cycle 39048942749 (D1/D2/A2 repair round; audit of 39034350468 died rc-78 without a gate)",
+  "source_packet": "38839347028",
+  "repair_scope": {
+    "D1_material": "test_handoff_content_sha256_reproduces_via_the_product_own_hasher resolved bundle_path as ABSOLUTE, so it read the producer's CI workspace (/home/runner/work/LexMachina/LexMachina) instead of the tree under test. Reproduced this cycle: the pre-repair test PASSED against a tree whose bundle content had been altered (217 -> 3 decisions), and also passed against a tree where the bundle files were deleted outright. Repaired in the TEST (resolve_committed_path re-roots the recorded path onto ROOT); the content-sha256 assertions are kept and now genuinely measure the tree under test. packet.json was NOT regenerated.",
+    "D2_minor": "The absolute workspace-path embedding is disclosed in the packet's own disclosures.json (path_binding_disclosure, emitted by product/rebuild_packet.py::path_binding_disclosure) and asserted by the module. packet.json raw sha256 is unchanged at 2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170.",
+    "A2_advisory": "The drift figures did NOT reproduce on the audit host, where a fresh from-source rebuild was byte-identical (0 cluster reassignments) across BLAS thread counts 1/2/4/8 and PYTHONHASHSEED 0/1/42/random. Every drift number below is therefore labelled HOST_SCOPED_PRODUCER_ATTESTATION. The conservative conclusion is KEPT: a from-source rebuild is NOT guaranteed byte-identical; what is reproducible is the committed bytes."
   },
-  "de-kapitalverletzung": {
-   "committed_content_sha256": "4c5f415c8103f51a58ed48f3a3814885a5f4e4c6e1e4aa0f208fed10366f5981",
-   "fresh_rebuild_content_sha256": "ba5d2a0fbd829056e6b4f4101f4d932d66b8569ad85e3ffb94f8b479221cb6e2",
-   "committed_bytes_reproduce": true,
-   "n_rows": 214,
-   "cluster_id_drift_rows": 112,
-   "max_query_similarity_drift": 0.000892
+  "artifact_of_record": "The committed bundle bytes and packet.json are the artifact of record; their own content_sha256/packet_content_sha256 are stable file hashes (re-hashing the committed file always yields the published value) and were RE-HASHED on this host this cycle.",
+  "packet_content_sha256": "2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170",
+  "scope_finding": "TWO SEPARATE CLAIMS, kept apart. (1) COMMITTED BYTES REPRODUCE: re-hashing the committed artifacts yields the published shas on any host - verified this cycle, per_bundle[*].content_sha256_recomputes_here. (2) A FROM-SOURCE REBUILD IS NOT BYTE-IDENTICAL ACROSS NUMERIC ENVIRONMENTS: the producer host observed query_similarity drift ~1e-4..1e-3 and cluster_id reassignment on fr 98/217 and de 112/214 rows (it 0/211); the audit host observed ZERO drift and byte-identical rebuilds across BLAS thread counts and hash seeds. That is the documented BLAS/TF-IDF reduction-order class, NOT data tampering and NOT a change to any frozen rule. The specific figures are HOST-SCOPED PRODUCER ATTESTATION and did not reproduce on the audit host; the conservative conclusion is retained because one host's stability is not a guarantee of another's.",
+  "environment_of_generation": {
+    "python": "3.12.3",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "scikit_learn": "1.9.1",
+    "blas": "openblas pthreads, 4 threads (ThreadingEnvironment); see threadpoolctl",
+    "cpus": 4,
+    "note": "BLAS build / thread count / CPU are NOT pinned in the artifact; pin them before asserting cross-machine byte-identity."
   },
-  "it-responsabilita-medica": {
-   "committed_content_sha256": "caf7ecf900df4c4d6e5f205d798d10a5a49447a2f6d53ec1f7da65ed9ce54980",
-   "fresh_rebuild_content_sha256": "a71b967ad4fd778550c02c737b0e35afba529e958a04616ec484162c7c7940da",
-   "committed_bytes_reproduce": true,
-   "n_rows": 211,
-   "cluster_id_drift_rows": 0,
-   "max_query_similarity_drift": 0.000167
-  }
- },
- "remediation_for_future_scoring": [
-  "pin and record BLAS build + thread count alongside any reproducibility sha, or",
-  "round query_similarity to a fixed precision before clustering if cross-env stability of cluster_id is required (NOT done here: it would change the committed bytes and the frozen-scored layout, which is ceded to Evaluation)."
- ]
+  "environment_of_this_verification": {
+    "python": "3.12.3",
+    "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "threadpools": {
+      "openblas": {
+        "version": "0.3.31.dev",
+        "num_threads": 4,
+        "threading_layer": "pthreads",
+        "architecture": "Haswell"
+      },
+      "openmp": {
+        "version": null,
+        "num_threads": 4,
+        "threading_layer": null,
+        "architecture": null
+      }
+    },
+    "thread_env_vars": {
+      "OMP_NUM_THREADS": null,
+      "OPENBLAS_NUM_THREADS": null,
+      "MKL_NUM_THREADS": null,
+      "NUMEXPR_NUM_THREADS": null,
+      "PYTHONHASHSEED": null
+    },
+    "os_cpu_count": 4,
+    "scikit_learn": "1.9.1"
+  },
+  "environment_note": "No unconditional cross-machine byte identity is claimed. The two environments differ (see the two records); every sha in this file is a file hash of committed bytes, not a claim that a rebuild reproduces them.",
+  "per_bundle": {
+    "fr-bail-entretien": {
+      "committed_content_sha256": "d9c2f1919e572d01dd2af30edea2bef6f5d64d12d0f31d0bf98bc645e8fa0913",
+      "committed_raw_sha256": "0b3a224e3493479bc84628531eb7c56cac7dcfa978b29afbfc1305cb52574517",
+      "content_sha256_recomputes_here": true,
+      "recomputed_content_sha256": "d9c2f1919e572d01dd2af30edea2bef6f5d64d12d0f31d0bf98bc645e8fa0913",
+      "committed_bytes_reproduce": true,
+      "n_rows": 217,
+      "fresh_rebuild_content_sha256": "a4cad82bfc7f7ef391acc064b826ad88883b8a258687145f5122781c8526717f",
+      "fresh_rebuild_reproduces_here": null,
+      "cluster_id_drift_rows": 98,
+      "cluster_id_drift_rows_scope": "HOST_SCOPED_PRODUCER_ATTESTATION",
+      "max_query_similarity_drift": 0.001143,
+      "max_query_similarity_drift_scope": "HOST_SCOPED_PRODUCER_ATTESTATION"
+    },
+    "de-kapitalverletzung": {
+      "committed_content_sha256": "4c5f415c8103f51a58ed48f3a3814885a5f4e4c6e1e4aa0f208fed10366f5981",
+      "committed_raw_sha256": "c4005d4b78553b0aebd92bba59001c87a376146873f807d575255a4f721dd7f2",
+      "content_sha256_recomputes_here": true,
+      "recomputed_content_sha256": "4c5f415c8103f51a58ed48f3a3814885a5f4e4c6e1e4aa0f208fed10366f5981",
+      "committed_bytes_reproduce": true,
+      "n_rows": 214,
+      "fresh_rebuild_content_sha256": "ba5d2a0fbd829056e6b4f4101f4d932d66b8569ad85e3ffb94f8b479221cb6e2",
+      "fresh_rebuild_reproduces_here": null,
+      "cluster_id_drift_rows": 112,
+      "cluster_id_drift_rows_scope": "HOST_SCOPED_PRODUCER_ATTESTATION",
+      "max_query_similarity_drift": 0.000892,
+      "max_query_similarity_drift_scope": "HOST_SCOPED_PRODUCER_ATTESTATION"
+    },
+    "it-responsabilita-medica": {
+      "committed_content_sha256": "caf7ecf900df4c4d6e5f205d798d10a5a49447a2f6d53ec1f7da65ed9ce54980",
+      "committed_raw_sha256": "6b43341242b5e1d4c305dcf29f12428541ceedc0b6cc89b5f2c8ae8d634f82b4",
+      "content_sha256_recomputes_here": true,
+      "recomputed_content_sha256": "caf7ecf900df4c4d6e5f205d798d10a5a49447a2f6d53ec1f7da65ed9ce54980",
+      "committed_bytes_reproduce": true,
+      "n_rows": 211,
+      "fresh_rebuild_content_sha256": "a71b967ad4fd778550c02c737b0e35afba529e958a04616ec484162c7c7940da",
+      "fresh_rebuild_reproduces_here": null,
+      "cluster_id_drift_rows": 0,
+      "cluster_id_drift_rows_scope": "HOST_SCOPED_PRODUCER_ATTESTATION",
+      "max_query_similarity_drift": 0.000167,
+      "max_query_similarity_drift_scope": "HOST_SCOPED_PRODUCER_ATTESTATION"
+    }
+  },
+  "remediation_for_future_scoring": [
+    "record the numeric environment (python/numpy/scipy/sklearn, BLAS build, thread count, PYTHONHASHSEED) beside any reproducibility sha - the disclosure class, not a blocker",
+    "pin BLAS build + thread count before asserting cross-machine byte-identity, or",
+    "round query_similarity to a fixed precision before clustering if cross-env stability of cluster_id is required (NOT done here: it would change the committed bytes and the frozen-scored layout, which is ceded to Evaluation)"
+  ]
 }

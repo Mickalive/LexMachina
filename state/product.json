@@ -103,9 +103,9 @@
    "scope": "control-plane workflow scope; recorded, not edited from the lane"
   }
  ],
- "current_run": "39034350468",
+ "current_run": "39048942749",
  "cycle_status": "V52_ENDGAME_OPERATIONAL_RESUME_OF_39031213637__P0_D1R_VERIFIED_LANDED_VIA_39019268074__P1_COUNTER_ANCHOR_ADOPTED_ABSTAIN_AND_DISCLOSE__P2_PACKET_REBUILT_WITH_BOTH_OBLIGATIONS__P3_HANDED_TO_CORE_EVALUATION__AUDIT_JOB_OF_39031213637_NEVER_RAN__INDEPENDENT_VERIFICATION_AND_REGRESSION_GUARDS_ADDED__REBUILD_REPRODUCIBILITY_SCOPE_DISCLOSED__SNAPSHOT_AUDIT_READY",
- "direction_version": 52,
+ "direction_version": 55,
  "evidence_tier": "REPRODUCED",
  "frontier_verdict_adoption": {
   "adopted_at": "2026-10-16T04:55:00Z",
@@ -573,7 +573,7 @@
    "resume_action": "this run 39034350468 resume: (a) independently re-verifies the whole v52 endgame (43/43 core tests, reality_check fixture overall PASS, frozen rules re-hash matches, 9/9 vendored classifier files byte-identical to accepted d236f599, handoff content hashes reproduce, ablation admission DENIES), (b) adds the missing P1-P3 regression tests (product/tests/test_v52_endgame_delivery.py, 17 tests), (c) discloses the numeric-environment scope of the rebuilt packet reproducibility, (d) leaves the team branch audit-ready."
   }
  },
- "prior_current_run": "39031213637",
+ "prior_current_run": "39034350468",
  "product": "query-specific Swiss legal research: broad OpenCaseLaw retrieval -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map",
  "reality_check_status": {
   "blocking_leg": "durable gate blocking leg: rent-default (Art. 257d(2) residential termination) — the answer must state the 30-day/end-of-month notice rule AND the good-faith/Rechtsmissbrauch limitation. That leg now PASSES locally in live mode (results/product/reality_check/rent-default_live_20261014T122313Z.json); only the durable Actions run remains red.",
@@ -867,8 +867,8 @@
   "fixtures": "offline/test only; never merged into live results",
   "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
  },
- "state_updated_at": "2026-10-17T13:10:00Z",
- "state_updated_by_run": "39034350468",
+ "state_updated_at": "2026-10-17T16:33:48Z",
+ "state_updated_by_run": "39048942749",
  "state_updated_from_resumed_snapshot_run": "39031213637",
  "supersedes_claims": {
   "gate_ceremony_is_one_query_only": "SUPERSEDED BY RUN 38792650692: the packet pre-registers three questions (FR/DE/IT), re-verifies each bundle at run time and hands the owner one deep link per question. The single-query path still works (product/human_gate_session.py is unchanged) and is still the way ONE session is finalized.",
@@ -2770,7 +2770,10 @@
   "product/tests/test_v52_endgame_delivery.py",
   "results/product/gate_packet/REBUILT_39027045675_REPRODUCIBILITY_SCOPE.json",
   "results/product/reality_check/summary_fixture_20261017T125746Z.json",
-  "results/product/offline_slice/20261017T125931Z/summary.json"
+  "results/product/offline_slice/20261017T125931Z/summary.json",
+  "results/product/gate_packet/REBUILT_39027045675_CROSS_LANE_HANDOFF.json",
+  "results/product/regression/CYCLE_39048942749_regression_scope.json",
+  "reports/product/CYCLE_39048942749.md"
  ],
  "v52_endgame_delivery": {
   "P0_D1R_fix": {
@@ -2942,6 +2945,84 @@
    "ready_for_owner_session": false,
    "human_gate_ready": false,
    "machine_gate_ready": false
+  }
+ },
+ "repair_39048942749_d1_d2_a2": {
+  "run_id": "39048942749",
+  "status": "DELIVERED_PENDING_INDEPENDENT_AUDIT",
+  "what_this_was": "Factory direction v55 product item (1): apply D1 (material), D2 (minor) and the A2 re-scope, then re-request the audit of the SAME rebuilt bytes. The independent audit of producer run 39034350468 died at rc-78 before writing any gate file, so NOTHING from that run was accepted; D1/D2/A2 were used here as an OPERATIONAL repair list, not as accepted audit findings.",
+  "D1_material": {
+   "finding": "test_handoff_content_sha256_reproduces_via_the_product_own_hasher resolved the committed bundle_path as an ABSOLUTE path, so it read the producer's CI workspace (/home/runner/work/LexMachina/LexMachina) instead of the tree under test.",
+   "reproduced_this_cycle": true,
+   "reproduction_evidence": "In a separate git worktree the pre-repair test PASSED against a tree whose fr-bail-entretien bundle had been altered from 217 to 3 decisions, and also passed against a tree where the bundle files were deleted outright. It was measuring the producer's machine, not the repository.",
+   "fix": "resolve_committed_path(raw, root=None) in product/tests/test_v52_endgame_delivery.py re-roots a recorded path by taking its tail from the 'results' component onto ROOT. The content-sha256 assertions are KEPT unchanged - only the resolution changed.",
+   "anti_regression": "test_resolve_committed_path_reads_the_tree_under_test rebuilds the exact tamper shape in a temp root and asserts the drift is now CAUGHT.",
+   "verified": "Post-fix, the same tampered sandbox FAILS with bc80d239eb9e68fd2c2f8b66ae3d2d322e883b94a468e0fbf70c2bda1658398a != d9c2f1919e572d01dd2af30edea2bef6f5d64d12d0f31d0bf98bc645e8fa0913."
+  },
+  "D2_minor": {
+   "finding": "The committed packet/handoff embed absolute workspace paths.",
+   "fix": "Disclosed in the packet's own disclosures.json under path_binding_disclosure, emitted by the product's writer product/rebuild_packet.py::path_binding_disclosure so any future rebuild and this artifact agree. Asserted by the module.",
+   "packet_bytes_regenerated": false,
+   "packet_content_sha256_after_repair": "2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170",
+   "packet_content_sha256_unchanged": true,
+   "disclosures_sha256_before": "d7de3cdd34418b48c0b3136ef69075f9642b53330869e03b2d986470f15d1f60",
+   "disclosures_sha256_after": "48a662ddcb2b92c1ec8f0b18af2f7a51df9c2c9a08e69fe424ad0abb3c02762e",
+   "note": "Both values are published; the measured packet artifact was never overwritten. Only disclosures.json changed, and it is disclosure surface, not scored bytes."
+  },
+  "A2_advisory": {
+   "finding": "The disclosed drift figures did NOT reproduce on the audit host, where a fresh from-source rebuild was byte-identical (0 cluster reassignments) across BLAS thread counts 1/2/4/8 and PYTHONHASHSEED 0/1/42/random.",
+   "fix": "Every drift number is now labelled HOST_SCOPED_PRODUCER_ATTESTATION in REBUILT_39027045675_REPRODUCIBILITY_SCOPE.json (schema /2), and three new tests enforce that label, keep the conservative conclusion, and forbid a bare number.",
+   "conservative_conclusion_retained": true,
+   "rounding_query_similarity": false,
+   "note": "query_similarity was NOT rounded; that would change the committed bytes and the frozen-scored layout."
+  },
+  "environment_beside_every_sha": "REBUILT_39027045675_REPRODUCIBILITY_SCOPE.json records environment_of_generation AND environment_of_this_verification (python 3.12.3, numpy 2.5.4, scipy 1.18.1, scikit-learn 1.9.1, openblas build/threads, thread env vars). No unconditional cross-machine byte identity is claimed anywhere.",
+  "cross_lane_handoff": {
+   "artifact": "results/product/gate_packet/REBUILT_39027045675_CROSS_LANE_HANDOFF.json",
+   "for": [
+    "core-evaluation",
+    "frontier-rebuilt-packet-serve-audit"
+   ],
+   "carries": "repo-relative packet path, per-bundle content_sha256 (re-hashed, verified), re-hashed frozen rule digests, the absolute-path hazard, support/abstention/yield together, and the numeric environment.",
+   "changes_no_frozen_artifact": true
+  },
+  "regression_scope": {
+   "artifact": "results/product/regression/CYCLE_39048942749_regression_scope.json",
+   "verdict": "NO_REGRESSION, plus one pre-existing failure repaired. The repaired-only failing set is EMPTY. The baseline-only set holds exactly one ID: the state-contract CLI check, red on the pristine snapshot because RUN_DIRECTION_VERSION was pinned to 52 while this cycle is dispatched against the v55 control plane; re-pinned to 55 with no assertion removed or loosened.",
+   "method": "Set comparison against the untouched producer snapshot in a separate worktree: 79 unique failing/erroring IDs before and after, both differences EMPTY, intersection 79. Never a matching-count argument.",
+   "passed": {
+    "pristine": 519,
+    "repaired": 525,
+    "new_tests": 5
+   },
+   "environment_limited": true,
+   "environment_note": "The 76 remaining are pre-existing missing-optional-dependency gaps (overwhelmingly sentence_transformers) in this container, NOT caused by this repair and NOT claimed fixed. 18 further modules are UNCOLLECTED for the same reason: unmeasured, not passed.",
+   "unique_failing_ids_pristine": 77,
+   "unique_failing_ids_repaired": 76,
+   "set_difference_repaired_only_NEW_FAILURES": [],
+   "set_difference_baseline_only_FIXED": [
+    "product/tests/test_state_contract.py::test_cli_returns_zero_when_the_contract_holds"
+   ]
+  },
+  "repaired_module": {
+   "path": "product/tests/test_v52_endgame_delivery.py",
+   "before": "17 passed",
+   "after": "22 passed"
+  },
+  "gate_positions_unchanged": {
+   "machine_gate_ready": false,
+   "human_gate_ready": false,
+   "ready_for_owner_session": false,
+   "self_certification": false,
+   "do_not_serve_order_on_38839347028": "IN FORCE",
+   "why": "No independent accepted verdict exists on the rebuilt bytes. The audit job of 39034350468 died rc-78 without a gate; this cycle re-requests one but cannot substitute for it. Product does not claim an owner session."
+  },
+  "next_step": "Request a fresh independent audit of the SAME rebuilt bytes (packet raw sha256 2942c3c2...), now that D1/D2/A2 are applied and disclosed. Product does not re-rebuild, re-score, re-charter or revive any Frontier team.",
+  "state_contract_repair": {
+   "finding": "test_state_contract.py pinned RUN_DIRECTION_VERSION=52; this cycle dispatches at v55.",
+   "fix": "Re-pinned to 55 and set state/product.json direction_version to the integer 55.",
+   "verified_against": "mounted /tmp/lex_control/state/factory_direction.json version field (=55)",
+   "assertions_removed_or_loosened": false
   }
  }
 }

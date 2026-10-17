@@ -50,6 +50,11 @@ REBUILT = ROOT / "results" / "product" / "gate_packet" / "rebuilt-39027045675"
 SOURCE = ROOT / "results" / "product" / "gate_packet" / "38839347028"
 QIDS = ("fr-bail-entretien", "de-kapitalverletzung", "it-responsabilita-medica")
 
+# Anchor used to re-root an absolute path recorded in a committed artifact onto
+# the checkout under test (see resolve_committed_path and the D1/D2 disclosure).
+REPO_ROOT_MARKER = "results"
+REBUILT_DIR_NAME = "rebuilt-39027045675"
+
 pytestmark = pytest.mark.skipif(
     not (REBUILT / "handoff.json").is_file(),
     reason="rebuilt packet rebuilt-39027045675 not present",
@@ -63,6 +68,39 @@ def _handoff() -> dict:
 def _bundle(qid: str, *, source: bool = False) -> dict:
     root = SOURCE if source else REBUILT
     return json.loads((root / "questions" / f"{qid}.bundle.json").read_text(encoding="utf-8"))
+
+
+def resolve_committed_path(raw: str, root: Path | None = None) -> Path:
+    """Resolve a path recorded in a committed artifact against THIS checkout.
+
+    D1 repair (factory direction v55). The shipped ``handoff.json`` /
+    ``packet.json`` embed the absolute CI workspace path
+    (``/home/runner/work/LexMachina/LexMachina/...``), because they are
+    claim-bearing measured artifacts whose bytes must not be regenerated to
+    make paths relative. A test that trusted ``bundle_path`` as absolute was
+    therefore coupled to the machine that produced the packet: on any other
+    checkout it silently read the producer's tree, so it passed against a tree
+    whose bundle content had been altered (and raised FileNotFoundError while
+    describing the wrong bytes).
+
+    The fix belongs in the test, not in the artifact: take the committed path's
+    tail from the repository-root marker onward and join it onto ``root``
+    (defaulting to the ROOT of the tree under test). The content-sha256
+    assertions are kept exactly as they were - only the *resolution* changes.
+
+    ``root`` is injectable so the anti-regression guard can prove the resolution
+    follows the tree under test rather than the producer's recorded prefix.
+    """
+    base = ROOT if root is None else Path(root)
+    parts = Path(raw).parts
+    if REPO_ROOT_MARKER in parts:  # .../results/product/gate_packet/rebuilt-.../...
+        idx = parts.index(REPO_ROOT_MARKER)
+        return base.joinpath(*parts[idx:])
+    # No known anchor: fall back to the bare filename inside the packet dir, so
+    # a missing/renamed anchor degrades to "not present" rather than to a
+    # silent read of an unrelated machine's file.
+    return base / "results" / "product" / "gate_packet" / REBUILT_DIR_NAME / "questions" \
+        / Path(raw).name
 
 
 # --------------------------------------------------------------------------
@@ -265,11 +303,84 @@ def test_no_committed_rebuilt_artifact_asserts_a_forbidden_construction():
 # --------------------------------------------------------------------------
 
 def test_handoff_content_sha256_reproduces_via_the_product_own_hasher():
+    """D1 repair: resolve the committed bundle paths against THIS ROOT.
+
+    The content-sha256 assertions are unchanged - the product's own hasher must
+    still reproduce every published bundle hash. Only the path resolution is
+    fixed, so the assertion now measures the checkout under test instead of the
+    absolute CI workspace path embedded in the committed artifact.
+    """
     h = _handoff()
     for b in h["bundles"]:
-        recomputed = content_sha256(json.loads(Path(b["bundle_path"]).read_text(
-            encoding="utf-8")))
+        resolved = resolve_committed_path(b["bundle_path"])
+        assert resolved.is_file(), f"{b['qid']} bundle missing under ROOT: {resolved}"
+        recomputed = content_sha256(json.loads(resolved.read_text(encoding="utf-8")))
         assert recomputed == b["content_sha256"], f"{b['qid']} content hash drifted"
+
+
+def test_committed_artifacts_embed_absolute_workspace_paths_and_it_is_disclosed():
+    """D2: the absolute-path embedding is real, and it is disclosed, not fixed.
+
+    The packet/handoff are claim-bearing measured artifacts, so the repair does
+    NOT regenerate them to store relative paths (that would change packet.json
+    raw sha256 2942c3c2... and invalidate the published identity). Instead the
+    embedding is asserted to exist and to be disclosed in the packet's own
+    disclosures, so a consumer is never surprised by a producer-machine path.
+    """
+    h = _handoff()
+    assert str(REBUILT) in h["packet_path"], "packet_path still points at ROOT-relative only"
+    for b in h["bundles"]:
+        assert Path(b["bundle_path"]).is_absolute(), (
+            f"{b['qid']} bundle_path was expected to embed an absolute workspace path")
+        # ... and it must re-root cleanly onto this checkout (the D1 fix)
+        assert resolve_committed_path(b["bundle_path"]).is_relative_to(ROOT)
+
+    disc = json.loads((REBUILT / "disclosures.json").read_text(encoding="utf-8"))
+    blob = json.dumps(disc)
+    assert "absolute" in blob.lower(), "disclosures.json does not disclose absolute paths"
+    assert REBUILT_DIR_NAME in blob, "the disclosure does not name the packet dir anchor"
+
+
+def test_resolve_committed_path_reads_the_tree_under_test(tmp_path):
+    """D1 anti-regression: resolution must follow ROOT, not the producer's path.
+
+    The pre-repair test passed against a *tampered* tree because it opened the
+    absolute CI path recorded in the artifact. This guard rebuilds that exact
+    failure shape in a temp tree: a producer path that exists here, and a
+    foreign root whose bundle bytes differ. Resolution must follow the foreign
+    root, so the tampered bytes are the ones hashed and the drift is caught.
+    """
+    forged = ("/home/runner/work/LexMachina/LexMachina/results/product/gate_packet/"
+              f"{REBUILT_DIR_NAME}/questions/fr-bail-entretien.bundle.json")
+
+    # 1. resolution re-roots onto whatever root it is given
+    resolved = resolve_committed_path(forged, root=tmp_path)
+    assert resolved == tmp_path / "results" / "product" / "gate_packet" \
+        / REBUILT_DIR_NAME / "questions" / "fr-bail-entretien.bundle.json"
+
+    # 2. the reproduction: same committed path, a foreign root holding DIFFERENT
+    #    bytes. The old absolute-path read silently hashed the producer's tree;
+    #    the repaired read must hash the tree it was pointed at.
+    foreign = tmp_path / "results" / "product" / "gate_packet" / REBUILT_DIR_NAME / "questions"
+    foreign.mkdir(parents=True)
+    bundle = json.loads((REBUILT / "questions" / "fr-bail-entretien.bundle.json")
+                        .read_text(encoding="utf-8"))
+    bundle["decisions"] = bundle["decisions"][:3]          # tamper the foreign tree
+    (foreign / "fr-bail-entretien.bundle.json").write_text(
+        json.dumps(bundle, ensure_ascii=False), encoding="utf-8")
+
+    foreign_sha = content_sha256(json.loads(
+        resolve_committed_path(forged, root=tmp_path).read_text(encoding="utf-8")))
+    real_sha = content_sha256(json.loads((REBUILT / "questions" / "fr-bail-entretien.bundle.json")
+                                         .read_text(encoding="utf-8")))
+    assert foreign_sha != real_sha, (
+        "resolution still reads the producer's tree instead of the tree under test")
+
+    # 3. an unanchored path degrades to the packet dir under the given root,
+    #    never to an absolute read of an unrelated machine's file
+    unanchored = resolve_committed_path("/somewhere/else/whatever.bundle.json", root=tmp_path)
+    assert unanchored == foreign / "whatever.bundle.json"
+    assert not unanchored.exists()
 
 
 def test_handoff_packet_content_sha256_matches_the_raw_packet_bytes():
@@ -290,6 +401,57 @@ def test_handoff_does_not_self_certify_and_admission_denies():
     assert adm["ready_for_owner_session_allowed"] is False
 
 
+def test_cross_lane_handoff_publishes_verified_identities_and_stays_fail_closed():
+    """Item (3): the packet path + per-bundle content_sha256 handed to Core
+    Evaluation and the serve-audit team, plus the fail-closed product position.
+
+    Every sha in the handoff is RE-HASHED here rather than trusted, and the
+    record must never carry an owner-session claim while the accepted
+    DO-NOT-SERVE order is unaddressed.
+    """
+    rec = json.loads((ROOT / "results" / "product" / "gate_packet" /
+                      "REBUILT_39027045675_CROSS_LANE_HANDOFF.json")
+                     .read_text(encoding="utf-8"))
+
+    # packet identity: measured bytes, not regenerated
+    pkt = ROOT / rec["packet"]["repo_relative_packet"]
+    assert hashlib.sha256(pkt.read_bytes()).hexdigest() == rec["packet"]["packet_content_sha256"]
+    assert rec["packet"]["packet_bytes_regenerated_this_cycle"] is False
+
+    # per-bundle identity, recomputed through the product's own hasher
+    by_qid = rec["per_bundle"]
+    assert set(by_qid) == set(QIDS)
+    for qid in QIDS:
+        cell = by_qid[qid]
+        path = ROOT / cell["repo_relative_path"]
+        assert cell["content_sha256_verified"] is True
+        assert content_sha256(json.loads(path.read_text(encoding="utf-8"))) == cell["content_sha256"]
+        # the drift figure travels with its scope label
+        assert cell["cluster_id_drift_rows_scope"] == "HOST_SCOPED_PRODUCER_ATTESTATION"
+
+    # frozen inputs are re-hashed, never re-derived
+    for name, cell in rec["frozen_inputs_rehashed_this_cycle"].items():
+        assert cell["matches_accepted"] is True, name
+        assert hashlib.sha256((ROOT / cell["path"]).read_bytes()).hexdigest() == cell["sha256"]
+
+    # the absolute-path hazard travels WITH the handoff
+    assert rec["path_handling"]["committed_paths_are_absolute"] is True
+    assert "results" in rec["path_handling"]["warning"]
+
+    # support-among-issued, abstentions and yield travel together
+    t = rec["totals"]
+    assert t["n_counter_rows_emitted"] + t["n_counter_rows_abstained"] == t["n_counter_rows_scored"]
+    assert t["n_counter_rows_scored"] == 65
+    assert t["yield"] == pytest.approx(5 / 65, abs=1e-4)
+
+    # fail-closed: no owner-session claim from the producer
+    pos = rec["product_position"]
+    assert pos["self_certification"] is False
+    assert pos["machine_gate_ready"] is False
+    assert pos["human_gate_ready"] is False
+    assert pos["ready_for_owner_session"] is False
+
+
 def test_reproducibility_scope_disclosure_is_present_and_consistent():
     """The committed-bytes identity is stable; a from-source rebuild is not
     byte-identical across numeric environments. That boundary is disclosed so a
@@ -299,7 +461,7 @@ def test_reproducibility_scope_disclosure_is_present_and_consistent():
     scope_path = ROOT / "results" / "product" / "gate_packet" / (
         "REBUILT_39027045675_REPRODUCIBILITY_SCOPE.json")
     scope = json.loads(scope_path.read_text(encoding="utf-8"))
-    assert scope["schema"] == "product-rebuilt-packet-reproducibility-scope/1"
+    assert scope["schema"] == "product-rebuilt-packet-reproducibility-scope/2"
     assert scope["scope_finding"]
     assert scope["artifact_of_record"]
     by_qid = scope["per_bundle"]
@@ -312,3 +474,59 @@ def test_reproducibility_scope_disclosure_is_present_and_consistent():
             {b["qid"]: b["content_sha256"] for b in _handoff()["bundles"]}[qid])
         assert cell["n_rows"] > 0
         assert cell["cluster_id_drift_rows"] <= cell["n_rows"]
+        # A2: a drift figure without its scope label is a scope-free number that
+        # will later be quoted as if it were portable. The label is mandatory.
+        assert cell["cluster_id_drift_rows_scope"] == "HOST_SCOPED_PRODUCER_ATTESTATION"
+        assert cell["max_query_similarity_drift_scope"] == "HOST_SCOPED_PRODUCER_ATTESTATION"
+        # ... and the committed identity is re-hashed here, on this host, now
+        assert cell["content_sha256_recomputes_here"] is True
+        assert cell["recomputed_content_sha256"] == cell["committed_content_sha256"]
+
+
+def test_reproducibility_disclosure_keeps_the_conservative_conclusion():
+    """A2: the drift did not reproduce on the audit host; the conclusion stays.
+
+    The audit host rebuilt byte-identically across BLAS thread counts and hash
+    seeds. That is evidence the drift is environment-scoped - it is NOT evidence
+    that rebuilds are portable, so the conservative conclusion must survive the
+    re-scope, and both environments must be recorded beside the shas.
+    """
+    scope = json.loads((ROOT / "results" / "product" / "gate_packet" /
+                        "REBUILT_39027045675_REPRODUCIBILITY_SCOPE.json")
+                       .read_text(encoding="utf-8"))
+    finding = scope["scope_finding"].lower()
+    assert "not byte-identical" in finding, (
+        "the from-source rebuild claim was weakened; the conservative "
+        "conclusion must be retained")
+    assert "host-scoped" in finding
+    # both environments are disclosed, and neither is claimed to be universal
+    assert scope["environment_of_generation"]["python"]
+    assert scope["environment_of_this_verification"]["python"]
+    for env_key in ("environment_of_generation", "environment_of_this_verification"):
+        env = scope[env_key]
+        for pkg in ("numpy", "scipy", "scikit_learn"):
+            assert env.get(pkg), f"{env_key} does not record {pkg}"
+    assert "no unconditional cross-machine byte identity is claimed" in \
+        scope["environment_note"].lower()
+    assert scope["packet_content_sha256"] == _handoff()["packet_content_sha256"]
+
+
+def test_drift_figures_are_host_scoped_not_silently_universal():
+    """The fr/de reassignment counts are producer attestation on ONE host.
+
+    The numbers must never be published bare: the audit host measured zero
+    reassignments. The repair keeps them (they are evidence of record) and labels
+    them, so a later reader cannot promote them to a portable property.
+    """
+    scope = json.loads((ROOT / "results" / "product" / "gate_packet" /
+                        "REBUILT_39027045675_REPRODUCIBILITY_SCOPE.json")
+                       .read_text(encoding="utf-8"))
+    repair = scope["repair_scope"]["A2_advisory"]
+    assert "host" in repair.lower()
+    assert scope["per_bundle"]["fr-bail-entretien"]["cluster_id_drift_rows"] == 98
+    assert scope["per_bundle"]["de-kapitalverletzung"]["cluster_id_drift_rows"] == 112
+    assert scope["per_bundle"]["it-responsabilita-medica"]["cluster_id_drift_rows"] == 0
+    # the D1/D2 repairs are recorded against the same artifact, with no
+    # regeneration of the measured packet bytes
+    assert "packet.json was NOT regenerated" in scope["repair_scope"]["D1_material"]
+    assert scope["repair_scope"]["D2_minor"]
