@@ -1,0 +1,1050 @@
+{
+ "schema": "lex-evaluation-packet-lineage-sweep/1",
+ "run_id": "38993062549",
+ "generated_at_utc": "2026-10-17T02:11:58+00:00",
+ "verdict": "GATE_FALSIFIED_ON_ACCEPTED_LINEAGE",
+ "exit_code": 1,
+ "claim_ceiling": "Tests the GATE, not the CANDIDATE. It does not re-measure either Frontier candidate, does not touch the frozen bars, does not evaluate the two Frontier candidates' outputs, and says nothing about jurist usefulness. A FALSIFIED verdict is a defect in the bars as packet admission, not a product regression, and it does not meet, relax or touch the absolute bars.",
+ "rules_identity": {
+  "RULES_LABEL.json": {
+   "path": "/home/runner/work/LexMachina/LexMachina/evaluation/frozen_bars/RULES_LABEL.json",
+   "present": true,
+   "sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+   "expected_sha256": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+   "matches": true
+  },
+  "RULES_GEOMETRY.json": {
+   "path": "/home/runner/work/LexMachina/LexMachina/evaluation/frozen_bars/RULES_GEOMETRY.json",
+   "present": true,
+   "sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+   "expected_sha256": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633",
+   "matches": true
+  },
+  "all_match": true
+ },
+ "population": {
+  "root": "/tmp/lex_accepted/product/results/product/gate_packet",
+  "n_packet_dirs": 5,
+  "n_in_scope": 3,
+  "in_scope_packet_ids": [
+   "38799024807",
+   "38812599575",
+   "38839347028"
+  ],
+  "out_of_scope": [
+   {
+    "packet_id": "38838116453",
+    "n_frozen_qids_present": 2,
+    "reason": "packet does not carry all three frozen qids (missing: ['it-responsabilita-medica']); the frozen rubric's anchors and query-term lexicons are pinned to the three frozen qids, so the gate cannot score it"
+   },
+   {
+    "packet_id": "offline_machinery_rehearsal",
+    "n_frozen_qids_present": 0,
+    "reason": "packet does not carry all three frozen qids (missing: ['de-kapitalverletzung', 'fr-bail-entretien', 'it-responsabilita-medica']); the frozen rubric's anchors and query-term lexicons are pinned to the three frozen qids, so the gate cannot score it"
+   }
+  ]
+ },
+ "per_packet": {
+  "38799024807": {
+   "packet_id": "38799024807",
+   "questions_dir": "/tmp/lex_accepted/product/results/product/gate_packet/38799024807/questions",
+   "bundle_sha256": {
+    "de-kapitalverletzung": "90914482175ee51a6c2aa086d0119106f70b16f7627414b730bfbfc1e4c34e9c",
+    "fr-bail-entretien": "dfb4e8046c33297db4b5aa965100f1b71fc7b8a4e4011dce9613cf8d518c15de",
+    "it-responsabilita-medica": "737c9112a7c2f1b8eae5db4038f9f95ff0b646898c7063208b376e6a93f56abe"
+   },
+   "n_decisions": {
+    "de-kapitalverletzung": 134,
+    "fr-bail-entretien": 131,
+    "it-responsabilita-medica": 132
+   },
+   "audit": {
+    "audit_file": "/tmp/lex_accepted/product/results/audit/product/CYCLE_38799024807_GATE.json",
+    "present": false,
+    "accepted": false,
+    "reason": "no independent audit record for this cycle on the accepted mount"
+   },
+   "gate": {
+    "cmd": "/usr/bin/python -m evaluation.frozen_bars.run_bar_gates --adjudicate /tmp/lex_accepted/product/results/product/gate_packet/38799024807/questions --out /tmp/tmp_7l2528z/38799024807.json",
+    "attempts": [
+     {
+      "attempt": 1,
+      "exit_code": 1,
+      "wrote_record": true,
+      "masked_discovery_error": false,
+      "elapsed_s": 2.858
+     }
+    ],
+    "environment_failure": false,
+    "exit_code": 1,
+    "verdict": "FAIL_REGRESSION",
+    "geometry_regression_verdict": "FAIL_REGRESSION",
+    "geometry_regressed_qids": [
+     "it-responsabilita-medica"
+    ],
+    "geometry_per_bundle_counts": {
+     "de-kapitalverletzung": 6,
+     "fr-bail-entretien": 5,
+     "it-responsabilita-medica": 4
+    },
+    "geometry_absolute_status": "GEOMETRY_UNSOUND",
+    "label_regression_verdict": "NOT_APPLICABLE",
+    "label_n_scored": 7,
+    "label_n_supported": 0,
+    "label_classes": {
+     "OFF-DOMAIN": 3,
+     "UNBACKED": 2,
+     "BOILERPLATE-ONLY": 1,
+     "FRAGMENT": 1
+    },
+    "label_absolute_status": "LABEL_UNSOUND",
+    "admission_reading": {
+     "schema": "lex-evaluation-bar-admission-reading/1",
+     "exit_code": 1,
+     "exit_certifies": "FAIL_REGRESSION \u2014 at least one gate reported gate_blocks_build on the scored packet. Unreachable through served_lineage mode on any input (served bytes recompute the incumbent by construction; any drift exits 2 before scoring); reachable through adjudicate mode.",
+     "label": {
+      "gate": "counter-label-support",
+      "regression_verdict": "NOT_APPLICABLE",
+      "absolute_status": "LABEL_UNSOUND",
+      "regression_certifies": "NOTHING about label soundness. It is an inapplicability marker, not a pass.",
+      "regression_does_not_certify": "NOT_APPLICABLE does NOT certify that counter-label support met any bar. A packet whose scored support collapsed to 0 outside the 65-row population still reports NOT_APPLICABLE with gate_blocks_build=false. Absolute status (LABEL_SOUND/UNSOUND) is the only label statement the gate makes about such a packet, and it is never enforced as a build blocker.",
+      "absolute_certifies": "at least one scored counter row on THIS packet fails the frozen rubric",
+      "absolute_does_not_certify": "either state says nothing about map geometry, retrieval recall or jurist usefulness; LABEL_UNSOUND is REPORTED, never a build blocker (direction v50)",
+      "is_regression_not_a_pass": true
+     },
+     "geometry": {
+      "gate": "map-geometry-semantics",
+      "regression_verdict": "FAIL_REGRESSION",
+      "absolute_status": "GEOMETRY_UNSOUND",
+      "regression_certifies": "a build-blocking geometry regression on the three frozen qids",
+      "regression_does_not_certify": "",
+      "absolute_certifies": "at least one criterion fails on at least one bundle",
+      "absolute_does_not_certify": "either state says nothing about counter-label support or jurist usefulness; GEOMETRY_UNSOUND is REPORTED, never a build blocker (direction v50)",
+      "is_regression_not_a_pass": false
+     },
+     "naive_consumer_trap_fires": false,
+     "naive_consumer_trap_meaning": null,
+     "required_reading": "gate_blocks_build==false / exit 0 is NOT a statement that the counter-label bar was met; read label absolute_status explicitly for packets outside the pinned 65-row incumbent population"
+    },
+    "elapsed_s": 2.858
+   },
+   "mask": {
+    "de-kapitalverletzung": {
+     "COHERENCE_QUERY_LANG": false,
+     "COHERENCE_QUERY_TERM": false,
+     "PROJ_RANK": true,
+     "PROJ_SPEARMAN": false,
+     "PROJ_KNN10": false,
+     "STRUCTURE_LARGEST": true,
+     "STRUCTURE_SEP": false,
+     "LABEL_CONTENT_FRACTION": true,
+     "LABEL_JACCARD": true,
+     "OUTLIER_VALIDITY": true,
+     "RELATIONS": true
+    },
+    "fr-bail-entretien": {
+     "COHERENCE_QUERY_LANG": false,
+     "COHERENCE_QUERY_TERM": false,
+     "PROJ_RANK": false,
+     "PROJ_SPEARMAN": false,
+     "PROJ_KNN10": false,
+     "STRUCTURE_LARGEST": true,
+     "STRUCTURE_SEP": false,
+     "LABEL_CONTENT_FRACTION": true,
+     "LABEL_JACCARD": true,
+     "OUTLIER_VALIDITY": true,
+     "RELATIONS": true
+    },
+    "it-responsabilita-medica": {
+     "COHERENCE_QUERY_LANG": false,
+     "COHERENCE_QUERY_TERM": false,
+     "PROJ_RANK": false,
+     "PROJ_SPEARMAN": false,
+     "PROJ_KNN10": false,
+     "STRUCTURE_LARGEST": true,
+     "STRUCTURE_SEP": false,
+     "LABEL_CONTENT_FRACTION": true,
+     "LABEL_JACCARD": true,
+     "OUTLIER_VALIDITY": false,
+     "RELATIONS": true
+    }
+   },
+   "values": {
+    "de-kapitalverletzung": {
+     "COHERENCE_QUERY_LANG": 0.05454545454545454,
+     "COHERENCE_QUERY_TERM": 0.03636363636363636,
+     "PROJ_RANK": 0.33877513142367716,
+     "PROJ_SPEARMAN": -0.017462300891895627,
+     "PROJ_KNN10": 0.1962686567164179,
+     "STRUCTURE_LARGEST": 0.41044776119402987,
+     "STRUCTURE_SEP": 0.976714945472512,
+     "LABEL_CONTENT_FRACTION": 1.0,
+     "LABEL_JACCARD": 0.022817460317460316,
+     "OUTLIER_VALIDITY": [
+      0.0,
+      0.016
+     ],
+     "RELATIONS": 25
+    },
+    "fr-bail-entretien": {
+     "COHERENCE_QUERY_LANG": 0.0410958904109589,
+     "COHERENCE_QUERY_TERM": 0.3287671232876712,
+     "PROJ_RANK": 0.2268750822692343,
+     "PROJ_SPEARMAN": -0.12586978558196477,
+     "PROJ_KNN10": 0.13816793893129772,
+     "STRUCTURE_LARGEST": 0.5572519083969466,
+     "STRUCTURE_SEP": 1.0050505467314594,
+     "LABEL_CONTENT_FRACTION": 1.0,
+     "LABEL_JACCARD": 0.06731859410430839,
+     "OUTLIER_VALIDITY": [
+      0.0,
+      0.04838709677419355
+     ],
+     "RELATIONS": 25
+    },
+    "it-responsabilita-medica": {
+     "COHERENCE_QUERY_LANG": 0.1111111111111111,
+     "COHERENCE_QUERY_TERM": 0.17777777777777778,
+     "PROJ_RANK": 0.2578240323878452,
+     "PROJ_SPEARMAN": 0.1847151810466267,
+     "PROJ_KNN10": 0.19772727272727275,
+     "STRUCTURE_LARGEST": 0.3409090909090909,
+     "STRUCTURE_SEP": 0.9728285677300077,
+     "LABEL_CONTENT_FRACTION": 1.0,
+     "LABEL_JACCARD": 0.06668083900226758,
+     "OUTLIER_VALIDITY": [
+      0.0,
+      0.0
+     ],
+     "RELATIONS": 25
+    }
+   },
+   "bars": {
+    "de-kapitalverletzung": {
+     "COHERENCE_QUERY_LANG": 0.25,
+     "COHERENCE_QUERY_TERM": 0.3358208955223881,
+     "PROJ_RANK": 0.3,
+     "PROJ_SPEARMAN": 0.5,
+     "PROJ_KNN10": 0.4,
+     "STRUCTURE_LARGEST": 0.6,
+     "STRUCTURE_SEP": 0.9,
+     "LABEL_CONTENT_FRACTION": 0.8,
+     "LABEL_JACCARD": 0.5,
+     "OUTLIER_VALIDITY": null,
+     "RELATIONS": 10
+    },
+    "fr-bail-entretien": {
+     "COHERENCE_QUERY_LANG": 0.25,
+     "COHERENCE_QUERY_TERM": 0.5954198473282443,
+     "PROJ_RANK": 0.3,
+     "PROJ_SPEARMAN": 0.5,
+     "PROJ_KNN10": 0.4,
+     "STRUCTURE_LARGEST": 0.6,
+     "STRUCTURE_SEP": 0.9,
+     "LABEL_CONTENT_FRACTION": 0.8,
+     "LABEL_JACCARD": 0.5,
+     "OUTLIER_VALIDITY": null,
+     "RELATIONS": 10
+    },
+    "it-responsabilita-medica": {
+     "COHERENCE_QUERY_LANG": 0.25,
+     "COHERENCE_QUERY_TERM": 0.45454545454545453,
+     "PROJ_RANK": 0.3,
+     "PROJ_SPEARMAN": 0.5,
+     "PROJ_KNN10": 0.4,
+     "STRUCTURE_LARGEST": 0.6,
+     "STRUCTURE_SEP": 0.9,
+     "LABEL_CONTENT_FRACTION": 0.8,
+     "LABEL_JACCARD": 0.5,
+     "OUTLIER_VALIDITY": null,
+     "RELATIONS": 10
+    }
+   },
+   "per_bundle_counts": {
+    "de-kapitalverletzung": 6,
+    "fr-bail-entretien": 5,
+    "it-responsabilita-medica": 4
+   },
+   "total_passing_cells": 15,
+   "gate_blocks_build": true,
+   "f1_gate_invalid_on_accepted_audited_lineage": false,
+   "regression_without_accepted_audit": true
+  },
+  "38812599575": {
+   "packet_id": "38812599575",
+   "questions_dir": "/tmp/lex_accepted/product/results/product/gate_packet/38812599575/questions",
+   "bundle_sha256": {
+    "de-kapitalverletzung": "c4077c6bf906cb99162583100b8791d7699ba5f45733d0ee38c1b91627b67762",
+    "fr-bail-entretien": "d5556ed8a3cb1a1fc378b29083e5c8c59bbced84ed4c0280394674d63d4afddc",
+    "it-responsabilita-medica": "ec2551860b1937be613ea861fcc08cff4ccf166d6c12749b541619e2796343ad"
+   },
+   "n_decisions": {
+    "de-kapitalverletzung": 174,
+    "fr-bail-entretien": 177,
+    "it-responsabilita-medica": 171
+   },
+   "audit": {
+    "audit_file": "/tmp/lex_accepted/product/results/audit/product/CYCLE_38812599575_GATE.json",
+    "present": true,
+    "gate": "PASS",
+    "safe_to_integrate": true,
+    "n_required_fixes": 0,
+    "accepted": true,
+    "reason": "independent audit accepted this cycle",
+    "claim_ceiling": "query-map MVP vertical slice: OpenCaseLaw retrieval -> query_result_bundle -> clickable map with TF-IDF projection; citation identity repair (_candidate_to_product) coded and audit-verified as sound; 0 cross-decitation contamination across 154-decision bundles; source-linked canonical URLs (mcp.opencaselaw.ch); TF-IDF geometry (x/y/cluster_id) preserved with outlier detection; zero model cost for map phase (local_map_s < 1s); answer-generation and human-gate milestones remain incomplete per producer state (human_gate_ready stays false, criterion 7 requires jurist session)."
+   },
+   "gate": {
+    "cmd": "/usr/bin/python -m evaluation.frozen_bars.run_bar_gates --adjudicate /tmp/lex_accepted/product/results/product/gate_packet/38812599575/questions --out /tmp/tmp_7l2528z/38812599575.json",
+    "attempts": [
+     {
+      "attempt": 1,
+      "exit_code": 1,
+      "wrote_record": true,
+      "masked_discovery_error": false,
+      "elapsed_s": 3.783
+     }
+    ],
+    "environment_failure": false,
+    "exit_code": 1,
+    "verdict": "FAIL_REGRESSION",
+    "geometry_regression_verdict": "FAIL_REGRESSION",
+    "geometry_regressed_qids": [
+     "fr-bail-entretien"
+    ],
+    "geometry_per_bundle_counts": {
+     "de-kapitalverletzung": 6,
+     "fr-bail-entretien": 4,
+     "it-responsabilita-medica": 5
+    },
+    "geometry_absolute_status": "GEOMETRY_UNSOUND",
+    "label_regression_verdict": "NOT_APPLICABLE",
+    "label_n_scored": 9,
+    "label_n_supported": 1,
+    "label_classes": {
+     "OFF-DOMAIN": 4,
+     "UNBACKED": 2,
+     "SUPPORTED": 1,
+     "BOILERPLATE-ONLY": 1,
+     "FRAGMENT": 1
+    },
+    "label_absolute_status": "LABEL_UNSOUND",
+    "admission_reading": {
+     "schema": "lex-evaluation-bar-admission-reading/1",
+     "exit_code": 1,
+     "exit_certifies": "FAIL_REGRESSION \u2014 at least one gate reported gate_blocks_build on the scored packet. Unreachable through served_lineage mode on any input (served bytes recompute the incumbent by construction; any drift exits 2 before scoring); reachable through adjudicate mode.",
+     "label": {
+      "gate": "counter-label-support",
+      "regression_verdict": "NOT_APPLICABLE",
+      "absolute_status": "LABEL_UNSOUND",
+      "regression_certifies": "NOTHING about label soundness. It is an inapplicability marker, not a pass.",
+      "regression_does_not_certify": "NOT_APPLICABLE does NOT certify that counter-label support met any bar. A packet whose scored support collapsed to 0 outside the 65-row population still reports NOT_APPLICABLE with gate_blocks_build=false. Absolute status (LABEL_SOUND/UNSOUND) is the only label statement the gate makes about such a packet, and it is never enforced as a build blocker.",
+      "absolute_certifies": "at least one scored counter row on THIS packet fails the frozen rubric",
+      "absolute_does_not_certify": "either state says nothing about map geometry, retrieval recall or jurist usefulness; LABEL_UNSOUND is REPORTED, never a build blocker (direction v50)",
+      "is_regression_not_a_pass": true
+     },
+     "geometry": {
+      "gate": "map-geometry-semantics",
+      "regression_verdict": "FAIL_REGRESSION",
+      "absolute_status": "GEOMETRY_UNSOUND",
+      "regression_certifies": "a build-blocking geometry regression on the three frozen qids",
+      "regression_does_not_certify": "",
+      "absolute_certifies": "at least one criterion fails on at least one bundle",
+      "absolute_does_not_certify": "either state says nothing about counter-label support or jurist usefulness; GEOMETRY_UNSOUND is REPORTED, never a build blocker (direction v50)",
+      "is_regression_not_a_pass": false
+     },
+     "naive_consumer_trap_fires": false,
+     "naive_consumer_trap_meaning": null,
+     "required_reading": "gate_blocks_build==false / exit 0 is NOT a statement that the counter-label bar was met; read label absolute_status explicitly for packets outside the pinned 65-row incumbent population"
+    },
+    "elapsed_s": 3.783
+   },
+   "mask": {
+    "de-kapitalverletzung": {
+     "COHERENCE_QUERY_LANG": false,
+     "COHERENCE_QUERY_TERM": false,
+     "PROJ_RANK": true,
+     "PROJ_SPEARMAN": false,
+     "PROJ_KNN10": false,
+     "STRUCTURE_LARGEST": true,
+     "STRUCTURE_SEP": false,
+     "LABEL_CONTENT_FRACTION": true,
+     "LABEL_JACCARD": true,
+     "OUTLIER_VALIDITY": true,
+     "RELATIONS": true
+    },
+    "fr-bail-entretien": {
+     "COHERENCE_QUERY_LANG": false,
+     "COHERENCE_QUERY_TERM": false,
+     "PROJ_RANK": false,
+     "PROJ_SPEARMAN": false,
+     "PROJ_KNN10": false,
+     "STRUCTURE_LARGEST": false,
+     "STRUCTURE_SEP": false,
+     "LABEL_CONTENT_FRACTION": true,
+     "LABEL_JACCARD": true,
+     "OUTLIER_VALIDITY": true,
+     "RELATIONS": true
+    },
+    "it-responsabilita-medica": {
+     "COHERENCE_QUERY_LANG": false,
+     "COHERENCE_QUERY_TERM": false,
+     "PROJ_RANK": true,
+     "PROJ_SPEARMAN": false,
+     "PROJ_KNN10": false,
+     "STRUCTURE_LARGEST": true,
+     "STRUCTURE_SEP": false,
+     "LABEL_CONTENT_FRACTION": true,
+     "LABEL_JACCARD": true,
+     "OUTLIER_VALIDITY": false,
+     "RELATIONS": true
+    }
+   },
+   "values": {
+    "de-kapitalverletzung": {
+     "COHERENCE_QUERY_LANG": 0.03896103896103896,
+     "COHERENCE_QUERY_TERM": 0.025974025974025976,
+     "PROJ_RANK": 0.31013799934923686,
+     "PROJ_SPEARMAN": -0.020522625562725542,
+     "PROJ_KNN10": 0.15804597701149425,
+     "STRUCTURE_LARGEST": 0.4425287356321839,
+     "STRUCTURE_SEP": 0.9868212072333273,
+     "LABEL_CONTENT_FRACTION": 1.0,
+     "LABEL_JACCARD": 0.022817460317460316,
+     "OUTLIER_VALIDITY": [
+      0.0,
+      0.012195121951219513
+     ],
+     "RELATIONS": 35
+    },
+    "fr-bail-entretien": {
+     "COHERENCE_QUERY_LANG": 0.023622047244094488,
+     "COHERENCE_QUERY_TERM": 0.2283464566929134,
+     "PROJ_RANK": 0.24859711714218327,
+     "PROJ_SPEARMAN": -0.13005227896562535,
+     "PROJ_KNN10": 0.24915254237288137,
+     "STRUCTURE_LARGEST": 0.7175141242937854,
+     "STRUCTURE_SEP": 1.0047040847894833,
+     "LABEL_CONTENT_FRACTION": 1.0,
+     "LABEL_JACCARD": 0.041666666666666664,
+     "OUTLIER_VALIDITY": [
+      0.0,
+      0.03592814371257485
+     ],
+     "RELATIONS": 37
+    },
+    "it-responsabilita-medica": {
+     "COHERENCE_QUERY_LANG": 0.08064516129032258,
+     "COHERENCE_QUERY_TERM": 0.14516129032258066,
+     "PROJ_RANK": 0.4733147671454042,
+     "PROJ_SPEARMAN": 0.15177710108927955,
+     "PROJ_KNN10": 0.17719298245614035,
+     "STRUCTURE_LARGEST": 0.36257309941520466,
+     "STRUCTURE_SEP": 0.9744719772452923,
+     "LABEL_CONTENT_FRACTION": 1.0,
+     "LABEL_JACCARD": 0.09346655328798185,
+     "OUTLIER_VALIDITY": [
+      0.0,
+      0.0
+     ],
+     "RELATIONS": 35
+    }
+   },
+   "bars": {
+    "de-kapitalverletzung": {
+     "COHERENCE_QUERY_LANG": 0.25,
+     "COHERENCE_QUERY_TERM": 0.28160919540229884,
+     "PROJ_RANK": 0.3,
+     "PROJ_SPEARMAN": 0.5,
+     "PROJ_KNN10": 0.4,
+     "STRUCTURE_LARGEST": 0.6,
+     "STRUCTURE_SEP": 0.9,
+     "LABEL_CONTENT_FRACTION": 0.8,
+     "LABEL_JACCARD": 0.5,
+     "OUTLIER_VALIDITY": null,
+     "RELATIONS": 10
+    },
+    "fr-bail-entretien": {
+     "COHERENCE_QUERY_LANG": 0.25,
+     "COHERENCE_QUERY_TERM": 0.4350282485875706,
+     "PROJ_RANK": 0.3,
+     "PROJ_SPEARMAN": 0.5,
+     "PROJ_KNN10": 0.4,
+     "STRUCTURE_LARGEST": 0.6,
+     "STRUCTURE_SEP": 0.9,
+     "LABEL_CONTENT_FRACTION": 0.8,
+     "LABEL_JACCARD": 0.5,
+     "OUTLIER_VALIDITY": null,
+     "RELATIONS": 10
+    },
+    "it-responsabilita-medica": {
+     "COHERENCE_QUERY_LANG": 0.25,
+     "COHERENCE_QUERY_TERM": 0.4269005847953216,
+     "PROJ_RANK": 0.3,
+     "PROJ_SPEARMAN": 0.5,
+     "PROJ_KNN10": 0.4,
+     "STRUCTURE_LARGEST": 0.6,
+     "STRUCTURE_SEP": 0.9,
+     "LABEL_CONTENT_FRACTION": 0.8,
+     "LABEL_JACCARD": 0.5,
+     "OUTLIER_VALIDITY": null,
+     "RELATIONS": 10
+    }
+   },
+   "per_bundle_counts": {
+    "de-kapitalverletzung": 6,
+    "fr-bail-entretien": 4,
+    "it-responsabilita-medica": 5
+   },
+   "total_passing_cells": 15,
+   "gate_blocks_build": true,
+   "f1_gate_invalid_on_accepted_audited_lineage": true,
+   "regression_without_accepted_audit": false
+  },
+  "38839347028": {
+   "packet_id": "38839347028",
+   "questions_dir": "/tmp/lex_accepted/product/results/product/gate_packet/38839347028/questions",
+   "bundle_sha256": {
+    "de-kapitalverletzung": "2441ff2b16722afcd22dca9ad39eafcbeb079b2dfc367d763fbe53fce1356f9c",
+    "fr-bail-entretien": "6c5ea31d4b9af4abfa39e9f8025cfa3d34279ff1f04d0f643e571e27b23a2618",
+    "it-responsabilita-medica": "76e7f7ad998f3878e7b08635663e2d594a7a77bdaeb33bcf5fa52d0af00b7aff"
+   },
+   "n_decisions": {
+    "de-kapitalverletzung": 214,
+    "fr-bail-entretien": 217,
+    "it-responsabilita-medica": 211
+   },
+   "audit": {
+    "audit_file": "/tmp/lex_accepted/product/results/audit/product/CYCLE_38839347028_GATE.json",
+    "present": false,
+    "accepted": false,
+    "reason": "no independent audit record for this cycle on the accepted mount"
+   },
+   "gate": {
+    "cmd": "/usr/bin/python -m evaluation.frozen_bars.run_bar_gates --adjudicate /tmp/lex_accepted/product/results/product/gate_packet/38839347028/questions --out /tmp/tmp_7l2528z/38839347028.json",
+    "attempts": [
+     {
+      "attempt": 1,
+      "exit_code": 0,
+      "wrote_record": true,
+      "masked_discovery_error": false,
+      "elapsed_s": 9.764
+     }
+    ],
+    "environment_failure": false,
+    "exit_code": 0,
+    "verdict": "PASS_NO_REGRESSION",
+    "geometry_regression_verdict": "PASS_NO_REGRESSION",
+    "geometry_regressed_qids": [],
+    "geometry_per_bundle_counts": {
+     "de-kapitalverletzung": 6,
+     "fr-bail-entretien": 5,
+     "it-responsabilita-medica": 5
+    },
+    "geometry_absolute_status": "GEOMETRY_UNSOUND",
+    "label_regression_verdict": "PASS_NO_REGRESSION",
+    "label_n_scored": 65,
+    "label_n_supported": 5,
+    "label_classes": {
+     "OFF-DOMAIN": 38,
+     "UNBACKED": 22,
+     "SUPPORTED": 5
+    },
+    "label_absolute_status": "LABEL_UNSOUND",
+    "admission_reading": {
+     "schema": "lex-evaluation-bar-admission-reading/1",
+     "exit_code": 0,
+     "exit_certifies": "PASS_NO_REGRESSION \u2014 gates executed, no gate_blocks_build. In served_lineage mode this additionally certifies the served bytes are unchanged and the incumbents recompute exactly. In adjudicate mode it does NOT certify that the label bar was met; read the per-gate regression_verdict and absolute_status first.",
+     "label": {
+      "gate": "counter-label-support",
+      "regression_verdict": "PASS_NO_REGRESSION",
+      "absolute_status": "LABEL_UNSOUND",
+      "regression_certifies": "no regression on the served-packet lineage only",
+      "regression_does_not_certify": "does not certify the absolute bar (support_rate 1.0); the accepted served packet itself passes regression at 5/65 and is LABEL_UNSOUND",
+      "absolute_certifies": "at least one scored counter row on THIS packet fails the frozen rubric",
+      "absolute_does_not_certify": "either state says nothing about map geometry, retrieval recall or jurist usefulness; LABEL_UNSOUND is REPORTED, never a build blocker (direction v50)",
+      "is_regression_not_a_pass": false
+     },
+     "geometry": {
+      "gate": "map-geometry-semantics",
+      "regression_verdict": "PASS_NO_REGRESSION",
+      "absolute_status": "GEOMETRY_UNSOUND",
+      "regression_certifies": "no criterion-count regression on the three frozen qids",
+      "regression_does_not_certify": "does not certify the absolute 11/11 bar (accepted served bundles pass regression at 6/5/5 and are GEOMETRY_UNSOUND)",
+      "absolute_certifies": "at least one criterion fails on at least one bundle",
+      "absolute_does_not_certify": "either state says nothing about counter-label support or jurist usefulness; GEOMETRY_UNSOUND is REPORTED, never a build blocker (direction v50)",
+      "is_regression_not_a_pass": false
+     },
+     "naive_consumer_trap_fires": false,
+     "naive_consumer_trap_meaning": null,
+     "required_reading": "gate_blocks_build==false / exit 0 is NOT a statement that the counter-label bar was met; read label absolute_status explicitly for packets outside the pinned 65-row incumbent population"
+    },
+    "elapsed_s": 9.764
+   },
+   "mask": {
+    "de-kapitalverletzung": {
+     "COHERENCE_QUERY_LANG": true,
+     "COHERENCE_QUERY_TERM": false,
+     "PROJ_RANK": false,
+     "PROJ_SPEARMAN": false,
+     "PROJ_KNN10": false,
+     "STRUCTURE_LARGEST": true,
+     "STRUCTURE_SEP": false,
+     "LABEL_CONTENT_FRACTION": true,
+     "LABEL_JACCARD": true,
+     "OUTLIER_VALIDITY": true,
+     "RELATIONS": true
+    },
+    "fr-bail-entretien": {
+     "COHERENCE_QUERY_LANG": false,
+     "COHERENCE_QUERY_TERM": false,
+     "PROJ_RANK": true,
+     "PROJ_SPEARMAN": false,
+     "PROJ_KNN10": false,
+     "STRUCTURE_LARGEST": false,
+     "STRUCTURE_SEP": false,
+     "LABEL_CONTENT_FRACTION": true,
+     "LABEL_JACCARD": true,
+     "OUTLIER_VALIDITY": true,
+     "RELATIONS": true
+    },
+    "it-responsabilita-medica": {
+     "COHERENCE_QUERY_LANG": false,
+     "COHERENCE_QUERY_TERM": false,
+     "PROJ_RANK": true,
+     "PROJ_SPEARMAN": false,
+     "PROJ_KNN10": false,
+     "STRUCTURE_LARGEST": true,
+     "STRUCTURE_SEP": false,
+     "LABEL_CONTENT_FRACTION": true,
+     "LABEL_JACCARD": true,
+     "OUTLIER_VALIDITY": false,
+     "RELATIONS": true
+    }
+   },
+   "values": {
+    "de-kapitalverletzung": {
+     "COHERENCE_QUERY_LANG": 0.4567901234567901,
+     "COHERENCE_QUERY_TERM": 0.19753086419753085,
+     "PROJ_RANK": 0.12903163031846668,
+     "PROJ_SPEARMAN": -0.0878589389775002,
+     "PROJ_KNN10": 0.14579439252336449,
+     "STRUCTURE_LARGEST": 0.37850467289719625,
+     "STRUCTURE_SEP": 0.9821041587756041,
+     "LABEL_CONTENT_FRACTION": 1.0,
+     "LABEL_JACCARD": 0.016865079365079364,
+     "OUTLIER_VALIDITY": [
+      0.0,
+      0.019801980198019802
+     ],
+     "RELATIONS": 37
+    },
+    "fr-bail-entretien": {
+     "COHERENCE_QUERY_LANG": 0.023952095808383235,
+     "COHERENCE_QUERY_TERM": 0.17365269461077845,
+     "PROJ_RANK": 0.4114041773508941,
+     "PROJ_SPEARMAN": 0.008202007889332725,
+     "PROJ_KNN10": 0.23133640552995394,
+     "STRUCTURE_LARGEST": 0.7695852534562212,
+     "STRUCTURE_SEP": 1.0008901836914248,
+     "LABEL_CONTENT_FRACTION": 1.0,
+     "LABEL_JACCARD": 0.06335034013605442,
+     "OUTLIER_VALIDITY": [
+      0.0,
+      0.03864734299516908
+     ],
+     "RELATIONS": 41
+    },
+    "it-responsabilita-medica": {
+     "COHERENCE_QUERY_LANG": 0.2222222222222222,
+     "COHERENCE_QUERY_TERM": 0.16161616161616163,
+     "PROJ_RANK": 0.4905994929674761,
+     "PROJ_SPEARMAN": 0.05651015268163983,
+     "PROJ_KNN10": 0.17251184834123223,
+     "STRUCTURE_LARGEST": 0.46919431279620855,
+     "STRUCTURE_SEP": 0.9888466409214834,
+     "LABEL_CONTENT_FRACTION": 1.0,
+     "LABEL_JACCARD": 0.07022392290249432,
+     "OUTLIER_VALIDITY": [
+      0.0,
+      0.0
+     ],
+     "RELATIONS": 35
+    }
+   },
+   "bars": {
+    "de-kapitalverletzung": {
+     "COHERENCE_QUERY_LANG": 0.25,
+     "COHERENCE_QUERY_TERM": 0.2803738317757009,
+     "PROJ_RANK": 0.3,
+     "PROJ_SPEARMAN": 0.5,
+     "PROJ_KNN10": 0.4,
+     "STRUCTURE_LARGEST": 0.6,
+     "STRUCTURE_SEP": 0.9,
+     "LABEL_CONTENT_FRACTION": 0.8,
+     "LABEL_JACCARD": 0.5,
+     "OUTLIER_VALIDITY": null,
+     "RELATIONS": 10
+    },
+    "fr-bail-entretien": {
+     "COHERENCE_QUERY_LANG": 0.25,
+     "COHERENCE_QUERY_TERM": 0.3548387096774194,
+     "PROJ_RANK": 0.3,
+     "PROJ_SPEARMAN": 0.5,
+     "PROJ_KNN10": 0.4,
+     "STRUCTURE_LARGEST": 0.6,
+     "STRUCTURE_SEP": 0.9,
+     "LABEL_CONTENT_FRACTION": 0.8,
+     "LABEL_JACCARD": 0.5,
+     "OUTLIER_VALIDITY": null,
+     "RELATIONS": 10
+    },
+    "it-responsabilita-medica": {
+     "COHERENCE_QUERY_LANG": 0.25,
+     "COHERENCE_QUERY_TERM": 0.3886255924170616,
+     "PROJ_RANK": 0.3,
+     "PROJ_SPEARMAN": 0.5,
+     "PROJ_KNN10": 0.4,
+     "STRUCTURE_LARGEST": 0.6,
+     "STRUCTURE_SEP": 0.9,
+     "LABEL_CONTENT_FRACTION": 0.8,
+     "LABEL_JACCARD": 0.5,
+     "OUTLIER_VALIDITY": null,
+     "RELATIONS": 10
+    }
+   },
+   "per_bundle_counts": {
+    "de-kapitalverletzung": 6,
+    "fr-bail-entretien": 5,
+    "it-responsabilita-medica": 5
+   },
+   "total_passing_cells": 16,
+   "gate_blocks_build": false,
+   "f1_gate_invalid_on_accepted_audited_lineage": false,
+   "regression_without_accepted_audit": false
+  }
+ },
+ "F1_GATE_INVALID_ON_ACCEPTED_AUDITED_LINEAGE": {
+  "firing_packets": [
+   "38812599575"
+  ],
+  "holds": true
+ },
+ "F2_INCUMBENT_NOT_A_FLOOR": {
+  "definition": "exists in-scope packet with per-bundle count < incumbent",
+  "incumbent_counts": {
+   "de-kapitalverletzung": 6,
+   "fr-bail-entretien": 5,
+   "it-responsabilita-medica": 5
+  },
+  "packets_below_incumbent": {
+   "it-responsabilita-medica": [
+    {
+     "packet_id": "38799024807",
+     "count": 4,
+     "incumbent": 5
+    }
+   ],
+   "fr-bail-entretien": [
+    {
+     "packet_id": "38812599575",
+     "count": 4,
+     "incumbent": 5
+    }
+   ]
+  },
+  "holds": true,
+  "min_counts_over_population": {
+   "de-kapitalverletzung": 6,
+   "fr-bail-entretien": 4,
+   "it-responsabilita-medica": 4
+  }
+ },
+ "F3_COUNT_MASK_CHURN": {
+  "enforced": false,
+  "definition": "per-criterion boolean movement between the first and last in-scope packet in run-id order",
+  "earliest_packet": "38799024807",
+  "latest_packet": "38839347028",
+  "n_cells_total": 33,
+  "n_flipping_cells": 5,
+  "flips": [
+   {
+    "qid": "de-kapitalverletzung",
+    "criterion": "COHERENCE_QUERY_LANG",
+    "earliest": false,
+    "latest": true
+   },
+   {
+    "qid": "de-kapitalverletzung",
+    "criterion": "PROJ_RANK",
+    "earliest": true,
+    "latest": false
+   },
+   {
+    "qid": "fr-bail-entretien",
+    "criterion": "PROJ_RANK",
+    "earliest": false,
+    "latest": true
+   },
+   {
+    "qid": "fr-bail-entretien",
+    "criterion": "STRUCTURE_LARGEST",
+    "earliest": true,
+    "latest": false
+   },
+   {
+    "qid": "it-responsabilita-medica",
+    "criterion": "PROJ_RANK",
+    "earliest": false,
+    "latest": true
+   }
+  ],
+  "n_improved_in_time": 3,
+  "n_degraded_in_time": 2,
+  "total_passing_cells_earliest": 15,
+  "total_passing_cells_latest": 16,
+  "net_change": 1,
+  "net_zero_churn_with_opposing_directions": true,
+  "per_flip_magnitude": [
+   {
+    "qid": "de-kapitalverletzung",
+    "criterion": "COHERENCE_QUERY_LANG",
+    "values_by_packet": {
+     "38799024807": 0.05454545454545454,
+     "38812599575": 0.03896103896103896,
+     "38839347028": 0.4567901234567901
+    },
+    "bar": 0.25,
+    "abs_delta_earliest_to_latest": 0.40224466891133553
+   },
+   {
+    "qid": "de-kapitalverletzung",
+    "criterion": "PROJ_RANK",
+    "values_by_packet": {
+     "38799024807": 0.33877513142367716,
+     "38812599575": 0.31013799934923686,
+     "38839347028": 0.12903163031846668
+    },
+    "bar": 0.3,
+    "abs_delta_earliest_to_latest": 0.20974350110521048
+   },
+   {
+    "qid": "fr-bail-entretien",
+    "criterion": "PROJ_RANK",
+    "values_by_packet": {
+     "38799024807": 0.2268750822692343,
+     "38812599575": 0.24859711714218327,
+     "38839347028": 0.4114041773508941
+    },
+    "bar": 0.3,
+    "abs_delta_earliest_to_latest": 0.18452909508165977
+   },
+   {
+    "qid": "fr-bail-entretien",
+    "criterion": "STRUCTURE_LARGEST",
+    "values_by_packet": {
+     "38799024807": 0.5572519083969466,
+     "38812599575": 0.7175141242937854,
+     "38839347028": 0.7695852534562212
+    },
+    "bar": 0.6,
+    "abs_delta_earliest_to_latest": 0.2123333450592746
+   },
+   {
+    "qid": "it-responsabilita-medica",
+    "criterion": "PROJ_RANK",
+    "values_by_packet": {
+     "38799024807": 0.2578240323878452,
+     "38812599575": 0.4733147671454042,
+     "38839347028": 0.4905994929674761
+    },
+    "bar": 0.3,
+    "abs_delta_earliest_to_latest": 0.23277546057963094
+   }
+  ],
+  "magnitude_note": "A flip is NOT evidence of noise unless the values straddle the bar closely. Read per_flip_magnitude against each criterion's own frozen bar before calling any flip jitter: several flips are large, real movements in opposing directions, and their cancellation in the count vector is a coincidence of magnitudes, not measurement error."
+ },
+ "F4_RUBRIC_INPUT_MISMATCH": {
+  "verifiable": true,
+  "declared_input_sha256": {
+   "de-kapitalverletzung": "90914482175ee51a6c2aa086d0119106f70b16f7627414b730bfbfc1e4c34e9c",
+   "fr-bail-entretien": "dfb4e8046c33297db4b5aa965100f1b71fc7b8a4e4011dce9613cf8d518c15de",
+   "it-responsabilita-medica": "737c9112a7c2f1b8eae5db4038f9f95ff0b646898c7063208b376e6a93f56abe"
+  },
+  "measured_input_sha256": {
+   "de-kapitalverletzung": "2441ff2b16722afcd22dca9ad39eafcbeb079b2dfc367d763fbe53fce1356f9c",
+   "fr-bail-entretien": "6c5ea31d4b9af4abfa39e9f8025cfa3d34279ff1f04d0f643e571e27b23a2618",
+   "it-responsabilita-medica": "76e7f7ad998f3878e7b08635663e2d594a7a77bdaeb33bcf5fa52d0af00b7aff"
+  },
+  "sets_equal": false,
+  "declared_not_measured": [
+   "737c9112a7c2f1b8eae5db4038f9f95ff0b646898c7063208b376e6a93f56abe",
+   "90914482175ee51a6c2aa086d0119106f70b16f7627414b730bfbfc1e4c34e9c",
+   "dfb4e8046c33297db4b5aa965100f1b71fc7b8a4e4011dce9613cf8d518c15de"
+  ],
+  "measured_not_declared": [
+   "2441ff2b16722afcd22dca9ad39eafcbeb079b2dfc367d763fbe53fce1356f9c",
+   "6c5ea31d4b9af4abfa39e9f8025cfa3d34279ff1f04d0f643e571e27b23a2618",
+   "76e7f7ad998f3878e7b08635663e2d594a7a77bdaeb33bcf5fa52d0af00b7aff"
+  ],
+  "cardinality_matched_but_sets_differ": true,
+  "n_decisions_declared": {
+   "de-kapitalverletzung": 134,
+   "fr-bail-entretien": 131,
+   "it-responsabilita-medica": 132
+  },
+  "n_decisions_measured": {
+   "de-kapitalverletzung": 214,
+   "fr-bail-entretien": 217,
+   "it-responsabilita-medica": 211
+  }
+ },
+ "F5_ANCHOR_SENSITIVITY": {
+  "enforced": false,
+  "definition": "for each in-scope packet used as the anchor, which other in-scope packets the frozen predicate would mark regressed",
+  "anchors": {
+   "38799024807": {
+    "anchor_counts": {
+     "de-kapitalverletzung": 6,
+     "fr-bail-entretien": 5,
+     "it-responsabilita-medica": 4
+    },
+    "n_marked_regressed": 1,
+    "marked_regressed": [
+     {
+      "packet_id": "38812599575",
+      "qids_below_anchor": [
+       "fr-bail-entretien"
+      ],
+      "counts": {
+       "de-kapitalverletzung": 6,
+       "fr-bail-entretien": 4,
+       "it-responsabilita-medica": 5
+      },
+      "anchor_counts": {
+       "de-kapitalverletzung": 6,
+       "fr-bail-entretien": 5,
+       "it-responsabilita-medica": 4
+      }
+     }
+    ],
+    "includes_itself": false
+   },
+   "38812599575": {
+    "anchor_counts": {
+     "de-kapitalverletzung": 6,
+     "fr-bail-entretien": 4,
+     "it-responsabilita-medica": 5
+    },
+    "n_marked_regressed": 1,
+    "marked_regressed": [
+     {
+      "packet_id": "38799024807",
+      "qids_below_anchor": [
+       "it-responsabilita-medica"
+      ],
+      "counts": {
+       "de-kapitalverletzung": 6,
+       "fr-bail-entretien": 5,
+       "it-responsabilita-medica": 4
+      },
+      "anchor_counts": {
+       "de-kapitalverletzung": 6,
+       "fr-bail-entretien": 4,
+       "it-responsabilita-medica": 5
+      }
+     }
+    ],
+    "includes_itself": false
+   },
+   "38839347028": {
+    "anchor_counts": {
+     "de-kapitalverletzung": 6,
+     "fr-bail-entretien": 5,
+     "it-responsabilita-medica": 5
+    },
+    "n_marked_regressed": 2,
+    "marked_regressed": [
+     {
+      "packet_id": "38799024807",
+      "qids_below_anchor": [
+       "it-responsabilita-medica"
+      ],
+      "counts": {
+       "de-kapitalverletzung": 6,
+       "fr-bail-entretien": 5,
+       "it-responsabilita-medica": 4
+      },
+      "anchor_counts": {
+       "de-kapitalverletzung": 6,
+       "fr-bail-entretien": 5,
+       "it-responsabilita-medica": 5
+      }
+     },
+     {
+      "packet_id": "38812599575",
+      "qids_below_anchor": [
+       "fr-bail-entretien"
+      ],
+      "counts": {
+       "de-kapitalverletzung": 6,
+       "fr-bail-entretien": 4,
+       "it-responsabilita-medica": 5
+      },
+      "anchor_counts": {
+       "de-kapitalverletzung": 6,
+       "fr-bail-entretien": 5,
+       "it-responsabilita-medica": 5
+      }
+     }
+    ],
+    "includes_itself": false
+   }
+  },
+  "n_distinct_verdict_sets": 3,
+  "verdict_set_is_anchor_determined": true,
+  "reading": "A non-vacuous falsification pattern is anchor-determined when two different anchor choices disagree about which packets regress. It means FAIL_REGRESSION encodes 'differs from the anchor build', not 'degraded relative to the accepted product lineage'."
+ },
+ "non_vacuity_battery": {
+  "N1_POSITIVE_must_fire": {
+   "definition": ">=1 real in-scope packet with an ACCEPTED audit scores FAIL_REGRESSION",
+   "firing_packets": [
+    "38812599575"
+   ],
+   "holds": true,
+   "meaning_if_broken": "the falsification path is unreachable here, so any 'no falsification' result would be vacuous"
+  },
+  "N2_NEGATIVE_incumbent_must_not_fire": {
+   "definition": "packet 38839347028 (the incumbent itself) does not satisfy F1",
+   "audit": false,
+   "gate_verdict": "PASS_NO_REGRESSION",
+   "gate_exit_code": 0,
+   "per_bundle_counts": {
+    "de-kapitalverletzung": 6,
+    "fr-bail-entretien": 5,
+    "it-responsabilita-medica": 5
+   },
+   "holds": true,
+   "meaning_if_broken": "the sweep fires indiscriminriminate and its predicate carries no information"
+  },
+  "N3_NEGATIVE_provenance_must_not_fire": {
+   "definition": "synthetic FAIL_REGRESSION packet with NO audit provenance is recorded, but does not satisfy F1",
+   "synthetic": {
+    "exit_code": 1,
+    "geometry_regression_verdict": "FAIL_REGRESSION",
+    "label_regression_verdict": "PASS_NO_REGRESSION",
+    "is_fail_regression": true
+   },
+   "holds": true,
+   "meaning_if_broken": "the synthetic control did not actually regress, so F1's silence would be uninformative"
+  },
+  "N4_NEGATIVE_audit_gate_must_not_fire": {
+   "definition": "F1's audit filter requires gate==PASS and safe_to_integrate==true; a REVISE audit must not satisfy it",
+   "filter": "audit accepted == (gate == 'PASS' and safe_to_integrate is True and required_fixes in (None, []))",
+   "holds": true,
+   "meaning_if_broken": "the audit filter is decorative; F1 would fire on any regression regardless of audit verdict"
+  },
+  "all_hold": true
+ },
+ "injected_f2_only_for_self_test": false,
+ "elapsed_s": 28.355
+}

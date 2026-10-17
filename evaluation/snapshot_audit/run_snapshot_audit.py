@@ -157,6 +157,13 @@ RUN_38986445355_DIAGNOSIS_PATH = "evaluation/snapshot_audit/orchestration_diagno
 RETRIEVAL_CA_BENCHMARK_RECORD = (
     "results/evaluation/retrieval_counter_authority_benchmark/38989947869.json")
 
+# run 38993062549: the packet-lineage gate-validity falsification. An ACCEPTED
+# NEGATIVE result about the bars; the check exists so it cannot be softened
+# silently in a later cycle.
+SWEEP_RECORD = "results/evaluation/packet_lineage_sweep/38993062549.json"
+SWEEP_FROZEN_HYPOTHESIS = (
+    "results/evaluation/packet_lineage_sweep/FROZEN_HYPOTHESIS_38993062549.json")
+
 
 def _sha256_file(path: Path) -> str:
     h = hashlib.sha256()
@@ -567,6 +574,79 @@ def check_retrieval_ca_benchmark(repo_root: Path) -> dict:
                   falsification_proven=rec.get("falsification_proven"))
 
 
+def check_gate_validity_sweep(repo_root: Path) -> dict:
+    """Check 12: the packet-lineage gate-validity falsification is on disk intact.
+
+    This is an ACCEPTED NEGATIVE RESULT about the bars, so the check exists to
+    stop it being quietly softened: it verifies the recorded verdict, the
+    anchor-sensitivity result that carries the falsification, the frozen-hypothesis
+    provenance, and that the non-vacuity battery is complete. A later cycle that
+    wants to retract the finding has to change this check explicitly, in the
+    open, rather than editing a number somewhere else.
+    """
+    path = repo_root / SWEEP_RECORD
+    frozen = repo_root / SWEEP_FROZEN_HYPOTHESIS
+    problems = []
+    if not frozen.exists():
+        problems.append(f"{SWEEP_FROZEN_HYPOTHESIS} missing")
+    if not path.exists():
+        return _check("gate_validity_sweep", False,
+                      f"{SWEEP_RECORD} missing", problems=problems)
+    try:
+        rec = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return _check("gate_validity_sweep", False,
+                      f"sweep record is not valid JSON: {exc}", problems=problems)
+    if rec.get("schema") != "lex-evaluation-packet-lineage-sweep/1":
+        problems.append(f"schema={rec.get('schema')!r}")
+    if rec.get("verdict") != "GATE_FALSIFIED_ON_ACCEPTED_LINEAGE":
+        problems.append(f"verdict={rec.get('verdict')!r}")
+    if rec.get("exit_code") != 1:
+        problems.append(f"exit_code={rec.get('exit_code')!r}")
+    # the bars were re-hashed, not re-derived
+    ident = rec.get("rules_identity") or {}
+    if ident.get("all_match") is not True:
+        problems.append("rules_identity.all_match is not true")
+    # the falsification itself
+    f5 = rec.get("F5_ANCHOR_SENSITIVITY") or {}
+    if f5.get("verdict_set_is_anchor_determined") is not True:
+        problems.append("F5.verdict_set_is_anchor_determined is not true")
+    if f5.get("enforced") is not False:
+        problems.append("F5 must stay descriptive (enforced=false); enforcing it would invent a bar")
+    if (f5.get("n_distinct_verdict_sets") or 0) < 2:
+        problems.append("F5 shows fewer than two distinct verdict sets; the falsification does not hold")
+    f3 = rec.get("F3_COUNT_MASK_CHURN") or {}
+    if f3.get("enforced") is not False:
+        problems.append("F3 must stay descriptive (enforced=false)")
+    # non-vacuity: without it every statement above is void
+    b = rec.get("non_vacuity_battery") or {}
+    if b.get("all_hold") is not True:
+        problems.append("non-vacuity battery is not complete; all predicate statements are void")
+    for key in ("N1_POSITIVE_must_fire", "N2_NEGATIVE_incumbent_must_not_fire",
+                "N3_NEGATIVE_provenance_must_not_fire",
+                "N4_NEGATIVE_audit_gate_must_not_fire"):
+        if (b.get(key) or {}).get("holds") is not True:
+            problems.append(f"battery element {key} does not hold")
+    # every gate invocation produced a real record: a missing verdict is not a pass
+    for pid, e in (rec.get("per_packet") or {}).items():
+        if (e.get("gate") or {}).get("environment_failure") is not False:
+            problems.append(f"packet {pid} carries an environment failure")
+    # the claim ceiling must keep its disclaimers
+    cc = (rec.get("claim_ceiling") or "").lower()
+    for phrase in ("not the candidate", "jurist usefulness", "absolute bars"):
+        if phrase not in cc:
+            problems.append(f"claim_ceiling is missing the disclaimer {phrase!r}")
+    ok = not problems
+    detail = (f"sweep {rec.get('run_id')}: {rec.get('verdict')} exit {rec.get('exit_code')}; "
+              f"anchor-determined with {f5.get('n_distinct_verdict_sets')} distinct verdict sets; "
+              f"battery elements {sum(1 for k, v in b.items() if isinstance(v, dict) and v.get('holds'))}"
+              f"/{sum(1 for v in b.values() if isinstance(v, dict))} proven "
+              f"(all_hold={b.get('all_hold')}); N5 rules re-hash {ident.get('all_match')}") \
+        if ok else f"sweep problems: {problems}"
+    return _check("gate_validity_sweep", ok, detail, problems=problems,
+                  verdict=rec.get("verdict"), exit_code=rec.get("exit_code"))
+
+
 def build_record(run_id: str, checks: list[dict], manifest: dict) -> dict:
     n_pass = sum(1 for c in checks if c["status"] == "PASS")
     ready = n_pass == len(checks)
@@ -637,6 +717,7 @@ def main(argv=None) -> int:
         checks.append(check_write_scope_diagnosis(repo_root))
         checks.append(check_run_38986445355_diagnosis(repo_root))
         checks.append(check_retrieval_ca_benchmark(repo_root))
+        checks.append(check_gate_validity_sweep(repo_root))
 
     record = build_record(args.run_id, checks, manifest)
     out_path.write_text(json.dumps(record, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
