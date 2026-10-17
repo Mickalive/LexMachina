@@ -1,0 +1,40 @@
+{
+ "schema": "frontier-rebuilt-packet-serve-audit/reproduction/1",
+ "team_id": "frontier-rebuilt-packet-serve-audit",
+ "charter_version": 3,
+ "run_id": 39048947212,
+ "determinism": {
+  "runs": 2,
+  "run1_record_sha256": "ebe0bd39ba59206aac747a9d64db3cf00a61122db17988f8413fa9ac8c290a87",
+  "run2_record_sha256": "ebe0bd39ba59206aac747a9d64db3cf00a61122db17988f8413fa9ac8c290a87",
+  "byte_identical": true,
+  "method": "two consecutive offline harness invocations on the same bytes, diff -q on the emitted JSON",
+  "network_used": false,
+  "randomness": "the only stochastic element is the ACCEPTED frozen geometry non-vacuity control at its OWN frozen seed 0"
+ },
+ "published_record_sha256": "ebe0bd39ba59206aac747a9d64db3cf00a61122db17988f8413fa9ac8c290a87",
+ "freeze_ordering": {
+  "rules_json_commit_time_iso": "2026-10-17T16:33:35Z",
+  "first_measurement_commit": "NOT_YET_COMMITTED",
+  "rule": "the freeze commit must be strictly earlier than any commit introducing a measurement artifact",
+  "hand_written_frozen_at_utc_is_not_evidence": true,
+  "threshold_edit_after_a_number_was_seen": false,
+  "declaration": "No threshold, rubric, verdict contract or K was edited after any number was observed in this cycle. The only code changes after the freeze were the non-vacuity control rewrite (hand-rolled permutation replaced by the ACCEPTED geometry_gate.non_vacuity_control, which produced FEWER flips: 0 -> 1) and the cross-check discovery plumbing. Neither touched a threshold; the weaker control was kept because it is the accepted instrument's own reading."
+ },
+ "scope_discipline": {
+  "guarded_paths": [
+   "product/",
+   "evaluation/",
+   "results/product/",
+   "state/product.json",
+   ".github/**"
+  ],
+  "assertion": "byte-identical before and after a full harness run; enforced by tests/frontier/frontier-rebuilt-packet-serve-audit/test_verdict_and_scoping.py::test_harness_writes_nothing_outside_the_team_namespace",
+  "temp_writes": "non-vacuity controls write bundle copies only under tempfile.mkdtemp() and delete them; nothing is written inside the repository"
+ },
+ "tests": {
+  "command": "python3 -m pytest tests/frontier/frontier-rebuilt-packet-serve-audit -q",
+  "result": "26 passed"
+ },
+ "verdict_recorded": "DO-NOT-SERVE-UNCHANGED (charter outcome B)"
+}
