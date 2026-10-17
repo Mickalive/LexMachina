@@ -1,62 +1,95 @@
 {
- "team_id": "frontier-rebuilt-packet-serve-audit",
- "charter_version": 3,
- "evidence_tier": "REPRODUCED",
- "cycle_status": "COMPLETE",
- "continue_recommended": false,
- "accepted_run_id": null,
- "accepted_commit": null,
- "continue_recommended_reason": "Charter hard stop: exactly ONE verdict cycle. The verdict is promoted and the team terminates immediately. No second cycle under charter v3 is justified: the serve question was decided on the frozen bytes (DO-NOT-SERVE-UNCHANGED), non-vacuity is proven, reproduction is byte-identical and scope discipline is enforced. Any further re-scoring requires a rebuilt packet or a further product repair, which is a NEW charter against the NEW bytes raised by the director, never a continuation of this one.",
- "verdict": {
-  "serve_recommendation": "DO-NOT-SERVE-UNCHANGED",
-  "charter_outcome": "B",
-  "one_sentence": "SERVE RECOMMENDATION: DO-NOT-SERVE-UNCHANGED — The rebuild does not change the serve conclusion: the frozen absolute geometry bar remains unmet on the rebuilt bytes; the accepted DO-NOT-SERVE order stands. Product-improving halves are promoted in this record and must not be explained away by the pre-rebuild baseline.",
-  "bounded_causes": [
-   "geometry_bar_unmet: per-criterion counts de-kapitalverletzung=7, fr-bail-entretien=5, it-responsabilita-medica=7 of 11 (no bundle reaches 11/11 on the frozen criteria)",
-   "comparative_marginal_discovery_present: some issued counter authorities are absent from the initial-pool top-K or invisible in the list top-K"
+  "team_id": "frontier-rebuilt-packet-serve-audit",
+  "charter_version": 3,
+  "evidence_tier": "REPRODUCED",
+  "cycle_status": "COMPLETE",
+  "continue_recommended": false,
+  "accepted_run_id": null,
+  "accepted_commit": null,
+  "continue_recommended_reason": "Charter hard stop: exactly ONE verdict cycle. The verdict is promoted and the team terminates immediately. The round-1 repair of rejected cycle 39053132092 completed charter acceptance test 2 (the cross-check) on the SAME frozen bytes (packet.json sha256 2942c3c2...) without re-measuring, re-thresholding or changing the verdict enum; it is not a second measurement cycle and justifies no further cycle under charter v3. Any further re-scoring requires a rebuilt packet or a further product repair, which is a NEW charter against the NEW bytes raised by the director, never a continuation of this one.",
+  "operational_resume": {
+    "resume_run_id": 39053132092,
+    "resumed_producer_snapshot": 39048947212,
+    "resume_branch": "operational-resume",
+    "resume_finding": "OPERATIONAL FAILURE DIAGNOSED AND REPAIRED (evidence packaging only; no verdict, number, threshold, rubric or frozen artifact changed). The Frontier resume dispatch fetches the team branch with --depth-1, so the resume checkout saw only the shallow tip 8a45c16 as a root commit: the freeze-ordering acceptance test failed and the recorded measurement commit 4e4ad05 appeared missing. Root cause is the depth-1 resume fetch in .github/workflows/frontier-team.yml (control-plane scope, recorded for the director, not edited by this team). Repair: git fetch --deepen=100 then --unshallow against origin; the full producer history reappeared intact (freeze 5b6dc8f9 2026-10-17T16:33:35Z -> measurement 4e4ad05b 2026-10-17T17:14:39Z -> close d1167245 -> tip 8a45c16), exactly matching the state file's recorded freeze_ordering_proof. No commit was recreated, backdated or fabricated.",
+    "diagnosis_record": "results/frontier/frontier-rebuilt-packet-serve-audit/OPERATIONAL_RESUME_DIAGNOSIS.json",
+    "packet_mounted_in_resume_environment": true,
+    "packet_note": "The rebuilt packet bytes (packet.json sha256 2942c3c2...) are mounted for this repair at /tmp/lex_work/results/product/gate_packet/rebuilt-39027045675 (charter's primary candidate path), reconstructed from the accepted mount /tmp/lex_accepted/core/product/... with disclosures.json restored to the freeze-pinned bytes d7de3cdd... from product cycle snapshot 6c56332c (origin/cycle/core/product/39034350468/team); every pinned file re-verified against RULES.json before scoring. The old packet 38839347028 is mounted at the accepted mount and re-verified."
+  },
+  "repair_round_1": {
+    "audited_cycle": "CYCLE_39053132092",
+    "audit_gate": "REVISE",
+    "required_fixes": ["FIX-1", "FIX-2", "FIX-3", "FIX-4"],
+    "fix1": "Re-swept the Evaluation refs at the final resume; found the lane's real same-bytes adjudication (run 39049030442, results/evaluation/rebuilt_packet_adjudication_39049030442/39049030442_adjudication.json, commit 27a1d309 @ 2026-10-17T17:05:31Z on origin/cycle/core/evaluation/39052366154/team, packet_json_raw_sha256 2942c3c2... re-hashed identical). Consumed it as the CROSS-CHECK input via a byte-identical vendored copy inside the team namespace (vendored_cross_check_input/39049030442_adjudication.json, sha 67656e94...ba32f, provenance sidecar). Published Evaluation's numbers beside this team's recomputation for every quantity: all 8 published quantities agree, mega recorded absent-not-divergent, headline = no divergence. Deleted the false ABSENT text from AUDIT_RECORD.json, REPORT.md, this state file and INTEGRATION_CONTRACT.json; the corrected search basis with the re-run timestamp (2026-10-17T18:22:00Z) is recorded in cross_check.evaluation_search_basis.",
+    "fix2": "Rebuilt the cross_check mapper on an explicit dotted-path schema mapping to the adjudication record (three_numbers_required_together.{support_rate_among_issued_labels_frozen_rubric, abstention_count, yield_on_packet_row_population}; instrument_2_label_lineage_gate_population_free.{n_scored, n_supported}; instrument_1_label_gate_population_pinned.geometry_per_bundle_criterion_counts.{de,fr,it}). The first-key resolver _dig is demoted to a non-authoritative fallback; every row records its mapping; a re-score naming different packet bytes is refused as an environment error. Regression test added: the real 39049030442 record yields agreement on all 8 published quantities with mega absent-not-divergent.",
+    "fix3": "Label-bar status published BY INSTRUMENT/TEXT everywhere it is stated (AUDIT_RECORD.json half_a_label.label_bar_status_by_instrument_and_text, REPORT.md, this state file, INTEGRATION_CONTRACT.json): instrument reading = LABEL_SOUND at n_scored=5 (ACCEPTED label_gate.score_packet AS WRITTEN, population-free; governs the verdict enum); frozen RULES_LABEL.json prose verdict_rule residual = INSUFFICIENT_POPULATION at n_scored=5 < required_min_population_primary=7, disclosed not re-derived. Also fixed the INTEGRATION_CONTRACT.md -> .json reference nit.",
+    "fix4": "Process rule encoded and published: absence/negativity claims must be re-verified at the FINAL resume/attempt before promotion; the re-run timestamp and the falsified prior ABSENT claim (verbatim, with cause) are recorded in cross_check.evaluation_search_basis. A future produced-work cycle shipping a stale absence claim of this class gates BLOCKED under the recurring-repair rule.",
+    "verdict_enum_unchanged": "DO-NOT-SERVE-UNCHANGED (charter outcome B) - the correctly-mapped cross-check ends in agreement on all published quantities, so the verdict survives the repair unchanged.",
+    "frozen_artifacts_edited": [],
+    "thresholds_edited": false,
+    "packet_bytes_changed": false
+  },
+  "verdict": {
+    "serve_recommendation": "DO-NOT-SERVE-UNCHANGED",
+    "charter_outcome": "B",
+    "one_sentence": "SERVE RECOMMENDATION: DO-NOT-SERVE-UNCHANGED — The rebuild does not change the serve conclusion: the frozen absolute geometry bar remains unmet on the rebuilt bytes; the accepted DO-NOT-SERVE order stands. Product-improving halves are promoted in this record and must not be explained away by the pre-rebuild baseline.",
+    "bounded_causes": [
+      "geometry_bar_unmet: per-criterion counts de-kapitalverletzung=7, fr-bail-entretien=5, it-responsabilita-medica=7 of 11 (no bundle reaches 11/11 on the frozen criteria)",
+      "comparative_marginal_discovery_present: some issued counter authorities are absent from the initial-pool top-K or invisible in the list top-K"
+    ],
+    "owner_decision_required": false,
+    "owner_decision_required_reason": "Charter outcome (C) requires BOTH frozen absolute bars unmet. The label bar is met as written BY THE ACCEPTED INSTRUMENT (label_gate absolute LABEL_SOUND, population-free reading, at n_scored=5); the frozen RULES_LABEL.json prose verdict_rule's population-conditioned residual at n_scored=5 < 7 is INSUFFICIENT_POPULATION, disclosed in the record as a non-result, not re-derived, and it does not govern the verdict enum. The charter therefore does not convert the map-versus-ranked-list choice into an owner decision; the accepted DO-NOT-SERVE order stands unchanged."
+  },
+  "packet_measured": {
+    "packet_id": "rebuilt-39027045675",
+    "packet_json_sha256": "2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170",
+    "rehashed_before_scoring": true
+  },
+  "headline_findings": [
+    "LABEL half: 5/5 issued counter labels supported (rate 1.0), 60 abstentions; label-bar status BY INSTRUMENT/TEXT: the accepted instrument (label_gate, population-free) reads absolute LABEL_SOUND as written at n_scored=5 and that reading governs the verdict enum; the frozen RULES_LABEL.json prose verdict_rule residual at n_scored=5 < required_min_population_primary=7 is INSUFFICIENT_POPULATION, disclosed not re-derived. label_gate's population-pinned regression verdict = NOT_APPLICABLE (n_scored 5 != pinned 65) and NOT_APPLICABLE is not a pass; accepted population-free label_lineage_gate = PASS_NO_REGRESSION, not blocking, on a 5-row population. The charter hypothesis that the lineage gate would still block was NOT confirmed on these bytes.",
+    "GEOMETRY half: de 7 / fr 5 / it 7 of 11 (incumbent 6/5/5), 0/3 bundles at 11/11, GEOMETRY_UNSOUND, no bundle regressed; the size-based mega-cluster disclosure does NOT fire on any rebuilt bundle (old fr fired at 0.770), which independently blocks the (A) SERVE path.",
+    "COMPARATIVE half: the accepted CLASSIFICATION_ONLY negative does NOT reproduce on the rebuilt bytes - 5/5 issued counter authorities are absent from the initial-pool top-20 and invisible in the list top-20 (positions 51-164). This is a product-improving result and must not be explained away by the pre-rebuild baseline.",
+    "CROSS-CHECK: Core Evaluation's re-score of these bytes is PRESENT (run 39049030442, commit 27a1d309 @ 2026-10-17T17:05:31Z, same bytes 2942c3c2...) and was consumed as the cross-check input at the final-resume re-sweep. All 8 published quantities agree (5 issued / 5 supported / 1.0 / 60 abstentions / 0.0769 / de 7 / fr 5 / it 7); Evaluation publishes no mega-cluster quantity (recorded absent-not-divergent); all instrument verdicts agree; headline = NO divergence; verdict enum unchanged. The prior cycle's false absence claim is disclosed as falsified (sweep never re-run at final resume) in cross_check.evaluation_search_basis.prior_absent_claim; the corrected search basis carries the re-run timestamp 2026-10-17T18:22:00Z and the BLOCKED-on-recurrence process rule (audit FIX-1/FIX-4).",
+    "NON-VACUITY: 7 instrument verdicts move under seeded controls (requirement >=2); the accepted lineage gate becomes build-blocking FAIL_REGRESSION on blanked evidence, proving the PASS is live. Honest negative: the ACCEPTED frozen geometry seeded control flips only 1 criterion verdict on these bytes (15 values move) because the rebuilt bundles sit far from the bars; no bar, threshold or control was altered."
   ],
-  "owner_decision_required": false,
-  "owner_decision_required_reason": "Charter outcome (C) requires BOTH frozen absolute bars unmet. The label bar is met as written on the rebuilt bytes (LABEL_SOUND; 5/5 issued supported). The charter therefore does not convert the map-versus-ranked-list choice into an owner decision; the accepted DO-NOT-SERVE order stands unchanged."
- },
- "packet_measured": {
-  "packet_id": "rebuilt-39027045675",
-  "packet_json_sha256": "2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170",
-  "rehashed_before_scoring": true
- },
- "headline_findings": [
-  "LABEL half: 5/5 issued counter labels supported (rate 1.0), 60 abstentions; label_gate absolute_status AS WRITTEN = LABEL_SOUND; its population-pinned regression verdict = NOT_APPLICABLE (n_scored 5 != pinned 65) and NOT_APPLICABLE is not a pass; accepted population-free label_lineage_gate = PASS_NO_REGRESSION, not blocking, on a 5-row population. The charter hypothesis that the lineage gate would still block was NOT confirmed on these bytes.",
-  "GEOMETRY half: de 7 / fr 5 / it 7 of 11 (incumbent 6/5/5), 0/3 bundles at 11/11, GEOMETRY_UNSOUND, no bundle regressed; the size-based mega-cluster disclosure does NOT fire on any rebuilt bundle (old fr fired at 0.770), which independently blocks the (A) SERVE path.",
-  "COMPARATIVE half: the accepted CLASSIFICATION_ONLY negative does NOT reproduce on the rebuilt bytes - 5/5 issued counter authorities are absent from the initial-pool top-20 and invisible in the list top-20 (positions 51-164). This is a product-improving result and must not be explained away by the pre-rebuild baseline.",
-  "CROSS-CHECK: Core Evaluation's re-score of these bytes is ABSENT at hard stop (verified across every evaluation-lane ref and both accepted mounts); recorded with its search basis, never invented. A separate independent recomputation using only the vendored accepted instruments reproduced every number here and the incumbent exactly on the old packet - no divergence.",
-  "NON-VACUITY: 7 instrument verdicts move under seeded controls (requirement >=2); the accepted lineage gate becomes build-blocking FAIL_REGRESSION on blanked evidence, proving the PASS is live. Honest negative: the ACCEPTED frozen geometry seeded control flips only 1 criterion verdict on these bytes (15 values move) because the rebuilt bundles sit far from the bars; no bar, threshold or control was altered."
- ],
- "artifacts": {
-  "frozen_rules": "results/frontier/frontier-rebuilt-packet-serve-audit/RULES.json",
-  "audit_record": "results/frontier/frontier-rebuilt-packet-serve-audit/AUDIT_RECORD.json",
-  "audit_record_sha256": "ebe0bd39ba59206aac747a9d64db3cf00a61122db17988f8413fa9ac8c290a87",
-  "reproduction": "results/frontier/frontier-rebuilt-packet-serve-audit/REPRODUCTION.json",
-  "integration_contract": "results/frontier/frontier-rebuilt-packet-serve-audit/INTEGRATION_CONTRACT.json",
-  "report": "reports/frontier/frontier-rebuilt-packet-serve-audit/REPORT.md",
-  "harness": "frontier/frontier-rebuilt-packet-serve-audit/frontier_rebuilt_packet_serve_audit/",
-  "tests": "tests/frontier/frontier-rebuilt-packet-serve-audit/",
-  "measurement_commit": "4e4ad05b38fea445ef7a8b96e40709b76591a097",
-  "measurement_commit_time_iso": "2026-10-17T17:14:39Z"
- },
- "freeze_ordering_proof": {
-  "rules_json_commit_time_iso": "2026-10-17T16:33:35Z",
-  "first_measurement_commit_time_iso": "2026-10-17T17:14:39Z",
-  "freeze_precedes_measurement": true,
-  "hand_written_frozen_at_utc_is_not_evidence": true
- },
- "verification": {
-  "tests_command": "python3 -m pytest tests/frontier/frontier-rebuilt-packet-serve-audit -q",
-  "tests_result": "26 passed",
-  "byte_identical_reproduction": true,
-  "deterministic_offline": true,
-  "network_used": false,
-  "human_gate_touched": false,
-  "threshold_re_derived": false,
-  "zero_writes_outside_team_namespace": true
- },
- "supersession_rule": "A rebuilt packet or a further product repair is a NEW charter raised by the director against the NEW bytes. If a repair supersedes 2942c3c2... anyway, rebind by content_sha256, measure the accepted successor and record both; never overwrite a measured artifact."
+  "artifacts": {
+    "frozen_rules": "results/frontier/frontier-rebuilt-packet-serve-audit/RULES.json",
+    "audit_record": "results/frontier/frontier-rebuilt-packet-serve-audit/AUDIT_RECORD.json",
+    "audit_record_sha256": "11eb58efd286f01f24462e74d3e2a9b5eb034c6fc03eae4d31a803a74f60b497",
+    "reproduction": "results/frontier/frontier-rebuilt-packet-serve-audit/REPRODUCTION.json",
+    "integration_contract": "results/frontier/frontier-rebuilt-packet-serve-audit/INTEGRATION_CONTRACT.json",
+    "operational_resume_diagnosis": "results/frontier/frontier-rebuilt-packet-serve-audit/OPERATIONAL_RESUME_DIAGNOSIS.json",
+    "vendored_cross_check_input": "frontier/frontier-rebuilt-packet-serve-audit/vendored_cross_check_input/ (real Core Evaluation 39049030442 adjudication record + PROVENANCE.json)",
+    "report": "reports/frontier/frontier-rebuilt-packet-serve-audit/REPORT.md",
+    "harness": "frontier/frontier-rebuilt-packet-serve-audit/frontier_rebuilt_packet_serve_audit/",
+    "tests": "tests/frontier/frontier-rebuilt-packet-serve-audit/",
+    "measurement_commit": "4e4ad05b38fea445ef7a8b96e40709b76591a097",
+    "measurement_commit_time_iso": "2026-10-17T17:14:39Z",
+    "repair_commit": "this commit (round-1 repair of cycle 39053132092)"
+  },
+  "freeze_ordering_proof": {
+    "rules_json_commit_time_iso": "2026-10-17T16:33:35Z",
+    "rules_json_freeze_commit": "5b6dc8f9",
+    "first_measurement_commit_time_iso": "2026-10-17T17:14:39Z",
+    "first_measurement_commit": "4e4ad05b38fea445ef7a8b96e40709b76591a097",
+    "freeze_precedes_measurement": true,
+    "rules_json_untouched_by_repair": true,
+    "hand_written_frozen_at_utc_is_not_evidence": true,
+    "recovered_2026-10-17_by_unshallow": "The depth-1 resume fetch had hidden this history; after git fetch --deepen/--unshallow the recorded commit times and shas verify exactly against git."
+  },
+  "verification": {
+    "tests_command": "python3 -m pytest tests/frontier/frontier-rebuilt-packet-serve-audit -q",
+    "tests_result": "34 passed (4 added by the round-1 repair)",
+    "byte_identical_reproduction": true,
+    "byte_identical_reproduction_note": "Two consecutive offline harness runs on the same bytes with the real 39049030442 cross-check input produced byte-identical records (sha 11eb58ef...b497); see REPRODUCTION.json.",
+    "deterministic_offline": true,
+    "network_used": false,
+    "human_gate_touched": false,
+    "threshold_re_derived": false,
+    "zero_writes_outside_team_namespace": true,
+    "frozen_artifacts_edited": [],
+    "verdict_changed_by_resume": false,
+    "verdict_changed_by_repair": false
+  },
+  "supersession_rule": "A rebuilt packet or a further product repair is a NEW charter raised by the director against the NEW bytes. If a repair supersedes 2942c3c2... anyway, rebind by content_sha256, measure the accepted successor and record both; never overwrite a measured artifact."
 }
