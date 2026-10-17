@@ -103,8 +103,8 @@
    "scope": "control-plane workflow scope; recorded, not edited from the lane"
   }
  ],
- "current_run": "39048942749",
- "cycle_status": "V52_ENDGAME_OPERATIONAL_RESUME_OF_39031213637__P0_D1R_VERIFIED_LANDED_VIA_39019268074__P1_COUNTER_ANCHOR_ADOPTED_ABSTAIN_AND_DISCLOSE__P2_PACKET_REBUILT_WITH_BOTH_OBLIGATIONS__P3_HANDED_TO_CORE_EVALUATION__AUDIT_JOB_OF_39031213637_NEVER_RAN__INDEPENDENT_VERIFICATION_AND_REGRESSION_GUARDS_ADDED__REBUILD_REPRODUCIBILITY_SCOPE_DISCLOSED__SNAPSHOT_AUDIT_READY",
+ "current_run": "39051003925",
+ "cycle_status": "V52_ENDGAME_OPERATIONAL__P0_D1R_LANDED_VIA_39019268074__P1_COUNTER_ANCHOR_ADOPTED__P2_PACKET_REBUILT_BOTH_OBLIGATIONS__P3_HANDED_TO_CORE_EVALUATION__D1_D2_A2_REPAIR_39048942749_REJECTED_REVISE__F1_F2_F3_REPAIRED_39051003925__REGRESSION_EVIDENCE_ROOT_AND_MOUNT_DECLARED__MACHINE_GATE_FALSE__HUMAN_GATE_FALSE__DO_NOT_SERVE_38839347028_IN_FORCE__AUDIT_RE_REQUEST_PENDING",
  "direction_version": 55,
  "evidence_tier": "REPRODUCED",
  "frontier_verdict_adoption": {
@@ -573,7 +573,7 @@
    "resume_action": "this run 39034350468 resume: (a) independently re-verifies the whole v52 endgame (43/43 core tests, reality_check fixture overall PASS, frozen rules re-hash matches, 9/9 vendored classifier files byte-identical to accepted d236f599, handoff content hashes reproduce, ablation admission DENIES), (b) adds the missing P1-P3 regression tests (product/tests/test_v52_endgame_delivery.py, 17 tests), (c) discloses the numeric-environment scope of the rebuilt packet reproducibility, (d) leaves the team branch audit-ready."
   }
  },
- "prior_current_run": "39034350468",
+ "prior_current_run": "39048942749",
  "product": "query-specific Swiss legal research: broad OpenCaseLaw retrieval -> sourced generative answer -> independent counter-authority pass -> query-specific clickable map",
  "reality_check_status": {
   "blocking_leg": "durable gate blocking leg: rent-default (Art. 257d(2) residential termination) — the answer must state the 30-day/end-of-month notice rule AND the good-faith/Rechtsmissbrauch limitation. That leg now PASSES locally in live mode (results/product/reality_check/rent-default_live_20261014T122313Z.json); only the durable Actions run remains red.",
@@ -867,8 +867,8 @@
   "fixtures": "offline/test only; never merged into live results",
   "live": "https://mcp.opencaselaw.ch/api via accepted adapter"
  },
- "state_updated_at": "2026-10-17T16:33:48Z",
- "state_updated_by_run": "39048942749",
+ "state_updated_at": "2026-10-17T17:30:00Z",
+ "state_updated_by_run": "39051003925",
  "state_updated_from_resumed_snapshot_run": "39031213637",
  "supersedes_claims": {
   "gate_ceremony_is_one_query_only": "SUPERSEDED BY RUN 38792650692: the packet pre-registers three questions (FR/DE/IT), re-verifies each bundle at run time and hands the owner one deep link per question. The single-query path still works (product/human_gate_session.py is unchanged) and is still the way ONE session is finalized.",
@@ -2988,8 +2988,8 @@
   },
   "regression_scope": {
    "artifact": "results/product/regression/CYCLE_39048942749_regression_scope.json",
-   "verdict": "NO_REGRESSION, plus one pre-existing failure repaired. The repaired-only failing set is EMPTY. The baseline-only set holds exactly one ID: the state-contract CLI check, red on the pristine snapshot because RUN_DIRECTION_VERSION was pinned to 52 while this cycle is dispatched against the v55 control plane; re-pinned to 55 with no assertion removed or loosened.",
-   "method": "Set comparison against the untouched producer snapshot in a separate worktree: 79 unique failing/erroring IDs before and after, both differences EMPTY, intersection 79. Never a matching-count argument.",
+   "verdict": "ROOT-SCOPED, NOT UNIVERSAL. At the producer CI root: no new failures and one pre-existing failure repaired. At a foreign root the same comparison leaves one new failure (the cycle's own D2 guard) and one repaired. See results/product/regression/CYCLE_39051003925_regression_scope.json.",
+   "method": "WITHDRAWN IN FULL by audit FIX-3 and superseded by the 39051003925 scope artifact. The prior sentence ('79 unique failing/erroring IDs before and after, both differences EMPTY, intersection 79') contradicted this object's own four numeric fields (77 / 76 / [] / one ID), used the forbidden cardinality-for-set-relation shape, and named no root. It is not restated: 79 is not a measured value at any root this cycle measured. The method that is kept is the one in product/regression_scope.py, which computes both differences plus the intersection, names the root and the control-plane mount, and refuses to publish an artifact whose arithmetic does not close.",
    "passed": {
     "pristine": 519,
     "repaired": 525,
@@ -3002,7 +3002,40 @@
    "set_difference_repaired_only_NEW_FAILURES": [],
    "set_difference_baseline_only_FIXED": [
     "product/tests/test_state_contract.py::test_cli_returns_zero_when_the_contract_holds"
-   ]
+   ],
+   "status": "SUPERSEDED_BY_39051003925_SCOPE_DECLARATION",
+   "superseded_by": "results/product/regression/CYCLE_39051003925_regression_scope.json",
+   "F2_root_scope_fix": {
+    "problem": "This object and results/product/regression/CYCLE_39048942749_regression_scope.json published a checkout-root-scoped set comparison as a universal verdict (audit CYCLE_39048942749 FIX-2).",
+    "measured_at": {
+     "checkout_root": "/home/runner/work/LexMachina/LexMachina",
+     "control_plane_mount": "/tmp/lex_control",
+     "host": "Linux-6.17.0-1022-azure-x86_64, python 3.12.3, numpy 2.5.4, scipy 1.18.1, scikit-learn 1.9.1"
+    },
+    "withdrawn_readings": [
+     "set_difference_repaired_only_NEW_FAILURES = [] (no new failures) - true at that root only",
+     "repaired_module.status = '22 passed' - true at that root only",
+     "results.no_new_failures = true - true at that root only"
+    ],
+    "corrected_reading": "At the producer CI root the prior head's module passes 22 and introduces no new failure. At a foreign root the same head passes 21: the new-failure set is NOT empty and holds exactly one member, the D2 guard this cycle introduced (audit FIX-1), which is now fixed.",
+    "figures_kept_as_root_scoped": {
+     "unique_failing_ids_pristine": 77,
+     "unique_failing_ids_repaired": 76,
+     "intersection": 76,
+     "set_difference_baseline_only_FIXED": [
+      "product/tests/test_state_contract.py::test_cli_returns_zero_when_the_contract_holds"
+     ],
+     "counted_run_summary_baseline": "47 failed, 519 passed, 2 skipped, 30 errors",
+     "counted_run_summary_repaired": "46 failed, 525 passed, 2 skipped, 30 errors",
+     "published_passed": {
+      "pristine": 519,
+      "repaired": 525
+     },
+     "arithmetic_check": "passed_r - passed_b (+6) == collected_delta (+5) - net_failing_delta (-1) - skipped_delta (0); the published +6 is the 5 new tests plus the one repaired state-contract test",
+     "set_difference_repaired_only_NEW_FAILURES": [],
+     "set_difference_note": "both differences are published as LISTS beside the intersection, and they are empty at the declared root only. At a foreign root the repaired-only difference holds exactly one member - see results/product/regression/CYCLE_39051003925_regression_scope.json"
+    }
+   }
   },
   "repaired_module": {
    "path": "product/tests/test_v52_endgame_delivery.py",
@@ -3024,5 +3057,122 @@
    "verified_against": "mounted /tmp/lex_control/state/factory_direction.json version field (=55)",
    "assertions_removed_or_loosened": false
   }
+ },
+ "repair_39051003925_f1_f2_f3": {
+  "run_id": "39051003925",
+  "status": "DELIVERED_PENDING_INDEPENDENT_AUDIT",
+  "repairs": "audit CYCLE_39048942749 required_fixes F1 (material), F2 (material), F3 (minor), plus advisories A1-A4",
+  "F1_material_machine_coupled_d2_guard": {
+   "defect": "product/tests/test_v52_endgame_delivery.py:331 asserted str(REBUILT) in h['packet_path'], comparing the committed PRODUCER path against THIS checkout's ROOT. It passed only where the tree sits at /home/runner/work/LexMachina/LexMachina and failed everywhere else (reproduced this cycle: 1 failed / 21 passed at a foreign root).",
+   "fix": "assert Path(h['packet_path']).is_absolute(), plus a tail assertion on the recorded path so the claim 'the recorded path is absolute AND points at the rebuilt packet' is what is actually established.",
+   "anti_regression": "new test_path_assertions_are_machine_independent: (1) BEHAVIOURAL - the module's own D1 and D2 path guards are re-executed with ROOT/REBUILT/SOURCE monkeypatched onto a temp checkout that is not the producer path, and must pass there; a tampered foreign tree must then be caught. (2) STATICAL - _machine_coupled_assertions() rejects any assert in the module that reaches for str(ROOT|REBUILT|SOURCE), with the detector proved non-vacuous on a synthetic bad snippet.",
+   "non_vacuity_evidence": "re-introducing the exact defective line in a foreign-root tree makes BOTH the module-level D2 guard and the new static tripwire fail (2 failed / 21 passed); the module is 25 passed at the producer CI root and 25 passed at a foreign root.",
+   "measured": {
+    "producer_ci_root": "25 passed (product/tests/test_v52_endgame_delivery.py)",
+    "foreign_root_B": "25 passed at /tmp/opencode/lex_repaired_rootB; the two new honesty guards add 11 more, 36 passed across both modules"
+   }
+  },
+  "F2_material_root_scoped_regression_evidence": {
+   "artifact": "results/product/regression/CYCLE_39051003925_regression_scope.json",
+   "producer_tool": "product/regression_scope.py (new; computes both set differences plus the intersection, names the root and the control-plane mount, and REFUSES to write an artifact whose pass/fail arithmetic does not close or whose baseline swap injected no bytes)",
+   "measurement_files": [
+    "results/product/regression/CYCLE_39051003925_meas_thisdelta_producer_root.json",
+    "results/product/regression/CYCLE_39051003925_meas_thisdelta_foreign_root.json",
+    "results/product/regression/CYCLE_39051003925_meas_legacy_pair_foreign_roots.json",
+    "results/product/regression/CYCLE_39051003925_meas_legacy_pair_asymmetric_git.json"
+   ],
+   "this_cycle_delta_producer_ci_root": {
+    "unique_ids_baseline_repaired": [
+     76,
+     76
+    ],
+    "intersection": 76,
+    "baseline_only": [],
+    "repaired_only_NEW_FAILURES": [],
+    "collected": [
+     614,
+     617
+    ],
+    "passed": [
+     536,
+     539
+    ],
+    "counted_run_summary_repaired": "46 failed, 539 passed, 2 skipped, 30 errors"
+   },
+   "this_cycle_delta_foreign_root_B": {
+    "unique_ids_baseline_repaired": [
+     88,
+     87
+    ],
+    "intersection": 87,
+    "baseline_only": [
+     "product/tests/test_v52_endgame_delivery.py::test_committed_artifacts_embed_absolute_workspace_paths_and_it_is_disclosed"
+    ],
+    "repaired_only_NEW_FAILURES": [],
+    "collected": [
+     614,
+     617
+    ],
+    "passed": [
+     523,
+     527
+    ],
+    "counted_run_summary_repaired": "57 failed, 527 passed, 3 skipped, 30 errors",
+    "note": "at this root the PRIOR head's D2 guard is red and this cycle turns it green; the new-failure set is empty at BOTH roots, which is exactly the tripwire condition the audit attached"
+   },
+   "prior_cycle_pair_symmetric_foreign_roots": {
+    "unique_ids_baseline_repaired": [
+     77,
+     77
+    ],
+    "intersection": 76,
+    "baseline_only": [
+     "product/tests/test_state_contract.py::test_cli_returns_zero_when_the_contract_holds"
+    ],
+    "repaired_only_NEW_FAILURES": [
+     "product/tests/test_v52_endgame_delivery.py::test_committed_artifacts_embed_absolute_workspace_paths_and_it_is_disclosed"
+    ],
+    "counted_run_summary_repaired": "47 failed, 523 passed, 3 skipped, 30 errors"
+   },
+   "audit_independent_host_figures_carried": {
+    "unique_ids_pristine_repaired": [
+     78,
+     77
+    ],
+    "repaired_only": 2,
+    "baseline_only": 3,
+    "intersection": 75,
+    "repaired_run_summary": "47 failed, 523 passed, 3 skipped, 30 errors",
+    "cycle_caused_member": "test_v52_endgame_delivery.py::test_committed_artifacts_embed_absolute_workspace_paths_and_it_is_disclosed (FIX-1, now fixed)",
+    "non_cycle_member": "test_audit_seam.py::test_known_dead_models_agree_with_control_plane_health - reads the mounted control-plane model_health.json, so its verdict is a property of the mount, not of any repair"
+   },
+   "set_relation_only": "every comparison reports both differences AND the intersection plus the two counted run summaries; no count is offered as a set and no matching count is offered as an identity."
+  },
+  "F3_minor_stale_method_sentence": {
+   "defect": "state/product.json's regression_scope.method read '79 unique failing/erroring IDs before and after, both differences EMPTY, intersection 79', contradicting its own fields (77 / 76 / [] / one ID) and using the forbidden cardinality-for-set-relation shape.",
+   "fix": "sentence withdrawn in full; see repair_39048942749_d1_d2_a2.regression_scope.method",
+   "no_corrected_restatement_of_79": "79 is not a measured value at any root this cycle measured; the 79 that does appear is a method artefact of a same-root byte-injection baseline and is recorded as such, never as a baseline figure."
+  },
+  "advisories_closed": {
+   "A1": "the D2 disclosure assertion searched the whole disclosures blob, where the word 'absolute' also occurs in unrelated text, so deleting path_binding_disclosure left it green. It now asserts on the BLOCK (keys, paths_are_absolute, root_marker, packet_json_regenerated flag, statement). Non-vacuity measured: deleting the block in a copy makes the guard fail.",
+   "A2": "embedded_workspace_path is the writer's str(out_dir), which is repo-relative in the committed artifact and absolute for an absolute invocation. The writer and the committed disclosure now both carry embedded_workspace_path_semantics saying exactly that; disclosures.json sha256 48a662ddcb2b92c1ec8f0b18af2f7a51df9c2c9a08e69fe424ad0abb3c02762e -> 0e1db787ed4ea4c3babb4d3c2289332bcde518ea5382186227b1dfa15d1862ec. New test test_embedded_workspace_path_semantics_are_disclosed_and_writer_true reads the writer itself.",
+   "A3": "fresh_rebuild_content_sha256 was published without a host-scope label. Every rebuild figure in per_bundle now carries a sibling *_scope = HOST_SCOPED_PRODUCER_ATTESTATION, guarded generically by test_every_rebuild_number_carries_a_host_scope_label; REBUILT_39027045675_REPRODUCIBILITY_SCOPE.json sha256 c82cb3d4f8c4eaf17f66a9548556006f20c3f3064648c76c2730123bdd6327b5 -> dcb20c775632df429f30dea78a7813e0feafc2857894206cfea5e0c28378879c.",
+   "A4": "top-level cycle_status refreshed from the stale 39031213637 resume label."
+  },
+  "measured_artifact_bytes_untouched": {
+   "packet.json_raw_sha256": "2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170",
+   "re_measured_this_cycle": true,
+   "handoff.json_raw_sha256": "601dee4b8cc6ce36bcedd03301454e813d0696ba944711fdc869f44cbbe0b5f4",
+   "note": "no packet byte was regenerated; the packet was NOT rebuilt to make paths relative."
+  },
+  "gate_positions_unchanged": {
+   "machine_gate_ready": false,
+   "human_gate_ready": false,
+   "ready_for_owner_session": false,
+   "self_certification": false,
+   "continue_recommended": true
+  },
+  "no_new_thresholds": "no frozen rubric, gate, bar, threshold or packet byte touched; zero lines under product/frozen/**, product/query/**, evaluation/**, tests/**, .github/**",
+  "next_step": "re-request the independent audit of the SAME rebuilt packet bytes (packet.json raw sha256 2942c3c2...), now with F1-F3 applied and the regression evidence carrying its roots."
  }
 }

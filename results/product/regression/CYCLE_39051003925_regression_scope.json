@@ -1,0 +1,280 @@
+{
+  "schema": "product-regression-evidence/3",
+  "run_id": "39051003925",
+  "purpose": "Audit CYCLE_39048942749 FIX-2: cycle 39048942749 published a checkout-root-scoped set comparison as a universal verdict. This artifact re-measures the same comparison at a declared producer root AND at declared foreign roots, retracts the universal readings, carries the audit's independent-host measurement with both non-cycle causes named, and reconciles the pass/fail arithmetic to each declared root. The method is a SET relation (both differences plus the intersection); a count is never offered where a set relation is required. Every figure below is read from the measurement artifacts named in each block, never typed by hand.",
+  "producer_tool": "product/regression_scope.py",
+  "declared_scope": {
+    "producer_checkout_root": "/home/runner/work/LexMachina/LexMachina",
+    "foreign_roots": [
+      "/home/runner/work/LexMachina/LexMachina",
+      "/tmp/opencode/lex_base_6c56332c",
+      "/tmp/opencode/lex_base_rootB",
+      "/tmp/opencode/lex_legacy_rootB",
+      "/tmp/opencode/lex_repaired_rootB"
+    ],
+    "control_plane_mount": "/tmp/lex_control",
+    "control_plane_facts_read_during_measurement": [
+      "/tmp/lex_control/state/factory_direction.json (version 55, read by product/tests/test_state_contract.py)",
+      "/tmp/lex_control/state/model_health.json (read by product/tests/test_audit_seam.py)"
+    ],
+    "environment": {
+      "python": "3.12.3",
+      "platform": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+      "thread_env": {
+        "OMP_NUM_THREADS": null,
+        "OPENBLAS_NUM_THREADS": null,
+        "MKL_NUM_THREADS": null,
+        "PYTHONHASHSEED": null
+      },
+      "numpy": "2.5.4",
+      "scipy": "1.18.1",
+      "sklearn": "1.9.1"
+    },
+    "root_scope_rule": "Every number in this artifact is ROOT_SCOPED and MOUNT_SCOPED: it is a measurement at the roots named in each block, against the mount named above, on the host recorded in environment. It is not a claim about any other root, mount or host. Two tests in this suite read the control-plane mount and change verdict with it; they are named where they appear."
+  },
+  "retracted_from_CYCLE_39048942749": {
+    "retracted_claims": [
+      {
+        "claim": "results/product/regression/CYCLE_39048942749_regression_scope.json::results.no_new_failures = true",
+        "as_published": "universal (no root, mount or host named)",
+        "correct_reading": "true at the producer CI root only; false at a foreign root, where the prior head's D2 guard is red",
+        "evidence": "prior_cycle_pair_symmetric_foreign_roots.set_relation.repaired_only_NEW_FAILURES"
+      },
+      {
+        "claim": "results/product/regression/CYCLE_39048942749_regression_scope.json::repaired_module.status = '22 passed'",
+        "as_published": "universal",
+        "correct_reading": "root-scoped: on this host the prior head's module passes 22 at the producer CI root and 21 at a foreign root; this cycle's module passes 25 at both. The published '22 passed' was never a statement about any other root.",
+        "evidence": "this_cycle_measurements[foreign_root_B].set_relation.baseline_only_FIXED"
+      },
+      {
+        "claim": "state/product.json::repair_39048942749_d1_d2_a2.regression_scope.set_difference_repaired_only_NEW_FAILURES = []",
+        "as_published": "universal",
+        "correct_reading": "empty at the producer CI root; NOT empty at a foreign root before the F1 repair",
+        "evidence": "prior_cycle_pair_symmetric_foreign_roots.set_relation.repaired_only_NEW_FAILURES"
+      },
+      {
+        "claim": "state/product.json::repair_39048942749_d1_d2_a2.regression_scope.method = the '79 ... both differences EMPTY, intersection 79' sentence",
+        "as_published": "universal and self-contradictory",
+        "correct_reading": "WITHDRAWN IN FULL (audit FIX-3). The sentence contradicted its own four numeric fields (77 / 76 / [] / one ID) and used the forbidden cardinality-for-set-relation shape. No corrected restatement of that figure is offered: it is not a measured value at any root in this artifact.",
+        "evidence": "audit CYCLE_39048942749 FIX-3"
+      }
+    ],
+    "not_retracted": "The prior cycle's METHOD is sound and is kept: a set comparison with both differences plus the intersection, against an untouched baseline tree, with the uncollectable-module exclusion disclosed. Its D1 fix is sound and is kept. Only the undeclared SCOPE of the readings is withdrawn."
+  },
+  "audit_independent_host_measurement_carried": {
+    "source": "results/audit/product/CYCLE_39048942749_GATE.json required_fixes F2",
+    "verbatim_figures": {
+      "unique_failing_or_erroring_ids_pristine": 78,
+      "unique_failing_or_erroring_ids_repaired": 77,
+      "set_difference_repaired_only": 2,
+      "set_difference_baseline_only": 3,
+      "intersection": 75,
+      "repaired_run_summary": "47 failed, 523 passed, 3 skipped, 30 errors",
+      "trees": "pristine 6c56332c in /tmp/aud/base_tree vs repaired 50ab946 in /tmp/lex_team",
+      "command_shape": "as this cycle's: python -m pytest product/tests/ -q -p no:cacheprovider <18 --ignore flags>, sort -u set comparison"
+    },
+    "reproduced_here": {
+      "repaired_run_summary": "MATCHES the audit's repaired_run_summary verbatim on this host's symmetric measurement",
+      "pristine_and_repaired_unique_ids": "this host measures 77 / 77 (intersection 76) where the audit host measured 78 / 77 (intersection 75)",
+      "reading": "the disagreement is a property of host/mount/setup, not a contradiction to average away: this cycle publishes the SETS, the ROOTS and the MOUNT for every claim and claims no cross-host membership"
+    },
+    "non_cycle_causes_named_explicitly": [
+      {
+        "id": "product/tests/test_v52_endgame_delivery.py::test_committed_artifacts_embed_absolute_workspace_paths_and_it_is_disclosed",
+        "cause": "CYCLE-CAUSED by cycle 39048942749: the D2 guard compared the committed producer path against the running checkout's ROOT, so it is red wherever the tree is not mounted at the producer's CI path. This is audit FIX-1.",
+        "status_here": "reproduced at every foreign root this cycle measured (the prior-cycle pair's repaired-only set, and this cycle's foreign-root baseline-only set) and absent from both of this cycle's own repaired-only sets, which are empty"
+      },
+      {
+        "id": "product/tests/test_audit_seam.py::test_known_dead_models_agree_with_control_plane_health",
+        "cause": "NOT cycle-caused and NOT this cycle's delta: it compares a recorded dead-model exit code (124) against the mounted control-plane state/model_health.json entry for that model. The mount's content differs between hosts, so the verdict is a property of the MOUNT.",
+        "status_here": "reproduced on this host in the asymmetric measurement and absent from the symmetric one; it is neither created nor fixed by cycle 39048942749 or by this cycle"
+      }
+    ]
+  },
+  "this_cycle_measurements": [
+    {
+      "name": "this_repair_delta_at_producer_ci_root",
+      "artifact": "results/product/regression/CYCLE_39051003925_meas_thisdelta_producer_root.json",
+      "measured_at_checkout_root": "/home/runner/work/LexMachina/LexMachina",
+      "baseline_tree": "prev_head_50ab946_tests_same_root",
+      "control_plane_mount": "/tmp/lex_control",
+      "set_relation": {
+        "unique_failing_or_erroring_ids_baseline": 76,
+        "unique_failing_or_erroring_ids_repaired": 76,
+        "intersection_size": 76,
+        "baseline_only_FIXED": [],
+        "repaired_only_NEW_FAILURES": []
+      },
+      "arithmetic": {
+        "collected_baseline_repaired": [
+          614,
+          617
+        ],
+        "passed_baseline_repaired": [
+          536,
+          539
+        ],
+        "skipped_delta": 0,
+        "net_unique_failing_id_change": 0,
+        "identity": "passed_r - passed_b == collected_delta - net_unique_failing_delta - skipped_delta",
+        "arithmetic_reconciles": true,
+        "counted_run_summary_baseline": "46 failed, 536 passed, 2 skipped, 43 warnings, 30 errors in 66.46s (0:01:06)",
+        "counted_run_summary_repaired": "46 failed, 539 passed, 2 skipped, 43 warnings, 30 errors in 65.99s (0:01:05)"
+      }
+    },
+    {
+      "name": "this_repair_delta_at_foreign_root_B",
+      "artifact": "results/product/regression/CYCLE_39051003925_meas_thisdelta_foreign_root.json",
+      "measured_at_checkout_root": "/tmp/opencode/lex_repaired_rootB",
+      "baseline_tree": "prev_head_50ab946_tests_same_root",
+      "control_plane_mount": "/tmp/lex_control",
+      "set_relation": {
+        "unique_failing_or_erroring_ids_baseline": 88,
+        "unique_failing_or_erroring_ids_repaired": 87,
+        "intersection_size": 87,
+        "baseline_only_FIXED": [
+          "product/tests/test_v52_endgame_delivery.py::test_committed_artifacts_embed_absolute_workspace_paths_and_it_is_disclosed"
+        ],
+        "repaired_only_NEW_FAILURES": []
+      },
+      "arithmetic": {
+        "collected_baseline_repaired": [
+          614,
+          617
+        ],
+        "passed_baseline_repaired": [
+          523,
+          527
+        ],
+        "skipped_delta": 0,
+        "net_unique_failing_id_change": -1,
+        "identity": "passed_r - passed_b == collected_delta - net_unique_failing_delta - skipped_delta",
+        "arithmetic_reconciles": true,
+        "counted_run_summary_baseline": "58 failed, 523 passed, 3 skipped, 43 warnings, 30 errors in 65.21s (0:01:05)",
+        "counted_run_summary_repaired": "57 failed, 527 passed, 3 skipped, 43 warnings, 30 errors in 66.11s (0:01:06)"
+      }
+    }
+  ],
+  "prior_cycle_comparison_re_measured": [
+    {
+      "name": "prior_cycle_pair_symmetric_foreign_roots",
+      "artifact": "results/product/regression/CYCLE_39051003925_meas_legacy_pair_foreign_roots.json",
+      "measured_at_checkout_root": "/tmp/opencode/lex_legacy_rootB",
+      "baseline_tree": "pristine_6c56332c_separate_copy_no_git",
+      "control_plane_mount": "/tmp/lex_control",
+      "set_relation": {
+        "unique_failing_or_erroring_ids_baseline": 77,
+        "unique_failing_or_erroring_ids_repaired": 77,
+        "intersection_size": 76,
+        "baseline_only_FIXED": [
+          "product/tests/test_state_contract.py::test_cli_returns_zero_when_the_contract_holds"
+        ],
+        "repaired_only_NEW_FAILURES": [
+          "product/tests/test_v52_endgame_delivery.py::test_committed_artifacts_embed_absolute_workspace_paths_and_it_is_disclosed"
+        ]
+      },
+      "arithmetic": {
+        "collected_baseline_repaired": [
+          598,
+          603
+        ],
+        "passed_baseline_repaired": [
+          518,
+          523
+        ],
+        "skipped_delta": 0,
+        "net_unique_failing_id_change": 0,
+        "identity": "passed_r - passed_b == collected_delta - net_unique_failing_delta - skipped_delta",
+        "arithmetic_reconciles": true,
+        "counted_run_summary_baseline": "47 failed, 518 passed, 3 skipped, 43 warnings, 30 errors in 65.18s (0:01:05)",
+        "counted_run_summary_repaired": "47 failed, 523 passed, 3 skipped, 43 warnings, 30 errors in 65.35s (0:01:05)"
+      }
+    },
+    {
+      "name": "prior_cycle_pair_asymmetric_git_presence",
+      "artifact": "results/product/regression/CYCLE_39051003925_meas_legacy_pair_asymmetric_git.json",
+      "measured_at_checkout_root": "/tmp/opencode/lex_legacy_rootB",
+      "baseline_tree": "pristine_6c56332c_separate_worktree",
+      "control_plane_mount": "/tmp/lex_control",
+      "set_relation": {
+        "unique_failing_or_erroring_ids_baseline": 77,
+        "unique_failing_or_erroring_ids_repaired": 77,
+        "intersection_size": 75,
+        "baseline_only_FIXED": [
+          "product/tests/test_audit_seam.py::test_known_dead_models_agree_with_control_plane_health",
+          "product/tests/test_state_contract.py::test_cli_returns_zero_when_the_contract_holds"
+        ],
+        "repaired_only_NEW_FAILURES": [
+          "product/tests/test_ci_reality_legs.py::test_summary_and_leg_reports_are_written_for_this_run",
+          "product/tests/test_v52_endgame_delivery.py::test_committed_artifacts_embed_absolute_workspace_paths_and_it_is_disclosed"
+        ]
+      },
+      "arithmetic": {
+        "collected_baseline_repaired": [
+          598,
+          603
+        ],
+        "passed_baseline_repaired": [
+          519,
+          523
+        ],
+        "skipped_delta": 1,
+        "net_unique_failing_id_change": 0,
+        "identity": "passed_r - passed_b == collected_delta - net_unique_failing_delta - skipped_delta",
+        "arithmetic_reconciles": true,
+        "counted_run_summary_baseline": "47 failed, 519 passed, 2 skipped, 43 warnings, 30 errors in 66.45s (0:01:06)",
+        "counted_run_summary_repaired": "47 failed, 523 passed, 3 skipped, 43 warnings, 30 errors in 67.34s (0:01:07)"
+      }
+    }
+  ],
+  "method_notes": [
+    {
+      "id": "symmetric_measurement",
+      "note": "the prior-cycle blocks and the this-cycle foreign block compare two complete trees that differ only in git HEAD content and both live at foreign paths without a .git directory. This is the faithful reproduction of the prior cycle's method."
+    },
+    {
+      "id": "asymmetric_measurement_control",
+      "note": "prior_cycle_pair_asymmetric_git_presence pairs a git worktree (has .git) with a plain copy (does not). Its repaired-only set holds the cycle-caused F1 guard plus product/tests/test_ci_reality_legs.py::test_summary_and_leg_reports_are_written_for_this_run, which asserts a 40-char head sha and so needs .git. Published as a CONTROL showing the membership of these sets is a property of the measurement setup; never quote it as the repair's delta."
+    },
+    {
+      "id": "same_root_byte_injection_method",
+      "note": "product/regression_scope.py --baseline-ref restores product/tests/** from a git ref by byte injection so both runs share one checkout root. It is EXACT when the repair changed only collected test code (this cycle's delta: two test modules, no non-test artifact), and it OVER-COUNTS baseline failures when the ref's tests assert against artifacts the working tree has already moved on: a same-root measurement of the 6c56332c baseline at the producer root reports more unique IDs than the 77 measured on a faithful pristine tree, the extra IDs being artifact-vs-test mismatches the method itself introduces. That figure is recorded as a method artefact and is NOT published as a baseline."
+    },
+    {
+      "id": "excluded_modules",
+      "note": "18 modules cannot be collected in this environment (missing optional dependency sentence_transformers) and are excluded from every run here, identically on both sides. Their status is UNMEASURED, not passed. The list is computed by attempting collection, never hard-coded, and is published in each measurement artifact."
+    },
+    {
+      "id": "arithmetic",
+      "note": "every measurement reconciles passed_r - passed_b == collected_delta - net_unique_failing_delta - skipped_delta. product/regression_scope.py REFUSES to write an artifact whose arithmetic does not close, and refuses a --baseline-ref run in which no bytes were injected, which would make the comparison vacuous."
+    },
+    {
+      "id": "no_new_thresholds",
+      "note": "nothing in this cycle edits a frozen rubric, gate, bar, threshold or packet byte."
+    }
+  ],
+  "tripwire_status": {
+    "control_plane_tripwire": "if the next product cycle's verification evidence is again root- or mount-scoped without disclosure, or again reports an empty new-failure set while a cycle-introduced test is red off the producer's CI root, the gate is BLOCKED (audit CYCLE_39048942749 advisories).",
+    "this_cycle_position": "SATISFIED. The evidence is root- and mount-scoped by construction (every block names its roots and the mount), and this cycle introduces no test that is red off the producer's CI root: the new-failure set is empty at the producer root AND empty at foreign root B, where the prior head's D2 guard is the single member of the baseline-only set.",
+    "open_known_root_or_mount_dependent_tests": [
+      "product/tests/test_audit_seam.py::test_known_dead_models_agree_with_control_plane_health (reads the mounted control plane)",
+      "product/tests/test_ci_reality_legs.py::test_summary_and_leg_reports_are_written_for_this_run (needs a .git directory for a head sha)",
+      "product/tests/test_state_contract.py::test_cli_returns_zero_when_the_contract_holds (binds to the mounted direction version)"
+    ],
+    "note": "recorded, not repaired: these are control-plane/mount readers and a git-presence reader, and repairing them would change what the suite asserts about the control plane. Each is now NAMED in every published comparison instead of silently moving the sets."
+  },
+  "unchanged_by_this_cycle": {
+    "packet_json_raw_sha256": "2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170",
+    "frozen_rules": {
+      "RULES_LABEL.json": "4457e971df3dc5d1",
+      "RULES_GEOMETRY.json": "a7452748d4"
+    },
+    "gate_positions": {
+      "machine_gate_ready": false,
+      "human_gate_ready": false,
+      "ready_for_owner_session": false,
+      "self_certification": false,
+      "continue_recommended": true
+    }
+  }
+}

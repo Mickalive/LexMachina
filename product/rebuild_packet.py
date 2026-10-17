@@ -305,6 +305,16 @@ def path_binding_disclosure(out_dir: Path) -> dict[str, Any]:
     return {
         "paths_are_absolute": True,
         "embedded_workspace_path": str(out_dir),
+        "embedded_workspace_path_semantics": (
+            "the packet-dir spelling passed to this writer (str(out_dir)), NOT "
+            "necessarily an absolute path: the committed rebuilt-39027045675 "
+            "disclosures carry the repo-relative spelling because that rebuild "
+            "was invoked with a relative out_dir, while a rebuild invoked with an "
+            "absolute out_dir writes an absolute string here. The PATH FIELDS in "
+            "the packet (packet_dir, packet_path, bundles[*].bundle_path) are "
+            "absolute in both cases. Do not read agreement between this field and "
+            "the committed artifact as more than the writer semantics."
+        ),
         "root_marker": "results",
         "statement": (
             "packet_dir, packet_path and every bundles[*].bundle_path in this "

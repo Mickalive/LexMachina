@@ -31,6 +31,7 @@
   "path_binding_disclosure": {
     "paths_are_absolute": true,
     "embedded_workspace_path": "results/product/gate_packet/rebuilt-39027045675",
+    "embedded_workspace_path_semantics": "the packet-dir spelling passed to this writer (str(out_dir)), NOT necessarily an absolute path: the committed rebuilt-39027045675 disclosures carry the repo-relative spelling because that rebuild was invoked with a relative out_dir, while a rebuild invoked with an absolute out_dir writes an absolute string here. The PATH FIELDS in the packet (packet_dir, packet_path, bundles[*].bundle_path) are absolute in both cases. Do not read agreement between this field and the committed artifact as more than the writer semantics.",
     "root_marker": "results",
     "statement": "packet_dir, packet_path and every bundles[*].bundle_path in this packet and its handoff embed the ABSOLUTE workspace path of the machine that produced them (e.g. /home/runner/work/...). They are claim-bearing measured artifacts, so they are NOT regenerated to store relative paths: doing so would change packet.json's raw sha256 and invalidate the published identity. A consumer must re-root them onto its own checkout by taking the path tail from the 'results' component onward, and must never open the embedded absolute path (that reads the producer's tree, not the tree under test). See product/tests/test_v52_endgame_delivery.py::resolve_committed_path.",
     "packet_json_regenerated_for_relative_paths": false,

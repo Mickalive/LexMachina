@@ -32,8 +32,10 @@ from a report.
 """
 from __future__ import annotations
 
+import ast
 import hashlib
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -101,6 +103,39 @@ def resolve_committed_path(raw: str, root: Path | None = None) -> Path:
     # silent read of an unrelated machine's file.
     return base / "results" / "product" / "gate_packet" / REBUILT_DIR_NAME / "questions" \
         / Path(raw).name
+
+
+_MACHINE_COUPLED_NAMES = ("ROOT", "REBUILT", "SOURCE")
+
+
+def _machine_coupled_assertions(src: str) -> list[str]:
+    """Return every assertion in ``src`` that compares an artifact value to a path.
+
+    F1 repair (audit CYCLE_39048942749 FIX-1). A path assertion that reaches for
+    this checkout's ``ROOT``/``REBUILT``/``SOURCE`` is machine-coupled by
+    construction: it can only be true where the tree sits at the producer's CI
+    path. The defect that audit found was exactly this shape, re-introduced by
+    the D1/D2 repair inside this very file, so the shape is now rejected at the
+    AST level rather than left to review.
+
+    Detector shape: an ``assert`` whose test contains ``str(<NAME>)`` for one of
+    the module's root globals, optionally followed by ``.resolve()``/``.as_posix()``.
+    ``resolve_committed_path`` is deliberately absent - it takes a root argument
+    and is the supported way to talk about a foreign checkout.
+    """
+    found: list[str] = []
+    for node in ast.walk(ast.parse(src)):
+        if not isinstance(node, ast.Assert):
+            continue
+        for sub in ast.walk(node.test):
+            if not (isinstance(sub, ast.Call) and isinstance(sub.func, ast.Name)
+                    and sub.func.id == "str" and sub.args):
+                continue
+            arg = sub.args[0]
+            if isinstance(arg, ast.Name) and arg.id in _MACHINE_COUPLED_NAMES:
+                found.append(f"line {sub.lineno}: str({arg.id})")
+                break
+    return found
 
 
 # --------------------------------------------------------------------------
@@ -326,19 +361,102 @@ def test_committed_artifacts_embed_absolute_workspace_paths_and_it_is_disclosed(
     raw sha256 2942c3c2... and invalidate the published identity). Instead the
     embedding is asserted to exist and to be disclosed in the packet's own
     disclosures, so a consumer is never surprised by a producer-machine path.
+
+    F1 repair (audit CYCLE_39048942749 FIX-1). The predicate for "the recorded
+    path is absolute" is ``Path(...).is_absolute()``, which reads the committed
+    artifact alone. It was ``str(REBUILT) in h['packet_path']``, which compared
+    the committed PRODUCER prefix against THIS checkout's ROOT: the guard passed
+    only where the tree sits at the producer's CI path and failed at every other
+    root (1 failed / 21 passed at /tmp/opencode/lex_second_root), i.e. it
+    re-introduced inside the D1 repair the very machine-coupling the D1 section
+    diagnoses. ``test_path_assertions_are_machine_independent`` now holds this
+    module's path guards to the same root-independence standard.
     """
     h = _handoff()
-    assert str(REBUILT) in h["packet_path"], "packet_path still points at ROOT-relative only"
+    packet_path = Path(h["packet_path"])
+    assert packet_path.is_absolute(), (
+        "packet_path is expected to embed an absolute workspace path")
+    # the recorded tail, not this machine's prefix, is the load-bearing part
+    assert packet_path.parts[-3:] == ("gate_packet", REBUILT_DIR_NAME, "packet.json")
+    assert resolve_committed_path(h["packet_path"]).is_relative_to(ROOT)
     for b in h["bundles"]:
         assert Path(b["bundle_path"]).is_absolute(), (
             f"{b['qid']} bundle_path was expected to embed an absolute workspace path")
         # ... and it must re-root cleanly onto this checkout (the D1 fix)
         assert resolve_committed_path(b["bundle_path"]).is_relative_to(ROOT)
 
+    # A1 repair: scope the disclosure assertion to the disclosure BLOCK. Searching
+    # the whole blob was partly vacuous - the word "absolute" also occurs in
+    # unrelated disclosure text, so deleting path_binding_disclosure entirely
+    # left the assertion green.
     disc = json.loads((REBUILT / "disclosures.json").read_text(encoding="utf-8"))
-    blob = json.dumps(disc)
-    assert "absolute" in blob.lower(), "disclosures.json does not disclose absolute paths"
-    assert REBUILT_DIR_NAME in blob, "the disclosure does not name the packet dir anchor"
+    block = disc.get("path_binding_disclosure")
+    assert isinstance(block, dict), (
+        "disclosures.json carries no path_binding_disclosure block")
+    assert block["paths_are_absolute"] is True
+    assert block["root_marker"] == REPO_ROOT_MARKER
+    assert block["packet_json_regenerated_for_relative_paths"] is False
+    blob = json.dumps(block)
+    assert "absolute" in blob.lower(), (
+        "the path_binding_disclosure does not disclose absolute paths")
+    assert REBUILT_DIR_NAME in blob, (
+        "the disclosure does not name the packet dir anchor")
+
+
+def test_path_assertions_are_machine_independent(tmp_path, monkeypatch):
+    """F1 anti-regression: the module's path guards must hold off the producer root.
+
+    Two independent guarantees, because the defect F1 fixed is silent:
+
+    1. BEHAVIOURAL - this module's own path-assertion functions are re-executed
+       with ROOT/REBUILT/SOURCE pointed at a temp checkout that is NOT the
+       recorded producer path. The D1 content-sha guard and the D2 absolute-path
+       guard must both pass there. Before the F1 repair the D2 guard failed
+       exactly this way, so the guard is not vacuous.
+    2. STATICAL - a re-introduced ``assert str(ROOT|REBUILT|SOURCE) ... <value
+       read out of a committed artifact>`` predicate is rejected by
+       ``_machine_coupled_assertions``. The detector is proved non-vacuous on a
+       synthetic bad snippet and on the real module source.
+    """
+    mod = sys.modules[__name__]
+    original_root, original_rebuilt = mod.ROOT, mod.REBUILT
+    foreign_root = tmp_path / "not-the-producer-ci-root"
+    for name in ("rebuilt-39027045675", "38839347028"):
+        shutil.copytree(ROOT / "results" / "product" / "gate_packet" / name,
+                        foreign_root / "results" / "product" / "gate_packet" / name)
+    monkeypatch.setattr(mod, "ROOT", foreign_root)
+    monkeypatch.setattr(mod, "REBUILT",
+                        foreign_root / "results" / "product" / "gate_packet"
+                        / REBUILT_DIR_NAME)
+    monkeypatch.setattr(mod, "SOURCE",
+                        foreign_root / "results" / "product" / "gate_packet"
+                        / "38839347028")
+    # the foreign root must not be this checkout, or the guard proves nothing
+    assert foreign_root != original_root
+    assert mod.REBUILT != original_rebuilt
+    # ... and the recorded producer path must NOT be where the guards now look
+    assert not mod.REBUILT.is_relative_to(original_root)
+
+    # 1. the module's own path guards, executed against the foreign root
+    mod.test_committed_artifacts_embed_absolute_workspace_paths_and_it_is_disclosed()
+    mod.test_handoff_content_sha256_reproduces_via_the_product_own_hasher()
+
+    # ... and they are not vacuous there either: a tampered foreign tree is caught
+    bundle_file = mod.REBUILT / "questions" / "fr-bail-entretien.bundle.json"
+    bundle = json.loads(bundle_file.read_text(encoding="utf-8"))
+    bundle["decisions"] = bundle["decisions"][:3]
+    bundle_file.write_text(json.dumps(bundle, ensure_ascii=False), encoding="utf-8")
+    with pytest.raises(AssertionError, match="content hash drifted"):
+        mod.test_handoff_content_sha256_reproduces_via_the_product_own_hasher()
+
+    # 2. static tripwire against the exact predicate shape F1 removed
+    assert _machine_coupled_assertions(Path(__file__).read_text(encoding="utf-8")) == [], (
+        "a path assertion in this module compares a committed artifact value "
+        "against this checkout's ROOT/REBUILT/SOURCE; that is the F1 defect")
+    bad = "def f(h, REBUILT):\n    assert str(REBUILT) in h['packet_path']\n"
+    assert _machine_coupled_assertions(bad), "the machine-coupling detector is vacuous"
+    good = "def f(h, REBUILT):\n    assert Path(h['packet_path']).is_absolute()\n"
+    assert _machine_coupled_assertions(good) == []
 
 
 def test_resolve_committed_path_reads_the_tree_under_test(tmp_path):
@@ -530,3 +648,60 @@ def test_drift_figures_are_host_scoped_not_silently_universal():
     # regeneration of the measured packet bytes
     assert "packet.json was NOT regenerated" in scope["repair_scope"]["D1_material"]
     assert scope["repair_scope"]["D2_minor"]
+
+
+def test_every_rebuild_number_carries_a_host_scope_label():
+    """A3: no rebuild figure may be published bare.
+
+    The A2 rule is that every drift number is host-scoped producer attestation.
+    ``fresh_rebuild_content_sha256`` was published without one, so a later reader
+    could quote a digest of a rebuild that the audit host did not reproduce. The
+    guard is generic on purpose: any future numeric or hash field in per_bundle
+    whose name starts with a rebuild/drift prefix must carry its *_scope label.
+    """
+    scope = json.loads((ROOT / "results" / "product" / "gate_packet" /
+                        "REBUILT_39027045675_REPRODUCIBILITY_SCOPE.json")
+                       .read_text(encoding="utf-8"))
+    prefixes = ("fresh_rebuild_", "cluster_id_drift", "max_query_similarity_drift")
+    exempt = {"fresh_rebuild_reproduces_here"}          # a tri-state, not a figure
+    for qid, cell in scope["per_bundle"].items():
+        for key in cell:
+            if not key.startswith(prefixes) or key in exempt or key.endswith("_scope"):
+                continue
+            assert cell.get(f"{key}_scope") == "HOST_SCOPED_PRODUCER_ATTESTATION", (
+                f"{qid}.{key} is a rebuild figure published without a host scope label")
+    assert scope["rebuild_hash_scope_rule"]
+
+
+def test_embedded_workspace_path_semantics_are_disclosed_and_writer_true():
+    """A2: the committed field is the writer's ``str(out_dir)``, not a constant.
+
+    ``embedded_workspace_path`` is repo-relative in the committed artifact because
+    that rebuild was invoked with a relative out_dir; the writer emits
+    ``str(out_dir)``, so an absolute invocation writes an absolute string there.
+    Agreement between the committed field and a future rebuild is therefore the
+    writer semantics, nothing more, and both say so.
+    """
+    # rebuild_packet imports the sibling gate_packet module by its top-level name,
+    # so product/ must be importable for this guard to read the writer itself.
+    if str(ROOT / "product") not in sys.path:
+        sys.path.insert(0, str(ROOT / "product"))
+    from product.rebuild_packet import path_binding_disclosure
+
+    disc = json.loads((REBUILT / "disclosures.json").read_text(encoding="utf-8"))
+    block = disc["path_binding_disclosure"]
+    semantics = block["embedded_workspace_path_semantics"]
+    assert "str(out_dir)" in semantics and "relative" in semantics
+
+    rel = path_binding_disclosure(Path("results/product/gate_packet") / REBUILT_DIR_NAME)
+    assert rel["embedded_workspace_path"] == block["embedded_workspace_path"], (
+        "the committed field is not what the writer emits for this invocation")
+    absolute = path_binding_disclosure(ROOT / "results" / "product" / "gate_packet"
+                                       / REBUILT_DIR_NAME)
+    assert Path(absolute["embedded_workspace_path"]).is_absolute(), (
+        "an absolute out_dir must still produce an absolute field")
+    assert absolute["embedded_workspace_path"] != block["embedded_workspace_path"], (
+        "if these ever agree the disclosure is stale and must be revisited")
+    # the packet's own path fields are absolute either way - that is the D2 claim
+    for name in ("packet.json", "handoff.json"):
+        assert "absolute" in (REBUILT / name).read_text(encoding="utf-8").lower()

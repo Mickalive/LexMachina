@@ -64,7 +64,8 @@
       "cluster_id_drift_rows": 98,
       "cluster_id_drift_rows_scope": "HOST_SCOPED_PRODUCER_ATTESTATION",
       "max_query_similarity_drift": 0.001143,
-      "max_query_similarity_drift_scope": "HOST_SCOPED_PRODUCER_ATTESTATION"
+      "max_query_similarity_drift_scope": "HOST_SCOPED_PRODUCER_ATTESTATION",
+      "fresh_rebuild_content_sha256_scope": "HOST_SCOPED_PRODUCER_ATTESTATION"
     },
     "de-kapitalverletzung": {
       "committed_content_sha256": "4c5f415c8103f51a58ed48f3a3814885a5f4e4c6e1e4aa0f208fed10366f5981",
@@ -78,7 +79,8 @@
       "cluster_id_drift_rows": 112,
       "cluster_id_drift_rows_scope": "HOST_SCOPED_PRODUCER_ATTESTATION",
       "max_query_similarity_drift": 0.000892,
-      "max_query_similarity_drift_scope": "HOST_SCOPED_PRODUCER_ATTESTATION"
+      "max_query_similarity_drift_scope": "HOST_SCOPED_PRODUCER_ATTESTATION",
+      "fresh_rebuild_content_sha256_scope": "HOST_SCOPED_PRODUCER_ATTESTATION"
     },
     "it-responsabilita-medica": {
       "committed_content_sha256": "caf7ecf900df4c4d6e5f205d798d10a5a49447a2f6d53ec1f7da65ed9ce54980",
@@ -92,12 +94,14 @@
       "cluster_id_drift_rows": 0,
       "cluster_id_drift_rows_scope": "HOST_SCOPED_PRODUCER_ATTESTATION",
       "max_query_similarity_drift": 0.000167,
-      "max_query_similarity_drift_scope": "HOST_SCOPED_PRODUCER_ATTESTATION"
+      "max_query_similarity_drift_scope": "HOST_SCOPED_PRODUCER_ATTESTATION",
+      "fresh_rebuild_content_sha256_scope": "HOST_SCOPED_PRODUCER_ATTESTATION"
     }
   },
   "remediation_for_future_scoring": [
     "record the numeric environment (python/numpy/scipy/sklearn, BLAS build, thread count, PYTHONHASHSEED) beside any reproducibility sha - the disclosure class, not a blocker",
     "pin BLAS build + thread count before asserting cross-machine byte-identity, or",
     "round query_similarity to a fixed precision before clustering if cross-env stability of cluster_id is required (NOT done here: it would change the committed bytes and the frozen-scored layout, which is ceded to Evaluation)"
-  ]
+  ],
+  "rebuild_hash_scope_rule": "EVERY numeric/hash field in per_bundle whose name starts with fresh_rebuild_, cluster_id_drift or max_query_similarity_drift carries a sibling *_scope = HOST_SCOPED_PRODUCER_ATTESTATION. These are the producer's own figures from the machine that rebuilt the packet; they were NOT reproduced on the audit host, which rebuilt byte-identically. They are attestation about one run on one host, never a portable property of the rebuild."
 }
