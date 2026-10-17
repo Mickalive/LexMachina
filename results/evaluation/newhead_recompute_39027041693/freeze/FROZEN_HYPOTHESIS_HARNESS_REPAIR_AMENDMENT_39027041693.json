@@ -1,0 +1,55 @@
+{
+  "schema": "lex-evaluation-frozen-hypothesis/harness-shape-repair-amendment/1",
+  "run_id": "39027041693",
+  "lane": "evaluation",
+  "direction_version": 52,
+  "amends": "results/evaluation/newhead_recompute_39027041693/freeze/FROZEN_HYPOTHESIS_HARNESS_REPAIR_39027041693.json",
+  "frozen_at_utc": "2026-10-17",
+  "frozen_before_execution": true,
+  "frozen_before_any_amendment_code_change": true,
+  "why_this_amendment_exists": "A FROZEN PREDICTION OF THE PRIOR PROTOCOL WAS FALSIFIED BY EXECUTION, AND THAT IS RECORDED AS A NEGATIVE RESULT, NOT PAPERED OVER.",
+  "falsified_prediction": {
+    "hypothesis": "HR1_repair_is_local - 'The repair touches only _evaluate_full_bundle and adds no branch that can return a verdict.'",
+    "how_it_was_falsified": "After the run_benchmark.py repair was applied, the deliverable-(4) recompute was re-executed and the frozen runner died again, this time at evaluation/reality_gate/gates.py:380 inside evaluate_question_independent_bundle, with the identical AttributeError. The prior freeze had enumerated the defect from the FIRST traceback only and had not enumerated every occurrence of the assumption.",
+    "pre_execution_verdict": "The prior protocol's success rule required HR1 AND HR5, where HR5 asserted 'gates.py is byte-identical before and after'. HR1 and HR5 are therefore BOTH falsified as written: the same defect exists in gates.py, and any complete repair must touch gates.py.",
+    "lesson_recorded": "Enumerating the occurrences of a shape assumption is part of the diagnosis, and a pre-freeze count of them is a CLAIM that execution can falsify. One traceback is not one occurrence.",
+    "pre_freeze_scan_gap": "The cycle's population scan enumerated ARTIFACTS carrying a non-mapping provenance.stages (28) and ARTIFACTS that would crash (2). It did NOT enumerate CODE SITES reading provenance.stages as a mapping, which is what the repair needed. The scan answered the wrong question."
+  },
+  "amended_scope": {
+    "files": [
+      {
+        "file": "evaluation/reality_gate/run_benchmark.py",
+        "function": "_evaluate_full_bundle",
+        "status": "already repaired under the prior protocol, unchanged by this amendment"
+      },
+      {
+        "file": "evaluation/reality_gate/gates.py",
+        "function": "evaluate_question_independent_bundle",
+        "change": "Read provenance.stages defensively in the same shape as the run_benchmark.py repair: derive total_s only when stages is a mapping; otherwise leave the total absent so the EXISTING evaluate_latency(None, budget) yields its pre-existing not_measurable verdict and reason.",
+        "status": "NEW in this amendment; frozen here before application"
+      }
+    ],
+    "explicitly_not_touched": [
+      "evaluation/reality_gate/frozen_benchmark.json (digest ff57f556...)",
+      "evaluation/reality_gate/GATE_CONTRACT.json (digest 06781743...)",
+      "every threshold literal: gates.py keeps reading the budget from the contract and keeps every other gate untouched",
+      "the latency budget value",
+      "any pass/fail rule, rubric or bar",
+      "any accepted record from an earlier cycle"
+    ],
+    "why_this_is_not_a_weakening": "Identical to the prior argument and it is the ONLY argument offered. The amended branch is reachable only where the previous line raised AttributeError and the runner produced NO record. Every artifact that produced a record before takes an identical path, because both edits are guarded by the same condition that previously crashed. The repaired path yields exactly the argument the pre-existing not_measurable branch already yields: evaluate_latency(None, budget) can never return a pass. No default of 0.0 is introduced anywhere, which the prior protocol's negative control already forbids.",
+    "replaces": "The prior protocol's HR5 is RESTATED as HR5': after the amendment, gates.py differs from its accepted bytes ONLY in the added isinstance guard and its comment block, and the diff is exactly that - no other line of gates.py moves. The frozen digests ff57f556 and 06781743 still re-hash unchanged."
+  },
+  "hypotheses": {
+    "HA1_amendment_is_local": "The gates.py amendment changes only the stages lookup in evaluate_question_independent_bundle.",
+    "HA2_no_other_shape_crash_remains": "After both repairs, every full bundle in the recompute population is scored without an uncaught exception. If a THIRD occurrence exists, that is a further falsification and is reported as such rather than patched a third time under this amendment.",
+    "HA3_byte_identical_on_the_unaffected_population": "With the previously crashing artifacts excluded, the amended runner reproduces the accepted incumbent record 39018005027.json for every artifact it has in common: same artifact_passed, same gate names, same measured payloads.",
+    "HA4_crash_becomes_not_measurable_never_pass": "Every previously crashing artifact is recorded with latency::under_budget == not_measurable carrying the pre-existing reason 'artifact carries no full-run wall time', and no such artifact acquires a latency PASS.",
+    "HA5_gate_thresholds_unchanged": "GATE_CONTRACT.json re-hashes to 06781743... and frozen_benchmark.json to ff57f556..., and gates.py's diff is confined to the guarded lookup.",
+    "HA6_no_record_is_silently_dropped": "The recompute record counts the previously crashing artifacts as RECORDED artifacts with a not_measurable latency gate, not as absent files."
+  },
+  "success_rule_frozen": "HARNESS_SHAPE_REPAIR_COMPLETE iff HA1 AND HA2 AND HA3 AND HA4 AND HA5 AND HA6. HA3 and HA5 are the non-weakening proofs; a failure of either voids the repair and the harness defect is reported as an OPEN defect instead.",
+  "negative_control": "Unchanged from the prior protocol and re-stated because it now guards a second site: a bundle whose provenance.stages is a LIST must produce latency::under_budget == not_measurable and never a pass. A fix that defaulted the total to 0.0 would turn every such artifact into a latency PASS, which is the false-green class this lane exists to prevent.",
+  "claim_ceiling": "This amendment restores the ability to RUN the frozen benchmark on the current Product head. It moves no bar, satisfies no gate, and says nothing about the product's quality. It is recorded as a second, separately frozen change to accepted harness code, with the falsification of the first protocol's locality prediction preserved alongside it.",
+  "honest_pre_freeze_disclosure": "Observed before this amendment: the second traceback (gates.py:380), the source of evaluate_question_independent_bundle, and the fact that 28 of 28 full bundles carry a list-shaped stages. NOT observed before this amendment: any output of the amended runner on any population. The prior protocol's HR1 and HR5 were already falsified by the observed second crash; no favorable result is being used to justify the amendment."
+}

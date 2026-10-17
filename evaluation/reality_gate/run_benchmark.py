@@ -133,7 +133,27 @@ def _evaluate_full_bundle(data: dict, question: dict, spec: dict) -> dict:
     out.append(gates.evaluate_corruption_gate(prose))
     total = prov.get("latency_seconds_total")
     if total is None:
-        total = (prov.get("stages") or {}).get("total_s")
+        # SHAPE REPAIR (frozen protocol FROZEN_HYPOTHESIS_HARNESS_REPAIR_39027041693,
+        # H1-H5 + success rule HARNESS_SHAPE_REPAIR_SOUND).
+        #
+        # This line used to be ``(prov.get("stages") or {}).get("total_s")``, which
+        # raised AttributeError on every bundle whose ``provenance.stages`` is a LIST
+        # of stage names -- the shape the product actually emits (28 of 28 full
+        # bundles on Product head cc719eebf).  The line is reached only when
+        # ``latency_seconds_total`` is absent, so the assumption was masked for 26 of
+        # them and fired for 2, killing the whole run with NO record emitted.
+        #
+        # NOT A WEAKENING: the total is derived only when ``stages`` really is a
+        # mapping.  Otherwise the total stays absent and the EXISTING frozen gate
+        # ``gates.evaluate_latency(None, budget)`` returns its pre-existing
+        # ``not_measurable`` verdict with its pre-existing reason.  This branch can
+        # therefore only replace an uncaught crash (no record at all) with a recorded
+        # not_measurable; no verdict can move to a pass.  A default of 0.0 here would
+        # have manufactured latency PASSes and is explicitly rejected by the frozen
+        # negative control.
+        stages = prov.get("stages")
+        if isinstance(stages, dict):
+            total = stages.get("total_s")
     out.append(gates.evaluate_latency(total, spec["latency_budget_seconds"]))
     out.append(gates.evaluate_required_hits(
         question["required_citation_ids"], cited, "citation", available=True))

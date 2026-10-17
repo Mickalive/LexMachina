@@ -242,14 +242,19 @@ def run_frozen_benchmark(evidence_dir: Path, bundle_dirs: list[Path],
            "--evidence-dir", str(evidence_dir)]
     for d in bundle_dirs:
         cmd += ["--extra-bundle-dir", str(d)]
+    cmd += ["--out", str(out_path)]
     proc = subprocess.run(cmd, cwd=str(_LANE_ROOT), capture_output=True, text=True)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(proc.stdout, encoding="utf-8")
+    # The frozen runner prints a HUMAN-READABLE summary on stdout and writes the
+    # JSON record to --out.  Reading stdout as JSON is wrong and was caught in
+    # cycle 39027041693 before it reached a measurement.
+    summary_path = out_path.with_suffix(".summary.txt")
+    summary_path.write_text(proc.stdout, encoding="utf-8")
     stderr_path = out_path.with_suffix(".stderr.txt")
     stderr_path.write_text(proc.stderr, encoding="utf-8")
     try:
-        rec = json.loads(proc.stdout)
-    except json.JSONDecodeError:
+        rec = json.loads(out_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
         # The frozen runner exits 2 (environment/empty input) and 3 (integrity)
         # WITHOUT emitting a record.  A caller must never turn that into a
         # measurement; it is an environment failure, preserved verbatim.
@@ -257,7 +262,8 @@ def run_frozen_benchmark(evidence_dir: Path, bundle_dirs: list[Path],
             f"frozen runner produced no record (exit {proc.returncode}); "
             f"stderr tail: {proc.stderr[-2000:]!r}")
     return {"argv": cmd, "exit_code": proc.returncode, "record_path": str(out_path),
-            "stderr_path": str(stderr_path), "frozen_sha256": rec.get("frozen_sha256"),
+            "summary_path": str(summary_path), "stderr_path": str(stderr_path),
+            "frozen_sha256": rec.get("frozen_sha256"),
             "overall_pass": rec.get("overall_pass"), "stderr": proc.stderr[-4000:]}
 
 
