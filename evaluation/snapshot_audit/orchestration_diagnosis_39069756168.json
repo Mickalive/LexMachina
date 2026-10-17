@@ -1,0 +1,83 @@
+{
+  "schema": "lex-evaluation-orchestration-diagnosis/1",
+  "run_id": "39072968899",
+  "lane": "evaluation",
+  "direction_version": 55,
+  "subject_of_resume": "39069756168 (Core evaluation dirV55 repair1)",
+  "generated_at_utc": "2026-10-17T22:05:00Z",
+  "query_method": "LOCAL TREE ONLY. The REST API (GET /repos/Mickalive/LexMachina/actions/runs/{id}) is unavailable in this checkout (gh is not authenticated, no network egress, and job LOGS are HTTP 403 unauthenticated as recorded for every prior dirV55 diagnosis). The clone is shallow: origin/main and origin/lab/product are present at their current tips but the pre-existing product commits (cc719eeb, d906c16f, 26e6c9b4) are NOT local objects, so no product-side history can be diffed here. Every cause statement about a failed step is therefore an INFERENCE from the persisted tree, never from a job log.",
+  "tree_evidence": {
+    "subject_team_ref": "origin/cycle/core/evaluation/39069756168/team",
+    "subject_team_head": "6cd87182b3dc8fdfebbb40928aaa379180da4f01",
+    "subject_team_commit_subject": "evaluation cycle 39069756168 repair 1",
+    "subject_team_commit_authored_at_utc": "2026-10-17T21:55:34Z",
+    "subject_team_committer": "lex-evaluation-team <lex-team@autonomous.local>",
+    "parent_commit": "9ff2a4627c67a8796d164175ec0a35c944548da1 (evaluation 39064597912)",
+    "delta_vs_parent": [
+      "A reports/evaluation/RETRIEVAL_CA_BENCHMARK_39069756168.md",
+      "A results/evaluation/retrieval_counter_authority_benchmark/39069756168.json",
+      "A results/evaluation/retrieval_counter_authority_benchmark/39069756168_leg1_served_baseline.json",
+      "A results/evaluation/retrieval_counter_authority_benchmark/39069756168_leg2_hostile_geometry.json",
+      "A results/evaluation/retrieval_counter_authority_benchmark/39069756168_leg3_blanked_evidence.json"
+    ],
+    "state_at_subject_head": {
+      "state_updated_by_run": "39064597912",
+      "proposed_run_id": "39064597912",
+      "reading": "state/evaluation.json on the 39069756168 tree still records the PRIOR run; the producer never updated it for 39069756168"
+    },
+    "missing_cycle_artifacts": [
+      "reports/evaluation/CYCLE_39069756168.md (no cycle report for the subject run)",
+      "results/evaluation/snapshot_audit/39069756168.json (no snapshot-audit readiness record)",
+      "evaluation/snapshot_audit/orchestration_diagnosis_39069756168.json (no diagnosis of record)",
+      "results/evaluation/orchestration_39069756168/ (no orchestration evidence directory)"
+    ],
+    "audit_ref_present": false,
+    "audit_ref_note": "NO cycle/core/evaluation/39069756168/audit ref exists; the newest audit ref in this clone is origin/cycle/core/evaluation/39033797087/audit (commit a22096cf, gate=REVISE) per the pinned prior records",
+    "last_producer_action": "the three-leg retrieval/counter-authority falsification benchmark (report + combined record + three leg records). The benchmark script writes all five files at the very end of run_benchmark(); nothing after them exists in the tree."
+  },
+  "findings": {
+    "F1_post_benchmark_producer_death": {
+      "holds": true,
+      "evidence": "the subject tree carries the COMPLETE benchmark deliverable (all five files) and NOTHING that follows it in a normal cycle: no snapshot-audit record, no state update (state_updated_by_run stays 39064597912), no cycle report, no diagnosis. The producer therefore ran the benchmark to completion and then died before the snapshot/state/report steps.",
+      "reading": "the producer step's rc was non-zero AFTER writing a durable delta. This is the post-delivery class (the same structural class as 39060704006's 2704 s work-quantum death), NOT a zero-delta immediate death."
+    },
+    "F2_audit_starvation_is_the_validation_failure": {
+      "holds": true,
+      "measured": "core-lane.yml gates the audit job on `needs.team.result == 'success'`; the team job's result is the producer step's result. A producer step that fails after writing its deliverable therefore skips the audit and leaves the tree UNGATED. This run has no gate of record.",
+      "why": "this is the exact structural defect recorded in evaluation/snapshot_audit/orchestration_diagnosis_39064497606.json F4 and in the v55 factory-wide requirement 20: a post-delivery producer death produces a COMPLETE deliverable that cannot be promoted because no gate exists. The dirV55 question is answered in the delivered trees but cannot be independently audited through the normal job.",
+      "consequence": "the benchmark deliverable of 39069756168 (and of the earlier 67d2910a tree) sits ungated. The route-around this cycle is to complete the producer step with rc 0 and a durable delta so the audit job runs."
+    },
+    "F3_benchmark_verified_live_this_run": {
+      "holds": true,
+      "evidence": "the accepted falsification instrument was re-executed for run 39072968899: results/evaluation/retrieval_counter_authority_benchmark/39072968899.json, verdict BENCHMARK_VALID_NO_FALSIFICATION exit 0, legs 0/1/1 (served_baseline PASS_NO_REGRESSION; geometry_falsification_hostile FAIL_REGRESSION; label_falsification_blanked_evidence FAIL_REGRESSION), falsification_proven=true. Served bundle shas 2441ff2b/6c5ea31d/76e7f7ad are byte-identical to the 39069756168 record.",
+      "reading": "the 39069756168 deliverable is valid and reproducible; the two falsification legs are LIVE new executions (fresh hostile-geometry and blanked-evidence packets) and they still fire, so the benchmark is not vacuous."
+    },
+    "F4_NO_NEW_PACKET_reverified_vs_product_head_03a4cabb": {
+      "holds": true,
+      "evidence": "set relation over the 13 rebuilt-packet files (vendored-for-scoring copy results/evaluation/rebuilt_packet_adjudication_39049030442/packet/ vs the current accepted product mount at 03a4cabb): 12/13 byte-identical, BOTH differences empty, packet.json raw sha256 2942c3c2d729f0055d1b288db3666df1f780d6c1b4ce1f660480ad8bfacf8170 = the direction pin = the adjudicated bytes. The only changed file is disclosures.json, which gained an ADDITIVE path_binding_disclosure block (no common key changed).",
+      "reading": "direction v55 item (1)'s re-score trigger does NOT fire. The rebuilt-packet adjudication of record (run 39049030442) stands; the label/geometry bar status is unchanged (LABEL_SOUND absolute with the population-pinned regression verdict NOT_APPLICABLE, lineage PASS_NO_REGRESSION support 1.0; geometry PASS_NO_REGRESSION with absolute GEOMETRY_UNSOUND 0/3 at 11/11). The product head advanced (accept product cycle 39065274887, 21:00:20Z) but shipped no new scored packet."
+    },
+    "F5_same_question_reruns_add_nothing": {
+      "holds": true,
+      "reading": "this run is the first dirV55 cycle to (a) complete the benchmark verification, (b) diagnose the 39069756168 post-benchmark death, (c) re-verify NO_NEW_PACKET against the newest product head and (d) publish a fresh snapshot-audit READY record for run 39072968899. It is not a re-dispatch of the identical repair."
+    }
+  },
+  "routearound_executed_this_cycle": {
+    "what": "an operational-resume cycle on the persisted producer snapshot 6cd87182 of run 39069756168: verify the delivered benchmark live, re-verify NO_NEW_PACKET against the advanced product head 03a4cabb, diagnose the 39069756168 post-benchmark producer death and the audit-starvation consequence, publish the snapshot-audit READY record for run 39072968899, update state and the cycle report, and COMMIT so the producer step exits 0 and the audit job produces results/audit/evaluation/CYCLE_39072968899_GATE.json.",
+    "not_done": [
+      ".github/** not edited (control-plane scope; the success()-gate on the audit job is recorded as a control-plane hardening item)",
+      "no frozen rubric/threshold/bar/success rule/recorded verdict touched",
+      "no byte-identical re-measurement of the label_gate instrument as an ADJUDICATION of the rebuilt packet (the accepted snapshot-audit tool re-executes run_bar_gates internally as its own integrity checks 2/3)",
+      "no frozen reality benchmark re-run",
+      "no universal-174k benchmark re-run",
+      "no candidate rebuilt (classifier and layout builds stay closed Frontier work)"
+    ]
+  },
+  "human_blocker": false,
+  "control_plane_hardening_items_recorded_not_patched": [
+    "core-lane.yml gates the audit job on the producer step's success; a post-delivery producer death (work-quantum expiry or any post-write abort AFTER the deliverable is written) therefore leaves a COMPLETE deliverable ungated. Intended upstream fix for the control-plane maintainer: allow the audit job to run `if: always() && needs.team.outputs.deliverable_present == 'true'` (or gate on the persist step's commit existing), never on the producer step alone.",
+    "job LOGS remain HTTP 403 unauthenticated for these runs, so every failed-step cause stays an INFERENCE; an artifact-preserving log upload inside run-ox-with-retry.sh would convert this class of diagnosis from inference to fact.",
+    "this checkout is shallow and cannot fetch origin/lab/evaluation, so snapshot-audit check 18 (accepted-base gate coverage) cannot re-derive the accepted branch from git here; the accepted head 09970e83 exists locally and the check's disclosure record matches it. The ref was reconstructed locally at the control-plane accepted head and that reconstruction is disclosed in this run's cycle report and readiness record."
+  ],
+  "claim_ceiling": "This record DIAGNOSES a post-benchmark producer death from the persisted tree and re-verifies the delivered benchmark and the NO_NEW_PACKET state. It is NOT an independent audit gate, does NOT move any frozen bar, does NOT accept any Frontier verdict, and does NOT certify jurist usefulness."
+}

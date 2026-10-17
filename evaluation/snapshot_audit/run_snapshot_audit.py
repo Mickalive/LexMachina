@@ -316,6 +316,27 @@ DELIVERABLE_MANIFEST_PATHS = [
     "evaluation/snapshot_audit/orchestration_diagnosis_39060149281.json",
     "results/evaluation/orchestration_39060704006/api/SHA256SUMS.json",
     "results/evaluation/frontier_cross_check_reconciliation_39060704006/39060704006_reconciliation.json",
+    # Operational resume of run 39069756168 (this run, 39072968899). The
+    # subject 39069756168 died at producer step 6 AFTER writing its complete
+    # three-leg retrieval/counter-authority falsification benchmark (all five
+    # deliverable files) and BEFORE the snapshot/state/report steps, so its tree
+    # carried a durable delta but no gate of record (audit starvation). The
+    # benchmark is re-verified live this run and NO_NEW_PACKET is re-derived by
+    # set relation against the advanced product head 03a4cabb. These files pin
+    # both the preserved 39069756168 deliverable and this run's resume delta.
+    "evaluation/snapshot_audit/orchestration_diagnosis_39069756168.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39069756168.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39069756168_leg1_served_baseline.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39069756168_leg2_hostile_geometry.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39069756168_leg3_blanked_evidence.json",
+    "reports/evaluation/RETRIEVAL_CA_BENCHMARK_39069756168.md",
+    "results/evaluation/retrieval_counter_authority_benchmark/39072968899.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39072968899_leg1_served_baseline.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39072968899_leg2_hostile_geometry.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39072968899_leg3_blanked_evidence.json",
+    "reports/evaluation/RETRIEVAL_CA_BENCHMARK_39072968899.md",
+    "results/evaluation/orchestration_39072968899/local_evidence_manifest.json",
+    "reports/evaluation/CYCLE_39072968899.md",
 ]
 
 #: Run 39040205229's diagnosis. Check 17 requires it to carry the job/step
@@ -1805,6 +1826,8 @@ def build_record(run_id: str, checks: list[dict], manifest: dict,
             "check 5 is no longer order-dependent: the record's own path is classified as a self-reference, excluded from the unresolved set, and VERIFIED after the write by reading the record back and matching its schema and run id",
             "the lane_suite_pass check now names the failing lane-suite checks instead of recording only an exit code, so a red suite is attributable without job logs",
             "the accepted frontier team frontier-rebuilt-packet-serve-audit's cross_check.status = CORE_EVALUATION_RESCORE_ABSENT is reconciled as a temporal/mount-scope reading, not a false claim: Core Evaluation's re-score of the same rebuilt bytes (27a1d309, 17:05:31Z) precedes the frontier's measurement commit (4e4ad05b, 17:14:39Z) by 548 s and lives on origin/cycle/core/evaluation/39049030442/team; the reconciliation publishes all 9 cross-check quantities side by side (0 divergences, the mega-cluster quantity geometry-scoped) and keeps the frontier's accepted_run_id null (it is NOT independently accepted, so the direction v55 OUTCOME-B route-around has NOT triggered)",
+            "the preserved subject deliverable of run 39069756168 is re-verified LIVE this run: the three-leg retrieval/counter-authority falsification benchmark re-exits BENCHMARK_VALID_NO_FALSIFICATION exit 0 with legs 0/1/1 (served_baseline PASS_NO_REGRESSION; both deliberately regressed falsification legs FAIL_REGRESSION), served bundle shas byte-identical to the subject record; NO_NEW_PACKET is re-derived by set relation against the advanced product head 03a4cabb (12/13 rebuilt-packet files identical, BOTH differences empty, packet.json raw sha256 2942c3c2 = direction pin = adjudicated bytes; only disclosures.json changed, additively)",
+            "the subject run 39069756168's post-benchmark producer death is diagnosed from the persisted tree: it wrote its COMPLETE benchmark (5 files) and then ended before the snapshot/state/report steps (state at the subject head still reads state_updated_by_run=39064597912), and no audit ref exists because the audit job is gated on the producer step's success (audit starvation)",
         ],
         "snapshot_claims_not_certified": [
             "jurist-usefulness of the map (human gate); human_gate_ready stays false under the standing accepted DO-NOT-SERVE order",
@@ -1815,6 +1838,8 @@ def build_record(run_id: str, checks: list[dict], manifest: dict,
             "the cause of run 39040205229's step-6 death is an INFERENCE, not fact: job logs are HTTP 403 unauthenticated, so the wrapper's rc line was never read. The falsification of the quantum attribution is a fact about the arithmetic and the readable control plane; the replacement hypothesis (retry exhaustion / propagated provider failure) is NOT established",
             f"this run's readiness record certifies a SNAPSHOT, not a gate: only results/audit/evaluation/CYCLE_{run_id}_GATE.json written by the independent audit job is the gate of record, and a READY verdict here is not a promotion",
             "the accepted evaluation branch origin/lab/evaluation currently carries one UNAUDITED cycle at its head (39027041693: five producer commits above the newest accept commit, no gate of record). That is UNVERIFIED, not UNSOUND; the eight accepted frozen-bar gate files are all present and unaffected, and this lane cites none of the 39027041693 work as accepted evidence",
+            "the cause of the subject run 39069756168's producer-step death remains an INFERENCE, not fact: this checkout has no network, gh is unauthenticated and job LOGS are HTTP 403, so the diagnosis is tree-based (evaluation/snapshot_audit/orchestration_diagnosis_39069756168.json)",
+            "check 18 (accepted-base gate coverage) re-derived from a LOCALLY RECONSTRUCTED origin/lab/evaluation ref at the real control-plane accepted head 09970e838a2c8b1252d6e6f07f6b74cfa525a310 because this checkout cannot fetch the branch; the ref points at the actual accepted commit and the disclosure record is re-derived against it, so this is a disclosed environment reconstruction, not a silent pass",
         ],
     }
 
