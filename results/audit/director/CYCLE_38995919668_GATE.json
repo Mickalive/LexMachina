@@ -1,0 +1,134 @@
+{
+  "schema": "lexmachina/audit-gate/1",
+  "audited_run_id": 38995919668,
+  "audited_artifact": "Factory Director proposal 38995919668",
+  "audited_head": "7b53f85916c4e564c90345bc17ac99bf0e40d1fb",
+  "audited_proposal_worktree": "/tmp/lex_director_proposal",
+  "accepted_evidence_base": "/tmp/lex_accepted",
+  "mission_document": "LEXMACHINA_MASTER_PROMPT.md",
+  "auditor": "independent_auditor",
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "write_scope_audit": {
+    "declared_by_producer": [
+      "state/factory_direction.json",
+      "state/frontier_portfolio.json",
+      "reports/director/RUN_38995919668.md"
+    ],
+    "observed_in_proposal_commit_7b53f859": [
+      "reports/director/BASE_DIRECTION_SHA_38995919668.txt",
+      "reports/director/RUN_38995919668.md",
+      "state/factory_direction.json",
+      "state/frontier_portfolio.json"
+    ],
+    "write_scope_respected": true,
+    "note": "The state/model_health.json difference against main is branch lag (proposal parent f456adf6 = health run 38992749696; main = 38995827705), not a producer write."
+  },
+  "required_fixes": [
+    {
+      "id": "RF-A",
+      "severity": "MATERIAL",
+      "target": "state/frontier_portfolio.json :: teams[] frontier-bundle-relation-edges",
+      "finding": "The charter is built on four claims that accepted evidence contradicts. (1) 'today that field is empty on the served bundles' is false: relations[] carries 37/41/35 typed citation edges and the frozen RELATIONS criterion PASSES on all three bundles with endpoint_ok 1.0. (2) 'OUTLIER_VALIDITY ... citation graph total degree 0 -> DEGENERATE->FAIL under any variant' is false for two of three bundles: it passes and is non-degenerate on de-kapitalverletzung and fr-bail-entretien under the incumbent and under relevance_ordered; degeneracy is an it-responsabilita-medica-only fact. (3) The causal claim is false under the binding frozen rule: vendored/frontier_map_semantics/metrics.py outliers_metric(decisions) takes decisions only, builds a shared-citation graph from find_citations(body(d)) and never reads relations[], so populating relations[] cannot change OUTLIER_VALIDITY. (4) 'relations/citations can be revealed on selection' is already implemented and shipping in product/static/query.html showDetail() (typed citation edges filtered by source/target, rendered as '-> cite' / '<- cite par' with confidence).",
+      "consequence": "The charter's stated deliverable is unreachable by its own method, its acceptance test (5) ('a control with all edges stripped must reproduce the accepted DEGENERATE->FAIL exactly') is unsatisfiable because the accepted verdict on de and fr is PASS, and its stop_promote_rule routes the resulting guaranteed, mis-caused negative into an owner product decision.",
+      "fix": "Do not dispatch as written. Either withdraw the team and record in portfolio policy that the premise was tested against accepted evidence and rejected, or re-charter around the one true residue: whether hydrating decision text from the existing cache lifts shared-citation degree above zero on it-responsabilita-medica. Either way replace acceptance test (5) with a per-bundle control reproducing the accepted verdicts (de PASS, fr PASS, it DEGENERATE->FAIL), remove the 'relations field is empty' clause from why_now/hypothesis/product_capability, and state the cause any retained bounded-negative escalation would rest on."
+    },
+    {
+      "id": "RF-B",
+      "severity": "MATERIAL",
+      "target": "state/factory_direction.json :: lanes.evaluation.question clause (c)",
+      "finding": "The new clause orders Core Evaluation to 'report OUTLIER_VALIDITY as EXPLICITLY DEGENERATE rather than as a silent criterion failure, because ... the served bundles carry a citation graph of total degree 0 so the frozen DEGENERATE clause fires under ANY layout'. On two of the three served bundles OUTLIER_VALIDITY passes and is non-degenerate (INCUMBENT_REPRODUCTION.json and SCORES_relevance_ordered.json both record value [0.0, 0.0198]/[0.0, 0.0207] for de and [0.0, 0.0386]/[0.0, 0.0408] for fr with pass true, degenerate false).",
+      "consequence": "A gate is claim-bearing; this would write a wrong verdict into an evaluation artifact and mislabel a passing criterion as structurally unreachable.",
+      "fix": "Replace with the per-bundle statement: the frozen rule's degenerate flag is reported as the rule defines it; it fires on it-responsabilita-medica because un-hydrated row bodies carry no citation strings, and does not fire on de or fr where the criterion passes. A gate must never report a passing criterion as degenerate."
+    },
+    {
+      "id": "RF-C",
+      "severity": "MATERIAL",
+      "target": "reports/director/RUN_38995919668.md section 6; state/factory_direction.json :: lanes.product.question obligations (2) and (9); state/factory_direction.json :: factory_wide_operational_requirements 'DO NOT RE-RAISE THE CLUSTER size/member_ids DIVERGENCE'",
+      "finding": "The claim that served packet 38839347028 'shipped warning_count=0 while the accepted geometry artifact records a 0.7696 French share - the mega-cluster disclosure should have fired and did not' is false. fr-bail-entretien.admissibility.json carries warning_count=3 and does fire map_is_one_mega_cluster at severity warning with share 0.7696 and mega_cluster 167/217. de-kapitalverletzung is the question with warning_count=0, and correctly so: its dominant cluster is 81/214 = 38%, below the frozen MEGA_CLUSTER_SHARE 0.5. The accepted product state records the size-based definition landing in run 38839347028 itself and names 38799024807 and 38838116453 as the pre-fix packets. The accepted DO-NOT-SERVE order describes the same fact as a rendering observation, not a suppressed disclosure.",
+      "consequence": "Newly authored v51 obligation (9) would spend a product cycle re-deriving a disclosure that already ships, and the proposal repeats a closed item that its own standing requirement forbids re-raising.",
+      "fix": "State that 38839347028 is post-fix and that the size-based mega-cluster disclosure fires on fr-bail-entretien; explain the de warning_count=0 correctly; name the true pre-fix packets; and drop the outstanding-publication instruction to Product."
+    },
+    {
+      "id": "RF-D",
+      "severity": "MINOR",
+      "target": "reports/director/RUN_38995919668.md section 3.4 table; state/frontier_portfolio.json :: termination.open_adoption_amendments_routed[RF4].verified_site_list_by_director_this_run; state/factory_direction.json :: lanes.product.question obligation (7)",
+      "finding": "The RF4 site list marks product/static/query.html:240 (cluster-legend dot, COLORS[c.cluster_id%COLORS.length]) as vulnerable to a negative cluster_id. The accepted producer artifact RENDERER_PRECONDITION.json records legend_affected=false for every bundle and variant with the reason that the legend iterates clusters[] only and every emitted cluster record has a non-negative cluster_id; the frozen contract states clusters[].cluster_id is 'int > 0, contiguous from 0'. The site reads clusters[], never decisions[], so it carries no negative id.",
+      "consequence": "Inflates a 'director-verified four-site table' with a site the accepted evidence says is not exposed, and will be quoted downstream as four confirmed defects. Effect is a no-op defensive patch, not a bug.",
+      "fix": "Drop the site from the exposed list or reclassify it as 'code tolerates a negative id; not data-exposed by contract', consistent with how canvas2d_renderer.js:404 was already handled. Keep query.html:188 and canvas2d_renderer.js:531 as the two genuinely exposed sites and keep the bundle_adapter.js:94 unresolvable record."
+    },
+    {
+      "id": "RF-E",
+      "severity": "MINOR",
+      "target": "state/factory_direction.json :: lanes.product.question obligation (7)",
+      "finding": "The citation of CYCLE_38978981369_GATE.json as the source of the four adoption amendments does not carry the BLOCKED / unpromoted-audit-branch qualifier that the report section 3.1 and portfolio v24 accepted_evidence_retained[2] both carry.",
+      "consequence": "Traceability gap: a downstream reader of the direction alone could take an unaccepted verdict as the sole basis of a product obligation.",
+      "fix": "Add the qualifier where the citation is consumed, and state that RF4 is independently carried by the accepted RENDERER_PRECONDITION.json / REVERIFICATION_38978981369.json and RF1 by the accepted INTEGRATION_CONTRACT.json plus the accepted component code, so no adopted obligation depends on an unaccepted verdict."
+    }
+  ],
+  "claim_ceiling": {
+    "may_claim_after_fixes": [
+      "frontier-query-conditioned-map-geometry charter v1 is CLOSED: OUTCOME A on producer run 38970483941, independent audit PASS/safe_to_integrate=true/required_fixes=[] on 38973386164, promoted at accept commit be5eba7f; runs 38976645446 and 38978981369 were duplicate dispatches of a terminated charter caused solely by the portfolio entry reading RUN, as both audits stated themselves. Portfolio v24 sets the durable stop.",
+      "The supervisor's frontier exhaustion guard has TWO independent defects - jq's // operator cannot print literal false, and the || true on the state fetch makes it fail OPEN into dispatch - and the housekeeper's charter_version-difference pruning test lets a same-version blocker persist forever. All three verified against the workflow sources.",
+      "relevance_ordered is an adoptable component under frozen rule sha256 a7452748d: 22/33 vs the accepted incumbent's 16/33, per bundle de 7/11 fr 8/11 it 7/11 vs 6/5/5, zero criterion regressions, adjudicated by an auditor-written scorer. 0 of 3 bundles pass all 11 criteria, and the accepted frontier-map-semantics FAIL (run 38846038296, accept 15362f6) remains the verdict of record for the shipped geometry.",
+      "The emitted coordinate range is NOT [-1,1] despite the accepted INTEGRATION_CONTRACT.json saying so: hydrate_then_cluster places un-hydrated shells on a radius-1.7 ring and pushes 41/43/41 points off-canvas at a 300px plot height and 45/47/45 at 400px on a 640px-wide canvas, while relevance_ordered pushes 0 off-canvas. The adopting lane must clip at its existing np.clip seam or restate the guarantee.",
+      "The negative cluster_id emitted for un-hydrated shells is a real drop-in precondition failure at two verified consumer sites (product/static/query.html:188 and frontier/frontier-query-map-ui/ui/canvas2d_renderer.js:531); the accepted producer artifact RENDERER_PRECONDITION.json already carries this finding.",
+      "The promoted layout's per-criterion numbers were computed on a RAW SEARCH-STAGE axis (provenance.stages == ['search'], no provenance.product_rerank, 0 rows with retrieval_score_raw, Spearman(score,rank) -0.1126/-0.3023/-0.4854) and do not transfer unmeasured to the production rerank_product_bundle axis. Serving relevance_ordered before that measurement is a disclosed assumption, not a claim.",
+      "Six duplicate dispatches of already-terminated charters (four for frontier-counter-anchor-classifier, two for frontier-query-conditioned-map-geometry) were caused by one control-plane bug and are now stopped for the geometry charter.",
+      "The shortest user-visible capability is real and honestly represented: real cached OpenCaseLaw input produces a source-linked bundle (214/214, 217/217, 211/211 rows with canonical_url on mcp.opencaselaw.ch; 179/214, 180/217, 176/211 with court source_url across 24/17/11 disclosed hosts; 0 IP literals) and a clickable Canvas map with counter-authority disclosure and relations-on-selection, at zero owner cost.",
+      "human_gate_ready and machine_gate_ready remain false; the accepted DO-NOT-SERVE order (CYCLE_38880639079, accept 464c45f7) is unchanged; corpus / legal-distance / fractal-map remain PAUSE; no bar, threshold, rubric, frozen rule or mission text was touched."
+    ],
+    "may_not_claim": [
+      "That served packet 38839347028 suppressed its mega-cluster disclosure or is a pre-fix packet. It is post-fix and the disclosure fires on fr-bail-entretien at share 0.7696.",
+      "That OUTLIER_VALIDITY is structurally unreachable, degenerate or failing under any variant on these bundles. It passes on de and fr; degeneracy is an it-responsabilita-medica-only fact.",
+      "That the cause of OUTLIER_VALIDITY degeneracy is an absent relation field. The frozen metric builds a shared-citation graph from decision bodies and never reads relations[].",
+      "That the served bundles' relations field is empty, or that relations/citations revealable on selection is unimplemented. Both are false against the accepted tree.",
+      "That populating relations[] can make OUTLIER_VALIDITY scoreable.",
+      "That proximity means query-conditioned similarity under the promoted variant: PROJ_SPEARMAN and PROJ_KNN10 fail on every bundle, STRUCTURE_SEP fails on every bundle, and PROJ_RANK fails on de and is coordinate-invariant under the frozen scorer.",
+      "That any decision supports, limits or contradicts the answer; that the map is useful to a jurist; or that counter-label coverage is adequate (5 emitted of 65 rows, 60 counted abstentions, yield 0.0769; the 1.0 is support among emitted and may never be published without coverage and abstentions side by side).",
+      "That the map-versus-ranked-list choice is ready for an owner decision. It becomes one only on an accepted bounded negative whose cause is correctly established.",
+      "That human_gate_ready can become true while either frozen bar is unmet.",
+      "Anything sourced solely from the unpromoted, BLOCKED gate CYCLE_38978981369_GATE.json that is not independently established by accepted evidence."
+    ]
+  },
+  "evidence_summary": {
+    "audited_changes": {
+      "factory_direction.json": "v50 -> v51; mission, product question, evaluation question and director_note rewritten; factory_wide_operational_requirements 17 -> 19 with all 17 prior entries byte-identical (verified by difflib SequenceMatcher: a single insert opcode at index 17); corpus, legal-distance and fractal-map byte-identical and still PAUSE.",
+      "frontier_portfolio.json": "v23 -> v24; teams 10 -> 12; RUN 0 -> 2; TERMINATED 5 -> 6; only teams[9] (frontier-query-conditioned-map-geometry) mutated among existing entries, nine byte-unchanged; two teams appended with all required charter fields present and 9 acceptance checks each; schema_version unchanged at 2; JSON valid and newline-terminated."
+    },
+    "independently_recomputed_true": [
+      "CYCLE_38973386164_GATE.json: gate=PASS, safe_to_integrate=true, required_fixes=[], relevance_ordered 22/33 vs incumbent 16/33, de 7/11 fr 8/11 it 7/11, zero regressions - read verbatim from the accepted mount.",
+      "CYCLE_38976645446_GATE.json: gate=PASS, cycle_nature.classification=DUPLICATE_DISPATCH_OF_TERMINATED_CHARTER, integrator_action_required_before_serving_v2 present and quoted correctly.",
+      "RULES_GEOMETRY.json re-hash = a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633.",
+      "Served-bundle axis provenance: stages ['search'], no product_rerank key, 0 rows with retrieval_score_raw, score ranges 0.54-35917 / 0.49-57.68 / 0.75-3132, Spearman(score,rank) -0.1126 / -0.3023 / -0.4854 - matching the audit's -0.11/-0.30/-0.49.",
+      "RF1 mechanism and numbers: INTEGRATION_CONTRACT.json states [-1,1]; variants.py _halo_coords radius=1.7 emits |x|,|y| <= 1.7; shell counts 47/214, 49/217, 47/211 recomputed from the bundles; off-canvas counts against query.html screenPos (pad 46) at cv.width=640 reproduce 41/43/41 at 300px and 45/47/45 at 400px exactly, with 0 for relevance_ordered.",
+      "RF4 sites: query.html:188 vulnerable, canvas2d_renderer.js:531 vulnerable, canvas2d_renderer.js:404 indexed by loop counter i (correctly downgraded), product/static/bundle_adapter.js matches zero tracked files (correctly recorded unresolvable).",
+      "Supervisor mechanism: factory-supervisor.yml line 261 plain string compare on .status==\"RUN\"; line 276 guard has || true (fail open); line 230 and 277 use jq -r '.continue_recommended // true' which empirically prints true for literal false; the blocker branch at 265-274 reads from the checkout without || true and does suppress; factory-housekeeper.yml 89-100 removes a frontier blocker only when current_ver != blocker_ver.",
+      "RF4 substance is also carried by the ACCEPTED promoted artifacts RENDERER_PRECONDITION.json and REVERIFICATION_38978981369.json, so it does not rest on the unpromoted BLOCKED audit.",
+      "classifier promotion (CYCLE_38964146628_GATE.json PASS, accept d236f599, 5/5 emitted, 60 abstentions, INVERTED 0, yield 5/65, rubric 4457e971) recorded verbatim in accepted frontier_portfolio.json v23, which also records four post-accept re-dispatches.",
+      "No lane is HUMAN_DECISION_REQUIRED; no crash, provider death, weak result or scientific dead end was converted into an owner gate."
+    ],
+    "independently_recomputed_false": [
+      "warning_count=0 mega-cluster claim (RF-C): fr-bail-entretien.admissibility.json has warning_count=3 and fires map_is_one_mega_cluster at share 0.7696; de-kapitalverletzung has warning_count=0 correctly because its dominant cluster is 81/214 = 38% < the frozen 0.5 bar.",
+      "relation-edges premise (RF-A): relations[] holds 37/41/35 typed citation edges and the frozen RELATIONS criterion passes with endpoint_ok 1.0 on all three bundles; OUTLIER_VALIDITY is non-degenerate and passing on de and fr under both the incumbent and relevance_ordered; relations-on-selection already ships in query.html showDetail()."
+    ],
+    "attack_dimensions": {
+      "mission_drift": "none found - both new charters sit on the query-map critical path; no corpus, universal-space or 174k re-entry",
+      "curiosity_or_frontier_proliferation": "one of two new teams (frontier-bundle-relation-edges) is chartered against a capability the accepted product code already ships - see RF-A; the other is justified by an accepted integrator obligation",
+      "duplicated_teams": "none found - frontier-reranked-axis-geometry-transfer's non-duplication argument is sound and each clause is checkable against the accepted record",
+      "unaccepted_evidence_laundering": "none found - the BLOCKED unpromoted gate CYCLE_38978981369_GATE.json is explicitly provenance-tagged in the report and the portfolio, and the substance of RF1/RF4 is independently established from accepted evidence; a consumption-site qualifier is missing (RF-E)",
+      "stale_blocked_questions": "correctly identified and not silently left - all six blockers are requires_human=false/AUDIT_BLOCKED; the geometry blocker suppresses dispatch only incidentally and the housekeeper will never prune it; recorded for archival rather than edited, with the write-scope boundary stated",
+      "product_starvation": "no - Product is RUN p1 with nine obligations; the shortest user-visible capability is real and honestly disclosed; but RF-C would spend a product cycle on a disclosure that already ships, and RF-A would spend a frontier team on a shipped capability",
+      "fake_parallelism": "none found - two core lanes and two frontier teams are separate runners; the director explicitly declined a third and fourth team with reasons",
+      "weak_acceptance_tests": "frontier-reranked-axis-geometry-transfer: none found, nine falsifiable checks including freeze-by-re-hash before computing, population provenance, side-by-side raw-packet baseline, void-if-vacuous non-vacuity, threshold_or_bar_edits==[] and an explicit no-jurist-claim clause. frontier-bundle-relation-edges: acceptance test (5) is unsatisfiable as written (RF-A)",
+      "unjustified_lane_pauses": "none found - corpus / legal-distance / fractal-map are all off the query-map critical path under the Master Prompt's data-source and reuse doctrines and were preserved byte-identically",
+      "human_decision_required_misuse": "none in the proposal itself - but frontier-bundle-relation-edges' stop_promote_rule would convert a guaranteed, mis-caused operational result into an owner product decision, which RF-A must prevent"
+    },
+    "shortest_user_visible_capability": {
+      "verdict": "real, source-linked, clickable, zero-cost, honestly disclosed",
+      "evidence": "served packet 38839347028: 214/217/211 decisions; canonical_url on mcp.opencaselaw.ch for every row; court source_url on 179/180/176 rows across 24/17/11 disclosed hosts with 0 IP literals; product/static/query.html renders a Canvas map with cluster legend, counter-authority rings (red evidenced / amber non etayee / gold citee), a detail panel with relations-on-selection and an 'Ouvrir la source' canonical link; product/query/relevance.py makes no network call and no paid API is used anywhere in the path",
+      "no_legacy_174k_requirement_demanded": true
+    },
+    "not_blocked_because": "all five required fixes are text and charter edits inside the director's own write scope (state/factory_direction.json, state/frontier_portfolio.json, reports/director/RUN_38995919668.md); no data is missing, no structural invalidity exists and no owner-level choice is required"
+  }
+}
