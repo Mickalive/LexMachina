@@ -590,7 +590,15 @@ def run_pytest(log: _Log) -> None:
          # provenance.stages must yield not_measurable and NEVER a latency
          # pass). Adding the file moves no frozen benchmark, rubric, incumbent
          # or success rule.
-         "tests/evaluation/test_newhead_recompute.py"],
+         "tests/evaluation/test_newhead_recompute.py",
+         # run 39033797087 / repair r1 (disclosed scope extension, not a
+         # re-freeze): the rebuilt-packet preflight's freeze-preservation and
+         # overwrite-guard pins, its TWO-BAR label-enforcement envelope (M1),
+         # the verbatim frozen leg-E prediction (M3) and the citation check
+         # against the accepted label-lineage sweep. The original record is
+         # pinned as preserved history; no frozen benchmark, rubric, incumbent
+         # or success rule is touched by adding the file.
+         "tests/evaluation/test_rebuild_preflight.py"],
         cwd=str(_LANE_ROOT), capture_output=True, text=True, timeout=900)
     tail = (proc.stdout or "").strip().splitlines()[-1:] or [""]
     log.add("active lane pytest suite", proc.returncode == 0, tail[0])

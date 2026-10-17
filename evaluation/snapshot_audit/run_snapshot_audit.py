@@ -16,12 +16,18 @@ Checks (each recorded PASS/FAIL/NOT_RUN; no check is silently dropped):
                                 recomputed exactly (labels 5/65 = classes
                                 38/22/5/0; geometry de 6 / fr 5 / it 5).
                                 Requires the accepted product mount; its
-                                absence is recorded as a FAIL with the
-                                environment reason, never hidden.
+                                absence is recorded as a FAIL carrying
+                                environment_limited=true (REPAIR R1, same
+                                convention as check 15), never hidden and
+                                never silently passed.
   3. h1_default_record_identity  the fresh default-mode record is identical
                                 to the accepted 38971202786.json except the
                                 elapsed_s field (normalization: parsed JSON,
                                 sort_keys, indent=2, elapsed_s removed).
+                                When check 2 could not produce a fresh record
+                                because the mount is absent, this check is
+                                recorded as NOT_RUN with
+                                environment_limited=true (REPAIR R1).
   4. lane_suite_pass            python -m evaluation.lane_suite exits 0 with
                                 a PASS summary (stdlib checks authoritative;
                                 an absent pytest is a disclosed SKIP).
@@ -43,6 +49,9 @@ Checks (each recorded PASS/FAIL/NOT_RUN; no check is silently dropped):
                                 out-of-scope paths are ABSENT from the tree.
 
 Exit 0 = ready_for_independent_audit (all checks PASS). Exit 1 = not ready.
+environment_limited=true on a check discloses WHY it failed (an environment
+input, such as the accepted product mount, was absent); it NEVER converts a
+FAIL into a PASS and never contributes to a READY verdict.
 The readiness record states the exact gate path the auditor must write:
 results/audit/evaluation/CYCLE_<run_id>_GATE.json (uppercase _GATE.json,
 relative to the audit-job checkout) and reports/audit/evaluation/CYCLE_<run_id>.md.
@@ -299,18 +308,28 @@ def run_bar_gates(repo_root: Path, out_path: Path) -> tuple[int, dict | None, st
             record = None
     return proc.returncode, record, (proc.stderr or "").strip()
 
-
 def check_bar_gates_verdict(repo_root: Path, workdir: Path) -> dict:
-    """Check 2: gates exit 0 PASS_NO_REGRESSION with incumbents recomputed."""
+    """Check 2: gates exit 0 PASS_NO_REGRESSION with incumbents recomputed.
+
+    REPAIR R1 (audit required fix M6): the accepted product mount is an
+    environment input, not a property of the snapshot.  When it is absent the
+    gate's own entry point exits 2 (ENVIRONMENT_ERROR); that is now reported as
+    a FAIL carrying ``environment_limited=True`` — the same convention check 15
+    already used — so the headline number cannot be read as a label/geometry
+    regression.  The READY verdict is still withheld: environment_limited is a
+    disclosure of WHY a check failed, never a pass.
+    """
     out_path = workdir / "bar_gates_fresh.json"
     rc, record, stderr = run_bar_gates(repo_root, out_path)
     if rc == 2 or record is None:
         return _check("bar_gates_verdict", False,
                       f"bar gates did not produce a record (exit {rc}); "
-                      f"stderr: {stderr[:400] or 'empty'}", exit_code=rc)
+                      f"stderr: {stderr[:400] or 'empty'}",
+                      exit_code=rc, environment_limited=True)
     if rc != 0:
         return _check("bar_gates_verdict", False,
-                      f"bar gates exit {rc}; verdict={record.get('verdict')}", exit_code=rc)
+                      f"bar gates exit {rc}; verdict={record.get('verdict')}",
+                      exit_code=rc, environment_limited=False)
     # The gate counts only OBSERVED defect classes (a zero-count class is
     # absent from its classes dict — even the accepted record omits INVERTED).
     # Default-zero semantics: an absent class means count 0, which is exactly
@@ -333,7 +352,8 @@ def check_bar_gates_verdict(repo_root: Path, workdir: Path) -> dict:
                   label_recomputed=record["label_gate"]["classes"],
                   geometry_recomputed=record["geometry_gate"]["per_bundle_counts"],
                   absolute_status=record["absolute_status_summary"],
-                  negative_controls_all_proven=neg_ok)
+                  negative_controls_all_proven=neg_ok,
+                  environment_limited=False)
 
 
 def compare_h1(fresh: dict, accepted: dict) -> dict:
@@ -358,14 +378,23 @@ def compare_h1(fresh: dict, accepted: dict) -> dict:
 
 
 def check_h1(repo_root: Path, fresh_record_path: Path) -> dict:
+    """Check 3: the fresh default-mode record is byte-identical except elapsed_s.
+
+    REPAIR R1 (audit required fix M6): when the fresh record is absent because
+    check 2 could not run (accepted product mount absent -> gate exit 2), this
+    check is recorded as NOT_RUN carrying ``environment_limited=True`` rather
+    than a bare FAIL/NOT_RUN, mirroring check 15 and check 2.  The READY
+    verdict is still withheld; the flag only discloses the reason.
+    """
     accepted_path = repo_root / ACCEPTED_BAR_GATES_RECORD
     if not fresh_record_path.exists():
         return _check("h1_default_record_identity", False,
                       "fresh bar-gates record not available (check 2 did not produce one)",
-                      status="NOT_RUN")
+                      status="NOT_RUN", environment_limited=True)
     if not accepted_path.exists():
         return _check("h1_default_record_identity", False,
-                      f"accepted record missing: {ACCEPTED_BAR_GATES_RECORD}")
+                      f"accepted record missing: {ACCEPTED_BAR_GATES_RECORD}",
+                      environment_limited=False)
     fresh = json.loads(fresh_record_path.read_text(encoding="utf-8"))
     accepted = json.loads(accepted_path.read_text(encoding="utf-8"))
     cmp_ = compare_h1(fresh, accepted)
@@ -376,7 +405,8 @@ def check_h1(repo_root: Path, fresh_record_path: Path) -> dict:
              (f"H1 VIOLATION, differing fields: {cmp_['differing_fields']}")
     return _check("h1_default_record_identity", ok, detail,
                   differing_fields=cmp_["differing_fields"],
-                  normalization="parsed JSON, sort_keys=True, indent=2, elapsed_s removed")
+                  normalization="parsed JSON, sort_keys=True, indent=2, elapsed_s removed",
+                  environment_limited=False)
 
 
 def check_lane_suite(repo_root: Path) -> dict:

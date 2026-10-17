@@ -1,0 +1,50 @@
+{
+  "schema": "lex-evaluation-freeze-errata/1",
+  "run_id": "39033797087",
+  "lane": "evaluation",
+  "repair_round": 1,
+  "repairs_audit_gate": "results/audit/evaluation/CYCLE_39033797087_GATE.json (gate=REVISE, safe_to_integrate=false, required_fixes M1-M6)",
+  "correction_of": "results/evaluation/rebuild_preflight_39033797087/freeze/FROZEN_HYPOTHESIS_REBUILD_PREFLIGHT_39033797087.json",
+  "original_freeze_sha256": "1ad8fd9aeebb851a1de06fb3f06be49d033b618585d1a17d887c9fe653412e3f",
+  "original_freeze_commit": "01a4780d",
+  "principle": "The freeze file is PRESERVED BYTE-UNCHANGED. Nothing in it was edited after execution, before this repair, or now. This erratum records three things the repair r1 audit required: (a) the ADDITIVE instrument pins for the accepted sibling label-side entry point that the rejected cycle failed to execute; (b) the WITHDRAWAL of the rejected cycle report's post-hoc restatement of the frozen leg-E prediction; (c) the SCOPING of the freeze's own claim-ceiling phrase 'population-pinned label bar' to the run_bar_gates LABEL half alone. Original wording is quoted verbatim so a correction can never be read as the original having said the corrected thing.",
+  "no_prediction_success_rule_threshold_bar_or_incumbent_changed": "No PREDICTED value, no success-rule clause, no threshold, no bar, no incumbent and no rubric byte is added, removed, weakened or re-tuned by this erratum. The success rule is re-emitted byte-identical by the repaired record and is pinned by test_freeze_success_rule_is_not_weakened_by_the_record.",
+  "errata": [
+    {
+      "id": "R1M1",
+      "against": "instrument_pins_sha256 (the set of instruments the preflight re-hashes)",
+      "defect": "The freeze pinned and the preflight executed ONLY the run_bar_gates entry point (accepted 38971202786), whose LABEL half is population-pinned at 65 scored counter rows. The accepted instrument set has a SECOND label-side entry point — the population-free counter-label lineage gate, accepted in cycle 39020603510 — and the preflight executed neither it nor re-hashed its files. The rejected cycle then published the one-instrument reading as the whole product-facing enforcement envelope (evaluation/rebuild_preflight.py::envelope_from_legs, field what_a_rebuilt_packet_cannot_be_blocked_on[1] = 'any label regression once its scored counter-row count differs from 65'), which is FALSE against accepted evidence sitting in the same tree.",
+      "additive_instrument_pins_declared_here": {
+        "evaluation/frozen_bars/label_lineage_gate.py": "754fdd11172f1468e18b7c43a3f745b92406e401a3290a4e1c7ed3c853d0a25b",
+        "evaluation/frozen_bars/run_label_lineage_gate.py": "c9f4d6e1c9c0f9a0a8348d37d3e7d51d32f3b7ddffcb88906230bae83e419d12",
+        "evaluation/frozen_bars/LABEL_LINEAGE_VERDICT.json": "016bffe5914ffc9074c948c9e452d05c79639735ed32f6c82aefd3751afcca18"
+      },
+      "pins_are_additive_not_substitutive": "These three pins are declared here and carried in evaluation/rebuild_preflight.py::LINEAGE_INSTRUMENT_PINS. Every one of the eight ORIGINAL freeze pins is retained byte-identically in FROZEN_INPUTS; none is removed, replaced or weakened. The module re-hashes BOTH blocks after execution and publishes them under separate keys (frozen_input_rehash_after_execution.freeze_pinned_instruments and .additive_lineage_instruments) so the two sets can never be blurred.",
+      "the_added_instrument_is_already_accepted_under_its_own_freeze": "label_lineage_gate.py / run_label_lineage_gate.py / LABEL_LINEAGE_VERDICT.json were accepted in cycle 39020603510 (audit CYCLE_39020603510_GATE.json, gate=PASS, safe_to_integrate=true) under their own pre-execution freeze results/evaluation/label_lineage_gate/freeze/FROZEN_HYPOTHESIS_39020603510.json. This preflight makes NO NEW PREDICTION about that instrument: it executes the accepted entry point on the same synthetic legs, publishes both readings side by side, and CITES the accepted 39020603510 sweep matrix (packet 38799024807) as the evidence for the two-bar divergence rather than re-deriving it as a new finding.",
+      "correction_of_record": "The two-bar label envelope is: the accepted run_bar_gates LABEL half enforces only on the exact 65-row incumbent population and goes NOT_APPLICABLE off it; the accepted population-free label_lineage_gate BLOCKS a three-frozen-qid lineage packet whose pooled support rate is strictly below the derived incumbent rate 5/65 even when its scored counter-row count differs from 65, and returns NOT_MEASURED (neither pass nor block) when the packet issues no scored counter row at all."
+    },
+    {
+      "id": "R1M3",
+      "against": "reports/evaluation/CYCLE_39033797087.md, line ~40",
+      "original_wording_verbatim_rejected_cycle_report": "Leg E prediction (label bar blocks a rebuilt packet) was falsified.",
+      "defect": "POST-HOC REFRAMING OF A FROZEN PREDICTION. The freeze's actual leg-E prediction is quoted verbatim below; 'label bar blocks a rebuilt packet' is a DIFFERENT prediction that the freeze never made. The freeze's own success-rule clause forbids exactly this: 'Predictions are not edited after observation; a falsified prediction is published as a falsification with its wording correction.' A substitution in the report is an edit by another name.",
+      "frozen_leg_e_prediction_verbatim": "both exits are non-zero (2 environment error or 1 regression) and neither record may be consumed as a pass; a missing input must never produce exit 0",
+      "correction_of_record": "The frozen leg-E prediction concerned the TWO run_bar_gates --adjudicate exit codes of leg E's two sub-packets (an empty packet dir and a zero-counter-row packet). MEASURED: exit_codes [2, 0] — the empty dir exits 2 as predicted, the zero-counter-row packet exits 0. The frozen prediction is therefore FALSIFIED, and the falsification is published as such. The rejected report's parenthetical restatement ('label bar blocks a rebuilt packet') is WITHDRAWN as a misstatement of what was frozen. The repaired record quotes the frozen wording verbatim in legs.E_refusal_negative_control.prediction and scopes it in .prediction_scope; headline finding PF3 states the falsification with the frozen wording in its prediction_source.",
+      "the_falsification_itself_is_preserved": "Leg E remains FALSIFIED under the repair. success_rule_holds stays false and the verdict stays PREFLIGHT_INCOMPLETE. The repair does not re-run the leg to obtain a green rule; it discloses the verdict (audit required fix M2) and restores the frozen wording (M3)."
+    },
+    {
+      "id": "R1M1b",
+      "against": "claim_ceiling_if_the_rule_holds (the freeze's own forward claim ceiling)",
+      "original_wording_verbatim": "its enforced verdict on a REBUILT packet equals the frozen predicate's envelope measured here (population-pinned label bar, qid-pinned geometry bar); and the recorded EXIT CODES are the only thing a rebuilt packet can be blocked on",
+      "defect": "The phrase 'population-pinned label bar' names ONE of the two accepted label-side instruments and the clause 'the recorded EXIT CODES are the only thing a rebuilt packet can be blocked on' generalises that single instrument's exit codes to the whole enforcement surface. Read product-facing, it asserts that a rebuilt packet cannot be blocked on a label regression off the 65-row population. The accepted population-free lineage gate blocks exactly that case.",
+      "correction_of_record": "The freeze's claim-ceiling phrase 'population-pinned label bar' is scoped, as of repair r1, to the accepted run_bar_gates LABEL half alone. The repaired record's own claim_ceiling supersedes the freeze's forward wording and states the two-bar envelope: the run_bar_gates LABEL half blocks only on the exact 65-row incumbent population; the accepted label_lineage_gate blocks a three-frozen-qid lineage packet whose pooled support rate is strictly below the derived 5/65; a packet issuing no scored counter row at all is blocked by neither and certified sound by neither."
+    }
+  ],
+  "preserved_negatives_that_must_survive_this_repair": [
+    "the falsification of the frozen leg-E prediction, stated as it was actually frozen (exit_codes [2, 0] against 'both exits are non-zero')",
+    "the three disclosed in-cycle harness defects in rebuild_preflight.py (write_packet content-equality fix, leg-A absent-zero-valued-class subset check, leg-D applicability read from the verdict string)",
+    "the NO_NEW_PACKET rebuild trigger on a byte-identical 56-file population and the standing refusal to re-run zero-delta sweeps over it",
+    "the audit-quantum death diagnosis of run 39027041693 and its hedged candidate cause set",
+    "human_gate_ready = false; the standing accepted DO-NOT-SERVE order on packet 38839347028 untouched"
+  ]
+}
