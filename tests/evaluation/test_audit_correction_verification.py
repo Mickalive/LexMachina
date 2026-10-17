@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lane-state consistency verification (current direction v52).
+"""Lane-state consistency verification (current direction v55).
 
 HISTORY: this file originally verified the v35-era lane state (TF-IDF 174k
 freeze, dense criteria blockers).  That question is COMPLETE; its state was
@@ -21,6 +21,15 @@ REPAIR 39027041693 (in-cycle, same pattern): the direction pin was bumped
 set red at 1 failed / 236 passed and falsified the '237 passed' claim. No
 frozen benchmark, rubric, incumbent, threshold or success rule is touched by a
 direction pin repair; the state file's direction_version (52) is authoritative.
+
+REPAIR 39076123103 (audit results/audit/evaluation/CYCLE_39064597912_GATE.json
+R1): the direction pin was bumped 52 -> 55 to match the v55 lane state. The
+stale pin made the lane's own pytest scope red (test_audit_correction_
+verification.py::test_state_file_has_mandatory_fields asserted 55 == 52) and
+the 39064597912 audit returned gate=REVISE safe_to_integrate=false until the
+pin was advanced. Same disclosed convention as the 49->50 and 50->52 repairs;
+the state file's direction_version (55) is authoritative. No frozen benchmark,
+rubric, incumbent, threshold or success rule is touched.
 """
 import json
 from pathlib import Path
@@ -38,7 +47,7 @@ def test_state_file_has_mandatory_fields():
                    "next_recommendation"):
         assert field in state, f"missing mandatory field {field}"
     assert state["lane"] == "evaluation"
-    assert state["direction_version"] == 52
+    assert state["direction_version"] == 55
 
 
 def test_evidence_refs_exist():

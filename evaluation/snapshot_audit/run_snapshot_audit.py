@@ -337,7 +337,26 @@ DELIVERABLE_MANIFEST_PATHS = [
     "reports/evaluation/RETRIEVAL_CA_BENCHMARK_39072968899.md",
     "results/evaluation/orchestration_39072968899/local_evidence_manifest.json",
     "reports/evaluation/CYCLE_39072968899.md",
-]
+    # Operational resume of run 39072968899 (this run, 39076123103). The
+    # subject 39072968899 died at producer step 6 after exactly 2704 s (the 2700 s
+    # work quantum + 4 s overhead, the same signature as 39060704006) AFTER
+    # writing its complete 12-file durable delta and BEFORE the producer step
+    # could exit 0; the if: always() persist step rescued the tree as 71ab1928
+    # and the audit job was skipped (audit starvation). This run applies the
+    # binding R1-R3 fixes from audit CYCLE_39064597912 (REVISE), re-verifies
+    # NO_NEW_PACKET against the unchanged product head 03a4cabb, and publishes a
+    # fresh snapshot-audit READY record for run 39076123103. The snapshot-audit
+    # readiness record itself is intentionally NOT in this manifest: it is
+    # written by this verifier AFTER check 6 runs, so listing it here would make
+    # check 6 depend on its own output (the 39072968899 record lists itself and
+    # therefore required a two-run; this run avoids that). The record is still
+    # cited by state/evidence_refs and verified after the write by the
+    # self-reference check.
+    "evaluation/snapshot_audit/orchestration_diagnosis_39072968899.json",
+    "results/evaluation/orchestration_39076123103/local_evidence_manifest.json",
+    "results/evaluation/lane_suite/39076123103.json",
+    "reports/evaluation/CYCLE_39076123103.md",
+ ]
 
 #: Run 39040205229's diagnosis. Check 17 requires it to carry the job/step
 #: record for the run this cycle resumes from AND to record the falsification
