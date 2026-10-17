@@ -1,0 +1,646 @@
+{
+  "best_supported_remaining_hypothesis": {
+    "hypothesis": "run-ox-with-retry.sh exhausted its transient-failure budget (rc 75) on free-model provider failures, or propagated a non-transient opencode exit code; both exit the step non-zero after step 6 and are indistinguishable without the job log",
+    "status": "INFERENCE_NOT_ESTABLISHED_FACT",
+    "supporting_evidence": [
+      "the only non-zero exits available in the current script for a step that already ran for ~48 minutes are rc 75 (network stall: LEX_NETWORK_STALL after STALL_SECONDS=420 of log silence, retried up to MAX_ATTEMPTS=8 with RETRY_DELAY=90 s, i.e. up to ~630 s of pure retry sleep plus up to 8x420 s of stall waiting) and propagation of the opencode process's own rc; the setup-stage exits 64/65/66/70/76/77 all fire in the first seconds and are excluded by the step-5 success at 14:19:43Z",
+      "rc 67 is excluded by git evidence (the snapshot commit changed 7 files)",
+      "state/model_health.json on main, refreshed mid-run by run 39042732234 at 14:58:19Z, records healthy=true but using_fallback=TRUE with resolved_model=opencode/mimo-v2.6-flash-free, i.e. the primary free tool model was unhealthy at dispatch time; factory-wide requirement 20 documents recurring LEX_MODEL_AUTH_FAILURE and 503 upstream-overload on this pool",
+      "the run 39027041693 AUDIT job died on the same class of provider/quantum boundary and its own log is equally unreadable"
+    ],
+    "why_inference": "job logs are HTTP 403 unauthenticated (probe preserved in results/evaluation/orchestration_39043684319/api/log_access_probe_39040205229.json), so neither the wrapper's rc line nor any ::error:: annotation could be read"
+  },
+  "consequence_chain": [
+    "39027041693: producer complete and green, audit job died -> no gate, nothing promoted.",
+    "39033797087 (repair of the above): producer green, audit returned gate=REVISE safe_to_integrate=false with M1-M6 -> the run concluded success and every job was green, yet nothing was promoted. Per factory-wide requirement 8 a green chain is not a promotion.",
+    "39040205229 (repair round 1 of that REVISE): producer step 6 FAILED at 2868 s; steps 7 and 9 skipped; the persist step salvaged the tree as 483c32c9; audit and integrate skipped; no gate artifact and no audit branch exist.",
+    "39043684319 (this cycle): operational resume from the persisted 483c32c9 snapshot."
+  ],
+  "control_plane_gap_recorded_not_patched": "`.github/**` is control-plane scope and was NOT edited from this lane. The durable fix belongs to the control plane, and this record makes the gap precise for the first time: (a) the LEX_WORK_QUANTUM_EXPIRED / rc-78 / 2700 s mechanism that requirement 10 attributes to observed run deaths is ABSENT from the current .github/scripts/run-ox-with-retry.sh and .github/workflows/core-lane.yml, so either it was removed or it lives outside the tree - in both cases requirement 10's causal story is currently unverifiable from the control plane; (b) the producer step's non-zero exits carry no machine-readable reason - step 6 surfaces only 'failure', so an auditor cannot distinguish retry exhaustion from a real agent error without log access it does not have. Recommended control-plane change, recorded not applied: emit the wrapper's rc and the matched branch as a step output or a run annotation so the REST job record alone settles the cause.",
+  "corruption_found_and_repaired_this_cycle": {
+    "artifact": "evaluation/snapshot_audit/orchestration_diagnosis_39027041693.json",
+    "defect": "the file was committed TRUNCATED: 7759 bytes ending in `...exhaustion guard.\"\\n}\\n` with the root object never closed, so json.loads / jq -e . both FAIL on it. It has been in the tree unchanged since commit 01a4780d and therefore escaped every readiness record: no check parsed it.",
+    "diagnosis": "one dropped closing brace at EOF; no content was lost",
+    "post_bytes": 7761,
+    "post_sha256": "cecca075d25bb8319d2a0269c5cf22a6ebb58184d742539aa88a73dbbaedfcb7",
+    "pre_bytes": 7759,
+    "pre_sha256": "101c6d1e552559c90ab0946cd94cdfca4c9fc2f7f9303ea3ccebfc97dcbe6cd4",
+    "regression_guard_added": "snapshot-audit check 17 (diagnosis_artifacts_all_parse) now json.loads EVERY evaluation/snapshot_audit/orchestration_diagnosis_*.json, so a truncated record can never again pass unnoticed",
+    "repair": "append exactly b'}' + b'\\n' at EOF; the pre-image is preserved as the first 7759 bytes of the post-image, so no committed byte was altered or reworded"
+  },
+  "diagnosed_by_run_id": "39043684319",
+  "diagnosis_id": "evaluation-39040205229-producer-step-death",
+  "direction_version": 52,
+  "lane": "evaluation",
+  "limits": [
+    "Job logs are HTTP 403 unauthenticated (GET .../actions/jobs/117417982159/logs -> {\"message\":\"Must have admin rights to Repository.\"}); the wrapper's exit code line and any ::error:: annotation for step 6 of 39040205229 are NOT readable, so no rc value is established fact.",
+    "Run inputs are not exposed unauthenticated (inputs: null), so repair_from_run_id=39033797087 is inferred from the run display_title 'Core evaluation dirV52 repair1' and from core-lane.yml's run-name template.",
+    "The work-quantum mechanism quoted in factory-direction requirement 10 is NOT present in this checkout's .github/**, so the absence of a ceiling is a fact about the control plane read here and not proof about the one that executed the run; the falsification below is therefore stated as scoped to the sources readable now.",
+    "Stage durations are wall-clock from the REST step records, which round to whole seconds; sub-second boundaries are not resolvable.",
+    "The producer's own stdout is not preserved by the persist step, so nothing about what the lane cycle had finished before it died is directly attested; completion of the repair-r1 code and artifacts is established from the committed tree, not from a producer log."
+  ],
+  "mode": "job-level orchestration diagnosis of the run this cycle operationally resumes from (39040205229)",
+  "purpose": "Establish, from API-confirmed job/step evidence plus the control-plane sources read from this checkout, why the evaluation-lane producer step of run 39040205229 failed, why no audit gate exists for it, what the workflow's persist step rescued, and WHICH of the lane's previously recorded causes actually transfers. It also records a falsification: the 2700 s work-quantum attribution used for earlier cycles does NOT explain 39040205229.",
+  "quantum_hypothesis_test": {
+    "hypothesis_tested": "the run-39040205229 producer failure is the same LEX_WORK_QUANTUM_EXPIRED / rc-78 / 2700 s work-quantum expiry that the accepted diagnosis of 39027041693 attributes to its audit death (and that factory-direction requirement 10 records for product runs)",
+    "measurements_read_this_cycle": {
+      "audit_step_5_duration_s": {
+        "39027041693": 2704,
+        "39033797087": 2373,
+        "39040205229": "not_run"
+      },
+      "producer_step_6_conclusion": {
+        "39027041693": "success",
+        "39033797087": "success",
+        "39040205229": "failure"
+      },
+      "producer_step_6_duration_s": {
+        "39027041693": 3484,
+        "39033797087": 3109,
+        "39040205229": 2868
+      },
+      "quantum_token_hits_in_dot_github": 0,
+      "script_line_count": 114,
+      "team_job_timeout_minutes": 360
+    },
+    "negative_result_preserved": true,
+    "verdict": "FALSIFIED_AS_THE_EXPLANATION_FOR_39040205229",
+    "what_remains_true": "the 39027041693 audit death at 2704 s is still consistent with the 2700 s figure recorded in factory-direction requirement 10, and that record is preserved unchanged; this falsification is scoped to run 39040205229 and does NOT reopen or re-litigate the 39027041693 diagnosis",
+    "why_falsified": [
+      "The work-quantum mechanism is ABSENT from the control plane this cycle reads: `grep -rn LEX_WORK_QUANTUM_EXPIRED .github/` returns 0 hits and .github/scripts/run-ox-with-retry.sh (114 lines) contains no wall-clock ceiling, no rc 78 and no 2700 s timer. core-lane.yml sets `timeout-minutes: 360` on the team job, so 2868 s cannot be a job timeout.",
+      "The ordering is wrong for a 2700 s ceiling: the SAME step SUCCEEDED at 3484 s on run 39027041693 and at 3109 s on 39033797087, both LONGER than the 2868 s failure. A fixed ceiling that lets 3484 s through cannot kill a step at 2868 s.",
+      "The recorded completion timestamp is 2868 s, i.e. 168 s PAST 2700 s, so the step was not terminated at a 2700 s boundary; the 2704 s audit death of 39027041693 is the only observation that actually lands on 2700 s."
+    ]
+  },
+  "query_method": "Unauthenticated GitHub REST API (public repository) for run/job/step conclusions and timestamps - GET /repos/Mickalive/LexMachina/actions/runs/<id> and .../jobs?per_page=100 - re-fetched this cycle and preserved field-reduced under results/evaluation/orchestration_39043684319/api/ with SHA256SUMS.json; plus the accepted audit gate blob read from origin/cycle/core/evaluation/39033797087/audit, `git ls-remote` branch existence checks, and a direct read of the control-plane .github/workflows/core-lane.yml and .github/scripts/run-ox-with-retry.sh in this checkout.",
+  "recurrence_set": {
+    "note": "the lane has lost two consecutive cycles to non-verdict failures; neither is evidence about the product",
+    "runs_with_an_audited_gate_this_cycle_read": [
+      "39033797087"
+    ],
+    "runs_with_no_gate_at_all": [
+      "39027041693",
+      "39040205229"
+    ]
+  },
+  "runs": {
+    "39027041693": {
+      "audit_only": {
+        "duration_s": 2704,
+        "note": "2704 s is within 4 s of the 2700 s figure quoted in factory-direction requirement 10, and the check_run_38982176936 record shows the same 2703 s producer-step death",
+        "step": "Independent audit"
+      },
+      "check_suite_id": 105766164892,
+      "conclusion": "failure",
+      "created_at": "2026-10-17T11:00:29Z",
+      "dispatch_context": "producer run whose audit job died; its complete green producer chain (step 6 'Run lane cycle' SUCCESS at 3484 s) is the accepted base origin/lab/evaluation head 09970e83",
+      "event": "workflow_dispatch",
+      "head_branch": "main",
+      "head_sha": "b3686b69c117c6c3d8bb3fb5a9e39185b36ba97e",
+      "jobs": {
+        "audit": {
+          "completed_at": "2026-10-17T12:45:20Z",
+          "conclusion": "failure",
+          "failed_step": "Independent audit",
+          "failed_step_completed_at": "2026-10-17T12:45:18Z",
+          "failed_step_duration_s": 2704,
+          "failed_step_started_at": "2026-10-17T12:00:14Z",
+          "job_id": 117390591605,
+          "started_at": "2026-10-17T11:59:31Z",
+          "step_number": 5,
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v6",
+              "number": 2
+            },
+            {
+              "conclusion": "success",
+              "name": "Checkout accepted base and mount team",
+              "number": 3
+            },
+            {
+              "conclusion": "success",
+              "name": "Install Ox/OpenCode",
+              "number": 4
+            },
+            {
+              "conclusion": "failure",
+              "name": "Independent audit",
+              "number": 5
+            },
+            {
+              "conclusion": "skipped",
+              "name": "Enforce audit scope and read gate",
+              "number": 6
+            },
+            {
+              "conclusion": "skipped",
+              "name": "Persist audit snapshot",
+              "number": 7
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v6",
+              "number": 14
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 15
+            }
+          ]
+        },
+        "integrate": {
+          "completed_at": "2026-10-17T12:45:21Z",
+          "conclusion": "skipped",
+          "job_id": 117399431602,
+          "started_at": "2026-10-17T12:45:22Z",
+          "steps": []
+        },
+        "resilience": {
+          "completed_at": "2026-10-17T12:45:32Z",
+          "conclusion": "success",
+          "job_id": 117399430796,
+          "started_at": "2026-10-17T12:45:24Z",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v6",
+              "number": 2
+            },
+            {
+              "conclusion": "success",
+              "name": "Recover failed chain and wake supervisor",
+              "number": 3
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v6",
+              "number": 6
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 7
+            }
+          ]
+        },
+        "team": {
+          "completed_at": "2026-10-17T11:59:28Z",
+          "conclusion": "success",
+          "job_id": 117379984869,
+          "started_at": "2026-10-17T11:00:32Z",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v6",
+              "number": 2
+            },
+            {
+              "conclusion": "success",
+              "name": "Validate lane and initialize working base",
+              "number": 3
+            },
+            {
+              "conclusion": "success",
+              "name": "Mount accepted peer evidence",
+              "number": 4
+            },
+            {
+              "conclusion": "success",
+              "name": "Install Ox/OpenCode",
+              "number": 5
+            },
+            {
+              "conclusion": "success",
+              "name": "Run lane cycle",
+              "number": 6
+            },
+            {
+              "conclusion": "success",
+              "name": "Validate active MVP producer state",
+              "number": 7
+            },
+            {
+              "conclusion": "success",
+              "name": "Clean generated junk",
+              "number": 8
+            },
+            {
+              "conclusion": "success",
+              "name": "Enforce lane write scope",
+              "number": 9
+            },
+            {
+              "conclusion": "success",
+              "name": "Persist team snapshot",
+              "number": 10
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v6",
+              "number": 20
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 21
+            }
+          ]
+        }
+      },
+      "name": "Core evaluation dirV52 repair0",
+      "run_number": 6906,
+      "status": "completed",
+      "updated_at": "2026-10-17T12:45:33Z",
+      "workflow_id": 343198480
+    },
+    "39033797087": {
+      "audit_gate": {
+        "artifact": "results/audit/evaluation/CYCLE_39033797087_GATE.json",
+        "branch": "origin/cycle/core/evaluation/39033797087/audit",
+        "commit": "a22096cfc09f49e99e4a61a79e59d8873e7fa33e",
+        "consequence": "run concluded success and every job was green, yet origin/lab/evaluation did NOT advance past 09970e83: this is factory-wide requirement 8 (a green core-lane chain is not a promotion)",
+        "gate": "REVISE",
+        "required_fix_ids": [
+          "M1",
+          "M2",
+          "M3",
+          "M4",
+          "M5",
+          "M6"
+        ],
+        "safe_to_integrate": false
+      },
+      "check_suite_id": 105784152695,
+      "conclusion": "success",
+      "created_at": "2026-10-17T12:45:29Z",
+      "dispatch_context": "repair round dispatched to fix the required fixes of the cycle whose audit returned REVISE; ALL FOUR jobs concluded success",
+      "event": "workflow_dispatch",
+      "head_branch": "main",
+      "head_sha": "f92a2854e36ef7b889197b98e601abc55120b75e",
+      "jobs": {
+        "audit": {
+          "completed_at": "2026-10-17T14:18:38Z",
+          "conclusion": "success",
+          "job_id": 117409835406,
+          "started_at": "2026-10-17T13:38:20Z",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v6",
+              "number": 2
+            },
+            {
+              "conclusion": "success",
+              "name": "Checkout accepted base and mount team",
+              "number": 3
+            },
+            {
+              "conclusion": "success",
+              "name": "Install Ox/OpenCode",
+              "number": 4
+            },
+            {
+              "conclusion": "success",
+              "name": "Independent audit",
+              "number": 5
+            },
+            {
+              "conclusion": "success",
+              "name": "Enforce audit scope and read gate",
+              "number": 6
+            },
+            {
+              "conclusion": "success",
+              "name": "Persist audit snapshot",
+              "number": 7
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v6",
+              "number": 14
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 15
+            }
+          ]
+        },
+        "integrate": {
+          "completed_at": "2026-10-17T14:18:49Z",
+          "conclusion": "success",
+          "job_id": 117417917374,
+          "started_at": "2026-10-17T14:18:41Z",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v6",
+              "number": 2
+            },
+            {
+              "conclusion": "success",
+              "name": "Promote, repair, or block",
+              "number": 3
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v6",
+              "number": 6
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 7
+            }
+          ]
+        },
+        "resilience": {
+          "completed_at": "2026-10-17T14:18:57Z",
+          "conclusion": "success",
+          "job_id": 117417953860,
+          "started_at": "2026-10-17T14:18:51Z",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v6",
+              "number": 2
+            },
+            {
+              "conclusion": "success",
+              "name": "Recover failed chain and wake supervisor",
+              "number": 3
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v6",
+              "number": 6
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 7
+            }
+          ]
+        },
+        "team": {
+          "completed_at": "2026-10-17T13:38:18Z",
+          "conclusion": "success",
+          "job_id": 117399470503,
+          "started_at": "2026-10-17T12:45:36Z",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v6",
+              "number": 2
+            },
+            {
+              "conclusion": "success",
+              "name": "Validate lane and initialize working base",
+              "number": 3
+            },
+            {
+              "conclusion": "success",
+              "name": "Mount accepted peer evidence",
+              "number": 4
+            },
+            {
+              "conclusion": "success",
+              "name": "Install Ox/OpenCode",
+              "number": 5
+            },
+            {
+              "conclusion": "success",
+              "name": "Run lane cycle",
+              "number": 6
+            },
+            {
+              "conclusion": "success",
+              "name": "Validate active MVP producer state",
+              "number": 7
+            },
+            {
+              "conclusion": "success",
+              "name": "Clean generated junk",
+              "number": 8
+            },
+            {
+              "conclusion": "success",
+              "name": "Enforce lane write scope",
+              "number": 9
+            },
+            {
+              "conclusion": "success",
+              "name": "Persist team snapshot",
+              "number": 10
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v6",
+              "number": 20
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 21
+            }
+          ]
+        }
+      },
+      "name": "Core evaluation dirV52 repair0",
+      "run_number": 6909,
+      "status": "completed",
+      "updated_at": "2026-10-17T14:18:57Z",
+      "workflow_id": 343198480
+    },
+    "39040205229": {
+      "audit_never_ran": {
+        "audit_branch_exists": false,
+        "evidence": "`git ls-remote origin | grep 39040205229` returns only refs/heads/cycle/core/evaluation/39040205229/team and /team-attempt-1",
+        "note": "there is no results/audit/evaluation/CYCLE_39040205229_GATE.json anywhere, so the repair-r1 work was NEVER independently audited"
+      },
+      "check_suite_id": 105801223017,
+      "conclusion": "failure",
+      "created_at": "2026-10-17T14:18:46Z",
+      "dispatch_context": "run name 'Core evaluation dirV52 repair1' => repair_round=1 of the REVISE gate above; core-lane.yml:104-127 then exports LEX_REQUIRE_DELTA=1, which arms the rc-67 zero-delta guard",
+      "event": "workflow_dispatch",
+      "head_branch": "main",
+      "head_sha": "69ea40ed5a99404fdd615d4488b59962e216bddd",
+      "jobs": {
+        "audit": {
+          "completed_at": "2026-10-17T15:07:36Z",
+          "conclusion": "skipped",
+          "job_id": 117428038196,
+          "started_at": "2026-10-17T15:07:36Z",
+          "steps": []
+        },
+        "integrate": {
+          "completed_at": "2026-10-17T15:07:36Z",
+          "conclusion": "skipped",
+          "job_id": 117428038348,
+          "started_at": "2026-10-17T15:07:36Z",
+          "steps": []
+        },
+        "resilience": {
+          "completed_at": "2026-10-17T15:07:46Z",
+          "conclusion": "success",
+          "job_id": 117428037565,
+          "started_at": "2026-10-17T15:07:38Z",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v6",
+              "number": 2
+            },
+            {
+              "conclusion": "success",
+              "name": "Recover failed chain and wake supervisor",
+              "number": 3
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v6",
+              "number": 6
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 7
+            }
+          ]
+        },
+        "team": {
+          "completed_at": "2026-10-17T15:07:36Z",
+          "conclusion": "failure",
+          "failed_step": "Run lane cycle",
+          "failed_step_completed_at": "2026-10-17T15:07:31Z",
+          "failed_step_duration_s": 2868,
+          "failed_step_started_at": "2026-10-17T14:19:43Z",
+          "job_id": 117417982159,
+          "started_at": "2026-10-17T14:19:00Z",
+          "step_number": 6,
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@v6",
+              "number": 2
+            },
+            {
+              "conclusion": "success",
+              "name": "Validate lane and initialize working base",
+              "number": 3
+            },
+            {
+              "conclusion": "success",
+              "name": "Mount accepted peer evidence",
+              "number": 4
+            },
+            {
+              "conclusion": "success",
+              "name": "Install Ox/OpenCode",
+              "number": 5
+            },
+            {
+              "conclusion": "failure",
+              "name": "Run lane cycle",
+              "number": 6
+            },
+            {
+              "conclusion": "skipped",
+              "name": "Validate active MVP producer state",
+              "number": 7
+            },
+            {
+              "conclusion": "success",
+              "name": "Clean generated junk",
+              "number": 8
+            },
+            {
+              "conclusion": "skipped",
+              "name": "Enforce lane write scope",
+              "number": 9
+            },
+            {
+              "conclusion": "success",
+              "name": "Persist team snapshot",
+              "number": 10
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@v6",
+              "number": 20
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 21
+            }
+          ]
+        }
+      },
+      "name": "Core evaluation dirV52 repair1",
+      "run_number": 6912,
+      "snapshot_rescued": {
+        "branch": "origin/cycle/core/evaluation/39040205229/team",
+        "commit": "483c32c9a9dff1a7bbd5216c2a915102ee5343a1",
+        "files_changed": 7,
+        "note": "step 10 'Persist team snapshot' ran and SUCCEEDED after step 6 failed, which is why this cycle can resume from it; steps 7 ('Validate active MVP producer state') and 9 ('Enforce lane write scope') were success()-gated on step 6 and were SKIPPED, so the snapshot carries NO producer-state validation and NO write-scope enforcement evidence"
+      },
+      "status": "completed",
+      "updated_at": "2026-10-17T15:07:47Z",
+      "workflow_id": 343198480,
+      "zero_delta_guard_disarmed_by_git_evidence": {
+        "excluded_by": "the workflow's own 'Persist team snapshot' step committed 483c32c9 on origin/cycle/core/evaluation/39040205229/team with 7 changed files (+2045/-177), so a zero-delta repair is excluded by git evidence, not by assumption",
+        "guard": "run-ox-with-retry.sh exits 67 LEX_ZERO_DELTA_REPAIR when REPAIR_INTENT and HEAD unchanged and `git status --porcelain` empty"
+      }
+    }
+  },
+  "schema": "lex-evaluation-orchestration-diagnosis/1"
+}

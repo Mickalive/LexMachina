@@ -46,6 +46,16 @@ CHECK_IDS = {
     "packet_admission_conformance",
     "packet_admission_conformance_reexecution",
     "orchestration_diagnosis_39010105493",
+    # run 39043684319 (operational resume of 39040205229): every orchestration
+    # diagnosis must PARSE. Added after the 39027041693 record was found
+    # committed truncated, which four consecutive readiness records reported as
+    # clean because no check had ever parsed it. The same check also requires
+    # run 39040205229's diagnosis to keep the quantum falsification.
+    "diagnosis_artifacts_all_parse",
+    # run 39043684319: the accepted evaluation branch head carries one ungated
+    # run (39027041693). The check re-derives it from git and requires the gap
+    # to stay DISCLOSED, so a NEW ungated run at the head goes red.
+    "accepted_base_gate_coverage_recorded",
 }
 
 
@@ -521,3 +531,163 @@ def test_pac_diagnosis_checker_rejects_a_single_asserted_cause(tmp_path):
 def test_pac_diagnosis_checker_passes_on_the_committed_artifact():
     res = rsa.check_pac_diagnosis(Path("."))
     assert res["status"] == "PASS", res
+
+
+# ---------------------------- check 17: diagnosis_artifacts_all_parse ------
+#
+# Regression tests for the defect cycle 39043684319 found: the accepted
+# orchestration_diagnosis_39027041693.json had been committed TRUNCATED (the
+# root object was never closed), so json.loads and `jq -e .` both FAIL on it,
+# and four consecutive readiness records reported the snapshot clean because no
+# check had ever parsed these files. Each test below makes the check go RED.
+
+def _copy_diagnosis_tree(tmp_path: Path) -> Path:
+    """A fake repo root holding real copies of the diagnosis artifacts."""
+    src = Path("evaluation/snapshot_audit")
+    dst = tmp_path / "evaluation/snapshot_audit"
+    dst.mkdir(parents=True)
+    for f in src.glob("orchestration_diagnosis_*.json"):
+        shutil.copy(f, dst / f.name)
+    return tmp_path
+
+
+def test_diagnosis_parse_check_passes_on_the_committed_tree():
+    res = rsa.check_diagnosis_39040205229(Path("."))
+    assert res["status"] == "PASS", res
+    assert res["parse_status"]
+
+
+def test_diagnosis_parse_check_catches_a_truncated_record(tmp_path):
+    """The exact 39027041693 defect: root object never closed."""
+    root = _copy_diagnosis_tree(tmp_path)
+    victim = root / "evaluation/snapshot_audit/orchestration_diagnosis_39027041693.json"
+    raw = victim.read_bytes()
+    victim.write_bytes(raw[:-2])          # drop the final "}\n"
+    with pytest.raises(json.JSONDecodeError):
+        json.loads(victim.read_bytes())
+    res = rsa.check_diagnosis_39040205229(root)
+    assert res["status"] == "FAIL"
+    assert any("unparseable" in x for x in res["problems"])
+
+
+def test_diagnosis_parse_check_catches_a_reverted_repair(tmp_path):
+    """The repair is hash-pinned: putting the truncated pre-image back fails."""
+    root = _copy_diagnosis_tree(tmp_path)
+    victim = root / "evaluation/snapshot_audit/orchestration_diagnosis_39027041693.json"
+    raw = victim.read_bytes()
+    victim.write_bytes(raw[:rsa.DIAGNOSIS_39027041693_PRE_REPAIR_BYTES])
+    res = rsa.check_diagnosis_39040205229(root)
+    assert res["status"] == "FAIL"
+    assert any("sha256" in x for x in res["problems"])
+
+
+def test_diagnosis_parse_check_rejects_a_softened_quantum_falsification(tmp_path):
+    """Deleting the falsification must go RED: it is the load-bearing result."""
+    root = _copy_diagnosis_tree(tmp_path)
+    p = root / rsa.DIAGNOSIS_39040205229
+    d = json.loads(p.read_text())
+    d["quantum_hypothesis_test"]["verdict"] = "CONFIRMED"
+    p.write_text(json.dumps(d))
+    res = rsa.check_diagnosis_39040205229(root)
+    assert res["status"] == "FAIL"
+    assert any("quantum_hypothesis_test.verdict" in x for x in res["problems"])
+
+
+def test_diagnosis_parse_check_rejects_an_asserted_single_cause(tmp_path):
+    """Job logs are 403: promoting the remaining hypothesis to fact over-claims."""
+    root = _copy_diagnosis_tree(tmp_path)
+    p = root / rsa.DIAGNOSIS_39040205229
+    d = json.loads(p.read_text())
+    d["best_supported_remaining_hypothesis"]["status"] = "ESTABLISHED_FACT"
+    p.write_text(json.dumps(d))
+    res = rsa.check_diagnosis_39040205229(root)
+    assert res["status"] == "FAIL"
+    assert any("inference" in x for x in res["problems"])
+
+
+def test_diagnosis_parse_check_requires_the_audit_skip_to_be_recorded(tmp_path):
+    root = _copy_diagnosis_tree(tmp_path)
+    p = root / rsa.DIAGNOSIS_39040205229
+    d = json.loads(p.read_text())
+    d["runs"]["39040205229"]["jobs"]["audit"]["conclusion"] = "success"
+    p.write_text(json.dumps(d))
+    res = rsa.check_diagnosis_39040205229(root)
+    assert res["status"] == "FAIL"
+    assert any("audit.conclusion" in x for x in res["problems"])
+
+
+def test_diagnosis_parse_check_requires_the_snapshot_rescue_commit(tmp_path):
+    """The 39040205229 tree was rescued by the persist step; losing that
+    provenance would hide that steps 7+9 never validated the snapshot."""
+    root = _copy_diagnosis_tree(tmp_path)
+    p = root / rsa.DIAGNOSIS_39040205229
+    d = json.loads(p.read_text())
+    del d["runs"]["39040205229"]["snapshot_rescued"]
+    p.write_text(json.dumps(d))
+    res = rsa.check_diagnosis_39040205229(root)
+    assert res["status"] == "FAIL"
+    assert any("snapshot_rescued" in x for x in res["problems"])
+
+
+# ------------------- check 18: accepted_base_gate_coverage_recorded ---------
+
+def test_accepted_base_coverage_is_disclosed_on_the_live_branch():
+    """The one ungated run at origin/lab/evaluation's head must be disclosed,
+    and the disclosure must match what git re-derives."""
+    res = rsa.check_accepted_base_gate_coverage(Path("."))
+    if res.get("environment_limited"):
+        pytest.skip("origin/lab/evaluation not fetchable here")
+    assert res["status"] == "PASS", res
+    assert res["derived_ungated_runs"] == ["39027041693"], res
+    assert res["declared_ungated_runs"] == res["derived_ungated_runs"]
+
+
+def test_accepted_base_coverage_fails_without_the_disclosure_record(tmp_path, monkeypatch):
+    """A clean snapshot must not pass by having no disclosure on disk."""
+    rec = Path(rsa.ACCEPTED_BASE_COVERAGE_RECORD)
+    tmp_rec = tmp_path / "rec.json"
+    tmp_rec.write_bytes(rec.read_bytes())
+    monkeypatch.setattr(rsa, "ACCEPTED_BASE_COVERAGE_RECORD", "rec.json")
+    assert rsa.check_accepted_base_gate_coverage(tmp_path)["status"] == "FAIL"
+    assert rsa.check_accepted_base_gate_coverage(tmp_path)["problems"] == ["disclosure record missing"]
+
+
+def test_accepted_base_coverage_flags_an_undisclosed_new_ungated_run(tmp_path, monkeypatch):
+    """Dropping a disclosed run must read as a NEW ungated run, not as clean."""
+    monkeypatch.setattr(rsa, "ACCEPTED_BASE_COVERAGE_RECORD", "rec.json")
+    rec = json.loads(Path(rsa.ACCEPTED_BASE_COVERAGE_RECORD).read_text())
+    rec["ungated_runs_above_the_newest_accept_commit"] = []
+    (tmp_path / "rec.json").write_text(json.dumps(rec))
+    res = rsa.check_accepted_base_gate_coverage(tmp_path)
+    assert res["status"] == "FAIL"
+    assert any("new ungated run" in x for x in res["problems"]), res
+
+
+def test_accepted_base_coverage_flags_a_stale_branch_head(tmp_path, monkeypatch):
+    """A disclosure pinned to a different head must not silently pass."""
+    monkeypatch.setattr(rsa, "ACCEPTED_BASE_COVERAGE_RECORD", "rec.json")
+    rec = json.loads(Path(rsa.ACCEPTED_BASE_COVERAGE_RECORD).read_text())
+    rec["accepted_branch_head"] = "0" * 40
+    (tmp_path / "rec.json").write_text(json.dumps(rec))
+    res = rsa.check_accepted_base_gate_coverage(tmp_path)
+    assert res["status"] == "FAIL"
+    assert any("accepted_branch_head" in x for x in res["problems"]), res
+
+
+def test_accepted_base_coverage_requires_the_boundaries_of_the_gap(tmp_path, monkeypatch):
+    """A coverage gap without 'what is NOT claimed' is an over-claim."""
+    monkeypatch.setattr(rsa, "ACCEPTED_BASE_COVERAGE_RECORD", "rec.json")
+    rec = json.loads(Path(rsa.ACCEPTED_BASE_COVERAGE_RECORD).read_text())
+    rec["finding"]["what_is_NOT_claimed"] = []
+    (tmp_path / "rec.json").write_text(json.dumps(rec))
+    res = rsa.check_accepted_base_gate_coverage(tmp_path)
+    assert res["status"] == "FAIL"
+    assert any("what_is_NOT_claimed" in x for x in res["problems"]), res
+
+
+def test_accepted_base_coverage_is_environment_limited_without_the_ref(tmp_path):
+    """No accepted ref is an environment_limited FAIL, never a silent pass."""
+    res = rsa.check_accepted_base_gate_coverage(tmp_path)
+    assert res["status"] == "FAIL"
+    assert res["environment_limited"] is True
+    assert res["n_ungated_runs"] is None

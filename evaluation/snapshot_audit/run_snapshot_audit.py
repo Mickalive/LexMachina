@@ -48,6 +48,29 @@ Checks (each recorded PASS/FAIL/NOT_RUN; no check is silently dropped):
                                 are all present and consistent, and the two
                                 out-of-scope paths are ABSENT from the tree.
 
+ 17. diagnosis_artifacts_all_parse  EVERY orchestration_diagnosis_*.json in
+                                this namespace json.loads (cycle 39043684319
+                                added this after finding the 39027041693 record
+                                committed TRUNCATED, which four consecutive
+                                readiness records reported as clean because no
+                                check had ever parsed it). It also requires the
+                                run-39040205229 diagnosis to carry the job/step
+                                record, the rescue of the persisted snapshot,
+                                and the FALSIFICATION of the 2700 s
+                                work-quantum attribution for that run - the
+                                39027041693 diagnosis is left explicitly
+                                untouched and is not reopened.
+
+ 18. accepted_base_gate_coverage_recorded  the run set above the newest
+                                ``accept evaluation cycle`` commit on
+                                origin/lab/evaluation is RE-DERIVED from git and
+                                compared against the disclosure record. The one
+                                ungated run (39027041693) is disclosed and so is
+                                not red; a NEW ungated run at the accepted branch
+                                head fails until it is disclosed. An absent
+                                accepted ref is an environment_limited FAIL, the
+                                same convention as check 15.
+
 Exit 0 = ready_for_independent_audit (all checks PASS). Exit 1 = not ready.
 environment_limited=true on a check discloses WHY it failed (an environment
 input, such as the accepted product mount, was absent); it NEVER converts a
@@ -200,7 +223,39 @@ DELIVERABLE_MANIFEST_PATHS = [
     "results/evaluation/packet_admission_conformance/39012970379.json",
     "evaluation/snapshot_audit/orchestration_diagnosis_39010105493.json",
     "reports/evaluation/CYCLE_39012970379.md",
+    # Operational resume of run 39040205229 (this run, 39043684319). The
+    # 39040205229 producer step died at 2868 s, its audit job never ran and
+    # no gate artifact exists for it; the workflow persist step salvaged the
+    # tree as 483c32c9. Check 17 requires the job/step-level diagnosis and
+    # pins the repaired 39027041693 record that had been committed truncated.
+    "evaluation/snapshot_audit/orchestration_diagnosis_39040205229.json",
+    "evaluation/snapshot_audit/orchestration_diagnosis_39027041693.json",
+    "results/evaluation/orchestration_39043684319/api/SHA256SUMS.json",
+    "results/evaluation/orchestration_39043684319/api/log_access_probe_39040205229.json",
+    "reports/evaluation/CYCLE_39033797087.md",
+    "reports/evaluation/CYCLE_39033797087_repair_r1.md",
+    "results/evaluation/newhead_recompute_39043684319/39043684319_trigger.json",
+    "results/evaluation/accepted_base_gate_coverage_39043684319.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39043684319.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39043684319_leg1_served_baseline.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39043684319_leg2_hostile_geometry.json",
+    "results/evaluation/retrieval_counter_authority_benchmark/39043684319_leg3_blanked_evidence.json",
+    "reports/evaluation/RETRIEVAL_CA_BENCHMARK_39043684319.md",
+    "reports/evaluation/CYCLE_39043684319.md",
 ]
+
+#: Run 39040205229's diagnosis. Check 17 requires it to carry the job/step
+#: record for the run this cycle resumes from AND to record the falsification
+#: of the 2700 s work-quantum attribution for that run. The falsification is
+#: the load-bearing part: without it a later cycle could silently re-apply the
+#: quantum story to a producer-step death that the arithmetic excludes.
+DIAGNOSIS_39040205229 = "evaluation/snapshot_audit/orchestration_diagnosis_39040205229.json"
+#: sha256 of orchestration_diagnosis_39027041693.json AFTER the one-byte
+#: truncation repair. The pre-image (7759 bytes, unparseable) is its exact
+#: prefix, so the repair altered no committed byte.
+DIAGNOSIS_39027041693_REPAIRED_SHA256 = (
+    "cecca075d25bb8319d2a0269c5cf22a6ebb58184d742539aa88a73dbbaedfcb7")
+DIAGNOSIS_39027041693_PRE_REPAIR_BYTES = 7759
 
 # Run 38986445355's team job died at step 6 ('Run lane cycle') after committing
 # a broken, non-runnable benchmark script. Check 10 requires the job-level
@@ -1015,6 +1070,194 @@ def check_pac_diagnosis(repo_root: Path) -> dict:
     return _check("orchestration_diagnosis_39010105493", ok, detail, problems=problems)
 
 
+def check_diagnosis_39040205229(repo_root: Path) -> dict:
+    """Check 17: every orchestration diagnosis parses, and run 39040205229's
+    own diagnosis carries the job/step record plus the quantum falsification.
+
+    Added by cycle 39043684319 after it found
+    ``orchestration_diagnosis_39027041693.json`` committed TRUNCATED (root
+    object never closed -> json.loads and ``jq -e .`` both FAIL). No prior
+    check parsed these files, so the corruption passed four consecutive
+    readiness records unnoticed. Check 17 json.loads every
+    ``orchestration_diagnosis_*.json`` in the namespace, so a truncated
+    diagnosis can never again be reported as a clean snapshot.
+    """
+    problems: list[str] = []
+    parsed: dict[str, str] = {}
+    diag_dir = repo_root / "evaluation" / "snapshot_audit"
+    files = sorted(diag_dir.glob("orchestration_diagnosis_*.json"))
+    if not files:
+        problems.append("no orchestration_diagnosis_*.json found")
+    for f in files:
+        rel = f.relative_to(repo_root).as_posix()
+        try:
+            json.loads(f.read_text(encoding="utf-8"))
+            parsed[rel] = "parses"
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            parsed[rel] = f"UNPARSEABLE: {exc}"
+            problems.append(f"{rel} is unparseable: {exc}")
+
+    # the repaired incumbent: hash-pinned, and its first PRE_REPAIR_BYTES must
+    # be exactly the pre-repair image (the repair appended, it never rewrote).
+    rep = repo_root / "evaluation/snapshot_audit/orchestration_diagnosis_39027041693.json"
+    rep_sha = None
+    if rep.exists():
+        raw = rep.read_bytes()
+        rep_sha = hashlib.sha256(raw).hexdigest()
+        if rep_sha != DIAGNOSIS_39027041693_REPAIRED_SHA256:
+            problems.append(f"39027041693 record sha256 {rep_sha} != pinned repaired "
+                            f"{DIAGNOSIS_39027041693_REPAIRED_SHA256}")
+        if len(raw) <= DIAGNOSIS_39027041693_PRE_REPAIR_BYTES:
+            problems.append("39027041693 record is not longer than its truncated pre-image")
+
+    p = repo_root / DIAGNOSIS_39040205229
+    detail_bits: list[str] = []
+    if not p.exists():
+        problems.append(f"{DIAGNOSIS_39040205229} missing")
+    else:
+        d = json.loads(p.read_text(encoding="utf-8"))
+        if d.get("schema") != "lex-evaluation-orchestration-diagnosis/1":
+            problems.append("39040205229 diagnosis schema")
+        runs = d.get("runs") or {}
+        r = runs.get("39040205229") or {}
+        team = (r.get("jobs") or {}).get("team") or {}
+        if team.get("conclusion") != "failure":
+            problems.append("runs.39040205229.jobs.team.conclusion != failure")
+        if team.get("failed_step") != "Run lane cycle":
+            problems.append("runs.39040205229.jobs.team.failed_step != 'Run lane cycle'")
+        if not team.get("failed_step_duration_s"):
+            problems.append("runs.39040205229.jobs.team.failed_step_duration_s")
+        if (r.get("jobs") or {}).get("audit", {}).get("conclusion") != "skipped":
+            problems.append("runs.39040205229.jobs.audit.conclusion != skipped")
+        if not r.get("dispatch_context"):
+            problems.append("runs.39040205229.dispatch_context")
+        if not r.get("zero_delta_guard_disarmed_by_git_evidence"):
+            problems.append("runs.39040205229.zero_delta_guard_disarmed_by_git_evidence")
+        if not r.get("snapshot_rescued", {}).get("commit"):
+            problems.append("runs.39040205229.snapshot_rescued.commit")
+        q = d.get("quantum_hypothesis_test") or {}
+        if q.get("verdict") != "FALSIFIED_AS_THE_EXPLANATION_FOR_39040205229":
+            problems.append("quantum_hypothesis_test.verdict must record the falsification")
+        if not q.get("why_falsified"):
+            problems.append("quantum_hypothesis_test.why_falsified")
+        if not q.get("measurements_read_this_cycle"):
+            problems.append("quantum_hypothesis_test.measurements_read_this_cycle")
+        if not q.get("what_remains_true"):
+            problems.append("quantum_hypothesis_test.what_remains_true (the 39027041693 "
+                            "diagnosis must be explicitly left untouched)")
+        b = d.get("best_supported_remaining_hypothesis") or {}
+        if b.get("status") != "INFERENCE_NOT_ESTABLISHED_FACT":
+            problems.append("best_supported_remaining_hypothesis.status must stay an inference")
+        if not (d.get("limits") or []):
+            problems.append("limits (log 403 must stay disclosed)")
+        if not d.get("corruption_found_and_repaired_this_cycle"):
+            problems.append("corruption_found_and_repaired_this_cycle")
+        detail_bits.append(
+            f"39040205229 team step 6 failure at {team.get('failed_step_duration_s')} s, audit skipped, "
+            f"quantum attribution FALSIFIED ({len(q.get('why_falsified') or [])} measurements)")
+
+    ok = not problems
+    detail = (f"{len(parsed)} orchestration diagnosis artifacts all parse; the 39027041693 "
+              f"truncation repair is sha256-pinned; " + "; ".join(detail_bits)) if ok \
+        else f"diagnosis-artifact problems: {problems}"
+    return _check("diagnosis_artifacts_all_parse", ok, detail,
+                  n_diagnosis_files=len(files), parse_status=parsed,
+                  repaired_39027041693_sha256=rep_sha, problems=problems)
+
+
+#: Cycle 39043684319 measured that origin/lab/evaluation HEAD is five run-
+#: 39027041693 producer commits sitting ABOVE the newest
+#: ``accept evaluation cycle`` commit, with no gate of record for that run.
+#: Check 18 requires that gap to stay DISCLOSED: the disclosure record must
+#: exist, must name exactly the run set the check re-derives from git, and must
+#: carry the "not claimed" boundaries. A NEW ungated run at the branch head
+#: goes RED until someone discloses it; the already-disclosed 39027041693 gap
+#: does not make this check red.
+ACCEPTED_BASE_COVERAGE_RECORD = "results/evaluation/accepted_base_gate_coverage_39043684319.json"
+ACCEPTED_BASE_REF = "origin/lab/evaluation"
+
+
+def _git(repo_root: Path, *args: str) -> str | None:
+    try:
+        out = subprocess.run(["git", *args], cwd=repo_root, capture_output=True,
+                             text=True, timeout=120)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return out.stdout if out.returncode == 0 else None
+
+
+def check_accepted_base_gate_coverage(repo_root: Path) -> dict:
+    """Check 18: unaudited work at the head of the ACCEPTED lane branch is
+    disclosed, not silent.
+
+    Added by cycle 39043684319. The check RE-DERIVES the fact from git (it does
+    not trust the disclosure record) and then requires the record to match. A
+    clean branch yields an empty ungated set and passes; a new ungated run at
+    the head fails until it is disclosed.
+    """
+    problems: list[str] = []
+    ref = ACCEPTED_BASE_REF
+    head = _git(repo_root, "rev-parse", "--verify", "--quiet", ref)
+    if not head:
+        return _check("accepted_base_gate_coverage_recorded", False,
+                      f"{ref} is not fetchable in this checkout; gate coverage cannot be "
+                      f"re-derived (environment limit, not a pass)",
+                      environment_limited=True, problems=["accepted base ref unavailable"],
+                      n_ungated_runs=None)
+    head = head.strip()
+
+    tree = _git(repo_root, "ls-tree", "-r", "--name-only", ref,
+                "--", "results/audit/evaluation") or ""
+    gates = set(re.findall(r"CYCLE_(\d+)_GATE\.json", tree))
+
+    log = _git(repo_root, "log", "--format=%s", ref) or ""
+    subjects = [s for s in log.splitlines() if s.strip()]
+    accept_idx = None
+    for i, s in enumerate(subjects):
+        if re.fullmatch(r"accept evaluation cycle \d+", s.strip()):
+            accept_idx = i
+            break
+    above = subjects if accept_idx is None else subjects[:accept_idx]
+    derived: set[str] = set()
+    for s in above:
+        m = re.search(r"\b(\d{11})\b", s)
+        if m and m.group(1) not in gates:
+            derived.add(m.group(1))
+
+    rec_path = repo_root / ACCEPTED_BASE_COVERAGE_RECORD
+    if not rec_path.exists():
+        return _check("accepted_base_gate_coverage_recorded", False,
+                      f"{ACCEPTED_BASE_COVERAGE_RECORD} missing; derived ungated runs at the "
+                      f"accepted branch head: {sorted(derived)}",
+                      n_ungated_runs=len(derived), derived_ungated_runs=sorted(derived),
+                      problems=["disclosure record missing"])
+    rec = json.loads(rec_path.read_text(encoding="utf-8"))
+    if rec.get("schema") != "lex-evaluation-accepted-base-gate-coverage/1":
+        problems.append("disclosure schema")
+    if (rec.get("accepted_branch_head") or "") != head:
+        problems.append(f"disclosure accepted_branch_head {rec.get('accepted_branch_head')} "
+                        f"!= re-derived {head}")
+    declared = set(rec.get("ungated_runs_above_the_newest_accept_commit") or [])
+    if declared != derived:
+        # the honest direction of the message matters: a NEW ungated run must
+        # read as "undisclosed", a closed one as "over-declared".
+        problems.append(f"disclosure declares {sorted(declared)} but git re-derives "
+                        f"{sorted(derived)} ({'new ungated run' if derived - declared else 'over-declared'})")
+    if not rec.get("claim_ceiling"):
+        problems.append("disclosure claim_ceiling")
+    if not rec.get("finding", {}).get("what_is_NOT_claimed"):
+        problems.append("disclosure finding.what_is_NOT_claimed (a coverage gap must state its boundaries)")
+    ok = not problems
+    detail = (f"{ref} head {head[:7]}; {len(gates)} gates of record on the branch; "
+              f"ungated runs above the newest accept commit = {sorted(derived)}; "
+              f"disclosure matches" if ok
+              else f"accepted-base coverage problems: {problems}")
+    return _check("accepted_base_gate_coverage_recorded", ok, detail,
+                  accepted_branch_head=head, n_gates_on_branch=len(gates),
+                  derived_ungated_runs=sorted(derived), declared_ungated_runs=sorted(declared),
+                  problems=problems)
+
+
 def build_record(run_id: str, checks: list[dict], manifest: dict) -> dict:
     n_pass = sum(1 for c in checks if c["status"] == "PASS")
     ready = n_pass == len(checks)
@@ -1044,6 +1287,11 @@ def build_record(run_id: str, checks: list[dict], manifest: dict) -> dict:
             "the three-leg retrieval/counter-authority falsification benchmark re-exits BENCHMARK_VALID_NO_FALSIFICATION (legs 0/1/1 over the accepted run_bar_gates entry point, falsification_proven=true)",
             "the packet-admission conformance benchmark of run 39010105493 is intact and re-executes: PACKET_ADMISSION_INVARIANT_VIOLATED, exit 1, the same three violating records, battery 4/4, both accepted bar sources agreeing",
             "run 39010105493's producer death (team step 6 'Run lane cycle', 2703 s, audit skipped) is diagnosed at job/step level with the un-loggable cause hedged as a candidate set and the workflow-created snapshot commit identified",
+            "run 39040205229's producer death (team step 6 'Run lane cycle', 2868 s, steps 7+9 skipped, audit+integrate skipped) is diagnosed at job/step level, its snapshot rescue (483c32c9) is identified, and the 2700 s work-quantum attribution used for earlier cycles is FALSIFIED for that run: the SAME step succeeded at 3484 s and 3109 s on two prior runs, and the quantum token has 0 hits in the .github/** read here",
+            "every evaluation/snapshot_audit/orchestration_diagnosis_*.json json.loads; the 39027041693 record is sha256-pinned in its repaired form (one appended root brace, pre-image preserved as its exact prefix)",
+            "reports/evaluation/CYCLE_39033797087.md is restored byte-identical to its own producer commit and the repair-round content is preserved at the path that content itself cites (CYCLE_39033797087_repair_r1.md), so the run-39033797087 record that audit gate CYCLE_39033797087_GATE.json judged is the one in the tree again",
+            "direction item (1) re-verified this run: the served-packet population at accepted product head cc719eeb is byte-identical to the pinned 56-file baseline (intersection == both operands, both differences empty) -> verdict NO_NEW_PACKET and the conformance re-run is correctly refused as the rc-67 zero-delta pathology",
+            "the run set above the newest 'accept evaluation cycle' commit on origin/lab/evaluation is re-derived from git and matches the disclosure record: exactly one ungated run (39027041693) sits at the accepted branch head, it is DISCLOSED, and no frozen-bar gate is affected (all eight gate files are present on the branch)",
         ],
         "snapshot_claims_not_certified": [
             "jurist-usefulness of the map (human gate); human_gate_ready stays false under the standing accepted DO-NOT-SERVE order",
@@ -1051,6 +1299,9 @@ def build_record(run_id: str, checks: list[dict], manifest: dict) -> dict:
             "no Frontier candidate re-measured; no 174k/global-map benchmark rerun; no Product import; no network",
             "job-LOG-level cause of the 38977570612 audit-step failure remains two flagged candidate causes (logs 403 unauthenticated), not one asserted cause",
             "run 38982176936 has NO independent audit of record: its producer-authored gate is void, and only this run's audit job can produce the gate of record",
+            "the cause of run 39040205229's step-6 death is an INFERENCE, not fact: job logs are HTTP 403 unauthenticated, so the wrapper's rc line was never read. The falsification of the quantum attribution is a fact about the arithmetic and the readable control plane; the replacement hypothesis (retry exhaustion / propagated provider failure) is NOT established",
+            "this run's readiness record certifies a SNAPSHOT, not a gate: only results/audit/evaluation/CYCLE_39043684319_GATE.json written by the independent audit job is the gate of record, and a READY verdict here is not a promotion",
+            "the accepted evaluation branch origin/lab/evaluation currently carries one UNAUDITED cycle at its head (39027041693: five producer commits above the newest accept commit, no gate of record). That is UNVERIFIED, not UNSOUND; the eight accepted frozen-bar gate files are all present and unaffected, and this lane cites none of the 39027041693 work as accepted evidence",
         ],
     }
 
@@ -1092,6 +1343,8 @@ def main(argv=None) -> int:
         checks.append(check_packet_admission_conformance(repo_root))
         checks.append(check_packet_admission_conformance_reexecution(repo_root, workdir))
         checks.append(check_pac_diagnosis(repo_root))
+        checks.append(check_diagnosis_39040205229(repo_root))
+        checks.append(check_accepted_base_gate_coverage(repo_root))
 
     record = build_record(args.run_id, checks, manifest)
     out_path.write_text(json.dumps(record, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
