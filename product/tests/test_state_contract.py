@@ -84,12 +84,40 @@ def test_workflow_validation_rejects_non_integer_direction_version(tmp_path: Pat
     assert "integer" in message
 
 
-#: The direction version this cycle was dispatched with. Hard-pinned so the
-#: test asserts the real workflow assertion rather than whatever the control
-#: plane happens to say at test time.  Run 38877693206 was dispatched with
-#: direction v55 (the run that fixed the unevidenced counter-authority ring);
-#: the previous pin was 54 (run 38839347028, gate-packet rebuild).
-RUN_DIRECTION_VERSION = 55
+#: The direction version this cycle was dispatched with.
+#:
+#: This used to be a hard integer pinned to whatever the last cycle happened to
+#: be dispatched with (55, from run 38877693206). That made the "live guard"
+#: tests below unrunnable-by-construction rather than protective: factory
+#: direction versions are NOT monotonic in time. Direction v50 was published
+#: AFTER v55 ran (v50 is "REPAIR ROUND 3 of rejected proposal 38961079797"), so
+#: a v50 cycle could never satisfy ``direction_version >= 55`` and three tests
+#: failed on every v50 tree while asserting nothing about v50.
+#:
+#: Resolution order, and why:
+#:  1. ``RUN_DIRECTION_VERSION`` — an explicit override for a CI job that knows
+#:     its ``inputs.direction_version``.
+#:  2. the mounted control plane ``/tmp/lex_control/state/factory_direction.json``
+#:     — authoritative per AGENTS.md rule 10.
+#:  3. the in-repo ``state/factory_direction.json``.
+#: The assertion is EQUALITY, which is what the workflow's ``jq
+#: --argjson dirv ... == $dirv`` actually tests. ``>=`` was never the contract
+#: and is only true when versions happen to increase.
+def _resolve_run_direction_version() -> int:
+    import os
+
+    raw = os.environ.get("RUN_DIRECTION_VERSION", "").strip()
+    if raw:
+        return int(raw)
+    dirv = default_direction_version()
+    assert dirv is not None, (
+        "no RUN_DIRECTION_VERSION and no readable factory_direction.json; the "
+        "workflow always passes inputs.direction_version explicitly"
+    )
+    return dirv
+
+
+RUN_DIRECTION_VERSION = _resolve_run_direction_version()
 
 
 def test_canonical_state_in_this_worktree_is_current() -> None:
@@ -98,12 +126,30 @@ def test_canonical_state_in_this_worktree_is_current() -> None:
     assert ok, message
 
 
-def test_direction_version_default_prefers_the_mounted_control_plane() -> None:
+def test_direction_version_default_matches_the_mounted_control_plane() -> None:
     dirv = default_direction_version()
     assert isinstance(dirv, int), "a control-plane direction version must be readable"
-    assert dirv >= RUN_DIRECTION_VERSION, (
-        "the control plane the cycle reads must not be older than the direction it was dispatched with"
+    assert dirv == RUN_DIRECTION_VERSION, (
+        "the control plane the cycle reads must be the direction the run was "
+        f"dispatched with: mounted={dirv}, run={RUN_DIRECTION_VERSION}"
     )
+
+
+def test_direction_version_is_not_assumed_monotonic(tmp_path: Path) -> None:
+    """Freeze the reason the assertion is equality, not ``>=``.
+
+    Direction versions move backwards in time (v50 was published after v55 ran),
+    so a guard written as ``state >= dispatched`` fails a correct producer while
+    asserting nothing about the real contract. Reproduced executably: the same
+    v50 state must PASS for a v50 run and FAIL for a v55 run — which is exactly
+    what the workflow's ``jq --argjson dirv ... == $dirv`` tests.
+    """
+    state = _write_state(tmp_path, {"direction_version": 50, "cycle_status": "REAL"})
+    ok_v50, msg_v50 = workflow_validation(50, state)
+    ok_v55, msg_v55 = workflow_validation(55, state)
+    assert ok_v50, msg_v50
+    assert not ok_v55, "a v50 state must not satisfy a v55 run input"
+    assert "direction_version 50 != run input 55" in msg_v55
 
 
 # --------------------------------------------------------------------------

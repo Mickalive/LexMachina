@@ -94,18 +94,78 @@ REMOTE_SAFEGUARD_MIN_REMOTE = 0.5
 #: This narrows the window's membership to rows the source index actually
 #: ranked FOR THIS QUESTION.  It never adds a row that did not arrive through
 #: a query-answering channel, never demotes anything, never reorders the
-#: head, and leaves every other bound (federal-only, max 3 moved, insert at
-#: 8..10, already-in-head rows untouched) byte-unchanged.  A row recalled by
-#: it still reaches only the generator; the citation-validation and
-#: adversarial passes downstream remain free to reject it.
+#: head, and leaves every other bound (federal-only, already-in-head rows
+#: untouched) byte-unchanged.  A row recalled by it still reaches only the
+#: generator; the citation-validation and adversarial passes downstream remain
+#: free to reject it.
 #: ``leading_case`` is excluded because it answers "what is heavily cited in
 #: Swiss case law", never "what answers this question"; the citation channels
 #: are excluded because their rows are expansion shells whose existence in the
 #: pool says nothing about this question's ranking.
+#:
+#: THE RESERVED TAIL MUST FIT INSIDE THE EVIDENCE PACK (run 38988477028).
+#: The splice was the load-bearing defect, and it was invisible from the pool
+#: alone.  Only the top ``evidence_count`` rows are hydrated with ``full_text``
+#: (``query.pipeline._merge_hydrated_evidence``), and the generator can only
+#: cite a row whose text it was given, so a recalled row landing past the pack
+#: is invisible to the answer while still having displaced whatever it pushed
+#: down.  ``REMOTE_HEAD_RECALL_MAX_MOVED`` was 3 with ``INSERT_AT`` 8, which
+#: reserved only ranks 8..10 of a 10-row pack: an authority the source index
+#: ranked **#3 for this question** sat at local rank 75, outside the reserved
+#: tail entirely, and no window change could reach it.
+#:
+#: Measured offline over the frozen cache, all four legs, no network and no
+#: provider (``product/evidence_pack_recall.py``, reproducible):
+#:
+#:     insert_at  max_moved   BJR direct-in-pack   petty  corporate  rent
+#:            8          3   3/5  (shipped)         1/1       2/2    0/0
+#:            8          5   3/5                   1/1       2/2    0/0
+#:            6          5   4/5                   1/1       2/2    0/0
+#:
+#: and the invariant is monotone rather than tuned: **every** configuration with
+#: ``insert_at + max_moved - 1 <= evidence_pack`` and ``max_moved >= 4`` reaches
+#: 4/5 with no regression on the other three legs.  Growing ``max_moved`` while
+#: the tail overflows the pack is not neutral — it displaces head rows for rows
+#: the generator never sees, which is why ``max_moved`` 5 at ``insert_at`` 8
+#: stays at 3/5 while the same 5 at ``insert_at`` 6 reaches 4/5.
+#:
+#: ``remote_top`` stays 15, and widening it was MEASURED NOT TO HELP (accepted
+#: negative result, do not re-raise).  Measured at the shipped configuration
+#: (``max_moved`` 5, ``insert_at`` 6, 10-row pack) varying only ``remote_top``:
+#: 15 -> 4/5, 20 -> 4/5, 25 -> 4/5, 30 -> 3/5, 35 -> 3/5, 40 -> 3/5, 50 -> 2/5.
+#: Widening buys nothing up to 25 and then actively destroys recall, because each
+#: extra answer-channel slot is claimed by an off-domain federal row before it
+#: reaches a frozen authority.
+#: ``bger_4A_62_2024`` is the outlier: the source index itself ranks it far below
+#: the other four for this question (answer-channel rank 37 measured over the
+#: served pool by ``product/evidence_pack_recall.py``, against 2 / 3 / 4 / 8),
+#: i.e. outside any window this mechanism can widen into without paying for it in
+#: off-domain rows.  5/5 would require outranking the source index on its own
+#: question.  That is a retrieval-ordering fact, not a reranking defect, and it
+#: is why the measured target is 4/5 and not 5/5.  The previously recorded "33"
+#: was computed on a different ordering (search-only channel, no language-filter
+#: rows); the number above is the one the shipped mechanism's channel vocabulary
+#: produces, and the test asserts the relation, not the constant.
+#:
+#: Cost of the change: zero. The evidence pack is unchanged at 10 hydrated rows
+#: and ``max_cites`` at 8, so nothing is added to the generator prompt and the
+#: frozen 300 s structural budget is untouched.
 REMOTE_HEAD_RECALL_REMOTE_TOP = 15
 REMOTE_HEAD_RECALL_LOCAL_HEAD = 10
-REMOTE_HEAD_RECALL_MAX_MOVED = 3
-REMOTE_HEAD_RECALL_INSERT_AT = 8
+#: Rows the local ranker may displace.  Widened 3 -> 5 together with
+#: ``INSERT_AT`` 8 -> 6 so the reserved tail is exactly ranks 6..10.
+REMOTE_HEAD_RECALL_MAX_MOVED = 5
+#: 1-based rank where the reserved tail starts.  8 -> 6: with a 10-row pack and
+#: 5 movable rows the tail must start at ``pack - max_moved + 1``.
+REMOTE_HEAD_RECALL_INSERT_AT = 6
+#: The smallest hydrated evidence pack any frozen path uses
+#: (``product/ci_reality_legs.py`` defaults ``evidence_count`` to 10; the frozen
+#: structural gate ``product/reality_check.py:119`` caps the served bundle at
+#: 100).  ``INSERT_AT`` and ``MAX_MOVED`` are chosen so the reserved tail tiles
+#: its tail exactly: ``INSERT_AT + MAX_MOVED - 1 == 10``.  If a future path
+#: shrinks the pack below this, the tail silently overflows and must be
+#: re-derived — ``test_evidence_pack_recall.py`` fails on that regression.
+REMOTE_HEAD_RECALL_EVIDENCE_PACK = 10
 REMOTE_FEDERAL_COURTS = frozenset({"bger", "bge", "bstger"})
 #: Channels whose raw score ranks answers *to this question*.  A row
 #: recalled by the head-recall window must have arrived through one of these;
