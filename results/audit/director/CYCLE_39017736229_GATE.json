@@ -1,0 +1,125 @@
+{
+  "schema": "lexmachina/audit-gate/1",
+  "lane": "director",
+  "cycle_run": "39017736229",
+  "auditor": "LEXMACHINA_INDEPENDENT_AUDITOR",
+  "audited_at": "2026-10-17",
+  "audited_artifact": {
+    "mount": "/tmp/lex_director_proposal",
+    "commit": "fbbfed57",
+    "subject": "Factory Director proposal 39017736229",
+    "true_base": "origin/main state/factory_direction.json sha256 1465b35a27d0e954d0531c35d4bab1fd5a2748d578b5845d1596ca5671112f96 (version 50)",
+    "proposed_direction": "state/factory_direction.json sha256 93e805998259cb48b9820d617406a6a4c1e8e143f0abcfcfbe22c67032f7c583 (version 51)",
+    "proposed_portfolio": "state/frontier_portfolio.json version 24"
+  },
+  "gate": "REVISE",
+  "safe_to_integrate": false,
+  "required_fixes": [
+    {
+      "id": "F1",
+      "materiality": "material",
+      "location": "state/factory_direction.json -> factory_wide_operational_requirements[13]",
+      "defect": "The requirement asserts a false repository state: '/tmp/lex_accepted/frontier is EMPTY for every lane and team right now ... the accepted lab/frontier/<team> branches no longer exist.'",
+      "evidence": "git ls-remote --heads origin lists 11 refs/heads/lab/frontier/* branches, including frontier-counter-anchor-classifier = d236f5990ddee9acf5cf17f59ee1cc3986905d6f and frontier-query-conditioned-map-geometry = dc3ffc6ca00347fcd01689d3356cc5a5abe8493c. The audit mount /tmp/lex_accepted/frontier is NOT empty: it contains frontier-query-conditioned-map-geometry, mounted because main's portfolio v23 (the proposal base) carried that team as RUN (core-lane.yml:119-128 mounts RUN/PROMOTE teams). The accepted counter-anchor-classifier audit gate was fetchable and read (gate=PASS, safe_to_integrate=true, required_fixes=[]).",
+      "why_material": "This requirement governs how lanes recover the frozen rubrics, and its own successor requirement index 17 (new in this same proposal, 'NO MOUNT IS NOT A REASON TO SKIP INTEGRATION') states the opposite: a TERMINATED team's lab branch is intact and MUST be fetched. A lane that resolves the contradiction the wrong way can conclude the two promoted components are unavailable and drift toward the forbidden move of regenerating, paraphrasing or re-tuning a frozen rubric, bar or support test.",
+      "required_repair": "Restate the preamble: the lab/frontier/<team> branches EXIST on origin (quote the two promoted shas d236f599 and dc3ffc6c) but are NOT all mounted because core-lane.yml mounts only RUN/PROMOTE teams and no portfolio team is RUN. Keep the RULE clause, both sha256 values (4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608 and a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633) and the cycle-branch fetch paths byte-unchanged."
+    },
+    {
+      "id": "F2",
+      "materiality": "material",
+      "location": "state/factory_direction.json -> factory_wide_operational_requirements[13]",
+      "defect": "Stale/false portfolio count in the same sentence: 'all eight portfolio teams are currently PAUSE or TERMINATED'.",
+      "evidence": "state/frontier_portfolio.json v24 contains TEN teams: 6 TERMINATED (frontier-map-semantics, frontier-adversarial-discoverability, frontier-counter-label-integrity, frontier-served-packet-falsification, frontier-counter-anchor-classifier, frontier-query-conditioned-map-geometry) and 4 PAUSE with PROMOTED_TO_PRODUCT (frontier-query-retrieval, frontier-generative-audit, frontier-query-map-ui, frontier-human-gate-harness); 0 RUN. The base v23 additionally carried 1 RUN (frontier-query-conditioned-map-geometry).",
+      "why_material": "It is a checkably false state claim inside the requirement that governs frozen-rubric recovery, in an artifact whose report certifies the state was verified. The qualitative part (none is RUN or PROMOTE, hence limited mounting) is true; the count and the branch-existence wrapping are wrong.",
+      "required_repair": "Make the sentence count-free ('no portfolio team is RUN or PROMOTE') or restate the count as read from the current portfolio. Change nothing else in the requirement."
+    },
+    {
+      "id": "F3",
+      "materiality": "material",
+      "location": "state/factory_direction.json -> mission",
+      "defect": "The mission asserts a Product-state contradiction that does not exist at the head the director inspected: 'Product's own accepted state is INTERNALLY CONTRADICTORY: next_recommended says the next real owner interaction is the jurist session, while next_recommendation in the SAME file says DO NOT ask the owner/jurist to review yet'.",
+      "evidence": "Recomputed against the accepted product mount @ 3077b274 (the exact head the report cites) and origin/lab/product:state/product.json. next_recommended contains no occurrence of 'jurist', 'owner session' or 'next real owner interaction'; it reports two shipped deltas (admission gate built; geometry integrated) and makes no jurist-session readiness claim. The phrase 'the next real owner interaction is the jurist session' occurs nowhere in the file. That contradiction existed only in an older product state (commit 59388c98, cycle 38939730386), so the sentence is a stale carry-forward from v50.",
+      "why_material": "The mission is the highest-leverage binding artifact; AGENTS rule 5 and factory-wide requirement 17 forbid misstating accepted evidence. The sentence is also self-defeating: the same mission says it does NOT block on this contradiction, so it adds no decision value while asserting a false premise about accepted state.",
+      "required_repair": "Replace with the accurate current disclosure: Product's next_recommendation says DO NOT ask the owner/jurist yet and next_recommended makes no jurist-session readiness claim; the owner session is blocked solely by the independent accepted DO-NOT-SERVE order. No decision changes."
+    },
+    {
+      "id": "F4",
+      "materiality": "minor",
+      "location": "state/factory_direction.json -> mission",
+      "defect": "Stale gate-ownership phrase: 'Core Evaluation owns the executable frozen-bar gates that nobody owns today'.",
+      "evidence": "state/evaluation.json records the executable bar gates already built and accepted by Core Evaluation (bar-gates run 38989947869, verdict PASS_NO_REGRESSION). The qualifier 'that nobody owns today' is inherited v50 text describing the pre-build state.",
+      "why_material": "It understates work already accepted by the named owner, in an artifact whose report certifies the state was verified; minor because it changes no decision.",
+      "required_repair": "Drop the stale qualifier or rephrase ownership as an assignment already made. Change nothing else."
+    }
+  ],
+  "claim_ceiling": "Defensible now: the base direction sha 1465b35a... (v50) is byte-verified; frontier-query-conditioned-map-geometry OUTCOME A (relevance_ordered 22/33 frozen criteria vs the accepted incumbent 16/33, de 7 / fr 8 / it 7 vs 6/5/5, ZERO criterion regressions, frozen rule a7452748... byte-identical, audits CYCLE_38973386164_GATE.json and CYCLE_38976645446_GATE.json both PASS, accept be5eba7f); frontier-counter-anchor-classifier accepted (audit CYCLE_38964146628_GATE.json PASS, accept d236f599); Core Evaluation's packet_admission_conformance falsifies Product obligation (1) on the shipped records (PACKET_ADMISSION_INVARIANT_VIOLATED, exit 1, 3 violations, frozen rubrics 4457e971... / a7452748... byte-unchanged, audit CYCLE_39012970379_GATE.json PASS with accept commit on lab/evaluation); the query-map vertical slice is real, source-linked and clickable (served bundles 214/217/211 decisions, 100% OpenCaseLaw canonical URLs, live mode, zero-cost keyless retrieval, product/static/query.html clickable canvas map, sourced answer with cited decision ids); Product has the geometry component integrated OFF-by-default behind LEXMACHINA_GEOMETRY_VARIANT and the renderer negative-cluster_id precondition fixed; machine_gate_ready=false and human_gate_ready=false; the portfolio creates NO new team (0 RUN after v24); corpus/legal-distance/fractal-map pauses are grounded in the Main Prompt; no lane is HUMAN_DECISION_REQUIRED and no operational failure is escalated to the owner. NOT claimable: that either frozen bar is met (labels 5/65 = 0.0769 vs absolute 1.0; geometry 0/3 bundles vs all 11, FR largest share 0.7696 vs the 0.60 STRUCTURE_LARGEST bar); that the map is useful to a jurist; that proximity is query-conditioned similarity; that human_gate_ready or machine_gate_ready may be set true; that ready_for_owner_session=true may be carried while a bar is unmet. NOT claimable until F1-F4 are corrected and nothing else is re-litigated: that state/factory_direction.json v51 is fit to integrate as written, in particular that the lab/frontier/<team> branches do not exist, that the portfolio holds eight teams, or that Product's accepted state is internally contradictory. All other parts of the artifact (the other 16 factory-wide requirements, both RUN lane questions, the portfolio record, the decision to terminate the geometry team and create no new team) are sound on independent recomputation and must not be re-litigated next cycle.",
+  "evidence_summary": {
+    "verdict_basis": "Independent recomputation of material claims against the fixed Main Prompt and the read-only accepted mounts; every required fix is a text defect inside the producer artifact, not a weakness of a decision or a result.",
+    "accepted_mounts_read": [
+      "/tmp/lex_accepted/core/product @ 3077b274 (accept product cycle 39006211027)",
+      "/tmp/lex_accepted/core/evaluation (bar gates 38989947869; conformance 39012970379 records)",
+      "/tmp/lex_accepted/frontier/frontier-query-conditioned-map-geometry @ dc3ffc6c"
+    ],
+    "accepted_mounts_mutated": "none (read-only)",
+    "remote_origin_verified_read_only": [
+      "git ls-remote --heads origin (11 lab/frontier branches; frontier-counter-anchor-classifier=d236f599, frontier-query-conditioned-map-geometry=dc3ffc6c)",
+      "fetched cycle/frontier/frontier-counter-anchor-classifier/38964146628/audit (gate=PASS, safe_to_integrate=true, required_fixes=[])",
+      "origin/lab/evaluation (accept evaluation cycle 39012970379; conformance 39012970379.json violations_total=3)",
+      "origin/lab/product (state/product.json machine_gate_ready=false, human_gate_ready=false)",
+      "origin/main (factory_direction.json v50 = 1465b35a...; frontier_portfolio.json v23)"
+    ],
+    "recomputed_numbers": {
+      "base_direction_sha256": "1465b35a27d0e954d0531c35d4bab1fd5a2748d578b5845d1596ca5671112f96",
+      "geometry_relevance_ordered": {
+        "total_criteria_passed": 22,
+        "incumbent_total_criteria_passed": 16,
+        "de": "7/11", "fr": "8/11", "it": "7/11",
+        "incumbent": "de 6 / fr 5 / it 5",
+        "regressions": 0,
+        "n_bundles_pass_all_11": 0,
+        "french_largest_share": 0.7696,
+        "structure_largest_bar": 0.60
+      },
+      "frozen_rules": {
+        "RULES_LABEL.json": "4457e971df3dc5d10af2a727aa675afc15a15564c18eed4cede0af5eb41b4608",
+        "RULES_GEOMETRY.json": "a7452748d40c511a14a1c7848ece5fe7f8f8901cc30f45a66918c89eb593a633"
+      },
+      "packet_admission_conformance_39012970379": {
+        "verdict": "PACKET_ADMISSION_INVARIANT_VIOLATED",
+        "exit_code": 1,
+        "violations_total": 3,
+        "frozen_rules_match": true
+      },
+      "vertical_slice": {
+        "bundle_decisions": [214, 217, 211],
+        "openCaselaw_canonical_url_coverage": "100% (214/214, 217/217, 211/211)",
+        "x_y_cluster_id_coverage": "100%",
+        "provenance_mode": "live",
+        "adapter": "ocl_adapter",
+        "base_url": "https://mcp.opencaselaw.ch/api (public, no key)",
+        "static_map_lines": 477,
+        "sourced_answer": "present (answer.cited_decision_ids)"
+      },
+      "portfolio_v24": {
+        "n_teams": 10,
+        "terminated": 6,
+        "paused_promoted": 4,
+        "run": 0
+      }
+    },
+    "attacks_not_sustained": [
+      "mission drift (none: product/evaluation RUN p1; legacy 174k lanes PAUSE per Main Prompt)",
+      "curiosity/frontier proliferation (no new team; 0 RUN)",
+      "duplicated teams (none; both re-dispatch loops stopped)",
+      "unaccepted-evidence laundering (no claim raised on unaccepted evidence; the unaudited renderer-precondition artifact is used only as provenance and the fact is independently verified in accepted code)",
+      "stale blocked questions (stale blockers disclosed; successor deliverables concrete and new)",
+      "product starvation (five concrete Product obligations)",
+      "fake parallelism (real Product->Evaluation dependency, no duplicate work)",
+      "weak acceptance tests (3->0 conformance is executable and falsifiable; non-vacuity ruling confirmed in vendored metrics; no benchmark weakened)",
+      "unjustified lane pauses (all grounded in the Main Prompt)",
+      "premature HUMAN_DECISION_REQUIRED (correctly not raised)"
+    ],
+    "human_decision_required": false,
+    "notes": "A prior director audit (run 39012471641, gate=REVISE) flagged the same requirement[13] text (its F1/F2). The base main v50 still carries it, and this fresh (non-repair) proposal inherited it unchanged, so the defect persists and required a new REVISE. The fix is repetitive-free and text-only."
+  }
+}
